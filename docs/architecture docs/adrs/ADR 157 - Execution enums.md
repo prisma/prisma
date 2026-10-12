@@ -6,7 +6,7 @@ We want enum-like behavior that is explicit in storage and reusable in execution
 
 ## Summary
 
-> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived CHECK, not ADR 156's sets and `inSet` checks.
+> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived check, not ADR 156's sets and `inSet` checks, and execution reads the domain enum, not storage enforcement.
 
 - “Enum” means **a set of allowed values** plus an explicit **storage enforcement mechanism**.
 - The execution plane derives “allowed values” from storage enforcement so lanes don’t drift.
@@ -14,6 +14,8 @@ We want enum-like behavior that is explicit in storage and reusable in execution
 - Targets can also have **native enum types**, as long as they’re explicit in storage (Postgres today).
 
 ## Context
+
+> The last paragraph is superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): execution reads the domain enum, not storage enforcement.
 
 Developers want to write “this column is an enum with these values” and have three things line up:
 
@@ -28,6 +30,8 @@ So “enum” is not a single portable storage primitive across SQL targets.
 This ADR defines what “execution enums” means in Prisma Next: a consistent execution-plane view of “allowed values”, derived from explicit storage enforcement in the contract.
 
 ## Prior ADRs
+
+> ADR 156 is superseded. The [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized) says what replaced it.
 
 This ADR builds directly on:
 
@@ -48,7 +52,7 @@ Note: we call it a “set” because that’s the mental model, but some storage
 
 ## What problem are we solving?
 
-> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): a native enum is a `native_enum` storage entry, and the portable mechanism is a value set plus a derived CHECK.
+> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): a native enum is a `native_enum` storage entry, and the portable mechanism is a value set plus a derived check.
 
 The primary problem is: **how do we provide enum behavior on databases that don’t have a native enum representation?**
 
@@ -76,7 +80,7 @@ We want one implementation shared via the execution context, derived from the co
 
 ## Design constraints
 
-> The value-encoding bullet is superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): members are stored in the form the codec stores them.
+> The "execution derives from storage" and value-encoding bullets are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): `db.enums` reads the domain enum, and members are stored in the form the codec stores them.
 
 - **Contract must be explicit**: storage enforcement is described directly in `storage`, not inferred later.
 - **Execution derives from storage**: execution-plane “allowed values” are derived from `storage`, not duplicated under `execution`.
@@ -150,6 +154,8 @@ At a conceptual level, derivation looks like this:
 The important part is *where this logic lives*: it should be implemented once (execution context / shared execution helper), then reused by all lanes.
 
 ## Where logic lives
+
+> The execution-plane bullets are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): execution reads the domain enum, and on SQL targets the database enforces membership.
 
 - **Authoring/emission**:
   - users author “enum with values” ergonomically
@@ -265,6 +271,8 @@ Execution helpers derived from storage do not need to affect marker verification
 
 ### “Why not store enums only in the model section?”
 
+> Superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized). The domain plane holds the enum, with its names, values and codec, and `db.enums` reads it. Storage holds the value set that columns reference and the derived checks that enforce it.
+
 Because SQL query lanes operate on tables/columns, and the database enforces constraints on tables/columns. Enum behavior needs to be derivable from storage enforcement, not from a model-only view.
 
 ### “Why do sets store strings + a codecId?”
@@ -287,19 +295,39 @@ A client resolves every enum's codec when it builds `db.enums`, so a client refu
 
 ## Amendment (October 12, 2026) — how enums are realized
 
-The idea of this ADR stands. The contract realizes it as follows, and this replaces the sections marked above.
+The idea of this ADR stands: an enum is a set of allowed values plus an explicit enforcement mechanism. The contract realizes it as follows, and this replaces the sections marked above.
 
-**A domain enum.** PSL writes `enum Name { @@type("<codec id>") Member = <value> }`, and TypeScript writes `enumType(name, codec, member(...))`. The contract holds it at `domain.namespaces.<ns>.enum.<Name>`: the `codecId` and the ordered `members`, each a `{ name, value }` pair. The value is in the form the codec stores it, so a `pg/int4@1` member is the number `1` and a `pg/int8@1` member is the string `"1"`.
+**A domain enum.** PSL writes `enum Name { Member = <value> }` with an optional `@@type("<codec id>")`. Without `@@type`, the codec is inferred from the members: text members take the target's text codec, integer members take its integer codec, and any other members are the error `PSL_ENUM_CANNOT_INFER_TYPE`. TypeScript writes `enumType(name, codec, member(...))`. The contract holds the enum at `domain.namespaces.<ns>.enum.<Name>`, where `<ns>` is the target's default namespace (`public` on Postgres), whatever namespace the model that uses it is in. It holds the `codecId` and the ordered `members`, each a `{ name, value }` pair. The value is in the form the codec stores it, so a `pg/int4@1` member is the number `1` and a `pg/int8@1` member is the string `"1"`.
 
-**A value set.** The contract build also writes `storage.namespaces.<ns>.entries.valueSet.<Name>`, the ordered stored values. A field typed by the enum carries a `valueSet` reference to the domain enum, and its column carries a `valueSet` reference to the value set. A reference names the plane, the entity kind, the namespace and the name. The emitted read type of the field narrows the codec's output type to the members.
+**A value set.** The contract build also writes `storage.namespaces.<ns>.entries.valueSet.<Name>` in the same namespace: the ordered stored values. Both the SQL and the Mongo family write it. A field typed by the enum carries a `valueSet` reference to the domain enum, and on SQL its column carries a `valueSet` reference to the value set. A reference names the plane, the entity kind, the namespace and the name.
 
-**Enforcement.** On a `managed` table, the contract build derives a CHECK from the column and its members and stores it as an opaque wire-named expression ([ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>)). A scalar column gets `"col" IN (...)` and a list column gets `array_remove("col", NULL) <@ '{...}'`. `@noCheck` opts a column out. SQLite emits no check (ADR 244). Mongo enforces membership with the `enum` keyword of the collection's `$jsonSchema` validator.
+**Why an enum has two representations.** The domain enum is the application's concept: the member names, the values and the codec. The emitted domain types and `db.enums` read it. The value set is its storage projection: the stored values a column references, which a reader of the storage plane can resolve without the domain plane. Both are written from the one declaration. A native enum has only the value set, so the emitter types its columns and `db.nativeEnums` reads its members from there.
 
-**A native Postgres enum.** PSL writes a `native_enum Name { ... }` block and types a column `pg.enum(Name)`. The contract holds a `native_enum` storage entry keyed by the Postgres type name, a value set derived from it under the block's name, and columns with `dataType: "pg/enum"` and `typeParams.typeName`. The database type enforces membership, so no CHECK is derived.
+**The derived check.** On a `managed` table, the SQL contract build derives a check from the column and the enum's members, and stores it as an opaque wire-named expression ([ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>)). This ADR calls it the derived check. A scalar column gets `"col" IN (...)`. A list column gets `array_remove("col", NULL) <@ '{...}'`, and a second derived check, `array_position("col", NULL) IS NULL`, when its elements are not nullable. `@noCheck` waives derived checks on one column: bare, it waives every kind; `@noCheck(membership)` or `@noCheck(elementNotNull)` waives one kind. SQLite has no check renderer, so it derives no checks (ADR 244). Mongo enforces membership with the `enum` keyword of the collection's `$jsonSchema` validator.
 
-**Execution.** A column's allowed values are the values of the value set its `valueSet` reference names, for both kinds of enum. `db.enums.<ns>.<Name>` holds each domain enum, with members decoded as the October 7 amendment describes. `db.nativeEnums.<ns>.<Name>` holds native Postgres enums only: it reads the namespace's value sets and leaves out each one a domain enum names.
+**A native Postgres enum.** PSL writes a `native_enum` block and types a column `pg.enum(Name)`. TypeScript writes `nativeEnum(name, ...values)`, with `.map(typeName)` for the Postgres type name, and types a column `pg.enum(handle)`:
 
-**Which codecs can type an enum.** A codec without the `equality` trait, or one that sets `enumRefusal`, cannot type an enum ([ADR 254](<./ADR 254 - Data types and casts.md>), amendment of October 7, 2026). When a CHECK is derived, each member must be stored as a string or a finite number. Both refusals are `CONTRACT.ENUM_INVALID`.
+```ts
+const intColumn = { codecId: 'pg/int4@1' } as const;
+const AalLevel = nativeEnum('AalLevel', 'aal1', 'aal2', 'aal3').map('aal_level');
+
+const contract = defineContract({
+  models: {
+    Session: model('Session', {
+      fields: {
+        id: field.column(intColumn).id(),
+        aal: field.column(pg.enum(AalLevel)).optional(),
+      },
+    }).sql({ table: 'sessions' }),
+  },
+});
+```
+
+The contract holds a `native_enum` storage entry keyed by the Postgres type name (`aal_level`), a value set derived from it keyed by the entity name (`AalLevel`), and columns with `dataType: "pg/enum"`, `typeParams.typeName` and a `valueSet` reference to that value set. A native enum has no domain entity. Its domain field has `typeParams.typeName` and no `valueSet` reference, and its emitted type comes from the storage value set. PSL member names such as `OPEN` do not reach the contract: the entry and the value set hold the values only, and `db.nativeEnums` names each member by its value. The database type enforces membership, so no check is derived.
+
+**Execution.** No runtime code reads a column's `valueSet` reference. The client exposes accessors. `db.enums` holds each domain enum, built from the domain plane, with members decoded as the October 7 amendment describes. On Postgres it is `db.enums.<ns>.<Name>`; SQLite and Mongo expose `db.enums.<Name>`, from the unbound namespace. On Postgres, `db.nativeEnums.<ns>.<Name>` holds the native enums: the namespace's value sets, minus each one a domain enum names. On SQL targets the database enforces membership, through the derived check or the native type, and query lanes do not check it. The Mongo ORM checks a written value against `db.enums`. The emitted types narrow a field's read and write types to the members.
+
+**Which codecs can type an enum.** A codec without the `equality` trait, or one that sets `enumRefusal`, cannot type an enum ([ADR 254](<./ADR 254 - Data types and casts.md>), amendment of October 7, 2026). On a `managed` table of a target that derives checks (Postgres today), each member of an enum column must be stored as a string or a finite number. The rule applies even when `@noCheck` waives the derived check, because the build reads the members before it applies `@noCheck`. Both refusals are `CONTRACT.ENUM_INVALID`.
 
 **Example.** This schema declares one domain enum and one native enum:
 
@@ -410,6 +438,8 @@ The emitted row type has `priority: 1n | 10n` and `status: 'open' | 'closed'`.
 
 ## Consequences
 
+> The "portable baseline" benefit and the first cost are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived check, and execution reads the domain enum.
+
 ### Benefits
 
 - **Explicit contracts**: no target-dependent reinterpretation of “enum”.
@@ -422,6 +452,8 @@ The emitted row type has `priority: 1n | 10n` and `status: 'open' | 'closed'`.
 - Some targets have caveats around check constraints; capabilities must be honest about enforcement support.
 
 ## Related
+
+> ADR 156 is superseded. The [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized) says what replaced it.
 
 - ADR 155 — Driver/Codec boundary value representation and responsibilities
 - ADR 156 — Storage sets and check constraints

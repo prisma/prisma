@@ -141,7 +141,7 @@ Throwing on miss is a deliberate strengthening of the "bare factories can't see 
 
 ### Codecs with no static `nativeType`
 
-`pg/enum@1` has no static `meta.db.sql.postgres.nativeType` — the type name is per-column, derived from `typeParams.values`. Codecs without a `nativeType` produce no cast. That's correct for v1: column context disambiguates enums in normal use. If per-column enum casts ever become necessary, a follow-up can route per-column metadata through `LowererContext` without changing the codec interface.
+`pg/enum@1` has no static `meta.db.sql.postgres.nativeType` — the type name is per-column, held in `typeParams.typeName`. Codecs without a `nativeType` produce no cast. That's correct for v1: column context disambiguates enums in normal use. If per-column enum casts ever become necessary, a follow-up can route per-column metadata through `LowererContext` without changing the codec interface.
 
 ## Consequences
 
