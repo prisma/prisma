@@ -116,6 +116,7 @@ function backfillOf(column: string): FieldStatementColumns {
         table: 'user',
         column,
         field: { namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID), model: 'User', field: column },
+        text: `User.${column}`,
       },
     ],
   };
@@ -411,6 +412,7 @@ describe('planIssues', () => {
                 model: 'User',
                 field: 'age',
               },
+              text: 'User.age',
             },
           ],
           backfill: [],
