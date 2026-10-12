@@ -94,7 +94,7 @@ await db.User.include('posts', (posts) => posts.using.post_search(q).limit(3)).a
 ```
 
 - The Postgres target contributes the method for `fullText` indexes, so `postgres()` and the serverless client both offer it. It filters with `fns.fullTextMatches` and orders by `fns.fullTextRank`, descending, both naming the index.
-- A method returns the collection it was called on, with `Filtered` and `Ordered` added: a custom class stays the class. It works on a root collection, after other methods, inside an include refinement, inside `with` and a fragment for one model, and on `this` in a custom class. The body of a fragment for any model has no `using`.
+- A method returns the collection it was called on, with `Filtered` and `Ordered` added: a custom class stays the class. It works on a root collection, after other methods, inside an include refinement, inside `with` and a fragment for one model, and on `this` in a custom class. In the body of a fragment for any model (`db.orm.fragment(fields, body)`), the collection's type has no `using` member, and at run time its `using` is an empty object.
 - Its order is an ordinary order, added where it is called: an `orderBy` before it comes first, and one after it comes after.
 - A model with no matching index has a `using` with no members. On a collection narrowed by `variant`, `using` serves the base model's table's indexes.
 - `using` is a member of every collection: a custom class cannot declare its own `using`, and an aggregate operation named `using` is refused.

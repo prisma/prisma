@@ -120,6 +120,27 @@ function checkConsumer(options: ts.CompilerOptions, declaration: string) {
   );
 }
 
+/** Typechecks a file on its own, so the program holds only what that file and the contract's types import. */
+function checkAlone(options: ts.CompilerOptions, source: string) {
+  const program = ts.createProgram([temporalGlobals, source], { ...options, noEmit: true });
+  return messages(ts.getPreEmitDiagnostics(program, program.getSourceFile(source)));
+}
+
+describe('contributed collection methods in a program that imports only the ORM client and the contract', () => {
+  it(
+    'types using.post_search through the contract types alone',
+    () => {
+      expect(
+        checkAlone(
+          demoCompilerOptions(),
+          resolve(demoRoot, 'test/fixtures/contract-only-library.ts'),
+        ),
+      ).toEqual([]);
+    },
+    timeouts.typeScriptCompilation,
+  );
+});
+
 describe('declaration emit through the published facade', () => {
   const options = demoCompilerOptions();
   const emitted = emitLibraryDeclaration(options);

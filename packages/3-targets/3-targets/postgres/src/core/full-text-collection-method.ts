@@ -1,6 +1,7 @@
 import type { IndexReference } from '@internal/sql-relational-core/index-reference';
 import type {
   CollectionMethodContribution,
+  CollectionMethodRegistry,
   CollectionMethodSignature,
   CollectionMethodTools,
 } from '@internal/sql-relational-core/query-lane-context';
@@ -39,8 +40,8 @@ function indexFunction(
 
 /** The run-time half of `PostgresFullTextMethod`. */
 export const postgresFullTextMethod: CollectionMethodContribution = {
-  id: 'postgres/fullText',
-  target: 'postgres',
+  id: 'postgres/fullText' satisfies keyof CollectionMethodRegistry,
+  target: 'postgres' satisfies PostgresFullTextMethod['target'],
   matches: (index) => index.type === FULL_TEXT_INDEX_TYPE,
   method: (collection, indexName, ...args) =>
     collection

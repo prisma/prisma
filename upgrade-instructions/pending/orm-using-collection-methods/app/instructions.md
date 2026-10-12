@@ -6,12 +6,12 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*\bextends\s+Collection\b)[\s\S]*\n[ \t]*(?:(?:public|private|protected|override|readonly|async|declare|static|accessor)[ \t]+)*(?:(?:(?:get|set)[ \t]+)?using[ \t]*[?!]?[ \t]*[(<]|using[ \t]*[?!]?[ \t]*=(?![=>])|using[ \t]*[?!]?[ \t]*:[^\n,]*;)'
+        - '(?<![\s\S])(?=[\s\S]*\bextends\s+Collection\b)[\s\S]*\n[ \t]*(?:(?:public|private|protected|override|readonly|async|declare|static|accessor)[ \t]+)*(?:(?:(?:get|set)[ \t]+)?using[ \t]*[?!]?[ \t]*[(<]|using[ \t]*[?!]?[ \t]*=(?![=>])|using[ \t]*[?!]?[ \t]*:[^\n]*[^,\s][ \t]*(?:\n|$))'
 ---
 
 # `using` is a member of every collection
 
-A collection's `using` member holds the collection methods that packages contribute for the indexes of the model's table. The Postgres package contributes one for each full-text index, so `db.Post.using.post_search(q)` filters to the posts that match `q` and orders them by relevance.
+A collection's `using` member holds the collection methods that packages contribute for the indexes of the model's table. The Postgres target contributes one for each full-text index, so `db.Post.using.post_search(q)` filters to the posts that match `q` and orders them by relevance.
 
 A custom collection class registered with `orm({ collections })` can no longer declare its own `using`, whether as a method, a getter or a property. TypeScript refuses it because the base class defines `using` as an accessor. Rename the member, and its callers:
 
