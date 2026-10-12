@@ -1,5 +1,13 @@
 export { Collection } from '../collection';
 export type {
+  CollectionMethod,
+  CollectionMethodKind,
+  CollectionMethodRegistry,
+  CollectionMethodResult,
+  CollectionMethods,
+  ModelCollectionMethodTable,
+} from '../collection-methods';
+export type {
   CollectionRowOf,
   CollectionTypeStateOf,
   Filtered,

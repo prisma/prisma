@@ -1,4 +1,5 @@
 export { isPgClient, isPgPool, type PostgresBinding } from '../runtime/binding';
+export type { PostgresFullTextMethod } from '../runtime/full-text-collection-method';
 export { buildNamespacedNativeEnums, type NamespacedNativeEnums } from '../runtime/native-enums';
 export type {
   PostgresClient,

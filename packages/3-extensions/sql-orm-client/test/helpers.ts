@@ -161,10 +161,14 @@ export function buildTestContextFromContract<TContract extends FrameworkContract
   contract: TContract,
   options?: {
     readonly mutationDefaultGenerators?: ReadonlyArray<RuntimeMutationDefaultGenerator>;
+    readonly extensions?: ReadonlyArray<SqlRuntimeExtensionDescriptor<'postgres'>>;
   },
 ): ExecutionContext<TContract> {
   const generators = options?.mutationDefaultGenerators ?? [];
-  const extensions: SqlRuntimeExtensionDescriptor<'postgres'>[] = [pgVectorCodecStubExtension];
+  const extensions: SqlRuntimeExtensionDescriptor<'postgres'>[] = [
+    pgVectorCodecStubExtension,
+    ...(options?.extensions ?? []),
+  ];
   if (generators.length > 0) {
     extensions.push({
       kind: 'extension',

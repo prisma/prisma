@@ -59,6 +59,7 @@ import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type {
   CodecDescriptorRegistry,
   ExecutionContext,
+  SqlCollectionMethodContribution,
   TypeHelperRegistry,
 } from '@internal/sql-relational-core/query-lane-context';
 import { createAstCodecResolver } from './codecs/ast-codec-resolver';
@@ -82,6 +83,7 @@ export interface SqlStaticContributions
   extends Pick<MutationDefaultGeneratorContributor, 'mutationDefaultGenerators'> {
   readonly codecs: () => ReadonlyArray<AnyCodecDescriptor>;
   readonly queryOperations?: () => SqlOperationDescriptors;
+  readonly collectionMethods?: () => ReadonlyArray<SqlCollectionMethodContribution>;
 }
 
 export interface SqlRuntimeTargetDescriptor<
@@ -662,6 +664,9 @@ export function createExecutionContext<
     queryOperations: queryOperationRegistry,
     types,
     rawCodecInferer: stack.adapter.rawCodecInferer,
+    collectionMethods: contributors.flatMap(
+      (contributor) => contributor.collectionMethods?.() ?? [],
+    ),
     applyMutationDefaults: (options) =>
       applyMutationDefaults(contract.execution, mutationDefaultGeneratorRegistry, options),
   };

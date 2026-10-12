@@ -1,0 +1,31 @@
+// use prisma-8
+
+// Emitted fixture for the sql-orm-client tests of contributed collection
+// methods. `notes_title_trgm` has the test-only index type `test/trigram`,
+// which `trigram-pack.ts` registers. Memo is a variant of Note, stored in the
+// notes table.
+
+model Note {
+  id    Int    @id
+  title String
+  body  String
+  kind  String
+
+  @@discriminator(kind)
+  @@fullTextIndex([[title], body], name: "notes_search")
+  @@index([title], type: "test/trigram", name: "notes_title_trgm")
+  @@map("notes")
+}
+
+model Memo {
+  pinned Boolean
+
+  @@base(Note, "memo")
+}
+
+model Tag {
+  id    Int    @id
+  label String
+
+  @@map("tags")
+}

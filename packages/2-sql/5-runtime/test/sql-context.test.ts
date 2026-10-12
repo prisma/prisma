@@ -4,6 +4,7 @@ import type { RuntimeDriverDescriptor } from '@internal/framework-components/exe
 import { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationDescriptors } from '@internal/sql-operations';
 import type { Codec } from '@internal/sql-relational-core/ast';
+import type { SqlCollectionMethodContribution } from '@internal/sql-relational-core/query-lane-context';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
@@ -136,6 +137,32 @@ describe('createExecutionContext', () => {
 
     const entries = context.queryOperations.entries();
     expect(entries['testOp']).toBeDefined();
+  });
+
+  it('collects the collection methods the target and extensions contribute, in stack order', () => {
+    const method = (id: string): SqlCollectionMethodContribution => ({
+      id,
+      matches: () => false,
+      method: (collection) => collection,
+    });
+    const extension = (id: string): SqlRuntimeExtensionDescriptor<'postgres'> => ({
+      ...createTestExtensionDescriptor({ hasCodecs: false, hasOperations: false }),
+      id,
+      collectionMethods: () => [method(`${id}/method`)],
+    });
+    const context = createExecutionContext({
+      contract: testContract,
+      stack: {
+        ...createStack({ extensions: [extension('first'), extension('second')] }),
+        target: { ...createTestTargetDescriptor(), collectionMethods: () => [method('target')] },
+      },
+    });
+
+    expect(context.collectionMethods?.map(({ id }) => id)).toEqual([
+      'target',
+      'first/method',
+      'second/method',
+    ]);
   });
 
   it('handles extension with no contributions', () => {

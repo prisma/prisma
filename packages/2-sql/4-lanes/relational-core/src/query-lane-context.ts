@@ -6,6 +6,7 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationRegistry } from '@internal/sql-operations';
 import type { SqlAggregateDescriptor, SqlAggregateLowering } from './aggregate-descriptor';
 import type { ContractCodecRegistry } from './ast/codec-types';
+import type { SqlCollectionMethodContribution } from './collection-method-contribution';
 import type { RawCodecInferer } from './expression';
 
 /**
@@ -97,4 +98,8 @@ export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contr
    * The adapter's codec inferer, which `fns.raw` uses for a bare value interpolated into a template. An execution context built from an execution stack carries it.
    */
   readonly rawCodecInferer?: RawCodecInferer;
+  /**
+   * The collection methods the target and extensions contribute. The ORM client offers one under `using` for each index one of them matches.
+   */
+  readonly collectionMethods?: ReadonlyArray<SqlCollectionMethodContribution>;
 }

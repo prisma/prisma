@@ -285,6 +285,17 @@ describe('reserved operation names', () => {
     );
   });
 
+  it('a contributed operation named using is rejected at composition', () => {
+    const context = contextWith([{ ...shadowingBuilderMethod, operation: 'using' }]);
+
+    expect(() => orm({ runtime: createMockRuntime(), context })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.AGGREGATE_OPERATION_RESERVED',
+        meta: { operation: 'using' },
+      }),
+    );
+  });
+
   it('a contributed operation named scope is accepted and installed as a reducer', () => {
     const context = contextWith([{ ...headcountAny, operation: 'scope' }]);
 
