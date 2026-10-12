@@ -291,4 +291,21 @@ describe('a field whose stored name holds a dot', () => {
       },
     ]);
   });
+
+  it('refuses Model.a.b when it also resolves as namespace.Model.field', () => {
+    const origin = contractOf({
+      a: { models: { b: { fields: ['c'] } } },
+      app: { models: { a: { fields: ['b.c'] } } },
+    });
+    const destination = contractOf({
+      a: { models: { b: { fields: ['d'] } } },
+      app: { models: { a: { fields: ['b.d'] } } },
+    });
+    expectFailure(
+      resolve(['a.b.c:a.b.d'], origin, destination),
+      UNRESOLVED,
+      'namespace "a" model "b" field "c"',
+      'model "a" field "b.c"',
+    );
+  });
 });
