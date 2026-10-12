@@ -73,9 +73,17 @@ export function dbInitRowsWithoutValueFix(reports: readonly RowsWithoutValueRepo
   return `Run \`{bin} db init\` with ${subject} optional, or give it a default. Then make it required with \`{bin} db update\`, which says how to give the rows a value.`;
 }
 
-function replan(flags: readonly string[], failedMigration: FailedMigration): string {
+function replan(
+  flags: readonly string[],
+  failedMigration: FailedMigration,
+  except: string | undefined = undefined,
+): string {
   const { directory, from } = failedMigration;
-  return `copy any code you wrote in \`${directory}/migration.ts\`, delete \`${directory}\`, and plan it again with ${migrationPlanCommand(flags, from)} and the statements you planned it with before. Then write that code and the new steps in the migration.ts it writes, and apply it with \`{bin} db migrate\``;
+  const earlier =
+    except === undefined
+      ? 'the statements you planned it with before'
+      : `the statements you planned it with before, except ${except}`;
+  return `copy any code you wrote in \`${directory}/migration.ts\`, delete \`${directory}\`, and plan it again with ${migrationPlanCommand(flags, from)} and ${earlier}. Then write that code and the new steps in the migration.ts it writes, and apply it with \`{bin} db migrate\``;
 }
 
 function migrateFailedCastFix(
@@ -86,7 +94,8 @@ function migrateFailedCastFix(
   if (failedMigration === undefined) {
     return `${failedCastText(cast)} Plan the type change again with \`{bin} migration plan ${convert}\`, and write the conversion in the migration.ts it writes.`;
   }
-  return `${failedCastText(cast)} The failed apply changed nothing. To convert it, ${replan([convert], failedMigration)}.`;
+  const deleted = `\`${statementFlag({ verb: 'delete', text: cast.field })}\``;
+  return `${failedCastText(cast)} The failed apply changed nothing. To convert it, ${replan([convert], failedMigration, deleted)}.`;
 }
 
 function migrateRowsWithoutValueFix(
@@ -98,13 +107,28 @@ function migrateRowsWithoutValueFix(
     flags.length === 0 || failedMigration === undefined
       ? undefined
       : replan(flags, failedMigration);
-  if (reports[0]?.reason === 'nullValues') {
-    const rerun = 'Set a value in those rows and re-run `{bin} db migrate`.';
+  if (reports.every(({ reason }) => reason === 'nullValues')) {
+    const rerun =
+      reports.length === 1
+        ? 'Set a value in those rows and re-run `{bin} db migrate`.'
+        : `Set a value in the rows that hold NULL in each of ${fieldList(reports)} and re-run \`{bin} db migrate\`.`;
     return again === undefined ? rerun : `${rerun} Or ${again}.`;
+  }
+  if (reports[0]?.reason === 'nullValues') {
+    return again === undefined
+      ? 'The migration also adds a required field the existing rows have no value for, so setting values is not enough: make the new fields optional or give them a default, and plan the migration again.'
+      : `The migration also adds a required field the existing rows have no value for, so setting values is not enough. The failed apply changed nothing: ${again}.`;
   }
   return again === undefined
     ? 'Make the field optional or give it a default, and plan the migration again.'
     : `The failed apply changed nothing. To keep the field required, ${again}. Or make the field optional or give it a default, and plan it again.`;
+}
+
+function fieldList(reports: readonly RowsWithoutValueReport[]): string {
+  return reports
+    .map(({ field }) => (field === undefined ? undefined : `"${field}"`))
+    .filter((field) => field !== undefined)
+    .join(', ');
 }
 
 function migrateFix(failure: MigrateFailure): string {

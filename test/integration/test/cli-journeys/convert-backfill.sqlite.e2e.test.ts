@@ -517,6 +517,51 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
+      'follows the advice for NULL rows beside a new required field to a migration that fills both',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(ctx, WITH_ROLE.replace('nickname String?', 'nickname String '));
+        await plannedPlain(ctx, 'nickname-and-role');
+
+        const failed = await runMigrate(ctx, ['--json']);
+        expect(failed.exitCode).not.toBe(0);
+        const advice = parseJsonOutput<{
+          readonly nextActions: readonly { readonly label: string }[];
+        }>(failed)
+          .nextActions.map(({ label }) => label)
+          .join('\n');
+        expect(advice).not.toContain('re-run');
+        const directory = /delete `([^`]+)`/.exec(advice)?.[1];
+        const command = /`\S+ migration plan ([^`]+)`/.exec(advice)?.[1];
+        const args = (command ?? '').split(' ');
+        expect(args).toEqual(expect.arrayContaining(['User.nickname', 'User.role']));
+
+        rmSync(resolve(ctx.testDir, directory ?? ''), { recursive: true });
+        const planned = await runMigrationPlan(ctx, args);
+        expect(planned.exitCode, `plan as printed: ${planned.stdout}\n${planned.stderr}`).toBe(0);
+        await fillAndApply(
+          ctx,
+          join(ctx.testDir, 'migrations', 'app', latestMigrationDirName(ctx)),
+          (scaffold) =>
+            scaffold
+              .replace(
+                /\(\) => placeholder\((['"])User\.nickname:run\1\)/,
+                '() => `UPDATE "User" SET nickname = \'anon\' WHERE nickname IS NULL`',
+              )
+              .replace(
+                /\(\) => placeholder\((['"])User\.role:run\1\)/,
+                '() => `UPDATE "User" SET role = \'member\' WHERE role IS NULL`',
+              ),
+        );
+        expect(query(ctx.dbPath, `SELECT id, nickname, role FROM "User" ORDER BY id`)).toEqual([
+          { id: 1, nickname: 'al', role: 'member' },
+          { id: 2, nickname: 'anon', role: 'member' },
+        ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
       'follows the advice for two new required fields without a value to a migration that fills both',
       async () => {
         const ctx = await seeded(createTempDir);

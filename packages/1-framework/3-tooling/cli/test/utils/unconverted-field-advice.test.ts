@@ -33,7 +33,7 @@ describe('the advice for a type change whose cast failed', () => {
         failedMigration: { directory: 'migrations/app/20261012T1041_lossy', from: FROM },
       }).fix,
     ).toBe(
-      `A value of field "My Model.age" cannot be converted to its new type by the database's cast. The failed apply changed nothing. To convert it, copy any code you wrote in \`migrations/app/20261012T1041_lossy/migration.ts\`, delete \`migrations/app/20261012T1041_lossy\`, and plan it again with \`{bin} migration plan --from ${FROM} --convert 'My Model.age'\` and the statements you planned it with before. Then write that code and the new steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,
+      `A value of field "My Model.age" cannot be converted to its new type by the database's cast. The failed apply changed nothing. To convert it, copy any code you wrote in \`migrations/app/20261012T1041_lossy/migration.ts\`, delete \`migrations/app/20261012T1041_lossy\`, and plan it again with \`{bin} migration plan --from ${FROM} --convert 'My Model.age'\` and the statements you planned it with before, except \`--delete 'My Model.age'\`. Then write that code and the new steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,
     );
   });
 

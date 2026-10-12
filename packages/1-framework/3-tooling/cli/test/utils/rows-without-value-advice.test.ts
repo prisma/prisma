@@ -91,8 +91,19 @@ describe('the advice for rows a required field has no value for', () => {
       }).fix,
     ]).toEqual([
       `The failed apply changed nothing. To keep the field required, ${replan}. Or make the field optional or give it a default, and plan it again.`,
-      `Set a value in those rows and re-run \`{bin} db migrate\`. Or ${replan}.`,
+      `The migration also adds a required field the existing rows have no value for, so setting values is not enough. The failed apply changed nothing: ${replan}.`,
     ]);
+    expect(
+      mapMigrateFailure({
+        ...runnerFailed,
+        rowsWithoutValue: [
+          { field: 'Item.note', reason: 'nullValues' },
+          { field: 'Item.nick', reason: 'nullValues' },
+        ],
+      }).fix,
+    ).toBe(
+      'Set a value in the rows that hold NULL in each of "Item.note", "Item.nick" and re-run `{bin} db migrate`.',
+    );
   });
 
   it('never mentions schema drift', () => {
