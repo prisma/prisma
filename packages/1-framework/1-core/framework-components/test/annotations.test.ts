@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   type AnnotationValue,
   assertAnnotationsApplicable,
+  brandedAnnotations,
   defineAnnotation,
   type OperationKind,
 } from '../src/annotations';
@@ -194,6 +195,40 @@ describe('defineAnnotation', () => {
       const out = handle.read(plan);
       expect(out).toBe(payload);
     });
+
+    it("reads an activity's annotations", () => {
+      const cache = defineAnnotation<{ ttl: number }>()({
+        namespace: 'cache',
+        applicableTo: ['read'],
+      });
+      const audit = defineAnnotation<{ actor: string }>()({
+        namespace: 'audit',
+        applicableTo: ['write'],
+      });
+      const activity = { annotations: new Map([['cache', cache({ ttl: 60 })]]) };
+
+      expect(cache.read(activity)).toEqual({ ttl: 60 });
+      expect(audit.read(activity)).toBeUndefined();
+    });
+  });
+});
+
+describe('brandedAnnotations', () => {
+  it('keeps only branded annotation values, keyed by namespace', () => {
+    const cache = defineAnnotation<{ ttl: number }>()({
+      namespace: 'cache',
+      applicableTo: ['read'],
+    });
+    const applied = cache({ ttl: 60 });
+
+    expect(brandedAnnotations({ cache: applied, codecs: { id: 'pg/int4@1' } })).toEqual(
+      new Map([['cache', applied]]),
+    );
+  });
+
+  it('is empty when the plan has no annotations', () => {
+    expect(brandedAnnotations(undefined)).toEqual(new Map());
+    expect(brandedAnnotations({ codecs: {} })).toEqual(new Map());
   });
 });
 

@@ -1,16 +1,14 @@
 export type {
   AnnotationHandle,
+  AnnotationSource,
   AnnotationValue,
   DefineAnnotationOptions,
   OperationKind,
   ValidAnnotations,
 } from '../annotations';
 export { assertAnnotationsApplicable, defineAnnotation } from '../annotations';
+export type { ActivityChild, ActivityParent } from '../execution/activity-lifecycle';
 export { AsyncIterableResult } from '../execution/async-iterable-result';
-export {
-  runBeforeExecuteChain,
-  runBeforeQueryChain,
-} from '../execution/before-execute-chain';
 export type {
   AppliedMutationDefault,
   GeneratorStability,
@@ -27,15 +25,8 @@ export {
 } from '../execution/mutation-defaults';
 export type { ExecutionPlan, QueryPlan, ResultType } from '../execution/query-plan';
 export { checkAborted, raceAgainstAbort } from '../execution/race-against-abort';
-export type { QueryEnding } from '../execution/run-with-middleware';
-export {
-  onQueryEndOutsideTransaction,
-  reportExecuteEnding,
-  reportQueryEnding,
-  runAfterTransaction,
-  runExecuteWithMiddleware,
-  runQueryWithMiddleware,
-} from '../execution/run-with-middleware';
+export type { StatementOptions, StatementRun } from '../execution/run-with-middleware';
+export { executeStatement, streamStatement } from '../execution/run-with-middleware';
 export type { RuntimeCoreOptions } from '../execution/runtime-core';
 export { RuntimeCore } from '../execution/runtime-core';
 export type { RuntimeAbortedPhase, RuntimeErrorEnvelope } from '../execution/runtime-error';
@@ -46,22 +37,35 @@ export {
   runtimeError,
 } from '../execution/runtime-error';
 export type {
-  AfterExecuteResult,
-  AfterQueryResult,
-  AfterTransactionResult,
+  ActivityBase,
+  ActivityContext,
+  ActivityContextFields,
+  ActivityEndedResult,
+  ActivityFinalizedResult,
+  ActivityObserver,
   CrossFamilyMiddleware,
   ExecuteInterceptResult,
   ParamRefMutator,
   QueryInterceptResult,
+  RuntimeActivity,
   RuntimeExecuteOptions,
   RuntimeExecutor,
   RuntimeLog,
   RuntimeMiddleware,
-  RuntimeMiddlewareContext,
   RuntimeStatementStats,
+  StatementActivity,
+  StatementEnded,
+  TransactionActivity,
+  TransactionEnded,
 } from '../execution/runtime-middleware';
 export { checkMiddlewareCompatibility } from '../execution/runtime-middleware';
 export type { RelationNamesOf, Scalars, Shape, ShapeSpec } from '../execution/shape';
 export { RelationKeys } from '../execution/shape';
+export type {
+  TransactionActivityOptions,
+  TransactionActivityRun,
+  TransactionSettlement,
+} from '../execution/transaction-activity';
+export { startTransactionActivity } from '../execution/transaction-activity';
 export type { LaneMetaBuilder, MetaBuilder } from '../meta-builder';
 export { createMetaBuilder } from '../meta-builder';
