@@ -186,6 +186,30 @@ describe('statement activity lifecycle', () => {
       expect(query?.id).not.toBe(execute?.id);
     });
 
+    it('reads the plan annotations only when a hook reads the activity annotations', async () => {
+      const ownKeys = vi.fn((target: object) => Reflect.ownKeys(target));
+      const annotations = new Proxy({ codecs: {} }, { ownKeys });
+      const plan = { ...exec, meta: { ...exec.meta, annotations } };
+      const run = (middleware: RuntimeMiddleware<MockExec>[]) =>
+        executeStatement(
+          { middleware, plan, context: contextFields(), parent: undefined },
+          async () => ({ affectedRows: 0 }),
+        );
+
+      await run([]);
+      expect(ownKeys).not.toHaveBeenCalled();
+
+      await run([
+        {
+          name: 'reader',
+          async activityStarted(activity) {
+            void activity.annotations.size;
+          },
+        },
+      ]);
+      expect(ownKeys).toHaveBeenCalled();
+    });
+
     it('passes the same activity and context to every hook', async () => {
       const seen: Array<{ readonly activity?: RuntimeActivity; readonly ctx: ActivityContext }> =
         [];

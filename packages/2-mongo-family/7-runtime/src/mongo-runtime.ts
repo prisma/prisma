@@ -9,7 +9,7 @@ import {
   type RuntimeExecuteOptions,
   type RuntimeStatementStats,
   runtimeError,
-  type StatementRun,
+  type StatementActivityRun,
   streamStatement,
 } from '@internal/framework-components/runtime';
 import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
@@ -27,7 +27,7 @@ import {
   type MongoParamRefMutatorInternal,
 } from './param-ref-mutator';
 
-type MongoStatementRun = StatementRun<
+type MongoStatementRun = StatementActivityRun<
   MongoExecutionPlan,
   MongoParamRefMutator,
   MongoMiddlewareContext

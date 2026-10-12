@@ -193,17 +193,18 @@ describe('statement activity errors', () => {
     );
 
     it.each(['query', 'execute'] as const)(
-      'when activityStarted throws on a %s',
+      'when activityStarted throws on a %s, for the middleware whose activityStarted ran',
       async (operation) => {
         const events: string[] = [];
         const refused = new Error('started failed');
         const failing: RuntimeMiddleware<MockExec> = {
-          name: 'failing',
+          ...recorder('failing', events),
           async activityStarted() {
+            events.push('failing:started:statement');
             throw refused;
           },
         };
-        const middleware = [recorder('A', events), failing];
+        const middleware = [recorder('A', events), failing, recorder('B', events)];
         const driver = vi.fn();
 
         const pending =
@@ -214,8 +215,11 @@ describe('statement activity errors', () => {
         await expect(pending).rejects.toBe(refused);
         expect(lifecycle(events)).toEqual([
           'A:started:statement',
+          'failing:started:statement',
           'A:ended:statement:failed',
+          'failing:ended:statement:failed',
           'A:finalized:statement:unknown',
+          'failing:finalized:statement:unknown',
         ]);
         expect(driver).not.toHaveBeenCalled();
       },

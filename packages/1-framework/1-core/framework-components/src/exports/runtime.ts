@@ -30,7 +30,7 @@ export {
 } from '../execution/mutation-defaults';
 export type { ExecutionPlan, QueryPlan, ResultType } from '../execution/query-plan';
 export { checkAborted, raceAgainstAbort } from '../execution/race-against-abort';
-export type { StatementOptions, StatementRun } from '../execution/run-with-middleware';
+export type { StatementActivityRun, StatementOptions } from '../execution/run-with-middleware';
 export { executeStatement, streamStatement } from '../execution/run-with-middleware';
 export type { RuntimeCoreOptions } from '../execution/runtime-core';
 export { RuntimeCore } from '../execution/runtime-core';

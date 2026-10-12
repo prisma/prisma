@@ -166,9 +166,20 @@ describe('transaction activity', () => {
     });
   });
 
-  it('finalizes a statement still running when the transaction ends, and not again when it ends', async () => {
+  it('finalizes a statement still running when the transaction ends after it ends, with the transaction outcome', async () => {
     const events: string[] = [];
-    const middleware = [recorder('A', events)];
+    const key = Symbol('kept');
+    const kept: unknown[] = [];
+    const keeper: RuntimeMiddleware<MockExec> = {
+      name: 'keeper',
+      async activityStarted(activity, ctx) {
+        if (activity.kind === 'statement') ctx.state(key)['value'] = 'kept';
+      },
+      async activityFinalized(activity, _result, ctx) {
+        if (activity.kind === 'statement') kept.push(ctx.state(key)['value']);
+      },
+    };
+    const middleware = [recorder('A', events), keeper];
     const transaction = await openTransaction(middleware);
     let release: () => void = () => {};
     const gate = new Promise<void>((resolve) => {
@@ -190,10 +201,37 @@ describe('transaction activity', () => {
 
     expect(events.filter((event) => /:(ended|finalized):/.test(event))).toEqual([
       'A:ended:transaction:succeeded',
-      'A:finalized:statement:committed',
       'A:finalized:transaction:committed',
       'A:ended:statement:succeeded',
+      'A:finalized:statement:committed',
     ]);
+    expect(kept).toEqual(['kept']);
+  });
+
+  it('does not wait for a statement still running when the transaction ends', async () => {
+    const events: string[] = [];
+    const middleware = [recorder('A', events)];
+    const transaction = await openTransaction(middleware);
+    let release: () => void = () => {};
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const running = executeStatementWith(
+      middleware,
+      async () => {
+        await gate;
+        return { affectedRows: 1 };
+      },
+      { parent: transaction },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    await transaction.end({ by: 'rollback', outcome: 'succeeded', commitAttempted: false });
+    expect(events).not.toContain('A:finalized:statement:rolled-back');
+
+    release();
+    await running;
+    expect(events.at(-1)).toBe('A:finalized:statement:rolled-back');
   });
 
   it('ends and finalizes only once when end is called twice', async () => {
@@ -326,17 +364,23 @@ describe('transaction activity', () => {
       const events: string[] = [];
       const refused = new Error('started failed');
       const failing: RuntimeMiddleware<MockExec> = {
-        name: 'failing',
+        ...recorder('failing', events),
         async activityStarted() {
+          events.push('failing:started:transaction');
           throw refused;
         },
       };
 
-      await expect(openTransaction([recorder('A', events), failing])).rejects.toBe(refused);
+      await expect(
+        openTransaction([recorder('A', events), failing, recorder('B', events)]),
+      ).rejects.toBe(refused);
       expect(events).toEqual([
         'A:started:transaction',
+        'failing:started:transaction',
         'A:ended:transaction:failed',
+        'failing:ended:transaction:failed',
         'A:finalized:transaction:rolled-back',
+        'failing:finalized:transaction:rolled-back',
       ]);
     });
   });

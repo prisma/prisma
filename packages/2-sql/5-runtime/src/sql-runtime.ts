@@ -11,7 +11,7 @@ import {
   type RuntimeExecuteOptions,
   type RuntimeLog,
   runtimeError,
-  type StatementRun,
+  type StatementActivityRun,
   startTransactionActivity,
   streamStatement,
   type TransactionActivityRun,
@@ -162,7 +162,11 @@ export interface TransactionContext extends RuntimeQueryable {
 
 export type { RuntimeTelemetryEvent, TelemetryOutcome, VerifyMarkerOption };
 
-type SqlStatementRun = StatementRun<SqlExecutionPlan, SqlParamRefMutator, SqlMiddlewareContext>;
+type SqlStatementRun = StatementActivityRun<
+  SqlExecutionPlan,
+  SqlParamRefMutator,
+  SqlMiddlewareContext
+>;
 
 function isExecutionPlan(plan: SqlExecutionPlan | SqlQueryPlan): plan is SqlExecutionPlan {
   return 'sql' in plan;

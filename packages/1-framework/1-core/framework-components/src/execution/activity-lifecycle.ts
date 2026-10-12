@@ -12,8 +12,8 @@ import type {
 export interface ActivityParent {
   readonly activity: RuntimeActivity;
   readonly ctx: ActivityContext;
-  /** Records `child` in start order; the parent finalizes it. Returns what the child calls when it ends. */
-  adopt(child: ActivityChild): (outcome: ActivityEndedResult['outcome']) => void;
+  /** Records `child` in start order; the parent finalizes it. Returns what the child calls when it ends, which finalizes it when the parent has already ended. */
+  adopt(child: ActivityChild): (outcome: ActivityEndedResult['outcome']) => Promise<void>;
 }
 
 /** What a parent holds of a child activity until it finalizes it. */
@@ -61,6 +61,8 @@ export function createActivityRecord<TContext extends ActivityContext>(
 ): ActivityRecord<TContext> {
   const store = createStateStore();
   let finalized = false;
+  // How many middleware ran activityStarted. A middleware after one whose activityStarted threw never saw the activity start, so it gets no later event for it.
+  let started = middleware.length;
   const parentCtx = parent?.ctx;
   const parentIsTransaction = parent?.activity.kind === 'transaction';
   const ctx = blindCast<
@@ -77,14 +79,22 @@ export function createActivityRecord<TContext extends ActivityContext>(
     activity,
     ctx,
     async started() {
-      for (const mw of middleware) {
-        if (mw.activityStarted) await mw.activityStarted(activity, ctx);
+      for (let index = 0; index < middleware.length; index++) {
+        const mw = middleware[index];
+        if (!mw?.activityStarted) continue;
+        try {
+          await mw.activityStarted(activity, ctx);
+        } catch (error) {
+          started = index + 1;
+          throw error;
+        }
       }
     },
     async ended(result) {
       const swallowErrors = result.outcome !== 'succeeded';
-      for (const mw of middleware) {
-        if (!mw.activityEnded) continue;
+      for (let index = 0; index < started; index++) {
+        const mw = middleware[index];
+        if (!mw?.activityEnded) continue;
         if (!swallowErrors) {
           await mw.activityEnded(activity, result, ctx);
           continue;
@@ -99,8 +109,9 @@ export function createActivityRecord<TContext extends ActivityContext>(
     async finalize(result) {
       if (finalized) return;
       finalized = true;
-      for (const mw of middleware) {
-        if (!mw.activityFinalized) continue;
+      for (let index = 0; index < started; index++) {
+        const mw = middleware[index];
+        if (!mw?.activityFinalized) continue;
         try {
           await mw.activityFinalized(activity, result, ctx);
         } catch (error) {
@@ -126,7 +137,7 @@ function logFinalizedError(ctx: ActivityContext, middleware: string, error: unkn
 export async function endActivity(
   record: ActivityRecord<ActivityContext>,
   result: ActivityEndedResult,
-  childEnded: ((outcome: ActivityEndedResult['outcome']) => void) | undefined,
+  childEnded: ((outcome: ActivityEndedResult['outcome']) => Promise<void>) | undefined,
 ): Promise<void> {
   let endedError: { readonly error: unknown } | undefined;
   try {
@@ -137,7 +148,7 @@ export async function endActivity(
   if (childEnded === undefined) {
     await record.finalize({ outcome: result.outcome === 'succeeded' ? 'committed' : 'unknown' });
   } else {
-    childEnded(result.outcome);
+    await childEnded(result.outcome);
   }
   if (endedError !== undefined) throw endedError.error;
 }

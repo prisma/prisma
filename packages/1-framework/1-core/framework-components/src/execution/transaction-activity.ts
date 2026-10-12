@@ -31,7 +31,7 @@ export interface TransactionActivityRun<TContext extends ActivityContext = Activ
   readonly activity: TransactionActivity;
   readonly ctx: TContext;
   /**
-   * Ends the transaction: its `activityEnded` hooks, then the `activityFinalized` hooks of its children in the order they started, then its own. Resolves after every hook has run. A second call does nothing. An `activityEnded` error after a successful settlement is rethrown once finalization has run.
+   * Ends the transaction: its `activityEnded` hooks, then the `activityFinalized` hooks of its children that have ended, in the order they started, then its own. Resolves after those hooks have run. A child still open is finalized when it ends, with this transaction's outcome; `end` does not wait for it. A second call does nothing. An `activityEnded` error after a successful settlement is rethrown once finalization has run.
    */
   end(settlement: TransactionSettlement): Promise<void>;
 }
@@ -63,9 +63,10 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
   readonly activity: TransactionActivity;
   readonly ctx: TContext;
   readonly #record: ActivityRecord<TContext>;
-  readonly #children: ActivityChild[] = [];
+  readonly #children: Array<{ readonly child: ActivityChild; ended: boolean }> = [];
   #aChildFailed = false;
   #ended = false;
+  #finalized: ActivityFinalizedResult | undefined;
 
   constructor(options: TransactionActivityOptions<TContext>) {
     this.activity = {
@@ -86,13 +87,16 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
     return this.#record.started();
   }
 
-  adopt(child: ActivityChild): (outcome: ActivityEndedResult['outcome']) => void {
+  adopt(child: ActivityChild): (outcome: ActivityEndedResult['outcome']) => Promise<void> {
     if (this.#ended) {
       throw new InternalError('An activity was started beneath a transaction that has ended');
     }
-    this.#children.push(child);
-    return (outcome) => {
+    const entry = { child, ended: false };
+    this.#children.push(entry);
+    return async (outcome) => {
+      entry.ended = true;
       if (outcome === 'failed') this.#aChildFailed = true;
+      if (this.#finalized !== undefined) await child.finalize(this.#finalized);
     };
   }
 
@@ -106,8 +110,9 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
       endedError = { error };
     }
     const finalized = this.#finalizedResult(settlement);
-    for (const child of this.#children.splice(0)) {
-      await child.finalize(finalized);
+    this.#finalized = finalized;
+    for (const { child, ended } of this.#children.splice(0)) {
+      if (ended) await child.finalize(finalized);
     }
     await this.#record.finalize(finalized);
     if (endedError !== undefined) throw endedError.error;

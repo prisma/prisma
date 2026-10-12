@@ -57,20 +57,35 @@ describe('statements in flight inside one transaction', () => {
     ]);
   });
 
-  it('finalizes a statement still streaming at commit when the transaction ends, and ends it later', async () => {
-    const setup = createSetup();
+  it('ends a statement still streaming at commit later, then finalizes it with the transaction outcome and its state intact', async () => {
+    const kept: unknown[] = [];
+    const stateKey = Symbol('kept');
+    const keeper: SqlMiddleware = {
+      name: 'keeper',
+      familyId: 'sql',
+      async activityStarted(activity, ctx) {
+        if (activity.kind === 'statement') ctx.state(stateKey)['value'] = 'kept';
+      },
+      async activityFinalized(activity, _result, ctx) {
+        if (activity.kind === 'statement') kept.push(ctx.state(stateKey)['value']);
+      },
+    };
+    const setup = createSetup({ middleware: [keeper] });
     const transaction = await (await setup.runtime.connection()).transaction();
     const iterator = transaction.query(rawPlan('select 1'))[Symbol.asyncIterator]();
     await iterator.next();
 
     await transaction.commit();
-    expect(stages(setup.events)).toEqual(['finalized:statement:committed']);
-    expect(names(setup.events)).not.toContain('ended:statement:succeeded');
+    expect(stages(setup.events)).toEqual([]);
+    expect(names(setup.events)).toContain('finalized:transaction:committed');
 
     while (!(await iterator.next()).done) {}
 
-    expect(names(setup.events).slice(-1)).toEqual(['ended:statement:succeeded']);
-    expect(stages(setup.events)).toEqual(['finalized:statement:committed']);
+    expect(names(setup.events).slice(-2)).toEqual([
+      'ended:statement:succeeded',
+      'finalized:statement:committed',
+    ]);
+    expect(kept).toEqual(['kept']);
   });
 });
 

@@ -33,7 +33,7 @@ export interface StatementOptions<
 }
 
 /** One running statement activity, handed to the family's statement body. */
-export interface StatementRun<
+export interface StatementActivityRun<
   TExec extends ExecutionPlan,
   TMutator extends ParamRefMutator,
   TContext extends ActivityContext,
@@ -61,7 +61,7 @@ export function streamStatement<
   Row,
 >(
   options: StatementOptions<TExec, TMutator, TContext>,
-  body: (statement: StatementRun<TExec, TMutator, TContext>) => AsyncIterable<Row>,
+  body: (statement: StatementActivityRun<TExec, TMutator, TContext>) => AsyncIterable<Row>,
 ): AsyncIterable<Row> {
   return {
     [Symbol.asyncIterator](): AsyncIterator<Row, void, undefined> {
@@ -90,10 +90,10 @@ async function* streamStatementRows<
   Row,
 >(
   options: StatementOptions<TExec, TMutator, TContext>,
-  body: (statement: StatementRun<TExec, TMutator, TContext>) => AsyncIterable<Row>,
+  body: (statement: StatementActivityRun<TExec, TMutator, TContext>) => AsyncIterable<Row>,
   isThrownByCaller: (error: unknown) => boolean,
 ): AsyncGenerator<Row, void, unknown> {
-  const statement = new StatementActivityRun(options, 'rows');
+  const statement = new StatementActivityRunImpl(options, 'rows');
   let outcome: StatementEnded['outcome'] = 'stopped';
   try {
     await statement.start();
@@ -116,9 +116,11 @@ export async function executeStatement<
   TContext extends ActivityContext,
 >(
   options: StatementOptions<TExec, TMutator, TContext>,
-  body: (statement: StatementRun<TExec, TMutator, TContext>) => Promise<RuntimeStatementStats>,
+  body: (
+    statement: StatementActivityRun<TExec, TMutator, TContext>,
+  ) => Promise<RuntimeStatementStats>,
 ): Promise<RuntimeStatementStats> {
-  const statement = new StatementActivityRun(options, 'stats');
+  const statement = new StatementActivityRunImpl(options, 'stats');
   let outcome: StatementEnded['outcome'] = 'failed';
   try {
     await statement.start();
@@ -130,30 +132,35 @@ export async function executeStatement<
   }
 }
 
-class StatementActivityRun<
+class StatementActivityRunImpl<
   TExec extends ExecutionPlan,
   TMutator extends ParamRefMutator,
   TContext extends ActivityContext,
-> implements StatementRun<TExec, TMutator, TContext>
+> implements StatementActivityRun<TExec, TMutator, TContext>
 {
   readonly activity: StatementActivity;
   readonly ctx: TContext;
   readonly #middleware: ReadonlyArray<RuntimeMiddleware<TExec, TMutator>>;
   readonly #parent: ActivityParent | undefined;
   readonly #record: ActivityRecord<TContext>;
-  #childEnded: ((outcome: StatementEnded['outcome']) => void) | undefined;
+  #childEnded: ((outcome: StatementEnded['outcome']) => Promise<void>) | undefined;
   #runStartedAt: number | undefined;
   #source: 'driver' | 'middleware' = 'driver';
   #rowCount = 0;
   #stats: RuntimeStatementStats | undefined;
 
   constructor(options: StatementOptions<TExec, TMutator, TContext>, returns: 'rows' | 'stats') {
+    const { plan } = options;
+    let annotations: StatementActivity['annotations'] | undefined;
     this.activity = {
       id: crypto.randomUUID(),
       kind: 'statement',
       returns,
-      plan: options.plan,
-      annotations: brandedAnnotations(options.plan.meta.annotations),
+      plan,
+      get annotations() {
+        annotations ??= brandedAnnotations(plan.meta.annotations);
+        return annotations;
+      },
     };
     this.#middleware = options.middleware;
     this.#parent = options.parent;
