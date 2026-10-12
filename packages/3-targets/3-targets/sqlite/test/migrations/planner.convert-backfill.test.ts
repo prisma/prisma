@@ -273,6 +273,19 @@ describe('SQLite planner, a new required indexed column', () => {
       ['Add column name on User (additive)', 'placeholder', 'Recreate table User (widening)'],
     ]);
   });
+
+  it('keeps a separate index on an existing column of a table it rebuilds for another reason', async () => {
+    const relaxedAndIndexed = contract(
+      hex('4'),
+      { id: 'integer', age: 'text?', nickname: 'text?' },
+      [],
+      ['nickname'],
+    );
+    expect(await planned(textAge, relaxedAndIndexed)).toEqual([
+      'Create index User_nickname_idx on User (additive)',
+      'Recreate table User (widening)',
+    ]);
+  });
 });
 
 describe('SQLite planner, the columns a rebuild makes required', () => {
