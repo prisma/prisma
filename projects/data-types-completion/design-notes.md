@@ -258,7 +258,7 @@ An extension's data types are recognised by introspection with no change outside
 
 ### Agreement with the SQL expression literals project (2026-09-29)
 
-Their order: TML-3296 (the `sql/expression` data type; removes the lowering-entry kind), then a new ticket for the argument building block `dataTypeValue` (number to follow), then TML-3288 (the six SQL positions). All six of our requirements match their design (`projects/sql-expression-literals/design.md` sections 4 to 7, in their worktree). This project's function-argument slice starts only after the building-block ticket merges.
+Their order: TML-3296 (the `sql/expression` data type; removes the lowering-entry kind), then a new ticket for the argument building block `dataTypeValue` (number to follow), then TML-3288 (the six SQL positions). All six of our requirements match their design, which shipped as TML-3367 (`dataTypeValue`, ADR 231 and ADR 254). This project's function-argument slice starts only after the building-block ticket merges.
 
 Two constraints they set, which our design must obey:
 

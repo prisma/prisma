@@ -1,6 +1,6 @@
 # ADR 268 — Raw SQL is a value of the data type `sql/expression`
 
-**Status:** Accepted. Built: the data type, the `sql` tag, the six PSL places and the TypeScript builder's `sql` values.
+**Status:** Accepted. Built: the data type, the `sql` tag, the six PSL places, the TypeScript builder's `sql` values and `sql` values in generated migration files.
 **Date:** 2026-09-30
 **Builds on:** [ADR 129 — Tagged literals write values of data types](ADR%20129%20-%20Template-Tagged%20Literals%20for%20Extensions.md), [ADR 231 — Declarative attribute specifications](ADR%20231%20-%20Declarative%20attribute%20specifications.md), [ADR 254 — Data types and casts](ADR%20254%20-%20Data%20types%20and%20casts.md), [ADR 262 — Block specs bind top-level block values](ADR%20262%20-%20Block%20specs%20bind%20top-level%20block%20values.md)
 
@@ -177,6 +177,10 @@ Multi-line `sql` literals make line comments likely. The content hash behind ind
 - **Leave the TypeScript builder on plain strings.** Rejected. PSL and TypeScript would stop emitting identical contracts for multi-line text.
 - **`contract infer` skips a default whose text would not read back, as it skips an exact-named object.** Rejected. Default expressions are compared with case and whitespace ignored, so the printed default plans as no change, while a skipped default would be dropped by the next plan.
 - **A `SqlExpression` class with a private constructor and no interpolation.** Rejected. Authors would repeat SQL text across policies, or find another way to build values and skip the canonicalization.
+- **Hold opaque SQL in DDL as the query AST's `RawExpr`.** Rejected. `RawExpr` needs a result codec, can hold parameter references DDL cannot bind, takes part in the query AST's walks, and its renderer needs a contract and a parameter map. DDL holds such text as `OpaqueSql`, a value with none of that, rendered by one function that makes a trailing `--` comment safe (Migration System subsystem doc, "Opaque SQL in DDL").
+- **Migration functions that take only `sql` values.** Rejected. Migration files committed with strings would stop loading. They take a string or a `sql` value; a string keeps its exact text, and generated files write a `sql` value only when it reads back as the planner's text ([ADR 195](ADR%20195%20-%20Planner%20IR%20with%20two%20renderers.md), "Recorded exception").
+- **Leave generated migration files on strings.** Rejected. Multi-line SQL would stay one escaped string, written differently from the contract it came from.
+- **A public way to build a `sql` value from a computed string.** Not offered. The `sql` tag is the one entry point, so every text passes through its canonicalization, and dynamic SQL is composed by interpolating other `sql` values. Reconsider when a user needs SQL text generated at run time.
 
 ## References
 
