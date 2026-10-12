@@ -906,7 +906,13 @@ export function hasCompleteUniqueKey(
       continue;
     }
     const column = columnOfCallerField(contract, namespaceId, fieldColumns, modelName, fieldName);
-    if (value !== null && !isExpression(value) && fields[fieldName]?.table === tableName) {
+    const field = fields[fieldName];
+    if (
+      value !== null &&
+      !isExpression(value) &&
+      field?.namespaceId === namespaceId &&
+      field.table === tableName
+    ) {
       columnsWithValue.add(column);
     }
   }
