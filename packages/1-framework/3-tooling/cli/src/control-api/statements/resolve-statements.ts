@@ -10,8 +10,10 @@ import {
 import type { CliStructuredError } from '@internal/errors/control';
 import {
   type FieldCoordinate,
+  fieldStatementText,
   type ModelCoordinate,
   modelDisplayName,
+  modelStatementText,
   type ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -765,15 +767,16 @@ function resolveFieldStatement(
   }
   const coordinate: FieldCoordinate = { ...destination.coordinate, field };
   const name = qualifiedField(coordinate);
+  const shown = fieldStatementText(state.destination.contract, coordinate);
   if (Object.hasOwn(destination.model.relations, field)) {
-    return refuse(`"${name}" is a relation, which holds no values of its own to ${verb}`);
+    return refuse(`"${shown}" is a relation, which holds no values of its own to ${verb}`);
   }
   const destinationField = Object.hasOwn(destination.model.fields, field)
     ? destination.model.fields[field]
     : undefined;
   if (destinationField === undefined) {
     return refuse(
-      `the destination model "${qualifiedModel(destination.coordinate)}" has no field "${field}" (fields: ${listed(fieldNames(destination.model))})`,
+      `the destination model "${modelStatementText(state.destination.contract, destination.coordinate)}" has no field "${field}" (fields: ${listed(fieldNames(destination.model))})`,
       `A --${verb} statement names the field as the destination contract names it: after --rename User.age:User.years, write --${verb} User.years. Names match exactly, including case.`,
     );
   }
@@ -782,20 +785,20 @@ function resolveFieldStatement(
     return notOk(
       errorStatementInvalid(
         statement,
-        `An earlier statement already ${verb}s "${name}".`,
+        `An earlier statement already ${verb}s "${shown}".`,
         `Give each field at most one --${verb} statement.`,
       ),
     );
   }
   if (verb === 'backfill' && destinationField.nullable) {
     return refuse(
-      `the field "${name}" is optional in the destination contract, so no existing row needs a value`,
+      `the field "${shown}" is optional in the destination contract, so no existing row needs a value`,
       `${leaveOut} A --backfill statement fills a required field.`,
     );
   }
   const counterpart = originCounterpart(state, destination.coordinate);
   if (counterpart === undefined) {
-    const model = qualifiedModel(destination.coordinate);
+    const model = modelStatementText(state.destination.contract, destination.coordinate);
     return refuse(
       `the destination model "${model}" has no counterpart in the origin contract: the origin has no model "${model}" and no rename statement renames a model to it`,
       verb === 'convert'
@@ -811,18 +814,18 @@ function resolveFieldStatement(
     if (originField === undefined) {
       const model = statement.field.slice(0, -1).join('.');
       return refuse(
-        `the origin model "${qualifiedModel(counterpart.coordinate)}" has no field "${field}" (fields: ${listed(fieldNames(counterpart.model))}), and no rename statement renames a field to it`,
+        `the origin model "${modelStatementText(state.origin.contract, counterpart.coordinate)}" has no field "${field}" (fields: ${listed(fieldNames(counterpart.model))}), and no rename statement renames a field to it`,
         `If the field was renamed, add --rename ${model}.<old name>:${model}.${field}. A new field has no values to convert, so leave out ${flag}.`,
       );
     }
     if (sameType(originField, destinationField)) {
       return refuse(
-        `the field "${name}" has the same type, ${fieldTypeText(destinationField)}, in the origin and destination contracts, so it has no values to convert`,
+        `the field "${shown}" has the same type, ${fieldTypeText(destinationField)}, in the origin and destination contracts, so it has no values to convert`,
       );
     }
   } else if (originField !== undefined && !originField.nullable) {
     return refuse(
-      `the field "${name}" is already required in the origin contract, so every existing row has a value`,
+      `the field "${shown}" is already required in the origin contract, so every existing row has a value`,
     );
   }
   state.fieldStatements.add(key);

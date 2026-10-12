@@ -104,7 +104,7 @@ describe('resolveStatements, convert statements', () => {
     expectFailure(
       resolve([rename('User.age:User.years'), convert('User.age')], from, to),
       UNRESOLVED,
-      'The destination model "app.User" has no field "age" (fields: years)',
+      'The destination model "User" has no field "age" (fields: years)',
       'as the destination contract names it',
     );
   });
@@ -123,7 +123,7 @@ describe('resolveStatements, convert statements', () => {
     expectFailure(
       resolve([convert('User.handle')]),
       UNRESOLVED,
-      'The origin model "app.User" has no field "handle" (fields: age, bio, email, id, posts), and no rename statement renames a field to it',
+      'The origin model "User" has no field "handle" (fields: age, bio, email, id, posts), and no rename statement renames a field to it',
       'If the field was renamed, add --rename User.<old name>:User.handle',
     );
   });
@@ -169,11 +169,11 @@ describe('resolveStatements, convert statements', () => {
 
   it('refuses a model, a relation and a model the origin does not have', () => {
     expectFailure(resolve([convert('User')]), INVALID, 'Model.field or namespace.Model.field');
-    expectFailure(resolve([convert('User.posts')]), UNRESOLVED, '"app.User.posts" is a relation');
+    expectFailure(resolve([convert('User.posts')]), UNRESOLVED, '"User.posts" is a relation');
     expectFailure(
       resolve([convert('Post.title')]),
       UNRESOLVED,
-      'The destination model "app.Post" has no counterpart in the origin contract',
+      'The destination model "Post" has no counterpart in the origin contract',
     );
   });
 
@@ -181,7 +181,7 @@ describe('resolveStatements, convert statements', () => {
     expectFailure(
       resolve([convert('User.age'), convert('app.User.age')]),
       INVALID,
-      'An earlier statement already converts "app.User.age".',
+      'An earlier statement already converts "User.age".',
     );
   });
 
@@ -209,7 +209,7 @@ describe('resolveStatements, backfill statements', () => {
     expectFailure(
       resolve([backfill('User.nickname')]),
       UNRESOLVED,
-      'The field "app.User.nickname" is optional in the destination contract, so no existing row needs a value',
+      'The field "User.nickname" is optional in the destination contract, so no existing row needs a value',
       'Leave out --backfill User.nickname',
     );
   });
@@ -218,7 +218,7 @@ describe('resolveStatements, backfill statements', () => {
     expectFailure(
       resolve([backfill('User.email')]),
       UNRESOLVED,
-      'The field "app.User.email" is already required in the origin contract, so every existing row has a value',
+      'The field "User.email" is already required in the origin contract, so every existing row has a value',
     );
   });
 
@@ -226,7 +226,7 @@ describe('resolveStatements, backfill statements', () => {
     expectFailure(
       resolve([backfill('Post.title')]),
       UNRESOLVED,
-      'The destination model "app.Post" has no counterpart in the origin contract',
+      'The destination model "Post" has no counterpart in the origin contract',
     );
   });
 
