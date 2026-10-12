@@ -166,7 +166,7 @@ export function subjectText(subject: MigrationSubject, contracts: StatementContr
 /**
  * The statement's description, written as its question names the subject: `delete field
  * "User.nickname"`, or `accept lossy type change of field "User.age"` for a delete that answers a
- * type change, which keeps the field and every value the database can cast.
+ * type change, which keeps the field and lets the database cast its values, cutting or rounding some.
  */
 export function consentDescription(
   verb: ConsentVerb,
@@ -190,7 +190,7 @@ function lossText(
       return `would lose the data of model "${text}"`;
     case 'field':
       return loss === 'typeChange'
-        ? `would change the type of field "${text}" and lose the values it cannot convert`
+        ? `would change the type of field "${text}" and can change or lose its values`
         : `would lose the values of field "${text}"`;
     case 'storage':
       return originKnown

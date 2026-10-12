@@ -37,6 +37,19 @@ const columnTypes = {
     nullable: true,
   },
   'int4?': { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: true },
+  'varchar(20)': {
+    dataType: 'pg/varchar',
+    codecId: 'pg/varchar@1',
+    nullable: false,
+    typeParams: { length: 20 },
+  },
+  'varchar(3)': {
+    dataType: 'pg/varchar',
+    codecId: 'pg/varchar@1',
+    nullable: false,
+    typeParams: { length: 3 },
+  },
+  float8: { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
 } as const;
 
 function userContract(age: keyof typeof columnTypes, seed: string): Contract<SqlStorage> {
@@ -185,6 +198,23 @@ describe('a Postgres type change the database casts', { concurrent: false }, () 
     });
     const rows = await driver!.query<{ age: string }>('SELECT age FROM "User" ORDER BY id');
     expect(rows.rows).toEqual([{ age: '12' }, { age: 'abc' }]);
+  });
+
+  it('cuts a longer text to a shorter varchar, and rounds a number to an integer', {
+    timeout: testTimeout,
+  }, async () => {
+    const cut = await retype(
+      ['alice'],
+      userContract('varchar(20)', 'e'.repeat(64)),
+      userContract('varchar(3)', 'f'.repeat(64)),
+    );
+    expect(cut.ok).toBe(true);
+    expect((await driver!.query('SELECT age FROM "User"')).rows).toEqual([{ age: 'ali' }]);
+
+    await resetDatabase(driver!);
+    const rounded = await retype(['2.6'], userContract('float8', '1'.repeat(64)), intAge);
+    expect(rounded.ok).toBe(true);
+    expect((await driver!.query('SELECT age FROM "User"')).rows).toEqual([{ age: 3 }]);
   });
 
   it('fails when the database has no cast between the two types, even with no value to cast', {

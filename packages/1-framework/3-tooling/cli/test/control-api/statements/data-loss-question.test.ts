@@ -184,7 +184,7 @@ describe('dataLossQuestion for a type change', () => {
       },
     );
     expect(rebuild.question).toBe(
-      'Recreate table User would change the type of field "User.age" and lose the values it cannot convert.',
+      'Recreate table User would change the type of field "User.age" and can change or lose its values.',
     );
   });
 
