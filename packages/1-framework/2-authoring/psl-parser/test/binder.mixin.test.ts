@@ -300,23 +300,6 @@ describe('createBinder — a mixin name in type position', () => {
       },
     ]);
   });
-
-  it('rejects a named type whose base is a mixin, at the base name', () => {
-    const source = 'model mixin Timestamps {\n}\ntypes {\n  Stamps = Timestamps\n}';
-    const { diagnostics } = bind(source);
-
-    expect(
-      diagnostics.map(({ code, message, filename, range }) => ({ code, message, filename, range })),
-    ).toEqual([
-      {
-        code: 'PSL_UNRESOLVED_REFERENCE',
-        message:
-          '"Timestamps" is a mixin; a type reference must name a model, composite type, enum, or named type',
-        filename: '0.psl',
-        range: rangeOf(source, 'Timestamps', 1),
-      },
-    ]);
-  });
 });
 
 describe('createBinder — binding a mixin body once', () => {

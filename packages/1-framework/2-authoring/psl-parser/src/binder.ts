@@ -363,14 +363,6 @@ function bind(options: BindingInputs): BinderResult {
     const outcome = resolveTypeReference(name, baseScope, references);
     if (name === undefined || outcome === undefined) continue;
     references.set(name.syntax, outcome.resolution);
-    if (outcome.resolution.kind === 'mixin' && outcome.message !== undefined) {
-      diagnostics.push({
-        code: PSL_UNRESOLVED_REFERENCE,
-        message: outcome.message,
-        data: { reference: 'type', name: outcome.name, constructorCall: symbol.isConstructor },
-        ...diagnosticSource(sources, name.syntax).at(),
-      });
-    }
     bindEntityConstructorArgument(symbol, outcome.resolution, {
       scope: baseScope,
       sources,

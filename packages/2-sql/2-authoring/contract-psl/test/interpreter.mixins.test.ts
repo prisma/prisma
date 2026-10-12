@@ -349,3 +349,33 @@ describe('an interpreter error on a member of a mixin', () => {
     expect(diagnostics[0]?.span).toEqual(diagnostics[1]?.span);
   });
 });
+
+describe('a named type whose base names a mixin', () => {
+  it('is reported once, as an unsupported base type', () => {
+    const schema = lines(
+      'model mixin Timestamps {',
+      '  createdAt DateTime',
+      '}',
+      'types {',
+      '  Stamps = Timestamps',
+      '}',
+      'model User {',
+      '  id Int @id',
+      '  stamps Stamps',
+      '}',
+    );
+    const result = interpret(schema);
+
+    const diagnostics = result.ok ? [] : result.failure.diagnostics;
+
+    expect(
+      diagnostics.map(({ code, message, span }) => ({ code, message, line: span?.start.line })),
+    ).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_NAMED_TYPE_BASE',
+        message: 'Named type "Stamps" references unsupported base type "Timestamps"',
+        line: 5,
+      },
+    ]);
+  });
+});
