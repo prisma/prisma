@@ -97,6 +97,7 @@ export type {
   PlannedStatements,
   SingleOperationCall,
   StatementPlanningTarget,
+  TableRenameByHand,
 } from '../core/migrations/statement-planning';
 export {
   fieldRenameStorageEffect,

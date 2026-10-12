@@ -6,6 +6,7 @@ import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { sqliteCallSubjects } from '../../src/core/migrations/operation-subjects';
+import { sqliteTableRenameByHand } from '../../src/core/migrations/table-rename-calls';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
 
 const text = { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: false };
@@ -71,7 +72,7 @@ function subjectsOf(calls: readonly OpFactoryCall[], fieldEvents: readonly Field
       calls,
       new Map(fieldEvents.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
     ),
-    { fromContract: contract, contract, statements: [] },
+    { fromContract: contract, contract, byHand: sqliteTableRenameByHand, statements: [] },
   ).dataLoss;
 }
 
