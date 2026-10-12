@@ -281,6 +281,12 @@ The reach is one hop: the related model's own relations are not exposed. A to-on
 
 `cursor()` builds its keyset from plain columns only. It throws `ORM.ARGUMENT_INVALID`, naming the `orderBy` position, when an active order is a relation column, a relation count, an extension-operation result, or sets `nulls`. `distinctOn()` throws the same error when one of its leading orders (as many as there are `distinctOn` columns) is not a plain column, because Postgres needs those orders to match the `DISTINCT ON` columns; a relation order after them is accepted. Paginate such orders with `.limit(...)` / `.offset(...)`.
 
+## Tables in collection state
+
+`CollectionState.tables` holds a table scope and the aliased root table and multi-table-inheritance variant tables of the collection. Build it with `createCollectionTables(contract, namespaceId, modelName)` and pass it to `emptyState(tables)` and `createModelAccessor(context, namespaceId, modelName, tables)`.
+
+Every table a collection chain puts in a statement gets its alias from that scope. Relation filters, relation orders and includes at any depth take theirs from the scope of the collection they are called on. `createCollectionTables` starts a new scope, so build an include whose table already appears in the parent chain through `collection.include(...)` and read `collection.state`, not by hand.
+
 ## Codec Roundtrip
 
 Included JSON payloads use synchronous `codec.decodeJson`, including nested relations and scalar/combine branches. Their consumers do not introduce per-include async boundaries. Prepared descriptions precompute nested codec bindings and row mappers. Fixed non-polymorphic child selections decode directly into model-field names, without an intermediate decoded storage object. Polymorphic or unexpected row shapes retain generic decoding and mapping. Envelope snapshots remain intact; root-row `codec.decode` retains asynchronous support in SQL runtime.
