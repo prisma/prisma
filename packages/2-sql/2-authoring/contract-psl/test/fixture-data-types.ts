@@ -35,16 +35,16 @@ const asNumber: Cast = (value) => {
   });
 };
 
-const INTEGER_TEXT = /^-?\d+$/;
-const DECIMAL_TEXT = /^-?\d+\.\d+$/;
-const DECIMAL_NUMERAL = /^(-?)0*(\d+)(\.\d+)?$/;
+const INTEGER_TEXT = /^[+-]?\d+$/;
+const DECIMAL_TEXT = /^[+-]?\d+\.\d+$/;
+const DECIMAL_NUMERAL = /^([+-]?)0*(\d+)(\.\d+)?$/;
 
 function canonicalNumeral(text: string): string {
   const numeral = DECIMAL_NUMERAL.exec(text);
   if (numeral === null) return text;
   const [, sign = '', whole = '', fraction = ''] = numeral;
   const digits = `${whole}${fraction}`;
-  return /^[0.]+$/.test(digits) ? digits : `${sign}${digits}`;
+  return sign !== '-' || /^[0.]+$/.test(digits) ? digits : `-${digits}`;
 }
 
 const written = (text: string) => [{ text, written: true as const }];

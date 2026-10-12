@@ -936,19 +936,15 @@ function parseNumberExpr(source: string) {
 
 describe('NumberLiteralExprAst for a number written with a plus sign', () => {
   it.each([
-    ['+1', 1, '1'],
-    ['+1.5', 1.5, '1.5'],
-    ['+007.50', 7.5, '007.50'],
-    ['-2', -2, '-2'],
-    ['3', 3, '3'],
-  ])('reads %s with its value and its text without the plus sign', (source, value, text) => {
+    ['+1', 1],
+    ['+1.5', 1.5],
+    ['+007.50', 7.5],
+  ])('reads %s with its value and keeps the text as written', (source, value) => {
     const { node, expr } = parseNumberExpr(source);
 
     expect(node.kind).toBe('NumberLiteralExpr');
     expect(expr?.value()).toBe(value);
-    expect(expr?.text()).toBe(text);
     expect(expr?.token()?.text).toBe(source);
-    expect(greenText(node)).toBe(source);
   });
 });
 

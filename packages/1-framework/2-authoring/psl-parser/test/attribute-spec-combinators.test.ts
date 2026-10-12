@@ -418,10 +418,10 @@ describe('a number written with a plus sign', () => {
     expect(num(1.5).parse(expr, ctx)).toEqual(ok(1.5));
   });
 
-  it('is its text without the sign for numLiteral', () => {
+  it('is its text as written for numLiteral', () => {
     const { expr, ctx } = argOf('+9007199254740993');
 
-    expect(numLiteral().parse(expr, ctx)).toEqual(ok({ text: '9007199254740993' }));
+    expect(numLiteral().parse(expr, ctx)).toEqual(ok({ text: '+9007199254740993' }));
   });
 });
 
