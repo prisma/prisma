@@ -72,10 +72,16 @@ const SQLITE_LEDGER_TABLE = '_prisma_ledger';
  */
 const OTHER_TOOL_MIGRATION_TABLES: ReadonlySet<string> = new Set(['_prisma_migrations']);
 
+/** Returns true when `value` is a non-null object, narrowing it to `Record<string, unknown>`. */
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
+/**
+ * Collects every table name declared across all storage namespaces in `contract`.
+ * Returns an empty set when `contract` is absent or malformed so the caller can
+ * treat every name as undeclared.
+ */
 function extractContractDeclaredTableNames(contract: unknown): ReadonlySet<string> {
   if (!isRecord(contract)) return new Set();
   const storage = contract['storage'];
