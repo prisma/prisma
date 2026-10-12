@@ -40,7 +40,7 @@ The design is in [`../../mutation-graph.md`](../../mutation-graph.md) and the ru
 - **Edges resolve data, nodes execute** (design record D2b, D9). An edge class has `output(sourceRow)`; a node class is generic over its input slots and has `execute(inputs, run)`; `graph.add(node, inputs)` is typed by the node. `execute` receives `null` for an absent edge and otherwise a list with one output per source row, empty when the source had none, and decides itself what an empty list means. Adding a data edge makes its source return the columns the edge reads. There are no order-only edges: nodes run in the order they were added (design record D3).
 - **The runner** is a loop over the nodes in position order: resolve each input edge by calling `output` for every row of its source, call `execute`, keep what it returns. Besides that it:
   - collects a node's row stream when another node reads from it, and passes the result node's stream through otherwise;
-  - turns the result node's storage rows into the caller's rows in a step described by the graph's result (model and variant, selected fields, includes loaded by the existing read code);
+  - turns the result node's storage rows into the caller's rows (map to model fields, decode the include columns that are there, drop edge-only columns); this step issues no statement;
   - puts the caller's annotations on every statement;
   - opens a transaction through the existing mutation scope when the graph has more than one node.
 - **The collection methods only build a graph and call the runner.** Argument checks that exist today (`assertLockCompatible`, `assertBulkWriteIgnoresNothing`, `assertReturningCapability`, `assertModelFieldNames`, unknown-field refusal, update defaults) keep running at the same point relative to the first statement.
@@ -76,7 +76,7 @@ One reviewer reads this as: a small data structure with its tests, a runner with
 | --- | --- |
 | `updateAll({})`, `updateAndCount({})`, `update({})` | No update statement. The builder adds a `Find` in place of the `Update` and it is the result: `updateAll({})` yields the matching rows and `update({})` the first matching row (design record D7a). `updateAndCount({})` resolves `0` as on main, since no row is affected; its graph has no node. Update defaults are not applied. |
 | `deleteAll()` with includes | The rows are read with their includes first and collected, then the delete runs, in one transaction; the read rows are the result. `Find` then `Delete`, in that order, with no edge between them. The `Find` holds the read code's `SelectAst` with includes, so it is one statement and needs no identity columns. |
-| `updateAll` / `update` with includes | The write returns identity columns and the rows are loaded by the existing read code (`dispatchMutationRows` does this today). |
+| `updateAll` / `update` with includes | The write returns identity columns, and a `Find` node holding the select with includes reads them through a `FilterData` edge and is the result. No statement is issued outside a node. |
 | `update()` / `delete()` matching no row, or after `limit(0)` | Resolves `null`; the write is skipped. |
 | A caller-supplied transaction | The runner uses it and does not open another. |
 | Variant collections | `updateAndCount` and `deleteAndCount` pass the variant to the compile functions today; the nodes carry what those functions need. |
