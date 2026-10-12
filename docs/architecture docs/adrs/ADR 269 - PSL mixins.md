@@ -82,11 +82,11 @@ An earlier team decision covered models only: `mixin Name { … }`, included wit
 
 **`mixin` is reserved as a block keyword and as a block name.** `mixin X { … }` and `model mixin { … }` are errors that say what a mixin declaration needs, and no extension can define a block kind named `mixin`. Field names, entry keys and attribute arguments spelled `mixin` are unaffected. PSL syntax freezes at the release candidate: reserving the word before then breaks nothing, and reserving it later would be a breaking change.
 
-**Mixins are namespace members.** A mixin shares its namespace's names with models, composite types and blocks, so a mixin and a model of one name are a duplicate declaration. An unqualified inclusion is looked up in the namespace of the including block, then at the top level. `+auth.Timestamps` is looked up in the namespace `auth` only.
+**Mixins are namespace members.** A mixin shares its namespace's names with models, composite types and blocks, so a mixin and a model of one name are a duplicate declaration. The name of an inclusion is looked up among mixins only: an unqualified name among the mixins of the including block's namespace, then among the top-level mixins. A declaration of another kind does not hide a mixin of the same name further out, so `+Timestamps` in a namespace that has a model `Timestamps` still reaches a top-level mixin `Timestamps`. `+auth.Timestamps` is looked up among the mixins of the namespace `auth` only.
 
 **Position decides order.** The mixin's members are placed where the inclusion is written, and that is the order the symbol table, the binder and the interpreters read. Where the contract keeps order, the position shows: an enum's members are an ordered list, so moving an inclusion in an enum changes the emitted contract, and `contract print` lists fields in this order. A model's fields and a table's columns are keyed and sorted in the emitted `contract.json`, and tables are created with their columns in that order, so moving an inclusion in a model changes neither, with or without mixins.
 
-The grammar that reads the schema of an earlier Prisma version ([ADR 252](ADR%20252%20-%20An%20earlier%20Prisma%20version%27s%20schema%20is%20a%20contract%20source.md)) has neither form: there `model mixin { … }` is a model named `mixin`.
+The parser reads both forms under every grammar, including the one that reads the schema of an earlier Prisma version ([ADR 252](ADR%20252%20-%20An%20earlier%20Prisma%20version%27s%20schema%20is%20a%20contract%20source.md)). The interpreters for those schemas report a mixin declaration and an inclusion as unsupported, and a model named `mixin` in such a schema is no longer accepted.
 
 ## Semantics
 
@@ -102,7 +102,7 @@ The grammar that reads the schema of an earlier Prisma version ([ADR 252](ADR%20
 
 The parser builds a syntax tree, the symbol table collects every declaration with its members, and the binder decides what each written name refers to. Family interpreters read the symbol table and the binder.
 
-**Inclusions are replaced while the symbol table is built.** Once the declarations of all files are collected, each including block receives the mixin's fields or entries and its attributes at the inclusion's position. The binder and the family interpreters therefore read ordinary blocks. No interpreter tests whether a member came from a mixin, and a block kind an extension defines supports mixins with no work in the extension.
+**Inclusions are replaced while the symbol table is built.** The mixins of all files are collected first. Each model, composite type and block is then built once, and where its body has an inclusion it receives the mixin's fields or entries and its attributes at that position. The binder and the family interpreters therefore read ordinary blocks. No interpreter tests whether a member came from a mixin, and a block kind an extension defines supports mixins with no work in the extension.
 
 **A mixin body is bound once**, whether or not anything includes it, and an including block binds only the members written in it. A name in a mixin has one meaning, and a binder error in a mixin is reported once, in the mixin.
 
