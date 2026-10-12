@@ -123,7 +123,20 @@ model('Message', { fields: { id, text } }).sql(({ cols }) => ({
 @@fullTextIndex([[title, subtitle], body], name: "post_search")
 ```
 
-**Searching an index: name it.** Name the full-text index and pass it to `fns.fullTextMatches` and `fns.fullTextRank` in place of a column. The operation searches the document the index was built over, with the index's weight groups and language, so the query always matches the index, Postgres uses it, and a title match ranks above a body match. The index states its language, so passing `language` with one is a type error. An index of another type, or a name the model's table does not have, is a type error too.
+**Searching an index in the ORM: `using`.** Every collection has a method under `using` for each full-text index of its model's table, named after the index. It filters to the matching rows and orders them by relevance, best first, and returns the same collection, so it chains like `where`:
+
+```typescript
+const q = websearchToTsquery(query);
+const posts = await db.orm.public.Post.select('id', 'title').using.post_search(q).limit(20).all();
+const mine = await db.orm.public.Post.where({ userId }).using.post_search(q).all();
+const users = await db.orm.public.User
+  .include('posts', (posts) => posts.using.post_search(q).limit(3))
+  .all();
+```
+
+The relevance order is added where the method is called: an `orderBy` before it sorts first, one after it breaks ties. A custom collection class stays the class, so `this.using.post_search(q)` works in a class method. A model with no full-text index has no `using` methods, and a misspelled name is a type error. `using` is reserved: a custom class cannot define its own `using`.
+
+**Searching an index by hand: name it.** For anything `using` does not do, such as another order or `fullTextHeadline`, name the full-text index and pass it to `fns.fullTextMatches` and `fns.fullTextRank` in place of a column. The operation searches the document the index was built over, with the index's weight groups and language, so the query always matches the index, Postgres uses it, and a title match ranks above a body match. The index states its language, so passing `language` with one is a type error. An index of another type, or a name the model's table does not have, is a type error too.
 
 In the ORM, every `where` and `orderBy` callback receives a second argument `{ fns, indexes }`: `fns` is the SQL builder's functions, and `indexes` holds the indexes of the model's table under the name the contract gave each, `name:` or `map:`. A value from `fns`, such as a rank, has `.asc()` and `.desc()`:
 

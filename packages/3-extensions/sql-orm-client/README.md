@@ -81,6 +81,28 @@ A reusable condition types its second parameter as `ModelCallbackTools<Contract,
 
 Naming the index makes the query search the document the index was built over, so Postgres uses the index. See [ADR 270](../../../docs/architecture%20docs/adrs/ADR%20270%20-%20ORM%20queries%20use%20the%20query%20builder's%20functions%20and%20a%20model's%20indexes.md).
 
+## Collection methods packages contribute
+
+A package that owns an index type can contribute a collection method for indexes of that type. Every collection offers these methods under `using`, one for each index of the model's table that a registered contribution matches, named after the index:
+
+```ts
+const q = websearchToTsquery(input.search);
+
+await db.Post.using.post_search(q).limit(10).all();
+await db.Post.where({ userId }).using.post_search(q).all();
+await db.User.include('posts', (posts) => posts.using.post_search(q).limit(3)).all();
+```
+
+- The Postgres target contributes the method for `fullText` indexes, so `postgres()` and the serverless client both offer it. It filters with `fns.fullTextMatches` and orders by `fns.fullTextRank`, descending, both naming the index.
+- A method returns the collection it was called on, with `Filtered` and `Ordered` added: a custom class stays the class. It works on a root collection, after other methods, inside an include refinement, inside `with` and a fragment for one model, and on `this` in a custom class. The body of a fragment for any model has no `using`.
+- Its order is an ordinary order, added where it is called: an `orderBy` before it comes first, and one after it comes after.
+- A model with no matching index has a `using` with no members. On a collection narrowed by `variant`, `using` serves the base model's table's indexes.
+- `using` is a member of every collection: a custom class cannot declare its own `using`, and an aggregate operation named `using` is refused.
+
+A contribution has two halves. The type half extends `CollectionMethodRegistry` by declaration merging: its `match` is the shape of an index it serves and its `parameters` are the method's arguments. The run-time half, a `SqlCollectionMethodContribution` with the same `id`, goes on a target or extension descriptor as `collectionMethods`; its `matches` predicate picks the indexes and its `method` body receives the collection and the index's name. `orm()` refuses, with `ORM.ARGUMENT_INVALID`, two contributions with the same id and two contributions that match the same index.
+
+The methods are typed in a program that loads the contributing package's types. For Postgres that is `@prisma/orm-postgres/runtime` or `@prisma/orm-postgres/serverless`, which every application that creates a client imports. See [ADR 272](../../../docs/architecture%20docs/adrs/ADR%20272%20-%20A%20package%20contributes%20collection%20methods%20for%20the%20index%20types%20it%20owns.md).
+
 ## Custom collections
 
 An application extends `Collection` with its own query methods and registers the class with `orm({ collections })`:

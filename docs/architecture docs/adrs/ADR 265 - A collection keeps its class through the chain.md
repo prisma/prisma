@@ -64,6 +64,7 @@ Each fact has three names. The flag `hasWhere` in the type state is set to `true
 | `forUpdate`, `forNoKeyUpdate`, `forShare`, `forKeyShare` | `Self` | yes | nothing; the contract's capabilities decide which arguments each accepts |
 | `include` | `Including<Self, { [K in Rel]: ... }>` | yes | each row has the included relation |
 | `with(fn)` | whatever `fn(this)` returns | as the function | as the function |
+| `using.<index>(...args)` | `Ordered<Filtered<Self>>` | yes | a filter and an order have been applied; a package contributes the method for the index's type ([ADR 272](ADR%20272%20-%20A%20package%20contributes%20collection%20methods%20for%20the%20index%20types%20it%20owns.md)) |
 | `select` | `Collection<Contract, Model, NarrowedRow, State>` | no | a different row |
 | `variant` | `Collection<Contract, Model, VariantRow, VariantState>` | no | a different row and a different type argument |
 
