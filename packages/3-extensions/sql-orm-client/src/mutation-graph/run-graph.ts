@@ -37,6 +37,10 @@ export function queryGraph<Row>(
 ): AsyncIterableResult<Row> {
   returnCallerColumns(graph, callerRows);
   const [only, ...others] = graph.nodes();
+  // A graph with one node is one statement. It runs without a transaction and its rows are
+  // handed to the caller as they arrive. A graph with several nodes runs inside the mutation
+  // scope, whose transaction ends when its callback returns, so its result is collected there
+  // and yielded afterwards.
   if (only !== undefined && others.length === 0 && only[0] === graph.result) {
     const [id, node] = only;
     const run = runOn(ctx, annotations);
