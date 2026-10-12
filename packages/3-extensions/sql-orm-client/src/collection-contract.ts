@@ -845,6 +845,35 @@ export function resolveRowIdentityColumns(
   return [];
 }
 
+export function resolveUniqueKeyColumnSets(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  tableName: string,
+): readonly (readonly string[])[] {
+  const table = storageTableForContract(contract, namespaceId, tableName);
+  return [table.primaryKey?.columns ?? [], ...table.uniques.map((unique) => unique.columns)].filter(
+    (columns) => columns.length > 0,
+  );
+}
+
+export function hasCompleteUniqueKey(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  modelName: string,
+  criterion: object,
+): boolean {
+  const columnsWithValue = new Set<string>();
+  for (const [fieldName, value] of Object.entries(criterion)) {
+    if (value !== undefined && value !== null) {
+      columnsWithValue.add(resolveFieldToColumn(contract, namespaceId, modelName, fieldName));
+    }
+  }
+  const tableName = resolveModelTableName(contract, namespaceId, modelName);
+  return resolveUniqueKeyColumnSets(contract, namespaceId, tableName).some((columns) =>
+    columns.every((column) => columnsWithValue.has(column)),
+  );
+}
+
 export function assertReturningCapability(contract: Contract<SqlStorage>, action: string): void {
   if (hasContractCapability(contract, 'returning')) {
     return;

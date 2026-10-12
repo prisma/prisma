@@ -314,6 +314,48 @@ describe('integration/whereUnique', () => {
   );
 
   it(
+    'delete() after a key whose value is undefined rejects and removes nothing',
+    async () => {
+      await withCollectionRuntime(async (runtime) => {
+        const users = createReturningUsersCollection(runtime).select('id', 'name', 'email');
+        const userRoles = createReturningUserRolesCollection(runtime).select(
+          'userId',
+          'roleId',
+          'level',
+        );
+        await seedUserRoleRows(runtime);
+        const noId = { id: undefined } as unknown as { id: number };
+        const noRoleId = { userId: 1, roleId: undefined } as unknown as {
+          userId: number;
+          roleId: Char<36>;
+        };
+        const incompleteKey = { code: 'ORM.ARGUMENT_INVALID' };
+
+        await expect(async () => users.whereUnique(noId).delete()).rejects.toMatchObject(
+          incompleteKey,
+        );
+        await expect(async () =>
+          userRoles.whereUnique(noRoleId).update({ level: 1 }),
+        ).rejects.toMatchObject(incompleteKey);
+        await expect(async () => userRoles.whereUnique(noRoleId).delete()).rejects.toMatchObject(
+          incompleteKey,
+        );
+
+        expect(await readUsers(runtime)).toEqual([
+          { id: 1, name: 'Alice' },
+          { id: 2, name: 'Bob' },
+        ]);
+        expect(await readUserRoles(runtime)).toEqual([
+          { user_id: 1, role_id: ROLE_ADMIN, level: 10 },
+          { user_id: 1, role_id: ROLE_EDITOR, level: 20 },
+          { user_id: 2, role_id: ROLE_ADMIN, level: 30 },
+        ]);
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
     'a key that matches no row gives null and writes nothing',
     async () => {
       await withCollectionRuntime(async (runtime) => {

@@ -52,6 +52,7 @@ import {
   getModelColumnFields,
   getModelFieldColumns,
   getOwnFieldColumns,
+  hasCompleteUniqueKey,
   isToOneCardinality,
   type PolymorphismInfo,
   type PolymorphismVariantInfo,
@@ -571,6 +572,13 @@ export class CollectionBase<
         'ORM.INCLUDE_INVALID',
         'whereUnique() is not available inside include() refinement callbacks',
         { meta: { action: 'whereUnique()' } },
+      );
+    }
+    if (!hasCompleteUniqueKey(this.contract, this.namespaceId, this.modelName, criterion)) {
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
+        `whereUnique() for model "${this.modelName}" needs a value for every field of the primary key or of one unique constraint`,
+        { meta: { method: 'whereUnique', argument: 'criterion', model: this.modelName } },
       );
     }
     const filter = normalizeWhereArg(
