@@ -223,7 +223,7 @@ The concept: the planner can detect *that* a data transform is needed but not *w
 
 ### Postgres
 
-The planner can detect *that* a data transform is needed (e.g. backfilling a new `NOT NULL` column with no default) but not *what* it should do. You fill `check` and `run` closures with real query plans built against `endContract`.
+`--backfill` asks the planner for a data transform it cannot write itself, for example to fill a new required column `name` on a table with rows: `pnpm prisma migration plan --name add_user_name --backfill User.name`. Without the flag the rows get a temporary value instead. Each slot is named by the field and the part to fill, `User.name:check` and `User.name:run`. You fill `check` and `run` closures with real query plans built against `endContract`.
 
 The scaffold the planner emits looks like:
 
@@ -247,8 +247,8 @@ export default class M extends Migration<Start, End> {
         column: col('name', 'text', { codecRef: { codecId: 'pg/text@1' } }),
       }),
       this.dataTransform(endContract, 'backfill-user-name', {
-        check: () => placeholder('backfill-user-name:check'),
-        run: () => placeholder('backfill-user-name:run'),
+        check: () => placeholder('User.name:check'),
+        run: () => placeholder('User.name:run'),
       }),
       this.setNotNull({ schema: 'public', table: 'user', column: 'name' }),
     ];
