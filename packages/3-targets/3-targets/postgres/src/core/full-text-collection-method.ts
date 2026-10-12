@@ -1,10 +1,29 @@
 import type { IndexReference } from '@internal/sql-relational-core/index-reference';
 import type {
+  CollectionMethodContribution,
+  CollectionMethodSignature,
   CollectionMethodTools,
-  SqlCollectionMethodContribution,
 } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
+import type { TsqueryArgument } from '../types/operation-types';
+import type { ExtractedCodecTypes, Resolve } from './codec-type-map';
 import { FULL_TEXT_INDEX_TYPE } from './full-text-index-definition';
+
+/** A `tsquery` expression from a parser or the `tsquery` tag, or a `tsquery` value read back from a query. */
+export type PostgresTsqueryArgument = TsqueryArgument<Resolve<ExtractedCodecTypes>>;
+
+/** The collection method of a full-text index: `using.<index>(query)` filters to the rows that match `query`, most relevant first. */
+export interface PostgresFullTextMethod extends CollectionMethodSignature {
+  readonly target: 'postgres';
+  readonly match: { readonly type: typeof FULL_TEXT_INDEX_TYPE };
+  readonly parameters: readonly [query: PostgresTsqueryArgument];
+}
+
+declare module '@internal/sql-relational-core/query-lane-context' {
+  interface CollectionMethodRegistry {
+    readonly 'postgres/fullText': PostgresFullTextMethod;
+  }
+}
 
 type IndexFunction = (index: IndexReference | undefined, ...args: never[]) => { desc(): unknown };
 
@@ -18,9 +37,10 @@ function indexFunction(
   >(tools.fns[name]);
 }
 
-/** The collection method for a full-text index: filters to the rows that match the query, most relevant first. */
-export const postgresFullTextMethod: SqlCollectionMethodContribution = {
+/** The run-time half of `PostgresFullTextMethod`. */
+export const postgresFullTextMethod: CollectionMethodContribution = {
   id: 'postgres/fullText',
+  target: 'postgres',
   matches: (index) => index.type === FULL_TEXT_INDEX_TYPE,
   method: (collection, indexName, ...args) =>
     collection

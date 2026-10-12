@@ -1,8 +1,10 @@
 import { createPostgresAdapter } from '@internal/adapter-postgres/adapter';
+import { int4Column } from '@internal/adapter-postgres/column-types';
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
+import { field } from '@internal/sql-contract-ts/contract-builder';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type { SqlCollectionMethodContribution } from '@internal/sql-relational-core/query-lane-context';
+import type { CollectionMethodContribution } from '@internal/sql-relational-core/query-lane-context';
 import { websearchToTsquery } from '@internal/target-postgres/full-text';
 import { describe, expect, it } from 'vitest';
 import type { PostgresContract } from '../../../3-targets/6-adapters/postgres/src/core/types';
@@ -10,7 +12,11 @@ import { collectionMethodEntries } from '../src/collection-methods';
 import { orm } from '../src/orm';
 import { compileSelect, compileSelectWithIncludes } from '../src/query-plan-select';
 import type { CollectionState } from '../src/types';
-import { notesContract, testTrigramMethod } from './collection-methods-fixture';
+import {
+  notesContract,
+  otherTargetFullTextMethod,
+  testTrigramMethod,
+} from './collection-methods-fixture';
 import { createCollectionMethodsOrm } from './collection-methods-orm-fixture';
 import { createMockRuntime, getTestAggregates, getTestContext, getTestContract } from './helpers';
 
@@ -58,6 +64,19 @@ describe('using', () => {
     expect(collectionMethodEntries(context, 'public', 'users')).toBe(
       collectionMethodEntries(context, 'public', 'users'),
     );
+  });
+
+  it('has no members inside the body of a fragment for any model', () => {
+    const { fragment } = createCollectionMethodsOrm();
+    let members: readonly string[] | undefined;
+    const anyModel = fragment({ id: field.column(int4Column) }, (rows) => {
+      members = Object.keys(Reflect.get(rows, 'using'));
+      return rows;
+    });
+
+    plain.User.with(anyModel);
+
+    expect(members).toEqual([]);
   });
 });
 
@@ -136,6 +155,28 @@ describe('a contributed method', () => {
     );
   });
 
+  it('searches the related model own index inside a refinement into another model', () => {
+    const posts = plain.Post.select('id').include('author', (author) =>
+      author.select('id').using.users_search(q),
+    );
+
+    const sql = sqlOf(
+      contract,
+      compileSelectWithIncludes(
+        contract,
+        getTestAggregates(),
+        'public',
+        'Post',
+        'posts',
+        posts.state,
+      ),
+    );
+    const rank = `ts_rank(${search}, websearch_to_tsquery('english', $1))`;
+    expect(sql).toBe(
+      `SELECT "posts"."id" AS "id", (SELECT coalesce(json_agg(json_build_object('id', "author__rows"."id") ORDER BY "author__rows"."author__order_0" DESC), json_build_array()) AS "author" FROM (SELECT "users"."id" AS "id", ${rank} AS "author__order_0" FROM "public"."users" WHERE ("users"."id" = "posts"."user_id" AND ${search} @@ websearch_to_tsquery('english', $1)) ORDER BY ${rank} DESC) AS "author__rows") AS "author" FROM "public"."posts"`,
+    );
+  });
+
   it('comes from a second index type the ORM client does not know', () => {
     const notesSchema = notesContract();
     const found = notes.Note.select('id').using.notes_title_trgm('title', 'zebra');
@@ -175,7 +216,7 @@ describe('the ORM client', () => {
   });
 
   it('refuses two contributions that match the same index', () => {
-    const otherFullText: SqlCollectionMethodContribution = {
+    const otherFullText: CollectionMethodContribution = {
       ...fullText,
       id: 'test/other-full-text',
     };
@@ -197,6 +238,36 @@ describe('the ORM client', () => {
         },
       }),
     );
+  });
+
+  it('ignores a contribution for another target, so it neither adds a method nor collides', () => {
+    const client = orm({
+      runtime,
+      context: { ...context, collectionMethods: [fullText, otherTargetFullTextMethod] },
+    });
+    expect(Object.keys(client.public.User.using)).toEqual(['users_search']);
+  });
+
+  it('checks a context for ambiguity once, however many clients use it', () => {
+    let calls = 0;
+    const counting: CollectionMethodContribution = {
+      id: 'test/counting',
+      matches: () => {
+        calls += 1;
+        return false;
+      },
+      method: (collection) => collection,
+    };
+    const counted = { ...context, collectionMethods: [fullText, counting] };
+
+    orm({ runtime, context: counted });
+    const afterFirst = calls;
+    orm({ runtime, context: counted });
+
+    expect({ checked: afterFirst > 0, afterSecond: calls }).toEqual({
+      checked: true,
+      afterSecond: afterFirst,
+    });
   });
 
   it('accepts a context with no contributions', () => {

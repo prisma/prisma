@@ -1,6 +1,7 @@
 import { int4Column } from '@internal/adapter-postgres/column-types';
 import { field } from '@internal/sql-contract-ts/contract-builder';
 import { websearchToTsquery } from '@internal/target-postgres/full-text';
+import type { PostgresTsqueryArgument } from '@internal/target-postgres/operation-types';
 import { describe, expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
 import type {
@@ -47,6 +48,14 @@ describe('using', () => {
   test('refuses an argument of the wrong type', () => {
     // @ts-expect-error a full-text method takes a tsquery, not a string
     plain.User.using.users_search('alice');
+  });
+
+  test('takes the Postgres target parameter list, and ignores a signature for another target', () => {
+    expectTypeOf(plain.User.using.users_search)
+      .parameter(0)
+      .toEqualTypeOf<PostgresTsqueryArgument>();
+    // @ts-expect-error the other target's method takes a number; a Postgres contract never gets it
+    plain.User.using.users_search(1);
   });
 
   test('has no members when the model name is not known', () => {

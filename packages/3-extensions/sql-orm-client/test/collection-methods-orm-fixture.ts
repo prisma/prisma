@@ -1,6 +1,7 @@
+import type { PostgresTsqueryArgument } from '@internal/target-postgres/operation-types';
 import { Collection } from '../src/collection';
 import { orm } from '../src/orm';
-import { contextWithTrigram, notesContext, type Tsquery } from './collection-methods-fixture';
+import { contextWithTrigram, notesContext } from './collection-methods-fixture';
 import { createMockRuntime, getTestContext, type TestContract } from './helpers';
 
 export class SearchableUserCollection extends Collection<TestContract, 'User'> {
@@ -8,7 +9,7 @@ export class SearchableUserCollection extends Collection<TestContract, 'User'> {
     return this.where((u) => u.name.eq(name));
   }
 
-  relevant(query: Tsquery) {
+  relevant(query: PostgresTsqueryArgument) {
     return this.using.users_search(query);
   }
 }

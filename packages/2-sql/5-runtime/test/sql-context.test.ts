@@ -4,7 +4,7 @@ import type { RuntimeDriverDescriptor } from '@internal/framework-components/exe
 import { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationDescriptors } from '@internal/sql-operations';
 import type { Codec } from '@internal/sql-relational-core/ast';
-import type { SqlCollectionMethodContribution } from '@internal/sql-relational-core/query-lane-context';
+import type { CollectionMethodContribution } from '@internal/sql-relational-core/query-lane-context';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
@@ -140,7 +140,7 @@ describe('createExecutionContext', () => {
   });
 
   it('collects the collection methods the target and extensions contribute, in stack order', () => {
-    const method = (id: string): SqlCollectionMethodContribution => ({
+    const method = (id: string): CollectionMethodContribution => ({
       id,
       matches: () => false,
       method: (collection) => collection,

@@ -638,6 +638,7 @@ export function defineDeclaredFieldsFragment<
 }
 
 const NO_INDEXES = Object.freeze({});
+const NO_COLLECTION_METHODS = Object.freeze({});
 
 const collectionsBehindViews = new WeakMap<object, unknown>();
 
@@ -652,11 +653,12 @@ const BODY_CHAIN_METHODS: Readonly<
 > = { where: true, orderBy: true, limit: true, offset: true };
 
 /**
- * The collection as the body of a fragment for any model sees it: a `where` or `orderBy` callback receives `fns` and an `indexes` with no members, as the body does not know its model.
+ * The collection as the body of a fragment for any model sees it: a `where` or `orderBy` callback receives `fns` and an `indexes` with no members, and `using` has no members, as the body does not know its model.
  */
 function withoutIndexes(collection: object): object {
   const view = new Proxy(collection, {
     get(target, prop) {
+      if (prop === 'using') return NO_COLLECTION_METHODS;
       const member: unknown = Reflect.get(target, prop, target);
       if (typeof member !== 'function') return member;
       if (!Object.hasOwn(BODY_CHAIN_METHODS, prop)) return member.bind(target);

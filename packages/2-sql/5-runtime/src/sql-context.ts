@@ -58,8 +58,8 @@ import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/code
 import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type {
   CodecDescriptorRegistry,
+  CollectionMethodContribution,
   ExecutionContext,
-  SqlCollectionMethodContribution,
   TypeHelperRegistry,
 } from '@internal/sql-relational-core/query-lane-context';
 import { createAstCodecResolver } from './codecs/ast-codec-resolver';
@@ -83,7 +83,7 @@ export interface SqlStaticContributions
   extends Pick<MutationDefaultGeneratorContributor, 'mutationDefaultGenerators'> {
   readonly codecs: () => ReadonlyArray<AnyCodecDescriptor>;
   readonly queryOperations?: () => SqlOperationDescriptors;
-  readonly collectionMethods?: () => ReadonlyArray<SqlCollectionMethodContribution>;
+  readonly collectionMethods?: () => ReadonlyArray<CollectionMethodContribution>;
 }
 
 export interface SqlRuntimeTargetDescriptor<

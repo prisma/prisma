@@ -1,4 +1,8 @@
 export type {
+  PostgresFullTextMethod,
+  PostgresTsqueryArgument,
+} from '../core/full-text-collection-method';
+export type {
   FullTextHeadlineOptions,
   FullTextMatchesOptions,
   FullTextRankOptions,

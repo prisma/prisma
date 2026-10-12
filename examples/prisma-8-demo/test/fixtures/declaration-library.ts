@@ -10,7 +10,7 @@ import {
   orderByField,
   orm,
 } from '@prisma/orm-postgres/orm-client';
-import type { PostgresClient } from '@prisma/orm-postgres/runtime';
+import type { ExecutionContext } from '@prisma/orm-postgres/relational-core/query-lane-context';
 import { websearchToTsquery } from '@prisma/orm-postgres/target/full-text';
 import type { Contract } from '../../src/prisma/contract.d';
 
@@ -25,8 +25,7 @@ export const labelledAs = (labels: readonly string[]) => (row: { labels: Labels 
   row.labels.eq(labels);
 
 declare const runtime: Runtime;
-declare const postgresClient: PostgresClient<Contract>;
-const context = postgresClient.context;
+declare const context: ExecutionContext<Contract>;
 
 const client = orm({ runtime, context });
 

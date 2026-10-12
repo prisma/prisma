@@ -6,7 +6,7 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationRegistry } from '@internal/sql-operations';
 import type { SqlAggregateDescriptor, SqlAggregateLowering } from './aggregate-descriptor';
 import type { ContractCodecRegistry } from './ast/codec-types';
-import type { SqlCollectionMethodContribution } from './collection-method-contribution';
+import type { CollectionMethodContribution } from './collection-method-contribution';
 import type { RawCodecInferer } from './expression';
 
 /**
@@ -101,5 +101,5 @@ export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contr
   /**
    * The collection methods the target and extensions contribute. The ORM client offers one under `using` for each index one of them matches.
    */
-  readonly collectionMethods?: ReadonlyArray<SqlCollectionMethodContribution>;
+  readonly collectionMethods?: ReadonlyArray<CollectionMethodContribution>;
 }
