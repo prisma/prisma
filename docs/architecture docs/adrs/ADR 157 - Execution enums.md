@@ -6,7 +6,7 @@ We want enum-like behavior that is explicit in storage and reusable in execution
 
 ## Summary
 
-> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived check, not ADR 156's sets and `inSet` checks, and execution reads the domain enum, not storage enforcement.
+> Superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived check, not ADR 156's sets and `inSet` checks, and execution reads the domain enum (`db.enums`) and, for native enums, the value set (`db.nativeEnums`).
 
 - “Enum” means **a set of allowed values** plus an explicit **storage enforcement mechanism**.
 - The execution plane derives “allowed values” from storage enforcement so lanes don’t drift.
@@ -15,7 +15,7 @@ We want enum-like behavior that is explicit in storage and reusable in execution
 
 ## Context
 
-> The last paragraph is superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): execution reads the domain enum, not storage enforcement.
+> The last paragraph is superseded in part by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): execution reads the domain enum (`db.enums`) and, for native enums, the value set (`db.nativeEnums`).
 
 Developers want to write “this column is an enum with these values” and have three things line up:
 
@@ -155,7 +155,7 @@ The important part is *where this logic lives*: it should be implemented once (e
 
 ## Where logic lives
 
-> The execution-plane bullets are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): execution reads the domain enum, and on SQL targets the database enforces membership.
+> The execution-plane bullets are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): execution reads the domain enum (`db.enums`) and, for native enums, the value set (`db.nativeEnums`), and on SQL targets the database enforces membership.
 
 - **Authoring/emission**:
   - users author “enum with values” ergonomically
@@ -301,21 +301,23 @@ The idea of this ADR stands: an enum is a set of allowed values plus an explicit
 
 **A value set.** The contract build also writes `storage.namespaces.<ns>.entries.valueSet.<Name>` in the same namespace: the ordered stored values. Both the SQL and the Mongo family write it. A field typed by the enum carries a `valueSet` reference to the domain enum, and on SQL its column carries a `valueSet` reference to the value set. A reference names the plane, the entity kind, the namespace and the name.
 
-**Why an enum has two representations.** The domain enum is the application's concept: the member names, the values and the codec. The emitted domain types and `db.enums` read it. The value set is its storage projection: the stored values a column references, which a reader of the storage plane can resolve without the domain plane. Both are written from the one declaration. A native enum has only the value set, so the emitter types its columns and `db.nativeEnums` reads its members from there.
+**Why an enum has two representations.** The domain enum is the application's concept: the member names, the values and the codec. The emitted domain types and `db.enums` read it. The value set is its storage projection: the stored values a column references, which a reader of the storage plane can resolve without the domain plane. Both are written from the one declaration. A native enum has no domain enum. Besides its `native_enum` entry, it gets a value set with the same members, because `valueSet` is a core SQL entity kind: the emitter writes value sets into the contract types, where `db.nativeEnums` and the column types read them, and it does not emit pack kinds such as `native_enum`.
 
 **The derived check.** On a `managed` table, the SQL contract build derives a check from the column and the enum's members, and stores it as an opaque wire-named expression ([ADR 244](<./ADR 244 - Check constraints are opaque wire-named expressions.md>)). This ADR calls it the derived check. A scalar column gets `"col" IN (...)`. A list column gets `array_remove("col", NULL) <@ '{...}'`, and a second derived check, `array_position("col", NULL) IS NULL`, when its elements are not nullable. `@noCheck` waives derived checks on one column: bare, it waives every kind; `@noCheck(membership)` or `@noCheck(elementNotNull)` waives one kind. SQLite has no check renderer, so it derives no checks (ADR 244). Mongo enforces membership with the `enum` keyword of the collection's `$jsonSchema` validator.
 
 **A native Postgres enum.** PSL writes a `native_enum` block and types a column `pg.enum(Name)`. TypeScript writes `nativeEnum(name, ...values)`, with `.map(typeName)` for the Postgres type name, and types a column `pg.enum(handle)`:
 
 ```ts
-const intColumn = { codecId: 'pg/int4@1' } as const;
+import { int4Column } from '@internal/adapter-postgres/column-types';
+import { defineContract, field, model, nativeEnum, pg } from '@internal/postgres/contract-builder';
+
 const AalLevel = nativeEnum('AalLevel', 'aal1', 'aal2', 'aal3').map('aal_level');
 
 const contract = defineContract({
   models: {
     Session: model('Session', {
       fields: {
-        id: field.column(intColumn).id(),
+        id: field.column(int4Column).id(),
         aal: field.column(pg.enum(AalLevel)).optional(),
       },
     }).sql({ table: 'sessions' }),
@@ -438,7 +440,7 @@ The emitted row type has `priority: 1n | 10n` and `status: 'open' | 'closed'`.
 
 ## Consequences
 
-> The "portable baseline" benefit and the first cost are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived check, and execution reads the domain enum.
+> The "portable baseline" benefit and the first cost are superseded by the [October 12, 2026 amendment](#amendment-october-12-2026--how-enums-are-realized): the portable mechanism is a value set plus a derived check, and execution reads the domain enum (`db.enums`) and, for native enums, the value set (`db.nativeEnums`).
 
 ### Benefits
 
