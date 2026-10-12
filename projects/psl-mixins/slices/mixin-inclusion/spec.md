@@ -27,7 +27,7 @@ export interface MixinSymbol {
 
 `TopLevelScope` and `NamespaceSymbol` gain a `mixins` record. A mixin's name takes part in the existing duplicate-name check with models, composite types and blocks of the same namespace (`PSL_DUPLICATE_DECLARATION`, first wins). A mixin whose keyword is `model` or `type` has `fields`; any other keyword has `entries`.
 
-**Replacing inclusions.** After every declaration in every document is collected, a second pass visits each model, composite type and generic block that has inclusions and rebuilds its member records in source order, with each inclusion replaced by the mixin's members:
+**Replacing inclusions.** The symbol table is built in two passes. The first claims every declaration's name and builds the mixin symbols; a mixin cannot include a mixin, so it needs nothing else. The second builds each model, composite type and generic block once, walking its children in source order: a field, entry or attribute is added, and an inclusion adds the mixin's members through the same step, at that position. (Simplified after review: the first version built every block without its inclusions and then rebuilt the records of blocks that had any.)
 
 | Record | What an inclusion contributes | Order |
 |---|---|---|
@@ -37,15 +37,13 @@ export interface MixinSymbol {
 
 Mixed-in members are the mixin's own objects, shared by every including block. They are not copied.
 
-**Looking up the name.** An unqualified name is looked up in the including block's namespace, then at the top level. `ns.Name` is looked up in namespace `ns` only. The symbol table and the binder use one lookup, so they cannot disagree. Lookup is kind-blind, as for every other reference.
+**Looking up the name.** A mixin is looked up among mixins only. An unqualified name is looked up in the mixins of the including block's namespace, then in the top-level mixins. `ns.Name` is looked up in the mixins of namespace `ns` only. Declarations of other kinds take no part: a model named `Timestamps` in the current namespace does not hide a top-level mixin `Timestamps`. Each including symbol records which mixin each of its inclusions resolved to, and the binder reads that record; it does not look the name up again. (Changed after review: the lookup was kind-blind.)
 
 **Diagnostics raised here, all located at the inclusion:**
 
 | Situation | Code | Message |
 |---|---|---|
-| The name resolves to nothing | `PSL_UNRESOLVED_REFERENCE` | `Cannot find mixin "<written>"` |
-| The name resolves to something that is not a mixin | `PSL_UNRESOLVED_REFERENCE` | `"<written>" is a <kind>, not a mixin` |
-| The name has a contract-space qualifier (`space:ns.Name`) | `PSL_UNRESOLVED_REFERENCE` | `A mixin cannot be included from another contract space` |
+| The name does not resolve to a mixin, including a name with a contract-space qualifier | `PSL_UNRESOLVED_REFERENCE` | `Cannot find mixin "<written>"` |
 | The mixin's keyword differs from the block's | the block's member code (`PSL_INVALID_MODEL_MEMBER` or `PSL_INVALID_EXTENSION_BLOCK_MEMBER`) | `Mixin "<name>" is for "<mixin keyword>" blocks, not "<block keyword>" blocks` |
 | The same mixin is included twice in one block | the block's member code | `Mixin "<name>" is already included in this block`; the second inclusion contributes nothing |
 | A field name, or an entry key, is already present in the block when the inclusion is reached | `PSL_DUPLICATE_DECLARATION` | `Mixin "<name>" provides "<member>", which "<block name>" already has`; the earlier member is kept and the mixin's other members are still included |
@@ -62,7 +60,7 @@ Attributes are not checked for duplicates here. Whether two `@@index` or two `@@
 - **A mixin body is bound once.** The binder walks mixins as it walks models: field types are resolved in the mixin's own namespace, and field names in the mixin's attributes are looked up in the mixin's own `fields`. This runs whether or not anything includes the mixin.
 - **An including block binds only the members written in it.** Mixed-in members are skipped, so no member is bound twice and no binder diagnostic is repeated per including block.
 - **A block's own attributes see all of its fields.** `@@unique([tenantId, id])` written in a model resolves `tenantId` to the mixin's field symbol.
-- **An inclusion's name is a reference.** `symbolForNode` on the inclusion's `QualifiedName` returns `{ kind: 'mixin', symbol, namespace? }`, and the qualifier segment resolves to its namespace as for type references. `declaredSymbol` on a mixin declaration's node returns the `MixinSymbol`.
+- **An inclusion's name is a reference.** `symbolForNode` on the inclusion's `QualifiedName` returns `{ kind: 'mixin', symbol, namespace? }`, and the qualifier segment resolves to its namespace as for type references. An inclusion written inside a mixin body is an error and records no reference. `declaredSymbol` on a mixin declaration's node returns the `MixinSymbol`.
 - **A mixin name in type position is rejected** the way a namespace name is today: `PSL_UNRESOLVED_REFERENCE`, `"<written>" is a mixin; a type reference must name a model, composite type, enum, or named type`.
 
 - **The binder passes the mixin itself as the owner.** `AttributeSpecContext.model`, `UnsupportedAttribute.owner` and `UnresolvedTypeReference.owner` are widened to accept a `MixinSymbol`. No object shaped like a model is built around a mixin.
@@ -72,7 +70,8 @@ How the binder tells a block's own members from mixed-in ones is the implementer
 
 ### What does not change
 
-- No file under `packages/2-sql`, `packages/2-mongo-family` or `packages/3-*` changes in `src`, other than the two diagnostic-wording callbacks above and a compile fix if a type they import gains a member.
+- No file under `packages/2-sql`, `packages/2-mongo-family` or `packages/3-*` changes in `src`, other than the two diagnostic-wording callbacks above, a compile fix if a type they import gains a member, and the interpreters for Prisma 7 and Prisma 6 schemas, which report a mixin declaration (`Unsupported top-level block "<keyword> mixin"`) and an inclusion (`Unsupported mixin inclusion "+<Name>"`) as unsupported.
+- The `psl-parser` README is not changed: it is an overview of the package and does not describe mixins.
 - An interpreter error on a mixed-in member is reported once per including block, at the member in the mixin (project decision 13 and non-goals).
 
 ## Coherence rationale
@@ -83,7 +82,8 @@ Placing members and binding them correctly are one change: placing them without 
 
 **In:**
 
-- `psl-parser`: `symbol-table.ts`, `scope.ts`, `binder.ts`, their tests, removal of the interim diagnostic and its tests, and the README sections on the symbol table, scope chain and resolution kinds.
+- `psl-parser`: `symbol-table.ts`, `scope.ts`, `binder.ts`, their tests, and removal of the interim diagnostic and its tests.
+- The Prisma 7 and Prisma 6 schema interpreters' rejection of mixins.
 - Contract-equivalence tests in the SQL `contract-psl` package for `model`, `type`, `enum` and an extension `key = value` block, plus the field-order test. One equivalence test in the Mongo `contract-psl` package for a model mixin.
 - A test for the row-level security example from the project spec, in the package that owns `policy_select`.
 - The user-facing PSL authoring skill, with a short section on mixins.
