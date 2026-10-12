@@ -657,13 +657,13 @@ export type VariantAwareModelAccessor<
         ScalarModelAccessor<
           TContract,
           VariantModelName<TContract, ModelName, VariantValue, NsId>,
-          VariantNamespace<TContract, ModelName, VariantValue, NsId>
+          VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
         > &
         RelationModelAccessor<TContract, ModelName, NsId> &
         RelationModelAccessor<
           TContract,
           VariantModelName<TContract, ModelName, VariantValue, NsId>,
-          VariantNamespace<TContract, ModelName, VariantValue, NsId>
+          VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
         >
     : ModelAccessor<TContract, ModelName, NsId>
   : ModelAccessor<TContract, ModelName, NsId>;
@@ -825,7 +825,7 @@ type VariantRow<
                   DefaultModelRow<
                     TContract,
                     VK,
-                    VariantNamespace<TContract, ModelName, Value, NsId>
+                    VariantModelNamespace<TContract, ModelName, Value, NsId>
                   > &
                   Record<DiscField, Value>
               >
@@ -865,7 +865,7 @@ type VariantModelName<
       : never
     : never;
 
-type VariantNamespace<
+type VariantModelNamespace<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   VariantValue,
@@ -898,7 +898,7 @@ export type VariantModelRow<
                 DefaultModelRow<
                   TContract,
                   VK,
-                  VariantNamespace<TContract, ModelName, VariantValue, NsId>
+                  VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
                 > &
                 Record<DiscField, VariantValue>
             >
@@ -1711,7 +1711,7 @@ export type VariantCreateInput<
       CreateInput<
         TContract,
         VariantModelName<TContract, BaseModelName, VariantValue, NsId>,
-        VariantNamespace<TContract, BaseModelName, VariantValue, NsId>
+        VariantModelNamespace<TContract, BaseModelName, VariantValue, NsId>
       >
   : never;
 
@@ -1742,7 +1742,7 @@ export type ResolvedScalarCreateInput<
           ScalarCreateInput<
             TContract,
             VariantModelName<TContract, ModelName, VariantValue, NsId>,
-            VariantNamespace<TContract, ModelName, VariantValue, NsId>
+            VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
           >
       : never
     : ScalarCreateInput<TContract, ModelName, NsId>;
@@ -2205,7 +2205,7 @@ type VariantDeclaredRelationKeys<
   ? keyof RelationsOf<
       TContract,
       VariantModelName<TContract, ModelName, VariantValue, NsId>,
-      VariantNamespace<TContract, ModelName, VariantValue, NsId>
+      VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
     >
   : never;
 
@@ -2232,14 +2232,14 @@ export type VariantAwareIncludeRelationNames<
         | RelationNames<
             TContract,
             VariantModelName<TContract, ModelName, VariantValue, NsId>,
-            VariantNamespace<TContract, ModelName, VariantValue, NsId>
+            VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
           >
         | Exclude<
             RelationNames<TContract, ModelName, NsId>,
             keyof RelationsOf<
               TContract,
               VariantModelName<TContract, ModelName, VariantValue, NsId>,
-              VariantNamespace<TContract, ModelName, VariantValue, NsId>
+              VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
             >
           >
     : [VariantValue] extends [string]
@@ -2260,7 +2260,7 @@ export type IncludeRelationOwner<
     ? RelName extends keyof RelationsOf<
         TContract,
         VariantModelName<TContract, ModelName, VariantValue, NsId>,
-        VariantNamespace<TContract, ModelName, VariantValue, NsId>
+        VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
       >
       ? VariantModelName<TContract, ModelName, VariantValue, NsId>
       : ModelName
@@ -2277,9 +2277,9 @@ export type IncludeRelationOwnerNamespace<
     ? RelName extends keyof RelationsOf<
         TContract,
         VariantModelName<TContract, ModelName, VariantValue, NsId>,
-        VariantNamespace<TContract, ModelName, VariantValue, NsId>
+        VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
       >
-      ? VariantNamespace<TContract, ModelName, VariantValue, NsId>
+      ? VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
       : NsId
     : NsId;
 
