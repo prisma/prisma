@@ -2141,9 +2141,9 @@ function buildModels(
 }
 
 function assertUniqueDiscriminatorValues(modelBuilder: AnyModelBuilder): void {
-  const variantsByValue = new Map<string, string>();
+  const variantNamesByValue = new Map<string, string>();
   for (const [variantName, { value }] of Object.entries(modelBuilder.__variants ?? {})) {
-    const existingVariant = variantsByValue.get(value);
+    const existingVariant = variantNamesByValue.get(value);
     if (existingVariant !== undefined) {
       throw contractError(
         'CONTRACT.ARGUMENT_INVALID',
@@ -2158,7 +2158,7 @@ function assertUniqueDiscriminatorValues(modelBuilder: AnyModelBuilder): void {
         },
       );
     }
-    variantsByValue.set(value, variantName);
+    variantNamesByValue.set(value, variantName);
   }
 }
 

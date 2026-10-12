@@ -108,16 +108,17 @@ type VariantRow<
   readonly discriminator: { readonly field: infer DiscField extends string };
   readonly variants: infer V;
 }
-  ? V extends Record<string, { readonly value: string }>
+  ? V extends Record<string, { readonly model: string }>
     ? {
-        [VK in keyof V]: VK extends string & keyof MongoModelsMap<TContract>
+        [Value in keyof V & string]: V[Value]['model'] extends infer VK extends string &
+          keyof MongoModelsMap<TContract>
           ? Simplify<
               Omit<InferFullRow<TContract, ModelName>, DiscField> &
                 InferFullRow<TContract, VK> &
-                Record<DiscField, V[VK]['value']>
+                Record<DiscField, Value>
             >
           : never;
-      }[keyof V]
+      }[keyof V & string]
     : InferFullRow<TContract, ModelName>
   : InferFullRow<TContract, ModelName>;
 
@@ -126,7 +127,7 @@ export type InferRootRow<
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = VariantRow<TContract, ModelName>;
 
-export type VariantNames<
+export type DiscriminatorValues<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = MongoModelsMap<TContract>[ModelName] extends {
@@ -135,28 +136,19 @@ export type VariantNames<
   ? keyof V & string
   : never;
 
-export type DiscriminatorValues<
+type VariantModelName<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
+  VariantValue extends string,
 > = MongoModelsMap<TContract>[ModelName] extends {
-  readonly variants: infer V extends Record<string, { readonly value: string }>;
+  readonly variants: infer V extends Record<string, { readonly model: string }>;
 }
-  ? V[keyof V]['value']
+  ? VariantValue extends keyof V
+    ? V[VariantValue]['model']
+    : never
   : never;
 
-export type VariantNameForValue<
-  TContract extends MongoContract,
-  ModelName extends string & keyof MongoModelsMap<TContract>,
-  Value extends string,
-> = MongoModelsMap<TContract>[ModelName] extends {
-  readonly variants: infer V extends Record<string, { readonly value: string }>;
-}
-  ? {
-      [K in keyof V & string]: [V[K]['value'] & Value] extends [never] ? never : K;
-    }[keyof V & string]
-  : never;
-
-export type VariantSelectable<TVariant extends string> = [TVariant] extends [never]
+export type VariantSelectable<TVariantValue extends string> = [TVariantValue] extends [never]
   ? unknown
   : {
       readonly 'variant() needs a collection with no variant selected; call it on the base collection': never;
@@ -165,19 +157,17 @@ export type VariantSelectable<TVariant extends string> = [TVariant] extends [nev
 export type VariantModelRow<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
-  VariantName extends string,
+  VariantValue extends string,
 > = MongoModelsMap<TContract>[ModelName] extends {
   readonly discriminator: { readonly field: infer DiscField extends string };
-  readonly variants: infer V;
 }
-  ? V extends Record<string, { readonly value: string }>
-    ? VariantName extends keyof V & string & keyof MongoModelsMap<TContract>
-      ? Simplify<
-          Omit<InferFullRow<TContract, ModelName>, DiscField> &
-            InferFullRow<TContract, VariantName> &
-            Record<DiscField, V[VariantName]['value']>
-        >
-      : InferFullRow<TContract, ModelName>
+  ? VariantModelName<TContract, ModelName, VariantValue> extends infer VK extends string &
+      keyof MongoModelsMap<TContract>
+    ? Simplify<
+        Omit<InferFullRow<TContract, ModelName>, DiscField> &
+          InferFullRow<TContract, VK> &
+          Record<DiscField, VariantValue>
+      >
     : InferFullRow<TContract, ModelName>
   : InferFullRow<TContract, ModelName>;
 
@@ -313,10 +303,13 @@ export type CreateInput<
 
 type VariantNullableFields<
   TContract extends MongoContract,
-  VariantName extends string,
-> = VariantName extends string & keyof MongoModelsMap<TContract>
-  ? NullableFields<TContract, VariantName>
-  : never;
+  ModelName extends string & keyof MongoModelsMap<TContract>,
+  VariantValue extends string,
+> =
+  VariantModelName<TContract, ModelName, VariantValue> extends infer VK extends string &
+    keyof MongoModelsMap<TContract>
+    ? NullableFields<TContract, VK>
+    : never;
 
 type DiscriminatorField<
   TContract extends MongoContract,
@@ -334,11 +327,11 @@ type DiscriminatorField<
 export type VariantCreateInput<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
-  VariantName extends string,
+  VariantValue extends string,
 > = Omit<
-  VariantModelRow<TContract, ModelName, VariantName>,
+  VariantModelRow<TContract, ModelName, VariantValue>,
   | OptionalOnCreate<TContract, ModelName>
-  | VariantNullableFields<TContract, VariantName>
+  | VariantNullableFields<TContract, ModelName, VariantValue>
   | DiscriminatorField<TContract, ModelName>
 > &
   Partial<
@@ -349,20 +342,20 @@ export type VariantCreateInput<
   > &
   Partial<
     Pick<
-      VariantModelRow<TContract, ModelName, VariantName>,
+      VariantModelRow<TContract, ModelName, VariantValue>,
       (
         | GeneratedOnCreateFields<TContract, ModelName>
         | NullableFields<TContract, ModelName>
-        | VariantNullableFields<TContract, VariantName>
+        | VariantNullableFields<TContract, ModelName, VariantValue>
       ) &
-        keyof VariantModelRow<TContract, ModelName, VariantName>
+        keyof VariantModelRow<TContract, ModelName, VariantValue>
     >
   >;
 
 export type ResolvedCreateInput<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
-  TVariant extends string,
-> = [TVariant] extends [never]
+  TVariantValue extends string,
+> = [TVariantValue] extends [never]
   ? CreateInput<TContract, ModelName>
-  : VariantCreateInput<TContract, ModelName, TVariant>;
+  : VariantCreateInput<TContract, ModelName, TVariantValue>;
