@@ -6,7 +6,7 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*\bextends\s+Collection\b)[\s\S]*\n\s*(?:readonly\s+)?(?:get\s+|set\s+)?using\s*[(=:]'
+        - '(?<![\s\S])(?=[\s\S]*\bextends\s+Collection\b)[\s\S]*\n[ \t]*(?:(?:public|private|protected|override|readonly|async|declare|static|accessor)[ \t]+)*(?:(?:(?:get|set)[ \t]+)?using[ \t]*[?!]?[ \t]*[(<]|using[ \t]*[?!]?[ \t]*=(?![=>])|using[ \t]*[?!]?[ \t]*:[^\n,]*;)'
 ---
 
 # `using` is a member of every collection
