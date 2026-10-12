@@ -89,7 +89,7 @@ describe('errorStatementNeedsMigrationFile', () => {
       code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
       summary: 'db update cannot carry out "--convert User.years" and "--backfill User.email"',
       why: expect.stringContaining('db update has no migration file to fill'),
-      fix: 'Plan the change with migration plan --rename User.age:User.years --convert User.years --delete Legacy --backfill User.email, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with db migrate. Or leave out these statements: db update then asks before it loses any data.',
+      fix: 'Plan the change with {bin} migration plan --rename User.age:User.years --convert User.years --delete Legacy --backfill User.email, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with {bin} db migrate. Or leave out these statements: db update then asks before it loses any data.',
       meta: {
         statements: [
           { verb: 'convert', text: 'User.years' },

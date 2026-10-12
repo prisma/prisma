@@ -673,7 +673,7 @@ export function errorStatementNeedsMigrationFile(
     `db update cannot carry out ${listed}`,
     {
       why: '--convert and --backfill ask for a migration file with a slot for the code that converts or fills in the values, and db update has no migration file to fill: it applies its plan directly.',
-      fix: `Plan the change with migration plan ${flags}, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with db migrate. Or leave out these statements: db update then asks before it loses any data.`,
+      fix: `Plan the change with {bin} migration plan ${flags}, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with {bin} db migrate. Or leave out these statements: db update then asks before it loses any data.`,
       nextActions: [
         runCommandAction(
           'Plan the change into a migration file to fill in',
