@@ -378,8 +378,11 @@ export interface MigrationRunnerFailure {
   readonly failingSpace?: string;
   /** The type change whose cast failed, when the failed step was one. */
   readonly failedCast?: FailedTypeChangeCast;
-  /** The field that was to become required while rows had no value for it, when that made the step fail. */
-  readonly rowsWithoutValue?: RowsWithoutValue;
+  /**
+   * The fields that were to become required while rows had no value for them, when that made the
+   * step fail: first the field of the failed step, then the others of the same migration.
+   */
+  readonly rowsWithoutValue?: readonly RowsWithoutValue[];
 }
 
 /** A field that is to become required while existing rows have no value for it. */

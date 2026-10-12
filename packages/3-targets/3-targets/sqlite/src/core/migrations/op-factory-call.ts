@@ -1039,6 +1039,10 @@ function renderPostcheck(postcheck: RecreatePostcheck): string {
       sql: tsQuotedTextSource(postcheck.sql),
       castColumn:
         postcheck.castColumn === undefined ? undefined : jsonToTsSource(postcheck.castColumn),
+      requiredColumn:
+        postcheck.requiredColumn === undefined
+          ? undefined
+          : jsonToTsSource(postcheck.requiredColumn),
     };
     return tsObjectSource(definedSourceEntries(sources));
   }

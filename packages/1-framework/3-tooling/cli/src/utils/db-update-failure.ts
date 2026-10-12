@@ -1,10 +1,9 @@
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
-import { statementFlag } from '../control-api/statements/statement-flag';
 import type { DbUpdateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
-import { failedCastText, rowsWithoutValueFix } from './migrate-failure';
+import { dbUpdateFailedCastFix, dbUpdateRowsWithoutValueFix } from './migrate-failure';
 
 /**
  * A `db update` failure as the CLI's structured error.
@@ -24,9 +23,9 @@ export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError
         : undefined;
     const fix =
       failure.failedCast !== undefined
-        ? `${failedCastText(failure.failedCast)} Plan the change with \`{bin} migration plan ${statementFlag({ verb: 'convert', text: failure.failedCast.field })}\`, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`
+        ? dbUpdateFailedCastFix(failure.failedCast, failure.databaseContract)
         : failure.rowsWithoutValue !== undefined
-          ? rowsWithoutValueFix(failure.rowsWithoutValue)
+          ? dbUpdateRowsWithoutValueFix(failure.rowsWithoutValue, failure.databaseContract)
           : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
             ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
               'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'

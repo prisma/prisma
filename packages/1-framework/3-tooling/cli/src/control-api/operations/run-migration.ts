@@ -54,8 +54,8 @@ export interface RunnerFailure {
   readonly meta: Record<string, unknown>;
   /** The type change whose cast failed. */
   readonly failedCast?: FailedCastReport;
-  /** The rows a field that was to become required had no value for. */
-  readonly rowsWithoutValue?: RowsWithoutValueReport;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The written migration of the failed operation, when the runner named the operation. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
@@ -86,7 +86,7 @@ function failureReports(
   const fieldText = (field: MigrationSubject) =>
     subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
   const { failedCast, rowsWithoutValue } = failure;
-  const operationIndex = failedCast?.operationIndex ?? rowsWithoutValue?.operationIndex;
+  const operationIndex = failedCast?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
   const edge =
     operationIndex === undefined
       ? undefined
@@ -100,13 +100,10 @@ function failureReports(
     ),
     ...ifDefined(
       'rowsWithoutValue',
-      rowsWithoutValue === undefined
-        ? undefined
-        : {
-            field:
-              rowsWithoutValue.field === undefined ? undefined : fieldText(rowsWithoutValue.field),
-            reason: rowsWithoutValue.reason,
-          },
+      rowsWithoutValue?.map(({ field, reason }) => ({
+        field: field === undefined ? undefined : fieldText(field),
+        reason,
+      })),
     ),
     ...ifDefined(
       'failedMigration',

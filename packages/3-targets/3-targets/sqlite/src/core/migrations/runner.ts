@@ -13,6 +13,7 @@ import type {
 } from '@internal/family-sql/control';
 import {
   castColumnOf,
+  requiredColumnsOfMigration,
   rowsWithoutValueFailure,
   runnerFailure,
   runnerSuccess,
@@ -31,8 +32,16 @@ import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
-import { affinityStorageClasses, REBUILD_TABLE_PREFIX } from './operations/tables';
+import { affinityStorageClasses } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
+
+/** Where a failed operation sits in its plan, and what the runner needs to name what blocked it. */
+interface PlanPosition {
+  readonly contract: Contract<SqlStorage>;
+  readonly operationIndex: number;
+  readonly operations: readonly SqlMigrationPlanOperation<SqlitePlanTargetDetails>[];
+  readonly edges: readonly { readonly operationCount: number }[];
+}
 
 export function createSqliteMigrationRunner(
   family: SqlControlFamilyInstance,
@@ -285,6 +294,8 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
         const executeResult = await this.runExecuteSteps(driver, operation.execute, operation, {
           contract: options.destinationContract,
           operationIndex: ops.indexOf(operation),
+          operations: ops,
+          edges: options.migrationEdges,
         });
         if (!executeResult.ok) {
           return executeResult;
@@ -421,7 +432,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
-    plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
+    plan: PlanPosition,
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       try {
@@ -429,7 +440,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         const failed = `Operation ${operation.id} failed during execution: ${step.description}`;
-        const rowsWithoutValue = await this.rowsWithoutValue(driver, operation, message, plan);
+        const rowsWithoutValue = await this.rowsWithoutValue(driver, message, plan);
         return runnerFailure('MIGRATION.EXECUTION_FAILED', rowsWithoutValue?.summary ?? failed, {
           why: rowsWithoutValue === undefined ? message : `${failed}: ${message}`,
           meta: {
@@ -437,7 +448,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             stepDescription: step.description,
             sql: step.sql,
           },
-          rowsWithoutValue: rowsWithoutValue?.report,
+          rowsWithoutValue: rowsWithoutValue?.reports,
         });
       }
     }
@@ -446,30 +457,31 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
 
   /**
    * The rows a table rebuild found no value for, when its copy failed on a NOT NULL column of the
-   * new table: rows holding NULL in a column the old table has, or every row for a new column.
+   * new table: the columns the rebuild's postchecks mark as becoming required are counted, the
+   * rebuild's own first, then those of every other operation of its migration.
    */
-  private async rowsWithoutValue(
+  private rowsWithoutValue(
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
-    operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
     message: string,
-    plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
-  ): Promise<ReturnType<typeof rowsWithoutValueFailure>> {
-    const table = operation.target.details?.name;
-    const failedColumn = /NOT NULL constraint failed: ([^\s.]+)\.(\S+)/.exec(message);
-    if (table === undefined || failedColumn?.[1] !== `${REBUILD_TABLE_PREFIX}${table}`) {
-      return undefined;
-    }
-    const column = failedColumn[2] ?? '';
-    const existing = await driver.query('SELECT 1 FROM pragma_table_info(?) WHERE name = ?', [
-      table,
-      column,
-    ]);
-    const reason = existing.rows.length > 0 ? 'nullValues' : 'newField';
-    const where = reason === 'nullValues' ? ` WHERE ${quoteIdentifier(column)} IS NULL` : '';
-    const counted = await driver.query<{ rows: number }>(
-      `SELECT COUNT(*) AS rows FROM ${quoteIdentifier(table)}${where}`,
-    );
-    return rowsWithoutValueFailure({ table, column, reason }, counted.rows[0]?.rows ?? 0, plan);
+    plan: PlanPosition,
+  ): ReturnType<typeof rowsWithoutValueFailure> {
+    if (!message.includes('NOT NULL constraint failed')) return Promise.resolve(undefined);
+    const marks = requiredColumnsOfMigration(plan.operations, plan.edges, plan.operationIndex);
+    return rowsWithoutValueFailure({
+      failed: marks.filter((mark) => mark.operationIndex === plan.operationIndex),
+      others: marks,
+      count: async ({ required }) => {
+        const where =
+          required.reason === 'nullValues'
+            ? ` WHERE ${quoteIdentifier(required.column)} IS NULL`
+            : '';
+        const counted = await driver.query<{ rows: number }>(
+          `SELECT COUNT(*) AS rows FROM ${quoteIdentifier(required.table)}${where}`,
+        );
+        return counted.rows[0]?.rows ?? 0;
+      },
+      contract: plan.contract,
+    });
   }
 
   private stepResultIsTrue(rows: readonly Record<string, unknown>[]): boolean {

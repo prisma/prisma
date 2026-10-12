@@ -457,6 +457,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('warnings', plannerWarnings),
       ...ifDefined('failedCast', applied.failure.failedCast),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
+      ...ifDefined('databaseContract', recordedDatabaseContract(aggregate, markerRows)),
       ...ifDefined('cause', applied.failure.cause),
     });
   }
@@ -741,7 +742,9 @@ function buildRunnerFailure(args: {
   readonly meta: Record<string, unknown>;
   readonly warnings?: readonly MigrationPlannerConflict[];
   readonly failedCast?: FailedCastReport;
-  readonly rowsWithoutValue?: RowsWithoutValueReport;
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The contract the database is at, when a migration of the graph ends at it. */
+  readonly databaseContract?: string;
   readonly cause?: unknown;
 }): DbInitResult | DbUpdateResult {
   const failure: DbInitFailure | DbUpdateFailure = {
@@ -753,10 +756,24 @@ function buildRunnerFailure(args: {
     ...ifDefined('warnings', args.warnings),
     ...ifDefined('failedCast', args.failedCast),
     ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
+    ...ifDefined('databaseContract', args.databaseContract),
     ...ifDefined('cause', args.cause),
   };
   return blindCast<
     DbInitResult | DbUpdateResult,
     'notOk(failure) is shape-compatible with both DbInitResult and DbUpdateResult; the union is the return type of the surrounding function'
   >(notOk(failure));
+}
+
+/**
+ * The storage hash of the contract the application space's database is at, when the migration
+ * graph has it: `migration plan --from` then resolves it. Without a migration that ends at it,
+ * `migration plan` starts from the `db` ref that `db update` keeps.
+ */
+function recordedDatabaseContract(
+  aggregate: ContractSpaceAggregate,
+  markerRows: ReadonlyMap<string, { readonly storageHash: string }>,
+): string | undefined {
+  const hash = markerRows.get(aggregate.app.spaceId)?.storageHash;
+  return hash !== undefined && aggregate.app.graph().nodes.has(hash) ? hash : undefined;
 }

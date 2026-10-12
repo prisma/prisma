@@ -17,6 +17,7 @@ import { createTestProjectDir, writeProjectManifest } from '../utils/test-projec
 
 const mocks = {
   connect: vi.fn(),
+  readMarker: vi.fn(),
   dbUpdate: vi.fn(),
   renderContractDts: vi.fn(),
   close: vi.fn(),
@@ -27,6 +28,7 @@ const commands = createBinCommands(
   () =>
     ({
       connect: mocks.connect,
+      readMarker: mocks.readMarker,
       dbUpdate: mocks.dbUpdate,
       renderContractDts: mocks.renderContractDts,
       close: mocks.close,
@@ -130,6 +132,7 @@ beforeEach(() => {
   writeFileSync(join(projectDir, 'contract.d.ts'), 'export type Contract = never;\n');
   answers.splice(0);
   mocks.connect.mockReset().mockResolvedValue(undefined);
+  mocks.readMarker.mockReset().mockResolvedValue(null);
   mocks.close.mockReset().mockResolvedValue(undefined);
   mocks.dbUpdate.mockReset().mockImplementation(askThenApply(planQuestions));
   mocks.renderContractDts
@@ -297,6 +300,7 @@ describe('db update questions', () => {
   });
 
   it('refuses --convert and --backfill before it plans anything, naming migration plan', async () => {
+    mocks.readMarker.mockResolvedValueOnce({ storageHash: 'c'.repeat(64) });
     const run = await harness().run(
       [
         'db',
@@ -333,7 +337,6 @@ describe('db update questions', () => {
         },
       },
     });
-    expect(mocks.connect).not.toHaveBeenCalled();
     expect(mocks.dbUpdate).not.toHaveBeenCalled();
   });
 

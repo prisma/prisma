@@ -175,12 +175,14 @@ describe('a Postgres column that becomes required while rows have no value', {
     expect(result.ok ? undefined : result.failure).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
       summary: '3 rows of "Item" hold NULL in "note", so it cannot become required.',
-      rowsWithoutValue: {
-        field: { kind: 'field', namespaceId: item, model: 'Item', field: 'note' },
-        reason: 'nullValues',
-        rows: 3,
-        operationIndex: 0,
-      },
+      rowsWithoutValue: [
+        {
+          field: { kind: 'field', namespaceId: item, model: 'Item', field: 'note' },
+          reason: 'nullValues',
+          rows: 3,
+          operationIndex: 0,
+        },
+      ],
     });
 
     await driver!.query(`UPDATE "Item" SET note = 'x' WHERE note IS NULL`);
@@ -195,11 +197,39 @@ describe('a Postgres column that becomes required while rows have no value', {
     expect(result.ok ? undefined : result.failure).toMatchObject({
       summary:
         '"Item" has 2 rows, so the new required column "code" cannot be added: it can be added to an empty table only.',
-      rowsWithoutValue: {
-        field: { model: 'Item', field: 'code' },
-        reason: 'newField',
-        rows: 2,
-      },
+      rowsWithoutValue: [
+        {
+          field: { model: 'Item', field: 'code' },
+          reason: 'newField',
+          rows: 2,
+        },
+      ],
     });
+  });
+
+  it('names every column of the migration that rows have no value for', {
+    timeout: testTimeout,
+  }, async () => {
+    await seeded([null, 'a']);
+    const twoNewColumns = itemContract(
+      { id: int4, note: text, code: text, slug: text },
+      'd'.repeat(64),
+      ['code', 'slug'],
+    );
+    const result = await planFrom(twoNewColumns);
+    expect(
+      result.ok
+        ? undefined
+        : result.failure.rowsWithoutValue?.map(({ field, reason, rows }) => [
+            field?.kind === 'field' ? field.field : undefined,
+            reason,
+            rows,
+          ]),
+    ).toEqual(
+      expect.arrayContaining([
+        ['code', 'newField', 2],
+        ['slug', 'newField', 2],
+      ]),
+    );
   });
 });

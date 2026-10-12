@@ -1,5 +1,6 @@
 import { ormConfigSection } from '@internal/config-loader';
-import { migrationSubjectJson } from '@internal/framework-components/control';
+import { APP_SPACE_ID, migrationSubjectJson } from '@internal/framework-components/control';
+import { readMigrationsDir } from '@internal/migration-tools/io';
 import { ifDefined } from '@internal/utils/defined';
 import { isStructuredError } from '@internal/utils/structured-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
@@ -9,6 +10,7 @@ import {
   notOk,
   ok,
 } from '@prisma/cli-engine/protocol';
+import { join } from 'pathe';
 import { createControlClient } from '../../control-api/client';
 import { errorFromCaught } from '../../control-api/operations/caught-errors';
 import {
@@ -28,6 +30,7 @@ import { isStatementVerb, type StatementText } from '../../control-api/statement
 import type {
   AskedDataLoss,
   AskedSubject,
+  ControlClient,
   CreateControlClient,
   DbUpdateSuccess,
 } from '../../control-api/types';
@@ -251,9 +254,6 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       const needsMigrationFile = (['convert', 'backfill'] as const).flatMap((verb) =>
         ctx.statements.take(verb),
       );
-      if (needsMigrationFile.length > 0) {
-        return notOk(normalizeError(errorStatementNeedsMigrationFile(given)));
-      }
       const renames = ctx.statements
         .take('rename')
         .map(({ text }) => ({ verb: 'rename' as const, text }));
@@ -325,6 +325,10 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       let document: MigrationCommandResult;
       try {
         await client.connect(dbConnection);
+        if (needsMigrationFile.length > 0) {
+          const databaseContract = await recordedDatabaseContract(client, migrationsDir);
+          return notOk(normalizeError(errorStatementNeedsMigrationFile(given, databaseContract)));
+        }
 
         // A refused or failed run has no result to carry the planner's warnings,
         // and an errored envelope renders no meta, so they are reported as events
@@ -432,3 +436,21 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
 }
 
 export const dbUpdateCommand = createDbUpdateCommand(createControlClient);
+
+/**
+ * The storage hash of the contract the database is at, when a migration of the application space
+ * ends at it, so that `migration plan --from` resolves it.
+ */
+async function recordedDatabaseContract(
+  client: ControlClient,
+  migrationsDir: string,
+): Promise<string | undefined> {
+  const marker = await client.readMarker();
+  if (marker === null) return undefined;
+  const { packages } = await readMigrationsDir(join(migrationsDir, APP_SPACE_ID), {
+    migrationsDir,
+  });
+  return packages.some(({ metadata }) => metadata.to === marker.storageHash)
+    ? marker.storageHash
+    : undefined;
+}

@@ -11,7 +11,7 @@ import {
   errorRunnerFailed,
   errorRuntime,
 } from './cli-errors';
-import { rowsWithoutValueFix } from './migrate-failure';
+import { dbInitRowsWithoutValueFix } from './migrate-failure';
 import { runCommandAction } from './next-actions';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
@@ -125,7 +125,7 @@ export function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
         : undefined;
     const fix =
       failure.rowsWithoutValue !== undefined
-        ? rowsWithoutValueFix(failure.rowsWithoutValue)
+        ? dbInitRowsWithoutValueFix(failure.rowsWithoutValue)
         : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
           ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
             'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'

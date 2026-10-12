@@ -14,6 +14,7 @@ import type {
 import {
   type RequiredColumn,
   requiredColumnOf,
+  requiredColumnsOfMigration,
   rowsWithoutValueFailure,
   runnerFailure,
   runnerSuccess,
@@ -68,6 +69,14 @@ function cloneAndFreezeRecord<T extends Record<string, unknown>>(value: T): T {
   return blindCast<T, 'cloned record preserves the key/value shape of the input record'>(
     Object.freeze(cloned),
   );
+}
+
+/** Where a failed operation sits in its plan, and what the runner needs to name what blocked it. */
+interface PlanPosition {
+  readonly contract: Contract<SqlStorage>;
+  readonly operationIndex: number;
+  readonly operations: readonly SqlMigrationPlanOperation<PostgresPlanTargetDetails>[];
+  readonly edges: readonly { readonly operationCount: number }[];
 }
 
 /**
@@ -271,7 +280,12 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             operation.precheck,
             operation,
             'precheck',
-            { contract: options.destinationContract, operationIndex: ops.indexOf(operation) },
+            {
+              contract: options.destinationContract,
+              operationIndex: ops.indexOf(operation),
+              operations: ops,
+              edges: options.migrationEdges,
+            },
           );
           if (!precheckResult.ok) {
             return precheckResult;
@@ -364,7 +378,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
     phase: 'precheck' | 'postcheck',
-    plan?: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
+    plan?: PlanPosition,
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       const result = await driver.query(step.sql, step.params ?? []);
@@ -384,28 +398,38 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             phase,
             stepDescription: step.description,
           },
-          rowsWithoutValue: rowsWithoutValue?.report,
+          rowsWithoutValue: rowsWithoutValue?.reports,
         });
       }
     }
     return okVoid();
   }
 
-  /** Counts the rows a column that is to become required has no value in. */
-  private async rowsWithoutValue(
+  /**
+   * Counts the rows the failed step's column has no value in, then those of every other column the
+   * failed operation's migration makes required.
+   */
+  private rowsWithoutValue(
     driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
     operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
     required: RequiredColumn,
-    plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
-  ): Promise<ReturnType<typeof rowsWithoutValueFailure>> {
-    const schema = operation.target.details?.schema;
-    if (schema === undefined) return undefined;
-    const where =
-      required.reason === 'nullValues' ? ` WHERE ${quoteIdentifier(required.column)} IS NULL` : '';
-    const counted = await driver.query<{ rows: number }>(
-      `SELECT COUNT(*)::int AS rows FROM ${qualifyTableName(schema, required.table)}${where}`,
-    );
-    return rowsWithoutValueFailure(required, counted.rows[0]?.rows ?? 0, plan);
+    plan: PlanPosition,
+  ): ReturnType<typeof rowsWithoutValueFailure> {
+    return rowsWithoutValueFailure({
+      failed: [{ operation, operationIndex: plan.operationIndex, required }],
+      others: requiredColumnsOfMigration(plan.operations, plan.edges, plan.operationIndex),
+      count: async ({ operation: marked, required: column }) => {
+        const schema = marked.target.details?.schema;
+        if (schema === undefined) return 0;
+        const where =
+          column.reason === 'nullValues' ? ` WHERE ${quoteIdentifier(column.column)} IS NULL` : '';
+        const counted = await driver.query<{ rows: number }>(
+          `SELECT COUNT(*)::int AS rows FROM ${qualifyTableName(schema, column.table)}${where}`,
+        );
+        return counted.rows[0]?.rows ?? 0;
+      },
+      contract: plan.contract,
+    });
   }
 
   private async runExecuteSteps(

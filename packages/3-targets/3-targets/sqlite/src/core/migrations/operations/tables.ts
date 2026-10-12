@@ -1,6 +1,7 @@
 import {
   castColumnMeta,
   type MigrationOperationClass,
+  requiredColumnMeta,
   type SqlMigrationPlanOperationStep,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
@@ -187,7 +188,7 @@ export async function recreateTable(
     copyExpressions = {},
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
-  const tempName = `${REBUILD_TABLE_PREFIX}${tableName}`;
+  const tempName = `_prisma_new_${tableName}`;
   const liveSet = new Set(schemaColumnNames);
   const copiedFrom = (column: string): string | undefined =>
     Object.hasOwn(copyExpressions, column) ? copyExpressions[column] : undefined;
@@ -261,35 +262,46 @@ export async function recreateTable(
       ),
       ...postchecks.flatMap((check) =>
         'sql' in check
-          ? [castColumnStep(tableName, check)]
+          ? [markedStep(tableName, check)]
           : defaultPostcheck(tableName, check, clauseByColumn.get(check.columnDefault)),
       ),
     ],
   };
 }
 
+/** A column the rebuild makes required: one that held NULL before, or a new one the copy gives no value. */
+export interface RecreateRequiredColumn {
+  readonly column: string;
+  readonly reason: 'nullValues' | 'newField';
+}
+
+/** A recreate postcheck written as SQL. */
+export interface RecreateSqlPostcheck {
+  readonly description: string;
+  readonly sql: string;
+  /** The column whose values the check finds converted by the copy; a failure names its field. */
+  readonly castColumn?: string;
+  /** The column the check finds required; when the copy fails on it, the runner counts its rows. */
+  readonly requiredColumn?: RecreateRequiredColumn;
+}
+
 /**
  * A recreate postcheck: SQL, or the name of a column whose default the recreated table must carry,
  * which becomes SQL once the adapter has written the column's `DEFAULT …` clause.
  */
-/** The prefix of the table a rebuild copies the rows into before it takes the old table's name. */
-export const REBUILD_TABLE_PREFIX = '_prisma_new_';
-
 export type RecreatePostcheck =
-  | {
-      readonly description: string;
-      readonly sql: string;
-      /** The column whose values the check finds converted by the copy; a failure names its field. */
-      readonly castColumn?: string;
-    }
+  | RecreateSqlPostcheck
   | { readonly description: string; readonly columnDefault: string };
 
-function castColumnStep(
-  tableName: string,
-  check: { readonly description: string; readonly sql: string; readonly castColumn?: string },
-): SqlMigrationPlanOperationStep {
-  const { castColumn, ...step } = check;
-  return castColumn === undefined ? step : { ...step, meta: castColumnMeta(tableName, castColumn) };
+function markedStep(tableName: string, check: RecreateSqlPostcheck): SqlMigrationPlanOperationStep {
+  const { castColumn, requiredColumn, ...step } = check;
+  const meta = {
+    ...(castColumn === undefined ? {} : castColumnMeta(tableName, castColumn)),
+    ...(requiredColumn === undefined
+      ? {}
+      : requiredColumnMeta(tableName, requiredColumn.column, requiredColumn.reason)),
+  };
+  return Object.keys(meta).length === 0 ? step : { ...step, meta };
 }
 
 /**
@@ -451,6 +463,7 @@ export function buildRecreatePostchecks(
   tableName: string,
   issues: readonly SchemaDiffIssue[],
   spec: SqliteTableSpec,
+  copiedColumns: ReadonlySet<string> = new Set(),
 ): RecreatePostcheck[] {
   const checks: RecreatePostcheck[] = [];
   const t = escapeLiteral(tableName);
@@ -466,9 +479,12 @@ export function buildRecreatePostchecks(
       const columnName = columnNameFromNode(issue);
       const column = columnName === undefined ? undefined : byName.get(columnName);
       if (columnName === undefined || column === undefined) continue;
+      const takesNoValue =
+        !column.nullable && column.default === undefined && !copiedColumns.has(columnName);
       checks.push({
         description: `verify "${columnName}" nullability on "${tableName}"`,
         sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${escapeLiteral(columnName)}' AND "notnull" = ${column.nullable ? 0 : 1}`,
+        ...(takesNoValue ? { requiredColumn: { column: columnName, reason: 'newField' } } : {}),
       });
       continue;
     }
@@ -486,6 +502,9 @@ export function buildRecreatePostchecks(
         checks.push({
           description: `verify "${columnName}" nullability on "${tableName}"`,
           sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND "notnull" = ${expected.nullable ? 0 : 1}`,
+          ...(expected.nullable
+            ? {}
+            : { requiredColumn: { column: columnName, reason: 'nullValues' } }),
         });
       }
       if (columnTypeChanged(expected, actual)) {

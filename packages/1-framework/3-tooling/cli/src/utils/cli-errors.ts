@@ -638,19 +638,21 @@ const MIGRATION_PLAN_VERBS: readonly string[] = ['rename', 'delete', 'convert', 
  * `--convert` or `--backfill` statements were given to `db update`, which applies its plan
  * directly and so has no migration file whose slot the user could fill. `statements` are every
  * statement the user gave, in the order given: the `migration plan` command the error suggests
- * carries each one that command accepts.
+ * carries each one that command accepts, and starts from `databaseContract`, the contract the
+ * database is at, when it is known.
  */
 export function errorStatementNeedsMigrationFile(
   statements: readonly StatementText[],
+  databaseContract?: string,
 ): ActionableCliError {
   const refused = statements.filter(({ verb }) => verb === 'convert' || verb === 'backfill');
   const written = refused.map(({ verb, text }) => `"--${verb} ${text}"`);
   const listed =
     written.length === 1 ? written[0] : `${written.slice(0, -1).join(', ')} and ${written.at(-1)}`;
-  const flags = statements
-    .filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb))
-    .map(statementFlag)
-    .join(' ');
+  const flags = [
+    ...(databaseContract === undefined ? [] : ['--from', databaseContract]),
+    ...statements.filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb)).map(statementFlag),
+  ].join(' ');
   return new ActionableCliError(
     'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
     `db update cannot carry out ${listed}`,

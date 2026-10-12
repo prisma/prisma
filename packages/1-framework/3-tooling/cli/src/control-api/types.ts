@@ -433,8 +433,8 @@ export interface DbInitFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
-  /** The rows a field that was to become required had no value for. */
-  readonly rowsWithoutValue?: RowsWithoutValueReport;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
   readonly marker?: {
@@ -538,8 +538,13 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
-  /** The rows a field that was to become required had no value for. */
-  readonly rowsWithoutValue?: RowsWithoutValueReport;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /**
+   * The storage hash of the contract the database is at, when a migration of the graph ends at it:
+   * the origin a `migration plan` for this database starts from.
+   */
+  readonly databaseContract?: string;
   /** The type change whose cast failed. */
   readonly failedCast?: FailedCastReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
@@ -754,8 +759,8 @@ export interface MigrateFailure {
   readonly summary: string;
   readonly why: string | undefined;
   readonly meta: Record<string, unknown> | undefined;
-  /** The rows a field that was to become required had no value for. */
-  readonly rowsWithoutValue?: RowsWithoutValueReport;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The written migration of the failed operation: its directory, and the contract it starts from. */
   readonly failedMigration?: { readonly directory: string; readonly from: string };
   /** The type change whose cast failed. */

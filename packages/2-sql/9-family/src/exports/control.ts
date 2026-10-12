@@ -64,10 +64,11 @@ export {
   runnerSuccess,
 } from '../core/migrations/plan-helpers';
 export { INIT_ADDITIVE_POLICY } from '../core/migrations/policies';
-export type { RequiredColumn } from '../core/migrations/required-column';
+export type { RequiredColumn, RequiredColumnMark } from '../core/migrations/required-column';
 export {
   requiredColumnMeta,
   requiredColumnOf,
+  requiredColumnsOfMigration,
   rowsWithoutValueFailure,
   rowsWithoutValueSummary,
 } from '../core/migrations/required-column';

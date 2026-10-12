@@ -43,23 +43,94 @@ export function rowsWithoutValueSummary(required: RequiredColumn, rows: number):
   return `${rows} ${rows === 1 ? 'row' : 'rows'} of "${table}" ${rows === 1 ? 'holds' : 'hold'} NULL in "${column}", so it cannot become required.`;
 }
 
+/** A step of a plan that marks a column as becoming required. */
+export interface RequiredColumnMark<TOperation> {
+  readonly operation: TOperation;
+  readonly operationIndex: number;
+  readonly required: RequiredColumn;
+}
+
+function migrationRange(
+  edges: readonly { readonly operationCount: number }[],
+  operationIndex: number,
+  operationCount: number,
+): { readonly start: number; readonly end: number } {
+  let start = 0;
+  for (const edge of edges) {
+    const end = start + edge.operationCount;
+    if (operationIndex < end) return { start, end };
+    start = end;
+  }
+  return { start: 0, end: operationCount };
+}
+
 /**
- * A runner failure's summary and report for `rows` rows that `required` has no value in, naming the
- * field of `contract` that stores the column; undefined when no row lacks a value.
+ * The marks of the steps of `operations` that belong to the same migration as the operation at
+ * `operationIndex`, in plan order: `edges` say how many operations each migration of the plan has.
  */
-export function rowsWithoutValueFailure(
-  required: RequiredColumn,
-  rows: number,
-  plan: { readonly contract: ContractWithDomain; readonly operationIndex: number },
-): { readonly summary: string; readonly report: RowsWithoutValue } | undefined {
-  if (rows === 0) return undefined;
-  return {
-    summary: rowsWithoutValueSummary(required, rows),
-    report: {
-      field: fieldOfColumn(plan.contract, required.table, required.column),
-      reason: required.reason,
-      rows,
-      operationIndex: plan.operationIndex,
-    },
-  };
+export function requiredColumnsOfMigration<
+  TOperation extends {
+    readonly precheck: readonly SqlMigrationPlanOperationStep[];
+    readonly execute: readonly SqlMigrationPlanOperationStep[];
+    readonly postcheck: readonly SqlMigrationPlanOperationStep[];
+  },
+>(
+  operations: readonly TOperation[],
+  edges: readonly { readonly operationCount: number }[],
+  operationIndex: number,
+): readonly RequiredColumnMark<TOperation>[] {
+  const { start, end } = migrationRange(edges, operationIndex, operations.length);
+  return operations.slice(start, end).flatMap((operation, offset) =>
+    [...operation.precheck, ...operation.execute, ...operation.postcheck].flatMap((step) => {
+      const required = requiredColumnOf(step);
+      return required === undefined
+        ? []
+        : [{ operation, operationIndex: start + offset, required }];
+    }),
+  );
+}
+
+/**
+ * A runner failure's summary and reports for the rows that columns becoming required have no value
+ * in. The failed operation's marks are counted first, and the first of them with such rows is the
+ * one the summary names; undefined when none has any. The other marks of the same migration are
+ * counted after it, until a count fails, such as for a column an earlier operation adds, so that
+ * the advice can name every field that needs a value.
+ */
+export async function rowsWithoutValueFailure<TOperation>(input: {
+  readonly failed: readonly RequiredColumnMark<TOperation>[];
+  readonly others: readonly RequiredColumnMark<TOperation>[];
+  readonly count: (mark: RequiredColumnMark<TOperation>) => Promise<number>;
+  readonly contract: ContractWithDomain;
+}): Promise<
+  { readonly summary: string; readonly reports: readonly RowsWithoutValue[] } | undefined
+> {
+  const report = (mark: RequiredColumnMark<TOperation>, rows: number): RowsWithoutValue => ({
+    field: fieldOfColumn(input.contract, mark.required.table, mark.required.column),
+    reason: mark.required.reason,
+    rows,
+    operationIndex: mark.operationIndex,
+  });
+  for (const mark of input.failed) {
+    const rows = await input.count(mark);
+    if (rows === 0) continue;
+    const reports = [report(mark, rows)];
+    for (const other of input.others) {
+      if (
+        other.required.table === mark.required.table &&
+        other.required.column === mark.required.column
+      ) {
+        continue;
+      }
+      let otherRows: number;
+      try {
+        otherRows = await input.count(other);
+      } catch {
+        break;
+      }
+      if (otherRows > 0) reports.push(report(other, otherRows));
+    }
+    return { summary: rowsWithoutValueSummary(mark.required, rows), reports };
+  }
+  return undefined;
 }

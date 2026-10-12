@@ -328,7 +328,12 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
           indexes,
           summary: buildRecreateSummary(tableName, rebuild.issues),
           postchecks: [
-            ...buildRecreatePostchecks(tableName, rebuild.issues, tableSpec),
+            ...buildRecreatePostchecks(
+              tableName,
+              rebuild.issues,
+              tableSpec,
+              new Set(Object.keys(rebuild.copyExpressions)),
+            ),
             ...tableSpec.columns
               .filter((column) => rebuild.lossyColumns.includes(column.name))
               .map((column) => castValuePostcheck(tableName, column)),

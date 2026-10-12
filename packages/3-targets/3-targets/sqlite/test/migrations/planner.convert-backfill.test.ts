@@ -197,6 +197,31 @@ describe('SQLite planner, a type change', () => {
   });
 });
 
+describe('SQLite planner, the columns a rebuild makes required', () => {
+  it('marks a column made required and a new required column with no value, and no column that gets a value', async () => {
+    const unique = contract(
+      hex('f'),
+      { id: 'integer', age: 'text', nickname: 'text?', name: 'text' },
+      ['name'],
+    );
+    const marks = async (to: Contract<SqlStorage>) =>
+      (await Promise.all(plan(textAge, to).plan.operations)).flatMap((op) =>
+        op.postcheck.flatMap((step) => {
+          const meta = step.meta?.['requiredColumn'];
+          return meta === undefined ? [] : [meta];
+        }),
+      );
+    expect([await marks(nicknameRequired), await marks(unique), await marks(withName)]).toEqual([
+      [{ table: 'User', column: 'nickname', reason: 'nullValues' }],
+      [{ table: 'User', column: 'name', reason: 'newField' }],
+      [],
+    ]);
+    expect(rendered(textAge, unique)).toContain(
+      'requiredColumn: { column: "name", reason: "newField" }',
+    );
+  });
+});
+
 describe('SQLite planner, the data-loss entries of a plan with an unfilled slot', () => {
   it('name each loss by the label of the call that loses it', () => {
     const noNickname = contract(hex('8'), { id: 'integer', age: 'integer' });

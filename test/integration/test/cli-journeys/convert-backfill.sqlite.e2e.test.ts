@@ -196,9 +196,7 @@ withTempDir(({ createTempDir }) => {
         );
         const advice = error.nextActions.map(({ label }) => label).join('\n');
         const followed =
-          /Delete the migration directory `([^`]+)`, plan the type change again with `\S+ migration plan ([^`]+)`/.exec(
-            advice,
-          );
+          /delete `([^`]+)`, and plan it again with `\S+ migration plan ([^`]+)`/.exec(advice);
         expect(followed, advice).not.toBeNull();
         const [, directory = '', command = ''] = followed ?? [];
         expect(query(ctx.dbPath, `SELECT id, age FROM "User" ORDER BY id`)).toEqual([
@@ -383,6 +381,54 @@ withTempDir(({ createTempDir }) => {
         expect(refused.exitCode, 'the rebuild cannot copy the rows').not.toBe(0);
         expect(`${refused.stdout}${refused.stderr}`).toContain('NOT NULL');
         expect(query(ctx.dbPath, `SELECT count(*) AS rows FROM "User"`)).toEqual([{ rows: 2 }]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'follows the advice for two new required fields without a value to a migration that fills both',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(
+          ctx,
+          WITH_ROLE.replace('  role     Role\n', '  role     Role\n  code     String @unique\n'),
+        );
+        await plannedPlain(ctx, 'role-and-code');
+
+        const failed = await runMigrate(ctx, ['--json']);
+        expect(failed.exitCode).not.toBe(0);
+        const error = parseJsonOutput<{
+          readonly nextActions: readonly { readonly label: string }[];
+        }>(failed);
+        const advice = error.nextActions.map(({ label }) => label).join('\n');
+        const directory = /delete `([^`]+)`/.exec(advice)?.[1];
+        const command = /`\S+ migration plan ([^`]+)`/.exec(advice)?.[1];
+        expect([directory, command], advice).toEqual([expect.any(String), expect.any(String)]);
+        const args = (command ?? '').split(' ');
+        expect(args).toEqual(expect.arrayContaining(['--backfill', 'User.role', 'User.code']));
+
+        rmSync(resolve(ctx.testDir, directory ?? ''), { recursive: true });
+        const planned = await runMigrationPlan(ctx, args);
+        expect(planned.exitCode, `plan as printed: ${planned.stdout}\n${planned.stderr}`).toBe(0);
+        await fillAndApply(
+          ctx,
+          join(ctx.testDir, 'migrations', 'app', latestMigrationDirName(ctx)),
+          (scaffold) =>
+            scaffold
+              .replace(
+                /\(\) => placeholder\((['"])User\.role:run\1\)/,
+                '() => `UPDATE "User" SET role = \'member\' WHERE role IS NULL`',
+              )
+              .replace(
+                /\(\) => placeholder\((['"])User\.code:run\1\)/,
+                '() => `UPDATE "User" SET code = \'c\' || id WHERE code IS NULL`',
+              ),
+        );
+
+        expect(query(ctx.dbPath, `SELECT id, role, code FROM "User" ORDER BY id`)).toEqual([
+          { id: 1, role: 'member', code: 'c1' },
+          { id: 2, role: 'member', code: 'c2' },
+        ]);
       },
       timeouts.spinUpPpgDev,
     );

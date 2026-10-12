@@ -205,7 +205,7 @@ export function runnerFailure(
     why?: string;
     meta?: AnyRecord;
     failedCast?: FailedTypeChangeCast | undefined;
-    rowsWithoutValue?: RowsWithoutValue | undefined;
+    rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
   },
 ): NotOk<SqlMigrationRunnerFailure> {
   const failure: SqlMigrationRunnerFailure = Object.freeze({
