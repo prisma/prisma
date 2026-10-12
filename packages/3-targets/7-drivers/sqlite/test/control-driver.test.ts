@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Worker } from 'node:worker_threads';
@@ -22,6 +22,22 @@ describe('SqliteControlDriverDescriptor', () => {
     expect(sqliteControlDriverDescriptor.kind).toBe('driver');
     expect(sqliteControlDriverDescriptor.familyId).toBe('sql');
     expect(sqliteControlDriverDescriptor.targetId).toBe('sqlite');
+  });
+
+  it('opens only an existing file when asked for an existing database only, and creates none', async () => {
+    await expect(
+      sqliteControlDriverDescriptor.create(testPath, { existingDatabaseOnly: true }),
+    ).rejects.toMatchObject({ code: 'DRIVER.CONNECTION_FAILED' });
+    expect(existsSync(testPath)).toBe(false);
+
+    const created = await sqliteControlDriverDescriptor.create(testPath);
+    await created.query('CREATE TABLE t (id INTEGER)');
+    await created.close();
+    const existing = await sqliteControlDriverDescriptor.create(testPath, {
+      existingDatabaseOnly: true,
+    });
+    expect(await existing.query('SELECT COUNT(*) AS n FROM t')).toEqual({ rows: [{ n: 0 }] });
+    await existing.close();
   });
 
   it('creates a control driver from file path', async () => {

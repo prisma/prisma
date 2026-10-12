@@ -28,6 +28,7 @@ export {
 } from '../control/control-capabilities';
 export type {
   ControlAdapterDescriptor,
+  ControlDriverConnectOptions,
   ControlDriverDescriptor,
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,

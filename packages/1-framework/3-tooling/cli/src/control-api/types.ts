@@ -8,6 +8,7 @@ import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@interna
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type {
   ControlAdapterDescriptor,
+  ControlDriverConnectOptions,
   ControlDriverDescriptor,
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,
@@ -882,7 +883,7 @@ export interface ControlClient {
    * @throws If connection fails, already connected, driver is not configured,
    *   or no connection provided and no default connection in options.
    */
-  connect(connection?: unknown): Promise<void>;
+  connect(connection?: unknown, options?: ControlDriverConnectOptions): Promise<void>;
 
   /**
    * Closes the database connection.

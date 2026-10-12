@@ -259,4 +259,24 @@ withTempDir(({ createTempDir }) => {
       timeouts.spinUpPpgDev,
     );
   });
+
+  describe('db update --backfill when the database cannot be reached', () => {
+    it(
+      'refuses the statement and names migration plan without --from',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: 'postgresql://postgres:postgres@localhost:1/unreachable',
+          createTempDir,
+          contractMode: 'psl',
+        });
+        await emit(ctx, contractWith('  nick  String\n'));
+        const refused = await runDbUpdate(ctx, ['--backfill', 'User.nick', '--json']);
+        expect(engineError(refused)?.code).toBe('MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE');
+        expect(JSON.stringify(engineError(refused)?.nextActions)).toContain(
+          'migration plan --backfill User.nick',
+        );
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
 });

@@ -30,7 +30,6 @@ import { isStatementVerb, type StatementText } from '../../control-api/statement
 import type {
   AskedDataLoss,
   AskedSubject,
-  ControlClient,
   CreateControlClient,
   DbUpdateSuccess,
 } from '../../control-api/types';
@@ -254,6 +253,16 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       const needsMigrationFile = (['convert', 'backfill'] as const).flatMap((verb) =>
         ctx.statements.take(verb),
       );
+      if (needsMigrationFile.length > 0) {
+        const databaseContract = await databaseContractIfReachable({
+          config: ctx.config,
+          cwd: ctx.cwd,
+          db: args.flags.db,
+          commandName: 'db update',
+          createClient,
+        });
+        return notOk(normalizeError(errorStatementNeedsMigrationFile(given, databaseContract)));
+      }
       const renames = ctx.statements
         .take('rename')
         .map(({ text }) => ({ verb: 'rename' as const, text }));
@@ -325,10 +334,6 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
       let document: MigrationCommandResult;
       try {
         await client.connect(dbConnection);
-        if (needsMigrationFile.length > 0) {
-          const databaseContract = await recordedDatabaseContract(client, migrationsDir);
-          return notOk(normalizeError(errorStatementNeedsMigrationFile(given, databaseContract)));
-        }
 
         // A refused or failed run has no result to carry the planner's warnings,
         // and an errored envelope renders no meta, so they are reported as events
@@ -438,19 +443,30 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
 export const dbUpdateCommand = createDbUpdateCommand(createControlClient);
 
 /**
- * The storage hash of the contract the database is at, when a migration of the application space
- * ends at it, so that `migration plan --from` resolves it.
+ * The storage hash of the contract the database is at, when the database already exists and can be
+ * reached and a migration of the application space ends at that contract, so that `migration plan
+ * --from` resolves it. Anything else gives undefined: this only adds `--from` to a refusal, and it
+ * never creates a database to read the marker.
  */
-async function recordedDatabaseContract(
-  client: ControlClient,
-  migrationsDir: string,
+async function databaseContractIfReachable(
+  inputs: Parameters<typeof prepareMigrationRun>[0],
 ): Promise<string | undefined> {
-  const marker = await client.readMarker();
-  if (marker === null) return undefined;
-  const { packages } = await readMigrationsDir(join(migrationsDir, APP_SPACE_ID), {
-    migrationsDir,
-  });
-  return packages.some(({ metadata }) => metadata.to === marker.storageHash)
-    ? marker.storageHash
-    : undefined;
+  const prepared = await prepareMigrationRun(inputs);
+  if (!prepared.ok) return undefined;
+  const { client, dbConnection, migrationsDir } = prepared.value;
+  try {
+    await client.connect(dbConnection, { existingDatabaseOnly: true });
+    const marker = await client.readMarker();
+    if (marker === null) return undefined;
+    const { packages } = await readMigrationsDir(join(migrationsDir, APP_SPACE_ID), {
+      migrationsDir,
+    });
+    return packages.some(({ metadata }) => metadata.to === marker.storageHash)
+      ? marker.storageHash
+      : undefined;
+  } catch {
+    return undefined;
+  } finally {
+    await closeQuietly(client);
+  }
 }

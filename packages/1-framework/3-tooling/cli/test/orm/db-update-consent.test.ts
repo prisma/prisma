@@ -340,6 +340,25 @@ describe('db update questions', () => {
     expect(mocks.dbUpdate).not.toHaveBeenCalled();
   });
 
+  it('refuses --convert and --backfill when the database cannot be reached, opening only an existing database', async () => {
+    mocks.connect.mockRejectedValueOnce(new Error('connect ECONNREFUSED 127.0.0.1:1'));
+    const run = await harness().run(['db', 'update', '--backfill', 'User.email', '--json'], {
+      cwd: projectDir,
+    });
+
+    expect(envelopeOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+        nextActions: [
+          expect.objectContaining({ command: 'prisma-test migration plan --backfill User.email' }),
+          expect.anything(),
+        ],
+      },
+    });
+    expect(mocks.connect).toHaveBeenCalledWith(expect.anything(), { existingDatabaseOnly: true });
+    expect(mocks.dbUpdate).not.toHaveBeenCalled();
+  });
+
   it('offers only delete for a type change, since it has no migration file to fill in', async () => {
     const typeChange = dataLossQuestion(
       {

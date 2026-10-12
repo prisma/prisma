@@ -79,7 +79,13 @@ export interface ControlDriverDescriptor<
   >,
   TConnection = string,
 > extends DriverDescriptor<TFamilyId, TTargetId> {
-  create(connection: TConnection): Promise<TDriverInstance>;
+  create(connection: TConnection, options?: ControlDriverConnectOptions): Promise<TDriverInstance>;
+}
+
+/** How a control driver connects. */
+export interface ControlDriverConnectOptions {
+  /** Connect only to a database that already exists, and never create one or its file. */
+  readonly existingDatabaseOnly?: boolean;
 }
 
 export interface ControlExtensionDescriptor<

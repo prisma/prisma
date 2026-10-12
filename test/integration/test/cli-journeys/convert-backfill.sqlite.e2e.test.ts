@@ -7,7 +7,7 @@
  * through `--backfill` and reads it back through the ORM.
  */
 
-import { readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { join, resolve } from 'pathe';
 import { describe, expect, it } from 'vitest';
@@ -18,6 +18,7 @@ import {
   parseJsonOutput,
   planMigrationAndSelfEmit,
   runContractEmit,
+  runDbUpdate,
   runMigrate,
   runMigrationPlan,
   selfEmitMigration,
@@ -138,6 +139,31 @@ async function fillAndApply(
 
 withTempDir(({ createTempDir }) => {
   describe('SQLite: --convert, --backfill and the temporary value on a table with rows', () => {
+    it(
+      'refuses db update --backfill without creating a database that does not exist',
+      async () => {
+        const ctx = setup(createTempDir);
+        const missingDirectory = join(ctx.testDir, 'missing', 'journey.db');
+        const elsewhere = { ...ctx, dbPath: missingDirectory };
+        writeFileSync(
+          ctx.configPath,
+          readFileSync(ctx.configPath, 'utf-8').replace(ctx.dbPath, () => missingDirectory),
+        );
+        await emit(ctx, BASE.replace('age      String', 'age      Int'));
+        const missingFile = setup(createTempDir);
+        await emit(missingFile, BASE.replace('age      String', 'age      Int'));
+
+        for (const journey of [elsewhere, missingFile]) {
+          const refused = await runDbUpdate(journey, ['--backfill', 'User.age', '--json']);
+          expect(parseJsonOutput(refused)).toMatchObject({
+            code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+          });
+          expect(existsSync(journey.dbPath), journey.dbPath).toBe(false);
+        }
+      },
+      timeouts.spinUpPpgDev,
+    );
+
     it(
       'converts a type change through the slot of the rebuild',
       async () => {

@@ -1,6 +1,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import { errorRuntime } from '@internal/errors/execution';
-import type { ControlDriverDescriptor } from '@internal/framework-components/control';
+import type {
+  ControlDriverConnectOptions,
+  ControlDriverDescriptor,
+} from '@internal/framework-components/control';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { basename } from 'pathe';
 import { normalizeSqliteError } from '../normalize-error';
@@ -44,9 +47,14 @@ export class SqliteControlDriver implements SqlControlDriverInstance<'sqlite'> {
 
 const sqliteDriverDescriptor: ControlDriverDescriptor<'sql', 'sqlite', SqliteControlDriver> = {
   ...sqliteDriverDescriptorMeta,
-  async create(pathOrMemory: string): Promise<SqliteControlDriver> {
+  async create(
+    pathOrMemory: string,
+    options?: ControlDriverConnectOptions,
+  ): Promise<SqliteControlDriver> {
     try {
-      const db = new DatabaseSync(pathOrMemory);
+      const db = new DatabaseSync(pathOrMemory, {
+        readOnly: options?.existingDatabaseOnly === true,
+      });
       db.exec('PRAGMA foreign_keys = ON');
       db.exec('PRAGMA busy_timeout = 5000');
       return new SqliteControlDriver(db, pathOrMemory);
