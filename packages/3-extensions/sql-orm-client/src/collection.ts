@@ -249,6 +249,16 @@ function applyUpdateDefaults(
 
 type WhereDirectInput = WhereArg;
 
+type OrderBySelector<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  VariantName extends string | undefined,
+  NsId extends string,
+> = (
+  model: VariantAwareModelAccessor<TContract, ModelName, VariantName, NsId>,
+  tools: ModelCallbackTools<TContract, ModelName, NsId>,
+) => OrderByItem;
+
 type LockMethodArgs<
   Capabilities,
   Strength extends LockStrength,
@@ -1147,71 +1157,19 @@ export class CollectionBase<
   orderBy<Self extends WithoutUniqueFilter<Self>>(
     this: Self,
     selection:
-      | ((
-          model: VariantAwareModelAccessor<
-            TContract,
-            ModelName,
-            State['variantName'],
-            State['nsId']
-          >,
-        ) => OrderByItem)
-      | ReadonlyArray<
-          (
-            model: VariantAwareModelAccessor<
-              TContract,
-              ModelName,
-              State['variantName'],
-              State['nsId']
-            >,
-          ) => OrderByItem
-        >,
+      | OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>
+      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>>,
   ): Ordered<Self>;
   orderBy<Self>(
     this: Self & HasNoUniqueFilter,
     selection:
-      | ((
-          model: VariantAwareModelAccessor<
-            TContract,
-            ModelName,
-            State['variantName'],
-            State['nsId']
-          >,
-          tools: ModelCallbackTools<TContract, ModelName, State['nsId']>,
-        ) => OrderByItem)
-      | ReadonlyArray<
-          (
-            model: VariantAwareModelAccessor<
-              TContract,
-              ModelName,
-              State['variantName'],
-              State['nsId']
-            >,
-            tools: ModelCallbackTools<TContract, ModelName, State['nsId']>,
-          ) => OrderByItem
-        >,
+      | OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>
+      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>>,
   ): Ordered<Self>;
   orderBy(
     selection:
-      | ((
-          model: VariantAwareModelAccessor<
-            TContract,
-            ModelName,
-            State['variantName'],
-            State['nsId']
-          >,
-          tools: ModelCallbackTools<TContract, ModelName, State['nsId']>,
-        ) => OrderByItem)
-      | ReadonlyArray<
-          (
-            model: VariantAwareModelAccessor<
-              TContract,
-              ModelName,
-              State['variantName'],
-              State['nsId']
-            >,
-            tools: ModelCallbackTools<TContract, ModelName, State['nsId']>,
-          ) => OrderByItem
-        >,
+      | OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>
+      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>>,
   ): Ordered<this> {
     const tables = withScopeCopy(this.state.tables);
     const accessor = createModelAccessor<TContract, ModelName, State['variantName'], State['nsId']>(
