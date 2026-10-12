@@ -53,7 +53,7 @@ describe('modelRenameStorageEffect', () => {
 });
 
 describe('fieldStatementColumns', () => {
-  it('names the column of each convert and backfill statement as the destination stores it', () => {
+  it('names the column of each convert and backfill statement as the destination stores it, and the field as the statement names it', () => {
     const destination = contractOf({
       User: { table: 'user', fields: { id: 'id', years: 'age_years', email: 'email' } },
       Ledger: { table: 'ledger', namespace: 'billing', fields: { total: 'total' } },
@@ -75,6 +75,7 @@ describe('fieldStatementColumns', () => {
           table: 'user',
           column: 'age_years',
           field: convertField('User', 'years').field,
+          text: 'app.User.years',
         },
       ],
       backfill: [
@@ -83,12 +84,14 @@ describe('fieldStatementColumns', () => {
           table: 'user',
           column: 'email',
           field: backfillField('User', 'email').field,
+          text: 'app.User.email',
         },
         {
           namespaceId: 'billing',
           table: 'ledger',
           column: 'total',
           field: backfillField('Ledger', 'total', 'billing').field,
+          text: 'billing.Ledger.total',
         },
       ],
     });
