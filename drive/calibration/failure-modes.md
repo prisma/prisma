@@ -865,6 +865,6 @@ Per-repo stop conditions beyond the canonical ones:
 
 **Root cause.** The planner golden test records the DDL the planner writes for every committed contract, keyed in `test/integration/test/planner-golden/manifest.json`. It is an integration test, so only the merge queue runs it.
 
-**Mitigation.** A slice that adds or changes a committed contract fixture runs `PLANNER_GOLDEN_WRITE=1 pnpm --filter integration-tests test test/planner-golden` before queueing, reads the recorded DDL for the changed fixture, and commits the manifest.
+**Mitigation.** A slice that adds or changes a committed contract fixture runs `PLANNER_GOLDEN_WRITE=1 pnpm --filter integration-tests test test/planner-golden` before queueing, reads the recorded DDL for the changed fixture (written in full to `wip/planner-golden/`), and commits every file the write changed under `test/integration/test/planner-golden/`: always `manifest.json`, and the fixture recordings in `fixtures/<target>/planned.golden.json` when the planner's output for those two fixture contracts changed.
 
 **Reference incident.** 2026-10-09, SQL expression literals slice 3 (prisma/orm#30558): review round 3 extended the PSL/TypeScript parity fixture, and the first queue run failed on its missing golden entry.
