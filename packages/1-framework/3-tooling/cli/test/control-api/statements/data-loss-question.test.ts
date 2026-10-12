@@ -171,6 +171,23 @@ describe('dataLossQuestion for a type change', () => {
     expect(asked.validate('convert', 'User.age')).toBeUndefined();
   });
 
+  it("says the operation changes the field's type, whatever its label", () => {
+    const rebuild = dataLossQuestion(
+      { ...ageChange, label: 'Recreate table User' },
+      {
+        origin: from,
+        destination: to,
+        statements: [],
+        canConvert: true,
+        originKnown: true,
+        keepDataByHand: undefined,
+      },
+    );
+    expect(rebuild.question).toBe(
+      'Recreate table User would change the type of field "User.age" and lose the values it cannot convert.',
+    );
+  });
+
   it('offers only delete where the command has no migration to fill in', () => {
     expect(question(false).verbs).toEqual(['delete']);
   });

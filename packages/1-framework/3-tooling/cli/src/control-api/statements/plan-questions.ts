@@ -179,12 +179,19 @@ export function consentDescription(
     : `${verb} ${subject.kind} "${text}"`;
 }
 
-function lossText(subject: MigrationSubject, text: string, originKnown: boolean): string {
+function lossText(
+  subject: MigrationSubject,
+  text: string,
+  originKnown: boolean,
+  loss: MigrationDataLossKind | undefined,
+): string {
   switch (subject.kind) {
     case 'model':
       return `would lose the data of model "${text}"`;
     case 'field':
-      return `would lose the values of field "${text}"`;
+      return loss === 'typeChange'
+        ? `would change the type of field "${text}" and lose the values it cannot convert`
+        : `would lose the values of field "${text}"`;
     case 'storage':
       return originKnown
         ? `would lose the data in "${text}", which no model of the origin contract stores`
@@ -294,7 +301,7 @@ export function dataLossQuestion(
   const subject = subjectText(loss.subject, contracts);
   const deleteNames = namesSubject('delete', subject);
   const question = [
-    `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown)}.`,
+    `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown, loss.loss)}.`,
     ...(contracts.keepDataByHand === undefined ? [] : [contracts.keepDataByHand(loss.subject)]),
   ].join(' ');
   if (loss.loss === 'typeChange' && loss.subject.kind === 'field') {
