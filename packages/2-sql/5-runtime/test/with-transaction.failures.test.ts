@@ -80,6 +80,24 @@ describe('withTransaction when the transaction cannot start', () => {
     ]);
   });
 
+  it('releases the connection when the transaction activityStarted throws a non-object', async () => {
+    const failingStart: SqlMiddleware = {
+      name: 'failing-start',
+      familyId: 'sql',
+      async activityStarted(activity) {
+        if (activity.kind === 'transaction') throw 'started failed';
+      },
+    };
+    const { runtime, events } = createSetup({ middleware: [failingStart] });
+
+    await expect(withTransaction(runtime, async () => undefined)).rejects.toBe('started failed');
+
+    expect(names(events)).not.toContain('begin');
+    expect(names(events).filter((name) => name === 'release' || name === 'destroy')).toEqual([
+      'release',
+    ]);
+  });
+
   it('releases the connection when the transaction activityStarted throws, because no BEGIN was sent', async () => {
     const refused = new Error('started failed');
     const failingStart: SqlMiddleware = {

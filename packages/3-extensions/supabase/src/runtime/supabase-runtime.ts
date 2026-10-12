@@ -107,7 +107,7 @@ export class SupabaseRuntimeImpl<
       },
 
       async transaction(): Promise<RuntimeTransaction> {
-        return self.beginTransactionOn(conn);
+        return self.beginTransactionOn(conn, session);
       },
 
       /**
