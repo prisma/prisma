@@ -7,7 +7,12 @@ export type {
   ValidAnnotations,
 } from '../annotations';
 export { assertAnnotationsApplicable, defineAnnotation } from '../annotations';
-export type { ActivityChild, ActivityParent } from '../execution/activity-lifecycle';
+export type {
+  ActivityChild,
+  ActivityParent,
+  ActivityStateStore,
+} from '../execution/activity-lifecycle';
+export { createStateStore } from '../execution/activity-lifecycle';
 export { AsyncIterableResult } from '../execution/async-iterable-result';
 export type {
   AppliedMutationDefault,

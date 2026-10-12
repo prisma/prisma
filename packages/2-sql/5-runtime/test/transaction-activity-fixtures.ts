@@ -139,6 +139,9 @@ export interface SetupOptions {
   readonly beforeHookFailure?: Error;
   readonly readMarker?: () => Promise<MarkerReadResult>;
   readonly log?: Log;
+  readonly mode?: 'strict' | 'permissive';
+  /** Middleware registered after the recorder. */
+  readonly middleware?: readonly SqlMiddleware[];
 }
 
 export function createSetup(options: SetupOptions = {}) {
@@ -162,8 +165,9 @@ export function createSetup(options: SetupOptions = {}) {
     context: createTestContext(testContract, adapter),
     driver: createDriver(events, options.failures ?? {}),
     verifyMarker: readMarker === undefined ? false : 'onFirstUse',
-    middleware: [middleware],
+    middleware: [middleware, ...(options.middleware ?? [])],
     ...(options.log ? { log: options.log } : {}),
+    ...(options.mode ? { mode: options.mode } : {}),
   });
   return { runtime, events, middleware };
 }

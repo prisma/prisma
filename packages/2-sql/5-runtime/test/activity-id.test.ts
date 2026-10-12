@@ -159,6 +159,32 @@ describe('SqlRuntime statement activity identity', () => {
   });
 });
 
+describe('beforeCompile in a statement activity', () => {
+  it('receives the same context as the statement other hooks', async () => {
+    const contexts: SqlMiddlewareContext[] = [];
+    const recorder: SqlMiddleware = {
+      name: 'compile-recorder',
+      familyId: 'sql',
+      async activityStarted(_activity, ctx) {
+        contexts.push(ctx);
+      },
+      async beforeCompile(_draft, ctx) {
+        contexts.push(ctx);
+        return undefined;
+      },
+      async beforeEncode(_plan, ctx) {
+        contexts.push(ctx);
+      },
+    };
+    const { runtime } = createSetup([recorder]);
+
+    await runtime.query(buildSelectAllUsersPlan()).toArray();
+
+    expect(contexts).toHaveLength(3);
+    expect(new Set(contexts).size).toBe(1);
+  });
+});
+
 describe('PreparedStatement.query activity identity', () => {
   it('gives every hook of one statement.query call the same activity id and context', async () => {
     const log: Observation[] = [];

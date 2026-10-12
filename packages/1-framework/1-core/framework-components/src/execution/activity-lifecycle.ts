@@ -29,13 +29,37 @@ export interface ActivityRecord<TContext extends ActivityContext> extends Activi
   ended(result: ActivityEndedResult): Promise<void>;
 }
 
+/** The per-activity state behind `ctx.state(key)`: one object per key, created empty on first use. */
+export interface ActivityStateStore {
+  state(key: string | symbol): Record<string | symbol, unknown>;
+  clear(): void;
+}
+
+export function createStateStore(): ActivityStateStore {
+  let states: Map<string | symbol, Record<string | symbol, unknown>> | undefined;
+  return {
+    state(key) {
+      states ??= new Map();
+      let state = states.get(key);
+      if (state === undefined) {
+        state = {};
+        states.set(key, state);
+      }
+      return state;
+    },
+    clear() {
+      states = undefined;
+    },
+  };
+}
+
 export function createActivityRecord<TContext extends ActivityContext>(
   middleware: ReadonlyArray<ActivityObserver>,
   activity: RuntimeActivity,
   fields: ActivityContextFields<TContext>,
   parent: ActivityParent | undefined,
 ): ActivityRecord<TContext> {
-  let states: Map<string | symbol, Record<string | symbol, unknown>> | undefined;
+  const store = createStateStore();
   let finalized = false;
   const parentCtx = parent?.ctx;
   const parentIsTransaction = parent?.activity.kind === 'transaction';
@@ -45,15 +69,7 @@ export function createActivityRecord<TContext extends ActivityContext>(
   >({
     ...fields,
     parent: parentCtx,
-    state(key: string | symbol): Record<string | symbol, unknown> {
-      states ??= new Map();
-      let state = states.get(key);
-      if (state === undefined) {
-        state = {};
-        states.set(key, state);
-      }
-      return state;
-    },
+    state: store.state,
     inTransaction: () => parentIsTransaction || (parentCtx?.inTransaction() ?? false),
   });
 
@@ -91,7 +107,7 @@ export function createActivityRecord<TContext extends ActivityContext>(
           logFinalizedError(ctx, mw.name, error);
         }
       }
-      states = undefined;
+      store.clear();
     },
   };
 }

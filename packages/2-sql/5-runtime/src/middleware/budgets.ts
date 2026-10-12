@@ -108,13 +108,18 @@ export function budgets(options?: BudgetsOptions): SqlMiddleware {
       const observed = ctx.state(observedRows);
       const count = (typeof observed['count'] === 'number' ? observed['count'] : 0) + 1;
       observed['count'] = count;
-      if (count > maxRows) {
-        throw runtimeError('BUDGET.ROWS_EXCEEDED', 'Observed row count exceeds budget', {
+      if (count <= maxRows || observed['warned'] === true) return;
+      const shouldBlock = rowSeverity === 'error' || ctx.mode === 'strict';
+      if (!shouldBlock) observed['warned'] = true;
+      emitBudgetViolation(
+        runtimeError('BUDGET.ROWS_EXCEEDED', 'Observed row count exceeds budget', {
           source: 'observed',
           observedRows: count,
           maxRows,
-        });
-      }
+        }),
+        shouldBlock,
+        ctx,
+      );
     },
 
     async activityEnded(
