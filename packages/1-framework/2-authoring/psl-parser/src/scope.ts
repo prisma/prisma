@@ -32,6 +32,8 @@ export type ScopeResolution =
   | { readonly kind: 'contributedNamespace'; readonly symbol: ContributedNamespaceSymbol }
   | { readonly kind: 'contributedType'; readonly symbol: ContributedTypeSymbol };
 
+export type MixinResolution = Extract<ScopeResolution, { readonly kind: 'mixin' }>;
+
 function* recordNames(...records: readonly Readonly<Record<string, unknown>>[]): Iterable<string> {
   for (const record of records) yield* Object.keys(record);
 }
@@ -179,14 +181,16 @@ export function lookupMixinReference(
   records: TopLevelRecords,
   enclosing: NamespaceSymbol | undefined,
   written: WrittenMixinReference,
-): ScopeResolution | undefined {
-  if (written.namespaceId !== undefined) {
-    const namespace = records.namespaces[written.namespaceId];
-    return namespace === undefined ? undefined : namespaceMember(namespace, written.name);
+): MixinResolution | undefined {
+  const namespace =
+    written.namespaceId === undefined ? enclosing : records.namespaces[written.namespaceId];
+  const member = namespace?.mixins[written.name];
+  if (namespace !== undefined && member !== undefined) {
+    return { kind: 'mixin', symbol: member, namespace };
   }
-  const document = new DocumentScope(records, undefined);
-  const scope = enclosing === undefined ? document : new NamespaceScope(enclosing, document);
-  return scope.lookup(written.name);
+  if (written.namespaceId !== undefined) return undefined;
+  const mixin = records.mixins[written.name];
+  return mixin === undefined ? undefined : { kind: 'mixin', symbol: mixin };
 }
 
 export function isNamespaceLike(

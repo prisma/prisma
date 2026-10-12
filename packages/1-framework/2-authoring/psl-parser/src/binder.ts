@@ -563,9 +563,7 @@ function bindInclusions(
           : undefined;
       references.set(
         reference.syntax,
-        resolution?.kind === 'mixin'
-          ? resolution
-          : { kind: 'unresolved', name: printSyntax(reference.syntax) },
+        resolution ?? { kind: 'unresolved', name: printSyntax(reference.syntax) },
       );
     }
   }

@@ -8,7 +8,7 @@ import {
   readResolvedAttributes,
   readResolvedConstructorCall,
 } from './resolve';
-import { lookupMixinReference, type ScopeResolution } from './scope';
+import { lookupMixinReference } from './scope';
 import type { PslSources, Range } from './source-file';
 import type { FieldAttributeAst, ModelAttributeAst } from './syntax/ast/attributes';
 import {
@@ -25,6 +25,7 @@ import {
   TypesBlockAst,
 } from './syntax/ast/declarations';
 import type { IdentifierAst } from './syntax/ast/identifier';
+import { printSyntax } from './syntax/ast-helpers';
 import type { SyntaxNode } from './syntax/red';
 
 export type {
@@ -469,27 +470,14 @@ function resolveInclusions(
     const reference = inclusion.name();
     const name = reference?.identifier()?.name();
     if (reference === undefined || name === undefined || reference.isOverQualified()) continue;
-    if (reference.space() !== undefined) {
-      report(
-        PSL_UNRESOLVED_REFERENCE,
-        'A mixin cannot be included from another contract space',
-        inclusion,
-      );
-      continue;
-    }
     const namespaceId = reference.namespace()?.name();
-    const written = namespaceId === undefined ? name : `${namespaceId}.${name}`;
-    const resolution = lookupMixinReference(topLevel, namespace, { namespaceId, name });
+    const resolution =
+      reference.space() === undefined
+        ? lookupMixinReference(topLevel, namespace, { namespaceId, name })
+        : undefined;
     if (resolution === undefined) {
+      const written = printSyntax(reference.syntax);
       report(PSL_UNRESOLVED_REFERENCE, `Cannot find mixin "${written}"`, inclusion);
-      continue;
-    }
-    if (resolution.kind !== 'mixin') {
-      report(
-        PSL_UNRESOLVED_REFERENCE,
-        `"${written}" is ${describeResolution(resolution)}, not a mixin`,
-        inclusion,
-      );
       continue;
     }
     const mixin = resolution.symbol;
@@ -513,28 +501,6 @@ function resolveInclusions(
     included.set(inclusion.syntax, mixin);
   }
   return included;
-}
-
-function describeResolution(resolution: Exclude<ScopeResolution, { kind: 'mixin' }>): string {
-  switch (resolution.kind) {
-    case 'model':
-      return 'a model';
-    case 'compositeType':
-      return 'a composite type';
-    case 'namedType':
-      return 'a named type';
-    case 'block':
-      return `${withArticle(resolution.symbol.keyword)}`;
-    case 'namespace':
-    case 'contributedNamespace':
-      return 'a namespace';
-    case 'contributedType':
-      return 'a type';
-  }
-}
-
-function withArticle(word: string): string {
-  return `${/^[aeiou]/i.test(word) ? 'an' : 'a'} ${word}`;
 }
 
 function duplicateMemberDiagnostic(

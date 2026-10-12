@@ -489,6 +489,34 @@ describe('buildSymbolTable() looking up the name of an inclusion', () => {
     );
   });
 
+  it('finds a top-level mixin past a declaration of another kind with its name in the namespace', () => {
+    const { topLevel, diagnostics } = build(
+      lines(
+        'model mixin Timestamps {',
+        '  createdAt DateTime',
+        '}',
+        'namespace app {',
+        '  model Timestamps {',
+        '    id Int',
+        '  }',
+        '  model User {',
+        '    id Int',
+        '    +Timestamps',
+        '  }',
+        '}',
+      ),
+    );
+
+    expect(diagnostics).toEqual([]);
+    expect(Object.keys(topLevel.namespaces['app']?.models['User']?.fields ?? {})).toEqual([
+      'id',
+      'createdAt',
+    ]);
+    expect(topLevel.namespaces['app']?.models['User']?.fields['createdAt']).toBe(
+      topLevel.mixins['Timestamps']?.fields['createdAt'],
+    );
+  });
+
   it('finds a mixin of another namespace by its qualified name', () => {
     const { topLevel, diagnostics } = build(
       lines(
@@ -604,57 +632,55 @@ describe('buildSymbolTable() reporting an inclusion', () => {
   });
 
   it.each([
-    ['a model', 'model Target {\n}', '+Target', '"Target" is a model, not a mixin'],
-    [
-      'a composite type',
-      'type Target {\n}',
-      '+Target',
-      '"Target" is a composite type, not a mixin',
-    ],
-    [
-      'a named type',
-      'types {\n  Target = String\n}',
-      '+Target',
-      '"Target" is a named type, not a mixin',
-    ],
-    ['an enum', 'enum Target {\n}', '+Target', '"Target" is an enum, not a mixin'],
-    ['another block', 'policy Target {\n}', '+Target', '"Target" is a policy, not a mixin'],
-    ['a namespace', 'namespace Target {\n}', '+Target', '"Target" is a namespace, not a mixin'],
-    [
-      'a qualified model',
-      'namespace ns {\n  model Target {\n  }\n}',
-      '+ns.Target',
-      '"ns.Target" is a model, not a mixin',
-    ],
-  ])('reports a name that resolves to %s', (_kind, declaration, inclusion, message) => {
-    const source = `${declaration}\nmodel User {\n  ${inclusion}\n  id Int\n}`;
+    ['a model', 'model Target {\n}', 'Target'],
+    ['a composite type', 'type Target {\n}', 'Target'],
+    ['a named type', 'types {\n  Target = String\n}', 'Target'],
+    ['an enum', 'enum Target {\n}', 'Target'],
+    ['another block', 'policy Target {\n}', 'Target'],
+    ['a namespace', 'namespace Target {\n}', 'Target'],
+    ['a qualified model', 'namespace ns {\n  model Target {\n  }\n}', 'ns.Target'],
+  ])('reports the name of %s as a mixin that cannot be found', (_kind, declaration, written) => {
+    const source = `${declaration}\nmodel User {\n  +${written}\n  id Int\n}`;
     const { diagnostics, topLevel } = build(source);
 
     expect(diagnostics).toEqual([
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
-        message,
+        message: `Cannot find mixin "${written}"`,
         filename: '0.psl',
-        range: rangeOf(source, inclusion),
+        range: rangeOf(source, `+${written}`),
       },
     ]);
     expect(Object.keys(topLevel.models['User']?.fields ?? {})).toEqual(['id']);
   });
 
-  it('reports a name with a contract-space qualifier', () => {
-    const source = 'model mixin T {\n  a Int\n}\nmodel User {\n  +other:T\n  +other:ns.T\n}';
+  it('reports a name with a contract-space qualifier as a mixin that cannot be found', () => {
+    const source = lines(
+      'model mixin T {',
+      '  a Int',
+      '}',
+      'namespace ns {',
+      '  model mixin T {',
+      '    b Int',
+      '  }',
+      '}',
+      'model User {',
+      '  +other:T',
+      '  +other:ns.T',
+      '}',
+    );
     const { diagnostics, topLevel } = build(source);
 
     expect(diagnostics).toEqual([
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
-        message: 'A mixin cannot be included from another contract space',
+        message: 'Cannot find mixin "other:T"',
         filename: '0.psl',
         range: rangeOf(source, '+other:T'),
       },
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
-        message: 'A mixin cannot be included from another contract space',
+        message: 'Cannot find mixin "other:ns.T"',
         filename: '0.psl',
         range: rangeOf(source, '+other:ns.T'),
       },
