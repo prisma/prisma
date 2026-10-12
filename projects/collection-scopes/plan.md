@@ -24,20 +24,26 @@ ADR 259: `db.orm.fragment`, `collection.fragment`, `orderByField`, `CodecField`,
 
 **Outcome.** ORM `where` and `orderBy` callbacks receive `{ fns, indexes }` (ADR 270). An ORM query searches a weighted full-text index by naming it, at every site the spec lists; the demo does so; `EXPLAIN` proves the index is used.
 
-**Builds on:** slice 3. **Hands to:** close-out.
+**Builds on:** slice 3. **Hands to:** slice 5.
 
 Slice spec: [slices/4-orm-queries-name-an-index/spec.md](slices/4-orm-queries-name-an-index/spec.md).
 
+### 5. Collection scopes built from indexes
+
+**Outcome.** A package that owns an index type contributes scope operations; each model's collection offers a scope per index of that type, named after the index, chainable before and after other methods and inside include refinements; Postgres contributes the full-text search scope; the demo uses it. Design first (spike on call form and cost on top of slice 4, then an ADR), reviewed by Will before building.
+
+**Builds on:** slice 4. **Hands to:** close-out.
+
 ## Sequence
 
-- The defects pull request and slice 4 run in parallel; they touch different parts of `collection.ts`.
+- The defects pull request and slice 4 ran in parallel. Slice 5 starts from main after slice 4 merges.
 
 ## After the last slice
 
 - Set ADR 270 to Accepted.
 - Demo gaps from the Definition of Done: a conditional list query with `with`, a `CodecField` filter in the demo's source.
-- File the include-refinement class registry as its own ticket (ADR 265, "Later decisions").
+- The include-refinement class registry is filed as TML-3426 (ADR 265, "Later decisions").
 - Manual QA across the feature, then Will's final verification.
-- Delete the spike branches on `bot`: `spike-collection-scope-declared`, `spike-collection-scope-types`, `spike-collection-state-subtyping`, `spike-pipe-fragments`, `spike-scope-helper-api`, `spike-scope-helper-authoring`, `spike-this-typed-chaining`. First copy the draft ADR "Collection scopes derived from indexes" from `spike-collection-scope-declared` into `docs/design/` or the follow-up ticket, because the later collection-scopes design starts from it.
+- Delete the spike branches on `bot`: `spike-collection-scope-declared`, `spike-collection-scope-types`, `spike-collection-state-subtyping`, `spike-pipe-fragments`, `spike-scope-helper-api`, `spike-scope-helper-authoring`, `spike-this-typed-chaining`. Only after slice 5's ADR has absorbed the September draft ADR "Collection scopes derived from indexes" on `spike-collection-scope-declared`.
 - Close-out per the projects README: move anything long-lived to `docs/`, delete `projects/collection-scopes/` here and on main (main carries `projects/collection-scopes/spikes/`).
 - Then the collection-scopes and default-scopes discussions.
