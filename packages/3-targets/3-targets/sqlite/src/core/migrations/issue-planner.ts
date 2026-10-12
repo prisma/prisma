@@ -524,7 +524,7 @@ export function planIssues(
   // Final emission order matches the current monolithic planner:
   //   create-table → add-column → create-index → recreate → drop-column → drop-index → drop-table
   // A rebuild creates its table's indexes itself, after any column it adds, so a separate
-  // createIndex on a column the table does not have yet is left out.
+  // createIndex on a column only the rebuild's recipe adds is left out.
   const rebuiltIndexes = new Set(
     gatedRecipe.flatMap((call) =>
       call instanceof RecreateTableCall
@@ -532,11 +532,24 @@ export function planIssues(
         : [],
     ),
   );
+  const bucketed = [...gatedDefault, ...gatedBucketable];
+  const addedBeforeIndexes = new Set(
+    bucketed.flatMap((call) =>
+      call instanceof AddColumnCall ? [indexKey(call.tableName, call.columnName)] : [],
+    ),
+  );
   const indexesANewColumn = (call: CreateIndexCall) => {
     const live = context.actual.tables[call.tableName];
-    return live !== undefined && call.columns.some((column) => live.columns[column] === undefined);
+    return (
+      live !== undefined &&
+      call.columns.some(
+        (column) =>
+          live.columns[column] === undefined &&
+          !addedBeforeIndexes.has(indexKey(call.tableName, column)),
+      )
+    );
   };
-  const combined = [...gatedDefault, ...gatedBucketable].filter(
+  const combined = bucketed.filter(
     (call) =>
       !(call instanceof CreateIndexCall) ||
       !indexesANewColumn(call) ||
