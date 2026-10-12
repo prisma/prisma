@@ -5,11 +5,12 @@
 
 ## At a glance
 
-The project has three slices.
+The project has four slices.
 
 1. The first adds `whereUnique` to the SQL ORM client at the top level of a query.
 2. The second makes `whereUnique` usable inside an `include` refinement, where it yields one value instead of an array. It is stacked on the first.
 3. The third adds `whereUnique` to the Mongo ORM. It shares no code with the SQL slices and can run alongside the second, after the first has merged.
+4. The fourth makes relation `connect` and `disconnect` criteria on the SQL ORM client reject an incomplete key at run time, as `whereUnique` does. It is the last slice of the project.
 
 ## Composition
 
@@ -64,6 +65,21 @@ The project has three slices.
     - integration tests for `first`, `update`, `delete` and `upsert` after `whereUnique`;
     - the package README section.
 
+### Last (after every other slice)
+
+- **Slice `relation-criteria-validation`**. Linear: none. Folder: `projects/where-unique/slices/relation-criteria-validation/`
+  - **Outcome:** On the SQL ORM client, a relation `connect` or `disconnect` criterion that does not give a value for every field of the related model's primary key or of one of its unique constraints throws `ORM.ARGUMENT_INVALID` before any statement runs. A complete criterion behaves as before.
+  - **Builds on:** Slice 1's `hasCompleteUniqueKey` and `resolveUniqueKeyColumnSets` in `collection-contract.ts`, and its rule that a value of `undefined` or `null` does not count.
+  - **Hands to:** Project close-out. Every place that takes a `UniqueConstraintCriterion` and uses its values to select rows checks it at run time.
+  - **Focus:**
+    - the criteria paths in `mutation-executor.ts`, which today refuse only an empty criterion; the filter compiler drops `undefined` fields, so a compound criterion with one `undefined` field filters on the remaining fields only;
+    - the three cases found during review of PR #30670, as tests first: `Customer.orders` with `connect({ id: undefined, tenantId: 1 })` re-links every order of that tenant; `disconnect([{ id: undefined, tenantId: 1 }])` unlinks every order of that parent with that tenant; `Order.customer` with `connect({ tenantId: 1, id: undefined })` links the order to the first customer of that tenant;
+    - each relation kind the executor handles (to-one, to-many, many-to-many through a junction), and a list of criteria where only one is incomplete;
+    - `conflictOn` is not in scope unless reading the code shows its values select rows: during review it was read as using only the object's keys;
+    - integration tests that read the tables back unchanged after a refused mutation;
+    - an upgrade instruction, since a nested mutation that ran before will now throw;
+    - the README and the error reference entry for `ORM.ARGUMENT_INVALID`.
+
 ## Dependencies (external)
 
 - [ ] **Package release.** Users get each slice through the next published release after it merges. The workspace is at `8.0.0-rc.14`; no release carrying this work is published yet.
@@ -71,6 +87,7 @@ The project has three slices.
 
 ## Sequencing rationale
 
+- **Why the relation-criteria slice is last.** The hazard predates this project and was found while reviewing slice 1. It changes the run-time behaviour of existing nested mutations, which is a different review from adding a method, and nothing else in the project depends on it. The owner placed it at the end (2026-10-12).
 - **Why SQL first.** It carried the project's one technical risk, the rejection encoding, and it settles the shared names and rules the Mongo slice follows.
 - **Why the include change is its own slice.** It adds runtime state and changes result shaping, which the top-level method does not need; reviewing it together with twelve reshaped method signatures would be two reviews in one PR. Slice 1 keeps `whereUnique` out of refinement callbacks, so the array form never ships and slice 2 is not a breaking change.
 - **Why Mongo is not stacked on slice 2.** It touches a different package and none of slice 2's code. It can start as soon as slice 1 has merged.

@@ -75,6 +75,7 @@ The snippets above are illustrative. Before a slice treats one as fact, it re-ve
 
 6. **The argument admits only shapes that guarantee at most one record.**
    - **Checked at runtime too (2026-10-12, from review of PR #30670).** The compile-time check does not hold for a caller who gets past the types (a cast, plain JavaScript, a contract whose constraint columns are not literal types), and the shorthand compiler drops `undefined` values: an all-`undefined` criterion produced no filter at all, and a compound criterion with one `undefined` field produced a partial filter, while the collection was still marked uniquely filtered and `update()` / `delete()` would act on some row. `whereUnique` therefore validates its argument before compiling it: the fields that have a value other than `undefined` or `null` must include every field of the primary key or of one unique constraint, or it throws `ORM.ARGUMENT_INVALID`. Other fields in the object are left to the filter compiler as before.
+   - **Relation criteria get the same run-time check, in the project's last slice (decided 2026-10-12).** `connect` and `disconnect` take the same criterion type and today refuse only an empty criterion; a compound criterion with one `undefined` field filters on the remaining fields, which was confirmed by running during review of PR #30670. This predates the project.
    - `null` is never an accepted value, on either family. The SQL contract's unique constraint records only columns and a name, so there is no "nulls not distinct" option, and the shorthand filter turns `null` into `IS NULL`.
    - A Mongo index is admitted for a model only when it is `unique: true`, has no `partialFilterExpression`, and every key is a top-level scalar field of that model. A variant-scoped unique index is stored as a partial index and is therefore left out. An index on an embedded path cannot be expressed by a flat object.
    - `{ _id }` is always admitted on Mongo: `_id` is unique but is not listed among the indexes.
@@ -157,6 +158,7 @@ None. The project makes no architectural shift; the type-state encoding in decis
 - [ ] A user subclass with a scope that calls `orderBy`, `limit` and `all` on `this` compiles unchanged, and its own methods are callable after `whereUnique`.
 - [ ] `first`, `update` and `delete` after `whereUnique` return the same row types as after `where`, with included relations, on both families; integration tests run them against a database.
 - [ ] `conflictOn` and `connect` reject `null` for a nullable unique column.
+- [ ] On SQL, a relation `connect` or `disconnect` criterion without a complete key throws `ORM.ARGUMENT_INVALID` before any statement runs, covered by integration tests that read the tables back unchanged.
 - [ ] An `include` refinement that calls `whereUnique` on a to-many relation returns `Row | null` at the type level and at runtime, covered by an integration test.
 
 ## Open Questions
