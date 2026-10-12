@@ -17,14 +17,14 @@ changes:
         - '\bfilters\s*:'
   - id: create-model-accessor-takes-tables
     summary: |
-      `createModelAccessor` takes the collection's tables as its fourth argument, before the optional variant name: `createModelAccessor(context, namespaceId, modelName, tables, variantName?)`.
+      `createModelAccessor` takes the collection's tables as its fourth argument, before the optional variant's discriminator value: `createModelAccessor(context, namespaceId, modelName, tables, variantValue?)`.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
         - '\bcreateModelAccessor\('
   - id: include-expr-junction-table
     summary: |
-      A hand-built `IncludeExpr` for a many-to-many relation needs a `junction` aliased table next to `through`; compiling a `through` include without one throws. `IncludeExpr.localTableName` is replaced by the optional `localVariantName`, the model name of the multi-table-inheritance variant whose table holds the relation's local columns.
+      A hand-built `IncludeExpr` for a many-to-many relation needs a `junction` aliased table next to `through`; compiling a `through` include without one throws. `IncludeExpr.localTableName` is replaced by the optional `localVariantValue`, the discriminator value of the multi-table-inheritance variant whose table holds the relation's local columns.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
@@ -85,7 +85,7 @@ A filter that must be written by hand needs a `ParamRef` with the column's codec
 
 ## `create-model-accessor-takes-tables`
 
-Pass the tables as the fourth argument. A variant name moves to the fifth:
+Pass the tables as the fourth argument. A variant moves to the fifth, named by its discriminator value:
 
 ```ts
 // before
@@ -99,7 +99,7 @@ createModelAccessor(
   'public',
   'Task',
   createCollectionTables(context.contract, 'public', 'Task'),
-  'Feature',
+  'feature',
 );
 ```
 
@@ -119,12 +119,12 @@ const include: IncludeExpr = { relationName: 'tags', through: { table: 'user_tag
 const [include] = users.include('tags').state.includes;
 ```
 
-`IncludeExpr` no longer has `localTableName`. Remove the property where the relation's local columns are on the parent model's own table, which is every relation of a non-polymorphic model, a base model or a single-table-inheritance variant. Where they are on a multi-table-inheritance variant's table, set `localVariantName` to that variant's model name:
+`IncludeExpr` no longer has `localTableName`. Remove the property where the relation's local columns are on the parent model's own table, which is every relation of a non-polymorphic model, a base model or a single-table-inheritance variant. Where they are on a multi-table-inheritance variant's table, set `localVariantValue` to that variant's discriminator value:
 
 ```ts
 // before
 const include: IncludeExpr = { relationName: 'assignee', localTableName: 'features', /* … */ };
 
 // after
-const include: IncludeExpr = { relationName: 'assignee', localVariantName: 'Feature', /* … */ };
+const include: IncludeExpr = { relationName: 'assignee', localVariantValue: 'feature', /* … */ };
 ```
