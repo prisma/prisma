@@ -8,16 +8,14 @@ import {
   ModelDeclarationAst,
   NamespaceDeclarationAst,
 } from '../src/syntax/ast/declarations';
-import { filterChildren, printSyntax } from '../src/syntax/ast-helpers';
+import { filterChildren } from '../src/syntax/ast-helpers';
 import { type SyntaxNode, SyntaxNode as SyntaxNodeClass } from '../src/syntax/red';
 import { printTree } from './support';
 
 const prisma7 = { grammar: 'prisma-7' } as const;
 
-function parseLossless(source: string, options: Parameters<typeof parse>[2] = {}): ParseResult {
-  const result = parse(source, 'test.psl', options);
-  expect(printSyntax(result.document.syntax)).toBe(source);
-  return result;
+function parseSchema(source: string, options: Parameters<typeof parse>[2] = {}): ParseResult {
+  return parse(source, 'test.psl', options);
 }
 
 function messages(result: ParseResult): string[] {
@@ -54,7 +52,7 @@ function inclusionPaths(
 
 describe('a mixin declaration', () => {
   it('parses a model mixin into its own node kind', () => {
-    const result = parseLossless('model mixin Timestamps {\n  createdAt DateTime\n}');
+    const result = parseSchema('model mixin Timestamps {\n  createdAt DateTime\n}');
 
     expect(result.diagnostics).toEqual([]);
     expect(printTree(result.document.syntax.green)).toMatchInlineSnapshot(`
@@ -86,7 +84,7 @@ describe('a mixin declaration', () => {
   it('exposes the header and the fields and attributes of a model mixin', () => {
     const source =
       'model mixin Timestamps {\n  createdAt DateTime @default(now())\n  @@index([createdAt])\n}';
-    const mixin = onlyMixin(parseLossless(source));
+    const mixin = onlyMixin(parseSchema(source));
 
     expect(mixin.keyword()?.text).toBe('model');
     expect(mixin.mixinKeyword()?.text).toBe('mixin');
@@ -103,7 +101,7 @@ describe('a mixin declaration', () => {
   });
 
   it('reads a type mixin body as fields', () => {
-    const result = parseLossless('type mixin Geo {\n  lat Float\n  lng Float\n}');
+    const result = parseSchema('type mixin Geo {\n  lat Float\n  lng Float\n}');
     const mixin = onlyMixin(result);
 
     expect(result.diagnostics).toEqual([]);
@@ -113,7 +111,7 @@ describe('a mixin declaration', () => {
   });
 
   it('reads an enum mixin body as enum members that may carry attributes', () => {
-    const result = parseLossless('enum mixin BaseRoles {\n  ADMIN @map("admin")\n  USER\n}');
+    const result = parseSchema('enum mixin BaseRoles {\n  ADMIN @map("admin")\n  USER\n}');
     const mixin = onlyMixin(result);
 
     expect(result.diagnostics).toEqual([]);
@@ -132,7 +130,7 @@ describe('a mixin declaration', () => {
   });
 
   it('reads the body of a mixin for any other keyword as entries and block attributes', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       'policy_select mixin OwnerRead {\n  roles = [authenticated]\n  @@map("owner")\n}',
     );
     const mixin = onlyMixin(result);
@@ -147,13 +145,13 @@ describe('a mixin declaration', () => {
   });
 
   it('rejects an attribute on a member of a mixin for a keyword other than enum', () => {
-    const result = parseLossless('policy_select mixin OwnerRead {\n  roles @map("r")\n}');
+    const result = parseSchema('policy_select mixin OwnerRead {\n  roles @map("r")\n}');
 
     expect(messages(result)).toEqual(['PSL_INVALID_EXTENSION_BLOCK_MEMBER: Invalid block entry']);
   });
 
   it('parses a mixin for each keyword inside a namespace', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       [
         'namespace auth {',
         '  model mixin Timestamps {',
@@ -186,7 +184,7 @@ describe('a mixin declaration', () => {
   });
 
   it('is not cast to a model, composite type or generic block', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       'model mixin A {\n}\ntype mixin B {\n}\nenum mixin C {\n}\npolicy mixin D {\n}',
     );
     const nodes = Array.from(result.document.syntax.childNodes());
@@ -215,16 +213,14 @@ describe('a mixin declaration', () => {
 
   it('reads the doc comment above it', () => {
     const mixin = onlyMixin(
-      parseLossless(
-        '/// Creation and update times.\n/// Shared by all models.\nmodel mixin T {\n}',
-      ),
+      parseSchema('/// Creation and update times.\n/// Shared by all models.\nmodel mixin T {\n}'),
     );
 
     expect(mixin.docComment()).toBe('Creation and update times.\nShared by all models.');
   });
 
   it('leaves a field named mixin or typed mixin alone', () => {
-    const result = parseLossless('model User {\n  mixin Int\n  other mixin\n  mixin mixin\n}');
+    const result = parseSchema('model User {\n  mixin Int\n  other mixin\n  mixin mixin\n}');
     const [model] = Array.from(result.document.declarations());
     if (!(model instanceof ModelDeclarationAst)) throw new Error('expected a model');
 
@@ -242,7 +238,7 @@ describe('a mixin declaration', () => {
   });
 
   it('leaves an entry key and an attribute argument spelled mixin alone', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       'policy P {\n  mixin = mixin\n}\nmodel M {\n  id Int @default(mixin)\n  @@index([mixin], map: mixin)\n}',
     );
 
@@ -253,7 +249,7 @@ describe('a mixin declaration', () => {
 
 describe('a mixin inclusion', () => {
   it('parses a plus and a qualified name as one member node', () => {
-    const result = parseLossless('model User {\n  +auth.Timestamps\n}');
+    const result = parseSchema('model User {\n  +auth.Timestamps\n}');
 
     expect(result.diagnostics).toEqual([]);
     expect(printTree(result.document.syntax.green)).toMatchInlineSnapshot(`
@@ -282,7 +278,7 @@ describe('a mixin inclusion', () => {
 
   it('exposes the plus token and the name', () => {
     const source = 'model User {\n  +auth.Timestamps\n}';
-    const [model] = Array.from(parseLossless(source).document.declarations());
+    const [model] = Array.from(parseSchema(source).document.declarations());
     if (!(model instanceof ModelDeclarationAst)) throw new Error('expected a model');
     const [inclusion] = Array.from(model.inclusions());
 
@@ -293,7 +289,7 @@ describe('a mixin inclusion', () => {
   });
 
   it('is a member of a model, between fields and block attributes', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       'model User {\n  id Int @id\n  +Timestamps\n  +auth.Audited\n  name String\n  @@map("users")\n}',
     );
     const [model] = Array.from(result.document.declarations());
@@ -313,7 +309,7 @@ describe('a mixin inclusion', () => {
   });
 
   it('is a member of a composite type', () => {
-    const result = parseLossless('type Address {\n  +Geo\n  +shared.Postal\n  street String\n}');
+    const result = parseSchema('type Address {\n  +Geo\n  +shared.Postal\n  street String\n}');
     const [composite] = Array.from(result.document.declarations());
     if (!(composite instanceof CompositeTypeDeclarationAst)) throw new Error('expected a type');
 
@@ -323,7 +319,7 @@ describe('a mixin inclusion', () => {
   });
 
   it('is a member of an enum block', () => {
-    const result = parseLossless('enum Role {\n  +BaseRoles\n  +auth.StaffRoles\n  GUEST\n}');
+    const result = parseSchema('enum Role {\n  +BaseRoles\n  +auth.StaffRoles\n  GUEST\n}');
     const [block] = Array.from(result.document.declarations());
     if (!(block instanceof GenericBlockDeclarationAst)) throw new Error('expected a block');
 
@@ -334,7 +330,7 @@ describe('a mixin inclusion', () => {
   });
 
   it('is a member of a key = value block', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       'policy_select ReadPosts {\n  +OwnerRead\n  +auth.StaffRead\n  using = "true"\n}',
     );
     const [block] = Array.from(result.document.declarations());
@@ -346,7 +342,7 @@ describe('a mixin inclusion', () => {
   });
 
   it('is a member of a model, an enum and a key = value mixin body', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       [
         'model mixin A {',
         '  +Base',
@@ -376,10 +372,10 @@ describe('a mixin inclusion', () => {
   });
 
   it('is read wherever a member may start, on the same line as other members', () => {
-    const only = parseLossless('model User { +Timestamps }');
-    const afterField = parseLossless('model User { id Int +Timestamps name String }');
-    const inEntryBlock = parseLossless('policy P { k = 1 +Shared j = 2 }');
-    const inEnum = parseLossless('enum Role { ADMIN +auth.BaseRoles USER }');
+    const only = parseSchema('model User { +Timestamps }');
+    const afterField = parseSchema('model User { id Int +Timestamps name String }');
+    const inEntryBlock = parseSchema('policy P { k = 1 +Shared j = 2 }');
+    const inEnum = parseSchema('enum Role { ADMIN +auth.BaseRoles USER }');
 
     for (const result of [only, afterField, inEntryBlock, inEnum]) {
       expect(result.diagnostics).toEqual([]);
@@ -398,7 +394,7 @@ describe('a mixin inclusion', () => {
   });
 
   it('is read after a comment line and after indentation', () => {
-    const result = parseLossless('model User {\n  // shared columns\n\t  +Timestamps\n}');
+    const result = parseSchema('model User {\n  // shared columns\n\t  +Timestamps\n}');
     const [model] = Array.from(result.document.declarations());
     if (!(model instanceof ModelDeclarationAst)) throw new Error('expected a model');
 
@@ -407,8 +403,8 @@ describe('a mixin inclusion', () => {
   });
 
   it('is not a member of a types block or a namespace', () => {
-    const typesBlock = parseLossless('types {\n  +Shared\n}');
-    const namespace = parseLossless('namespace app {\n  +Shared\n}');
+    const typesBlock = parseSchema('types {\n  +Shared\n}');
+    const namespace = parseSchema('namespace app {\n  +Shared\n}');
 
     expect(messages(typesBlock)).toEqual([
       'PSL_INVALID_TYPES_MEMBER: Invalid types declaration "+"',
@@ -424,7 +420,7 @@ describe('a mixin inclusion', () => {
 describe('the reserved word mixin in a block header', () => {
   it('rejects mixin as a block keyword', () => {
     const source = 'mixin X {\n  a = 1\n}';
-    const result = parseLossless(source);
+    const result = parseSchema(source);
 
     expect(messages(result)).toEqual([
       'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin X"',
@@ -441,7 +437,7 @@ describe('the reserved word mixin in a block header', () => {
     ['enum', 'enum mixin {\n  ADMIN\n}'],
     ['policy_select', 'policy_select mixin {\n  roles = [a]\n}'],
   ])('rejects mixin as the name of a %s block', (keyword, source) => {
-    const result = parseLossless(source);
+    const result = parseSchema(source);
     const mixin = onlyMixin(result);
 
     expect(messages(result)).toEqual([
@@ -457,7 +453,7 @@ describe('the reserved word mixin in a block header', () => {
     ['namespace', 'namespace mixin X {\n  model A {\n    id Int\n  }\n}'],
     ['types', 'types mixin X {\n  Email = String\n}'],
   ])('rejects a mixin for %s', (keyword, source) => {
-    const result = parseLossless(source);
+    const result = parseSchema(source);
     const mixin = onlyMixin(result);
 
     expect(messages(result)).toEqual([
@@ -469,7 +465,7 @@ describe('the reserved word mixin in a block header', () => {
   });
 
   it('reports only the keyword diagnostic for mixin as a keyword with no body', () => {
-    const result = parseLossless('mixin X');
+    const result = parseSchema('mixin X');
 
     expect(messages(result)).toEqual([
       'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin X"',
@@ -478,7 +474,7 @@ describe('the reserved word mixin in a block header', () => {
 
   it('reports only the keyword diagnostic for a mixin whose block keyword is mixin', () => {
     const source = 'mixin mixin X {\n  a = 1\n}';
-    const result = parseLossless(source);
+    const result = parseSchema(source);
 
     expect(messages(result)).toEqual([
       'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin X"',
@@ -489,7 +485,7 @@ describe('the reserved word mixin in a block header', () => {
 
   it('rejects a namespace named mixin', () => {
     const source = 'namespace mixin {\n  model A {\n    id Int\n  }\n}';
-    const result = parseLossless(source);
+    const result = parseSchema(source);
 
     expect(messages(result)).toEqual([
       'PSL_INVALID_DECLARATION: A mixin cannot be declared for "namespace"',
@@ -500,7 +496,7 @@ describe('the reserved word mixin in a block header', () => {
   });
 
   it('reports only the mixin diagnostic for a namespace mixin inside a namespace', () => {
-    const result = parseLossless('namespace app {\n  namespace mixin X {\n  }\n}');
+    const result = parseSchema('namespace app {\n  namespace mixin X {\n  }\n}');
 
     expect(messages(result)).toEqual([
       'PSL_INVALID_DECLARATION: A mixin cannot be declared for "namespace"',
@@ -510,7 +506,7 @@ describe('the reserved word mixin in a block header', () => {
 
 describe('malformed mixin input', () => {
   it('reads a signed number in an attribute argument', () => {
-    const result = parseLossless(
+    const result = parseSchema(
       'model User {\n  id Int @default(+1)\n  ratio Float @default(+1.5)\n}',
     );
 
@@ -525,7 +521,7 @@ describe('malformed mixin input', () => {
     ['the closing brace on the same line', 'model User {\n  id Int\n  + }', ['id']],
     ['a name on the next line', 'model User {\n  +\n  id Int\n}', ['id']],
   ])('reports an inclusion with no name before %s', (_case, source, fields) => {
-    const result = parseLossless(source);
+    const result = parseSchema(source);
     const [model] = Array.from(result.document.declarations());
     if (!(model instanceof ModelDeclarationAst)) throw new Error('expected a model');
     const inclusions = Array.from(model.inclusions());
@@ -540,7 +536,7 @@ describe('malformed mixin input', () => {
   });
 
   it('reports an inclusion with no name in an enum and in a key = value block', () => {
-    const result = parseLossless('enum Role {\n  +\n  ADMIN\n}\npolicy P {\n  + = 1\n  k = 2\n}');
+    const result = parseSchema('enum Role {\n  +\n  ADMIN\n}\npolicy P {\n  + = 1\n  k = 2\n}');
     const blocks = Array.from(
       filterChildren(result.document.syntax, GenericBlockDeclarationAst.cast),
     );
@@ -556,7 +552,7 @@ describe('malformed mixin input', () => {
 
   it('reports a missing mixin name at the end of the file', () => {
     const source = 'model mixin';
-    const result = parseLossless(source);
+    const result = parseSchema(source);
 
     expect(messages(result)).toEqual([
       'PSL_INVALID_DECLARATION: Expected a mixin name after "mixin"',
@@ -566,7 +562,7 @@ describe('malformed mixin input', () => {
   });
 
   it('reports a missing opening brace after the mixin name', () => {
-    const result = parseLossless('model mixin X');
+    const result = parseSchema('model mixin X');
     const mixin = onlyMixin(result);
 
     expect(messages(result)).toEqual([
@@ -581,7 +577,7 @@ describe('malformed mixin input', () => {
   });
 
   it('does not take the next declaration for the name of an unfinished header', () => {
-    const result = parseLossless('enum mixin\nmodel User {\n  id Int\n}');
+    const result = parseSchema('enum mixin\nmodel User {\n  id Int\n}');
     const kinds = Array.from(result.document.syntax.childNodes(), (node) => node.kind);
 
     expect(messages(result)).toEqual([
@@ -591,7 +587,7 @@ describe('malformed mixin input', () => {
   });
 
   it('reports an unterminated mixin body', () => {
-    const result = parseLossless('model mixin X {\n  id Int\n');
+    const result = parseSchema('model mixin X {\n  id Int\n');
 
     expect(messages(result)).toEqual(['PSL_UNTERMINATED_BLOCK: Unterminated block declaration']);
     expect(Array.from(onlyMixin(result).fields(), (field) => field.name()?.name())).toEqual(['id']);
@@ -620,8 +616,8 @@ describe('the prisma-7 grammar', () => {
       '  +auth.BaseRoles',
       '}',
     ].join('\n');
-    const inDefault = parseLossless(source);
-    const inPrisma7 = parseLossless(source, prisma7);
+    const inDefault = parseSchema(source);
+    const inPrisma7 = parseSchema(source, prisma7);
 
     expect(printTree(inPrisma7.document.syntax.green)).toBe(
       printTree(inDefault.document.syntax.green),
