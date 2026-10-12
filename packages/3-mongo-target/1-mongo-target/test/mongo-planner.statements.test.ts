@@ -75,4 +75,50 @@ describe('MongoMigrationPlanner, time-series options the server fills in', () =>
     });
     expect(planned(plan({ from: readings, to: readings, schema: [live] })).labels).toEqual([]);
   });
+
+  const readings = contract(
+    'to',
+    { Reading: { collection: 'readings', fields: ['_id', 'at'] } },
+    { readings: { timeField: 'at' } },
+  );
+
+  function liveReadings(extra: Record<string, unknown>) {
+    const timeseries = { timeField: 'at', bucketMaxSpanSeconds: 3600, ...extra };
+    return new MongoSchemaCollection({
+      name: 'readings',
+      options: new MongoSchemaCollectionOptions({ timeseries }),
+    });
+  }
+
+  it('reports a conflict when the contract removes a declared metaField', () => {
+    const result = plan({
+      from: readings,
+      to: readings,
+      schema: [liveReadings({ metaField: 'meta', granularity: 'seconds' })],
+    });
+    expect(result.kind === 'failure' ? result.conflicts.map(({ summary }) => summary) : []).toEqual(
+      [expect.stringContaining('timeseries')],
+    );
+  });
+
+  it('reports a conflict when the contract removes a granularity other than the server default', () => {
+    const result = plan({
+      from: readings,
+      to: readings,
+      schema: [liveReadings({ granularity: 'hours' })],
+    });
+    expect(result.kind).toBe('failure');
+  });
+
+  it('plans nothing for custom bucketing set outside the contract', () => {
+    expect(
+      planned(
+        plan({
+          from: readings,
+          to: readings,
+          schema: [liveReadings({ bucketRoundingSeconds: 3600 })],
+        }),
+      ).labels,
+    ).toEqual([]);
+  });
 });

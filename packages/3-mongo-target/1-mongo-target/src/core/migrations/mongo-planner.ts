@@ -115,13 +115,41 @@ function validatorUpdateLabel(
 }
 
 /**
- * The origin's value of an option the server fills in, keeping only the keys the destination
- * names: MongoDB adds defaults such as a time-series collection's `bucketMaxSpanSeconds`, which a
- * contract that leaves them out does not change.
+ * The keys of an option MongoDB fills in when a collection is created without them, each with a
+ * test for the value it fills in. `listCollections` reports a time-series collection's granularity
+ * as "seconds" and its bucketMaxSpanSeconds when they were not given, and bucketRoundingSeconds only
+ * for custom bucketing, which a contract cannot state; and a clustered index's v, key and unique, and
+ * its name as "_id_".
  */
-function asDeclared(origin: unknown, dest: unknown): unknown {
-  if (!isPlainObject(origin) || !isPlainObject(dest)) return origin;
-  return Object.fromEntries(Object.entries(origin).filter(([key]) => Object.hasOwn(dest, key)));
+const SERVER_FILLED: Readonly<
+  Record<'timeseries' | 'clusteredIndex', Readonly<Record<string, (value: unknown) => boolean>>>
+> = {
+  timeseries: {
+    granularity: (value) => value === 'seconds',
+    bucketMaxSpanSeconds: () => true,
+    bucketRoundingSeconds: () => true,
+  },
+  clusteredIndex: {
+    v: () => true,
+    key: () => true,
+    unique: () => true,
+    name: (value) => value === '_id_',
+  },
+};
+
+/** The origin's value of an option without the keys the server filled in and the destination leaves out. */
+function withoutServerFilled(
+  option: keyof typeof SERVER_FILLED,
+  origin: unknown,
+  dest: unknown,
+): unknown {
+  if (!isPlainObject(origin)) return origin;
+  const filled = SERVER_FILLED[option];
+  return Object.fromEntries(
+    Object.entries(origin).filter(
+      ([key, value]) => (isPlainObject(dest) && Object.hasOwn(dest, key)) || !filled[key]?.(value),
+    ),
+  );
 }
 
 function hasImmutableOptionChange(
@@ -130,14 +158,15 @@ function hasImmutableOptionChange(
 ): string | undefined {
   if (canonicalize(origin?.capped) !== canonicalize(dest?.capped)) return 'capped';
   if (
-    canonicalize(asDeclared(origin?.timeseries, dest?.timeseries)) !==
+    canonicalize(withoutServerFilled('timeseries', origin?.timeseries, dest?.timeseries)) !==
     canonicalize(dest?.timeseries)
   )
     return 'timeseries';
   if (canonicalize(origin?.collation) !== canonicalize(dest?.collation)) return 'collation';
   if (
-    canonicalize(asDeclared(origin?.clusteredIndex, dest?.clusteredIndex)) !==
-    canonicalize(dest?.clusteredIndex)
+    canonicalize(
+      withoutServerFilled('clusteredIndex', origin?.clusteredIndex, dest?.clusteredIndex),
+    ) !== canonicalize(dest?.clusteredIndex)
   )
     return 'clusteredIndex';
   return undefined;
