@@ -610,7 +610,7 @@ function provideMixinInclusionCompletionItems(
       continue;
     }
     const mixin = lookupMixinReference(topLevel, namespace, { namespaceId, name });
-    if (mixin?.kind === 'mixin') entries.push([name, mixin]);
+    if (mixin !== undefined) entries.push([name, mixin]);
   }
   const included = includedMixins(block, context.inclusion, source);
   return scopeCompletionItems(
