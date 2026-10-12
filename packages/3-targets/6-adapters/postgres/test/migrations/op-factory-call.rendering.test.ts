@@ -65,9 +65,9 @@ describe('Postgres call classes - renderTypeScript + importRequirements', () => 
       widening: widening.renderTypeScript(),
       imports: additive.importRequirements().map((requirement) => requirement.symbol),
     }).toEqual({
-      additive: `this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn("now()") }) })`,
-      widening: `this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn("now()") }), operationClass: "widening" })`,
-      imports: ['col', 'fn'],
+      additive: `this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql\`now()\`) }) })`,
+      widening: `this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql\`now()\`) }), operationClass: "widening" })`,
+      imports: ['col', 'fn', 'sql'],
     });
   });
 
@@ -230,10 +230,12 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
     expect(call.importRequirements()).toEqual([]);
   });
 
-  it('AlterColumnTypeCall writes an explicit USING clause as a string', () => {
-    expect(alterAge({ kind: 'sql', sql: '"age"::integer' }).renderTypeScript()).toContain(
-      'using: "\\"age\\"::integer"',
-    );
+  it('AlterColumnTypeCall writes an explicit USING clause as a sql template and imports sql', () => {
+    const call = alterAge({ kind: 'sql', sql: '"age"::integer' });
+    expect({ source: call.renderTypeScript(), imports: call.importRequirements() }).toMatchObject({
+      source: expect.stringContaining('using: sql`"age"::integer`'),
+      imports: [{ symbol: 'sql' }],
+    });
   });
 
   it('SetNotNullCall / DropNotNullCall / DropDefaultCall emit this.X({...}) and contribute no imports', () => {

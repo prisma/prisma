@@ -99,6 +99,10 @@ export type { SqlQuote, SqlQuotingRules } from '../core/migrations/sql-expressio
 export { checkSqlExpressionText } from '../core/migrations/sql-expression-text';
 export type { SqlSlot } from '../core/migrations/sql-slot';
 export { isUnfilledSlot, slotSource, sqlOfSlot } from '../core/migrations/sql-slot';
+export {
+  createSqlTextSources,
+  type SqlTextSources,
+} from '../core/migrations/sql-text-sources';
 export { sqlTypeLookupsOf } from '../core/migrations/sql-type-lookups';
 export type {
   CallWithCompanions,

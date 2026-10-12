@@ -1,4 +1,5 @@
 import { jsonToTsSource } from '@internal/ts-render';
+import type { SqlTextSources } from './sql-text-sources';
 
 /**
  * SQL a planned call writes into a statement: written SQL, or a placeholder slot the user fills in
@@ -20,9 +21,9 @@ export function sqlOfSlot(slot: SqlSlot | undefined): string | undefined {
   return slot?.kind === 'sql' ? slot.sql : undefined;
 }
 
-/** The slot as `migration.ts` writes it: a string, or a `placeholder(...)` call. */
-export function slotSource(slot: SqlSlot): string {
+/** The slot as `migration.ts` writes it: SQL text written through `sql`, or a `placeholder(...)` call. */
+export function slotSource(slot: SqlSlot, sql: SqlTextSources): string {
   return slot.kind === 'placeholder'
     ? `placeholder(${jsonToTsSource(slot.slot)})`
-    : jsonToTsSource(slot.sql);
+    : sql.source(slot.sql);
 }

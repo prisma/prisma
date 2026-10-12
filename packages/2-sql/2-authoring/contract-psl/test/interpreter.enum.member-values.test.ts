@@ -62,6 +62,15 @@ describe('enum members written as number literals', () => {
     });
   });
 
+  it('reads a member written with a plus sign as the number without it', () => {
+    expect(storedValues('pg/int8@1', ['Low = +2', 'High = +9007199254740993'])).toEqual(
+      storedValues('pg/int8@1', ['Low = 2', 'High = 9007199254740993']),
+    );
+    expect(storedValues('pg/numeric@1', ['Rate = +1.50'])).toEqual(
+      storedValues('pg/numeric@1', ['Rate = 1.50']),
+    );
+  });
+
   it('stores every digit of a pg/numeric@1 member', () => {
     expect(storedValues('pg/numeric@1', ['A = 0.12345678901234567890'])).toEqual({
       values: ['0.12345678901234567890'],

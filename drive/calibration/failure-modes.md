@@ -848,3 +848,23 @@ Per-repo stop conditions beyond the canonical ones:
 **Mitigation.** Every printed next step (error advice, refusal flags, dry-run suggestions, recovery steps) is followed literally in an executed probe or a manual QA scenario, on each database the command supports, and the end state is checked: rows and documents kept, the right database changed, the suggested command accepted. The manual QA script lists each advice text as its own scenario.
 
 **Reference incidents.** Migration statements slice 1 (2026-10-06 and 07): the first `@@map` refusal advice dropped the table when followed; the MongoDB field-rename advice left documents half moved (QA F3). Slice 2 (2026-10-08): the dry run printed flags the apply rejected; the no-snapshot recovery steps omitted `--db` and could change the wrong database; the MongoDB refusal offered only `--delete` to a user who had renamed a model (QA F1). All were found by executed review probes or manual QA, none by the in-loop review.
+
+### F47. A stack of PRs outlives its base's squash merge, and the last PR cannot pass the DCO check
+
+**Symptom.** A slice PR built on another slice's branch reaches review with hundreds of commits. After the base PR merges, `main` holds the base as one squash commit, so merging `main` into the next slice conflicts in every file the base touched. Once the PR carries more than 250 commits, the DCO app cannot read the full commit list and fails without checking any sign-off ("The DCO check could not be evaluated because the complete pull request commit list could not be retrieved").
+
+**Root cause.** Each stacked branch merges its base's branch history, and every review round and `main` merge adds commits. The squash merge of the base hides that shared history from git, and the DCO app reads at most 250 commits through the REST API.
+
+**Mitigation.** Build each slice from `main` after the previous slice merges, not on the previous slice's branch. When a stacked PR must catch up with a squash-merged base, merge the base branch's final commit first (shared history, few conflicts), then `main`. If a PR passes 250 commits anyway, ask the operator before reducing it: the fix is a rebase onto `main` as one commit and a force-push, which only the operator can authorize.
+
+**Reference incident.** 2026-10-08 and 09, SQL expression literals slice 3 (prisma/orm#30558): stacked on 2b, it conflicted in 154 files after 2b's squash merge and reached 300 commits. DCO failed on every push until the operator had the branch rebased onto `main` as one commit.
+
+### F48. A new committed contract fixture passes PR CI and fails the planner golden test in the merge queue
+
+**Symptom.** A slice adds or changes a committed `contract.json` (a parity fixture, a journey fixture). PR CI passes; the merge queue ejects the PR with `test/planner-golden/planner-ddl-golden.test.ts`: `expected [ …(353) ] to deeply equal [ …(354) ]` or `The planner output for <fixture> does not match manifest.json`.
+
+**Root cause.** The planner golden test records the DDL the planner writes for every committed contract, keyed in `test/integration/test/planner-golden/manifest.json`. It is an integration test, so only the merge queue runs it.
+
+**Mitigation.** A slice that adds or changes a committed contract fixture runs `PLANNER_GOLDEN_WRITE=1 pnpm --filter integration-tests test test/planner-golden` before queueing, reads the recorded DDL for the changed fixture (written in full to `wip/planner-golden/`), and commits every file the write changed under `test/integration/test/planner-golden/`: always `manifest.json`, and the fixture recordings in `fixtures/<target>/planned.golden.json` when the planner's output for those two fixture contracts changed.
+
+**Reference incident.** 2026-10-09, SQL expression literals slice 3 (prisma/orm#30558): review round 3 extended the PSL/TypeScript parity fixture, and the first queue run failed on its missing golden entry.

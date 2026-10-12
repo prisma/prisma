@@ -50,7 +50,7 @@ export default definePrismaConfig({
 
 In your own project the first import is `import { definePrismaConfig } from 'prisma/config'` and the Prisma 8 CLI is the published `prisma@latest` dev dependency, exactly as the guide shows. Inside this repository the published `prisma` package is built elsewhere, so this example aliases the workspace CLI as its `prisma` dev dependency (`"prisma": "workspace:@internal/cli@..."`) and imports `definePrismaConfig` from `@prisma/cli-engine`, which the published package re-exports as `prisma/config`. Everything else is what you would write.
 
-`prisma7Schema` replaces the guide's `prisma contract infer` step and the two hand edits after it (deleting the `PrismaMigrations` model, adding `@@map` to every model): the source reads the Prisma 7 schema itself, so model names stay as written and `_prisma_migrations` is never part of the contract. `pnpm emit` writes `generated/prisma8/contract.json` and `contract.d.ts`; `pnpm sign` verifies the live schema against that contract and writes Prisma 8's marker; `pnpm verify` reports nothing when they match.
+`prisma7Schema` replaces the guide's `prisma contract infer` step and the hand edit after it (adding `@@map` to every model): the source reads the Prisma 7 schema itself, so model names stay as written. Neither `prisma contract infer` nor the source puts Prisma 7's `_prisma_migrations` table in the contract. `pnpm emit` writes `generated/prisma8/contract.json` and `contract.d.ts`; `pnpm sign` verifies the live schema against that contract and writes Prisma 8's marker; `pnpm verify` reports nothing when they match.
 
 Two rules to know before you start:
 
@@ -72,29 +72,32 @@ From then on, you edit `prisma/schema.prisma` as before, and Prisma 8 plans and 
 pnpm exec prisma contract emit
 pnpm exec prisma migration plan --name add-comments
 pnpm exec prisma db migrate --advance-ref db
-pnpm exec prisma db verify --strict       # exits 4: unclaimed _prisma_migrations, nothing else
+pnpm exec prisma db verify --strict       # zero findings, nothing unclaimed
 pnpm exec prisma db verify                # zero findings
 pnpm exec prisma7 migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script --config prisma7.config.ts
                                           # -- This is an empty migration.
 pnpm exec prisma7 generate --config prisma7.config.ts
 ```
 
-The test runs that loop three times. Each edited schema is a file in `test/handover/`:
+The test runs that loop three times, then makes two edits that plan nothing. Each edited schema is a file in `test/handover/`:
 
 - `edit-1.prisma` makes additive changes. It adds `User.bio String?`, `Post.likes Int @default(0)`, `@@index([authorId])` on `Post`, and a `Comment` model with a required relation to `Post`. The plan creates the `Comment` table, adds both columns, creates the index `Post_authorId_idx`, and adds the foreign key `Comment_postId_fkey` with `ON DELETE RESTRICT ON UPDATE CASCADE`. Those are the names and referential actions Prisma 7 would have written. After `prisma7 generate`, the Prisma 7 client writes and reads the new columns and the new model (`test/handover/v7-after-edit-1.ts`), and the Prisma 8 ORM reads them (`test/handover/v8-after-edit-1.ts`).
 - `edit-2.prisma` makes destructive changes. It drops `User.bio` and makes `Post.likes` optional with no default. The plan drops the column, drops the default, and drops `NOT NULL`. After `prisma7 generate`, the Prisma 7 client reads the surviving columns and clears one post's `likes` to null (`test/handover/v7-after-edit-2.ts`), and the Prisma 8 ORM reads that null back (`test/handover/v8-after-edit-2.ts`).
 - `edit-3.prisma` gives the existing `Post.viewCount` column, which already has rows, `@default(autoincrement())`, and names the `Post.author` foreign key with `map: "Post_author_fk"`. The plan creates the sequence `Post_viewCount_seq`, sets the column's default to it, makes the column own it, and starts it one past the largest `viewCount`; it also renames `Post_authorId_fkey` to `Post_author_fk`. After `prisma7 generate`, a post the Prisma 7 client creates without a `viewCount` gets the next number (`test/handover/v7-after-edit-3.ts`).
+- `edit-4.prisma` marks `Post.content` `@ignore` and the `Comment` model `@@ignore`, with `Post.comments` `@ignore` as Prisma 7 requires; the test then puts `edit-3.prisma` back. The contract keeps the columns and tables of ignored fields and models as storage with no model, so neither edit changes the storage hash, `migration plan` reports no changes, and Prisma 7's `migrate diff` is empty.
 
 What each step does:
 
-- **The first `migration plan` writes two packages.** The migrations directory has no migrations yet, only the `db` ref that `prisma db sign` wrote. So the first plan first writes a baseline package, from an empty database to the signed contract. It then writes the package for your change, from the signed contract to the new one. There is no separate baseline step. `db migrate` never runs the baseline on this database, because the database's marker already sits at the signed contract. The baseline is there so that a fresh database, such as a new developer's or a CI database, can be built from `migrations/` alone. The test proves it: `prisma db migrate` against a second, empty database applies all four packages, and `db verify --strict` then passes with nothing unclaimed, because Prisma 7 never created `_prisma_migrations` there.
+- **The first `migration plan` writes two packages.** The migrations directory has no migrations yet, only the `db` ref that `prisma db sign` wrote. So the first plan first writes a baseline package, from an empty database to the signed contract. It then writes the package for your change, from the signed contract to the new one. There is no separate baseline step. `db migrate` never runs the baseline on this database, because the database's marker already sits at the signed contract. The baseline is there so that a fresh database, such as a new developer's or a CI database, can be built from `migrations/` alone. The test proves it: `prisma db migrate` against a second, empty database applies all four packages, and `db verify --strict` then passes with nothing unclaimed.
 - **`db migrate --advance-ref db` moves the `db` ref along with the marker.** Plain `db migrate` moves only the database marker. The next `migration plan` starts from the `db` ref, so without the flag it would plan from the contract before your last change.
-- **`db verify --strict` exits 4 and lists `_prisma_migrations` as unclaimed.** That is Prisma 7's migration ledger table, and no contract declares it. Strict mode fails on any table no contract declares, so this one finding is expected; anything else in the list, or any schema finding, is real drift. Plain `prisma db verify` reports zero findings.
+- **`db verify --strict` passes with nothing unclaimed.** Strict mode fails on any table no contract declares, but it leaves out `_prisma_migrations`: that table is Prisma 7's migration ledger, not part of your application's schema. `prisma contract infer` leaves it out for the same reason. Any finding is real drift.
 - **`prisma7 migrate diff` shows Prisma 7 agrees with the database.** An empty migration means the tables, indexes and constraints Prisma 8 created are the ones Prisma 7 would have created from the same schema.
 - **A destructive plan is not confirmed at a prompt.** `migration plan` writes the package to `migrations/app/<timestamp>_<name>/`, marks the destructive operations in its output, and prints the SQL. Review that package before running `db migrate`; nothing else asks. The only prompt comes when the first plan's baseline itself would destroy data, and a baseline that only creates the existing schema never does.
 - **Never run `prisma7 migrate` again.** Once Prisma 8 has applied a migration, `prisma/migrations/` no longer describes the database. `prisma7 migrate dev` would report drift and offer to reset the database, and a new migration applied with `prisma7 migrate deploy` would change the schema without moving Prisma 8's marker. From here on, Prisma 7 runs only `prisma7 generate`.
 
 When the last route has moved to Prisma 8, `pnpm exec prisma contract print --output prisma/contract.prisma` writes the Prisma 8 PSL that produces the same contract this example emits from `prisma/schema.prisma`. Point `contract` in `prisma.config.ts` at the written file, then run `pnpm exec prisma contract emit` again to confirm the contract is unchanged. Then remove Prisma 7 as the [upgrade guide](https://www.prisma.io/docs/guides/upgrade-prisma-orm/postgresql)'s phase 5 describes.
+
+A Prisma 7 schema that uses `@ignore` or `@@ignore` cannot take this step yet. Its contract keeps the ignored columns and tables as storage with no model, and `contract print` refuses such a contract until Prisma 8 has syntax for it (TML-3469). Keep `prisma/schema.prisma` as the contract source until then.
 
 ## What a Prisma 7 user meets along the way
 
@@ -123,6 +126,7 @@ When the last route has moved to Prisma 8, `pnpm exec prisma contract print --ou
 | `scripts/seed.ts`, `src/v7-read.ts` | Routes still on Prisma 7. |
 | `scripts/db-start.ts` | In-process Postgres for local runs. |
 | `test/adoption.test.ts` | Phases 1 to 3 on a fresh database, including the second Prisma 7 migration. |
-| `test/handover.test.ts` | Phase 4 on a fresh database: Prisma 8 plans, applies and verifies an additive and a destructive edit. |
-| `test/handover/` | The two edited schemas, the scripts each client runs after them, and the tsconfigs the test typechecks those scripts with once the edit is applied. |
+| `test/handover.test.ts` | Phase 4 on a fresh database: Prisma 8 plans, applies and verifies an additive, a destructive and a sequence edit, then adds and removes `@ignore` and `@@ignore` with no migration. |
+| `test/upgrade-ignore.test.ts` | A project that Prisma 8 already migrates, signed by a Prisma 8 that left `@ignore` and `@@ignore` objects out of the contract, upgrades. It plans a migration that records the ignored objects, then brings the database to the new hash in each of four ways: `db sign`; `db migrate --advance-ref db`, which skips the creates because the objects exist; plain `db migrate` followed by `db sign`, because plain migrate leaves the `db` ref behind; and, after signing before planning, recovery with `migration plan --from <previous hash>`. Each time verify finds nothing and the next plan plans nothing. |
+| `test/handover/` | The edited schemas, the scripts each client runs after them, and the tsconfigs the test typechecks those scripts with once the edit is applied. |
 | `test/story.ts` | Helpers both tests share. |

@@ -371,7 +371,7 @@ describe('SQLite planner, a required field without a value in existing rows', ()
       await planned(textAge, withName),
       await planned(textAge, withName, { policy: DB_UPDATE }),
     ]).toEqual([['Recreate table User (additive)'], ['Recreate table User (additive)']]);
-    expect(rendered(textAge, withName)).toContain(`copyExpressions: { "name": "''" }`);
+    expect(rendered(textAge, withName)).toContain('copyExpressions: { "name": sql`\'\'` }');
   });
 
   it('names each new required field that takes a temporary value, with the value', () => {
@@ -400,7 +400,7 @@ describe('SQLite planner, a required field without a value in existing rows', ()
       stamp: 'datetime',
     });
     expect(rendered(textAge, withStamp)).toContain(
-      `copyExpressions: { "stamp": "'1970-01-01T00:00:00.000Z'" }`,
+      'copyExpressions: { "stamp": sql`\'1970-01-01T00:00:00.000Z\'` }',
     );
   });
 

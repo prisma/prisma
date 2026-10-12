@@ -48,7 +48,7 @@ SQLite works the same way. Two SQLite gaps close on the way:
 
 1. **Temporary values without asking.** Without `--backfill`, `migration plan` writes fill values such as `''` or `0` into existing rows. The project spec already decided this. It is the biggest behaviour change in the slice.
 2. **`alterColumnType` changes shape.** Its options become `{ table, column, type, using? }`. Today they expose internal names. Hand-written migrations that call it need the upgrade instructions.
-3. **A type change answered with `delete` is reported honestly.** The output says `delete values of field "User.age" (type change)`, not "delete field". Slice 2's QA found the old wording misleading.
+3. **A type change answered with `delete` runs the database's cast** (decided by Will, 2026-10-12). Values the database can cast are kept; a value it cannot cast fails the migration, and the failure points to `--convert`. The statement is reported as `accept lossy type change of field "User.age"`, not as deleting the field or its values.
 
 ## The two flags
 
@@ -127,6 +127,8 @@ Everything here serves one rule: a placeholder migration is written only when a 
 - `askPlanQuestions` re-plans with every planned statement, not only renames.
 - Convert and backfill reach the strategies as destination coordinates through the strategy context. They do not go through `planStatements`, because they rename nothing.
 - Strategies gated: Postgres `notNullBackfillCallStrategy`, `typeChangeCallStrategy`, `nullableTighteningCallStrategy`; SQLite `nullabilityTighteningBackfillStrategy`.
+- `alterColumnType`'s after-check compares the column's `format_type` text, which `migration.ts` no longer carries. The facade derives it from `type` through the control stack's data types (any of a data type's texts, rendered as its `format_type` text; a type that names its own kind, such as an enum, from its quoted name), and the planner derives it the same way, so `ops.json` is unchanged by a re-run. A `type` the stack cannot read fails with a structured error. A test runs every Postgres data type through both and checks they agree. Decided 2026-10-09 by the orchestrator: comparing only the type OID would let a length-only change look already applied, so the runner would skip it.
+- SQLite does not cast on a table rebuild: a value its new column cannot hold stays in its old storage class. So a direct rebuild of a retyped column (no statement, or `--delete`) checks, after the copy and inside the rebuild, that every value's storage class fits the new column, and fails naming the field with `--convert` advice otherwise. A `--convert` rebuild runs the user's expression unchecked. Decided 2026-10-12 by the orchestrator, applying Will's rule for `--delete` on type changes.
 - `AlterColumnTypeClass` gains `data`. The `using` slot renders as code, imports `placeholder`, and an unfilled slot makes `toOp()` return the unfilled-placeholder result.
 - `recreateTable` gains a per-column copy expression, used by convert and by the SQLite temporary value. SQLite gets a fill-value map: integer `0`, real `0`, text `''`, blob `X''`, and what its boolean and date-time codecs store.
 - `MigrationRunnerFailure` gains `fix`. The `db update`, `db init` and `migrate` error mappers prefer it.

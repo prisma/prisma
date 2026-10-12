@@ -23,7 +23,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'1f8be6858951202dbb1dfad2a36b45f3d04c630d2577dd70ac02f55bcb8ca5ea'>;
+  StorageHashBase<'0cc3858331779e3853a61a911a7fe85ca764430aa9de12c2a0bb36bfa3165743'>;
 export type ExecutionHash =
   ExecutionHashBase<'eb9bffd4c01945792e83de10d571b20df42f5bf40405ec8c642c6592f7dc4655'>;
 export type ProfileHash =
@@ -276,6 +276,7 @@ export type FieldOutputTypes = {
       readonly targetRelease: CodecTypes['pg/text@1']['output'] | null;
     };
     readonly Post: {
+      readonly body: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly embedding: Vector<1536> | null;
       readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -325,6 +326,7 @@ export type FieldInputTypes = {
       readonly targetRelease: CodecTypes['pg/text@1']['input'] | null;
     };
     readonly Post: {
+      readonly body: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
       readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -376,6 +378,7 @@ export type StorageColumnTypes = {
       readonly targetRelease: CodecTypes['pg/text@1']['output'] | null;
     };
     readonly post: {
+      readonly body: CodecTypes['pg/text@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly embedding: Vector<1536> | null;
       readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -427,6 +430,7 @@ export type StorageColumnInputTypes = {
       readonly targetRelease: CodecTypes['pg/text@1']['input'] | null;
     };
     readonly post: {
+      readonly body: CodecTypes['pg/text@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
       readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
       readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -494,6 +498,7 @@ export namespace Models {
     readonly [RelationKeys]?: 'user';
   };
   export type public_Post = {
+    body: CodecTypes['pg/text@1']['output'] | null;
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     embedding: Vector<1536> | null;
     expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -657,6 +662,12 @@ type ContractBase = Omit<
             };
             readonly post: {
               columns: {
+                readonly body: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
@@ -731,6 +742,17 @@ type ContractBase = Omit<
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
               indexes: readonly [
+                {
+                  readonly name: 'post_search_f03270be';
+                  readonly prefix: 'post_search';
+                  readonly columns: readonly ['title', 'body'];
+                  readonly unique: false;
+                  readonly type: 'fullText';
+                  readonly options: {
+                    readonly language: 'english';
+                    readonly weightGroups: readonly [readonly ['title'], readonly ['body']];
+                  };
+                },
                 {
                   readonly name: 'post_title_search_e0dd1131';
                   readonly prefix: 'post_title_search';
@@ -1044,6 +1066,10 @@ type ContractBase = Omit<
           };
           readonly Post: {
             readonly fields: {
+              readonly body: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -1125,6 +1151,7 @@ type ContractBase = Omit<
               readonly table: 'post';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly body: { readonly column: 'body' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly embedding: { readonly column: 'embedding' };
                 readonly expiresAt: { readonly column: 'expiresAt' };
