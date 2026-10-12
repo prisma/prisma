@@ -7,6 +7,7 @@ import type {
 } from '@internal/contract/types';
 import type { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { type CapabilityRequirement, missingCapability } from '@internal/sql-relational-core/ast';
+import { isExpression } from '@internal/sql-relational-core/expression';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -843,6 +844,44 @@ export function resolveRowIdentityColumns(
     }
   }
   return [];
+}
+
+export function resolveUniqueKeyColumnSets(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  tableName: string,
+): readonly (readonly string[])[] {
+  const table = storageTableForContract(contract, namespaceId, tableName);
+  return [table.primaryKey?.columns ?? [], ...table.uniques.map((unique) => unique.columns)].filter(
+    (columns) => columns.length > 0,
+  );
+}
+
+export function hasCompleteUniqueKey(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  modelName: string,
+  criterion: unknown,
+): boolean {
+  if (typeof criterion !== 'object' || criterion === null || Array.isArray(criterion)) {
+    return false;
+  }
+  const tableName = resolveModelTableName(contract, namespaceId, modelName);
+  const fields = getModelFields(contract, namespaceId, modelName);
+  const fieldColumns = getModelFieldColumns(contract, namespaceId, modelName);
+  const columnsWithValue = new Set<string>();
+  for (const [fieldName, value] of Object.entries(criterion)) {
+    if (value === undefined) {
+      continue;
+    }
+    const column = columnOfCallerField(contract, namespaceId, fieldColumns, modelName, fieldName);
+    if (value !== null && !isExpression(value) && fields[fieldName]?.table === tableName) {
+      columnsWithValue.add(column);
+    }
+  }
+  return resolveUniqueKeyColumnSets(contract, namespaceId, tableName).some((columns) =>
+    columns.every((column) => columnsWithValue.has(column)),
+  );
 }
 
 export function assertReturningCapability(contract: Contract<SqlStorage>, action: string): void {

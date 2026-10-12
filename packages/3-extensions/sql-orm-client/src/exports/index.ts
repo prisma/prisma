@@ -15,12 +15,14 @@ export type {
   HasOrderBy,
   HasRow,
   HasTypeState,
+  HasUniqueFilter,
   HasWhere,
   Including,
   Ordered,
   QueryFragment,
   RowType,
   TypeState,
+  UniquelyFiltered,
 } from '../collection-types';
 export { all, and, not, or } from '../filters';
 export {
