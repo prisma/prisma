@@ -19,7 +19,7 @@ changes:
         - '\bCollectionTables\b'
   - id: orm-variant-types-take-a-value
     summary: |
-      The SQL and Mongo ORM variant type helpers take a discriminator value where they took a variant model name: `VariantModelRow`, `VariantCreateInput`, and the fourth type parameter of `MongoCollection`. `DiscriminatorValues` is the keys of `variants`. `VariantNames` and `VariantNameForValue` are removed from both ORMs.
+      The Mongo ORM variant type helpers take a discriminator value where they took a variant model name: `VariantModelRow`, `VariantCreateInput`, and the fourth type parameter of `MongoCollection`. `DiscriminatorValues` is the keys of `variants`. `VariantNames` and `VariantNameForValue` are removed.
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
@@ -72,7 +72,7 @@ A type that reads the selected variant from a collection's type state reads `var
 
 ## `orm-variant-types-take-a-value`
 
-Pass the discriminator value where a variant model name was passed:
+These types are exported from `@prisma/orm-family-mongo/orm`. Pass the discriminator value where a variant model name was passed:
 
 ```ts
 // before
