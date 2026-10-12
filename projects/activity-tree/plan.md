@@ -50,6 +50,10 @@ Four slices, one pull request each. Slice 1 changes the middleware interface for
 - prisma/orm#30653 (ADR 271 and the design document) merges first.
 - Each slice reaches users in the next `8.0.0-rc` release after it merges.
 
+## Deferred
+
+Gaps outside the project's scope are listed in [`deferred.md`](deferred.md).
+
 ## Close-out
 
 - Verify the project DoD in [`spec.md`](spec.md).
