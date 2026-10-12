@@ -13,9 +13,13 @@ import type { ColumnDefault } from '@internal/contract/types';
 import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
   checkSqlExpressionText,
+  isUnfilledSlot,
   type MigrationOperationClass,
   type SqlMigrationPlanOperation,
   type SqlQuotingRules,
+  type SqlSlot,
+  slotSource,
+  sqlOfSlot,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
@@ -479,11 +483,6 @@ export class RenameColumnCall extends SqliteOpFactoryCallNode {
   }
 }
 
-/** What a rebuild copies a column from: written SQL, or a slot the user fills in `migration.ts`. */
-export type CopyExpression =
-  | { readonly kind: 'sql'; readonly sql: string }
-  | { readonly kind: 'placeholder'; readonly slot: string };
-
 const SQLITE_QUOTING: SqlQuotingRules = [
   { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
   { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
@@ -493,7 +492,7 @@ const SQLITE_QUOTING: SqlQuotingRules = [
 
 function refuseUnsafeCopyExpressions(
   tableName: string,
-  copyExpressions: Readonly<Record<string, CopyExpression>>,
+  copyExpressions: Readonly<Record<string, SqlSlot>>,
 ): void {
   for (const [column, expression] of Object.entries(copyExpressions)) {
     if (expression.kind !== 'sql') continue;
@@ -528,7 +527,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
    */
   readonly lossyColumns: readonly string[];
   /** What each named column of the new table is copied from, in place of the live column. */
-  readonly copyExpressions: Readonly<Record<string, CopyExpression>>;
+  readonly copyExpressions: Readonly<Record<string, SqlSlot>>;
 
   constructor(
     args: {
@@ -539,7 +538,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       summary: string;
       postchecks: readonly RecreatePostcheck[];
       operationClass: MigrationOperationClass;
-      copyExpressions?: Readonly<Record<string, CopyExpression>>;
+      copyExpressions?: Readonly<Record<string, SqlSlot>>;
     },
     lossyColumns: readonly string[] = [],
   ) {
@@ -567,7 +566,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       );
     }
     const copies = Object.entries(this.copyExpressions);
-    if (copies.some(([, expression]) => expression.kind === 'placeholder')) {
+    if (copies.some(([, expression]) => isUnfilledSlot(expression))) {
       return unfilledPlaceholderOperation(this.label);
     }
     return recreateTable(
@@ -583,9 +582,10 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
           ? {}
           : {
               copyExpressions: Object.fromEntries(
-                copies.flatMap(([column, expression]) =>
-                  expression.kind === 'sql' ? [[column, expression.sql]] : [],
-                ),
+                copies.flatMap(([column, expression]) => {
+                  const sql = sqlOfSlot(expression);
+                  return sql === undefined ? [] : [[column, sql]];
+                }),
               ),
             }),
       },
@@ -595,12 +595,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
 
   #copyExpressionsSource(): string {
     const entries = Object.entries(this.copyExpressions).map(
-      ([column, expression]) =>
-        `${jsonToTsSource(column)}: ${
-          expression.kind === 'placeholder'
-            ? `placeholder(${jsonToTsSource(expression.slot)})`
-            : jsonToTsSource(expression.sql)
-        }`,
+      ([column, expression]) => `${jsonToTsSource(column)}: ${slotSource(expression)}`,
     );
     return `{ ${entries.join(', ')} }`;
   }
@@ -622,7 +617,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return Object.values(this.copyExpressions).some(({ kind }) => kind === 'placeholder')
+    return Object.values(this.copyExpressions).some(isUnfilledSlot)
       ? [{ moduleSpecifier: TARGET_MIGRATION_MODULE, symbol: 'placeholder' }]
       : [];
   }

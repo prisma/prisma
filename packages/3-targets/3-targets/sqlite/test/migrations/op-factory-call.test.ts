@@ -1,3 +1,4 @@
+import type { SqlSlot } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { DdlColumn, LiteralColumnDefault } from '@internal/sql-relational-core/ast';
 import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
@@ -5,7 +6,6 @@ import { describe, expect, it } from 'vitest';
 import { columnExistsAst } from '../../src/contract-free/checks';
 import {
   AddColumnCall,
-  type CopyExpression,
   CreateIndexCall,
   CreateTableCall,
   DataTransformCall,
@@ -683,7 +683,7 @@ describe('RecreateTableCall copy expressions', () => {
     uniques: [],
     foreignKeys: [],
   };
-  const rebuild = (copyExpressions: Record<string, CopyExpression>) =>
+  const rebuild = (copyExpressions: Record<string, SqlSlot>) =>
     new RecreateTableCall({
       tableName: 'user',
       contractTable: spec,

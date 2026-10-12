@@ -95,6 +95,8 @@ export type {
   SqlSchemaDiffResult,
 } from '../core/migrations/schema-differ';
 export type { SchemaTables } from '../core/migrations/schema-tables';
+export type { SqlSlot } from '../core/migrations/sql-slot';
+export { isUnfilledSlot, slotSource, sqlOfSlot } from '../core/migrations/sql-slot';
 export { sqlTypeLookupsOf } from '../core/migrations/sql-type-lookups';
 export type {
   CallWithCompanions,

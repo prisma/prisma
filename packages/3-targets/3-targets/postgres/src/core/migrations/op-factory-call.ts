@@ -24,8 +24,12 @@ import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
   checkSqlDefaultText,
   checkSqlExpressionText,
+  isUnfilledSlot,
   type SqlMigrationPlanOperation,
   type SqlQuotingRules,
+  type SqlSlot,
+  slotSource,
+  sqlOfSlot,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { DataType } from '@internal/framework-components/codec';
@@ -638,11 +642,6 @@ export class DropColumnCall extends PostgresOpFactoryCallNode {
   }
 }
 
-/** The USING clause of a type change: written SQL, or a slot the user fills in `migration.ts`. */
-export type AlterColumnTypeUsing =
-  | { readonly kind: 'sql'; readonly sql: string }
-  | { readonly kind: 'placeholder'; readonly slot: string };
-
 const POSTGRES_QUOTING: SqlQuotingRules = [
   { open: "E'", close: "'", doubledCloseEscapes: true, backslashEscapes: true },
   { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
@@ -657,7 +656,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly columnName: string;
   /** The new type as a migration writes it. */
   readonly type: string;
-  readonly using: AlterColumnTypeUsing | undefined;
+  readonly using: SqlSlot | undefined;
   /** The type `format_type` prints once the alter has run, which the postcheck compares. */
   readonly checkType: string;
   readonly label: string;
@@ -667,7 +666,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     readonly tableName: string;
     readonly columnName: string;
     readonly type: string;
-    readonly using?: AlterColumnTypeUsing;
+    readonly using?: SqlSlot;
     /** The data types of the stack, which read `type` for the postcheck. */
     readonly dataTypes: readonly DataType[];
     /** By default `data` when `using` converts the values, and `destructive` otherwise. */
@@ -721,7 +720,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   }
 
   async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
-    if (this.using?.kind === 'placeholder') {
+    if (isUnfilledSlot(this.using)) {
       return unfilledPlaceholderOperation(this.label);
     }
     if (lowerer === undefined) {
@@ -738,7 +737,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
       {
         type: this.type,
         checkType: this.checkType,
-        ...ifDefined('using', this.using?.kind === 'sql' ? this.using.sql : undefined),
+        ...ifDefined('using', sqlOfSlot(this.using)),
       },
       lowerer,
       this.operationClass,
@@ -746,16 +745,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    const using =
-      this.using === undefined
-        ? []
-        : [
-            `using: ${
-              this.using.kind === 'placeholder'
-                ? `placeholder(${jsonToTsSource(this.using.slot)})`
-                : jsonToTsSource(this.using.sql)
-            }`,
-          ];
+    const using = this.using === undefined ? [] : [`using: ${slotSource(this.using)}`];
     const opts = [
       ...this.#location(),
       `type: ${jsonToTsSource(this.type)}`,
@@ -768,7 +758,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return this.using?.kind === 'placeholder'
+    return isUnfilledSlot(this.using)
       ? [{ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: 'placeholder' }]
       : [];
   }

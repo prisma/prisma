@@ -17,6 +17,7 @@ import {
   type FieldStatementColumns,
   type MigrationOperationClass,
   type MigrationOperationPolicy,
+  type SqlSlot,
   type StatementColumn,
   type TableColumn,
 } from '@internal/family-sql/control';
@@ -35,7 +36,6 @@ import { columnSpecFromNode } from './column-ddl-rendering';
 import { columnTypeChanged, tableSpecFromNode } from './issue-planner';
 import {
   AddColumnCall,
-  type CopyExpression,
   DataTransformCall,
   RecreateTableCall,
   type SqliteOpFactoryCall,
@@ -200,7 +200,7 @@ interface TableRebuild {
   readonly issues: SchemaDiffIssue[];
   readonly classes: MigrationOperationClass[];
   readonly lossyColumns: string[];
-  readonly copyExpressions: Record<string, CopyExpression>;
+  readonly copyExpressions: Record<string, SqlSlot>;
   /** Columns an earlier call of the plan adds, which the rebuild copies like live ones. */
   readonly addedColumns: string[];
 }
