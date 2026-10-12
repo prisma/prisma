@@ -108,18 +108,18 @@ The interceptors move under one `intercept` object:
 -   if (result.latencyMs > 250) ctx.log.warn({ sql: plan.sql, rowCount: result.rowCount });
 - },
 + async beforeEncode(plan, ctx) {
-+   ctx.state(sqlKey)['sql'] = plan.sql;
++   ctx.state(statementSql)['sql'] = plan.sql;
 + },
 + async activityEnded(activity, result, ctx) {
 +   if (result.kind !== 'statement' || result.latencyMs <= 250) return;
 +   ctx.log.warn({
-+     sql: ctx.state(sqlKey)['sql'],
++     sql: ctx.state(statementSql)['sql'],
 +     ...(result.returns === 'rows' ? { rowCount: result.rowCount } : {}),
 +   });
 + },
 ```
 
-`sqlKey` is a module-level `Symbol()`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did.
+`statementSql` is a module-level `Symbol('…')`, for example `const statementSql = Symbol('slow-query-warning.sql')`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did.
 
 ## Replace `afterTransaction` with `activityFinalized`
 
@@ -127,7 +127,7 @@ The interceptors move under one `intercept` object:
 
 ## Rename the context type and the execution id
 
-`RuntimeMiddlewareContext` is now `ActivityContext`, and `SqlMiddlewareContext` and `MongoMiddlewareContext` extend it. `ctx.planExecutionId` is removed; use `activity.id`, a fresh id for each activity that every hook of the activity sees. Keep per-statement state in `ctx.state(key)` instead of a `WeakMap` keyed by the plan: each activity has its own state, and middleware that use the same key share the object. `AfterQueryResult`, `AfterExecuteResult` and `AfterTransactionResult` are removed; use `ActivityEndedResult` and `ActivityFinalizedResult`.
+`RuntimeMiddlewareContext` is now `ActivityContext`, and `SqlMiddlewareContext` and `MongoMiddlewareContext` extend it. `ctx.planExecutionId` is removed; use `activity.id`, a fresh id for each activity that every hook of the activity sees. A log detail or field that carried `planExecutionId: ctx.planExecutionId` becomes `activityId: activity.id`. Keep per-statement state in `ctx.state(key)` instead of a `WeakMap` keyed by the plan: each activity has its own state, and middleware that use the same key share the object. `AfterQueryResult`, `AfterExecuteResult` and `AfterTransactionResult` are removed; use `ActivityEndedResult` and `ActivityFinalizedResult`.
 
 ## Abort phases and already-aborted calls
 
@@ -136,6 +136,40 @@ A `RUNTIME.ABORTED` error raised during the middleware stage before encoding has
 ## The observed-row budget now runs
 
 `budgets()` now counts the rows each query returns. Before, this check never ran, so a query that returned more than `maxRows` rows succeeded. Now, with the default row severity `'error'` or in `strict` mode, such a query fails with `BUDGET.ROWS_EXCEEDED` once the count passes `maxRows`; with `severities: { rowCount: 'warn' }` in `permissive` mode it logs one warning for the statement and keeps streaming. Raise `maxRows` or `tableRows`, or set the row severity to `'warn'`, for reads that are expected to return more rows.
+
+## Move per-statement state from a `WeakMap` to `ctx.state`
+
+A middleware that kept per-statement state in a `WeakMap` keyed by the plan keeps it in `ctx.state` instead. The state object's values are `unknown`, so read them back through a type guard, and delete the entry in `activityEnded` once it is used:
+
+```diff
+- const pending = new WeakMap<object, PendingMiss>();
++ const pendingMiss = Symbol('cache.pendingMiss');
++
++ function pendingOf(ctx: ActivityContext): PendingMiss | undefined {
++   const miss = ctx.state(pendingMiss)['miss'];
++   return isPendingMiss(miss) ? miss : undefined;
++ }
+
+  // in intercept.onQuery, on a miss
+- pending.set(exec, { entry, buffer: [] });
++ ctx.state(pendingMiss)['miss'] = { entry, buffer: [] };
+
+  // in onRow
+- pending.get(exec)?.buffer.push(row);
++ pendingOf(ctx)?.buffer.push(row);
+
+  // in activityEnded, which replaces afterQuery
+- const miss = pending.get(exec);
+- if (miss === undefined) return;
+- pending.delete(exec);
+- if (!result.completed || result.source !== 'driver') return;
++ const miss = pendingOf(ctx);
++ if (miss === undefined) return;
++ delete ctx.state(pendingMiss)['miss'];
++ if (result.kind !== 'statement' || result.outcome !== 'succeeded' || result.source !== 'driver') return;
+```
+
+`pendingMiss` and `pendingOf` are module-level; `isPendingMiss` is a type guard for the state's shape. The middleware object then lists `intercept: { onQuery }`, `onRow` and `activityEnded` in place of `interceptQuery`, `onRow` and `afterQuery`.
 
 ## Run statements through the statement runners
 

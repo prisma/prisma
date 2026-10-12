@@ -80,18 +80,18 @@ The interceptors move under one `intercept` object:
 -   if (result.latencyMs > 250) ctx.log.warn({ sql: plan.sql, rowCount: result.rowCount });
 - },
 + async beforeEncode(plan, ctx) {
-+   ctx.state(sqlKey)['sql'] = plan.sql;
++   ctx.state(statementSql)['sql'] = plan.sql;
 + },
 + async activityEnded(activity, result, ctx) {
 +   if (result.kind !== 'statement' || result.latencyMs <= 250) return;
 +   ctx.log.warn({
-+     sql: ctx.state(sqlKey)['sql'],
++     sql: ctx.state(statementSql)['sql'],
 +     ...(result.returns === 'rows' ? { rowCount: result.rowCount } : {}),
 +   });
 + },
 ```
 
-`sqlKey` is a module-level `Symbol()`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did.
+`statementSql` is a module-level `Symbol('…')`, for example `const statementSql = Symbol('slow-query-warning.sql')`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did.
 
 ## Replace `afterTransaction` with `activityFinalized`
 
@@ -99,7 +99,7 @@ The interceptors move under one `intercept` object:
 
 ## Rename the context type and the execution id
 
-`RuntimeMiddlewareContext` is now `ActivityContext`, and `SqlMiddlewareContext` and `MongoMiddlewareContext` extend it. `ctx.planExecutionId` is removed; use `activity.id`, a fresh id for each activity that every hook of the activity sees. Keep per-statement state in `ctx.state(key)` instead of a `WeakMap` keyed by the plan: each activity has its own state, and middleware that use the same key share the object. `AfterQueryResult`, `AfterExecuteResult` and `AfterTransactionResult` are removed; use `ActivityEndedResult` and `ActivityFinalizedResult`.
+`RuntimeMiddlewareContext` is now `ActivityContext`, and `SqlMiddlewareContext` and `MongoMiddlewareContext` extend it. `ctx.planExecutionId` is removed; use `activity.id`, a fresh id for each activity that every hook of the activity sees. A log detail or field that carried `planExecutionId: ctx.planExecutionId` becomes `activityId: activity.id`. Keep per-statement state in `ctx.state(key)` instead of a `WeakMap` keyed by the plan: each activity has its own state, and middleware that use the same key share the object. `AfterQueryResult`, `AfterExecuteResult` and `AfterTransactionResult` are removed; use `ActivityEndedResult` and `ActivityFinalizedResult`.
 
 ## Abort phases and already-aborted calls
 
