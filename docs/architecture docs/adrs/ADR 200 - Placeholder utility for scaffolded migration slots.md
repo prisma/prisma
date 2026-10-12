@@ -38,7 +38,7 @@ export function placeholder(slot: string): never {
 }
 ```
 
-The slot string follows the convention `{migrationName}:{slot}` — for example, `backfill-product-status:check.source`. This makes the error message self-locating: the author knows both which migration and which field to edit.
+The slot string names what the author must write. A slot the planner places for a statement is named by the field as a statement names it, then the slot: `User.age:using` for a `--convert` conversion, `User.name:check` and `User.name:run` for a `--backfill` step. A slot in a hand-written or older scaffold follows `{migrationName}:{slot}`, for example `backfill-product-status:check.source`. Either way the error message is self-locating: the author knows which field or migration, and which slot, to edit.
 
 ### Why `never`
 
