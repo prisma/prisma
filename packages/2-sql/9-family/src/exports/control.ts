@@ -64,6 +64,13 @@ export {
   runnerSuccess,
 } from '../core/migrations/plan-helpers';
 export { INIT_ADDITIVE_POLICY } from '../core/migrations/policies';
+export type { RequiredColumn } from '../core/migrations/required-column';
+export {
+  requiredColumnMeta,
+  requiredColumnOf,
+  rowsWithoutValueFailure,
+  rowsWithoutValueSummary,
+} from '../core/migrations/required-column';
 export type {
   ColumnRename,
   ColumnRenameRequest,
@@ -147,6 +154,7 @@ export type {
 export {
   castColumnMeta,
   castColumnOf,
+  fieldOfColumn,
   unconvertedFieldOf,
 } from '../core/migrations/unconverted-field';
 export type { TableColumn } from '../core/migrations/value-set-columns';

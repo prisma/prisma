@@ -378,6 +378,20 @@ export interface MigrationRunnerFailure {
   readonly failingSpace?: string;
   /** The type change whose cast failed, when the failed step was one. */
   readonly failedCast?: FailedTypeChangeCast;
+  /** The field that was to become required while rows had no value for it, when that made the step fail. */
+  readonly rowsWithoutValue?: RowsWithoutValue;
+}
+
+/** A field that is to become required while existing rows have no value for it. */
+export interface RowsWithoutValue {
+  /** The field, when the destination contract names the storage that lacks the value. */
+  readonly field: MigrationSubject | undefined;
+  /** `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no rows. */
+  readonly reason: 'nullValues' | 'newField';
+  /** How many rows have no value. */
+  readonly rows: number;
+  /** The position of the operation in the operations of the failing space's plan. */
+  readonly operationIndex: number;
 }
 
 /** A type change whose cast the database could not carry out. */

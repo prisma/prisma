@@ -2,6 +2,7 @@ import type {
   AppliedMigrationStatement,
   FailedTypeChangeCast,
   MigrationPlanSubjects,
+  RowsWithoutValue,
 } from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -200,7 +201,12 @@ export function runnerSuccess(value: {
 export function runnerFailure(
   code: SqlMigrationRunnerErrorCode,
   summary: string,
-  options?: { why?: string; meta?: AnyRecord; failedCast?: FailedTypeChangeCast | undefined },
+  options?: {
+    why?: string;
+    meta?: AnyRecord;
+    failedCast?: FailedTypeChangeCast | undefined;
+    rowsWithoutValue?: RowsWithoutValue | undefined;
+  },
 ): NotOk<SqlMigrationRunnerFailure> {
   const failure: SqlMigrationRunnerFailure = Object.freeze({
     code,
@@ -208,6 +214,7 @@ export function runnerFailure(
     ...(options?.why ? { why: options.why } : {}),
     ...(options?.meta ? { meta: cloneRecord(options.meta) } : {}),
     ...ifDefined('failedCast', options?.failedCast),
+    ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
   });
   return notOk(failure);
 }

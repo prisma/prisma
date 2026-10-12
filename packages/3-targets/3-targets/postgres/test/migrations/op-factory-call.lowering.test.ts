@@ -22,6 +22,7 @@ import {
 import {
   AddColumnCall,
   AddNativeEnumValueCall,
+  AddNotNullColumnDirectCall,
   AlterColumnTypeCall,
   CreateExtensionCall,
   CreateIndexCall,
@@ -387,6 +388,17 @@ describe('AlterColumnTypeCall', () => {
   });
 });
 
+describe('AddNotNullColumnDirectCall', () => {
+  it('marks its empty-table precheck as the check a new required column fails on a table with rows', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const op = await new AddNotNullColumnDirectCall('public', 'user', 'code', 'text').toOp(lowerer);
+    expect(op.precheck.map(({ meta }) => meta)).toEqual([
+      undefined,
+      { requiredColumn: { table: 'user', column: 'code', reason: 'newField' } },
+    ]);
+  });
+});
+
 describe('SetNotNullCall', () => {
   it('lowers typed checks and sets NOT NULL', async () => {
     const { lowerer, received } = recordingCheckLowerer();
@@ -402,7 +414,12 @@ describe('SetNotNullCall', () => {
     ]);
     expect(op.precheck).toEqual([
       { description: 'ensure column "email" exists', sql: 'LOWERED 1', params: ['p1'] },
-      { description: 'ensure no NULL values in "email"', sql: 'LOWERED 3', params: ['p3'] },
+      {
+        description: 'ensure no NULL values in "email"',
+        sql: 'LOWERED 3',
+        params: ['p3'],
+        meta: { requiredColumn: { table: 'user', column: 'email', reason: 'nullValues' } },
+      },
     ]);
     expect(op.postcheck).toEqual([
       { description: 'verify column "email" is NOT NULL', sql: 'LOWERED 4', params: ['p4'] },

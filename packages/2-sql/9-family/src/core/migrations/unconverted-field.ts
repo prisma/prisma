@@ -35,8 +35,18 @@ export function unconvertedFieldOf(
   contract: ContractWithDomain,
 ): MigrationSubject | undefined {
   const cast = castColumnOf(step);
-  if (cast === undefined) return undefined;
-  const { table, column } = cast;
+  return cast === undefined ? undefined : fieldOfColumn(contract, cast.table, cast.column);
+}
+
+/**
+ * The field of `contract` that stores `column` of `table`, or undefined when no field stores it or
+ * tables of two storage namespaces share the table's name.
+ */
+export function fieldOfColumn(
+  contract: ContractWithDomain,
+  table: string,
+  column: string,
+): MigrationSubject | undefined {
   const fields = Object.entries(contract.domain.namespaces).flatMap(([namespaceId, namespace]) =>
     Object.entries(namespace.models).flatMap(([model, definition]) => {
       const { storage } = definition;

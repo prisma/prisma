@@ -28,11 +28,8 @@ describe('the advice for a type change whose cast failed', () => {
     expect(
       mapMigrateFailure({
         ...runnerFailed,
-        failedCast: {
-          field: 'My Model.age',
-          reason: 'value',
-          migration: { directory: 'migrations/app/20261012T1041_lossy', from: FROM },
-        },
+        failedCast: { field: 'My Model.age', reason: 'value' },
+        failedMigration: { directory: 'migrations/app/20261012T1041_lossy', from: FROM },
       }).fix,
     ).toBe(
       `A value of field "My Model.age" cannot be converted to its new type by the database's cast. The failed apply changed nothing. Delete the migration directory \`migrations/app/20261012T1041_lossy\`, plan the type change again with \`{bin} migration plan --from ${FROM} --convert 'My Model.age'\`, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,

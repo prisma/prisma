@@ -13,6 +13,7 @@ import type {
 } from '@internal/family-sql/control';
 import {
   castColumnOf,
+  rowsWithoutValueFailure,
   runnerFailure,
   runnerSuccess,
   unconvertedFieldOf,
@@ -30,7 +31,7 @@ import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
-import { affinityStorageClasses } from './operations/tables';
+import { affinityStorageClasses, REBUILD_TABLE_PREFIX } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 
 export function createSqliteMigrationRunner(
@@ -281,7 +282,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
           }
         }
 
-        const executeResult = await this.runExecuteSteps(driver, operation.execute, operation);
+        const executeResult = await this.runExecuteSteps(driver, operation.execute, operation, {
+          contract: options.destinationContract,
+          operationIndex: ops.indexOf(operation),
+        });
         if (!executeResult.ok) {
           return executeResult;
         }
@@ -417,27 +421,55 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
+    plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       try {
         await driver.query(step.sql, step.params ?? []);
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        return runnerFailure(
-          'MIGRATION.EXECUTION_FAILED',
-          `Operation ${operation.id} failed during execution: ${step.description}`,
-          {
-            why: message,
-            meta: {
-              operationId: operation.id,
-              stepDescription: step.description,
-              sql: step.sql,
-            },
+        const failed = `Operation ${operation.id} failed during execution: ${step.description}`;
+        const rowsWithoutValue = await this.rowsWithoutValue(driver, operation, message, plan);
+        return runnerFailure('MIGRATION.EXECUTION_FAILED', rowsWithoutValue?.summary ?? failed, {
+          why: rowsWithoutValue === undefined ? message : `${failed}: ${message}`,
+          meta: {
+            operationId: operation.id,
+            stepDescription: step.description,
+            sql: step.sql,
           },
-        );
+          rowsWithoutValue: rowsWithoutValue?.report,
+        });
       }
     }
     return okVoid();
+  }
+
+  /**
+   * The rows a table rebuild found no value for, when its copy failed on a NOT NULL column of the
+   * new table: rows holding NULL in a column the old table has, or every row for a new column.
+   */
+  private async rowsWithoutValue(
+    driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
+    operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
+    message: string,
+    plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
+  ): Promise<ReturnType<typeof rowsWithoutValueFailure>> {
+    const table = operation.target.details?.name;
+    const failedColumn = /NOT NULL constraint failed: ([^\s.]+)\.(\S+)/.exec(message);
+    if (table === undefined || failedColumn?.[1] !== `${REBUILD_TABLE_PREFIX}${table}`) {
+      return undefined;
+    }
+    const column = failedColumn[2] ?? '';
+    const existing = await driver.query('SELECT 1 FROM pragma_table_info(?) WHERE name = ?', [
+      table,
+      column,
+    ]);
+    const reason = existing.rows.length > 0 ? 'nullValues' : 'newField';
+    const where = reason === 'nullValues' ? ` WHERE ${quoteIdentifier(column)} IS NULL` : '';
+    const counted = await driver.query<{ rows: number }>(
+      `SELECT COUNT(*) AS rows FROM ${quoteIdentifier(table)}${where}`,
+    );
+    return rowsWithoutValueFailure({ table, column, reason }, counted.rows[0]?.rows ?? 0, plan);
   }
 
   private stepResultIsTrue(rows: readonly Record<string, unknown>[]): boolean {

@@ -187,7 +187,7 @@ export async function recreateTable(
     copyExpressions = {},
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
-  const tempName = `_prisma_new_${tableName}`;
+  const tempName = `${REBUILD_TABLE_PREFIX}${tableName}`;
   const liveSet = new Set(schemaColumnNames);
   const copiedFrom = (column: string): string | undefined =>
     Object.hasOwn(copyExpressions, column) ? copyExpressions[column] : undefined;
@@ -272,6 +272,9 @@ export async function recreateTable(
  * A recreate postcheck: SQL, or the name of a column whose default the recreated table must carry,
  * which becomes SQL once the adapter has written the column's `DEFAULT …` clause.
  */
+/** The prefix of the table a rebuild copies the rows into before it takes the old table's name. */
+export const REBUILD_TABLE_PREFIX = '_prisma_new_';
+
 export type RecreatePostcheck =
   | {
       readonly description: string;

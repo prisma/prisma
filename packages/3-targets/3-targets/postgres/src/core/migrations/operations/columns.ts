@@ -1,4 +1,4 @@
-import { castColumnMeta } from '@internal/family-sql/control';
+import { castColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { type DdlColumn, opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
@@ -210,7 +210,10 @@ export async function setNotNull(
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
       step(`ensure column "${columnName}" exists`, present.sql, present.params),
-      step(`ensure no NULL values in "${columnName}"`, noNulls.sql, noNulls.params),
+      {
+        ...step(`ensure no NULL values in "${columnName}"`, noNulls.sql, noNulls.params),
+        meta: requiredColumnMeta(tableName, columnName, 'nullValues'),
+      },
     ],
     execute: [
       step(
@@ -496,11 +499,14 @@ export async function addNotNullColumnDirect(
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
       step(`ensure column "${columnName}" is missing`, absent.sql, absent.params),
-      step(
-        `ensure table "${tableName}" is empty before adding NOT NULL column without default`,
-        tableEmpty.sql,
-        tableEmpty.params,
-      ),
+      {
+        ...step(
+          `ensure table "${tableName}" is empty before adding NOT NULL column without default`,
+          tableEmpty.sql,
+          tableEmpty.params,
+        ),
+        meta: requiredColumnMeta(tableName, columnName, 'newField'),
+      },
     ],
     execute: [step(`add column "${columnName}"`, addColumn.sql)],
     postcheck: [

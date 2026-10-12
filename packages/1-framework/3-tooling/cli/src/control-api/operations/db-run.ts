@@ -72,6 +72,7 @@ import type {
   FailedCastReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
+  RowsWithoutValueReport,
 } from '../types';
 import {
   type BuildAggregateInputs,
@@ -454,12 +455,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('why', applied.failure.why),
       meta: applied.failure.meta,
       ...ifDefined('warnings', plannerWarnings),
-      ...ifDefined(
-        'failedCast',
-        applied.failure.failedCast === undefined
-          ? undefined
-          : { field: applied.failure.failedCast.field, reason: applied.failure.failedCast.reason },
-      ),
+      ...ifDefined('failedCast', applied.failure.failedCast),
+      ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
       ...ifDefined('cause', applied.failure.cause),
     });
   }
@@ -744,6 +741,7 @@ function buildRunnerFailure(args: {
   readonly meta: Record<string, unknown>;
   readonly warnings?: readonly MigrationPlannerConflict[];
   readonly failedCast?: FailedCastReport;
+  readonly rowsWithoutValue?: RowsWithoutValueReport;
   readonly cause?: unknown;
 }): DbInitResult | DbUpdateResult {
   const failure: DbInitFailure | DbUpdateFailure = {
@@ -754,6 +752,7 @@ function buildRunnerFailure(args: {
     conflicts: undefined,
     ...ifDefined('warnings', args.warnings),
     ...ifDefined('failedCast', args.failedCast),
+    ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
     ...ifDefined('cause', args.cause),
   };
   return blindCast<

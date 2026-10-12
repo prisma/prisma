@@ -237,11 +237,16 @@ describe('runMigration, a type change whose cast failed', () => {
       action: 'migrate',
     });
 
-    expect(result.ok ? undefined : result.failure.failedCast).toEqual({
-      field: 'User.age',
-      reason: 'value',
-      spaceId: 'app',
-      migration: migrationEdges[1],
+    expect(
+      result.ok
+        ? undefined
+        : {
+            failedCast: result.failure.failedCast,
+            failedMigration: result.failure.failedMigration,
+          },
+    ).toEqual({
+      failedCast: { field: 'User.age', reason: 'value' },
+      failedMigration: { spaceId: 'app', edge: migrationEdges[1] },
     });
   });
 });

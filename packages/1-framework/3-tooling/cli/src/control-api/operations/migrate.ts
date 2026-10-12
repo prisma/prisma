@@ -13,6 +13,7 @@ import type {
 } from '@internal/framework-components/control';
 import {
   type AggregateContractSpace,
+  type AggregateMigrationEdgeRef,
   allStorageElementsExternal,
   buildFabricatedMigrationEdge,
   type ContractMarkerRecordLike,
@@ -32,7 +33,6 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
 import { join } from 'pathe';
 import type {
-  FailedCastReport,
   MigrateFailure,
   MigratePathDecision,
   MigrateResult,
@@ -44,7 +44,7 @@ import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
-import { buildPerSpaceBreakdown, type FailedCastInRun, runMigration } from './run-migration';
+import { buildPerSpaceBreakdown, runMigration } from './run-migration';
 
 /**
  * Inputs for the aggregate-walking `migrate` control-api
@@ -297,11 +297,13 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       summary: applied.failure.summary,
       why: applied.failure.why,
       meta: applied.failure.meta,
+      ...ifDefined('failedCast', applied.failure.failedCast),
+      ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
       ...ifDefined(
-        'failedCast',
-        applied.failure.failedCast === undefined
+        'failedMigration',
+        applied.failure.failedMigration === undefined
           ? undefined
-          : failedCastReport(applied.failure.failedCast, migrationsDir),
+          : failedMigrationOnDisk(applied.failure.failedMigration, migrationsDir),
       ),
       ...ifDefined('cause', applied.failure.cause),
     };
@@ -673,16 +675,12 @@ export function buildPathNotFoundFailure(
   };
 }
 
-function failedCastReport(failedCast: FailedCastInRun, migrationsDir: string): FailedCastReport {
-  const { field, reason, spaceId, migration } = failedCast;
+function failedMigrationOnDisk(
+  failed: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef },
+  migrationsDir: string,
+): { readonly directory: string; readonly from: string } {
   return {
-    field,
-    reason,
-    ...ifDefined(
-      'migration',
-      migration === undefined
-        ? undefined
-        : { directory: join(migrationsDir, spaceId, migration.dirName), from: migration.from },
-    ),
+    directory: join(migrationsDir, failed.spaceId, failed.edge.dirName),
+    from: failed.edge.from,
   };
 }

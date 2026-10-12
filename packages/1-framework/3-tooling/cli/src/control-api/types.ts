@@ -433,6 +433,8 @@ export interface DbInitFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** The rows a field that was to become required had no value for. */
+  readonly rowsWithoutValue?: RowsWithoutValueReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
   readonly marker?: {
@@ -511,8 +513,14 @@ export interface FailedCastReport {
   readonly field: string;
   /** `value`: the database met a value it could not cast. `noCast`: it has no cast between the two types. */
   readonly reason: 'value' | 'noCast';
-  /** The written migration the failed operation belongs to, when the apply ran written migrations. */
-  readonly migration?: { readonly directory: string; readonly from: string };
+}
+
+/** A field that was to become required while rows had no value for it, as the advice names it. */
+export interface RowsWithoutValueReport {
+  /** The field, as a `backfill` statement names it, when the contract names one. */
+  readonly field: string | undefined;
+  /** `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no rows. */
+  readonly reason: 'nullValues' | 'newField';
 }
 
 /**
@@ -530,6 +538,8 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** The rows a field that was to become required had no value for. */
+  readonly rowsWithoutValue?: RowsWithoutValueReport;
   /** The type change whose cast failed. */
   readonly failedCast?: FailedCastReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
@@ -744,6 +754,10 @@ export interface MigrateFailure {
   readonly summary: string;
   readonly why: string | undefined;
   readonly meta: Record<string, unknown> | undefined;
+  /** The rows a field that was to become required had no value for. */
+  readonly rowsWithoutValue?: RowsWithoutValueReport;
+  /** The written migration of the failed operation: its directory, and the contract it starts from. */
+  readonly failedMigration?: { readonly directory: string; readonly from: string };
   /** The type change whose cast failed. */
   readonly failedCast?: FailedCastReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */

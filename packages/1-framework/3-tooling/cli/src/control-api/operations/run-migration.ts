@@ -7,9 +7,9 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
-  FailedTypeChangeCast,
   MigrationOperationPolicy,
   MigrationRunnerFailure,
+  MigrationSubject,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import type {
@@ -21,7 +21,12 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { subjectText } from '../statements/plan-questions';
-import type { OnControlProgress, PerSpaceExecutionEntry } from '../types';
+import type {
+  FailedCastReport,
+  OnControlProgress,
+  PerSpaceExecutionEntry,
+  RowsWithoutValueReport,
+} from '../types';
 
 /**
  * Span id emitted via `onProgress` for the run phase. Stable
@@ -47,21 +52,17 @@ export interface RunnerFailure {
   readonly summary: string;
   readonly why?: string;
   readonly meta: Record<string, unknown>;
-  /** The type change whose cast failed, with the migration its operation belongs to. */
-  readonly failedCast?: FailedCastInRun;
+  /** The type change whose cast failed. */
+  readonly failedCast?: FailedCastReport;
+  /** The rows a field that was to become required had no value for. */
+  readonly rowsWithoutValue?: RowsWithoutValueReport;
+  /** The written migration of the failed operation, when the runner named the operation. */
+  readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
    * The runner's original failure object, preserved verbatim so callers
    * can attach it as `cause` on the CLI error they build from this shape.
    */
   readonly cause?: unknown;
-}
-
-/** A failed type-change cast of a run: the field as a `convert` statement names it, and the migration of its operation. */
-export interface FailedCastInRun {
-  readonly field: string;
-  readonly reason: FailedTypeChangeCast['reason'];
-  readonly spaceId: string;
-  readonly migration: AggregateMigrationEdgeRef | undefined;
 }
 
 function edgeOfOperation(
@@ -75,21 +76,42 @@ function edgeOfOperation(
   });
 }
 
-function failedCastInRun(
+/** What the runner said blocked the failed operation, named as the advice names it. */
+function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): FailedCastInRun | undefined {
-  const { failedCast, failingSpace } = failure;
-  const resolution = resolutions.find(({ spaceId }) => spaceId === failingSpace);
-  if (failedCast === undefined || resolution === undefined) return undefined;
+): Pick<RunnerFailure, 'failedCast' | 'rowsWithoutValue' | 'failedMigration'> {
+  const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
+  if (resolution === undefined) return {};
+  const fieldText = (field: MigrationSubject) =>
+    subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
+  const { failedCast, rowsWithoutValue } = failure;
+  const operationIndex = failedCast?.operationIndex ?? rowsWithoutValue?.operationIndex;
+  const edge =
+    operationIndex === undefined
+      ? undefined
+      : edgeOfOperation(resolution.entry.migrationEdges, operationIndex);
   return {
-    field: subjectText(failedCast.field, {
-      origin: resolution.entry.destinationContract,
-      statements: [],
-    }),
-    reason: failedCast.reason,
-    spaceId: resolution.spaceId,
-    migration: edgeOfOperation(resolution.entry.migrationEdges, failedCast.operationIndex),
+    ...ifDefined(
+      'failedCast',
+      failedCast === undefined
+        ? undefined
+        : { field: fieldText(failedCast.field), reason: failedCast.reason },
+    ),
+    ...ifDefined(
+      'rowsWithoutValue',
+      rowsWithoutValue === undefined
+        ? undefined
+        : {
+            field:
+              rowsWithoutValue.field === undefined ? undefined : fieldText(rowsWithoutValue.field),
+            reason: rowsWithoutValue.reason,
+          },
+    ),
+    ...ifDefined(
+      'failedMigration',
+      edge === undefined ? undefined : { spaceId: resolution.spaceId, edge },
+    ),
   };
 }
 
@@ -219,7 +241,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
         failingSpace: runnerResult.failure.failingSpace,
         runnerErrorCode: runnerResult.failure.code,
       },
-      ...ifDefined('failedCast', failedCastInRun(runnerResult.failure, orderedResolutions)),
+      ...failureReports(runnerResult.failure, orderedResolutions),
       cause: runnerResult.failure,
     });
   }
