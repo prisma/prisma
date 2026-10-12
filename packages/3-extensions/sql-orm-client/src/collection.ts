@@ -160,7 +160,6 @@ import {
   mergeAnnotations,
 } from './query-plan';
 import { queryPlanRows } from './query-plan-rows';
-import type { TableScope } from './table-scope';
 import {
   type AggregateBuilder,
   type AggregateIncludeReducers,
@@ -895,17 +894,6 @@ export class CollectionBase<
         },
       );
       const refined = refineFn(nestedCollection);
-      const derivedScope = (state: CollectionState): TableScope => {
-        if (state.tables.root !== child.tables.root) {
-          throw ormError(
-            'ORM.INCLUDE_INVALID',
-            `include('${relationName}') refinement must return a collection derived from the one it was handed`,
-            { meta: { relation: relationName, reason: 'foreign-collection' } },
-          );
-        }
-        return state.tables.scope;
-      };
-
       if (isIncludeScalar(refined)) {
         if (isToOneCardinality(relation.cardinality)) {
           throw ormError(
@@ -914,7 +902,7 @@ export class CollectionBase<
             { meta: { relation: relationName, kind: 'scalar' } },
           );
         }
-        adoptedScope = derivedScope(refined.state);
+        adoptedScope = refined.state.tables.scope;
         scalarSelector = refined;
         nestedState = refined.state;
       } else if (isIncludeCombine(refined)) {
@@ -925,12 +913,9 @@ export class CollectionBase<
             { meta: { relation: relationName, kind: 'combine' } },
           );
         }
-        for (const branch of Object.values(refined.branches)) {
-          derivedScope(branch.kind === 'rows' ? branch.state : branch.selector.state);
-        }
         combineBranches = refined.branches;
       } else if (isCollectionStateCarrier(refined)) {
-        adoptedScope = derivedScope(refined.state);
+        adoptedScope = refined.state.tables.scope;
         nestedState = refined.state;
       } else {
         throw ormError(

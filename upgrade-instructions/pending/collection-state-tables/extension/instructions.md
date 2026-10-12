@@ -29,13 +29,6 @@ changes:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
         - '\bIncludeExpr\b'
-  - id: include-rejects-foreign-collection
-    summary: |
-      `include()` throws `ORM.INCLUDE_INVALID` with `reason: 'foreign-collection'` when its refinement callback returns a collection, include scalar selector or `combine()` branch that was not derived from the collection the callback received.
-    detection:
-      glob: "**/*.{ts,tsx,mts,cts}"
-      matches:
-        - '\.include\s*[(<]'
   - id: sql-orm-table-aliases-renamed
     summary: |
       The SQL ORM aliases tables in generated SQL: the first use of a table is written under its own name with no `AS`, and later uses as `<table>_<n>`. The aliases `__orm_rel_<n>`, `__orm_junction_<n>`, `<relation>__child` and `<table>__write_filter` are gone, and a table used twice in one collection chain is now aliased where it was not before. A discriminator value in `updateAndCount` / `deleteAndCount` on a variant collection, and the values of object filters in nested writes (`connect`, `disconnect`, junction links), are now sent as parameters with the column's codec instead of being written into the SQL text. Query results are unchanged; code and tests that match on SQL text or on parameter lists need updating.
@@ -48,7 +41,7 @@ changes:
         - '__write_filter\b'
 ---
 
-These changes concern code that imports from `@prisma/orm-family-sql/orm-client` and builds SQL ORM collection state or model accessors by hand, or that asserts on the SQL text the ORM generates. Code that only chains collection methods needs the `include-rejects-foreign-collection` check and nothing else.
+These changes concern code that imports from `@prisma/orm-family-sql/orm-client` and builds SQL ORM collection state or model accessors by hand, or that asserts on the SQL text the ORM generates.
 
 ## `collection-state-carries-tables`
 
@@ -145,22 +138,6 @@ const include: IncludeExpr = { relationName: 'assignee', localTableName: 'featur
 // after
 const include: IncludeExpr = { relationName: 'assignee', localVariantName: 'Feature', /* … */ };
 ```
-
-## `include-rejects-foreign-collection`
-
-Check each `include()` refinement callback. It must return a value built from its own parameter:
-
-```ts
-// throws ORM.INCLUDE_INVALID (reason: 'foreign-collection')
-users.include('posts', () => db.Post.where({ published: true }));
-users.include('posts', (posts) => posts.combine({ recent: db.Post.limit(3) }));
-
-// build from the parameter instead
-users.include('posts', (posts) => posts.where({ published: true }));
-users.include('posts', (posts) => posts.combine({ recent: posts.limit(3) }));
-```
-
-A refinement that returned an unrelated collection used to be accepted and its state was used as the include's. To reuse a refinement across includes, share a function that takes the refinement's parameter, or a scope made with `db.orm.scope(...)` / `Model.scope(...)` and passed to `.with(...)`.
 
 ## `sql-orm-table-aliases-renamed`
 

@@ -2,7 +2,6 @@ import { createPostgresAdapter } from '@internal/adapter-postgres/adapter';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import type { PostgresContract } from '../../../3-targets/6-adapters/postgres/src/core/types';
-import { Collection } from '../src/collection';
 import { resolveIncludeRelation } from '../src/collection-contract';
 import { type CollectionTables, createIncludeTables } from '../src/collection-tables';
 import { compileSelectWithIncludes } from '../src/query-plan-select';
@@ -155,31 +154,6 @@ describe('table aliases in includes', () => {
     expect(sql).toMatchInlineSnapshot(
       `"SELECT "users"."id" AS "id", (SELECT json_build_object('byAuthor', "posts__combine__byAuthor"."posts", 'authored', "posts__combine__authored"."posts") AS "posts" FROM (SELECT coalesce(json_agg(json_build_object('id', "posts__rows"."id")), json_build_array()) AS "posts" FROM (SELECT "posts"."id" AS "id" FROM "public"."posts" WHERE ("posts"."user_id" = "users"."id" AND EXISTS (SELECT "users_2"."id" AS "_exists" FROM "public"."users" AS "users_2" WHERE "users_2"."id" = "posts"."user_id"))) AS "posts__rows") AS "posts__combine__byAuthor" INNER JOIN (SELECT json_build_object('value', CAST(COUNT(*) AS text)) AS "posts" FROM "public"."posts" WHERE ("posts"."user_id" = "users"."id" AND EXISTS (SELECT "users_2"."id" AS "_exists" FROM "public"."users" AS "users_2" WHERE "users_2"."id" = "posts"."user_id"))) AS "posts__combine__authored" ON TRUE) AS "posts", (SELECT coalesce(json_agg(json_build_object('id', "invitedUsers__rows"."id")), json_build_array()) AS "invitedUsers" FROM (SELECT "users_2"."id" AS "id" FROM "public"."users" AS "users_2" WHERE "users_2"."invited_by_id" = "users"."id") AS "invitedUsers__rows") AS "invitedUsers" FROM "public"."users""`,
     );
-  });
-
-  it('rejects a refinement result that was not derived from the collection it was handed', () => {
-    const { collection } = createCollectionFor('User');
-    const { collection: unrelated } = createCollectionFor('Post');
-    const unrelatedScalar = new Collection(unrelated.ctx, 'Post', {
-      namespaceId: 'public',
-      includeRefinementMode: true,
-    });
-
-    expect(() => collection.include('posts', () => unrelatedScalar.count())).toThrow(
-      /include\('posts'\) refinement must return a collection derived from the one it was handed/,
-    );
-    expect(() => collection.include('posts', () => unrelated.select('id'))).toThrow(
-      /include\('posts'\) refinement must return a collection derived from the one it was handed/,
-    );
-    expect(() =>
-      collection.include('posts', (posts) => posts.combine({ rows: unrelated.select('id') })),
-    ).toThrow(/derived from the one it was handed/);
-    expect(() =>
-      collection.include('posts', (posts) => posts.combine({ total: unrelatedScalar.count() })),
-    ).toThrow(/derived from the one it was handed/);
-    expect(
-      collection.include('posts', (posts) => posts.select('id').where({ views: 1 })).state.includes,
-    ).toHaveLength(1);
   });
 
   it('finds the local variant table by variant identity when it shares a table name with the root', () => {
