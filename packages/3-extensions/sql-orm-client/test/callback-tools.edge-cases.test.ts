@@ -27,7 +27,7 @@ function sqlOf(contract: unknown, plan: SqlQueryPlan<unknown>): string {
 }
 
 function usersSql(state: CollectionState): string {
-  return sqlOf(baseContract, compileSelect(baseContract, 'public', 'User', 'users', state));
+  return sqlOf(baseContract, compileSelect(baseContract, 'User', state));
 }
 
 class Chain {
@@ -176,7 +176,7 @@ describe('the indexes of a collection narrowed by variant', () => {
       return fns.eq(indexes.tasks_project_id_idx.columns.project_id, 1);
     });
 
-    expect(sqlOf(poly, compileSelect(poly, 'public', 'Task', 'tasks', filtered.state))).toBe(
+    expect(sqlOf(poly, compileSelect(poly, 'Task', filtered.state))).toBe(
       'SELECT "tasks"."id" AS "id" FROM "public"."tasks" INNER JOIN "public"."features" ON "tasks"."id" = "features"."id" WHERE ("tasks"."type" = $1 AND "tasks"."project_id" = $2)',
     );
   });

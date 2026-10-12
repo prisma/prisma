@@ -43,7 +43,8 @@ import { codecTraits, hasTrait, resolveColumn } from './column-codec';
 import { and, conditionExpr, not } from './filters';
 import { checkedOrderByItem } from './order-by-guards';
 import { ormError } from './orm-errors';
-import type { AliasedTable, resolveTableForContract, TableScope } from './table-scope';
+import { resolveTableForContract } from './storage-resolution';
+import type { AliasedTable, TableScope } from './table-scope';
 import {
   COMPARISON_METHODS_META,
   type ComparisonMethodFns,
@@ -115,16 +116,10 @@ export function createModelCallbackTools<
   NsId extends string,
 >(
   context: ExecutionContext<TContract>,
-  namespaceId: NsId,
   modelName: ModelName,
+  tables: CollectionTables,
 ): ModelCallbackTools<TContract, ModelName, NsId> {
-  const tableName = resolveModelTableName(context.contract, namespaceId, modelName);
-  return callbackToolsFor(
-    context,
-    namespaceId,
-    modelName,
-    ModelAccessorScope.root(namespaceId, tableName),
-  );
+  return callbackToolsFor(context, modelName, tables.root);
 }
 
 function callbackToolsFor<
@@ -133,23 +128,21 @@ function callbackToolsFor<
   NsId extends string,
 >(
   context: ExecutionContext<TContract>,
-  namespaceId: NsId,
   modelName: ModelName,
-  scope: ModelAccessorScope,
+  aliasedTable: AliasedTable,
 ): ModelCallbackTools<TContract, ModelName, NsId> {
   return createCallbackTools<TContract, ModelName, NsId>(context, () =>
-    indexReferencesOf(context, namespaceId, modelName, scope.current),
+    indexReferencesOf(context, modelName, aliasedTable),
   );
 }
 
 function indexReferencesOf(
   context: ExecutionContext,
-  namespaceId: string,
   modelName: string,
-  binding: SqlTableBinding,
+  aliasedTable: AliasedTable,
 ): Readonly<Record<string, IndexReference>> {
   const { contract } = context;
-  const tableName = resolveModelTableName(contract, namespaceId, modelName);
+  const { namespaceId, tableName } = aliasedTable.storage;
   const resolved = resolveTableForContract(contract, namespaceId, tableName);
   if (!resolved) {
     throw new InternalError(
@@ -177,7 +170,7 @@ function indexReferencesOf(
             codecRefForStorageColumn(contract.storage, namespaceId, tableName, columnName),
           ),
         },
-        buildAst: () => binding.column(columnName),
+        buildAst: () => aliasedTable.column(columnName),
       };
     },
   });
@@ -749,9 +742,7 @@ function toRelationWhereExpr<TContract extends Contract<SqlStorage>>(
   );
 
   if (typeof predicate === 'function') {
-    return conditionExpr(
-      predicate(accessor, callbackToolsFor(context, relatedNamespaceId, relatedModelName, scope)),
-    );
+    return conditionExpr(predicate(accessor, callbackToolsFor(context, relatedModelName, table)));
   }
 
   // Shorthand object — skip fields without eq

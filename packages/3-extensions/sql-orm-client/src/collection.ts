@@ -93,6 +93,7 @@ import {
   mapPolymorphicRow,
 } from './collection-runtime';
 import {
+  type CollectionTables,
   createCollectionTables,
   createIncludeTables,
   requireVariantTable,
@@ -526,7 +527,7 @@ export class CollectionBase<
                 tables,
                 this.state.variantName,
               ),
-              this.#callbackTools(),
+              this.#callbackTools(tables),
             ),
           )
         : isWhereDirectInput(input)
@@ -556,11 +557,13 @@ export class CollectionBase<
     });
   }
 
-  #callbackTools(): ModelCallbackTools<TContract, ModelName, State['nsId']> {
+  #callbackTools(
+    tables: CollectionTables,
+  ): ModelCallbackTools<TContract, ModelName, State['nsId']> {
     return createModelCallbackTools<TContract, ModelName, State['nsId']>(
       this.ctx.context,
-      this.namespaceId,
       this.modelName,
+      tables,
     );
   }
 
@@ -1162,7 +1165,7 @@ export class CollectionBase<
       tables,
       this.state.variantName,
     );
-    const tools = this.#callbackTools();
+    const tools = this.#callbackTools(tables);
     const selectors = Array.isArray(selection) ? selection : [selection];
     const nextOrders = selectors.map((selector) => selector(accessor, tools));
     const existing = this.state.orderBy ?? [];
