@@ -523,8 +523,11 @@ export interface FailedTypeChangeCastReport {
 export interface RowsWithoutValueReport {
   /** The field, as a `backfill` statement names it, when the contract names one. */
   readonly field: string | undefined;
-  /** `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no rows. */
-  readonly reason: 'nullValues' | 'newField';
+  /**
+   * `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no
+   * rows. `backfillMissedRows`: the migration's backfill step for the field left rows without a value.
+   */
+  readonly reason: 'nullValues' | 'newField' | 'backfillMissedRows';
 }
 
 /**

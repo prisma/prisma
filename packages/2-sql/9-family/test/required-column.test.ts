@@ -20,11 +20,13 @@ describe('requiredColumnOf', () => {
     expect([
       requiredColumnOf(step(requiredColumnMeta('Item', 'note', 'nullValues'))),
       requiredColumnOf(step(requiredColumnMeta('User', 'code', 'newField'))),
+      requiredColumnOf(step(requiredColumnMeta('User', 'email', 'backfillMissedRows'))),
       requiredColumnOf(step({ castColumn: { table: 'Item', column: 'note' } })),
       requiredColumnOf(step()),
     ]).toEqual([
       { table: 'Item', column: 'note', reason: 'nullValues' },
       { table: 'User', column: 'code', reason: 'newField' },
+      { table: 'User', column: 'email', reason: 'backfillMissedRows' },
       undefined,
       undefined,
     ]);
@@ -37,10 +39,12 @@ describe('rowsWithoutValueSummary', () => {
       rowsWithoutValueSummary({ table: 'Item', column: 'note', reason: 'nullValues' }, 3),
       rowsWithoutValueSummary({ table: 'Item', column: 'note', reason: 'nullValues' }, 1),
       rowsWithoutValueSummary({ table: 'User', column: 'code', reason: 'newField' }, 2),
+      rowsWithoutValueSummary({ table: 'User', column: 'email', reason: 'backfillMissedRows' }, 1),
     ]).toEqual([
       '3 rows of "Item" hold NULL in "note", so it cannot become required.',
       '1 row of "Item" holds NULL in "note", so it cannot become required.',
       '"User" has 2 rows, so the new required column "code" cannot be added: it can be added to an empty table only.',
+      '1 row of "User" still holds NULL in "email" after its backfill step, so it cannot become required.',
     ]);
   });
 });

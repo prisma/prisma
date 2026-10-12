@@ -325,6 +325,26 @@ describe('SQLite planner, the columns a rebuild makes required', () => {
       'requiredColumn: { column: "name", reason: "newField" }',
     );
   });
+
+  it('marks a column a backfill step fills, so a failure names the step', async () => {
+    const marks = async (to: Contract<SqlStorage>, field: string) =>
+      (
+        await Promise.allSettled(
+          plan(textAge, to, { statements: [statement('backfill', field)] }).plan.operations,
+        )
+      ).flatMap((entry) =>
+        entry.status === 'fulfilled'
+          ? entry.value.postcheck.flatMap((step) => {
+              const meta = step.meta?.['requiredColumn'];
+              return meta === undefined ? [] : [meta];
+            })
+          : [],
+      );
+    expect([await marks(withName, 'name'), await marks(nicknameRequired, 'nickname')]).toEqual([
+      [{ table: 'User', column: 'name', reason: 'backfillMissedRows' }],
+      [{ table: 'User', column: 'nickname', reason: 'backfillMissedRows' }],
+    ]);
+  });
 });
 
 describe('SQLite planner, a type change the copy makes without losing a value', () => {

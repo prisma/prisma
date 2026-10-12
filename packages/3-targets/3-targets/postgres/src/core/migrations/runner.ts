@@ -422,7 +422,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         const schema = marked.target.details?.schema;
         if (schema === undefined) return 0;
         const where =
-          column.reason === 'nullValues' ? ` WHERE ${quoteIdentifier(column.column)} IS NULL` : '';
+          column.reason !== 'newField' ? ` WHERE ${quoteIdentifier(column.column)} IS NULL` : '';
         const counted = await driver.query<{ rows: number }>(
           `SELECT COUNT(*)::int AS rows FROM ${qualifyTableName(schema, column.table)}${where}`,
         );

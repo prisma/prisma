@@ -392,8 +392,11 @@ export interface MigrationRunnerFailure {
 export interface RowsWithoutValue {
   /** The field, when the destination contract names the storage that lacks the value. */
   readonly field: MigrationSubject | undefined;
-  /** `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no rows. */
-  readonly reason: 'nullValues' | 'newField';
+  /**
+   * `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no
+   * rows. `backfillMissedRows`: the migration's backfill step for the field left rows without a value.
+   */
+  readonly reason: 'nullValues' | 'newField' | 'backfillMissedRows';
   /** How many rows have no value. */
   readonly rows: number;
   /** The position of the operation in the operations of the failing space's plan. */

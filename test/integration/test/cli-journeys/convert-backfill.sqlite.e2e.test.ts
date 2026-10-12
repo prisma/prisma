@@ -9,7 +9,7 @@
 
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { join, resolve } from 'pathe';
+import { join, relative, resolve } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir, writeProjectManifest } from '../utils/cli-test-helpers';
 import {
@@ -395,6 +395,69 @@ withTempDir(({ createTempDir }) => {
             `SELECT "notnull", dflt_value FROM pragma_table_info('User') WHERE name = 'name'`,
           ),
         ).toEqual([{ notnull: 1, dflt_value: null }]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'follows the advice of a backfill step that leaves a row without a value to fixing that step',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(
+          ctx,
+          BASE.replace('  nickname String?\n', '  nickname String?\n  name     String\n'),
+        );
+        const planned = await runMigrationPlan(ctx, [
+          '--name',
+          'partial-backfill',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--backfill',
+          'User.name',
+        ]);
+        expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
+        const migrationDir = plannedDir(ctx, 'partial_backfill');
+        const migrationTs = join(migrationDir, 'migration.ts');
+        const slot = /\(\) => placeholder\((['"])User\.name:run\1\)/;
+        writeFileSync(
+          migrationTs,
+          readFileSync(migrationTs, 'utf-8').replace(
+            slot,
+            '() => `UPDATE "User" SET name = \'first\' WHERE id = 1`',
+          ),
+        );
+        const emitted = await selfEmitMigration(ctx, [
+          '--dir',
+          migrationDir,
+          '--config',
+          ctx.configPath,
+        ]);
+        expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
+
+        const failed = await runMigrate(ctx, ['--json']);
+        expect(failed.exitCode).not.toBe(0);
+        const error = parseJsonOutput<{
+          readonly summary: string;
+          readonly nextActions: readonly { readonly label: string }[];
+        }>(failed);
+        expect(error.summary).toBe(
+          '1 row of "User" still holds NULL in "name" after its backfill step, so it cannot become required.',
+        );
+        const advice = error.nextActions.map(({ label }) => label).join('\n');
+        expect(advice).not.toContain('--backfill');
+        const file = /Make its run fill every row in `([^`]+)`/.exec(advice)?.[1];
+        expect(file, advice).toBe(relative(ctx.testDir, migrationTs));
+
+        await fillAndApply(ctx, migrationDir, (scaffold) =>
+          scaffold.replace(
+            '`UPDATE "User" SET name = \'first\' WHERE id = 1`',
+            '`UPDATE "User" SET name = \'user \' || id WHERE name IS NULL`',
+          ),
+        );
+        expect(query(ctx.dbPath, `SELECT id, name FROM "User" ORDER BY id`)).toEqual([
+          { id: 1, name: 'user 1' },
+          { id: 2, name: 'user 2' },
+        ]);
       },
       timeouts.spinUpPpgDev,
     );

@@ -472,7 +472,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       others: marks,
       count: async ({ required }) => {
         const where =
-          required.reason === 'nullValues'
+          required.reason !== 'newField'
             ? ` WHERE ${quoteIdentifier(required.column)} IS NULL`
             : '';
         const counted = await driver.query<{ rows: number }>(

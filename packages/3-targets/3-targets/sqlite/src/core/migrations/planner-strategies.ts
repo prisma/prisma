@@ -337,6 +337,13 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
               rebuild.issues,
               tableSpec,
               new Set(Object.keys(rebuild.copyExpressions)),
+              new Set(
+                tableSpec.columns
+                  .filter(
+                    ({ name }) => statementColumn(ctx, 'backfill', tableName, name) !== undefined,
+                  )
+                  .map(({ name }) => name),
+              ),
             ),
             ...tableSpec.columns
               .filter((column) => rebuild.lossyColumns.includes(column.name))

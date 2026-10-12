@@ -114,6 +114,18 @@ function migrateRowsWithoutValueFix(
   reports: readonly RowsWithoutValueReport[],
   failedMigration: FailedMigrationText | undefined,
 ): string {
+  const [first] = reports;
+  if (first?.reason === 'backfillMissedRows') {
+    const file =
+      failedMigration === undefined
+        ? 'the migration.ts of the failed migration'
+        : `\`${failedMigration.directory}/migration.ts\``;
+    const step =
+      first.field === undefined
+        ? 'The backfill step'
+        : `The backfill step of field "${first.field}"`;
+    return `${step} left those rows without a value, and the failed apply changed nothing. Make its run fill every row in ${file}, run that file with node, and re-run \`{bin} db migrate\`.`;
+  }
   const flags = backfillFlags(reports);
   const again =
     flags.length === 0 || failedMigration === undefined

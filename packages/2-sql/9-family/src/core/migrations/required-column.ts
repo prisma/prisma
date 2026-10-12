@@ -5,7 +5,11 @@ import { fieldOfColumn } from './field-of-column';
 import type { SqlMigrationPlanOperationStep } from './types';
 
 const RequiredColumnMeta = type({
-  requiredColumn: { table: 'string', column: 'string', reason: "'nullValues' | 'newField'" },
+  requiredColumn: {
+    table: 'string',
+    column: 'string',
+    reason: "'nullValues' | 'newField' | 'backfillMissedRows'",
+  },
 });
 
 /** Where a column that is to become required finds no value. */
@@ -40,7 +44,11 @@ export function rowsWithoutValueSummary(required: RequiredColumn, rows: number):
   if (required.reason === 'newField') {
     return `"${table}" has ${rows} ${rows === 1 ? 'row' : 'rows'}, so the new required column "${column}" cannot be added: it can be added to an empty table only.`;
   }
-  return `${rows} ${rows === 1 ? 'row' : 'rows'} of "${table}" ${rows === 1 ? 'holds' : 'hold'} NULL in "${column}", so it cannot become required.`;
+  const counted = `${rows} ${rows === 1 ? 'row' : 'rows'} of "${table}"`;
+  if (required.reason === 'backfillMissedRows') {
+    return `${counted} still ${rows === 1 ? 'holds' : 'hold'} NULL in "${column}" after its backfill step, so it cannot become required.`;
+  }
+  return `${counted} ${rows === 1 ? 'holds' : 'hold'} NULL in "${column}", so it cannot become required.`;
 }
 
 /** A step of a plan that marks a column as becoming required. */

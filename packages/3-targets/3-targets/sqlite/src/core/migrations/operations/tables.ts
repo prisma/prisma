@@ -464,6 +464,7 @@ export function buildRecreatePostchecks(
   issues: readonly SchemaDiffIssue[],
   spec: SqliteTableSpec,
   copiedColumns: ReadonlySet<string> = new Set(),
+  backfilledColumns: ReadonlySet<string> = new Set(),
 ): RecreatePostcheck[] {
   const checks: RecreatePostcheck[] = [];
   const t = escapeLiteral(tableName);
@@ -484,7 +485,11 @@ export function buildRecreatePostchecks(
       checks.push({
         description: `verify "${columnName}" nullability on "${tableName}"`,
         sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${escapeLiteral(columnName)}' AND "notnull" = ${column.nullable ? 0 : 1}`,
-        ...(takesNoValue ? { requiredColumn: { column: columnName, reason: 'newField' } } : {}),
+        ...(backfilledColumns.has(columnName)
+          ? { requiredColumn: { column: columnName, reason: 'backfillMissedRows' } }
+          : takesNoValue
+            ? { requiredColumn: { column: columnName, reason: 'newField' } }
+            : {}),
       });
       continue;
     }
@@ -504,7 +509,12 @@ export function buildRecreatePostchecks(
           sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND "notnull" = ${expected.nullable ? 0 : 1}`,
           ...(expected.nullable
             ? {}
-            : { requiredColumn: { column: columnName, reason: 'nullValues' } }),
+            : {
+                requiredColumn: {
+                  column: columnName,
+                  reason: backfilledColumns.has(columnName) ? 'backfillMissedRows' : 'nullValues',
+                },
+              }),
         });
       }
       if (columnTypeChanged(expected, actual)) {

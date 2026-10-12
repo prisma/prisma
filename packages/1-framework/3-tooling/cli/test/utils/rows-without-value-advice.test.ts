@@ -128,6 +128,22 @@ describe('the advice for rows a required field has no value for', () => {
     );
   });
 
+  it('on db migrate, says the backfill step left the rows without a value and to fix the step, not to plan again', () => {
+    const advice = (failed: typeof failedMigration | undefined) =>
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'backfillMissedRows' }],
+          ...(failed === undefined ? {} : { failedMigration: failed }),
+        },
+        PROJECT,
+      ).fix;
+    expect([advice(failedMigration), advice(undefined)]).toEqual([
+      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in `migrations/app/20261012T1200_note/migration.ts`, run that file with node, and re-run `{bin} db migrate`.',
+      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate`.',
+    ]);
+  });
+
   it('never mentions schema drift', () => {
     expect(
       mapDbUpdateFailure({
