@@ -73,8 +73,9 @@
               "collection": "assets"
             },
             "variants": {
-              "Photo": {
-                "value": "photo"
+              "photo": {
+                "model": "Photo",
+                "namespace": "__unbound__"
               }
             }
           },
