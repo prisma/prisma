@@ -30,8 +30,8 @@ Once the contract changes, you choose how the change reaches the database. This 
 
 ## Key Concepts
 
-- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. Before an apply it asks what each operation that would lose data means, answered by `--delete <subject>` or `--rename <subject>:<new name>`, and whether each operation that would widen who can read or write a model's rows may run, answered by `--allow <Model>` (see *Answer the data-loss questions* below). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. Use only against a database that has no shared history with anyone else (your local dev DB).
-- **`migration plan` (formal path).** Reads the emitted contract, diffs it against a resolved origin — explicit `--from`, else the `db` ref, else the empty database; there is no "head of the graph" to chain from (see `references/migration-model.md`) — and writes a new migration package under `migrations/app/<YYYYMMDDTHHMM>_<snake_slug>/`. A plan that would lose data is written only once `--delete` or `--rename` says what each such operation means. If any operation needs a data transform, the package's `migration.ts` contains `placeholder(...)` calls you fill in.
+- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. Before an apply it asks what each operation that would lose data means, answered by `--delete <subject>` or `--rename <subject>:<new name>`, and whether each operation that would widen who can read or write a model's rows may run, answered by `--allow <Model>` (see *Answer the data-loss questions* below). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. It refuses `--convert` and `--backfill` (`MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE`) and prints the `migration plan` command to run instead. Use only against a database that has no shared history with anyone else (your local dev DB).
+- **`migration plan` (formal path).** Reads the emitted contract, diffs it against a resolved origin — explicit `--from`, else the `db` ref, else the empty database; there is no "head of the graph" to chain from (see `references/migration-model.md`) — and writes a new migration package under `migrations/app/<YYYYMMDDTHHMM>_<snake_slug>/`. A plan that would lose data is written only once `--delete`, `--rename` or, for a type change, `--convert` says what each such operation means. The package's `migration.ts` contains `placeholder(...)` calls only where `--convert` or `--backfill` asked for a slot (see *Type changes and new required fields*).
 - **The `app/` segment in migration paths is the consuming application's contract-space id.** Every migration *you* author lives under `migrations/app/`. Extensions your contract depends on get their own sibling directories (`migrations/<extension-space-id>/`) — those are managed by the extension package and you don't write into them. The `app/` segment lands automatically the first time you run `migration plan` / `db init` against an app-level config.
 - **Migration package files** (inside each `migrations/app/<dir>/`):
   - `migration.json` — manifest (metadata + `migrationHash`).
@@ -87,7 +87,8 @@ Treat the rendered import lines as framework-managed on both targets:
 | Local dev, schema in flux | `db update` | Fast, interactive, no migration files. |
 | Shared branch with other developers | `migration plan` + `db migrate` | Replayable, reviewable, content-hashed. |
 | Anything reaching production | `migration plan` + `db migrate` | Production must run a reviewed, hashed migration. |
-| Adding a column that needs a backfill | `migration plan` (writes `placeholder`), edit `migration.ts`, self-emit, then `db migrate` | `db update` does not author data transforms; the formal path does. |
+| Adding a column that needs a backfill | `migration plan --backfill Model.field` (writes `placeholder`), edit `migration.ts`, self-emit, then `db migrate` | `db update` does not author data transforms; the formal path does. Without `--backfill`, existing rows get a temporary value. |
+| Changing a field's type so values may not survive | `migration plan --convert Model.field`, fill `using`, self-emit, `db migrate` | Or `--delete Model.field` to let the database cast; a value it cannot cast fails the apply. |
 | Recovering from drift (DB diverged from contract) | `db sign` after manual fix, *or* `migration plan` if PN can plan the fix | Depends on which side is right. See *Recover from drift* below. |
 
 ## Dev → ship transition (the `db` ref pattern)
@@ -350,6 +351,15 @@ MigrationCLI.run(import.meta.url, M);
 ```
 
 Self-emit the same way: `node migrations/app/<dir>/migration.ts`.
+
+## Type changes and new required fields
+
+Postgres and SQLite. `migration plan` cannot see rows, so these rules are about what you state, not what the table holds.
+
+- **A type change that can lose values is a question.** Answer it with `--convert User.age` (the plan has a slot for the conversion: `using: placeholder('User.age:using')` in `this.alterColumnType(...)` on Postgres, the column's copy expression in `this.recreateTable(...)` on SQLite; write SQL over the column, such as `'"age"::integer'`, self-emit, `db migrate`) or `--delete User.age` (the database's own cast runs; it is listed as `accept lossy type change of field "User.age"`). A value the cast cannot convert fails the apply, changes nothing, and the error names `--convert`. On SQLite the rebuild checks after its copy that every value took the new type. A widening such as `int4` to `int8` asks nothing.
+- **A new required field** gets a temporary value in the existing rows (`''`, `0`, `false`, …) with no question and no placeholder. `--backfill User.name` writes a data transform to fill instead: add nullable, fill (`check` and `run` slots on Postgres, `run` on SQLite), then make it required. A new unique, primary-key or foreign-key field, or one whose values come from a value set, gets no temporary value: on a table with rows, use `--backfill`.
+- **An optional field made required** is tightened directly. If rows hold NULL, the apply fails and counts them (`3 rows of "Item" hold NULL in "note", so it cannot become required.`); set the values and re-run, or plan with `--backfill`.
+- **Following failure advice under `db migrate`:** the migration is already written, so the error says to copy any code you wrote in its `migration.ts`, delete its directory, and run the printed `migration plan --from <hash> …` command together with the statements you planned it with before.
 
 ## Workflow — Author a migration by hand
 

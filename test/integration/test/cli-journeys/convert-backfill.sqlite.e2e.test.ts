@@ -18,7 +18,9 @@ import {
   parseJsonOutput,
   planMigrationAndSelfEmit,
   runContractEmit,
+  runDbInit,
   runDbUpdate,
+  runDbVerify,
   runMigrate,
   runMigrationPlan,
   selfEmitMigration,
@@ -131,10 +133,28 @@ async function fillAndApply(
   const filled = fill(readFileSync(migrationTs, 'utf-8'));
   expect(filled).not.toContain('placeholder(');
   writeFileSync(migrationTs, filled);
-  const emitted = await selfEmitMigration(ctx, ['--dir', migrationDir, '--config', ctx.configPath]);
+  const selfEmit = () =>
+    selfEmitMigration(ctx, ['--dir', migrationDir, '--config', ctx.configPath]);
+  const emitted = await selfEmit();
   expect(emitted.exitCode, `self-emit: ${emitted.stdout}\n${emitted.stderr}`).toBe(0);
+  const ops = readFileSync(join(migrationDir, 'ops.json'), 'utf-8');
+  expect((await selfEmit()).exitCode, 'second self-emit').toBe(0);
+  expect(
+    readFileSync(join(migrationDir, 'ops.json'), 'utf-8'),
+    'a re-run reproduces ops.json',
+  ).toBe(ops);
   const applied = await runMigrate(ctx);
   expect(applied.exitCode, `apply: ${applied.stdout}\n${applied.stderr}`).toBe(0);
+  await expectSettled(ctx);
+}
+
+/** A further plan has nothing to do, and the database matches the contract. */
+async function expectSettled(ctx: JourneyContext): Promise<void> {
+  const again = await runMigrationPlan(ctx, ['--from', latestMigrationDirName(ctx), '--json']);
+  expect(again.exitCode, `plan again: ${again.stderr}`).toBe(0);
+  expect(parseJsonOutput<{ noOp: boolean }>(again).noOp).toBe(true);
+  const verify = await runDbVerify(ctx, ['--schema-only']);
+  expect(verify.exitCode, `db verify: ${verify.stdout}\n${verify.stderr}`).toBe(0);
 }
 
 withTempDir(({ createTempDir }) => {
@@ -249,6 +269,91 @@ withTempDir(({ createTempDir }) => {
           { id: 1, age: 10, stored: 'integer' },
           { id: 2, age: 7, stored: 'integer' },
         ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'plans a type change answered with --delete as a rebuild that checks the copied values',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(ctx, BASE.replace('age      String', 'age      Int'));
+        const planned = await runMigrationPlan(ctx, [
+          '--name',
+          'age-delete',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--delete',
+          'User.age',
+        ]);
+        expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
+        const scaffold = readFileSync(join(plannedDir(ctx, 'age_delete'), 'migration.ts'), 'utf-8');
+        expect(scaffold).not.toContain('copyExpressions');
+        expect(scaffold).toMatch(/castColumn: ['"]age['"]/);
+        await fillAndApply(ctx, plannedDir(ctx, 'age_delete'), (unchanged) => unchanged);
+        expect(
+          query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),
+        ).toEqual([
+          { id: 1, age: 10, stored: 'integer' },
+          { id: 2, age: 7, stored: 'integer' },
+        ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'fails naming the rows that hold NULL in a field made required, and applies once they hold values',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(ctx, BASE.replace('nickname String?', 'nickname String '));
+        await plannedPlain(ctx, 'nickname-required');
+
+        const failed = await runMigrate(ctx, ['--json']);
+        expect(failed.exitCode).not.toBe(0);
+        expect(parseJsonOutput<{ readonly summary: string }>(failed).summary).toBe(
+          '1 row of "User" holds NULL in "nickname", so it cannot become required.',
+        );
+
+        exec(ctx.dbPath, `UPDATE "User" SET nickname = 'anon' WHERE nickname IS NULL`);
+        const applied = await runMigrate(ctx);
+        expect(applied.exitCode, `apply: ${applied.stdout}\n${applied.stderr}`).toBe(0);
+        await expectSettled(ctx);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'refuses db update --convert, and its printed migration plan command converts a database db init created',
+      async () => {
+        const ctx = setup(createTempDir);
+        expect((await runContractEmit(ctx)).exitCode, 'emit base').toBe(0);
+        const initialised = await runDbInit(ctx);
+        expect(initialised.exitCode, `db init: ${initialised.stderr}`).toBe(0);
+        exec(ctx.dbPath, `INSERT INTO "User" (id, age, nickname) VALUES (1, '4', NULL)`);
+
+        await emit(ctx, BASE.replace('age      String', 'age      Int'));
+        const refused = await runDbUpdate(ctx, ['--convert', 'User.age', '--json']);
+        const error = parseJsonOutput<{
+          readonly code: string;
+          readonly nextActions: readonly { readonly command?: string }[];
+        }>(refused);
+        expect(error.code).toBe('MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE');
+        const command = error.nextActions.find(({ command }) =>
+          command?.includes('migration plan'),
+        )?.command;
+        expect(command).toBeDefined();
+        const planned = await runMigrationPlan(
+          ctx,
+          (command ?? '').replace(/^\S+ migration plan /, '').split(' '),
+        );
+        expect(planned.exitCode, `plan as printed: ${planned.stdout}\n${planned.stderr}`).toBe(0);
+        await fillAndApply(
+          ctx,
+          join(ctx.testDir, 'migrations', 'app', latestMigrationDirName(ctx)),
+          (scaffold) =>
+            scaffold.replace(/placeholder\((['"])User\.age:using\1\)/, `'CAST("age" AS INTEGER)'`),
+        );
+        expect(query(ctx.dbPath, `SELECT id, age FROM "User"`)).toEqual([{ id: 1, age: 4 }]);
       },
       timeouts.spinUpPpgDev,
     );
