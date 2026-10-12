@@ -1,6 +1,10 @@
 import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import { castColumnMeta, unconvertedFieldOf } from '../src/core/migrations/unconverted-field';
+import {
+  castColumnMeta,
+  castColumnOf,
+  unconvertedFieldOf,
+} from '../src/core/migrations/unconverted-field';
 import { contractOf } from './statement-fixtures';
 
 const contract = contractOf({
@@ -39,5 +43,15 @@ describe('unconvertedFieldOf', () => {
       Member: { table: 'user', namespace: 'auth', fields: { age: 'age' } },
     });
     expect(unconvertedFieldOf(step(castColumnMeta('user', 'age')), twoNamespaces)).toBeUndefined();
+  });
+});
+
+describe('castColumnOf', () => {
+  it('reads the column a step casts, and nothing from other meta', () => {
+    expect([
+      castColumnOf(step(castColumnMeta('user', 'age'))),
+      castColumnOf(step({ warning: 'TABLE_REWRITE' })),
+      castColumnOf(step()),
+    ]).toEqual([{ table: 'user', column: 'age' }, undefined, undefined]);
   });
 });

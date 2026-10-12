@@ -175,11 +175,16 @@ describe('a SQLite type change the rebuild copies', { timeout: timeouts.database
       code: 'MIGRATION.POSTCHECK_FAILED',
       summary:
         'Operation recreateTable.User failed during postcheck: verify every value of "age" on "User" is stored as INTEGER',
-      unconvertedField: {
-        kind: 'field',
-        namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-        model: 'User',
-        field: 'age',
+      why: `The value 'abc' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+      failedCast: {
+        field: {
+          kind: 'field',
+          namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+          model: 'User',
+          field: 'age',
+        },
+        reason: 'value',
+        operationIndex: 0,
       },
     });
     expect((await ages()).rows).toEqual([
@@ -190,6 +195,13 @@ describe('a SQLite type change the rebuild copies', { timeout: timeouts.database
       `SELECT type FROM pragma_table_info('User') WHERE name = 'age'`,
     );
     expect(declared.rows).toEqual([{ type: 'TEXT' }]);
+  });
+
+  it('cuts a long value short where it names it', async () => {
+    const result = await retype('text', 'integer', [`'${'x'.repeat(60)}'`]);
+    expect(result.ok ? undefined : result.failure.why).toBe(
+      `The value '${'x'.repeat(39)}… of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+    );
   });
 
   it('fails for a real column and for a text column as well', async () => {

@@ -505,6 +505,16 @@ export interface DbUpdateSuccess extends MigrationPlanSubjects<AskedDataLoss, As
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }
 
+/** A type change whose cast the database could not carry out, as the advice for it names it. */
+export interface FailedCastReport {
+  /** The field, as a `convert` statement names it. */
+  readonly field: string;
+  /** `value`: the database met a value it could not cast. `noCast`: it has no cast between the two types. */
+  readonly reason: 'value' | 'noCast';
+  /** The written migration the failed operation belongs to, when the apply ran written migrations. */
+  readonly migration?: { readonly directory: string; readonly from: string };
+}
+
 /**
  * Failure codes for dbUpdate operation.
  */
@@ -520,8 +530,8 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
-  /** The field whose type change met a value the database could not convert, as a `convert` statement names it. */
-  readonly unconvertedField?: string;
+  /** The type change whose cast failed. */
+  readonly failedCast?: FailedCastReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -734,8 +744,8 @@ export interface MigrateFailure {
   readonly summary: string;
   readonly why: string | undefined;
   readonly meta: Record<string, unknown> | undefined;
-  /** The field whose type change met a value the database could not convert, as a `convert` statement names it. */
-  readonly unconvertedField?: string;
+  /** The type change whose cast failed. */
+  readonly failedCast?: FailedCastReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }

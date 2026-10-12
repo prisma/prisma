@@ -187,13 +187,17 @@ describe('runMigration runner-failure cause forwarding', () => {
   });
 });
 
-describe('runMigration, a type change that met a value it could not convert', () => {
-  it('names the field as a convert statement names it', async () => {
+describe('runMigration, a type change whose cast failed', () => {
+  it('names the field as a convert statement names it, and the migration of the failed operation', async () => {
     const failingResult: MigrationRunnerResult = notOk({
       code: 'MIGRATION.EXECUTION_FAILED',
       summary: 'Operation alterType.user.age failed during execution: alter type of "age"',
       failingSpace: 'app',
-      unconvertedField: { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' },
+      failedCast: {
+        field: { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' },
+        reason: 'value',
+        operationIndex: 2,
+      },
     } as MigrationRunnerFailure);
     const migrations = {
       createRunner: () => ({ execute: async () => failingResult }),
@@ -202,12 +206,27 @@ describe('runMigration, a type change that met a value it could not convert', ()
       'postgres',
       ControlFamilyInstance<'sql', unknown>
     >;
+    const edge = (dirName: string, from: string, operationCount: number) => ({
+      migrationHash: `sha256:${dirName}`,
+      dirName,
+      from,
+      to: `${from}-next`,
+      operationCount,
+    });
+    const migrationEdges = [
+      edge('first', 'h0', 2),
+      edge('second', 'h1', 1),
+      edge('third', 'h2', 1),
+    ];
     const destinationContract = { domain: { namespaces: { app: { models: {} } } } };
 
     const result = await runMigration<'sql', 'postgres'>({
       aggregate: makeAggregate(),
       perSpacePlans: new Map([
-        ['app', { ...makePerSpacePlan(), destinationContract } as unknown as PerSpacePlan],
+        [
+          'app',
+          { ...makePerSpacePlan(), destinationContract, migrationEdges } as unknown as PerSpacePlan,
+        ],
       ]),
       applyOrder: ['app'],
       driver: {} as ControlDriverInstance<'sql', 'postgres'>,
@@ -218,6 +237,11 @@ describe('runMigration, a type change that met a value it could not convert', ()
       action: 'migrate',
     });
 
-    expect(result.ok ? undefined : result.failure.unconvertedField).toBe('User.age');
+    expect(result.ok ? undefined : result.failure.failedCast).toEqual({
+      field: 'User.age',
+      reason: 'value',
+      spaceId: 'app',
+      migration: migrationEdges[1],
+    });
   });
 });

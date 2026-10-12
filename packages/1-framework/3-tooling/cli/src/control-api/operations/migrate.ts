@@ -30,7 +30,9 @@ import { findPathWithDecision } from '@internal/migration-tools/migration-graph'
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
+import { join } from 'pathe';
 import type {
+  FailedCastReport,
   MigrateFailure,
   MigratePathDecision,
   MigrateResult,
@@ -42,7 +44,7 @@ import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
-import { buildPerSpaceBreakdown, runMigration } from './run-migration';
+import { buildPerSpaceBreakdown, type FailedCastInRun, runMigration } from './run-migration';
 
 /**
  * Inputs for the aggregate-walking `migrate` control-api
@@ -295,7 +297,12 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       summary: applied.failure.summary,
       why: applied.failure.why,
       meta: applied.failure.meta,
-      ...ifDefined('unconvertedField', applied.failure.unconvertedField),
+      ...ifDefined(
+        'failedCast',
+        applied.failure.failedCast === undefined
+          ? undefined
+          : failedCastReport(applied.failure.failedCast, migrationsDir),
+      ),
       ...ifDefined('cause', applied.failure.cause),
     };
     return notOk(failure);
@@ -663,5 +670,19 @@ export function buildPathNotFoundFailure(
     summary,
     why: `No migration edge connects the current state "${fromHash}" to the target "${targetHash}" in contract space "${spaceId}". The on-disk migration graph does not join the two, and migrate replays existing edges — it never invents one.`,
     meta: { spaceId, fromHash, targetHash, kind: 'pathUnreachable' },
+  };
+}
+
+function failedCastReport(failedCast: FailedCastInRun, migrationsDir: string): FailedCastReport {
+  const { field, reason, spaceId, migration } = failedCast;
+  return {
+    field,
+    reason,
+    ...ifDefined(
+      'migration',
+      migration === undefined
+        ? undefined
+        : { directory: join(migrationsDir, spaceId, migration.dirName), from: migration.from },
+    ),
   };
 }

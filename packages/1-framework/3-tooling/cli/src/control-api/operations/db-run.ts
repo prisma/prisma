@@ -69,6 +69,7 @@ import type {
   DbUpdateFailure,
   DbUpdateResult,
   DbUpdateSuccess,
+  FailedCastReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
 } from '../types';
@@ -453,7 +454,12 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('why', applied.failure.why),
       meta: applied.failure.meta,
       ...ifDefined('warnings', plannerWarnings),
-      ...ifDefined('unconvertedField', applied.failure.unconvertedField),
+      ...ifDefined(
+        'failedCast',
+        applied.failure.failedCast === undefined
+          ? undefined
+          : { field: applied.failure.failedCast.field, reason: applied.failure.failedCast.reason },
+      ),
       ...ifDefined('cause', applied.failure.cause),
     });
   }
@@ -737,7 +743,7 @@ function buildRunnerFailure(args: {
   readonly why?: string;
   readonly meta: Record<string, unknown>;
   readonly warnings?: readonly MigrationPlannerConflict[];
-  readonly unconvertedField?: string;
+  readonly failedCast?: FailedCastReport;
   readonly cause?: unknown;
 }): DbInitResult | DbUpdateResult {
   const failure: DbInitFailure | DbUpdateFailure = {
@@ -747,7 +753,7 @@ function buildRunnerFailure(args: {
     meta: args.meta,
     conflicts: undefined,
     ...ifDefined('warnings', args.warnings),
-    ...ifDefined('unconvertedField', args.unconvertedField),
+    ...ifDefined('failedCast', args.failedCast),
     ...ifDefined('cause', args.cause),
   };
   return blindCast<

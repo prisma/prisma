@@ -12,7 +12,10 @@ import type {
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
 import { runnerFailure, runnerSuccess, unconvertedFieldOf } from '@internal/family-sql/control';
-import type { MigrationRunnerResult } from '@internal/framework-components/control';
+import type {
+  FailedTypeChangeCast,
+  MigrationRunnerResult,
+} from '@internal/framework-components/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
@@ -58,9 +61,19 @@ function cloneAndFreezeRecord<T extends Record<string, unknown>>(value: T): T {
   );
 }
 
-/** A data exception, or a cast Postgres has no rule for: a value the cast could not convert. */
-function isCastFailure(sqlState: string | undefined): boolean {
-  return sqlState !== undefined && (sqlState.startsWith('22') || sqlState === '42846');
+/**
+ * The type change a failed cast step carries out: a data exception means a value the cast could
+ * not convert, and 42846 (`cannot_coerce`) a pair of types Postgres has no cast between.
+ */
+function failedCastOf(
+  step: SqlMigrationPlanOperationStep,
+  sqlState: string | undefined,
+  plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
+): FailedTypeChangeCast | undefined {
+  const reason = sqlState === '42846' ? 'noCast' : sqlState?.startsWith('22') ? 'value' : undefined;
+  if (reason === undefined) return undefined;
+  const field = unconvertedFieldOf(step, plan.contract);
+  return field === undefined ? undefined : { field, reason, operationIndex: plan.operationIndex };
 }
 
 export function createPostgresMigrationRunner(
@@ -255,12 +268,10 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           }
         }
 
-        const executeResult = await this.runExecuteSteps(
-          driver,
-          operation.execute,
-          operation,
-          options.destinationContract,
-        );
+        const executeResult = await this.runExecuteSteps(driver, operation, {
+          contract: options.destinationContract,
+          operationIndex: ops.indexOf(operation),
+        });
         if (!executeResult.ok) {
           return executeResult;
         }
@@ -367,11 +378,10 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
 
   private async runExecuteSteps(
     driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
-    steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
-    destinationContract: Contract<SqlStorage>,
+    plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
-    for (const step of steps) {
+    for (const step of operation.execute) {
       try {
         await driver.query(step.sql, step.params ?? []);
       } catch (error: unknown) {
@@ -381,9 +391,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
-              unconvertedField: isCastFailure(error.sqlState)
-                ? unconvertedFieldOf(step, destinationContract)
-                : undefined,
+              failedCast: failedCastOf(step, error.sqlState, plan),
               meta: {
                 operationId: operation.id,
                 stepDescription: step.description,

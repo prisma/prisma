@@ -9,20 +9,52 @@ const runnerFailed = {
   meta: {},
 } as const;
 
-describe('the advice for a type change that met a value it could not convert', () => {
+const FROM = 'a'.repeat(64);
+
+describe('the advice for a type change whose cast failed', () => {
   it('points db update to a migration with --convert', () => {
     expect(
-      mapDbUpdateFailure({ ...runnerFailed, conflicts: undefined, unconvertedField: 'User.age' })
-        .fix,
+      mapDbUpdateFailure({
+        ...runnerFailed,
+        conflicts: undefined,
+        failedCast: { field: 'User.age', reason: 'value' },
+      }).fix,
     ).toBe(
       'A value of field "User.age" cannot be converted to its new type by the database\'s cast. Plan the change with `{bin} migration plan --convert User.age`, write the conversion in the migration.ts it writes, and apply it with `{bin} db migrate`.',
     );
   });
 
-  it('points db migrate to planning the type change again with --convert', () => {
-    expect(mapMigrateFailure({ ...runnerFailed, unconvertedField: 'My Model.age' }).fix).toBe(
-      "A value of field \"My Model.age\" cannot be converted to its new type by the database's cast. Plan the type change again with `{bin} migration plan --convert 'My Model.age'` in place of this migration, and write the conversion in the migration.ts it writes.",
+  it('points db migrate to deleting the failed migration and planning it again from its origin with --convert', () => {
+    expect(
+      mapMigrateFailure({
+        ...runnerFailed,
+        failedCast: {
+          field: 'My Model.age',
+          reason: 'value',
+          migration: { directory: 'migrations/app/20261012T1041_lossy', from: FROM },
+        },
+      }).fix,
+    ).toBe(
+      `A value of field "My Model.age" cannot be converted to its new type by the database's cast. The failed apply changed nothing. Delete the migration directory \`migrations/app/20261012T1041_lossy\`, plan the type change again with \`{bin} migration plan --from ${FROM} --convert 'My Model.age'\`, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,
     );
+  });
+
+  it('says the database has no cast between the types when it has none', () => {
+    expect([
+      mapDbUpdateFailure({
+        ...runnerFailed,
+        conflicts: undefined,
+        failedCast: { field: 'T.d', reason: 'noCast' },
+      }).fix,
+      mapMigrateFailure({ ...runnerFailed, failedCast: { field: 'T.d', reason: 'noCast' } }).fix,
+    ]).toEqual([
+      expect.stringMatching(
+        /^The database has no cast from the old type of field "T\.d" to its new type\. Plan the change with `\{bin\} migration plan --convert T\.d`/,
+      ),
+      expect.stringMatching(
+        /^The database has no cast from the old type of field "T\.d" to its new type\. Plan the type change again with `\{bin\} migration plan --convert T\.d`/,
+      ),
+    ]);
   });
 
   it('keeps the general advice for any other runner failure', () => {

@@ -7,9 +7,9 @@
  * through `--backfill` and reads it back through the ORM.
  */
 
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { join } from 'pathe';
+import { join, resolve } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir, writeProjectManifest } from '../utils/cli-test-helpers';
 import {
@@ -158,6 +158,66 @@ withTempDir(({ createTempDir }) => {
           expect(scaffold).toMatch(slot);
           return scaffold.replace(slot, `'CAST("age" AS INTEGER)'`);
         });
+
+        expect(
+          query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),
+        ).toEqual([
+          { id: 1, age: 10, stored: 'integer' },
+          { id: 2, age: 7, stored: 'integer' },
+        ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'follows the advice of a --delete type change that cannot cast a value to a converted migration',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        exec(ctx.dbPath, `UPDATE "User" SET age = 'ten' WHERE id = 1`);
+        await emit(ctx, BASE.replace('age      String', 'age      Int'));
+        const deleted = await planMigrationAndSelfEmit(ctx, [
+          '--name',
+          'age-to-int',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--delete',
+          'User.age',
+        ]);
+        expect(deleted.exitCode, `plan: ${deleted.stderr}`).toBe(0);
+
+        const failed = await runMigrate(ctx, ['--json']);
+        expect(failed.exitCode, 'the cast meets a value it cannot convert').not.toBe(0);
+        const error = parseJsonOutput<{
+          readonly why: string;
+          readonly nextActions: readonly { readonly label: string }[];
+        }>(failed);
+        expect(error.why).toBe(
+          `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+        );
+        const advice = error.nextActions.map(({ label }) => label).join('\n');
+        const followed =
+          /Delete the migration directory `([^`]+)`, plan the type change again with `\S+ migration plan ([^`]+)`/.exec(
+            advice,
+          );
+        expect(followed, advice).not.toBeNull();
+        const [, directory = '', command = ''] = followed ?? [];
+        expect(query(ctx.dbPath, `SELECT id, age FROM "User" ORDER BY id`)).toEqual([
+          { id: 1, age: 'ten' },
+          { id: 2, age: '7' },
+        ]);
+
+        rmSync(resolve(ctx.testDir, directory), { recursive: true });
+        const planned = await runMigrationPlan(ctx, command.split(' '));
+        expect(planned.exitCode, `plan as printed: ${planned.stdout}\n${planned.stderr}`).toBe(0);
+        await fillAndApply(
+          ctx,
+          join(ctx.testDir, 'migrations', 'app', latestMigrationDirName(ctx)),
+          (scaffold) =>
+            scaffold.replace(
+              /placeholder\((['"])User\.age:using\1\)/,
+              `"CASE WHEN \\"age\\" = 'ten' THEN 10 ELSE CAST(\\"age\\" AS INTEGER) END"`,
+            ),
+        );
 
         expect(
           query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),

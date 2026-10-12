@@ -376,8 +376,18 @@ export interface MigrationRunnerFailure {
    * {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
-  /** The field whose type change met a value the database could not convert to the new type. */
-  readonly unconvertedField?: MigrationSubject;
+  /** The type change whose cast failed, when the failed step was one. */
+  readonly failedCast?: FailedTypeChangeCast;
+}
+
+/** A type change whose cast the database could not carry out. */
+export interface FailedTypeChangeCast {
+  /** The field whose type changes. */
+  readonly field: MigrationSubject;
+  /** `value`: the database met a value it could not cast. `noCast`: it has no cast between the two types. */
+  readonly reason: 'value' | 'noCast';
+  /** The position of the operation in the operations of the failing space's plan. */
+  readonly operationIndex: number;
 }
 
 /**

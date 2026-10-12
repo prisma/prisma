@@ -11,7 +11,12 @@ import type {
   SqlMigrationRunnerResult,
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
-import { runnerFailure, runnerSuccess, unconvertedFieldOf } from '@internal/family-sql/control';
+import {
+  castColumnOf,
+  runnerFailure,
+  runnerSuccess,
+  unconvertedFieldOf,
+} from '@internal/family-sql/control';
 import type { MigrationRunnerResult } from '@internal/framework-components/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
@@ -25,6 +30,7 @@ import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
+import { affinityStorageClasses } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 
 export function createSqliteMigrationRunner(
@@ -286,7 +292,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             operation.postcheck,
             operation,
             'postcheck',
-            options.destinationContract,
+            { contract: options.destinationContract, operationIndex: ops.indexOf(operation) },
           );
           if (!postcheckResult.ok) {
             return postcheckResult;
@@ -349,13 +355,15 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<SqlitePlanTargetDetails>,
     phase: 'precheck' | 'postcheck',
-    destinationContract?: Contract<SqlStorage>,
+    plan?: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       const result = await driver.query(step.sql, step.params ?? []);
       if (!this.stepResultIsTrue(result.rows)) {
         const code =
           phase === 'precheck' ? 'MIGRATION.PRECHECK_FAILED' : 'MIGRATION.POSTCHECK_FAILED';
+        const field = plan === undefined ? undefined : unconvertedFieldOf(step, plan.contract);
+        const cast = castColumnOf(step);
         return runnerFailure(
           code,
           `Operation ${operation.id} failed during ${phase}: ${step.description}`,
@@ -365,15 +373,44 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
               phase,
               stepDescription: step.description,
             },
-            unconvertedField:
-              destinationContract === undefined
+            ...ifDefined(
+              'why',
+              cast === undefined ? undefined : await this.unconvertedValueText(driver, cast),
+            ),
+            ...ifDefined(
+              'failedCast',
+              field === undefined || plan === undefined
                 ? undefined
-                : unconvertedFieldOf(step, destinationContract),
+                : { field, reason: 'value' as const, operationIndex: plan.operationIndex },
+            ),
           },
         );
       }
     }
     return okVoid();
+  }
+
+  /** Names the first value of a retyped column that kept a storage class its new type does not hold. */
+  private async unconvertedValueText(
+    driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
+    cast: { readonly table: string; readonly column: string },
+  ): Promise<string | undefined> {
+    const declared = await driver.query<{ type: string }>(
+      'SELECT type FROM pragma_table_info(?) WHERE name = ?',
+      [cast.table, cast.column],
+    );
+    const typeSql = declared.rows[0]?.type;
+    if (typeSql === undefined) return undefined;
+    const column = quoteIdentifier(cast.column);
+    const classes = ['null', ...affinityStorageClasses(typeSql)];
+    const found = await driver.query<{ value: string; storageClass: string }>(
+      `SELECT quote(${column}) AS value, typeof(${column}) AS storageClass FROM ${quoteIdentifier(cast.table)} WHERE typeof(${column}) NOT IN (${classes.map(() => '?').join(', ')}) LIMIT 1`,
+      classes,
+    );
+    const row = found.rows[0];
+    if (row === undefined) return undefined;
+    const value = row.value.length > 40 ? `${row.value.slice(0, 40)}…` : row.value;
+    return `The value ${value} of column "${cast.column}" on "${cast.table}" is still stored as ${row.storageClass}, which ${typeSql} cannot hold.`;
   }
 
   private async runExecuteSteps(

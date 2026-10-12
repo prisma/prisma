@@ -1,7 +1,7 @@
 import type {
   AppliedMigrationStatement,
+  FailedTypeChangeCast,
   MigrationPlanSubjects,
-  MigrationSubject,
 } from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -200,14 +200,14 @@ export function runnerSuccess(value: {
 export function runnerFailure(
   code: SqlMigrationRunnerErrorCode,
   summary: string,
-  options?: { why?: string; meta?: AnyRecord; unconvertedField?: MigrationSubject | undefined },
+  options?: { why?: string; meta?: AnyRecord; failedCast?: FailedTypeChangeCast | undefined },
 ): NotOk<SqlMigrationRunnerFailure> {
   const failure: SqlMigrationRunnerFailure = Object.freeze({
     code,
     summary,
     ...(options?.why ? { why: options.why } : {}),
     ...(options?.meta ? { meta: cloneRecord(options.meta) } : {}),
-    ...ifDefined('unconvertedField', options?.unconvertedField),
+    ...ifDefined('failedCast', options?.failedCast),
   });
   return notOk(failure);
 }

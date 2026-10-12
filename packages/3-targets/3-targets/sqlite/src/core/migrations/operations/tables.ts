@@ -294,7 +294,7 @@ function castColumnStep(
  * type affinity converts what it can, so a value of another class is one it could not convert.
  * See https://www.sqlite.org/datatype3.html#determination_of_column_affinity.
  */
-function affinityStorageClasses(typeSql: string): readonly string[] {
+export function affinityStorageClasses(typeSql: string): readonly string[] {
   const declared = typeSql.toUpperCase();
   if (declared.includes('INT')) return ['integer'];
   if (['CHAR', 'CLOB', 'TEXT'].some((part) => declared.includes(part))) return ['text'];

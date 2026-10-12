@@ -31,6 +31,12 @@ const ALL_CLASSES: MigrationOperationPolicy = {
 const columnTypes = {
   text: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
   int4: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+  'timestamptz?': {
+    dataType: 'pg/timestamptz',
+    codecId: 'pg/timestamptz-temporal@1',
+    nullable: true,
+  },
+  'int4?': { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: true },
 } as const;
 
 function userContract(age: keyof typeof columnTypes, seed: string): Contract<SqlStorage> {
@@ -65,7 +71,7 @@ function userContract(age: keyof typeof columnTypes, seed: string): Contract<Sql
           fields: Object.fromEntries(
             Object.entries(columns).map(([field, column]) => [
               field,
-              { nullable: false, type: { kind: 'scalar', codecId: column.codecId } },
+              { nullable: column.nullable, type: { kind: 'scalar', codecId: column.codecId } },
             ]),
           ),
           relations: {},
@@ -141,20 +147,21 @@ describe('a Postgres type change the database casts', { concurrent: false }, () 
     });
   }
 
-  async function retype(...ages: readonly string[]) {
-    expect((await execute(plan(null, textAge, emptySchema), textAge)).ok).toBe(true);
+  async function retype(
+    ages: readonly (string | null)[],
+    from = textAge,
+    to = intAge,
+  ): ReturnType<typeof execute> {
+    expect((await execute(plan(null, from, emptySchema), from)).ok).toBe(true);
     for (const [index, age] of ages.entries()) {
       await driver!.query('INSERT INTO "User" (id, age) VALUES ($1, $2)', [index + 1, age]);
     }
-    const schema = postgresTargetDescriptor.migrations.contractToSchema(
-      textAge,
-      frameworkComponents,
-    );
-    return execute(plan(textAge, intAge, schema), intAge);
+    const schema = postgresTargetDescriptor.migrations.contractToSchema(from, frameworkComponents);
+    return execute(plan(from, to, schema), to);
   }
 
   it('keeps every value the cast converts', { timeout: testTimeout }, async () => {
-    expect((await retype('12', '7')).ok).toBe(true);
+    expect((await retype(['12', '7'])).ok).toBe(true);
     const rows = await driver!.query<{ age: number }>('SELECT age FROM "User" ORDER BY id');
     expect(rows.rows).toEqual([{ age: 12 }, { age: 7 }]);
   });
@@ -162,17 +169,35 @@ describe('a Postgres type change the database casts', { concurrent: false }, () 
   it('fails on a value the cast cannot convert, naming its field, and changes nothing', {
     timeout: testTimeout,
   }, async () => {
-    const result = await retype('12', 'abc');
+    const result = await retype(['12', 'abc']);
     expect(result.ok ? undefined : result.failure).toMatchObject({
       code: 'MIGRATION.EXECUTION_FAILED',
-      unconvertedField: {
-        kind: 'field',
-        namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-        model: 'User',
-        field: 'age',
+      failedCast: {
+        field: {
+          kind: 'field',
+          namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+          model: 'User',
+          field: 'age',
+        },
+        reason: 'value',
+        operationIndex: 0,
       },
     });
     const rows = await driver!.query<{ age: string }>('SELECT age FROM "User" ORDER BY id');
     expect(rows.rows).toEqual([{ age: '12' }, { age: 'abc' }]);
+  });
+
+  it('fails when the database has no cast between the two types, even with no value to cast', {
+    timeout: testTimeout,
+  }, async () => {
+    const result = await retype(
+      [null],
+      userContract('timestamptz?', 'c'.repeat(64)),
+      userContract('int4?', 'd'.repeat(64)),
+    );
+    expect(result.ok ? undefined : result.failure.failedCast).toMatchObject({
+      field: { model: 'User', field: 'age' },
+      reason: 'noCast',
+    });
   });
 });

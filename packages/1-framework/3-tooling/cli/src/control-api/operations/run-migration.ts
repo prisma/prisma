@@ -7,11 +7,16 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
+  FailedTypeChangeCast,
   MigrationOperationPolicy,
   MigrationRunnerFailure,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
-import type { ContractSpaceAggregate, PerSpacePlan } from '@internal/migration-tools/aggregate';
+import type {
+  AggregateMigrationEdgeRef,
+  ContractSpaceAggregate,
+  PerSpacePlan,
+} from '@internal/migration-tools/aggregate';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -42,8 +47,8 @@ export interface RunnerFailure {
   readonly summary: string;
   readonly why?: string;
   readonly meta: Record<string, unknown>;
-  /** The field whose type change met a value the database could not convert, as a `convert` statement names it. */
-  readonly unconvertedField?: string;
+  /** The type change whose cast failed, with the migration its operation belongs to. */
+  readonly failedCast?: FailedCastInRun;
   /**
    * The runner's original failure object, preserved verbatim so callers
    * can attach it as `cause` on the CLI error they build from this shape.
@@ -51,14 +56,41 @@ export interface RunnerFailure {
   readonly cause?: unknown;
 }
 
-function unconvertedFieldText(
+/** A failed type-change cast of a run: the field as a `convert` statement names it, and the migration of its operation. */
+export interface FailedCastInRun {
+  readonly field: string;
+  readonly reason: FailedTypeChangeCast['reason'];
+  readonly spaceId: string;
+  readonly migration: AggregateMigrationEdgeRef | undefined;
+}
+
+function edgeOfOperation(
+  edges: readonly AggregateMigrationEdgeRef[],
+  operationIndex: number,
+): AggregateMigrationEdgeRef | undefined {
+  let end = 0;
+  return edges.find((edge) => {
+    end += edge.operationCount;
+    return operationIndex < end;
+  });
+}
+
+function failedCastInRun(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): string | undefined {
-  const destination = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace)?.entry
-    .destinationContract;
-  if (failure.unconvertedField === undefined || destination === undefined) return undefined;
-  return subjectText(failure.unconvertedField, { origin: destination, statements: [] });
+): FailedCastInRun | undefined {
+  const { failedCast, failingSpace } = failure;
+  const resolution = resolutions.find(({ spaceId }) => spaceId === failingSpace);
+  if (failedCast === undefined || resolution === undefined) return undefined;
+  return {
+    field: subjectText(failedCast.field, {
+      origin: resolution.entry.destinationContract,
+      statements: [],
+    }),
+    reason: failedCast.reason,
+    spaceId: resolution.spaceId,
+    migration: edgeOfOperation(resolution.entry.migrationEdges, failedCast.operationIndex),
+  };
 }
 
 export interface RunMigrationInputs<TFamilyId extends string, TTargetId extends string> {
@@ -187,10 +219,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
         failingSpace: runnerResult.failure.failingSpace,
         runnerErrorCode: runnerResult.failure.code,
       },
-      ...ifDefined(
-        'unconvertedField',
-        unconvertedFieldText(runnerResult.failure, orderedResolutions),
-      ),
+      ...ifDefined('failedCast', failedCastInRun(runnerResult.failure, orderedResolutions)),
       cause: runnerResult.failure,
     });
   }
