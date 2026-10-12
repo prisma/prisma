@@ -3,6 +3,7 @@ import { SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../../src/core/codecs';
 import { sqliteFillValue } from '../../src/core/migrations/planner-fill-values';
+import { sqliteCodecRegistry } from '../../src/core/registry';
 import { sqliteTestTypes } from '../sqlite-test-types';
 
 function readBack(fill: string): unknown {
@@ -25,10 +26,12 @@ describe('the temporary value a new required SQLite column takes', () => {
           codecRef: { codecId: descriptor.codecId },
         });
         const fill = sqliteFillValue(column, new Map(), sqliteTestTypes);
-        const codec = descriptor.factory(undefined)({ name: 'v' });
+        const codec = sqliteCodecRegistry.descriptorFor(descriptor.codecId)?.factory(undefined)({
+          name: 'v',
+        });
         return [
           descriptor.codecId,
-          fill === undefined ? undefined : await codec.decode(readBack(fill), {}),
+          fill === undefined ? undefined : await codec?.decode(readBack(fill), {}),
         ];
       }),
     );
