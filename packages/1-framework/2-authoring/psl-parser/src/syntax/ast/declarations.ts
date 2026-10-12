@@ -1,5 +1,6 @@
 import type { AstNode, BracedBlock, HasDocComment } from '../ast-helpers';
 import { filterChildren, findChildToken, findFirstChild, readDocComment } from '../ast-helpers';
+import { skipTriviaToken } from '../navigation';
 import { SyntaxNode, type SyntaxToken } from '../red';
 import { FieldAttributeAst, ModelAttributeAst } from './attributes';
 import type { ExpressionAst } from './expressions';
@@ -288,13 +289,9 @@ export class MixinDeclarationAst implements BracedBlock, HasDocComment {
   }
 
   mixinKeyword(): SyntaxToken | undefined {
-    let seen = 0;
-    for (const child of this.syntax.children()) {
-      if (child instanceof SyntaxNode || child.kind !== 'Ident') continue;
-      if (seen === 1) return child;
-      seen++;
-    }
-    return undefined;
+    const next = this.keyword()?.nextToken;
+    const token = next === undefined ? undefined : skipTriviaToken(next, 'next');
+    return token?.kind === 'Ident' && token.parent === this.syntax ? token : undefined;
   }
 
   name(): IdentifierAst | undefined {
