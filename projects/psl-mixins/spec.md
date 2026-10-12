@@ -91,7 +91,7 @@ Inclusions are replaced by members while the symbol table is built. The binder a
 11. **Inclusions are replaced by members in `buildSymbolTable`,** in a second pass after all declarations are collected. Mixin lookup needs only user declarations, since no target or extension contributes mixins. The existing duplicate detection there covers decision 9.
 12. **Mixed-in members are shared symbols.** A mixin's field is one symbol and one node however many blocks include it. A reference to it from an including block (`@@unique([tenantId, id])`) resolves to the mixin's field, so rename and go-to-definition work across including blocks.
 13. **Diagnostic locations.** Errors raised while inclusions are replaced (unresolved mixin, keyword mismatch, duplicate member, inclusion inside a mixin) point at the inclusion. Errors raised by family interpreters keep the location they compute today, which for a mixed-in member is inside the mixin. Moving those to the inclusion would require either every interpreter diagnostic site (about 260 across the SQL and Mongo interpreters) to know about mixins, or per-block member copies that would also move errors that are the mixin's own fault.
-14. **Under the `prisma-7` grammar option nothing changes.** Neither new form is recognised, and `model mixin { … }` stays a model named `mixin`. Prisma 7 has no custom blocks, so `mixin X { … }` is already an unsupported block there.
+14. **The parser reads both forms under every grammar option.** It does not decide whether a schema version supports mixins. The interpreters for Prisma 7 and Prisma 6 schemas report a mixin declaration and an inclusion as unsupported, as they report other constructs those versions lack. (Changed in review of the grammar slice: the parser first left both forms unrecognised under the `prisma-7` grammar.)
 
 Restrictions:
 
@@ -156,7 +156,7 @@ None. No target adapter changes.
 - [ ] The formatter prints both new forms and formatting is idempotent on them.
 - [ ] In the language server, go-to-definition on an inclusion's operand opens the mixin, and renaming a mixin updates its inclusions.
 - [ ] In the language server, completion after `+` offers the mixins whose keyword matches the enclosing block, and no others.
-- [ ] Under the `prisma-7` grammar option, `model mixin X { }`, `model mixin { }` and a line starting with `+` parse as they do today.
+- [ ] A Prisma 7 schema and a Prisma 6 schema that declare or include a mixin are rejected with a diagnostic at the mixin declaration and at the inclusion.
 - [ ] An ADR records the mixin syntax and the resolve-where-written rule, and `projects/prisma-8-rc1/feature-surface.md` no longer shows the superseded spelling.
 
 ## Open Questions
