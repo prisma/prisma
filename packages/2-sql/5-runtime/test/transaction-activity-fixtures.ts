@@ -1,5 +1,8 @@
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import type { AfterTransactionResult } from '@internal/framework-components/runtime';
+import type {
+  ActivityFinalizedResult,
+  RuntimeActivity,
+} from '@internal/framework-components/runtime';
 import {
   type MarkerReadResult,
   RawQueryAst,
@@ -10,8 +13,9 @@ import {
   type SqlExecutionPlan,
   type SqlQueryPlan,
 } from '@internal/sql-relational-core/plan';
+import { ifDefined } from '@internal/utils/defined';
 import { vi } from 'vitest';
-import type { SqlMiddleware } from '../src/middleware/sql-middleware';
+import type { SqlMiddleware, SqlMiddlewareContext } from '../src/middleware/sql-middleware';
 import { createSqlExecutionStack } from '../src/sql-context';
 import type { Log } from '../src/sql-runtime';
 import { defineTestCodec } from './test-codec';
@@ -37,11 +41,13 @@ const failingDecodeCodec = defineTestCodec({
 
 export interface HookEvent {
   readonly name: string;
-  readonly plan?: SqlExecutionPlan;
-  readonly planExecutionId?: string;
+  readonly sql?: string;
+  readonly activity?: RuntimeActivity;
+  readonly ctx?: SqlMiddlewareContext;
 }
 
 export interface DriverFailures {
+  readonly begin?: Error;
   readonly query?: Error;
   readonly execute?: Error;
   readonly commit?: Error;
@@ -77,7 +83,11 @@ function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver 
   };
   const connection = {
     ...queryable,
-    beginTransaction: vi.fn().mockResolvedValue(transaction),
+    beginTransaction: vi.fn().mockImplementation(async () => {
+      events.push({ name: 'begin' });
+      if (failures.begin) throw failures.begin;
+      return transaction;
+    }),
     release: vi.fn().mockImplementation(settle('release', undefined)),
     destroy: vi.fn().mockImplementation(settle('destroy', undefined)),
   };
@@ -89,59 +99,51 @@ function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver 
   };
 }
 
+function sqlOf(activity: RuntimeActivity): string | undefined {
+  if (activity.kind !== 'statement') return undefined;
+  const { plan } = activity;
+  return 'sql' in plan && typeof plan.sql === 'string' ? plan.sql : undefined;
+}
+
 function recorder(
   events: HookEvent[],
-  afterTransaction: SqlMiddleware['afterTransaction'] | undefined,
+  activityFinalized: SqlMiddleware['activityFinalized'] | undefined,
   beforeHookFailure: Error | undefined,
-): Required<Pick<SqlMiddleware, 'afterQuery' | 'afterExecute' | 'afterTransaction'>> &
-  SqlMiddleware {
-  const record = (name: string, plan: SqlExecutionPlan, planExecutionId: string) => {
-    events.push({ name, plan, planExecutionId });
+): SqlMiddleware {
+  const record = (name: string, activity: RuntimeActivity, ctx: SqlMiddlewareContext) => {
+    events.push({ name, ...ifDefined('sql', sqlOf(activity)), activity, ctx });
   };
   return {
     name: 'recorder',
     familyId: 'sql',
-    async beforeQuery(plan, ctx) {
-      record('beforeQuery', plan, ctx.planExecutionId);
+    async activityStarted(activity, ctx) {
+      record(`started:${activity.kind}`, activity, ctx);
+    },
+    async beforeEncode(plan, ctx) {
+      events.push({ name: 'beforeEncode', sql: plan.sql, ctx });
       if (beforeHookFailure) throw beforeHookFailure;
     },
-    async beforeExecute(plan, ctx) {
-      record('beforeExecute', plan, ctx.planExecutionId);
-      if (beforeHookFailure) throw beforeHookFailure;
+    async activityEnded(activity, result, ctx) {
+      record(`ended:${activity.kind}:${result.outcome}`, activity, ctx);
     },
-    async afterQuery(plan, _result, ctx) {
-      record('afterQuery', plan, ctx.planExecutionId);
-    },
-    async afterExecute(plan, _result, ctx) {
-      record('afterExecute', plan, ctx.planExecutionId);
-    },
-    async afterTransaction(plan, result, ctx) {
-      record(`afterTransaction:${result.outcome}`, plan, ctx.planExecutionId);
-      await afterTransaction?.(plan, result, ctx);
+    async activityFinalized(activity, result, ctx) {
+      record(`finalized:${activity.kind}:${result.outcome}`, activity, ctx);
+      await activityFinalized?.(activity, result, ctx);
     },
   };
 }
 
 export interface SetupOptions {
   readonly failures?: DriverFailures;
-  readonly afterTransaction?: SqlMiddleware['afterTransaction'];
+  readonly activityFinalized?: SqlMiddleware['activityFinalized'];
   readonly beforeHookFailure?: Error;
   readonly readMarker?: () => Promise<MarkerReadResult>;
   readonly log?: Log;
-  readonly declaresAfterTransaction?: boolean;
 }
 
 export function createSetup(options: SetupOptions = {}) {
   const events: HookEvent[] = [];
-  const { afterTransaction, ...withoutAfterTransaction } = recorder(
-    events,
-    options.afterTransaction,
-    options.beforeHookFailure,
-  );
-  const middleware: SqlMiddleware =
-    options.declaresAfterTransaction === false
-      ? withoutAfterTransaction
-      : { ...withoutAfterTransaction, afterTransaction };
+  const middleware = recorder(events, options.activityFinalized, options.beforeHookFailure);
   const stubAdapter = createStubAdapter();
   const { readMarker } = options;
   const adapter = {
@@ -163,7 +165,7 @@ export function createSetup(options: SetupOptions = {}) {
     middleware: [middleware],
     ...(options.log ? { log: options.log } : {}),
   });
-  return { runtime, events, middleware, afterTransaction };
+  return { runtime, events, middleware };
 }
 
 export type Setup = ReturnType<typeof createSetup>;
@@ -190,13 +192,20 @@ export function failingDecodePlan(): SqlQueryPlan<{ id: number }> {
 
 export const names = (events: readonly HookEvent[]) => events.map((event) => event.name);
 
+/** Every lifecycle event and driver call, without the starts, beforeEncode and BEGIN. */
 export const afterHookNames = (events: readonly HookEvent[]) =>
-  names(events).filter((name) => !name.startsWith('before'));
+  names(events).filter(
+    (name) => !name.startsWith('started:') && name !== 'beforeEncode' && name !== 'begin',
+  );
 
+/** The statements' finalization outcomes, in order. */
 export const stages = (events: readonly HookEvent[]) =>
-  names(events).filter((name) => name.startsWith('afterTransaction'));
+  names(events).filter((name) => name.startsWith('finalized:statement'));
 
-export type Outcome = AfterTransactionResult['outcome'];
+export const transactionStages = (events: readonly HookEvent[]) =>
+  names(events).filter((name) => name.startsWith('finalized:transaction'));
+
+export type Outcome = ActivityFinalizedResult['outcome'];
 
 export interface TransactionCase {
   readonly title: string;
