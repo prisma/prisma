@@ -203,6 +203,8 @@ After `whereUnique`:
 
 The refused methods still appear in editor completion; calling one is the error. The error message names `HasNoUniqueFilter`.
 
+A row lock keeps the unique filter and the collection's class: after `whereUnique({ id }).forUpdate()` the same calls are available and the same calls are compile errors.
+
 `whereUnique` is not available inside an `include` refinement. The refinement collection does not have the method, and a call that reaches it another way, such as through a fragment made by `collection.fragment`, throws `ORM.INCLUDE_INVALID`.
 
 A helper that takes or returns such a collection writes its type as `UniquelyFiltered<C>`, which is `C & HasWhere & HasUniqueFilter`. Constrained as below, it accepts a custom collection class and the plain collection of the model, with or without an `include`, and its result keeps the class's methods:
@@ -221,7 +223,6 @@ These cases are not refused:
 - A method of a custom collection class is callable on a uniquely filtered collection whatever its body does, and so is a fragment made by the client's `fragment` method or by `collection.fragment`, run with `with`. One that adds an order or a limit is accepted; the query still matches at most one record. A function passed to `with` directly is checked: `db.Post.whereUnique({ id }).with((posts) => posts.limit(1))` is refused.
 - The result of `with(fragment)` for a fragment made by `collection.fragment` is the fragment's own result type and no longer records the unique filter, so the many-record methods compile on it.
 - Inside a method of a custom collection class, two results no longer record the unique filter: the result of another method of the class called after `this.whereUnique(...)`, and `.prepared` after `this.whereUnique(...)`, as `.prepared` after `.include(...)` loses what `include` established (see [Custom collections](#custom-collections)). `this.whereUnique({ id }).withTitle('orm').all()` and `this.whereUnique({ id }).prepared.all()` compile there, while the same calls from outside the class are refused. Every other many-record call after `this.whereUnique(...)` is refused inside the class as it is outside.
-- The row-lock methods return the plain `Collection` type for every receiver, so after `whereUnique(...).forUpdate()` the many-record methods compile again and `update` and `delete` do not. Read the locked record with `first()` or `firstOrThrow()`.
 - A conditional that mixes a uniquely filtered collection with another one, such as `flag ? db.Post.whereUnique({ id }) : db.Post.where({ userId })`, has the many-record methods.
 
 ## Skipping rows that collide with a unique constraint

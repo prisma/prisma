@@ -165,11 +165,20 @@ describe('single-record calls after whereUnique', () => {
     } | null>();
   });
 
-  test('a row lock keeps the row', () => {
-    expectTypeOf(unique.forUpdate().first()).resolves.toEqualTypeOf<Row | null>();
-    expectTypeOf(unique.forNoKeyUpdate().first()).resolves.toEqualTypeOf<Row | null>();
+  test('a row lock keeps the class, the unique filter and the single-record calls', () => {
+    expectTypeOf(unique.forUpdate()).toEqualTypeOf<UniquelyFiltered<PostCollection>>();
+    expectTypeOf(unique.forNoKeyUpdate()).toEqualTypeOf<UniquelyFiltered<PostCollection>>();
+    expectTypeOf(unique.forShare()).toEqualTypeOf<UniquelyFiltered<PostCollection>>();
+    expectTypeOf(unique.forKeyShare()).toEqualTypeOf<UniquelyFiltered<PostCollection>>();
+    const locked = unique.forUpdate();
+    expectTypeOf(locked.first()).resolves.toEqualTypeOf<Row | null>();
+    expectTypeOf(locked.firstOrThrow()).resolves.toEqualTypeOf<Row>();
+    expectTypeOf(locked.update({ title: 'x' })).resolves.toEqualTypeOf<Row | null>();
+    expectTypeOf(locked.delete()).resolves.toEqualTypeOf<Row | null>();
+    expectTypeOf(locked.published().first()).resolves.toEqualTypeOf<Row | null>();
     expectTypeOf(unique.forShare().first()).resolves.toEqualTypeOf<Row | null>();
     expectTypeOf(unique.forKeyShare().first()).resolves.toEqualTypeOf<Row | null>();
+    expectTypeOf(unique.forNoKeyUpdate().first()).resolves.toEqualTypeOf<Row | null>();
   });
 });
 
@@ -292,6 +301,44 @@ describe('many-record calls after whereUnique', () => {
     selected.deleteAll();
     // @ts-expect-error deleteAndCount needs a collection without a unique filter
     selected.deleteAndCount();
+  });
+
+  test('refused after a row lock', () => {
+    const locked = unique.forUpdate();
+    // @ts-expect-error orderBy needs a collection without a unique filter
+    locked.orderBy((p) => p.views.desc());
+    // @ts-expect-error limit needs a collection without a unique filter
+    locked.limit(1);
+    // @ts-expect-error offset needs a collection without a unique filter
+    locked.offset(1);
+    // @ts-expect-error cursor needs a collection without a unique filter
+    ordered.forUpdate().cursor({ views: 1 });
+    // @ts-expect-error distinct needs a collection without a unique filter
+    locked.distinct('title');
+    // @ts-expect-error distinctOn needs a collection without a unique filter
+    ordered.forUpdate().distinctOn('title');
+    // @ts-expect-error all needs a collection without a unique filter
+    locked.all();
+    // @ts-expect-error aggregate needs a collection without a unique filter
+    locked.aggregate((a) => ({ n: a.count() }));
+    // @ts-expect-error groupBy needs a collection without a unique filter
+    locked.groupBy('userId');
+    // @ts-expect-error updateAll needs a collection without a unique filter
+    locked.updateAll({ title: 'x' });
+    // @ts-expect-error updateAndCount needs a collection without a unique filter
+    locked.updateAndCount({ title: 'x' });
+    // @ts-expect-error deleteAll needs a collection without a unique filter
+    locked.deleteAll();
+    // @ts-expect-error deleteAndCount needs a collection without a unique filter
+    locked.deleteAndCount();
+    // @ts-expect-error prepared.all needs a collection without a unique filter
+    locked.prepared.all();
+    // @ts-expect-error all needs a collection without a unique filter
+    unique.forNoKeyUpdate().all();
+    // @ts-expect-error all needs a collection without a unique filter
+    unique.forShare().all();
+    // @ts-expect-error all needs a collection without a unique filter
+    unique.forKeyShare().all();
   });
 
   test('refused after a class method, a variant and on the plain collection', () => {
@@ -568,14 +615,6 @@ describe('a uniquely filtered collection among other collections', () => {
     expectTypeOf(Post.whereUnique({ id: 1 })).toExtend<AnyPostCollection>();
     expectTypeOf(plain.Post.where({ id: 1 })).toExtend<AnyPostCollection>();
     expectTypeOf(plain.Post.whereUnique({ id: 1 })).toExtend<AnyPostCollection>();
-  });
-
-  test('all after a row lock is not refused', () => {
-    const unique = Post.whereUnique({ id: 1 });
-    expectTypeOf(unique.forUpdate().all()).toEqualTypeOf<AsyncIterableResult<Row>>();
-    expectTypeOf(unique.forNoKeyUpdate().all()).toEqualTypeOf<AsyncIterableResult<Row>>();
-    expectTypeOf(unique.forShare().all()).toEqualTypeOf<AsyncIterableResult<Row>>();
-    expectTypeOf(unique.forKeyShare().all()).toEqualTypeOf<AsyncIterableResult<Row>>();
   });
 
   test('all after with() of a fragment made by collection.fragment is not refused', () => {

@@ -133,6 +133,35 @@ describe('whereUnique with a criterion that does not hold a complete key', () =>
     expect(runtime.executions).toHaveLength(0);
   });
 
+  it('throws as where does for a key given by its column name', () => {
+    const { plain, runtime } = createChainingOrm();
+    const byColumn = { user_id: 1 } as unknown as { userId: number };
+    const fieldUnknown = expect.objectContaining({
+      code: 'ORM.FIELD_UNKNOWN',
+      meta: { model: 'Profile', field: 'user_id', fieldForColumn: 'userId' },
+    });
+    expect(() => plain.Profile.where(byColumn)).toThrow(fieldUnknown);
+    expect(() => plain.Profile.whereUnique(byColumn)).toThrow(fieldUnknown);
+    expect(runtime.executions).toHaveLength(0);
+  });
+
+  it('throws as where does for a name that is not a field, next to a complete key', () => {
+    const { db } = createChainingOrm();
+    const withUnknown = { id: 1, nope: 'x' } as unknown as { id: number };
+    const fieldUnknown = expect.objectContaining({
+      code: 'ORM.FIELD_UNKNOWN',
+      meta: { model: 'Post', field: 'nope' },
+    });
+    expect(() => db.Post.where(withUnknown)).toThrow(fieldUnknown);
+    expect(() => db.Post.whereUnique(withUnknown)).toThrow(fieldUnknown);
+  });
+
+  it('does not count a key given by its column name with an undefined value', () => {
+    const { plain } = createChainingOrm();
+    const byColumn = { user_id: undefined } as unknown as { userId: number };
+    expect(() => plain.Profile.whereUnique(byColumn)).toThrow(projectError('Profile'));
+  });
+
   it('does not put the values of the criterion in the message', () => {
     const { plain } = createChainingOrm();
     const criterion = { tenantId: 987654, id: undefined } as unknown as {
@@ -204,7 +233,7 @@ describe('whereUnique with a complete key', () => {
   });
 });
 
-describe('whereUnique on a contract whose key columns are not literal types', () => {
+describe('whereUnique on a contract written with defineContract, whose argument type accepts any record', () => {
   function customers() {
     const contract = buildCompositeForeignKeyContract();
     const runtime = createMockRuntime();

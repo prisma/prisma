@@ -862,13 +862,19 @@ export function hasCompleteUniqueKey(
   modelName: string,
   criterion: object,
 ): boolean {
+  const tableName = resolveModelTableName(contract, namespaceId, modelName);
+  const fields = getModelFields(contract, namespaceId, modelName);
+  const fieldColumns = getModelFieldColumns(contract, namespaceId, modelName);
   const columnsWithValue = new Set<string>();
   for (const [fieldName, value] of Object.entries(criterion)) {
-    if (value !== undefined && value !== null) {
-      columnsWithValue.add(resolveFieldToColumn(contract, namespaceId, modelName, fieldName));
+    if (value === undefined) {
+      continue;
+    }
+    const column = columnOfCallerField(contract, namespaceId, fieldColumns, modelName, fieldName);
+    if (value !== null && fields[fieldName]?.table === tableName) {
+      columnsWithValue.add(column);
     }
   }
-  const tableName = resolveModelTableName(contract, namespaceId, modelName);
   return resolveUniqueKeyColumnSets(contract, namespaceId, tableName).some((columns) =>
     columns.every((column) => columnsWithValue.has(column)),
   );
