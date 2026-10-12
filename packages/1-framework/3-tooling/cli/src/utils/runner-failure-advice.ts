@@ -57,8 +57,8 @@ export function dbUpdateRowsWithoutValueFix(
     return plan === undefined ? keep : `${keep} Or plan it with ${plan}.`;
   }
   return plan === undefined
-    ? 'Make it optional, or give it a default.'
-    : `Plan it with ${plan}. Or make the field optional, or give it a default.`;
+    ? 'Make the field optional.'
+    : `Plan it with ${plan}. Or make the field optional.`;
 }
 
 /**
@@ -68,7 +68,7 @@ export function dbUpdateRowsWithoutValueFix(
 export function dbInitRowsWithoutValueFix(reports: readonly RowsWithoutValueReport[]): string {
   const field = reports[0]?.field;
   const subject = field === undefined ? 'it' : `field "${field}"`;
-  return `Run \`{bin} db init\` with ${subject} optional, or give it a default. Then make it required with \`{bin} db update\`, which says how to give the rows a value.`;
+  return `Run \`{bin} db init\` with ${subject} optional. Then make it required with \`{bin} db update\`, which says how to give the rows a value.`;
 }
 
 /** A failed migration as the advice names it: its directory relative to the project, and its name. */
@@ -132,12 +132,12 @@ function migrateRowsWithoutValueFix(
   }
   if (reports[0]?.reason === 'nullValues') {
     return again === undefined
-      ? 'The migration also adds a required field the existing rows have no value for, so setting values is not enough: make the new fields optional or give them a default, and plan the migration again.'
+      ? 'The migration also adds a required field the existing rows have no value for, so setting values is not enough: make the new fields optional, and plan the migration again.'
       : `The migration also adds a required field the existing rows have no value for, so setting values is not enough. The failed apply changed nothing: ${again}.`;
   }
   return again === undefined
-    ? 'Make the field optional or give it a default, and plan the migration again.'
-    : `The failed apply changed nothing. To keep the field required, ${again}. Or make the field optional or give it a default, and plan it again.`;
+    ? 'Make the field optional, and plan the migration again.'
+    : `The failed apply changed nothing. To keep the field required, ${again}. Or make the field optional, and plan it again.`;
 }
 
 function fieldList(reports: readonly RowsWithoutValueReport[]): string {

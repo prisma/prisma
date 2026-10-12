@@ -236,7 +236,7 @@ withTempDir(({ createTempDir }) => {
         const failed = await runDbInit(ctx, ['--json']);
         expect(failed.exitCode).not.toBe(0);
         expect(adviceOf(failed)).toContain(
-          'with field "User.role" optional, or give it a default. Then make it required with',
+          'with field "User.role" optional. Then make it required with',
         );
 
         await emit(ctx, contractWith('  role  Role?\n', ENUMS));
@@ -255,6 +255,39 @@ withTempDir(({ createTempDir }) => {
           { id: 1, role: 'admin' },
           { id: 2, role: 'admin' },
         ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('db update: a new required unique field on a table with rows', () => {
+    const db = useDevDatabase();
+
+    it(
+      'offers no default, which one value in every row would break, and its --backfill route applies',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+        await emit(ctx, contractWith(''));
+        await migrated(ctx);
+        await sql(db.connectionString, `INSERT INTO "user" (id, email) VALUES (1, 'a')`);
+
+        await emit(ctx, contractWith('  slug  String @unique\n'));
+        const failed = await runDbUpdate(ctx, ['--json']);
+        expect(failed.exitCode).not.toBe(0);
+        const advice = adviceOf(failed);
+        expect(advice).not.toContain('default');
+        expect(advice).toContain('make the field optional');
+
+        const replanned = await runMigrationPlan(ctx, printedPlan(advice));
+        expect(replanned.exitCode, `plan as printed: ${replanned.stderr}`).toBe(0);
+        await fillBackfillsAndApply(ctx, { slug: 'first' });
+
+        const rows = await sql(db.connectionString, `SELECT id, slug FROM "user" ORDER BY id`);
+        expect(rows.rows).toEqual([{ id: 1, slug: 'first' }]);
       },
       timeouts.spinUpPpgDev,
     );

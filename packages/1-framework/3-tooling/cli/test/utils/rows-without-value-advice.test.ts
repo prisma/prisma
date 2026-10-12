@@ -43,7 +43,7 @@ describe('the advice for rows a required field has no value for', () => {
         databaseStorageHash: DATABASE,
       }).fix,
     ).toBe(
-      `Plan it with \`{bin} migration plan --from ${DATABASE} --backfill 'My Model.code' --backfill 'My Model.role'\`, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`. Or make the field optional, or give it a default.`,
+      `Plan it with \`{bin} migration plan --from ${DATABASE} --backfill 'My Model.code' --backfill 'My Model.role'\`, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`. Or make the field optional.`,
     );
   });
 
@@ -61,7 +61,7 @@ describe('the advice for rows a required field has no value for', () => {
       }).fix,
     ]).toEqual([
       'Set a value in those rows, or keep the field optional.',
-      'Make it optional, or give it a default.',
+      'Make the field optional.',
     ]);
   });
 
@@ -73,7 +73,7 @@ describe('the advice for rows a required field has no value for', () => {
         rowsWithoutValue: [{ field: 'Item.code', reason: 'newField' }],
       }).fix,
     ).toBe(
-      'Run `{bin} db init` with field "Item.code" optional, or give it a default. Then make it required with `{bin} db update`, which says how to give the rows a value.',
+      'Run `{bin} db init` with field "Item.code" optional. Then make it required with `{bin} db update`, which says how to give the rows a value.',
     );
   });
 
@@ -94,7 +94,7 @@ describe('the advice for rows a required field has no value for', () => {
         PROJECT,
       ).fix,
     ]).toEqual([
-      `The failed apply changed nothing. To keep the field required, ${replan}. Or make the field optional or give it a default, and plan it again.`,
+      `The failed apply changed nothing. To keep the field required, ${replan}. Or make the field optional, and plan it again.`,
       `The migration also adds a required field the existing rows have no value for, so setting values is not enough. The failed apply changed nothing: ${replan}.`,
     ]);
     expect(
