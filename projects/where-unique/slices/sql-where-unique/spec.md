@@ -14,6 +14,7 @@ Parent project `projects/where-unique/`. This slice gives the SQL ORM client the
 whereUnique<Self>(this: Self, criterion: UniqueConstraintCriterion<TContract, ModelName>): UniquelyFiltered<Self>;
 ```
 
+- It validates the criterion at runtime before compiling it: the fields whose value is neither `undefined` nor `null` must include every field of the primary key or of one unique constraint of the model's table; otherwise it throws `ORM.ARGUMENT_INVALID`. The shorthand compiler drops `undefined` values, so without this an all-`undefined` or partly-`undefined` criterion would give no filter or a partial one on a collection marked uniquely filtered.
 - Object form only. The criterion compiles through the same path as the object form of `where` (`shorthandToWhereExpr`, then `normalizeWhereArg`), so the filter expressions are the same.
 - The returned collection is the same class: `UniquelyFiltered<Self> = Self & HasWhere & HasUniqueFilter`.
 - It is not callable inside an `include` refinement callback: `whereUnique` joins the members that `IncludeRefinementCollection` removes. Slice `include-unique` lifts this.
