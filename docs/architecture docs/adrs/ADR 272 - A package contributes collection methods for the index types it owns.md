@@ -131,15 +131,15 @@ Errors name the group: `Property 'search' does not exist on type 'CollectionMeth
 
 Type instantiations reported by `pnpm typecheck --extendedDiagnostics`, run in `packages/3-extensions/sql-orm-client` and in `examples/prisma-8-demo` after `pnpm build` at each commit, TypeScript 5.9.3. Each count was measured twice and both runs gave the same number.
 
-- **Before** is commit `030650c2cf` on main, which includes ADR 270's implementation, as it is.
-- **After** is commit `afea3d2689`, this decision's implementation with that commit merged in. "Unused" moves aside every collection method test and probe: in the package `test/collection-methods.test.ts`, `test/collection-methods-diagnostics.test.ts`, `test/collection-methods-orm-fixture.ts` and `test/collection-methods*.test-d.ts`, keeping `test/collection-methods-fixture.ts`, which registers the two test signatures; in the demo `test/collection-methods*.test-d.ts`, with `src/orm-client/search-posts.ts` and the two `test/fixtures/declaration-*.ts` files at their versions in `030650c2cf`. The Postgres target's registration stays, as it does for every application.
+- **Before** is commit `eb907e1e48` on main, which includes ADR 270's implementation, as it is.
+- **After** is commit `97bf0754fa`, this decision's implementation with that commit merged in. "Unused" moves aside every collection method test and probe: in the package `test/collection-methods.test.ts`, `test/collection-methods-diagnostics.test.ts`, `test/collection-methods-orm-fixture.ts` and `test/collection-methods*.test-d.ts`, keeping `test/collection-methods-fixture.ts`, which registers the two test signatures; in the demo `test/collection-methods*.test-d.ts`, with `src/orm-client/search-posts.ts` and the two `test/fixtures/declaration-*.ts` files at their versions in `eb907e1e48`. The Postgres target's registration stays, as it does for every application.
 - **Ten uses** adds back the committed probe `test/collection-methods-uses.types.test-d.ts`, in the package and in the demo. Each calls a contributed method once at ten sites: a root collection, a custom class root, after `where`, after `limit`, after `select`, inside an include refinement, on `this` in a custom method, after `orderBy`, inside `with`, and in a chain through a custom class.
 
 | | Client package | `examples/prisma-8-demo` |
 | --- | --- | --- |
-| Before | 1,919,681 | 795,255 |
-| After, unused | 1,952,403 (+32,722, +1.70%) | 801,394 (+6,139, +0.77%) |
-| After, ten uses | 1,954,369 (+34,688, +1.81%) | 803,173 (+7,918, +1.00%) |
+| Before | 1,946,033 | 795,255 |
+| After, unused | 1,978,856 (+32,823, +1.69%) | 801,394 (+6,139, +0.77%) |
+| After, ten uses | 1,980,822 (+34,789, +1.79%) | 803,173 (+7,918, +1.00%) |
 
 The spike that chose the form measured +1.7% and +1.8% on the package and +0.8% and +1.0% on the demo against an earlier commit of ADR 270's implementation.
 
