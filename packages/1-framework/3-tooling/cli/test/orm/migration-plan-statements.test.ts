@@ -282,6 +282,21 @@ describe('migration plan --rename', () => {
     expect(labels).toEqual(expect.arrayContaining([ADDITIVE_OP.label, 'Statements applied']));
   });
 
+  it('points only to the migration.ts that has placeholders, not the auto-baseline beside it', async () => {
+    const project = await renamingProject({ history: false });
+    const run = await harness(project, {
+      operations: [ADDITIVE_OP],
+      throwOnOperations: errorUnfilledPlaceholder('backfill'),
+      throwOnOperationsFromPlan: 1,
+    }).run(['migration', 'plan', '--name', 'delta'], { cwd: project.dir });
+
+    const [baseline, delta] = await plannedDirs(project);
+    expect(run.presented?.data).toMatchObject({ pendingPlaceholders: true });
+    const edit = run.presented?.presentation.next?.find((action) => action.kind === 'edit-file');
+    expect(edit?.label).toContain(`${delta}/migration.ts`);
+    expect(edit?.label).not.toContain(`${baseline}`);
+  });
+
   it('reports the statements of an auto-baseline plan whose storage did not change, with no operations', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO, models: ['User', 'Post'] });
     await seedContractSnapshot({

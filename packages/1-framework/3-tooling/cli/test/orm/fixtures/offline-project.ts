@@ -217,6 +217,8 @@ export interface FakePlannerScript {
   readonly statementsResolveDataLoss?: boolean;
   /** Reports `dataLoss` only from a `plan` call given fewer statements than this. */
   readonly statementsResolvingDataLoss?: number;
+  /** The first `plan` call whose operations reject with `throwOnOperations`; every call by default. */
+  readonly throwOnOperationsFromPlan?: number;
   /** Where in the operations the placeholder that `throwOnOperations` rejects sits; last by default. */
   readonly placeholderAt?: number;
   /** Makes the plan's `operations` accessor throw this synchronously. */
@@ -259,6 +261,8 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
           (script.statementsResolvingDataLoss ?? Number.POSITIVE_INFINITY)
           ? []
           : (script.dataLossByPlan?.[planCalls] ?? script.dataLoss ?? []);
+      const throwOnOperations =
+        planCalls >= (script.throwOnOperationsFromPlan ?? 0) ? script.throwOnOperations : undefined;
       planCalls += 1;
       const [refused] = script.refuseStatements === true ? options.statements : [];
       if (refused !== undefined) {
@@ -284,11 +288,11 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
                 if (script.operationsAccessorThrows !== undefined) {
                   throw script.operationsAccessorThrows;
                 }
-                if (script.throwOnOperations === undefined) {
+                if (throwOnOperations === undefined) {
                   return (operations ?? [ADDITIVE_OP]).map((op) => Promise.resolve(op));
                 }
                 const resolved = (operations ?? []).map((op) => Promise.resolve(op));
-                const placeholder = Promise.reject(script.throwOnOperations);
+                const placeholder = Promise.reject(throwOnOperations);
                 placeholder.catch(() => undefined);
                 const at = script.placeholderAt ?? resolved.length;
                 return [...resolved.slice(0, at), placeholder, ...resolved.slice(at)];

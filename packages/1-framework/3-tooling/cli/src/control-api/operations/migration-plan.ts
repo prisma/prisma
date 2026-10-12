@@ -418,6 +418,8 @@ export interface MigrationPlanResult {
    * `node migration.ts` to self-emit `ops.json` / `migration.json`.
    */
   readonly pendingPlaceholders?: boolean;
+  /** With `pendingPlaceholders`: the written directories whose `migration.ts` has unfilled slots. */
+  readonly placeholderDirs?: readonly string[];
   /**
    * True when no `--from` was given and no `db` ref existed, so the origin
    * defaulted to the empty contract. Absent when the user named the origin.
@@ -881,6 +883,7 @@ async function executeMigrationPlanCommandInner(
             emittedExtensionDirs,
             ...(warnings.length > 0 ? { warnings } : {}),
             pendingPlaceholders: true,
+            placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
             summary:
               'Planned baseline with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
@@ -937,6 +940,10 @@ async function executeMigrationPlanCommandInner(
           emittedExtensionDirs,
           ...(warnings.length > 0 ? { warnings } : {}),
           pendingPlaceholders: true,
+          placeholderDirs: [
+            ...(baselineLeg.value.hasPlaceholders ? [relative(cwd, baselinePackageDir)] : []),
+            ...(deltaLeg.value.hasPlaceholders ? [relative(cwd, deltaPackageDir)] : []),
+          ],
           appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
           ...temporaryValuesOf(deltaLeg.value),
           summary:
@@ -1051,6 +1058,7 @@ async function executeMigrationPlanCommandInner(
         emittedExtensionDirs,
         ...(warnings.length > 0 ? { warnings } : {}),
         pendingPlaceholders: true,
+        placeholderDirs: [relative(cwd, packageDir)],
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
         ...temporaryValuesOf(deltaLeg.value),
