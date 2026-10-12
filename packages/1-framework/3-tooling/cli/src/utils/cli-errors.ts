@@ -632,6 +632,21 @@ export function errorStatementDidNotResolveLoss(
   );
 }
 
+/** `--convert` and `--delete` name the same field, and each answers its type change differently. */
+export function errorConvertAndDelete(field: string): ActionableCliError {
+  const fix = `Give one of them: ${statementFlag({ verb: 'convert', text: field })}, or ${statementFlag({ verb: 'delete', text: field })}.`;
+  return new ActionableCliError(
+    'MIGRATION.STATEMENT_INVALID',
+    `"--convert ${field}" and "--delete ${field}" conflict`,
+    {
+      why: `Both answer the type change of "${field}": --convert converts each value with code you write in migration.ts, and --delete lets the database cast each value, losing those it cannot keep.`,
+      fix,
+      nextActions: [chooseAction(fix)],
+      meta: { statement: field, verb: 'convert' },
+    },
+  );
+}
+
 const MIGRATION_PLAN_VERBS: readonly string[] = ['rename', 'delete', 'convert', 'backfill'];
 
 /**

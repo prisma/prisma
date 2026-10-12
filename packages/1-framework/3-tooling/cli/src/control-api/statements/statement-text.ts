@@ -38,3 +38,11 @@ export function isPlannedStatement(
     statement.verb === 'rename' || statement.verb === 'convert' || statement.verb === 'backfill'
   );
 }
+
+/** The field a `convert` and a `delete` of the same run both name, which conflict; `undefined` when none does. */
+export function convertAndDelete(statements: readonly StatementText[]): string | undefined {
+  const deleted = new Set(
+    statements.filter(({ verb }) => verb === 'delete').map(({ text }) => text),
+  );
+  return statements.find(({ verb, text }) => verb === 'convert' && deleted.has(text))?.text;
+}

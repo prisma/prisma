@@ -118,6 +118,19 @@ withTempDir(({ createTempDir }) => {
         expect(asked.exitCode, 'a lossy type change is a question').toBe(2);
         expect(JSON.stringify(engineError(asked)?.nextActions)).toContain('--convert User.age');
 
+        const both = await runMigrationPlan(ctx, [
+          ...from,
+          '--convert',
+          'User.age',
+          '--delete',
+          'User.age',
+          '--json',
+        ]);
+        expect(engineError(both)).toMatchObject({
+          code: 'MIGRATION.STATEMENT_INVALID',
+          summary: '"--convert User.age" and "--delete User.age" conflict',
+        });
+
         const deleted = await runMigrationPlan(ctx, [...from, '--delete', 'User.age']);
         expect(deleted.exitCode, `plan --delete: ${deleted.stderr}`).toBe(0);
         const direct = readFileSync(join(latestDir(ctx), 'migration.ts'), 'utf-8');

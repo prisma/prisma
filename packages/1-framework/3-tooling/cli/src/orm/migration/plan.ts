@@ -9,7 +9,9 @@ import { createControlClient } from '../../control-api/client';
 import type { ContractSpaceSeedPhaseRecord } from '../../control-api/operations/contract-space-seed-phase';
 import type { MigrationPlanResult } from '../../control-api/operations/migration-plan';
 import { executeMigrationPlanCommand } from '../../control-api/operations/migration-plan';
+import { convertAndDelete, isStatementVerb } from '../../control-api/statements/statement-text';
 import type { CreateControlClient } from '../../control-api/types';
+import { errorConvertAndDelete } from '../../utils/cli-errors';
 import {
   RECORDED_CONTRACT_REF_FORMS,
   RECORDED_OR_EMPTY_CONTRACT_REF_FORMS,
@@ -307,6 +309,14 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
           data: { newHash: record.newHash, newMigrationDirs: record.newMigrationDirs },
         });
       };
+      const conflicting = convertAndDelete(
+        ctx.statements
+          .values()
+          .flatMap(({ verb, text }) => (isStatementVerb(verb) ? [{ verb, text }] : [])),
+      );
+      if (conflicting !== undefined) {
+        return notOk(normalizeError(errorConvertAndDelete(conflicting)));
+      }
       const planned = await executeMigrationPlanCommand(
         {
           config: ctx.config,
