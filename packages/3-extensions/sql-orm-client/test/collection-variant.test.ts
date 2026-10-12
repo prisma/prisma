@@ -325,7 +325,7 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
     expect(rows[0]).toEqual({ id: 2, title: 'Dark mode', type: 'feature', priority: 1 });
   });
 
-  it('where() binds a ready-made expression on an MTI variant table with the variant column codec', () => {
+  it('where() binds an expression on an MTI variant table with the variant column codec', () => {
     const { collection } = createMixedPolyCollection();
 
     const filtered = collection.where(

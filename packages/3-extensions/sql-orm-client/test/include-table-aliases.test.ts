@@ -1,5 +1,4 @@
 import { createPostgresAdapter } from '@internal/adapter-postgres/adapter';
-import { BinaryExpr, ColumnRef, LiteralExpr } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import type { PostgresContract } from '../../../3-targets/6-adapters/postgres/src/core/types';
@@ -181,37 +180,6 @@ describe('table aliases in includes', () => {
     expect(
       collection.include('posts', (posts) => posts.select('id').where({ views: 1 })).state.includes,
     ).toHaveLength(1);
-  });
-
-  it('rebases a ready-made expression onto an aliased child root', () => {
-    const { collection } = createCollectionFor('User');
-    const state = collection
-      .select('id')
-      .include('invitedUsers', (invited) =>
-        invited
-          .select('id')
-          .where(BinaryExpr.eq(ColumnRef.of('users', 'name'), LiteralExpr.of('Bob'))),
-      ).state;
-
-    expect(state.includes[0]?.nested.filters).toEqual([
-      BinaryExpr.eq(
-        ColumnRef.of('users_2', 'name'),
-        expect.objectContaining({ kind: 'param-ref' }),
-      ),
-    ]);
-  });
-
-  it('leaves a ready-made expression alone on a child whose root keeps its table name', () => {
-    const { collection } = createCollectionFor('User');
-    const state = collection
-      .select('id')
-      .include('posts', (posts) =>
-        posts.select('id').where(BinaryExpr.eq(ColumnRef.of('posts', 'views'), LiteralExpr.of(1))),
-      ).state;
-
-    expect(state.includes[0]?.nested.filters).toEqual([
-      BinaryExpr.eq(ColumnRef.of('posts', 'views'), expect.objectContaining({ kind: 'param-ref' })),
-    ]);
   });
 
   it('finds the local variant table by variant identity when it shares a table name with the root', () => {

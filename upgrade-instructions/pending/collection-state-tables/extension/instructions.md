@@ -173,6 +173,8 @@ No code that only runs queries needs to change. Update assertions, snapshots and
 | `"<relation>__child"` for a self-relation include | `"<table>_<n>"` |
 | `"<table>__write_filter"` in `updateAndCount` / `deleteAndCount` on a multi-table-inheritance variant | `"<table>_<n>"`; the filters inside that subquery now reference the statement's target table directly |
 
+An expression passed to `where()` is used as written: its table references are no longer moved to the alias of a self-relation include.
+
 Text also changes in cases that had no alias before:
 
 - a table used by two relation filters in one chain, or by a relation filter and an include, or by two includes: every use after the first is aliased;

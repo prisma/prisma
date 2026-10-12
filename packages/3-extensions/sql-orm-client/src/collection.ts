@@ -509,7 +509,6 @@ export class CollectionBase<
     const filter = normalizeWhereArg(whereArg, {
       contract: this.contract,
       tables: tableAliases(tables),
-      rebaseOnto: isWhereDirectInput(input) ? tables.root : undefined,
     });
 
     if (!filter) {
