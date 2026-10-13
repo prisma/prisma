@@ -12,6 +12,7 @@ import {
   MongoAndExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import { MongoSchemaCollection, MongoSchemaCollectionOptions } from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
@@ -21,6 +22,7 @@ import {
   createIndex,
   dropCollection,
   dropIndex,
+  renameCollection,
   setValidation,
   validatedCollection,
 } from '../src/core/migrations/migration-factories';
@@ -156,6 +158,43 @@ describe('dropIndex', () => {
 
     const preFilter = op.precheck[0]!.filter as MongoFieldFilter;
     expect(preFilter.field).toBe('key._fts');
+  });
+});
+
+describe('renameCollection', () => {
+  it('renames when the source exists and the target does not, and skips once the target exists without the source', () => {
+    const sourceIs = (expect: 'exists' | 'notExists') => ({
+      description: 'collection profiles exists',
+      source: new ListCollectionsCommand(),
+      filter: MongoFieldFilter.eq('name', 'profiles'),
+      expect,
+    });
+    const targetIs = (expect: 'exists' | 'notExists') => ({
+      description: 'collection users exists',
+      source: new ListCollectionsCommand(),
+      filter: MongoFieldFilter.eq('name', 'users'),
+      expect,
+    });
+
+    expect(renameCollection('profiles', 'users')).toEqual({
+      id: 'collection.profiles.rename(users)',
+      label: 'Rename collection profiles to users',
+      operationClass: 'widening',
+      precheck: [
+        sourceIs('exists'),
+        { ...targetIs('notExists'), description: 'collection users does not exist' },
+      ],
+      execute: [
+        {
+          description: 'rename collection profiles to users',
+          command: new RenameCollectionCommand('profiles', 'users'),
+        },
+      ],
+      postcheck: [
+        targetIs('exists'),
+        { ...sourceIs('notExists'), description: 'collection profiles does not exist' },
+      ],
+    });
   });
 });
 

@@ -1,5 +1,6 @@
 import type { ContractMarkerRecord } from '@internal/contract/types';
 import { errorRunnerFailed } from '@internal/errors/execution';
+import { fieldRewriteOf } from '@internal/family-mongo/control';
 import type {
   MarkerOperations,
   MongoRunnerDependencies,
@@ -22,12 +23,18 @@ import type { MongoContract } from '@internal/mongo-contract';
 import type { MongoAdapter, MongoDriver } from '@internal/mongo-lowering';
 import type {
   AnyMongoMigrationOperation,
-  MongoDataTransformCheck,
-  MongoDataTransformOperation,
+  MongoDmlCheck,
+  MongoDmlOperation,
   MongoInspectionCommandVisitor,
   MongoMigrationCheck,
   MongoMigrationPlanOperation,
 } from '@internal/mongo-query-ast/control';
+import { isMongoDmlOperation, RenameCollectionCommand } from '@internal/mongo-query-ast/control';
+import {
+  type MongoQueryPlan,
+  RawAggregateCommand,
+  RawUpdateManyCommand,
+} from '@internal/mongo-query-ast/execution';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -80,6 +87,91 @@ function runnerFailure(
   });
 }
 
+/**
+ * The failure when a field rename's before-check finds documents that already hold the new name,
+ * which `$rename` would overwrite: what to look for and fix, and that the plan resumes.
+ */
+function renameOverwriteRefusal(op: MongoDmlOperation): MongoMigrationRunnerResult | undefined {
+  const rewrite = fieldRewriteOf(op);
+  if (rewrite === undefined) return undefined;
+  const renames: unknown = Reflect.get(rewrite.command.update, '$rename');
+  const to: unknown =
+    typeof renames === 'object' && renames !== null
+      ? Reflect.get(renames, rewrite.field)
+      : undefined;
+  if (typeof to !== 'string') return undefined;
+  const [check] = op.precheck;
+  const source = check?.source.command;
+  const match: unknown =
+    source instanceof RawAggregateCommand
+      ? Reflect.get(source.pipeline[0] ?? {}, '$match')
+      : undefined;
+  const find = `db.getCollection(${JSON.stringify(rewrite.collection)}).find(${JSON.stringify(match ?? {})})`;
+  return runnerFailure(
+    'MIGRATION.PRECHECK_FAILED',
+    `Operation ${op.id} stopped: some documents in collection ${rewrite.collection} already hold ${to} as well as ${rewrite.field}`,
+    {
+      why: `Renaming ${rewrite.field} to ${to} would overwrite their ${to}. Find them with ${find} in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on ${rewrite.field}; once the documents are fixed, run the command again and the plan finishes from here.`,
+      meta: { operationId: op.id, name: op.name },
+    },
+  );
+}
+
+/**
+ * The failure when a collection rename's before-check finds that the new collection already exists.
+ */
+function renameTargetExistsRefusal(
+  op: MongoMigrationPlanOperation,
+  failed: MongoMigrationCheck,
+): MongoMigrationRunnerResult | undefined {
+  const rename = op.execute.find(
+    (step) => step.command instanceof RenameCollectionCommand,
+  )?.command;
+  if (!(rename instanceof RenameCollectionCommand) || failed.expect !== 'notExists') {
+    return undefined;
+  }
+  const { collection: from, to } = rename;
+  return runnerFailure(
+    'MIGRATION.PRECHECK_FAILED',
+    `Operation ${op.id} stopped: collection ${to} already exists, so collection ${from} cannot be renamed to it`,
+    {
+      why: `Nothing was renamed. If ${to} holds nothing you need, drop it, then run the command again; operations that already ran are skipped. If an earlier operation of the same migration created ${to}, as a createIndex on ${to} does, make renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}) the first operation of its migration.ts, run node on that migration.ts, and then drop ${to} and run the command again.`,
+      meta: { operationId: op.id },
+    },
+  );
+}
+
+const MONGO_UNAUTHORIZED = 13;
+
+/**
+ * The failure for a rewrite that skips validation when the database user lacks the
+ * `bypassDocumentValidation` action, as a `readWrite` user on a hosted cluster does.
+ */
+function bypassValidationRefusal(
+  op: MongoDmlOperation,
+  plan: MongoQueryPlan,
+  error: unknown,
+): MongoMigrationRunnerResult | undefined {
+  if (!(plan.command instanceof RawUpdateManyCommand) || !plan.command.bypassDocumentValidation) {
+    return undefined;
+  }
+  if (typeof error !== 'object' || error === null) return undefined;
+  if (Reflect.get(error, 'code') !== MONGO_UNAUTHORIZED) return undefined;
+  const codeName: unknown = Reflect.get(error, 'codeName');
+  return runnerFailure(
+    'MIGRATION.EXECUTION_FAILED',
+    `Operation ${op.id} failed: the database user may not skip document validation`,
+    {
+      why: `Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it with error ${MONGO_UNAUTHORIZED} (${String(codeName)}). Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.`,
+      meta: {
+        operationId: op.id,
+        mongoCode: MONGO_UNAUTHORIZED,
+        codeName,
+      },
+    },
+  );
+}
+
 export class MongoMigrationRunner {
   constructor(private readonly deps: MongoRunnerDependencies) {}
 
@@ -116,12 +208,9 @@ export class MongoMigrationRunner {
     for (const operation of operations) {
       options.callbacks?.onOperationStart?.(operation);
       try {
-        if (operation.operationClass === 'data') {
-          const result = await this.executeDataTransform(
-            blindCast<
-              MongoDataTransformOperation,
-              'operationClass data discriminates Mongo data transform operations'
-            >(operation),
+        if (isMongoDmlOperation(operation)) {
+          const result = await this.executeDmlOperation(
+            operation,
             adapter,
             driver,
             filterEvaluator,
@@ -136,14 +225,9 @@ export class MongoMigrationRunner {
           continue;
         }
 
-        const ddlOp = blindCast<
-          MongoMigrationPlanOperation,
-          'non-data Mongo operations are DDL migration plan operations'
-        >(operation);
-
         if (runPostchecks && runIdempotency) {
           const allSatisfied = await this.allChecksSatisfied(
-            ddlOp.postcheck,
+            operation.postcheck,
             inspectionExecutor,
             filterEvaluator,
           );
@@ -151,27 +235,30 @@ export class MongoMigrationRunner {
         }
 
         if (runPrechecks) {
-          const precheckResult = await this.evaluateChecks(
-            ddlOp.precheck,
+          const failed = await this.firstFailingCheck(
+            operation.precheck,
             inspectionExecutor,
             filterEvaluator,
           );
-          if (!precheckResult) {
-            return runnerFailure(
-              'MIGRATION.PRECHECK_FAILED',
-              `Operation ${operation.id} failed during precheck`,
-              { meta: { operationId: operation.id } },
+          if (failed !== undefined) {
+            return (
+              renameTargetExistsRefusal(operation, failed) ??
+              runnerFailure(
+                'MIGRATION.PRECHECK_FAILED',
+                `Operation ${operation.id} failed during precheck`,
+                { meta: { operationId: operation.id } },
+              )
             );
           }
         }
 
-        for (const step of ddlOp.execute) {
+        for (const step of operation.execute) {
           await executeDdl(step.command);
         }
 
         if (runPostchecks) {
           const postcheckResult = await this.evaluateChecks(
-            ddlOp.postcheck,
+            operation.postcheck,
             inspectionExecutor,
             filterEvaluator,
           );
@@ -306,8 +393,8 @@ export class MongoMigrationRunner {
     }
   }
 
-  private async executeDataTransform(
-    op: MongoDataTransformOperation,
+  private async executeDmlOperation(
+    op: MongoDmlOperation,
     adapter: MongoAdapter,
     driver: MongoDriver,
     filterEvaluator: FilterEvaluator,
@@ -316,7 +403,7 @@ export class MongoMigrationRunner {
     runPostchecks: boolean,
   ): Promise<{ executed: boolean; failure?: MongoMigrationRunnerResult }> {
     if (runPostchecks && runIdempotency && op.postcheck.length > 0) {
-      const allSatisfied = await this.evaluateDataTransformChecks(
+      const allSatisfied = await this.evaluateDmlChecks(
         op.postcheck,
         adapter,
         driver,
@@ -326,40 +413,38 @@ export class MongoMigrationRunner {
     }
 
     if (runPrechecks && op.precheck.length > 0) {
-      const passed = await this.evaluateDataTransformChecks(
-        op.precheck,
-        adapter,
-        driver,
-        filterEvaluator,
-      );
+      const passed = await this.evaluateDmlChecks(op.precheck, adapter, driver, filterEvaluator);
       if (!passed) {
         return {
           executed: false,
-          failure: runnerFailure(
-            'MIGRATION.PRECHECK_FAILED',
-            `Operation ${op.id} failed during precheck`,
-            {
-              meta: { operationId: op.id, name: op.name },
-            },
-          ),
+          failure:
+            renameOverwriteRefusal(op) ??
+            runnerFailure(
+              'MIGRATION.PRECHECK_FAILED',
+              `Operation ${op.id} failed during precheck`,
+              {
+                meta: { operationId: op.id, name: op.name },
+              },
+            ),
         };
       }
     }
 
     for (const plan of op.run) {
       const wireCommand = await adapter.lower(plan, {});
-      for await (const _ of driver.execute(wireCommand)) {
-        /* consume */
+      try {
+        for await (const _ of driver.execute(wireCommand)) {
+          /* consume */
+        }
+      } catch (error) {
+        const refusal = bypassValidationRefusal(op, plan, error);
+        if (refusal === undefined) throw error;
+        return { executed: false, failure: refusal };
       }
     }
 
     if (runPostchecks && op.postcheck.length > 0) {
-      const passed = await this.evaluateDataTransformChecks(
-        op.postcheck,
-        adapter,
-        driver,
-        filterEvaluator,
-      );
+      const passed = await this.evaluateDmlChecks(op.postcheck, adapter, driver, filterEvaluator);
       if (!passed) {
         return {
           executed: false,
@@ -377,8 +462,8 @@ export class MongoMigrationRunner {
     return { executed: true };
   }
 
-  private async evaluateDataTransformChecks(
-    checks: readonly MongoDataTransformCheck[],
+  private async evaluateDmlChecks(
+    checks: readonly MongoDmlCheck[],
     adapter: MongoAdapter,
     driver: MongoDriver,
     filterEvaluator: FilterEvaluator,
@@ -418,13 +503,23 @@ export class MongoMigrationRunner {
     inspectionExecutor: MongoInspectionCommandVisitor<Promise<Record<string, unknown>[]>>,
     filterEvaluator: FilterEvaluator,
   ): Promise<boolean> {
+    return (
+      (await this.firstFailingCheck(checks, inspectionExecutor, filterEvaluator)) === undefined
+    );
+  }
+
+  private async firstFailingCheck(
+    checks: readonly MongoMigrationCheck[],
+    inspectionExecutor: MongoInspectionCommandVisitor<Promise<Record<string, unknown>[]>>,
+    filterEvaluator: FilterEvaluator,
+  ): Promise<MongoMigrationCheck | undefined> {
     for (const check of checks) {
       const documents = await check.source.accept(inspectionExecutor);
       const matchFound = documents.some((doc) => filterEvaluator.evaluate(check.filter, doc));
       const passed = check.expect === 'exists' ? matchFound : !matchFound;
-      if (!passed) return false;
+      if (!passed) return check;
     }
-    return true;
+    return undefined;
   }
 
   private async allChecksSatisfied(

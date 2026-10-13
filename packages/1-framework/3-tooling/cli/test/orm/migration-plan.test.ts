@@ -802,10 +802,20 @@ describe('migration plan', () => {
       expect(run.exitCode).toBe(0);
       const data = run.presented?.data as {
         readonly pendingPlaceholders: boolean;
+        readonly dir: string;
+        readonly baselineDir: string;
+        readonly summary: string;
         readonly operations: readonly { readonly id: string }[];
         readonly appliedStatements: readonly { readonly operationIndexes: readonly number[] }[];
       };
       expect(data.pendingPlaceholders).toBe(true);
+      expect([data.baselineDir, data.dir]).toEqual([
+        expect.stringMatching(/^migrations\/app\/[^/]+$/),
+        expect.stringMatching(/^migrations\/app\/[^/]+$/),
+      ]);
+      expect(data.summary).toBe(
+        `Planned baseline + migration with placeholder(s) — edit migration.ts, then run \`node "${data.baselineDir}/migration.ts"\` and \`node "${data.dir}/migration.ts"\` to self-emit`,
+      );
       expect(
         data.appliedStatements.map(({ operationIndexes }) =>
           operationIndexes.map((index) => data.operations[index]?.id),
@@ -832,7 +842,38 @@ describe('migration plan', () => {
         { cwd: project.dir },
       );
       expect(answered.exitCode).toBe(0);
-      expect(answered.presented?.data).toMatchObject({ pendingPlaceholders: true });
+      const data = answered.presented?.data as { readonly dir: string };
+      expect(data.dir).toMatch(/^migrations\/app\/[^/]+$/);
+      expect(data).toMatchObject({
+        pendingPlaceholders: true,
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node "${data.dir}/migration.ts"\` to self-emit`,
+      });
+    });
+
+    it('repeats the --config it was given in the commands that run the stub', async () => {
+      const project = await losingProject();
+      const script: FakePlannerScript = {
+        operations: [ADDITIVE_OP, DESTRUCTIVE_OP],
+        operationsAccessorThrows: errorUnfilledPlaceholder('backfill'),
+        dataLoss: [LEGACY_LOSS],
+      };
+
+      const answered = await harness(project, { script }).run(
+        ['migration', 'plan', '--delete', 'Legacy', '--config', 'prisma.config.ts', '--json'],
+        { cwd: project.dir },
+      );
+      const data = answered.presented?.data as { readonly dir: string; readonly summary: string };
+      expect({
+        summary: data.summary,
+        next: answered.presented?.presentation.next?.at(-1),
+      }).toEqual({
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node "${data.dir}/migration.ts" --config "prisma.config.ts"\` to self-emit`,
+        next: {
+          kind: 'run-command',
+          label: 'Run it to self-emit ops.json and attest the package',
+          command: `node "${data.dir}/migration.ts" --config "prisma.config.ts"`,
+        },
+      });
     });
 
     it('asks a question a re-plan brings up in a second batch', async () => {

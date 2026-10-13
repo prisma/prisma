@@ -16,7 +16,7 @@ import type { MigrationGraph } from './graph';
  */
 function reemitHint(dir: string, fallback?: string): string {
   const relativeDir = relative(process.cwd(), dir);
-  const reemit = `Re-emit the package by running \`node "${relativeDir}/migration.ts"\``;
+  const reemit = `Re-emit the package by running \`node "${relativeDir}/migration.ts"\`, adding the \`--config <path>\` you gave this command, if any`;
   return fallback ? `${reemit}, ${fallback}` : `${reemit}.`;
 }
 

@@ -19,6 +19,7 @@ import {
   errorFileNotFound,
   errorInvalidOutputFormat,
   errorJsonFormatNotSupported,
+  errorMigrationCliConfigNotFound,
   errorMigrationCliInvalidConfigArg,
   errorMigrationCliUnknownFlag,
   errorMigrationPlanningFailed,
@@ -521,6 +522,39 @@ describe('Config Errors', () => {
   it('errorConfigVersionMarkerMissing without path omits where', () => {
     const error = errorConfigVersionMarkerMissing();
     expect(error.where).toBeUndefined();
+  });
+
+  it('errorMigrationCliConfigNotFound names each config it checked and why it does not own the migration', () => {
+    const error = errorMigrationCliConfigNotFound({
+      migrationDir: '/repo/inner/migrations/app/20260101T0000_initial',
+      checked: [
+        { configPath: '/repo/prisma.config.ts', migrationsDir: '/repo/migrations' },
+        { configPath: '/work/prisma.config.ts', loadFailure: 'Failed to evaluate config' },
+      ],
+    });
+    expect({
+      code: error.code,
+      message: error.message,
+      why: error.why,
+      fix: error.fix,
+      meta: error.meta,
+    }).toEqual({
+      code: 'CLI.MIGRATION_CONFIG_NOT_FOUND',
+      message: 'No config found for this migration',
+      why: 'Without --config, a migration.ts uses the prisma.config.ts whose migrations directory holds it: the nearest one above /repo/inner/migrations/app/20260101T0000_initial, else the one in the working directory. None of them does: /repo/prisma.config.ts keeps migrations in /repo/migrations; /work/prisma.config.ts failed to load (Failed to evaluate config).',
+      fix: 'Run it again with `--config <path to the config of the project this migration belongs to>`.',
+      meta: {
+        migrationDir: '/repo/inner/migrations/app/20260101T0000_initial',
+        checked: ['/repo/prisma.config.ts', '/work/prisma.config.ts'],
+      },
+    });
+  });
+
+  it('errorMigrationCliConfigNotFound says when it found no config at all', () => {
+    const error = errorMigrationCliConfigNotFound({ migrationDir: '/m', checked: [] });
+    expect(error.why).toBe(
+      'Without --config, a migration.ts uses the prisma.config.ts whose migrations directory holds it: the nearest one above /m, else the one in the working directory. There is neither.',
+    );
   });
 
   it('errorMigrationCliInvalidConfigArg creates correct error for missing path', () => {

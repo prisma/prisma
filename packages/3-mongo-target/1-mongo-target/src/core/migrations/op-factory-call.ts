@@ -22,6 +22,7 @@ import type {
   MigrationOperationClass,
 } from '@internal/framework-components/control';
 import type {
+  AnyMongoMigrationOperation,
   CollModOptions,
   CreateCollectionOptions,
   CreateIndexOptions,
@@ -34,6 +35,7 @@ import type {
   MongoSchemaIndex,
   MongoSchemaValidator,
 } from '@internal/mongo-schema-ir';
+import type { Document } from '@internal/mongo-value';
 import { type ImportRequirement, jsonToTsSource, TsExpression } from '@internal/ts-render';
 import { ifDefined } from '@internal/utils/defined';
 import {
@@ -42,6 +44,9 @@ import {
   createIndex,
   dropCollection,
   dropIndex,
+  renameCollection,
+  renameField,
+  unsetField,
 } from './migration-factories';
 
 export interface CollModMeta {
@@ -63,7 +68,7 @@ abstract class OpFactoryCallNode extends TsExpression implements FrameworkOpFact
   abstract readonly factoryName: string;
   abstract readonly operationClass: MigrationOperationClass;
   abstract readonly label: string;
-  abstract toOp(): MongoMigrationPlanOperation;
+  abstract toOp(): AnyMongoMigrationOperation;
 
   importRequirements(): readonly ImportRequirement[] {
     return [{ moduleSpecifier: TARGET_MIGRATION_MODULE, symbol: this.factoryName }];
@@ -182,6 +187,88 @@ export class DropCollectionCall extends OpFactoryCallNode {
   }
 }
 
+export class RenameCollectionCall extends OpFactoryCallNode {
+  readonly factoryName = 'renameCollection' as const;
+  readonly operationClass = 'widening' as const;
+  readonly from: string;
+  readonly to: string;
+  readonly label: string;
+
+  constructor(from: string, to: string) {
+    super();
+    this.from = from;
+    this.to = to;
+    this.label = `Rename collection ${from} to ${to}`;
+    this.freeze();
+  }
+
+  toOp(): MongoMigrationPlanOperation {
+    return renameCollection(this.from, this.to);
+  }
+
+  renderTypeScript(): string {
+    return `renameCollection(${jsonToTsSource(this.from)}, ${jsonToTsSource(this.to)})`;
+  }
+}
+
+function renderFilterOption(filter: Document | undefined): string {
+  return filter === undefined ? '' : `, ${jsonToTsSource({ filter })}`;
+}
+
+export class RenameFieldCall extends OpFactoryCallNode {
+  readonly factoryName = 'renameField' as const;
+  readonly operationClass = 'widening' as const;
+  readonly collection: string;
+  readonly from: string;
+  readonly to: string;
+  readonly filter: Document | undefined;
+  readonly label: string;
+
+  constructor(collection: string, from: string, to: string, filter?: Document) {
+    super();
+    this.collection = collection;
+    this.from = from;
+    this.to = to;
+    this.filter = filter;
+    this.label = this.toOp().label;
+    this.freeze();
+  }
+
+  toOp(): AnyMongoMigrationOperation {
+    return renameField(this.collection, this.from, this.to, ifDefined('filter', this.filter));
+  }
+
+  renderTypeScript(): string {
+    return `renameField(${jsonToTsSource(this.collection)}, ${jsonToTsSource(this.from)}, ${jsonToTsSource(this.to)}${renderFilterOption(this.filter)})`;
+  }
+}
+
+export class UnsetFieldCall extends OpFactoryCallNode {
+  readonly factoryName = 'unsetField' as const;
+  readonly operationClass = 'destructive' as const;
+  readonly collection: string;
+  readonly field: string;
+  readonly filter: Document | undefined;
+  readonly label: string;
+
+  constructor(collection: string, field: string, filter?: Document) {
+    super();
+    this.collection = collection;
+    this.field = field;
+    this.filter = filter;
+    this.label = this.toOp().label;
+    this.freeze();
+  }
+
+  toOp(): AnyMongoMigrationOperation {
+    return unsetField(this.collection, this.field, ifDefined('filter', this.filter));
+  }
+
+  renderTypeScript(): string {
+    return `unsetField(${jsonToTsSource(this.collection)}, ${jsonToTsSource(this.field)}${renderFilterOption(this.filter)})`;
+  }
+}
+
 export class CollModCall extends OpFactoryCallNode {
   readonly factoryName = 'collMod' as const;
   readonly collection: string;
@@ -216,6 +303,9 @@ export type OpFactoryCall =
   | DropIndexCall
   | CreateCollectionCall
   | DropCollectionCall
+  | RenameCollectionCall
+  | RenameFieldCall
+  | UnsetFieldCall
   | CollModCall;
 
 export function schemaIndexToCreateIndexOptions(index: MongoSchemaIndex): CreateIndexOptions {

@@ -94,6 +94,7 @@ export type MongoLoweredDraft =
       readonly collection: string;
       readonly filter: Record<string, unknown>;
       readonly update: Record<string, unknown> | ReadonlyArray<Record<string, unknown>>;
+      readonly bypassDocumentValidation: boolean;
     }
   | {
       readonly kind: 'rawDeleteOne';

@@ -16,6 +16,7 @@ import {
 } from '../../utils/contract-ref-forms';
 import { previewBlockHeader } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
+import { selfEmitCommand } from '../../utils/self-emit-command';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
@@ -190,6 +191,7 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
 function planNextActions(
   result: MigrationPlanResult,
   migrationsRelative: string,
+  configPath: string | undefined,
 ): readonly NextAction[] {
   if (result.pendingPlaceholders === true) {
     const stubFiles = [
@@ -206,7 +208,7 @@ function planNextActions(
       },
       runCommandAction(
         'Run it to self-emit ops.json and attest the package',
-        `node "${migrationTs}"`,
+        selfEmitCommand(migrationTs, configPath),
       ),
     ];
   }
@@ -234,6 +236,7 @@ function planPresentations(inputs: {
   readonly from: string | undefined;
   readonly to: string | undefined;
   readonly name: string | undefined;
+  readonly configPath: string | undefined;
 }): Presentations {
   return {
     stdout: () => [],
@@ -252,7 +255,7 @@ function planPresentations(inputs: {
       ...planBlocks(inputs.document, inputs.migrationsRelative),
     ],
     json: () => inputs.document,
-    next: () => planNextActions(inputs.document, inputs.migrationsRelative),
+    next: () => planNextActions(inputs.document, inputs.migrationsRelative, inputs.configPath),
   };
 }
 
@@ -312,6 +315,7 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
           config: ctx.config,
           cwd: ctx.cwd,
           projectDir: baseDirFor(ctx.config),
+          ...ifDefined('configPath', ctx.configPath),
           ...ifDefined('name', args.flags.name),
           ...ifDefined('from', args.flags.from),
           ...ifDefined('to', args.flags.to),
@@ -353,6 +357,7 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
             from: args.flags.from,
             to: args.flags.to,
             name: args.flags.name,
+            configPath: ctx.configPath,
           }),
         ),
       );

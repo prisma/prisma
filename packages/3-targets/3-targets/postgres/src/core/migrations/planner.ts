@@ -86,6 +86,7 @@ import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
 import {
   postgresColumnRenameCall,
+  postgresTableRenameByHand,
   postgresTableRenameCall,
   renameTableByHandStatements,
   renderRenameTableCall,
@@ -474,6 +475,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
           fromContract: options.fromContract,
           contract: options.contract,
           statements: options.statements,
+          byHand: postgresTableRenameByHand(options.contract),
         },
       ),
       ...(warnings.length > 0 ? { warnings: Object.freeze(warnings) } : {}),
@@ -742,8 +744,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
             frameworkComponents: options.frameworkComponents,
           }),
         apply: (call) => working.apply(call),
-        renderTableRename: renderRenameTableCall,
-        tableRenameByHand: (rename) => renameTableByHandStatements(options.contract, rename),
+        ...postgresTableRenameByHand(options.contract),
       },
     });
     if (!planned.ok) return planned;

@@ -75,6 +75,7 @@ const fixtureConfigSource = [
   '  family: sql,',
   '  target: sqlite,',
   '  adapter: sqliteAdapter,',
+  "  migrations: { dir: '.' },",
   '}) };',
   '',
 ].join('\n');

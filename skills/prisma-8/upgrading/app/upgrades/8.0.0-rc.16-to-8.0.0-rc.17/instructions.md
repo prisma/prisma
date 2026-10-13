@@ -585,7 +585,7 @@ The planner and the migration factories now class an operation as `destructive` 
 
 A migration that is already applied needs nothing: `prisma db migrate` applies its `ops.json` as written, and the database ledger records the migration by its hash.
 
-For each migration package that no database has applied yet and whose `migration.ts` calls `setNotNull` (Postgres), or `dropIndex`, `setValidation` or `collMod` without an `operationClass` (MongoDB), run its `migration.ts` again (`node migration.ts`) so that `ops.json` records the new class. This rewrites `ops.json` and the `migrationHash` in `migration.json`. Do not run it again for a package a database has applied: its new hash would no longer match the hash the database's ledger recorded for it.
+For each migration package that no database has applied yet and whose `migration.ts` calls `setNotNull` (Postgres), or `dropIndex`, `setValidation` or `collMod` without an `operationClass` (MongoDB), run its `migration.ts` again with node from the directory that holds `prisma.config.ts` (`node <path to the package>/migration.ts`) so that `ops.json` records the new class. This rewrites `ops.json` and the `migrationHash` in `migration.json`. Do not run it again for a package a database has applied: its new hash would no longer match the hash the database's ledger recorded for it.
 
 ## `migration-plan-refuses-data-loss`
 
