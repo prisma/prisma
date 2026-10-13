@@ -128,6 +128,122 @@ export type AggregateOperationTypes = {
 /** Aggregate operations keyed by name (`count`, `sum`, …). */
 export type AggregateTypesBase = Record<string, AggregateOperationTypes>;
 
+/** The parts of an aggregate descriptor its result type depends on. */
+type AggregateOverload = {
+  readonly operation: string;
+  readonly input: { readonly kind: string; readonly codecId?: string; readonly trait?: string };
+  readonly output: { readonly kind: string; readonly codecId?: string };
+  readonly nullable: boolean;
+};
+
+// A descriptor written over several codecs at once, such as one built by mapping over a list, as one descriptor per codec.
+type OneCodecPerOverload<Descriptor> = Descriptor extends {
+  readonly input: { readonly kind: 'codec'; readonly codecId: infer CodecIds extends string };
+}
+  ? CodecIds extends unknown
+    ? Omit<Descriptor, 'input'> & {
+        readonly input: { readonly kind: 'codec'; readonly codecId: CodecIds };
+      }
+    : never
+  : Descriptor;
+
+type IsUnionOf<T, Whole = T> = T extends unknown ? ([Whole] extends [T] ? false : true) : never;
+
+type ExactOverload<Descriptors, Operation, CodecId> = Extract<
+  Descriptors,
+  {
+    readonly operation: Operation;
+    readonly input: { readonly kind: 'codec'; readonly codecId: CodecId };
+  }
+>;
+
+type TraitOverloads<Descriptors, Operation, Traits> = Extract<
+  Descriptors,
+  {
+    readonly operation: Operation;
+    readonly input: { readonly kind: 'trait'; readonly trait: Traits };
+  }
+>;
+
+// The overload that serves a codec: its exact one, otherwise the one trait overload whose trait it carries. Two trait overloads that both claim it leave it unserved; emission refuses that contract.
+type SettledOverload<Descriptors, Operation, CodecId, Traits> = [
+  ExactOverload<Descriptors, Operation, CodecId>,
+] extends [never]
+  ? true extends IsUnionOf<TraitOverloads<Descriptors, Operation, Traits>>
+    ? never
+    : TraitOverloads<Descriptors, Operation, Traits>
+  : ExactOverload<Descriptors, Operation, CodecId>;
+
+type AggregateRow<Descriptor, InputCodecId> = {
+  readonly output: Descriptor extends {
+    readonly output: { readonly kind: 'codec'; readonly codecId: infer Output };
+  }
+    ? Output
+    : InputCodecId;
+  readonly nullable: Descriptor extends { readonly nullable: infer Nullable } ? Nullable : never;
+};
+
+type InputKindOverload<Descriptors, Operation, Kind extends 'none' | 'any'> = Extract<
+  Descriptors,
+  { readonly operation: Operation; readonly input: { readonly kind: Kind } }
+>;
+
+type InputlessRows<Descriptors, Operation> = ([
+  InputKindOverload<Descriptors, Operation, 'none'>,
+] extends [never]
+  ? [InputKindOverload<Descriptors, Operation, 'any'>] extends [never]
+    ? Record<never, never>
+    : {
+        readonly withoutInput: AggregateRow<
+          InputKindOverload<Descriptors, Operation, 'any'>,
+          never
+        >;
+      }
+  : {
+      readonly withoutInput: AggregateRow<InputKindOverload<Descriptors, Operation, 'none'>, never>;
+    }) &
+  ([InputKindOverload<Descriptors, Operation, 'any'>] extends [never]
+    ? Record<never, never>
+    : { readonly anyInput: AggregateRow<InputKindOverload<Descriptors, Operation, 'any'>, never> });
+
+type CodecTraitsOfId<CodecTypes, CodecId> = CodecId extends keyof CodecTypes
+  ? CodecTypes[CodecId] extends { readonly traits: infer Traits }
+    ? Traits
+    : never
+  : never;
+
+type ExactCodecIds<Descriptors> = Descriptors extends {
+  readonly input: { readonly kind: 'codec'; readonly codecId: infer CodecId extends string };
+}
+  ? CodecId
+  : never;
+
+// The codecs a row can key: the contract's codecs, and those an exact overload names, which the stack contributes though its codec type map may not list them.
+type SettledAggregateTypes<Descriptors, CodecTypes> = {
+  readonly [Operation in Descriptors extends { readonly operation: infer Name extends string }
+    ? Name
+    : never]: {
+    readonly byCodec: {
+      readonly [CodecId in (keyof CodecTypes & string) | ExactCodecIds<Descriptors> as [
+        SettledOverload<Descriptors, Operation, CodecId, CodecTraitsOfId<CodecTypes, CodecId>>,
+      ] extends [never]
+        ? never
+        : CodecId]: AggregateRow<
+        SettledOverload<Descriptors, Operation, CodecId, CodecTraitsOfId<CodecTypes, CodecId>>,
+        CodecId
+      >;
+    };
+  } & InputlessRows<Descriptors, Operation>;
+};
+
+/**
+ * The aggregate result types of a stack, settled from the aggregate descriptors its components contribute against the codecs it composes, as emission writes them into `AggregateTypes`: an exact overload first, then the one trait overload a codec's traits select, and the overloads that take no input or any input.
+ */
+export type AggregateTypesFromDescriptors<
+  Descriptors extends AggregateOverload,
+  CodecTypes extends Record<string, unknown>,
+> = SettledAggregateTypes<OneCodecPerOverload<Descriptors>, CodecTypes>;
+
 export type TypeMaps<
   TCodecTypes extends Record<string, { output: unknown }> = Record<string, never>,
   TQueryOperationTypes extends Record<string, unknown> = Record<string, never>,

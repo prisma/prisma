@@ -10,12 +10,8 @@
  * A lowering hook builds the expression wherever the operation's name is not the database's: the lossless variants compute with the SQL aggregate their bare namesakes use, and `avg` over an integer casts its result. Result identity stays declared either way — a hook returns an expression and nothing else.
  */
 
-import type { CodecTrait } from '@internal/framework-components/codec';
 import type { ValueInputAggregateDescriptor } from '@internal/framework-components/components';
-import type {
-  SqlAggregateDescriptor,
-  SqlAggregateLowering,
-} from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import type { AggregateFn } from '@internal/sql-relational-core/ast';
 import { AggregateExpr, CastExpr } from '@internal/sql-relational-core/ast';
 import {
@@ -53,40 +49,52 @@ import {
 /** The input matches available to an overload that consumes a value — the only ones these helpers build, since every aggregate here but `count` needs something to fold. */
 type ValueInput = ValueInputAggregateDescriptor['input'];
 
-const overCodec = (codecId: string): ValueInput => ({ kind: 'codec', codecId });
-const overTrait = (trait: CodecTrait): ValueInput => ({ kind: 'trait', trait });
+// The helpers keep each descriptor's operation, codec ids and nullability literal, so a contract written in TypeScript derives its aggregate result types from these descriptors, as emission does.
 
 /**
  * An aggregate whose result is one of the input values, so it carries the input's codec — type parameters included, since a `numeric(10,3)` minimum is still a `numeric(10,3)`.
  */
-const preservesInput = (operation: string, input: ValueInput): SqlAggregateDescriptor => ({
-  operation,
-  input,
-  output: { kind: 'self' },
-  nullable: true,
-});
+const preservesInput = <const Operation extends string, const Input extends ValueInput>(
+  operation: Operation,
+  input: Input,
+) =>
+  ({
+    operation,
+    input,
+    output: { kind: 'self' },
+    nullable: true,
+  }) as const;
 
 /**
  * An aggregate whose result is a new value. It names its result codec without type parameters: a sum leaves the input's width behind (a `numeric(10,3)` column sums to an unconstrained `numeric`), so carrying the input's parameters into the result would understate the range.
  */
-const produces = (
-  operation: string,
-  input: ValueInput,
-  codecId: string,
-): SqlAggregateDescriptor => ({
-  operation,
-  input,
-  output: { kind: 'codec', codecId },
-  nullable: true,
-});
+const produces = <
+  const Operation extends string,
+  const Input extends ValueInput,
+  const CodecId extends string,
+>(
+  operation: Operation,
+  input: Input,
+  codecId: CodecId,
+) =>
+  ({
+    operation,
+    input,
+    output: { kind: 'codec', codecId },
+    nullable: true,
+  }) as const;
 
 /** The same, for an operation that builds its own expression. */
-const producesVia = (
-  operation: string,
-  input: ValueInput,
-  codecId: string,
+const producesVia = <
+  const Operation extends string,
+  const Input extends ValueInput,
+  const CodecId extends string,
+>(
+  operation: Operation,
+  input: Input,
+  codecId: CodecId,
   lower: SqlAggregateLowering,
-): SqlAggregateDescriptor => ({ ...produces(operation, input, codecId), lower });
+) => ({ ...produces(operation, input, codecId), lower }) as const;
 
 /** The SQL aggregate a lossless variant computes with. `sumBigInt` is a `sum` read exactly, `countBigInt` a `count`, `avgDecimal` an `avg`: the variants differ in how the result is read, never in what the database computes. */
 const computedWith =
@@ -147,19 +155,22 @@ const MIN_MAX_PRESERVING_CODECS = [
  */
 const MIN_MAX_WIDENS_TO_TEXT = [PG_VARCHAR_CODEC_ID, SQL_VARCHAR_CODEC_ID] as const;
 
-const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggregateDescriptor> => [
-  preservesInput(operation, overTrait('numeric')),
-  preservesInput(operation, overTrait('textual')),
-  ...MIN_MAX_WIDENS_TO_TEXT.map((codecId) =>
-    produces(operation, overCodec(codecId), PG_TEXT_CODEC_ID),
-  ),
-  ...MIN_MAX_PRESERVING_CODECS.map((codecId) => preservesInput(operation, overCodec(codecId))),
-];
+const orderingDescriptors = <const Operation extends 'min' | 'max'>(operation: Operation) =>
+  [
+    preservesInput(operation, { kind: 'trait', trait: 'numeric' }),
+    preservesInput(operation, { kind: 'trait', trait: 'textual' }),
+    ...MIN_MAX_WIDENS_TO_TEXT.map((codecId) =>
+      produces(operation, { kind: 'codec', codecId }, PG_TEXT_CODEC_ID),
+    ),
+    ...MIN_MAX_PRESERVING_CODECS.map((codecId) =>
+      preservesInput(operation, { kind: 'codec', codecId }),
+    ),
+  ] as const;
 
 /**
  * Every aggregate overload the PostgreSQL target contributes. The adapter lists these on `types.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
  */
-export const postgresAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> = [
+export const postgresAggregateDescriptors = [
   // PostgreSQL's `count` returns `bigint` whether it counts entries or non-null values, which is what makes it input-agnostic rather than merely input-less. A row count is a `number` to a JS developer, so that is what the bare operation reads it as — and outside ±(2^53 − 1) it throws rather than answer with a rounded tally.
   {
     operation: 'count',
@@ -179,48 +190,53 @@ export const postgresAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor>
 
   // A `sum` of integers reads as a `number` whichever width the column has: the small integers total into a `bigint` and the 64-bit ones into a `numeric`, and both arrive as decimal text the safe-range guard checks before rounding can happen.
   ...FIXED_WIDTH_INTEGER_CODECS.map((codecId) =>
-    produces('sum', overCodec(codecId), PG_INT8_NUMBER_CODEC_ID),
+    produces('sum', { kind: 'codec', codecId }, PG_INT8_NUMBER_CODEC_ID),
   ),
   ...SUM_WIDENS_TO_INT8.map((codecId) =>
-    producesVia('sumBigInt', overCodec(codecId), PG_INT8_CODEC_ID, computedWith('sum')),
+    producesVia('sumBigInt', { kind: 'codec', codecId }, PG_INT8_CODEC_ID, computedWith('sum')),
   ),
   // The lossless sum of 64-bit integers is the `numeric` PostgreSQL computed, read as an unbounded `bigint`. Casting that total to `int8` would raise `bigint out of range` past 2^63 — an overflow this row does not have.
   ...SUM_WIDENS_TO_NUMERIC.map((codecId) =>
-    producesVia('sumBigInt', overCodec(codecId), PG_UNBOUNDED_INT_CODEC_ID, computedWith('sum')),
+    producesVia(
+      'sumBigInt',
+      { kind: 'codec', codecId },
+      PG_UNBOUNDED_INT_CODEC_ID,
+      computedWith('sum'),
+    ),
   ),
   // The unbounded integer's own `sum` is already exact, and the variant answers over it all the same: the suffix is an escape hatch, and a caller reaching for it across integer columns should not have to learn which widths did not need it.
   producesVia(
     'sumBigInt',
-    overCodec(PG_UNBOUNDED_INT_CODEC_ID),
+    { kind: 'codec', codecId: PG_UNBOUNDED_INT_CODEC_ID },
     PG_UNBOUNDED_INT_CODEC_ID,
     computedWith('sum'),
   ),
-  produces('sum', overCodec(PG_FLOAT4_CODEC_ID), PG_FLOAT4_CODEC_ID),
+  produces('sum', { kind: 'codec', codecId: PG_FLOAT4_CODEC_ID }, PG_FLOAT4_CODEC_ID),
   ...DOUBLE_PRECISION_CODECS.map((codecId) =>
-    produces('sum', overCodec(codecId), PG_FLOAT8_CODEC_ID),
+    produces('sum', { kind: 'codec', codecId }, PG_FLOAT8_CODEC_ID),
   ),
-  produces('sum', overCodec(PG_NUMERIC_CODEC_ID), PG_NUMERIC_CODEC_ID),
+  produces('sum', { kind: 'codec', codecId: PG_NUMERIC_CODEC_ID }, PG_NUMERIC_CODEC_ID),
   // `sum` over the unbounded integer keeps its codec: the expression's SQL type is `numeric`, and a sum of integral values is integral, so the codec's integrality-checked `bigint` decode is the right reader for the total.
-  produces('sum', overCodec(PG_UNBOUNDED_INT_CODEC_ID), PG_UNBOUNDED_INT_CODEC_ID),
-  produces('sum', overCodec(PG_INTERVAL_CODEC_ID), PG_INTERVAL_CODEC_ID),
-  produces('sum', overCodec(PG_TIME_STRING_CODEC_ID), PG_INTERVAL_CODEC_ID),
-  produces('sum', overCodec(PG_TIME_TEMPORAL_CODEC_ID), PG_INTERVAL_CODEC_ID),
+  produces('sum', { kind: 'codec', codecId: PG_UNBOUNDED_INT_CODEC_ID }, PG_UNBOUNDED_INT_CODEC_ID),
+  produces('sum', { kind: 'codec', codecId: PG_INTERVAL_CODEC_ID }, PG_INTERVAL_CODEC_ID),
+  produces('sum', { kind: 'codec', codecId: PG_TIME_STRING_CODEC_ID }, PG_INTERVAL_CODEC_ID),
+  produces('sum', { kind: 'codec', codecId: PG_TIME_TEMPORAL_CODEC_ID }, PG_INTERVAL_CODEC_ID),
 
   // A mean is a fraction, so `avg` over any integer column reads as a `number`; `avgDecimal` reads the same `numeric` mean exactly.
   ...INTEGER_CODECS.map((codecId) =>
-    producesVia('avg', overCodec(codecId), PG_FLOAT8_CODEC_ID, avgCastToFloat8),
+    producesVia('avg', { kind: 'codec', codecId }, PG_FLOAT8_CODEC_ID, avgCastToFloat8),
   ),
   ...[...INTEGER_CODECS, PG_NUMERIC_CODEC_ID].map((codecId) =>
-    producesVia('avgDecimal', overCodec(codecId), PG_NUMERIC_CODEC_ID, computedWith('avg')),
+    producesVia('avgDecimal', { kind: 'codec', codecId }, PG_NUMERIC_CODEC_ID, computedWith('avg')),
   ),
   ...[PG_FLOAT4_CODEC_ID, ...DOUBLE_PRECISION_CODECS].map((codecId) =>
-    produces('avg', overCodec(codecId), PG_FLOAT8_CODEC_ID),
+    produces('avg', { kind: 'codec', codecId }, PG_FLOAT8_CODEC_ID),
   ),
-  produces('avg', overCodec(PG_NUMERIC_CODEC_ID), PG_NUMERIC_CODEC_ID),
-  produces('avg', overCodec(PG_INTERVAL_CODEC_ID), PG_INTERVAL_CODEC_ID),
-  produces('avg', overCodec(PG_TIME_STRING_CODEC_ID), PG_INTERVAL_CODEC_ID),
-  produces('avg', overCodec(PG_TIME_TEMPORAL_CODEC_ID), PG_INTERVAL_CODEC_ID),
+  produces('avg', { kind: 'codec', codecId: PG_NUMERIC_CODEC_ID }, PG_NUMERIC_CODEC_ID),
+  produces('avg', { kind: 'codec', codecId: PG_INTERVAL_CODEC_ID }, PG_INTERVAL_CODEC_ID),
+  produces('avg', { kind: 'codec', codecId: PG_TIME_STRING_CODEC_ID }, PG_INTERVAL_CODEC_ID),
+  produces('avg', { kind: 'codec', codecId: PG_TIME_TEMPORAL_CODEC_ID }, PG_INTERVAL_CODEC_ID),
 
   ...orderingDescriptors('min'),
   ...orderingDescriptors('max'),
-];
+] as const;

@@ -11,6 +11,7 @@ import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import type {
   AggregateTypesBase,
+  AggregateTypesFromDescriptors,
   ApplyParameterizedOutputTypes,
   ApplyQueryOperationTypes,
   AuthoredStorageTypeInstance,
@@ -189,13 +190,34 @@ type QueryOperationTypesFromDefinition<Definition> =
     ? Operations
     : Record<string, never>;
 
+// A pack's aggregate descriptors, when their operations are literal; descriptors typed only as the general descriptor type name no operation the result types could key.
+type PackAggregateDescriptors<Pack> = Pack extends { readonly types?: infer Types }
+  ? Present<Types> extends { readonly aggregateDescriptors?: infer Descriptors }
+    ? Present<Descriptors> extends ReadonlyArray<infer Descriptor>
+      ? Descriptor extends { readonly operation: infer Operation }
+        ? string extends Operation
+          ? never
+          : Descriptor
+        : never
+      : never
+    : never
+  : never;
+
+type ExtensionAggregateDescriptors<Definition> = {
+  [K in keyof DefinitionExtensions<Definition>]: PackAggregateDescriptors<
+    DefinitionExtensions<Definition>[K]
+  >;
+}[keyof DefinitionExtensions<Definition>];
+
+// The aggregate descriptors of the target, its adapter and the extensions, settled against the contract's codecs, as emission settles them.
 type AggregateTypesFromDefinition<Definition> =
-  DefinitionTarget<Definition> extends {
-    readonly __aggregateTypes?: infer Aggregates;
-  }
-    ? Present<Aggregates> extends infer Defined extends AggregateTypesBase
-      ? Defined
-      : Record<string, never>
+  AggregateTypesFromDescriptors<
+    | PackAggregateDescriptors<DefinitionTarget<Definition>>
+    | PackAggregateDescriptors<DefinitionAdapter<Definition>>
+    | ExtensionAggregateDescriptors<Definition>,
+    CodecTypesFromDefinition<Definition>
+  > extends infer AggregateTypes extends AggregateTypesBase
+    ? AggregateTypes
     : Record<string, never>;
 
 type DefinitionTargetId<Definition> = Definition extends {

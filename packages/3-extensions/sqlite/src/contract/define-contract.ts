@@ -1,4 +1,4 @@
-import { sqliteAdapterCapabilities } from '@internal/adapter-sqlite/adapter';
+import { sqliteAdapterContractContributions } from '@internal/adapter-sqlite/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   assembleDataTypes,
@@ -30,10 +30,10 @@ type TypesConstraint = Record<string, AuthoredStorageTypeInstance>;
 type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
 
-/** The adapter this contract runs with, whose capabilities the contract carries, as `prisma contract emit` and the runtime add them. */
-type SqliteAdapter = { readonly capabilities: typeof sqliteAdapterCapabilities };
+/** What the adapter this contract runs with adds to it: its capabilities and its aggregate overloads, as `prisma contract emit` adds them. */
+type SqliteAdapter = typeof sqliteAdapterContractContributions;
 
-const adapter: SqliteAdapter = { capabilities: sqliteAdapterCapabilities };
+const adapter: SqliteAdapter = sqliteAdapterContractContributions;
 
 type SqliteResult<
   Types extends TypesConstraint,

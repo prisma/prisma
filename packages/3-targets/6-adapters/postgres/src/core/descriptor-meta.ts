@@ -1,6 +1,5 @@
-import { postgresAggregateDescriptors } from '@internal/target-postgres/aggregates';
 import { postgresCodecRegistry } from '@internal/target-postgres/codecs';
-import { postgresAdapterCapabilities } from './capabilities';
+import { postgresAdapterContractContributions } from './contract-contributions';
 
 // ============================================================================ Helper functions for reducing boilerplate ============================================================================
 
@@ -20,9 +19,9 @@ export const postgresAdapterDescriptorMeta = {
   targetId: 'postgres',
   id: 'postgres',
   version: '0.0.1',
-  capabilities: postgresAdapterCapabilities,
+  capabilities: postgresAdapterContractContributions.capabilities,
   types: {
-    aggregateDescriptors: postgresAggregateDescriptors,
+    aggregateDescriptors: postgresAdapterContractContributions.types.aggregateDescriptors,
     codecTypes: {
       codecDescriptors: Array.from(postgresCodecRegistry.values()),
       import: {

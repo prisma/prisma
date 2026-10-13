@@ -13,6 +13,7 @@ export type {
   AggregateOperationTypes,
   AggregateResultType,
   AggregateTypesBase,
+  AggregateTypesFromDescriptors,
   AggregateTypesOf,
   ApplyParameterizedOutputTypes,
   ApplyQueryOperationTypes,

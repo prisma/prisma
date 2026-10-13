@@ -1,4 +1,4 @@
-import { postgresAdapterCapabilities } from '@internal/adapter-postgres/adapter';
+import { postgresAdapterContractContributions } from '@internal/adapter-postgres/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   assembleDataTypes,
@@ -32,10 +32,10 @@ type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
 type NamespacesConstraint = readonly string[] | undefined;
 
-/** The adapter this contract runs with, whose capabilities the contract carries, as `prisma contract emit` and the runtime add them. */
-type PostgresAdapter = { readonly capabilities: typeof postgresAdapterCapabilities };
+/** What the adapter this contract runs with adds to it: its capabilities and its aggregate overloads, as `prisma contract emit` adds them. */
+type PostgresAdapter = typeof postgresAdapterContractContributions;
 
-const adapter: PostgresAdapter = { capabilities: postgresAdapterCapabilities };
+const adapter: PostgresAdapter = postgresAdapterContractContributions;
 
 type PostgresResult<
   Types extends TypesConstraint,

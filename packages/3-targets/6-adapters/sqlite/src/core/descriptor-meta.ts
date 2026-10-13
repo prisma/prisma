@@ -1,6 +1,5 @@
-import { sqliteAggregateDescriptors } from '@internal/target-sqlite/aggregates';
 import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
-import { sqliteAdapterCapabilities } from './capabilities';
+import { sqliteAdapterContractContributions } from './contract-contributions';
 
 export const sqliteAdapterDescriptorMeta = {
   kind: 'adapter',
@@ -8,9 +7,9 @@ export const sqliteAdapterDescriptorMeta = {
   targetId: 'sqlite',
   id: 'sqlite',
   version: '0.0.1',
-  capabilities: sqliteAdapterCapabilities,
+  capabilities: sqliteAdapterContractContributions.capabilities,
   types: {
-    aggregateDescriptors: sqliteAggregateDescriptors,
+    aggregateDescriptors: sqliteAdapterContractContributions.types.aggregateDescriptors,
     codecTypes: {
       codecDescriptors: Array.from(sqliteCodecRegistry.values()),
       import: {

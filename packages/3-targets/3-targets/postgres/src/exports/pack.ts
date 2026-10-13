@@ -1,4 +1,3 @@
-export type { AggregateTypes } from '../core/aggregate-types';
 export { postgresTargetDescriptorMeta as default } from '../core/descriptor-meta';
 export type { FullTextDocument } from '../core/full-text-document';
 export type { TsqueryParser } from '../core/full-text-parsers';
