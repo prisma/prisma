@@ -742,7 +742,9 @@ function resolveFieldType(
       ...many,
     };
   }
-  if (ctx.enumNames.has(field.typeName)) return undefined;
+  if (ctx.enumNames.has(field.typeName)) {
+    return nativeType === undefined ? undefined : nativeTypeUnsupported(nativeType);
+  }
   const scalarCodecId = Object.hasOwn(binding.scalarCodecIds, field.typeName)
     ? binding.scalarCodecIds[field.typeName]
     : undefined;

@@ -19,7 +19,7 @@ In a PSL or Prisma 6 schema the same member is reported at the member:
 enum "Volume" member "Quiet" is written "quiet", but its codec stores "QUIET". Write the member as "QUIET".
 ```
 
-A codec that throws on a member is now reported as a refusal naming the member, and an enum codec no pack provides is a diagnostic at the enum in PSL and Prisma 6 schemas.
+In TypeScript, a codec that throws on a member is now reported as `CONTRACT.ENUM_INVALID` naming the member, with the codec's error as the cause.
 
 1. Run `prisma contract emit`. Each refused member is reported with the value to write.
 2. If the codec is yours and should store the value as written, fix its `encodeJson` or `decodeJson` so `decodeJson(encodeJson(value))` returns `value`. Otherwise write each refused member as the message says.

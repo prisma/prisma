@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url';
 import { enumType } from '@internal/contract-authoring';
 import type {
   AuthoringEntityTypeDescriptor,
@@ -5,12 +6,18 @@ import type {
 } from '@internal/framework-components/authoring';
 import type { Codec, CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import { prisma6MongoBinding } from '@internal/target-mongo/prisma6-binding';
-import { join } from 'pathe';
+import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { prisma6Contract } from '../src/provider';
 import { fixturesDir, mongoSourceContext, mongoStack } from './support';
 
 const enumSchema = join(fixturesDir, 'enums', 'schema.prisma');
+const nativeTypeSchema = join(
+  dirname(fileURLToPath(import.meta.url)),
+  'enum-member-checks',
+  'native-type',
+  'schema.prisma',
+);
 
 function lookupWithStringCodec(overrides: Partial<Codec>): CodecLookupWithDescriptors {
   const stringCodec = Object.assign(
@@ -47,10 +54,12 @@ async function diagnosticsOf(
   options: {
     readonly codecLookup?: CodecLookupWithDescriptors;
     readonly enumEntity?: AuthoringEntityTypeDescriptor;
+    readonly schema?: { readonly path: string; readonly sourceId: string };
   } = {},
 ) {
-  const context = mongoSourceContext([enumSchema]);
-  const result = await prisma6Contract('enums/schema.prisma', {
+  const schema = options.schema ?? { path: enumSchema, sourceId: 'enums/schema.prisma' };
+  const context = mongoSourceContext([schema.path]);
+  const result = await prisma6Contract(schema.sourceId, {
     binding: prisma6MongoBinding,
   }).source.load({
     ...context,
@@ -125,5 +134,18 @@ describe('Prisma 6 MongoDB enum members its codec cannot store as written', () =
       sourceId: 'enums/schema.prisma',
       line: 12,
     });
+  });
+
+  it('still reports a native type on a field typed by a refused enum', async () => {
+    const shouting = lookupWithStringCodec({ encodeJson: (v: unknown) => String(v).toUpperCase() });
+    expect(
+      await diagnosticsOf({
+        codecLookup: shouting,
+        schema: { path: nativeTypeSchema, sourceId: 'native-type/schema.prisma' },
+      }),
+    ).toEqual([
+      expect.objectContaining({ code: 'PSL.PRISMA6_MONGO_NATIVE_TYPE_UNSUPPORTED', line: 8 }),
+      expect.objectContaining({ code: 'PSL_EXTENSION_INVALID_VALUE', line: 12 }),
+    ]);
   });
 });

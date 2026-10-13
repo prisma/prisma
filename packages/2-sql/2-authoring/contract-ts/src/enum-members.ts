@@ -1,15 +1,7 @@
-import type { JsonValue, ValueSetRef } from '@internal/contract/types';
+import type { ValueSetRef } from '@internal/contract/types';
 import { type EnumTypeHandle, encodeEnumTypeMembers } from '@internal/contract-authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import { contractError } from './contract-errors';
-
-/** Each member's value in the form the enum's column stores it; see `encodeEnumTypeMembers`. */
-export function encodeEnumMembers(
-  handle: EnumTypeHandle,
-  codecLookup: CodecLookupWithDescriptors,
-): readonly { readonly name: string; readonly value: JsonValue }[] {
-  return encodeEnumTypeMembers(handle, codecLookup, 'the column');
-}
 
 /**
  * The member values a membership check must enforce, encoded exactly as the
@@ -19,7 +11,9 @@ export function checkMemberValues(
   handle: EnumTypeHandle,
   codecLookup: CodecLookupWithDescriptors,
 ): readonly (string | number)[] {
-  const encoded = encodeEnumMembers(handle, codecLookup).map((member) => member.value);
+  const encoded = encodeEnumTypeMembers(handle, codecLookup, 'the column').map(
+    (member) => member.value,
+  );
   const values: (string | number)[] = [];
   for (const value of encoded) {
     if (typeof value !== 'string' && !(typeof value === 'number' && Number.isFinite(value))) {
