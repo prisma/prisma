@@ -139,7 +139,7 @@ function replan(
   except: string | undefined = undefined,
 ): string {
   const others =
-    except === undefined ? 'its other statements' : `its other statements except ${except}`;
+    except === undefined ? 'its other statements' : `its other statements except any ${except}`;
   const plan = migrationPlanCommand(
     failed.invocation,
     ['--name', failed.name, ...flags],
