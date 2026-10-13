@@ -32,7 +32,38 @@ export interface TransactionActivity extends ActivityBase {
   readonly kind: 'transaction';
 }
 
-export type RuntimeActivity = StatementActivity | TransactionActivity;
+/**
+ * The kinds of activity clients start, each with the type of the result it ends with. Empty in the framework; a client registers its kinds by module augmentation:
+ *
+ * ```ts
+ * declare module '@internal/framework-components/runtime' {
+ *   interface ClientActivityKinds { 'orm-call': { result: unknown } }
+ * }
+ * ```
+ */
+// biome-ignore lint/suspicious/noEmptyInterface: clients add members by module augmentation
+export interface ClientActivityKinds {}
+
+export type ClientActivityKind = keyof ClientActivityKinds & string;
+
+export type ClientActivityResult<K extends ClientActivityKind> = ClientActivityKinds[K] extends {
+  readonly result: infer R;
+}
+  ? R
+  : unknown;
+
+/** An act a client started through the runtime, such as an ORM call. */
+export interface ClientActivity<K extends ClientActivityKind = ClientActivityKind>
+  extends ActivityBase {
+  readonly kind: K;
+  /** An opaque digest of what the activity does, supplied by the client. */
+  readonly contentHash: string;
+}
+
+export type Activity =
+  | StatementActivity
+  | TransactionActivity
+  | { readonly [K in ClientActivityKind]: ClientActivity<K> }[ClientActivityKind];
 
 /**
  * The context of one activity. Every hook of the activity receives the same object.
@@ -81,7 +112,18 @@ export type StatementEnded = {
   | { readonly returns: 'stats'; readonly stats?: RuntimeStatementStats }
 );
 
-export type ActivityEndedResult = TransactionEnded | StatementEnded;
+export type ClientActivityEnded<K extends ClientActivityKind = ClientActivityKind> = {
+  readonly [Kind in K]: {
+    readonly kind: Kind;
+    readonly outcome: 'succeeded' | 'failed' | 'stopped';
+    /** `middleware` when an `intercept.onActivity` handler supplied the result and the client passed none, or when the handler threw. */
+    readonly source: 'client' | 'middleware';
+    /** The value the client returns to its caller. The runtime does not read it. */
+    readonly result?: ClientActivityResult<Kind>;
+  };
+}[K];
+
+export type ActivityEndedResult = TransactionEnded | StatementEnded | ClientActivityEnded;
 
 export interface ActivityFinalizedResult {
   /** `unknown` when the runtime cannot tell whether the writes landed; treat it like `committed` when a committed write must not be missed. */
@@ -90,6 +132,10 @@ export interface ActivityFinalizedResult {
 
 export interface QueryInterceptResult {
   readonly rows: AsyncIterable<Record<string, unknown>> | Iterable<Record<string, unknown>>;
+}
+
+export interface ActivityInterceptResult {
+  readonly result: unknown;
 }
 
 export interface ExecuteInterceptResult {
@@ -106,16 +152,16 @@ export type ParamRefMutator = { readonly [PARAM_REF_MUTATOR_BRAND]?: never };
 export interface ActivityObserver {
   readonly name: string;
   /** The act begins. */
-  activityStarted?(activity: RuntimeActivity, ctx: ActivityContext): Promise<void>;
+  activityStarted?(activity: Activity, ctx: ActivityContext): Promise<void>;
   /** The act ends, with its outcome as the actor saw it. An error thrown when the activity succeeded fails it and reaches the caller; after a failure it is swallowed. */
   activityEnded?(
-    activity: RuntimeActivity,
+    activity: Activity,
     result: ActivityEndedResult,
     ctx: ActivityContext,
   ): Promise<void>;
   /** The act's effects are final. A thrown error is passed to `ctx.log.error` and swallowed; later middleware still run. */
   activityFinalized?(
-    activity: RuntimeActivity,
+    activity: Activity,
     result: ActivityFinalizedResult,
     ctx: ActivityContext,
   ): Promise<void>;
@@ -136,6 +182,11 @@ export interface RuntimeMiddleware<
   intercept?: {
     onQuery?(plan: TPlan, ctx: ActivityContext): Promise<QueryInterceptResult | undefined>;
     onExecute?(plan: TPlan, ctx: ActivityContext): Promise<ExecuteInterceptResult | undefined>;
+    /** Supplies the result of an activity a client started, after its `activityStarted` hooks. The client checks what it receives. */
+    onActivity?(
+      activity: ClientActivity,
+      ctx: ActivityContext,
+    ): Promise<ActivityInterceptResult | undefined>;
   };
   /** Runs for each row the driver returns; not for intercepted rows. Throw to stop the stream. */
   onRow?(row: Record<string, unknown>, plan: TPlan, ctx: ActivityContext): Promise<void>;

@@ -1,29 +1,117 @@
 import { blindCast } from '@internal/utils/casts';
+import { type RuntimeErrorEnvelope, runtimeError } from './runtime-error';
 import type {
+  Activity,
+  ActivityBase,
   ActivityContext,
   ActivityContextFields,
   ActivityEndedResult,
   ActivityFinalizedResult,
   ActivityObserver,
-  RuntimeActivity,
 } from './runtime-middleware';
 
 /** An open activity that new activities can start beneath. */
 export interface ActivityParent {
-  readonly activity: RuntimeActivity;
+  readonly activity: ActivityBase;
   readonly ctx: ActivityContext;
-  /** Records `child` in start order; the parent finalizes it. Returns what the child calls when it ends, which finalizes it when the parent has already ended. */
-  adopt(child: ActivityChild): (outcome: ActivityEndedResult['outcome']) => Promise<void>;
+  /** Records `child` in start order and returns how the child reports to this parent. Throws a runtime error when this parent has ended, or when the transaction it runs in has. */
+  adopt(child: ActivityChild): ActivityChildSlot;
 }
 
-/** What a parent holds of a child activity until it finalizes it. */
+/** What a parent holds of a child activity until it is finalized. */
 export interface ActivityChild {
-  /** Runs the child's `activityFinalized` hooks; a second call does nothing. */
+  /** Runs the `activityFinalized` hooks of the children it holds, in the order they started and depth first, then its own. A second call does nothing. */
   finalize(result: ActivityFinalizedResult): Promise<void>;
 }
 
+/** How a child reports to its parent. */
+export interface ActivityChildSlot {
+  /** A statement at or beneath the child failed. The report travels up to the nearest transaction. */
+  statementFailed(): void;
+  /** The child has ended. `own` is its finalized result when no transaction finalizes it. Resolves once the child is finalized, or held for its transaction. */
+  ended(own: ActivityFinalizedResult): Promise<void>;
+  /** Whether the transaction the parent runs in has ended, so no work may start beneath the child. */
+  transactionEnded(): boolean;
+}
+
+export interface ActivityChildrenOptions {
+  /** Whether a transaction at or above the parent finalizes the children. Otherwise each child is finalized with its own result when it ends. */
+  readonly inTransaction: boolean;
+  /** Whether finished children are kept for the transaction to finalize. */
+  readonly holdFinishedChildren: boolean;
+  readonly statementFailed: () => void;
+  readonly transactionEnded: () => boolean;
+  /** Receives the result of each child finalized when it ends. */
+  readonly childFinalized: (result: ActivityFinalizedResult) => void;
+}
+
+/** The children of a transaction or a client activity: which are open, and which have ended and wait to be finalized. */
+export class ActivityChildren {
+  readonly #options: ActivityChildrenOptions;
+  readonly #held: Array<{ readonly child: ActivityChild; ended: boolean }> = [];
+  #open = 0;
+  #finalized: ActivityFinalizedResult | undefined;
+
+  constructor(options: ActivityChildrenOptions) {
+    this.#options = options;
+  }
+
+  /** The children that have started and not ended. */
+  get open(): number {
+    return this.#open;
+  }
+
+  add(child: ActivityChild): ActivityChildSlot {
+    const options = this.#options;
+    const entry =
+      options.inTransaction && options.holdFinishedChildren ? { child, ended: false } : undefined;
+    if (entry !== undefined) this.#held.push(entry);
+    this.#open++;
+    let ended = false;
+    return {
+      statementFailed: options.statementFailed,
+      transactionEnded: options.transactionEnded,
+      ended: async (own) => {
+        if (ended) return;
+        ended = true;
+        this.#open--;
+        if (!options.inTransaction) {
+          options.childFinalized(own);
+          await child.finalize(own);
+        } else if (this.#finalized !== undefined) {
+          await child.finalize(this.#finalized);
+        } else if (entry !== undefined) {
+          entry.ended = true;
+        }
+      },
+    };
+  }
+
+  /** Finalizes the children that have ended, in start order, with `result`; a child that ends later is finalized with it then. */
+  async finalize(result: ActivityFinalizedResult): Promise<void> {
+    if (this.#finalized !== undefined) return;
+    this.#finalized = result;
+    for (const { child, ended } of this.#held.splice(0)) {
+      if (ended) await child.finalize(result);
+    }
+  }
+}
+
+export function activityEndedError(
+  parent: ActivityBase,
+  reason: 'ended' | 'transaction-ended',
+): RuntimeErrorEnvelope {
+  const subject = parent.kind === 'transaction' ? 'a transaction' : `a '${parent.kind}' activity`;
+  const state = reason === 'ended' ? 'that has ended' : 'whose transaction has ended';
+  return runtimeError(
+    'RUNTIME.ACTIVITY_ENDED',
+    `An activity was started beneath ${subject} ${state}`,
+    { parentKind: parent.kind, parentId: parent.id },
+  );
+}
+
 export interface ActivityRecord<TContext extends ActivityContext> extends ActivityChild {
-  readonly activity: RuntimeActivity;
+  readonly activity: Activity;
   readonly ctx: TContext;
   started(): Promise<void>;
   ended(result: ActivityEndedResult): Promise<void>;
@@ -55,7 +143,7 @@ export function createStateStore(): ActivityStateStore {
 
 export function createActivityRecord<TContext extends ActivityContext>(
   middleware: ReadonlyArray<ActivityObserver>,
-  activity: RuntimeActivity,
+  activity: Activity,
   fields: ActivityContextFields<TContext>,
   parent: ActivityParent | undefined,
 ): ActivityRecord<TContext> {
@@ -136,12 +224,14 @@ function logHookError(
 }
 
 /**
- * Ends an activity: its `activityEnded` hooks, then its finalization, which a parent holds or which happens at once with `committed` or `unknown`. The finalization runs even when an `activityEnded` hook fails the activity; that error is rethrown afterwards.
+ * Ends an activity: its `activityEnded` hooks, then its finalization, which its parent holds or performs, or which happens at once with `own` when it has no parent. The finalization runs even when an `activityEnded` hook fails the activity; that error is rethrown afterwards.
  */
 export async function endActivity(
-  record: ActivityRecord<ActivityContext>,
+  record: Pick<ActivityRecord<ActivityContext>, 'ended'>,
   result: ActivityEndedResult,
-  childEnded: ((outcome: ActivityEndedResult['outcome']) => Promise<void>) | undefined,
+  own: ActivityFinalizedResult,
+  slot: ActivityChildSlot | undefined,
+  finalize: (result: ActivityFinalizedResult) => Promise<void>,
 ): Promise<void> {
   let endedError: { readonly error: unknown } | undefined;
   try {
@@ -149,10 +239,10 @@ export async function endActivity(
   } catch (error) {
     endedError = { error };
   }
-  if (childEnded === undefined) {
-    await record.finalize({ outcome: result.outcome === 'succeeded' ? 'committed' : 'unknown' });
+  if (slot === undefined) {
+    await finalize(own);
   } else {
-    await childEnded(result.outcome);
+    await slot.ended(own);
   }
   if (endedError !== undefined) throw endedError.error;
 }
