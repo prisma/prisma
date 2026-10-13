@@ -40,7 +40,7 @@ The same two forms work for a block kind an extension defines. Row-level securit
 namespace public {
   policy_select mixin OwnerRead {
     roles = [authenticated]
-    using = "\"userId\"::uuid = auth.uid()"
+    using = sql`"userId"::uuid = auth.uid()`
   }
 
   policy_select profile_owner_read {
@@ -84,11 +84,11 @@ Inclusions are replaced by members while the symbol table is built. The binder a
 4. **`+` is a new token.** The tokenizer has no token for it today, and no body member can start with it, so the form is unambiguous in all three member grammars and no existing schema changes meaning.
 5. **Position decides placement.** The mixin's members are placed where the inclusion is written. Field order, and with it column order, follows the source.
 6. **The inclusion's operand is a `QualifiedName`**, the node type references already use, so `+auth.Timestamps` and cross-namespace lookup need no new reference form.
-7. **Mixins are namespace members** and share the kind-blind name scope with models, composite types and blocks. A mixin and a model with the same name in one namespace are a `PSL_DUPLICATE_DECLARATION`. An unqualified inclusion resolves in the declaring namespace, then the top level.
+7. **Mixins are namespace members.** A mixin and a model with the same name in one namespace are a `PSL_DUPLICATE_DECLARATION`. An inclusion's name is resolved by the binder like any other name: an unqualified name in the including block's namespace, then at the top level, and a nearer declaration of any kind hides an outer one of the same name. `ns.Name` is looked up among the members of namespace `ns` only. A name that resolves to anything other than a mixin is reported as not found. (A mixin-only lookup was tried and reverted in review.)
 8. **The included mixin's keyword must equal the enclosing block's keyword.** Anything else is a diagnostic at the inclusion.
 9. **A member provided twice is an error.** This covers a block and an included mixin providing the same member, and two included mixins providing the same member. There is no precedence and no override.
 10. **Names inside a mixin are resolved where the mixin is written.** The body is bound once, in the mixin's own namespace, against the mixin's own members. The binder stores one resolution per syntax node; resolving at each inclusion would give one node several meanings and leave hover and go-to-definition inside the mixin body without a single answer. Consequence: a mixin's attributes can name only fields the mixin declares. `@@unique([tenantId, id])` where `id` belongs to the including model is written in the model.
-11. **Inclusions are replaced by members in `buildSymbolTable`,** in a second pass after all declarations are collected. Mixin lookup needs only user declarations, since no target or extension contributes mixins. The existing duplicate detection there covers decision 9.
+11. **Inclusions are replaced by members between the binder's two passes.** `buildSymbolTable` builds every block as written. The binder's first pass resolves each inclusion's name, then a placement function in the symbol table's module puts the mixin's members into the including block's symbol in place, and the second pass binds members and attributes. Placement reports decision 9's duplicates. (The symbol table resolving inclusion names itself was tried and replaced in review: it needed a second resolver and a staged construction.)
 12. **Mixed-in members are shared symbols.** A mixin's field is one symbol and one node however many blocks include it. A reference to it from an including block (`@@unique([tenantId, id])`) resolves to the mixin's field, so rename and go-to-definition work across including blocks.
 13. **Diagnostic locations.** Errors raised while inclusions are replaced (unresolved mixin, keyword mismatch, duplicate member, inclusion inside a mixin) point at the inclusion. Errors raised by family interpreters keep the location they compute today, which for a mixed-in member is inside the mixin. Moving those to the inclusion would require either every interpreter diagnostic site (about 260 across the SQL and Mongo interpreters) to know about mixins, or per-block member copies that would also move errors that are the mixin's own fault.
 14. **The parser reads both forms under every grammar option.** It does not decide whether a schema version supports mixins. The interpreters for Prisma 7 and Prisma 6 schemas report a mixin declaration and an inclusion as unsupported, as they report other constructs those versions lack. (Changed in review of the grammar slice: the parser first left both forms unrecognised under the `prisma-7` grammar.)
@@ -134,7 +134,7 @@ None. No target adapter changes.
 - **Consumers read block members from symbols, not from syntax nodes.** `BlockSymbol` holds only `name`, `keyword` and `node` today, and about fifteen call sites in the binder, `block-spec/interpret.ts`, the family interpreters and `sql-attribute-specs.ts` read `block.node.entries()` or `block.node.attributes()`. Three sites read `model.node.attributes()`. All of them move to member records on the symbol, and `BlockSymbol` gains those records. Without this, an inclusion in an enum or an extension block is invisible to its consumers.
 - **Inline equivalence.** For every block kind, a schema using a mixin and the same schema with the members written at the inclusion's position produce the same contract.
 - **One grammar for every block kind.** `<keyword> mixin X` and `+X` parse for any keyword from the first parser change; support is not added kind by kind.
-- **No interpreter knows about mixins.** No family interpreter, attribute spec or block spec tests for a mixin or an inclusion.
+- **No interpreter knows about mixins.** No family interpreter, attribute spec or block spec tests for a mixin or an inclusion. One exception: the family callbacks that word the binder's diagnostics (`describeUnsupportedAttribute`, `describeUnresolvedType`) receive the mixin as the owner of a member written in a mixin body, and may check its kind to choose the wording.
 - **Lossless round trip.** The parser keeps its lossless syntax tree for the new forms, and the formatter prints them.
 
 ## Transitional-shape constraints

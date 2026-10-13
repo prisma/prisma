@@ -62,7 +62,7 @@ Each symbol carries the members of its declaration. A model or composite type sy
 
 ### Binder
 
-`createBinder({ sources, symbolTable, context })` resolves names. It decides which declaration a type reference, a field reference or an entity reference denotes, and it reports the ones it cannot resolve. Every consumer asks the binder instead of searching the symbol table, so the interpreters, the attribute specifications and the language server agree on what a name means, and an unresolved name is reported once.
+`createBinder({ sources, symbolTable, context })` resolves names. It decides which declaration a type reference, a field reference or an entity reference denotes, and it reports the ones it cannot resolve. Every consumer asks the binder instead of searching the symbol table, so the interpreters, the attribute specifications and the language server agree on what a name means, and an unresolved name is reported once. Creating a binder also completes the symbol table it is given: a block's member records are final only after `createBinder` returns, so read a block's members from the symbol table after creating the binder.
 
 An unqualified name is looked up in this order:
 
