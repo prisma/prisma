@@ -12,6 +12,7 @@ import type {
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
 import {
+  castColumnOf,
   type RequiredColumn,
   requiredColumnOf,
   requiredColumnsOfMigration,
@@ -81,15 +82,17 @@ interface PlanPosition {
 
 /**
  * The type change a failed cast step carries out: a data exception means a value the cast could
- * not convert, and 42846 (`cannot_coerce`) a pair of types Postgres has no cast between.
+ * not convert, and 42846 (`cannot_coerce`) a pair of types Postgres has no cast between. Either
+ * failure of a step the migration's own conversion carries out is a conversion that failed.
  */
 function failedCastOf(
   step: SqlMigrationPlanOperationStep,
   sqlState: string | undefined,
   plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
 ): FailedTypeChangeCast | undefined {
-  const reason = sqlState === '42846' ? 'noCast' : sqlState?.startsWith('22') ? 'value' : undefined;
-  if (reason === undefined) return undefined;
+  const failed = sqlState === '42846' ? 'noCast' : sqlState?.startsWith('22') ? 'value' : undefined;
+  if (failed === undefined) return undefined;
+  const reason = castColumnOf(step)?.by === 'conversion' ? 'conversion' : failed;
   const field = unconvertedFieldOf(step, plan.contract);
   return field === undefined ? undefined : { field, reason, operationIndex: plan.operationIndex };
 }

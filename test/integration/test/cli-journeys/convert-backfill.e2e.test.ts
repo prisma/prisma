@@ -141,6 +141,26 @@ withTempDir(({ createTempDir }) => {
 
         const converted = await runMigrationPlan(ctx, [...from, '--convert', 'User.age']);
         expect(converted.exitCode, `plan --convert: ${converted.stderr}`).toBe(0);
+        const migrationTs = join(latestDir(ctx), 'migration.ts');
+        const scaffold = readFileSync(migrationTs, 'utf-8');
+        writeFileSync(migrationTs, fillUsing('("age" || chr(120))::int4')(scaffold));
+        const emitted = await selfEmitMigration(ctx, [
+          '--dir',
+          latestDir(ctx),
+          '--config',
+          ctx.configPath,
+        ]);
+        expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
+        const wrong = await runMigrate(ctx, ['--json']);
+        expect(wrong.exitCode, 'the conversion fails on a value').not.toBe(0);
+        const wrongAdvice = JSON.stringify(engineError(wrong)?.nextActions);
+        expect(wrongAdvice).toContain('The conversion of field \\"User.age\\" left a value');
+        expect(wrongAdvice).toContain(
+          `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\``,
+        );
+        expect(wrongAdvice).not.toContain('--convert');
+
+        writeFileSync(migrationTs, scaffold);
         await fillAndApply(ctx, fillUsing('trim("age")::int4'));
 
         const rows = await sql(db.connectionString, `SELECT id, age FROM "user" ORDER BY id`);

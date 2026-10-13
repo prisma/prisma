@@ -164,9 +164,11 @@ export async function alterColumnType(
           `alter type of "${columnName}"`,
           `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.type}${usingClause}`,
         ),
-        ...(options.using === undefined && operationClass === 'destructive'
-          ? { meta: castColumnMeta(tableName, columnName) }
-          : {}),
+        ...(options.using !== undefined
+          ? { meta: castColumnMeta(tableName, columnName, 'conversion') }
+          : operationClass === 'destructive'
+            ? { meta: castColumnMeta(tableName, columnName) }
+            : {}),
       },
     ],
     postcheck: [
