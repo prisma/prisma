@@ -1064,7 +1064,7 @@ A statement or an activity was started beneath an activity that no longer accept
 
 ### RUNTIME.ACTIVITY_KIND_RESERVED
 
-A client called `startActivity` with the kind `statement` or `transaction`. The runtime starts those activities itself. A client kind contains a hyphen, such as `orm-call`, so this happens only when a caller casts the kind. Payload: `kind`.
+A client started an activity with a kind that has no hyphen, such as `statement`, `transaction` or `report`. A client kind contains a hyphen, such as `orm-call`; kinds without one belong to the runtime. The types reject such a kind, so this happens only when a caller casts it. Payload: `kind`.
 
 ### RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION
 

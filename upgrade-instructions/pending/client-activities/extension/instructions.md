@@ -14,6 +14,9 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\.kind\s*===\s*[''"]transaction[''"]'
+  - id: start-a-client-activity
+    summary: |
+      An extension can start an activity of its own kind with `startActivityOn(queryable, { kind, contentHash, annotations? })`, derive `contentHash` with `planContentHashOn(queryable, plan)`, send statements through the returned handle, and must end every handle with `end({ outcome, result? })`, in a `finally`; an open handle keeps `close()` waiting. A middleware can supply the activity's result through `intercept.onActivity(activity, ctx)`. Registering the kind in `ClientActivityRegistry` types the handle's `intercepted.result` and `end({ result })`; in middleware hooks the result stays `unknown`.
   - id: runtime-connections-carry-an-activity-source
     summary: |
       The SQL runtime's queryables start client activities through an internal `activitySource` member, which `startActivityOn` and `planContentHashOn` read. A connection-like object that a `SqlRuntimeBase` subclass builds over a raw connection adds `[activitySource]: this.connectionActivitySource(connection, () => session)`, and `ActivitySourceTarget` to the object's declared type, so activities can start on it. The public `RuntimeConnection` type does not require it.
@@ -77,14 +80,84 @@ if (result.kind !== 'statement') return;
 record(result.latencyMs);
 ```
 
-A middleware that sees a kind it does not know should ignore it rather than fail. A package that wants a typed result for its own kind registers it:
+A middleware that sees a kind it does not know should ignore it rather than fail.
+
+## Start your own activity
+
+An extension can start an activity for an act of its own, such as a report that sends several statements, so that middleware observe it, finalize it and can serve it from a cache.
+
+**Dependencies.** The types and the registry are in `@prisma/orm-framework/components/runtime`; `startActivityOn` and `planContentHashOn` are in `@prisma/orm-family-sql/runtime/internal/prepared-query`. An application or extension that uses `postgres()` already depends on `@prisma/orm-postgres`, which re-exports both as `@prisma/orm-postgres/components/runtime` and `@prisma/orm-postgres/family-runtime/internal/prepared-query`. Module augmentation works through either entry.
+
+**Register the kind.** A client kind contains a hyphen; a kind without one is rejected with `RUNTIME.ACTIVITY_KIND_RESERVED`. Registering the result type is optional. The file that augments the entry must also import from it, or TypeScript reports that the module cannot be found:
 
 ```ts
-declare module '@prisma/orm-framework/components/runtime' {
+import type { ClientActivityResult } from '@prisma/orm-postgres/components/runtime';
+
+declare module '@prisma/orm-postgres/components/runtime' {
   interface ClientActivityRegistry {
-    'orm-call': { result: unknown };
+    'report-run': { result: { readonly emails: readonly string[] } };
   }
 }
+
+export type ReportResult = ClientActivityResult<'report-run'>;
+```
+
+The registry types the handle side only: `call.intercepted.result` and `call.end({ result })`. In middleware hooks the result of a client activity is `unknown`, even after `result.kind === 'report-run'`, because the hook types must accept unregistered kinds; check or cast the value there.
+
+**Start, use and end it.** Derive the content hash from the plan with `planContentHashOn`; it is the digest `ctx.contentHash(exec)` returns for the statement's execution plan, unless a `beforeEncode` hook changes the parameters. End every handle, in a `finally`, or `close()` waits for it forever:
+
+```ts
+import { planContentHashOn, startActivityOn } from '@prisma/orm-postgres/family-runtime/internal/prepared-query';
+import type { SqlQueryPlan } from '@prisma/orm-postgres/relational-core/plan';
+import type { PostgresClient } from '@prisma/orm-postgres/runtime';
+
+async function runReport(db: PostgresClient<Contract>, plan: SqlQueryPlan<{ email: string }>) {
+  const runtime = db.runtime();
+  const contentHash = await planContentHashOn(runtime, plan);
+  const call = await startActivityOn(runtime, { kind: 'report-run', contentHash });
+  let outcome: 'succeeded' | 'failed' = 'failed';
+  let result: { readonly emails: readonly string[] } | undefined;
+  try {
+    if (call.intercepted) {
+      outcome = 'succeeded';
+      return call.intercepted.result.emails;
+    }
+    const rows = await call.query(plan).toArray();
+    result = { emails: rows.map((row) => row.email) };
+    outcome = 'succeeded';
+    return result.emails;
+  } finally {
+    await call.end({ outcome, ...(result === undefined ? {} : { result }) });
+  }
+}
+```
+
+Statements sent through `call` are the activity's children. `call.transaction()` starts a transaction beneath it, on a connection it owns; it is absent when the handle was opened under a transaction. `startActivity` on the handle nests another activity.
+
+**Serve it from middleware.** `intercept.onActivity(activity: ClientActivity, ctx)` runs after `activityStarted`; the first handler that returns `{ result }` wins, and the handle's `intercepted` is set. The ended result carries `source: 'middleware'` when the client then ends without a result:
+
+```ts
+import type { SqlMiddleware } from '@prisma/orm-postgres/family-runtime';
+
+const served = new Map<string, unknown>();
+
+const reportCache: SqlMiddleware = {
+  name: 'report-cache',
+  familyId: 'sql',
+  intercept: {
+    async onActivity(activity) {
+      if (activity.kind !== 'report-run') return undefined;
+      const hit = served.get(activity.contentHash);
+      return hit === undefined ? undefined : { result: hit };
+    },
+  },
+  async activityEnded(activity, result) {
+    if (activity.kind !== 'report-run' || result.kind !== 'report-run') return;
+    if (result.outcome === 'succeeded' && result.source === 'client' && result.result !== undefined) {
+      served.set(activity.contentHash, result.result);
+    }
+  },
+};
 ```
 
 ## Give your connection objects an activity source
