@@ -277,3 +277,28 @@ describe('buildSymbolTable() given a block that includes a mixin', () => {
     expect(topLevel.blocks['Role']?.entries.map((entry) => entry.key()?.name())).toEqual(['GUEST']);
   });
 });
+
+describe('buildSymbolTable() given a block whose keyword is the word mixin', () => {
+  it('collects it in no record at the top level and leaves its name free', () => {
+    const { topLevel, diagnostics } = build(
+      lines('mixin X {', '  a = 1', '}', 'model X {', '  id Int', '}'),
+    );
+
+    expect(diagnostics).toEqual([]);
+    expect(Object.keys(topLevel.blocks)).toEqual([]);
+    expect(Object.keys(topLevel.mixins)).toEqual([]);
+    expect(Object.keys(topLevel.models)).toEqual(['X']);
+  });
+
+  it('collects it in no record in a namespace and leaves its name free', () => {
+    const { topLevel, diagnostics } = build(
+      lines('namespace app {', '  model X {', '    id Int', '  }', '  mixin X {', '  }', '}'),
+    );
+    const app = topLevel.namespaces['app'];
+
+    expect(diagnostics).toEqual([]);
+    expect(Object.keys(app?.blocks ?? {})).toEqual([]);
+    expect(Object.keys(app?.mixins ?? {})).toEqual([]);
+    expect(Object.keys(app?.models ?? {})).toEqual(['X']);
+  });
+});

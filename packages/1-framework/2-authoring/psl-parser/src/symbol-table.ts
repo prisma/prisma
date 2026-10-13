@@ -192,6 +192,7 @@ export function buildSymbolTable(options: BuildSymbolTableOptions): SymbolTableR
           compositeTypes[name] = buildCompositeType(name, declaration, sources, diagnostics);
         }
       } else if (declaration instanceof GenericBlockDeclarationAst) {
+        if (hasReservedKeyword(declaration)) continue;
         const name = claim(topLevelNames, declaration.name());
         if (name !== undefined) {
           blocks[name] = buildBlock(name, declaration, sources);
@@ -315,6 +316,10 @@ function buildMixin(
   };
 }
 
+function hasReservedKeyword(block: GenericBlockDeclarationAst): boolean {
+  return block.keyword()?.text === 'mixin';
+}
+
 function extendNamespace(
   namespace: NamespaceSymbol,
   node: NamespaceDeclarationAst,
@@ -324,6 +329,7 @@ function extendNamespace(
   const { models, compositeTypes, blocks, mixins } = namespace;
 
   for (const member of node.declarations()) {
+    if (member instanceof GenericBlockDeclarationAst && hasReservedKeyword(member)) continue;
     const memberName = member.name()?.name();
     if (memberName === undefined) continue;
     if (
