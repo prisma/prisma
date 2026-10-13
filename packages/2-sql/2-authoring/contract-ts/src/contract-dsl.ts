@@ -462,20 +462,30 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
     value: DefaultArgumentOf<Self['__state']>,
   ): ScalarFieldBuilder<WithColumnDefault<State>>;
   default(value: unknown): ScalarFieldBuilder<WithColumnDefault<State>> {
-    return new ScalarFieldBuilder({
-      ...this.state,
-      default: toColumnDefault(value),
-    }) as ScalarFieldBuilder<WithColumnDefault<State>>;
+    return blindCast<
+      ScalarFieldBuilder<WithColumnDefault<State>>,
+      'object spread does not narrow the generic State conditional; runtime shape is correct'
+    >(
+      new ScalarFieldBuilder({
+        ...this.state,
+        default: toColumnDefault(value),
+      }),
+    );
   }
 
   /**
    * @deprecated Write `.default(now())` or `.default(autoincrement())`, or `` .default(sql`...`) `` for any other SQL. Removed in 8.0.0.
    */
   defaultSql(expression: string): ScalarFieldBuilder<WithColumnDefault<State>> {
-    return new ScalarFieldBuilder({
-      ...this.state,
-      default: { kind: 'function', expression },
-    }) as ScalarFieldBuilder<WithColumnDefault<State>>;
+    return blindCast<
+      ScalarFieldBuilder<WithColumnDefault<State>>,
+      'object spread does not narrow the generic State conditional; runtime shape is correct'
+    >(
+      new ScalarFieldBuilder({
+        ...this.state,
+        default: { kind: 'function', expression },
+      }),
+    );
   }
 
   id<const Name extends string | undefined = undefined>(

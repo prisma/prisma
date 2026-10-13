@@ -41,6 +41,52 @@ type PresetCodecId<
     ? ResolveTemplateValue<Descriptor['output']['codecId'], Args>
     : string;
 
+type DefinedTypeParams<TypeParams> = {
+  readonly [K in keyof TypeParams as TypeParams[K] extends undefined ? never : K]: TypeParams[K];
+};
+
+// The type parameters a preset gives its column, as the build resolves them: a parameter whose argument is omitted is left out, and so is `typeParams` when none is left.
+type PresetTypeParams<
+  Descriptor extends AuthoringFieldPresetDescriptor,
+  Args extends readonly unknown[],
+> = Descriptor['output'] extends { readonly typeParams: infer Template }
+  ? DefinedTypeParams<ResolveTemplateValue<Template, Args>> extends infer TypeParams
+    ? keyof TypeParams extends never
+      ? Record<never, never>
+      : { readonly typeParams: TypeParams }
+    : Record<never, never>
+  : Record<never, never>;
+
+type PresetPhaseTemplate<Defaults, Phase extends 'onCreate' | 'onUpdate'> = Defaults extends {
+  readonly [K in Phase]: infer Template;
+}
+  ? Template
+  : undefined;
+
+type PresetPhasePresent<Template, Args extends readonly unknown[]> = Template extends {
+  readonly kind: 'select';
+  readonly index: infer Index extends number;
+  readonly cases: infer Cases;
+}
+  ? Args[Index] extends keyof Cases
+    ? true
+    : false
+  : [Template] extends [undefined]
+    ? false
+    : true;
+
+// Whether the build gives the field an execution default: a phase chosen by an omitted argument is left out.
+type PresetHasExecutionDefault<
+  Descriptor extends AuthoringFieldPresetDescriptor,
+  Args extends readonly unknown[],
+> = Descriptor['output'] extends { readonly executionDefaults: infer Defaults }
+  ? true extends
+      | PresetPhasePresent<PresetPhaseTemplate<Defaults, 'onCreate'>, Args>
+      | PresetPhasePresent<PresetPhaseTemplate<Defaults, 'onUpdate'>, Args>
+    ? true
+    : false
+  : false;
+
 export type FieldBuilderFromPresetDescriptor<
   Descriptor extends AuthoringFieldPresetDescriptor,
   Args extends readonly unknown[] = readonly [],
@@ -49,7 +95,7 @@ export type FieldBuilderFromPresetDescriptor<
 > = ScalarFieldBuilder<
   ScalarFieldState<
     WithCodecInput<
-      ColumnTypeDescriptor<PresetCodecId<Descriptor, Args>>,
+      ColumnTypeDescriptor<PresetCodecId<Descriptor, Args>> & PresetTypeParams<Descriptor, Args>,
       CodecInput<CodecTypes, { readonly codecId: PresetCodecId<Descriptor, Args> }>
     >,
     undefined,
@@ -66,9 +112,7 @@ export type FieldBuilderFromPresetDescriptor<
     false,
     {
       readonly column: Descriptor['output'] extends { readonly default: object } ? true : false;
-      readonly execution: Descriptor['output'] extends { readonly executionDefaults: object }
-        ? true
-        : false;
+      readonly execution: PresetHasExecutionDefault<Descriptor, Args>;
     }
   >
 >;

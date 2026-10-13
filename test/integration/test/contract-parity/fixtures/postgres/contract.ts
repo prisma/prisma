@@ -3,8 +3,11 @@
  */
 
 import { int4Column, textColumn } from '@internal/adapter-postgres/column-types';
+import { arktypeJson } from '@internal/extension-arktype-json/column-types';
+import arktypeJsonPack from '@internal/extension-arktype-json/pack';
 import { cuid2, ksuid, nanoid, ulid, uuidv4, uuidv7 } from '@internal/ids';
 import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+import { type } from 'arktype';
 
 const timestampString3 = {
   kind: 'codec-instance',
@@ -16,6 +19,8 @@ const timestamptzString3 = {
   codecId: 'pg/timestamptz-string@1',
   typeParams: { precision: 3 },
 } as const;
+
+const pgVarchar20 = { codecId: 'pg/varchar@1', typeParams: { length: 20 } } as const;
 
 const User = model('User', {
   fields: {
@@ -35,6 +40,8 @@ const User = model('User', {
     timestamptzString: field.temporal.timestamptzString(3, 'now', 'now'),
     timestampStringAlias: field.namedType(timestampString3),
     timestamptzStringAlias: field.namedType(timestamptzString3).optional(),
+    seenAt: field.temporal.timestamptzJsDate(3),
+    handle: field.column(pgVarchar20),
   },
 });
 
@@ -70,16 +77,30 @@ const Employee = model('Employee', {
   fields: { id: field.id.nanoid(), managerId: field.nanoid().optional() },
 });
 
+const Badge = model('Badge', {
+  fields: { id: field.column(int4Column), code: field.column(textColumn).unique() },
+});
+
+const UserBadge = model('UserBadge', {
+  fields: { userId: field.uuidString(), badgeCode: field.column(textColumn) },
+});
+
 const Account = model('Account', {
   namespace: 'auth',
   fields: { id: field.id.cuid2(), userId: field.uuidString(), provider: field.column(textColumn) },
 });
 
 const Profile = model('Profile', {
-  fields: { id: field.id.ksuid(), userId: field.uuidString(), rank: field.column(int4Column) },
+  fields: {
+    id: field.id.ksuid(),
+    userId: field.uuidString(),
+    rank: field.column(int4Column),
+    settings: field.column(arktypeJson(type({ theme: 'string', fontSize: 'number' }))),
+  },
 });
 
 export const contract = defineContract({
+  extensions: { arktypeJson: arktypeJsonPack },
   namespaces: ['auth'],
   types: { TimestampString3: timestampString3, TimestamptzString3: timestamptzString3 },
   models: {
@@ -87,7 +108,10 @@ export const contract = defineContract({
       posts: rel.hasMany(Post, { by: 'authorId' }),
       accounts: rel.hasMany(Account, { by: 'userId' }),
       profile: rel.hasOne(Profile, { by: 'userId' }),
+      badges: rel.manyToMany(Badge, { through: UserBadge, from: 'userId', to: 'badgeCode' }),
     }).sql({ table: 'users' }),
+    Badge: Badge.sql({ table: 'badges' }),
+    UserBadge: UserBadge.sql({ table: 'user_badges' }),
     Post: Post.relations({
       author: rel.belongsTo(User, { from: 'authorId', to: 'id' }),
       tags: rel.manyToMany(Tag, { through: PostTag, from: 'postId', to: 'tagId' }),

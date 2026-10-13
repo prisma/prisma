@@ -8,6 +8,10 @@
       "model": "Account",
       "namespace": "auth"
     },
+    "badges": {
+      "model": "Badge",
+      "namespace": "public"
+    },
     "employees": {
       "model": "Employee",
       "namespace": "public"
@@ -30,6 +34,10 @@
     },
     "tags": {
       "model": "Tag",
+      "namespace": "public"
+    },
+    "user_badges": {
+      "model": "UserBadge",
       "namespace": "public"
     },
     "users": {
@@ -109,6 +117,37 @@
       },
       "public": {
         "models": {
+          "Badge": {
+            "fields": {
+              "code": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "code": {
+                  "column": "code"
+                },
+                "id": {
+                  "column": "id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "badges"
+            }
+          },
           "Employee": {
             "fields": {
               "id": {
@@ -428,6 +467,29 @@
                   "kind": "scalar"
                 }
               },
+              "settings": {
+                "nullable": false,
+                "type": {
+                  "codecId": "arktype/json@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "expression": "{ fontSize: number, theme: string }",
+                    "jsonIr": {
+                      "domain": "object",
+                      "required": [
+                        {
+                          "key": "fontSize",
+                          "value": "number"
+                        },
+                        {
+                          "key": "theme",
+                          "value": "string"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
               "userId": {
                 "nullable": false,
                 "type": {
@@ -464,6 +526,9 @@
                 },
                 "rank": {
                   "column": "rank"
+                },
+                "settings": {
+                  "column": "settings"
                 },
                 "userId": {
                   "column": "userId"
@@ -572,6 +637,16 @@
                   }
                 }
               },
+              "handle": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 20
+                  }
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -599,6 +674,16 @@
                   "kind": "scalar",
                   "typeParams": {
                     "length": 21
+                  }
+                }
+              },
+              "seenAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 3
                   }
                 }
               },
@@ -706,6 +791,34 @@
                   "namespace": "auth"
                 }
               },
+              "badges": {
+                "cardinality": "N:M",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "through": {
+                  "childColumns": [
+                    "badgeCode"
+                  ],
+                  "namespaceId": "public",
+                  "parentColumns": [
+                    "userId"
+                  ],
+                  "table": "user_badges",
+                  "targetColumns": [
+                    "code"
+                  ]
+                },
+                "to": {
+                  "model": "Badge",
+                  "namespace": "public"
+                }
+              },
               "posts": {
                 "cardinality": "1:N",
                 "on": {
@@ -752,6 +865,9 @@
                 "externalId": {
                   "column": "externalId"
                 },
+                "handle": {
+                  "column": "handle"
+                },
                 "id": {
                   "column": "id"
                 },
@@ -760,6 +876,9 @@
                 },
                 "nanoid": {
                   "column": "nanoid"
+                },
+                "seenAt": {
+                  "column": "seenAt"
                 },
                 "shortNanoid": {
                   "column": "shortNanoid"
@@ -791,6 +910,40 @@
               },
               "namespaceId": "public",
               "table": "users"
+            }
+          },
+          "UserBadge": {
+            "fields": {
+              "badgeCode": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "userId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "badgeCode": {
+                  "column": "badgeCode"
+                },
+                "userId": {
+                  "column": "userId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "user_badges"
             }
           }
         }
@@ -843,6 +996,29 @@
       "public": {
         "entries": {
           "table": {
+            "badges": {
+              "columns": {
+                "code": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "uniques": [
+                {
+                  "columns": [
+                    "code"
+                  ]
+                }
+              ]
+            },
             "employees": {
               "columns": {
                 "id": {
@@ -1010,6 +1186,27 @@
                   "dataType": "pg/int4",
                   "nullable": false
                 },
+                "settings": {
+                  "codecId": "arktype/json@1",
+                  "dataType": "pg/jsonb",
+                  "nullable": false,
+                  "typeParams": {
+                    "expression": "{ fontSize: number, theme: string }",
+                    "jsonIr": {
+                      "domain": "object",
+                      "required": [
+                        {
+                          "key": "fontSize",
+                          "value": "number"
+                        },
+                        {
+                          "key": "theme",
+                          "value": "string"
+                        }
+                      ]
+                    }
+                  }
+                },
                 "userId": {
                   "codecId": "sql/char@1",
                   "dataType": "pg/char",
@@ -1053,6 +1250,26 @@
               },
               "uniques": []
             },
+            "user_badges": {
+              "columns": {
+                "badgeCode": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "userId": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "uniques": []
+            },
             "users": {
               "columns": {
                 "createdAt": {
@@ -1081,6 +1298,14 @@
                     "length": 36
                   }
                 },
+                "handle": {
+                  "codecId": "pg/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 20
+                  }
+                },
                 "id": {
                   "codecId": "sql/char@1",
                   "dataType": "pg/char",
@@ -1103,6 +1328,14 @@
                   "nullable": false,
                   "typeParams": {
                     "length": 21
+                  }
+                },
+                "seenAt": {
+                  "codecId": "pg/timestamptz-date@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 3
                   }
                 },
                 "shortNanoid": {
@@ -1186,7 +1419,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "2d363ed4ffaa7a20cd3011f94dffd091cdbdce51dab4be6128765b7cb2c8a8e8",
+    "storageHash": "3bc0ac164b8d350cddeb5bbc1e57ada70aa6fbf1cadc84ef4e8852ebf4171a42",
     "types": {
       "TimestampString3": {
         "codecId": "pg/timestamp-string@1",
@@ -1438,7 +1671,63 @@
       "scalarList": true
     }
   },
-  "extensions": {},
+  "extensions": {
+    "arktype-json": {
+      "familyId": "sql",
+      "id": "arktype-json",
+      "kind": "extension",
+      "targetId": "postgres",
+      "types": {
+        "codecTypes": {
+          "import": {
+            "alias": "ArktypeJsonTypes",
+            "named": "CodecTypes",
+            "package": "@internal/extension-arktype-json/codec-types"
+          }
+        }
+      },
+      "version": "0.0.1"
+    },
+    "arktypeJson": {
+      "familyId": "sql",
+      "id": "arktype-json",
+      "kind": "extension",
+      "targetId": "postgres",
+      "types": {
+        "codecTypes": {
+          "codecDescriptors": [
+            {
+              "codecId": "arktype/json@1",
+              "dataType": "pg/jsonb",
+              "descriptorKind": "postgres-codec",
+              "paramsSchema": {
+                "required": [
+                  {
+                    "key": "expression",
+                    "value": "string"
+                  },
+                  {
+                    "key": "jsonIr",
+                    "value": "object"
+                  }
+                ],
+                "domain": "object"
+              },
+              "traits": [
+                "equality"
+              ]
+            }
+          ],
+          "import": {
+            "alias": "ArktypeJsonTypes",
+            "named": "CodecTypes",
+            "package": "@internal/extension-arktype-json/codec-types"
+          }
+        }
+      },
+      "version": "0.0.1"
+    }
+  },
   "meta": {},
   "_generated": {
     "warning": "⚠️  GENERATED FILE - DO NOT EDIT",

@@ -1,10 +1,8 @@
 import type {
   ColumnDefault,
   Contract,
-  ContractEnum,
   ContractExecutionSection,
   ContractRelation,
-  ContractValueObject,
   NamespaceId,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -361,10 +359,19 @@ type FieldInlineIdSpecOf<FieldState> = Present<
   FieldState extends { readonly id?: infer IdSpec } ? IdSpec : never
 >;
 
+// A column spec types its `codecId` as `string`; the codec its factory builds carries the literal id.
 type DescriptorCodecId<Descriptor> = Descriptor extends {
   readonly codecId: infer CodecId extends string;
 }
-  ? CodecId
+  ? string extends CodecId
+    ? ColumnSpecCodecId<Descriptor>
+    : CodecId
+  : string;
+
+type ColumnSpecCodecId<Descriptor> = Descriptor extends {
+  readonly codecFactory: (...args: never[]) => { readonly id: infer Id extends string };
+}
+  ? Id
   : string;
 
 type DescriptorTypeParams<Descriptor> = Descriptor extends {
@@ -622,6 +629,12 @@ type BuiltRelationTarget<Definition, Target extends ModelNames<Definition>> = {
   readonly model: Target;
 };
 
+// The target's primary key columns, or the columns of its unique key when it has no primary key, as the build picks them.
+type JunctionTargetColumns<Definition, Target extends ModelNames<Definition>> =
+  ModelIdFieldNames<Definition, Target> extends infer IdFields extends readonly string[]
+    ? FieldNamesToColumnNames<Definition, Target, IdFields>
+    : BuiltUnique<Definition, Target>['columns'];
+
 type BuiltManyToManyRelation<
   Definition,
   ModelName extends ModelNames<Definition>,
@@ -657,11 +670,7 @@ type BuiltManyToManyRelation<
             Through,
             RelationFieldTuple<To>
           >;
-          readonly targetColumns: FieldNamesToColumnNames<
-            Definition,
-            Target,
-            ModelAnchorFieldNames<Definition, Target>
-          >;
+          readonly targetColumns: JunctionTargetColumns<Definition, Target>;
         };
       }
     : ContractRelation
@@ -755,10 +764,20 @@ type BuiltExecution<Definition> = [ExecutionDefaultEntries<Definition>] extends 
       };
     };
 
+type DomainFieldTypeParams<TypeParams> =
+  TypeParams extends Record<string, unknown>
+    ? keyof TypeParams extends never
+      ? Record<never, never>
+      : { readonly typeParams: TypeParams }
+    : Record<never, never>;
+
+type DomainFieldMany<Many> = Many extends false ? Record<never, never> : { readonly many: Many };
+
 type BuiltModels<Definition> = {
   readonly [ModelName in ModelNames<Definition>]: {
     readonly storage: {
       readonly table: ModelTableName<Definition, ModelName>;
+      readonly namespaceId: ModelNamespace<Definition, ModelName>;
       readonly fields: {
         readonly [FieldName in ModelFieldNames<Definition, ModelName>]: {
           readonly column: ModelColumnName<Definition, ModelName, FieldName>;
@@ -771,10 +790,10 @@ type BuiltModels<Definition> = {
         readonly type: {
           readonly kind: 'scalar';
           readonly codecId: ModelStorageColumn<Definition, ModelName, FieldName>['codecId'];
-        };
-      } & {
-        readonly many: FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>;
-      };
+        } & DomainFieldTypeParams<
+          FieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>
+        >;
+      } & DomainFieldMany<FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>>;
     };
     readonly relations: {
       readonly [RelName in StagedModelRelationNames<Definition, ModelName>]: BuiltRelation<
@@ -804,16 +823,61 @@ type BuiltStorageTableColumns<Definition, ModelName extends ModelNames<Definitio
   >[FieldName]['column']]: ModelStorageColumn<Definition, ModelName, FieldName>;
 };
 
+type FieldUniqueSpecOf<FieldState> = FieldState extends { readonly unique: infer UniqueSpec }
+  ? [UniqueSpec] extends [{ readonly name?: infer Name }]
+    ? { readonly name: Name }
+    : never
+  : never;
+
+type UniqueName<Name> = Present<Name> extends infer Defined extends string ? Defined : never;
+
+type InlineUnique<Definition, ModelName extends ModelNames<Definition>> = {
+  [FieldName in ModelFieldNames<Definition, ModelName>]: FieldUniqueSpecOf<
+    ModelFieldState<Definition, ModelName, FieldName>
+  > extends infer Spec
+    ? [Spec] extends [never]
+      ? never
+      : Spec extends { readonly name: infer Name }
+        ? {
+            readonly columns: readonly [ModelColumnName<Definition, ModelName, FieldName>];
+            readonly name?: UniqueName<Name>;
+          }
+        : never
+    : never;
+}[ModelFieldNames<Definition, ModelName>];
+
+type AttributeUnique<Definition, ModelName extends ModelNames<Definition>> =
+  ModelAttributes<Definition, ModelName> extends {
+    readonly uniques?: infer Uniques extends readonly unknown[];
+  }
+    ? Uniques[number] extends infer Unique
+      ? Unique extends {
+          readonly fields: infer Fields extends readonly string[];
+        }
+        ? number extends Fields['length']
+          ? never
+          : {
+              readonly columns: FieldNamesToColumnNames<Definition, ModelName, Fields>;
+              readonly name?: Unique extends { readonly name?: infer Name }
+                ? UniqueName<Name>
+                : never;
+            }
+        : never
+      : never
+    : never;
+
+// The unique constraints of a model, from `.unique()` fields and the `uniques` attribute, so a unique criterion names their columns.
+type BuiltUnique<Definition, ModelName extends ModelNames<Definition>> =
+  | InlineUnique<Definition, ModelName>
+  | AttributeUnique<Definition, ModelName>;
+
 type BuiltStorageTables<Definition, Ns extends string> = {
   readonly [ModelName in ModelsInNamespace<Definition, Ns> as BuiltModelTableName<
     Definition,
     ModelName
   >]: {
     readonly columns: BuiltStorageTableColumns<Definition, ModelName>;
-    readonly uniques: ReadonlyArray<{
-      readonly columns: readonly string[];
-      readonly name?: string;
-    }>;
+    readonly uniques: ReadonlyArray<BuiltUnique<Definition, ModelName>>;
     readonly indexes: ReadonlyArray<Index>;
     readonly foreignKeys: ReadonlyArray<{
       readonly source: {
@@ -843,7 +907,7 @@ type BuiltStorageTables<Definition, Ns extends string> = {
           readonly name?: ModelIdName<Definition, ModelName>;
         };
       }
-    : Record<string, never>);
+    : Record<never, never>);
 };
 
 type DefinitionEnums<Definition> = Definition extends {
@@ -885,7 +949,7 @@ type BuiltDocumentScopedTypes<Definition> = {
 
 type BuiltDomain<Definition> =
   BuiltDocumentScopedTypes<Definition> extends Record<never, never>
-    ? Record<string, never>
+    ? Record<never, never>
     : {
         readonly __unbound__: {
           readonly types: BuiltDocumentScopedTypes<Definition>;
@@ -896,8 +960,6 @@ type BuiltDomainNamespace<Definition, Ns extends string> = {
   readonly models: {
     readonly [ModelName in ModelsInNamespace<Definition, Ns>]: BuiltModels<Definition>[ModelName];
   };
-  readonly valueObjects?: Record<string, ContractValueObject>;
-  readonly enum?: Record<string, ContractEnum>;
 };
 
 type DefaultStorageNamespaceId<Definition> =
@@ -1052,15 +1114,27 @@ type ParameterizedOutputType<Definition, CodecId, TypeParams> =
       }[keyof AllPacks<Definition>]
     : never;
 
+// The value type of the codec a column spec's factory builds, such as the type an arktype schema infers; `never` for a descriptor without a factory.
+type ColumnSpecCodecOutput<Descriptor> = Descriptor extends {
+  readonly codecFactory: (...args: never[]) => infer Codec;
+}
+  ? Codec extends { decode(...args: never[]): Promise<infer Output> }
+    ? Output
+    : never
+  : never;
+
 type RefinedChannelType<
   Definition,
   CodecId,
   Channel extends 'output' | 'input',
   TypeParams,
   Plain,
+  Descriptor,
 > = Channel extends 'output'
   ? [ParameterizedOutputType<Definition, CodecId, TypeParams>] extends [never]
-    ? Plain
+    ? [ColumnSpecCodecOutput<Descriptor>] extends [never]
+      ? Plain
+      : ColumnSpecCodecOutput<Descriptor>
     : ParameterizedOutputType<Definition, CodecId, TypeParams>
   : Plain;
 
@@ -1079,7 +1153,8 @@ type CodecChannelType<
         Id,
         Channel,
         FieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
-        Plain
+        Plain,
+        FieldDescriptorOf<ModelFieldState<Definition, ModelName, FieldName>>
       > extends infer T
       ? StorageColumnManyOf<ModelStorageColumn<Definition, ModelName, FieldName>> extends infer Many
         ? Many extends { readonly elementNullable: infer ElementNullable }
