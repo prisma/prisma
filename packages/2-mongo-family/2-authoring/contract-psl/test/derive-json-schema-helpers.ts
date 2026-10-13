@@ -48,7 +48,11 @@ export const mongoCodecLookup: CodecLookupWithDescriptors = {
   },
   descriptorFor(id: string) {
     if (!(id in bsonTypesByCodecId)) return undefined;
-    return { codecId: id, dataType: dataTypeIdOf(id) } as unknown as AnyCodecDescriptor;
+    return {
+      codecId: id,
+      dataType: dataTypeIdOf(id),
+      traits: ['equality'],
+    } as unknown as AnyCodecDescriptor;
   },
   renderOutputTypeFor: () => undefined,
 };
