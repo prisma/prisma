@@ -7,7 +7,10 @@ export type MongoTargetErrorCode =
   | 'RUNTIME.ENCODE_FAILED'
   | 'RUNTIME.TYPE_PARAMS_INVALID';
 
-type MigrationSubcode = 'INVALID_OPERATION_ENTRY' | 'OPERATION_UNSUPPORTED';
+type MigrationSubcode =
+  | 'FIELD_NAME_UNSUPPORTED'
+  | 'INVALID_OPERATION_ENTRY'
+  | 'OPERATION_UNSUPPORTED';
 
 export function mongoTargetError(
   code: MongoTargetErrorCode,

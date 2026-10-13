@@ -57,6 +57,7 @@ import {
   renameTableByHandStatements,
   renderRenameTableCall,
   sqliteColumnRenameCall,
+  sqliteTableRenameByHand,
   sqliteTableRenameCall,
 } from './table-rename-calls';
 import { createWorkingSchema } from './working-schema';
@@ -264,6 +265,7 @@ export class SqliteMigrationPlanner
           fromContract: options.fromContract,
           contract: options.contract,
           statements: options.statements,
+          byHand: sqliteTableRenameByHand,
         },
       ),
     };
@@ -303,8 +305,7 @@ export class SqliteMigrationPlanner
             frameworkComponents: options.frameworkComponents,
           }),
         apply: (call) => working.apply(call),
-        renderTableRename: renderRenameTableCall,
-        tableRenameByHand: renameTableByHandStatements,
+        ...sqliteTableRenameByHand,
       },
     });
     if (!planned.ok) return planned;

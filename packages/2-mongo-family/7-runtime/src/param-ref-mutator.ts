@@ -285,6 +285,7 @@ function buildMutatedDraft(
         collection: draft.collection,
         filter: substituteDoc(draft.filter, overrides),
         update: substituteUpdate(draft.update, overrides),
+        bypassDocumentValidation: draft.bypassDocumentValidation,
       };
     case 'deleteOne':
       return {

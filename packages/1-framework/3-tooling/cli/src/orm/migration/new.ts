@@ -10,6 +10,7 @@ import type { MigrationNewResult } from '../../control-api/operations/migration-
 import { executeMigrationNewCommand } from '../../control-api/operations/migration-new';
 import type { CreateControlClient } from '../../control-api/types';
 import { runCommandAction } from '../../utils/next-actions';
+import { selfEmitCommand } from '../../utils/self-emit-command';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, baseDirFor, contractPathFor, displayPath } from './paths';
@@ -18,6 +19,7 @@ function newPresentations(inputs: {
   readonly document: MigrationNewResult;
   readonly contractPath: string;
   readonly appMigrationsRelative: string;
+  readonly configPath: string | undefined;
 }): Presentations {
   const { document } = inputs;
   const migrationTs = join(document.dir, 'migration.ts');
@@ -52,7 +54,7 @@ function newPresentations(inputs: {
       { kind: 'edit-file', label: `Write the migration body in ${migrationTs}` },
       runCommandAction(
         'Run it to self-emit ops.json and attest the package',
-        `node "${migrationTs}"`,
+        selfEmitCommand(migrationTs, inputs.configPath),
       ),
     ],
   };
@@ -64,8 +66,8 @@ export function createMigrationNewCommand(createClient: CreateControlClient) {
       summary: 'Scaffold a new migration for manual authoring',
       description:
         'Creates a migration package with a migration.ts file for manual authoring.\n' +
-        'Write the migration body in migration.ts, then run the file with Node\n' +
-        '(`node migration.ts`) to self-emit ops.json and attest the package.\n' +
+        'Write the migration body in migration.ts, then run the file with Node, as this\n' +
+        'command prints, to self-emit ops.json and attest the package.\n' +
         'Offline — does not consult the database.',
       examples: [
         'migration new --name split-name',
@@ -114,6 +116,7 @@ export function createMigrationNewCommand(createClient: CreateControlClient) {
             contractPath:
               contractPath === undefined ? '(unset)' : displayPath(contractPath, ctx.cwd),
             appMigrationsRelative: displayPath(appMigrationsDirFor(ctx.config), ctx.cwd),
+            configPath: ctx.configPath,
           }),
         ),
       );
