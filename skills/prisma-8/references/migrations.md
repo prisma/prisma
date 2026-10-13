@@ -323,7 +323,7 @@ dataTransform({
 }),
 ```
 
-Write the statement so it fills every row the field has no value in, then self-emit with `node migration.ts` as on Postgres.
+Write the statement so it fills every row the field has no value in, then self-emit with `node <package dir>/migration.ts` as on Postgres.
 
 Self-emit regenerates `ops.json` and recomputes `migrationHash` in `migration.json`. The next `db migrate` will see a consistent package.
 
