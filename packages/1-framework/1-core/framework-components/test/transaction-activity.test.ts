@@ -260,7 +260,8 @@ describe('transaction activity', () => {
     expect(() => transaction.adopt({ finalize: async () => {} })).toThrow(
       expect.objectContaining({
         code: 'RUNTIME.ACTIVITY_ENDED',
-        message: 'An activity was started beneath a transaction that has ended',
+        message:
+          'An activity was started beneath a transaction that no longer accepts children: its commit() or rollback() has been called',
       }),
     );
   });

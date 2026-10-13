@@ -5,9 +5,9 @@ import {
   type ActivityChildSlot,
   type ActivityParent,
   type ActivityRecord,
-  activityEndedError,
   createActivityRecord,
   endActivity,
+  notAcceptingChildrenError,
 } from './activity-lifecycle';
 import type {
   ActivityContext,
@@ -32,8 +32,8 @@ export interface TransactionActivityRun<TContext extends ActivityContext = Activ
   extends ActivityParent {
   readonly activity: TransactionActivity;
   readonly ctx: TContext;
-  /** Refuses new work beneath the transaction, and beneath the client activities inside it, from now on. `end` does this too. */
-  stopAdopting(): void;
+  /** Stops accepting children: new work beneath the transaction, and beneath the client activities inside it, is refused from now on. `end` does this too. */
+  stopAcceptingChildren(): void;
   /**
    * Ends the transaction: its `activityEnded` hooks, then the `activityFinalized` hooks of the activities beneath it that have ended, in post-order (each activity's children in the order they started, depth first, then the activity), then its own. Resolves after those hooks have run. An activity still open is finalized when it ends, with this transaction's outcome; `end` does not wait for it. A second call does nothing. An `activityEnded` error after a successful settlement is rethrown once finalization has run.
    */
@@ -75,7 +75,7 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
   readonly #slot: ActivityChildSlot | undefined;
   #aStatementFailed = false;
   #ended = false;
-  #adopting = true;
+  #acceptingChildren = true;
 
   constructor(options: TransactionActivityOptions<TContext>) {
     this.activity = {
@@ -96,7 +96,7 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
       statementFailed: () => {
         this.#aStatementFailed = true;
       },
-      transactionEnded: () => !this.#adopting,
+      transactionAcceptsChildren: () => this.#acceptingChildren,
       childFinalized: () => {},
     });
     this.#slot = options.parent?.adopt(this);
@@ -106,19 +106,23 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
     return this.#record.started();
   }
 
+  acceptsChildren(): boolean {
+    return this.#acceptingChildren;
+  }
+
   adopt(child: ActivityChild): ActivityChildSlot {
-    if (!this.#adopting) throw activityEndedError(this.activity, 'ended');
+    if (!this.#acceptingChildren) throw notAcceptingChildrenError(this.activity, 'parent');
     return this.#children.add(child);
   }
 
-  stopAdopting(): void {
-    this.#adopting = false;
+  stopAcceptingChildren(): void {
+    this.#acceptingChildren = false;
   }
 
   async end(settlement: TransactionSettlement): Promise<void> {
     if (this.#ended) return;
     this.#ended = true;
-    this.#adopting = false;
+    this.#acceptingChildren = false;
     await endActivity(
       this.#record,
       { kind: 'transaction', outcome: settlement.outcome },

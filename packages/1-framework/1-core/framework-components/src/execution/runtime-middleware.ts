@@ -32,24 +32,27 @@ export interface TransactionActivity extends ActivityBase {
   readonly kind: 'transaction';
 }
 
+/** The kind of an activity a client starts. A client kind contains a hyphen, such as `orm-call`, so it is never `statement` or `transaction`. */
+export type ClientActivityKind = `${string}-${string}`;
+
 /**
- * The kinds of activity clients start, each with the type of the result it ends with. Empty in the framework; a client registers its kinds by module augmentation:
+ * The result types of the client kinds packages register. It types results only: an activity of an unregistered kind still reaches every hook, with an `unknown` result. A client registers a kind by module augmentation:
  *
  * ```ts
  * declare module '@internal/framework-components/runtime' {
- *   interface ClientActivityKinds { 'orm-call': { result: unknown } }
+ *   interface ClientActivityRegistry { 'orm-call': { result: unknown } }
  * }
  * ```
  */
-export interface ClientActivityKinds extends Record<never, never> {}
+export interface ClientActivityRegistry extends Record<never, never> {}
 
-export type ClientActivityKind = keyof ClientActivityKinds & string;
-
-export type ClientActivityResult<K extends ClientActivityKind> = ClientActivityKinds[K] extends {
-  readonly result: infer R;
-}
-  ? R
-  : unknown;
+/** The result a client activity of kind `K` ends with: the registered type, or `unknown` for an unregistered kind. */
+export type ClientActivityResult<K extends ClientActivityKind> =
+  K extends keyof ClientActivityRegistry
+    ? ClientActivityRegistry[K] extends { readonly result: infer R }
+      ? R
+      : unknown
+    : unknown;
 
 /** An act a client started through the runtime, such as an ORM call. */
 export interface ClientActivity<K extends ClientActivityKind = ClientActivityKind>
@@ -59,10 +62,15 @@ export interface ClientActivity<K extends ClientActivityKind = ClientActivityKin
   readonly contentHash: string;
 }
 
-export type Activity =
-  | StatementActivity
-  | TransactionActivity
-  | { readonly [K in ClientActivityKind]: ClientActivity<K> }[ClientActivityKind];
+export type Activity = StatementActivity | TransactionActivity | ClientActivity;
+
+/** What a client gives to start an activity. */
+export interface StartActivity<K extends ClientActivityKind = ClientActivityKind> {
+  readonly kind: K;
+  /** An opaque digest of what the activity does. */
+  readonly contentHash: string;
+  readonly annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>;
+}
 
 /**
  * The context of one activity. Every hook of the activity receives the same object.
@@ -111,16 +119,14 @@ export type StatementEnded = {
   | { readonly returns: 'stats'; readonly stats?: RuntimeStatementStats }
 );
 
-export type ClientActivityEnded<K extends ClientActivityKind = ClientActivityKind> = {
-  readonly [Kind in K]: {
-    readonly kind: Kind;
-    readonly outcome: 'succeeded' | 'failed' | 'stopped';
-    /** `middleware` when an `intercept.onActivity` handler supplied the result and the client passed none, or when the handler threw. */
-    readonly source: 'client' | 'middleware';
-    /** The value the client returns to its caller. The runtime does not read it. */
-    readonly result?: ClientActivityResult<Kind>;
-  };
-}[K];
+export interface ClientActivityEnded<K extends ClientActivityKind = ClientActivityKind> {
+  readonly kind: K;
+  readonly outcome: 'succeeded' | 'failed' | 'stopped';
+  /** `middleware` when an `intercept.onActivity` handler supplied the result and the client passed none, or when the handler threw. */
+  readonly source: 'client' | 'middleware';
+  /** The value the client returns to its caller. The runtime does not read it. */
+  readonly result?: ClientActivityResult<K>;
+}
 
 export type ActivityEndedResult = TransactionEnded | StatementEnded | ClientActivityEnded;
 

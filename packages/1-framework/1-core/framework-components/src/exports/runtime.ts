@@ -13,12 +13,12 @@ export type {
   ActivityParent,
   ActivityStateStore,
 } from '../execution/activity-lifecycle';
-export { createStateStore } from '../execution/activity-lifecycle';
+export { createStandaloneContext, createStateStore } from '../execution/activity-lifecycle';
 export { AsyncIterableResult } from '../execution/async-iterable-result';
 export type {
   ClientActivityEnd,
-  ClientActivityOptions,
   ClientActivityRun,
+  ClientActivityRunOptions,
 } from '../execution/client-activity';
 export { startClientActivity } from '../execution/client-activity';
 export type {
@@ -60,7 +60,7 @@ export type {
   ClientActivity,
   ClientActivityEnded,
   ClientActivityKind,
-  ClientActivityKinds,
+  ClientActivityRegistry,
   ClientActivityResult,
   CrossFamilyMiddleware,
   ExecuteInterceptResult,
@@ -71,6 +71,7 @@ export type {
   RuntimeLog,
   RuntimeMiddleware,
   RuntimeStatementStats,
+  StartActivity,
   StatementActivity,
   StatementEnded,
   TransactionActivity,

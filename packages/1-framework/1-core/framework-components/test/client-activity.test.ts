@@ -169,17 +169,17 @@ describe('client activity', () => {
     it('logs a debug event naming the middleware that supplied the result', async () => {
       const debug = vi.fn();
 
-      await startClientActivity({
-        middleware: [interceptor('hit', [], { result: [] })],
-        kind: 'test-call',
-        contentHash: 'call-hash',
-        annotations: undefined,
-        context: contextFields({
-          log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug },
-        }),
-        parent: undefined,
-        holdFinishedChildren: true,
-      });
+      await startClientActivity(
+        { kind: 'test-call', contentHash: 'call-hash' },
+        {
+          middleware: [interceptor('hit', [], { result: [] })],
+          context: contextFields({
+            log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug },
+          }),
+          parent: undefined,
+          holdFinishedChildren: true,
+        },
+      );
 
       expect(debug).toHaveBeenCalledWith({
         event: 'middleware.intercept.onActivity',
@@ -376,18 +376,24 @@ describe('client activity', () => {
       });
     });
 
-    it('reports through assertOpen whether children may still start', async () => {
+    it('reports through assertAcceptsChildren whether children may still start', async () => {
       const transaction = await openTransaction([]);
       const call = await startCall([], { parent: transaction });
       const ended = await startCall([]);
       await ended.end({ outcome: 'succeeded' });
 
-      expect(() => call.assertOpen()).not.toThrow();
-      transaction.stopAdopting();
-      expect(() => call.assertOpen()).toThrow(
+      expect(() => call.assertAcceptsChildren()).not.toThrow();
+      expect([call.acceptsChildren(), transaction.acceptsChildren()]).toEqual([true, true]);
+      transaction.stopAcceptingChildren();
+      expect([
+        call.acceptsChildren(),
+        transaction.acceptsChildren(),
+        ended.acceptsChildren(),
+      ]).toEqual([false, false, false]);
+      expect(() => call.assertAcceptsChildren()).toThrow(
         expect.objectContaining({ code: 'RUNTIME.ACTIVITY_ENDED' }),
       );
-      expect(() => ended.assertOpen()).toThrow(
+      expect(() => ended.assertAcceptsChildren()).toThrow(
         expect.objectContaining({ code: 'RUNTIME.ACTIVITY_ENDED' }),
       );
     });

@@ -4,7 +4,9 @@ import type {
   Activity,
   ActivityEndedResult,
   ClientActivity,
+  ClientActivityEnded,
   ClientActivityKind,
+  ClientActivityResult,
   CrossFamilyMiddleware,
   RuntimeMiddleware,
   StatementActivity,
@@ -12,56 +14,62 @@ import type {
 } from '../src/execution/runtime-middleware';
 import { startCall } from './client-activity-fixtures';
 
-test('the registered kinds are the client activity kinds', () => {
-  expectTypeOf<ClientActivityKind>().toEqualTypeOf<'test-call' | 'test-count'>();
+test('Activity always includes client activities, registered or not', () => {
+  expectTypeOf<Activity>().toEqualTypeOf<
+    StatementActivity | TransactionActivity | ClientActivity
+  >();
+  expectTypeOf<ActivityEndedResult>().toExtend<unknown>();
+  expectTypeOf<ClientActivityEnded>().toExtend<ActivityEndedResult>();
 });
 
-test('an activity narrows on a registered kind, and on statement and transaction', () => {
+test('a client kind contains a hyphen, so statement and transaction are not client kinds', () => {
+  expectTypeOf<'orm-call'>().toExtend<ClientActivityKind>();
+  expectTypeOf<'unregistered-call'>().toExtend<ClientActivityKind>();
+  expectTypeOf<'statement'>().not.toExtend<ClientActivityKind>();
+  expectTypeOf<'transaction'>().not.toExtend<ClientActivityKind>();
+});
+
+test('narrowing on statement, transaction and a client kind', () => {
   const middleware: CrossFamilyMiddleware = {
     name: 'narrowing',
     async activityStarted(activity) {
-      if (activity.kind === 'test-call') {
-        expectTypeOf(activity).toEqualTypeOf<ClientActivity<'test-call'>>();
-        expectTypeOf(activity.contentHash).toEqualTypeOf<string>();
-      }
       if (activity.kind === 'statement') {
         expectTypeOf(activity).toEqualTypeOf<StatementActivity>();
+        return;
       }
+      expectTypeOf(activity).toEqualTypeOf<TransactionActivity | ClientActivity>();
       if (activity.kind === 'transaction') {
         expectTypeOf(activity).toEqualTypeOf<TransactionActivity>();
+        return;
       }
+      expectTypeOf(activity.contentHash).toEqualTypeOf<string>();
     },
   };
   void middleware;
 });
 
-test('Activity is the statement, the transaction and one client activity per kind', () => {
-  expectTypeOf<Activity>().toEqualTypeOf<
-    | StatementActivity
-    | TransactionActivity
-    | ClientActivity<'test-call'>
-    | ClientActivity<'test-count'>
-  >();
-});
-
-test('a client activity ended result carries the result type its kind registered', () => {
+test('an unregistered kind reaches the hooks with an unknown result', () => {
   const middleware: CrossFamilyMiddleware = {
-    name: 'results',
+    name: 'unregistered',
+    intercept: {
+      async onActivity(activity) {
+        expectTypeOf(activity.kind).toEqualTypeOf<ClientActivityKind>();
+        return undefined;
+      },
+    },
     async activityEnded(_activity, result) {
-      if (result.kind === 'test-count') {
-        expectTypeOf(result.result).toEqualTypeOf<number | undefined>();
-        expectTypeOf(result.source).toEqualTypeOf<'client' | 'middleware'>();
-        expectTypeOf(result.outcome).toEqualTypeOf<'succeeded' | 'failed' | 'stopped'>();
-      }
+      if (result.kind === 'statement' || result.kind === 'transaction') return;
+      expectTypeOf(result.result).toEqualTypeOf<unknown>();
+      expectTypeOf(result.source).toEqualTypeOf<'client' | 'middleware'>();
+      expectTypeOf(result.outcome).toEqualTypeOf<'succeeded' | 'failed' | 'stopped'>();
     },
   };
   void middleware;
-  expectTypeOf<Extract<ActivityEndedResult, { kind: 'test-call' }>['result']>().toEqualTypeOf<
-    ReadonlyArray<{ readonly id: number }> | undefined
-  >();
+  expectTypeOf<ClientActivityResult<'unregistered-call'>>().toEqualTypeOf<unknown>();
 });
 
-test('a client activity run types its intercepted result and its end result by kind', async () => {
+test('a registered kind gets its result type', async () => {
+  expectTypeOf<ClientActivityResult<'test-count'>>().toEqualTypeOf<number>();
   const call = await startCall([], { kind: 'test-count' });
   expectTypeOf(call).toEqualTypeOf<ClientActivityRun<'test-count'>>();
   expectTypeOf(call.activity).toEqualTypeOf<ClientActivity<'test-count'>>();
@@ -70,9 +78,9 @@ test('a client activity run types its intercepted result and its end result by k
   await call.end({ outcome: 'succeeded', result: 'not a number' });
 });
 
-test('an unregistered kind does not compile', () => {
-  // @ts-expect-error - 'orm-call' is not a registered kind
-  void startCall([], { kind: 'orm-call' });
+test('startClientActivity does not accept the reserved kinds', () => {
+  // @ts-expect-error - statement is not a client kind
+  void startCall([], { kind: 'statement' });
 });
 
 test('intercept.onActivity receives a client activity and returns an opaque result', () => {

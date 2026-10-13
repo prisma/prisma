@@ -131,7 +131,7 @@ describe('finalization beneath client activities', () => {
       expect(events.at(-1)).toBe('test-call:unknown');
     });
 
-    it('is finalized committed when its transaction rolled back', async () => {
+    it('is finalized unknown when its transaction rolled back', async () => {
       const events: string[] = [];
       const middleware = [finalizedLog(events)];
       const call = await startCall(middleware);
@@ -140,7 +140,7 @@ describe('finalization beneath client activities', () => {
       await transaction.end({ by: 'rollback', outcome: 'succeeded', commitAttempted: false });
       await call.end({ outcome: 'succeeded' });
 
-      expect(events).toEqual(['transaction:rolled-back', 'test-call:committed']);
+      expect(events).toEqual(['transaction:rolled-back', 'test-call:unknown']);
     });
   });
 
@@ -259,11 +259,11 @@ describe('finalization beneath client activities', () => {
     });
   });
 
-  it('refuses new work once stopAdopting is called, before the transaction ends', async () => {
+  it('refuses new work once the transaction stops accepting children, before the transaction ends', async () => {
     const transaction = await openTransaction([]);
     const call = await startCall([], { parent: transaction });
 
-    transaction.stopAdopting();
+    transaction.stopAcceptingChildren();
 
     await expect(
       executeStatementWith([], async () => ({ affectedRows: 1 }), { parent: call }),

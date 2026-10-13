@@ -5,7 +5,7 @@ import { startTransactionActivity } from '../src/execution/transaction-activity'
 import { contextFields, type MockExec } from './statement-fixtures';
 
 declare module '../src/execution/runtime-middleware' {
-  interface ClientActivityKinds {
+  interface ClientActivityRegistry {
     'test-call': { result: ReadonlyArray<{ readonly id: number }> };
     'test-count': { result: number };
   }
@@ -21,15 +21,15 @@ export function startCall<K extends ClientActivityKind = 'test-call'>(
   middleware: ReadonlyArray<RuntimeMiddleware<MockExec>>,
   setup: ClientActivitySetup<K> = {},
 ) {
-  return startClientActivity({
-    middleware,
-    kind: setup.kind ?? ('test-call' as K),
-    contentHash: 'call-hash',
-    annotations: undefined,
-    context: contextFields(),
-    parent: setup.parent,
-    holdFinishedChildren: setup.holdFinishedChildren ?? true,
-  });
+  return startClientActivity(
+    { kind: setup.kind ?? ('test-call' as K), contentHash: 'call-hash' },
+    {
+      middleware,
+      context: contextFields(),
+      parent: setup.parent,
+      holdFinishedChildren: setup.holdFinishedChildren ?? true,
+    },
+  );
 }
 
 export function openTransaction(

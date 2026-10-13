@@ -1,28 +1,28 @@
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { type AnnotationValue, brandedAnnotations, type OperationKind } from '../annotations';
+import { brandedAnnotations } from '../annotations';
 import {
   type ActivityChild,
   ActivityChildren,
   type ActivityChildSlot,
   type ActivityParent,
   type ActivityRecord,
-  activityEndedError,
   createActivityRecord,
   endActivity,
+  notAcceptingChildrenError,
 } from './activity-lifecycle';
 import { runtimeError } from './runtime-error';
 import type {
-  Activity,
   ActivityContext,
   ActivityContextFields,
-  ActivityEndedResult,
   ActivityFinalizedResult,
   ActivityObserver,
   ClientActivity,
+  ClientActivityEnded,
   ClientActivityKind,
   ClientActivityResult,
   RuntimeMiddleware,
+  StartActivity,
 } from './runtime-middleware';
 
 /** What a client passes to end its activity. */
@@ -41,22 +41,17 @@ export interface ClientActivityRun<
   readonly ctx: TContext;
   /** Set when an `intercept.onActivity` handler supplied the result. */
   readonly intercepted: { readonly result: ClientActivityResult<K> } | undefined;
-  /** Throws `RUNTIME.ACTIVITY_ENDED` when no statement or activity may start beneath this one any more. */
-  assertOpen(): void;
+  /** Throws `RUNTIME.ACTIVITY_ENDED` when the activity no longer accepts children. */
+  assertAcceptsChildren(): void;
   /**
-   * Ends the activity: its `activityEnded` hooks, then its finalization. Outside a transaction it is finalized at once: `committed` when it succeeded and nothing beneath it was finalized `unknown`, otherwise `unknown`. Inside one, its transaction finalizes it. When a child has not ended, the activity ends `failed`, is finalized, and `end` rejects with `RUNTIME.ACTIVITY_CHILDREN_OPEN`. A second call rejects with `RUNTIME.ACTIVITY_ENDED`.
+   * Ends the activity: its `activityEnded` hooks, then its finalization. Outside a transaction it is finalized at once: `committed` when it succeeded and everything beneath it was finalized `committed`, otherwise `unknown`. Inside one, its transaction finalizes it. When a child has not ended, the activity ends `failed`, is finalized, and `end` rejects with `RUNTIME.ACTIVITY_CHILDREN_OPEN`. A second call rejects with `RUNTIME.ACTIVITY_ENDED`.
    */
   end(end: ClientActivityEnd<K>): Promise<void>;
 }
 
-export interface ClientActivityOptions<
-  K extends ClientActivityKind,
-  TContext extends ActivityContext,
-> {
+/** How a runtime runs a client activity. */
+export interface ClientActivityRunOptions<TContext extends ActivityContext> {
   readonly middleware: ReadonlyArray<ActivityObserver & Pick<RuntimeMiddleware, 'intercept'>>;
-  readonly kind: K;
-  readonly contentHash: string;
-  readonly annotations: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>> | undefined;
   readonly context: ActivityContextFields<TContext>;
   /** The open activity the client activity starts beneath. */
   readonly parent: ActivityParent | undefined;
@@ -72,8 +67,11 @@ const reservedKinds: ReadonlySet<string> = new Set(['statement', 'transaction'])
 export async function startClientActivity<
   K extends ClientActivityKind,
   TContext extends ActivityContext = ActivityContext,
->(options: ClientActivityOptions<K, TContext>): Promise<ClientActivityRun<K, TContext>> {
-  const kind: string = options.kind;
+>(
+  activity: StartActivity<K>,
+  options: ClientActivityRunOptions<TContext>,
+): Promise<ClientActivityRun<K, TContext>> {
+  const kind: string = activity.kind;
   if (reservedKinds.has(kind)) {
     throw runtimeError(
       'RUNTIME.ACTIVITY_KIND_RESERVED',
@@ -81,7 +79,7 @@ export async function startClientActivity<
       { kind },
     );
   }
-  const run = new ClientActivityRunImpl<K, TContext>(options);
+  const run = new ClientActivityRunImpl<K, TContext>(activity, options);
   try {
     await run.start();
   } catch (error) {
@@ -116,20 +114,18 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
   readonly #slot: ActivityChildSlot | undefined;
   #intercepted: { readonly result: ClientActivityResult<K> } | undefined;
   #ended = false;
-  #somethingBeneathUnknown = false;
+  #everythingBeneathCommitted = true;
 
-  constructor(options: ClientActivityOptions<K, TContext>) {
+  constructor(activity: StartActivity<K>, options: ClientActivityRunOptions<TContext>) {
     this.activity = {
       id: crypto.randomUUID(),
-      kind: options.kind,
-      contentHash: options.contentHash,
-      annotations: options.annotations ?? brandedAnnotations(undefined),
+      kind: activity.kind,
+      contentHash: activity.contentHash,
+      annotations: activity.annotations ?? brandedAnnotations(undefined),
     };
     this.#record = createActivityRecord<TContext>(
       options.middleware,
-      blindCast<Activity, 'a client activity of a registered kind is one of the Activity members'>(
-        this.activity,
-      ),
+      this.activity,
       options.context,
       options.parent,
     );
@@ -138,9 +134,9 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
       inTransaction: this.ctx.inTransaction(),
       holdFinishedChildren: options.holdFinishedChildren,
       statementFailed: () => this.#slot?.statementFailed(),
-      transactionEnded: () => this.#slot?.transactionEnded() ?? false,
+      transactionAcceptsChildren: () => this.#slot?.transactionAcceptsChildren() ?? true,
       childFinalized: (result) => {
-        if (result.outcome === 'unknown') this.#somethingBeneathUnknown = true;
+        if (result.outcome !== 'committed') this.#everythingBeneathCommitted = false;
       },
     });
     this.#slot = options.parent?.adopt(this);
@@ -163,15 +159,19 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
     };
   }
 
-  assertOpen(): void {
-    if (this.#ended) throw activityEndedError(this.activity, 'ended');
-    if (this.#slot?.transactionEnded()) {
-      throw activityEndedError(this.activity, 'transaction-ended');
+  acceptsChildren(): boolean {
+    return !this.#ended && (this.#slot?.transactionAcceptsChildren() ?? true);
+  }
+
+  assertAcceptsChildren(): void {
+    if (this.#ended) throw notAcceptingChildrenError(this.activity, 'parent');
+    if (!(this.#slot?.transactionAcceptsChildren() ?? true)) {
+      throw notAcceptingChildrenError(this.activity, 'transaction');
     }
   }
 
   adopt(child: ActivityChild): ActivityChildSlot {
-    this.assertOpen();
+    this.assertAcceptsChildren();
     return this.#children.add(child);
   }
 
@@ -206,18 +206,15 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
     readonly result?: ClientActivityResult<K> | undefined;
   }): Promise<void> {
     this.#ended = true;
-    const result = blindCast<
-      ActivityEndedResult,
-      'the ended result of a registered kind is one of the ClientActivityEnded members'
-    >({
+    const result: ClientActivityEnded<K> = {
       kind: this.activity.kind,
       outcome: ended.outcome,
       source: ended.source,
       ...ifDefined('result', ended.result),
-    });
+    };
     const own: ActivityFinalizedResult = {
       outcome:
-        ended.outcome === 'succeeded' && !this.#somethingBeneathUnknown ? 'committed' : 'unknown',
+        ended.outcome === 'succeeded' && this.#everythingBeneathCommitted ? 'committed' : 'unknown',
     };
     await endActivity(this.#record, result, own, this.#slot, (finalized) =>
       this.finalize(finalized),

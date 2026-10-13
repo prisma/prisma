@@ -14,7 +14,9 @@ import type {
 export interface ActivityParent {
   readonly activity: ActivityBase;
   readonly ctx: ActivityContext;
-  /** Records `child` in start order and returns how the child reports to this parent. Throws a runtime error when this parent has ended, or when the transaction it runs in has. */
+  /** Whether statements and activities may still start beneath this parent. A transaction stops accepting children when its `commit()` or `rollback()` is called; a client activity, when it ends or its transaction stops accepting children. */
+  acceptsChildren(): boolean;
+  /** Records `child` in start order and returns how the child reports to this parent. Throws `RUNTIME.ACTIVITY_ENDED` when the parent no longer accepts children. */
   adopt(child: ActivityChild): ActivityChildSlot;
 }
 
@@ -30,8 +32,8 @@ export interface ActivityChildSlot {
   statementFailed(): void;
   /** The child has ended. `own` is its finalized result when no transaction finalizes it. Resolves once the child is finalized, or held for its transaction. */
   ended(own: ActivityFinalizedResult): Promise<void>;
-  /** Whether the transaction the parent runs in has ended, so no work may start beneath the child. */
-  transactionEnded(): boolean;
+  /** Whether the nearest transaction at or above the parent still accepts children; `true` outside any transaction. */
+  transactionAcceptsChildren(): boolean;
 }
 
 export interface ActivityChildrenOptions {
@@ -40,7 +42,7 @@ export interface ActivityChildrenOptions {
   /** Whether finished children are kept for the transaction to finalize. */
   readonly holdFinishedChildren: boolean;
   readonly statementFailed: () => void;
-  readonly transactionEnded: () => boolean;
+  readonly transactionAcceptsChildren: () => boolean;
   /** Receives the result of each child finalized when it ends. */
   readonly childFinalized: (result: ActivityFinalizedResult) => void;
 }
@@ -70,7 +72,7 @@ export class ActivityChildren {
     let ended = false;
     return {
       statementFailed: options.statementFailed,
-      transactionEnded: options.transactionEnded,
+      transactionAcceptsChildren: options.transactionAcceptsChildren,
       ended: async (own) => {
         if (ended) return;
         ended = true;
@@ -97,12 +99,17 @@ export class ActivityChildren {
   }
 }
 
-export function activityEndedError(
+export function notAcceptingChildrenError(
   parent: ActivityBase,
-  reason: 'ended' | 'transaction-ended',
+  reason: 'parent' | 'transaction',
 ): RuntimeErrorEnvelope {
   const subject = parent.kind === 'transaction' ? 'a transaction' : `a '${parent.kind}' activity`;
-  const state = reason === 'ended' ? 'that has ended' : 'whose transaction has ended';
+  const state =
+    parent.kind === 'transaction'
+      ? 'that no longer accepts children: its commit() or rollback() has been called'
+      : reason === 'parent'
+        ? 'that has ended'
+        : 'whose transaction no longer accepts children';
   return runtimeError(
     'RUNTIME.ACTIVITY_ENDED',
     `An activity was started beneath ${subject} ${state}`,
@@ -151,17 +158,7 @@ export function createActivityRecord<TContext extends ActivityContext>(
   let finalized = false;
   // How many middleware ran activityStarted. A middleware after one whose activityStarted threw never saw the activity start, so it gets no later event for it.
   let started = middleware.length;
-  const parentCtx = parent?.ctx;
-  const parentIsTransaction = parent?.activity.kind === 'transaction';
-  const ctx = blindCast<
-    TContext,
-    'the family context is its fields plus the members every activity context adds'
-  >({
-    ...fields,
-    parent: parentCtx,
-    state: store.state,
-    inTransaction: () => parentIsTransaction || (parentCtx?.inTransaction() ?? false),
-  });
+  const ctx = contextBeneath<TContext>(fields, parent, store);
 
   return {
     activity,
@@ -208,6 +205,34 @@ export function createActivityRecord<TContext extends ActivityContext>(
       store.clear();
     },
   };
+}
+
+/**
+ * The context of work that belongs to no activity but runs beneath `parent`, such as compiling a plan outside any statement: `parent` and `inTransaction()` as a child of `parent` would have them, and state of its own.
+ */
+export function createStandaloneContext<TContext extends ActivityContext>(
+  fields: ActivityContextFields<TContext>,
+  parent: ActivityParent | undefined,
+): TContext {
+  return contextBeneath<TContext>(fields, parent, createStateStore());
+}
+
+function contextBeneath<TContext extends ActivityContext>(
+  fields: ActivityContextFields<TContext>,
+  parent: ActivityParent | undefined,
+  store: ActivityStateStore,
+): TContext {
+  const parentCtx = parent?.ctx;
+  const parentIsTransaction = parent?.activity.kind === 'transaction';
+  return blindCast<
+    TContext,
+    'the family context is its fields plus the members every activity context adds'
+  >({
+    ...fields,
+    parent: parentCtx,
+    state: store.state,
+    inTransaction: () => parentIsTransaction || (parentCtx?.inTransaction() ?? false),
+  });
 }
 
 function logHookError(
