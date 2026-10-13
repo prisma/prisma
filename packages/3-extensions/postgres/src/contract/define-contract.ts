@@ -1,4 +1,4 @@
-import type { postgresAdapterCapabilities } from '@internal/adapter-postgres/adapter';
+import { postgresAdapterCapabilities } from '@internal/adapter-postgres/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   assembleDataTypes,
@@ -32,8 +32,10 @@ type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
 type NamespacesConstraint = readonly string[] | undefined;
 
-/** What the adapter this contract runs with adds to the contract's type, as `prisma contract emit` adds it. */
-type PostgresAdapterTypes = { readonly capabilities: typeof postgresAdapterCapabilities };
+/** The adapter this contract runs with, whose capabilities the contract carries, as `prisma contract emit` and the runtime add them. */
+type PostgresAdapter = { readonly capabilities: typeof postgresAdapterCapabilities };
+
+const adapter: PostgresAdapter = { capabilities: postgresAdapterCapabilities };
 
 type PostgresResult<
   Types extends TypesConstraint,
@@ -51,7 +53,7 @@ type PostgresResult<
       readonly extensions?: Extensions;
       readonly enums?: Enums;
       readonly namespaces?: Namespaces;
-      readonly adapter?: PostgresAdapterTypes;
+      readonly adapter: PostgresAdapter;
       readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
       readonly codecLookup: CodecLookupWithDescriptors;
       readonly dataTypeLookup: DataTypeLookup;
@@ -65,6 +67,7 @@ type PostgresBaseScaffold<
   ContractInput<SqlFamily, PostgresPack, Record<never, never>, Record<never, never>, Extensions>,
   | 'family'
   | 'target'
+  | 'adapter'
   | 'types'
   | 'models'
   | 'enums'
@@ -166,15 +169,15 @@ export function defineContract(
   );
   const dataTypeLookup =
     definition.dataTypeLookup ?? assembleDataTypes([postgresPack, ...extensions]).lookup;
-  const boundInput = {
+  const bound = {
     ...definition,
+    adapter,
     createNamespace: postgresCreateNamespace,
     codecLookup:
       definition.codecLookup ??
       assemblePostgresCodecRegistryWithBuiltins(extensions, dataTypeLookup),
     dataTypeLookup,
   };
-  const bound: typeof boundInput & { readonly adapter?: PostgresAdapterTypes } = boundInput;
   if (factory !== undefined) {
     return buildBoundContract(sqlFamilyPack, postgresPack, bound, factory);
   }

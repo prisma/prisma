@@ -33,7 +33,7 @@ import { checkSqlDefaultText, reservedSqlDefaultText } from '@internal/sql-contr
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { NamedConstraintSpec } from './authoring-type-utils';
-import type { AuthoredColumnDefault } from './contract-definition';
+import type { AuthoredColumnDefault, CapabilityContributor } from './contract-definition';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
 import { isEnumTypeHandle } from './enum-type';
@@ -2131,6 +2131,8 @@ export type ContractInput<
   readonly family: Family;
   readonly target: Target;
   readonly extensions?: Extensions;
+  /** The adapter the contract runs with. Its capabilities join the target's and the extensions', as `prisma contract emit` and the runtime join them. The Postgres and SQLite `defineContract` supply it. */
+  readonly adapter?: CapabilityContributor;
   readonly naming?: NamingConfig;
   readonly storageHash?: string;
   readonly foreignKeyDefaults?: ForeignKeyDefaultsState;

@@ -91,22 +91,50 @@ type ExtractPackCapabilities<P> = P extends {
   ? Caps
   : never;
 
-type MergeExtensionPackCapabilities<Packs> =
+type ExtensionCapabilityMatrices<Packs> =
   Packs extends Record<string, unknown>
-    ? keyof Packs extends never
-      ? Record<never, never>
-      : UnionToIntersection<
-          {
-            [K in keyof Packs]: ExtractPackCapabilities<Packs[K]>;
-          }[keyof Packs]
-        >
-    : Record<never, never>;
+    ? {
+        [K in keyof Packs]: Defaulted<ExtractPackCapabilities<Packs[K]>, Record<never, never>>;
+      }[keyof Packs]
+    : never;
+
+type KeysOfEach<T> = T extends unknown ? keyof T : never;
+
+type NamespaceOfEach<Matrices, Namespace> = Matrices extends unknown
+  ? Namespace extends keyof Matrices
+    ? Matrices[Namespace]
+    : never
+  : never;
+
+type FlagOfEach<Flags, Flag> = Flags extends unknown
+  ? Flag extends keyof Flags
+    ? Flags[Flag]
+    : never
+  : never;
+
+// The extensions' flags, each `false` when two extensions set it differently: the runtime keeps the value of the extension listed last, an order the type of the extensions record does not carry.
+type MergeExtensionPackCapabilities<Packs> = {
+  readonly [Namespace in KeysOfEach<ExtensionCapabilityMatrices<Packs>>]: {
+    readonly [Flag in KeysOfEach<
+      NamespaceOfEach<ExtensionCapabilityMatrices<Packs>, Namespace>
+    >]: FlagOfEach<
+      NamespaceOfEach<ExtensionCapabilityMatrices<Packs>, Namespace>,
+      Flag
+    > extends true
+      ? true
+      : false;
+  };
+};
 
 type Defaulted<T, Fallback> = [T] extends [never] ? Fallback : T;
 
 type DefinitionAdapter<Definition> = Definition extends { readonly adapter?: infer Adapter }
   ? Present<Adapter>
   : never;
+
+type EnabledCapabilityFlags<Flags> = {
+  readonly [Flag in keyof Flags as Flags[Flag] extends true ? Flag : never]: true;
+};
 
 type EnabledCapabilities<Capabilities> = {
   readonly [Namespace in keyof Capabilities as keyof EnabledCapabilityFlags<
@@ -116,15 +144,26 @@ type EnabledCapabilities<Capabilities> = {
     : Namespace]: EnabledCapabilityFlags<Capabilities[Namespace]>;
 };
 
-type EnabledCapabilityFlags<Flags> = {
-  readonly [Flag in keyof Flags as Flags[Flag] extends true ? Flag : never]: true;
+// The flags of `Later` replace those of `Earlier` that it sets, namespace by namespace.
+type OverrideCapabilities<Earlier, Later> = {
+  readonly [Namespace in keyof Earlier | keyof Later]: Namespace extends keyof Later
+    ? Namespace extends keyof Earlier
+      ? Omit<Earlier[Namespace], keyof Later[Namespace]> & Later[Namespace]
+      : Later[Namespace]
+    : Namespace extends keyof Earlier
+      ? Earlier[Namespace]
+      : never;
 };
 
-// The capabilities of the target, its adapter and the extensions, as the CLI merges them into an emitted contract and the execution context merges them at runtime; a disabled capability is left out, as in an emitted contract.
+// The enabled capabilities of the target, then its adapter, then the extensions, each replacing the flags it sets, as `prisma contract emit`, the build and the execution context merge them. A disabled capability is left out, as in an emitted contract.
 type DerivedCapabilities<Definition> = EnabledCapabilities<
-  Defaulted<ExtractPackCapabilities<DefinitionTarget<Definition>>, Record<never, never>> &
-    Defaulted<ExtractPackCapabilities<DefinitionAdapter<Definition>>, Record<never, never>> &
+  OverrideCapabilities<
+    OverrideCapabilities<
+      Defaulted<ExtractPackCapabilities<DefinitionTarget<Definition>>, Record<never, never>>,
+      Defaulted<ExtractPackCapabilities<DefinitionAdapter<Definition>>, Record<never, never>>
+    >,
     MergeExtensionPackCapabilities<DefinitionExtensions<Definition>>
+  >
 >;
 
 type ExtractQueryOperationTypesFromPack<

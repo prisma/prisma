@@ -325,10 +325,17 @@ export interface TableNode extends TableProperties {
   readonly columns: readonly ColumnNode[];
 }
 
+/** A component whose capabilities a contract carries, such as an adapter. */
+export type CapabilityContributor = {
+  readonly capabilities: Readonly<Record<string, Readonly<Record<string, boolean>>>>;
+};
+
 export interface ContractDefinition {
   readonly target: TargetPackRef<'sql', string>;
   readonly defaultControlPolicy?: ControlPolicy;
   readonly extensions?: Record<string, ExtensionPackRef<'sql', string>>;
+  /** The adapter the contract runs with, whose capabilities join the target's and the extensions'. */
+  readonly adapter?: CapabilityContributor;
   /**
    * Test-fixture escape hatch: pins the emitted `storage.storageHash`
    * instead of computing it from content. A pinned hash is not

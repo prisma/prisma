@@ -1,4 +1,4 @@
-import type { sqliteAdapterCapabilities } from '@internal/adapter-sqlite/adapter';
+import { sqliteAdapterCapabilities } from '@internal/adapter-sqlite/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   assembleDataTypes,
@@ -30,8 +30,10 @@ type TypesConstraint = Record<string, AuthoredStorageTypeInstance>;
 type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
 
-/** What the adapter this contract runs with adds to the contract's type, as `prisma contract emit` adds it. */
-type SqliteAdapterTypes = { readonly capabilities: typeof sqliteAdapterCapabilities };
+/** The adapter this contract runs with, whose capabilities the contract carries, as `prisma contract emit` and the runtime add them. */
+type SqliteAdapter = { readonly capabilities: typeof sqliteAdapterCapabilities };
+
+const adapter: SqliteAdapter = { capabilities: sqliteAdapterCapabilities };
 
 type SqliteResult<
   Types extends TypesConstraint,
@@ -47,7 +49,7 @@ type SqliteResult<
       readonly models?: Models;
       readonly extensions?: Extensions;
       readonly enums?: Enums;
-      readonly adapter?: SqliteAdapterTypes;
+      readonly adapter: SqliteAdapter;
       readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
       readonly codecLookup: CodecLookupWithDescriptors;
       readonly dataTypeLookup: DataTypeLookup;
@@ -61,6 +63,7 @@ type SqliteBaseScaffold<
   ContractInput<SqlFamily, SqlitePack, Record<never, never>, Record<never, never>, Extensions>,
   | 'family'
   | 'target'
+  | 'adapter'
   | 'types'
   | 'models'
   | 'enums'
@@ -132,14 +135,14 @@ export function defineContract(
   const extensionPacks: readonly ExtensionPackRef<'sql', string>[] = Object.values(
     definition.extensions ?? {},
   );
-  const boundInput = {
+  const bound = {
     ...definition,
+    adapter,
     createNamespace: sqliteCreateNamespace,
     codecLookup: definition.codecLookup ?? assembleSqliteCodecRegistry(target, extensionPacks),
     dataTypeLookup:
       definition.dataTypeLookup ?? assembleDataTypes([target, ...extensionPacks]).lookup,
   };
-  const bound: typeof boundInput & { readonly adapter?: SqliteAdapterTypes } = boundInput;
   if (factory !== undefined) {
     return buildBoundContract(sqlFamilyPack, sqlitePack, bound, factory);
   }
