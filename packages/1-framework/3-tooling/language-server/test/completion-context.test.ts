@@ -757,3 +757,32 @@ describe('classifyPslCompletionContext', () => {
     expectUnsupported(['model Post {', '  owner supabase:auth:U|', '}'].join('\n'));
   });
 });
+
+describe('classifyPslCompletionContext at an inclusion', () => {
+  const inclusionAt = (markedSource: string): string => {
+    const context = classify(markedSource);
+    if (context.kind !== 'mixinInclusion') return context.kind;
+    return context.namespace === undefined ? 'inclusion' : `inclusion in ${context.namespace}`;
+  };
+
+  it.each([
+    ['after the plus', 'model User {\n  +|\n}', 'inclusion'],
+    ['in the name', 'model User {\n  +Tim|\n}', 'inclusion'],
+    ['after a qualifier', 'model User {\n  +auth.|\n}', 'inclusion in auth'],
+    ['in a qualified name', 'model User {\n  +auth.Tim|\n}', 'inclusion in auth'],
+    ['after two qualifiers', 'model User {\n  +a.b.|\n}', 'unsupported'],
+    ['after a plus and a space', 'model User {\n  + |\n}', 'inclusion'],
+    ['in the name after a plus and a space', 'model User {\n  + Tim|\n}', 'inclusion'],
+    ['in the name on the line of the opening brace', 'model User { +Tim| }', 'inclusion'],
+    ['after the plus at the end of the file', 'model User {\n  +|', 'inclusion'],
+  ])('is an inclusion position %s', (_position, source, expected) => {
+    expect(inclusionAt(source)).toBe(expected);
+  });
+
+  it.each([
+    ['on the line after a lone plus', 'model User {\n  +\n  |\n}'],
+    ['after a complete inclusion and a space', 'model User {\n  +Foo |\n}'],
+  ])('is not an inclusion position %s', (_position, source) => {
+    expect(inclusionAt(source)).not.toContain('inclusion');
+  });
+});

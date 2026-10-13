@@ -316,7 +316,6 @@ export function classifyPslCompletionContext(
     precedingToken: preceding,
     offset,
     replacementStartOffset,
-    text: input.sourceFile.text,
   });
   if (inclusionContext !== undefined) {
     return inclusionContext;
@@ -967,34 +966,28 @@ function hasUnsupportedAncestor(node: SyntaxNode | undefined): boolean {
   );
 }
 
-/** The significant token preceding the cursor — the in-progress edit identifier
- *  is skipped, so the result is the token the classifier anchors on. */
 function classifyMixinInclusion(input: {
   readonly precedingToken: SyntaxToken | undefined;
   readonly offset: number;
   readonly replacementStartOffset: number;
-  readonly text: string;
 }): MixinInclusionCompletionContext | UnsupportedPslCompletionContext | undefined {
   const { precedingToken: preceding, offset, replacementStartOffset } = input;
   if (preceding === undefined || (preceding.kind !== 'Plus' && preceding.kind !== 'Dot')) {
     return undefined;
   }
   const inclusion = preceding.parent.findAncestor(MixinInclusionAst.cast);
-  if (inclusion === undefined) return undefined;
-  if (input.text.slice(preceding.endOffset, replacementStartOffset).includes('\n')) {
-    return undefined;
-  }
+  if (inclusion === undefined || inclusion.syntax.isOutside(offset)) return undefined;
   const position = { kind: 'mixinInclusion' as const, offset, replacementStartOffset, inclusion };
   if (preceding.kind === 'Plus') return position;
-  const qualifiers = Array.from(inclusion.name()?.segments() ?? []).filter(
-    (segment) => segment.syntax.endOffset <= preceding.offset,
-  );
-  const namespace = qualifiers[0]?.name();
-  return namespace === undefined || qualifiers.length > 1
+  const name = inclusion.name();
+  const namespace = name?.namespace()?.name();
+  return name === undefined || namespace === undefined || name.isOverQualified()
     ? UNSUPPORTED
     : { ...position, namespace };
 }
 
+/** The significant token preceding the cursor — the in-progress edit identifier
+ *  is skipped, so the result is the token the classifier anchors on. */
 function precedingToken(at: TokenAtOffset, edit: SyntaxToken | undefined): SyntaxToken | undefined {
   const start = edit !== undefined ? edit.prevToken : at.leftBiased();
   return start === undefined ? undefined : skipTriviaToken(start, 'prev');
