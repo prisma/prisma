@@ -211,6 +211,10 @@ The main CLI received a `--format` value other than `pretty` or `json`. Raised d
 
 Reserved: a command was asked for a `--json` sub-format it does not support; the error lists the formats the command does accept. Declared in the shared error factories but not raised by any command today. Payload: `command`, `format`, `supportedFormats`.
 
+### CLI.MIGRATION_CONFIG_NOT_FOUND
+
+Running a `migration.ts` with node and no `--config` found no config that owns the migration. Without `--config`, the file uses the config whose migrations directory holds it: the nearest `prisma.config.ts` above the migration's directory if it owns it, else the `prisma.config.ts` in the working directory if that one does. The message names each config it checked, with the migrations directory it keeps or the reason it failed to load, and says to run the file again with `--config <path>`. Payload: `migrationDir`, `checked`.
+
 ### CLI.OUTPUT_FORMAT_CONFLICT
 
 The main CLI received mutually exclusive output flags: `--format pretty` together with `--json`. Use `--format json` or `--json` alone for JSON output. Payload: none.

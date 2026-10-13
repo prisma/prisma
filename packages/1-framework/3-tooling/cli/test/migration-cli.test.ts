@@ -19,15 +19,13 @@ import { structuredError } from '@internal/utils/structured-error';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { loadConfigMock, findConfigMock, createControlStackMock } = vi.hoisted(() => ({
+const { loadConfigMock, createControlStackMock } = vi.hoisted(() => ({
   loadConfigMock: vi.fn(),
-  findConfigMock: vi.fn(async (): Promise<string | undefined> => undefined),
   createControlStackMock: vi.fn(),
 }));
 
-vi.mock('@internal/config-loader', () => ({
-  loadConfigForSections: loadConfigMock,
-  findNearestConfigPathForFile: findConfigMock,
+vi.mock('../src/utils/migration-file-config', () => ({
+  loadMigrationFileConfig: loadConfigMock,
 }));
 
 vi.mock('@internal/framework-components/control', async () => {
@@ -41,6 +39,7 @@ vi.resetModules();
 const { MigrationCLI } = await import('../src/migration-cli');
 
 afterAll(() => {
+  vi.doUnmock('../src/utils/migration-file-config');
   vi.resetModules();
 });
 
@@ -351,11 +350,12 @@ describe('MigrationCLI.run', () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(loadConfigMock).toHaveBeenCalledWith('/explicit/config.ts', expect.any(Array));
+    expect(loadConfigMock).toHaveBeenCalledWith(
+      expect.objectContaining({ configPath: '/explicit/config.ts' }),
+    );
   });
 
-  it('loads the config nearest the migration file when --config is not given', async () => {
-    findConfigMock.mockResolvedValueOnce('/project/prisma.config.ts');
+  it('loads the config that owns the migration file when --config is not given', async () => {
     loadConfigMock.mockResolvedValue(ok(okConfig));
     createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
 
@@ -365,8 +365,12 @@ describe('MigrationCLI.run', () => {
       stderr: new BufferStream(),
     });
 
-    expect(findConfigMock).toHaveBeenCalledWith(migrationFile);
-    expect(loadConfigMock).toHaveBeenCalledWith('/project/prisma.config.ts', expect.any(Array));
+    expect(loadConfigMock).toHaveBeenCalledWith({
+      configPath: undefined,
+      migrationFile,
+      cwd: process.cwd(),
+      sections: expect.any(Array),
+    });
   });
 
   it('forwards --config=<path> (equals form) to loadConfig', async () => {
@@ -382,7 +386,9 @@ describe('MigrationCLI.run', () => {
     });
 
     expect(exitCode).toBe(0);
-    expect(loadConfigMock).toHaveBeenCalledWith('/equals/config.ts', expect.any(Array));
+    expect(loadConfigMock).toHaveBeenCalledWith(
+      expect.objectContaining({ configPath: '/equals/config.ts' }),
+    );
   });
 
   it('preserves createdAt from a previously-scaffolded migration.json', async () => {

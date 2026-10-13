@@ -85,6 +85,8 @@ export interface MigrationPlanOptions {
   readonly cwd: string;
   /** The project's directory, normally the validated config's `baseDir`; locates the project manifest. */
   readonly projectDir?: string;
+  /** The `--config` the command was given, repeated in the command that runs a written `migration.ts`. */
+  readonly configPath?: string;
   readonly name?: string;
   readonly from?: string;
   readonly to?: string;
@@ -115,8 +117,15 @@ type PlannerSuccess = {
   readonly dataLoss: readonly PlannedLoss[];
 };
 
-function placeholderSummary(planned: string, dirs: readonly string[]): string {
-  const commands = dirs.map((dir) => `\`node ${join(dir, 'migration.ts')}\``).join(' and ');
+function placeholderSummary(
+  planned: string,
+  dirs: readonly string[],
+  configPath: string | undefined,
+): string {
+  const config = configPath === undefined ? '' : ` --config "${configPath}"`;
+  const commands = dirs
+    .map((dir) => `\`node ${join(dir, 'migration.ts')}${config}\``)
+    .join(' and ');
   return `Planned ${planned} with placeholder(s) — edit migration.ts, then run ${commands} from this directory to self-emit`;
 }
 
@@ -869,7 +878,7 @@ async function executeMigrationPlanCommandInner(
             ...(warnings.length > 0 ? { warnings } : {}),
             pendingPlaceholders: true,
             appliedStatements: [...statementsWithoutOperations, ...deletes],
-            summary: placeholderSummary('baseline', [baselineDir]),
+            summary: placeholderSummary('baseline', [baselineDir], options.configPath),
             timings: { total: Date.now() - startTime },
           };
           return ok(result);
@@ -926,7 +935,11 @@ async function executeMigrationPlanCommandInner(
           ...(warnings.length > 0 ? { warnings } : {}),
           pendingPlaceholders: true,
           appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-          summary: placeholderSummary('baseline + migration', [baselineDir, deltaDir]),
+          summary: placeholderSummary(
+            'baseline + migration',
+            [baselineDir, deltaDir],
+            options.configPath,
+          ),
           timings: { total: Date.now() - startTime },
         };
         return ok(result);
@@ -1038,7 +1051,7 @@ async function executeMigrationPlanCommandInner(
         pendingPlaceholders: true,
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-        summary: placeholderSummary('migration', [dir]),
+        summary: placeholderSummary('migration', [dir], options.configPath),
         timings: { total: Date.now() - startTime },
       };
       return ok(result);

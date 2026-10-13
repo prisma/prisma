@@ -25,7 +25,7 @@ changes:
         - '--delete loses its rows'
   - id: migration-ts-finds-its-config
     summary: |
-      Running a `migration.ts` with node loads the nearest `prisma.config.ts` above the migration's own directory, so `node migration.ts` works from any directory. It used to look only in the working directory, and failed with `CONFIG.FILE_NOT_FOUND` anywhere else unless `--config` named the file.
+      Running a `migration.ts` with node and no `--config` uses the config that owns the migration, whose migrations directory holds the file: the nearest `prisma.config.ts` above the migration's directory, else the one in the working directory. If neither owns it, it fails with `CLI.MIGRATION_CONFIG_NOT_FOUND`. It used to load only the working directory's config, whichever project it belonged to.
 ---
 
 # MongoDB carries out `--rename` and `--delete`
@@ -67,4 +67,6 @@ A test that asserts the text of a data-loss question about data named by its sto
 
 ## `migration-ts-finds-its-config`
 
-`node migration.ts`, run inside the migration's directory, now finds the project's `prisma.config.ts`, as does `node <path>/migration.ts` run from any other directory. A command that runs the file from the project directory keeps working unchanged. A script that passed `--config` only because it ran the file from another directory can drop it; `--config` still overrides the lookup. Messages that tell you to run a `migration.ts` now say to run it with node, without a path or a working directory.
+Without `--config`, `node migration.ts` now picks the config that owns the migration: a config owns it when the migration file is inside that config's `migrations.dir`. It tries the nearest `prisma.config.ts` above the migration's directory first, then the `prisma.config.ts` in the working directory. So the file runs from inside its own directory, from the project directory, or from any other directory, and with `migrations.dir` outside the project, such as `../shared-db/migrations`, when run from the project directory. If neither config owns the migration, it fails with `CLI.MIGRATION_CONFIG_NOT_FOUND`, naming the configs it checked; run it with `--config <path>`. `--config` still overrides the lookup.
+
+A command that ran the file from the project directory keeps working. A script that ran it from a directory whose `prisma.config.ts` belongs to another project, and relied on that config, now fails with `CLI.MIGRATION_CONFIG_NOT_FOUND`; pass `--config`. `migration new` and `migration plan` given `--config` now repeat it in the `node` command they print. Messages that tell you to run a `migration.ts` say to run it with node, without a path or a working directory.

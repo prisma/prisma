@@ -850,6 +850,32 @@ describe('migration plan', () => {
       });
     });
 
+    it('repeats the --config it was given in the commands that run the stub', async () => {
+      const project = await losingProject();
+      const script: FakePlannerScript = {
+        operations: [ADDITIVE_OP, DESTRUCTIVE_OP],
+        operationsAccessorThrows: errorUnfilledPlaceholder('backfill'),
+        dataLoss: [LEGACY_LOSS],
+      };
+
+      const answered = await harness(project, { script }).run(
+        ['migration', 'plan', '--delete', 'Legacy', '--config', 'prisma.config.ts', '--json'],
+        { cwd: project.dir },
+      );
+      const data = answered.presented?.data as { readonly dir: string; readonly summary: string };
+      expect({
+        summary: data.summary,
+        next: answered.presented?.presentation.next?.at(-1),
+      }).toEqual({
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node ${data.dir}/migration.ts --config "prisma.config.ts"\` from this directory to self-emit`,
+        next: {
+          kind: 'run-command',
+          label: 'Run it to self-emit ops.json and attest the package',
+          command: `node "${data.dir}/migration.ts" --config "prisma.config.ts"`,
+        },
+      });
+    });
+
     it('asks a question a re-plan brings up in a second batch', async () => {
       const project = await losingProject();
 
