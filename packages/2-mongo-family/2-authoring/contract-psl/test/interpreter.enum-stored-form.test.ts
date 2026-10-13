@@ -1,5 +1,5 @@
 import { buildEnumsMapForNamespace } from '@internal/contract/enum-accessor';
-import { enumType } from '@internal/contract-authoring';
+import { type EnumTypeHandle, enumType } from '@internal/contract-authoring';
 import {
   type AnyCodecDescriptor,
   type Codec,
@@ -13,33 +13,62 @@ import { describe, expect, it } from 'vitest';
 import { mongoCodecLookup } from './derive-json-schema-helpers';
 import { interpretMongoContract } from './interpreter-test-helpers';
 
-const PREFIXED_CODEC_ID = 'test/prefixed@1';
+function textCodec(
+  id: string,
+  encodeJson: (v: unknown) => unknown,
+  decodeJson: (j: unknown) => unknown,
+): Codec {
+  return {
+    id,
+    encode: async (v: unknown) => v,
+    decode: async (w: unknown) => w,
+    encodeJson,
+    decodeJson,
+  } as unknown as Codec;
+}
 
-const prefixedCodec = {
-  id: PREFIXED_CODEC_ID,
-  encode: async (v: unknown) => v,
-  decode: async (w: unknown) => w,
-  encodeJson: (v: unknown) => `s:${String(v)}`,
-  decodeJson: (j: unknown) => String(j).slice('s:'.length),
-} as unknown as Codec;
+const prefixedCodec = textCodec(
+  'test/prefixed@1',
+  (v) => `s:${String(v)}`,
+  (j) => String(j).slice('s:'.length),
+);
+
+const testCodecs = [
+  prefixedCodec,
+  textCodec(
+    'test/refusing@1',
+    (v) => {
+      if (v === 'bad') throw new Error('bad is not allowed');
+      return v;
+    },
+    (j) => j,
+  ),
+  textCodec(
+    'test/shouting@1',
+    (v) => String(v).toUpperCase(),
+    (j) => j,
+  ),
+];
 
 const codecLookup: CodecLookupWithDescriptors = {
-  get: (id) => (id === PREFIXED_CODEC_ID ? prefixedCodec : mongoCodecLookup.get(id)),
+  get: (id) => testCodecs.find((codec) => codec.id === id) ?? mongoCodecLookup.get(id),
   descriptorFor: (id) =>
-    id === PREFIXED_CODEC_ID
-      ? ({ codecId: id, dataType: 'test/prefixed' } as unknown as AnyCodecDescriptor)
+    testCodecs.some((codec) => codec.id === id)
+      ? ({
+          codecId: id,
+          dataType: 'test/text',
+          traits: ['equality'],
+        } as unknown as AnyCodecDescriptor)
       : mongoCodecLookup.descriptorFor(id),
   renderOutputTypeFor: () => undefined,
 };
 
 const dataTypeLookup = createDataTypeLookup([
   mongoDataType('mongo/objectid', { bsonTypes: ['objectId'] }),
-  mongoDataType('test/prefixed', { bsonTypes: ['string'] }),
+  mongoDataType('test/text', { bsonTypes: ['string'] }),
 ]);
 
-function interpretPrefixedEnum() {
-  const result = interpretMongoContract(
-    `enum Status {
+const SCHEMA = `enum Status {
   Active = "active"
   Paused = "paused"
 }
@@ -48,49 +77,63 @@ model Job {
   id     ObjectId @id @map("_id")
   status Status
 }
-`,
-    {
-      scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
-      defaultFunctionRegistry: new Map(),
-      codecLookup,
-      dataTypes: { entries: {}, lookup: dataTypeLookup },
-      authoringContributions: {
-        field: {},
-        type: {},
-        modelAttributes: {},
-        entityTypes: {
-          enum: {
-            kind: 'entity',
-            discriminator: 'enum',
-            output: {
-              factory: () =>
-                enumType(
-                  'Status',
-                  { codecId: PREFIXED_CODEC_ID },
-                  { name: 'Active', value: 'active' },
-                  { name: 'Paused', value: 'paused' },
-                ),
-            },
-          },
-        },
-        pslBlockDescriptors: {
-          enum: {
-            kind: 'pslBlock',
-            keyword: 'enum',
-            discriminator: 'enum',
-            name: { required: true },
-            spec: () =>
-              mapBlock({
-                value: { type: jsonValue(), documentation: 'The member value.' },
-                allowBare: true,
-              }),
-          },
+`;
+
+/** Interprets `SCHEMA` with an enum factory that returns `handle`, as a factory that reads the block its own way would. */
+function interpretWithEnum(handle: EnumTypeHandle) {
+  return interpretMongoContract(SCHEMA, {
+    scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
+    defaultFunctionRegistry: new Map(),
+    codecLookup,
+    dataTypes: { entries: {}, lookup: dataTypeLookup },
+    authoringContributions: {
+      field: {},
+      type: {},
+      modelAttributes: {},
+      entityTypes: {
+        enum: { kind: 'entity', discriminator: 'enum', output: { factory: () => handle } },
+      },
+      pslBlockDescriptors: {
+        enum: {
+          kind: 'pslBlock',
+          keyword: 'enum',
+          discriminator: 'enum',
+          name: { required: true },
+          spec: () =>
+            mapBlock({
+              value: { type: jsonValue(), documentation: 'The member value.' },
+              allowBare: true,
+            }),
         },
       },
     },
+  });
+}
+
+function statusEnum(codecId: string, active = 'active', paused = 'paused') {
+  return enumType(
+    'Status',
+    { codecId },
+    { name: 'Active', value: active },
+    { name: 'Paused', value: paused },
   );
+}
+
+function interpretPrefixedEnum() {
+  const result = interpretWithEnum(statusEnum('test/prefixed@1'));
   if (!result.ok) throw new Error(JSON.stringify(result.failure));
   return result.value;
+}
+
+function diagnosticsOf(handle: EnumTypeHandle) {
+  const result = interpretWithEnum(handle);
+  if (result.ok) throw new Error('Expected the interpretation to fail');
+  return result.failure.diagnostics.map(({ code, message, sourceId, span }) => ({
+    code,
+    message,
+    sourceId,
+    line: span?.start.line,
+  }));
 }
 
 describe('Mongo PSL enum members', () => {
@@ -124,5 +167,48 @@ describe('Mongo PSL enum members', () => {
     );
 
     expect(enums['Status']?.values).toEqual(['active', 'paused']);
+  });
+
+  it('reports a member its codec refuses, at the member', () => {
+    expect(diagnosticsOf(statusEnum('test/refusing@1', 'active', 'bad'))).toEqual([
+      {
+        code: 'PSL_EXTENSION_INVALID_VALUE',
+        message:
+          'enum "Status" member "Paused" was rejected by codec "test/refusing@1": bad is not allowed',
+        sourceId: 'schema.prisma',
+        line: 3,
+      },
+    ]);
+  });
+
+  it('reports a member its codec reads back as another value, with the value to write', () => {
+    expect(diagnosticsOf(statusEnum('test/shouting@1'))).toEqual([
+      {
+        code: 'PSL_EXTENSION_INVALID_VALUE',
+        message:
+          'enum "Status" member "Active" is written "active", but its codec stores "ACTIVE". Write the member as "ACTIVE".',
+        sourceId: 'schema.prisma',
+        line: 2,
+      },
+      {
+        code: 'PSL_EXTENSION_INVALID_VALUE',
+        message:
+          'enum "Status" member "Paused" is written "paused", but its codec stores "PAUSED". Write the member as "PAUSED".',
+        sourceId: 'schema.prisma',
+        line: 3,
+      },
+    ]);
+  });
+
+  it('reports an enum codec no pack provides, at the enum', () => {
+    expect(diagnosticsOf(statusEnum('test/missing@1'))).toEqual([
+      {
+        code: 'PSL_EXTENSION_INVALID_VALUE',
+        message:
+          'enum "Status" uses codec "test/missing@1", which no pack in the contract provides',
+        sourceId: 'schema.prisma',
+        line: 1,
+      },
+    ]);
   });
 });

@@ -1,71 +1,12 @@
 import { computeStorageHash } from '@internal/contract/hashing';
-import type { Codec, CodecLookup } from '@internal/framework-components/codec';
-import { emptyCodecLookup } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { buildMongoStorage, encodeMongoEnum, mongoValueSetsOf } from '../src/build-mongo-storage';
+import { buildMongoStorage } from '../src/build-mongo-storage';
 import { mongoContractCanonicalizationHooks } from '../src/canonicalization-hooks';
 import { MongoIndex } from '../src/ir/mongo-index';
 import { MongoStorage } from '../src/ir/mongo-storage';
 
-const upperCaseCodec = {
-  encodeJson: (value: unknown) => String(value).toUpperCase(),
-} as unknown as Codec;
-
-const lookupWith = (codecs: Record<string, Codec>): CodecLookup => ({
-  ...emptyCodecLookup,
-  get: (id) => codecs[id],
-});
-
 const userIndex = new MongoIndex({ keys: [{ field: 'email', direction: 1 }], unique: true });
-
-describe('encodeMongoEnum', () => {
-  it('stores each member as its codec encodes it', () => {
-    expect(
-      encodeMongoEnum(
-        {
-          codecId: 'test/upper@1',
-          members: [
-            { name: 'Admin', value: 'admin' },
-            { name: 'User', value: 'user' },
-          ],
-        },
-        lookupWith({ 'test/upper@1': upperCaseCodec }),
-      ),
-    ).toEqual({
-      codecId: 'test/upper@1',
-      members: [
-        { name: 'Admin', value: 'ADMIN' },
-        { name: 'User', value: 'USER' },
-      ],
-    });
-  });
-
-  it('rejects an enum whose codec is not in the lookup', () => {
-    expect(() =>
-      encodeMongoEnum(
-        { codecId: 'test/missing@1', members: [{ name: 'Admin', value: 'admin' }] },
-        emptyCodecLookup,
-      ),
-    ).toThrow(expect.objectContaining({ code: 'CONTRACT.ENUM_CODEC_NOT_IN_PACK_STACK' }));
-  });
-});
-
-describe('mongoValueSetsOf', () => {
-  it("lists each enum's stored members as its value set", () => {
-    expect(
-      mongoValueSetsOf({
-        Role: {
-          codecId: 'test/upper@1',
-          members: [
-            { name: 'Admin', value: 'ADMIN' },
-            { name: 'User', value: 'USER' },
-          ],
-        },
-      }),
-    ).toEqual({ Role: { kind: 'valueSet', values: ['ADMIN', 'USER'] } });
-  });
-});
 
 describe('buildMongoStorage', () => {
   it('builds the unbound namespace from collections and value sets', () => {

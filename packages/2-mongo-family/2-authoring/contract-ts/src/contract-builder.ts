@@ -24,12 +24,12 @@ import {
   type ValueSetRef,
 } from '@internal/contract/types';
 import {
-  assertEnumMembersStoredUniquely,
   composePackAuthoringNamespace,
   createEntityHelpersFromNamespace,
   createFieldHelpersFromNamespace,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
+  encodeEnumTypeMembers,
   type MergeExtensionAuthoringNamespaces,
   type ResolveTemplateValue,
   resolveToOneRelationNullable,
@@ -45,8 +45,7 @@ import {
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import { assembleDataTypes, enumRefusalOf } from '@internal/framework-components/codec';
+import { assembleDataTypes } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
@@ -57,7 +56,6 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoNamespace,
-  encodeMongoEnum,
   type MongoCollection,
   type MongoCollectionInput,
   MongoCollectionOptions,
@@ -82,23 +80,6 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
-
-function assertEnumCanUseCodec(
-  handle: EnumTypeHandle,
-  codecLookup: CodecLookupWithDescriptors,
-): void {
-  const descriptor = codecLookup.descriptorFor(handle.codecId);
-  const enumRefusal = descriptor === undefined ? undefined : enumRefusalOf(descriptor);
-  if (enumRefusal === undefined) return;
-  throw contractError(
-    'CONTRACT.ENUM_INVALID',
-    `enumType("${handle.enumName}"): an enum cannot use the codec ${handle.codecId}. ${enumRefusal}`,
-    {
-      fix: 'Type the enum with another codec.',
-      meta: { enumName: handle.enumName, codecId: handle.codecId, reason: 'codec-not-for-enums' },
-    },
-  );
-}
 
 // `canonicalStringify` rejects non-plain objects so a `Map` or class
 // instance cannot silently collapse to `{}`. The storage-shape values
@@ -2547,16 +2528,10 @@ function buildContractFromDefinition<
 
   const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
-    assertEnumCanUseCodec(handle, codecLookup);
-    const encoded = encodeMongoEnum(
-      { codecId: handle.codecId, members: handle.enumMembers },
-      codecLookup,
-    );
-    assertEnumMembersStoredUniquely(
-      handle.enumName,
-      encoded.members.map((m) => ({ name: m.name, stored: m.value })),
-    );
-    builtEnums[enumName] = encoded;
+    builtEnums[enumName] = {
+      codecId: handle.codecId,
+      members: encodeEnumTypeMembers(handle, codecLookup, 'the field'),
+    };
   }
   const storageValueSets = mongoValueSetsOf(builtEnums);
   const hasValueSets = Object.keys(storageValueSets).length > 0;

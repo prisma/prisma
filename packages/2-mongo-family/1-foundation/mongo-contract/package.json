@@ -17,7 +17,6 @@
   },
   "dependencies": {
     "@internal/contract": "workspace:8.0.0-rc.17",
-    "@internal/errors": "workspace:8.0.0-rc.17",
     "@internal/framework-components": "workspace:8.0.0-rc.17",
     "@internal/mongo-value": "workspace:8.0.0-rc.17",
     "@internal/utils": "workspace:8.0.0-rc.17",

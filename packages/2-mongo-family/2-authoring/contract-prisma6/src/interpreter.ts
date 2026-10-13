@@ -19,6 +19,9 @@ import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/con
 import {
   type AuthoringEntityContext,
   type DataTypeSupport,
+  type EnumBlockSite,
+  encodeEnumMembers,
+  enumMemberProblemDiagnostic,
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   type ParsedPslExtensionBlock,
@@ -28,9 +31,7 @@ import type { AssembledAuthoringContributions } from '@internal/framework-compon
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoStorage,
-  encodeMongoEnum,
   type MongoCollectionInput,
-  type MongoEnumSource,
   MongoIndex,
   type MongoIndexKeyDirection,
   mongoValueSetsOf,
@@ -322,7 +323,7 @@ export function interpretPrisma6Documents(
     });
   }
 
-  const enums = new Map<string, MongoEnumSource>();
+  const enums = new Map<string, ContractEnum>();
   for (const located of enumBlocks) {
     const built = buildEnum(located, input, diagnostics);
     if (built !== undefined) enums.set(located.symbol.name, built);
@@ -330,7 +331,8 @@ export function interpretPrisma6Documents(
 
   const modelNames = new Set([...models.map((m) => m.symbol.name), ...ignoredModels]);
   const compositeTypeNames = new Set(compositeTypes.map((c) => c.symbol.name));
-  const typeContext: TypeContext = { binding, enums, compositeTypeNames, diagnostics };
+  const enumNames = new Set(enumBlocks.map((located) => located.symbol.name));
+  const typeContext: TypeContext = { binding, enums, enumNames, compositeTypeNames, diagnostics };
 
   const valueObjects: Record<string, ContractValueObject> = {};
   for (const located of compositeTypes) {
@@ -401,7 +403,6 @@ export function interpretPrisma6Documents(
       valueObjects,
       enums,
       executionDefaults,
-      codecLookup: input.codecLookup,
     }),
   );
 }
@@ -482,7 +483,7 @@ function buildEnum(
   located: Located<BlockSymbol>,
   input: InterpretPrisma6DocumentsInput,
   diagnostics: Diagnostics,
-): MongoEnumSource | undefined {
+): ContractEnum | undefined {
   const { symbol: block, sourceId, sources } = located;
   for (const attribute of block.attributes) {
     if (attribute.name === 'map') continue;
@@ -560,10 +561,21 @@ function buildEnum(
     context,
   );
   if (handle === undefined || handle === null) return undefined;
-  return {
-    codecId: handle.codecId,
-    members: handle.enumMembers.map((member) => ({ name: member.name, value: member.value })),
-  };
+  const encoded = encodeEnumMembers(handle, input.codecLookup);
+  if (!encoded.ok) {
+    const site: EnumBlockSite = {
+      enumName: block.name,
+      codecId: handle.codecId,
+      sourceId,
+      span: block.span,
+      memberSpans: parameterSpans,
+    };
+    diagnostics.push(
+      ...encoded.failure.map((problem) => enumMemberProblemDiagnostic(problem, site)),
+    );
+    return undefined;
+  }
+  return { codecId: handle.codecId, members: encoded.value };
 }
 
 function schemaUnsupported(
@@ -581,7 +593,9 @@ function schemaUnsupported(
 
 interface TypeContext {
   readonly binding: Prisma6TargetBinding;
-  readonly enums: ReadonlyMap<string, MongoEnumSource>;
+  readonly enums: ReadonlyMap<string, ContractEnum>;
+  /** Every declared enum, including one that was refused and so is not in `enums`. */
+  readonly enumNames: ReadonlySet<string>;
   readonly compositeTypeNames: ReadonlySet<string>;
   readonly diagnostics: Diagnostics;
 }
@@ -728,6 +742,7 @@ function resolveFieldType(
       ...many,
     };
   }
+  if (ctx.enumNames.has(field.typeName)) return undefined;
   const scalarCodecId = Object.hasOwn(binding.scalarCodecIds, field.typeName)
     ? binding.scalarCodecIds[field.typeName]
     : undefined;
@@ -1424,17 +1439,13 @@ function assembleContract(input: {
   readonly collections: Readonly<Record<string, { readonly indexes: readonly MongoIndex[] }>>;
   readonly roots: Record<string, CrossReference>;
   readonly valueObjects: Record<string, ContractValueObject>;
-  readonly enums: ReadonlyMap<string, MongoEnumSource>;
+  readonly enums: ReadonlyMap<string, ContractEnum>;
   readonly executionDefaults: readonly ExecutionMutationDefault[];
-  readonly codecLookup: CodecLookupWithDescriptors;
 }): Contract {
   const target = input.binding.target.targetId;
   const targetFamily = input.binding.target.familyId;
 
-  const builtEnums: Record<string, ContractEnum> = {};
-  for (const [enumName, built] of input.enums) {
-    builtEnums[enumName] = encodeMongoEnum(built, input.codecLookup);
-  }
+  const builtEnums: Record<string, ContractEnum> = Object.fromEntries(input.enums);
 
   const collections: Record<string, MongoCollectionInput> = {};
   for (const [name, collection] of Object.entries(input.collections)) {

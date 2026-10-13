@@ -22,9 +22,12 @@ import type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
   DataTypeSupport,
+  EnumBlockSite,
   ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import {
+  encodeEnumMembers,
+  enumMemberProblemDiagnostic,
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   isAuthoringTypeConstructorDescriptor,
@@ -35,7 +38,6 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
-  encodeMongoEnum,
   type MongoCollectionInput,
   MongoIndex,
   type MongoIndexKeyDirection,
@@ -1297,10 +1299,21 @@ function processEnumDeclarations(input: {
 
     if (handle === undefined || handle === null) continue;
 
-    builtEnums[envelope.name] = encodeMongoEnum(
-      { codecId: handle.codecId, members: handle.enumMembers },
-      input.entityContext.codecLookup,
-    );
+    const encoded = encodeEnumMembers(handle, input.entityContext.codecLookup);
+    if (!encoded.ok) {
+      const site: EnumBlockSite = {
+        enumName: envelope.name,
+        codecId: handle.codecId,
+        sourceId: sourceFile.filename,
+        span: envelope.span,
+        memberSpans: envelope.parameterSpans,
+      };
+      input.diagnostics.pushExternal(
+        ...encoded.failure.map((problem) => enumMemberProblemDiagnostic(problem, site)),
+      );
+      continue;
+    }
+    builtEnums[envelope.name] = { codecId: handle.codecId, members: encoded.value };
   }
 
   return builtEnums;
