@@ -28,6 +28,12 @@ import {
 
 export const testContract = createTestContract({ targetFamily: 'sql', target: 'postgres' });
 
+export const doublingCodec = defineTestCodec({
+  typeId: 'test/doubling@1',
+  encode: (value: number) => value * 2,
+  decode: (wire: number) => wire / 2,
+});
+
 const failingDecodeCodec = defineTestCodec({
   typeId: 'test/failing-decode@1',
   encode: (value: number) => value,
@@ -51,6 +57,7 @@ export interface DriverFailures {
   readonly rollback?: Error;
   readonly commitHeldUntil?: Promise<void>;
   readonly rollbackHeldUntil?: Promise<void>;
+  readonly release?: Error;
 }
 
 function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver {
@@ -85,7 +92,7 @@ function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver 
       if (failures.begin) throw failures.begin;
       return transaction;
     }),
-    release: vi.fn().mockImplementation(settle('release', undefined)),
+    release: vi.fn().mockImplementation(settle('release', failures.release)),
     destroy: vi.fn().mockImplementation(settle('destroy', undefined)),
   };
   return {
@@ -158,7 +165,7 @@ export function createSetup(options: SetupOptions = {}) {
   const { readMarker } = options;
   const adapter = {
     ...stubAdapter,
-    __codecs: [...stubAdapter.__codecs, failingDecodeCodec],
+    __codecs: [...stubAdapter.__codecs, failingDecodeCodec, doublingCodec],
     profile:
       readMarker === undefined ? stubAdapter.profile : { ...stubAdapter.profile, readMarker },
   };

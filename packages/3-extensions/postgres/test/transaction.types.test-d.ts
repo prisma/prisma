@@ -41,3 +41,15 @@ test('the client and the transaction context do not expose startActivity or plan
   expectTypeOf<PostgresTransactionContext<TestContract>>().not.toHaveProperty('startActivity');
   expectTypeOf<PostgresTransactionContext<TestContract>>().not.toHaveProperty('planContentHash');
 });
+
+test('db.runtime(), its connections and their transactions do not expose startActivity or planContentHash', () => {
+  type DbRuntime = ReturnType<PostgresClient<TestContract>['runtime']>;
+  type DbConnection = Awaited<ReturnType<DbRuntime['connection']>>;
+  type DbTransaction = Awaited<ReturnType<DbConnection['transaction']>>;
+  expectTypeOf<DbRuntime>().not.toHaveProperty('startActivity');
+  expectTypeOf<DbRuntime>().not.toHaveProperty('planContentHash');
+  expectTypeOf<DbConnection>().not.toHaveProperty('startActivity');
+  expectTypeOf<DbConnection>().not.toHaveProperty('planContentHash');
+  expectTypeOf<DbTransaction>().not.toHaveProperty('startActivity');
+  expectTypeOf<DbTransaction>().not.toHaveProperty('planContentHash');
+});

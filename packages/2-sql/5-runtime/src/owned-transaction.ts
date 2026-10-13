@@ -1,13 +1,15 @@
+import type { RuntimeLog } from '@internal/framework-components/runtime';
 import { castAs } from '@internal/utils/casts';
 import type { RuntimeConnection, RuntimeTransaction } from './sql-runtime';
 import { settlementOf, wasRefusedBeforeBegin } from './transaction-state';
 
 /**
- * Begins a transaction on a connection the transaction owns. The connection is released once the transaction has committed or rolled back, and destroyed after a failed rollback or a failed start other than a refusal before `BEGIN`. After a failed commit it stays held for the rollback that follows.
+ * Begins a transaction on a connection the transaction owns. The connection is released once the transaction has committed or rolled back, and destroyed after a failed rollback or a failed start other than a refusal before `BEGIN`. After a failed commit it stays held for the rollback that follows. A release that fails after a successful commit is passed to `log.error`; the commit still resolves.
  */
 export async function beginOwnedTransaction(
   connection: Pick<RuntimeConnection, 'release' | 'destroy'>,
   begin: () => Promise<RuntimeTransaction>,
+  log: RuntimeLog,
 ): Promise<RuntimeTransaction> {
   let transaction: RuntimeTransaction;
   try {
@@ -40,7 +42,13 @@ export async function beginOwnedTransaction(
         if (settlementOf(transaction)?.committed === true) await dispose();
         throw error;
       }
-      await dispose();
+      await dispose().catch((error: unknown) => {
+        try {
+          log.error({ event: 'runtime.connection.release.error', error });
+        } catch {
+          // A failing logger must not turn a commit that happened into a failure.
+        }
+      });
     },
     async rollback(): Promise<void> {
       try {

@@ -26,13 +26,14 @@ import type {
 } from '@internal/sql-runtime';
 import type {
   ActivityExecuteOptions,
+  ActivitySourceTarget,
   ActivityTarget,
   PreparedStatementExecuteTarget,
   PreparedStatementQueryTarget,
   TransactionStartTarget,
 } from '@internal/sql-runtime/internal/prepared-query';
 import {
-  beginOwnedTransaction,
+  activitySource,
   createTransactionStart,
   preparedStatementExecute,
   preparedStatementQuery,
@@ -52,13 +53,6 @@ export interface SupabaseRuntime extends PostgresRuntime {
     binding: SupabaseRoleBinding,
     options?: RuntimeExecuteOptions,
   ): Promise<SqlStatementStats>;
-  /** Starts an activity whose statements and transaction run on role sessions bound to `binding`. */
-  startActivityWithRole<K extends ClientActivityKind>(
-    activity: StartActivity<K>,
-    binding: SupabaseRoleBinding,
-  ): Promise<ActivityHandle<K>>;
-  /** The content hash of the statement `plan` sends through a role-bound query, which runs at `'connection'` scope. */
-  planContentHashWithRole(plan: SqlExecutionPlan | SqlQueryPlan): Promise<string>;
 }
 
 export interface SupabaseRoleBinding {
@@ -111,21 +105,11 @@ export class SupabaseRuntimeImpl<
 
     const session: RoleSession &
       TransactionStartTarget &
+      ActivitySourceTarget &
       PreparedStatementQueryTarget &
       PreparedStatementExecuteTarget = {
       [transactionStart]: createTransactionStart(),
-      startActivity<K extends ClientActivityKind>(
-        activity: StartActivity<K>,
-      ): Promise<ActivityHandle<K>> {
-        return self.startActivityOnTarget(
-          self.connectionTarget(conn, session),
-          activity,
-          undefined,
-        );
-      },
-      planContentHash(plan: SqlExecutionPlan | SqlQueryPlan): Promise<string> {
-        return self.connectionPlanContentHash(plan, conn);
-      },
+      [activitySource]: self.connectionActivitySource(conn, () => session),
       query<Row>(
         plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
         options?: ActivityExecuteOptions,
@@ -181,6 +165,7 @@ export class SupabaseRuntimeImpl<
     return { conn, session };
   }
 
+  /** Starts an activity whose statements and transaction run on role sessions bound to `binding`. Not on the `SupabaseRuntime` interface; the facade passes it to the ORM. */
   startActivityWithRole<K extends ClientActivityKind>(
     activity: StartActivity<K>,
     binding: SupabaseRoleBinding,
@@ -188,7 +173,8 @@ export class SupabaseRuntimeImpl<
     return this.startActivityOnTarget(this.roleTarget(binding), activity, undefined);
   }
 
-  planContentHashWithRole(plan: SqlExecutionPlan | SqlQueryPlan): Promise<string> {
+  /** The content hash of the statement `plan` sends on a role session, which runs at `'connection'` scope. */
+  planContentHashForRoleSession(plan: SqlExecutionPlan | SqlQueryPlan): Promise<string> {
     return this.planContentHashFor(plan, 'connection', undefined);
   }
 
@@ -226,7 +212,7 @@ export class SupabaseRuntimeImpl<
     parent: ActivityParent,
   ): Promise<RuntimeTransaction> {
     const { conn, session } = await this.openRoleConnection(binding);
-    return beginOwnedTransaction(session, () => this.beginTransactionOn(conn, session, parent));
+    return this.ownTransaction(session, () => this.beginTransactionOn(conn, session, parent));
   }
 
   /**

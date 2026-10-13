@@ -1,10 +1,11 @@
 import { SelectAst, TableSource } from '@internal/sql-relational-core/ast';
 import type { SqlMiddleware, SqlMiddlewareContext } from '@internal/sql-runtime';
+import { startActivityOn } from '@internal/sql-runtime/internal/prepared-query';
 import { describe, expect, it } from 'vitest';
 import { createTestSetup, stubPlan } from './supabase-runtime-fixtures';
 
 declare module '@internal/framework-components/runtime' {
-  interface ClientActivityKinds {
+  interface ClientActivityRegistry {
     'test-call': { result: unknown };
   }
 }
@@ -87,7 +88,7 @@ describe('a role-bound activity handle', () => {
     const { runtime, started } = createRecordingSetup();
     const session = await runtime.openRoleSession(binding);
 
-    const call = await session.startActivity(testCall);
+    const call = await startActivityOn(session, testCall);
     await call.execute(stubPlan());
     await call.end({ outcome: 'succeeded' });
     await session.release();
@@ -99,7 +100,7 @@ describe('a role-bound activity handle', () => {
   });
 });
 
-describe('planContentHashWithRole', () => {
+describe('planContentHashForRoleSession', () => {
   it('hashes at the scope role-bound statements run at', async () => {
     const scopes: string[] = [];
     const { runtime } = createTestSetup({
@@ -115,12 +116,30 @@ describe('planContentHashWithRole', () => {
       ],
     });
 
-    await runtime.planContentHashWithRole({
+    await runtime.planContentHashForRoleSession({
       ast: SelectAst.from(TableSource.named('users')),
       params: [],
       meta: stubPlan().meta,
     });
 
     expect(scopes).toEqual(['connection']);
+  });
+});
+
+describe('an ended role-bound activity handle', () => {
+  it('rejects statements before it opens a role session', async () => {
+    const { runtime, driver } = createRecordingSetup();
+    const call = await runtime.startActivityWithRole(testCall, binding);
+    await call.end({ outcome: 'succeeded' });
+
+    await expect(call.execute(stubPlan())).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_ENDED',
+    });
+    await expect(call.query(stubPlan()).toArray()).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_ENDED',
+    });
+    await expect(call.transaction?.()).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
+
+    expect(driver.acquireConnectionSpy).not.toHaveBeenCalled();
   });
 });

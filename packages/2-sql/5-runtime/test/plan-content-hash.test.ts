@@ -1,11 +1,17 @@
-import { SelectAst, TableSource } from '@internal/sql-relational-core/ast';
-import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { ParamRef, RawQueryAst, SelectAst, TableSource } from '@internal/sql-relational-core/ast';
+import { planFromAst, type SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
-import { startActivityOn } from '../src/activity-handle';
+import { planContentHashOn, startActivityOn } from '../src/activity-handle';
 import type { SqlMiddleware, SqlMiddlewareContext } from '../src/middleware/sql-middleware';
 import { withTransaction } from '../src/sql-runtime';
 import { testCall } from './client-activity-kinds';
-import { createSetup, meta, rawPlan } from './transaction-activity-fixtures';
+import {
+  createSetup,
+  doublingCodec,
+  meta,
+  rawPlan,
+  testContract,
+} from './transaction-activity-fixtures';
 
 function queryPlan(table = 'users'): SqlQueryPlan {
   return { ast: SelectAst.from(TableSource.named(table)), params: [], meta };
@@ -29,7 +35,7 @@ describe('planContentHash', () => {
     const hashes: string[] = [];
     const { runtime } = createSetup({ middleware: [hashRecorder(hashes)] });
 
-    const hash = await runtime.planContentHash(queryPlan());
+    const hash = await planContentHashOn(runtime, queryPlan());
     await runtime.execute(queryPlan());
 
     expect(hashes).toEqual([hash]);
@@ -39,10 +45,41 @@ describe('planContentHash', () => {
     const hashes: string[] = [];
     const { runtime } = createSetup({ middleware: [hashRecorder(hashes)] });
 
-    const hash = await runtime.planContentHash(rawPlan('update t set x = 1'));
+    const hash = await planContentHashOn(runtime, rawPlan('update t set x = 1'));
     await runtime.execute(rawPlan('update t set x = 1'));
 
     expect(hashes).toEqual([hash]);
+  });
+
+  it('equals it for parameters that a codec encodes', async () => {
+    const seen: Array<{ readonly hash: string; readonly params: readonly unknown[] }> = [];
+    const { runtime } = createSetup({
+      middleware: [
+        {
+          name: 'hashes',
+          familyId: 'sql',
+          intercept: {
+            async onExecute(plan, ctx) {
+              seen.push({ hash: await ctx.contentHash(plan), params: plan.params });
+              return undefined;
+            },
+          },
+        },
+      ],
+    });
+    const plan = () =>
+      planFromAst(
+        RawQueryAst.affectedCount([
+          'update t set x = ',
+          ParamRef.of(21, { codec: { codecId: doublingCodec.id } }),
+        ]),
+        testContract,
+      );
+
+    const hash = await planContentHashOn(runtime, plan());
+    await runtime.execute(plan());
+
+    expect(seen).toEqual([{ hash, params: [42] }]);
   });
 
   it('reflects a beforeCompile rewrite', async () => {
@@ -56,8 +93,8 @@ describe('planContentHash', () => {
     const plain = createSetup();
     const rewriting = createSetup({ middleware: [rewriter] });
 
-    expect(await rewriting.runtime.planContentHash(queryPlan())).toBe(
-      await plain.runtime.planContentHash(queryPlan('rewritten')),
+    expect(await planContentHashOn(rewriting.runtime, queryPlan())).toBe(
+      await planContentHashOn(plain.runtime, queryPlan('rewritten')),
     );
   });
 
@@ -67,7 +104,7 @@ describe('planContentHash', () => {
       middleware: [{ name: 'encode', familyId: 'sql', beforeEncode }],
     });
 
-    await runtime.planContentHash(queryPlan());
+    await planContentHashOn(runtime, queryPlan());
 
     expect({
       beforeEncode: beforeEncode.mock.calls.length,

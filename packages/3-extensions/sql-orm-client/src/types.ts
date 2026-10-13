@@ -1,8 +1,8 @@
 import type { Contract } from '@internal/contract/types';
 import type {
   AnnotationValue,
-  ClientActivityKind,
   OperationKind,
+  StartActivity,
 } from '@internal/framework-components/runtime';
 import type {
   ExtractAggregateTypes,
@@ -204,13 +204,6 @@ export interface RuntimeTransaction extends RuntimeScope {
   rollback?(): Promise<void>;
 }
 
-/** What the ORM gives the runtime to start an activity. */
-export interface OrmActivityStart {
-  readonly kind: ClientActivityKind;
-  readonly contentHash: string;
-  readonly annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>;
-}
-
 /** An open activity the ORM started; its statements are the activity's children. */
 export interface OrmActivityHandle extends RuntimeQueryable {
   readonly intercepted: { readonly result: unknown } | undefined;
@@ -223,7 +216,7 @@ export interface OrmActivityHandle extends RuntimeQueryable {
 export interface RuntimeQueryable extends RuntimeScope {
   connection?(): Promise<RuntimeConnection>;
   transaction?(): Promise<RuntimeTransaction>;
-  startActivity?(activity: OrmActivityStart): Promise<OrmActivityHandle>;
+  startActivity?(activity: StartActivity): Promise<OrmActivityHandle>;
   planContentHash?(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string>;
 }
 

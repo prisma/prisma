@@ -245,10 +245,10 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
           return getRuntime().connection();
         },
         startActivity(activity) {
-          return getRuntime().startActivity(activity);
+          return startActivityOn(getRuntime(), activity);
         },
         planContentHash(plan) {
-          return getRuntime().planContentHash(plan);
+          return planContentHashOn(getRuntime(), plan);
         },
       },
     }),

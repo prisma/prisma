@@ -1,9 +1,19 @@
+import { RawQueryAst } from '@internal/sql-relational-core/ast';
+import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import { describe, expect, it } from 'vitest';
+import { planFromAst } from '@internal/sql-relational-core/plan';
+import { describe, expect, it, vi } from 'vitest';
 import { startActivityOn } from '../src/activity-handle';
 import { withTransaction } from '../src/sql-runtime';
 import { testCall } from './client-activity-kinds';
-import { createSetup, type HookEvent, meta, names, rawPlan } from './transaction-activity-fixtures';
+import {
+  createSetup,
+  type HookEvent,
+  meta,
+  names,
+  rawPlan,
+  testContract,
+} from './transaction-activity-fixtures';
 import { stubAst } from './utils';
 
 function queryPlan(): SqlQueryPlan {
@@ -24,7 +34,7 @@ describe('startActivity', () => {
   it('on the runtime, starts a client activity whose statements are its children with scope runtime', async () => {
     const { runtime, events } = createSetup();
 
-    const call = await runtime.startActivity(testCall);
+    const call = await startActivityOn(runtime, testCall);
     await call.execute(rawPlan('update t set x = 1'));
     await call.query(rawPlan('select 1')).toArray();
     await call.end({ outcome: 'succeeded' });
@@ -64,7 +74,7 @@ describe('startActivity', () => {
     const { runtime, events } = createSetup();
     const connection = await runtime.connection();
 
-    const call = await connection.startActivity(testCall);
+    const call = await startActivityOn(connection, testCall);
     await call.execute(rawPlan('update t set x = 1'));
     await call.end({ outcome: 'succeeded' });
     await connection.release();
@@ -80,7 +90,7 @@ describe('startActivity', () => {
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
 
-    const call = await transaction.startActivity(testCall);
+    const call = await startActivityOn(transaction, testCall);
     await call.execute(rawPlan('update t set x = 1'));
     await call.end({ outcome: 'succeeded' });
     await transaction.commit();
@@ -129,7 +139,7 @@ describe('startActivity', () => {
     const transaction = await connection.transaction();
     await transaction.commit();
 
-    await expect(transaction.startActivity(testCall)).rejects.toMatchObject({
+    await expect(startActivityOn(transaction, testCall)).rejects.toMatchObject({
       code: 'RUNTIME.ACTIVITY_ENDED',
     });
     await connection.release();
@@ -143,7 +153,7 @@ describe('startActivity', () => {
     const { runtime } = createSetup({ failures: { commitHeldUntil } });
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
-    const call = await transaction.startActivity(testCall);
+    const call = await startActivityOn(transaction, testCall);
 
     const committing = transaction.commit();
     await expect(call.execute(rawPlan('update t set x = 1'))).rejects.toMatchObject({
@@ -157,7 +167,7 @@ describe('startActivity', () => {
   it('nests activities to any depth', async () => {
     const { runtime, events } = createSetup();
 
-    const outer = await runtime.startActivity(testCall);
+    const outer = await startActivityOn(runtime, testCall);
     const inner = await outer.startActivity(testCall);
     await inner.execute(rawPlan('update t set x = 1'));
     await inner.end({ outcome: 'succeeded' });
@@ -174,7 +184,7 @@ describe('startActivity', () => {
     const { runtime, events } = createSetup();
     const prepared = await runtime.prepare({}, () => queryPlan());
 
-    const call = await runtime.startActivity(testCall);
+    const call = await startActivityOn(runtime, testCall);
     await prepared.query(call, {}).toArray();
     await call.end({ outcome: 'succeeded' });
 
@@ -185,7 +195,7 @@ describe('startActivity', () => {
 
   it('rejects the end of an activity with a statement still open', async () => {
     const { runtime } = createSetup();
-    const call = await runtime.startActivity(testCall);
+    const call = await startActivityOn(runtime, testCall);
     const iterator = call.query(rawPlan('select 1'))[Symbol.asyncIterator]();
     await iterator.next();
 
@@ -199,7 +209,7 @@ describe('startActivity', () => {
     const { runtime, events } = createSetup();
 
     await expect(
-      runtime.startActivity({ kind: kind as 'test-call', contentHash: 'hash' }),
+      startActivityOn(runtime, { kind: kind as 'test-call', contentHash: 'hash' }),
     ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_KIND_RESERVED' });
     expect(events).toEqual([]);
   });
@@ -207,7 +217,7 @@ describe('startActivity', () => {
   it('rejects a statement on a connection handle once a transaction is open on the connection', async () => {
     const { runtime, events } = createSetup();
     const connection = await runtime.connection();
-    const call = await connection.startActivity(testCall);
+    const call = await startActivityOn(connection, testCall);
     const transaction = await connection.transaction();
 
     await expect(call.execute(rawPlan('update t set x = 1'))).rejects.toMatchObject({
@@ -220,10 +230,60 @@ describe('startActivity', () => {
     await connection.release();
   });
 
+  it('runs a prepared execute on a handle as its child', async () => {
+    const { runtime, events } = createSetup();
+    const affectedCount: SqlQueryPlan<AffectedCount> = planFromAst(
+      RawQueryAst.affectedCount(['update t set x = 1']),
+      testContract,
+    );
+    const prepared = await runtime.prepare({}, () => affectedCount);
+
+    const call = await startActivityOn(runtime, testCall);
+    await expect(prepared.execute(call, {})).resolves.toEqual({ affectedRows: 1 });
+    await call.end({ outcome: 'succeeded' });
+
+    expect(eventOf(events, 'started:statement')?.ctx?.parent).toBe(
+      eventOf(events, 'started:test-call')?.ctx,
+    );
+  });
+
+  it('rejects statements and activities on an ended handle before they reach the driver', async () => {
+    const { runtime, events } = createSetup();
+    const call = await startActivityOn(runtime, testCall);
+    await call.end({ outcome: 'succeeded' });
+    const before = names(events);
+
+    await expect(call.execute(rawPlan('update t set x = 1'))).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_ENDED',
+    });
+    await expect(call.query(rawPlan('select 1')).toArray()).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_ENDED',
+    });
+    await expect(call.startActivity(testCall)).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_ENDED',
+    });
+    expect(names(events)).toEqual(before);
+  });
+
   describe('close', () => {
+    it('warns once when it waits only for open activity handles', async () => {
+      const warn = vi.fn();
+      const { runtime } = createSetup({ log: { info: vi.fn(), warn, error: vi.fn() } });
+      const call = await startActivityOn(runtime, testCall);
+
+      const closing = runtime.close();
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      await call.end({ outcome: 'succeeded' });
+      await closing;
+
+      expect(warn.mock.calls).toEqual([
+        [{ event: 'runtime.close.waiting-for-activities', openActivities: 1 }],
+      ]);
+    });
+
     it('waits for an open activity on the runtime to end', async () => {
       const { runtime, events } = createSetup();
-      const call = await runtime.startActivity(testCall);
+      const call = await startActivityOn(runtime, testCall);
 
       let closed = false;
       const closing = runtime.close().then(() => {
@@ -243,7 +303,7 @@ describe('startActivity', () => {
       const { runtime } = createSetup();
       await runtime.close();
 
-      await expect(runtime.startActivity(testCall)).rejects.toMatchObject({
+      await expect(startActivityOn(runtime, testCall)).rejects.toMatchObject({
         code: 'DRIVER.NOT_CONNECTED',
       });
     });

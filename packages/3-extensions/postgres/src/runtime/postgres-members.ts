@@ -83,10 +83,10 @@ export function buildPostgresRuntimeBoundMembers<TContract extends Contract<SqlS
         return getRuntimeForWork().connection();
       },
       startActivity(activity) {
-        return getRuntimeForWork().startActivity(activity);
+        return startActivityOn(getRuntimeForWork(), activity);
       },
       planContentHash(plan) {
-        return getRuntimeForWork().planContentHash(plan);
+        return planContentHashOn(getRuntimeForWork(), plan);
       },
     },
     context,

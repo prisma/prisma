@@ -5,13 +5,14 @@ export type {
   ExecuteInterceptResult,
   QueryInterceptResult,
   RuntimeLog as Log,
+  StartActivity,
   StatementActivity,
   StatementEnded,
   TransactionActivity,
   TransactionEnded,
 } from '@internal/framework-components/runtime';
 export type { MarkerReadResult } from '@internal/sql-relational-core/ast';
-export type { ActivityHandle, ActivityQueryable, StartActivity } from '../activity-handle';
+export type { ActivityHandle, ActivitySource } from '../activity-handle';
 export { createAstCodecRegistry } from '../codecs/ast-codec-registry';
 export { deriveParamMetadata, encodeParamsWithMetadata } from '../codecs/encoding';
 export {

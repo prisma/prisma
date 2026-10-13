@@ -12,7 +12,8 @@
     "build": "tsdown",
     "lint": "biome check . --error-on-warnings",
     "clean": "rm -rf dist src-gen",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --project test/tsconfig.json --noEmit"
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",

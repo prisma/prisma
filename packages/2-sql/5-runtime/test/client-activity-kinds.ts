@@ -1,5 +1,5 @@
 declare module '@internal/framework-components/runtime' {
-  interface ClientActivityKinds {
+  interface ClientActivityRegistry {
     'test-call': { result: ReadonlyArray<{ readonly id: number }> };
   }
 }

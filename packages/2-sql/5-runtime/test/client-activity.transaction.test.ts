@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { startActivityOn } from '../src/activity-handle';
 import { settlementOf } from '../src/transaction-state';
 import { testCall } from './client-activity-kinds';
 import { createSetup, type HookEvent, names, rawPlan } from './transaction-activity-fixtures';
@@ -16,7 +17,7 @@ describe('the transaction of an activity handle', () => {
   describe('opened on the runtime', () => {
     it('starts beneath the activity on a connection it releases after commit', async () => {
       const { runtime, events } = createSetup();
-      const call = await runtime.startActivity(testCall);
+      const call = await startActivityOn(runtime, testCall);
 
       const transaction = await call.transaction?.();
       await transaction?.execute(rawPlan('update t set x = 1'));
@@ -36,7 +37,7 @@ describe('the transaction of an activity handle', () => {
 
     it('releases the connection after a rollback', async () => {
       const { runtime, events } = createSetup();
-      const call = await runtime.startActivity(testCall);
+      const call = await startActivityOn(runtime, testCall);
 
       const transaction = await call.transaction?.();
       await transaction?.rollback();
@@ -49,7 +50,7 @@ describe('the transaction of an activity handle', () => {
       const { runtime, events } = createSetup({
         failures: { rollback: new Error('rollback failed') },
       });
-      const call = await runtime.startActivity(testCall);
+      const call = await startActivityOn(runtime, testCall);
 
       const transaction = await call.transaction?.();
       await expect(transaction?.rollback()).rejects.toThrow('rollback failed');
@@ -60,7 +61,7 @@ describe('the transaction of an activity handle', () => {
 
     it('keeps the connection after a failed commit until the rollback that follows', async () => {
       const { runtime, events } = createSetup({ failures: { commit: new Error('commit failed') } });
-      const call = await runtime.startActivity(testCall);
+      const call = await startActivityOn(runtime, testCall);
 
       const transaction = await call.transaction?.();
       await expect(transaction?.commit()).rejects.toThrow('commit failed');
@@ -74,7 +75,7 @@ describe('the transaction of an activity handle', () => {
 
     it('destroys the connection when BEGIN fails', async () => {
       const { runtime, events } = createSetup({ failures: { begin: new Error('begin failed') } });
-      const call = await runtime.startActivity(testCall);
+      const call = await startActivityOn(runtime, testCall);
 
       await expect(call.transaction?.()).rejects.toThrow('begin failed');
       await call.end({ outcome: 'failed' });
@@ -82,9 +83,28 @@ describe('the transaction of an activity handle', () => {
       expect(driverCalls(events)).toEqual(['begin', 'destroy']);
     });
 
+    it('resolves commit and logs the error when releasing the connection fails after it', async () => {
+      const error = vi.fn();
+      const releaseFailure = new Error('release failed');
+      const { runtime } = createSetup({
+        failures: { release: releaseFailure },
+        log: { info: vi.fn(), warn: vi.fn(), error },
+      });
+      const call = await startActivityOn(runtime, testCall);
+
+      const transaction = await call.transaction?.();
+      await expect(transaction?.commit()).resolves.toBeUndefined();
+      await call.end({ outcome: 'succeeded' });
+
+      expect(error).toHaveBeenCalledWith({
+        event: 'runtime.connection.release.error',
+        error: releaseFailure,
+      });
+    });
+
     it('carries the settlement of the transaction it wraps', async () => {
       const { runtime } = createSetup();
-      const call = await runtime.startActivity(testCall);
+      const call = await startActivityOn(runtime, testCall);
 
       const transaction = await call.transaction?.();
       await transaction?.commit();
@@ -97,7 +117,7 @@ describe('the transaction of an activity handle', () => {
   it('opened on a connection, begins on that connection and leaves it held', async () => {
     const { runtime, events } = createSetup();
     const connection = await runtime.connection();
-    const call = await connection.startActivity(testCall);
+    const call = await startActivityOn(connection, testCall);
 
     const transaction = await call.transaction?.();
     await transaction?.commit();
@@ -110,7 +130,7 @@ describe('the transaction of an activity handle', () => {
 
   it('rejects on an ended handle without taking a connection', async () => {
     const { runtime, events } = createSetup();
-    const call = await runtime.startActivity(testCall);
+    const call = await startActivityOn(runtime, testCall);
     await call.end({ outcome: 'succeeded' });
 
     await expect(call.transaction?.()).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
@@ -122,7 +142,7 @@ describe('the transaction of an activity handle', () => {
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
 
-    const call = await connection.startActivity(testCall);
+    const call = await startActivityOn(connection, testCall);
 
     expect('transaction' in call).toBe(false);
     await call.end({ outcome: 'succeeded' });
@@ -133,11 +153,11 @@ describe('the transaction of an activity handle', () => {
   it('rejects a second transaction on a connection handle while the first is open', async () => {
     const { runtime, events } = createSetup();
     const connection = await runtime.connection();
-    const call = await connection.startActivity(testCall);
+    const call = await startActivityOn(connection, testCall);
     const first = await call.transaction?.();
 
     await expect(call.transaction?.()).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION',
+      code: 'RUNTIME.TRANSACTION_ALREADY_OPEN',
     });
     expect(driverCalls(events)).toEqual(['begin']);
     await first?.commit();
@@ -150,7 +170,7 @@ describe('the transaction of an activity handle', () => {
     const connection = await runtime.connection();
     const transaction = await connection.transaction();
 
-    const call = await transaction.startActivity(testCall);
+    const call = await startActivityOn(transaction, testCall);
     const nested = await call.startActivity(testCall);
 
     expect(['transaction' in call, 'transaction' in nested]).toEqual([false, false]);

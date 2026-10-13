@@ -1,11 +1,10 @@
 export {
   type ActivityExecuteOptions,
-  type ActivityQueryableTarget,
-  activityQueryable,
+  type ActivitySourceTarget,
+  activitySource,
   planContentHashOn,
   startActivityOn,
 } from '../activity-handle';
-export { beginOwnedTransaction } from '../owned-transaction';
 export {
   type PreparedStatementExecuteTarget,
   preparedStatementExecute,
