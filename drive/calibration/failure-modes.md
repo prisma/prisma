@@ -650,7 +650,6 @@ Per-repo stop conditions beyond the canonical ones:
 
 - Merge `origin/main` into the branch before every review round and before declaring CI green, then re-run `fixtures:check`, `check:upgrade-coverage --mode pr --prev origin/main`, and `check:error-reference` on the merged tree.
 - At merge time, re-derive every number or directory the branch chose from `main`: ADR numbers, upgrade transition directories, error-reference entries.
-- When a schema or artefact format changes, the change is a hard cut (see [`dod.md § Documentation & migration`](./dod.md#documentation--migration)): nothing reads or converts the previous form, every tracked artefact in it is re-emitted in the same PR, and the PR ships upgrade instructions that tell users to re-emit theirs or, for artefacts no command regenerates such as migration snapshots, give the exact rewrite rule. A format change with neither leaves users' artefacts unreadable with no upgrade path. Observed on TML-3233 (2026-09-10): ADR 249 collision, upgrade directory moved by the rc.9 bump, and a required `nullable` key that would have broken every existing snapshot. (Changed 2026-10-13, cross-namespace-inheritance final retro; was: add a load test with an artefact in the previous format.)
 
 ### F30. A syntax deletion lands before the committed generated artefact that still uses it is regenerated
 
@@ -869,20 +868,7 @@ Per-repo stop conditions beyond the canonical ones:
 
 **Reference incident.** 2026-10-09, SQL expression literals slice 3 (prisma/orm#30558): review round 3 extended the PSL/TypeScript parity fixture, and the first queue run failed on its missing golden entry.
 
-### F49. A spec requirement that contradicts a repo rule is planned instead of raised
-
-**Symptom.** A spec arrives with a requirement that a rule under `.agents/rules/` forbids. The orchestrator carries it into the plan, sizes it and asks the operator questions about how to verify it. The operator has to point out the rule.
-
-**Root cause.** The orchestrator treated every requirement in a spec it did not write as settled and read the rules only for the code it was about to change, not for the requirements it was about to plan.
-
-**Mitigation.**
-
-- At the first read of a spec, check each requirement against `.agents/rules/` before planning or sizing it; see [`drive/spec/README.md`](../spec/README.md#check-a-specs-requirements-against-the-repos-rules).
-- Raise a conflict with the operator at that point, naming the requirement and the rule. Do not plan it, size it or ask how to verify it first.
-
-**Reference incident.** Cross-namespace inheritance (2026-10): the project spec arrived with "previously released contract artifacts remain loadable; the loader rewrites the old form". `.agents/rules/no-backward-compatibility.mdc` forbids that. The requirement was planned and sized, and the operator was asked which artifact to verify with, before the operator named the rule. It was removed, and prisma/orm#30696 changed `variants` as a hard cut with upgrade instructions. The requirement came from a Project-DoD item in [`dod.md`](./dod.md#documentation--migration) that told the loader to accept the previous format; this retro changed that item to a hard cut.
-
-### F50. Guards, helpers and tests are written for inputs the public API cannot produce, then removed
+### F49. Guards, helpers and tests are written for inputs the public API cannot produce, then removed
 
 **Symptom.** A slice adds checks, helpers, tests and doc caveats for inputs that only hand-built internal state or a hand-edited contract can produce. The operator has each one removed, and the pattern repeats in the next round.
 
@@ -900,18 +886,3 @@ Per-repo stop conditions beyond the canonical ones:
 - The orchestrator applies the same test to each review finding before accepting it.
 
 **Reference incident.** Cross-namespace inheritance, table-scope slice (prisma/orm#30646, 2026-10): four additions were written and then removed at the operator's direction: a check that `merge()` rejects a scope the package did not create; a planner helper that checked derived-table aliases against every `combine` branch scope; a rename pass for hand-built `where()` expressions in an aliased child; and a rejection of an include refinement that returns a collection it was not handed. The third slice (prisma/orm#30696) put the rule in the plan's standing rules and in the reviewer prompt, and the pattern did not recur.
-
-### F51. A merge of `main` with no textual conflict leaves the branch failing typecheck
-
-**Symptom.** A branch changes a widely read shape or signature. `git merge origin/main` completes with no conflict, or with conflicts only in unrelated files, and the merged tree fails typecheck in code the branch never touched. If nothing runs the root typecheck before the push, PR CI or the merge queue finds it.
-
-**Root cause.** Code that merged to `main` after the branch's last merge uses the name or shape the branch changed. Git reports conflicts only between edits to the same lines, so a new reader in a new file merges cleanly. The longer the PR stays open, the more code of this kind merges to `main`.
-
-**Mitigation.**
-
-- After every merge of `main` into such a branch, run the root `pnpm typecheck` and read `main`'s new commits (`git log ORIG_HEAD..origin/main`) for readers of the changed shape, before pushing. A typecheck finds the readers that no longer compile; the read finds those that compile and compare the wrong thing. Slice-close item in [`dod.md`](./dod.md#slice-close-ritual-added-2026-05-21-retro).
-- Merge a PR that changes such a shape promptly once it is approved.
-- Read every file a merge driver resolved. When a structural driver such as `mergiraf` writes a file that mixes both sides and does not parse, redo that file with a plain three-way text merge.
-- Related: [F14](#f14-dispatch-reports-validation-green-but-ci-is-red-dispatch-gates-didnt-mirror-ci) (c) covers a branch validated against a stale base, and the 2026-10-01 entry in [`drive/retro/README.md`](../retro/README.md#recurring-pattern-catalogue) covers verification after rebasing shared contract changes. This entry adds merges with no conflict, on any widely read shape.
-
-**Reference incident.** Cross-namespace inheritance (prisma/orm#30646 and #30696, 2026-10): four merges of `main` left the tree failing typecheck. A full-text-index accessor was written against an accessor scope the branch removed; a row-lock clause named a table from a string; `whereUnique` compared tables by bare name; the Mongo statement planner read `variants[Model].value`. The last was caught only by the merge queue. In the conflicted files, the global `mergiraf` driver produced text that did not parse, and those files were redone with a plain three-way text merge.

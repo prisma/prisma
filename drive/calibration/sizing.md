@@ -104,12 +104,6 @@ The sizing lesson: the original dispatch was not too big in file count; it was *
 
 A dispatch that bundled a descriptor-mechanism design judgment with the mechanical fan-out it cascaded into. The reviewer accepted the result but flagged that the design site was hard to locate amid the fan-out. The sizing lesson: when a single dispatch carries one judgment + N mechanical sites, the judgment dispatch and the mechanical dispatch are two units.
 
-### Signature change estimated from source files, without the call sites in tests
-
-A slice that put a new value into the SQL ORM's collection state (#30646). The estimate given to the operator was about 12 source files, 600–800 changed lines and roughly 100 assertion lines. The PR was about 5,000 added lines across about 80 files. The new value changed the signature of every planner, of `emptyState` and of `createModelAccessor`; tests call those directly at a few hundred sites and build state by hand. A new fixture's emitted contract added about 1,000 lines. The orchestrator did not correct the estimate as dispatches reported.
-
-The sizing lesson: an estimate for a change to a widely called signature counts the call sites in tests and hand-built fixtures, not only the assertions whose expected values change, and names emitted artifacts as a separate figure. When a dispatch report contradicts the estimate given to the operator, the orchestrator says so at that point. (Added 2026-10-13, cross-namespace-inheritance final retro.)
-
 ## Parallelisation heuristics
 
 These are pattern-level signals for which slices can run in parallel within a project.

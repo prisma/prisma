@@ -92,7 +92,6 @@ In addition to the canonical slice DoD:
 The orchestrator MUST walk the slice spec's `## Slice Definition of Done` checklist verbatim before handing off to the PR-opening skill, marking each item ✓ / ✗ / N/A-with-rationale. A `READY FOR PR` reviewer verdict in `reviews/code-review.md` covers reviewer-scope items (typically SDoD1-SDoD3 + the validation-gate items) but **does not** cover items the reviewer cannot see — manual-QA (the QA-side items above), `projects/`-reference scrubs in long-lived files, or any other team-specific overlay item. Treating "reviewer SATISFIED" as proxy for "DoD satisfied" is a known orchestrator failure mode in this codebase; the explicit checklist walk is the calibration that prevents it.
 
 - [ ] **Sync `origin/main` before the final validation + push** (added 2026-05-30 retro). Merge/rebase `origin/main` into the branch, then re-run the always-run gates, *before* opening the PR. A branch that validated green against a stale base can still red-fail CI when a sibling change on `main` moved a shared shape (a status row gaining a field, an output envelope changing). Catching this locally costs one merge; catching it in CI costs a babysit round. See [`failure-modes.md § F14`](./failure-modes.md#f14-dispatch-reports-validation-green-but-ci-is-red-dispatch-gates-didnt-mirror-ci).
-- [ ] **After every merge of `main` into a branch that changes a widely read shape or signature, run the root `pnpm typecheck` and read `main`'s new commits for readers of that shape, before pushing** (added 2026-10-13, cross-namespace-inheritance final retro). A merge with no textual conflict does not show code on `main` that uses the name or shape the branch changed. Merge such a PR promptly once approved. See [`failure-modes.md § F51`](./failure-modes.md#f51-a-merge-of-main-with-no-textual-conflict-leaves-the-branch-failing-typecheck).
 
 ## Project-DoD overlay
 
@@ -112,7 +111,6 @@ Beyond the canonical project DoD items:
 - [ ] Any new architecture docs are linked from `docs/architecture docs/`.
 - [ ] References to `projects/<project>/**` removed from the codebase (per the doc-maintenance rule).
 - [ ] `projects/<project>/` deleted from the repo.
-- [ ] **A change to an emitted artefact's format is a hard cut.** Nothing reads, converts or detects the previous form, per [`.agents/rules/no-backward-compatibility.mdc`](../../.agents/rules/no-backward-compatibility.mdc). Every tracked artefact in the previous form (contracts, fixtures, example migration snapshots) is re-emitted in the same PR. The PR ships upgrade instructions telling users to re-emit theirs; where no command regenerates an artefact, the instructions give the exact rewrite rule. (Added 2026-09-10 from TML-3233: a required `nullable` key would have made every existing snapshot unreadable. Changed 2026-10-13, cross-namespace-inheritance final retro; was: the loader accepts the previous format. Upgrade instructions with the rewrite rule replace the tolerant loader as the answer to that incident.)
 
 ### Linear close-out
 

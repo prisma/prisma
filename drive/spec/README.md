@@ -26,10 +26,6 @@ In addition to the canonical project-spec / slice-spec templates, this repo expe
 
 Before writing a slice or project spec, read the architecture overview, the subsystem docs for every area the work touches, and the ADRs they cite. A spec written from the code alone misses project-wide rules the code does not show. (Added 2026-10-08, migration statements slice 2 retro: the operator stopped slice 2's spec until the docs were read, and reading them turned up the CLI Style Guide's consent rule, which changed the design to a CLI engine change. The operator asked for the same reading again before the remaining slices were discussed.)
 
-## Check a spec's requirements against the repo's rules
-
-When picking up a spec, check each requirement against [`.agents/rules/`](../../.agents/rules/README.md) at the first read, before planning or sizing it. A requirement that contradicts a rule is raised with the operator then, with the rule named; it is not carried into the plan. (Added 2026-10-13, cross-namespace-inheritance final retro: the project spec required a load-time rewrite of previously released contract artifacts, which `no-backward-compatibility.mdc` forbids; the requirement was planned and sized before the operator pointed out the rule. See [`failure-modes.md § F49`](../calibration/failure-modes.md#f49-a-spec-requirement-that-contradicts-a-repo-rule-is-planned-instead-of-raised).)
-
 ## Grounding illustrative snippets before execution
 
 Specs legitimately carry illustrative code (PSL grammar, IR type shapes) while shaping. Before a slice executor treats any snippet as fact, they must re-verify it against shipped code — not re-read the spec sketch.
