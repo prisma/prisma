@@ -56,7 +56,7 @@ describe('collection-column-mapping', () => {
       mapSelectedFieldsToColumns(polyContract, 'public', 'Task', undefined, ['title', 'severity']),
     ).toEqual(['title', 'severity']);
     expect(() =>
-      mapSelectedFieldsToColumns(polyContract, 'public', 'Task', 'Bug', ['priority']),
+      mapSelectedFieldsToColumns(polyContract, 'public', 'Task', 'bug', ['priority']),
     ).toThrow(fieldUnknown('Bug', 'priority'));
     expect(() =>
       mapSelectedFieldsToColumns(contract, 'public', 'Post', undefined, ['user_id']),

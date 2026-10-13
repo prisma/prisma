@@ -344,8 +344,14 @@ type ContractBase = Omit<
             readonly storage: { readonly collection: 'events' };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
-              readonly Click: { readonly value: 'click' };
-              readonly View: { readonly value: 'view' };
+              readonly click: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'Click';
+              };
+              readonly view: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'View';
+              };
             };
           };
           readonly Post: {

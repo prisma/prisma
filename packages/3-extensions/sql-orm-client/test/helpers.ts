@@ -112,9 +112,9 @@ export function relationInclude(
       relatedModelName: relation.relatedModelName,
       relatedTableName: relation.relatedTableName,
       relatedNamespaceId: relation.relatedNamespaceId,
-      ...(relation.localVariantName === undefined
+      ...(relation.localVariantValue === undefined
         ? {}
-        : { localVariantName: relation.localVariantName }),
+        : { localVariantValue: relation.localVariantValue }),
       targetColumns: relation.targetColumns,
       localColumns: relation.localColumns,
       cardinality: relation.cardinality,
@@ -200,7 +200,7 @@ type MutableDomainModels = Record<
     relations: Record<string, unknown>;
     storage: Record<string, unknown>;
     discriminator?: { field: string };
-    variants?: Record<string, { value: string }>;
+    variants?: Record<string, { model: string; namespace: string }>;
     base?: { model: string; namespace: string };
   }
 >;
@@ -379,7 +379,10 @@ export function buildMixedPolyContract(): TestContract {
       },
     },
     discriminator: { field: 'type' },
-    variants: { Bug: { value: 'bug' }, Feature: { value: 'feature' } },
+    variants: {
+      bug: { model: 'Bug', namespace: 'public' },
+      feature: { model: 'Feature', namespace: 'public' },
+    },
   };
 
   domainModels['Project'] = {
@@ -544,8 +547,8 @@ export function buildStiPolyContract(): TestContract {
   };
   userModel.discriminator = { field: 'kind' };
   userModel.variants = {
-    Admin: { value: 'admin' },
-    Regular: { value: 'regular' },
+    admin: { model: 'Admin', namespace: 'public' },
+    regular: { model: 'Regular', namespace: 'public' },
   };
 
   domainModels['Account'] = {

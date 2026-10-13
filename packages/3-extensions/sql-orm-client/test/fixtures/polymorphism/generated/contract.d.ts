@@ -1330,9 +1330,12 @@ type ContractBase = Omit<
             };
             readonly discriminator: { readonly field: 'type' };
             readonly variants: {
-              readonly Bug: { readonly value: 'bug' };
-              readonly Epic: { readonly value: 'epic' };
-              readonly Feature: { readonly value: 'feature' };
+              readonly bug: { readonly namespace: 'public' & NamespaceId; readonly model: 'Bug' };
+              readonly epic: { readonly namespace: 'public' & NamespaceId; readonly model: 'Epic' };
+              readonly feature: {
+                readonly namespace: 'public' & NamespaceId;
+                readonly model: 'Feature';
+              };
             };
           };
           readonly TaskComment: {
@@ -1457,8 +1460,14 @@ type ContractBase = Omit<
             };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
-              readonly Admin: { readonly value: 'admin' };
-              readonly Regular: { readonly value: 'regular' };
+              readonly admin: {
+                readonly namespace: 'public' & NamespaceId;
+                readonly model: 'Admin';
+              };
+              readonly regular: {
+                readonly namespace: 'public' & NamespaceId;
+                readonly model: 'Regular';
+              };
             };
           };
         };

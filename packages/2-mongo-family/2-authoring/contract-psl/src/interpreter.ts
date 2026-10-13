@@ -304,7 +304,7 @@ interface MongoModelEntry {
   readonly relations: Record<string, ContractReferenceRelation>;
   readonly storage: { readonly collection: string };
   readonly discriminator?: { readonly field: string };
-  readonly variants?: Record<string, { readonly value: string }>;
+  readonly variants?: Record<string, CrossReference>;
   readonly base?: CrossReference;
 }
 
@@ -470,21 +470,19 @@ function resolvePolymorphism(input: {
       continue;
     }
 
-    const variants: Record<string, { readonly value: string }> = {};
-    const seenValues = new Map<string, string>();
+    const variants: Record<string, CrossReference> = {};
     for (const [variant, baseDecl] of baseDeclarations) {
       if (baseDecl.base !== declaration) continue;
-      const existingVariant = seenValues.get(baseDecl.value);
+      const existingVariant = variants[baseDecl.value];
       if (existingVariant !== undefined) {
         diagnostics.push({
           code: 'PSL_DUPLICATE_DISCRIMINATOR_VALUE',
-          message: `Discriminator value "${baseDecl.value}" is used by both "${existingVariant}" and "${variant.name}" on base model "${modelName}"`,
+          message: `Discriminator value "${baseDecl.value}" is used by both "${existingVariant.model}" and "${variant.name}" on base model "${modelName}"`,
           ...baseDecl.source.at(baseDecl.span),
         });
         continue;
       }
-      seenValues.set(baseDecl.value, variant.name);
-      variants[variant.name] = { value: baseDecl.value };
+      variants[baseDecl.value] = mongoCrossRef(variant.name);
     }
 
     if (Object.keys(variants).length === 0) {
@@ -1709,12 +1707,10 @@ export function interpretPslDocumentToMongoContract(
     if (!coll) continue;
 
     if (modelEntry.discriminator && modelEntry.variants) {
-      const variantEntries = Object.entries(modelEntry.variants).map(
-        ([variantName, { value }]) => ({
-          discriminatorValue: value,
-          fields: resolvedModels[variantName]?.fields ?? {},
-        }),
-      );
+      const variantEntries = Object.entries(modelEntry.variants).map(([value, variant]) => ({
+        discriminatorValue: value,
+        fields: resolvedModels[variant.model]?.fields ?? {},
+      }));
       coll['validator'] = derivePolymorphicJsonSchema(
         modelEntry.fields,
         modelEntry.discriminator.field,

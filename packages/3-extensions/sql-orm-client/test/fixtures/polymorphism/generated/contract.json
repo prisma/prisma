@@ -469,14 +469,17 @@
               "table": "tasks"
             },
             "variants": {
-              "Bug": {
-                "value": "bug"
+              "bug": {
+                "model": "Bug",
+                "namespace": "public"
               },
-              "Epic": {
-                "value": "epic"
+              "epic": {
+                "model": "Epic",
+                "namespace": "public"
               },
-              "Feature": {
-                "value": "feature"
+              "feature": {
+                "model": "Feature",
+                "namespace": "public"
               }
             }
           },
@@ -677,11 +680,13 @@
               "table": "users"
             },
             "variants": {
-              "Admin": {
-                "value": "admin"
+              "admin": {
+                "model": "Admin",
+                "namespace": "public"
               },
-              "Regular": {
-                "value": "regular"
+              "regular": {
+                "model": "Regular",
+                "namespace": "public"
               }
             }
           }

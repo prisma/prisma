@@ -53,14 +53,14 @@ describe('a Prisma 7 schema that uses a mixin', () => {
       })),
     ).toEqual([
       {
-        code: 'PSL_INVALID_DECLARATION',
-        message: 'Mixins are not supported yet',
+        code: 'PSL_UNSUPPORTED_TOP_LEVEL_BLOCK',
+        message: 'Unsupported top-level block "model mixin"',
         line: 5,
-        column: 13,
+        column: 1,
       },
       {
-        code: 'PSL_INVALID_DECLARATION',
-        message: 'Mixins are not supported yet',
+        code: 'PSL_INVALID_MODEL_MEMBER',
+        message: 'Unsupported mixin inclusion "+Timestamps"',
         line: 11,
         column: 3,
       },

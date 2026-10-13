@@ -94,7 +94,10 @@ export function variantInfo(
 ): VariantInfo | undefined {
   if (entry.model.base === undefined) return undefined;
   const base = byCoordinate.get(crossReferenceCoordinate(entry.model.base));
-  const value = base?.model.variants?.[entry.name]?.value;
+  const variants = Object.entries(base?.model.variants ?? {});
+  const value = variants.find(
+    ([, reference]) => reference.namespace === entry.namespaceId && reference.model === entry.name,
+  )?.[0];
   assertDefined(
     base,
     `model "${entry.namespaceId}.${entry.name}" extends a base the contract does not declare`,

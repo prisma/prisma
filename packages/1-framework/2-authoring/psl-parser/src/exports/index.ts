@@ -191,6 +191,7 @@ export type {
   BuildSymbolTableOptions,
   CompositeTypeSymbol,
   FieldSymbol,
+  MixinSymbol,
   ModelSymbol,
   NamedTypeSymbol,
   NamespaceSymbol,

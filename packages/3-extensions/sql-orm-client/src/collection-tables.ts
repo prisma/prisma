@@ -26,7 +26,10 @@ function createModelTables(
   const variants = new Map<string, AliasedTable>();
   const mtiVariants = resolvePolymorphismInfo(contract, namespaceId, modelName)?.mtiVariants ?? [];
   for (const variant of mtiVariants) {
-    variants.set(variant.modelName, scope.aliasTable({ namespaceId, tableName: variant.table }));
+    variants.set(
+      variant.value,
+      scope.aliasTable({ namespaceId: variant.namespaceId, tableName: variant.table }),
+    );
   }
   return { scope, root, variants };
 }
@@ -82,15 +85,10 @@ export function withScopeCopy(tables: CollectionTables): CollectionTables {
   return { ...tables, scope: tables.scope.copy() };
 }
 
-export function requireVariantTable(
-  tables: CollectionTables,
-  variantModelName: string,
-): AliasedTable {
-  const variantTable = tables.variants.get(variantModelName);
+export function requireVariantTable(tables: CollectionTables, variantValue: string): AliasedTable {
+  const variantTable = tables.variants.get(variantValue);
   if (variantTable === undefined) {
-    throw new InternalError(
-      `Collection state has no aliased table for variant "${variantModelName}"`,
-    );
+    throw new InternalError(`Collection state has no aliased table for variant "${variantValue}"`);
   }
   return variantTable;
 }

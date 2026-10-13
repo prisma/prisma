@@ -337,6 +337,13 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     'test/integration/test/sql-orm-client/fixtures/junction-namespaces/generated/contract.json',
     { reason: 'many-to-many relation', meta: { model: 'User', field: 'roles' } },
   ],
+  [
+    'test/integration/test/sql-orm-client/fixtures/polymorphism-namespaces/generated/contract.json',
+    {
+      reason: 'is declared in more than one namespace',
+      meta: { modelName: 'Doc', namespaces: ['b', 'c'] },
+    },
+  ],
 ]);
 
 /**

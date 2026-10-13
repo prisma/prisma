@@ -170,7 +170,7 @@ This is a domain-level fact: "Address is a component of User." It means:
 - Address is not an ORM entry point — it doesn't appear in `roots`.
 - Address's lifecycle is bound to User's. Deleting a User deletes its Addresses.
 
-The pattern mirrors `base` for polymorphism: just as `Bug` says `"base": "Task"` to declare it specializes Task, `Address` says `"owner": "User"` to declare it belongs to User.
+The pattern mirrors `base` for polymorphism: just as `Bug` says `"base": { "model": "Task", "namespace": "public" }` to declare it specializes Task, `Address` says `"owner": "User"` to declare it belongs to User.
 
 ### `strategy` is removed from relations
 
@@ -215,7 +215,7 @@ This solves the open question from ADR 174 about where embedded data physically 
 |---|---|---|
 | Present in `roots` | "I am an ORM entry point" | `"roots": { "users": "User" }` |
 | `owner` | "I belong to this model's aggregate" | `"owner": "User"` |
-| `base` | "I specialize this model" | `"base": "Task"` |
+| `base` | "I specialize this model" | `"base": { "model": "Task", "namespace": "public" }` |
 
 All three are domain facts, stated on the model itself, self-describing.
 

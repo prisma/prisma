@@ -142,11 +142,13 @@
               "collection": "events"
             },
             "variants": {
-              "Click": {
-                "value": "click"
+              "click": {
+                "model": "Click",
+                "namespace": "__unbound__"
               },
-              "View": {
-                "value": "view"
+              "view": {
+                "model": "View",
+                "namespace": "__unbound__"
               }
             }
           },
