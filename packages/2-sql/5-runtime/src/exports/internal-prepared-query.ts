@@ -10,7 +10,7 @@ export {
   createTransactionStart,
   type SettledTransactionTarget,
   settlementOf,
-  type TransactionSettlement,
+  type TransactionSettlementState,
   type TransactionStart,
   type TransactionStartTarget,
   transactionSettlement,

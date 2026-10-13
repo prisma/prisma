@@ -206,3 +206,15 @@ describe('the hook error after a resolved ROLLBACK', () => {
     expect(log.error).toHaveBeenCalledWith(expect.objectContaining({ error: hookError }));
   });
 });
+
+describe('rollback() twice', () => {
+  it('sends one ROLLBACK and resolves both times', async () => {
+    const { runtime, events } = createSetup();
+    const transaction = await (await runtime.connection()).transaction();
+
+    await transaction.rollback();
+    await expect(transaction.rollback()).resolves.toBeUndefined();
+
+    expect(names(events).filter((name) => name === 'rollback')).toEqual(['rollback']);
+  });
+});

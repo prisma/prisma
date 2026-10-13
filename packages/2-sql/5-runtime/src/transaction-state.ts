@@ -3,7 +3,7 @@
  */
 export const transactionSettlement = Symbol('transactionSettlement');
 
-export interface TransactionSettlement {
+export interface TransactionSettlementState {
   /** The driver's `COMMIT` resolved. */
   readonly committed: boolean;
   /** The driver's `ROLLBACK` resolved. */
@@ -13,10 +13,10 @@ export interface TransactionSettlement {
 }
 
 export interface SettledTransactionTarget {
-  readonly [transactionSettlement]: TransactionSettlement;
+  readonly [transactionSettlement]: TransactionSettlementState;
 }
 
-export function settlementOf(transaction: object): TransactionSettlement | undefined {
+export function settlementOf(transaction: object): TransactionSettlementState | undefined {
   return isSettledTransactionTarget(transaction) ? transaction[transactionSettlement] : undefined;
 }
 

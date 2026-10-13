@@ -1051,6 +1051,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
           await commitEnding?.catch(() => undefined);
           return;
         }
+        if (settlement.rolledBack) return;
         try {
           await self.#inFlight.track(() => driverTx.rollback());
         } catch (error) {
