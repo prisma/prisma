@@ -13,9 +13,15 @@ testMatrix.setupTestSuite(
     test('commit-time write conflicts are surfaced as P2034', async () => {
       const prefix = 'probe-'
       let reads = 0
-      let release!: () => void
-      const gate = new Promise<void>((resolve) => {
-        release = resolve
+      let releaseReads!: () => void
+      const readsCompleted = new Promise<void>((resolve) => {
+        releaseReads = resolve
+      })
+      let completedInserts = 0
+      let successfulInserts = 0
+      let releaseInserts!: () => void
+      const insertsCompleted = new Promise<void>((resolve) => {
+        releaseInserts = resolve
       })
 
       const run = (suffix: number) =>
@@ -23,15 +29,23 @@ testMatrix.setupTestSuite(
           async (tx) => {
             await tx.appSetting.count({ where: { key: { startsWith: prefix } } })
 
-            // Release the barrier even if this transaction throws later, so the
-            // other transaction can never hang waiting on the gate.
             reads += 1
-            if (reads === 2) release()
-            await gate
+            if (reads === 2) releaseReads()
+            await readsCompleted
 
-            await tx.appSetting.create({
-              data: { key: `${prefix}${suffix}`, value: 'x' },
-            })
+            try {
+              await tx.appSetting.create({
+                data: { key: `${prefix}${suffix}`, value: 'x' },
+              })
+              successfulInserts += 1
+            } finally {
+              // Always release the post-insert barrier once both attempts have
+              // completed, even if one insert fails before COMMIT.
+              completedInserts += 1
+              if (completedInserts === 2) releaseInserts()
+            }
+
+            await insertsCompleted
           },
           { isolationLevel: 'Serializable' },
         )
@@ -40,6 +54,7 @@ testMatrix.setupTestSuite(
       const rejected = results.filter((r) => r.status === 'rejected')
       const fulfilled = results.filter((r) => r.status === 'fulfilled')
 
+      expect(successfulInserts).toBe(2)
       expect(fulfilled).toHaveLength(1)
       expect(rejected).toHaveLength(1)
       expect(rejected[0]).toMatchObject({
