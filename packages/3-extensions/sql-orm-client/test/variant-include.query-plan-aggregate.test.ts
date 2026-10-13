@@ -45,7 +45,7 @@ describe('MTI variant join in compileAggregate', () => {
     const plan = compileAggregate(
       contract,
       getTestAggregates(),
-      tableState(contract, 'tasks', { variantName: 'Feature', filters: [filter] }),
+      tableState(contract, 'tasks', { variantValue: 'feature', filters: [filter] }),
       { total: { kind: 'aggregate', fn: 'count' } },
       'Task',
     );
@@ -65,7 +65,7 @@ describe('MTI variant join in compileAggregate', () => {
     const plan = compileAggregate(
       contract,
       getTestAggregates(),
-      tableState(contract, 'tasks', { variantName: 'Feature', filters: [filter], limit: 10 }),
+      tableState(contract, 'tasks', { variantValue: 'feature', filters: [filter], limit: 10 }),
       { total: { kind: 'aggregate', fn: 'count' } },
       'Task',
     );
@@ -87,7 +87,7 @@ describe('MTI variant join in compileAggregate', () => {
       contract,
       getTestAggregates(),
       tableState(contract, 'tasks', {
-        variantName: 'Feature',
+        variantValue: 'feature',
         orderBy: [OrderByItem.desc(ColumnRef.of('features', 'priority'))],
         limit: 10,
       }),
@@ -113,7 +113,7 @@ describe('MTI variant join in compileAggregate', () => {
       contract,
       getTestAggregates(),
       tableState(contract, 'tasks', {
-        variantName: 'Feature',
+        variantValue: 'feature',
         distinct: ['title'],
         orderBy: [OrderByItem.desc(ColumnRef.of('features', 'priority'))],
         limit: 10,
@@ -145,7 +145,7 @@ describe('MTI variant join in compileAggregate', () => {
     const plan = compileAggregate(
       contract,
       getTestAggregates(),
-      tableState(contract, 'tasks', { variantName: 'Bug', filters: [filter] }),
+      tableState(contract, 'tasks', { variantValue: 'bug', filters: [filter] }),
       { total: { kind: 'aggregate', fn: 'count' } },
       'Task',
     );
@@ -172,7 +172,7 @@ describe('MTI variant join in compileGroupedAggregate', () => {
     const plan = compileGroupedAggregate(
       contract,
       getTestAggregates(),
-      tableState(contract, 'tasks', { variantName: 'Feature', filters: [filter], limit: 10 }),
+      tableState(contract, 'tasks', { variantValue: 'feature', filters: [filter], limit: 10 }),
       ['project_id'],
       { total: { kind: 'aggregate', fn: 'count' } },
       undefined,
@@ -196,7 +196,7 @@ describe('MTI variant join in compileGroupedAggregate', () => {
     const plan = compileGroupedAggregate(
       contract,
       getTestAggregates(),
-      tableState(contract, 'tasks', { variantName: 'Feature', filters: [filter] }),
+      tableState(contract, 'tasks', { variantValue: 'feature', filters: [filter] }),
       ['project_id'],
       { total: { kind: 'aggregate', fn: 'count' } },
       undefined,
@@ -218,7 +218,7 @@ describe('MTI variant join in compileGroupedAggregate', () => {
     const plan = compileGroupedAggregate(
       contract,
       getTestAggregates(),
-      tableState(contract, 'tasks', { variantName: 'Bug', filters: [filter] }),
+      tableState(contract, 'tasks', { variantValue: 'bug', filters: [filter] }),
       ['project_id'],
       { total: { kind: 'aggregate', fn: 'count' } },
       undefined,

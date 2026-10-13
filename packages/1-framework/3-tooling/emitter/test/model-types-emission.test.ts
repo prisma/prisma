@@ -325,7 +325,7 @@ describe('Models namespace and models constant emission', () => {
         },
         Task: {
           discriminator: { field: 'kind' },
-          variants: { Bug: { value: 'bug' } },
+          variants: { bug: ref('Bug', '__unbound__') },
           fields: { id: int(), kind: text(), userId: int() },
           relations: {
             user: {
@@ -409,7 +409,7 @@ describe('Models namespace and models constant emission', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { Bug: { value: 'bug' }, Feature: { value: 'feature' } },
+            variants: { bug: ref('Bug'), feature: ref('Feature') },
             storage: {
               table: 'tasks',
               namespaceId: 'public',
@@ -521,6 +521,75 @@ describe('Models namespace and models constant emission', () => {
     `);
   });
 
+  it('resolves variants in other namespaces through their references', () => {
+    const contract = sqlContract({
+      a: {
+        Task: {
+          fields: { id: int(), type: text() },
+          relations: {},
+          discriminator: { field: 'type' },
+          variants: { b: ref('Epic', 'b'), c: ref('Epic', 'c') },
+          storage: { table: 'tasks', namespaceId: 'a' },
+        },
+      },
+      b: {
+        Epic: {
+          fields: { points: int() },
+          relations: {},
+          base: ref('Task', 'a'),
+          storage: { table: 'epics', namespaceId: 'b' },
+        },
+      },
+      c: {
+        Epic: {
+          fields: { goal: text() },
+          relations: {},
+          base: ref('Task', 'a'),
+          storage: { table: 'epics', namespaceId: 'c' },
+        },
+      },
+    });
+    const dts = generateContractDts(contract, sqlSpi, [], HASHES);
+    expect(dts).toContain(
+      'readonly variants: { readonly b: { readonly namespace: "b" & NamespaceId; readonly model: "Epic" }; readonly c: { readonly namespace: "c" & NamespaceId; readonly model: "Epic" } }',
+    );
+    expect(modelsBlock(dts)).toMatchInlineSnapshot(`
+      "export namespace Models {
+        export type a_Task = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          type: "b" | "c";
+          readonly [RelationKeys]?: never;
+        };
+        export type a_AnyTask = b_Epic | c_Epic;
+        export type b_Epic = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          type: "b";
+          points: CodecTypes["pg/int4@1"]["output"];
+          readonly [RelationKeys]?: never;
+        };
+        export type c_Epic = {
+          id: CodecTypes["pg/int4@1"]["output"];
+          type: "c";
+          goal: CodecTypes["pg/text@1"]["output"];
+          readonly [RelationKeys]?: never;
+        };
+      }
+
+      export declare const models: {
+        a: {
+          Task: Models.a_Task;
+          AnyTask: Models.a_AnyTask;
+        };
+        b: {
+          Epic: Models.b_Epic;
+        };
+        c: {
+          Epic: Models.c_Epic;
+        };
+      };"
+    `);
+  });
+
   it('emits a relation a variant re-declares once, with the variant line winning', () => {
     const contract = sqlContract(
       {
@@ -536,7 +605,7 @@ describe('Models namespace and models constant emission', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { Bug: { value: 'bug' } },
+            variants: { bug: ref('Bug') },
             storage: {
               table: 'tasks',
               namespaceId: 'public',
@@ -630,7 +699,7 @@ describe('Models namespace and models constant emission', () => {
             fields: { id: int(), type: text(), note: text() },
             relations: {},
             discriminator: { field: 'type' },
-            variants: { Bug: { value: 'bug' } },
+            variants: { bug: ref('Bug') },
             storage: {
               table: 'tasks',
               namespaceId: 'public',
@@ -705,7 +774,7 @@ describe('Models namespace and models constant emission', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { Bug: { value: 'bug' } },
+            variants: { bug: ref('Bug') },
             storage: {
               table: 'tasks',
               namespaceId: 'public',
@@ -964,7 +1033,7 @@ describe('Models namespace and models constant emission', () => {
           fields: { id: int(), type: text() },
           relations: {},
           discriminator: { field: 'type' },
-          variants: { Bug: { value: 'bug' } },
+          variants: { bug: ref('Bug') },
           storage: {},
         },
         Bug: { fields: {}, relations: {}, base: ref('Task'), storage: {} },
@@ -1071,7 +1140,7 @@ describe('Models namespace and models constant emission', () => {
           fields: { id: int(), type: text() },
           relations: {},
           discriminator: { field: 'type' },
-          variants: { Bug: { value: 'bug' }, Ghost: { value: 'ghost' } },
+          variants: { bug: ref('Bug'), ghost: ref('Ghost') },
           storage: {},
         },
         Bug: { fields: {}, relations: {}, base: ref('Task'), storage: {} },
@@ -1081,7 +1150,7 @@ describe('Models namespace and models constant emission', () => {
       expect.objectContaining({
         code: 'CONTRACT.MODEL_VARIANT_MISSING',
         message: expect.stringContaining('public.Task'),
-        meta: { base: 'public.Task', variantName: 'Ghost' },
+        meta: { base: 'public.Task', variant: 'public.Ghost' },
       }),
     );
   });

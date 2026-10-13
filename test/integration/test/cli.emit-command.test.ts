@@ -795,7 +795,7 @@ model Post {
                   }),
                   discriminator: { field: 'type' },
                   variants: {
-                    Bug: { value: 'bug' },
+                    bug: { namespace: '__unbound__', model: 'Bug' },
                   },
                 }),
                 Bug: expect.objectContaining({

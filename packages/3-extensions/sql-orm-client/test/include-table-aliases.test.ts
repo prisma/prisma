@@ -163,10 +163,10 @@ describe('table aliases in includes', () => {
     const tables: CollectionTables = {
       scope,
       root: scope.aliasTable(sharedName),
-      variants: new Map([['Feature', scope.aliasTable(sharedName)]]),
+      variants: new Map([['feature', scope.aliasTable(sharedName)]]),
     };
-    const relation = resolveIncludeRelation(contract, 'public', 'Task', 'assignee', 'Feature');
-    expect(relation.localVariantName).toBe('Feature');
+    const relation = resolveIncludeRelation(contract, 'public', 'Task', 'assignee', 'feature');
+    expect(relation.localVariantValue).toBe('feature');
     const child = createIncludeTables(contract, tables, relation);
     const assignee: IncludeExpr = {
       relationName: 'assignee',
@@ -179,7 +179,7 @@ describe('table aliases in includes', () => {
     const plan = compileSelectWithIncludes(contract, getTestAggregates(), 'Task', {
       ...emptyState(tables),
       selectedFields: ['id'],
-      variantName: 'Feature',
+      variantValue: 'feature',
       includes: [assignee],
     });
     const sql = adapter.lower(plan.ast, {

@@ -3,7 +3,12 @@ import type {
   ContractSourceDiagnosticSpan,
   ContractSourceDiagnostics,
 } from '@internal/config/config-types';
-import type { Contract, ContractModel, ControlPolicy } from '@internal/contract/types';
+import type {
+  Contract,
+  ContractModel,
+  ControlPolicy,
+  CrossReference,
+} from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
 import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import type {
@@ -1633,6 +1638,7 @@ type ModelIdentity = {
 
 type BaseDeclaration = {
   readonly model: ModelSymbol;
+  readonly namespaceId: string;
   readonly source: DiagnosticSource;
   readonly base: ModelIdentity;
   readonly value: string;
@@ -1671,7 +1677,7 @@ function collectPolymorphismDeclarations(
   const discriminatorDeclarations = new Map<string, DiscriminatorDeclaration>();
   const baseDeclarations = new Map<string, BaseDeclaration>();
 
-  for (const { model, key } of identities.values()) {
+  for (const { model, namespaceId, key } of identities.values()) {
     const source = diagnosticSource(sources, model.node.syntax);
     const discriminatorNode = getAttribute(model.attributes, 'discriminator')?.node;
     if (discriminatorNode !== undefined) {
@@ -1718,6 +1724,7 @@ function collectPolymorphismDeclarations(
         );
         baseDeclarations.set(key, {
           model,
+          namespaceId,
           source,
           base,
           value: parsed.value,
@@ -1728,6 +1735,10 @@ function collectPolymorphismDeclarations(
   }
 
   return { discriminatorDeclarations, baseDeclarations };
+}
+
+function modelLabel(namespaceId: string, modelName: string, qualified: boolean): string {
+  return qualified ? `${namespaceId}.${modelName}` : modelName;
 }
 
 function resolvePolymorphism(
@@ -1768,24 +1779,25 @@ function resolvePolymorphism(
     const model = patched[modelKey];
     if (!model) continue;
 
-    const variants: Record<string, { readonly value: string }> = {};
-    const seenValues = new Map<string, string>();
+    const variants: Record<string, CrossReference> = {};
 
     for (const baseDecl of baseDeclarations.values()) {
       if (baseDecl.base.key !== modelKey) continue;
       const variantName = baseDecl.model.name;
 
-      const existingVariant = seenValues.get(baseDecl.value);
+      const existingVariant = variants[baseDecl.value];
       if (existingVariant) {
+        const qualified =
+          existingVariant.namespace !== baseDecl.base.namespaceId ||
+          baseDecl.namespaceId !== baseDecl.base.namespaceId;
         diagnostics.push({
           code: 'PSL_DUPLICATE_DISCRIMINATOR_VALUE',
-          message: `Discriminator value "${baseDecl.value}" is used by both "${existingVariant}" and "${variantName}" on base model "${modelName}"`,
+          message: `Discriminator value "${baseDecl.value}" is used by both "${modelLabel(existingVariant.namespace, existingVariant.model, qualified)}" and "${modelLabel(baseDecl.namespaceId, variantName, qualified)}" on base model "${modelLabel(baseDecl.base.namespaceId, modelName, qualified)}"`,
           ...baseDecl.source.at(baseDecl.span),
         });
         continue;
       }
-      seenValues.set(baseDecl.value, variantName);
-      variants[variantName] = { value: baseDecl.value };
+      variants[baseDecl.value] = crossRef(variantName, baseDecl.namespaceId);
     }
 
     if (Object.keys(variants).length === 0) {
@@ -1804,12 +1816,14 @@ function resolvePolymorphism(
   }
 
   for (const [variantKey, baseDecl] of baseDeclarations) {
-    const variantName = baseDecl.model.name;
     const baseName = baseDecl.base.model.name;
     if (!discriminatorDeclarations.has(baseDecl.base.key)) {
+      const qualified = baseDecl.namespaceId !== baseDecl.base.namespaceId;
+      const variantLabel = modelLabel(baseDecl.namespaceId, baseDecl.model.name, qualified);
+      const baseLabel = modelLabel(baseDecl.base.namespaceId, baseName, qualified);
       diagnostics.push({
         code: 'PSL_ORPHANED_BASE',
-        message: `Model "${variantName}" declares @@base(${baseName}, ...) but "${baseName}" has no @@discriminator`,
+        message: `Model "${variantLabel}" declares @@base(${baseLabel}, ...) but "${baseLabel}" has no @@discriminator`,
         ...baseDecl.source.at(baseDecl.span),
       });
       continue;
@@ -2648,6 +2662,15 @@ export function interpretPslDocumentToSqlContract(
       `stiVariantKeys is derived from baseDeclarations.keys(), so "${variantKey}" must have a base declaration`,
     );
     const variantName = baseDecl.model.name;
+    if (baseDecl.namespaceId !== baseDecl.base.namespaceId) {
+      const variantLabel = modelLabel(baseDecl.namespaceId, variantName, true);
+      const baseLabel = modelLabel(baseDecl.base.namespaceId, baseDecl.base.model.name, true);
+      diagnostics.push({
+        code: 'PSL_BASE_IN_OTHER_NAMESPACE_WITHOUT_MAP',
+        message: `Model "${variantLabel}" declares @@base(${baseLabel}, ...) without @@map, so it would share the table of "${baseLabel}", which belongs to namespace "${baseDecl.base.namespaceId}". Add @@map to give "${variantLabel}" its own table.`,
+        ...baseDecl.source.at(baseDecl.span),
+      });
+    }
     for (const attribute of baseDecl.model.attributes) {
       if (attribute.node.name()?.isSimpleName('check') !== true) continue;
       diagnostics.push({
