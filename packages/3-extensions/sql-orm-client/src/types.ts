@@ -1689,13 +1689,6 @@ export type VariantCreateInput<
  */
 type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
 
-/** The scalar fields a create of the model takes. For a model with no fields, it rejects every key. */
-export type ScalarCreateInput<
-  TContract extends Contract<SqlStorage>,
-  ModelName extends string,
-  NsId extends string = never,
-> = ClosedWhenEmpty<RowCreateFields<TContract, ModelName, NsId>>;
-
 /** The scalar fields an update of the model takes. For a model with no fields, it rejects every key. */
 export type ScalarUpdateInput<
   TContract extends Contract<SqlStorage>,
