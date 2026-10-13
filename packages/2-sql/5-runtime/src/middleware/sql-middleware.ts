@@ -1,11 +1,13 @@
 import type { Contract, PlanMeta } from '@internal/contract/types';
 import type {
+  Activity,
   ActivityContext,
   ActivityEndedResult,
   ActivityFinalizedResult,
+  ActivityInterceptResult,
+  ClientActivity,
   ExecuteInterceptResult,
   QueryInterceptResult,
-  RuntimeActivity,
   RuntimeMiddleware,
 } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
@@ -29,14 +31,14 @@ export interface DraftPlan {
 export interface SqlMiddleware<TCodecMap extends Record<string, unknown> = Record<string, unknown>>
   extends RuntimeMiddleware<SqlExecutionPlan, SqlParamRefMutator<TCodecMap>> {
   readonly familyId?: 'sql';
-  activityStarted?(activity: RuntimeActivity, ctx: SqlMiddlewareContext): Promise<void>;
+  activityStarted?(activity: Activity, ctx: SqlMiddlewareContext): Promise<void>;
   activityEnded?(
-    activity: RuntimeActivity,
+    activity: Activity,
     result: ActivityEndedResult,
     ctx: SqlMiddlewareContext,
   ): Promise<void>;
   activityFinalized?(
-    activity: RuntimeActivity,
+    activity: Activity,
     result: ActivityFinalizedResult,
     ctx: SqlMiddlewareContext,
   ): Promise<void>;
@@ -78,6 +80,10 @@ export interface SqlMiddleware<TCodecMap extends Record<string, unknown> = Recor
       plan: SqlExecutionPlan,
       ctx: SqlMiddlewareContext,
     ): Promise<ExecuteInterceptResult | undefined>;
+    onActivity?(
+      activity: ClientActivity,
+      ctx: SqlMiddlewareContext,
+    ): Promise<ActivityInterceptResult | undefined>;
   };
   onRow?(
     row: Record<string, unknown>,

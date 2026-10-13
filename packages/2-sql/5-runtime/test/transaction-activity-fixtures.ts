@@ -1,8 +1,5 @@
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import type {
-  ActivityFinalizedResult,
-  RuntimeActivity,
-} from '@internal/framework-components/runtime';
+import type { Activity, ActivityFinalizedResult } from '@internal/framework-components/runtime';
 import {
   type MarkerReadResult,
   RawQueryAst,
@@ -42,7 +39,7 @@ const failingDecodeCodec = defineTestCodec({
 export interface HookEvent {
   readonly name: string;
   readonly sql?: string;
-  readonly activity?: RuntimeActivity;
+  readonly activity?: Activity;
   readonly ctx?: SqlMiddlewareContext;
 }
 
@@ -99,7 +96,7 @@ function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver 
   };
 }
 
-function sqlOf(activity: RuntimeActivity): string | undefined {
+function sqlOf(activity: Activity): string | undefined {
   if (activity.kind !== 'statement') return undefined;
   const { plan } = activity;
   return 'sql' in plan && typeof plan.sql === 'string' ? plan.sql : undefined;
@@ -110,7 +107,7 @@ function recorder(
   activityFinalized: SqlMiddleware['activityFinalized'] | undefined,
   beforeHookFailure: Error | undefined,
 ): SqlMiddleware {
-  const record = (name: string, activity: RuntimeActivity, ctx: SqlMiddlewareContext) => {
+  const record = (name: string, activity: Activity, ctx: SqlMiddlewareContext) => {
     events.push({ name, ...ifDefined('sql', sqlOf(activity)), activity, ctx });
   };
   return {

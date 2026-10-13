@@ -27,6 +27,7 @@ import {
   createSqlExecutionStack,
   withTransaction,
 } from '@internal/sql-runtime';
+import { planContentHashOn, startActivityOn } from '@internal/sql-runtime/internal/prepared-query';
 import sqliteTarget, {
   SqliteContractSerializer as SqlContractSerializer,
 } from '@internal/target-sqlite/runtime';
@@ -243,6 +244,12 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
         connection() {
           return getRuntime().connection();
         },
+        startActivity(activity) {
+          return getRuntime().startActivity(activity);
+        },
+        planContentHash(plan) {
+          return getRuntime().planContentHash(plan);
+        },
       },
     }),
   );
@@ -335,6 +342,12 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
               },
               execute(plan) {
                 return txCtx.execute(plan);
+              },
+              startActivity(activity) {
+                return startActivityOn(txCtx, activity);
+              },
+              planContentHash(plan) {
+                return planContentHashOn(txCtx, plan);
               },
             },
             context,

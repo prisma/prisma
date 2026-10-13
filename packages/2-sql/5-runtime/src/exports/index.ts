@@ -1,9 +1,9 @@
 export type {
+  Activity,
   ActivityEndedResult,
   ActivityFinalizedResult,
   ExecuteInterceptResult,
   QueryInterceptResult,
-  RuntimeActivity,
   RuntimeLog as Log,
   StatementActivity,
   StatementEnded,
@@ -11,6 +11,7 @@ export type {
   TransactionEnded,
 } from '@internal/framework-components/runtime';
 export type { MarkerReadResult } from '@internal/sql-relational-core/ast';
+export type { ActivityHandle, ActivityQueryable, StartActivity } from '../activity-handle';
 export { createAstCodecRegistry } from '../codecs/ast-codec-registry';
 export { deriveParamMetadata, encodeParamsWithMetadata } from '../codecs/encoding';
 export {

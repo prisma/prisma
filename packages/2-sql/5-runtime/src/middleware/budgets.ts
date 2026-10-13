@@ -1,6 +1,6 @@
 import {
+  type Activity,
   type ActivityEndedResult,
-  type RuntimeActivity,
   type RuntimeErrorEnvelope,
   runtimeError,
 } from '@internal/framework-components/runtime';
@@ -123,7 +123,7 @@ export function budgets(options?: BudgetsOptions): SqlMiddleware {
     },
 
     async activityEnded(
-      _activity: RuntimeActivity,
+      _activity: Activity,
       result: ActivityEndedResult,
       ctx: SqlMiddlewareContext,
     ) {

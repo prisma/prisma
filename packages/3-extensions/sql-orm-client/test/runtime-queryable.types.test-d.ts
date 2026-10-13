@@ -7,7 +7,12 @@ import type {
 } from '@internal/sql-relational-core/types';
 import type { Runtime, RuntimeQueryable as SqlRuntimeQueryable } from '@internal/sql-runtime';
 import { expectTypeOf, test } from 'vitest';
-import type { RuntimeConnection, RuntimeQueryable, RuntimeTransaction } from '../src/types';
+import type {
+  OrmActivityHandle,
+  RuntimeConnection,
+  RuntimeQueryable,
+  RuntimeTransaction,
+} from '../src/types';
 
 test('RuntimeScope from sql-relational-core is the canonical SQL runtime surface', () => {
   expectTypeOf<SqlOrmPlan>().toEqualTypeOf<SqlExecutionPlan | SqlQueryPlan>();
@@ -54,4 +59,22 @@ test('RuntimeScope query accepts a pre-lowered plan with a row binding', () => {
   const plan = {} as SqlExecutionPlan<Row>;
   const scope = {} as CanonicalRuntimeScope;
   expectTypeOf(scope.query(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
+});
+
+test('RuntimeQueryable may start activities and hash plans, but need not', () => {
+  expectTypeOf<Pick<RuntimeQueryable, 'query' | 'execute'>>().toExtend<RuntimeQueryable>();
+  expectTypeOf<RuntimeQueryable['startActivity']>()
+    .exclude<undefined>()
+    .returns.resolves.toEqualTypeOf<OrmActivityHandle>();
+  expectTypeOf<RuntimeQueryable['planContentHash']>()
+    .exclude<undefined>()
+    .returns.resolves.toBeString();
+  expectTypeOf<undefined>().toExtend<RuntimeQueryable['startActivity']>();
+});
+
+test('an activity handle is a queryable with an opaque intercepted result', () => {
+  expectTypeOf<OrmActivityHandle>().toExtend<RuntimeQueryable>();
+  expectTypeOf<OrmActivityHandle['intercepted']>().toEqualTypeOf<
+    { readonly result: unknown } | undefined
+  >();
 });

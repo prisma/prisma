@@ -48,3 +48,10 @@ test('role session and transaction expose row query and statistics execute', asy
   expectTypeOf(transaction.query(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
   expectTypeOf(transaction.execute(plan)).toEqualTypeOf<Promise<SqlStatementStats>>();
 });
+
+test('the role-bound and internal clients do not expose startActivity or planContentHash', () => {
+  expectTypeOf<RoleBoundDb<never>>().not.toHaveProperty('startActivity');
+  expectTypeOf<RoleBoundDb<never>>().not.toHaveProperty('planContentHash');
+  expectTypeOf<SupabaseInternalDb>().not.toHaveProperty('startActivity');
+  expectTypeOf<SupabaseInternalDb>().not.toHaveProperty('planContentHash');
+});

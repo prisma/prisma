@@ -65,6 +65,8 @@ export type {
   Orderable,
   OrderableFieldNames,
   OrderOptions,
+  OrmActivityHandle,
+  OrmActivityStart,
   OrmFunctions,
   OrmFunctionsOf,
   OrmRawSqlBuilder,

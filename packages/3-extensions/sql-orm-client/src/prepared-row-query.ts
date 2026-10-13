@@ -1,6 +1,7 @@
 import type { ResultType, RuntimeExecuteOptions } from '@internal/framework-components/runtime';
 import type { CodecTypesBase } from '@internal/sql-relational-core/expression';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type {
   BindSiteParams,
   Declaration,
@@ -8,12 +9,11 @@ import type {
   PreparedFor,
   PreparedStatement,
   Runtime,
-  RuntimeQueryable,
 } from '@internal/sql-runtime';
 import { blindCast } from '@internal/utils/casts';
 
 export interface PreparedRowQuery<Params, Result> {
-  query(target: RuntimeQueryable, params: Params, options?: RuntimeExecuteOptions): Result;
+  query(target: RuntimeScope, params: Params, options?: RuntimeExecuteOptions): Result;
 }
 
 export type PreparedFrom<Params, Q extends SqlQueryPlan | Preparable<unknown, unknown>> =
@@ -51,7 +51,7 @@ export function createPreparedRowQuery<Params, DbRow, Result>(
   statement: PreparedStatement<Params, DbRow>,
 ): PreparedRowQuery<Params, Result> {
   return Object.freeze({
-    query(target: RuntimeQueryable, params: Params, options?: RuntimeExecuteOptions): Result {
+    query(target: RuntimeScope, params: Params, options?: RuntimeExecuteOptions): Result {
       return description.consume(statement.query(target, params, options));
     },
   });
