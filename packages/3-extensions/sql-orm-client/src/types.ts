@@ -3,6 +3,7 @@ import type { AnnotationValue, OperationKind } from '@internal/framework-compone
 import type {
   ExtractAggregateTypes,
   ExtractCodecTypes,
+  ExtractFieldInputTypes,
   ExtractFieldOutputTypes,
   ExtractQueryOperationTypes,
   QueryOperationTypesBase,
@@ -378,17 +379,17 @@ type CodecTraits<
     : never
   : never;
 
-type CodecOutput<
+type CodecInput<
   TContract extends Contract<SqlStorage>,
   CodecId extends string,
 > = CodecId extends keyof ExtractCodecTypes<TContract>
-  ? ExtractCodecTypes<TContract>[CodecId] extends { readonly output: infer O }
-    ? O
+  ? ExtractCodecTypes<TContract>[CodecId] extends { readonly input: infer I }
+    ? I
     : unknown
   : unknown;
 
 /**
- * The model accessor's type for any field with the codec `CodecId` and the given nullability. A function of `{ deletedAt: CodecField<Contract, 'pg/timestamptz-temporal@1', true> }` is a `where` callback for every model with such a field. Values are checked against the codec's output type, which is wider than a field that refines it, such as an enum or `Char<36>`.
+ * The model accessor's type for any field with the codec `CodecId` and the given nullability. A function of `{ deletedAt: CodecField<Contract, 'pg/timestamptz-temporal@1', true> }` is a `where` callback for every model with such a field. Values are checked against the codec's input type, as they are for a model's own fields.
  */
 export type CodecField<
   TContract extends Contract<SqlStorage>,
@@ -396,7 +397,7 @@ export type CodecField<
   Nullable extends boolean = false,
 > = Expression<{ codecId: CodecId; nullable: Nullable }> &
   ComparisonMethods<
-    CodecOutput<TContract, CodecId> | (Nullable extends true ? null : never),
+    CodecInput<TContract, CodecId> | (Nullable extends true ? null : never),
     CodecTraits<TContract, CodecId>,
     CodecId
   > &
@@ -410,7 +411,7 @@ export type CodecListField<
   ElementNullable extends boolean = false,
 > = Expression<{ codecId: CodecId; nullable: Nullable }> &
   ComparisonMethods<
-    | ReadonlyArray<CodecOutput<TContract, CodecId> | (ElementNullable extends true ? null : never)>
+    | ReadonlyArray<CodecInput<TContract, CodecId> | (ElementNullable extends true ? null : never)>
     | (Nullable extends true ? null : never),
     CodecTraits<TContract, CodecId>,
     CodecId
@@ -600,7 +601,7 @@ type ScalarModelAccessor<
     nullable: FieldNullable<TContract, ModelName, K, NsId>;
   }> &
     ComparisonMethods<
-      FieldJsType<TContract, ModelName, K, NsId>,
+      FieldInputJsType<TContract, ModelName, K, NsId>,
       FieldTraits<TContract, ModelName, K, NsId>,
       FieldCodecId<TContract, ModelName, K, NsId>
     > &
@@ -788,6 +789,22 @@ export type DefaultModelRow<
   NsId extends string = never,
 > = {
   [K in keyof FieldsOf<TContract, ModelName, NsId> & string]: FieldJsType<
+    TContract,
+    ModelName,
+    K,
+    NsId
+  >;
+};
+
+/**
+ * The values a filter, `create` or `update` accepts for each of a model's own fields. A field whose read type is refined by its type parameters, such as `Char<36>`, accepts its codec's input type, such as `string`.
+ */
+export type DefaultModelInputRow<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> = {
+  [K in keyof FieldsOf<TContract, ModelName, NsId> & string]: FieldInputJsType<
     TContract,
     ModelName,
     K,
@@ -1229,8 +1246,8 @@ export type ShorthandWhereFilter<
   NsId extends DomainNamespaceId<TContract>,
   ModelName extends string,
 > = Partial<{
-  [K in keyof DefaultModelRow<TContract, ModelName, NsId> & string]:
-    | DefaultModelRow<TContract, ModelName, NsId>[K]
+  [K in keyof DefaultModelInputRow<TContract, ModelName, NsId> & string]:
+    | DefaultModelInputRow<TContract, ModelName, NsId>[K]
     | ('equality' extends FieldTraits<TContract, ModelName, K, NsId>
         ? Expression<{
             codecId: FieldCodecId<TContract, ModelName, K, NsId>;
@@ -1480,6 +1497,38 @@ type FieldJsType<
     : FieldStorageJsType<TContract, ModelName, FieldName, NsId>
   : NamespaceFieldOutputType<TContract, ModelName, FieldName, NsId>;
 
+type NamespaceFieldInputType<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  FieldName extends string,
+  NsId extends string = never,
+> =
+  ResolvedNsId<TContract, ModelName, NsId> extends infer Ns extends string
+    ? ExtractFieldInputTypes<TContract> extends infer Inputs
+      ? Ns extends keyof Inputs
+        ? Inputs[Ns] extends infer NamespaceInputs
+          ? ModelName extends keyof NamespaceInputs
+            ? NamespaceInputs[ModelName] extends infer ModelInputs
+              ? FieldName extends keyof ModelInputs
+                ? ModelInputs[FieldName]
+                : never
+              : never
+            : never
+          : never
+        : never
+      : never
+    : never;
+
+// The type a filter or a write accepts for a field: the contract's `FieldInputTypes` entry, or the read type for a contract that has no such entry.
+type FieldInputJsType<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  FieldName extends string,
+  NsId extends string = never,
+> = [NamespaceFieldInputType<TContract, ModelName, FieldName, NsId>] extends [never]
+  ? FieldJsType<TContract, ModelName, FieldName, NsId>
+  : NamespaceFieldInputType<TContract, ModelName, FieldName, NsId>;
+
 type FieldStorageColumn<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
@@ -1633,12 +1682,12 @@ type ScalarCreateInput<
   ModelName extends string,
   NsId extends string = never,
 > = Pick<
-  DefaultModelRow<TContract, ModelName, NsId>,
+  DefaultModelInputRow<TContract, ModelName, NsId>,
   RequiredCreateFieldNames<TContract, ModelName, NsId>
 > &
   Partial<
     Pick<
-      DefaultModelRow<TContract, ModelName, NsId>,
+      DefaultModelInputRow<TContract, ModelName, NsId>,
       OptionalCreateFieldNames<TContract, ModelName, NsId>
     >
   >;
@@ -1757,8 +1806,8 @@ type RowValueForField<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   FieldName extends string,
-> = FieldName extends keyof DefaultModelRow<TContract, ModelName>
-  ? DefaultModelRow<TContract, ModelName>[FieldName]
+> = FieldName extends keyof DefaultModelInputRow<TContract, ModelName>
+  ? DefaultModelInputRow<TContract, ModelName>[FieldName]
   : unknown;
 
 type CriterionFromConstraintColumns<
@@ -2068,12 +2117,12 @@ type NestedCreateInput<
   ModelName extends string,
   NsId extends string = never,
 > = Pick<
-  DefaultModelRow<TContract, ModelName, NsId>,
+  DefaultModelInputRow<TContract, ModelName, NsId>,
   NestedRequiredCreateFieldNames<TContract, ModelName, NsId>
 > &
   Partial<
     Pick<
-      DefaultModelRow<TContract, ModelName, NsId>,
+      DefaultModelInputRow<TContract, ModelName, NsId>,
       NestedOptionalCreateFieldNames<TContract, ModelName, NsId>
     >
   >;
@@ -2102,7 +2151,7 @@ export type MutationUpdateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
-> = Partial<DefaultModelRow<TContract, ModelName, NsId>> &
+> = Partial<DefaultModelInputRow<TContract, ModelName, NsId>> &
   RelationMutationFields<TContract, ModelName, 'update'>;
 
 type ModelRelations<
