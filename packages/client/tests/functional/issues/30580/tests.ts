@@ -4,11 +4,6 @@ import type { PrismaClient } from './generated/prisma/client'
 
 declare let prisma: PrismaClient
 
-/**
- * Regression test for https://github.com/prisma/prisma/issues/30580
- * PostgreSQL can report a serializable write conflict while committing an interactive transaction.
- * The commit error must be converted to P2034 just like a conflict raised while executing a query.
- */
 testMatrix.setupTestSuite(
   () => {
     beforeEach(async () => {
@@ -54,7 +49,6 @@ testMatrix.setupTestSuite(
         },
       })
 
-      // The pool must still be usable after the failed commit
       await expect(prisma.appSetting.count()).resolves.toBe(1)
     })
   },
