@@ -141,7 +141,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { SpecialItem: { value: 'special' } },
+            variants: { special: crossRef('SpecialItem') },
           }),
           SpecialItem: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -157,7 +157,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Ghost: { value: 'ghost' } },
+            variants: { ghost: crossRef('Ghost') },
           }),
         },
       });
@@ -173,7 +173,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel(),
         },
@@ -192,7 +192,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Other: makeMinimalModel({
             fields: {
@@ -225,6 +225,48 @@ describe('validateContractDomain()', () => {
       });
       expect(() => validateContractDomain(contract)).toThrow(
         /model.*Orphan.*base.*Item.*not list.*variant/i,
+      );
+    });
+
+    it('accepts a variant in a different namespace from its base', () => {
+      const contract = makeValidContract({
+        roots: { tasks: crossRef('Task', 'a') },
+        domain: {
+          namespaces: {
+            a: {
+              models: {
+                Task: makeMinimalModel({
+                  fields: {
+                    type: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
+                  },
+                  discriminator: { field: 'type' },
+                  variants: { b: crossRef('Epic', 'b'), c: crossRef('Epic', 'c') },
+                }),
+              },
+            },
+            b: { models: { Epic: makeMinimalModel({ base: crossRef('Task', 'a') }) } },
+            c: { models: { Epic: makeMinimalModel({ base: crossRef('Task', 'a') }) } },
+          },
+        },
+      });
+      expect(() => validateContractDomain(contract)).not.toThrow();
+    });
+
+    it('rejects a variant listed under two discriminator values', () => {
+      const contract = makeValidContract({
+        models: {
+          Item: makeMinimalModel({
+            fields: {
+              type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+            },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug'), defect: crossRef('Bug') },
+          }),
+          Bug: makeMinimalModel({ base: crossRef('Item') }),
+        },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(
+        'Model "__unbound__:Item" lists variant "__unbound__:Bug" under both discriminator values "bug" and "defect"',
       );
     });
 
@@ -421,7 +463,7 @@ describe('validateContractDomain()', () => {
               _id: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
             },
             discriminator: { field: 'kind' },
-            variants: { Special: { value: 'special' } },
+            variants: { special: crossRef('Special') },
           }),
           Special: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -440,7 +482,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel({
             base: crossRef('Item'),
@@ -460,7 +502,7 @@ describe('validateContractDomain()', () => {
             fields: {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
-            variants: { Special: { value: 'special' } },
+            variants: { special: crossRef('Special') },
           }),
           Special: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -479,11 +521,11 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel({
             base: crossRef('Item'),
-            variants: { Grandchild: { value: 'grandchild' } },
+            variants: { grandchild: crossRef('Grandchild') },
           }),
         },
       });
@@ -500,32 +542,13 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Bug: { value: 'bug' }, Feature: { value: 'feature' } },
+            variants: { bug: crossRef('Bug'), feature: crossRef('Feature') },
           }),
           Bug: makeMinimalModel({ base: crossRef('Item') }),
           Feature: makeMinimalModel({ base: crossRef('Item') }),
         },
       });
       expect(() => validateContractDomain(contract)).not.toThrow();
-    });
-
-    it('rejects variants that share a discriminator value', () => {
-      const contract = makeValidContract({
-        models: {
-          Item: makeMinimalModel({
-            fields: {
-              type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
-            },
-            discriminator: { field: 'type' },
-            variants: { Bug: { value: 'bug' }, OtherBug: { value: 'bug' } },
-          }),
-          Bug: makeMinimalModel({ base: crossRef('Item') }),
-          OtherBug: makeMinimalModel({ base: crossRef('Item') }),
-        },
-      });
-      expect(() => validateContractDomain(contract)).toThrow(
-        'Discriminator value "bug" is used by both "__unbound__:Bug" and "__unbound__:OtherBug" on base model "__unbound__:Item"',
-      );
     });
   });
 
@@ -617,8 +640,8 @@ describe('validateContractDomain()', () => {
             },
             discriminator: { field: 'type' },
             variants: {
-              Bug: { value: 'bug' },
-              Feature: { value: 'feature' },
+              bug: crossRef('Bug'),
+              feature: crossRef('Feature'),
             },
           }),
           Bug: makeMinimalModel({
