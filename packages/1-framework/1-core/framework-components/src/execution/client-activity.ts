@@ -59,10 +59,8 @@ export interface ClientActivityRunOptions<TContext extends ActivityContext> {
   readonly holdFinishedChildren: boolean;
 }
 
-const reservedKinds: ReadonlySet<string> = new Set(['statement', 'transaction']);
-
 /**
- * Starts a client activity: its `activityStarted` hooks, then each `intercept.onActivity` handler in registration order until one returns a result. When a hook or a handler throws, the activity ends `failed`, is finalized, and the error is rethrown. Rejects at once, running no hook, when `kind` is `statement` or `transaction` or when `parent` no longer accepts work.
+ * Starts a client activity: its `activityStarted` hooks, then each `intercept.onActivity` handler in registration order until one returns a result. When a hook or a handler throws, the activity ends `failed`, is finalized, and the error is rethrown. Rejects at once, running no hook, when `kind` has no hyphen (such as `statement` or `transaction`) or when `parent` no longer accepts children.
  */
 export async function startClientActivity<
   K extends ClientActivityKind,
@@ -72,10 +70,10 @@ export async function startClientActivity<
   options: ClientActivityRunOptions<TContext>,
 ): Promise<ClientActivityRun<K, TContext>> {
   const kind: string = activity.kind;
-  if (reservedKinds.has(kind)) {
+  if (!kind.includes('-')) {
     throw runtimeError(
       'RUNTIME.ACTIVITY_KIND_RESERVED',
-      `A client cannot start an activity of kind '${kind}'; the runtime starts those itself`,
+      `A client activity kind contains a hyphen, such as 'orm-call', and '${kind}' does not. Kinds without one, such as 'statement' and 'transaction', belong to the runtime.`,
       { kind },
     );
   }
@@ -188,7 +186,7 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
       await this.finish({ outcome: 'failed', source: 'client' });
       throw runtimeError(
         'RUNTIME.ACTIVITY_CHILDREN_OPEN',
-        `The '${this.activity.kind}' activity ended while ${openChildren} activities beneath it had not ended`,
+        `The '${this.activity.kind}' activity ended while ${openChildren} ${openChildren === 1 ? 'activity' : 'activities'} beneath it had not ended`,
         { kind: this.activity.kind, id: this.activity.id, openChildren },
       );
     }

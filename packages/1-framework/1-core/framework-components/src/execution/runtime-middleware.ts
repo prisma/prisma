@@ -36,10 +36,10 @@ export interface TransactionActivity extends ActivityBase {
 export type ClientActivityKind = `${string}-${string}`;
 
 /**
- * The result types of the client kinds packages register. It types results only: an activity of an unregistered kind still reaches every hook, with an `unknown` result. A client registers a kind by module augmentation:
+ * The result types of the client kinds packages register. It types the handle side only, `intercepted.result` and `end({ result })`; in middleware hooks a client activity's result is `unknown`, even after narrowing on its kind, because the hook types accept every kind. An extension registers a kind by augmenting the published entry:
  *
  * ```ts
- * declare module '@internal/framework-components/runtime' {
+ * declare module '@prisma/orm-framework/components/runtime' {
  *   interface ClientActivityRegistry { 'orm-call': { result: unknown } }
  * }
  * ```

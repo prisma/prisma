@@ -71,14 +71,17 @@ describe('client activity', () => {
     });
   });
 
-  it.each(['statement', 'transaction'])('rejects the kind %s and runs no hook', async (kind) => {
-    const events: string[] = [];
+  it.each(['statement', 'transaction', 'report'])(
+    'rejects the kind %s, which has no hyphen, and runs no hook',
+    async (kind) => {
+      const events: string[] = [];
 
-    await expect(
-      startCall([recorder('A', events)], { kind: kind as ClientActivityKind }),
-    ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_KIND_RESERVED', details: { kind } });
-    expect(events).toEqual([]);
-  });
+      await expect(
+        startCall([recorder('A', events)], { kind: kind as ClientActivityKind }),
+      ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_KIND_RESERVED', details: { kind } });
+      expect(events).toEqual([]);
+    },
+  );
 
   describe('outside a transaction', () => {
     it.each([
@@ -297,6 +300,7 @@ describe('client activity', () => {
 
       await expect(call.end({ outcome: 'succeeded' })).rejects.toMatchObject({
         code: 'RUNTIME.ACTIVITY_CHILDREN_OPEN',
+        message: "The 'test-call' activity ended while 1 activity beneath it had not ended",
         details: { kind: 'test-call', openChildren: 1 },
       });
       statementGate.release();
@@ -310,6 +314,16 @@ describe('client activity', () => {
         'A:ended:statement:succeeded',
         'A:finalized:statement:committed',
       ]);
+    });
+
+    it('names the open children in the plural when there are several', async () => {
+      const call = await startCall([]);
+      call.adopt({ finalize: async () => {} });
+      call.adopt({ finalize: async () => {} });
+
+      await expect(call.end({ outcome: 'succeeded' })).rejects.toMatchObject({
+        message: "The 'test-call' activity ended while 2 activities beneath it had not ended",
+      });
     });
 
     it('does not count a child that has ended', async () => {
