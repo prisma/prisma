@@ -1,4 +1,7 @@
-import type { SqlQueryOperationTypes } from '@internal/sql-contract/types';
+import type {
+  QueryOperationTypesConstructor,
+  SqlQueryOperationTypes,
+} from '@internal/sql-contract/types';
 import type {
   CodecExpression,
   Expression,
@@ -11,7 +14,7 @@ import type {
   FullTextMatchesOptions,
   FullTextRankOptions,
 } from '../core/full-text-options';
-import type { websearchToTsquery } from '../core/full-text-parsers';
+import type { TsqueryParser } from '../core/full-text-parsers';
 import type { FullTextWeightGroups } from '../core/full-text-weight-groups';
 import type { FullTextSearchLanguage } from '../core/text-search-languages';
 
@@ -52,7 +55,7 @@ type WithoutLanguage<Options> = Omit<Options, 'language'> & { readonly language?
  */
 export type TsqueryArgument<CT extends CodecTypesBase> = CodecExpression<'pg/tsquery@1', false, CT>;
 
-type TsqueryParser = { readonly impl: typeof websearchToTsquery };
+type TsqueryParserOperation = { readonly impl: TsqueryParser };
 
 export type QueryOperationTypes<CT extends CodecTypesBase> = SqlQueryOperationTypes<
   CT,
@@ -112,9 +115,14 @@ export type QueryOperationTypes<CT extends CodecTypesBase> = SqlQueryOperationTy
         options?: FullTextHeadlineOptions,
       ) => Expression<{ codecId: 'pg/text@1'; nullable: false }>;
     };
-    readonly websearchToTsquery: TsqueryParser;
-    readonly toTsquery: TsqueryParser;
-    readonly plaintoTsquery: TsqueryParser;
-    readonly phrasetoTsquery: TsqueryParser;
+    readonly websearchToTsquery: TsqueryParserOperation;
+    readonly toTsquery: TsqueryParserOperation;
+    readonly plaintoTsquery: TsqueryParserOperation;
+    readonly phrasetoTsquery: TsqueryParserOperation;
   }
 >;
+
+/** {@link QueryOperationTypes} as a function of the contract's codec types, for a contract written in TypeScript. */
+export interface QueryOperationTypesForCodecs extends QueryOperationTypesConstructor {
+  readonly queryOperationTypes: QueryOperationTypes<this['codecTypes']>;
+}

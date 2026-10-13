@@ -9,6 +9,7 @@ export {
   plaintoTsquery,
   type TextArgument,
   type TsqueryExpression,
+  type TsqueryParser,
   type TsqueryParserOptions,
   toTsquery,
   websearchToTsquery,

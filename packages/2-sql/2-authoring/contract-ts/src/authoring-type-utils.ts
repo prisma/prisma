@@ -62,7 +62,14 @@ export type FieldBuilderFromPresetDescriptor<
     NamedConstraintState<
       ResolveTemplateValue<Descriptor['output']['unique'], Args> extends true ? true : false,
       ConstraintName
-    >
+    >,
+    false,
+    {
+      readonly column: Descriptor['output'] extends { readonly default: object } ? true : false;
+      readonly execution: Descriptor['output'] extends { readonly executionDefaults: object }
+        ? true
+        : false;
+    }
   >
 >;
 

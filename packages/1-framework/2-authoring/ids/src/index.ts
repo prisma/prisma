@@ -1,5 +1,6 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import { type BuiltinGeneratorId, builtinGeneratorIds } from './generator-ids';
@@ -88,16 +89,28 @@ export type GeneratedColumnSpec<TCodecId extends string = string> = {
   readonly generated: ExecutionMutationDefaultValue;
 };
 
-function createGeneratedSpec<TId extends BuiltinGeneratorId>(
+/** A generator's spec, typed with the length of the `character(N)` column it bundles. */
+export type GeneratedCharColumnSpec<Length extends number> = GeneratedColumnSpec<
+  typeof GENERATED_CHAR_TYPE.codecId
+> & { readonly typeParams: { readonly length: Length } };
+
+type NanoidLength<Options> = Options extends { readonly size: infer Size extends number }
+  ? Size
+  : 21;
+
+function createGeneratedSpec<TId extends BuiltinGeneratorId, Length extends number>(
   id: TId,
   options?: IdGeneratorOptionsById[TId],
-): GeneratedColumnSpec<typeof GENERATED_CHAR_TYPE.codecId> {
+): GeneratedCharColumnSpec<Length> {
   const params = options as Record<string, unknown> | undefined;
   const storage = builtinGeneratorMetadataById[id].generatedStorage(params);
   return {
     type: storage.type,
     nullable: false,
-    typeParams: storage.typeParams,
+    typeParams: blindCast<
+      { readonly length: Length },
+      'the generator metadata computes the length its helper declares in its type'
+    >(storage.typeParams),
     generated: {
       kind: 'generator',
       id,
@@ -107,14 +120,17 @@ function createGeneratedSpec<TId extends BuiltinGeneratorId>(
 }
 
 export const ulid = (options?: IdGeneratorOptionsById['ulid']) =>
-  createGeneratedSpec('ulid', options);
-export const nanoid = (options?: IdGeneratorOptionsById['nanoid']) =>
-  createGeneratedSpec('nanoid', options);
+  createGeneratedSpec<'ulid', 26>('ulid', options);
+export const nanoid = <
+  const Options extends IdGeneratorOptionsById['nanoid'] | undefined = undefined,
+>(
+  options?: Options,
+) => createGeneratedSpec<'nanoid', NanoidLength<Options>>('nanoid', options);
 export const uuidv7 = (options?: IdGeneratorOptionsById['uuidv7']) =>
-  createGeneratedSpec('uuidv7', options);
+  createGeneratedSpec<'uuidv7', 36>('uuidv7', options);
 export const uuidv4 = (options?: IdGeneratorOptionsById['uuidv4']) =>
-  createGeneratedSpec('uuidv4', options);
+  createGeneratedSpec<'uuidv4', 36>('uuidv4', options);
 export const cuid2 = (options?: IdGeneratorOptionsById['cuid2']) =>
-  createGeneratedSpec('cuid2', options);
+  createGeneratedSpec<'cuid2', 24>('cuid2', options);
 export const ksuid = (options?: IdGeneratorOptionsById['ksuid']) =>
-  createGeneratedSpec('ksuid', options);
+  createGeneratedSpec<'ksuid', 27>('ksuid', options);

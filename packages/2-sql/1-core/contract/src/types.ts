@@ -204,6 +204,32 @@ export type SqlQueryOperationTypes<
 
 export type QueryOperationTypesBase = Record<string, QueryOperationTypeEntry>;
 
+/**
+ * A pack's query operation types as a function of the contract's codec types. A pack declares an interface extending this one whose `queryOperationTypes` reads `this['codecTypes']`; {@link ApplyQueryOperationTypes} supplies the codec types.
+ */
+export interface QueryOperationTypesConstructor {
+  readonly codecTypes: Record<never, { readonly input: unknown; readonly output: unknown }>;
+  readonly queryOperationTypes: Record<string, unknown>;
+}
+
+export type ApplyQueryOperationTypes<
+  Constructor extends QueryOperationTypesConstructor,
+  CodecTypes extends Record<string, { readonly input: unknown; readonly output: unknown }>,
+> = (Constructor & { readonly codecTypes: CodecTypes })['queryOperationTypes'];
+
+/**
+ * A pack's codec output types refined by a column's type parameters, as the codecs' `renderOutputType` writes them into an emitted `contract.d.ts`. A pack declares an interface extending this one whose `outputTypes` reads `this['typeParams']`; a codec it leaves out, or maps to `never`, keeps its plain output type.
+ */
+export interface ParameterizedOutputTypesConstructor {
+  readonly typeParams: Record<never, unknown>;
+  readonly outputTypes: Record<string, unknown>;
+}
+
+export type ApplyParameterizedOutputTypes<
+  Constructor extends ParameterizedOutputTypesConstructor,
+  TypeParams extends Record<string, unknown>,
+> = (Constructor & { readonly typeParams: TypeParams })['outputTypes'];
+
 export type QueryOperationTypesOf<T> = [T] extends [never]
   ? Record<string, never>
   : T extends { readonly queryOperationTypes: infer Q }

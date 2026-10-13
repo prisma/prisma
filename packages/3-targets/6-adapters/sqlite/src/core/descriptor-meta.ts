@@ -1,5 +1,6 @@
 import { sqliteAggregateDescriptors } from '@internal/target-sqlite/aggregates';
 import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
+import { sqliteAdapterCapabilities } from './capabilities';
 
 export const sqliteAdapterDescriptorMeta = {
   kind: 'adapter',
@@ -7,19 +8,7 @@ export const sqliteAdapterDescriptorMeta = {
   targetId: 'sqlite',
   id: 'sqlite',
   version: '0.0.1',
-  capabilities: {
-    sql: {
-      orderBy: true,
-      limit: true,
-      lateral: false,
-      jsonAgg: true,
-      returning: true,
-      foreignKeys: true,
-      enums: false,
-      insertOnConflictSkip: true,
-      insertOnConflictWithoutTarget: true,
-    },
-  },
+  capabilities: sqliteAdapterCapabilities,
   types: {
     aggregateDescriptors: sqliteAggregateDescriptors,
     codecTypes: {

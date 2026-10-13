@@ -63,8 +63,11 @@ export type ScalarFieldState<
   IdSpec extends NamedConstraintSpec | undefined = undefined,
   UniqueSpec extends NamedConstraintSpec | undefined = undefined,
   Many extends false | { readonly elementNullable: boolean } = false,
+  Defaults extends FieldDefaults = FieldDefaults,
 > = {
   readonly kind: 'scalar';
+  /** Exists only in types: whether the column has a database default and whether the client generates a value on create. */
+  readonly __defaults?: Defaults;
   readonly descriptor?: Descriptor | undefined;
   readonly typeRef?: TypeRef | undefined;
   readonly nullable: Nullable;
@@ -77,6 +80,32 @@ export type ScalarFieldState<
   (UniqueSpec extends NamedConstraintSpec
     ? { readonly unique: UniqueSpec }
     : { readonly unique?: undefined });
+
+/** Whether a field's column has a database default, and whether the client generates its value on create. */
+export type FieldDefaults = { readonly column: boolean; readonly execution: boolean };
+
+type WithColumnDefault<State extends AnyScalarFieldState> =
+  State extends ScalarFieldState<
+    infer Descriptor,
+    infer TypeRef,
+    infer Nullable,
+    infer ColumnName,
+    infer IdSpec,
+    infer UniqueSpec,
+    infer Many,
+    infer Defaults
+  >
+    ? ScalarFieldState<
+        Descriptor,
+        TypeRef,
+        Nullable,
+        ColumnName,
+        IdSpec,
+        UniqueSpec,
+        Many,
+        { readonly column: true; readonly execution: Defaults['execution'] }
+      >
+    : State;
 
 type AnyScalarFieldState = {
   readonly kind: 'scalar';
@@ -142,7 +171,8 @@ type ApplyFieldSqlSpec<
     infer ColumnName,
     infer IdSpec,
     infer UniqueSpec,
-    infer Many
+    infer Many,
+    infer Defaults
   >
     ? ScalarFieldState<
         Descriptor,
@@ -159,7 +189,8 @@ type ApplyFieldSqlSpec<
             ? NamedConstraintSpec<UniqueName>
             : UniqueSpec
           : UniqueSpec,
-        Many
+        Many,
+        Defaults
       >
     : AnyScalarFieldState;
 
@@ -248,7 +279,8 @@ type ApplyMany<State extends AnyScalarFieldState, ElementsNullable extends boole
     infer ColumnName,
     infer IdSpec,
     infer UniqueSpec,
-    false | { readonly elementNullable: boolean }
+    false | { readonly elementNullable: boolean },
+    infer Defaults
   >
     ? ScalarFieldState<
         Descriptor,
@@ -257,7 +289,8 @@ type ApplyMany<State extends AnyScalarFieldState, ElementsNullable extends boole
         ColumnName,
         IdSpec,
         UniqueSpec,
-        { readonly elementNullable: ElementsNullable }
+        { readonly elementNullable: ElementsNullable },
+        Defaults
       >
     : AnyScalarFieldState;
 
@@ -290,9 +323,10 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer ColumnName,
       infer IdSpec,
       infer UniqueSpec,
-      infer Many
+      infer Many,
+      infer Defaults
     >
-      ? ScalarFieldState<Descriptor, TypeRef, true, ColumnName, IdSpec, UniqueSpec, Many>
+      ? ScalarFieldState<Descriptor, TypeRef, true, ColumnName, IdSpec, UniqueSpec, Many, Defaults>
       : AnyScalarFieldState
   > {
     return new ScalarFieldBuilder(
@@ -304,9 +338,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           infer ColumnName,
           infer IdSpec,
           infer UniqueSpec,
-          infer Many
+          infer Many,
+          infer Defaults
         >
-          ? ScalarFieldState<Descriptor, TypeRef, true, ColumnName, IdSpec, UniqueSpec, Many>
+          ? ScalarFieldState<
+              Descriptor,
+              TypeRef,
+              true,
+              ColumnName,
+              IdSpec,
+              UniqueSpec,
+              Many,
+              Defaults
+            >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
       >({
@@ -326,9 +370,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       string | undefined,
       infer IdSpec,
       infer UniqueSpec,
-      infer Many
+      infer Many,
+      infer Defaults
     >
-      ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, Many>
+      ? ScalarFieldState<
+          Descriptor,
+          TypeRef,
+          Nullable,
+          ColumnName,
+          IdSpec,
+          UniqueSpec,
+          Many,
+          Defaults
+        >
       : AnyScalarFieldState
   > {
     return new ScalarFieldBuilder(
@@ -340,9 +394,19 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           string | undefined,
           infer IdSpec,
           infer UniqueSpec,
-          infer Many
+          infer Many,
+          infer Defaults
         >
-          ? ScalarFieldState<Descriptor, TypeRef, Nullable, ColumnName, IdSpec, UniqueSpec, Many>
+          ? ScalarFieldState<
+              Descriptor,
+              TypeRef,
+              Nullable,
+              ColumnName,
+              IdSpec,
+              UniqueSpec,
+              Many,
+              Defaults
+            >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
       >({
@@ -396,22 +460,22 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   default<Self extends { readonly __state: AnyScalarFieldState }>(
     this: Self,
     value: DefaultArgumentOf<Self['__state']>,
-  ): ScalarFieldBuilder<State>;
-  default(value: unknown): ScalarFieldBuilder<State> {
+  ): ScalarFieldBuilder<WithColumnDefault<State>>;
+  default(value: unknown): ScalarFieldBuilder<WithColumnDefault<State>> {
     return new ScalarFieldBuilder({
       ...this.state,
       default: toColumnDefault(value),
-    }) as ScalarFieldBuilder<State>;
+    }) as ScalarFieldBuilder<WithColumnDefault<State>>;
   }
 
   /**
    * @deprecated Write `.default(now())` or `.default(autoincrement())`, or `` .default(sql`...`) `` for any other SQL. Removed in 8.0.0.
    */
-  defaultSql(expression: string): ScalarFieldBuilder<State> {
+  defaultSql(expression: string): ScalarFieldBuilder<WithColumnDefault<State>> {
     return new ScalarFieldBuilder({
       ...this.state,
       default: { kind: 'function', expression },
-    }) as ScalarFieldBuilder<State>;
+    }) as ScalarFieldBuilder<WithColumnDefault<State>>;
   }
 
   id<const Name extends string | undefined = undefined>(
@@ -424,7 +488,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer ColumnName,
       NamedConstraintSpec | undefined,
       infer UniqueSpec,
-      infer Many
+      infer Many,
+      infer Defaults
     >
       ? ScalarFieldState<
           Descriptor,
@@ -433,7 +498,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           ColumnName,
           NamedConstraintSpec<Name>,
           UniqueSpec,
-          Many
+          Many,
+          Defaults
         >
       : AnyScalarFieldState
   > {
@@ -446,7 +512,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           infer ColumnName,
           NamedConstraintSpec | undefined,
           infer UniqueSpec,
-          infer Many
+          infer Many,
+          infer Defaults
         >
           ? ScalarFieldState<
               Descriptor,
@@ -455,7 +522,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
               ColumnName,
               NamedConstraintSpec<Name>,
               UniqueSpec,
-              Many
+              Many,
+              Defaults
             >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
@@ -476,7 +544,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
       infer ColumnName,
       infer IdSpec,
       NamedConstraintSpec | undefined,
-      infer Many
+      infer Many,
+      infer Defaults
     >
       ? ScalarFieldState<
           Descriptor,
@@ -485,7 +554,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           ColumnName,
           IdSpec,
           NamedConstraintSpec<Name>,
-          Many
+          Many,
+          Defaults
         >
       : AnyScalarFieldState
   > {
@@ -498,7 +568,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
           infer ColumnName,
           infer IdSpec,
           NamedConstraintSpec | undefined,
-          infer Many
+          infer Many,
+          infer Defaults
         >
           ? ScalarFieldState<
               Descriptor,
@@ -507,7 +578,8 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
               ColumnName,
               IdSpec,
               NamedConstraintSpec<Name>,
-              Many
+              Many,
+              Defaults
             >
           : AnyScalarFieldState,
         'object spread does not narrow the generic State conditional; runtime shape is correct'
@@ -574,10 +646,10 @@ export class EnumScalarFieldBuilder<
   override default<Self extends { readonly __state: AnyScalarFieldState }>(
     this: Self,
     value: DefaultArgumentOf<Self['__state']>,
-  ): EnumScalarFieldBuilder<Handle, State>;
-  override default(value: unknown): EnumScalarFieldBuilder<Handle, State> {
+  ): EnumScalarFieldBuilder<Handle, WithColumnDefault<State>>;
+  override default(value: unknown): EnumScalarFieldBuilder<Handle, WithColumnDefault<State>> {
     return blindCast<
-      EnumScalarFieldBuilder<Handle, State>,
+      EnumScalarFieldBuilder<Handle, WithColumnDefault<State>>,
       'object spread does not narrow the generic State conditional; runtime shape is correct'
     >(
       new EnumScalarFieldBuilder(
@@ -636,15 +708,37 @@ const columnField: ColumnFieldHelper = (descriptor) =>
     many: false,
   });
 
-function generatedField<Descriptor extends ColumnTypeDescriptor>(
-  spec: GeneratedFieldSpec & { readonly type: Descriptor },
-): ScalarFieldBuilder<ScalarFieldState<Descriptor, undefined, false, undefined>> {
+type WithGeneratedTypeParams<Descriptor, TypeParams> =
+  TypeParams extends Record<string, unknown>
+    ? Descriptor & { readonly typeParams: TypeParams }
+    : Descriptor;
+
+function generatedField<
+  Descriptor extends ColumnTypeDescriptor,
+  TypeParams extends Record<string, unknown> | undefined = undefined,
+>(
+  spec: GeneratedFieldSpec & { readonly type: Descriptor; readonly typeParams?: TypeParams },
+): ScalarFieldBuilder<
+  ScalarFieldState<
+    WithGeneratedTypeParams<Descriptor, TypeParams>,
+    undefined,
+    false,
+    undefined,
+    undefined,
+    undefined,
+    false,
+    { readonly column: false; readonly execution: true }
+  >
+> {
   return new ScalarFieldBuilder({
     kind: 'scalar',
-    descriptor: {
+    descriptor: blindCast<
+      WithGeneratedTypeParams<Descriptor, TypeParams>,
+      'the spread adds typeParams exactly when the spec has them'
+    >({
       ...spec.type,
       ...(spec.typeParams ? { typeParams: spec.typeParams } : {}),
-    },
+    }),
     nullable: false,
     many: false,
     executionDefaults: { onCreate: spec.generated },
@@ -736,9 +830,11 @@ type BelongsToRelation<
   FromField extends string | readonly string[] = string | readonly string[],
   ToField extends string | readonly string[] = string | readonly string[],
   SqlSpec extends BelongsToRelationSqlSpec | undefined = undefined,
-  Optional extends boolean | undefined = boolean | undefined,
+  TargetSpaceId extends string = string,
 > = {
   readonly kind: 'belongsTo';
+  /** The contract space of the target model, `'<self>'` for this contract's own models. Type-only. */
+  readonly __targetSpaceId?: TargetSpaceId;
   readonly toModel: RelationModelSource<ToModel>;
   readonly from: FromField;
   readonly to: ToField;
@@ -747,7 +843,7 @@ type BelongsToRelation<
    * Whether the related row may be absent. Defaults to whether any `from`
    * field is nullable; an explicit value that contradicts them is rejected.
    */
-  readonly optional?: Optional;
+  readonly optional?: boolean;
   /**
    * Contract-space identity of the target model. Populated when
    * `belongsTo` receives a cross-space branded handle. Absent for
@@ -820,9 +916,9 @@ type ApplyBelongsToRelationSqlSpec<
     infer FromField,
     infer ToField,
     BelongsToRelationSqlSpec | undefined,
-    infer Optional
+    infer TargetSpaceId
   >
-    ? BelongsToRelation<ToModel, FromField, ToField, SqlSpec, Optional>
+    ? BelongsToRelation<ToModel, FromField, ToField, SqlSpec, TargetSpaceId>
     : never;
 
 export class RelationBuilder<State extends RelationState = AnyRelationState> {
@@ -1932,6 +2028,12 @@ type RelationModelName<Target> =
       ? RelationModelName<Token>
       : never;
 
+type RelationSpaceId<Target> = Target extends { readonly __spaceId: infer SpaceId extends string }
+  ? SpaceId
+  : Target extends () => infer Token
+    ? RelationSpaceId<Token>
+    : '<self>';
+
 type RelationModelFieldNames<Target> =
   Target extends NamedModelTokenShape<string, infer Fields>
     ? keyof Fields & string
@@ -2246,22 +2348,20 @@ function belongsTo<
   Token extends AnyNamedModelToken,
   const FromField extends string | readonly string[],
   const ToField extends RelationFieldSelection<RelationModelFieldNames<Token>>,
-  const Optional extends boolean | undefined = undefined,
 >(
   toModel: Token | LazyNamedModelToken<Token>,
-  options: { readonly from: FromField; readonly to: ToField; readonly optional?: Optional },
+  options: { readonly from: FromField; readonly to: ToField; readonly optional?: boolean },
 ): RelationBuilder<
-  BelongsToRelation<RelationModelName<Token>, FromField, ToField, undefined, Optional>
+  BelongsToRelation<RelationModelName<Token>, FromField, ToField, undefined, RelationSpaceId<Token>>
 >;
 function belongsTo<
   ToModel extends string,
   const FromField extends string | readonly string[],
   const ToField extends string | readonly string[],
-  const Optional extends boolean | undefined = undefined,
 >(
   toModel: ToModel,
-  options: { readonly from: FromField; readonly to: ToField; readonly optional?: Optional },
-): RelationBuilder<BelongsToRelation<ToModel, FromField, ToField, undefined, Optional>>;
+  options: { readonly from: FromField; readonly to: ToField; readonly optional?: boolean },
+): RelationBuilder<BelongsToRelation<ToModel, FromField, ToField, undefined, '<self>'>>;
 function belongsTo(
   toModel: string | AnyNamedModelToken | LazyNamedModelToken,
   options: {

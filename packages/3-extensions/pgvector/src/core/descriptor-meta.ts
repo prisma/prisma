@@ -5,8 +5,8 @@ import {
   type Expression,
   toExpr,
 } from '@internal/sql-relational-core/expression';
-import type { CodecTypes } from '../types/codec-types';
-import type { QueryOperationTypes } from '../types/operation-types';
+import type { CodecTypes, ParameterizedOutputTypes } from '../types/codec-types';
+import type { QueryOperationTypes, QueryOperationTypesForCodecs } from '../types/operation-types';
 import { pgvectorAuthoringTypes } from './authoring';
 import { pgvectorDataTypes } from './data-types';
 import { pgvectorCodecRegistry } from './registry';
@@ -106,4 +106,6 @@ const pgvectorPackMetaBase = {
 
 export const pgvectorPackMeta: typeof pgvectorPackMetaBase & {
   readonly __codecTypes?: CodecTypes;
+  readonly __queryOperationTypes?: QueryOperationTypesForCodecs;
+  readonly __parameterizedOutputTypes?: ParameterizedOutputTypes;
 } = pgvectorPackMetaBase;

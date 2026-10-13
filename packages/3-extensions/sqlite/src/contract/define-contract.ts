@@ -1,3 +1,4 @@
+import type { sqliteAdapterCapabilities } from '@internal/adapter-sqlite/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   assembleDataTypes,
@@ -29,6 +30,9 @@ type TypesConstraint = Record<string, AuthoredStorageTypeInstance>;
 type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
 
+/** What the adapter this contract runs with adds to the contract's type, as `prisma contract emit` adds it. */
+type SqliteAdapterTypes = { readonly capabilities: typeof sqliteAdapterCapabilities };
+
 type SqliteResult<
   Types extends TypesConstraint,
   Models extends ModelsConstraint,
@@ -43,6 +47,7 @@ type SqliteResult<
       readonly models?: Models;
       readonly extensions?: Extensions;
       readonly enums?: Enums;
+      readonly adapter?: SqliteAdapterTypes;
       readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
       readonly codecLookup: CodecLookupWithDescriptors;
       readonly dataTypeLookup: DataTypeLookup;
@@ -127,13 +132,14 @@ export function defineContract(
   const extensionPacks: readonly ExtensionPackRef<'sql', string>[] = Object.values(
     definition.extensions ?? {},
   );
-  const bound = {
+  const boundInput = {
     ...definition,
     createNamespace: sqliteCreateNamespace,
     codecLookup: definition.codecLookup ?? assembleSqliteCodecRegistry(target, extensionPacks),
     dataTypeLookup:
       definition.dataTypeLookup ?? assembleDataTypes([target, ...extensionPacks]).lookup,
   };
+  const bound: typeof boundInput & { readonly adapter?: SqliteAdapterTypes } = boundInput;
   if (factory !== undefined) {
     return buildBoundContract(sqlFamilyPack, sqlitePack, bound, factory);
   }

@@ -4,4 +4,4 @@
  * Re-export from types module for public API.
  */
 
-export type { CodecTypes, Vector } from '../types/codec-types';
+export type { CodecTypes, ParameterizedOutputTypes, Vector } from '../types/codec-types';
