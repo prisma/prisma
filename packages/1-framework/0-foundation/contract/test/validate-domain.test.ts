@@ -252,6 +252,24 @@ describe('validateContractDomain()', () => {
       expect(() => validateContractDomain(contract)).not.toThrow();
     });
 
+    it('rejects a variant listed under two discriminator values', () => {
+      const contract = makeValidContract({
+        models: {
+          Item: makeMinimalModel({
+            fields: {
+              type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+            },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug'), defect: crossRef('Bug') },
+          }),
+          Bug: makeMinimalModel({ base: crossRef('Item') }),
+        },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(
+        'Model "__unbound__:Item" lists variant "__unbound__:Bug" under both discriminator values "bug" and "defect"',
+      );
+    });
+
     it('rejects model with base referencing non-existent model', () => {
       const contract = makeValidContract({
         models: {

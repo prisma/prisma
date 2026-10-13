@@ -111,7 +111,16 @@ function validateRoots(
 function validateVariantsAndBases(modelIndex: ModelIndex, errors: string[]): void {
   for (const { namespaceId, name: modelName, model } of iterateIndexedModels(modelIndex)) {
     if (model.variants) {
-      for (const variantRef of Object.values(model.variants)) {
+      const valuesByVariant = new Map<string, string>();
+      for (const [value, variantRef] of Object.entries(model.variants)) {
+        const variantKey = JSON.stringify([variantRef.namespace, variantRef.model]);
+        const earlierValue = valuesByVariant.get(variantKey);
+        if (earlierValue !== undefined) {
+          errors.push(
+            `Model "${namespaceId}:${modelName}" lists variant "${variantRef.namespace}:${variantRef.model}" under both discriminator values "${earlierValue}" and "${value}"`,
+          );
+        }
+        valuesByVariant.set(variantKey, value);
         const variantEntry = lookupModel(modelIndex, variantRef);
         if (!variantEntry) {
           errors.push(
