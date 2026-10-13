@@ -550,6 +550,44 @@ function refuseUnknownCopyExpressionColumns(
   );
 }
 
+/**
+ * A temporary value fills a column the old table does not have, and only that: for a column the
+ * old table has it would replace every existing value, and a column with a copy expression is
+ * already filled by its conversion.
+ */
+function refuseMisplacedTemporaryValues(
+  tableName: string,
+  schemaColumnNames: readonly string[],
+  copyExpressions: Readonly<Record<string, SqlSlot>>,
+  temporaryValues: Readonly<Record<string, SqlSlot>>,
+): void {
+  const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
+  for (const column of Object.keys(temporaryValues)) {
+    if (schemaColumnNames.includes(column)) {
+      throw sqliteError(
+        'MIGRATION.TEMPORARY_VALUE_INVALID',
+        `${call}: temporaryValues.${column} names a column the old table already has, so the copy would replace every value of it.`,
+        {
+          why: 'A temporary value fills a new column in the existing rows. A column the old table has keeps its values through the copy, or is converted by a copy expression.',
+          fix: `Remove temporaryValues.${column}. To change the values of "${column}", write a conversion in copyExpressions.${column} instead.`,
+          meta: { call, column, reason: 'existingColumn' },
+        },
+      );
+    }
+    if (Object.hasOwn(copyExpressions, column)) {
+      throw sqliteError(
+        'MIGRATION.TEMPORARY_VALUE_INVALID',
+        `${call}: "${column}" is named in both copyExpressions and temporaryValues, so it would be filled twice.`,
+        {
+          why: 'A column is filled either by the conversion in copyExpressions or by a temporary value, not both.',
+          fix: `Keep one of copyExpressions.${column} and temporaryValues.${column}.`,
+          meta: { call, column, reason: 'alsoConverted' },
+        },
+      );
+    }
+  }
+}
+
 function sqlOfSlots(slots: Readonly<Record<string, SqlSlot>>): Record<string, string> {
   return Object.fromEntries(
     Object.entries(slots).flatMap(([column, slot]) => {
@@ -596,6 +634,12 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       temporaryValues: args.temporaryValues ?? {},
       retypedColumns: args.retypedColumns ?? [],
     });
+    refuseMisplacedTemporaryValues(
+      args.tableName,
+      args.schemaColumnNames,
+      args.copyExpressions ?? {},
+      args.temporaryValues ?? {},
+    );
     this.copyExpressions = Object.freeze({ ...args.copyExpressions });
     this.temporaryValues = Object.freeze({ ...args.temporaryValues });
     this.retypedColumns = Object.freeze([...(args.retypedColumns ?? [])]);

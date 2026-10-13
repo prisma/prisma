@@ -859,6 +859,49 @@ describe('RecreateTableCall copy expressions', () => {
     });
   });
 
+  it('refuses a temporary value for a column the old table already has, which would overwrite its values', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id', 'age'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'additive',
+          temporaryValues: { age: { kind: 'sql', sql: '0' } },
+        }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.TEMPORARY_VALUE_INVALID',
+        meta: expect.objectContaining({ column: 'age', reason: 'existingColumn' }),
+      }),
+    );
+  });
+
+  it('refuses a column named in both copyExpressions and temporaryValues', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'additive',
+          copyExpressions: { age: { kind: 'sql', sql: '1' } },
+          temporaryValues: { age: { kind: 'sql', sql: '0' } },
+        }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.TEMPORARY_VALUE_INVALID',
+        meta: expect.objectContaining({ column: 'age', reason: 'alsoConverted' }),
+      }),
+    );
+  });
+
   it('refuses a temporary value for a name that is not a column of the new table', () => {
     expect(
       () =>

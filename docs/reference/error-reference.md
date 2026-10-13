@@ -1738,6 +1738,10 @@ A filesystem-path target given to a migration command does not resolve to an app
 
 The configured target does not provide migration support (no planner/runner via `target.migrations`), so migration commands like `db init` cannot run against it. Select a target that provides migrations.
 
+### MIGRATION.TEMPORARY_VALUE_INVALID
+
+A SQLite `recreateTable` call in `migration.ts` has a `temporaryValues` entry that cannot be a temporary value. A temporary value fills a new required column in the existing rows, so it is refused for a column the old table already has (`schemaColumnNames`), where the copy would replace every value of it (`reason: 'existingColumn'`); to change those values, write a conversion in `copyExpressions` instead. It is also refused for a column that `copyExpressions` names too, which would be filled twice (`reason: 'alsoConverted'`); keep one of the two. Payload: `call`, `column`, `reason`.
+
 ### MIGRATION.UNFILLED_PLACEHOLDER
 
 A scaffolded migration still contains a `placeholder(...)` call that the author never replaced with a real query; it throws when the migration is emitted or run. The `slot` names the exact location to edit (e.g. `"backfill-product-status:check.source"`). Payload: `slot`.
