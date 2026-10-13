@@ -205,9 +205,9 @@ function buildCountMutationWhere(
   contract: Contract<SqlStorage>,
   tables: CollectionTables,
   filters: readonly AnyExpression[],
-  variantName: string | undefined,
+  variantValue: string | undefined,
 ): AnyExpression | undefined {
-  const variantTable = variantName === undefined ? undefined : tables.variants.get(variantName);
+  const variantTable = variantValue === undefined ? undefined : tables.variants.get(variantValue);
   if (variantTable === undefined) {
     return combineWhereExprs(filters);
   }
@@ -370,11 +370,11 @@ export function compileUpdateCount(
   tables: CollectionTables,
   setValues: Record<string, unknown>,
   filters: readonly AnyExpression[],
-  variantName?: string | undefined,
+  variantValue?: string | undefined,
 ): SqlQueryPlan<Record<string, unknown>> {
   const { root } = tables;
   const { namespaceId, tableName } = root.storage;
-  const where = buildCountMutationWhere(contract, tables, filters, variantName);
+  const where = buildCountMutationWhere(contract, tables, filters, variantValue);
   const { assignments } = toParamAssignments(contract, namespaceId, tableName, setValues);
   let ast = UpdateAst.table(root.tableSource(contract)).withSet(assignments);
   if (where) {
@@ -407,9 +407,9 @@ export function compileDeleteCount(
   contract: Contract<SqlStorage>,
   tables: CollectionTables,
   filters: readonly AnyExpression[],
-  variantName?: string | undefined,
+  variantValue?: string | undefined,
 ): SqlQueryPlan<Record<string, unknown>> {
-  const where = buildCountMutationWhere(contract, tables, filters, variantName);
+  const where = buildCountMutationWhere(contract, tables, filters, variantValue);
   let ast = DeleteAst.from(tables.root.tableSource(contract));
   if (where) {
     ast = ast.withWhere(where);

@@ -141,7 +141,7 @@ describe('contract types', () => {
       relations: {},
       storage: {},
       discriminator: { field: 'type' },
-      variants: { Special: { value: 'special' } },
+      variants: { special: crossRef('Special') },
     };
     expect(model.discriminator?.field).toBe('type');
     expect(model.variants).toBeDefined();

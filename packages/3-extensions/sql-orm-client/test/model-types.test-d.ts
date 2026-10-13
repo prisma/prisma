@@ -78,19 +78,19 @@ test('DefaultModelRow equals Scalars of the emitted model for every non-polymorp
 });
 
 test('VariantModelRow equals Scalars of the emitted variant member', () => {
-  expectTypeOf<VariantModelRow<PolyContract, 'Task', 'Bug'>>().toEqualTypeOf<
+  expectTypeOf<VariantModelRow<PolyContract, 'Task', 'bug'>>().toEqualTypeOf<
     Scalars<PolyModels.public_Bug>
   >();
-  expectTypeOf<VariantModelRow<PolyContract, 'Task', 'Feature'>>().toEqualTypeOf<
+  expectTypeOf<VariantModelRow<PolyContract, 'Task', 'feature'>>().toEqualTypeOf<
     Scalars<PolyModels.public_Feature>
   >();
-  expectTypeOf<VariantModelRow<PolyContract, 'Task', 'Epic'>>().toEqualTypeOf<
+  expectTypeOf<VariantModelRow<PolyContract, 'Task', 'epic'>>().toEqualTypeOf<
     Scalars<PolyModels.public_Epic>
   >();
-  expectTypeOf<VariantModelRow<PolyContract, 'User', 'Admin'>>().toEqualTypeOf<
+  expectTypeOf<VariantModelRow<PolyContract, 'User', 'admin'>>().toEqualTypeOf<
     Scalars<PolyModels.public_Admin>
   >();
-  expectTypeOf<VariantModelRow<PolyContract, 'User', 'Regular'>>().toEqualTypeOf<
+  expectTypeOf<VariantModelRow<PolyContract, 'User', 'regular'>>().toEqualTypeOf<
     Scalars<PolyModels.public_Regular>
   >();
 });

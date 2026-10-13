@@ -459,8 +459,8 @@ const ModelSchema = type({
   storage: ModelStorageSchema,
   'fields?': type({ '[string]': ModelFieldSchema }),
   'relations?': type({ '[string]': ContractRelationSchema }),
-  'discriminator?': 'unknown',
-  'variants?': 'unknown',
+  'discriminator?': type({ field: 'string' }),
+  'variants?': type({ '[string]': CrossReferenceSchema }),
   'base?': CrossReferenceSchema,
   'owner?': 'string',
 });

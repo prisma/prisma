@@ -92,10 +92,6 @@ export type ContractDiscriminator = {
   readonly field: string;
 };
 
-export type ContractVariantEntry = {
-  readonly value: string;
-};
-
 export type ContractValueObject = {
   readonly fields: Record<string, ContractField>;
 };
@@ -107,7 +103,7 @@ export interface ContractModelBase<TModelStorage extends ModelStorageBase = Mode
   readonly relations: Record<string, ContractRelation>;
   readonly storage: TModelStorage;
   readonly discriminator?: ContractDiscriminator;
-  readonly variants?: Record<string, ContractVariantEntry>;
+  readonly variants?: Record<string, CrossReference>;
   readonly base?: CrossReference;
   readonly owner?: string;
 }

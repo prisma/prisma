@@ -26,7 +26,7 @@ describe('cross-reference shape round-trip', () => {
             kind: { nullable: false, many: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
           },
           discriminator: { field: 'kind' },
-          variants: { Post: { value: 'post' } },
+          variants: { post: crossRef('Post', UNBOUND_DOMAIN_NAMESPACE_ID) },
           relations: {
             posts: {
               to: relationCrossRef,

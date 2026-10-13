@@ -184,7 +184,7 @@ describe('mapPolymorphicRow()', () => {
       'Task',
       polyInfo,
       createCollectionTables(contract, 'public', 'Task'),
-      'Feature',
+      'feature',
     );
     expect(lookup).toHaveBeenCalledWith(contract, 'public', 'Task');
     const calls = lookup.mock.calls.length;
@@ -299,7 +299,7 @@ describe('mapPolymorphicRow()', () => {
     expect(result).toEqual({ id: 2, priority: 1 });
   });
 
-  it('maps row with known variant using variantName override', () => {
+  it('maps row with known variant using variantValue override', () => {
     const contract = buildMixedPolyContract();
     const polyInfo = resolvePolymorphismInfo(contract, 'public', 'Task')!;
 
@@ -311,7 +311,7 @@ describe('mapPolymorphicRow()', () => {
       polyInfo,
       createCollectionTables(contract, 'public', 'Task'),
       row,
-      'Bug',
+      'bug',
     );
 
     expect(result).toEqual({ id: 1, title: 'Crash', type: 'bug', severity: 'high' });
