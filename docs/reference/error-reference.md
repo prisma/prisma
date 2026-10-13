@@ -1612,7 +1612,7 @@ A planned operation's class (e.g. `destructive`) is not allowed by the execution
 
 ### MIGRATION.POSTCHECK_FAILED
 
-After executing a migration operation, one of its postcheck steps (a query expected to return true) did not hold, so the apply is rolled back. The SQLite check after a rebuild that a retyped column's values took the new type names the field (`failedCast`) and the first value that kept its old storage class. Payload: `operationId`, `phase`, `stepDescription`.
+After executing a migration operation, one of its postcheck steps (a query expected to return true) did not hold, so the apply is rolled back. The SQLite check after a rebuild that a retyped column's values took the new type names the field (`failedCast`) and the first value that kept its old storage class. When the step checks that a backfill left no row without a value (the postcheck of a Postgres backfill data transform, or a SQLite tightening rebuild), the runner counts the rows that still hold NULL (`rowsWithoutValue`), and the summary names the count, for example `1 row of "user" still holds NULL in "name" after its backfill step, so it cannot become required.` Payload: `operationId`, `phase`, `stepDescription`.
 
 ### MIGRATION.POSTGRES_CONTROL_STACK_MISSING
 

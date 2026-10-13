@@ -249,6 +249,8 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
         `backfill-${tableName}-${expected.name}`,
         `${slot}:check`,
         `${slot}:run`,
+        'data',
+        { schema: schemaName, table: tableName, column: expected.name },
       ),
       new SetNotNullCall(schemaName, tableName, expected.name),
     );
@@ -382,6 +384,8 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
         `handle-nulls-${tableName}-${expected.name}`,
         `${slot}:check`,
         `${slot}:run`,
+        'data',
+        { schema: schemaName, table: tableName, column: expected.name },
       ),
       new SetNotNullCall(schemaName, tableName, expected.name),
     );

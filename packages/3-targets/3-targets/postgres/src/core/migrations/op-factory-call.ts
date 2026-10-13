@@ -98,6 +98,7 @@ import {
   renameConstraint,
   renameConstraintLabel,
 } from './operations/constraints';
+import type { DataTransformBackfill } from './operations/data-transform';
 import { createExtension } from './operations/dependencies';
 import { type CreateIndexExtras, createIndex, dropIndex, renameIndex } from './operations/indexes';
 import { createNativeEnumType, dropNativeEnumType } from './operations/native-enum-types';
@@ -2001,18 +2002,21 @@ export class DataTransformCall extends PostgresOpFactoryCallNode {
   readonly label: string;
   readonly checkSlot: string;
   readonly runSlot: string;
+  readonly backfills: DataTransformBackfill | undefined;
 
   constructor(
     label: string,
     checkSlot: string,
     runSlot: string,
     operationClass: MigrationOperationClass = 'data',
+    backfills?: DataTransformBackfill,
   ) {
     super();
     this.label = label;
     this.checkSlot = checkSlot;
     this.runSlot = runSlot;
     this.operationClass = operationClass;
+    this.backfills = backfills;
     this.freeze();
   }
 
@@ -2023,6 +2027,9 @@ export class DataTransformCall extends PostgresOpFactoryCallNode {
   renderTypeScript(): string {
     return [
       `this.dataTransform(endContract, ${jsonToTsSource(this.label)}, {`,
+      ...(this.backfills === undefined
+        ? []
+        : [`  backfills: ${jsonToTsSource(this.backfills).replaceAll('\n', '\n  ')},`]),
       `  check: () => placeholder(${jsonToTsSource(this.checkSlot)}),`,
       `  run: () => placeholder(${jsonToTsSource(this.runSlot)}),`,
       '})',

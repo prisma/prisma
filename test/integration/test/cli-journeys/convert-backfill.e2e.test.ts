@@ -3,7 +3,8 @@
  *
  * A lossy type change is refused without a statement; `--delete` plans the direct alter, and
  * `--convert` writes a `User.age:convert` slot in `using` that, filled and re-run, converts the rows. A new required field
- * gets a temporary value without a statement, and a backfill step with `--backfill`. An optional
+ * gets a temporary value without a statement, and a backfill step with `--backfill`, whose `run`
+ * first misses a row and fails counting it. An optional
  * field made required while rows hold NULL fails naming the rows, and applies once they hold
  * values. `db update --convert` is refused, and the `migration plan` command it prints, run as
  * printed on a database `db init` created, leads to an applied conversion. After each journey a
@@ -12,7 +13,7 @@
  */
 
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'pathe';
+import { join, relative } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
@@ -194,16 +195,44 @@ withTempDir(({ createTempDir }) => {
         rmSync(latestDir(ctx), { recursive: true });
         const backfill = await runMigrationPlan(ctx, [...titleFrom, ...(advice ?? '').split(' ')]);
         expect(backfill.exitCode, `plan --backfill: ${backfill.stderr}`).toBe(0);
-        await fillAndApply(ctx, (scaffold) =>
+        const migrationTs = join(latestDir(ctx), 'migration.ts');
+        const scaffold = readFileSync(migrationTs, 'utf-8');
+        const fillRun = (run: string) =>
           injectMigrationSqlDbSetup(scaffold)
             .replace(
               "() => placeholder('User.title:check')",
               "() => db.public.user.select('id').where((f, fns) => fns.eq(f.title, null)).limit(1)",
             )
-            .replace(
-              "() => placeholder('User.title:run')",
-              "() => db.public.user.update({ title: 'untitled' }).where((f, fns) => fns.eq(f.title, null))",
-            ),
+            .replace("() => placeholder('User.title:run')", run);
+
+        writeFileSync(
+          migrationTs,
+          fillRun(
+            "() => db.public.user.update({ title: 'untitled' }).where((f, fns) => fns.eq(f.id, 1))",
+          ),
+        );
+        const emitted = await selfEmitMigration(ctx, [
+          '--dir',
+          latestDir(ctx),
+          '--config',
+          ctx.configPath,
+        ]);
+        expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
+        const missed = await runMigrate(ctx, ['--json']);
+        expect(missed.exitCode).not.toBe(0);
+        expect(engineError(missed)?.summary).toBe(
+          '1 row of "user" still holds NULL in "title" after its backfill step, so it cannot become required.',
+        );
+        const missedAdvice = JSON.stringify(engineError(missed)?.nextActions);
+        expect(missedAdvice).not.toContain('--backfill');
+        expect(missedAdvice).toContain(
+          `Make its run fill every row in \`${relative(ctx.testDir, migrationTs)}\``,
+        );
+
+        await fillAndApply(ctx, () =>
+          fillRun(
+            "() => db.public.user.update({ title: 'untitled' }).where((f, fns) => fns.eq(f.title, null))",
+          ),
         );
 
         const rows = await sql(

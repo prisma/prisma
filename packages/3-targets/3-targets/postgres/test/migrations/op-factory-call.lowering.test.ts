@@ -1083,6 +1083,25 @@ describe('DataTransformCall', () => {
     expect(ts).toContain('run: () => placeholder("backfill-status:run")');
   });
 
+  it('renders the column a backfill fills, so its operation can name the rows it missed', () => {
+    const call = new DataTransformCall(
+      'backfill-user-title',
+      'User.title:check',
+      'User.title:run',
+      'data',
+      { schema: 'public', table: 'user', column: 'title' },
+    );
+    expect(call.renderTypeScript()).toBe(
+      [
+        'this.dataTransform(endContract, "backfill-user-title", {',
+        '  backfills: { schema: "public", table: "user", column: "title" },',
+        '  check: () => placeholder("User.title:check"),',
+        '  run: () => placeholder("User.title:run"),',
+        '})',
+      ].join('\n'),
+    );
+  });
+
   it('importRequirements() references only the placeholder facade import (endContract comes from the scaffold)', () => {
     const call = new DataTransformCall('Backfill status', 'check', 'run');
     expect(call.importRequirements()).toEqual([

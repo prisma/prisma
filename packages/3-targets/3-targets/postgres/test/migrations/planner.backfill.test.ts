@@ -246,4 +246,30 @@ describe('the backfill slots', () => {
       ['User.name:check', 'User.name:run', 'User.nickname:check', 'User.nickname:run'].sort(),
     );
   });
+
+  it('name the column each backfill step fills', async () => {
+    const hex = (letter: string) => letter.repeat(64);
+    const from = contract(hex('a'), { id: 'int4', nickname: 'text?' }, [], 'users');
+    const to = contract(hex('b'), { id: 'int4', nickname: 'text', name: 'text' }, [], 'users');
+    const result = createPostgresMigrationPlanner(stubLowerer).plan({
+      contract: to,
+      schema: postgresContractToSchema(from, postgresTypeComponents),
+      policy: MIGRATION_PLAN,
+      fromContract: from,
+      origin: planOriginOf(from),
+      statements: [backfill('name'), backfill('nickname')],
+      frameworkComponents: postgresTypeComponents,
+      spaceId: APP_SPACE_ID,
+      snapshotsImportPath: '../../snapshots',
+    });
+    if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
+    const source = result.plan.renderTypeScript((specifier) => specifier);
+
+    expect([...source.matchAll(/backfills: \{[^}]+\}/g)].map((match) => match[0]).sort()).toEqual(
+      [
+        'backfills: { schema: "public", table: "users", column: "name" }',
+        'backfills: { schema: "public", table: "users", column: "nickname" }',
+      ].sort(),
+    );
+  });
 });

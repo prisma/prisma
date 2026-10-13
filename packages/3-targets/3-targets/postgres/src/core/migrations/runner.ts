@@ -273,6 +273,13 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           }
         }
 
+        const position: PlanPosition = {
+          contract: options.destinationContract,
+          operationIndex: ops.indexOf(operation),
+          operations: ops,
+          edges: options.migrationEdges,
+        };
+
         // Prechecks: only run if enabled
         if (runPrechecks) {
           const precheckResult = await this.runExpectationSteps(
@@ -280,22 +287,14 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             operation.precheck,
             operation,
             'precheck',
-            {
-              contract: options.destinationContract,
-              operationIndex: ops.indexOf(operation),
-              operations: ops,
-              edges: options.migrationEdges,
-            },
+            position,
           );
           if (!precheckResult.ok) {
             return precheckResult;
           }
         }
 
-        const executeResult = await this.runExecuteSteps(driver, operation, {
-          contract: options.destinationContract,
-          operationIndex: ops.indexOf(operation),
-        });
+        const executeResult = await this.runExecuteSteps(driver, operation, position);
         if (!executeResult.ok) {
           return executeResult;
         }
@@ -307,6 +306,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             operation.postcheck,
             operation,
             'postcheck',
+            position,
           );
           if (!postcheckResult.ok) {
             return postcheckResult;
@@ -378,7 +378,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
     phase: 'precheck' | 'postcheck',
-    plan?: PlanPosition,
+    plan: PlanPosition,
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       const result = await driver.query(step.sql, step.params ?? []);
@@ -388,7 +388,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
         const failed = `Operation ${operation.id} failed during ${phase}: ${step.description}`;
         const required = requiredColumnOf(step);
         const rowsWithoutValue =
-          required === undefined || plan === undefined
+          required === undefined
             ? undefined
             : await this.rowsWithoutValue(driver, operation, required, plan);
         return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {

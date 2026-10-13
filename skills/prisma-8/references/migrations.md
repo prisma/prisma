@@ -247,6 +247,7 @@ export default class M extends Migration<Start, End> {
         column: col('name', 'text', { codecRef: { codecId: 'pg/text@1' } }),
       }),
       this.dataTransform(endContract, 'backfill-user-name', {
+        backfills: { schema: 'public', table: 'user', column: 'name' },
         check: () => placeholder('User.name:check'),
         run: () => placeholder('User.name:run'),
       }),
@@ -286,6 +287,7 @@ export default class M extends Migration<Start, End> {
         column: col('name', 'text', { codecRef: { codecId: 'pg/text@1' } }),
       }),
       this.dataTransform(contract, 'backfill-user-name', {
+        backfills: { schema: 'public', table: 'user', column: 'name' },
         check: () => db.public.user.select('id').where((f, fns) => fns.eq(f.name, null)).limit(1),
         run: () => db.public.user.update({ name: '' }).where((f, fns) => fns.eq(f.name, null)),
       }),
@@ -296,6 +298,8 @@ export default class M extends Migration<Start, End> {
 
 MigrationCLI.run(import.meta.url, M);
 ```
+
+`backfills` names the column the transform fills. Keep it: when `check` still finds rows after `run`, the apply fails, changes nothing, and counts the rows that still hold NULL, as on SQLite: `1 row of "user" still holds NULL in "name" after its backfill step, so it cannot become required.` The advice then says to make `run` fill every row in that `migration.ts` and re-run `db migrate`. Without `backfills` the same failure reports only that the postcheck failed.
 
 `run` takes one closure, or an array of closures, each returning one query: `run: [() => db.public.user.update(…), () => db.public.post.update(…)]`. It does not take one closure that returns an array.
 
