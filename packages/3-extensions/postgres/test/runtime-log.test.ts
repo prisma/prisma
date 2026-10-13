@@ -1,4 +1,5 @@
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
+import { lints } from '@internal/sql-runtime';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Contract } from './fixtures/generated/contract';
 import fixtureContractJson from './fixtures/generated/contract.json' with { type: 'json' };
@@ -54,6 +55,21 @@ describe('postgres log option', () => {
     await db.orm.public.User.first();
 
     expect(log.warn).toHaveBeenCalledWith(markerMissing);
+    await db.close();
+  });
+
+  it('receives the lints() warning for an ORM read with no limit', async () => {
+    const log = spyLog();
+    const db = postgres<Contract>({
+      contractJson: fixtureContract,
+      url,
+      middleware: [lints()],
+      log,
+    });
+
+    await db.orm.public.User.all().toArray();
+
+    expect(log.warn).toHaveBeenCalledWith(expect.objectContaining({ code: 'LINT.NO_LIMIT' }));
     await db.close();
   });
 

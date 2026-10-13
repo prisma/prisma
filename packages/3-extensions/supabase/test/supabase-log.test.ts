@@ -1,6 +1,7 @@
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { SelectAst, TableSource } from '@internal/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { lints } from '@internal/sql-runtime';
 import { createContract } from '@repo/test-utils';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -66,6 +67,23 @@ describe('supabase log option', () => {
     expect(log.warn).toHaveBeenCalledWith(
       expect.objectContaining({ code: 'CONTRACT.MARKER_MISSING', scope: 'marker-verification' }),
     );
+    await db.close();
+  });
+
+  it('receives the lints() warning for a read through the auth and storage runtime', async () => {
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const db = await supabase({
+      contract,
+      url: 'postgres://localhost/db',
+      jwtSecret: fixtureJwt,
+      middleware: [lints()],
+      log,
+    });
+    const internal = db.asServiceRole().supabase;
+
+    await internal.query(internal.sql.auth.users.select('id').build()).toArray();
+
+    expect(log.warn).toHaveBeenCalledWith(expect.objectContaining({ code: 'LINT.NO_LIMIT' }));
     await db.close();
   });
 
