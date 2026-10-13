@@ -16,6 +16,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { fixtureAppDir } from '../utils/cli-test-helpers';
 import {
   engineError,
+  followRenameCollectionAdvice,
   type JourneyContext,
   latestMigrationDirName,
   parseJsonOutput,
@@ -341,7 +342,9 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     expect(
       JSON.stringify(engineError(asked)),
       'S5.06: the question says how to keep the documents',
-    ).toContain('replace the drop of \\"events\\" and the create of \\"occasions\\"');
+    ).toContain(
+      'make renameCollection(\\"events\\", \\"occasions\\") the first operation, imported with the other operations, delete the drop of \\"events\\", and delete the create of \\"occasions\\" if there is one',
+    );
     const remap = await runMigrationPlan(ctx, [
       '--name',
       'remap',
@@ -357,17 +360,13 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     const remapDir = latestMigrationDirName(ctx);
     const migrationTs = join(ctx.testDir, 'migrations/app', remapDir, 'migration.ts');
     const planned = readFileSync(migrationTs, 'utf-8');
-    const edited = planned
-      .replace(
-        /createCollection\(['"]occasions['"][^)]*\)/,
-        'renameCollection("events", "occasions")',
-      )
-      .replace(/,?\s*dropCollection\(['"]events['"]\)/, '')
-      .replace(/\bdropCollection,/, 'dropCollection,\n  renameCollection,');
-    expect(edited, `S5.08: migration.ts is edited as the advice says:\n${planned}`).toContain(
-      'renameCollection("events", "occasions")',
+    const edited = followRenameCollectionAdvice(planned, 'events', 'occasions');
+    expect(edited, `S5.08: migration.ts is edited as the advice says:\n${edited}`).toMatch(
+      /return \[renameCollection\("events", "occasions"\)/,
     );
-    expect(edited, `S5.08: the drop is gone:\n${edited}`).not.toMatch(/dropCollection\(['"]events/);
+    expect(edited, `S5.08: the drop and the create are gone:\n${edited}`).not.toMatch(
+      /dropCollection\(['"]events|createCollection\(['"]occasions/,
+    );
     writeFileSync(migrationTs, edited, 'utf-8');
     const emitted = runPrintedSelfEmit(String(engineError(asked)?.why), dirname(migrationTs));
     expect(emitted.exitCode, `S5.09: node on migration.ts, as printed: ${emitted.stderr}`).toBe(0);
