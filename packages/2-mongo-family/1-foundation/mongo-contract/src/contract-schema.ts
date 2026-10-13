@@ -240,18 +240,13 @@ const DiscriminatorSchema = type({
   field: 'string',
 });
 
-const VariantEntrySchema = type({
-  '+': 'reject',
-  value: 'string',
-});
-
 const ModelDefinitionSchema = type({
   '+': 'reject',
   fields: type({ '[string]': FieldSchema }),
   storage: ModelStorageSchema,
   'relations?': type({ '[string]': RelationSchema }),
   'discriminator?': DiscriminatorSchema,
-  'variants?': type({ '[string]': VariantEntrySchema }),
+  'variants?': type({ '[string]': CrossReferenceSchema }),
   'base?': CrossReferenceSchema,
   'owner?': 'string',
 });

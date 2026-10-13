@@ -71,7 +71,7 @@ Each fact has three names. The flag `hasWhere` in the type state is set to `true
 
 The facts live in two declared properties on the class, the **type state** and the **row**:
 
-- The type state holds the flags `hasWhere` and `hasOrderBy`. A flag that has not been established is `boolean`, meaning not known; a method that establishes it sets it to `true`. The same object also holds `variantName` and `nsId`, which are not facts: they are fixed by the collection's type argument and select the model accessor.
+- The type state holds the flags `hasWhere` and `hasOrderBy`. A flag that has not been established is `boolean`, meaning not known; a method that establishes it sets it to `true`. The same object also holds `variantValue` and `nsId`, which are not facts: they are fixed by the collection's type argument and select the model accessor.
 - The row records the shape of the rows the collection produces, including the relations and values `include` adds.
 
 The methods that depend on a fact read it from the receiver. `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll` and `deleteAndCount` require `hasWhere`; `cursor` and `distinctOn` require `hasOrderBy`.
@@ -86,7 +86,7 @@ What a method can do is intersect. `Filtered<Self>` is the receiver's type plus 
 
 Narrowing the row is not monotonic. `select('id')` removes fields, and an intersection cannot remove anything. That is why `select` returns the base `Collection` type. It is also the right outcome: a method written against the model's row is not safe to call on a collection that produces something else.
 
-`variant` drops the class for a different reason. Its row, the variant's fields plus a narrowed discriminator, is a subtype of the model's row, so an intersection could hold it. But `variant` also changes `variantName` in the type state, and `where`, `orderBy` and the other methods read `variantName` and `nsId` from the class's type argument to build the model accessor their callbacks receive. A changed type argument means a different instantiation of the base class, which the receiver's class cannot express. `variant` therefore returns the base `Collection` type with the new type argument. `variant` adds a filter on the discriminator at run time, so it records `hasWhere: true` in that argument, which is a true fact.
+`variant` drops the class for a different reason. Its row, the variant's fields plus a narrowed discriminator, is a subtype of the model's row, so an intersection could hold it. But `variant` also changes `variantValue` in the type state, and `where`, `orderBy` and the other methods read `variantValue` and `nsId` from the class's type argument to build the model accessor their callbacks receive. A changed type argument means a different instantiation of the base class, which the receiver's class cannot express. `variant` therefore returns the base `Collection` type with the new type argument. `variant` adds a filter on the discriminator at run time, so it records `hasWhere: true` in that argument, which is a true fact.
 
 The receiver is captured with a `this` parameter rather than the polymorphic `this` type for one reason: inside an include refinement the collection is an `Omit` of `Collection`, and `Omit` fixes the polymorphic `this` of every method to the base `Collection` type, so a chain inside a refinement would lose what `include` had added. A `this` parameter is inferred from the actual receiver, whatever it is. It also lets `where`, `include` and `select` accept a union of differently flagged collections, since `Self` is inferred as the union.
 
@@ -208,7 +208,7 @@ A conditional makes TypeScript compare the two branch types. It caches the compa
 
 **The class of a related model inside an include refinement.** In `db.User.include('posts', (posts) => posts.withTitle('orm'))`, the collection given to the callback is the base `Collection` type, not `PostCollection`. Giving it the class needs the parent's type to know which class is registered for `Post`. That is known once, at `orm({ collections })`, and would have to reach every collection type: as a type argument threaded through `Collection` and the refinement types, or as a declared property the client attaches to each root collection and the `this`-typed methods pass on. It cannot work inside a class body, because a class cannot name a registry that contains itself. It changes the shared collection interface for every family and is a decision of its own.
 
-**The class through `variant`.** Keeping the class after `variant` needs `variantName` and `nsId` to move from the class's type argument into the declared type state, so that `where`, `orderBy` and the other methods read them from the receiver.
+**The class through `variant`.** Keeping the class after `variant` needs `variantValue` and `nsId` to move from the class's type argument into the declared type state, so that `where`, `orderBy` and the other methods read them from the receiver.
 
 **The MongoDB ORM client.** Its collection keeps the type it had. Extracting the ADR 175 shared interface would need it to adopt the `this`-typed chaining, the symbol-keyed state and row, and the `boolean` flags.
 

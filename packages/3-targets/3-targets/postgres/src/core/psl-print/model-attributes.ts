@@ -19,7 +19,7 @@ import {
   buildModelConstraintAttribute,
 } from '../psl-build/index-attributes';
 import { buildAttribute, buildMapAttribute, positionalArg } from '../psl-build/psl-literals';
-import type { ModelWithTable, VariantInfo } from './contract-model-index';
+import { type ModelWithTable, pslNamespaceName, type VariantInfo } from './contract-model-index';
 import {
   refuseSqlTextThatDoesNotReadBack,
   refuseUnwritableIndexOptions,
@@ -136,7 +136,11 @@ export function buildModelAttributes(input: {
   if (variant !== undefined) {
     attributes.push(
       buildAttribute('model', 'base', [
-        positionalArg(variant.base.name),
+        positionalArg(
+          variant.base.namespaceId === entry.namespaceId
+            ? variant.base.name
+            : `${pslNamespaceName(variant.base.namespaceId)}.${variant.base.name}`,
+        ),
         positionalArg(`"${escapePslString(variant.value)}"`),
       ]),
     );

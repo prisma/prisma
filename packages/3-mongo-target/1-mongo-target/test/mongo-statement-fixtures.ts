@@ -90,8 +90,8 @@ export function contract(
                       discriminator: { field: spec.discriminator },
                       variants: Object.fromEntries(
                         Object.entries(spec.variants ?? {}).map(([variant, value]) => [
-                          variant,
-                          { value },
+                          value,
+                          { namespace: '__unbound__', model: variant },
                         ]),
                       ),
                     }),

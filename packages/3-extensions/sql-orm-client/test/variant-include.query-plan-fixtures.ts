@@ -39,7 +39,7 @@ export function includeExpr(options: {
   relationName: string;
   relatedModelName: string;
   relatedTableName: string;
-  localVariantName?: string;
+  localVariantValue?: string;
   targetColumn: string;
   localColumn: string;
   cardinality: RelationCardinalityTag;
@@ -60,7 +60,7 @@ export function includeExpr(options: {
       relatedModelName: options.relatedModelName,
       relatedNamespaceId: 'public',
       relatedTableName: options.relatedTableName,
-      ...ifDefined('localVariantName', options.localVariantName),
+      ...ifDefined('localVariantValue', options.localVariantValue),
       targetColumns: [options.targetColumn],
       localColumns: [options.localColumn],
       cardinality: options.cardinality,
@@ -80,22 +80,22 @@ export function selectedState(...fields: string[]): StateSpec {
 
 export function rootState(
   include: IncludeSpec,
-  variantName: string,
+  variantValue: string,
   ...fields: string[]
 ): CollectionState {
   return tableSpecState(fixtureContract, 'tasks', {
     includes: [include],
     selectedFields: fields,
-    variantName,
+    variantValue,
   });
 }
 
-export function assigneeInclude(localVariantName?: string): IncludeSpec {
+export function assigneeInclude(localVariantValue?: string): IncludeSpec {
   return includeExpr({
     relationName: 'assignee',
     relatedModelName: 'Assignee',
     relatedTableName: 'assignees',
-    ...ifDefined('localVariantName', localVariantName),
+    ...ifDefined('localVariantValue', localVariantValue),
     targetColumn: 'id',
     localColumn: 'assignee_id',
     cardinality: 'N:1',
