@@ -518,6 +518,26 @@ function refuseUnsafeCopyExpressions(
   }
 }
 
+function refuseUnknownCopyExpressionColumns(
+  tableName: string,
+  contractTable: SqliteTableSpec,
+  copyExpressions: Readonly<Record<string, SqlSlot>>,
+): void {
+  const columns = contractTable.columns.map((column) => column.name);
+  const unknown = Object.keys(copyExpressions).find((key) => !columns.includes(key));
+  if (unknown === undefined) return;
+  const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
+  throw sqliteError(
+    'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN',
+    `${call}: copyExpressions.${unknown} names no column of the new table. Its columns are ${columns.map((column) => JSON.stringify(column)).join(', ')}.`,
+    {
+      why: 'Each key of copyExpressions names the column of the new table that the expression fills. A key that names no column fills nothing, so the column meant would be copied unchanged.',
+      fix: 'Key the expression by the name of a column in contractTable.columns, with the same letters and case.',
+      meta: { call, key: unknown, columns },
+    },
+  );
+}
+
 export class RecreateTableCall extends SqliteOpFactoryCallNode {
   readonly factoryName = 'recreateTable' as const;
   readonly operationClass: MigrationOperationClass;
@@ -551,6 +571,11 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
   ) {
     super();
     refuseUnsafeCopyExpressions(args.tableName, args.copyExpressions ?? {});
+    refuseUnknownCopyExpressionColumns(
+      args.tableName,
+      args.contractTable,
+      args.copyExpressions ?? {},
+    );
     this.copyExpressions = Object.freeze({ ...args.copyExpressions });
     this.lossyColumns = Object.freeze([...lossyColumns]);
     this.tableName = args.tableName;

@@ -755,6 +755,21 @@ describe('RecreateTableCall copy expressions', () => {
     ]);
   });
 
+  it('refuses a copy expression keyed by a name that is no column of the new table', () => {
+    expect(() => rebuild({ Age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' } })).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN',
+        message:
+          'recreateTable({ tableName: "user" }): copyExpressions.Age names no column of the new table. Its columns are "id", "age".',
+        meta: {
+          call: 'recreateTable({ tableName: "user" })',
+          key: 'Age',
+          columns: ['id', 'age'],
+        },
+      }),
+    );
+  });
+
   it('advises parentheses when a copy expression is refused', () => {
     expect(() => rebuild({ age: { kind: 'sql', sql: '"age" FROM "user"' } })).toThrow(
       expect.objectContaining({
