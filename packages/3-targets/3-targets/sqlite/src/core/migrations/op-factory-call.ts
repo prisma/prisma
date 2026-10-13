@@ -522,18 +522,29 @@ function refuseUnknownCopyExpressionColumns(
   tableName: string,
   contractTable: SqliteTableSpec,
   copyExpressions: Readonly<Record<string, SqlSlot>>,
+  convertedColumns: readonly string[],
 ): void {
   const columns = contractTable.columns.map((column) => column.name);
-  const unknown = Object.keys(copyExpressions).find((key) => !columns.includes(key));
+  const unknownKey = Object.keys(copyExpressions).find((key) => !columns.includes(key));
+  const unknownConverted = convertedColumns.find((column) => !columns.includes(column));
+  const unknown =
+    unknownKey !== undefined
+      ? { option: `copyExpressions.${unknownKey}`, key: unknownKey }
+      : unknownConverted !== undefined
+        ? {
+            option: `convertedColumns entry ${JSON.stringify(unknownConverted)}`,
+            key: unknownConverted,
+          }
+        : undefined;
   if (unknown === undefined) return;
   const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
   throw sqliteError(
     'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN',
-    `${call}: copyExpressions.${unknown} names no column of the new table. Its columns are ${columns.map((column) => JSON.stringify(column)).join(', ')}.`,
+    `${call}: ${unknown.option} names no column of the new table. Its columns are ${columns.map((column) => JSON.stringify(column)).join(', ')}.`,
     {
-      why: 'Each key of copyExpressions names the column of the new table that the expression fills. A key that names no column fills nothing, so the column meant would be copied unchanged.',
-      fix: 'Key the expression by the name of a column in contractTable.columns, with the same letters and case.',
-      meta: { call, key: unknown, columns },
+      why: 'Each key of copyExpressions, and each entry of convertedColumns, names a column of the new table. One that names no column applies to nothing, so the column meant would be copied unchanged, or its conversion would go unchecked.',
+      fix: 'Name a column in contractTable.columns, with the same letters and case.',
+      meta: { call, key: unknown.key, columns },
     },
   );
 }
@@ -555,6 +566,8 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
   readonly lossyColumns: readonly string[];
   /** What each named column of the new table is copied from, in place of the live column. */
   readonly copyExpressions: Readonly<Record<string, SqlSlot>>;
+  /** The columns whose copy expression converts their values to the column's new type. */
+  readonly convertedColumns: readonly string[];
 
   constructor(
     args: {
@@ -566,6 +579,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       postchecks: readonly RecreatePostcheck[];
       operationClass: MigrationOperationClass;
       copyExpressions?: Readonly<Record<string, SqlSlot>>;
+      convertedColumns?: readonly string[];
     },
     lossyColumns: readonly string[] = [],
   ) {
@@ -575,8 +589,10 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       args.tableName,
       args.contractTable,
       args.copyExpressions ?? {},
+      args.convertedColumns ?? [],
     );
     this.copyExpressions = Object.freeze({ ...args.copyExpressions });
+    this.convertedColumns = Object.freeze([...(args.convertedColumns ?? [])]);
     this.lossyColumns = Object.freeze([...lossyColumns]);
     this.tableName = args.tableName;
     this.contractTable = args.contractTable;
@@ -610,6 +626,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
         summary: this.summary,
         postchecks: this.postchecks,
         operationClass: this.operationClass,
+        convertedColumns: this.convertedColumns,
         ...(copies.length === 0
           ? {}
           : {
@@ -658,6 +675,9 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       ...(Object.keys(this.copyExpressions).length === 0
         ? []
         : [['copyExpressions', this.#copyExpressionsSource(sql)] as const]),
+      ...(this.convertedColumns.length === 0
+        ? []
+        : [['convertedColumns', jsonToTsSource(this.convertedColumns)] as const]),
     ]);
     return { source: `this.recreateTable(${args})`, imports: sql.imports() };
   }

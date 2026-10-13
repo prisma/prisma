@@ -1410,7 +1410,7 @@ A Postgres column type change names a type that no data type of the configured s
 
 ### MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN
 
-A SQLite `recreateTable` call in `migration.ts` has a `copyExpressions` key that names no column of the new table (`contractTable.columns`). Each key names the column its expression fills, so a mistyped key would leave the column it meant copied unchanged. The message names the call, the key and the table's columns, for example `recreateTable({ tableName: "User" }): copyExpressions.Age names no column of the new table. Its columns are "id", "age".` Raised when `migration.ts` runs, before anything is written. Key the expression by the column's name, with the same letters and case. Payload: `call`, `key`, `columns`.
+A SQLite `recreateTable` call in `migration.ts` has a `copyExpressions` key, or a `convertedColumns` entry, that names no column of the new table (`contractTable.columns`). Each key names the column its expression fills, so a mistyped key would leave the column it meant copied unchanged; each `convertedColumns` entry names a column whose conversion the rebuild checks, so a mistyped one would leave the conversion unchecked. The message names the call, the key and the table's columns, for example `recreateTable({ tableName: "User" }): copyExpressions.Age names no column of the new table. Its columns are "id", "age".` Raised when `migration.ts` runs, before anything is written. Key the expression by the column's name, with the same letters and case. Payload: `call`, `key`, `columns`.
 
 ### MIGRATION.CONTRACT_DESERIALIZATION_FAILED
 

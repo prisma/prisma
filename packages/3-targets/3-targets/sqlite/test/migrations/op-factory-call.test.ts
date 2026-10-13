@@ -784,55 +784,48 @@ describe('RecreateTableCall copy expressions', () => {
     ).toEqual({ age: { kind: 'sql', sql: `coalesce(nullif("age", ';'), 0)` } });
   });
 
-  it('marks a postcheck of a converted column as checking the conversion, and renders it', async () => {
+  it('checks the values of each column its convertedColumns names, and marks its copy, with no postcheck written', async () => {
     const call = new RecreateTableCall({
       tableName: 'user',
       contractTable: spec,
       schemaColumnNames: ['id', 'age'],
       indexes: [],
       summary: 'Recreates table user',
-      postchecks: [
-        {
-          description: 'verify age',
-          sql: 'SELECT 1',
-          convertedColumn: { column: 'age', by: 'conversion' },
-        },
-      ],
+      postchecks: [],
       operationClass: 'data',
       copyExpressions: { age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' } },
+      convertedColumns: ['age'],
     });
     const op = await call.toOp(stubLowerer('SQL'));
-    expect(op.postcheck.find((step) => step.description === 'verify age')).toEqual({
-      description: 'verify age',
-      sql: 'SELECT 1',
-      meta: { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
+    expect({
+      check: op.postcheck.find((step) => step.meta !== undefined),
+      copy: op.execute.find((step) => step.description.startsWith('copy data'))?.meta,
+      rendered: call.renderTypeScript(),
+    }).toEqual({
+      check: {
+        description: 'verify every value of "age" on "user" is stored as INTEGER',
+        sql: `SELECT NOT EXISTS (SELECT 1 FROM "user" WHERE typeof("age") NOT IN ('null', 'integer'))`,
+        meta: { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
+      },
+      copy: { conversionCopy: { table: 'user', expressions: { age: 'CAST("age" AS INTEGER)' } } },
+      rendered: expect.stringContaining('convertedColumns: ["age"]'),
     });
-    expect(call.renderTypeScript()).toContain(
-      'convertedColumn: { column: "age", by: "conversion" }',
-    );
   });
 
-  it('marks the copy of a rebuild that converts a column with the copy expression of each conversion', async () => {
-    const call = new RecreateTableCall({
-      tableName: 'user',
-      contractTable: spec,
-      schemaColumnNames: ['id', 'age'],
-      indexes: [],
-      summary: 'Recreates table user',
-      postchecks: [
-        {
-          description: 'verify age',
-          sql: 'SELECT 1',
-          convertedColumn: { column: 'age', by: 'conversion' },
-        },
-      ],
-      operationClass: 'data',
-      copyExpressions: { age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' } },
-    });
-    const op = await call.toOp(stubLowerer('SQL'));
-    expect(op.execute.find((step) => step.description.startsWith('copy data'))?.meta).toEqual({
-      conversionCopy: { table: 'user', expressions: { age: 'CAST("age" AS INTEGER)' } },
-    });
+  it('refuses a converted column that is not a column of the new table', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id', 'age'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'data',
+          convertedColumns: ['years'],
+        }),
+    ).toThrow(expect.objectContaining({ code: 'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN' }));
   });
 
   it('is an unfilled placeholder while a slot is unfilled, and imports placeholder', async () => {

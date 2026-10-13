@@ -361,13 +361,11 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
             ),
             ...tableSpec.columns
               .filter((column) => rebuild.lossyColumns.includes(column.name))
-              .map((column) => castValuePostcheck(tableName, column, 'cast')),
-            ...tableSpec.columns
-              .filter((column) => rebuild.convertedColumns.includes(column.name))
-              .map((column) => castValuePostcheck(tableName, column, 'conversion')),
+              .map((column) => castValuePostcheck(tableName, column)),
           ],
           operationClass,
           copyExpressions: rebuild.copyExpressions,
+          convertedColumns: rebuild.convertedColumns,
         },
         rebuild.lossyColumns,
       ),
