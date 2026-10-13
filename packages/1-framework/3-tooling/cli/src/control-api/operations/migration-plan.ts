@@ -48,6 +48,7 @@ import {
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
+import { selfEmitCommand } from '../../utils/self-emit-command';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import {
   type AnswerPlanQuestions,
@@ -122,11 +123,10 @@ function placeholderSummary(
   dirs: readonly string[],
   configPath: string | undefined,
 ): string {
-  const config = configPath === undefined ? '' : ` --config "${configPath}"`;
   const commands = dirs
-    .map((dir) => `\`node ${join(dir, 'migration.ts')}${config}\``)
+    .map((dir) => `\`${selfEmitCommand(join(dir, 'migration.ts'), configPath)}\``)
     .join(' and ');
-  return `Planned ${planned} with placeholder(s) — edit migration.ts, then run ${commands} from this directory to self-emit`;
+  return `Planned ${planned} with placeholder(s) — edit migration.ts, then run ${commands} to self-emit`;
 }
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */

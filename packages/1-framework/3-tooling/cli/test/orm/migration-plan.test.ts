@@ -814,7 +814,7 @@ describe('migration plan', () => {
         expect.stringMatching(/^migrations\/app\/[^/]+$/),
       ]);
       expect(data.summary).toBe(
-        `Planned baseline + migration with placeholder(s) — edit migration.ts, then run \`node ${data.baselineDir}/migration.ts\` and \`node ${data.dir}/migration.ts\` from this directory to self-emit`,
+        `Planned baseline + migration with placeholder(s) — edit migration.ts, then run \`node "${data.baselineDir}/migration.ts"\` and \`node "${data.dir}/migration.ts"\` to self-emit`,
       );
       expect(
         data.appliedStatements.map(({ operationIndexes }) =>
@@ -846,7 +846,7 @@ describe('migration plan', () => {
       expect(data.dir).toMatch(/^migrations\/app\/[^/]+$/);
       expect(data).toMatchObject({
         pendingPlaceholders: true,
-        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node ${data.dir}/migration.ts\` from this directory to self-emit`,
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node "${data.dir}/migration.ts"\` to self-emit`,
       });
     });
 
@@ -867,7 +867,7 @@ describe('migration plan', () => {
         summary: data.summary,
         next: answered.presented?.presentation.next?.at(-1),
       }).toEqual({
-        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node ${data.dir}/migration.ts --config "prisma.config.ts"\` from this directory to self-emit`,
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node "${data.dir}/migration.ts" --config "prisma.config.ts"\` to self-emit`,
         next: {
           kind: 'run-command',
           label: 'Run it to self-emit ops.json and attest the package',
