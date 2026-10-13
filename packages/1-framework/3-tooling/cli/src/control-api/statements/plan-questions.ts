@@ -279,7 +279,6 @@ type DataLossContracts = StatementContracts & {
 };
 
 /**
-/**
  * The model of a field subject, under the name a rename of the plan gives it, when the destination
  * has no model of that name: a rename of the field cannot be written until a statement renames the
  * model.

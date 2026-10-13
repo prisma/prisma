@@ -201,11 +201,6 @@ function modelStoredIn(
   return (storing.find(({ isRoot }) => isRoot) ?? storing[0])?.coordinate;
 }
 
-/**
- * Each collection drop of the plan, with the model whose documents it loses. When that model keeps
- * its name and the plan brings its new collection into existence, the drop says how to rename the
- * collection by hand instead.
- */
 /** A convert or backfill statement, which this release cannot carry out on MongoDB. */
 function unsupportedStatementConflict(
   statement: ResolvedMigrationStatement,
@@ -220,6 +215,11 @@ function unsupportedStatementConflict(
   };
 }
 
+/**
+ * Each collection drop of the plan, with the model whose documents it loses. When that model keeps
+ * its name and the plan brings its new collection into existence, the drop says how to rename the
+ * collection by hand instead.
+ */
 function collectionDrops(
   calls: readonly OpFactoryCall[],
   fromContract: ContractWithDomain | null,
