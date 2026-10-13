@@ -26,8 +26,9 @@ import type {
 } from '@internal/sql-runtime';
 import type {
   ActivityExecuteOptions,
+  ActivityRoute,
+  ActivitySource,
   ActivitySourceTarget,
-  ActivityTarget,
   PreparedStatementExecuteTarget,
   PreparedStatementQueryTarget,
   TransactionStartTarget,
@@ -170,7 +171,15 @@ export class SupabaseRuntimeImpl<
     activity: StartActivity<K>,
     binding: SupabaseRoleBinding,
   ): Promise<ActivityHandle<K>> {
-    return this.startActivityOnTarget(this.roleTarget(binding), activity, undefined);
+    return this.startActivityOnRoute(this.roleRoute(binding), activity, undefined);
+  }
+
+  /** The activity source the facade gives the role-bound ORM: activities whose statements run on role sessions bound to `binding`. */
+  activitySourceForRole(binding: SupabaseRoleBinding): ActivitySource {
+    return {
+      startActivity: (activity) => this.startActivityWithRole(activity, binding),
+      planContentHash: (plan) => this.planContentHashForRoleSession(plan),
+    };
   }
 
   /** The content hash of the statement `plan` sends on a role session, which runs at `'connection'` scope. */
@@ -179,7 +188,7 @@ export class SupabaseRuntimeImpl<
   }
 
   // Each statement of a role-bound activity runs on a role session of its own, as a role-bound query does; its transaction holds one session until it settles.
-  private roleTarget(binding: SupabaseRoleBinding): ActivityTarget {
+  private roleRoute(binding: SupabaseRoleBinding): ActivityRoute {
     return {
       scope: 'connection',
       parent: () => undefined,

@@ -102,6 +102,54 @@ describe('the transaction of an activity handle', () => {
       });
     });
 
+    it('resolves rollback and logs the error when releasing the connection fails after it', async () => {
+      const error = vi.fn();
+      const releaseFailure = new Error('release failed');
+      const { runtime } = createSetup({
+        failures: { release: releaseFailure },
+        log: { info: vi.fn(), warn: vi.fn(), error },
+      });
+      const call = await startActivityOn(runtime, testCall);
+
+      const transaction = await call.transaction?.();
+      await expect(transaction?.rollback()).resolves.toBeUndefined();
+      await call.end({ outcome: 'failed' });
+
+      expect(error).toHaveBeenCalledWith({
+        event: 'runtime.connection.release.error',
+        error: releaseFailure,
+      });
+    });
+
+    it('keeps the commit error and logs the release error when the database committed', async () => {
+      const error = vi.fn();
+      const releaseFailure = new Error('release failed');
+      const hookFailure = new Error('activityEnded failed');
+      const { runtime } = createSetup({
+        failures: { release: releaseFailure },
+        log: { info: vi.fn(), warn: vi.fn(), error },
+        middleware: [
+          {
+            name: 'failing',
+            familyId: 'sql',
+            async activityEnded(activity) {
+              if (activity.kind === 'transaction') throw hookFailure;
+            },
+          },
+        ],
+      });
+      const call = await startActivityOn(runtime, testCall);
+
+      const transaction = await call.transaction?.();
+      await expect(transaction?.commit()).rejects.toBe(hookFailure);
+      await call.end({ outcome: 'failed' });
+
+      expect(error).toHaveBeenCalledWith({
+        event: 'runtime.connection.release.error',
+        error: releaseFailure,
+      });
+    });
+
     it('carries the settlement of the transaction it wraps', async () => {
       const { runtime } = createSetup();
       const call = await startActivityOn(runtime, testCall);
@@ -133,7 +181,9 @@ describe('the transaction of an activity handle', () => {
     const call = await startActivityOn(runtime, testCall);
     await call.end({ outcome: 'succeeded' });
 
-    await expect(call.transaction?.()).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
+    await expect(call.transaction?.()).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
+    });
     expect(driverCalls(events)).toEqual([]);
   });
 

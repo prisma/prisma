@@ -1,7 +1,10 @@
 export {
   type ActivityExecuteOptions,
+  type ActivitySource,
   type ActivitySourceTarget,
   activitySource,
+  delegatingActivitySource,
+  findActivitySource,
   planContentHashOn,
   startActivityOn,
 } from '../activity-handle';
@@ -13,7 +16,7 @@ export {
   type PreparedStatementQueryTarget,
   preparedStatementQuery,
 } from '../prepared/prepared-query';
-export type { ActivityTarget } from '../sql-runtime';
+export type { ActivityRoute } from '../sql-runtime';
 export {
   createTransactionStart,
   type SettledTransactionTarget,

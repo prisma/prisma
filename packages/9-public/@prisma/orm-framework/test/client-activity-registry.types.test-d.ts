@@ -17,12 +17,14 @@ test('a kind registered through the published entry types its result', () => {
   expectTypeOf<ClientActivityResult<'other-call'>>().toEqualTypeOf<unknown>();
 });
 
-test('a middleware narrows on the registered kind through the published entry', () => {
+test('narrowing on the registered kind reaches its registered result type', () => {
   const middleware: CrossFamilyMiddleware = {
     name: 'published',
     async activityStarted(activity) {
       if (activity.kind === 'published-call') {
-        expectTypeOf(activity.contentHash).toEqualTypeOf<string>();
+        expectTypeOf<ClientActivityResult<typeof activity.kind>>().toEqualTypeOf<{
+          readonly published: true;
+        }>();
       }
     },
   };

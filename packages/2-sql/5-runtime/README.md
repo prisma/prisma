@@ -121,7 +121,7 @@ Marker reads and writes go through the control adapter SPI (`adapter.readMarker`
 - `ActivityEndedResult`, `ActivityFinalizedResult`, `Activity`, `StatementActivity`, `TransactionActivity`, `StatementEnded`, `TransactionEnded`, `QueryInterceptResult`, `ExecuteInterceptResult` - Activity and lifecycle result types (re-exported from `@internal/framework-components/runtime`)
 - `Log` - Log entry type (re-exported from `@internal/framework-components/runtime`)
 
-The `./internal/prepared-query` entry carries the members other runtimes and facades use without showing them to users: the prepared-statement symbols, `activitySource` with `startActivityOn` and `planContentHashOn`, which reach a queryable's activity members, and `ActivityTarget` and `ActivityExecuteOptions` for a subclass whose statements run on its own sessions (with the protected `startActivityOnTarget`, `connectionActivitySource` and `ownTransaction` on `SqlRuntimeBase`).
+The `./internal/prepared-query` entry carries the members other runtimes and facades use without showing them to users: the prepared-statement symbols, `activitySource` with `startActivityOn` and `planContentHashOn`, which reach a queryable's activity members, and `ActivityRoute` and `ActivityExecuteOptions` for a subclass whose statements run on its own sessions (with the protected `startActivityOnRoute`, `connectionActivitySource` and `ownTransaction` on `SqlRuntimeBase`).
 
 #### Lints middleware (SQL domain)
 

@@ -16,7 +16,10 @@ import type {
   TransactionContext,
 } from '@internal/sql-runtime';
 import { withTransaction } from '@internal/sql-runtime';
-import { planContentHashOn, startActivityOn } from '@internal/sql-runtime/internal/prepared-query';
+import {
+  activitySource,
+  delegatingActivitySource,
+} from '@internal/sql-runtime/internal/prepared-query';
 import { castAs } from '@internal/utils/casts';
 import type { PostgresStaticContext } from '../static/postgres-static';
 import type { NamespacedNativeEnums } from './native-enums';
@@ -82,12 +85,7 @@ export function buildPostgresRuntimeBoundMembers<TContract extends Contract<SqlS
       connection() {
         return getRuntimeForWork().connection();
       },
-      startActivity(activity) {
-        return startActivityOn(getRuntimeForWork(), activity);
-      },
-      planContentHash(plan) {
-        return planContentHashOn(getRuntimeForWork(), plan);
-      },
+      [activitySource]: delegatingActivitySource(() => getRuntimeForWork()),
     },
     context,
   });
@@ -127,12 +125,7 @@ export function buildPostgresRuntimeBoundMembers<TContract extends Contract<SqlS
             execute(plan) {
               return txCtx.execute(plan);
             },
-            startActivity(activity) {
-              return startActivityOn(txCtx, activity);
-            },
-            planContentHash(plan) {
-              return planContentHashOn(txCtx, plan);
-            },
+            [activitySource]: delegatingActivitySource(() => txCtx),
           },
           context,
         });

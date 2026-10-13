@@ -133,12 +133,14 @@ describe('an ended role-bound activity handle', () => {
     await call.end({ outcome: 'succeeded' });
 
     await expect(call.execute(stubPlan())).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_ENDED',
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     });
     await expect(call.query(stubPlan()).toArray()).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_ENDED',
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     });
-    await expect(call.transaction?.()).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
+    await expect(call.transaction?.()).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
+    });
 
     expect(driver.acquireConnectionSpy).not.toHaveBeenCalled();
   });

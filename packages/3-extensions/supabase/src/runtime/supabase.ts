@@ -30,6 +30,7 @@ import {
   createSqlExecutionStack,
   withTransaction,
 } from '@internal/sql-runtime';
+import { activitySource } from '@internal/sql-runtime/internal/prepared-query';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -368,8 +369,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return roleRuntime.executeWithRole(plan, binding);
         },
         connection: () => roleRuntime.openRoleSession(binding),
-        startActivity: (activity) => roleRuntime.startActivityWithRole(activity, binding),
-        planContentHash: (plan) => roleRuntime.planContentHashForRoleSession(plan),
+        [activitySource]: roleRuntime.activitySourceForRole(binding),
       },
       context: roleContext,
     });
@@ -440,8 +440,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return extRuntime.executeWithRole(plan, serviceRoleBinding);
         },
         connection: () => extRuntime.openRoleSession(serviceRoleBinding),
-        startActivity: (activity) => extRuntime.startActivityWithRole(activity, serviceRoleBinding),
-        planContentHash: (plan) => extRuntime.planContentHashForRoleSession(plan),
+        [activitySource]: extRuntime.activitySourceForRole(serviceRoleBinding),
       },
       context: extContext,
     }),

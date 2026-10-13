@@ -3,7 +3,7 @@ import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { planFromAst } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
-import { startActivityOn } from '../src/activity-handle';
+import { findActivitySource, startActivityOn } from '../src/activity-handle';
 import { withTransaction } from '../src/sql-runtime';
 import { testCall } from './client-activity-kinds';
 import {
@@ -140,7 +140,7 @@ describe('startActivity', () => {
     await transaction.commit();
 
     await expect(startActivityOn(transaction, testCall)).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_ENDED',
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     });
     await connection.release();
   });
@@ -157,7 +157,7 @@ describe('startActivity', () => {
 
     const committing = transaction.commit();
     await expect(call.execute(rawPlan('update t set x = 1'))).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_ENDED',
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     });
     releaseCommit();
     await committing;
@@ -254,15 +254,25 @@ describe('startActivity', () => {
     const before = names(events);
 
     await expect(call.execute(rawPlan('update t set x = 1'))).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_ENDED',
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     });
     await expect(call.query(rawPlan('select 1')).toArray()).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_ENDED',
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     });
     await expect(call.startActivity(testCall)).rejects.toMatchObject({
-      code: 'RUNTIME.ACTIVITY_ENDED',
+      code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     });
     expect(names(events)).toEqual(before);
+  });
+
+  it('finds the activity source of a queryable, and none on a plain one', async () => {
+    const { runtime } = createSetup();
+    const plain = { query: runtime.query.bind(runtime), execute: runtime.execute.bind(runtime) };
+
+    expect([findActivitySource(runtime) !== undefined, findActivitySource(plain)]).toEqual([
+      true,
+      undefined,
+    ]);
   });
 
   describe('close', () => {

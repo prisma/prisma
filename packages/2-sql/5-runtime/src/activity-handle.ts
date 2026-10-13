@@ -59,10 +59,24 @@ function isActivitySource(target: RuntimeScope): target is RuntimeScope & Activi
   return 'startActivity' in target && 'planContentHash' in target;
 }
 
-function activitySourceOf(target: RuntimeScope): ActivitySource {
+/** The activity source of a queryable, from its `activitySource` member or, for an activity handle, the handle itself; `undefined` for a queryable that cannot start activities, such as a test stub. */
+export function findActivitySource(target: RuntimeScope): ActivitySource | undefined {
   if (hasActivitySourceMember(target)) return target[activitySource];
-  invariant(isActivitySource(target), 'The queryable cannot start activities');
-  return target;
+  return isActivitySource(target) ? target : undefined;
+}
+
+function activitySourceOf(target: RuntimeScope): ActivitySource {
+  const source = findActivitySource(target);
+  invariant(source !== undefined, 'The queryable cannot start activities');
+  return source;
+}
+
+/** An activity source that starts activities on whatever queryable `target()` returns when called, for an object that sends its statements to a queryable it looks up each time. */
+export function delegatingActivitySource(target: () => RuntimeScope): ActivitySource {
+  return {
+    startActivity: (activity) => startActivityOn(target(), activity),
+    planContentHash: (plan) => planContentHashOn(target(), plan),
+  };
 }
 
 /** Starts an activity on a queryable through its `activitySource` member, or on an activity handle. */
