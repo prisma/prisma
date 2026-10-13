@@ -56,6 +56,7 @@ export function resolveSqlToOneRelationStorage(
     (table?.foreignKeys ?? []).some(
       (foreignKey) =>
         sameColumns(foreignKey.source.columns, columnNames) &&
+        foreignKey.target.namespaceId === targetStorage?.namespaceId &&
         foreignKey.target.tableName === targetTable &&
         sameColumns(foreignKey.target.columns, targetColumns),
     );
