@@ -15,6 +15,7 @@ import {
   type GenericBlockMemberAst,
   type IdentifierAst,
   MixinDeclarationAst,
+  MixinInclusionAst,
   ModelDeclarationAst,
   type NamedTypeDeclarationAst,
   NamespaceDeclarationAst,
@@ -292,6 +293,7 @@ function collectGenericBlockMembers(
   tokens: PendingSemanticToken[],
 ): void {
   for (const member of members) {
+    if (member instanceof MixinInclusionAst) continue;
     if ('key' in member) {
       addIdentifier(member.key(), 'property', tokens);
       collectExpression(member.value(), source, tokens);
@@ -307,6 +309,7 @@ function collectBlockMembers(
   tokens: PendingSemanticToken[],
 ): void {
   for (const member of members) {
+    if (member instanceof MixinInclusionAst) continue;
     if (member instanceof FieldDeclarationAst) {
       collectField(member, source, tokens);
       continue;

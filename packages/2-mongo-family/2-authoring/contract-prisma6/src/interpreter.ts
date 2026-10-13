@@ -56,6 +56,7 @@ import { fkRelationPairKey, type InvalidFkPairing } from '@internal/psl-parser/i
 import type {
   DocumentAst,
   KeyValuePairAst,
+  MixinInclusionAst,
   PslSources,
   SourceFile,
 } from '@internal/psl-parser/syntax';
@@ -64,6 +65,7 @@ import {
   dottedPathsIn,
   FunctionCallAst,
   IdentifierAst,
+  printSyntax,
   StringLiteralExprAst,
 } from '@internal/psl-parser/syntax';
 import { blindCast } from '@internal/utils/casts';
@@ -191,6 +193,10 @@ function unknownAttribute(
   );
 }
 
+interface InclusionHolderAst {
+  inclusions(): Iterable<MixinInclusionAst>;
+}
+
 export function interpretPrisma6Documents(
   input: InterpretPrisma6DocumentsInput,
 ): Result<Contract, ContractSourceDiagnostics> {
@@ -238,6 +244,21 @@ export function interpretPrisma6Documents(
         span,
       });
     };
+    const unsupportedInclusions = (
+      code: string,
+      holders: Readonly<Record<string, { readonly node: InclusionHolderAst }>>,
+    ): void => {
+      for (const holder of Object.values(holders)) {
+        for (const inclusion of holder.node.inclusions()) {
+          diagnostics.push({
+            code,
+            message: `Unsupported mixin inclusion "${printSyntax(inclusion.syntax).trim()}"`,
+            sourceId,
+            span: nodePslSpan(inclusion.syntax, sources),
+          });
+        }
+      }
+    };
     for (const block of Object.values(symbolTable.topLevel.blocks)) {
       switch (block.keyword) {
         case 'datasource':
@@ -272,6 +293,12 @@ export function interpretPrisma6Documents(
     for (const namedType of Object.values(symbolTable.topLevel.namedTypes)) {
       unsupported('types', namedType.span);
     }
+    for (const mixin of Object.values(symbolTable.topLevel.mixins)) {
+      unsupported(`${mixin.keyword} mixin`, mixin.span);
+    }
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.topLevel.models);
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.topLevel.compositeTypes);
+    unsupportedInclusions('PSL_INVALID_EXTENSION_BLOCK_MEMBER', symbolTable.topLevel.blocks);
     for (const symbol of Object.values(symbolTable.topLevel.compositeTypes)) {
       if (claimName('type', symbol.name, sourceId, symbol.span)) {
         compositeTypes.push({ symbol, sourceId, sources });
