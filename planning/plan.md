@@ -10,7 +10,7 @@ This page lists the projects in priority order, by stream. Work the streams in p
 
 **Progress column:** one symbol, then done/total where the row has countable units. ✅ done · 🟡 code done, waiting on review or docs · 🔄 in progress · ⏳ not started · ❓ needs a decision from Will. The units are the slices, pull requests, tickets or items the Status column names; a row with no units yet has no count.
 
-States were last checked against GitHub on 2026-10-08 and against Linear on 2026-10-07.
+States were last checked against GitHub and Linear on 2026-10-13.
 
 ## Stream 1: Foundations and breaking changes
 
@@ -18,13 +18,13 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 🔄 2/4 | Finish ADR 254: data types own column types | Must | Will | 2 of 4 slices merged. A rewrite of the ADR, in which a data type owns its values, is in a design PR | Review the design PR, then TML-3387: verify and infer read types from the declarations |
+| 1 | 🔄 2/5 | Finish ADR 254: data types own column types | Must | Will | 2 of 5 slices merged. Slice 3, a data type owns its values, in progress; its design PR is open | Review the design PR |
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
-| 4 | 🔄 5/6 | SQL expression literals | Must | Will | 5 slices merged, 1 in review | Review the TypeScript builder PR (TML-3289) |
-| 5 | ⏳ | PSL mixins, then remove type aliases and field presets | Must | Serhii | No spec |  |
+| 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
+| 5 | 🔄 1/5 | PSL mixins, then remove type aliases and field presets | Must | Serhii | Mixin syntax merged. Inclusion and language-server support in 3 open PRs. Removing type aliases and field presets not started | Review the inclusion PR, then the two language-server PRs |
 | 6 | ⏳ | Remove `@noCheck` and `.noCheck()` | Must | Will | Not started, no ticket, unblocked |  |
-| 7 | 🔄 2/4 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 2 of 4 slices merged, including the breaking one | Slice 3 (TML-3477): convert, backfill and the remaining renames |
+| 7 | 🔄 2/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 2 of 7 slices merged, including the breaking one. MongoDB renames approved. Convert and backfill in review | Merge the MongoDB renames PR, then review convert and backfill |
 
 ## Stream 2: Upgrade path from Prisma 7
 
@@ -33,9 +33,9 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 🔄 6/11 | Close every urgent and high upgrade issue | Must | Will | 6 closed, 5 open | TML-3267 next: `@updatedAt` with `@default(now())` |
-| 2 | 🔄 2/7 | Prisma 8 owns migrations in a Prisma 7 project that still reads `schema.prisma` | Must | Will | Proven. Follow-ups: 1 PR merged, 5 gaps open. Project docs PR open | Merge the docs PR, then the two high planner gaps (TML-3456, TML-3457) |
-| 3 | 🔄 0/4 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | Design settled 2026-10-07, in a design PR. Then 3 slices | Approve the design PR (give it a free ADR number first), then slice 1: split the lowering into derive and assemble, and the ORM projects per model |
-| 4 | ⏳ | Upgrade guide rewrite | Must | Will | Not tracked. One known error in the guide |  |
+| 2 | 🔄 2/7 | Prisma 8 owns migrations in a Prisma 7 project that still reads `schema.prisma` | Must | Will | Proven. Follow-ups: 1 PR merged, 5 gaps open | The two high planner gaps: enum value changes (TML-3456) and referential action changes (TML-3457) |
+| 3 | 🟡 4/5 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | 4 slices merged. ADR 267 and the close-out PR wait on review | Review ADR 267, then merge the close-out PR |
+| 4 | ⏳ | Upgrade guide rewrite | Must | Will | Ticket in backlog. One known error in the guide |  |
 | 5 | ⏳ 0/5 | Codecs for `citext`, `bit`, `varbit`, `xml`, `oid` | Must | Will | Backlog |  |
 | 6 | ⏳ | Columns whose type has no codec (`unknown`) | Must | Will | Not designed. The control-policy half moved into row 3 |  |
 | 7 | ⏳ | Adopt a Prisma 7 database without changing it: the enum membership check | Must | Will | Not designed |  |
@@ -60,7 +60,7 @@ Everything here is additive, so nothing here can block a breaking change.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | ⏳ | Transaction options: isolation levels and timeouts | Must | Serhii | Not designed. A stale draft exists |  |
 | 1b | ⏳ | Nested transactions | Must | Serhii | Not designed |  |
-| 2 | 🔄 0/5 | Nested writes on relations: `update`, `delete`, `upsert`, `set`, `connectOrCreate` | Aim | Serhii | Slice 1 (`update` and `delete` on a filtered set) in review | Review the slice 1 PR |
+| 2 | 🔄 0/5 | Nested writes on relations: `update`, `delete`, `upsert`, `set`, `connectOrCreate` | Aim | Serhii | Slice 1 (`update` and `delete` on a filtered set) in review. A rewrite of how writes run, as one mutation graph, in review | Review the slice 1 PR |
 | 3 | ✅ 1/1 | Design the replacement for `omit` | Must (design only) | Will | Design done (Will, 2026-10-07) |  |
 | 4 | ⏳ | Expressions in updates (what `increment` and `decrement` did in Prisma 7) | When there is time | Serhii | Not designed | |
 | 5 | ✅ 1/1 | A query that fails when nothing matches (what `firstOrThrow` did in Prisma 7) | When there is time | Serhii | `firstOrThrow` on collections merged 2026-10-08 |  |
@@ -71,10 +71,11 @@ In progress but not ranked here:
 | Progress | Work | Owner | Status | Next |
 | --- | --- | --- | --- | --- |
 | ✅ 3/3 | Row locking on a select | Will | Done 2026-10-07 | |
-| 🔄 2/3 | Collection classes, query fragments and scopes | Will | Collection classes and fragments merged. Index scopes in a draft design | Finish the index-scopes design |
+| 🔄 3/4 | Collection classes, query fragments and indexes | Will | Collection classes, fragments, and searching a full-text index by name merged. Index collection methods in review | Review the index collection methods PR |
 | ✅ 1/1 | `variant()` selects by discriminator value | Serhii | Merged 2026-10-06 | |
 | ✅ 1/1 | The Postgres driver returns every column as text | Will | Merged 2026-10-06 | |
-| 🔄 3/4 | Cache middleware | Will | Invalidation, keys and the after-transaction stage merged. The middleware activity tree in a design PR | Review the design PR, then TML-3400: invalidation after commit |
+| 🔄 3/4 | Cache middleware | Will | Invalidation, keys and the after-transaction stage merged. Invalidation after commit waits on the activity tree | |
+| 🔄 1/5 | Middleware sees a tree of activities | Will | ADR 271 merged. The plan and slice 1 approved, 3 slices in backlog | Merge the plan and slice 1 |
 
 ## Stream 5: Docs and the new user's first hour
 
