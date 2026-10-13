@@ -403,8 +403,8 @@ withTempDir(({ createTempDir }) => {
       async () => {
         const ctx = setup(createTempDir);
         expect((await runContractEmit(ctx)).exitCode, 'emit base').toBe(0);
-        const initialised = await runDbInit(ctx);
-        expect(initialised.exitCode, `db init: ${initialised.stderr}`).toBe(0);
+        const initialized = await runDbInit(ctx);
+        expect(initialized.exitCode, `db init: ${initialized.stderr}`).toBe(0);
         exec(ctx.dbPath, `INSERT INTO "User" (id, age, nickname) VALUES (1, '4', NULL)`);
 
         await emit(ctx, BASE.replace('age      String', 'age      Int'));

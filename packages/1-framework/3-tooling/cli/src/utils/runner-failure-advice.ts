@@ -68,7 +68,7 @@ export function dbUpdateRowsWithoutValueFix(
 
 /**
  * The way out of rows without a value for `db init`: a migration plan needs an origin contract,
- * which a database that `db init` never initialised does not have.
+ * which a database that `db init` never initialized does not have.
  */
 export function dbInitRowsWithoutValueFix(reports: readonly RowsWithoutValueReport[]): string {
   const field = reports[0]?.field;

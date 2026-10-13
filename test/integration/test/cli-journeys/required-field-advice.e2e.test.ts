@@ -5,7 +5,7 @@
  * Under `db migrate`, a migration that adds two required enum fields to a table with rows fails;
  * the advice names a backfill for both, and planning again with it applies. `db update`, after the
  * project applied its migrations with `db migrate` (so the `db` ref is stale), plans the backfill
- * from the contract the database is at. `db init` on a table with rows says to initialise with the
+ * from the contract the database is at. `db init` on a table with rows says to initialize with the
  * field optional and make it required with `db update`.
  */
 
@@ -219,7 +219,7 @@ withTempDir(({ createTempDir }) => {
     const db = useDevDatabase();
 
     it(
-      'says to initialise with the field optional, then db update says how to fill it',
+      'says to initialize with the field optional, then db update says how to fill it',
       async () => {
         const ctx = setupJourney({
           connectionString: db.connectionString,
@@ -240,8 +240,8 @@ withTempDir(({ createTempDir }) => {
         );
 
         await emit(ctx, contractWith('  role  Role?\n', ENUMS));
-        const initialised = await runDbInit(ctx);
-        expect(initialised.exitCode, `db init: ${initialised.stderr}`).toBe(0);
+        const initialized = await runDbInit(ctx);
+        expect(initialized.exitCode, `db init: ${initialized.stderr}`).toBe(0);
 
         await emit(ctx, contractWith('  role  Role\n', ENUMS));
         const update = await runDbUpdate(ctx, ['--json']);

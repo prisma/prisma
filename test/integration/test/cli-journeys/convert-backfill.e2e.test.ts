@@ -354,8 +354,8 @@ withTempDir(({ createTempDir }) => {
           contractMode: 'psl',
         });
         await emit(ctx, contractWith('  age   String\n'));
-        const initialised = await runDbInit(ctx);
-        expect(initialised.exitCode, `db init: ${initialised.stderr}`).toBe(0);
+        const initialized = await runDbInit(ctx);
+        expect(initialized.exitCode, `db init: ${initialized.stderr}`).toBe(0);
         await sql(db.connectionString, `INSERT INTO "user" (id, email, age) VALUES (1, 'a', '3')`);
 
         await emit(ctx, contractWith('  age   Int\n'));

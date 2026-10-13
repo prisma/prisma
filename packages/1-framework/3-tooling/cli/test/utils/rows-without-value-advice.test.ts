@@ -65,7 +65,7 @@ describe('the advice for rows a required field has no value for', () => {
     ]);
   });
 
-  it('on db init, says to initialise with the field optional and make it required with db update', () => {
+  it('on db init, says to initialize with the field optional and make it required with db update', () => {
     expect(
       mapDbInitFailure({
         ...runnerFailed,
