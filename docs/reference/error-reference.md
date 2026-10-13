@@ -1054,6 +1054,18 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 An in-flight `query()` or `execute()` operation was cancelled via the per-operation `AbortSignal` passed as the call's `{ signal }` option. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeEncode` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Payload: `phase`.
 
+### RUNTIME.ACTIVITY_CHILDREN_OPEN
+
+A client ended an activity it started with `startActivity` while a statement or an activity beneath it had not ended, such as a row stream it had not finished reading. The activity is ended `failed` and finalized before the error is raised; each open child is finalized when it ends. End or drain every child before calling `end()`. Payload: `kind`, `id`, `openChildren`.
+
+### RUNTIME.ACTIVITY_ENDED
+
+A statement or an activity was started beneath an activity that has ended: a transaction whose `commit()` or `rollback()` has been called, a client activity after its `end()`, or a client activity whose transaction has ended. No middleware hook runs for the refused work. A second `end()` on the same client activity raises it too. Start the work before ending its parent, or on a queryable that is still open. Payload: `parentKind` and `parentId`, or `kind` and `id` for a second `end()`.
+
+### RUNTIME.ACTIVITY_KIND_RESERVED
+
+A client called `startActivity` with the kind `statement` or `transaction`. The runtime starts those activities itself; a client registers its own kinds in `ClientActivityKinds` and starts those. Payload: `kind`.
+
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
 A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `nullable: false` descriptor with no `emptyResultJson`, a `self` output on an operation that consumes no input, or a non-callable `lower`. `emptyResultJson` is the value a non-nullable operation answers with when no result row reaches the caller, stated in the result codec's canonical JSON: `0` under `pg/int8number@1`, `'0'` under `pg/int8@1`. Raised while the execution context assembles the registry. Payload: `descriptor`.

@@ -52,7 +52,7 @@ The runtime defines two kinds of activity:
 - **`statement`**: one statement sent to the database. `query()` sends it for its rows and `execute()` sends it for its statistics, such as the number of affected rows; the activity's `returns` field is `'rows'` or `'stats'` accordingly. Both have the same lifecycle. A statement is a leaf.
 - **`transaction`**: started by `transaction()`, ended by `commit()` or `rollback()`.
 
-Clients add their own kinds. The SQL ORM starts one activity of kind `orm-call` for every terminal method. A kind is a label; the framework names no client vocabulary.
+Clients add their own kinds by module augmentation of the empty interface `ClientActivityKinds`, each with the type of the result it ends with. The SQL ORM registers `orm-call` and starts one such activity for every terminal method. The framework names no client vocabulary, and a client cannot start a `statement` or a `transaction`.
 
 Middleware has two kinds of hook: **lifecycle events**, which observe, and **interceptors**, which can change or stop a statement while the runtime executes it.
 
@@ -68,9 +68,11 @@ A middleware that only cares about some kinds checks `activity.kind` at the top 
 
 ### When an activity is finalized
 
-An activity with no enclosing transaction is finalized right after it ends: `committed` when it succeeded, `unknown` when it failed or was stopped, because a statement that errors on the response path, or whose caller stopped reading, may already have applied.
+A statement with no enclosing transaction is finalized right after it ends: `committed` when it succeeded, `unknown` when it failed or was stopped, because a statement that errors on the response path, or whose caller stopped reading, may already have applied.
 
-An activity inside a transaction is finalized when the outermost enclosing transaction ends, with that transaction's outcome:
+A client activity with no enclosing transaction is also finalized right after it ends: `committed` when it succeeded and nothing beneath it was finalized `unknown`, otherwise `unknown`. Its children are finalized when they end, each by its own rule.
+
+An activity inside a transaction is finalized when the nearest enclosing transaction ends, with that transaction's outcome:
 
 | What happened | Outcome |
 |---|---|
@@ -79,9 +81,9 @@ An activity inside a transaction is finalized when the outermost enclosing trans
 | `rollback()` settles and no commit was attempted | `rolled-back` |
 | `commit()` rejects, whether or not a rollback follows | `unknown` |
 
-`unknown` means the runtime cannot tell whether the writes landed. A rejected `COMMIT` may have landed on the server before the error came back, and the cleanup `ROLLBACK` that follows succeeds either way. A resolved `COMMIT` after a failed statement is answered by Postgres with a silent `ROLLBACK`, while other databases commit. A consumer that must not miss a committed write treats `unknown` like `committed`.
+`unknown` means the runtime cannot tell whether the writes landed. A rejected `COMMIT` may have landed on the server before the error came back, and the cleanup `ROLLBACK` that follows succeeds either way. A resolved `COMMIT` after a failed statement is answered by Postgres with a silent `ROLLBACK`, while other databases commit. A consumer that must not miss a committed write treats `unknown` like `committed`. Only a failed statement makes a resolved `COMMIT` `unknown`: its failure is passed up through the client activities above it to the transaction, and a client activity that fails with no failed statement beneath it does not change the outcome.
 
-When a transaction ends, the activities beneath it are finalized children first: its statements and child activities in the order they started, then the transaction itself, then its parent if the parent has already ended. A child still open when its transaction ends, such as a row stream the caller is still reading, is finalized when it ends, with the outcome the transaction recorded, and keeps its `ctx.state` until then; the transaction does not wait for it. So every activity is started, then ended, then finalized. An activity's own end cannot stand in for its finalization: inside a transaction it ends before the `COMMIT`, and acting then lets a concurrent read store rows the transaction is about to replace.
+The nearest transaction finalizes its whole subtree when it ends, in post-order: children in start order, depth first, then the parent; the transaction itself comes last. An activity still open when its transaction ends, such as a row stream the caller is still reading, is finalized when it ends, with the outcome the transaction recorded, and keeps its `ctx.state` until then; the transaction does not wait for it. So every activity is started, then ended, then finalized. An activity's own end cannot stand in for its finalization: inside a transaction it ends before the `COMMIT`, and acting then lets a concurrent read store rows the transaction is about to replace.
 
 ### Interceptors
 
@@ -115,19 +117,23 @@ The statement interceptors receive the plan at their stage: `beforeEncode(draft,
 `startActivity` on the runtime's queryables starts an activity for an act the runtime would not otherwise see:
 
 ```ts
-startActivity<TResult>(activity: {
-  readonly kind: string;
+startActivity<K extends ClientActivityKind>(activity: {
+  readonly kind: K;
   readonly contentHash: string;
   readonly annotations?: Annotations;
-}): Promise<ActivityHandle<TResult>>;
+}): Promise<ActivityHandle<K>>;
 
-interface ActivityHandle<TResult> extends RuntimeQueryable {
-  readonly intercepted: { readonly result: TResult } | undefined;
-  end(result: { readonly outcome: 'succeeded' | 'failed' | 'stopped'; readonly result?: TResult }): Promise<void>;
+interface ActivityHandle<K> extends RuntimeQueryable {
+  readonly activity: ClientActivity<K>;
+  readonly intercepted: { readonly result: ClientActivityResult<K> } | undefined;
+  readonly transaction?: () => Promise<RuntimeTransaction>;
+  end(result: { readonly outcome: 'succeeded' | 'failed' | 'stopped'; readonly result?: ClientActivityResult<K> }): Promise<void>;
 }
 ```
 
-Statements sent through the handle are the activity's children, and `handle.transaction()` starts a transaction activity beneath it. `intercepted` is set when an `intercept.onActivity` handler supplied a result; the client then returns it without running anything. `end()` hands the runtime the value the client returns to its caller, which the runtime passes to middleware without reading it. Ending an activity while one of its children is still open is a runtime error. A transaction is the exception: the database ends it, so a child still open then is finalized when it ends (see "When an activity is finalized").
+Statements sent through the handle are the activity's children, and `handle.transaction()` starts a transaction activity beneath it. A handle opened under a transaction has no `transaction`, so transactions do not nest. `intercepted` is set when an `intercept.onActivity` handler supplied a result; the client then returns it without running anything. `end()` hands the runtime the value the client returns to its caller, which the runtime passes to middleware without reading it.
+
+Ending an activity while one of its children is still open ends it `failed`, finalizes it, and rejects with a runtime error naming how many children are open. A transaction is the exception: the database ends it, so a child still open then is finalized when it ends (see "When an activity is finalized"). Starting a statement or an activity beneath an activity that has ended, or beneath a client activity whose transaction has ended, is rejected at entry with a runtime error.
 
 The SQL ORM's terminal methods follow this shape:
 
@@ -150,7 +156,7 @@ An annotation lives on the activity the user annotated. An annotation on an ORM 
 
 ### Content hash
 
-Every activity has a content hash: an opaque digest of what it does, used to derive a cache key when the annotation names none, and to name spans. For a statement the runtime computes it from the contract's storage hash, the statement text and its parameters, as `ctx.contentHash` does today. For a client activity, the client supplies it; the SQL ORM hashes the model, the terminal method and the collection's state.
+Every activity has a content hash: an opaque digest of what it does, used to derive a cache key when the annotation names none, and to name spans. For a statement the runtime computes it from the contract's storage hash, the statement text and its parameters, as `ctx.contentHash` does today. For a client activity, the client supplies it. The SQL runtime's `planContentHash(plan)` gives a client the digest of the statement a plan would send: it runs `beforeCompile` and lowers and encodes the plan, without `beforeEncode`, whose lints would fire twice and whose parameter changes need not be deterministic.
 
 ### The middleware context
 
