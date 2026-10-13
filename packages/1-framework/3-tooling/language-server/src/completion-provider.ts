@@ -87,18 +87,21 @@ const declarationKeywordCategoryOrder: Record<
 
 const nameSnippetPlaceholder = '$' + '{1:Name}';
 const namespaceSnippetPlaceholder = '$' + '{1:name}';
+const fieldsBodySnippet = '$' + '{0:// Fields}';
+const blockBodySnippet = '$' + '{0:// Block keys and attributes}';
+const keywordsWithoutMixins: ReadonlySet<string> = new Set(['namespace', 'types']);
 
 const namespaceNativeDeclarationKeywords: readonly DeclarationKeywordCompletionCandidate[] = [
   nativeDeclarationKeyword(
     'model',
     'model ',
-    `model ${nameSnippetPlaceholder} {\n  \${0:// Fields}\n}`,
+    `model ${nameSnippetPlaceholder} {\n  ${fieldsBodySnippet}\n}`,
     'Defines a data model.',
   ),
   nativeDeclarationKeyword(
     'type',
     'type ',
-    `type ${nameSnippetPlaceholder} {\n  \${0:// Fields}\n}`,
+    `type ${nameSnippetPlaceholder} {\n  ${fieldsBodySnippet}\n}`,
     'Defines a reusable composite type.',
   ),
 ];
@@ -365,13 +368,35 @@ function declarationKeywordCandidates(
 ): readonly DeclarationKeywordCompletionCandidate[] {
   const nativeCandidates =
     scope === 'namespace' ? namespaceNativeDeclarationKeywords : documentNativeDeclarationKeywords;
+  const genericBlockCandidates = genericBlockDeclarationKeywordCandidates(
+    source.pslBlockDescriptors,
+    source.symbolTable,
+    source.dataTypes ?? EMPTY_DATA_TYPES,
+  );
   return [
-    ...nativeCandidates,
-    ...genericBlockDeclarationKeywordCandidates(
-      source.pslBlockDescriptors,
-      source.symbolTable,
-      source.dataTypes ?? EMPTY_DATA_TYPES,
+    ...nativeCandidates.flatMap((candidate) => withMixinDeclaration(candidate, fieldsBodySnippet)),
+    ...genericBlockCandidates.flatMap((candidate) =>
+      withMixinDeclaration(candidate, blockBodySnippet),
     ),
+  ];
+}
+
+function withMixinDeclaration(
+  candidate: DeclarationKeywordCompletionCandidate,
+  bodySnippet: string,
+): readonly DeclarationKeywordCompletionCandidate[] {
+  if (keywordsWithoutMixins.has(candidate.label)) return [candidate];
+  const label = `${candidate.label} mixin`;
+  return [
+    candidate,
+    {
+      category: candidate.category,
+      label,
+      insertText: `${label} `,
+      snippetText: `${label} ${nameSnippetPlaceholder} {\n  ${bodySnippet}\n}`,
+      detail: `Declares a mixin for ${candidate.label} blocks.`,
+      kind: candidate.kind,
+    },
   ];
 }
 
@@ -423,7 +448,7 @@ function genericBlockSnippet(keyword: string, spec: BlockSpec | undefined): stri
     const placeholder = `\${${index + 2}:${name}}`;
     return `  ${name} = ${parameter.type.kind === 'list' ? `[${placeholder}]` : placeholder}`;
   });
-  const cursor = lines.length === 0 ? '$' + '{0:// Block keys and attributes}' : '$0';
+  const cursor = lines.length === 0 ? blockBodySnippet : '$0';
   return [`${keyword} ${nameSnippetPlaceholder} {`, ...lines, `  ${cursor}`, '}'].join('\n');
 }
 
