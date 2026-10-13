@@ -5,10 +5,13 @@ import {
   type CodecListField,
   Collection,
   type Filtered,
+  type ModelAccessor,
+  type ModelCallbackTools,
   orderByField,
   orm,
 } from '@prisma/orm-postgres/orm-client';
 import type { ExecutionContext } from '@prisma/orm-postgres/relational-core/query-lane-context';
+import { websearchToTsquery } from '@prisma/orm-postgres/target/full-text';
 import type { Contract } from '../../src/prisma/contract.d';
 
 type ExpiresAt = CodecField<Contract, 'pg/timestamptz-temporal@1'>;
@@ -46,9 +49,33 @@ export const unexpired = (now: Temporal.Instant) =>
     rows.where((row) => row.expiresAt.gt(now)).orderBy((row) => row.expiresAt.asc()),
   );
 
+export const matchesSearch = (query: string) => {
+  const q = websearchToTsquery(query);
+  return (
+    _post: ModelAccessor<Contract, 'Post'>,
+    { fns, indexes }: ModelCallbackTools<Contract, 'Post'>,
+  ) => fns.fullTextMatches(indexes.post_search, q);
+};
+
+export const searched = (query: string) => {
+  const q = websearchToTsquery(query);
+  return client.public.Post.fragment((posts) =>
+    posts
+      .where((_post, { fns, indexes }) => fns.fullTextMatches(indexes.post_search, q))
+      .orderBy((_post, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc()),
+  );
+};
+
 export class PostLibrary extends Collection<Contract, 'Post'> {
   live(now: Temporal.Instant) {
     return this.where(notExpired(now));
+  }
+
+  search(query: string) {
+    const q = websearchToTsquery(query);
+    return this.where((_post, { fns, indexes }) =>
+      fns.fullTextMatches(indexes.post_search, q),
+    ).orderBy((_post, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc());
   }
 
   summaries() {
@@ -113,6 +140,30 @@ export class PostLibrary extends Collection<Contract, 'Post'> {
 
   preparedRows() {
     return this.filtered().prepared;
+  }
+
+  byId(id: string) {
+    return this.whereUnique({ id });
+  }
+
+  byIdForUser(id: string, userId: string) {
+    return this.whereUnique({ id }).where({ userId });
+  }
+
+  byIdWithUser(id: string) {
+    return this.whereUnique({ id }).include('user');
+  }
+
+  firstById(id: string) {
+    return this.whereUnique({ id }).first();
+  }
+
+  firstOrThrowById(id: string) {
+    return this.whereUnique({ id }).firstOrThrow();
+  }
+
+  preparedById(id: string) {
+    return this.whereUnique({ id }).prepared;
   }
 
   createRow() {
@@ -243,6 +294,12 @@ export class SubLibrary extends PostLibrary {
 export const posts = orm({ runtime, context, collections: { Post: PostLibrary } }).public.Post;
 export const filteredChain = posts.filtered().ordered().withUser();
 export const plainChain = orm({ runtime, context }).public.Post.where({ title: 'x' });
+export const uniqueChain = posts.byId('p1').filtered();
+export const plainUniqueChain = orm({ runtime, context }).public.Post.whereUnique({ id: 'p1' });
+export const plainUniqueInclude = orm({ runtime, context })
+  .public.Post.whereUnique({ id: 'p1' })
+  .where({ title: 'x' })
+  .include('user');
 
 export function filterPosts(
   collection: Collection<Contract, 'Post'>,
