@@ -20,6 +20,22 @@
       "model": "Generated",
       "namespace": "public"
     },
+    "key_writers": {
+      "model": "KeyCovered",
+      "namespace": "public"
+    },
+    "organization_membership_invitations": {
+      "model": "LongNamed",
+      "namespace": "public"
+    },
+    "partial_writers": {
+      "model": "PartialIndexed",
+      "namespace": "public"
+    },
+    "plain_writers": {
+      "model": "PlainIndexed",
+      "namespace": "public"
+    },
     "post_tags": {
       "model": "PostTag",
       "namespace": "public"
@@ -34,6 +50,10 @@
     },
     "tags": {
       "model": "Tag",
+      "namespace": "public"
+    },
+    "unindexed_writers": {
+      "model": "Unindexed",
       "namespace": "public"
     },
     "user_badges": {
@@ -319,6 +339,154 @@
               "table": "generated"
             }
           },
+          "KeyCovered": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "writerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "writerId": {
+                  "column": "writer_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "key_writers"
+            }
+          },
+          "LongNamed": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "organizationReference": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "organizationReference": {
+                  "column": "organization_reference_identifier"
+                }
+              },
+              "namespaceId": "public",
+              "table": "organization_membership_invitations"
+            }
+          },
+          "PartialIndexed": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "writerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "writerId": {
+                  "column": "writer_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "partial_writers"
+            }
+          },
+          "PlainIndexed": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "writerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "writerId": {
+                  "column": "writer_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "plain_writers"
+            }
+          },
           "Post": {
             "fields": {
               "authorId": {
@@ -599,6 +767,43 @@
               },
               "namespaceId": "public",
               "table": "tags"
+            }
+          },
+          "Unindexed": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "writerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/char@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "writerId": {
+                  "column": "writer_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "unindexed_writers"
             }
           },
           "User": {
@@ -1115,6 +1320,242 @@
               },
               "uniques": []
             },
+            "key_writers": {
+              "columns": {
+                "id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                },
+                "writer_id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "unique": [
+                      "writer_id"
+                    ]
+                  },
+                  "source": {
+                    "columns": [
+                      "writer_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "key_writers"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "writer_id"
+                  ]
+                }
+              ]
+            },
+            "organization_membership_invitations": {
+              "columns": {
+                "id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                },
+                "organization_reference_identifier": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "organization_membership_invitations_organization_refer_629465de"
+                  },
+                  "source": {
+                    "columns": [
+                      "organization_reference_identifier"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "organization_membership_invitations"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "organization_reference_identifier"
+                  ],
+                  "name": "organization_membership_invitations_organization_refer_629465de",
+                  "prefix": "organization_membership_invitations_organization_refer",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "partial_writers": {
+              "columns": {
+                "id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                },
+                "writer_id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "partial_writers_writer_id_idx_7e64fa2a"
+                  },
+                  "source": {
+                    "columns": [
+                      "writer_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "partial_writers"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "writer_id"
+                  ],
+                  "name": "partial_writers_writer_id_idx_7e64fa2a",
+                  "prefix": "partial_writers_writer_id_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "writer_id"
+                  ],
+                  "name": "set_writers_2c1c0b1d",
+                  "prefix": "set_writers",
+                  "unique": false,
+                  "where": "writer_id IS NOT NULL"
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "plain_writers": {
+              "columns": {
+                "id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                },
+                "writer_id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "by_writer_7e64fa2a"
+                  },
+                  "source": {
+                    "columns": [
+                      "writer_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "plain_writers"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "writer_id"
+                  ],
+                  "name": "by_writer_7e64fa2a",
+                  "prefix": "by_writer",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "post_tags": {
               "columns": {
                 "postId": {
@@ -1301,6 +1742,51 @@
                 }
               },
               "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
+            "unindexed_writers": {
+              "columns": {
+                "id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                },
+                "writer_id": {
+                  "codecId": "sql/char@1",
+                  "dataType": "pg/char",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 36
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "writer_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "unindexed_writers"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
               "indexes": [],
               "primaryKey": {
                 "columns": [
@@ -1524,7 +2010,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "ab1c18b48119e6ca2fdfc6335f1dfff5c3eefa4aeb1b2ea7376330a03e2108bf",
+    "storageHash": "d3bcf0f23153e1cc157891c62d8f5dcbdf50a00ea9ffc187ff1f6b9562c690c6",
     "types": {
       "TimestampString3": {
         "codecId": "pg/timestamp-string@1",
@@ -1545,7 +2031,7 @@
     }
   },
   "execution": {
-    "executionHash": "441f4ca3b37b233b60ae91d1122efcab6593a51ecd67beb0e4dddf089b8e075c",
+    "executionHash": "8dc724abf2c39e55e3fed5fc39649c060b472d1c8da3ec479a76352456916a5a",
     "mutations": {
       "defaults": [
         {
@@ -1656,6 +2142,50 @@
             "kind": "generator"
           },
           "ref": {
+            "entry": "key_writers",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "organization_membership_invitations",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "partial_writers",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "plain_writers",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
             "entry": "posts",
             "field": "id",
             "namespace": "public"
@@ -1679,6 +2209,17 @@
           },
           "ref": {
             "entry": "tags",
+            "field": "id",
+            "namespace": "public"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "uuidv4",
+            "kind": "generator"
+          },
+          "ref": {
+            "entry": "unindexed_writers",
             "field": "id",
             "namespace": "public"
           }

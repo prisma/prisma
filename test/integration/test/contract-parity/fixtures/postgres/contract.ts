@@ -12,6 +12,7 @@ import {
   fullTextIndex,
   model,
   rel,
+  sql,
 } from '@internal/postgres/contract-builder';
 import { type } from 'arktype';
 
@@ -91,6 +92,52 @@ const UserBadge = model('UserBadge', {
   fields: { userId: field.uuidString(), badgeCode: field.column(textColumn) },
 });
 
+// Foreign keys whose backing indexes the build names, cuts or leaves out.
+const LongNamed = model('LongNamed', {
+  fields: {
+    id: field.id.uuidv4String(),
+    organizationReference: field.uuidString().column('organization_reference_identifier'),
+  },
+}).sql(({ cols, constraints }) => ({
+  table: 'organization_membership_invitations',
+  foreignKeys: [constraints.foreignKey(cols.organizationReference, User.refs.id)],
+}));
+
+const PartialIndexed = model('PartialIndexed', {
+  fields: { id: field.id.uuidv4String(), writerId: field.uuidString().column('writer_id') },
+}).sql(({ cols, constraints }) => ({
+  table: 'partial_writers',
+  indexes: [
+    constraints.index([cols.writerId], { name: 'set_writers', where: sql`writer_id IS NOT NULL` }),
+  ],
+  foreignKeys: [constraints.foreignKey(cols.writerId, User.refs.id)],
+}));
+
+const PlainIndexed = model('PlainIndexed', {
+  fields: { id: field.id.uuidv4String(), writerId: field.uuidString().column('writer_id') },
+}).sql(({ cols, constraints }) => ({
+  table: 'plain_writers',
+  indexes: [constraints.index([cols.writerId], { name: 'by_writer' })],
+  foreignKeys: [constraints.foreignKey(cols.writerId, User.refs.id)],
+}));
+
+const KeyCovered = model('KeyCovered', {
+  fields: {
+    id: field.id.uuidv4String(),
+    writerId: field.uuidString().column('writer_id').unique(),
+  },
+}).sql(({ cols, constraints }) => ({
+  table: 'key_writers',
+  foreignKeys: [constraints.foreignKey(cols.writerId, User.refs.id)],
+}));
+
+const Unindexed = model('Unindexed', {
+  fields: { id: field.id.uuidv4String(), writerId: field.uuidString().column('writer_id') },
+}).sql(({ cols, constraints }) => ({
+  table: 'unindexed_writers',
+  foreignKeys: [constraints.foreignKey(cols.writerId, User.refs.id, { index: false })],
+}));
+
 const Account = model('Account', {
   namespace: 'auth',
   fields: { id: field.id.cuid2(), userId: field.uuidString(), provider: field.column(textColumn) },
@@ -125,6 +172,11 @@ export const contract = defineContract({
       ],
     })),
     Badge: Badge.sql({ table: 'badges' }),
+    LongNamed,
+    PartialIndexed,
+    PlainIndexed,
+    KeyCovered,
+    Unindexed,
     UserBadge: UserBadge.sql({ table: 'user_badges' }),
     Post: Post.relations({
       author: rel.belongsTo(User, { from: 'authorId', to: 'id' }),

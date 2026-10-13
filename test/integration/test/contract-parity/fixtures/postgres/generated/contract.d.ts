@@ -25,9 +25,9 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'ab1c18b48119e6ca2fdfc6335f1dfff5c3eefa4aeb1b2ea7376330a03e2108bf'>;
+  StorageHashBase<'d3bcf0f23153e1cc157891c62d8f5dcbdf50a00ea9ffc187ff1f6b9562c690c6'>;
 export type ExecutionHash =
-  ExecutionHashBase<'441f4ca3b37b233b60ae91d1122efcab6593a51ecd67beb0e4dddf089b8e075c'>;
+  ExecutionHashBase<'8dc724abf2c39e55e3fed5fc39649c060b472d1c8da3ec479a76352456916a5a'>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
 
@@ -262,6 +262,10 @@ export type FieldOutputTypes = {
       readonly ulid: Char<26>;
       readonly uuidv7: Char<36>;
     };
+    readonly KeyCovered: { readonly id: Char<36>; readonly writerId: Char<36> };
+    readonly LongNamed: { readonly id: Char<36>; readonly organizationReference: Char<36> };
+    readonly PartialIndexed: { readonly id: Char<36>; readonly writerId: Char<36> };
+    readonly PlainIndexed: { readonly id: Char<36>; readonly writerId: Char<36> };
     readonly Post: {
       readonly authorId: Char<36>;
       readonly id: Char<36>;
@@ -275,6 +279,7 @@ export type FieldOutputTypes = {
       readonly userId: Char<36>;
     };
     readonly Tag: { readonly id: Char<26>; readonly label: CodecTypes['pg/text@1']['output'] };
+    readonly Unindexed: { readonly id: Char<36>; readonly writerId: Char<36> };
     readonly User: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
       readonly cuid2: Char<24>;
@@ -327,6 +332,22 @@ export type FieldInputTypes = {
       readonly ulid: CodecTypes['sql/char@1']['input'];
       readonly uuidv7: CodecTypes['sql/char@1']['input'];
     };
+    readonly KeyCovered: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writerId: CodecTypes['sql/char@1']['input'];
+    };
+    readonly LongNamed: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly organizationReference: CodecTypes['sql/char@1']['input'];
+    };
+    readonly PartialIndexed: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writerId: CodecTypes['sql/char@1']['input'];
+    };
+    readonly PlainIndexed: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writerId: CodecTypes['sql/char@1']['input'];
+    };
     readonly Post: {
       readonly authorId: CodecTypes['sql/char@1']['input'];
       readonly id: CodecTypes['sql/char@1']['input'];
@@ -345,6 +366,10 @@ export type FieldInputTypes = {
     readonly Tag: {
       readonly id: CodecTypes['sql/char@1']['input'];
       readonly label: CodecTypes['pg/text@1']['input'];
+    };
+    readonly Unindexed: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writerId: CodecTypes['sql/char@1']['input'];
     };
     readonly User: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
@@ -395,6 +420,13 @@ export type StorageColumnTypes = {
       readonly ulid: Char<26>;
       readonly uuidv7: Char<36>;
     };
+    readonly key_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
+    readonly organization_membership_invitations: {
+      readonly id: Char<36>;
+      readonly organization_reference_identifier: Char<36>;
+    };
+    readonly partial_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
+    readonly plain_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
     readonly post_tags: { readonly postId: Char<36>; readonly tagId: Char<26> };
     readonly posts: {
       readonly authorId: Char<36>;
@@ -408,6 +440,7 @@ export type StorageColumnTypes = {
       readonly userId: Char<36>;
     };
     readonly tags: { readonly id: Char<26>; readonly label: CodecTypes['pg/text@1']['output'] };
+    readonly unindexed_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
     readonly user_badges: {
       readonly badgeCode: CodecTypes['pg/text@1']['output'];
       readonly userId: Char<36>;
@@ -460,6 +493,22 @@ export type StorageColumnInputTypes = {
       readonly ulid: CodecTypes['sql/char@1']['input'];
       readonly uuidv7: CodecTypes['sql/char@1']['input'];
     };
+    readonly key_writers: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writer_id: CodecTypes['sql/char@1']['input'];
+    };
+    readonly organization_membership_invitations: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly organization_reference_identifier: CodecTypes['sql/char@1']['input'];
+    };
+    readonly partial_writers: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writer_id: CodecTypes['sql/char@1']['input'];
+    };
+    readonly plain_writers: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writer_id: CodecTypes['sql/char@1']['input'];
+    };
     readonly post_tags: {
       readonly postId: CodecTypes['sql/char@1']['input'];
       readonly tagId: CodecTypes['sql/char@1']['input'];
@@ -478,6 +527,10 @@ export type StorageColumnInputTypes = {
     readonly tags: {
       readonly id: CodecTypes['sql/char@1']['input'];
       readonly label: CodecTypes['pg/text@1']['input'];
+    };
+    readonly unindexed_writers: {
+      readonly id: CodecTypes['sql/char@1']['input'];
+      readonly writer_id: CodecTypes['sql/char@1']['input'];
     };
     readonly user_badges: {
       readonly badgeCode: CodecTypes['pg/text@1']['input'];
@@ -536,6 +589,26 @@ export namespace Models {
     uuidv7: Char<36>;
     readonly [RelationKeys]?: never;
   };
+  export type public_KeyCovered = {
+    id: Char<36>;
+    writerId: Char<36>;
+    readonly [RelationKeys]?: never;
+  };
+  export type public_LongNamed = {
+    id: Char<36>;
+    organizationReference: Char<36>;
+    readonly [RelationKeys]?: never;
+  };
+  export type public_PartialIndexed = {
+    id: Char<36>;
+    writerId: Char<36>;
+    readonly [RelationKeys]?: never;
+  };
+  export type public_PlainIndexed = {
+    id: Char<36>;
+    writerId: Char<36>;
+    readonly [RelationKeys]?: never;
+  };
   export type public_Post = {
     authorId: Char<36>;
     id: Char<36>;
@@ -562,6 +635,11 @@ export namespace Models {
     label: CodecTypes['pg/text@1']['output'];
     posts: public_Post[];
     readonly [RelationKeys]?: 'posts';
+  };
+  export type public_Unindexed = {
+    id: Char<36>;
+    writerId: Char<36>;
+    readonly [RelationKeys]?: never;
   };
   export type public_User = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -603,10 +681,15 @@ export declare const models: {
     Badge: Models.public_Badge;
     Employee: Models.public_Employee;
     Generated: Models.public_Generated;
+    KeyCovered: Models.public_KeyCovered;
+    LongNamed: Models.public_LongNamed;
+    PartialIndexed: Models.public_PartialIndexed;
+    PlainIndexed: Models.public_PlainIndexed;
     Post: Models.public_Post;
     PostTag: Models.public_PostTag;
     Profile: Models.public_Profile;
     Tag: Models.public_Tag;
+    Unindexed: Models.public_Unindexed;
     User: Models.public_User;
     UserBadge: Models.public_UserBadge;
   };
@@ -764,6 +847,174 @@ type ContractBase = Omit<
               indexes: readonly [];
               foreignKeys: readonly [];
             };
+            readonly key_writers: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+                readonly writer_id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [{ readonly columns: readonly ['writer_id'] }];
+              indexes: readonly [];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'key_writers';
+                    readonly columns: readonly ['writer_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly organization_membership_invitations: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+                readonly organization_reference_identifier: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'organization_membership_invitations_organization_refer_629465de';
+                  readonly prefix: 'organization_membership_invitations_organization_refer';
+                  readonly columns: readonly ['organization_reference_identifier'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'organization_membership_invitations';
+                    readonly columns: readonly ['organization_reference_identifier'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly partial_writers: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+                readonly writer_id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'partial_writers_writer_id_idx_7e64fa2a';
+                  readonly prefix: 'partial_writers_writer_id_idx';
+                  readonly columns: readonly ['writer_id'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'set_writers_2c1c0b1d';
+                  readonly prefix: 'set_writers';
+                  readonly columns: readonly ['writer_id'];
+                  readonly where: 'writer_id IS NOT NULL';
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'partial_writers';
+                    readonly columns: readonly ['writer_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
+            readonly plain_writers: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+                readonly writer_id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'by_writer_7e64fa2a';
+                  readonly prefix: 'by_writer';
+                  readonly columns: readonly ['writer_id'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'plain_writers';
+                    readonly columns: readonly ['writer_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
+            };
             readonly post_tags: {
               columns: {
                 readonly postId: {
@@ -917,6 +1168,41 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [];
               foreignKeys: readonly [];
+            };
+            readonly unindexed_writers: {
+              columns: {
+                readonly id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+                readonly writer_id: {
+                  readonly dataType: 'pg/char';
+                  readonly codecId: 'sql/char@1';
+                  readonly nullable: false;
+                  readonly typeParams: { readonly length: 36 };
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['id'] };
+              uniques: readonly [];
+              indexes: readonly [];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'unindexed_writers';
+                    readonly columns: readonly ['writer_id'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly user_badges: {
               columns: {
@@ -1127,10 +1413,30 @@ type ContractBase = Omit<
     readonly badges: { readonly namespace: 'public' & NamespaceId; readonly model: 'Badge' };
     readonly employees: { readonly namespace: 'public' & NamespaceId; readonly model: 'Employee' };
     readonly generated: { readonly namespace: 'public' & NamespaceId; readonly model: 'Generated' };
+    readonly key_writers: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'KeyCovered';
+    };
+    readonly organization_membership_invitations: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'LongNamed';
+    };
+    readonly partial_writers: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'PartialIndexed';
+    };
+    readonly plain_writers: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'PlainIndexed';
+    };
     readonly post_tags: { readonly namespace: 'public' & NamespaceId; readonly model: 'PostTag' };
     readonly posts: { readonly namespace: 'public' & NamespaceId; readonly model: 'Post' };
     readonly profiles: { readonly namespace: 'public' & NamespaceId; readonly model: 'Profile' };
     readonly tags: { readonly namespace: 'public' & NamespaceId; readonly model: 'Tag' };
+    readonly unindexed_writers: {
+      readonly namespace: 'public' & NamespaceId;
+      readonly model: 'Unindexed';
+    };
     readonly user_badges: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'UserBadge';
@@ -1337,6 +1643,124 @@ type ContractBase = Omit<
               };
             };
           };
+          readonly KeyCovered: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+              readonly writerId: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'key_writers';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly writerId: { readonly column: 'writer_id' };
+              };
+            };
+          };
+          readonly LongNamed: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+              readonly organizationReference: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'organization_membership_invitations';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly organizationReference: {
+                  readonly column: 'organization_reference_identifier';
+                };
+              };
+            };
+          };
+          readonly PartialIndexed: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+              readonly writerId: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'partial_writers';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly writerId: { readonly column: 'writer_id' };
+              };
+            };
+          };
+          readonly PlainIndexed: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+              readonly writerId: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'plain_writers';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly writerId: { readonly column: 'writer_id' };
+              };
+            };
+          };
           readonly Post: {
             readonly fields: {
               readonly authorId: {
@@ -1525,6 +1949,35 @@ type ContractBase = Omit<
               readonly fields: {
                 readonly id: { readonly column: 'id' };
                 readonly label: { readonly column: 'label' };
+              };
+            };
+          };
+          readonly Unindexed: {
+            readonly fields: {
+              readonly id: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+              readonly writerId: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'sql/char@1';
+                  readonly typeParams: { readonly length: 36 };
+                };
+              };
+            };
+            readonly relations: Record<string, never>;
+            readonly storage: {
+              readonly table: 'unindexed_writers';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly id: { readonly column: 'id' };
+                readonly writerId: { readonly column: 'writer_id' };
               };
             };
           };
@@ -1902,6 +2355,38 @@ type ContractBase = Omit<
         {
           readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
           readonly ref: {
+            readonly entry: 'key_writers';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'organization_membership_invitations';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'partial_writers';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'plain_writers';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
             readonly entry: 'posts';
             readonly field: 'id';
             readonly namespace: 'public';
@@ -1919,6 +2404,14 @@ type ContractBase = Omit<
           readonly onCreate: { readonly id: 'ulid'; readonly kind: 'generator' };
           readonly ref: {
             readonly entry: 'tags';
+            readonly field: 'id';
+            readonly namespace: 'public';
+          };
+        },
+        {
+          readonly onCreate: { readonly id: 'uuidv4'; readonly kind: 'generator' };
+          readonly ref: {
+            readonly entry: 'unindexed_writers';
             readonly field: 'id';
             readonly namespace: 'public';
           };

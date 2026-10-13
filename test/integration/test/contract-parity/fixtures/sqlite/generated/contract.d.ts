@@ -17,7 +17,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'124a5208afa805ecd3e56e732d2f94276307f5531cfd431df8098315fbe7af20'>;
+  StorageHashBase<'c27652056bef0a563d8f4d4a71aea0a9d021e2e03455f0a550e93b4355d19aa6'>;
 export type ExecutionHash =
   ExecutionHashBase<'2fd552b8b15a3551234178e075fd25d6a5c4eff1d93bc4e236730b63e646f7d3'>;
 export type ProfileHash =
@@ -539,14 +539,7 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [
-                {
-                  readonly name: 'posts_authorId_idx_e47547ed';
-                  readonly prefix: 'posts_authorId_idx';
-                  readonly columns: readonly ['authorId'];
-                  readonly unique: false;
-                },
-              ];
+              indexes: readonly [];
               foreignKeys: readonly [
                 {
                   readonly source: {
@@ -587,8 +580,28 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'profiles_userId_idx_a489d58a';
+                  readonly prefix: 'profiles_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'profiles';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly tags: {
               columns: {

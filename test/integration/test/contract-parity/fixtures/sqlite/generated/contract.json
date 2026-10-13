@@ -792,9 +792,6 @@
               },
               "foreignKeys": [
                 {
-                  "index": {
-                    "name": "posts_authorId_idx_e47547ed"
-                  },
                   "source": {
                     "columns": [
                       "authorId"
@@ -811,16 +808,7 @@
                   }
                 }
               ],
-              "indexes": [
-                {
-                  "columns": [
-                    "authorId"
-                  ],
-                  "name": "posts_authorId_idx_e47547ed",
-                  "prefix": "posts_authorId_idx",
-                  "unique": false
-                }
-              ],
+              "indexes": [],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -852,8 +840,37 @@
                   }
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "profiles_userId_idx_a489d58a"
+                  },
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "profiles"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "profiles_userId_idx_a489d58a",
+                  "prefix": "profiles_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1004,7 +1021,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "124a5208afa805ecd3e56e732d2f94276307f5531cfd431df8098315fbe7af20"
+    "storageHash": "c27652056bef0a563d8f4d4a71aea0a9d021e2e03455f0a550e93b4355d19aa6"
   },
   "execution": {
     "executionHash": "2fd552b8b15a3551234178e075fd25d6a5c4eff1d93bc4e236730b63e646f7d3",
