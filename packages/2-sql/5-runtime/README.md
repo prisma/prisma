@@ -72,8 +72,8 @@ const db = postgres<Contract>({
 - `SqlRuntime` - Abstract family-layer base class; subclass to build a target runtime (construction happens via target factories — `postgres()` from `@internal/postgres`, `sqlite()` from `@internal/sqlite`)
 - `Runtime` - Runtime instance interface
 - `withTransaction` - Helper to run a callback inside a transaction against any `Runtime`
-- `RuntimeQueryable` - What `Runtime`, `RuntimeConnection` and `RuntimeTransaction` share: `query`, `execute`, `startActivity` and `planContentHash`. `TransactionContext`, the `tx` of `withTransaction`, has only `query` and `execute`
-- `ActivityHandle`, `StartActivity`, `ActivityQueryable` - Client activities: `startActivity` starts an activity whose statements, prepared statements, nested activities and `transaction()` run beneath it; `planContentHash(plan)` returns the content hash of the statement a plan sends (after `beforeCompile`, without `beforeEncode`). See the [runtime subsystem doc](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20%26%20Middleware%20Framework.md#client-activities)
+- `RuntimeQueryable` - What `Runtime`, `RuntimeConnection` and `RuntimeTransaction` share: `query` and `execute`. `TransactionContext`, the `tx` of `withTransaction`, has the same two plus `invalidated`
+- `ActivityHandle`, `StartActivity`, `ActivitySource` - Client activities. Every queryable carries an `ActivitySource` through the internal `activitySource` member: `startActivity` starts an activity whose statements, prepared statements, nested activities and `transaction()` run beneath it, and `planContentHash(plan)` returns the content hash of the statement a plan sends (after `beforeCompile`, without `beforeEncode`). Neither shows on the public queryable types. See the [runtime subsystem doc](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20%26%20Middleware%20Framework.md#client-activities)
 - `VerifyMarkerOption` - Marker-verification option (`'onFirstUse'` default; `false` to skip)
 - `RuntimeTelemetryEvent`, `TelemetryOutcome` - Telemetry event types
 
@@ -121,7 +121,7 @@ Marker reads and writes go through the control adapter SPI (`adapter.readMarker`
 - `ActivityEndedResult`, `ActivityFinalizedResult`, `Activity`, `StatementActivity`, `TransactionActivity`, `StatementEnded`, `TransactionEnded`, `QueryInterceptResult`, `ExecuteInterceptResult` - Activity and lifecycle result types (re-exported from `@internal/framework-components/runtime`)
 - `Log` - Log entry type (re-exported from `@internal/framework-components/runtime`)
 
-The `./internal/prepared-query` entry carries the members other runtimes and facades use without showing them to users: the prepared-statement symbols, `startActivityOn` and `planContentHashOn` (which reach the activity members of the `withTransaction` context through `activityQueryable`), `ActivityTarget` and `ActivityExecuteOptions` for a subclass whose statements run on its own sessions, and `beginOwnedTransaction`.
+The `./internal/prepared-query` entry carries the members other runtimes and facades use without showing them to users: the prepared-statement symbols, `activitySource` with `startActivityOn` and `planContentHashOn`, which reach a queryable's activity members, and `ActivityTarget` and `ActivityExecuteOptions` for a subclass whose statements run on its own sessions (with the protected `startActivityOnTarget`, `connectionActivitySource` and `ownTransaction` on `SqlRuntimeBase`).
 
 #### Lints middleware (SQL domain)
 

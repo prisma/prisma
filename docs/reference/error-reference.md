@@ -1060,15 +1060,15 @@ A client ended an activity it started with `startActivity` while a statement or 
 
 ### RUNTIME.ACTIVITY_ENDED
 
-A statement or an activity was started beneath an activity that has ended: a transaction whose `commit()` or `rollback()` has been called, a client activity after its `end()`, or a client activity whose transaction has ended. No middleware hook runs for the refused work. A second `end()` on the same client activity raises it too. Start the work before ending its parent, or on a queryable that is still open. Payload: `parentKind` and `parentId`, or `kind` and `id` for a second `end()`.
+A statement or an activity was started beneath an activity that no longer accepts children: a transaction whose `commit()` or `rollback()` has been called, a client activity after its `end()`, or a client activity inside such a transaction. Through an activity handle, the work is refused before it takes a connection or a session. No middleware hook runs for the refused work. A second `end()` on the same client activity raises it too. Start the work before ending its parent, or on a queryable that is still open. Payload: `parentKind` and `parentId`, or `kind` and `id` for a second `end()`.
 
 ### RUNTIME.ACTIVITY_KIND_RESERVED
 
-A client called `startActivity` with the kind `statement` or `transaction`. The runtime starts those activities itself; a client registers its own kinds in `ClientActivityKinds` and starts those. Payload: `kind`.
+A client called `startActivity` with the kind `statement` or `transaction`. The runtime starts those activities itself. A client kind contains a hyphen, such as `orm-call`, so this happens only when a caller casts the kind. Payload: `kind`.
 
 ### RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION
 
-A statement was sent through an activity handle opened on a connection after a transaction was opened on that connection, or a second transaction was begun through such a handle while the first was open. The statement would run inside the database transaction while its activity is outside it, so it would be reported committed before the transaction commits. Send the statement on the transaction, or start the activity on the transaction. Payload: `kind`, `id`, `transactionId`.
+A statement was sent through an activity handle opened on a connection after a transaction was opened on that connection. The statement would run inside the database transaction while its activity is outside it, so it would be reported committed before the transaction commits. Send the statement on the transaction, or start the activity on the transaction. Payload: `kind`, `id`, `transactionId`.
 
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
@@ -1291,6 +1291,10 @@ It is raised on **reads**, because the check is the first thing a Temporal codec
 This error never occurs in the control plane. The CLI commands, `node migration.ts`, the Vite plugin, the language server and the programmatic control client all load `prisma.config.ts` or the control descriptors, and so load the target's control entry. The target's control entry (`@internal/target-postgres/control`) sets the fallback `Temporal`, from `temporal-polyfill`, when it is loaded. It does not set `globalThis.Temporal`. `temporal-polyfill` is a required peer dependency of `@prisma/orm-postgres` and `@prisma/orm-target-postgres`. npm, pnpm and bun install it automatically; a project that uses Yarn adds it to its own dependencies. When it is not installed, loading the control entry fails because Node.js cannot find the package `temporal-polyfill`, not with this error. The fallback is held once per process, and every Postgres codec in the process uses it. An application process that loads no control-plane code and has no global `Temporal` gets `RUNTIME.TEMPORAL_UNAVAILABLE`. An application that loads control-plane code in its own process, such as server code under `vite dev` with the Prisma Vite plugin or a script that calls the control client, decodes dates without its own `Temporal`, and then fails in production. An application that uses the Temporal codecs must load its own `Temporal`.
 
 In the application, install a global implementation before any query runs (`import 'temporal-polyfill/full/global'`), or author the column with its `*String` type (`DateString`, `TimestampString(p)`, `TimestamptzString(p)`, `TimeString(p)`) to read and write PostgreSQL's own text, which needs no Temporal at all.
+
+### RUNTIME.TRANSACTION_ALREADY_OPEN
+
+`transaction()` was called on an activity handle opened on a connection while a transaction it began on that connection is still open. A connection runs one transaction at a time, and transactions do not nest. Commit or roll back the open transaction first, or send the work on it. Payload: `kind`, `id`, `transactionId`.
 
 ### RUNTIME.TRANSACTION_CLOSED
 
