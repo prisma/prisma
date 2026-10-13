@@ -39,7 +39,10 @@ The repository's own development toolchain is separate: the root `package.json` 
 
 ## Consequences
 
-- Node.js 22.18 and newer 22.x releases become supported. CI runs the test suites on the Node.js version in `.tool-versions` (a 24.x release) only, by decision; there is no job for Node.js 22 or 26. Support for Node.js 22.18 was checked when this ADR was written, by running `pnpm build` and `pnpm test:packages` on Node.js 22.18.0.
+- Node.js 22.18 and newer 22.x releases become supported. This ADR overrides ADR 222's rule that a declared floor must never claim more than this repository's test infrastructure exercises, for Node.js only. The Node.js range is a product decision shared by every Prisma 8 tool, and the team decided not to add CI jobs for it. This repository's CI runs the test suites on the Node.js version in `.tool-versions` (a 24.x release) only. What exercises the rest of the range today:
+
+- Node.js 22.18.0: `pnpm build` and `pnpm test:packages` passed on it when this ADR was written. The nightly getting-started check in prisma/getting-started-eval runs on Node.js 22.18.0 with its own npm, and installs and runs Prisma ORM through `create-prisma` every night.
+- Node.js 26: nothing tests it yet. A change that breaks it would go unnoticed until a user reports it.
 - `tsdown` lowers syntax to Node.js 22.18. It does not check built-in APIs: code must not call an API newer than Node.js 22.18, and only a test run on Node.js 22.18 catches one that does.
 
 ## Alternatives considered
