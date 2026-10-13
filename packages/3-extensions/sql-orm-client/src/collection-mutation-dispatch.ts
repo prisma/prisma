@@ -20,12 +20,12 @@ function createMutationRowMapper(
   namespaceId: string,
   modelName: string,
   tables: CollectionTables,
-  variantName: string | undefined,
+  variantValue: string | undefined,
 ): (row: Record<string, unknown>) => Record<string, unknown> {
   const polyInfo = resolvePolymorphismInfo(contract, namespaceId, modelName);
   return polyInfo
     ? (row) =>
-        mapPolymorphicRow(contract, namespaceId, modelName, polyInfo, tables, row, variantName)
+        mapPolymorphicRow(contract, namespaceId, modelName, polyInfo, tables, row, variantValue)
     : (row) => mapStorageRowToModelFields(contract, namespaceId, modelName, row);
 }
 
@@ -36,7 +36,7 @@ interface DispatchMutationRowsOptions<Row> {
   readonly tables: CollectionTables;
   readonly modelName: string;
   readonly namespaceId: string;
-  readonly variantName?: string | undefined;
+  readonly variantValue?: string | undefined;
   readonly includes: readonly IncludeExpr[];
   readonly selectedFields: readonly string[] | undefined;
   readonly hiddenColumns: readonly string[];
@@ -53,7 +53,7 @@ export function dispatchMutationRows<Row>(
     tables,
     modelName,
     namespaceId,
-    variantName,
+    variantValue,
     includes,
     selectedFields,
     hiddenColumns,
@@ -65,7 +65,7 @@ export function dispatchMutationRows<Row>(
     namespaceId,
     modelName,
     tables,
-    variantName,
+    variantValue,
   );
 
   if (includes.length === 0) {
@@ -109,7 +109,7 @@ interface DispatchSplitMutationRowsOptions<Row> {
   readonly tables: CollectionTables;
   readonly modelName: string;
   readonly namespaceId: string;
-  readonly variantName?: string | undefined;
+  readonly variantValue?: string | undefined;
   readonly includes: readonly IncludeExpr[];
   readonly selectedFields: readonly string[] | undefined;
   readonly hiddenColumns: readonly string[];
@@ -126,7 +126,7 @@ export function dispatchSplitMutationRows<Row>(
     tables,
     modelName,
     namespaceId,
-    variantName,
+    variantValue,
     includes,
     selectedFields,
     hiddenColumns,
@@ -138,7 +138,7 @@ export function dispatchSplitMutationRows<Row>(
     namespaceId,
     modelName,
     tables,
-    variantName,
+    variantValue,
   );
 
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
@@ -183,7 +183,7 @@ interface ExecuteSingleMutationOptions<Row> {
   readonly tables: CollectionTables;
   readonly modelName: string;
   readonly namespaceId: string;
-  readonly variantName?: string | undefined;
+  readonly variantValue?: string | undefined;
   readonly includes: readonly IncludeExpr[];
   readonly selectedFields: readonly string[] | undefined;
   readonly hiddenColumns: readonly string[];
@@ -202,7 +202,7 @@ export async function executeMutationReturningSingleRow<Row>(
     tables,
     modelName,
     namespaceId,
-    variantName,
+    variantValue,
     includes,
     selectedFields,
     hiddenColumns,
@@ -216,7 +216,7 @@ export async function executeMutationReturningSingleRow<Row>(
     namespaceId,
     modelName,
     tables,
-    variantName,
+    variantValue,
   );
 
   if (includes.length === 0) {

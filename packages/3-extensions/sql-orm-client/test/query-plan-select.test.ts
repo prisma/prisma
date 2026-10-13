@@ -1236,7 +1236,7 @@ describe('compileSelect MTI JOINs', () => {
 
   it('variant query INNER JOINs the specific MTI variant table', () => {
     const contract = buildMixedPolyContract();
-    const state = tableState(contract, 'tasks', { variantName: 'Feature' });
+    const state = tableState(contract, 'tasks', { variantValue: 'feature' });
     const tasksBaseProjection = projectionFor(contract, 'tasks', [
       'id',
       'title',
@@ -1271,7 +1271,7 @@ describe('compileSelect MTI JOINs', () => {
 
   it('STI-only variant query produces no JOINs', () => {
     const contract = buildMixedPolyContract();
-    const state = tableState(contract, 'tasks', { variantName: 'Bug' });
+    const state = tableState(contract, 'tasks', { variantValue: 'bug' });
     const tasksBaseProjection = projectionFor(contract, 'tasks', [
       'id',
       'title',
@@ -1414,7 +1414,7 @@ describe('compileSelectWithIncludes polymorphic targets', () => {
 
   it('variant-narrowed MTI-target include inner-joins only the named variant', () => {
     const contract = buildMixedPolyContract();
-    const include = includeFor(contract, 'Project', 'tasks', { variantName: 'Feature' });
+    const include = includeFor(contract, 'Project', 'tasks', { variantValue: 'feature' });
     const state = stateWithInclude(contract, 'Project', include);
 
     const plan = compileSelectWithIncludes(contract, getTestAggregates(), 'Project', state);

@@ -360,7 +360,7 @@ describe('resolvePolymorphismInfo()', () => {
     const contract = buildMixedPolyContract();
     const info = resolvePolymorphismInfo(contract, 'public', 'Task');
     expect(info).toBeDefined();
-    const bugVariant = info!.variants.get('Bug');
+    const bugVariant = info!.variants.get('bug');
     expect(bugVariant).toBeDefined();
     expect(bugVariant!.strategy).toBe('sti');
     expect(bugVariant!.table).toBe('tasks');
@@ -371,7 +371,7 @@ describe('resolvePolymorphismInfo()', () => {
     const contract = buildMixedPolyContract();
     const info = resolvePolymorphismInfo(contract, 'public', 'Task');
     expect(info).toBeDefined();
-    const featureVariant = info!.variants.get('Feature');
+    const featureVariant = info!.variants.get('feature');
     expect(featureVariant).toBeDefined();
     expect(featureVariant!.strategy).toBe('mti');
     expect(featureVariant!.table).toBe('features');
@@ -386,11 +386,11 @@ describe('resolvePolymorphismInfo()', () => {
     expect(info.baseTable).toBe('tasks');
   });
 
-  it('populates variantsByValue keyed by discriminator value', () => {
+  it('keys variants by discriminator value', () => {
     const contract = buildMixedPolyContract();
     const info = resolvePolymorphismInfo(contract, 'public', 'Task')!;
-    expect(info.variantsByValue.get('bug')?.modelName).toBe('Bug');
-    expect(info.variantsByValue.get('feature')?.modelName).toBe('Feature');
+    expect(info.variants.get('bug')?.modelName).toBe('Bug');
+    expect(info.variants.get('feature')?.modelName).toBe('Feature');
   });
 
   it('populates mtiVariants with only MTI variants', () => {

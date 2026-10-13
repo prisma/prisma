@@ -911,9 +911,18 @@ type ContractBase = Omit<
             readonly storage: { readonly collection: 'events' };
             readonly discriminator: { readonly field: 'type' };
             readonly variants: {
-              readonly AddToCartEvent: { readonly value: 'add-to-cart' };
-              readonly SearchEvent: { readonly value: 'search' };
-              readonly ViewProductEvent: { readonly value: 'view-product' };
+              readonly 'add-to-cart': {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'AddToCartEvent';
+              };
+              readonly search: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'SearchEvent';
+              };
+              readonly 'view-product': {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'ViewProductEvent';
+              };
             };
           };
           readonly Invoice: {
