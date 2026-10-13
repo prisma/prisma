@@ -38,7 +38,7 @@ Once the contract changes, you choose how the change reaches the database. This 
   - `ops.json` — canonical operation list. Content-addressed; `migrationHash` is computed over this.
   - `migration.ts` — TypeScript authoring source, **framework-rendered** by `migration plan` (or `migration new`). You edit specific holes in it (see *Fill a placeholder* below) and re-emit `ops.json` / `migration.json` by running it.
 - **Contract snapshots.** `migration.ts` imports its bookend contracts from the shared, content-addressed store at `migrations/snapshots/<hex>/contract.json` + `contract.d.ts` (`<hex>` is the contract's 64-hex storage hash) — not from files inside the migration package.
-- **Self-emit.** Running `node migrations/app/<dir>/migration.ts` regenerates `ops.json` and `migration.json` from the (possibly edited) TS source. This is the only supported way to update an existing migration package after edits.
+- **Self-emit.** Running `node <package dir>/migration.ts` regenerates `ops.json` and `migration.json` from the (possibly edited) TS source. This is the only supported way to update an existing migration package after edits. `<package dir>` is the directory `migration plan` or `migration new` printed; it sits under the config's `migrations.dir` (by default `migrations/app/<dir>`), so the path depends on that setting. The command works from any directory. Without `--config`, the file uses the config whose migrations directory holds it: the nearest `prisma.config.ts` above it, else the one in the working directory; if neither does, it fails with `CLI.MIGRATION_CONFIG_NOT_FOUND`. If you gave the CLI `--config`, pass the same `--config <path>` to the file.
 - **`migration.ts` shape.** Framework-rendered. A class `M extends Migration<Start, End>` (from `@internal/postgres/migration` on Postgres, `@prisma/orm-mongo/target/migration` on Mongo — see the framing block below) that assigns the two snapshot imports to `startContractJson` / `endContractJson` (`Start` is `never` and there is no `startContractJson` on a baseline) and has an `operations` getter returning an array of operation values. **On Postgres the operation factories are methods on the base class** (`this.addColumn({...})`, `this.setNotNull({...})`, `this.dataTransform(...)`) taking one options object; free helpers like `col(...)` build the column descriptors they take. **On Mongo they are free factories** (`createIndex(...)`, `dataTransform(...)`) imported beside `Migration`. The file ends with `MigrationCLI.run(import.meta.url, M)` so executing it self-emits.
 - **`placeholder(slot)`.** A sentinel the planner emits into the rendered `migration.ts` (from the same `.../migration` import as `Migration`) wherever a data transform is needed. Calling `placeholder(...)` at emit time throws `MIGRATION.UNFILLED_PLACEHOLDER` with `meta.slot` naming the hole. The user replaces the `() => placeholder(...)` arrow with a real query-plan closure (Postgres) or fills `dataTransform({ check, run })` sources (Mongo — see *Fill a placeholder*), then self-emits.
 - **`this.dataTransform(endContract, name, { check, run })`.** The data-transform factory. `check` is a rowset query whose presence-of-any-row signals "work remains"; `run` is one or more mutation queries that perform the backfill. Both are lazy closures returning query-plans built against `endContract`. The runner wraps `check` as `EXISTS(...)` for precheck and `NOT EXISTS(...)` for postcheck, so the same closure asserts both "there is work" and "the work is done".
@@ -70,7 +70,7 @@ Treat the rendered import lines as framework-managed on both targets:
 | `MIGRATION.FILE_MISSING` | Reading a migration package | `migration.ts`, `migration.json`, or `ops.json` is absent. Recover from version control, re-emit via `migration.ts`, or run `prisma migration new` for a fresh one. |
 | `MIGRATION.INVALID_DEFAULT_EXPORT` | Loading `migration.ts` | The file's default export is not a `Migration` subclass or factory function. Restore the planner-emitted scaffold from version control or re-run `migration plan` for a clean package. |
 | `MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH` | Building a data-transform query plan | The query builder was instantiated with a contract reference different from the `endContract` passed to `this.dataTransform(...)`. Use the `endContract` imported at module scope for both. |
-| `MIGRATION.HASH_MISMATCH` *Migration package is corrupt* | `db migrate` (or any read of the package) | `ops.json` / `migration.json` were edited without self-emitting. Run `node migrations/app/<dir>/migration.ts` to re-emit, then re-run `db migrate`. |
+| `MIGRATION.HASH_MISMATCH` *Migration package is corrupt* | `db migrate` (or any read of the package) | `ops.json` / `migration.json` were edited without self-emitting. Run `node <package dir>/migration.ts` to re-emit, then re-run `db migrate`. |
 | `CLI.CONSENT_REQUIRED` | `migration plan` / `db update` run with nobody to answer (`--no-interactive`, CI, `--yes`) | The plan would lose data or (on `db update`) widen access. `meta.unanswered` and `nextActions` list each question with the flags that answer it: `--delete <subject>`, `--rename <subject>:<new name>`, `--allow <Model>`. Re-run with the ones you mean. `--confirm` and `--yes` answer none of them. |
 | `CLI.CONSENT_UNUSED` | `migration plan` / `db update` | Every question was answered, and a `--delete` or `--allow` was left over: a typo, a subject the plan does not touch, or a `--confirm` (which consents to nothing). Fix or drop the flag. A typo next to a question nobody answered is reported as `CLI.CONSENT_REQUIRED` instead, which names the flag that matched nothing. On `db update --dry-run` the same mistake is `MIGRATION.STATEMENT_ANSWERS_NO_QUESTION`. |
 | `MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS` | A rename typed at the data-loss prompt | The plan was made again with the rename and still loses the subject's data. Answer with `delete`, or give a rename whose old name is the subject. |
@@ -349,7 +349,7 @@ export default M;
 MigrationCLI.run(import.meta.url, M);
 ```
 
-Self-emit the same way: `node migrations/app/<dir>/migration.ts`.
+Self-emit the same way: `node <package dir>/migration.ts`.
 
 ## Workflow — Author a migration by hand
 
@@ -381,7 +381,7 @@ On Postgres the operations are **methods on the `Migration` base class**, each t
 - Collection options: `collMod`.
 - Data transforms: `dataTransform(name, { check, run })` (free factory; `check`/`run` use Mongo query-plan shapes).
 
-Self-emit (`node migrations/app/<dir>/migration.ts`) after each edit.
+Self-emit (`node <package dir>/migration.ts`) after each edit.
 
 ## Workflow — Inspect the live schema
 
@@ -456,7 +456,7 @@ pnpm prisma db schema --db $DATABASE_URL --json
 Fix and re-run `db migrate`:
 
 ```bash
-node migrations/app/<dir>/migration.ts
+node <package dir>/migration.ts
 pnpm prisma db migrate --db $DATABASE_URL
 ```
 
@@ -467,7 +467,7 @@ If the failure was an out-of-band side-effect that left external systems half-ch
 The concept: `migrationHash` is content-addressed. A mismatch means `migration.json`'s stored hash disagrees with the hash recomputed from `ops.json` (and metadata). The cause is almost always: someone edited `migration.ts` and forgot to self-emit. The remediation is to self-emit the offending package.
 
 ```bash
-node migrations/app/<dir>/migration.ts
+node <package dir>/migration.ts
 pnpm prisma db migrate --db $DATABASE_URL
 ```
 
@@ -536,7 +536,7 @@ The CLI collects anonymous usage data by default. To opt out, set `PRISMA_DISABL
 - [ ] For `migration plan`: ran `migration show <dir>` to review before `db migrate`.
 - [ ] Filled every `placeholder(...)` in `migration.ts` (if any), built against `endContract`.
 - [ ] `check` closures are rowset queries, not scalar aggregates.
-- [ ] Self-emitted (`node migrations/app/<dir>/migration.ts`) after editing the TS.
+- [ ] Self-emitted (`node <package dir>/migration.ts`) after editing the TS.
 - [ ] Ran `db migrate` (or `db update`) and saw it complete.
 - [ ] Used `db verify` only when diagnosing drift — not as a routine post-apply step.
 - [ ] Did NOT use `db update` against a shared or production database.
