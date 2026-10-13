@@ -93,11 +93,9 @@ function patchBackfillMigrationTs(
 
   if (opts.addInvariantId) {
     const id = opts.invariantId ?? INVARIANT_ID;
-    // Inject `invariantId` as the first key in the dataTransform options
-    // object. The scaffold always starts the options with `check:`.
     filled = filled.replace(
-      /(this\.dataTransform\(endContract,\s*['"][\w-]+['"]\s*,\s*\{\s*)check:/,
-      `$1invariantId: '${id}',\n  check:`,
+      /(this\.dataTransform\(endContract,\s*['"][\w-]+['"]\s*,\s*\{\n)/,
+      `$1  invariantId: '${id}',\n`,
     );
   }
 
