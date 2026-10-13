@@ -14,6 +14,9 @@ import type {
   ControlFamilyDescriptor,
   ControlTargetDescriptor,
   CoreSchemaView,
+  FailedCast,
+  FailedConversion,
+  FailedTypeChange,
   MigrationAccessChange,
   MigrationDataLoss,
   MigrationOperationSubject,
@@ -515,16 +518,13 @@ export interface DbUpdateSuccess
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }
 
-/** A type change whose cast the database could not carry out, as the advice for it names it. */
-export interface FailedTypeChangeCastReport {
-  /** The field, as a `convert` statement names it. */
-  readonly field: string;
-  /**
-   * `value`: the database met a value it could not cast. `noCast`: it has no cast between the two
-   * types. `conversion`: the migration's own conversion left a value the new type cannot hold.
-   */
-  readonly reason: 'value' | 'noCast' | 'conversion';
-}
+/**
+ * A type change that failed, as the advice for it names it: the field as a `convert` statement
+ * names it, who converted its values, and why it failed (see {@link FailedTypeChange}).
+ */
+export type FailedTypeChangeReport =
+  | (Pick<FailedCast, 'by' | 'reason'> & { readonly field: string })
+  | (Pick<FailedConversion, 'by' | 'reason'> & { readonly field: string });
 
 /** A field that was to become required while rows had no value for it, as the advice names it. */
 export interface RowsWithoutValueReport {
@@ -559,8 +559,8 @@ export interface DbUpdateFailure {
    * the origin a `migration plan` for this database starts from.
    */
   readonly databaseStorageHash?: string;
-  /** The type change whose cast failed. */
-  readonly failedCast?: FailedTypeChangeCastReport;
+  /** The type change that failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -777,8 +777,8 @@ export interface MigrateFailure {
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The written migration of the failed operation: its directory, and the contract it starts from. */
   readonly failedMigration?: { readonly directory: string; readonly from: string };
-  /** The type change whose cast failed. */
-  readonly failedCast?: FailedTypeChangeCastReport;
+  /** The type change that failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }

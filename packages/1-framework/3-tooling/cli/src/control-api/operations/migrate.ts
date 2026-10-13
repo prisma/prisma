@@ -297,7 +297,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       summary: applied.failure.summary,
       why: applied.failure.why,
       meta: applied.failure.meta,
-      ...ifDefined('failedCast', applied.failure.failedCast),
+      ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
       ...ifDefined(
         'failedMigration',

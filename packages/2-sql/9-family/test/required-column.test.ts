@@ -21,7 +21,7 @@ describe('requiredColumnOf', () => {
       requiredColumnOf(step(requiredColumnMeta('Item', 'note', 'nullValues'))),
       requiredColumnOf(step(requiredColumnMeta('User', 'code', 'newField'))),
       requiredColumnOf(step(requiredColumnMeta('User', 'email', 'backfillMissedRows'))),
-      requiredColumnOf(step({ castColumn: { table: 'Item', column: 'note' } })),
+      requiredColumnOf(step({ convertedColumn: { table: 'Item', column: 'note', by: 'cast' } })),
       requiredColumnOf(step()),
     ]).toEqual([
       { table: 'Item', column: 'note', reason: 'nullValues' },

@@ -1,6 +1,6 @@
 import type {
   AppliedMigrationStatement,
-  FailedTypeChangeCast,
+  FailedTypeChange,
   MigrationPlanSubjects,
   RowsWithoutValue,
 } from '@internal/framework-components/control';
@@ -205,7 +205,7 @@ export function runnerFailure(
   options?: {
     why?: string;
     meta?: AnyRecord;
-    failedCast?: FailedTypeChangeCast | undefined;
+    failedTypeChange?: FailedTypeChange | undefined;
     rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
   },
 ): NotOk<SqlMigrationRunnerFailure> {
@@ -214,7 +214,7 @@ export function runnerFailure(
     summary,
     ...(options?.why ? { why: options.why } : {}),
     ...(options?.meta ? { meta: cloneRecord(options.meta) } : {}),
-    ...ifDefined('failedCast', options?.failedCast),
+    ...ifDefined('failedTypeChange', options?.failedTypeChange),
     ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
   });
   return notOk(failure);

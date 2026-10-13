@@ -376,8 +376,8 @@ export interface MigrationRunnerFailure {
    * {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
-  /** The type change whose cast failed, when the failed step was one. */
-  readonly failedCast?: FailedTypeChangeCast;
+  /** The type change that failed, when the failed step converts a column's values. */
+  readonly failedTypeChange?: FailedTypeChange;
   /**
    * The fields that were to become required while rows had no value for them, when that made the
    * step fail: first the field of the failed step, then the others of the same migration.
@@ -400,18 +400,34 @@ export interface RowsWithoutValue {
   readonly operationIndex: number;
 }
 
-/** A type change whose cast the database could not carry out. */
-export interface FailedTypeChangeCast {
+interface FailedTypeChangeOf {
   /** The field whose type changes. */
   readonly field: MigrationSubject;
-  /**
-   * `value`: the database met a value it could not cast. `noCast`: it has no cast between the two
-   * types. `conversion`: the migration's own conversion left a value the new type cannot hold.
-   */
-  readonly reason: 'value' | 'noCast' | 'conversion';
   /** The position of the operation in the operations of the failing space's plan. */
   readonly operationIndex: number;
 }
+
+/**
+ * A type change whose values the database's own cast converted, and why it failed. `value`: the
+ * cast met a value it could not convert. `noCast`: the database has no cast between the two types.
+ */
+export interface FailedCast extends FailedTypeChangeOf {
+  readonly by: 'cast';
+  readonly reason: 'value' | 'noCast';
+}
+
+/**
+ * A type change whose values the migration's own conversion converted, and why it failed. `value`:
+ * the database raised an error on a value the conversion produced or read. `invalidResult`: the
+ * conversion left a value the new type cannot hold. `sqlError`: the conversion's SQL has an error.
+ */
+export interface FailedConversion extends FailedTypeChangeOf {
+  readonly by: 'conversion';
+  readonly reason: 'value' | 'invalidResult' | 'sqlError';
+}
+
+/** A type change that failed: who converted the values, and why it failed. */
+export type FailedTypeChange = FailedCast | FailedConversion;
 
 /**
  * Result type for migration runner execution.

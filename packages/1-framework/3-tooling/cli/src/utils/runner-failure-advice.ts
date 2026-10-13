@@ -1,7 +1,7 @@
 import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
-  FailedTypeChangeCastReport,
+  FailedTypeChangeReport,
   MigrateFailure,
   RowsWithoutValueReport,
 } from '../control-api/types';
@@ -15,15 +15,20 @@ import {
 
 type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
-/** What a runner failure says of a type change whose cast failed. */
-export function failedCastText(cast: FailedTypeChangeCastReport): string {
-  switch (cast.reason) {
-    case 'noCast':
-      return `The database has no cast from the old type of field "${cast.field}" to its new type.`;
-    case 'conversion':
-      return `The conversion of field "${cast.field}" left a value its new type cannot hold.`;
+/** What a runner failure says of a type change that failed: who converted the values, and how it failed. */
+export function failedTypeChangeText(change: FailedTypeChangeReport): string {
+  if (change.by === 'cast') {
+    return change.reason === 'noCast'
+      ? `The database has no cast from the old type of field "${change.field}" to its new type.`
+      : `A value of field "${change.field}" cannot be converted to its new type by the database's cast.`;
+  }
+  switch (change.reason) {
     case 'value':
-      return `A value of field "${cast.field}" cannot be converted to its new type by the database's cast.`;
+      return `The conversion of field "${change.field}" failed on a value its new type cannot hold.`;
+    case 'invalidResult':
+      return `The conversion of field "${change.field}" left a value its new type cannot hold.`;
+    case 'sqlError':
+      return `The conversion of field "${change.field}" failed with an error in its SQL.`;
   }
 }
 
@@ -54,17 +59,17 @@ function backfillFlags(reports: readonly RowsWithoutValueReport[]): readonly str
 }
 
 /** The way out of a failed cast for `db update`, which plans and applies in one step. */
-export function dbUpdateFailedCastFix(
-  cast: FailedTypeChangeCastReport,
+export function dbUpdateFailedTypeChangeFix(
+  change: FailedTypeChangeReport,
   databaseStorageHash: string | undefined,
   invocation: CliInvocation,
 ): string {
   const plan = migrationPlanCommand(
     invocation,
-    [statementFlag({ verb: 'convert', text: cast.field })],
+    [statementFlag({ verb: 'convert', text: change.field })],
     databaseStorageHash,
   );
-  return `${failedCastText(cast)} Plan the change with ${plan}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
+  return `${failedTypeChangeText(change)} Plan the change with ${plan}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
 }
 
 /** The way out of rows without a value for `db update`, which plans and applies in one step. */
@@ -160,21 +165,21 @@ function failedMigrationFile(failedMigration: FailedMigrationText | undefined): 
   };
 }
 
-function migrateFailedCastFix(
-  cast: FailedTypeChangeCastReport,
+function migrateFailedTypeChangeFix(
+  change: FailedTypeChangeReport,
   failedMigration: FailedMigrationText | undefined,
   invocation: CliInvocation,
 ): string {
-  if (cast.reason === 'conversion') {
+  if (change.by === 'conversion') {
     const { file, run } = failedMigrationFile(failedMigration);
-    return `${failedCastText(cast)} The failed apply changed nothing. Fix the conversion in ${file} so that it converts every value, ${run}, and re-run ${dbMigrateCommand(invocation)}.`;
+    return `${failedTypeChangeText(change)} The failed apply changed nothing. Fix the conversion in ${file}, ${run}, and re-run ${dbMigrateCommand(invocation)}.`;
   }
-  const convert = statementFlag({ verb: 'convert', text: cast.field });
+  const convert = statementFlag({ verb: 'convert', text: change.field });
   if (failedMigration === undefined) {
-    return `${failedCastText(cast)} Plan the type change again with ${migrationPlanCommand(invocation, [convert], undefined)}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
+    return `${failedTypeChangeText(change)} Plan the type change again with ${migrationPlanCommand(invocation, [convert], undefined)}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
   }
-  const deleted = `\`${statementFlag({ verb: 'delete', text: cast.field })}\``;
-  return `${failedCastText(cast)} The failed apply changed nothing. To convert it, ${replan([convert], failedMigration, deleted)}.`;
+  const deleted = `\`${statementFlag({ verb: 'delete', text: change.field })}\``;
+  return `${failedTypeChangeText(change)} The failed apply changed nothing. To convert it, ${replan([convert], failedMigration, deleted)}.`;
 }
 
 function migrateRowsWithoutValueFix(
@@ -233,8 +238,8 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
     failure.failedMigration === undefined
       ? undefined
       : failedMigrationText(failure.failedMigration, invocation);
-  if (failure.failedCast !== undefined) {
-    return migrateFailedCastFix(failure.failedCast, failedMigration, invocation);
+  if (failure.failedTypeChange !== undefined) {
+    return migrateFailedTypeChangeFix(failure.failedTypeChange, failedMigration, invocation);
   }
   if (failure.rowsWithoutValue !== undefined) {
     return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);

@@ -218,7 +218,7 @@ describe('AlterColumnTypeCall', () => {
       {
         description: 'alter type of "age"',
         sql: 'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING "age"::int8',
-        meta: { castColumn: { table: 'user', column: 'age' } },
+        meta: { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
       },
     ]);
     expect(op.precheck).toEqual([
@@ -246,10 +246,10 @@ describe('AlterColumnTypeCall', () => {
         alter({ using: { kind: 'sql', sql: '"age"::int8' }, operationClass: 'destructive' }),
       ),
     ]).toEqual([
-      { castColumn: { table: 'user', column: 'age' } },
+      { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
       undefined,
-      { castColumn: { table: 'user', column: 'age', by: 'conversion' } },
-      { castColumn: { table: 'user', column: 'age', by: 'conversion' } },
+      { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
+      { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
     ]);
   });
 

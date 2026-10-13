@@ -9,7 +9,7 @@ function holdsAfterCopy(typeSql: string, values: readonly string[]): boolean {
     db.exec(`INSERT INTO "old" ("v") VALUES ${values.map((value) => `(${value})`).join(', ')}`);
     db.exec(`CREATE TABLE "t" ("v" ${typeSql})`);
     db.exec('INSERT INTO "t" ("v") SELECT "v" FROM "old"');
-    const check = castValuePostcheck('t', { name: 'v', typeSql });
+    const check = castValuePostcheck('t', { name: 'v', typeSql }, 'cast');
     return Object.values(db.prepare(check.sql).get() ?? {})[0] === 1;
   } finally {
     db.close();
@@ -38,11 +38,17 @@ describe('castValuePostcheck on SQLite', () => {
     ]).toEqual([false, false, false, false, false, false]);
   });
 
-  it('names the column the copy converted', () => {
-    expect(castValuePostcheck('User', { name: 'age', typeSql: 'INTEGER' })).toEqual({
-      description: 'verify every value of "age" on "User" is stored as INTEGER',
-      sql: `SELECT NOT EXISTS (SELECT 1 FROM "User" WHERE typeof("age") NOT IN ('null', 'integer'))`,
-      castColumn: 'age',
-    });
+  it('names the column the copy converted, and who converted it', () => {
+    expect([
+      castValuePostcheck('User', { name: 'age', typeSql: 'INTEGER' }, 'cast'),
+      castValuePostcheck('User', { name: 'age', typeSql: 'INTEGER' }, 'conversion').convertedColumn,
+    ]).toEqual([
+      {
+        description: 'verify every value of "age" on "User" is stored as INTEGER',
+        sql: `SELECT NOT EXISTS (SELECT 1 FROM "User" WHERE typeof("age") NOT IN ('null', 'integer'))`,
+        convertedColumn: { column: 'age', by: 'cast' },
+      },
+      { column: 'age', by: 'conversion' },
+    ]);
   });
 });

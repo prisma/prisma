@@ -1,8 +1,8 @@
 import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
-  castColumnMeta,
-  castColumnOf,
+  convertedColumnMeta,
+  convertedColumnOf,
   unconvertedFieldOf,
 } from '../src/core/migrations/unconverted-field';
 import { contractOf } from './statement-fixtures';
@@ -20,7 +20,9 @@ const step = (meta?: Record<string, unknown>) => ({
 
 describe('unconvertedFieldOf', () => {
   it('names the field that stores the column a cast step converts', () => {
-    expect(unconvertedFieldOf(step(castColumnMeta('user', 'age_years')), contract)).toEqual({
+    expect(
+      unconvertedFieldOf(step(convertedColumnMeta('user', 'age_years', 'cast')), contract),
+    ).toEqual({
       kind: 'field',
       namespaceId: asNamespaceId('app'),
       model: 'User',
@@ -32,8 +34,8 @@ describe('unconvertedFieldOf', () => {
     expect([
       unconvertedFieldOf(step(), contract),
       unconvertedFieldOf(step({ warning: 'TABLE_REWRITE' }), contract),
-      unconvertedFieldOf(step(castColumnMeta('user', 'gone')), contract),
-      unconvertedFieldOf(step(castColumnMeta('other', 'id')), contract),
+      unconvertedFieldOf(step(convertedColumnMeta('user', 'gone', 'cast')), contract),
+      unconvertedFieldOf(step(convertedColumnMeta('other', 'id', 'cast')), contract),
     ]).toEqual([undefined, undefined, undefined, undefined]);
   });
 
@@ -42,24 +44,26 @@ describe('unconvertedFieldOf', () => {
       User: { table: 'user', fields: { age: 'age' } },
       Member: { table: 'user', namespace: 'auth', fields: { age: 'age' } },
     });
-    expect(unconvertedFieldOf(step(castColumnMeta('user', 'age')), twoNamespaces)).toBeUndefined();
+    expect(
+      unconvertedFieldOf(step(convertedColumnMeta('user', 'age', 'cast')), twoNamespaces),
+    ).toBeUndefined();
   });
 });
 
-describe('castColumnOf', () => {
-  it('reads the column a step casts, and nothing from other meta', () => {
+describe('convertedColumnOf', () => {
+  it('reads the column a step converts and who converts it, and nothing from other meta', () => {
     expect([
-      castColumnOf(step(castColumnMeta('user', 'age'))),
-      castColumnOf(step({ warning: 'TABLE_REWRITE' })),
-      castColumnOf(step()),
-    ]).toEqual([{ table: 'user', column: 'age' }, undefined, undefined]);
-  });
-
-  it("reads whether the migration's own conversion, not the database's cast, converts the column", () => {
-    expect(castColumnOf(step(castColumnMeta('user', 'age', 'conversion')))).toEqual({
-      table: 'user',
-      column: 'age',
-      by: 'conversion',
-    });
+      convertedColumnOf(step(convertedColumnMeta('user', 'age', 'cast'))),
+      convertedColumnOf(step(convertedColumnMeta('user', 'age', 'conversion'))),
+      convertedColumnOf(step({ convertedColumn: { table: 'user', column: 'age' } })),
+      convertedColumnOf(step({ warning: 'TABLE_REWRITE' })),
+      convertedColumnOf(step()),
+    ]).toEqual([
+      { table: 'user', column: 'age', by: 'cast' },
+      { table: 'user', column: 'age', by: 'conversion' },
+      undefined,
+      undefined,
+      undefined,
+    ]);
   });
 });

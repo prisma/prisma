@@ -12,14 +12,18 @@ import type {
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
 import {
-  castColumnOf,
+  convertedColumnOf,
+  fieldOfColumn,
   requiredColumnsOfMigration,
   rowsWithoutValueFailure,
   runnerFailure,
   runnerSuccess,
   unconvertedFieldOf,
 } from '@internal/family-sql/control';
-import type { MigrationRunnerResult } from '@internal/framework-components/control';
+import type {
+  FailedConversion,
+  MigrationRunnerResult,
+} from '@internal/framework-components/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
@@ -32,7 +36,7 @@ import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
-import { affinityStorageClasses } from './operations/tables';
+import { affinityStorageClasses, conversionCopyOf } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 
 /** Where a failed operation sits in its plan, and what the runner needs to name what blocked it. */
@@ -378,7 +382,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
         const code =
           phase === 'precheck' ? 'MIGRATION.PRECHECK_FAILED' : 'MIGRATION.POSTCHECK_FAILED';
         const field = plan === undefined ? undefined : unconvertedFieldOf(step, plan.contract);
-        const cast = castColumnOf(step);
+        const converted = convertedColumnOf(step);
         return runnerFailure(
           code,
           `Operation ${operation.id} failed during ${phase}: ${step.description}`,
@@ -390,18 +394,27 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             },
             ...ifDefined(
               'why',
-              cast === undefined ? undefined : await this.unconvertedValueText(driver, cast),
+              converted === undefined
+                ? undefined
+                : await this.unconvertedValueText(driver, converted),
             ),
             ...ifDefined(
-              'failedCast',
-              field === undefined || plan === undefined
+              'failedTypeChange',
+              field === undefined || plan === undefined || converted === undefined
                 ? undefined
-                : {
-                    field,
-                    reason:
-                      cast?.by === 'conversion' ? ('conversion' as const) : ('value' as const),
-                    operationIndex: plan.operationIndex,
-                  },
+                : converted.by === 'conversion'
+                  ? {
+                      field,
+                      by: 'conversion' as const,
+                      reason: 'invalidResult' as const,
+                      operationIndex: plan.operationIndex,
+                    }
+                  : {
+                      field,
+                      by: 'cast' as const,
+                      reason: 'value' as const,
+                      operationIndex: plan.operationIndex,
+                    },
             ),
           },
         );
@@ -446,6 +459,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
         const message = error instanceof Error ? error.message : String(error);
         const failed = `Operation ${operation.id} failed during execution: ${step.description}`;
         const rowsWithoutValue = await this.rowsWithoutValue(driver, message, plan);
+        const failedConversion =
+          rowsWithoutValue === undefined
+            ? await this.failedConversion(driver, step, message, plan)
+            : undefined;
         return runnerFailure('MIGRATION.EXECUTION_FAILED', rowsWithoutValue?.summary ?? failed, {
           why: rowsWithoutValue === undefined ? message : `${failed}: ${message}`,
           meta: {
@@ -454,10 +471,46 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
             sql: step.sql,
           },
           rowsWithoutValue: rowsWithoutValue?.reports,
+          failedTypeChange: failedConversion,
         });
       }
     }
     return okVoid();
+  }
+
+  /**
+   * The conversion that failed, when the failed step is the copy of a rebuild that converts
+   * columns. The copy expression that fails on its own is the one named, with an error in its SQL.
+   * When none fails on its own, the copy put a value its column cannot hold: a constraint names the
+   * column, or the first converted column is named.
+   */
+  private async failedConversion(
+    driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
+    step: SqlMigrationPlanOperationStep,
+    message: string,
+    plan: PlanPosition,
+  ): Promise<FailedConversion | undefined> {
+    const copy = conversionCopyOf(step);
+    if (copy === undefined) return undefined;
+    const columns = Object.keys(copy.expressions);
+    let failing: string | undefined;
+    for (const column of columns) {
+      try {
+        await driver.query(
+          `SELECT ${copy.expressions[column]} FROM ${quoteIdentifier(copy.table)}`,
+        );
+      } catch {
+        failing = column;
+        break;
+      }
+    }
+    const column = failing ?? columns.find((name) => message.includes(`.${name}`)) ?? columns[0];
+    const field =
+      column === undefined ? undefined : fieldOfColumn(plan.contract, copy.table, column);
+    if (field === undefined) return undefined;
+    const reason =
+      failing === undefined && message.includes('constraint failed') ? 'invalidResult' : 'sqlError';
+    return { field, by: 'conversion', reason, operationIndex: plan.operationIndex };
   }
 
   /**

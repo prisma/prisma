@@ -185,13 +185,14 @@ describe('a Postgres type change the database casts', { concurrent: false }, () 
     const result = await retype(['12', 'abc']);
     expect(result.ok ? undefined : result.failure).toMatchObject({
       code: 'MIGRATION.EXECUTION_FAILED',
-      failedCast: {
+      failedTypeChange: {
         field: {
           kind: 'field',
           namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
           model: 'User',
           field: 'age',
         },
+        by: 'cast',
         reason: 'value',
         operationIndex: 0,
       },
@@ -225,8 +226,9 @@ describe('a Postgres type change the database casts', { concurrent: false }, () 
       userContract('timestamptz?', 'c'.repeat(64)),
       userContract('int4?', 'd'.repeat(64)),
     );
-    expect(result.ok ? undefined : result.failure.failedCast).toMatchObject({
+    expect(result.ok ? undefined : result.failure.failedTypeChange).toMatchObject({
       field: { model: 'User', field: 'age' },
+      by: 'cast',
       reason: 'noCast',
     });
   });

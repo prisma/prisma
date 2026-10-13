@@ -7,6 +7,7 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
+  FailedTypeChange,
   MigrationOperationPolicy,
   MigrationRunnerFailure,
   MigrationSubject,
@@ -22,7 +23,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { subjectText } from '../statements/plan-questions';
 import type {
-  FailedTypeChangeCastReport,
+  FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
   RowsWithoutValueReport,
@@ -53,7 +54,7 @@ export interface RunnerFailure {
   readonly why?: string;
   readonly meta: Record<string, unknown>;
   /** The type change whose cast failed. */
-  readonly failedCast?: FailedTypeChangeCastReport;
+  readonly failedTypeChange?: FailedTypeChangeReport;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** The written migration of the failed operation, when the runner named the operation. */
@@ -76,27 +77,33 @@ function edgeOfOperation(
   });
 }
 
+function failedTypeChangeReport(change: FailedTypeChange, field: string): FailedTypeChangeReport {
+  return change.by === 'cast'
+    ? { field, by: 'cast', reason: change.reason }
+    : { field, by: 'conversion', reason: change.reason };
+}
+
 /** What the runner said blocked the failed operation, named as the advice names it. */
 function failureReports(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
-): Pick<RunnerFailure, 'failedCast' | 'rowsWithoutValue' | 'failedMigration'> {
+): Pick<RunnerFailure, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
   if (resolution === undefined) return {};
   const fieldText = (field: MigrationSubject) =>
     subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
-  const { failedCast, rowsWithoutValue } = failure;
-  const operationIndex = failedCast?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
+  const { failedTypeChange, rowsWithoutValue } = failure;
+  const operationIndex = failedTypeChange?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
   const edge =
     operationIndex === undefined
       ? undefined
       : edgeOfOperation(resolution.entry.migrationEdges, operationIndex);
   return {
     ...ifDefined(
-      'failedCast',
-      failedCast === undefined
+      'failedTypeChange',
+      failedTypeChange === undefined
         ? undefined
-        : { field: fieldText(failedCast.field), reason: failedCast.reason },
+        : failedTypeChangeReport(failedTypeChange, fieldText(failedTypeChange.field)),
     ),
     ...ifDefined(
       'rowsWithoutValue',

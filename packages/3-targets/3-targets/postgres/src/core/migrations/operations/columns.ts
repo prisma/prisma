@@ -1,4 +1,4 @@
-import { castColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
+import { convertedColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { type DdlColumn, opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
@@ -165,9 +165,9 @@ export async function alterColumnType(
           `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.type}${usingClause}`,
         ),
         ...(options.using !== undefined
-          ? { meta: castColumnMeta(tableName, columnName, 'conversion') }
+          ? { meta: convertedColumnMeta(tableName, columnName, 'conversion') }
           : operationClass === 'destructive'
-            ? { meta: castColumnMeta(tableName, columnName) }
+            ? { meta: convertedColumnMeta(tableName, columnName, 'cast') }
             : {}),
       },
     ],

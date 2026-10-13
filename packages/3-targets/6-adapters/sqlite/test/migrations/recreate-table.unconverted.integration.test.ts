@@ -176,13 +176,14 @@ describe('a SQLite type change the rebuild copies', { timeout: timeouts.database
       summary:
         'Operation recreateTable.User failed during postcheck: verify every value of "age" on "User" is stored as INTEGER',
       why: `The value 'abc' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
-      failedCast: {
+      failedTypeChange: {
         field: {
           kind: 'field',
           namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
           model: 'User',
           field: 'age',
         },
+        by: 'cast',
         reason: 'value',
         operationIndex: 0,
       },

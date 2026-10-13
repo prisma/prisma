@@ -154,11 +154,33 @@ withTempDir(({ createTempDir }) => {
         const wrong = await runMigrate(ctx, ['--json']);
         expect(wrong.exitCode, 'the conversion fails on a value').not.toBe(0);
         const wrongAdvice = JSON.stringify(engineError(wrong)?.nextActions);
-        expect(wrongAdvice).toContain('The conversion of field \\"User.age\\" left a value');
+        expect(wrongAdvice).toContain(
+          'The conversion of field \\"User.age\\" failed on a value its new type cannot hold.',
+        );
         expect(wrongAdvice).toContain(
           `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\``,
         );
         expect(wrongAdvice).not.toContain('--convert');
+
+        writeFileSync(migrationTs, fillUsing('"age" + 1')(scaffold));
+        const mistyped = await selfEmitMigration(ctx, [
+          '--dir',
+          latestDir(ctx),
+          '--config',
+          ctx.configPath,
+        ]);
+        expect(mistyped.exitCode, `self-emit: ${mistyped.stderr}`).toBe(0);
+        const sqlError = await runMigrate(ctx, ['--json']);
+        expect(sqlError.exitCode, 'the conversion has a SQL error').not.toBe(0);
+        expect(engineError(sqlError)?.why).toContain('operator does not exist');
+        const sqlErrorAdvice = JSON.stringify(engineError(sqlError)?.nextActions);
+        expect(sqlErrorAdvice).toContain(
+          'The conversion of field \\"User.age\\" failed with an error in its SQL.',
+        );
+        expect(sqlErrorAdvice).toContain(
+          `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\`, run \`node ${relative(ctx.testDir, migrationTs)}`,
+        );
+        expect(sqlErrorAdvice).toContain('db migrate');
 
         writeFileSync(migrationTs, scaffold);
         await fillAndApply(ctx, fillUsing('trim("age")::int4'));

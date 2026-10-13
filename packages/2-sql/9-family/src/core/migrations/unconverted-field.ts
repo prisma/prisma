@@ -4,45 +4,50 @@ import { type } from 'arktype';
 import { fieldOfColumn } from './field-of-column';
 import type { SqlMigrationPlanOperationStep } from './types';
 
-const CastColumnMeta = type({
-  castColumn: { table: 'string', column: 'string', 'by?': "'conversion'" },
+const ConvertedColumnMeta = type({
+  convertedColumn: { table: 'string', column: 'string', by: "'cast' | 'conversion'" },
 });
 
-/** A column whose values a step converts to the column's new type, or checks that it did. */
-export interface CastColumn {
+/**
+ * A column whose values a step converts to the column's new type, or checks that it did: `by` says
+ * who converts them, the database's own cast or the migration's own conversion.
+ */
+export interface ConvertedColumn {
   readonly table: string;
   readonly column: string;
-  /** Present when the migration's own conversion converts the values; the database's cast does otherwise. */
-  readonly by?: 'conversion';
+  readonly by: 'cast' | 'conversion';
 }
 
 /**
- * The meta of a step that converts the values of `column` in `table` to the column's new type with
- * the database's own cast, or with the migration's own conversion when `by` is `conversion`, or
+ * The meta of a step that converts the values of `column` in `table` to the column's new type, or
  * checks that it did. When the step fails, the runner names the field that stores the column.
  */
-export function castColumnMeta(
+export function convertedColumnMeta(
   table: string,
   column: string,
-  by?: 'conversion',
-): { readonly castColumn: CastColumn } {
-  return { castColumn: { table, column, ...(by === undefined ? {} : { by }) } };
+  by: ConvertedColumn['by'],
+): { readonly convertedColumn: ConvertedColumn } {
+  return { convertedColumn: { table, column, by } };
 }
 
-/** The column a step casts to its new type, as {@link castColumnMeta} marks it. */
-export function castColumnOf(step: SqlMigrationPlanOperationStep): CastColumn | undefined {
-  const meta = CastColumnMeta(step.meta ?? {});
-  return meta instanceof type.errors ? undefined : meta.castColumn;
+/** The column a step converts to its new type, as {@link convertedColumnMeta} marks it. */
+export function convertedColumnOf(
+  step: SqlMigrationPlanOperationStep,
+): ConvertedColumn | undefined {
+  const meta = ConvertedColumnMeta(step.meta ?? {});
+  return meta instanceof type.errors ? undefined : meta.convertedColumn;
 }
 
 /**
- * The field of `contract` whose column a failed cast step converts, or undefined when the step
- * casts no column, no field stores the column, or tables of two storage namespaces share its name.
+ * The field of `contract` whose column a failed step converts, or undefined when the step
+ * converts no column, no field stores the column, or tables of two storage namespaces share its name.
  */
 export function unconvertedFieldOf(
   step: SqlMigrationPlanOperationStep,
   contract: ContractWithDomain,
 ): MigrationSubject | undefined {
-  const cast = castColumnOf(step);
-  return cast === undefined ? undefined : fieldOfColumn(contract, cast.table, cast.column);
+  const converted = convertedColumnOf(step);
+  return converted === undefined
+    ? undefined
+    : fieldOfColumn(contract, converted.table, converted.column);
 }

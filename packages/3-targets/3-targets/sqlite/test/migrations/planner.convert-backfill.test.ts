@@ -183,20 +183,22 @@ describe('SQLite planner, a type change', () => {
       {
         description: 'verify every value of "age" on "User" is stored as INTEGER',
         sql: `SELECT NOT EXISTS (SELECT 1 FROM "User" WHERE typeof("age") NOT IN ('null', 'integer'))`,
-        meta: { castColumn: { table: 'User', column: 'age' } },
+        meta: { convertedColumn: { table: 'User', column: 'age', by: 'cast' } },
       },
     ]);
-    expect(rendered(textAge, intAge)).toContain('castColumn: "age"');
+    expect(rendered(textAge, intAge)).toContain('convertedColumn: { column: "age", by: "cast" }');
   });
 
   it('checks no values of a column it does not retype', () => {
-    expect(rendered(textAge, withName)).not.toContain('castColumn');
+    expect(rendered(textAge, withName)).not.toContain('convertedColumn');
   });
 
   it('checks after the copy that the conversion of a --convert column gave every value the new type', () => {
     const convert = { statements: [statement('convert', 'age')] };
-    expect(rendered(textAge, intAge, convert)).toContain('convertedColumn: "age"');
-    expect(rendered(textAge, intAge, convert)).not.toContain('castColumn');
+    expect(rendered(textAge, intAge, convert)).toContain(
+      'convertedColumn: { column: "age", by: "conversion" }',
+    );
+    expect(rendered(textAge, intAge, convert)).not.toContain('by: "cast"');
   });
 
   it('copies the column through a conversion slot for --convert, a data change that loses nothing', async () => {

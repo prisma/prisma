@@ -164,8 +164,9 @@ export type {
   StorageTypePlanResult,
 } from '../core/migrations/types';
 export {
-  castColumnMeta,
-  castColumnOf,
+  type ConvertedColumn,
+  convertedColumnMeta,
+  convertedColumnOf,
   unconvertedFieldOf,
 } from '../core/migrations/unconverted-field';
 export {

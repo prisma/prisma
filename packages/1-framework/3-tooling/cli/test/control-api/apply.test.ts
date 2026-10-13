@@ -187,14 +187,15 @@ describe('runMigration runner-failure cause forwarding', () => {
   });
 });
 
-describe('runMigration, a type change whose cast failed', () => {
+describe('runMigration, a type change that failed', () => {
   it('names the field as a convert statement names it, and the migration of the failed operation', async () => {
     const failingResult: MigrationRunnerResult = notOk({
       code: 'MIGRATION.EXECUTION_FAILED',
       summary: 'Operation alterType.user.age failed during execution: alter type of "age"',
       failingSpace: 'app',
-      failedCast: {
+      failedTypeChange: {
         field: { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' },
+        by: 'cast',
         reason: 'value',
         operationIndex: 2,
       },
@@ -241,11 +242,11 @@ describe('runMigration, a type change whose cast failed', () => {
       result.ok
         ? undefined
         : {
-            failedCast: result.failure.failedCast,
+            failedTypeChange: result.failure.failedTypeChange,
             failedMigration: result.failure.failedMigration,
           },
     ).toEqual({
-      failedCast: { field: 'User.age', reason: 'value' },
+      failedTypeChange: { field: 'User.age', by: 'cast', reason: 'value' },
       failedMigration: { spaceId: 'app', edge: migrationEdges[1] },
     });
   });

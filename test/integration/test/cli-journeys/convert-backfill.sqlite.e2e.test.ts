@@ -235,7 +235,10 @@ withTempDir(({ createTempDir }) => {
         const scaffold = readFileSync(migrationTs, 'utf-8');
         const slot = /placeholder\((['"])User\.age:convert\1\)/;
 
-        const failsNamingTheField = async (filled: string) => {
+        const failsNamingTheField = async (
+          filled: string,
+          expected: { readonly why: string; readonly text: string },
+        ) => {
           expect(filled).not.toContain('placeholder(');
           writeFileSync(migrationTs, filled);
           const emitted = await selfEmitMigration(ctx, [
@@ -246,24 +249,27 @@ withTempDir(({ createTempDir }) => {
           ]);
           expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
           const failed = await runMigrate(ctx, ['--json']);
-          expect(failed.exitCode, 'the copy leaves a value INTEGER cannot hold').not.toBe(0);
+          expect(failed.exitCode, 'the conversion fails').not.toBe(0);
           const error = parseJsonOutput<{
             readonly why: string;
             readonly nextActions: readonly { readonly label: string }[];
           }>(failed);
-          expect(error.why).toBe(
-            `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
-          );
+          expect(error.why).toContain(expected.why);
           const advice = error.nextActions.map(({ label }) => label).join('\n');
-          expect(advice).toContain('The conversion of field "User.age" left a value');
+          expect(advice).toContain(expected.text);
           expect(advice).toContain(
-            `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\``,
+            `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\`, run \`node ${relative(ctx.testDir, migrationTs)}`,
           );
+          expect(advice).toContain('db migrate');
           expect(advice).not.toContain('--convert');
           expect(query(ctx.dbPath, `SELECT id, age FROM "User" ORDER BY id`)).toEqual([
             { id: 1, age: 'ten' },
             { id: 2, age: '7' },
           ]);
+        };
+        const leftAValue = {
+          why: `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+          text: 'The conversion of field "User.age" left a value its new type cannot hold.',
         };
 
         await failsNamingTheField(
@@ -271,8 +277,17 @@ withTempDir(({ createTempDir }) => {
             .split('\n')
             .filter((line) => !slot.test(line))
             .join('\n'),
+          leftAValue,
         );
-        await failsNamingTheField(scaffold.replace(slot, `'trim("age")'`));
+        await failsNamingTheField(scaffold.replace(slot, `'trim("age")'`), leftAValue);
+        await failsNamingTheField(scaffold.replace(slot, `'to_int("age")'`), {
+          why: 'no such function: to_int',
+          text: 'The conversion of field "User.age" failed with an error in its SQL.',
+        });
+        await failsNamingTheField(scaffold.replace(slot, `"NULLIF(\\"age\\", 'ten')"`), {
+          why: 'NOT NULL constraint failed',
+          text: 'The conversion of field "User.age" left a value its new type cannot hold.',
+        });
 
         await fillAndApply(ctx, migrationDir, () =>
           scaffold.replace(
@@ -365,7 +380,9 @@ withTempDir(({ createTempDir }) => {
         expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
         const scaffold = readFileSync(join(plannedDir(ctx, 'age_delete'), 'migration.ts'), 'utf-8');
         expect(scaffold).not.toContain('copyExpressions');
-        expect(scaffold).toMatch(/castColumn: ['"]age['"]/);
+        expect(scaffold).toMatch(
+          /convertedColumn: \{\s*column: ['"]age['"],\s*by: ['"]cast['"],?\s*\}/,
+        );
         await fillAndApply(ctx, plannedDir(ctx, 'age_delete'), (unchanged) => unchanged);
         expect(
           query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),

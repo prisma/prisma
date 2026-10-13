@@ -1,5 +1,6 @@
 import {
-  castColumnMeta,
+  type ConvertedColumn,
+  convertedColumnMeta,
   type MigrationOperationClass,
   requiredColumnMeta,
   type SqlMigrationPlanOperationStep,
@@ -9,6 +10,7 @@ import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-comp
 import { issueOutcome } from '@internal/framework-components/control';
 import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
+import { type } from 'arktype';
 import { tableExistsAst } from '../../../contract-free/checks';
 import { stripOuterParens } from '../../default-normalizer';
 import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
@@ -209,13 +211,27 @@ export async function recreateTable(
   // tmp () SELECT FROM old` is invalid SQL — and would also be a no-op since
   // there's nothing to copy. Skip the copy step in that case; the new
   // (empty) table replaces the old one directly.
+  const conversions = Object.fromEntries(
+    postchecks.flatMap((check) => {
+      const converted = 'sql' in check ? check.convertedColumn : undefined;
+      const expression = converted?.by === 'conversion' ? copiedFrom(converted.column) : undefined;
+      return converted === undefined || expression === undefined
+        ? []
+        : [[converted.column, expression] as const];
+    }),
+  );
   const copyStep =
     sharedColumns.length > 0
       ? [
-          step(
-            `copy data from "${tableName}" to "${tempName}"`,
-            `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${selectList} FROM ${quoteIdentifier(tableName)}`,
-          ),
+          {
+            ...step(
+              `copy data from "${tableName}" to "${tempName}"`,
+              `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${selectList} FROM ${quoteIdentifier(tableName)}`,
+            ),
+            ...(Object.keys(conversions).length === 0
+              ? {}
+              : { meta: { conversionCopy: { table: tableName, expressions: conversions } } }),
+          },
         ]
       : [];
 
@@ -279,13 +295,12 @@ export interface RecreateRequiredColumn {
 export interface RecreateSqlPostcheck {
   readonly description: string;
   readonly sql: string;
-  /** The column whose values the check finds converted by the copy; a failure names its field. */
-  readonly castColumn?: string;
   /**
-   * The column whose values the check finds converted by the migration's own copy expression; a
-   * failure names its field and points to that expression.
+   * The column whose values the check finds converted to the column's new type, and who converted
+   * them: SQLite's type affinity on the copy (`cast`), or the migration's copy expression
+   * (`conversion`). A failure names its field.
    */
-  readonly convertedColumn?: string;
+  readonly convertedColumn?: Omit<ConvertedColumn, 'table'>;
   /** The column the check finds required; when the copy fails on it, the runner counts its rows. */
   readonly requiredColumn?: RecreateRequiredColumn;
 }
@@ -299,12 +314,11 @@ export type RecreatePostcheck =
   | { readonly description: string; readonly columnDefault: string };
 
 function markedStep(tableName: string, check: RecreateSqlPostcheck): SqlMigrationPlanOperationStep {
-  const { castColumn, convertedColumn, requiredColumn, ...step } = check;
+  const { convertedColumn, requiredColumn, ...step } = check;
   const meta = {
-    ...(castColumn === undefined ? {} : castColumnMeta(tableName, castColumn)),
     ...(convertedColumn === undefined
       ? {}
-      : castColumnMeta(tableName, convertedColumn, 'conversion')),
+      : convertedColumnMeta(tableName, convertedColumn.column, convertedColumn.by)),
     ...(requiredColumn === undefined
       ? {}
       : requiredColumnMeta(tableName, requiredColumn.column, requiredColumn.reason)),
@@ -334,7 +348,7 @@ export function affinityStorageClasses(typeSql: string): readonly string[] {
 export function castValuePostcheck(
   tableName: string,
   column: { readonly name: string; readonly typeSql: string },
-  by: 'cast' | 'conversion' = 'cast',
+  by: ConvertedColumn['by'],
 ): RecreateSqlPostcheck {
   const classes = ['null', ...affinityStorageClasses(column.typeSql)]
     .map((storageClass) => `'${storageClass}'`)
@@ -342,8 +356,23 @@ export function castValuePostcheck(
   return {
     description: `verify every value of "${column.name}" on "${tableName}" is stored as ${column.typeSql}`,
     sql: `SELECT NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE typeof(${quoteIdentifier(column.name)}) NOT IN (${classes}))`,
-    ...(by === 'cast' ? { castColumn: column.name } : { convertedColumn: column.name }),
+    convertedColumn: { column: column.name, by },
   };
+}
+
+const ConversionCopyMeta = type({
+  conversionCopy: { table: 'string', expressions: 'Record<string, string>' },
+});
+
+/**
+ * The table a rebuild's copy step reads and the copy expression of each column its conversions
+ * convert, when the step converts any: an error of the step may be an error of one of them.
+ */
+export function conversionCopyOf(
+  step: SqlMigrationPlanOperationStep,
+): { readonly table: string; readonly expressions: Readonly<Record<string, string>> } | undefined {
+  const meta = ConversionCopyMeta(step.meta ?? {});
+  return meta instanceof type.errors ? undefined : meta.conversionCopy;
 }
 
 function renderSpecDefaults(

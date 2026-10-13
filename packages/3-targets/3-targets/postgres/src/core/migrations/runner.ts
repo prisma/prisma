@@ -12,7 +12,7 @@ import type {
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
 import {
-  castColumnOf,
+  convertedColumnOf,
   type RequiredColumn,
   requiredColumnOf,
   requiredColumnsOfMigration,
@@ -22,7 +22,7 @@ import {
   unconvertedFieldOf,
 } from '@internal/family-sql/control';
 import type {
-  FailedTypeChangeCast,
+  FailedTypeChange,
   MigrationRunnerResult,
 } from '@internal/framework-components/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
@@ -81,20 +81,39 @@ interface PlanPosition {
 }
 
 /**
- * The type change a failed cast step carries out: a data exception means a value the cast could
- * not convert, and 42846 (`cannot_coerce`) a pair of types Postgres has no cast between. Either
- * failure of a step the migration's own conversion carries out is a conversion that failed.
+ * SQLSTATE classes of failures that come from the connection or the server, not from the SQL a step
+ * runs: connection exceptions, transaction rollbacks, resources, operator intervention, system and
+ * internal errors.
  */
-function failedCastOf(
+const NOT_THE_STEPS_SQL = ['08', '40', '53', '57', '58', 'XX'];
+
+/**
+ * The type change a failed step carries out. For the database's cast, a data exception (class 22)
+ * is a value it could not convert, and 42846 (`cannot_coerce`) a pair of types with no cast. For
+ * the migration's own conversion, every error of the step's SQL is the conversion's: a data
+ * exception is a value, an integrity violation (class 23) a value the new type cannot hold, and
+ * anything else an error in its SQL.
+ */
+function failedTypeChangeOf(
   step: SqlMigrationPlanOperationStep,
   sqlState: string | undefined,
   plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
-): FailedTypeChangeCast | undefined {
-  const failed = sqlState === '42846' ? 'noCast' : sqlState?.startsWith('22') ? 'value' : undefined;
-  if (failed === undefined) return undefined;
-  const reason = castColumnOf(step)?.by === 'conversion' ? 'conversion' : failed;
+): FailedTypeChange | undefined {
+  const converted = convertedColumnOf(step);
   const field = unconvertedFieldOf(step, plan.contract);
-  return field === undefined ? undefined : { field, reason, operationIndex: plan.operationIndex };
+  if (converted === undefined || field === undefined || sqlState === undefined) return undefined;
+  const { operationIndex } = plan;
+  if (converted.by === 'conversion') {
+    if (NOT_THE_STEPS_SQL.some((sqlClass) => sqlState.startsWith(sqlClass))) return undefined;
+    const reason = sqlState.startsWith('22')
+      ? 'value'
+      : sqlState.startsWith('23')
+        ? 'invalidResult'
+        : 'sqlError';
+    return { field, by: 'conversion', reason, operationIndex };
+  }
+  const reason = sqlState === '42846' ? 'noCast' : sqlState.startsWith('22') ? 'value' : undefined;
+  return reason === undefined ? undefined : { field, by: 'cast', reason, operationIndex };
 }
 
 export function createPostgresMigrationRunner(
@@ -450,7 +469,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
-              failedCast: failedCastOf(step, error.sqlState, plan),
+              failedTypeChange: failedTypeChangeOf(step, error.sqlState, plan),
               meta: {
                 operationId: operation.id,
                 stepDescription: step.description,

@@ -20,7 +20,7 @@ describe('the advice for a type change whose cast failed', () => {
         {
           ...runnerFailed,
           conflicts: undefined,
-          failedCast: { field: 'User.age', reason: 'value' },
+          failedTypeChange: { field: 'User.age', by: 'cast', reason: 'value' },
           databaseStorageHash: FROM,
         },
         FROM_PROJECT,
@@ -35,7 +35,7 @@ describe('the advice for a type change whose cast failed', () => {
       mapMigrateFailure(
         {
           ...runnerFailed,
-          failedCast: { field: 'My Model.age', reason: 'value' },
+          failedTypeChange: { field: 'My Model.age', by: 'cast', reason: 'value' },
           failedMigration: {
             directory: `${PROJECT}/migrations/app/20261012T1041_lossy`,
             from: FROM,
@@ -54,12 +54,12 @@ describe('the advice for a type change whose cast failed', () => {
         {
           ...runnerFailed,
           conflicts: undefined,
-          failedCast: { field: 'T.d', reason: 'noCast' },
+          failedTypeChange: { field: 'T.d', by: 'cast', reason: 'noCast' },
         },
         FROM_PROJECT,
       ).fix,
       mapMigrateFailure(
-        { ...runnerFailed, failedCast: { field: 'T.d', reason: 'noCast' } },
+        { ...runnerFailed, failedTypeChange: { field: 'T.d', by: 'cast', reason: 'noCast' } },
         FROM_PROJECT,
       ).fix,
     ]).toEqual([
@@ -77,7 +77,7 @@ describe('the advice for a type change whose cast failed', () => {
       mapMigrateFailure(
         {
           ...runnerFailed,
-          failedCast: { field: 'User.age', reason: 'conversion' },
+          failedTypeChange: { field: 'User.age', by: 'conversion', reason: 'invalidResult' },
           failedMigration: {
             directory: `${PROJECT}/migrations/app/20261012T1041_age`,
             from: FROM,
@@ -86,19 +86,38 @@ describe('the advice for a type change whose cast failed', () => {
         FROM_PROJECT,
       ).fix,
     ).toBe(
-      'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts` so that it converts every value, run `node migrations/app/20261012T1041_age/migration.ts`, and re-run `{bin} db migrate`.',
+      'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts`, run `node migrations/app/20261012T1041_age/migration.ts`, and re-run `{bin} db migrate`.',
     );
   });
 
   it('says to run the migration.ts with node before db migrate when the failed migration is unknown', () => {
     expect(
       mapMigrateFailure(
-        { ...runnerFailed, failedCast: { field: 'T.d', reason: 'noCast' } },
+        { ...runnerFailed, failedTypeChange: { field: 'T.d', by: 'cast', reason: 'noCast' } },
         FROM_PROJECT,
       ).fix,
     ).toBe(
       'The database has no cast from the old type of field "T.d" to its new type. Plan the type change again with `{bin} migration plan --convert T.d`, write the conversion in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and apply it with `{bin} db migrate`.',
     );
+  });
+
+  it('says whether the conversion failed on a value, left one, or has an error in its SQL', () => {
+    const advice = (reason: 'value' | 'invalidResult' | 'sqlError') =>
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          failedTypeChange: { field: 'User.age', by: 'conversion', reason },
+          failedMigration: { directory: `${PROJECT}/migrations/app/20261012T1041_age`, from: FROM },
+        },
+        { cwd: PROJECT, configPath: 'prisma.config.ts', dbGiven: true },
+      ).fix;
+    const rest =
+      ' The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts`, run `node migrations/app/20261012T1041_age/migration.ts --config prisma.config.ts`, and re-run `{bin} db migrate --config prisma.config.ts --db <url>`.';
+    expect([advice('value'), advice('invalidResult'), advice('sqlError')]).toEqual([
+      `The conversion of field "User.age" failed on a value its new type cannot hold.${rest}`,
+      `The conversion of field "User.age" left a value its new type cannot hold.${rest}`,
+      `The conversion of field "User.age" failed with an error in its SQL.${rest}`,
+    ]);
   });
 
   it('keeps the general advice for any other runner failure', () => {

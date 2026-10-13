@@ -791,7 +791,13 @@ describe('RecreateTableCall copy expressions', () => {
       schemaColumnNames: ['id', 'age'],
       indexes: [],
       summary: 'Recreates table user',
-      postchecks: [{ description: 'verify age', sql: 'SELECT 1', convertedColumn: 'age' }],
+      postchecks: [
+        {
+          description: 'verify age',
+          sql: 'SELECT 1',
+          convertedColumn: { column: 'age', by: 'conversion' },
+        },
+      ],
       operationClass: 'data',
       copyExpressions: { age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' } },
     });
@@ -799,9 +805,34 @@ describe('RecreateTableCall copy expressions', () => {
     expect(op.postcheck.find((step) => step.description === 'verify age')).toEqual({
       description: 'verify age',
       sql: 'SELECT 1',
-      meta: { castColumn: { table: 'user', column: 'age', by: 'conversion' } },
+      meta: { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
     });
-    expect(call.renderTypeScript()).toContain('convertedColumn: "age"');
+    expect(call.renderTypeScript()).toContain(
+      'convertedColumn: { column: "age", by: "conversion" }',
+    );
+  });
+
+  it('marks the copy of a rebuild that converts a column with the copy expression of each conversion', async () => {
+    const call = new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [
+        {
+          description: 'verify age',
+          sql: 'SELECT 1',
+          convertedColumn: { column: 'age', by: 'conversion' },
+        },
+      ],
+      operationClass: 'data',
+      copyExpressions: { age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' } },
+    });
+    const op = await call.toOp(stubLowerer('SQL'));
+    expect(op.execute.find((step) => step.description.startsWith('copy data'))?.meta).toEqual({
+      conversionCopy: { table: 'user', expressions: { age: 'CAST("age" AS INTEGER)' } },
+    });
   });
 
   it('is an unfilled placeholder while a slot is unfilled, and imports placeholder', async () => {

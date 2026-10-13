@@ -4,7 +4,7 @@ import type { DbUpdateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
 import { type CliInvocation, cliCommand } from './printed-command';
-import { dbUpdateFailedCastFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
+import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
 
 /**
  * A `db update` failure as the CLI's structured error.
@@ -26,8 +26,12 @@ export function mapDbUpdateFailure(
         ? failure.meta['runnerErrorCode']
         : undefined;
     const fix =
-      failure.failedCast !== undefined
-        ? dbUpdateFailedCastFix(failure.failedCast, failure.databaseStorageHash, invocation)
+      failure.failedTypeChange !== undefined
+        ? dbUpdateFailedTypeChangeFix(
+            failure.failedTypeChange,
+            failure.databaseStorageHash,
+            invocation,
+          )
         : failure.rowsWithoutValue !== undefined
           ? dbUpdateRowsWithoutValueFix(
               failure.rowsWithoutValue,

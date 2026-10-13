@@ -42,7 +42,9 @@ export type {
   ControlTargetInstance,
 } from '../control/control-instances';
 export type {
-  FailedTypeChangeCast,
+  FailedCast,
+  FailedConversion,
+  FailedTypeChange,
   MigrationMetadata,
   MigrationOperationClass,
   MigrationOperationPolicy,
