@@ -21,7 +21,10 @@ vi.mock('@internal/config-loader', async () => {
 });
 
 vi.resetModules();
-const { loadMigrationFileConfig } = await import('../../src/utils/migration-file-config');
+const { loadMigrationFileConfig, ownsMigration } = await import(
+  '../../src/utils/migration-file-config'
+);
+const { appMigrationsDirFor } = await import('../../src/orm/migration/paths');
 
 afterAll(() => {
   vi.doUnmock('@internal/config-loader');
@@ -150,5 +153,22 @@ describe('loadMigrationFileConfig', () => {
       code: 'CLI.MIGRATION_CONFIG_NOT_FOUND',
       meta: { migrationDir, checked: [outer] },
     });
+  });
+});
+
+describe('ownsMigration', () => {
+  it.each([
+    ['the default migrations directory', {}],
+    [
+      'a migrations directory outside the project',
+      { migrations: { dir: '../shared-db/migrations' } },
+    ],
+  ])('owns a migration the CLI writes under %s', (_label, section) => {
+    const configPath = join(root, 'app/prisma.config.ts');
+    const config = { ...section, baseDir: join(root, 'app') };
+    const written = join(appMigrationsDirFor(config), '0001_initial/migration.ts');
+
+    expect(ownsMigration(config, configPath, written)).toBe(true);
+    expect(ownsMigration(config, configPath, join(root, 'other/migration.ts'))).toBe(false);
   });
 });

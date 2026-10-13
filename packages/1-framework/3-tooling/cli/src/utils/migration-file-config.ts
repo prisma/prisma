@@ -14,7 +14,8 @@ import {
   errorMigrationCliConfigNotFound,
 } from '@internal/errors/control';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import { dirname, isAbsolute, join, relative, resolve } from 'pathe';
+import { dirname, isAbsolute, join, relative } from 'pathe';
+import { migrationsDirFor } from '../orm/migration/paths';
 
 /**
  * The config a `migration.ts` runs with. `--config` names it outright. Without it, the config is the one that owns the migration, whose migrations directory holds the file: the nearest `prisma.config.ts` above the migration, else the one in the working directory.
@@ -46,21 +47,25 @@ export async function loadMigrationFileConfig(options: {
       checked.push({ configPath: candidate, loadFailure: config.failure.message });
       continue;
     }
-    const migrationsDir = migrationsDirOf(config.value, candidate);
-    if (contains(migrationsDir, migrationFile)) {
+    if (ownsMigration(config.value, candidate, migrationFile)) {
       return ok(config.value);
     }
-    checked.push({ configPath: candidate, migrationsDir });
+    checked.push({
+      configPath: candidate,
+      migrationsDir: migrationsDirFor(config.value, dirname(candidate)),
+    });
   }
   return notOk(errorMigrationCliConfigNotFound({ migrationDir: dirname(migrationFile), checked }));
 }
 
-function migrationsDirOf(config: PrismaNextConfig, configPath: string): string {
-  return resolve(config.baseDir ?? dirname(configPath), config.migrations?.dir ?? 'migrations');
-}
-
-function contains(dir: string, file: string): boolean {
-  const path = relative(realPath(dir), realPath(file));
+/** Whether `migrationFile` is inside the migrations directory of the config at `configPath`. */
+export function ownsMigration(
+  config: Pick<PrismaNextConfig, 'baseDir' | 'migrations'>,
+  configPath: string,
+  migrationFile: string,
+): boolean {
+  const migrationsDir = migrationsDirFor(config, dirname(configPath));
+  const path = relative(realPath(migrationsDir), realPath(migrationFile));
   return path !== '' && !path.startsWith('..') && !isAbsolute(path);
 }
 
