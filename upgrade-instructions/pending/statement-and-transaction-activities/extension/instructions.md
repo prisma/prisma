@@ -135,7 +135,7 @@ A `RUNTIME.ABORTED` error raised during the middleware stage before encoding has
 
 ## The observed-row budget now runs
 
-`budgets()` now counts the rows each query returns. Before, this check never ran, so a query that returned more than `maxRows` rows succeeded. Now, with the default row severity `'error'` or in `strict` mode, such a query fails with `BUDGET.ROWS_EXCEEDED` once the count passes `maxRows`; with `severities: { rowCount: 'warn' }` in `permissive` mode it logs one warning for the statement and keeps streaming. The `postgres()` client runs its runtime in `strict` mode, where every `budgets()` violation throws whatever its severity, so the warn path does not apply there until the client exposes `mode`. Raise `maxRows` or `tableRows` for reads that are expected to return more rows.
+`budgets()` now counts the rows each query returns. Before, this check never ran, so a query that returned more than `maxRows` rows succeeded. Now, with the default row severity `'error'` or in `strict` mode, such a query fails with `BUDGET.ROWS_EXCEEDED` once the count passes `maxRows`; with `severities: { rowCount: 'warn' }` in `permissive` mode it logs one warning for the statement and keeps streaming. The `postgres()` client runs its runtime in `strict` mode, where every `budgets()` violation throws whatever its severity, so the warn path does not apply there until the client exposes `mode`. Raise `maxRows` for reads that are expected to return more rows. `tableRows` and `defaultTableRows` only change the estimate checked before a read runs; they do not change the limit on rows a read actually returns.
 
 ## Move per-statement state from a `WeakMap` to `ctx.state`
 
