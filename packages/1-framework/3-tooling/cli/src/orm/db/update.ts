@@ -42,7 +42,7 @@ import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { mapDbUpdateFailure } from '../../utils/db-update-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
-import { type CliInvocation, cliInvocation } from '../../utils/printed-command';
+import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { baseDirFor, migrationsDirFor } from '../migration/paths';
@@ -55,14 +55,12 @@ import { prepareMigrationRun } from './prepare';
 
 function updatePresentations(inputs: {
   readonly document: MigrationCommandResult;
-  /** Where the CLI ran and the `--config` it was given, which printed commands repeat. */
+  /** Where the CLI ran and the `--config` and `--db` it was given, which printed commands repeat. */
   readonly invocation: CliInvocation;
   readonly contractPath: string;
   readonly database: string | undefined;
   readonly to: string | undefined;
   readonly dryRun: boolean;
-  /** Whether the run named its database with `--db`, which the suggested apply repeats as a placeholder. */
-  readonly dbGiven: boolean;
   readonly advanceRef: string | undefined;
   readonly statements: readonly StatementText[];
 }): Presentations {
@@ -86,15 +84,14 @@ function updatePresentations(inputs: {
     next: () =>
       migrationResultNextActions(
         document,
-        [
-          '{bin} db update',
-          ...(inputs.to === undefined ? [] : [`--to ${shellQuoted(inputs.to)}`]),
-          ...(inputs.dbGiven ? ['--db <url>'] : []),
+        inputs.invocation,
+        cliCommand(inputs.invocation, 'db update', [
+          ...(inputs.to === undefined ? [] : ['--to', shellQuoted(inputs.to)]),
           ...(inputs.advanceRef === undefined
             ? []
-            : [`--advance-ref ${shellQuoted(inputs.advanceRef)}`]),
+            : ['--advance-ref', shellQuoted(inputs.advanceRef)]),
           ...inputs.statements.map(statementFlag),
-        ].join(' '),
+        ]),
       ),
   };
 }
@@ -445,7 +442,6 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
             database: prepared.value.database,
             to: args.flags.to,
             dryRun: args.flags.dryRun,
-            dbGiven: args.flags.db !== undefined,
             advanceRef: args.flags.advanceRef,
             statements: [...renames, ...previewConsents],
           }),

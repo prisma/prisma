@@ -119,8 +119,8 @@ describe('errorStatementNeedsMigrationFile', () => {
         }),
       ),
     }).toEqual({
-      fix: 'Plan the change with {bin} migration plan --convert User.years --config "app/prisma.config.ts", fill in the migration.ts it writes, run that file with node to write its operations, and apply it with {bin} db migrate --config "app/prisma.config.ts". Or leave out these statements: db update then asks before it loses any data.',
-      commands: ['{bin} migration plan --convert User.years --config "app/prisma.config.ts"'],
+      fix: 'Plan the change with {bin} migration plan --convert User.years --config app/prisma.config.ts, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with {bin} db migrate --config app/prisma.config.ts. Or leave out these statements: db update then asks before it loses any data.',
+      commands: ['{bin} migration plan --convert User.years --config app/prisma.config.ts'],
     });
   });
 

@@ -86,7 +86,7 @@ describe('the advice for a type change whose cast failed', () => {
         FROM_PROJECT,
       ).fix,
     ).toBe(
-      'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts` so that it converts every value, run `node "migrations/app/20261012T1041_age/migration.ts"`, and re-run `{bin} db migrate`.',
+      'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts` so that it converts every value, run `node migrations/app/20261012T1041_age/migration.ts`, and re-run `{bin} db migrate`.',
     );
   });
 
@@ -97,6 +97,17 @@ describe('the advice for a type change whose cast failed', () => {
     ]).toEqual([
       'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`',
       'Fix the issue and re-run `{bin} db migrate --to <contract>` — previously applied migrations are preserved.',
+    ]);
+  });
+
+  it('repeats --config and --db in the general advice', () => {
+    const invocation = { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: true };
+    expect([
+      mapDbUpdateFailure({ ...runnerFailed, conflicts: undefined }, invocation).fix,
+      mapMigrateFailure(runnerFailed, invocation).fix,
+    ]).toEqual([
+      'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update --config app/prisma.config.ts --db <url>`',
+      'Fix the issue and re-run `{bin} db migrate --to <contract> --config app/prisma.config.ts --db <url>` — previously applied migrations are preserved.',
     ]);
   });
 });

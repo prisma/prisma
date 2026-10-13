@@ -339,7 +339,66 @@ describe('db update --rename', () => {
       {
         kind: 'run-command',
         label: 'Apply the planned operations',
-        command: 'prisma-test db update --db <url> --advance-ref qa',
+        command: 'prisma-test db update --advance-ref qa --db <url>',
+      },
+    ]);
+  });
+
+  it('repeats --config and --db in every command a dry run prints, as a shell reads them', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({ ...planSuccess(), temporaryValues: [{ field: 'User.email', value: "''" }] }),
+    );
+    const run = await harness().run(
+      [
+        'db',
+        'update',
+        '--dry-run',
+        '--db',
+        CONNECTION,
+        '--advance-ref',
+        'qa',
+        '--config',
+        'my app/prisma.config.ts',
+      ],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect({
+      next: run.presented?.presentation.next,
+      temporaryValue: run.presented?.presentation.human.find(
+        (block) =>
+          block.kind === 'summary' &&
+          typeof block.text === 'string' &&
+          block.text.startsWith('Existing rows'),
+      ),
+    }).toEqual({
+      next: [
+        {
+          kind: 'run-command',
+          label: 'Apply the planned operations',
+          command:
+            "prisma-test db update --advance-ref qa --config 'my app/prisma.config.ts' --db <url>",
+        },
+      ],
+      temporaryValue: {
+        kind: 'summary',
+        status: 'warn',
+        text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email --config 'my app/prisma.config.ts' instead.`,
+      },
+    });
+  });
+
+  it('repeats --config and --db in the command an apply says to run next', async () => {
+    const run = await harness().run(
+      ['db', 'update', '--db', CONNECTION, '--config', 'app/prisma.config.ts'],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect(run.presented?.presentation.next).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Confirm the space is up to date',
+        command: 'prisma-test migration status --config app/prisma.config.ts --db <url>',
       },
     ]);
   });

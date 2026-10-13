@@ -18,7 +18,7 @@ import { CliStructuredError, errorContractValidationFailed } from '../../utils/c
 import { closeQuietly } from '../../utils/command-helpers';
 import { mapDbInitFailure } from '../../utils/db-init-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
-import { type CliInvocation, cliInvocation } from '../../utils/printed-command';
+import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { baseDirFor } from '../migration/paths';
@@ -51,7 +51,12 @@ function initPresentations(inputs: {
       ...migrationResultBlocks(document, inputs.invocation),
     ],
     json: () => document,
-    next: () => migrationResultNextActions(document, '{bin} db init'),
+    next: () =>
+      migrationResultNextActions(
+        document,
+        inputs.invocation,
+        cliCommand(inputs.invocation, 'db init'),
+      ),
   };
 }
 

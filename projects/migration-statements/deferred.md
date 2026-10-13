@@ -117,3 +117,9 @@ The statement prompt writes one flag value per verb, so a question about a field
 **Found:** slice 3a manual QA (2026-10-12), F11. Older than this project's slices.
 
 A SQLite table rebuild renders as a 40-line `recreateTable` call full of internal fields, so a `--convert` slot sits at its end where it is easy to miss. A shorter rendering, or one built from the contract the way `alterColumnType` is on Postgres, would make the slot easy to find.
+
+## Printed commands in other commands' outputs still leave out `--config` and `--db`
+
+**Found:** slice 3a review round 2 (2026-10-13), S07. Tracked as TML-3575.
+
+`db migrate`, `db update` and `migration plan` print every command through `cliCommand` in `packages/1-framework/3-tooling/cli/src/utils/printed-command.ts`. About 100 other `{bin} …` literals do not: `migration status`, `db init` failures (`db-init-failure.ts`), `db sign` beyond its re-run command, `contract emit`, `prepare.ts`, `cli-errors.ts` (for example `MIGRATION.PLAN_ORIGIN_UNKNOWN`), and `reemitHint` in the migration package. Followed from another directory, they load a different config or none.

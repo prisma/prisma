@@ -299,6 +299,7 @@ export function migrationResultBlocks(
 /** Where the user goes next, as typed actions rather than trailing prose. */
 export function migrationResultNextActions(
   result: MigrationCommandResult,
+  invocation: CliInvocation,
   applyCommand: string,
 ): readonly NextAction[] {
   return result.mode === 'plan'
@@ -308,7 +309,7 @@ export function migrationResultNextActions(
           result.perSpace !== undefined && result.perSpace.length === 1
             ? 'Confirm the space is up to date'
             : 'Confirm every space is up to date',
-          '{bin} migration status',
+          cliCommand(invocation, 'migration status'),
         ),
       ];
 }

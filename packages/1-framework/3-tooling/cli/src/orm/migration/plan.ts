@@ -19,7 +19,12 @@ import {
 } from '../../utils/contract-ref-forms';
 import { previewBlockHeader } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
-import { selfEmitCommand } from '../../utils/printed-command';
+import {
+  type CliInvocation,
+  cliCommand,
+  cliInvocation,
+  selfEmitCommand,
+} from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
@@ -206,7 +211,7 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
 function planNextActions(
   result: MigrationPlanResult,
   migrationsRelative: string,
-  configPath: string | undefined,
+  invocation: CliInvocation,
 ): readonly NextAction[] {
   if (result.pendingPlaceholders === true) {
     const stubFiles = (result.placeholderDirs ?? []).map((dir) => join(dir, 'migration.ts'));
@@ -218,7 +223,7 @@ function planNextActions(
       },
       runCommandAction(
         'Run it to self-emit ops.json and attest the package',
-        selfEmitCommand(migrationTs, configPath),
+        selfEmitCommand(migrationTs, invocation.configPath),
       ),
     ];
   }
@@ -234,7 +239,7 @@ function planNextActions(
   }
   return [
     { kind: 'edit-file', label: `Review ${written.join(' and ')}` },
-    runCommandAction('Apply the migration', '{bin} db migrate'),
+    runCommandAction('Apply the migration', cliCommand(invocation, 'db migrate')),
   ];
 }
 
@@ -246,7 +251,7 @@ function planPresentations(inputs: {
   readonly from: string | undefined;
   readonly to: string | undefined;
   readonly name: string | undefined;
-  readonly configPath: string | undefined;
+  readonly invocation: CliInvocation;
 }): Presentations {
   return {
     stdout: () => [],
@@ -265,7 +270,7 @@ function planPresentations(inputs: {
       ...planBlocks(inputs.document, inputs.migrationsRelative),
     ],
     json: () => inputs.document,
-    next: () => planNextActions(inputs.document, inputs.migrationsRelative, inputs.configPath),
+    next: () => planNextActions(inputs.document, inputs.migrationsRelative, inputs.invocation),
   };
 }
 
@@ -375,7 +380,7 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
             from: args.flags.from,
             to: args.flags.to,
             name: args.flags.name,
-            configPath: ctx.configPath,
+            invocation: cliInvocation(ctx, undefined),
           }),
         ),
       );

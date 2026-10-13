@@ -9,7 +9,7 @@ import { blindCast, castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { Block, Presentations } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
-import type { CliStructuredError, Result } from '@prisma/cli-engine/protocol';
+import type { CliStructuredError, NextAction, Result } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
 import { join } from 'pathe';
 import { createControlClient } from '../control-api/client';
@@ -53,7 +53,7 @@ import { createToneMigrationListStyler } from '../utils/formatters/migration-lis
 import { toneDrawing } from '../utils/formatters/tone-markup';
 import { mapMigrateFailure } from '../utils/migrate-failure';
 import { runCommandAction } from '../utils/next-actions';
-import { cliInvocation } from '../utils/printed-command';
+import { type CliInvocation, cliCommand, cliInvocation } from '../utils/printed-command';
 import { snapshotVerifierFor } from '../utils/snapshot-content-verification';
 import { perSpaceBlocks } from './db/migration-blocks';
 import { prepareMigrationRun } from './db/prepare';
@@ -90,10 +90,12 @@ interface MigrateDocument {
   readonly advancedRef?: { readonly name: string; readonly hash: string } | null;
 }
 
-const STATUS_ACTION = runCommandAction(
-  'Check every space against the database',
-  '{bin} migration status',
-);
+function statusAction(invocation: CliInvocation): NextAction {
+  return runCommandAction(
+    'Check every space against the database',
+    cliCommand(invocation, 'migration status'),
+  );
+}
 
 /**
  * The route the migration will take. The graph is a drawing — the engine cannot
@@ -146,6 +148,7 @@ function applyPresentations(inputs: {
   readonly migrationsDir: string;
   readonly database: string | undefined;
   readonly to: string | undefined;
+  readonly invocation: CliInvocation;
 }): Presentations {
   const { document } = inputs;
   const advanced = document.advancedRef;
@@ -177,7 +180,7 @@ function applyPresentations(inputs: {
           ]),
     ],
     json: () => document,
-    next: () => [STATUS_ACTION],
+    next: () => [statusAction(inputs.invocation)],
   };
 }
 
@@ -529,6 +532,7 @@ export function createMigrateCommand(createClient: CreateControlClient) {
             migrationsDir: migrationsRelative,
             database: prepared.value.database,
             to: args.flags.to,
+            invocation: cliInvocation(ctx, args.flags.db),
           }),
         ),
       );

@@ -1,4 +1,5 @@
 import { relative } from 'pathe';
+import { shellQuoted } from '../control-api/statements/statement-flag';
 
 /**
  * Where the user ran the CLI from, the `--config` they gave it, as they typed it, and whether they
@@ -32,7 +33,7 @@ const COMMANDS_TAKING_DB: ReadonlySet<string> = new Set([
 ]);
 
 function configWords(configPath: string | undefined): readonly string[] {
-  return configPath === undefined ? [] : ['--config', `"${configPath}"`];
+  return configPath === undefined ? [] : ['--config', shellQuoted(configPath)];
 }
 
 /**
@@ -60,7 +61,7 @@ export function cliCommand(
  * `--config` the CLI was given, so it loads the same config.
  */
 export function selfEmitCommand(migrationTs: string, configPath: string | undefined): string {
-  return [`node "${migrationTs}"`, ...configWords(configPath)].join(' ');
+  return ['node', shellQuoted(migrationTs), ...configWords(configPath)].join(' ');
 }
 
 /** A path as advice prints it: relative to the directory the CLI ran in. */

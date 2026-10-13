@@ -10,6 +10,7 @@
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
+import { stripVTControlCharacters } from 'node:util';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { runOnEngine, withTempDir, writeProjectManifest } from '../utils/cli-test-helpers';
@@ -90,9 +91,11 @@ function printed(text: string) {
   };
 }
 
-/** The first `node "…"` command a command's output prints, also inside its JSON output. */
+/** The first `node …` command a command's output prints, also inside its JSON output. */
 function printedNode(output: string): readonly string[] {
-  const match = /node "[^"]+"(?: --config "[^"]+")?/.exec(output.replaceAll('\\"', '"'));
+  const match = /node (?:'[^']+'|\S+?migration\.ts)(?: --config (?:'[^']+'|[^\s`"']+))?/.exec(
+    stripVTControlCharacters(output),
+  );
   expect(match, `no node command in:\n${output}`).not.toBeNull();
   return words(match?.[0] ?? '');
 }
