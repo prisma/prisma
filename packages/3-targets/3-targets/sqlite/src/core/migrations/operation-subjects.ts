@@ -56,7 +56,7 @@ function recreateLosses(
 /** The columns a recreate adds with a value its copy writes into every existing row. */
 function temporaryValuesOf(call: RecreateTableCall): CallSubjects['temporaryValues'] {
   const copied = new Set(call.schemaColumnNames);
-  return Object.entries(call.copyExpressions).flatMap(([column, expression]) =>
+  return Object.entries(call.temporaryValues).flatMap(([column, expression]) =>
     copied.has(column) || expression.kind !== 'sql'
       ? []
       : [{ table: call.tableName, column, value: expression.sql }],

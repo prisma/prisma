@@ -499,20 +499,21 @@ export class RenameColumnCall extends SqliteOpFactoryCallNode {
 
 function refuseUnsafeCopyExpressions(
   tableName: string,
-  copyExpressions: Readonly<Record<string, SqlSlot>>,
+  option: 'copyExpressions' | 'temporaryValues',
+  expressions: Readonly<Record<string, SqlSlot>>,
 ): void {
-  for (const [column, expression] of Object.entries(copyExpressions)) {
+  for (const [column, expression] of Object.entries(expressions)) {
     if (expression.kind !== 'sql') continue;
     const refused = checkSqlExpressionText(expression.sql, SQLITE_QUOTING);
     if (refused === undefined) continue;
     const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
     throw sqliteError(
       'MIGRATION.SQL_EXPRESSION_INVALID',
-      `${call}: copyExpressions.${column} ${JSON.stringify(expression.sql)} holds ${refused}, which could end or extend the INSERT … SELECT statement it is written into`,
+      `${call}: ${option}.${column} ${JSON.stringify(expression.sql)} holds ${refused}, which could end or extend the INSERT … SELECT statement it is written into`,
       {
-        why: 'A copy expression is written into the SELECT that copies the rows into the rebuilt table. The check refuses a semicolon, a SQL comment, dollar quoting, and a comma or a statement keyword outside parentheses, since each could end or extend that statement; it does not check that the text is valid SQL.',
-        fix: `Write copyExpressions.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER). If it holds a comma or a keyword such as FROM outside parentheses, wrap it in parentheses.`,
-        meta: { call, field: `copyExpressions.${column}`, expression: expression.sql, refused },
+        why: 'A copy expression or a temporary value is written into the SELECT that copies the rows into the rebuilt table. The check refuses a semicolon, a SQL comment, dollar quoting, and a comma or a statement keyword outside parentheses, since each could end or extend that statement; it does not check that the text is valid SQL.',
+        fix: `Write ${option}.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER). If it holds a comma or a keyword such as FROM outside parentheses, wrap it in parentheses.`,
+        meta: { call, field: `${option}.${column}`, expression: expression.sql, refused },
       },
     );
   }
@@ -521,31 +522,40 @@ function refuseUnsafeCopyExpressions(
 function refuseUnknownCopyExpressionColumns(
   tableName: string,
   contractTable: SqliteTableSpec,
-  copyExpressions: Readonly<Record<string, SqlSlot>>,
-  retypedColumns: readonly string[],
+  named: {
+    readonly copyExpressions: Readonly<Record<string, SqlSlot>>;
+    readonly temporaryValues: Readonly<Record<string, SqlSlot>>;
+    readonly retypedColumns: readonly string[];
+  },
 ): void {
   const columns = contractTable.columns.map((column) => column.name);
-  const unknownKey = Object.keys(copyExpressions).find((key) => !columns.includes(key));
-  const unknownRetyped = retypedColumns.find((column) => !columns.includes(column));
-  const unknown =
-    unknownKey !== undefined
-      ? { option: `copyExpressions.${unknownKey}`, key: unknownKey }
-      : unknownRetyped !== undefined
-        ? {
-            option: `retypedColumns entry ${JSON.stringify(unknownRetyped)}`,
-            key: unknownRetyped,
-          }
-        : undefined;
+  const unknown = [
+    ...Object.keys(named.copyExpressions).map((key) => ({ option: `copyExpressions.${key}`, key })),
+    ...Object.keys(named.temporaryValues).map((key) => ({ option: `temporaryValues.${key}`, key })),
+    ...named.retypedColumns.map((key) => ({
+      option: `retypedColumns entry ${JSON.stringify(key)}`,
+      key,
+    })),
+  ].find(({ key }) => !columns.includes(key));
   if (unknown === undefined) return;
   const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
   throw sqliteError(
     'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN',
     `${call}: ${unknown.option} names no column of the new table. Its columns are ${columns.map((column) => JSON.stringify(column)).join(', ')}.`,
     {
-      why: 'Each key of copyExpressions, and each entry of retypedColumns, names a column of the new table. One that names no column applies to nothing, so the column meant would be copied unchanged, or its values would go unchecked.',
+      why: 'Each key of copyExpressions and temporaryValues, and each entry of retypedColumns, names a column of the new table. One that names no column applies to nothing, so the column meant would be copied unchanged or left without a value, or its values would go unchecked.',
       fix: 'Name a column in contractTable.columns, with the same letters and case.',
       meta: { call, key: unknown.key, columns },
     },
+  );
+}
+
+function sqlOfSlots(slots: Readonly<Record<string, SqlSlot>>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(slots).flatMap(([column, slot]) => {
+      const sql = sqlOfSlot(slot);
+      return sql === undefined ? [] : [[column, sql]];
+    }),
   );
 }
 
@@ -559,8 +569,10 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
   readonly summary: string;
   readonly postchecks: readonly RecreatePostcheck[];
   readonly label: string;
-  /** What each named column of the new table is copied from, in place of the live column. */
+  /** The conversion each named column of the new table is copied through, in place of the live column. */
   readonly copyExpressions: Readonly<Record<string, SqlSlot>>;
+  /** The value each named new column takes in the existing rows. */
+  readonly temporaryValues: Readonly<Record<string, SqlSlot>>;
   /** The columns whose type changes; the rebuild checks each after its copy, as a conversion when it has a copy expression and as SQLite's cast otherwise. */
   readonly retypedColumns: readonly string[];
 
@@ -573,17 +585,19 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
     postchecks: readonly RecreatePostcheck[];
     operationClass: MigrationOperationClass;
     copyExpressions?: Readonly<Record<string, SqlSlot>>;
+    temporaryValues?: Readonly<Record<string, SqlSlot>>;
     retypedColumns?: readonly string[];
   }) {
     super();
-    refuseUnsafeCopyExpressions(args.tableName, args.copyExpressions ?? {});
-    refuseUnknownCopyExpressionColumns(
-      args.tableName,
-      args.contractTable,
-      args.copyExpressions ?? {},
-      args.retypedColumns ?? [],
-    );
+    refuseUnsafeCopyExpressions(args.tableName, 'copyExpressions', args.copyExpressions ?? {});
+    refuseUnsafeCopyExpressions(args.tableName, 'temporaryValues', args.temporaryValues ?? {});
+    refuseUnknownCopyExpressionColumns(args.tableName, args.contractTable, {
+      copyExpressions: args.copyExpressions ?? {},
+      temporaryValues: args.temporaryValues ?? {},
+      retypedColumns: args.retypedColumns ?? [],
+    });
     this.copyExpressions = Object.freeze({ ...args.copyExpressions });
+    this.temporaryValues = Object.freeze({ ...args.temporaryValues });
     this.retypedColumns = Object.freeze([...(args.retypedColumns ?? [])]);
     this.tableName = args.tableName;
     this.contractTable = args.contractTable;
@@ -618,23 +632,17 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
         postchecks: this.postchecks,
         operationClass: this.operationClass,
         retypedColumns: this.retypedColumns,
-        ...(copies.length === 0
+        ...(copies.length === 0 ? {} : { copyExpressions: sqlOfSlots(this.copyExpressions) }),
+        ...(Object.keys(this.temporaryValues).length === 0
           ? {}
-          : {
-              copyExpressions: Object.fromEntries(
-                copies.flatMap(([column, expression]) => {
-                  const sql = sqlOfSlot(expression);
-                  return sql === undefined ? [] : [[column, sql]];
-                }),
-              ),
-            }),
+          : { temporaryValues: sqlOfSlots(this.temporaryValues) }),
       },
       lowerer,
     );
   }
 
-  #copyExpressionsSource(sql: SqlTextSources): string {
-    const entries = Object.entries(this.copyExpressions).map(
+  #slotsSource(slots: Readonly<Record<string, SqlSlot>>, sql: SqlTextSources): string {
+    const entries = Object.entries(slots).map(
       ([column, expression]) => `${jsonToTsSource(column)}: ${slotSource(expression, sql)}`,
     );
     return `{ ${entries.join(', ')} }`;
@@ -665,7 +673,10 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       ['operationClass', jsonToTsSource(this.operationClass)],
       ...(Object.keys(this.copyExpressions).length === 0
         ? []
-        : [['copyExpressions', this.#copyExpressionsSource(sql)] as const]),
+        : [['copyExpressions', this.#slotsSource(this.copyExpressions, sql)] as const]),
+      ...(Object.keys(this.temporaryValues).length === 0
+        ? []
+        : [['temporaryValues', this.#slotsSource(this.temporaryValues, sql)] as const]),
       ...(this.retypedColumns.length === 0
         ? []
         : [['retypedColumns', jsonToTsSource(this.retypedColumns)] as const]),

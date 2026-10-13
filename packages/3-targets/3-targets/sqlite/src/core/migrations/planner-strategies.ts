@@ -218,6 +218,7 @@ interface TableRebuild {
   /** Columns whose type changes, converted by a `--convert` copy expression or by SQLite on the copy. */
   readonly retypedColumns: string[];
   readonly copyExpressions: Record<string, SqlSlot>;
+  readonly temporaryValues: Record<string, SqlSlot>;
   /** Columns an earlier call of the plan adds, which the rebuild copies like live ones. */
   readonly addedColumns: string[];
 }
@@ -253,6 +254,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
       classes: [],
       retypedColumns: [],
       copyExpressions: {},
+      temporaryValues: {},
       addedColumns: [],
     };
     byTable.set(tableName, created);
@@ -279,7 +281,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
           : sqliteFillValue(added, codecHooks, ctx.types);
       const rebuild = rebuildOf(tableName);
       rebuild.issues.push(issue);
-      if (fill !== undefined) rebuild.copyExpressions[added.name] = { kind: 'sql', sql: fill };
+      if (fill !== undefined) rebuild.temporaryValues[added.name] = { kind: 'sql', sql: fill };
       rebuild.classes.push('additive');
       consumed.add(issue);
       continue;
@@ -342,7 +344,10 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
             tableName,
             rebuild.issues,
             tableSpec,
-            new Set(Object.keys(rebuild.copyExpressions)),
+            new Set([
+              ...Object.keys(rebuild.copyExpressions),
+              ...Object.keys(rebuild.temporaryValues),
+            ]),
             new Set(
               tableSpec.columns
                 .filter(
@@ -354,6 +359,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
         ],
         operationClass,
         copyExpressions: rebuild.copyExpressions,
+        temporaryValues: rebuild.temporaryValues,
         retypedColumns: rebuild.retypedColumns,
       }),
     );

@@ -371,7 +371,19 @@ describe('SQLite planner, a required field without a value in existing rows', ()
       await planned(textAge, withName),
       await planned(textAge, withName, { policy: DB_UPDATE }),
     ]).toEqual([['Recreate table User (additive)'], ['Recreate table User (additive)']]);
-    expect(rendered(textAge, withName)).toContain('copyExpressions: { "name": sql`\'\'` }');
+    expect(rendered(textAge, withName)).toContain('temporaryValues: { "name": sql`\'\'` }');
+    expect(rendered(textAge, withName)).not.toMatch(/copyExpressions|retypedColumns/);
+  });
+
+  it('checks no type change of a column a temporary value fills, and marks no conversion on its copy', async () => {
+    const [op] = await Promise.all(plan(textAge, withName).plan.operations);
+    expect(
+      [...(op?.postcheck ?? []), ...(op?.execute ?? [])].filter(
+        (step) =>
+          step.meta !== undefined &&
+          ('convertedColumn' in step.meta || 'conversionCopy' in step.meta),
+      ),
+    ).toEqual([]);
   });
 
   it('names each new required field that takes a temporary value, with the value', () => {
@@ -400,7 +412,7 @@ describe('SQLite planner, a required field without a value in existing rows', ()
       stamp: 'datetime',
     });
     expect(rendered(textAge, withStamp)).toContain(
-      'copyExpressions: { "stamp": sql`\'1970-01-01T00:00:00.000Z\'` }',
+      'temporaryValues: { "stamp": sql`\'1970-01-01T00:00:00.000Z\'` }',
     );
   });
 
@@ -411,7 +423,7 @@ describe('SQLite planner, a required field without a value in existing rows', ()
       ['name'],
     );
     expect(await planned(textAge, unique)).toEqual(['Recreate table User (widening)']);
-    expect(rendered(textAge, unique)).not.toContain('copyExpressions');
+    expect(rendered(textAge, unique)).not.toContain('temporaryValues');
   });
 
   it('rebuilds with a new required field whose values come from a value set and no temporary value, since no one value stands for every member', async () => {
@@ -425,7 +437,7 @@ describe('SQLite planner, a required field without a value in existing rows', ()
       await planned(textAge, withRole),
       await planned(textAge, withRole, { policy: DB_UPDATE }),
     ]).toEqual([['Recreate table User (additive)'], ['Recreate table User (additive)']]);
-    expect(rendered(textAge, withRole)).not.toContain('copyExpressions');
+    expect(rendered(textAge, withRole)).not.toContain('temporaryValues');
   });
 
   it('adds a new required field nullable, fills it through a slot, then tightens it for --backfill', async () => {

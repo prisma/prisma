@@ -296,10 +296,12 @@ export abstract class SqliteMigration<
     readonly operationClass: MigrationOperationClass;
     /** SQL each named column is copied from, such as `CAST("age" AS INTEGER)`. */
     readonly copyExpressions?: Readonly<Record<string, SqlTextInput>>;
+    /** The value each named new column takes in the existing rows, such as `''`. */
+    readonly temporaryValues?: Readonly<Record<string, SqlTextInput>>;
     /** The columns whose type changes; the rebuild checks each after its copy, as a conversion when it has a copy expression and as SQLite's cast otherwise. */
     readonly retypedColumns?: readonly string[];
   }): Promise<Op> {
-    const { copyExpressions, ...args } = options;
+    const { copyExpressions, temporaryValues, ...args } = options;
     return new RecreateTableCall({
       ...args,
       contractTable: {
@@ -313,6 +315,12 @@ export abstract class SqliteMigration<
         copyExpressions === undefined
           ? undefined
           : copyExpressionSlotsOf(copyExpressions, options.tableName),
+      ),
+      ...ifDefined(
+        'temporaryValues',
+        temporaryValues === undefined
+          ? undefined
+          : copyExpressionSlotsOf(temporaryValues, options.tableName, 'temporaryValues'),
       ),
     }).toOp(this.controlAdapterFor('recreateTable'));
   }
@@ -355,16 +363,14 @@ function columnSpecOf(
 function copyExpressionSlotsOf(
   copyExpressions: Readonly<Record<string, SqlTextInput>>,
   table: string,
+  option: 'copyExpressions' | 'temporaryValues' = 'copyExpressions',
 ): Record<string, SqlSlot> {
   return Object.fromEntries(
     Object.entries(copyExpressions).map(([column, expression]) => [
       column,
       {
         kind: 'sql',
-        sql: sqlTextOf(
-          expression,
-          `recreateTable ${JSON.stringify(table)} copyExpressions.${column}`,
-        ),
+        sql: sqlTextOf(expression, `recreateTable ${JSON.stringify(table)} ${option}.${column}`),
       },
     ]),
   );

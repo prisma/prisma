@@ -167,13 +167,17 @@ export interface RecreateTableArgs {
   readonly postchecks: readonly RecreatePostcheck[];
   readonly operationClass: MigrationOperationClass;
   /**
-   * SQL each named column of the new table is copied from, in place of the live column of the same
-   * name: a conversion of a column whose type changes, or a value for a column the live table does
-   * not have. Keyed by the new table's column names. The rebuild checks after its copy that every
-   * value of each such column took the column's type, and a failure of the copy or the check is
-   * reported as a failed conversion of the column's field.
+   * The conversion each named column of the new table is copied through, in place of the live
+   * column of the same name, keyed by the new table's column names. The rebuild checks after its
+   * copy that every value of each such column took the column's type, and a failure of the copy or
+   * the check is reported as a failed conversion of the column's field.
    */
   readonly copyExpressions?: Readonly<Record<string, string>>;
+  /**
+   * The value each named column the live table does not have takes in the existing rows, keyed by
+   * the new table's column names. It is copied like a copy expression, with no check of its own.
+   */
+  readonly temporaryValues?: Readonly<Record<string, string>>;
   /**
    * The columns whose type changes. The rebuild checks after its copy that every value of each took
    * the new type: a column with a copy expression as a conversion, and one the copy takes unchanged,
@@ -200,13 +204,17 @@ export async function recreateTable(
     postchecks,
     operationClass,
     copyExpressions = {},
+    temporaryValues = {},
     retypedColumns = [],
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
   const tempName = rebuiltTableName(tableName);
   const liveSet = new Set(schemaColumnNames);
-  const copiedFrom = (column: string): string | undefined =>
+  const convertedBy = (column: string): string | undefined =>
     Object.hasOwn(copyExpressions, column) ? copyExpressions[column] : undefined;
+  const copiedFrom = (column: string): string | undefined =>
+    convertedBy(column) ??
+    (Object.hasOwn(temporaryValues, column) ? temporaryValues[column] : undefined);
   const sharedColumns = contractTable.columns
     .filter((c) => liveSet.has(c.name) || copiedFrom(c.name) !== undefined)
     .map((c) => c.name);
@@ -226,7 +234,7 @@ export async function recreateTable(
   // (empty) table replaces the old one directly.
   const conversions = Object.fromEntries(
     sharedColumns.flatMap((column) => {
-      const expression = copiedFrom(column);
+      const expression = convertedBy(column);
       return expression === undefined ? [] : [[column, expression] as const];
     }),
   );

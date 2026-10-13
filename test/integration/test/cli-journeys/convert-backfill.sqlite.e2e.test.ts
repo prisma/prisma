@@ -630,6 +630,12 @@ withTempDir(({ createTempDir }) => {
 
         const migrationDir = plannedDir(ctx, 'add_name');
         const opsPlanned = readFileSync(join(migrationDir, 'ops.json'), 'utf-8');
+        expect(readFileSync(join(migrationDir, 'migration.ts'), 'utf-8')).toMatch(
+          /temporaryValues:\s*\{\s*['"]?name['"]?:\s*sql`''`/,
+        );
+        expect(opsPlanned, 'a temporary value is no type change').not.toMatch(
+          /convertedColumn|conversionCopy/,
+        );
         await fillAndApply(ctx, migrationDir, (scaffold) => scaffold);
         expect(readFileSync(join(migrationDir, 'ops.json'), 'utf-8')).toBe(opsPlanned);
 
@@ -789,7 +795,7 @@ withTempDir(({ createTempDir }) => {
         await emit(ctx, WITH_ROLE);
         const migrationDir = await plannedPlain(ctx, 'add-role');
         expect(readFileSync(join(migrationDir, 'migration.ts'), 'utf-8')).not.toContain(
-          'copyExpressions',
+          'temporaryValues',
         );
 
         const refused = await runMigrate(ctx);

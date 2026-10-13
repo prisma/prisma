@@ -835,6 +835,46 @@ describe('RecreateTableCall copy expressions', () => {
     );
   });
 
+  it('copies a temporary value into a new column with no type-change check and no conversion mark, and renders it', async () => {
+    const call = new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [],
+      operationClass: 'additive',
+      temporaryValues: { age: { kind: 'sql', sql: '0' } },
+    });
+    const op = await call.toOp(stubLowerer('SQL'));
+    const copy = op.execute.find((step) => step.description.startsWith('copy data'));
+    expect({
+      sql: copy?.sql,
+      marked: [...op.postcheck, ...op.execute].filter((step) => step.meta !== undefined),
+      rendered: call.renderTypeScript(),
+    }).toEqual({
+      sql: 'INSERT INTO "_prisma_new_user" ("id", "age") SELECT "id", 0 FROM "user"',
+      marked: [],
+      rendered: expect.stringContaining('temporaryValues: { "age": sql`0` }'),
+    });
+  });
+
+  it('refuses a temporary value for a name that is not a column of the new table', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'additive',
+          temporaryValues: { years: { kind: 'sql', sql: '0' } },
+        }),
+    ).toThrow(expect.objectContaining({ code: 'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN' }));
+  });
+
   it('refuses a retyped column that is not a column of the new table', () => {
     expect(
       () =>
