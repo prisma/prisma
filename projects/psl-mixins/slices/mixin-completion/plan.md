@@ -27,7 +27,7 @@
 
 ### Dispatch 4: manual QA script and run
 
-- **Outcome:** `projects/psl-mixins/qa/manual-qa.md` and one run report exist; the report shows each scenario's result.
+- **Outcome:** a manual QA script was written and run; the run report showed each scenario's result. The script and reports are not kept in the repository.
 - **Builds on:** Dispatches 1 and 2, and `mixin-navigation`.
 - **Hands to:** The branch ready for the PR.
 - **Focus:** the `drive-qa-plan` and `drive-qa-run` skills, reusing the `lsp-rename` driver.

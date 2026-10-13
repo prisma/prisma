@@ -44,7 +44,7 @@ For a struct block, the keys already present are read from the block's symbol, s
 
 - **ADR.** One ADR in `docs/architecture docs/adrs/` recording the mixin syntax, the resolve-where-written rule, replacement in the symbol table, and the alternatives the team considered. It follows the `write-architecture-docs` skill and takes the next free ADR number.
 - **RC feature list.** `projects/prisma-8-rc1/feature-surface.md` item 6 shows `<keyword> mixin <Name> { … }` and `+<Name>`, and no longer `@@include`.
-- **Manual QA.** A script under `projects/psl-mixins/qa/` in the form of `projects/lsp-rename/qa/manual-qa.md`, covering every editor behaviour of this slice and `mixin-navigation`, and one run report.
+- **Manual QA.** A script in the form of `projects/lsp-rename/qa/manual-qa.md`, covering every editor behaviour of this slice and `mixin-navigation`, and one run report. The script and reports are not kept in the repository.
 
 ## Coherence rationale
 
