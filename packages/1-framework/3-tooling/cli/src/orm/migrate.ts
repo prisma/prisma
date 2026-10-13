@@ -53,6 +53,7 @@ import { createToneMigrationListStyler } from '../utils/formatters/migration-lis
 import { toneDrawing } from '../utils/formatters/tone-markup';
 import { mapMigrateFailure } from '../utils/migrate-failure';
 import { runCommandAction } from '../utils/next-actions';
+import { cliInvocation } from '../utils/printed-command';
 import { snapshotVerifierFor } from '../utils/snapshot-content-verification';
 import { perSpaceBlocks } from './db/migration-blocks';
 import { prepareMigrationRun } from './db/prepare';
@@ -470,9 +471,7 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         });
         if (!applied.ok) {
           return notOk(
-            normalizeError(
-              mapMigrateFailure(applied.failure, { cwd: ctx.cwd, configPath: ctx.configPath }),
-            ),
+            normalizeError(mapMigrateFailure(applied.failure, cliInvocation(ctx, args.flags.db))),
           );
         }
         const { value } = applied;

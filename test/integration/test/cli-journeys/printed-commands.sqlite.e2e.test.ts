@@ -118,6 +118,18 @@ async function written(project: Project, step: () => Promise<unknown>): Promise<
   return created ?? '';
 }
 
+function columnType(dbPath: string, table: string, column: string): string | undefined {
+  const db = new DatabaseSync(dbPath);
+  try {
+    const row = db
+      .prepare('SELECT type FROM pragma_table_info(?) WHERE name = ?')
+      .get(table, column) as { readonly type: string } | undefined;
+    return row?.type;
+  } finally {
+    db.close();
+  }
+}
+
 function exec(dbPath: string, sql: string): void {
   const db = new DatabaseSync(dbPath);
   try {
@@ -293,6 +305,57 @@ withTempDir(({ createTempDir }) => {
         expect(scaffolded.exitCode, `migration new: ${scaffolded.output}`).toBe(0);
         const newNode = printedNode(scaffolded.output);
         expect(runNode(project, newNode).exitCode, 'migration new prints node').toBe(0);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
+      'with --db, apply to the database the failed command named, not the one in the config',
+      async () => {
+        const project = writeProject(createTempDir());
+        const other = join(project.parent, 'other.db');
+        await emit(project, '  age String');
+        const initial = await written(project, async () => {
+          const planned = await cli(project, ['migration', 'plan', '--name', 'initial']);
+          expect(planned.exitCode, `plan: ${planned.output}`).toBe(0);
+        });
+        expect((await cli(project, ['db', 'migrate'])).exitCode, 'migrate the config').toBe(0);
+        expect(
+          (await cli(project, ['db', 'migrate', '--db', other])).exitCode,
+          'migrate --db',
+        ).toBe(0);
+        exec(other, `INSERT INTO "User" (id, age) VALUES (1, 'ten')`);
+
+        await emit(project, '  age Int');
+        const converted = await plan(project, initial, 'age-to-int', ['--convert', 'User.age']);
+        const planNode = printedNode(converted.output);
+        const conversionFile = join(project.parent, planNode[1] ?? '');
+        const convertSlot = /placeholder\((['"])User\.age:convert\1\)/;
+        const scaffold = readFileSync(conversionFile, 'utf-8');
+        writeFileSync(conversionFile, scaffold.replace(convertSlot, `'trim("age")'`));
+        expect(runNode(project, planNode).exitCode, 'migration plan prints node').toBe(0);
+
+        const failed = await cli(project, ['db', 'migrate', '--db', other, '--json']);
+        expect(failed.exitCode, 'the apply fails on the other database').not.toBe(0);
+        const advice = printed(adviceOf(failed));
+        writeFileSync(
+          conversionFile,
+          scaffold.replace(
+            convertSlot,
+            `"CASE WHEN \\"age\\" = 'ten' THEN 10 ELSE CAST(\\"age\\" AS INTEGER) END"`,
+          ),
+        );
+        const [adviceNode = []] = advice.node;
+        expect(runNode(project, adviceNode).exitCode, 'the advice prints node').toBe(0);
+        await migrateAsPrinted(
+          project,
+          advice.cli.map((command) => command.map((word) => (word === '<url>' ? other : word))),
+        );
+
+        expect({
+          other: columnType(other, 'User', 'age'),
+          config: columnType(project.dbPath, 'User', 'age'),
+        }).toEqual({ other: 'INTEGER', config: 'TEXT' });
       },
       timeouts.spinUpPpgDev,
     );

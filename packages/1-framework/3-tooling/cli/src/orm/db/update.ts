@@ -42,7 +42,7 @@ import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { mapDbUpdateFailure } from '../../utils/db-update-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
-import type { CliInvocation } from '../../utils/printed-command';
+import { type CliInvocation, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { baseDirFor, migrationsDirFor } from '../migration/paths';
@@ -269,7 +269,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           normalizeError(
             errorStatementNeedsMigrationFile(
               given,
-              { cwd: ctx.cwd, configPath: ctx.configPath },
+              cliInvocation(ctx, args.flags.db),
               databaseStorageHash,
             ),
           ),
@@ -367,9 +367,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         if (!result.ok) {
           reportPlannerWarnings(result.failure.warnings ?? []);
           return notOk(
-            normalizeError(
-              mapDbUpdateFailure(result.failure, { cwd: ctx.cwd, configPath: ctx.configPath }),
-            ),
+            normalizeError(mapDbUpdateFailure(result.failure, cliInvocation(ctx, args.flags.db))),
           );
         }
 
@@ -442,7 +440,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           { data: document },
           updatePresentations({
             document,
-            invocation: { cwd: ctx.cwd, configPath: ctx.configPath },
+            invocation: cliInvocation(ctx, args.flags.db),
             contractPath: prepared.value.contractDisplayPath,
             database: prepared.value.database,
             to: args.flags.to,

@@ -106,6 +106,7 @@ describe('errorStatementNeedsMigrationFile', () => {
     const envelope = errorStatementNeedsMigrationFile([{ verb: 'convert', text: 'User.years' }], {
       cwd: '/work',
       configPath: 'app/prisma.config.ts',
+      dbGiven: false,
     }).toEnvelope();
 
     expect({
@@ -114,6 +115,7 @@ describe('errorStatementNeedsMigrationFile', () => {
         errorStatementNeedsMigrationFile([{ verb: 'convert', text: 'User.years' }], {
           cwd: '/work',
           configPath: 'app/prisma.config.ts',
+          dbGiven: false,
         }),
       ),
     }).toEqual({

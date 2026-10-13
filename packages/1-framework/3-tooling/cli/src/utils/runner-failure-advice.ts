@@ -27,12 +27,12 @@ export function migrationPlanCommand(
   flags: readonly string[],
   from: string | undefined,
 ): string {
-  return `\`${cliCommand(invocation, ['migration', 'plan', ...(from === undefined ? [] : ['--from', from]), ...flags])}\``;
+  return `\`${cliCommand(invocation, 'migration plan', [...(from === undefined ? [] : ['--from', from]), ...flags])}\``;
 }
 
 /** A `db migrate` command as advice prints it. */
 function dbMigrateCommand(invocation: CliInvocation): string {
-  return `\`${cliCommand(invocation, ['db', 'migrate'])}\``;
+  return `\`${cliCommand(invocation, 'db migrate')}\``;
 }
 
 function backfillFlags(reports: readonly RowsWithoutValueReport[]): readonly string[] {
@@ -89,7 +89,7 @@ export function dbInitRowsWithoutValueFix(
 ): string {
   const field = reports[0]?.field;
   const subject = field === undefined ? 'it' : `field "${field}"`;
-  return `Run \`${cliCommand(invocation, ['db', 'init'])}\` with ${subject} optional. Then make it required with \`${cliCommand(invocation, ['db', 'update'])}\`, which says how to give the rows a value.`;
+  return `Run \`${cliCommand(invocation, 'db init')}\` with ${subject} optional. Then make it required with \`${cliCommand(invocation, 'db update')}\`, which says how to give the rows a value.`;
 }
 
 /**
@@ -231,5 +231,5 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
   if (failure.rowsWithoutValue !== undefined) {
     return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);
   }
-  return 'Fix the issue and re-run `{bin} db migrate --to <contract>` — previously applied migrations are preserved.';
+  return `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved.`;
 }

@@ -147,7 +147,7 @@ function temporaryValueBlocks(
     ({ field, value }): Block => ({
       kind: 'summary',
       status: 'warn',
-      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with ${cliCommand(invocation, ['migration', 'plan', statementFlag({ verb: 'backfill', text: field })])} instead.`,
+      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with ${cliCommand(invocation, 'migration plan', [statementFlag({ verb: 'backfill', text: field })])} instead.`,
     }),
   );
 }

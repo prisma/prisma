@@ -18,7 +18,7 @@ import { CliStructuredError, errorContractValidationFailed } from '../../utils/c
 import { closeQuietly } from '../../utils/command-helpers';
 import { mapDbInitFailure } from '../../utils/db-init-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
-import type { CliInvocation } from '../../utils/printed-command';
+import { type CliInvocation, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { baseDirFor } from '../migration/paths';
@@ -177,9 +177,7 @@ export function createDbInitCommand(createClient: CreateControlClient) {
         });
         if (!result.ok) {
           return notOk(
-            normalizeError(
-              mapDbInitFailure(result.failure, { cwd: ctx.cwd, configPath: ctx.configPath }),
-            ),
+            normalizeError(mapDbInitFailure(result.failure, cliInvocation(ctx, args.flags.db))),
           );
         }
 
@@ -245,7 +243,7 @@ export function createDbInitCommand(createClient: CreateControlClient) {
           { data: document },
           initPresentations({
             document,
-            invocation: { cwd: ctx.cwd, configPath: ctx.configPath },
+            invocation: cliInvocation(ctx, args.flags.db),
             contractPath: prepared.value.contractDisplayPath,
             database: prepared.value.database,
             dryRun: args.flags.dryRun,

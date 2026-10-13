@@ -13,7 +13,7 @@ const runnerFailed = {
 const DATABASE = 'a'.repeat(64);
 const FROM = 'b'.repeat(64);
 const PROJECT = '/work/app';
-const FROM_PROJECT = { cwd: PROJECT, configPath: undefined };
+const FROM_PROJECT = { cwd: PROJECT, configPath: undefined, dbGiven: false };
 const failedMigration = { directory: `${PROJECT}/migrations/app/20261012T1200_note`, from: FROM };
 
 describe('the advice for rows a required field has no value for', () => {
@@ -152,7 +152,7 @@ describe('the advice for rows a required field has no value for', () => {
           rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
           failedMigration,
         },
-        { cwd: '/work', configPath: 'app/prisma.config.ts' },
+        { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: false },
       ).fix,
     ).toBe(
       `Set a value in those rows and re-run \`{bin} db migrate --config "app/prisma.config.ts"\`. Or delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note --config "app/prisma.config.ts"\` and its other statements, fill in the migration.ts it writes, and run \`{bin} db migrate --config "app/prisma.config.ts"\`. Or keep the field optional: make it optional in the contract again, delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note --config "app/prisma.config.ts"\` and its other statements.`,
@@ -160,7 +160,7 @@ describe('the advice for rows a required field has no value for', () => {
   });
 
   it('on db update and db init with --config, repeats it in every command', () => {
-    const withConfig = { cwd: '/work', configPath: 'app/prisma.config.ts' };
+    const withConfig = { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: false };
     expect([
       mapDbUpdateFailure(
         {
@@ -192,11 +192,37 @@ describe('the advice for rows a required field has no value for', () => {
           rowsWithoutValue: [{ field: 'Item.note', reason: 'backfillMissedRows' }],
           ...(failed === undefined ? {} : { failedMigration: failed }),
         },
-        { cwd: '/work', configPath: 'app/prisma.config.ts' },
+        { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: false },
       ).fix;
     expect([advice(failedMigration), advice(undefined)]).toEqual([
       'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in `app/migrations/app/20261012T1200_note/migration.ts`, run `node "app/migrations/app/20261012T1200_note/migration.ts" --config "app/prisma.config.ts"`, and re-run `{bin} db migrate --config "app/prisma.config.ts"`.',
       'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate --config "app/prisma.config.ts"`.',
+    ]);
+  });
+
+  it('with --db, repeats it as a placeholder in every command that connects, so the advice applies to the same database', () => {
+    const withDb = { cwd: '/work', configPath: 'app/prisma.config.ts', dbGiven: true };
+    expect([
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'backfillMissedRows' }],
+        },
+        withDb,
+      ).fix,
+      mapMigrateFailure(runnerFailed, withDb).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'newField' }],
+        },
+        withDb,
+      ).fix,
+    ]).toEqual([
+      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate --config "app/prisma.config.ts" --db <url>`.',
+      'Fix the issue and re-run `{bin} db migrate --to <contract> --config "app/prisma.config.ts" --db <url>` — previously applied migrations are preserved.',
+      'Plan it with `{bin} migration plan --backfill Item.note --config "app/prisma.config.ts"`, fill the backfill steps in the migration.ts it writes, and apply it with `{bin} db migrate --config "app/prisma.config.ts" --db <url>`. Or make the field optional.',
     ]);
   });
 

@@ -666,9 +666,7 @@ export function errorStatementNeedsMigrationFile(
   const written = refused.map(({ verb, text }) => `"--${verb} ${text}"`);
   const listed =
     written.length === 1 ? written[0] : `${written.slice(0, -1).join(', ')} and ${written.at(-1)}`;
-  const plan = cliCommand(invocation, [
-    'migration',
-    'plan',
+  const plan = cliCommand(invocation, 'migration plan', [
     ...(databaseStorageHash === undefined ? [] : ['--from', databaseStorageHash]),
     ...statements.filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb)).map(statementFlag),
   ]);
@@ -677,7 +675,7 @@ export function errorStatementNeedsMigrationFile(
     `db update cannot carry out ${listed}`,
     {
       why: '--convert and --backfill ask for a migration file with a slot for the code that converts or fills in the values, and db update has no migration file to fill: it applies its plan directly.',
-      fix: `Plan the change with ${plan}, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with ${cliCommand(invocation, ['db', 'migrate'])}. Or leave out these statements: db update then asks before it loses any data.`,
+      fix: `Plan the change with ${plan}, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with ${cliCommand(invocation, 'db migrate')}. Or leave out these statements: db update then asks before it loses any data.`,
       nextActions: [
         runCommandAction('Plan the change into a migration file to fill in', plan),
         chooseAction('Or run db update without these statements'),

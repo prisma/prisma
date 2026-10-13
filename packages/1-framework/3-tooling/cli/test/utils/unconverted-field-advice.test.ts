@@ -11,7 +11,7 @@ const runnerFailed = {
 
 const FROM = 'a'.repeat(64);
 const PROJECT = '/work/app';
-const FROM_PROJECT = { cwd: PROJECT, configPath: undefined };
+const FROM_PROJECT = { cwd: PROJECT, configPath: undefined, dbGiven: false };
 
 describe('the advice for a type change whose cast failed', () => {
   it('points db update to a migration with --convert, from the contract the database is at', () => {
