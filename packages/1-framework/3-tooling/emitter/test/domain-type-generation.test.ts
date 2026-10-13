@@ -150,8 +150,8 @@ describe('serializeObjectKey', () => {
 });
 
 describe('generateModelFieldsType', () => {
-  it('returns Record<string, never> for empty fields', () => {
-    expect(generateModelFieldsType({})).toBe('Record<string, never>');
+  it('types an empty field map as an object with no keys, not a string index', () => {
+    expect(generateModelFieldsType({})).toBe('{}');
   });
 
   it.each([{}, { many: false as const }])('omits scalar cardinality for %j', (cardinality) => {
@@ -1170,6 +1170,16 @@ describe('generateFieldOutputTypesMap', () => {
     expect(generateFieldOutputTypesMap({})).toBe('Record<string, never>');
   });
 
+  it('types the output of a model with no fields as an object with no keys, and its input as rejecting every key', () => {
+    const models: Record<string, ContractModel> = {
+      Legacy: { fields: {}, relations: {}, storage: {} },
+    };
+    expect(generateBothFieldTypesMaps(models)).toEqual({
+      output: '{ readonly Legacy: {} }',
+      input: '{ readonly Legacy: Record<string, never> }',
+    });
+  });
+
   it('references {Name}Output for value object fields', () => {
     const models: Record<string, ContractModel> = {
       Product: {
@@ -1532,14 +1542,6 @@ describe('generateFieldTypesMapsByNamespace edge cases', () => {
     const result = generateFieldTypesMapsByNamespace([]);
     expect(result.output).toBe('Record<string, never>');
     expect(result.input).toBe('Record<string, never>');
-  });
-
-  it('emits Record<string, never> for a model with no fields', () => {
-    const result = generateBothFieldTypesMaps({
-      Empty: { fields: {}, relations: {}, storage: {} },
-    });
-    expect(result.output).toContain('readonly Empty: Record<string, never>');
-    expect(result.input).toContain('readonly Empty: Record<string, never>');
   });
 
   it('skips falsy entries in the models map', () => {

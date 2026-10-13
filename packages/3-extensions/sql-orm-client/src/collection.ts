@@ -177,7 +177,6 @@ import {
   type CollectionState,
   type CollectionTypeState,
   type DefaultCollectionTypeState,
-  type DefaultModelInputRow,
   type DefaultModelRow,
   type DiscriminatorValues,
   emptyGroupPagingState,
@@ -199,6 +198,7 @@ import {
   type ResolvedCreateInput,
   type ResolvedScalarCreateInput,
   type RuntimeQueryable,
+  type ScalarUpdateInput,
   type ShorthandWhereFilter,
   type UniqueConstraintCriterion,
   type VariantAwareIncludeRelationNames,
@@ -2540,7 +2540,7 @@ export class CollectionBase<
     this: Self,
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
-      update: Partial<DefaultModelInputRow<TContract, ModelName>>;
+      update: ScalarUpdateInput<TContract, ModelName>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
@@ -2548,7 +2548,7 @@ export class CollectionBase<
   async upsert(
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
-      update: Partial<DefaultModelInputRow<TContract, ModelName>>;
+      update: ScalarUpdateInput<TContract, ModelName>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
@@ -2556,7 +2556,7 @@ export class CollectionBase<
   async upsert(
     input: {
       create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
-      update: Partial<DefaultModelInputRow<TContract, ModelName>>;
+      update: ScalarUpdateInput<TContract, ModelName>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
@@ -2758,7 +2758,7 @@ export class CollectionBase<
       const narrowed = scoped.#clone({ filters: [identityWhere] });
       const rows = await narrowed.#updateAllWithAnnotations(
         blindCast<
-          Partial<DefaultModelInputRow<TContract, ModelName, State['nsId']>>,
+          ScalarUpdateInput<TContract, ModelName, State['nsId']>,
           'absence of nested callbacks selects the scalar update input'
         >(data),
         annotationsMap,
@@ -2794,11 +2794,11 @@ export class CollectionBase<
    */
   updateAll<Self extends HasWhere>(
     this: Self & HasNoUniqueFilter,
-    data: Partial<DefaultModelInputRow<TContract, ModelName, State['nsId']>>,
+    data: ScalarUpdateInput<TContract, ModelName, State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): AsyncIterableResult<CollectionRowOf<Self & HasRow<CollectionRowOf<this>>>>;
   updateAll(
-    data: Partial<DefaultModelInputRow<TContract, ModelName, State['nsId']>>,
+    data: ScalarUpdateInput<TContract, ModelName, State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): AsyncIterableResult<unknown> {
     assertBulkWriteIgnoresNothing(this.state, this.modelName, 'updateAll');
@@ -2810,7 +2810,7 @@ export class CollectionBase<
   }
 
   #updateAllWithAnnotations(
-    data: Partial<DefaultModelInputRow<TContract, ModelName, State['nsId']>>,
+    data: ScalarUpdateInput<TContract, ModelName, State['nsId']>,
     annotationsMap: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>> | undefined,
   ): AsyncIterableResult<Row> {
     assertReturningCapability(this.contract, 'updateAll()');
@@ -2872,11 +2872,11 @@ export class CollectionBase<
    */
   async updateAndCount<Self extends HasWhere>(
     this: Self & HasNoUniqueFilter,
-    data: Partial<DefaultModelInputRow<TContract, ModelName, State['nsId']>>,
+    data: ScalarUpdateInput<TContract, ModelName, State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<number>;
   async updateAndCount(
-    data: Partial<DefaultModelInputRow<TContract, ModelName, State['nsId']>>,
+    data: ScalarUpdateInput<TContract, ModelName, State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<number> {
     assertBulkWriteIgnoresNothing(this.state, this.modelName, 'updateAndCount');
