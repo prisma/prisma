@@ -51,7 +51,7 @@ function recreateLosses(
 }
 
 /** The columns a recreate adds with a value its copy writes into every existing row. */
-function temporaryValuesOf(call: RecreateTableCall): NonNullable<CallSubjects['temporaryValues']> {
+function temporaryValuesOf(call: RecreateTableCall): CallSubjects['temporaryValues'] {
   const copied = new Set(call.schemaColumnNames);
   return Object.entries(call.copyExpressions).flatMap(([column, expression]) =>
     copied.has(column) || expression.kind !== 'sql'
@@ -90,13 +90,12 @@ export function sqliteCallSubjects(
         columns.length === 0 && call.operationClass === 'destructive'
           ? [lost(tableTarget(call.tableName))]
           : columns.map(({ column, loss }) => lost(columnTarget(call.tableName, column), loss));
-      const temporaryValues = temporaryValuesOf(call);
       return {
         operationCount,
         label,
         dataLoss,
         accessWidening: [],
-        ...(temporaryValues.length > 0 ? { temporaryValues } : {}),
+        temporaryValues: temporaryValuesOf(call),
       };
     }
     if (call instanceof DropColumnCall) {
@@ -106,6 +105,7 @@ export function sqliteCallSubjects(
         label,
         dataLoss: alreadyLost ? [] : [lost(columnTarget(call.tableName, call.columnName))],
         accessWidening: [],
+        temporaryValues: [],
       };
     }
     if (call instanceof DropTableCall) {
@@ -114,10 +114,11 @@ export function sqliteCallSubjects(
         label,
         dataLoss: [lost(tableTarget(call.tableName))],
         accessWidening: [],
+        temporaryValues: [],
       };
     }
     if (call.operationClass !== 'destructive') {
-      return { operationCount, label, dataLoss: [], accessWidening: [] };
+      return { operationCount, label, dataLoss: [], accessWidening: [], temporaryValues: [] };
     }
     const fieldEvent = fieldEvents.get(call);
     const lossTarget: SubjectStorage =
@@ -126,6 +127,12 @@ export function sqliteCallSubjects(
         : fieldEvent !== undefined
           ? fieldEventStorage(fieldEvent)
           : { storageName: unknownNames.get(call) ?? call.factoryName, table: undefined };
-    return { operationCount, label, dataLoss: [lost(lossTarget)], accessWidening: [] };
+    return {
+      operationCount,
+      label,
+      dataLoss: [lost(lossTarget)],
+      accessWidening: [],
+      temporaryValues: [],
+    };
   });
 }

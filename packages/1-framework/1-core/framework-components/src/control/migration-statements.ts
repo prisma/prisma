@@ -120,19 +120,25 @@ export interface MigrationDataLoss extends MigrationOperationSubject {
  * backfill statement for the field fills them instead.
  */
 export interface MigrationTemporaryValue extends MigrationOperationSubject {
-  /** The value as SQL text, such as `''` or `0`. */
+  /** The value as the target writes it, such as `''` or `0`. */
   readonly value: string;
 }
 
-/** What the operations of a plan lose and whose access they change, each by its position in the plan. */
+/**
+ * What the operations of a plan lose, whose access they change, and which new required fields they
+ * give a temporary value, each by its position in the plan.
+ */
 export interface MigrationPlanSubjects<
   TLoss extends MigrationDataLoss = MigrationDataLoss,
   TAccess extends MigrationAccessChange = MigrationAccessChange,
+  TTemporary = MigrationTemporaryValue,
 > {
   /** Each operation that loses data, in plan order, with what it loses. */
   readonly dataLoss: readonly TLoss[];
   /** Each operation that changes who can read or write data, in plan order, with what it is about. */
   readonly accessWidening: readonly TAccess[];
+  /** Each new required field whose existing rows the plan gives a temporary value, in plan order. */
+  readonly temporaryValues: readonly TTemporary[];
 }
 
 /**

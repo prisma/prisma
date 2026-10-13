@@ -24,7 +24,6 @@ import type {
   AppliedMigrationStatement,
   MigrationPlanSubjects,
   MigrationSubject,
-  MigrationTemporaryValue,
   ResolvedMigrationStatement,
 } from './migration-statements';
 
@@ -321,8 +320,6 @@ export interface MigrationPlannerSuccessResult extends MigrationPlanSubjects {
   readonly warnings?: readonly MigrationPlannerConflict[];
   /** The statements the plan applied, one per statement it was given, in order. */
   readonly appliedStatements: readonly AppliedMigrationStatement[];
-  /** The new required fields whose existing rows the plan gives a temporary value, in plan order; absent when none. */
-  readonly temporaryValues?: readonly MigrationTemporaryValue[];
 }
 
 /**

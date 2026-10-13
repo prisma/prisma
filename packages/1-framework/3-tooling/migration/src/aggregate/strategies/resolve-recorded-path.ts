@@ -128,6 +128,7 @@ export function resolveRecordedPath(input: ResolveRecordedPathInputs): ResolveRe
           : [],
       ),
       accessWidening: [],
+      temporaryValues: [],
       migrationEdges: edgeRefs,
       pathDecision: outcome.decision,
     },

@@ -77,7 +77,7 @@ export interface CallSubjects {
   /** What the call's operation changes access to, and whether it widens it. */
   readonly accessWidening: readonly (SubjectStorage & { readonly widens: boolean })[];
   /** The new required columns the call's operation gives a temporary value in existing rows, and the value. */
-  readonly temporaryValues?: readonly TemporaryColumnValue[];
+  readonly temporaryValues: readonly TemporaryColumnValue[];
 }
 
 /** A new required column of `table` in the destination, and the temporary value its existing rows get. */
@@ -187,13 +187,13 @@ function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSu
 export function subjectsOfCalls(
   calls: readonly CallSubjects[],
   context: SubjectContext,
-): MigrationPlanSubjects & { readonly temporaryValues?: readonly MigrationTemporaryValue[] } {
+): MigrationPlanSubjects {
   const dataLoss: MigrationDataLoss[] = [];
   const accessWidening: MigrationAccessChange[] = [];
   const temporaryValues: MigrationTemporaryValue[] = [];
   let operationIndex = 0;
   for (const call of calls) {
-    for (const { table, column, value } of call.temporaryValues ?? []) {
+    for (const { table, column, value } of call.temporaryValues) {
       temporaryValues.push({
         operationIndex,
         subject: fieldOfColumn(context.contract, table, column) ?? {
@@ -220,5 +220,5 @@ export function subjectsOfCalls(
     }
     operationIndex += call.operationCount;
   }
-  return { dataLoss, accessWidening, ...(temporaryValues.length > 0 ? { temporaryValues } : {}) };
+  return { dataLoss, accessWidening, temporaryValues };
 }

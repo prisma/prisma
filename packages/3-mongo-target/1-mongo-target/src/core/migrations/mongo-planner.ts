@@ -415,6 +415,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       appliedStatements: [],
       dataLoss: collectionDrops(result.calls, options.fromContract),
       accessWidening: [],
+      temporaryValues: [],
     };
   }
 

@@ -388,8 +388,8 @@ describe('SQLite planner, a required field without a value in existing rows', ()
       },
     ]);
     expect(
-      plan(textAge, withName, { statements: [statement('backfill', 'name')] }),
-    ).not.toHaveProperty('temporaryValues');
+      plan(textAge, withName, { statements: [statement('backfill', 'name')] }).temporaryValues,
+    ).toEqual([]);
   });
 
   it('fills a new required datetime field with the instant the codec writes for the epoch', () => {

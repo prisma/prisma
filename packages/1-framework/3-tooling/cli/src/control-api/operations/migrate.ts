@@ -526,6 +526,7 @@ function buildAtHeadResolution(args: {
     appliedStatements: [],
     dataLoss: [],
     accessWidening: [],
+    temporaryValues: [],
     migrationEdges: [
       buildFabricatedMigrationEdge({
         currentMarkerStorageHash: liveMarker?.storageHash,

@@ -13,10 +13,10 @@ export interface TemporaryValueReport {
 
 /** The fields of `values` named as `destination` names them; a column no field stores is left out. */
 export function reportTemporaryValues(
-  values: readonly MigrationTemporaryValue[] | undefined,
+  values: readonly MigrationTemporaryValue[],
   destination: ContractWithDomain,
 ): readonly TemporaryValueReport[] {
-  return (values ?? []).flatMap(({ subject, value }) =>
+  return values.flatMap(({ subject, value }) =>
     subject.kind === 'field' ? [{ field: fieldStatementText(destination, subject), value }] : [],
   );
 }

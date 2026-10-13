@@ -276,9 +276,7 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
             kind: 'success',
             dataLoss: dataLoss.map((entry) => ({ loss: 'drop', ...entry })),
             accessWidening: [],
-            ...(script.temporaryValues === undefined
-              ? {}
-              : { temporaryValues: script.temporaryValues }),
+            temporaryValues: script.temporaryValues ?? [],
             appliedStatements: options.statements.map((statement) => ({
               statement,
               operationIndexes: (operations ?? [ADDITIVE_OP]).map((_, index) => index),

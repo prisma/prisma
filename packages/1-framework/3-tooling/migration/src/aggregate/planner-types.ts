@@ -9,7 +9,6 @@ import type {
   MigrationPlannerConflict,
   MigrationPlanOperation,
   MigrationPlanSubjects,
-  MigrationTemporaryValue,
   ResolvedMigrationStatement,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
@@ -156,6 +155,8 @@ export interface AggregateMigrationEdgeRef {
  *   lists each as a `drop`, since a recorded operation does not say whether
  *   it drops or changes a type, and lists no widening: a written migration is
  *   reviewed before it runs.
+ * - `temporaryValues`: the new required fields whose existing rows the plan
+ *   gives a temporary value. A recorded path lists none.
  */
 export interface PerSpacePlan extends MigrationPlanSubjects {
   readonly plan: MigrationPlan;
@@ -165,8 +166,6 @@ export interface PerSpacePlan extends MigrationPlanSubjects {
   readonly warnings?: readonly MigrationPlannerConflict[];
   /** The statements the plan applied; empty for a space planned without statements. */
   readonly appliedStatements: readonly AppliedMigrationStatement[];
-  /** The new required fields whose existing rows the plan gives a temporary value; absent when none. */
-  readonly temporaryValues?: readonly MigrationTemporaryValue[];
   /**
    * Per-edge breakdown of the chain. `resolve-recorded-path` plans carry
    * one entry per authored edge; `plan-from-diff` and `declared-state`

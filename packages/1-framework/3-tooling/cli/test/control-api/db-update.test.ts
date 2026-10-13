@@ -71,6 +71,7 @@ function createMockMigrations(overrides?: {
     kind: 'success',
     dataLoss: [],
     accessWidening: [],
+    temporaryValues: [],
     appliedStatements: [],
     plan: {
       targetId: 'postgres',
@@ -190,6 +191,7 @@ describe('executeDbUpdate', () => {
         kind: 'success',
         dataLoss: [],
         accessWidening: [],
+        temporaryValues: [],
         appliedStatements: [],
         plan: {
           targetId: 'postgres',
@@ -347,6 +349,7 @@ describe('executeDbUpdate', () => {
           kind: 'success',
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
           appliedStatements: [],
           plan: {
             targetId: 'postgres',
@@ -389,6 +392,7 @@ describe('executeDbUpdate', () => {
         kind: 'success',
         dataLoss: [],
         accessWidening: [],
+        temporaryValues: [],
         appliedStatements: [],
         plan: {
           targetId: 'postgres',
@@ -440,6 +444,7 @@ describe('executeDbUpdate', () => {
       kind: 'success',
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
       appliedStatements: [],
       plan: {
         targetId: 'postgres',
@@ -500,6 +505,7 @@ describe('executeDbUpdate', () => {
           kind: 'success',
           dataLoss: [{ operationIndex: 0, subject: NICKNAME, loss: 'drop' }],
           accessWidening: [{ operationIndex: 2, subject: USER, widens: true }],
+          temporaryValues: [],
           appliedStatements: [],
           plan: {
             targetId: 'postgres',
@@ -780,6 +786,7 @@ describe('executeDbUpdate', () => {
           kind: 'success',
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
           appliedStatements: [],
           plan: {
             targetId: 'postgres',

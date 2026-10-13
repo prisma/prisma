@@ -102,6 +102,7 @@ describe('planMigration', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     });
 
     const result = await planMigration({
@@ -149,6 +150,7 @@ describe('planMigration', () => {
           appliedStatements: [applied],
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
         };
       },
       emptyMigration: () => {
@@ -190,6 +192,7 @@ describe('planMigration', () => {
           appliedStatements: [],
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
         };
       },
       emptyMigration: () => {
@@ -243,6 +246,7 @@ describe('planMigration', () => {
           appliedStatements: [],
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
         };
       },
       emptyMigration: () => {
@@ -289,6 +293,7 @@ describe('planMigration', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     });
 
     const result = await planMigration({
@@ -338,6 +343,7 @@ describe('planMigration', () => {
         appliedStatements: [],
         dataLoss: [],
         accessWidening: [],
+        temporaryValues: [],
       }),
     );
     const planner: MigrationPlanner<'sql', 'postgres'> = {
@@ -400,6 +406,7 @@ describe('planMigration', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     });
 
     const result = await planMigration({
@@ -443,6 +450,7 @@ describe('planMigration', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     });
 
     const result = await planMigration({
@@ -502,6 +510,7 @@ describe('planMigration', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     });
 
     const result = await planMigration({
@@ -559,6 +568,7 @@ describe('planMigration', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     });
 
     const result = await planMigration({

@@ -119,12 +119,6 @@ type PlannerSuccess = {
   readonly temporaryValues: readonly TemporaryValueReport[];
 };
 
-function temporaryValuesOf(leg: PlannerSuccess): {
-  readonly temporaryValues?: readonly TemporaryValueReport[];
-} {
-  return leg.temporaryValues.length === 0 ? {} : { temporaryValues: leg.temporaryValues };
-}
-
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
 const EMPTY_ORIGIN: ContractWithDomain = { domain: { namespaces: {} } };
 
@@ -431,8 +425,8 @@ export interface MigrationPlanResult {
    * `--rename` was given.
    */
   readonly appliedStatements: readonly AppliedStatementReport[];
-  /** The new required fields whose existing rows the plan gives a temporary value; absent when none. */
-  readonly temporaryValues?: readonly TemporaryValueReport[];
+  /** The new required fields whose existing rows the plan gives a temporary value. */
+  readonly temporaryValues: readonly TemporaryValueReport[];
   readonly timings: {
     readonly total: number;
   };
@@ -696,6 +690,7 @@ async function executeMigrationPlanCommandInner(
       emittedExtensionDirs,
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [],
+      temporaryValues: [],
       summary: 'No changes detected between contracts',
       timings: { total: Date.now() - startTime },
     };
@@ -885,6 +880,7 @@ async function executeMigrationPlanCommandInner(
             pendingPlaceholders: true,
             placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
+            temporaryValues: baselineLeg.value.temporaryValues,
             summary:
               'Planned baseline with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
             timings: { total: Date.now() - startTime },
@@ -910,6 +906,7 @@ async function executeMigrationPlanCommandInner(
           ...(preview !== undefined ? { preview } : {}),
           ...(warnings.length > 0 ? { warnings } : {}),
           appliedStatements: [...statementsWithoutOperations, ...deletes],
+          temporaryValues: baselineLeg.value.temporaryValues,
           summary: buildAutoBaselinePlanSummary(baselineOps.length, 0, emittedExtensionDirs.length),
           timings: { total: Date.now() - startTime },
         };
@@ -945,7 +942,7 @@ async function executeMigrationPlanCommandInner(
             ...(deltaLeg.value.hasPlaceholders ? [relative(cwd, deltaPackageDir)] : []),
           ],
           appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-          ...temporaryValuesOf(deltaLeg.value),
+          temporaryValues: deltaLeg.value.temporaryValues,
           summary:
             'Planned baseline + migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
           timings: { total: Date.now() - startTime },
@@ -979,7 +976,7 @@ async function executeMigrationPlanCommandInner(
         ...(preview !== undefined ? { preview } : {}),
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-        ...temporaryValuesOf(deltaLeg.value),
+        temporaryValues: deltaLeg.value.temporaryValues,
         summary: buildAutoBaselinePlanSummary(
           baselineOps.length,
           deltaOps.length,
@@ -1031,7 +1028,7 @@ async function executeMigrationPlanCommandInner(
         emittedExtensionDirs,
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-        ...temporaryValuesOf(deltaLeg.value),
+        temporaryValues: deltaLeg.value.temporaryValues,
         summary: 'No changes to plan: the statements need no operations',
         timings: { total: Date.now() - startTime },
       };
@@ -1061,7 +1058,7 @@ async function executeMigrationPlanCommandInner(
         placeholderDirs: [relative(cwd, packageDir)],
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-        ...temporaryValuesOf(deltaLeg.value),
+        temporaryValues: deltaLeg.value.temporaryValues,
         summary:
           'Planned migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
         timings: { total: Date.now() - startTime },
@@ -1089,7 +1086,7 @@ async function executeMigrationPlanCommandInner(
       ...(fromDefaulted ? { fromDefaulted } : {}),
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-      ...temporaryValuesOf(deltaLeg.value),
+      temporaryValues: deltaLeg.value.temporaryValues,
       summary: buildPlanSummary(plannedOps.length, emittedExtensionDirs.length),
       timings: { total: Date.now() - startTime },
     };

@@ -135,6 +135,7 @@ export function plannerSuccess<TTargetDetails>(
     appliedStatements: Object.freeze([...appliedStatements]),
     dataLoss: Object.freeze([...subjects.dataLoss]),
     accessWidening: Object.freeze([...subjects.accessWidening]),
+    temporaryValues: Object.freeze([...subjects.temporaryValues]),
     ...(warnings && warnings.length > 0
       ? {
           warnings: Object.freeze(

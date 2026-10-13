@@ -115,6 +115,7 @@ function recordingMigrations(
           kind: 'success',
           dataLoss,
           accessWidening: [],
+          temporaryValues: [],
           appliedStatements: options.statements.map((statement) => ({
             statement,
             operationIndexes: [0],

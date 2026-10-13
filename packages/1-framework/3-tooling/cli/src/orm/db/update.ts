@@ -186,7 +186,7 @@ function updateDocument(inputs: {
         }),
     ...ifDefined('perSpace', value.perSpace),
     appliedStatements: value.appliedStatements,
-    ...ifDefined('temporaryValues', value.temporaryValues),
+    temporaryValues: value.temporaryValues,
     ...(value.mode === 'plan'
       ? {
           dataLoss: dataLossEntriesJson(value.dataLoss, inputs.statements),

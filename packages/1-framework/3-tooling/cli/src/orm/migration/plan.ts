@@ -152,7 +152,7 @@ function originNoticeBlocks(result: MigrationPlanResult): readonly Block[] {
 }
 
 function temporaryValueBlocks(result: MigrationPlanResult): readonly Block[] {
-  return (result.temporaryValues ?? []).map(
+  return result.temporaryValues.map(
     ({ field, value }): Block => ({
       kind: 'summary',
       status: 'warn',

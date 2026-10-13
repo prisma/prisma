@@ -294,7 +294,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     const subjects: MigrationPlanSubjects =
       action === 'dbUpdate'
         ? subjectsAcrossSpaces(orderedResolutions)
-        : { dataLoss: [], accessWidening: [] };
+        : { dataLoss: [], accessWidening: [], temporaryValues: [] };
     const operations = orderedResolutions.flatMap((r) => r.entry.displayOps);
     const labelled = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
       entries.map((entry) => ({
@@ -395,10 +395,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
           ),
         ]
       : undefined;
-  const temporaryValues =
-    action === 'dbUpdate'
-      ? reportTemporaryValues(appResolution.entry.temporaryValues, contract)
-      : [];
   const contractsAsked = {
     origin: fromContract ?? EMPTY_ORIGIN,
     destination: contract,
@@ -411,6 +407,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ? {
           dataLoss: asked(run.subjects.dataLoss),
           accessWidening: asked(run.subjects.accessWidening),
+          temporaryValues: reportTemporaryValues(run.subjects.temporaryValues, contract),
         }
       : undefined;
 
@@ -432,7 +429,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       summary,
       appliedStatements,
       subjects,
-      temporaryValues,
       ...ifDefined('warnings', plannerWarnings),
     });
   }
@@ -485,7 +481,6 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     summary,
     appliedStatements,
     subjects,
-    temporaryValues,
     ...ifDefined('warnings', plannerWarnings),
   });
 }
@@ -578,6 +573,9 @@ function subjectsAcrossSpaces(
     ),
     accessWidening: orderedResolutions.flatMap((resolution) =>
       offset(resolution, resolution.entry.accessWidening),
+    ),
+    temporaryValues: orderedResolutions.flatMap((resolution) =>
+      offset(resolution, resolution.entry.temporaryValues),
     ),
   };
 }
@@ -685,15 +683,15 @@ function wrapPlanResult(args: {
   /** `undefined` for `db init`, which reports no statements. */
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
-  readonly subjects: MigrationPlanSubjects<AskedDataLoss, AskedAccessChange> | undefined;
-  readonly temporaryValues: readonly TemporaryValueReport[];
+  readonly subjects:
+    | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
+    | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'plan',
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
-    ...(args.temporaryValues.length === 0 ? {} : { temporaryValues: args.temporaryValues }),
     plan: {
       operations: stripOperations(args.operations),
       ...ifDefined('preview', args.preview),
@@ -719,15 +717,15 @@ function wrapApplyResult(args: {
   /** `undefined` for `db init`, which reports no statements. */
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
-  readonly subjects: MigrationPlanSubjects<AskedDataLoss, AskedAccessChange> | undefined;
-  readonly temporaryValues: readonly TemporaryValueReport[];
+  readonly subjects:
+    | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
+    | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'apply',
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
-    ...(args.temporaryValues.length === 0 ? {} : { temporaryValues: args.temporaryValues }),
     plan: { operations: stripOperations(args.operations) },
     destination: {
       storageHash: args.destination.storageHash,

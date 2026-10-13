@@ -29,6 +29,7 @@ function losing(...targets: readonly SubjectStorage[]): CallSubjects {
     label: 'Drop',
     dataLoss: targets.map((target) => ({ ...target, loss: 'drop' })),
     accessWidening: [],
+    temporaryValues: [],
   };
 }
 
@@ -37,6 +38,7 @@ const unchanged: CallSubjects = {
   label: 'Unchanged',
   dataLoss: [],
   accessWidening: [],
+  temporaryValues: [],
 };
 
 const origin = contractOf({
@@ -68,6 +70,7 @@ describe('subjectsOfCalls', () => {
         },
       ],
       accessWidening: [],
+      temporaryValues: [],
     });
   });
 
@@ -75,7 +78,13 @@ describe('subjectsOfCalls', () => {
     expect(
       subjectsOfCalls(
         [
-          { operationCount: 3, label: 'Rename', dataLoss: [], accessWidening: [] },
+          {
+            operationCount: 3,
+            label: 'Rename',
+            dataLoss: [],
+            accessWidening: [],
+            temporaryValues: [],
+          },
           losing(table('legacy')),
         ],
         { fromContract: origin, contract: origin, statements: [] },
@@ -125,6 +134,7 @@ describe('subjectsOfCalls', () => {
             label: 'Alter type',
             dataLoss: [{ ...column('user', 'full_name'), loss: 'typeChange' }],
             accessWidening: [],
+            temporaryValues: [],
           },
         ],
         { fromContract: origin, contract: origin, statements: [] },
@@ -228,6 +238,7 @@ describe('subjectsOfCalls', () => {
             label: 'Drop policy',
             dataLoss: [],
             accessWidening: [{ ...table('user'), widens: false }],
+            temporaryValues: [],
           },
         ],
         { fromContract: origin, contract: origin, statements: [] },
@@ -241,6 +252,7 @@ describe('subjectsOfCalls', () => {
           widens: false,
         },
       ],
+      temporaryValues: [],
     });
   });
 

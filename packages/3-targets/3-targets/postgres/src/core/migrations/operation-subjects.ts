@@ -143,13 +143,10 @@ export function postgresCallSubjects(
             ? [{ storageName: unknownName, table: undefined, loss }]
             : [],
       accessWidening: accessWideningOf(locator, call, replaced),
-      ...(call instanceof AddColumnWithTemporaryDefaultCall
-        ? {
-            temporaryValues: [
-              { table: call.tableName, column: call.columnName, value: call.temporaryDefault },
-            ],
-          }
-        : {}),
+      temporaryValues:
+        call instanceof AddColumnWithTemporaryDefaultCall
+          ? [{ table: call.tableName, column: call.columnName, value: call.temporaryDefault }]
+          : [],
     };
   });
 }

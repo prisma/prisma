@@ -61,6 +61,7 @@ describe('planFromDiff', () => {
           appliedStatements: [],
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
         };
       },
       emptyMigration: () => {
@@ -157,6 +158,7 @@ describe('planFromDiff', () => {
           appliedStatements: [],
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
         };
       },
       emptyMigration: () => {
@@ -237,6 +239,7 @@ describe('planFromDiff', () => {
         appliedStatements: [],
         dataLoss: [{ operationIndex: 0, subject, loss: 'drop' }],
         accessWidening: [{ operationIndex: 0, subject, widens: true }],
+        temporaryValues: [],
       }),
       emptyMigration: () => {
         throw new Error('not used');
@@ -265,6 +268,7 @@ describe('planFromDiff', () => {
     expect(outcome.kind === 'ok' && outcome.result).toMatchObject({
       dataLoss: [{ operationIndex: 0, subject }],
       accessWidening: [{ operationIndex: 0, subject }],
+      temporaryValues: [],
     });
   });
 });

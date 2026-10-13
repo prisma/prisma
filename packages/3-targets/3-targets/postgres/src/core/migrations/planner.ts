@@ -141,7 +141,7 @@ export type PostgresPlanResult =
       readonly appliedStatements: readonly AppliedMigrationStatement[];
       readonly dataLoss: readonly MigrationDataLoss[];
       readonly accessWidening: readonly MigrationAccessChange[];
-      readonly temporaryValues?: readonly MigrationTemporaryValue[];
+      readonly temporaryValues: readonly MigrationTemporaryValue[];
     }
   | SqlPlannerFailureResult;
 

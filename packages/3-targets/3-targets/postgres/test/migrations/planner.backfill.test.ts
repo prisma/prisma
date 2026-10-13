@@ -174,9 +174,7 @@ describe('Postgres planner, a required field without a value in existing rows', 
         value: "''",
       },
     ]);
-    expect(plan(before, withName, { statements: [backfill('name')] })).not.toHaveProperty(
-      'temporaryValues',
-    );
+    expect(plan(before, withName, { statements: [backfill('name')] }).temporaryValues).toEqual([]);
   });
 
   it('adds a new required field with a backfill slot for --backfill', async () => {

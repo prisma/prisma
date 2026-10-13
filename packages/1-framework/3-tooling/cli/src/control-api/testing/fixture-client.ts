@@ -127,6 +127,7 @@ export function defaultControlClientFixtures(): ControlClientFixtures {
     appliedStatements: [],
     dataLoss: [],
     accessWidening: [],
+    temporaryValues: [],
     plan: { operations: [fixtureOperation] },
     destination: contract,
     execution: { operationsPlanned: 1, operationsExecuted: 1 },
