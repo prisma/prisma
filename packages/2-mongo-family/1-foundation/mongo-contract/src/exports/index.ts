@@ -5,8 +5,7 @@ export type {
   ShapeSpec,
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
-export type { MongoEnumValueSetSource } from '../build-mongo-storage';
-export { buildMongoStorage, encodeMongoValueSets } from '../build-mongo-storage';
+export { buildMongoStorage } from '../build-mongo-storage';
 export {
   createMongoContractSchema,
   createMongoNamespaceEnvelopeSchema,
@@ -94,6 +93,7 @@ export type {
 export { MongoValidator } from '../ir/mongo-validator';
 export type { MongoValueSetInput } from '../ir/mongo-value-set';
 export { MongoValueSet } from '../ir/mongo-value-set';
+export { mongoValueSetsOf } from '../mongo-enum';
 export type {
   ApplyScopeResult,
   PolymorphicIndexScope,
