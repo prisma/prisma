@@ -34,14 +34,15 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 🔄 6/11 | Close every urgent and high upgrade issue | Must | Will | 6 closed, 5 open | TML-3267 next: `@updatedAt` with `@default(now())` |
 | 2 | 🔄 2/7 | Prisma 8 owns migrations in a Prisma 7 project that still reads `schema.prisma` | Must | Will | Proven. Follow-ups: 1 PR merged, 5 gaps open | The two high planner gaps: enum value changes (TML-3456) and referential action changes (TML-3457) |
-| 3 | 🟡 4/5 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | 4 slices merged. ADR 267 and the close-out PR wait on review | Review ADR 267, then merge the close-out PR |
+| 3 | ✅ 7/7 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | Done 2026-10-13: 4 slices, ADR 267, the fix for a model with no fields, and the close-out merged |  |
 | 4 | ⏳ | Upgrade guide rewrite | Must | Will | Ticket in backlog. One known error in the guide |  |
 | 5 | ⏳ 0/5 | Codecs for `citext`, `bit`, `varbit`, `xml`, `oid` | Must | Will | Backlog |  |
-| 6 | ⏳ | Columns whose type has no codec (`unknown`) | Must | Will | Not designed. The control-policy half moved into row 3 |  |
+| 6 | ⏳ | Columns whose type has no codec (`unknown`) | Must | Will | Not designed. Includes the column-level control policy, which row 3 did not build |  |
 | 7 | ⏳ | Adopt a Prisma 7 database without changing it: the enum membership check | Must | Will | Not designed |  |
 | 8 | ⏳ | Medium and low upgrade issues | Later | Will | Backlog | |
 | 9 | ⏳ | `money` codec | Later | Will | Backlog | |
 | 10 | ⏳ | Views | Later | Will | Backlog | |
+| 11 | ⏳ | Prisma 8 syntax for columns and tables no model maps, so `contract print` can convert a Prisma 7 schema that uses `@ignore` | Later | Will | TML-3469, backlog. Needs a syntax design | |
 
 ## Stream 3: Editor and tools
 

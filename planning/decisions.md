@@ -94,6 +94,7 @@ Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgen
 - The design of the replacement for `omit` (stream 4, row 3) is done.
 - Storage a model does not map (stream 2, row 3) is designed and started. Will and the agent settled it in discussion: a model maps to a table that may hold columns the model does not map, and a table may have no model; such storage is declared in storage terms, with `columns` in a model's `.sql({ ... })` and a `table(...)` declaration beside models, and Prisma 8 PSL gets `sql { }` and `table` blocks as parity twins later. The one lowering, `buildSqlContractFromDefinition`, splits into derive and assemble, and storage declared as storage enters at assemble. The ORM projects per model and refuses any name that is not a field. Recorded as ADR 267 in design PR prisma/orm#30641. The earlier "unexposed storage" design, which put a hidden flag on field and model nodes, is withdrawn; its implementation PR is closed and the parts that survive (the ORM projection, the non-field refusal, the validators, the `{}` typing) are reused in slice 1.
 - Row 6 narrows to the `unknown` type. The column-level control policy it proposed is part of row 3.
+  - Update 2026-10-13: row 3 did not build a column-level control policy. ADR 267 gives a column its table's policy, so the column-level policy is back with row 6.
 - The Prisma 7 path needs no Prisma 8 PSL syntax: the Prisma 7 reader lowers `@ignore` and `@@ignore` into storage directly. The PSL blocks and the TypeScript `columns` and `table(...)` surfaces follow, under the parity rule of ADR 096.
 - Compiling the PSL interpreter to the TypeScript DSL's input, as WhyAsh's spike did for the IDB family, is a good future direction and not part of this project. The derive-and-assemble split is a step toward it.
 
@@ -196,6 +197,7 @@ Tracked so far: TML-3340 (docs and the shipped skill name `prisma-composer`). No
 - Querying across contract spaces. Optional, but a competitive advantage.
 - Performance work.
 - The BetterAuth flow.
+- Prisma 8 syntax for columns and tables no model maps (TML-3469), stream 2 row 11. Until then, `contract print` refuses a Prisma 7 schema that uses `@ignore`, and such a project keeps its Prisma 7 schema as the contract source (Will, 2026-10-13).
 
 ## Lower priority, handled by Will in parallel
 
