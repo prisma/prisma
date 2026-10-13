@@ -175,6 +175,11 @@ export interface RecreateTableArgs {
   readonly copyExpressions?: Readonly<Record<string, string>>;
 }
 
+/** The table a rebuild of `tableName` creates, copies into, and renames to `tableName`. */
+export function rebuiltTableName(tableName: string): string {
+  return `_prisma_new_${tableName}`;
+}
+
 export async function recreateTable(
   args: RecreateTableArgs,
   lowerer: ExecuteRequestLowerer,
@@ -190,7 +195,7 @@ export async function recreateTable(
     copyExpressions = {},
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
-  const tempName = `_prisma_new_${tableName}`;
+  const tempName = rebuiltTableName(tableName);
   const liveSet = new Set(schemaColumnNames);
   const copiedFrom = (column: string): string | undefined =>
     Object.hasOwn(copyExpressions, column) ? copyExpressions[column] : undefined;

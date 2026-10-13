@@ -365,6 +365,57 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
+      'blames no conversion for a copy that fails on another column of the same rebuild',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        exec(ctx.dbPath, `UPDATE "User" SET nickname = 'al'`);
+        await emit(
+          ctx,
+          BASE.replace('age      String', 'age      Int').replace(
+            'nickname String?',
+            'nickname String? @unique',
+          ),
+        );
+        const planned = await runMigrationPlan(ctx, [
+          '--name',
+          'age-and-nickname',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--convert',
+          'User.age',
+        ]);
+        expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
+        const migrationDir = plannedDir(ctx, 'age_and_nickname');
+        const migrationTs = join(migrationDir, 'migration.ts');
+        writeFileSync(
+          migrationTs,
+          readFileSync(migrationTs, 'utf-8').replace(
+            /placeholder\((['"])User\.age:convert\1\)/,
+            `'CAST("age" AS INTEGER)'`,
+          ),
+        );
+        const emitted = await selfEmitMigration(ctx, [
+          '--dir',
+          migrationDir,
+          '--config',
+          ctx.configPath,
+        ]);
+        expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
+
+        const failed = await runMigrate(ctx, ['--json']);
+        expect(failed.exitCode, 'the copy fails on the duplicate nickname').not.toBe(0);
+        const error = parseJsonOutput<{
+          readonly why: string;
+          readonly nextActions: readonly { readonly label: string }[];
+        }>(failed);
+        expect(error.why).toContain('UNIQUE constraint failed');
+        const advice = error.nextActions.map(({ label }) => label).join('\n');
+        expect(advice).not.toContain('conversion');
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
       'plans a type change answered with --delete as a rebuild that checks the copied values',
       async () => {
         const ctx = await seeded(createTempDir);

@@ -36,7 +36,7 @@ import { MARKER_TABLE_NAME } from '../control-tables';
 import { sqliteError } from '../errors';
 import { quoteIdentifier } from '../sql-utils';
 import { verifySqliteDatabaseSchema } from './diff-database-schema';
-import { affinityStorageClasses, conversionCopyOf } from './operations/tables';
+import { affinityStorageClasses, conversionCopyOf, rebuiltTableName } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 
 /** Where a failed operation sits in its plan, and what the runner needs to name what blocked it. */
@@ -479,10 +479,10 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
   }
 
   /**
-   * The conversion that failed, when the failed step is the copy of a rebuild that converts
-   * columns. The copy expression that fails on its own is the one named, with an error in its expression.
-   * When none fails on its own, the copy put a value its column cannot hold: a constraint names the
-   * column, or the first converted column is named.
+   * The conversion that failed, when the failed step is the copy of a rebuild that converts columns
+   * and there is evidence for it: a copy expression that fails on its own has an error in its
+   * expression, and a constraint of the new table that names a converted column was broken by a
+   * value the conversion produced. Any other failure of the copy is not the conversion's.
    */
   private async failedConversion(
     driver: SqlMigrationRunnerExecuteOptions<SqlitePlanTargetDetails>['driver'],
@@ -493,26 +493,42 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
     const copy = conversionCopyOf(step);
     if (copy === undefined) return undefined;
     const columns = Object.keys(copy.expressions);
-    let failing: string | undefined;
-    for (const column of columns) {
+    const failed = async (column: string): Promise<boolean> => {
       try {
         await driver.query(
           `SELECT ${copy.expressions[column]} FROM ${quoteIdentifier(copy.table)}`,
         );
+        return false;
       } catch {
-        failing = column;
-        break;
+        return true;
+      }
+    };
+    for (const column of columns) {
+      if (await failed(column)) {
+        return this.conversionOf(plan, copy.table, column, 'expressionError');
       }
     }
-    const column = failing ?? columns.find((name) => message.includes(`.${name}`)) ?? columns[0];
-    const field =
-      column === undefined ? undefined : fieldOfColumn(plan.contract, copy.table, column);
-    if (field === undefined) return undefined;
-    const reason =
-      failing === undefined && message.includes('constraint failed')
-        ? 'invalidResult'
-        : 'expressionError';
-    return { field, by: 'conversion', reason, operationIndex: plan.operationIndex };
+    const [, constrainedList] = message.split('constraint failed: ');
+    if (constrainedList === undefined) return undefined;
+    const constrained = new Set(constrainedList.split(', '));
+    const column = columns.find((name) =>
+      constrained.has(`${rebuiltTableName(copy.table)}.${name}`),
+    );
+    return column === undefined
+      ? undefined
+      : this.conversionOf(plan, copy.table, column, 'invalidResult');
+  }
+
+  private conversionOf(
+    plan: PlanPosition,
+    table: string,
+    column: string,
+    reason: FailedConversion['reason'],
+  ): FailedConversion | undefined {
+    const field = fieldOfColumn(plan.contract, table, column);
+    return field === undefined
+      ? undefined
+      : { field, by: 'conversion', reason, operationIndex: plan.operationIndex };
   }
 
   /**
