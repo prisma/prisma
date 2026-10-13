@@ -6,4 +6,4 @@ export type {
   FullTextIndexReference,
   QueryOperationTypesForCodecs,
 } from '../types/operation-types';
-export type { ParameterizedOutputTypes } from './codec-types';
+export type { ParameterizedOutputTypesForTypeParams } from './codec-types';

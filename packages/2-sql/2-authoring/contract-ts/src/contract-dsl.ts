@@ -63,11 +63,11 @@ export type ScalarFieldState<
   IdSpec extends NamedConstraintSpec | undefined = undefined,
   UniqueSpec extends NamedConstraintSpec | undefined = undefined,
   Many extends false | { readonly elementNullable: boolean } = false,
-  Defaults extends FieldDefaults = FieldDefaults,
+  Defaults extends FieldDefaultPresence = FieldDefaultPresence,
 > = {
   readonly kind: 'scalar';
   /** Exists only in types: whether the column has a database default and whether the client generates a value on create. */
-  readonly __defaults?: Defaults;
+  readonly __defaultPresence?: Defaults;
   readonly descriptor?: Descriptor | undefined;
   readonly typeRef?: TypeRef | undefined;
   readonly nullable: Nullable;
@@ -82,7 +82,7 @@ export type ScalarFieldState<
     : { readonly unique?: undefined });
 
 /** Whether a field's column has a database default, and whether the client generates its value on create. */
-export type FieldDefaults = { readonly column: boolean; readonly execution: boolean };
+export type FieldDefaultPresence = { readonly column: boolean; readonly execution: boolean };
 
 type WithColumnDefault<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<

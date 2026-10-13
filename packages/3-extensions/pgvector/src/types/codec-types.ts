@@ -7,7 +7,7 @@
  * Runtime codec implementations are provided by the extension's codec registry.
  */
 
-import type { ParameterizedOutputTypesConstructor } from '@internal/sql-contract/types';
+import type { ParameterizedOutputTypesFunction } from '@internal/sql-contract/types';
 import type { CodecTypes as CoreCodecTypes } from '../core/codecs';
 
 /**
@@ -20,7 +20,7 @@ export type Vector<N extends number = number> = number[] & { readonly __vectorLe
 
 export type CodecTypes = CoreCodecTypes;
 
-type OutputTypesForParams<TypeParams> = {
+type OutputTypeMap<TypeParams> = {
   readonly 'pg/vector@1': TypeParams extends { readonly length: infer N extends number }
     ? Vector<N>
     : never;
@@ -29,6 +29,6 @@ type OutputTypesForParams<TypeParams> = {
 /**
  * The output type of a `vector(N)` column, `Vector<N>`, for a contract written in TypeScript. It mirrors what `prisma contract emit` writes.
  */
-export interface ParameterizedOutputTypes extends ParameterizedOutputTypesConstructor {
-  readonly outputTypes: OutputTypesForParams<this['typeParams']>;
+export interface ParameterizedOutputTypesForTypeParams extends ParameterizedOutputTypesFunction {
+  readonly outputTypes: OutputTypeMap<this['typeParams']>;
 }

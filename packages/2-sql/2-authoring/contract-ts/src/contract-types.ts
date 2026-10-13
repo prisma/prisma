@@ -19,8 +19,8 @@ import type {
   ContractWithTypeMaps,
   ForeignKeyIndex,
   Index,
-  ParameterizedOutputTypesConstructor,
-  QueryOperationTypesConstructor,
+  ParameterizedOutputTypesFunction,
+  QueryOperationTypesFunction,
   ReferentialAction,
   TypeMaps,
 } from '@internal/sql-contract/types';
@@ -132,8 +132,8 @@ type DerivedCapabilities<Definition> = EnabledCapabilities<
 type ExtractQueryOperationTypesFromPack<
   P,
   CodecTypes extends Record<string, { readonly input: unknown; readonly output: unknown }>,
-> = P extends { readonly __queryOperationTypes?: infer Constructor }
-  ? Present<Constructor> extends infer Defined extends QueryOperationTypesConstructor
+> = P extends { readonly __queryOperationTypes?: infer TypeFunction }
+  ? Present<TypeFunction> extends infer Defined extends QueryOperationTypesFunction
     ? ApplyQueryOperationTypes<Defined, CodecTypes>
     : Record<never, never>
   : Record<never, never>;
@@ -343,15 +343,15 @@ type FieldManyOf<FieldState> = FieldState extends {
   ? Many
   : false;
 
-type FieldDefaultsOf<FieldState> = Present<
-  FieldState extends { readonly __defaults?: infer Defaults } ? Defaults : never
+type FieldDefaultPresenceOf<FieldState> = Present<
+  FieldState extends { readonly __defaultPresence?: infer Defaults } ? Defaults : never
 >;
 
 type FieldHasColumnDefault<FieldState> =
-  FieldDefaultsOf<FieldState> extends { readonly column: true } ? true : false;
+  FieldDefaultPresenceOf<FieldState> extends { readonly column: true } ? true : false;
 
 type FieldHasExecutionDefault<FieldState> =
-  FieldDefaultsOf<FieldState> extends { readonly execution: true } ? true : false;
+  FieldDefaultPresenceOf<FieldState> extends { readonly execution: true } ? true : false;
 
 type FieldColumnOverrideOf<FieldState> = Present<
   FieldState extends { readonly columnName?: infer ColumnName } ? ColumnName : never
@@ -667,7 +667,7 @@ type BuiltManyToManyRelation<
     : ContractRelation
   : ContractRelation;
 
-type BuiltLocalRelation<
+type BuiltSameSpaceRelationByKind<
   Definition,
   ModelName extends ModelNames<Definition>,
   Target extends ModelNames<Definition>,
@@ -725,7 +725,7 @@ type BuiltSameSpaceRelation<
   readonly toModel: infer Source;
 }
   ? RelationSourceModelName<Source> extends infer Target extends ModelNames<Definition>
-    ? BuiltLocalRelation<Definition, ModelName, Target, State>
+    ? BuiltSameSpaceRelationByKind<Definition, ModelName, Target, State>
     : ContractRelation
   : ContractRelation;
 
@@ -1030,8 +1030,8 @@ type PackParameterizedOutputType<
   Pack,
   CodecId,
   TypeParams extends Record<string, unknown>,
-> = Pack extends { readonly __parameterizedOutputTypes?: infer Constructor }
-  ? Present<Constructor> extends infer Defined extends ParameterizedOutputTypesConstructor
+> = Pack extends { readonly __parameterizedOutputTypes?: infer TypeFunction }
+  ? Present<TypeFunction> extends infer Defined extends ParameterizedOutputTypesFunction
     ? ApplyParameterizedOutputTypes<Defined, TypeParams> extends infer Outputs
       ? CodecId extends keyof Outputs
         ? Outputs[CodecId]

@@ -7,7 +7,7 @@
  */
 
 import type { JsonValue } from '@internal/contract/types';
-import type { ParameterizedOutputTypesConstructor } from '@internal/sql-contract/types';
+import type { ParameterizedOutputTypesFunction } from '@internal/sql-contract/types';
 import type { ExtractedCodecTypes, Resolve } from '../core/codec-type-map';
 
 export type CodecTypes = Resolve<ExtractedCodecTypes>;
@@ -76,7 +76,7 @@ type NumericOutput<TypeParams> = TypeParams extends { readonly precision: infer 
 
 type LengthOutput<TypeParams, Output> = [LengthParam<TypeParams>] extends [never] ? never : Output;
 
-type OutputTypesForParams<TypeParams> = {
+type OutputTypeMap<TypeParams> = {
   readonly 'pg/numeric@1': NumericOutput<TypeParams>;
   readonly 'pg/char@1': LengthOutput<TypeParams, Char<LengthParam<TypeParams>>>;
   readonly 'sql/char@1': LengthOutput<TypeParams, Char<LengthParam<TypeParams>>>;
@@ -95,6 +95,6 @@ type OutputTypesForParams<TypeParams> = {
 /**
  * The output type of each codec whose `renderOutputType` refines it by the column's type parameters, for a contract written in TypeScript. It mirrors what `prisma contract emit` writes; `test/integration/test/contract-parity` checks the two agree.
  */
-export interface ParameterizedOutputTypes extends ParameterizedOutputTypesConstructor {
-  readonly outputTypes: OutputTypesForParams<this['typeParams']>;
+export interface ParameterizedOutputTypesForTypeParams extends ParameterizedOutputTypesFunction {
+  readonly outputTypes: OutputTypeMap<this['typeParams']>;
 }
