@@ -46,7 +46,7 @@ changes:
         - '\.adopt\s*\('
   - id: orm-runtime-objects-pass-activities
     summary: |
-      The ORM's structural `RuntimeQueryable` has optional `startActivity` and `planContentHash`. A client facade that builds the ORM's runtime object passes both through to the runtime it wraps, and the one for `tx` passes them through `startActivityOn(txCtx, activity)` and `planContentHashOn(txCtx, plan)` from `@prisma/orm-family-sql/runtime/internal/prepared-query`. Without them the ORM runs, but its calls are not activities.
+      The ORM's structural `RuntimeQueryable` has optional `startActivity` and `planContentHash`. A client facade that builds the ORM's runtime object passes both through to the runtime it wraps, and the one for `tx` passes them through `startActivityOn(txCtx, activity)` and `planContentHashOn(txCtx, plan)` from `@prisma/orm-family-sql/runtime/internal/prepared-query`. Without them the ORM runs, but its calls are not activities. Where the facade's statements run through sessions of its own, such as role sessions, pass members whose statements go the same way, or leave them out; do not pass the plain runtime's.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -159,6 +159,8 @@ const orm = ormBuilder({
   context,
 });
 ```
+
+If the facade sends its statements through sessions of its own, such as role-bound sessions, the activity's statements and transaction must go through them too; pass members that do so, or leave both out. Passing the plain runtime's members would run the activity's statements without the session.
 
 For the ORM object inside `db.transaction(fn)`, use the helpers that reach the members of the transaction context, which `tx` does not show:
 
