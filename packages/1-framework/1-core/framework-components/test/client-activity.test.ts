@@ -376,6 +376,22 @@ describe('client activity', () => {
       });
     });
 
+    it('reports through assertOpen whether children may still start', async () => {
+      const transaction = await openTransaction([]);
+      const call = await startCall([], { parent: transaction });
+      const ended = await startCall([]);
+      await ended.end({ outcome: 'succeeded' });
+
+      expect(() => call.assertOpen()).not.toThrow();
+      transaction.stopAdopting();
+      expect(() => call.assertOpen()).toThrow(
+        expect.objectContaining({ code: 'RUNTIME.ACTIVITY_ENDED' }),
+      );
+      expect(() => ended.assertOpen()).toThrow(
+        expect.objectContaining({ code: 'RUNTIME.ACTIVITY_ENDED' }),
+      );
+    });
+
     it('rejects a second end', async () => {
       const events: string[] = [];
       const call = await startCall([recorder('A', events)]);

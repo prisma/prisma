@@ -369,7 +369,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
         },
         connection: () => roleRuntime.openRoleSession(binding),
         startActivity: (activity) => roleRuntime.startActivityWithRole(activity, binding),
-        planContentHash: (plan) => roleRuntime.planContentHash(plan),
+        planContentHash: (plan) => roleRuntime.planContentHashWithRole(plan),
       },
       context: roleContext,
     });
@@ -441,7 +441,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
         },
         connection: () => extRuntime.openRoleSession(serviceRoleBinding),
         startActivity: (activity) => extRuntime.startActivityWithRole(activity, serviceRoleBinding),
-        planContentHash: (plan) => extRuntime.planContentHash(plan),
+        planContentHash: (plan) => extRuntime.planContentHashWithRole(plan),
       },
       context: extContext,
     }),

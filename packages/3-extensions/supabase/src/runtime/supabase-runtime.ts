@@ -57,6 +57,8 @@ export interface SupabaseRuntime extends PostgresRuntime {
     activity: StartActivity<K>,
     binding: SupabaseRoleBinding,
   ): Promise<ActivityHandle<K>>;
+  /** The content hash of the statement `plan` sends through a role-bound query, which runs at `'connection'` scope. */
+  planContentHashWithRole(plan: SqlExecutionPlan | SqlQueryPlan): Promise<string>;
 }
 
 export interface SupabaseRoleBinding {
@@ -184,6 +186,10 @@ export class SupabaseRuntimeImpl<
     binding: SupabaseRoleBinding,
   ): Promise<ActivityHandle<K>> {
     return this.startActivityOnTarget(this.roleTarget(binding), activity, undefined);
+  }
+
+  planContentHashWithRole(plan: SqlExecutionPlan | SqlQueryPlan): Promise<string> {
+    return this.planContentHashFor(plan, 'connection', undefined);
   }
 
   // Each statement of a role-bound activity runs on a role session of its own, as a role-bound query does; its transaction holds one session until it settles.

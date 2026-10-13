@@ -108,6 +108,43 @@ describe('the transaction of an activity handle', () => {
     expect(beforeRelease).toEqual(['begin', 'commit']);
   });
 
+  it('rejects on an ended handle without taking a connection', async () => {
+    const { runtime, events } = createSetup();
+    const call = await runtime.startActivity(testCall);
+    await call.end({ outcome: 'succeeded' });
+
+    await expect(call.transaction?.()).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
+    expect(driverCalls(events)).toEqual([]);
+  });
+
+  it('is absent on a handle opened on a connection whose transaction is open', async () => {
+    const { runtime } = createSetup();
+    const connection = await runtime.connection();
+    const transaction = await connection.transaction();
+
+    const call = await connection.startActivity(testCall);
+
+    expect('transaction' in call).toBe(false);
+    await call.end({ outcome: 'succeeded' });
+    await transaction.commit();
+    await connection.release();
+  });
+
+  it('rejects a second transaction on a connection handle while the first is open', async () => {
+    const { runtime, events } = createSetup();
+    const connection = await runtime.connection();
+    const call = await connection.startActivity(testCall);
+    const first = await call.transaction?.();
+
+    await expect(call.transaction?.()).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION',
+    });
+    expect(driverCalls(events)).toEqual(['begin']);
+    await first?.commit();
+    await call.end({ outcome: 'succeeded' });
+    await connection.release();
+  });
+
   it('is absent on a handle opened under a transaction, and on the handles nested in it', async () => {
     const { runtime } = createSetup();
     const connection = await runtime.connection();

@@ -41,8 +41,7 @@ export interface TransactionActivity extends ActivityBase {
  * }
  * ```
  */
-// biome-ignore lint/suspicious/noEmptyInterface: clients add members by module augmentation
-export interface ClientActivityKinds {}
+export interface ClientActivityKinds extends Record<never, never> {}
 
 export type ClientActivityKind = keyof ClientActivityKinds & string;
 

@@ -83,16 +83,24 @@ describe('planContentHash', () => {
     const observer: SqlMiddleware = {
       name: 'compile',
       familyId: 'sql',
+      async activityStarted(_activity, ctx) {
+        ctx.state('key')['written'] = true;
+      },
       async beforeCompile(_draft, ctx) {
         contexts.push(ctx);
         return undefined;
       },
     };
     const { runtime, events } = createSetup({ middleware: [observer] });
+    let states: unknown[] = [];
 
     await withTransaction(runtime, async (tx) => {
       const call = await startActivityOn(tx, testCall);
       await call.planContentHash(queryPlan());
+      const callState = events
+        .find((event) => event.name === 'started:test-call')
+        ?.ctx?.state('key');
+      states = [callState, contexts[0]?.state('key')];
       await call.end({ outcome: 'succeeded' });
     });
     const callCtx = events.find((event) => event.name === 'started:test-call')?.ctx;
@@ -100,6 +108,6 @@ describe('planContentHash', () => {
     expect(contexts.map((ctx) => [ctx.scope, ctx.parent, ctx.inTransaction()])).toEqual([
       ['transaction', callCtx, true],
     ]);
-    expect(contexts[0]?.state('key')).toEqual({});
+    expect(states).toEqual([{ written: true }, {}]);
   });
 });

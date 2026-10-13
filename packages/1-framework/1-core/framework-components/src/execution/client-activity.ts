@@ -41,6 +41,8 @@ export interface ClientActivityRun<
   readonly ctx: TContext;
   /** Set when an `intercept.onActivity` handler supplied the result. */
   readonly intercepted: { readonly result: ClientActivityResult<K> } | undefined;
+  /** Throws `RUNTIME.ACTIVITY_ENDED` when no statement or activity may start beneath this one any more. */
+  assertOpen(): void;
   /**
    * Ends the activity: its `activityEnded` hooks, then its finalization. Outside a transaction it is finalized at once: `committed` when it succeeded and nothing beneath it was finalized `unknown`, otherwise `unknown`. Inside one, its transaction finalizes it. When a child has not ended, the activity ends `failed`, is finalized, and `end` rejects with `RUNTIME.ACTIVITY_CHILDREN_OPEN`. A second call rejects with `RUNTIME.ACTIVITY_ENDED`.
    */
@@ -161,11 +163,15 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
     };
   }
 
-  adopt(child: ActivityChild): ActivityChildSlot {
+  assertOpen(): void {
     if (this.#ended) throw activityEndedError(this.activity, 'ended');
     if (this.#slot?.transactionEnded()) {
       throw activityEndedError(this.activity, 'transaction-ended');
     }
+  }
+
+  adopt(child: ActivityChild): ActivityChildSlot {
+    this.assertOpen();
     return this.#children.add(child);
   }
 

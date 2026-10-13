@@ -195,6 +195,31 @@ describe('startActivity', () => {
     await iterator.return?.();
   });
 
+  it.each(['statement', 'transaction'])('rejects the reserved kind %s', async (kind) => {
+    const { runtime, events } = createSetup();
+
+    await expect(
+      runtime.startActivity({ kind: kind as 'test-call', contentHash: 'hash' }),
+    ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_KIND_RESERVED' });
+    expect(events).toEqual([]);
+  });
+
+  it('rejects a statement on a connection handle once a transaction is open on the connection', async () => {
+    const { runtime, events } = createSetup();
+    const connection = await runtime.connection();
+    const call = await connection.startActivity(testCall);
+    const transaction = await connection.transaction();
+
+    await expect(call.execute(rawPlan('update t set x = 1'))).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION',
+      details: { kind: 'test-call' },
+    });
+    expect(names(events)).not.toContain('started:statement');
+    await transaction.commit();
+    await call.end({ outcome: 'succeeded' });
+    await connection.release();
+  });
+
   describe('close', () => {
     it('waits for an open activity on the runtime to end', async () => {
       const { runtime, events } = createSetup();

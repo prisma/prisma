@@ -1,3 +1,4 @@
+import { SelectAst, TableSource } from '@internal/sql-relational-core/ast';
 import type { SqlMiddleware, SqlMiddlewareContext } from '@internal/sql-runtime';
 import { describe, expect, it } from 'vitest';
 import { createTestSetup, stubPlan } from './supabase-runtime-fixtures';
@@ -95,5 +96,31 @@ describe('a role-bound activity handle', () => {
       ['test-call', 'connection'],
       ['statement', 'connection'],
     ]);
+  });
+});
+
+describe('planContentHashWithRole', () => {
+  it('hashes at the scope role-bound statements run at', async () => {
+    const scopes: string[] = [];
+    const { runtime } = createTestSetup({
+      middleware: [
+        {
+          name: 'scopes',
+          familyId: 'sql',
+          async beforeCompile(_draft, ctx) {
+            scopes.push(ctx.scope);
+            return undefined;
+          },
+        },
+      ],
+    });
+
+    await runtime.planContentHashWithRole({
+      ast: SelectAst.from(TableSource.named('users')),
+      params: [],
+      meta: stubPlan().meta,
+    });
+
+    expect(scopes).toEqual(['connection']);
   });
 });

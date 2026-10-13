@@ -547,15 +547,27 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     connection: SqlConnection,
     owner: TransactionStartTarget,
   ): ActivityTarget {
-    return this.queryableTarget(
-      connection,
-      'connection',
-      () => this.#openTransactions.get(connection),
-      {
-        transaction: (parent) => this.beginTransactionOn(connection, owner, parent),
-        runtimeWork: false,
-      },
-    );
+    const openTransaction = this.#openTransactions.get(connection);
+    return this.queryableTarget(connection, 'connection', () => openTransaction, {
+      transaction:
+        openTransaction === undefined
+          ? (parent) => this.beginTransactionBeneathOn(connection, owner, parent)
+          : undefined,
+      runtimeWork: false,
+    });
+  }
+
+  // A connection runs one transaction at a time; a second one would send BEGIN inside the first.
+  private beginTransactionBeneathOn(
+    connection: SqlConnection,
+    owner: TransactionStartTarget,
+    parent: ActivityParent,
+  ): Promise<RuntimeTransaction> {
+    const openTransaction = this.#openTransactions.get(connection);
+    if (openTransaction !== undefined) {
+      return Promise.reject(activityOutsideTransactionError(parent, openTransaction));
+    }
+    return this.beginTransactionOn(connection, owner, parent);
   }
 
   protected connectionPlanContentHash(
@@ -640,7 +652,12 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       },
       ...ifDefined(
         'transaction',
-        beginTransaction === undefined ? undefined : () => beginTransaction(run),
+        beginTransaction === undefined
+          ? undefined
+          : async () => {
+              run.assertOpen();
+              return beginTransaction(run);
+            },
       ),
     };
     return handle;
@@ -693,7 +710,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     queryable: SqlQueryable,
     options: ActivityExecuteOptions | undefined,
   ): ActivityParent | undefined {
-    return options?.activityParent ?? this.#openTransactions.get(queryable);
+    const openTransaction = this.#openTransactions.get(queryable);
+    const activityParent = options?.activityParent;
+    if (activityParent === undefined) return openTransaction;
+    if (openTransaction !== undefined && !activityParent.ctx.inTransaction()) {
+      throw activityOutsideTransactionError(activityParent, openTransaction);
+    }
+    return activityParent;
   }
 
   protected getListDecoder(): ListDecoder {
@@ -1505,6 +1528,21 @@ function standaloneContext(
     inTransaction: () =>
       parent?.activity.kind === 'transaction' || (parentCtx?.inTransaction() ?? false),
   };
+}
+
+function activityOutsideTransactionError(
+  parent: ActivityParent,
+  openTransaction: ActivityParent,
+): Error {
+  return runtimeError(
+    'RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION',
+    `Work was sent through a '${parent.activity.kind}' activity onto a connection whose open transaction the activity is not part of. Start the activity on the transaction instead.`,
+    {
+      kind: parent.activity.kind,
+      id: parent.activity.id,
+      transactionId: openTransaction.activity.id,
+    },
+  );
 }
 
 function transactionClosedError(): Error {

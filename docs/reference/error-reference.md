@@ -1066,6 +1066,10 @@ A statement or an activity was started beneath an activity that has ended: a tra
 
 A client called `startActivity` with the kind `statement` or `transaction`. The runtime starts those activities itself; a client registers its own kinds in `ClientActivityKinds` and starts those. Payload: `kind`.
 
+### RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION
+
+A statement was sent through an activity handle opened on a connection after a transaction was opened on that connection, or a second transaction was begun through such a handle while the first was open. The statement would run inside the database transaction while its activity is outside it, so it would be reported committed before the transaction commits. Send the statement on the transaction, or start the activity on the transaction. Payload: `kind`, `id`, `transactionId`.
+
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
 A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `nullable: false` descriptor with no `emptyResultJson`, a `self` output on an operation that consumes no input, or a non-callable `lower`. `emptyResultJson` is the value a non-nullable operation answers with when no result row reaches the caller, stated in the result codec's canonical JSON: `0` under `pg/int8number@1`, `'0'` under `pg/int8@1`. Raised while the execution context assembles the registry. Payload: `descriptor`.
