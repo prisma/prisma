@@ -1,18 +1,19 @@
 import type { Contract, PlanMeta } from '@internal/contract/types';
 import type {
-  AfterExecuteResult,
-  AfterQueryResult,
+  ActivityContext,
+  ActivityEndedResult,
+  ActivityFinalizedResult,
   ExecuteInterceptResult,
   QueryInterceptResult,
+  RuntimeActivity,
   RuntimeMiddleware,
-  RuntimeMiddlewareContext,
 } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { AnyQueryAst } from '@internal/sql-relational-core/ast';
 import type { SqlParamRefMutator } from '@internal/sql-relational-core/middleware';
 import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 
-export interface SqlMiddlewareContext extends RuntimeMiddlewareContext {
+export interface SqlMiddlewareContext extends ActivityContext {
   readonly contract: Contract<SqlStorage>;
 }
 
@@ -28,6 +29,17 @@ export interface DraftPlan {
 export interface SqlMiddleware<TCodecMap extends Record<string, unknown> = Record<string, unknown>>
   extends RuntimeMiddleware<SqlExecutionPlan, SqlParamRefMutator<TCodecMap>> {
   readonly familyId?: 'sql';
+  activityStarted?(activity: RuntimeActivity, ctx: SqlMiddlewareContext): Promise<void>;
+  activityEnded?(
+    activity: RuntimeActivity,
+    result: ActivityEndedResult,
+    ctx: SqlMiddlewareContext,
+  ): Promise<void>;
+  activityFinalized?(
+    activity: RuntimeActivity,
+    result: ActivityFinalizedResult,
+    ctx: SqlMiddlewareContext,
+  ): Promise<void>;
   /**
    * Rewrite the query AST before it is lowered to SQL. Middlewares run in
    * registration order; each sees the predecessor's output, so rewrites
@@ -48,86 +60,28 @@ export interface SqlMiddleware<TCodecMap extends Record<string, unknown> = Recor
    */
   beforeCompile?(draft: DraftPlan, ctx: SqlMiddlewareContext): Promise<DraftPlan | undefined>;
   /**
-   * Mutate `ParamRef.value` slots before encode runs. The third
-   * `params` argument is a {@link SqlParamRefMutator} scoped to value
-   * slots only — SQL strings, projections, and `ParamRef` membership
-   * are not mutable. Existing `(plan)` and `(plan, ctx)` middleware
-   * bodies that ignore the additional argument continue to compile
-   * and run unchanged.
+   * Runs after lowering, before parameter encoding: `beforeCompile → lowerSqlPlan → beforeEncode → encodeParams → intercept → driver`. Throw to block the statement.
    *
-   * Lifecycle position:
-   *   `beforeCompile → lowerSqlPlan → beforeQuery → encodeParams → interceptQuery → driver query`.
-   *
-   * The plan handed in is the SQL execution plan after lowering but
-   * *before* parameter encoding: `plan.params[i]` is the user-domain
-   * value the mutator's `entries()` iterator surfaces (e.g. an
-   * `EncryptedEnvelopeBase` for a cipherstash-codec'd column, or a
-   * plain JS value for non-codec'd ParamRefs). Mutations applied via
-   * `params.replaceValue` / `replaceValues` are visible to encode,
-   * which then renders the mutated value through the column's codec.
-   *
-   * `ctx.signal` carries the per-operation `AbortSignal` (ADR 207);
-   * middleware that wraps a network SDK forwards `ctx.signal` to
-   * that SDK. Cooperative cancellation: a body that ignores the
-   * signal still surfaces `RUNTIME.ABORTED { phase: 'beforeQuery' }`
-   * promptly via the runtime's race against the signal.
+   * `plan.params[i]` is the user-domain value the mutator's `entries()` surfaces. Changes made through `params.replaceValue` / `replaceValues` are encoded through the column's codec. A body that ignores `ctx.signal` still fails promptly with `RUNTIME.ABORTED { phase: 'beforeEncode' }`.
    */
-  beforeQuery?(
+  beforeEncode?(
     plan: SqlExecutionPlan,
     ctx: SqlMiddlewareContext,
     params?: SqlParamRefMutator<TCodecMap>,
   ): void | Promise<void>;
-  interceptQuery?(
-    plan: SqlExecutionPlan,
-    ctx: SqlMiddlewareContext,
-  ): Promise<QueryInterceptResult | undefined>;
+  intercept?: {
+    onQuery?(
+      plan: SqlExecutionPlan,
+      ctx: SqlMiddlewareContext,
+    ): Promise<QueryInterceptResult | undefined>;
+    onExecute?(
+      plan: SqlExecutionPlan,
+      ctx: SqlMiddlewareContext,
+    ): Promise<ExecuteInterceptResult | undefined>;
+  };
   onRow?(
     row: Record<string, unknown>,
     plan: SqlExecutionPlan,
-    ctx: SqlMiddlewareContext,
-  ): Promise<void>;
-  afterQuery?(
-    plan: SqlExecutionPlan,
-    result: AfterQueryResult,
-    ctx: SqlMiddlewareContext,
-  ): Promise<void>;
-  /**
-   * Mutate `ParamRef.value` slots before encode runs. The third
-   * `params` argument is a {@link SqlParamRefMutator} scoped to value
-   * slots only — SQL strings, projections, and `ParamRef` membership
-   * are not mutable. Existing `(plan)` and `(plan, ctx)` middleware
-   * bodies that ignore the additional argument continue to compile
-   * and run unchanged.
-   *
-   * Lifecycle position:
-   *   `beforeCompile → lowerSqlPlan → beforeExecute → encodeParams → interceptExecute → driver execute`.
-   *
-   * The plan handed in is the SQL execution plan after lowering but
-   * *before* parameter encoding: `plan.params[i]` is the user-domain
-   * value the mutator's `entries()` iterator surfaces (e.g. an
-   * `EncryptedEnvelopeBase` for a cipherstash-codec'd column, or a
-   * plain JS value for non-codec'd ParamRefs). Mutations applied via
-   * `params.replaceValue` / `replaceValues` are visible to encode,
-   * which then renders the mutated value through the column's codec.
-   *
-   * `ctx.signal` carries the per-operation `AbortSignal` (ADR 207);
-   * middleware that wraps a network SDK forwards `ctx.signal` to
-   * that SDK. Cooperative cancellation: a body that ignores the
-   * signal still surfaces `RUNTIME.ABORTED { phase: 'beforeExecute' }`
-   * promptly via the runtime's race against the signal.
-   */
-  beforeExecute?(
-    plan: SqlExecutionPlan,
-    ctx: SqlMiddlewareContext,
-    params?: SqlParamRefMutator<TCodecMap>,
-  ): void | Promise<void>;
-  interceptExecute?(
-    plan: SqlExecutionPlan,
-    ctx: SqlMiddlewareContext,
-  ): Promise<ExecuteInterceptResult | undefined>;
-  afterExecute?(
-    plan: SqlExecutionPlan,
-    result: AfterExecuteResult,
     ctx: SqlMiddlewareContext,
   ): Promise<void>;
 }

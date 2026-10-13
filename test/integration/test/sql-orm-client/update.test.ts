@@ -15,12 +15,28 @@ import {
 } from './integration-helpers';
 import { seedPosts, seedUsers } from './runtime-helpers';
 
-function recordAfterTransaction(stages: string[]): SqlMiddleware {
+function recordStatementFinalization(stages: string[]): SqlMiddleware {
   return {
-    name: 'after-transaction-recorder',
+    name: 'statement-finalization-recorder',
     familyId: 'sql',
-    async afterTransaction(_exec, result) {
-      stages.push(result.outcome);
+    async activityFinalized(activity, result) {
+      if (activity.kind === 'statement') stages.push(result.outcome);
+    },
+  };
+}
+
+const returnsKey = Symbol('returns');
+
+/** Records the SQL of every statement sent for its statistics. */
+function statisticsStatementObserver(name: string, observed: string[]): SqlMiddleware {
+  return {
+    name,
+    familyId: 'sql',
+    async activityStarted(activity, ctx) {
+      if (activity.kind === 'statement') ctx.state(returnsKey)['returns'] = activity.returns;
+    },
+    beforeEncode(exec, ctx) {
+      if (ctx.state(returnsKey)['returns'] === 'stats') observed.push(exec.sql);
     },
   };
 }
@@ -36,13 +52,7 @@ describe('integration/update', () => {
     'updateAndCount() returns matched row count and updates data',
     async () => {
       const observedStatements: string[] = [];
-      const observer: SqlMiddleware = {
-        name: 'update-count-observer',
-        familyId: 'sql',
-        beforeExecute(exec) {
-          observedStatements.push(exec.sql);
-        },
-      };
+      const observer = statisticsStatementObserver('update-count-observer', observedStatements);
       await withCollectionRuntime(
         async (runtime) => {
           const users = createUsersCollection(runtime);
@@ -238,22 +248,28 @@ describe('integration/update', () => {
   );
 
   it(
-    'update() fires afterTransaction with committed once for its UPDATE, after its transaction commits',
+    'update() finalizes its UPDATE committed once, after its transaction commits',
     async () => {
       const events: Array<{ readonly hook: string; readonly sql: string; readonly scope: string }> =
         [];
+      const sqlKey = Symbol('sql');
+      const sqlOf = (ctx: { state(key: symbol): Record<string | symbol, unknown> }): string => {
+        const sql = ctx.state(sqlKey)['sql'];
+        return typeof sql === 'string' ? sql : '';
+      };
       const observer: SqlMiddleware = {
-        name: 'after-transaction-observer',
+        name: 'statement-finalization-observer',
         familyId: 'sql',
-        async afterQuery(exec, _result, ctx) {
-          events.push({ hook: 'afterQuery', sql: exec.sql, scope: ctx.scope });
+        beforeEncode(exec, ctx) {
+          ctx.state(sqlKey)['sql'] = exec.sql;
         },
-        async afterTransaction(exec, result, ctx) {
-          events.push({
-            hook: `afterTransaction:${result.outcome}`,
-            sql: exec.sql,
-            scope: ctx.scope,
-          });
+        async activityEnded(activity, _result, ctx) {
+          if (activity.kind !== 'statement') return;
+          events.push({ hook: 'ended', sql: sqlOf(ctx), scope: ctx.scope });
+        },
+        async activityFinalized(activity, result, ctx) {
+          if (activity.kind !== 'statement') return;
+          events.push({ hook: `finalized:${result.outcome}`, sql: sqlOf(ctx), scope: ctx.scope });
         },
       };
       await withCollectionRuntime(
@@ -268,14 +284,14 @@ describe('integration/update', () => {
             event.sql.toLowerCase().startsWith('update'),
           );
           expect(updateEvents.map(({ hook, scope }) => ({ hook, scope }))).toEqual([
-            { hook: 'afterQuery', scope: 'transaction' },
-            { hook: 'afterTransaction:committed', scope: 'transaction' },
+            { hook: 'ended', scope: 'transaction' },
+            { hook: 'finalized:committed', scope: 'transaction' },
           ]);
           expect(events.map((event) => event.hook)).toEqual([
-            'afterQuery',
-            'afterQuery',
-            'afterTransaction:committed',
-            'afterTransaction:committed',
+            'ended',
+            'ended',
+            'finalized:committed',
+            'finalized:committed',
           ]);
         },
         undefined,
@@ -310,7 +326,7 @@ describe('integration/update', () => {
         },
         undefined,
         [],
-        [recordAfterTransaction(stages)],
+        [recordStatementFinalization(stages)],
       );
     },
     timeouts.spinUpPpgDev,
@@ -343,7 +359,7 @@ describe('integration/update', () => {
         },
         undefined,
         [],
-        [recordAfterTransaction(stages)],
+        [recordStatementFinalization(stages)],
       );
     },
     timeouts.spinUpPpgDev,

@@ -1052,7 +1052,7 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 ### RUNTIME.ABORTED
 
-An in-flight `query()` or `execute()` operation was cancelled via the per-operation `AbortSignal` passed as the call's `{ signal }` option. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeQuery` / `beforeExecute` / `afterQuery` / `afterExecute` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Payload: `phase`.
+An in-flight `query()` or `execute()` operation was cancelled via the per-operation `AbortSignal` passed as the call's `{ signal }` option. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeEncode` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Payload: `phase`.
 
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
@@ -1120,7 +1120,7 @@ A column's codec reference disagrees with the codec's parameterization: a parame
 
 ### RUNTIME.CONTENT_HASH_REQUIRES_RESOLVED_COMMAND
 
-Mongo middleware called `ctx.contentHash(plan)` (or `computeMongoContentHash`) during `beforeExecute`, when `plan.command` is still an unresolved lowered draft rather than a resolved wire command. Compute the hash from `afterExecute`, or use the param mutator instead of reading `plan.command` structurally. Payload: `phase`.
+Mongo middleware called `ctx.contentHash(plan)` (or `computeMongoContentHash`) during `beforeEncode`, when `plan.command` is still an unresolved lowered draft rather than a resolved wire command. Compute the hash in `intercept.onQuery` or `intercept.onExecute`, where the plan is resolved, or use the param mutator instead of reading `plan.command` structurally. Payload: `phase`.
 
 ### RUNTIME.CONTRACT_FAMILY_MISMATCH
 

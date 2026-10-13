@@ -1,6 +1,9 @@
 import type { PlanMeta } from '@internal/contract/types';
 import { decodeJsonString } from '@internal/framework-components/codec';
-import type { AfterTransactionResult } from '@internal/framework-components/runtime';
+import type {
+  ActivityEndedResult,
+  ActivityFinalizedResult,
+} from '@internal/framework-components/runtime';
 import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
 import type { MongoAdapter, MongoDriver, MongoLoweredDraft } from '@internal/mongo-lowering';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
@@ -10,16 +13,15 @@ import {
   DeleteOneWireCommand,
 } from '@internal/mongo-wire';
 import { describe, expect, it, vi } from 'vitest';
-import type { MongoExecutionPlan } from '../src/mongo-execution-plan';
 import type { MongoExecutionContext } from '../src/mongo-execution-stack';
-import type { MongoMiddleware } from '../src/mongo-middleware';
+import type { MongoMiddleware, MongoMiddlewareContext } from '../src/mongo-middleware';
 import { createMongoRuntime } from '../src/mongo-runtime';
 
 interface HookEvent {
-  readonly name: string;
-  readonly plan: MongoExecutionPlan;
-  readonly planExecutionId: string;
-  readonly outcome?: AfterTransactionResult['outcome'];
+  readonly name: 'ended' | 'finalized';
+  readonly activityId: string;
+  readonly ctx: MongoMiddlewareContext;
+  readonly outcome: ActivityEndedResult['outcome'] | ActivityFinalizedResult['outcome'];
 }
 
 const meta: PlanMeta = {
@@ -117,27 +119,14 @@ function createDriver(results: Record<string, unknown>[], failure?: Error): Mong
   } as unknown as MongoDriver;
 }
 
-function recorder(
-  events: HookEvent[],
-): Required<Pick<MongoMiddleware, 'afterTransaction'>> & MongoMiddleware {
-  const record = (
-    name: string,
-    exec: MongoExecutionPlan,
-    planExecutionId: string,
-    outcome?: AfterTransactionResult['outcome'],
-  ) => {
-    events.push({ name, plan: exec, planExecutionId, ...(outcome ? { outcome } : {}) });
-  };
+function recorder(events: HookEvent[]): MongoMiddleware {
   return {
     name: 'recorder',
-    async afterQuery(exec, _result, ctx) {
-      record('afterQuery', exec, ctx.planExecutionId);
+    async activityEnded(activity, result, ctx) {
+      events.push({ name: 'ended', activityId: activity.id, ctx, outcome: result.outcome });
     },
-    async afterExecute(exec, _result, ctx) {
-      record('afterExecute', exec, ctx.planExecutionId);
-    },
-    async afterTransaction(exec, result, ctx) {
-      record('afterTransaction', exec, ctx.planExecutionId, result.outcome);
+    async activityFinalized(activity, result, ctx) {
+      events.push({ name: 'finalized', activityId: activity.id, ctx, outcome: result.outcome });
     },
   };
 }
@@ -148,22 +137,24 @@ async function drain(rows: AsyncIterable<unknown>): Promise<void> {
   }
 }
 
-function expectStageRightAfter(
+function expectFinalizedRightAfterEnd(
   events: HookEvent[],
-  afterHook: string,
-  outcome: AfterTransactionResult['outcome'],
+  ended: ActivityEndedResult['outcome'],
+  finalized: ActivityFinalizedResult['outcome'],
 ): void {
   expect(events.map(({ name, outcome }) => ({ name, outcome }))).toEqual([
-    { name: afterHook, outcome: undefined },
-    { name: 'afterTransaction', outcome },
+    { name: 'ended', outcome: ended },
+    { name: 'finalized', outcome: finalized },
   ]);
-  expect(events[1]?.plan).toBe(events[0]?.plan);
-  expect(events[1]?.planExecutionId).toBe(events[0]?.planExecutionId);
+  expect(events[1]?.activityId).toBe(events[0]?.activityId);
+  expect(events[1]?.ctx).toBe(events[0]?.ctx);
+  expect(events[0]?.ctx.parent).toBeUndefined();
+  expect(events[0]?.ctx.inTransaction()).toBe(false);
 }
 
-describe('MongoRuntime afterTransaction stage', () => {
+describe('MongoRuntime statement finalization', () => {
   describe('query', () => {
-    it('fires committed once right after afterQuery', async () => {
+    it('finalizes a query committed right after it ends', async () => {
       const events: HookEvent[] = [];
       const runtime = createMongoRuntime({
         context: makeContext(new AggregateWireCommand('users', [])),
@@ -173,10 +164,10 @@ describe('MongoRuntime afterTransaction stage', () => {
 
       await drain(runtime.query(plan));
 
-      expectStageRightAfter(events, 'afterQuery', 'committed');
+      expectFinalizedRightAfterEnd(events, 'succeeded', 'committed');
     });
 
-    it('fires unknown once right after afterQuery when the driver throws', async () => {
+    it('finalizes a query unknown right after it fails when the driver throws', async () => {
       const events: HookEvent[] = [];
       const runtime = createMongoRuntime({
         context: makeContext(new AggregateWireCommand('users', [])),
@@ -186,10 +177,10 @@ describe('MongoRuntime afterTransaction stage', () => {
 
       await expect(drain(runtime.query(plan))).rejects.toThrow('driver failure');
 
-      expectStageRightAfter(events, 'afterQuery', 'unknown');
+      expectFinalizedRightAfterEnd(events, 'failed', 'unknown');
     });
 
-    it('fires unknown once when the caller stops reading the rows early', async () => {
+    it('ends a query stopped and finalizes it unknown when the caller stops reading early', async () => {
       const events: HookEvent[] = [];
       const runtime = createMongoRuntime({
         context: makeContext(new AggregateWireCommand('users', [])),
@@ -202,12 +193,10 @@ describe('MongoRuntime afterTransaction stage', () => {
         break;
       }
 
-      expect(events.map(({ name, outcome }) => ({ name, outcome }))).toEqual([
-        { name: 'afterTransaction', outcome: 'unknown' },
-      ]);
+      expectFinalizedRightAfterEnd(events, 'stopped', 'unknown');
     });
 
-    it('fires unknown once when a row fails to decode', async () => {
+    it('finalizes a query unknown when a row fails to decode', async () => {
       const events: HookEvent[] = [];
       const runtime = createMongoRuntime({
         context: makeContext(new AggregateWireCommand('users', [])),
@@ -219,12 +208,10 @@ describe('MongoRuntime afterTransaction stage', () => {
         code: 'RUNTIME.DECODE_FAILED',
       });
 
-      expect(events.map(({ name, outcome }) => ({ name, outcome }))).toEqual([
-        { name: 'afterTransaction', outcome: 'unknown' },
-      ]);
+      expectFinalizedRightAfterEnd(events, 'failed', 'unknown');
     });
 
-    it('fires unknown once when the signal aborts between rows', async () => {
+    it('finalizes a query unknown when the signal aborts between rows', async () => {
       const events: HookEvent[] = [];
       const runtime = createMongoRuntime({
         context: makeContext(new AggregateWireCommand('users', [])),
@@ -241,14 +228,12 @@ describe('MongoRuntime afterTransaction stage', () => {
         })(),
       ).rejects.toMatchObject({ code: 'RUNTIME.ABORTED' });
 
-      expect(events.map(({ name, outcome }) => ({ name, outcome }))).toEqual([
-        { name: 'afterTransaction', outcome: 'unknown' },
-      ]);
+      expectFinalizedRightAfterEnd(events, 'failed', 'unknown');
     });
   });
 
   describe('execute', () => {
-    it('fires committed once right after afterExecute', async () => {
+    it('finalizes an execute committed right after it ends', async () => {
       const events: HookEvent[] = [];
       const runtime = createMongoRuntime({
         context: makeContext(new DeleteOneWireCommand('users', { id: 1 })),
@@ -258,10 +243,10 @@ describe('MongoRuntime afterTransaction stage', () => {
 
       await expect(runtime.execute(plan)).resolves.toEqual({ affectedRows: 1 });
 
-      expectStageRightAfter(events, 'afterExecute', 'committed');
+      expectFinalizedRightAfterEnd(events, 'succeeded', 'committed');
     });
 
-    it('fires unknown once right after afterExecute when the driver throws', async () => {
+    it('finalizes an execute unknown when the driver throws', async () => {
       const events: HookEvent[] = [];
       const runtime = createMongoRuntime({
         context: makeContext(new DeleteOneWireCommand('users', { id: 1 })),
@@ -271,10 +256,10 @@ describe('MongoRuntime afterTransaction stage', () => {
 
       await expect(runtime.execute(plan)).rejects.toThrow('driver failure');
 
-      expectStageRightAfter(events, 'afterExecute', 'unknown');
+      expectFinalizedRightAfterEnd(events, 'failed', 'unknown');
     });
 
-    it('fires unknown without afterExecute when the signal aborts after the plan is encoded', async () => {
+    it('finalizes an execute unknown when the signal aborts after the plan is encoded', async () => {
       const events: HookEvent[] = [];
       const controller = new AbortController();
       const runtime = createMongoRuntime({
@@ -289,23 +274,18 @@ describe('MongoRuntime afterTransaction stage', () => {
         code: 'RUNTIME.ABORTED',
       });
 
-      expect(events.map(({ name, outcome }) => ({ name, outcome }))).toEqual([
-        { name: 'afterTransaction', outcome: 'unknown' },
-      ]);
+      expectFinalizedRightAfterEnd(events, 'failed', 'unknown');
     });
   });
 
   it.each([
     ['query', (runtime: ReturnType<typeof createMongoRuntime>) => drain(runtime.query(plan))],
     ['execute', (runtime: ReturnType<typeof createMongoRuntime>) => runtime.execute(plan)],
-  ])('fires nothing when a before-hook of %s throws', async (_name, run) => {
+  ])('ends a %s failed and finalizes it unknown when beforeEncode throws', async (_name, run) => {
     const events: HookEvent[] = [];
     const failingBeforeHook: MongoMiddleware = {
       name: 'failing-before-hook',
-      async beforeQuery() {
-        throw new Error('before-hook failed');
-      },
-      async beforeExecute() {
+      async beforeEncode() {
         throw new Error('before-hook failed');
       },
     };
@@ -317,50 +297,6 @@ describe('MongoRuntime afterTransaction stage', () => {
 
     await expect(run(runtime)).rejects.toThrow('before-hook failed');
 
-    expect(events).toEqual([]);
-  });
-});
-
-describe('MongoRuntime whose middleware do not declare afterTransaction', () => {
-  function createRuntimeThatDeclaresAfterTransactionLate(
-    events: HookEvent[],
-    wireCommand: AnyMongoDmlWireCommand,
-    results: Record<string, unknown>[],
-  ) {
-    const { afterTransaction, ...withoutAfterTransaction } = recorder(events);
-    const middleware: MongoMiddleware = withoutAfterTransaction;
-    const runtime = createMongoRuntime({
-      context: makeContext(wireCommand),
-      driver: createDriver(results),
-      middleware: [middleware],
-    });
-    middleware.afterTransaction = afterTransaction;
-    return runtime;
-  }
-
-  it('runs afterQuery and no stage for a query', async () => {
-    const events: HookEvent[] = [];
-    const runtime = createRuntimeThatDeclaresAfterTransactionLate(
-      events,
-      new AggregateWireCommand('users', []),
-      [{ _id: '1' }, { _id: '2' }],
-    );
-
-    await expect(runtime.query(plan).toArray()).resolves.toEqual([{ _id: '1' }, { _id: '2' }]);
-
-    expect(events.map(({ name }) => name)).toEqual(['afterQuery']);
-  });
-
-  it('runs afterExecute and no stage for an execute', async () => {
-    const events: HookEvent[] = [];
-    const runtime = createRuntimeThatDeclaresAfterTransactionLate(
-      events,
-      new DeleteOneWireCommand('users', { id: 1 }),
-      [{ deletedCount: 1 }],
-    );
-
-    await expect(runtime.execute(plan)).resolves.toEqual({ affectedRows: 1 });
-
-    expect(events.map(({ name }) => name)).toEqual(['afterExecute']);
+    expectFinalizedRightAfterEnd(events, 'failed', 'unknown');
   });
 });
