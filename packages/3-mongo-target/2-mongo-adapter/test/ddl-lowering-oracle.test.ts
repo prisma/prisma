@@ -4,6 +4,7 @@ import {
   CreateIndexCommand,
   DropCollectionCommand,
   DropIndexCommand,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import { describe, expect, it } from 'vitest';
 import { createMongoAdapter } from '../src/mongo-adapter';
@@ -16,6 +17,7 @@ async function lowerCmd(
     | CreateIndexCommand
     | DropCollectionCommand
     | DropIndexCommand
+    | RenameCollectionCommand
     | CollModCommand,
 ) {
   return adapter.lower({ command }, {});
@@ -229,6 +231,17 @@ describe('DDL lowering oracle — dropCollection', () => {
     const wire = await lowerCmd(new DropCollectionCommand('archive'));
     expect(wire.kind).toBe('dropCollection');
     expect(wire.collection).toBe('archive');
+  });
+});
+
+describe('DDL lowering oracle — renameCollection', () => {
+  it('produces the source collection and the new name', async () => {
+    const wire = await lowerCmd(new RenameCollectionCommand('profiles', 'users'));
+    expect({ ...wire }).toEqual({
+      kind: 'renameCollection',
+      collection: 'profiles',
+      to: 'users',
+    });
   });
 });
 

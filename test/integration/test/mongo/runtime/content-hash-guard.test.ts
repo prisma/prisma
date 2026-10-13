@@ -22,10 +22,10 @@ const baseMeta: PlanMeta = {
 };
 
 describe('Mongo runtime content hash before param resolution', () => {
-  it('throws the same code when beforeQuery calls ctx.contentHash on the pre-resolve plan', async () => {
+  it('throws the same code when beforeEncode calls ctx.contentHash on the pre-resolve plan', async () => {
     const middleware: MongoMiddleware = {
       name: 'hash-too-early',
-      async beforeQuery(plan, ctx) {
+      async beforeEncode(plan, ctx) {
         await ctx.contentHash(plan);
       },
     };

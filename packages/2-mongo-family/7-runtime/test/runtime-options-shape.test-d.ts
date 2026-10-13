@@ -18,7 +18,7 @@ test('runtime options accept only context, driver, middleware, and mode', () => 
       {
         name: 'middleware',
         familyId: 'mongo',
-        async beforeQuery() {},
+        async beforeEncode() {},
       },
     ],
     mode: 'permissive',

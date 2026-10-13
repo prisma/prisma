@@ -68,6 +68,12 @@ export interface MigrationOperationSubject {
   readonly subject: MigrationSubject;
 }
 
+/** An operation that loses the data of its subject. */
+export interface MigrationDataLoss extends MigrationOperationSubject {
+  /** How to keep the data instead, in the target's words, when no statement can say so. */
+  readonly keepDataAdvice?: string;
+}
+
 /** An operation that changes who can read or write the rows of its subject. */
 export interface MigrationAccessChange extends MigrationOperationSubject {
   /**
@@ -79,7 +85,7 @@ export interface MigrationAccessChange extends MigrationOperationSubject {
 
 /** What the operations of a plan lose and whose access they change, each by its position in the plan. */
 export interface MigrationPlanSubjects<
-  TEntry extends MigrationOperationSubject = MigrationOperationSubject,
+  TEntry extends MigrationOperationSubject = MigrationDataLoss,
   TAccess extends MigrationAccessChange = MigrationAccessChange,
 > {
   /** Each operation that loses data, in plan order, with what it loses. */

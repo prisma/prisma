@@ -139,7 +139,7 @@ describe('SupabaseRuntimeImpl', () => {
       const observer: SqlMiddleware = {
         name: 'sql-observer',
         familyId: 'sql',
-        beforeQuery(exec) {
+        beforeEncode(exec) {
           observedSqls.push(exec.sql);
         },
       };
@@ -315,11 +315,13 @@ describe('SupabaseRuntimeImpl', () => {
       const observer: SqlMiddleware = {
         name: 'execute-observer',
         familyId: 'sql',
-        beforeExecute(exec) {
+        beforeEncode(exec) {
           observedSqls.push(exec.sql);
         },
-        beforeQuery() {
-          throw new Error('query hook ran during execute');
+        intercept: {
+          async onQuery() {
+            throw new Error('query hook ran during execute');
+          },
         },
       };
       const { runtime, driver } = createTestSetup({ affectedRows: 4, middleware: [observer] });

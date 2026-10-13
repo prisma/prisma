@@ -156,8 +156,17 @@ export interface CallWithCompanions extends SingleOperationCall {
   readonly companions: readonly SingleOperationCall[];
 }
 
+/** How a user renames a table by hand, written for the target. */
+export interface TableRenameByHand {
+  /** The `renameTable` call a user writes in `migration.ts` to make `rename` by hand. */
+  renderTableRename(rename: TableRename): string;
+  /** The SQL statements a user runs against the database to make `rename` by hand. */
+  tableRenameByHand(rename: TableRename): readonly string[];
+}
+
 /** What a target supplies for planning statements against its working schema. */
-export interface StatementPlanningTarget<TCall extends CallWithCompanions> {
+export interface StatementPlanningTarget<TCall extends CallWithCompanions>
+  extends TableRenameByHand {
   /** The tables of the working schema as earlier statements have left it. */
   tables(): SchemaTables;
   /** The call that renames a table, with its companions, computed against the working schema. */
@@ -166,10 +175,6 @@ export interface StatementPlanningTarget<TCall extends CallWithCompanions> {
   renameColumnCall(rename: ColumnRename): TCall;
   /** Applies a call to the working schema. */
   apply(call: TCall): void;
-  /** The `renameTable` call a user writes in `migration.ts` to make `rename` by hand. */
-  renderTableRename(rename: TableRename): string;
-  /** The SQL statements a user runs against the database to make `rename` by hand. */
-  tableRenameByHand(rename: TableRename): readonly string[];
 }
 
 function operationsOf(call: CallWithCompanions): readonly SingleOperationCall[] {

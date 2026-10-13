@@ -12,6 +12,8 @@ A user keeps `model User` and changes `@@map("users")` to `@@map("app_users")`. 
 
 **Decided 2026-10-07 by Will:** no statement for this case in this project. Slice 2's refusal keeps slice 1's manual steps for both commands. A statement that can name storage objects rather than models and fields is wanted later; Will floated `--rename table/users:app_users` as an illustration only, and the syntax needs a critical design discussion and a survey of established prior art before anything is chosen.
 
+**What depends on it:** `MigrationDataLoss.keepDataAdvice` (framework components, `control/migration-statements.ts`) exists only because this statement is missing. The SQL family (`keepTableAdvice` in `operation-subjects.ts`) and the MongoDB target (`keepCollectionByHandAdvice`, reached from `collectionDrops` in `mongo-planner.ts`) use it to print manual steps for this one case. When the statement lands, the planner answers this case with it, and both advice texts go, with the field if nothing else uses it. Slice 3a (PR #30695) adds `label` to the same type, `MigrationDataLoss`; whichever of the two PRs merges second combines the two changes.
+
 ## A model move across namespaces (`auth.User:public.User`)
 
 **Found:** slice 1, dispatch 3 (2026-10-06). Resolves but is refused with `statementRejected`; needs a `set schema` operation with its working-schema step and companion names. Scheduled for slice 3 with the namespace renames (recorded in `plan.md`).

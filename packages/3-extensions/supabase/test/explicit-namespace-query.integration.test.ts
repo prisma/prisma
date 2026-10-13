@@ -41,7 +41,7 @@ function recordingMiddleware(): { middleware: SqlMiddleware; sqls: string[] } {
   const middleware: SqlMiddleware = {
     name: 'sql-recorder',
     familyId: 'sql',
-    async beforeQuery(plan) {
+    async beforeEncode(plan) {
       sqls.push(plan.sql);
     },
   };

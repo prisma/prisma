@@ -186,7 +186,6 @@ export function lints(options?: LintsOptions): SqlMiddleware {
   return Object.freeze({
     name: 'lints',
     familyId: 'sql' as const,
-    beforeQuery: beforeOperation,
-    beforeExecute: beforeOperation,
+    beforeEncode: beforeOperation,
   });
 }

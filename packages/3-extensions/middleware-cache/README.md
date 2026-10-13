@@ -2,17 +2,17 @@
 
 A read-through cache middleware for Prisma 8 runtimes, for both the SQL and Mongo families.
 
-Built on the `interceptQuery` hook on `RuntimeMiddleware`: on a cache hit, the middleware returns the cached rows and the driver is never invoked. On a cache miss, it buffers the rows from the driver and stores them when the read completes.
+Built on the `intercept.onQuery` handler on `RuntimeMiddleware`: on a cache hit, the middleware returns the cached rows and the driver is never invoked. On a cache miss, `onRow` buffers the rows from the driver in the statement's `ctx.state`, and `activityEnded` stores them when the read succeeded.
 
-The package depends on no SQL or Mongo package: its runtime dependencies are `@internal/framework-components` and `@internal/utils`. The default cache key is `RuntimeMiddlewareContext.contentHash(exec)`, which the family runtime populates, so SQL and Mongo runtimes both work out of the box.
+The package depends on no SQL or Mongo package: its runtime dependencies are `@internal/framework-components` and `@internal/utils`. The default cache key is `ActivityContext.contentHash(exec)`, which the family runtime populates, so SQL and Mongo runtimes both work out of the box.
 
 ## Responsibilities
 
-- Provide a caching `RuntimeMiddleware` that serves repeated reads from a store through the `interceptQuery` hook.
+- Provide a caching `RuntimeMiddleware` that serves repeated reads from a store through the `intercept.onQuery` handler.
 - Define the read-only `cacheAnnotation` handle that lane terminals (SQL DSL `.annotate(...)`, ORM read terminals) use to opt a read in, with `key`, `meta` and `bypass`.
-- Resolve the cache key per execution: the annotation's `key`, otherwise the `deriveKey` option, which defaults to `RuntimeMiddlewareContext.contentHash(exec)`.
+- Resolve the cache key per execution: the annotation's `key`, otherwise the `deriveKey` option, which defaults to `ActivityContext.contentHash(exec)`.
 - Store driver rows only when the read completed from the driver (`completed: true && source: 'driver'`).
-- Bypass the cache when `RuntimeMiddlewareContext.scope` is `'connection'` or `'transaction'`.
+- Bypass the cache when `ActivityContext.scope` is `'connection'` or `'transaction'`.
 - Remove entries on request through `invalidate({ keys, meta })`, and stop a read that overlapped it from storing its rows.
 - Define the `CacheStore` interface, and ship a default in-memory store with a size bound and one lifetime for every entry.
 
@@ -87,7 +87,7 @@ Three-tier resolution:
 
 1. **Per-query override.** `cacheAnnotation({ key })` — the supplied string is used verbatim, and `deriveKey` is not called. The cache middleware does **not** rehash user-supplied keys; the caller is responsible for keeping the string bounded in size and free of sensitive data they do not want flowing into debug logs, Redis `KEYS` output, persistence dumps, or any user-supplied `CacheStore`. User-supplied keys also bypass the storage-hash discrimination below — if you fix a key, prefix it with something tied to your schema version (e.g. `` `${storageHash}:my-key` ``) to avoid serving stale-schema entries after a migration.
 2. **`deriveKey`.** `createCacheMiddleware({ deriveKey })` computes the key of every cached read whose annotation has no `key` (see [Deriving keys](#deriving-keys)).
-3. **Default.** `deriveKeyFromContentHash(exec, ctx)`, which returns `RuntimeMiddlewareContext.contentHash(exec)` — the family runtime owns this. The SQL and Mongo runtimes today compose `meta.storageHash + '|' + …` and pipe the result through `hashContent` (SHA-512), producing a bounded, opaque digest of the form `sha512:HEXDIGEST`. The cache middleware uses the returned string directly as the store key.
+3. **Default.** `deriveKeyFromContentHash(exec, ctx)`, which returns `ActivityContext.contentHash(exec)` — the family runtime owns this. The SQL and Mongo runtimes today compose `meta.storageHash + '|' + …` and pipe the result through `hashContent` (SHA-512), producing a bounded, opaque digest of the form `sha512:HEXDIGEST`. The cache middleware uses the returned string directly as the store key.
 
 Two consequences worth pinning (both properties of the **default** key path — user-supplied keys above opt out of both, and a `deriveKey` keeps them only if it builds on the content hash):
 
@@ -275,7 +275,7 @@ Rules:
 
 ## Transaction-scope guard
 
-The middleware bypasses the cache entirely when `RuntimeMiddlewareContext.scope` is `'connection'` or `'transaction'`. Only top-level `runtime.query` (`scope === 'runtime'`) consults the store.
+The middleware bypasses the cache entirely when `ActivityContext.scope` is `'connection'` or `'transaction'`. Only top-level `runtime.query` (`scope === 'runtime'`) consults the store.
 
 - Inside a transaction, the caller expects to read their own writes. The cache cannot serve those reads without tracking the transaction's pending writes.
 - On a checked-out connection (`runtime.connection().query(...)`), the caller has stepped outside the shared runtime surface and likely does not expect the global cache to inject results.
@@ -301,10 +301,10 @@ How long an entry lives, and what `meta` means (tags, groups, per-entry lifetime
 
 What the primitives do not cover yet:
 
-- **Invalidating as part of the write.** Today the application calls `invalidate` after the write has returned. Invalidating from the write itself must wait for the transaction to commit, including the transactions the ORM opens for its own `update()` and `delete()`; otherwise a concurrent reader can refill the entry with the old row before the commit. The runtime has no post-commit hook yet. A write annotation that invalidates after the commit is planned once that hook exists.
+- **Invalidating as part of the write.** Today the application calls `invalidate` after the write has returned. Invalidating from the write itself must wait for the transaction to commit, including the transactions the ORM opens for its own `update()` and `delete()`; otherwise a concurrent reader can refill the entry with the old row before the commit. The runtime's `activityFinalized` event fires once a write's effects are final; a write annotation that invalidates from it is planned.
 - **Serve-stale strategies** such as stale-while-revalidate. Only the middleware decides hit or miss, so nothing outside it can serve an expired entry while it re-runs the query.
 
 ## See also
 
-- [Runtime & Middleware Framework](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md) for the SPI and middleware lifecycle (including the `interceptQuery` hook the cache uses).
+- [Runtime & Middleware Framework](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md) for the SPI and middleware lifecycle (including the `intercept.onQuery` handler the cache uses).
 - [ADR 204 — Single-tier runtime](../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-tier%20runtime.md) for why the cache middleware is family-agnostic by construction.

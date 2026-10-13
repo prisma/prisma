@@ -17,9 +17,8 @@
  * 1. Detects whether the file is the direct entrypoint (no-op when imported).
  * 2. Parses CLI args (`--help`, `--dry-run`, `--config <path>`) via
  *    [clipanion](https://github.com/arcanis/clipanion).
- * 3. Loads the project's `prisma.config.ts` via the same
- *    `loadConfigForSections` the CLI commands use, walking up from the
- *    migration file's directory.
+ * 3. Loads the config `--config` names. Without it, loads the config that
+ *    owns the migration (see `loadMigrationFileConfig`).
  * 4. Probe-instantiates the migration class without a stack so it can read
  *    `targetId` and verify it matches `config.target.targetId`
  *    (`MIGRATION.TARGET_MISMATCH` on mismatch) before any stack-driven adapter
@@ -46,7 +45,6 @@
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import type { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { loadConfigForSections } from '@internal/config-loader';
 import {
   type CliStructuredError,
   errorMigrationCliInvalidConfigArg,
@@ -61,6 +59,7 @@ import { isStructuredError } from '@internal/utils/structured-error';
 import { Cli, Command, Option, UsageError } from 'clipanion';
 import { dirname, join } from 'pathe';
 import { errorFromCaught } from './control-api/operations/caught-errors';
+import { loadMigrationFileConfig } from './utils/migration-file-config';
 
 /**
  * Constructor shape accepted by `MigrationCLI.run`. `Migration` subclasses
@@ -549,13 +548,12 @@ async function runMigration(
   const migrationFile = fileURLToPath(importMetaUrl);
   const migrationDir = dirname(migrationFile);
 
-  const configResult = await loadConfigForSections(parsed.config, [
-    'family',
-    'target',
-    'adapter',
-    'driver',
-    'extensions',
-  ]);
+  const configResult = await loadMigrationFileConfig({
+    configPath: parsed.config,
+    migrationFile,
+    cwd: process.cwd(),
+    sections: ['family', 'target', 'adapter', 'driver', 'extensions'],
+  });
   if (!configResult.ok) {
     throw configResult.failure;
   }

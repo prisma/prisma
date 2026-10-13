@@ -19,8 +19,11 @@ export {
   CreateIndexCall,
   DropCollectionCall,
   DropIndexCall,
+  RenameCollectionCall,
+  RenameFieldCall,
   schemaCollectionToCreateCollectionOptions,
   schemaIndexToCreateIndexOptions,
+  UnsetFieldCall,
 } from '../core/migrations/op-factory-call';
 export { PlannerProducedMongoMigration } from '../core/migrations/planner-produced-migration';
 export { renderOps } from '../core/migrations/render-ops';
