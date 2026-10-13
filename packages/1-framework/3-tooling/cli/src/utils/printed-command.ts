@@ -19,7 +19,7 @@ export function cliInvocation(
   return { cwd: ctx.cwd, configPath: ctx.configPath, dbGiven: db !== undefined };
 }
 
-/** The commands that connect to a database, and so take `--db`. */
+/** The commands that connect to a database: those whose flags include `dbFlag`, which a test checks. */
 const COMMANDS_TAKING_DB: ReadonlySet<string> = new Set([
   'contract infer',
   'db init',
