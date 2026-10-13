@@ -431,7 +431,7 @@ describe('RecreateTableCall', () => {
     expect(op.postcheck.some((s) => s.description.includes('type'))).toBe(true);
   });
 
-  it('checks the values of each column castColumns names after the copy, as cast by SQLite', async () => {
+  it('checks the values of a retyped column without a copy expression after the copy, as cast by SQLite', async () => {
     const call = new RecreateTableCall({
       tableName: 'user',
       contractTable: tableSpec([
@@ -443,23 +443,23 @@ describe('RecreateTableCall', () => {
       summary: 'Recreates table user to apply schema changes: type mismatch on age',
       postchecks: [],
       operationClass: 'destructive',
-      castColumns: ['age'],
+      retypedColumns: ['age'],
     });
     const op = await call.toOp(stubLowerer('CHECK SQL'));
     expect({
-      castColumns: call.castColumns,
+      retypedColumns: call.retypedColumns,
       check: op.postcheck.find((step) => step.meta !== undefined),
       copy: op.execute.find((step) => step.description.startsWith('copy data'))?.meta,
       rendered: call.renderTypeScript(),
     }).toEqual({
-      castColumns: ['age'],
+      retypedColumns: ['age'],
       check: {
         description: 'verify every value of "age" on "user" is stored as INTEGER',
         sql: `SELECT NOT EXISTS (SELECT 1 FROM "user" WHERE typeof("age") NOT IN ('null', 'integer'))`,
         meta: { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
       },
       copy: undefined,
-      rendered: expect.stringContaining('castColumns: ["age"]'),
+      rendered: expect.stringContaining('retypedColumns: ["age"]'),
     });
   });
 
@@ -817,7 +817,25 @@ describe('RecreateTableCall copy expressions', () => {
     });
   });
 
-  it('refuses a cast column that is not a column of the new table', () => {
+  it('checks a retyped column with a copy expression as a conversion', async () => {
+    const call = new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [],
+      operationClass: 'data',
+      copyExpressions: { age: { kind: 'sql', sql: 'trim("age")' } },
+      retypedColumns: ['age'],
+    });
+    const op = await call.toOp(stubLowerer('SQL'));
+    expect(op.postcheck.filter((step) => step.meta !== undefined).map((step) => step.meta)).toEqual(
+      [{ convertedColumn: { table: 'user', column: 'age', by: 'conversion' } }],
+    );
+  });
+
+  it('refuses a retyped column that is not a column of the new table', () => {
     expect(
       () =>
         new RecreateTableCall({
@@ -828,7 +846,7 @@ describe('RecreateTableCall copy expressions', () => {
           summary: 'Recreates table user',
           postchecks: [],
           operationClass: 'destructive',
-          castColumns: ['years'],
+          retypedColumns: ['years'],
         }),
     ).toThrow(expect.objectContaining({ code: 'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN' }));
   });

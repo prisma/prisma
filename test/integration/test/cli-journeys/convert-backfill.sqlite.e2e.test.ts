@@ -216,7 +216,7 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
-      'checks the converted values after the copy: a wrong conversion fails naming the field',
+      'checks the converted values after the copy: a deleted or wrong conversion fails naming the field',
       async () => {
         const ctx = await seeded(createTempDir);
         exec(ctx.dbPath, `UPDATE "User" SET age = 'ten' WHERE id = 1`);
@@ -234,9 +234,7 @@ withTempDir(({ createTempDir }) => {
         const migrationTs = join(migrationDir, 'migration.ts');
         const scaffold = readFileSync(migrationTs, 'utf-8');
         const slot = /placeholder\((['"])User\.age:convert\1\)/;
-        expect(scaffold, 'the copy expression alone says the column is converted').not.toMatch(
-          /castColumns|convertedColumn|verify every value/,
-        );
+        expect(scaffold).toMatch(/retypedColumns: \[\s*['"]age['"]\s*\]/);
 
         const failsNamingTheField = async (
           filled: string,
@@ -274,6 +272,33 @@ withTempDir(({ createTempDir }) => {
           why: `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
           text: 'The conversion of field "User.age" left a value its new type cannot hold.',
         };
+
+        writeFileSync(
+          migrationTs,
+          scaffold
+            .split('\n')
+            .filter((line) => !slot.test(line))
+            .join('\n'),
+        );
+        expect(
+          (await selfEmitMigration(ctx, ['--dir', migrationDir, '--config', ctx.configPath]))
+            .exitCode,
+          'self-emit without the copy expression',
+        ).toBe(0);
+        const unconverted = await runMigrate(ctx, ['--json']);
+        expect(unconverted.exitCode, 'the copy leaves the old values').not.toBe(0);
+        const unconvertedAdvice = parseJsonOutput<{
+          readonly nextActions: readonly { readonly label: string }[];
+        }>(unconverted)
+          .nextActions.map(({ label }) => label)
+          .join('\n');
+        expect(unconvertedAdvice).toContain(
+          `\`${relative(ctx.testDir, migrationTs)}\` has no conversion for field "User.age": write one there, run \`node ${relative(ctx.testDir, migrationTs)}`,
+        );
+        expect(query(ctx.dbPath, `SELECT id, age FROM "User" ORDER BY id`)).toEqual([
+          { id: 1, age: 'ten' },
+          { id: 2, age: '7' },
+        ]);
 
         await failsNamingTheField(scaffold.replace(slot, `'trim("age")'`), leftAValue);
         await failsNamingTheField(scaffold.replace(slot, `'to_int("age")'`), {
@@ -385,7 +410,7 @@ withTempDir(({ createTempDir }) => {
         const migrationDir = plannedDir(ctx, 'age_and_nickname');
         const migrationTs = join(migrationDir, 'migration.ts');
         const scaffold = readFileSync(migrationTs, 'utf-8');
-        expect(scaffold).toMatch(/castColumns: \[\s*['"]nickname['"]\s*\]/);
+        expect(scaffold).toMatch(/retypedColumns: \[\s*['"]age['"],\s*['"]nickname['"]\s*\]/);
         const slot = /placeholder\((['"])User\.age:convert\1\)/;
 
         const adviceOf = async (conversion: string) => {
@@ -411,6 +436,9 @@ withTempDir(({ createTempDir }) => {
           `A value of field "User.nickname" cannot be converted to its new type by the database's cast.`,
         );
         expect(castFailed).not.toContain('The conversion of field');
+        expect(castFailed).toContain(
+          'has no conversion for field "User.nickname": write one there',
+        );
 
         exec(
           ctx.dbPath,
@@ -507,7 +535,7 @@ withTempDir(({ createTempDir }) => {
         expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
         const scaffold = readFileSync(join(plannedDir(ctx, 'age_delete'), 'migration.ts'), 'utf-8');
         expect(scaffold).not.toContain('copyExpressions');
-        expect(scaffold).toMatch(/castColumns: \[\s*['"]age['"]\s*\]/);
+        expect(scaffold).toMatch(/retypedColumns: \[\s*['"]age['"]\s*\]/);
         await fillAndApply(ctx, plannedDir(ctx, 'age_delete'), (unchanged) => unchanged);
         expect(
           query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),

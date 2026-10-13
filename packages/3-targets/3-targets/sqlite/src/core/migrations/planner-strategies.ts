@@ -215,8 +215,8 @@ function highestClass(classes: readonly MigrationOperationClass[]): MigrationOpe
 interface TableRebuild {
   readonly issues: SchemaDiffIssue[];
   readonly classes: MigrationOperationClass[];
-  /** Retyped columns no `--convert` statement names, which the copy takes for SQLite to convert. */
-  readonly castColumns: string[];
+  /** Columns whose type changes, converted by a `--convert` copy expression or by SQLite on the copy. */
+  readonly retypedColumns: string[];
   readonly copyExpressions: Record<string, SqlSlot>;
   /** Columns an earlier call of the plan adds, which the rebuild copies like live ones. */
   readonly addedColumns: string[];
@@ -251,7 +251,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     const created: TableRebuild = {
       issues: [],
       classes: [],
-      castColumns: [],
+      retypedColumns: [],
       copyExpressions: {},
       addedColumns: [],
     };
@@ -295,9 +295,9 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     }
     const column = columnNameOf(issue);
     const converted = statementColumn(ctx, 'convert', tableName, column);
+    rebuild.retypedColumns.push(column);
     if (converted === undefined) {
       rebuild.classes.push('destructive');
-      rebuild.castColumns.push(column);
       continue;
     }
     rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:convert` };
@@ -354,7 +354,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
         ],
         operationClass,
         copyExpressions: rebuild.copyExpressions,
-        castColumns: rebuild.castColumns,
+        retypedColumns: rebuild.retypedColumns,
       }),
     );
   }

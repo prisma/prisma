@@ -175,11 +175,11 @@ export interface RecreateTableArgs {
    */
   readonly copyExpressions?: Readonly<Record<string, string>>;
   /**
-   * The columns whose type changes and which the copy takes unchanged, so that SQLite's type
-   * affinity converts their values. The rebuild checks after its copy that every value took the
-   * new type, and a failure names the field as a failed cast.
+   * The columns whose type changes. The rebuild checks after its copy that every value of each took
+   * the new type: a column with a copy expression as a conversion, and one the copy takes unchanged,
+   * for SQLite's type affinity to convert, as a cast.
    */
-  readonly castColumns?: readonly string[];
+  readonly retypedColumns?: readonly string[];
 }
 
 /** The table a rebuild of `tableName` creates, copies into, and renames to `tableName`. */
@@ -200,7 +200,7 @@ export async function recreateTable(
     postchecks,
     operationClass,
     copyExpressions = {},
-    castColumns = [],
+    retypedColumns = [],
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
   const tempName = rebuiltTableName(tableName);
@@ -294,7 +294,7 @@ export async function recreateTable(
       ...contractTable.columns.flatMap((column) => {
         const by = Object.hasOwn(conversions, column.name)
           ? ('conversion' as const)
-          : castColumns.includes(column.name)
+          : retypedColumns.includes(column.name)
             ? ('cast' as const)
             : undefined;
         return by === undefined

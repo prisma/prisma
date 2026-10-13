@@ -36,14 +36,17 @@ function operationCountOf(call: OpFactoryCall): number {
 
 /**
  * The columns a recreate loses: those the new table leaves out, whose values the copy drops, and,
- * when the recreate is destructive, those whose type it changes.
+ * when the recreate is destructive, those whose type it changes with no copy expression to convert them.
  */
 function recreateLosses(
   call: RecreateTableCall,
 ): readonly { readonly column: string; readonly loss: MigrationDataLossKind }[] {
   const kept = new Set(call.contractTable.columns.map((column) => column.name));
   const dropped = call.schemaColumnNames.filter((column) => !kept.has(column));
-  const retyped = call.operationClass === 'destructive' ? call.castColumns : [];
+  const retyped =
+    call.operationClass === 'destructive'
+      ? call.retypedColumns.filter((column) => !Object.hasOwn(call.copyExpressions, column))
+      : [];
   return [
     ...dropped.map((column) => ({ column, loss: 'drop' as const })),
     ...retyped.map((column) => ({ column, loss: 'typeChange' as const })),

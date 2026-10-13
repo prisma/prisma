@@ -296,8 +296,8 @@ export abstract class SqliteMigration<
     readonly operationClass: MigrationOperationClass;
     /** SQL each named column is copied from, such as `CAST("age" AS INTEGER)`. */
     readonly copyExpressions?: Readonly<Record<string, SqlTextInput>>;
-    /** The columns whose type changes and which the copy takes unchanged, for SQLite to convert. */
-    readonly castColumns?: readonly string[];
+    /** The columns whose type changes; the rebuild checks each after its copy, as a conversion when it has a copy expression and as SQLite's cast otherwise. */
+    readonly retypedColumns?: readonly string[];
   }): Promise<Op> {
     const { copyExpressions, ...args } = options;
     return new RecreateTableCall({

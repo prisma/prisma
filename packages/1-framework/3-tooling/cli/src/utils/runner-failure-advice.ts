@@ -179,7 +179,8 @@ function migrateFailedTypeChangeFix(
     return `${failedTypeChangeText(change)} Plan the type change again with ${migrationPlanCommand(invocation, [convert], undefined)}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
   }
   const deleted = `\`${statementFlag({ verb: 'delete', text: change.field })}\``;
-  return `${failedTypeChangeText(change)} The failed apply changed nothing. To convert it, ${replan([convert], failedMigration, deleted)}.`;
+  const { file, run } = failedMigrationFile(failedMigration);
+  return `${failedTypeChangeText(change)} The failed apply changed nothing. ${file} has no conversion for field "${change.field}": write one there, ${run}, and re-run ${dbMigrateCommand(invocation)}. Or ${replan([convert], failedMigration, deleted)}.`;
 }
 
 function migrateRowsWithoutValueFix(
