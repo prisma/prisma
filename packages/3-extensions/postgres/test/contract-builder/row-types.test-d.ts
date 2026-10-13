@@ -1,3 +1,4 @@
+import type { Varchar } from '@internal/target-postgres/codec-types';
 import { expectTypeOf, test } from 'vitest';
 import { defineContract, enumType, member } from '../../src/exports/contract-builder';
 import postgres from '../../src/exports/runtime';
@@ -28,8 +29,8 @@ test('the client returns rows of a TypeScript contract with the codec output typ
   const row = await client.orm.public.Reading.first();
   expectTypeOf(row).toEqualTypeOf<{
     id: string;
-    label: string;
-    note: string | null;
+    label: Varchar<50>;
+    note: Varchar<50> | null;
     level: 1n | 10n;
   } | null>();
 });

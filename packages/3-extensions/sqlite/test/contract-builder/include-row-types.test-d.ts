@@ -25,6 +25,13 @@ const Tag = model('Tag', {
 const PostTag = model('PostTag', {
   fields: { postId: field.column(integer), tagId: field.column(integer) },
 });
+const Review = model('Review', {
+  fields: {
+    id: field.column(integer).id(),
+    postId: field.column(integer),
+    editorId: field.column(integer).optional(),
+  },
+});
 const Employee = model('Employee', {
   fields: { id: field.column(integer).id(), managerId: field.column(integer).optional() },
 });
@@ -43,6 +50,10 @@ const contract = defineContract({
     Profile: Profile.sql({ table: 'profiles' }),
     Tag: Tag.sql({ table: 'tags' }),
     PostTag: PostTag.sql({ table: 'post_tags' }),
+    Review: Review.relations({
+      post: rel.belongsTo(Post, { from: 'postId', to: 'id', optional: false }),
+      editor: rel.belongsTo(User, { from: 'editorId', to: 'id', optional: true }),
+    }).sql({ table: 'reviews' }),
     Employee: Employee.relations({
       manager: rel.belongsTo(Employee, { from: 'managerId', to: 'id' }),
       reports: rel.hasMany(Employee, { by: 'managerId' }),
@@ -136,5 +147,25 @@ test('a self-relation includes rows of the same model', async () => {
     managerId: number | null;
     manager: EmployeeRow | null;
     reports: EmployeeRow[];
+  } | null>();
+});
+
+test('a belongs-to declared optional: false is one row', async () => {
+  const review = await db.orm.Review.include('post').first();
+  expectTypeOf(review).toEqualTypeOf<{
+    id: number;
+    postId: number;
+    editorId: number | null;
+    post: PostRow;
+  } | null>();
+});
+
+test('a belongs-to declared optional: true is one row or null', async () => {
+  const review = await db.orm.Review.include('editor').first();
+  expectTypeOf(review).toEqualTypeOf<{
+    id: number;
+    postId: number;
+    editorId: number | null;
+    editor: UserRow | null;
   } | null>();
 });

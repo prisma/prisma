@@ -1,3 +1,4 @@
+import type { Varchar } from '@internal/target-postgres/codec-types';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { defineContract } from '../../src/exports/contract-builder';
 import postgres from '../../src/exports/runtime';
@@ -107,7 +108,7 @@ describe('the namespaces of a TypeScript contract', () => {
 
     expectTypeOf<Awaited<ReturnType<typeof first>>>().toEqualTypeOf<{
       id: string;
-      label: string;
+      label: Varchar<50>;
       expiresAt: Date | null;
     } | null>();
     expect(client.orm.auth.Session).toBeDefined();

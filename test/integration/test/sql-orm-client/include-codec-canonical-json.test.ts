@@ -10,7 +10,7 @@ import { vector } from '@internal/extension-pgvector/column-types';
 import pgvector from '@internal/extension-pgvector/pack';
 import pgvectorRuntime from '@internal/extension-pgvector/runtime';
 import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
-import { type AggregateSpec, Collection } from '@internal/sql-orm-client';
+import { Collection } from '@internal/sql-orm-client';
 import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';
 import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
@@ -249,13 +249,10 @@ describe('integration/include canonical JSON', () => {
           namespaceId: 'public',
         });
 
-        // The contract is authored in this file, so its static aggregate map
-        // is unknown and the typed builder surface is empty; dispatch
-        // dynamically, as the include reducer below already does.
-        const stats = await readings.aggregate((aggregate) => {
-          const dynamic = aggregate as Record<string, (field?: string) => AggregateSpec[string]>;
-          return { total: dynamic['sumBigInt']!('counter'), peak: dynamic['max']!('counter') };
-        });
+        const stats = await readings.aggregate((aggregate) => ({
+          total: aggregate.sumBigInt('counter'),
+          peak: aggregate.max('counter'),
+        }));
 
         // The lossless sum reads PostgreSQL's numeric total as an unbounded
         // bigint; the maximum keeps the column's own bigint. Both are exact,
@@ -264,14 +261,10 @@ describe('integration/include canonical JSON', () => {
         expect(BigInt(Number(stats.total))).not.toBe(stats.total);
         expect(BigInt(Number(stats.peak))).not.toBe(9007199254740993n);
 
-        // A contract written with defineContract declares no aggregate types,
-        // so the include refinement has no scalar reducers in its type.
-        const reduceToMax = (related: unknown): unknown =>
-          (related as { max: (field: string) => unknown }).max('weight');
         const withStations = await readings
           .where((reading) => reading.id.eq(1))
           .select('id')
-          .include('stations', (stations) => reduceToMax(stations) as never)
+          .include('stations', (stations) => stations.max('weight'))
           .all();
 
         // The include carries its value inside a JSON document, where a number
