@@ -6,6 +6,7 @@
  * so journey tests stay concise and readable.
  */
 
+import { spawnSync } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
@@ -54,6 +55,8 @@ export interface JourneyContext {
   testDir: string;
   configPath: string;
   outputDir: string;
+  /** The config's `migrations.dir`, relative to `testDir`, when it is not `migrations`. */
+  migrationsDir?: string;
 }
 
 // Re-export timeouts so journey tests can import from a single module.
@@ -403,7 +406,7 @@ export async function authorMigration(
     throw new Error('authorMigration: the scaffold has no operations array to fill');
   }
   writeFileSync(migrationTsPath, authored, 'utf-8');
-  const emit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
+  const emit = await selfEmitMigration(ctx, ['--dir', join(appMigrationsDir(ctx), dirName)]);
   return { dirName, emit };
 }
 
@@ -551,6 +554,67 @@ export async function selfEmitMigration(
 }
 
 /**
+ * Follows a message that says to run a migration's `migration.ts` with node: runs `node migration.ts` inside `packageDir`, the migration package directory, as a user would.
+ */
+export function runPrintedSelfEmit(message: string, packageDir: string): CommandResult {
+  if (!/\bnode on that migration\.ts\b/.test(message)) {
+    return {
+      exitCode: -1,
+      stdout: '',
+      stderr: `the message does not say to run node on that migration.ts: ${message}`,
+    };
+  }
+  const run = spawnSync(process.execPath, ['migration.ts'], { cwd: packageDir, encoding: 'utf-8' });
+  return { exitCode: run.status ?? -1, stdout: run.stdout, stderr: run.stderr };
+}
+
+/**
+ * Splits the body of a `return [ ... ]` operations list into its top-level entries, keeping each entry's source text.
+ */
+function operationEntries(body: string): string[] {
+  const entries: string[] = [];
+  let depth = 0;
+  let quote: string | undefined;
+  let start = 0;
+  for (let i = 0; i < body.length; i++) {
+    const char = body[i]!;
+    if (quote !== undefined) {
+      if (char === '\\') i++;
+      else if (char === quote) quote = undefined;
+    } else if (char === "'" || char === '"' || char === '`') quote = char;
+    else if ('([{'.includes(char)) depth++;
+    else if (')]}'.includes(char)) depth--;
+    else if (char === ',' && depth === 0) {
+      entries.push(body.slice(start, i));
+      start = i + 1;
+    }
+  }
+  entries.push(body.slice(start));
+  return entries.map((entry) => entry.trim()).filter((entry) => entry !== '');
+}
+
+/**
+ * Edits a MongoDB `migration.ts` as the advice to keep a dropped collection's documents says: `renameCollection(from, to)` becomes the first operation, imported with the others, and the drop of `from` and any create of `to` are deleted.
+ */
+export function followRenameCollectionAdvice(source: string, from: string, to: string): string {
+  const operations = /(override get operations\(\) \{\s*return \[)([\s\S]*?)(\];\s*\})/;
+  const match = operations.exec(source);
+  if (match === null) throw new Error(`no operations list in:\n${source}`);
+  const isCall = (entry: string, factory: string, collection: string) =>
+    new RegExp(`^${factory}\\(\\s*['"]${collection}['"]`).test(entry);
+  const kept = operationEntries(match[2]!).filter(
+    (entry) => !isCall(entry, 'dropCollection', from) && !isCall(entry, 'createCollection', to),
+  );
+  const entries = [`renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)})`, ...kept];
+  return source
+    .replace(
+      operations,
+      (_all, open: string, _body, close: string) => `${open}${entries.join(', ')}${close}`,
+    )
+    .replace(/import \{/, 'import { renameCollection,');
+}
+
+/**
  * Runs `migration plan` (which scaffolds a draft migration.ts), then runs
  * that migration.ts in-process so it writes its own ops.json and
  * migration.json (self-emission; see {@link runMigrationFile}).
@@ -567,7 +631,7 @@ export async function planMigrationAndSelfEmit(
   if (planResult.exitCode !== 0) return planResult;
   const latest = getLatestMigrationDir(ctx);
   if (!latest) return planResult;
-  const emitResult = await selfEmitMigration(ctx, ['--dir', `migrations/app/${latest}`]);
+  const emitResult = await selfEmitMigration(ctx, ['--dir', join(appMigrationsDir(ctx), latest)]);
   if (emitResult.exitCode !== 0) {
     return {
       ...planResult,
@@ -745,7 +809,7 @@ export function migrationStatusAppSpace(
  * test root (`migrations/app/`).
  */
 function appMigrationsDir(ctx: JourneyContext): string {
-  return join(ctx.testDir, 'migrations', 'app');
+  return join(ctx.testDir, ctx.migrationsDir ?? 'migrations', 'app');
 }
 
 /**

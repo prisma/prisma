@@ -503,7 +503,9 @@ describe('executeDbUpdate', () => {
         ...(executeSpy === undefined ? {} : { executeSpy }),
         planResult: {
           kind: 'success',
-          dataLoss: [{ operationIndex: 0, subject: NICKNAME, loss: 'drop' }],
+          dataLoss: [
+            { operationIndex: 0, subject: NICKNAME, loss: 'drop', label: 'Drop column nickname' },
+          ],
           accessWidening: [{ operationIndex: 2, subject: USER, widens: true }],
           temporaryValues: [],
           appliedStatements: [],
@@ -585,7 +587,7 @@ describe('executeDbUpdate', () => {
 
       expect(asked).toEqual([
         {
-          question: `Drop column nickname from user would lose the data in "user.nickname", named by its storage name because the origin contract is unknown; --delete loses its rows. ${ORIGIN_SNAPSHOT_RECOVERY}`,
+          question: `Drop column nickname from user would lose the data in "user.nickname", named by its storage name because the origin contract is unknown; --delete loses that data.\n${ORIGIN_SNAPSHOT_RECOVERY}`,
           subject: 'user.nickname',
           verbs: ['delete'],
         },
@@ -768,7 +770,15 @@ describe('executeDbUpdate', () => {
           accessWidening: result.value.accessWidening,
         },
       ).toEqual({
-        dataLoss: [{ operationIndex: 0, subject: NICKNAME, loss: 'drop', text: 'user.nickname' }],
+        dataLoss: [
+          {
+            operationIndex: 0,
+            subject: NICKNAME,
+            loss: 'drop',
+            label: 'Drop column nickname',
+            text: 'user.nickname',
+          },
+        ],
         accessWidening: [{ operationIndex: 2, subject: USER, widens: true, text: 'user' }],
       });
     });

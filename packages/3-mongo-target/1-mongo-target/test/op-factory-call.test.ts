@@ -20,6 +20,7 @@ import {
   createIndex,
   dropCollection,
   dropIndex,
+  renameCollection,
 } from '../src/core/migrations/migration-factories';
 import {
   CollModCall,
@@ -27,6 +28,7 @@ import {
   CreateIndexCall,
   DropCollectionCall,
   DropIndexCall,
+  RenameCollectionCall,
 } from '../src/core/migrations/op-factory-call';
 
 describe('Mongo call classes', () => {
@@ -85,6 +87,19 @@ describe('Mongo call classes', () => {
       });
 
       expect(call.toOp()).toEqual(dropCollection('users'));
+    });
+
+    it('RenameCollectionCall freezes, labels as widening, and lowers to renameCollection(...)', () => {
+      const call = new RenameCollectionCall('profiles', 'users');
+
+      expect(Object.isFrozen(call)).toBe(true);
+      expect(call).toMatchObject({
+        factoryName: 'renameCollection',
+        operationClass: 'widening',
+        label: 'Rename collection profiles to users',
+      });
+
+      expect(call.toOp()).toEqual(renameCollection('profiles', 'users'));
     });
 
     it('CollModCall defaults operationClass to widening, uses a default label, and lowers to collMod(...)', () => {
@@ -180,6 +195,15 @@ describe('Mongo call classes', () => {
       expect(call.renderTypeScript()).toBe('dropCollection("users")');
       expect(call.importRequirements()).toEqual([
         { moduleSpecifier: '@internal/target-mongo/migration', symbol: 'dropCollection' },
+      ]);
+    });
+
+    it('RenameCollectionCall emits the source and target names and imports renameCollection only', () => {
+      const call = new RenameCollectionCall('profiles', 'users');
+
+      expect(call.renderTypeScript()).toBe('renameCollection("profiles", "users")');
+      expect(call.importRequirements()).toEqual([
+        { moduleSpecifier: '@internal/target-mongo/migration', symbol: 'renameCollection' },
       ]);
     });
 

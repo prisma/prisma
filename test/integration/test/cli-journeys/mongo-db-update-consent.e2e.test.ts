@@ -163,7 +163,7 @@ describe('Journey: Mongo db update asks for consent only to lose data', {
     expect(unconfirmed.exitCode).toBe(2);
     expect(parseJsonOutput(unconfirmed)).toMatchObject({
       code: 'CLI.CONSENT_REQUIRED',
-      meta: { unanswered: [{ subject: 'Event', verbs: ['delete'] }] },
+      meta: { unanswered: [{ subject: 'Event', verbs: ['rename', 'delete'] }] },
     });
     const kept = await client.db(dbName).listCollections({ name: 'events' }).toArray();
     expect(kept.map(({ name }) => name)).toEqual(['events']);

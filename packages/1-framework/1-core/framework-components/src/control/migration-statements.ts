@@ -107,12 +107,14 @@ export interface MigrationAccessChange extends MigrationOperationSubject {
  */
 export type MigrationDataLossKind = 'drop' | 'typeChange';
 
-/** An operation that loses data: its subject, and how it loses that subject's data. */
+/** An operation that loses data: its subject, how it loses that subject's data, and how to keep it. */
 export interface MigrationDataLoss extends MigrationOperationSubject {
-  /** How the operation loses the data; absent when no planner says, as for an operation of a recorded migration. */
+  /** How the operation loses the data; absent for an operation of a recorded migration, which does not say. */
   readonly loss?: MigrationDataLossKind;
-  /** The label of the planned call that loses the data, which names it while a slot of the plan is unfilled. */
-  readonly label?: string;
+  /** The label of the operation that loses the data, which names it while a slot of the plan is unfilled. */
+  readonly label: string;
+  /** How to keep the data instead, in the target's words, when no statement can say so. */
+  readonly keepDataAdvice?: string;
 }
 
 /**

@@ -410,6 +410,7 @@ describe('executeDbUpdate with statements', () => {
           field: 'nickname',
         },
         loss: 'drop',
+        label: 'Drop column nickname',
       },
     ]);
 
@@ -425,6 +426,7 @@ describe('executeDbUpdate with statements', () => {
         operationIndex: 0,
         subject: { kind: 'field', namespaceId: 'app', model: 'Profile', field: 'nickname' },
         loss: 'drop',
+        label: 'Drop column nickname',
         text: 'User.nickname',
       },
     ]);

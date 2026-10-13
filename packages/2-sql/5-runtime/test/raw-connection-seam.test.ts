@@ -245,7 +245,7 @@ describe('acquireRawConnection', () => {
     const observer: SqlMiddleware = {
       name: 'observer',
       familyId: 'sql',
-      beforeQuery(exec) {
+      beforeEncode(exec) {
         observedSqls.push(exec.sql);
       },
     };
@@ -268,7 +268,7 @@ describe('queryAgainstQueryable', () => {
     const observer: SqlMiddleware = {
       name: 'observer',
       familyId: 'sql',
-      beforeQuery(exec) {
+      beforeEncode(exec) {
         observedSqls.push(exec.sql);
       },
     };

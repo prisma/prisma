@@ -9,7 +9,6 @@ import {
   createControlStack,
   hasOperationPreview,
   type MigrationPlanOperation,
-  type MigrationSubject,
   migrationSubjectKey,
   type OperationPreview,
   planOriginOf,
@@ -49,13 +48,12 @@ import {
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
+import { selfEmitCommand } from '../../utils/self-emit-command';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import {
   type AnswerPlanQuestions,
   askPlanQuestions,
-  keepDataByHandFor,
   type PlannedDataLoss,
-  subjectText,
 } from '../statements/plan-questions';
 import {
   type AppliedStatementReport,
@@ -88,6 +86,8 @@ export interface MigrationPlanOptions {
   readonly cwd: string;
   /** The project's directory, normally the validated config's `baseDir`; locates the project manifest. */
   readonly projectDir?: string;
+  /** The `--config` the command was given, repeated in the command that runs a written `migration.ts`. */
+  readonly configPath?: string;
   readonly name?: string;
   readonly from?: string;
   readonly to?: string;
@@ -118,6 +118,17 @@ type PlannerSuccess = {
   readonly dataLoss: readonly PlannedDataLoss[];
   readonly temporaryValues: readonly TemporaryValueReport[];
 };
+
+function placeholderSummary(
+  planned: string,
+  dirs: readonly string[],
+  configPath: string | undefined,
+): string {
+  const commands = dirs
+    .map((dir) => `\`${selfEmitCommand(join(dir, 'migration.ts'), configPath)}\``)
+    .join(' and ');
+  return `Planned ${planned} with placeholder(s) — edit migration.ts, then run ${commands} to self-emit`;
+}
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
 const EMPTY_ORIGIN: ContractWithDomain = { domain: { namespaces: {} } };
@@ -220,15 +231,15 @@ async function runPlannerLeg(
     plannedOps,
     migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
-    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject, loss, label }) => ({
-      operationIndex: position(operationIndex),
-      subject,
-      loss,
-      label:
-        label ??
-        resolved[operationIndex]?.label ??
-        subjectText(subject, { origin: fromContract ?? EMPTY_ORIGIN, statements: [] }),
-    })),
+    dataLoss: plannerResult.dataLoss.map(
+      ({ operationIndex, subject, loss, label, keepDataAdvice }) => ({
+        operationIndex: position(operationIndex),
+        subject,
+        loss,
+        label,
+        ...ifDefined('keepDataAdvice', keepDataAdvice),
+      }),
+    ),
     appliedStatements: reportAppliedStatements(
       plannerResult.appliedStatements.map((applied) => ({
         ...applied,
@@ -304,7 +315,6 @@ async function answerPlannedDataLoss(input: {
   readonly consents: readonly StatementText[];
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
-  readonly keepDataByHand: ((subject: MigrationSubject) => string) | undefined;
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly planDelta: (
@@ -333,7 +343,6 @@ async function answerPlannedDataLoss(input: {
     consentAll: { delete: false, allow: false },
     origin: input.origin,
     originKnown: input.originKnown,
-    keepDataByHand: input.keepDataByHand,
     destination: input.destination,
     answer: input.answer,
     replan: async (statements) => {
@@ -763,7 +772,6 @@ async function executeMigrationPlanCommandInner(
         consents: statementTexts.filter((statement) => !isPlannedStatement(statement)),
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
-        keepDataByHand: keepDataByHandFor(migrations, fromContract ?? EMPTY_ORIGIN),
         destination: toContract,
         answer: options.answerQuestions,
         planDelta: async (planned) => {
@@ -881,8 +889,7 @@ async function executeMigrationPlanCommandInner(
             placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
             temporaryValues: baselineLeg.value.temporaryValues,
-            summary:
-              'Planned baseline with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
+            summary: placeholderSummary('baseline', [baselineDir], options.configPath),
             timings: { total: Date.now() - startTime },
           };
           return ok(result);
@@ -925,13 +932,15 @@ async function executeMigrationPlanCommandInner(
       const baselineOps = baselineLeg.value.hasPlaceholders ? [] : baselineLeg.value.plannedOps;
       const deltaOps = deltaLeg.value.hasPlaceholders ? [] : deltaLeg.value.plannedOps;
       if (baselineLeg.value.hasPlaceholders || deltaLeg.value.hasPlaceholders) {
+        const baselineDir = relative(cwd, baselinePackageDir);
+        const deltaDir = relative(cwd, deltaPackageDir);
         const result: MigrationPlanResult = {
           ok: true,
           noOp: false,
           from: fromHash,
           to: toStorageHash,
-          dir: relative(cwd, deltaPackageDir),
-          baselineDir: relative(cwd, baselinePackageDir),
+          dir: deltaDir,
+          baselineDir,
           operations: operationSummaries(deltaLeg.value.plannedOps),
           baselineOperations: operationSummaries(baselineLeg.value.plannedOps),
           emittedExtensionDirs,
@@ -943,8 +952,11 @@ async function executeMigrationPlanCommandInner(
           ],
           appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
           temporaryValues: deltaLeg.value.temporaryValues,
-          summary:
-            'Planned baseline + migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
+          summary: placeholderSummary(
+            'baseline + migration',
+            [baselineDir, deltaDir],
+            options.configPath,
+          ),
           timings: { total: Date.now() - startTime },
         };
         return ok(result);
@@ -1045,12 +1057,13 @@ async function executeMigrationPlanCommandInner(
     await writeDestinationSnapshot(toStorageHash);
 
     if (deltaLeg.value.hasPlaceholders) {
+      const dir = relative(cwd, packageDir);
       const result: MigrationPlanResult = {
         ok: true,
         noOp: false,
         from: fromHash,
         to: toStorageHash,
-        dir: relative(cwd, packageDir),
+        dir,
         operations: operationSummaries(deltaLeg.value.plannedOps),
         emittedExtensionDirs,
         ...(warnings.length > 0 ? { warnings } : {}),
@@ -1059,8 +1072,7 @@ async function executeMigrationPlanCommandInner(
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.value.temporaryValues,
-        summary:
-          'Planned migration with placeholder(s) — edit migration.ts then run `node migration.ts` to self-emit',
+        summary: placeholderSummary('migration', [dir], options.configPath),
         timings: { total: Date.now() - startTime },
       };
       return ok(result);

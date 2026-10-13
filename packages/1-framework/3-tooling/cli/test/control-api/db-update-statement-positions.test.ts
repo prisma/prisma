@@ -115,7 +115,7 @@ const migrations = {
         statement,
         operationIndexes: [0],
       })),
-      dataLoss: [{ operationIndex: 0, subject: LOST, loss: 'drop' }],
+      dataLoss: [{ operationIndex: 0, subject: LOST, loss: 'drop', label: 'Drop table audit_log' }],
       accessWidening: [{ operationIndex: 0, subject: LOST, widens: true }],
       temporaryValues: [],
       plan: {

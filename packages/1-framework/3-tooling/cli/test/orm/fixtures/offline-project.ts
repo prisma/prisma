@@ -229,7 +229,7 @@ export interface FakePlannerScript {
 
 /**
  * A `dataLoss` entry of a scripted plan: the position of an operation, what it loses, and how; a
- * drop unless `loss` says otherwise.
+ * drop unless `loss` says otherwise, labelled by its operation unless `label` says otherwise.
  */
 export interface ScriptedDataLoss {
   readonly operationIndex: number;
@@ -274,7 +274,11 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
       return script.conflicts === undefined
         ? {
             kind: 'success',
-            dataLoss: dataLoss.map((entry) => ({ loss: 'drop', ...entry })),
+            dataLoss: dataLoss.map((entry) => ({
+              loss: 'drop',
+              label: (operations ?? [ADDITIVE_OP])[entry.operationIndex]?.label,
+              ...entry,
+            })),
             accessWidening: [],
             temporaryValues: script.temporaryValues ?? [],
             appliedStatements: options.statements.map((statement) => ({

@@ -11,11 +11,13 @@ import type {
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlModelStorage } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
 import { fieldOfColumn } from './field-of-column';
 import {
   fieldRenameStorageEffect,
   isSqlModelStorage,
   modelRenameStorageEffect,
+  type TableRenameByHand,
 } from './statement-planning';
 
 /**
@@ -92,6 +94,7 @@ interface SubjectContext {
   readonly contract: ContractWithDomain;
   /** The statements the plan applied: a target names what their renames renamed the new way. */
   readonly statements: readonly ResolvedMigrationStatement[];
+  readonly byHand: TableRenameByHand;
 }
 
 function originTable(
@@ -180,6 +183,29 @@ function subjectOf(target: SubjectStorage, context: SubjectContext): MigrationSu
 }
 
 /**
+ * How to keep the rows of a dropped table whose model the destination keeps under the same name in
+ * another table of the same namespace: no statement can rename that table, so the user renames it
+ * by hand. None when the origin contract already stores a model in that table.
+ */
+function keepTableAdvice(
+  target: SubjectStorage,
+  subject: MigrationSubject,
+  context: SubjectContext,
+): string | undefined {
+  if (subject.kind !== 'model' || target.table === undefined || context.fromContract === null) {
+    return undefined;
+  }
+  const storage =
+    context.contract.domain.namespaces[subject.namespaceId]?.models[subject.model]?.storage;
+  if (storage === undefined || !isSqlModelStorage(storage)) return undefined;
+  const { namespaceId, table: from } = target.table;
+  if (storage.namespaceId !== namespaceId || storage.table === from) return undefined;
+  if (modelsStoring(context.fromContract, namespaceId, storage.table).length > 0) return undefined;
+  const rename = { namespaceId, from, to: storage.table };
+  return `To keep its rows, rename table "${from}" to "${storage.table}" instead; a statement cannot rename the table of a model that keeps its name. With db update, rename the table in the database yourself with ${context.byHand.tableRenameByHand(rename).join('; ')}, then run prisma db update. With migration plan, write the rename as a migration of its own instead: run prisma migration new --name <name> --from <hash of the migration the database is at>, add ${context.byHand.renderTableRename(rename)} to the operations of its migration.ts, run node on that migration.ts so it writes ops.json, then run prisma db migrate.`;
+}
+
+/**
  * The subject of each operation that loses data and each that widens access, at its position in
  * the plan. A subject is a model or a field of the origin contract when one stores it, found under
  * its origin name when a rename statement renamed its table or column earlier in the plan.
@@ -204,11 +230,13 @@ export function subjectsOfCalls(
       });
     }
     for (const target of call.dataLoss) {
+      const subject = subjectOf(target, context);
       dataLoss.push({
         operationIndex,
-        subject: subjectOf(target, context),
+        subject,
         loss: target.loss,
         label: call.label,
+        ...ifDefined('keepDataAdvice', keepTableAdvice(target, subject, context)),
       });
     }
     for (const target of call.accessWidening) {

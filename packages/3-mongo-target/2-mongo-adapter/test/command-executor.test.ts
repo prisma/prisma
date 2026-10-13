@@ -2,7 +2,7 @@
  * Behavioral tests for DDL execution via the adapter-owned seam
  * (`controlAdapter.executeDdl(driver, command)` → `driver.run(wire)`).
  *
- * Each test exercises one of the five DDL command kinds against mongodb-memory-server
+ * Each test exercises one of the DDL command kinds against mongodb-memory-server
  * and asserts the resulting database state.
  */
 import { MongoDriverImpl } from '@internal/driver-mongo';
@@ -14,6 +14,7 @@ import {
   DropIndexCommand,
   ListCollectionsCommand,
   ListIndexesCommand,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import { type Db, MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -55,6 +56,7 @@ async function execDdl(
     | CreateIndexCommand
     | DropCollectionCommand
     | DropIndexCommand
+    | RenameCollectionCommand
     | CollModCommand,
 ): Promise<void> {
   const controlAdapter = new MongoControlAdapterImpl();
@@ -291,6 +293,18 @@ describe('dropCollection via executeDdl', () => {
 
     const colls = await db.listCollections({ name: 'temp' }).toArray();
     expect(colls).toHaveLength(0);
+  });
+});
+
+describe('renameCollection via executeDdl', () => {
+  it('renames an existing collection', async () => {
+    await db.createCollection('old_name');
+    await execDdl(new RenameCollectionCommand('old_name', 'new_name'));
+
+    const names = (
+      await db.listCollections({ name: { $in: ['old_name', 'new_name'] } }).toArray()
+    ).map((c) => c['name']);
+    expect(names).toEqual(['new_name']);
   });
 });
 

@@ -99,6 +99,7 @@ const fixtureConfigSource = [
   '  family: sql,',
   '  target: postgres,',
   '  adapter: postgresAdapter,',
+  "  migrations: { dir: '.' },",
   '}) };',
   '',
 ].join('\n');

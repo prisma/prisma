@@ -4,8 +4,14 @@ import { MongoCollection, type MongoContract } from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIndex, MongoSchemaIR } from '@internal/mongo-schema-ir';
 import { expectDataLossMatchesDestructive } from '@repo/test-utils/data-loss-expectations';
 import { describe, expect, it } from 'vitest';
-import { keepDataByHand, MongoMigrationPlanner } from '../src/core/migrations/mongo-planner';
+import { MongoMigrationPlanner } from '../src/core/migrations/mongo-planner';
 import type { PlannerProducedMongoMigration } from '../src/core/migrations/planner-produced-migration';
+import {
+  contract,
+  planned,
+  plan as planStatementsFixture,
+  schemaCollection,
+} from './mongo-statement-fixtures';
 
 const ALL_CLASSES_POLICY: MigrationOperationPolicy = {
   allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'],
@@ -61,9 +67,12 @@ function contractWith(
   } as unknown as MongoContract;
 }
 
-function plan(fromContract: MongoContract | null) {
+function plan(
+  fromContract: MongoContract | null,
+  contract: MongoContract = contractWith({ User: 'users' }, 'to'),
+) {
   const result = new MongoMigrationPlanner().plan({
-    contract: contractWith({ User: 'users' }, 'to'),
+    contract,
     schema: new MongoSchemaIR([
       new MongoSchemaCollection({ name: 'users' }),
       new MongoSchemaCollection({
@@ -105,6 +114,7 @@ describe('MongoDB planner, data loss', () => {
           operationIndex: dropCollection,
           subject: { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
           loss: 'drop',
+          label: 'Drop collection events',
         },
       ],
       accessWidening: [],
@@ -143,23 +153,58 @@ describe('MongoDB planner, data loss', () => {
       },
     ]);
   });
-});
 
-describe('keepDataByHand', () => {
-  it('says to rename the collection a dropped model stores its documents in', () => {
-    expect(
-      keepDataByHand(
-        { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
-        contractWith({ Event: 'events' }, 'from'),
-      ),
-    ).toBe(
-      'If it was renamed, keep its documents instead: rename collection "events" by hand on each database before a plan that drops it is applied there, for example with db.getCollection("events").renameCollection("<new collection>") in mongosh. db update then drops nothing; a migration written by migration plan still drops "events", so remove that operation from its migration.ts, or do not apply it where the collection was renamed.',
+  it('advises renaming the collection by hand when only the collection of a model that keeps its name changes', () => {
+    const planned = plan(
+      contractWith({ User: 'users', Event: 'events' }, 'from'),
+      contractWith({ User: 'users', Event: 'occasions' }, 'to'),
     );
+
+    expect(
+      planned.dataLoss.map(({ operationIndex, subject, keepDataAdvice }) => ({
+        operation: planned.operations[operationIndex],
+        subject,
+        keepDataAdvice,
+      })),
+    ).toEqual([
+      {
+        operation: 'Drop collection events',
+        subject: { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
+        keepDataAdvice:
+          'To keep its documents, rename collection "events" to "occasions" instead; a statement cannot rename the collection of a model that keeps its name. With db update, rename the collection in the database yourself, for example db.getCollection("events").renameCollection("occasions") in mongosh, then run db update. With migration plan, plan it, passing --delete Event to answer its question; in its migration.ts make renameCollection("events", "occasions") the first operation, imported with the other operations, delete the drop of "events", and delete the create of "occasions" if there is one; run node on that migration.ts so it writes ops.json again; then apply it with prisma db migrate.',
+      },
+    ]);
   });
 
-  it('names a collection no model stores by its name', () => {
-    expect(keepDataByHand({ kind: 'storage', name: 'audit' }, contractWith({}, 'from'))).toBe(
-      'If it was renamed, keep its documents instead: rename collection "audit" by hand on each database before a plan that drops it is applied there, for example with db.getCollection("audit").renameCollection("<new collection>") in mongosh. db update then drops nothing; a migration written by migration plan still drops "audit", so remove that operation from its migration.ts, or do not apply it where the collection was renamed.',
-    );
+  it('gives no advice when the model of the dropped collection is gone', () => {
+    const planned = plan(contractWith({ User: 'users', Event: 'events' }, 'from'));
+    expect(planned.dataLoss.map(({ keepDataAdvice }) => keepDataAdvice)).toEqual([undefined]);
+  });
+
+  it('advises renaming the collection by hand when the plan creates the new collection only with its indexes', () => {
+    const result = planStatementsFixture({
+      from: contract(
+        'from',
+        { Event: { collection: 'events', fields: ['_id', 'name'] } },
+        { events: { unique: ['name'] } },
+      ),
+      to: contract(
+        'to',
+        { Event: { collection: 'occasions', fields: ['_id', 'name'] } },
+        { occasions: { unique: ['name'] } },
+      ),
+      schema: [schemaCollection('events', { unique: ['name'] })],
+    });
+    const { labels, dataLoss } = planned(result);
+
+    expect({
+      creates: labels.filter((label) => label.startsWith('Create')),
+      advice: dataLoss.map(({ keepDataAdvice }) => keepDataAdvice),
+    }).toEqual({
+      creates: ['Create index on occasions (name:1)'],
+      advice: [
+        'To keep its documents, rename collection "events" to "occasions" instead; a statement cannot rename the collection of a model that keeps its name. With db update, rename the collection in the database yourself, for example db.getCollection("events").renameCollection("occasions") in mongosh, then run db update. With migration plan, plan it, passing --delete Event to answer its question; in its migration.ts make renameCollection("events", "occasions") the first operation, imported with the other operations, delete the drop of "events", and delete the create of "occasions" if there is one; run node on that migration.ts so it writes ops.json again; then apply it with prisma db migrate.',
+      ],
+    });
   });
 });

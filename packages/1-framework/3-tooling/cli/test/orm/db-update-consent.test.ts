@@ -73,7 +73,6 @@ const contracts = {
   statements: [],
   canConvert: false,
   originKnown: true,
-  keepDataByHand: undefined,
 };
 
 /** One question of each kind, across two spaces: an extension's recorded drop is a storage subject. */

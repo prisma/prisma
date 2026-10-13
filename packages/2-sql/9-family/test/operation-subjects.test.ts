@@ -8,9 +8,15 @@ import {
   subjectsOfCalls,
   unknownCallNames,
 } from '../src/core/migrations/operation-subjects';
+import type { TableRenameByHand } from '../src/core/migrations/statement-planning';
 import { contractOf, convertField, renameField, renameModel } from './statement-fixtures';
 
 const app = asNamespaceId('app');
+
+const byHand: TableRenameByHand = {
+  renderTableRename: ({ from, to }) => `this.renameTable("${from}", "${to}")`,
+  tableRenameByHand: ({ from, to }) => [`ALTER TABLE "${from}" RENAME TO "${to}"`],
+};
 
 function table(name: string, storageName = name): SubjectStorage {
   return { storageName, table: { namespaceId: 'app', table: name, column: undefined } };
@@ -52,6 +58,7 @@ describe('subjectsOfCalls', () => {
       subjectsOfCalls([unchanged, losing(table('legacy')), losing(column('user', 'full_name'))], {
         fromContract: origin,
         contract: contractOf({ User: { table: 'user', fields: { id: 'id' } } }),
+        byHand,
         statements: [],
       }),
     ).toEqual({
@@ -87,7 +94,7 @@ describe('subjectsOfCalls', () => {
           },
           losing(table('legacy')),
         ],
-        { fromContract: origin, contract: origin, statements: [] },
+        { fromContract: origin, contract: origin, byHand, statements: [] },
       ).dataLoss,
     ).toEqual([
       {
@@ -110,6 +117,7 @@ describe('subjectsOfCalls', () => {
       subjectsOfCalls([losing(column('account', 'display_name'))], {
         fromContract: from,
         contract: destination,
+        byHand,
         statements: [
           renameModel('User', 'Account'),
           renameField('User', 'name', 'displayName', 'Account'),
@@ -137,7 +145,7 @@ describe('subjectsOfCalls', () => {
             temporaryValues: [],
           },
         ],
-        { fromContract: origin, contract: origin, statements: [] },
+        { fromContract: origin, contract: origin, byHand, statements: [] },
       ).dataLoss,
     ).toEqual([
       {
@@ -157,6 +165,7 @@ describe('subjectsOfCalls', () => {
       subjectsOfCalls([losing(column('user', 'full_name'))], {
         fromContract: origin,
         contract: destination,
+        byHand,
         statements: [convertField('User', 'name')],
       }).dataLoss.map(({ subject }) => subject),
     ).toEqual([{ kind: 'field', namespaceId: app, model: 'User', field: 'name' }]);
@@ -169,6 +178,7 @@ describe('subjectsOfCalls', () => {
         {
           fromContract: origin,
           contract: origin,
+          byHand,
           statements: [],
         },
       ).dataLoss,
@@ -193,6 +203,7 @@ describe('subjectsOfCalls', () => {
       subjectsOfCalls([losing(table('legacy'), column('user', 'full_name'))], {
         fromContract: null,
         contract: origin,
+        byHand,
         statements: [],
       }).dataLoss,
     ).toEqual([
@@ -216,6 +227,7 @@ describe('subjectsOfCalls', () => {
       subjectsOfCalls([losing({ storageName: 'public.mood', table: undefined })], {
         fromContract: origin,
         contract: origin,
+        byHand,
         statements: [],
       }).dataLoss,
     ).toEqual([
@@ -241,7 +253,7 @@ describe('subjectsOfCalls', () => {
             temporaryValues: [],
           },
         ],
-        { fromContract: origin, contract: origin, statements: [] },
+        { fromContract: origin, contract: origin, byHand, statements: [] },
       ),
     ).toEqual({
       dataLoss: [],
@@ -268,6 +280,7 @@ describe('subjectsOfCalls', () => {
         subjectsOfCalls([losing(table('users')), losing(column('users', 'email'))], {
           fromContract: sharing,
           contract: sharing,
+          byHand,
           statements: [],
         }).dataLoss.map(({ subject }) => subject),
       ).toEqual([
@@ -281,6 +294,7 @@ describe('subjectsOfCalls', () => {
         subjectsOfCalls([losing(column('users', 'level'))], {
           fromContract: sharing,
           contract: sharing,
+          byHand,
           statements: [],
         }).dataLoss.map(({ subject }) => subject),
       ).toEqual([{ kind: 'field', namespaceId: app, model: 'Admin', field: 'level' }]);
@@ -312,7 +326,7 @@ describe('fieldEventStorage', () => {
           fieldEventStorage({ namespaceId: 'app', tableName: 'user', columnName: 'nickname' }),
         ),
       ],
-      { fromContract: origin, contract: origin, statements: [] },
+      { fromContract: origin, contract: origin, byHand, statements: [] },
     );
     expect(subjects.dataLoss.map(({ subject }) => subject)).toEqual([
       { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
@@ -322,5 +336,68 @@ describe('fieldEventStorage', () => {
       fieldEventStorage({ namespaceId: UNBOUND_NAMESPACE_ID, tableName: 'user', columnName: 'bio' })
         .storageName,
     ).toBe('user.bio');
+  });
+});
+
+describe('subjectsOfCalls for a table whose model keeps its name', () => {
+  const from = contractOf({ Profile: { table: 'profiles', fields: { id: 'id' } } });
+
+  it('says how to rename the table by hand to keep its rows', () => {
+    const to = contractOf({ Profile: { table: 'people', fields: { id: 'id' } } });
+
+    expect(
+      subjectsOfCalls([losing(table('profiles'))], {
+        fromContract: from,
+        contract: to,
+        statements: [],
+        byHand,
+      }).dataLoss,
+    ).toEqual([
+      {
+        operationIndex: 0,
+        subject: { kind: 'model', namespaceId: app, model: 'Profile' },
+        loss: 'drop',
+        label: 'Drop',
+        keepDataAdvice:
+          'To keep its rows, rename table "profiles" to "people" instead; a statement cannot rename the table of a model that keeps its name. With db update, rename the table in the database yourself with ALTER TABLE "profiles" RENAME TO "people", then run prisma db update. With migration plan, write the rename as a migration of its own instead: run prisma migration new --name <name> --from <hash of the migration the database is at>, add this.renameTable("profiles", "people") to the operations of its migration.ts, run node on that migration.ts so it writes ops.json, then run prisma db migrate.',
+      },
+    ]);
+  });
+
+  it('gives no advice when the destination has no model of that name', () => {
+    const to = contractOf({ Person: { table: 'people', fields: { id: 'id' } } });
+
+    expect(
+      subjectsOfCalls([losing(table('profiles'))], {
+        fromContract: from,
+        contract: to,
+        statements: [],
+        byHand,
+      }).dataLoss,
+    ).toEqual([
+      {
+        operationIndex: 0,
+        subject: { kind: 'model', namespaceId: app, model: 'Profile' },
+        loss: 'drop',
+        label: 'Drop',
+      },
+    ]);
+  });
+
+  it('gives no advice when the new table already holds another model of the origin', () => {
+    const withPeople = contractOf({
+      Profile: { table: 'profiles', fields: { id: 'id' } },
+      Person: { table: 'people', fields: { id: 'id' } },
+    });
+    const to = contractOf({ Profile: { table: 'people', fields: { id: 'id' } } });
+
+    expect(
+      subjectsOfCalls([losing(table('profiles'))], {
+        fromContract: withPeople,
+        contract: to,
+        statements: [],
+        byHand,
+      }).dataLoss.map(({ keepDataAdvice }) => keepDataAdvice),
+    ).toEqual([undefined]);
   });
 });

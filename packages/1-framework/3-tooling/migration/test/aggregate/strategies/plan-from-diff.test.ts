@@ -237,7 +237,7 @@ describe('planFromDiff', () => {
         kind: 'success',
         plan: makeStubPlan('placeholder'),
         appliedStatements: [],
-        dataLoss: [{ operationIndex: 0, subject, loss: 'drop' }],
+        dataLoss: [{ operationIndex: 0, subject, loss: 'drop', label: 'Drop table audit_log' }],
         accessWidening: [{ operationIndex: 0, subject, widens: true }],
         temporaryValues: [],
       }),

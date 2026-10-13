@@ -15,6 +15,7 @@ import {
 } from '@internal/mongo-query-ast/control';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
+import { renameCollection } from '../src/core/migrations/migration-factories';
 import {
   deserializeMongoOps,
   serializeMongoOps,
@@ -632,6 +633,14 @@ describe('serializeMongoOps / deserializeMongoOps', () => {
     const cmd = asDdlOp(deserialized[0]!).execute[0]!.command as DropCollectionCommand;
     expect(cmd.kind).toBe('dropCollection');
     expect(cmd.collection).toBe('events');
+  });
+
+  it('round-trips a renameCollection operation', () => {
+    const op = renameCollection('profiles', 'users');
+
+    const deserialized = deserializeMongoOps(JSON.parse(serializeMongoOps([op])) as unknown[]);
+
+    expect(deserialized).toEqual([op]);
   });
 
   it('round-trips collMod command', () => {

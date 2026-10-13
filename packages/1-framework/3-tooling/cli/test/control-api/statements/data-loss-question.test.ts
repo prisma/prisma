@@ -23,7 +23,6 @@ describe('dataLossQuestion for data no model names', () => {
       statements: [],
       canConvert: true,
       originKnown: true,
-      keepDataByHand: undefined,
     });
 
     expect({ question: question.question, verbs: question.verbs }).toEqual({
@@ -40,11 +39,10 @@ describe('dataLossQuestion for data no model names', () => {
       statements: [],
       canConvert: true,
       originKnown: false,
-      keepDataByHand: undefined,
     });
 
     expect(question.question).toBe(
-      'Drop column age from user would lose the data in "public.user.age", named by its storage name because the origin contract is unknown; --delete loses its rows.',
+      'Drop column age from user would lose the data in "public.user.age", named by its storage name because the origin contract is unknown; --delete loses that data.',
     );
   });
 });
@@ -56,13 +54,7 @@ describe('dataLossQuestion verbs', () => {
   });
   const withNickname = contractOf({ app: { models: { User: { fields: ['email', 'nickname'] } } } });
 
-  const keepByHand = () => 'Rename it by hand first.';
-
-  function questionFor(
-    field: string,
-    destination: typeof origin,
-    keepDataByHand: (() => string) | undefined,
-  ) {
+  function questionFor(field: string, destination: typeof origin) {
     return dataLossQuestion(
       {
         operationIndex: 0,
@@ -76,21 +68,20 @@ describe('dataLossQuestion verbs', () => {
         statements: [],
         canConvert: true,
         originKnown: true,
-        keepDataByHand,
       },
     );
   }
 
-  function verbsFor(field: string, destination: typeof origin, renamesPlannable: boolean) {
-    return questionFor(field, destination, renamesPlannable ? undefined : keepByHand).verbs;
+  function verbsFor(field: string, destination: typeof origin) {
+    return questionFor(field, destination).verbs;
   }
 
   it('offers rename for a field the destination no longer has', () => {
-    expect(verbsFor('nickname', destinationWithoutNickname, true)).toEqual(['rename', 'delete']);
+    expect(verbsFor('nickname', destinationWithoutNickname)).toEqual(['rename', 'delete']);
   });
 
-  it('offers only delete for a dropped field the destination still has', () => {
-    expect(verbsFor('email', destinationWithoutNickname, true)).toEqual(['delete']);
+  it('offers only delete for a field that keeps its name, such as one whose type changes', () => {
+    expect(verbsFor('email', destinationWithoutNickname)).toEqual(['delete']);
   });
 
   it('offers only delete for a field a rename statement of the plan already renamed', () => {
@@ -108,23 +99,13 @@ describe('dataLossQuestion verbs', () => {
         statements: [{ verb: 'rename', text: 'User.nickname:User.handle' }],
         canConvert: true,
         originKnown: true,
-        keepDataByHand: undefined,
       },
     );
     expect(question.verbs).toEqual(['delete']);
   });
 
-  it('offers only delete where the planner cannot carry out a rename, and says how to keep the data by hand', () => {
-    const question = questionFor('nickname', destinationWithoutNickname, keepByHand);
-    expect({ verbs: question.verbs, question: question.question }).toEqual({
-      verbs: ['delete'],
-      question:
-        'An operation would lose the values of field "User.nickname". Rename it by hand first.',
-    });
-  });
-
   it('writes the rename form of a field with its model, as a field rename is written', () => {
-    expect(questionFor('nickname', destinationWithoutNickname, undefined).forms).toEqual({
+    expect(questionFor('nickname', destinationWithoutNickname).forms).toEqual({
       rename: 'User.nickname:User.<new name>',
     });
   });
@@ -158,7 +139,6 @@ describe('dataLossQuestion for a type change', () => {
       statements,
       canConvert,
       originKnown: true,
-      keepDataByHand: undefined,
     });
   }
 
@@ -180,7 +160,6 @@ describe('dataLossQuestion for a type change', () => {
         statements: [],
         canConvert: true,
         originKnown: true,
-        keepDataByHand: undefined,
       },
     );
     expect(rebuild.question).toBe(
@@ -209,6 +188,54 @@ describe('dataLossQuestion for a type change', () => {
   });
 });
 
+describe('dataLossQuestion for a field whose model the destination names differently', () => {
+  const app = asNamespaceId('app');
+  const profile = contractOf({ app: { models: { Profile: { fields: ['email', 'nickname'] } } } });
+  const person = contractOf({ app: { models: { Person: { fields: ['email', 'alias'] } } } });
+  const loss = {
+    operationIndex: 0,
+    label: 'Remove field nickname from collection profiles',
+    subject: { kind: 'field', namespaceId: app, model: 'Profile', field: 'nickname' },
+    loss: 'drop',
+  } as const;
+
+  it('offers only delete, and says to rename the model first', () => {
+    const question = dataLossQuestion(loss, {
+      origin: profile,
+      destination: person,
+      statements: [],
+      canConvert: true,
+      originKnown: true,
+    });
+    expect({ verbs: question.verbs, question: question.question }).toEqual({
+      verbs: ['delete'],
+      question:
+        'Remove field nickname from collection profiles would lose the values of field "Profile.nickname". The destination contract has no model "Profile"; to keep the values instead, also pass --rename Profile:<new model name>, naming the model that stores them now, and the question then offers to rename the field.',
+    });
+  });
+
+  it('offers the field rename once the printed model rename is passed, and accepts it', () => {
+    const question = dataLossQuestion(loss, {
+      origin: profile,
+      destination: person,
+      statements: [{ verb: 'rename', text: 'Profile:Person' }],
+      canConvert: true,
+      originKnown: true,
+    });
+    expect({
+      subject: question.subject,
+      verbs: question.verbs,
+      forms: question.forms,
+      accepted: question.validate('rename', 'Person.nickname:Person.alias'),
+    }).toEqual({
+      subject: 'Person.nickname',
+      verbs: ['rename', 'delete'],
+      forms: { rename: 'Person.nickname:Person.<new name>' },
+      accepted: undefined,
+    });
+  });
+});
+
 describe('consentDescription', () => {
   const age = {
     kind: 'field',
@@ -222,5 +249,28 @@ describe('consentDescription', () => {
       consentDescription('delete', age, 'User.age', 'typeChange'),
       consentDescription('delete', age, 'User.age', 'drop'),
     ]).toEqual(['accept lossy type change of field "User.age"', 'delete field "User.age"']);
+  });
+});
+
+describe('dataLossQuestion with advice from the target', () => {
+  it('ends the question with how to keep the data, and still offers only delete', () => {
+    const app = asNamespaceId('app');
+    const users = contractOf({ app: { models: { User: { fields: ['email'] } } } });
+    const question = dataLossQuestion(
+      {
+        operationIndex: 0,
+        label: 'Drop storage users',
+        subject: { kind: 'model', namespaceId: app, model: 'User' },
+        loss: 'drop',
+        keepDataAdvice: 'To keep its data, move it by hand.',
+      },
+      { origin: users, destination: users, statements: [], canConvert: true, originKnown: true },
+    );
+
+    expect({ question: question.question, verbs: question.verbs }).toEqual({
+      question:
+        'Drop storage users would lose the data of model "User". To keep its data, move it by hand.',
+      verbs: ['delete'],
+    });
   });
 });

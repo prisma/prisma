@@ -1,167 +1,150 @@
-import { asNamespaceId } from '@internal/contract/types';
-import type {
-  MigrationOperationPolicy,
-  ResolvedMigrationStatement,
-} from '@internal/framework-components/control';
-import { MongoCollection, type MongoContract } from '@internal/mongo-contract';
-import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
+import type { ResolvedMigrationStatement } from '@internal/framework-components/control';
+import { MongoSchemaCollection, MongoSchemaCollectionOptions } from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
-import { MongoMigrationPlanner } from '../src/core/migrations/mongo-planner';
+import {
+  contract,
+  NS,
+  plan,
+  planned,
+  profiles,
+  profilesSchema,
+  renameModel,
+  users,
+} from './mongo-statement-fixtures';
 
-const ALL_CLASSES_POLICY: MigrationOperationPolicy = {
-  allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'],
-};
-
-const NAMESPACE = asNamespaceId('__unbound__');
-
-function contractWithModel(model: string, collection: string): MongoContract {
-  return {
-    target: 'mongo',
-    targetFamily: 'mongo',
-    profileHash: 'test-profile',
-    capabilities: {},
-    extensions: {},
-    meta: {},
-    roots: {},
-    domain: {
-      namespaces: {
-        __unbound__: {
-          models: { [model]: { fields: {}, relations: {}, storage: { collection } } },
-        },
-      },
-    },
-    storage: {
-      storageHash: `storage-${collection}`,
-      namespaces: {
-        __unbound__: {
-          id: '__unbound__',
-          kind: 'mongo-namespace',
-          entries: { collection: { [collection]: new MongoCollection({}) } },
-        },
-      },
-    },
-  } as unknown as MongoContract;
-}
-
-const modelRename: ResolvedMigrationStatement = {
-  kind: 'rename',
-  entity: 'model',
-  from: { namespaceId: NAMESPACE, model: 'Profile' },
-  to: { namespaceId: NAMESPACE, model: 'User' },
-};
-
-const fieldRename: ResolvedMigrationStatement = {
-  kind: 'rename',
-  entity: 'field',
-  from: { namespaceId: NAMESPACE, model: 'Profile', field: 'name' },
-  to: { namespaceId: NAMESPACE, model: 'User', field: 'fullName' },
-};
-
-function plan(
-  statements: readonly ResolvedMigrationStatement[],
-  collections: { readonly from: string; readonly to: string } = { from: 'profiles', to: 'users' },
-) {
-  return new MongoMigrationPlanner().plan({
-    contract: contractWithModel('User', collections.to),
-    schema: new MongoSchemaIR([new MongoSchemaCollection({ name: collections.from })]),
-    policy: ALL_CLASSES_POLICY,
-    fromContract: contractWithModel('Profile', collections.from),
-    origin: null,
-    statements,
-    frameworkComponents: [],
-    snapshotsImportPath: '../../snapshots',
-  });
-}
-
-describe('MongoMigrationPlanner with statements', () => {
-  it('plans the rename as a collection drop and create when no statement is given', async () => {
-    const result = plan([]);
-    expect(result.kind).toBe('success');
-    if (result.kind !== 'success') throw new Error('Expected success');
-    const operations = await Promise.all(result.plan.operations);
-    expect(operations.map((operation) => operation.id)).toEqual([
-      'collection.users.create',
-      'collection.profiles.drop',
+describe('MongoMigrationPlanner, model statements', () => {
+  it('without a statement, drops the old collection and creates the new one', () => {
+    expect(planned(plan({ from: profiles, to: users, schema: profilesSchema })).labels).toEqual([
+      'Create collection users',
+      'Drop index on profiles (name:1)',
+      'Create index on users (name:1)',
+      'Drop collection profiles',
     ]);
-    expect(result.appliedStatements).toEqual([]);
   });
 
-  it('refuses the first statement, plans nothing, and says how to keep the documents', () => {
-    expect(plan([modelRename, fieldRename])).toEqual({
-      kind: 'failure',
-      conflicts: [
-        {
-          kind: 'statementRefused',
-          summary:
-            'MongoDB does not apply rename statements in this release, so nothing was planned: rename model "Profile" to "User"',
-          why: 'MongoDB cannot carry out rename statements in this release. Without the statement, a plan drops collection "profiles" with its documents and creates collection "users". To keep the documents, rename the collection by hand on each database before a plan made without the statement is applied there, for example with db.getCollection("profiles").renameCollection("users") in mongosh. A migration written by migration plan without the statement still drops "profiles" wherever it is applied, so check its operations first.',
-          refusedStatement: modelRename,
-        },
-      ],
+  it('renames the collection, which keeps its indexes and validator, and reports the rename applied', () => {
+    expect(
+      planned(
+        plan({
+          from: profiles,
+          to: users,
+          schema: profilesSchema,
+          statements: [renameModel('Profile', 'User')],
+        }),
+      ),
+    ).toEqual({
+      labels: ['Rename collection profiles to users'],
+      classes: ['widening'],
+      applied: [[0]],
+      dataLoss: [],
     });
   });
 
-  it('names a field through the model the destination contract names, and says how to move its values', () => {
-    const result = plan([fieldRename]);
-    if (result.kind !== 'failure') throw new Error('Expected failure');
-    expect(result.conflicts).toMatchObject([
-      {
-        kind: 'statementRefused',
-        summary: expect.stringContaining('rename field "User.name" to "User.fullName"'),
-        why: 'MongoDB cannot carry out rename statements in this release. Without the statement, the documents in collection "profiles" keep their values under "name", and nothing moves them to "fullName". To move them, run these in mongosh on each database before a plan made without the statement is applied there, using the field names as they are stored. First turn off the collection\'s validator, which still requires "name": db.runCommand({ collMod: "profiles", validationLevel: "off" }). Then drop each unique index that includes "name", or the move fails once two documents have lost it, for example db.getCollection("profiles").dropIndex("name_1"). Then move the values: db.getCollection("profiles").updateMany({}, { $rename: { "name": "fullName" } }). Applying the plan then creates the indexes on "fullName" and turns the validator back on.',
-        refusedStatement: fieldRename,
-      },
-    ]);
+  it('plans nothing for a model whose collection keeps its name', () => {
+    const to = contract(
+      'to',
+      { User: { collection: 'profiles', fields: ['_id', 'name'] } },
+      { profiles: { unique: ['name'], required: ['name'] } },
+    );
+    expect(
+      planned(
+        plan({
+          from: profiles,
+          to,
+          schema: profilesSchema,
+          statements: [renameModel('Profile', 'User')],
+        }),
+      ),
+    ).toEqual({ labels: [], classes: [], applied: [[]], dataLoss: [] });
+  });
+});
+
+describe('MongoMigrationPlanner, time-series options the server fills in', () => {
+  it('plans nothing when the live collection holds only server defaults the contract leaves out', () => {
+    const readings = contract(
+      'to',
+      { Reading: { collection: 'readings', fields: ['_id', 'at'] } },
+      { readings: { timeField: 'at' } },
+    );
+    const serverFilled = {
+      timeField: 'at',
+      granularity: 'seconds' as const,
+      bucketMaxSpanSeconds: 3600,
+    };
+    const live = new MongoSchemaCollection({
+      name: 'readings',
+      options: new MongoSchemaCollectionOptions({ timeseries: serverFilled }),
+    });
+    expect(planned(plan({ from: readings, to: readings, schema: [live] })).labels).toEqual([]);
   });
 
-  it('says a plan without the statement keeps the documents when both models use one collection', () => {
-    const result = plan([modelRename], { from: 'posts', to: 'posts' });
-    if (result.kind !== 'failure') throw new Error('Expected failure');
-    expect(result.conflicts).toMatchObject([
-      {
-        kind: 'statementRefused',
-        why: 'MongoDB cannot carry out rename statements in this release. Both models store their documents in collection "posts", so a plan made without the statement keeps them.',
-        refusedStatement: modelRename,
-      },
-    ]);
+  const readings = contract(
+    'to',
+    { Reading: { collection: 'readings', fields: ['_id', 'at'] } },
+    { readings: { timeField: 'at' } },
+  );
+
+  function liveReadings(extra: Record<string, unknown>) {
+    const timeseries = { timeField: 'at', bucketMaxSpanSeconds: 3600, ...extra };
+    return new MongoSchemaCollection({
+      name: 'readings',
+      options: new MongoSchemaCollectionOptions({ timeseries }),
+    });
+  }
+
+  it('reports a conflict when the contract removes a declared metaField', () => {
+    const result = plan({
+      from: readings,
+      to: readings,
+      schema: [liveReadings({ metaField: 'meta', granularity: 'seconds' })],
+    });
+    expect(result.kind === 'failure' ? result.conflicts.map(({ summary }) => summary) : []).toEqual(
+      [expect.stringContaining('timeseries')],
+    );
   });
 
+  it('reports a conflict when the contract removes a granularity other than the server default', () => {
+    const result = plan({
+      from: readings,
+      to: readings,
+      schema: [liveReadings({ granularity: 'hours' })],
+    });
+    expect(result.kind).toBe('failure');
+  });
+
+  it('plans nothing for custom bucketing set outside the contract', () => {
+    expect(
+      planned(
+        plan({
+          from: readings,
+          to: readings,
+          schema: [liveReadings({ bucketRoundingSeconds: 3600 })],
+        }),
+      ).labels,
+    ).toEqual([]);
+  });
+});
+
+describe('MongoMigrationPlanner, convert and backfill statements', () => {
   it('refuses a convert or backfill statement, which it cannot carry out', () => {
-    const convert: ResolvedMigrationStatement = {
-      kind: 'convert',
-      entity: 'field',
-      field: { namespaceId: NAMESPACE, model: 'User', field: 'age' },
-    };
-    const backfill: ResolvedMigrationStatement = {
-      kind: 'backfill',
-      entity: 'field',
-      field: { namespaceId: NAMESPACE, model: 'User', field: 'age' },
-    };
-    expect([plan([convert]), plan([backfill])]).toEqual([
-      {
+    const field = { namespaceId: NS, model: 'Profile', field: 'name' };
+    const convert: ResolvedMigrationStatement = { kind: 'convert', entity: 'field', field };
+    const backfill: ResolvedMigrationStatement = { kind: 'backfill', entity: 'field', field };
+    const refused = (statement: ResolvedMigrationStatement) =>
+      plan({ from: profiles, to: profiles, schema: profilesSchema, statements: [statement] });
+
+    expect([refused(convert), refused(backfill)]).toEqual(
+      (['convert', 'backfill'] as const).map((verb, index) => ({
         kind: 'failure',
         conflicts: [
           {
             kind: 'statementRefused',
-            summary:
-              'MongoDB does not apply convert statements in this release, so nothing was planned: convert field "User.age"',
-            why: 'MongoDB cannot carry out convert statements in this release. Leave out the statement.',
-            refusedStatement: convert,
+            summary: `MongoDB does not apply ${verb} statements in this release, so nothing was planned: ${verb} field "Profile.name"`,
+            why: `MongoDB cannot carry out ${verb} statements in this release. Leave out the statement.`,
+            refusedStatement: [convert, backfill][index],
           },
         ],
-      },
-      {
-        kind: 'failure',
-        conflicts: [
-          {
-            kind: 'statementRefused',
-            summary:
-              'MongoDB does not apply backfill statements in this release, so nothing was planned: backfill field "User.age"',
-            why: 'MongoDB cannot carry out backfill statements in this release. Leave out the statement.',
-            refusedStatement: backfill,
-          },
-        ],
-      },
-    ]);
+      })),
+    );
   });
 });
