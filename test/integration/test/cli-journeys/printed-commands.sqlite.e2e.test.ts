@@ -362,5 +362,33 @@ withTempDir(({ createTempDir }) => {
       },
       timeouts.spinUpPpgDev,
     );
+
+    it(
+      'the migration plan that db update suggests for a temporary value plans as printed',
+      async () => {
+        const project = writeProject(createTempDir());
+        await emit(project, '  age String');
+        await written(project, async () => {
+          const planned = await cli(project, ['migration', 'plan', '--name', 'initial']);
+          expect(planned.exitCode, `plan: ${planned.output}`).toBe(0);
+        });
+        expect((await cli(project, ['db', 'migrate'])).exitCode, 'migrate').toBe(0);
+        exec(project.dbPath, `INSERT INTO "User" (id, age) VALUES (1, '7')`);
+
+        await emit(project, '  age  String\n  name String');
+        const dryRun = await cli(project, ['db', 'update', '--dry-run']);
+        expect(dryRun.exitCode, `db update --dry-run: ${dryRun.output}`).toBe(0);
+        const suggested = new RegExp(`${BIN} (migration plan .*?) instead\\.`).exec(
+          stripVTControlCharacters(dryRun.output),
+        );
+        expect(suggested, `no migration plan in:\n${dryRun.output}`).not.toBeNull();
+
+        await written(project, async () => {
+          const planned = await run(project, words(suggested?.[1] ?? ''));
+          expect(planned.exitCode, `migration plan as printed: ${planned.output}`).toBe(0);
+        });
+      },
+      timeouts.spinUpPpgDev,
+    );
   });
 });

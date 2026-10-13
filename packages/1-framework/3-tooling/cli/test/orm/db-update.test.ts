@@ -237,6 +237,27 @@ describe('db update --rename', () => {
     expect(applied.presented?.data).toMatchObject({ temporaryValues });
   });
 
+  it('starts the migration plan it suggests for a temporary value from the contract the database is at', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        temporaryValues: [{ field: 'User.email', value: "''" }],
+        databaseStorageHash: MARKER_HASH,
+      }),
+    );
+    const run = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --from ${MARKER_HASH} --backfill User.email instead.`,
+    });
+    expect(run.presented?.data).not.toHaveProperty('databaseStorageHash');
+  });
+
   it('lists what an apply would ask about on a dry run, in its output and its JSON', async () => {
     const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
     const age = { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' } as const;

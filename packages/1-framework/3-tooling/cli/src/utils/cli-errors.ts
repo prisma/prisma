@@ -33,7 +33,7 @@ import { statementFlag } from '../control-api/statements/statement-flag';
 import type { StatementText } from '../control-api/statements/statement-text';
 import type { MigrateFailure } from '../control-api/types';
 import { chooseAction, runCommandAction } from './next-actions';
-import { type CliInvocation, cliCommand } from './printed-command';
+import { type CliInvocation, cliCommand, printedPlanCommand } from './printed-command';
 
 export {
   errorHashMismatch,
@@ -666,10 +666,11 @@ export function errorStatementNeedsMigrationFile(
   const written = refused.map(({ verb, text }) => `"--${verb} ${text}"`);
   const listed =
     written.length === 1 ? written[0] : `${written.slice(0, -1).join(', ')} and ${written.at(-1)}`;
-  const plan = cliCommand(invocation, 'migration plan', [
-    ...(databaseStorageHash === undefined ? [] : ['--from', databaseStorageHash]),
-    ...statements.filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb)).map(statementFlag),
-  ]);
+  const plan = printedPlanCommand(
+    invocation,
+    databaseStorageHash,
+    statements.filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb)).map(statementFlag),
+  );
   return new ActionableCliError(
     'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
     `db update cannot carry out ${listed}`,

@@ -506,6 +506,11 @@ export interface DbUpdateSuccess
   readonly perSpace?: ReadonlyArray<PerSpaceExecutionEntry>;
   /** The statements the application space's plan applied, in order; empty when none were given. */
   readonly appliedStatements: readonly AppliedStatementReport[];
+  /**
+   * The storage hash of the contract the database was at before the run, when a migration of the
+   * graph ends at it: the origin a `migration plan` for this database starts from.
+   */
+  readonly databaseStorageHash?: string;
   readonly summary: string;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }

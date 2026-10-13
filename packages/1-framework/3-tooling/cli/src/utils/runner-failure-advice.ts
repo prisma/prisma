@@ -5,7 +5,13 @@ import type {
   MigrateFailure,
   RowsWithoutValueReport,
 } from '../control-api/types';
-import { type CliInvocation, cliCommand, printedPath, selfEmitCommand } from './printed-command';
+import {
+  type CliInvocation,
+  cliCommand,
+  printedPath,
+  printedPlanCommand,
+  selfEmitCommand,
+} from './printed-command';
 
 type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
@@ -21,13 +27,12 @@ export function failedCastText(cast: FailedTypeChangeCastReport): string {
   }
 }
 
-/** A `migration plan` command as advice prints it, starting from `from` when it is known. */
-export function migrationPlanCommand(
+function migrationPlanCommand(
   invocation: CliInvocation,
   flags: readonly string[],
   from: string | undefined,
 ): string {
-  return `\`${cliCommand(invocation, 'migration plan', [...(from === undefined ? [] : ['--from', from]), ...flags])}\``;
+  return `\`${printedPlanCommand(invocation, from, flags)}\``;
 }
 
 /** A `db migrate` command as advice prints it. */

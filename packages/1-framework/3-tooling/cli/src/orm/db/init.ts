@@ -48,7 +48,7 @@ function initPresentations(inputs: {
           ...(dryRun ? [{ label: 'mode', value: 'dry run' }] : []),
         ],
       },
-      ...migrationResultBlocks(document, inputs.invocation),
+      ...migrationResultBlocks(document, inputs.invocation, undefined),
     ],
     json: () => document,
     next: () =>

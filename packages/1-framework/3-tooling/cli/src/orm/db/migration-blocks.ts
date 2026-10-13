@@ -9,7 +9,7 @@ import {
   renderPreviewStatement,
 } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
-import { type CliInvocation, cliCommand } from '../../utils/printed-command';
+import { type CliInvocation, cliCommand, printedPlanCommand } from '../../utils/printed-command';
 import { appliedStatementBlocks } from '../statement-blocks';
 
 interface PlannedOperation {
@@ -141,13 +141,14 @@ function plannerWarningBlocks(result: MigrationCommandResult): readonly Block[] 
 function temporaryValueBlocks(
   result: MigrationCommandResult,
   invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
 ): readonly Block[] {
   const get = result.mode === 'plan' ? 'would get' : 'got';
   return (result.temporaryValues ?? []).map(
     ({ field, value }): Block => ({
       kind: 'summary',
       status: 'warn',
-      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with ${cliCommand(invocation, 'migration plan', [statementFlag({ verb: 'backfill', text: field })])} instead.`,
+      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with ${printedPlanCommand(invocation, databaseStorageHash, [statementFlag({ verb: 'backfill', text: field })])} instead.`,
     }),
   );
 }
@@ -197,13 +198,17 @@ function questionBlocks(result: MigrationCommandResult): readonly Block[] {
   ];
 }
 
-function planBlocks(result: MigrationCommandResult, invocation: CliInvocation): readonly Block[] {
+function planBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
+): readonly Block[] {
   const planned = result.plannedAdvanceRef;
   return [
     { kind: 'summary', status: 'ok', text: planSummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
-    ...temporaryValueBlocks(result, invocation),
+    ...temporaryValueBlocks(result, invocation, databaseStorageHash),
     ...appliedStatementBlocks(result.appliedStatements ?? []),
     ...questionBlocks(result),
     {
@@ -264,13 +269,17 @@ function fallbackMarkerBlocks(result: MigrationCommandResult): readonly Block[] 
   ];
 }
 
-function applyBlocks(result: MigrationCommandResult, invocation: CliInvocation): readonly Block[] {
+function applyBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
+): readonly Block[] {
   const advanced = result.advancedRef;
   return [
     { kind: 'summary', status: 'ok', text: applySummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
-    ...temporaryValueBlocks(result, invocation),
+    ...temporaryValueBlocks(result, invocation, databaseStorageHash),
     ...appliedStatementBlocks(result.appliedStatements ?? []),
     ...fallbackMarkerBlocks(result),
     ...(advanced === null || advanced === undefined
@@ -288,12 +297,19 @@ function applyBlocks(result: MigrationCommandResult, invocation: CliInvocation):
   ];
 }
 
-/** What a `db init` / `db update` result looks like in human mode; printed commands repeat `invocation`'s `--config`. */
+/**
+ * What a `db init` / `db update` result looks like in human mode. Printed commands repeat
+ * `invocation`, and a printed `migration plan` starts from `databaseStorageHash`, the contract the
+ * database was at before the run, when a migration on disk ends at it.
+ */
 export function migrationResultBlocks(
   result: MigrationCommandResult,
   invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
 ): readonly Block[] {
-  return result.mode === 'plan' ? planBlocks(result, invocation) : applyBlocks(result, invocation);
+  return result.mode === 'plan'
+    ? planBlocks(result, invocation, databaseStorageHash)
+    : applyBlocks(result, invocation, databaseStorageHash);
 }
 
 /** Where the user goes next, as typed actions rather than trailing prose. */

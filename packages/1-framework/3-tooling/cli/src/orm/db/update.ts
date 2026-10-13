@@ -57,6 +57,8 @@ function updatePresentations(inputs: {
   readonly document: MigrationCommandResult;
   /** Where the CLI ran and the `--config` and `--db` it was given, which printed commands repeat. */
   readonly invocation: CliInvocation;
+  /** The contract the database was at before the run, when a migration on disk ends at it. */
+  readonly databaseStorageHash: string | undefined;
   readonly contractPath: string;
   readonly database: string | undefined;
   readonly to: string | undefined;
@@ -78,7 +80,7 @@ function updatePresentations(inputs: {
           ...(dryRun ? [{ label: 'mode', value: 'dry run' }] : []),
         ],
       },
-      ...migrationResultBlocks(document, inputs.invocation),
+      ...migrationResultBlocks(document, inputs.invocation, inputs.databaseStorageHash),
     ],
     json: () => document,
     next: () =>
@@ -341,6 +343,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
 
       const mode = args.flags.dryRun ? 'plan' : 'apply';
       let document: MigrationCommandResult;
+      let databaseStorageHash: string | undefined;
       try {
         await client.connect(dbConnection);
 
@@ -387,6 +390,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           return notOk(normalizeError(advanced.failure));
         }
 
+        databaseStorageHash = result.value.databaseStorageHash;
         document = updateDocument({
           value: result.value,
           targetId: ctx.config.target.targetId,
@@ -438,6 +442,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           updatePresentations({
             document,
             invocation: cliInvocation(ctx, args.flags.db),
+            databaseStorageHash,
             contractPath: prepared.value.contractDisplayPath,
             database: prepared.value.database,
             to: args.flags.to,

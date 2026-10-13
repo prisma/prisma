@@ -400,6 +400,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   };
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
     entries.map((entry) => ({ ...entry, text: subjectText(entry.subject, contractsAsked) }));
+  const databaseStorageHash =
+    action === 'dbUpdate' ? recordedDatabaseContract(aggregate, markerRows) : undefined;
   const subjects =
     action === 'dbUpdate'
       ? {
@@ -427,6 +429,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       summary,
       appliedStatements,
       subjects,
+      databaseStorageHash,
       ...ifDefined('warnings', plannerWarnings),
     });
   }
@@ -457,7 +460,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('warnings', plannerWarnings),
       ...ifDefined('failedCast', applied.failure.failedCast),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
-      ...ifDefined('databaseStorageHash', recordedDatabaseContract(aggregate, markerRows)),
+      ...ifDefined('databaseStorageHash', databaseStorageHash),
       ...ifDefined('cause', applied.failure.cause),
     });
   }
@@ -479,6 +482,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     summary,
     appliedStatements,
     subjects,
+    databaseStorageHash,
     ...ifDefined('warnings', plannerWarnings),
   });
 }
@@ -685,9 +689,12 @@ function wrapPlanResult(args: {
     | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
     | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  /** `undefined` for `db init`, which prints no `migration plan`. */
+  readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'plan',
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
     plan: {
@@ -719,9 +726,12 @@ function wrapApplyResult(args: {
     | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
     | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  /** `undefined` for `db init`, which prints no `migration plan`. */
+  readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'apply',
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
     plan: { operations: stripOperations(args.operations) },

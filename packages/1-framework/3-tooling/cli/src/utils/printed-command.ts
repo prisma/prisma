@@ -57,6 +57,22 @@ export function cliCommand(
 }
 
 /**
+ * The `migration plan` command advice prints: it starts from `from`, the contract the database is
+ * at, whenever that is known, because `migration plan` cannot find its origin without it once
+ * migrations exist and no `db` ref names one.
+ */
+export function printedPlanCommand(
+  invocation: CliInvocation | undefined,
+  from: string | undefined,
+  flags: readonly string[],
+): string {
+  return cliCommand(invocation, 'migration plan', [
+    ...(from === undefined ? [] : ['--from', from]),
+    ...flags,
+  ]);
+}
+
+/**
  * The command that runs a `migration.ts`, named relative to the directory the CLI ran in, with the
  * `--config` the CLI was given, so it loads the same config.
  */
