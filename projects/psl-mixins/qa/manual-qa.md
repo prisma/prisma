@@ -413,7 +413,7 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/error-cases.json | tee $Q/out/err
 | 3.5 | the model declares `createdAt`, then includes `Timestamps` | `PSL_DUPLICATE_DECLARATION: Mixin "Timestamps" provides "createdAt", which "User" already has` | the inclusion |
 | 3.6 | the model includes `Timestamps`, then declares `createdAt` | `PSL_DUPLICATE_DECLARATION: Duplicate declaration of "createdAt"` | the model's own `createdAt` |
 | 3.7 | `+Timestamps` inside `model mixin Audited` | `PSL_INVALID_MODEL_MEMBER: A mixin cannot include another mixin` | the inclusion inside the mixin |
-| 3.8 | `mixin Timestamps { … }` with no keyword | `PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin Timestamps"`, and nothing else: no `Unsupported top-level block "mixin"` and no diagnostic for a member of its body | the word `mixin` |
+| 3.8 | `mixin Timestamps { … }` with no keyword | two diagnostics: `PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin Timestamps"`, and `PSL_INVALID_EXTENSION_BLOCK_MEMBER: Invalid block entry` for the body line `createdAt DateTime @default(now())`, which is read as an entry of a block. No `Unsupported top-level block "mixin"`. This behaviour comes from the separate change that leaves a block whose keyword is `mixin` out of the symbol table | the word `mixin`, and the body line |
 | 3.9 | `model mixin { … }` with no name | `PSL_INVALID_DECLARATION: Expected a mixin name after "mixin"` | the word `mixin` |
 | 3.10 | `stamp Timestamps`, a field typed with a mixin | `PSL_UNRESOLVED_REFERENCE: "Timestamps" is a mixin; a type reference must name a model, composite type, enum, or named type` | the type |
 | 3.11 | `@@unique([tenantId, id])` in a mixin; `id` is the including model's field | `PSL_UNRESOLVED_REFERENCE: Cannot find field "id" on "Tenanted"` | `id` inside the mixin's attribute |
@@ -427,14 +427,14 @@ node $D/emit-cases.mjs $C $Q/errors/project $D/error-cases.json | tee $Q/out/err
 | 3.19 | `namespace mixin Shared { … }` and `types mixin Aliases { … }` | two diagnostics: `A mixin cannot be declared for "namespace"` and `A mixin cannot be declared for "types"` | each keyword |
 | 3.20 | a mixin whose field has an invalid `@default(nope())`, included by two models | the interpreter's error twice, both at the member in the mixin (ADR, "Consequences": once per including block) | inside the mixin |
 | 3.21 | the same mixin, included by nothing | exit 0 (ADR, "Consequences": no family interpreter reads a mixin that nothing includes) | — |
-| 3.22 | `mixin Timestamps { }` with no keyword, and a model that includes it | two diagnostics: the one of 3.8 at the word `mixin`, and `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Timestamps"` at the inclusion. The keyword-less block is not a mixin, so the inclusion finds none | the declaration and the inclusion |
+| 3.22 | `mixin Timestamps { }` with no keyword, and a model that includes it | two diagnostics: the one of 3.8 at the word `mixin`, and `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Timestamps"` at the inclusion. The keyword-less block is not a mixin, so the inclusion finds none. No `Unsupported top-level block "mixin"`; this comes from the same separate change as 3.8 | the declaration and the inclusion |
 | 3.23 | a top-level `model mixin Timestamps`, and in `namespace app` a model `Timestamps` and a model `User` with `+Timestamps` | `PSL_UNRESOLVED_REFERENCE: Cannot find mixin "Timestamps"`. The model of the same name in the namespace hides the top-level mixin (ADR 269, "Mixins are namespace members") | the inclusion |
 
 ### What you should see
 
 - For every case the caret printed under the source line is under the token named in the "At" column.
 - Each message names the mixin and, where a member is involved, the member and the including block.
-- One mistake gives one diagnostic, except 3.19, 3.20 and 3.22 as described.
+- One mistake gives one diagnostic, except 3.8, 3.19, 3.20 and 3.22 as described.
 
 ### Failure modes
 
