@@ -28,9 +28,9 @@ ADR 259: `db.orm.fragment`, `collection.fragment`, `orderByField`, `CodecField`,
 
 Slice spec: [slices/4-orm-queries-name-an-index/spec.md](slices/4-orm-queries-name-an-index/spec.md).
 
-### 5. Packages contribute collection methods for their index types
+### 5. Packages contribute collection methods computed from a model
 
-**Outcome.** ADR 272: a package that owns an index type contributes a collection method for each index of that type, under `using`, named after the index, chainable before and after other methods and inside include refinements; Postgres contributes the full-text method; the demo uses it. Spike: `spikes/scope-call-forms.md` on branch `spike-slice-5-scope-forms`.
+**Outcome.** ADR 272: a package reads each model and contributes collection methods it names itself, under `using`, chainable before and after other methods and inside include refinements; Postgres contributes one full-text method per `fullText` index and pgvector one nearest-neighbour method per vector field; the demo uses both. Spike: `spike-findings.md` on branch `spike-whole-model-collection-methods`.
 
 **Builds on:** slice 4. **Hands to:** close-out.
 

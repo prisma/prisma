@@ -66,13 +66,15 @@ const posts = await db.Post
 - **ORM callbacks for `where` and `orderBy` receive a second argument, `{ fns, indexes }`** (ADR 270): the SQL query builder's functions, and the model's table's indexes as index references. Packages need no new mechanism.
 - **Nothing is added to the schema grammar, the contract's domain plane, or the `Collection` type's chaining methods.**
 
-## Slice 5: packages contribute collection methods for their index types
+## Slice 5: packages contribute collection methods computed from a model
 
 Added 2026-10-12. The package that owns an index type contributes a collection method for each index of that type, so the application writes no query: `db.Post.using.post_search(q).where(...)`. This was the project's original purpose: a package that introduces a kind of index gives applications a typed search built from the index's own definition. Slice 4 supplies the query primitive (a `where` and an `orderBy` that name the index), so a contributed method is built from it.
 
 Starting point: the September 2026 design (draft ADR "Collection scopes derived from indexes" on branch `spike-collection-scope-declared`; `spikes/type-composition.md`, `spikes/declared-scopes.md`). The package that owns an index type supplies its operations through an interface the ORM defines; the ORM derives a model's methods from its indexes in the contract; the contract declares none; contributions are registered so the application writes no types. The September draft called these scopes; ADR 272 calls them collection methods.
 
-Decided 2026-10-12: the call form is `db.Post.using.<index name>(...args)` (form B of `spikes/scope-call-forms.md` on branch `spike-slice-5-scope-forms`, under the member `using`); these are collection methods, not scopes, because they also order. Design: [ADR 272](../../docs/architecture%20docs/adrs/ADR%20272%20-%20A%20package%20contributes%20collection%20methods%20for%20the%20index%20types%20it%20owns.md) (Proposed).
+Decided 2026-10-12: methods sit under the member `using` (form B of `spikes/scope-call-forms.md` on branch `spike-slice-5-scope-forms`); these are collection methods, not scopes, because they also order. Their order is an ordinary order.
+
+Decided 2026-10-13, replacing the index-only design of 2026-10-12 (PR #30693, rejected): a contribution reads one whole model (fields, relations, storage table, target) and returns methods it names itself; the schema declares no methods; types reach the application through a registry loaded by the package's own import, never through `contract.d.ts`; two contributions giving one model the same name is a compile error and a run-time refusal; each ORM client defines its own contribution interface. Spike: `spike-findings.md` on branch `spike-whole-model-collection-methods`. Design: [ADR 272](../../docs/architecture%20docs/adrs/ADR%20272%20-%20Packages%20contribute%20collection%20methods%20computed%20from%20a%20model.md) (Proposed).
 
 ## Non-goals
 

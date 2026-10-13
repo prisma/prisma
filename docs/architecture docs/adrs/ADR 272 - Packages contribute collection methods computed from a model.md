@@ -1,141 +1,186 @@
-# ADR 272 — A package contributes collection methods for the index types it owns
+# ADR 272 — Packages contribute collection methods computed from a model
 
 **Status:** Proposed
-**Date:** 2026-10-12
+**Date:** 2026-10-13
 **Builds on:** [ADR 270 — ORM queries use the query builder's functions and a model's indexes](ADR%20270%20-%20ORM%20queries%20use%20the%20query%20builder's%20functions%20and%20a%20model's%20indexes.md), [ADR 265 — A collection keeps its class through the chain](ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md), [ADR 259 — Query fragments are functions](ADR%20259%20-%20Query%20fragments%20are%20functions.md), [ADR 210 — Index-type registry](ADR%20210%20-%20Index-type%20registry.md)
 
 ---
 
 ## At a glance
 
-A schema author declares a full-text index:
+A schema declares a full-text index and a vector field:
 
 ```prisma
-model Post {
-  id     Int     @id
-  userId Int
-  title  String
-  body   String?
+types {
+  Embedding1536 = pgvector.Vector(1536)
+}
 
-  @@fullTextIndex([[title], body], name: "post_search")
+model Post {
+  id        Int            @id
+  title     String
+  body      String?
+  embedding Embedding1536?
+
+  @@fullTextIndex([title, body], name: "post_search")
 }
 ```
 
-The application can search posts through it at once, with no code of its own:
+The application can search posts with no code of its own:
 
 ```ts
-const q = websearchToTsquery(input.search);
-
-await db.Post.using.post_search(q).limit(10).all();
-await db.Post.where({ userId }).using.post_search(q).all();
-await db.User.include('posts', (posts) => posts.using.post_search(q).limit(3)).all();
+await db.Post.using.post_search(websearchToTsquery(input)).limit(10).all();
+await db.Post.using.embedding_nearest(queryVector).limit(5).all();
 ```
 
-- `post_search(q)` is a collection method, like a method of a custom collection class. The Postgres package contributes it, because it owns the `fullText` index type. It filters to the posts whose weighted title and body match the query, and orders them by relevance.
-- `using` groups the methods packages contribute: one for each index of the model's table that a package knows how to query, named after the index.
-- The result is the collection it was called on, with the filter and the order recorded (ADR 265). A custom collection class stays the class, and everything that works on a collection works after it.
+- `post_search` comes from the Postgres package. It gives one method for each full-text index, named after the index. The method keeps the posts that match and orders them by relevance.
+- `embedding_nearest` comes from the pgvector package. It gives one method for each vector field, named after the field.
+- Each package reads the model from the contract and decides which methods to give and what to call them. The ORM client collects them under `using`.
 
 ## Decision
 
-1. **A package that owns an index type can contribute a collection method for indexes of that type.** The contribution names the index type it serves, the method's arguments, and the method's body: a function that receives the collection and the index's name and returns the collection with a `where`, an `orderBy`, or both. The body names the index (ADR 270), so its query is the index's own document.
-2. **The ORM client offers these methods under `using` on every collection: `using.<name>` for each index of the model's table that a registered contribution serves.** `<name>` is the index's authored name: the `name:` the schema gave it, or its `map:` name. The contract declares no methods; they follow from the contract's indexes and the registered contributions.
-3. **A contributed method's result is the receiver's type plus the `Filtered` and `Ordered` facts** of what it applied. It works on a root collection, after other methods, inside an include refinement, inside a fragment, and on `this` in a custom class.
-4. **A contributed method's order is an ordinary order.** It is added where the method is called; an `orderBy` before it comes first, and one after it comes after.
-5. **Contributions are registered by declaration merging on the ORM client's `CollectionMethodRegistry` interface, and at run time on the package's descriptor.** The application writes no type arguments: `postgres<Contract>({ contractJson, extensions })` stays as it is.
-6. **The Postgres target contributes the method for `fullText` indexes**, through both Postgres clients (`postgres()` and the serverless client).
+1. **A package can contribute collection methods.** For each model, the package reads the model and returns a table of methods. A method is a collection method like `where` or a method of a custom collection class: it receives the collection and returns it refined.
+2. **A contribution reads one model at a time:** the contract's target, the model's name, its fields with their codec ids and type parameters, its relations, and its storage table with columns and indexes. It does not read other models.
+3. **The package names its methods.** The ORM imposes no naming rule. Our packages name a method that serves an index after the index, and a method that serves a field after the field.
+4. **The ORM client offers the contributed methods under `using` on every collection.** A method returns the collection it was called on, with the `Filtered` and `Ordered` facts of what it applied (ADR 265).
+5. **The schema declares no methods.** A package works its methods out from what the contract already holds. The schema author controls them through the schema: naming an index names its method.
+6. **The types reach the application through a registry filled by declaration merging, loaded by the package's own import.** Never through the emitted `contract.d.ts` or anything it imports. The application writes `postgres<Contract>({ contractJson, extensions })` as today.
+7. **Two contributions that give one model a method with the same name are an error:** a compile error where the method is called, and a run-time refusal when the client is created.
+8. **A contributed method's order is an ordinary order.** It is added where the method is called, as `orderBy` is.
+9. **Each ORM client defines its own contribution interface.** This ADR defines the SQL ORM's. A MongoDB contribution's body would add pipeline stages, not `where` and `orderBy`, so it needs the MongoDB ORM's own interface, designed when its first case arrives.
 
 ## Why
 
-### The contract already knows how to query the index
+### Every application wrote the same query
 
-A full-text index states its fields, weights and language (ADR 210, ADR 236). With ADR 270, an ORM query can search it by naming it. Every application that searches would write the same `where` and `orderBy` around the same index, usually as a method of its custom collection class. The package that defines the index type knows that query, so it writes the method once, for every model with such an index.
+ADR 270 lets an ORM query name an index, so a search matches the index exactly:
 
-### Grouped under `using`, not placed on the collection itself
+```ts
+db.Post
+  .where((p, { fns, indexes }) => fns.fullTextMatches(indexes.post_search, q))
+  .orderBy((p, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc());
+```
 
-A method the application writes sits directly on its class: `db.Post.published()`. A contributed method could sit there too, as `db.Post.post_search(q)`, and that was measured. It costs every application about 4% more type checking on `examples/prisma-8-demo`, whether or not it uses one, against under 1% for `using.<name>`. It also breaks code that compiles today: a generic subclass such as `class Library<Model> extends Collection<Contract, Model>` fails with TS2509, because the collection's member names would depend on `Model`, and a custom class method with an index's name and another signature fails with TS2416. Under `using`, an index name can never collide with a collection method or a custom class's method, whatever either side adds later.
+Every application that searches writes these lines, usually as a method of its collection class. Nothing in them belongs to the application. The package that owns the index type knows the query, so it writes it once, for every model it applies to.
 
-`using` reads as plain English, "posts, using `post_search`", echoes SQL's `USING` for an index's access method, and does not assume the method is a search: an index type for periods could contribute `db.Booking.using.booking_during(from, to)`.
+### A package needs the whole model, not one index
 
-### One method per index
+The cases a package serves read different parts of a model:
 
-A contribution gives each index one method, called as `using.<name>(...args)`. An index type that needs a variant of its query takes an options argument. A form with a named method per index type, `using.<name>.fulltext(q)`, costs the same and allows several per index type, but no index type in the repository needs more than one.
+| Case | Reads |
+| --- | --- |
+| Postgres full-text search | The table's `fullText` indexes, with their weights and language |
+| pgvector nearest neighbour | A field's codec (`pg/vector@1`) and its length |
+| A feature of the whole table, such as querying a system-versioned table as of a time | A table property; one method per model, with a name nothing in the schema gives |
 
-### An ordinary order
+So a contribution receives the whole model and returns whatever methods it finds there. Limiting it to one index, or deciding names in the ORM, would rule out the second and third rows.
 
-A draft before this decision gave a search a default order that a later `orderBy` replaced. That is a second kind of order the collection would have to track, and `orderBy` everywhere else appends. A contributed method's order is a sort key like any other, so its position in the chain decides its priority, exactly as for `orderBy`: `db.Post.orderBy((p) => p.pinned.desc()).using.post_search(q)` sorts pinned posts first, then by relevance.
+A field already has its own operations, such as `cosineDistance` or `fullTextMatches`. A contributed method adds what a field operation cannot: a filter and an order together, and the settings an index holds, so the query matches the index.
 
-### Registered by declaration merging
+### The package names its methods
 
-A contribution must reach the types of every collection without the application naming it. The facades' `postgres<Contract>(...)` takes the contract type explicitly, and TypeScript infers no further type argument once one is written, so contributions cannot travel as an inferred type argument. The contract's emitted types must not describe one query interface, so they cannot carry them either. A registry interface that each package extends is the form that meets all three.
+Only the package knows what a method does, so only it can name it well. Naming a method after the element it serves is the convention our packages follow, because readers can then predict the name from the schema. A feature of the whole table has no element to name it after, and needs no special case.
 
-ADR 210 rejects declaration merging for index types, because a contract that does not attach a pack would see the pack's index types. Here that does not matter: a contribution only produces a method for an index the contract actually has, and a contract only has an index of a type its packs registered. A contribution from a pack the contract does not use matches nothing.
+### Grouped under `using`
+
+`using` keeps contributed names apart from the collection's own methods and from a custom class's methods, so neither side can break the other by adding a method later. Placing contributed methods directly on the collection was measured in an earlier spike at about 4% more type checking for every application, and it breaks generic collection subclasses (TS2509) and custom class methods that share a name (TS2416).
+
+### Types through the package's own import
+
+The application already imports each package it uses, to pass it to the client, so that import can register the package's method types. The two other routes fail:
+
+- **A type argument inferred from the client call.** TypeScript infers no further type argument once the application writes `<Contract>`, so the application would have to write the contributions' types.
+- **The emitted `contract.d.ts`.** The contract's types describe the contract's data. They must not carry the types of one query interface, because the ORM client is interchangeable.
+
+The registry is global to a program: a client built without a package still shows that package's methods if anything in the program imports it. A method still only appears on a model with the matching field or index, and a client created without a package the contract lists already throws ("Contract requires extension pack(s) …").
 
 ## How it works
 
 ### A contribution
 
+A contribution has a type half and a run-time half. The pgvector one:
+
 ```ts
-export interface PostgresFullTextMethod extends CollectionMethodKind {
-  readonly match: { readonly type: 'fullText' };
-  readonly parameters: readonly [query: TsqueryArgument];
+type NearestMethodTable<Model extends CollectionMethodModel> = {
+  readonly [Name in VectorFieldNames<Model['fields']> & string as `${Name}_nearest`]: readonly [
+    vector: Vector<VectorLength<Model['fields'][Name & keyof Model['fields']]>>,
+    maxDistance?: number,
+  ];
+};
+
+export interface PgvectorNearestMethods extends CollectionMethodsEntry {
+  readonly methods: NearestMethodTable<this['model']>;
 }
 
-declare module '@internal/sql-orm-client' {
+declare module '@internal/sql-relational-core/query-lane-context' {
   interface CollectionMethodRegistry {
-    readonly 'postgres/fullText': PostgresFullTextMethod;
+    readonly 'pgvector/nearest': PgvectorNearestMethods;
   }
 }
 
-export const postgresFullTextMethod: SqlCollectionMethodContribution = {
-  id: 'postgres/fullText',
-  matches: (index) => index.type === 'fullText',
-  method: (collection, indexName, query) =>
-    collection
-      .where((p, { fns, indexes }) => fns.fullTextMatches(indexes[indexName], query))
-      .orderBy((p, { fns, indexes }) => fns.fullTextRank(indexes[indexName], query).desc()),
+export const pgvectorNearestMethods: CollectionMethodContribution = {
+  id: 'pgvector/nearest',
+  methodsFor: (model) =>
+    Object.fromEntries(
+      vectorFields(model).map((field) => [
+        `${field}_nearest`,
+        (collection, vector, maxDistance) => /* where and orderBy on the field's distance */,
+      ]),
+    ),
 };
 ```
 
-- `match` is the shape of a contract index the contribution serves, compared with the model's literal index entries.
-- `parameters` are the method's arguments.
-- The body uses only the public collection surface, so it composes with everything else a collection can do.
-- `CollectionMethodRegistry` declares one optional marker member, so it is never an empty interface: the lint that rewrites an empty interface to a type alias, which cannot be merged, does not apply.
+- **The type half** is an interface whose `methods` is computed from `this['model']`. The ORM client fills `model` with each model's type and reads `methods` back: method names and their parameter lists.
+- **The run-time half** has the same id. `methodsFor` returns the model's methods by name. Each method receives the collection and the arguments and returns the collection, using only `where`, `orderBy` and ADR 270's `fns` and `indexes`.
+- `CollectionMethodRegistry` declares one optional marker member, so it is never an empty interface. An empty interface is rewritten by the lint to a type alias, which cannot be merged.
 
 ### At run time
 
-A target or extension descriptor may carry `collectionMethods`. The execution context collects them, and a collection's `using` getter builds, once per model, one function per index that a contribution matches. The client refuses at construction, with `ORM.ARGUMENT_INVALID`, two contributions with the same id and two contributions that match the same index.
+A target or extension descriptor may carry `collectionMethods`. When the ORM client is created, it asks each contribution for each model's methods once per execution context, and refuses with `ORM.ARGUMENT_INVALID` two contributions with the same id or two that give one model the same method name. A collection's `using` binds the model's methods to that collection.
 
 ### In the types
 
-`using` is typed as `CollectionMethods<Contract, Model, NsId, this, Table>`: a table of the model's method names and parameter lists, computed once per model, and a receiver. Each method is generic over its receiver, `<Receiver extends Self = Self>(...args) => Ordered<Filtered<Receiver>>`. That generic signature is what keeps the cost low: TypeScript compares collection types often, and a non-generic method that returns its receiver made each comparison recurse through every collection type in the program (+6.5% on the client package, against +1.7%).
+For each model, the ORM client builds the model's view, reads every registered entry's `methods` by indexed access, `(Entry & { readonly model: View })['methods']`, and merges the tables. A name that two entries give becomes `CollectionMethodNameClash<Name, Model, Ids>`, which has no call signature, so calling it fails with an error naming the method, the model and both contributions. `using` maps each parameter list to a method generic over its receiver, `<Receiver extends Self = Self>(...args) => Ordered<Filtered<Receiver>>`.
 
-Errors name the group: `Property 'search' does not exist on type 'CollectionMethods<Contract, "Post", "public", ...>'`. A model with no matching index has a `using` with no members.
+The error texts:
+
+```
+Property 'search' does not exist on type 'CollectionMethods<Contract, "User", "public", ...>'.
+
+This expression is not callable.
+  Type 'CollectionMethodNameClash<"labelled", "Tag", "test/clash-a" | "test/clash-b">' has no call signatures.
+```
+
+### Where the types load
+
+The Postgres full-text entry loads through the Postgres client's own entry points (`@prisma/orm-postgres/runtime` and `/serverless`). The pgvector entry loads through the pgvector package's runtime entry. The emitted `contract.d.ts` imports neither.
 
 ### Cost
 
-Type instantiations, `pnpm typecheck --extendedDiagnostics`, TypeScript 5.9.3, each run twice with the same count, measured in the spike against the tip of ADR 270's implementation. The implementation records its final numbers here.
+Type instantiations, `pnpm typecheck --extendedDiagnostics`, TypeScript 5.9.3, each count run twice with the same result, against the main commit the spike started from (`5ce30c940b`). The demo registers two contributions, full-text and pgvector.
 
 | | Client package, unused | Ten uses | `examples/prisma-8-demo`, unused | Ten uses |
 | --- | --- | --- | --- | --- |
-| Before | 1,921,735 | — | 792,100 | — |
-| `using.<name>(q)` | +1.7% | +1.8% | +0.8% | +1.0% |
+| Before | 2,393,607 | — | 904,324 | — |
+| This design | +1.66% | +1.73% | +1.20% | +1.39% |
+
+Reading an entry's table with a conditional type and `infer` instead of indexed access cost about one more point in both. The implementation records its final numbers here.
 
 ## Consequences
 
-- **An application searches a model with no code.** The Postgres clients register the full-text contribution for every application.
-- **An extension pack can add methods for its own index types** by contributing them, with no change to the ORM client. A test-only contribution proves it.
-- **`using` is a member of every collection.** A custom class cannot declare its own `using`, and an aggregate operation cannot be named `using`.
-- **Two cases the types accept that they should not.** A method infers its receiver from an expected type, so `const x: PostCollection = plainPostCollection.using.post_search(q)` compiles; only a subtype of the receiver is accepted this way. Inside an include refinement the result has the terminal methods back, so `.all()` compiles there; the ORM already refuses a terminal inside a refinement at run time.
-- **A contributed method's position in a chain decides its order's priority**, as for `orderBy`.
-- **The word "scope" keeps its meaning** (ADR 259): a query fragment that only imposes conditions. A contributed method that also orders is a collection method, not a scope.
-- **The MongoDB ORM client is unchanged.** Its indexes have no names in the contract, and some of its searches are pipeline stages, not filters.
+- **An application searches a model with no code.** The Postgres clients register the full-text contribution for every application, and pgvector registers its own.
+- **Any package can add methods from anything in a model,** with no change to the ORM client.
+- **`using` is a member of every collection.** A custom class cannot declare its own `using`, and an aggregate cannot be named `using`.
+- **A library that uses contributed methods only inside function bodies** emits a declaration file that does not load the package's types. A program that sees only that file and the contract types has no methods until it imports the package itself. An application always imports its client, so this only affects such a program.
+- **Two cases the types accept that they should not.** A method infers its receiver from an expected type, so `const x: PostCollection = plain.using.post_search(q)` compiles when `PostCollection` is a subtype of the receiver. Inside an include refinement the result has the terminal methods back, so `.all()` compiles there; the ORM already refuses a terminal inside a refinement at run time.
+- **The word "scope" keeps its meaning** (ADR 259): a query fragment that only imposes conditions. A contributed method may also order, so it is a collection method.
+- **The MongoDB ORM client is unchanged.** Its first contribution, such as `$geoNear`, will also need its indexes to have names in the contract.
 
 ## Alternatives considered
 
-- **Contributed methods placed directly on the collection, `db.Post.post_search(q)`.** About 4% more type checking on the demo for every application, and it breaks generic collection subclasses (TS2509) and class methods that share an index's name (TS2416).
-- **Other names for the group.** `scopes` gives "scope" a second meaning, since these methods also order; `search` does not fit index types that are not searches; `byIndex` puts a storage term in front of every call; `indexes` collides with ADR 270's `indexes`, where `indexes.post_search` is an index reference, not a method.
-- **A named method per index type, `db.Post.using.post_search.fulltext(q)`.** The same cost; allows several methods per index type, which none needs.
-- **A default order that a later `orderBy` replaces.** A second kind of order for the collection to track, unlike `orderBy` everywhere else.
-- **Methods declared in the contract's domain plane.** A domain entry would carry nothing beyond a name the index already has, and the contract must not describe one query interface.
-- **A helper exported by each package**, `fulltextSearchScopes(db.Post).post_search(q)`. It needs code in the application and a generic builder in the ORM.
-- **Contributions as a type argument of the facade.** TypeScript infers no further type argument once `Contract` is written, so the application would have to write the contributions' types.
+- **A contribution matches one index type, and its method is named after the index.** The first version of this ADR. It cannot serve a method computed from a field or from the table, and it decides names in the ORM.
+- **The package declares rules (per index, per field, per model) and the ORM builds names from a prefix and suffix.** About 0.5 points cheaper in the client package, but the ORM decides the names, and a rule cannot express "every model whose table has a column of codec X".
+- **Methods declared in the schema,** for example in a `scopes {}` block. Every case so far can be worked out from the model, and declarations would put the ORM's surface into the contract.
+- **Methods placed directly on the collection, `db.Post.post_search(q)`.** About 4% more type checking for every application, and it breaks generic collection subclasses (TS2509) and class methods sharing a name (TS2416).
+- **The method types loaded through the emitted `contract.d.ts`.** It ties the contract's types to one query interface.
+- **The contributions as a type argument of the client.** TypeScript infers no further type argument once `<Contract>` is written.
+- **A method name made of two parts, element then operation (`using.embedding.nearest(v)`).** Unnecessary once the package names methods itself; it can choose such names if it wants them.
