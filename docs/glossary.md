@@ -49,7 +49,7 @@ One act the runtime's middleware observes: a statement sent to the database (`ki
 
 ### Lifecycle event
 
-One of the three hooks every activity has: `activityStarted` when the act begins, `activityEnded` when it ends (`succeeded`, `failed` or `stopped`), and `activityFinalized` when its effects are final. Lifecycle events observe; they cannot change the activity.
+One of the three hooks every activity has: `activityStarted` when the act begins, `activityEnded` when it ends (`succeeded`, `failed` or `stopped`), and `activityFinalized` when its effects are final. Lifecycle events observe: they cannot replace an activity's result, but an error thrown from `activityStarted` or `activityEnded` fails the activity.
 
 ### Interceptor
 

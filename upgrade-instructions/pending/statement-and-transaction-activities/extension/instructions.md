@@ -119,7 +119,7 @@ The interceptors move under one `intercept` object:
 + },
 ```
 
-`statementSql` is a module-level `Symbol('…')`, for example `const statementSql = Symbol('slow-query-warning.sql')`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did. `activityEnded` also fires where `afterQuery` and `afterExecute` did not: for a statement the caller stopped reading, with `result.outcome` `'stopped'`, and for a statement that failed before it ran, in `beforeCompile`, `beforeEncode` or parameter encoding, with `result.outcome` `'failed'`, `latencyMs: 0` and `source: 'driver'`. A middleware that counts statements or latencies checks `result.outcome` if it should skip them.
+`statementSql` is a module-level `Symbol('…')`, for example `const statementSql = Symbol('slow-query-warning.sql')`. An error thrown from `activityEnded` after a successful statement still fails it and reaches the caller, as an error from `afterQuery` did; every other middleware still receives `activityEnded`, and the caller receives the first error. A transaction also ends: `succeeded` when its `commit()` or `rollback()` resolved, `failed` when it rejected. So a rolled-back transaction ends `succeeded` and is finalized `rolled-back`. `activityEnded` also fires where `afterQuery` and `afterExecute` did not: for a statement the caller stopped reading, with `result.outcome` `'stopped'`, and for a statement that failed before it ran, in `beforeCompile`, `beforeEncode` or parameter encoding, with `result.outcome` `'failed'`, `latencyMs: 0` and `source: 'driver'`. A middleware that counts statements or latencies checks `result.outcome` if it should skip them.
 
 ## Replace `afterTransaction` with `activityFinalized`
 
@@ -127,7 +127,7 @@ The interceptors move under one `intercept` object:
 
 ## Rename the context type and the execution id
 
-`RuntimeMiddlewareContext` is now `ActivityContext`, and `SqlMiddlewareContext` and `MongoMiddlewareContext` extend it. `ctx.planExecutionId` is removed; use `activity.id`, a fresh id for each activity that every hook of the activity sees. A log detail or field that carried `planExecutionId: ctx.planExecutionId` becomes `activityId: activity.id`. Keep per-statement state in `ctx.state(key)` instead of a `WeakMap` keyed by the plan: each activity has its own state, and middleware that use the same key share the object. `AfterQueryResult`, `AfterExecuteResult` and `AfterTransactionResult` are removed; use `ActivityEndedResult` and `ActivityFinalizedResult`.
+`RuntimeMiddlewareContext` is now `ActivityContext`, and `SqlMiddlewareContext` and `MongoMiddlewareContext` extend it. A SQL middleware imports `SqlMiddleware` and `SqlMiddlewareContext` from `@prisma/orm-postgres/family-runtime` (or `@prisma/orm-sqlite/family-runtime`), a Mongo middleware imports `MongoMiddleware` and `MongoMiddlewareContext` from `@prisma/orm-mongo/family-runtime`, and a cross-family middleware imports `CrossFamilyMiddleware` and `ActivityContext` from `@prisma/orm-framework/components/runtime`. `ctx.planExecutionId` is removed; use `activity.id`, a fresh id for each activity that every hook of the activity sees. A log detail or field that carried `planExecutionId: ctx.planExecutionId` becomes `activityId: activity.id`. Keep per-statement state in `ctx.state(key)` instead of a `WeakMap` keyed by the plan: each activity has its own state, and middleware that use the same key share the object. `AfterQueryResult`, `AfterExecuteResult` and `AfterTransactionResult` are removed; use `ActivityEndedResult` and `ActivityFinalizedResult`.
 
 ## Abort phases and already-aborted calls
 
@@ -135,7 +135,7 @@ A `RUNTIME.ABORTED` error raised during the middleware stage before encoding has
 
 ## The observed-row budget now runs
 
-`budgets()` now counts the rows each query returns. Before, this check never ran, so a query that returned more than `maxRows` rows succeeded. Now, with the default row severity `'error'` or in `strict` mode, such a query fails with `BUDGET.ROWS_EXCEEDED` once the count passes `maxRows`; with `severities: { rowCount: 'warn' }` in `permissive` mode it logs one warning for the statement and keeps streaming. Raise `maxRows` or `tableRows`, or set the row severity to `'warn'`, for reads that are expected to return more rows.
+`budgets()` now counts the rows each query returns. Before, this check never ran, so a query that returned more than `maxRows` rows succeeded. Now, with the default row severity `'error'` or in `strict` mode, such a query fails with `BUDGET.ROWS_EXCEEDED` once the count passes `maxRows`; with `severities: { rowCount: 'warn' }` in `permissive` mode it logs one warning for the statement and keeps streaming. The `postgres()` client runs its runtime in `strict` mode, where every `budgets()` violation throws whatever its severity, so the warn path does not apply there until the client exposes `mode`. Raise `maxRows` or `tableRows` for reads that are expected to return more rows.
 
 ## Move per-statement state from a `WeakMap` to `ctx.state`
 
