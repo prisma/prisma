@@ -97,6 +97,48 @@ function itemContract(tags: typeof intList | typeof textList, seed: string): Con
   };
 }
 
+const int4 = { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false };
+const text = { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false };
+
+/** A table whose one check compares two columns, which the plan may retype. */
+function pairContract(column: typeof int4 | typeof text, seed: string): Contract<SqlStorage> {
+  return {
+    target: 'postgres',
+    targetFamily: 'sql',
+    profileHash: profileHash('alter-column-type'),
+    storage: new SqlStorage({
+      storageHash: coreHash(seed),
+      namespaces: {
+        [UNBOUND_NAMESPACE_ID]: postgresCreateNamespace({
+          id: UNBOUND_NAMESPACE_ID,
+          entries: {
+            table: {
+              Pair: {
+                columns: { id, low: column, high: column },
+                primaryKey: { columns: ['id'] },
+                uniques: [],
+                indexes: [],
+                foreignKeys: [],
+                checks: [
+                  new CheckConstraint({
+                    naming: { kind: 'exact', name: 'pair_order' },
+                    expression: '(low < high)',
+                  }),
+                ],
+              },
+            },
+          },
+        }),
+      },
+    }),
+    roots: {},
+    domain: applicationDomainOf({ models: {} }),
+    capabilities: {},
+    extensions: {},
+    meta: {},
+  };
+}
+
 const ints = itemContract(intList, 'a'.repeat(64));
 const texts = itemContract(textList, 'b'.repeat(64));
 
@@ -187,6 +229,33 @@ describe('a Postgres column type change', { concurrent: false }, () => {
     await expect(
       driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('b', ARRAY['x', NULL])`),
     ).rejects.toThrow(/check constraint/);
+  });
+
+  it('of two columns one check names drops the check once before both alters, and adds it once after', {
+    timeout: testTimeout,
+  }, async () => {
+    const intPair = pairContract(int4, 'c'.repeat(64));
+    const textPair = pairContract(text, 'd'.repeat(64));
+    await execute(plan(null, intPair, emptySchema), intPair);
+    await driver!.query(`INSERT INTO "Pair" (id, low, high) VALUES ('a', 1, 2)`);
+
+    const planned = plan(
+      intPair,
+      textPair,
+      postgresTargetDescriptor.migrations.contractToSchema(intPair, frameworkComponents),
+    );
+    const labels = (await Promise.all(planned.operations)).map(({ label }) => label);
+    expect(labels).toEqual([
+      'Drop check constraint "pair_order" on "Pair"',
+      expect.stringMatching(/^Alter type of "Pair"\."(low|high)" to text$/),
+      expect.stringMatching(/^Alter type of "Pair"\."(low|high)" to text$/),
+      'Add check constraint "pair_order" on "Pair"',
+    ]);
+    await execute(planned, textPair);
+
+    await expect(
+      driver!.query(`INSERT INTO "Pair" (id, low, high) VALUES ('b', 'z', 'a')`),
+    ).rejects.toThrow(/pair_order/);
   });
 
   it('of a list column a convert names puts the same checks around the converted alter', () => {

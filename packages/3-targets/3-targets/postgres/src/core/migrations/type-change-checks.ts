@@ -35,12 +35,13 @@ function mentionsColumn(check: SqlCheckConstraintIR, column: string): boolean {
 }
 
 /**
- * Puts a drop of each check that names a column before every type change of that column, and the
- * check back after it. Postgres stores a check bound to the column's old type, such as
- * `array_position(tags, NULL::integer)`, and re-checks it while it alters the type, so a check left
- * in place can fail the alter. Only checks the plan keeps unchanged are moved: one the plan drops or
- * adds is already planned around the alter. The check is added back as the destination contract
- * writes it.
+ * Puts a drop of each check that names a column a type change alters before the first such type
+ * change, and the check back after the last. Postgres stores a check bound to the column's old type,
+ * such as `array_position(tags, NULL::integer)`, and re-checks it while it alters the type, so a
+ * check left in place can fail the alter; a check that names two retyped columns can only be added
+ * back once both have their new types. Only checks the plan keeps unchanged are moved: one the plan
+ * drops or adds is already planned around the alter. The check is added back as the destination
+ * contract writes it.
  */
 export function withChecksAroundTypeChanges(input: {
   readonly calls: readonly PostgresOpFactoryCall[];
@@ -49,23 +50,52 @@ export function withChecksAroundTypeChanges(input: {
   /** The DDL schema a call's schema name stands for. */
   readonly ddlSchemaOf: (schemaName: string) => string;
 }): readonly PostgresOpFactoryCall[] {
-  return input.calls.flatMap((call): readonly PostgresOpFactoryCall[] => {
-    if (!(call instanceof AlterColumnTypeCall)) return [call];
+  const moved = new Map<
+    string,
+    {
+      readonly schemaName: string;
+      readonly tableName: string;
+      readonly check: SqlCheckConstraintIR;
+      readonly first: number;
+      last: number;
+    }
+  >();
+  input.calls.forEach((call, index) => {
+    if (!(call instanceof AlterColumnTypeCall)) return;
     const ddlSchemaName = input.ddlSchemaOf(call.schemaName);
     const kept = tableIn(input.actual, ddlSchemaName, call.tableName)?.checks ?? [];
-    const checks = (tableIn(input.expected, ddlSchemaName, call.tableName)?.checks ?? []).filter(
-      (check) =>
-        mentionsColumn(check, call.columnName) && kept.some(({ name }) => name === check.name),
-    );
-    return [
-      ...checks.map(
-        (check) => new DropCheckConstraintCall(call.schemaName, call.tableName, check.name),
-      ),
-      call,
-      ...checks.map(
-        (check) =>
-          new AddCheckConstraintCall(call.schemaName, call.tableName, check.name, check.expression),
-      ),
-    ];
+    for (const check of tableIn(input.expected, ddlSchemaName, call.tableName)?.checks ?? []) {
+      if (!mentionsColumn(check, call.columnName)) continue;
+      if (!kept.some(({ name }) => name === check.name)) continue;
+      const key = JSON.stringify([ddlSchemaName, call.tableName, check.name]);
+      const entry = moved.get(key);
+      if (entry === undefined) {
+        moved.set(key, {
+          schemaName: call.schemaName,
+          tableName: call.tableName,
+          check,
+          first: index,
+          last: index,
+        });
+      } else {
+        entry.last = index;
+      }
+    }
   });
+  const entries = [...moved.values()];
+  return input.calls.flatMap((call, index): readonly PostgresOpFactoryCall[] => [
+    ...entries
+      .filter(({ first }) => first === index)
+      .map(
+        ({ schemaName, tableName, check }) =>
+          new DropCheckConstraintCall(schemaName, tableName, check.name),
+      ),
+    call,
+    ...entries
+      .filter(({ last }) => last === index)
+      .map(
+        ({ schemaName, tableName, check }) =>
+          new AddCheckConstraintCall(schemaName, tableName, check.name, check.expression),
+      ),
+  ]);
 }
