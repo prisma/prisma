@@ -356,7 +356,18 @@ function readSide(
   segments: StatementSide,
 ): Result<SideReading, Refusal> {
   if (segments.length === 1) return readModel(state, side, undefined, segments[0]);
-  if (segments.length === 3) return readField(state, side, ...segments);
+  if (segments.length === 3) {
+    const [first, second, third] = segments;
+    const qualified = readField(state, side, first, second, third);
+    const dotted = readField(state, side, undefined, first, `${second}.${third}`);
+    if (qualified.ok && dotted.ok) {
+      return notOk({
+        reason: `"${first}.${second}.${third}" resolves both as namespace "${first}" model "${second}" field "${third}" and as model "${first}" field "${second}.${third}"`,
+        fix: `Give the field a stored name without "." with @map, or rename namespace "${first}" or model "${first}", so that only one reading resolves.`,
+      });
+    }
+    return qualified.ok || !dotted.ok ? qualified : dotted;
+  }
   const [first, second] = segments;
   const asModel = readModel(state, side, first, second);
   const asField = readField(state, side, undefined, first, second);

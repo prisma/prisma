@@ -67,7 +67,7 @@ A schema that declares no `@@map` and whose storage was created under the loweri
 - A model with no `@@map` names storage that can be quoted exactly as written, which is what a database created by an earlier Prisma version holds.
 - `contract infer` round-trips: a table whose name already equals the model name infers with no `@@map` and verifies clean, and a snake_case table still infers with `@@map`.
 - A rename needs a hand-written migration. The user states one line per renamed table and the operations follow from the contracts.
-- MongoDB has no rename operation. A collection is renamed outside Prisma, with `renameCollection`.
+- MongoDB renames a collection with the `renameCollection` operation, which a `--rename` statement plans (see [Migration System § Statements](../subsystems/7.%20Migration%20System.md#statements)).
 
 ## Alternatives considered
 

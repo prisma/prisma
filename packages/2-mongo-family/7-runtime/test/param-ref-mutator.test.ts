@@ -158,6 +158,7 @@ describe('flattenMongoParamRefs', () => {
         collection: 'users',
         filter: { id: new MongoParamRef(1) },
         update: { $set: { v: new MongoParamRef(2) } },
+        bypassDocumentValidation: false,
       } satisfies MongoLoweredDraft,
       expectedLength: 2,
     },
@@ -647,6 +648,7 @@ describe('createMongoParamRefMutator', () => {
           collection: 'users',
           filter: { id: new MongoParamRef(1) },
           update: { $set: { v: new MongoParamRef(0) } },
+          bypassDocumentValidation: false,
         } satisfies MongoLoweredDraft,
         read: (updated: MongoLoweredDraft) => {
           if (updated.kind !== 'rawUpdateMany') throw new Error('wrong kind');
