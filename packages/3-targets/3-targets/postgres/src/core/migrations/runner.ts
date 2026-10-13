@@ -92,7 +92,7 @@ const NOT_THE_STEPS_SQL = ['08', '40', '53', '57', '58', 'XX'];
  * is a value it could not convert, and 42846 (`cannot_coerce`) a pair of types with no cast. For
  * the migration's own conversion, every error of the step's SQL is the conversion's: a data
  * exception is a value, an integrity violation (class 23) a value the new type cannot hold, and
- * anything else an error in its SQL.
+ * anything else an error in its expression.
  */
 function failedTypeChangeOf(
   step: SqlMigrationPlanOperationStep,
@@ -109,7 +109,7 @@ function failedTypeChangeOf(
       ? 'value'
       : sqlState.startsWith('23')
         ? 'invalidResult'
-        : 'sqlError';
+        : 'expressionError';
     return { field, by: 'conversion', reason, operationIndex };
   }
   const reason = sqlState === '42846' ? 'noCast' : sqlState.startsWith('22') ? 'value' : undefined;

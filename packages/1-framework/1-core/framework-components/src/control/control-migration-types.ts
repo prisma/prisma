@@ -419,11 +419,12 @@ export interface FailedCast extends FailedTypeChangeOf {
 /**
  * A type change whose values the migration's own conversion converted, and why it failed. `value`:
  * the database raised an error on a value the conversion produced or read. `invalidResult`: the
- * conversion left a value the new type cannot hold. `sqlError`: the conversion's SQL has an error.
+ * conversion left a value the new type cannot hold. `expressionError`: the conversion's expression
+ * has an error, such as an unknown function.
  */
 export interface FailedConversion extends FailedTypeChangeOf {
   readonly by: 'conversion';
-  readonly reason: 'value' | 'invalidResult' | 'sqlError';
+  readonly reason: 'value' | 'invalidResult' | 'expressionError';
 }
 
 /** A type change that failed: who converted the values, and why it failed. */

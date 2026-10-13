@@ -101,8 +101,8 @@ describe('the advice for a type change whose cast failed', () => {
     );
   });
 
-  it('says whether the conversion failed on a value, left one, or has an error in its SQL', () => {
-    const advice = (reason: 'value' | 'invalidResult' | 'sqlError') =>
+  it('says whether the conversion failed on a value, left one, or has an error in its expression', () => {
+    const advice = (reason: 'value' | 'invalidResult' | 'expressionError') =>
       mapMigrateFailure(
         {
           ...runnerFailed,
@@ -113,10 +113,10 @@ describe('the advice for a type change whose cast failed', () => {
       ).fix;
     const rest =
       ' The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts`, run `node migrations/app/20261012T1041_age/migration.ts --config prisma.config.ts`, and re-run `{bin} db migrate --config prisma.config.ts --db <url>`.';
-    expect([advice('value'), advice('invalidResult'), advice('sqlError')]).toEqual([
+    expect([advice('value'), advice('invalidResult'), advice('expressionError')]).toEqual([
       `The conversion of field "User.age" failed on a value its new type cannot hold.${rest}`,
       `The conversion of field "User.age" left a value its new type cannot hold.${rest}`,
-      `The conversion of field "User.age" failed with an error in its SQL.${rest}`,
+      `The conversion of field "User.age" failed with an error in its expression.${rest}`,
     ]);
   });
 

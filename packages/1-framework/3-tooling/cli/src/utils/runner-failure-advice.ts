@@ -27,8 +27,8 @@ export function failedTypeChangeText(change: FailedTypeChangeReport): string {
       return `The conversion of field "${change.field}" failed on a value its new type cannot hold.`;
     case 'invalidResult':
       return `The conversion of field "${change.field}" left a value its new type cannot hold.`;
-    case 'sqlError':
-      return `The conversion of field "${change.field}" failed with an error in its SQL.`;
+    case 'expressionError':
+      return `The conversion of field "${change.field}" failed with an error in its expression.`;
   }
 }
 

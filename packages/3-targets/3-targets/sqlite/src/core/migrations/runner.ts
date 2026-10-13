@@ -480,7 +480,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
 
   /**
    * The conversion that failed, when the failed step is the copy of a rebuild that converts
-   * columns. The copy expression that fails on its own is the one named, with an error in its SQL.
+   * columns. The copy expression that fails on its own is the one named, with an error in its expression.
    * When none fails on its own, the copy put a value its column cannot hold: a constraint names the
    * column, or the first converted column is named.
    */
@@ -509,7 +509,9 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
       column === undefined ? undefined : fieldOfColumn(plan.contract, copy.table, column);
     if (field === undefined) return undefined;
     const reason =
-      failing === undefined && message.includes('constraint failed') ? 'invalidResult' : 'sqlError';
+      failing === undefined && message.includes('constraint failed')
+        ? 'invalidResult'
+        : 'expressionError';
     return { field, by: 'conversion', reason, operationIndex: plan.operationIndex };
   }
 

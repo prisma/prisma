@@ -170,17 +170,17 @@ withTempDir(({ createTempDir }) => {
           ctx.configPath,
         ]);
         expect(mistyped.exitCode, `self-emit: ${mistyped.stderr}`).toBe(0);
-        const sqlError = await runMigrate(ctx, ['--json']);
-        expect(sqlError.exitCode, 'the conversion has a SQL error').not.toBe(0);
-        expect(engineError(sqlError)?.why).toContain('operator does not exist');
-        const sqlErrorAdvice = JSON.stringify(engineError(sqlError)?.nextActions);
-        expect(sqlErrorAdvice).toContain(
-          'The conversion of field \\"User.age\\" failed with an error in its SQL.',
+        const expressionError = await runMigrate(ctx, ['--json']);
+        expect(expressionError.exitCode, 'the conversion has a SQL error').not.toBe(0);
+        expect(engineError(expressionError)?.why).toContain('operator does not exist');
+        const expressionErrorAdvice = JSON.stringify(engineError(expressionError)?.nextActions);
+        expect(expressionErrorAdvice).toContain(
+          'The conversion of field \\"User.age\\" failed with an error in its expression.',
         );
-        expect(sqlErrorAdvice).toContain(
+        expect(expressionErrorAdvice).toContain(
           `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\`, run \`node ${relative(ctx.testDir, migrationTs)}`,
         );
-        expect(sqlErrorAdvice).toContain('db migrate');
+        expect(expressionErrorAdvice).toContain('db migrate');
 
         writeFileSync(migrationTs, scaffold);
         await fillAndApply(ctx, fillUsing('trim("age")::int4'));

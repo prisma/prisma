@@ -282,7 +282,7 @@ withTempDir(({ createTempDir }) => {
         await failsNamingTheField(scaffold.replace(slot, `'trim("age")'`), leftAValue);
         await failsNamingTheField(scaffold.replace(slot, `'to_int("age")'`), {
           why: 'no such function: to_int',
-          text: 'The conversion of field "User.age" failed with an error in its SQL.',
+          text: 'The conversion of field "User.age" failed with an error in its expression.',
         });
         await failsNamingTheField(scaffold.replace(slot, `"NULLIF(\\"age\\", 'ten')"`), {
           why: 'NOT NULL constraint failed',
