@@ -5,7 +5,7 @@ import type {
   ParameterizedOutputTypesFunction,
   TypeMapsPhantomKey,
 } from '@internal/sql-contract/types';
-import type { ParameterizedOutputTypesForTypeParams as PostgresOutputTypes } from '@internal/target-postgres/pack';
+import type { ParameterizedOutputTypesForTypeParams as PostgresOutputTypes } from '@internal/target-postgres/codec-types';
 import { describe, expectTypeOf, test } from 'vitest';
 import type { Built, DifferingKeys, Emitted, Fixtures, SameType } from './parity-types';
 
