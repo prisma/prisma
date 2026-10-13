@@ -1,4 +1,5 @@
 import { CliStructuredError } from '@internal/errors/control';
+import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import {
   errorBundleNotFoundForGraphNode,
@@ -250,6 +251,13 @@ describe('MigrationToolsError base type', () => {
     expect(err.name).toBe('CliStructuredError');
     expect(CliStructuredError.is(err)).toBe(true);
     expect(MigrationToolsError.is(err)).toBe(true);
+  });
+
+  it('tells the user to repeat --config when re-emitting a package', () => {
+    const err = errorMissingFile('ops.json', join(process.cwd(), 'db/migrations/app/0001_init'));
+    expect(err.fix).toBe(
+      'Re-emit the package by running `node "db/migrations/app/0001_init/migration.ts"`, adding the `--config <path>` you gave this command, if any, or delete the directory if the migration is unwanted and the source TypeScript is gone.',
+    );
   });
 
   it('exposes toEnvelope() with code, summary, why, fix, nextActions, and meta', () => {

@@ -6,7 +6,6 @@ import {
   migrationSubjectKey,
   modelDisplayName,
   type ResolvedMigrationStatement,
-  type TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -60,6 +59,12 @@ export interface PlannedSubject {
   readonly subject: MigrationSubject;
 }
 
+/** An operation of a plan that loses its subject's data. */
+export interface PlannedLoss extends PlannedSubject {
+  /** How to keep the data instead, in the target's words; the question ends with it. */
+  readonly keepDataAdvice?: string;
+}
+
 /** An operation of a plan that changes who can read or write its subject's rows. */
 export interface PlannedAccessChange extends PlannedSubject {
   readonly widens: boolean;
@@ -67,7 +72,7 @@ export interface PlannedAccessChange extends PlannedSubject {
 
 /** What a plan would lose, and whose access it would change. */
 export interface PlannedQuestions {
-  readonly dataLoss: readonly PlannedSubject[];
+  readonly dataLoss: readonly PlannedLoss[];
   readonly accessWidening: readonly PlannedAccessChange[];
 }
 
@@ -146,12 +151,12 @@ function lossText(subject: MigrationSubject, text: string, originKnown: boolean)
     case 'storage':
       return originKnown
         ? `would lose the data in "${text}", which no model of the origin contract stores`
-        : `would lose the data in "${text}", named by its storage name because the origin contract is unknown; --delete loses its rows`;
+        : `would lose the data in "${text}", named by its storage name because the origin contract is unknown; --delete loses that data`;
   }
 }
 
 /**
- * How to keep the rows of a storage subject that was renamed, when the origin contract is unknown:
+ * How to keep the data of a storage subject that was renamed, when the origin contract is unknown:
  * store the snapshot of the contract the database is at, as `MIGRATION.STATEMENT_ORIGIN_UNKNOWN`
  * advises, then answer with a rename. The refusal gives it once, on its first storage question. The
  * engine does not put the CLI's name in a question's text, so the steps name `prisma`.
@@ -159,7 +164,7 @@ function lossText(subject: MigrationSubject, text: string, originKnown: boolean)
 export const ORIGIN_SNAPSHOT_RECOVERY = [
   'If it was renamed, keep its data instead: store the snapshot of the contract the database is at, then run this command again and answer with --rename.',
   ...STORE_ORIGIN_SNAPSHOT_STEPS.map((step) => step.replaceAll('{bin}', 'prisma')),
-].join(' ');
+].join('\n');
 
 function sameCoordinate(statement: ResolvedMigrationStatement, subject: MigrationSubject): boolean {
   if (subject.kind === 'storage') return false;
@@ -175,16 +180,9 @@ function namesSubject(verb: ConsentVerb, subject: string) {
     text === subject ? undefined : `${verb} names "${subject}": --${verb} ${subject}.`;
 }
 
-/**
- * How the target says to keep a subject's data by hand when its planner carries out no rename, or
- * `undefined` when it carries them out.
- */
-export function keepDataByHandFor(
-  migrations: { readonly renameStatements?: TargetMigrationsCapability['renameStatements'] },
-  origin: ContractWithDomain,
-): ((subject: MigrationSubject) => string) | undefined {
-  const refused = migrations.renameStatements;
-  return refused === undefined ? undefined : (subject) => refused.keepDataByHand(subject, origin);
+function modelRenameAdvice(model: ModelCoordinate, contracts: StatementContracts): string {
+  const name = modelText(contracts.origin, model);
+  return `The destination contract has no model "${name}"; to keep the values instead, also pass --rename ${name}:<new model name>, naming the model that stores them now, and the question then offers to rename the field.`;
 }
 
 /** A rename as a statement is written: a field's new name keeps the model, `User.nickname:User.<new name>`. */
@@ -222,24 +220,41 @@ function inDestination(
 }
 
 /**
+ * The model of a field subject, under the name a rename of the plan gives it, when the destination
+ * has no model of that name: a rename of the field cannot be written until a statement renames the
+ * model.
+ */
+function missingFieldModel(
+  subject: MigrationSubject,
+  contracts: StatementContracts & { readonly destination: ContractWithDomain },
+): ModelCoordinate | undefined {
+  if (subject.kind !== 'field') return undefined;
+  const model = renamedModel(subject, contracts) ?? subject;
+  return contracts.destination.domain.namespaces[model.namespaceId]?.models[model.model] ===
+    undefined
+    ? model
+    : undefined;
+}
+
+/**
  * The question for one operation that would lose data. A model or field the destination no longer
  * has, and no rename of the plan renamed, may be renamed instead of deleted; a rename is resolved
  * against the two contracts after the plan's other renames, and its old name must be the subject.
  * A subject the destination keeps, such as a field whose type changes, and data no model stores,
- * can only be deleted. Where the target's planner carries out no rename, `keepDataByHand` says how
- * to keep the data instead.
+ * can only be deleted. A field whose model the destination names differently can be renamed only
+ * after a statement renames the model, so the question says to pass one.
  */
 export function dataLossQuestion(
-  loss: PlannedSubject,
+  loss: PlannedLoss,
   contracts: StatementContracts & {
     readonly destination: ContractWithDomain;
     readonly originKnown: boolean;
-    readonly keepDataByHand: ((subject: MigrationSubject) => string) | undefined;
   },
 ): PlanQuestion {
   const subject = subjectText(loss.subject, contracts);
+  const missingModel = missingFieldModel(loss.subject, contracts);
   const renamable =
-    contracts.keepDataByHand === undefined &&
+    missingModel === undefined &&
     loss.subject.kind !== 'storage' &&
     !inDestination(loss.subject, contracts) &&
     !renamedByPlan(loss.subject, contracts);
@@ -247,7 +262,8 @@ export function dataLossQuestion(
   return {
     question: [
       `${loss.label} ${lossText(loss.subject, subject, contracts.originKnown)}.`,
-      ...(contracts.keepDataByHand === undefined ? [] : [contracts.keepDataByHand(loss.subject)]),
+      ...(missingModel === undefined ? [] : [modelRenameAdvice(missingModel, contracts)]),
+      ...(loss.keepDataAdvice === undefined ? [] : [loss.keepDataAdvice]),
     ].join(' '),
     subject,
     verbs: renamable ? ['rename', 'delete'] : ['delete'],
@@ -353,7 +369,7 @@ function checkAnswers(questions: readonly PlanQuestion[], answers: readonly Plan
 }
 
 function withRecoveryOnFirstStorageQuestion(
-  asked: readonly { readonly loss: PlannedSubject; readonly question: PlanQuestion }[],
+  asked: readonly { readonly loss: PlannedLoss; readonly question: PlanQuestion }[],
   recoveryApplies: boolean,
 ): readonly PlanQuestion[] {
   const first = recoveryApplies
@@ -361,7 +377,7 @@ function withRecoveryOnFirstStorageQuestion(
     : -1;
   return asked.map(({ question }, index) =>
     index === first
-      ? { ...question, question: `${question.question} ${ORIGIN_SNAPSHOT_RECOVERY}` }
+      ? { ...question, question: `${question.question}\n${ORIGIN_SNAPSHOT_RECOVERY}` }
       : question,
   );
 }
@@ -383,7 +399,6 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
   readonly consentAll: { readonly [verb in ConsentVerb]: boolean };
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
-  readonly keepDataByHand: ((subject: MigrationSubject) => string) | undefined;
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly replan: (renames: readonly StatementText[]) => Promise<Result<TPlan, TFailure>>;
@@ -405,7 +420,6 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     const contracts = {
       origin: input.origin,
       originKnown: input.originKnown,
-      keepDataByHand: input.keepDataByHand,
       destination: input.destination,
       renames,
     };
@@ -443,7 +457,7 @@ export async function askPlanQuestions<TPlan extends PlannedQuestions, TFailure>
     const questions = [
       ...withRecoveryOnFirstStorageQuestion(
         losses.map((loss) => ({ loss, question: dataLossQuestion(loss, contracts) })),
-        !input.originKnown && input.keepDataByHand === undefined,
+        !input.originKnown,
       ),
       ...widenings.map((widening) => accessWideningQuestion(widening, contracts)),
     ];

@@ -16,10 +16,13 @@ import type {
 import type {
   PreparedStatementExecuteTarget,
   PreparedStatementQueryTarget,
+  TransactionStartTarget,
 } from '@internal/sql-runtime/internal/prepared-query';
 import {
+  createTransactionStart,
   preparedStatementExecute,
   preparedStatementQuery,
+  transactionStart,
 } from '@internal/sql-runtime/internal/prepared-query';
 import { blindCast } from '@internal/utils/casts';
 import type { SupabaseRole } from '../contract/roles';
@@ -75,7 +78,11 @@ export class SupabaseRuntimeImpl<
 
     const self = this;
 
-    const session: RoleSession & PreparedStatementQueryTarget & PreparedStatementExecuteTarget = {
+    const session: RoleSession &
+      TransactionStartTarget &
+      PreparedStatementQueryTarget &
+      PreparedStatementExecuteTarget = {
+      [transactionStart]: createTransactionStart(),
       query<Row>(
         plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
         options?: RuntimeExecuteOptions,
@@ -107,7 +114,7 @@ export class SupabaseRuntimeImpl<
       },
 
       async transaction(): Promise<RuntimeTransaction> {
-        return self.wrapTransaction(await conn.beginTransaction(), conn);
+        return self.beginTransactionOn(conn, session);
       },
 
       /**

@@ -44,7 +44,6 @@ function run(replanned: PlannedQuestions, typed: readonly (readonly string[])[])
       consentAll: { delete: false, allow: false },
       origin,
       originKnown: true,
-      keepDataByHand: undefined,
       destination,
       answer: async (questions: readonly PlanQuestion[]) => {
         asked.push(questions.map(({ question }) => question));
@@ -101,7 +100,6 @@ describe('questions about storage when the origin contract is unknown', () => {
       consentAll: { delete: false, allow: false },
       origin,
       originKnown: false,
-      keepDataByHand: undefined,
       destination,
       answer: async (questions) => {
         asked.push(...questions.map(({ question }) => question));
@@ -111,8 +109,14 @@ describe('questions about storage when the origin contract is unknown', () => {
     });
 
     expect(asked).toEqual([
-      `Drop table Legacy would lose the data in "Legacy", named by its storage name because the origin contract is unknown; --delete loses its rows. ${ORIGIN_SNAPSHOT_RECOVERY}`,
-      'Drop table Profile would lose the data in "Profile", named by its storage name because the origin contract is unknown; --delete loses its rows.',
+      `Drop table Legacy would lose the data in "Legacy", named by its storage name because the origin contract is unknown; --delete loses that data.\n${ORIGIN_SNAPSHOT_RECOVERY}`,
+      'Drop table Profile would lose the data in "Profile", named by its storage name because the origin contract is unknown; --delete loses that data.',
+    ]);
+    expect(ORIGIN_SNAPSHOT_RECOVERY.split('\n').map((line) => line.slice(0, 2))).toEqual([
+      'If',
+      '1.',
+      '2.',
+      '3.',
     ]);
     expect(ORIGIN_SNAPSHOT_RECOVERY).toContain('--dry-run');
     expect(ORIGIN_SNAPSHOT_RECOVERY).toContain('`prisma db update --advance-ref <name> --dry-run`');
@@ -150,7 +154,6 @@ describe('questions about access', () => {
       consentAll: { delete: false, allow: false },
       origin,
       originKnown: true,
-      keepDataByHand: undefined,
       destination,
       answer: async (questions) => {
         asked.push(...questions.map(({ question }) => question));
@@ -196,7 +199,6 @@ describe('allow statements given as pre-answers', () => {
       consentAll: { delete: false, allow: false },
       origin,
       originKnown: true,
-      keepDataByHand: undefined,
       destination,
       answer: async (questions) => {
         asked.push(...questions.map(({ question }) => question));
@@ -256,7 +258,6 @@ describe('an access change consented before a typed rename', () => {
       consentAll: { delete: false, allow: false },
       origin,
       originKnown: true,
-      keepDataByHand: undefined,
       destination,
       answer: async (questions) => {
         rounds += 1;
@@ -275,40 +276,5 @@ describe('an access change consented before a typed rename', () => {
       result.ok &&
         result.value.consented.map(({ verb, operationIndex }) => ({ verb, operationIndex })),
     ).toEqual([{ verb: 'allow', operationIndex: 3 }]);
-  });
-});
-
-describe('questions about storage on a target that carries out no rename', () => {
-  it('say how to keep the data by hand, without the steps that make a rename possible', async () => {
-    const asked: string[] = [];
-    await askPlanQuestions({
-      plan: {
-        dataLoss: [
-          {
-            operationIndex: 0,
-            label: 'Drop collection events',
-            subject: { kind: 'storage', name: 'events' },
-          },
-        ],
-        accessWidening: [],
-      },
-      askAccess: false,
-      renames: [],
-      preAnswers: [],
-      consentAll: { delete: false, allow: false },
-      origin,
-      originKnown: false,
-      keepDataByHand: () => 'Rename the collection by hand first.',
-      destination,
-      answer: async (questions) => {
-        asked.push(...questions.map(({ question }) => question));
-        return questions.map(({ subject }) => ({ verb: 'delete', text: subject }));
-      },
-      replan: async () => ok({ dataLoss: [], accessWidening: [] }),
-    });
-
-    expect(asked).toEqual([
-      'Drop collection events would lose the data in "events", named by its storage name because the origin contract is unknown; --delete loses its rows. Rename the collection by hand first.',
-    ]);
   });
 });

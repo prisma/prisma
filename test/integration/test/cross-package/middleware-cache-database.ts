@@ -128,7 +128,7 @@ export function useMiddlewareCacheDatabase(): MiddlewareCacheDatabase {
     await driver.connect({ kind: 'pgClient', client });
 
     // Spy on the driver's query so we can count round-trips. The
-    // cache middleware short-circuits via `interceptQuery` upstream of
+    // cache middleware short-circuits via `intercept.onQuery` upstream of
     // `runDriver`, so a hit shows up here as zero invocations.
     driverQuerySpy = vi.spyOn(driver, 'query');
 

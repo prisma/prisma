@@ -9,7 +9,7 @@
  * with additional fields for execution (precheck SQL, execute SQL, etc.).
  */
 
-import type { Contract, ContractWithDomain } from '@internal/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type { ImportRequirement } from '@internal/ts-render';
 import type { Result } from '@internal/utils/result';
 import type { TargetBoundComponentDescriptor } from '../shared/framework-components';
@@ -23,7 +23,6 @@ import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
   MigrationPlanSubjects,
-  MigrationSubject,
   ResolvedMigrationStatement,
 } from './migration-statements';
 
@@ -653,18 +652,6 @@ export interface TargetMigrationsCapability<
     adapter: ControlAdapterInstance<TFamilyId, TTargetId>,
   ): MigrationPlanner<TFamilyId, TTargetId>;
   createRunner(family: TFamilyInstance): MigrationRunner<TFamilyId, TTargetId>;
-  /**
-   * Set when the target's planner carries out no rename statement: a data-loss question then
-   * offers no rename, and says instead how to keep the data by hand.
-   */
-  readonly renameStatements?: {
-    readonly refused: true;
-    /** How to keep the data of `subject` by hand, so that the plan made afterwards loses nothing. */
-    readonly keepDataByHand: (
-      subject: MigrationSubject,
-      fromContract: ContractWithDomain,
-    ) => string;
-  };
   /**
    * Synthesizes a family-specific schema IR from a contract for offline planning.
    * The returned schema can be passed to `planner.plan({ schema })` as the "from" state.

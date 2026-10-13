@@ -38,7 +38,7 @@ Once the contract changes, you choose how the change reaches the database. This 
   - `ops.json` — canonical operation list. Content-addressed; `migrationHash` is computed over this.
   - `migration.ts` — TypeScript authoring source, **framework-rendered** by `migration plan` (or `migration new`). You edit specific holes in it (see *Fill a placeholder* below) and re-emit `ops.json` / `migration.json` by running it.
 - **Contract snapshots.** `migration.ts` imports its bookend contracts from the shared, content-addressed store at `migrations/snapshots/<hex>/contract.json` + `contract.d.ts` (`<hex>` is the contract's 64-hex storage hash) — not from files inside the migration package.
-- **Self-emit.** Running `node migrations/app/<dir>/migration.ts` regenerates `ops.json` and `migration.json` from the (possibly edited) TS source. This is the only supported way to update an existing migration package after edits.
+- **Self-emit.** Running `node <package dir>/migration.ts` regenerates `ops.json` and `migration.json` from the (possibly edited) TS source. This is the only supported way to update an existing migration package after edits. `<package dir>` is the directory `migration plan` or `migration new` printed; it sits under the config's `migrations.dir` (by default `migrations/app/<dir>`), so the path depends on that setting. The command works from any directory. Without `--config`, the file uses the config whose migrations directory holds it: the nearest `prisma.config.ts` above it, else the one in the working directory; if neither does, it fails with `CLI.MIGRATION_CONFIG_NOT_FOUND`. If you gave the CLI `--config`, pass the same `--config <path>` to the file.
 - **`migration.ts` shape.** Framework-rendered. A class `M extends Migration<Start, End>` (from `@internal/postgres/migration` on Postgres, `@prisma/orm-mongo/target/migration` on Mongo — see the framing block below) that assigns the two snapshot imports to `startContractJson` / `endContractJson` (`Start` is `never` and there is no `startContractJson` on a baseline) and has an `operations` getter returning an array of operation values. **On Postgres the operation factories are methods on the base class** (`this.addColumn({...})`, `this.setNotNull({...})`, `this.dataTransform(...)`) taking one options object; free helpers like `col(...)` build the column descriptors they take. **On Mongo they are free factories** (`createIndex(...)`, `dataTransform(...)`) imported beside `Migration`. The file ends with `MigrationCLI.run(import.meta.url, M)` so executing it self-emits.
 - **`placeholder(slot)`.** A sentinel the planner emits into the rendered `migration.ts` (from the same `.../migration` import as `Migration`) wherever a data transform is needed. Calling `placeholder(...)` at emit time throws `MIGRATION.UNFILLED_PLACEHOLDER` with `meta.slot` naming the hole. The user replaces the `() => placeholder(...)` arrow with a real query-plan closure (Postgres) or fills `dataTransform({ check, run })` sources (Mongo — see *Fill a placeholder*), then self-emits.
 - **`this.dataTransform(endContract, name, { check, run })`.** The data-transform factory. `check` is a rowset query whose presence-of-any-row signals "work remains"; `run` is one or more mutation queries that perform the backfill. Both are lazy closures returning query-plans built against `endContract`. The runner wraps `check` as `EXISTS(...)` for precheck and `NOT EXISTS(...)` for postcheck, so the same closure asserts both "there is work" and "the work is done".
@@ -70,7 +70,7 @@ Treat the rendered import lines as framework-managed on both targets:
 | `MIGRATION.FILE_MISSING` | Reading a migration package | `migration.ts`, `migration.json`, or `ops.json` is absent. Recover from version control, re-emit via `migration.ts`, or run `prisma migration new` for a fresh one. |
 | `MIGRATION.INVALID_DEFAULT_EXPORT` | Loading `migration.ts` | The file's default export is not a `Migration` subclass or factory function. Restore the planner-emitted scaffold from version control or re-run `migration plan` for a clean package. |
 | `MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH` | Building a data-transform query plan | The query builder was instantiated with a contract reference different from the `endContract` passed to `this.dataTransform(...)`. Use the `endContract` imported at module scope for both. |
-| `MIGRATION.HASH_MISMATCH` *Migration package is corrupt* | `db migrate` (or any read of the package) | `ops.json` / `migration.json` were edited without self-emitting. Run `node migrations/app/<dir>/migration.ts` to re-emit, then re-run `db migrate`. |
+| `MIGRATION.HASH_MISMATCH` *Migration package is corrupt* | `db migrate` (or any read of the package) | `ops.json` / `migration.json` were edited without self-emitting. Run `node <package dir>/migration.ts` to re-emit, then re-run `db migrate`. |
 | `CLI.CONSENT_REQUIRED` | `migration plan` / `db update` run with nobody to answer (`--no-interactive`, CI, `--yes`) | The plan would lose data or (on `db update`) widen access. `meta.unanswered` and `nextActions` list each question with the flags that answer it: `--delete <subject>`, `--rename <subject>:<new name>`, `--allow <Model>`. Re-run with the ones you mean. `--confirm` and `--yes` answer none of them. |
 | `CLI.CONSENT_UNUSED` | `migration plan` / `db update` | Every question was answered, and a `--delete` or `--allow` was left over: a typo, a subject the plan does not touch, or a `--confirm` (which consents to nothing). Fix or drop the flag. A typo next to a question nobody answered is reported as `CLI.CONSENT_REQUIRED` instead, which names the flag that matched nothing. On `db update --dry-run` the same mistake is `MIGRATION.STATEMENT_ANSWERS_NO_QUESTION`. |
 | `MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS` | A rename typed at the data-loss prompt | The plan was made again with the rename and still loses the subject's data. Answer with `delete`, or give a rename whose old name is the subject. |
@@ -349,7 +349,7 @@ export default M;
 MigrationCLI.run(import.meta.url, M);
 ```
 
-Self-emit the same way: `node migrations/app/<dir>/migration.ts`.
+Self-emit the same way: `node <package dir>/migration.ts`.
 
 ## Workflow — Author a migration by hand
 
@@ -375,12 +375,13 @@ On Postgres the operations are **methods on the `Migration` base class**, each t
 
 **Mongo** factories (from `@prisma/orm-mongo/target/migration`):
 
-- Collections: `createCollection`, `dropCollection`, `validatedCollection`, `setValidation`.
+- Collections: `createCollection`, `dropCollection`, `renameCollection(from, to)` (keeps the documents, indexes and validator), `validatedCollection`, `setValidation`.
 - Indexes: `createIndex`, `dropIndex`.
+- Document rewrites: `renameField(collection, from, to, { filter? })` and `unsetField(collection, field, { filter? })`, each one `updateMany` that skips validation; `filter` limits them to one variant's documents, such as `{ filter: { type: 'bug' } }`.
 - Collection options: `collMod`.
 - Data transforms: `dataTransform(name, { check, run })` (free factory; `check`/`run` use Mongo query-plan shapes).
 
-Self-emit (`node migrations/app/<dir>/migration.ts`) after each edit.
+Self-emit (`node <package dir>/migration.ts`) after each edit.
 
 ## Workflow — Inspect the live schema
 
@@ -455,7 +456,7 @@ pnpm prisma db schema --db $DATABASE_URL --json
 Fix and re-run `db migrate`:
 
 ```bash
-node migrations/app/<dir>/migration.ts
+node <package dir>/migration.ts
 pnpm prisma db migrate --db $DATABASE_URL
 ```
 
@@ -466,7 +467,7 @@ If the failure was an out-of-band side-effect that left external systems half-ch
 The concept: `migrationHash` is content-addressed. A mismatch means `migration.json`'s stored hash disagrees with the hash recomputed from `ops.json` (and metadata). The cause is almost always: someone edited `migration.ts` and forgot to self-emit. The remediation is to self-emit the offending package.
 
 ```bash
-node migrations/app/<dir>/migration.ts
+node <package dir>/migration.ts
 pnpm prisma db migrate --db $DATABASE_URL
 ```
 
@@ -476,7 +477,7 @@ If self-emit itself fails (e.g. the contract has moved on and the operations no 
 
 The concept: the planner cannot tell whether a dropped model or field was meant to go, or was renamed. So before `migration plan` writes a package, or `db update` applies, the command asks one question per model, field or storage name an operation would lose data from. `db update` also asks one per model whose rows an operation would open up, such as dropping a row-level-security policy. Each question is answered by a statement:
 
-- `--delete <subject>` lets the data go: `--delete Legacy`, `--delete User.nickname`. A subject no model stores is named by its storage name (`public.audit_log` on Postgres, `audit_log` on SQLite) and can only be deleted.
+- `--delete <subject>` lets the data go: `--delete Legacy`, `--delete User.nickname`. A subject no model stores is named by its storage name (`public.audit_log` on Postgres, `audit_log` on SQLite, `profiles.nickname` for a MongoDB field when `db update` has no snapshot of the origin contract) and can only be deleted. On MongoDB, removing a field from a model is asked about, and `--delete` removes it from every document that holds it.
 - `--rename <subject>:<new name>` keeps it under a new name: `--rename Profile:User`, or for a field `--rename User.nickname:User.handle` (the new name keeps its model). A field of a renamed model is named through the new name (`--delete User.nickname` after `--rename Profile:User`).
 - `--allow <Model>` (`db update` only) lets an operation that changes who can read or write the model's rows run: one flag per operation, so a policy drop and disabling row-level security on one model take `--allow User --allow User`.
 
@@ -499,7 +500,7 @@ In a terminal the command asks each question in turn; type `delete`, `allow`, or
 6. **Aggregate `check` closure in Postgres `this.dataTransform`.** Returning `count(*)` or `bool_and(...)` breaks the precheck/postcheck contract — both sides resolve to constants. Use a rowset shape: `select('id').where(<violation>).limit(1)`.
 7. **Two contract references in one migration.** Building a query plan against a different contract than the one passed to `this.dataTransform(endContract, ...)` raises `MIGRATION.DATA_TRANSFORM_CONTRACT_MISMATCH`. Always import `endContract` once at module scope and use the same reference.
 11. **Calling Postgres operations as free functions.** `addColumn('public', 'user', {...})` does not exist as an import; the operations are `this.addColumn({ schema, table, column })` and friends on the `Migration` base class, with `col(...)` building the column. Only `col`, `rawSql`, `placeholder`, `Migration`, and `MigrationCLI` are imported.
-8. **Renaming a model or field without a statement (Postgres, SQLite).** The planner cannot tell a rename from a drop and a create, so without a statement it plans a destructive drop+add. State the rename on the command line: `migration plan --name <slug> --rename User:Person --rename Person.email:Person.emailAddress`, or the same `--rename` flags on `db update`. A field is named through its model as the new contract names it. The planner then renames the table or column and the constraints and indexes named after it. For a rename statements do not cover, such as a model that keeps its name but changes its `@@map`, hand-edit `migration.ts` with `...this.renameTable(...)` or `...this.renameColumn(...)`, then self-emit.
+8. **Renaming a model or field without a statement.** The planner cannot tell a rename from a drop and a create, so without a statement it plans a destructive drop+add. State the rename on the command line: `migration plan --name <slug> --rename User:Person --rename Person.email:Person.emailAddress`, or the same `--rename` flags on `db update`. A field is named through its model as the new contract names it. The planner then renames the table or column and the constraints and indexes named after it; on MongoDB it renames the collection, and the field in every document that holds it (only in that variant's documents for a variant's field). On MongoDB a field is named by its stored name: `id @map("_id")` is `User._id`. For a rename statements do not cover, such as a model that keeps its name but changes its `@@map`, hand-edit `migration.ts` with `...this.renameTable(...)` or `...this.renameColumn(...)` (Postgres, SQLite) or `renameCollection(...)` (MongoDB), then self-emit.
 9. **Planning with no `db` ref and no `--from` in a project that already has migrations.** The origin falls through to the empty database, which would make the plan a full-create migration; `migration plan` refuses with `MIGRATION.PLAN_ORIGIN_UNKNOWN` rather than writing it. Pick the exit that matches your intent — the error lists them, and `references/migration-model.md` § *The trap* explains which to choose.
 10. **Hand-authoring `migration.ts` from a blank file, or rewriting the rendered import line.** Migration files are framework-rendered — let `prisma migration plan` (or `migration new`) render the package, then edit only the holes the framework leaves for you. On Postgres leave the rendered `@internal/postgres/migration` (or `@internal/sqlite/migration`) import path alone; on Mongo leave `@prisma/orm-mongo/target/migration` as rendered. Add symbols to the existing import line rather than introducing new import paths.
 
@@ -508,7 +509,7 @@ In a terminal the command asks each question in turn; type `delete`, `allow`, or
 - **Runtime-apply migrations.** Prisma 8 doesn't apply pending migrations from your app's startup code (the "Drizzle pattern" for serverless / edge). Workaround: run `prisma db migrate` from your deploy pipeline before the app starts. If you need runtime-apply built-in, file a feature request via the `references/feedback.md` skill.
 - **Seeds-as-first-class.** Prisma 8 doesn't ship a `prisma db seed` equivalent. Workaround: write a TypeScript script that imports your `db` instance and runs your setup queries; invoke it from `package.json`'s scripts. If you need first-class seeding, file a feature request via the `references/feedback.md` skill.
 - **Migration squashing.** Prisma 8 doesn't squash older migrations into a baseline. They accumulate; for very large histories, manual baseline-and-truncate is the path. If you need built-in squashing, file a feature request via the `references/feedback.md` skill.
-- **Renames beyond models and fields, and renames on MongoDB.** `--rename` covers models and fields on Postgres and SQLite. It does not rename enum values, namespaces or value objects, and does not move a model to another namespace. On MongoDB, `--rename` fails with `MIGRATION.PLANNING_FAILED` and plans nothing. A data-loss question about a dropped collection offers only `--delete` and says how to keep the documents by hand; a migration written by `migration plan` still drops the collection, so remove that operation or do not apply it where the collection was renamed. Workaround: follow the error's advice and make the rename by hand in `mongosh` on each database, before a plan made without `--rename` is applied there: `renameCollection` for a model, and for a field turn off the collection's validator, drop each unique index that includes the field, then `updateMany({}, { $rename: ... })`. Applying the plan then creates the new indexes and turns the validator back on. There is no Mongo rename operation to write in `migration.ts`. If you need one of these, file a feature request via the `references/feedback.md` skill.
+- **Renames beyond models and fields.** `--rename` covers models and fields on Postgres, SQLite and MongoDB. It does not rename enum values, namespaces or value objects (on MongoDB, a field inside a value object), and does not move a model to another namespace. On MongoDB it also refuses `_id`, a field whose stored name contains `.` or starts with `$`, and a time-series collection; each refusal (`MIGRATION.PLANNING_FAILED`) says what to do instead. If you need one of these, file a feature request via the `references/feedback.md` skill.
 
 ## Graph and history commands
 
@@ -535,7 +536,7 @@ The CLI collects anonymous usage data by default. To opt out, set `PRISMA_DISABL
 - [ ] For `migration plan`: ran `migration show <dir>` to review before `db migrate`.
 - [ ] Filled every `placeholder(...)` in `migration.ts` (if any), built against `endContract`.
 - [ ] `check` closures are rowset queries, not scalar aggregates.
-- [ ] Self-emitted (`node migrations/app/<dir>/migration.ts`) after editing the TS.
+- [ ] Self-emitted (`node <package dir>/migration.ts`) after editing the TS.
 - [ ] Ran `db migrate` (or `db update`) and saw it complete.
 - [ ] Used `db verify` only when diagnosing drift — not as a routine post-apply step.
 - [ ] Did NOT use `db update` against a shared or production database.

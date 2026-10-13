@@ -11,8 +11,8 @@ import {
   ListCollectionsCommand,
   ListIndexesCommand,
   MongoAndExpr,
-  type MongoDataTransformCheck,
-  type MongoDataTransformOperation,
+  type MongoDmlCheck,
+  type MongoDmlOperation,
   MongoExistsExpr,
   MongoFieldFilter,
   type MongoFilterExpr,
@@ -21,6 +21,7 @@ import {
   type MongoMigrationStep,
   MongoNotExpr,
   MongoOrExpr,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import {
   AggregateCommand,
@@ -115,6 +116,12 @@ const DropCollectionJson = type({
   collection: 'string',
 });
 
+const RenameCollectionJson = type({
+  kind: '"renameCollection"',
+  collection: 'string',
+  to: 'string',
+});
+
 const CollModJson = type({
   kind: '"collMod"',
   collection: 'string',
@@ -189,6 +196,7 @@ const RawUpdateManyJson = type({
   collection: 'string',
   filter: 'Record<string, unknown>',
   update: 'Record<string, unknown> | Record<string, unknown>[]',
+  'bypassDocumentValidation?': 'boolean',
 });
 
 const RawDeleteOneJson = type({
@@ -304,17 +312,17 @@ const DdlOperationJson = type({
   postcheck: 'Record<string, unknown>[]',
 });
 
-const DataTransformCheckJson = type({
+const DmlCheckJson = type({
   description: 'string',
   source: 'Record<string, unknown>',
   filter: 'Record<string, unknown>',
   expect: '"exists" | "notExists"',
 });
 
-const DataTransformOperationJson = type({
+const DmlOperationJson = type({
   id: 'string',
   label: 'string',
-  operationClass: '"data"',
+  operationClass: '"additive" | "widening" | "destructive" | "data"',
   name: 'string',
   precheck: 'Record<string, unknown>[]',
   run: 'Record<string, unknown>[]',
@@ -578,7 +586,12 @@ export function deserializeDmlCommand(json: unknown): AnyMongoCommand {
     }
     case 'rawUpdateMany': {
       const data = validate(RawUpdateManyJson, json, 'rawUpdateMany command');
-      return new RawUpdateManyCommand(data.collection, data.filter, data.update);
+      return new RawUpdateManyCommand(
+        data.collection,
+        data.filter,
+        data.update,
+        ifDefined('bypassDocumentValidation', data.bypassDocumentValidation),
+      );
     }
     case 'rawDeleteOne': {
       const data = validate(RawDeleteOneJson, json, 'rawDeleteOne command');
@@ -678,6 +691,10 @@ function deserializeDdlCommand(json: unknown): AnyMongoDdlCommand {
       const data = validate(DropCollectionJson, json, 'dropCollection command');
       return new DropCollectionCommand(data.collection);
     }
+    case 'renameCollection': {
+      const data = validate(RenameCollectionJson, json, 'renameCollection command');
+      return new RenameCollectionCommand(data.collection, data.to);
+    }
     case 'collMod': {
       const data = validate(CollModJson, json, 'collMod command');
       return new CollModCommand(data.collection, {
@@ -734,8 +751,8 @@ function deserializeStep(json: unknown): MongoMigrationStep {
   };
 }
 
-function isDataTransformJson(json: unknown): boolean {
-  return recordValue(json, 'operationClass', 'migration operation') === 'data';
+function isDmlOperationJson(json: unknown): boolean {
+  return Array.isArray(recordValue(json, 'run', 'migration operation'));
 }
 
 function deserializeDdlOp(json: unknown): MongoMigrationPlanOperation {
@@ -750,8 +767,8 @@ function deserializeDdlOp(json: unknown): MongoMigrationPlanOperation {
   };
 }
 
-function deserializeDataTransformCheck(json: unknown): MongoDataTransformCheck {
-  const data = validate(DataTransformCheckJson, json, 'data transform check');
+function deserializeDmlCheck(json: unknown): MongoDmlCheck {
+  const data = validate(DmlCheckJson, json, 'DML operation check');
   return {
     description: data.description,
     source: deserializeMongoQueryPlan(data.source),
@@ -760,22 +777,22 @@ function deserializeDataTransformCheck(json: unknown): MongoDataTransformCheck {
   };
 }
 
-function deserializeDataTransformOp(json: unknown): MongoDataTransformOperation {
-  const data = validate(DataTransformOperationJson, json, 'data transform operation');
+function deserializeDmlOp(json: unknown): MongoDmlOperation {
+  const data = validate(DmlOperationJson, json, 'DML operation');
   return {
     id: data.id,
     label: data.label,
-    operationClass: 'data',
+    operationClass: data.operationClass,
     name: data.name,
-    precheck: data.precheck.map(deserializeDataTransformCheck),
+    precheck: data.precheck.map(deserializeDmlCheck),
     run: data.run.map(deserializeMongoQueryPlan),
-    postcheck: data.postcheck.map(deserializeDataTransformCheck),
+    postcheck: data.postcheck.map(deserializeDmlCheck),
   };
 }
 
 export function deserializeMongoOp(json: unknown): AnyMongoMigrationOperation {
-  if (isDataTransformJson(json)) {
-    return deserializeDataTransformOp(json);
+  if (isDmlOperationJson(json)) {
+    return deserializeDmlOp(json);
   }
   return deserializeDdlOp(json);
 }

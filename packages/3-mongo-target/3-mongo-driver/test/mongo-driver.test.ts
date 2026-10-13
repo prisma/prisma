@@ -11,6 +11,7 @@ import {
   FindOneAndUpdateWireCommand,
   InsertManyWireCommand,
   InsertOneWireCommand,
+  RenameCollectionWireCommand,
   UpdateManyWireCommand,
   UpdateOneWireCommand,
 } from '@internal/mongo-wire';
@@ -171,6 +172,38 @@ describe('MongoDriver', () => {
 
   describe('updateMany', () => {
     const col = 'driver_update_many';
+
+    it('skips validation when bypassDocumentValidation is set', async () => {
+      const db = seedClient.db(dbName);
+      const driver = MongoDriverImpl.fromDb(db);
+      const closed = 'driver_update_many_bypass';
+      await db.dropCollection(closed).catch(() => undefined);
+      await db.createCollection(closed, {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['name'],
+            properties: { _id: { bsonType: 'objectId' }, name: { bsonType: 'string' } },
+            additionalProperties: false,
+          },
+        },
+        validationLevel: 'strict',
+        validationAction: 'error',
+      });
+      await db.collection(closed).insertOne({ name: 'Ada' });
+      const rename = { $rename: { name: 'fullName' } };
+
+      await expect(
+        collect(driver.execute(new UpdateManyWireCommand(closed, {}, rename))),
+      ).rejects.toThrow(/Document failed validation/);
+      await collect(driver.execute(new UpdateManyWireCommand(closed, {}, rename, false, true)));
+
+      const docs = await db
+        .collection(closed)
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+      expect(docs).toEqual([{ fullName: 'Ada' }]);
+    });
 
     it('updates multiple documents and returns counts', async () => {
       const driver = await createMongoDriver(connectionUri, dbName);
@@ -454,6 +487,30 @@ describe('MongoDriver', () => {
 
       const colls = await db.listCollections({ name: col }).toArray();
       expect(colls).toHaveLength(0);
+    });
+  });
+
+  describe('renameCollection', () => {
+    it('renames the collection and keeps its documents', async () => {
+      const db = seedClient.db(dbName);
+      const driver = MongoDriverImpl.fromDb(db);
+      const from = 'driver_rename_from';
+      const to = 'driver_rename_to';
+
+      await db.dropCollection(from).catch(() => undefined);
+      await db.dropCollection(to).catch(() => undefined);
+      await db.collection(from).insertOne({ name: 'Ada' });
+
+      await driver.run(new RenameCollectionWireCommand(from, to));
+
+      const names = (await db.listCollections({ name: { $in: [from, to] } }).toArray()).map(
+        (c) => c.name,
+      );
+      const docs = await db
+        .collection(to)
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+      expect({ names, docs }).toEqual({ names: [to], docs: [{ name: 'Ada' }] });
     });
   });
 

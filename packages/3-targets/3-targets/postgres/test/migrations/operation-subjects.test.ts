@@ -5,6 +5,7 @@ import { SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { postgresCallSubjects } from '../../src/core/migrations/operation-subjects';
+import { postgresTableRenameByHand } from '../../src/core/migrations/table-rename-calls';
 import { PostgresSchema } from '../../src/core/postgres-schema';
 
 const text = { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false };
@@ -70,7 +71,12 @@ function subjectsOf(calls: readonly OpFactoryCall[], fieldEvents: readonly Field
       contract,
       fieldEvents: new Map(fieldEvents.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
     }),
-    { fromContract: contract, contract, statements: [] },
+    {
+      fromContract: contract,
+      contract,
+      byHand: postgresTableRenameByHand(contract),
+      statements: [],
+    },
   ).dataLoss;
 }
 

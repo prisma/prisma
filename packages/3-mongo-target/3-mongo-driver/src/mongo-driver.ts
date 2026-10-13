@@ -18,6 +18,7 @@ import type {
   InsertManyWireCommand,
   InsertOneResult,
   InsertOneWireCommand,
+  RenameCollectionWireCommand,
   UpdateManyResult,
   UpdateManyWireCommand,
   UpdateOneResult,
@@ -98,6 +99,8 @@ export class MongoDriverImpl implements MongoDriver {
         return this.executeCreateIndexCommand(wireCommand);
       case 'dropCollection':
         return this.executeDropCollectionCommand(wireCommand);
+      case 'renameCollection':
+        return this.executeRenameCollectionCommand(wireCommand);
       case 'dropIndex':
         return this.executeDropIndexCommand(wireCommand);
       case 'collMod':
@@ -166,7 +169,10 @@ export class MongoDriverImpl implements MongoDriver {
     cmd: UpdateManyWireCommand,
   ): AsyncIterable<UpdateManyResult> {
     const collection = this.db.collection(cmd.collection);
-    const result = await collection.updateMany(cmd.filter, cmd.update, { upsert: cmd.upsert });
+    const result = await collection.updateMany(cmd.filter, cmd.update, {
+      upsert: cmd.upsert,
+      ...(cmd.bypassDocumentValidation ? { bypassDocumentValidation: true } : {}),
+    });
     yield {
       matchedCount: result.matchedCount,
       modifiedCount: result.modifiedCount,
@@ -279,6 +285,10 @@ export class MongoDriverImpl implements MongoDriver {
 
   protected async executeDropCollectionCommand(cmd: DropCollectionWireCommand): Promise<void> {
     await this.db.collection(cmd.collection).drop();
+  }
+
+  protected async executeRenameCollectionCommand(cmd: RenameCollectionWireCommand): Promise<void> {
+    await this.db.renameCollection(cmd.collection, cmd.to);
   }
 
   protected async executeDropIndexCommand(cmd: DropIndexWireCommand): Promise<void> {
