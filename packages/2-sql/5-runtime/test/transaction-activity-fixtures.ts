@@ -58,6 +58,7 @@ export interface DriverFailures {
   readonly commitHeldUntil?: Promise<void>;
   readonly rollbackHeldUntil?: Promise<void>;
   readonly release?: Error;
+  readonly destroy?: Error;
 }
 
 function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver {
@@ -93,7 +94,7 @@ function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver 
       return transaction;
     }),
     release: vi.fn().mockImplementation(settle('release', failures.release)),
-    destroy: vi.fn().mockImplementation(settle('destroy', undefined)),
+    destroy: vi.fn().mockImplementation(settle('destroy', failures.destroy)),
   };
   return {
     ...queryable,
