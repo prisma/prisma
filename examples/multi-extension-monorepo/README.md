@@ -78,9 +78,9 @@ Each internal "package" under `packages/` follows the **contract-space package l
    Then hand-edit the generated `migrations/<dir>/migration.ts`'s `operations` getter so each op carries the package's stable `<pkg>:<change>-vN` `invariantId` (invariant IDs cannot be renamed once published). Re-emit `ops.json` + `migration.json`:
 
    ```sh
-   node <package dir>/migration.ts
+   node migrations/<dir>/migration.ts
    # or, on Node < 24:
-   pnpm exec tsx <package dir>/migration.ts
+   pnpm exec tsx migrations/<dir>/migration.ts
    ```
 
 4. Update `migrations/refs/head.json` to point at the new contract `storageHash` plus the union of `providedInvariants` across all migrations.
