@@ -10,7 +10,6 @@ import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-compon
 import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import type {
-  AggregateTypesBase,
   AggregateTypesFromDescriptors,
   ApplyParameterizedOutputTypes,
   ApplyQueryOperationTypes,
@@ -20,7 +19,6 @@ import type {
   ParameterizedOutputTypesFunction,
   QueryOperationTypesFunction,
   ReferentialAction,
-  TypeMaps,
 } from '@internal/sql-contract/types';
 import type { UnionToIntersection } from './authoring-type-utils';
 import type {
@@ -214,15 +212,12 @@ type ExtensionAggregateDescriptors<Definition> = {
 }[keyof DefinitionExtensions<Definition>];
 
 // The aggregate descriptors of the target, its adapter and the extensions, settled against the contract's codecs, as emission settles them.
-type AggregateTypesFromDefinition<Definition> =
-  AggregateTypesFromDescriptors<
-    | PackAggregateDescriptors<DefinitionTarget<Definition>>
-    | PackAggregateDescriptors<DefinitionAdapter<Definition>>
-    | ExtensionAggregateDescriptors<Definition>,
-    CodecTypesFromDefinition<Definition>
-  > extends infer AggregateTypes extends AggregateTypesBase
-    ? AggregateTypes
-    : Record<string, never>;
+type AggregateTypesFromDefinition<Definition> = AggregateTypesFromDescriptors<
+  | PackAggregateDescriptors<DefinitionTarget<Definition>>
+  | PackAggregateDescriptors<DefinitionAdapter<Definition>>
+  | ExtensionAggregateDescriptors<Definition>,
+  CodecTypesFromDefinition<Definition>
+>;
 
 type DefinitionTargetId<Definition> = Definition extends {
   readonly target: TargetPackRef<'sql', infer Target>;
@@ -1528,13 +1523,14 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
       readonly capabilities: DerivedCapabilities<Definition>;
       readonly enumAccessors: BuiltEnumAccessors<Definition>;
     },
-  TypeMaps<
-    CodecTypesFromDefinition<Definition>,
-    QueryOperationTypesFromDefinition<Definition>,
-    FieldChannelTypes<Definition, 'output'>,
-    FieldChannelTypes<Definition, 'input'>,
-    StorageColumnChannelTypes<Definition, 'output'>,
-    StorageColumnChannelTypes<Definition, 'input'>,
-    AggregateTypesFromDefinition<Definition>
-  >
+  // The shape of `TypeMaps`, written out so the aggregate types are not checked against `AggregateTypesBase` for every contract: their settled shape satisfies it, and the parity test compares them with the emitted ones.
+  {
+    readonly codecTypes: CodecTypesFromDefinition<Definition>;
+    readonly queryOperationTypes: QueryOperationTypesFromDefinition<Definition>;
+    readonly fieldOutputTypes: FieldChannelTypes<Definition, 'output'>;
+    readonly fieldInputTypes: FieldChannelTypes<Definition, 'input'>;
+    readonly storageColumnTypes: StorageColumnChannelTypes<Definition, 'output'>;
+    readonly storageColumnInputTypes: StorageColumnChannelTypes<Definition, 'input'>;
+    readonly aggregateTypes: AggregateTypesFromDefinition<Definition>;
+  }
 >;
