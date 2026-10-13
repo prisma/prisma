@@ -163,22 +163,22 @@ function createStubDriver(): Omit<ClosedRuntimeFixture, 'runtime'> {
 
 export function createMiddlewareSpy(): {
   readonly middleware: SqlMiddleware;
-  readonly beforeQuery: Mock;
-  readonly beforeExecute: Mock;
+  readonly activityStarted: Mock;
+  readonly beforeEncode: Mock;
 } {
-  const beforeQuery = vi.fn(async () => {
-    throw new Error('beforeQuery ran');
+  const activityStarted = vi.fn(async () => {
+    throw new Error('activityStarted ran');
   });
-  const beforeExecute = vi.fn(async () => {
-    throw new Error('beforeExecute ran');
+  const beforeEncode = vi.fn(async () => {
+    throw new Error('beforeEncode ran');
   });
   const middleware: SqlMiddleware = {
     name: 'closed-runtime-spy',
     familyId: 'sql',
-    beforeQuery,
-    beforeExecute,
+    activityStarted,
+    beforeEncode,
   };
-  return { middleware, beforeQuery, beforeExecute };
+  return { middleware, activityStarted, beforeEncode };
 }
 
 export function setup(

@@ -1,42 +1,49 @@
 import { RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import { planFromAst } from '@internal/sql-relational-core/plan';
-import type { SqlMiddleware } from '@internal/sql-runtime';
+import type { SqlMiddleware, SqlMiddlewareContext } from '@internal/sql-runtime';
 import { withTransaction } from '@internal/sql-runtime';
 import { describe, expect, it } from 'vitest';
 import { createTestSetup, stubPlan, testContract } from './supabase-runtime-fixtures';
 
 const nextTurn = () => new Promise((resolve) => setTimeout(resolve, 0));
 
+interface RecordedEvent {
+  readonly name: string;
+  readonly ctx?: SqlMiddlewareContext;
+}
+
 function createRecordingSetup() {
-  const events: string[] = [];
+  const recorded: RecordedEvent[] = [];
   const recorder: SqlMiddleware = {
     name: 'recorder',
     familyId: 'sql',
-    async afterQuery() {
-      events.push('afterQuery');
+    async activityStarted(activity, ctx) {
+      recorded.push({ name: `started:${activity.kind}`, ctx });
     },
-    async afterExecute() {
-      events.push('afterExecute');
+    async activityEnded(activity, result) {
+      recorded.push({ name: `ended:${activity.kind}:${result.outcome}` });
     },
-    async afterTransaction(_plan, result) {
-      events.push(`afterTransaction:${result.outcome}`);
+    async activityFinalized(activity, result) {
+      recorded.push({ name: `finalized:${activity.kind}:${result.outcome}` });
     },
   };
   const setup = createTestSetup({ middleware: [recorder] });
   const transaction = setup.driver.connection.transaction;
   transaction.commit.mockImplementation(async () => {
-    events.push('commit');
+    recorded.push({ name: 'commit' });
   });
   transaction.rollback.mockImplementation(async () => {
-    events.push('rollback');
+    recorded.push({ name: 'rollback' });
   });
-  return { ...setup, events };
+  const events = (): string[] =>
+    recorded.map((event) => event.name).filter((name) => !name.startsWith('started:'));
+  return { ...setup, recorded, events };
 }
 
-describe('role session transaction afterTransaction stage', () => {
-  it('fires committed once for each query, after the commit', async () => {
-    const { runtime, events } = createRecordingSetup();
+describe('a role session transaction activity', () => {
+  it('finalizes each statement committed, then itself, after the commit', async () => {
+    const { runtime, events, recorded } = createRecordingSetup();
     const session = await runtime.openRoleSession({ role: 'authenticated' });
     const tx = await session.transaction();
 
@@ -45,16 +52,22 @@ describe('role session transaction afterTransaction stage', () => {
     await tx.commit();
     await session.release();
 
-    expect(events).toEqual([
-      'afterQuery',
-      'afterExecute',
+    expect(events()).toEqual([
+      'ended:statement:succeeded',
+      'ended:statement:succeeded',
       'commit',
-      'afterTransaction:committed',
-      'afterTransaction:committed',
+      'ended:transaction:succeeded',
+      'finalized:statement:committed',
+      'finalized:statement:committed',
+      'finalized:transaction:committed',
     ]);
+    const transactionCtx = recorded.find((e) => e.name === 'started:transaction')?.ctx;
+    const statementCtx = recorded.find((e) => e.name === 'started:statement')?.ctx;
+    expect(statementCtx?.parent).toBe(transactionCtx);
+    expect(statementCtx?.inTransaction()).toBe(true);
   });
 
-  it('fires rolled-back once, after the rollback', async () => {
+  it('finalizes rolled-back once, after the rollback', async () => {
     const { runtime, events } = createRecordingSetup();
     const session = await runtime.openRoleSession({ role: 'authenticated' });
     const tx = await session.transaction();
@@ -63,10 +76,16 @@ describe('role session transaction afterTransaction stage', () => {
     await tx.rollback();
     await session.release();
 
-    expect(events).toEqual(['afterExecute', 'rollback', 'afterTransaction:rolled-back']);
+    expect(events()).toEqual([
+      'ended:statement:succeeded',
+      'rollback',
+      'ended:transaction:succeeded',
+      'finalized:statement:rolled-back',
+      'finalized:transaction:rolled-back',
+    ]);
   });
 
-  it('fires rolled-back after withTransaction over a role session rolls back', async () => {
+  it('finalizes rolled-back after withTransaction over a role session rolls back', async () => {
     const { runtime, events } = createRecordingSetup();
 
     await expect(
@@ -79,14 +98,20 @@ describe('role session transaction afterTransaction stage', () => {
       ),
     ).rejects.toThrow('callback failed');
 
-    expect(events).toEqual(['afterExecute', 'rollback', 'afterTransaction:rolled-back']);
+    expect(events()).toEqual([
+      'ended:statement:succeeded',
+      'rollback',
+      'ended:transaction:succeeded',
+      'finalized:statement:rolled-back',
+      'finalized:transaction:rolled-back',
+    ]);
   });
 
   it.each([
     { end: 'commit', outcome: 'committed' },
     { end: 'rollback', outcome: 'rolled-back' },
   ] as const)(
-    'fires $outcome after the $end for a query sent on the session while its transaction is open',
+    'finalizes $outcome after the $end a statement sent on the session while its transaction is open',
     async ({ end, outcome }) => {
       const { runtime, events } = createRecordingSetup();
       const session = await runtime.openRoleSession({ role: 'authenticated' });
@@ -96,11 +121,17 @@ describe('role session transaction afterTransaction stage', () => {
       await tx[end]();
       await session.release();
 
-      expect(events).toEqual(['afterExecute', end, `afterTransaction:${outcome}`]);
+      expect(events()).toEqual([
+        'ended:statement:succeeded',
+        end,
+        'ended:transaction:succeeded',
+        `finalized:statement:${outcome}`,
+        `finalized:transaction:${outcome}`,
+      ]);
     },
   );
 
-  it('fires committed for a prepared query and a prepared execute once the commit resolves', async () => {
+  it('finalizes a prepared query and a prepared execute committed once the commit resolves', async () => {
     const { runtime, events } = createRecordingSetup();
     const { ast, meta } = stubPlan();
     const rows = await runtime.prepare({}, () => ({ ast, params: [], meta }));
@@ -115,12 +146,14 @@ describe('role session transaction afterTransaction stage', () => {
     await tx.commit();
     await session.release();
 
-    expect(events).toEqual([
-      'afterQuery',
-      'afterExecute',
+    expect(events()).toEqual([
+      'ended:statement:succeeded',
+      'ended:statement:succeeded',
       'commit',
-      'afterTransaction:committed',
-      'afterTransaction:committed',
+      'ended:transaction:succeeded',
+      'finalized:statement:committed',
+      'finalized:statement:committed',
+      'finalized:transaction:committed',
     ]);
   });
 });

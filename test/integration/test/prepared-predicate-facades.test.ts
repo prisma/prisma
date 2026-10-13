@@ -69,7 +69,7 @@ it(
         {
           name: 'record',
           beforeCompile,
-          beforeQuery(plan) {
+          beforeEncode(plan) {
             executions.push({ sql: plan.sql, params: plan.params });
             labels.push(annotation.read(plan));
           },

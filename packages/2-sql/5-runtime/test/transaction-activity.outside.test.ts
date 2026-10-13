@@ -2,7 +2,6 @@ import { RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import { planFromAst } from '@internal/sql-relational-core/plan';
 import { describe, expect, it } from 'vitest';
-import { withTransaction } from '../src/sql-runtime';
 import {
   afterHookNames,
   createSetup,
@@ -12,45 +11,56 @@ import {
   rawPlan,
   type Setup,
   testContract,
-  transactionCases,
-} from './after-transaction-fixtures';
+} from './transaction-activity-fixtures';
 import { stubAst } from './utils';
 
-describe('afterTransaction outside a transaction', () => {
+describe('a statement outside a transaction', () => {
   const scopes = {
     runtime: async (setup: Setup) => setup.runtime,
     connection: async (setup: Setup) => setup.runtime.connection(),
   };
 
   describe.each(Object.entries(scopes))('in %s scope', (_scope, queryableOf) => {
-    it('fires committed right after afterQuery', async () => {
+    it('finalizes a query committed right after it ends, with no parent', async () => {
       const setup = createSetup();
       const queryable = await queryableOf(setup);
 
       await queryable.query(rawPlan('select 1')).toArray();
 
-      expect(afterHookNames(setup.events)).toEqual(['afterQuery', 'afterTransaction:committed']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:succeeded',
+        'finalized:statement:committed',
+      ]);
+      const [started] = setup.events;
+      expect(started?.ctx?.parent).toBeUndefined();
+      expect(started?.ctx?.inTransaction()).toBe(false);
     });
 
-    it('fires committed right after afterExecute', async () => {
+    it('finalizes an execute committed right after it ends', async () => {
       const setup = createSetup();
       const queryable = await queryableOf(setup);
 
       await queryable.execute(rawPlan('update t set x = 1'));
 
-      expect(afterHookNames(setup.events)).toEqual(['afterExecute', 'afterTransaction:committed']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:succeeded',
+        'finalized:statement:committed',
+      ]);
     });
 
-    it('fires unknown after afterQuery when the driver throws', async () => {
+    it('finalizes a query unknown when the driver throws', async () => {
       const setup = createSetup({ failures: { query: new Error('query failed') } });
       const queryable = await queryableOf(setup);
 
       await expect(queryable.query(rawPlan('select 1')).toArray()).rejects.toThrow('query failed');
 
-      expect(afterHookNames(setup.events)).toEqual(['afterQuery', 'afterTransaction:unknown']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+      ]);
     });
 
-    it('fires unknown after afterExecute when the driver throws', async () => {
+    it('finalizes an execute unknown when the driver throws', async () => {
       const setup = createSetup({ failures: { execute: new Error('execute failed') } });
       const queryable = await queryableOf(setup);
 
@@ -58,10 +68,13 @@ describe('afterTransaction outside a transaction', () => {
         'execute failed',
       );
 
-      expect(afterHookNames(setup.events)).toEqual(['afterExecute', 'afterTransaction:unknown']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+      ]);
     });
 
-    it('fires unknown once when the caller stops reading the rows', async () => {
+    it('ends stopped and finalizes unknown once when the caller stops reading the rows', async () => {
       const setup = createSetup();
       const queryable = await queryableOf(setup);
 
@@ -69,10 +82,13 @@ describe('afterTransaction outside a transaction', () => {
         break;
       }
 
-      expect(afterHookNames(setup.events)).toEqual(['afterTransaction:unknown']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:stopped',
+        'finalized:statement:unknown',
+      ]);
     });
 
-    it('fires unknown once when the signal aborts between rows', async () => {
+    it('ends failed and finalizes unknown once when the signal aborts between rows', async () => {
       const setup = createSetup();
       const queryable = await queryableOf(setup);
       const controller = new AbortController();
@@ -87,10 +103,13 @@ describe('afterTransaction outside a transaction', () => {
         })(),
       ).rejects.toMatchObject({ code: 'RUNTIME.ABORTED' });
 
-      expect(afterHookNames(setup.events)).toEqual(['afterTransaction:unknown']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+      ]);
     });
 
-    it('fires unknown once when a row fails to decode', async () => {
+    it('ends failed and finalizes unknown once when a row fails to decode', async () => {
       const setup = createSetup();
       const queryable = await queryableOf(setup);
 
@@ -98,10 +117,13 @@ describe('afterTransaction outside a transaction', () => {
         code: 'RUNTIME.DECODE_FAILED',
       });
 
-      expect(afterHookNames(setup.events)).toEqual(['afterTransaction:unknown']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+      ]);
     });
 
-    it('fires unknown without afterExecute when the signal aborts during the marker read', async () => {
+    it('ends failed and finalizes unknown when the signal aborts during the marker read', async () => {
       const controller = new AbortController();
       const setup = createSetup({
         readMarker: async () => {
@@ -115,10 +137,13 @@ describe('afterTransaction outside a transaction', () => {
         queryable.execute(rawPlan('update t set x = 1'), { signal: controller.signal }),
       ).rejects.toMatchObject({ code: 'RUNTIME.ABORTED' });
 
-      expect(afterHookNames(setup.events)).toEqual(['afterTransaction:unknown']);
+      expect(afterHookNames(setup.events)).toEqual([
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+      ]);
     });
 
-    it('fires unknown without an after-hook when the marker read fails', async () => {
+    it('ends failed and finalizes unknown when the marker read fails', async () => {
       const setup = createSetup({
         readMarker: async () => {
           throw new Error('marker read failed');
@@ -134,12 +159,14 @@ describe('afterTransaction outside a transaction', () => {
       );
 
       expect(afterHookNames(setup.events)).toEqual([
-        'afterTransaction:unknown',
-        'afterTransaction:unknown',
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+        'ended:statement:failed',
+        'finalized:statement:unknown',
       ]);
     });
 
-    it('fires nothing for a query whose before-hook throws before its plan is encoded', async () => {
+    it('ends failed and finalizes unknown a statement whose beforeEncode throws', async () => {
       const setup = createSetup({ beforeHookFailure: new Error('before-hook failed') });
       const queryable = await queryableOf(setup);
 
@@ -150,10 +177,19 @@ describe('afterTransaction outside a transaction', () => {
         'before-hook failed',
       );
 
-      expect(names(setup.events)).toEqual(['beforeQuery', 'beforeExecute']);
+      expect(names(setup.events)).toEqual([
+        'started:statement',
+        'beforeEncode',
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+        'started:statement',
+        'beforeEncode',
+        'ended:statement:failed',
+        'finalized:statement:unknown',
+      ]);
     });
 
-    it('fires committed after a prepared query and a prepared execute', async () => {
+    it('finalizes a prepared query and a prepared execute committed', async () => {
       const setup = createSetup();
       const queryable = await queryableOf(setup);
       const rows = await setup.runtime.prepare({}, () => ({ ast: stubAst(), params: [], meta }));
@@ -165,67 +201,26 @@ describe('afterTransaction outside a transaction', () => {
       await count.execute(queryable, {});
 
       expect(afterHookNames(setup.events)).toEqual([
-        'afterQuery',
-        'afterTransaction:committed',
-        'afterExecute',
-        'afterTransaction:committed',
+        'ended:statement:succeeded',
+        'finalized:statement:committed',
+        'ended:statement:succeeded',
+        'finalized:statement:committed',
       ]);
     });
   });
 
-  it('passes the plan and planExecutionId the after-hook saw', async () => {
+  it('passes the same activity and context to every hook of a statement', async () => {
     const { runtime, events } = createSetup();
 
     await runtime.query(rawPlan('select 1')).toArray();
 
-    const [afterQuery, afterTransaction] = events.filter((event) => event.name.startsWith('after'));
-    expect(afterTransaction?.plan).toBe(afterQuery?.plan);
-    expect(afterTransaction?.planExecutionId).toBe(afterQuery?.planExecutionId);
+    expect(names(events)).toEqual([
+      'started:statement',
+      'beforeEncode',
+      'ended:statement:succeeded',
+      'finalized:statement:committed',
+    ]);
+    expect(new Set(events.map((event) => event.ctx)).size).toBe(1);
+    expect(new Set(events.flatMap((event) => event.activity ?? [])).size).toBe(1);
   });
-});
-
-describe('a runtime whose middleware do not declare afterTransaction', () => {
-  function createSetupThatDeclaresAfterTransactionLate(
-    failures: (typeof transactionCases)[number]['failures'] = {},
-  ) {
-    const setup = createSetup({ failures, declaresAfterTransaction: false });
-    setup.middleware.afterTransaction = setup.afterTransaction;
-    return setup;
-  }
-
-  it.each([
-    { scope: 'runtime', queryableOf: async (setup: Setup) => setup.runtime },
-    { scope: 'connection', queryableOf: async (setup: Setup) => setup.runtime.connection() },
-  ])('runs the after-hooks and no stage in $scope scope', async ({ queryableOf }) => {
-    const setup = createSetupThatDeclaresAfterTransactionLate();
-    const queryable = await queryableOf(setup);
-
-    await queryable.query(rawPlan('select 1')).toArray();
-    await queryable.execute(rawPlan('update t set x = 1'));
-
-    expect(afterHookNames(setup.events)).toEqual(['afterQuery', 'afterExecute']);
-  });
-
-  it.each(transactionCases)(
-    'runs the after-hooks and no stage in withTransaction when $title',
-    async (testCase) => {
-      const setup = createSetupThatDeclaresAfterTransactionLate(testCase.failures);
-
-      const run = withTransaction(setup.runtime, async (tx) => {
-        await tx.query(rawPlan('select 1')).toArray();
-        await tx.execute(rawPlan('update t set x = 1'));
-        if (testCase.callbackFails) throw new Error('callback failed');
-      });
-
-      if (testCase.error === undefined) {
-        await run;
-      } else {
-        await expect(run).rejects.toThrow(testCase.error);
-      }
-      expect(names(setup.events).filter((name) => name.startsWith('after'))).toEqual([
-        'afterQuery',
-        'afterExecute',
-      ]);
-    },
-  );
 });

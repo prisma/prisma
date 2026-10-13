@@ -59,7 +59,7 @@ it('prepares ORM predicates and pagination through the public SQLite facade with
       {
         name: 'record',
         beforeCompile,
-        beforeQuery(plan) {
+        beforeEncode(plan) {
           executions.push({ sql: plan.sql, params: plan.params });
           labels.push(annotation.read(plan));
         },

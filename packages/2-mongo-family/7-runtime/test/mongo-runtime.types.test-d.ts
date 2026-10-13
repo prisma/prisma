@@ -1,4 +1,5 @@
 import type {
+  ActivityContext,
   AsyncIterableResult,
   RuntimeStatementStats,
 } from '@internal/framework-components/runtime';
@@ -20,7 +21,8 @@ test('MongoMiddleware narrows familyId to optional `mongo`', () => {
   expectTypeOf<MongoMiddleware['familyId']>().toEqualTypeOf<'mongo' | undefined>();
 });
 
-test('MongoMiddlewareContext extends RuntimeMiddlewareContext', () => {
+test('MongoMiddlewareContext is an activity context', () => {
+  expectTypeOf<MongoMiddlewareContext>().toExtend<ActivityContext>();
   expectTypeOf<MongoMiddlewareContext>().toHaveProperty('contract');
   expectTypeOf<MongoMiddlewareContext>().toHaveProperty('mode');
   expectTypeOf<MongoMiddlewareContext>().toHaveProperty('log');

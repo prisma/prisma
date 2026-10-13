@@ -1280,7 +1280,7 @@ describe('ORM client integration examples', () => {
   // `src/orm-client/get-users-cached.ts` opt their reads into the
   // `@internal/middleware-cache` middleware via `cacheAnnotation(...)`.
   // The middleware short-circuits repeated executions of the same plan via
-  // its `interceptQuery` hook, so a cache hit means the SQL driver is *not*
+  // its `intercept.onQuery` handler, so a cache hit means the SQL driver is *not*
   // invoked again. We assert that contract by spying on `driver.query`.
   // ---------------------------------------------------------------------------
 
