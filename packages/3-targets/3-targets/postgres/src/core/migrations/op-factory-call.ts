@@ -8,7 +8,7 @@
  *
  * - `toOp()` — converts the IR node to a runtime
  *   `SqlMigrationPlanOperation` by delegating to the matching pure factory
- *   under `operations/`. `DataTransformCall.toOp()` always throws
+ *   under `operations/`. `DataTransformCall.toOp()` always rejects with
  *   `MIGRATION.UNFILLED_PLACEHOLDER` because a planner-generated data transform is an
  *   unfilled authoring stub by construction.
  * - `renderTypeScript()` / `importRequirements()` — inherited from
@@ -20,8 +20,12 @@
  * `PostgresOpFactoryCall` union.
  */
 
-import { errorUnfilledPlaceholder } from '@internal/errors/migration';
-import type { SqlMigrationPlanOperation } from '@internal/family-sql/control';
+import { unfilledPlaceholderOperation } from '@internal/errors/migration';
+import {
+  createSqlTextSources,
+  type SqlMigrationPlanOperation,
+  type SqlTextSources,
+} from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type {
   OpFactoryCall as FrameworkOpFactoryCall,
@@ -43,7 +47,6 @@ import {
   jsonToTsSource,
   TsExpression,
   tsObjectSource,
-  tsQuotedTextSource,
 } from '@internal/ts-render';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -67,11 +70,13 @@ import {
 import type { PostgresColumnDefault } from '../types';
 import { boundSchema } from './bound-schema';
 import {
+  type AlterColumnTypeClass,
   addNotNullColumnDirect,
   alterColumnType,
   dropColumn,
   dropDefault,
   dropNotNull,
+  renameColumn,
   setDefault,
   setNotNull,
 } from './operations/columns';
@@ -127,6 +132,11 @@ abstract class PostgresOpFactoryCallNode extends TsExpression implements Framewo
   abstract readonly label: string;
   abstract toOp(lowerer?: Lowerer): Op | Promise<Op>;
 
+  /** The operations this call lowers to, in order: one, unless the call carries companions. */
+  toOps(lowerer?: ExecuteRequestLowerer): readonly (Op | Promise<Op>)[] {
+    return [this.toOp(lowerer)];
+  }
+
   importRequirements(): readonly ImportRequirement[] {
     return [{ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: this.factoryName }];
   }
@@ -134,6 +144,15 @@ abstract class PostgresOpFactoryCallNode extends TsExpression implements Framewo
   protected freeze(): void {
     Object.freeze(this);
   }
+}
+
+export type { PostgresOpFactoryCallNode };
+
+/** Whether `call` is one of this target's calls, which lower through {@link PostgresOpFactoryCallNode.toOps}. */
+export function isPostgresOpFactoryCall(
+  call: FrameworkOpFactoryCall,
+): call is PostgresOpFactoryCallNode {
+  return call instanceof PostgresOpFactoryCallNode;
 }
 
 // ============================================================================
@@ -168,25 +187,30 @@ export function postgresDefaultToDdlColumnDefault(
 // TypeScript rendering helpers for DdlColumn / DdlTableConstraint
 // ---------------------------------------------------------------------------
 
-function renderDdlColumnDefault(def: AnyDdlColumnDefault | undefined): string {
+interface WrittenCall {
+  readonly source: string;
+  readonly imports: readonly ImportRequirement[];
+}
+
+function renderDdlColumnDefault(def: AnyDdlColumnDefault | undefined, sql: SqlTextSources): string {
   if (!def) return '';
   if (def.kind === 'literal') {
     return `lit(${jsonToTsSource(def.value)})`;
   }
-  return `fn(${tsQuotedTextSource(def.expression.text)})`;
+  return `fn(${sql.source(def.expression.text)})`;
 }
 
-function renderDdlColumnAsTsCall(col: DdlColumn): string {
+function renderDdlColumnAsTsCall(col: DdlColumn, sql: SqlTextSources): string {
   const opts: string[] = [];
   if (col.notNull) opts.push('notNull: true');
   if (col.primaryKey) opts.push('primaryKey: true');
-  if (col.default) opts.push(`default: ${renderDdlColumnDefault(col.default)}`);
+  if (col.default) opts.push(`default: ${renderDdlColumnDefault(col.default, sql)}`);
   if (col.codecRef) opts.push(`codecRef: ${jsonToTsSource(col.codecRef)}`);
   const optsStr = opts.length > 0 ? `, { ${opts.join(', ')} }` : '';
   return `col(${jsonToTsSource(col.name)}, ${jsonToTsSource(col.type)}${optsStr})`;
 }
 
-function renderDdlConstraintAsTsCall(constraint: DdlTableConstraint): string {
+function renderDdlConstraintAsTsCall(constraint: DdlTableConstraint, sql: SqlTextSources): string {
   switch (constraint.kind) {
     case 'primary-key': {
       const nameOpt = constraint.name ? `, { name: ${jsonToTsSource(constraint.name)} }` : '';
@@ -205,7 +229,7 @@ function renderDdlConstraintAsTsCall(constraint: DdlTableConstraint): string {
       return `unique(${jsonToTsSource(constraint.columns)}${nameOpt})`;
     }
     case 'check-expression':
-      return `checkExpression(${jsonToTsSource(constraint.name)}, ${tsQuotedTextSource(constraint.expression.text)})`;
+      return `checkExpression(${jsonToTsSource(constraint.name)}, ${sql.source(constraint.expression.text)})`;
   }
 }
 
@@ -297,9 +321,18 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    const columnsList = this.columns.map(renderDdlColumnAsTsCall).join(', ');
+    return this.#written().source;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
+    const columnsList = this.columns
+      .map((column) => renderDdlColumnAsTsCall(column, sql))
+      .join(', ');
     const constraintsList = this.constraints
-      ? this.constraints.map(renderDdlConstraintAsTsCall).join(', ')
+      ? this.constraints
+          .map((constraint) => renderDdlConstraintAsTsCall(constraint, sql))
+          .join(', ')
       : undefined;
 
     const opts: string[] = [];
@@ -310,7 +343,7 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
     opts.push(`columns: [${columnsList}]`);
     if (constraintsList) opts.push(`constraints: [${constraintsList}]`);
 
-    return `this.createTable({ ${opts.join(', ')} })`;
+    return { source: `this.createTable({ ${opts.join(', ')} })`, imports: sql.imports() };
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -324,6 +357,7 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
     for (const sym of constraintImportSymbols(this.constraints)) {
       req.push({ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: sym });
     }
+    req.push(...this.#written().imports);
     return req;
   }
 }
@@ -368,26 +402,40 @@ export class DropTableCall extends PostgresOpFactoryCallNode {
   }
 }
 
+/** A rename a table or column rename carries for an object whose name derives from the old name. */
+export type RenameCompanionCall = RenameConstraintCall | RenameIndexCall;
+
 export class RenameTableCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'renameTable' as const;
-  // `widening` for the same reason as `RenameConstraintCall`: a rename is
-  // neither additive creation nor destructive, and the class vocabulary has no
-  // neutral middle class, so this is the class that plans under every
-  // allowance set except additive-only init.
   readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly oldTableName: string;
   /** The new name: the table's contract-side identity after the rename. */
   readonly tableName: string;
   readonly label: string;
+  /**
+   * The renames of objects whose names derive from the table name. They run after the table rename
+   * and are never rendered on their own.
+   */
+  readonly companions: readonly RenameCompanionCall[];
 
-  constructor(schemaName: string, oldTableName: string, tableName: string) {
+  constructor(
+    schemaName: string,
+    oldTableName: string,
+    tableName: string,
+    companions: readonly RenameCompanionCall[],
+  ) {
     super();
     this.schemaName = schemaName;
     this.oldTableName = oldTableName;
     this.tableName = tableName;
     this.label = `Rename table "${oldTableName}" to "${tableName}"`;
+    this.companions = Object.freeze([...companions]);
     this.freeze();
+  }
+
+  override toOps(lowerer?: ExecuteRequestLowerer): readonly (Op | Promise<Op>)[] {
+    return [this.toOp(lowerer), ...this.companions.map((companion) => companion.toOp(lowerer))];
   }
 
   async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
@@ -469,13 +517,18 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
+    return this.#written().source;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
     const opts: string[] = [];
     if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
       opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
     }
     opts.push(`table: ${jsonToTsSource(this.tableName)}`);
-    opts.push(`column: ${renderDdlColumnAsTsCall(this.column)}`);
-    return `this.addColumn({ ${opts.join(', ')} })`;
+    opts.push(`column: ${renderDdlColumnAsTsCall(this.column, sql)}`);
+    return { source: `this.addColumn({ ${opts.join(', ')} })`, imports: sql.imports() };
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -485,7 +538,78 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
     for (const sym of defaultImportSymbols([this.column])) {
       req.push({ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: sym });
     }
+    req.push(...this.#written().imports);
     return req;
+  }
+}
+
+export class RenameColumnCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'renameColumn' as const;
+  // `widening` for the same reason as `RenameTableCall`.
+  readonly operationClass = 'widening' as const;
+  readonly schemaName: string;
+  readonly tableName: string;
+  readonly oldColumnName: string;
+  /** The new name: the column's contract-side identity after the rename. */
+  readonly columnName: string;
+  readonly label: string;
+  /**
+   * The renames of objects whose names derive from the column name. They run after the column
+   * rename and are never rendered on their own.
+   */
+  readonly companions: readonly RenameCompanionCall[];
+
+  constructor(
+    schemaName: string,
+    tableName: string,
+    oldColumnName: string,
+    columnName: string,
+    companions: readonly RenameCompanionCall[],
+  ) {
+    super();
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.oldColumnName = oldColumnName;
+    this.columnName = columnName;
+    this.label = `Rename column "${tableName}"."${oldColumnName}" to "${columnName}"`;
+    this.companions = Object.freeze([...companions]);
+    this.freeze();
+  }
+
+  override toOps(lowerer?: ExecuteRequestLowerer): readonly (Op | Promise<Op>)[] {
+    return [this.toOp(lowerer), ...this.companions.map((companion) => companion.toOp(lowerer))];
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    if (lowerer === undefined) {
+      throw postgresError(
+        'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
+        `RenameColumnCall.toOp: a lowerer is required on the Postgres planner path (column "${this.oldColumnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
+        { meta: { factory: 'RenameColumnCall' } },
+      );
+    }
+    return renameColumn(
+      this.schemaName,
+      this.tableName,
+      this.oldColumnName,
+      this.columnName,
+      lowerer,
+    );
+  }
+
+  renderTypeScript(): string {
+    const opts: string[] = [];
+    if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
+      opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
+    }
+    opts.push(`table: ${jsonToTsSource(this.tableName)}`);
+    opts.push(`column: ${jsonToTsSource(this.oldColumnName)}`);
+    opts.push(`to: ${jsonToTsSource(this.columnName)}`);
+    return `...this.renameColumn({ ${opts.join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
   }
 }
 
@@ -541,7 +665,7 @@ export interface AlterColumnTypeOptions {
 
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'alterColumnType' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass: AlterColumnTypeClass;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
@@ -553,12 +677,14 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     tableName: string,
     columnName: string,
     options: AlterColumnTypeOptions,
+    operationClass: AlterColumnTypeClass = 'destructive',
   ) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
     this.options = options;
+    this.operationClass = operationClass;
     this.label = `Alter type of "${tableName}"."${columnName}" to ${options.rawTargetTypeForLabel}`;
     this.freeze();
   }
@@ -571,7 +697,14 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
         { meta: { factory: 'AlterColumnTypeCall' } },
       );
     }
-    return alterColumnType(this.schemaName, this.tableName, this.columnName, this.options, lowerer);
+    return alterColumnType(
+      this.schemaName,
+      this.tableName,
+      this.columnName,
+      this.options,
+      lowerer,
+      this.operationClass,
+    );
   }
 
   renderTypeScript(): string {
@@ -582,6 +715,9 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     opts.push(`table: ${jsonToTsSource(this.tableName)}`);
     opts.push(`column: ${jsonToTsSource(this.columnName)}`);
     opts.push(`options: ${jsonToTsSource(this.options)}`);
+    if (this.operationClass !== 'destructive') {
+      opts.push(`operationClass: ${jsonToTsSource(this.operationClass)}`);
+    }
     return `this.alterColumnType({ ${opts.join(', ')} })`;
   }
 
@@ -592,7 +728,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
 
 export class SetNotNullCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'setNotNull' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
@@ -712,16 +848,21 @@ export class SetDefaultCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
+    return this.#written().source;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
     const opts: string[] = [];
     if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
       opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
     }
     opts.push(`table: ${jsonToTsSource(this.tableName)}`);
-    opts.push(`column: ${renderDdlColumnAsTsCall(this.column)}`);
+    opts.push(`column: ${renderDdlColumnAsTsCall(this.column, sql)}`);
     if (this.operationClass !== 'additive') {
       opts.push(`operationClass: ${jsonToTsSource(this.operationClass)}`);
     }
-    return `this.setDefault({ ${opts.join(', ')} })`;
+    return { source: `this.setDefault({ ${opts.join(', ')} })`, imports: sql.imports() };
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -731,13 +872,14 @@ export class SetDefaultCall extends PostgresOpFactoryCallNode {
         moduleSpecifier: POSTGRES_MIGRATION_FACADE,
         symbol,
       })),
+      ...this.#written().imports,
     ];
   }
 }
 
 export class DropDefaultCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'dropDefault' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
@@ -1050,7 +1192,7 @@ export class AddForeignKeyCall extends PostgresOpFactoryCallNode {
 
 export class DropConstraintCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'dropConstraint' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly constraintName: string;
@@ -1098,10 +1240,6 @@ export class DropConstraintCall extends PostgresOpFactoryCallNode {
 
 export class RenameConstraintCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'renameConstraint' as const;
-  // `widening` is chosen so the rename plans under every allowance set except
-  // additive-only init — a rename is neither additive-creation nor
-  // destructive, and the class vocabulary has no neutral middle class. It is
-  // NOT that a rename widens anything; this is the accepted typology tradeoff.
   readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
@@ -1200,17 +1338,23 @@ export class AddCheckConstraintCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    return `this.addCheckConstraint({ ${constraintCallOptions(this.schemaName, this.tableName, this.constraintName)}, expression: ${tsQuotedTextSource(this.expression)} })`;
+    return this.#written().source;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    return this.#written().imports;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
+    const source = `this.addCheckConstraint({ ${constraintCallOptions(this.schemaName, this.tableName, this.constraintName)}, expression: ${sql.source(this.expression)} })`;
+    return { source, imports: sql.imports() };
   }
 }
 
 export class DropCheckConstraintCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'dropCheckConstraint' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly constraintName: string;
@@ -1319,6 +1463,15 @@ export class CreateIndexCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
+    return this.#written().source;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return this.#written().imports;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
     const opts: string[] = [];
     if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
       opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
@@ -1328,7 +1481,7 @@ export class CreateIndexCall extends PostgresOpFactoryCallNode {
     if (this.columns !== undefined) {
       opts.push(`columns: ${jsonToTsSource(this.columns)}`);
     } else {
-      opts.push(`expression: ${tsQuotedTextSource(this.expression ?? '')}`);
+      opts.push(`expression: ${sql.source(this.expression ?? '')}`);
     }
     if (
       this.indexType !== undefined ||
@@ -1339,24 +1492,16 @@ export class CreateIndexCall extends PostgresOpFactoryCallNode {
       const extrasParts: string[] = [];
       if (this.indexType !== undefined) extrasParts.push(`type: ${jsonToTsSource(this.indexType)}`);
       if (this.options !== undefined) extrasParts.push(`options: ${jsonToTsSource(this.options)}`);
-      if (this.where !== undefined) extrasParts.push(`where: ${tsQuotedTextSource(this.where)}`);
+      if (this.where !== undefined) extrasParts.push(`where: ${sql.source(this.where)}`);
       if (this.unique) extrasParts.push('unique: true');
       opts.push(`extras: { ${extrasParts.join(', ')} }`);
     }
-    return `this.createIndex({ ${opts.join(', ')} })`;
-  }
-
-  override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    return { source: `this.createIndex({ ${opts.join(', ')} })`, imports: sql.imports() };
   }
 }
 
 export class RenameIndexCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'renameIndex' as const;
-  // `widening` is chosen so the rename plans under every allowance set except
-  // additive-only init — a rename is neither additive-creation nor
-  // destructive, and the class vocabulary has no neutral middle class. It is
-  // NOT that a rename widens anything; this is the accepted typology tradeoff.
   readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
@@ -1409,7 +1554,7 @@ export class RenameIndexCall extends PostgresOpFactoryCallNode {
 
 export class DropIndexCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'dropIndex' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly indexName: string;
@@ -1614,7 +1759,7 @@ export class CreateNativeEnumTypeCall extends PostgresOpFactoryCallNode {
 
 export class DropNativeEnumTypeCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'dropNativeEnumType' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly typeName: string;
   readonly label: string;
@@ -1757,7 +1902,7 @@ export class AddNativeEnumValueCall extends PostgresOpFactoryCallNode {
 /**
  * A planner-generated data-transform stub. `checkSlot` and `runSlot` name
  * the unfilled authoring slots that the rendered `migration.ts` will expose
- * to the user via `placeholder("…")` calls. `toOp()` always throws
+ * to the user via `placeholder("…")` calls. `toOp()` always rejects with
  * `MIGRATION.UNFILLED_PLACEHOLDER`: the planner cannot lower a stubbed transform to a runtime
  * op — the user must fill the rendered `migration.ts` and re-emit.
  */
@@ -1782,8 +1927,8 @@ export class DataTransformCall extends PostgresOpFactoryCallNode {
     this.freeze();
   }
 
-  toOp(): Op {
-    throw errorUnfilledPlaceholder(this.label);
+  toOp(): Promise<Op> {
+    return unfilledPlaceholderOperation(this.label);
   }
 
   renderTypeScript(): string {
@@ -1832,6 +1977,15 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
+    return this.#written().source;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return this.#written().imports;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
     const p = this.policy;
     // `input` and `sources` are typed against the parameter `createRlsPolicy`
     // accepts, so a drift between the renderer and the API, including a field
@@ -1853,8 +2007,8 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
       namespaceId: jsonToTsSource(input.namespaceId),
       operation: jsonToTsSource(input.operation),
       roles: jsonToTsSource(input.roles),
-      using: input.using === undefined ? undefined : tsQuotedTextSource(input.using),
-      withCheck: input.withCheck === undefined ? undefined : tsQuotedTextSource(input.withCheck),
+      using: input.using === undefined ? undefined : sql.source(input.using),
+      withCheck: input.withCheck === undefined ? undefined : sql.source(input.withCheck),
       permissive: jsonToTsSource(input.permissive),
     };
     const policy = tsObjectSource(
@@ -1862,17 +2016,14 @@ export class CreatePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
         source === undefined ? [] : [[key, source] as const],
       ),
     );
-    return `this.createRlsPolicy({ schema: ${jsonToTsSource(this.schemaName)}, table: ${jsonToTsSource(this.tableName)}, policy: ${policy} })`;
-  }
-
-  override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    const source = `this.createRlsPolicy({ schema: ${jsonToTsSource(this.schemaName)}, table: ${jsonToTsSource(this.tableName)}, policy: ${policy} })`;
+    return { source, imports: sql.imports() };
   }
 }
 
 export class DropPostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'dropRlsPolicy' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly policyName: string;
@@ -1944,7 +2095,7 @@ export class EnableRowLevelSecurityCall extends PostgresOpFactoryCallNode {
 
 export class DisableRowLevelSecurityCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'disableRowLevelSecurity' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly label: string;
@@ -1979,10 +2130,6 @@ export class DisableRowLevelSecurityCall extends PostgresOpFactoryCallNode {
 
 export class RenamePostgresRlsPolicyCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'renameRlsPolicy' as const;
-  // `widening` is chosen so the rename plans under every allowance set except
-  // additive-only init — a rename is neither additive-creation nor
-  // destructive, and the class vocabulary has no neutral middle class. It is
-  // NOT that a rename widens anything; this is the accepted typology tradeoff.
   readonly operationClass = 'widening' as const;
   readonly schemaName: string;
   readonly tableName: string;
@@ -2031,6 +2178,7 @@ export type PostgresOpFactoryCall =
   | DropTableCall
   | RenameTableCall
   | AddColumnCall
+  | RenameColumnCall
   | DropColumnCall
   | AlterColumnTypeCall
   | SetNotNullCall

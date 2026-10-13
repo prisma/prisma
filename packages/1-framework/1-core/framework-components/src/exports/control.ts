@@ -4,6 +4,7 @@ export {
   CONTRACT_SNAPSHOTS_DIRNAME,
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
+  isStorageHashHex,
   storageHashHex,
 } from '../control/contract-snapshot-layout';
 export type {
@@ -60,10 +61,12 @@ export type {
   MigrationRunnerSuccessValue,
   MigrationScaffoldContext,
   OpFactoryCall,
+  PlanOrigin,
   SchemaEntityCoordinate,
   SchemaOwnership,
   TargetMigrationsCapability,
 } from '../control/control-migration-types';
+export { planOriginOf } from '../control/control-migration-types';
 export type {
   OperationPreview,
   OperationPreviewStatement,
@@ -119,6 +122,29 @@ export {
   extractComponentIds,
   extractQueryOperationTypeImports,
 } from '../control/control-stack';
+export type {
+  AppliedMigrationStatement,
+  FieldCoordinate,
+  FieldCoordinateJson,
+  MigrationAccessChange,
+  MigrationOperationSubject,
+  MigrationPlanSubjects,
+  MigrationStatementJson,
+  MigrationSubject,
+  MigrationSubjectJson,
+  ModelCoordinate,
+  ModelCoordinateJson,
+  ResolvedFieldRenameStatement,
+  ResolvedMigrationStatement,
+  ResolvedModelRenameStatement,
+} from '../control/migration-statements';
+export {
+  describeMigrationStatement,
+  migrationStatementJson,
+  migrationSubjectJson,
+  migrationSubjectKey,
+  modelDisplayName,
+} from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
 export type {
   DiffableNode,
@@ -139,7 +165,6 @@ export type {
 } from '../control/verifier-disposition';
 export { dispositionForCategory } from '../control/verifier-disposition';
 export type {
-  ControlDefaultRegistries,
   ControlMutationDefaultEntry,
   ControlMutationDefaultRegistry,
   ControlMutationDefaults,
@@ -151,9 +176,7 @@ export type {
   SourceSpan,
   TypedDefaultFunctionCall,
 } from '../shared/mutation-default-types';
-export type { TaggedLiteralCanonicalization } from '../shared/tagged-literal';
 export {
-  canonicalizeTaggedLiteralBody,
   describeTaggedLiteralFailure,
   resolvePslBacktickEscapes,
   resolveTemplateTagEscapes,

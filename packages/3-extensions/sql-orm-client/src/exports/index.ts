@@ -1,4 +1,6 @@
 export { Collection } from '../collection';
+export type { CollectionTables } from '../collection-tables';
+export { createCollectionTables } from '../collection-tables';
 export type {
   CollectionRowOf,
   CollectionTypeStateOf,
@@ -7,14 +9,23 @@ export type {
   HasOrderBy,
   HasRow,
   HasTypeState,
+  HasUniqueFilter,
   HasWhere,
   Including,
   Ordered,
+  QueryFragment,
   RowType,
-  Scope,
   TypeState,
+  UniquelyFiltered,
 } from '../collection-types';
 export { all, and, not, or } from '../filters';
+export {
+  type DeclaredField,
+  type DeclaredFieldsFragment,
+  type DeclaredFieldsFragmentCallbackTools,
+  type FragmentFacts,
+  orderByField,
+} from '../fragments';
 export { GroupedCollection } from '../grouped-collection';
 export { createModelAccessor } from '../model-accessor';
 export type { OrmOptions } from '../orm';
@@ -26,12 +37,7 @@ export {
   type PreparedRowQuery,
   prepareQuery,
 } from '../prepared-row-query';
-export {
-  type DeclaredField,
-  type FieldScope,
-  orderByField,
-  type ScopeFacts,
-} from '../scopes';
+export type { AliasedTable, TableScope, TableStorageCoordinate } from '../table-scope';
 export type {
   AggregateBuilder,
   AggregateIncludeReducers,
@@ -45,16 +51,24 @@ export type {
   CollectionState,
   CollectionTypeState,
   ComparisonMethods,
+  Condition,
   CreateInput,
   DefaultCollectionTypeState,
   DefaultModelRow,
+  FunctionCondition,
   IncludeExpr,
   IncludeScalar,
   ModelAccessor,
+  ModelCallbackTools,
+  ModelIndexReferences,
   NumericFieldNames,
   Orderable,
   OrderableFieldNames,
   OrderOptions,
+  OrmFunctions,
+  OrmFunctionsOf,
+  OrmRawSqlBuilder,
+  OrmRawSqlTag,
   RelatedModelName,
   RelationFilterAccessor,
   RelationMutator,
@@ -67,5 +81,6 @@ export type {
   ToManyRelationAccessor,
   ToOneRelationAccessor,
   UniqueConstraintCriterion,
+  WhereCallbackResult,
 } from '../types';
 export { emptyState } from '../types';

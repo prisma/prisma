@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { ContractValidationError } from '@internal/contract/contract-validation-error';
 import { structuredError } from '@internal/utils/structured-error';
+import { clipToUtf8Bytes, utf8ByteLength } from '@internal/utils/text';
 
 export function defaultIndexName(tableName: string, columns: readonly string[]): string {
   return `${tableName}_${columns.join('_')}_idx`;
@@ -238,19 +239,23 @@ export interface IndexContentHashParts {
  * status as the RLS tuple: any change re-suffixes every wire name.
  */
 /**
- * Canonicalizes one index option VALUE to the `on`/`off` boolean spelling:
- * JS booleans and the common catalog spellings (`pg_class.reloptions`
- * stores whatever spelling the DDL used, so a live index may carry
- * `'true'`/`'false'` or `'on'`/`'off'`) all map to one form; everything
- * else via `String()` (fully specified for numbers, so no platform
- * variance). Shared by the wire-name hash tuple, the node's option
- * equality, and the DDL renderer, so an authored `{ fastupdate: true }`
- * agrees with a live index created under any boolean spelling.
+ * Canonicalizes one index option VALUE to the `on`/`off` boolean spelling: JS booleans and the common catalog spellings (`pg_class.reloptions` stores whatever spelling the DDL used, so a live index may carry `'true'`/`'false'` or `'on'`/`'off'`) all map to one form; every other scalar via `String()` (fully specified for numbers, so no platform variance); an array or object as JSON, since `String()` would flatten `[['a', 'b']]` and `[['a'], ['b']]` to the same text, with object keys sorted at every depth so key order never changes the value. Shared by the wire-name hash tuple, the node's option equality, and the DDL renderer, so an authored `{ fastupdate: true }` agrees with a live index created under any boolean spelling.
  */
 export function normalizeIndexOptionValue(value: unknown): string {
   if (value === true || value === 'true' || value === 'on') return 'on';
   if (value === false || value === 'false' || value === 'off') return 'off';
+  if (typeof value === 'object' && value !== null) return JSON.stringify(withSortedKeys(value));
   return String(value);
+}
+
+function withSortedKeys(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withSortedKeys);
+  if (typeof value !== 'object' || value === null) return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+      .map(([key, entry]) => [key, withSortedKeys(entry)]),
+  );
 }
 
 export function computeIndexContentHash(parts: IndexContentHashParts): string {
@@ -279,19 +284,12 @@ export function computeIndexContentHash(parts: IndexContentHashParts): string {
  */
 export const WIRE_NAME_PREFIX_MAX_BYTES = 54;
 
-const utf8 = new TextEncoder();
-
-/** UTF-8 byte length — the unit Postgres measures identifiers in. */
-function byteLength(value: string): number {
-  return utf8.encode(value).length;
-}
-
 /**
  * Rejects a wire-name prefix over {@link WIRE_NAME_PREFIX_MAX_BYTES}.
  * `subject` opens the error message (e.g. `defineContract: policy prefix`).
  */
 export function assertWireNamePrefixLength(prefix: string, subject: string): void {
-  if (byteLength(prefix) > WIRE_NAME_PREFIX_MAX_BYTES) {
+  if (utf8ByteLength(prefix) > WIRE_NAME_PREFIX_MAX_BYTES) {
     throw structuredError(
       'CONTRACT.WIRE_NAME_PREFIX_TOO_LONG',
       `${subject} "${prefix}" exceeds the ${WIRE_NAME_PREFIX_MAX_BYTES}-byte maximum (Postgres identifiers cap at 63 bytes and the wire name appends a 9-byte hash suffix).`,
@@ -307,15 +305,5 @@ export function assertWireNamePrefixLength(prefix: string, subject: string): voi
  * ({@link assertWireNamePrefixLength}), because its author can shorten it.
  */
 export function truncateToWireNamePrefixBytes(prefix: string): string {
-  if (byteLength(prefix) <= WIRE_NAME_PREFIX_MAX_BYTES) return prefix;
-  let out = '';
-  let bytes = 0;
-  // Iterating a string yields code points, so a surrogate pair stays whole.
-  for (const character of prefix) {
-    const size = byteLength(character);
-    if (bytes + size > WIRE_NAME_PREFIX_MAX_BYTES) break;
-    out += character;
-    bytes += size;
-  }
-  return out;
+  return clipToUtf8Bytes(prefix, WIRE_NAME_PREFIX_MAX_BYTES);
 }

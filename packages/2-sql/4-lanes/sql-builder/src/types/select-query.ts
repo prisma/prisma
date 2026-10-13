@@ -3,15 +3,16 @@ import type {
   OperationKind,
   ValidAnnotations,
 } from '@internal/framework-components/runtime';
+import type { LockStrengthCapabilities } from '@internal/sql-relational-core/ast';
+import type { Functions, Subquery } from '@internal/sql-relational-core/functions';
 import type {
   Expression,
   ExpressionBuilder,
   FieldProxy,
-  Functions,
   OrderByOptions,
   OrderByScope,
 } from '../expression';
-import type { GatedMethod, QueryContext, Scope, ScopeField, Subquery } from '../scope';
+import type { GatedMethod, QueryContext, Scope, ScopeField } from '../scope';
 import type { GroupedQuery } from './grouped-query';
 import type {
   LockOptions,
@@ -89,28 +90,28 @@ export interface SelectQuery<
   /** Renders `FOR UPDATE`; the lock lasts until the enclosing transaction ends. */
   forUpdate: GatedMethod<
     QC['capabilities'],
-    { sql: { forUpdate: true } },
+    LockStrengthCapabilities['forUpdate'],
     (options?: LockOptions<QC, AvailableScope>) => SelectQuery<QC, AvailableScope, RowType>
   >;
 
   /** Renders `FOR NO KEY UPDATE`; unlike `forUpdate`, it does not block foreign-key checks on the row. */
   forNoKeyUpdate: GatedMethod<
     QC['capabilities'],
-    { postgres: { forNoKeyUpdate: true } },
+    LockStrengthCapabilities['forNoKeyUpdate'],
     (options?: LockOptions<QC, AvailableScope>) => SelectQuery<QC, AvailableScope, RowType>
   >;
 
   /** Renders `FOR SHARE`. */
   forShare: GatedMethod<
     QC['capabilities'],
-    { sql: { forShare: true } },
+    LockStrengthCapabilities['forShare'],
     (options?: LockOptions<QC, AvailableScope>) => SelectQuery<QC, AvailableScope, RowType>
   >;
 
   /** Renders `FOR KEY SHARE`. */
   forKeyShare: GatedMethod<
     QC['capabilities'],
-    { postgres: { forKeyShare: true } },
+    LockStrengthCapabilities['forKeyShare'],
     (options?: LockOptions<QC, AvailableScope>) => SelectQuery<QC, AvailableScope, RowType>
   >;
 }

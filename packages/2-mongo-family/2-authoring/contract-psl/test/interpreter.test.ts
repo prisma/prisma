@@ -107,9 +107,7 @@ function interpret(
     schema,
     {
       scalarTypeCodecIds: mongoScalarTypeDescriptors,
-      controlMutationDefaults: {
-        defaultFunctionRegistry: new Map(),
-      },
+      defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
       dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
       ...overrides,
@@ -261,7 +259,7 @@ model Item {
         symbolTable,
         binder,
         scalarTypeCodecIds: new Map(),
-        controlMutationDefaults: context.controlMutationDefaults,
+        defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
@@ -449,6 +447,28 @@ model Item {
         storage: { collection: 'UserProfile' },
       });
       expect(Object.keys(mongoCollectionsFromIr(ir))).toEqual(['UserProfile']);
+    });
+
+    it('keeps every storage name when a model and a field are renamed and mapped to their old names', () => {
+      const before = interpretOk(`
+        model User {
+          id   ObjectId @id @map("_id")
+          name String
+        }
+      `);
+      const after = interpretOk(`
+        model Account {
+          id       ObjectId @id @map("_id")
+          fullName String @map("name")
+
+          @@map("User")
+        }
+      `);
+
+      expect(after.storage).toEqual(before.storage);
+      expect(Object.keys(model(after, 'Account').fields)).toEqual(
+        Object.keys(model(before, 'User').fields),
+      );
     });
 
     it('uses @@map() to override collection name', () => {
@@ -1595,18 +1615,18 @@ model Item {
         model Events {
           id       ObjectId @id @map("_id")
           wildcard String
-          @@index([wildcard(sort: Desc)])
+          @@index([sort(wildcard, Desc)])
         }
       `);
       const indexes = getIndexes(ir, 'Events');
       expect(indexes![0]!['keys']).toEqual([{ field: 'wildcard', direction: -1 }]);
     });
 
-    it('reports a wrong argument of a field function in @@index inside that function', () => {
+    it('reports an invalid sort direction in @@index inside the sort function', () => {
       const result = interpret(`model Events {
   id    ObjectId @id @map("_id")
   email String
-  @@index([email(sort: Up)])
+  @@index([sort(email, Up)])
 }
 `);
       expect(result.ok).toBe(false);
@@ -1624,12 +1644,12 @@ model Item {
       ]);
     });
 
-    it('creates descending index from sort: Desc', () => {
+    it('creates descending index from sort(field, Desc)', () => {
       const ir = interpretOk(`
         model Events {
           id        ObjectId @id @map("_id")
           createdAt Date
-          @@index([createdAt(sort: Desc)])
+          @@index([sort(createdAt, Desc)])
         }
       `);
       const indexes = getIndexes(ir, 'Events');
@@ -1642,7 +1662,7 @@ model Item {
           id        ObjectId @id @map("_id")
           status    String
           createdAt Date
-          @@index([status, createdAt(sort: Desc)])
+          @@index([status, sort(createdAt, Desc)])
         }
       `);
       const indexes = getIndexes(ir, 'Events');
@@ -2614,9 +2634,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2642,9 +2660,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2666,9 +2682,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 

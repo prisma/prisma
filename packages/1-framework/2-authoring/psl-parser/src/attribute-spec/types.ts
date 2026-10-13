@@ -1,7 +1,9 @@
 import type { JsonValue } from '@internal/contract/types';
-import type { TypedValue } from '@internal/framework-components/authoring';
+import type {
+  TaggedLiteralCanonicalization,
+  TypedValue,
+} from '@internal/framework-components/authoring';
 import type { DataTypeId } from '@internal/framework-components/codec';
-import type { TaggedLiteralCanonicalization } from '@internal/framework-components/control';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
 import type { Result } from '@internal/utils/result';
 import type { Simplify, UnionToIntersection } from '@internal/utils/types';
@@ -89,10 +91,10 @@ export interface ReferencedFieldRefArgType<Ctx extends FieldAttributeCtx = Field
   readonly kind: 'referencedFieldRef';
 }
 
-export interface FuncCallSig {
+export interface FuncCallSig<Ctx extends AttributeCtx = AttributeCtx> {
   readonly documentation: string;
-  readonly positional?: readonly PositionalParam<unknown, AttributeCtx>[];
-  readonly named?: Readonly<Record<string, Param<unknown, AttributeCtx>>>;
+  readonly positional?: readonly PositionalParam<unknown, Ctx>[];
+  readonly named?: Readonly<Record<string, Param<unknown, Ctx>>>;
 }
 
 export interface TypedFuncCall {
@@ -104,7 +106,7 @@ export interface TypedFuncCall {
 export interface FuncCallArgType<
   Name extends string = string,
   Ctx extends AttributeCtx = AttributeCtx,
-  Signature extends FuncCallSig = FuncCallSig,
+  Signature extends FuncCallSig<never> = FuncCallSig<Ctx>,
 > extends ArgTypeOutput<TypedFuncCall, Ctx> {
   readonly kind: 'funcCall';
   readonly name: Name;

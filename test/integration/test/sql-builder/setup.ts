@@ -114,6 +114,15 @@ export function setupIntegrationTest() {
           title text NOT NULL
         )
       `);
+      await c.query(`
+        CREATE TABLE documents (
+          id int4 PRIMARY KEY,
+          title text NOT NULL,
+          subtitle text,
+          body text,
+          parent_id int4
+        )
+      `);
     });
 
     const cursorDisabledDriver = {

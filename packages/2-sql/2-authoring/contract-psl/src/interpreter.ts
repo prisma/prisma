@@ -43,6 +43,7 @@ import {
 } from '@internal/framework-components/psl-ast';
 import type { Binder } from '@internal/psl-parser';
 import {
+  type AttributeSpecContext,
   type BlockSymbol,
   type CompositeTypeSymbol,
   contributedTypeOf,
@@ -77,7 +78,9 @@ import {
   providesPslEntityPlacement,
   type ResolvedPslModelRefs,
 } from '@internal/sql-contract/entity-handle-lowering-hook';
+import { FOREIGN_KEY_INDEX_UNRESOLVED } from '@internal/sql-contract/foreign-key-materialization';
 import { isAuthoredIndexInput } from '@internal/sql-contract/index-naming';
+import { sqlTextFromCanonical } from '@internal/sql-contract/sql-expression';
 import {
   type AuthoredStorageTypeInstance,
   resolvedTypeParams,
@@ -107,6 +110,7 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
+import { isStructuredError } from '@internal/utils/structured-error';
 import { contractError } from './contract-errors';
 import { readWrittenNumberForCodec } from './data-type-default';
 import { defaultTableName } from './default-table-name';
@@ -140,9 +144,11 @@ import {
   validateBackrelationFieldAttributes,
 } from './psl-relation-resolution';
 import {
+  fieldSpecContext,
   interpretFieldAttribute,
   interpretModelAttribute,
   modelAttributeSpecsFrom,
+  modelSpecContext,
   PSL_CHECK_ON_STI_VARIANT,
   sqlAttributeSpecs,
 } from './sql-attribute-specs';
@@ -611,8 +617,18 @@ interface BuildModelNodeInput {
   readonly parsedBlocks: ReadonlyMap<BlockSymbol, ParsedPslExtensionBlock>;
 }
 
+/** Where a relation names its foreign key's index, so a refusal of that name is reported at the relation. */
+interface RelationIndexLocation {
+  readonly namespaceId: string;
+  readonly tableName: string;
+  readonly columns: readonly string[];
+  readonly index: string;
+  readonly location: ReturnType<DiagnosticSource['at']>;
+}
+
 interface BuildModelNodeResult {
   readonly modelNode: ModelNode;
+  readonly relationIndexLocations: readonly RelationIndexLocation[];
   readonly fkRelationMetadata: FkRelationMetadata<ModelSymbol>[];
   readonly invalidFkPairings: InvalidModelFkPairing<ModelSymbol>[];
   readonly backrelationCandidates: ModelBackrelationCandidate<ModelSymbol>[];
@@ -676,6 +692,12 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
   const { model, diagnostics } = input;
   const source = diagnosticSource(input.sources, model.node.syntax);
   const tableName = storageName(model, input.physicalNames);
+  const specContext = modelSpecContext({
+    symbols: input.symbolTable,
+    model,
+    defaultFunctionRegistry: input.defaultFunctionRegistry,
+    dataTypes: input.dataTypes,
+  });
   const modelNamespaceId = input.namespaceId;
   const namespaceExtensionEntitiesForModel =
     modelNamespaceId !== undefined
@@ -755,6 +777,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       const parsedRelation = interpretRelationAttribute({
         selfModel: model,
         field,
+        specContext: fieldSpecContext({ ...specContext, field, binder: input.binder }),
         symbols: input.symbolTable,
         sources: input.sources,
         binder: input.binder,
@@ -818,8 +841,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
   const checkNodes: CheckNode[] = [];
   const foreignKeyNodes: ForeignKeyNode[] = [];
 
-  const modelAttributeNodes = Array.from(model.node.attributes());
-  for (const [attributeIndex, modelAttribute] of model.attributes.entries()) {
+  for (const modelAttribute of model.attributes) {
     if (
       !Object.hasOwn(sqlAttributeSpecs.model, modelAttribute.name) &&
       !input.modelAttributesByName.has(modelAttribute.name)
@@ -845,13 +867,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         continue;
       }
       controlPolicyDeclared = true;
-      const node = modelAttributeNodes[attributeIndex];
-      if (node === undefined) {
-        continue;
-      }
+      const node = modelAttribute.node;
       const parsed = interpretModelAttribute({
         node,
-        spec: sqlAttributeSpecs.model.control(),
+        spec: sqlAttributeSpecs.model.control(specContext),
         model,
         symbols: input.symbolTable,
         sources: input.sources,
@@ -882,13 +901,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         blockPrimaryKeyDeclared = true;
         continue;
       }
-      const node = modelAttributeNodes[attributeIndex];
-      if (node === undefined) {
-        continue;
-      }
+      const node = modelAttribute.node;
       const parsed = interpretModelAttribute({
         node,
-        spec: sqlAttributeSpecs.model.id(),
+        spec: sqlAttributeSpecs.model.id(specContext),
         model,
         symbols: input.symbolTable,
         sources: input.sources,
@@ -928,13 +944,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       continue;
     }
     if (modelAttribute.name === 'unique') {
-      const node = modelAttributeNodes[attributeIndex];
-      if (node === undefined) {
-        continue;
-      }
+      const node = modelAttribute.node;
       const parsed = interpretModelAttribute({
         node,
-        spec: sqlAttributeSpecs.model.unique(),
+        spec: sqlAttributeSpecs.model.unique(specContext),
         model,
         symbols: input.symbolTable,
         sources: input.sources,
@@ -963,13 +976,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       continue;
     }
     if (modelAttribute.name === 'index') {
-      const node = modelAttributeNodes[attributeIndex];
-      if (node === undefined) {
-        continue;
-      }
+      const node = modelAttribute.node;
       const parsed = interpretModelAttribute({
         node,
-        spec: sqlAttributeSpecs.model.index(),
+        spec: sqlAttributeSpecs.model.index(specContext),
         model,
         symbols: input.symbolTable,
         sources: input.sources,
@@ -1004,8 +1014,13 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
           'dynamically assembled from PSL arguments; the interpreter diagnoses both invalid shapes and lowerAuthoredIndex re-checks'
         >({
           ...ifDefined('columns', columnNames),
-          ...ifDefined('expression', parsed.expression),
-          where: parsed.where,
+          ...ifDefined(
+            'expression',
+            parsed.expression === undefined
+              ? undefined
+              : sqlTextFromCanonical(parsed.expression.value),
+          ),
+          where: parsed.where === undefined ? undefined : sqlTextFromCanonical(parsed.where.value),
           unique: parsed.unique,
           name: parsed.name,
           map: parsed.map,
@@ -1016,10 +1031,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       continue;
     }
     if (modelAttribute.name === 'check') {
-      const node = modelAttributeNodes[attributeIndex];
-      if (node === undefined) {
-        continue;
-      }
+      const node = modelAttribute.node;
       if (input.capabilities['sql']?.['checkConstraint'] !== true) {
         diagnostics.push({
           code: 'PSL_CHECK_UNSUPPORTED_TARGET',
@@ -1030,7 +1042,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: sqlAttributeSpecs.model.check(),
+        spec: sqlAttributeSpecs.model.check(specContext),
         model,
         symbols: input.symbolTable,
         sources: input.sources,
@@ -1041,7 +1053,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         continue;
       }
       checkNodes.push({
-        expression: parsed.expression,
+        expression: sqlTextFromCanonical(parsed.expression.value),
         name: parsed.name,
         map: parsed.map,
       });
@@ -1064,22 +1076,14 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         continue;
       }
       declaredContributedModelAttributes.add(modelAttribute.name);
-      const node = modelAttributeNodes[attributeIndex];
-      if (node === undefined) {
-        continue;
-      }
+      const node = modelAttribute.node;
       const specFactory = input.contributedModelAttributeSpecs[contributedModelAttribute.attribute];
       if (specFactory === undefined) {
         continue;
       }
       const parsed = interpretModelAttribute({
         node,
-        spec: specFactory({
-          symbols: input.symbolTable,
-          model,
-          controlMutationDefaults: { defaultFunctionRegistry: input.defaultFunctionRegistry },
-          dataTypes: input.dataTypes,
-        }),
+        spec: specFactory(specContext),
         model,
         symbols: input.symbolTable,
         sources: input.sources,
@@ -1144,6 +1148,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
   }
 
   const resultFkRelationMetadata: FkRelationMetadata<ModelSymbol>[] = [];
+  const relationIndexLocations: RelationIndexLocation[] = [];
   const resultInvalidFkPairings: InvalidModelFkPairing<ModelSymbol>[] = [];
   const resultCrossSpaceRelations: RelationNode[] = [];
   for (const relationAttribute of relationAttributes) {
@@ -1192,6 +1197,11 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       const parsedRelation = interpretRelationAttribute({
         selfModel: model,
         field: relationAttribute.field,
+        specContext: fieldSpecContext({
+          ...specContext,
+          field: relationAttribute.field,
+          binder: input.binder,
+        }),
         symbols: input.symbolTable,
         sources: input.sources,
         binder: input.binder,
@@ -1295,6 +1305,15 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         ...ifDefined('onUpdate', onUpdate),
         ...ifDefined('index', parsedRelation.index),
       });
+      if (typeof parsedRelation.index === 'string') {
+        relationIndexLocations.push({
+          namespaceId: modelNamespaceId ?? input.defaultNamespaceId,
+          tableName,
+          columns: localColumns,
+          index: parsedRelation.index,
+          location: source.at(relationAttribute.relation.span),
+        });
+      }
 
       // Build the cross-space RelationNode directly (no local back-relation candidate).
       // `buildSqlContractFromDefinition` recognises `spaceId` on a RelationNode and routes it
@@ -1346,6 +1365,11 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     const parsedRelation = interpretRelationAttribute({
       selfModel: model,
       field: relationAttribute.field,
+      specContext: fieldSpecContext({
+        ...specContext,
+        field: relationAttribute.field,
+        binder: input.binder,
+      }),
       symbols: input.symbolTable,
       sources: input.sources,
       binder: input.binder,
@@ -1433,6 +1457,15 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('onUpdate', onUpdate),
       ...ifDefined('index', parsedRelation.index),
     });
+    if (typeof parsedRelation.index === 'string') {
+      relationIndexLocations.push({
+        namespaceId: modelNamespaceId ?? input.defaultNamespaceId,
+        tableName,
+        columns: localColumns,
+        index: parsedRelation.index,
+        location: source.at(relationAttribute.relation.span),
+      });
+    }
 
     resultFkRelationMetadata.push({
       declaringModelName: model,
@@ -1484,6 +1517,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
       ...ifDefined('control', controlPolicy),
     },
     fkRelationMetadata: resultFkRelationMetadata,
+    relationIndexLocations,
     invalidFkPairings: resultInvalidFkPairings,
     crossSpaceRelations: resultCrossSpaceRelations,
     backrelationCandidates: resultBackrelationCandidates,
@@ -1627,6 +1661,7 @@ function collectPolymorphismDeclarations(
   symbols: SymbolTable,
   sources: PslSources,
   binder: Binder,
+  specContextFor: (model: ModelSymbol) => AttributeSpecContext,
   stringCodecId: string | undefined,
   diagnostics: PslDiagnosticCollector,
 ): {
@@ -1643,7 +1678,7 @@ function collectPolymorphismDeclarations(
       const parsed = interpretModelAttribute({
         node: discriminatorNode,
         symbols,
-        spec: sqlAttributeSpecs.model.discriminator(),
+        spec: sqlAttributeSpecs.model.discriminator(specContextFor(model)),
         model,
         sources,
         binder,
@@ -1669,7 +1704,7 @@ function collectPolymorphismDeclarations(
       const parsed = interpretModelAttribute({
         node: baseNode,
         symbols,
-        spec: sqlAttributeSpecs.model.base(),
+        spec: sqlAttributeSpecs.model.base(specContextFor(model)),
         model,
         sources,
         binder,
@@ -1879,9 +1914,6 @@ function materializeMtiVariantStorageLinks(
         ...ifDefined('namespaceId', baseNode.namespaceId),
       },
       constraint: true,
-      // The link columns are the variant's own primary key, which already
-      // carries a unique index — a separate FK backing index would be redundant.
-      index: false,
       // Deleting a base row must delete its variant extension row — classic
       // multi-table-inheritance semantics.
       onDelete: 'cascade',
@@ -2026,6 +2058,30 @@ function relationTargetKindLabel(resolution: Resolution): string | undefined {
   }
 }
 
+/**
+ * The relation a refusal of `index: "<name>"` belongs to, and the message to report there; `undefined` for every other error.
+ */
+function relationIndexRefusal(
+  error: unknown,
+  locations: readonly RelationIndexLocation[],
+): { readonly at: RelationIndexLocation; readonly message: string } | undefined {
+  if (!isStructuredError(error) || error.meta?.['reason'] !== FOREIGN_KEY_INDEX_UNRESOLVED) {
+    return undefined;
+  }
+  const { namespaceId, tableName, columns, index } = error.meta ?? {};
+  const at = locations.find(
+    (candidate) =>
+      candidate.namespaceId === namespaceId &&
+      candidate.tableName === tableName &&
+      candidate.index === index &&
+      Array.isArray(columns) &&
+      candidate.columns.length === columns.length &&
+      candidate.columns.every((column, position) => column === columns[position]),
+  );
+  if (at === undefined) return undefined;
+  return { at, message: error.fix === undefined ? error.message : `${error.message} ${error.fix}` };
+}
+
 export function interpretPslDocumentToSqlContract(
   input: InterpretPslDocumentToSqlContractInput,
 ): Result<Contract, ContractSourceDiagnostics> {
@@ -2045,6 +2101,10 @@ export function interpretPslDocumentToSqlContract(
   const contributedModelSpecs = modelAttributeSpecsFrom(modelAttributesByName);
   const composedPslBlockDescriptors = input.authoringContributions?.pslBlockDescriptors ?? {};
   const { binder, dataTypes } = input;
+  const defaultFunctionRegistry: ControlMutationDefaultRegistry =
+    input.controlMutationDefaults?.defaultFunctionRegistry ?? new Map();
+  const specContextFor = (model: ModelSymbol) =>
+    modelSpecContext({ symbols: input.symbolTable, model, defaultFunctionRegistry, dataTypes });
 
   const { topLevel } = input.symbolTable;
   const namespaceSymbols = Object.values(topLevel.namespaces);
@@ -2061,6 +2121,7 @@ export function interpretPslDocumentToSqlContract(
     sources: input.sources,
     pslBlockDescriptors: composedPslBlockDescriptors,
     binder,
+    dataTypes,
   });
   diagnostics.push(...blockDiagnostics);
   validateBlockModelAttributeRequirements({
@@ -2112,7 +2173,7 @@ export function interpretPslDocumentToSqlContract(
         : interpretModelAttribute({
             node: mapNode,
             symbols: input.symbolTable,
-            spec: sqlAttributeSpecs.model.map(),
+            spec: sqlAttributeSpecs.model.map(specContextFor(model)),
             model,
             sources: input.sources,
             binder,
@@ -2127,7 +2188,9 @@ export function interpretPslDocumentToSqlContract(
           : interpretFieldAttribute({
               node: mapNode,
               symbols: input.symbolTable,
-              spec: sqlAttributeSpecs.field.map(),
+              spec: sqlAttributeSpecs.field.map(
+                fieldSpecContext({ ...specContextFor(model), field, binder }),
+              ),
               model,
               field,
               sources: input.sources,
@@ -2142,8 +2205,6 @@ export function interpretPslDocumentToSqlContract(
   const composedExtensions = new Set(input.composedExtensions ?? []);
   const composedExtensionContracts: ReadonlyMap<string, Contract> =
     input.composedExtensionContracts;
-  const defaultFunctionRegistry: ControlMutationDefaultRegistry =
-    input.controlMutationDefaults?.defaultFunctionRegistry ?? new Map();
   const generatorDescriptors = input.controlMutationDefaults?.generatorDescriptors ?? [];
   const generatorDescriptorById = new Map<string, MutationDefaultGeneratorDescriptor>();
   for (const descriptor of generatorDescriptors) {
@@ -2403,6 +2464,7 @@ export function interpretPslDocumentToSqlContract(
 
   const modelNodes = new Map<ModelSymbol, ModelNode>();
   const fkRelationMetadata: FkRelationMetadata<ModelSymbol>[] = [];
+  const relationIndexLocations: RelationIndexLocation[] = [];
   const invalidFkPairings: InvalidModelFkPairing<ModelSymbol>[] = [];
   const backrelationCandidates: ModelBackrelationCandidate<ModelSymbol>[] = [];
   const crossSpaceRelationsByModel = new Map<ModelSymbol, RelationNode[]>();
@@ -2471,6 +2533,7 @@ export function interpretPslDocumentToSqlContract(
       namespaceId !== undefined ? { ...result.modelNode, namespaceId } : result.modelNode,
     );
     fkRelationMetadata.push(...result.fkRelationMetadata);
+    relationIndexLocations.push(...result.relationIndexLocations);
     invalidFkPairings.push(...result.invalidFkPairings);
     backrelationCandidates.push(...result.backrelationCandidates);
     if (result.crossSpaceRelations.length > 0) {
@@ -2553,6 +2616,7 @@ export function interpretPslDocumentToSqlContract(
     input.symbolTable,
     input.sources,
     binder,
+    specContextFor,
     input.scalarColumnDescriptors.get('String')?.codecId,
     diagnostics,
   );
@@ -2584,13 +2648,13 @@ export function interpretPslDocumentToSqlContract(
       `stiVariantKeys is derived from baseDeclarations.keys(), so "${variantKey}" must have a base declaration`,
     );
     const variantName = baseDecl.model.name;
-    for (const attribute of baseDecl.model.node.attributes()) {
-      if (attribute.name()?.isSimpleName('check') !== true) continue;
+    for (const attribute of baseDecl.model.attributes) {
+      if (attribute.node.name()?.isSimpleName('check') !== true) continue;
       diagnostics.push({
         code: PSL_CHECK_ON_STI_VARIANT,
         message: `Model "${variantName}" declares "@@check", but it shares its base model "${baseDecl.base.model.name}"'s storage table (single-table inheritance via @@base) and has no table of its own to declare a check constraint on. Declare the check on "${baseDecl.base.model.name}" instead.`,
-        ...diagnosticSource(input.sources, attribute.syntax).at(
-          nodePslSpan(attribute.syntax, input.sources),
+        ...diagnosticSource(input.sources, attribute.node.syntax).at(
+          nodePslSpan(attribute.node.syntax, input.sources),
         ),
       });
     }
@@ -2668,34 +2732,49 @@ export function interpretPslDocumentToSqlContract(
     return createNamespace(extended);
   };
 
-  const contract = buildSqlContractFromDefinition(
-    {
-      target: input.target,
-      warnings: authoringWarnings.length > 0 ? authoringWarnings : undefined,
-      ...ifDefined(
-        'extensions',
-        buildComposedExtensionPackRefs(
-          input.target,
-          [...composedExtensions].sort(compareStrings),
-          input.composedExtensionPackRefs,
+  let contract: Contract;
+  try {
+    contract = buildSqlContractFromDefinition(
+      {
+        target: input.target,
+        warnings: authoringWarnings.length > 0 ? authoringWarnings : undefined,
+        ...ifDefined(
+          'extensions',
+          buildComposedExtensionPackRefs(
+            input.target,
+            [...composedExtensions].sort(compareStrings),
+            input.composedExtensionPackRefs,
+          ),
         ),
-      ),
-      ...(Object.keys(storageTypes).length > 0 ? { storageTypes } : {}),
-      ...(Object.keys(validEnumHandles).length > 0 ? { enums: validEnumHandles } : {}),
-      // A namespace that carries extension entities but no models (e.g.
-      // `namespace unbound { role anon {} }`) would otherwise never enter
-      // `SqlStorage.namespaces` — declare every entity-carrying coordinate;
-      // model-derived coordinates dedupe downstream.
-      ...(namespaceExtensionEntities.size > 0
-        ? { namespaces: [...namespaceExtensionEntities.keys()] }
-        : {}),
-      createNamespace: createNamespaceWithExtensions,
-      ...ifDefined('valueObjects', valueObjects.length > 0 ? valueObjects : undefined),
-      models: stiColumnModelNodes,
-    },
-    input.codecLookup,
-    input.dataTypes.lookup,
-  );
+        ...(Object.keys(storageTypes).length > 0 ? { storageTypes } : {}),
+        ...(Object.keys(validEnumHandles).length > 0 ? { enums: validEnumHandles } : {}),
+        // A namespace that carries extension entities but no models (e.g.
+        // `namespace unbound { role anon {} }`) would otherwise never enter
+        // `SqlStorage.namespaces` — declare every entity-carrying coordinate;
+        // model-derived coordinates dedupe downstream.
+        ...(namespaceExtensionEntities.size > 0
+          ? { namespaces: [...namespaceExtensionEntities.keys()] }
+          : {}),
+        createNamespace: createNamespaceWithExtensions,
+        ...ifDefined('valueObjects', valueObjects.length > 0 ? valueObjects : undefined),
+        models: stiColumnModelNodes,
+      },
+      input.codecLookup,
+      input.dataTypes.lookup,
+    );
+  } catch (error) {
+    const refusal = relationIndexRefusal(error, relationIndexLocations);
+    if (refusal === undefined) throw error;
+    diagnostics.push({
+      code: 'PSL_INVALID_RELATION_ATTRIBUTE',
+      message: refusal.message,
+      ...refusal.at.location,
+    });
+    return notOk({
+      summary: 'PSL to SQL contract interpretation failed',
+      diagnostics: diagnostics.toExternal(),
+    });
+  }
 
   // Key by namespace so same bare model names across namespaces stay distinct;
   // same-coordinate duplicates were already collapsed first-wins.

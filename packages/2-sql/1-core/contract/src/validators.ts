@@ -2,6 +2,7 @@ import { ContractValidationError } from '@internal/contract/contract-validation-
 import {
   type Contract,
   ContractExecutionSectionSchema,
+  type ContractModel,
   CrossReferenceSchema,
 } from '@internal/contract/types';
 import { validateContractDomain } from '@internal/contract/validate-domain';
@@ -18,6 +19,7 @@ import { ifDefined } from '@internal/utils/defined';
 import { type Type, type } from 'arktype';
 import { contractError } from './contract-errors';
 import { composeSqlEntityKinds } from './entity-kinds';
+import { sameColumns, startsWithColumns } from './index-equivalence';
 import { resolveSqlToOneRelationStorage } from './relation-storage';
 
 export {
@@ -36,6 +38,7 @@ export {
 
 import type {
   CheckConstraint,
+  ForeignKey,
   Index,
   SqlModelStorage,
   SqlStorage,
@@ -596,6 +599,33 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
   >(contractResult);
 }
 
+function foreignKeyBackingError(table: StorageTable, fk: ForeignKey): string | undefined {
+  const { index } = fk;
+  if (index === undefined) return undefined;
+  const columns = fk.source.columns;
+  if ('name' in index) {
+    const named = table.indexes.find((candidate) => candidate.name === index.name);
+    if (named === undefined) {
+      return `is indexed by "${index.name}", but the table has no index with that name`;
+    }
+    return named.columns !== undefined && startsWithColumns(named.columns, columns)
+      ? undefined
+      : `is indexed by "${index.name}", but that index does not start with those columns`;
+  }
+  if ('primaryKey' in index) {
+    return table.primaryKey !== undefined && startsWithColumns(table.primaryKey.columns, columns)
+      ? undefined
+      : "is indexed by the primary key, but the table's primary key does not start with those columns";
+  }
+  const described = `the unique constraint on [${index.unique.join(', ')}]`;
+  if (!table.uniques.some((unique) => sameColumns(unique.columns, index.unique))) {
+    return `is indexed by ${described}, but the table has no unique constraint on those columns`;
+  }
+  return startsWithColumns(index.unique, columns)
+    ? undefined
+    : `is indexed by ${described}, which does not start with those columns`;
+}
+
 /**
  * Validates semantic constraints on SqlStorage that cannot be expressed in Arktype schemas.
  *
@@ -608,6 +638,7 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
  * - nullable columns in primary key definitions
  * - `setNull` referential action on a non-nullable FK column (would fail at runtime)
  * - `setDefault` referential action on a non-nullable FK column without a DEFAULT (would fail at runtime)
+ * - a foreign key whose `index` is an index, primary key or unique constraint its table does not have
  */
 export function validateStorageSemantics(storage: SqlStorage): string[] {
   const errors: string[] = [];
@@ -687,6 +718,15 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
     rejectRepeatedIndexColumns(table.indexes, tableCoordinate, errors);
     rejectDuplicateWireNamedIndexContent(table.indexes, tableCoordinate, errors);
 
+    for (const fk of table.foreignKeys) {
+      const error = foreignKeyBackingError(table, fk);
+      if (error !== undefined) {
+        errors.push(
+          `${tableCoordinate}: foreign key on columns [${fk.source.columns.join(', ')}] ${error}`,
+        );
+      }
+    }
+
     const seenForeignKeyDefinitions = new Set<string>();
     for (const fk of table.foreignKeys) {
       const signature = JSON.stringify({
@@ -739,10 +779,7 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
 }
 
 /**
- * SQL storage logical-consistency checks: every model.storage.table
- * resolves to a real table and every model.storage.fields[*].column
- * resolves to a real column. Throws `ContractValidationError` on the first
- * mismatch.
+ * SQL storage logical-consistency checks: every model.storage.table resolves to a real table, every domain field has a model.storage.fields entry, and every model.storage.fields[*].column resolves to a real column. Throws `ContractValidationError` on the first mismatch.
  */
 export function validateModelStorageReferences(contract: Contract<SqlStorage>): void {
   for (const [namespaceId, namespace] of Object.entries(contract.domain.namespaces)) {
@@ -774,6 +811,15 @@ export function validateModelStorageReferences(contract: Contract<SqlStorage>): 
         rawTable,
       );
 
+      for (const fieldName of Object.keys(model.fields)) {
+        if (!Object.hasOwn(modelStorage.fields, fieldName)) {
+          throw new ContractValidationError(
+            `Model "${qualifiedName}" field "${fieldName}" has no entry in storage.fields, so no column holds it`,
+            'storage',
+          );
+        }
+      }
+
       const columnNames = new Set(Object.keys(table.columns));
       for (const [fieldName, field] of Object.entries(modelStorage.fields)) {
         if (!columnNames.has(field.column)) {
@@ -783,6 +829,109 @@ export function validateModelStorageReferences(contract: Contract<SqlStorage>): 
           );
         }
       }
+    }
+  }
+}
+
+/** The names of a model's own fields and of the fields it inherits from its base models. */
+function fieldNamesWithInherited(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  modelName: string,
+): ReadonlySet<string> {
+  const names = new Set<string>();
+  const seen = new Set<string>();
+  let coordinate: { readonly namespace: string; readonly model: string } | undefined = {
+    namespace: namespaceId,
+    model: modelName,
+  };
+  while (coordinate !== undefined) {
+    const key = JSON.stringify([coordinate.namespace, coordinate.model]);
+    if (seen.has(key)) break;
+    seen.add(key);
+    const model: ContractModel | undefined =
+      contract.domain.namespaces[coordinate.namespace]?.models[coordinate.model];
+    if (model === undefined) break;
+    for (const name of Object.keys(model.fields)) names.add(name);
+    coordinate = model.base;
+  }
+  return names;
+}
+
+/**
+ * Every relation joins on fields: its local fields are fields of the model that declares it, and its target fields are fields of the target model. The target side of a many-to-many relation names columns of its junction table instead. A cross-space relation's target is in another contract, so its target side is not checked. Throws `ContractValidationError` on the first name that is not a field.
+ */
+export function validateRelationJoinFields(contract: Contract<SqlStorage>): void {
+  for (const [namespaceId, namespace] of Object.entries(contract.domain.namespaces)) {
+    for (const [modelName, model] of Object.entries(namespace.models)) {
+      for (const [relationName, relation] of Object.entries(model.relations)) {
+        if (!('on' in relation)) continue;
+        const location = `Relation "${relationName}" on model "${namespaceId}:${modelName}"`;
+        const localFields = fieldNamesWithInherited(contract, namespaceId, modelName);
+        for (const field of relation.on.localFields) {
+          if (!localFields.has(field)) {
+            throw new ContractValidationError(
+              `${location} joins on "${field}", which is not a field of model "${namespaceId}:${modelName}"`,
+              'domain',
+            );
+          }
+        }
+        if (relation.cardinality === 'N:M') {
+          const { namespaceId: junctionNamespaceId, table: junctionTable } = relation.through;
+          for (const column of relation.on.targetFields) {
+            if (!lookupStorageColumn(contract, junctionNamespaceId, junctionTable, column)) {
+              throw new ContractValidationError(
+                `${location} joins on "${column}", which is not a column of junction table "${junctionNamespaceId}.${junctionTable}"`,
+                'domain',
+              );
+            }
+          }
+          continue;
+        }
+        if (relation.to.space !== undefined) continue;
+        const targetFields = fieldNamesWithInherited(
+          contract,
+          relation.to.namespace,
+          relation.to.model,
+        );
+        for (const field of relation.on.targetFields) {
+          if (!targetFields.has(field)) {
+            throw new ContractValidationError(
+              `${location} joins on "${field}", which is not a field of model "${relation.to.namespace}:${relation.to.model}"`,
+              'domain',
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Every execution default targets a column some model's field maps: an execution default is declared on a field, and it belongs to that field. Throws `ContractValidationError` on the first default on a column no field maps.
+ */
+export function validateExecutionDefaultsTargetMappedColumns(contract: Contract<SqlStorage>): void {
+  const mappedColumns = new Set<string>();
+  for (const namespace of Object.values(contract.domain.namespaces)) {
+    for (const model of Object.values(namespace.models)) {
+      const modelStorage = blindCast<
+        SqlModelStorage,
+        'model storage validated by ModelStorageSchema'
+      >(model.storage);
+      for (const field of Object.values(modelStorage.fields)) {
+        mappedColumns.add(
+          JSON.stringify([modelStorage.namespaceId, modelStorage.table, field.column]),
+        );
+      }
+    }
+  }
+
+  for (const { ref } of contract.execution?.mutations.defaults ?? []) {
+    if (!mappedColumns.has(JSON.stringify([ref.namespace, ref.entry, ref.field]))) {
+      throw new ContractValidationError(
+        `Execution default for column "${ref.field}" of table "${ref.namespace}.${ref.entry}" targets a column no field maps; execution defaults are declared on fields. Give the column a database default instead.`,
+        'storage',
+      );
     }
   }
 }
@@ -946,6 +1095,8 @@ export function validateSqlContractFully<T extends Contract<SqlStorage>>(
     );
   }
   validateModelStorageReferences(validated);
+  validateExecutionDefaultsTargetMappedColumns(validated);
+  validateRelationJoinFields(validated);
   validateRelationThroughConsistency(validated);
   validateToOneRelationNullabilityAgainstStorage(validated);
   return validated;

@@ -515,6 +515,51 @@ policy Probe { on = auth.User\n other = Top.User }`,
     ).toBeUndefined();
   });
 
+  it('classifies a sql literal as a keyword tag and a string per line of its literal', () => {
+    const source = parseSemanticTokenSource(
+      [
+        'model Post {',
+        '  id Int',
+        '  @@check(expression: sql`',
+        '    id > 0',
+        '    AND id < 10',
+        '  `, name: "post_id_range")',
+        '}',
+      ].join('\n'),
+    );
+
+    const details = collectDetails(source).filter((token) => token.line >= 2 && token.line <= 5);
+
+    expect(details.map(({ text, tokenType }) => ({ text, tokenType }))).toEqual([
+      { text: '@@check', tokenType: 'decorator' },
+      { text: 'expression', tokenType: 'property' },
+      { text: 'sql', tokenType: 'keyword' },
+      { text: '`', tokenType: 'string' },
+      { text: '    id > 0', tokenType: 'string' },
+      { text: '    AND id < 10', tokenType: 'string' },
+      { text: '  `', tokenType: 'string' },
+      { text: 'name', tokenType: 'property' },
+      { text: '"post_id_range"', tokenType: 'string' },
+    ]);
+  });
+
+  it('classifies the namespace of a namespaced tag', () => {
+    const source = parseSemanticTokenSource(
+      ['model Post {', '  id Int @default(ext.money`1`)', '}'].join('\n'),
+    );
+
+    const details = collectDetails(source).filter((token) => token.line === 1);
+
+    expect(details.map(({ text, tokenType }) => ({ text, tokenType }))).toEqual([
+      { text: 'id', tokenType: 'property' },
+      { text: 'Int', tokenType: 'type' },
+      { text: '@default', tokenType: 'decorator' },
+      { text: 'ext', tokenType: 'namespace' },
+      { text: 'money', tokenType: 'keyword' },
+      { text: '`1`', tokenType: 'string' },
+    ]);
+  });
+
   it('classifies each segment of a dotted index path as a property', () => {
     const source = parseSemanticTokenSource(
       [
@@ -684,5 +729,60 @@ policy Probe { on = auth.User\n other = Top.User }`,
     expect(findToken(details, { text: '@id', tokenType: 'decorator' })).toBeDefined();
     expect(findToken(details, { text: '"anonymous"', tokenType: 'string' })).toBeDefined();
     expect(findToken(details, { text: 'true', tokenType: 'keyword' })).toBeDefined();
+  });
+
+  it('leaves the tokens of the rest of a document unchanged around a mixin and an inclusion', () => {
+    const lines = [
+      'model User {',
+      '  id Int @id',
+      '  +auth.Timestamps',
+      '  name String @default("anonymous")',
+      '}',
+      'model mixin Timestamps {',
+      '  createdAt DateTime',
+      '}',
+    ];
+    const withMixins = collectDetails(parseSemanticTokenSource(lines.join('\n')));
+    const withoutMixins = collectDetails(
+      parseSemanticTokenSource([lines[0], lines[1], '', lines[3], lines[4]].join('\n')),
+    );
+
+    expect(withMixins.filter((token) => token.line < 5)).toEqual(withoutMixins);
+    expect(withMixins.filter((token) => token.line >= 5)).toEqual([
+      { text: 'model', tokenType: 'keyword', modifiers: [], line: 5, character: 0 },
+      { text: 'mixin', tokenType: 'keyword', modifiers: [], line: 5, character: 6 },
+      { text: 'Timestamps', tokenType: 'type', modifiers: ['declaration'], line: 5, character: 12 },
+    ]);
+  });
+
+  it('builds tokens for a mixin of each keyword inside a namespace', () => {
+    const source = parseSemanticTokenSource(
+      [
+        'namespace auth {',
+        '  enum mixin BaseRoles {',
+        '    ADMIN',
+        '  }',
+        '  policy mixin OwnerRead {',
+        '    +Shared',
+        '    k = 1',
+        '  }',
+        '  type mixin {',
+        '  }',
+        '}',
+      ].join('\n'),
+    );
+
+    expect(collectDetails(source).map((token) => [token.text, token.tokenType])).toEqual([
+      ['namespace', 'keyword'],
+      ['auth', 'namespace'],
+      ['enum', 'keyword'],
+      ['mixin', 'keyword'],
+      ['BaseRoles', 'type'],
+      ['policy', 'keyword'],
+      ['mixin', 'keyword'],
+      ['OwnerRead', 'type'],
+      ['type', 'keyword'],
+      ['mixin', 'keyword'],
+    ]);
   });
 });

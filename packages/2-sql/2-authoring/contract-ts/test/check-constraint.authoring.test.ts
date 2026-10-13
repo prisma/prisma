@@ -2,6 +2,7 @@ import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-spe
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import { type Codec, emptyCodecLookup } from '@internal/framework-components/codec';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { sql } from '@internal/sql-contract/sql-expression';
 import {
   CheckConstraint,
   checkConstraintInputFromSerialized,
@@ -75,12 +76,14 @@ function renderCheckExpressions(input: RenderInput): ReadonlyArray<{
     const members = input.memberValues
       .map((v) => (typeof v === 'number' ? String(v) : `'${v}'`))
       .join(', ');
-    const arrayType = input.memberValues.every((v) => typeof v === 'number') ? 'numeric' : 'text';
+    const elements = input.memberValues
+      .map((v) => (typeof v === 'number' ? String(v) : `"${v}"`))
+      .join(',');
     candidates.push({
       kind: 'membership',
       columnName: input.columnName,
       expression: input.many
-        ? `array_remove(${column}::${arrayType}[], NULL) <@ ARRAY[${members}]::${arrayType}[]`
+        ? `array_remove(${column}, NULL) <@ '{${elements}}'`
         : `${column} IN (${members})`,
     });
   }
@@ -213,10 +216,7 @@ describe('check emission — array domain enum', () => {
     ) as Contract<SqlStorage>;
 
     expect(flatten(checksOf(contract))).toEqual([
-      wire(
-        'User_roles_check',
-        `array_remove("roles"::text[], NULL) <@ ARRAY['user', 'admin']::text[]`,
-      ),
+      wire('User_roles_check', `array_remove("roles", NULL) <@ '{"user","admin"}'`),
       wire('User_roles_elem_not_null', `array_position("roles", NULL) IS NULL`),
     ]);
   });
@@ -479,52 +479,43 @@ describe('check emission — guards', () => {
     },
   );
 
-  it.each([
-    { first: 1, second: 'two', many: false },
-    { first: 'one', second: 2, many: false },
-    { first: 1, second: 'two', many: true },
-    { first: 'one', second: 2, many: true },
-  ])(
-    'rejects mixed members $first/$second with many=$many before rendering',
-    ({ first, second, many }) => {
-      const Mixed = enumType('Mixed', pgText, member('First', first), member('Second', second));
+  it.each([false, true])(
+    'passes members that store as a number and as text to the check renderer, with many=%s',
+    (many) => {
+      const Special = enumType(
+        'Special',
+        { codecId: 'pg/float8@1' },
+        member('Half', 1.5),
+        member('Nan', 'NaN'),
+      );
       hookCalls.length = 0;
-
-      expect(() =>
-        defineContract(
-          {
-            ...testTypeLookups,
-            family: sqlFamilyPack,
-            target: postgresTargetPack,
-            createNamespace: createTestSqlNamespace,
-            enums: { Mixed },
+      defineContract(
+        {
+          ...testTypeLookups,
+          family: sqlFamilyPack,
+          target: postgresTargetPack,
+          createNamespace: createTestSqlNamespace,
+          enums: { Special },
+        },
+        ({ field: f, model: m }) => ({
+          models: {
+            User: m('User', {
+              fields: {
+                id: f.text().id(),
+                special: many ? f.namedType(Special).many() : f.namedType(Special),
+              },
+            }),
           },
-          ({ field: f, model: m }) => ({
-            models: {
-              User: m('User', {
-                fields: {
-                  id: f.text().id(),
-                  mixed: many ? f.namedType(Mixed).many() : f.namedType(Mixed),
-                },
-              }),
-            },
-          }),
-        ),
-      ).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.ENUM_INVALID',
-          meta: { enumName: 'Mixed', reason: 'mixed-member-types' },
         }),
       );
-      expect(hookCalls).toEqual([
-        {
-          tableName: 'User',
-          columnName: 'id',
-          many: false,
-          elementNullable: false,
-          memberValues: undefined,
-        },
-      ]);
+
+      expect(hookCalls.at(-1)).toEqual({
+        tableName: 'User',
+        columnName: 'special',
+        many,
+        elementNullable: false,
+        memberValues: [1.5, 'NaN'],
+      });
     },
   );
 
@@ -630,10 +621,7 @@ describe('check emission — guards', () => {
         valueSet: { kind: 'valueSet', values: ['1', '10'] },
         checks: many
           ? [
-              wire(
-                'User_level_check',
-                `array_remove("level"::text[], NULL) <@ ARRAY['1', '10']::text[]`,
-              ),
+              wire('User_level_check', `array_remove("level", NULL) <@ '{"1","10"}'`),
               wire('User_level_elem_not_null', `array_position("level", NULL) IS NULL`),
             ]
           : [wire('User_level_check', `"level" IN ('1', '10')`)],
@@ -864,8 +852,8 @@ describe('noCheck — enforcement opt-out', () => {
       noCheck: ['elementNotNull'],
     });
     expect(flatten(checksOf(contract))).toEqual([
-      wire('User_tags_elem_not_null', `array_position("tags", NULL) IS NULL`),
       wire('User_labels_elem_not_null', `array_position("labels", NULL) IS NULL`),
+      wire('User_tags_elem_not_null', `array_position("tags", NULL) IS NULL`),
     ]);
   });
 
@@ -904,8 +892,8 @@ describe('noCheck — enforcement opt-out', () => {
       many: { elementNullable: false },
     });
     expect(flatten(checksOf(contract))).toEqual([
-      wire('User_omittedResets_elem_not_null', `array_position("omittedResets", NULL) IS NULL`),
       wire('User_falseResets_elem_not_null', `array_position("falseResets", NULL) IS NULL`),
+      wire('User_omittedResets_elem_not_null', `array_position("omittedResets", NULL) IS NULL`),
     ]);
   });
 
@@ -1451,7 +1439,7 @@ describe('check() — Validation table', () => {
           ({
             models: {
               User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-                checks: [check({ expression: 'total > 0' })],
+                checks: [check({ expression: sql`total > 0` })],
               }),
             },
           }) as const,
@@ -1472,7 +1460,7 @@ describe('check() — Validation table', () => {
           ({
             models: {
               User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-                checks: [check({ expression: 'total > 0', name: 'a', map: 'b' })],
+                checks: [check({ expression: sql`total > 0`, name: 'a', map: 'b' })],
               }),
             },
           }) as const,
@@ -1493,7 +1481,7 @@ describe('check() — Validation table', () => {
           ({
             models: {
               User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-                checks: [check({ expression: '', name: 'user_total_positive' })],
+                checks: [check({ expression: sql``, name: 'user_total_positive' })],
               }),
             },
           }) as const,
@@ -1515,7 +1503,7 @@ describe('check() — Validation table', () => {
           ({
             models: {
               User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-                checks: [check({ expression: 'total > 0', name: overBudget })],
+                checks: [check({ expression: sql`total > 0`, name: overBudget })],
               }),
             },
           }) as const,
@@ -1537,7 +1525,7 @@ describe('check() — Validation table', () => {
           ({
             models: {
               User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-                checks: [check({ expression: 'total > 0', map: 'legacy_total_check' })],
+                checks: [check({ expression: sql`total > 0`, map: 'legacy_total_check' })],
               }),
             },
           }) as const,
@@ -1569,8 +1557,8 @@ describe('check() — Validation table', () => {
             models: {
               User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
                 checks: [
-                  check({ expression: 'total > 0', map: 'dup' }),
-                  check({ expression: 'total < 1000', map: 'dup' }),
+                  check({ expression: sql`total > 0`, map: 'dup' }),
+                  check({ expression: sql`total < 1000`, map: 'dup' }),
                 ],
               }),
             },
@@ -1592,7 +1580,7 @@ describe('check() — Validation table', () => {
           ({
             models: {
               User: m('User', { fields: { id: f.text().id(), tags: f.text().many() } }).sql({
-                checks: [check({ expression: 'true', name: 'User_tags_elem_not_null' })],
+                checks: [check({ expression: sql`true`, name: 'User_tags_elem_not_null' })],
               }),
             },
           }) as const,
@@ -1623,7 +1611,7 @@ describe('check() — authored checks are emitted regardless of control policy',
         ({
           models: {
             User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-              checks: [check({ expression: 'total > 0', name: 'user_total_positive' })],
+              checks: [check({ expression: sql`total > 0`, name: 'user_total_positive' })],
             }),
           },
         }) as const,
@@ -1645,7 +1633,7 @@ describe('check() — authored checks are emitted regardless of control policy',
           models: {
             User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
               control: 'external',
-              checks: [check({ expression: 'total > 0', name: 'user_total_positive' })],
+              checks: [check({ expression: sql`total > 0`, name: 'user_total_positive' })],
             }),
           },
         }) as const,
@@ -1667,7 +1655,7 @@ describe('check() — authored checks are emitted regardless of control policy',
         ({
           models: {
             User: m('User', { fields: { id: f.text().id(), role: f.namedType(Role) } }).sql({
-              checks: [check({ expression: 'true', name: 'user_extra_rule' })],
+              checks: [check({ expression: sql`true`, name: 'user_extra_rule' })],
             }),
           },
         }) as const,
@@ -1703,7 +1691,7 @@ describe('check() — coexists with derived checks on the same table', () => {
         ({
           models: {
             User: m('User', { fields: { id: f.text().id(), role: f.namedType(Role) } }).sql({
-              checks: [check({ expression: 'true', name: 'user_extra_rule' })],
+              checks: [check({ expression: sql`true`, name: 'user_extra_rule' })],
             }),
           },
         }) as const,
@@ -1752,7 +1740,7 @@ describe('check() — wire vs exact naming, through the built contract', () => {
         ({
           models: {
             User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-              checks: [check({ expression: 'total > 0', name: 'user_total_positive' })],
+              checks: [check({ expression: sql`total > 0`, name: 'user_total_positive' })],
             }),
           },
         }) as const,
@@ -1775,7 +1763,7 @@ describe('check() — wire vs exact naming, through the built contract', () => {
           ({
             models: {
               User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-                checks: [check({ expression: '(total > (0)::numeric)', map: 'positive_total' })],
+                checks: [check({ expression: sql`(total > (0)::numeric)`, map: 'positive_total' })],
               }),
             },
           }) as const,

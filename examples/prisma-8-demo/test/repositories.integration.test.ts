@@ -14,6 +14,7 @@ import { ormClientFindSimilarPosts } from '../src/orm-client/find-similar-posts'
 import { ormClientFindUserByEmail } from '../src/orm-client/find-user-by-email';
 import { ormClientFindUserById } from '../src/orm-client/find-user-by-id';
 import { ormClientFindUserByIdCached } from '../src/orm-client/find-user-by-id-cached';
+import { ownedBy } from '../src/orm-client/fragments';
 import { ormClientGetAdminUsers } from '../src/orm-client/get-admin-users';
 import { ormClientGetDashboardUsers } from '../src/orm-client/get-dashboard-users';
 import { ormClientGetFeatureRoadmap } from '../src/orm-client/get-feature-roadmap';
@@ -30,7 +31,7 @@ import { ormClientGetUsers } from '../src/orm-client/get-users';
 import { ormClientGetUsersBackwardCursor } from '../src/orm-client/get-users-backward-cursor';
 import { ormClientGetUsersByIdCursor } from '../src/orm-client/get-users-by-id-cursor';
 import { ormClientGetUsersCached } from '../src/orm-client/get-users-cached';
-import { ownedBy } from '../src/orm-client/scopes';
+import { ormClientSearchPosts } from '../src/orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from '../src/orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from '../src/orm-client/search-posts-by-title';
 import { ormClientUpdateUserEmail } from '../src/orm-client/update-user-email';
@@ -531,7 +532,7 @@ describe('ORM client integration examples', () => {
             .select('id', 'userId')
             .orderBy((post) => post.id.asc())
             .all();
-          const scoped = await ormClient.Post.apply(ownedBy(seededUserIds.admin))
+          const scoped = await ormClient.Post.with(ownedBy(seededUserIds.admin))
             .select('id', 'userId')
             .orderBy((post) => post.id.asc())
             .all();
@@ -1234,6 +1235,36 @@ describe('ORM client integration examples', () => {
 
           const excluded = await ormClientSearchPostsByTitle('note -zebra', 10, runtime);
           expect(excluded.map((p) => p.id)).toEqual([seededPostIds.memberNote]);
+        } finally {
+          await runtime.close();
+        }
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'ormClientSearchPosts searches the title and the body, title matches first',
+    async () => {
+      await withDevDatabase(async ({ connectionString }) => {
+        await initTestDatabase({ connection: connectionString, contract });
+        const runtime = await getRuntime(connectionString);
+
+        try {
+          await seedOrmClientData(runtime);
+          await createOrmClient(runtime)
+            .Post.where({ id: seededPostIds.memberNote })
+            .update({ body: 'A zebra crossed the road' });
+
+          const zebra = await ormClientSearchPosts('zebra', 10, runtime);
+          expect(zebra).toEqual([
+            { id: seededPostIds.adminZebra, title: 'Zebra post note', body: null },
+            {
+              id: seededPostIds.memberNote,
+              title: 'Other user note',
+              body: 'A zebra crossed the road',
+            },
+          ]);
         } finally {
           await runtime.close();
         }

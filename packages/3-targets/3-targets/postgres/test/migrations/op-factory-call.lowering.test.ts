@@ -147,15 +147,19 @@ describe('AddColumnCall', () => {
     ]);
   });
 
-  it('renders a function default holding both quote kinds as a template literal', () => {
+  it('renders a function default holding both quote kinds as a sql template', () => {
     const call = new AddColumnCall(
       'public',
       'user',
       col('label', 'text', { default: fn(`concat("prefix", 'user')`) }),
     );
     expect(call.renderTypeScript()).toBe(
-      'this.addColumn({ schema: "public", table: "user", column: col("label", "text", { default: fn(`concat("prefix", \'user\')`) }) })',
+      'this.addColumn({ schema: "public", table: "user", column: col("label", "text", { default: fn(sql`concat("prefix", \'user\')`) }) })',
     );
+    expect(call.importRequirements()).toContainEqual({
+      moduleSpecifier: '@internal/postgres/migration',
+      symbol: 'sql',
+    });
   });
 });
 
@@ -222,6 +226,21 @@ describe('AlterColumnTypeCall', () => {
     expect(call.label).toBe('Alter type of "user"."age" to bigint');
   });
 
+  it('is destructive unless the planner says the type change is a safe widening', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
+    const op = await call.toOp(lowerer);
+    expect([call.operationClass, op.operationClass]).toEqual(['destructive', 'destructive']);
+  });
+
+  it('is widening when constructed as a safe widening, and renders the class', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const call = new AlterColumnTypeCall('public', 'user', 'age', options, 'widening');
+    const op = await call.toOp(lowerer);
+    expect([call.operationClass, op.operationClass]).toEqual(['widening', 'widening']);
+    expect(call.renderTypeScript()).toContain('operationClass: "widening"');
+  });
+
   it('uses an explicit USING clause when provided', async () => {
     const { lowerer } = recordingCheckLowerer();
     const call = new AlterColumnTypeCall('public', 'user', 'age', {
@@ -258,6 +277,7 @@ describe('AlterColumnTypeCall', () => {
     expect(ts).toContain('qualifiedTargetType: "bigint"');
     expect(ts).toContain('formatTypeExpected: "bigint"');
     expect(ts).toContain('rawTargetTypeForLabel: "bigint"');
+    expect(ts).not.toContain('operationClass');
     expect(call.importRequirements()).toEqual([]);
   });
 });
@@ -283,6 +303,13 @@ describe('SetNotNullCall', () => {
       { description: 'verify column "email" is NOT NULL', sql: 'LOWERED 4', params: ['p4'] },
     ]);
     expect(call.label).toBe('Set NOT NULL on "user"."email"');
+  });
+
+  it('is widening, because its precheck fails rather than losing a NULL value', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const call = new SetNotNullCall('public', 'user', 'email');
+    const op = await call.toOp(lowerer);
+    expect([call.operationClass, op.operationClass]).toEqual(['widening', 'widening']);
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
@@ -426,11 +453,11 @@ describe('SetDefaultCall', () => {
     });
   });
 
-  it('renders a default holding both quote kinds as a template literal', () => {
+  it('renders a default holding both quote kinds as a sql template', () => {
     const meta = col('meta', 'jsonb', { default: fn(`'{"a": 1}'::jsonb`) });
     const call = new SetDefaultCall('public', 'user', meta);
     expect(call.renderTypeScript()).toBe(
-      'this.setDefault({ schema: "public", table: "user", column: col("meta", "jsonb", { default: fn(`\'{"a": 1}\'::jsonb`) }) })',
+      'this.setDefault({ schema: "public", table: "user", column: col("meta", "jsonb", { default: fn(sql`\'{"a": 1}\'::jsonb`) }) })',
     );
   });
 });
@@ -697,11 +724,14 @@ describe('CreateIndexCall', () => {
     expect(ddlNode.elements).toEqual({ expression: opaqueSql('lower(email)') });
     expect(op.execute[0]?.sql).toBe('LOWERED 1');
     expect(call.renderTypeScript()).toBe(
-      'this.createIndex({ schema: "public", table: "user", index: "user_email_eq", expression: "lower(email)", extras: { where: "deleted_at IS NULL", unique: true } })',
+      'this.createIndex({ schema: "public", table: "user", index: "user_email_eq", expression: sql`lower(email)`, extras: { where: sql`deleted_at IS NULL`, unique: true } })',
     );
+    expect(call.importRequirements()).toEqual([
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'sql' },
+    ]);
   });
 
-  it('renders an expression and a where holding both quote kinds as template literals', () => {
+  it('renders an expression and a where holding both quote kinds as sql templates', () => {
     const call = new CreateIndexCall(
       'public',
       'user',
@@ -710,7 +740,7 @@ describe('CreateIndexCall', () => {
       { where: `"kind" <> 'guest'` },
     );
     expect(call.renderTypeScript()).toBe(
-      'this.createIndex({ schema: "public", table: "user", index: "user_kind_idx", expression: `("kind" || \'x\')`, extras: { where: `"kind" <> \'guest\'` } })',
+      'this.createIndex({ schema: "public", table: "user", index: "user_kind_idx", expression: sql`("kind" || \'x\')`, extras: { where: sql`"kind" <> \'guest\'` } })',
     );
   });
 });
@@ -888,13 +918,13 @@ describe('RawSqlCall', () => {
 });
 
 describe('DataTransformCall', () => {
-  it('toOp() always throws MIGRATION.UNFILLED_PLACEHOLDER for the unfilled placeholder', () => {
+  it('toOp() always rejects with MIGRATION.UNFILLED_PLACEHOLDER for the unfilled placeholder', async () => {
     const call = new DataTransformCall(
       'Backfill status',
       'backfill-status:check',
       'backfill-status:run',
     );
-    expect(() => call.toOp()).toThrow(
+    await expect(call.toOp()).rejects.toThrow(
       expect.objectContaining({
         code: 'MIGRATION.UNFILLED_PLACEHOLDER',
         meta: { slot: 'Backfill status' },
@@ -1049,12 +1079,14 @@ describe('CreatePostgresRlsPolicyCall', () => {
         '  namespaceId: "public",',
         '  operation: "select",',
         '  roles: ["authenticated"],',
-        '  using: "author_id = current_user_id()",',
+        '  using: sql`author_id = current_user_id()`,',
         '  permissive: true,',
         '} })',
       ].join('\n'),
     );
-    expect(call.importRequirements()).toEqual([]);
+    expect(call.importRequirements()).toEqual([
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'sql' },
+    ]);
   });
 
   it('renders an exact policy literal as the exact naming arm', () => {
@@ -1080,14 +1112,14 @@ describe('CreatePostgresRlsPolicyCall', () => {
         '  namespaceId: "public",',
         '  operation: "select",',
         '  roles: ["app_user"],',
-        '  using: "(tenant_id = 1)",',
+        '  using: sql`(tenant_id = 1)`,',
         '  permissive: true,',
         '} })',
       ].join('\n'),
     );
   });
 
-  it('renders using and withCheck holding both quote kinds as template literals', () => {
+  it('renders using and withCheck holding both quote kinds as sql templates', () => {
     const call = new CreatePostgresRlsPolicyCall(
       'public',
       'post',
@@ -1110,8 +1142,8 @@ describe('CreatePostgresRlsPolicyCall', () => {
         '  namespaceId: "public",',
         '  operation: "all",',
         '  roles: ["app_user"],',
-        '  using: `"status" = \'published\'`,',
-        '  withCheck: `"status" <> \'archived\'`,',
+        '  using: sql`"status" = \'published\'`,',
+        '  withCheck: sql`"status" <> \'archived\'`,',
         '  permissive: false,',
         '} })',
       ].join('\n'),

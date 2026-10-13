@@ -1,3 +1,5 @@
+import type { LockOptionCapabilities, LockWaitOptions } from '@internal/sql-relational-core/ast';
+import type { Subquery } from '@internal/sql-relational-core/functions';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   AggregateFunctions,
@@ -22,7 +24,6 @@ import type {
   Scope,
   ScopeField,
   ScopeTable,
-  Subquery,
 } from '../scope';
 import type { JoinedTables } from './joined-tables';
 import type { SelectQuery } from './select-query';
@@ -108,24 +109,16 @@ export type PaginationValue<QC extends QueryContext> =
   | number
   | TraitExpression<readonly ['numeric'], false, QC['codecTypes']>;
 
-type LockOf<QC extends QueryContext, S extends Scope> = QC['capabilities'] extends {
-  sql: { lockOf: true };
-}
+type LockOf<
+  QC extends QueryContext,
+  S extends Scope,
+> = QC['capabilities'] extends LockOptionCapabilities['of']
   ? { readonly of?: ReadonlyArray<keyof S['namespaces'] & string> }
   : { readonly of?: never };
 
-type LockWaitOptions<QC extends QueryContext> =
-  | (QC['capabilities'] extends { sql: { lockNowait: true } }
-      ? { readonly nowait?: true; readonly skipLocked?: never }
-      : never)
-  | (QC['capabilities'] extends { sql: { lockSkipLocked: true } }
-      ? { readonly skipLocked?: true; readonly nowait?: never }
-      : never)
-  | { readonly nowait?: never; readonly skipLocked?: never };
-
 /** Options for the row-locking methods; each key exists only when the adapter reports its capability. */
 export type LockOptions<QC extends QueryContext, S extends Scope> = LockOf<QC, S> &
-  LockWaitOptions<QC>;
+  LockWaitOptions<QC['capabilities']>;
 
 export interface WithPagination<QC extends QueryContext> {
   limit(count: PaginationValue<QC>): this;

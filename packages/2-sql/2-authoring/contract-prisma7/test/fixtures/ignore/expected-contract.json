@@ -53,7 +53,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "6cad8b0cfbfc12aa0d93267378d48b6a00a8c1c47de60a2d0aedf27b07e8a70e",
+    "storageHash": "9244b30d46c12b08f2dc8264e12ce2738f4ec3e779dc7e30d7dee86d11332ad7",
     "namespaces": {
       "public": {
         "id": "public",
@@ -73,11 +73,54 @@
                   "codecId": "pg/text@1",
                   "nullable": false,
                   "many": false
+                },
+                "legacy": {
+                  "dataType": "pg/text",
+                  "codecId": "pg/text@1",
+                  "nullable": true,
+                  "many": false
                 }
               },
               "uniques": [],
               "indexes": [],
               "foreignKeys": [],
+              "primaryKey": {
+                "columns": ["id"]
+              }
+            },
+            "LegacyThing": {
+              "columns": {
+                "id": {
+                  "dataType": "pg/int4",
+                  "codecId": "pg/int4@1",
+                  "nullable": false,
+                  "many": false
+                },
+                "userId": {
+                  "dataType": "pg/int4",
+                  "codecId": "pg/int4@1",
+                  "nullable": false,
+                  "many": false
+                }
+              },
+              "uniques": [],
+              "indexes": [],
+              "foreignKeys": [
+                {
+                  "source": {
+                    "namespaceId": "public",
+                    "tableName": "LegacyThing",
+                    "columns": ["userId"]
+                  },
+                  "target": {
+                    "namespaceId": "public",
+                    "tableName": "User",
+                    "columns": ["id"]
+                  },
+                  "onDelete": "restrict",
+                  "onUpdate": "cascade"
+                }
+              ],
               "primaryKey": {
                 "columns": ["id"]
               }

@@ -248,7 +248,7 @@ Reading a default is then:
 4. The value, cast or not, is validated by the codec instance for the column's parameters; a refusal is a diagnostic at the value with the codec's message.
 5. The value is stored in the column's canonical form. The contract's two default forms, a value and an expression, are unchanged.
 
-The TypeScript builder is not a text surface: `.default(value)` hands the codec a JS value that TypeScript has typed, and `encodeJson` produces the canonical form.
+The TypeScript builder is not a text surface: `.default(value)` hands the codec a JS value that TypeScript has typed, and `encodeJson` produces the canonical form. `sql/expression` has no codec, so it has a TypeScript value of its own: `SqlExpression`, made by the `sql` template tag, whose `text` is the canonical form. `.default()` stores it as the column's default expression, and every builder field that takes raw SQL takes only that value ([ADR 129](ADR%20129%20-%20Template-Tagged%20Literals%20for%20Extensions.md)).
 
 ## Assembly
 
@@ -314,6 +314,14 @@ model Place {
 - **Casts declared by the source type, or by both sides.** Two declarations for one pair, with no rule for which wins.
 - **A vector type casting from the JSON type.** It matches on storage shape; a vector is several numbers.
 
+## Amendment (October 7, 2026) — a stored value decodes to the value a query returns
+
+**The rule.** The value a codec's `decodeJson` reads from a contract's stored form equals the value a query returns for it, and `db.enums` compares with that value. The stored form is not always the text the database prints: `pg/bytea@1` stores base64 where PostgreSQL prints hex, and timestamps are stored in ISO 8601 where PostgreSQL prints `2024-01-02 03:04:05+00`. Where the database normalises a spelling, the canonical form is the normalised spelling: `pg/uuid@1` writes lower case, the integer codecs drop leading zeros and the minus sign on zero, and `pg/inet@1` writes an address as PostgreSQL prints it. Normalisation belongs to the data type's `toCanonicalForm`; strictness, refusing any other spelling, belongs to `decodeJson`.
+
+**`pg/inet` and `pg/numeric`.** `pg/inet` declares its canonical form on the data type, as the rule says. `pg/numeric` is the exception: its codec's `encodeJson` writes the numeral as PostgreSQL prints it and its `decodeJson` refuses other spellings, and the data type declares no canonical form. The reason is `resolvedDefaultsEqual`, which compares a numeric default with the database's by the column's scale and returns early when the type has a canonical form, so a canonical form would skip the scale comparison. [TML-3479](https://linear.app/prisma-company/issue/TML-3479) removes the exception, by applying the scale rule after the canonical form and declaring one for `pg/numeric`.
+
+**Enum eligibility.** An enum compares values with its members, so every enum authoring surface, in TypeScript and PSL and in both families, refuses a codec whose descriptor does not declare the `equality` trait. A codec that declares it but whose values read back never equal a member as the contract stores it sets `enumRefusal` on its descriptor, naming the reason and what to use instead: on Postgres, the string timestamp codecs and `pg/bytea@1`. A codec without the trait may set `enumRefusal` too, to replace the generic reason with a specific one: `pg/json@1` says its type has no equality operator and names `pg/jsonb@1`, and `pg/tsquery@1` says PostgreSQL normalises query text. `pg/tsquery@1` declares no `equality` although PostgreSQL has `tsquery = tsquery`, because comparing queries means nothing to an application and no contract can author a `tsquery` column. `enumRefusalOf` reads both rules, and every surface refuses through it.
+
 ## Not decided here
 
 Whether temporal, bytes and interval types get tags of their own and stop casting from the text type; whether a codec will one day convert the `sql` representation (the DDL half of ADR 184); the Mongo target's types.
@@ -322,5 +330,6 @@ Whether temporal, bytes and interval types get tags of their own and stop castin
 
 - [ADR 184 — Codec-owned value serialization](ADR%20184%20-%20Codec-owned%20value%20serialization.md): the canonical form now belongs to the data type; the PSL half is replaced by this decision.
 - [ADR 129 — Tagged literals](ADR%20129%20-%20Template-Tagged%20Literals%20for%20Extensions.md): the tag syntax and the canonical text; a tag is how PSL writes a data type, and `sql` is the tag of `sql/expression`.
+- [ADR 268 — Raw SQL is a value of the data type `sql/expression`](ADR%20268%20-%20Raw%20SQL%20is%20a%20value%20of%20the%20data%20type%20sql-expression.md): every place that holds raw SQL receives `sql/expression` through `dataTypeValue`.
 - [ADR 208 — Higher-order codecs for parameterized types](ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md): parameters now belong to the data type; codec instances still check them.
 - [ADR 252 — An earlier Prisma version's schema is a contract source](ADR%20252%20-%20An%20earlier%20Prisma%20version's%20schema%20is%20a%20contract%20source.md): a second text source mapped onto the same types.

@@ -5,6 +5,7 @@ import type {
   ExtractCodecTypes,
   ExtractFieldOutputTypes,
   ExtractQueryOperationTypes,
+  QueryOperationTypesBase,
   SqlStorage,
   StorageColumn,
 } from '@internal/sql-contract/types';
@@ -15,19 +16,32 @@ import {
   type CodecTrait,
   type LimitOffsetValue,
   ListExpression,
+  type LockingClause,
   NullCheckExpr,
   type OrderByItem,
   type OrderByNulls,
   ParamRef,
   type AggregateFn as SqlAggregateFn,
+  type WhereArg,
 } from '@internal/sql-relational-core/ast';
-import type { Expression } from '@internal/sql-relational-core/expression';
+import type {
+  CodecExpression,
+  Expression,
+  RawSqlInterpolation,
+} from '@internal/sql-relational-core/expression';
+import type { BooleanCodecType, BuiltinFunctions } from '@internal/sql-relational-core/functions';
+import type {
+  IndexReference,
+  TableIndexReferences,
+} from '@internal/sql-relational-core/index-reference';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { ComputeColumnJsType, RuntimeScope } from '@internal/sql-relational-core/types';
+import type { CollectionTables } from './collection-tables';
 import type { HasRow } from './collection-types';
 import { checkedOrderByItem } from './order-by-guards';
 import { predicateComparison } from './predicate-comparison';
 import { predicateExpression } from './predicate-expression';
+import type { AliasedTable } from './table-scope';
 
 export interface IncludeScalar<Result> extends HasRow<Result> {
   readonly kind: 'includeScalar';
@@ -74,19 +88,21 @@ export interface IncludeExpr {
   readonly relatedModelName: string;
   readonly relatedNamespaceId: string;
   readonly relatedTableName: string;
-  readonly localTableName: string;
+  readonly localVariantName?: string;
   /** Target-side join columns, positionally paired with `localColumns`. */
   readonly targetColumns: readonly string[];
   /** Local-side join columns, positionally paired with `targetColumns`. */
   readonly localColumns: readonly string[];
   readonly cardinality: RelationCardinalityTag | undefined;
   readonly through?: IncludeThroughDescriptor;
+  readonly junction?: AliasedTable;
   readonly nested: CollectionState;
   readonly scalar: IncludeScalar<unknown> | undefined;
   readonly combine: Readonly<Record<string, IncludeCombineBranch>> | undefined;
 }
 
 export interface CollectionState {
+  readonly tables: CollectionTables;
   readonly filters: readonly AnyExpression[];
   readonly includes: readonly IncludeExpr[];
   readonly orderBy: readonly OrderByItem[] | undefined;
@@ -97,6 +113,7 @@ export interface CollectionState {
   readonly limit: LimitOffsetValue | undefined;
   readonly offset: LimitOffsetValue | undefined;
   readonly variantName: string | undefined;
+  readonly locking: ReadonlyArray<LockingClause> | undefined;
   /**
    * Annotations attached to this query at terminal-call time.
    * Populated transiently by the read terminals `all` and `first` just before dispatch. Terminals
@@ -109,8 +126,9 @@ export interface CollectionState {
   readonly annotations: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>;
 }
 
-export function emptyState(): CollectionState {
+export function emptyState(tables: CollectionTables): CollectionState {
   return {
+    tables,
     filters: [],
     includes: [],
     orderBy: undefined,
@@ -121,6 +139,7 @@ export function emptyState(): CollectionState {
     limit: undefined,
     offset: undefined,
     variantName: undefined,
+    locking: undefined,
     annotations: new Map(),
   };
 }
@@ -144,7 +163,6 @@ export function emptyGroupPagingState(): GroupPagingState {
 export interface CollectionTypeState {
   readonly hasOrderBy: boolean;
   readonly hasWhere: boolean;
-  readonly hasUniqueFilter: boolean;
   readonly variantName: string | undefined;
   /**
    * The namespace coordinate this collection resolves at — set by the
@@ -162,7 +180,6 @@ export type RelationCardinalityTag = '1:1' | 'N:1' | '1:N' | 'N:M';
 export type DefaultCollectionTypeState = {
   readonly hasOrderBy: boolean;
   readonly hasWhere: boolean;
-  readonly hasUniqueFilter: boolean;
   readonly variantName: undefined;
   readonly nsId: never;
 };
@@ -385,7 +402,7 @@ export type CodecField<
   > &
   CodecOperations<TContract, CodecId>;
 
-/** The model accessor's type for a list field whose elements have the codec `CodecId`, as a scope for any model declares it with `.many()`, or with `.many({ elementsNullable: true })` when `ElementNullable` is `true`. */
+/** The model accessor's type for a list field whose elements have the codec `CodecId`, as a fragment for any model declares it with `.many()`, or with `.many({ elementsNullable: true })` when `ElementNullable` is `true`. */
 export type CodecListField<
   TContract extends Contract<SqlStorage>,
   CodecId extends keyof ExtractCodecTypes<TContract> & string,
@@ -506,7 +523,10 @@ export type RelationPredicate<
   TContract extends Contract<SqlStorage>,
   NsId extends DomainNamespaceId<TContract>,
   ModelName extends string,
-> = (model: ModelAccessor<TContract, ModelName, NsId>) => AnyExpression;
+> = (
+  model: ModelAccessor<TContract, ModelName, NsId>,
+  tools: ModelCallbackTools<TContract, ModelName, NsId>,
+) => Condition;
 
 export type RelationPredicateInput<
   TContract extends Contract<SqlStorage>,
@@ -637,6 +657,118 @@ export type VariantAwareModelAccessor<
         RelationModelAccessor<TContract, VariantName, NsId>
     : ModelAccessor<TContract, ModelName, NsId>
   : ModelAccessor<TContract, ModelName, NsId>;
+
+/** A condition from `fns`. */
+export type FunctionCondition = Expression<BooleanCodecType>;
+
+/** A condition: an ORM filter expression, or a condition from `fns`. */
+export type Condition = AnyExpression | FunctionCondition;
+
+/** What a `where` callback may return: a filter, or a condition from `fns`. */
+export type WhereCallbackResult = WhereArg | FunctionCondition;
+
+type IsBooleanCodec<
+  CodecId,
+  TCodecTypes extends Record<string, unknown>,
+> = CodecId extends keyof TCodecTypes
+  ? TCodecTypes[CodecId] extends { readonly traits: infer Traits }
+    ? 'boolean' extends Traits
+      ? true
+      : false
+    : false
+  : false;
+
+/** A function's result in the ORM: a value, as opposed to a condition, also has `asc()` and `desc()`. */
+type OrmFunctionResult<R, TCodecTypes extends Record<string, unknown>> =
+  R extends Expression<infer Field>
+    ? IsBooleanCodec<Field['codecId'], TCodecTypes> extends true
+      ? R
+      : R & Orderable
+    : R;
+
+type SameSignature<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false;
+
+/**
+ * An operation's implementation with each result as {@link OrmFunctionResult}. Matching four call signatures reads the last four overloads, and TypeScript repeats the signatures of an implementation with fewer; a single signature stays one. An implementation with five or more overloads loses all but its last four, and a generic signature keeps its parameters at their constraints.
+ */
+type OrmOperation<Impl, CT extends Record<string, unknown>> = Impl extends {
+  (...args: infer A1): infer R1;
+  (...args: infer A2): infer R2;
+  (...args: infer A3): infer R3;
+  (...args: infer A4): infer R4;
+}
+  ? SameSignature<[A1, R1] | [A2, R2] | [A3, R3], [A4, R4]> extends true
+    ? (...args: A4) => OrmFunctionResult<R4, CT>
+    : {
+        (...args: A1): OrmFunctionResult<R1, CT>;
+        (...args: A2): OrmFunctionResult<R2, CT>;
+        (...args: A3): OrmFunctionResult<R3, CT>;
+        (...args: A4): OrmFunctionResult<R4, CT>;
+      }
+  : Impl;
+
+/** `fns.raw` in the ORM: its result also has `asc()` and `desc()`. */
+export interface OrmRawSqlBuilder {
+  returns<S extends string>(spec: S): Expression<{ codecId: S; nullable: false }> & Orderable;
+  returns<S extends string, N extends boolean = false>(spec: {
+    readonly codecId: S;
+    readonly nullable?: N;
+  }): Expression<{ codecId: S; nullable: N }> & Orderable;
+}
+
+export type OrmRawSqlTag = (
+  strings: TemplateStringsArray,
+  ...values: RawSqlInterpolation[]
+) => OrmRawSqlBuilder;
+
+/** `fns.and` and `fns.or` in the ORM: they also take ORM conditions, such as `p.title.ilike(...)`. */
+export type OrmLogicalFunction<CT extends Record<string, { readonly input: unknown }>> = (
+  ...conditions: (AnyExpression | CodecExpression<'pg/bool@1', boolean, CT>)[]
+) => FunctionCondition;
+
+/** The SQL query builder's functions over the given codec types and query operations, as the ORM's callbacks receive them. */
+export type OrmFunctionsOf<
+  CT extends Record<string, { readonly input: unknown }>,
+  OT extends QueryOperationTypesBase,
+> = Omit<BuiltinFunctions<CT>, 'raw' | 'and' | 'or'> & {
+  readonly raw: OrmRawSqlTag;
+  readonly and: OrmLogicalFunction<CT>;
+  readonly or: OrmLogicalFunction<CT>;
+} & {
+  readonly [K in keyof OT]: OrmOperation<OT[K]['impl'], CT>;
+};
+
+/** The SQL query builder's functions for a contract, as the ORM's callbacks receive them. */
+export type OrmFunctions<TContract extends Contract<SqlStorage>> = OrmFunctionsOf<
+  ExtractCodecTypes<TContract>,
+  ExtractQueryOperationTypes<TContract>
+>;
+
+/** The indexes of the table a model is stored in, keyed by the name the contract source gave each. */
+export type ModelIndexReferences<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> = string extends NsId
+  ? Readonly<Record<string, IndexReference>>
+  : TableIndexReferences<
+      NamespaceTableDef<
+        TContract,
+        ModelTableName<TContract, ModelName, NsId> & string,
+        ResolvedNsId<TContract, ModelName, NsId>
+      >
+    >;
+
+/** The second argument of a `where` or `orderBy` callback: the SQL query builder's functions, and the model's indexes. */
+export interface ModelCallbackTools<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> {
+  readonly fns: OrmFunctions<TContract>;
+  readonly indexes: ModelIndexReferences<TContract, ModelName, NsId>;
+}
 
 /**
  * The flat default row of a single model: its own declared fields mapped to
@@ -1636,10 +1768,9 @@ type CriterionFromConstraintColumns<
 > = string extends Columns[number]
   ? Record<string, unknown>
   : {
-      [C in Columns[number] as FieldNameForColumn<TContract, ModelName, C>]: RowValueForField<
-        TContract,
-        ModelName,
-        FieldNameForColumn<TContract, ModelName, C>
+      [C in Columns[number] as FieldNameForColumn<TContract, ModelName, C>]: Exclude<
+        RowValueForField<TContract, ModelName, FieldNameForColumn<TContract, ModelName, C>>,
+        null
       >;
     };
 

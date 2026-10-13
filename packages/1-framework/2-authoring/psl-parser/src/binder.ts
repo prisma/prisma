@@ -4,7 +4,7 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type {
-  ControlDefaultRegistries,
+  ControlMutationDefaultRegistry,
   ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
@@ -29,6 +29,7 @@ import type {
   PositionalParam,
 } from './attribute-spec/types';
 import { blockSpecFactoryOf } from './block-spec/descriptor';
+import { blockSpecContext } from './block-spec/spec-context';
 import {
   type ContributedTypeNamespace,
   type ContributedTypeSymbol,
@@ -43,7 +44,7 @@ import {
 } from './entity-reference';
 import { findBlockDescriptor } from './extension-block';
 import type { ParseDiagnostic } from './parse';
-import { type ResolvedAttribute, readResolvedAttributes } from './resolve';
+import type { ResolvedAttribute } from './resolve';
 import {
   contributedScope,
   documentScope,
@@ -64,7 +65,6 @@ import type {
   NamespaceSymbol,
   SymbolTable,
 } from './symbol-table';
-import type { FieldAttributeAst, ModelAttributeAst } from './syntax/ast/attributes';
 import {
   ArrayLiteralAst,
   BooleanLiteralExprAst,
@@ -105,7 +105,7 @@ export interface ParameterSymbol {
 export interface FunctionSymbol {
   readonly kind: 'function';
   readonly name: string;
-  readonly signature: FuncCallSig;
+  readonly signature: FuncCallSig<never>;
 }
 
 export interface ConstantSymbol {
@@ -173,7 +173,7 @@ interface BindingInputs {
   readonly symbolTable: SymbolTable;
   readonly contributedTypes: ContributedTypeNamespace;
   readonly attributeSpecs: AttributeSpecNamespace;
-  readonly controlMutationDefaults: ControlDefaultRegistries;
+  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly pslBlockDescriptors?: AuthoringPslBlockDescriptorNamespace | undefined;
   readonly describeUnsupportedAttribute?: DescribeUnsupportedAttribute | undefined;
@@ -291,9 +291,7 @@ export function createBinder(input: CreateBinderInput): BinderResult {
     contributedTypes: mergeContributedTypes(contributions.field, contributions.type),
     attributeSpecs: assembleAttributeSpecs(contributions),
     pslBlockDescriptors: contributions.pslBlockDescriptors,
-    controlMutationDefaults: {
-      defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
-    },
+    defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
     dataTypes: context.dataTypes,
     ...(describeUnsupportedAttributeFactory !== undefined
       ? { describeUnsupportedAttribute: describeUnsupportedAttributeFactory(sources) }
@@ -310,7 +308,7 @@ function bind(options: BindingInputs): BinderResult {
     symbolTable,
     contributedTypes,
     attributeSpecs,
-    controlMutationDefaults,
+    defaultFunctionRegistry,
     dataTypes,
     describeUnsupportedAttribute,
     describeUnresolvedType,
@@ -334,6 +332,12 @@ function bind(options: BindingInputs): BinderResult {
     const outcome = resolveTypeReference(name, baseScope, references);
     if (name === undefined || outcome === undefined) continue;
     references.set(name.syntax, outcome.resolution);
+    bindEntityConstructorArgument(symbol, outcome.resolution, {
+      scope: baseScope,
+      sources,
+      references,
+      diagnostics,
+    });
   }
   for (const symbol of Object.values(symbolTable.topLevel.blocks)) {
     declarations.set(symbol.node.syntax, symbol);
@@ -380,6 +384,12 @@ function bind(options: BindingInputs): BinderResult {
       );
       if (outcome === undefined) continue;
       references.set(node, outcome.resolution);
+      bindEntityConstructorArgument(field, outcome.resolution, {
+        scope: stack.current(),
+        sources,
+        references,
+        diagnostics,
+      });
       if (outcome.message !== undefined) {
         diagnostics.push({
           code: PSL_UNRESOLVED_REFERENCE,
@@ -407,7 +417,7 @@ function bind(options: BindingInputs): BinderResult {
     };
     const specContext =
       entity.kind === 'model'
-        ? { symbols: symbolTable, model: entity, controlMutationDefaults, dataTypes }
+        ? { symbols: symbolTable, model: entity, defaultFunctionRegistry, dataTypes }
         : undefined;
     bindAttributes(
       entity,
@@ -435,6 +445,7 @@ function bind(options: BindingInputs): BinderResult {
   const blockContext = {
     pslBlockDescriptors,
     symbolTable,
+    dataTypes,
     sources,
     references,
     diagnostics,
@@ -463,14 +474,19 @@ interface ReferenceContext {
 interface BlockBindContext extends ReferenceContext {
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
   readonly symbolTable: SymbolTable;
+  readonly dataTypes: DataTypeSupport;
 }
 
 function bindBlock(block: BlockSymbol, ctx: BlockBindContext): void {
   const descriptor = findBlockDescriptor(ctx.pslBlockDescriptors, block.keyword);
   if (descriptor === undefined) return;
-  const spec = blockSpecFactoryOf(descriptor)({ symbols: ctx.symbolTable });
+  const specContext = blockSpecContext({
+    symbols: ctx.symbolTable,
+    dataTypes: ctx.dataTypes,
+  });
+  const spec = blockSpecFactoryOf(descriptor)(specContext);
 
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     const key = entry.key()?.name();
     if (key === undefined) continue;
     const parameter =
@@ -494,13 +510,13 @@ function bindBlock(block: BlockSymbol, ctx: BlockBindContext): void {
 
   const attributeSpecs = descriptor.attributes ?? {};
   if (Object.keys(attributeSpecs).length === 0) return;
-  for (const attribute of readResolvedAttributes(block.node.attributes(), ctx.sources)) {
+  for (const attribute of block.attributes) {
     const factory = attributeSpecs[attribute.name];
     if (factory === undefined) continue;
     const attributeSpec = blindCast<
       BlockAttributeSpecFactory,
       'framework core cannot name AttributeSpec, so block-attribute factories transit the descriptor erased as unknown; the binder restores the factory type the descriptor surface documents'
-    >(factory)({ symbols: ctx.symbolTable });
+    >(factory)(specContext);
     const attributeSymbol: AttributeSymbol = {
       kind: 'attribute',
       name: attribute.name,
@@ -735,10 +751,8 @@ function bindAttributes<Factory>(
   instantiate: (factory: Factory) => BoundSpec | undefined,
   ctx: BindContext,
 ): void {
-  const declared: Iterable<FieldAttributeAst | ModelAttributeAst> = holder.node.attributes();
-  const nodes = Array.from(declared);
   const level = holder.kind === 'field' ? 'field' : 'model';
-  attributes.forEach((attribute, index) => {
+  attributes.forEach((attribute) => {
     const factory = own(specs, attribute.name);
     if (factory === undefined) {
       const diagnostic = ctx.describeUnsupportedAttribute?.({
@@ -758,7 +772,7 @@ function bindAttributes<Factory>(
       level,
       spec,
     };
-    const nameNode = nodes[index]?.name()?.syntax;
+    const nameNode = attribute.node.name()?.syntax;
     if (nameNode !== undefined) {
       ctx.references.set(nameNode, { kind: 'attribute', symbol: attributeSymbol });
     }
@@ -840,6 +854,22 @@ function targetFields(
   if (target === undefined) return undefined;
   if (target.kind === 'model' || target.kind === 'compositeType') return target.symbol.fields;
   return undefined;
+}
+
+function bindEntityConstructorArgument(
+  symbol: FieldSymbol | NamedTypeSymbol,
+  type: Resolution,
+  ctx: ReferenceContext,
+): void {
+  if (type.kind !== 'contributedType') return;
+  const descriptor = type.symbol.descriptor;
+  const index = descriptor.kind === 'typeConstructor' ? descriptor.entityRefArg?.index : undefined;
+  if (index === undefined) return;
+  const positional = symbol.typeConstructor?.args.filter((arg) => arg.kind === 'positional');
+  const node = positional?.[index]?.expression?.syntax;
+  const written = node === undefined ? undefined : writtenEntityReference(node);
+  if (node === undefined || written === undefined) return;
+  ctx.references.set(node, resolveEntity(written, node, ctx));
 }
 
 function resolveEntity(

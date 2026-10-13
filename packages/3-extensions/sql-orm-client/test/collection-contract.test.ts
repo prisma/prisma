@@ -18,6 +18,7 @@ import {
   buildCompositeForeignKeyContract,
   buildExecutionDefaultJunctionContract,
   buildMixedPolyContract,
+  columnPassedForField,
   getTestContract,
   withPatchedDomainModels,
 } from './helpers';
@@ -102,7 +103,6 @@ describe('collection-contract capability detection', () => {
       relatedModelName: 'Post',
       relatedNamespaceId: 'public',
       relatedTableName: 'posts',
-      localTableName: 'users',
       targetColumns: ['user_id'],
       localColumns: ['id'],
       cardinality: '1:N',
@@ -175,15 +175,15 @@ describe('collection-contract capability detection', () => {
     expect(resolveUpsertConflictColumns(contract, 'public', 'Post', {})).toEqual(['id']);
   });
 
-  it('resolveUpsertConflictColumns() falls back for unmapped fields and unknown models', () => {
+  it('resolveUpsertConflictColumns() refuses a name that is not a field', () => {
     const contract = getTestContract();
 
-    expect(resolveUpsertConflictColumns(contract, 'public', 'Post', { unknownField: 'x' })).toEqual(
-      ['unknownField'],
-    );
-    expect(resolveUpsertConflictColumns(contract, 'public', 'UnknownModel', { custom: 1 })).toEqual(
-      ['custom'],
-    );
+    expect(resolveUpsertConflictColumns(contract, 'public', 'Post', { userId: 1 })).toEqual([
+      'user_id',
+    ]);
+    expect(() =>
+      resolveUpsertConflictColumns(contract, 'public', 'Post', { user_id: 'x' }),
+    ).toThrow(columnPassedForField('Post', 'user_id', 'userId'));
   });
 
   it('resolveModelTableName() resolves from storage.table and throws when missing', () => {
