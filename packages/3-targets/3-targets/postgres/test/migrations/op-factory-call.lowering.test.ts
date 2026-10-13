@@ -1094,7 +1094,7 @@ describe('DataTransformCall', () => {
     expect(call.renderTypeScript()).toBe(
       [
         'this.dataTransform(endContract, "backfill-user-title", {',
-        '  backfills: { schema: "public", table: "user", column: "title" },',
+        '  backfillsColumn: { schema: "public", table: "user", column: "title" },',
         '  check: () => placeholder("User.title:check"),',
         '  run: () => placeholder("User.title:run"),',
         '})',

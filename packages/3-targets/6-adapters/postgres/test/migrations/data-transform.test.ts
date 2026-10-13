@@ -136,7 +136,7 @@ describe('dataTransform factory', () => {
       makeContract(),
       'backfill-user-title',
       {
-        backfills: { schema: 'public', table: 'user', column: 'title' },
+        backfillsColumn: { schema: 'public', table: 'user', column: 'title' },
         check: () => makePlan(),
         run: () => makePlan(),
       },

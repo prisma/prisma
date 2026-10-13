@@ -79,7 +79,7 @@ interface Buildable<R = unknown> {
 export type DataTransformClosure = () => SqlQueryPlan | Buildable;
 
 /** The column a backfill fills before it becomes required. */
-export interface DataTransformBackfill {
+export interface DataTransformColumn {
   readonly schema: string;
   readonly table: string;
   readonly column: string;
@@ -106,7 +106,7 @@ export interface DataTransformOptions {
    * The column the transform fills before a later operation makes it required. When `check` still
    * finds rows after `run`, the failure counts the rows the column holds NULL in.
    */
-  readonly backfills?: DataTransformBackfill;
+  readonly backfillsColumn?: DataTransformColumn;
 }
 
 export async function dataTransform<TContract extends Contract<SqlStorage>>(
@@ -148,7 +148,7 @@ export async function dataTransform<TContract extends Contract<SqlStorage>>(
     params: plan.params ?? [],
   }));
 
-  const { backfills } = options;
+  const { backfillsColumn } = options;
   const postcheck: readonly SqlMigrationPlanOperationStep[] = checkPlan
     ? [
         {
@@ -157,8 +157,12 @@ export async function dataTransform<TContract extends Contract<SqlStorage>>(
           params: checkPlan.params ?? [],
           ...ifDefined(
             'meta',
-            backfills &&
-              requiredColumnMeta(backfills.table, backfills.column, 'backfillMissedRows'),
+            backfillsColumn &&
+              requiredColumnMeta(
+                backfillsColumn.table,
+                backfillsColumn.column,
+                'backfillMissedRows',
+              ),
           ),
         },
       ]
@@ -173,8 +177,13 @@ export async function dataTransform<TContract extends Contract<SqlStorage>>(
       id: 'postgres',
       ...ifDefined(
         'details',
-        backfills &&
-          buildTargetDetails('column', backfills.column, backfills.schema, backfills.table),
+        backfillsColumn &&
+          buildTargetDetails(
+            'column',
+            backfillsColumn.column,
+            backfillsColumn.schema,
+            backfillsColumn.table,
+          ),
       ),
     },
     precheck,

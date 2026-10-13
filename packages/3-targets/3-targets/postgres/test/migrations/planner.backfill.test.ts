@@ -265,10 +265,12 @@ describe('the backfill slots', () => {
     if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
     const source = result.plan.renderTypeScript((specifier) => specifier);
 
-    expect([...source.matchAll(/backfills: \{[^}]+\}/g)].map((match) => match[0]).sort()).toEqual(
+    expect(
+      [...source.matchAll(/backfillsColumn: \{[^}]+\}/g)].map((match) => match[0]).sort(),
+    ).toEqual(
       [
-        'backfills: { schema: "public", table: "users", column: "name" }',
-        'backfills: { schema: "public", table: "users", column: "nickname" }',
+        'backfillsColumn: { schema: "public", table: "users", column: "name" }',
+        'backfillsColumn: { schema: "public", table: "users", column: "nickname" }',
       ].sort(),
     );
   });
