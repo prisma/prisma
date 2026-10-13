@@ -91,6 +91,8 @@ Re-exports all migration operation helpers from `@internal/target-sqlite/migrati
 
 Composes the SQLite execution stack and returns typed query roots (`db.sql`, `db.orm`, `db.context`, `db.stack`).
 
+Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-sqlite/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events.
+
 ### Prepared SQL and ORM rows
 
 Use `db.prepare(declaration, params => ...)` to prepare SQL queries, ORM row reads or ORM aggregates once and execute them with different parameter values.
