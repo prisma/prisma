@@ -4,13 +4,13 @@ import type { Block, Presentations } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
-import { join } from 'pathe';
+import { join, resolve } from 'pathe';
 import { createControlClient } from '../../control-api/client';
 import type { MigrationNewResult } from '../../control-api/operations/migration-new';
 import { executeMigrationNewCommand } from '../../control-api/operations/migration-new';
 import type { CreateControlClient } from '../../control-api/types';
 import { runCommandAction } from '../../utils/next-actions';
-import { selfEmitCommand } from '../../utils/printed-command';
+import { type CliInvocation, cliInvocation, selfEmitCommand } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, baseDirFor, contractPathFor, displayPath } from './paths';
@@ -19,7 +19,7 @@ function newPresentations(inputs: {
   readonly document: MigrationNewResult;
   readonly contractPath: string;
   readonly appMigrationsRelative: string;
-  readonly configPath: string | undefined;
+  readonly invocation: CliInvocation;
 }): Presentations {
   const { document } = inputs;
   const migrationTs = join(document.dir, 'migration.ts');
@@ -54,7 +54,7 @@ function newPresentations(inputs: {
       { kind: 'edit-file', label: `Write the migration body in ${migrationTs}` },
       runCommandAction(
         'Run it to self-emit ops.json and attest the package',
-        selfEmitCommand(migrationTs, inputs.configPath),
+        selfEmitCommand(inputs.invocation, resolve(inputs.invocation.cwd, migrationTs)),
       ),
     ],
   };
@@ -116,7 +116,7 @@ export function createMigrationNewCommand(createClient: CreateControlClient) {
             contractPath:
               contractPath === undefined ? '(unset)' : displayPath(contractPath, ctx.cwd),
             appMigrationsRelative: displayPath(appMigrationsDirFor(ctx.config), ctx.cwd),
-            configPath: ctx.configPath,
+            invocation: cliInvocation(ctx, undefined),
           }),
         ),
       );

@@ -60,8 +60,12 @@ export function cliCommand(
  * The command that runs a `migration.ts`, named relative to the directory the CLI ran in, with the
  * `--config` the CLI was given, so it loads the same config.
  */
-export function selfEmitCommand(migrationTs: string, configPath: string | undefined): string {
-  return ['node', shellQuoted(migrationTs), ...configWords(configPath)].join(' ');
+export function selfEmitCommand(invocation: CliInvocation, migrationTs: string): string {
+  return [
+    'node',
+    shellQuoted(printedPath(invocation, migrationTs)),
+    ...configWords(invocation.configPath),
+  ].join(' ');
 }
 
 /** A path as advice prints it: relative to the directory the CLI ran in. */

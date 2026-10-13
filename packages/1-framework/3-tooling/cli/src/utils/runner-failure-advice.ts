@@ -1,4 +1,4 @@
-import { basename } from 'pathe';
+import { basename, join } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
   FailedTypeChangeCastReport,
@@ -115,7 +115,7 @@ function failedMigrationText(
     directory,
     name: dirName.slice(dirName.indexOf('_') + 1),
     from: failed.from,
-    nodeCommand: selfEmitCommand(`${directory}/migration.ts`, invocation.configPath),
+    nodeCommand: selfEmitCommand(invocation, join(failed.directory, 'migration.ts')),
     invocation,
   };
 }

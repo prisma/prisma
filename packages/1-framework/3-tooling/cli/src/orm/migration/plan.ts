@@ -4,7 +4,7 @@ import type { Block, Presentations, Text, TreeNode } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
-import { join } from 'pathe';
+import { join, resolve } from 'pathe';
 import { createControlClient } from '../../control-api/client';
 import type { ContractSpaceSeedPhaseRecord } from '../../control-api/operations/contract-space-seed-phase';
 import type { MigrationPlanResult } from '../../control-api/operations/migration-plan';
@@ -223,7 +223,7 @@ function planNextActions(
       },
       runCommandAction(
         'Run it to self-emit ops.json and attest the package',
-        selfEmitCommand(migrationTs, invocation.configPath),
+        selfEmitCommand(invocation, resolve(invocation.cwd, migrationTs)),
       ),
     ];
   }

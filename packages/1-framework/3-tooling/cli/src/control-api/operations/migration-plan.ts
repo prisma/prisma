@@ -47,7 +47,7 @@ import {
 } from '../../utils/command-helpers';
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
-import { selfEmitCommand } from '../../utils/printed-command';
+import { type CliInvocation, selfEmitCommand } from '../../utils/printed-command';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import {
@@ -121,13 +121,21 @@ type PlannerSuccess = {
 
 function placeholderSummary(
   planned: string,
-  dirs: readonly string[],
-  configPath: string | undefined,
+  packageDirs: readonly string[],
+  invocation: CliInvocation,
 ): string {
-  const commands = dirs
-    .map((dir) => `\`${selfEmitCommand(join(dir, 'migration.ts'), configPath)}\``)
+  const commands = packageDirs
+    .map((dir) => `\`${selfEmitCommand(invocation, join(dir, 'migration.ts'))}\``)
     .join(' and ');
   return `Planned ${planned} with placeholder(s) — edit migration.ts, then run ${commands} to self-emit`;
+}
+
+/** The invocation the plan's printed commands repeat: `migration plan` takes no `--db`. */
+function invocationOf(options: {
+  readonly cwd: string;
+  readonly configPath?: string;
+}): CliInvocation {
+  return { cwd: options.cwd, configPath: options.configPath, dbGiven: false };
 }
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
@@ -889,7 +897,7 @@ async function executeMigrationPlanCommandInner(
             placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
             temporaryValues: baselineLeg.value.temporaryValues,
-            summary: placeholderSummary('baseline', [baselineDir], options.configPath),
+            summary: placeholderSummary('baseline', [baselinePackageDir], invocationOf(options)),
             timings: { total: Date.now() - startTime },
           };
           return ok(result);
@@ -954,8 +962,8 @@ async function executeMigrationPlanCommandInner(
           temporaryValues: deltaLeg.value.temporaryValues,
           summary: placeholderSummary(
             'baseline + migration',
-            [baselineDir, deltaDir],
-            options.configPath,
+            [baselinePackageDir, deltaPackageDir],
+            invocationOf(options),
           ),
           timings: { total: Date.now() - startTime },
         };
@@ -1072,7 +1080,7 @@ async function executeMigrationPlanCommandInner(
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
         temporaryValues: deltaLeg.value.temporaryValues,
-        summary: placeholderSummary('migration', [dir], options.configPath),
+        summary: placeholderSummary('migration', [packageDir], invocationOf(options)),
         timings: { total: Date.now() - startTime },
       };
       return ok(result);
