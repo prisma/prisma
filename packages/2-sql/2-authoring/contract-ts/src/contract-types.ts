@@ -828,13 +828,13 @@ type ModelFieldChannelTypes<
   >;
 };
 
-// Matches the emitter: a model with no fields has output types `{}` and input types that reject every key.
+type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
+
+// Matches the emitter: output types are `{}` for a model with no fields, input types are closed.
 type FieldChannelTypes<Definition, Channel extends 'output' | 'input'> = {
   readonly [Ns in DomainNamespaceIds<Definition>]: {
     readonly [ModelName in ModelsInNamespace<Definition, Ns>]: Channel extends 'input'
-      ? [ModelFieldNames<Definition, ModelName>] extends [never]
-        ? Record<string, never>
-        : ModelFieldChannelTypes<Definition, ModelName, Channel>
+      ? ClosedWhenEmpty<ModelFieldChannelTypes<Definition, ModelName, Channel>>
       : ModelFieldChannelTypes<Definition, ModelName, Channel>;
   };
 };

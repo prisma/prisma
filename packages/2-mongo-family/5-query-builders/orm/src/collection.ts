@@ -66,7 +66,6 @@ import {
 } from './field-accessor';
 import { ormError } from './orm-errors';
 import type {
-  DefaultModelRow,
   DiscriminatorValues,
   IncludedRow,
   MongoIncludeSpec,
@@ -74,6 +73,7 @@ import type {
   NoIncludes,
   ReferenceRelationKeys,
   ResolvedCreateInput,
+  UpdateInput,
   VariantNameForValue,
   VariantSelectable,
 } from './types';
@@ -141,7 +141,7 @@ export interface MongoCollection<
   ): Promise<number>;
   /** Updates one matching document via `findOneAndUpdate`. Returns the updated document or `null`. Requires `.where()`. */
   update(
-    data: Partial<DefaultModelRow<TContract, ModelName>>,
+    data: UpdateInput<TContract, ModelName>,
   ): Promise<IncludedRow<TContract, ModelName, TIncludes> | null>;
   /** Updates one matching document using field operations from a callback. Requires `.where()`. */
   update(
@@ -149,14 +149,14 @@ export interface MongoCollection<
   ): Promise<IncludedRow<TContract, ModelName, TIncludes> | null>;
   /** Non-atomic: captures matching `_id`s, updates, then re-reads by `_id`. Requires `.where()`. */
   updateAll(
-    data: Partial<DefaultModelRow<TContract, ModelName>>,
+    data: UpdateInput<TContract, ModelName>,
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Updates all matching documents using field operations from a callback. Requires `.where()`. */
   updateAll(
     callback: (u: FieldAccessor<TContract, ModelName>) => FieldOperation[],
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Updates all matching documents and returns the number modified. Requires `.where()`. */
-  updateAndCount(data: Partial<DefaultModelRow<TContract, ModelName>>): Promise<number>;
+  updateAndCount(data: UpdateInput<TContract, ModelName>): Promise<number>;
   /** Updates all matching documents using field operations and returns the number modified. Requires `.where()`. */
   updateAndCount(
     callback: (u: FieldAccessor<TContract, ModelName>) => FieldOperation[],
@@ -175,7 +175,7 @@ export interface MongoCollection<
    */
   upsert(input: {
     create: ResolvedCreateInput<TContract, ModelName, TVariant>;
-    update: Partial<DefaultModelRow<TContract, ModelName>>;
+    update: UpdateInput<TContract, ModelName>;
   }): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Upsert using field operations callback for the update part. Requires `.where()`. */
   upsert(input: {
@@ -552,7 +552,7 @@ class MongoCollectionImpl<
 
   async update(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): Promise<IncludedRow<TContract, ModelName, TIncludes> | null> {
     this.#requireFilters('update');
@@ -573,7 +573,7 @@ class MongoCollectionImpl<
 
   updateAll(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#requireFilters('updateAll');
@@ -599,7 +599,7 @@ class MongoCollectionImpl<
 
   async updateAndCount(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): Promise<number> {
     this.#requireFilters('updateAndCount');
@@ -658,7 +658,7 @@ class MongoCollectionImpl<
   async upsert(input: {
     create: ResolvedCreateInput<TContract, ModelName, TVariant>;
     update:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]);
   }): Promise<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#requireFilters('upsert');
@@ -1177,7 +1177,7 @@ class MongoCollectionImpl<
 
   #resolveUpdateDoc(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): Record<string, Record<string, MongoValue>> {
     if (typeof dataOrCallback === 'function') {

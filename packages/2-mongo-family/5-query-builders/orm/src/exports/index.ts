@@ -30,6 +30,7 @@ export type {
   MongoWhereFilter,
   NoIncludes,
   ResolvedCreateInput,
+  UpdateInput,
   VariantCreateInput,
   VariantModelRow,
   VariantNameForValue,

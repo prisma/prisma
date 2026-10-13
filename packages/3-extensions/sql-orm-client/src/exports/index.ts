@@ -77,6 +77,8 @@ export type {
   RelationPredicateInput,
   RelationsOf,
   RuntimeQueryable,
+  ScalarCreateInput,
+  ScalarUpdateInput,
   ShorthandWhereFilter,
   ToManyRelationAccessor,
   ToOneRelationAccessor,

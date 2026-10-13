@@ -3,7 +3,12 @@ import type { ContractWithTypeMaps, TypeMaps } from '@internal/sql-contract/type
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
-import type { DefaultModelRow, MutationUpdateInput, ResolvedCreateInput } from '../src/types';
+import type {
+  DefaultModelRow,
+  MutationUpdateInput,
+  ResolvedCreateInput,
+  ScalarUpdateInput,
+} from '../src/types';
 import { defineContract, model } from './contract-builder';
 import { createMockRuntime } from './helpers';
 
@@ -87,6 +92,8 @@ const noEmitLegacy = new Collection(
   },
 );
 
+const unknownKey = { legacy_key: 'x' };
+
 describe('a model with no fields, from an emitted contract', () => {
   test('its row has no keys', async () => {
     const [row] = await emittedLegacy.all().toArray();
@@ -96,24 +103,58 @@ describe('a model with no fields, from an emitted contract', () => {
     row?.legacy_key;
   });
 
-  test('its create input rejects every key', () => {
+  test('every create rejects a key', () => {
     // @ts-expect-error a model with no fields has no key to write
-    emittedLegacy.create({ legacy_key: 'x' });
+    emittedLegacy.create(unknownKey);
     // @ts-expect-error a model with no fields has no key to write
-    emittedLegacy.createAll([{ legacy_key: 'x' }]);
-    const input = { legacy_key: 'x' };
+    emittedLegacy.createAll([unknownKey]);
     // @ts-expect-error a model with no fields has no key to write
-    const create: ResolvedCreateInput<EmittedLegacyContract, 'Legacy', undefined> = input;
+    emittedLegacy.createAndCount([unknownKey]);
+    // @ts-expect-error a model with no fields has no key to write
+    emittedLegacy.where({}).upsert({ create: unknownKey, update: {} });
+    // @ts-expect-error a model with no fields has no key to write
+    const create: ResolvedCreateInput<EmittedLegacyContract, 'Legacy', undefined> = unknownKey;
     expectTypeOf(create).not.toBeAny();
   });
 
-  test('its update input rejects every key', () => {
-    const input = { legacy_key: 'x' };
+  test('every update rejects a key', () => {
+    const matching = emittedLegacy.where({});
     // @ts-expect-error a model with no fields has no key to write
-    const update: MutationUpdateInput<EmittedLegacyContract, 'Legacy'> = input;
+    matching.update(unknownKey);
+    // @ts-expect-error a model with no fields has no key to write
+    matching.updateAll(unknownKey);
+    // @ts-expect-error a model with no fields has no key to write
+    matching.updateAndCount(unknownKey);
+    // @ts-expect-error a model with no fields has no key to write
+    matching.upsert({ create: {}, update: unknownKey });
+    // @ts-expect-error a model with no fields has no key to write
+    const update: MutationUpdateInput<EmittedLegacyContract, 'Legacy'> = unknownKey;
     expectTypeOf(update).not.toBeAny();
-    // @ts-expect-error a model with no fields has no key to write
-    emittedLegacy.where({}).updateAll({ legacy_key: 'x' });
+  });
+
+  test('every create and update accepts an empty input', () => {
+    emittedLegacy.create({});
+    emittedLegacy.createAll([{}]);
+    emittedLegacy.createAndCount([{}]);
+    const matching = emittedLegacy.where({});
+    matching.update({});
+    matching.updateAll({});
+    matching.updateAndCount({});
+    matching.upsert({ create: {}, update: {} });
+  });
+
+  test('a helper generic over the model passes a ScalarUpdateInput to updateAll and updateAndCount', () => {
+    function updateEvery<M extends 'Legacy'>(
+      rows: Collection<EmittedLegacyContract, M>,
+      data: ScalarUpdateInput<EmittedLegacyContract, M>,
+    ) {
+      const matching = rows.where({});
+      matching.updateAll(data);
+      return matching.updateAndCount(data);
+    }
+    expectTypeOf(updateEvery<'Legacy'>)
+      .parameter(1)
+      .toEqualTypeOf<Record<string, never>>();
   });
 });
 
@@ -125,19 +166,35 @@ describe('a model with no fields, from a contract that is not emitted', () => {
     row?.legacy_key;
   });
 
-  test('its create input rejects every key', () => {
+  test('every create rejects a key', () => {
     // @ts-expect-error a model with no fields has no key to write
-    noEmitLegacy.create({ legacy_key: 'x' });
-    const input = { legacy_key: 'x' };
+    noEmitLegacy.create(unknownKey);
     // @ts-expect-error a model with no fields has no key to write
-    const create: ResolvedCreateInput<NoEmitLegacyContract, 'Legacy', undefined> = input;
-    expectTypeOf(create).not.toBeAny();
+    noEmitLegacy.createAll([unknownKey]);
+    // @ts-expect-error a model with no fields has no key to write
+    noEmitLegacy.createAndCount([unknownKey]);
   });
 
-  test('its update input rejects every key', () => {
-    const input = { legacy_key: 'x' };
+  test('every update rejects a key', () => {
+    const matching = noEmitLegacy.where({});
     // @ts-expect-error a model with no fields has no key to write
-    const update: MutationUpdateInput<NoEmitLegacyContract, 'Legacy'> = input;
-    expectTypeOf(update).not.toBeAny();
+    matching.update(unknownKey);
+    // @ts-expect-error a model with no fields has no key to write
+    matching.updateAll(unknownKey);
+    // @ts-expect-error a model with no fields has no key to write
+    matching.updateAndCount(unknownKey);
+    // @ts-expect-error a model with no fields has no key to write
+    matching.upsert({ create: {}, update: unknownKey });
+  });
+
+  test('every create and update accepts an empty input', () => {
+    noEmitLegacy.create({});
+    noEmitLegacy.createAll([{}]);
+    noEmitLegacy.createAndCount([{}]);
+    const matching = noEmitLegacy.where({});
+    matching.update({});
+    matching.updateAll({});
+    matching.updateAndCount({});
+    matching.upsert({ create: {}, update: {} });
   });
 });

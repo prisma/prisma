@@ -101,17 +101,12 @@ export function generateModelFieldEntry(fieldName: string, field: ContractField)
   return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: ${serializeValue(type)}${mods} }`;
 }
 
-/**
- * `{}` for a model with no fields: `keyof Record<string, never>` is `string`, so a row type built from it would let code read any key.
- */
-function rowTypeOf(entries: readonly string[]): string {
+// An empty field map is `{}` in a descriptor or output (row) type, since `keyof Record<string, never>` is `string`, and `Record<string, never>` in an input type, since TypeScript accepts any object where `{}` is expected.
+function objectTypeOpenWhenEmpty(entries: readonly string[]): string {
   return entries.length > 0 ? `{ ${entries.join('; ')} }` : '{}';
 }
 
-/**
- * `Record<string, never>` for a model with no fields: TypeScript accepts any object where `{}` is expected, so an input typed `{}` would accept any key.
- */
-function inputTypeOf(entries: readonly string[]): string {
+function objectTypeClosedWhenEmpty(entries: readonly string[]): string {
   return entries.length > 0 ? `{ ${entries.join('; ')} }` : 'Record<string, never>';
 }
 
@@ -120,7 +115,7 @@ export function generateModelFieldsType(fields: Record<string, ContractField>): 
   for (const [fieldName, field] of Object.entries(fields)) {
     fieldEntries.push(generateModelFieldEntry(fieldName, field));
   }
-  return rowTypeOf(fieldEntries);
+  return objectTypeOpenWhenEmpty(fieldEntries);
 }
 
 export function generateModelRelationsType(relations: Record<string, unknown>): string {
@@ -492,8 +487,8 @@ export function generateBothFieldTypesMaps(
       outputFieldEntries.push(`${key}: ${resolved.output}`);
       inputFieldEntries.push(`${key}: ${resolved.input}`);
     }
-    const outputFields = rowTypeOf(outputFieldEntries);
-    const inputFields = inputTypeOf(inputFieldEntries);
+    const outputFields = objectTypeOpenWhenEmpty(outputFieldEntries);
+    const inputFields = objectTypeClosedWhenEmpty(inputFieldEntries);
     const modelKey = `readonly ${serializeObjectKey(modelName)}`;
     outputModelEntries.push(`${modelKey}: ${outputFields}`);
     inputModelEntries.push(`${modelKey}: ${inputFields}`);
