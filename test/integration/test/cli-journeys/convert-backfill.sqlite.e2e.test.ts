@@ -216,7 +216,7 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
-      'checks the converted values after the copy: a deleted or wrong conversion fails naming the field',
+      'checks the converted values after the copy: a wrong conversion fails naming the field',
       async () => {
         const ctx = await seeded(createTempDir);
         exec(ctx.dbPath, `UPDATE "User" SET age = 'ten' WHERE id = 1`);
@@ -234,6 +234,9 @@ withTempDir(({ createTempDir }) => {
         const migrationTs = join(migrationDir, 'migration.ts');
         const scaffold = readFileSync(migrationTs, 'utf-8');
         const slot = /placeholder\((['"])User\.age:convert\1\)/;
+        expect(scaffold, 'the copy expression alone says the column is converted').not.toMatch(
+          /castColumns|convertedColumn|verify every value/,
+        );
 
         const failsNamingTheField = async (
           filled: string,
@@ -272,13 +275,6 @@ withTempDir(({ createTempDir }) => {
           text: 'The conversion of field "User.age" left a value its new type cannot hold.',
         };
 
-        await failsNamingTheField(
-          scaffold
-            .split('\n')
-            .filter((line) => !slot.test(line))
-            .join('\n'),
-          leftAValue,
-        );
         await failsNamingTheField(scaffold.replace(slot, `'trim("age")'`), leftAValue);
         await failsNamingTheField(scaffold.replace(slot, `'to_int("age")'`), {
           why: 'no such function: to_int',
@@ -365,6 +361,86 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
+      'names the right field and advice for a --convert and a --delete in one rebuild',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        await emit(
+          ctx,
+          BASE.replace('age      String', 'age      Int').replace(
+            'nickname String?',
+            'nickname Int?',
+          ),
+        );
+        const planned = await runMigrationPlan(ctx, [
+          '--name',
+          'age-and-nickname',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--convert',
+          'User.age',
+          '--delete',
+          'User.nickname',
+        ]);
+        expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
+        const migrationDir = plannedDir(ctx, 'age_and_nickname');
+        const migrationTs = join(migrationDir, 'migration.ts');
+        const scaffold = readFileSync(migrationTs, 'utf-8');
+        expect(scaffold).toMatch(/castColumns: \[\s*['"]nickname['"]\s*\]/);
+        const slot = /placeholder\((['"])User\.age:convert\1\)/;
+
+        const adviceOf = async (conversion: string) => {
+          writeFileSync(migrationTs, scaffold.replace(slot, conversion));
+          const emitted = await selfEmitMigration(ctx, [
+            '--dir',
+            migrationDir,
+            '--config',
+            ctx.configPath,
+          ]);
+          expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
+          const failed = await runMigrate(ctx, ['--json']);
+          expect(failed.exitCode, 'the rebuild fails').not.toBe(0);
+          return parseJsonOutput<{
+            readonly nextActions: readonly { readonly label: string }[];
+          }>(failed)
+            .nextActions.map(({ label }) => label)
+            .join('\n');
+        };
+
+        const castFailed = await adviceOf(`'CAST("age" AS INTEGER)'`);
+        expect(castFailed).toContain(
+          `A value of field "User.nickname" cannot be converted to its new type by the database's cast.`,
+        );
+        expect(castFailed).not.toContain('The conversion of field');
+
+        exec(
+          ctx.dbPath,
+          `UPDATE "User" SET nickname = '5' WHERE id = 1; UPDATE "User" SET age = 'ten' WHERE id = 2`,
+        );
+        const conversionFailed = await adviceOf(`'trim("age")'`);
+        expect(conversionFailed).toContain(
+          'The conversion of field "User.age" left a value its new type cannot hold.',
+        );
+
+        await fillAndApply(ctx, migrationDir, () =>
+          scaffold.replace(
+            slot,
+            `"CASE WHEN \\"age\\" = 'ten' THEN 10 ELSE CAST(\\"age\\" AS INTEGER) END"`,
+          ),
+        );
+        expect(
+          query(
+            ctx.dbPath,
+            `SELECT id, age, typeof(age) AS stored, nickname FROM "User" ORDER BY id`,
+          ),
+        ).toEqual([
+          { id: 1, age: 10, stored: 'integer', nickname: 5 },
+          { id: 2, age: 10, stored: 'integer', nickname: null },
+        ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
       'blames no conversion for a copy that fails on another column of the same rebuild',
       async () => {
         const ctx = await seeded(createTempDir);
@@ -431,9 +507,7 @@ withTempDir(({ createTempDir }) => {
         expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
         const scaffold = readFileSync(join(plannedDir(ctx, 'age_delete'), 'migration.ts'), 'utf-8');
         expect(scaffold).not.toContain('copyExpressions');
-        expect(scaffold).toMatch(
-          /convertedColumn: \{\s*column: ['"]age['"],\s*by: ['"]cast['"],?\s*\}/,
-        );
+        expect(scaffold).toMatch(/castColumns: \[\s*['"]age['"]\s*\]/);
         await fillAndApply(ctx, plannedDir(ctx, 'age_delete'), (unchanged) => unchanged);
         expect(
           query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),

@@ -169,15 +169,17 @@ export interface RecreateTableArgs {
   /**
    * SQL each named column of the new table is copied from, in place of the live column of the same
    * name: a conversion of a column whose type changes, or a value for a column the live table does
-   * not have. Keyed by the new table's column names.
+   * not have. Keyed by the new table's column names. The rebuild checks after its copy that every
+   * value of each such column took the column's type, and a failure of the copy or the check is
+   * reported as a failed conversion of the column's field.
    */
   readonly copyExpressions?: Readonly<Record<string, string>>;
   /**
-   * The columns whose copy expression converts their values to the column's new type. The rebuild
-   * checks after its copy that every value of each took the new type, and marks its copy so that a
-   * failure of an expression is reported as a failed conversion of its field.
+   * The columns whose type changes and which the copy takes unchanged, so that SQLite's type
+   * affinity converts their values. The rebuild checks after its copy that every value took the
+   * new type, and a failure names the field as a failed cast.
    */
-  readonly convertedColumns?: readonly string[];
+  readonly castColumns?: readonly string[];
 }
 
 /** The table a rebuild of `tableName` creates, copies into, and renames to `tableName`. */
@@ -198,7 +200,7 @@ export async function recreateTable(
     postchecks,
     operationClass,
     copyExpressions = {},
-    convertedColumns = [],
+    castColumns = [],
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
   const tempName = rebuiltTableName(tableName);
@@ -223,7 +225,7 @@ export async function recreateTable(
   // there's nothing to copy. Skip the copy step in that case; the new
   // (empty) table replaces the old one directly.
   const conversions = Object.fromEntries(
-    convertedColumns.flatMap((column) => {
+    sharedColumns.flatMap((column) => {
       const expression = copiedFrom(column);
       return expression === undefined ? [] : [[column, expression] as const];
     }),
@@ -289,12 +291,21 @@ export async function recreateTable(
           ? [markedStep(tableName, check)]
           : defaultPostcheck(tableName, check, clauseByColumn.get(check.columnDefault)),
       ),
-      ...contractTable.columns
-        .filter(({ name }) => convertedColumns.includes(name))
-        .map((column) => ({
-          ...storageClassCheck(tableName, column),
-          meta: convertedColumnMeta(tableName, column.name, 'conversion'),
-        })),
+      ...contractTable.columns.flatMap((column) => {
+        const by = Object.hasOwn(conversions, column.name)
+          ? ('conversion' as const)
+          : castColumns.includes(column.name)
+            ? ('cast' as const)
+            : undefined;
+        return by === undefined
+          ? []
+          : [
+              {
+                ...storageClassCheck(tableName, column),
+                meta: convertedColumnMeta(tableName, column.name, by),
+              },
+            ];
+      }),
     ],
   };
 }
@@ -309,12 +320,6 @@ export interface RecreateRequiredColumn {
 export interface RecreateSqlPostcheck {
   readonly description: string;
   readonly sql: string;
-  /**
-   * The column whose values the check finds converted to the column's new type by SQLite's type
-   * affinity on the copy; a failure names its field. A column the migration's own copy expression
-   * converts is named in `convertedColumns` instead, which writes its check.
-   */
-  readonly convertedColumn?: { readonly column: string; readonly by: 'cast' };
   /** The column the check finds required; when the copy fails on it, the runner counts its rows. */
   readonly requiredColumn?: RecreateRequiredColumn;
 }
@@ -328,11 +333,8 @@ export type RecreatePostcheck =
   | { readonly description: string; readonly columnDefault: string };
 
 function markedStep(tableName: string, check: RecreateSqlPostcheck): SqlMigrationPlanOperationStep {
-  const { convertedColumn, requiredColumn, ...step } = check;
+  const { requiredColumn, ...step } = check;
   const meta = {
-    ...(convertedColumn === undefined
-      ? {}
-      : convertedColumnMeta(tableName, convertedColumn.column, convertedColumn.by)),
     ...(requiredColumn === undefined
       ? {}
       : requiredColumnMeta(tableName, requiredColumn.column, requiredColumn.reason)),
@@ -359,7 +361,7 @@ export function affinityStorageClasses(typeSql: string): readonly string[] {
  * column's new type. SQLite keeps a value it cannot convert in its old storage class, so a value of
  * any other class than the column's affinity keeps fails the check.
  */
-function storageClassCheck(
+export function storageClassCheck(
   tableName: string,
   column: { readonly name: string; readonly typeSql: string },
 ): { readonly description: string; readonly sql: string } {
@@ -369,17 +371,6 @@ function storageClassCheck(
   return {
     description: `verify every value of "${column.name}" on "${tableName}" is stored as ${column.typeSql}`,
     sql: `SELECT NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE typeof(${quoteIdentifier(column.name)}) NOT IN (${classes}))`,
-  };
-}
-
-/** {@link storageClassCheck} for a column whose values SQLite's type affinity converts on the copy. */
-export function castValuePostcheck(
-  tableName: string,
-  column: { readonly name: string; readonly typeSql: string },
-): RecreateSqlPostcheck {
-  return {
-    ...storageClassCheck(tableName, column),
-    convertedColumn: { column: column.name, by: 'cast' },
   };
 }
 

@@ -1,6 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
-import { castValuePostcheck } from '../../src/core/migrations/operations/tables';
+import { storageClassCheck } from '../../src/core/migrations/operations/tables';
 
 function holdsAfterCopy(typeSql: string, values: readonly string[]): boolean {
   const db = new DatabaseSync(':memory:');
@@ -9,14 +9,14 @@ function holdsAfterCopy(typeSql: string, values: readonly string[]): boolean {
     db.exec(`INSERT INTO "old" ("v") VALUES ${values.map((value) => `(${value})`).join(', ')}`);
     db.exec(`CREATE TABLE "t" ("v" ${typeSql})`);
     db.exec('INSERT INTO "t" ("v") SELECT "v" FROM "old"');
-    const check = castValuePostcheck('t', { name: 'v', typeSql });
+    const check = storageClassCheck('t', { name: 'v', typeSql });
     return Object.values(db.prepare(check.sql).get() ?? {})[0] === 1;
   } finally {
     db.close();
   }
 }
 
-describe('castValuePostcheck on SQLite', () => {
+describe('storageClassCheck on SQLite', () => {
   it('holds when the copy converted every value, NULL included', () => {
     expect([
       holdsAfterCopy('INTEGER', [`'12'`, 'NULL', `'3.0'`]),
@@ -36,13 +36,5 @@ describe('castValuePostcheck on SQLite', () => {
       holdsAfterCopy('NUMERIC', [`'abc'`]),
       holdsAfterCopy('BLOB', [`'abc'`]),
     ]).toEqual([false, false, false, false, false, false]);
-  });
-
-  it('names the column the copy converted through its type affinity', () => {
-    expect(castValuePostcheck('User', { name: 'age', typeSql: 'INTEGER' })).toEqual({
-      description: 'verify every value of "age" on "User" is stored as INTEGER',
-      sql: `SELECT NOT EXISTS (SELECT 1 FROM "User" WHERE typeof("age") NOT IN ('null', 'integer'))`,
-      convertedColumn: { column: 'age', by: 'cast' },
-    });
   });
 });

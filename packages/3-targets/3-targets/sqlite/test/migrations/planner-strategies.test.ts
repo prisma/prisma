@@ -232,7 +232,7 @@ describe('recreateTableStrategy', () => {
 
     expect(
       [lossy, lossless].map((result) =>
-        result.kind === 'match' ? (result.calls[0] as RecreateTableCall).lossyColumns : result.kind,
+        result.kind === 'match' ? (result.calls[0] as RecreateTableCall).castColumns : result.kind,
       ),
     ).toEqual([['email'], []]);
   });

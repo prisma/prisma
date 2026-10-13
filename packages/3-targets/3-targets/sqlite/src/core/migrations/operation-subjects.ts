@@ -43,7 +43,7 @@ function recreateLosses(
 ): readonly { readonly column: string; readonly loss: MigrationDataLossKind }[] {
   const kept = new Set(call.contractTable.columns.map((column) => column.name));
   const dropped = call.schemaColumnNames.filter((column) => !kept.has(column));
-  const retyped = call.operationClass === 'destructive' ? call.lossyColumns : [];
+  const retyped = call.operationClass === 'destructive' ? call.castColumns : [];
   return [
     ...dropped.map((column) => ({ column, loss: 'drop' as const })),
     ...retyped.map((column) => ({ column, loss: 'typeChange' as const })),

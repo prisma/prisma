@@ -186,17 +186,18 @@ describe('SQLite planner, a type change', () => {
         meta: { convertedColumn: { table: 'User', column: 'age', by: 'cast' } },
       },
     ]);
-    expect(rendered(textAge, intAge)).toContain('convertedColumn: { column: "age", by: "cast" }');
+    expect(rendered(textAge, intAge)).toContain('castColumns: ["age"]');
   });
 
   it('checks no values of a column it does not retype', () => {
-    expect(rendered(textAge, withName)).not.toContain('convertedColumn');
+    expect(rendered(textAge, withName)).not.toContain('castColumns');
   });
 
-  it('checks after the copy that the conversion of a --convert column gave every value the new type', () => {
+  it('writes no option and no check for a --convert column, whose copy expression gets the check', () => {
     const convert = { statements: [statement('convert', 'age')] };
-    expect(rendered(textAge, intAge, convert)).toContain('convertedColumns: ["age"]');
-    expect(rendered(textAge, intAge, convert)).not.toContain('convertedColumn:');
+    expect(rendered(textAge, intAge, convert)).not.toMatch(
+      /castColumns|convertedColumn|verify every value/,
+    );
   });
 
   it('copies the column through a conversion slot for --convert, a data change that loses nothing', async () => {

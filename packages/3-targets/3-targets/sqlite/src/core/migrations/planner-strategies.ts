@@ -44,11 +44,7 @@ import {
   type SqliteOpFactoryCall,
 } from './op-factory-call';
 import type { SqliteIndexSpec } from './operations/shared';
-import {
-  buildRecreatePostchecks,
-  buildRecreateSummary,
-  castValuePostcheck,
-} from './operations/tables';
+import { buildRecreatePostchecks, buildRecreateSummary } from './operations/tables';
 import { sqliteFillValue } from './planner-fill-values';
 
 export interface StrategyContext {
@@ -219,9 +215,8 @@ function highestClass(classes: readonly MigrationOperationClass[]): MigrationOpe
 interface TableRebuild {
   readonly issues: SchemaDiffIssue[];
   readonly classes: MigrationOperationClass[];
-  readonly lossyColumns: string[];
-  /** Columns a `--convert` statement names, whose values the user's copy expression converts. */
-  readonly convertedColumns: string[];
+  /** Retyped columns no `--convert` statement names, which the copy takes for SQLite to convert. */
+  readonly castColumns: string[];
   readonly copyExpressions: Record<string, SqlSlot>;
   /** Columns an earlier call of the plan adds, which the rebuild copies like live ones. */
   readonly addedColumns: string[];
@@ -256,8 +251,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     const created: TableRebuild = {
       issues: [],
       classes: [],
-      lossyColumns: [],
-      convertedColumns: [],
+      castColumns: [],
       copyExpressions: {},
       addedColumns: [],
     };
@@ -303,11 +297,10 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     const converted = statementColumn(ctx, 'convert', tableName, column);
     if (converted === undefined) {
       rebuild.classes.push('destructive');
-      rebuild.lossyColumns.push(column);
+      rebuild.castColumns.push(column);
       continue;
     }
     rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:convert` };
-    rebuild.convertedColumns.push(column);
     rebuild.classes.push('data');
   }
 
@@ -338,37 +331,31 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     }));
 
     calls.push(
-      new RecreateTableCall(
-        {
-          tableName,
-          contractTable: tableSpec,
-          schemaColumnNames: [...Object.keys(actualTable.columns), ...rebuild.addedColumns],
-          indexes,
-          summary: buildRecreateSummary(tableName, rebuild.issues),
-          postchecks: [
-            ...buildRecreatePostchecks(
-              tableName,
-              rebuild.issues,
-              tableSpec,
-              new Set(Object.keys(rebuild.copyExpressions)),
-              new Set(
-                tableSpec.columns
-                  .filter(
-                    ({ name }) => statementColumn(ctx, 'backfill', tableName, name) !== undefined,
-                  )
-                  .map(({ name }) => name),
-              ),
+      new RecreateTableCall({
+        tableName,
+        contractTable: tableSpec,
+        schemaColumnNames: [...Object.keys(actualTable.columns), ...rebuild.addedColumns],
+        indexes,
+        summary: buildRecreateSummary(tableName, rebuild.issues),
+        postchecks: [
+          ...buildRecreatePostchecks(
+            tableName,
+            rebuild.issues,
+            tableSpec,
+            new Set(Object.keys(rebuild.copyExpressions)),
+            new Set(
+              tableSpec.columns
+                .filter(
+                  ({ name }) => statementColumn(ctx, 'backfill', tableName, name) !== undefined,
+                )
+                .map(({ name }) => name),
             ),
-            ...tableSpec.columns
-              .filter((column) => rebuild.lossyColumns.includes(column.name))
-              .map((column) => castValuePostcheck(tableName, column)),
-          ],
-          operationClass,
-          copyExpressions: rebuild.copyExpressions,
-          convertedColumns: rebuild.convertedColumns,
-        },
-        rebuild.lossyColumns,
-      ),
+          ),
+        ],
+        operationClass,
+        copyExpressions: rebuild.copyExpressions,
+        castColumns: rebuild.castColumns,
+      }),
     );
   }
 

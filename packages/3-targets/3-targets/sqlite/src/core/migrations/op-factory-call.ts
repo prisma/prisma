@@ -522,18 +522,18 @@ function refuseUnknownCopyExpressionColumns(
   tableName: string,
   contractTable: SqliteTableSpec,
   copyExpressions: Readonly<Record<string, SqlSlot>>,
-  convertedColumns: readonly string[],
+  castColumns: readonly string[],
 ): void {
   const columns = contractTable.columns.map((column) => column.name);
   const unknownKey = Object.keys(copyExpressions).find((key) => !columns.includes(key));
-  const unknownConverted = convertedColumns.find((column) => !columns.includes(column));
+  const unknownCast = castColumns.find((column) => !columns.includes(column));
   const unknown =
     unknownKey !== undefined
       ? { option: `copyExpressions.${unknownKey}`, key: unknownKey }
-      : unknownConverted !== undefined
+      : unknownCast !== undefined
         ? {
-            option: `convertedColumns entry ${JSON.stringify(unknownConverted)}`,
-            key: unknownConverted,
+            option: `castColumns entry ${JSON.stringify(unknownCast)}`,
+            key: unknownCast,
           }
         : undefined;
   if (unknown === undefined) return;
@@ -542,7 +542,7 @@ function refuseUnknownCopyExpressionColumns(
     'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN',
     `${call}: ${unknown.option} names no column of the new table. Its columns are ${columns.map((column) => JSON.stringify(column)).join(', ')}.`,
     {
-      why: 'Each key of copyExpressions, and each entry of convertedColumns, names a column of the new table. One that names no column applies to nothing, so the column meant would be copied unchanged, or its conversion would go unchecked.',
+      why: 'Each key of copyExpressions, and each entry of castColumns, names a column of the new table. One that names no column applies to nothing, so the column meant would be copied unchanged, or its values would go unchecked.',
       fix: 'Name a column in contractTable.columns, with the same letters and case.',
       meta: { call, key: unknown.key, columns },
     },
@@ -559,41 +559,32 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
   readonly summary: string;
   readonly postchecks: readonly RecreatePostcheck[];
   readonly label: string;
-  /**
-   * The columns whose values the copy can change, because their type changes. The planner reads
-   * them to name what the recreate loses; they never reach the operation or `migration.ts`.
-   */
-  readonly lossyColumns: readonly string[];
   /** What each named column of the new table is copied from, in place of the live column. */
   readonly copyExpressions: Readonly<Record<string, SqlSlot>>;
-  /** The columns whose copy expression converts their values to the column's new type. */
-  readonly convertedColumns: readonly string[];
+  /** The columns whose type changes and which the copy takes unchanged, for SQLite to convert. */
+  readonly castColumns: readonly string[];
 
-  constructor(
-    args: {
-      tableName: string;
-      contractTable: SqliteTableSpec;
-      schemaColumnNames: readonly string[];
-      indexes: readonly SqliteIndexSpec[];
-      summary: string;
-      postchecks: readonly RecreatePostcheck[];
-      operationClass: MigrationOperationClass;
-      copyExpressions?: Readonly<Record<string, SqlSlot>>;
-      convertedColumns?: readonly string[];
-    },
-    lossyColumns: readonly string[] = [],
-  ) {
+  constructor(args: {
+    tableName: string;
+    contractTable: SqliteTableSpec;
+    schemaColumnNames: readonly string[];
+    indexes: readonly SqliteIndexSpec[];
+    summary: string;
+    postchecks: readonly RecreatePostcheck[];
+    operationClass: MigrationOperationClass;
+    copyExpressions?: Readonly<Record<string, SqlSlot>>;
+    castColumns?: readonly string[];
+  }) {
     super();
     refuseUnsafeCopyExpressions(args.tableName, args.copyExpressions ?? {});
     refuseUnknownCopyExpressionColumns(
       args.tableName,
       args.contractTable,
       args.copyExpressions ?? {},
-      args.convertedColumns ?? [],
+      args.castColumns ?? [],
     );
     this.copyExpressions = Object.freeze({ ...args.copyExpressions });
-    this.convertedColumns = Object.freeze([...(args.convertedColumns ?? [])]);
-    this.lossyColumns = Object.freeze([...lossyColumns]);
+    this.castColumns = Object.freeze([...(args.castColumns ?? [])]);
     this.tableName = args.tableName;
     this.contractTable = args.contractTable;
     this.schemaColumnNames = args.schemaColumnNames;
@@ -626,7 +617,7 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
         summary: this.summary,
         postchecks: this.postchecks,
         operationClass: this.operationClass,
-        convertedColumns: this.convertedColumns,
+        castColumns: this.castColumns,
         ...(copies.length === 0
           ? {}
           : {
@@ -675,9 +666,9 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
       ...(Object.keys(this.copyExpressions).length === 0
         ? []
         : [['copyExpressions', this.#copyExpressionsSource(sql)] as const]),
-      ...(this.convertedColumns.length === 0
+      ...(this.castColumns.length === 0
         ? []
-        : [['convertedColumns', jsonToTsSource(this.convertedColumns)] as const]),
+        : [['castColumns', jsonToTsSource(this.castColumns)] as const]),
     ]);
     return { source: `this.recreateTable(${args})`, imports: sql.imports() };
   }
@@ -1098,10 +1089,6 @@ function renderPostcheck(postcheck: RecreatePostcheck): string {
     const sources: RenderedSources<typeof postcheck> = {
       description: jsonToTsSource(postcheck.description),
       sql: tsQuotedTextSource(postcheck.sql),
-      convertedColumn:
-        postcheck.convertedColumn === undefined
-          ? undefined
-          : jsonToTsSource(postcheck.convertedColumn),
       requiredColumn:
         postcheck.requiredColumn === undefined
           ? undefined
