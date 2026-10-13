@@ -28,7 +28,6 @@ import type {
   ResolvedCreateInput,
   VariantCreateInput,
   VariantModelRow,
-  VariantNames,
 } from '../src/types';
 
 // --- Root accessors ---
@@ -172,20 +171,10 @@ test('InferRootRow for non-polymorphic model returns plain row', () => {
   expectTypeOf<UserRow>().toHaveProperty('addresses');
 });
 
-// --- VariantNames / VariantModelRow ---
-
-test('VariantNames extracts variant names from polymorphic model', () => {
-  type Names = VariantNames<Contract, 'Task'>;
-  expectTypeOf<Names>().toEqualTypeOf<'Bug' | 'Feature'>();
-});
-
-test('VariantNames is never for non-polymorphic model', () => {
-  type Names = VariantNames<Contract, 'User'>;
-  expectTypeOf<Names>().toBeNever();
-});
+// --- VariantModelRow ---
 
 test('VariantModelRow narrows to Bug-specific fields', () => {
-  type BugRow = VariantModelRow<Contract, 'Task', 'Bug'>;
+  type BugRow = VariantModelRow<Contract, 'Task', 'bug'>;
   expectTypeOf<BugRow>().toHaveProperty('severity');
   expectTypeOf<BugRow>().toHaveProperty('_id');
   expectTypeOf<BugRow>().toHaveProperty('title');
@@ -193,7 +182,7 @@ test('VariantModelRow narrows to Bug-specific fields', () => {
 });
 
 test('VariantModelRow narrows to Feature-specific fields', () => {
-  type FeatureRow = VariantModelRow<Contract, 'Task', 'Feature'>;
+  type FeatureRow = VariantModelRow<Contract, 'Task', 'feature'>;
   expectTypeOf<FeatureRow>().toHaveProperty('priority');
   expectTypeOf<FeatureRow>().toHaveProperty('targetRelease');
   expectTypeOf<FeatureRow['type']>().toEqualTypeOf<'feature'>();
@@ -378,7 +367,7 @@ test('select() rejects nonexistent field after chaining', () => {
 // --- VariantCreateInput ---
 
 test('VariantCreateInput includes base + variant fields minus _id and discriminator', () => {
-  type BugCreate = VariantCreateInput<Contract, 'Task', 'Bug'>;
+  type BugCreate = VariantCreateInput<Contract, 'Task', 'bug'>;
   expectTypeOf<BugCreate>().toHaveProperty('title');
   expectTypeOf<BugCreate>().toHaveProperty('assigneeId');
   expectTypeOf<BugCreate>().toHaveProperty('severity');
@@ -386,20 +375,20 @@ test('VariantCreateInput includes base + variant fields minus _id and discrimina
 });
 
 test('VariantCreateInput excludes other variant fields', () => {
-  type BugCreate = VariantCreateInput<Contract, 'Task', 'Bug'>;
+  type BugCreate = VariantCreateInput<Contract, 'Task', 'bug'>;
   expectTypeOf<BugCreate>().not.toHaveProperty('priority');
   expectTypeOf<BugCreate>().not.toHaveProperty('targetRelease');
 });
 
-test('ResolvedCreateInput falls through to CreateInput when TVariant is never', () => {
+test('ResolvedCreateInput falls through to CreateInput when TVariantValue is never', () => {
   type Resolved = ResolvedCreateInput<Contract, 'Task', never>;
   type Expected = CreateInput<Contract, 'Task'>;
   expectTypeOf<Resolved>().toEqualTypeOf<Expected>();
 });
 
 test('ResolvedCreateInput resolves to VariantCreateInput when variant is specified', () => {
-  type Resolved = ResolvedCreateInput<Contract, 'Task', 'Bug'>;
-  type Expected = VariantCreateInput<Contract, 'Task', 'Bug'>;
+  type Resolved = ResolvedCreateInput<Contract, 'Task', 'bug'>;
+  type Expected = VariantCreateInput<Contract, 'Task', 'bug'>;
   expectTypeOf<Resolved>().toEqualTypeOf<Expected>();
 });
 
@@ -419,7 +408,7 @@ test('non-variant create() uses base CreateInput', () => {
   expectTypeOf<CreateParam>().toHaveProperty('title');
 });
 
-test('variant() preserves TVariant through chaining', () => {
+test('variant() preserves TVariantValue through chaining', () => {
   const col = {} as MongoCollection<Contract, 'Task'>;
   const chained = col
     .variant('bug')
@@ -433,7 +422,7 @@ test('variant() preserves TVariant through chaining', () => {
 test('variant() accepts a declared discriminator value', () => {
   const col = {} as MongoCollection<Contract, 'Task'>;
   expectTypeOf(col.variant('bug')).toEqualTypeOf<
-    MongoCollection<Contract, 'Task', NoIncludes, 'Bug'>
+    MongoCollection<Contract, 'Task', NoIncludes, 'bug'>
   >();
 });
 
@@ -455,11 +444,14 @@ test('variant() cannot be called on a non-polymorphic receiver', () => {
   col.variant('bug');
 });
 
-test('variant() maps a union of values to the union of variant names', () => {
+test('variant() keeps a union of values', () => {
   const col = {} as MongoCollection<Contract, 'Task'>;
   const value = 'bug' as 'bug' | 'feature';
   expectTypeOf(col.variant(value)).toEqualTypeOf<
-    MongoCollection<Contract, 'Task', NoIncludes, 'Bug' | 'Feature'>
+    MongoCollection<Contract, 'Task', NoIncludes, 'bug' | 'feature'>
+  >();
+  expectTypeOf<VariantModelRow<Contract, 'Task', 'bug' | 'feature'>>().toEqualTypeOf<
+    VariantModelRow<Contract, 'Task', 'bug'> | VariantModelRow<Contract, 'Task', 'feature'>
   >();
 });
 
@@ -485,9 +477,9 @@ test('a variant helper result rejects a second variant selection', () => {
 test('a zero-argument custom helper exposes the variant collection and create input', () => {
   const tasks = {} as MongoCollection<Contract, 'Task'>;
   const bugs = () => tasks.variant('bug');
-  expectTypeOf(bugs).returns.toEqualTypeOf<MongoCollection<Contract, 'Task', NoIncludes, 'Bug'>>();
+  expectTypeOf(bugs).returns.toEqualTypeOf<MongoCollection<Contract, 'Task', NoIncludes, 'bug'>>();
   expectTypeOf<Parameters<ReturnType<typeof bugs>['create']>[0]>().toEqualTypeOf<
-    VariantCreateInput<Contract, 'Task', 'Bug'>
+    VariantCreateInput<Contract, 'Task', 'bug'>
   >();
 });
 

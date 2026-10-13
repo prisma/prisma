@@ -312,8 +312,14 @@ type ContractBase = Omit<
             };
             readonly discriminator: { readonly field: 'type' };
             readonly variants: {
-              readonly Bug: { readonly value: 'bug' };
-              readonly Feature: { readonly value: 'feature' };
+              readonly bug: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'Bug';
+              };
+              readonly feature: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'Feature';
+              };
             };
           };
           readonly User: {

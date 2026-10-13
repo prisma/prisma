@@ -34,7 +34,7 @@ import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { resolveAggregate } from './aggregate-codecs';
 import { emptyAggregateResult } from './aggregate-empty-result';
 import {
-  addressedModelName,
+  addressedModel,
   fieldOfColumn,
   getColumnsReadOnTable,
   getModelColumnFields,
@@ -109,7 +109,7 @@ function describeExecutionRows<Row>(
               polyInfo,
               state.tables,
               rawRow,
-              state.variantName,
+              state.variantValue,
             ),
           )
       : (rawRow: Record<string, unknown>) =>
@@ -153,7 +153,7 @@ function createPreparedMapper(
           modelName,
           polyInfo,
           state.tables,
-          state.variantName,
+          state.variantValue,
         )
       : createStorageRowMapper(contract, namespaceId, modelName);
   });
@@ -228,14 +228,19 @@ function createPreparedIncludeConsumer(
     const keys = new Set(
       getColumnsReadOnTable(
         contract,
-        namespace,
-        addressedModelName(include.relatedModelName, include.nested.variantName),
+        ...addressedModel(
+          contract,
+          namespace,
+          include.relatedModelName,
+          include.nested.variantValue,
+        ),
         include.relatedTableName,
+        namespace,
       ),
     );
     const polyInfo = resolvePolymorphismInfo(contract, namespace, include.relatedModelName);
     for (const variant of polyInfo?.mtiVariants ?? []) {
-      const variantTable = requireVariantTable(include.nested.tables, variant.modelName);
+      const variantTable = requireVariantTable(include.nested.tables, variant.value);
       for (const column of getColumnsReadOnTable(
         contract,
         variantTable.storage.namespaceId,
@@ -415,7 +420,7 @@ function consumeIncludeRows<Row>(
             polyInfo,
             state.tables,
             row,
-            state.variantName,
+            state.variantValue,
           )
         : mapStorageRowToModelFields(contract, namespaceId, modelName, row);
       return { raw: row, mapped };
@@ -617,7 +622,7 @@ function decodeIncludePayload(
           polyInfo,
           include.nested.tables,
           childRow,
-          include.nested.variantName,
+          include.nested.variantValue,
         )
     : createStorageRowMapper(contract, include.relatedNamespaceId, include.relatedModelName);
   let columns = bindings.get(include);
@@ -760,7 +765,7 @@ function resolveIncludedColumnRef(
   }
 
   for (const variant of polyInfo.mtiVariants) {
-    const variantTable = requireVariantTable(include.nested.tables, variant.modelName);
+    const variantTable = requireVariantTable(include.nested.tables, variant.value);
     const prefix = variantColumnLabelPrefix(variantTable);
     if (!key.startsWith(prefix)) {
       continue;

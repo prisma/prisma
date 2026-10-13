@@ -783,7 +783,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Feature',
+        'feature',
       ) as unknown as FieldBag;
       // `priority` lives on the joined `features` table, not the base `tasks`.
       expect(feature['priority']!.gte(3)).toEqual(
@@ -801,7 +801,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Feature',
+        'feature',
       ) as unknown as FieldBag;
       expect(feature['title']!.eq('Dark mode')).toEqual(
         new BinaryExpr(
@@ -818,7 +818,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Feature',
+        'feature',
       ) as unknown as FieldBag;
       expect(feature['priority']).toBeDefined();
       const bug = createModelAccessor(
@@ -826,7 +826,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Bug',
+        'bug',
       ) as unknown as FieldBag;
       // Bug is STI — its `severity` rides the base table, never the features join.
       expect(bug['severity']!.eq('critical')).toEqual(
@@ -868,7 +868,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Feature',
+        'feature',
       ) as unknown as RelationBag;
 
       const expr = feature['assignee']!.some() as ExistsExpr;
@@ -889,7 +889,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Bug',
+        'bug',
       ) as unknown as RelationBag;
 
       const expr = bug['assignee']!.some() as ExistsExpr;
@@ -917,7 +917,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Feature',
+        'feature',
       ) as unknown as RelationBag;
 
       const expr = feature['subtasks']!.some() as ExistsExpr;
@@ -934,7 +934,7 @@ describe('createModelAccessor', () => {
         'public',
         'Task',
         createCollectionTables(polyContext.contract, 'public', 'Task'),
-        'Feature',
+        'feature',
       ) as unknown as RelationBag;
 
       feature['assignee']!.some();

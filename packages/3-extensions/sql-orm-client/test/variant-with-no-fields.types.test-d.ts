@@ -80,7 +80,12 @@ type TaskContract = ContractWithTypeMaps<
                 };
               };
               readonly discriminator: { readonly field: 'type' };
-              readonly variants: { readonly Chore: { readonly value: 'chore' } };
+              readonly variants: {
+                readonly chore: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Chore';
+                };
+              };
             };
             readonly Chore: {
               readonly fields: Record<never, never>;

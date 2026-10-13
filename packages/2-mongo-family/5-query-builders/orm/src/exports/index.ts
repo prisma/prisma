@@ -33,7 +33,5 @@ export type {
   UpdateInput,
   VariantCreateInput,
   VariantModelRow,
-  VariantNameForValue,
-  VariantNames,
   VariantSelectable,
 } from '../types';

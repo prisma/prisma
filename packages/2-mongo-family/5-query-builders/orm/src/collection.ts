@@ -74,7 +74,6 @@ import type {
   ReferenceRelationKeys,
   ResolvedCreateInput,
   UpdateInput,
-  VariantNameForValue,
   VariantSelectable,
 } from './types';
 import { upsertPipeline } from './upsert-pipeline';
@@ -88,7 +87,7 @@ export interface MongoCollection<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
   TIncludes extends MongoIncludeSpec<TContract, ModelName> = NoIncludes,
-  TVariant extends string = never,
+  TVariantValue extends string = never,
 > {
   readonly _row?: SimplifyDeep<IncludedRow<TContract, ModelName, TIncludes>>;
   /**
@@ -97,31 +96,31 @@ export interface MongoCollection<
    * a collection that already has a variant selected refuses it.
    */
   variant<V extends DiscriminatorValues<TContract, ModelName>>(
-    this: VariantSelectable<TVariant>,
+    this: VariantSelectable<TVariantValue>,
     value: V,
-  ): MongoCollection<TContract, ModelName, TIncludes, VariantNameForValue<TContract, ModelName, V>>;
+  ): MongoCollection<TContract, ModelName, TIncludes, V>;
   /** Appends equality filters from a plain object. Values are encoded through codecs. */
   where(
     filter: MongoWhereFilter<TContract, ModelName>,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Appends a filter condition from a raw filter expression. Comparison and `$in`/`$nin` values on a scalar field are encoded through the field's codec. */
-  where(filter: MongoFilterExpr): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  where(filter: MongoFilterExpr): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Restricts returned fields to the given subset. Returns a new immutable collection. */
   select(
     ...fields: ModelFieldKeys<TContract, ModelName>[]
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Adds a `$lookup` for a reference relation. Returns a new immutable collection. */
   include<K extends ReferenceRelationKeys<TContract, ModelName> & string>(
     relationName: K,
-  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariantValue>;
   /** Sets sort order. Returns a new immutable collection. */
   orderBy(
     spec: Partial<Record<ModelFieldKeys<TContract, ModelName>, 1 | -1>>,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Limits the number of results. Returns a new immutable collection. */
-  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Offsets the results by `n`. Returns a new immutable collection. */
-  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Executes the query and returns all matching rows as an async iterable. */
   all(): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Executes the query with limit 1. Returns the first matching row or `null`. */
@@ -129,15 +128,15 @@ export interface MongoCollection<
   firstOrThrow(): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Inserts the document and returns it as stored, decoded like a read, without reading it back. */
   create(
-    data: ResolvedCreateInput<TContract, ModelName, TVariant>,
+    data: ResolvedCreateInput<TContract, ModelName, TVariantValue>,
   ): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Inserts the documents and returns them as stored, in input order and decoded like a read, without reading them back. */
   createAll(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Inserts multiple documents and returns the number inserted. */
   createAndCount(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): Promise<number>;
   /** Updates one matching document via `findOneAndUpdate`. Returns the updated document or `null`. Requires `.where()`. */
   update(
@@ -174,12 +173,12 @@ export interface MongoCollection<
    * Requires `.where()`.
    */
   upsert(input: {
-    create: ResolvedCreateInput<TContract, ModelName, TVariant>;
+    create: ResolvedCreateInput<TContract, ModelName, TVariantValue>;
     update: UpdateInput<TContract, ModelName>;
   }): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Upsert using field operations callback for the update part. Requires `.where()`. */
   upsert(input: {
-    create: ResolvedCreateInput<TContract, ModelName, TVariant>;
+    create: ResolvedCreateInput<TContract, ModelName, TVariantValue>;
     update: (u: FieldAccessor<TContract, ModelName>) => FieldOperation[];
   }): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
 }
@@ -236,8 +235,8 @@ class MongoCollectionImpl<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
   TIncludes extends MongoIncludeSpec<TContract, ModelName> = NoIncludes,
-  TVariant extends string = never,
-> implements MongoCollection<TContract, ModelName, TIncludes, TVariant>
+  TVariantValue extends string = never,
+> implements MongoCollection<TContract, ModelName, TIncludes, TVariantValue>
 {
   readonly #contract: TContract;
   readonly #modelName: ModelName;
@@ -246,7 +245,7 @@ class MongoCollectionImpl<
   readonly #enums: MongoOrmEnums;
   #collectionName: string;
   #state: MongoCollectionState;
-  #variantName: string | undefined;
+  #variantValue: string | undefined;
 
   constructor(
     contract: TContract,
@@ -270,21 +269,15 @@ class MongoCollectionImpl<
 
   variant<V extends DiscriminatorValues<TContract, ModelName>>(
     value: V,
-  ): MongoCollection<
-    TContract,
-    ModelName,
-    TIncludes,
-    VariantNameForValue<TContract, ModelName, V>
-  > {
+  ): MongoCollection<TContract, ModelName, TIncludes, V> {
     const model = blindCast<
       MongoModelDefinition | undefined,
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
     >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
     const discriminator = model?.discriminator;
-    const selectedVariantName = this.#variantName;
+    const selectedValue = this.#variantValue;
 
-    if (selectedVariantName !== undefined) {
-      const selectedValue = model?.variants?.[selectedVariantName]?.value;
+    if (selectedValue !== undefined) {
       throw ormError(
         'ORM.OPERATION_UNSUPPORTED',
         `variant("${value}") cannot be called on model "${this.#modelName}" because variant("${selectedValue}") is already selected; call variant() on the base collection instead`,
@@ -292,7 +285,7 @@ class MongoCollectionImpl<
           meta: {
             method: 'variant',
             model: this.#modelName,
-            variant: selectedVariantName,
+            variant: model?.variants?.[selectedValue]?.model,
             selectedValue,
             reason: 'variant-already-selected',
           },
@@ -300,13 +293,8 @@ class MongoCollectionImpl<
       );
     }
 
-    const variantEntries = Object.entries(model?.variants ?? {});
-    const variantName = discriminator
-      ? variantEntries.find(([, entry]) => entry.value === value)?.[0]
-      : undefined;
-
-    if (!discriminator || variantName === undefined) {
-      const declaredValues = discriminator ? variantEntries.map(([, entry]) => entry.value) : [];
+    if (!discriminator || model?.variants?.[value] === undefined) {
+      const declaredValues = discriminator ? Object.keys(model?.variants ?? {}) : [];
       throw ormError(
         'ORM.ARGUMENT_INVALID',
         declaredValues.length === 0
@@ -325,15 +313,12 @@ class MongoCollectionImpl<
     }
 
     const filter = MongoFieldFilter.eq(discriminator.field, new MongoParamRef(value));
-    return this.#cloneWithVariant<VariantNameForValue<TContract, ModelName, V>>(
-      { filters: [...this.#state.filters, filter] },
-      variantName,
-    );
+    return this.#cloneWithVariant<V>({ filters: [...this.#state.filters, filter] }, value);
   }
 
   where(
     filter: MongoWhereFilter<TContract, ModelName> | MongoFilterExpr,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     if (isMongoFilterExpr(filter)) {
       const encoded = filter.rewrite({
         field: (fieldFilter) => this.#encodeFieldFilter(fieldFilter),
@@ -351,13 +336,13 @@ class MongoCollectionImpl<
 
   select(
     ...fields: ModelFieldKeys<TContract, ModelName>[]
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     return this.#clone({ selectedFields: [...(this.#state.selectedFields ?? []), ...fields] });
   }
 
   include<K extends ReferenceRelationKeys<TContract, ModelName> & string>(
     relationName: K,
-  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariantValue> {
     const model = blindCast<
       MongoModelDefinition,
       'modelName is constrained to Mongo contract model keys but namespace lookup erases storage type'
@@ -415,7 +400,7 @@ class MongoCollectionImpl<
     };
 
     return blindCast<
-      MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariant>,
+      MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariantValue>,
       'include clone state contains the appended relation but the generic include refinement is not inferred'
     >(
       this.#clone({
@@ -426,16 +411,16 @@ class MongoCollectionImpl<
 
   orderBy(
     spec: Partial<Record<ModelFieldKeys<TContract, ModelName>, 1 | -1>>,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     const merged: Readonly<Record<string, 1 | -1>> = { ...this.#state.orderBy, ...spec };
     return this.#clone({ orderBy: merged });
   }
 
-  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     return this.#clone({ limit: n });
   }
 
-  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     return this.#clone({ offset: n });
   }
 
@@ -457,7 +442,7 @@ class MongoCollectionImpl<
   }
 
   async create(
-    data: ResolvedCreateInput<TContract, ModelName, TVariant>,
+    data: ResolvedCreateInput<TContract, ModelName, TVariantValue>,
   ): Promise<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#rejectIncludes('create');
     const normalized = this.#withCreateDefaults(
@@ -484,7 +469,7 @@ class MongoCollectionImpl<
   }
 
   createAll(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#rejectIncludes('createAll');
     const self = this;
@@ -523,7 +508,7 @@ class MongoCollectionImpl<
   }
 
   async createAndCount(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): Promise<number> {
     this.#rejectIncludes('createAndCount');
     const defaultValueCache = new Map<string, unknown>();
@@ -656,7 +641,7 @@ class MongoCollectionImpl<
   }
 
   async upsert(input: {
-    create: ResolvedCreateInput<TContract, ModelName, TVariant>;
+    create: ResolvedCreateInput<TContract, ModelName, TVariantValue>;
     update:
       | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]);
@@ -851,11 +836,13 @@ class MongoCollectionImpl<
       MongoModelDefinition | undefined,
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
     >(models[this.#modelName]);
-    if (model === undefined || this.#variantName === undefined) return model;
+    const variantRef =
+      this.#variantValue === undefined ? undefined : model?.variants?.[this.#variantValue];
+    if (model === undefined || variantRef === undefined) return model;
     const variant = blindCast<
       MongoModelDefinition | undefined,
-      'a variant name is the name of the variant model in the same namespace'
-    >(models[this.#variantName]);
+      'a variant reference names the variant model in the same namespace'
+    >(models[variantRef.model]);
     return variant === undefined
       ? model
       : { ...model, fields: { ...model.fields, ...variant.fields } };
@@ -1284,21 +1271,19 @@ class MongoCollectionImpl<
   }
 
   #injectDiscriminator(data: Record<string, unknown>): Record<string, unknown> {
-    if (!this.#variantName) return data;
+    if (!this.#variantValue) return data;
     const model = blindCast<
       MongoModelDefinition | undefined,
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
     >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
-    if (!model?.discriminator || !model.variants) return data;
-    const variantEntry = model.variants[this.#variantName];
-    if (!variantEntry) return data;
-    return { ...data, [model.discriminator.field]: variantEntry.value };
+    if (!model?.discriminator) return data;
+    return { ...data, [model.discriminator.field]: this.#variantValue };
   }
 
   #clone(
     overrides: Partial<MongoCollectionState>,
-  ): MongoCollectionImpl<TContract, ModelName, TIncludes, TVariant> {
-    const instance = new MongoCollectionImpl<TContract, ModelName, TIncludes, TVariant>(
+  ): MongoCollectionImpl<TContract, ModelName, TIncludes, TVariantValue> {
+    const instance = new MongoCollectionImpl<TContract, ModelName, TIncludes, TVariantValue>(
       this.#contract,
       this.#modelName,
       this.#executor,
@@ -1307,13 +1292,13 @@ class MongoCollectionImpl<
     );
     instance.#state = { ...this.#state, ...overrides };
     instance.#collectionName = this.#collectionName;
-    instance.#variantName = this.#variantName;
+    instance.#variantValue = this.#variantValue;
     return instance;
   }
 
   #cloneWithVariant<VNew extends string>(
     overrides: Partial<MongoCollectionState>,
-    variantName: string,
+    variantValue: string,
   ): MongoCollectionImpl<TContract, ModelName, TIncludes, VNew> {
     const instance = new MongoCollectionImpl<TContract, ModelName, TIncludes, VNew>(
       this.#contract,
@@ -1324,7 +1309,7 @@ class MongoCollectionImpl<
     );
     instance.#state = { ...this.#state, ...overrides };
     instance.#collectionName = this.#collectionName;
-    instance.#variantName = variantName;
+    instance.#variantValue = variantValue;
     return instance;
   }
 }

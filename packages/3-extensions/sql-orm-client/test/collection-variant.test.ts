@@ -73,7 +73,7 @@ interface PolyParent {
   include(
     relation: 'tasks',
     refine?: (collection: PolyVariantRefinement) => PolyVariantRefinement,
-  ): { state: { includes: { nested: { variantName?: string } }[] } };
+  ): { state: { includes: { nested: { variantValue?: string } }[] } };
 }
 
 interface FeaturePredicateField {
@@ -123,10 +123,10 @@ describe('Collection.variant()', () => {
     expect(binExpr.right).toEqual(ParamRef.of('admin', { codec: { codecId: 'pg/text@1' } }));
   });
 
-  it('sets variantName on state', () => {
+  it('sets variantValue on state', () => {
     const { collection } = createPolyCollection();
     const narrowed = collection.variant('regular' as never);
-    expect(narrowed.state.variantName).toBe('Regular');
+    expect(narrowed.state.variantValue).toBe('regular');
   });
 
   it('throws when a variant is already selected', () => {
@@ -426,7 +426,7 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
     expect(orderRefs).toEqual([ColumnRef.of('tasks', 'title')]);
   });
 
-  it('variant() on a polymorphic-target include refinement sets nested variantName', () => {
+  it('variant() on a polymorphic-target include refinement sets nested variantValue', () => {
     const contract = buildMixedPolyContract();
     const context = { ...getTestContext(), contract };
     const runtime = createMockRuntime();
@@ -436,10 +436,10 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
 
     const refined = projects.include('tasks', (tasks) => tasks.variant('bug'));
 
-    expect(refined.state.includes[0]?.nested.variantName).toBe('Bug');
+    expect(refined.state.includes[0]?.nested.variantValue).toBe('bug');
   });
 
-  it('include of a polymorphic-target relation without refinement leaves variantName unset', () => {
+  it('include of a polymorphic-target relation without refinement leaves variantValue unset', () => {
     const contract = buildMixedPolyContract();
     const context = { ...getTestContext(), contract };
     const runtime = createMockRuntime();
@@ -449,7 +449,7 @@ describe('Mixed STI+MTI polymorphic query pipeline', () => {
 
     const included = projects.include('tasks');
 
-    expect(included.state.includes[0]?.nested.variantName).toBeUndefined();
+    expect(included.state.includes[0]?.nested.variantValue).toBeUndefined();
   });
 
   it('updateAndCount after variant("feature") scopes MTI scalar predicates through the write subquery', async () => {

@@ -100,7 +100,7 @@ describe('interpretPslDocumentToMongoContract — polymorphism', () => {
       relations: {},
       storage: { collection: 'tasks' },
       discriminator: { field: 'task_kind' },
-      variants: { Bug: { value: 'bug' } },
+      variants: { bug: crossRef('Bug', UNBOUND_NAMESPACE_ID) },
     });
     expect(forward.roots).toEqual({ tasks: crossRef('Task', UNBOUND_NAMESPACE_ID) });
     expect((mongoCollectionsOf(forward)['tasks'] as { indexes: unknown }).indexes).toEqual([
@@ -166,7 +166,7 @@ namespace scoped {
 
       expect(modelsOf(ir)['Task']).toMatchObject({
         discriminator: { field: 'type' },
-        variants: { Bug: { value: 'bug' } },
+        variants: { bug: crossRef('Bug', UNBOUND_NAMESPACE_ID) },
       });
     });
 
@@ -241,8 +241,8 @@ namespace scoped {
       expect(modelsOf(ir)['Task']).toMatchObject({
         discriminator: { field: 'type' },
         variants: {
-          Bug: { value: 'bug' },
-          Feature: { value: 'feature' },
+          bug: crossRef('Bug', UNBOUND_NAMESPACE_ID),
+          feature: crossRef('Feature', UNBOUND_NAMESPACE_ID),
         },
       });
       expect(modelsOf(ir)['Bug']).toMatchObject({ base: crossRef('Task') });

@@ -231,7 +231,13 @@ export function generateModelsType(
       modelParts.push(`readonly discriminator: ${serializeValue(model.discriminator)}`);
     }
     if (model.variants) {
-      modelParts.push(`readonly variants: ${serializeValue(model.variants)}`);
+      const variantEntries = Object.entries(model.variants)
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(
+          ([value, ref]) =>
+            `readonly ${serializeObjectKey(value)}: ${serializeCrossReference(ref)}`,
+        );
+      modelParts.push(`readonly variants: { ${variantEntries.join('; ')} }`);
     }
     if (model.base) {
       modelParts.push(`readonly base: ${serializeCrossReference(model.base)}`);

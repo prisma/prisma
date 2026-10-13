@@ -23,8 +23,8 @@ export type NamespaceMemberAst =
 
 export type DeclarationAst = NamespaceMemberAst | TypesBlockAst | NamespaceDeclarationAst;
 export type AttributeAst = FieldAttributeAst | ModelAttributeAst;
-export type BlockMemberAst = FieldDeclarationAst | ModelAttributeAst;
-export type GenericBlockMemberAst = KeyValuePairAst | ModelAttributeAst;
+export type BlockMemberAst = FieldDeclarationAst | ModelAttributeAst | MixinInclusionAst;
+export type GenericBlockMemberAst = KeyValuePairAst | ModelAttributeAst | MixinInclusionAst;
 
 function castNamespaceMember(node: SyntaxNode): NamespaceMemberAst | undefined {
   return (
@@ -93,7 +93,10 @@ export class ModelDeclarationAst implements BracedBlock, HasDocComment {
   *members(): Iterable<BlockMemberAst> {
     yield* filterChildren(
       this.syntax,
-      (node) => FieldDeclarationAst.cast(node) ?? ModelAttributeAst.cast(node),
+      (node) =>
+        FieldDeclarationAst.cast(node) ??
+        ModelAttributeAst.cast(node) ??
+        MixinInclusionAst.cast(node),
     );
   }
 
@@ -144,7 +147,10 @@ export class CompositeTypeDeclarationAst implements BracedBlock, HasDocComment {
   *members(): Iterable<BlockMemberAst> {
     yield* filterChildren(
       this.syntax,
-      (node) => FieldDeclarationAst.cast(node) ?? ModelAttributeAst.cast(node),
+      (node) =>
+        FieldDeclarationAst.cast(node) ??
+        ModelAttributeAst.cast(node) ??
+        MixinInclusionAst.cast(node),
     );
   }
 
@@ -262,7 +268,8 @@ export class GenericBlockDeclarationAst implements BracedBlock, HasDocComment {
   *members(): Iterable<GenericBlockMemberAst> {
     yield* filterChildren(
       this.syntax,
-      (node) => KeyValuePairAst.cast(node) ?? ModelAttributeAst.cast(node),
+      (node) =>
+        KeyValuePairAst.cast(node) ?? ModelAttributeAst.cast(node) ?? MixinInclusionAst.cast(node),
     );
   }
 
@@ -321,6 +328,17 @@ export class MixinDeclarationAst implements BracedBlock, HasDocComment {
   /** A mixin cannot include a mixin, but the parser still reads an inclusion written in a mixin body, so that it can be reported as an error at that inclusion. */
   *inclusions(): Iterable<MixinInclusionAst> {
     yield* filterChildren(this.syntax, MixinInclusionAst.cast);
+  }
+
+  *members(): Iterable<BlockMemberAst | GenericBlockMemberAst> {
+    yield* filterChildren(
+      this.syntax,
+      (node) =>
+        FieldDeclarationAst.cast(node) ??
+        KeyValuePairAst.cast(node) ??
+        ModelAttributeAst.cast(node) ??
+        MixinInclusionAst.cast(node),
+    );
   }
 
   docComment(): string | undefined {
