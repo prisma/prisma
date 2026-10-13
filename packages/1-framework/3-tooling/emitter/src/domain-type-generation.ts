@@ -101,12 +101,26 @@ export function generateModelFieldEntry(fieldName: string, field: ContractField)
   return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: ${serializeValue(type)}${mods} }`;
 }
 
+/**
+ * `{}` for a model with no fields: `keyof Record<string, never>` is `string`, so a row type built from it would let code read any key.
+ */
+function rowTypeOf(entries: readonly string[]): string {
+  return entries.length > 0 ? `{ ${entries.join('; ')} }` : '{}';
+}
+
+/**
+ * `Record<string, never>` for a model with no fields: TypeScript accepts any object where `{}` is expected, so an input typed `{}` would accept any key.
+ */
+function inputTypeOf(entries: readonly string[]): string {
+  return entries.length > 0 ? `{ ${entries.join('; ')} }` : 'Record<string, never>';
+}
+
 export function generateModelFieldsType(fields: Record<string, ContractField>): string {
   const fieldEntries: string[] = [];
   for (const [fieldName, field] of Object.entries(fields)) {
     fieldEntries.push(generateModelFieldEntry(fieldName, field));
   }
-  return fieldEntries.length > 0 ? `{ ${fieldEntries.join('; ')} }` : 'Record<string, never>';
+  return rowTypeOf(fieldEntries);
 }
 
 export function generateModelRelationsType(relations: Record<string, unknown>): string {
@@ -478,14 +492,8 @@ export function generateBothFieldTypesMaps(
       outputFieldEntries.push(`${key}: ${resolved.output}`);
       inputFieldEntries.push(`${key}: ${resolved.input}`);
     }
-    const outputFields =
-      outputFieldEntries.length > 0
-        ? `{ ${outputFieldEntries.join('; ')} }`
-        : 'Record<string, never>';
-    const inputFields =
-      inputFieldEntries.length > 0
-        ? `{ ${inputFieldEntries.join('; ')} }`
-        : 'Record<string, never>';
+    const outputFields = rowTypeOf(outputFieldEntries);
+    const inputFields = inputTypeOf(inputFieldEntries);
     const modelKey = `readonly ${serializeObjectKey(modelName)}`;
     outputModelEntries.push(`${modelKey}: ${outputFields}`);
     inputModelEntries.push(`${modelKey}: ${inputFields}`);

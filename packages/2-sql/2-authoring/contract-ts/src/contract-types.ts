@@ -815,16 +815,27 @@ type FieldChannelType<
 // Nested by namespace coordinate (`{ [ns]: { [model]: { [field]: type } } }`)
 // to mirror the emitter's namespace-nested `FieldOutputTypes` (and the
 // `TypeMaps` constraint).
+type ModelFieldChannelTypes<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Channel extends 'output' | 'input',
+> = {
+  readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldChannelType<
+    Definition,
+    ModelName,
+    FieldName,
+    Channel
+  >;
+};
+
+// Matches the emitter: a model with no fields has output types `{}` and input types that reject every key.
 type FieldChannelTypes<Definition, Channel extends 'output' | 'input'> = {
   readonly [Ns in DomainNamespaceIds<Definition>]: {
-    readonly [ModelName in ModelsInNamespace<Definition, Ns>]: {
-      readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldChannelType<
-        Definition,
-        ModelName,
-        FieldName,
-        Channel
-      >;
-    };
+    readonly [ModelName in ModelsInNamespace<Definition, Ns>]: Channel extends 'input'
+      ? [ModelFieldNames<Definition, ModelName>] extends [never]
+        ? Record<string, never>
+        : ModelFieldChannelTypes<Definition, ModelName, Channel>
+      : ModelFieldChannelTypes<Definition, ModelName, Channel>;
   };
 };
 

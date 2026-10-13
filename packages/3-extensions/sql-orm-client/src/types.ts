@@ -1684,24 +1684,30 @@ export type VariantCreateInput<
 > &
   CreateInput<TContract, VariantName, NsId>;
 
+/**
+ * An input with no keys is `Record<string, never>`, not `{}`: TypeScript accepts any object where `{}` is expected, so a model with no fields would accept any key.
+ */
+type NoKeysAccepted<T> = [keyof T] extends [never] ? Record<string, never> : T;
+
 export type ResolvedCreateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   VName extends string | undefined,
   NsId extends string = never,
-> =
+> = NoKeysAccepted<
   IsPolymorphicBase<TContract, ModelName, NsId> extends true
     ? VName extends string
       ? VariantCreateInput<TContract, ModelName, VName, NsId>
       : never
-    : CreateInput<TContract, ModelName, NsId>;
+    : CreateInput<TContract, ModelName, NsId>
+>;
 
 export type ResolvedScalarCreateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   VName extends string | undefined,
   NsId extends string = never,
-> =
+> = NoKeysAccepted<
   IsPolymorphicBase<TContract, ModelName, NsId> extends true
     ? VName extends string
       ? Omit<
@@ -1710,7 +1716,14 @@ export type ResolvedScalarCreateInput<
         > &
           ScalarCreateInput<TContract, VName, NsId>
       : never
-    : ScalarCreateInput<TContract, ModelName, NsId>;
+    : ScalarCreateInput<TContract, ModelName, NsId>
+>;
+
+export type ScalarUpdateInput<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> = NoKeysAccepted<Partial<DefaultModelRow<TContract, ModelName, NsId>>>;
 
 type ModelStorageTableDef<TContract extends Contract<SqlStorage>, ModelName extends string> =
   ModelTableName<TContract, ModelName> extends infer TableName extends string
@@ -2102,8 +2115,10 @@ export type MutationUpdateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
-> = Partial<DefaultModelRow<TContract, ModelName, NsId>> &
-  RelationMutationFields<TContract, ModelName, 'update'>;
+> = NoKeysAccepted<
+  Partial<DefaultModelRow<TContract, ModelName, NsId>> &
+    RelationMutationFields<TContract, ModelName, 'update'>
+>;
 
 type ModelRelations<
   TContract extends Contract<SqlStorage>,
