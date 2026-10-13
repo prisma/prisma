@@ -30,6 +30,11 @@ import {
   type SqlSchemaIR,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
+import {
+  SQLITE_BIGINT_CODEC_ID,
+  SQLITE_INTEGER_CODEC_ID,
+  SQLITE_TEXT_CODEC_ID,
+} from '../codec-ids';
 import { columnSpecFromNode } from './column-ddl-rendering';
 import { columnTypeChanged, tableSpecFromNode } from './issue-planner';
 import {
@@ -59,7 +64,11 @@ export interface StrategyContext {
   readonly statementColumns: FieldStatementColumns;
   /** Whether a required column the plan adds to a table may take a temporary value in its rows. */
   readonly takesTemporaryValue: (table: string, column: string) => boolean;
-  /** The codec a column has in the origin contract, which the live schema does not record. */
+  /**
+   * The codec a column has in the origin contract. The diff's actual column cannot say: `db update`
+   * plans from the introspected database, whose columns carry no codec, and SQLite's storage
+   * classes do not tell an `Int` from a `BigInt`, or a `DateTime` from a `String`.
+   */
   readonly originCodecId: (table: string, column: string) => string | undefined;
 }
 
@@ -100,12 +109,13 @@ function columnNameOf(issue: SchemaDiffIssue): string {
 /**
  * The changes of codec a table rebuild's copy makes without losing a value: the column's type
  * affinity stores each old value as the same value of the new type. An integer becomes its decimal
- * text; a real is not listed, since SQLite writes it as text with fifteen significant digits.
+ * text; a real is not listed, since SQLite writes it as text with fifteen significant digits. Keyed
+ * by codec, not data type, because `Int` and `BigInt` differ only in their codec.
  */
 const LOSSLESS_COPIES = new Set([
-  'sqlite/integer@1→sqlite/text@1',
-  'sqlite/bigint@1→sqlite/text@1',
-  'sqlite/integer@1→sqlite/bigint@1',
+  `${SQLITE_INTEGER_CODEC_ID}→${SQLITE_TEXT_CODEC_ID}`,
+  `${SQLITE_BIGINT_CODEC_ID}→${SQLITE_TEXT_CODEC_ID}`,
+  `${SQLITE_INTEGER_CODEC_ID}→${SQLITE_BIGINT_CODEC_ID}`,
 ]);
 
 function copyKeepsEveryValue(fromCodec: string | undefined, to: SqlColumnIR): boolean {
