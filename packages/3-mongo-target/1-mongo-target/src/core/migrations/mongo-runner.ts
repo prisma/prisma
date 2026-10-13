@@ -27,8 +27,9 @@ import type {
   MongoDmlOperation,
   MongoInspectionCommandVisitor,
   MongoMigrationCheck,
+  MongoMigrationPlanOperation,
 } from '@internal/mongo-query-ast/control';
-import { isMongoDmlOperation } from '@internal/mongo-query-ast/control';
+import { isMongoDmlOperation, RenameCollectionCommand } from '@internal/mongo-query-ast/control';
 import {
   type MongoQueryPlan,
   RawAggregateCommand,
@@ -112,6 +113,30 @@ function renameOverwriteRefusal(op: MongoDmlOperation): MongoMigrationRunnerResu
     {
       why: `Renaming ${rewrite.field} to ${to} would overwrite their ${to}. Find them with ${find} in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on ${rewrite.field}; once the documents are fixed, run the command again and the plan finishes from here.`,
       meta: { operationId: op.id, name: op.name },
+    },
+  );
+}
+
+/**
+ * The failure when a collection rename's before-check finds that the new collection already exists.
+ */
+function renameTargetExistsRefusal(
+  op: MongoMigrationPlanOperation,
+  failed: MongoMigrationCheck,
+): MongoMigrationRunnerResult | undefined {
+  const rename = op.execute.find(
+    (step) => step.command instanceof RenameCollectionCommand,
+  )?.command;
+  if (!(rename instanceof RenameCollectionCommand) || failed.expect !== 'notExists') {
+    return undefined;
+  }
+  const { collection: from, to } = rename;
+  return runnerFailure(
+    'MIGRATION.PRECHECK_FAILED',
+    `Operation ${op.id} stopped: collection ${to} already exists, so collection ${from} cannot be renamed to it`,
+    {
+      why: `Nothing was renamed. If ${to} holds nothing you need, drop it, then run the command again; operations that already ran are skipped. If an earlier operation of the same migration created ${to}, as a createIndex on ${to} does, make renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)}) the first operation of its migration.ts, run node on that migration.ts, and then drop ${to} and run the command again.`,
+      meta: { operationId: op.id },
     },
   );
 }
@@ -210,16 +235,19 @@ export class MongoMigrationRunner {
         }
 
         if (runPrechecks) {
-          const precheckResult = await this.evaluateChecks(
+          const failed = await this.firstFailingCheck(
             operation.precheck,
             inspectionExecutor,
             filterEvaluator,
           );
-          if (!precheckResult) {
-            return runnerFailure(
-              'MIGRATION.PRECHECK_FAILED',
-              `Operation ${operation.id} failed during precheck`,
-              { meta: { operationId: operation.id } },
+          if (failed !== undefined) {
+            return (
+              renameTargetExistsRefusal(operation, failed) ??
+              runnerFailure(
+                'MIGRATION.PRECHECK_FAILED',
+                `Operation ${operation.id} failed during precheck`,
+                { meta: { operationId: operation.id } },
+              )
             );
           }
         }
@@ -475,13 +503,23 @@ export class MongoMigrationRunner {
     inspectionExecutor: MongoInspectionCommandVisitor<Promise<Record<string, unknown>[]>>,
     filterEvaluator: FilterEvaluator,
   ): Promise<boolean> {
+    return (
+      (await this.firstFailingCheck(checks, inspectionExecutor, filterEvaluator)) === undefined
+    );
+  }
+
+  private async firstFailingCheck(
+    checks: readonly MongoMigrationCheck[],
+    inspectionExecutor: MongoInspectionCommandVisitor<Promise<Record<string, unknown>[]>>,
+    filterEvaluator: FilterEvaluator,
+  ): Promise<MongoMigrationCheck | undefined> {
     for (const check of checks) {
       const documents = await check.source.accept(inspectionExecutor);
       const matchFound = documents.some((doc) => filterEvaluator.evaluate(check.filter, doc));
       const passed = check.expect === 'exists' ? matchFound : !matchFound;
-      if (!passed) return false;
+      if (!passed) return check;
     }
-    return true;
+    return undefined;
   }
 
   private async allChecksSatisfied(

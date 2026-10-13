@@ -44,6 +44,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createCollection,
   dataTransform,
+  renameCollection,
   renameField,
   unsetField,
 } from '../src/core/migrations/migration-factories';
@@ -144,6 +145,7 @@ class StubMongoAdapter implements MongoAdapter {
 
 class StubInspectionExecutor implements MongoInspectionCommandVisitor<Promise<Row[]>> {
   readonly calls: AnyMongoInspectionCommand[] = [];
+  collections: Row[] = [];
 
   async listIndexes(command: AnyMongoInspectionCommand): Promise<Row[]> {
     this.calls.push(command);
@@ -151,7 +153,7 @@ class StubInspectionExecutor implements MongoInspectionCommandVisitor<Promise<Ro
   }
   async listCollections(command: AnyMongoInspectionCommand): Promise<Row[]> {
     this.calls.push(command);
-    return [];
+    return this.collections;
   }
 }
 
@@ -851,6 +853,24 @@ describe('MongoMigrationRunner, a field rename stopped because documents already
         operationId: 'field.posts.title.rename(headline).where({"type":"bug"})',
         name: 'field.posts.title.rename(headline).where({"type":"bug"})',
       },
+    });
+  });
+});
+
+describe('MongoMigrationRunner, a collection rename stopped because the new collection exists', () => {
+  it('says that the new collection exists, names both collections, and that nothing was renamed', async () => {
+    const harness = makeHarness();
+    harness.inspectionExecutor.collections = [{ name: 'events' }, { name: 'occasions' }];
+
+    const result = await execute(harness, [renameCollection('events', 'occasions')]);
+
+    expect(harness.ddlCalls).toEqual([]);
+    expect(result.assertNotOk()).toEqual({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      summary:
+        'Operation collection.events.rename(occasions) stopped: collection occasions already exists, so collection events cannot be renamed to it',
+      why: 'Nothing was renamed. If occasions holds nothing you need, drop it, then run the command again; operations that already ran are skipped. If an earlier operation of the same migration created occasions, as a createIndex on occasions does, make renameCollection("events", "occasions") the first operation of its migration.ts, run node on that migration.ts, and then drop occasions and run the command again.',
+      meta: { operationId: 'collection.events.rename(occasions)' },
     });
   });
 });

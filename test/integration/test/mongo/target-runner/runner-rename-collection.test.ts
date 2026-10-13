@@ -196,7 +196,13 @@ describe('MongoMigrationRunner - renameCollection', () => {
 
       const result = await runRename();
 
-      expect(result.ok ? result.value : result.failure.code).toBe('MIGRATION.PRECHECK_FAILED');
+      expect(
+        result.ok ? result.value : { code: result.failure.code, summary: result.failure.summary },
+      ).toEqual({
+        code: 'MIGRATION.PRECHECK_FAILED',
+        summary:
+          'Operation collection.profiles.rename(users) stopped: collection users already exists, so collection profiles cannot be renamed to it',
+      });
       expect({
         names: await collectionNames(),
         profiles: await emails('profiles'),
