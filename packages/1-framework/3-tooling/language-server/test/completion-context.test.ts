@@ -775,6 +775,7 @@ describe('classifyPslCompletionContext at an inclusion', () => {
     ['in the name after a plus and a space', 'model User {\n  + Tim|\n}', 'inclusion'],
     ['in the name on the line of the opening brace', 'model User { +Tim| }', 'inclusion'],
     ['after the plus at the end of the file', 'model User {\n  +|', 'inclusion'],
+    ['in the qualifier of a qualified name', 'model User {\n  +au|th.Tim\n}', 'inclusion'],
   ])('is an inclusion position %s', (_position, source, expected) => {
     expect(inclusionAt(source)).toBe(expected);
   });
@@ -782,6 +783,7 @@ describe('classifyPslCompletionContext at an inclusion', () => {
   it.each([
     ['on the line after a lone plus', 'model User {\n  +\n  |\n}'],
     ['after a complete inclusion and a space', 'model User {\n  +Foo |\n}'],
+    ['after a contract-space qualifier', 'model User {\n  +other:|\n}'],
   ])('is not an inclusion position %s', (_position, source) => {
     expect(inclusionAt(source)).not.toContain('inclusion');
   });

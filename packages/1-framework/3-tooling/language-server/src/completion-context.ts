@@ -313,7 +313,7 @@ export function classifyPslCompletionContext(
   }
 
   const inclusionContext = classifyMixinInclusion({
-    precedingToken: preceding,
+    node: precedingNode,
     offset,
     replacementStartOffset,
   });
@@ -967,21 +967,20 @@ function hasUnsupportedAncestor(node: SyntaxNode | undefined): boolean {
 }
 
 function classifyMixinInclusion(input: {
-  readonly precedingToken: SyntaxToken | undefined;
+  readonly node: SyntaxNode | undefined;
   readonly offset: number;
   readonly replacementStartOffset: number;
 }): MixinInclusionCompletionContext | UnsupportedPslCompletionContext | undefined {
-  const { precedingToken: preceding, offset, replacementStartOffset } = input;
-  if (preceding === undefined || (preceding.kind !== 'Plus' && preceding.kind !== 'Dot')) {
-    return undefined;
-  }
-  const inclusion = preceding.parent.findAncestor(MixinInclusionAst.cast);
+  const { offset, replacementStartOffset } = input;
+  const inclusion = input.node?.findAncestor(MixinInclusionAst.cast);
   if (inclusion === undefined || inclusion.syntax.isOutside(offset)) return undefined;
-  const position = { kind: 'mixinInclusion' as const, offset, replacementStartOffset, inclusion };
-  if (preceding.kind === 'Plus') return position;
   const name = inclusion.name();
-  const namespace = name?.namespace()?.name();
-  return name === undefined || namespace === undefined || name.isOverQualified()
+  if (name?.colon() !== undefined) return undefined;
+  const position = { kind: 'mixinInclusion' as const, offset, replacementStartOffset, inclusion };
+  const dot = name?.dot();
+  if (name === undefined || dot === undefined || offset <= dot.offset) return position;
+  const namespace = name.namespace()?.name();
+  return namespace === undefined || name.isOverQualified()
     ? UNSUPPORTED
     : { ...position, namespace };
 }
