@@ -4,7 +4,9 @@
  * and follows, through to an applied migration: the `node` command `migration plan` prints for a
  * migration with slots, the advice of a failed conversion, of a backfill that missed a row, of a
  * field made required while rows hold NULL, and of the route that plans the failed migration again;
- * and the `node` command `migration new` prints.
+ * and the `node` command `migration new` prints. Advice after a run with `--db` repeats `--db <url>`,
+ * so following it migrates that database, and the `migration plan` command `db update` prints for a
+ * temporary value plans as printed.
  */
 
 import { spawnSync } from 'node:child_process';
