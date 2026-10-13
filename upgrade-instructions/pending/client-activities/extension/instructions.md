@@ -104,7 +104,7 @@ export type ReportResult = ClientActivityResult<'report-run'>;
 
 The registry types the handle side only: `call.intercepted.result` and `call.end({ result })`. In middleware hooks the result of a client activity is `unknown`, even after `result.kind === 'report-run'`, because the hook types must accept unregistered kinds; check or cast the value there.
 
-**Start, use and end it.** Derive the content hash from the plan with `planContentHashOn`; it is the digest `ctx.contentHash(exec)` returns for the statement's execution plan, unless a `beforeEncode` hook changes the parameters. End every handle, in a `finally`, or `close()` waits for it forever:
+**Start, use and end it.** Derive the content hash from the plan with `planContentHashOn`; it is the digest `ctx.contentHash(exec)` returns for the statement's execution plan, as long as no `beforeEncode` hook changes the parameters and the codecs encode deterministically. End every handle, in a `finally`, or `close()` waits for it forever:
 
 ```ts
 import { planContentHashOn, startActivityOn } from '@prisma/orm-postgres/family-runtime/internal/prepared-query';
