@@ -11,16 +11,20 @@ const runnerFailed = {
 
 const FROM = 'a'.repeat(64);
 const PROJECT = '/work/app';
+const FROM_PROJECT = { cwd: PROJECT, configPath: undefined };
 
 describe('the advice for a type change whose cast failed', () => {
   it('points db update to a migration with --convert, from the contract the database is at', () => {
     expect(
-      mapDbUpdateFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        failedCast: { field: 'User.age', reason: 'value' },
-        databaseStorageHash: FROM,
-      }).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          failedCast: { field: 'User.age', reason: 'value' },
+          databaseStorageHash: FROM,
+        },
+        FROM_PROJECT,
+      ).fix,
     ).toBe(
       `A value of field "User.age" cannot be converted to its new type by the database's cast. Plan the change with \`{bin} migration plan --from ${FROM} --convert User.age\`, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,
     );
@@ -37,7 +41,7 @@ describe('the advice for a type change whose cast failed', () => {
             from: FROM,
           },
         },
-        PROJECT,
+        FROM_PROJECT,
       ).fix,
     ).toBe(
       `A value of field "My Model.age" cannot be converted to its new type by the database's cast. The failed apply changed nothing. To convert it, delete \`migrations/app/20261012T1041_lossy\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name lossy --convert 'My Model.age'\` and its other statements except \`--delete 'My Model.age'\`, fill in the migration.ts it writes, and run \`{bin} db migrate\`.`,
@@ -46,14 +50,17 @@ describe('the advice for a type change whose cast failed', () => {
 
   it('says the database has no cast between the types when it has none', () => {
     expect([
-      mapDbUpdateFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        failedCast: { field: 'T.d', reason: 'noCast' },
-      }).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          failedCast: { field: 'T.d', reason: 'noCast' },
+        },
+        FROM_PROJECT,
+      ).fix,
       mapMigrateFailure(
         { ...runnerFailed, failedCast: { field: 'T.d', reason: 'noCast' } },
-        PROJECT,
+        FROM_PROJECT,
       ).fix,
     ]).toEqual([
       expect.stringMatching(
@@ -76,8 +83,7 @@ describe('the advice for a type change whose cast failed', () => {
             from: FROM,
           },
         },
-        PROJECT,
-        { cwd: PROJECT, configPath: undefined },
+        FROM_PROJECT,
       ).fix,
     ).toBe(
       'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts` so that it converts every value, run `node "migrations/app/20261012T1041_age/migration.ts"`, and re-run `{bin} db migrate`.',
@@ -86,8 +92,8 @@ describe('the advice for a type change whose cast failed', () => {
 
   it('keeps the general advice for any other runner failure', () => {
     expect([
-      mapDbUpdateFailure({ ...runnerFailed, conflicts: undefined }).fix,
-      mapMigrateFailure(runnerFailed, PROJECT).fix,
+      mapDbUpdateFailure({ ...runnerFailed, conflicts: undefined }, FROM_PROJECT).fix,
+      mapMigrateFailure(runnerFailed, FROM_PROJECT).fix,
     ]).toEqual([
       'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`',
       'Fix the issue and re-run `{bin} db migrate --to <contract>` — previously applied migrations are preserved.',

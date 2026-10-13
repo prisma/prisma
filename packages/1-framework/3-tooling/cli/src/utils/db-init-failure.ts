@@ -12,6 +12,7 @@ import {
   errorRuntime,
 } from './cli-errors';
 import { runCommandAction } from './next-actions';
+import type { CliInvocation } from './printed-command';
 import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
@@ -79,7 +80,10 @@ function markerMismatchDetail(failure: DbInitFailure): string {
  * The `assertNever` is deliberate: a control-API failure code this does not
  * handle must stop the command rather than degrade into a generic message.
  */
-export function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
+export function mapDbInitFailure(
+  failure: DbInitFailure,
+  invocation: CliInvocation,
+): CliStructuredError {
   if (failure.code === 'PLANNING_FAILED') {
     const conflicts = failure.conflicts ?? [];
     const planningFailed = errorMigrationPlanningFailed({ conflicts });
@@ -125,7 +129,7 @@ export function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
         : undefined;
     const fix =
       failure.rowsWithoutValue !== undefined
-        ? dbInitRowsWithoutValueFix(failure.rowsWithoutValue)
+        ? dbInitRowsWithoutValueFix(failure.rowsWithoutValue, invocation)
         : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
           ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
             'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'

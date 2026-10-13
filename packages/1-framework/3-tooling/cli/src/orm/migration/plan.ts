@@ -19,7 +19,7 @@ import {
 } from '../../utils/contract-ref-forms';
 import { previewBlockHeader } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
-import { selfEmitCommand } from '../../utils/self-emit-command';
+import { selfEmitCommand } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';

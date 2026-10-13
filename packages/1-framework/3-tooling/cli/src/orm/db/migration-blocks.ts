@@ -9,6 +9,7 @@ import {
   renderPreviewStatement,
 } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
+import { type CliInvocation, cliCommand } from '../../utils/printed-command';
 import { appliedStatementBlocks } from '../statement-blocks';
 
 interface PlannedOperation {
@@ -137,13 +138,16 @@ function plannerWarningBlocks(result: MigrationCommandResult): readonly Block[] 
 }
 
 /** The new required fields whose existing rows get a temporary value, and how to choose the value. */
-function temporaryValueBlocks(result: MigrationCommandResult): readonly Block[] {
+function temporaryValueBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+): readonly Block[] {
   const get = result.mode === 'plan' ? 'would get' : 'got';
   return (result.temporaryValues ?? []).map(
     ({ field, value }): Block => ({
       kind: 'summary',
       status: 'warn',
-      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with prisma migration plan ${statementFlag({ verb: 'backfill', text: field })} instead.`,
+      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with ${cliCommand(invocation, ['migration', 'plan', statementFlag({ verb: 'backfill', text: field })])} instead.`,
     }),
   );
 }
@@ -193,13 +197,13 @@ function questionBlocks(result: MigrationCommandResult): readonly Block[] {
   ];
 }
 
-function planBlocks(result: MigrationCommandResult): readonly Block[] {
+function planBlocks(result: MigrationCommandResult, invocation: CliInvocation): readonly Block[] {
   const planned = result.plannedAdvanceRef;
   return [
     { kind: 'summary', status: 'ok', text: planSummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
-    ...temporaryValueBlocks(result),
+    ...temporaryValueBlocks(result, invocation),
     ...appliedStatementBlocks(result.appliedStatements ?? []),
     ...questionBlocks(result),
     {
@@ -260,13 +264,13 @@ function fallbackMarkerBlocks(result: MigrationCommandResult): readonly Block[] 
   ];
 }
 
-function applyBlocks(result: MigrationCommandResult): readonly Block[] {
+function applyBlocks(result: MigrationCommandResult, invocation: CliInvocation): readonly Block[] {
   const advanced = result.advancedRef;
   return [
     { kind: 'summary', status: 'ok', text: applySummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
-    ...temporaryValueBlocks(result),
+    ...temporaryValueBlocks(result, invocation),
     ...appliedStatementBlocks(result.appliedStatements ?? []),
     ...fallbackMarkerBlocks(result),
     ...(advanced === null || advanced === undefined
@@ -284,9 +288,12 @@ function applyBlocks(result: MigrationCommandResult): readonly Block[] {
   ];
 }
 
-/** What a `db init` / `db update` result looks like in human mode. */
-export function migrationResultBlocks(result: MigrationCommandResult): readonly Block[] {
-  return result.mode === 'plan' ? planBlocks(result) : applyBlocks(result);
+/** What a `db init` / `db update` result looks like in human mode; printed commands repeat `invocation`'s `--config`. */
+export function migrationResultBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+): readonly Block[] {
+  return result.mode === 'plan' ? planBlocks(result, invocation) : applyBlocks(result, invocation);
 }
 
 /** Where the user goes next, as typed actions rather than trailing prose. */

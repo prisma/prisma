@@ -65,7 +65,7 @@ export async function executeDbUpdate<TFamilyId extends string, TTargetId extend
 ): Promise<DbUpdateResult> {
   const statements = options.statements ?? [];
   if (statements.some(({ verb }) => verb === 'convert' || verb === 'backfill')) {
-    throw errorStatementNeedsMigrationFile(statements);
+    throw errorStatementNeedsMigrationFile(statements, undefined);
   }
   return (await executeRun<TFamilyId, TTargetId>({
     driver: options.driver,

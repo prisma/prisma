@@ -800,7 +800,7 @@ withTempDir(({ createTempDir }) => {
         const added = await runDbUpdate(ctx);
         expect(added.exitCode, `db update name: ${added.stdout}\n${added.stderr}`).toBe(0);
         expect(`${added.stdout}${added.stderr}`).toContain(
-          `Existing rows got '' in field "User.name". To choose the value, plan a migration with prisma migration plan --backfill User.name instead.`,
+          `Existing rows got '' in field "User.name". To choose the value, plan a migration with prisma-test migration plan --backfill User.name instead.`,
         );
         expect(query(ctx.dbPath, `SELECT id, name FROM "User" ORDER BY id`)).toEqual([
           { id: 1, name: '' },

@@ -1,11 +1,11 @@
-import { basename, relative } from 'pathe';
+import { basename } from 'pathe';
 import { statementFlag } from '../control-api/statements/statement-flag';
 import type {
   FailedTypeChangeCastReport,
   MigrateFailure,
   RowsWithoutValueReport,
 } from '../control-api/types';
-import { selfEmitCommand } from './self-emit-command';
+import { type CliInvocation, cliCommand, printedPath, selfEmitCommand } from './printed-command';
 
 type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
@@ -21,9 +21,18 @@ export function failedCastText(cast: FailedTypeChangeCastReport): string {
   }
 }
 
-/** A `migration plan` command, starting from `from` when it is known. */
-export function migrationPlanCommand(flags: readonly string[], from: string | undefined): string {
-  return `\`{bin} migration plan ${[...(from === undefined ? [] : ['--from', from]), ...flags].join(' ')}\``;
+/** A `migration plan` command as advice prints it, starting from `from` when it is known. */
+export function migrationPlanCommand(
+  invocation: CliInvocation,
+  flags: readonly string[],
+  from: string | undefined,
+): string {
+  return `\`${cliCommand(invocation, ['migration', 'plan', ...(from === undefined ? [] : ['--from', from]), ...flags])}\``;
+}
+
+/** A `db migrate` command as advice prints it. */
+function dbMigrateCommand(invocation: CliInvocation): string {
+  return `\`${cliCommand(invocation, ['db', 'migrate'])}\``;
 }
 
 function backfillFlags(reports: readonly RowsWithoutValueReport[]): readonly string[] {
@@ -40,24 +49,27 @@ function backfillFlags(reports: readonly RowsWithoutValueReport[]): readonly str
 export function dbUpdateFailedCastFix(
   cast: FailedTypeChangeCastReport,
   databaseStorageHash: string | undefined,
+  invocation: CliInvocation,
 ): string {
   const plan = migrationPlanCommand(
+    invocation,
     [statementFlag({ verb: 'convert', text: cast.field })],
     databaseStorageHash,
   );
-  return `${failedCastText(cast)} Plan the change with ${plan}, write the conversion in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`;
+  return `${failedCastText(cast)} Plan the change with ${plan}, write the conversion in the migration.ts it writes, and apply it with ${dbMigrateCommand(invocation)}.`;
 }
 
 /** The way out of rows without a value for `db update`, which plans and applies in one step. */
 export function dbUpdateRowsWithoutValueFix(
   reports: readonly RowsWithoutValueReport[],
   databaseStorageHash: string | undefined,
+  invocation: CliInvocation,
 ): string {
   const flags = backfillFlags(reports);
   const plan =
     flags.length === 0
       ? undefined
-      : `${migrationPlanCommand(flags, databaseStorageHash)}, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\``;
+      : `${migrationPlanCommand(invocation, flags, databaseStorageHash)}, fill the backfill steps in the migration.ts it writes, and apply it with ${dbMigrateCommand(invocation)}`;
   if (reports[0]?.reason === 'nullValues') {
     const keep = 'Set a value in those rows, or keep the field optional.';
     return plan === undefined ? keep : `${keep} Or plan it with ${plan}.`;
@@ -71,43 +83,40 @@ export function dbUpdateRowsWithoutValueFix(
  * The way out of rows without a value for `db init`: a migration plan needs an origin contract,
  * which a database that `db init` never initialized does not have.
  */
-export function dbInitRowsWithoutValueFix(reports: readonly RowsWithoutValueReport[]): string {
+export function dbInitRowsWithoutValueFix(
+  reports: readonly RowsWithoutValueReport[],
+  invocation: CliInvocation,
+): string {
   const field = reports[0]?.field;
   const subject = field === undefined ? 'it' : `field "${field}"`;
-  return `Run \`{bin} db init\` with ${subject} optional. Then make it required with \`{bin} db update\`, which says how to give the rows a value.`;
-}
-
-/** Where the user ran the CLI from, and the `--config` they gave it, as they typed it. */
-export interface CommandLocation {
-  readonly cwd: string;
-  readonly configPath: string | undefined;
+  return `Run \`${cliCommand(invocation, ['db', 'init'])}\` with ${subject} optional. Then make it required with \`${cliCommand(invocation, ['db', 'update'])}\`, which says how to give the rows a value.`;
 }
 
 /**
- * A failed migration as the advice names it: its directory relative to the project, its name, and
- * the `node` command that runs its `migration.ts` from where the user ran the CLI.
+ * A failed migration as the advice names it: its directory relative to where the user ran the
+ * CLI, its name, the `node` command that runs its `migration.ts`, and the CLI invocation the other
+ * printed commands repeat.
  */
 interface FailedMigrationText {
   readonly directory: string;
   readonly name: string;
   readonly from: string;
   readonly nodeCommand: string;
+  readonly invocation: CliInvocation;
 }
 
 function failedMigrationText(
   failed: FailedMigration,
-  projectDir: string,
-  location: CommandLocation,
+  invocation: CliInvocation,
 ): FailedMigrationText {
   const dirName = basename(failed.directory);
+  const directory = printedPath(invocation, failed.directory);
   return {
-    directory: relative(projectDir, failed.directory),
+    directory,
     name: dirName.slice(dirName.indexOf('_') + 1),
     from: failed.from,
-    nodeCommand: selfEmitCommand(
-      `${relative(location.cwd, failed.directory)}/migration.ts`,
-      location.configPath,
-    ),
+    nodeCommand: selfEmitCommand(`${directory}/migration.ts`, invocation.configPath),
+    invocation,
   };
 }
 
@@ -118,8 +127,12 @@ function replan(
 ): string {
   const others =
     except === undefined ? 'its other statements' : `its other statements except ${except}`;
-  const plan = migrationPlanCommand(['--name', failed.name, ...flags], failed.from);
-  return `delete \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan} and ${others}, fill in the migration.ts it writes, and run \`{bin} db migrate\``;
+  const plan = migrationPlanCommand(
+    failed.invocation,
+    ['--name', failed.name, ...flags],
+    failed.from,
+  );
+  return `delete \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan} and ${others}, fill in the migration.ts it writes, and run ${dbMigrateCommand(failed.invocation)}`;
 }
 
 /**
@@ -142,14 +155,15 @@ function failedMigrationFile(failedMigration: FailedMigrationText | undefined): 
 function migrateFailedCastFix(
   cast: FailedTypeChangeCastReport,
   failedMigration: FailedMigrationText | undefined,
+  invocation: CliInvocation,
 ): string {
   if (cast.reason === 'conversion') {
     const { file, run } = failedMigrationFile(failedMigration);
-    return `${failedCastText(cast)} The failed apply changed nothing. Fix the conversion in ${file} so that it converts every value, ${run}, and re-run \`{bin} db migrate\`.`;
+    return `${failedCastText(cast)} The failed apply changed nothing. Fix the conversion in ${file} so that it converts every value, ${run}, and re-run ${dbMigrateCommand(invocation)}.`;
   }
   const convert = statementFlag({ verb: 'convert', text: cast.field });
   if (failedMigration === undefined) {
-    return `${failedCastText(cast)} Plan the type change again with \`{bin} migration plan ${convert}\`, and write the conversion in the migration.ts it writes.`;
+    return `${failedCastText(cast)} Plan the type change again with ${migrationPlanCommand(invocation, [convert], undefined)}, and write the conversion in the migration.ts it writes.`;
   }
   const deleted = `\`${statementFlag({ verb: 'delete', text: cast.field })}\``;
   return `${failedCastText(cast)} The failed apply changed nothing. To convert it, ${replan([convert], failedMigration, deleted)}.`;
@@ -158,6 +172,7 @@ function migrateFailedCastFix(
 function migrateRowsWithoutValueFix(
   reports: readonly RowsWithoutValueReport[],
   failedMigration: FailedMigrationText | undefined,
+  invocation: CliInvocation,
 ): string {
   const [first] = reports;
   if (first?.reason === 'backfillMissedRows') {
@@ -166,7 +181,7 @@ function migrateRowsWithoutValueFix(
       first.field === undefined
         ? 'The backfill step'
         : `The backfill step of field "${first.field}"`;
-    return `${step} left those rows without a value, and the failed apply changed nothing. Make its run fill every row in ${file}, ${run}, and re-run \`{bin} db migrate\`.`;
+    return `${step} left those rows without a value, and the failed apply changed nothing. Make its run fill every row in ${file}, ${run}, and re-run ${dbMigrateCommand(invocation)}.`;
   }
   const flags = backfillFlags(reports);
   const again =
@@ -176,12 +191,12 @@ function migrateRowsWithoutValueFix(
   if (reports.every(({ reason }) => reason === 'nullValues')) {
     const rerun =
       reports.length === 1
-        ? 'Set a value in those rows and re-run `{bin} db migrate`.'
-        : `Set a value in the rows that hold NULL in each of ${fieldList(reports)} and re-run \`{bin} db migrate\`.`;
+        ? `Set a value in those rows and re-run ${dbMigrateCommand(invocation)}.`
+        : `Set a value in the rows that hold NULL in each of ${fieldList(reports)} and re-run ${dbMigrateCommand(invocation)}.`;
     const keep =
       failedMigration === undefined
         ? `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional, and plan the migration again.`
-        : `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional: make ${reports.length === 1 ? 'it' : 'them'} optional in the contract again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${migrationPlanCommand(['--name', failedMigration.name], failedMigration.from)} and its other statements.`;
+        : `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional: make ${reports.length === 1 ? 'it' : 'them'} optional in the contract again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${migrationPlanCommand(invocation, ['--name', failedMigration.name], failedMigration.from)} and its other statements.`;
     return [rerun, ...(again === undefined ? [] : [`Or ${again}.`]), keep].join(' ');
   }
   if (reports[0]?.reason === 'nullValues') {
@@ -202,23 +217,19 @@ function fieldList(reports: readonly RowsWithoutValueReport[]): string {
 }
 
 /**
- * The way out of a failed `db migrate` apply, naming paths relative to `projectDir`; a `node`
- * command runs from `location`.
+ * The way out of a failed `db migrate` apply: every path and command it prints works from where the
+ * CLI ran, with the `--config` it was given.
  */
-export function migrateFix(
-  failure: MigrateFailure,
-  projectDir: string,
-  location: CommandLocation,
-): string {
+export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): string {
   const failedMigration =
     failure.failedMigration === undefined
       ? undefined
-      : failedMigrationText(failure.failedMigration, projectDir, location);
+      : failedMigrationText(failure.failedMigration, invocation);
   if (failure.failedCast !== undefined) {
-    return migrateFailedCastFix(failure.failedCast, failedMigration);
+    return migrateFailedCastFix(failure.failedCast, failedMigration, invocation);
   }
   if (failure.rowsWithoutValue !== undefined) {
-    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration);
+    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);
   }
   return 'Fix the issue and re-run `{bin} db migrate --to <contract>` — previously applied migrations are preserved.';
 }

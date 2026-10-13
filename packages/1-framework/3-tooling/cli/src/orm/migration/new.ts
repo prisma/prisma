@@ -10,7 +10,7 @@ import type { MigrationNewResult } from '../../control-api/operations/migration-
 import { executeMigrationNewCommand } from '../../control-api/operations/migration-new';
 import type { CreateControlClient } from '../../control-api/types';
 import { runCommandAction } from '../../utils/next-actions';
-import { selfEmitCommand } from '../../utils/self-emit-command';
+import { selfEmitCommand } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { appMigrationsDirFor, baseDirFor, contractPathFor, displayPath } from './paths';

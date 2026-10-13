@@ -2,24 +2,23 @@ import { ifDefined } from '@internal/utils/defined';
 import type { MigrateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorPathUnreachable, errorRunnerFailed } from './cli-errors';
-import { type CommandLocation, migrateFix } from './runner-failure-advice';
+import type { CliInvocation } from './printed-command';
+import { migrateFix } from './runner-failure-advice';
 
 /**
- * A `migrate` apply failure as the CLI's structured error; its advice names paths relative to
- * `projectDir`, and a printed `node` command runs from `location`, the project directory with no
- * `--config` when none is given.
+ * A `migrate` apply failure as the CLI's structured error; its advice prints paths and commands
+ * that work from where the CLI ran, with the `--config` it was given.
  */
 export function mapMigrateFailure(
   failure: MigrateFailure,
-  projectDir: string,
-  location: CommandLocation = { cwd: projectDir, configPath: undefined },
+  invocation: CliInvocation,
 ): CliStructuredError {
   if (failure.code === 'MIGRATION_PATH_NOT_FOUND') {
     return errorPathUnreachable(failure);
   }
   return errorRunnerFailed(failure.summary, {
     why: failure.why ?? 'Migration runner failed',
-    fix: migrateFix(failure, projectDir, location),
+    fix: migrateFix(failure, invocation),
     meta: failure.meta ?? {},
     ...ifDefined('cause', failure.cause),
   });

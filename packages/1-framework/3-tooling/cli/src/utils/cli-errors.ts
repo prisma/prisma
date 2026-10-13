@@ -33,6 +33,7 @@ import { statementFlag } from '../control-api/statements/statement-flag';
 import type { StatementText } from '../control-api/statements/statement-text';
 import type { MigrateFailure } from '../control-api/types';
 import { chooseAction, runCommandAction } from './next-actions';
+import { type CliInvocation, cliCommand } from './printed-command';
 
 export {
   errorHashMismatch,
@@ -654,31 +655,31 @@ const MIGRATION_PLAN_VERBS: readonly string[] = ['rename', 'delete', 'convert', 
  * directly and so has no migration file whose slot the user could fill. `statements` are every
  * statement the user gave, in the order given: the `migration plan` command the error suggests
  * carries each one that command accepts, and starts from `databaseStorageHash`, the contract the
- * database is at, when it is known.
+ * database is at, when it is known. Its commands repeat the `--config` of `invocation`.
  */
 export function errorStatementNeedsMigrationFile(
   statements: readonly StatementText[],
+  invocation: CliInvocation | undefined,
   databaseStorageHash?: string,
 ): ActionableCliError {
   const refused = statements.filter(({ verb }) => verb === 'convert' || verb === 'backfill');
   const written = refused.map(({ verb, text }) => `"--${verb} ${text}"`);
   const listed =
     written.length === 1 ? written[0] : `${written.slice(0, -1).join(', ')} and ${written.at(-1)}`;
-  const flags = [
+  const plan = cliCommand(invocation, [
+    'migration',
+    'plan',
     ...(databaseStorageHash === undefined ? [] : ['--from', databaseStorageHash]),
     ...statements.filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb)).map(statementFlag),
-  ].join(' ');
+  ]);
   return new ActionableCliError(
     'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
     `db update cannot carry out ${listed}`,
     {
       why: '--convert and --backfill ask for a migration file with a slot for the code that converts or fills in the values, and db update has no migration file to fill: it applies its plan directly.',
-      fix: `Plan the change with {bin} migration plan ${flags}, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with {bin} db migrate. Or leave out these statements: db update then asks before it loses any data.`,
+      fix: `Plan the change with ${plan}, fill in the migration.ts it writes, run that file with node to write its operations, and apply it with ${cliCommand(invocation, ['db', 'migrate'])}. Or leave out these statements: db update then asks before it loses any data.`,
       nextActions: [
-        runCommandAction(
-          'Plan the change into a migration file to fill in',
-          `{bin} migration plan ${flags}`,
-        ),
+        runCommandAction('Plan the change into a migration file to fill in', plan),
         chooseAction('Or run db update without these statements'),
       ],
       meta: { statements: refused.map(({ verb, text }) => ({ verb, text })) },

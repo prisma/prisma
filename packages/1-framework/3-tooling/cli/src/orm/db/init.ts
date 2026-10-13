@@ -18,6 +18,7 @@ import { CliStructuredError, errorContractValidationFailed } from '../../utils/c
 import { closeQuietly } from '../../utils/command-helpers';
 import { mapDbInitFailure } from '../../utils/db-init-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
+import type { CliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { baseDirFor } from '../migration/paths';
@@ -28,6 +29,8 @@ import { prepareMigrationRun } from './prepare';
 
 function initPresentations(inputs: {
   readonly document: MigrationCommandResult;
+  /** Where the CLI ran and the `--config` it was given, which printed commands repeat. */
+  readonly invocation: CliInvocation;
   readonly contractPath: string;
   readonly database: string | undefined;
   readonly dryRun: boolean;
@@ -45,7 +48,7 @@ function initPresentations(inputs: {
           ...(dryRun ? [{ label: 'mode', value: 'dry run' }] : []),
         ],
       },
-      ...migrationResultBlocks(document),
+      ...migrationResultBlocks(document, inputs.invocation),
     ],
     json: () => document,
     next: () => migrationResultNextActions(document, '{bin} db init'),
@@ -173,7 +176,11 @@ export function createDbInitCommand(createClient: CreateControlClient) {
           onProgress: controlProgressReporter(ctx.report),
         });
         if (!result.ok) {
-          return notOk(normalizeError(mapDbInitFailure(result.failure)));
+          return notOk(
+            normalizeError(
+              mapDbInitFailure(result.failure, { cwd: ctx.cwd, configPath: ctx.configPath }),
+            ),
+          );
         }
 
         const advancementHash =
@@ -238,6 +245,7 @@ export function createDbInitCommand(createClient: CreateControlClient) {
           { data: document },
           initPresentations({
             document,
+            invocation: { cwd: ctx.cwd, configPath: ctx.configPath },
             contractPath: prepared.value.contractDisplayPath,
             database: prepared.value.database,
             dryRun: args.flags.dryRun,

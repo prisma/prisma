@@ -77,13 +77,16 @@ describe('errorStatementNeedsMigrationFile', () => {
   }
 
   it('names the refused statements, and gives migration plan every statement it accepts, in the order given', () => {
-    const envelope = errorStatementNeedsMigrationFile([
-      { verb: 'rename', text: 'User.age:User.years' },
-      { verb: 'allow', text: 'User' },
-      { verb: 'convert', text: 'User.years' },
-      { verb: 'delete', text: 'Legacy' },
-      { verb: 'backfill', text: 'User.email' },
-    ]).toEnvelope();
+    const envelope = errorStatementNeedsMigrationFile(
+      [
+        { verb: 'rename', text: 'User.age:User.years' },
+        { verb: 'allow', text: 'User' },
+        { verb: 'convert', text: 'User.years' },
+        { verb: 'delete', text: 'Legacy' },
+        { verb: 'backfill', text: 'User.email' },
+      ],
+      undefined,
+    ).toEnvelope();
 
     expect(envelope).toMatchObject({
       code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
@@ -99,11 +102,34 @@ describe('errorStatementNeedsMigrationFile', () => {
     });
   });
 
+  it('repeats the --config the CLI was given in each command it prints', () => {
+    const envelope = errorStatementNeedsMigrationFile([{ verb: 'convert', text: 'User.years' }], {
+      cwd: '/work',
+      configPath: 'app/prisma.config.ts',
+    }).toEnvelope();
+
+    expect({
+      fix: envelope.fix,
+      commands: commandOf(
+        errorStatementNeedsMigrationFile([{ verb: 'convert', text: 'User.years' }], {
+          cwd: '/work',
+          configPath: 'app/prisma.config.ts',
+        }),
+      ),
+    }).toEqual({
+      fix: 'Plan the change with {bin} migration plan --convert User.years --config "app/prisma.config.ts", fill in the migration.ts it writes, run that file with node to write its operations, and apply it with {bin} db migrate --config "app/prisma.config.ts". Or leave out these statements: db update then asks before it loses any data.',
+      commands: ['{bin} migration plan --convert User.years --config "app/prisma.config.ts"'],
+    });
+  });
+
   it('quotes a value a shell would read', () => {
-    const error = errorStatementNeedsMigrationFile([
-      { verb: 'rename', text: "Old's:New" },
-      { verb: 'backfill', text: 'User.$(x)' },
-    ]);
+    const error = errorStatementNeedsMigrationFile(
+      [
+        { verb: 'rename', text: "Old's:New" },
+        { verb: 'backfill', text: 'User.$(x)' },
+      ],
+      undefined,
+    );
 
     expect(commandOf(error)).toEqual([
       `{bin} migration plan --rename 'Old'\\''s:New' --backfill 'User.$(x)'`,

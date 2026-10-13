@@ -42,6 +42,7 @@ import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { mapDbUpdateFailure } from '../../utils/db-update-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
+import type { CliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { baseDirFor, migrationsDirFor } from '../migration/paths';
@@ -54,6 +55,8 @@ import { prepareMigrationRun } from './prepare';
 
 function updatePresentations(inputs: {
   readonly document: MigrationCommandResult;
+  /** Where the CLI ran and the `--config` it was given, which printed commands repeat. */
+  readonly invocation: CliInvocation;
   readonly contractPath: string;
   readonly database: string | undefined;
   readonly to: string | undefined;
@@ -77,7 +80,7 @@ function updatePresentations(inputs: {
           ...(dryRun ? [{ label: 'mode', value: 'dry run' }] : []),
         ],
       },
-      ...migrationResultBlocks(document),
+      ...migrationResultBlocks(document, inputs.invocation),
     ],
     json: () => document,
     next: () =>
@@ -262,7 +265,15 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           commandName: 'db update',
           createClient,
         });
-        return notOk(normalizeError(errorStatementNeedsMigrationFile(given, databaseStorageHash)));
+        return notOk(
+          normalizeError(
+            errorStatementNeedsMigrationFile(
+              given,
+              { cwd: ctx.cwd, configPath: ctx.configPath },
+              databaseStorageHash,
+            ),
+          ),
+        );
       }
       const renames = ctx.statements
         .take('rename')
@@ -355,7 +366,11 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         });
         if (!result.ok) {
           reportPlannerWarnings(result.failure.warnings ?? []);
-          return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
+          return notOk(
+            normalizeError(
+              mapDbUpdateFailure(result.failure, { cwd: ctx.cwd, configPath: ctx.configPath }),
+            ),
+          );
         }
 
         const advancementHash =
@@ -427,6 +442,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           { data: document },
           updatePresentations({
             document,
+            invocation: { cwd: ctx.cwd, configPath: ctx.configPath },
             contractPath: prepared.value.contractDisplayPath,
             database: prepared.value.database,
             to: args.flags.to,

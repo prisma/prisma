@@ -249,10 +249,10 @@ describe('the migration plan command the db update refusal prints', () => {
       app: { models: { User: { fields: ['years'], fieldTypes: { years: int } } } },
     });
     const [command] = (
-      errorStatementNeedsMigrationFile([
-        rename('User.age:User.years'),
-        convert('User.years'),
-      ]).toEnvelope().nextActions ?? []
+      errorStatementNeedsMigrationFile(
+        [rename('User.age:User.years'), convert('User.years')],
+        undefined,
+      ).toEnvelope().nextActions ?? []
     ).flatMap((action) =>
       'command' in action && typeof action.command === 'string' ? [action.command] : [],
     );

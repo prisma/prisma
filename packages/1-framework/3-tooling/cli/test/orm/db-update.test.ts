@@ -227,12 +227,12 @@ describe('db update --rename', () => {
     expect(dryRun.presented?.presentation.human).toContainEqual({
       kind: 'summary',
       status: 'warn',
-      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma migration plan --backfill User.email instead.`,
+      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email instead.`,
     });
     expect(applied.presented?.presentation.human).toContainEqual({
       kind: 'summary',
       status: 'warn',
-      text: `Existing rows got '' in field "User.email". To choose the value, plan a migration with prisma migration plan --backfill User.email instead.`,
+      text: `Existing rows got '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email instead.`,
     });
     expect(applied.presented?.data).toMatchObject({ temporaryValues });
   });

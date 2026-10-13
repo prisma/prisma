@@ -13,17 +13,21 @@ const runnerFailed = {
 const DATABASE = 'a'.repeat(64);
 const FROM = 'b'.repeat(64);
 const PROJECT = '/work/app';
+const FROM_PROJECT = { cwd: PROJECT, configPath: undefined };
 const failedMigration = { directory: `${PROJECT}/migrations/app/20261012T1200_note`, from: FROM };
 
 describe('the advice for rows a required field has no value for', () => {
   it('on db update, says to set the values, keep the field optional, or plan a backfill from the database contract', () => {
     expect(
-      mapDbUpdateFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
-        databaseStorageHash: DATABASE,
-      }).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
+          databaseStorageHash: DATABASE,
+        },
+        FROM_PROJECT,
+      ).fix,
     ).toBe(
       `Set a value in those rows, or keep the field optional. Or plan it with \`{bin} migration plan --from ${DATABASE} --backfill Item.note\`, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`.`,
     );
@@ -31,17 +35,20 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('on db update, names a backfill for every field of the plan that needs one, each once', () => {
     expect(
-      mapDbUpdateFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        rowsWithoutValue: [
-          { field: 'My Model.code', reason: 'newField' },
-          { field: 'My Model.role', reason: 'newField' },
-          { field: 'My Model.code', reason: 'newField' },
-          { field: undefined, reason: 'nullValues' },
-        ],
-        databaseStorageHash: DATABASE,
-      }).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [
+            { field: 'My Model.code', reason: 'newField' },
+            { field: 'My Model.role', reason: 'newField' },
+            { field: 'My Model.code', reason: 'newField' },
+            { field: undefined, reason: 'nullValues' },
+          ],
+          databaseStorageHash: DATABASE,
+        },
+        FROM_PROJECT,
+      ).fix,
     ).toBe(
       `Plan it with \`{bin} migration plan --from ${DATABASE} --backfill 'My Model.code' --backfill 'My Model.role'\`, fill the backfill steps in the migration.ts it writes, and apply it with \`{bin} db migrate\`. Or make the field optional.`,
     );
@@ -49,16 +56,22 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('suggests no backfill when the contract names no field', () => {
     expect([
-      mapDbUpdateFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        rowsWithoutValue: [{ field: undefined, reason: 'nullValues' }],
-      }).fix,
-      mapDbUpdateFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        rowsWithoutValue: [{ field: undefined, reason: 'newField' }],
-      }).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: undefined, reason: 'nullValues' }],
+        },
+        FROM_PROJECT,
+      ).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: undefined, reason: 'newField' }],
+        },
+        FROM_PROJECT,
+      ).fix,
     ]).toEqual([
       'Set a value in those rows, or keep the field optional.',
       'Make the field optional.',
@@ -67,11 +80,14 @@ describe('the advice for rows a required field has no value for', () => {
 
   it('on db init, says to initialize with the field optional and make it required with db update', () => {
     expect(
-      mapDbInitFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        rowsWithoutValue: [{ field: 'Item.code', reason: 'newField' }],
-      }).fix,
+      mapDbInitFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: 'Item.code', reason: 'newField' }],
+        },
+        FROM_PROJECT,
+      ).fix,
     ).toBe(
       'Run `{bin} db init` with field "Item.code" optional. Then make it required with `{bin} db update`, which says how to give the rows a value.',
     );
@@ -84,14 +100,14 @@ describe('the advice for rows a required field has no value for', () => {
     ] as const;
     const replan = `delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.role --backfill Item.code\` and its other statements, fill in the migration.ts it writes, and run \`{bin} db migrate\``;
     expect([
-      mapMigrateFailure({ ...runnerFailed, rowsWithoutValue, failedMigration }, PROJECT).fix,
+      mapMigrateFailure({ ...runnerFailed, rowsWithoutValue, failedMigration }, FROM_PROJECT).fix,
       mapMigrateFailure(
         {
           ...runnerFailed,
           rowsWithoutValue: [{ field: 'Item.role', reason: 'nullValues' }, rowsWithoutValue[1]],
           failedMigration,
         },
-        PROJECT,
+        FROM_PROJECT,
       ).fix,
     ]).toEqual([
       `The failed apply changed nothing. To keep the field required, ${replan}. Or make the field optional, and plan it again.`,
@@ -106,7 +122,7 @@ describe('the advice for rows a required field has no value for', () => {
             { field: 'Item.nick', reason: 'nullValues' },
           ],
         },
-        PROJECT,
+        FROM_PROJECT,
       ).fix,
     ).toBe(
       'Set a value in the rows that hold NULL in each of "Item.note", "Item.nick" and re-run `{bin} db migrate`. Or keep those fields optional, and plan the migration again.',
@@ -121,11 +137,51 @@ describe('the advice for rows a required field has no value for', () => {
           rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
           failedMigration,
         },
-        PROJECT,
+        FROM_PROJECT,
       ).fix,
     ).toBe(
       `Set a value in those rows and re-run \`{bin} db migrate\`. Or delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note\` and its other statements, fill in the migration.ts it writes, and run \`{bin} db migrate\`. Or keep the field optional: make it optional in the contract again, delete \`migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note\` and its other statements.`,
     );
+  });
+
+  it('on db migrate from another directory with --config, prints every path and command so it works from there', () => {
+    expect(
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
+          failedMigration,
+        },
+        { cwd: '/work', configPath: 'app/prisma.config.ts' },
+      ).fix,
+    ).toBe(
+      `Set a value in those rows and re-run \`{bin} db migrate --config "app/prisma.config.ts"\`. Or delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name note --backfill Item.note --config "app/prisma.config.ts"\` and its other statements, fill in the migration.ts it writes, and run \`{bin} db migrate --config "app/prisma.config.ts"\`. Or keep the field optional: make it optional in the contract again, delete \`app/migrations/app/20261012T1200_note\` (copy any code you wrote in its migration.ts first), and plan it again with \`{bin} migration plan --from ${FROM} --name note --config "app/prisma.config.ts"\` and its other statements.`,
+    );
+  });
+
+  it('on db update and db init with --config, repeats it in every command', () => {
+    const withConfig = { cwd: '/work', configPath: 'app/prisma.config.ts' };
+    expect([
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'newField' }],
+        },
+        withConfig,
+      ).fix,
+      mapDbInitFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
+        },
+        withConfig,
+      ).fix,
+    ]).toEqual([
+      'Plan it with `{bin} migration plan --backfill Item.note --config "app/prisma.config.ts"`, fill the backfill steps in the migration.ts it writes, and apply it with `{bin} db migrate --config "app/prisma.config.ts"`. Or make the field optional.',
+      'Run `{bin} db init --config "app/prisma.config.ts"` with field "Item.note" optional. Then make it required with `{bin} db update --config "app/prisma.config.ts"`, which says how to give the rows a value.',
+    ]);
   });
 
   it('on db migrate, says the backfill step left the rows without a value and to fix the step, not to plan again', () => {
@@ -136,22 +192,24 @@ describe('the advice for rows a required field has no value for', () => {
           rowsWithoutValue: [{ field: 'Item.note', reason: 'backfillMissedRows' }],
           ...(failed === undefined ? {} : { failedMigration: failed }),
         },
-        PROJECT,
         { cwd: '/work', configPath: 'app/prisma.config.ts' },
       ).fix;
     expect([advice(failedMigration), advice(undefined)]).toEqual([
-      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in `migrations/app/20261012T1200_note/migration.ts`, run `node "app/migrations/app/20261012T1200_note/migration.ts" --config "app/prisma.config.ts"`, and re-run `{bin} db migrate`.',
-      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate`.',
+      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in `app/migrations/app/20261012T1200_note/migration.ts`, run `node "app/migrations/app/20261012T1200_note/migration.ts" --config "app/prisma.config.ts"`, and re-run `{bin} db migrate --config "app/prisma.config.ts"`.',
+      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate --config "app/prisma.config.ts"`.',
     ]);
   });
 
   it('never mentions schema drift', () => {
     expect(
-      mapDbUpdateFailure({
-        ...runnerFailed,
-        conflicts: undefined,
-        rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
-      }).fix,
+      mapDbUpdateFailure(
+        {
+          ...runnerFailed,
+          conflicts: undefined,
+          rowsWithoutValue: [{ field: 'Item.note', reason: 'nullValues' }],
+        },
+        FROM_PROJECT,
+      ).fix,
     ).not.toContain('drift');
   });
 });
