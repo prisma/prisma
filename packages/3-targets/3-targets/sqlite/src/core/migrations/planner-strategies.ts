@@ -293,7 +293,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
       rebuild.lossyColumns.push(column);
       continue;
     }
-    rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:using` };
+    rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:convert` };
     rebuild.classes.push('data');
   }
 

@@ -38,7 +38,7 @@ export function placeholder(slot: string): never {
 }
 ```
 
-The slot string names what the author must write. A slot the planner places for a statement is named by the field as a statement names it, then the slot: `User.age:using` for a `--convert` conversion, `User.name:check` and `User.name:run` for a `--backfill` step. A slot in a hand-written or older scaffold follows `{migrationName}:{slot}`, for example `backfill-product-status:check.source`. Either way the error message is self-locating: the author knows which field or migration, and which slot, to edit.
+The slot string names what the author must write. A slot the planner places for a statement is named by the field as a statement names it, then the slot: `User.age:convert` for a `--convert` conversion, and `User.name:check` and `User.name:run` for a `--backfill` step. The part after the colon names the statement and what the author writes, not a database's syntax, so a conversion slot is `:convert` both in a Postgres `using` and in a SQLite copy expression. A slot in a hand-written or older scaffold follows `{migrationName}:{slot}`, for example `backfill-product-status:check.source`. Either way the error message is self-locating: the author knows which field or migration, and which slot, to edit.
 
 ### Why `never`
 

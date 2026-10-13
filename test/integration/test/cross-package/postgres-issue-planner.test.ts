@@ -428,7 +428,7 @@ describe('planIssues', () => {
         expect.objectContaining({
           factoryName: 'alterColumnType',
           operationClass: 'data',
-          using: { kind: 'placeholder', slot: 'User.age:using' },
+          using: { kind: 'placeholder', slot: 'User.age:convert' },
         }),
       ]);
     });

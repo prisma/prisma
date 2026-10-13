@@ -3,7 +3,7 @@ import { isUnfilledSlot, slotSource, sqlOfSlot } from '../src/core/migrations/sq
 import { createSqlTextSources } from '../src/core/migrations/sql-text-sources';
 
 const written = { kind: 'sql', sql: '"age"::int4' } as const;
-const unfilled = { kind: 'placeholder', slot: 'User.age:using' } as const;
+const unfilled = { kind: 'placeholder', slot: 'User.age:convert' } as const;
 
 describe('SqlSlot', () => {
   it('renders written SQL as a sql template and an unfilled slot as a placeholder call', () => {
@@ -12,7 +12,7 @@ describe('SqlSlot', () => {
       sources: [slotSource(written, sql), slotSource(unfilled, sql)],
       imports: sql.imports(),
     }).toEqual({
-      sources: ['sql`"age"::int4`', 'placeholder("User.age:using")'],
+      sources: ['sql`"age"::int4`', 'placeholder("User.age:convert")'],
       imports: [{ moduleSpecifier: '@internal/postgres/migration', symbol: 'sql' }],
     });
   });

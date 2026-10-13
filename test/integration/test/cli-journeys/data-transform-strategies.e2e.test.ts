@@ -380,7 +380,7 @@ withTempDir(({ createTempDir }) => {
         const migrationDir = join(migrationsDir, dirName ?? '');
         const migrationTsPath = join(migrationDir, 'migration.ts');
         const scaffold = readFileSync(migrationTsPath, 'utf-8');
-        const slot = /placeholder\((['"])User\.score:using\1\)/;
+        const slot = /placeholder\((['"])User\.score:convert\1\)/;
         expect(scaffold).toMatch(slot);
         expect(scaffold).not.toContain('dataTransform');
         expect(JSON.parse(readFileSync(join(migrationDir, 'ops.json'), 'utf-8'))).toEqual([]);

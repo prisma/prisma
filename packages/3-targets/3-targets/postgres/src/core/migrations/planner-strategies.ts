@@ -313,7 +313,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
         type: renderColumnAlterType(expected, ctx.types),
         using: {
           kind: 'placeholder',
-          slot: `${converted.text}:using`,
+          slot: `${converted.text}:convert`,
         },
         dataTypes: ctx.dataTypes,
       }),

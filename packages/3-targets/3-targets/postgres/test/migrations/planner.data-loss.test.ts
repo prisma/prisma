@@ -575,7 +575,7 @@ describe('Postgres planner, convert and backfill statements', () => {
     expect(result.dataLoss).toEqual([]);
     const rendered = result.plan.renderTypeScript((specifier) => specifier);
     expect(rendered).toContain(
-      'this.alterColumnType({ schema: "public", table: "User", column: "age", type: "int4", using: placeholder("User.age:using") })',
+      'this.alterColumnType({ schema: "public", table: "User", column: "age", type: "int4", using: placeholder("User.age:convert") })',
     );
     expect(rendered).not.toContain('dataTransform');
     expect(rendered).toMatch(/import \{[^}]*placeholder[^}]*\}/);

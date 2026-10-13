@@ -251,7 +251,7 @@ describe('AlterColumnTypeCall', () => {
   it('is a data change when it converts with a USING clause and nothing says otherwise', () => {
     expect([
       alter({ using: { kind: 'sql', sql: '"age"::int8' } }).operationClass,
-      alter({ using: { kind: 'placeholder', slot: 'User.age:using' } }).operationClass,
+      alter({ using: { kind: 'placeholder', slot: 'User.age:convert' } }).operationClass,
       alter({ using: { kind: 'sql', sql: '"age"::int8' }, operationClass: 'destructive' })
         .operationClass,
     ]).toEqual(['data', 'data', 'destructive']);
@@ -344,7 +344,7 @@ describe('AlterColumnTypeCall', () => {
     const { lowerer } = recordingCheckLowerer();
     const call = alter({
       operationClass: 'data',
-      using: { kind: 'placeholder', slot: 'User.age:using' },
+      using: { kind: 'placeholder', slot: 'User.age:convert' },
     });
     await expect(call.toOp(lowerer)).rejects.toMatchObject({
       code: 'MIGRATION.UNFILLED_PLACEHOLDER',
@@ -384,9 +384,9 @@ describe('AlterColumnTypeCall', () => {
   });
 
   it('renders an unfilled USING slot as a placeholder call, and imports placeholder', () => {
-    const call = alter({ using: { kind: 'placeholder', slot: 'User.age:using' } });
+    const call = alter({ using: { kind: 'placeholder', slot: 'User.age:convert' } });
     expect(call.renderTypeScript()).toBe(
-      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: placeholder("User.age:using") })',
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: placeholder("User.age:convert") })',
     );
     expect(call.importRequirements()).toEqual([expect.objectContaining({ symbol: 'placeholder' })]);
   });

@@ -199,7 +199,7 @@ withTempDir(({ createTempDir }) => {
         expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
         expect(parseJsonOutput(planned)).toMatchObject({ pendingPlaceholders: true });
 
-        const slot = /placeholder\((['"])User\.age:using\1\)/;
+        const slot = /placeholder\((['"])User\.age:convert\1\)/;
         await fillAndApply(ctx, plannedDir(ctx, 'age_to_int'), (scaffold) => {
           expect(scaffold).toMatch(slot);
           return scaffold.replace(slot, `'CAST("age" AS INTEGER)'`);
@@ -259,7 +259,7 @@ withTempDir(({ createTempDir }) => {
           join(ctx.testDir, 'migrations', 'app', latestMigrationDirName(ctx)),
           (scaffold) =>
             scaffold.replace(
-              /placeholder\((['"])User\.age:using\1\)/,
+              /placeholder\((['"])User\.age:convert\1\)/,
               `"CASE WHEN \\"age\\" = 'ten' THEN 10 ELSE CAST(\\"age\\" AS INTEGER) END"`,
             ),
         );
@@ -352,7 +352,10 @@ withTempDir(({ createTempDir }) => {
           ctx,
           join(ctx.testDir, 'migrations', 'app', latestMigrationDirName(ctx)),
           (scaffold) =>
-            scaffold.replace(/placeholder\((['"])User\.age:using\1\)/, `'CAST("age" AS INTEGER)'`),
+            scaffold.replace(
+              /placeholder\((['"])User\.age:convert\1\)/,
+              `'CAST("age" AS INTEGER)'`,
+            ),
         );
         expect(query(ctx.dbPath, `SELECT id, age FROM "User"`)).toEqual([{ id: 1, age: 4 }]);
       },

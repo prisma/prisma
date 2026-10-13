@@ -785,12 +785,12 @@ describe('RecreateTableCall copy expressions', () => {
   });
 
   it('is an unfilled placeholder while a slot is unfilled, and imports placeholder', async () => {
-    const call = rebuild({ age: { kind: 'placeholder', slot: 'User.age:using' } });
+    const call = rebuild({ age: { kind: 'placeholder', slot: 'User.age:convert' } });
     await expect(call.toOp(stubLowerer('SQL'))).rejects.toMatchObject({
       code: 'MIGRATION.UNFILLED_PLACEHOLDER',
     });
     expect(call.renderTypeScript()).toContain(
-      'copyExpressions: { "age": placeholder("User.age:using") }',
+      'copyExpressions: { "age": placeholder("User.age:convert") }',
     );
     expect(call.importRequirements()).toEqual([expect.objectContaining({ symbol: 'placeholder' })]);
   });

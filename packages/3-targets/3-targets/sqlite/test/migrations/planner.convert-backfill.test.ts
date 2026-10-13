@@ -206,7 +206,7 @@ describe('SQLite planner, a type change', () => {
     ]);
     expect(result.dataLoss).toEqual([]);
     expect(rendered(textAge, intAge, { statements: [statement('convert', 'age')] })).toContain(
-      'copyExpressions: { "age": placeholder("User.age:using") }',
+      'copyExpressions: { "age": placeholder("User.age:convert") }',
     );
   });
 });

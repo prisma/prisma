@@ -2,7 +2,7 @@
  * `--convert`, `--backfill` and the temporary value on Postgres, end to end on a table with rows.
  *
  * A lossy type change is refused without a statement; `--delete` plans the direct alter, and
- * `--convert` writes a `using` slot that, filled and re-run, converts the rows. A new required field
+ * `--convert` writes a `User.age:convert` slot in `using` that, filled and re-run, converts the rows. A new required field
  * gets a temporary value without a statement, and a backfill step with `--backfill`. An optional
  * field made required while rows hold NULL fails naming the rows, and applies once they hold
  * values. `db update --convert` is refused, and the `migration plan` command it prints, run as
@@ -92,7 +92,7 @@ async function expectSettled(ctx: JourneyContext): Promise<void> {
 }
 
 const fillUsing = (expression: string) => (scaffold: string) =>
-  scaffold.replace(/placeholder\((['"])User\.age:using\1\)/, `'${expression}'`);
+  scaffold.replace(/placeholder\((['"])User\.age:convert\1\)/, `'${expression}'`);
 
 withTempDir(({ createTempDir }) => {
   describe('Postgres: a lossy type change', () => {
