@@ -35,6 +35,7 @@ function interpret(source: string) {
   const bound = bindPslSchema(source, {
     sourceId: SOURCE_ID,
     context: {
+      defaultNamespaceId: 'public',
       composedExtensions: [],
       composedExtensionContracts: new Map(),
       authoringContributions: {

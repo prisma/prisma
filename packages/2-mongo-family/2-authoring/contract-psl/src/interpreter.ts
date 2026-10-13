@@ -34,7 +34,6 @@ import {
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
@@ -223,7 +222,7 @@ function validateNamespaceBlocksForMongoTarget(input: {
     for (const { node, span } of namespace.declarations) {
       input.diagnostics.push({
         code: 'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
-        message: `Mongo does not support \`namespace ${namespace.name} { … }\` blocks (the database is bound by the connection string; declare models at the document top level instead).`,
+        message: `Mongo does not support \`namespace ${node.name()?.name() ?? namespace.name} { … }\` blocks (the database is bound by the connection string; declare models at the document top level instead).`,
         ...diagnosticSource(input.sources, node.syntax).at(span),
       });
     }
@@ -321,10 +320,6 @@ type BaseDeclaration = {
   readonly source: DiagnosticSource;
   readonly span: PslSpan;
 };
-
-function mongoCrossRef(modelName: string): CrossReference {
-  return crossRef(modelName, UNBOUND_NAMESPACE_ID);
-}
 
 function isStringTyped(
   field: FieldSymbol,
@@ -424,6 +419,7 @@ function resolvePolymorphism(input: {
   physicalNames: ReadonlyMap<ModelSymbol | FieldSymbol, string>;
   indexSources: ReadonlyMap<MongoIndex, DiagnosticSource>;
   sources: PslSources;
+  namespaceId: string;
 }): {
   models: Record<string, MongoModelEntry>;
   roots: Record<string, CrossReference>;
@@ -483,7 +479,7 @@ function resolvePolymorphism(input: {
         });
         continue;
       }
-      variants[baseDecl.value] = mongoCrossRef(variant.name);
+      variants[baseDecl.value] = crossRef(variant.name, input.namespaceId);
     }
 
     if (Object.keys(variants).length === 0) {
@@ -536,7 +532,7 @@ function resolvePolymorphism(input: {
         ...patched,
         [variantName]: {
           ...variantModel,
-          base: mongoCrossRef(baseName),
+          base: crossRef(baseName, input.namespaceId),
           storage: { collection: baseCollection },
         },
       };
@@ -545,7 +541,7 @@ function resolvePolymorphism(input: {
     const variantCollectionName = physicalName(physicalNames, variant);
     if (roots[variantCollectionName]?.model === variantName) {
       if (variantCollectionName === baseCollection && baseModel) {
-        roots = { ...roots, [variantCollectionName]: mongoCrossRef(baseName) };
+        roots = { ...roots, [variantCollectionName]: crossRef(baseName, input.namespaceId) };
       } else {
         roots = Object.fromEntries(
           Object.entries(roots).filter(([key]) => key !== variantCollectionName),
@@ -1097,6 +1093,7 @@ function resolvePresetExecutionDefaults(input: {
   readonly models: Readonly<Record<string, MongoModelEntry>>;
   readonly sources: PslSources;
   readonly diagnostics: PslDiagnosticCollector;
+  readonly namespaceId: string;
 }): ExecutionMutationDefault[] {
   const byRef = new Map<
     string,
@@ -1126,7 +1123,7 @@ function resolvePresetExecutionDefaults(input: {
     if (existing === undefined) {
       byRef.set(refKey, { owner: preset, phasesKey });
       resolved.push({
-        ref: { namespace: UNBOUND_NAMESPACE_ID, entry: collection, field: preset.storedField },
+        ref: { namespace: input.namespaceId, entry: collection, field: preset.storedField },
         ...preset.phases,
       });
       continue;
@@ -1172,7 +1169,7 @@ function resolveNonRelationField(
     const valueSet: ValueSetRef = {
       plane: 'domain',
       entityKind: 'enum',
-      namespaceId: UNBOUND_NAMESPACE_ID,
+      namespaceId: resolution.namespace.id,
       entityName: resolution.symbol.name,
     };
     return {
@@ -1349,15 +1346,15 @@ export function interpretPslDocumentToMongoContract(
     dataTypes: input.dataTypes,
   });
   diagnostics.push(...blockDiagnostics);
-  const topLevel = symbolTable.topLevel;
+  const { defaultNamespace } = symbolTable;
   validateNamespaceBlocksForMongoTarget({
-    namespaces: Object.values(topLevel.namespaces),
+    namespaces: Object.values(symbolTable.namespaces),
     sources,
     binder,
     diagnostics,
   });
-  const allModels: ModelSymbol[] = Object.values(topLevel.models);
-  const allCompositeTypes: CompositeTypeSymbol[] = Object.values(topLevel.compositeTypes);
+  const allModels: ModelSymbol[] = Object.values(defaultNamespace.models);
+  const allCompositeTypes: CompositeTypeSymbol[] = Object.values(defaultNamespace.compositeTypes);
   const specContextFor = (model: ModelSymbol): AttributeSpecContext => ({
     symbols: symbolTable,
     model,
@@ -1380,12 +1377,14 @@ export function interpretPslDocumentToMongoContract(
     'enum',
     ...claimedBlockKeywords(input.authoringContributions?.pslBlockDescriptors),
   ]);
-  for (const block of Object.values(topLevel.blocks)) {
+  for (const block of Object.values(defaultNamespace.blocks)) {
     if (!blockKeywords.has(block.keyword)) {
       diagnostics.push(unsupportedBlockDiagnostic(block, sources));
     }
   }
-  const topLevelEnumSymbols = Object.values(topLevel.blocks).filter((b) => b.keyword === 'enum');
+  const topLevelEnumSymbols = Object.values(defaultNamespace.blocks).filter(
+    (b) => b.keyword === 'enum',
+  );
 
   const builtEnums = processEnumDeclarations({
     enumSymbols: topLevelEnumSymbols,
@@ -1492,7 +1491,7 @@ export function interpretPslDocumentToMongoContract(
           );
 
           relations[field.name] = {
-            to: mongoCrossRef(target.name),
+            to: crossRef(target.name, defaultNamespace.id),
             cardinality: 'N:1' as const,
             nullable: field.optional,
             on: {
@@ -1606,7 +1605,7 @@ export function interpretPslDocumentToMongoContract(
     } else if (!existingColl) {
       collections[collectionName] = modelIndexes.length > 0 ? { indexes: modelIndexes } : {};
     }
-    roots[collectionName] = mongoCrossRef(pslModel.name);
+    roots[collectionName] = crossRef(pslModel.name, defaultNamespace.id);
   }
 
   const valueObjects: Record<string, ContractValueObject> = {};
@@ -1631,6 +1630,7 @@ export function interpretPslDocumentToMongoContract(
     foreignKeys: allFkRelations,
     candidates: backrelationCandidates,
     invalidFkPairings,
+    namespaceId: defaultNamespace.id,
   });
   diagnostics.push(...paired.diagnostics);
   for (const { modelName, fieldName, relation } of paired.relations) {
@@ -1648,6 +1648,7 @@ export function interpretPslDocumentToMongoContract(
     diagnostics,
   );
   const polyResult = resolvePolymorphism({
+    namespaceId: defaultNamespace.id,
     sources,
     models,
     roots,
@@ -1664,6 +1665,7 @@ export function interpretPslDocumentToMongoContract(
     models: polyResult.models,
     sources,
     diagnostics,
+    namespaceId: defaultNamespace.id,
   });
 
   if (
@@ -1749,7 +1751,7 @@ export function interpretPslDocumentToMongoContract(
     roots: polyResult.roots,
     domain: {
       namespaces: {
-        [UNBOUND_NAMESPACE_ID]: {
+        [defaultNamespace.id]: {
           models: polyResult.models,
           ...(Object.keys(valueObjects).length > 0 ? { valueObjects } : {}),
           ...(hasEnums ? { enum: builtEnums } : {}),

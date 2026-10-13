@@ -47,6 +47,7 @@ function contextForInterpretOptions(
   }
   return {
     composedExtensions: [],
+    defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       type: { ...scalarsFromCodecIds, ...authoring?.type },

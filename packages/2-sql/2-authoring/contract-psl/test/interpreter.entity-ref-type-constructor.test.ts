@@ -507,8 +507,12 @@ model AuthSession {
 `,
       'schema.prisma',
     );
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
-    const field = symbolTable.topLevel.models['AuthSession']?.fields['aal'];
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
+    const field = symbolTable.defaultNamespace.models['AuthSession']?.fields['aal'];
     expect(field).toBeDefined();
     if (!field) return;
 

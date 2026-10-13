@@ -21,6 +21,7 @@ async function loadSqlite(pslSchema: string, schemaPath = newSchemaPath()) {
     createNamespace: sqliteCreateNamespace,
   }).source.load({
     composedExtensions: [],
+    defaultNamespaceId: sqliteStack.target.defaultNamespaceId,
     composedExtensionContracts: new Map(),
     authoringContributions: sqliteStack.authoringContributions,
     codecLookup: sqliteStack.codecLookup,

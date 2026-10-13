@@ -37,8 +37,9 @@ function makeCtx(sources: PslSources): FieldAttributeCtx {
   const { symbolTable } = buildSymbolTable({
     documents: [document],
     sources: modelSources,
+    defaultNamespaceId: 'public',
   });
-  const selfModel = symbolTable.topLevel.models['M'];
+  const selfModel = symbolTable.defaultNamespace.models['M'];
   if (!selfModel) throw new Error('expected model M in the symbol table');
   const field = selfModel.fields['id'];
   if (!field) throw new Error('expected field id on model M');
@@ -56,8 +57,9 @@ function schemaArg(schema: string, attribute: string, argName?: string) {
   const { symbolTable } = buildSymbolTable({
     documents: [document],
     sources: registry,
+    defaultNamespaceId: 'public',
   });
-  const model = symbolTable.topLevel.models['Post'];
+  const model = symbolTable.defaultNamespace.models['Post'];
   if (!model) throw new Error('expected model Post');
   const field = model.fields['author'];
   if (!field) throw new Error('expected field author');
@@ -792,8 +794,9 @@ describe('entityRef', () => {
     const { symbolTable } = buildSymbolTable({
       documents: [document],
       sources,
+      defaultNamespaceId: 'public',
     });
-    const selfModel = symbolTable.topLevel.models['M'];
+    const selfModel = symbolTable.defaultNamespace.models['M'];
     const field = selfModel?.fields['id'];
     const attribute = field?.node.attributes()[Symbol.iterator]().next().value;
     const expr = attribute?.argList()?.args()[Symbol.iterator]().next().value?.value();
@@ -821,7 +824,7 @@ describe('entityRef', () => {
 
   it('parses a bare identifier into its resolved model', () => {
     const { expr, ctx } = referenceArg('M');
-    const reference = { declaration: ctx.selfModel, namespace: undefined };
+    const reference = { declaration: ctx.selfModel, namespace: ctx.symbols.defaultNamespace };
     const result = entityRef({ kind: 'model' }).parse(expr, ctx);
 
     expect(result.ok).toBe(true);

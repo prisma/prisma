@@ -91,6 +91,7 @@ const scalarTypeConstructors = Object.fromEntries(
 function interpretWithSymbolDiagnostics(source: string) {
   const { document, sources } = parse(source, 'psl-rls-operations.test.psl');
   const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -108,6 +109,7 @@ function interpretWithSymbolDiagnostics(source: string) {
     sourceId: 'psl-rls-operations.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

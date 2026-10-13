@@ -6,7 +6,11 @@ import { postgresDataTypeSupport } from './fixtures/postgres-data-type-support';
 
 function specContext() {
   const { document, sources } = parse('', 'block-documentation.test.psl');
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   return blockSpecContext({ symbols: symbolTable, dataTypes: postgresDataTypeSupport });
 }
 

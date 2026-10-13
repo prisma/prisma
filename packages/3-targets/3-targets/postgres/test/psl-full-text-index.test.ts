@@ -74,6 +74,7 @@ const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor>
 function interpret(source: string) {
   const { document, sources } = parse(source, 'psl-full-text-index.test.psl');
   const { diagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -83,6 +84,7 @@ function interpret(source: string) {
     sourceId: 'psl-full-text-index.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

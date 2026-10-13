@@ -11,7 +11,11 @@ function help(markedBlock: string) {
   expect(offset).toBeGreaterThanOrEqual(0);
   const { document, sources } = parse(markedSource.replace('|', ''), 'language-server-test.psl');
   const sourceFile = sources.sourceFileFor(document.syntax);
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   return providePslSignatureHelp({
     document,
     sourceFile,

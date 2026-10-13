@@ -295,6 +295,7 @@ function completeWithSource(input: {
   const { symbolTable } = buildSymbolTable({
     documents: [...others.map((other) => other.document), document],
     sources,
+    defaultNamespaceId: 'public',
   });
   const context = classifyPslCompletionContext({
     document,
@@ -458,6 +459,7 @@ namespace other { model Hidden { id Int } }`,
       ['ZRoot', 'Model'],
       ['app', 'Namespace'],
       ['other', 'Namespace'],
+      ['public', 'Namespace'],
     ]);
     expect(items.find(({ label }) => label === 'Int')?.kind).toBe(CompletionItemKind.Class);
   });
@@ -917,24 +919,30 @@ namespace app {
     const source = `${markedSource.slice(0, cursorOffset)}${markedSource.slice(cursorOffset + 1)}`;
     const { document, sources } = parse(source, 'language-server-test.psl');
     const sourceFile = sources.sourceFileFor(document.syntax);
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
     const context = classifyPslCompletionContext({
       document,
       sourceFile,
       position: sourceFile.positionAt(cursorOffset),
     });
     let modelEnumerationCount = 0;
+    const observedDefaultNamespace = {
+      ...symbolTable.defaultNamespace,
+      models: new Proxy(symbolTable.defaultNamespace.models, {
+        ownKeys(target) {
+          modelEnumerationCount += 1;
+          return Reflect.ownKeys(target);
+        },
+      }),
+    };
     const observedSymbolTable = {
       ...symbolTable,
-      topLevel: {
-        ...symbolTable.topLevel,
-        models: new Proxy(symbolTable.topLevel.models, {
-          ownKeys(target) {
-            modelEnumerationCount += 1;
-            return Reflect.ownKeys(target);
-          },
-        }),
-      },
+      defaultNamespace: observedDefaultNamespace,
+      namespaces: { [observedDefaultNamespace.id]: observedDefaultNamespace },
     };
     const factoryOwnerNames: string[] = [];
     const observedAuthoringContributions = assembleAuthoringContributions([
@@ -1347,6 +1355,7 @@ namespace app {
       ['User', 'Model'],
       ['UserId', 'Type alias'],
       ['auth', 'Namespace'],
+      ['public', 'Namespace'],
     ]);
     for (const item of items) expect(item).not.toHaveProperty('sortText');
     expect(completionItemByLabel(items, 'Boolean').textEdit).toEqual({
@@ -1374,6 +1383,7 @@ namespace app {
       'User',
       'UserId',
       'auth',
+      'public',
     ]);
     expect(items.find((item) => item.label === 'User')).toMatchObject({
       filterText: 'User',
@@ -1403,6 +1413,7 @@ namespace app {
       'User',
       'UserId',
       'auth',
+      'public',
     ]);
     expect(items.find((item) => item.label === 'auth')).toMatchObject({
       kind: CompletionItemKind.Module,
@@ -1468,7 +1479,7 @@ namespace app {
   it('completes a generic block value from the block spec', () => {
     const { items } = complete(['policy Rule {', '  on = |', '}'].join('\n'));
 
-    expect(items.map((item) => item.label)).toEqual(['User', 'auth']);
+    expect(items.map((item) => item.label)).toEqual(['User', 'public', 'auth']);
   });
 
   it('returns descriptor-backed generic block parameter completions', () => {
@@ -2018,6 +2029,7 @@ describe('providePslCompletionItems — after the plus of an inclusion', () => {
   const namespaces = [
     ['auth', 'Namespace'],
     ['billing', 'Namespace'],
+    ['public', 'Namespace'],
   ];
 
   it.each([
@@ -2107,7 +2119,7 @@ describe('providePslCompletionItems — after the plus of an inclusion', () => {
       pslBlockDescriptors,
     });
 
-    expect(items.map(({ label, detail }) => [label, detail])).toEqual([]);
+    expect(items.map(({ label, detail }) => [label, detail])).toEqual([['public', 'Namespace']]);
   });
 
   it('offers nothing after a qualifier that names no namespace', () => {
@@ -2121,6 +2133,7 @@ describe('providePslCompletionItems — after the plus of an inclusion', () => {
     ).toEqual([
       ['TopStamps', 'model mixin'],
       ['auth', 'Namespace'],
+      ['public', 'Namespace'],
     ]);
     expect(offered(['model Invoice {', '  +Used', '  +billing.|', '}'])).toEqual([
       ['BillingStamps', 'model mixin'],

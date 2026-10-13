@@ -122,6 +122,7 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
       const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
         documents,
         sources,
+        defaultNamespaceId: context.defaultNamespaceId,
       });
       const { binder, diagnostics: binderDiagnostics } = createBinder({
         symbolTable,

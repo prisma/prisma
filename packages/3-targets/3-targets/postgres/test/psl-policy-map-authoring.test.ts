@@ -88,6 +88,7 @@ const scalarColumnDescriptors = new Map<string, { codecId: string }>([
 function parsePsl(source: string) {
   const { document, sources } = parse(source, 'psl-policy-map-authoring.test.psl');
   const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -115,6 +116,7 @@ const scalarTypeConstructors = Object.fromEntries(
 function interpret(source: string) {
   const { document, sources } = parse(source, 'psl-policy-map-authoring.test.psl');
   const { diagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -123,6 +125,7 @@ function interpret(source: string) {
     sourceId: 'psl-policy-map-authoring.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,
@@ -292,8 +295,8 @@ namespace public {
     expect(Object.keys(ns.policy).sort()).toEqual(['p_read_account', 'p_read_profile']);
   });
 
-  it('two reopened spellings sharing one head stay a duplicate-entity diagnostic (head-keyed)', () => {
-    const result = interpret(`
+  it('a policy repeated at top level and in namespace public is a duplicate declaration', () => {
+    const { diagnostics } = parsePsl(`
 model profile {
   id       Int @id
   owner_id Int
@@ -318,14 +321,9 @@ policy_select p_read {
   @@map("second physical name")
 }
 `);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toContainEqual(
-      expect.objectContaining({
-        code: 'PSL_DUPLICATE_EXTENSION_ENTITY',
-        message: expect.stringContaining('p_read'),
-      }),
-    );
+    expect(diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      { code: 'PSL_DUPLICATE_DECLARATION', message: 'Duplicate declaration of "p_read"' },
+    ]);
   });
 
   it('an argument-less @@map() is a symbol-table diagnostic from the kit', () => {

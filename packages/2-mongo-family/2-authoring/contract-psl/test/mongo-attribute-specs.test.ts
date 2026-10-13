@@ -28,6 +28,7 @@ import {
 function createBinderFor(symbolTable: SymbolTable, sources: PslSources) {
   const context: ContractSourceContext = {
     composedExtensions: [],
+    defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       type: {},
@@ -96,10 +97,11 @@ function contexts(): { model: AttributeSpecContext; field: FieldAttributeSpecCon
     'test.prisma',
   );
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: '__unbound__',
     documents: [document],
     sources,
   });
-  const model = symbolTable.topLevel.models['Widget'];
+  const model = symbolTable.defaultNamespace.models['Widget'];
   const field = model?.fields['name'];
   if (!model || !field) throw new Error('fixture declares Widget.name');
   const modelContext: AttributeSpecContext = {
@@ -120,10 +122,11 @@ model Base { id String }`,
       'test.prisma',
     );
     const { symbolTable } = buildSymbolTable({
+      defaultNamespaceId: '__unbound__',
       documents: [document],
       sources,
     });
-    const model = symbolTable.topLevel.models['Variant'];
+    const model = symbolTable.defaultNamespace.models['Variant'];
     if (!model) throw new Error('missing variant');
     const node = model.attributes.find((attr) => attr.name === 'base')?.node;
     if (!node) throw new Error('missing base');
@@ -141,8 +144,8 @@ model Base { id String }`,
       { base: ResolvedEntityReference<ModelSymbol>; value: string } | undefined
     >();
     expect(diagnostics.toExternal()).toEqual([]);
-    expect(value?.base.declaration).toBe(symbolTable.topLevel.models['Base']);
-    expect(value?.base.namespace).toBeUndefined();
+    expect(value?.base.declaration).toBe(symbolTable.defaultNamespace.models['Base']);
+    expect(value?.base.namespace).toBe(symbolTable.defaultNamespace);
     expect(value?.value).toBe('v');
   });
   it('registers every Mongo built-in at its level', () => {

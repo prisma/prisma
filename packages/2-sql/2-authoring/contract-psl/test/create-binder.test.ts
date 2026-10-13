@@ -115,6 +115,7 @@ describe('createBinder', () => {
 
     const context: ContractSourceContext = {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         dataTypes: fixtureDataTypeSupport.entries,
@@ -223,6 +224,7 @@ describe('createBinder', () => {
     ].join('\n');
     const { symbolTable, sources } = buildSymbolTableInput(schema);
     const context: ContractSourceContext = {
+      defaultNamespaceId: 'public',
       composedExtensions: [],
       composedExtensionContracts: new Map(),
       authoringContributions: {

@@ -112,6 +112,7 @@ function parseAndEmit(source: string) {
     sourceId: 'infer-parse-emit.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

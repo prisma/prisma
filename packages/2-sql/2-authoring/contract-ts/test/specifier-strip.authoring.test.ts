@@ -95,6 +95,7 @@ function checksOf(contract: Contract, tableName = 'User'): readonly CheckConstra
 
 const stubContext: ContractSourceContext = {
   composedExtensions: [],
+  defaultNamespaceId: 'public',
   composedExtensionContracts: new Map(),
   authoringContributions: {
     dataTypes: {},
