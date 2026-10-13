@@ -20,7 +20,7 @@ export interface ActivitySource {
   startActivity<K extends ClientActivityKind>(
     activity: StartActivity<K>,
   ): Promise<ActivityHandle<K>>;
-  /** The digest `ctx.contentHash(exec)` returns for the execution plan of the statement `plan` sends, when no `beforeEncode` hook changes its parameters and its codecs encode deterministically: after `beforeCompile`, lowering and encoding, without `beforeEncode`. It starts nothing, so it also works on a handle that has ended. */
+  /** The content hash of the statement `plan` sends: after `beforeCompile`, lowering and encoding, without `beforeEncode`. It equals the digest `ctx.contentHash(exec)` returns for the statement's execution plan only when `beforeCompile` gives the same result here as for the statement (it runs here with no parent and fresh state), no `beforeEncode` hook changes the parameters, and the codecs encode deterministically. It starts nothing, so it also works on a handle that has ended. */
   planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string>;
 }
 

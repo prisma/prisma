@@ -33,15 +33,15 @@ changes:
         - '\bbeginTransactionOn\s*\(\s*[^,()]+,\s*[^,()]+\)'
   - id: transaction-activity-takes-a-parent
     summary: |
-      `startTransactionActivity` requires `parent` (the activity the transaction starts beneath, or `undefined`). An `ActivityParent` has `acceptsChildren()`, and its `adopt(child)` returns an `ActivityChildSlot` (`statementFailed()`, `ended(own)`, `transactionAcceptsChildren()`) instead of an end callback; `ActivityParent.activity` is an `ActivityBase`. A transaction stops accepting children with `stopAcceptingChildren()`, and adopting beneath a parent that no longer accepts children throws `RUNTIME.ACTIVITY_ENDED` instead of an internal error.
+      `startTransactionActivity` requires `parent` (the activity the transaction starts beneath, or `undefined`). An `ActivityParent` has `acceptsChildren()`, and its `adopt(child)` returns an `ActivityChildSlot` (`statementFailed()`, `ended(own)`, `transactionAcceptsChildren()`) instead of an end callback; `ActivityParent.activity` is an `ActivityBase`. A transaction stops accepting children with `stopAcceptingChildren()`, and adopting beneath a parent that no longer accepts children throws `RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN` instead of an internal error.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\bstartTransactionActivity\s*\('
         - '\.adopt\s*\('
-  - id: orm-runtime-objects-pass-activities
+  - id: orm-runtime-objects-carry-an-activity-source
     summary: |
-      The ORM's structural `RuntimeQueryable` has optional `startActivity` and `planContentHash`. A client facade that builds the ORM's runtime object passes both through with `startActivityOn(runtime, activity)` and `planContentHashOn(runtime, plan)` from `@prisma/orm-family-sql/runtime/internal/prepared-query`, for the runtime it wraps and for the context of `db.transaction(fn)`. Without them the ORM runs, but its calls are not activities. Where the facade's statements run through sessions of its own, such as role sessions, pass members whose statements go the same way, or leave them out; do not pass the plain runtime's.
+      The ORM starts activities with `startActivityOn` on the queryable it holds, and starts none on a queryable without an `activitySource` member. `db.runtime()` passed straight to `orm()` carries one. A client facade that builds its own ORM runtime object, such as one that looks up its runtime on every call, adds `[activitySource]: delegatingActivitySource(() => runtime)` from `@prisma/orm-family-sql/runtime/internal/prepared-query`, for the runtime and for the context of `db.transaction(fn)`. Where the facade's statements run through sessions of its own, such as role sessions, give an activity source whose statements go the same way, or none.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -104,7 +104,7 @@ export type ReportResult = ClientActivityResult<'report-run'>;
 
 The registry types the handle side only: `call.intercepted.result` and `call.end({ result })`. In middleware hooks the result of a client activity is `unknown`, even after `result.kind === 'report-run'`, because the hook types must accept unregistered kinds; check or cast the value there.
 
-**Start, use and end it.** Derive the content hash from the plan with `planContentHashOn`; it is the digest `ctx.contentHash(exec)` returns for the statement's execution plan, as long as no `beforeEncode` hook changes the parameters and the codecs encode deterministically. End every handle, in a `finally`, or `close()` waits for it forever:
+**Start, use and end it.** Derive the content hash from the plan with `planContentHashOn`. It equals the digest `ctx.contentHash(exec)` returns for the statement's execution plan only when `beforeCompile` gives the same result for the plan in both places (it runs with no parent and fresh state for `planContentHashOn`, and beneath the handle for the statement), no `beforeEncode` hook changes the parameters, and the codecs encode deterministically; a cache should key on the activity's own content hash and not rely on the two being equal. End every handle, in a `finally`, or `close()` waits for it forever:
 
 ```ts
 import { planContentHashOn, startActivityOn } from '@prisma/orm-postgres/family-runtime/internal/prepared-query';
@@ -190,25 +190,27 @@ await startTransactionActivity({ middleware, context, parent: undefined, holdFin
 
 An `ActivityParent` you implement yourself has `acceptsChildren()` and returns an `ActivityChildSlot` from `adopt`. Most runtimes only pass the parent they were given to `streamStatement`, `executeStatement`, `startTransactionActivity` or `startClientActivity` and need no change.
 
-## Pass activities through a client facade
+## Give a facade's ORM runtime object an activity source
 
-A facade that builds the ORM's runtime object passes the new members through, so ORM calls can become activities:
+The ORM reaches activities only through the `activitySource` member of the queryable it holds. `db.runtime()` passed to `orm()` already carries it. A facade that builds its own runtime object for the ORM gives it the member:
 
 ```ts
-import { planContentHashOn, startActivityOn } from '@prisma/orm-family-sql/runtime/internal/prepared-query';
+import {
+  activitySource,
+  delegatingActivitySource,
+} from '@prisma/orm-family-sql/runtime/internal/prepared-query';
 
 const orm = ormBuilder({
   runtime: {
-    query: (plan) => runtime.query(plan),
-    execute: (plan) => runtime.execute(plan),
-    connection: () => runtime.connection(),
-    startActivity: (activity) => startActivityOn(runtime, activity),
-    planContentHash: (plan) => planContentHashOn(runtime, plan),
+    query: (plan) => getRuntime().query(plan),
+    execute: (plan) => getRuntime().execute(plan),
+    connection: () => getRuntime().connection(),
+    [activitySource]: delegatingActivitySource(() => getRuntime()),
   },
   context,
 });
 ```
 
-Do the same for the ORM object inside `db.transaction(fn)`, with the transaction context in place of `runtime`.
+Do the same for the ORM object inside `db.transaction(fn)`, with `delegatingActivitySource(() => txCtx)`. Do not add plain `startActivity` or `planContentHash` members; the ORM does not read them.
 
-If the facade sends its statements through sessions of its own, such as role-bound sessions, the activity's statements and transaction must go through them too; pass members that do so, or leave both out. Passing the plain runtime's members would run the activity's statements without the session.
+If the facade sends its statements through sessions of its own, such as role-bound sessions, the activity's statements and transaction must go through them too; give an activity source that does so, or none. The plain runtime's source would run the activity's statements without the session.

@@ -1058,17 +1058,21 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 An in-flight `query()` or `execute()` operation was cancelled via the per-operation `AbortSignal` passed as the call's `{ signal }` option. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeEncode` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Payload: `phase`.
 
+### RUNTIME.ACTIVITY_ALREADY_ENDED
+
+A client called `end()` a second time on an activity it started. The activity ended and was finalized at the first call; the second changes nothing. Payload: `kind`, `id`.
+
 ### RUNTIME.ACTIVITY_CHILDREN_OPEN
 
 A client ended an activity it started with `startActivity` while a statement or an activity beneath it had not ended, such as a row stream it had not finished reading. The activity is ended `failed` and finalized before the error is raised; each open child is finalized when it ends. End or drain every child before calling `end()`. Payload: `kind`, `id`, `openChildren`.
 
-### RUNTIME.ACTIVITY_ENDED
-
-A statement or an activity was started beneath an activity that no longer accepts children: a transaction whose `commit()` or `rollback()` has been called, a client activity after its `end()`, or a client activity inside such a transaction. Through an activity handle, the work is refused before it takes a connection or a session. No middleware hook runs for the refused work. A second `end()` on the same client activity raises it too. Start the work before ending its parent, or on a queryable that is still open. Payload: `parentKind` and `parentId`, or `kind` and `id` for a second `end()`.
-
 ### RUNTIME.ACTIVITY_KIND_RESERVED
 
 A client started an activity with a kind that has no hyphen, such as `statement`, `transaction` or `report`. A client kind contains a hyphen, such as `orm-call`; kinds without one belong to the runtime. The types reject such a kind, so this happens only when a caller casts it. Payload: `kind`.
+
+### RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN
+
+A statement or an activity was started beneath an activity that no longer accepts children: a transaction whose `commit()` or `rollback()` has been called, which happens before the transaction ends, a client activity after its `end()`, or a client activity inside such a transaction. Through an activity handle, the work is refused before it takes a connection or a session. No middleware hook runs for the refused work. Start the work before ending or settling its parent, or on a queryable that is still open. Payload: `parentKind`, `parentId`.
 
 ### RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION
 
