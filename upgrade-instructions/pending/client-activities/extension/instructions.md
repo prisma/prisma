@@ -16,7 +16,7 @@ changes:
         - '\.kind\s*===\s*[''"]transaction[''"]'
   - id: runtime-connections-carry-an-activity-source
     summary: |
-      The SQL runtime's queryables start client activities through an internal `activitySource` member, which `startActivityOn` and `planContentHashOn` read. A connection-like object that a `SqlRuntimeBase` subclass builds over a raw connection adds `[activitySource]: this.connectionActivitySource(connection, () => session)`, so activities can start on it. The public `RuntimeConnection` type does not require it.
+      The SQL runtime's queryables start client activities through an internal `activitySource` member, which `startActivityOn` and `planContentHashOn` read. A connection-like object that a `SqlRuntimeBase` subclass builds over a raw connection adds `[activitySource]: this.connectionActivitySource(connection, () => session)`, and `ActivitySourceTarget` to the object's declared type, so activities can start on it. The public `RuntimeConnection` type does not require it.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -92,14 +92,14 @@ declare module '@prisma/orm-framework/components/runtime' {
 Inside a `SqlRuntimeBase` subclass, a connection-like object over a raw connection gets its activity members from the base class:
 
 ```ts
-const session = {
+const session: RoleSession & TransactionStartTarget & ActivitySourceTarget = {
   [transactionStart]: createTransactionStart(),
   [activitySource]: self.connectionActivitySource(conn, () => session),
   // query, execute, transaction, release, destroy as before
 };
 ```
 
-`activitySource` comes from `@prisma/orm-family-sql/runtime/internal/prepared-query`.
+`activitySource` and `ActivitySourceTarget` come from `@prisma/orm-family-sql/runtime/internal/prepared-query`.
 
 ## Pass a parent when beginning or starting a transaction
 
