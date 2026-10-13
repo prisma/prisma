@@ -40,6 +40,9 @@ function dbMigrateCommand(invocation: CliInvocation): string {
   return `\`${cliCommand(invocation, 'db migrate')}\``;
 }
 
+/** The step between filling a planned migration.ts and applying it, which writes its operations. */
+const RUN_PLANNED_FILE = 'run that migration.ts with the `node` command `migration plan` prints';
+
 function backfillFlags(reports: readonly RowsWithoutValueReport[]): readonly string[] {
   return [
     ...new Set(
@@ -61,7 +64,7 @@ export function dbUpdateFailedCastFix(
     [statementFlag({ verb: 'convert', text: cast.field })],
     databaseStorageHash,
   );
-  return `${failedCastText(cast)} Plan the change with ${plan}, write the conversion in the migration.ts it writes, and apply it with ${dbMigrateCommand(invocation)}.`;
+  return `${failedCastText(cast)} Plan the change with ${plan}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
 }
 
 /** The way out of rows without a value for `db update`, which plans and applies in one step. */
@@ -74,7 +77,7 @@ export function dbUpdateRowsWithoutValueFix(
   const plan =
     flags.length === 0
       ? undefined
-      : `${migrationPlanCommand(invocation, flags, databaseStorageHash)}, fill the backfill steps in the migration.ts it writes, and apply it with ${dbMigrateCommand(invocation)}`;
+      : `${migrationPlanCommand(invocation, flags, databaseStorageHash)}, fill the backfill steps in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}`;
   if (reports[0]?.reason === 'nullValues') {
     const keep = 'Set a value in those rows, or keep the field optional.';
     return plan === undefined ? keep : `${keep} Or plan it with ${plan}.`;
@@ -137,7 +140,7 @@ function replan(
     ['--name', failed.name, ...flags],
     failed.from,
   );
-  return `delete \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan} and ${others}, fill in the migration.ts it writes, and run ${dbMigrateCommand(failed.invocation)}`;
+  return `delete \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan} and ${others}, fill in the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(failed.invocation)}`;
 }
 
 /**
@@ -168,7 +171,7 @@ function migrateFailedCastFix(
   }
   const convert = statementFlag({ verb: 'convert', text: cast.field });
   if (failedMigration === undefined) {
-    return `${failedCastText(cast)} Plan the type change again with ${migrationPlanCommand(invocation, [convert], undefined)}, and write the conversion in the migration.ts it writes.`;
+    return `${failedCastText(cast)} Plan the type change again with ${migrationPlanCommand(invocation, [convert], undefined)}, write the conversion in the migration.ts it writes, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
   }
   const deleted = `\`${statementFlag({ verb: 'delete', text: cast.field })}\``;
   return `${failedCastText(cast)} The failed apply changed nothing. To convert it, ${replan([convert], failedMigration, deleted)}.`;
@@ -201,7 +204,7 @@ function migrateRowsWithoutValueFix(
     const keep =
       failedMigration === undefined
         ? `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional, and plan the migration again.`
-        : `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional: make ${reports.length === 1 ? 'it' : 'them'} optional in the contract again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${migrationPlanCommand(invocation, ['--name', failedMigration.name], failedMigration.from)} and its other statements.`;
+        : `Or keep ${reports.length === 1 ? 'the field' : 'those fields'} optional: make ${reports.length === 1 ? 'it' : 'them'} optional in the contract again, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), and plan it again with ${migrationPlanCommand(invocation, ['--name', failedMigration.name], failedMigration.from)} and its other statements, put back any code you copied, ${RUN_PLANNED_FILE}, and apply it with ${dbMigrateCommand(invocation)}.`;
     return [rerun, ...(again === undefined ? [] : [`Or ${again}.`]), keep].join(' ');
   }
   if (reports[0]?.reason === 'nullValues') {
