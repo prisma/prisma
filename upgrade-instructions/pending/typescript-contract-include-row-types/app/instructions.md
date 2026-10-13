@@ -34,6 +34,14 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - 'as\s+(unknown\s+as\s+)?(Char|Varchar|Numeric|Bit|VarBit|Timetz|Interval|TimeString|TimestampString|TimestamptzString)<'
+  - id: typescript-contract-index-references
+    summary: |
+      A contract built with `defineContract` now types each table's indexes as an emitted `contract.d.ts` does: the indexes `.sql({ indexes })` declares, under the `name:` or `map:` they were given or their default `<table>_<columns>_idx` name, and the backing indexes the build derives for foreign keys. In `where` and `orderBy` callbacks, `indexes.<name>` offers exactly these names, so a misspelt index name fails to typecheck instead of failing at run time, and `fns.fullTextMatches(indexes.<name>, query)` and `fns.fullTextRank(...)` now typecheck for a `fullTextIndex`. The detection matches index reads in callbacks.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '\bindexes\.\w+'
+        - '\{\s*(fns,\s*)?indexes\s*\}'
   - id: typescript-contract-storage-and-domain-types
     summary: |
       A contract built with `defineContract` now types its unique constraints with their columns, so `whereUnique` accepts only the fields of the primary key or of one unique constraint, as with an emitted contract; it no longer accepts any record. `db.enums` lists only the enums the contract declares; a contract without enums no longer offers an accessor under any name. A many-to-many relation whose target has no primary key types its junction columns from the target's unique key. The detection matches `whereUnique` and `db.enums` reads.
@@ -116,6 +124,18 @@ For emitted contracts and contracts built with `defineContract`, the ORM types f
 ```
 
 A field whose codec accepts more forms on input than it returns on output, such as a temporal codec that takes a string or a `Date`, now accepts those forms in filters too. A `CodecField` fragment checks values against the codec's input type, as the model's own fields do.
+
+## Index references name the declared indexes
+
+In a `where` or `orderBy` callback, `indexes` now has one entry per index of the model's table, as with an emitted contract: an index from `.sql({ indexes })` under its `name:` or `map:`, or under `<table>_<columns>_idx` when it has neither, and the backing index of a foreign key under `<table>_<columns>_idx`. Before, any name typechecked and a full-text index could not be passed to `fullTextMatches` or `fullTextRank`. A name that is not an index of the table now fails to typecheck:
+
+```ts
+db.orm.public.Document.where((_doc, { fns, indexes }) =>
+  fns.fullTextMatches(indexes.documents_search, websearchToTsquery(query)),
+);
+```
+
+A default name longer than the database's identifier limit is shortened by the build; the type does not shorten it, so use `name:` for such an index.
 
 ## Unique criteria, enums and junction columns
 

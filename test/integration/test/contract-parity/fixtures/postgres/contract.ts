@@ -6,7 +6,13 @@ import { int4Column, textColumn } from '@internal/adapter-postgres/column-types'
 import { arktypeJson } from '@internal/extension-arktype-json/column-types';
 import arktypeJsonPack from '@internal/extension-arktype-json/pack';
 import { cuid2, ksuid, nanoid, ulid, uuidv4, uuidv7 } from '@internal/ids';
-import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+import {
+  defineContract,
+  field,
+  fullTextIndex,
+  model,
+  rel,
+} from '@internal/postgres/contract-builder';
 import { type } from 'arktype';
 
 const timestampString3 = {
@@ -109,13 +115,24 @@ export const contract = defineContract({
       accounts: rel.hasMany(Account, { by: 'userId' }),
       profile: rel.hasOne(Profile, { by: 'userId' }),
       badges: rel.manyToMany(Badge, { through: UserBadge, from: 'userId', to: 'badgeCode' }),
-    }).sql({ table: 'users' }),
+    }).sql(({ cols, constraints }) => ({
+      table: 'users',
+      indexes: [
+        constraints.index([cols.handle]),
+        constraints.index([cols.email], { map: 'users_email_exact' }),
+        constraints.index([cols.nanoid, cols.cuid2], { name: 'by_short_ids', unique: true }),
+        fullTextIndex([[cols.email], cols.handle], { name: 'search_docs', language: 'german' }),
+      ],
+    })),
     Badge: Badge.sql({ table: 'badges' }),
     UserBadge: UserBadge.sql({ table: 'user_badges' }),
     Post: Post.relations({
       author: rel.belongsTo(User, { from: 'authorId', to: 'id' }),
       tags: rel.manyToMany(Tag, { through: PostTag, from: 'postId', to: 'tagId' }),
-    }).sql({ table: 'posts' }),
+    }).sql(({ cols, constraints }) => ({
+      table: 'posts',
+      foreignKeys: [constraints.foreignKey(cols.authorId, User.refs.id)],
+    })),
     Tag: Tag.relations({
       posts: rel.manyToMany(Post, { through: PostTag, from: 'tagId', to: 'postId' }),
     }).sql({ table: 'tags' }),
@@ -129,7 +146,7 @@ export const contract = defineContract({
       user: rel.belongsTo(User, { from: 'userId', to: 'id' }),
     }).sql({ table: 'accounts' }),
     Profile: Profile.relations({
-      user: rel.belongsTo(User, { from: 'userId', to: 'id' }),
+      user: rel.belongsTo(User, { from: 'userId', to: 'id' }).sql({ fk: { onDelete: 'cascade' } }),
     }).sql({ table: 'profiles' }),
   },
 });

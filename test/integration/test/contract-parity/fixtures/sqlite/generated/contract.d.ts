@@ -17,7 +17,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'d7da5c6e0e5c00c321abcbe1d80161f2b4748d5803b789025d868a9638b29b15'>;
+  StorageHashBase<'124a5208afa805ecd3e56e732d2f94276307f5531cfd431df8098315fbe7af20'>;
 export type ExecutionHash =
   ExecutionHashBase<'2fd552b8b15a3551234178e075fd25d6a5c4eff1d93bc4e236730b63e646f7d3'>;
 export type ProfileHash =
@@ -539,8 +539,28 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'posts_authorId_idx_e47547ed';
+                  readonly prefix: 'posts_authorId_idx';
+                  readonly columns: readonly ['authorId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'posts';
+                    readonly columns: readonly ['authorId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: '__unbound__' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly profiles: {
               columns: {
@@ -669,7 +689,25 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'by_short_ids_4281457c';
+                  readonly prefix: 'by_short_ids';
+                  readonly columns: readonly ['nanoid', 'cuid2'];
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'users_email_idx_46df9cad';
+                  readonly prefix: 'users_email_idx';
+                  readonly columns: readonly ['email'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'users_ulid_exact';
+                  readonly columns: readonly ['ulid'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
           };

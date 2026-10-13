@@ -17,14 +17,18 @@ import type {
   AuthoredStorageTypeInstance,
   ContractWithTypeMaps,
   ForeignKeyIndex,
-  Index,
   ParameterizedOutputTypesFunction,
   QueryOperationTypesFunction,
   ReferentialAction,
   TypeMaps,
 } from '@internal/sql-contract/types';
 import type { UnionToIntersection } from './authoring-type-utils';
-import type { AttributeStageIdFieldNames, FieldStateOf, ScalarFieldBuilder } from './contract-dsl';
+import type {
+  AttributeStageIdFieldNames,
+  FieldStateOf,
+  IndexOptionsFunction,
+  ScalarFieldBuilder,
+} from './contract-dsl';
 import type { EnumTypeHandle } from './enum-type';
 
 export type PublicCodecTypes<CodecTypes extends Record<string, { readonly output: unknown }>> = {
@@ -932,6 +936,228 @@ type BuiltUnique<Definition, ModelName extends ModelNames<Definition>> =
   | InlineUnique<Definition, ModelName>
   | AttributeUnique<Definition, ModelName>;
 
+type JoinColumns<Columns> = Columns extends readonly [infer Only extends string]
+  ? Only
+  : Columns extends readonly [infer First extends string, ...infer Rest]
+    ? `${First}_${JoinColumns<Rest>}`
+    : string;
+
+type SameColumns<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+
+type ModelColumnOf<Definition, ModelName extends ModelNames<Definition>> = {
+  readonly [FieldName in ModelFieldNames<Definition, ModelName>]: ModelColumnName<
+    Definition,
+    ModelName,
+    FieldName
+  >;
+};
+
+type DeclaredIndexConstraints<Definition, ModelName extends ModelNames<Definition>> =
+  ModelSql<Definition, ModelName> extends {
+    readonly indexes?: infer Indexes extends readonly unknown[];
+  }
+    ? Indexes
+    : readonly [];
+
+// An index constraint's type is a union of its arms (fields or expression, with or without a type), so each reading below takes the whole constraint rather than distributing over the arms.
+type IndexColumns<Definition, ModelName extends ModelNames<Definition>, Constraint> = [
+  Constraint,
+] extends [{ readonly fields?: infer Fields }]
+  ? Present<Fields> extends infer Defined extends readonly string[]
+    ? [Defined] extends [never]
+      ? readonly []
+      : number extends Defined['length']
+        ? readonly string[]
+        : FieldNamesToColumnNames<Definition, ModelName, Defined>
+    : readonly []
+  : readonly [];
+
+type IndexSpecOfConstraint<Constraint> = [Constraint] extends [{ readonly __spec?: infer Spec }]
+  ? Present<Spec>
+  : never;
+
+type IndexMapOf<Constraint> =
+  IndexSpecOfConstraint<Constraint> extends {
+    readonly map: infer Map extends string;
+  }
+    ? Map
+    : never;
+
+type IndexNameOf<Constraint> = [Constraint] extends [{ readonly name?: infer Name }]
+  ? Present<Name> extends infer Defined extends string
+    ? Defined
+    : never
+  : never;
+
+// How the build names an index: a `map:` name verbatim, otherwise a wire name whose prefix is the authored `name:` or the default `<table>_<columns>_idx`. Code reads an index by its `map:` name or its prefix.
+type IndexNaming<Definition, ModelName extends ModelNames<Definition>, Constraint> = [
+  IndexMapOf<Constraint>,
+] extends [never]
+  ? {
+      readonly name: string;
+      readonly prefix: [IndexNameOf<Constraint>] extends [never]
+        ? `${ModelTableName<Definition, ModelName>}_${JoinColumns<IndexColumns<Definition, ModelName, Constraint>>}_idx`
+        : IndexNameOf<Constraint>;
+    }
+  : { readonly name: IndexMapOf<Constraint> };
+
+type IndexMethod<Definition, ModelName extends ModelNames<Definition>, Constraint> = [
+  IndexSpecOfConstraint<Constraint>,
+] extends [never]
+  ? Record<never, never>
+  : IndexMethodOfSpec<Definition, ModelName, IndexSpecOfConstraint<Constraint>>;
+
+type IndexMethodOfSpec<Definition, ModelName extends ModelNames<Definition>, Spec> = (Spec extends {
+  readonly type: infer Type extends string;
+}
+  ? { readonly type: Type }
+  : Record<never, never>) &
+  (Spec extends { readonly options: infer Options }
+    ? [Options] extends [undefined]
+      ? Record<never, never>
+      : {
+          readonly options: Options extends IndexOptionsFunction
+            ? (Options & { readonly columnOf: ModelColumnOf<Definition, ModelName> })['options']
+            : Options;
+        }
+    : Record<never, never>);
+
+type BuiltDeclaredIndexOf<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Constraint,
+> = IndexNaming<Definition, ModelName, Constraint> & {
+  readonly columns: IndexColumns<Definition, ModelName, Constraint>;
+  readonly unique: boolean;
+} & IndexMethod<Definition, ModelName, Constraint>;
+
+type BuiltDeclaredIndexesOf<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Constraints extends readonly unknown[],
+> = {
+  readonly [K in keyof Constraints]: BuiltDeclaredIndexOf<Definition, ModelName, Constraints[K]>;
+}[number];
+
+type BuiltDeclaredIndex<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+> = BuiltDeclaredIndexesOf<Definition, ModelName, DeclaredIndexConstraints<Definition, ModelName>>;
+
+type DefaultForeignKeyIndex<Definition> = Definition extends {
+  readonly foreignKeyDefaults?: infer Defaults;
+}
+  ? [Present<Defaults>] extends [never]
+    ? true
+    : Present<Defaults> extends { readonly index: false }
+      ? false
+      : true
+  : true;
+
+// Whether a foreign key gets a derived backing index: `index: false` or the name of a declared object gives none, and an unstated intent follows the contract's foreign key defaults.
+type DerivesBackingIndex<Definition, Intent> = [Present<Intent>] extends [never]
+  ? DefaultForeignKeyIndex<Definition>
+  : Present<Intent> extends false
+    ? false
+    : Present<Intent> extends true
+      ? true
+      : Present<Intent> extends string
+        ? string extends Present<Intent>
+          ? DefaultForeignKeyIndex<Definition>
+          : false
+        : DefaultForeignKeyIndex<Definition>;
+
+// The `fk` of a relation's `.sql(...)`, or `never` when the relation declares none.
+type RelationForeignKey<RelationSql> = [Present<RelationSql>] extends [never]
+  ? never
+  : Present<RelationSql> extends { readonly fk?: infer ForeignKey }
+    ? Present<ForeignKey>
+    : never;
+
+type ModelForeignKeyFields<Definition, ModelName extends ModelNames<Definition>> =
+  | (ModelSql<Definition, ModelName> extends {
+      readonly foreignKeys?: infer ForeignKeys extends readonly unknown[];
+    }
+      ? ForeignKeys[number] extends infer ForeignKey
+        ? ForeignKey extends { readonly fields: infer Fields extends readonly string[] }
+          ? DerivesBackingIndex<
+              Definition,
+              ForeignKey extends { readonly index?: infer Intent } ? Intent : undefined
+            > extends true
+            ? Fields
+            : never
+          : never
+        : never
+      : never)
+  | {
+      [RelName in StagedModelRelationNames<Definition, ModelName>]: StagedRelationState<
+        Definition,
+        ModelName,
+        RelName
+      > extends {
+        readonly kind: 'belongsTo';
+        readonly from: infer From;
+        readonly sql?: infer RelationSql;
+      }
+        ? RelationForeignKey<RelationSql> extends infer ForeignKey
+          ? [ForeignKey] extends [never]
+            ? never
+            : DerivesBackingIndex<
+                  Definition,
+                  ForeignKey extends { readonly index?: infer Intent } ? Intent : undefined
+                > extends true
+              ? RelationFieldTuple<From>
+              : never
+          : never
+        : never;
+    }[StagedModelRelationNames<Definition, ModelName>];
+
+// The build drops a derived backing index that the primary key, a unique constraint or a declared index on the same columns already serves.
+type BackingIndexIsRedundant<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Columns,
+> = true extends
+  | SameColumns<
+      Columns,
+      ModelIdFieldNames<Definition, ModelName> extends infer IdFields extends readonly string[]
+        ? FieldNamesToColumnNames<Definition, ModelName, IdFields>
+        : never
+    >
+  | (BuiltUnique<Definition, ModelName> extends infer Unique
+      ? Unique extends { readonly columns: infer UniqueColumns }
+        ? SameColumns<Columns, UniqueColumns>
+        : never
+      : never)
+  | (BuiltDeclaredIndex<Definition, ModelName> extends infer Declared
+      ? Declared extends { readonly columns: infer DeclaredColumns }
+        ? SameColumns<Columns, DeclaredColumns>
+        : never
+      : never)
+  ? true
+  : false;
+
+type BuiltBackingIndex<Definition, ModelName extends ModelNames<Definition>> =
+  ModelForeignKeyFields<Definition, ModelName> extends infer Fields
+    ? Fields extends readonly string[]
+      ? FieldNamesToColumnNames<Definition, ModelName, Fields> extends infer Columns
+        ? BackingIndexIsRedundant<Definition, ModelName, Columns> extends true
+          ? never
+          : {
+              readonly name: string;
+              readonly prefix: `${ModelTableName<Definition, ModelName>}_${JoinColumns<Columns>}_idx`;
+              readonly columns: Columns;
+              readonly unique: false;
+            }
+        : never
+      : never
+    : never;
+
+// A table's indexes: those `.sql({ indexes })` declares, and the backing indexes the build derives for its foreign keys, named as the build names them, so code can read each by the name it was given.
+type BuiltIndex<Definition, ModelName extends ModelNames<Definition>> =
+  | BuiltDeclaredIndex<Definition, ModelName>
+  | BuiltBackingIndex<Definition, ModelName>;
+
 type BuiltStorageTables<Definition, Ns extends string> = {
   readonly [ModelName in ModelsInNamespace<Definition, Ns> as BuiltModelTableName<
     Definition,
@@ -939,7 +1165,7 @@ type BuiltStorageTables<Definition, Ns extends string> = {
   >]: {
     readonly columns: BuiltStorageTableColumns<Definition, ModelName>;
     readonly uniques: ReadonlyArray<BuiltUnique<Definition, ModelName>>;
-    readonly indexes: ReadonlyArray<Index>;
+    readonly indexes: ReadonlyArray<BuiltIndex<Definition, ModelName>>;
     readonly foreignKeys: ReadonlyArray<{
       readonly source: {
         readonly namespaceId: NamespaceId;

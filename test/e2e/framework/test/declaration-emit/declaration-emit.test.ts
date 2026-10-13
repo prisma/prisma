@@ -44,6 +44,7 @@ function declarationErrors(source: string): readonly string[] {
 describe('declaration emit of an exported defineContract contract through the public packages', () => {
   it('has a source per contract shape', () => {
     expect(sources).toEqual([
+      'indexes.ts',
       'mixed.ts',
       'paradedb.ts',
       'pgvector.ts',

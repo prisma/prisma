@@ -790,8 +790,37 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "posts_authorId_idx_e47547ed"
+                  },
+                  "source": {
+                    "columns": [
+                      "authorId"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "posts"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "__unbound__",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "authorId"
+                  ],
+                  "name": "posts_authorId_idx_e47547ed",
+                  "prefix": "posts_authorId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -937,7 +966,32 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "nanoid",
+                    "cuid2"
+                  ],
+                  "name": "by_short_ids_4281457c",
+                  "prefix": "by_short_ids",
+                  "unique": true
+                },
+                {
+                  "columns": [
+                    "email"
+                  ],
+                  "name": "users_email_idx_46df9cad",
+                  "prefix": "users_email_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "ulid"
+                  ],
+                  "name": "users_ulid_exact",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -950,7 +1004,7 @@
         "id": "__unbound__"
       }
     },
-    "storageHash": "d7da5c6e0e5c00c321abcbe1d80161f2b4748d5803b789025d868a9638b29b15"
+    "storageHash": "124a5208afa805ecd3e56e732d2f94276307f5531cfd431df8098315fbe7af20"
   },
   "execution": {
     "executionHash": "2fd552b8b15a3551234178e075fd25d6a5c4eff1d93bc4e236730b63e646f7d3",

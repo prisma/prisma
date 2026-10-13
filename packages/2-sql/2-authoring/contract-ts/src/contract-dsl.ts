@@ -1065,6 +1065,23 @@ type IndexInput<
  * one opaque `sql` value. `name` or `map` is required — enforced at lowering
  * with the same diagnostics as PSL.
  */
+// Captures, for the index's type, the `map` name and the type the caller wrote; `IndexInput` checks them and the options.
+type IndexSpecCapture<Map, Type> = {
+  readonly map?: Map;
+  readonly type?: Type;
+};
+
+// The options are typed as the index type declares them.
+type IndexSpecFrom<Map, Type, IndexTypes extends IndexTypeMap> = {
+  readonly map: Map;
+  readonly type: Type;
+  readonly options: Type extends keyof IndexTypes
+    ? IndexTypes[Type]['options'] extends infer Options extends Record<string, unknown>
+      ? Options
+      : Record<string, unknown>
+    : undefined;
+};
+
 type ExpressionIndexInput<
   Name extends string | undefined,
   IndexTypes extends IndexTypeMap,
@@ -1159,9 +1176,25 @@ export type IndexConstraintMethod =
   | { readonly type?: undefined; readonly options?: undefined }
   | { readonly type: string; readonly options?: IndexOptionsInput };
 
+/**
+ * An index's options as a function of its model's columns: `options` reads `this['columnOf']`, which maps each field name of the model to its column name. A helper whose options name fields, such as a full-text index's weight groups, declares one so the contract's type states the options with column names, as the build writes them.
+ */
+export interface IndexOptionsFunction {
+  readonly columnOf: Record<never, string>;
+  readonly options: unknown;
+}
+
+/** What an index's type records beyond its fields and name: its exact `map` name, its type, and its options or a function that gives them. Exists only in types. */
+export type IndexSpec = {
+  readonly map?: string | undefined;
+  readonly type?: string | undefined;
+  readonly options?: unknown;
+};
+
 export type IndexConstraint<
   FieldNames extends readonly string[] = readonly string[],
   Name extends string | undefined = string | undefined,
+  Spec extends IndexSpec = IndexSpec,
 > = IndexConstraintElements<FieldNames> &
   IndexConstraintMethod & {
     readonly kind: 'index';
@@ -1169,6 +1202,7 @@ export type IndexConstraint<
     readonly unique?: boolean;
     readonly name?: Name;
     readonly map?: string;
+    readonly __spec?: Spec;
   };
 
 /**
@@ -1189,6 +1223,7 @@ export type ForeignKeyConstraint<
   TargetModelName extends string = string,
   TargetFieldNames extends readonly string[] = readonly string[],
   Name extends string | undefined = string | undefined,
+  Index extends boolean | string | undefined = boolean | string | undefined,
 > = {
   readonly kind: 'fk';
   readonly fields: SourceFieldNames;
@@ -1215,7 +1250,7 @@ export type ForeignKeyConstraint<
   readonly onDelete?: 'noAction' | 'restrict' | 'cascade' | 'setNull' | 'setDefault';
   readonly onUpdate?: 'noAction' | 'restrict' | 'cascade' | 'setNull' | 'setDefault';
   readonly constraint?: boolean;
-  readonly index?: boolean | string;
+  readonly index?: Index;
 };
 
 function normalizeFieldRefInput(input: ColumnRef | readonly ColumnRef[]): readonly string[] {
@@ -1346,13 +1381,23 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
   function index<
     FieldNames extends readonly string[],
     const Name extends string | undefined = undefined,
+    const Map extends string | undefined = undefined,
+    const Type extends (keyof IndexTypes & string) | undefined = undefined,
   >(
     fields: { readonly [K in keyof FieldNames]: ColumnRef<FieldNames[K] & string> },
-    options?: IndexInput<Name, IndexTypes>,
-  ): IndexConstraint<FieldNames, Name>;
-  function index<const Name extends string | undefined = undefined>(
-    options: ExpressionIndexInput<Name, IndexTypes>,
-  ): IndexConstraint<never, Name>;
+    options?: IndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
+  ): IndexConstraint<
+    FieldNames,
+    NoInfer<Name>,
+    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>
+  >;
+  function index<
+    const Name extends string | undefined = undefined,
+    const Map extends string | undefined = undefined,
+    const Type extends (keyof IndexTypes & string) | undefined = undefined,
+  >(
+    options: ExpressionIndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
+  ): IndexConstraint<never, NoInfer<Name>, IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>>;
   function index(
     fieldsOrOptions:
       | ColumnRef
@@ -1406,21 +1451,24 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
     TargetModelName extends string,
     TargetFieldName extends string,
     const Name extends string | undefined = undefined,
+    const Index extends boolean | string | undefined = undefined,
   >(
     field: ColumnRef<SourceFieldName>,
     target: TargetFieldRef<TargetModelName, TargetFieldName>,
-    options?: ForeignKeyOptions<Name>,
+    options?: ForeignKeyOptions<Name> & { readonly index?: Index },
   ): ForeignKeyConstraint<
     readonly [SourceFieldName],
     TargetModelName,
     readonly [TargetFieldName],
-    Name
+    Name,
+    Index
   >;
   function foreignKey<
     SourceFieldNames extends readonly string[],
     TargetModelName extends string,
     TargetFieldNames extends readonly string[],
     const Name extends string | undefined = undefined,
+    const Index extends boolean | string | undefined = undefined,
   >(
     fields: { readonly [K in keyof SourceFieldNames]: ColumnRef<SourceFieldNames[K] & string> },
     target: {
@@ -1429,8 +1477,8 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
         TargetFieldNames[K] & string
       >;
     },
-    options?: ForeignKeyOptions<Name>,
-  ): ForeignKeyConstraint<SourceFieldNames, TargetModelName, TargetFieldNames, Name>;
+    options?: ForeignKeyOptions<Name> & { readonly index?: Index },
+  ): ForeignKeyConstraint<SourceFieldNames, TargetModelName, TargetFieldNames, Name, Index>;
   function foreignKey(
     fieldOrFields: ColumnRef | readonly ColumnRef[],
     target: TargetFieldRef | readonly TargetFieldRef[],
@@ -1513,13 +1561,26 @@ type AttributeContext<Fields extends Record<string, ScalarFieldBuilder>> = {
 };
 
 type PackAwareIndex<IndexTypes extends IndexTypeMap> = {
-  <FieldNames extends readonly string[], const Name extends string | undefined = undefined>(
+  <
+    FieldNames extends readonly string[],
+    const Name extends string | undefined = undefined,
+    const Map extends string | undefined = undefined,
+    const Type extends (keyof IndexTypes & string) | undefined = undefined,
+  >(
     fields: { readonly [K in keyof FieldNames]: ColumnRef<FieldNames[K] & string> },
-    options?: IndexInput<Name, IndexTypes>,
-  ): IndexConstraint<FieldNames, Name>;
-  <const Name extends string | undefined = undefined>(
-    options: ExpressionIndexInput<Name, IndexTypes>,
-  ): IndexConstraint<never, Name>;
+    options?: IndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
+  ): IndexConstraint<
+    FieldNames,
+    NoInfer<Name>,
+    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>
+  >;
+  <
+    const Name extends string | undefined = undefined,
+    const Map extends string | undefined = undefined,
+    const Type extends (keyof IndexTypes & string) | undefined = undefined,
+  >(
+    options: ExpressionIndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
+  ): IndexConstraint<never, NoInfer<Name>, IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>>;
 };
 
 type PackAwareSqlConstraints<IndexTypes extends IndexTypeMap> = {

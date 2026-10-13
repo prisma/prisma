@@ -64,11 +64,21 @@ export const contract = defineContract({}, ({ field, model, rel }) => {
       User: User.relations({
         posts: rel.hasMany(Post, { by: 'authorId' }),
         profile: rel.hasOne(Profile, { by: 'userId' }),
-      }).sql({ table: 'users' }),
+      }).sql(({ cols, constraints }) => ({
+        table: 'users',
+        indexes: [
+          constraints.index([cols.email]),
+          constraints.index([cols.ulid], { map: 'users_ulid_exact' }),
+          constraints.index([cols.nanoid, cols.cuid2], { name: 'by_short_ids', unique: true }),
+        ],
+      })),
       Post: Post.relations({
         author: rel.belongsTo(User, { from: 'authorId', to: 'id' }),
         tags: rel.manyToMany(Tag, { through: PostTag, from: 'postId', to: 'tagId' }),
-      }).sql({ table: 'posts' }),
+      }).sql(({ cols, constraints }) => ({
+        table: 'posts',
+        foreignKeys: [constraints.foreignKey(cols.authorId, User.refs.id)],
+      })),
       Tag: Tag.relations({
         posts: rel.manyToMany(Post, { through: PostTag, from: 'tagId', to: 'postId' }),
       }).sql({ table: 'tags' }),

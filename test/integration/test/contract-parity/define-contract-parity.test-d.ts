@@ -46,7 +46,9 @@ type ExpectedDifferences =
   | 'postgresParity: fullTextMatches'
   | 'postgresParity: fullTextRank'
   | 'relations: fullTextMatches'
-  | 'relations: fullTextRank';
+  | 'relations: fullTextRank'
+  | 'fullText: fullTextMatches'
+  | 'fullText: fullTextRank';
 
 type Differences<Key extends keyof TypeMaps, Compare extends 'keys' | 'namespaced'> = Exclude<
   FixtureDifferences<Key, Compare>,

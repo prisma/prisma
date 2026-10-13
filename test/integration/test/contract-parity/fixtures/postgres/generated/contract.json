@@ -1162,8 +1162,37 @@
                   "nullable": false
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "posts_authorId_idx_e47547ed"
+                  },
+                  "source": {
+                    "columns": [
+                      "authorId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "posts"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "authorId"
+                  ],
+                  "name": "posts_authorId_idx_e47547ed",
+                  "prefix": "posts_authorId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1216,8 +1245,38 @@
                   }
                 }
               },
-              "foreignKeys": [],
-              "indexes": [],
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "profiles_userId_idx_a489d58a"
+                  },
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "userId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "profiles"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "userId"
+                  ],
+                  "name": "profiles_userId_idx_a489d58a",
+                  "prefix": "profiles_userId_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1405,7 +1464,53 @@
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "columns": [
+                    "nanoid",
+                    "cuid2"
+                  ],
+                  "name": "by_short_ids_4281457c",
+                  "prefix": "by_short_ids",
+                  "unique": true
+                },
+                {
+                  "columns": [
+                    "email",
+                    "handle"
+                  ],
+                  "name": "search_docs_970d795b",
+                  "options": {
+                    "language": "german",
+                    "weightGroups": [
+                      [
+                        "email"
+                      ],
+                      [
+                        "handle"
+                      ]
+                    ]
+                  },
+                  "prefix": "search_docs",
+                  "type": "fullText",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "email"
+                  ],
+                  "name": "users_email_exact",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "handle"
+                  ],
+                  "name": "users_handle_idx_b5b249e4",
+                  "prefix": "users_handle_idx",
+                  "unique": false
+                }
+              ],
               "primaryKey": {
                 "columns": [
                   "id"
@@ -1419,7 +1524,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3bc0ac164b8d350cddeb5bbc1e57ada70aa6fbf1cadc84ef4e8852ebf4171a42",
+    "storageHash": "ab1c18b48119e6ca2fdfc6335f1dfff5c3eefa4aeb1b2ea7376330a03e2108bf",
     "types": {
       "TimestampString3": {
         "codecId": "pg/timestamp-string@1",

@@ -25,7 +25,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'3bc0ac164b8d350cddeb5bbc1e57ada70aa6fbf1cadc84ef4e8852ebf4171a42'>;
+  StorageHashBase<'ab1c18b48119e6ca2fdfc6335f1dfff5c3eefa4aeb1b2ea7376330a03e2108bf'>;
 export type ExecutionHash =
   ExecutionHashBase<'441f4ca3b37b233b60ae91d1122efcab6593a51ecd67beb0e4dddf089b8e075c'>;
 export type ProfileHash =
@@ -810,8 +810,28 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'posts_authorId_idx_e47547ed';
+                  readonly prefix: 'posts_authorId_idx';
+                  readonly columns: readonly ['authorId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'posts';
+                    readonly columns: readonly ['authorId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly profiles: {
               columns: {
@@ -854,8 +874,28 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
-              foreignKeys: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'profiles_userId_idx_a489d58a';
+                  readonly prefix: 'profiles_userId_idx';
+                  readonly columns: readonly ['userId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'profiles';
+                    readonly columns: readonly ['userId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'users';
+                    readonly columns: readonly ['id'];
+                  };
+                },
+              ];
             };
             readonly tags: {
               columns: {
@@ -1026,7 +1066,36 @@ type ContractBase = Omit<
               };
               primaryKey: { readonly columns: readonly ['id'] };
               uniques: readonly [];
-              indexes: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'by_short_ids_4281457c';
+                  readonly prefix: 'by_short_ids';
+                  readonly columns: readonly ['nanoid', 'cuid2'];
+                  readonly unique: true;
+                },
+                {
+                  readonly name: 'search_docs_970d795b';
+                  readonly prefix: 'search_docs';
+                  readonly columns: readonly ['email', 'handle'];
+                  readonly unique: false;
+                  readonly type: 'fullText';
+                  readonly options: {
+                    readonly language: 'german';
+                    readonly weightGroups: readonly [readonly ['email'], readonly ['handle']];
+                  };
+                },
+                {
+                  readonly name: 'users_email_exact';
+                  readonly columns: readonly ['email'];
+                  readonly unique: false;
+                },
+                {
+                  readonly name: 'users_handle_idx_b5b249e4';
+                  readonly prefix: 'users_handle_idx';
+                  readonly columns: readonly ['handle'];
+                  readonly unique: false;
+                },
+              ];
               foreignKeys: readonly [];
             };
           };

@@ -69,6 +69,10 @@ export const myAggregateDescriptors = [
 
 If you build descriptors with helper functions, make the helpers generic with `const` type parameters and do not use `satisfies` inside them: TypeScript widens a generic helper's result to its constraint when its returned object has a `satisfies` clause. Check the list against the descriptor type where you use it, for example `types: { aggregateDescriptors: myAggregateDescriptors satisfies ReadonlyArray<SqlAggregateDescriptor> }`.
 
+## Index helpers: say what the build writes
+
+A contract built with `defineContract` types each index from the `IndexConstraint` a helper returns, so code reads it by name and passes it to query operations. `IndexConstraint` takes a third type parameter, the index's `map` name, type and options as the build writes them. If your pack adds an index helper, return `IndexConstraint<FieldNames, Name, { readonly map: Map; readonly type: 'yourType'; readonly options: Options }>` with literal types. When the options name fields that the build turns into column names, give an interface extending `IndexOptionsFunction` from `@prisma/orm-family-sql/contract-ts/contract-builder`, whose `options` reads `this['columnOf']`, the model's field-to-column map. See `fullTextIndex` in the Postgres pack.
+
 ## Declaration output: export what a contract names
 
 An application that exports a contract and builds with `declaration: true` needs TypeScript to name every type the contract's inferred type mentions. Export from your pack's `/pack` entry, as types, the types that end up there: your `CodecTypes`, the output types your codecs refine to (such as `Vector`), `QueryOperationTypesForCodecs`, `ParameterizedOutputTypesForTypeParams`, and the value types your codec types name (such as a GeoJSON `Geometry`). Naming `CodecTypes` also keeps TypeScript from inlining codec classes with private members, which fails with TS4094. Compile a small application that imports only your published package and the public `@prisma/orm-postgres` with `declaration: true` to check.

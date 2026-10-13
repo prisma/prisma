@@ -2,7 +2,9 @@ import type { contract as postgresScalarSource } from '../planner-golden/fixture
 import type { Contract as PostgresScalarEmitted } from '../planner-golden/fixtures/postgres/generated/contract';
 import type { contract as sqliteScalarSource } from '../planner-golden/fixtures/sqlite/contract';
 import type { Contract as SqliteScalarEmitted } from '../planner-golden/fixtures/sqlite/generated/contract';
+import type { contract as fullTextSource } from '../sql-builder/fixtures/contract';
 import type { contract as relationsSource } from '../sql-builder/fixtures/contract-no-pgvector';
+import type { Contract as FullTextEmitted } from '../sql-builder/fixtures/generated/contract';
 import type { Contract as RelationsEmitted } from '../sql-builder/fixtures/generated-no-pgvector/contract';
 import type { contract as postgresParitySource } from './fixtures/postgres/contract';
 import type { Contract as PostgresParityEmitted } from './fixtures/postgres/generated/contract';
@@ -14,6 +16,7 @@ export type Fixtures = {
   readonly postgresScalar: readonly [typeof postgresScalarSource, PostgresScalarEmitted];
   readonly sqliteScalar: readonly [typeof sqliteScalarSource, SqliteScalarEmitted];
   readonly relations: readonly [typeof relationsSource, RelationsEmitted];
+  readonly fullText: readonly [typeof fullTextSource, FullTextEmitted];
   readonly postgresParity: readonly [typeof postgresParitySource, PostgresParityEmitted];
   readonly sqliteParity: readonly [typeof sqliteParitySource, SqliteParityEmitted];
 };

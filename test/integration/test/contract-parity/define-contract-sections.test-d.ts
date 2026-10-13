@@ -5,6 +5,7 @@ import type {
   ParameterizedOutputTypesFunction,
   TypeMapsPhantomKey,
 } from '@internal/sql-contract/types';
+import type { TableIndexReferences } from '@internal/sql-relational-core/index-reference';
 import type { ParameterizedOutputTypesForTypeParams as PostgresOutputTypes } from '@internal/target-postgres/codec-types';
 import { describe, expectTypeOf, test } from 'vitest';
 import type { Built, DifferingKeys, Emitted, Fixtures, SameType } from './parity-types';
@@ -286,9 +287,8 @@ describe('storage', () => {
     expectTypeOf<
       UnclassifiedPerFixture<
         'table keys',
-        'columns' | 'primaryKey' | 'uniques',
+        'columns' | 'primaryKey' | 'uniques' | 'indexes',
         {
-          readonly indexes: 'The built type gives Index[], so where and orderBy callbacks accept any index name for a defineContract contract; a wrong name fails at run time. See the report on TML-3534.';
           readonly foreignKeys: 'No type reads them; relations, compared under domain, carry the joins the ORM uses.';
         }
       >
@@ -306,6 +306,31 @@ describe('storage', () => {
 
   test('tables, primary keys and unique keys', () => {
     expectTypeOf<MapDifferences<'table'>>().toBeNever();
+  });
+
+  // Compared as the ORM and the SQL builder read them: each table's index references, keyed by the name the source gave each, with their columns, type and options.
+  test('indexes', () => {
+    type IndexDifferences = {
+      [F in keyof Fixtures]: {
+        [Table in
+          | keyof Part<Built<F>, 'index'>
+          | keyof Part<Emitted<F>, 'index'>]: Table extends keyof Part<Built<F>, 'index'>
+          ? Table extends keyof Part<Emitted<F>, 'index'>
+            ? SameType<
+                Part<Built<F>, 'index'>[Table],
+                Part<Emitted<F>, 'index'>[Table],
+                4
+              > extends true
+              ? never
+              : `${F}: indexes of ${Table & string}`
+            : `${F}: ${Table & string} (built only)`
+          : `${F}: ${Table & string} (emitted only)`;
+      }[keyof Part<Built<F>, 'index'> | keyof Part<Emitted<F>, 'index'>];
+    }[keyof Fixtures];
+    expectTypeOf<IndexDifferences>().toBeNever();
+    expectTypeOf<'search_docs' | 'users_handle_idx'>().toExtend<
+      keyof Part<Built<'postgresParity'>, 'index'>['public.users']
+    >();
   });
 
   test('columns', () => {
@@ -445,6 +470,7 @@ type PartName =
   | 'table keys'
   | 'column keys'
   | 'table'
+  | 'index'
   | 'column'
   | 'domain'
   | 'domain namespace'
@@ -476,20 +502,26 @@ type Part<Contract, Name extends PartName> = Name extends 'execution'
                       Tables<Contract>[Table]
                     >;
                   }
-                : Name extends 'column'
+                : Name extends 'index'
                   ? {
-                      readonly [Column in keyof Columns<Contract>]: ComparedColumn<
-                        Columns<Contract>[Column]
+                      readonly [Table in keyof Tables<Contract>]: TableIndexReferences<
+                        Tables<Contract>[Table]
                       >;
                     }
-                  : Name extends 'domain'
-                    ? DomainOf<Contract>
-                    : Name extends 'domain namespace'
-                      ? ValuesOf<DomainNamespaces<Contract>>
-                      : Name extends 'model'
-                        ? ValuesOf<Models<Contract>>
-                        : Name extends 'model storage'
-                          ? ModelPart<Contract, 'storage'>
-                          : Name extends 'field'
-                            ? Fields<Contract>
-                            : Relations<Contract>;
+                  : Name extends 'column'
+                    ? {
+                        readonly [Column in keyof Columns<Contract>]: ComparedColumn<
+                          Columns<Contract>[Column]
+                        >;
+                      }
+                    : Name extends 'domain'
+                      ? DomainOf<Contract>
+                      : Name extends 'domain namespace'
+                        ? ValuesOf<DomainNamespaces<Contract>>
+                        : Name extends 'model'
+                          ? ValuesOf<Models<Contract>>
+                          : Name extends 'model storage'
+                            ? ModelPart<Contract, 'storage'>
+                            : Name extends 'field'
+                              ? Fields<Contract>
+                              : Relations<Contract>;
