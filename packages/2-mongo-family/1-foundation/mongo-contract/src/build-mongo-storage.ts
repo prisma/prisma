@@ -1,5 +1,5 @@
 import { computeStorageHash } from '@internal/contract/hashing';
-import type { JsonValue } from '@internal/contract/types';
+import type { ContractEnum } from '@internal/contract/types';
 import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -9,32 +9,37 @@ import type { MongoCollectionInput } from './ir/mongo-collection';
 import { MongoStorage } from './ir/mongo-storage';
 import type { MongoValueSetInput } from './ir/mongo-value-set';
 
-export interface MongoEnumValueSetSource {
+export interface MongoEnumSource {
   readonly codecId: string;
-  readonly members: readonly { readonly value: unknown }[];
-}
-
-function encodeEnumValue(value: unknown, codecId: string, codecLookup: CodecLookup): JsonValue {
-  const codec = codecLookup.get(codecId);
-  if (!codec) {
-    throw errorEnumCodecNotInPackStack({ codecId });
-  }
-  return codec.encodeJson(value);
+  readonly members: readonly { readonly name: string; readonly value: unknown }[];
 }
 
 /**
- * Encodes each enum's members through the enum's codec into a storage value set. An enum whose codec the lookup cannot resolve is an error: the codec is not part of the contract's pack stack.
+ * The enum as the contract holds it: each member's decoded value encoded by the enum's codec. An enum whose codec the lookup cannot resolve is an error: the codec is not part of the contract's pack stack.
  */
-export function encodeMongoValueSets(
-  enums: Readonly<Record<string, MongoEnumValueSetSource>>,
-  codecLookup: CodecLookup,
+export function encodeMongoEnum(source: MongoEnumSource, codecLookup: CodecLookup): ContractEnum {
+  const codec = codecLookup.get(source.codecId);
+  if (!codec) {
+    throw errorEnumCodecNotInPackStack({ codecId: source.codecId });
+  }
+  return {
+    codecId: source.codecId,
+    members: source.members.map((member) => ({
+      name: member.name,
+      value: codec.encodeJson(member.value),
+    })),
+  };
+}
+
+/**
+ * The storage value set of each enum: its members' stored values.
+ */
+export function mongoValueSetsOf(
+  enums: Readonly<Record<string, ContractEnum>>,
 ): Record<string, MongoValueSetInput> {
   const valueSets: Record<string, MongoValueSetInput> = {};
-  for (const [enumName, { codecId, members }] of Object.entries(enums)) {
-    valueSets[enumName] = {
-      kind: 'valueSet',
-      values: members.map((member) => encodeEnumValue(member.value, codecId, codecLookup)),
-    };
+  for (const [enumName, { members }] of Object.entries(enums)) {
+    valueSets[enumName] = { kind: 'valueSet', values: members.map((member) => member.value) };
   }
   return valueSets;
 }

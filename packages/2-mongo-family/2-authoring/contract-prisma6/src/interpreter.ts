@@ -13,7 +13,6 @@ import {
   crossRef,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
-  type JsonValue,
   type ValueSetRef,
 } from '@internal/contract/types';
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
@@ -29,10 +28,12 @@ import type { AssembledAuthoringContributions } from '@internal/framework-compon
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoStorage,
-  encodeMongoValueSets,
+  encodeMongoEnum,
   type MongoCollectionInput,
+  type MongoEnumSource,
   MongoIndex,
   type MongoIndexKeyDirection,
+  mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import {
   type MongoBackRelationCandidate,
@@ -107,11 +108,6 @@ interface Located<T> {
 }
 
 type Diagnostics = ContractSourceDiagnostic[];
-
-interface EnumBuild {
-  readonly codecId: string;
-  readonly members: readonly { readonly name: string; readonly value: unknown }[];
-}
 
 interface ModelBuild {
   readonly located: Located<ModelSymbol>;
@@ -326,7 +322,7 @@ export function interpretPrisma6Documents(
     });
   }
 
-  const enums = new Map<string, EnumBuild>();
+  const enums = new Map<string, MongoEnumSource>();
   for (const located of enumBlocks) {
     const built = buildEnum(located, input, diagnostics);
     if (built !== undefined) enums.set(located.symbol.name, built);
@@ -486,7 +482,7 @@ function buildEnum(
   located: Located<BlockSymbol>,
   input: InterpretPrisma6DocumentsInput,
   diagnostics: Diagnostics,
-): EnumBuild | undefined {
+): MongoEnumSource | undefined {
   const { symbol: block, sourceId, sources } = located;
   for (const attribute of block.attributes) {
     if (attribute.name === 'map') continue;
@@ -585,7 +581,7 @@ function schemaUnsupported(
 
 interface TypeContext {
   readonly binding: Prisma6TargetBinding;
-  readonly enums: ReadonlyMap<string, EnumBuild>;
+  readonly enums: ReadonlyMap<string, MongoEnumSource>;
   readonly compositeTypeNames: ReadonlySet<string>;
   readonly diagnostics: Diagnostics;
 }
@@ -1428,7 +1424,7 @@ function assembleContract(input: {
   readonly collections: Readonly<Record<string, { readonly indexes: readonly MongoIndex[] }>>;
   readonly roots: Record<string, CrossReference>;
   readonly valueObjects: Record<string, ContractValueObject>;
-  readonly enums: ReadonlyMap<string, EnumBuild>;
+  readonly enums: ReadonlyMap<string, MongoEnumSource>;
   readonly executionDefaults: readonly ExecutionMutationDefault[];
   readonly codecLookup: CodecLookupWithDescriptors;
 }): Contract {
@@ -1437,15 +1433,7 @@ function assembleContract(input: {
 
   const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, built] of input.enums) {
-    builtEnums[enumName] = {
-      codecId: built.codecId,
-      members: built.members.map((member) => ({
-        name: member.name,
-        value: blindCast<JsonValue, 'factory-validated enum members are JsonValue-compatible'>(
-          member.value,
-        ),
-      })),
-    };
+    builtEnums[enumName] = encodeMongoEnum(built, input.codecLookup);
   }
 
   const collections: Record<string, MongoCollectionInput> = {};
@@ -1454,7 +1442,7 @@ function assembleContract(input: {
   }
   const storage: Contract['storage'] = buildMongoStorage({
     collections,
-    valueSets: encodeMongoValueSets(Object.fromEntries(input.enums), input.codecLookup),
+    valueSets: mongoValueSetsOf(builtEnums),
   });
 
   const models: Record<string, unknown> = {};

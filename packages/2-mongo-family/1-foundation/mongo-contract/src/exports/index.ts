@@ -5,8 +5,8 @@ export type {
   ShapeSpec,
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
-export type { MongoEnumValueSetSource } from '../build-mongo-storage';
-export { buildMongoStorage, encodeMongoValueSets } from '../build-mongo-storage';
+export type { MongoEnumSource } from '../build-mongo-storage';
+export { buildMongoStorage, encodeMongoEnum, mongoValueSetsOf } from '../build-mongo-storage';
 export {
   createMongoContractSchema,
   createMongoNamespaceEnvelopeSchema,

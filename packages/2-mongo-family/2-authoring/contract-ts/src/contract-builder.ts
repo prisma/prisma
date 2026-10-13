@@ -35,7 +35,6 @@ import {
   resolveToOneRelationNullable,
   type TupleFromArgumentDescriptors,
 } from '@internal/contract-authoring';
-import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
 import type {
   AuthoringArgumentDescriptor,
   AuthoringFieldNamespace,
@@ -46,7 +45,7 @@ import {
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
-import type { CodecLookup, CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import { assembleDataTypes, enumRefusalOf } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
@@ -58,6 +57,7 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoNamespace,
+  encodeMongoEnum,
   type MongoCollection,
   type MongoCollectionInput,
   MongoCollectionOptions,
@@ -73,7 +73,7 @@ import {
   MongoStorage,
   type MongoStorageShape,
   type MongoTypeMaps,
-  type MongoValueSetInput,
+  mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
@@ -82,22 +82,6 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
-
-/**
- * Encode an authored enum value to its codec-encoded JSON form, mirroring SQL's `build-contract`.
- *
- * The codec is resolved by id from the lookup built from the contract's target pack, so a
- * non-identity `encodeJson` (permitted by the `mongoCodec` factory) is respected. A codecId the
- * lookup cannot resolve is a hard error: the enum uses a codec that is not part of the contract's
- * pack stack.
- */
-function encodeEnumValue(value: unknown, codecId: string, codecLookup: CodecLookup): JsonValue {
-  const codec = codecLookup.get(codecId);
-  if (!codec) {
-    throw errorEnumCodecNotInPackStack({ codecId });
-  }
-  return codec.encodeJson(value);
-}
 
 function assertEnumCanUseCodec(
   handle: EnumTypeHandle,
@@ -2559,24 +2543,22 @@ function buildContractFromDefinition<
     defaults: buildExecutionDefaults(definition.models),
   });
 
-  // Resolve the target's codecs by id from the pack the contract binds, then encode each enum's
-  // member values through `codec.encodeJson` — the same real codecs the runtime/control stacks use.
   const codecLookup = extractCodecLookup([definition.target]);
 
-  // The value set stores each enum's codec-encoded member values (mirroring SQL's build-contract).
-  const storageValueSets: Record<string, MongoValueSetInput> = {};
+  const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
     assertEnumCanUseCodec(handle, codecLookup);
-    const storedMembers = handle.enumMembers.map((m) => ({
-      name: m.name,
-      stored: encodeEnumValue(m.value, handle.codecId, codecLookup),
-    }));
-    assertEnumMembersStoredUniquely(handle.enumName, storedMembers);
-    storageValueSets[enumName] = {
-      kind: 'valueSet',
-      values: storedMembers.map((m) => m.stored),
-    };
+    const encoded = encodeMongoEnum(
+      { codecId: handle.codecId, members: handle.enumMembers },
+      codecLookup,
+    );
+    assertEnumMembersStoredUniquely(
+      handle.enumName,
+      encoded.members.map((m) => ({ name: m.name, stored: m.value })),
+    );
+    builtEnums[enumName] = encoded;
   }
+  const storageValueSets = mongoValueSetsOf(builtEnums);
   const hasValueSets = Object.keys(storageValueSets).length > 0;
 
   const unboundNamespace = buildMongoNamespace({
@@ -2612,7 +2594,6 @@ function buildContractFromDefinition<
     },
   });
 
-  const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
     if (enumName !== handle.enumName) {
       throw contractError(
@@ -2627,13 +2608,6 @@ function buildContractFromDefinition<
         },
       );
     }
-    builtEnums[enumName] = {
-      codecId: handle.codecId,
-      members: handle.enumMembers.map((m) => ({
-        name: m.name,
-        value: encodeEnumValue(m.value, handle.codecId, codecLookup),
-      })),
-    };
   }
   const hasEnums = Object.keys(builtEnums).length > 0;
 

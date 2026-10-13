@@ -13,7 +13,6 @@ import {
   crossRef,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
-  type JsonValue,
   type ValueSetRef,
 } from '@internal/contract/types';
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
@@ -36,11 +35,11 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
-  encodeMongoValueSets,
+  encodeMongoEnum,
   type MongoCollectionInput,
   MongoIndex,
   type MongoIndexKeyDirection,
-  type MongoValueSetInput,
+  mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
@@ -1298,15 +1297,10 @@ function processEnumDeclarations(input: {
 
     if (handle === undefined || handle === null) continue;
 
-    builtEnums[envelope.name] = {
-      codecId: handle.codecId,
-      members: handle.enumMembers.map((m) => ({
-        name: m.name,
-        value: blindCast<JsonValue, 'factory-validated enum members are JsonValue-compatible'>(
-          m.value,
-        ),
-      })),
-    };
+    builtEnums[envelope.name] = encodeMongoEnum(
+      { codecId: handle.codecId, members: handle.enumMembers },
+      input.entityContext.codecLookup,
+    );
   }
 
   return builtEnums;
@@ -1687,19 +1681,7 @@ export function interpretPslDocumentToMongoContract(
     defaults: executionDefaults,
   });
 
-  // The storage value set is the source of truth for both the emit typing and the validator's
-  // `enum` keyword. Built once, ahead of validator derivation, from each enum's codec-encoded member
-  // values (mirroring SQL's build-contract). Encoding needs the codec lookup; production always
-  // threads it (the CLI control stack supplies it), so its absence when enums exist is a wiring bug,
-  // not a runtime input to tolerate.
-  let storageValueSets: Record<string, MongoValueSetInput> = {};
-  if (Object.keys(builtEnums).length > 0) {
-    assertDefined(
-      codecLookup,
-      'Mongo PSL interpretation requires a codec lookup to encode enum values',
-    );
-    storageValueSets = encodeMongoValueSets(builtEnums, codecLookup);
-  }
+  const storageValueSets = mongoValueSetsOf(builtEnums);
 
   for (const [, modelEntry] of Object.entries(resolvedModels)) {
     if (modelEntry.base) continue;
