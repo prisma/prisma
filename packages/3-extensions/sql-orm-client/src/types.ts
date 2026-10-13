@@ -1651,7 +1651,7 @@ type OptionalCreateFieldNames<
     : never;
 }[CreateFieldNames<TContract, ModelName, NsId>];
 
-type ScalarCreateInput<
+type RowCreateFields<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
@@ -1670,7 +1670,7 @@ export type CreateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
-> = ScalarCreateInput<TContract, ModelName, NsId> &
+> = RowCreateFields<TContract, ModelName, NsId> &
   RelationMutationFields<TContract, ModelName, 'create'>;
 
 type IsPolymorphicBase<
@@ -1713,37 +1713,51 @@ export type VariantCreateInput<
       >
   : never;
 
+/**
+ * An input with no keys is `Record<string, never>`, not `{}`: TypeScript accepts any object where `{}` is expected, so a model with no fields would accept any key.
+ */
+type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
+
+/** The scalar fields an update of the model takes. For a model with no fields, it rejects every key. */
+export type ScalarUpdateInput<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string = never,
+> = ClosedWhenEmpty<Partial<DefaultModelRow<TContract, ModelName, NsId>>>;
+
 export type ResolvedCreateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   VariantValue extends string | undefined,
   NsId extends string = never,
-> =
+> = ClosedWhenEmpty<
   IsPolymorphicBase<TContract, ModelName, NsId> extends true
     ? VariantValue extends string
       ? VariantCreateInput<TContract, ModelName, VariantValue, NsId>
       : never
-    : CreateInput<TContract, ModelName, NsId>;
+    : CreateInput<TContract, ModelName, NsId>
+>;
 
 export type ResolvedScalarCreateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   VariantValue extends string | undefined,
   NsId extends string = never,
-> =
+> = ClosedWhenEmpty<
   IsPolymorphicBase<TContract, ModelName, NsId> extends true
     ? VariantValue extends string
       ? Omit<
-          ScalarCreateInput<TContract, ModelName, NsId>,
+          RowCreateFields<TContract, ModelName, NsId>,
           DiscriminatorFieldName<TContract, ModelName, NsId>
         > &
-          ScalarCreateInput<
+          RowCreateFields<
             TContract,
             VariantModelName<TContract, ModelName, VariantValue, NsId>,
             VariantModelNamespace<TContract, ModelName, VariantValue, NsId>
           >
       : never
-    : ScalarCreateInput<TContract, ModelName, NsId>;
+    : RowCreateFields<TContract, ModelName, NsId>
+>;
 
 type ModelStorageTableDef<TContract extends Contract<SqlStorage>, ModelName extends string> =
   ModelTableName<TContract, ModelName> extends infer TableName extends string
@@ -2135,8 +2149,10 @@ export type MutationUpdateInput<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string = never,
-> = Partial<DefaultModelRow<TContract, ModelName, NsId>> &
-  RelationMutationFields<TContract, ModelName, 'update'>;
+> = ClosedWhenEmpty<
+  Partial<DefaultModelRow<TContract, ModelName, NsId>> &
+    RelationMutationFields<TContract, ModelName, 'update'>
+>;
 
 type ModelRelations<
   TContract extends Contract<SqlStorage>,

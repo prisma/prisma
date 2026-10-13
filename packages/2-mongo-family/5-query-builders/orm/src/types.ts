@@ -239,6 +239,17 @@ export type DefaultModelRow<
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = ResolvedOutputRow<TContract, ModelName>;
 
+/**
+ * An input with no keys is `Record<string, never>`, not `{}`: TypeScript accepts any object where `{}` is expected, so a model with no fields would accept any key.
+ */
+type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
+
+/** The fields an update of the model takes. For a model with no fields, it rejects every key. */
+export type UpdateInput<
+  TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
+  ModelName extends string & keyof MongoModelsMap<TContract>,
+> = ClosedWhenEmpty<Partial<DefaultModelRow<TContract, ModelName>>>;
+
 type ModelCollectionName<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
