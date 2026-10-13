@@ -191,7 +191,7 @@ describe('migration plan when the planner produces no operations', () => {
         planningFailed({
           kind: 'nothingToCreate',
           summary: NOTHING_TO_CREATE,
-          why: 'If the database needs something the contract does not describe, run `prisma migration new`, add its operations to the new `migration.ts`, then, from the project directory, run `node migrations/app/<directory>/migration.ts`, naming the directory it wrote, to write `ops.json`.',
+          why: 'If the database needs something the contract does not describe, run `prisma migration new`, add its operations to the new `migration.ts`, then run that `migration.ts` with `node` to write `ops.json`.',
         }),
       );
       expect({ exitCode: scaffold.exitCode, migrations: await migrationsOf(project) }).toEqual({
@@ -208,7 +208,7 @@ describe('migration plan when the planner produces no operations', () => {
         planningFailed({
           kind: 'nothingToCreate',
           summary: NOTHING_TO_CREATE,
-          why: '`prisma migration new` writes a migration only to the emitted contract. If the database needs something this contract does not describe, emit it, run `prisma migration new`, add its operations to the new `migration.ts`, then, from the project directory, run `node migrations/app/<directory>/migration.ts`, naming the directory it wrote, to write `ops.json`.',
+          why: '`prisma migration new` writes a migration only to the emitted contract. If the database needs something this contract does not describe, emit it, run `prisma migration new`, add its operations to the new `migration.ts`, then run that `migration.ts` with `node` to write `ops.json`.',
         }),
       );
     });

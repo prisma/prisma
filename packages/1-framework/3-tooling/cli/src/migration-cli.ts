@@ -18,8 +18,9 @@
  * 2. Parses CLI args (`--help`, `--dry-run`, `--config <path>`) via
  *    [clipanion](https://github.com/arcanis/clipanion).
  * 3. Loads the project's `prisma.config.ts` via the same
- *    `loadConfigForSections` the CLI commands use, walking up from the
- *    migration file's directory.
+ *    `loadConfigForSections` the CLI commands use. Without `--config`, it
+ *    loads the nearest config found walking up from the migration file's
+ *    directory, so the file runs from any working directory.
  * 4. Probe-instantiates the migration class without a stack so it can read
  *    `targetId` and verify it matches `config.target.targetId`
  *    (`MIGRATION.TARGET_MISMATCH` on mismatch) before any stack-driven adapter
@@ -46,7 +47,7 @@
 import { readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import type { Writable } from 'node:stream';
 import { fileURLToPath } from 'node:url';
-import { loadConfigForSections } from '@internal/config-loader';
+import { findNearestConfigPathForFile, loadConfigForSections } from '@internal/config-loader';
 import {
   type CliStructuredError,
   errorMigrationCliInvalidConfigArg,
@@ -549,7 +550,8 @@ async function runMigration(
   const migrationFile = fileURLToPath(importMetaUrl);
   const migrationDir = dirname(migrationFile);
 
-  const configResult = await loadConfigForSections(parsed.config, [
+  const configPath = parsed.config ?? (await findNearestConfigPathForFile(migrationFile));
+  const configResult = await loadConfigForSections(configPath, [
     'family',
     'target',
     'adapter',

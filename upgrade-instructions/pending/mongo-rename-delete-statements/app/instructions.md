@@ -23,6 +23,9 @@ changes:
       glob: "**/*.{ts,mts,cts,js,mjs,cjs}"
       matches:
         - '--delete loses its rows'
+  - id: migration-ts-finds-its-config
+    summary: |
+      Running a `migration.ts` with node loads the nearest `prisma.config.ts` above the migration's own directory, so `node migration.ts` works from any directory. It used to look only in the working directory, and failed with `CONFIG.FILE_NOT_FOUND` anywhere else unless `--config` named the file.
 ---
 
 # MongoDB carries out `--rename` and `--delete`
@@ -61,3 +64,7 @@ A repeated `db update` on a database whose contract declares a time-series colle
 ## `storage-question-wording`
 
 A test that asserts the text of a data-loss question about data named by its storage name expects `--delete loses that data` where it expected `--delete loses its rows`.
+
+## `migration-ts-finds-its-config`
+
+`node migration.ts`, run inside the migration's directory, now finds the project's `prisma.config.ts`, as does `node <path>/migration.ts` run from any other directory. A command that runs the file from the project directory keeps working unchanged. A script that passed `--config` only because it ran the file from another directory can drop it; `--config` still overrides the lookup. Messages that tell you to run a `migration.ts` now say to run it with node, without a path or a working directory.

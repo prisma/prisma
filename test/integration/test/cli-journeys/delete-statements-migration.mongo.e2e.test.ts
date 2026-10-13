@@ -8,7 +8,7 @@
 
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
@@ -331,7 +331,7 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     ]);
     expect(refused.exitCode, 'S5.05: the field rename is refused').not.toBe(0);
     expect(JSON.stringify(engineError(refused)?.meta), 'S5.05: the advice').toContain(
-      'from the project directory, run node migrations/app/<directory>/migration.ts',
+      'run node on that migration.ts so it writes ops.json again',
     );
 
     useFixture(ctx, 'contract-events-remapped.ts');
@@ -369,8 +369,8 @@ describe('Journeys (MongoDB): statements that consent to data loss', {
     );
     expect(edited, `S5.08: the drop is gone:\n${edited}`).not.toMatch(/dropCollection\(['"]events/);
     writeFileSync(migrationTs, edited, 'utf-8');
-    const emitted = runPrintedSelfEmit(ctx, String(engineError(asked)?.why), remapDir);
-    expect(emitted.exitCode, `S5.09: the printed node command: ${emitted.stderr}`).toBe(0);
+    const emitted = runPrintedSelfEmit(String(engineError(asked)?.why), dirname(migrationTs));
+    expect(emitted.exitCode, `S5.09: node on migration.ts, as printed: ${emitted.stderr}`).toBe(0);
     const applyRemap = await runMigrate(ctx);
     expect(applyRemap.exitCode, `S5.10: migrate: ${applyRemap.stderr}`).toBe(0);
 

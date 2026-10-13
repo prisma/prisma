@@ -55,6 +55,8 @@ export interface JourneyContext {
   testDir: string;
   configPath: string;
   outputDir: string;
+  /** The config's `migrations.dir`, relative to `testDir`, when it is not `migrations`. */
+  migrationsDir?: string;
 }
 
 // Re-export timeouts so journey tests can import from a single module.
@@ -404,7 +406,7 @@ export async function authorMigration(
     throw new Error('authorMigration: the scaffold has no operations array to fill');
   }
   writeFileSync(migrationTsPath, authored, 'utf-8');
-  const emit = await selfEmitMigration(ctx, ['--dir', `migrations/app/${dirName}`]);
+  const emit = await selfEmitMigration(ctx, ['--dir', join(appMigrationsDir(ctx), dirName)]);
   return { dirName, emit };
 }
 
@@ -552,26 +554,17 @@ export async function selfEmitMigration(
 }
 
 /**
- * Finds the `node migrations/app/<directory>/migration.ts` command `message` prints, names the
- * migration directory in it, and runs it as a user would type it in the project directory.
+ * Follows a message that says to run a migration's `migration.ts` with node: runs `node migration.ts` inside `packageDir`, the migration package directory, as a user would.
  */
-export function runPrintedSelfEmit(
-  ctx: JourneyContext,
-  message: string,
-  migrationDir: string,
-): CommandResult {
-  const printed = /\bnode (migrations\/app\/<directory>\/migration\.ts)/.exec(message)?.[1];
-  if (printed === undefined) {
+export function runPrintedSelfEmit(message: string, packageDir: string): CommandResult {
+  if (!/\bnode on that migration\.ts\b/.test(message)) {
     return {
       exitCode: -1,
       stdout: '',
-      stderr: `the message prints no node migrations/app/<directory>/migration.ts command: ${message}`,
+      stderr: `the message does not say to run node on that migration.ts: ${message}`,
     };
   }
-  const run = spawnSync(process.execPath, [printed.replace('<directory>', migrationDir)], {
-    cwd: ctx.testDir,
-    encoding: 'utf-8',
-  });
+  const run = spawnSync(process.execPath, ['migration.ts'], { cwd: packageDir, encoding: 'utf-8' });
   return { exitCode: run.status ?? -1, stdout: run.stdout, stderr: run.stderr };
 }
 
@@ -592,7 +585,7 @@ export async function planMigrationAndSelfEmit(
   if (planResult.exitCode !== 0) return planResult;
   const latest = getLatestMigrationDir(ctx);
   if (!latest) return planResult;
-  const emitResult = await selfEmitMigration(ctx, ['--dir', `migrations/app/${latest}`]);
+  const emitResult = await selfEmitMigration(ctx, ['--dir', join(appMigrationsDir(ctx), latest)]);
   if (emitResult.exitCode !== 0) {
     return {
       ...planResult,
@@ -770,7 +763,7 @@ export function migrationStatusAppSpace(
  * test root (`migrations/app/`).
  */
 function appMigrationsDir(ctx: JourneyContext): string {
-  return join(ctx.testDir, 'migrations', 'app');
+  return join(ctx.testDir, ctx.migrationsDir ?? 'migrations', 'app');
 }
 
 /**

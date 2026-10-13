@@ -169,7 +169,7 @@ describe('MongoDB planner, data loss', () => {
         operation: 'Drop collection events',
         subject: { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
         keepDataAdvice:
-          'To keep its documents, rename collection "events" to "occasions" instead; a statement cannot rename the collection of a model that keeps its name. With db update, rename the collection in the database yourself, for example db.getCollection("events").renameCollection("occasions") in mongosh, then run db update. With migration plan, plan it, passing --delete Event to answer its question; in its migration.ts replace the drop of "events" and the create of "occasions" with renameCollection("events", "occasions"), imported with the other operations; from the project directory, run node migrations/app/<directory>/migration.ts, naming the directory migration plan wrote, so it writes ops.json again; then apply it with prisma db migrate.',
+          'To keep its documents, rename collection "events" to "occasions" instead; a statement cannot rename the collection of a model that keeps its name. With db update, rename the collection in the database yourself, for example db.getCollection("events").renameCollection("occasions") in mongosh, then run db update. With migration plan, plan it, passing --delete Event to answer its question; in its migration.ts replace the drop of "events" and the create of "occasions" with renameCollection("events", "occasions"), imported with the other operations; run node on that migration.ts so it writes ops.json again; then apply it with prisma db migrate.',
       },
     ]);
   });

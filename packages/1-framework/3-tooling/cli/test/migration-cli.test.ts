@@ -19,13 +19,15 @@ import { structuredError } from '@internal/utils/structured-error';
 import { join } from 'pathe';
 import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { loadConfigMock, createControlStackMock } = vi.hoisted(() => ({
+const { loadConfigMock, findConfigMock, createControlStackMock } = vi.hoisted(() => ({
   loadConfigMock: vi.fn(),
+  findConfigMock: vi.fn(async (): Promise<string | undefined> => undefined),
   createControlStackMock: vi.fn(),
 }));
 
 vi.mock('@internal/config-loader', () => ({
   loadConfigForSections: loadConfigMock,
+  findNearestConfigPathForFile: findConfigMock,
 }));
 
 vi.mock('@internal/framework-components/control', async () => {
@@ -350,6 +352,21 @@ describe('MigrationCLI.run', () => {
 
     expect(exitCode).toBe(0);
     expect(loadConfigMock).toHaveBeenCalledWith('/explicit/config.ts', expect.any(Array));
+  });
+
+  it('loads the config nearest the migration file when --config is not given', async () => {
+    findConfigMock.mockResolvedValueOnce('/project/prisma.config.ts');
+    loadConfigMock.mockResolvedValue(ok(okConfig));
+    createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
+
+    await MigrationCLI.run(pathToFileURL(migrationFile).href, FakeMigration, {
+      argv: entrypointArgv(),
+      stdout: new BufferStream(),
+      stderr: new BufferStream(),
+    });
+
+    expect(findConfigMock).toHaveBeenCalledWith(migrationFile);
+    expect(loadConfigMock).toHaveBeenCalledWith('/project/prisma.config.ts', expect.any(Array));
   });
 
   it('forwards --config=<path> (equals form) to loadConfig', async () => {

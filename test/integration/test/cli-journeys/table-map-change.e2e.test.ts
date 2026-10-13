@@ -7,7 +7,7 @@
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'pathe';
+import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir } from '../utils/cli-test-helpers';
 import {
@@ -116,8 +116,10 @@ withTempDir(({ createTempDir }) => {
         const edited = scaffolded.replace(/return \[[\s\S]*?\];/, () => `return [${call}];`);
         expect(edited, 'M1.07: the call is in the operations').not.toBe(scaffolded);
         writeFileSync(migrationTs, edited, 'utf-8');
-        const emitted = runPrintedSelfEmit(ctx, question, dir);
-        expect(emitted.exitCode, `M1.08: the printed node command: ${emitted.stderr}`).toBe(0);
+        const emitted = runPrintedSelfEmit(question, dirname(migrationTs));
+        expect(emitted.exitCode, `M1.08: node on migration.ts, as printed: ${emitted.stderr}`).toBe(
+          0,
+        );
 
         const applied = await runMigrate(ctx);
         expect(applied.exitCode, `M1.09: db migrate: ${applied.stderr}`).toBe(0);

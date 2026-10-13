@@ -187,7 +187,7 @@ function keepTableAdvice(
   if (storage.namespaceId !== namespaceId || storage.table === from) return undefined;
   if (modelsStoring(context.fromContract, namespaceId, storage.table).length > 0) return undefined;
   const rename = { namespaceId, from, to: storage.table };
-  return `To keep its rows, rename table "${from}" to "${storage.table}" instead; a statement cannot rename the table of a model that keeps its name. With db update, rename the table in the database yourself with ${context.byHand.tableRenameByHand(rename).join('; ')}, then run prisma db update. With migration plan, write the rename as a migration of its own instead: run prisma migration new --name <name> --from <hash of the migration the database is at>, add ${context.byHand.renderTableRename(rename)} to the operations of its migration.ts, from the project directory run node migrations/app/<directory>/migration.ts, naming the directory migration new wrote, so it writes ops.json, then run prisma db migrate.`;
+  return `To keep its rows, rename table "${from}" to "${storage.table}" instead; a statement cannot rename the table of a model that keeps its name. With db update, rename the table in the database yourself with ${context.byHand.tableRenameByHand(rename).join('; ')}, then run prisma db update. With migration plan, write the rename as a migration of its own instead: run prisma migration new --name <name> --from <hash of the migration the database is at>, add ${context.byHand.renderTableRename(rename)} to the operations of its migration.ts, run node on that migration.ts so it writes ops.json, then run prisma db migrate.`;
 }
 
 /**

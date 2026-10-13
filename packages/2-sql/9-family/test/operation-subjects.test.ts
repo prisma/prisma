@@ -253,7 +253,7 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
         operationIndex: 0,
         subject: { kind: 'model', namespaceId: app, model: 'Profile' },
         keepDataAdvice:
-          'To keep its rows, rename table "profiles" to "people" instead; a statement cannot rename the table of a model that keeps its name. With db update, rename the table in the database yourself with ALTER TABLE "profiles" RENAME TO "people", then run prisma db update. With migration plan, write the rename as a migration of its own instead: run prisma migration new --name <name> --from <hash of the migration the database is at>, add this.renameTable("profiles", "people") to the operations of its migration.ts, from the project directory run node migrations/app/<directory>/migration.ts, naming the directory migration new wrote, so it writes ops.json, then run prisma db migrate.',
+          'To keep its rows, rename table "profiles" to "people" instead; a statement cannot rename the table of a model that keeps its name. With db update, rename the table in the database yourself with ALTER TABLE "profiles" RENAME TO "people", then run prisma db update. With migration plan, write the rename as a migration of its own instead: run prisma migration new --name <name> --from <hash of the migration the database is at>, add this.renameTable("profiles", "people") to the operations of its migration.ts, run node on that migration.ts so it writes ops.json, then run prisma db migrate.',
       },
     ]);
   });

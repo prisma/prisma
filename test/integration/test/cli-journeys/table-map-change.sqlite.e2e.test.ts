@@ -1,12 +1,12 @@
 /**
  * A model that keeps its name while `@@map` gives it a new table (SQLite).
  *
- * No statement can rename that table, so the question about the dropped table says how to keep its rows. Journey M1 follows the `migration plan` route as printed: a migration of its own written with `migration new`, the printed `renameTable` call and the printed `node` command, then `db migrate`. Journey M2 follows the `db update` route: the printed SQL, then `db update`.
+ * No statement can rename that table, so the question about the dropped table says how to keep its rows. Journey M1 follows the `migration plan` route as printed, in a project whose `migrations.dir` is `./db/migrations`: a migration of its own written with `migration new`, the printed `renameTable` call, node run on its `migration.ts`, then `db migrate`. Journey M2 follows the `db update` route: the printed SQL, then `db update`.
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
-import { join } from 'pathe';
+import { dirname, join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { withTempDir, writeProjectManifest } from '../utils/cli-test-helpers';
 import {
@@ -42,14 +42,22 @@ const TO_PSL = FROM_PSL.replace('@@map("profiles")', '@@map("people")');
 
 type SqliteJourney = JourneyContext & { readonly dbPath: string };
 
-function setupSqliteJourney(createTempDir: () => string): SqliteJourney {
+function setupSqliteJourney(
+  createTempDir: () => string,
+  migrationsDir = 'migrations',
+): SqliteJourney {
   const testDir = createTempDir();
   const dbPath = join(testDir, 'journey.db');
   const configPath = join(testDir, 'prisma.config.ts');
-  const config = readFileSync(sqlitePslConfigFixture, 'utf-8').replace('{{DB_PATH}}', () => dbPath);
+  const config = readFileSync(sqlitePslConfigFixture, 'utf-8')
+    .replace('{{DB_PATH}}', () => dbPath)
+    .replace(
+      "migrations: { dir: 'migrations' }",
+      () => `migrations: { dir: './${migrationsDir}' }`,
+    );
   writeFileSync(configPath, config, 'utf-8');
   writeProjectManifest(testDir);
-  return { testDir, configPath, outputDir: testDir, dbPath };
+  return { testDir, configPath, outputDir: testDir, dbPath, migrationsDir };
 }
 
 function withDatabase<T>(dbPath: string, run: (db: DatabaseSync) => T): T {
@@ -100,7 +108,7 @@ withTempDir(({ createTempDir }) => {
     it(
       'writes the rename as a migration of its own, as the question prints it',
       async () => {
-        const ctx = setupSqliteJourney(createTempDir);
+        const ctx = setupSqliteJourney(createTempDir, 'db/migrations');
         await emitContract(ctx, FROM_PSL, 'M1.01');
         const initial = await planMigrationAndSelfEmit(ctx, ['--name', 'initial']);
         expect(initial.exitCode, `M1.02: plan initial: ${initial.stderr}`).toBe(0);
@@ -122,13 +130,15 @@ withTempDir(({ createTempDir }) => {
         const dir = latestMigrationDirName(ctx);
         const call = /add (\.\.\.this\.renameTable\(.*?\)) to the operations/.exec(question)?.[1];
         expect(call, `M1.07: the printed renameTable call in: ${question}`).toBeDefined();
-        const migrationTs = join(ctx.testDir, 'migrations/app', dir, 'migration.ts');
+        const migrationTs = join(ctx.testDir, 'db/migrations/app', dir, 'migration.ts');
         const scaffolded = readFileSync(migrationTs, 'utf-8');
         const edited = scaffolded.replace(/return \[[\s\S]*?\];/, () => `return [${call}];`);
         expect(edited, 'M1.07: the call is in the operations').not.toBe(scaffolded);
         writeFileSync(migrationTs, edited, 'utf-8');
-        const emitted = runPrintedSelfEmit(ctx, question, dir);
-        expect(emitted.exitCode, `M1.08: the printed node command: ${emitted.stderr}`).toBe(0);
+        const emitted = runPrintedSelfEmit(question, dirname(migrationTs));
+        expect(emitted.exitCode, `M1.08: node on migration.ts, as printed: ${emitted.stderr}`).toBe(
+          0,
+        );
 
         const applied = await runMigrate(ctx);
         expect(applied.exitCode, `M1.09: db migrate: ${applied.stderr}`).toBe(0);

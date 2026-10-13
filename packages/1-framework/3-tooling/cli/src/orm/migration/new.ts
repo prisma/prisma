@@ -64,9 +64,8 @@ export function createMigrationNewCommand(createClient: CreateControlClient) {
       summary: 'Scaffold a new migration for manual authoring',
       description:
         'Creates a migration package with a migration.ts file for manual authoring.\n' +
-        'Write the migration body in migration.ts, then run the file with Node from the\n' +
-        'project directory (`node migrations/app/<directory>/migration.ts`) to self-emit\n' +
-        'ops.json and attest the package.\n' +
+        'Write the migration body in migration.ts, then run the file with Node, as this\n' +
+        'command prints, to self-emit ops.json and attest the package.\n' +
         'Offline — does not consult the database.',
       examples: [
         'migration new --name split-name',
