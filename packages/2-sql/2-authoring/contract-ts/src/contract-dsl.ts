@@ -1060,19 +1060,15 @@ type IndexInput<
           };
         }[keyof IndexTypes & string];
 
-/**
- * The expression overload's input: the whole CREATE INDEX element list as
- * one opaque `sql` value. `name` or `map` is required — enforced at lowering
- * with the same diagnostics as PSL.
- */
-// Captures, for the index's type, the `map` name and the type the caller wrote; `IndexInput` checks them and the options.
-type IndexSpecCapture<Map, Type> = {
+// Captures, for the index's type, what the caller wrote; `IndexInput` checks it. `type` is captured only where a pack registers index types, so an unregistered one is refused as an unknown property.
+type IndexSpecCapture<Map, Type, Where, Unique, IndexTypes extends IndexTypeMap> = {
   readonly map?: Map;
-  readonly type?: Type;
-};
+  readonly where?: Where;
+  readonly unique?: Unique;
+} & (keyof IndexTypes extends never ? Record<never, never> : { readonly type?: Type });
 
 // The options are typed as the index type declares them.
-type IndexSpecFrom<Map, Type, IndexTypes extends IndexTypeMap> = {
+type IndexSpecFrom<Map, Type, Where, Unique, IndexTypes extends IndexTypeMap> = {
   readonly map: Map;
   readonly type: Type;
   readonly options: Type extends keyof IndexTypes
@@ -1080,8 +1076,15 @@ type IndexSpecFrom<Map, Type, IndexTypes extends IndexTypeMap> = {
       ? Options
       : Record<string, unknown>
     : undefined;
+  readonly partial: [Where] extends [undefined] ? false : true;
+  readonly unique: Unique;
 };
 
+/**
+ * The expression overload's input: the whole CREATE INDEX element list as
+ * one opaque `sql` value. `name` or `map` is required — enforced at lowering
+ * with the same diagnostics as PSL.
+ */
 type ExpressionIndexInput<
   Name extends string | undefined,
   IndexTypes extends IndexTypeMap,
@@ -1189,6 +1192,8 @@ export type IndexSpec = {
   readonly map?: string | undefined;
   readonly type?: string | undefined;
   readonly options?: unknown;
+  readonly partial?: boolean;
+  readonly unique?: boolean | undefined;
 };
 
 export type IndexConstraint<
@@ -1383,21 +1388,30 @@ function createConstraintsDsl<IndexTypes extends IndexTypeMap = Record<never, ne
     const Name extends string | undefined = undefined,
     const Map extends string | undefined = undefined,
     const Type extends (keyof IndexTypes & string) | undefined = undefined,
+    const Where extends SqlExpression | undefined = undefined,
+    const Unique extends boolean | undefined = undefined,
   >(
     fields: { readonly [K in keyof FieldNames]: ColumnRef<FieldNames[K] & string> },
-    options?: IndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
+    options?: IndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type, Where, Unique, IndexTypes>,
   ): IndexConstraint<
     FieldNames,
     NoInfer<Name>,
-    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>
+    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, NoInfer<Where>, NoInfer<Unique>, IndexTypes>
   >;
   function index<
     const Name extends string | undefined = undefined,
     const Map extends string | undefined = undefined,
     const Type extends (keyof IndexTypes & string) | undefined = undefined,
+    const Where extends SqlExpression | undefined = undefined,
+    const Unique extends boolean | undefined = undefined,
   >(
-    options: ExpressionIndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
-  ): IndexConstraint<never, NoInfer<Name>, IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>>;
+    options: ExpressionIndexInput<Name, IndexTypes> &
+      IndexSpecCapture<Map, Type, Where, Unique, IndexTypes>,
+  ): IndexConstraint<
+    never,
+    NoInfer<Name>,
+    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, NoInfer<Where>, NoInfer<Unique>, IndexTypes>
+  >;
   function index(
     fieldsOrOptions:
       | ColumnRef
@@ -1566,21 +1580,30 @@ type PackAwareIndex<IndexTypes extends IndexTypeMap> = {
     const Name extends string | undefined = undefined,
     const Map extends string | undefined = undefined,
     const Type extends (keyof IndexTypes & string) | undefined = undefined,
+    const Where extends SqlExpression | undefined = undefined,
+    const Unique extends boolean | undefined = undefined,
   >(
     fields: { readonly [K in keyof FieldNames]: ColumnRef<FieldNames[K] & string> },
-    options?: IndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
+    options?: IndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type, Where, Unique, IndexTypes>,
   ): IndexConstraint<
     FieldNames,
     NoInfer<Name>,
-    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>
+    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, NoInfer<Where>, NoInfer<Unique>, IndexTypes>
   >;
   <
     const Name extends string | undefined = undefined,
     const Map extends string | undefined = undefined,
     const Type extends (keyof IndexTypes & string) | undefined = undefined,
+    const Where extends SqlExpression | undefined = undefined,
+    const Unique extends boolean | undefined = undefined,
   >(
-    options: ExpressionIndexInput<Name, IndexTypes> & IndexSpecCapture<Map, Type>,
-  ): IndexConstraint<never, NoInfer<Name>, IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, IndexTypes>>;
+    options: ExpressionIndexInput<Name, IndexTypes> &
+      IndexSpecCapture<Map, Type, Where, Unique, IndexTypes>,
+  ): IndexConstraint<
+    never,
+    NoInfer<Name>,
+    IndexSpecFrom<NoInfer<Map>, NoInfer<Type>, NoInfer<Where>, NoInfer<Unique>, IndexTypes>
+  >;
 };
 
 type PackAwareSqlConstraints<IndexTypes extends IndexTypeMap> = {

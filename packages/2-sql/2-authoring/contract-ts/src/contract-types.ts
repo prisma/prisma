@@ -1124,13 +1124,151 @@ type BackingIndexIsRedundant<
         ? SameColumns<Columns, UniqueColumns>
         : never
       : never)
-  | (BuiltDeclaredIndex<Definition, ModelName> extends infer Declared
-      ? Declared extends { readonly columns: infer DeclaredColumns }
+  | (PlainDeclaredIndexColumns<Definition, ModelName> extends infer DeclaredColumns
+      ? DeclaredColumns extends unknown
         ? SameColumns<Columns, DeclaredColumns>
         : never
       : never)
   ? true
   : false;
+
+// The columns of each declared index that serves a backing index's lookups, as the build decides: no predicate, no type and no options. A partial, typed or other index leaves the backing index in place.
+type PlainDeclaredIndexColumnsOf<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Constraints extends readonly unknown[],
+> = {
+  readonly [K in keyof Constraints]: IndexSpecOfConstraint<Constraints[K]> extends {
+    readonly type: undefined;
+    readonly options: undefined;
+    readonly partial: false;
+  }
+    ? IndexColumns<Definition, ModelName, Constraints[K]>
+    : never;
+}[number];
+
+type PlainDeclaredIndexColumns<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+> = PlainDeclaredIndexColumnsOf<
+  Definition,
+  ModelName,
+  DeclaredIndexConstraints<Definition, ModelName>
+>;
+
+type AsciiCharacter =
+  | ' '
+  | '!'
+  | '"'
+  | '#'
+  | '$'
+  | '%'
+  | '&'
+  | "'"
+  | '('
+  | ')'
+  | '*'
+  | '+'
+  | ','
+  | '-'
+  | '.'
+  | '/'
+  | '0'
+  | '1'
+  | '2'
+  | '3'
+  | '4'
+  | '5'
+  | '6'
+  | '7'
+  | '8'
+  | '9'
+  | ':'
+  | ';'
+  | '<'
+  | '='
+  | '>'
+  | '?'
+  | '@'
+  | 'A'
+  | 'B'
+  | 'C'
+  | 'D'
+  | 'E'
+  | 'F'
+  | 'G'
+  | 'H'
+  | 'I'
+  | 'J'
+  | 'K'
+  | 'L'
+  | 'M'
+  | 'N'
+  | 'O'
+  | 'P'
+  | 'Q'
+  | 'R'
+  | 'S'
+  | 'T'
+  | 'U'
+  | 'V'
+  | 'W'
+  | 'X'
+  | 'Y'
+  | 'Z'
+  | '['
+  | '\\'
+  | ']'
+  | '^'
+  | '_'
+  | '`'
+  | 'a'
+  | 'b'
+  | 'c'
+  | 'd'
+  | 'e'
+  | 'f'
+  | 'g'
+  | 'h'
+  | 'i'
+  | 'j'
+  | 'k'
+  | 'l'
+  | 'm'
+  | 'n'
+  | 'o'
+  | 'p'
+  | 'q'
+  | 'r'
+  | 's'
+  | 't'
+  | 'u'
+  | 'v'
+  | 'w'
+  | 'x'
+  | 'y'
+  | 'z'
+  | '{'
+  | '|'
+  | '}'
+  | '~';
+
+/**
+ * A derived wire-name prefix as the build shortens it: to its first 54 bytes (`WIRE_NAME_PREFIX_MAX_BYTES`). Each ASCII character is one byte. A name with another character before the cut has a byte length the type does not count, so it gives `never` and the index has no name in the type.
+ */
+type DerivedWireNamePrefix<
+  Name extends string,
+  Kept extends string = '',
+  Bytes extends readonly unknown[] = [],
+> = string extends Name
+  ? string
+  : Bytes['length'] extends 54
+    ? Kept
+    : Name extends `${infer Character}${infer Rest}`
+      ? Character extends AsciiCharacter
+        ? DerivedWireNamePrefix<Rest, `${Kept}${Character}`, [...Bytes, unknown]>
+        : never
+      : Kept;
 
 type BuiltBackingIndex<Definition, ModelName extends ModelNames<Definition>> =
   ModelForeignKeyFields<Definition, ModelName> extends infer Fields
@@ -1140,7 +1278,7 @@ type BuiltBackingIndex<Definition, ModelName extends ModelNames<Definition>> =
           ? never
           : {
               readonly name: string;
-              readonly prefix: `${ModelTableName<Definition, ModelName>}_${JoinColumns<Columns>}_idx`;
+              readonly prefix: DerivedWireNamePrefix<`${ModelTableName<Definition, ModelName>}_${JoinColumns<Columns>}_idx`>;
               readonly columns: Columns;
               readonly unique: false;
             }
