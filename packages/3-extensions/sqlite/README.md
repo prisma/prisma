@@ -91,6 +91,8 @@ Re-exports all migration operation helpers from `@internal/target-sqlite/migrati
 
 Composes the SQLite execution stack and returns typed query roots (`db.sql`, `db.orm`, `db.context`, `db.stack`).
 
+Pass `log` (typed `Log` from `@internal/sql-runtime`: `info`, `warn`, `error` and an optional `debug`, each taking one event object) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` and `budgets()` emit, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. Without `log`, the runtime drops them.
+
 ### Prepared SQL and ORM rows
 
 Use `db.prepare(declaration, params => ...)` to prepare SQL queries, ORM row reads or ORM aggregates once and execute them with different parameter values.

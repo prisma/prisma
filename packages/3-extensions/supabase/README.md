@@ -85,6 +85,8 @@ const users = await admin.supabase
   .toArray();
 ```
 
+Pass `log` (typed `Log` from `@internal/sql-runtime`: `info`, `warn`, `error` and an optional `debug`, each taking one event object) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` and `budgets()` emit, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. Without `log`, the runtime drops them. The runtime for `auth.*` and `storage.*` reads logs to it too.
+
 **Role binding is structurally unbypassable.** Each role-bound query runs on a connection that has had `set_config('role', …, false)` and `set_config('request.jwt.claims', …, false)` applied *below* the user-middleware chain, with `RESET ALL` on release — user middleware can neither observe nor suppress it, and no role leaks across pool checkouts. See [ADR 230](../../../docs/architecture%20docs/adrs/ADR%20230%20-%20Runtime%20target%20layer%20session-coupled%20connections.md).
 
 ### JWT validation

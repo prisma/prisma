@@ -190,6 +190,8 @@ When URL binding is used, pool timeouts are configurable via `poolOptions`:
 
 Reads are buffered by default. Pass `cursor` (typed `PostgresCursorOptions`, `{ batchSize?: number | undefined }`) to read through a server-side cursor (`pg-cursor`): `{ batchSize: 50 }` streams in batches of 50; `{}` or `{ batchSize: undefined }` in batches of 100; a `batchSize` that is not a positive integer fails the factory call. There is no flag that turns cursors off; leaving the option out does that. A `cursor` value with any other key, or a `batchSize` that is not a positive integer, fails the factory call with `RUNTIME.ARGUMENT_INVALID`. `postgresServerless()` accepts the same option.
 
+Pass `log` (typed `Log` from `@internal/sql-runtime`: `info`, `warn`, `error` and an optional `debug`, each taking one event object) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` and `budgets()` emit, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. Without `log`, the runtime drops them. `postgresServerless()` accepts the same option.
+
 ### Prepared SQL and ORM rows
 
 Use `db.prepare(declaration, params => ...)` to prepare SQL queries, ORM row reads or ORM aggregates once and execute them with different parameter values.

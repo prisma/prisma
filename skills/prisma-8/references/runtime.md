@@ -293,7 +293,7 @@ Order matters: `beforeEncode` runs in registration order for every middleware be
 
 ## Workflow — Configure the connection
 
-The concept: the runtime takes one of three binding shapes — `url`, `pg` (a pre-constructed `pg.Pool` or `pg.Client`), or `binding` (an explicit kind tag). They're mutually exclusive. The `pg` form is for projects that already manage their own pool (e.g. a Lambda layer); `url` is the default. Pool tuning is `poolOptions.connectionTimeoutMillis` / `poolOptions.idleTimeoutMillis` — *not* `driverOptions`. Reads are buffered by default; setting `cursor` (`{ batchSize: 100 }`; `{}` or `{ batchSize: undefined }` for batches of 100; a `batchSize` that is not a positive integer fails the factory call) makes them stream through a server-side cursor, and there is no flag that turns cursors off (see `references/queries.md` § *Streaming*). `postgresServerless()` takes the same `cursor` option.
+The concept: the runtime takes one of three binding shapes — `url`, `pg` (a pre-constructed `pg.Pool` or `pg.Client`), or `binding` (an explicit kind tag). They're mutually exclusive. The `pg` form is for projects that already manage their own pool (e.g. a Lambda layer); `url` is the default. Pool tuning is `poolOptions.connectionTimeoutMillis` / `poolOptions.idleTimeoutMillis` — *not* `driverOptions`. Reads are buffered by default; setting `cursor` (`{ batchSize: 100 }`; `{}` or `{ batchSize: undefined }` for batches of 100; a `batchSize` that is not a positive integer fails the factory call) makes them stream through a server-side cursor, and there is no flag that turns cursors off (see `references/queries.md` § *Streaming*). `postgresServerless()` takes the same `cursor` option. Pass `log` (an object with `info`, `warn`, `error` and an optional `debug`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` and `budgets()` emit, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. Without `log`, the runtime drops them. `postgresServerless()`, `sqlite()` and `supabase()` take the same option.
 
 ```typescript
 // Default — URL string, factory constructs the pool.
@@ -305,6 +305,7 @@ postgres<Contract>({
     idleTimeoutMillis: 30_000,
   },
   // cursor: { batchSize: 100 },  // optional — stream reads in batches instead of buffering
+  // log: console,                // optional — receive marker, lints and budgets warnings
 });
 
 // BYO pool — pass a pg.Pool you already created.
