@@ -310,7 +310,11 @@ describe('transaction activity', () => {
       await expect(transaction.end({ by: 'commit', outcome: 'succeeded' })).rejects.toBe(
         endedError,
       );
-      expect(events).toEqual(['A:started:transaction', 'A:finalized:transaction:committed']);
+      expect(events).toEqual([
+        'A:started:transaction',
+        'A:ended:transaction:succeeded',
+        'A:finalized:transaction:committed',
+      ]);
     });
 
     it('swallows an activityEnded error after a failed settlement', async () => {

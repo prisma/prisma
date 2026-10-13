@@ -18,7 +18,7 @@ const lifecycle = (events: readonly string[]) =>
 describe('statement activity errors', () => {
   describe('activityEnded', () => {
     it.each(['query', 'execute'] as const)(
-      'fails a successful %s with its error, after finalizing it',
+      'fails a successful %s with its error, after every middleware saw the end and it was finalized',
       async (operation) => {
         const events: string[] = [];
         const endedError = new Error('latency budget exceeded');
@@ -38,10 +38,30 @@ describe('statement activity errors', () => {
         await expect(pending).rejects.toBe(endedError);
         expect(lifecycle(events)).toEqual([
           'later:started:statement',
+          'later:ended:statement:succeeded',
           'later:finalized:statement:committed',
         ]);
       },
     );
+
+    it('fails the activity with the first error when several activityEnded hooks throw', async () => {
+      const first = new Error('first');
+      const thrower = (name: string, error: Error): RuntimeMiddleware<MockExec> => ({
+        name,
+        async activityEnded() {
+          throw error;
+        },
+      });
+      const events: string[] = [];
+
+      await expect(
+        executeStatementWith(
+          [thrower('a', first), thrower('b', new Error('second')), recorder('later', events)],
+          async () => ({ affectedRows: 1 }),
+        ),
+      ).rejects.toBe(first);
+      expect(events).toContain('later:ended:statement:succeeded');
+    });
 
     it.each(['query', 'execute'] as const)(
       'is swallowed when the %s failed, so the original error reaches the caller',
@@ -76,6 +96,36 @@ describe('statement activity errors', () => {
         ]);
       },
     );
+  });
+
+  describe('an activityEnded error after a failure', () => {
+    it('is passed to ctx.log.error as middleware.activityEnded.error', async () => {
+      const error = vi.fn();
+      const hookError = new Error('ended failed');
+      const noisy: RuntimeMiddleware<MockExec> = {
+        name: 'noisy',
+        async activityEnded() {
+          throw hookError;
+        },
+      };
+      const context = contextFields({ log: { info: vi.fn(), warn: vi.fn(), error } });
+
+      await expect(
+        executeStatementWith(
+          [noisy],
+          async () => {
+            throw new Error('driver failed');
+          },
+          { context },
+        ),
+      ).rejects.toThrow('driver failed');
+
+      expect(error).toHaveBeenCalledWith({
+        event: 'middleware.activityEnded.error',
+        middleware: 'noisy',
+        error: hookError,
+      });
+    });
   });
 
   describe('activityFinalized', () => {

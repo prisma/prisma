@@ -218,3 +218,49 @@ describe('rollback() twice', () => {
     expect(names(events).filter((name) => name === 'rollback')).toEqual(['rollback']);
   });
 });
+
+describe('a driver failure and a transaction activityEnded hook that throws', () => {
+  const hookError = new Error('transaction ended hook failed');
+
+  function setupWith(failures: Parameters<typeof createSetup>[0]) {
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const setup = createSetup({ ...failures, log, middleware: [failingTransactionEnd(hookError)] });
+    return { ...setup, log };
+  }
+
+  it('reports the failed BEGIN and logs the hook error', async () => {
+    const beginError = new Error('begin failed');
+    const { runtime, log } = setupWith({ failures: { begin: beginError } });
+
+    await expect((await runtime.connection()).transaction()).rejects.toBe(beginError);
+    expect(log.error).toHaveBeenCalledWith(expect.objectContaining({ error: hookError }));
+  });
+
+  it('reports the rejected COMMIT and logs the hook error', async () => {
+    const commitError = new Error('commit failed');
+    const { runtime, log } = setupWith({ failures: { commit: commitError } });
+    const transaction = await (await runtime.connection()).transaction();
+
+    await expect(transaction.commit()).rejects.toBe(commitError);
+    expect(log.error).toHaveBeenCalledWith(expect.objectContaining({ error: hookError }));
+  });
+
+  it('reports the rejected ROLLBACK and logs the hook error', async () => {
+    const rollbackError = new Error('rollback failed');
+    const { runtime, log } = setupWith({ failures: { rollback: rollbackError } });
+    const transaction = await (await runtime.connection()).transaction();
+
+    await expect(transaction.rollback()).rejects.toBe(rollbackError);
+    expect(log.error).toHaveBeenCalledWith(expect.objectContaining({ error: hookError }));
+  });
+
+  it('gives withTransaction the COMMIT error as commitError', async () => {
+    const commitError = new Error('commit failed');
+    const { runtime } = setupWith({ failures: { commit: commitError } });
+
+    await expect(withTransaction(runtime, async () => undefined)).rejects.toMatchObject({
+      code: 'RUNTIME.TRANSACTION_COMMIT_FAILED',
+      details: { commitError },
+    });
+  });
+});

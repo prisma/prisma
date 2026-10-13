@@ -91,20 +91,19 @@ export function createActivityRecord<TContext extends ActivityContext>(
       }
     },
     async ended(result) {
-      const swallowErrors = result.outcome !== 'succeeded';
+      // Every middleware that saw the activity start sees it end. When the activity succeeded, the first error a hook throws fails it; after a failure the activity's own error reaches the caller, and hook errors go to the log.
+      let firstError: { readonly error: unknown } | undefined;
       for (let index = 0; index < started; index++) {
         const mw = middleware[index];
         if (!mw?.activityEnded) continue;
-        if (!swallowErrors) {
-          await mw.activityEnded(activity, result, ctx);
-          continue;
-        }
         try {
           await mw.activityEnded(activity, result, ctx);
-        } catch {
-          // The activity's own error reaches the caller instead.
+        } catch (error) {
+          if (result.outcome === 'succeeded') firstError ??= { error };
+          else logHookError(ctx, 'middleware.activityEnded.error', mw.name, error);
         }
       }
+      if (firstError !== undefined) throw firstError.error;
     },
     async finalize(result) {
       if (finalized) return;
@@ -115,7 +114,7 @@ export function createActivityRecord<TContext extends ActivityContext>(
         try {
           await mw.activityFinalized(activity, result, ctx);
         } catch (error) {
-          logFinalizedError(ctx, mw.name, error);
+          logHookError(ctx, 'middleware.activityFinalized.error', mw.name, error);
         }
       }
       store.clear();
@@ -123,11 +122,16 @@ export function createActivityRecord<TContext extends ActivityContext>(
   };
 }
 
-function logFinalizedError(ctx: ActivityContext, middleware: string, error: unknown): void {
+function logHookError(
+  ctx: ActivityContext,
+  event: string,
+  middleware: string,
+  error: unknown,
+): void {
   try {
-    ctx.log.error({ event: 'middleware.activityFinalized.error', middleware, error });
+    ctx.log.error({ event, middleware, error });
   } catch {
-    // A failing logger must not fail an activity whose effects are already final.
+    // A failing logger must not replace the error the caller receives.
   }
 }
 
