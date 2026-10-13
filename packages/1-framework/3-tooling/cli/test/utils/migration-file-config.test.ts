@@ -20,6 +20,7 @@ vi.mock('@internal/config-loader', async () => {
   };
 });
 
+vi.resetModules();
 const { loadMigrationFileConfig } = await import('../../src/utils/migration-file-config');
 
 afterAll(() => {

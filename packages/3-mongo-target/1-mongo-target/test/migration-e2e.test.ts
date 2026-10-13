@@ -51,6 +51,7 @@ const fixtureConfigSource = [
   '  family: mongoFamilyDescriptor,',
   '  target: mongoTargetDescriptor,',
   '  adapter: mongoAdapter,',
+  "  migrations: { dir: '.' },",
   '}) };',
   '',
 ].join('\n');
