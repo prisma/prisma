@@ -43,8 +43,8 @@ const context = createExecutionContext({
   stack: createSqlExecutionStack({ target: postgresTarget, adapter: postgresAdapter }),
 });
 
-// The DSL types a relation's target model as any string and its cardinality as a union. So an
-// include refinement here sees an accessor keyed by any string, and its count() is typed away.
+// A contract written with defineContract declares no aggregate types, so an include refinement
+// has no count() in its type.
 const countRelated = (related: unknown): unknown => (related as { count: () => unknown }).count();
 
 async function seedCompositeTables(runtime: PgIntegrationRuntime): Promise<void> {

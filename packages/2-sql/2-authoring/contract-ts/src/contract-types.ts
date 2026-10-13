@@ -507,6 +507,162 @@ type ModelStorageColumn<
       >
     : never;
 
+type StagedRelationState<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  RelName extends StagedModelRelationNames<Definition, ModelName>,
+> = StagedModelRelations<Definition, ModelName>[RelName] extends { readonly __state: infer State }
+  ? State
+  : never;
+
+type RelationSourceModelName<Source> = Source extends {
+  readonly modelName: infer Name extends string;
+}
+  ? Name
+  : Source extends { readonly resolve: () => infer Name extends string }
+    ? Name
+    : never;
+
+type RelationFieldTuple<Fields> = Fields extends readonly string[]
+  ? Fields
+  : readonly [Extract<Fields, string>];
+
+type RelationFieldUnion<Fields> = Fields extends readonly (infer FieldName)[] ? FieldName : Fields;
+
+type ModelAnchorFieldNames<Definition, ModelName extends ModelNames<Definition>> =
+  ModelIdFieldNames<Definition, ModelName> extends infer IdFields extends readonly string[]
+    ? IdFields
+    : readonly ['id'];
+
+type AnyFieldNullable<Definition, ModelName extends ModelNames<Definition>, Fields> = true extends (
+  RelationFieldUnion<Fields> extends infer FieldName
+    ? FieldName extends ModelFieldNames<Definition, ModelName>
+      ? FieldNullableOf<ModelFieldState<Definition, ModelName, FieldName>>
+      : boolean
+    : never
+)
+  ? true
+  : false;
+
+type DeclaredOptional<State> = Present<
+  State extends { readonly optional?: infer Optional } ? Optional : never
+>;
+
+type LiteralOptional<State> = [DeclaredOptional<State>] extends [never]
+  ? undefined
+  : [DeclaredOptional<State>] extends [true]
+    ? true
+    : [DeclaredOptional<State>] extends [false]
+      ? false
+      : undefined;
+
+// Without a literal `optional`, the relation is nullable when any `from` field is, as the build decides.
+type BelongsToNullable<Definition, ModelName extends ModelNames<Definition>, State> =
+  LiteralOptional<State> extends boolean
+    ? LiteralOptional<State>
+    : AnyFieldNullable<
+        Definition,
+        ModelName,
+        State extends { readonly from: infer From } ? From : never
+      >;
+
+type BuiltRelationTarget<Definition, Target extends ModelNames<Definition>> = {
+  readonly namespace: ModelNamespace<Definition, Target> & NamespaceId;
+  readonly model: Target;
+};
+
+type BuiltManyToManyRelation<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Target extends ModelNames<Definition>,
+  State,
+> = State extends {
+  readonly through: infer ThroughSource;
+  readonly from: infer From;
+  readonly to: infer To;
+}
+  ? RelationSourceModelName<ThroughSource> extends infer Through extends ModelNames<Definition>
+    ? {
+        readonly to: BuiltRelationTarget<Definition, Target>;
+        readonly cardinality: 'N:M';
+        readonly on: {
+          readonly localFields: ModelAnchorFieldNames<Definition, ModelName>;
+          readonly targetFields: FieldNamesToColumnNames<
+            Definition,
+            Through,
+            RelationFieldTuple<From>
+          >;
+        };
+        readonly through: {
+          readonly table: ModelTableName<Definition, Through>;
+          readonly namespaceId: ModelNamespace<Definition, Through>;
+          readonly parentColumns: FieldNamesToColumnNames<
+            Definition,
+            Through,
+            RelationFieldTuple<From>
+          >;
+          readonly childColumns: FieldNamesToColumnNames<
+            Definition,
+            Through,
+            RelationFieldTuple<To>
+          >;
+          readonly targetColumns: FieldNamesToColumnNames<
+            Definition,
+            Target,
+            ModelAnchorFieldNames<Definition, Target>
+          >;
+        };
+      }
+    : ContractRelation
+  : ContractRelation;
+
+type BuiltLocalRelation<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Target extends ModelNames<Definition>,
+  State,
+> = State extends { readonly kind: 'belongsTo'; readonly from: infer From; readonly to: infer To }
+  ? {
+      readonly to: BuiltRelationTarget<Definition, Target>;
+      readonly cardinality: 'N:1';
+      readonly nullable: BelongsToNullable<Definition, ModelName, State>;
+      readonly on: {
+        readonly localFields: RelationFieldTuple<From>;
+        readonly targetFields: RelationFieldTuple<To>;
+      };
+    }
+  : State extends { readonly kind: 'hasMany'; readonly by: infer By }
+    ? {
+        readonly to: BuiltRelationTarget<Definition, Target>;
+        readonly cardinality: '1:N';
+        readonly on: {
+          readonly localFields: ModelAnchorFieldNames<Definition, ModelName>;
+          readonly targetFields: RelationFieldTuple<By>;
+        };
+      }
+    : State extends { readonly kind: 'hasOne'; readonly by: infer By }
+      ? {
+          readonly to: BuiltRelationTarget<Definition, Target>;
+          readonly cardinality: '1:1';
+          readonly nullable: true;
+          readonly on: {
+            readonly localFields: ModelAnchorFieldNames<Definition, ModelName>;
+            readonly targetFields: RelationFieldTuple<By>;
+          };
+        }
+      : State extends { readonly kind: 'manyToMany' }
+        ? BuiltManyToManyRelation<Definition, ModelName, Target, State>
+        : ContractRelation;
+
+// A relation to a model this contract does not declare (another contract space) keeps the general type.
+type BuiltRelation<Definition, ModelName extends ModelNames<Definition>, State> = State extends {
+  readonly toModel: infer Source;
+}
+  ? RelationSourceModelName<Source> extends infer Target extends ModelNames<Definition>
+    ? BuiltLocalRelation<Definition, ModelName, Target, State>
+    : ContractRelation
+  : ContractRelation;
+
 type BuiltModels<Definition> = {
   readonly [ModelName in ModelNames<Definition>]: {
     readonly storage: {
@@ -529,7 +685,11 @@ type BuiltModels<Definition> = {
       };
     };
     readonly relations: {
-      readonly [RelName in StagedModelRelationNames<Definition, ModelName>]: ContractRelation;
+      readonly [RelName in StagedModelRelationNames<Definition, ModelName>]: BuiltRelation<
+        Definition,
+        ModelName,
+        StagedRelationState<Definition, ModelName, RelName>
+      >;
     };
   };
 };

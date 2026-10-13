@@ -264,10 +264,8 @@ describe('integration/include canonical JSON', () => {
         expect(BigInt(Number(stats.total))).not.toBe(stats.total);
         expect(BigInt(Number(stats.peak))).not.toBe(9007199254740993n);
 
-        // The include refinement's cardinality inference does not read a
-        // `hasMany` attached to a model declared in this file as to-many, so it
-        // types the scalar reducers away; the relation is to-many and the shape
-        // asserted below is what the query returns.
+        // A contract written with defineContract declares no aggregate types,
+        // so the include refinement has no scalar reducers in its type.
         const reduceToMax = (related: unknown): unknown =>
           (related as { max: (field: string) => unknown }).max('weight');
         const withStations = await readings

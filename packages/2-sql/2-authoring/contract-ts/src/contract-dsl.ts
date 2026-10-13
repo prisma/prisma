@@ -736,6 +736,7 @@ type BelongsToRelation<
   FromField extends string | readonly string[] = string | readonly string[],
   ToField extends string | readonly string[] = string | readonly string[],
   SqlSpec extends BelongsToRelationSqlSpec | undefined = undefined,
+  Optional extends boolean | undefined = boolean | undefined,
 > = {
   readonly kind: 'belongsTo';
   readonly toModel: RelationModelSource<ToModel>;
@@ -746,7 +747,7 @@ type BelongsToRelation<
    * Whether the related row may be absent. Defaults to whether any `from`
    * field is nullable; an explicit value that contradicts them is rejected.
    */
-  readonly optional?: boolean;
+  readonly optional?: Optional;
   /**
    * Contract-space identity of the target model. Populated when
    * `belongsTo` receives a cross-space branded handle. Absent for
@@ -818,9 +819,10 @@ type ApplyBelongsToRelationSqlSpec<
     infer ToModel,
     infer FromField,
     infer ToField,
-    BelongsToRelationSqlSpec | undefined
+    BelongsToRelationSqlSpec | undefined,
+    infer Optional
   >
-    ? BelongsToRelation<ToModel, FromField, ToField, SqlSpec>
+    ? BelongsToRelation<ToModel, FromField, ToField, SqlSpec, Optional>
     : never;
 
 export class RelationBuilder<State extends RelationState = AnyRelationState> {
@@ -2242,20 +2244,24 @@ export function isCrossSpaceHandle(value: unknown): value is CrossSpaceHandle {
 
 function belongsTo<
   Token extends AnyNamedModelToken,
-  FromField extends string | readonly string[],
-  ToField extends RelationFieldSelection<RelationModelFieldNames<Token>>,
+  const FromField extends string | readonly string[],
+  const ToField extends RelationFieldSelection<RelationModelFieldNames<Token>>,
+  const Optional extends boolean | undefined = undefined,
 >(
   toModel: Token | LazyNamedModelToken<Token>,
-  options: { readonly from: FromField; readonly to: ToField; readonly optional?: boolean },
-): RelationBuilder<BelongsToRelation<RelationModelName<Token>, FromField, ToField>>;
+  options: { readonly from: FromField; readonly to: ToField; readonly optional?: Optional },
+): RelationBuilder<
+  BelongsToRelation<RelationModelName<Token>, FromField, ToField, undefined, Optional>
+>;
 function belongsTo<
   ToModel extends string,
-  FromField extends string | readonly string[],
-  ToField extends string | readonly string[],
+  const FromField extends string | readonly string[],
+  const ToField extends string | readonly string[],
+  const Optional extends boolean | undefined = undefined,
 >(
   toModel: ToModel,
-  options: { readonly from: FromField; readonly to: ToField; readonly optional?: boolean },
-): RelationBuilder<BelongsToRelation<ToModel, FromField, ToField>>;
+  options: { readonly from: FromField; readonly to: ToField; readonly optional?: Optional },
+): RelationBuilder<BelongsToRelation<ToModel, FromField, ToField, undefined, Optional>>;
 function belongsTo(
   toModel: string | AnyNamedModelToken | LazyNamedModelToken,
   options: {
@@ -2295,12 +2301,12 @@ function belongsTo(
 
 function hasMany<
   Token extends AnyNamedModelToken,
-  ByField extends RelationFieldSelection<RelationModelFieldNames<Token>>,
+  const ByField extends RelationFieldSelection<RelationModelFieldNames<Token>>,
 >(
   toModel: Token | LazyNamedModelToken<Token>,
   options: { readonly by: ByField },
 ): RelationBuilder<HasManyRelation<RelationModelName<Token>, ByField>>;
-function hasMany<ToModel extends string, ByField extends string | readonly string[]>(
+function hasMany<ToModel extends string, const ByField extends string | readonly string[]>(
   toModel: ToModel,
   options: { readonly by: ByField },
 ): RelationBuilder<HasManyRelation<ToModel, ByField>>;
@@ -2317,12 +2323,12 @@ function hasMany(
 
 function hasOne<
   Token extends AnyNamedModelToken,
-  ByField extends RelationFieldSelection<RelationModelFieldNames<Token>>,
+  const ByField extends RelationFieldSelection<RelationModelFieldNames<Token>>,
 >(
   toModel: Token | LazyNamedModelToken<Token>,
   options: { readonly by: ByField },
 ): RelationBuilder<HasOneRelation<RelationModelName<Token>, ByField>>;
-function hasOne<ToModel extends string, ByField extends string | readonly string[]>(
+function hasOne<ToModel extends string, const ByField extends string | readonly string[]>(
   toModel: ToModel,
   options: { readonly by: ByField },
 ): RelationBuilder<HasOneRelation<ToModel, ByField>>;
@@ -2340,8 +2346,8 @@ function hasOne(
 function manyToMany<
   ToToken extends AnyNamedModelToken,
   ThroughToken extends AnyNamedModelToken,
-  FromField extends RelationFieldSelection<RelationModelFieldNames<ThroughToken>>,
-  ToField extends RelationFieldSelection<RelationModelFieldNames<ThroughToken>>,
+  const FromField extends RelationFieldSelection<RelationModelFieldNames<ThroughToken>>,
+  const ToField extends RelationFieldSelection<RelationModelFieldNames<ThroughToken>>,
 >(
   toModel: ToToken | LazyNamedModelToken<ToToken>,
   options: {
@@ -2360,8 +2366,8 @@ function manyToMany<
 function manyToMany<
   ToModel extends string,
   ThroughModel extends string,
-  FromField extends string | readonly string[],
-  ToField extends string | readonly string[],
+  const FromField extends string | readonly string[],
+  const ToField extends string | readonly string[],
 >(
   toModel: ToModel,
   options: {

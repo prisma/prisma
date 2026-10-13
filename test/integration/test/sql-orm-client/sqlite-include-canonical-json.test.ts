@@ -229,9 +229,8 @@ describe('integration/sqlite include canonical JSON', () => {
   it('carries an include aggregate past 2^53 through the JSON envelope', async () => {
     seedStation(100, 1, WIDE_BIGINT.toString());
 
-    // Same cardinality-inference gap as the PostgreSQL suite: the reducers are
-    // typed away on a contract declared in this file, though the relation is
-    // to-many and the shape below is what the query returns.
+    // As in the PostgreSQL suite, a contract written with defineContract
+    // declares no aggregate types, so the reducers are missing from the type.
     const reduceToMax = (related: unknown): unknown =>
       (related as { max: (field: string) => unknown }).max('weight');
     const withStations = await readings!
