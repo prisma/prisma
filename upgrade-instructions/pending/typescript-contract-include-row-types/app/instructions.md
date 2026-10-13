@@ -147,4 +147,4 @@ A many-to-many relation whose target has no primary key now types its junction's
 
 ## Exporting a contract with declaration emit
 
-An application that exports a contract built with `defineContract` and builds with `declaration: true` no longer gets TS2742, TS4023 or TS4094 errors when the contract uses pgvector, PostGIS or ParadeDB, or a field preset. Remove type annotations or workarounds added only to make declaration emit pass, such as a `import type {} from '@prisma/orm-extension-postgis/geojson'` line.
+An application that exports a contract built with `defineContract` and builds with `declaration: true` no longer gets TS2742, TS4023 or TS4094 errors when the contract uses pgvector, PostGIS or ParadeDB, or a field preset. Remove type annotations or workarounds added only to make declaration emit pass, such as an `import type {} from '@prisma/orm-extension-postgis/geojson'` line.
