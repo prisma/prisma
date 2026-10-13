@@ -77,19 +77,37 @@ export function dbInitRowsWithoutValueFix(reports: readonly RowsWithoutValueRepo
   return `Run \`{bin} db init\` with ${subject} optional. Then make it required with \`{bin} db update\`, which says how to give the rows a value.`;
 }
 
-/** A failed migration as the advice names it: its directory relative to the project, and its name. */
+/** Where the user ran the CLI from, and the `--config` they gave it, as they typed it. */
+export interface CommandLocation {
+  readonly cwd: string;
+  readonly configPath: string | undefined;
+}
+
+/**
+ * A failed migration as the advice names it: its directory relative to the project, its name, and
+ * the `node` command that runs its `migration.ts` from where the user ran the CLI.
+ */
 interface FailedMigrationText {
   readonly directory: string;
   readonly name: string;
   readonly from: string;
+  readonly nodeCommand: string;
 }
 
-function failedMigrationText(failed: FailedMigration, projectDir: string): FailedMigrationText {
+function failedMigrationText(
+  failed: FailedMigration,
+  projectDir: string,
+  location: CommandLocation,
+): FailedMigrationText {
   const dirName = basename(failed.directory);
   return {
     directory: relative(projectDir, failed.directory),
     name: dirName.slice(dirName.indexOf('_') + 1),
     from: failed.from,
+    nodeCommand: selfEmitCommand(
+      `${relative(location.cwd, failed.directory)}/migration.ts`,
+      location.configPath,
+    ),
   };
 }
 
@@ -108,27 +126,25 @@ function replan(
  * Where to fix code written in the failed migration's `migration.ts`, and the command that runs the
  * file again.
  */
-function failedMigrationFile(
-  failedMigration: FailedMigrationText | undefined,
-  configPath: string | undefined,
-): { readonly file: string; readonly run: string } {
+function failedMigrationFile(failedMigration: FailedMigrationText | undefined): {
+  readonly file: string;
+  readonly run: string;
+} {
   if (failedMigration === undefined) {
     return { file: 'the migration.ts of the failed migration', run: 'run that file with node' };
   }
-  const migrationTs = `${failedMigration.directory}/migration.ts`;
   return {
-    file: `\`${migrationTs}\``,
-    run: `run \`${selfEmitCommand(migrationTs, configPath)}\``,
+    file: `\`${failedMigration.directory}/migration.ts\``,
+    run: `run \`${failedMigration.nodeCommand}\``,
   };
 }
 
 function migrateFailedCastFix(
   cast: FailedTypeChangeCastReport,
   failedMigration: FailedMigrationText | undefined,
-  configPath: string | undefined,
 ): string {
   if (cast.reason === 'conversion') {
-    const { file, run } = failedMigrationFile(failedMigration, configPath);
+    const { file, run } = failedMigrationFile(failedMigration);
     return `${failedCastText(cast)} The failed apply changed nothing. Fix the conversion in ${file} so that it converts every value, ${run}, and re-run \`{bin} db migrate\`.`;
   }
   const convert = statementFlag({ verb: 'convert', text: cast.field });
@@ -142,11 +158,10 @@ function migrateFailedCastFix(
 function migrateRowsWithoutValueFix(
   reports: readonly RowsWithoutValueReport[],
   failedMigration: FailedMigrationText | undefined,
-  configPath: string | undefined,
 ): string {
   const [first] = reports;
   if (first?.reason === 'backfillMissedRows') {
-    const { file, run } = failedMigrationFile(failedMigration, configPath);
+    const { file, run } = failedMigrationFile(failedMigration);
     const step =
       first.field === undefined
         ? 'The backfill step'
@@ -186,21 +201,24 @@ function fieldList(reports: readonly RowsWithoutValueReport[]): string {
     .join(', ');
 }
 
-/** The way out of a failed `db migrate` apply, naming paths relative to `projectDir`. */
+/**
+ * The way out of a failed `db migrate` apply, naming paths relative to `projectDir`; a `node`
+ * command runs from `location`.
+ */
 export function migrateFix(
   failure: MigrateFailure,
   projectDir: string,
-  configPath: string | undefined,
+  location: CommandLocation,
 ): string {
   const failedMigration =
     failure.failedMigration === undefined
       ? undefined
-      : failedMigrationText(failure.failedMigration, projectDir);
+      : failedMigrationText(failure.failedMigration, projectDir, location);
   if (failure.failedCast !== undefined) {
-    return migrateFailedCastFix(failure.failedCast, failedMigration, configPath);
+    return migrateFailedCastFix(failure.failedCast, failedMigration);
   }
   if (failure.rowsWithoutValue !== undefined) {
-    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, configPath);
+    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration);
   }
   return 'Fix the issue and re-run `{bin} db migrate --to <contract>` — previously applied migrations are preserved.';
 }

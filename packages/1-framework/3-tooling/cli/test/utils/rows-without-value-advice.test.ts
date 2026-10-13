@@ -137,10 +137,10 @@ describe('the advice for rows a required field has no value for', () => {
           ...(failed === undefined ? {} : { failedMigration: failed }),
         },
         PROJECT,
-        'config/prisma.config.ts',
+        { cwd: '/work', configPath: 'app/prisma.config.ts' },
       ).fix;
     expect([advice(failedMigration), advice(undefined)]).toEqual([
-      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in `migrations/app/20261012T1200_note/migration.ts`, run `node "migrations/app/20261012T1200_note/migration.ts" --config "config/prisma.config.ts"`, and re-run `{bin} db migrate`.',
+      'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in `migrations/app/20261012T1200_note/migration.ts`, run `node "app/migrations/app/20261012T1200_note/migration.ts" --config "app/prisma.config.ts"`, and re-run `{bin} db migrate`.',
       'The backfill step of field "Item.note" left those rows without a value, and the failed apply changed nothing. Make its run fill every row in the migration.ts of the failed migration, run that file with node, and re-run `{bin} db migrate`.',
     ]);
   });

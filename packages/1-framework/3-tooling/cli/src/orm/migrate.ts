@@ -471,7 +471,10 @@ export function createMigrateCommand(createClient: CreateControlClient) {
         if (!applied.ok) {
           return notOk(
             normalizeError(
-              mapMigrateFailure(applied.failure, baseDirFor(ctx.config), ctx.configPath),
+              mapMigrateFailure(applied.failure, baseDirFor(ctx.config), {
+                cwd: ctx.cwd,
+                configPath: ctx.configPath,
+              }),
             ),
           );
         }
