@@ -135,7 +135,7 @@ db.orm.public.Document.where((_doc, { fns, indexes }) =>
 );
 ```
 
-A default name longer than the database's identifier limit is shortened by the build; the type does not shorten it, so use `name:` for such an index.
+The backing index of a foreign key is left out, in the build and in the type, when a key or a plain index on the same columns already serves it, or when the foreign key or the contract's `foreignKeyDefaults` sets `index: false`. A partial or typed index on those columns does not serve it. The build shortens a backing-index name to 54 bytes, and the type does the same. If that name has a character outside ASCII, the type cannot count its bytes and leaves the index out; give the foreign key's columns a declared index with `name:` to read it.
 
 ## Unique criteria, enums and junction columns
 
