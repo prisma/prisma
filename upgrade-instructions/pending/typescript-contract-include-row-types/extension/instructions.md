@@ -7,6 +7,13 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '__codecTypes\?:'
+  - id: psl-interpreter-contract-capabilities
+    summary: |
+      `interpretPslDocumentToSqlContract` now writes the enabled capabilities it is given in `capabilities` into the contract it returns, joined with the target's and the extensions', so a contract read from PSL carries its adapter's capabilities as one built with `defineContract` does. Before, it used them only to check the schema and left them out of the contract. Code that called it directly and compared the contract's `capabilities` to the target's and extensions' alone now also sees the ones it passed in. The detection matches calls of the interpreter.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - 'interpretPslDocumentToSqlContract\('
 ---
 
 # Make a SQL pack fully typed for contracts written in TypeScript
@@ -76,3 +83,7 @@ A contract built with `defineContract` types each index from the `IndexConstrain
 ## Declaration output: export what a contract names
 
 An application that exports a contract and builds with `declaration: true` needs TypeScript to name every type the contract's inferred type mentions. Export from your pack's `/pack` entry, as types, the types that end up there: your `CodecTypes`, the output types your codecs refine to (such as `Vector`), `QueryOperationTypesForCodecs`, `ParameterizedOutputTypesForTypeParams`, and the value types your codec types name (such as a GeoJSON `Geometry`). Naming `CodecTypes` also keeps TypeScript from inlining codec classes with private members, which fails with TS4094. Compile a small application that imports only your published package and the public `@prisma/orm-postgres` with `declaration: true` to check.
+
+## PSL contracts carry the capabilities they are read with
+
+`interpretPslDocumentToSqlContract` puts the enabled capabilities you pass in `capabilities`, usually the composed stack's, into the contract's `capabilities`, together with the target's and the extensions'. If you call it directly, expect the adapter's capabilities in the result, and pass the stack's capabilities if you build a contract to compare with one written in TypeScript or emitted by `prisma contract emit`.

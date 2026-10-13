@@ -342,7 +342,7 @@ export function buildSqlContractFromDefinition(
   const capabilities = enabledCapabilities(
     mergeCapabilityMatrices({}, [
       definition.target,
-      ...(definition.adapter ? [definition.adapter] : []),
+      ...(definition.capabilities ? [{ capabilities: definition.capabilities }] : []),
       ...Object.values(definition.extensions ?? {}),
     ]),
   );

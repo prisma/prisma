@@ -1290,7 +1290,7 @@ export function buildContractDefinition(definition: LoweringInput): ContractDefi
     target: definition.target,
     ...ifDefined('defaultControlPolicy', definition.defaultControlPolicy),
     ...(definition.extensions ? { extensions: definition.extensions } : {}),
-    ...ifDefined('adapter', definition.adapter),
+    ...ifDefined('capabilities', definition.adapter?.capabilities),
     ...(definition.storageHash ? { storageHash: definition.storageHash } : {}),
     ...(definition.foreignKeyDefaults ? { foreignKeyDefaults: definition.foreignKeyDefaults } : {}),
     ...(Object.keys(collection.storageTypes).length > 0
