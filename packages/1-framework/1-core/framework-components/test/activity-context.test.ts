@@ -88,6 +88,7 @@ describe('ActivityContext.state', () => {
 describe('ActivityContext.parent and inTransaction', () => {
   it('gives a statement started beneath a transaction the transaction context as parent', async () => {
     const transaction = await startTransactionActivity({
+      holdFinishedChildren: true,
       middleware: [],
       context: contextFields(),
     });
@@ -110,6 +111,7 @@ describe('ActivityContext.parent and inTransaction', () => {
   it('lets a child read its parent state through ctx.parent', async () => {
     const tracing = Symbol('tracing');
     const transaction = await startTransactionActivity({
+      holdFinishedChildren: true,
       middleware: [
         {
           name: 'tracer',

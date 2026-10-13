@@ -219,7 +219,9 @@ async function runInTransaction<T>(
         await transaction.rollback();
       } catch (rollbackError) {
         // A hook that threw after the ROLLBACK landed must not replace the error that caused it.
-        if (settlementOf(transaction)?.rolledBack !== true) throw rollbackError;
+        const settlement = settlementOf(transaction);
+        if (settlement?.rolledBack !== true) throw rollbackError;
+        settlement.logDroppedError(rollbackError);
       }
     }
     throw error;

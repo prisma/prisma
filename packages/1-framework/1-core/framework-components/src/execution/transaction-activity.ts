@@ -39,6 +39,8 @@ export interface TransactionActivityRun<TContext extends ActivityContext = Activ
 export interface TransactionActivityOptions<TContext extends ActivityContext> {
   readonly middleware: ReadonlyArray<ActivityObserver>;
   readonly context: ActivityContextFields<TContext>;
+  /** Whether the transaction keeps its finished children to finalize them when it ends. A runtime decides this once, when it is created: only when a middleware implements `activityFinalized`. Without it, the transaction keeps nothing but whether a child failed. */
+  readonly holdFinishedChildren: boolean;
 }
 
 /**
@@ -67,6 +69,7 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
   #aChildFailed = false;
   #ended = false;
   #finalized: ActivityFinalizedResult | undefined;
+  readonly #holdFinishedChildren: boolean;
 
   constructor(options: TransactionActivityOptions<TContext>) {
     this.activity = {
@@ -81,6 +84,7 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
       undefined,
     );
     this.ctx = this.#record.ctx;
+    this.#holdFinishedChildren = options.holdFinishedChildren;
   }
 
   start(): Promise<void> {
@@ -90,6 +94,11 @@ class TransactionActivityRunImpl<TContext extends ActivityContext>
   adopt(child: ActivityChild): (outcome: ActivityEndedResult['outcome']) => Promise<void> {
     if (this.#ended) {
       throw new InternalError('An activity was started beneath a transaction that has ended');
+    }
+    if (!this.#holdFinishedChildren) {
+      return async (outcome) => {
+        if (outcome === 'failed') this.#aChildFailed = true;
+      };
     }
     const entry = { child, ended: false };
     this.#children.push(entry);

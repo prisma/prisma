@@ -221,6 +221,8 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   readonly #heldQueryables = new WeakSet<SqlQueryable>();
   readonly #preparedStatementHandles = new WeakMap<object, unknown>();
   // Each open transaction this runtime began, keyed by its driver transaction and its connection, until its commit() or rollback() is called. A statement sent on either is the transaction's child.
+  // Decided once when the runtime is created: a transaction keeps its finished statements to finalize them only when some middleware implements activityFinalized.
+  readonly #holdFinishedChildren: boolean;
   readonly #openTransactions = new WeakMap<
     SqlQueryable,
     TransactionActivityRun<SqlMiddlewareContext>
@@ -254,6 +256,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     };
 
     super({ middleware: middleware ?? [], ctx: sqlCtx });
+    this.#holdFinishedChildren = this.middleware.some((mw) => mw.activityFinalized !== undefined);
 
     this.contract = context.contract;
     this.adapter = adapter;
@@ -978,6 +981,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       activity = await startTransactionActivity<SqlMiddlewareContext>({
         middleware: this.middleware,
         context: { ...this.sqlCtx, scope: 'transaction' },
+        holdFinishedChildren: this.#holdFinishedChildren,
       });
     } catch (error) {
       owner[transactionStart].refusedBeforeBegin = true;
@@ -1010,7 +1014,17 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       }
     };
     let commitAttempted = false;
-    const settlement = { committed: false, rolledBack: false };
+    const settlement = {
+      committed: false,
+      rolledBack: false,
+      logDroppedError(error: unknown): void {
+        try {
+          activity.ctx.log.error({ event: 'middleware.activityEnded.error', error });
+        } catch {
+          // A failing logger must not replace the error the caller receives.
+        }
+      },
+    };
     let commitEnding: Promise<void> | undefined;
     const self = this;
     const wrappedTransaction: RuntimeTransaction &
@@ -1312,7 +1326,11 @@ export async function withTransaction<R>(
         await transaction.rollback();
       } catch (rollbackError) {
         // The ROLLBACK landed and an activityEnded hook threw after it: the callback's error is the one to report, and the connection is clean.
-        if (settlementOf(transaction)?.rolledBack === true) throw error;
+        const settlement = settlementOf(transaction);
+        if (settlement?.rolledBack === true) {
+          settlement.logDroppedError(rollbackError);
+          throw error;
+        }
         await destroyConnection(rollbackError);
         const wrapped = runtimeError(
           'RUNTIME.TRANSACTION_ROLLBACK_FAILED',
@@ -1336,8 +1354,10 @@ export async function withTransaction<R>(
       // If rollback succeeds, the server is definitely no longer in a transaction (no-op in (a)/(b), real cleanup in (c)) and we've just proved the connection round-trips correctly — it's safe to return to the pool. If rollback fails, the connection state is ambiguous (broken socket, protocol desync, etc.) and we must destroy it.
       try {
         await transaction.rollback();
-      } catch {
-        if (settlementOf(transaction)?.rolledBack !== true) await destroyConnection(commitError);
+      } catch (rollbackError) {
+        const settlement = settlementOf(transaction);
+        if (settlement?.rolledBack === true) settlement.logDroppedError(rollbackError);
+        else await destroyConnection(commitError);
       }
       const wrapped = runtimeError(
         'RUNTIME.TRANSACTION_COMMIT_FAILED',

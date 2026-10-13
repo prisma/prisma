@@ -191,7 +191,7 @@ A family runtime no longer composes the middleware runners itself. It runs each 
 
 `executeStatement` is the same for `execute()`, with `run.runExecute(exec, runDriver)`. `context` is an `ActivityContextFields`: the runtime-wide fields (`contract`, `mode`, `now`, `log`, `contentHash`, `scope`, and `signal` when the caller passed one); the runner adds `parent`, `state` and `inTransaction`. `parent` is the open transaction a statement was sent on, or `undefined`. `RuntimeCoreOptions.ctx` takes the same fields, so remove `planExecutionId` from it.
 
-A runtime that opens transactions calls `startTransactionActivity({ middleware, context })` before `BEGIN`, passes the result as the `parent` of every statement sent on the transaction or its connection while it is open, and calls `end({ by: 'commit' | 'rollback', outcome, ... })` when `commit()` or `rollback()` settles. A SQL runtime subclass that wrapped a driver transaction with `wrapTransaction(driverTx, connection)` calls `beginTransactionOn(connection, owner)` instead, which does all of this.
+A runtime that opens transactions calls `startTransactionActivity({ middleware, context, holdFinishedChildren })` before `BEGIN`, where `holdFinishedChildren` is decided once, when the runtime is created: `true` only when some middleware implements `activityFinalized`. It passes the result as the `parent` of every statement sent on the transaction or its connection while it is open, and calls `end({ by: 'commit' | 'rollback', outcome, ... })` when `commit()` or `rollback()` settles. A SQL runtime subclass that wrapped a driver transaction with `wrapTransaction(driverTx, connection)` calls `beginTransactionOn(connection, owner)` instead, which does all of this.
 
 ## Renamed log events
 

@@ -262,7 +262,7 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
 - `planExecutionId` (ADR 220) is a statement activity's identity.
 - The deferred transaction begin and end hooks are `activityStarted` and `activityEnded` on a transaction activity.
 - Middleware state moves from `WeakMap`s keyed by plan to `ctx.state(key)`. This also removes the case ADR 260 documents, where the hook before encoding and the hooks after it receive different plan objects.
-- The runtime always holds a transaction's child activities until the transaction ends, whether or not any middleware implements `activityFinalized`. A transaction that never ends holds them, as it holds its statements today.
+- A runtime decides once, when it is created, whether any of its middleware implements `activityFinalized`. If one does, a transaction holds its finished child activities until it ends, to finalize them then; a transaction that never ends holds them. If none does, a transaction holds no finished child: it keeps only whether one failed, which decides its own `unknown` outcome.
 - Nested transactions, when built, are a transaction activity under a transaction activity, and finalization waits for the outermost.
 - Mongo has no transactions; every Mongo activity is finalized right after it ends.
 - The direct single-client Postgres driver runs a runtime-scope statement sent while a transaction is open inside that transaction, and the runtime cannot see it. That limit is unchanged.

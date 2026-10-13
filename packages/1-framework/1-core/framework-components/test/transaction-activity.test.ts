@@ -19,7 +19,11 @@ import {
 } from './statement-fixtures';
 
 function openTransaction(middleware: ReadonlyArray<RuntimeMiddleware<MockExec>>) {
-  return startTransactionActivity({ middleware, context: contextFields({ scope: 'transaction' }) });
+  return startTransactionActivity({
+    middleware,
+    context: contextFields({ scope: 'transaction' }),
+    holdFinishedChildren: true,
+  });
 }
 
 describe('transaction activity', () => {
@@ -341,6 +345,7 @@ describe('transaction activity', () => {
         { name: 'later', activityFinalized: later },
       ];
       const transaction = await startTransactionActivity({
+        holdFinishedChildren: true,
         middleware,
         context: contextFields({ log: { info: vi.fn(), warn: vi.fn(), error } }),
       });
@@ -382,6 +387,71 @@ describe('transaction activity', () => {
         'A:finalized:transaction:rolled-back',
         'failing:finalized:transaction:rolled-back',
       ]);
+    });
+  });
+
+  describe('a transaction that does not hold its finished children', () => {
+    function open(middleware: ReadonlyArray<RuntimeMiddleware<MockExec>>) {
+      return startTransactionActivity({
+        middleware,
+        context: contextFields({ scope: 'transaction' }),
+        holdFinishedChildren: false,
+      });
+    }
+
+    it('keeps no finished child, so it finalizes none when it ends', async () => {
+      const transaction = await open([]);
+      const finalize = vi.fn(async () => {});
+
+      const childEnded = transaction.adopt({ finalize });
+      await childEnded('succeeded');
+      await transaction.end({ by: 'commit', outcome: 'succeeded' });
+
+      expect(finalize).not.toHaveBeenCalled();
+    });
+
+    it('still reports unknown for a resolved commit after a failed child', async () => {
+      const outcomes: string[] = [];
+      const observer: RuntimeMiddleware<MockExec> = {
+        name: 'observer',
+        async activityFinalized(activity, result) {
+          if (activity.kind === 'transaction') outcomes.push(result.outcome);
+        },
+      };
+      const transaction = await open([observer]);
+
+      await expect(
+        executeStatementWith(
+          [],
+          async () => {
+            throw new Error('statement failed');
+          },
+          { parent: transaction },
+        ),
+      ).rejects.toThrow('statement failed');
+      await transaction.end({ by: 'commit', outcome: 'succeeded' });
+
+      expect(outcomes).toEqual(['unknown']);
+    });
+
+    it('still ends its statements and gives them the transaction as parent', async () => {
+      const events: string[] = [];
+      const transaction = await open([]);
+      let parent: unknown;
+      const observer: RuntimeMiddleware<MockExec> = {
+        ...recorder('A', events),
+        async activityStarted(_activity, ctx) {
+          parent = ctx.parent;
+        },
+      };
+
+      await executeStatementWith([observer], async () => ({ affectedRows: 1 }), {
+        parent: transaction,
+      });
+      await transaction.end({ by: 'commit', outcome: 'succeeded' });
+
+      expect(parent).toBe(transaction.ctx);
+      expect(events).toContain('A:ended:statement:succeeded');
     });
   });
 });

@@ -142,11 +142,21 @@ export interface SetupOptions {
   readonly mode?: 'strict' | 'permissive';
   /** Middleware registered after the recorder. */
   readonly middleware?: readonly SqlMiddleware[];
+  /** When false, the recorder implements no `activityFinalized`. */
+  readonly recordFinalized?: boolean;
 }
 
 export function createSetup(options: SetupOptions = {}) {
   const events: HookEvent[] = [];
-  const middleware = recorder(events, options.activityFinalized, options.beforeHookFailure);
+  const { activityFinalized: recordFinalized, ...recorderWithoutFinalized } = recorder(
+    events,
+    options.activityFinalized,
+    options.beforeHookFailure,
+  );
+  const middleware: SqlMiddleware =
+    options.recordFinalized === false || recordFinalized === undefined
+      ? recorderWithoutFinalized
+      : { ...recorderWithoutFinalized, activityFinalized: recordFinalized };
   const stubAdapter = createStubAdapter();
   const { readMarker } = options;
   const adapter = {

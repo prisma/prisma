@@ -190,3 +190,19 @@ describe('rollback() while commit() is finalizing', () => {
     expect(order).toEqual(['finalized', 'rollback resolved']);
   });
 });
+
+describe('the hook error after a resolved ROLLBACK', () => {
+  it('is passed to the transaction log when withTransaction reports the callback error instead', async () => {
+    const hookError = new Error('transaction ended hook failed');
+    const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
+    const { runtime } = createSetup({ log, middleware: [failingTransactionEnd(hookError)] });
+
+    await expect(
+      withTransaction(runtime, async () => {
+        throw new Error('callback failed');
+      }),
+    ).rejects.toThrow('callback failed');
+
+    expect(log.error).toHaveBeenCalledWith(expect.objectContaining({ error: hookError }));
+  });
+});
