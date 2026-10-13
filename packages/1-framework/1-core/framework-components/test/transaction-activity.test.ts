@@ -259,7 +259,7 @@ describe('transaction activity', () => {
 
     expect(() => transaction.adopt({ finalize: async () => {} })).toThrow(
       expect.objectContaining({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
         message:
           'An activity was started beneath a transaction that no longer accepts children: its commit() or rollback() has been called',
       }),

@@ -250,11 +250,11 @@ describe('finalization beneath client activities', () => {
       await expect(
         executeStatementWith([], async () => ({ affectedRows: 1 }), { parent: nested }),
       ).rejects.toMatchObject({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
         details: { parentKind: 'test-call' },
       });
       await expect(startCall([], { parent: call })).rejects.toMatchObject({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
       });
     });
   });
@@ -267,9 +267,9 @@ describe('finalization beneath client activities', () => {
 
     await expect(
       executeStatementWith([], async () => ({ affectedRows: 1 }), { parent: call }),
-    ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
+    ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN' });
     await expect(
       executeStatementWith([], async () => ({ affectedRows: 1 }), { parent: transaction }),
-    ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
+    ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN' });
   });
 });

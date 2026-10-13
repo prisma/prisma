@@ -16,7 +16,7 @@ export interface ActivityParent {
   readonly ctx: ActivityContext;
   /** Whether statements and activities may still start beneath this parent. A transaction stops accepting children when its `commit()` or `rollback()` is called; a client activity, when it ends or its transaction stops accepting children. */
   acceptsChildren(): boolean;
-  /** Records `child` in start order and returns how the child reports to this parent. Throws `RUNTIME.ACTIVITY_ENDED` when the parent no longer accepts children. */
+  /** Records `child` in start order and returns how the child reports to this parent. Throws `RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN` when the parent no longer accepts children. */
   adopt(child: ActivityChild): ActivityChildSlot;
 }
 
@@ -111,7 +111,7 @@ export function notAcceptingChildrenError(
         ? 'that has ended'
         : 'whose transaction no longer accepts children';
   return runtimeError(
-    'RUNTIME.ACTIVITY_ENDED',
+    'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
     `An activity was started beneath ${subject} ${state}`,
     { parentKind: parent.kind, parentId: parent.id },
   );

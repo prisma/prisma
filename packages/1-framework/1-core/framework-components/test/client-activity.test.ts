@@ -347,7 +347,7 @@ describe('client activity', () => {
           parent: call,
         }),
       ).rejects.toMatchObject({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
         details: { parentKind: 'test-call' },
       });
       expect(events).toEqual([]);
@@ -362,7 +362,9 @@ describe('client activity', () => {
         parent: call,
       })[Symbol.asyncIterator]();
 
-      await expect(iterator.next()).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_ENDED' });
+      await expect(iterator.next()).rejects.toMatchObject({
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
+      });
       expect(events).toEqual([]);
     });
 
@@ -371,10 +373,10 @@ describe('client activity', () => {
       await call.end({ outcome: 'succeeded' });
 
       await expect(startCall([], { parent: call })).rejects.toMatchObject({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
       });
       await expect(openTransaction([], { parent: call })).rejects.toMatchObject({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
       });
     });
 
@@ -385,7 +387,7 @@ describe('client activity', () => {
       await expect(
         executeStatementWith([], async () => ({ affectedRows: 1 }), { parent: transaction }),
       ).rejects.toMatchObject({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
         details: { parentKind: 'transaction' },
       });
     });
@@ -405,10 +407,10 @@ describe('client activity', () => {
         ended.acceptsChildren(),
       ]).toEqual([false, false, false]);
       expect(() => call.assertAcceptsChildren()).toThrow(
-        expect.objectContaining({ code: 'RUNTIME.ACTIVITY_ENDED' }),
+        expect.objectContaining({ code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN' }),
       );
       expect(() => ended.assertAcceptsChildren()).toThrow(
-        expect.objectContaining({ code: 'RUNTIME.ACTIVITY_ENDED' }),
+        expect.objectContaining({ code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN' }),
       );
     });
 
@@ -418,7 +420,7 @@ describe('client activity', () => {
       await call.end({ outcome: 'succeeded' });
 
       await expect(call.end({ outcome: 'failed' })).rejects.toMatchObject({
-        code: 'RUNTIME.ACTIVITY_ENDED',
+        code: 'RUNTIME.ACTIVITY_ALREADY_ENDED',
       });
       expect(events).toEqual([
         'A:started:test-call',

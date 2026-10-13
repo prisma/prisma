@@ -41,10 +41,10 @@ export interface ClientActivityRun<
   readonly ctx: TContext;
   /** Set when an `intercept.onActivity` handler supplied the result. */
   readonly intercepted: { readonly result: ClientActivityResult<K> } | undefined;
-  /** Throws `RUNTIME.ACTIVITY_ENDED` when the activity no longer accepts children. */
+  /** Throws `RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN` when the activity no longer accepts children. */
   assertAcceptsChildren(): void;
   /**
-   * Ends the activity: its `activityEnded` hooks, then its finalization. Outside a transaction it is finalized at once: `committed` when it succeeded and everything beneath it was finalized `committed`, otherwise `unknown`. Inside one, its transaction finalizes it. When a child has not ended, the activity ends `failed`, is finalized, and `end` rejects with `RUNTIME.ACTIVITY_CHILDREN_OPEN`. A second call rejects with `RUNTIME.ACTIVITY_ENDED`.
+   * Ends the activity: its `activityEnded` hooks, then its finalization. Outside a transaction it is finalized at once: `committed` when it succeeded and everything beneath it was finalized `committed`, otherwise `unknown`. Inside one, its transaction finalizes it. When a child has not ended, the activity ends `failed`, is finalized, and `end` rejects with `RUNTIME.ACTIVITY_CHILDREN_OPEN`. A second call rejects with `RUNTIME.ACTIVITY_ALREADY_ENDED`.
    */
   end(end: ClientActivityEnd<K>): Promise<void>;
 }
@@ -176,7 +176,7 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
   async end(end: ClientActivityEnd<K>): Promise<void> {
     if (this.#ended) {
       throw runtimeError(
-        'RUNTIME.ACTIVITY_ENDED',
+        'RUNTIME.ACTIVITY_ALREADY_ENDED',
         `The '${this.activity.kind}' activity has already ended`,
         { kind: this.activity.kind, id: this.activity.id },
       );
