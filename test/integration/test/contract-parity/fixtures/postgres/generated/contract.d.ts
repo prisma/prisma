@@ -1749,32 +1749,6 @@ type ContractBase = Omit<
       };
       readonly version: '0.0.1';
     };
-    readonly arktypeJson: {
-      readonly familyId: 'sql';
-      readonly id: 'arktype-json';
-      readonly kind: 'extension';
-      readonly targetId: 'postgres';
-      readonly types: {
-        readonly codecTypes: {
-          readonly codecDescriptors: readonly [
-            {
-              readonly codecId: 'arktype/json@1';
-              readonly dataType: 'pg/jsonb';
-              readonly descriptorKind: 'postgres-codec';
-              readonly paramsSchema: unknown;
-              readonly toCanonicalForm: undefined;
-              readonly traits: readonly ['equality'];
-            },
-          ];
-          readonly import: {
-            readonly alias: 'ArktypeJsonTypes';
-            readonly named: 'CodecTypes';
-            readonly package: '@internal/extension-arktype-json/codec-types';
-          };
-        };
-      };
-      readonly version: '0.0.1';
-    };
   };
   readonly execution: {
     readonly executionHash: ExecutionHash;

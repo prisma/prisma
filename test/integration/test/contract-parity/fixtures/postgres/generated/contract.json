@@ -1687,45 +1687,6 @@
         }
       },
       "version": "0.0.1"
-    },
-    "arktypeJson": {
-      "familyId": "sql",
-      "id": "arktype-json",
-      "kind": "extension",
-      "targetId": "postgres",
-      "types": {
-        "codecTypes": {
-          "codecDescriptors": [
-            {
-              "codecId": "arktype/json@1",
-              "dataType": "pg/jsonb",
-              "descriptorKind": "postgres-codec",
-              "paramsSchema": {
-                "required": [
-                  {
-                    "key": "expression",
-                    "value": "string"
-                  },
-                  {
-                    "key": "jsonIr",
-                    "value": "object"
-                  }
-                ],
-                "domain": "object"
-              },
-              "traits": [
-                "equality"
-              ]
-            }
-          ],
-          "import": {
-            "alias": "ArktypeJsonTypes",
-            "named": "CodecTypes",
-            "package": "@internal/extension-arktype-json/codec-types"
-          }
-        }
-      },
-      "version": "0.0.1"
     }
   },
   "meta": {},

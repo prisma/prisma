@@ -100,7 +100,7 @@ const Profile = model('Profile', {
 });
 
 export const contract = defineContract({
-  extensions: { arktypeJson: arktypeJsonPack },
+  extensions: { 'arktype-json': arktypeJsonPack },
   namespaces: ['auth'],
   types: { TimestampString3: timestampString3, TimestamptzString3: timestamptzString3 },
   models: {
