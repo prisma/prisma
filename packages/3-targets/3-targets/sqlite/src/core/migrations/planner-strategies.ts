@@ -220,6 +220,8 @@ interface TableRebuild {
   readonly issues: SchemaDiffIssue[];
   readonly classes: MigrationOperationClass[];
   readonly lossyColumns: string[];
+  /** Columns a `--convert` statement names, whose values the user's copy expression converts. */
+  readonly convertedColumns: string[];
   readonly copyExpressions: Record<string, SqlSlot>;
   /** Columns an earlier call of the plan adds, which the rebuild copies like live ones. */
   readonly addedColumns: string[];
@@ -231,7 +233,7 @@ interface TableRebuild {
  *
  * - A type change is `destructive`, since the copy can change values, unless a `--convert`
  *   statement names the column: the copy then goes through a slot the user fills, and the rebuild
- *   is `data`.
+ *   is `data`. Either way the rebuild checks after its copy that every value took the new type.
  * - A nullability or constraint change alone is `widening`: a tightening copy fails on a NULL
  *   rather than losing it.
  * - A required column with no default added to an existing table is copied from a temporary value
@@ -255,6 +257,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
       issues: [],
       classes: [],
       lossyColumns: [],
+      convertedColumns: [],
       copyExpressions: {},
       addedColumns: [],
     };
@@ -304,6 +307,7 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
       continue;
     }
     rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:convert` };
+    rebuild.convertedColumns.push(column);
     rebuild.classes.push('data');
   }
 
@@ -358,6 +362,9 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
             ...tableSpec.columns
               .filter((column) => rebuild.lossyColumns.includes(column.name))
               .map((column) => castValuePostcheck(tableName, column)),
+            ...tableSpec.columns
+              .filter((column) => rebuild.convertedColumns.includes(column.name))
+              .map((column) => castValuePostcheck(tableName, column, 'conversion')),
           ],
           operationClass,
           copyExpressions: rebuild.copyExpressions,

@@ -54,4 +54,12 @@ describe('castColumnOf', () => {
       castColumnOf(step()),
     ]).toEqual([{ table: 'user', column: 'age' }, undefined, undefined]);
   });
+
+  it("reads whether the migration's own conversion, not the database's cast, converts the column", () => {
+    expect(castColumnOf(step(castColumnMeta('user', 'age', 'conversion')))).toEqual({
+      table: 'user',
+      column: 'age',
+      by: 'conversion',
+    });
+  });
 });

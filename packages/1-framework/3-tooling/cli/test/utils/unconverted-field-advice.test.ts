@@ -65,6 +65,24 @@ describe('the advice for a type change whose cast failed', () => {
     ]);
   });
 
+  it('points db migrate to the conversion in the failed migration when the conversion left a value the new type cannot hold', () => {
+    expect(
+      mapMigrateFailure(
+        {
+          ...runnerFailed,
+          failedCast: { field: 'User.age', reason: 'conversion' },
+          failedMigration: {
+            directory: `${PROJECT}/migrations/app/20261012T1041_age`,
+            from: FROM,
+          },
+        },
+        PROJECT,
+      ).fix,
+    ).toBe(
+      'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts` so that it converts every value, run that file with node, and re-run `{bin} db migrate`.',
+    );
+  });
+
   it('keeps the general advice for any other runner failure', () => {
     expect([
       mapDbUpdateFailure({ ...runnerFailed, conflicts: undefined }).fix,

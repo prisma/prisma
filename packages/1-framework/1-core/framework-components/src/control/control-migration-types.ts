@@ -404,8 +404,11 @@ export interface RowsWithoutValue {
 export interface FailedTypeChangeCast {
   /** The field whose type changes. */
   readonly field: MigrationSubject;
-  /** `value`: the database met a value it could not cast. `noCast`: it has no cast between the two types. */
-  readonly reason: 'value' | 'noCast';
+  /**
+   * `value`: the database met a value it could not cast. `noCast`: it has no cast between the two
+   * types. `conversion`: the migration's own conversion left a value the new type cannot hold.
+   */
+  readonly reason: 'value' | 'noCast' | 'conversion';
   /** The position of the operation in the operations of the failing space's plan. */
   readonly operationIndex: number;
 }

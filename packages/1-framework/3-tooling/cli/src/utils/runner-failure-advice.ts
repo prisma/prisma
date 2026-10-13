@@ -10,9 +10,14 @@ type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
 /** What a runner failure says of a type change whose cast failed. */
 export function failedCastText(cast: FailedTypeChangeCastReport): string {
-  return cast.reason === 'noCast'
-    ? `The database has no cast from the old type of field "${cast.field}" to its new type.`
-    : `A value of field "${cast.field}" cannot be converted to its new type by the database's cast.`;
+  switch (cast.reason) {
+    case 'noCast':
+      return `The database has no cast from the old type of field "${cast.field}" to its new type.`;
+    case 'conversion':
+      return `The conversion of field "${cast.field}" left a value its new type cannot hold.`;
+    case 'value':
+      return `A value of field "${cast.field}" cannot be converted to its new type by the database's cast.`;
+  }
 }
 
 /** A `migration plan` command, starting from `from` when it is known. */
@@ -102,6 +107,13 @@ function migrateFailedCastFix(
   cast: FailedTypeChangeCastReport,
   failedMigration: FailedMigrationText | undefined,
 ): string {
+  if (cast.reason === 'conversion') {
+    const file =
+      failedMigration === undefined
+        ? 'the migration.ts of the failed migration'
+        : `\`${failedMigration.directory}/migration.ts\``;
+    return `${failedCastText(cast)} The failed apply changed nothing. Fix the conversion in ${file} so that it converts every value, run that file with node, and re-run \`{bin} db migrate\`.`;
+  }
   const convert = statementFlag({ verb: 'convert', text: cast.field });
   if (failedMigration === undefined) {
     return `${failedCastText(cast)} Plan the type change again with \`{bin} migration plan ${convert}\`, and write the conversion in the migration.ts it writes.`;

@@ -784,6 +784,26 @@ describe('RecreateTableCall copy expressions', () => {
     ).toEqual({ age: { kind: 'sql', sql: `coalesce(nullif("age", ';'), 0)` } });
   });
 
+  it('marks a postcheck of a converted column as checking the conversion, and renders it', async () => {
+    const call = new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [{ description: 'verify age', sql: 'SELECT 1', convertedColumn: 'age' }],
+      operationClass: 'data',
+      copyExpressions: { age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' } },
+    });
+    const op = await call.toOp(stubLowerer('SQL'));
+    expect(op.postcheck.find((step) => step.description === 'verify age')).toEqual({
+      description: 'verify age',
+      sql: 'SELECT 1',
+      meta: { castColumn: { table: 'user', column: 'age', by: 'conversion' } },
+    });
+    expect(call.renderTypeScript()).toContain('convertedColumn: "age"');
+  });
+
   it('is an unfilled placeholder while a slot is unfilled, and imports placeholder', async () => {
     const call = rebuild({ age: { kind: 'placeholder', slot: 'User.age:convert' } });
     await expect(call.toOp(stubLowerer('SQL'))).rejects.toMatchObject({

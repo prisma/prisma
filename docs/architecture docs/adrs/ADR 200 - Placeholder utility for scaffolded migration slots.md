@@ -46,7 +46,7 @@ The return type `never` is assignable to every type in TypeScript. A scaffolded 
 
 ### Where slots are placed and rendered
 
-The planner decides where a slot goes; the scaffolder (each target's `renderTypeScript` implementation) renders it as a `placeholder(...)` call. Because `placeholder()` is typed `never`, it can stand in any slot of any operation the scaffolder renders. A `dataTransform` carries its `check` and `run` slots; when the user passes `--convert`, the Postgres `alterColumnType` call carries its `using` conversion and the SQLite `recreateTable` call the copied column's expression. Every other planned operation is fully specified by the differ.
+The planner decides where a slot goes; the scaffolder (each target's `renderTypeScript` implementation) renders it as a `placeholder(...)` call. Because `placeholder()` is typed `never`, it can stand in any slot of any operation the scaffolder renders. A `dataTransform` carries its `check` and `run` slots; when the user passes `--convert`, the Postgres `alterColumnType` call carries its `using` conversion and the SQLite `recreateTable` call the copied column's expression. Filling a slot is not trusted blindly: Postgres refuses a converted value its new type cannot hold, and the SQLite rebuild checks after its copy that every value took the new type, so a wrong or deleted conversion fails the apply naming the field. Every other planned operation is fully specified by the differ.
 
 ### Error integration
 

@@ -396,7 +396,12 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
               'failedCast',
               field === undefined || plan === undefined
                 ? undefined
-                : { field, reason: 'value' as const, operationIndex: plan.operationIndex },
+                : {
+                    field,
+                    reason:
+                      cast?.by === 'conversion' ? ('conversion' as const) : ('value' as const),
+                    operationIndex: plan.operationIndex,
+                  },
             ),
           },
         );

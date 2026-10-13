@@ -4,24 +4,33 @@ import { type } from 'arktype';
 import { fieldOfColumn } from './field-of-column';
 import type { SqlMigrationPlanOperationStep } from './types';
 
-const CastColumnMeta = type({ castColumn: { table: 'string', column: 'string' } });
+const CastColumnMeta = type({
+  castColumn: { table: 'string', column: 'string', 'by?': "'conversion'" },
+});
+
+/** A column whose values a step converts to the column's new type, or checks that it did. */
+export interface CastColumn {
+  readonly table: string;
+  readonly column: string;
+  /** Present when the migration's own conversion converts the values; the database's cast does otherwise. */
+  readonly by?: 'conversion';
+}
 
 /**
  * The meta of a step that converts the values of `column` in `table` to the column's new type with
- * the database's own cast, or checks that it did. When the step fails, the runner names the field
- * that stores the column.
+ * the database's own cast, or with the migration's own conversion when `by` is `conversion`, or
+ * checks that it did. When the step fails, the runner names the field that stores the column.
  */
 export function castColumnMeta(
   table: string,
   column: string,
-): { readonly castColumn: { readonly table: string; readonly column: string } } {
-  return { castColumn: { table, column } };
+  by?: 'conversion',
+): { readonly castColumn: CastColumn } {
+  return { castColumn: { table, column, ...(by === undefined ? {} : { by }) } };
 }
 
 /** The column a step casts to its new type, as {@link castColumnMeta} marks it. */
-export function castColumnOf(
-  step: SqlMigrationPlanOperationStep,
-): { readonly table: string; readonly column: string } | undefined {
+export function castColumnOf(step: SqlMigrationPlanOperationStep): CastColumn | undefined {
   const meta = CastColumnMeta(step.meta ?? {});
   return meta instanceof type.errors ? undefined : meta.castColumn;
 }

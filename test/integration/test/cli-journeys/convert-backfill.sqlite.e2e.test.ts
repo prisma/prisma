@@ -216,6 +216,81 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
+      'checks the converted values after the copy: a deleted or wrong conversion fails naming the field',
+      async () => {
+        const ctx = await seeded(createTempDir);
+        exec(ctx.dbPath, `UPDATE "User" SET age = 'ten' WHERE id = 1`);
+        await emit(ctx, BASE.replace('age      String', 'age      Int'));
+        const planned = await runMigrationPlan(ctx, [
+          '--name',
+          'age-to-int',
+          '--from',
+          latestMigrationDirName(ctx),
+          '--convert',
+          'User.age',
+        ]);
+        expect(planned.exitCode, `plan: ${planned.stderr}`).toBe(0);
+        const migrationDir = plannedDir(ctx, 'age_to_int');
+        const migrationTs = join(migrationDir, 'migration.ts');
+        const scaffold = readFileSync(migrationTs, 'utf-8');
+        const slot = /placeholder\((['"])User\.age:convert\1\)/;
+
+        const failsNamingTheField = async (filled: string) => {
+          expect(filled).not.toContain('placeholder(');
+          writeFileSync(migrationTs, filled);
+          const emitted = await selfEmitMigration(ctx, [
+            '--dir',
+            migrationDir,
+            '--config',
+            ctx.configPath,
+          ]);
+          expect(emitted.exitCode, `self-emit: ${emitted.stderr}`).toBe(0);
+          const failed = await runMigrate(ctx, ['--json']);
+          expect(failed.exitCode, 'the copy leaves a value INTEGER cannot hold').not.toBe(0);
+          const error = parseJsonOutput<{
+            readonly why: string;
+            readonly nextActions: readonly { readonly label: string }[];
+          }>(failed);
+          expect(error.why).toBe(
+            `The value 'ten' of column "age" on "User" is still stored as text, which INTEGER cannot hold.`,
+          );
+          const advice = error.nextActions.map(({ label }) => label).join('\n');
+          expect(advice).toContain('The conversion of field "User.age" left a value');
+          expect(advice).toContain(
+            `Fix the conversion in \`${relative(ctx.testDir, migrationTs)}\``,
+          );
+          expect(advice).not.toContain('--convert');
+          expect(query(ctx.dbPath, `SELECT id, age FROM "User" ORDER BY id`)).toEqual([
+            { id: 1, age: 'ten' },
+            { id: 2, age: '7' },
+          ]);
+        };
+
+        await failsNamingTheField(
+          scaffold
+            .split('\n')
+            .filter((line) => !slot.test(line))
+            .join('\n'),
+        );
+        await failsNamingTheField(scaffold.replace(slot, `'trim("age")'`));
+
+        await fillAndApply(ctx, migrationDir, () =>
+          scaffold.replace(
+            slot,
+            `"CASE WHEN \\"age\\" = 'ten' THEN 10 ELSE CAST(\\"age\\" AS INTEGER) END"`,
+          ),
+        );
+        expect(
+          query(ctx.dbPath, `SELECT id, age, typeof(age) AS stored FROM "User" ORDER BY id`),
+        ).toEqual([
+          { id: 1, age: 10, stored: 'integer' },
+          { id: 2, age: 7, stored: 'integer' },
+        ]);
+      },
+      timeouts.spinUpPpgDev,
+    );
+
+    it(
       'follows the advice of a --delete type change that cannot cast a value to a converted migration',
       async () => {
         const ctx = await seeded(createTempDir);

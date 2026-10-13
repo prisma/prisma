@@ -281,6 +281,11 @@ export interface RecreateSqlPostcheck {
   readonly sql: string;
   /** The column whose values the check finds converted by the copy; a failure names its field. */
   readonly castColumn?: string;
+  /**
+   * The column whose values the check finds converted by the migration's own copy expression; a
+   * failure names its field and points to that expression.
+   */
+  readonly convertedColumn?: string;
   /** The column the check finds required; when the copy fails on it, the runner counts its rows. */
   readonly requiredColumn?: RecreateRequiredColumn;
 }
@@ -294,9 +299,12 @@ export type RecreatePostcheck =
   | { readonly description: string; readonly columnDefault: string };
 
 function markedStep(tableName: string, check: RecreateSqlPostcheck): SqlMigrationPlanOperationStep {
-  const { castColumn, requiredColumn, ...step } = check;
+  const { castColumn, convertedColumn, requiredColumn, ...step } = check;
   const meta = {
     ...(castColumn === undefined ? {} : castColumnMeta(tableName, castColumn)),
+    ...(convertedColumn === undefined
+      ? {}
+      : castColumnMeta(tableName, convertedColumn, 'conversion')),
     ...(requiredColumn === undefined
       ? {}
       : requiredColumnMeta(tableName, requiredColumn.column, requiredColumn.reason)),
@@ -326,14 +334,15 @@ export function affinityStorageClasses(typeSql: string): readonly string[] {
 export function castValuePostcheck(
   tableName: string,
   column: { readonly name: string; readonly typeSql: string },
-): { readonly description: string; readonly sql: string; readonly castColumn: string } {
+  by: 'cast' | 'conversion' = 'cast',
+): RecreateSqlPostcheck {
   const classes = ['null', ...affinityStorageClasses(column.typeSql)]
     .map((storageClass) => `'${storageClass}'`)
     .join(', ');
   return {
     description: `verify every value of "${column.name}" on "${tableName}" is stored as ${column.typeSql}`,
     sql: `SELECT NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE typeof(${quoteIdentifier(column.name)}) NOT IN (${classes}))`,
-    castColumn: column.name,
+    ...(by === 'cast' ? { castColumn: column.name } : { convertedColumn: column.name }),
   };
 }
 

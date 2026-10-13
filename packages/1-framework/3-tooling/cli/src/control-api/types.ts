@@ -514,8 +514,11 @@ export interface DbUpdateSuccess
 export interface FailedTypeChangeCastReport {
   /** The field, as a `convert` statement names it. */
   readonly field: string;
-  /** `value`: the database met a value it could not cast. `noCast`: it has no cast between the two types. */
-  readonly reason: 'value' | 'noCast';
+  /**
+   * `value`: the database met a value it could not cast. `noCast`: it has no cast between the two
+   * types. `conversion`: the migration's own conversion left a value the new type cannot hold.
+   */
+  readonly reason: 'value' | 'noCast' | 'conversion';
 }
 
 /** A field that was to become required while rows had no value for it, as the advice names it. */
