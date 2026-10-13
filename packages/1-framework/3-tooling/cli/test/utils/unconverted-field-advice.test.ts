@@ -77,9 +77,10 @@ describe('the advice for a type change whose cast failed', () => {
           },
         },
         PROJECT,
+        undefined,
       ).fix,
     ).toBe(
-      'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts` so that it converts every value, run that file with node, and re-run `{bin} db migrate`.',
+      'The conversion of field "User.age" left a value its new type cannot hold. The failed apply changed nothing. Fix the conversion in `migrations/app/20261012T1041_age/migration.ts` so that it converts every value, run `node "migrations/app/20261012T1041_age/migration.ts"`, and re-run `{bin} db migrate`.',
     );
   });
 

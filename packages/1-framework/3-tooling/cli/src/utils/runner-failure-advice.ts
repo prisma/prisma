@@ -5,6 +5,7 @@ import type {
   MigrateFailure,
   RowsWithoutValueReport,
 } from '../control-api/types';
+import { selfEmitCommand } from './self-emit-command';
 
 type FailedMigration = NonNullable<MigrateFailure['failedMigration']>;
 
@@ -103,16 +104,32 @@ function replan(
   return `delete \`${failed.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan} and ${others}, fill in the migration.ts it writes, and run \`{bin} db migrate\``;
 }
 
+/**
+ * Where to fix code written in the failed migration's `migration.ts`, and the command that runs the
+ * file again.
+ */
+function failedMigrationFile(
+  failedMigration: FailedMigrationText | undefined,
+  configPath: string | undefined,
+): { readonly file: string; readonly run: string } {
+  if (failedMigration === undefined) {
+    return { file: 'the migration.ts of the failed migration', run: 'run that file with node' };
+  }
+  const migrationTs = `${failedMigration.directory}/migration.ts`;
+  return {
+    file: `\`${migrationTs}\``,
+    run: `run \`${selfEmitCommand(migrationTs, configPath)}\``,
+  };
+}
+
 function migrateFailedCastFix(
   cast: FailedTypeChangeCastReport,
   failedMigration: FailedMigrationText | undefined,
+  configPath: string | undefined,
 ): string {
   if (cast.reason === 'conversion') {
-    const file =
-      failedMigration === undefined
-        ? 'the migration.ts of the failed migration'
-        : `\`${failedMigration.directory}/migration.ts\``;
-    return `${failedCastText(cast)} The failed apply changed nothing. Fix the conversion in ${file} so that it converts every value, run that file with node, and re-run \`{bin} db migrate\`.`;
+    const { file, run } = failedMigrationFile(failedMigration, configPath);
+    return `${failedCastText(cast)} The failed apply changed nothing. Fix the conversion in ${file} so that it converts every value, ${run}, and re-run \`{bin} db migrate\`.`;
   }
   const convert = statementFlag({ verb: 'convert', text: cast.field });
   if (failedMigration === undefined) {
@@ -125,18 +142,16 @@ function migrateFailedCastFix(
 function migrateRowsWithoutValueFix(
   reports: readonly RowsWithoutValueReport[],
   failedMigration: FailedMigrationText | undefined,
+  configPath: string | undefined,
 ): string {
   const [first] = reports;
   if (first?.reason === 'backfillMissedRows') {
-    const file =
-      failedMigration === undefined
-        ? 'the migration.ts of the failed migration'
-        : `\`${failedMigration.directory}/migration.ts\``;
+    const { file, run } = failedMigrationFile(failedMigration, configPath);
     const step =
       first.field === undefined
         ? 'The backfill step'
         : `The backfill step of field "${first.field}"`;
-    return `${step} left those rows without a value, and the failed apply changed nothing. Make its run fill every row in ${file}, run that file with node, and re-run \`{bin} db migrate\`.`;
+    return `${step} left those rows without a value, and the failed apply changed nothing. Make its run fill every row in ${file}, ${run}, and re-run \`{bin} db migrate\`.`;
   }
   const flags = backfillFlags(reports);
   const again =
@@ -172,16 +187,20 @@ function fieldList(reports: readonly RowsWithoutValueReport[]): string {
 }
 
 /** The way out of a failed `db migrate` apply, naming paths relative to `projectDir`. */
-export function migrateFix(failure: MigrateFailure, projectDir: string): string {
+export function migrateFix(
+  failure: MigrateFailure,
+  projectDir: string,
+  configPath: string | undefined,
+): string {
   const failedMigration =
     failure.failedMigration === undefined
       ? undefined
       : failedMigrationText(failure.failedMigration, projectDir);
   if (failure.failedCast !== undefined) {
-    return migrateFailedCastFix(failure.failedCast, failedMigration);
+    return migrateFailedCastFix(failure.failedCast, failedMigration, configPath);
   }
   if (failure.rowsWithoutValue !== undefined) {
-    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration);
+    return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, configPath);
   }
   return 'Fix the issue and re-run `{bin} db migrate --to <contract>` — previously applied migrations are preserved.';
 }
