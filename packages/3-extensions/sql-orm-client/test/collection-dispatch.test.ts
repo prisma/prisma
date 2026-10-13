@@ -751,13 +751,13 @@ describe('collection-dispatch', () => {
     const contract = withSingleQueryCapabilities(buildMixedPolyContract());
     const context = buildTestContextFromContract(contract);
     const runtime = createMockRuntime();
-    // A variant-narrowed include carries `variantName` on the include's nested
+    // A variant-narrowed include carries `variantValue` on the include's nested
     // state. The decode side reads that to map every child row to the named
     // variant rather than resolving per-row by discriminator.
     const state = stateWithInclude(
       contract,
       'Project',
-      includeFor(contract, 'Project', 'tasks', { variantName: 'Feature' }),
+      includeFor(contract, 'Project', 'tasks', { variantValue: 'feature' }),
     );
 
     runtime.setNextResults([

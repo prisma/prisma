@@ -1,7 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import {
-  addressedModelName,
+  addressedModel,
   callerFieldUnknown,
   columnOfCallerField,
   getModelAndEveryVariantFieldColumns,
@@ -27,19 +27,24 @@ export function mapSelectedFieldsToColumns(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
-  variantName: string | undefined,
+  variantValue: string | undefined,
   fieldNames: readonly string[],
 ): string[] {
-  const addressed = addressedModelName(modelName, variantName);
-  if (variantName !== undefined) {
+  const [addressedNamespaceId, addressed] = addressedModel(
+    contract,
+    namespaceId,
+    modelName,
+    variantValue,
+  );
+  if (variantValue !== undefined) {
     const fieldColumns = getModelAndVariantFieldColumns(
       contract,
       namespaceId,
       modelName,
-      variantName,
+      variantValue,
     );
     return fieldNames.map((fieldName) =>
-      columnOfCallerField(contract, namespaceId, fieldColumns, addressed, fieldName),
+      columnOfCallerField(contract, addressedNamespaceId, fieldColumns, addressed, fieldName),
     );
   }
   const fieldColumns = getModelAndEveryVariantFieldColumns(contract, namespaceId, modelName);

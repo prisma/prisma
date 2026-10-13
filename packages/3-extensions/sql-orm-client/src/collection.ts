@@ -42,6 +42,7 @@ import {
   mapSelectedFieldsToColumns,
 } from './collection-column-mapping';
 import {
+  addressedModel,
   assertDistinctOnCapability,
   assertInsertConflictSkipCapability,
   assertLockCapability,
@@ -184,6 +185,7 @@ import {
   type IncludeCombineBranch,
   type IncludeExpr,
   type IncludeRelationOwner,
+  type IncludeRelationOwnerNamespace,
   type IncludeRelationValue,
   type IncludeScalar,
   type InferRootRow,
@@ -201,7 +203,6 @@ import {
   type VariantAwareIncludeRelationNames,
   type VariantAwareModelAccessor,
   type VariantModelRow,
-  type VariantNameForValue,
   type WhereCallbackResult,
   type WithNsId,
 } from './types';
@@ -507,7 +508,7 @@ export class CollectionBase<
   where<Self>(
     this: Self,
     fn: (
-      model: VariantAwareModelAccessor<TContract, ModelName, State['variantName'], State['nsId']>,
+      model: VariantAwareModelAccessor<TContract, ModelName, State['variantValue'], State['nsId']>,
       tools: ModelCallbackTools<TContract, ModelName, State['nsId']>,
     ) => WhereCallbackResult,
   ): Filtered<Self>;
@@ -523,7 +524,7 @@ export class CollectionBase<
           model: VariantAwareModelAccessor<
             TContract,
             ModelName,
-            State['variantName'],
+            State['variantValue'],
             State['nsId']
           >,
           tools: ModelCallbackTools<TContract, ModelName, State['nsId']>,
@@ -535,12 +536,12 @@ export class CollectionBase<
       typeof input === 'function'
         ? whereArgOf(
             input(
-              createModelAccessor<TContract, ModelName, State['variantName'], State['nsId']>(
+              createModelAccessor<TContract, ModelName, State['variantValue'], State['nsId']>(
                 this.ctx.context,
                 this.namespaceId,
                 this.modelName,
                 tables,
-                this.state.variantName,
+                this.state.variantValue,
               ),
               this.#callbackTools(tables),
             ),
@@ -680,7 +681,7 @@ export class CollectionBase<
    * ```
    */
   variant<
-    V extends DiscriminatorValues<TContract, ModelName>,
+    V extends DiscriminatorValues<TContract, ModelName, S['nsId']>,
     S extends CollectionTypeState = State,
   >(
     this: HasTypeState<S> & HasNoVariant,
@@ -688,51 +689,49 @@ export class CollectionBase<
   ): Collection<
     TContract,
     ModelName,
-    VariantModelRow<TContract, ModelName, VariantNameForValue<TContract, ModelName, V>>,
-    WithVariantState<WithWhereState<S>, VariantNameForValue<TContract, ModelName, V>>
+    VariantModelRow<TContract, ModelName, V, S['nsId']>,
+    WithVariantState<WithWhereState<S>, V>
   >;
-  variant<V extends DiscriminatorValues<TContract, ModelName>>(
+  variant<V extends DiscriminatorValues<TContract, ModelName, State['nsId']>>(
     this: HasNoVariant,
     value: V,
   ): Collection<
     TContract,
     ModelName,
-    VariantModelRow<TContract, ModelName, VariantNameForValue<TContract, ModelName, V>>,
-    WithVariantState<WithWhereState<State>, VariantNameForValue<TContract, ModelName, V>>
+    VariantModelRow<TContract, ModelName, V, State['nsId']>,
+    WithVariantState<WithWhereState<State>, V>
   >;
-  variant<V extends DiscriminatorValues<TContract, ModelName>>(
+  variant<V extends DiscriminatorValues<TContract, ModelName, State['nsId']>>(
     value: V,
   ): Collection<
     TContract,
     ModelName,
-    VariantModelRow<TContract, ModelName, VariantNameForValue<TContract, ModelName, V>>,
-    WithVariantState<WithWhereState<State>, VariantNameForValue<TContract, ModelName, V>>
+    VariantModelRow<TContract, ModelName, V, State['nsId']>,
+    WithVariantState<WithWhereState<State>, V>
   > {
-    type VariantName = VariantNameForValue<TContract, ModelName, V>;
     const polyInfo = resolvePolymorphismInfo(this.contract, this.namespaceId, this.modelName);
-    const selectedVariantName = this.state.variantName;
+    const selectedVariantValue = this.state.variantValue;
 
-    if (selectedVariantName !== undefined) {
-      const selectedValue = polyInfo?.variants.get(selectedVariantName)?.value;
+    if (selectedVariantValue !== undefined) {
       throw ormError(
         'ORM.OPERATION_UNSUPPORTED',
-        `variant("${value}") cannot be called on model "${this.modelName}" because variant("${selectedValue}") is already selected; call variant() on the base collection instead`,
+        `variant("${value}") cannot be called on model "${this.modelName}" because variant("${selectedVariantValue}") is already selected; call variant() on the base collection instead`,
         {
           meta: {
             method: 'variant',
             model: this.modelName,
-            variant: selectedVariantName,
-            selectedValue,
+            variant: polyInfo?.variants.get(selectedVariantValue)?.modelName,
+            selectedValue: selectedVariantValue,
             reason: 'variant-already-selected',
           },
         },
       );
     }
 
-    const variantInfo = polyInfo?.variantsByValue.get(value);
+    const variantInfo = polyInfo?.variants.get(value);
 
     if (!polyInfo || !variantInfo) {
-      const declaredValues = [...(polyInfo?.variantsByValue.keys() ?? [])];
+      const declaredValues = [...(polyInfo?.variants.keys() ?? [])];
       throw ormError(
         'ORM.ARGUMENT_INVALID',
         declaredValues.length === 0
@@ -762,11 +761,11 @@ export class CollectionBase<
     );
 
     return this.#cloneWithRow<
-      VariantModelRow<TContract, ModelName, VariantName>,
-      WithVariantState<WithWhereState<State>, VariantName>
+      VariantModelRow<TContract, ModelName, V, State['nsId']>,
+      WithVariantState<WithWhereState<State>, V>
     >({
       filters: [...this.state.filters, filter],
-      variantName: variantInfo.modelName,
+      variantValue: variantInfo.value,
     });
   }
 
@@ -802,25 +801,27 @@ export class CollectionBase<
     RelName extends VariantAwareIncludeRelationNames<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >,
     RelationOwner extends string = IncludeRelationOwner<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       RelName,
       State['nsId']
     > &
       string,
-    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
-      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
-    TargetNs extends string = RelationTargetNamespace<
+    OwnerNs extends string = IncludeRelationOwnerNamespace<
       TContract,
-      RelationOwner,
+      ModelName,
+      State['variantValue'],
       RelName,
       State['nsId']
     >,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> & string,
+    TargetNs extends string = RelationTargetNamespace<TContract, RelationOwner, RelName, OwnerNs>,
     Self extends HasRow = never,
   >(
     this: Self,
@@ -833,7 +834,7 @@ export class CollectionBase<
         RelationOwner,
         K,
         SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
-        State['nsId']
+        OwnerNs
       >;
     }
   >;
@@ -841,26 +842,28 @@ export class CollectionBase<
     RelName extends VariantAwareIncludeRelationNames<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >,
     RelationOwner extends string = IncludeRelationOwner<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       RelName,
       State['nsId']
     > &
       string,
-    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
-      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
-    TargetNs extends string = RelationTargetNamespace<
+    OwnerNs extends string = IncludeRelationOwnerNamespace<
       TContract,
-      RelationOwner,
+      ModelName,
+      State['variantValue'],
       RelName,
       State['nsId']
     >,
-    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, State['nsId']>,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> & string,
+    TargetNs extends string = RelationTargetNamespace<TContract, RelationOwner, RelName, OwnerNs>,
+    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, OwnerNs>,
     RefinedResult extends IncludeRefinementResult<
       TContract,
       RelatedName,
@@ -894,7 +897,7 @@ export class CollectionBase<
         K,
         SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
         RefinedResult,
-        State['nsId']
+        OwnerNs
       >;
     }
   >;
@@ -902,26 +905,28 @@ export class CollectionBase<
     RelName extends VariantAwareIncludeRelationNames<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >,
     RelationOwner extends string = IncludeRelationOwner<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       RelName,
       State['nsId']
     > &
       string,
-    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> &
-      string = RelatedModelName<TContract, RelationOwner, RelName, State['nsId']> & string,
-    TargetNs extends string = RelationTargetNamespace<
+    OwnerNs extends string = IncludeRelationOwnerNamespace<
       TContract,
-      RelationOwner,
+      ModelName,
+      State['variantValue'],
       RelName,
       State['nsId']
     >,
-    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, State['nsId']>,
+    RelatedName extends RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> &
+      string = RelatedModelName<TContract, RelationOwner, RelName, OwnerNs> & string,
+    TargetNs extends string = RelationTargetNamespace<TContract, RelationOwner, RelName, OwnerNs>,
+    IsToMany extends boolean = IsToManyRelation<TContract, RelationOwner, RelName, OwnerNs>,
     RefinedResult extends IncludeRefinementResult<
       TContract,
       RelatedName,
@@ -955,7 +960,7 @@ export class CollectionBase<
           K,
           SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
           RefinedResult,
-          State['nsId']
+          OwnerNs
         >;
       }
     >,
@@ -966,7 +971,7 @@ export class CollectionBase<
       this.namespaceId,
       this.modelName,
       relationName,
-      this.state.variantName,
+      this.state.variantValue,
     );
 
     const child = createIncludeTables(this.contract, this.state.tables, relation);
@@ -1029,7 +1034,7 @@ export class CollectionBase<
       relatedModelName: relation.relatedModelName,
       relatedNamespaceId: relation.relatedNamespaceId,
       relatedTableName: relation.relatedTableName,
-      ...ifDefined('localVariantName', relation.localVariantName),
+      ...ifDefined('localVariantValue', relation.localVariantValue),
       targetColumns: relation.targetColumns,
       localColumns: relation.localColumns,
       cardinality: relation.cardinality,
@@ -1049,7 +1054,7 @@ export class CollectionBase<
             K,
             SimplifyDeep<InferRootRow<TContract, RelatedName, TargetNs>>,
             RefinedResult,
-            State['nsId']
+            OwnerNs
           >;
         }
       >,
@@ -1129,7 +1134,7 @@ export class CollectionBase<
       this.contract,
       this.namespaceId,
       this.modelName,
-      this.state.variantName,
+      this.state.variantValue,
       fields,
     );
 
@@ -1164,28 +1169,27 @@ export class CollectionBase<
   orderBy<Self extends WithoutUniqueFilter<Self>>(
     this: Self,
     selection:
-      | OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>
-      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>>,
+      | OrderBySelector<TContract, ModelName, State['variantValue'], State['nsId']>
+      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantValue'], State['nsId']>>,
   ): Ordered<Self>;
   orderBy<Self>(
     this: Self & HasNoUniqueFilter,
     selection:
-      | OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>
-      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>>,
+      | OrderBySelector<TContract, ModelName, State['variantValue'], State['nsId']>
+      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantValue'], State['nsId']>>,
   ): Ordered<Self>;
   orderBy(
     selection:
-      | OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>
-      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantName'], State['nsId']>>,
+      | OrderBySelector<TContract, ModelName, State['variantValue'], State['nsId']>
+      | ReadonlyArray<OrderBySelector<TContract, ModelName, State['variantValue'], State['nsId']>>,
   ): Ordered<this> {
     const tables = withScopeCopy(this.state.tables);
-    const accessor = createModelAccessor<TContract, ModelName, State['variantName'], State['nsId']>(
-      this.ctx.context,
-      this.namespaceId,
-      this.modelName,
-      tables,
-      this.state.variantName,
-    );
+    const accessor = createModelAccessor<
+      TContract,
+      ModelName,
+      State['variantValue'],
+      State['nsId']
+    >(this.ctx.context, this.namespaceId, this.modelName, tables, this.state.variantValue);
     const tools = this.#callbackTools(tables);
     const selectors = Array.isArray(selection) ? selection : [selection];
     const nextOrders = selectors.map((selector) => selector(accessor, tools));
@@ -1651,7 +1655,7 @@ export class CollectionBase<
   }
 
   #forFirst(
-    filter: WhereInput<TContract, State['nsId'], ModelName, State['variantName']> | undefined,
+    filter: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']> | undefined,
     configure: ((meta: MetaBuilder<'read'>) => void) | undefined,
     terminalName: 'first' | 'firstOrThrow',
   ) {
@@ -1690,15 +1694,15 @@ export class CollectionBase<
    */
   async first<Self extends this>(
     this: Self,
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<Self> | null>;
   async first(
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<this> | null>;
   async first(
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<unknown> {
     return consumeFirstRow(this.#forFirst(filter, configure, 'first').#dispatch());
@@ -1706,15 +1710,15 @@ export class CollectionBase<
 
   async firstOrThrow<Self extends this>(
     this: Self,
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<Self>>;
   async firstOrThrow(
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<this>>;
   async firstOrThrow(
-    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantValue']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<unknown> {
     return this.#forFirst(filter, configure, 'firstOrThrow').#dispatch().firstOrThrow();
@@ -1883,7 +1887,7 @@ export class CollectionBase<
    */
   async create<Self extends this>(
     this: Self,
-    data: ResolvedCreateInput<TContract, ModelName, State['variantName'], State['nsId']>,
+    data: ResolvedCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<CollectionRowOf<Self>>;
   async create<Self extends this>(
@@ -1897,7 +1901,7 @@ export class CollectionBase<
   ): Promise<CollectionRowOf<this>>;
   async create(
     data:
-      | ResolvedCreateInput<TContract, ModelName, State['variantName'], State['nsId']>
+      | ResolvedCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>
       | MutationCreateInputWithRelations<TContract, ModelName, State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<unknown> {
@@ -1947,7 +1951,7 @@ export class CollectionBase<
     const rows = await this.#createAllWithAnnotations(
       [
         blindCast<
-          ResolvedScalarCreateInput<TContract, ModelName, State['variantName'], State['nsId']>,
+          ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>,
           'absence of nested callbacks selects the scalar create overload input'
         >(data),
       ],
@@ -2005,7 +2009,7 @@ export class CollectionBase<
     data: readonly ResolvedScalarCreateInput<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >[],
     optionsOrConfigure?: CreateConflictOptions<TContract, ModelName> | WriteConfigure,
@@ -2015,7 +2019,7 @@ export class CollectionBase<
     data: readonly ResolvedScalarCreateInput<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >[],
     optionsOrConfigure?: CreateConflictOptions<TContract, ModelName> | WriteConfigure,
@@ -2025,7 +2029,7 @@ export class CollectionBase<
     data: readonly ResolvedScalarCreateInput<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >[],
     optionsOrConfigure?: CreateConflictOptions<TContract, ModelName> | WriteConfigure,
@@ -2045,7 +2049,7 @@ export class CollectionBase<
     data: readonly ResolvedScalarCreateInput<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >[],
     annotationsMap: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>> | undefined,
@@ -2087,7 +2091,7 @@ export class CollectionBase<
         tables: this.state.tables,
         modelName: this.modelName,
         namespaceId: this.namespaceId,
-        variantName: this.state.variantName,
+        variantValue: this.state.variantValue,
         includes: this.state.includes,
         selectedFields: this.state.selectedFields,
         hiddenColumns,
@@ -2115,7 +2119,7 @@ export class CollectionBase<
       tables: this.state.tables,
       modelName: this.modelName,
       namespaceId: this.namespaceId,
-      variantName: this.state.variantName,
+      variantValue: this.state.variantValue,
       includes: this.state.includes,
       selectedFields: this.state.selectedFields,
       hiddenColumns,
@@ -2160,14 +2164,14 @@ export class CollectionBase<
   #assertNotMtiVariant(method: string): void {
     this.#refuseOnMtiVariant(
       method,
-      `${method} is not supported for MTI variant "${this.state.variantName}" on model "${this.modelName}". Use createAll() instead.`,
+      `${method} is not supported for MTI variant "${this.#variantModelName()}" on model "${this.modelName}". Use createAll() instead.`,
     );
   }
 
   #assertConflictSkipNotOnMtiVariant(method: string): void {
     this.#refuseOnMtiVariant(
       method,
-      `The onConflict option is not supported on variant "${this.state.variantName}" of model "${this.modelName}" because the variant is stored in its own table. Call createAll(rows) without the option; a duplicate row then makes the call fail.`,
+      `The onConflict option is not supported on variant "${this.#variantModelName()}" of model "${this.modelName}" because the variant is stored in its own table. Call createAll(rows) without the option; a duplicate row then makes the call fail.`,
     );
   }
 
@@ -2177,26 +2181,35 @@ export class CollectionBase<
       meta: {
         method,
         model: this.modelName,
-        variant: this.state.variantName,
+        variant: this.#variantModelName(),
         reason: 'mti-variant',
       },
     });
   }
 
+  #variantModelName(): string {
+    return addressedModel(
+      this.contract,
+      this.namespaceId,
+      this.modelName,
+      this.state.variantValue,
+    )[1];
+  }
+
   #resolveMtiCreateContext(): MtiCreateContext | null {
-    const variantName = this.state.variantName;
-    if (!variantName) return null;
+    const variantValue = this.state.variantValue;
+    if (!variantValue) return null;
 
     const polyInfo = resolvePolymorphismInfo(this.contract, this.namespaceId, this.modelName);
     if (!polyInfo) return null;
 
-    const variant = polyInfo.variants.get(variantName);
+    const variant = polyInfo.variants.get(variantValue);
     if (!isMtiVariantInfo(variant)) return null;
 
     const baseFieldToColumn = getModelFieldColumns(this.contract, this.namespaceId, this.modelName);
     const variantFieldToColumn = getOwnFieldColumns(
       this.contract,
-      this.namespaceId,
+      variant.namespaceId,
       variant.modelName,
     );
     const pkColumns = resolvePrimaryKeyColumns(this.contract, this.namespaceId, this.tableName);
@@ -2210,7 +2223,7 @@ export class CollectionBase<
         this.contract,
         this.namespaceId,
         this.modelName,
-        variant.modelName,
+        variant.value,
       ),
       pkColumns,
     };
@@ -2235,7 +2248,7 @@ export class CollectionBase<
     const modelName = this.modelName;
     const namespaceId = this.namespaceId;
     const tables = this.state.tables;
-    const variantTable = requireVariantTable(tables, variant.modelName);
+    const variantTable = requireVariantTable(tables, variant.value);
 
     const baseFieldColumns = new Set(Object.values(baseFieldToColumn));
     const variantFieldColumns = new Set(Object.values(variantFieldToColumn));
@@ -2249,7 +2262,7 @@ export class CollectionBase<
           allMapped[
             columnOfCallerField(
               contract,
-              namespaceId,
+              variant.namespaceId,
               mergedFieldToColumn,
               variant.modelName,
               fieldName,
@@ -2350,7 +2363,7 @@ export class CollectionBase<
             polyInfo,
             tables,
             { ...baseCreated, ...prefixedVariant },
-            variant.modelName,
+            variant.value,
           );
         });
 
@@ -2362,8 +2375,8 @@ export class CollectionBase<
   }
 
   #mapCreateRows(data: readonly Record<string, unknown>[]): Record<string, unknown>[] {
-    const variantName = this.state.variantName;
-    if (!variantName) {
+    const variantValue = this.state.variantValue;
+    if (!variantValue) {
       return data.map((row) =>
         mapModelDataToStorageRow(this.contract, this.namespaceId, this.modelName, row),
       );
@@ -2376,7 +2389,7 @@ export class CollectionBase<
       );
     }
 
-    const variant = polyInfo.variants.get(variantName);
+    const variant = polyInfo.variants.get(variantValue);
     if (!variant) {
       return data.map((row) =>
         mapModelDataToStorageRow(this.contract, this.namespaceId, this.modelName, row),
@@ -2387,7 +2400,7 @@ export class CollectionBase<
       this.contract,
       this.namespaceId,
       this.modelName,
-      variant.modelName,
+      variant.value,
     );
 
     return data.map((row) => {
@@ -2397,7 +2410,7 @@ export class CollectionBase<
         mapped[
           columnOfCallerField(
             this.contract,
-            this.namespaceId,
+            variant.namespaceId,
             mergedFieldToColumn,
             variant.modelName,
             fieldName,
@@ -2438,7 +2451,7 @@ export class CollectionBase<
     data: readonly ResolvedScalarCreateInput<
       TContract,
       ModelName,
-      State['variantName'],
+      State['variantValue'],
       State['nsId']
     >[],
     optionsOrConfigure?: CreateConflictOptions<TContract, ModelName> | WriteConfigure,
@@ -2525,7 +2538,7 @@ export class CollectionBase<
   async upsert<Self extends this>(
     this: Self,
     input: {
-      create: ResolvedScalarCreateInput<TContract, ModelName, State['variantName'], State['nsId']>;
+      create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
       update: Partial<DefaultModelRow<TContract, ModelName>>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
@@ -2533,7 +2546,7 @@ export class CollectionBase<
   ): Promise<CollectionRowOf<Self>>;
   async upsert(
     input: {
-      create: ResolvedScalarCreateInput<TContract, ModelName, State['variantName'], State['nsId']>;
+      create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
       update: Partial<DefaultModelRow<TContract, ModelName>>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
@@ -2541,7 +2554,7 @@ export class CollectionBase<
   ): Promise<CollectionRowOf<this>>;
   async upsert(
     input: {
-      create: ResolvedScalarCreateInput<TContract, ModelName, State['variantName'], State['nsId']>;
+      create: ResolvedScalarCreateInput<TContract, ModelName, State['variantValue'], State['nsId']>;
       update: Partial<DefaultModelRow<TContract, ModelName>>;
       conflictOn?: UniqueConstraintCriterion<TContract, ModelName>;
     },
@@ -2608,7 +2621,7 @@ export class CollectionBase<
       tables: this.state.tables,
       modelName: this.modelName,
       namespaceId: this.namespaceId,
-      variantName: this.state.variantName,
+      variantValue: this.state.variantValue,
       includes: this.state.includes,
       selectedFields: this.state.selectedFields,
       hiddenColumns,
@@ -2833,7 +2846,7 @@ export class CollectionBase<
       tables: this.state.tables,
       modelName: this.modelName,
       namespaceId: this.namespaceId,
-      variantName: this.state.variantName,
+      variantValue: this.state.variantValue,
       includes: this.state.includes,
       selectedFields: this.state.selectedFields,
       hiddenColumns,
@@ -2887,7 +2900,7 @@ export class CollectionBase<
         this.state.tables,
         mappedData,
         this.state.filters,
-        this.state.variantName,
+        this.state.variantValue,
       ),
       annotationsMap,
     );
@@ -3000,7 +3013,7 @@ export class CollectionBase<
       tables: this.state.tables,
       modelName: this.modelName,
       namespaceId: this.namespaceId,
-      variantName: this.state.variantName,
+      variantValue: this.state.variantValue,
       includes: this.state.includes,
       selectedFields: this.state.selectedFields,
       hiddenColumns,
@@ -3040,7 +3053,7 @@ export class CollectionBase<
             collection.contract,
             collection.state.tables,
             collection.state.filters,
-            collection.state.variantName,
+            collection.state.variantValue,
           ),
           annotationsMap,
         );
@@ -3080,7 +3093,7 @@ export class CollectionBase<
         this.contract,
         this.state.tables,
         this.state.filters,
-        this.state.variantName,
+        this.state.variantValue,
       ),
       annotationsMap,
     );

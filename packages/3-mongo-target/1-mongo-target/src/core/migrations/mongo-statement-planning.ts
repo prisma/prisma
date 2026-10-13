@@ -64,7 +64,11 @@ function variantFilter(
   if (base === undefined) return undefined;
   const baseModel = contract.domain.namespaces[base.namespace]?.models[base.model];
   const field = baseModel?.discriminator?.field;
-  const value = baseModel?.variants?.[coordinate.model]?.value;
+  const variants = Object.entries(baseModel?.variants ?? {});
+  const value = variants.find(
+    ([, variant]) =>
+      variant.namespace === coordinate.namespaceId && variant.model === coordinate.model,
+  )?.[0];
   return field === undefined || value === undefined ? undefined : { [field]: value };
 }
 
@@ -500,10 +504,13 @@ function rootDocumentsLosing(
   if (model === undefined || Object.hasOwn(model.fields, field)) return undefined;
   const discriminator = model.discriminator?.field;
   const keeping = Object.entries(model.variants ?? {})
-    .filter(([variant]) =>
-      Object.hasOwn(modelAt(contract, { ...root, model: variant })?.fields ?? {}, field),
+    .filter(([, variant]) =>
+      Object.hasOwn(
+        modelAt(contract, { namespaceId: variant.namespace, model: variant.model })?.fields ?? {},
+        field,
+      ),
     )
-    .map(([, entry]) => entry.value)
+    .map(([value]) => value)
     .sort();
   if (discriminator === undefined || keeping.length === 0) return { filter: undefined };
   return { filter: { [discriminator]: { $nin: keeping } } };

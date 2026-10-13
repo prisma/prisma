@@ -345,8 +345,14 @@ type ContractBase = Omit<
             readonly storage: { readonly collection: 'posts' };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
-              readonly Article: { readonly value: 'article' };
-              readonly Tutorial: { readonly value: 'tutorial' };
+              readonly article: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'Article';
+              };
+              readonly tutorial: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'Tutorial';
+              };
             };
           };
           readonly Tutorial: {

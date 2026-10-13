@@ -9,14 +9,14 @@ describe('resolveIncludeRelation() with a selected parent variant', () => {
       'public',
       'Task',
       'assignee',
-      'Feature',
+      'feature',
     );
 
     expect(relation).toEqual({
       relatedModelName: 'Assignee',
       relatedNamespaceId: 'public',
       relatedTableName: 'assignees',
-      localVariantName: 'Feature',
+      localVariantValue: 'feature',
       localColumns: ['assignee_id'],
       targetColumns: ['id'],
       cardinality: 'N:1',
@@ -29,7 +29,7 @@ describe('resolveIncludeRelation() with a selected parent variant', () => {
       'public',
       'Task',
       'assignee',
-      'Bug',
+      'bug',
     );
 
     expect(relation).toEqual({

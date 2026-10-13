@@ -35,7 +35,6 @@ export type {
   ContractToManyRelation,
   ContractToOneRelation,
   ContractValueObject,
-  ContractVariantEntry,
   EmbedRelationKeys,
   ModelStorageBase,
   ReferenceRelationKeys,

@@ -254,7 +254,7 @@ describe('mongoEmission.validateStructure', () => {
           relations: {},
           storage: { collection: 'tasks' },
           discriminator: { field: 'type' },
-          variants: { Bug: { value: 'bug' } },
+          variants: { bug: crossRef('Bug') },
         },
         Bug: {
           fields: {
@@ -293,7 +293,7 @@ describe('mongoEmission.validateStructure', () => {
           relations: {},
           storage: { collection: 'tasks' },
           discriminator: { field: 'type' },
-          variants: { Bug: { value: 'bug' } },
+          variants: { bug: crossRef('Bug') },
         },
         Bug: {
           fields: {

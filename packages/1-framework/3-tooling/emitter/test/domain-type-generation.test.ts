@@ -263,12 +263,14 @@ describe('generateModelsType', () => {
 
   it('includes variants when present', () => {
     const models: Record<string, ContractModel> = {
-      Animal: makeModel({ variants: { Dog: { value: 'dog' }, Cat: { value: 'cat' } } }),
+      Animal: makeModel({
+        variants: { dog: crossRef('Dog', 'public'), cat: crossRef('Cat', 'pets') },
+      }),
     };
     const result = generateModelsType(models, noopStorage);
-    expect(result).toContain('readonly variants:');
-    expect(result).toContain('readonly Dog:');
-    expect(result).toContain('readonly Cat:');
+    expect(result).toContain(
+      'readonly variants: { readonly cat: { readonly namespace: "pets" & NamespaceId; readonly model: "Cat" }; readonly dog: { readonly namespace: "public" & NamespaceId; readonly model: "Dog" } }',
+    );
   });
 
   it('includes base when present', () => {

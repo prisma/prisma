@@ -517,7 +517,7 @@ A relation, foreign key, junction (`through`) reference, or context declaration 
 
 ### CONTRACT.MODEL_VARIANT_MISSING
 
-A polymorphic base names a variant that is not a model in the same namespace, so the `Any<Base>` union in `contract.d.ts` cannot be formed. Raised while emitting `contract.d.ts`. Payload: `base`, `variantName`.
+A polymorphic base names a variant that is not a model in the contract, so the `Any<Base>` union in `contract.d.ts` cannot be formed. Raised while emitting `contract.d.ts`. Payload: `base`, `variant`.
 
 ### CONTRACT.MODULE_EXPORT_MISSING
 

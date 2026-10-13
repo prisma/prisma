@@ -533,7 +533,12 @@ type ContractBase = Omit<
             readonly relations: Record<string, never>;
             readonly storage: { readonly collection: 'assets' };
             readonly discriminator: { readonly field: 'kind' };
-            readonly variants: { readonly Photo: { readonly value: 'photo' } };
+            readonly variants: {
+              readonly photo: {
+                readonly namespace: '__unbound__' & NamespaceId;
+                readonly model: 'Photo';
+              };
+            };
           };
           readonly Author: {
             readonly fields: {
