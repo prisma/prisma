@@ -41,7 +41,7 @@ changes:
         - '\.adopt\s*\('
   - id: orm-runtime-objects-carry-an-activity-source
     summary: |
-      The ORM starts activities with `startActivityOn` on the queryable it holds, and starts none on a queryable without an `activitySource` member. `db.runtime()` passed straight to `orm()` carries one. A client facade that builds its own ORM runtime object, such as one that looks up its runtime on every call, adds `[activitySource]: delegatingActivitySource(() => runtime)` from `@prisma/orm-family-sql/runtime/internal/prepared-query`, for the runtime and for the context of `db.transaction(fn)`. Where the facade's statements run through sessions of its own, such as role sessions, give an activity source whose statements go the same way, or none.
+      The ORM reaches activities only through `startActivityOn` on the queryable it holds, and a queryable without an `activitySource` member starts none. `db.runtime()` passed straight to `orm()` carries one. A client facade that builds its own ORM runtime object, such as one that looks up its runtime on every call, adds `[activitySource]: delegatingActivitySource(() => runtime)` from `@prisma/orm-family-sql/runtime/internal/prepared-query`, for the runtime and for the context of `db.transaction(fn)`. Where the facade's statements run through sessions of its own, such as role sessions, give an activity source whose statements go the same way, or none.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
