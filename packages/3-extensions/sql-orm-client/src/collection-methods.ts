@@ -163,6 +163,17 @@ function methodsOf(
       },
     );
   }
+  if (typeof methods !== 'object' || methods === null) {
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
+      `Collection method contribution "${contribution.id}" returned no object of methods for model "${view.name}".`,
+      {
+        why: "A contribution returns an object holding a model's methods by name, empty when it gives the model none.",
+        fix: `Fix or remove the extension that contributes "${contribution.id}".`,
+        meta: { model: view.name, contribution: contribution.id },
+      },
+    );
+  }
   for (const [name, body] of Object.entries(methods)) {
     if (typeof body !== 'function') {
       throw ormError(
