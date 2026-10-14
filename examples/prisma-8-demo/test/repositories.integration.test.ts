@@ -1203,6 +1203,11 @@ describe('ORM client integration examples', () => {
             embeddingPostIds.similar1,
             embeddingPostIds.similar2,
           ]);
+          expect(results.map((r) => Object.keys(r))).toEqual([
+            ['id', 'title', 'userId'],
+            ['id', 'title', 'userId'],
+            ['id', 'title', 'userId'],
+          ]);
         } finally {
           await runtime.close();
         }
