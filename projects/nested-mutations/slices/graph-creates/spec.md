@@ -35,13 +35,14 @@ The design is in [`../../mutation-graph.md`](../../mutation-graph.md). This slic
 | `InsertChunked` | a node holding several `InsertAst`s, run in order; no inputs. Returns their rows one statement after another, or the sum of their counts, as the ASTs' returning decides. `withReturning` applies to every AST. The builder uses it when the rows split into more than one column set. |
 | `PayloadData` | an edge whose `output(sourceRow)` is a record of values for the target's row. In this slice its source always has one row; how a target combines several source rows is decided in slice `graph-nested`. |
 | `Rows` | an edge whose `output(sourceRow)` is the source row restricted to the edge's columns; listing them makes the source return them. |
-| `Merge` | a node with no statement that makes one row from one row of each input: the base row and the variant row of the same entity, the variant's columns named so they do not collide with the base's. |
+| `Merge` | a node with no statement that makes one row from one row of each input, side by side. It knows nothing about tables, variants or keys. |
 | `ConcatRows` | a node with no statement that returns all rows of its inputs, one input after another. |
 | Builders | `createGraph(collection, rows, conflict)` and `upsertGraph(collection, create, update, conflictColumns)`. No result form: `createAll` and `createAndCount` call the same builder. |
 
 Decisions specific to this slice, taken with the project owner:
 
 - **Batching.** An `Insert` is one statement. When the rows cannot go into one statement (the target lacks `DEFAULT` inside a row and the rows set different columns), the builder makes one `InsertChunked`. Its statements are main's statements, in main's order, and a one-node graph runs without a transaction as on main.
+- **Variant columns are labeled by the variant insert's statement, as reads label them.** The variant `Insert`'s returning clause projects each variant column under the label reads use (`variantColumnLabel`) and leaves out the key columns, so its rows arrive as a read of the same variant would return them. `Merge` and the `Rows` edges rename nothing; shaping maps labels to fields with the function reads use. Decided 2026-10-14 over a `Merge` that renames, and over renaming on the `Rows` edge.
 - **Variants stored in their own table.** One chain per row: `Insert` into the base table, `Insert` into the variant table reading the base row's key through `PayloadData`, `Merge` of the two. Several rows are joined by `ConcatRows`. The graph runs in one transaction, so `createAll` of several such rows creates all or none; main used one transaction per row.
 - **`upsert`** is one `Insert` with a conflict clause that updates. With nothing to update, the clause assigns a conflict column its own proposed value (`do update set email = excluded.email`), so the row is returned whether it was inserted or already existed. Main issued `do nothing` and a second read in that case.
 - **Includes.** An insert's returning clause cannot join related rows, so with includes the graph ends in a `Find` holding the select with includes, reading the inserted rows' identity columns through `FilterData`, as for updates.
@@ -78,4 +79,4 @@ The same shape as slice `graph-core`: new node and edge classes with unit tests,
 
 ## Open questions
 
-1. **Where the variant's columns are renamed** (asked 2026-10-14, paused by the owner; re-ask before dispatch 2). As built in dispatch 1, `Merge` is constructed with the variant table and key columns, has `base` and `variant` slots, drops the variant's key and renames its columns. Alternative: a generic `Merge` that sets one row from each input side by side, with the renaming and the dropped key expressed by the variant's `Rows` edge column pairs.
+None.
