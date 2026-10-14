@@ -107,6 +107,8 @@ describe('MongoMigrationPlanner and runner - statements', () => {
         {
           operationIndex: 0,
           subject: { kind: 'field', namespaceId: NS, model: 'User', field: 'nickname' },
+          label: 'Remove field nickname from collection users',
+          loss: 'drop',
         },
       ]);
       expect({
