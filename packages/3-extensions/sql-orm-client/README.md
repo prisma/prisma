@@ -83,18 +83,18 @@ Naming the index makes the query search the document the index was built over, s
 
 ## Collection methods packages contribute
 
-A package can contribute collection methods. For each model, it reads the model's definition in the contract and returns the methods it offers, under names it chooses. Every collection offers them under `using`:
+A package can contribute collection methods. For each model, it reads the model's definition in the contract and returns the methods it offers, under names it chooses. Every collection offers them under `using`. With `db` from `postgres<Contract>(…)`:
 
 ```ts
 const q = websearchToTsquery(input.search);
 
-await db.Post.using.post_search(q).limit(10).all();
-await db.Post.where({ userId }).using.embedding_nearest(vector, 0.5).limit(5).all();
-await db.User.include('posts', (posts) => posts.using.post_search(q).limit(3)).all();
+await db.orm.public.Post.using.post_search(q).limit(10).all();
+await db.orm.public.Post.where({ userId }).using.embedding_nearest(vector, 0.5).limit(5).all();
+await db.orm.public.User.include('posts', (posts) => posts.using.post_search(q).limit(3)).all();
 ```
 
 - The Postgres target contributes one method for each full-text index, named after the index, so `postgres()` and the serverless client both offer it. It filters with `fns.fullTextMatches` and orders by `fns.fullTextRank`, descending, both naming the index. A name two indexes of one table share gets no method.
-- The pgvector package contributes `<field>_nearest(vector, maxDistance?)` for each vector field. It orders by cosine distance to `vector`, nearest first, and keeps only the rows within `maxDistance` when one is given. The vector's length is typed from the field. It declares no filter, because it filters only when `maxDistance` is given, so `updateAll` and `deleteAll` do not compile after it.
+- The pgvector package contributes `<field>_nearest(vector, maxDistance?)` for each vector field. It orders by cosine distance to `vector`, nearest first, and keeps only the rows within `maxDistance` when one is given. Without `maxDistance` it only orders, so rows whose field is null are returned too, last. The vector's length is typed from the field. It declares no filter, because it filters only when `maxDistance` is given, so `updateAll` and `deleteAll` do not compile after it.
 - A method returns the collection it was called on, with `Filtered` and `Ordered` added as the method declares: a custom class stays the class. It works on a root collection, after other methods, inside an include refinement, inside `with` and a fragment for one model, and on `this` in a custom class. In the body of a fragment for any model (`db.orm.fragment(fields, body)`), the collection's type has no `using` member, and at run time its `using` is an empty object.
 - Its order is an ordinary order, added where it is called: an `orderBy` before it comes first, and one after it comes after.
 - A model that no contribution serves has a `using` with no members. On a collection narrowed by `variant`, a contribution sees the base model.

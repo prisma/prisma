@@ -30,8 +30,8 @@ model Post {
 With no code of its own, the application can search posts by text or by similarity:
 
 ```ts
-await db.Post.using.post_search(websearchToTsquery('zebra crossing')).limit(10).all();
-await db.Post.where({ userId }).using.embedding_nearest(queryVector).limit(5).all();
+await db.orm.public.Post.using.post_search(websearchToTsquery('zebra crossing')).limit(10).all();
+await db.orm.public.Post.where({ userId }).using.embedding_nearest(queryVector).limit(5).all();
 ```
 
 The first call runs:
@@ -40,7 +40,7 @@ The first call runs:
 SELECT … FROM "post"
 WHERE <search document> @@ websearch_to_tsquery('english', $1)
 ORDER BY ts_rank(<search document>, websearch_to_tsquery('english', $1)) DESC
-LIMIT $2
+LIMIT 10
 ```
 
 `<search document>` is the expression the index was built over, the title weighted A and the body weighted B, so Postgres uses the index.
@@ -53,12 +53,12 @@ A package can contribute collection methods to the SQL ORM client. For each mode
 
 ## Why packages contribute methods
 
-A **collection** is what the ORM client gives the application for each model: `db.Post` is the collection of posts. Collection methods such as `where`, `orderBy` and `limit` each return a collection, so they chain. An application can add its own methods by writing a custom collection class.
+A **collection** is what the ORM client gives the application for each model: `db.orm.public.Post` is the collection of posts. Collection methods such as `where`, `orderBy` and `limit` each return a collection, so they chain. An application can add its own methods by writing a custom collection class.
 
 ADR 270 lets a query name one of the model's indexes, so a search matches the index exactly:
 
 ```ts
-db.Post
+db.orm.public.Post
   .where((post, { fns, indexes }) => fns.fullTextMatches(indexes.post_search, q))
   .orderBy((post, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc());
 ```
@@ -85,10 +85,15 @@ export const pgvectorNearestMethods: CollectionMethodContribution = {
 function nearestMethod(field: string): CollectionMethodBody {
   return (collection, ...args) => {
     const [vector, maxDistance] = blindCast<readonly [readonly number[], number | undefined], '…'>(args);
-    const ordered = collection.orderBy((model) => distanceTo(model, field, vector).asc());
+    let shared: Distance | undefined;
+    const distance = (model: unknown): Distance => {
+      shared ??= distanceTo(model, field, vector);
+      return shared;
+    };
+    const ordered = collection.orderBy((model) => distance(model).asc());
     return maxDistance === undefined
       ? ordered
-      : ordered.where((model) => distanceTo(model, field, vector).lt(maxDistance));
+      : ordered.where((model) => distance(model).lt(maxDistance));
   };
 }
 ```
@@ -111,9 +116,9 @@ export interface PgvectorNearestMethods extends CollectionMethodContributionType
 ```
 
 - **The run-time half**, a `CollectionMethodContribution`, has an id and a function, `methodsFor`, that receives one model (a `CollectionMethodModel`) and returns its methods by name. Each method receives the collection and the caller's arguments, and returns the collection with a `where`, an `orderBy` or both added. Their callbacks receive the ORM's model accessor, whose fields have their query operations (pgvector's method calls `cosineDistance` on the vector field), and ADR 270's `fns` and `indexes`.
-- **The type half**, a `CollectionMethodContributionType`, computes the same table for the type checker from the model's type (a `CollectionMethodModelType`): for each method name, its parameter list and whether it adds a filter and an order. Here the vector parameter carries the field's vector length, so a vector typed with another length is a compile error.
+- **The type half**, a `CollectionMethodContributionType`, computes the same table for the type checker from the model's type (a `CollectionMethodModelType`): for each method name, its parameter list and whether it adds a filter and an order. Here the vector parameter's type carries the field's vector length: a `Vector<N>` branded with another length is a compile error, and a plain `number[]`, whose length the type checker cannot know, is checked at run time, when the value is encoded.
 
-A method's result has `Filtered` and `Ordered` (ADR 265) only as its type half declares. A nearest-neighbour search filters only when `maxDistance` is given, so it declares no filter, and `db.Post.using.embedding_nearest(v).deleteAll()` does not compile: without a filter it would delete every post. A full-text search always filters and orders, so it declares both.
+A method's result has `Filtered` and `Ordered` (ADR 265) only as its type half declares. A nearest-neighbour search filters only when `maxDistance` is given, so it declares no filter, and `db.orm.public.Post.using.embedding_nearest(v).deleteAll()` does not compile: without a filter it would delete every post. A full-text search always filters and orders, so it declares both.
 
 A method returns the collection it was called on, not a new kind of object. So it chains before and after other methods, works inside an `include`, inside a query fragment (ADR 259), and on `this` in a custom collection class, and a custom class stays that class (ADR 265).
 
@@ -143,7 +148,7 @@ The schema declares no methods. A package works its methods out from what the co
 
 ## Methods appear under `using`
 
-Contributed methods sit under one member, `using`, on every collection: `db.Post.using.post_search(q)`. The name reads as plain English ("posts, using `post_search`") and echoes SQL's `USING` for an index's access method. `using` is also a TypeScript keyword since 5.2, for declarations that dispose of a resource (`using conn = …`). That keyword only starts a declaration; as a property name after a dot it is an ordinary identifier, so `db.Post.using` neither conflicts with it nor changes its meaning.
+Contributed methods sit under one member, `using`, on every collection: `db.orm.public.Post.using.post_search(q)`. The name reads as plain English ("posts, using `post_search`") and echoes SQL's `USING` for an index's access method. `using` is also a TypeScript keyword since 5.2, for declarations that dispose of a resource (`using conn = …`). That keyword only starts a declaration; as a property name after a dot it is an ordinary identifier, so `db.orm.public.Post.using` neither conflicts with it nor changes its meaning.
 
 Keeping them under `using` means a contributed name can never collide with a collection method or with a method of a custom collection class, whatever either side adds later. It also keeps the cost to the type checker low, because the methods are computed in one place instead of being merged into every collection type.
 
@@ -200,8 +205,8 @@ A misspelled method is an ordinary compile error, `Property 'post_serach' does n
 A contributed method's order is an ordinary order, added where the method is called, as `orderBy` is:
 
 ```ts
-db.Post.orderBy((p) => p.pinned.desc()).using.post_search(q); // pinned posts first, then by relevance
-db.Post.using.post_search(q).orderBy((p) => p.id.asc());       // by relevance, then by id among equal matches
+db.orm.public.Post.orderBy((p) => p.pinned.desc()).using.post_search(q); // pinned posts first, then by relevance
+db.orm.public.Post.using.post_search(q).orderBy((p) => p.id.asc());       // by relevance, then by id among equal matches
 ```
 
 ## Cost
@@ -224,7 +229,7 @@ With the Postgres full-text and pgvector contributions registered and no method 
 - **A contribution matches one index type, and its method is named after the index.** It cannot serve a method computed from a field or from the table, and the ORM decides the names.
 - **The package declares rules (one method per index, per field or per model) and the ORM builds the names from a prefix and a suffix.** About 0.5 points cheaper in the ORM client package, but the ORM decides the names, and no rule can express "every model whose table has a column of type X".
 - **Methods declared in the schema,** for example in a `scopes {}` block. Every case can be worked out from the model, and declarations would put the ORM's surface into the contract.
-- **Methods placed directly on the collection, `db.Post.post_search(q)`.** About 4% more type checking on the demo for every application, used or not. It also breaks a generic collection subclass (TS2509) and a custom class method that shares a contributed name (TS2416).
-- **A method name in two parts, element then operation, `db.Post.using.embedding.nearest(v)`.** A package that names its own methods can choose such names; the ORM need not require them.
+- **Methods placed directly on the collection, `db.orm.public.Post.post_search(q)`.** About 4% more type checking on the demo for every application, used or not. It also breaks a generic collection subclass (TS2509) and a custom class method that shares a contributed name (TS2416).
+- **A method name in two parts, element then operation, `db.orm.public.Post.using.embedding.nearest(v)`.** A package that names its own methods can choose such names; the ORM need not require them.
 - **The method types loaded through the emitted `contract.d.ts`.** It ties the contract's types to one query interface.
 - **The contributions passed as a type argument of the client.** TypeScript infers no further type argument once the application writes `<Contract>`, so the application would have to write the contributions' types.

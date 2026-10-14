@@ -5,7 +5,7 @@
 
 ## Intent
 
-The Postgres target gives every model with a full-text index a method, `db.Post.using.post_search(q)`, and pgvector gives every model with a vector field one, `db.Post.using.embedding_nearest(v)`. The ORM client computes the type of `using` from `CollectionMethodRegistry`, an interface in `@internal/sql-relational-core`. Each package adds its entry with a module augmentation, and the application writes no type argument for it.
+The Postgres target gives every model with a full-text index a method, `db.orm.public.Post.using.post_search(q)`, and pgvector gives every model with a vector field one, `db.orm.public.Post.using.embedding_nearest(v)`. The ORM client computes the type of `using` from `CollectionMethodRegistry`, an interface in `@internal/sql-relational-core`. Each package adds its entry with a module augmentation, and the application writes no type argument for it.
 
 A declaration-merging registry is an interface a lower package declares and other packages extend with `declare module`, so that types a package contributes reach a generic computation in another package without the application naming them.
 
