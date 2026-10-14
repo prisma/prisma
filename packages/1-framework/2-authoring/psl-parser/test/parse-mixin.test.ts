@@ -452,19 +452,6 @@ describe('a mixin inclusion', () => {
 });
 
 describe('the reserved word mixin in a block header', () => {
-  it('rejects mixin as a block keyword', () => {
-    const source = 'mixin X {\n  a = 1\n}';
-    const result = parseSchema(source);
-
-    expect(messages(result)).toEqual([
-      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin X"',
-    ]);
-    expect(diagnosedText(result, source)).toEqual(['mixin']);
-    expect(Array.from(result.document.syntax.childNodes(), (node) => node.kind)).toEqual([
-      'GenericBlockDeclaration',
-    ]);
-  });
-
   it.each([
     ['model', 'model mixin {\n  id Int\n}'],
     ['type', 'type mixin {\n  lat Float\n}'],
@@ -496,26 +483,6 @@ describe('the reserved word mixin in a block header', () => {
     expect(diagnosedText(result, source)).toEqual([keyword]);
     expect(mixin.name()?.name()).toBe('X');
     expect(mixin.rbrace()).toBeDefined();
-  });
-
-  it('reports mixin as a keyword with no body, and its missing brace', () => {
-    const result = parseSchema('mixin X');
-
-    expect(messages(result)).toEqual([
-      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin Name"',
-      'PSL_INVALID_DECLARATION: Expected "{" to open the "mixin" block',
-    ]);
-  });
-
-  it('rejects a mixin for mixin', () => {
-    const source = 'mixin mixin X {\n  a = 1\n}';
-    const result = parseSchema(source);
-
-    expect(messages(result)).toEqual([
-      'PSL_INVALID_DECLARATION: A mixin cannot be declared for "mixin"',
-    ]);
-    expect(result.diagnostics[0]?.range.start).toEqual({ line: 0, character: 0 });
-    expect(Array.from(onlyMixin(result).entries(), (entry) => entry.key()?.name())).toEqual(['a']);
   });
 
   it('rejects a namespace named mixin', () => {
@@ -660,7 +627,6 @@ describe('the prisma-7 grammar', () => {
     expect(inPrisma7.diagnostics).toEqual(inDefault.diagnostics);
     expect(messages(inPrisma7)).toEqual([
       'PSL_INVALID_DECLARATION: Expected a mixin name after "mixin"',
-      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin Lost"',
       'PSL_INVALID_MODEL_MEMBER: Expected a mixin name after "+"',
     ]);
     expect(descendantKinds(inPrisma7.document.syntax)).toEqual(

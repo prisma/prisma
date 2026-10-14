@@ -847,14 +847,6 @@ export function parseGenericBlock(
   const keyword = cursor.peekToken().text;
   if (RESERVED_BLOCK_KEYWORDS.has(keyword)) return undefined;
   const hasName = cursor.peekKind(1) === 'Ident' && cursor.peekKind(2) === 'LBrace';
-  if (keyword === MIXIN_KEYWORD) {
-    const name = hasName ? cursor.peekToken(1).text : 'Name';
-    cursor.diagnostic(
-      'PSL_INVALID_DECLARATION',
-      `A mixin starts with the keyword of the block it is for, for example "model mixin ${name}"`,
-      cursor.mark(),
-    );
-  }
   cursor.startNode('GenericBlockDeclaration');
   cursor.bump();
   if (hasName) {
