@@ -8,7 +8,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -16,7 +18,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -235,188 +236,74 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly Role: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly User: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly UserRole: {
-      readonly roleId: CodecTypes['pg/text@1']['output'];
-      readonly token: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly userId: CodecTypes['pg/int4@1']['output'];
-    };
-  };
-  readonly shadow: {
-    readonly ShadowRole: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly ShadowUser: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly ShadowUserRole: {
-      readonly roleId: CodecTypes['pg/text@1']['output'];
-      readonly token: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/int4@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly Role: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly User: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly UserRole: {
-      readonly roleId: CodecTypes['pg/text@1']['input'];
-      readonly token: CodecTypes['sql/char@1']['input'];
-      readonly userId: CodecTypes['pg/int4@1']['input'];
-    };
-  };
-  readonly shadow: {
-    readonly ShadowRole: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly ShadowUser: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly ShadowUserRole: {
-      readonly roleId: CodecTypes['pg/text@1']['input'];
-      readonly token: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/int4@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly roles: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly user_roles: {
-      readonly role_id: CodecTypes['pg/text@1']['output'];
-      readonly token: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly user_id: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-  };
-  readonly shadow: {
-    readonly roles: {
-      readonly id: CodecTypes['pg/text@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly user_roles: {
-      readonly role_id: CodecTypes['pg/text@1']['output'];
-      readonly token: CodecTypes['pg/text@1']['output'];
-      readonly user_id: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly roles: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly user_roles: {
-      readonly role_id: CodecTypes['pg/text@1']['input'];
-      readonly token: CodecTypes['sql/char@1']['input'];
-      readonly user_id: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-  };
-  readonly shadow: {
-    readonly roles: {
-      readonly id: CodecTypes['pg/text@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly user_roles: {
-      readonly role_id: CodecTypes['pg/text@1']['input'];
-      readonly token: CodecTypes['pg/text@1']['input'];
-      readonly user_id: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_Role = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['public']['Role']['id'];
+    name: FieldOutputTypes['public']['Role']['name'];
     readonly [RelationKeys]?: never;
   };
   export type public_User = {
-    email: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    email: FieldOutputTypes['public']['User']['email'];
+    id: FieldOutputTypes['public']['User']['id'];
+    name: FieldOutputTypes['public']['User']['name'];
     roles: public_Role[];
     readonly [RelationKeys]?: 'roles';
   };
   export type public_UserRole = {
-    roleId: CodecTypes['pg/text@1']['output'];
-    token: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    userId: CodecTypes['pg/int4@1']['output'];
+    roleId: FieldOutputTypes['public']['UserRole']['roleId'];
+    token: FieldOutputTypes['public']['UserRole']['token'];
+    userId: FieldOutputTypes['public']['UserRole']['userId'];
     readonly [RelationKeys]?: never;
   };
   export type shadow_ShadowRole = {
-    id: CodecTypes['pg/text@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['shadow']['ShadowRole']['id'];
+    name: FieldOutputTypes['shadow']['ShadowRole']['name'];
     readonly [RelationKeys]?: never;
   };
   export type shadow_ShadowUser = {
-    email: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    email: FieldOutputTypes['shadow']['ShadowUser']['email'];
+    id: FieldOutputTypes['shadow']['ShadowUser']['id'];
+    name: FieldOutputTypes['shadow']['ShadowUser']['name'];
     roles: shadow_ShadowRole[];
     readonly [RelationKeys]?: 'roles';
   };
   export type shadow_ShadowUserRole = {
-    roleId: CodecTypes['pg/text@1']['output'];
-    token: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
+    roleId: FieldOutputTypes['shadow']['ShadowUserRole']['roleId'];
+    token: FieldOutputTypes['shadow']['ShadowUserRole']['token'];
+    userId: FieldOutputTypes['shadow']['ShadowUserRole']['userId'];
     readonly [RelationKeys]?: never;
   };
 }

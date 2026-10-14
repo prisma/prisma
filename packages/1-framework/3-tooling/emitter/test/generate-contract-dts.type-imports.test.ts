@@ -93,8 +93,9 @@ describe('generateContractDts parameterized output types', () => {
     expect(dts).toContain(
       'readonly id: ParameterizedOutput<"demo/char@1", { readonly length: 24 }>',
     );
+    expect(dts).toContain('type ParameterizedOutputTypes = DemoParameterizedOutputTypes;');
     expect(dts).toContain(
-      'type ParameterizedOutput<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<DemoParameterizedOutputTypes, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;',
+      'type ParameterizedOutput<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<ParameterizedOutputTypes, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;',
     );
     expect(importLines(dts)).toContain(
       'ParameterizedOutputTypesForTypeParams as DemoParameterizedOutputTypes',
@@ -114,6 +115,54 @@ describe('generateContractDts parameterized output types', () => {
 
     expect(dts).not.toMatch(/\bParameterizedOutput\b/);
     expect(dts).not.toMatch(/\bParameterizedOutputType\b/);
+    expect(dts).not.toMatch(/\bParameterizedOutputTypes\b/);
     expect(dts).not.toContain('DemoParameterizedOutputTypes');
+  });
+});
+
+describe('generateContractDts for a family that types its fields with a generic', () => {
+  const contract = createTestContract({
+    namespaces: {
+      public: {
+        models: {
+          User: {
+            fields: {
+              id: { nullable: false, type: { kind: 'scalar', codecId: 'demo/int@1' }, many: false },
+              address: {
+                nullable: true,
+                type: { kind: 'valueObject', name: 'Address' },
+                many: false,
+              },
+            },
+            relations: {},
+            storage: {},
+          },
+        },
+      },
+    },
+  });
+  const spi = createMockSpi({
+    fieldTypesExpression: (side) => `FieldTypesFrom<ContractBase, KnownFieldTypes, '${side}'>`,
+  });
+
+  it('writes the field type maps as the family expression, over the known types it declares', () => {
+    const dts = generateContractDts(contract, spi, [CODEC_TYPES], HASHES);
+
+    expect(dts).toContain(
+      'type KnownFieldTypes = { readonly public: { readonly User: { readonly address: { readonly output: AddressOutput; readonly input: AddressInput } } } };',
+    );
+    expect(dts).toContain(
+      "export type FieldOutputTypes = FieldTypesFrom<ContractBase, KnownFieldTypes, 'output'>;",
+    );
+    expect(dts).toContain(
+      "export type FieldInputTypes = FieldTypesFrom<ContractBase, KnownFieldTypes, 'input'>;",
+    );
+  });
+
+  it('types the fields of a Models member by indexing FieldOutputTypes', () => {
+    const dts = generateContractDts(contract, spi, [CODEC_TYPES], HASHES);
+
+    expect(dts).toContain('id: FieldOutputTypes["public"]["User"]["id"];');
+    expect(dts).toContain('address: FieldOutputTypes["public"]["User"]["address"];');
   });
 });

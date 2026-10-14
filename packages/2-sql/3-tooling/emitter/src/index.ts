@@ -5,9 +5,10 @@ import type {
   JsonValue,
 } from '@internal/contract/types';
 import {
-  codecInputType,
-  codecOutputType,
-  renderValueSetType,
+  type KnownValueType,
+  renderKnownCodecType,
+  renderKnownTypesMap,
+  renderKnownValueSetType,
   serializeNamespaceId,
   serializeObjectKey,
   serializeValue,
@@ -463,18 +464,23 @@ export const sqlEmission = {
       'contract.storage is SqlStorage for sql family'
     >(contract.storage);
     if (!storage?.namespaces) return undefined;
-    const outputMap = generateStorageColumnTypesMap(storage, 'output', codecLookup);
-    const inputMap = generateStorageColumnTypesMap(storage, 'input', codecLookup);
     return [
-      `export type StorageColumnTypes = ${outputMap};`,
-      `export type StorageColumnInputTypes = ${inputMap};`,
+      `type KnownColumnTypes = ${generateKnownColumnTypesMap(storage, codecLookup)};`,
+      `export type StorageColumnTypes = ${columnTypesExpression('output')};`,
+      `export type StorageColumnInputTypes = ${columnTypesExpression('input')};`,
     ].join('\n');
+  },
+
+  fieldTypesExpression(side: 'output' | 'input'): string {
+    return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypes, KnownFieldTypes, ${serializeValue(side)}>`;
   },
 
   getFamilyImports(resolveImportSpecifier: ImportSpecifierResolver): string[] {
     return [
       'import type {',
+      '  ColumnTypesFromStorage,',
       '  ContractWithTypeMaps,',
+      '  FieldTypesFromDomain,',
       '  RelationKeys,',
       '  TypeMaps as TypeMapsType,',
       `} from '${resolveImportSpecifier('@internal/sql-contract/types')}';`,
@@ -522,76 +528,51 @@ export const sqlEmission = {
   },
 } as const;
 
-type ColumnTypeSide = 'output' | 'input';
+function columnTypesExpression(side: 'output' | 'input'): string {
+  return `ColumnTypesFromStorage<ContractBase['storage'], CodecTypes, ParameterizedOutputTypes, KnownColumnTypes, ${serializeValue(side)}>`;
+}
 
-function computeColumnType(
+/** `KnownColumnTypes`: per namespace, table and column, the type of each column its codec does not give. */
+function generateKnownColumnTypesMap(
   storage: SqlStorage,
-  column: StorageColumn,
-  side: ColumnTypeSide,
   codecLookup: CodecLookup | undefined,
 ): string {
-  let base: string | undefined;
+  const entries = Object.entries(storage.namespaces ?? {}).flatMap(([nsId, ns]) => {
+    const tables = blindCast<
+      Readonly<Record<string, StorageTable>>,
+      'same pattern as generateTablesMapType below'
+    >(ns.entries.table ?? {});
+    return Object.entries(tables).flatMap(([tableName, table]) =>
+      Object.entries(table.columns).map(
+        ([columnName, column]) =>
+          [nsId, tableName, columnName, knownColumnType(storage, column, codecLookup)] as const,
+      ),
+    );
+  });
+  return renderKnownTypesMap(entries);
+}
+
+function knownColumnType(
+  storage: SqlStorage,
+  column: StorageColumn,
+  codecLookup: CodecLookup | undefined,
+): KnownValueType | undefined {
   if (column.valueSet) {
     const valueSet = entityAt<StorageValueSet>(storage, {
       namespaceId: column.valueSet.namespaceId,
       entityKind: column.valueSet.entityKind,
       entityName: column.valueSet.entityName,
     });
-    base = valueSet
-      ? renderValueSetType(valueSet.values, column.codecId, side, codecLookup)
+    const known = valueSet
+      ? renderKnownValueSetType(valueSet.values, column.codecId, codecLookup)
       : undefined;
+    if (known !== undefined) return known;
   }
-  if (base === undefined) {
-    const params = resolvedTypeParams(column, storage.types);
-    base =
-      side === 'output'
-        ? codecOutputType(column.codecId, params, codecLookup)
-        : codecInputType(column.codecId, params, codecLookup);
-  }
-  if (column.many !== false) {
-    const element = column.many.elementNullable ? `${base} | null` : base;
-    base = `ReadonlyArray<${element}>`;
-  }
-  return column.nullable ? `${base} | null` : base;
-}
-
-function generateStorageColumnTypesMap(
-  storage: SqlStorage,
-  side: ColumnTypeSide,
-  codecLookup: CodecLookup | undefined,
-): string {
-  const namespaceEntries = Object.entries(storage.namespaces ?? {}).sort(([a], [b]) =>
-    a.localeCompare(b),
+  return renderKnownCodecType(
+    column.codecId,
+    resolvedTypeParams(column, storage.types),
+    codecLookup,
   );
-  if (namespaceEntries.length === 0) return 'Record<string, never>';
-
-  const nsParts: string[] = [];
-  for (const [nsId, ns] of namespaceEntries) {
-    const tables = blindCast<
-      Readonly<Record<string, StorageTable>>,
-      'same pattern as generateTablesMapType below'
-    >(ns.entries.table ?? {});
-    const tableEntries = Object.entries(tables).sort(([a], [b]) => a.localeCompare(b));
-    const tableParts: string[] = [];
-
-    for (const [tableName, table] of tableEntries) {
-      const colEntries = Object.entries(table.columns).sort(([a], [b]) => a.localeCompare(b));
-      const colParts: string[] = [];
-
-      for (const [colName, col] of colEntries) {
-        const colType = computeColumnType(storage, col, side, codecLookup);
-        colParts.push(`readonly ${serializeObjectKey(colName)}: ${colType}`);
-      }
-
-      const colMap = colParts.length > 0 ? `{ ${colParts.join('; ')} }` : '{}';
-      tableParts.push(`readonly ${serializeObjectKey(tableName)}: ${colMap}`);
-    }
-
-    const tableMap = tableParts.length > 0 ? `{ ${tableParts.join('; ')} }` : '{}';
-    nsParts.push(`readonly ${serializeObjectKey(nsId)}: ${tableMap}`);
-  }
-
-  return `{ ${nsParts.join('; ')} }`;
 }
 
 function generateDocumentScopedStorageTypesType(types: SqlStorage['types']): string | undefined {

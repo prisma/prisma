@@ -8,7 +8,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@prisma/orm-postgres/target/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
@@ -16,7 +18,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@prisma/orm-postgres/contract/types';
@@ -235,90 +236,52 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly Post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/text@1']['output'];
-    };
-    readonly User: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly Post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/text@1']['input'];
-    };
-    readonly User: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/text@1']['output'];
-    };
-    readonly user: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/text@1']['input'];
-    };
-    readonly user: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_Post = {
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    title: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/text@1']['output'];
+    createdAt: FieldOutputTypes['public']['Post']['createdAt'];
+    id: FieldOutputTypes['public']['Post']['id'];
+    title: FieldOutputTypes['public']['Post']['title'];
+    userId: FieldOutputTypes['public']['Post']['userId'];
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
   export type public_User = {
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    createdAt: FieldOutputTypes['public']['User']['createdAt'];
+    email: FieldOutputTypes['public']['User']['email'];
+    id: FieldOutputTypes['public']['User']['id'];
     posts: public_Post[];
     readonly [RelationKeys]?: 'posts';
   };

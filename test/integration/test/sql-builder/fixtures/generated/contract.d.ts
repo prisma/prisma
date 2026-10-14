@@ -13,7 +13,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -21,7 +23,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -241,217 +242,83 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly Article: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly title: CodecTypes['pg/text@1']['output'];
-    };
-    readonly Comment: {
-      readonly body: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly postId: CodecTypes['pg/int4@1']['output'];
-      readonly subject: ParameterizedOutput<'sql/varchar@1', { readonly length: 200 }>;
-    };
-    readonly Document: {
-      readonly body: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly parentId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly subtitle: CodecTypes['pg/text@1']['output'] | null;
-      readonly title: CodecTypes['pg/text@1']['output'];
-    };
-    readonly Post: {
-      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 3 }> | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/int4@1']['output'];
-      readonly views: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly Profile: {
-      readonly bio: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly userId: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly User: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly invitedById: CodecTypes['pg/int4@1']['output'] | null;
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly Article: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-    };
-    readonly Comment: {
-      readonly body: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly postId: CodecTypes['pg/int4@1']['input'];
-      readonly subject: CodecTypes['sql/varchar@1']['input'];
-    };
-    readonly Document: {
-      readonly body: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly parentId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly subtitle: CodecTypes['pg/text@1']['input'] | null;
-      readonly title: CodecTypes['pg/text@1']['input'];
-    };
-    readonly Post: {
-      readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/int4@1']['input'];
-      readonly views: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly Profile: {
-      readonly bio: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly userId: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly User: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly invitedById: CodecTypes['pg/int4@1']['input'] | null;
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly articles: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly title: CodecTypes['pg/text@1']['output'];
-    };
-    readonly comments: {
-      readonly body: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly post_id: CodecTypes['pg/int4@1']['output'];
-      readonly subject: ParameterizedOutput<'sql/varchar@1', { readonly length: 200 }>;
-    };
-    readonly documents: {
-      readonly body: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly parent_id: CodecTypes['pg/int4@1']['output'] | null;
-      readonly subtitle: CodecTypes['pg/text@1']['output'] | null;
-      readonly title: CodecTypes['pg/text@1']['output'];
-    };
-    readonly posts: {
-      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 3 }> | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly user_id: CodecTypes['pg/int4@1']['output'];
-      readonly views: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly profiles: {
-      readonly bio: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly user_id: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly invited_by_id: CodecTypes['pg/int4@1']['output'] | null;
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly articles: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-    };
-    readonly comments: {
-      readonly body: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly post_id: CodecTypes['pg/int4@1']['input'];
-      readonly subject: CodecTypes['sql/varchar@1']['input'];
-    };
-    readonly documents: {
-      readonly body: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly parent_id: CodecTypes['pg/int4@1']['input'] | null;
-      readonly subtitle: CodecTypes['pg/text@1']['input'] | null;
-      readonly title: CodecTypes['pg/text@1']['input'];
-    };
-    readonly posts: {
-      readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly user_id: CodecTypes['pg/int4@1']['input'];
-      readonly views: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly profiles: {
-      readonly bio: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly user_id: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly invited_by_id: CodecTypes['pg/int4@1']['input'] | null;
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_Article = {
-    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    title: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['public']['Article']['id'];
+    title: FieldOutputTypes['public']['Article']['title'];
     readonly [RelationKeys]?: never;
   };
   export type public_Comment = {
-    body: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    postId: CodecTypes['pg/int4@1']['output'];
-    subject: ParameterizedOutput<'sql/varchar@1', { readonly length: 200 }>;
+    body: FieldOutputTypes['public']['Comment']['body'];
+    id: FieldOutputTypes['public']['Comment']['id'];
+    postId: FieldOutputTypes['public']['Comment']['postId'];
+    subject: FieldOutputTypes['public']['Comment']['subject'];
     readonly [RelationKeys]?: never;
   };
   export type public_Document = {
-    body: CodecTypes['pg/text@1']['output'] | null;
-    id: CodecTypes['pg/int4@1']['output'];
-    parentId: CodecTypes['pg/int4@1']['output'] | null;
-    subtitle: CodecTypes['pg/text@1']['output'] | null;
-    title: CodecTypes['pg/text@1']['output'];
+    body: FieldOutputTypes['public']['Document']['body'];
+    id: FieldOutputTypes['public']['Document']['id'];
+    parentId: FieldOutputTypes['public']['Document']['parentId'];
+    subtitle: FieldOutputTypes['public']['Document']['subtitle'];
+    title: FieldOutputTypes['public']['Document']['title'];
     children: public_Document[];
     parent: public_Document | null;
     readonly [RelationKeys]?: 'children' | 'parent';
   };
   export type public_Post = {
-    embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 3 }> | null;
-    id: CodecTypes['pg/int4@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
-    views: CodecTypes['pg/int4@1']['output'];
+    embedding: FieldOutputTypes['public']['Post']['embedding'];
+    id: FieldOutputTypes['public']['Post']['id'];
+    title: FieldOutputTypes['public']['Post']['title'];
+    userId: FieldOutputTypes['public']['Post']['userId'];
+    views: FieldOutputTypes['public']['Post']['views'];
     author: public_User;
     comments: public_Comment[];
     readonly [RelationKeys]?: 'author' | 'comments';
   };
   export type public_Profile = {
-    bio: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    userId: CodecTypes['pg/int4@1']['output'];
+    bio: FieldOutputTypes['public']['Profile']['bio'];
+    id: FieldOutputTypes['public']['Profile']['id'];
+    userId: FieldOutputTypes['public']['Profile']['userId'];
     readonly [RelationKeys]?: never;
   };
   export type public_User = {
-    email: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    invitedById: CodecTypes['pg/int4@1']['output'] | null;
-    name: CodecTypes['pg/text@1']['output'];
+    email: FieldOutputTypes['public']['User']['email'];
+    id: FieldOutputTypes['public']['User']['id'];
+    invitedById: FieldOutputTypes['public']['User']['invitedById'];
+    name: FieldOutputTypes['public']['User']['name'];
     invitedBy: public_User | null;
     invitedUsers: public_User[];
     posts: public_Post[];

@@ -364,16 +364,21 @@ export function renderValueSetType(
   return literals.join(' | ');
 }
 
-/** The local alias an emitted `contract.d.ts` types a column with type parameters through; see {@link parameterizedOutputAlias}. */
+/** The local alias an emitted `contract.d.ts` types a column with type parameters through. */
 export const PARAMETERIZED_OUTPUT = 'ParameterizedOutput';
 
-/**
- * The declaration of {@link PARAMETERIZED_OUTPUT}: `ParameterizedOutputType` from `@internal/contract/types` applied to the type functions the stack's components declare, falling back to the codec's plain output type.
- */
-export function parameterizedOutputAlias(typeFunctions: ReadonlyArray<TypesImportSpec>): string {
+/** The local alias for the union of the stack's parameterized output type functions. */
+export const PARAMETERIZED_OUTPUT_TYPES = 'ParameterizedOutputTypes';
+
+/** The declaration of {@link PARAMETERIZED_OUTPUT}: `ParameterizedOutputType` from `@internal/contract/types` applied to {@link PARAMETERIZED_OUTPUT_TYPES}, falling back to the codec's plain output type. */
+export const parameterizedOutputAlias = `type ${PARAMETERIZED_OUTPUT}<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<${PARAMETERIZED_OUTPUT_TYPES}, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;`;
+
+/** The declaration of {@link PARAMETERIZED_OUTPUT_TYPES} for the type functions the stack's components declare. */
+export function parameterizedOutputTypesAlias(
+  typeFunctions: ReadonlyArray<TypesImportSpec>,
+): string {
   const aliases = [...new Set(typeFunctions.map((typeFunction) => typeFunction.alias))];
-  const combined = aliases.length > 0 ? aliases.join(' | ') : 'never';
-  return `type ${PARAMETERIZED_OUTPUT}<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<${combined}, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;`;
+  return `type ${PARAMETERIZED_OUTPUT_TYPES} = ${aliases.length > 0 ? aliases.join(' | ') : 'never'};`;
 }
 
 /**
@@ -482,6 +487,8 @@ export function generateFieldResolvedType(
 export type ModelFieldTypeResolvers = {
   readonly codecLookup: CodecLookup | undefined;
   readonly resolveFieldValueSet: FieldValueSetResolver | undefined;
+  /** Types a `Models` member's field by indexing `FieldOutputTypes` rather than writing the type out. */
+  readonly referenceFieldOutputTypes?: boolean;
 };
 
 /**
@@ -656,4 +663,133 @@ export function generateValueObjectTypeAliases(
     aliases.push(`export type ${voName}Input = ${resolved.input};`);
   }
   return aliases.join('\n');
+}
+
+/** A field's or column's type on each side where its codec does not give it, as type text. */
+export type KnownValueType = { readonly output?: string; readonly input?: string };
+
+/**
+ * The type of a field that its codec does not give, for a family that types its fields with a generic over the contract's shape: the literal union of the value set it holds, the type of a value object or union field, or the text its codec renders for its type parameters. `undefined` when the codec gives both sides.
+ */
+export function resolveKnownFieldType(
+  field: ContractField,
+  codecLookup: CodecLookup | undefined,
+  resolvedValueSet: ResolvedFieldValueSet | undefined,
+): KnownValueType | undefined {
+  const { type } = field;
+  if (type.kind !== 'scalar') {
+    const resolved = resolveFieldType({ nullable: false, type }, codecLookup);
+    return { output: resolved.output, input: resolved.input };
+  }
+  if (resolvedValueSet) {
+    const known = renderKnownValueSetType(
+      resolvedValueSet.encodedValues,
+      resolvedValueSet.codecId,
+      codecLookup,
+    );
+    if (known !== undefined) return known;
+  }
+  const typeParams =
+    type.typeParams && Object.keys(type.typeParams).length > 0 ? type.typeParams : undefined;
+  return renderKnownCodecType(type.codecId, typeParams, codecLookup);
+}
+
+/** The literal unions of a value set on both sides, or `undefined` when a value has no literal type. */
+export function renderKnownValueSetType(
+  values: readonly JsonValue[],
+  codecId: string,
+  codecLookup: CodecLookup | undefined,
+): KnownValueType | undefined {
+  const output = renderValueSetType(values, codecId, 'output', codecLookup);
+  const input = renderValueSetType(values, codecId, 'input', codecLookup);
+  return output !== undefined && input !== undefined ? { output, input } : undefined;
+}
+
+/** The type text a codec renders for these type parameters, on the sides it renders one. */
+export function renderKnownCodecType(
+  codecId: string,
+  typeParams: Record<string, unknown> | undefined,
+  codecLookup: CodecLookup | undefined,
+): KnownValueType | undefined {
+  if (codecLookup === undefined || typeParams === undefined) return undefined;
+  const output = codecLookup.renderOutputTypeFor(codecId, typeParams);
+  const input = codecLookup.renderInputTypeFor?.(codecId, typeParams);
+  const known = {
+    ...(output && isSafeTypeExpression(output) ? { output } : {}),
+    ...(input && isSafeTypeExpression(input) ? { input } : {}),
+  };
+  return Object.keys(known).length > 0 ? known : undefined;
+}
+
+export function renderKnownValueType(known: KnownValueType): string {
+  const sides = (['output', 'input'] as const).flatMap((side) => {
+    const type = known[side];
+    return type === undefined ? [] : [`readonly ${side}: ${type}`];
+  });
+  return `{ ${sides.join('; ')} }`;
+}
+
+/** A nested map of known types, ordered by name at every level, leaving out every branch with no entry. */
+export function renderKnownTypesMap(
+  entries: ReadonlyArray<readonly [string, string, string, KnownValueType | undefined]>,
+): string {
+  const known = entries
+    .flatMap(([first, second, third, type]) =>
+      type === undefined ? [] : [{ path: [first, second, third] as const, type }],
+    )
+    .sort((a, b) => comparePaths(a.path, b.path));
+  return renderLevel(known, 0);
+}
+
+type KnownEntry = {
+  readonly path: readonly [string, string, string];
+  readonly type: KnownValueType;
+};
+
+function comparePaths(a: readonly string[], b: readonly string[]): number {
+  for (let i = 0; i < a.length; i++) {
+    const order = (a[i] ?? '').localeCompare(b[i] ?? '');
+    if (order !== 0) return order;
+  }
+  return 0;
+}
+
+function renderLevel(entries: readonly KnownEntry[], depth: number): string {
+  const keys = [...new Set(entries.map((entry) => entry.path[depth] ?? ''))];
+  const parts = keys.map((key) => {
+    const below = entries.filter((entry) => entry.path[depth] === key);
+    const value =
+      depth === 2 && below[0] !== undefined
+        ? renderKnownValueType(below[0].type)
+        : renderLevel(below, depth + 1);
+    return `readonly ${serializeObjectKey(key)}: ${value}`;
+  });
+  return `{ ${parts.join('; ')} }`;
+}
+
+/** `KnownFieldTypes`: per namespace, model and field, the type of each field its codec does not give. */
+export function generateKnownFieldTypesMap(
+  namespaceModels: ReadonlyArray<readonly [string, Record<string, ContractModelBase>]>,
+  codecLookup: CodecLookup | undefined,
+  resolveFieldValueSet: FieldValueSetResolver | undefined,
+): string {
+  return renderKnownTypesMap(
+    namespaceModels.flatMap(([nsId, models]) =>
+      Object.entries(models ?? {}).flatMap(([modelName, model]) =>
+        Object.entries(model.fields).map(
+          ([fieldName, field]) =>
+            [
+              nsId,
+              modelName,
+              fieldName,
+              resolveKnownFieldType(
+                field,
+                codecLookup,
+                resolveFieldValueSet?.(modelName, fieldName, model),
+              ),
+            ] as const,
+        ),
+      ),
+    ),
+  );
 }

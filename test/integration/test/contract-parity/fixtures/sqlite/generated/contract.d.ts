@@ -4,7 +4,9 @@
 import type { CodecTypes as SqliteTypes } from '@internal/adapter-sqlite/codec-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -130,256 +132,95 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypes = never;
 
-export type FieldOutputTypes = {
-  readonly __unbound__: {
-    readonly Employee: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly managerId: CodecTypes['sql/char@1']['output'] | null;
-    };
-    readonly Generated: {
-      readonly cuid2: CodecTypes['sql/char@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly ksuid: CodecTypes['sql/char@1']['output'];
-      readonly nanoid: CodecTypes['sql/char@1']['output'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['output'];
-      readonly ulid: CodecTypes['sql/char@1']['output'];
-      readonly uuidv7: CodecTypes['sql/char@1']['output'];
-    };
-    readonly Post: {
-      readonly authorId: CodecTypes['sql/char@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly title: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly PostTag: {
-      readonly postId: CodecTypes['sql/char@1']['output'];
-      readonly tagId: CodecTypes['sql/char@1']['output'];
-    };
-    readonly Profile: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly rank: CodecTypes['sqlite/integer@1']['output'];
-      readonly userId: CodecTypes['sql/char@1']['output'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly label: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly User: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly cuid2: CodecTypes['sql/char@1']['output'];
-      readonly email: CodecTypes['sqlite/text@1']['output'];
-      readonly externalId: CodecTypes['sql/char@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly ksuid: CodecTypes['sql/char@1']['output'];
-      readonly nanoid: CodecTypes['sql/char@1']['output'];
-      readonly seenAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['output'];
-      readonly ulid: CodecTypes['sql/char@1']['output'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly __unbound__: {
-    readonly Employee: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly managerId: CodecTypes['sql/char@1']['input'] | null;
-    };
-    readonly Generated: {
-      readonly cuid2: CodecTypes['sql/char@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly ksuid: CodecTypes['sql/char@1']['input'];
-      readonly nanoid: CodecTypes['sql/char@1']['input'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['input'];
-      readonly ulid: CodecTypes['sql/char@1']['input'];
-      readonly uuidv7: CodecTypes['sql/char@1']['input'];
-    };
-    readonly Post: {
-      readonly authorId: CodecTypes['sql/char@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly title: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly PostTag: {
-      readonly postId: CodecTypes['sql/char@1']['input'];
-      readonly tagId: CodecTypes['sql/char@1']['input'];
-    };
-    readonly Profile: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly rank: CodecTypes['sqlite/integer@1']['input'];
-      readonly userId: CodecTypes['sql/char@1']['input'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly label: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly User: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly cuid2: CodecTypes['sql/char@1']['input'];
-      readonly email: CodecTypes['sqlite/text@1']['input'];
-      readonly externalId: CodecTypes['sql/char@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly ksuid: CodecTypes['sql/char@1']['input'];
-      readonly nanoid: CodecTypes['sql/char@1']['input'];
-      readonly seenAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['input'];
-      readonly ulid: CodecTypes['sql/char@1']['input'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly __unbound__: {
-    readonly employees: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly managerId: CodecTypes['sql/char@1']['output'] | null;
-    };
-    readonly generated: {
-      readonly cuid2: CodecTypes['sql/char@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly ksuid: CodecTypes['sql/char@1']['output'];
-      readonly nanoid: CodecTypes['sql/char@1']['output'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['output'];
-      readonly ulid: CodecTypes['sql/char@1']['output'];
-      readonly uuidv7: CodecTypes['sql/char@1']['output'];
-    };
-    readonly post_tags: {
-      readonly postId: CodecTypes['sql/char@1']['output'];
-      readonly tagId: CodecTypes['sql/char@1']['output'];
-    };
-    readonly posts: {
-      readonly authorId: CodecTypes['sql/char@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly title: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly profiles: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly rank: CodecTypes['sqlite/integer@1']['output'];
-      readonly userId: CodecTypes['sql/char@1']['output'];
-    };
-    readonly tags: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly label: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly users: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly cuid2: CodecTypes['sql/char@1']['output'];
-      readonly email: CodecTypes['sqlite/text@1']['output'];
-      readonly externalId: CodecTypes['sql/char@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly ksuid: CodecTypes['sql/char@1']['output'];
-      readonly nanoid: CodecTypes['sql/char@1']['output'];
-      readonly seenAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['output'];
-      readonly ulid: CodecTypes['sql/char@1']['output'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly __unbound__: {
-    readonly employees: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly managerId: CodecTypes['sql/char@1']['input'] | null;
-    };
-    readonly generated: {
-      readonly cuid2: CodecTypes['sql/char@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly ksuid: CodecTypes['sql/char@1']['input'];
-      readonly nanoid: CodecTypes['sql/char@1']['input'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['input'];
-      readonly ulid: CodecTypes['sql/char@1']['input'];
-      readonly uuidv7: CodecTypes['sql/char@1']['input'];
-    };
-    readonly post_tags: {
-      readonly postId: CodecTypes['sql/char@1']['input'];
-      readonly tagId: CodecTypes['sql/char@1']['input'];
-    };
-    readonly posts: {
-      readonly authorId: CodecTypes['sql/char@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly title: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly profiles: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly rank: CodecTypes['sqlite/integer@1']['input'];
-      readonly userId: CodecTypes['sql/char@1']['input'];
-    };
-    readonly tags: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly label: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly users: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly cuid2: CodecTypes['sql/char@1']['input'];
-      readonly email: CodecTypes['sqlite/text@1']['input'];
-      readonly externalId: CodecTypes['sql/char@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly ksuid: CodecTypes['sql/char@1']['input'];
-      readonly nanoid: CodecTypes['sql/char@1']['input'];
-      readonly seenAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly shortNanoid: CodecTypes['sql/char@1']['input'];
-      readonly ulid: CodecTypes['sql/char@1']['input'];
-      readonly updatedAt: CodecTypes['sqlite/datetime@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type Employee = {
-    id: CodecTypes['sql/char@1']['output'];
-    managerId: CodecTypes['sql/char@1']['output'] | null;
+    id: FieldOutputTypes['__unbound__']['Employee']['id'];
+    managerId: FieldOutputTypes['__unbound__']['Employee']['managerId'];
     manager: Employee | null;
     reports: Employee[];
     readonly [RelationKeys]?: 'manager' | 'reports';
   };
   export type Generated = {
-    cuid2: CodecTypes['sql/char@1']['output'];
-    id: CodecTypes['sql/char@1']['output'];
-    ksuid: CodecTypes['sql/char@1']['output'];
-    nanoid: CodecTypes['sql/char@1']['output'];
-    shortNanoid: CodecTypes['sql/char@1']['output'];
-    ulid: CodecTypes['sql/char@1']['output'];
-    uuidv7: CodecTypes['sql/char@1']['output'];
+    cuid2: FieldOutputTypes['__unbound__']['Generated']['cuid2'];
+    id: FieldOutputTypes['__unbound__']['Generated']['id'];
+    ksuid: FieldOutputTypes['__unbound__']['Generated']['ksuid'];
+    nanoid: FieldOutputTypes['__unbound__']['Generated']['nanoid'];
+    shortNanoid: FieldOutputTypes['__unbound__']['Generated']['shortNanoid'];
+    ulid: FieldOutputTypes['__unbound__']['Generated']['ulid'];
+    uuidv7: FieldOutputTypes['__unbound__']['Generated']['uuidv7'];
     readonly [RelationKeys]?: never;
   };
   export type Post = {
-    authorId: CodecTypes['sql/char@1']['output'];
-    id: CodecTypes['sql/char@1']['output'];
-    title: CodecTypes['sqlite/text@1']['output'];
+    authorId: FieldOutputTypes['__unbound__']['Post']['authorId'];
+    id: FieldOutputTypes['__unbound__']['Post']['id'];
+    title: FieldOutputTypes['__unbound__']['Post']['title'];
     author: User;
     tags: Tag[];
     readonly [RelationKeys]?: 'author' | 'tags';
   };
   export type PostTag = {
-    postId: CodecTypes['sql/char@1']['output'];
-    tagId: CodecTypes['sql/char@1']['output'];
+    postId: FieldOutputTypes['__unbound__']['PostTag']['postId'];
+    tagId: FieldOutputTypes['__unbound__']['PostTag']['tagId'];
     readonly [RelationKeys]?: never;
   };
   export type Profile = {
-    id: CodecTypes['sql/char@1']['output'];
-    rank: CodecTypes['sqlite/integer@1']['output'];
-    userId: CodecTypes['sql/char@1']['output'];
+    id: FieldOutputTypes['__unbound__']['Profile']['id'];
+    rank: FieldOutputTypes['__unbound__']['Profile']['rank'];
+    userId: FieldOutputTypes['__unbound__']['Profile']['userId'];
     user: User;
     readonly [RelationKeys]?: 'user';
   };
   export type Tag = {
-    id: CodecTypes['sql/char@1']['output'];
-    label: CodecTypes['sqlite/text@1']['output'];
+    id: FieldOutputTypes['__unbound__']['Tag']['id'];
+    label: FieldOutputTypes['__unbound__']['Tag']['label'];
     posts: Post[];
     readonly [RelationKeys]?: 'posts';
   };
   export type User = {
-    createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    cuid2: CodecTypes['sql/char@1']['output'];
-    email: CodecTypes['sqlite/text@1']['output'];
-    externalId: CodecTypes['sql/char@1']['output'];
-    id: CodecTypes['sql/char@1']['output'];
-    ksuid: CodecTypes['sql/char@1']['output'];
-    nanoid: CodecTypes['sql/char@1']['output'];
-    seenAt: CodecTypes['sqlite/datetime@1']['output'];
-    shortNanoid: CodecTypes['sql/char@1']['output'];
-    ulid: CodecTypes['sql/char@1']['output'];
-    updatedAt: CodecTypes['sqlite/datetime@1']['output'];
+    createdAt: FieldOutputTypes['__unbound__']['User']['createdAt'];
+    cuid2: FieldOutputTypes['__unbound__']['User']['cuid2'];
+    email: FieldOutputTypes['__unbound__']['User']['email'];
+    externalId: FieldOutputTypes['__unbound__']['User']['externalId'];
+    id: FieldOutputTypes['__unbound__']['User']['id'];
+    ksuid: FieldOutputTypes['__unbound__']['User']['ksuid'];
+    nanoid: FieldOutputTypes['__unbound__']['User']['nanoid'];
+    seenAt: FieldOutputTypes['__unbound__']['User']['seenAt'];
+    shortNanoid: FieldOutputTypes['__unbound__']['User']['shortNanoid'];
+    ulid: FieldOutputTypes['__unbound__']['User']['ulid'];
+    updatedAt: FieldOutputTypes['__unbound__']['User']['updatedAt'];
     posts: Post[];
     profile: Profile | null;
     readonly [RelationKeys]?: 'posts' | 'profile';

@@ -10,7 +10,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@prisma/orm-postgres/target/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
@@ -18,7 +20,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@prisma/orm-postgres/contract/types';
@@ -238,110 +239,56 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly Cafe: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly location: CodecTypes['pg/geometry@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly Neighborhood: {
-      readonly boundary: CodecTypes['pg/geometry@1']['output'];
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly Route: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly path: CodecTypes['pg/geometry@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly Cafe: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly location: CodecTypes['pg/geometry@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly Neighborhood: {
-      readonly boundary: CodecTypes['pg/geometry@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly Route: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly path: CodecTypes['pg/geometry@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly cafe: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly location: CodecTypes['pg/geometry@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly neighborhood: {
-      readonly boundary: CodecTypes['pg/geometry@1']['output'];
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly route: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly path: CodecTypes['pg/geometry@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly cafe: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly location: CodecTypes['pg/geometry@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly neighborhood: {
-      readonly boundary: CodecTypes['pg/geometry@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly route: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly path: CodecTypes['pg/geometry@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_Cafe = {
-    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    location: CodecTypes['pg/geometry@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['public']['Cafe']['id'];
+    location: FieldOutputTypes['public']['Cafe']['location'];
+    name: FieldOutputTypes['public']['Cafe']['name'];
     readonly [RelationKeys]?: never;
   };
   export type public_Neighborhood = {
-    boundary: CodecTypes['pg/geometry@1']['output'];
-    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    name: CodecTypes['pg/text@1']['output'];
+    boundary: FieldOutputTypes['public']['Neighborhood']['boundary'];
+    id: FieldOutputTypes['public']['Neighborhood']['id'];
+    name: FieldOutputTypes['public']['Neighborhood']['name'];
     readonly [RelationKeys]?: never;
   };
   export type public_Route = {
-    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    name: CodecTypes['pg/text@1']['output'];
-    path: CodecTypes['pg/geometry@1']['output'];
+    id: FieldOutputTypes['public']['Route']['id'];
+    name: FieldOutputTypes['public']['Route']['name'];
+    path: FieldOutputTypes['public']['Route']['path'];
     readonly [RelationKeys]?: never;
   };
 }

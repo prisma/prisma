@@ -20,12 +20,15 @@ import {
   generateFieldTypesMapsByNamespace,
   generateHashTypeAliases,
   generateImportLines,
+  generateKnownFieldTypesMap,
   generateModelsType,
   generateRootsType,
   generateValueObjectsDescriptorType,
   generateValueObjectTypeAliases,
   PARAMETERIZED_OUTPUT,
+  PARAMETERIZED_OUTPUT_TYPES,
   parameterizedOutputAlias,
+  parameterizedOutputTypesAlias,
   serializeExecutionType,
   serializeObjectKey,
   serializeValue,
@@ -208,11 +211,19 @@ export function generateContractDts(
     ([nsId, ns]) => [nsId, ns.models] as const,
   );
 
-  const fieldTypesMaps = generateFieldTypesMapsByNamespace(
-    namespaceModelsForFieldTypes,
-    codecLookup,
-    resolveFieldValueSet,
-  );
+  const fieldTypesExpression = emitter.fieldTypesExpression?.bind(emitter);
+  const fieldTypesMaps =
+    fieldTypesExpression === undefined
+      ? generateFieldTypesMapsByNamespace(
+          namespaceModelsForFieldTypes,
+          codecLookup,
+          resolveFieldValueSet,
+        )
+      : { output: fieldTypesExpression('output'), input: fieldTypesExpression('input') };
+  const knownFieldTypesDeclaration =
+    fieldTypesExpression === undefined
+      ? ''
+      : `type KnownFieldTypes = ${generateKnownFieldTypesMap(namespaceModelsForFieldTypes, codecLookup, resolveFieldValueSet)};\n`;
 
   const extraTypeExports = emitter.getStorageTypeExports?.(contract, codecLookup);
 
@@ -220,25 +231,38 @@ export function generateContractDts(
 
   const modelTypesBlock = generateModelTypesBlock(
     contract,
-    { codecLookup, resolveFieldValueSet },
+    {
+      codecLookup,
+      resolveFieldValueSet,
+      referenceFieldOutputTypes: fieldTypesExpression !== undefined,
+    },
     options?.supportsNamespaces ?? true,
   );
 
-  const parameterizedOutputDeclaration = [
+  const typeTexts = [
     fieldTypesMaps.output,
+    knownFieldTypesDeclaration,
     extraTypeExports ?? '',
     modelTypesBlock,
     valueObjectTypeAliases,
-  ].some((text) => mentions(text, PARAMETERIZED_OUTPUT))
-    ? `${parameterizedOutputAlias(options?.parameterizedOutputTypeImports ?? [])}\n`
+  ];
+  const parameterizedOutputDeclaration = typeTexts.some((text) =>
+    mentions(text, PARAMETERIZED_OUTPUT),
+  )
+    ? `${parameterizedOutputAlias}\n`
+    : '';
+  const parameterizedOutputTypesDeclaration = [...typeTexts, parameterizedOutputDeclaration].some(
+    (text) => mentions(text, PARAMETERIZED_OUTPUT_TYPES),
+  )
+    ? `${parameterizedOutputTypesAlias(options?.parameterizedOutputTypeImports ?? [])}\n`
     : '';
 
   const body = `${hashAliases}
 
 export type CodecTypes = ${codecTypes};
 ${familyTypeAliases}
-${parameterizedOutputDeclaration}${valueObjectTypeAliases}
-export type FieldOutputTypes = ${fieldTypesMaps.output};
+${parameterizedOutputTypesDeclaration}${parameterizedOutputDeclaration}${valueObjectTypeAliases}
+${knownFieldTypesDeclaration}export type FieldOutputTypes = ${fieldTypesMaps.output};
 export type FieldInputTypes = ${fieldTypesMaps.input};
 ${extraTypeExports ? `${extraTypeExports}\n` : ''}
 ${modelTypesBlock}

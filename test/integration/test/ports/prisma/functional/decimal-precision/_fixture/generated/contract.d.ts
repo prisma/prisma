@@ -8,7 +8,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -16,7 +18,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -235,90 +236,45 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly TestModel: {
-      readonly d10_0: ParameterizedOutput<
-        'pg/numeric@1',
-        { readonly precision: 10; readonly scale: 0 }
-      > | null;
-      readonly d20_10: ParameterizedOutput<
-        'pg/numeric@1',
-        { readonly precision: 20; readonly scale: 10 }
-      > | null;
-      readonly d38_30: ParameterizedOutput<
-        'pg/numeric@1',
-        { readonly precision: 38; readonly scale: 30 }
-      > | null;
-      readonly id: CodecTypes['pg/text@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly TestModel: {
-      readonly d10_0: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly d20_10: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly d38_30: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly id: CodecTypes['pg/text@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly testModel: {
-      readonly d10_0: ParameterizedOutput<
-        'pg/numeric@1',
-        { readonly precision: 10; readonly scale: 0 }
-      > | null;
-      readonly d20_10: ParameterizedOutput<
-        'pg/numeric@1',
-        { readonly precision: 20; readonly scale: 10 }
-      > | null;
-      readonly d38_30: ParameterizedOutput<
-        'pg/numeric@1',
-        { readonly precision: 38; readonly scale: 30 }
-      > | null;
-      readonly id: CodecTypes['pg/text@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly testModel: {
-      readonly d10_0: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly d20_10: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly d38_30: CodecTypes['pg/numeric@1']['input'] | null;
-      readonly id: CodecTypes['pg/text@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_TestModel = {
-    d10_0: ParameterizedOutput<
-      'pg/numeric@1',
-      { readonly precision: 10; readonly scale: 0 }
-    > | null;
-    d20_10: ParameterizedOutput<
-      'pg/numeric@1',
-      { readonly precision: 20; readonly scale: 10 }
-    > | null;
-    d38_30: ParameterizedOutput<
-      'pg/numeric@1',
-      { readonly precision: 38; readonly scale: 30 }
-    > | null;
-    id: CodecTypes['pg/text@1']['output'];
+    d10_0: FieldOutputTypes['public']['TestModel']['d10_0'];
+    d20_10: FieldOutputTypes['public']['TestModel']['d20_10'];
+    d38_30: FieldOutputTypes['public']['TestModel']['d38_30'];
+    id: FieldOutputTypes['public']['TestModel']['id'];
     readonly [RelationKeys]?: never;
   };
 }

@@ -8,7 +8,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -16,7 +18,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -235,106 +236,56 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly Tag: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly User: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly UserTag: {
-      readonly created_at: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly tagId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly userId: CodecTypes['pg/int4@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly Tag: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly User: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly UserTag: {
-      readonly created_at: CodecTypes['sql/char@1']['input'];
-      readonly tagId: CodecTypes['sql/char@1']['input'];
-      readonly userId: CodecTypes['pg/int4@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly tags: {
-      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly user_tags: {
-      readonly created_at: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly tag_id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-      readonly user_id: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly tags: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly user_tags: {
-      readonly created_at: CodecTypes['sql/char@1']['input'];
-      readonly tag_id: CodecTypes['sql/char@1']['input'];
-      readonly user_id: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly users: {
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_Tag = {
-    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    name: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['public']['Tag']['id'];
+    name: FieldOutputTypes['public']['Tag']['name'];
     readonly [RelationKeys]?: never;
   };
   export type public_User = {
-    email: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    email: FieldOutputTypes['public']['User']['email'];
+    id: FieldOutputTypes['public']['User']['id'];
+    name: FieldOutputTypes['public']['User']['name'];
     tags: public_Tag[];
     readonly [RelationKeys]?: 'tags';
   };
   export type public_UserTag = {
-    created_at: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    tagId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
-    userId: CodecTypes['pg/int4@1']['output'];
+    created_at: FieldOutputTypes['public']['UserTag']['created_at'];
+    tagId: FieldOutputTypes['public']['UserTag']['tagId'];
+    userId: FieldOutputTypes['public']['UserTag']['userId'];
     readonly [RelationKeys]?: never;
   };
 }

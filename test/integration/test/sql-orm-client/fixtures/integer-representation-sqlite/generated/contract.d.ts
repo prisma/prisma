@@ -4,7 +4,9 @@
 import type { CodecTypes as SqliteTypes } from '@internal/adapter-sqlite/codec-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -129,71 +131,50 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypes = never;
 
-export type FieldOutputTypes = {
-  readonly __unbound__: {
-    readonly Meter: {
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly peak: CodecTypes['sqlite/bigintnumber@1']['output'];
-    };
-    readonly Sample: {
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly meterId: CodecTypes['sqlite/integer@1']['output'];
-      readonly reading: CodecTypes['sqlite/bigintnumber@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly __unbound__: {
-    readonly Meter: {
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly peak: CodecTypes['sqlite/bigintnumber@1']['input'];
-    };
-    readonly Sample: {
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly meterId: CodecTypes['sqlite/integer@1']['input'];
-      readonly reading: CodecTypes['sqlite/bigintnumber@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly __unbound__: {
-    readonly int_repr_meters: {
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly peak: CodecTypes['sqlite/bigintnumber@1']['output'];
-    };
-    readonly int_repr_samples: {
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly meter_id: CodecTypes['sqlite/integer@1']['output'];
-      readonly reading: CodecTypes['sqlite/bigintnumber@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly __unbound__: {
-    readonly int_repr_meters: {
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly peak: CodecTypes['sqlite/bigintnumber@1']['input'];
-    };
-    readonly int_repr_samples: {
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly meter_id: CodecTypes['sqlite/integer@1']['input'];
-      readonly reading: CodecTypes['sqlite/bigintnumber@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type Meter = {
-    id: CodecTypes['sqlite/integer@1']['output'];
-    peak: CodecTypes['sqlite/bigintnumber@1']['output'];
+    id: FieldOutputTypes['__unbound__']['Meter']['id'];
+    peak: FieldOutputTypes['__unbound__']['Meter']['peak'];
     samples: Sample[];
     readonly [RelationKeys]?: 'samples';
   };
   export type Sample = {
-    id: CodecTypes['sqlite/integer@1']['output'];
-    meterId: CodecTypes['sqlite/integer@1']['output'];
-    reading: CodecTypes['sqlite/bigintnumber@1']['output'];
+    id: FieldOutputTypes['__unbound__']['Sample']['id'];
+    meterId: FieldOutputTypes['__unbound__']['Sample']['meterId'];
+    reading: FieldOutputTypes['__unbound__']['Sample']['reading'];
     meter: Meter;
     readonly [RelationKeys]?: 'meter';
   };

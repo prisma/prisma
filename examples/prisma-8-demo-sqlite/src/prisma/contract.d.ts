@@ -4,7 +4,9 @@
 import type { CodecTypes as SqliteTypes } from '@prisma/orm-sqlite/adapter/codec-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-sqlite/family-contract/types';
@@ -130,140 +132,67 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypes = never;
 
-export type FieldOutputTypes = {
-  readonly __unbound__: {
-    readonly Post: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly impressionCount: CodecTypes['sqlite/bigint@1']['output'] | null;
-      readonly title: CodecTypes['sqlite/text@1']['output'];
-      readonly userId: CodecTypes['sql/char@1']['output'];
-      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['output'] | null;
-    };
-    readonly PostTag: {
-      readonly postId: CodecTypes['sql/char@1']['output'];
-      readonly tagId: CodecTypes['sql/char@1']['output'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly label: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly User: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly displayName: CodecTypes['sqlite/text@1']['output'];
-      readonly email: CodecTypes['sqlite/text@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly __unbound__: {
-    readonly Post: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly impressionCount: CodecTypes['sqlite/bigint@1']['input'] | null;
-      readonly title: CodecTypes['sqlite/text@1']['input'];
-      readonly userId: CodecTypes['sql/char@1']['input'];
-      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['input'] | null;
-    };
-    readonly PostTag: {
-      readonly postId: CodecTypes['sql/char@1']['input'];
-      readonly tagId: CodecTypes['sql/char@1']['input'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly label: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly User: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly displayName: CodecTypes['sqlite/text@1']['input'];
-      readonly email: CodecTypes['sqlite/text@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly __unbound__: {
-    readonly post: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly impressionCount: CodecTypes['sqlite/bigint@1']['output'] | null;
-      readonly title: CodecTypes['sqlite/text@1']['output'];
-      readonly userId: CodecTypes['sql/char@1']['output'];
-      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['output'] | null;
-    };
-    readonly post_tag: {
-      readonly postId: CodecTypes['sql/char@1']['output'];
-      readonly tagId: CodecTypes['sql/char@1']['output'];
-    };
-    readonly tag: {
-      readonly id: CodecTypes['sql/char@1']['output'];
-      readonly label: CodecTypes['sqlite/text@1']['output'];
-    };
-    readonly user: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['output'];
-      readonly displayName: CodecTypes['sqlite/text@1']['output'];
-      readonly email: CodecTypes['sqlite/text@1']['output'];
-      readonly id: CodecTypes['sql/char@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly __unbound__: {
-    readonly post: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly impressionCount: CodecTypes['sqlite/bigint@1']['input'] | null;
-      readonly title: CodecTypes['sqlite/text@1']['input'];
-      readonly userId: CodecTypes['sql/char@1']['input'];
-      readonly viewCount: CodecTypes['sqlite/bigintnumber@1']['input'] | null;
-    };
-    readonly post_tag: {
-      readonly postId: CodecTypes['sql/char@1']['input'];
-      readonly tagId: CodecTypes['sql/char@1']['input'];
-    };
-    readonly tag: {
-      readonly id: CodecTypes['sql/char@1']['input'];
-      readonly label: CodecTypes['sqlite/text@1']['input'];
-    };
-    readonly user: {
-      readonly createdAt: CodecTypes['sqlite/datetime@1']['input'];
-      readonly displayName: CodecTypes['sqlite/text@1']['input'];
-      readonly email: CodecTypes['sqlite/text@1']['input'];
-      readonly id: CodecTypes['sql/char@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type Post = {
-    createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    id: CodecTypes['sql/char@1']['output'];
-    impressionCount: CodecTypes['sqlite/bigint@1']['output'] | null;
-    title: CodecTypes['sqlite/text@1']['output'];
-    userId: CodecTypes['sql/char@1']['output'];
-    viewCount: CodecTypes['sqlite/bigintnumber@1']['output'] | null;
+    createdAt: FieldOutputTypes['__unbound__']['Post']['createdAt'];
+    id: FieldOutputTypes['__unbound__']['Post']['id'];
+    impressionCount: FieldOutputTypes['__unbound__']['Post']['impressionCount'];
+    title: FieldOutputTypes['__unbound__']['Post']['title'];
+    userId: FieldOutputTypes['__unbound__']['Post']['userId'];
+    viewCount: FieldOutputTypes['__unbound__']['Post']['viewCount'];
     tags: Tag[];
     user: User;
     readonly [RelationKeys]?: 'tags' | 'user';
   };
   export type PostTag = {
-    postId: CodecTypes['sql/char@1']['output'];
-    tagId: CodecTypes['sql/char@1']['output'];
+    postId: FieldOutputTypes['__unbound__']['PostTag']['postId'];
+    tagId: FieldOutputTypes['__unbound__']['PostTag']['tagId'];
     readonly [RelationKeys]?: never;
   };
   export type Tag = {
-    id: CodecTypes['sql/char@1']['output'];
-    label: CodecTypes['sqlite/text@1']['output'];
+    id: FieldOutputTypes['__unbound__']['Tag']['id'];
+    label: FieldOutputTypes['__unbound__']['Tag']['label'];
     posts: Post[];
     readonly [RelationKeys]?: 'posts';
   };
   export type User = {
-    createdAt: CodecTypes['sqlite/datetime@1']['output'];
-    displayName: CodecTypes['sqlite/text@1']['output'];
-    email: CodecTypes['sqlite/text@1']['output'];
-    id: CodecTypes['sql/char@1']['output'];
+    createdAt: FieldOutputTypes['__unbound__']['User']['createdAt'];
+    displayName: FieldOutputTypes['__unbound__']['User']['displayName'];
+    email: FieldOutputTypes['__unbound__']['User']['email'];
+    id: FieldOutputTypes['__unbound__']['User']['id'];
     posts: Post[];
     readonly [RelationKeys]?: 'posts';
   };

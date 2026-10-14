@@ -168,7 +168,9 @@ function collectFieldLines(
     const type =
       discriminatorType !== undefined && fieldName === discriminatorType.field
         ? discriminatorType.type
-        : resolveModelFieldType(ref.modelName, fieldName, field, ref.model, resolvers).output;
+        : resolvers.referenceFieldOutputTypes === true
+          ? `FieldOutputTypes[${serializeValue(ref.namespaceId)}][${serializeValue(ref.modelName)}][${serializeValue(fieldName)}]`
+          : resolveModelFieldType(ref.modelName, fieldName, field, ref.model, resolvers).output;
     lines.set(fieldName, `${serializeObjectKey(fieldName)}: ${type};`);
   }
   return lines;

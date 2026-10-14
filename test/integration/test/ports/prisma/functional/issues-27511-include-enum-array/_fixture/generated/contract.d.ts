@@ -8,7 +8,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -16,7 +18,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -234,94 +235,74 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
+type KnownFieldTypes = {
   readonly public: {
-    readonly workspace_member: {
-      readonly id: ParameterizedOutput<'sql/varchar@1', { readonly length: 30 }>;
-    };
-    readonly workspace_member_role: {
-      readonly memberId: CodecTypes['pg/text@1']['output'];
-      readonly roleId: CodecTypes['pg/text@1']['output'];
-    };
     readonly workspace_role: {
-      readonly id: ParameterizedOutput<'sql/varchar@1', { readonly length: 30 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly permissions: ReadonlyArray<'HELLO' | 'WORLD'>;
+      readonly permissions: {
+        readonly output: 'HELLO' | 'WORLD';
+        readonly input: 'HELLO' | 'WORLD';
+      };
     };
   };
 };
-export type FieldInputTypes = {
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {
   readonly public: {
-    readonly workspace_member: { readonly id: CodecTypes['sql/varchar@1']['input'] };
-    readonly workspace_member_role: {
-      readonly memberId: CodecTypes['pg/text@1']['input'];
-      readonly roleId: CodecTypes['pg/text@1']['input'];
-    };
     readonly workspace_role: {
-      readonly id: CodecTypes['sql/varchar@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly permissions: ReadonlyArray<'HELLO' | 'WORLD'>;
+      readonly permissions: {
+        readonly output: 'HELLO' | 'WORLD';
+        readonly input: 'HELLO' | 'WORLD';
+      };
     };
   };
 };
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly workspace_member: {
-      readonly id: ParameterizedOutput<'sql/varchar@1', { readonly length: 30 }>;
-    };
-    readonly workspace_member_role: {
-      readonly memberId: CodecTypes['pg/text@1']['output'];
-      readonly roleId: CodecTypes['pg/text@1']['output'];
-    };
-    readonly workspace_role: {
-      readonly id: ParameterizedOutput<'sql/varchar@1', { readonly length: 30 }>;
-      readonly name: CodecTypes['pg/text@1']['output'];
-      readonly permissions: ReadonlyArray<'HELLO' | 'WORLD'>;
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly workspace_member: { readonly id: CodecTypes['sql/varchar@1']['input'] };
-    readonly workspace_member_role: {
-      readonly memberId: CodecTypes['pg/text@1']['input'];
-      readonly roleId: CodecTypes['pg/text@1']['input'];
-    };
-    readonly workspace_role: {
-      readonly id: CodecTypes['sql/varchar@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-      readonly permissions: ReadonlyArray<'HELLO' | 'WORLD'>;
-    };
-  };
-};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_workspace_member = {
-    id: ParameterizedOutput<'sql/varchar@1', { readonly length: 30 }>;
+    id: FieldOutputTypes['public']['workspace_member']['id'];
     roles: public_workspace_member_role[];
     readonly [RelationKeys]?: 'roles';
   };
   export type public_workspace_member_role = {
-    memberId: CodecTypes['pg/text@1']['output'];
-    roleId: CodecTypes['pg/text@1']['output'];
+    memberId: FieldOutputTypes['public']['workspace_member_role']['memberId'];
+    roleId: FieldOutputTypes['public']['workspace_member_role']['roleId'];
     member: public_workspace_member;
     role: public_workspace_role;
     readonly [RelationKeys]?: 'member' | 'role';
   };
   export type public_workspace_role = {
-    id: ParameterizedOutput<'sql/varchar@1', { readonly length: 30 }>;
-    name: CodecTypes['pg/text@1']['output'];
-    permissions: ReadonlyArray<'HELLO' | 'WORLD'>;
+    id: FieldOutputTypes['public']['workspace_role']['id'];
+    name: FieldOutputTypes['public']['workspace_role']['name'];
+    permissions: FieldOutputTypes['public']['workspace_role']['permissions'];
     members: public_workspace_member_role[];
     readonly [RelationKeys]?: 'members';
   };

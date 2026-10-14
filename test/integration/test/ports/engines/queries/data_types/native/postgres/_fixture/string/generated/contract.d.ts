@@ -8,7 +8,9 @@ import type {
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -16,7 +18,6 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
-  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -234,105 +235,55 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutput<
-  CodecId extends keyof CodecTypes,
-  TypeParams extends Record<string, unknown>,
-> = ParameterizedOutputType<
-  PgParameterizedOutputTypes,
-  CodecId,
-  TypeParams,
-  CodecTypes[CodecId]['output']
->;
+type ParameterizedOutputTypes = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly Child: {
-      readonly bit: ParameterizedOutput<'pg/bit@1', { readonly length: 4 }>;
-      readonly char: ParameterizedOutput<'pg/char@1', { readonly length: 10 }>;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly ip: CodecTypes['pg/inet@1']['output'];
-      readonly text: CodecTypes['pg/text@1']['output'];
-      readonly uuid: CodecTypes['pg/uuid@1']['output'];
-      readonly vBit: ParameterizedOutput<'pg/varbit@1', { readonly length: 5 }>;
-      readonly vChar: ParameterizedOutput<'pg/varchar@1', { readonly length: 11 }>;
-    };
-    readonly Parent: {
-      readonly childId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly Child: {
-      readonly bit: CodecTypes['pg/bit@1']['input'];
-      readonly char: CodecTypes['pg/char@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly ip: CodecTypes['pg/inet@1']['input'];
-      readonly text: CodecTypes['pg/text@1']['input'];
-      readonly uuid: CodecTypes['pg/uuid@1']['input'];
-      readonly vBit: CodecTypes['pg/varbit@1']['input'];
-      readonly vChar: CodecTypes['pg/varchar@1']['input'];
-    };
-    readonly Parent: {
-      readonly childId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly Child: {
-      readonly bit: ParameterizedOutput<'pg/bit@1', { readonly length: 4 }>;
-      readonly char: ParameterizedOutput<'pg/char@1', { readonly length: 10 }>;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly ip: CodecTypes['pg/inet@1']['output'];
-      readonly text: CodecTypes['pg/text@1']['output'];
-      readonly uuid: CodecTypes['pg/uuid@1']['output'];
-      readonly vBit: ParameterizedOutput<'pg/varbit@1', { readonly length: 5 }>;
-      readonly vChar: ParameterizedOutput<'pg/varchar@1', { readonly length: 11 }>;
-    };
-    readonly Parent: {
-      readonly childId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly Child: {
-      readonly bit: CodecTypes['pg/bit@1']['input'];
-      readonly char: CodecTypes['pg/char@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly ip: CodecTypes['pg/inet@1']['input'];
-      readonly text: CodecTypes['pg/text@1']['input'];
-      readonly uuid: CodecTypes['pg/uuid@1']['input'];
-      readonly vBit: CodecTypes['pg/varbit@1']['input'];
-      readonly vChar: CodecTypes['pg/varchar@1']['input'];
-    };
-    readonly Parent: {
-      readonly childId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-    };
-  };
-};
+type KnownFieldTypes = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownFieldTypes,
+  'input'
+>;
+type KnownColumnTypes = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypes,
+  KnownColumnTypes,
+  'input'
+>;
 
 export namespace Models {
   export type public_Child = {
-    bit: ParameterizedOutput<'pg/bit@1', { readonly length: 4 }>;
-    char: ParameterizedOutput<'pg/char@1', { readonly length: 10 }>;
-    id: CodecTypes['pg/int4@1']['output'];
-    ip: CodecTypes['pg/inet@1']['output'];
-    text: CodecTypes['pg/text@1']['output'];
-    uuid: CodecTypes['pg/uuid@1']['output'];
-    vBit: ParameterizedOutput<'pg/varbit@1', { readonly length: 5 }>;
-    vChar: ParameterizedOutput<'pg/varchar@1', { readonly length: 11 }>;
+    bit: FieldOutputTypes['public']['Child']['bit'];
+    char: FieldOutputTypes['public']['Child']['char'];
+    id: FieldOutputTypes['public']['Child']['id'];
+    ip: FieldOutputTypes['public']['Child']['ip'];
+    text: FieldOutputTypes['public']['Child']['text'];
+    uuid: FieldOutputTypes['public']['Child']['uuid'];
+    vBit: FieldOutputTypes['public']['Child']['vBit'];
+    vChar: FieldOutputTypes['public']['Child']['vChar'];
     parent: public_Parent | null;
     readonly [RelationKeys]?: 'parent';
   };
   export type public_Parent = {
-    childId: CodecTypes['pg/int4@1']['output'] | null;
-    id: CodecTypes['pg/int4@1']['output'];
+    childId: FieldOutputTypes['public']['Parent']['childId'];
+    id: FieldOutputTypes['public']['Parent']['id'];
     child: public_Child | null;
     readonly [RelationKeys]?: 'child';
   };

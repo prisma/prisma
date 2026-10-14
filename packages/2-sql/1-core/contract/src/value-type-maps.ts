@@ -14,21 +14,32 @@ type NonEmptyTypeParams<TypeParams> =
       : TypeParams
     : undefined;
 
+type PlainCodecType<
+  CodecTypes,
+  CodecId,
+  Side extends ValueTypeSide,
+> = CodecId extends keyof CodecTypes
+  ? CodecTypes[CodecId] extends { readonly [S in Side]: infer Plain }
+    ? Plain
+    : unknown
+  : unknown;
+
 type CodecType<
   CodecTypes,
   CodecId,
   TypeParams,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
-> = CodecId extends keyof CodecTypes
-  ? CodecTypes[CodecId] extends { readonly [S in Side]: infer Plain }
-    ? Side extends 'output'
-      ? NonEmptyTypeParams<TypeParams> extends infer Params extends Record<string, unknown>
-        ? ParameterizedOutputType<ParameterizedOutputs, CodecId, Params, Plain>
-        : Plain
-      : Plain
-    : unknown
-  : unknown;
+> = Side extends 'output'
+  ? NonEmptyTypeParams<TypeParams> extends infer Params extends Record<string, unknown>
+    ? ParameterizedOutputType<
+        ParameterizedOutputs,
+        CodecId,
+        Params,
+        PlainCodecType<CodecTypes, CodecId, Side>
+      >
+    : PlainCodecType<CodecTypes, CodecId, Side>
+  : PlainCodecType<CodecTypes, CodecId, Side>;
 
 type BaseType<Known, Codec, Side extends ValueTypeSide> = [Known] extends [never]
   ? Codec
@@ -36,10 +47,16 @@ type BaseType<Known, Codec, Side extends ValueTypeSide> = [Known] extends [never
     ? T
     : Codec;
 
+type WithList<Base, Item> = Item extends {
+  readonly many: { readonly elementNullable: infer ElementNullable };
+}
+  ? ReadonlyArray<Base | (ElementNullable extends true ? null : never)>
+  : Base;
+
 type WithModifiers<Base, Item> =
-  | (Item extends { readonly many: { readonly elementNullable: infer ElementNullable } }
-      ? ReadonlyArray<Base | (ElementNullable extends true ? null : never)>
-      : Base)
+  | (Item extends { readonly dict: true }
+      ? Readonly<Record<string, WithList<Base, Item>>>
+      : WithList<Base, Item>)
   | (Item extends { readonly nullable: true } ? null : never);
 
 type ValueType<
@@ -88,7 +105,7 @@ type ModelFieldTypes<
  * 2. on the output side, the type a pack's type function in `ParameterizedOutputs` gives a column with its type parameters (`ParameterizedOutputType`);
  * 3. its codec's `output` or `input` type, or `unknown` for a codec `CodecTypes` lacks;
  *
- * then wrapped in `ReadonlyArray` for a list, with `null` for a nullable element or value. A model without fields has `{}` output types and `Record<string, never>` input types.
+ * then wrapped in `ReadonlyArray` for a list and in `Readonly<Record<string, …>>` for a dictionary, with `null` for a nullable element or value. A model without fields has `{}` output types and `Record<string, never>` input types.
  */
 export type FieldTypesFromDomain<
   DomainNamespaces,
