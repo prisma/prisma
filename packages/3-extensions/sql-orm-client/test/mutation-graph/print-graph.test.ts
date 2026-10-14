@@ -1,12 +1,21 @@
+import { InsertOnConflict } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
+import { ConcatRows } from '../../src/mutation-graph/concat-rows';
 import { FilterData } from '../../src/mutation-graph/filter-data';
 import { Graph } from '../../src/mutation-graph/graph';
+import { Insert } from '../../src/mutation-graph/insert';
+import { InsertChunked } from '../../src/mutation-graph/insert-chunked';
+import { Merge } from '../../src/mutation-graph/merge';
+import { PayloadData } from '../../src/mutation-graph/payload-data';
+import { Rows } from '../../src/mutation-graph/rows';
 import { printGraph } from './print-graph';
 import {
+  aliasedTable,
   columnPairs,
   deletePosts,
   deleteUsers,
   findUsers,
+  insertInto,
   nameIsAda,
   updateUsers,
 } from './statements';
@@ -82,5 +91,99 @@ describe('printGraph', () => {
 
     expect(printGraph(new Graph())).toBe('result: none');
     expect(printGraph(graph)).toBe(['n1 Find users', 'result: none'].join('\n'));
+  });
+
+  describe('inserts', () => {
+    it('prints an Insert of one row and of several rows', () => {
+      const graph = new Graph();
+      graph.add(new Insert(insertInto('users', [{ name: 'Ada' }])), { payload: [] });
+      graph.setResult(
+        graph.add(new Insert(insertInto('users', [{ name: 'a' }, { name: 'b' }, { name: 'c' }])), {
+          payload: [],
+        }),
+      );
+
+      expect(printGraph(graph)).toBe(
+        ['n1 Insert users', 'n2 Insert users 3 rows', 'result: n2'].join('\n'),
+      );
+    });
+
+    it('prints the conflict clause of an Insert', () => {
+      const users = aliasedTable('users');
+      const ast = insertInto('users', [{ email: 'a@b.c' }]);
+      const graph = new Graph();
+      graph.add(
+        new Insert(
+          ast.withOnConflict(
+            InsertOnConflict.on([users.column('email')]).doUpdateSet({
+              email: users.column('email'),
+            }),
+          ),
+        ),
+        { payload: [] },
+      );
+      graph.add(
+        new Insert(ast.withOnConflict(InsertOnConflict.on([users.column('email')]).doNothing())),
+        {
+          payload: [],
+        },
+      );
+      graph.add(new Insert(ast.withOnConflict(InsertOnConflict.doNothing())), { payload: [] });
+
+      expect(printGraph(graph)).toBe(
+        [
+          'n1 Insert users on conflict (email) do update',
+          'n2 Insert users on conflict (email) do nothing',
+          'n3 Insert users on conflict do nothing',
+          'result: none',
+        ].join('\n'),
+      );
+    });
+
+    it('prints an InsertChunked with the number of its statements', () => {
+      const graph = new Graph();
+      const chunked = new InsertChunked([
+        insertInto('users', [{ name: 'Ada' }]),
+        insertInto('users', [{ name: 'Grace', email: 'g@h.io' }]),
+      ]);
+      graph.setResult(graph.add(chunked, {}));
+
+      expect(printGraph(graph)).toBe(
+        ['n1 InsertChunked users (2 statements)', 'result: n1'].join('\n'),
+      );
+    });
+
+    it('prints the chain of a variant create: Insert, Insert with PayloadData, Merge, ConcatRows', () => {
+      const graph = new Graph();
+      const idToUserId = columnPairs('users', 'posts', [['id', 'user_id']]);
+      const sameUserId = columnPairs('users', 'users', [['id', 'id']]);
+      const samePostId = columnPairs('posts', 'posts', [['id', 'id']]);
+      const merges = [1, 2].map(() => {
+        const base = graph.add(new Insert(insertInto('users', [{ name: 'Ada' }])), { payload: [] });
+        const variant = graph.add(new Insert(insertInto('posts', [{ title: 'Hello' }])), {
+          payload: [new PayloadData(base, idToUserId)],
+        });
+        return graph.add(new Merge(aliasedTable('posts'), ['id']), {
+          base: [new Rows(base, sameUserId)],
+          variant: [new Rows(variant, samePostId)],
+        });
+      });
+      graph.setResult(
+        graph.add(new ConcatRows(), { rows: merges.map((merge) => new Rows(merge, sameUserId)) }),
+      );
+
+      expect(printGraph(graph)).toBe(
+        [
+          'n1 Insert users',
+          'n2 Insert posts <- PayloadData n1 (id->user_id)',
+          'n3 Merge <- Rows n1, Rows n2',
+          'n4 Insert users',
+          'n5 Insert posts <- PayloadData n4 (id->user_id)',
+          'n6 Merge <- Rows n4, Rows n5',
+          'n7 ConcatRows <- Rows n3, Rows n6',
+          'result: n7',
+        ].join('\n'),
+      );
+    });
   });
 });

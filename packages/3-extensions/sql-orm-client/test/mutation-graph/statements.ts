@@ -5,7 +5,9 @@ import {
   type AnyExpression,
   BinaryExpr,
   ColumnRef,
+  InsertAst,
   ParamRef,
+  type ProjectionItem,
 } from '@internal/sql-relational-core/ast';
 import type { DescribeCollectionRowsOptions } from '../../src/collection-dispatch';
 import { createCollectionTables } from '../../src/collection-tables';
@@ -17,6 +19,7 @@ import type { Run, StatementAst } from '../../src/mutation-graph/node';
 import { Update } from '../../src/mutation-graph/update';
 import { deleteAst, projectTableColumns, updateAst } from '../../src/query-plan-mutations';
 import { collectionSelectAst, collectionSelectWithIncludesAst } from '../../src/query-plan-select';
+import type { AliasedTable } from '../../src/table-scope';
 import {
   type CollectionContext,
   type CollectionState,
@@ -77,6 +80,33 @@ export function deleteUsers(where?: AnyExpression, returning: readonly string[] 
 export function deletePosts(where?: AnyExpression, returning: readonly string[] = []): Delete {
   const ast = deleteAst(contract, postsTables, where);
   return new Delete(ast.withReturning(projectTableColumns(contract, postsTables.root, returning)));
+}
+
+export function insertInto(
+  table: 'users' | 'posts',
+  rows: readonly Record<string, unknown>[],
+  returning: readonly string[] = [],
+): InsertAst {
+  const target = tablesOf[table].root;
+  const params = rows.map((row) =>
+    Object.fromEntries(
+      Object.entries(row).map(([column, value]) => [column, ParamRef.of(value, { name: column })]),
+    ),
+  );
+  return InsertAst.into(target.tableSource(contract))
+    .withRows(params)
+    .withReturning(projectTableColumns(contract, target, returning));
+}
+
+export function aliasedTable(table: 'users' | 'posts'): AliasedTable {
+  return tablesOf[table].root;
+}
+
+export function columnsOf(
+  table: 'users' | 'posts',
+  columns: readonly string[],
+): ReadonlyArray<ProjectionItem> {
+  return projectTableColumns(contract, tablesOf[table].root, columns);
 }
 
 export function columnPairs(

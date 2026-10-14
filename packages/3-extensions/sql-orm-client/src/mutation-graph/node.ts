@@ -1,13 +1,14 @@
 import type { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type {
   DeleteAst,
+  InsertAst,
   ProjectionItem,
   SelectAst,
   UpdateAst,
 } from '@internal/sql-relational-core/ast';
 import type { Edge, StorageRow } from './edge';
 
-export type StatementAst = SelectAst | UpdateAst | DeleteAst;
+export type StatementAst = SelectAst | InsertAst | UpdateAst | DeleteAst;
 
 export type Slots = Record<string, Edge<unknown>[]>;
 

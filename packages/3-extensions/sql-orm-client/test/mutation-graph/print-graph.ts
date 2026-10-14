@@ -1,6 +1,7 @@
 import type {
   AnyExpression,
   DeleteAst,
+  InsertAst,
   LimitOffsetValue,
   SelectAst,
   UpdateAst,
@@ -9,7 +10,10 @@ import { Delete } from '../../src/mutation-graph/delete';
 import type { Edge, NodeId } from '../../src/mutation-graph/edge';
 import { Find } from '../../src/mutation-graph/find';
 import type { Graph } from '../../src/mutation-graph/graph';
+import { Insert } from '../../src/mutation-graph/insert';
+import { InsertChunked } from '../../src/mutation-graph/insert-chunked';
 import type { Node } from '../../src/mutation-graph/node';
+import { Rows } from '../../src/mutation-graph/rows';
 import { Update } from '../../src/mutation-graph/update';
 import { printExpression } from './print-expression';
 
@@ -68,6 +72,20 @@ function printDelete(ast: DeleteAst): string {
   return `Delete ${ast.table.name}${printWhere(ast.where, ast.table.name)}`;
 }
 
+function printInsert(ast: InsertAst): string {
+  const rows = ast.rows.length === 1 ? '' : ` ${ast.rows.length} rows`;
+  const conflict = ast.onConflict;
+  if (conflict === undefined) {
+    return `Insert ${ast.table.name}${rows}`;
+  }
+  const columns =
+    conflict.columns.length === 0
+      ? ''
+      : ` (${conflict.columns.map((column) => column.column).join(', ')})`;
+  const action = conflict.action.kind === 'do-nothing' ? 'do nothing' : 'do update';
+  return `Insert ${ast.table.name}${rows} on conflict${columns} ${action}`;
+}
+
 function printNode(node: Node): string {
   if (node instanceof Find) {
     return printFind(node.ast);
@@ -75,10 +93,19 @@ function printNode(node: Node): string {
   if (node instanceof Update) {
     return printUpdate(node.ast);
   }
+  if (node instanceof Insert) {
+    return printInsert(node.ast);
+  }
+  if (node instanceof InsertChunked) {
+    return `InsertChunked ${node.asts[0]?.table.name} (${node.asts.length} statements)`;
+  }
   return node instanceof Delete ? printDelete(node.ast) : node.constructor.name;
 }
 
 function printEdge(names: NodeNames, edge: Edge<unknown>): string {
+  if (edge instanceof Rows) {
+    return `Rows ${names.get(edge.from)}`;
+  }
   const pairs = edge.columns.map(([source, target]) => `${source.alias}->${target.alias}`);
   return `${edge.constructor.name} ${names.get(edge.from)} (${pairs.join(', ')})`;
 }
