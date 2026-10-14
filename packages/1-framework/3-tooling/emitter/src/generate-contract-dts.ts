@@ -29,6 +29,7 @@ import {
   serializeValue,
 } from './domain-type-generation';
 import { emitterError } from './emitter-errors';
+import { generateModelTypesBlock } from './model-types-emission';
 
 function generateEnumBlockType(enums: Record<string, ContractEnum>): string {
   const entries = Object.entries(enums).map(([name, entry]) => {
@@ -40,6 +41,38 @@ function generateEnumBlockType(enums: Record<string, ContractEnum>): string {
     return `readonly ${serializeObjectKey(name)}: { readonly codecId: ${serializeValue(entry.codecId)}; readonly members: ${membersType} }`;
   });
   return `{ ${entries.join('; ')} }`;
+}
+
+/**
+ * Types each enum member as the value a query returns for it: the literal its codec reads from the stored form, or the codec's output type when that value has no literal type or the lookup has no codec.
+ */
+function generateEnumMemberTypesBlock(
+  enums: Record<string, ContractEnum>,
+  codecLookup: CodecLookup | undefined,
+): string {
+  const entries = Object.entries(enums).map(([name, entry]) => {
+    const codec = codecLookup?.get(entry.codecId);
+    const memberTupleItems = entry.members.map((m) => {
+      const literal = codec === undefined ? undefined : literalType(codec.decodeJson(m.value));
+      const valueType = literal ?? `CodecTypes[${serializeValue(entry.codecId)}]["output"]`;
+      return `{ readonly name: ${serializeValue(m.name)}; readonly value: ${valueType} }`;
+    });
+    return `readonly ${serializeObjectKey(name)}: readonly [${memberTupleItems.join(', ')}]`;
+  });
+  return `{ ${entries.join('; ')} }`;
+}
+
+function literalType(value: unknown): string | undefined {
+  switch (typeof value) {
+    case 'string':
+    case 'boolean':
+    case 'bigint':
+      return serializeValue(value);
+    case 'number':
+      return Number.isFinite(value) ? serializeValue(value) : undefined;
+    default:
+      return undefined;
+  }
 }
 
 export function generateContractDts(
@@ -60,7 +93,6 @@ export function generateContractDts(
     allImports.push(...options.queryOperationTypeImports);
   }
   const uniqueImports = deduplicateImports(allImports);
-  const importLines = generateImportLines(uniqueImports, resolveImportSpecifier);
 
   const familyImportLines = emitter.getFamilyImports(resolveImportSpecifier);
 
@@ -110,7 +142,7 @@ export function generateContractDts(
 
   // Per-namespace models, value objects, and enum types for the domain.namespaces section.
   const perNamespaceTypes: Array<
-    readonly [string, string, string | undefined, string | undefined]
+    readonly [string, string, string | undefined, string | undefined, string | undefined]
   > = namespaceEntries.map(([nsId, ns]) => {
     const nsModels = ns.models;
     const nsModelsType = generateModelsType(nsModels, (name, model) =>
@@ -128,21 +160,32 @@ export function generateContractDts(
       Record<string, ContractEnum> | undefined,
       'ns.enum is an optional ContractEnum record in the emitted IR'
     >(ns.enum);
-    const nsEnumBlock =
-      nsEnums !== undefined && Object.keys(nsEnums).length > 0
-        ? generateEnumBlockType(nsEnums)
-        : undefined;
-    return [nsId, nsModelsType, nsValueObjectsDescriptor, nsEnumBlock] as const;
+    const hasEnums = nsEnums !== undefined && Object.keys(nsEnums).length > 0;
+    const nsEnumBlock = hasEnums ? generateEnumBlockType(nsEnums) : undefined;
+    const nsEnumMemberTypesBlock = hasEnums
+      ? generateEnumMemberTypesBlock(nsEnums, codecLookup)
+      : undefined;
+    return [
+      nsId,
+      nsModelsType,
+      nsValueObjectsDescriptor,
+      nsEnumBlock,
+      nsEnumMemberTypesBlock,
+    ] as const;
   });
 
   const domainNamespacesType = perNamespaceTypes
-    .map(([nsId, nsModelsType, nsValueObjectsDescriptor, nsEnumBlock]) => {
+    .map(([nsId, nsModelsType, nsValueObjectsDescriptor, nsEnumBlock, nsEnumMemberTypesBlock]) => {
       const voLine =
         nsValueObjectsDescriptor !== undefined
           ? `\n        readonly valueObjects: ${nsValueObjectsDescriptor};`
           : '';
       const enumLine = nsEnumBlock !== undefined ? `\n        readonly enum: ${nsEnumBlock};` : '';
-      return `      readonly ${serializeObjectKey(nsId)}: {\n        readonly models: ${nsModelsType};${voLine}${enumLine}\n      }`;
+      const enumMemberTypesLine =
+        nsEnumMemberTypesBlock !== undefined
+          ? `\n        readonly enumMemberTypes?: ${nsEnumMemberTypesBlock};`
+          : '';
+      return `      readonly ${serializeObjectKey(nsId)}: {\n        readonly models: ${nsModelsType};${voLine}${enumLine}${enumMemberTypesLine}\n      }`;
     })
     .join(';\n');
 
@@ -150,11 +193,6 @@ export function generateContractDts(
     contract.execution !== undefined
       ? `\n  readonly execution: ${serializeExecutionType(contract.execution)};`
       : '';
-
-  const resolveFieldTypeParams = emitter.resolveFieldTypeParams
-    ? (modelName: string, fieldName: string, model: ContractModelBase) =>
-        emitter.resolveFieldTypeParams?.(modelName, fieldName, model, contract)
-    : undefined;
 
   const resolveFieldValueSet = emitter.resolveFieldValueSet
     ? (modelName: string, fieldName: string, model: ContractModelBase) =>
@@ -168,7 +206,6 @@ export function generateContractDts(
   const fieldTypesMaps = generateFieldTypesMapsByNamespace(
     namespaceModelsForFieldTypes,
     codecLookup,
-    resolveFieldTypeParams,
     resolveFieldValueSet,
   );
 
@@ -176,28 +213,23 @@ export function generateContractDts(
 
   const contractWrapper = emitter.getContractWrapper('ContractBase', 'TypeMaps');
 
-  return `// ⚠️  GENERATED FILE - DO NOT EDIT
-// This file is automatically generated by 'prisma contract emit'.
-// To regenerate, run: prisma contract emit
-${importLines.join('\n')}
+  const modelTypesBlock = generateModelTypesBlock(
+    contract,
+    { codecLookup, resolveFieldValueSet },
+    options?.supportsNamespaces ?? true,
+  );
 
-${familyImportLines.join('\n')}
-import type {
-  Contract as ContractType,
-  ExecutionHashBase,
-  NamespaceId,
-  ProfileHashBase,
-  StorageHashBase,
-} from '${resolveImportSpecifier('@internal/contract/types')}';
-
-${hashAliases}
+  const body = `${hashAliases}
 
 export type CodecTypes = ${codecTypes};
 ${familyTypeAliases}
 ${valueObjectTypeAliases}
 export type FieldOutputTypes = ${fieldTypesMaps.output};
 export type FieldInputTypes = ${fieldTypesMaps.input};
-${extraTypeExports ? `${extraTypeExports}\n` : ''}export type TypeMaps = ${typeMapsExpr};
+${extraTypeExports ? `${extraTypeExports}\n` : ''}
+${modelTypesBlock}
+
+export type TypeMaps = ${typeMapsExpr};
 
 type ContractBase = Omit<
   ContractType<${storageType}>,
@@ -220,4 +252,31 @@ ${domainNamespacesType};
 
 ${contractWrapper}
 `;
+
+  const importLines = generateImportLines(
+    uniqueImports.filter((spec) => mentions(body, spec.alias)),
+    resolveImportSpecifier,
+  );
+
+  return `// ⚠️  GENERATED FILE - DO NOT EDIT
+// This file is automatically generated by 'prisma contract emit'.
+// To regenerate, run: prisma contract emit
+${importLines.join('\n')}
+
+${familyImportLines.join('\n')}
+import type {
+  Contract as ContractType,
+  ExecutionHashBase,
+  NamespaceId,
+  ProfileHashBase,
+  StorageHashBase,
+} from '${resolveImportSpecifier('@internal/contract/types')}';
+
+${body}`;
+}
+
+/** Whether `text` uses `identifier` as a whole identifier, not as part of a longer one. */
+function mentions(text: string, identifier: string): boolean {
+  const escaped = identifier.replace(/[$]/g, '\\$');
+  return new RegExp(`(?<![\\w$])${escaped}(?![\\w$])`).test(text);
 }

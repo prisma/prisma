@@ -9,11 +9,11 @@ import { postgresError } from '../errors';
  * Handle returned by {@link nativeEnum}. Mirrors PSL's two distinct strings for
  * a `native_enum <Name> { … @@map("type_name") }` block:
  *
- * - `name` — the entity name: the key in `entries.native_enum` /
- *   `entries.valueSet`, and the column's `valueSet` ref `entityName`.
- * - `typeName` — the Postgres type name (`CREATE TYPE <typeName> AS ENUM (…)`
- *   and the `$N::<typeName>` cast). Defaults to `name`; override with
- *   {@link NativeEnumHandle.map}.
+ * - `name` — the entity name: the key in `entries.valueSet`, and the
+ *   column's `valueSet` ref `entityName`.
+ * - `typeName` — the Postgres type name: the key in `entries.native_enum`,
+ *   `CREATE TYPE <typeName> AS ENUM (…)` and the `$N::<typeName>` cast.
+ *   Defaults to `name`; override with {@link NativeEnumHandle.map}.
  */
 export interface NativeEnumHandle<
   Name extends string = string,
@@ -69,8 +69,8 @@ function buildNativeEnumHandle<
  * `deriveValueSetFromEntity` fold PSL's native enums go through — once
  * `pg.enum(handle)` lands the entity in the field's owning namespace.
  *
- * The first argument is the entity `name` (the `entries.native_enum` /
- * `entries.valueSet` key). The Postgres type name defaults to `name`; use
+ * The first argument is the entity `name` (the `entries.valueSet` key). The
+ * Postgres type name, the `entries.native_enum` key, defaults to `name`; use
  * `.map(typeName)` to override it (PSL's `@@map`).
  *
  * A handle referenced by columns in N different namespaces materialises N
@@ -142,8 +142,7 @@ type PgEnumColumnDescriptor<Members extends readonly [string, ...string[]]> = Co
 };
 
 /**
- * Builds the deferred column descriptor for `handle`: the bare Postgres type
- * name and `typeParams` come from `pgEnumDescriptor.columnFromEntity` (the same
+ * Builds the deferred column descriptor for `handle`: its `typeParams` come from `pgEnumDescriptor.columnFromEntity` (the same
  * authoring hook the PSL `pg.enum(Ref)` type constructor resolves through),
  * carrying `handle.entity` as the descriptor's `entityRef` keyed by the entity
  * `name` (not the Postgres type name — they differ when `.map()` was used).
@@ -165,7 +164,6 @@ function pgEnumColumn<
   }
   return {
     codecId: PG_ENUM_CODEC_ID,
-    nativeType: resolved.nativeType,
     typeParams: resolved.typeParams,
     entityRef: {
       entityKind: handle.entityKind,

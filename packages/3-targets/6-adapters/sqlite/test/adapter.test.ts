@@ -58,9 +58,9 @@ const contract = new SqlContractSerializer().deserializeContract({
           table: {
             user: {
               columns: {
-                id: { codecId: 'sqlite/integer@1', nativeType: 'integer', nullable: false },
-                email: { codecId: 'sqlite/text@1', nativeType: 'text', nullable: false },
-                metadata: { codecId: 'sqlite/json@1', nativeType: 'text', nullable: true },
+                id: { codecId: 'sqlite/integer@1', dataType: 'sqlite/integer', nullable: false },
+                email: { codecId: 'sqlite/text@1', dataType: 'sqlite/text', nullable: false },
+                metadata: { codecId: 'sqlite/json@1', dataType: 'sqlite/text', nullable: true },
               },
               uniques: [],
               indexes: [],
@@ -68,9 +68,13 @@ const contract = new SqlContractSerializer().deserializeContract({
             },
             post: {
               columns: {
-                id: { codecId: 'sqlite/integer@1', nativeType: 'integer', nullable: false },
-                userId: { codecId: 'sqlite/integer@1', nativeType: 'integer', nullable: false },
-                title: { codecId: 'sqlite/text@1', nativeType: 'text', nullable: false },
+                id: { codecId: 'sqlite/integer@1', dataType: 'sqlite/integer', nullable: false },
+                userId: {
+                  codecId: 'sqlite/integer@1',
+                  dataType: 'sqlite/integer',
+                  nullable: false,
+                },
+                title: { codecId: 'sqlite/text@1', dataType: 'sqlite/text', nullable: false },
               },
               uniques: [],
               indexes: [],
@@ -89,6 +93,20 @@ describe('SQLite adapter', () => {
 
   it('SQLite adapter does not report sql.scalarList capability', () => {
     expect(adapter.profile.capabilities['sql']).not.toMatchObject({ scalarList: true });
+  });
+
+  it.each([
+    ['eq', '='],
+    ['neq', '!='],
+    ['isNotDistinctFrom', 'IS'],
+    ['isDistinctFrom', 'IS NOT'],
+  ] as const)('lowers %s without changing ordinary equality', (op, sqlOperator) => {
+    const ast = SelectAst.from(TableSource.named('user'))
+      .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
+      .withWhere(new BinaryExpr(op, ColumnRef.of('user', 'id'), ParamRef.of(null)));
+    expect(adapter.lower(ast, { contract }).sql).toBe(
+      `SELECT "user"."id" AS "id" FROM "user" WHERE "user"."id" ${sqlOperator} ?`,
+    );
   });
 
   describe('SELECT', () => {
@@ -115,7 +133,7 @@ describe('SQLite adapter', () => {
     it('renders neither LIMIT nor OFFSET when neither is set', () => {
       const ast = SelectAst.from(TableSource.named('user'))
         .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
-        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')]);
+        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc', undefined)]);
 
       const { sql } = adapter.lower(ast, { contract });
       expect(sql).toBe('SELECT "user"."id" AS "id" FROM "user" ORDER BY "user"."id" ASC');
@@ -124,7 +142,7 @@ describe('SQLite adapter', () => {
     it('renders LIMIT alone when only limit is set', () => {
       const ast = SelectAst.from(TableSource.named('user'))
         .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
-        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')])
+        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc', undefined)])
         .withLimit(10);
 
       const { sql } = adapter.lower(ast, { contract });
@@ -134,7 +152,7 @@ describe('SQLite adapter', () => {
     it('renders LIMIT -1 OFFSET n when only offset is set, since SQLite has no standalone OFFSET clause', () => {
       const ast = SelectAst.from(TableSource.named('user'))
         .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
-        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')])
+        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc', undefined)])
         .withOffset(5);
 
       const { sql } = adapter.lower(ast, { contract });
@@ -146,7 +164,7 @@ describe('SQLite adapter', () => {
     it('renders ORDER BY, LIMIT, OFFSET unchanged when both are set', () => {
       const ast = SelectAst.from(TableSource.named('user'))
         .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
-        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc')])
+        .withOrderBy([new OrderByItem(ColumnRef.of('user', 'id'), 'asc', undefined)])
         .withLimit(10)
         .withOffset(5);
 
@@ -172,7 +190,7 @@ describe('SQLite adapter', () => {
           'rn',
           WindowFuncExpr.rowNumber({
             partitionBy: [ColumnRef.of('post', 'title')],
-            orderBy: [new OrderByItem(ColumnRef.of('post', 'views'), 'desc')],
+            orderBy: [new OrderByItem(ColumnRef.of('post', 'views'), 'desc', undefined)],
           }),
         ),
       ]);
@@ -201,7 +219,7 @@ describe('SQLite adapter', () => {
             '__prisma_distinct_rn',
             WindowFuncExpr.rowNumber({
               partitionBy: [ColumnRef.of('post', 'title')],
-              orderBy: [new OrderByItem(ColumnRef.of('post', 'title'), 'asc')],
+              orderBy: [new OrderByItem(ColumnRef.of('post', 'title'), 'asc', undefined)],
             }),
           ),
         ])
@@ -237,6 +255,17 @@ describe('SQLite adapter', () => {
       const { sql } = adapter.lower(ast, { contract });
       expect(sql).toContain('GROUP BY "user"."email"');
       expect(sql).toContain('HAVING COUNT(*) > 1');
+    });
+
+    it('renders an infinite number literal as the number SQLite reads as an infinity', () => {
+      const ast = SelectAst.from(TableSource.named('user')).withProjection([
+        ProjectionItem.of('up', LiteralExpr.of(Number.POSITIVE_INFINITY)),
+        ProjectionItem.of('down', LiteralExpr.of(Number.NEGATIVE_INFINITY)),
+      ]);
+
+      expect(adapter.lower(ast, { contract }).sql).toEqual(
+        'SELECT 9e999 AS "up", -9e999 AS "down" FROM "user"',
+      );
     });
 
     it('renders table alias', () => {
@@ -405,6 +434,34 @@ describe('SQLite adapter', () => {
 
       const { sql } = adapter.lower(ast, { contract });
       expect(sql).toContain('ON CONFLICT ("email") DO NOTHING');
+    });
+
+    it('renders a targetless ON CONFLICT DO NOTHING without a column list', () => {
+      const ast = InsertAst.into(TableSource.named('user'))
+        .withRows([{ id: ParamRef.of(1), email: ParamRef.of('a@example.com') }])
+        .withOnConflict(InsertOnConflict.doNothing());
+
+      const { sql } = adapter.lower(ast, { contract });
+      expect(sql).toBe('INSERT INTO "user" ("id", "email") VALUES (?, ?) ON CONFLICT DO NOTHING');
+    });
+
+    it('throws when a targetless conflict clause carries DO UPDATE SET', () => {
+      const ast = InsertAst.into(TableSource.named('user'))
+        .withRows([{ id: ParamRef.of(1), email: ParamRef.of('a@example.com') }])
+        .withOnConflict(
+          InsertOnConflict.doNothing().doUpdateSet({
+            email: ColumnRef.of('excluded', 'email'),
+          }),
+        );
+
+      expect(() => adapter.lower(ast, { contract })).toThrow(
+        expect.objectContaining({
+          code: 'RUNTIME.AST_INVALID',
+          message: expect.stringContaining(
+            'INSERT onConflict requires at least one conflict column',
+          ),
+        }),
+      );
     });
 
     it('renders ON CONFLICT DO UPDATE SET', () => {

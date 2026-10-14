@@ -9,14 +9,17 @@ import {
 } from '@internal/sql-contract-ts/contract-builder';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { interpretPslDocumentToSqlContract } from '../src/interpreter';
+import { testSqlTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
+import { fixtureInterpreterTypes, fixtureTypeLookups } from './fixture-codec-descriptors';
+import { fixtureDataTypeSupport } from './fixture-data-types';
 import {
   createBuiltinLikeControlMutationDefaults,
+  interpretSqlContract,
   postgresEnumInferenceCodecs,
   postgresScalarTypeDescriptors,
   postgresTargetRenderingChecks,
-  symbolTableInputFromParseArgs,
   testEnumEntityContributions,
+  testEnumPslBlockDescriptor,
   testRenderCheckExpressions,
 } from './fixtures';
 
@@ -38,28 +41,11 @@ const codecsById: Record<string, Codec> = {
   'pg/int4@1': int4Codec,
 };
 
-const targetTypesById: Record<string, readonly string[]> = {
-  'pg/text@1': ['text'],
-  'pg/int4@1': ['int4'],
-};
-
 const testCodecLookup: CodecLookup = {
   get(id: string): Codec | undefined {
     return codecsById[id];
   },
-  targetTypesFor(id: string): readonly string[] | undefined {
-    return targetTypesById[id];
-  },
   renderOutputTypeFor: () => undefined,
-};
-
-const enumPslBlockDescriptor = {
-  kind: 'pslBlock' as const,
-  keyword: 'enum',
-  discriminator: 'enum',
-  name: { required: true },
-  parameters: {},
-  variadicParameters: true,
 };
 
 const authoringContributions = {
@@ -67,26 +53,22 @@ const authoringContributions = {
   field: {},
   type: {},
   valueObjectStorageType: 'Jsonb',
-  pslBlockDescriptors: { enum: enumPslBlockDescriptor },
+  pslBlockDescriptors: { enum: testEnumPslBlockDescriptor },
+  dataTypes: fixtureDataTypeSupport.entries,
 };
 
 const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
 
 function interpret(schema: string) {
-  const document = symbolTableInputFromParseArgs({
-    schema,
-    sourceId: 'schema.prisma',
-    pslBlockDescriptors: authoringContributions.pslBlockDescriptors,
-  });
-  return interpretPslDocumentToSqlContract({
-    ...document,
+  return interpretSqlContract(schema, {
     target: postgresTargetRenderingChecks,
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     composedExtensionContracts: new Map(),
     controlMutationDefaults: builtinControlMutationDefaults,
     authoringContributions,
-    codecLookup: testCodecLookup,
     createNamespace: createTestSqlNamespace,
+    ...fixtureInterpreterTypes,
+    codecLookup: testSqlTypeLookups({}, testCodecLookup).codecLookup,
     enumInferenceCodecs: postgresEnumInferenceCodecs,
     capabilities: { sql: { scalarList: true } },
   });
@@ -100,7 +82,7 @@ enum Role {
 }
 `;
 
-const pgText = { codecId: 'pg/text@1' as const, nativeType: 'text' as const };
+const pgText = { codecId: 'pg/text@1' as const };
 const RoleHandle = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
 
 const sqlFamilyPack = {
@@ -136,6 +118,7 @@ model Post {
     if (!pslResult.ok) return;
 
     const tsContract = defineContract({
+      ...fixtureTypeLookups,
       family: sqlFamilyPack,
       target: postgresTargetPack,
       enums: { Role: RoleHandle },
@@ -143,37 +126,54 @@ model Post {
       models: {
         Post: model('Post', {
           fields: {
-            id: field.column({ codecId: 'pg/int4@1', nativeType: 'int4' }).id(),
+            id: field.column({ codecId: 'pg/int4@1' }).id(),
             role: field.namedType(RoleHandle),
             kind: field.namedType(RoleHandle).noCheck(),
             roles: field.namedType(RoleHandle).many().noCheck('membership'),
-            tags: field
-              .column({ codecId: 'pg/text@1', nativeType: 'text' })
-              .many()
-              .noCheck('elementNotNull'),
+            tags: field.column({ codecId: 'pg/text@1' }).many().noCheck('elementNotNull'),
           },
-        }).sql({ table: 'post' }),
+        }).sql({ table: 'Post' }),
       },
     });
 
     const pslNs = (pslResult.value.storage as unknown as SqlStorage).namespaces['public'];
     const tsNs = (tsContract.storage as unknown as SqlStorage).namespaces['public'];
-    const pslTable = pslNs !== undefined ? pslNs.entries.table?.['post'] : undefined;
-    const tsTable = tsNs !== undefined ? tsNs.entries.table?.['post'] : undefined;
+    const pslTable = pslNs !== undefined ? pslNs.entries.table?.['Post'] : undefined;
+    const tsTable = tsNs !== undefined ? tsNs.entries.table?.['Post'] : undefined;
 
     expect(pslTable?.columns['kind']?.noCheck).toEqual(['membership']);
     expect(pslTable?.columns['roles']?.noCheck).toEqual(['membership']);
     expect(pslTable?.columns['tags']?.noCheck).toEqual(['elementNotNull']);
+    expect(pslTable?.columns['tags']).not.toHaveProperty('elementNullable');
     expect(pslTable?.columns).toEqual(tsTable?.columns);
     expect(pslTable?.checks).toEqual(tsTable?.checks);
     // Only role's membership check and roles' element-non-null check survive.
     expect(pslTable?.checks?.map((c) => c.prefix)).toEqual([
-      'post_role_check',
-      'post_roles_elem_not_null',
+      'Post_role_check',
+      'Post_roles_elem_not_null',
     ]);
     expect((pslResult.value.storage as unknown as SqlStorage).storageHash).toEqual(
       (tsContract.storage as unknown as SqlStorage).storageHash,
     );
+  });
+
+  it('nullable elements carry only the semantic marker while an explicit membership waiver remains distinct', () => {
+    const pslResult = interpret(`${ROLE_ENUM_PSL}
+model Post {
+  id    Int     @id
+  roles Role?[] @noCheck(membership)
+}
+`);
+
+    expect(pslResult.ok).toBe(true);
+    if (!pslResult.ok) return;
+    const ns = (pslResult.value.storage as unknown as SqlStorage).namespaces['public'];
+    const postTable = ns !== undefined ? ns.entries.table?.['Post'] : undefined;
+    expect(postTable?.columns['roles']).toMatchObject({
+      many: { elementNullable: true },
+      noCheck: ['membership'],
+    });
+    expect(postTable?.checks ?? []).toEqual([]);
   });
 
   it('a bare @noCheck on a list domain enum resolves to both kinds in canonical order', () => {
@@ -187,7 +187,7 @@ model Post {
     expect(pslResult.ok).toBe(true);
     if (!pslResult.ok) return;
     const ns = (pslResult.value.storage as unknown as SqlStorage).namespaces['public'];
-    const postTable = ns !== undefined ? ns.entries.table?.['post'] : undefined;
+    const postTable = ns !== undefined ? ns.entries.table?.['Post'] : undefined;
     expect(postTable?.columns['roles']?.noCheck).toEqual(['elementNotNull', 'membership']);
     expect(postTable?.checks ?? []).toEqual([]);
   });
@@ -231,23 +231,24 @@ model Post {
     if (!pslResult.ok) return;
 
     const tsContract = defineContract({
+      ...fixtureTypeLookups,
       family: sqlFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: {
         Post: model('Post', {
           fields: {
-            id: field.column({ codecId: 'pg/int4@1', nativeType: 'int4' }).id(),
-            name: field.column({ codecId: 'pg/text@1', nativeType: 'text' }).noCheck('membership'),
+            id: field.column({ codecId: 'pg/int4@1' }).id(),
+            name: field.column({ codecId: 'pg/text@1' }).noCheck('membership'),
           },
-        }).sql({ table: 'post', control: 'external' }),
+        }).sql({ table: 'Post', control: 'external' }),
       },
     });
 
     const pslStorage = pslResult.value.storage as unknown as SqlStorage;
     const tsStorage = tsContract.storage as unknown as SqlStorage;
-    const pslTable = pslStorage.namespaces['public']?.entries.table?.['post'];
-    const tsTable = tsStorage.namespaces['public']?.entries.table?.['post'];
+    const pslTable = pslStorage.namespaces['public']?.entries.table?.['Post'];
+    const tsTable = tsStorage.namespaces['public']?.entries.table?.['Post'];
     expect(pslTable).toBeDefined();
     // The flag is dropped on both surfaces, so the tables agree byte-for-byte.
     expect(JSON.stringify(pslTable)).toBe(JSON.stringify(tsTable));
@@ -300,6 +301,19 @@ model Post {
 model Post {
   id   Int    @id
   name String @noCheck(membership)
+}
+`,
+      'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+      /does not apply/,
+    );
+  });
+
+  it('rejects elementNotNull on a nullable-element list, span-anchored', () => {
+    expectDiagnostic(
+      `${ROLE_ENUM_PSL}
+model Post {
+  id    Int     @id
+  roles Role?[] @noCheck(elementNotNull)
 }
 `,
       'PSL_INVALID_ATTRIBUTE_ARGUMENT',

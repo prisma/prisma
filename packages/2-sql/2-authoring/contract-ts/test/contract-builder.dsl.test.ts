@@ -4,10 +4,11 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
+import { testTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
 import { type ContractInput, defineContract, field, model, rel } from '../src/contract-builder';
+import { now } from '../src/default-functions';
 import { modelsMapForAssertions, modelsOf } from './contract-test-helpers';
 import { crossRef } from './cross-ref-helpers';
-
 import { columnDescriptor } from './helpers/column-descriptor';
 import { unboundTables } from './unbound-tables';
 
@@ -34,9 +35,13 @@ const textColumn = columnDescriptor('pg/text@1');
 const timestamptzTemporalColumn = columnDescriptor('pg/timestamptz-temporal@1');
 
 function defineTestContract<
-  const Definition extends Omit<ContractInput, 'target' | 'family' | 'createNamespace'>,
+  const Definition extends Omit<
+    ContractInput,
+    'target' | 'family' | 'createNamespace' | 'codecLookup' | 'dataTypeLookup'
+  >,
 >(definition: Definition) {
   return defineContract({
+    ...testTypeLookups,
     family: bareFamilyPack,
     target: postgresTargetPack,
     createNamespace: createTestSqlNamespace,
@@ -94,7 +99,6 @@ describe('contract DSL authoring surface', () => {
       Role: {
         kind: 'codec-instance',
         codecId: 'app/test-enum@1',
-        nativeType: 'role',
         typeParams: { values: ['USER', 'ADMIN'] },
       },
     } as const;
@@ -109,7 +113,7 @@ describe('contract DSL authoring surface', () => {
           .id({ name: 'app_user_pkey' }),
         email: field.column(textColumn).unique({ name: 'app_user_email_key' }),
         role: field.namedType(types.Role),
-        createdAt: field.column(timestamptzTemporalColumn).column('created_at').defaultSql('now()'),
+        createdAt: field.column(timestamptzTemporalColumn).column('created_at').default(now()),
       },
     }).sql({
       table: 'app_user',
@@ -196,7 +200,7 @@ describe('contract DSL authoring surface', () => {
     ]);
     expect(contract.execution?.mutations.defaults).toEqual([
       {
-        ref: { namespace: 'public', table: 'app_user', column: 'id' },
+        ref: { namespace: 'public', entry: 'app_user', field: 'id' },
         onCreate: { kind: 'generator', id: 'uuidv4' },
       },
     ]);
@@ -497,7 +501,7 @@ describe('contract DSL authoring surface', () => {
       }))
       .sql(({ cols, constraints }) => ({
         table: 'app_user',
-        indexes: [constraints.index([cols.email, cols.email])],
+        indexes: [constraints.index([cols.email, cols.email], { name: 'app_user_email_twice' })],
       }));
 
     expect(() =>
@@ -982,6 +986,110 @@ describe('contract DSL authoring surface', () => {
         },
       }),
     ).toThrow('Model token "User" must be assigned to models.User. Received models.Account.');
+  });
+});
+
+describe('to-one relation nullability', () => {
+  function userAndPost(postFields: Record<string, unknown>, relationOptions: object) {
+    const User = model('User', {
+      fields: { id: field.column(int4Column).id() },
+    });
+    const Post = model('Post', {
+      fields: {
+        id: field.column(int4Column).id(),
+        ...postFields,
+      },
+      relations: {
+        author: rel.belongsTo(User, { from: 'authorId', to: 'id', ...relationOptions }),
+      },
+    });
+    return defineTestContract({ models: { User, Post } });
+  }
+
+  function relationsOf(contract: Contract, modelName: string) {
+    return (modelsOf(contract) as Record<string, { relations: Record<string, unknown> }>)[modelName]
+      ?.relations;
+  }
+
+  it('belongsTo derives nullable from the local fields when no flag is given', () => {
+    expect(
+      relationsOf(userAndPost({ authorId: field.column(int4Column) }, {}), 'Post'),
+    ).toMatchObject({ author: { cardinality: 'N:1', nullable: false } });
+    expect(
+      relationsOf(userAndPost({ authorId: field.column(int4Column).optional() }, {}), 'Post'),
+    ).toMatchObject({ author: { cardinality: 'N:1', nullable: true } });
+  });
+
+  it('belongsTo records an explicit optional flag that agrees with the local fields', () => {
+    expect(
+      relationsOf(
+        userAndPost({ authorId: field.column(int4Column).optional() }, { optional: true }),
+        'Post',
+      ),
+    ).toMatchObject({ author: { nullable: true } });
+    expect(
+      relationsOf(userAndPost({ authorId: field.column(int4Column) }, { optional: false }), 'Post'),
+    ).toMatchObject({ author: { nullable: false } });
+  });
+
+  it('rejects an optional flag that contradicts the local fields', () => {
+    expect(() => userAndPost({ authorId: field.column(int4Column) }, { optional: true })).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.RELATION_INVALID',
+        message: expect.stringContaining('Relation "Post.author" is optional'),
+      }),
+    );
+    expect(() =>
+      userAndPost({ authorId: field.column(int4Column).optional() }, { optional: false }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.RELATION_INVALID',
+        message: expect.stringContaining('Relation "Post.author" is required'),
+      }),
+    );
+  });
+
+  it('rejects a local field the model does not declare', () => {
+    expect(() =>
+      userAndPost({ authorId: field.column(int4Column) }, { from: 'missingId' }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.FIELD_UNKNOWN',
+        message: 'Unknown field "Post.missingId" in contract definition',
+      }),
+    );
+  });
+
+  it('hasOne is always nullable, and hasMany carries no flag', () => {
+    const UserBase = model('User', { fields: { id: field.column(int4Column).id() } });
+    const Profile = model('Profile', {
+      fields: {
+        id: field.column(int4Column).id(),
+        userId: field.column(int4Column).unique(),
+      },
+      relations: { user: rel.belongsTo(UserBase, { from: 'userId', to: 'id' }) },
+    });
+    const Post = model('Post', {
+      fields: { id: field.column(int4Column).id(), userId: field.column(int4Column) },
+      relations: { user: rel.belongsTo(UserBase, { from: 'userId', to: 'id' }) },
+    });
+    const User = UserBase.relations({
+      profile: rel.hasOne(() => Profile, { by: 'userId' }),
+      posts: rel.hasMany(() => Post, { by: 'userId' }),
+    });
+    const contract = defineTestContract({ models: { User, Profile, Post } });
+    expect(relationsOf(contract, 'User')).toMatchObject({
+      profile: { cardinality: '1:1', nullable: true },
+      posts: expect.not.objectContaining({ nullable: expect.anything() }),
+    });
+  });
+
+  it('hasOne does not accept an optional flag', () => {
+    const Profile = model('Profile', {
+      fields: { id: field.column(int4Column).id(), userId: field.column(int4Column).unique() },
+    });
+    // @ts-expect-error the side of a one-to-one relation without the foreign key is always nullable
+    rel.hasOne(() => Profile, { by: 'userId', optional: false });
   });
 });
 

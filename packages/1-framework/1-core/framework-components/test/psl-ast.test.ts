@@ -21,7 +21,14 @@ function makeExtensionBlock(
   name: string,
   keyword: string = discriminator,
 ): PslExtensionBlock {
-  return { kind: discriminator, keyword, name, parameters: {}, blockAttributes: [], span: SPAN };
+  return {
+    kind: discriminator,
+    keyword,
+    name,
+    parameters: {},
+    blockAttributes: [],
+    span: SPAN,
+  };
 }
 
 describe('makePslNamespace / makePslNamespaceEntries', () => {

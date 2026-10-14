@@ -8,19 +8,24 @@ import type {
   ControlStack,
   CoreSchemaView,
   DiffSubjectGranularity,
+  MarkerHashes,
   MigrationPlanOperation,
   OperationPreview,
   OperationPreviewCapable,
+  PslContractBuildCapable,
+  PslContractDocument,
   PslContractInferCapable,
   SchemaDiffIssue,
   SchemaViewCapable,
-  SignDatabaseResult,
+  SpaceSignature,
+  SpaceToSign,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import {
   APP_SPACE_ID,
   SchemaTreeNode,
+  sameMarkerHashes,
   VERIFY_CODE_HASH_MISMATCH,
   VERIFY_CODE_MARKER_MISSING,
   VERIFY_CODE_TARGET_MISMATCH,
@@ -41,11 +46,15 @@ import type { SqlSchemaIRNode, SqlTableIR } from '@internal/sql-schema-ir/types'
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import type { JsonObject } from '@internal/utils/json';
 import type { StructuredError } from '@internal/utils/structured-error';
+import { enforceSqlDataTypeInvariants } from './assembly';
+import { assertContractMatchesStack } from './contract-stack-checks';
 import type { SqlControlAdapter } from './control-adapter';
 import type {
   SqlControlTargetDescriptor,
   SqlDescribedContractSpace,
+  SqlPslBuildContext,
 } from './control-target-descriptor';
 import {
   classifyDiffEntityKind,
@@ -54,6 +63,7 @@ import {
 } from './diff/schema-verify';
 import { sqlFamilyError } from './errors';
 import { SqlContractSerializer } from './ir/sql-contract-serializer';
+import { storageNameOfOperation } from './migrations/operation-storage-name';
 import type { SqlSchemaDiffFn } from './migrations/schema-differ';
 import type {
   SqlControlAdapterDescriptor,
@@ -88,10 +98,13 @@ function extractCodecTypeIdsFromContract(contract: unknown): readonly string[] {
     typeof contract.storage.namespaces === 'object' &&
     contract.storage.namespaces !== null
   ) {
-    const namespaces = contract.storage.namespaces as Record<
-      string,
-      { readonly entries: Readonly<Record<string, Readonly<Record<string, unknown>>>> }
-    >;
+    const namespaces = blindCast<
+      Record<
+        string,
+        { readonly entries: Readonly<Record<string, Readonly<Record<string, unknown>>>> }
+      >,
+      'runtime checks above proved storage.namespaces is a non-null object; this function only reads nested fields defensively'
+    >(contract.storage.namespaces);
     for (const ns of Object.values(namespaces)) {
       const tbls = ns.entries['table'];
       if (typeof tbls !== 'object' || tbls === null) continue;
@@ -103,7 +116,10 @@ function extractCodecTypeIdsFromContract(contract: unknown): readonly string[] {
           typeof table.columns === 'object' &&
           table.columns !== null
         ) {
-          const columns = table.columns as Record<string, { codecId: string } | undefined>;
+          const columns = blindCast<
+            Record<string, { codecId: string } | undefined>,
+            'runtime checks above proved table.columns is a non-null object; each column is validated before reading codecId'
+          >(table.columns);
           for (const column of Object.values(columns)) {
             if (
               column &&
@@ -158,7 +174,7 @@ function createVerifyResult(options: {
     meta.configPath = options.configPath;
   }
 
-  const result: VerifyDatabaseResult = {
+  return {
     ok: options.ok,
     summary: options.summary,
     contract,
@@ -167,50 +183,30 @@ function createVerifyResult(options: {
     timings: {
       total: options.totalTime,
     },
+    ...ifDefined('code', options.code),
+    ...(options.marker
+      ? {
+          marker: {
+            storageHash: options.marker.storageHash,
+            profileHash: options.marker.profileHash,
+          },
+        }
+      : {}),
+    ...ifDefined('missingCodecs', options.missingCodecs),
+    ...ifDefined('codecCoverageSkipped', options.codecCoverageSkipped),
   };
-
-  if (options.code) {
-    (result as { code?: string }).code = options.code;
-  }
-
-  if (options.marker) {
-    (result as { marker?: { storageHash: string; profileHash: string } }).marker = {
-      storageHash: options.marker.storageHash,
-      profileHash: options.marker.profileHash,
-    };
-  }
-
-  if (options.missingCodecs) {
-    (result as { missingCodecs?: readonly string[] }).missingCodecs = options.missingCodecs;
-  }
-
-  if (options.codecCoverageSkipped) {
-    (result as { codecCoverageSkipped?: boolean }).codecCoverageSkipped =
-      options.codecCoverageSkipped;
-  }
-
-  return result;
 }
-
-interface SqlTypeMetadata {
-  readonly typeId: string;
-  readonly familyId: 'sql';
-  readonly targetId: string;
-  readonly nativeType?: string;
-}
-
-type SqlTypeMetadataRegistry = Map<string, SqlTypeMetadata>;
 
 interface SqlFamilyInstanceState {
   readonly codecTypeImports: ReadonlyArray<TypesImportSpec>;
   readonly extensionIds: ReadonlyArray<string>;
-  readonly typeMetadataRegistry: SqlTypeMetadataRegistry;
 }
 
 export interface SqlControlFamilyInstance
   extends ControlFamilyInstance<'sql', SqlSchemaIRNode>,
     SchemaViewCapable<SqlSchemaIRNode>,
     PslContractInferCapable<SqlSchemaIRNode>,
+    PslContractBuildCapable<Contract<SqlStorage>>,
     OperationPreviewCapable,
     SqlFamilyInstanceState {
   /**
@@ -266,13 +262,6 @@ export interface SqlControlFamilyInstance
    * capability. Nothing is stamped on the issue or the node.
    */
   classifyEntityKind(issue: SchemaDiffIssue): string | undefined;
-
-  sign(options: {
-    readonly driver: SqlControlDriverInstance<string>;
-    readonly contract: unknown;
-    readonly contractPath: string;
-    readonly configPath?: string;
-  }): Promise<SignDatabaseResult>;
 
   introspect(options: {
     readonly driver: SqlControlDriverInstance<string>;
@@ -337,58 +326,11 @@ export interface SqlControlFamilyInstance
   bootstrapControlTableQueries(): readonly DdlNode[];
 
   toOperationPreview(operations: readonly MigrationPlanOperation[]): OperationPreview;
+
+  storageNameOf(operation: MigrationPlanOperation): string;
 }
 
 export type SqlFamilyInstance = SqlControlFamilyInstance;
-
-interface DescriptorWithStorageTypes {
-  readonly targetId?: string | undefined;
-  readonly types?:
-    | {
-        readonly storage?:
-          | ReadonlyArray<{
-              readonly typeId: string;
-              readonly familyId: string;
-              readonly targetId: string;
-              readonly nativeType?: string | undefined;
-            }>
-          | undefined;
-      }
-    | undefined;
-}
-
-function buildSqlTypeMetadataRegistry(options: {
-  readonly target: DescriptorWithStorageTypes;
-  readonly adapter: DescriptorWithStorageTypes & { readonly targetId: string };
-  readonly extensions: readonly DescriptorWithStorageTypes[];
-}): SqlTypeMetadataRegistry {
-  const { target, adapter, extensions } = options;
-  const registry = new Map<string, SqlTypeMetadata>();
-  const targetId = adapter.targetId;
-  const descriptors = [target, adapter, ...extensions];
-
-  for (const descriptor of descriptors) {
-    const types = descriptor.types;
-    const storageTypes = types?.storage;
-
-    if (!storageTypes) {
-      continue;
-    }
-
-    for (const storageType of storageTypes) {
-      if (storageType.familyId === 'sql' && storageType.targetId === targetId) {
-        registry.set(storageType.typeId, {
-          typeId: storageType.typeId,
-          familyId: 'sql',
-          targetId: storageType.targetId,
-          ...(storageType.nativeType !== undefined ? { nativeType: storageType.nativeType } : {}),
-        });
-      }
-    }
-  }
-
-  return registry;
-}
 
 interface CrossSpaceFkView {
   readonly id: string;
@@ -506,17 +448,23 @@ export function assertNoCrossSpaceFkReverseReferences(
 export function createSqlFamilyInstance<TTargetId extends string>(
   stack: ControlStack<'sql', TTargetId>,
 ): SqlFamilyInstance {
+  enforceSqlDataTypeInvariants(stack.declaredDataTypes, stack.codecDescriptors);
   if (!stack.adapter) {
     throw new InternalError('SQL family requires an adapter descriptor in ControlStack');
   }
 
-  const target = stack.target as unknown as TargetDescriptor<'sql', TTargetId> &
-    DescriptorWithStorageTypes;
-  const adapter = stack.adapter as unknown as SqlControlAdapterDescriptor<TTargetId> &
-    DescriptorWithStorageTypes;
-  const extensions =
-    stack.extensions as unknown as readonly (SqlControlExtensionDescriptor<TTargetId> &
-      DescriptorWithStorageTypes)[];
+  const target = blindCast<
+    TargetDescriptor<'sql', TTargetId>,
+    'ControlStack is parameterized by this SQL target id'
+  >(stack.target);
+  const adapter = blindCast<
+    SqlControlAdapterDescriptor<TTargetId>,
+    'adapter descriptor comes from the same SQL control stack target id'
+  >(stack.adapter);
+  const extensions = blindCast<
+    readonly SqlControlExtensionDescriptor<TTargetId>[],
+    'extension descriptors come from the same SQL control stack target id'
+  >(stack.extensions);
 
   // Descriptor self-consistency check.
   // Each extension that exposes a `contractSpace` must publish a
@@ -546,12 +494,6 @@ export function createSqlFamilyInstance<TTargetId extends string>(
 
   const { codecTypeImports, extensionIds } = stack;
 
-  const typeMetadataRegistry = buildSqlTypeMetadataRegistry({
-    target,
-    adapter,
-    extensions: extensions,
-  });
-
   // Lazily construct the control adapter on first use, then memoize it.
   // Merely building a family instance must not instantiate the adapter —
   // that would change the load/instantiate semantics of the whole stack
@@ -567,14 +509,15 @@ export function createSqlFamilyInstance<TTargetId extends string>(
   const getControlAdapter = (): SqlControlAdapter<string> =>
     (controlAdapter ??= adapter.create(stack));
 
-  const targetSerializer = (
-    target as unknown as {
+  const targetSerializer = blindCast<
+    {
       contractSerializer?: {
         deserializeContract(json: unknown): Contract<SqlStorage>;
-        serializeContract(contract: Contract<SqlStorage>): unknown;
+        serializeContract(contract: Contract<SqlStorage>): JsonObject;
       };
-    }
-  ).contractSerializer;
+    },
+    'target descriptors may expose the optional SQL contractSerializer hook; absent hooks are handled below'
+  >(target).contractSerializer;
   // Database→PSL inference is target logic (it owns the dialect type/default
   // maps and walks its own schema tree), so it is read off the descriptor like
   // `contractSerializer`. Absent for targets without `contract infer` (Mongo).
@@ -582,6 +525,19 @@ export function createSqlFamilyInstance<TTargetId extends string>(
     SqlControlTargetDescriptor<TTargetId, unknown>,
     'reading the optional target-descriptor inferPslContract hook'
   >(target).inferPslContract;
+  // The stack parts `contract emit` reads a PSL document with, which `contract infer` and
+  // `contract print` write one with.
+  const pslBuildContext: SqlPslBuildContext = {
+    authoringContributions: stack.authoringContributions,
+    codecLookup: stack.codecLookup,
+    dataTypes: stack.dataTypes,
+  };
+  // The hook that builds the PSL document of a contract is read off the descriptor the same way.
+  // Absent for targets without `contract print`.
+  const targetBuildPslContract = blindCast<
+    SqlControlTargetDescriptor<TTargetId, unknown>,
+    'reading the optional target-descriptor buildPslContract hook'
+  >(target).buildPslContract;
   // The full-tree node diff the verify VERDICT derives from. Read lazily so
   // construction-only stub descriptors (schema-view tests) keep working; the
   // throw happens at verify time.
@@ -617,7 +573,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
         ? [{ spaceId: extension.id, contract: extension.contractSpace.contractJson }]
         : [],
   );
-  const deserializeWithTargetSerializer = (contractOrJson: unknown): Contract<SqlStorage> => {
+  const loadContract = (contractOrJson: unknown): Contract<SqlStorage> => {
     const serializer = targetSerializer ?? new SqlContractSerializer();
     const json =
       targetSerializer !== undefined && !isPlainRecord(contractOrJson)
@@ -628,17 +584,87 @@ export function createSqlFamilyInstance<TTargetId extends string>(
             >(contractOrJson),
           )
         : contractOrJson;
-    return serializer.deserializeContract(json) as Contract<SqlStorage>;
+    const contract = serializer.deserializeContract(json);
+    assertContractMatchesStack(contract, stack);
+    return contract;
+  };
+
+  const signSpaceMarker = async (
+    controlAdapter: SqlControlAdapter<string>,
+    driver: SqlControlDriverInstance<string>,
+    { space, contract, expected }: SpaceToSign,
+  ): Promise<SpaceSignature> => {
+    const storageHash = contract.storage.storageHash;
+    const profileHash =
+      'profileHash' in contract && typeof contract.profileHash === 'string'
+        ? contract.profileHash
+        : storageHash;
+    const signed = { space, contract: { storageHash, profileHash } };
+
+    const readHashes = async (): Promise<MarkerHashes | null> => {
+      const marker = await controlAdapter.readMarker(driver, space);
+      return marker === null
+        ? null
+        : { storageHash: marker.storageHash, profileHash: marker.profileHash };
+    };
+    const existing = await readHashes();
+    if (!sameMarkerHashes(existing, expected)) {
+      return { ...signed, status: 'conflict', expected, found: existing };
+    }
+    if (existing === null) {
+      await controlAdapter.insertMarker(driver, space, { storageHash, profileHash });
+      return { ...signed, status: 'created' };
+    }
+    if (existing.storageHash === storageHash && existing.profileHash === profileHash) {
+      return { ...signed, status: 'unchanged' };
+    }
+    const updated = await controlAdapter.updateMarker(driver, space, existing.storageHash, {
+      storageHash,
+      profileHash,
+    });
+    if (!updated) {
+      return {
+        ...signed,
+        status: 'conflict',
+        expected,
+        found: await readHashes(),
+      };
+    }
+    return { ...signed, status: 'updated', previous: existing };
+  };
+
+  const signSpaces = async (
+    driver: SqlControlDriverInstance<string>,
+    spaces: readonly SpaceToSign[],
+  ): Promise<readonly SpaceSignature[]> => {
+    const [first] = spaces;
+    if (first === undefined) {
+      return [];
+    }
+    const controlAdapter = getControlAdapter();
+    return controlAdapter.withTransaction(driver, async () => {
+      await controlAdapter.lockMarker(driver);
+      for (const query of controlAdapter.bootstrapSignMarkerQueries()) {
+        const lowered = await controlAdapter.lowerToExecuteRequest(query, {
+          contract: first.contract,
+        });
+        await driver.query(lowered.sql, lowered.params);
+      }
+      const signatures: SpaceSignature[] = [];
+      for (const space of spaces) {
+        signatures.push(await signSpaceMarker(controlAdapter, driver, space));
+      }
+      return signatures;
+    });
   };
 
   return {
     familyId: 'sql',
     codecTypeImports,
     extensionIds,
-    typeMetadataRegistry,
 
     deserializeContract(contractJson: unknown): Contract {
-      return deserializeWithTargetSerializer(contractJson);
+      return loadContract(contractJson);
     },
 
     async verify(verifyOptions: {
@@ -657,7 +683,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
       } = verifyOptions;
       const startTime = Date.now();
 
-      const contract = deserializeWithTargetSerializer(rawContract) as Contract<SqlStorage>;
+      const contract = loadContract(rawContract);
 
       const contractStorageHash = contract.storage.storageHash;
       const contractProfileHash = contract.profileHash;
@@ -773,7 +799,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
       readonly strict: boolean;
       readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
     }): VerifyDatabaseSchemaResult {
-      const contract = deserializeWithTargetSerializer(options.contract) as Contract<SqlStorage>;
+      const contract = loadContract(options.contract);
       if (!diffSchema) {
         throw missingDescriptorOperationError(target.targetId, 'diffSchema');
       }
@@ -822,114 +848,11 @@ export function createSqlFamilyInstance<TTargetId extends string>(
       }
       return classifyDiffEntityKind(issue, targetEntityKindOf);
     },
-    async sign(options: {
+    async signSpaces(options: {
       readonly driver: SqlControlDriverInstance<string>;
-      readonly contract: unknown;
-      readonly contractPath: string;
-      readonly configPath?: string;
-    }): Promise<SignDatabaseResult> {
-      const { driver, contract: contractInput, contractPath, configPath } = options;
-      const startTime = Date.now();
-
-      const contract = deserializeWithTargetSerializer(contractInput) as Contract<SqlStorage>;
-
-      const contractStorageHash = contract.storage.storageHash;
-      const contractProfileHash =
-        'profileHash' in contract && typeof contract.profileHash === 'string'
-          ? contract.profileHash
-          : contractStorageHash;
-      const contractTarget = contract.target;
-
-      const controlAdapter = getControlAdapter();
-      const lowererContext = { contract };
-      for (const query of controlAdapter.bootstrapSignMarkerQueries()) {
-        const lowered = await controlAdapter.lowerToExecuteRequest(query, lowererContext);
-        await driver.query(lowered.sql, lowered.params);
-      }
-
-      const existingMarker = await controlAdapter.readMarker(driver, APP_SPACE_ID);
-
-      let markerCreated = false;
-      let markerUpdated = false;
-      let previousHashes: { storageHash?: string; profileHash?: string } | undefined;
-
-      if (!existingMarker) {
-        await controlAdapter.insertMarker(driver, APP_SPACE_ID, {
-          storageHash: contractStorageHash,
-          profileHash: contractProfileHash,
-        });
-        markerCreated = true;
-      } else {
-        const existingStorageHash = existingMarker.storageHash;
-        const existingProfileHash = existingMarker.profileHash;
-
-        const storageHashMatches = existingStorageHash === contractStorageHash;
-        const profileHashMatches = existingProfileHash === contractProfileHash;
-
-        if (!storageHashMatches || !profileHashMatches) {
-          previousHashes = {
-            storageHash: existingStorageHash,
-            profileHash: existingProfileHash,
-          };
-          const updated = await controlAdapter.updateMarker(
-            driver,
-            APP_SPACE_ID,
-            existingStorageHash,
-            {
-              storageHash: contractStorageHash,
-              profileHash: contractProfileHash,
-            },
-          );
-          if (!updated) {
-            throw sqlFamilyError(
-              'MIGRATION.MARKER_CAS_FAILURE',
-              'CAS conflict: marker was modified by another process during sign',
-              {
-                why: 'Another process updated the contract marker between the read and the compare-and-swap write.',
-                fix: 'Re-run the sign command; if it keeps failing, make sure only one migration process runs at a time.',
-                meta: { space: APP_SPACE_ID },
-              },
-            );
-          }
-          markerUpdated = true;
-        }
-      }
-
-      let summary: string;
-      if (markerCreated) {
-        summary = 'Database signed (marker created)';
-      } else if (markerUpdated) {
-        summary = `Database signed (marker updated from ${previousHashes?.storageHash ?? 'unknown'})`;
-      } else {
-        summary = 'Database already signed with this contract';
-      }
-
-      const totalTime = Date.now() - startTime;
-
-      return {
-        ok: true,
-        summary,
-        contract: {
-          storageHash: contractStorageHash,
-          profileHash: contractProfileHash,
-        },
-        target: {
-          expected: contractTarget,
-          actual: contractTarget,
-        },
-        marker: {
-          created: markerCreated,
-          updated: markerUpdated,
-          ...(previousHashes ? { previous: previousHashes } : {}),
-        },
-        meta: {
-          contractPath,
-          ...(configPath ? { configPath } : {}),
-        },
-        timings: {
-          total: totalTime,
-        },
-      };
+      readonly spaces: readonly SpaceToSign[];
+    }): Promise<readonly SpaceSignature[]> {
+      return signSpaces(options.driver, options.spaces);
     },
     async readMarker(options: {
       readonly driver: SqlControlDriverInstance<string>;
@@ -1010,7 +933,25 @@ export function createSqlFamilyInstance<TTargetId extends string>(
           },
         );
       }
-      return targetInferPslContract(schemaIR, describedContracts);
+      return targetInferPslContract(schemaIR, pslBuildContext, describedContracts);
+    },
+
+    buildPslContract(contract: Contract<SqlStorage>): PslContractDocument {
+      if (!targetBuildPslContract) {
+        throw sqlFamilyError(
+          'CONTRACT.PRINT_UNSUPPORTED',
+          `Target "${target.targetId}" does not support contract print (no buildPslContract on its descriptor).`,
+          {
+            why: 'The target descriptor does not provide the buildPslContract hook, so the contract cannot be printed as a Prisma 8 PSL file.',
+            fix: 'Use a target whose descriptor provides buildPslContract, or write the Prisma 8 PSL file by hand.',
+            meta: { targetId: target.targetId },
+          },
+        );
+      }
+      return {
+        document: targetBuildPslContract(contract, pslBuildContext),
+        sourceSettings: ifDefined('defaultControlPolicy', contract.defaultControlPolicy),
+      };
     },
 
     lowerAst(
@@ -1026,6 +967,10 @@ export function createSqlFamilyInstance<TTargetId extends string>(
 
     toOperationPreview(operations: readonly MigrationPlanOperation[]): OperationPreview {
       return sqlOperationsToPreview(operations);
+    },
+
+    storageNameOf(operation: MigrationPlanOperation): string {
+      return storageNameOfOperation(operation);
     },
 
     toSchemaView(schema: SqlSchemaIRNode): CoreSchemaView {

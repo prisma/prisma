@@ -6,6 +6,7 @@ import {
   UpdateAst,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
+import * as contractFree from '../../src/exports/contract-free';
 import {
   int4,
   jsonb,
@@ -14,9 +15,14 @@ import {
   text,
   textArray,
   timestamptz,
+  timestamptzJsDate,
 } from '../../src/exports/contract-free';
 
 describe('postgres column type helpers', () => {
+  it('does not export the retired Date preset name', () => {
+    expect(contractFree).not.toHaveProperty('timestamptzDate');
+  });
+
   it('column helpers return expected codec descriptors', () => {
     expect({
       text: text(),
@@ -24,12 +30,16 @@ describe('postgres column type helpers', () => {
       jsonb: jsonb(),
       textArray: textArray(),
       timestamptz: timestamptz(),
+      timestamptzJsDate: timestamptzJsDate(),
+      nullableDate: timestamptzJsDate({ nullable: true }),
     }).toEqual({
       text: { codecId: 'pg/text@1', nullable: false },
       int4: { codecId: 'pg/int4@1', nullable: false },
       jsonb: { codecId: 'pg/jsonb@1', nullable: false },
-      textArray: { codecId: 'pg/text-array@1', nullable: false },
+      textArray: { codecId: 'pg/text@1', nullable: false, many: true },
       timestamptz: { codecId: 'pg/timestamptz-string@1', nullable: false },
+      timestamptzJsDate: { codecId: 'pg/timestamptz-date@1', nullable: false },
+      nullableDate: { codecId: 'pg/timestamptz-date@1', nullable: true },
     });
   });
 
@@ -61,7 +71,7 @@ describe('pgTable()', () => {
     expect(marker.space.codecId).toBe('pg/text@1');
     expect(marker.space.nullable).toBe(false);
     expect(marker.contract_json.nullable).toBe(true);
-    expect(marker.invariants.codecId).toBe('pg/text-array@1');
+    expect(marker.invariants.codecId).toBe('pg/text@1');
   });
 
   it('column proxy .eq() carries the column codec in the emitted ParamRef', () => {

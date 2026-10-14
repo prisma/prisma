@@ -1,8 +1,13 @@
 import {
+  type CodecTypeMap,
+  composePackAuthoringNamespace,
   createEntityHelpersFromNamespace,
+  createFieldHelpersFromNamespace,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
   type MergeExtensionAuthoringNamespaces,
+  type ResolveTemplateValue,
+  type TupleFromArgumentDescriptors,
 } from '@internal/contract-authoring';
 import type {
   AuthoringArgumentDescriptor,
@@ -11,34 +16,34 @@ import type {
   AuthoringTypeConstructorDescriptor,
   AuthoringTypeNamespace,
 } from '@internal/framework-components/authoring';
-import {
-  assertNoCrossRegistryCollisions,
-  mergeAuthoringNamespaces,
-} from '@internal/framework-components/authoring';
+import { assertNoCrossRegistryCollisions } from '@internal/framework-components/authoring';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
   TargetPackRef,
 } from '@internal/framework-components/components';
+import { blindCast } from '@internal/utils/casts';
 import {
-  createFieldHelpersFromNamespace,
+  type AuthoringTypeLookups,
   createFieldPresetHelper,
   createTypeHelpersFromNamespace,
 } from './authoring-helper-runtime';
-import type {
-  FieldHelpersFromNamespace,
-  ResolveTemplateValue,
-  TupleFromArgumentDescriptors,
-} from './authoring-type-utils';
+import type { FieldHelpersFromNamespace } from './authoring-type-utils';
 import type {
   AnyRelationBuilder,
+  ColumnFieldHelper,
   ContractModelBuilder,
   IndexTypeMap,
+  NamedTypeFieldHelper,
   ScalarFieldBuilder,
 } from './contract-dsl';
 import { buildFieldPreset, field, model, rel } from './contract-dsl';
 import { contractError } from './contract-errors';
-import type { MergeExtensionIndexTypes } from './contract-types';
+import type {
+  ExtractCodecTypesFromPack,
+  MergeExtensionCodecTypesSafe,
+  MergeExtensionIndexTypes,
+} from './contract-types';
 
 type ExtractTypeNamespaceFromPack<Pack> = ExtractAuthoringNamespaceFromPack<
   Pack,
@@ -75,7 +80,6 @@ type StorageTypeFromDescriptor<
 > = {
   readonly kind: 'codec-instance';
   readonly codecId: ResolveTemplateValue<Descriptor['output']['codecId'], Args>;
-  readonly nativeType: ResolveTemplateValue<Descriptor['output']['nativeType'], Args>;
 } & (Descriptor['output'] extends {
   readonly typeParams: infer TypeParams extends Record<string, unknown>;
 }
@@ -101,6 +105,15 @@ type TypeHelpersFromNamespace<Namespace> = {
 
 type CoreFieldHelpers = Pick<typeof field, 'column' | 'generated' | 'namedType'>;
 
+type FieldHelpersForCodecs<CodecTypes extends CodecTypeMap> = Pick<typeof field, 'generated'> & {
+  readonly column: ColumnFieldHelper<CodecTypes>;
+  readonly namedType: NamedTypeFieldHelper<CodecTypes>;
+};
+
+type CodecTypesOfPacks<Family, Target, Extensions> = ExtractCodecTypesFromPack<Family> &
+  ExtractCodecTypesFromPack<Target> &
+  MergeExtensionCodecTypesSafe<Extensions>;
+
 type MergeAllPackIndexTypes<Family, Target, Extensions> = MergeExtensionIndexTypes<
   { readonly __family: Family; readonly __target: Target } & (Extensions extends Record<
     string,
@@ -115,18 +128,42 @@ type PackAwareModel<IndexTypes extends IndexTypeMap> = {
     const ModelName extends string,
     Fields extends Record<string, ScalarFieldBuilder>,
     Relations extends Record<string, AnyRelationBuilder> = Record<never, never>,
+    const Namespace extends string | undefined = undefined,
   >(
     modelName: ModelName,
-    input: { readonly fields: Fields; readonly relations?: Relations; readonly namespace?: string },
-  ): ContractModelBuilder<ModelName, Fields, Relations, undefined, undefined, IndexTypes>;
+    input: {
+      readonly fields: Fields;
+      readonly relations?: Relations;
+      readonly namespace?: Namespace;
+    },
+  ): ContractModelBuilder<
+    ModelName,
+    Fields,
+    Relations,
+    undefined,
+    undefined,
+    IndexTypes,
+    '<self>',
+    NoInfer<Namespace>
+  >;
   <
     Fields extends Record<string, ScalarFieldBuilder>,
     Relations extends Record<string, AnyRelationBuilder> = Record<never, never>,
+    const Namespace extends string | undefined = undefined,
   >(input: {
     readonly fields: Fields;
     readonly relations?: Relations;
-    readonly namespace?: string;
-  }): ContractModelBuilder<undefined, Fields, Relations, undefined, undefined, IndexTypes>;
+    readonly namespace?: Namespace;
+  }): ContractModelBuilder<
+    undefined,
+    Fields,
+    Relations,
+    undefined,
+    undefined,
+    IndexTypes,
+    '<self>',
+    NoInfer<Namespace>
+  >;
 };
 
 export type ComposedAuthoringHelpers<
@@ -138,11 +175,12 @@ export type ComposedAuthoringHelpers<
     ExtractEntitiesNamespaceFromPack<Target> &
     MergeExtensionEntityNamespaces<Extensions>
 > & {
-  readonly field: CoreFieldHelpers &
+  readonly field: FieldHelpersForCodecs<CodecTypesOfPacks<Family, Target, Extensions>> &
     FieldHelpersFromNamespace<
       ExtractFieldNamespaceFromPack<Family> &
         ExtractFieldNamespaceFromPack<Target> &
-        MergeExtensionFieldNamespaces<Extensions>
+        MergeExtensionFieldNamespaces<Extensions>,
+      CodecTypesOfPacks<Family, Target, Extensions>
     >;
   readonly model: PackAwareModel<MergeAllPackIndexTypes<Family, Target, Extensions>>;
   readonly rel: typeof rel;
@@ -153,21 +191,6 @@ export type ComposedAuthoringHelpers<
   >;
 };
 
-function extractTypeNamespace<Pack>(pack: Pack): ExtractTypeNamespaceFromPack<Pack> {
-  return ((pack as { readonly authoring?: { readonly type?: unknown } }).authoring?.type ??
-    {}) as ExtractTypeNamespaceFromPack<Pack>;
-}
-
-function extractFieldNamespace<Pack>(pack: Pack): ExtractFieldNamespaceFromPack<Pack> {
-  return ((pack as { readonly authoring?: { readonly field?: unknown } }).authoring?.field ??
-    {}) as ExtractFieldNamespaceFromPack<Pack>;
-}
-
-function extractEntitiesNamespace<Pack>(pack: Pack): ExtractEntitiesNamespaceFromPack<Pack> {
-  return ((pack as { readonly authoring?: { readonly entityTypes?: unknown } }).authoring
-    ?.entityTypes ?? {}) as ExtractEntitiesNamespaceFromPack<Pack>;
-}
-
 type AuthoringComponent = {
   readonly authoring?: {
     readonly type?: unknown;
@@ -177,38 +200,17 @@ type AuthoringComponent = {
 };
 
 function composeTypeNamespace(components: readonly AuthoringComponent[]): AuthoringTypeNamespace {
-  const merged: Record<string, unknown> = {};
-  for (const component of components) {
-    const ns = extractTypeNamespace(component);
-    if (Object.keys(ns).length > 0) {
-      mergeAuthoringNamespaces(merged, ns, [], 'typeConstructor', 'type');
-    }
-  }
-  return merged as AuthoringTypeNamespace;
+  return composePackAuthoringNamespace(components, 'type');
 }
 
 function composeFieldNamespace(components: readonly AuthoringComponent[]): AuthoringFieldNamespace {
-  const merged: Record<string, unknown> = {};
-  for (const component of components) {
-    const ns = extractFieldNamespace(component);
-    if (Object.keys(ns).length > 0) {
-      mergeAuthoringNamespaces(merged, ns, [], 'fieldPreset', 'field');
-    }
-  }
-  return merged as AuthoringFieldNamespace;
+  return composePackAuthoringNamespace(components, 'field');
 }
 
 function composeEntityNamespace(
   components: readonly AuthoringComponent[],
 ): AuthoringEntityTypeNamespace {
-  const merged: Record<string, unknown> = {};
-  for (const component of components) {
-    const ns = extractEntitiesNamespace(component);
-    if (Object.keys(ns).length > 0) {
-      mergeAuthoringNamespaces(merged, ns, [], 'entity', 'entity');
-    }
-  }
-  return merged as AuthoringEntityTypeNamespace;
+  return composePackAuthoringNamespace(components, 'entityTypes');
 }
 
 /**
@@ -235,6 +237,7 @@ function assertNoBuiltInEntityCollisions(namespace: AuthoringEntityTypeNamespace
 
 function createComposedFieldHelpers(
   fieldNamespace: AuthoringFieldNamespace,
+  lookups: AuthoringTypeLookups,
 ): CoreFieldHelpers & Record<string, unknown> {
   const helperNamespace = createFieldHelpersFromNamespace(
     fieldNamespace,
@@ -242,6 +245,7 @@ function createComposedFieldHelpers(
       createFieldPresetHelper({
         helperPath,
         descriptor,
+        codecLookup: lookups.codecLookup,
         build: ({ args, namedConstraintOptions }) =>
           buildFieldPreset(descriptor, args, namedConstraintOptions),
       }),
@@ -273,11 +277,13 @@ export function createComposedAuthoringHelpers<
   Family extends FamilyPackRef<string>,
   Target extends TargetPackRef<'sql', string>,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
->(options: {
-  readonly family: Family;
-  readonly target: Target;
-  readonly extensions?: Extensions;
-}): ComposedAuthoringHelpers<Family, Target, Extensions> {
+>(
+  options: {
+    readonly family: Family;
+    readonly target: Target;
+    readonly extensions?: Extensions;
+  } & AuthoringTypeLookups,
+): ComposedAuthoringHelpers<Family, Target, Extensions> {
   const extensionValues: readonly ExtensionPackRef<'sql', string>[] = Object.values(
     (options.extensions ?? {}) as Record<string, ExtensionPackRef<'sql', string>>,
   );
@@ -295,13 +301,21 @@ export function createComposedAuthoringHelpers<
   assertNoCrossRegistryCollisions(typeNamespace, fieldNamespace, entityNamespace);
   assertNoBuiltInEntityCollisions(entityNamespace);
 
-  return {
+  return blindCast<
+    ComposedAuthoringHelpers<Family, Target, Extensions>,
+    'the helpers are the same objects for every set of packs; the packs decide only their types'
+  >({
     ...createEntityHelpersFromNamespace(entityNamespace, {
-      ctx: { family: options.family.familyId, target: options.target.targetId },
+      ctx: {
+        family: options.family.familyId,
+        target: options.target.targetId,
+        codecLookup: options.codecLookup,
+        dataTypeLookup: options.dataTypeLookup,
+      },
     }),
-    field: createComposedFieldHelpers(fieldNamespace),
+    field: createComposedFieldHelpers(fieldNamespace, options),
     model,
     rel,
-    type: createTypeHelpersFromNamespace(typeNamespace),
-  } as ComposedAuthoringHelpers<Family, Target, Extensions>;
+    type: createTypeHelpersFromNamespace(typeNamespace, options),
+  });
 }

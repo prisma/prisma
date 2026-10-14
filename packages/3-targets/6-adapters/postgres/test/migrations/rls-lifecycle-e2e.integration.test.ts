@@ -1,5 +1,6 @@
 import type { Contract } from '@internal/contract/types';
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import {
   APP_SPACE_ID,
@@ -7,14 +8,21 @@ import {
   issueOutcome,
   type MigrationOperationPolicy,
 } from '@internal/framework-components/control';
-import { buildSymbolTable } from '@internal/psl-parser';
-import { parse } from '@internal/psl-parser/syntax';
+import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
+import { bindPslSchema } from '@internal/psl-parser/test';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import {
+  describeUnsupportedSqlAttribute,
+  sqlAttributeSpecs,
+} from '@internal/sql-contract-psl/attribute-specs';
+import { sqlContextInput } from '@internal/sql-contract-psl/test';
 import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
+import { postgresScalarAuthoringTypes } from '@internal/target-postgres/control';
 import { isPostgresSchema, postgresCreateNamespace } from '@internal/target-postgres/types';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { postgresScalarAuthoringTypes } from '../../src/core/control-mutation-defaults';
+import { postgresDataTypeSupport } from '../helpers/postgres-data-type-support';
 import {
   controlAdapter,
   createDriver,
@@ -28,6 +36,8 @@ import {
   synthEdges,
   testTimeout,
 } from './fixtures/runner-fixtures';
+
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 // ============================================================================
 // PSL sources
@@ -50,7 +60,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `;
@@ -68,7 +78,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int AND deleted_at IS NULL"
+    using  = sql\`owner_id = current_setting('app.uid')::int AND deleted_at IS NULL\`
   }
 }
 `;
@@ -103,7 +113,7 @@ namespace public {
   policy_insert n_ins {
     target    = note
     roles     = [app_user]
-    withCheck = "owner_id = current_setting('app.uid')::int"
+    withCheck = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `;
@@ -120,7 +130,7 @@ namespace public {
   policy_insert n_ins {
     target    = note
     roles     = [app_user]
-    withCheck = "owner_id = current_setting('app.uid')::int AND owner_id > 0"
+    withCheck = sql\`owner_id = current_setting('app.uid')::int AND owner_id > 0\`
   }
 }
 `;
@@ -129,43 +139,60 @@ namespace public {
 // PSL → contract helpers
 // ============================================================================
 
-function buildScalarTypeDescriptors(): ReadonlyMap<
-  string,
-  { codecId: string; nativeType: string }
-> {
+function buildScalarTypeDescriptors(): ReadonlyMap<string, { codecId: string }> {
   return collectScalarTypeConstructors(postgresScalarAuthoringTypes);
 }
 
 function buildContractFromPsl(psl: string): Contract<SqlStorage> {
   const assembled = assembleAuthoringContributions([postgresTargetDescriptor]);
   const scalarColumnDescriptors = buildScalarTypeDescriptors();
+  const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor> =
+    Object.fromEntries(
+      [...scalarColumnDescriptors].map(([name, output]) => [
+        name,
+        { kind: 'typeConstructor' as const, output },
+      ]),
+    );
 
-  const { document, sourceFile } = parse(psl);
-  const { table: symbolTable } = buildSymbolTable({
-    document,
-    sourceFile,
-    pslBlockDescriptors: assembled.pslBlockDescriptors,
-  });
-
-  const result = interpretPslDocumentToSqlContract({
-    symbolTable,
-    sourceFile,
-    sourceId: 'schema.prisma',
-    target: {
-      kind: 'target' as const,
-      familyId: 'sql' as const,
-      targetId: 'postgres' as const,
-      id: 'postgres',
-      version: postgresTargetDescriptor.version,
-      capabilities: {},
+  const bound = bindPslSchema(psl, {
+    sourceId: 'rls-lifecycle-e2e.integration.test.psl',
+    context: {
+      composedExtensions: [],
       defaultNamespaceId: 'public',
+      composedExtensionContracts: new Map(),
+      authoringContributions: {
+        ...assembled,
+        type: { ...scalarTypeConstructors, ...assembled.type },
+        attributeSpecs: sqlAttributeSpecs,
+      },
+      pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+      codecLookup: postgresCodecLookup,
+      controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      dataTypes: postgresDataTypeSupport,
+      resolvedInputs: [],
+      capabilities: { sql: { scalarList: true } },
     },
-    scalarColumnDescriptors,
-    authoringContributions: assembled,
-    composedExtensionContracts: new Map(),
-    createNamespace: postgresCreateNamespace,
-    capabilities: { sql: { scalarList: true } },
   });
+  const result = withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: {
+        kind: 'target' as const,
+        familyId: 'sql' as const,
+        targetId: 'postgres' as const,
+        id: 'postgres',
+        version: postgresTargetDescriptor.version,
+        capabilities: {},
+        defaultNamespaceId: 'public',
+      },
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
+  );
 
   if (!result.ok) throw new Error(`PSL interpretation failed: ${JSON.stringify(result)}`);
   return result.value as Contract<SqlStorage>;
@@ -192,6 +219,8 @@ async function applyContract(
     schema,
     policy,
     fromContract: null,
+    origin: null,
+    statements: [],
     frameworkComponents,
     spaceId: APP_SPACE_ID,
     snapshotsImportPath: '../../snapshots',
@@ -294,6 +323,8 @@ describe('RLS lifecycle e2e — edit replaces, removal fails verify', { concurre
         schema: introspected,
         policy: ALLOW_DESTRUCTIVE,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: '../../snapshots',
@@ -469,6 +500,8 @@ describe('RLS policy_insert WITH CHECK — enforcement + edit replaces', {
         schema: introspected,
         policy: ALLOW_DESTRUCTIVE,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: '../../snapshots',

@@ -124,16 +124,23 @@ describe('prepared statements that report statistics', () => {
     expect(executeCalls[1]?.preparedStatementHandle?.get()).toBe('driver-side-handle');
   });
 
-  it('runs the execute middleware chain, not the query chain', async () => {
+  it('runs as a statement that returns statistics', async () => {
     const seen: string[] = [];
     const recorder: SqlMiddleware = {
       name: 'operation-recorder',
       familyId: 'sql',
-      beforeQuery() {
-        seen.push('beforeQuery');
+      async activityStarted(activity) {
+        if (activity.kind === 'statement') seen.push(activity.returns);
       },
-      beforeExecute() {
-        seen.push('beforeExecute');
+      intercept: {
+        async onQuery() {
+          seen.push('onQuery');
+          return undefined;
+        },
+        async onExecute() {
+          seen.push('onExecute');
+          return undefined;
+        },
       },
     };
     const { runtime } = setup([recorder]);
@@ -143,7 +150,7 @@ describe('prepared statements that report statistics', () => {
 
     await prepared.execute(runtime, { id: 7 });
 
-    expect(seen).toEqual(['beforeExecute']);
+    expect(seen).toEqual(['stats', 'onExecute']);
   });
 });
 

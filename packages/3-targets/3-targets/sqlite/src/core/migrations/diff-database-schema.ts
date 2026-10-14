@@ -1,6 +1,6 @@
 import type { ColumnDefault, Contract, ControlPolicy } from '@internal/contract/types';
-import type { NativeTypeExpander, SqlSchemaDiffResult } from '@internal/family-sql/control';
-import { buildNativeTypeExpander, contractToSchemaIR } from '@internal/family-sql/control';
+import type { SqlSchemaDiffResult } from '@internal/family-sql/control';
+import { contractToSchemaIR, sqlTypeLookupsOf } from '@internal/family-sql/control';
 import { verifySqlSchemaByDiff } from '@internal/family-sql/diff';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
@@ -9,6 +9,7 @@ import type {
 } from '@internal/framework-components/control';
 import { diffSchemas } from '@internal/framework-components/control';
 import { entityAt } from '@internal/framework-components/ir';
+import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import type {
   SqlColumnIRInput,
@@ -18,42 +19,39 @@ import type {
 } from '@internal/sql-schema-ir/types';
 import { relationalNodeGranularity, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
-import { ifDefined } from '@internal/utils/defined';
+import { SQLITE_NOW_EXPRESSION } from '../datetime-text';
+import { sqliteResolveDefault } from '../default-normalizer';
 import { renderDefaultLiteral } from './planner-ddl-builders';
 
 interface SqliteDiffDatabaseSchemaInput {
   readonly contract: Contract<SqlStorage>;
   readonly actualSchema: SqlSchemaIRNode;
   readonly strict: boolean;
-  readonly typeMetadataRegistry: ReadonlyMap<string, { readonly nativeType?: string }>;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
 }
 
 /** Renders a column default for the SQLite dialect. */
-export function sqliteRenderDefault(def: ColumnDefault, _column: StorageColumn): string {
+export function sqliteRenderDefault(def: ColumnDefault, column: StorageColumn): string {
   if (def.kind === 'function') {
     if (def.expression === 'now()') {
-      return "datetime('now')";
+      return SQLITE_NOW_EXPRESSION;
     }
     return def.expression;
   }
-  return renderDefaultLiteral(def.value);
+  return renderDefaultLiteral(def.value, column);
 }
 
 /**
  * The SQLite expected-side projection: contract → flat relational schema IR.
  *
- * `extras` thread the plan-time derivation input: the native-type expander,
- * so the expected side carries resolved native types (like the verify
- * side). Every expected column also carries its `codecRef` unconditionally
+ * Each column's type is written from the data type its codec represents.
+ * Every expected column also carries its `codecRef` unconditionally
  * (Decision 5) — the planner's op-builders resolve DDL rendering from it at
  * plan time, so no separate render stamper is threaded here.
  */
 export function sqliteContractToSchema(
   contract: Contract<SqlStorage> | null,
-  extras?: {
-    readonly expandNativeType?: NativeTypeExpander;
-  },
+  types: SqlTypeLookups,
 ): SqlSchemaIR {
   // SQLite is single-schema: every contract FK targets the unbound namespace
   // node, so derivation stamps no referenced namespace — the same absence
@@ -62,7 +60,9 @@ export function sqliteContractToSchema(
   return contractToSchemaIR(contract, {
     annotationNamespace: 'sqlite',
     renderDefault: sqliteRenderDefault,
-    ...ifDefined('expandNativeType', extras?.expandNativeType),
+    resolveDefault: sqliteResolveDefault,
+    dataTypeLookup: types.dataTypeLookup,
+    codecLookup: types.codecLookup,
   });
 }
 
@@ -111,8 +111,8 @@ function resolveControlPolicy(
 
 /**
  * The SQLite full-tree node diff for the family verify verdict: derive the
- * expected flat tree with resolved leaf values (expander threaded so
- * parameterized types compare expanded; FK nodes born with the flat empty
+ * expected flat tree with resolved leaf values (parameterized types written
+ * with their parameters; FK nodes born with the flat empty
  * `resolvedReferencedNamespace`), and run the generic differ over the trees
  * as derived. Flat targets need no ownership scoping. The codec `verifyType`
  * hooks run once per contract namespace with tables, each against the sole
@@ -123,10 +123,8 @@ export function diffSqliteSchema(input: {
   readonly schema: SqlSchemaIRNode;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
 }): SqlSchemaDiffResult {
-  const expandNativeType = buildNativeTypeExpander(input.frameworkComponents);
-  const expected = sqliteContractToSchema(input.contract, {
-    ...ifDefined('expandNativeType', expandNativeType),
-  });
+  const types = sqlTypeLookupsOf(input.frameworkComponents);
+  const expected = sqliteContractToSchema(input.contract, types);
   const actual =
     input.schema instanceof SqlSchemaIR
       ? input.schema
@@ -155,7 +153,7 @@ export interface SqlitePlanDiff {
 
 /**
  * The SQLite planner's diff input: the same tree-building
- * `diffSqliteSchema` uses (expander threaded, FK nodes born flat). One differ
+ * `diffSqliteSchema` uses (FK nodes born flat). One differ
  * drives both verify and plan over the trees as derived; this is the plan-side
  * derivation — column DDL resolves from each expected column's `codecRef` at
  * plan time (`column-ddl-rendering.ts`), so no separate render stamping happens here.
@@ -165,19 +163,22 @@ export function buildSqlitePlanDiff(input: {
   readonly actualSchema: SqlSchemaIRNode;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
 }): SqlitePlanDiff {
-  const expandNativeType = buildNativeTypeExpander(input.frameworkComponents);
-  const expected = sqliteContractToSchema(input.contract, {
-    ...ifDefined('expandNativeType', expandNativeType),
-  });
+  const types = sqlTypeLookupsOf(input.frameworkComponents);
+  const expected = sqliteContractToSchema(input.contract, types);
   // The differ dispatches polymorphically (`.isEqualTo()` / `.children()`), so
   // the actual tree must be genuine `SqlSchemaIR`/`SqlTableIR`/`SqlColumnIR`
   // instances, not plain data shaped like them. `new SqlSchemaIR(...)`
   // normalizes either input uniformly (an already-real tree passes through
   // untouched — its nested values are already instances) and is a no-op
   // rebuild in the common (real-instance) case, so this is always safe to run.
-  const actual = new SqlSchemaIR(withRecordKeyNames(input.actualSchema));
+  const actual = sqliteActualSchema(input.actualSchema);
   const issues = diffSchemas(expected, actual);
   return { expected, actual, issues };
+}
+
+/** The schema a plan starts from as a `SqlSchemaIR`, its table and column names taken from their keys. */
+export function sqliteActualSchema(actualSchema: SqlSchemaIRNode): SqlSchemaIR {
+  return new SqlSchemaIR(withRecordKeyNames(actualSchema));
 }
 
 /**

@@ -1,4 +1,5 @@
 export type {
+  DefaultInCanonicalForm,
   PrimaryKeyInput,
   SqlAnnotations,
   SqlCheckConstraintIRInput,
@@ -9,13 +10,13 @@ export type {
   SqlReferentialAction,
   SqlSchemaIRInput,
   SqlTableIRInput,
-  SqlTypeMetadata,
-  SqlTypeMetadataRegistry,
   SqlUniqueIRInput,
 } from '../types';
 
 export {
   assertNode,
+  contractDefaultRefusal,
+  defaultInCanonicalForm,
   defineNonEnumerable,
   PrimaryKey,
   RelationalSchemaNodeKind,

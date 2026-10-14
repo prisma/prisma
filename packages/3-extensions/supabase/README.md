@@ -1,6 +1,6 @@
 # @internal/extension-supabase
 
-Supabase extension pack for Prisma Next.
+Supabase extension pack for Prisma 8.
 
 ## Overview
 
@@ -85,6 +85,8 @@ const users = await admin.supabase
   .toArray();
 ```
 
+Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-family-sql/runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. The runtime for `auth.*` and `storage.*` reads logs to it too. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events.
+
 **Role binding is structurally unbypassable.** Each role-bound query runs on a connection that has had `set_config('role', …, false)` and `set_config('request.jwt.claims', …, false)` applied *below* the user-middleware chain, with `RESET ALL` on release — user middleware can neither observe nor suppress it, and no role leaks across pool checkouts. See [ADR 230](../../../docs/architecture%20docs/adrs/ADR%20230%20-%20Runtime%20target%20layer%20session-coupled%20connections.md).
 
 ### JWT validation
@@ -121,7 +123,7 @@ The example authors its RLS policies in PSL (`policy_select` / `policy_update` +
 - **Direct merged cross-space queries** — `db.sql.auth.users` off the app db does not exist by design (cross-space *querying* was not built; only FK *references* cross the boundary). Use `db.asServiceRole().supabase.sql.auth.users` for Supabase-internal tables.
 - **Supabase Realtime** — the WebSocket change feed is a separate subsystem.
 - **Storage uploads** — `storage.*` tables are declared for reference/reads; file upload/download helpers are out of scope (use `@supabase/storage-js`).
-- **PostgREST / `@supabase/supabase-js` interop** — Prisma Next connects directly to Postgres; there is no `serviceRoleKey` / PostgREST path.
+- **PostgREST / `@supabase/supabase-js` interop** — Prisma 8 connects directly to Postgres; there is no `serviceRoleKey` / PostgREST path.
 - **Edge runtimes** — the runtime needs a Postgres driver; Cloudflare Workers / Deno / Vercel Edge are out of scope (Node.js + Bun for v0.1).
 - **Triggers & functions as first-class IR** — the "create a profile on signup" trigger is a documented raw-SQL recipe, not contract-authored (functions are not contract elements). `auth.uid()` etc. live inside opaque RLS predicate strings.
 

@@ -1,55 +1,320 @@
 import { crossRef } from '@internal/contract/types';
 import { validateContractDomain } from '@internal/contract/validate-domain';
 import type { SqlModelStorage, SqlStorage } from '@internal/sql-contract/types';
+import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import {
-  type InterpretPslDocumentToSqlContractInput,
-  interpretPslDocumentToSqlContract as interpretPslDocumentToSqlContractInternal,
-} from '../src/interpreter';
+import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
+import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
   documentScopedTypes,
+  interpretSqlContract,
   modelsOf,
   postgresScalarTypeDescriptors,
   postgresTarget,
-  symbolTableInputFromParseArgs,
 } from './fixtures';
 
 describe('interpretPslDocumentToSqlContract — polymorphism', () => {
   const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
-  const interpretPslDocumentToSqlContract = (
+  const interpretPostgresSchema = (
+    schema: string,
     input: Omit<
       InterpretPslDocumentToSqlContractInput,
+      | 'documents'
+      | 'sources'
+      | 'symbolTable'
+      | 'binder'
       | 'target'
       | 'scalarColumnDescriptors'
       | 'composedExtensionContracts'
       | 'createNamespace'
       | 'capabilities'
+      | 'dataTypes'
+      | 'codecLookup'
     > &
       Partial<Pick<InterpretPslDocumentToSqlContractInput, 'composedExtensionContracts'>>,
   ) =>
-    interpretPslDocumentToSqlContractInternal({
+    interpretSqlContract(schema, {
       target: postgresTarget,
       scalarColumnDescriptors: postgresScalarTypeDescriptors,
       composedExtensionContracts: new Map(),
       createNamespace: createTestSqlNamespace,
+      ...fixtureInterpreterTypes,
       capabilities: { sql: { scalarList: true } },
       ...input,
     });
 
-  it('ignores polymorphism collection when the schema has no models', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `types {
-  Email = String
-}`,
-      sourceId: 'schema.prisma',
+  it('keeps same-named inheritance graphs independent across namespaces', () => {
+    const inheritanceSchema = (namespace: string) => `namespace ${namespace} {
+  model Bug {
+    ${namespace}Detail String @map("${namespace}_detail")
+    @@base(Task, "bug")
+  }
+  model Feature {
+    ${namespace}Priority Int
+    @@base(Task, "feature")
+    @@map("${namespace}_features")
+  }
+  model Task {
+    ${namespace}Id Int @id @map("${namespace}_id")
+    ${namespace}Kind String
+    @@discriminator(${namespace}Kind)
+    @@map("${namespace}_tasks")
+  }
+}`;
+    const standalone = 'model Bug {\n id Int @id\n @@map("standalone_bug")\n}';
+    const interpret = (schema: string) => {
+      const result = interpretPostgresSchema(schema, {
+        controlMutationDefaults: builtinControlMutationDefaults,
+      });
+      expect(result.ok).toBe(true);
+      if (!result.ok) throw new Error(JSON.stringify(result.failure));
+      return result.value;
+    };
+    const combined = interpret(
+      [standalone, inheritanceSchema('alpha'), inheritanceSchema('beta')].join('\n'),
+    );
+    expect(() => validateContractDomain(combined)).not.toThrow();
+    const envelope: unknown = JSON.parse(JSON.stringify(combined));
+    expect(() => validateSqlContractFully(envelope)).not.toThrow();
+    for (const namespace of ['alpha', 'beta']) {
+      const isolated = interpret(inheritanceSchema(namespace));
+      expect(combined.domain.namespaces[namespace]).toEqual(isolated.domain.namespaces[namespace]);
+      const storage = combined.storage as SqlStorage;
+      expect(storage.namespaces[namespace]).toEqual(
+        (isolated.storage as SqlStorage).namespaces[namespace],
+      );
+      expect(combined.domain.namespaces[namespace]?.models['Task']).toMatchObject({
+        discriminator: { field: `${namespace}Kind` },
+        variants: { bug: crossRef('Bug', namespace), feature: crossRef('Feature', namespace) },
+      });
+      expect(combined.domain.namespaces[namespace]?.models['Bug']).toMatchObject({
+        base: crossRef('Task', namespace),
+        storage: { table: `${namespace}_tasks` },
+      });
+      expect(storage.namespaces[namespace]?.entries.table?.[`${namespace}_features`]).toMatchObject(
+        {
+          primaryKey: { columns: [`${namespace}_id`] },
+          foreignKeys: [
+            {
+              target: {
+                tableName: `${namespace}_tasks`,
+                columns: [`${namespace}_id`],
+                namespaceId: namespace,
+              },
+            },
+          ],
+        },
+      );
+    }
+    expect(combined.roots).toEqual({
+      standalone_bug: crossRef('Bug', 'public'),
+      alpha_tasks: crossRef('Task', 'alpha'),
+      beta_tasks: crossRef('Task', 'beta'),
     });
+  });
 
-    const result = interpretPslDocumentToSqlContract({
-      ...document,
+  it.each([
+    [
+      'type Base { value String }',
+      'model Variant { id Int @id\n @@base(Base, "v") }',
+      'Expected model reference "Base", found compositeType',
+      'PSL_INVALID_ATTRIBUTE_SYNTAX',
+    ],
+    [
+      'namespace sibling { model Base { id Int @id } }',
+      'namespace local { model Variant { id Int @id\n @@base(Base, "v") } }',
+      'Cannot find entity "Base"',
+      'PSL_UNRESOLVED_REFERENCE',
+    ],
+    [
+      'model Base { id Int @id }',
+      'namespace local { type Base { value String }\n model Variant { id Int @id\n @@base(Base, "v") } }',
+      'Expected model reference "Base", found compositeType',
+      'PSL_INVALID_ATTRIBUTE_SYNTAX',
+    ],
+  ])('reports checked-reference failure for %s', (base, variant, message, code) => {
+    const schema = `${base}\n${variant}`;
+    const result = interpretPostgresSchema(schema, {
       controlMutationDefaults: builtinControlMutationDefaults,
     });
+    expect(result.ok).toBe(false);
+    if (!result.ok)
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code,
+          message,
+          sourceId: 'schema.prisma',
+          span: expect.objectContaining({
+            start: expect.objectContaining({ offset: schema.indexOf('@@base(Base') + 7 }),
+          }),
+        }),
+      ]);
+  });
+
+  describe('variants in other namespaces', () => {
+    const baseNamespace = `namespace a {
+  model Task {
+    id   Int    @id
+    type String
+    @@discriminator(type)
+    @@map("tasks")
+  }
+}`;
+
+    it('references each variant by its own namespace', () => {
+      const result = interpretPostgresSchema(
+        `${baseNamespace}
+namespace b {
+  model Chore {
+    effort Int
+    @@base(a.Task, "chore")
+    @@map("tasks")
+  }
+  model Epic {
+    points Int
+    @@base(a.Task, "b-epic")
+    @@map("epics")
+  }
+}
+namespace c {
+  model Epic {
+    goal String
+    @@base(a.Task, "c-epic")
+    @@map("epics")
+  }
+}`,
+        { controlMutationDefaults: builtinControlMutationDefaults },
+      );
+      if (!result.ok) throw new Error(JSON.stringify(result.failure));
+      const contract = result.value;
+      expect(() => validateSqlContractFully(JSON.parse(JSON.stringify(contract)))).not.toThrow();
+      const { a, b, c } = contract.domain.namespaces;
+      expect(a?.models['Task']?.variants).toEqual({
+        chore: crossRef('Chore', 'b'),
+        'b-epic': crossRef('Epic', 'b'),
+        'c-epic': crossRef('Epic', 'c'),
+      });
+      expect(b?.models['Chore']).toMatchObject({
+        base: crossRef('Task', 'a'),
+        storage: { table: 'tasks', namespaceId: 'b' },
+      });
+      expect(b?.models['Epic']).toMatchObject({
+        base: crossRef('Task', 'a'),
+        storage: { table: 'epics', namespaceId: 'b' },
+      });
+      expect(c?.models['Epic']).toMatchObject({
+        base: crossRef('Task', 'a'),
+        storage: { table: 'epics', namespaceId: 'c' },
+      });
+      const storage = contract.storage as SqlStorage;
+      const variantTables = [
+        ['b', 'tasks'],
+        ['b', 'epics'],
+        ['c', 'epics'],
+      ] as const;
+      for (const [namespace, table] of variantTables) {
+        expect(storage.namespaces[namespace]?.entries.table?.[table]).toMatchObject({
+          primaryKey: { columns: ['id'] },
+          foreignKeys: [{ target: { namespaceId: 'a', tableName: 'tasks', columns: ['id'] } }],
+        });
+      }
+      expect(Object.values(contract.roots)).toEqual([crossRef('Task', 'a')]);
+    });
+
+    it('diagnoses a variant without @@map', () => {
+      const schema = `${baseNamespace}
+namespace b {
+  model Chore {
+    effort Int
+    @@base(a.Task, "chore")
+  }
+}`;
+      const result = interpretPostgresSchema(schema, {
+        controlMutationDefaults: builtinControlMutationDefaults,
+      });
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_BASE_IN_OTHER_NAMESPACE_WITHOUT_MAP',
+          message:
+            'Model "b.Chore" declares @@base(a.Task, ...) without @@map, so it would share the table of "a.Task", which belongs to namespace "a". Add @@map to give "b.Chore" its own table.',
+          span: expect.objectContaining({
+            start: expect.objectContaining({ offset: schema.indexOf('@@base') }),
+          }),
+        }),
+      ]);
+    });
+
+    it('names both namespaces when two variants declare the same value', () => {
+      const result = interpretPostgresSchema(
+        `${baseNamespace}
+namespace b {
+  model Epic {
+    points Int
+    @@base(a.Task, "epic")
+    @@map("epics")
+  }
+}
+namespace c {
+  model Epic {
+    goal String
+    @@base(a.Task, "epic")
+    @@map("epics")
+  }
+}`,
+        { controlMutationDefaults: builtinControlMutationDefaults },
+      );
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_DUPLICATE_DISCRIMINATOR_VALUE',
+          message:
+            'Discriminator value "epic" is used by both "b.Epic" and "c.Epic" on base model "a.Task"',
+        }),
+      ]);
+    });
+
+    it('names both namespaces when the base has no @@discriminator', () => {
+      const result = interpretPostgresSchema(
+        `namespace a {
+  model Task {
+    id Int @id
+  }
+}
+namespace b {
+  model Chore {
+    effort Int
+    @@base(a.Task, "chore")
+    @@map("chores")
+  }
+}`,
+        { controlMutationDefaults: builtinControlMutationDefaults },
+      );
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        expect.objectContaining({
+          code: 'PSL_ORPHANED_BASE',
+          message:
+            'Model "b.Chore" declares @@base(a.Task, ...) but "a.Task" has no @@discriminator',
+        }),
+      ]);
+    });
+  });
+
+  it('ignores polymorphism collection when the schema has no models', () => {
+    const result = interpretPostgresSchema(
+      `types {
+  Email = String
+}`,
+      {
+        controlMutationDefaults: builtinControlMutationDefaults,
+      },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -59,15 +324,14 @@ describe('interpretPslDocumentToSqlContract — polymorphism', () => {
     expect(documentScopedTypes(result.value)).toMatchObject({
       Email: {
         codecId: 'pg/text@1',
-        nativeType: 'text',
       },
     });
   });
 
   describe('@@discriminator and @@base — happy paths', () => {
     it('emits discriminator on base model', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -80,26 +344,23 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
 
       expect(modelsOf(result.value)['Task']).toMatchObject({
         discriminator: { field: 'type' },
-        variants: { Bug: { value: 'bug' } },
+        variants: { bug: crossRef('Bug', 'public') },
       });
     });
 
     it('emits base on variant model', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -112,13 +373,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -129,8 +387,8 @@ model Bug {
     });
 
     it('variant without @@map inherits base table (STI)', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -144,13 +402,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -159,8 +414,8 @@ model Bug {
     });
 
     it('variant with @@map gets own table (MTI)', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -175,13 +430,10 @@ model Feature {
   @@base(Task, "feature")
   @@map("features")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -190,8 +442,8 @@ model Feature {
     });
 
     it('MTI variant storage table carries the base PK column, primary key, and FK to the base', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -206,13 +458,10 @@ model Feature {
   @@base(Task, "feature")
   @@map("features")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -230,6 +479,7 @@ model Feature {
           source: expect.objectContaining({ tableName: 'features', columns: ['id'] }),
           target: expect.objectContaining({ tableName: 'tasks', columns: ['id'] }),
           onDelete: 'cascade',
+          index: { primaryKey: true },
         }),
       ]);
       expect(featureTable?.indexes).toEqual([]);
@@ -244,8 +494,8 @@ model Feature {
     });
 
     it('MTI variant FK carries the base namespace when the base lives in a non-default namespace', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `namespace auth {
+      const result = interpretPostgresSchema(
+        `namespace auth {
   model Task {
     id    Int    @id @default(autoincrement())
     title String
@@ -262,13 +512,10 @@ model Feature {
     @@map("features")
   }
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -297,8 +544,8 @@ model Feature {
     });
 
     it('variant models contain only their own fields (thin)', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -311,13 +558,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -327,8 +571,8 @@ model Bug {
     });
 
     it('assembles multiple variants on the base', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -348,13 +592,10 @@ model Feature {
   @@base(Task, "feature")
   @@map("features")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -362,8 +603,8 @@ model Feature {
       expect(modelsOf(result.value)['Task']).toMatchObject({
         discriminator: { field: 'type' },
         variants: {
-          Bug: { value: 'bug' },
-          Feature: { value: 'feature' },
+          bug: crossRef('Bug', 'public'),
+          feature: crossRef('Feature', 'public'),
         },
       });
       expect(modelsOf(result.value)['Bug']).toMatchObject({ base: crossRef('Task', 'public') });
@@ -371,8 +612,8 @@ model Feature {
     });
 
     it('variants are not included in roots', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -385,18 +626,15 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
 
-      expect(result.value.roots).toHaveProperty('task', crossRef('Task', 'public'));
+      expect(result.value.roots).toHaveProperty('Task', crossRef('Task', 'public'));
       expect(Object.values(result.value.roots)).not.toContainEqual(crossRef('Bug', 'public'));
     });
   });
@@ -409,8 +647,8 @@ model Bug {
     }
 
     it('materializes an STI variant column onto the base table (nullable in storage)', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -424,13 +662,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -442,7 +677,7 @@ model Bug {
       const tasks = tablesOf(result.value)['tasks'];
       expect(tasks?.columns['severity']).toMatchObject({
         codecId: 'pg/text@1',
-        nativeType: 'text',
+        dataType: 'pg/text',
         nullable: true,
       });
 
@@ -454,8 +689,8 @@ model Bug {
     });
 
     it('does not leak the STI variant field onto the base domain model', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -469,13 +704,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -491,8 +723,8 @@ model Bug {
     });
 
     it('keeps the STI variant domain field at its declared (required) nullability', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -506,13 +738,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -522,8 +751,8 @@ model Bug {
     });
 
     it('does not emit an orphan storage table for an STI variant', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -537,13 +766,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -551,12 +777,12 @@ model Bug {
       // The STI variant shares the base table; it must not also produce its
       // own (empty) table or a root pointing at one.
       expect(Object.keys(tablesOf(result.value))).toEqual(['tasks']);
-      expect(result.value.roots).not.toHaveProperty('bug');
+      expect(result.value.roots).not.toHaveProperty('Bug');
     });
 
     it('materializes columns for two STI variants onto the same base table', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -576,13 +802,10 @@ model Chore {
 
   @@base(Task, "chore")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -594,8 +817,8 @@ model Chore {
     });
 
     it('leaves MTI variants untouched (own table keeps its own columns)', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -610,13 +833,10 @@ model Feature {
   @@base(Task, "feature")
   @@map("features")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -628,8 +848,8 @@ model Feature {
     });
 
     it('materializes the STI column and joins the MTI variant in a mixed hierarchy', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -650,13 +870,10 @@ model Feature {
   @@base(Task, "feature")
   @@map("features")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -671,21 +888,18 @@ model Feature {
 
   describe('@@discriminator and @@base — diagnostics', () => {
     it('diagnoses orphaned @@discriminator (no @@base declarations)', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
 
   @@discriminator(type)
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -699,8 +913,8 @@ model Feature {
     });
 
     it('diagnoses orphaned @@base (target model has no @@discriminator)', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -711,13 +925,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -731,8 +942,8 @@ model Bug {
     });
 
     it('diagnoses missing discriminator field on base model', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
 
@@ -744,29 +955,26 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.failure.diagnostics).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
-            message: expect.stringContaining('does not exist'),
+            code: 'PSL_UNRESOLVED_REFERENCE',
+            message: expect.stringContaining('Cannot find field'),
           }),
         ]),
       );
     });
 
     it('diagnoses non-String discriminator field', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  Int
@@ -779,13 +987,10 @@ model Bug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -799,9 +1004,81 @@ model Bug {
       );
     });
 
+    it('accepts a discriminator field typed by a named type based on String', () => {
+      const result = interpretPostgresSchema(
+        `types {
+  Kind = String
+}
+
+model Task {
+  id    Int    @id @default(autoincrement())
+  type  Kind
+
+  @@discriminator(type)
+}
+
+model Bug {
+  severity String
+
+  @@base(Task, "bug")
+}`,
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(modelsOf(result.value)['Task']).toMatchObject({
+        discriminator: { field: 'type' },
+        variants: { bug: crossRef('Bug', 'public') },
+      });
+    });
+
+    it('diagnoses a discriminator field typed by a user model named String', () => {
+      const result = interpretPostgresSchema(
+        `model String {
+  id    Int    @id
+  tasks Task[]
+}
+
+model Task {
+  id     Int    @id @default(autoincrement())
+  typeId Int
+  type   String @relation(fields: [typeId], references: [id])
+
+  @@discriminator(type)
+}
+
+model Bug {
+  severity Int
+
+  @@base(Task, "bug")
+}`,
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics).toEqual([
+        {
+          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+          message:
+            'Discriminator field "type" on model "Task" must be of type String, but is "String"',
+          sourceId: 'schema.prisma',
+          span: {
+            start: { line: 11, column: 3, offset: 189 },
+            end: { line: 11, column: 24, offset: 210 },
+          },
+        },
+      ]);
+    });
+
     it('diagnoses model with both @@discriminator and @@base', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -816,13 +1093,10 @@ model Bug {
   @@base(Task, "bug")
   @@discriminator(kind)
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -836,35 +1110,33 @@ model Bug {
     });
 
     it('diagnoses @@base targeting non-existent model', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Bug {
+      const result = interpretPostgresSchema(
+        `model Bug {
   id       Int    @id @default(autoincrement())
   severity String
 
   @@base(NonExistent, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.failure.diagnostics).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            code: 'PSL_BASE_TARGET_NOT_FOUND',
+            code: 'PSL_UNRESOLVED_REFERENCE',
+            message: expect.stringContaining('Cannot find entity "NonExistent"'),
           }),
         ]),
       );
     });
 
     it('diagnoses duplicate discriminator values', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -883,13 +1155,10 @@ model OtherBug {
 
   @@base(Task, "bug")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
@@ -905,8 +1174,8 @@ model OtherBug {
 
   describe('end-to-end: PSL → interpret → domain validation', () => {
     it('emitted polymorphic contract passes domain validation', () => {
-      const document = symbolTableInputFromParseArgs({
-        schema: `model Task {
+      const result = interpretPostgresSchema(
+        `model Task {
   id    Int    @id @default(autoincrement())
   title String
   type  String
@@ -927,13 +1196,10 @@ model Feature {
   @@base(Task, "feature")
   @@map("features")
 }`,
-        sourceId: 'schema.prisma',
-      });
-
-      const result = interpretPslDocumentToSqlContract({
-        ...document,
-        controlMutationDefaults: builtinControlMutationDefaults,
-      });
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+        },
+      );
 
       expect(result.ok).toBe(true);
       if (!result.ok) return;
@@ -943,8 +1209,8 @@ model Feature {
       expect(modelsOf(result.value)['Task']).toMatchObject({
         discriminator: { field: 'type' },
         variants: {
-          Bug: { value: 'bug' },
-          Feature: { value: 'feature' },
+          bug: crossRef('Bug', 'public'),
+          feature: crossRef('Feature', 'public'),
         },
       });
       expect(modelsOf(result.value)['Bug']).toMatchObject({ base: crossRef('Task', 'public') });

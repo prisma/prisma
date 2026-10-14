@@ -1,16 +1,21 @@
 import type {
   ColumnDefault,
+  ColumnDefaultLiteralInputValue,
   ContractMarkerRecord,
   LedgerEntryRecord,
 } from '@internal/contract/types';
 import {
-  parseMarkerRowSafely,
+  errorMarkerRowCorrupt,
   rethrowMarkerReadError,
   withMarkerReadErrorHandling,
 } from '@internal/errors/execution';
+import { checkSqlDefaultText } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@internal/family-sql/verify';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import type {
+  CodecLookupWithDescriptors,
+  DataTypeLookup,
+} from '@internal/framework-components/codec';
 import { APP_SPACE_ID, type SchemaNodeRef } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
@@ -30,7 +35,15 @@ import type {
   MarkerReadResult,
   SqlExecuteRequest,
 } from '@internal/sql-relational-core/ast';
-import { isDdlNode } from '@internal/sql-relational-core/ast';
+import {
+  type EncodedLiteralDefault,
+  encodeListLiteralDefault,
+  encodeLiteralDefault,
+  isDdlNode,
+  type LiteralDefaultColumn,
+  renderOpaqueSql,
+} from '@internal/sql-relational-core/ast';
+import type { ColumnDescriptor, ExcludedProxy } from '@internal/sql-relational-core/contract-free';
 import { namingOfLiveName } from '@internal/sql-schema-ir/naming';
 import type {
   PrimaryKeyInput,
@@ -43,12 +56,17 @@ import type {
 } from '@internal/sql-schema-ir/types';
 import { RelationalSchemaNodeKind } from '@internal/sql-schema-ir/types';
 import {
+  type PostgresCodecRegistry,
+  parsePostgresListText,
+} from '@internal/target-postgres/codecs';
+import {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,
 } from '@internal/target-postgres/contract-free';
 import type {
   AddColumnAction,
   AlterTableActionVisitor,
+  AnyAlterTableAction,
   DropDefaultAction,
   PostgresAlterIndexRename,
   PostgresAlterPolicyRename,
@@ -67,7 +85,12 @@ import type {
 } from '@internal/target-postgres/ddl';
 import { parsePostgresDefault } from '@internal/target-postgres/default-normalizer';
 import { postgresError } from '@internal/target-postgres/errors';
-import { normalizeSchemaNativeType } from '@internal/target-postgres/native-type-normalizer';
+import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from '@internal/target-postgres/marker-lock';
+import { introspectedNativeType } from '@internal/target-postgres/native-type-normalizer';
+import {
+  isPostgresDateTimeDataType,
+  postgresDateTimeDdlText,
+} from '@internal/target-postgres/planner-ddl-builders';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import {
   PostgresDatabaseSchemaNode,
@@ -81,6 +104,7 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { adapterError } from './adapter-errors';
+import { postgresAdapterCapabilities } from './capabilities';
 import { encodeControlQueryParams } from './control-codecs';
 import {
   execute,
@@ -93,10 +117,59 @@ import {
   NOW,
 } from './marker-ledger';
 import { renderLoweredSql } from './sql-renderer';
-import type { PostgresCodecRegistry, PostgresContract } from './types';
+import type { PostgresContract } from './types';
 
 const POSTGRES_MARKER_TABLE = 'prisma_contract.marker';
 const POSTGRES_LEDGER_TABLE = 'prisma_contract.ledger';
+
+/**
+ * Tables another migration tool, not Prisma 8, keeps in an application schema: Prisma 7's ledger. `introspect` leaves them out unless the contract declares a table of that name in the same namespace.
+ */
+const OTHER_TOOL_MIGRATION_TABLES: ReadonlySet<string> = new Set(['_prisma_migrations']);
+
+function markerRowDecodeWhy(detail: string): string {
+  return `Invalid contract marker row: ${detail}`;
+}
+
+function decodeMarkerInteger(value: string): number {
+  if (!/^-?\d+$/.test(value)) {
+    throw new TypeError(`expected integer text, got ${JSON.stringify(value)}`);
+  }
+  return Number(value);
+}
+
+function decodePostgresMarkerRow(row: unknown, space: string): Record<string, unknown> {
+  if (typeof row !== 'object' || row === null) {
+    const cause = new TypeError(`expected object marker row, got ${typeof row}`);
+    throw errorMarkerRowCorrupt({
+      why: markerRowDecodeWhy(cause.message),
+      space,
+      markerLocation: POSTGRES_MARKER_TABLE,
+      cause,
+    });
+  }
+  const record = blindCast<
+    { readonly invariants: unknown; readonly canonical_version: unknown } & Record<string, unknown>,
+    'Postgres marker rows are object-shaped at this boundary'
+  >(row);
+  try {
+    return {
+      ...record,
+      ...(typeof record.canonical_version === 'string'
+        ? { canonical_version: decodeMarkerInteger(record.canonical_version) }
+        : {}),
+      invariants: parsePostgresListText(record.invariants),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw errorMarkerRowCorrupt({
+      why: markerRowDecodeWhy(message),
+      space,
+      markerLocation: POSTGRES_MARKER_TABLE,
+      cause: error,
+    });
+  }
+}
 
 type PostgresLedgerRow = {
   readonly space: string;
@@ -116,20 +189,16 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   readonly familyId = 'sql' as const;
   readonly targetId = 'postgres' as const;
 
-  constructor(private readonly codecRegistry: PostgresCodecRegistry) {}
+  constructor(
+    private readonly codecRegistry: PostgresCodecRegistry,
+    private readonly dataTypeLookup: DataTypeLookup,
+  ) {}
 
   /**
    * Target-specific normalizer for raw Postgres default expressions.
    * Used by schema verification to normalize raw defaults before comparison.
    */
   readonly normalizeDefault = parsePostgresDefault;
-
-  /**
-   * Target-specific normalizer for Postgres schema native type names.
-   * Used by schema verification to normalize introspected type names
-   * before comparison with contract native types.
-   */
-  readonly normalizeNativeType = normalizeSchemaNativeType;
 
   bootstrapControlTableQueries(): readonly DdlNode[] {
     return buildControlTableBootstrapQueries();
@@ -161,6 +230,22 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         context.contract,
       ),
       this.codecRegistry,
+      this.dataTypeLookup,
+      postgresAdapterCapabilities,
+    );
+  }
+
+  async renderColumnDefault(column: DdlColumn, table: string): Promise<string> {
+    if (column.default === undefined) return '';
+    return pgRenderDdlColumnDefault(
+      column.default,
+      column.type,
+      this.codecRegistry,
+      column.codecRef,
+      {
+        table,
+        column: column.name,
+      },
     );
   }
 
@@ -184,7 +269,13 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     const contract = blindCast<PostgresContract, 'Caller must supply matching contract'>(
       context?.contract,
     );
-    const lowered = renderLoweredSql(ast, contract, this.codecRegistry);
+    const lowered = renderLoweredSql(
+      ast,
+      contract,
+      this.codecRegistry,
+      this.dataTypeLookup,
+      postgresAdapterCapabilities,
+    );
     const codecRegistry = blindCast<
       ContractCodecRegistry,
       'framework CodecRegistry: its descriptors materialise SQL codecs; the framework Codec type erases to BaseCodec at this boundary'
@@ -270,13 +361,15 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
 
     const out = new Map<string, ContractMarkerRecord>();
     for (const row of rows) {
-      out.set(
-        row.space,
-        parseMarkerRowSafely(row, parseContractMarkerRow, {
+      try {
+        const decodedRow = decodePostgresMarkerRow(row, row.space);
+        out.set(row.space, parseContractMarkerRow(decodedRow));
+      } catch (error) {
+        rethrowMarkerReadError(error, {
           space: row.space,
           markerLocation: POSTGRES_MARKER_TABLE,
-        }),
-      );
+        });
+      }
     }
     return out;
   }
@@ -400,7 +493,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           invariants: destination.invariants ?? [],
         })
         .onConflict(marker.space)
-        .doUpdate((excluded) => ({
+        .doUpdate((excluded: ExcludedProxy<MarkerUpsertSchema>) => ({
           core_hash: excluded.core_hash,
           profile_hash: excluded.profile_hash,
           contract_json: excluded.contract_json,
@@ -453,13 +546,34 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     return rows.length > 0;
   }
 
+  async withTransaction<T>(
+    driver: SqlControlDriverInstance<'postgres'>,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    await driver.query('BEGIN');
+    let result: T;
+    try {
+      result = await fn();
+    } catch (error) {
+      try {
+        await driver.query('ROLLBACK');
+      } catch (rollbackError) {
+        if (error instanceof Error && error.cause === undefined) {
+          error.cause = rollbackError;
+        }
+      }
+      throw error;
+    }
+    await driver.query('COMMIT');
+    return result;
+  }
+
+  async lockMarker(driver: SqlControlDriverInstance<'postgres'>): Promise<void> {
+    await driver.query(MARKER_LOCK_SQL, [MARKER_LOCK_KEY]);
+  }
+
   /**
-   * Appends a ledger entry for `space`. When the edge carries a
-   * destination contract snapshot, the content-addressed
-   * `prisma_contract.contract` store is populated first (keyed by the
-   * destination hash, DO NOTHING on revisit) so a reader never sees a
-   * ledger row whose stored destination contract is missing. See the
-   * `SqlControlAdapter.writeLedgerEntry` contract.
+   * Appends a ledger entry for `space`. When the edge carries a destination contract snapshot, the content-addressed `prisma_contract.contract` store is populated first (keyed by the destination hash, DO NOTHING on revisit) so a reader never sees a ledger row whose stored destination contract is missing. See the `SqlControlAdapter.writeLedgerEntry` contract.
    */
   async writeLedgerEntry(
     driver: SqlControlDriverInstance<'postgres'>,
@@ -559,7 +673,12 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     const result = await execute(lower, driver, fetch);
     const row = result[0];
     if (!row) return { kind: 'absent' as const };
-    return { kind: 'present' as const, record: parseContractMarkerRow(row) };
+    try {
+      const decodedRow = decodePostgresMarkerRow(row, space);
+      return { kind: 'present' as const, record: parseContractMarkerRow(decodedRow) };
+    } catch (error) {
+      rethrowMarkerReadError(error, { space, markerLocation: POSTGRES_MARKER_TABLE });
+    }
   }
 
   /**
@@ -591,30 +710,36 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
     contract?: unknown,
     schema = 'public',
   ): Promise<PostgresDatabaseSchemaNode> {
-    const declaredNamespaces = extractContractNamespaceIds(contract);
-    const resolvedSchemas =
-      declaredNamespaces.length > 0
-        ? await this.resolveNamespaceSchemas(driver, declaredNamespaces)
-        : [schema];
+    return readWithDefaultOutputSettings(driver, async () => {
+      const declaredTables = extractContractTableNames(contract);
+      const declaredTablesBySchema =
+        declaredTables.size > 0
+          ? await this.resolveNamespaceSchemas(driver, declaredTables)
+          : new Map([[schema, new Set<string>()]]);
 
-    // Walk schemas sequentially: every introspectSchema call shares the one
-    // control connection, so a parallel walk only serialises behind the wire
-    // protocol and trips pg's "already executing a query" deprecation.
-    const namespaces: Record<string, PostgresNamespaceSchemaNode> = {};
-    let pgVersion = 'unknown';
-    for (const resolved of resolvedSchemas) {
-      const { namespace, pgVersion: version } = await this.introspectSchema(driver, resolved);
-      namespaces[resolved] = namespace;
-      pgVersion = version;
-    }
+      // Walk schemas sequentially: every introspectSchema call shares the one
+      // control connection, so a parallel walk only serialises behind the wire
+      // protocol and trips pg's "already executing a query" deprecation.
+      const namespaces: Record<string, PostgresNamespaceSchemaNode> = {};
+      let pgVersion = 'unknown';
+      for (const [resolved, tablesDeclaredHere] of declaredTablesBySchema) {
+        const { namespace, pgVersion: version } = await this.introspectSchema(
+          driver,
+          resolved,
+          tablesDeclaredHere,
+        );
+        namespaces[resolved] = namespace;
+        pgVersion = version;
+      }
 
-    const roles = await this.introspectRoles(driver);
-    const existingSchemas = await this.listExistingSchemas(driver);
-    return new PostgresDatabaseSchemaNode({
-      namespaces,
-      roles,
-      existingSchemas,
-      pgVersion,
+      const roles = await this.introspectRoles(driver);
+      const existingSchemas = await this.listExistingSchemas(driver);
+      return new PostgresDatabaseSchemaNode({
+        namespaces,
+        roles,
+        existingSchemas,
+        pgVersion,
+      });
     });
   }
 
@@ -662,26 +787,30 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   /**
    * Resolves the declared namespace ids to their live DDL schema names,
    * mapping `UNBOUND_NAMESPACE_ID` to the connection's `current_schema()`
-   * and de-duplicating. The caller introspects one namespace node per
-   * resolved schema — there is no flat cross-schema merge, so two schemas
-   * holding a same-named table no longer collide.
+   * and merging the table names declared for each schema. The caller
+   * introspects one namespace node per resolved schema — there is no flat
+   * cross-schema merge, so two schemas holding a same-named table no longer
+   * collide.
    */
   private async resolveNamespaceSchemas(
     driver: SqlControlDriverInstance<'postgres'>,
-    namespaceIds: readonly string[],
-  ): Promise<readonly string[]> {
-    const resolvedSchemas: string[] = [];
-    for (const id of namespaceIds) {
-      if (id === UNBOUND_NAMESPACE_ID) {
-        const { rows } = await driver.query<{ current_schema: string }>(
-          'SELECT current_schema() AS current_schema',
-        );
-        resolvedSchemas.push(rows[0]?.current_schema ?? 'public');
-      } else {
-        resolvedSchemas.push(id);
-      }
+    declaredTables: ReadonlyMap<string, readonly string[]>,
+  ): Promise<ReadonlyMap<string, ReadonlySet<string>>> {
+    const tablesBySchema = new Map<string, Set<string>>();
+    for (const [id, tableNames] of declaredTables) {
+      const resolved = id === UNBOUND_NAMESPACE_ID ? await this.currentSchema(driver) : id;
+      const tables = tablesBySchema.get(resolved) ?? new Set<string>();
+      for (const name of tableNames) tables.add(name);
+      tablesBySchema.set(resolved, tables);
     }
-    return Array.from(new Set(resolvedSchemas));
+    return tablesBySchema;
+  }
+
+  private async currentSchema(driver: SqlControlDriverInstance<'postgres'>): Promise<string> {
+    const { rows } = await driver.query<{ current_schema: string }>(
+      'SELECT current_schema() AS current_schema',
+    );
+    return rows[0]?.current_schema ?? 'public';
   }
 
   /**
@@ -693,6 +822,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   private async introspectSchema(
     driver: SqlControlDriverInstance<'postgres'>,
     schema: string,
+    declaredTables: ReadonlySet<string>,
   ): Promise<{ readonly namespace: PostgresNamespaceSchemaNode; readonly pgVersion: string }> {
     // Issue the schema-wide queries one at a time. A single control connection
     // serialises queries anyway, so Promise.all buys no parallelism here and
@@ -875,7 +1005,8 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       element_def: string | null;
       index_position: number;
       amname: string | null;
-      reloptions: string[] | null;
+      // `pg_index.reloptions` is raw Postgres array text, not a JS array.
+      reloptions: string | null;
     }>(
       // `ix.indkey` is an int2vector of column numbers in the order the
       // columns appear in the index definition. Unnest it WITH ORDINALITY
@@ -999,46 +1130,14 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       // Process columns for this table
       const columns: Record<string, SqlColumnIRInput> = {};
       for (const colRow of columnsByTable.get(tableName) ?? []) {
-        let nativeType = colRow.udt_name;
-        const formattedType = colRow.formatted_type
-          ? normalizeFormattedType(colRow.formatted_type, colRow.data_type, colRow.udt_name)
-          : null;
-        if (formattedType) {
-          nativeType = formattedType;
-        } else if (colRow.data_type === 'character varying' || colRow.data_type === 'character') {
-          if (colRow.character_maximum_length) {
-            nativeType = `${colRow.data_type}(${colRow.character_maximum_length})`;
-          } else {
-            nativeType = colRow.data_type;
-          }
-        } else if (colRow.data_type === 'numeric' || colRow.data_type === 'decimal') {
-          if (colRow.numeric_precision && colRow.numeric_scale !== null) {
-            nativeType = `${colRow.data_type}(${colRow.numeric_precision},${colRow.numeric_scale})`;
-          } else if (colRow.numeric_precision) {
-            nativeType = `${colRow.data_type}(${colRow.numeric_precision})`;
-          } else {
-            nativeType = colRow.data_type;
-          }
-        } else {
-          nativeType = colRow.udt_name || colRow.data_type;
-        }
-
-        // Postgres reports array columns as data_type='ARRAY'; the element type
-        // is the `nativeType` string minus the trailing `[]`. Strip the suffix,
-        // normalize the element type to the canonical form (e.g. `integer` →
-        // `int4`), and record `many: true` so introspection consumers (verifier,
-        // psl-contract-infer) can reconstruct the full array type as needed.
-        const many = nativeType.endsWith('[]') ? true : undefined;
-        if (many) {
-          nativeType = normalizeSchemaNativeType(nativeType.slice(0, -2));
-        }
-
-        // Resolved values comparable against the contract-derived expected
-        // side: the normalized full native type (`[]` appended for arrays)
-        // and the structured parse of the raw default. Raw fields stay
-        // untouched alongside — the relational walk still reads and
-        // normalizes them itself.
-        const resolvedNativeType = `${normalizeSchemaNativeType(nativeType)}${many ? '[]' : ''}`;
+        const { nativeType, many, resolvedNativeType } = introspectedNativeType({
+          formattedType: colRow.formatted_type,
+          dataType: colRow.data_type,
+          udtName: colRow.udt_name,
+          characterMaximumLength: colRow.character_maximum_length,
+          numericPrecision: colRow.numeric_precision,
+          numericScale: colRow.numeric_scale,
+        });
         const rawDefault = colRow.column_default ?? undefined;
         // `GENERATED ALWAYS AS IDENTITY` ('a') and `GENERATED BY DEFAULT AS
         // IDENTITY` ('d') both report a NULL column_default — Postgres tracks
@@ -1112,10 +1211,10 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       }
       const foreignKeys: readonly SqlForeignKeyIRInput[] = Array.from(foreignKeysMap.values()).map(
         (fk) => ({
-          columns: Object.freeze([...fk.columns]) as readonly string[],
+          columns: freezeStringArray(fk.columns),
           referencedTable: fk.referencedTable,
           referencedSchema: fk.referencedSchema,
-          referencedColumns: Object.freeze([...fk.referencedColumns]) as readonly string[],
+          referencedColumns: freezeStringArray(fk.referencedColumns),
           name: fk.name,
           ...ifDefined('onDelete', mapReferentialAction(fk.deleteRule)),
           ...ifDefined('onUpdate', mapReferentialAction(fk.updateRule)),
@@ -1145,7 +1244,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
         }
       }
       const uniques: readonly SqlUniqueIRInput[] = Array.from(uniquesMap.values()).map((uq) => ({
-        columns: Object.freeze([...uq.columns]) as readonly string[],
+        columns: freezeStringArray(uq.columns),
         name: uq.name,
         dependsOn: postgresColumnDependsOn(schema, tableName, uq.columns),
       }));
@@ -1264,7 +1363,8 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       tablename: string;
       policyname: string;
       cmd: string;
-      roles: string[];
+      // `pg_policies.roles` is raw Postgres array text, not a JS array.
+      roles: string;
       qual: string | null;
       with_check: string | null;
       permissive: string;
@@ -1333,6 +1433,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
 
     const tables: Record<string, PostgresTableSchemaNode> = {};
     for (const [tableName, input] of Object.entries(tableInputs)) {
+      if (OTHER_TOOL_MIGRATION_TABLES.has(tableName) && !declaredTables.has(tableName)) continue;
       tables[tableName] = new PostgresTableSchemaNode({
         ...input,
         policies: policiesByTable.get(tableName) ?? [],
@@ -1361,14 +1462,15 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
 }
 
 /**
- * Normalises a `name[]` column value from `pg_policies.roles`.
+ * Normalises a `name[]` column value from Postgres catalog views such as
+ * `pg_policies.roles` and aggregate queries over `pg_enum.enumlabel`.
  *
- * The `pg` client's type-parser registry handles `text[]` (OID 1009) but not
- * `name[]` (OID 1003). When the parser is absent the raw Postgres text-array
- * literal (`{role1,role2}`) is returned as a string instead of a JS array.
- * This function accepts either form and returns a plain string array.
+ * Control-plane queries use the Postgres driver's raw-text parser policy for
+ * array OIDs, so this helper accepts raw Postgres array literals only. A native
+ * JS array at this boundary means the caller bypassed target-owned framing and
+ * is rejected rather than normalized as a second representation.
  *
- * The string branch honors Postgres array-literal quoting: an element
+ * The parser honors Postgres array-literal quoting: an element
  * containing a comma, quote, backslash, brace, or significant whitespace is
  * emitted double-quoted with `\"` / `\\` escapes, and unquoted elements are
  * whitespace-trimmed — so a label like `in progress` or `say "hi"` parses to
@@ -1376,68 +1478,12 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
  */
 export function parsePgNameArray(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return value.map(String);
+    throw new TypeError(`expected raw text for a Postgres array, got ${typeof value}`);
   }
   if (typeof value !== 'string') {
     return [];
   }
-  const trimmed = value.trim();
-  if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
-    return [];
-  }
-  const inner = trimmed.slice(1, -1);
-  if (inner === '') {
-    return [];
-  }
-
-  const elements: string[] = [];
-  let current = '';
-  let inQuotes = false;
-  let wasQuoted = false;
-  const pushCurrent = () => {
-    elements.push(wasQuoted ? current : current.trim());
-    current = '';
-    wasQuoted = false;
-  };
-  let i = 0;
-  while (i < inner.length) {
-    const char = inner.charAt(i);
-    if (inQuotes) {
-      if (char === '\\') {
-        current += inner[i + 1] ?? '';
-        i += 2;
-        continue;
-      }
-      if (char === '"') {
-        inQuotes = false;
-        i++;
-        continue;
-      }
-      current += char;
-      i++;
-      continue;
-    }
-    if (char === '"') {
-      inQuotes = true;
-      wasQuoted = true;
-      i++;
-      continue;
-    }
-    if (char === ',') {
-      pushCurrent();
-      i++;
-      continue;
-    }
-    current += char;
-    i++;
-  }
-  // A still-open quote means the literal was malformed (e.g. `{"unterminated}`);
-  // reject rather than emit the partial value.
-  if (inQuotes) {
-    return [];
-  }
-  pushCurrent();
-  return elements;
+  return parsePostgresListText(value).map((entry: unknown) => String(entry));
 }
 
 /**
@@ -1460,70 +1506,34 @@ function mapPgCmd(cmd: string): RlsPolicyOperation {
   }
 }
 
-/**
- * Extracts the namespace coordinate ids declared on a contract's storage,
- * or returns an empty array when no contract (or no storage / namespaces)
- * is present. Used by `PostgresControlAdapter.introspect` to decide
- * between the multi-namespace walk and the single-schema fallback.
- */
-function extractContractNamespaceIds(contract: unknown): readonly string[] {
-  if (contract === null || typeof contract !== 'object') return [];
-  const storage = (contract as { storage?: unknown }).storage;
-  if (storage === null || typeof storage !== 'object') return [];
-  const namespaces = (storage as { namespaces?: unknown }).namespaces;
-  if (namespaces === null || typeof namespaces !== 'object') return [];
-  return Object.keys(namespaces as Record<string, unknown>);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
-function normalizeFormattedType(formattedType: string, dataType: string, udtName: string): string {
-  if (formattedType.endsWith('[]')) {
-    return `${normalizeFormattedType(formattedType.slice(0, -2), dataType, udtName)}[]`;
-  }
-  if (formattedType === 'integer') {
-    return 'int4';
-  }
-  if (formattedType === 'smallint') {
-    return 'int2';
-  }
-  if (formattedType === 'bigint') {
-    return 'int8';
-  }
-  if (formattedType === 'real') {
-    return 'float4';
-  }
-  if (formattedType === 'double precision') {
-    return 'float8';
-  }
-  if (formattedType === 'boolean') {
-    return 'bool';
-  }
-  if (formattedType.startsWith('varchar')) {
-    return formattedType.replace('varchar', 'character varying');
-  }
-  if (formattedType.startsWith('bpchar')) {
-    return formattedType.replace('bpchar', 'character');
-  }
-  if (formattedType.startsWith('varbit')) {
-    return formattedType.replace('varbit', 'bit varying');
-  }
-  if (dataType === 'timestamp with time zone' || udtName === 'timestamptz') {
-    return formattedType.replace('timestamp', 'timestamptz').replace(' with time zone', '').trim();
-  }
-  if (dataType === 'timestamp without time zone' || udtName === 'timestamp') {
-    return formattedType.replace(' without time zone', '').trim();
-  }
-  if (dataType === 'time with time zone' || udtName === 'timetz') {
-    return formattedType.replace('time', 'timetz').replace(' with time zone', '').trim();
-  }
-  if (dataType === 'time without time zone' || udtName === 'time') {
-    return formattedType.replace(' without time zone', '').trim();
-  }
-  // Only dataType === 'USER-DEFINED' should ever be quoted, but this should be safe without
-  // checking that explicitly either way
-  if (formattedType.startsWith('"') && formattedType.endsWith('"')) {
-    return formattedType.slice(1, -1);
-  }
-  return formattedType;
+function freezeStringArray(values: readonly string[]): readonly string[] {
+  return Object.freeze([...values]);
+}
+
+/**
+ * The table names a contract's storage declares, keyed by namespace id. Empty when no contract (or no storage / namespaces) is present, which makes `PostgresControlAdapter.introspect` fall back to the single-schema walk.
+ */
+function extractContractTableNames(contract: unknown): ReadonlyMap<string, readonly string[]> {
+  if (!isRecord(contract)) return new Map();
+  const storage = contract['storage'];
+  if (!isRecord(storage)) return new Map();
+  const namespaces = storage['namespaces'];
+  if (!isRecord(namespaces)) return new Map();
+  return new Map(
+    Object.entries(namespaces).map(([id, namespace]) => [id, declaredTableNames(namespace)]),
+  );
+}
+
+function declaredTableNames(namespace: unknown): readonly string[] {
+  if (!isRecord(namespace)) return [];
+  const entries = namespace['entries'];
+  if (!isRecord(entries)) return [];
+  const tables = entries['table'];
+  return isRecord(tables) ? Object.keys(tables) : [];
 }
 
 /**
@@ -1545,15 +1555,19 @@ const PG_REFERENTIAL_ACTION_MAP: Record<PgReferentialActionRule, SqlReferentialA
  * Returns undefined for 'NO ACTION' (the database default) to keep the IR sparse.
  * Throws for unrecognized rules to prevent silent data loss.
  */
+function isPgReferentialActionRule(rule: string): rule is PgReferentialActionRule {
+  return Object.hasOwn(PG_REFERENTIAL_ACTION_MAP, rule);
+}
+
 function mapReferentialAction(rule: string): SqlReferentialAction | undefined {
-  const mapped = PG_REFERENTIAL_ACTION_MAP[rule as PgReferentialActionRule];
-  if (mapped === undefined) {
+  if (!isPgReferentialActionRule(rule)) {
     throw adapterError(
       'CONTRACT.INTROSPECTION_UNSUPPORTED',
       `Unknown PostgreSQL referential action rule: "${rule}". Expected one of: NO ACTION, RESTRICT, CASCADE, SET NULL, SET DEFAULT.`,
       { meta: { rule } },
     );
   }
+  const mapped = PG_REFERENTIAL_ACTION_MAP[rule];
   if (mapped === 'noAction') return undefined;
   return mapped;
 }
@@ -1612,14 +1626,24 @@ function postgresColumnDependsOn(
  * Returns `undefined` when the input is null/empty (no WITH clause).
  */
 export function parsePgReloptions(
-  reloptions: readonly string[] | null,
+  reloptions: unknown,
   indexName: string,
 ): Record<string, string> | undefined {
-  if (!reloptions || reloptions.length === 0) {
+  if (Array.isArray(reloptions)) {
+    throw new TypeError(`expected raw text for a Postgres array, got ${typeof reloptions}`);
+  }
+  if (reloptions === null || reloptions === undefined) {
+    return undefined;
+  }
+  if (typeof reloptions !== 'string') {
+    return undefined;
+  }
+  const entries = parsePostgresListText(reloptions).map((entry: unknown) => String(entry));
+  if (entries.length === 0) {
     return undefined;
   }
   const result: Record<string, string> = {};
-  for (const entry of reloptions) {
+  for (const entry of entries) {
     const eq = entry.indexOf('=');
     if (eq === -1) {
       throw adapterError(
@@ -1667,64 +1691,134 @@ function pgIsTextLikeNativeType(nativeType: string): boolean {
   );
 }
 
-function pgRenderArrayElement(el: unknown): string {
-  if (el === null) return 'NULL';
-  if (typeof el === 'number' || typeof el === 'boolean') return String(el);
-  if (typeof el === 'string') return `'${escapeLiteral(el)}'`;
-  return `'${escapeLiteral(JSON.stringify(el))}'`;
+interface OutputSettings {
+  readonly timeZone: string;
+  readonly dateStyle: string;
+  readonly intervalStyle: string;
+  readonly byteaOutput: string;
 }
 
-function pgRenderArrayLiteral(elements: unknown[]): string {
-  if (elements.length === 0) return "'{}'";
-  return `ARRAY[${elements.map(pgRenderArrayElement).join(', ')}]`;
+const INTROSPECTION_OUTPUT_SETTINGS: OutputSettings = {
+  timeZone: 'UTC',
+  dateStyle: 'ISO, MDY',
+  intervalStyle: 'postgres',
+  byteaOutput: 'hex',
+};
+
+async function readOutputSettings(
+  driver: SqlControlDriverInstance<'postgres'>,
+): Promise<OutputSettings | undefined> {
+  const { rows } = await driver.query<OutputSettings>(
+    `SELECT current_setting('TimeZone') AS "timeZone",
+            current_setting('DateStyle') AS "dateStyle",
+            current_setting('IntervalStyle') AS "intervalStyle",
+            current_setting('bytea_output') AS "byteaOutput"`,
+  );
+  return rows[0];
 }
 
-function pgInlineLiteral(wire: unknown, nativeType: string): string {
+async function applyOutputSettings(
+  driver: SqlControlDriverInstance<'postgres'>,
+  settings: OutputSettings,
+  local: boolean,
+): Promise<void> {
+  await driver.query(
+    `SELECT set_config('TimeZone', $1, $5),
+            set_config('DateStyle', $2, $5),
+            set_config('IntervalStyle', $3, $5),
+            set_config('bytea_output', $4, $5)`,
+    [settings.timeZone, settings.dateStyle, settings.intervalStyle, settings.byteaOutput, local],
+  );
+}
+
+function sameOutputSettings(a: OutputSettings | undefined, b: OutputSettings): boolean {
+  return (
+    a?.timeZone === b.timeZone &&
+    a.dateStyle === b.dateStyle &&
+    a.intervalStyle === b.intervalStyle &&
+    a.byteaOutput === b.byteaOutput
+  );
+}
+
+/**
+ * Runs `read` with the settings that shape printed values pinned to Postgres's defaults, then
+ * restores the caller's. Postgres prints a `timestamptz` default in the session time zone, and
+ * dates, intervals and bytea in the session styles, so pinning them gives the same text whatever
+ * the server, the role, or the caller set.
+ *
+ * The settings are first set locally. A local setting outlives its own statement only inside a
+ * transaction, so reading them back tells the two cases apart. Inside the caller's transaction they
+ * are set and restored locally, so the caller's session values return when it commits; outside
+ * one they are set and restored for the session. When `read` fails, its error is the one thrown;
+ * inside a transaction the failure aborts it, and the caller's rollback restores the settings.
+ */
+async function readWithDefaultOutputSettings<T>(
+  driver: SqlControlDriverInstance<'postgres'>,
+  read: () => Promise<T>,
+): Promise<T> {
+  const callerSettings = await readOutputSettings(driver);
+  if (callerSettings === undefined) return read();
+  await applyOutputSettings(driver, INTROSPECTION_OUTPUT_SETTINGS, true);
+  const local = sameOutputSettings(await readOutputSettings(driver), INTROSPECTION_OUTPUT_SETTINGS);
+  if (!local) await applyOutputSettings(driver, INTROSPECTION_OUTPUT_SETTINGS, false);
+  const restore = () => applyOutputSettings(driver, callerSettings, local);
+  let result: T;
+  try {
+    result = await read();
+  } catch (error) {
+    await restore().catch(() => undefined);
+    throw error;
+  }
+  await restore();
+  return result;
+}
+
+/**
+ * A value as DDL writes it: `ARRAY[...]` of each element's literal, cast to the list type, for a list written to a list type, and otherwise the value's literal, cast to the column type where PostgreSQL would read it as another type.
+ */
+function pgInlineLiteral(wire: unknown, nativeType: string, where: LiteralDefaultColumn): string {
+  if (Array.isArray(wire) && nativeType.endsWith('[]')) {
+    if (wire.length === 0) return "'{}'";
+    return `ARRAY[${wire.map((element) => pgLiteralText(element, where)).join(', ')}]::${nativeType}`;
+  }
+  const text = pgLiteralText(wire, where);
+  return pgLiteralNeedsCast(wire, nativeType) ? `${text}::${nativeType}` : text;
+}
+
+function pgLiteralNeedsCast(wire: unknown, nativeType: string): boolean {
+  if (typeof wire === 'number') return !Number.isFinite(wire);
+  if (typeof wire === 'string' || wire instanceof Date) return !pgIsTextLikeNativeType(nativeType);
+  return typeof wire === 'object' && wire !== null;
+}
+
+/** A value's literal without a cast: SQL NULL, a bare number or boolean, or quoted text. */
+function pgLiteralText(wire: unknown, where: LiteralDefaultColumn): string {
   if (wire === null) return 'NULL';
   if (typeof wire === 'boolean') return wire ? 'true' : 'false';
-  if (typeof wire === 'number') {
-    if (!Number.isFinite(wire)) {
-      throw adapterError(
-        'CONTRACT.DEFAULT_INVALID',
-        `pgRenderDdlExecuteRequest: non-finite number wire value ${String(wire)} cannot be emitted as a DEFAULT literal for native type "${nativeType}"`,
-        { meta: { nativeType } },
-      );
-    }
-    return String(wire);
-  }
+  if (typeof wire === 'number') return Number.isFinite(wire) ? String(wire) : `'${String(wire)}'`;
   if (typeof wire === 'bigint') return String(wire);
   if (wire instanceof Date) {
     if (Number.isNaN(wire.getTime())) {
       throw adapterError(
         'CONTRACT.DEFAULT_INVALID',
-        `pgRenderDdlExecuteRequest: invalid Date value cannot be emitted as a DEFAULT literal for native type "${nativeType}"`,
-        { meta: { nativeType } },
+        `Column "${where.table}"."${where.column}" has an invalid Date default`,
+        { meta: { table: where.table, column: where.column, reason: 'invalid-date-default' } },
       );
     }
-    const quoted = `'${escapeLiteral(wire.toISOString())}'`;
-    return pgIsTextLikeNativeType(nativeType) ? quoted : `${quoted}::${nativeType}`;
+    return `'${escapeLiteral(wire.toISOString())}'`;
   }
-  if (typeof wire === 'string') {
-    const quoted = `'${escapeLiteral(wire)}'`;
-    return pgIsTextLikeNativeType(nativeType) ? quoted : `${quoted}::${nativeType}`;
-  }
+  if (typeof wire === 'string') return `'${escapeLiteral(wire)}'`;
   if (wire instanceof Uint8Array) {
     const hex = Array.from(wire)
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
-    return `'\\x${hex}'::${nativeType}`;
+    return `'\\x${hex}'`;
   }
-  if (Array.isArray(wire) && nativeType.endsWith('[]')) {
-    return pgRenderArrayLiteral(wire);
-  }
-  if (typeof wire === 'object') {
-    const quoted = `'${escapeLiteral(JSON.stringify(wire))}'`;
-    return `${quoted}::${nativeType}`;
-  }
+  if (typeof wire === 'object') return `'${escapeLiteral(JSON.stringify(wire))}'`;
   throw adapterError(
     'CONTRACT.PACK_CONTRIBUTION_INVALID',
-    `pgRenderDdlExecuteRequest: unexpected wire type "${typeof wire}" for native type "${nativeType}"`,
-    { meta: { wireType: typeof wire, nativeType } },
+    `pgRenderDdlExecuteRequest: unexpected wire type "${typeof wire}"`,
+    { meta: { wireType: typeof wire } },
   );
 }
 
@@ -1740,11 +1834,12 @@ const SERIAL_FAMILY_TYPES = new Set([
 async function pgRenderDdlColumnDefault(
   def: LiteralColumnDefault | FunctionColumnDefault,
   nativeType: string,
-  codecLookup: CodecLookup,
+  codecLookup: CodecLookupWithDescriptors,
   codecRef: CodecRef | undefined,
+  where: LiteralDefaultColumn,
 ): Promise<string> {
   if (def.kind === 'function') {
-    if (def.expression === 'autoincrement()') {
+    if (def.expression.text === 'autoincrement()') {
       if (!SERIAL_FAMILY_TYPES.has(nativeType.toLowerCase())) {
         throw postgresError(
           'CONTRACT.DEFAULT_INVALID',
@@ -1756,27 +1851,72 @@ async function pgRenderDdlColumnDefault(
       }
       return '';
     }
-    return `DEFAULT (${def.expression})`;
-  }
-  if (codecRef !== undefined) {
-    const codec = codecLookup.get(codecRef.codecId);
-    if (codec !== undefined) {
-      // A literal default reaches here either as the canonical JSON a
-      // contract stores or as the value an authoring surface built, and only
-      // the first needs reading back: `pg/int8@1` stores decimal text for a
-      // `bigint`, which `encode` does not take. A `Date` is the one authored
-      // value JSON has no notation for, so it is the one that arrives as
-      // itself.
-      const value = def.value instanceof Date ? def.value : codec.decodeJson(def.value);
-      const wire = await codec.encode(value, {});
-      return `DEFAULT ${pgInlineLiteral(wire, nativeType)}`;
+    if (checkSqlDefaultText(def.expression.text) !== undefined) {
+      throw postgresError(
+        'CONTRACT.DEFAULT_INVALID',
+        `Unsafe default expression in contract: "${def.expression.text}". ` +
+          'Default expressions must not contain semicolons, SQL comment tokens, dollar-quoting, or subqueries.',
+        { meta: { expression: def.expression.text } },
+      );
     }
+    return `DEFAULT (${renderOpaqueSql(def.expression)})`;
   }
-  // Fallback: codec-less literal defaults follow RawSqlLiteral wire-scalar semantics.
-  return `DEFAULT ${pgInlineLiteral(def.value, nativeType)}`;
+  const dataTypeId =
+    codecRef === undefined ? undefined : codecLookup.descriptorFor(codecRef.codecId)?.dataType;
+  const written = await pgWrittenDefault(
+    def.value,
+    nativeType,
+    dataTypeId,
+    codecLookup,
+    codecRef,
+    where,
+  );
+  return `DEFAULT ${pgInlineLiteral(written, nativeType, where)}`;
 }
 
-async function pgRenderDdlColumn(column: DdlColumn, codecLookup: CodecLookup): Promise<string> {
+/**
+ * The value DDL writes for a literal default, and for each element of a list default: a date or time value as the text PostgreSQL reads for its type, a value the codec reads as SQL NULL as `null`, and anything else as the codec's wire value. Without a codec, the value as written.
+ */
+async function pgWrittenDefault(
+  value: ColumnDefaultLiteralInputValue,
+  nativeType: string,
+  dataTypeId: string | undefined,
+  codecLookup: CodecLookupWithDescriptors,
+  codecRef: CodecRef | undefined,
+  where: LiteralDefaultColumn,
+): Promise<unknown> {
+  if (value === null && nativeType.endsWith('[]')) return null;
+  if (Array.isArray(value) && nativeType.endsWith('[]')) {
+    const encoded =
+      codecRef === undefined
+        ? undefined
+        : await encodeListLiteralDefault(codecLookup, codecRef, value, where);
+    return value.map((element, index) => pgWrittenValue(element, encoded?.[index], dataTypeId));
+  }
+  const encoded =
+    codecRef === undefined
+      ? undefined
+      : await encodeLiteralDefault(codecLookup, codecRef, value, where);
+  return pgWrittenValue(value, encoded, dataTypeId);
+}
+
+function pgWrittenValue(
+  value: ColumnDefaultLiteralInputValue,
+  encoded: EncodedLiteralDefault | undefined,
+  dataTypeId: string | undefined,
+): unknown {
+  if (typeof value === 'string' && isPostgresDateTimeDataType(dataTypeId)) {
+    return postgresDateTimeDdlText(value, dataTypeId);
+  }
+  if (encoded === undefined) return value;
+  return encoded.kind === 'sql-null' ? null : encoded.wire;
+}
+
+async function pgRenderDdlColumn(
+  column: DdlColumn,
+  codecLookup: CodecLookupWithDescriptors,
+  table: string,
+): Promise<string> {
   const parts = [quoteIdentifier(column.name), column.type];
   if (column.default) {
     const clause = await pgRenderDdlColumnDefault(
@@ -1784,6 +1924,7 @@ async function pgRenderDdlColumn(column: DdlColumn, codecLookup: CodecLookup): P
       column.type,
       codecLookup,
       column.codecRef,
+      { table, column: column.name },
     );
     if (clause.length > 0) parts.push(clause);
   }
@@ -1817,7 +1958,7 @@ function pgRenderDdlConstraint(constraint: DdlTableConstraint): string {
     return sql;
   }
   if (constraint.kind === 'check-expression') {
-    return `CONSTRAINT ${quoteIdentifier(constraint.name)} CHECK (${constraint.expression})`;
+    return `CONSTRAINT ${quoteIdentifier(constraint.name)} CHECK (${renderOpaqueSql(constraint.expression)})`;
   }
   const cols = constraint.columns.map(quoteIdentifier).join(', ');
   if (constraint.name !== undefined) {
@@ -1828,14 +1969,14 @@ function pgRenderDdlConstraint(constraint: DdlTableConstraint): string {
 
 async function pgRenderCreateTable(
   node: PostgresCreateTable,
-  codecLookup: CodecLookup,
+  codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
   const ifNotExists = node.ifNotExists ? 'IF NOT EXISTS ' : '';
   const tableRef = node.schema
     ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`
     : quoteIdentifier(node.table);
   const columnDefs = await Promise.all(
-    node.columns.map((col) => pgRenderDdlColumn(col, codecLookup)),
+    node.columns.map((col: DdlColumn) => pgRenderDdlColumn(col, codecLookup, node.table)),
   );
   const constraintDefs =
     node.constraints !== undefined ? node.constraints.map(pgRenderDdlConstraint) : [];
@@ -1858,7 +1999,7 @@ function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
   const typeRef = node.schema
     ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.name)}`
     : quoteIdentifier(node.name);
-  const values = node.values.map((value) => `'${escapeLiteral(value)}'`).join(', ');
+  const values = node.values.map((value: string) => `'${escapeLiteral(value)}'`).join(', ');
   return {
     sql: `CREATE TYPE ${typeRef} AS ENUM (${values})`,
     params: [],
@@ -1877,26 +2018,40 @@ function pgRenderDropType(node: PostgresDropType): SqlExecuteRequest {
 
 async function pgRenderAlterTable(
   node: PostgresAlterTable,
-  codecLookup: CodecLookup,
+  codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
   const tableRef = node.schema
     ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`
     : quoteIdentifier(node.table);
   const actionVisitor: AlterTableActionVisitor<Promise<string>> = {
     async addColumn(action: AddColumnAction): Promise<string> {
-      const colFragment = await pgRenderDdlColumn(action.column, codecLookup);
+      const colFragment = await pgRenderDdlColumn(action.column, codecLookup, node.table);
       return `ADD COLUMN ${colFragment}`;
     },
     dropDefault(action: DropDefaultAction): Promise<string> {
       return Promise.resolve(`ALTER COLUMN ${quoteIdentifier(action.columnName)} DROP DEFAULT`);
     },
   };
-  const actionSqls = await Promise.all(node.actions.map((a) => a.accept(actionVisitor)));
+  const actionSqls = await Promise.all(
+    node.actions.map((action: AnyAlterTableAction) => action.accept(actionVisitor)),
+  );
   return {
     sql: `ALTER TABLE ${tableRef} ${actionSqls.join(', ')}`,
     params: [],
   };
 }
+
+type MarkerUpsertSchema = {
+  readonly space: ColumnDescriptor;
+  readonly core_hash: ColumnDescriptor;
+  readonly profile_hash: ColumnDescriptor;
+  readonly contract_json: ColumnDescriptor;
+  readonly canonical_version: ColumnDescriptor;
+  readonly updated_at: ColumnDescriptor;
+  readonly app_tag: ColumnDescriptor;
+  readonly meta: ColumnDescriptor;
+  readonly invariants: ColumnDescriptor;
+};
 
 const POLICY_OPERATION_SQL: Record<RlsPolicyOperation, string> = {
   select: 'SELECT',
@@ -1913,10 +2068,10 @@ function pgRenderCreatePolicy(node: PostgresCreatePolicy): SqlExecuteRequest {
   const roles = node.roles.length === 0 ? 'PUBLIC' : node.roles.join(', ');
   let sql = `CREATE POLICY ${quoteIdentifier(node.name)} ON ${tableRef} AS ${permissiveness} FOR ${command} TO ${roles}`;
   if (node.using !== undefined) {
-    sql += ` USING (${node.using})`;
+    sql += ` USING (${renderOpaqueSql(node.using)})`;
   }
   if (node.withCheck !== undefined) {
-    sql += ` WITH CHECK (${node.withCheck})`;
+    sql += ` WITH CHECK (${renderOpaqueSql(node.withCheck)})`;
   }
   return { sql, params: [] };
 }
@@ -1964,7 +2119,7 @@ function pgRenderCreateIndex(node: PostgresCreateIndex): SqlExecuteRequest {
   const elementList =
     'columns' in node.elements
       ? node.elements.columns.map(quoteIdentifier).join(', ')
-      : node.elements.expression;
+      : renderOpaqueSql(node.elements.expression);
   const unique = node.unique ? 'UNIQUE ' : '';
   const using = node.type !== undefined ? ` USING ${quoteIdentifier(node.type)}` : '';
   const withClause =
@@ -1975,7 +2130,7 @@ function pgRenderCreateIndex(node: PostgresCreateIndex): SqlExecuteRequest {
           )
           .join(', ')})`
       : '';
-  const whereClause = node.where !== undefined ? ` WHERE (${node.where})` : '';
+  const whereClause = node.where !== undefined ? ` WHERE (${renderOpaqueSql(node.where)})` : '';
   return {
     sql: `CREATE ${unique}INDEX ${quoteIdentifier(node.name)} ON ${pgQualify(node.schema, node.table)}${using} (${elementList})${withClause}${whereClause}`,
     params: [],
@@ -2006,7 +2161,7 @@ function pgRenderDisableRowLevelSecurity(node: PostgresDisableRowLevelSecurity):
 
 async function pgRenderDdlExecuteRequest(
   ast: PostgresDdlNode,
-  codecLookup: CodecLookup,
+  codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
   const visitor = {
     createTable: (node: PostgresCreateTable) => pgRenderCreateTable(node, codecLookup),

@@ -15,9 +15,9 @@ import {
   IdentifierRef,
 } from '@internal/sql-relational-core/ast';
 import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { ExpressionImpl } from '@internal/sql-relational-core/expression';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
-import type { ExpressionImpl } from '../../src/runtime/expression-impl';
 import { createAggregateFunctions } from '../../src/runtime/functions';
 import { sql } from '../../src/runtime/sql';
 import type { QueryContext } from '../../src/scope';
@@ -54,7 +54,6 @@ function loweringAggregateRegistry() {
       {
         codecId: 'pg/int4@1',
         traits: ['numeric', 'order', 'equality'],
-        targetTypes: [],
         isParameterized: false,
         paramsSchema: undefined,
         factory: () => () => ({ id: 'pg/int4@1' }),
@@ -62,7 +61,6 @@ function loweringAggregateRegistry() {
       {
         codecId: 'lib/int8@1',
         traits: ['numeric', 'order', 'equality'],
-        targetTypes: [],
         isParameterized: false,
         paramsSchema: undefined,
         factory: () => () => ({ id: 'lib/int8@1' }),

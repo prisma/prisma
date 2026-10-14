@@ -1,6 +1,6 @@
 # @internal/sql-relational-core
 
-Schema and column builders, operation attachment, and AST types for Prisma Next.
+Schema and column builders, operation attachment, and AST types for Prisma 8.
 
 ## Package Classification
 
@@ -93,7 +93,7 @@ flowchart TD
 
 ### Codec authoring (class form)
 
-SQL codec authors extend the framework `CodecImpl` base (and pair the codec with a `CodecDescriptorImpl` registration) per [ADR 208 — Higher-order codecs for parameterized types](../../../../docs/architecture%20docs/adrs/ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md). Each codec class declares `encode`, `decode`, `encodeJson`, and `decodeJson`. The JSON methods use the exact scalar shape produced by the corresponding database inside JSON values; include decoding calls `decodeJson`, while ordinary column decoding calls `decode`.
+SQL codec authors extend the framework `CodecImpl` base (and pair the codec with a `CodecDescriptorImpl` registration) per [ADR 208 — Higher-order codecs for parameterized types](../../../../docs/architecture%20docs/adrs/ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md). Each codec class declares `encode`, `decode`, `encodeJson`, and `decodeJson`. The JSON methods use the exact scalar shape produced by the corresponding database inside JSON values; include decoding calls `decodeJson`, while ordinary column decoding calls `decode`. `decodeJson` follows the rule on [`Codec.decodeJson`](../../../1-framework/1-core/framework-components/src/shared/codec.ts): it reads a stored JSON form of the type and throws on anything else. The readers in `@internal/framework-components/codec` implement it for the common forms. The DDL renderers read and encode a literal default with `encodeLiteralDefault` (`src/ast/ddl-default.ts`), and each element of a list default with `encodeListLiteralDefault`; both report a value the column's codec refuses as `CONTRACT.DEFAULT_INVALID`, naming the column.
 
 - Query-time methods (`encode` / `decode`) are typed as `Promise<…>`-returning at the public boundary; sync method bodies are accepted via TypeScript bivariance and the runtime always awaits.
 - Build-time methods (`encodeJson` / `decodeJson` / `renderOutputType?`) stay synchronous so contract validation and client construction stay synchronous.
@@ -105,10 +105,11 @@ SQL codec authors extend the framework `CodecImpl` base (and pair the codec with
 import {
   CodecDescriptorImpl,
   CodecImpl,
-  voidParamsSchema,
   type CodecCallContext,
   type CodecInstanceContext,
+  decodeJsonString,
 } from '@internal/framework-components/codec';
+import type { JsonValue } from '@internal/contract/types';
 
 class PgTextCodec extends CodecImpl<'pg/text@1', readonly ['equality'], string, string> {
   override readonly id = 'pg/text@1';
@@ -116,14 +117,13 @@ class PgTextCodec extends CodecImpl<'pg/text@1', readonly ['equality'], string, 
   encode(v: string, _ctx: CodecCallContext): Promise<string> { return Promise.resolve(v); }
   decode(w: string, _ctx: CodecCallContext): Promise<string> { return Promise.resolve(w); }
   encodeJson(v: string) { return v; }
-  decodeJson(j: unknown) { return j as string; }
+  decodeJson(json: JsonValue) { return decodeJsonString('pg/text@1', json); }
 }
 
 class PgTextDescriptor extends CodecDescriptorImpl<void> {
   override readonly codecId = 'pg/text@1';
   override readonly traits = ['equality'] as const;
-  override readonly targetTypes = ['text'] as const;
-  override readonly paramsSchema = voidParamsSchema;
+  override readonly paramsSchema = undefined;
   override readonly factory = () => (_ctx: CodecInstanceContext) => new PgTextCodec();
 }
 ```
@@ -147,7 +147,7 @@ class PgKmsSecretCodec extends CodecImpl<'pg/kms-secret@1', readonly [], string,
     return kms.decrypt({ ciphertext: w }, { signal: ctx.signal });
   }
   encodeJson(v: string) { return v; }
-  decodeJson(j: unknown) { return j as string; }
+  decodeJson(json: JsonValue) { return decodeJsonString('pg/kms-secret@1', json); }
 }
 ```
 
@@ -165,6 +165,10 @@ See [ADR 204 — Single-Path Async Codec Runtime](../../../../docs/architecture%
 - `SelectAst.selectAllIntent` — preserves select-all intent when normalized to explicit columns
 - `DeleteAst.where` and `UpdateAst.where` optional for mutation-without-WHERE lint support
 
+### Functions and index references (`exports/functions.ts`, `exports/index-reference.ts`)
+- `createFunctions` builds the `fns` surface both query lanes hand to their callbacks: the built-in functions (`eq`, `and`, `or`, `in`, `exists`, `raw`, …) and every registered query operation. `Functions<QC>` types it from a context's codec types and query operation types.
+- `createIndexReferences` builds a table's index references, keyed by authored name, with columns supplied by the lane so they are bound to the table reference the query uses. `TableIndexReferences<Table>` types them from the contract's storage table. A name more than one index shares throws `ORM.ARGUMENT_INVALID` when read.
+
 ### Type Definitions (`types.ts`)
 - Defines TypeScript types for column builders, operations, projections
 - Provides type inference utilities for extracting JavaScript types from codec types (e.g., `ExtractJsTypeFromColumnBuilder`)
@@ -181,6 +185,9 @@ This package follows the standard `exports/` directory pattern:
 - `src/exports/operations-registry.ts` - Re-exports operations registry
 - `src/exports/plan.ts` - Re-exports plan types and helpers
 - `src/exports/ast.ts` - Re-exports SQL AST types
+- `src/exports/expression.ts` - Re-exports expression types and helpers, and `ExpressionImpl`
+- `src/exports/functions.ts` - Re-exports the function surface
+- `src/exports/index-reference.ts` - Re-exports index reference types and construction
 - `src/index.ts` - Main entry point that re-exports from `exports/`
 
 This enables subpath imports like `@internal/sql-relational-core/schema`, `@internal/sql-relational-core/param`, `@internal/sql-relational-core/plan`, etc.

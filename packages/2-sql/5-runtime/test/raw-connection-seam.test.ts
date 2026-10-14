@@ -10,9 +10,11 @@ import type { RuntimeExecuteOptions } from '@internal/framework-components/runti
 import { SqlStorage } from '@internal/sql-contract/types';
 import type {
   Codec,
+  MarkerReadResult,
   SqlConnection,
   SqlDriver,
   SqlExecuteRequest,
+  SqlQueryable,
 } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 import { applicationDomainOf } from '@repo/test-utils';
@@ -51,7 +53,6 @@ function createStubAdapter() {
   const codecs: ReadonlyArray<Codec<string>> = [
     defineTestCodec({
       typeId: 'pg/int4@1',
-      targetTypes: ['int4'],
       encode: (v: number) => v,
       decode: (w: number) => w,
     }),
@@ -63,7 +64,9 @@ function createStubAdapter() {
       id: 'test-profile',
       target: 'postgres',
       capabilities: {},
-      readMarker: async () => ({ kind: 'absent' as const }),
+      readMarker: async (_queryable: SqlQueryable): Promise<MarkerReadResult> => ({
+        kind: 'absent',
+      }),
     },
     lower(ast: Parameters<SqlRuntimeAdapterInstance<'postgres'>['lower']>[0]) {
       return Object.freeze({ sql: JSON.stringify(ast), params: [] as const });
@@ -164,8 +167,15 @@ class TestRuntime extends SqlRuntimeBase {
   }
 }
 
-function createTestSetup(options?: { middleware?: readonly SqlMiddleware[] }) {
-  const adapter = createStubAdapter();
+function createTestSetup(options?: {
+  middleware?: readonly SqlMiddleware[];
+  readMarker?: (queryable: SqlQueryable) => Promise<MarkerReadResult>;
+}) {
+  const base = createStubAdapter();
+  const adapter =
+    options?.readMarker === undefined
+      ? base
+      : { ...base, profile: { ...base.profile, readMarker: options.readMarker } };
   const { driver, connection, acquireConnectionSpy } = createRecordingDriver();
 
   const targetDescriptor = createTestTargetDescriptor();
@@ -195,8 +205,9 @@ function createTestSetup(options?: { middleware?: readonly SqlMiddleware[] }) {
     context,
     adapter: stackInstance.adapter,
     driver: driver as unknown as SqlDriver,
-    verifyMarker: false,
+    verifyMarker: options?.readMarker === undefined ? false : 'onFirstUse',
     middleware: options?.middleware ?? [],
+    closeRefusal: undefined,
   };
 
   const runtime = new TestRuntime(runtimeOptions);
@@ -234,7 +245,7 @@ describe('acquireRawConnection', () => {
     const observer: SqlMiddleware = {
       name: 'observer',
       familyId: 'sql',
-      beforeQuery(exec) {
+      beforeEncode(exec) {
         observedSqls.push(exec.sql);
       },
     };
@@ -257,7 +268,7 @@ describe('queryAgainstQueryable', () => {
     const observer: SqlMiddleware = {
       name: 'observer',
       familyId: 'sql',
-      beforeQuery(exec) {
+      beforeEncode(exec) {
         observedSqls.push(exec.sql);
       },
     };
@@ -270,6 +281,20 @@ describe('queryAgainstQueryable', () => {
 
     expect(observedSqls).toEqual(['select id from users']);
     expect(connection.query).toHaveBeenCalledOnce();
+  });
+
+  it('reads the contract marker through the driver, not the raw connection a subclass supplies', async () => {
+    const readMarker = vi.fn<(queryable: SqlQueryable) => Promise<MarkerReadResult>>(async () => ({
+      kind: 'absent',
+    }));
+    const { runtime, driver, connection } = createTestSetup({ readMarker });
+    const raw = await runtime.acquireRawConn();
+
+    await runtime.runQueryAgainstQueryable(rawPlan(), raw).toArray();
+
+    expect(readMarker).toHaveBeenCalledOnce();
+    expect(readMarker).toHaveBeenCalledWith(driver);
+    expect(readMarker).not.toHaveBeenCalledWith(connection);
   });
 
   it('sticks to the connection supplied — not the driver root', async () => {

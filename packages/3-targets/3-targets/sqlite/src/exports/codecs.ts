@@ -1,4 +1,10 @@
 export type { JsonValue } from '../core/codec-helpers';
+export {
+  assembleSqliteCodecRegistry,
+  createSqliteBuiltinCodecLookup,
+  createSqliteCodecRegistryWithBuiltins,
+  type SqliteCodecRegistry,
+} from '../core/codec-registry';
 export type {
   SqliteBigintDescriptor,
   SqliteBigintNumberDescriptor,
@@ -20,4 +26,5 @@ export {
   sqliteRealColumn,
   sqliteTextColumn,
 } from '../core/codecs';
+export { SQLITE_NOW_EXPRESSION } from '../core/datetime-text';
 export { sqliteCodecDescriptorRegistry, sqliteCodecRegistry } from '../core/registry';

@@ -1,6 +1,7 @@
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
+import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';
 import {
   createDriver,
@@ -12,6 +13,7 @@ import {
 
 const adapter: SqlControlAdapter<'postgres'> = new PostgresControlAdapter(
   createPostgresBuiltinCodecLookup(),
+  createPostgresBuiltinDataTypeLookup(),
 );
 
 async function bootstrap(driver: PostgresControlDriver): Promise<void> {

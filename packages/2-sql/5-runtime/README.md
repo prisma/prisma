@@ -1,6 +1,6 @@
 # @internal/sql-runtime
 
-SQL runtime implementation for Prisma Next.
+SQL runtime implementation for Prisma 8.
 
 ## Package Classification
 
@@ -84,8 +84,7 @@ const db = postgres<Contract>({
 
 ### Descriptors & Stack
 
-- `SqlStaticContributions` - Interface for descriptor-level static contributions (codecs, operations, parameterized codecs, mutation default generators)
-- `RuntimeMutationDefaultGenerator` - Descriptor for generator id + implementation
+- `SqlStaticContributions` - Interface for descriptor-level static contributions (codecs, operations, parameterized codecs, mutation default generators typed by the framework's `RuntimeMutationDefaultGenerator` from `@internal/framework-components/runtime`)
 - `SqlRuntimeTargetDescriptor`, `SqlRuntimeAdapterDescriptor`, `SqlRuntimeExtensionDescriptor` - Structural descriptor types requiring `SqlStaticContributions`
 - `SqlRuntimeAdapterInstance`, `SqlRuntimeDriverInstance`, `SqlRuntimeExtensionInstance` - Instance types
 - `SqlExecutionStack` - Descriptors-only stack type for static context creation
@@ -115,9 +114,9 @@ Marker reads and writes go through the control adapter SPI (`adapter.readMarker`
 
 - `budgets` - **AST-first budget middleware** (canonical in SQL domain), inspects `plan.ast` when present for row estimation
 - `lints` - **AST-first lint middleware** (canonical in SQL domain), inspects `plan.ast` when present
-- `SqlMiddleware`, `SqlMiddlewareContext` - SQL-family middleware interface and per-execution context
+- `SqlMiddleware`, `SqlMiddlewareContext` - SQL-family middleware interface and per-activity context
 - `BudgetsOptions`, `LintsOptions` - Middleware option types
-- `AfterExecuteResult` - Middleware `afterExecute` hook result type (re-exported from `@internal/framework-components/runtime`)
+- `ActivityEndedResult`, `ActivityFinalizedResult`, `RuntimeActivity`, `StatementActivity`, `TransactionActivity`, `StatementEnded`, `TransactionEnded`, `QueryInterceptResult`, `ExecuteInterceptResult` - Activity and lifecycle result types (re-exported from `@internal/framework-components/runtime`)
 - `Log` - Log entry type (re-exported from `@internal/framework-components/runtime`)
 
 #### Lints middleware (SQL domain)
@@ -169,13 +168,13 @@ flowchart LR
 
 ## Related Subsystems
 
-- **[Query Lanes](../../../../docs/architecture%20docs/subsystems/3.%20Query%20Lanes.md)** — Lane authoring and plan building
-- **[Runtime & Middleware Framework](../../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md)** — Runtime execution pipeline
-- **[Adapters & Targets](../../../../docs/architecture%20docs/subsystems/5.%20Adapters%20&%20Targets.md)** — Adapter and driver responsibilities
+- **[Query Lanes](../../../docs/architecture%20docs/subsystems/3.%20Query%20Lanes.md)** — Lane authoring and plan building
+- **[Runtime & Middleware Framework](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20&%20Middleware%20Framework.md)** — Runtime execution pipeline
+- **[Adapters & Targets](../../../docs/architecture%20docs/subsystems/5.%20Adapters%20&%20Targets.md)** — Adapter and driver responsibilities
 
 ## Related ADRs
 
-- [ADR 152 - Execution Plane Descriptors and Instances](../../../../docs/architecture%20docs/adrs/ADR%20152%20-%20Execution%20Plane%20Descriptors%20and%20Instances.md)
+- [ADR 152 - Execution Plane Descriptors and Instances](../../../docs/architecture%20docs/adrs/ADR%20152%20-%20Execution%20Plane%20Descriptors%20and%20Instances.md)
 
 ## Error Codes
 
@@ -185,9 +184,7 @@ The SQL runtime uses stable error codes for programmatic error handling:
 - `RUNTIME.CONTRACT_TARGET_MISMATCH` — Contract target differs from stack target descriptor
 - `RUNTIME.MISSING_EXTENSION_PACK` — Contract requires an extension pack not provided in stack
 - `RUNTIME.DUPLICATE_PARAMETERIZED_CODEC` — Multiple extensions registered same parameterized codec
-- `RUNTIME.DUPLICATE_MUTATION_DEFAULT_GENERATOR` — Multiple components registered the same mutation default generator id (details include `existingOwner` and `incomingOwner`)
-- `RUNTIME.MISSING_MUTATION_DEFAULT_GENERATOR` — Contract references mutation default generator id(s) the assembled stack does not provide; surfaced at `createExecutionContext` time (details include `ids`)
-- `RUNTIME.MUTATION_DEFAULT_GENERATOR_MISSING` — Defense-in-depth lazy fallback raised by `applyMutationDefaults` when a generator becomes unavailable after context creation
+- `RUNTIME.DUPLICATE_MUTATION_DEFAULT_GENERATOR`, `RUNTIME.MUTATION_DEFAULT_GENERATOR_MISSING` — raised by the framework mutation-default runtime (`packages/1-framework/1-core/framework-components/src/execution/mutation-defaults.ts`), which `createExecutionContext` calls after codec collection; see the [error reference](../../../docs/reference/error-reference.md)
 - `RUNTIME.TYPE_PARAMS_INVALID` — Type parameters fail codec schema validation
 - `RUNTIME.CODEC_MISSING` — Required codec not found in registry
 - `RUNTIME.DECODE_FAILED` — Row decoding failed

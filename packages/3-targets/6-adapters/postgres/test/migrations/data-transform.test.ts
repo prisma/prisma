@@ -3,15 +3,16 @@ import { CliStructuredError } from '@internal/errors/control';
 import { placeholder } from '@internal/errors/migration';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
-import { voidParamsSchema } from '@internal/framework-components/codec';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { ContractCodecRegistry, ProjectionExpr } from '@internal/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
+import { createPostgresCodecRegistryWithBuiltins } from '@internal/target-postgres/codecs';
 import { pgTable } from '@internal/target-postgres/contract-free';
 import { dataTransform } from '@internal/target-postgres/data-transform';
+import { createPostgresBuiltinDataTypeLookup, pgText } from '@internal/target-postgres/data-types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { createPostgresCodecRegistryWithBuiltins } from '../../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';
 import { encodeControlQueryParams } from '../../src/core/control-codecs';
 
@@ -127,6 +128,37 @@ describe('dataTransform factory', () => {
     ]);
   });
 
+  it('marks the postcheck of a backfill with the column it fills, and targets its table', async () => {
+    lowerToExecuteRequestMock
+      .mockResolvedValueOnce({ sql: 'SELECT 1 FROM "user" WHERE "title" IS NULL', params: [] })
+      .mockResolvedValue({ sql: 'UPDATE "user" SET "title" = $1', params: ['x'] });
+    const op = await dataTransform(
+      makeContract(),
+      'backfill-user-title',
+      {
+        backfillsColumn: { schema: 'public', table: 'user', column: 'title' },
+        check: () => makePlan(),
+        run: () => makePlan(),
+      },
+      makeAdapter(),
+    );
+    expect(op.target).toEqual({
+      id: 'postgres',
+      details: { schema: 'public', objectType: 'column', name: 'title', table: 'user' },
+    });
+    expect(op.postcheck).toEqual([
+      {
+        description: 'Verify backfill-user-title resolved all violations',
+        sql: 'SELECT NOT EXISTS (SELECT 1 FROM "user" WHERE "title" IS NULL) AS ok',
+        params: [],
+        meta: {
+          requiredColumn: { table: 'user', column: 'title', reason: 'backfillMissedRows' },
+        },
+      },
+    ]);
+    expect(op.precheck[0]).not.toHaveProperty('meta');
+  });
+
   it('propagates MIGRATION.UNFILLED_PLACEHOLDER when a closure is a placeholder (never reaches the adapter)', async () => {
     lowerToExecuteRequestMock.mockResolvedValue({
       sql: 'X',
@@ -226,14 +258,14 @@ const transformingCodec: Codec = {
 
 const transformingCodecDescriptor: AnyCodecDescriptor = {
   codecId: TEST_CODEC_ID,
+  dataType: dataTypeId('demo/fixture'),
   traits: [],
-  targetTypes: ['text'],
-  paramsSchema: voidParamsSchema,
+  paramsSchema: undefined,
   isParameterized: false,
   factory: () => () => transformingCodec,
 };
 const transformingDescriptor = postgresCodec(transformingCodecDescriptor, {
-  nativeType: () => 'text',
+  dataType: pgText,
   jsonProjection: (expression: ProjectionExpr) => expression,
 });
 const transformingCodecRegistry = createPostgresCodecRegistryWithBuiltins([transformingDescriptor]);
@@ -253,7 +285,10 @@ const testTable = pgTable(
   },
 );
 
-const testAdapter = new PostgresControlAdapter(transformingCodecRegistry);
+const testAdapter = new PostgresControlAdapter(
+  transformingCodecRegistry,
+  createPostgresBuiltinDataTypeLookup(),
+);
 
 describe('dataTransform — codec-encoded params via lowerToExecuteRequest', () => {
   it('execute step params carry the codec-encoded wire value (not raw JS value)', async () => {

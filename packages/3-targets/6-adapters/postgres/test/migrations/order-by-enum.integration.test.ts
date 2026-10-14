@@ -1,6 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import sqlFamilyPack from '@internal/family-sql/pack';
+import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { buildBoundContract, enumType, member } from '@internal/sql-contract-ts/contract-builder';
@@ -14,6 +15,8 @@ import {
   SelectAst,
   TableSource,
 } from '@internal/sql-relational-core/ast';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import postgresPack from '@internal/target-postgres/pack';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { timeouts } from '@repo/test-utils';
@@ -34,7 +37,12 @@ import {
   synthEdges,
 } from './fixtures/runner-fixtures';
 
-const pgText = { codecId: 'pg/text@1' as const, nativeType: 'text' };
+const postgresTypeLookups = {
+  codecLookup: createPostgresBuiltinCodecLookup(),
+  dataTypeLookup: createDataTypeLookup(postgresDataTypes),
+};
+
+const pgText = { codecId: 'pg/text@1' as const };
 
 // Declaration order: low → high → medium. Lexical order would be high, low, medium.
 const Priority = enumType(
@@ -49,7 +57,7 @@ function makeTaskContract(): PostgresContract {
   return buildBoundContract(
     sqlFamilyPack,
     postgresPack,
-    { enums: { Priority }, createNamespace: postgresCreateNamespace },
+    { ...postgresTypeLookups, enums: { Priority }, createNamespace: postgresCreateNamespace },
     ({ field: f, model: m }) => ({
       models: {
         Task: m('Task', {
@@ -69,7 +77,7 @@ function makeTaskNoteContract(): PostgresContract {
   return buildBoundContract(
     sqlFamilyPack,
     postgresPack,
-    { enums: { Priority }, createNamespace: postgresCreateNamespace },
+    { ...postgresTypeLookups, enums: { Priority }, createNamespace: postgresCreateNamespace },
     ({ field: f, model: m }) => ({
       models: {
         Task: m('Task', {
@@ -97,6 +105,8 @@ async function migrate(driver: PostgresControlDriver, contract: PostgresContract
     schema: emptySchema,
     policy: INIT_ADDITIVE_POLICY,
     fromContract: null,
+    origin: null,
+    statements: [],
     frameworkComponents,
     spaceId: APP_SPACE_ID,
     snapshotsImportPath: '../../snapshots',
@@ -123,7 +133,7 @@ async function migrate(driver: PostgresControlDriver, contract: PostgresContract
   }
 }
 
-describe('ORDER BY on an enum column — declaration order, PGlite', { concurrent: false }, () => {
+describe('ORDER BY on an enum column — value order, PGlite', { concurrent: false }, () => {
   let database: Awaited<ReturnType<typeof createTestDatabase>>;
   let driver: PostgresControlDriver | undefined;
 
@@ -149,7 +159,7 @@ describe('ORDER BY on an enum column — declaration order, PGlite', { concurren
     }
   }, timeouts.spinUpPpgDev);
 
-  it('renders array_position over the value-set and sorts by declaration order', {
+  it('leaves a qualified enum column unchanged and sorts by value', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
     const contract = makeTaskContract();
@@ -170,16 +180,14 @@ describe('ORDER BY on an enum column — declaration order, PGlite', { concurren
       ]);
 
     const lowered = createPostgresAdapter().lower(ast, { contract });
-    expect(lowered.sql).toContain(
-      `array_position(ARRAY['low', 'high', 'medium']::text[], "Task"."priority")`,
-    );
+    expect(lowered.sql).toContain('ORDER BY "Task"."priority" ASC, "Task"."id" ASC');
 
     const rows = await driver!.query<{ id: string; priority: string }>(lowered.sql);
-    expect(rows.rows.map((r) => r.priority)).toEqual(['low', 'low', 'high', 'medium']);
-    expect(rows.rows.map((r) => r.id)).toEqual(['b', 'd', 'a', 'c']);
+    expect(rows.rows.map((r) => r.priority)).toEqual(['high', 'low', 'low', 'medium']);
+    expect(rows.rows.map((r) => r.id)).toEqual(['a', 'b', 'd', 'c']);
   });
 
-  it('intercepts an unqualified identifier-ref order column (sql-builder .orderBy form)', {
+  it('leaves an unqualified enum order column unchanged (sql-builder .orderBy form)', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
     const contract = makeTaskContract();
@@ -199,13 +207,11 @@ describe('ORDER BY on an enum column — declaration order, PGlite', { concurren
       ]);
 
     const lowered = createPostgresAdapter().lower(ast, { contract });
-    expect(lowered.sql).toContain(
-      `array_position(ARRAY['low', 'high', 'medium']::text[], "priority")`,
-    );
+    expect(lowered.sql).toContain('ORDER BY "priority" ASC, "id" ASC');
 
     const rows = await driver!.query<{ id: string; priority: string }>(lowered.sql);
-    expect(rows.rows.map((r) => r.priority)).toEqual(['low', 'low', 'high', 'medium']);
-    expect(rows.rows.map((r) => r.id)).toEqual(['b', 'd', 'a', 'c']);
+    expect(rows.rows.map((r) => r.priority)).toEqual(['high', 'low', 'low', 'medium']);
+    expect(rows.rows.map((r) => r.id)).toEqual(['a', 'b', 'd', 'c']);
   });
 
   it('leaves an ambiguous unqualified order column unrewritten across a join', {
@@ -231,7 +237,7 @@ describe('ORDER BY on an enum column — declaration order, PGlite', { concurren
     expect(lowered.sql).toContain('"priority"');
   });
 
-  it('sorts NULLs last (ASC) alongside declaration-ordered non-null values', {
+  it('sorts NULLs last (ASC) alongside value-ordered non-null values', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
     const contract = makeTaskContract();
@@ -250,19 +256,15 @@ describe('ORDER BY on an enum column — declaration order, PGlite', { concurren
     const lowered = createPostgresAdapter().lower(ast, { contract });
     const rows = await driver!.query<{ id: string; priority: string | null }>(lowered.sql);
 
-    // array_position returns NULL for the NULL row; ASC sorts NULLs last by default.
-    expect(rows.rows.map((r) => r.priority)).toEqual(['low', 'high', null]);
-    expect(rows.rows.map((r) => r.id)).toEqual(['c', 'a', 'b']);
+    expect(rows.rows.map((r) => r.priority)).toEqual(['high', 'low', null]);
+    expect(rows.rows.map((r) => r.id)).toEqual(['a', 'c', 'b']);
   });
 
-  it('distinctOn on a value-set column renders array_position, matching orderBy', {
+  it('distinctOn on a value-set column stays unchanged, matching orderBy', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
     const contract = makeTaskContract();
 
-    // distinctOn('priority') emits IdentifierRef (string-arg path).
-    // orderBy uses the same IdentifierRef shape but goes through renderOrderByExpr.
-    // Both must render identically so Postgres accepts: DISTINCT ON (X) ... ORDER BY X.
     const ast = SelectAst.from(TableSource.named('Task', undefined, 'public'))
       .withProjection([ProjectionItem.of('id', ColumnRef.of('Task', 'id'))])
       .withDistinctOn([IdentifierRef.of('priority')])
@@ -272,11 +274,8 @@ describe('ORDER BY on an enum column — declaration order, PGlite', { concurren
       ]);
 
     const lowered = createPostgresAdapter().lower(ast, { contract });
-    const arrayPositionExpr = `array_position(ARRAY['low', 'high', 'medium']::text[], "priority")`;
-
-    // DISTINCT ON and ORDER BY must emit the same expression.
-    expect(lowered.sql).toContain(`DISTINCT ON (${arrayPositionExpr})`);
-    expect(lowered.sql).toContain(`ORDER BY ${arrayPositionExpr}`);
+    expect(lowered.sql).toContain('DISTINCT ON ("priority")');
+    expect(lowered.sql).toContain('ORDER BY "priority" ASC, "id" ASC');
   });
 
   it('distinctOn on a value-set column executes without error', {
@@ -301,8 +300,7 @@ describe('ORDER BY on an enum column — declaration order, PGlite', { concurren
 
     const lowered = createPostgresAdapter().lower(ast, { contract });
     const rows = await driver!.query<{ id: string; priority: string }>(lowered.sql);
-    // One row per distinct priority, in declaration order (low < high < medium).
-    expect(rows.rows.map((r) => r.priority)).toEqual(['low', 'high']);
+    expect(rows.rows.map((r) => r.priority)).toEqual(['high', 'low']);
   });
 
   it('distinctOn on a plain scalar column still renders as a bare identifier', () => {

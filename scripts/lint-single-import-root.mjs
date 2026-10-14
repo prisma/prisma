@@ -18,7 +18,13 @@
  * Scope is the consumer trees: `examples/`, `apps/` and `test/`. Packages
  * under `packages/` are the substrate the shells are built from and name
  * workspace packages by construction; the shells' own tests legitimately name
- * both, and are excluded with them.
+ * both, and are excluded with them. The packaging suites under
+ * `test/integration/test/packaging/` are exempt for the same reason: their
+ * published-root specifiers are strings handed to scratch projects that
+ * install packed tarballs and run in a child process, so both roots never
+ * load into one module graph. The fixtures of every upgrade script's tests,
+ * `test/integration/test/upgrade-instructions/<fragment>/fixtures/`, are user
+ * projects a script rewrites as text; nothing imports them.
  *
  * Exits 1 listing every mixed package; exits 0 otherwise.
  */
@@ -28,6 +34,10 @@ import { extname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const CONSUMER_ROOTS = ['examples', 'apps', 'test'];
+const EXEMPT_SUBTREES = [
+  /^test\/integration\/test\/packaging\//,
+  /^test\/integration\/test\/upgrade-instructions\/[^/]+\/fixtures\//,
+];
 const INTERNAL_SCOPE = '@internal/';
 const PUBLISHED_SCOPE = '@prisma/orm-';
 const INCLUDED_EXTENSIONS = new Set(['.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs']);
@@ -94,13 +104,18 @@ function ownFiles(pkg, allPackages) {
  * root and how many more there are. Takes the roots as an argument so the
  * check is reachable from a test with a fixture tree of its own.
  */
-export function findMixedPackages(baseDir, roots = CONSUMER_ROOTS) {
+export function findMixedPackages(baseDir, roots = CONSUMER_ROOTS, exempt = EXEMPT_SUBTREES) {
   const packages = roots.flatMap((root) => [...walkPackages(join(baseDir, root))]);
+
   const mixed = [];
   for (const pkg of packages) {
     const internal = new Map();
     const published = new Map();
-    for (const file of ownFiles(pkg, packages)) {
+    const files = ownFiles(pkg, packages).filter((file) => {
+      const path = relative(baseDir, file).split(sep).join('/');
+      return !exempt.some((subtree) => subtree.test(path));
+    });
+    for (const file of files) {
       for (const [, , specifier] of readFileSync(file, 'utf8').matchAll(MODULE_SPECIFIER)) {
         const seen = specifier.startsWith(INTERNAL_SCOPE)
           ? internal

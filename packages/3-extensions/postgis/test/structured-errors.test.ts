@@ -1,8 +1,7 @@
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import { pgGeometryColumn, postgisGeometryDescriptor } from '../src/core/codecs';
+import { postgisGeometryDescriptor } from '../src/core/codecs';
 import type { Geometry } from '../src/core/geojson';
-import { geometry } from '../src/exports/column-types';
 import { bboxPolygon, point, polygon } from '../src/exports/geojson';
 
 type AsyncGeometryCodec = {
@@ -88,28 +87,6 @@ describe('geometry helpers raise POSTGIS.GEOMETRY_INVALID', () => {
   });
 });
 
-describe('column helpers raise CONTRACT.ARGUMENT_INVALID', () => {
-  it('geometry() with a negative srid', () => {
-    const error = capture(() => geometry({ srid: -1 }));
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'CONTRACT.ARGUMENT_INVALID',
-      message: 'postgis: srid must be a non-negative integer, got -1',
-      meta: { helperPath: 'geometry', expected: 'non-negative integer', received: -1 },
-    });
-  });
-
-  it('pgGeometryColumn() with a non-integer srid', () => {
-    const error = capture(() => pgGeometryColumn({ srid: 1.5 }));
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'CONTRACT.ARGUMENT_INVALID',
-      message: 'postgis: srid must be a non-negative integer, got 1.5',
-      meta: { helperPath: 'pgGeometryColumn' },
-    });
-  });
-});
-
 describe('codec encode raises RUNTIME.ENCODE_FAILED', () => {
   it('non-GeoJSON value', async () => {
     const error = await captureAsync(() => codec().encode(null as unknown as Geometry));
@@ -165,12 +142,12 @@ describe('codec decode raises RUNTIME.DECODE_FAILED', () => {
     });
   });
 
-  it('non-string database JSON value', () => {
+  it('non-string JSON value', () => {
     const error = capture(() => codec().decodeJson(42));
     expect(isStructuredError(error)).toBe(true);
     expect(error).toMatchObject({
       code: 'RUNTIME.DECODE_FAILED',
-      message: 'Geometry database JSON value must be a HEXEWKB string',
+      message: 'pg/geometry@1 JSON value must be a HEXEWKB string',
     });
   });
 });

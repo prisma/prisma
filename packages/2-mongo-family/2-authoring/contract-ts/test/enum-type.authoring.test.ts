@@ -1,5 +1,5 @@
 import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
-import { voidParamsSchema } from '@internal/framework-components/codec';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MongoContractSchema } from '@internal/mongo-contract';
@@ -17,9 +17,9 @@ const mongoFamilyPack = {
 
 const identityDescriptor = (id: string): AnyCodecDescriptor => ({
   codecId: id,
+  dataType: dataTypeId('demo/fixture'),
   traits: ['equality'],
-  targetTypes: ['string'],
-  paramsSchema: voidParamsSchema,
+  paramsSchema: undefined,
   isParameterized: false,
   factory: () => () =>
     ({
@@ -41,7 +41,7 @@ const mongoTargetPack = {
   types: { codecTypes: { codecDescriptors: [identityDescriptor('mongo/string@1')] } },
 } as const satisfies TargetPackRef<'mongo', 'mongo'>;
 
-const mongoString = { codecId: 'mongo/string@1' as const, nativeType: 'string' } as const;
+const mongoString = { codecId: 'mongo/string@1' as const } as const;
 
 describe('member()', () => {
   it('preserves name and value as literal types', () => {
@@ -84,9 +84,8 @@ describe('enumType() — Mongo binding', () => {
     expect(Role.ordinalOf(notAMember)).toBe(-1);
   });
 
-  it('stores codecId and nativeType', () => {
+  it('stores codecId', () => {
     expect(Role.codecId).toBe('mongo/string@1');
-    expect(Role.nativeType).toBe('string');
   });
 });
 
@@ -208,11 +207,114 @@ describe('enumType() — error cases', () => {
       enumType('Status', mongoString, member('Active', 'active'), member('Active', 'inactive')),
     ).toThrow('duplicate member name');
   });
+});
 
-  it('throws on duplicate member values', () => {
-    expect(() =>
-      enumType('Status', mongoString, member('Active', 'dup'), member('Inactive', 'dup')),
-    ).toThrow('duplicate member value');
+describe('defineContract() — members compared as the codec stores them', () => {
+  const objectCodec = { codecId: 'test/object@1' as const } as const;
+  const dateCodec = { codecId: 'test/date@1' as const } as const;
+  const dateDescriptor: AnyCodecDescriptor = {
+    ...identityDescriptor('test/date@1'),
+    factory: () => () =>
+      ({
+        id: 'test/date@1',
+        encode: async (v: unknown) => v,
+        decode: async (v: unknown) => v,
+        encodeJson: (v: unknown) => (v as Date).toISOString(),
+        decodeJson: (j: unknown) => new Date(j as string),
+      }) as unknown as Codec,
+  };
+  const target = {
+    ...mongoTargetPack,
+    types: {
+      codecTypes: {
+        codecDescriptors: [
+          identityDescriptor('mongo/string@1'),
+          identityDescriptor('test/object@1'),
+          dateDescriptor,
+        ],
+      },
+    },
+  } as const satisfies TargetPackRef<'mongo', 'mongo'>;
+
+  function build(handle: ReturnType<typeof enumType>) {
+    const Holder = model('Holder', {
+      collection: 'holders',
+      fields: { _id: field.objectId(), value: field.namedType(handle) },
+    });
+    return defineContract({
+      family: mongoFamilyPack,
+      target,
+      enums: { [handle.enumName]: handle },
+      models: { Holder },
+    });
+  }
+
+  function storedMembers(contract: ReturnType<typeof build>, enumName: string) {
+    const ns = contract.domain.namespaces[UNBOUND_NAMESPACE_ID];
+    const enumSlot = (ns as Record<string, unknown>)['enum'] as Record<
+      string,
+      { members: unknown[] }
+    >;
+    return enumSlot[enumName]?.members;
+  }
+
+  it('accepts two different object members', () => {
+    const Shape = enumType(
+      'Shape',
+      objectCodec,
+      member('Square', { sides: 4 }),
+      member('Triangle', { sides: 3 }),
+    );
+    expect(storedMembers(build(Shape), 'Shape')).toEqual([
+      { name: 'Square', value: { sides: 4 } },
+      { name: 'Triangle', value: { sides: 3 } },
+    ]);
+  });
+
+  it('accepts two dates a millisecond apart', () => {
+    const Moment = enumType(
+      'Moment',
+      dateCodec,
+      member('Start', new Date('2024-01-01T00:00:00.000Z')),
+      member('JustAfter', new Date('2024-01-01T00:00:00.001Z')),
+    );
+    expect(storedMembers(build(Moment), 'Moment')).toEqual([
+      { name: 'Start', value: '2024-01-01T00:00:00.000Z' },
+      { name: 'JustAfter', value: '2024-01-01T00:00:00.001Z' },
+    ]);
+  });
+
+  it.each([
+    [
+      'two equal objects, showing the stored object',
+      enumType(
+        'Shape',
+        objectCodec,
+        member('Wide', { width: 2, height: 1 }),
+        member('AlsoWide', { height: 1, width: 2 }),
+      ),
+      'enumType("Shape"): members "Wide" and "AlsoWide" both store {"height":1,"width":2}. Member values must be unique as their codec stores them.',
+      ['Wide', 'AlsoWide'],
+    ],
+    [
+      'two equal dates',
+      enumType(
+        'Moment',
+        dateCodec,
+        member('Start', new Date('2024-01-01T00:00:00.000Z')),
+        member('SameStart', new Date('2024-01-01T00:00:00.000Z')),
+      ),
+      'enumType("Moment"): members "Start" and "SameStart" both store "2024-01-01T00:00:00.000Z". Member values must be unique as their codec stores them.',
+      ['Start', 'SameStart'],
+    ],
+  ] as const)('refuses %s', (_case, handle, message, members) => {
+    expect(() => build(handle)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ENUM_INVALID',
+        message,
+        meta: { enumName: handle.enumName, members, reason: 'duplicate-member-value' },
+      }),
+    );
   });
 });
 
@@ -262,12 +364,12 @@ describe('defineContract() — enum declaration key mismatch', () => {
 });
 
 describe('defineContract() — codec-encoded value set', () => {
-  const upperCodec = { codecId: 'test/upper@1' as const, nativeType: 'string' } as const;
+  const upperCodec = { codecId: 'test/upper@1' as const } as const;
   const upperDescriptor: AnyCodecDescriptor = {
     codecId: 'test/upper@1',
+    dataType: dataTypeId('test/upper'),
     traits: ['equality'],
-    targetTypes: ['string'],
-    paramsSchema: voidParamsSchema,
+    paramsSchema: undefined,
     isParameterized: false,
     factory: () => () =>
       ({
@@ -275,7 +377,7 @@ describe('defineContract() — codec-encoded value set', () => {
         encode: async (v: unknown) => v,
         decode: async (v: unknown) => v,
         encodeJson: (v: unknown) => (v as string).toUpperCase(),
-        decodeJson: (j: unknown) => j,
+        decodeJson: (j: unknown) => (j as string).toLowerCase(),
       }) as unknown as Codec,
   };
   const packWithEncoders = {
@@ -335,5 +437,39 @@ describe('defineContract() — codec-encoded value set', () => {
         models: { WithMissing },
       }),
     ).toThrow('test/upper@1');
+  });
+});
+
+describe('an enum whose codec does not declare the equality trait', () => {
+  it('is refused, saying so', () => {
+    const unequalCodec = { codecId: 'test/unequal@1' as const } as const;
+    const Shape = enumType('Shape', unequalCodec, member('Round', 'round'));
+    const target = {
+      ...mongoTargetPack,
+      types: {
+        codecTypes: {
+          codecDescriptors: [
+            identityDescriptor('mongo/string@1'),
+            { ...identityDescriptor('test/unequal@1'), traits: [] },
+          ],
+        },
+      },
+    } as const satisfies TargetPackRef<'mongo', 'mongo'>;
+    const WithShape = model('WithShape', {
+      collection: 'withShape',
+      fields: { _id: field.objectId(), shape: field.namedType(Shape) },
+    });
+
+    expect(() =>
+      defineContract({ family: mongoFamilyPack, target, enums: { Shape }, models: { WithShape } }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ENUM_INVALID',
+        message:
+          'enumType("Shape"): an enum cannot use the codec test/unequal@1. The codec does not declare the equality trait, so no value can be compared with a member. Use a codec that declares it.',
+        fix: 'Type the enum with another codec.',
+        meta: { enumName: 'Shape', codecId: 'test/unequal@1', reason: 'codec-not-for-enums' },
+      }),
+    );
   });
 });

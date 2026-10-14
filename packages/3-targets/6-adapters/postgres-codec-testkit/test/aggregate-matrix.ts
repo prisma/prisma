@@ -7,17 +7,25 @@
  * PostgreSQL; the resolution suite asks the same registry the same questions
  * without one. Keeping the fixtures here is what lets both ask about the same
  * codecs — a codec added to the target shows up in both suites at once, and the
- * coverage test that enforces it lives beside the data it enforces.
+ * coverage test that enforces it lives beside the data it enforces. The
+ * textual-trait suite reuses the fixtures to build a column of each codec's
+ * native type.
  */
 
 import type { JsonValue } from '@internal/contract/types';
-import type { CodecRef } from '@internal/framework-components/codec';
+import { type CodecRef, createDataTypeLookup } from '@internal/framework-components/codec';
+import {
+  dataTypeParams,
+  renderSqlTypeName,
+  sqlDataTypeOfCodec,
+} from '@internal/sql-contract/data-type';
 import { buildSqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import { postgresAggregateDescriptors } from '@internal/target-postgres/aggregates';
 import {
   postgresCodecDescriptorRegistry,
   postgresCodecRegistry,
 } from '@internal/target-postgres/codecs';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { ifDefined } from '@internal/utils/defined';
 
 export const registry = buildSqlAggregateDescriptorRegistry(
@@ -152,6 +160,11 @@ export const FIXTURES: readonly AggregateFixture[] = [
     samples: ["'2024-01-01T10:00:00.123456'", "'2024-02-01T10:00:00.654321'"],
   },
   {
+    codecId: 'pg/timestamptz-date@1',
+    typeParams: { precision: 3 },
+    samples: ["'2024-01-01T10:00:00.123Z'", "'2024-02-01T10:00:00.654Z'"],
+  },
+  {
     codecId: 'pg/timestamptz-string@1',
     typeParams: { precision: 6 },
     samples: ["'2024-01-01T10:00:00.123456Z'", "'2024-02-01T10:00:00.654321Z'"],
@@ -171,6 +184,7 @@ export const FIXTURES: readonly AggregateFixture[] = [
     samples: ["'11111111-1111-1111-1111-111111111111'", "'22222222-2222-2222-2222-222222222222'"],
   },
   { codecId: 'pg/inet@1', samples: ["'10.0.0.1'", "'10.0.0.2'"] },
+  { codecId: 'pg/tsquery@1', samples: ["'graze'", "'zebra'"] },
   { codecId: 'pg/interval@1', samples: ["'1 day'", "'2 days'"] },
   { codecId: 'pg/json@1', samples: ['\'{"a":1}\'', '\'{"b":2}\''] },
   { codecId: 'pg/jsonb@1', samples: ['\'{"a":1}\'', '\'{"b":2}\''] },
@@ -184,12 +198,21 @@ export function refOf(fixture: AggregateFixture): CodecRef {
   return { codecId: fixture.codecId, ...ifDefined('typeParams', fixture.typeParams) };
 }
 
+const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
+
+const UNWRITTEN_COLUMN_TYPES: Readonly<Record<string, string>> = { 'pg/text-array@1': 'text[]' };
+
 export function nativeTypeOf(ref: CodecRef): string {
-  const descriptor = postgresCodecDescriptorRegistry.descriptorFor(ref.codecId);
-  if (descriptor === undefined) {
-    throw new Error(`No PostgreSQL codec descriptor for '${ref.codecId}'.`);
-  }
-  return descriptor.nativeTypeFor(ref);
+  const unwritten = UNWRITTEN_COLUMN_TYPES[ref.codecId];
+  if (unwritten !== undefined) return unwritten;
+  const type = sqlDataTypeOfCodec(ref.codecId, {
+    codecLookup: postgresCodecDescriptorRegistry,
+    dataTypeLookup: postgresDataTypeLookup,
+  });
+  return renderSqlTypeName(
+    type,
+    dataTypeParams(type, ref.typeParams as Readonly<Record<string, unknown>> | undefined),
+  );
 }
 
 /** The codecs the bare `sum` totals into an integer result — the integer inputs, read off the matrix rather than listed beside it. */

@@ -1,19 +1,13 @@
 import type { PslExtensionBlock } from '@internal/framework-components/psl-ast';
+import { isPslIdentifier } from '@internal/psl-parser';
+import { escapePslString } from '@internal/sql-contract/data-type-support';
+import { printSqlExpressionLiteral, sqlTextsReadBack } from '@internal/sql-contract/sql-expression';
 import { parseWireName } from '@internal/sql-schema-ir/naming';
 import { assertDefined } from '@internal/utils/assertions';
+import { POLICY_BLOCK_KEYWORDS } from '../authoring';
+import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
-import { escapePslString, SYNTHETIC_SPAN } from './psl-literals';
-
-const POLICY_OPERATION_KEYWORD = {
-  select: 'policy_select',
-  insert: 'policy_insert',
-  update: 'policy_update',
-  delete: 'policy_delete',
-  all: 'policy_all',
-} as const;
-
-/** The PSL tokenizer's identifier grammar: leading letter/underscore, then letters/digits/`_`/`-`. */
-const PSL_IDENTIFIER = /^[\p{L}_][\p{L}\p{N}_-]*$/u;
+import { SQL_DOES_NOT_READ_BACK } from './infer-sql-text';
 
 /** Replaces invalid character runs with `_`; prepends `_` when the first character is invalid. */
 function sanitizePolicyHead(raw: string): string {
@@ -37,7 +31,7 @@ interface PolicyBlockEmission {
  * legal identifier cannot be authored at all — role references have no
  * `@@map` escape — so it is skipped with a note.
  */
-export function buildPolicyBlocks(
+export function buildIntrospectedPolicyBlocks(
   policiesByTable: ReadonlyMap<string, readonly PostgresPolicySchemaNode[]>,
   modelNameMap: ReadonlyMap<string, string>,
   reservedHeads: ReadonlySet<string> = new Set(),
@@ -73,16 +67,23 @@ export function buildPolicyBlocks(
     // never live data, and must not silently under-describe the database.
     assertDefined(
       modelName,
-      `buildPolicyBlocks: policy "${policy.name}" targets table "${tableName}" with no emitted model; tables and policies come from the same introspection walk`,
+      `buildIntrospectedPolicyBlocks: policy "${policy.name}" targets table "${tableName}" with no emitted model; tables and policies come from the same introspection walk`,
     );
 
-    const badRole = policy.roles.find((role) => !PSL_IDENTIFIER.test(role));
-    if (badRole !== undefined) {
+    const skipNote = (reason: string) => {
       const notes = skipNotesByTable.get(tableName) ?? [];
-      notes.push(
-        `// prisma-next: skipped policy "${policy.name}": role "${badRole}" is not a valid PSL identifier and role references cannot be escaped`,
-      );
+      notes.push(`// prisma: skipped policy "${policy.name}": ${reason}`);
       skipNotesByTable.set(tableName, notes);
+    };
+    const badRole = policy.roles.find((role) => !isPslIdentifier(role));
+    if (badRole !== undefined) {
+      skipNote(
+        `role "${badRole}" is not a valid PSL identifier and role references cannot be escaped`,
+      );
+      continue;
+    }
+    if (!sqlTextsReadBack([policy.using, policy.withCheck])) {
+      skipNote(SQL_DOES_NOT_READ_BACK);
       continue;
     }
 
@@ -96,34 +97,28 @@ export function buildPolicyBlocks(
 
     blocks.push({
       kind: 'policy',
-      keyword: POLICY_OPERATION_KEYWORD[policy.operation],
+      keyword: POLICY_BLOCK_KEYWORDS[policy.operation],
       name: head,
       parameters: {
-        target: { kind: 'ref', identifier: modelName, span: SYNTHETIC_SPAN },
-        roles: {
-          kind: 'list',
-          items: policy.roles.map((role) => ({
-            kind: 'ref',
-            identifier: role,
-            span: SYNTHETIC_SPAN,
-          })),
-          span: SYNTHETIC_SPAN,
-        },
+        target: { expression: modelName, span: SYNTHETIC_SPAN },
+        roles: { expression: `[${policy.roles.join(', ')}]`, span: SYNTHETIC_SPAN },
         ...(policy.using !== undefined
-          ? { using: { kind: 'value', raw: JSON.stringify(policy.using), span: SYNTHETIC_SPAN } }
-          : {}),
-        ...(policy.withCheck !== undefined
           ? {
-              withCheck: {
-                kind: 'value',
-                raw: JSON.stringify(policy.withCheck),
+              using: {
+                expression: printSqlExpressionLiteral(policy.using),
                 span: SYNTHETIC_SPAN,
               },
             }
           : {}),
-        ...(policy.permissive
-          ? {}
-          : { permissive: { kind: 'value', raw: 'false', span: SYNTHETIC_SPAN } }),
+        ...(policy.withCheck !== undefined
+          ? {
+              withCheck: {
+                expression: printSqlExpressionLiteral(policy.withCheck),
+                span: SYNTHETIC_SPAN,
+              },
+            }
+          : {}),
+        ...(policy.permissive ? {} : { permissive: { expression: 'false', span: SYNTHETIC_SPAN } }),
       },
       blockAttributes: [
         {

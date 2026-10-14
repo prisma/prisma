@@ -1,13 +1,15 @@
 import type { Contract } from '@internal/contract/types';
 import type { CodecDescriptor, CodecRef } from '@internal/framework-components/codec';
 import type { AggregateResultNullability } from '@internal/framework-components/components';
+import type { MutationDefaults } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationRegistry } from '@internal/sql-operations';
 import type { SqlAggregateDescriptor, SqlAggregateLowering } from './aggregate-descriptor';
 import type { ContractCodecRegistry } from './ast/codec-types';
+import type { RawCodecInferer } from './expression';
 
 /**
- * Codec-id-keyed accessor for descriptor metadata. The unified read API for codec-id-keyed metadata (`traits`, `targetTypes`) — non-branching for parameterized vs. non-parameterized codecs. Every codec ships natively as a `CodecDescriptor` through the unified `codecs:` contributor slot (see ADR 208).
+ * Codec-id-keyed accessor for descriptor metadata. The unified read API for codec-id-keyed metadata (`traits`) — non-branching for parameterized vs. non-parameterized codecs. Every codec ships natively as a `CodecDescriptor` through the unified `codecs:` contributor slot (see ADR 208).
  */
 export interface CodecDescriptorRegistry {
   /**
@@ -32,10 +34,6 @@ export interface CodecDescriptorRegistry {
    * All registered descriptors. Used by `validateCodecRegistryCompleteness` and other startup-time consumers that enumerate descriptors.
    */
   values(): IterableIterator<CodecDescriptor<unknown>>;
-  /**
-   * Descriptors indexed by `targetTypes[i]` (each scalar type the codec advertises). Multiple descriptors may map to the same scalar type; ordering reflects registration order.
-   */
-  byTargetType(targetType: string): readonly CodecDescriptor<unknown>[];
 }
 
 /**
@@ -70,45 +68,20 @@ export interface SqlAggregateDescriptorRegistry {
  */
 export type TypeHelperRegistry = Record<string, unknown>;
 
-export type MutationDefaultsOp = 'create' | 'update';
-
-export type AppliedMutationDefault = {
-  readonly column: string;
-  readonly value: unknown;
-};
-
-export type MutationDefaultsOptions = {
-  readonly op: MutationDefaultsOp;
-  readonly table: string;
-  /**
-   * Namespace of the target table. Execution-default refs are namespace-scoped,
-   * so only defaults declared for `(namespace, table)` are applied — this is what
-   * disambiguates same-named tables across namespaces. Required so the coordinate
-   * is always part of the match; a missing namespace is a caller bug, not a
-   * silent degrade to table-name-only matching.
-   */
-  readonly namespace: string;
-  readonly values: Record<string, unknown>;
-  /**
-   * Per-ORM-operation cache for generators that declare `stability: 'query'`. The caller passes the same `Map` across every `applyMutationDefaults` invocation in one bulk operation; the framework keys by `generatorId` so the same value is reused across all rows and columns. Generators with `stability: 'row'` use a fresh per-call cache the framework manages internally; generators with `stability: 'field'` skip caching
-   * entirely. Omit to make every call independent (degrades `'query'` to per-call behavior).
-   */
-  readonly defaultValueCache?: Map<string, unknown>;
-};
-
 /**
  * Minimal context interface for SQL query lanes.
  *
  * Lanes only need contract, operations, and codecs to build typed ASTs and attach operation builders. This interface explicitly excludes runtime concerns like adapters, connection management, and transaction state.
  */
-export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contract<SqlStorage>> {
+export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contract<SqlStorage>>
+  extends MutationDefaults {
   readonly contract: TContract;
   /**
    * Contract-bound codec registry built once at context-construction time by walking the contract's columns and resolving each through its descriptor's factory. Runtime dispatch (`encodeParam` / `decodeRow`) resolves codecs via `forCodecRef(ref)` — the single dispatch shape for AST-bound codec resolution.
    */
   readonly contractCodecs: ContractCodecRegistry;
   /**
-   * Codec-id-keyed descriptor map. Single source of truth for codec-id-keyed metadata (`traits`, `targetTypes`) — every codec, parameterized or not, resolves through this map without branching.
+   * Codec-id-keyed descriptor map. Single source of truth for codec-id-keyed metadata (`traits`) — every codec, parameterized or not, resolves through this map without branching.
    */
   readonly codecDescriptors: CodecDescriptorRegistry;
   /**
@@ -121,7 +94,7 @@ export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contr
    */
   readonly types: TypeHelperRegistry;
   /**
-   * Applies execution-time mutation defaults for the given table. Returns the applied defaults (caller-provided values always win).
+   * The adapter's codec inferer, which `fns.raw` uses for a bare value interpolated into a template. An execution context built from an execution stack carries it.
    */
-  applyMutationDefaults(options: MutationDefaultsOptions): ReadonlyArray<AppliedMutationDefault>;
+  readonly rawCodecInferer?: RawCodecInferer;
 }

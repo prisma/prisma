@@ -1,23 +1,23 @@
-# Prisma Next Demo
+# Prisma 8 Demo
 
-This example demonstrates **Prisma Next in its native form**, using the Prisma Next APIs directly without the compatibility layer.
+This example demonstrates **Prisma 8 in its native form**, using the Prisma 8 APIs directly without the compatibility layer.
 
 ## Purpose
 
 This demo shows:
 
-- Using Prisma Next's query lanes (SQL DSL, Raw SQL, etc.)
+- Using Prisma 8's query lanes (SQL DSL, Raw SQL, etc.)
 - Creating Plans and executing them via the Runtime
 - Contract verification and marker management
-- Native Prisma Next patterns and best practices
+- Native Prisma 8 patterns and best practices
 - ORM client end-to-end examples using `@internal/sql-orm-client`
 - **Two workflows**: Emit workflow (JSON-based) and No-Emit workflow (TypeScript-based)
 - Client-generated UUID identifiers via `@internal/ids`
 
 ## Comparison
 
-- **`prisma-8-demo`** (this example): Shows Prisma Next native APIs
-- **`prisma-orm-demo`**: Shows using Prisma Next via the compatibility layer (mimics Prisma 7 API)
+- **`prisma-8-demo`** (this example): Shows Prisma 8 native APIs
+- **`prisma-orm-demo`**: Shows using Prisma 8 via the compatibility layer (mimics Prisma 7 API)
 
 ## Workflows
 
@@ -102,11 +102,12 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientGetAdminUsers(limit, runtime)` — filter through a custom collection scope
 - `ormClientFindUserByEmail(email, runtime)` — `first()` with collection helpers
 - `ormClientGetUserPosts(userId, limit, runtime)` — fetch user posts with collection filters + ordering
+- `ormClientGetUserProfile(userId, runtime)` — **`Shape`-declared response type**: `UserProfile` is `Shape<Models.public_User, { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }>`; the nested include (`User → posts → tags`) is an implementation detail the compiler checks at the `return`
 - `ormClientGetDashboardUsers(emailDomain, postTitleTerm, limit, postsPerUser, runtime)` — compound `and/or/not` filters + relation filters + `select()` and `include()` composition
 - `ormClientGetPostFeed(postTitleTerm, limit, runtime)` — to-one include (`post -> user`) with projected fields
 - `ormClientGetUserTaskBoard(limit, runtime)` — **polymorphic-target include**: `User.include('tasks')` where `Task` is a discriminated base; each included row is decoded into its variant shape (`Bug` → `severity`/`stepsToRepro`, `Feature` → `priority`/`targetRelease`) in a single read
-- `ormClientGetUserBugTriage(severity, limit, runtime)` — `.variant('Bug')`-narrowed include filtered by the Bug-only `severity` column
-- `ormClientGetFeatureRoadmap(targetRelease, limit, runtime)` — `.variant('Feature')`-narrowed include filtered by the Feature-only `targetRelease` column (a multi-table-inheritance variant column reached through the variant join)
+- `ormClientGetUserBugTriage(severity, limit, runtime)` — `.variant('bug')`-narrowed include filtered by the Bug-only `severity` column
+- `ormClientGetFeatureRoadmap(targetRelease, limit, runtime)` — `.variant('feature')`-narrowed include filtered by the Feature-only `targetRelease` column (a multi-table-inheritance variant column reached through the variant join)
 - `ormClientGetPostTags(postId, runtime)` — **many-to-many include**: `Post.include('tags', …)` traversing the `post_tag` junction transparently
 - `ormClientGetTagPosts(tagId, runtime)` — the same junction walked from the other side (`Tag.include('posts', …)`)
 - `ormClientGetPostsByTagFilter(mode, label, runtime)` — `some`/`none`/`every` relation filter predicates on the N:M `tags` relation (EXISTS through the junction)
@@ -122,8 +123,11 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientGetEngagementPrecision(runtime)` — `count`/`sum`/`avg` beside `countBigInt`/`sumBigInt`/`avgDecimal`, including the bare `sum` that raises rather than rounding
 - `ormClientGetEngagementSpread(runtime)` — an extension-contributed `stddev` aggregate, called like a built-in
 - `ormClientUpsertUser(data, runtime)` — `upsert()` for create-or-update by primary key
-- `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ ttl })` from `@internal/middleware-cache`
+- `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ bypass? })` from `@internal/middleware-cache`
 - `ormClientGetUsersCached(limit, runtime, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
+- `ormClientGetRecentPosts(since, orderBy, direction, limit, runtime)` — **query fragments**: `createdSince` (`db.orm.fragment`, a scope for any model with a `createdAt` field), `orderByField` (a field to order by, named in the request and checked at run time) and `postSummary` (`db.orm.public.Post.fragment`, the shared `select` and `include` of a post), from `src/orm-client/fragments.ts`
+- `ormClientGetRecentUsers(since, limit, runtime)` — the same `createdSince` on users and on their included posts, which `postSummary` shapes inside the include refinement
+- `ormClientSearchPostsByTitle(query, limit, runtime)` — **full-text search**: `p.title.fullTextMatches(websearchToTsquery(query))` filtered and `p.title.fullTextRank(websearchToTsquery(query)).desc()` ordered, over the GIN index `@@fullTextIndex([title])` declares
 
 Run from the CLI:
 
@@ -134,6 +138,7 @@ pnpm start -- repo-user admin@example.com
 pnpm start -- repo-posts user_001 10
 pnpm start -- repo-dashboard example.com post 10 2
 pnpm start -- repo-post-feed post 10
+pnpm start -- repo-recent-posts 2024-01-01T00:00:00Z title asc 10
 pnpm start -- repo-task-board 10
 pnpm start -- repo-bug-triage critical 10
 pnpm start -- repo-feature-roadmap v2.0 10
@@ -142,6 +147,8 @@ pnpm start -- repo-latest-per-kind
 pnpm start -- repo-user-insights 5
 pnpm start -- repo-kind-breakdown 1
 pnpm start -- repo-upsert-user 00000000-0000-0000-0000-000000000099 demo@example.com user
+# Shape-declared response type (see src/orm-client/get-user-profile.ts; user ids are printed by the seed)
+pnpm start -- orm-user-profile <userId>
 # Many-to-many (post and tag ids are printed by the seed)
 pnpm start -- repo-post-tags <postId>
 pnpm start -- repo-tag-posts <tagId>
@@ -338,7 +345,7 @@ and the [aggregate descriptor guide](../../docs/reference/aggregate-descriptor-g
 
 ## Cache Middleware Examples
 
-The demo wires `@internal/middleware-cache` into the Postgres client in `src/prisma/db.ts`. The cache middleware is **opt-in per query** — it only acts on plans whose `meta.annotations` carry a `cacheAnnotation` payload with a `ttl` set. Three CLI commands run a query twice and report the latency of each call so the cache hit is visible:
+The demo wires `@internal/middleware-cache` into the Postgres client in `src/prisma/db.ts`. The cache middleware is **opt-in per query** — it only acts on plans whose `meta.annotations` carry a `cacheAnnotation`. The default store keeps each entry for 60 seconds. Three CLI commands run a query twice and report the latency of each call so the cache hit is visible:
 
 ```bash
 # ORM client first({ id }) cached for 60s.
@@ -347,7 +354,7 @@ pnpm start -- cache-demo-user 00000000-0000-0000-0000-000000000001
 # ORM client User.all() listing cached for 60s.
 pnpm start -- cache-demo-users 5
 
-# SQL DSL .annotate(cacheAnnotation({ ttl })) on a select.
+# SQL DSL .annotate(cacheAnnotation({})) on a select.
 pnpm start -- cache-demo-sql 5
 ```
 
@@ -364,14 +371,14 @@ Speedup: 26.2x faster
 
 The corresponding source files:
 
-- `src/orm-client/find-user-by-id-cached.ts` — `db.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ ttl })))`
-- `src/orm-client/get-users-cached.ts` — `db.User.limit(n).all((meta) => meta.annotate(cacheAnnotation({ ttl, key? })))`
-- `src/queries/get-users-cached.ts` — `db.sql.public.user.select(...).annotate(cacheAnnotation({ ttl })).build()`
+- `src/orm-client/find-user-by-id-cached.ts` — `db.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ bypass })))`
+- `src/orm-client/get-users-cached.ts` — `db.User.limit(n).all((meta) => meta.annotate(cacheAnnotation({ key? })))`
+- `src/queries/get-users-cached.ts` — `db.sql.public.user.select(...).annotate(cacheAnnotation({})).build()`
 
 Relevant points:
 
 - The `cacheAnnotation` handle declares `applicableTo: ['read']`. Passing it to a write terminal is rejected at both the type and runtime levels — a `as any` cast cannot smuggle it past one without failing at the other.
-- The default cache key is `RuntimeMiddlewareContext.contentHash(exec)`, a SHA-512 digest of the post-lowering SQL plus parameters. Different parameters land in different cache slots; identical executions hit. Schema migrations rotate `meta.storageHash`, which feeds into `contentHash`, so cached entries do not leak across migrations.
+- The default cache key is `ActivityContext.contentHash(exec)`, a SHA-512 digest of the post-lowering SQL plus parameters. Different parameters land in different cache slots; identical executions hit. Schema migrations rotate `meta.storageHash`, which feeds into `contentHash`, so cached entries do not leak across migrations.
 - The default in-memory store is per-process. For shared caching across replicas, supply a custom `CacheStore` (for example a Redis-backed implementation) via `createCacheMiddleware({ store })`.
 - Connection-scoped (`runtime.connection().execute(...)`) and transaction-scoped (`runtime.transaction(...)`) executions bypass the cache regardless of annotation, so transactional read-after-write coherence is preserved.
 
@@ -385,7 +392,7 @@ Relevant points:
 
 2. Set up your database connection:
    - Create a `.env` file
-   - Add your PostgreSQL connection string: `DATABASE_URL=postgresql://user:pass@localhost:5432/prisma_next_demo?schema=public`
+   - Add your PostgreSQL connection string: `DATABASE_URL=postgresql://user:pass@localhost:5432/prisma_8_demo?schema=public`
    - **Note**: This demo uses the pgvector extension. Ensure pgvector is installed in your PostgreSQL database:
 
      ```sql
@@ -426,7 +433,7 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 - `src/prisma/db.ts` - One-liner Postgres client + query roots (emit workflow)
 - `src/prisma-no-emit/context.ts` - Env-free execution stack/context + query roots (no-emit workflow)
 - `src/prisma-no-emit/runtime.ts` - Runtime factory (no-emit workflow)
-- `src/orm-client/client.ts` - ORM client + custom collection scopes
+- `src/orm-client/client.ts` - ORM client, registering the custom collection classes in `collections.ts`
 - `src/orm-client/*.ts` - End-to-end ORM client query examples
 - `src/extensions/engagement-stats.ts` - Local extension contributing the `stddev` aggregate operation
 - `src/main.ts` - App entrypoint with arktype config validation (emit workflow)
@@ -435,9 +442,12 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 - `scripts/stamp-marker.ts` - Contract marker management
 - `scripts/seed.ts` - Database seeding (includes vector embeddings)
 - `src/queries/similarity-search.ts` - Example vector similarity search query
-- `test/` - Integration tests demonstrating Prisma Next usage
+- `src/queries/full-text-search.ts` - Example full-text search over the `post_title_search` index with `fullTextMatches`, `fullTextRank` and `fullTextHeadline`
+- `test/` - Integration tests demonstrating Prisma 8 usage
 
 ## Features Demonstrated
 
 - **Vector Similarity Search**: The demo includes a `similarity-search.ts` query that demonstrates cosine distance operations using the pgvector extension pack.
+- **Full-Text Search**: `Post` declares `@@fullTextIndex([title], name: "post_title_search")` (the TypeScript twin is `fullTextIndex(cols.title, { name: 'post_title_search' })`), which emits a GIN index over `to_tsvector('english', "title")`. `src/orm-client/search-posts-by-title.ts` searches through the ORM with `fullTextMatches` and `fullTextRank`; `src/queries/full-text-search.ts` searches the same index through the SQL DSL, read from the table as `post.indexes.post_title_search`, so the query searches the document the index was built over, and adds the rank and a `<mark>`-highlighted `fullTextHeadline`. The query argument is a `tsquery`: both files wrap the search string in `websearchToTsquery` (imported from `@prisma/orm-postgres/target/full-text` in the ORM file, a `fns` member in the DSL file), which binds it as a parameter and parses it with `websearch_to_tsquery`, so `"an exact phrase"`, `-excluded` and `or` work as in a search box. A bare string is a type error; for a typeahead prefix match, `` tsquery`${term}:*` `` from the same import quotes the typed text as one term. Try `pnpm start -- repo-search-posts-text second` and `pnpm start -- full-text-search "first or second"`.
+- **Weighted Full-Text Search**: `Post` also declares `@@fullTextIndex([[title], body], name: "post_search")`: one search document over the title (weight A) and the body (weight B). `src/orm-client/search-posts.ts` searches it through the ORM by naming the index in the second argument of the `where` and `orderBy` callbacks, `fns.fullTextMatches(indexes.post_search, q)` and `fns.fullTextRank(indexes.post_search, q).desc()`, so the query searches the document the index was built over and a title match ranks above a body match. Try `pnpm start -- repo-search-posts-weighted zebra`.
 - **Extension Packs**: Shows how to configure and use extension packs (pgvector) in `prisma.config.ts`.

@@ -15,13 +15,16 @@
  */
 
 import type {
+  FieldStatementColumns,
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
 } from '@internal/family-sql/control';
+import { sqlTypeLookupsOf } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
+import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import {
   RelationalSchemaNodeKind,
   type SqlColumnIR,
@@ -47,6 +50,7 @@ import {
   DropColumnCall,
   DropIndexCall,
   DropTableCall,
+  RecreateTableCall,
   type SqliteOpFactoryCall,
 } from './op-factory-call';
 import type {
@@ -128,9 +132,9 @@ export function columnTypeChanged(expected: SqlColumnIR, actual: SqlColumnIR): b
  * `toTableSpec` (which read a raw contract `StorageTable`). Every column's
  * spec is resolved from its `codecRef` via `columnSpecFromNode`.
  */
-export function tableSpecFromNode(table: SqlTableIR): SqliteTableSpec {
+export function tableSpecFromNode(table: SqlTableIR, types: SqlTypeLookups): SqliteTableSpec {
   const columns: SqliteColumnSpec[] = Object.values(table.columns).map((c) =>
-    columnSpecFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c)),
+    columnSpecFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c), types),
   );
   const uniques: SqliteUniqueSpec[] = table.uniques.map((u) => ({
     columns: u.columns,
@@ -205,9 +209,9 @@ function absorbedConflictKind(nodeKind: string): SqlPlannerConflict['kind'] {
  * (declared + FK-backing, deduped) are already merged and ordered at
  * derivation (`contractToSchemaIR`'s `convertTable`).
  */
-function buildCreateTableCalls(table: SqlTableIR): SqliteOpFactoryCall[] {
+function buildCreateTableCalls(table: SqlTableIR, types: SqlTypeLookups): SqliteOpFactoryCall[] {
   const columns = Object.values(table.columns).map((c) =>
-    ddlColumnFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c)),
+    ddlColumnFromNode(c, isInlineAutoincrementPrimaryKeyNode(table, c), types),
   );
   const hasInlinePk = Object.values(table.columns).some((c) =>
     isInlineAutoincrementPrimaryKeyNode(table, c),
@@ -229,13 +233,14 @@ function buildCreateTableCalls(table: SqlTableIR): SqliteOpFactoryCall[] {
 
 function mapTableIssue(
   issue: SchemaDiffIssue,
+  types: SqlTypeLookups,
 ): Result<readonly SqliteOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const table = blindCast<
       SqlTableIR,
       'a not-found table issue always carries the expected table node'
     >(issue.expected);
-    return ok(buildCreateTableCalls(table));
+    return ok(buildCreateTableCalls(table, types));
   }
   if (issueOutcome(issue) === 'not-expected') {
     const table = blindCast<
@@ -277,7 +282,7 @@ function mapColumnIssue(
     // honest against the table node rather than assuming it.
     const table = ctx.expected.tables[tableName];
     const inline = table !== undefined && isInlineAutoincrementPrimaryKeyNode(table, column);
-    return ok([new AddColumnCall(tableName, columnSpecFromNode(column, inline))]);
+    return ok([new AddColumnCall(tableName, columnSpecFromNode(column, inline, ctx.types))]);
   }
   if (issueOutcome(issue) === 'not-expected') {
     const column = blindCast<
@@ -350,7 +355,7 @@ export function mapNodeIssueToCall(
   }
   switch (node.nodeKind) {
     case RelationalSchemaNodeKind.table:
-      return mapTableIssue(issue);
+      return mapTableIssue(issue, ctx.types);
     case RelationalSchemaNodeKind.column:
       return mapColumnIssue(issue, ctx);
     case RelationalSchemaNodeKind.index:
@@ -418,6 +423,12 @@ export interface IssuePlannerOptions {
   readonly actual?: SqlSchemaIR;
   readonly policy?: MigrationOperationPolicy;
   readonly frameworkComponents?: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /** The columns of the fields convert and backfill statements name; none when omitted. */
+  readonly statementColumns?: FieldStatementColumns;
+  /** Whether a required column the plan adds may take a temporary value; every column may when omitted. */
+  readonly takesTemporaryValue?: (table: string, column: string) => boolean;
+  /** The codec a column has in the origin contract; none known when omitted. */
+  readonly originCodecId?: (table: string, column: string) => string | undefined;
   readonly strategies?: readonly CallMigrationStrategy[];
 }
 
@@ -441,6 +452,10 @@ export function planIssues(
     actual: options.actual ?? emptySchemaIR(),
     policy,
     frameworkComponents,
+    types: sqlTypeLookupsOf(frameworkComponents),
+    statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
+    takesTemporaryValue: options.takesTemporaryValue ?? (() => true),
+    originCodecId: options.originCodecId ?? (() => undefined),
   };
 
   const strategies = options.strategies ?? sqlitePlannerStrategies;
@@ -511,7 +526,38 @@ export function planIssues(
 
   // Final emission order matches the current monolithic planner:
   //   create-table → add-column → create-index → recreate → drop-column → drop-index → drop-table
-  const combined = [...gatedDefault, ...gatedBucketable];
+  // A rebuild creates its table's indexes itself, after any column it adds, so a separate
+  // createIndex on a column only the rebuild's recipe adds is left out.
+  const rebuiltIndexes = new Set(
+    gatedRecipe.flatMap((call) =>
+      call instanceof RecreateTableCall
+        ? call.indexes.map((index) => indexKey(call.tableName, index.name))
+        : [],
+    ),
+  );
+  const bucketed = [...gatedDefault, ...gatedBucketable];
+  const addedBeforeIndexes = new Set(
+    bucketed.flatMap((call) =>
+      call instanceof AddColumnCall ? [indexKey(call.tableName, call.columnName)] : [],
+    ),
+  );
+  const indexesANewColumn = (call: CreateIndexCall) => {
+    const live = context.actual.tables[call.tableName];
+    return (
+      live !== undefined &&
+      call.columns.some(
+        (column) =>
+          live.columns[column] === undefined &&
+          !addedBeforeIndexes.has(indexKey(call.tableName, column)),
+      )
+    );
+  };
+  const combined = bucketed.filter(
+    (call) =>
+      !(call instanceof CreateIndexCall) ||
+      !indexesANewColumn(call) ||
+      !rebuiltIndexes.has(indexKey(call.tableName, call.indexName)),
+  );
   const byCategory = (cat: CallCategory) => combined.filter((c) => classifyCall(c) === cat);
 
   const calls: SqliteOpFactoryCall[] = [
@@ -527,11 +573,15 @@ export function planIssues(
   return ok({ calls });
 }
 
+function indexKey(tableName: string, indexName: string): string {
+  return JSON.stringify([tableName, indexName]);
+}
+
 function emptySchemaIR(): SqlSchemaIR {
   return new SqlSchemaIR({ tables: {} });
 }
 
-function conflictForDisallowedCall(
+export function conflictForDisallowedCall(
   call: SqliteOpFactoryCall,
   allowed: readonly string[],
 ): SqlPlannerConflict {
@@ -541,6 +591,7 @@ function conflictForDisallowedCall(
     kind: conflictKindForCall(call),
     summary,
     why: 'Use `migration new` to author a custom migration for this change.',
+    refusedOperationClass: call.operationClass,
     ...(location ? { location } : {}),
   };
 }

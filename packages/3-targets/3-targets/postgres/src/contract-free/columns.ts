@@ -9,8 +9,8 @@ import {
   PG_INT4_CODEC_ID,
   PG_INT8_CODEC_ID,
   PG_JSONB_CODEC_ID,
-  PG_TEXT_ARRAY_CODEC_ID,
   PG_TEXT_CODEC_ID,
+  PG_TIMESTAMPTZ_DATE_CODEC_ID,
   PG_TIMESTAMPTZ_STRING_CODEC_ID,
 } from '../core/codec-ids';
 
@@ -25,9 +25,14 @@ export const text = (opts?: ColOpts): ColumnDescriptor => desc(PG_TEXT_CODEC_ID,
 export const int4 = (opts?: ColOpts): ColumnDescriptor => desc(PG_INT4_CODEC_ID, opts);
 export const int8 = (opts?: ColOpts): ColumnDescriptor => desc(PG_INT8_CODEC_ID, opts);
 export const jsonb = (opts?: ColOpts): ColumnDescriptor => desc(PG_JSONB_CODEC_ID, opts);
-export const textArray = (opts?: ColOpts): ColumnDescriptor => desc(PG_TEXT_ARRAY_CODEC_ID, opts);
+export const textArray = (opts?: ColOpts): ColumnDescriptor => ({
+  ...desc(PG_TEXT_CODEC_ID, opts),
+  many: true,
+});
 export const timestamptz = (opts?: ColOpts): ColumnDescriptor =>
   desc(PG_TIMESTAMPTZ_STRING_CODEC_ID, opts);
+export const timestamptzJsDate = (opts?: ColOpts): ColumnDescriptor =>
+  desc(PG_TIMESTAMPTZ_DATE_CODEC_ID, opts);
 
 /**
  * Declare a PostgreSQL control-plane table with a typed column schema. Wraps

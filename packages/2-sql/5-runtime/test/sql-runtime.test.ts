@@ -75,7 +75,6 @@ function createStubCodecs(
   return [
     defineTestCodec({
       typeId: 'pg/int4@1',
-      targetTypes: ['int4'],
       encode: (v: number) => v,
       decode: (w: number) => w,
     }),
@@ -418,7 +417,7 @@ describe('SqlRuntime', () => {
     await connection.release();
   });
 
-  it('intercepts execute statistics through only execute hooks', async () => {
+  it('intercepts execute statistics through intercept.onExecute only', async () => {
     const { stackInstance, context, driver } = createTestSetup();
     const calls: string[] = [];
     const contexts: SqlMiddlewareContext[] = [];
@@ -431,43 +430,45 @@ describe('SqlRuntime', () => {
       middleware: [
         {
           name: 'observer',
-          async beforeQuery() {
-            calls.push('beforeQuery');
-          },
-          async interceptQuery() {
-            calls.push('interceptQuery');
-            return undefined;
-          },
-          async afterQuery() {
-            calls.push('afterQuery');
-          },
-          async beforeExecute(_plan, ctx) {
-            calls.push('beforeExecute');
+          async beforeEncode(_plan, ctx) {
+            calls.push('beforeEncode');
             contexts.push(ctx);
           },
-          async interceptExecute(_plan, ctx) {
-            calls.push('passthrough');
-            contexts.push(ctx);
-            return undefined;
+          intercept: {
+            async onQuery() {
+              calls.push('onQuery');
+              return undefined;
+            },
+            async onExecute(_plan, ctx) {
+              calls.push('passthrough');
+              contexts.push(ctx);
+              return undefined;
+            },
           },
-          async afterExecute(_plan, result, ctx) {
-            calls.push(`afterExecute:${result.completed ? result.stats.affectedRows : 'failed'}`);
+          async activityEnded(_activity, result, ctx) {
+            calls.push(
+              `ended:${result.kind === 'statement' && result.returns === 'stats' ? result.stats?.affectedRows : 'rows'}`,
+            );
             contexts.push(ctx);
           },
         },
         {
           name: 'winner',
-          async interceptExecute(_plan, ctx) {
-            calls.push('winner');
-            contexts.push(ctx);
-            return { stats: { affectedRows: 12 } };
+          intercept: {
+            async onExecute(_plan, ctx) {
+              calls.push('winner');
+              contexts.push(ctx);
+              return { stats: { affectedRows: 12 } };
+            },
           },
         },
         {
           name: 'tail',
-          async interceptExecute() {
-            calls.push('tail');
-            return { stats: { affectedRows: 13 } };
+          intercept: {
+            async onExecute() {
+              calls.push('tail');
+              return { stats: { affectedRows: 13 } };
+            },
           },
         },
       ],
@@ -478,16 +479,16 @@ describe('SqlRuntime', () => {
     ).resolves.toEqual({ affectedRows: 12 });
 
     expect(driver.__spies.rootStats).not.toHaveBeenCalled();
-    expect(calls).toEqual(['beforeExecute', 'passthrough', 'winner', 'afterExecute:12']);
+    expect(calls).toEqual(['beforeEncode', 'passthrough', 'winner', 'ended:12']);
     expect(contexts).toHaveLength(4);
     expect(contexts.every((ctx) => ctx === contexts[0])).toBe(true);
     expect(contexts[0]?.contract).toEqual(testContract);
     expect(contexts[0]?.signal).toBe(controller.signal);
     expect(contexts[0]?.scope).toBe('runtime');
-    expect(contexts[0]?.planExecutionId).toBeTypeOf('string');
+    expect(contexts[0]?.parent).toBeUndefined();
   });
 
-  it('selects execute hooks and preserves connection and transaction scopes', async () => {
+  it('runs execute as a statement returning statistics and preserves connection and transaction scopes', async () => {
     const { stackInstance, context, driver } = createTestSetup();
     const scopes: string[] = [];
     const queryHook = vi.fn();
@@ -499,8 +500,8 @@ describe('SqlRuntime', () => {
       middleware: [
         {
           name: 'scope-observer',
-          beforeQuery: queryHook,
-          beforeExecute(_plan, ctx) {
+          intercept: { onQuery: queryHook },
+          async beforeEncode(_plan, ctx) {
             scopes.push(ctx.scope);
           },
         },
@@ -531,10 +532,12 @@ describe('SqlRuntime', () => {
       middleware: [
         {
           name: 'statistics-cache',
-          async interceptExecute() {
-            return { stats: { affectedRows: 12 } };
+          intercept: {
+            async onExecute() {
+              return { stats: { affectedRows: 12 } };
+            },
           },
-          async afterExecute(_plan, result) {
+          async activityEnded(_activity, result) {
             completions.push(result);
           },
         },
@@ -548,7 +551,7 @@ describe('SqlRuntime', () => {
     expect(driver.__spies.rootStats).not.toHaveBeenCalled();
     expect(completions).toEqual([
       expect.objectContaining({
-        completed: true,
+        outcome: 'succeeded',
         source: 'middleware',
         stats: { affectedRows: 12 },
       }),
@@ -795,7 +798,6 @@ describe('SqlRuntime', () => {
   it('wraps async parameter encoding failures before the driver runs', async () => {
     const failingCodec = defineTestCodec({
       typeId: 'test/failing-secret@1',
-      targetTypes: ['text'],
       encode: async (_value: string) => {
         throw new Error('encrypt failed');
       },

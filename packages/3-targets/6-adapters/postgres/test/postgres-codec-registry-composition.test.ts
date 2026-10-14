@@ -1,8 +1,15 @@
 import type { JsonValue } from '@internal/contract/types';
-import type { AnyCodecDescriptor } from '@internal/framework-components/codec';
-import { voidParamsSchema } from '@internal/framework-components/codec';
+import {
+  type AnyCodecDescriptor,
+  type AnyCodecDescriptorTemplate,
+  assembleDataTypes,
+  type DataType,
+  dataType,
+  dataTypeId,
+} from '@internal/framework-components/codec';
 import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
 import type { RuntimeExtensionDescriptor } from '@internal/framework-components/execution';
+import { sqlDataType } from '@internal/sql-contract/data-type';
 import {
   BinaryExpr,
   CodecJsonValueProjection,
@@ -19,14 +26,17 @@ import {
   type AnyPostgresCodecDescriptor,
   postgresCodec,
 } from '@internal/target-postgres/codec-descriptor';
-import { postgresCodecDescriptorRegistry } from '@internal/target-postgres/codecs';
+import {
+  assemblePostgresCodecRegistry,
+  postgresCodecDescriptorRegistry,
+} from '@internal/target-postgres/codecs';
 import postgresTargetControlDescriptor from '@internal/target-postgres/control';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import postgresRuntimeTargetDescriptor from '@internal/target-postgres/runtime';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createPostgresAdapter } from '../src/core/adapter';
-import { assemblePostgresCodecRegistry } from '../src/core/codec-lookup';
 import type { PostgresContract } from '../src/core/types';
 import postgresAdapterControlDescriptor, {
   createPostgresCodecRegistryWithBuiltins,
@@ -38,6 +48,23 @@ import {
   createComposedPostgresControlAdapter,
 } from './helpers/composed-adapter';
 import { defineTestCodec } from './test-codec';
+
+/** The data types the fixture codecs of one contribution represent, so assembly finds them. */
+/** A fixture codec's data type: its own id without the version. */
+const fixtureTypeId = (codecId: string) => dataTypeId(codecId.split('@')[0] ?? codecId);
+
+const writtenFixtureTypes = new Map<string, DataType>();
+
+function fixtureSqlDataType(codecId: string, name: string): DataType {
+  const type = sqlDataType(fixtureTypeId(codecId), { texts: [{ text: name, written: true }] });
+  writtenFixtureTypes.set(type.id, type);
+  return type;
+}
+
+const fixtureDataTypes = (descriptors: readonly { readonly dataType?: string }[]) =>
+  [...new Set(descriptors.map((descriptor) => descriptor.dataType))]
+    .filter((id): id is string => id !== undefined)
+    .map((id) => writtenFixtureTypes.get(id) ?? dataType(id, {}));
 
 const contract = new SqlContractSerializer().deserializeContract({
   target: 'postgres',
@@ -56,10 +83,14 @@ const contract = new SqlContractSerializer().deserializeContract({
           table: {
             records: {
               columns: {
-                id: { codecId: 'pg/int4@1', nativeType: 'int4', nullable: false },
-                document: { codecId: 'arktype/json@1', nativeType: 'jsonb', nullable: false },
-                embedding: { codecId: 'pg/vector@1', nativeType: 'vector', nullable: false },
-                location: { codecId: 'pg/geometry@1', nativeType: 'geometry', nullable: false },
+                id: { codecId: 'pg/int4@1', dataType: 'pg/int4', nullable: false },
+                document: { codecId: 'arktype/json@1', dataType: 'pg/jsonb', nullable: false },
+                embedding: { codecId: 'pg/vector@1', dataType: 'pgvector/vector', nullable: false },
+                location: {
+                  codecId: 'pg/geometry@1',
+                  dataType: 'postgis/geometry',
+                  nullable: false,
+                },
               },
               uniques: [],
               indexes: [],
@@ -73,7 +104,7 @@ const contract = new SqlContractSerializer().deserializeContract({
   domain: applicationDomainOf({ models: {} }),
 }) as PostgresContract;
 
-function genericDescriptor(codecId: string): AnyCodecDescriptor {
+function genericDescriptor(codecId: string): AnyCodecDescriptorTemplate {
   const codec = defineTestCodec({
     typeId: codecId,
     encode: (value: JsonValue): JsonValue => value,
@@ -82,8 +113,7 @@ function genericDescriptor(codecId: string): AnyCodecDescriptor {
   return {
     codecId,
     traits: ['equality'],
-    targetTypes: [],
-    paramsSchema: voidParamsSchema,
+    paramsSchema: undefined,
     isParameterized: false,
     factory: () => () => codec,
   };
@@ -95,7 +125,7 @@ function postgresDescriptor(
   onProjection?: () => void,
 ): AnyPostgresCodecDescriptor {
   return postgresCodec(genericDescriptor(codecId), {
-    nativeType: () => nativeType,
+    dataType: fixtureSqlDataType(codecId, nativeType),
     jsonProjection(expression: ProjectionExpr): ProjectionExpr {
       onProjection?.();
       return expression;
@@ -113,11 +143,10 @@ function transformingPostgresDescriptor(
     encode: (value: string): string => `encoded:${value}`,
     decode: (wire: string): string => wire,
   });
-  const descriptor: AnyCodecDescriptor = {
+  const descriptor: AnyCodecDescriptorTemplate = {
     codecId,
     traits: ['equality'],
-    targetTypes: [nativeType],
-    paramsSchema: voidParamsSchema,
+    paramsSchema: undefined,
     isParameterized: false,
     factory: () => () => {
       onMaterialize?.();
@@ -125,7 +154,7 @@ function transformingPostgresDescriptor(
     },
   };
   return postgresCodec(descriptor, {
-    nativeType: () => nativeType,
+    dataType: fixtureSqlDataType(codecId, nativeType),
     jsonProjection: (expression: ProjectionExpr) => expression,
   });
 }
@@ -140,6 +169,7 @@ function runtimeExtension(
     version: '0.0.1',
     familyId: 'sql',
     targetId: 'postgres',
+    dataTypes: fixtureDataTypes(descriptors),
     types: { codecTypes: { codecDescriptors: descriptors } },
     create() {
       return { familyId: 'sql', targetId: 'postgres' };
@@ -157,6 +187,7 @@ function controlExtension(
     version: '0.0.1',
     familyId: 'sql',
     targetId: 'postgres',
+    dataTypes: fixtureDataTypes(descriptors),
     types: { codecTypes: { codecDescriptors: descriptors } },
     create() {
       return { familyId: 'sql', targetId: 'postgres' };
@@ -191,16 +222,24 @@ describe('PostgreSQL adapter codec registry composition', () => {
       controlExtension('postgis', [postgis]),
     ];
 
-    const runtimeRegistry = assemblePostgresCodecRegistry([
+    const runtimeComponents = [
       postgresRuntimeTargetDescriptor,
       postgresRuntimeAdapterDescriptor,
       ...runtimeExtensions,
-    ]);
-    const controlRegistry = assemblePostgresCodecRegistry([
+    ];
+    const controlComponents = [
       postgresTargetControlDescriptor,
       postgresAdapterControlDescriptor,
       ...controlExtensions,
-    ]);
+    ];
+    const runtimeRegistry = assemblePostgresCodecRegistry(
+      runtimeComponents,
+      assembleDataTypes(runtimeComponents).lookup,
+    );
+    const controlRegistry = assemblePostgresCodecRegistry(
+      controlComponents,
+      assembleDataTypes(controlComponents).lookup,
+    );
     const expectedIds = [
       ...Array.from(postgresCodecDescriptorRegistry.values(), (descriptor) => descriptor.codecId),
       'arktype/json@1',
@@ -266,12 +305,26 @@ describe('PostgreSQL adapter codec registry composition', () => {
     expect(() => adapter.lower(ast, { contract })).toThrow(/codecId "pg\/vector@1"/);
   });
 
+  it('refuses at construction a codec whose data type no contribution registers', () => {
+    const descriptor = transformingPostgresDescriptor('app/unregistered@1', 'citext');
+
+    expect(() => createPostgresAdapter({ codecDescriptors: [descriptor] })).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
+        meta: { codecId: 'app/unregistered@1', dataType: 'app/unregistered' },
+      }),
+    );
+  });
+
   it('derives direct runtime materialization and native-type rendering from one descriptor contribution', () => {
     let materializations = 0;
     const descriptor = transformingPostgresDescriptor('app/direct-runtime@1', 'citext', () => {
       materializations += 1;
     });
-    const adapter = createPostgresAdapter({ codecDescriptors: [descriptor] });
+    const adapter = createPostgresAdapter({
+      codecDescriptors: [descriptor],
+      dataTypes: fixtureDataTypes([descriptor]),
+    });
     const ast = selectWithParam('document', descriptor.codecId, 'Ada');
 
     expect(materializations).toBe(1);
@@ -283,8 +336,12 @@ describe('PostgreSQL adapter codec registry composition', () => {
 
   it('derives direct control materialization and native-type rendering from one descriptor contribution', async () => {
     const descriptor = transformingPostgresDescriptor('app/direct-control@1', 'citext');
-    const codecRegistry = createPostgresCodecRegistryWithBuiltins([descriptor]);
-    const adapter = new PostgresControlAdapter(codecRegistry);
+    const dataTypeLookup = assembleDataTypes([
+      { id: 'postgres', dataTypes: postgresDataTypes },
+      { id: 'fixture', dataTypes: fixtureDataTypes([descriptor]) },
+    ]).lookup;
+    const codecRegistry = createPostgresCodecRegistryWithBuiltins([descriptor], dataTypeLookup);
+    const adapter = new PostgresControlAdapter(codecRegistry, dataTypeLookup);
     const ast = selectWithParam('document', descriptor.codecId, 'Ada');
 
     await expect(adapter.lowerToExecuteRequest(ast, { contract })).resolves.toEqual({
@@ -294,21 +351,24 @@ describe('PostgreSQL adapter codec registry composition', () => {
   });
 
   it('rejects raw, wrong-target, and malformed contributions before lowering on both planes', () => {
-    const raw = genericDescriptor('app/raw@1');
+    // Each carries a data type its contribution registers, so the descriptor-validity check is the
+    // only one that can fire.
+    const raw = { ...genericDescriptor('app/raw@1'), dataType: fixtureTypeId('app/raw@1') };
     const wrongTarget = {
       ...genericDescriptor('app/wrong-target@1'),
+      dataType: fixtureTypeId('app/wrong-target@1'),
       descriptorKind: 'sqlite-codec',
-      nativeTypeFor: () => 'text',
       projectJson: (expression: ProjectionExpr) => expression,
     } as const;
     const malformed = {
       ...genericDescriptor('app/malformed@1'),
+      dataType: fixtureTypeId('app/malformed@1'),
       descriptorKind: 'postgres-codec',
-      nativeTypeFor: () => 'text',
       projectJson: undefined,
     } as const;
 
-    for (const descriptor of [raw, wrongTarget, malformed]) {
+    const invalid = [raw, wrongTarget, malformed] as unknown as AnyCodecDescriptor[];
+    for (const descriptor of invalid) {
       expect(() =>
         createComposedPostgresAdapter({
           extensions: [runtimeExtension('invalid-runtime', [descriptor])],
@@ -327,12 +387,12 @@ describe('PostgreSQL adapter codec registry composition', () => {
 
     expect(() =>
       createComposedPostgresAdapter({
-        extensions: [runtimeExtension('duplicate-runtime', [duplicate])],
+        extensions: [{ ...runtimeExtension('duplicate-runtime', [duplicate]), dataTypes: [] }],
       }),
     ).toThrow(/Duplicate PostgreSQL codec descriptor id.*pg\/text@1/);
     expect(() =>
       createComposedPostgresControlAdapter({
-        extensions: [controlExtension('duplicate-control', [duplicate])],
+        extensions: [{ ...controlExtension('duplicate-control', [duplicate]), dataTypes: [] }],
       }),
     ).toThrow(/Duplicate codec descriptor.*pg\/text@1/);
   });

@@ -1,29 +1,36 @@
 import type { AuthoringContributions } from '@internal/framework-components/authoring';
 import type { ModelAttributeSpecFactory } from '@internal/psl-parser';
-import { modelAttribute, optional, str } from '@internal/psl-parser';
+import { fieldRef, list, modelAttribute, optional, str, structBlock } from '@internal/psl-parser';
 import type { SqlNamespaceInput } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { interpretPslDocumentToSqlContract } from '../src/interpreter';
+import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
+  interpretSqlContract,
   postgresScalarTypeDescriptors,
   postgresTarget,
-  symbolTableInputFromParseArgs,
 } from './fixtures';
 
 const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
 
 function stampScopeFrom(ctx: Parameters<ModelAttributeSpecFactory>[0]): string {
-  const declaredModels = Object.keys(ctx.symbols.topLevel.models).sort().join('+');
-  const defaultFunctions = [...ctx.controlMutationDefaults.keys()].sort().join('+');
+  const declaredModels = Object.keys(ctx.symbols.defaultNamespace.models).sort().join('+');
+  const defaultFunctions = [...ctx.defaultFunctionRegistry.keys()].sort().join('+');
   return `${ctx.model.name}|${declaredModels}|${defaultFunctions}`;
 }
 
 const stampSpecFactory: ModelAttributeSpecFactory = (ctx) =>
   modelAttribute('stamp', {
-    positional: [{ key: 'label', type: str() }],
-    named: { scope: optional(str(), stampScopeFrom(ctx)) },
+    documentation: 'Records a label and the authoring scope for this model.',
+    positional: [{ key: 'label', type: str(), documentation: 'The label stored in the stamp.' }],
+    named: {
+      scope: {
+        type: optional(str(), stampScopeFrom(ctx)),
+        documentation:
+          'The stamp scope. Defaults to the declaring model and its available models and default functions.',
+      },
+    },
   });
 
 const stampAuthoringContributions: AuthoringContributions = {
@@ -47,27 +54,18 @@ const stampAuthoringContributions: AuthoringContributions = {
   },
 };
 
-function interpretWith(
-  schema: string,
-  authoringContributions?: AuthoringContributions,
-  pslBlockDescriptors?: Parameters<typeof symbolTableInputFromParseArgs>[0]['pslBlockDescriptors'],
-) {
+function interpretWith(schema: string, authoringContributions?: AuthoringContributions) {
   const capturedEntries: Record<string, Record<string, Record<string, unknown>>> = {};
-  const document = symbolTableInputFromParseArgs({
-    schema,
-    sourceId: 'schema.prisma',
-    ...(pslBlockDescriptors !== undefined ? { pslBlockDescriptors } : {}),
-  });
   const createNamespace = (input: SqlNamespaceInput) => {
     capturedEntries[input.id] = { ...(capturedEntries[input.id] ?? {}), ...input.entries };
     return createTestSqlNamespace(input);
   };
-  const result = interpretPslDocumentToSqlContract({
-    ...document,
+  const result = interpretSqlContract(schema, {
     target: postgresTarget,
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     controlMutationDefaults: builtinControlMutationDefaults,
     composedExtensionContracts: new Map(),
+    ...fixtureInterpreterTypes,
     createNamespace,
     capabilities: { sql: { scalarList: true } },
     ...(authoringContributions !== undefined ? { authoringContributions } : {}),
@@ -88,6 +86,81 @@ function expectDiagnostic(
   );
 }
 
+const searchIndexSpecFactory: ModelAttributeSpecFactory = () =>
+  modelAttribute('searchIndex', {
+    documentation: 'Indexes one column of this model for search.',
+    positional: [
+      {
+        key: 'fields',
+        type: list(fieldRef(), { allowEmpty: false, unique: true }),
+        documentation: 'The single field to index.',
+      },
+    ],
+    named: {
+      name: { type: optional(str()), documentation: 'The index name.' },
+    },
+  });
+
+const searchIndexAuthoringContributions: AuthoringContributions = {
+  modelAttributes: {
+    searchIndex: {
+      kind: 'modelAttribute',
+      attribute: 'searchIndex',
+      spec: searchIndexSpecFactory,
+      lower: (parsed: { readonly fields: readonly string[]; readonly name?: string }, ctx) => ({
+        key: parsed.name ?? ctx.storageName,
+        entity: {
+          kind: 'searchIndex',
+          tableName: ctx.storageName,
+          columns: parsed.fields,
+          name: parsed.name,
+        },
+      }),
+    },
+  },
+};
+
+describe('a contributed model attribute carrying reference arguments', () => {
+  const schema = `model Person {
+  id   Int    @id
+  name String
+  @@searchIndex([name], name: "person_name_search")
+}`;
+
+  it('resolves its field references through the binder', () => {
+    const { result, capturedEntries } = interpretWith(schema, searchIndexAuthoringContributions);
+
+    expect(result.ok).toBe(true);
+    expect(capturedEntries['public']?.['searchIndex']?.['person_name_search']).toEqual({
+      kind: 'searchIndex',
+      tableName: 'Person',
+      columns: ['name'],
+      name: 'person_name_search',
+    });
+  });
+
+  it('stays silent about the contributed name in the unsupported-attribute voice', () => {
+    const { result } = interpretWith(schema, searchIndexAuthoringContributions);
+
+    expect(result.ok).toBe(true);
+  });
+
+  it('still reports a genuinely unregistered model attribute', () => {
+    expectDiagnostic(
+      `model Person {
+  id   Int    @id
+  name String
+  @@mystery([name])
+}`,
+      {
+        code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
+        message: 'Model "Person" uses unsupported attribute "@@mystery"',
+      },
+      searchIndexAuthoringContributions,
+    );
+  });
+});
+
 describe('contributed model attributes (AuthoringContributions.modelAttributes)', () => {
   it('consults the contributed descriptor and files the lowered entity under entries[attribute][key]', () => {
     const { result, capturedEntries } = interpretWith(
@@ -102,7 +175,7 @@ describe('contributed model attributes (AuthoringContributions.modelAttributes)'
     expect(capturedEntries).toMatchObject({
       public: {
         stamp: {
-          widget: { kind: 'stamp', tableName: 'widget', modelName: 'Widget', label: 'v1' },
+          Widget: { kind: 'stamp', tableName: 'Widget', modelName: 'Widget', label: 'v1' },
         },
       },
     });
@@ -128,7 +201,7 @@ model Gadget {
       .join('+');
 
     expect(result.ok).toBe(true);
-    expect(capturedEntries['public']?.['stamp']?.['widget']).toMatchObject({
+    expect(capturedEntries['public']?.['stamp']?.['Widget']).toMatchObject({
       scope: `Widget|Gadget+Widget|${expectedDefaultFunctions}`,
     });
   });
@@ -145,7 +218,7 @@ model Gadget {
     );
 
     expect(result.ok).toBe(true);
-    expect(capturedEntries['tenant']?.['stamp']?.['widget']).toMatchObject({
+    expect(capturedEntries['tenant']?.['stamp']?.['Widget']).toMatchObject({
       namespaceId: 'tenant',
       label: 'in-namespace',
     });
@@ -216,7 +289,7 @@ model Gadget {
         keyword: 'stamp_block',
         discriminator: 'stamp',
         name: { required: true },
-        parameters: {},
+        spec: () => structBlock({ parameters: {} }),
       },
     };
     const collidingContributions: AuthoringContributions = {
@@ -243,7 +316,6 @@ model Gadget {
   }
 }`,
         collidingContributions,
-        stampBlockDescriptors,
       ),
     ).toThrow(/entries slot "stamp".*contributed by both/s);
   });

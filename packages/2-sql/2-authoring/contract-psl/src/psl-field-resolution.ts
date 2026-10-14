@@ -1,49 +1,63 @@
-import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import type {
-  ColumnDefault,
   ColumnDefaultLiteralInputValue,
   ExecutionMutationDefaultPhases,
 } from '@internal/contract/types';
-import type { AuthoringContributions } from '@internal/framework-components/authoring';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import type {
+  AuthoringContributions,
+  DataTypeSupport,
+} from '@internal/framework-components/authoring';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultRegistry,
   MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
-import type { FieldSymbol, ModelSymbol, ResolvedAttribute } from '@internal/psl-parser';
-import type { SourceFile } from '@internal/psl-parser/syntax';
-import type { EnumTypeHandle } from '@internal/sql-contract-ts/contract-builder';
+import type {
+  Binder,
+  BlockSymbol,
+  DescribeUnsupportedAttribute,
+  FieldAttributeSpecContext,
+  FieldSymbol,
+  ModelSymbol,
+  NamedTypeSymbol,
+  ResolvedAttribute,
+  SymbolTable,
+} from '@internal/psl-parser';
+import {
+  diagnosticSource,
+  type PslDiagnosticCollector,
+  typeReferenceNode,
+} from '@internal/psl-parser';
+import type { PslSources } from '@internal/psl-parser/syntax';
+import {
+  type AuthoredColumnDefault,
+  type EnumTypeHandle,
+  storedAsListColumn,
+} from '@internal/sql-contract-ts/contract-builder';
+import { invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import {
   formatDbAttributeMigrationMessage,
   getAttribute,
-  lowerFirst,
+  storageName,
 } from './psl-attribute-parsing';
 import type { ColumnDescriptor, FieldPresetContributions } from './psl-column-resolution';
 import {
-  checkUncomposedNamespace,
   lowerDefaultForField,
-  reportUncomposedNamespace,
+  rejectStrictListNullDefault,
   resolveFieldTypeDescriptor,
 } from './psl-column-resolution';
 import {
-  buildEnumDefaultSpec,
-  findFieldAttributeNode,
-  findModelAttributeNode,
-  idFieldSpec,
+  fieldSpecContext,
   interpretFieldAttribute,
-  interpretModelAttribute,
-  mapFieldSpec,
-  mapModelSpec,
-  noCheckFieldSpec,
-  uniqueFieldSpec,
+  sqlAttributeSpecs,
 } from './sql-attribute-specs';
+import type { ValueObjectTypes } from './value-object-default';
 
 type LoweredFieldDefault = {
-  readonly defaultValue?: ColumnDefault;
+  readonly defaultValue?: AuthoredColumnDefault;
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
 };
 
@@ -52,33 +66,66 @@ function lowerEnumDefaultForField(input: {
   readonly fieldName: string;
   readonly field: FieldSymbol;
   readonly model: ModelSymbol;
-  readonly sourceFile: SourceFile;
+  readonly symbolTable: SymbolTable;
+  readonly sources: PslSources;
+  readonly binder: Binder;
   readonly enumHandle: EnumTypeHandle;
-  readonly sourceId: string;
-  readonly diagnostics: ContractSourceDiagnostic[];
+  readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly dataTypes: DataTypeSupport;
+  readonly diagnostics: PslDiagnosticCollector;
 }): LoweredFieldDefault {
-  const { field, model, sourceFile, enumHandle, sourceId, diagnostics } = input;
-  const node = findFieldAttributeNode(field, 'default');
+  const { field, model, enumHandle, diagnostics } = input;
+  const node = getAttribute(field.attributes, 'default')?.node;
   if (node === undefined) return {};
-  const [firstMember, ...restMembers] = enumHandle.enumMembers.map((m) => m.name);
-  // A memberless enum is already a contract error at its declaration; there is no member a
-  // `@default` could name, so skip lowering rather than invent a grammar for it.
-  if (firstMember === undefined) return {};
-  const spec = buildEnumDefaultSpec([firstMember, ...restMembers]);
+  if (enumHandle.enumMembers.length === 0) return {};
+  const spec = sqlAttributeSpecs.field.default(
+    fieldSpecContext({
+      symbols: input.symbolTable,
+      model,
+      field,
+      binder: input.binder,
+      defaultFunctionRegistry: input.defaultFunctionRegistry,
+      dataTypes: input.dataTypes,
+    }),
+  );
   const interpreted = interpretFieldAttribute({
     node,
     spec,
+    symbols: input.symbolTable,
     model,
     field,
-    sourceFile,
-    sourceId,
+    sources: input.sources,
+    binder: input.binder,
     diagnostics,
   });
   if (interpreted === undefined) return {};
-  const member = interpreted.member;
-  // The grammar (one `identifier(member)` arm per enum member) guarantees a match; the guard
-  // keeps the narrowing total without a diagnostic — an unknown member already failed as syntax.
-  const match = enumHandle.enumMembers.find((m) => m.name === member);
+  const member = interpreted.value;
+  if (member.kind === 'member-list') {
+    if (
+      rejectStrictListNullDefault({
+        ...input,
+        elements: member.elements,
+        source: diagnosticSource(input.sources, node.syntax),
+      })
+    )
+      return {};
+    const values = member.elements.map((entry) =>
+      entry.kind === 'null'
+        ? null
+        : enumHandle.enumMembers.find((candidate) => candidate.name === entry.name)?.value,
+    );
+    return {
+      defaultValue: {
+        kind: 'literal',
+        value: blindCast<
+          ColumnDefaultLiteralInputValue,
+          'enum member values are codec-validated JsonValue-compatible scalars'
+        >(values),
+      },
+    };
+  }
+  invariant(member.kind === 'member', 'the enum @default grammar admits only member identifiers');
+  const match = enumHandle.enumMembers.find((m) => m.name === member.name);
   if (!match) return {};
 
   return {
@@ -97,7 +144,7 @@ export type ResolvedField = {
   readonly columnName: string;
   readonly descriptor: ColumnDescriptor;
   readonly nullable: boolean;
-  readonly defaultValue?: ColumnDefault;
+  readonly defaultValue?: AuthoredColumnDefault;
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
   readonly isId: boolean;
   readonly isUnique: boolean;
@@ -108,26 +155,20 @@ export type ResolvedField = {
   // Spelled literally because this package does not depend on
   // @internal/sql-schema-ir; the canonical alias is `CheckKind` there.
   readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
+  readonly elementNullable?: true;
   readonly valueObjectTypeName?: string;
-  readonly scalarCodecId?: string;
-};
-
-export type ModelNameMapping = {
-  readonly model: ModelSymbol;
-  readonly tableName: string;
-  readonly fieldColumns: Map<string, string>;
+  readonly enumTypeHandle?: EnumTypeHandle;
 };
 
 /**
- * A PSL model paired with its resolved namespace coordinate (undefined when
- * the target leaves the model late-bound). Two models may share a bare name
+ * A PSL model paired with its resolved namespace coordinate. Two models may share a bare name
  * across namespaces, so structures that must distinguish them are keyed by
  * the `(namespaceId, modelName)` coordinate produced by
  * {@link modelCoordinateKey} rather than the bare model name.
  */
 export type ModelNamespaceEntry = {
   readonly model: ModelSymbol;
-  readonly namespaceId: string | undefined;
+  readonly namespaceId: string;
 };
 
 const MODEL_COORDINATE_SEPARATOR = '\u0000';
@@ -138,39 +179,30 @@ export function modelCoordinateKey(namespaceId: string, modelName: string): stri
 
 export interface CollectResolvedFieldsInput {
   readonly model: ModelSymbol;
-  readonly mapping: ModelNameMapping;
-  readonly enumTypeDescriptors: Map<string, ColumnDescriptor>;
-  readonly namedTypeDescriptors: Map<string, ColumnDescriptor>;
-  readonly modelNames: Set<string>;
-  readonly compositeTypeNames: ReadonlySet<string>;
-  readonly composedExtensions: Set<string>;
+  readonly physicalNames: ReadonlyMap<ModelSymbol | FieldSymbol, string>;
+  readonly symbolTable: SymbolTable;
+  readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
+  readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
+  /** The value objects the composite types declare, by name. */
+  readonly valueObjectTypes: ValueObjectTypes;
   readonly authoringContributions: AuthoringContributions | undefined;
-  readonly familyId: string;
   readonly targetId: string;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
+  readonly dataTypes: DataTypeSupport;
   readonly generatorDescriptorById: ReadonlyMap<string, MutationDefaultGeneratorDescriptor>;
-  readonly diagnostics: ContractSourceDiagnostic[];
-  readonly sourceId: string;
-  readonly sourceFile: SourceFile;
+  readonly diagnostics: PslDiagnosticCollector;
+  readonly sources: PslSources;
+  readonly binder: Binder;
   readonly scalarColumnDescriptors: ReadonlyMap<string, ColumnDescriptor>;
-  readonly enumHandles?: ReadonlyMap<string, EnumTypeHandle>;
+  readonly enumHandles: ReadonlyMap<BlockSymbol, EnumTypeHandle>;
   readonly capabilities: CapabilityMatrix;
   /** The model's resolved namespace id — forwarded to `resolveFieldTypeDescriptor` for entity-ref value-set scoping. */
   readonly namespaceId?: string;
   /** Extension entities already lowered for this namespace — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
   readonly namespaceExtensionEntities?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
   /** Codec-id-keyed descriptor lookup — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
-  readonly codecLookup?: CodecLookup;
+  readonly codecLookup: CodecLookupWithDescriptors;
 }
-
-const BUILTIN_FIELD_ATTRIBUTE_NAMES: ReadonlySet<string> = new Set([
-  'id',
-  'unique',
-  'default',
-  'relation',
-  'map',
-  'noCheck',
-]);
 
 /**
  * Per-attribute migration rule for attributes that have been removed
@@ -199,85 +231,65 @@ const REMOVED_ATTRIBUTE_RULES: ReadonlyMap<string, RemovedAttributeRule> = new M
   ],
 ]);
 
-// `validateFieldAttributes` short-circuits on `BUILTIN_FIELD_ATTRIBUTE_NAMES`
-// before consulting `REMOVED_ATTRIBUTE_RULES`. A name appearing in both sets
-// would silently suppress its migration hint, defeating the purpose of the
-// hint table. Fail at module load with a clear message — the table is
-// designed to grow and this is the cheap insurance against future drift.
 {
   const overlap = [...REMOVED_ATTRIBUTE_RULES.keys()].filter((name) =>
-    BUILTIN_FIELD_ATTRIBUTE_NAMES.has(name),
+    Object.hasOwn(sqlAttributeSpecs.field, name),
   );
   if (overlap.length > 0) {
     throw new InternalError(
-      `BUILTIN_FIELD_ATTRIBUTE_NAMES and REMOVED_ATTRIBUTE_RULES must not overlap. Names in both: ${overlap.join(', ')}`,
+      `Registered SQL field attributes and REMOVED_ATTRIBUTE_RULES must not overlap. Names in both: ${overlap.join(', ')}`,
     );
   }
 }
 
-function validateFieldAttributes(input: {
-  readonly model: ModelSymbol;
-  readonly field: FieldSymbol;
-  readonly composedExtensions: ReadonlySet<string>;
-  readonly authoringContributions: AuthoringContributions | undefined;
-  readonly diagnostics: ContractSourceDiagnostic[];
-  readonly sourceId: string;
-  readonly familyId: string;
-  readonly targetId: string;
-}): void {
-  for (const attribute of input.field.attributes) {
-    if (BUILTIN_FIELD_ATTRIBUTE_NAMES.has(attribute.name)) {
-      continue;
+export function describeUnsupportedSqlAttribute(sources: PslSources): DescribeUnsupportedAttribute {
+  return ({ attribute, level, owner, field }) => {
+    // A composite type takes no attributes at all; `buildValueObjectNodes` refuses each one once.
+    if (owner.kind === 'compositeType') return undefined;
+    if (owner.kind === 'mixin' && owner.keyword === 'type') return undefined;
+    if (level === 'model') {
+      const source = diagnosticSource(sources, owner.node.syntax);
+      return {
+        code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
+        message: `${owner.kind === 'mixin' ? 'Mixin' : 'Model'} "${owner.name}" uses unsupported attribute "@@${attribute.name}"`,
+        ...source.at(attribute.span),
+      };
     }
+
+    if (field === undefined) return undefined;
+    const source = diagnosticSource(sources, field.node.syntax);
 
     if (attribute.name.startsWith('db.')) {
-      input.diagnostics.push({
+      return {
         code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
         message: formatDbAttributeMigrationMessage(attribute),
-        sourceId: input.sourceId,
-        span: attribute.span,
-      });
-      continue;
+        ...source.at(attribute.span),
+      };
     }
 
-    const uncomposedNamespace = checkUncomposedNamespace(attribute.name, input.composedExtensions, {
-      familyId: input.familyId,
-      targetId: input.targetId,
-      authoringContributions: input.authoringContributions,
-    });
-    if (uncomposedNamespace) {
-      reportUncomposedNamespace({
-        subjectLabel: `Attribute "@${attribute.name}"`,
-        namespace: uncomposedNamespace,
-        sourceId: input.sourceId,
-        span: attribute.span,
-        diagnostics: input.diagnostics,
-      });
-      continue;
-    }
-
-    const baseMessage = `Field "${input.model.name}.${input.field.name}" uses unsupported attribute "@${attribute.name}"`;
+    const baseMessage = `Field "${owner.name}.${field.name}" uses unsupported attribute "@${attribute.name}"`;
     const removedRule = REMOVED_ATTRIBUTE_RULES.get(attribute.name);
     const message =
-      removedRule && !removedRule.suppressWhen(input.field)
+      removedRule && !removedRule.suppressWhen(field)
         ? `${baseMessage}. ${removedRule.hint}`
         : baseMessage;
 
-    input.diagnostics.push({
+    return {
       code: 'PSL_UNSUPPORTED_FIELD_ATTRIBUTE',
       message,
-      sourceId: input.sourceId,
-      span: attribute.span,
-    });
-  }
+      ...source.at(attribute.span),
+    };
+  };
 }
 
 function extractFieldConstraintNames(input: {
+  readonly symbolTable: SymbolTable;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
-  readonly sourceFile: SourceFile;
-  readonly sourceId: string;
-  readonly diagnostics: ContractSourceDiagnostic[];
+  readonly specContext: FieldAttributeSpecContext;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly diagnostics: PslDiagnosticCollector;
 }): {
   readonly idAttribute: ResolvedAttribute | undefined;
   readonly uniqueAttribute: ResolvedAttribute | undefined;
@@ -286,30 +298,32 @@ function extractFieldConstraintNames(input: {
 } {
   const idAttribute = getAttribute(input.field.attributes, 'id');
   const uniqueAttribute = getAttribute(input.field.attributes, 'unique');
-  const idNode = findFieldAttributeNode(input.field, 'id');
+  const idNode = getAttribute(input.field.attributes, 'id')?.node;
   const idName =
     idNode === undefined
       ? undefined
       : interpretFieldAttribute({
           node: idNode,
-          spec: idFieldSpec,
+          symbols: input.symbolTable,
+          spec: sqlAttributeSpecs.field.id(input.specContext),
           model: input.model,
           field: input.field,
-          sourceFile: input.sourceFile,
-          sourceId: input.sourceId,
+          sources: input.sources,
+          binder: input.binder,
           diagnostics: input.diagnostics,
         })?.map;
-  const uniqueNode = findFieldAttributeNode(input.field, 'unique');
+  const uniqueNode = getAttribute(input.field.attributes, 'unique')?.node;
   const uniqueName =
     uniqueNode === undefined
       ? undefined
       : interpretFieldAttribute({
           node: uniqueNode,
-          spec: uniqueFieldSpec,
+          symbols: input.symbolTable,
+          spec: sqlAttributeSpecs.field.unique(input.specContext),
           model: input.model,
           field: input.field,
-          sourceFile: input.sourceFile,
-          sourceId: input.sourceId,
+          sources: input.sources,
+          binder: input.binder,
           diagnostics: input.diagnostics,
         })?.map;
   return { idAttribute, uniqueAttribute, idName, uniqueName };
@@ -327,23 +341,27 @@ type NoCheckKind = 'membership' | 'elementNotNull';
  * the only form the definition tree carries.
  */
 function lowerNoCheckForField(input: {
+  readonly symbolTable: SymbolTable;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
-  readonly sourceFile: SourceFile;
-  readonly sourceId: string;
-  readonly isListField: boolean;
+  readonly specContext: FieldAttributeSpecContext;
+  readonly sources: PslSources;
+  readonly binder: Binder;
+  readonly isListColumn: boolean;
+  readonly elementNullable: boolean;
   readonly isDomainEnum: boolean;
-  readonly diagnostics: ContractSourceDiagnostic[];
+  readonly diagnostics: PslDiagnosticCollector;
 }): readonly NoCheckKind[] | undefined {
-  const node = findFieldAttributeNode(input.field, 'noCheck');
+  const node = getAttribute(input.field.attributes, 'noCheck')?.node;
   if (node === undefined) return undefined;
   const interpreted = interpretFieldAttribute({
     node,
-    spec: noCheckFieldSpec,
+    spec: sqlAttributeSpecs.field.noCheck(input.specContext),
+    symbols: input.symbolTable,
     model: input.model,
     field: input.field,
-    sourceFile: input.sourceFile,
-    sourceId: input.sourceId,
+    sources: input.sources,
+    binder: input.binder,
     diagnostics: input.diagnostics,
   });
   if (interpreted === undefined) return undefined;
@@ -351,7 +369,7 @@ function lowerNoCheckForField(input: {
   const span = getAttribute(input.field.attributes, 'noCheck')?.span ?? input.field.span;
   const subject = `Field "${input.model.name}.${input.field.name}"`;
   const derivable: NoCheckKind[] = [];
-  if (input.isListField) derivable.push('elementNotNull');
+  if (input.isListColumn && !input.elementNullable) derivable.push('elementNotNull');
   if (input.isDomainEnum) derivable.push('membership');
 
   const authored = [interpreted.first, interpreted.second].filter(
@@ -362,8 +380,7 @@ function lowerNoCheckForField(input: {
       input.diagnostics.push({
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message: `${subject} @noCheck waives nothing — this column's shape derives no generated checks`,
-        sourceId: input.sourceId,
-        span,
+        ...diagnosticSource(input.sources, input.field.node.syntax).at(span),
       });
       return undefined;
     }
@@ -374,12 +391,11 @@ function lowerNoCheckForField(input: {
       const explanation =
         kind === 'membership'
           ? 'membership checks are derived only from enum value sets'
-          : 'element-non-null checks are derived only for list columns';
+          : 'element-non-null checks are derived only for lists whose elements are semantically non-null';
       input.diagnostics.push({
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message: `${subject} @noCheck(${kind}) does not apply — ${explanation}`,
-        sourceId: input.sourceId,
-        span,
+        ...diagnosticSource(input.sources, input.field.node.syntax).at(span),
       });
       return undefined;
     }
@@ -390,19 +406,18 @@ function lowerNoCheckForField(input: {
 export function collectResolvedFields(input: CollectResolvedFieldsInput): ResolvedField[] {
   const {
     model,
-    mapping,
+    symbolTable,
     enumTypeDescriptors,
     namedTypeDescriptors,
-    modelNames,
-    compositeTypeNames,
-    composedExtensions,
+    valueObjectTypes,
     authoringContributions,
-    familyId,
+    binder,
     targetId,
     defaultFunctionRegistry,
+    dataTypes,
     generatorDescriptorById,
     diagnostics,
-    sourceId,
+    sources,
     scalarColumnDescriptors,
     enumHandles,
     capabilities,
@@ -430,22 +445,15 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     declaredControlPolicy === undefined || declaredControlPolicy === 'managed';
 
   for (const field of Object.values(model.fields)) {
-    const isModelField = modelNames.has(field.typeName);
+    const source = diagnosticSource(sources, field.node.syntax);
+    const fieldTypeReference = typeReferenceNode(field);
+    const fieldTypeResolution =
+      fieldTypeReference === undefined ? undefined : binder.symbolForNode(fieldTypeReference);
+    const isModelField = fieldTypeResolution?.kind === 'model';
 
     if (field.list && isModelField) {
       continue;
     }
-
-    validateFieldAttributes({
-      model,
-      field,
-      composedExtensions,
-      authoringContributions,
-      diagnostics,
-      sourceId,
-      familyId,
-      targetId,
-    });
 
     const relationAttribute = getAttribute(field.attributes, 'relation');
     if (isModelField && relationAttribute) {
@@ -465,56 +473,56 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
-    const isValueObjectField = compositeTypeNames.has(field.typeName);
+    const valueObjectName =
+      fieldTypeResolution?.kind === 'compositeType' ? fieldTypeResolution.symbol.name : undefined;
+    const isValueObjectField = valueObjectName !== undefined;
     const isListField = field.list;
+    const isListColumn = storedAsListColumn({
+      list: isListField,
+      typedByValueObject: isValueObjectField,
+    });
 
     let descriptor: ColumnDescriptor | undefined;
-    let scalarCodecId: string | undefined;
     let presetContributions: FieldPresetContributions | undefined;
     const resolveInput = {
       field,
+      resolution: fieldTypeResolution,
       enumTypeDescriptors,
       namedTypeDescriptors,
-      scalarColumnDescriptors,
-      authoringContributions,
-      composedExtensions,
-      familyId,
-      targetId,
       diagnostics,
-      sourceId,
+      sources,
       entityLabel: `Field "${model.name}.${field.name}"`,
       ...ifDefined('namespaceId', namespaceId),
       ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntities),
-      ...ifDefined('codecLookup', codecLookup),
+      codecLookup,
     };
 
     if (isValueObjectField) {
-      // A stack that declares no valueObjectStorageType has no value-object
-      // storage — the field is skipped.
-      descriptor =
-        valueObjectStorageTypeName !== undefined
-          ? scalarColumnDescriptors.get(valueObjectStorageTypeName)
-          : undefined;
+      if (valueObjectStorageTypeName === undefined) {
+        diagnostics.push({
+          code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+          message: `Field "${model.name}.${field.name}" is typed by the composite type "${field.typeName}", but the adapter of the stack declares no storage type for value objects, so the field has no column to be stored in.`,
+          ...source.at(field.span),
+        });
+        continue;
+      }
+      descriptor = scalarColumnDescriptors.get(valueObjectStorageTypeName);
+      if (descriptor === undefined) {
+        throw new InternalError(
+          `The stack declares "${valueObjectStorageTypeName}" as its value-object storage type, but it is not one of the stack's scalar types; the control stack checks this when it is assembled.`,
+        );
+      }
     } else if (isListField) {
       if (capabilities['sql']?.['scalarList'] !== true) {
         diagnostics.push({
           code: 'PSL_SCALAR_LIST_UNSUPPORTED_TARGET',
           message: `Field "${model.name}.${field.name}" is a scalar list, but target "${targetId}" does not support scalar lists (the adapter does not report the "scalarList" capability). Remove the list or author it against a target that supports scalar lists.`,
-          sourceId,
-          span: field.span,
+          ...source.at(field.span),
         });
         continue;
       }
       const resolved = resolveFieldTypeDescriptor(resolveInput);
       if (!resolved.ok) {
-        if (!resolved.alreadyReported) {
-          diagnostics.push({
-            code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-            message: `Field "${model.name}.${field.name}" type "${field.typeName}" is not supported in SQL PSL provider v1`,
-            sourceId,
-            span: field.span,
-          });
-        }
         continue;
       }
       // Field presets are complete declarations — they carry their own codec
@@ -523,24 +531,14 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
         diagnostics.push({
           code: 'PSL_PRESET_NOT_LIST',
           message: `Field "${model.name}.${field.name}" uses a field-preset call as a list element type. Presets cannot be list elements; remove "[]" or use a scalar type.`,
-          sourceId,
-          span: field.span,
+          ...source.at(field.span),
         });
         continue;
       }
-      scalarCodecId = resolved.descriptor.codecId;
       descriptor = resolved.descriptor;
     } else {
       const resolved = resolveFieldTypeDescriptor(resolveInput);
       if (!resolved.ok) {
-        if (!resolved.alreadyReported) {
-          diagnostics.push({
-            code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-            message: `Field "${model.name}.${field.name}" type "${field.typeName}" is not supported in SQL PSL provider v1`,
-            sourceId,
-            span: field.span,
-          });
-        }
         continue;
       }
       descriptor = resolved.descriptor;
@@ -559,8 +557,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       diagnostics.push({
         code: 'PSL_PRESET_NOT_OPTIONAL',
         message: `Field "${model.name}.${field.name}" uses a field-preset call and cannot be optional. Remove "?" or use a different field type.`,
-        sourceId,
-        span: field.span,
+        ...source.at(field.span),
       });
       continue;
     }
@@ -570,12 +567,14 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       diagnostics.push({
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
         message: `Field "${model.name}.${field.name}" uses a field-preset call and cannot also declare @default(...). The preset already specifies the default value.`,
-        sourceId,
-        span: defaultAttribute.span,
+        ...source.at(defaultAttribute.span),
       });
       continue;
     }
-    const enumHandle = enumHandles?.get(field.typeName);
+    const enumHandle =
+      fieldTypeResolution?.kind === 'block'
+        ? enumHandles.get(fieldTypeResolution.symbol)
+        : undefined;
     const loweredDefault: LoweredFieldDefault = defaultAttribute
       ? enumHandle
         ? lowerEnumDefaultForField({
@@ -583,9 +582,12 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             fieldName: field.name,
             field,
             model,
-            sourceFile: input.sourceFile,
+            symbolTable,
+            sources: input.sources,
+            binder: input.binder,
             enumHandle,
-            sourceId,
+            defaultFunctionRegistry,
+            dataTypes,
             diagnostics,
           })
         : lowerDefaultForField({
@@ -593,26 +595,43 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             fieldName: field.name,
             field,
             model,
-            sourceFile: input.sourceFile,
+            symbolTable,
+            sources: input.sources,
+            binder: input.binder,
             columnDescriptor: descriptor,
+            isListColumn,
+            valueObjectDefault:
+              valueObjectName === undefined
+                ? undefined
+                : { valueObjectName, types: valueObjectTypes },
             generatorDescriptorById,
-            sourceId,
             defaultFunctionRegistry,
+            dataTypes,
+            codecLookup,
             diagnostics,
-            isList: isListField,
           })
       : {};
     const loweredOnCreate = loweredDefault.executionDefaults?.onCreate;
-    const loweredFunctionDefault = loweredDefault.defaultValue?.kind === 'function';
-    if (isListField && (loweredOnCreate || loweredFunctionDefault)) {
+    if (
+      isListField &&
+      loweredDefault.defaultValue?.kind === 'function' &&
+      loweredDefault.defaultValue.expression === 'autoincrement()'
+    ) {
+      diagnostics.push({
+        code: 'PSL_LIST_AUTOINCREMENT_UNSUPPORTED',
+        message: `Field "${model.name}.${field.name}" is a list and cannot use autoincrement(); it is a Prisma marker for a sequence-backed scalar column, not SQL.`,
+        ...source.at(defaultAttribute?.span ?? field.span),
+      });
+      continue;
+    }
+    if (isListField && loweredOnCreate) {
       const defaultExpression =
         defaultAttribute?.args.find((arg) => arg.kind === 'positional')?.value.trim() ??
         'this function';
       diagnostics.push({
         code: 'PSL_LIST_EXECUTION_DEFAULT_UNSUPPORTED',
         message: `Field "${model.name}.${field.name}" is a list and cannot use an execution default ("${defaultExpression}"). Lists have no per-element execution-default semantics; use a literal list @default or remove the default.`,
-        sourceId,
-        span: defaultAttribute?.span ?? field.span,
+        ...source.at(defaultAttribute?.span ?? field.span),
       });
       continue;
     }
@@ -622,17 +641,26 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       diagnostics.push({
         code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
         message: `Field "${model.name}.${field.name}" cannot be optional when using execution default ${generatorDescription}. Remove "?" or use a storage default.`,
-        sourceId,
-        span: defaultAttribute?.span ?? field.span,
+        ...source.at(defaultAttribute?.span ?? field.span),
       });
       continue;
     }
-    const mappedColumnName = mapping.fieldColumns.get(field.name) ?? field.name;
-    const { idAttribute, uniqueAttribute, idName, uniqueName } = extractFieldConstraintNames({
+    const mappedColumnName = storageName(field, input.physicalNames);
+    const specContext = fieldSpecContext({
+      symbols: symbolTable,
       model,
       field,
-      sourceFile: input.sourceFile,
-      sourceId,
+      binder,
+      defaultFunctionRegistry,
+      dataTypes,
+    });
+    const { idAttribute, uniqueAttribute, idName, uniqueName } = extractFieldConstraintNames({
+      symbolTable: input.symbolTable,
+      model,
+      field,
+      specContext,
+      sources: input.sources,
+      binder: input.binder,
       diagnostics,
     });
     let isIdField = Boolean(idAttribute);
@@ -640,8 +668,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       diagnostics.push({
         code: 'PSL_LIST_ID_UNSUPPORTED',
         message: `Field "${model.name}.${field.name}" is a list and cannot be a primary key. Remove @id; a list cannot be an identity column.`,
-        sourceId,
-        span: idAttribute.span,
+        ...source.at(idAttribute.span),
       });
       continue;
     }
@@ -649,8 +676,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       diagnostics.push({
         code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
         message: `Field "${model.name}.${field.name}" @id cannot be optional; primary key columns must be NOT NULL`,
-        sourceId,
-        span: idAttribute.span,
+        ...source.at(idAttribute.span),
       });
       isIdField = false;
     }
@@ -665,8 +691,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       diagnostics.push({
         code: 'PSL_PRESET_AND_ID_CONFLICT',
         message: `Field "${model.name}.${field.name}" uses a field-preset call and cannot also declare @id. Use a preset that contributes id semantics, or drop @id.`,
-        sourceId,
-        span: idAttribute.span,
+        ...source.at(idAttribute.span),
       });
       continue;
     }
@@ -678,15 +703,14 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
     const noCheckKinds = modelDerivesChecks
       ? lowerNoCheckForField({
+          symbolTable: input.symbolTable,
           model,
           field,
-          sourceFile: input.sourceFile,
-          sourceId,
-          // The storage shape decides, not the PSL shape: a value-object list
-          // lands in one JSONB column, which derives no generated checks, so
-          // any waiver on it waives nothing and must be rejected here rather
-          // than persisted as an inert flag.
-          isListField: isListField && !isValueObjectField,
+          specContext,
+          sources: input.sources,
+          binder: input.binder,
+          isListColumn,
+          elementNullable: field.elementOptional,
           isDomainEnum: enumHandle !== undefined,
           diagnostics,
         })
@@ -704,57 +728,11 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       ...ifDefined('uniqueName', uniqueName),
       ...ifDefined('many', isListField ? (true as const) : undefined),
       ...ifDefined('noCheck', noCheckKinds),
-      ...ifDefined('valueObjectTypeName', isValueObjectField ? field.typeName : undefined),
-      ...ifDefined('scalarCodecId', scalarCodecId),
+      ...ifDefined('elementNullable', field.elementOptional ? (true as const) : undefined),
+      ...ifDefined('valueObjectTypeName', valueObjectName),
+      ...ifDefined('enumTypeHandle', enumHandle),
     });
   }
 
   return resolvedFields;
-}
-
-export function buildModelMappings(
-  modelEntries: readonly ModelNamespaceEntry[],
-  defaultNamespaceId: string,
-  diagnostics: ContractSourceDiagnostic[],
-  sourceId: string,
-  sourceFile: SourceFile,
-): Map<string, ModelNameMapping> {
-  const result = new Map<string, ModelNameMapping>();
-  for (const { model, namespaceId } of modelEntries) {
-    const mapNode = findModelAttributeNode(model, 'map');
-    const tableName =
-      mapNode === undefined
-        ? lowerFirst(model.name)
-        : (interpretModelAttribute({
-            node: mapNode,
-            spec: mapModelSpec,
-            model,
-            sourceFile,
-            sourceId,
-            diagnostics,
-          })?.name ?? lowerFirst(model.name));
-    const fieldColumns = new Map<string, string>();
-    for (const field of Object.values(model.fields)) {
-      const fieldMapNode = findFieldAttributeNode(field, 'map');
-      const columnName =
-        fieldMapNode === undefined
-          ? field.name
-          : (interpretFieldAttribute({
-              node: fieldMapNode,
-              spec: mapFieldSpec,
-              model,
-              field,
-              sourceFile,
-              sourceId,
-              diagnostics,
-            })?.name ?? field.name);
-      fieldColumns.set(field.name, columnName);
-    }
-    result.set(modelCoordinateKey(namespaceId ?? defaultNamespaceId, model.name), {
-      model,
-      tableName,
-      fieldColumns,
-    });
-  }
-  return result;
 }

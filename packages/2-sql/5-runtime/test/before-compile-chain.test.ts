@@ -38,7 +38,9 @@ function createContext(): SqlMiddlewareContext & {
     },
     contentHash: async () => 'mock-hash',
     scope: 'runtime' as const,
-    planExecutionId: 'test-fixture-plan-execution-id',
+    parent: undefined,
+    state: () => ({}),
+    inTransaction: () => false,
   };
 }
 
@@ -199,7 +201,7 @@ describe('runBeforeCompileChain', () => {
       const observerOnly: SqlMiddleware = {
         name: 'observer',
         familyId: 'sql',
-        async beforeQuery() {},
+        async beforeEncode() {},
       };
 
       const result = await runBeforeCompileChain([observerOnly], draft, ctx);
@@ -350,7 +352,6 @@ describe('runBeforeCompileChain', () => {
       const decoderRegistry = [
         defineTestCodec({
           typeId: 'pg/int4@1',
-          targetTypes: ['int4'],
           encode: (v: number) => v,
           decode: (w: number) => w + 100,
         }),
@@ -381,7 +382,9 @@ describe('runBeforeCompileChain', () => {
       expect(select.projection.map((p) => p.alias)).toEqual(['user_id']);
       expect(select.projection[0]?.codec?.codecId).toBe('pg/int4@1');
 
-      const { buildDecodeContext, decodeRow } = await import('../src/codecs/decoding');
+      const { buildDecodeContext, decodeRow, sqlNativeArrayListDecoder } = await import(
+        '../src/codecs/decoding'
+      );
       const plan: SqlExecutionPlan = {
         sql: 'SELECT users.id AS user_id FROM users',
         params: [],
@@ -392,6 +395,7 @@ describe('runBeforeCompileChain', () => {
         { user_id: 7 },
         buildDecodeContext(plan.ast, buildTestContractCodecs(decoderRegistry)),
         {},
+        sqlNativeArrayListDecoder,
       );
       expect(row).toEqual({ user_id: 107 });
     },
@@ -406,7 +410,6 @@ describe('runBeforeCompileChain', () => {
       const decoderRegistry = [
         defineTestCodec({
           typeId: 'pg/int4@1',
-          targetTypes: ['int4'],
           encode: (v: number) => v,
           decode: (w: number) => w + 100,
         }),
@@ -418,7 +421,9 @@ describe('runBeforeCompileChain', () => {
           ProjectionItem.of('id', ColumnRef.of('users', 'id'), { codecId: 'pg/int4@1' }),
         ]);
 
-      const { buildDecodeContext, decodeRow } = await import('../src/codecs/decoding');
+      const { buildDecodeContext, decodeRow, sqlNativeArrayListDecoder } = await import(
+        '../src/codecs/decoding'
+      );
       const plan: SqlExecutionPlan = {
         sql: 'INSERT INTO users (id) VALUES ($1) RETURNING users.id',
         params: [1],
@@ -429,6 +434,7 @@ describe('runBeforeCompileChain', () => {
         { id: 7 },
         buildDecodeContext(plan.ast, buildTestContractCodecs(decoderRegistry)),
         {},
+        sqlNativeArrayListDecoder,
       );
       expect(row).toEqual({ id: 107 });
     },

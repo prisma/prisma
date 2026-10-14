@@ -1,75 +1,111 @@
+import type { ColumnDefault } from '@internal/contract/types';
 import type { CodecControlHooks } from '@internal/family-sql/control';
+import type { ToCanonicalForm } from '@internal/framework-components/codec';
+import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { StorageColumn } from '@internal/sql-contract/types';
 import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
-import type { SqlColumnDefaultIR, SqlColumnIR } from '@internal/sql-schema-ir/types';
+import {
+  contractDefaultRefusal,
+  defaultInCanonicalForm,
+  type SqlColumnDefaultIR,
+  type SqlColumnIR,
+} from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import { postgresError } from '../errors';
 import { postgresDefaultToDdlColumnDefault } from './op-factory-call';
-import { buildColumnDefaultSql, buildColumnTypeSql } from './planner-ddl-builders';
+import { buildColumnTypeSql } from './planner-ddl-builders';
 import { resolveIdentityValue } from './planner-identity-values';
-import { buildExpectedFormatType } from './planner-sql-checks';
+
+const AUTOINCREMENT = 'autoincrement()';
 
 /**
  * Reconstructs the `StorageColumn`-shaped fields the DDL builder functions
- * (`buildColumnTypeSql`, `buildExpectedFormatType`, `resolveIdentityValue`)
+ * (`buildColumnTypeSql`, `resolveIdentityValue`)
  * expect, from a column node's own stamped codec identity (`codecRef` /
- * `codecBaseNativeType` / `codecNamedType`, Decision 5) — never the
- * contract. The builders were written against `StorageColumn` and are
- * unchanged here; only the shape feeding them moves from the contract to
- * the node. An empty `storageTypes` catalog is passed alongside: the
- * node's fields are already resolved past any `typeRef` indirection, so no
- * live lookup is needed, and passing a non-empty catalog would risk a
- * false `typeRef` hit against an unrelated storage type.
+ * `codecBaseNativeType`, Decision 5) — never the contract. The node's fields
+ * are already resolved past any `typeRef` indirection, so the builders get
+ * no `storageTypes` catalog.
  */
 function columnLike(
   column: SqlColumnIR,
-): Pick<
-  StorageColumn,
-  'nativeType' | 'codecId' | 'nullable' | 'many' | 'typeParams' | 'typeRef' | 'default'
-> {
-  if (column.codecRef === undefined || column.codecBaseNativeType === undefined) {
+): Pick<StorageColumn, 'codecId' | 'nullable' | 'many' | 'typeParams' | 'default'> {
+  return {
+    ...columnTypeLike(`column "${column.name}"`, column),
+    nullable: column.nullable,
+    ...ifDefined('default', column.authoredDefault ?? column.resolvedDefault),
+  };
+}
+
+type ColumnCodecIdentity = Pick<SqlColumnIR, 'codecRef' | 'codecBaseNativeType' | 'many'>;
+
+function columnTypeLike(
+  owner: string,
+  identity: ColumnCodecIdentity,
+): Pick<StorageColumn, 'codecId' | 'many' | 'typeParams'> {
+  if (identity.codecRef === undefined || identity.codecBaseNativeType === undefined) {
     throw new InternalError(
-      `columnLike: expected column "${column.name}" carries no codec identity — the expected tree must be derived via contractToSchemaIR for planning`,
+      `columnTypeLike: expected ${owner} carries no codec identity — the expected tree must be derived via contractToSchemaIR for planning`,
     );
   }
   return {
-    nativeType: column.codecBaseNativeType,
-    codecId: column.codecRef.codecId,
-    nullable: column.nullable,
+    codecId: identity.codecRef.codecId,
     // `column.many` is unset on contract-derived columns (array-ness rides
-    // on the `nativeType` `[]` suffix there instead) — `codecRef.many`
+    // on the type text's `[]` suffix there instead) — `codecRef.many`
     // carries it. Hand-built/introspected columns set `column.many` directly.
-    ...ifDefined('many', column.many ?? column.codecRef.many),
+    many: (identity.many ?? identity.codecRef.many) ? { elementNullable: false } : false,
     ...ifDefined(
       'typeParams',
-      column.codecRef.typeParams !== undefined
+      identity.codecRef.typeParams !== undefined
         ? blindCast<
             Record<string, unknown>,
             'CodecRef.typeParams is JsonValue-shaped; the DDL builders only ever read it as the Record the contract column originally carried'
-          >(column.codecRef.typeParams)
+          >(identity.codecRef.typeParams)
         : undefined,
     ),
-    ...(column.codecNamedType ? { typeRef: '<resolved>' } : {}),
-    ...ifDefined('default', column.resolvedDefault),
+  };
+}
+
+/**
+ * A literal default in the canonical form of the column's values, which DDL writes (ADR 254). A
+ * default the form refuses, which a contract emitted by an earlier version can hold, is refused
+ * here rather than written, since the database would never hold the text the contract states.
+ */
+function inCanonicalForm(
+  columnName: string,
+  columnDefault: ColumnDefault | undefined,
+  toCanonicalForm: ToCanonicalForm | undefined,
+  many: boolean,
+): ColumnDefault | undefined {
+  if (columnDefault?.kind !== 'literal') return columnDefault;
+  const refusal = contractDefaultRefusal(columnDefault, toCanonicalForm, many);
+  if (refusal !== undefined) {
+    throw postgresError('CONTRACT.DEFAULT_INVALID', `Column "${columnName}": ${refusal}`, {
+      meta: { reason: 'default-not-canonical', column: columnName },
+    });
+  }
+  return {
+    kind: 'literal',
+    value: defaultInCanonicalForm(columnDefault.value, toCanonicalForm, many).value,
   };
 }
 
 /**
  * Builds the `CREATE TABLE` / `ADD COLUMN` DDL column for an expected column
- * node, resolving type rendering from the node's codec identity against the
- * codec hooks the caller holds — the same builder the pre-`plan(start, end)`
- * op-path called, so the output is byte-identical.
+ * node, writing its type from the data type the node's codec represents.
  */
 export function renderColumnDdl(
   name: string,
   column: SqlColumnIR,
-  codecHooks: ReadonlyMap<string, CodecControlHooks>,
+  types: SqlTypeLookups,
 ): DdlColumn {
   const like = columnLike(column);
-  const typeSql = buildColumnTypeSql(like, codecHooks, {});
-  const ddlDefault = postgresDefaultToDdlColumnDefault(like.default);
+  const typeSql = buildColumnTypeSql(like, types);
+  const ddlDefault = postgresDefaultToDdlColumnDefault(
+    inCanonicalForm(name, like.default, column.toCanonicalForm, like.many !== false),
+  );
   return contractFree.col(name, typeSql, {
     ...(!column.nullable ? { notNull: true } : {}),
     ...ifDefined('default', ddlDefault),
@@ -80,15 +116,8 @@ export function renderColumnDdl(
 /**
  * Builds the `ALTER COLUMN … TYPE` operands for an expected column node.
  */
-export function renderColumnAlterType(
-  column: SqlColumnIR,
-  codecHooks: ReadonlyMap<string, CodecControlHooks>,
-): { readonly qualifiedTargetType: string; readonly formatTypeExpected: string } {
-  const like = columnLike(column);
-  return {
-    qualifiedTargetType: buildColumnTypeSql(like, codecHooks, {}, false),
-    formatTypeExpected: buildExpectedFormatType(like, codecHooks, {}),
-  };
+export function renderColumnAlterType(column: SqlColumnIR, types: SqlTypeLookups): string {
+  return buildColumnTypeSql(columnLike(column), types, {}, false);
 }
 
 /**
@@ -101,18 +130,34 @@ export function renderColumnAlterType(
 export function resolveColumnTemporaryDefault(
   column: SqlColumnIR,
   codecHooks: ReadonlyMap<string, CodecControlHooks>,
+  types: SqlTypeLookups,
 ): string | null {
-  return resolveIdentityValue(columnLike(column), codecHooks, {});
+  return resolveIdentityValue(columnLike(column), codecHooks, types);
 }
 
 /**
- * The column's `SET DEFAULT` clause SQL, resolved from a column-default
- * diff node. `''` when the node carries no resolved default.
+ * The column whose `SET DEFAULT` a column-default diff node asks for, carrying its authored default, or its resolved one when nothing was authored, and its type and codec, from which the adapter writes the clause. An `autoincrement()` default is carried as itself, for `setDefault` to attach a sequence, or to refuse when the column is not a smallint, integer or bigint. `undefined` when the node carries no default, or one DDL does not write.
  */
-export function renderColumnDefaultSql(defaultNode: SqlColumnDefaultIR): string {
-  if (defaultNode.resolved === undefined) return '';
-  return buildColumnDefaultSql(defaultNode.resolved, {
-    nativeType: defaultNode.nativeTypeContext ?? '',
-    ...ifDefined('many', defaultNode.many),
+export function buildSetDefaultColumn(
+  columnName: string,
+  defaultNode: SqlColumnDefaultIR,
+  types: SqlTypeLookups,
+): DdlColumn | undefined {
+  const authored = defaultNode.authored ?? defaultNode.resolved;
+  if (authored === undefined) return undefined;
+  const typeLike = columnTypeLike('column default', defaultNode);
+  if (authored.kind === 'function' && authored.expression === AUTOINCREMENT) {
+    return contractFree.col(columnName, buildColumnTypeSql(typeLike, types, {}, false), {
+      default: contractFree.fn(AUTOINCREMENT),
+      ...ifDefined('codecRef', defaultNode.codecRef),
+    });
+  }
+  const ddlDefault = postgresDefaultToDdlColumnDefault(
+    inCanonicalForm(columnName, authored, defaultNode.toCanonicalForm, typeLike.many !== false),
+  );
+  if (ddlDefault === undefined) return undefined;
+  return contractFree.col(columnName, buildColumnTypeSql(typeLike, types, {}, false), {
+    default: ddlDefault,
+    ...ifDefined('codecRef', defaultNode.codecRef),
   });
 }

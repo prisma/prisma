@@ -7,6 +7,7 @@ import {
   UNBOUND_DOMAIN_NAMESPACE_ID,
 } from '@internal/contract/types';
 import type { CodecDescriptor, CodecTrait } from '@internal/framework-components/codec';
+import { dataTypeId } from '@internal/framework-components/codec';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import {
   instantiateExecutionStack,
@@ -33,8 +34,10 @@ import type {
 } from '@internal/sql-relational-core/ast';
 import { SelectAst as SelectAstCtor, TableSource } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
+import { type ListDecoder, sqlNativeArrayListDecoder } from '../src/codecs/decoding';
 import { createExecutionContext, createSqlExecutionStack } from '../src/exports';
 import type {
   ExecutionContext,
@@ -94,13 +97,32 @@ function applicationDomainOf(params: {
   };
 }
 
-class TestSqlRuntime extends SqlRuntimeBase {}
+type TargetListDecoderContribution = { readonly listDecoder?: () => ListDecoder };
+
+class TestSqlRuntime extends SqlRuntimeBase {
+  constructor(
+    options: RuntimeOptions,
+    private readonly listDecoder: ListDecoder = sqlNativeArrayListDecoder,
+  ) {
+    super(options);
+  }
+
+  protected override getListDecoder(): ListDecoder {
+    return this.listDecoder;
+  }
+}
 
 type CreateTestRuntimeOptions<TContract extends Contract<SqlStorage>> = Omit<
   RuntimeOptions<TContract>,
-  'adapter'
+  'adapter' | 'closeRefusal'
 > & {
-  readonly stackInstance: { readonly adapter: RuntimeOptions<TContract>['adapter'] };
+  readonly closeRefusal?: RuntimeOptions<TContract>['closeRefusal'];
+  readonly stackInstance: {
+    readonly adapter: RuntimeOptions<TContract>['adapter'];
+    readonly stack: {
+      readonly target: unknown;
+    };
+  };
 };
 
 /**
@@ -111,16 +133,25 @@ type CreateTestRuntimeOptions<TContract extends Contract<SqlStorage>> = Omit<
 export function createTestRuntime<TContract extends Contract<SqlStorage>>(
   options: CreateTestRuntimeOptions<TContract>,
 ): Runtime {
-  const { stackInstance, context, driver, verifyMarker, middleware, mode, log } = options;
-  return new TestSqlRuntime({
-    context,
-    adapter: stackInstance.adapter,
-    driver,
-    ...ifDefined('verifyMarker', verifyMarker),
-    ...ifDefined('middleware', middleware),
-    ...ifDefined('mode', mode),
-    ...ifDefined('log', log),
-  });
+  const { stackInstance, context, driver, verifyMarker, middleware, mode, log, closeRefusal } =
+    options;
+  const target = blindCast<
+    TargetListDecoderContribution,
+    'test stack target may contribute the runtime list-decoder hook structurally'
+  >(stackInstance.stack.target);
+  return new TestSqlRuntime(
+    {
+      context,
+      adapter: stackInstance.adapter,
+      driver,
+      ...ifDefined('verifyMarker', verifyMarker),
+      ...ifDefined('middleware', middleware),
+      ...ifDefined('mode', mode),
+      ...ifDefined('log', log),
+      closeRefusal,
+    },
+    target.listDecoder?.() ?? sqlNativeArrayListDecoder,
+  );
 }
 
 /**
@@ -256,7 +287,7 @@ export function buildTestContractCodecs(
 
 /**
  * Synthesize `CodecDescriptor`s from a codec array of non-parameterized codec instances. Test-only: the production synthesis bridge was retired under TML-2357. Lets the existing `createTestAdapterDescriptor` pattern keep wrapping a stub `Adapter` (whose `__codecs` slot still exposes the codec set) into the descriptor-list shape that `SqlStaticContributions.codecs:` now expects. The `Codec` instances carry
- * `traits`/`targetTypes` via the SQL family extension; the structural narrow reads those fields directly.
+ * `traits` via the SQL family extension; the structural narrow reads those fields directly.
  */
 export function descriptorsFromCodecs(
   codecs: ReadonlyArray<Codec<string>>,
@@ -283,12 +314,11 @@ export function descriptorsFromCodecs(
   for (const instance of codecs) {
     const legacy = instance as {
       readonly traits?: readonly CodecTrait[];
-      readonly targetTypes?: readonly string[];
     };
     descriptors.push({
       codecId: instance.id,
+      dataType: dataTypeId('demo/fixture'),
       traits: legacy.traits ?? [],
-      targetTypes: legacy.targetTypes ?? [],
       paramsSchema: acceptAnyParamsSchema,
       isParameterized: true,
       factory: () => () => instance,
@@ -393,41 +423,37 @@ export function createStubAdapter(): StubAdapter {
   // the stub adapter never executes against a real driver.
   // The encode/decode bodies pass through; widen TInput to a JSON-safe type
   // so `defineTestCodec` does not require explicit JSON round-trip helpers.
-  const passthroughCodec = (typeId: string, targetType: string): Codec<string> =>
+  const passthroughCodec = (typeId: string): Codec<string> =>
     defineTestCodec({
       typeId,
-      targetTypes: [targetType],
       encode: (value: string | number | boolean | null) => value,
       decode: (wire: string | number | boolean | null) => wire,
     });
   const codecs: ReadonlyArray<Codec<string>> = [
-    passthroughCodec('pg/bit@1', 'bit'),
-    passthroughCodec('pg/bool@1', 'bool'),
-    passthroughCodec('pg/bytea@1', 'bytea'),
-    passthroughCodec('pg/float4@1', 'float4'),
-    passthroughCodec('pg/float8@1', 'float8'),
-    passthroughCodec('pg/int2@1', 'int2'),
+    passthroughCodec('pg/bit@1'),
+    passthroughCodec('pg/bool@1'),
+    passthroughCodec('pg/bytea@1'),
+    passthroughCodec('pg/float4@1'),
+    passthroughCodec('pg/float8@1'),
+    passthroughCodec('pg/int2@1'),
     defineTestCodec({
       typeId: 'pg/int4@1',
-      targetTypes: ['int4'],
       encode: (value: number) => value,
       decode: (wire: number) => wire,
     }),
-    passthroughCodec('pg/int8@1', 'int8'),
-    passthroughCodec('pg/interval@1', 'interval'),
-    passthroughCodec('pg/json@1', 'json'),
-    passthroughCodec('pg/jsonb@1', 'jsonb'),
-    passthroughCodec('pg/numeric@1', 'numeric'),
+    passthroughCodec('pg/int8@1'),
+    passthroughCodec('pg/interval@1'),
+    passthroughCodec('pg/json@1'),
+    passthroughCodec('pg/jsonb@1'),
+    passthroughCodec('pg/numeric@1'),
     defineTestCodec({
       typeId: 'pg/text@1',
-      targetTypes: ['text'],
       encode: (value: string) => value,
       decode: (wire: string) => wire,
     }),
-    passthroughCodec('pg/time-temporal@1', 'time'),
+    passthroughCodec('pg/time-temporal@1'),
     defineTestCodec({
       typeId: 'pg/timestamp-temporal@1',
-      targetTypes: ['timestamp'],
       encode: (value: Date) => value,
       decode: (wire: Date) => wire,
       encodeJson: (value: Date) => value.toISOString(),
@@ -438,7 +464,6 @@ export function createStubAdapter(): StubAdapter {
     }),
     defineTestCodec({
       typeId: 'pg/timestamptz-temporal@1',
-      targetTypes: ['timestamptz'],
       encode: (value: Date) => value,
       decode: (wire: Date) => wire,
       // Date is not assignable to JsonValue, so the JSON round-trip pair must be supplied explicitly.
@@ -448,11 +473,11 @@ export function createStubAdapter(): StubAdapter {
         return new Date(json);
       },
     }),
-    passthroughCodec('pg/timetz@1', 'timetz'),
-    passthroughCodec('pg/varbit@1', 'varbit'),
-    passthroughCodec('pg/uuid@1', 'uuid'),
-    passthroughCodec('sql/char@1', 'char'),
-    passthroughCodec('sql/varchar@1', 'varchar'),
+    passthroughCodec('pg/timetz@1'),
+    passthroughCodec('pg/varbit@1'),
+    passthroughCodec('pg/uuid@1'),
+    passthroughCodec('sql/char@1'),
+    passthroughCodec('sql/varchar@1'),
   ];
 
   return {
@@ -532,4 +557,4 @@ export function stubAst(): AnyQueryAst {
 // Re-export decode helpers so cross-package tests can exercise the row-decode
 // path (e.g. RUNTIME.DECODE_FAILED for a malformed many-element) without going
 // through the full query round-trip.
-export { buildDecodeContext, decodeRow } from '../src/codecs/decoding';
+export { buildDecodeContext, decodeRow, sqlNativeArrayListDecoder } from '../src/codecs/decoding';

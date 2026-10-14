@@ -61,22 +61,22 @@ function buildContract(): Contract<SqlStorage> {
             table: {
               Moments: {
                 columns: {
-                  id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-                  d: { nativeType: 'date', codecId: DATE.codecId, nullable: true },
+                  id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+                  d: { dataType: 'pg/date', codecId: DATE.codecId, nullable: true },
                   ts: {
-                    nativeType: 'timestamp',
+                    dataType: 'pg/timestamp',
                     codecId: TIMESTAMP.codecId,
                     typeParams: TIMESTAMP.typeParams,
                     nullable: true,
                   },
                   tstz: {
-                    nativeType: 'timestamptz',
+                    dataType: 'pg/timestamptz',
                     codecId: TIMESTAMPTZ.codecId,
                     typeParams: TIMESTAMPTZ.typeParams,
                     nullable: true,
                   },
                   t: {
-                    nativeType: 'time',
+                    dataType: 'pg/time',
                     codecId: TIME.codecId,
                     typeParams: TIME.typeParams,
                     nullable: true,
@@ -329,7 +329,12 @@ describe('Temporal codecs round-trip through PostgreSQL', () => {
     Reflect.deleteProperty(globalThis, 'Temporal');
     try {
       await expect(
-        decodeRow({ tstz: '2026-01-02 03:04:05.123456+00' }, decodeCtx, {}),
+        decodeRow(
+          { tstz: '2026-01-02 03:04:05.123456+00' },
+          decodeCtx,
+          {},
+          postgresRuntimeTargetDescriptor.listDecoder(),
+        ),
       ).rejects.toMatchObject({
         code: 'RUNTIME.TEMPORAL_UNAVAILABLE',
         meta: { codecId: 'pg/timestamptz-temporal@1', operation: 'decode' },

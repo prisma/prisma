@@ -11,10 +11,11 @@ import {
   FindOneAndUpdateWireCommand,
   InsertManyWireCommand,
   InsertOneWireCommand,
+  RenameCollectionWireCommand,
   UpdateManyWireCommand,
   UpdateOneWireCommand,
 } from '@internal/mongo-wire';
-import { MongoClient } from 'mongodb';
+import { BSONRegExp, Double, Long, MongoClient, type ObjectId } from 'mongodb';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createMongoDriver, MongoDriverImpl } from '../src/mongo-driver';
@@ -59,6 +60,52 @@ describe('MongoDriver', () => {
         expect(rows[0]).toHaveProperty('insertedId');
       } finally {
         await driver.close();
+      }
+    });
+  });
+
+  describe('the document an insert returns', () => {
+    const written = () => ({
+      small: Long.fromNumber(5),
+      whole: new Double(2),
+      pattern: new BSONRegExp('x.y', 'm'),
+      bytes: new Uint8Array([9]),
+    });
+
+    it('is the written document with its _id, as a read with the client`s options returns it', async () => {
+      const driver = await createMongoDriver(connectionUri, dbName);
+      try {
+        const [one] = await collect(
+          driver.execute(new InsertOneWireCommand('driver_returned', written())),
+        );
+        const [many] = await collect(
+          driver.execute(new InsertManyWireCommand('driver_returned', [written(), written()])),
+        );
+        const stored = await seedClient
+          .db(dbName)
+          .collection('driver_returned')
+          .findOne({ _id: (one as { insertedId: ObjectId }).insertedId });
+        expect((one as { document: unknown }).document).toEqual(stored);
+        expect((many as { documents: unknown[] }).documents).toHaveLength(2);
+        expect((many as { documents: { _id: unknown }[] }).documents.map(({ _id }) => _id)).toEqual(
+          (many as { insertedIds: unknown[] }).insertedIds,
+        );
+      } finally {
+        await driver.close();
+      }
+    });
+
+    it('follows the client`s BSON options', async () => {
+      const client = new MongoClient(connectionUri, { promoteLongs: false });
+      await client.connect();
+      try {
+        const driver = MongoDriverImpl.fromDb(client.db(dbName));
+        const [one] = await collect(
+          driver.execute(new InsertOneWireCommand('driver_returned', written())),
+        );
+        expect((one as { document: { small: unknown } }).document.small).toBeInstanceOf(Long);
+      } finally {
+        await client.close();
       }
     });
   });
@@ -125,6 +172,38 @@ describe('MongoDriver', () => {
 
   describe('updateMany', () => {
     const col = 'driver_update_many';
+
+    it('skips validation when bypassDocumentValidation is set', async () => {
+      const db = seedClient.db(dbName);
+      const driver = MongoDriverImpl.fromDb(db);
+      const closed = 'driver_update_many_bypass';
+      await db.dropCollection(closed).catch(() => undefined);
+      await db.createCollection(closed, {
+        validator: {
+          $jsonSchema: {
+            bsonType: 'object',
+            required: ['name'],
+            properties: { _id: { bsonType: 'objectId' }, name: { bsonType: 'string' } },
+            additionalProperties: false,
+          },
+        },
+        validationLevel: 'strict',
+        validationAction: 'error',
+      });
+      await db.collection(closed).insertOne({ name: 'Ada' });
+      const rename = { $rename: { name: 'fullName' } };
+
+      await expect(
+        collect(driver.execute(new UpdateManyWireCommand(closed, {}, rename))),
+      ).rejects.toThrow(/Document failed validation/);
+      await collect(driver.execute(new UpdateManyWireCommand(closed, {}, rename, false, true)));
+
+      const docs = await db
+        .collection(closed)
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+      expect(docs).toEqual([{ fullName: 'Ada' }]);
+    });
 
     it('updates multiple documents and returns counts', async () => {
       const driver = await createMongoDriver(connectionUri, dbName);
@@ -408,6 +487,30 @@ describe('MongoDriver', () => {
 
       const colls = await db.listCollections({ name: col }).toArray();
       expect(colls).toHaveLength(0);
+    });
+  });
+
+  describe('renameCollection', () => {
+    it('renames the collection and keeps its documents', async () => {
+      const db = seedClient.db(dbName);
+      const driver = MongoDriverImpl.fromDb(db);
+      const from = 'driver_rename_from';
+      const to = 'driver_rename_to';
+
+      await db.dropCollection(from).catch(() => undefined);
+      await db.dropCollection(to).catch(() => undefined);
+      await db.collection(from).insertOne({ name: 'Ada' });
+
+      await driver.run(new RenameCollectionWireCommand(from, to));
+
+      const names = (await db.listCollections({ name: { $in: [from, to] } }).toArray()).map(
+        (c) => c.name,
+      );
+      const docs = await db
+        .collection(to)
+        .find({}, { projection: { _id: 0 } })
+        .toArray();
+      expect({ names, docs }).toEqual({ names: [to], docs: [{ name: 'Ada' }] });
     });
   });
 

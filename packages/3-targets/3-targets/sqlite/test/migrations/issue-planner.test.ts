@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
@@ -7,6 +8,7 @@ import {
   planIssues,
 } from '../../src/core/migrations/issue-planner';
 import type { StrategyContext } from '../../src/core/migrations/planner-strategies';
+import { sqliteTestComponents, sqliteTestTypes } from '../sqlite-test-types';
 import {
   actualColumn,
   checkConstraint,
@@ -24,7 +26,11 @@ const emptyCtx: StrategyContext = {
   expected: new SqlSchemaIR({ tables: {} }),
   actual: new SqlSchemaIR({ tables: {} }),
   policy: { allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'] },
-  frameworkComponents: [],
+  frameworkComponents: sqliteTestComponents,
+  types: sqliteTestTypes,
+  statementColumns: { convert: [], backfill: [] },
+  takesTemporaryValue: () => true,
+  originCodecId: () => undefined,
 };
 
 describe('mapNodeIssueToCall — table', () => {
@@ -275,7 +281,11 @@ describe('columnTypeChanged', () => {
 
 describe('planIssues — dependency-graph ordering', () => {
   function factoryNames(issues: readonly ReturnType<typeof issue>[]): readonly string[] {
-    const result = planIssues({ issues, strategies: [] });
+    const result = planIssues({
+      issues,
+      strategies: [],
+      frameworkComponents: sqliteTestComponents,
+    });
     if (!result.ok) throw new Error(`expected ok, got ${JSON.stringify(result.failure)}`);
     return result.value.calls.map((c) => c.factoryName);
   }
@@ -372,5 +382,73 @@ describe('coalesceSubtreeIssues', () => {
       actual: actualColumn({ name: 'age', nativeType: 'TEXT', nullable: false }),
     });
     expect(coalesceSubtreeIssues([onlyDrift])).toEqual([onlyDrift]);
+  });
+});
+
+describe('planIssues — policy', () => {
+  it('names the operation class the policy refused on each conflict', () => {
+    const dropped = issue({
+      path: ['database', 'orphan'],
+      actual: table({ name: 'orphan', columns: {} }),
+    });
+    const result = planIssues({
+      issues: [dropped],
+      strategies: [],
+      policy: { allowedOperationClasses: ['additive'] },
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error('expected conflicts');
+    expect(result.failure).toEqual([
+      expect.objectContaining({
+        summary: expect.stringContaining('requires class "destructive"'),
+        refusedOperationClass: 'destructive',
+      }),
+    ]);
+  });
+});
+
+const userField = (field: string) => ({
+  namespaceId: asNamespaceId('__unbound__'),
+  model: 'User',
+  field,
+});
+
+describe('planIssues — statement columns', () => {
+  it('hands the columns of convert and backfill statements to every strategy', () => {
+    const statementColumns = {
+      convert: [
+        {
+          namespaceId: '__unbound__',
+          table: 'user',
+          column: 'age',
+          field: userField('age'),
+          text: 'User.age',
+        },
+      ],
+      backfill: [
+        {
+          namespaceId: '__unbound__',
+          table: 'user',
+          column: 'email',
+          field: userField('email'),
+          text: 'User.email',
+        },
+      ],
+    };
+    const seen: unknown[] = [];
+    planIssues({
+      issues: [],
+      frameworkComponents: sqliteTestComponents,
+      statementColumns,
+      strategies: [
+        (issues, context) => {
+          seen.push(context.statementColumns);
+          return { kind: 'match', issues, calls: [] };
+        },
+      ],
+    });
+
+    expect(seen).toEqual([statementColumns]);
   });
 });

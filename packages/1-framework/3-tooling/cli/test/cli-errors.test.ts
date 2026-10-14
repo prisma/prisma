@@ -62,7 +62,7 @@ describe('errorPathUnreachable', () => {
     expect(envelope.fix).toContain('{bin} migration list');
     expect(envelope.fix).toContain('{bin} migration show');
     expect((envelope.fix ?? '').toLowerCase()).toContain('destructive');
-    expect((envelope.fix ?? '').toLowerCase()).toContain('hint');
+    expect(envelope.fix ?? '').toContain('Plan a rename with --rename old:new');
   });
 
   it('prescribes a bare plan command when the runner kind is neverPlanned (no graph to resolve --to against)', () => {
@@ -119,7 +119,7 @@ describe('errorPathUnreachable', () => {
     );
     expect(envelope.fix).toContain(`{bin} db migrate --to ${targetHash}`);
     expect((envelope.fix ?? '').toLowerCase()).toContain('destructive');
-    expect((envelope.fix ?? '').toLowerCase()).toContain('hint');
+    expect(envelope.fix ?? '').toContain('Plan a rename with --rename old:new');
   });
 
   it('omits --from in the fix when buildPathNotFoundFailure uses the empty-marker sentinel', () => {
@@ -147,30 +147,24 @@ describe('errorPathUnreachable', () => {
     expect(envelope.fix).toContain('{bin} db migrate');
     expect(envelope.fix).not.toContain('--to');
     expect((envelope.fix ?? '').toLowerCase()).toContain('destructive');
-    expect((envelope.fix ?? '').toLowerCase()).toContain('hint');
+    expect(envelope.fix ?? '').toContain('Plan a rename with --rename old:new');
   });
 });
 
 describe('errorRefSetHashNotInGraph', () => {
   const resolvedHash = `${'x'.repeat(64)}`;
   const reachableHashes = [`${'a'.repeat(64)}`, `${'b'.repeat(64)}`];
-  const graphTip = reachableHashes[1]!;
 
-  it('emits MIGRATION.HASH_NOT_IN_GRAPH with reachable hashes and graph tip', () => {
-    const envelope = errorRefSetHashNotInGraph(
-      resolvedHash,
-      reachableHashes,
-      graphTip,
-    ).toEnvelope();
+  it('emits MIGRATION.HASH_NOT_IN_GRAPH with the reachable hashes', () => {
+    const envelope = errorRefSetHashNotInGraph(resolvedHash, reachableHashes).toEnvelope();
     expect(envelope.code).toBe('MIGRATION.HASH_NOT_IN_GRAPH');
-    expect(envelope.meta?.['resolvedHash']).toBe(resolvedHash);
-    expect(envelope.meta?.['reachableHashes']).toEqual(reachableHashes);
-    expect(envelope.meta?.['graphTipHash']).toBe(graphTip);
-    expect(envelope.fix).toContain(graphTip);
+    expect(envelope.meta).toEqual({ resolvedHash, reachableHashes });
+    expect(envelope.fix).toContain('`to` hash of an on-disk migration');
+    expect(envelope.fix).toContain('{bin} migration list');
   });
 
   it('describes an empty migration graph in the why line', () => {
-    const envelope = errorRefSetHashNotInGraph(resolvedHash, [], null).toEnvelope();
+    const envelope = errorRefSetHashNotInGraph(resolvedHash, []).toEnvelope();
     expect(envelope.why).toContain('empty');
     expect(envelope.fix).toContain('migration plan');
   });
@@ -185,16 +179,16 @@ describe('errorRefSetEmptySentinel', () => {
 });
 
 describe('typed next actions on the CLI factories', () => {
-  it('spells the ref-set remediation as a runnable command', () => {
-    const error = errorRefSetHashNotInGraph('x'.repeat(64), ['a'.repeat(64)], 'a'.repeat(64));
+  it('sends the ref-set remediation through migration list', () => {
+    const error = errorRefSetHashNotInGraph('x'.repeat(64), ['a'.repeat(64)]);
 
     expect(error.nextActions).toEqual([
-      { kind: 'user-choice', label: `Set the ref to a graph-node hash such as ${'a'.repeat(64)}` },
       {
         kind: 'run-command',
-        label: 'Extend the migration graph',
-        command: '{bin} migration plan',
+        label: 'List the migrations and their destination hashes',
+        command: '{bin} migration list',
       },
+      { kind: 'user-choice', label: 'Set the ref to the `to` hash of one of them' },
     ]);
   });
 
@@ -213,15 +207,19 @@ describe('typed next actions on the CLI factories', () => {
 
   it('turns each marker-mismatch remedy into its own action', () => {
     const markerHash = 'c'.repeat(64);
-    const graphTip = 'd'.repeat(64);
 
-    const error = errorMarkerMismatch(markerHash, [graphTip], graphTip);
+    const error = errorMarkerMismatch(markerHash, ['d'.repeat(64)]);
 
     expect(error.nextActions).toEqual([
       {
         kind: 'run-command',
+        label: 'Overwrite the marker if the database already matches the contract',
+        command: '{bin} db sign',
+      },
+      {
+        kind: 'run-command',
         label: 'Catch the on-disk graph up to the live marker',
-        command: `{bin} migration plan --from ${graphTip}`,
+        command: '{bin} migration plan --from <contract>',
       },
       {
         kind: 'run-command',
@@ -233,6 +231,14 @@ describe('typed next actions on the CLI factories', () => {
         label: 'Investigate whether the database was migrated by an out-of-band process',
       },
     ]);
+  });
+
+  it('names db sign as the first fix of a marker mismatch', () => {
+    const error = errorMarkerMismatch('c'.repeat(64), []);
+
+    expect(error.toEnvelope().fix?.split('\n')[0]).toBe(
+      'Run `{bin} db sign` to overwrite the marker if the database already matches the contract.',
+    );
   });
 
   it('keeps the plan-then-apply sequence in order as two run-command actions', () => {

@@ -12,6 +12,7 @@ import {
   MongoAndExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import { MongoSchemaCollection, MongoSchemaCollectionOptions } from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
@@ -21,10 +22,11 @@ import {
   createIndex,
   dropCollection,
   dropIndex,
+  renameCollection,
   setValidation,
   validatedCollection,
-} from '../src/core/migration-factories';
-import { schemaCollectionToCreateCollectionOptions } from '../src/core/op-factory-call';
+} from '../src/core/migrations/migration-factories';
+import { schemaCollectionToCreateCollectionOptions } from '../src/core/migrations/op-factory-call';
 
 describe('createIndex', () => {
   const keys = [{ field: 'email', direction: 1 as const }];
@@ -124,7 +126,7 @@ describe('dropIndex', () => {
 
     expect(op.id).toBe(buildIndexOpId('drop', 'users', keys));
     expect(op.label).toBe('Drop index on users (email:1)');
-    expect(op.operationClass).toBe('destructive');
+    expect(op.operationClass).toBe('widening');
   });
 
   it('includes precheck that index exists', () => {
@@ -156,6 +158,43 @@ describe('dropIndex', () => {
 
     const preFilter = op.precheck[0]!.filter as MongoFieldFilter;
     expect(preFilter.field).toBe('key._fts');
+  });
+});
+
+describe('renameCollection', () => {
+  it('renames when the source exists and the target does not, and skips once the target exists without the source', () => {
+    const sourceIs = (expect: 'exists' | 'notExists') => ({
+      description: 'collection profiles exists',
+      source: new ListCollectionsCommand(),
+      filter: MongoFieldFilter.eq('name', 'profiles'),
+      expect,
+    });
+    const targetIs = (expect: 'exists' | 'notExists') => ({
+      description: 'collection users exists',
+      source: new ListCollectionsCommand(),
+      filter: MongoFieldFilter.eq('name', 'users'),
+      expect,
+    });
+
+    expect(renameCollection('profiles', 'users')).toEqual({
+      id: 'collection.profiles.rename(users)',
+      label: 'Rename collection profiles to users',
+      operationClass: 'widening',
+      precheck: [
+        sourceIs('exists'),
+        { ...targetIs('notExists'), description: 'collection users does not exist' },
+      ],
+      execute: [
+        {
+          description: 'rename collection profiles to users',
+          command: new RenameCollectionCommand('profiles', 'users'),
+        },
+      ],
+      postcheck: [
+        targetIs('exists'),
+        { ...sourceIs('notExists'), description: 'collection profiles does not exist' },
+      ],
+    });
   });
 });
 
@@ -282,7 +321,7 @@ describe('setValidation', () => {
 
     expect(op.id).toBe('collection.users.setValidation');
     expect(op.label).toBe('Set validation on users');
-    expect(op.operationClass).toBe('destructive');
+    expect(op.operationClass).toBe('widening');
   });
 
   it('wraps schema in $jsonSchema validator', () => {
@@ -378,7 +417,7 @@ describe('collMod', () => {
 
     expect(op.id).toBe('collection.users.collMod');
     expect(op.label).toBe('Modify collection users');
-    expect(op.operationClass).toBe('destructive');
+    expect(op.operationClass).toBe('widening');
   });
 
   it('applies meta overrides for id, label, and operationClass', () => {

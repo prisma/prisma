@@ -26,6 +26,7 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
 
 const EXPECTED_MEMBERS = ['draft', 'review', 'done'] as const;
 
@@ -35,7 +36,7 @@ function makeContract(members: readonly string[]): Contract<SqlStorage> {
     entries: {
       table: {
         orders: new StorageTable({
-          columns: { id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false } },
+          columns: { id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false } },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],
           uniques: [],
@@ -104,7 +105,7 @@ function planResultFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseS
   const { issues } = buildPostgresPlanDiff({
     contract,
     actualSchema: actual,
-    frameworkComponents: [],
+    frameworkComponents: postgresTypeComponents,
   });
   return planIssues({
     issues: coalesceSubtreeIssues(issues),
@@ -112,6 +113,7 @@ function planResultFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseS
     fromContract: null,
     schemaName: 'sales',
     codecHooks: new Map(),
+    types: postgresTypeLookups,
     storageTypes: contract.storage.types ?? {},
     strategies: [],
   });
@@ -128,7 +130,7 @@ function refusalMessage(
   return (
     'Native enum type "sales"."order_status" changed beyond appending new values ' +
     `(contract declares [${expectedMembers.join(', ')}], database has [${actualMembers.join(', ')}]). ` +
-    "Prisma Next does not modify a native enum's existing values (rename, removal, reorder) — " +
+    "Prisma 8 does not modify a native enum's existing values (rename, removal, reorder) — " +
     'see https://pris.ly/d/postgres-native-enums. Author the change manually with `migration new`.'
   );
 }
@@ -240,6 +242,7 @@ describe('AddNativeEnumValueCall op', () => {
         lower(_ast, _ctx) {
           return { sql: 'stub', params: [] };
         },
+        renderColumnDefault: async () => '',
         async lowerToExecuteRequest(_ast, _ctx) {
           sqlCalls.push('lowered-check');
           return { sql: 'stub-check-sql', params: [] };

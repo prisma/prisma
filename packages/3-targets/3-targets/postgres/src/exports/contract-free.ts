@@ -3,6 +3,7 @@ export {
   type ColumnExistsCheckBuilder,
   type ConstraintExistsCheckBuilder,
   columnDefaultAst,
+  columnDefaultSequenceAst,
   columnExistsAst,
   columnNullabilityAst,
   columnTypeAst,
@@ -16,6 +17,7 @@ export {
   type RlsPolicyExistsCheckBuilder,
   rlsEnabledAst,
   rlsPolicyExistsAst,
+  sequenceNameAvailableAst,
   type TableExistsCheckBuilder,
   type TablePrimaryKeyCheckBuilder,
   tableExistsAst,
@@ -23,7 +25,16 @@ export {
   tablePrimaryKeyAst,
   toRegclass,
 } from '../contract-free/checks';
-export { int4, int8, jsonb, pgTable, text, textArray, timestamptz } from '../contract-free/columns';
+export {
+  int4,
+  int8,
+  jsonb,
+  pgTable,
+  text,
+  textArray,
+  timestamptz,
+  timestamptzJsDate,
+} from '../contract-free/columns';
 export {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,

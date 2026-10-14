@@ -1,6 +1,6 @@
 # @internal/sqlite
 
-One-package SQLite setup for Prisma Next. Install this single package to get config, runtime, contract authoring, control-plane access, and migration helpers — no reach-ins to internal packages required.
+One-package SQLite setup for Prisma 8. Install this single package to get config, runtime, contract authoring, control-plane access, and migration helpers — no reach-ins to internal packages required.
 
 ## Package Classification
 
@@ -67,11 +67,20 @@ Control-plane client factory. Collapses the family + target + adapter + driver w
 
 ```typescript
 import { createSqliteControlClient } from '@internal/sqlite/control';
+import contract from './src/prisma/contract.json' with { type: 'json' };
 
 const control = createSqliteControlClient({
   connection: 'path/to/app.db',
 });
-await control.dbUpdate({ migrations: { dir: 'migrations/app' } });
+await control.dbUpdate({
+  contract,
+  mode: 'apply',
+  migrationsDir: 'migrations',
+  answerQuestions: async (questions) => {
+    if (questions.length > 0) throw new Error('db update would lose data or widen access');
+    return [];
+  },
+});
 ```
 
 ### `@internal/sqlite/migration`
@@ -81,6 +90,26 @@ Re-exports all migration operation helpers from `@internal/target-sqlite/migrati
 ### `@internal/sqlite/runtime`
 
 Composes the SQLite execution stack and returns typed query roots (`db.sql`, `db.orm`, `db.context`, `db.stack`).
+
+Pass `log` (an object with `info`, `warn`, `error` and an optional `debug` method, each taking one event object; `console` works, and the type is `Log` from `@prisma/orm-sqlite/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events.
+
+### Prepared SQL and ORM rows
+
+Use `db.prepare(declaration, params => ...)` to prepare SQL queries, ORM row reads or ORM aggregates once and execute them with different parameter values.
+
+```ts
+const byId = await db.prepare({ id: 'sqlite/integer@1' }, (params) =>
+  db.sql.users.select('id').where((f, fns) => fns.eq(f.id, params.id)).build(),
+);
+const all = await db.prepare({}, () => db.orm.User.select('id').prepared.all());
+const first = await db.prepare({}, () => db.orm.User.select('id').prepared.first());
+
+for await (const row of all.query(db.runtime(), {})) console.log(row.id);
+const rowOrNull = await first.query(db.runtime(), {});
+const sqlRows = await byId.query(db.runtime(), { id: 1 });
+```
+
+Pass a compatible runtime, connection or transaction explicitly to `query(target, params, options?)`. ORM `all` returns a thenable async row stream; `first` returns a row-or-null promise; `firstOrThrow` returns a row promise that rejects with `RUNTIME.NO_ROWS` when no row matches. For descriptions built with `.prepared.aggregate(selector, configure?)`, `query` returns an aggregate object promise on ungrouped collections (`Promise<AggregateResult<Spec>>`), or an array promise after `groupBy(...)` (`Promise<Array<GroupKeys & AggregateResult<Spec>>>`). See the [ORM composition reference](../sql-orm-client/README.md#prepared-row-descriptions) for aggregate examples, HAVING, supported predicates, includes and pagination. Native SQLite database `prepare(sql)` is a separate API.
 
 ## Related Docs
 

@@ -1,8 +1,6 @@
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { PgVectorCodec, pgVectorDescriptor } from '../src/core/codecs';
-import { VECTOR_MAX_DIM } from '../src/core/constants';
-import { vector } from '../src/exports/column-types';
 
 const codecCtx = {};
 
@@ -73,17 +71,8 @@ describe('pgvector structured error codes', () => {
     expect(isStructuredError(err)).toBe(true);
     expect(err).toMatchObject({
       code: 'RUNTIME.DECODE_FAILED',
-      message: 'Vector database JSON value must be an array',
-    });
-  });
-
-  it('CONTRACT.ARGUMENT_INVALID on vector() with an out-of-range dimension', () => {
-    const err = catchError(() => vector(0 as number));
-    expect(isStructuredError(err)).toBe(true);
-    expect(err).toMatchObject({
-      code: 'CONTRACT.ARGUMENT_INVALID',
-      message: `pgvector: dimension must be an integer in [1, ${VECTOR_MAX_DIM}], got 0`,
-      meta: { helperPath: 'vector', received: 0 },
+      message: 'pg/vector@1 JSON value must be an array of 3 finite numbers',
+      meta: { codecId: 'pg/vector@1', received: '123' },
     });
   });
 });

@@ -1,3 +1,5 @@
+import type { ToCanonicalForm } from '@internal/framework-components/codec';
+import { structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 
 import { SqlColumnDefaultIR } from '../src/ir/sql-column-default-ir';
@@ -41,16 +43,25 @@ describe('SqlColumnDefaultIR', () => {
       expect(expected.isEqualTo(actual)).toBe(true);
     });
 
-    it('temporal literals compare by instant: Date vs equivalent ISO string', () => {
-      const expected = new SqlColumnDefaultIR({
-        resolved: { kind: 'literal', value: new Date('2024-01-02T03:04:05.000Z') },
-        nativeTypeContext: 'timestamptz',
-      });
+    it('a literal compares through the canonical form the contract-derived side carries', () => {
+      const timestamptz: ToCanonicalForm = (value) =>
+        typeof value === 'string'
+          ? value.replace(' ', 'T').replace('.000Z', 'Z').replace('+00', 'Z')
+          : value;
+      const expected = (withCanonicalForm: boolean) =>
+        new SqlColumnDefaultIR({
+          resolved: { kind: 'literal', value: new Date('2024-01-02T03:04:05.000Z') },
+          nativeTypeContext: 'timestamptz',
+          ...(withCanonicalForm ? { toCanonicalForm: timestamptz } : {}),
+        });
       const actual = new SqlColumnDefaultIR({
         resolved: { kind: 'literal', value: '2024-01-02 03:04:05+00' },
         nativeTypeContext: 'timestamptz',
       });
-      expect(expected.isEqualTo(actual)).toBe(true);
+      expect({
+        withCanonicalForm: expected(true).isEqualTo(actual),
+        withoutCanonicalForm: expected(false).isEqualTo(actual),
+      }).toEqual({ withCanonicalForm: true, withoutCanonicalForm: false });
     });
 
     it('JSON literals compare canonically: object vs equivalent JSON string', () => {
@@ -85,6 +96,33 @@ describe('SqlColumnDefaultIR', () => {
       const c = new SqlColumnDefaultIR({ raw: "'y'" });
       expect(a.isEqualTo(b)).toBe(true);
       expect(a.isEqualTo(c)).toBe(false);
+    });
+  });
+
+  describe('explainMismatch (this = expected)', () => {
+    const timestamptz: ToCanonicalForm = (value) => {
+      if (value === '2024-01-01T00:00:00Z') return value;
+      throw structuredError(
+        'CONTRACT.CAST_REFUSED',
+        `pg/timestamptz needs a UTC offset, but ${JSON.stringify(value)} has none.`,
+      );
+    };
+    it('names the refusal of a contract default its data type does not hold, and says to re-emit', () => {
+      const expected = new SqlColumnDefaultIR({
+        resolved: { kind: 'literal', value: '2024-01-01 00:00:00' },
+        toCanonicalForm: timestamptz,
+      });
+      expect(expected.explainMismatch()).toBe(
+        'The contract holds this default in a form its data type does not store: pg/timestamptz needs a UTC offset, but "2024-01-01 00:00:00" has none. Re-emit the contract, then try again.',
+      );
+    });
+
+    it('gives no explanation for a default its data type holds', () => {
+      const expected = new SqlColumnDefaultIR({
+        resolved: { kind: 'literal', value: '2024-01-01T00:00:00Z' },
+        toCanonicalForm: timestamptz,
+      });
+      expect(expected.explainMismatch()).toBeUndefined();
     });
   });
 });

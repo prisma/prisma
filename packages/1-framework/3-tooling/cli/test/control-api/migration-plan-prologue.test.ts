@@ -7,7 +7,12 @@
  */
 import type { PrismaNextConfig } from '@internal/config-loader';
 import { errorInvalidJson } from '@internal/migration-tools/errors';
+import { ok } from '@internal/utils/result';
 import { describe, expect, it, vi } from 'vitest';
+
+const stubClient = {
+  renderContractDts: async () => ok({ contractDts: 'export type Contract = never;\n' }),
+};
 
 const mocks = vi.hoisted(() => ({
   resolveMigrationPaths: vi.fn(),
@@ -32,7 +37,13 @@ describe('executeMigrationPlanCommand — mutation-prologue guard', () => {
     );
 
     const result = await executeMigrationPlanCommand(
-      { config, cwd: '/project', configPath: '/project/prisma.config.ts' },
+      {
+        config,
+        cwd: '/project',
+        projectDir: '/project',
+        client: stubClient,
+        answerQuestions: async () => [],
+      },
       Date.now(),
     );
 
@@ -54,7 +65,13 @@ describe('executeMigrationPlanCommand — mutation-prologue guard', () => {
     );
 
     const result = await executeMigrationPlanCommand(
-      { config, cwd: '/project', configPath: '/project/prisma.config.ts' },
+      {
+        config,
+        cwd: '/project',
+        projectDir: '/project',
+        client: stubClient,
+        answerQuestions: async () => [],
+      },
       Date.now(),
     );
 

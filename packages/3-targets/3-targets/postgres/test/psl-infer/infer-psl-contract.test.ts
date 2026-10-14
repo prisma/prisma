@@ -13,7 +13,7 @@ import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-con
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { inferPslAstFromFlat as sqlSchemaIrToPslAst } from './fixtures';
+import { inferBuildContext, inferPslAstFromFlat as sqlSchemaIrToPslAst } from './fixtures';
 
 function ir(partial: Partial<SqlSchemaIRInput> & Pick<SqlSchemaIRInput, 'tables'>): SqlSchemaIR {
   return new SqlSchemaIR({
@@ -280,8 +280,7 @@ describe('inferPostgresPslContract', () => {
 
     const out = printPsl(sqlSchemaIrToPslAst(schemaIR));
     expect(out).toMatchInlineSnapshot(`
-      "// use prisma-next
-      // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
+      "// use prisma-8
 
       model User {
         id    Int     @id
@@ -430,7 +429,7 @@ describe('inferPostgresPslContract', () => {
         expression: 'lower(email)',
         unique: false,
       });
-      expect(psl).toContain('@@index(expression: "lower(email)", map: "users_email_lower")');
+      expect(psl).toContain('@@index(expression: sql`lower(email)`, map: "users_email_lower")');
     });
 
     it('an expression index whose reprint re-hashes to the live suffix re-detects wire-named', () => {
@@ -440,7 +439,7 @@ describe('inferPostgresPslContract', () => {
         expression: 'lower(email)',
         unique: false,
       });
-      expect(psl).toContain('@@index(expression: "lower(email)", name: "users_lower")');
+      expect(psl).toContain('@@index(expression: sql`lower(email)`, name: "users_lower")');
     });
 
     it('a partial index emits its where: predicate verbatim', () => {
@@ -451,7 +450,7 @@ describe('inferPostgresPslContract', () => {
         unique: false,
       });
       expect(psl).toContain(
-        '@@index([email], map: "users_email_active", where: "(email IS NOT NULL)")',
+        '@@index([email], map: "users_email_active", where: sql`(email IS NOT NULL)`)',
       );
     });
 
@@ -462,7 +461,7 @@ describe('inferPostgresPslContract', () => {
         unique: true,
       });
       expect(psl).toContain(
-        '@@index(expression: "lower(email)", map: "users_email_ci_key", unique: true)',
+        '@@index(expression: sql`lower(email)`, map: "users_email_ci_key", unique: true)',
       );
     });
 
@@ -521,12 +520,12 @@ describe('inferPostgresPslContract', () => {
 
     // The same table name in two schemas has no unambiguous single-bucket model:
     // throw rather than silently dropping one namespace's table.
-    expect(() => inferPostgresPslContract(tree)).toThrow(
+    expect(() => inferPostgresPslContract(tree, inferBuildContext)).toThrow(
       /duplicate table name "thing" across schemas is not yet supported/i,
     );
     let caught: unknown;
     try {
-      inferPostgresPslContract(tree);
+      inferPostgresPslContract(tree, inferBuildContext);
     } catch (error) {
       caught = error;
     }

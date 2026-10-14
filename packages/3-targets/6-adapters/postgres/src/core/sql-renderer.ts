@@ -1,6 +1,9 @@
+import { isPlainRecord } from '@internal/contract/is-plain-record';
 import type { JsonValue } from '@internal/contract/types';
-import type { CodecRef } from '@internal/framework-components/codec';
+import type { CodecRef, DataTypeLookup } from '@internal/framework-components/codec';
+import type { CapabilityMatrix } from '@internal/framework-components/components';
 import { runtimeError } from '@internal/framework-components/runtime';
+import { dataTypeParams, sqlBaseName, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
 import {
   type AggregateExpr,
   type AnyExpression,
@@ -9,6 +12,7 @@ import {
   type AnyParamRef,
   type AnyQueryAst,
   type BinaryExpr,
+  type CapabilityRequirement,
   type CaseExpr,
   type CastExpr,
   type ColumnRef,
@@ -24,7 +28,13 @@ import {
   type JsonValueProjectionVisitor,
   type ListExpression,
   LiteralExpr,
+  type LockingClause,
+  type LockStrength,
+  type LockWaitPolicy,
   type LoweredParam,
+  lockOptionCapabilities,
+  lockStrengthCapabilities,
+  missingCapability,
   type NullCheckExpr,
   type OperationExpr,
   type OrderByItem,
@@ -39,62 +49,72 @@ import {
   type WindowFuncExpr,
 } from '@internal/sql-relational-core/ast';
 import type { PostgresCodecDescriptorRegistry } from '@internal/target-postgres/codec-descriptor';
-import { PG_ENUM_CODEC_ID } from '@internal/target-postgres/codec-ids';
-import { isPgEnumParams } from '@internal/target-postgres/codecs';
 import {
-  escapeLiteral,
-  quoteIdentifier,
-  quoteQualifiedName,
-} from '@internal/target-postgres/sql-utils';
+  pgBit,
+  pgBool,
+  pgChar,
+  pgFloat4,
+  pgFloat8,
+  pgInt2,
+  pgInt4,
+  pgInt8,
+  pgInterval,
+  pgNumeric,
+  pgText,
+  pgTime,
+  pgTimestamp,
+  pgTimestamptz,
+  pgTimetz,
+  pgVarbit,
+  pgVarchar,
+} from '@internal/target-postgres/data-types';
+import { escapeLiteral, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever, InternalError } from '@internal/utils/internal-error';
 import { adapterError } from './adapter-errors';
-import type { PostgresContract, StorageColumn } from './types';
+import type { PostgresContract } from './types';
 
 /**
- * Postgres native types whose unknown-OID parameter inference is reliable in arbitrary expression positions. Parameters bound to a descriptor whose `nativeTypeFor` result falls in this set are emitted as plain `$N`; everything else (including `json`, `jsonb`, extension types like `vector`, and unknown user types) is emitted as `$N::<nativeType>` so the planner picks an unambiguous overload.
+ * Data types whose unknown-OID parameter inference is reliable in arbitrary expression positions. A parameter whose codec represents one of these is emitted as plain `$N`; everything else (including `pg/json`, `pg/jsonb`, extension types like `pgvector/vector`, and enums) is emitted as `$N::<base name>` so the planner picks an unambiguous overload.
  *
- * `json` / `jsonb` are intentionally excluded despite being Postgres builtins: their operator overloads make context inference unreliable in expression positions (e.g. `$1 -> 'key'` is ambiguous between the two).
- *
- * Spellings match the target descriptors' `nativeTypeFor` results, not the `udt_name` abbreviations that ADR 205 used as illustrative shorthand. The registry-based cast policy compares against these strings directly.
+ * `pg/json` / `pg/jsonb` are intentionally excluded: their operator overloads make context inference unreliable in expression positions (e.g. `$1 -> 'key'` is ambiguous between the two).
  */
-const POSTGRES_INFERRABLE_NATIVE_TYPES: ReadonlySet<string> = new Set([
-  // Numeric
-  'integer',
-  'smallint',
-  'bigint',
-  'real',
-  'double precision',
-  'numeric',
-  // Boolean
-  'boolean',
-  // Strings
-  'text',
-  'character',
-  'character varying',
-  // Temporal
-  'timestamp',
-  'timestamp without time zone',
-  'timestamp with time zone',
-  'time',
-  'timetz',
-  'interval',
-  // Bit strings
-  'bit',
-  'bit varying',
+const POSTGRES_INFERRABLE_DATA_TYPES: ReadonlySet<string> = new Set([
+  pgInt2.id,
+  pgInt4.id,
+  pgInt8.id,
+  pgFloat4.id,
+  pgFloat8.id,
+  pgNumeric.id,
+  pgBool.id,
+  pgText.id,
+  pgChar.id,
+  pgVarchar.id,
+  pgTimestamp.id,
+  pgTimestamptz.id,
+  pgTime.id,
+  pgTimetz.id,
+  pgInterval.id,
+  pgBit.id,
+  pgVarbit.id,
 ]);
 
+/**
+ * A parameter's cast names its data type's base name, never its parameters: an explicit cast to
+ * `varchar(n)` truncates and to `numeric(p,s)` rounds.
+ */
 function renderTypedParam(
   index: number,
   codecId: string | undefined,
-  codecDescriptorRegistry: PostgresCodecDescriptorRegistry,
+  types: RenderTypes,
   many?: boolean,
   typeParams?: JsonValue,
+  forceCast = false,
 ): string {
   if (codecId === undefined) {
     return `$${index}`;
   }
-  const descriptor = codecDescriptorRegistry.descriptorFor(codecId);
+  const descriptor = types.codecDescriptorRegistry.descriptorFor(codecId);
   if (descriptor === undefined) {
     throw adapterError(
       'RUNTIME.PARAM_REF_MISSING_CODEC',
@@ -107,18 +127,15 @@ function renderTypedParam(
       { meta: { codecId } },
     );
   }
-  const ref: CodecRef = {
-    codecId,
-    ...ifDefined('many', many),
-    ...ifDefined('typeParams', typeParams),
-  };
-  const nativeType = descriptor.nativeTypeFor(ref);
+  const dataType = sqlDataTypeOfCodec(codecId, {
+    codecLookup: types.codecDescriptorRegistry,
+    dataTypeLookup: types.dataTypeLookup,
+  });
   const arraySuffix = many ? '[]' : '';
-  if (isPgEnumParams(typeParams)) {
-    return `$${index}::${quoteQualifiedName(nativeType)}${arraySuffix}`;
-  }
-  if (!POSTGRES_INFERRABLE_NATIVE_TYPES.has(nativeType) || many) {
-    return `$${index}::${nativeType}${arraySuffix}`;
+  if (forceCast || !POSTGRES_INFERRABLE_DATA_TYPES.has(dataType.id) || many) {
+    const params = isPlainRecord(typeParams) ? typeParams : undefined;
+    const baseName = sqlBaseName(dataType, dataTypeParams(dataType, params));
+    return `$${index}::${baseName}${arraySuffix}`;
   }
   return `$${index}`;
 }
@@ -141,7 +158,13 @@ function unreachableKind(value: never): string {
  */
 interface ParamIndexMap {
   readonly indexMap: Map<AnyParamRef, number>;
+  readonly types: RenderTypes;
+  readonly capabilities: CapabilityMatrix;
+}
+
+interface RenderTypes {
   readonly codecDescriptorRegistry: PostgresCodecDescriptorRegistry;
+  readonly dataTypeLookup: DataTypeLookup;
 }
 
 /**
@@ -153,6 +176,8 @@ export function renderLoweredSql(
   ast: AnyQueryAst,
   contract: PostgresContract,
   codecDescriptorRegistry: PostgresCodecDescriptorRegistry,
+  dataTypeLookup: DataTypeLookup,
+  capabilities: CapabilityMatrix,
 ): { readonly sql: string; readonly params: readonly LoweredParam[] } {
   const orderedRefs = collectOrderedParamRefs(ast);
   const indexMap = new Map<AnyParamRef, number>();
@@ -162,7 +187,11 @@ export function renderLoweredSql(
       ? { kind: 'bind', name: ref.name }
       : { kind: 'literal', value: ref.value };
   });
-  const pim: ParamIndexMap = { indexMap, codecDescriptorRegistry };
+  const pim: ParamIndexMap = {
+    indexMap,
+    types: { codecDescriptorRegistry, dataTypeLookup },
+    capabilities,
+  };
 
   const node = ast;
   let sql: string;
@@ -202,8 +231,7 @@ function renderLimitOffset(
 }
 
 function renderSelect(ast: SelectAst, contract: PostgresContract, pim: ParamIndexMap): string {
-  const sourcesByRef = collectTableSources(ast);
-  const selectClause = `SELECT ${renderDistinctPrefix(ast.distinct, ast.distinctOn, sourcesByRef, contract, pim)}${renderProjection(
+  const selectClause = `SELECT ${renderDistinctPrefix(ast.distinct, ast.distinctOn, contract, pim)}${renderProjection(
     ast.projection,
     contract,
     pim,
@@ -220,15 +248,13 @@ function renderSelect(ast: SelectAst, contract: PostgresContract, pim: ParamInde
     : '';
   const havingClause = ast.having ? `HAVING ${renderWhere(ast.having, contract, pim)}` : '';
   const orderClause = ast.orderBy?.length
-    ? `ORDER BY ${ast.orderBy
-        .map((order) => {
-          const expr = renderOrderByExpr(order.expr, sourcesByRef, contract, pim);
-          return `${expr} ${order.dir.toUpperCase()}`;
-        })
-        .join(', ')}`
+    ? `ORDER BY ${renderOrderByItems(ast.orderBy, contract, pim)}`
     : '';
   const limitClause = renderLimitOffset('LIMIT', ast.limit, contract, pim);
   const offsetClause = renderLimitOffset('OFFSET', ast.offset, contract, pim);
+  const lockingClause = (ast.locking ?? [])
+    .map((clause) => renderLockingClause(clause, pim.capabilities))
+    .join(' ');
 
   const clauses = [
     selectClause,
@@ -240,143 +266,65 @@ function renderSelect(ast: SelectAst, contract: PostgresContract, pim: ParamInde
     orderClause,
     limitClause,
     offsetClause,
+    lockingClause,
   ]
     .filter((part) => part.length > 0)
     .join(' ');
   return clauses.trim();
 }
 
-/**
- * Storage coordinate a query-level table reference (alias or bare name) resolves to. The ORDER BY enum hook uses this to look a column-ref's storage column up and read its value-set.
- */
-interface TableSourceCoordinate {
-  readonly name: string;
-  readonly namespaceId: string | undefined;
+function lockStrengthKeyword(strength: LockStrength): string {
+  switch (strength) {
+    case 'forUpdate':
+      return 'FOR UPDATE';
+    case 'forNoKeyUpdate':
+      return 'FOR NO KEY UPDATE';
+    case 'forShare':
+      return 'FOR SHARE';
+    case 'forKeyShare':
+      return 'FOR KEY SHARE';
+    default:
+      return assertNever(strength, `Unsupported lock strength: ${String(strength)}`);
+  }
 }
 
-/**
- * Map a SELECT's table references (the FROM source and any JOIN sources) to their storage coordinate, keyed by the name a `ColumnRef.table` would carry (the alias when present, otherwise the table name). Derived-table sources are skipped — their columns are projected through a sub-select, not a base storage column, so the enum hook does not apply.
- */
-function collectTableSources(ast: SelectAst): ReadonlyMap<string, TableSourceCoordinate> {
-  const sources = new Map<string, TableSourceCoordinate>();
-  const add = (source: AnyFromSource): void => {
-    if (source.kind !== 'table-source') {
-      return;
-    }
-    const ref = source.alias ?? source.name;
-    sources.set(ref, { name: source.name, namespaceId: source.namespaceId });
-  };
-  if (ast.from !== undefined) add(ast.from);
-  for (const join of ast.joins ?? []) {
-    add(join.source);
+function lockWaitPolicyKeyword(waitPolicy: LockWaitPolicy): string {
+  switch (waitPolicy) {
+    case 'nowait':
+      return 'NOWAIT';
+    case 'skipLocked':
+      return 'SKIP LOCKED';
+    default:
+      return assertNever(waitPolicy, `Unsupported lock wait policy: ${String(waitPolicy)}`);
   }
-  return sources;
 }
 
-/**
- * Ordered, codec-encoded values of the value-set a storage column restricts to, or `undefined` when the referenced column carries no value-set (the common, non-enum case). Resolves the column's storage coordinate from the SELECT's table sources, then the column's `valueSet` ref to the value-set's `values`.
- */
-function allStrings(values: readonly JsonValue[]): values is readonly string[] {
-  return values.every((value) => typeof value === 'string');
+function requireCapability(
+  capabilities: CapabilityMatrix,
+  requirement: CapabilityRequirement,
+): void {
+  const capability = missingCapability(capabilities, requirement);
+  if (capability !== undefined) {
+    throw adapterError(
+      'RUNTIME.AST_UNSUPPORTED',
+      `Postgres adapter does not report capability ${capability}, which this locking clause needs`,
+      { meta: { target: 'postgres', feature: 'locking-clause', capability } },
+    );
+  }
 }
 
-function sortsByDeclarationOrderNatively(column: StorageColumn): boolean {
-  return column.codecId === PG_ENUM_CODEC_ID;
-}
-
-function resolveEnumOrderValues(
-  ref: ColumnRef,
-  sourcesByRef: ReadonlyMap<string, TableSourceCoordinate>,
-  contract: PostgresContract,
-): readonly JsonValue[] | undefined {
-  const source = sourcesByRef.get(ref.table);
-  if (source === undefined || source.namespaceId === undefined) {
-    return undefined;
+function renderLockingClause(clause: LockingClause, capabilities: CapabilityMatrix): string {
+  requireCapability(capabilities, lockStrengthCapabilities[clause.strength]);
+  const parts = [lockStrengthKeyword(clause.strength)];
+  if (clause.of !== undefined) {
+    requireCapability(capabilities, lockOptionCapabilities.of);
+    parts.push(`OF ${clause.of.map((name) => quoteIdentifier(name)).join(', ')}`);
   }
-  const sourceNs = contract.storage.namespaces[source.namespaceId];
-  const column =
-    sourceNs !== undefined ? sourceNs.entries.table?.[source.name]?.columns[ref.column] : undefined;
-  if (column === undefined || sortsByDeclarationOrderNatively(column)) {
-    return undefined;
+  if (clause.waitPolicy !== undefined) {
+    requireCapability(capabilities, lockOptionCapabilities[clause.waitPolicy]);
+    parts.push(lockWaitPolicyKeyword(clause.waitPolicy));
   }
-  const valueSet = column.valueSet;
-  if (valueSet === undefined) {
-    return undefined;
-  }
-  const valueSetNs = contract.storage.namespaces[valueSet.namespaceId];
-  return valueSetNs !== undefined
-    ? valueSetNs.entries.valueSet?.[valueSet.entityName]?.values
-    : undefined;
-}
-
-/**
- * Ordered values for an unqualified ORDER BY column (an `identifier-ref`, the shape the sql-builder emits for `.orderBy('col')`). Scans every FROM/JOIN source for a column of that name. Resolves only when exactly one source has a column of that name and it carries a value-set; if more than one source has such a column the bare identifier is ambiguous (regardless of which are enum-backed), so it falls through to the plain column rendering.
- */
-function resolveEnumOrderValuesForIdentifier(
-  name: string,
-  sourcesByRef: ReadonlyMap<string, TableSourceCoordinate>,
-  contract: PostgresContract,
-): readonly JsonValue[] | undefined {
-  let matchedColumns = 0;
-  let resolved: readonly JsonValue[] | undefined;
-  for (const source of sourcesByRef.values()) {
-    if (source.namespaceId === undefined) {
-      continue;
-    }
-    const identNs = contract.storage.namespaces[source.namespaceId];
-    const column =
-      identNs !== undefined ? identNs.entries.table?.[source.name]?.columns[name] : undefined;
-    if (column === undefined) {
-      continue;
-    }
-    matchedColumns += 1;
-    if (matchedColumns > 1) {
-      return undefined;
-    }
-    if (sortsByDeclarationOrderNatively(column)) {
-      return undefined;
-    }
-    const valueSet = column.valueSet;
-    if (valueSet === undefined) {
-      return undefined;
-    }
-    const valueSetNs = contract.storage.namespaces[valueSet.namespaceId];
-    resolved =
-      valueSetNs !== undefined
-        ? valueSetNs.entries.valueSet?.[valueSet.entityName]?.values
-        : undefined;
-  }
-  return resolved;
-}
-
-/**
- * Render an ORDER BY expression. A column reference onto an enum-restricted column sorts by declaration order via `array_position(ARRAY[…]::text[], <col>)` over the value-set's ordered values (NULLs return `NULL` from `array_position`, sorting per the clause's default NULL handling). Both qualified `column-ref`s and the unqualified `identifier-ref`s the sql-builder emits for `.orderBy('col')` are intercepted. Every other expression renders unchanged.
- */
-function renderOrderByExpr(
-  expr: AnyExpression,
-  sourcesByRef: ReadonlyMap<string, TableSourceCoordinate>,
-  contract: PostgresContract,
-  pim: ParamIndexMap,
-): string {
-  // Only TEXT enums lower to a value-set whose ORDER BY rewrite ships in this
-  // slice. Numeric-enum ORDER BY is future work; until then a non-string
-  // value-set falls through to plain column rendering rather than emitting a
-  // wrong numeric-as-text ARRAY.
-  if (expr.kind === 'column-ref') {
-    const orderValues = resolveEnumOrderValues(expr, sourcesByRef, contract);
-    if (orderValues !== undefined && allStrings(orderValues)) {
-      const array = orderValues.map((value) => `'${escapeLiteral(value)}'`).join(', ');
-      return `array_position(ARRAY[${array}]::text[], ${renderColumn(expr)})`;
-    }
-  }
-  if (expr.kind === 'identifier-ref') {
-    const orderValues = resolveEnumOrderValuesForIdentifier(expr.name, sourcesByRef, contract);
-    if (orderValues !== undefined && allStrings(orderValues)) {
-      const array = orderValues.map((value) => `'${escapeLiteral(value)}'`).join(', ');
-      return `array_position(ARRAY[${array}]::text[], ${quoteIdentifier(expr.name)})`;
-    }
-  }
-  return renderExpr(expr, contract, pim);
+  return parts.join(' ');
 }
 
 function renderProjection(
@@ -389,6 +337,9 @@ function renderProjection(
       const alias = quoteIdentifier(item.alias);
       if (item.expr.kind === 'literal') {
         return `${renderLiteral(item.expr)} AS ${alias}`;
+      }
+      if (item.expr.kind === 'prepared-param-ref') {
+        return `${renderParamRef(item.expr, pim, true)} AS ${alias}`;
       }
       return `${renderExpr(item.expr, contract, pim)} AS ${alias}`;
     })
@@ -419,14 +370,11 @@ function renderReturning(
 function renderDistinctPrefix(
   distinct: true | undefined,
   distinctOn: ReadonlyArray<AnyExpression> | undefined,
-  sourcesByRef: ReadonlyMap<string, TableSourceCoordinate>,
   contract: PostgresContract,
   pim: ParamIndexMap,
 ): string {
   if (distinctOn && distinctOn.length > 0) {
-    const rendered = distinctOn
-      .map((expr) => renderOrderByExpr(expr, sourcesByRef, contract, pim))
-      .join(', ');
+    const rendered = distinctOn.map((expr) => renderExpr(expr, contract, pim)).join(', ');
     return `DISTINCT ON (${rendered}) `;
   }
   if (distinct) {
@@ -612,6 +560,8 @@ function renderBinary(expr: BinaryExpr, contract: PostgresContract, pim: ParamIn
   const operatorMap: Record<BinaryExpr['op'], string> = {
     eq: '=',
     neq: '!=',
+    isNotDistinctFrom: 'IS NOT DISTINCT FROM',
+    isDistinctFrom: 'IS DISTINCT FROM',
     gt: '>',
     lt: '<',
     gte: '>=',
@@ -731,7 +681,7 @@ function projectJsonThroughCodec(
   codec: CodecRef,
   pim: ParamIndexMap,
 ): ProjectionExpr {
-  const descriptor = pim.codecDescriptorRegistry.descriptorFor(codec.codecId);
+  const descriptor = pim.types.codecDescriptorRegistry.descriptorFor(codec.codecId);
   if (descriptor === undefined) {
     throw adapterError(
       'RUNTIME.PARAM_REF_MISSING_CODEC',
@@ -767,8 +717,25 @@ function renderOrderByItems(
   pim: ParamIndexMap,
 ): string {
   return items
-    .map((item) => `${renderExpr(item.expr, contract, pim)} ${item.dir.toUpperCase()}`)
+    .map(
+      (item) =>
+        `${renderExpr(item.expr, contract, pim)}${ORDER_DIRECTION_SQL[item.dir]}${renderNullsPlacement(item)}`,
+    )
     .join(', ');
+}
+
+const ORDER_DIRECTION_SQL: Readonly<Record<OrderByItem['dir'], string>> = {
+  asc: ' ASC',
+  desc: ' DESC',
+};
+
+const ORDER_NULLS_SQL: Readonly<Record<NonNullable<OrderByItem['nulls']>, string>> = {
+  first: ' NULLS FIRST',
+  last: ' NULLS LAST',
+};
+
+function renderNullsPlacement(item: OrderByItem): string {
+  return item.nulls === undefined ? '' : ORDER_NULLS_SQL[item.nulls];
 }
 
 function renderJsonArrayAggExpr(
@@ -848,7 +815,7 @@ function renderExpr(expr: AnyExpression, contract: PostgresContract, pim: ParamI
   }
 }
 
-function renderParamRef(ref: AnyParamRef, pim: ParamIndexMap): string {
+function renderParamRef(ref: AnyParamRef, pim: ParamIndexMap, forceCast = false): string {
   const index = pim.indexMap.get(ref);
   if (index === undefined) {
     throw new InternalError('ParamRef not found in index map');
@@ -857,9 +824,10 @@ function renderParamRef(ref: AnyParamRef, pim: ParamIndexMap): string {
     return renderTypedParam(
       index,
       ref.codec.codecId,
-      pim.codecDescriptorRegistry,
+      pim.types,
       ref.codec.many,
       ref.codec.typeParams,
+      forceCast,
     );
   }
   if (ref.codec === undefined) {
@@ -874,7 +842,7 @@ function renderParamRef(ref: AnyParamRef, pim: ParamIndexMap): string {
   return renderTypedParam(
     index,
     ref.codec.codecId,
-    pim.codecDescriptorRegistry,
+    pim.types,
     ref.codec.many,
     ref.codec.typeParams,
   );
@@ -1069,19 +1037,20 @@ function renderInsert(ast: InsertAst, contract: PostgresContract, pim: ParamInde
   const onConflictClause = ast.onConflict
     ? (() => {
         const conflictColumns = ast.onConflict.columns.map((col) => quoteIdentifier(col.column));
-        if (conflictColumns.length === 0) {
-          throw adapterError(
-            'RUNTIME.AST_INVALID',
-            'INSERT onConflict requires at least one conflict column',
-            { meta: { node: 'insert-on-conflict' } },
-          );
-        }
+        const target = conflictColumns.length === 0 ? '' : ` (${conflictColumns.join(', ')})`;
 
         const action = ast.onConflict.action;
         switch (action.kind) {
           case 'do-nothing':
-            return ` ON CONFLICT (${conflictColumns.join(', ')}) DO NOTHING`;
+            return ` ON CONFLICT${target} DO NOTHING`;
           case 'do-update-set': {
+            if (conflictColumns.length === 0) {
+              throw adapterError(
+                'RUNTIME.AST_INVALID',
+                'INSERT onConflict requires at least one conflict column',
+                { meta: { node: 'insert-on-conflict' } },
+              );
+            }
             const updateEntries = Object.entries(action.set);
             if (updateEntries.length === 0) {
               throw adapterError(
@@ -1093,7 +1062,7 @@ function renderInsert(ast: InsertAst, contract: PostgresContract, pim: ParamInde
             const updates = updateEntries.map(([colName, value]) => {
               return `${quoteIdentifier(colName)} = ${renderExpr(value, contract, pim)}`;
             });
-            return ` ON CONFLICT (${conflictColumns.join(', ')}) DO UPDATE SET ${updates.join(', ')}`;
+            return ` ON CONFLICT${target} DO UPDATE SET ${updates.join(', ')}`;
           }
           // v8 ignore next 4
           default:

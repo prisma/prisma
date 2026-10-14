@@ -1,12 +1,14 @@
+import type {
+  ArgTypeFromDescriptor,
+  ObjectArgumentType,
+  TupleFromArgumentDescriptors,
+} from '@internal/contract-authoring';
 import type { AuthoringArgumentDescriptor } from '@internal/framework-components/authoring';
 import { expectTypeOf, test } from 'vitest';
 import type {
-  ArgTypeFromDescriptor,
   FieldHelperFunctionWithNamedConstraint,
   FieldHelperFunctionWithoutNamedConstraint,
   NamedConstraintSpec,
-  ObjectArgumentType,
-  TupleFromArgumentDescriptors,
 } from '../src/authoring-type-utils';
 import { nanoidOptionsArgumentMirror } from './nanoid-preset-mirror';
 
@@ -15,7 +17,6 @@ const nanoidDescriptor = {
   args: [nanoidOptionsArgumentMirror],
   output: {
     codecId: 'sql/char@1',
-    nativeType: 'character',
     typeParams: { length: { kind: 'arg', index: 0, path: ['size'], default: 21 } },
     id: true,
   },
@@ -26,7 +27,6 @@ const plainNanoidDescriptor = {
   args: [nanoidOptionsArgumentMirror],
   output: {
     codecId: 'sql/char@1',
-    nativeType: 'character',
     typeParams: { length: { kind: 'arg', index: 0, path: ['size'], default: 21 } },
   },
 } as const;
@@ -35,7 +35,6 @@ const uuidv4Descriptor = {
   kind: 'fieldPreset',
   output: {
     codecId: 'sql/char@1',
-    nativeType: 'character',
     typeParams: { length: 36 },
     id: true,
   },

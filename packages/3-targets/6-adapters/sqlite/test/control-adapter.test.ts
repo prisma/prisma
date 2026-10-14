@@ -1,10 +1,10 @@
 import { DatabaseSync } from 'node:sqlite';
 import type { CliStructuredError } from '@internal/errors/control';
 import { PrimaryKey } from '@internal/sql-schema-ir/types';
+import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { parseSqliteDefault } from '@internal/target-sqlite/default-normalizer';
 import { normalizeSqliteNativeType } from '@internal/target-sqlite/native-type-normalizer';
 import { describe, expect, it } from 'vitest';
-import { createSqliteBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../src/core/control-adapter';
 
 function createMemoryDriver() {
@@ -71,7 +71,7 @@ describe('SqliteControlAdapter.introspect', () => {
     expect(columns['status']!.resolvedNativeType).toBe('text');
     expect(columns['status']!.resolvedDefault).toEqual({ kind: 'literal', value: 'draft' });
     expect(columns['n']!.resolvedNativeType).toBe('integer');
-    expect(columns['n']!.resolvedDefault).toEqual({ kind: 'literal', value: 5 });
+    expect(columns['n']!.resolvedDefault).toEqual({ kind: 'literal', value: '5' });
     expect(columns['note']!.resolvedDefault).toBeUndefined();
     await driver.close();
   });
@@ -213,10 +213,11 @@ describe('parseSqliteDefault', () => {
     expect(parseSqliteDefault('NULL')).toEqual({ kind: 'literal', value: null });
   });
 
-  it('returns number for safe-range integers and falls back to string for 64-bit values', () => {
-    expect(parseSqliteDefault('42', 'integer')).toEqual({ kind: 'literal', value: 42 });
-    expect(parseSqliteDefault('0', 'integer')).toEqual({ kind: 'literal', value: 0 });
-    const big = '9999999999999999999';
+  it('reads an integer column default as digit text, the stored form of sqlite/integer', () => {
+    expect(parseSqliteDefault('42', 'integer')).toEqual({ kind: 'literal', value: '42' });
+    expect(parseSqliteDefault('-0', 'INTEGER')).toEqual({ kind: 'literal', value: '0' });
+    expect(parseSqliteDefault("'42'", 'integer')).toEqual({ kind: 'literal', value: '42' });
+    const big = '9223372036854775807';
     expect(parseSqliteDefault(big, 'integer')).toEqual({ kind: 'literal', value: big });
   });
 

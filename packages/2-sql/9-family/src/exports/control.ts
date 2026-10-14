@@ -12,18 +12,18 @@ export type {
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
 export { assembleAuthoringContributions } from '@internal/framework-components/control';
+export { checkSqlDefaultText } from '@internal/sql-contract/validators';
 export { extractCodecControlHooks } from '../core/assembly';
 export type { SqlControlFamilyInstance } from '../core/control-instance';
 export type {
   SqlControlTargetDescriptor,
   SqlDescribedContractSpace,
+  SqlPslBuildContext,
 } from '../core/control-target-descriptor';
 export type {
   ContractToSchemaIROptions,
   DefaultRenderer,
   DefaultResolver,
-  EnumNamespaceSchemaResolver,
-  NativeTypeExpander,
 } from '../core/migrations/contract-to-schema-ir';
 // Contract → SchemaIR conversion for offline migration planning
 export {
@@ -37,9 +37,25 @@ export {
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
 } from '../core/migrations/control-policy';
-export type { PlanFieldEventOperationsOptions } from '../core/migrations/field-event-planner';
-export { planFieldEventOperations } from '../core/migrations/field-event-planner';
-export { buildNativeTypeExpander } from '../core/migrations/native-type-expander';
+export type {
+  FieldEventCall,
+  PlanFieldEventOperationsOptions,
+} from '../core/migrations/field-event-planner';
+export {
+  planFieldEventCalls,
+  planFieldEventOperations,
+} from '../core/migrations/field-event-planner';
+export { fieldOfColumn } from '../core/migrations/field-of-column';
+export { storageNameOfOperation } from '../core/migrations/operation-storage-name';
+export type {
+  CallSubjects,
+  SubjectStorage,
+} from '../core/migrations/operation-subjects';
+export {
+  fieldEventStorage,
+  subjectsOfCalls,
+  unknownCallNames,
+} from '../core/migrations/operation-subjects';
 export {
   createMigrationPlan,
   plannerFailure,
@@ -48,15 +64,77 @@ export {
   runnerSuccess,
 } from '../core/migrations/plan-helpers';
 export { INIT_ADDITIVE_POLICY } from '../core/migrations/policies';
+export type { RequiredColumn, RequiredColumnMark } from '../core/migrations/required-column';
+export {
+  requiredColumnMeta,
+  requiredColumnOf,
+  requiredColumnsOfMigration,
+  rowsWithoutValueFailure,
+  rowsWithoutValueSummary,
+} from '../core/migrations/required-column';
+export type {
+  ColumnRename,
+  ColumnRenameRequest,
+} from '../core/migrations/resolve-column-rename';
+export {
+  COLUMN_RENAME_UNMATCHED_CODE,
+  resolveColumnRenameAgainst,
+  unmatchedColumnRename,
+} from '../core/migrations/resolve-column-rename';
+export type {
+  TableRename,
+  TableRenameRequest,
+} from '../core/migrations/resolve-table-rename';
+export {
+  resolveTableRenameAgainst,
+  unmatchedTableRename,
+} from '../core/migrations/resolve-table-rename';
 export type {
   SqlSchemaDiffFn,
   SqlSchemaDiffInput,
   SqlSchemaDiffResult,
 } from '../core/migrations/schema-differ';
+export type { SchemaTables } from '../core/migrations/schema-tables';
+export type { SqlQuote, SqlQuotingRules } from '../core/migrations/sql-expression-text';
+export { checkSqlExpressionText } from '../core/migrations/sql-expression-text';
+export type { SqlSlot } from '../core/migrations/sql-slot';
+export { isUnfilledSlot, slotSource, sqlOfSlot } from '../core/migrations/sql-slot';
+export {
+  createSqlTextSources,
+  type SqlTextSources,
+} from '../core/migrations/sql-text-sources';
+export { sqlTypeLookupsOf } from '../core/migrations/sql-type-lookups';
+export type {
+  CallWithCompanions,
+  ColumnOnOneSide,
+  FieldStatementColumns,
+  FieldStorageEffect,
+  ModelStorageEffect,
+  ModelTable,
+  NoTable,
+  PlannedStatements,
+  SingleOperationCall,
+  StatementColumn,
+  StatementPlanningTarget,
+  TableRenameByHand,
+} from '../core/migrations/statement-planning';
+export {
+  appliedStatementsInOrder,
+  backfillOfDefaultedField,
+  fieldRenameStorageEffect,
+  fieldStatementColumns,
+  modelRenameStorageEffect,
+  planStatements,
+} from '../core/migrations/statement-planning';
+export type { TableNameCaseGuardTable } from '../core/migrations/table-name-case-guard';
+export {
+  detectTableNameCaseChanges,
+  TABLE_NAME_CASE_CHANGED_CODE,
+} from '../core/migrations/table-name-case-guard';
+export { columnTakesTemporaryValue } from '../core/migrations/temporary-value';
 export type {
   CodecControlHooks,
   CreateSqlMigrationPlanOptions,
-  ExpandNativeTypeInput,
   FieldEvent,
   FieldEventContext,
   ResolveIdentityValueInput,
@@ -86,11 +164,14 @@ export type {
   StorageTypePlanResult,
 } from '../core/migrations/types';
 export {
-  temporalAuthoringPresets,
-  temporalCodecPreset,
+  type ConvertedColumn,
+  convertedColumnMeta,
+  convertedColumnOf,
+  unconvertedFieldOf,
+} from '../core/migrations/unconverted-field';
+export {
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,
-  timestampNowControlDescriptor,
 } from '../core/timestamp-now-generator';
 
 export default new SqlFamilyDescriptor();

@@ -14,10 +14,10 @@ import {
   IdentifierRef,
 } from '@internal/sql-relational-core/ast';
 import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { ExpressionImpl } from '@internal/sql-relational-core/expression';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { describe, expect, it } from 'vitest';
 import type { Expression } from '../../src/expression';
-import type { ExpressionImpl } from '../../src/runtime/expression-impl';
 import { createFieldProxy } from '../../src/runtime/field-proxy';
 import { createAggregateFunctions } from '../../src/runtime/functions';
 import { sql } from '../../src/runtime/sql';
@@ -32,7 +32,6 @@ const codecs = buildCodecDescriptorRegistry([
   {
     codecId: 'pg/int4@1',
     traits: ['numeric', 'order', 'equality'],
-    targetTypes: [],
     isParameterized: false,
     paramsSchema: undefined,
     factory: () => () => ({ id: 'pg/int4@1' }),
@@ -40,7 +39,6 @@ const codecs = buildCodecDescriptorRegistry([
   {
     codecId: 'lib/int8@1',
     traits: ['numeric', 'order', 'equality'],
-    targetTypes: [],
     isParameterized: false,
     paramsSchema: undefined,
     factory: () => () => ({ id: 'lib/int8@1' }),
@@ -48,7 +46,6 @@ const codecs = buildCodecDescriptorRegistry([
   {
     codecId: 'lib/float8@1',
     traits: ['numeric', 'order', 'equality'],
-    targetTypes: [],
     isParameterized: false,
     paramsSchema: undefined,
     factory: () => () => ({ id: 'lib/float8@1' }),

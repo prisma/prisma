@@ -8,8 +8,28 @@ import { type CodecRef, frozenCodecRef } from './codec-types';
 import type { AnyJsonValueProjection } from './json-value-projection';
 
 export type Direction = 'asc' | 'desc';
+export type OrderByNulls = 'first' | 'last';
 
-export type BinaryOp = 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'like' | 'in' | 'notIn';
+export function isOrderByDirection(value: unknown): value is Direction {
+  return value === 'asc' || value === 'desc';
+}
+
+export function isOrderByNulls(value: unknown): value is OrderByNulls {
+  return value === 'first' || value === 'last';
+}
+
+export type BinaryOp =
+  | 'eq'
+  | 'neq'
+  | 'isNotDistinctFrom'
+  | 'isDistinctFrom'
+  | 'gt'
+  | 'lt'
+  | 'gte'
+  | 'lte'
+  | 'like'
+  | 'in'
+  | 'notIn';
 
 export type AggregateCountFn = 'count';
 export type AggregateOpFn = 'sum' | 'avg' | 'min' | 'max';
@@ -244,7 +264,7 @@ function rewriteInsertValue(value: InsertValue, rewriter: AstRewriter): InsertVa
     case 'default-value':
       return value;
     // RawExpr insert values are opaque DB-side expressions (e.g. `now()` /
-    // `datetime('now')`) carried in value position; they are not a rewrite
+    // `strftime('%Y-%m-%dT%H:%M:%fZ','now')`) carried in value position; they are not a rewrite
     // target on the insert path.
     case 'raw-expr':
       return value;
@@ -612,16 +632,18 @@ export class PreparedParamRef extends Expression {
   readonly kind = 'prepared-param-ref' as const;
   readonly name: string;
   readonly codec: CodecRef;
+  readonly nullable: boolean;
 
-  constructor(name: string, codec: CodecRef) {
+  constructor(name: string, codec: CodecRef, nullable = false) {
     super();
     this.name = name;
     this.codec = frozenCodecRef(codec);
+    this.nullable = nullable;
     this.freeze();
   }
 
-  static of(name: string, codec: CodecRef): PreparedParamRef {
-    return new PreparedParamRef(name, codec);
+  static of(name: string, codec: CodecRef, nullable = false): PreparedParamRef {
+    return new PreparedParamRef(name, codec, nullable);
   }
 
   override accept<R>(visitor: ExprVisitor<R>): R {
@@ -1081,33 +1103,54 @@ export class OrderByItem extends AstNode {
   readonly kind = 'order-by-item' as const;
   readonly expr: AnyExpression;
   readonly dir: Direction;
+  readonly nulls: OrderByNulls | undefined;
 
-  constructor(expr: AnyExpression, dir: Direction) {
+  constructor(expr: AnyExpression, dir: Direction, nulls: OrderByNulls | undefined) {
     super();
+    if (!isOrderByDirection(dir)) {
+      throw structuredError('RUNTIME.AST_INVALID', 'OrderByItem direction must be asc or desc', {
+        meta: { kind: 'order-by-item', field: 'dir' },
+      });
+    }
+    if (nulls !== undefined && !isOrderByNulls(nulls)) {
+      throw structuredError(
+        'RUNTIME.AST_INVALID',
+        'OrderByItem null placement must be first, last or undefined',
+        { meta: { kind: 'order-by-item', field: 'nulls' } },
+      );
+    }
     this.expr = expr;
     this.dir = dir;
+    this.nulls = nulls;
     this.freeze();
   }
 
-  static asc(expr: AnyExpression): OrderByItem {
-    return new OrderByItem(expr, 'asc');
+  static asc(expr: AnyExpression, options?: { readonly nulls?: OrderByNulls }): OrderByItem {
+    return new OrderByItem(expr, 'asc', options?.nulls);
   }
 
-  static desc(expr: AnyExpression): OrderByItem {
-    return new OrderByItem(expr, 'desc');
+  static desc(expr: AnyExpression, options?: { readonly nulls?: OrderByNulls }): OrderByItem {
+    return new OrderByItem(expr, 'desc', options?.nulls);
   }
 
   rewrite(rewriter: ExpressionRewriter): OrderByItem {
-    return new OrderByItem(this.expr.rewrite(rewriter), this.dir);
+    return this.withExpr(this.expr.rewrite(rewriter));
+  }
+
+  /** A new frozen item ordering by `expr` with the same direction and null placement. */
+  withExpr(expr: AnyExpression): OrderByItem {
+    return new OrderByItem(expr, this.dir, this.nulls);
   }
 
   /**
-   * A new frozen item with the sort direction flipped and `expr` unchanged.
-   * Integrations that own pagination (e.g. backward cursor pagination) use
-   * this to reverse a user's sort order without reaching into the AST.
+   * A new frozen item with the sort direction and null placement flipped and `expr` unchanged. Integrations that own pagination (e.g. backward cursor pagination) use this to reverse a user's sort order without reaching into the AST.
    */
   reverse(): OrderByItem {
-    return new OrderByItem(this.expr, this.dir === 'asc' ? 'desc' : 'asc');
+    return new OrderByItem(
+      this.expr,
+      this.dir === 'asc' ? 'desc' : 'asc',
+      this.nulls === undefined ? undefined : this.nulls === 'first' ? 'last' : 'first',
+    );
   }
 }
 
@@ -1527,6 +1570,51 @@ export class ProjectionItem extends AstNode {
 
 export type LimitOffsetValue = number | AnyExpression;
 
+export function checkLimitOffset(
+  argument: 'limit' | 'offset',
+  value: LimitOffsetValue | undefined,
+): void {
+  if (typeof value === 'number' && !(Number.isSafeInteger(value) && value >= 0)) {
+    throw structuredError(
+      'ORM.ARGUMENT_INVALID',
+      `${argument} must be an integer from 0 to ${Number.MAX_SAFE_INTEGER}, got ${String(value)}`,
+      { meta: { argument } },
+    );
+  }
+}
+
+export type LockStrength = 'forUpdate' | 'forNoKeyUpdate' | 'forShare' | 'forKeyShare';
+export type LockWaitPolicy = 'nowait' | 'skipLocked';
+
+export interface LockingClauseOptions {
+  readonly strength: LockStrength;
+  readonly of: ReadonlyArray<string> | undefined;
+  readonly waitPolicy: LockWaitPolicy | undefined;
+}
+
+/** A row-locking clause on a select. `of` holds unqualified table names or aliases as written in FROM. */
+export class LockingClause extends AstNode {
+  readonly kind = 'locking-clause' as const;
+  readonly strength: LockStrength;
+  readonly of: ReadonlyArray<string> | undefined;
+  readonly waitPolicy: LockWaitPolicy | undefined;
+
+  constructor(options: LockingClauseOptions) {
+    super();
+    this.strength = options.strength;
+    this.of = options.of && options.of.length > 0 ? frozenArrayCopy(options.of) : undefined;
+    this.waitPolicy = options.waitPolicy;
+    this.freeze();
+  }
+
+  static of(
+    strength: LockStrength,
+    options?: { readonly of?: ReadonlyArray<string>; readonly waitPolicy?: LockWaitPolicy },
+  ): LockingClause {
+    return new LockingClause({ strength, of: options?.of, waitPolicy: options?.waitPolicy });
+  }
+}
+
 export interface SelectAstOptions {
   readonly from?: AnyFromSource;
   readonly joins: ReadonlyArray<JoinAst> | undefined;
@@ -1539,6 +1627,7 @@ export interface SelectAstOptions {
   readonly having: AnyExpression | undefined;
   readonly limit: LimitOffsetValue | undefined;
   readonly offset: LimitOffsetValue | undefined;
+  readonly locking: ReadonlyArray<LockingClause> | undefined;
   readonly selectAllIntent: { readonly table?: string } | undefined;
 }
 
@@ -1555,10 +1644,13 @@ export class SelectAst extends QueryAst {
   readonly having: AnyExpression | undefined;
   readonly limit: LimitOffsetValue | undefined;
   readonly offset: LimitOffsetValue | undefined;
+  readonly locking: ReadonlyArray<LockingClause> | undefined;
   readonly selectAllIntent: { readonly table?: string } | undefined;
 
   constructor(options: SelectAstOptions) {
     super();
+    checkLimitOffset('limit', options.limit);
+    checkLimitOffset('offset', options.offset);
     this.from = options.from;
     this.joins =
       options.joins && options.joins.length > 0 ? frozenArrayCopy(options.joins) : undefined;
@@ -1576,6 +1668,8 @@ export class SelectAst extends QueryAst {
     this.having = options.having;
     this.limit = options.limit;
     this.offset = options.offset;
+    this.locking =
+      options.locking && options.locking.length > 0 ? frozenArrayCopy(options.locking) : undefined;
     this.selectAllIntent = frozenOptionalRecordCopy(options.selectAllIntent);
     this.freeze();
   }
@@ -1593,6 +1687,7 @@ export class SelectAst extends QueryAst {
       having: undefined,
       limit: undefined,
       offset: undefined,
+      locking: undefined,
       selectAllIntent: undefined,
     });
   }
@@ -1609,6 +1704,7 @@ export class SelectAst extends QueryAst {
       having: undefined,
       limit: undefined,
       offset: undefined,
+      locking: undefined,
       selectAllIntent: undefined,
     });
   }
@@ -1626,6 +1722,7 @@ export class SelectAst extends QueryAst {
       having: this.having,
       limit: this.limit,
       offset: this.offset,
+      locking: this.locking,
       selectAllIntent: this.selectAllIntent,
     };
   }
@@ -1677,6 +1774,13 @@ export class SelectAst extends QueryAst {
     });
   }
 
+  withLocking(locking: ReadonlyArray<LockingClause>): SelectAst {
+    return new SelectAst({
+      ...this.toOptions(),
+      locking: locking.length > 0 ? locking : undefined,
+    });
+  }
+
   withGroupBy(groupBy: ReadonlyArray<AnyExpression>): SelectAst {
     return new SelectAst({
       ...this.toOptions(),
@@ -1725,6 +1829,7 @@ export class SelectAst extends QueryAst {
       having: this.having?.rewrite(rewriter),
       limit: rewriteLimitOffset(this.limit, rewriter),
       offset: rewriteLimitOffset(this.offset, rewriter),
+      locking: this.locking,
       selectAllIntent: this.selectAllIntent,
     });
 
@@ -1898,6 +2003,15 @@ export class InsertOnConflict extends AstNode {
 
   static on(columns: ReadonlyArray<ColumnRef>): InsertOnConflict {
     return new InsertOnConflict(columns, new DoNothingConflictAction());
+  }
+
+  /**
+   * Skip a row that collides with any unique constraint on the table, without
+   * naming one. The renderer chooses the dialect; Postgres and SQLite emit
+   * `ON CONFLICT DO NOTHING`.
+   */
+  static doNothing(): InsertOnConflict {
+    return new InsertOnConflict([], new DoNothingConflictAction());
   }
 
   doNothing(): InsertOnConflict {

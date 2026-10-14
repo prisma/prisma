@@ -1,7 +1,12 @@
-import { computeProfileHash, computeStorageHash } from '@internal/contract/hashing';
+import {
+  buildExecutionSection,
+  computeProfileHash,
+  computeStorageHash,
+} from '@internal/contract/hashing';
 import {
   type ContractEmbedRelation,
   type ContractEnum,
+  type ContractExecutionSection,
   type ContractField,
   type ContractFieldType,
   type ContractModelBase,
@@ -10,24 +15,37 @@ import {
   type ControlPolicy,
   type CrossReference,
   crossRef,
+  type ExecutionHashBase,
+  type ExecutionMutationDefault,
+  type ExecutionMutationDefaultPhases,
   type JsonValue,
   type ProfileHashBase,
   type StorageHashBase,
   type ValueSetRef,
 } from '@internal/contract/types';
 import {
+  composePackAuthoringNamespace,
   createEntityHelpersFromNamespace,
+  createFieldHelpersFromNamespace,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
+  encodeEnumTypeMembers,
   type MergeExtensionAuthoringNamespaces,
+  type ResolveTemplateValue,
+  resolveToOneRelationNullable,
+  type TupleFromArgumentDescriptors,
 } from '@internal/contract-authoring';
-import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
-import type { AuthoringEntityTypeNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringArgumentDescriptor,
+  AuthoringFieldNamespace,
+  AuthoringFieldPresetDescriptor,
+} from '@internal/framework-components/authoring';
 import {
   assertNoCrossRegistryCollisions,
-  mergeAuthoringNamespaces,
+  instantiateAuthoringFieldPreset,
+  validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import { assembleDataTypes } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
@@ -53,30 +71,15 @@ import {
   MongoStorage,
   type MongoStorageShape,
   type MongoTypeMaps,
-  type MongoValueSetInput,
+  mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
+import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
-
-/**
- * Encode an authored enum value to its codec-encoded JSON form, mirroring SQL's `build-contract`.
- *
- * The codec is resolved by id from the lookup built from the contract's target pack, so a
- * non-identity `encodeJson` (permitted by the `mongoCodec` factory) is respected. A codecId the
- * lookup cannot resolve is a hard error: the enum uses a codec that is not part of the contract's
- * pack stack.
- */
-function encodeEnumValue(value: unknown, codecId: string, codecLookup: CodecLookup): JsonValue {
-  const codec = codecLookup.get(codecId);
-  if (!codec) {
-    throw errorEnumCodecNotInPackStack({ codecId });
-  }
-  return codec.encodeJson(value);
-}
 
 // `canonicalStringify` rejects non-plain objects so a `Map` or class
 // instance cannot silently collapse to `{}`. The storage-shape values
@@ -94,7 +97,7 @@ function stableStringify(value: unknown): string {
   }
 
   if (value && typeof value === 'object') {
-    return `{${Object.entries(value as Record<string, unknown>)
+    return `{${Object.entries(value)
       .sort(([left], [right]) => left.localeCompare(right))
       .map(([key, entry]) => `${JSON.stringify(key)}:${stableStringify(entry)}`)
       .join(',')}}`;
@@ -115,6 +118,7 @@ type StringListInput = string | readonly string[];
 type Present<T> = Exclude<T, undefined>;
 type EmptyObject = Record<never, never>;
 type Simplify<T> = { [K in keyof T]: T[K] } & EmptyObject;
+type Flatten<T> = { [K in keyof T]: T[K] };
 type StrictShape<Actual, Shape> = Actual &
   Shape &
   Record<Exclude<keyof Actual, keyof Shape>, never>;
@@ -134,15 +138,70 @@ export type ExtractCodecTypesFromPack<P> = P extends { __codecTypes?: infer Code
 // This mirrors @internal/target-mongo/codec-types because authoring must stay decoupled from
 // the target layer while still exposing the built-in Mongo codec registry to type inference.
 type MongoCodecTypes = {
-  readonly 'mongo/objectId@1': { readonly input: string; readonly output: string };
-  readonly 'mongo/string@1': { readonly input: string; readonly output: string };
-  readonly 'mongo/double@1': { readonly input: number; readonly output: number };
-  readonly 'mongo/int32@1': { readonly input: number; readonly output: number };
-  readonly 'mongo/bool@1': { readonly input: boolean; readonly output: boolean };
-  readonly 'mongo/date@1': { readonly input: Date; readonly output: Date };
+  readonly 'mongo/objectId@1': {
+    readonly input: string;
+    readonly output: string;
+    readonly traits: 'equality';
+  };
+  readonly 'mongo/string@1': {
+    readonly input: string;
+    readonly output: string;
+    readonly traits: 'equality' | 'order' | 'textual';
+  };
+  readonly 'mongo/double@1': {
+    readonly input: number;
+    readonly output: number;
+    readonly traits: 'equality' | 'order' | 'numeric';
+  };
+  readonly 'mongo/int32@1': {
+    readonly input: number;
+    readonly output: number;
+    readonly traits: 'equality' | 'order' | 'numeric';
+  };
+  readonly 'mongo/bool@1': {
+    readonly input: boolean;
+    readonly output: boolean;
+    readonly traits: 'equality' | 'boolean';
+  };
+  readonly 'mongo/date@1': {
+    readonly input: Date;
+    readonly output: Date;
+    readonly traits: 'equality' | 'order';
+  };
   readonly 'mongo/vector@1': {
     readonly input: readonly number[];
     readonly output: readonly number[];
+    readonly traits: 'equality';
+  };
+  readonly 'mongo/int64@1': {
+    readonly input: bigint;
+    readonly output: bigint;
+    readonly traits: 'equality' | 'order' | 'numeric';
+  };
+  readonly 'mongo/int64Number@1': {
+    readonly input: number;
+    readonly output: number;
+    readonly traits: 'equality' | 'order' | 'numeric';
+  };
+  readonly 'mongo/decimal128@1': {
+    readonly input: string;
+    readonly output: string;
+    readonly traits: 'equality' | 'order' | 'numeric';
+  };
+  readonly 'mongo/binary@1': {
+    readonly input: Uint8Array;
+    readonly output: Uint8Array;
+    readonly traits: 'equality';
+  };
+  readonly 'mongo/json@1': {
+    readonly input: JsonValue;
+    readonly output: JsonValue;
+    readonly traits: never;
+  };
+  readonly 'mongo/bson@1': {
+    readonly input: BsonInputValue;
+    readonly output: BsonValue;
+    readonly traits: never;
   };
 };
 
@@ -162,21 +221,64 @@ type MergeExtensionCodecTypesSafe<Packs> =
 export interface FieldBuilder<
   Type extends ContractFieldType = ContractFieldType,
   Nullable extends boolean = boolean,
-  Many extends boolean = boolean,
+  Many extends false | { readonly elementNullable: boolean } =
+    | false
+    | { readonly elementNullable: boolean },
   Handle extends EnumTypeHandle | undefined = EnumTypeHandle | undefined,
+  ExecutionDefaults extends ExecutionMutationDefaultPhases | undefined = undefined,
 > {
   readonly __kind: 'field';
   readonly __type: Type;
   readonly __nullable: Nullable;
   readonly __many: Many;
   readonly __enumHandle: Handle;
-  optional(): FieldBuilder<Type, true, Many, Handle>;
-  many(): FieldBuilder<Type, Nullable, true, Handle>;
+  readonly __executionDefaults?: ExecutionDefaults;
+  readonly optional: FilledOnWrite<ExecutionDefaults> extends true
+    ? (this: 'A preset fills this field on write, so it cannot be optional') => never
+    : () => FieldBuilder<Type, true, Many, Handle, ExecutionDefaults>;
+  readonly many: FilledOnWrite<ExecutionDefaults> extends true
+    ? (this: 'A preset fills this field on write, so it cannot be a list') => never
+    : {
+        (): FieldBuilder<
+          Type,
+          Nullable,
+          { readonly elementNullable: false },
+          Handle,
+          ExecutionDefaults
+        >;
+        (options: {
+          readonly elementsNullable: false;
+        }): FieldBuilder<
+          Type,
+          Nullable,
+          { readonly elementNullable: false },
+          Handle,
+          ExecutionDefaults
+        >;
+        (options: {
+          readonly elementsNullable: true;
+        }): FieldBuilder<
+          Type,
+          Nullable,
+          { readonly elementNullable: true },
+          Handle,
+          ExecutionDefaults
+        >;
+      };
 }
+
+/**
+ * Whether a preset such as `temporal.createdAt()` fills the field on write. Distributes over a union, so the widest `FieldBuilder` constraint keeps both signatures and every field builder satisfies it.
+ */
+type FilledOnWrite<ExecutionDefaults> = ExecutionDefaults extends undefined
+  ? false
+  : [keyof ExecutionDefaults] extends [never]
+    ? false
+    : true;
 
 export interface ValueObjectBuilder<
   Name extends string = string,
-  Fields extends Record<string, FieldBuilder> = Record<string, FieldBuilder>,
+  Fields extends Record<string, AnyFieldBuilder> = Record<string, AnyFieldBuilder>,
 > {
   readonly __kind: 'valueObject';
   readonly __name: Name;
@@ -204,16 +306,23 @@ export interface RelationBuilder<
   To extends string = string,
   Cardinality extends '1:1' | '1:N' | 'N:1' = '1:1' | '1:N' | 'N:1',
   On extends RelationOn | undefined = RelationOn | undefined,
+  Nullable extends boolean | undefined = boolean | undefined,
 > {
   readonly __kind: 'relation';
   readonly __to: To;
   readonly __cardinality: Cardinality;
   readonly __on: On;
+  /**
+   * The authored `optional` flag of a `belongsTo`; `undefined` when the author
+   * gave none. Always `true` for a `hasOne` reference: the side without the
+   * foreign key has nothing guaranteeing the related document exists.
+   */
+  readonly __nullable: Nullable;
 }
 
 export interface ModelBuilder<
   Name extends string = string,
-  Fields extends Record<string, FieldBuilder> = Record<string, FieldBuilder>,
+  Fields extends Record<string, AnyFieldBuilder> = Record<string, AnyFieldBuilder>,
   Relations extends Record<string, RelationBuilder> = Record<string, RelationBuilder>,
   Collection extends string | undefined = string | undefined,
   Owner extends string | undefined = string | undefined,
@@ -249,8 +358,9 @@ export interface ModelBuilder<
 type AnyFieldBuilder = FieldBuilder<
   ContractFieldType,
   boolean,
-  boolean,
-  EnumTypeHandle | undefined
+  false | { readonly elementNullable: boolean },
+  EnumTypeHandle | undefined,
+  ExecutionMutationDefaultPhases | undefined
 >;
 type AnyReferenceRelationBuilder = RelationBuilder<string, '1:1' | '1:N' | 'N:1', RelationOn>;
 type AnyEmbedRelationBuilder = RelationBuilder<string, '1:1' | '1:N', undefined>;
@@ -392,14 +502,15 @@ type ContractFieldFromBuilder<TBuilder> =
   TBuilder extends FieldBuilder<
     infer Type extends ContractFieldType,
     infer Nullable extends boolean,
-    infer Many extends boolean
+    infer Many extends false | { readonly elementNullable: boolean },
+    EnumTypeHandle | undefined,
+    ExecutionMutationDefaultPhases | undefined
   >
-    ? Simplify<
-        {
-          readonly type: Type;
-          readonly nullable: Nullable;
-        } & (Many extends true ? { readonly many: true } : EmptyObject)
-      >
+    ? Simplify<{
+        readonly type: Type;
+        readonly nullable: Nullable;
+        readonly many: Many;
+      }>
     : never;
 
 type ContractFieldsFromRecord<Fields extends Record<string, AnyFieldBuilder>> = Simplify<{
@@ -420,30 +531,70 @@ type ContractValueObjectsFromRecord<ValueObjects extends Record<string, AnyValue
     >]: ContractValueObjectFromBuilder<ValueObjects[K]>;
   }>;
 
-type ContractRelationFromBuilder<TBuilder> =
+type AnyFieldNullable<
+  Fields extends Record<string, AnyFieldBuilder>,
+  FieldNames extends readonly string[],
+> = FieldNames[number] extends infer Name
+  ? Name extends keyof Fields
+    ? Fields[Name] extends FieldBuilder<
+        ContractFieldType,
+        true,
+        false | { readonly elementNullable: boolean },
+        EnumTypeHandle | undefined,
+        ExecutionMutationDefaultPhases | undefined
+      >
+      ? true
+      : never
+    : never
+  : never;
+
+type ToOneRelationNullable<
+  Fields extends Record<string, AnyFieldBuilder>,
+  Cardinality extends '1:1' | 'N:1',
+  On extends RelationOn,
+  Nullable extends boolean | undefined,
+> = Nullable extends boolean
+  ? Nullable
+  : Cardinality extends '1:1'
+    ? true
+    : [AnyFieldNullable<Fields, On['localFields']>] extends [never]
+      ? false
+      : true;
+
+type ContractRelationFromBuilder<TBuilder, Fields extends Record<string, AnyFieldBuilder>> =
   TBuilder extends RelationBuilder<
     infer To extends string,
     infer Cardinality extends '1:1' | '1:N' | 'N:1',
-    infer On extends RelationOn | undefined
+    infer On extends RelationOn | undefined,
+    infer Nullable extends boolean | undefined
   >
     ? On extends RelationOn
-      ? {
-          readonly to: CrossRefFor<To>;
-          readonly cardinality: Cardinality;
-          readonly on: On;
-        }
+      ? Cardinality extends '1:1' | 'N:1'
+        ? {
+            readonly to: CrossRefFor<To>;
+            readonly cardinality: Cardinality;
+            readonly nullable: ToOneRelationNullable<Fields, Cardinality, On, Nullable>;
+            readonly on: On;
+          }
+        : {
+            readonly to: CrossRefFor<To>;
+            readonly cardinality: Cardinality;
+            readonly on: On;
+          }
       : {
           readonly to: CrossRefFor<To>;
           readonly cardinality: Cardinality;
         }
     : never;
 
-type ContractRelationsFromRecord<Relations extends Record<string, AnyRelationBuilder>> =
-  keyof Relations extends never
-    ? Record<string, never>
-    : Simplify<{
-        readonly [K in keyof Relations]: ContractRelationFromBuilder<Relations[K]>;
-      }>;
+type ContractRelationsFromRecord<
+  Relations extends Record<string, AnyRelationBuilder>,
+  Fields extends Record<string, AnyFieldBuilder>,
+> = keyof Relations extends never
+  ? Record<string, never>
+  : Simplify<{
+      readonly [K in keyof Relations]: ContractRelationFromBuilder<Relations[K], Fields>;
+    }>;
 
 type ContractModelStorageFromBuilder<TBuilder> = ModelStorageSection<TBuilder> &
   ModelStorageRelationsSection<TBuilder>;
@@ -459,7 +610,15 @@ type MaybeDiscriminator<Discriminator> = [Discriminator] extends [undefined]
   : { readonly discriminator: Discriminator & { readonly field: string } };
 type MaybeVariants<Variants> = [Variants] extends [undefined]
   ? EmptyObject
-  : { readonly variants: Variants };
+  : {
+      readonly variants: {
+        readonly [K in keyof Variants & string as Variants[K] extends {
+          readonly value: infer Value extends string;
+        }
+          ? Value
+          : never]: CrossRefFor<K>;
+      };
+    };
 
 type ContractModelFromBuilder<TBuilder> =
   TBuilder extends NamedModelBuilder<
@@ -476,7 +635,7 @@ type ContractModelFromBuilder<TBuilder> =
     ? Simplify<
         {
           readonly fields: ContractFieldsFromRecord<Fields>;
-          readonly relations: ContractRelationsFromRecord<Relations>;
+          readonly relations: ContractRelationsFromRecord<Relations, Fields>;
           readonly storage: ContractModelStorageFromBuilder<TBuilder>;
         } & MaybeOwner<Owner> &
           MaybeBase<Base> &
@@ -557,6 +716,12 @@ type DefinitionExtensions<Definition> = Definition extends {
   ? Extensions
   : Record<never, never>;
 
+type ScaffoldExtensions<Definition> = Definition extends {
+  readonly extensions?: infer Extensions extends Record<string, ExtensionPackRef<string, string>>;
+}
+  ? Extensions
+  : undefined;
+
 type DefinitionFamilyId<Definition> = Definition extends {
   readonly family: FamilyPackRef<infer FamilyId>;
 }
@@ -583,14 +748,17 @@ type MaybeValueObjectsSection<ValueObjects extends Record<string, AnyValueObject
         readonly valueObjects: ContractValueObjectsFromRecord<ValueObjects>;
       };
 
-// Project EnumTypeHandle to the namespace enum-entry shape.
-// Uses enumMembers (which carries Values[number] literals) rather than
-// ContractEnum.members (which uses JsonValue and erases literals).
+// Project EnumTypeHandle to the namespace enum-entry shape. A member is stored in its codec's
+// JSON form, which is the authored literal only when that literal is JSON (a bigint or a Date
+// member is stored as text), so a member whose value is not JSON is typed as `JsonValue`.
 type EnumHandleToEntry<Handle> =
   Handle extends EnumTypeHandle<string, infer Values, infer _Names, infer _MembersMap>
     ? {
         readonly codecId: string;
-        readonly members: readonly { readonly name: string; readonly value: Values[number] }[];
+        readonly members: readonly {
+          readonly name: string;
+          readonly value: Values[number] extends JsonValue ? Values[number] : JsonValue;
+        }[];
       }
     : never;
 
@@ -629,7 +797,47 @@ type MongoContractBaseFromDefinition<Definition> = Simplify<{
   readonly meta: Record<string, never>;
   readonly defaultControlPolicy?: ControlPolicy;
   readonly enumAccessors?: BuiltEnumAccessors<Definition>;
+  readonly execution?: ExecutionSectionFromDefinition<Definition>;
 }>;
+
+type ModelExecutionDefaults<TBuilder> =
+  ExtractModelCollection<TBuilder> extends infer Entry extends string
+    ? {
+        [FieldName in keyof ExtractModelFields<TBuilder> &
+          string]: ExtractModelFields<TBuilder>[FieldName] extends {
+          readonly __executionDefaults?: infer Phases extends ExecutionMutationDefaultPhases;
+        }
+          ? keyof Phases extends never
+            ? never
+            : {
+                readonly ref: {
+                  readonly namespace: typeof UNBOUND_NAMESPACE_ID;
+                  readonly entry: Entry;
+                  readonly field: FieldName;
+                };
+              } & Phases
+          : never;
+      }[keyof ExtractModelFields<TBuilder> & string]
+    : never;
+
+type ExecutionDefaultsFromDefinition<Definition> = {
+  [ModelKey in keyof DefinitionModels<Definition>]: ModelExecutionDefaults<
+    DefinitionModels<Definition>[ModelKey]
+  >;
+}[keyof DefinitionModels<Definition>];
+
+type ExecutionSectionFromDefinition<Definition> = [
+  ExecutionDefaultsFromDefinition<Definition>,
+] extends [never]
+  ? ContractExecutionSection
+  : {
+      readonly executionHash: ExecutionHashBase<string>;
+      readonly mutations: {
+        readonly defaults: ReadonlyArray<
+          Extract<Flatten<ExecutionDefaultsFromDefinition<Definition>>, ExecutionMutationDefault>
+        >;
+      };
+    };
 
 type CodecTypesFromDefinition<Definition> = MongoCodecTypes &
   MergeExtensionCodecTypesSafe<DefinitionExtensions<Definition>>;
@@ -640,8 +848,9 @@ type BuilderEnumValueUnion<TBuilder> =
   TBuilder extends FieldBuilder<
     ContractFieldType,
     boolean,
-    boolean,
-    infer Handle extends EnumTypeHandle | undefined
+    false | { readonly elementNullable: boolean },
+    infer Handle extends EnumTypeHandle | undefined,
+    ExecutionMutationDefaultPhases | undefined
   >
     ? [Handle] extends [EnumTypeHandle<string, infer Values>]
       ? readonly unknown[] extends Values
@@ -662,8 +871,9 @@ type BuilderBaseChannelType<
   TBuilder extends FieldBuilder<
     infer Type extends ContractFieldType,
     boolean,
-    boolean,
-    EnumTypeHandle | undefined
+    false | { readonly elementNullable: boolean },
+    EnumTypeHandle | undefined,
+    ExecutionMutationDefaultPhases | undefined
   >
     ? [BuilderEnumValueUnion<TBuilder>] extends [never]
       ? Type extends {
@@ -708,12 +918,16 @@ type BuilderFieldChannelType<
   TBuilder extends FieldBuilder<
     ContractFieldType,
     infer Nullable extends boolean,
-    infer Many extends boolean,
-    EnumTypeHandle | undefined
+    infer Many extends false | { readonly elementNullable: boolean },
+    EnumTypeHandle | undefined,
+    ExecutionMutationDefaultPhases | undefined
   >
     ?
-        | (Many extends true
-            ? BuilderBaseChannelType<TBuilder, TValueObjects, TCodecTypes, Channel>[]
+        | (Many extends { readonly elementNullable: infer ElementNullable extends boolean }
+            ? Array<
+                | BuilderBaseChannelType<TBuilder, TValueObjects, TCodecTypes, Channel>
+                | (ElementNullable extends true ? null : never)
+              >
             : BuilderBaseChannelType<TBuilder, TValueObjects, TCodecTypes, Channel>)
         | (Nullable extends true ? null : never)
     : never;
@@ -768,6 +982,89 @@ type MergeExtensionEntityNamespaces<Extensions> = MergeExtensionAuthoringNamespa
   'entityTypes'
 >;
 
+type ExtractFieldNamespaceFromPack<Pack> = ExtractAuthoringNamespaceFromPack<
+  Pack,
+  'field',
+  Record<never, never>
+>;
+
+type MergeExtensionFieldNamespaces<Extensions> = MergeExtensionAuthoringNamespaces<
+  Extensions,
+  'field'
+>;
+
+export type FieldBuilderFromPresetDescriptor<
+  Descriptor extends AuthoringFieldPresetDescriptor,
+  Args extends readonly unknown[],
+> = FieldBuilder<
+  {
+    readonly kind: 'scalar';
+    readonly codecId: ResolveTemplateValue<Descriptor['output']['codecId'], Args> extends string
+      ? ResolveTemplateValue<Descriptor['output']['codecId'], Args>
+      : string;
+  },
+  ResolveTemplateValue<Descriptor['output']['nullable'], Args> extends true ? true : false,
+  false,
+  EnumTypeHandle | undefined,
+  PresetExecutionDefaults<Descriptor, Args>
+>;
+
+/**
+ * A phase template is either a generator value or a `select` over one option argument, which yields no phase when the argument is absent or names no case. Inference can widen an argument to "the option or undefined" (`timestamp(undefined, 'now')` infers `['now'?, 'now'?]`), so the result can be "the phase or undefined"; such a phase becomes an optional key.
+ */
+type ResolvePhaseTemplate<Template, Args extends readonly unknown[]> = Template extends {
+  readonly kind: 'select';
+  readonly index: infer Index extends number;
+  readonly cases: infer Cases;
+}
+  ? Args[Index] extends infer Arg
+    ? Arg extends keyof Cases
+      ? Cases[Arg]
+      : undefined
+    : never
+  : Template;
+
+type PresetExecutionDefaults<
+  Descriptor extends AuthoringFieldPresetDescriptor,
+  Args extends readonly unknown[],
+> = Descriptor['output'] extends { readonly executionDefaults: infer Phases }
+  ? Flatten<
+      {
+        readonly [Phase in keyof Phases as undefined extends ResolvePhaseTemplate<
+          Phases[Phase],
+          Args
+        >
+          ? never
+          : Phase]: ResolvePhaseTemplate<Phases[Phase], Args>;
+      } & {
+        readonly [Phase in keyof Phases as ResolvePhaseTemplate<
+          Phases[Phase],
+          Args
+        > extends undefined
+          ? never
+          : undefined extends ResolvePhaseTemplate<Phases[Phase], Args>
+            ? Phase
+            : never]?: Exclude<ResolvePhaseTemplate<Phases[Phase], Args>, undefined>;
+      }
+    >
+  : undefined;
+
+type FieldPresetHelper<Descriptor extends AuthoringFieldPresetDescriptor> = Descriptor extends {
+  readonly args: infer Args extends readonly AuthoringArgumentDescriptor[];
+}
+  ? <const Params extends TupleFromArgumentDescriptors<Args>>(
+      ...args: Params
+    ) => FieldBuilderFromPresetDescriptor<Descriptor, Params>
+  : () => FieldBuilderFromPresetDescriptor<Descriptor, readonly []>;
+
+type FieldPresetHelpersFromNamespace<Namespace> = {
+  readonly [K in keyof Namespace]: Namespace[K] extends AuthoringFieldPresetDescriptor
+    ? FieldPresetHelper<Namespace[K]>
+    : Namespace[K] extends Record<string, unknown>
+      ? FieldPresetHelpersFromNamespace<Namespace[K]>
+      : never;
+};
+
 export type ContractAuthoringHelpers<
   Family extends FamilyPackRef<string> = FamilyPackRef<string>,
   Target extends TargetPackRef<string, string> = TargetPackRef<string, string>,
@@ -777,20 +1074,17 @@ export type ContractAuthoringHelpers<
     ExtractEntitiesNamespaceFromPack<Target> &
     MergeExtensionEntityNamespaces<Extensions>
 > & {
-  readonly field: typeof field;
+  readonly field: typeof field &
+    FieldPresetHelpersFromNamespace<
+      ExtractFieldNamespaceFromPack<Family> &
+        ExtractFieldNamespaceFromPack<Target> &
+        MergeExtensionFieldNamespaces<Extensions>
+    >;
   readonly index: typeof index;
   readonly model: typeof model;
   readonly rel: typeof rel;
   readonly valueObject: typeof valueObject;
 };
-
-type AuthoringComponent = {
-  readonly authoring?: { readonly entityTypes?: unknown };
-};
-
-function extractEntitiesNamespace(component: AuthoringComponent): AuthoringEntityTypeNamespace {
-  return (component.authoring?.entityTypes ?? {}) as AuthoringEntityTypeNamespace;
-}
 
 const MONGO_RESERVED_HELPER_KEYS: readonly string[] = [
   'field',
@@ -800,33 +1094,81 @@ const MONGO_RESERVED_HELPER_KEYS: readonly string[] = [
   'valueObject',
 ];
 
-function composeMongoEntityHelpers(
-  family: FamilyPackRef<string>,
-  target: TargetPackRef<string, string>,
-  extensions: Record<string, ExtensionPackRef<string, string>> | undefined,
-): Record<string, unknown> {
-  const components: readonly AuthoringComponent[] = [
-    family,
-    target,
-    ...Object.values(extensions ?? {}),
+function buildFieldPreset(
+  helperPath: string,
+  descriptor: AuthoringFieldPresetDescriptor,
+  args: readonly unknown[],
+): AnyFieldBuilder {
+  validateAuthoringHelperArguments(helperPath, descriptor.args, args);
+  const preset = instantiateAuthoringFieldPreset(descriptor, args);
+  const unsupported = [
+    ...(preset.default !== undefined ? ['default'] : []),
+    ...(preset.id ? ['id'] : []),
+    ...(preset.unique ? ['unique'] : []),
   ];
-  const merged: Record<string, unknown> = {};
-  for (const component of components) {
-    const ns = extractEntitiesNamespace(component);
-    if (Object.keys(ns).length > 0) {
-      mergeAuthoringNamespaces(merged, ns, [], 'entity', 'entity');
-    }
+  if (unsupported.length > 0) {
+    throw contractError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      `Field preset "${helperPath}" contributes ${unsupported.join(', ')}, which Mongo does not support. Mongo supports presets that set a codec and execution defaults only.`,
+      {
+        meta: { helperPath, reason: 'preset-contribution-unsupported', contribution: unsupported },
+      },
+    );
   }
-  // Mongo authoring does not yet ship contributed field / type namespaces in
-  // the TS DSL surface, but the cross-registry guard mirrors SQL's call so
-  // any future field / type contributions surface a structurally identical
-  // collision error.
-  assertNoCrossRegistryCollisions({}, {}, merged as AuthoringEntityTypeNamespace);
+  return createFieldBuilder(
+    {
+      type: {
+        kind: 'scalar',
+        codecId: preset.descriptor.codecId,
+        ...normalizeOptionalTypeParams(preset.descriptor.typeParams),
+      },
+      nullable: preset.nullable,
+      many: false,
+    },
+    undefined,
+    preset.executionDefaults,
+  );
+}
+
+function composeMongoFieldHelpers(
+  fieldNamespace: AuthoringFieldNamespace,
+): Record<string, unknown> {
+  const presetHelpers = createFieldHelpersFromNamespace(
+    fieldNamespace,
+    ({ helperPath, descriptor }) =>
+      (...args: readonly unknown[]) =>
+        buildFieldPreset(helperPath, descriptor, args),
+  );
+  const collisions = Object.keys(presetHelpers).filter((name) => Object.hasOwn(field, name));
+  if (collisions.length > 0) {
+    throw contractError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      `Pack-contributed field preset(s) ${collisions.map((c) => `"${c}"`).join(', ')} collide with the built-in Mongo field helper(s) of the same name.`,
+      { meta: { reason: 'core-field-helper-collision', contribution: collisions } },
+    );
+  }
+  return { ...field, ...presetHelpers };
+}
+
+function composeMongoAuthoringHelpers<
+  Family extends FamilyPackRef<string>,
+  Target extends TargetPackRef<string, string>,
+  Extensions extends Record<string, ExtensionPackRef<string, string>> | undefined,
+>(
+  family: Family,
+  target: Target,
+  extensions: Extensions | undefined,
+): ContractAuthoringHelpers<Family, Target, Extensions> {
+  const extensionPacks: Record<string, ExtensionPackRef<string, string>> = extensions ?? {};
+  const components = [family, target, ...Object.values(extensionPacks)];
+  const entityNamespace = composePackAuthoringNamespace(components, 'entityTypes');
+  const fieldNamespace = composePackAuthoringNamespace(components, 'field');
+  assertNoCrossRegistryCollisions({}, fieldNamespace, entityNamespace);
   // Pack-contributed entity types flatten onto the same top-level shape
   // as the built-in helpers (`model`, `rel`, `field`, `index`,
   // `valueObject`). Detect collisions explicitly so a contributed name
   // can't silently overwrite a built-in at runtime.
-  const collisions = Object.keys(merged).filter((name) =>
+  const collisions = Object.keys(entityNamespace).filter((name) =>
     MONGO_RESERVED_HELPER_KEYS.includes(name),
   );
   if (collisions.length > 0) {
@@ -836,8 +1178,23 @@ function composeMongoEntityHelpers(
       { meta: { reason: 'reserved-helper-key-collision', contribution: collisions } },
     );
   }
-  return createEntityHelpersFromNamespace(merged as AuthoringEntityTypeNamespace, {
-    ctx: { family: family.familyId, target: target.targetId },
+  return blindCast<
+    ContractAuthoringHelpers<Family, Target, Extensions>,
+    'entity and field preset helpers are built by a runtime walk of the pack namespaces, which returns Record<string, unknown>; their static shape comes from the pack type parameters'
+  >({
+    ...createEntityHelpersFromNamespace(entityNamespace, {
+      ctx: {
+        family: family.familyId,
+        target: target.targetId,
+        codecLookup: extractCodecLookup(components),
+        dataTypeLookup: assembleDataTypes(components).lookup,
+      },
+    }),
+    field: composeMongoFieldHelpers(fieldNamespace),
+    index,
+    model,
+    rel,
+    valueObject,
   });
 }
 
@@ -883,7 +1240,7 @@ export type ContractFactory<
 type FieldBuilderSpec<
   Type extends ContractFieldType,
   Nullable extends boolean,
-  Many extends boolean,
+  Many extends false | { readonly elementNullable: boolean },
 > = {
   readonly type: Type;
   readonly nullable: Nullable;
@@ -893,14 +1250,42 @@ type FieldBuilderSpec<
 function createFieldBuilder<
   Type extends ContractFieldType,
   Nullable extends boolean,
-  Many extends boolean,
+  Many extends false | { readonly elementNullable: boolean },
   Handle extends EnumTypeHandle | undefined = undefined,
+  ExecutionDefaults extends ExecutionMutationDefaultPhases | undefined = undefined,
 >(
   spec: FieldBuilderSpec<Type, Nullable, Many>,
   enumHandle?: Handle,
-): FieldBuilder<Type, Nullable, Many, Handle> {
+  executionDefaults?: ExecutionDefaults,
+): FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults> {
+  function many(): FieldBuilder<
+    Type,
+    Nullable,
+    { readonly elementNullable: false },
+    Handle,
+    ExecutionDefaults
+  >;
+  function many(options: {
+    readonly elementsNullable: false;
+  }): FieldBuilder<Type, Nullable, { readonly elementNullable: false }, Handle, ExecutionDefaults>;
+  function many(options: {
+    readonly elementsNullable: true;
+  }): FieldBuilder<Type, Nullable, { readonly elementNullable: true }, Handle, ExecutionDefaults>;
+  function many(options?: { readonly elementsNullable: boolean }) {
+    return createFieldBuilder(
+      {
+        type: spec.type,
+        nullable: spec.nullable,
+        many: { elementNullable: options?.elementsNullable ?? false },
+      },
+      enumHandle,
+      executionDefaults,
+    );
+  }
+
   return {
     __kind: 'field',
+    ...ifDefined('__executionDefaults', executionDefaults),
     __type: spec.type,
     __nullable: spec.nullable,
     __many: spec.many,
@@ -908,18 +1293,24 @@ function createFieldBuilder<
       Handle,
       'optional param widens to Handle | undefined; Handle defaults to undefined when no enum handle is passed'
     >(enumHandle),
-    optional() {
-      return createFieldBuilder<Type, true, Many, Handle>(
-        { type: spec.type, nullable: true, many: spec.many },
+    optional: blindCast<
+      FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults>['optional'],
+      'every builder has the method at runtime, for a JavaScript caller the type does not stop; the type refuses it on a field a preset fills'
+    >(() =>
+      createFieldBuilder<Type, true, Many, Handle, ExecutionDefaults>(
+        {
+          type: spec.type,
+          nullable: true,
+          many: spec.many,
+        },
         enumHandle,
-      );
-    },
-    many() {
-      return createFieldBuilder<Type, Nullable, true, Handle>(
-        { type: spec.type, nullable: spec.nullable, many: true },
-        enumHandle,
-      );
-    },
+        executionDefaults,
+      ),
+    ),
+    many: blindCast<
+      FieldBuilder<Type, Nullable, Many, Handle, ExecutionDefaults>['many'],
+      'every builder has the method at runtime, for a JavaScript caller the type does not stop; the type refuses it on a field a preset fills'
+    >(many),
   };
 }
 
@@ -948,14 +1339,17 @@ function createScalarFieldBuilder<
   false
 > {
   return createFieldBuilder({
-    type: {
+    type: blindCast<
+      {
+        readonly kind: 'scalar';
+        readonly codecId: CodecId;
+      } & ([TypeParams] extends [undefined] ? EmptyObject : { readonly typeParams: TypeParams }),
+      'normalizeOptionalTypeParams adds typeParams exactly when TypeParams is not undefined'
+    >({
       kind: 'scalar',
       codecId,
       ...normalizeOptionalTypeParams(options?.typeParams),
-    } as {
-      readonly kind: 'scalar';
-      readonly codecId: CodecId;
-    } & ([TypeParams] extends [undefined] ? EmptyObject : { readonly typeParams: TypeParams }),
+    }),
     nullable: false,
     many: false,
   });
@@ -981,6 +1375,24 @@ export const field = {
   date() {
     return createScalarFieldBuilder('mongo/date@1');
   },
+  int64() {
+    return createScalarFieldBuilder('mongo/int64@1');
+  },
+  int64Number() {
+    return createScalarFieldBuilder('mongo/int64Number@1');
+  },
+  decimal128() {
+    return createScalarFieldBuilder('mongo/decimal128@1');
+  },
+  binary() {
+    return createScalarFieldBuilder('mongo/binary@1');
+  },
+  json() {
+    return createScalarFieldBuilder('mongo/json@1');
+  },
+  bson() {
+    return createScalarFieldBuilder('mongo/bson@1');
+  },
   vector<const TypeParams extends Record<string, unknown> | undefined = undefined>(options?: {
     readonly typeParams?: TypeParams;
   }) {
@@ -988,13 +1400,16 @@ export const field = {
   },
   valueObject<const ValueObject extends ValueObjectNameInput>(valueObjectName: ValueObject) {
     return createFieldBuilder({
-      type: {
+      type: blindCast<
+        {
+          readonly kind: 'valueObject';
+          readonly name: NormalizeValueObjectName<ValueObject>;
+        },
+        'resolveValueObjectName returns the normalized name the type computes'
+      >({
         kind: 'valueObject',
         name: resolveValueObjectName(valueObjectName),
-      } as {
-        readonly kind: 'valueObject';
-        readonly name: NormalizeValueObjectName<ValueObject>;
-      },
+      }),
       nullable: false,
       many: false,
     });
@@ -1121,6 +1536,19 @@ type ReferenceOptions<
   readonly to: To;
 };
 
+type BelongsToOptions<
+  Target extends ModelNameInput,
+  From extends StringListInput,
+  To extends RelationTargetFieldsInput<NormalizeModelName<Target>>,
+  Nullable extends boolean,
+> = ReferenceOptions<Target, From, To> & {
+  /**
+   * Whether the related document may be absent. Defaults to whether any `from`
+   * field is optional; an explicit value that contradicts them is rejected.
+   */
+  readonly optional: Nullable;
+};
+
 type RelationOnFromOptions<
   From extends StringListInput,
   To extends RelationTargetFieldsInput<string>,
@@ -1133,16 +1561,19 @@ function createRelationBuilder<
   To extends string,
   Cardinality extends '1:1' | '1:N' | 'N:1',
   On extends RelationOn | undefined,
+  Nullable extends boolean | undefined,
 >(spec: {
   readonly to: To;
   readonly cardinality: Cardinality;
   readonly on: On;
-}): RelationBuilder<To, Cardinality, On> {
+  readonly nullable: Nullable;
+}): RelationBuilder<To, Cardinality, On, Nullable> {
   return {
     __kind: 'relation',
     __to: spec.to,
     __cardinality: spec.cardinality,
     __on: spec.on,
+    __nullable: spec.nullable,
   };
 }
 
@@ -1151,23 +1582,37 @@ function createReferenceRelationBuilder<
   Cardinality extends '1:1' | '1:N' | 'N:1',
   From extends StringListInput,
   To extends RelationTargetFieldsInput<NormalizeModelName<Target>>,
+  Nullable extends boolean | undefined,
 >(
   target: Target,
   cardinality: Cardinality,
   options: ReferenceOptions<Target, From, To>,
-): RelationBuilder<NormalizeModelName<Target>, Cardinality, RelationOnFromOptions<From, To>> {
+  nullable: Nullable,
+): RelationBuilder<
+  NormalizeModelName<Target>,
+  Cardinality,
+  RelationOnFromOptions<From, To>,
+  Nullable
+> {
   const targetModelName = resolveModelName(target);
 
   return createRelationBuilder({
-    to: targetModelName as NormalizeModelName<Target>,
+    to: blindCast<
+      NormalizeModelName<Target>,
+      'resolveModelName returns the normalized name the type computes'
+    >(targetModelName),
     cardinality,
     on: {
-      localFields: normalizeStringList(options.from) as NormalizeStringList<From>,
-      targetFields: normalizeTargetFields(
-        targetModelName,
-        options.to,
-      ) as NormalizeTargetFieldList<To>,
+      localFields: blindCast<
+        NormalizeStringList<From>,
+        'normalizeStringList returns the normalized list the type computes'
+      >(normalizeStringList(options.from)),
+      targetFields: blindCast<
+        NormalizeTargetFieldList<To>,
+        'normalizeTargetFields returns the normalized list the type computes'
+      >(normalizeTargetFields(targetModelName, options.to)),
     },
+    nullable,
   });
 }
 
@@ -1177,17 +1622,21 @@ function createEmbedRelationBuilder<
 >(
   target: Target,
   cardinality: Cardinality,
-): RelationBuilder<NormalizeModelName<Target>, Cardinality, undefined> {
+): RelationBuilder<NormalizeModelName<Target>, Cardinality, undefined, undefined> {
   return createRelationBuilder({
-    to: resolveModelName(target) as NormalizeModelName<Target>,
+    to: blindCast<
+      NormalizeModelName<Target>,
+      'resolveModelName returns the normalized name the type computes'
+    >(resolveModelName(target)),
     cardinality,
     on: undefined,
+    nullable: undefined,
   });
 }
 
 function hasOne<const Target extends ModelNameInput>(
   target: Target,
-): RelationBuilder<NormalizeModelName<Target>, '1:1', undefined>;
+): RelationBuilder<NormalizeModelName<Target>, '1:1', undefined, undefined>;
 function hasOne<
   const Target extends ModelNameInput,
   const From extends StringListInput,
@@ -1195,7 +1644,7 @@ function hasOne<
 >(
   target: Target,
   options: ReferenceOptions<Target, From, To>,
-): RelationBuilder<NormalizeModelName<Target>, '1:1', RelationOnFromOptions<From, To>>;
+): RelationBuilder<NormalizeModelName<Target>, '1:1', RelationOnFromOptions<From, To>, true>;
 function hasOne(
   target: ModelNameInput,
   options?: ReferenceOptions<ModelNameInput, StringListInput, RelationTargetFieldsInput<string>>,
@@ -1204,12 +1653,12 @@ function hasOne(
     return createEmbedRelationBuilder(target, '1:1');
   }
 
-  return createReferenceRelationBuilder(target, '1:1', options);
+  return createReferenceRelationBuilder(target, '1:1', options, true);
 }
 
 function hasMany<const Target extends ModelNameInput>(
   target: Target,
-): RelationBuilder<NormalizeModelName<Target>, '1:N', undefined>;
+): RelationBuilder<NormalizeModelName<Target>, '1:N', undefined, undefined>;
 function hasMany<
   const Target extends ModelNameInput,
   const From extends StringListInput,
@@ -1217,7 +1666,7 @@ function hasMany<
 >(
   target: Target,
   options: ReferenceOptions<Target, From, To>,
-): RelationBuilder<NormalizeModelName<Target>, '1:N', RelationOnFromOptions<From, To>>;
+): RelationBuilder<NormalizeModelName<Target>, '1:N', RelationOnFromOptions<From, To>, undefined>;
 function hasMany(
   target: ModelNameInput,
   options?: ReferenceOptions<ModelNameInput, StringListInput, RelationTargetFieldsInput<string>>,
@@ -1226,9 +1675,18 @@ function hasMany(
     return createEmbedRelationBuilder(target, '1:N');
   }
 
-  return createReferenceRelationBuilder(target, '1:N', options);
+  return createReferenceRelationBuilder(target, '1:N', options, undefined);
 }
 
+function belongsTo<
+  const Target extends ModelNameInput,
+  const From extends StringListInput,
+  const To extends RelationTargetFieldsInput<NormalizeModelName<Target>>,
+  const Nullable extends boolean,
+>(
+  target: Target,
+  options: BelongsToOptions<Target, From, To, Nullable>,
+): RelationBuilder<NormalizeModelName<Target>, 'N:1', RelationOnFromOptions<From, To>, Nullable>;
 function belongsTo<
   const Target extends ModelNameInput,
   const From extends StringListInput,
@@ -1236,8 +1694,14 @@ function belongsTo<
 >(
   target: Target,
   options: ReferenceOptions<Target, From, To>,
-): RelationBuilder<NormalizeModelName<Target>, 'N:1', RelationOnFromOptions<From, To>> {
-  return createReferenceRelationBuilder(target, 'N:1', options);
+): RelationBuilder<NormalizeModelName<Target>, 'N:1', RelationOnFromOptions<From, To>, undefined>;
+function belongsTo(
+  target: ModelNameInput,
+  options: ReferenceOptions<ModelNameInput, StringListInput, RelationTargetFieldsInput<string>> & {
+    readonly optional?: boolean;
+  },
+) {
+  return createReferenceRelationBuilder(target, 'N:1', options, options.optional);
 }
 
 export const rel = {
@@ -1334,30 +1798,43 @@ export function model<
     __kind: 'model',
     __name: name,
     __fields: input.fields,
-    __relations: (input.relations ?? {}) as Relations extends Record<string, AnyRelationBuilder>
-      ? Relations
-      : Record<never, never>,
+    __relations: blindCast<
+      Relations extends Record<string, AnyRelationBuilder> ? Relations : Record<never, never>,
+      'an omitted relations input is the empty record the type names'
+    >(input.relations ?? {}),
     __indexes: input.indexes,
     __collectionOptions: input.collectionOptions,
     __controlPolicy: input.controlPolicy,
-    __collection: input.collection as Collection,
-    __owner: (input.owner
-      ? resolveModelName(input.owner)
-      : undefined) as NormalizeModelNameOrUndefined<Owner>,
-    __base: (input.base
-      ? resolveModelName(input.base)
-      : undefined) as NormalizeModelNameOrUndefined<Base>,
-    __storageRelations: input.storageRelations as StorageRelations,
-    __discriminator: (input.discriminator
-      ? { field: input.discriminator.field }
-      : undefined) as Discriminator extends { readonly field: infer Field extends string }
-      ? { readonly field: Field }
-      : undefined,
-    __variants: input.discriminator?.variants as Discriminator extends {
-      readonly variants: infer Variants extends Record<string, VariantSpec>;
-    }
-      ? Variants
-      : undefined,
+    __collection: blindCast<
+      Collection,
+      'the collection input carries the Collection type parameter'
+    >(input.collection),
+    __owner: blindCast<
+      NormalizeModelNameOrUndefined<Owner>,
+      'resolveModelName returns the normalized name the type computes'
+    >(input.owner ? resolveModelName(input.owner) : undefined),
+    __base: blindCast<
+      NormalizeModelNameOrUndefined<Base>,
+      'resolveModelName returns the normalized name the type computes'
+    >(input.base ? resolveModelName(input.base) : undefined),
+    __storageRelations: blindCast<
+      StorageRelations,
+      'the storageRelations input carries the StorageRelations type parameter'
+    >(input.storageRelations),
+    __discriminator: blindCast<
+      Discriminator extends { readonly field: infer Field extends string }
+        ? { readonly field: Field }
+        : undefined,
+      'the discriminator field is copied from the Discriminator input'
+    >(input.discriminator ? { field: input.discriminator.field } : undefined),
+    __variants: blindCast<
+      Discriminator extends {
+        readonly variants: infer Variants extends Record<string, VariantSpec>;
+      }
+        ? Variants
+        : undefined,
+      'the variants are copied from the Discriminator input'
+    >(input.discriminator?.variants),
     ref(fieldName) {
       return createFieldReference(name, fieldName);
     },
@@ -1463,18 +1940,12 @@ function buildContractField(builder: AnyFieldBuilder): ContractField {
       }
     : undefined;
 
-  return builder.__many
-    ? {
-        type: builder.__type,
-        nullable: builder.__nullable,
-        many: true,
-        ...ifDefined('valueSet', valueSet),
-      }
-    : {
-        type: builder.__type,
-        nullable: builder.__nullable,
-        ...ifDefined('valueSet', valueSet),
-      };
+  return {
+    type: builder.__type,
+    nullable: builder.__nullable,
+    many: builder.__many,
+    ...ifDefined('valueSet', valueSet),
+  };
 }
 
 function buildFields(fields: Record<string, AnyFieldBuilder>): Record<string, ContractField> {
@@ -1487,29 +1958,78 @@ function buildFields(fields: Record<string, AnyFieldBuilder>): Record<string, Co
   return builtFields;
 }
 
-function buildRelation(
+function toOneRelationNullable(
+  modelName: string,
+  relationName: string,
   relationBuilder: AnyRelationBuilder,
+  on: RelationOn,
+  fields: Record<string, AnyFieldBuilder>,
+): boolean {
+  const location = `Relation "${modelName}.${relationName}"`;
+  const ownsForeignKey = relationBuilder.__cardinality !== '1:1';
+  const localFields = ownsForeignKey
+    ? on.localFields.map((fieldName) => {
+        const localField = fields[fieldName];
+        if (localField === undefined) {
+          throw contractError(
+            'CONTRACT.RELATION_INVALID',
+            `${location} joins on local field "${fieldName}", which model "${modelName}" does not declare`,
+            { meta: { modelName, relationName, fieldName, reason: 'local-field-unknown' } },
+          );
+        }
+        return localField;
+      })
+    : [];
+  const { nullable, contradiction } = resolveToOneRelationNullable({
+    declaredNullable: relationBuilder.__nullable,
+    localFieldNullability: localFields.map((localField) => localField.__nullable === true),
+    ownsReference: ownsForeignKey,
+  });
+  if (contradiction !== undefined) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      !ownsForeignKey
+        ? `${location} is required but does not own the foreign key, so nothing in storage guarantees the related document exists`
+        : contradiction === 'declared-optional'
+          ? `${location} is optional but every local field it joins on is required`
+          : `${location} is required but a local field it joins on is nullable`,
+      { meta: { modelName, relationName, reason: 'to-one-nullability-mismatch' } },
+    );
+  }
+  return nullable;
+}
+
+function buildRelation(
+  modelName: string,
+  relationName: string,
+  relationBuilder: AnyRelationBuilder,
+  fields: Record<string, AnyFieldBuilder>,
 ): ContractEmbedRelation | ContractReferenceRelation {
   const to = crossRef(relationBuilder.__to, UNBOUND_NAMESPACE_ID);
-  return relationBuilder.__on
-    ? {
-        to,
-        cardinality: relationBuilder.__cardinality,
-        on: relationBuilder.__on,
-      }
-    : {
-        to,
-        cardinality: relationBuilder.__cardinality,
-      };
+  const on = relationBuilder.__on;
+  if (on === undefined) {
+    return { to, cardinality: relationBuilder.__cardinality };
+  }
+  if (relationBuilder.__cardinality === '1:N') {
+    return { to, cardinality: '1:N', on };
+  }
+  return {
+    to,
+    cardinality: relationBuilder.__cardinality,
+    nullable: toOneRelationNullable(modelName, relationName, relationBuilder, on, fields),
+    on,
+  };
 }
 
 function buildRelations(
+  modelName: string,
   relations: Record<string, AnyRelationBuilder>,
+  fields: Record<string, AnyFieldBuilder>,
 ): Record<string, ContractEmbedRelation | ContractReferenceRelation> {
   const builtRelations: Record<string, ContractEmbedRelation | ContractReferenceRelation> = {};
 
   for (const [relationName, relationBuilder] of Object.entries(relations)) {
-    builtRelations[relationName] = buildRelation(relationBuilder);
+    builtRelations[relationName] = buildRelation(modelName, relationName, relationBuilder, fields);
   }
 
   return builtRelations;
@@ -1551,6 +2071,8 @@ function buildModels(
       );
     }
 
+    assertUniqueDiscriminatorValues(modelBuilder);
+
     const storage = {
       ...(modelBuilder.__collection ? { collection: modelBuilder.__collection } : {}),
       ...(modelBuilder.__storageRelations ? { relations: modelBuilder.__storageRelations } : {}),
@@ -1558,16 +2080,51 @@ function buildModels(
 
     builtModels[modelBuilder.__name] = {
       fields: buildFields(modelBuilder.__fields),
-      relations: buildRelations(modelBuilder.__relations),
+      relations: buildRelations(
+        modelBuilder.__name,
+        modelBuilder.__relations,
+        modelBuilder.__fields,
+      ),
       storage,
       ...(modelBuilder.__owner ? { owner: modelBuilder.__owner } : {}),
       ...(modelBuilder.__base ? { base: crossRef(modelBuilder.__base, UNBOUND_NAMESPACE_ID) } : {}),
       ...(modelBuilder.__discriminator ? { discriminator: modelBuilder.__discriminator } : {}),
-      ...(modelBuilder.__variants ? { variants: modelBuilder.__variants } : {}),
+      ...(modelBuilder.__variants
+        ? {
+            variants: Object.fromEntries(
+              Object.entries(modelBuilder.__variants).map(([variantName, { value }]) => [
+                value,
+                crossRef(variantName, UNBOUND_NAMESPACE_ID),
+              ]),
+            ),
+          }
+        : {}),
     };
   }
 
   return builtModels;
+}
+
+function assertUniqueDiscriminatorValues(modelBuilder: AnyModelBuilder): void {
+  const variantNamesByValue = new Map<string, string>();
+  for (const [variantName, { value }] of Object.entries(modelBuilder.__variants ?? {})) {
+    const existingVariant = variantNamesByValue.get(value);
+    if (existingVariant !== undefined) {
+      throw contractError(
+        'CONTRACT.ARGUMENT_INVALID',
+        `Discriminator value "${value}" is used by both "${existingVariant}" and "${variantName}" on base model "${modelBuilder.__name}".`,
+        {
+          meta: {
+            modelName: modelBuilder.__name,
+            value,
+            variants: [existingVariant, variantName],
+            reason: 'duplicate-discriminator-value',
+          },
+        },
+      );
+    }
+    variantNamesByValue.set(value, variantName);
+  }
 }
 
 function deriveRoots(
@@ -1611,7 +2168,9 @@ function toStorageIndex(index: MongoIndexAuthoringInput): MongoIndex {
       }
     }
   }
-  return new MongoIndex(input as unknown as MongoIndexInput);
+  return new MongoIndex(
+    blindCast<MongoIndexInput, 'the keys and options above are the MongoIndex input fields'>(input),
+  );
 }
 
 function toStorageCollectionOptions(
@@ -1844,6 +2403,112 @@ function buildCollections(
   return intermediate;
 }
 
+function executionDefaultError(
+  modelName: string,
+  fieldName: string,
+  reason: string,
+  message: string,
+): Error {
+  return contractError('CONTRACT.DEFAULT_INVALID', `Field "${modelName}.${fieldName}" ${message}`, {
+    meta: { modelName, fieldName, reason },
+  });
+}
+
+function hasExecutionDefaults(fieldBuilder: AnyFieldBuilder): boolean {
+  const phases = fieldBuilder.__executionDefaults;
+  return phases?.onCreate !== undefined || phases?.onUpdate !== undefined;
+}
+
+function assertNoValueObjectExecutionDefaults(
+  valueObjects: Record<string, AnyValueObjectBuilder> | undefined,
+): void {
+  for (const valueObjectBuilder of Object.values(valueObjects ?? {})) {
+    for (const [fieldName, fieldBuilder] of Object.entries(valueObjectBuilder.__fields)) {
+      if (hasExecutionDefaults(fieldBuilder)) {
+        throw executionDefaultError(
+          valueObjectBuilder.__name,
+          fieldName,
+          'executionDefaults-on-value-object',
+          'has executionDefaults, but it belongs to a value object. Generated values are only supported on model fields.',
+        );
+      }
+    }
+  }
+}
+
+function buildExecutionDefaults(
+  models: Record<string, AnyModelBuilder> | undefined,
+): ExecutionMutationDefault[] {
+  const modelBuilders = Object.values(models ?? {});
+  const collectionByModelName = new Map(
+    modelBuilders.map((modelBuilder) => [modelBuilder.__name, modelBuilder.__collection]),
+  );
+  const byRef = new Map<string, { readonly modelName: string; readonly phasesKey: string }>();
+  const defaults: ExecutionMutationDefault[] = [];
+  for (const modelBuilder of modelBuilders) {
+    for (const [fieldName, fieldBuilder] of Object.entries(modelBuilder.__fields)) {
+      const phases = fieldBuilder.__executionDefaults;
+      if (!phases || !hasExecutionDefaults(fieldBuilder)) continue;
+      const modelName = modelBuilder.__name;
+      if (fieldBuilder.__nullable) {
+        throw executionDefaultError(
+          modelName,
+          fieldName,
+          'nullable-with-executionDefaults',
+          'is filled on write by a preset such as temporal.createdAt(), so it cannot be optional; remove .optional().',
+        );
+      }
+      if (fieldBuilder.__many) {
+        throw executionDefaultError(
+          modelName,
+          fieldName,
+          'many-with-executionDefaults',
+          'is filled on write by a preset such as temporal.createdAt(), so it cannot be a list; remove .many().',
+        );
+      }
+      if (modelBuilder.__base !== undefined) {
+        const collection =
+          modelBuilder.__collection ?? collectionByModelName.get(modelBuilder.__base);
+        throw executionDefaultError(
+          modelName,
+          fieldName,
+          'executionDefaults-on-variant',
+          `has executionDefaults, but "${modelName}" is a variant of "${modelBuilder.__base}". Execution defaults apply to every document in collection "${collection}", so declare them on the base model.`,
+        );
+      }
+      const entry = modelBuilder.__collection;
+      if (entry === undefined) {
+        throw executionDefaultError(
+          modelName,
+          fieldName,
+          'executionDefaults-without-collection',
+          'has executionDefaults, but its model has no collection. Generated values are only supported on fields of a model stored in a collection.',
+        );
+      }
+      const refKey = JSON.stringify([entry, fieldName]);
+      const phasesKey = canonicalStringify(phases);
+      const existing = byRef.get(refKey);
+      if (existing !== undefined) {
+        if (existing.phasesKey !== phasesKey) {
+          throw executionDefaultError(
+            modelName,
+            fieldName,
+            'executionDefaults-conflict',
+            `has different executionDefaults than "${existing.modelName}.${fieldName}", which is stored in the same collection "${entry}". Use the same executionDefaults on both models.`,
+          );
+        }
+        continue;
+      }
+      byRef.set(refKey, { modelName, phasesKey });
+      defaults.push({
+        ref: { namespace: UNBOUND_NAMESPACE_ID, entry, field: fieldName },
+        ...phases,
+      });
+    }
+  }
+  return defaults;
+}
+
 function buildContractFromDefinition<
   const Definition extends ContractDefinition<
     FamilyPackRef<string>,
@@ -1869,19 +2534,23 @@ function buildContractFromDefinition<
   // at `hash({})`.
   const capabilities: Record<string, Record<string, boolean>> = {};
   const collections = buildCollections(definition.models);
+  assertNoValueObjectExecutionDefaults(definition.valueObjects);
+  const execution = buildExecutionSection({
+    target: definition.target.targetId,
+    targetFamily: definition.family.familyId,
+    defaults: buildExecutionDefaults(definition.models),
+  });
 
-  // Resolve the target's codecs by id from the pack the contract binds, then encode each enum's
-  // member values through `codec.encodeJson` — the same real codecs the runtime/control stacks use.
   const codecLookup = extractCodecLookup([definition.target]);
 
-  // The value set stores each enum's codec-encoded member values (mirroring SQL's build-contract).
-  const storageValueSets: Record<string, MongoValueSetInput> = {};
+  const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
-    storageValueSets[enumName] = {
-      kind: 'valueSet',
-      values: handle.values.map((v) => encodeEnumValue(v, handle.codecId, codecLookup)),
+    builtEnums[enumName] = {
+      codecId: handle.codecId,
+      members: encodeEnumTypeMembers(handle, codecLookup, 'the field'),
     };
   }
+  const storageValueSets = mongoValueSetsOf(builtEnums);
   const hasValueSets = Object.keys(storageValueSets).length > 0;
 
   const unboundNamespace = buildMongoNamespace({
@@ -1910,14 +2579,13 @@ function buildContractFromDefinition<
     ...mongoContractCanonicalizationHooks,
   });
 
-  const storage = new MongoStorage({
+  const storage: MongoStorageShape<string> = new MongoStorage({
     storageHash,
     namespaces: {
       [UNBOUND_NAMESPACE_ID]: unboundNamespace,
     },
-  }) as unknown as MongoStorageShape<string>;
+  });
 
-  const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
     if (enumName !== handle.enumName) {
       throw contractError(
@@ -1932,13 +2600,6 @@ function buildContractFromDefinition<
         },
       );
     }
-    builtEnums[enumName] = {
-      codecId: handle.codecId,
-      members: handle.enumMembers.map((m) => ({
-        name: m.name,
-        value: encodeEnumValue(m.value, handle.codecId, codecLookup),
-      })),
-    };
   }
   const hasEnums = Object.keys(builtEnums).length > 0;
 
@@ -1978,6 +2639,7 @@ function buildContractFromDefinition<
       capabilities,
     }),
     meta: {},
+    ...ifDefined('execution', execution),
   } satisfies MongoContract;
 
   return blindCast<
@@ -2082,18 +2744,11 @@ export function buildBoundContract<
   const full = { ...definition, family, target };
 
   if (factory !== undefined) {
-    const entities = composeMongoEntityHelpers(family, target, definition.extensions);
-    // composeMongoEntityHelpers returns Record<string, unknown> via an opaque runtime
-    // namespace walk; there is no way to reconstruct ContractAuthoringHelpers<F,T,Ext>
-    // structurally from that return type, so this single cast is irreducible.
-    const helpers = {
-      ...entities,
-      field,
-      index,
-      model,
-      rel,
-      valueObject,
-    } as unknown as ContractAuthoringHelpers<F, T, NonNullable<Definition['extensions']>>;
+    const helpers = composeMongoAuthoringHelpers<F, T, NonNullable<Definition['extensions']>>(
+      family,
+      target,
+      definition.extensions,
+    );
     const built = factory(helpers);
     return buildContractFromDefinition({
       ...full,
@@ -2118,9 +2773,9 @@ export function defineContract<
 >(definition: Definition): MongoContractResult<Definition>;
 export function defineContract<
   const Definition extends ContractScaffold<
-    Family,
-    Target,
-    Extensions,
+    FamilyPackRef<string>,
+    TargetPackRef<string, string>,
+    Record<string, ExtensionPackRef<string, string>> | undefined,
     Record<string, ModelNameInput> | undefined
   >,
   const Built extends {
@@ -2128,12 +2783,15 @@ export function defineContract<
     readonly valueObjects?: Record<string, AnyValueObjectBuilder>;
     readonly roots?: Record<string, ModelNameInput> | undefined;
   },
-  const Family extends FamilyPackRef<string> = FamilyPackRef<string>,
-  const Target extends TargetPackRef<string, string> = TargetPackRef<string, string>,
-  const Extensions extends Record<string, ExtensionPackRef<string, string>> | undefined = undefined,
 >(
   definition: Definition,
-  factory: (helpers: ContractAuthoringHelpers<Family, Target, Extensions>) => Built,
+  factory: (
+    helpers: ContractAuthoringHelpers<
+      Definition['family'],
+      Definition['target'],
+      ScaffoldExtensions<Definition>
+    >,
+  ) => Built,
 ): MongoContractResult<Definition & Built>;
 export function defineContract(
   definition: ContractScaffold<

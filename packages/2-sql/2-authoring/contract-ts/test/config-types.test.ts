@@ -6,6 +6,7 @@ import {
   type ControlPolicy,
   domainModelsAtDefaultNamespace,
 } from '@internal/contract/types';
+import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { TargetPackRef } from '@internal/framework-components/components';
 import { timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
@@ -24,8 +25,10 @@ const postgresTargetPack: TargetPackRef<'sql', 'postgres'> = {
 
 const stubContext: ContractSourceContext = {
   composedExtensions: [],
+  defaultNamespaceId: 'public',
   composedExtensionContracts: new Map(),
   authoringContributions: {
+    dataTypes: {},
     field: {},
     type: {},
     entityTypes: {},
@@ -33,12 +36,16 @@ const stubContext: ContractSourceContext = {
     modelAttributes: {},
     attributeSpecs: { model: {}, field: {} },
   },
+  dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
   codecLookup: {
     get: () => undefined,
-    targetTypesFor: () => undefined,
     renderOutputTypeFor: () => undefined,
+    descriptorFor: () => undefined,
   },
-  controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+  controlMutationDefaults: {
+    defaultFunctionRegistry: new Map(),
+    generatorDescriptors: [],
+  },
   resolvedInputs: [],
   capabilities: {},
 };

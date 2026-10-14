@@ -13,6 +13,7 @@ import sqlFamilyPack from '@internal/family-sql/pack';
 import type { ResultType } from '@internal/framework-components/runtime';
 import { sql } from '@internal/sql-builder/runtime';
 import {
+  autoincrement,
   defineContract,
   enumType,
   field,
@@ -30,6 +31,7 @@ import { expectTypeOf, test } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../packages/2-sql/9-family/test/test-sql-contract-serializer';
 import type { Contract } from './fixtures/contract.d';
 import contractJson from './fixtures/contract.json' with { type: 'json' };
+import { postgresTypeLookups } from './postgres-type-lookups';
 
 // The models map for the contract's sole domain namespace, read per-namespace
 // from `domain.namespaces[ns].models` (the flat top-level models map is gone).
@@ -41,6 +43,7 @@ const typecheckOnly = process.env['PN_TYPECHECK_ONLY'] === 'true';
 
 test('builder contract types match fixture contract types', () => {
   const builderContract = defineContract({
+    ...postgresTypeLookups,
     family: sqlFamilyPack,
     target: postgresPack,
     createNamespace: postgresCreateNamespace,
@@ -76,6 +79,7 @@ test('builder contract types match fixture contract types', () => {
 
 test('ResultType inference works identically to fixture contract', () => {
   const builderContract = defineContract({
+    ...postgresTypeLookups,
     family: sqlFamilyPack,
     target: postgresPack,
     createNamespace: postgresCreateNamespace,
@@ -148,6 +152,7 @@ test('refined object contract preserves downstream model token inference', () =>
   });
 
   const contract = defineContract({
+    ...postgresTypeLookups,
     family: sqlFamilyPack,
     target: postgresPack,
     createNamespace: postgresCreateNamespace,
@@ -198,6 +203,7 @@ test('refined object contract preserves downstream model token inference', () =>
 test('integrated callback authoring exposes composition-shaped type helpers', () => {
   const contract = defineContract(
     {
+      ...postgresTypeLookups,
       family: sqlFamilyPack,
       target: postgresPack,
       createNamespace: postgresCreateNamespace,
@@ -218,7 +224,7 @@ test('integrated callback authoring exposes composition-shaped type helpers', ()
         models: {
           User: model('User', {
             fields: {
-              id: field.int().defaultSql('autoincrement()').id(),
+              id: field.int().default(autoincrement()).id(),
               email: field.text().unique(),
               age: field.int(),
               isActive: field.boolean().default(true),
@@ -270,6 +276,7 @@ test('integrated callback authoring exposes composition-shaped type helpers', ()
 test('integrated callback authoring hides extension namespaces when packs are absent', () => {
   defineContract(
     {
+      ...postgresTypeLookups,
       family: sqlFamilyPack,
       target: postgresPack,
       createNamespace: postgresCreateNamespace,
@@ -290,6 +297,7 @@ test('integrated callback authoring hides extension namespaces when packs are ab
 test('local field and belongsTo sql overlays stay typed', () => {
   defineContract(
     {
+      ...postgresTypeLookups,
       family: sqlFamilyPack,
       target: postgresPack,
       createNamespace: postgresCreateNamespace,
@@ -340,6 +348,7 @@ test('local field and belongsTo sql overlays stay typed', () => {
 test('explicit generated id helpers stay typed', () => {
   defineContract(
     {
+      ...postgresTypeLookups,
       family: sqlFamilyPack,
       target: postgresPack,
       createNamespace: postgresCreateNamespace,
@@ -382,6 +391,7 @@ test('explicit generated id helpers stay typed', () => {
 
 test('codec type inference via type option', () => {
   const contract = defineContract({
+    ...postgresTypeLookups,
     family: sqlFamilyPack,
     target: postgresPack,
     createNamespace: postgresCreateNamespace,
@@ -419,6 +429,7 @@ test('codec type inference via type option', () => {
 
 test('contract structure type matches Contract', () => {
   const contract = defineContract({
+    ...postgresTypeLookups,
     family: sqlFamilyPack,
     target: postgresPack,
     createNamespace: postgresCreateNamespace,
@@ -448,6 +459,7 @@ test('arktypeJson and jsonbColumn currently resolve to never in no-emit type pat
   });
 
   const contract = defineContract({
+    ...postgresTypeLookups,
     family: sqlFamilyPack,
     target: postgresPack,
     createNamespace: postgresCreateNamespace,
@@ -541,6 +553,7 @@ const Status = enumType(
 const PriorityInt = enumType('PriorityInt', int4Column, member('Low', 1), member('High', 10));
 
 const enumContract = defineContract({
+  ...postgresTypeLookups,
   family: sqlFamilyPack,
   target: postgresPack,
   createNamespace: postgresCreateNamespace,

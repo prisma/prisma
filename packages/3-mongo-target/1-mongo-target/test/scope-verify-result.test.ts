@@ -1,10 +1,14 @@
 import type { Contract } from '@internal/contract/types';
-import type {
-  SchemaDiffIssue,
-  VerifyDatabaseSchemaResult,
+import {
+  type SchemaDiffIssue,
+  VERIFY_CODE_SCHEMA_FAILURE,
+  type VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
-import { entityNamesDeclaredBy, scopeVerifyResultToSpace } from '../src/core/scope-verify-result';
+import {
+  entityNamesDeclaredBy,
+  scopeVerifyResultToSpace,
+} from '../src/core/migrations/scope-verify-result';
 
 const NODE = { id: 'x', nodeKind: 'mongo-collection', isEqualTo: () => true, children: () => [] };
 /** An extra (live-only) finding — a drop, by presence. */
@@ -27,7 +31,7 @@ function makeResult(args: {
 }): VerifyDatabaseSchemaResult {
   return {
     ok: args.ok,
-    ...(args.ok ? {} : { code: 'CONTRACT.MARKER_REQUIRED' }),
+    ...(args.ok ? {} : { code: VERIFY_CODE_SCHEMA_FAILURE }),
     summary: args.ok ? 'Database schema satisfies contract' : 'does not satisfy',
     contract: { storageHash: 'x' },
     target: { expected: 'mongo' },
@@ -69,7 +73,18 @@ describe('scopeVerifyResultToSpace', () => {
     // so the runner still fails on genuine drift.
     expect(scoped.schema.issues).toEqual([expect.objectContaining({ path: ['junk'] })]);
     expect(scoped.ok).toBe(false);
-    expect(scoped.code).toBe('CONTRACT.MARKER_REQUIRED');
+    expect(scoped.code).toBe(VERIFY_CODE_SCHEMA_FAILURE);
+  });
+
+  it('reports a surviving failure that carried no code under the schema-verification code', () => {
+    const { code: _code, ...withoutCode } = makeResult({
+      ok: false,
+      issues: [extra(['cipher_state']), extra(['junk'])],
+    });
+
+    const scoped = scopeVerifyResultToSpace(withoutCode, new Set(['cipher_state']));
+
+    expect(scoped).toMatchObject({ ok: false, code: VERIFY_CODE_SCHEMA_FAILURE });
   });
 
   it('flips ok to true when the only failures were sibling collections', () => {

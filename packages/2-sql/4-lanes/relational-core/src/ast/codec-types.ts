@@ -3,6 +3,7 @@ import type {
   Codec as BaseCodec,
   CodecCallContext,
   CodecDescriptor,
+  CodecDescriptorTemplate,
   CodecInstanceContext,
   CodecRef,
   CodecTrait,
@@ -86,7 +87,7 @@ export interface SqlCodecInstanceContext extends CodecInstanceContext {
 /**
  * SQL codec — extends the framework codec base by narrowing the per-call context to the SQL-family {@link SqlCodecCallContext} (adds `column?: SqlColumnRef`). TypeScript treats method-syntax declarations bivariantly, so the SQL narrowing is structurally compatible with the framework {@link BaseCodec} super-interface.
  *
- * Codec-id-keyed static metadata (`traits`, `targetTypes`, `paramsSchema`, `renderOutputType`) lives on the unified {@link import('@internal/framework-components/codec').CodecDescriptor} — the codec instance itself only carries `id` plus the four conversion methods.
+ * Codec-id-keyed static metadata (`traits`, `paramsSchema`, `renderOutputType`) lives on the unified {@link import('@internal/framework-components/codec').CodecDescriptor} — the codec instance itself only carries `id` plus the four conversion methods.
  *
  * See `Codec` in `@internal/framework-components/codec` for the codec contract that this interface extends.
  */
@@ -129,6 +130,10 @@ export interface ContractCodecRegistry {
  */
 // biome-ignore lint/suspicious/noExplicitAny: descriptor variance erasure — `P` is contravariant on the factory and renderOutputType slots, so heterogeneous descriptor storage cannot use `unknown`.
 export type AnyCodecDescriptor = CodecDescriptor<any>;
+
+/** Variance-erased {@link CodecDescriptorTemplate}: a descriptor whose data type the adapting target names. */
+// biome-ignore lint/suspicious/noExplicitAny: variance erasure, as for AnyCodecDescriptor
+export type AnyCodecDescriptorTemplate = CodecDescriptorTemplate<any>;
 
 type DescriptorResolvedCodec<D> =
   D extends CodecDescriptor<infer _P> ? ReturnType<ReturnType<D['factory']>> : never;

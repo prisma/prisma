@@ -13,19 +13,30 @@
 
 import type { Contract } from '@internal/contract/types';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
-import { buildSymbolTable } from '@internal/psl-parser';
+import { buildSymbolTable, createBinder, interpretExtensionBlocks } from '@internal/psl-parser';
+import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { parse } from '@internal/psl-parser/syntax';
+import { bindPslSchema } from '@internal/psl-parser/test';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import {
+  describeUnsupportedSqlAttribute,
+  sqlAttributeSpecs,
+} from '@internal/sql-contract-psl/attribute-specs';
+import { sqlContextInput } from '@internal/sql-contract-psl/test';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,
   postgresAuthoringModelAttributes,
   postgresAuthoringPslBlockDescriptors,
 } from '../src/core/authoring';
+import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { type PostgresSchema, postgresCreateNamespace } from '../src/core/postgres-schema';
+import { postgresDataTypeSupport } from './fixtures/postgres-data-type-support';
+
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -37,6 +48,24 @@ const assembled = assembleAuthoringContributions([
   },
 ]);
 
+function blockResolutionBinder(
+  symbolTable: Parameters<typeof interpretExtensionBlocks>[0]['symbolTable'],
+  sources: Parameters<typeof interpretExtensionBlocks>[0]['sources'],
+) {
+  return createBinder({
+    sources,
+    symbolTable,
+    context: {
+      authoringContributions: {
+        ...assembleAuthoringContributions([]),
+        pslBlockDescriptors: assembled.pslBlockDescriptors,
+      },
+      controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      dataTypes: postgresDataTypeSupport,
+    },
+  }).binder;
+}
+
 const postgresTarget = {
   kind: 'target' as const,
   familyId: 'sql' as const,
@@ -47,30 +76,73 @@ const postgresTarget = {
   defaultNamespaceId: 'public',
 };
 
-const scalarTypeDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-  ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-  ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
+const scalarTypeDescriptors = new Map<string, { codecId: string }>([
+  ['String', { codecId: 'pg/text@1' }],
+  ['Int', { codecId: 'pg/int4@1' }],
 ]);
 
+const scalarTypeConstructors = Object.fromEntries(
+  [...scalarTypeDescriptors].map(([name, output]) => [
+    name,
+    { kind: 'typeConstructor' as const, output },
+  ]),
+);
+
+function interpretWithSymbolDiagnostics(source: string) {
+  const { document, sources } = parse(source, 'psl-rls-operations.test.psl');
+  const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
+    documents: [document],
+    sources,
+  });
+  const diagnostics = [
+    ...collectionDiagnostics,
+    ...interpretExtensionBlocks({
+      symbolTable,
+      sources,
+      pslBlockDescriptors: assembled.pslBlockDescriptors,
+      binder: blockResolutionBinder(symbolTable, sources),
+      dataTypes: postgresDataTypeSupport,
+    }).diagnostics,
+  ];
+  const bound = bindPslSchema(source, {
+    sourceId: 'psl-rls-operations.test.psl',
+    context: {
+      composedExtensions: [],
+      defaultNamespaceId: 'public',
+      composedExtensionContracts: new Map(),
+      authoringContributions: {
+        ...assembled,
+        type: { ...scalarTypeConstructors, ...assembled.type },
+        attributeSpecs: sqlAttributeSpecs,
+      },
+      pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+      codecLookup: postgresCodecLookup,
+      controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      dataTypes: postgresDataTypeSupport,
+      resolvedInputs: [],
+      capabilities: { sql: { scalarList: true } },
+    },
+  });
+  const result = withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: postgresTarget,
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
+  );
+  return { result, symbolTableDiagnostics: diagnostics };
+}
+
 function interpret(source: string) {
-  const { document, sourceFile } = parse(source);
-  const { table: symbolTable, diagnostics } = buildSymbolTable({
-    document,
-    sourceFile,
-    pslBlockDescriptors: assembled.pslBlockDescriptors,
-  });
-  expect(diagnostics).toEqual([]);
-  return interpretPslDocumentToSqlContract({
-    symbolTable,
-    sourceFile,
-    sourceId: 'schema.prisma',
-    target: postgresTarget,
-    scalarColumnDescriptors: scalarTypeDescriptors,
-    authoringContributions: assembled,
-    composedExtensionContracts: new Map(),
-    createNamespace: postgresCreateNamespace,
-    capabilities: { sql: { scalarList: true } },
-  });
+  const { result, symbolTableDiagnostics } = interpretWithSymbolDiagnostics(source);
+  expect(symbolTableDiagnostics).toEqual([]);
+  return result;
 }
 
 function onlyPolicy(source: string): PostgresRlsPolicy {
@@ -102,7 +174,7 @@ ${MODEL}
   policy_delete p_del {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
   }
 }
 `);
@@ -118,7 +190,7 @@ ${MODEL}
   policy_insert p_ins {
     target   = profile
     roles    = [app_user]
-    withCheck = "owner_id = 1"
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -134,8 +206,8 @@ ${MODEL}
   policy_update p_upd {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -151,8 +223,8 @@ ${MODEL}
   policy_all p_all {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 2"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 2\`
   }
 }
 `);
@@ -170,8 +242,8 @@ ${MODEL}
   policy_all p {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -181,8 +253,8 @@ ${MODEL}
   policy_all p {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 2"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 2\`
   }
 }
 `);
@@ -197,7 +269,7 @@ ${MODEL}
   policy_delete p {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
   }
 }
 `);
@@ -207,7 +279,7 @@ ${MODEL}
   policy_insert p {
     target    = profile
     roles     = [app_user]
-    withCheck = "owner_id = 1"
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `);
@@ -223,8 +295,8 @@ ${MODEL}
   policy_update p_upd {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 2"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 2\`
   }
 }
 `);
@@ -247,22 +319,21 @@ ${MODEL}
   });
 });
 
-describe('wrong-predicate-for-operation is a load-time error', () => {
-  // The predicate the operation does not take is rejected in the lowering
-  // (`lowerRlsPolicyFromBlock`), which pushes a diagnostic and produces no
-  // entity — so the interpret result fails rather than silently dropping it.
+describe('wrong-predicate-for-operation is an unknown fixed key', () => {
   function expectWrongPredicate(source: string, predicate: string): void {
-    const result = interpret(source);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
+    const { result, symbolTableDiagnostics } = interpretWithSymbolDiagnostics(source);
+    expect(symbolTableDiagnostics).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          code: 'PSL_RLS_PREDICATE_NOT_FOR_OPERATION',
-          message: expect.stringContaining(`\`${predicate}\``),
+          code: 'PSL_EXTENSION_UNKNOWN_PARAMETER',
+          message: expect.stringContaining(`"${predicate}"`),
         }),
       ]),
     );
+    if (result.ok) {
+      const ns = result.value.storage.namespaces['public'] as PostgresSchema;
+      expect(Object.keys(ns.policy)).toEqual([]);
+    }
   }
 
   it('using on policy_insert is rejected', () => {
@@ -273,8 +344,8 @@ ${MODEL}
   policy_insert p_ins {
     target    = profile
     roles     = [app_user]
-    withCheck = "owner_id = 1"
-    using     = "owner_id = 1"
+    withCheck = sql\`owner_id = 1\`
+    using     = sql\`owner_id = 1\`
   }
 }
 `,
@@ -290,8 +361,8 @@ ${MODEL}
   policy_select p_read {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `,
@@ -307,8 +378,8 @@ ${MODEL}
   policy_delete p_del {
     target    = profile
     roles     = [app_user]
-    using     = "owner_id = 1"
-    withCheck = "owner_id = 1"
+    using     = sql\`owner_id = 1\`
+    withCheck = sql\`owner_id = 1\`
   }
 }
 `,
@@ -326,10 +397,10 @@ describe('every keyword requires the @@rls-marked target', () => {
 `;
 
   for (const [keyword, body] of [
-    ['policy_insert', 'withCheck = "owner_id = 1"'],
-    ['policy_update', 'using = "owner_id = 1"\n    withCheck = "owner_id = 1"'],
-    ['policy_delete', 'using = "owner_id = 1"'],
-    ['policy_all', 'using = "owner_id = 1"\n    withCheck = "owner_id = 1"'],
+    ['policy_insert', 'withCheck = sql`owner_id = 1`'],
+    ['policy_update', 'using = sql`owner_id = 1`\n    withCheck = sql`owner_id = 1`'],
+    ['policy_delete', 'using = sql`owner_id = 1`'],
+    ['policy_all', 'using = sql`owner_id = 1`\n    withCheck = sql`owner_id = 1`'],
   ] as const) {
     it(`${keyword} on an unmarked model fails with PSL_EXTENSION_TARGET_MODEL_MISSING_ATTRIBUTE`, () => {
       const result = interpret(`
@@ -354,4 +425,35 @@ ${UNMARKED}
       );
     });
   }
+});
+
+describe('omitted supported predicates stay accepted', () => {
+  it('policy_update with neither using nor withCheck lowers with both absent', () => {
+    const policy = onlyPolicy(`
+namespace public {
+${MODEL}
+  policy_update p_upd {
+    target = profile
+    roles  = [app_user]
+  }
+}
+`);
+    expect(policy.operation).toBe('update');
+    expect(policy.using).toBeUndefined();
+    expect(policy.withCheck).toBeUndefined();
+  });
+
+  it('policy_select without using lowers with the predicate absent', () => {
+    const policy = onlyPolicy(`
+namespace public {
+${MODEL}
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+  }
+}
+`);
+    expect(policy.operation).toBe('select');
+    expect(policy.using).toBeUndefined();
+  });
 });

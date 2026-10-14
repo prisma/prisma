@@ -256,6 +256,10 @@ describe('codecs-class', () => {
     it('decode passes through already-decoded values', async () => {
       expect(await codec.decode({ key: 'value' }, callCtx)).toEqual({ key: 'value' });
     });
+
+    it('rejects invalid JSON text with SyntaxError', async () => {
+      await expect(codec.decode('{invalid', callCtx)).rejects.toThrow(SyntaxError);
+    });
   });
 
   describe('pg/jsonb@1', () => {
@@ -276,6 +280,10 @@ describe('codecs-class', () => {
     it('decode passes through already-decoded values', async () => {
       expect(await codec.decode([1, 2, 3], callCtx)).toEqual([1, 2, 3]);
     });
+
+    it('rejects invalid JSON text with SyntaxError', async () => {
+      await expect(codec.decode('{invalid', callCtx)).rejects.toThrow(SyntaxError);
+    });
   });
 
   describe('pg/uuid@1', () => {
@@ -295,6 +303,10 @@ describe('codecs-class', () => {
       expect(codec.encodeJson(SAMPLE_UUID)).toBe(SAMPLE_UUID);
       expect(codec.decodeJson(SAMPLE_UUID)).toBe(SAMPLE_UUID);
     });
+
+    it('writes a uuid into JSON as the text Postgres prints for it', () => {
+      expect(codec.encodeJson('{550E8400-E29B41D4-A716-446655440000}')).toBe(SAMPLE_UUID);
+    });
   });
 
   describe('pg/inet@1', () => {
@@ -310,28 +322,21 @@ describe('codecs-class', () => {
       expect(await codec.decode(SAMPLE_INET, callCtx)).toBe(SAMPLE_INET);
     });
 
-    it('round-trips through JSON identity', () => {
-      expect(codec.encodeJson(SAMPLE_INET)).toBe(SAMPLE_INET);
+    it('writes JSON as PostgreSQL prints the address and reads it back unchanged', () => {
+      expect(codec.encodeJson(`${SAMPLE_INET}/32`)).toBe(SAMPLE_INET);
       expect(codec.decodeJson(SAMPLE_INET)).toBe(SAMPLE_INET);
     });
   });
 
   describe('descriptor metadata', () => {
-    it('exposes traits and targetTypes for each codec', () => {
+    it('exposes traits for each codec', () => {
       expect(pgTextDescriptor.traits).toEqual(['equality', 'order', 'textual']);
       expect(pgInt4Descriptor.traits).toEqual(['equality', 'order', 'numeric']);
       expect(pgBoolDescriptor.traits).toEqual(['equality', 'boolean']);
       expect(pgJsonDescriptor.traits).toEqual([]);
       expect(pgJsonbDescriptor.traits).toEqual(['equality']);
-
-      expect(pgTextDescriptor.targetTypes).toEqual(['text']);
-      expect(pgNumericDescriptor.targetTypes).toEqual(['numeric', 'decimal']);
-      expect(pgBitDescriptor.targetTypes).toEqual(['bit']);
-      expect(pgVarbitDescriptor.targetTypes).toEqual(['bit varying']);
       expect(pgUuidDescriptor.traits).toEqual(['equality', 'order']);
-      expect(pgUuidDescriptor.targetTypes).toEqual(['uuid']);
       expect(pgInetDescriptor.traits).toEqual(['equality', 'order']);
-      expect(pgInetDescriptor.targetTypes).toEqual(['inet']);
     });
   });
 });

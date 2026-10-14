@@ -1,3 +1,4 @@
+import { decodeJsonString } from '@internal/framework-components/codec';
 import { mongoCodec, newMongoCodecRegistry } from '@internal/mongo-codec';
 import type { MongoAdapter } from '@internal/mongo-lowering';
 import type { AnyMongoCommand } from '@internal/mongo-query-ast/execution';
@@ -296,6 +297,17 @@ describe('MongoAdapter', () => {
       expect(wire.update).toEqual(update);
     });
 
+    it('passes bypassDocumentValidation through to the wire command', async () => {
+      const command = new RawUpdateManyCommand(
+        'users',
+        {},
+        { $rename: { name: 'fullName' } },
+        { bypassDocumentValidation: true },
+      );
+      const wire = narrowWire(await adapter.lower(plan('users', command), {}), 'updateMany');
+      expect(wire.bypassDocumentValidation).toBe(true);
+    });
+
     it('passes pipeline-style update (array) through unchanged', async () => {
       const filter = { firstName: { $exists: true } };
       const update = [{ $set: { fullName: { $concat: ['$firstName', ' ', '$lastName'] } } }];
@@ -381,6 +393,7 @@ describe('MongoAdapter with codec registry', () => {
     typeId: 'test/uppercase@1',
     decode: (wire: string) => wire.toLowerCase(),
     encode: (value: string) => value.toUpperCase(),
+    decodeJson: (json) => decodeJsonString('test/uppercase@1', json),
   });
 
   function registryWithUppercase() {

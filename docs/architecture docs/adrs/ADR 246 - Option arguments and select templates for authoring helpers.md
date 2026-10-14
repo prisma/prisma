@@ -36,16 +36,14 @@ const TEMPORAL_ON_UPDATE_ARG = {
 The preset itself is a template over its arguments:
 
 ```ts
-export function temporalCodecPresetWithPrecision<
-  const CodecId extends string,
-  const NativeType extends string,
->(input: { readonly codecId: CodecId; readonly nativeType: NativeType }) {
+export function temporalCodecPresetWithPrecision<const CodecId extends string>(input: {
+  readonly codecId: CodecId;
+}) {
   return {
     kind: 'fieldPreset',
     args: [TEMPORAL_PRECISION_ARG, TEMPORAL_ON_CREATE_ARG, TEMPORAL_ON_UPDATE_ARG],
     output: {
       codecId: input.codecId,
-      nativeType: input.nativeType,
       typeParams: { precision: { kind: 'arg', index: 0 } },
       executionDefaults: {
         onCreate: temporalPhaseTemplate(1),
@@ -74,9 +72,9 @@ export interface AuthoringOption {
 }
 ```
 
-Both declarative surfaces reference it: `AuthoringArgumentDescriptor` ([framework-authoring.ts](../../../packages/1-framework/1-core/framework-components/src/shared/framework-authoring.ts)) includes it as a member of its union, and `PslBlockParamOption` ([psl-extension-block.ts](../../../packages/1-framework/1-core/framework-components/src/shared/psl-extension-block.ts)) extends it with the block-parameter presence flag. One type for one idea — a helper argument and a block parameter that both mean "one of these tokens" cannot drift apart, because there is nothing to drift.
+`AuthoringArgumentDescriptor` ([framework-authoring.ts](../../../packages/1-framework/1-core/framework-components/src/shared/framework-authoring.ts)) includes it as a member of its union. PSL extension-block values do not use it: a block's fixed-token vocabulary is a `oneOf` over pinned matchers in its block spec ([ADR 262](ADR%20262%20-%20Block%20specs%20bind%20top-level%20block%20values.md)), so the option type describes helper arguments only.
 
-**PSL spells an option as a bare token** (`onUpdate: now`), following `@relation(onDelete: Cascade)` — the established spelling for an enumerated attribute argument. Bare identifiers are ordinary argument expressions in the PSL grammar, so the parser's only job is to accept the identifier text ([psl-authoring-arguments.ts](../../../packages/2-sql/2-authoring/contract-psl/src/psl-authoring-arguments.ts)):
+**PSL spells an option as a bare token** (`onUpdate: now`), following `@relation(onDelete: Cascade)` — the established spelling for an enumerated attribute argument. Bare identifiers are ordinary argument expressions in the PSL grammar, so the parser's only job is to accept the identifier text ([authoring-arguments.ts](../../../packages/1-framework/2-authoring/psl-parser/src/authoring-arguments.ts)):
 
 ```ts
 case 'option': {
@@ -139,7 +137,7 @@ The two surfaces are validated by different mechanisms, and deliberately do not 
 
 | Surface | What rejects a bad option value | Message |
 |---|---|---|
-| PSL | `validateAuthoringArgument`, at authoring time | `Authoring helper argument at <path> must be one of: now` |
+| PSL | `validateAuthoringArgument`, at authoring time | `Argument "onCreate" of temporal.timestamp must be "now"; received "later"` (an unnamed argument is `Authoring helper argument at <path>`) |
 | TypeScript | the literal union, at compile time | a type error |
 | TypeScript, type bypassed | the select node's throw | `Authoring template select has no case for value "<value>"` |
 
@@ -176,15 +174,12 @@ That is what lets the per-codec presets share the `temporal` namespace with the 
 temporal: {
   .../* @__PURE__ */ temporalAuthoringPresets({
     codecId: 'pg/timestamptz@1',
-    nativeType: 'timestamptz',
   }),
   timestamp: /* @__PURE__ */ temporalCodecPresetWithPrecision({
     codecId: 'pg/timestamp@1',
-    nativeType: 'timestamp',
   }),
   timestamptz: /* @__PURE__ */ temporalCodecPresetWithPrecision({
     codecId: 'pg/timestamptz@1',
-    nativeType: 'timestamptz',
   }),
 },
 ```
@@ -197,7 +192,7 @@ Two factories exist because the codecs differ in whether they take parameters: `
 
 `temporal.createdAt()` and `temporal.updatedAt()` are the behavioral spellings. `createdAt` is a **storage** default (`now()` rendered into DDL) — a different mechanism from execution defaults, and deliberately not expressible through `onCreate: now`. `updatedAt` is shorthand for `temporal.timestamptz(onCreate: now, onUpdate: now)`.
 
-That shorthand relationship is **a claim about two separately authored descriptors that share no code.** `temporalAuthoringPresets` and `temporalCodecPresetWithPrecision` ([timestamp-now-generator.ts](../../../packages/2-sql/9-family/src/core/timestamp-now-generator.ts)) construct their outputs independently; nothing structural forces them to agree. They are held equal by tests, and by nothing else:
+That shorthand relationship is **a claim about two separately authored descriptors that share no code.** `temporalAuthoringPresets` ([temporal-presets.ts](../../../packages/1-framework/1-core/framework-components/src/shared/temporal-presets.ts)) and `temporalCodecPresetWithPrecision` ([timestamp-now-generator.ts](../../../packages/2-sql/9-family/src/core/timestamp-now-generator.ts)) construct their outputs independently; nothing structural forces them to agree. They are held equal by tests, and by nothing else:
 
 - `it('updatedAt() is byte-identical to timestamptz(onCreate: now, onUpdate: now)')` in [interpreter.defaults.test.ts](../../../packages/2-sql/2-authoring/contract-psl/test/interpreter.defaults.test.ts)
 - `describe('temporal.updatedAt() three-way byte-identity')` in [ts-psl-parity.test.ts](../../../packages/2-sql/2-authoring/contract-psl/test/ts-psl-parity.test.ts), covering PSL-full ≡ PSL-convenience ≡ TS-full

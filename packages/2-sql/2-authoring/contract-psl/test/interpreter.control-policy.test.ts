@@ -3,12 +3,12 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { interpretPslDocumentToSqlContract } from '../src/interpreter';
+import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
+  interpretSqlContract,
   postgresScalarTypeDescriptors,
   postgresTarget,
-  symbolTableInputFromParseArgs,
 } from './fixtures';
 import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
 import { unboundTables } from './unbound-tables';
@@ -16,14 +16,13 @@ import { unboundTables } from './unbound-tables';
 const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
 
 function interpretSchema(schema: string) {
-  const document = symbolTableInputFromParseArgs({ schema, sourceId: 'schema.prisma' });
-  return interpretPslDocumentToSqlContract({
-    ...document,
+  return interpretSqlContract(schema, {
     target: postgresTarget,
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     composedExtensionContracts: new Map(),
     controlMutationDefaults: builtinControlMutationDefaults,
     createNamespace: createTestSqlNamespace,
+    ...fixtureInterpreterTypes,
     capabilities: { sql: { scalarList: true } },
   });
 }
@@ -57,7 +56,7 @@ describe('@@control model attribute', () => {
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       const tables = unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value));
-      expect(tables['user']?.control).toBe(policy);
+      expect(tables['User']?.control).toBe(policy);
     }
   });
 
@@ -68,7 +67,7 @@ describe('@@control model attribute', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const tables = unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value));
-    expect(tables['user']).not.toHaveProperty('control');
+    expect(tables['User']).not.toHaveProperty('control');
   });
 
   it('round-trips tolerated, external, and observed through JSON', () => {

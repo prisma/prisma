@@ -10,11 +10,24 @@ import {
 } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan } from '@internal/sql-relational-core/plan';
 import { describe, expect, it } from 'vitest';
-import { buildDecodeContext, decodeRow } from '../src/codecs/decoding';
+import {
+  buildDecodeContext,
+  decodeRow as decodeRowBase,
+  sqlNativeArrayListDecoder,
+} from '../src/codecs/decoding';
 import { defineTestCodec } from './test-codec';
 import { buildTestContractCodecs } from './utils';
 
 const TEST_HASH = coreHash('test');
+
+function decodeRow(
+  row: Parameters<typeof decodeRowBase>[0],
+  decodeCtx: Parameters<typeof decodeRowBase>[1],
+  rowCtx: Parameters<typeof decodeRowBase>[2],
+  listDecoder: Parameters<typeof decodeRowBase>[3] = sqlNativeArrayListDecoder,
+): ReturnType<typeof decodeRowBase> {
+  return decodeRowBase(row, decodeCtx, rowCtx, listDecoder);
+}
 
 function buildPlan(projections: ReadonlyArray<ProjectionItem>): SqlExecutionPlan {
   const ast = SelectAst.from(TableSource.named('users')).withProjection(projections);
@@ -59,7 +72,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/observe@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string, ctx?: SqlCodecCallContext) => {
           if (ctx?.signal) observed.push(ctx.signal);
@@ -91,7 +103,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/observe-col@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string, ctx?: SqlCodecCallContext) => {
           observed.push({ alias: w, column: ctx?.column });
@@ -122,7 +133,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/observe-projection@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string, ctx?: SqlCodecCallContext) => {
           observed = ctx;
@@ -149,7 +159,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/observe-undef@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string, ctx?: SqlCodecCallContext) => {
           observed = ctx;
@@ -184,7 +193,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/observe-no-ref@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string, ctx?: SqlCodecCallContext) => {
           observed = ctx;
@@ -218,7 +226,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/single-arg-author@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string) => {
           invoked += 1;
@@ -245,7 +252,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/counter@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string) => {
           callCount += 1;
@@ -280,7 +286,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/blocking@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string) => release.promise.then((suffix) => `${w}:${suffix}`),
       }),
@@ -312,7 +317,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/explody@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: () => {
           throw cause;
@@ -338,7 +342,6 @@ describe('decodeRow — SqlCodecCallContext threading', () => {
     const registry = [
       defineTestCodec({
         typeId: 'test/recorder@1',
-        targetTypes: ['text'],
         encode: (v: string) => v,
         decode: (w: string, ctx?: SqlCodecCallContext) => {
           observedColumns.push(ctx?.column);

@@ -5,6 +5,7 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage } from '@internal/sql-contract/types';
 import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 
+import { parsePostgresListText } from '@internal/target-postgres/control';
 import {
   postgresCreateNamespace,
   postgresRenderCheckExpressions,
@@ -40,7 +41,7 @@ function declaredArrayElementChecks(): CheckConstraint[] {
     postgresRenderCheckExpressions({
       tableName: 'ArrayTest',
       columnName,
-      many: true,
+      many: { elementNullable: false },
       memberValues: undefined,
     }).map(
       (candidate) =>
@@ -70,15 +71,30 @@ function buildArrayContract(): Contract<SqlStorage> {
             table: {
               ArrayTest: {
                 columns: {
-                  id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
-                  tags: { nativeType: 'text', codecId: 'pg/text@1', nullable: false, many: true },
-                  labels: { nativeType: 'text', codecId: 'pg/text@1', nullable: true, many: true },
-                  scores: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false, many: true },
-                  tagsWithDefault: {
-                    nativeType: 'text',
+                  id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+                  tags: {
+                    dataType: 'pg/text',
                     codecId: 'pg/text@1',
                     nullable: false,
-                    many: true,
+                    many: { elementNullable: false },
+                  },
+                  labels: {
+                    dataType: 'pg/text',
+                    codecId: 'pg/text@1',
+                    nullable: true,
+                    many: { elementNullable: false },
+                  },
+                  scores: {
+                    dataType: 'pg/int4',
+                    codecId: 'pg/int4@1',
+                    nullable: false,
+                    many: { elementNullable: false },
+                  },
+                  tagsWithDefault: {
+                    dataType: 'pg/text',
+                    codecId: 'pg/text@1',
+                    nullable: false,
+                    many: { elementNullable: false },
                     default: { kind: 'literal' as const, value: [] },
                   },
                 },
@@ -139,6 +155,8 @@ describe('native array columns DDL', { concurrent: false }, () => {
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
@@ -189,6 +207,8 @@ describe('native array columns DDL', { concurrent: false }, () => {
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
@@ -236,6 +256,8 @@ describe('native array columns DDL', { concurrent: false }, () => {
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
@@ -286,6 +308,8 @@ describe('native array columns DDL', { concurrent: false }, () => {
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
@@ -311,10 +335,10 @@ describe('native array columns DDL', { concurrent: false }, () => {
       `INSERT INTO "ArrayTest" (id, tags, scores) VALUES (1, ARRAY[]::text[], ARRAY[]::integer[])`,
     );
 
-    const rows = await driver!.query<{ tags_default: string[] }>(
+    const rows = await driver!.query<{ tags_default: unknown }>(
       `SELECT "tagsWithDefault" AS tags_default FROM "ArrayTest" WHERE id = 1`,
     );
-    expect(rows.rows[0]?.tags_default).toEqual([]);
+    expect(parsePostgresListText(rows.rows[0]?.tags_default)).toEqual([]);
   });
 
   it('emits a non-null-element CHECK constraint on every array column', {
@@ -329,6 +353,8 @@ describe('native array columns DDL', { concurrent: false }, () => {
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
@@ -380,6 +406,8 @@ describe('native array columns DDL', { concurrent: false }, () => {
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
@@ -420,6 +448,8 @@ describe('native array columns DDL', { concurrent: false }, () => {
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',

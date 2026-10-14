@@ -23,8 +23,8 @@ const TARGET_FAMILY = 'sql' as const;
 const fixtureTables = {
   fixture_box: {
     columns: {
-      x: { codecId: 'pg/int4@1', nativeType: 'integer', nullable: false },
-      y: { codecId: 'pg/int4@1', nativeType: 'integer', nullable: false },
+      x: { codecId: 'pg/int4@1', dataType: 'pg/int4', nullable: false },
+      y: { codecId: 'pg/int4@1', dataType: 'pg/int4', nullable: false },
     },
     uniques: [],
     indexes: [],
@@ -123,6 +123,7 @@ function makeStack(
       version: '0.0.1',
       familyId: 'sql',
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       contractSerializer: {
         deserializeContract: (json) => json as never,
         serializeContract: (contract) => contract as never,

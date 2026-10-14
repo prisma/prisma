@@ -26,12 +26,13 @@ import {
   FindOneAndUpdateWireCommand,
   InsertManyWireCommand,
   InsertOneWireCommand,
+  RenameCollectionWireCommand,
   UpdateManyWireCommand,
   UpdateOneWireCommand,
 } from '@internal/mongo-wire';
+import { buildStandardCodecRegistry } from '@internal/target-mongo/codecs';
 import { blindCast } from '@internal/utils/casts';
 import { assertNever } from '@internal/utils/internal-error';
-import { buildStandardCodecRegistry } from './core/codecs';
 import { structuralLowerFilter, structuralLowerPipeline } from './lowering';
 import { resolveDraftDoc } from './resolve-value';
 
@@ -66,6 +67,8 @@ function lowerDdlCommand(command: AnyMongoDdlCommand): AnyMongoDdlWireCommand {
       return new CreateIndexWireCommand(command.collection, keysToKeySpec(command.keys), command);
     case 'dropCollection':
       return new DropCollectionWireCommand(command.collection);
+    case 'renameCollection':
+      return new RenameCollectionWireCommand(command.collection, command.to);
     case 'dropIndex':
       return new DropIndexWireCommand(command.collection, command.name);
     case 'collMod':
@@ -183,6 +186,7 @@ class MongoAdapterImpl implements MongoAdapter {
           collection: command.collection,
           filter: command.filter,
           update: command.update,
+          bypassDocumentValidation: command.bypassDocumentValidation ?? false,
         };
       case 'rawDeleteOne':
         return { kind: 'rawDeleteOne', collection: command.collection, filter: command.filter };
@@ -291,7 +295,13 @@ class MongoAdapterImpl implements MongoAdapter {
       case 'rawUpdateOne':
         return new UpdateOneWireCommand(draft.collection, draft.filter, draft.update);
       case 'rawUpdateMany':
-        return new UpdateManyWireCommand(draft.collection, draft.filter, draft.update);
+        return new UpdateManyWireCommand(
+          draft.collection,
+          draft.filter,
+          draft.update,
+          false,
+          draft.bypassDocumentValidation,
+        );
       case 'rawDeleteOne':
         return new DeleteOneWireCommand(draft.collection, draft.filter);
       case 'rawDeleteMany':

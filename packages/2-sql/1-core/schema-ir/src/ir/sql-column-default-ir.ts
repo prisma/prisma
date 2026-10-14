@@ -1,7 +1,9 @@
 import type { ColumnDefault } from '@internal/contract/types';
+import type { CodecRef, ToCanonicalForm } from '@internal/framework-components/codec';
 import type { DiffableNode } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { blindCast } from '@internal/utils/casts';
+import { contractDefaultRefusal } from './default-in-canonical-form';
 import { resolvedDefaultsEqual } from './resolved-default-equality';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';
@@ -11,6 +13,8 @@ export interface SqlColumnDefaultIRInput {
   readonly resolved?: ColumnDefault;
   /** Raw database default expression, when known (introspected side). */
   readonly raw?: string;
+  /** See {@link import('./sql-column-ir').SqlColumnIRInput.authoredDefault}. */
+  readonly authored?: ColumnDefault;
   /**
    * Native-type context for temporal literal normalization — the owning
    * column's resolved native type.
@@ -23,6 +27,16 @@ export interface SqlColumnDefaultIRInput {
    * {@link import('./sql-column-ir').SqlColumnIRInput.many}.
    */
   readonly many?: boolean;
+  /**
+   * The owning column's codec identity, threaded through so the set-default op-builder renders a
+   * list default's cast to the column type the way the column's DDL writes it. See
+   * {@link import('./sql-column-ir').SqlColumnIRInput.codecRef}.
+   */
+  readonly codecRef?: CodecRef;
+  /** See {@link import('./sql-column-ir').SqlColumnIRInput.codecBaseNativeType}. */
+  readonly codecBaseNativeType?: string;
+  /** See {@link import('./sql-column-ir').SqlColumnIRInput.toCanonicalForm}. */
+  readonly toCanonicalForm?: ToCanonicalForm;
 }
 
 /**
@@ -43,16 +57,28 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
 
   declare readonly resolved?: ColumnDefault;
   declare readonly raw?: string;
+  /** See {@link SqlColumnDefaultIRInput.authored}. Non-enumerable, same reason as {@link many}. */
+  declare readonly authored?: ColumnDefault;
   declare readonly nativeTypeContext?: string;
   /** See {@link SqlColumnDefaultIRInput.many}. Non-enumerable so it stays out of JSON and structural equality. */
   declare readonly many?: boolean;
+  /** See {@link SqlColumnDefaultIRInput.codecRef}. Non-enumerable, same reason as {@link many}. */
+  declare readonly codecRef?: CodecRef;
+  /** See {@link SqlColumnDefaultIRInput.codecBaseNativeType}. Non-enumerable, same reason as {@link many}. */
+  declare readonly codecBaseNativeType?: string;
+  /** See {@link SqlColumnDefaultIRInput.toCanonicalForm}. Non-enumerable, same reason as {@link many}. */
+  declare readonly toCanonicalForm?: ToCanonicalForm;
 
   constructor(input: SqlColumnDefaultIRInput) {
     super();
     if (input.resolved !== undefined) this.resolved = input.resolved;
     if (input.raw !== undefined) this.raw = input.raw;
     if (input.nativeTypeContext !== undefined) this.nativeTypeContext = input.nativeTypeContext;
+    defineNonEnumerable(this, 'authored', input.authored);
     defineNonEnumerable(this, 'many', input.many);
+    defineNonEnumerable(this, 'codecRef', input.codecRef);
+    defineNonEnumerable(this, 'codecBaseNativeType', input.codecBaseNativeType);
+    defineNonEnumerable(this, 'toCanonicalForm', input.toCanonicalForm);
     freezeNode(this);
   }
 
@@ -71,7 +97,8 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
   /**
    * Structured comparison with `this` as the expected side: both sides
    * resolved compare per the relational walk's `columnDefaultsEqual`
-   * semantics; a declared expected default against an unparseable actual
+   * semantics, a literal through the canonical form of the column's values when the
+   * contract-derived side carries one; a declared expected default against an unparseable actual
    * (raw present, no resolved parse) is a mismatch; two raw-only nodes fall
    * back to raw string equality.
    */
@@ -86,11 +113,24 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
         this.resolved,
         node.resolved,
         node.nativeTypeContext ?? this.nativeTypeContext,
+        this.toCanonicalForm ?? node.toCanonicalForm,
       );
     }
     if (this.resolved !== undefined || node.resolved !== undefined) {
       return false;
     }
     return this.raw === node.raw;
+  }
+
+  /**
+   * The refusal of an expected literal its canonical form does not take, which a contract emitted
+   * by an earlier version can carry, so the mismatch names its cause.
+   */
+  explainMismatch(): string | undefined {
+    return contractDefaultRefusal(
+      this.resolved,
+      this.toCanonicalForm,
+      (this.many ?? this.codecRef?.many) === true,
+    );
   }
 }

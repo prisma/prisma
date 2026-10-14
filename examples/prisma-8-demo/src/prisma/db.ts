@@ -16,12 +16,12 @@ export const db = postgres<Contract>({
     // Cache first: interceptors are consulted in registration order and
     // the first non-`undefined` result wins, so the cache gets first
     // claim. A hit skips only the driver call and per-row `onRow` hooks:
-    // every middleware's `beforeQuery` (`lints`, `budgets`) has already
-    // run before any `interceptQuery` is consulted, and `afterQuery` still
-    // fires for all of them with `source: 'middleware'`. The cache stores
+    // every middleware's `beforeEncode` (`lints`, `budgets`) has already
+    // run before any `intercept.onQuery` is consulted, and `activityEnded`
+    // still fires for all of them with `source: 'middleware'`. The cache stores
     // raw rows; the runtime still runs `decodeRow` on the hit path, so
     // consumers see decoded values in both cases.
-    createCacheMiddleware({ maxEntries: 1_000 }),
+    createCacheMiddleware(),
     lints(),
     budgets({
       maxRows: 10_000,
@@ -30,7 +30,7 @@ export const db = postgres<Contract>({
       maxLatencyMs: 1_000,
     }),
     // Custom middleware (see `slow-query-warning.ts`): observes every
-    // execution's latency via `afterQuery` and logs a warning past the
+    // statement's latency via `activityEnded` and logs a warning past the
     // threshold. Cache hits flow through it too, with `source: 'middleware'`.
     slowQueryWarning({ thresholdMs: 250 }),
   ],

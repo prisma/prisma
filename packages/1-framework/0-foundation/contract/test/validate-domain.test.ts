@@ -141,7 +141,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { SpecialItem: { value: 'special' } },
+            variants: { special: crossRef('SpecialItem') },
           }),
           SpecialItem: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -157,7 +157,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Ghost: { value: 'ghost' } },
+            variants: { ghost: crossRef('Ghost') },
           }),
         },
       });
@@ -173,7 +173,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel(),
         },
@@ -192,7 +192,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Other: makeMinimalModel({
             fields: {
@@ -228,6 +228,48 @@ describe('validateContractDomain()', () => {
       );
     });
 
+    it('accepts a variant in a different namespace from its base', () => {
+      const contract = makeValidContract({
+        roots: { tasks: crossRef('Task', 'a') },
+        domain: {
+          namespaces: {
+            a: {
+              models: {
+                Task: makeMinimalModel({
+                  fields: {
+                    type: { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
+                  },
+                  discriminator: { field: 'type' },
+                  variants: { b: crossRef('Epic', 'b'), c: crossRef('Epic', 'c') },
+                }),
+              },
+            },
+            b: { models: { Epic: makeMinimalModel({ base: crossRef('Task', 'a') }) } },
+            c: { models: { Epic: makeMinimalModel({ base: crossRef('Task', 'a') }) } },
+          },
+        },
+      });
+      expect(() => validateContractDomain(contract)).not.toThrow();
+    });
+
+    it('rejects a variant listed under two discriminator values', () => {
+      const contract = makeValidContract({
+        models: {
+          Item: makeMinimalModel({
+            fields: {
+              type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+            },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug'), defect: crossRef('Bug') },
+          }),
+          Bug: makeMinimalModel({ base: crossRef('Item') }),
+        },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(
+        'Model "__unbound__:Item" lists variant "__unbound__:Bug" under both discriminator values "bug" and "defect"',
+      );
+    });
+
     it('rejects model with base referencing non-existent model', () => {
       const contract = makeValidContract({
         models: {
@@ -258,6 +300,7 @@ describe('validateContractDomain()', () => {
               creator: {
                 to: crossRef('User'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['creatorId'], targetFields: ['_id'] },
               },
             },
@@ -276,6 +319,7 @@ describe('validateContractDomain()', () => {
               creator: {
                 to: crossRef('Ghost'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['creatorId'], targetFields: ['_id'] },
               },
             },
@@ -285,6 +329,112 @@ describe('validateContractDomain()', () => {
       expect(() => validateContractDomain(contract)).toThrow(
         /relation.*creator.*Item.*target.*Ghost.*not exist/i,
       );
+    });
+  });
+
+  describe('relation nullability flag', () => {
+    function contractWithRelation(relation: Record<string, unknown>) {
+      return makeValidContract({
+        roots: { items: crossRef('Item'), users: crossRef('User') },
+        models: {
+          Item: makeMinimalModel({ relations: { rel: relation } }),
+          User: makeMinimalModel(),
+        },
+      });
+    }
+
+    it.each(['N:1', '1:1'] as const)(
+      'accepts a %s relation without the flag, which hydration fills in from storage',
+      (cardinality) => {
+        const contract = contractWithRelation({
+          to: crossRef('User'),
+          cardinality,
+          on: { localFields: ['userId'], targetFields: ['_id'] },
+        });
+        expect(() => validateContractDomain(contract)).not.toThrow();
+      },
+    );
+
+    it.each([true, false])('accepts a to-one relation with nullable: %s', (nullable) => {
+      const contract = contractWithRelation({
+        to: crossRef('User'),
+        cardinality: 'N:1',
+        nullable,
+        on: { localFields: ['userId'], targetFields: ['_id'] },
+      });
+      expect(() => validateContractDomain(contract)).not.toThrow();
+    });
+
+    it('rejects a non-boolean flag', () => {
+      const contract = contractWithRelation({
+        to: crossRef('User'),
+        cardinality: 'N:1',
+        nullable: 'yes',
+        on: { localFields: ['userId'], targetFields: ['_id'] },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(
+        /Relation "rel" on model ".*Item".*"nullable" must be a boolean/,
+      );
+    });
+
+    it('rejects the flag on a 1:N relation', () => {
+      const contract = contractWithRelation({
+        to: crossRef('User'),
+        cardinality: '1:N',
+        nullable: true,
+        on: { localFields: ['_id'], targetFields: ['itemId'] },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(
+        /Relation "rel" on model ".*Item".*1:N.*must not carry "nullable"/,
+      );
+    });
+
+    it('rejects the flag on an N:M relation', () => {
+      const contract = contractWithRelation({
+        to: crossRef('User'),
+        cardinality: 'N:M',
+        nullable: false,
+        on: { localFields: ['_id'], targetFields: ['_id'] },
+        through: {
+          table: 'item_users',
+          namespaceId: 'public',
+          parentColumns: ['item_id'],
+          childColumns: ['user_id'],
+          targetColumns: ['_id'],
+        },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(/N:M.*must not carry "nullable"/);
+    });
+
+    it('rejects the flag on an embed relation', () => {
+      const contract = contractWithRelation({
+        to: crossRef('User'),
+        cardinality: '1:1',
+        nullable: true,
+      });
+      expect(() => validateContractDomain(contract)).toThrow(
+        /embed relation.*must not carry "nullable"/,
+      );
+    });
+
+    it('accepts embed and to-many relations without the flag', () => {
+      const contract = makeValidContract({
+        roots: { items: crossRef('Item'), users: crossRef('User') },
+        models: {
+          Item: makeMinimalModel({
+            relations: {
+              owner: { to: crossRef('User'), cardinality: '1:1' },
+              users: {
+                to: crossRef('User'),
+                cardinality: '1:N',
+                on: { localFields: ['_id'], targetFields: ['itemId'] },
+              },
+            },
+          }),
+          User: makeMinimalModel(),
+        },
+      });
+      expect(() => validateContractDomain(contract)).not.toThrow();
     });
   });
 
@@ -313,7 +463,7 @@ describe('validateContractDomain()', () => {
               _id: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
             },
             discriminator: { field: 'kind' },
-            variants: { Special: { value: 'special' } },
+            variants: { special: crossRef('Special') },
           }),
           Special: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -332,7 +482,7 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel({
             base: crossRef('Item'),
@@ -352,7 +502,7 @@ describe('validateContractDomain()', () => {
             fields: {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
-            variants: { Special: { value: 'special' } },
+            variants: { special: crossRef('Special') },
           }),
           Special: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -371,17 +521,34 @@ describe('validateContractDomain()', () => {
               type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel({
             base: crossRef('Item'),
-            variants: { Grandchild: { value: 'grandchild' } },
+            variants: { grandchild: crossRef('Grandchild') },
           }),
         },
       });
       expect(() => validateContractDomain(contract)).toThrow(
         /model.*Child.*base.*must not.*variants/i,
       );
+    });
+
+    it('accepts variants with distinct discriminator values', () => {
+      const contract = makeValidContract({
+        models: {
+          Item: makeMinimalModel({
+            fields: {
+              type: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+            },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug'), feature: crossRef('Feature') },
+          }),
+          Bug: makeMinimalModel({ base: crossRef('Item') }),
+          Feature: makeMinimalModel({ base: crossRef('Item') }),
+        },
+      });
+      expect(() => validateContractDomain(contract)).not.toThrow();
     });
   });
 
@@ -463,6 +630,7 @@ describe('validateContractDomain()', () => {
               assignee: {
                 to: crossRef('User'),
                 cardinality: 'N:1',
+                nullable: false,
                 on: { localFields: ['assigneeId'], targetFields: ['_id'] },
               },
               comments: {
@@ -472,8 +640,8 @@ describe('validateContractDomain()', () => {
             },
             discriminator: { field: 'type' },
             variants: {
-              Bug: { value: 'bug' },
-              Feature: { value: 'feature' },
+              bug: crossRef('Bug'),
+              feature: crossRef('Feature'),
             },
           }),
           Bug: makeMinimalModel({
@@ -654,7 +822,7 @@ describe('validateContractDomain()', () => {
   });
 
   describe('field modifier validation', () => {
-    it('rejects many + dict on the same field', () => {
+    it('rejects list many + dict on the same field', () => {
       const contract = makeValidContract({
         roots: {},
         models: {
@@ -663,7 +831,7 @@ describe('validateContractDomain()', () => {
               tags: {
                 nullable: false,
                 type: { kind: 'scalar', codecId: 'pg/text@1' },
-                many: true,
+                many: { elementNullable: false },
                 dict: true,
               },
             },
@@ -671,6 +839,62 @@ describe('validateContractDomain()', () => {
         },
       });
       expect(() => validateContractDomain(contract)).toThrow(/many.*dict|dict.*many/i);
+    });
+
+    it('accepts nullable elements inside the list descriptor', () => {
+      const contract = makeValidContract({
+        roots: {},
+        models: {
+          User: makeMinimalModel({
+            fields: {
+              tags: {
+                nullable: false,
+                type: { kind: 'scalar', codecId: 'pg/text@1' },
+                many: { elementNullable: true },
+              },
+            },
+          }),
+        },
+      });
+      expect(() => validateContractDomain(contract)).not.toThrow();
+    });
+
+    it('rejects the old sibling elementNullable shape when type checking is bypassed', () => {
+      const contract = makeValidContract({
+        roots: {},
+        models: {
+          User: makeMinimalModel({
+            fields: {
+              tags: {
+                nullable: false,
+                type: { kind: 'scalar', codecId: 'pg/text@1' },
+                many: false,
+                elementNullable: true,
+              },
+            },
+          }),
+        },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(/sibling "elementNullable"/);
+    });
+
+    it('rejects old many: true when type checking is bypassed', () => {
+      const contract = makeValidContract({
+        roots: {},
+        models: {},
+        valueObjects: {
+          Address: {
+            fields: {
+              tags: {
+                nullable: false,
+                type: { kind: 'scalar', codecId: 'pg/text@1' },
+                many: true,
+              },
+            },
+          },
+        },
+      });
+      expect(() => validateContractDomain(contract)).toThrow(/Value object.*invalid "many"/);
     });
   });
 });

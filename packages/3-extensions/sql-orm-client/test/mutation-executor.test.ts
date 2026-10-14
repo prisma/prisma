@@ -1,22 +1,27 @@
+import { textColumn } from '@internal/adapter-postgres/column-types';
 import { SqlQueryError, UNIQUE_VIOLATION_SQLSTATE } from '@internal/sql-errors';
 import {
   type AnyExpression,
   BinaryExpr,
   ColumnRef,
   LiteralExpr,
+  ParamRef,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it, vi } from 'vitest';
+import { createCollectionTables } from '../src/collection-tables';
 import {
   assertJunctionParentMetadataLength,
   assertJunctionTargetMetadataLength,
-  buildPrimaryKeyFilterFromRow,
+  buildRowIdentityFilterFromRow,
   executeNestedCreateMutation,
   executeNestedUpdateMutation,
   hasNestedMutationCallbacks,
   type JunctionRelationDefinition,
 } from '../src/mutation-executor';
+import { defineContract, field, model } from './contract-builder';
 import type { MockRuntime } from './helpers';
 import {
+  buildCompositeForeignKeyContract,
   buildCustomPrimaryKeyContract,
   buildExecutionDefaultJunctionContract,
   buildManyToManyContract,
@@ -148,22 +153,44 @@ describe('mutation-executor', () => {
     ).toBe(false);
   });
 
-  it('buildPrimaryKeyFilterFromRow() resolves mapped keys and throws when missing', () => {
+  it('buildRowIdentityFilterFromRow() resolves mapped keys and throws when missing', () => {
     const contract = getTestContract();
 
-    expect(buildPrimaryKeyFilterFromRow(contract, 'public', 'User', { id: 7 })).toEqual({ id: 7 });
+    expect(buildRowIdentityFilterFromRow(contract, 'public', 'User', { id: 7 })).toEqual({ id: 7 });
 
-    expect(() => buildPrimaryKeyFilterFromRow(contract, 'public', 'User', {})).toThrow(
-      /Missing primary key field "id"/,
+    expect(() => buildRowIdentityFilterFromRow(contract, 'public', 'User', {})).toThrow(
+      /Missing identity field "id"/,
     );
   });
 
-  it('buildPrimaryKeyFilterFromRow() resolves custom primary key columns', () => {
+  it('buildRowIdentityFilterFromRow() resolves custom primary key columns', () => {
     const withCustomPk = buildCustomPrimaryKeyContract();
 
-    expect(buildPrimaryKeyFilterFromRow(withCustomPk, 'public', 'User', { pk_id: 99 })).toEqual({
+    expect(buildRowIdentityFilterFromRow(withCustomPk, 'public', 'User', { pk_id: 99 })).toEqual({
       pk_id: 99,
     });
+  });
+
+  it('buildRowIdentityFilterFromRow() uses every column of a composite primary key', () => {
+    const contract = buildCompositeForeignKeyContract();
+
+    expect(
+      buildRowIdentityFilterFromRow(contract, 'public', 'Customer', {
+        tenantId: 1,
+        id: 2,
+        name: 'Grace',
+      }),
+    ).toEqual({ tenantId: 1, id: 2 });
+  });
+
+  it('buildRowIdentityFilterFromRow() throws ORM.ROW_IDENTITY_MISSING for a table without a key', () => {
+    const contract = defineContract({
+      models: { Log: model('Log', { fields: { message: field.column(textColumn) } }) },
+    });
+
+    expect(() =>
+      buildRowIdentityFilterFromRow(contract, 'public', 'Log', { message: 'hello' }),
+    ).toThrow(expect.objectContaining({ code: 'ORM.ROW_IDENTITY_MISSING' }));
   });
 
   it('executeNestedCreateMutation() commits transactions on success', async () => {
@@ -407,25 +434,27 @@ describe('mutation-executor', () => {
     throw new Error(`no ${kind} on "${table}" found in executions`);
   }
 
-  function collectLiterals(node: unknown): unknown[] {
+  function collectParams(node: unknown): ParamRef[] {
     if (!node || typeof node !== 'object') {
       return [];
     }
+    if (node instanceof ParamRef) {
+      return [node];
+    }
     const expr = node as {
-      kind?: string;
-      value?: unknown;
       left?: unknown;
       right?: unknown;
       exprs?: readonly unknown[];
     };
-    if (expr.kind === 'literal') {
-      return [expr.value];
-    }
     return [
-      ...collectLiterals(expr.left),
-      ...collectLiterals(expr.right),
-      ...(expr.exprs ?? []).flatMap(collectLiterals),
+      ...collectParams(expr.left),
+      ...collectParams(expr.right),
+      ...(expr.exprs ?? []).flatMap(collectParams),
     ];
+  }
+
+  function collectParamValues(node: unknown): unknown[] {
+    return collectParams(node).map((param) => param.value);
   }
 
   it('executeNestedCreateMutation() routes M:N connect through a junction INSERT', async () => {
@@ -710,6 +739,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'Parent',
+      tables: createCollectionTables(contract, 'public', 'Parent'),
       filters: [BinaryExpr.eq(ColumnRef.of('parents', 'id'), LiteralExpr.of(1))],
       data: {
         children: (children: { connect: (criterion: Record<string, unknown>) => unknown }) =>
@@ -753,6 +783,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'Parent',
+        tables: createCollectionTables(contract, 'public', 'Parent'),
         filters: [BinaryExpr.eq(ColumnRef.of('parents', 'id'), LiteralExpr.of(1))],
         data: {
           children: (children: { connect: (criterion: Record<string, unknown>) => unknown }) =>
@@ -792,6 +823,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'Parent',
+        tables: createCollectionTables(contract, 'public', 'Parent'),
         filters: [BinaryExpr.eq(ColumnRef.of('parents', 'id'), LiteralExpr.of(1))],
         data: {
           children: (children: { connect: (criterion: Record<string, unknown>) => unknown }) =>
@@ -827,6 +859,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'Parent',
+        tables: createCollectionTables(contract, 'public', 'Parent'),
         filters: [BinaryExpr.eq(ColumnRef.of('parents', 'id'), LiteralExpr.of(1))],
         data: {
           children: (children: { connect: (criterion: Record<string, unknown>) => unknown }) =>
@@ -853,6 +886,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'Parent',
+      tables: createCollectionTables(contract, 'public', 'Parent'),
       filters: [BinaryExpr.eq(ColumnRef.of('parents', 'id'), LiteralExpr.of(1))],
       data: {
         children: (children: {
@@ -863,7 +897,11 @@ describe('mutation-executor', () => {
 
     const del = findJunctionDml(runtime, 'delete', 'parent_child');
     expect(del.kind).toBe('delete');
-    expect(collectLiterals(del.where).sort()).toEqual([1, 10]);
+    expect(collectParamValues(del.where).sort()).toEqual([1, 10]);
+    expect(collectParams(del.where).map((param) => param.codec)).toEqual([
+      { codecId: 'pg/int4@1' },
+      { codecId: 'pg/int4@1' },
+    ]);
   });
 
   it('executeNestedUpdateMutation() rejects conflicting values for shared junction columns on disconnect', async () => {
@@ -883,6 +921,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'Parent',
+        tables: createCollectionTables(contract, 'public', 'Parent'),
         filters: [BinaryExpr.eq(ColumnRef.of('parents', 'tenant_id'), LiteralExpr.of(7))],
         data: {
           children: (children: {
@@ -914,6 +953,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'Parent',
+      tables: createCollectionTables(contract, 'public', 'Parent'),
       filters: [BinaryExpr.eq(ColumnRef.of('parents', 'tenant_id'), LiteralExpr.of(7))],
       data: {
         children: (children: {
@@ -923,7 +963,7 @@ describe('mutation-executor', () => {
     });
 
     const del = findJunctionDml(runtime, 'delete', 'parent_child');
-    expect(collectLiterals(del.where)).toEqual([7]);
+    expect(collectParamValues(del.where)).toEqual([7]);
   });
 
   it('executeNestedCreateMutation() rejects M:N disconnect (update-only)', async () => {
@@ -1051,6 +1091,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'User',
+        tables: createCollectionTables(contract, 'public', 'User'),
         filters: [userIdFilter],
         data: {
           name: 'Alice Updated',
@@ -1082,6 +1123,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'User',
+      tables: createCollectionTables(contract, 'public', 'User'),
       filters: [userIdFilter],
       data: {
         roles: (roles: { disconnect: (criteria: readonly Record<string, unknown>[]) => unknown }) =>
@@ -1091,6 +1133,10 @@ describe('mutation-executor', () => {
 
     const del = findJunctionDml(runtime, 'delete', 'user_roles');
     expect(del.kind).toBe('delete');
+    expect(collectParams(del.where)).toEqual([
+      ParamRef.of(1, { codec: { codecId: 'pg/int4@1' } }),
+      ParamRef.of('admin', { codec: { codecId: 'sql/char@1', typeParams: { length: 36 } } }),
+    ]);
   });
 
   it('executeNestedCreateMutation() allows M:N create on pure junction (no required payload)', async () => {
@@ -1152,7 +1198,7 @@ describe('mutation-executor', () => {
     expect(created).toEqual({ id: 1, title: 'Post', userId: 5, views: 1 });
   });
 
-  it('executeNestedCreateMutation() tolerates sparse parent/child column pairs', async () => {
+  it('executeNestedCreateMutation() refuses relation metadata with a missing join field', async () => {
     const contract = getTestContract();
     const sparseAuthorRelation = withPatchedDomainModels(contract, (models) => {
       const post = models['Post'] as { relations: { author: Record<string, unknown> } };
@@ -1179,21 +1225,21 @@ describe('mutation-executor', () => {
       [{ id: 1, title: 'Post', user_id: 5, views: 1 }],
     ]);
 
-    const created = await executeNestedCreateMutation({
-      context: { ...getTestContext(), contract: sparseAuthorRelation },
-      runtime,
-      namespaceId: 'public',
-      modelName: 'Post',
-      data: {
-        id: 1,
-        title: 'Post',
-        views: 1,
-        author: (author: { connect: (criterion: Record<string, unknown>) => unknown }) =>
-          author.connect({ id: 5 }),
-      } as never,
-    });
-
-    expect(created).toEqual({ id: 1, title: 'Post', userId: 5, views: 1 });
+    await expect(
+      executeNestedCreateMutation({
+        context: { ...getTestContext(), contract: sparseAuthorRelation },
+        runtime,
+        namespaceId: 'public',
+        modelName: 'Post',
+        data: {
+          id: 1,
+          title: 'Post',
+          views: 1,
+          author: (author: { connect: (criterion: Record<string, unknown>) => unknown }) =>
+            author.connect({ id: 5 }),
+        } as never,
+      }),
+    ).rejects.toThrow('has no field "undefined" the contract names');
   });
 
   it('executeNestedUpdateMutation() returns null when no row matches filters', async () => {
@@ -1206,6 +1252,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'User',
+      tables: createCollectionTables(contract, 'public', 'User'),
       filters: [userIdFilter],
       data: { name: 'Alice Updated' } as never,
     });
@@ -1226,6 +1273,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'Post',
+      tables: createCollectionTables(contract, 'public', 'Post'),
       filters: [postIdFilter],
       data: {
         author: (author: { disconnect: () => unknown }) => author.disconnect(),
@@ -1245,11 +1293,56 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'User',
+      tables: createCollectionTables(contract, 'public', 'User'),
       filters: [userIdFilter],
       data: { name: 'Updated' } as never,
     });
 
     expect(updated).toEqual({ id: 1, name: 'Alice', email: 'alice@example.com' });
+  });
+
+  it('executeNestedUpdateMutation() sends child-owned connect and disconnect criteria as parameters with the column codec', async () => {
+    const contract = getTestContract();
+    const updatePlans = async (
+      data: Record<string, unknown>,
+    ): Promise<ReadonlyArray<{ ast: { where?: unknown }; params: readonly unknown[] }>> => {
+      const runtime = createMockRuntime();
+      runtime.setNextResults([[{ id: 1, name: 'Alice', email: 'alice@example.com' }], []]);
+      await executeNestedUpdateMutation({
+        context: { ...getTestContext(), contract },
+        runtime,
+        namespaceId: 'public',
+        modelName: 'User',
+        tables: createCollectionTables(contract, 'public', 'User'),
+        filters: [userIdFilter],
+        data: data as never,
+      });
+      return runtime.executions
+        .map((execution) => execution.plan as { ast: { kind?: string; where?: unknown } })
+        .filter((plan) => plan.ast.kind === 'update') as never;
+    };
+
+    const [connect] = await updatePlans({
+      posts: (posts: { connect: (criterion: Record<string, unknown>) => unknown }) =>
+        posts.connect({ title: 'Hello' }),
+    });
+    expect(connect?.ast.where).toEqual(
+      BinaryExpr.eq(
+        ColumnRef.of('posts', 'title'),
+        ParamRef.of('Hello', { codec: { codecId: 'pg/text@1' } }),
+      ),
+    );
+    expect(connect?.params).toEqual([1, 'Hello']);
+
+    const [disconnect] = await updatePlans({
+      posts: (posts: { disconnect: (criteria: readonly Record<string, unknown>[]) => unknown }) =>
+        posts.disconnect([{ title: 'Hello' }]),
+    });
+    expect(collectParams(disconnect?.ast.where)).toEqual([
+      ParamRef.of(1, { codec: { codecId: 'pg/int4@1' } }),
+      ParamRef.of('Hello', { codec: { codecId: 'pg/text@1' } }),
+    ]);
+    expect(disconnect?.params).toEqual([null, 1, 'Hello']);
   });
 
   it('executeNestedUpdateMutation() validates child-owned connect and disconnect criteria', async () => {
@@ -1263,6 +1356,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'User',
+        tables: createCollectionTables(contract, 'public', 'User'),
         filters: [userIdFilter],
         data: {
           posts: (posts: { connect: (criteria: readonly Record<string, unknown>[]) => unknown }) =>
@@ -1277,6 +1371,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'User',
+      tables: createCollectionTables(contract, 'public', 'User'),
       filters: [userIdFilter],
       data: {
         posts: (posts: { connect: (criterion: Record<string, unknown>) => unknown }) =>
@@ -1292,6 +1387,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'User',
+      tables: createCollectionTables(contract, 'public', 'User'),
       filters: [userIdFilter],
       data: {
         posts: (posts: { disconnect: () => unknown }) => posts.disconnect(),
@@ -1307,6 +1403,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'User',
+        tables: createCollectionTables(contract, 'public', 'User'),
         filters: [userIdFilter],
         data: {
           posts: (posts: {
@@ -1317,7 +1414,7 @@ describe('mutation-executor', () => {
     ).rejects.toThrow(/requires non-empty criterion/);
   });
 
-  it('executeNestedUpdateMutation() supports composite child joins and sparse relation columns', async () => {
+  it('executeNestedUpdateMutation() supports composite child joins', async () => {
     const contract = getTestContract();
     const compositeRelationContract = withPatchedDomainModels(contract, (models) => {
       const user = models['User'] as { relations: { posts: Record<string, unknown> } };
@@ -1330,8 +1427,8 @@ describe('mutation-executor', () => {
             posts: {
               ...user.relations.posts,
               on: {
-                localFields: [undefined, 'id', 'email'] as unknown as readonly string[],
-                targetFields: ['userId', 'userId', 'title'],
+                localFields: ['id', 'email'],
+                targetFields: ['userId', 'title'],
               },
             },
           },
@@ -1346,6 +1443,7 @@ describe('mutation-executor', () => {
       runtime,
       namespaceId: 'public',
       modelName: 'User',
+      tables: createCollectionTables(compositeRelationContract, 'public', 'User'),
       filters: [userIdFilter],
       data: {
         posts: (posts: { disconnect: () => unknown }) => posts.disconnect(),
@@ -1366,6 +1464,7 @@ describe('mutation-executor', () => {
         runtime,
         namespaceId: 'public',
         modelName: 'User',
+        tables: createCollectionTables(contract, 'public', 'User'),
         filters: [userIdFilter],
         data: {
           posts: (posts: { connect: (criterion: Record<string, unknown>) => unknown }) =>

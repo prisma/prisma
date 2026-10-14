@@ -1,7 +1,7 @@
 /**
  * Column type descriptors for Postgres adapter.
  *
- * These descriptors provide both codecId and nativeType for use in contract authoring. They are derived from the same source of truth as codec definitions and manifests.
+ * These descriptors provide the codec id for use in contract authoring. They are derived from the same source of truth as codec definitions and manifests.
  */
 
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
@@ -25,6 +25,7 @@ import {
   PG_TIME_TEMPORAL_CODEC_ID,
   PG_TIMESTAMP_STRING_CODEC_ID,
   PG_TIMESTAMP_TEMPORAL_CODEC_ID,
+  PG_TIMESTAMPTZ_DATE_CODEC_ID,
   PG_TIMESTAMPTZ_STRING_CODEC_ID,
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
   PG_TIMETZ_CODEC_ID,
@@ -35,153 +36,141 @@ import {
 
 export const textColumn = {
   codecId: PG_TEXT_CODEC_ID,
-  nativeType: 'text',
 } as const satisfies ColumnTypeDescriptor;
 
-export function charColumn(length: number): ColumnTypeDescriptor & {
+export function charColumn(length: number): ColumnTypeDescriptor<typeof SQL_CHAR_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
   return {
     codecId: SQL_CHAR_CODEC_ID,
-    nativeType: 'character',
     typeParams: { length },
   } as const;
 }
 
-export function varcharColumn(length: number): ColumnTypeDescriptor & {
+export function varcharColumn(length: number): ColumnTypeDescriptor<typeof SQL_VARCHAR_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
   return {
     codecId: SQL_VARCHAR_CODEC_ID,
-    nativeType: 'character varying',
     typeParams: { length },
   } as const;
 }
 
 export const int4Column = {
   codecId: PG_INT4_CODEC_ID,
-  nativeType: 'int4',
 } as const satisfies ColumnTypeDescriptor;
 
 export const int2Column = {
   codecId: PG_INT2_CODEC_ID,
-  nativeType: 'int2',
 } as const satisfies ColumnTypeDescriptor;
 
 export const int8Column = {
   codecId: PG_INT8_CODEC_ID,
-  nativeType: 'int8',
 } as const satisfies ColumnTypeDescriptor;
 
 export const float4Column = {
   codecId: PG_FLOAT4_CODEC_ID,
-  nativeType: 'float4',
 } as const satisfies ColumnTypeDescriptor;
 
 export const float8Column = {
   codecId: PG_FLOAT8_CODEC_ID,
-  nativeType: 'float8',
 } as const satisfies ColumnTypeDescriptor;
 
 export function numericColumn(
   precision: number,
   scale?: number,
-): ColumnTypeDescriptor & {
+): ColumnTypeDescriptor<typeof PG_NUMERIC_CODEC_ID> & {
   readonly typeParams: { readonly precision: number; readonly scale?: number };
 } {
   return {
     codecId: PG_NUMERIC_CODEC_ID,
-    nativeType: 'numeric',
     typeParams: scale === undefined ? { precision } : { precision, scale },
   } as const;
 }
 
 /**
- * The representation-explicit temporal descriptors. Both halves declare the same column; they differ
- * only in what a read hands back — a `Temporal.*` value, or PostgreSQL's own text for the values
- * Temporal cannot express.
+ * Representation-explicit temporal descriptors share storage types but select different application
+ * values: `Temporal.*`, PostgreSQL text, or a JavaScript `Date` for `timestamptz`.
  */
 export const dateTemporalColumn = {
   codecId: PG_DATE_TEMPORAL_CODEC_ID,
-  nativeType: 'date',
 } as const satisfies ColumnTypeDescriptor;
 
 export const dateStringColumn = {
   codecId: PG_DATE_STRING_CODEC_ID,
-  nativeType: 'date',
 } as const satisfies ColumnTypeDescriptor;
 
 export const timestampTemporalColumn = {
   codecId: PG_TIMESTAMP_TEMPORAL_CODEC_ID,
-  nativeType: 'timestamp',
 } as const satisfies ColumnTypeDescriptor;
 
 export const timestampStringColumn = {
   codecId: PG_TIMESTAMP_STRING_CODEC_ID,
-  nativeType: 'timestamp',
 } as const satisfies ColumnTypeDescriptor;
 
 export const timestamptzTemporalColumn = {
   codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
-  nativeType: 'timestamptz',
+} as const satisfies ColumnTypeDescriptor;
+
+export const timestamptzJsDateColumn = {
+  codecId: PG_TIMESTAMPTZ_DATE_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
 export const timestamptzStringColumn = {
   codecId: PG_TIMESTAMPTZ_STRING_CODEC_ID,
-  nativeType: 'timestamptz',
 } as const satisfies ColumnTypeDescriptor;
 
-export function timeTemporalColumn(precision?: number): ColumnTypeDescriptor & {
+export function timeTemporalColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_TIME_TEMPORAL_CODEC_ID
+> & {
   readonly typeParams?: { readonly precision: number };
 } {
   return {
     codecId: PG_TIME_TEMPORAL_CODEC_ID,
-    nativeType: 'time',
     ...(precision === undefined ? {} : { typeParams: { precision } }),
   } as const;
 }
 
-export function timeStringColumn(precision?: number): ColumnTypeDescriptor & {
+export function timeStringColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_TIME_STRING_CODEC_ID
+> & {
   readonly typeParams?: { readonly precision: number };
 } {
   return {
     codecId: PG_TIME_STRING_CODEC_ID,
-    nativeType: 'time',
     ...(precision === undefined ? {} : { typeParams: { precision } }),
   } as const;
 }
 
-export function timetzColumn(precision?: number): ColumnTypeDescriptor & {
+export function timetzColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_TIMETZ_CODEC_ID
+> & {
   readonly typeParams?: { readonly precision: number };
 } {
   return {
     codecId: PG_TIMETZ_CODEC_ID,
-    nativeType: 'timetz',
     ...(precision === undefined ? {} : { typeParams: { precision } }),
   } as const;
 }
 
 export const boolColumn = {
   codecId: PG_BOOL_CODEC_ID,
-  nativeType: 'bool',
 } as const satisfies ColumnTypeDescriptor;
 
-export function bitColumn(length: number): ColumnTypeDescriptor & {
+export function bitColumn(length: number): ColumnTypeDescriptor<typeof PG_BIT_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
   return {
     codecId: PG_BIT_CODEC_ID,
-    nativeType: 'bit',
     typeParams: { length },
   } as const;
 }
 
-export function varbitColumn(length: number): ColumnTypeDescriptor & {
+export function varbitColumn(length: number): ColumnTypeDescriptor<typeof PG_VARBIT_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
   return {
     codecId: PG_VARBIT_CODEC_ID,
-    nativeType: 'bit varying',
     typeParams: { length },
   } as const;
 }
@@ -193,15 +182,15 @@ export function varbitColumn(length: number): ColumnTypeDescriptor & {
  */
 export const byteaColumn = {
   codecId: PG_BYTEA_CODEC_ID,
-  nativeType: 'bytea',
 } as const satisfies ColumnTypeDescriptor;
 
-export function intervalColumn(precision?: number): ColumnTypeDescriptor & {
+export function intervalColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_INTERVAL_CODEC_ID
+> & {
   readonly typeParams?: { readonly precision: number };
 } {
   return {
     codecId: PG_INTERVAL_CODEC_ID,
-    nativeType: 'interval',
     ...(precision === undefined ? {} : { typeParams: { precision } }),
   } as const;
 }
@@ -213,7 +202,6 @@ export function intervalColumn(precision?: number): ColumnTypeDescriptor & {
  */
 export const jsonColumn = {
   codecId: PG_JSON_CODEC_ID,
-  nativeType: 'json',
 } as const satisfies ColumnTypeDescriptor;
 
 /**
@@ -221,5 +209,4 @@ export const jsonColumn = {
  */
 export const jsonbColumn = {
   codecId: PG_JSONB_CODEC_ID,
-  nativeType: 'jsonb',
 } as const satisfies ColumnTypeDescriptor;

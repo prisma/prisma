@@ -1,3 +1,4 @@
+import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
   SQL_CHAR_CODEC_ID,
@@ -80,14 +81,19 @@ describe('sql-codecs', () => {
     // PostgreSQL emits `"NaN"` and `"Infinity"` — which JSON has no number for.
     // The codec's application type is `number`, so it rejects rather than hand
     // back a string wearing that type.
-    it('rejects a non-finite value it cannot spell as JSON', () => {
-      expect(() => codec.encodeJson(Number.NaN)).toThrow(/finite/);
-      expect(() => codec.encodeJson(Number.POSITIVE_INFINITY)).toThrow(/finite/);
+    it('writes a non-finite value as the text PostgreSQL writes for it', () => {
+      expect(
+        [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY].map((value) =>
+          codec.encodeJson(value),
+        ),
+      ).toEqual(['NaN', 'Infinity', '-Infinity']);
     });
 
-    it('rejects the strings a database uses for non-finite floats', () => {
-      expect(() => codec.decodeJson('NaN')).toThrow(/sql\/float@1/);
-      expect(() => codec.decodeJson('Infinity')).toThrow(/sql\/float@1/);
+    it('reads the strings a database uses for non-finite floats', () => {
+      expect(['NaN', 'Infinity'].map((json) => codec.decodeJson(json))).toEqual([
+        Number.NaN,
+        Number.POSITIVE_INFINITY,
+      ]);
     });
 
     it('rejects a JSON value that is not a number', () => {
@@ -107,14 +113,33 @@ describe('sql-codecs', () => {
       expect(await codec.encode('user_001', callCtx)).toBe('user_001');
     });
 
-    it('trims trailing spaces on decode', async () => {
-      expect(await codec.decode('user_001                            ', callCtx)).toBe('user_001');
-      expect(await codec.decode('user_001', callCtx)).toBe('user_001');
+    it('trims trailing spaces on decode, and only spaces, the padding a character column adds', async () => {
+      expect(
+        await Promise.all(
+          ['user_001                            ', 'user_001', 'a\t  ', 'a\n', ' a'].map((wire) =>
+            codec.decode(wire, callCtx),
+          ),
+        ),
+      ).toEqual(['user_001', 'user_001', 'a\t', 'a\n', ' a']);
     });
 
-    it('round-trips through JSON identity', () => {
+    it('trims a value with a long interior run of spaces in time linear in its length', async () => {
+      const wire = `${' '.repeat(50_000)}x${' '.repeat(49_999)}`;
+      const started = performance.now();
+      const decoded = await codec.decode(wire, callCtx);
+      expect({ decoded, withinBound: performance.now() - started < timeouts.default }).toEqual({
+        decoded: `${' '.repeat(50_000)}x`,
+        withinBound: true,
+      });
+    });
+
+    it('round-trips through JSON identity, keeping trailing spaces, as a default is written', () => {
       expect(codec.encodeJson('user_001')).toBe('user_001');
-      expect(codec.decodeJson('user_001')).toBe('user_001');
+      expect(['user_001', 'a  ', 'a\t'].map((json) => codec.decodeJson(json))).toEqual([
+        'user_001',
+        'a  ',
+        'a\t',
+      ]);
     });
 
     it('renderOutputType returns Char<length>', () => {
@@ -153,29 +178,25 @@ describe('sql-codecs', () => {
   });
 
   describe('column helpers', () => {
-    it('sqlTextColumn produces a ColumnSpec with text nativeType and no typeParams', () => {
+    it('sqlTextColumn produces a ColumnSpec with the text codec and no typeParams', () => {
       const spec = sqlTextColumn();
       expect(spec.codecId).toBe(SQL_TEXT_CODEC_ID);
-      expect(spec.nativeType).toBe('text');
       expect(spec.typeParams).toBeUndefined();
     });
 
-    it('sqlIntColumn produces a ColumnSpec with int nativeType', () => {
+    it('sqlIntColumn produces a ColumnSpec with the int codec', () => {
       const spec = sqlIntColumn();
       expect(spec.codecId).toBe(SQL_INT_CODEC_ID);
-      expect(spec.nativeType).toBe('int');
     });
 
-    it('sqlFloatColumn produces a ColumnSpec with float nativeType', () => {
+    it('sqlFloatColumn produces a ColumnSpec with the float codec', () => {
       const spec = sqlFloatColumn();
       expect(spec.codecId).toBe(SQL_FLOAT_CODEC_ID);
-      expect(spec.nativeType).toBe('float');
     });
 
     it('sqlCharColumn defaults typeParams to {} when invoked without arguments', () => {
       const spec = sqlCharColumn();
       expect(spec.codecId).toBe(SQL_CHAR_CODEC_ID);
-      expect(spec.nativeType).toBe('char');
       expect(spec.typeParams).toEqual({});
     });
 
@@ -204,18 +225,10 @@ describe('sql-codecs', () => {
       expect(sqlVarcharDescriptor.codecId).toBe(SQL_VARCHAR_CODEC_ID);
     });
 
-    it('exposes traits and targetTypes for each codec', () => {
+    it('exposes traits for each codec', () => {
       expect(sqlTextDescriptor.traits).toEqual(['equality', 'order', 'textual']);
-      expect(sqlTextDescriptor.targetTypes).toEqual(['text']);
-
       expect(sqlIntDescriptor.traits).toEqual(['equality', 'order', 'numeric']);
-      expect(sqlIntDescriptor.targetTypes).toEqual(['int']);
-
       expect(sqlFloatDescriptor.traits).toEqual(['equality', 'order', 'numeric']);
-      expect(sqlFloatDescriptor.targetTypes).toEqual(['float']);
-
-      expect(sqlCharDescriptor.targetTypes).toEqual(['char']);
-      expect(sqlVarcharDescriptor.targetTypes).toEqual(['varchar']);
     });
   });
 });

@@ -9,10 +9,18 @@
  * strategies, mirroring the Postgres `ColumnSpec` pattern.
  */
 
-import { errorUnfilledPlaceholder } from '@internal/errors/migration';
-import type {
-  MigrationOperationClass,
-  SqlMigrationPlanOperation,
+import type { ColumnDefault } from '@internal/contract/types';
+import { unfilledPlaceholderOperation } from '@internal/errors/migration';
+import {
+  checkSqlExpressionText,
+  createSqlTextSources,
+  isUnfilledSlot,
+  type MigrationOperationClass,
+  type SqlMigrationPlanOperation,
+  type SqlSlot,
+  type SqlTextSources,
+  slotSource,
+  sqlOfSlot,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
 import type { OpFactoryCall as FrameworkOpFactoryCall } from '@internal/framework-components/control';
@@ -21,16 +29,34 @@ import type {
   DdlColumn,
   DdlTableConstraint,
 } from '@internal/sql-relational-core/ast';
-import { type ImportRequirement, jsonToTsSource, TsExpression } from '@internal/ts-render';
+import {
+  type ImportRequirement,
+  jsonToTsSource,
+  TsExpression,
+  tsArraySource,
+  tsObjectSource,
+  tsQuotedTextSource,
+} from '@internal/ts-render';
 import { ifDefined } from '@internal/utils/defined';
-import { columnExistsAst, indexExistsAst, tableExistsAst } from '../../contract-free/checks';
+import {
+  columnExistsAst,
+  indexExistsAst,
+  tableExistsAst,
+  tableNameTakenAst,
+} from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { sqliteError } from '../errors';
-import { quoteIdentifier } from '../sql-utils';
-import { addColumnExecuteSql, dropColumnExecuteSql } from './operations/columns';
+import { quoteIdentifier, SQLITE_QUOTING } from '../sql-utils';
+import { addColumn, dropColumnExecuteSql, renameColumn } from './operations/columns';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
 import { step } from './operations/shared';
-import { recreateTable } from './operations/tables';
+import {
+  type RecreatePostcheck,
+  recreateTable,
+  renameChangesOnlyCase,
+  renameTableSteps,
+  renameTableViaName,
+} from './operations/tables';
 import { buildCreateIndexSql, buildDropIndexSql } from './planner-ddl-builders';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
 import { buildTargetDetails } from './planner-target-details';
@@ -48,6 +74,11 @@ abstract class SqliteOpFactoryCallNode extends TsExpression implements Framework
   abstract readonly label: string;
   abstract toOp(lowerer?: Lowerer): Op | Promise<Op>;
 
+  /** The operations this call lowers to, in order: one, unless the call carries companions. */
+  toOps(lowerer?: ExecuteRequestLowerer): readonly (Op | Promise<Op>)[] {
+    return [this.toOp(lowerer)];
+  }
+
   importRequirements(): readonly ImportRequirement[] {
     return [{ moduleSpecifier: TARGET_MIGRATION_MODULE, symbol: this.factoryName }];
   }
@@ -55,6 +86,15 @@ abstract class SqliteOpFactoryCallNode extends TsExpression implements Framework
   protected freeze(): void {
     Object.freeze(this);
   }
+}
+
+export type { SqliteOpFactoryCallNode };
+
+/** Whether `call` is one of this target's calls, which lower through {@link SqliteOpFactoryCallNode.toOps}. */
+export function isSqliteOpFactoryCall(
+  call: FrameworkOpFactoryCall,
+): call is SqliteOpFactoryCallNode {
+  return call instanceof SqliteOpFactoryCallNode;
 }
 
 // ============================================================================
@@ -65,19 +105,25 @@ abstract class SqliteOpFactoryCallNode extends TsExpression implements Framework
 // TypeScript rendering helpers for DdlColumn / DdlTableConstraint
 // ---------------------------------------------------------------------------
 
-function renderDdlColumnDefault(def: AnyDdlColumnDefault | undefined): string {
+interface WrittenCall {
+  readonly source: string;
+  readonly imports: readonly ImportRequirement[];
+}
+
+function renderDdlColumnDefault(def: AnyDdlColumnDefault | undefined, sql: SqlTextSources): string {
   if (!def) return '';
   if (def.kind === 'literal') {
     return `lit(${jsonToTsSource(def.value)})`;
   }
-  return `fn(${jsonToTsSource(def.expression)})`;
+  return `fn(${sql.source(def.expression.text)})`;
 }
 
-function renderDdlColumnAsTsCall(column: DdlColumn): string {
+function renderDdlColumnAsTsCall(column: DdlColumn, sql: SqlTextSources): string {
   const opts: string[] = [];
   if (column.notNull) opts.push('notNull: true');
   if (column.primaryKey) opts.push('primaryKey: true');
-  if (column.default) opts.push(`default: ${renderDdlColumnDefault(column.default)}`);
+  if (column.default) opts.push(`default: ${renderDdlColumnDefault(column.default, sql)}`);
+  if (column.codecRef) opts.push(`codecRef: ${jsonToTsSource(column.codecRef)}`);
   const optsStr = opts.length > 0 ? `, { ${opts.join(', ')} }` : '';
   return `col(${jsonToTsSource(column.name)}, ${jsonToTsSource(column.type)}${optsStr})`;
 }
@@ -187,7 +233,14 @@ export class CreateTableCall extends SqliteOpFactoryCallNode {
   }
 
   renderTypeScript(): string {
-    const columnsList = this.columns.map(renderDdlColumnAsTsCall).join(', ');
+    return this.#written().source;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(TARGET_MIGRATION_MODULE);
+    const columnsList = this.columns
+      .map((column) => renderDdlColumnAsTsCall(column, sql))
+      .join(', ');
     const constraintsList = this.constraints
       ? this.constraints.map(renderDdlConstraintAsTsCall).join(', ')
       : undefined;
@@ -197,7 +250,7 @@ export class CreateTableCall extends SqliteOpFactoryCallNode {
     opts.push(`columns: [${columnsList}]`);
     if (constraintsList) opts.push(`constraints: [${constraintsList}]`);
 
-    return `this.createTable({ ${opts.join(', ')} })`;
+    return { source: `this.createTable({ ${opts.join(', ')} })`, imports: sql.imports() };
   }
 
   override importRequirements(): readonly ImportRequirement[] {
@@ -211,6 +264,7 @@ export class CreateTableCall extends SqliteOpFactoryCallNode {
     for (const sym of constraintImportSymbols(this.constraints)) {
       req.push({ moduleSpecifier: TARGET_MIGRATION_MODULE, symbol: sym });
     }
+    req.push(...this.#written().imports);
     return req;
   }
 }
@@ -262,6 +316,287 @@ export class DropTableCall extends SqliteOpFactoryCallNode {
   }
 }
 
+/** An index SQLite cannot rename, dropped and created again under its new name. */
+export interface IndexReplacement {
+  readonly drop: DropIndexCall;
+  readonly create: CreateIndexCall;
+}
+
+/** A call a table or column rename carries to replace an index whose name derives from the old name. */
+export type RenameCompanionCall = DropIndexCall | CreateIndexCall;
+
+/** The replaced indexes' drops, then their creates, since a create may take a dropped name. */
+export function indexReplacementCalls(
+  replacements: readonly IndexReplacement[],
+): RenameCompanionCall[] {
+  return [...replacements.map(({ drop }) => drop), ...replacements.map(({ create }) => create)];
+}
+
+export class RenameTableCall extends SqliteOpFactoryCallNode {
+  readonly factoryName = 'renameTable' as const;
+  readonly operationClass = 'widening' as const;
+  readonly oldTableName: string;
+  /** The new name: the table's contract-side identity after the rename. */
+  readonly tableName: string;
+  readonly label: string;
+  /** The indexes named after the old table, which SQLite cannot rename, so it replaces them. */
+  readonly indexReplacements: readonly IndexReplacement[];
+  /**
+   * The replacements' drops, then their creates. They run after the table rename and are never
+   * rendered on their own.
+   */
+  readonly companions: readonly RenameCompanionCall[];
+
+  constructor(
+    oldTableName: string,
+    tableName: string,
+    indexReplacements: readonly IndexReplacement[],
+  ) {
+    super();
+    this.oldTableName = oldTableName;
+    this.tableName = tableName;
+    this.label = `Rename table ${oldTableName} to ${tableName}`;
+    this.indexReplacements = Object.freeze([...indexReplacements]);
+    this.companions = Object.freeze(indexReplacementCalls(indexReplacements));
+    this.freeze();
+  }
+
+  /** The id of the operation this call lowers to. */
+  get operationId(): string {
+    return `renameTable.${this.oldTableName}`;
+  }
+
+  override toOps(lowerer?: ExecuteRequestLowerer): readonly Promise<Op>[] {
+    return [this.toOp(lowerer), ...this.companions.map((companion) => companion.toOp(lowerer))];
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    if (lowerer === undefined) {
+      throw sqliteError(
+        'MIGRATION.SQLITE_CONTROL_STACK_MISSING',
+        `RenameTableCall.toOp: a lowerer is required on the SQLite planner path (table "${this.oldTableName}"). Pass the control adapter to createSqliteMigrationPlanner.`,
+        { meta: { factory: this.factoryName, tableName: this.oldTableName } },
+      );
+    }
+    const fromChecks = tableExistsAst(this.oldTableName);
+    const toChecks = tableExistsAst(this.tableName);
+    const fromPresent = await lowerer.lowerToExecuteRequest(fromChecks.tablePresent());
+    const onlyCase = renameChangesOnlyCase(this.oldTableName, this.tableName);
+    const toAbsent = await lowerer.lowerToExecuteRequest(
+      onlyCase ? toChecks.tableAbsent() : tableNameTakenAst(this.tableName).nameFree(),
+    );
+    const viaName = renameTableViaName(this.tableName);
+    const viaAbsent = onlyCase
+      ? await lowerer.lowerToExecuteRequest(tableExistsAst(viaName).tableAbsent())
+      : undefined;
+    const toPresent = await lowerer.lowerToExecuteRequest(toChecks.tablePresent());
+    const fromAbsent = await lowerer.lowerToExecuteRequest(fromChecks.tableAbsent());
+    return {
+      id: this.operationId,
+      label: this.label,
+      summary: `Renames table ${this.oldTableName} to ${this.tableName}, keeping its rows`,
+      operationClass: 'widening',
+      target: { id: 'sqlite', details: buildTargetDetails('table', this.tableName) },
+      precheck: [
+        step(`ensure table "${this.oldTableName}" exists`, fromPresent.sql, fromPresent.params),
+        step(
+          onlyCase
+            ? `ensure table "${this.tableName}" does not exist`
+            : `ensure no table or index is named "${this.tableName}" in any case`,
+          toAbsent.sql,
+          toAbsent.params,
+        ),
+        ...(viaAbsent === undefined
+          ? []
+          : [
+              step(
+                `ensure table "${viaName}" does not exist (a rename that only changes case passes through this temporary name, because SQLite compares table names without case)`,
+                viaAbsent.sql,
+                viaAbsent.params,
+              ),
+            ]),
+      ],
+      execute: renameTableSteps(this.oldTableName, this.tableName),
+      // Both postchecks: the runner skips an operation whose postcheck
+      // already holds, and "the new table exists" alone would skip a rename
+      // that never happened when both tables exist.
+      postcheck: [
+        step(`verify table "${this.tableName}" exists`, toPresent.sql, toPresent.params),
+        step(
+          `verify table "${this.oldTableName}" no longer exists`,
+          fromAbsent.sql,
+          fromAbsent.params,
+        ),
+      ],
+    };
+  }
+
+  renderTypeScript(): string {
+    return `...this.renameTable({ table: ${jsonToTsSource(this.oldTableName)}, to: ${jsonToTsSource(this.tableName)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+export class RenameColumnCall extends SqliteOpFactoryCallNode {
+  readonly factoryName = 'renameColumn' as const;
+  // `widening` for the same reason as `RenameTableCall`.
+  readonly operationClass = 'widening' as const;
+  readonly tableName: string;
+  readonly oldColumnName: string;
+  /** The new name: the column's contract-side identity after the rename. */
+  readonly columnName: string;
+  readonly label: string;
+  /** The indexes on the column whose wire names change, which SQLite cannot rename. */
+  readonly indexReplacements: readonly IndexReplacement[];
+  /**
+   * The replacements' drops, then their creates. They run after the column rename and are never
+   * rendered on their own.
+   */
+  readonly companions: readonly RenameCompanionCall[];
+
+  constructor(
+    tableName: string,
+    oldColumnName: string,
+    columnName: string,
+    indexReplacements: readonly IndexReplacement[],
+  ) {
+    super();
+    this.tableName = tableName;
+    this.oldColumnName = oldColumnName;
+    this.columnName = columnName;
+    this.label = `Rename column ${oldColumnName} on ${tableName} to ${columnName}`;
+    this.indexReplacements = Object.freeze([...indexReplacements]);
+    this.companions = Object.freeze(indexReplacementCalls(indexReplacements));
+    this.freeze();
+  }
+
+  override toOps(lowerer?: ExecuteRequestLowerer): readonly Promise<Op>[] {
+    return [this.toOp(lowerer), ...this.companions.map((companion) => companion.toOp(lowerer))];
+  }
+
+  async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    if (lowerer === undefined) {
+      throw sqliteError(
+        'MIGRATION.SQLITE_CONTROL_STACK_MISSING',
+        `RenameColumnCall.toOp: a lowerer is required on the SQLite planner path (column "${this.oldColumnName}" on table "${this.tableName}"). Pass the control adapter to createSqliteMigrationPlanner.`,
+        { meta: { factory: this.factoryName, tableName: this.tableName } },
+      );
+    }
+    return renameColumn(this.tableName, this.oldColumnName, this.columnName, lowerer);
+  }
+
+  renderTypeScript(): string {
+    return `...this.renameColumn({ table: ${jsonToTsSource(this.tableName)}, column: ${jsonToTsSource(this.oldColumnName)}, to: ${jsonToTsSource(this.columnName)} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
+  }
+}
+
+function refuseUnsafeCopyExpressions(
+  tableName: string,
+  option: 'copyExpressions' | 'temporaryValues',
+  expressions: Readonly<Record<string, SqlSlot>>,
+): void {
+  for (const [column, expression] of Object.entries(expressions)) {
+    if (expression.kind !== 'sql') continue;
+    const refused = checkSqlExpressionText(expression.sql, SQLITE_QUOTING);
+    if (refused === undefined) continue;
+    const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
+    throw sqliteError(
+      'MIGRATION.SQL_EXPRESSION_INVALID',
+      `${call}: ${option}.${column} ${JSON.stringify(expression.sql)} holds ${refused}, which could end or extend the INSERT … SELECT statement it is written into`,
+      {
+        why: 'A copy expression or a temporary value is written into the SELECT that copies the rows into the rebuilt table. The check refuses a semicolon, a SQL comment, dollar quoting, and a comma or a statement keyword outside parentheses, since each could end or extend that statement; it does not check that the text is valid SQL.',
+        fix: `Write ${option}.${column} as one SQL expression over the old table's columns, such as CAST("${column}" AS INTEGER). If it holds a comma or a keyword such as FROM outside parentheses, wrap it in parentheses.`,
+        meta: { call, field: `${option}.${column}`, expression: expression.sql, refused },
+      },
+    );
+  }
+}
+
+function refuseUnknownCopyExpressionColumns(
+  tableName: string,
+  contractTable: SqliteTableSpec,
+  named: {
+    readonly copyExpressions: Readonly<Record<string, SqlSlot>>;
+    readonly temporaryValues: Readonly<Record<string, SqlSlot>>;
+    readonly retypedColumns: readonly string[];
+  },
+): void {
+  const columns = contractTable.columns.map((column) => column.name);
+  const unknown = [
+    ...Object.keys(named.copyExpressions).map((key) => ({ option: `copyExpressions.${key}`, key })),
+    ...Object.keys(named.temporaryValues).map((key) => ({ option: `temporaryValues.${key}`, key })),
+    ...named.retypedColumns.map((key) => ({
+      option: `retypedColumns entry ${JSON.stringify(key)}`,
+      key,
+    })),
+  ].find(({ key }) => !columns.includes(key));
+  if (unknown === undefined) return;
+  const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
+  throw sqliteError(
+    'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN',
+    `${call}: ${unknown.option} names no column of the new table. Its columns are ${columns.map((column) => JSON.stringify(column)).join(', ')}.`,
+    {
+      why: 'Each key of copyExpressions and temporaryValues, and each entry of retypedColumns, names a column of the new table. One that names no column applies to nothing, so the column meant would be copied unchanged or left without a value, or its values would go unchecked.',
+      fix: 'Name a column in contractTable.columns, with the same letters and case.',
+      meta: { call, key: unknown.key, columns },
+    },
+  );
+}
+
+/**
+ * A temporary value fills a column the old table does not have, and only that: for a column the
+ * old table has it would replace every existing value, and a column with a copy expression is
+ * already filled by its conversion.
+ */
+function refuseMisplacedTemporaryValues(
+  tableName: string,
+  schemaColumnNames: readonly string[],
+  copyExpressions: Readonly<Record<string, SqlSlot>>,
+  temporaryValues: Readonly<Record<string, SqlSlot>>,
+): void {
+  const call = `recreateTable({ tableName: ${jsonToTsSource(tableName)} })`;
+  for (const column of Object.keys(temporaryValues)) {
+    if (schemaColumnNames.includes(column)) {
+      throw sqliteError(
+        'MIGRATION.TEMPORARY_VALUE_INVALID',
+        `${call}: temporaryValues.${column} names a column the old table already has, so the copy would replace every value of it.`,
+        {
+          why: 'A temporary value fills a new column in the existing rows. A column the old table has keeps its values through the copy, or is converted by a copy expression.',
+          fix: `Remove temporaryValues.${column}. To change the values of "${column}", write a conversion in copyExpressions.${column} instead.`,
+          meta: { call, column, reason: 'existingColumn' },
+        },
+      );
+    }
+    if (Object.hasOwn(copyExpressions, column)) {
+      throw sqliteError(
+        'MIGRATION.TEMPORARY_VALUE_INVALID',
+        `${call}: "${column}" is named in both copyExpressions and temporaryValues, so it would be filled twice.`,
+        {
+          why: 'A column is filled either by the conversion in copyExpressions or by a temporary value, not both.',
+          fix: `Keep one of copyExpressions.${column} and temporaryValues.${column}.`,
+          meta: { call, column, reason: 'alsoConverted' },
+        },
+      );
+    }
+  }
+}
+
+function sqlOfSlots(slots: Readonly<Record<string, SqlSlot>>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(slots).flatMap(([column, slot]) => {
+      const sql = sqlOfSlot(slot);
+      return sql === undefined ? [] : [[column, sql]];
+    }),
+  );
+}
+
 export class RecreateTableCall extends SqliteOpFactoryCallNode {
   readonly factoryName = 'recreateTable' as const;
   readonly operationClass: MigrationOperationClass;
@@ -270,8 +605,14 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
   readonly schemaColumnNames: readonly string[];
   readonly indexes: readonly SqliteIndexSpec[];
   readonly summary: string;
-  readonly postchecks: readonly { readonly description: string; readonly sql: string }[];
+  readonly postchecks: readonly RecreatePostcheck[];
   readonly label: string;
+  /** The conversion each named column of the new table is copied through, in place of the live column. */
+  readonly copyExpressions: Readonly<Record<string, SqlSlot>>;
+  /** The value each named new column takes in the existing rows. */
+  readonly temporaryValues: Readonly<Record<string, SqlSlot>>;
+  /** The columns whose type changes; the rebuild checks each after its copy, as a conversion when it has a copy expression and as SQLite's cast otherwise. */
+  readonly retypedColumns: readonly string[];
 
   constructor(args: {
     tableName: string;
@@ -279,10 +620,29 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
     schemaColumnNames: readonly string[];
     indexes: readonly SqliteIndexSpec[];
     summary: string;
-    postchecks: readonly { readonly description: string; readonly sql: string }[];
+    postchecks: readonly RecreatePostcheck[];
     operationClass: MigrationOperationClass;
+    copyExpressions?: Readonly<Record<string, SqlSlot>>;
+    temporaryValues?: Readonly<Record<string, SqlSlot>>;
+    retypedColumns?: readonly string[];
   }) {
     super();
+    refuseUnsafeCopyExpressions(args.tableName, 'copyExpressions', args.copyExpressions ?? {});
+    refuseUnsafeCopyExpressions(args.tableName, 'temporaryValues', args.temporaryValues ?? {});
+    refuseUnknownCopyExpressionColumns(args.tableName, args.contractTable, {
+      copyExpressions: args.copyExpressions ?? {},
+      temporaryValues: args.temporaryValues ?? {},
+      retypedColumns: args.retypedColumns ?? [],
+    });
+    refuseMisplacedTemporaryValues(
+      args.tableName,
+      args.schemaColumnNames,
+      args.copyExpressions ?? {},
+      args.temporaryValues ?? {},
+    );
+    this.copyExpressions = Object.freeze({ ...args.copyExpressions });
+    this.temporaryValues = Object.freeze({ ...args.temporaryValues });
+    this.retypedColumns = Object.freeze([...(args.retypedColumns ?? [])]);
     this.tableName = args.tableName;
     this.contractTable = args.contractTable;
     this.schemaColumnNames = args.schemaColumnNames;
@@ -302,6 +662,10 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
         { meta: { factory: this.factoryName, tableName: this.tableName } },
       );
     }
+    const copies = Object.entries(this.copyExpressions);
+    if (copies.some(([, expression]) => isUnfilledSlot(expression))) {
+      return unfilledPlaceholderOperation(this.label);
+    }
     return recreateTable(
       {
         tableName: this.tableName,
@@ -311,26 +675,57 @@ export class RecreateTableCall extends SqliteOpFactoryCallNode {
         summary: this.summary,
         postchecks: this.postchecks,
         operationClass: this.operationClass,
+        retypedColumns: this.retypedColumns,
+        ...(copies.length === 0 ? {} : { copyExpressions: sqlOfSlots(this.copyExpressions) }),
+        ...(Object.keys(this.temporaryValues).length === 0
+          ? {}
+          : { temporaryValues: sqlOfSlots(this.temporaryValues) }),
       },
       lowerer,
     );
   }
 
+  #slotsSource(slots: Readonly<Record<string, SqlSlot>>, sql: SqlTextSources): string {
+    const entries = Object.entries(slots).map(
+      ([column, expression]) => `${jsonToTsSource(column)}: ${slotSource(expression, sql)}`,
+    );
+    return `{ ${entries.join(', ')} }`;
+  }
+
   renderTypeScript(): string {
-    const args = {
-      tableName: this.tableName,
-      contractTable: this.contractTable,
-      schemaColumnNames: this.schemaColumnNames,
-      indexes: this.indexes,
-      summary: this.summary,
-      postchecks: this.postchecks,
-      operationClass: this.operationClass,
-    };
-    return `this.recreateTable(${jsonToTsSource(args)})`;
+    return this.#written().source;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    return [
+      ...(Object.values(this.copyExpressions).some(isUnfilledSlot)
+        ? [{ moduleSpecifier: TARGET_MIGRATION_MODULE, symbol: 'placeholder' }]
+        : []),
+      ...this.#written().imports,
+    ];
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(TARGET_MIGRATION_MODULE);
+    const args = tsObjectSource([
+      ['tableName', jsonToTsSource(this.tableName)],
+      ['contractTable', renderTableSpec(this.contractTable, sql)],
+      ['schemaColumnNames', jsonToTsSource(this.schemaColumnNames)],
+      ['indexes', jsonToTsSource(this.indexes)],
+      ['summary', jsonToTsSource(this.summary)],
+      ['postchecks', tsArraySource(this.postchecks.map(renderPostcheck))],
+      ['operationClass', jsonToTsSource(this.operationClass)],
+      ...(Object.keys(this.copyExpressions).length === 0
+        ? []
+        : [['copyExpressions', this.#slotsSource(this.copyExpressions, sql)] as const]),
+      ...(Object.keys(this.temporaryValues).length === 0
+        ? []
+        : [['temporaryValues', this.#slotsSource(this.temporaryValues, sql)] as const]),
+      ...(this.retypedColumns.length === 0
+        ? []
+        : [['retypedColumns', jsonToTsSource(this.retypedColumns)] as const]),
+    ]);
+    return { source: `this.recreateTable(${args})`, imports: sql.imports() };
   }
 }
 
@@ -369,32 +764,21 @@ export class AddColumnCall extends SqliteOpFactoryCallNode {
         },
       );
     }
-    const checks = columnExistsAst(this.tableName, this.column.name);
-    const absent = await lowerer.lowerToExecuteRequest(checks.columnAbsent());
-    const present = await lowerer.lowerToExecuteRequest(checks.columnPresent());
-    return {
-      id: `column.${this.tableName}.${this.column.name}`,
-      label: `Add column ${this.column.name} on ${this.tableName}`,
-      summary: `Adds column ${this.column.name} on ${this.tableName}`,
-      operationClass: 'additive',
-      target: {
-        id: 'sqlite',
-        details: buildTargetDetails('column', this.column.name, this.tableName),
-      },
-      precheck: [step(`ensure column "${this.column.name}" is missing`, absent.sql, absent.params)],
-      execute: [
-        step(`add column "${this.column.name}"`, addColumnExecuteSql(this.tableName, this.column)),
-      ],
-      postcheck: [step(`verify column "${this.column.name}" exists`, present.sql, present.params)],
-    };
+    return addColumn(this.tableName, this.column, lowerer);
   }
 
   renderTypeScript(): string {
-    return `this.addColumn({ table: ${jsonToTsSource(this.tableName)}, column: ${jsonToTsSource(this.column)} })`;
+    return this.#written().source;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    return this.#written().imports;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(TARGET_MIGRATION_MODULE);
+    const source = `this.addColumn({ table: ${jsonToTsSource(this.tableName)}, column: ${renderColumnSpec(this.column, sql)} })`;
+    return { source, imports: sql.imports() };
   }
 }
 
@@ -492,6 +876,11 @@ export class CreateIndexCall extends SqliteOpFactoryCallNode {
     this.freeze();
   }
 
+  /** The id of the operation this call lowers to. */
+  get operationId(): string {
+    return `index.${this.tableName}.${this.indexName}`;
+  }
+
   async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
     if (lowerer === undefined) {
       throw sqliteError(
@@ -506,7 +895,7 @@ export class CreateIndexCall extends SqliteOpFactoryCallNode {
     const absent = await lowerer.lowerToExecuteRequest(checks.indexAbsent());
     const present = await lowerer.lowerToExecuteRequest(checks.indexPresent());
     return {
-      id: `index.${this.tableName}.${this.indexName}`,
+      id: this.operationId,
       label: `Create index ${this.indexName} on ${this.tableName}`,
       summary: `Creates index ${this.indexName} on ${this.tableName}`,
       operationClass: 'additive',
@@ -536,7 +925,7 @@ export class CreateIndexCall extends SqliteOpFactoryCallNode {
 
 export class DropIndexCall extends SqliteOpFactoryCallNode {
   readonly factoryName = 'dropIndex' as const;
-  readonly operationClass = 'destructive' as const;
+  readonly operationClass = 'widening' as const;
   readonly tableName: string;
   readonly indexName: string;
   readonly label: string;
@@ -547,6 +936,11 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
     this.indexName = indexName;
     this.label = `Drop index ${indexName} on ${tableName}`;
     this.freeze();
+  }
+
+  /** The id of the operation this call lowers to. */
+  get operationId(): string {
+    return `dropIndex.${this.tableName}.${this.indexName}`;
   }
 
   async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
@@ -563,10 +957,10 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
     const present = await lowerer.lowerToExecuteRequest(checks.indexPresent());
     const absent = await lowerer.lowerToExecuteRequest(checks.indexAbsent());
     return {
-      id: `dropIndex.${this.tableName}.${this.indexName}`,
+      id: this.operationId,
       label: `Drop index ${this.indexName} on ${this.tableName}`,
       summary: `Drops index ${this.indexName} on ${this.tableName} which is not in the contract`,
-      operationClass: 'destructive',
+      operationClass: 'widening',
       target: {
         id: 'sqlite',
         details: buildTargetDetails('index', this.indexName, this.tableName),
@@ -598,7 +992,7 @@ export class DropIndexCall extends SqliteOpFactoryCallNode {
  * any future strategy that needs a placeholder data step can construct one
  * with its own id/label.
  *
- * `toOp()` always throws `MIGRATION.UNFILLED_PLACEHOLDER`: the planner cannot lower a stubbed
+ * `toOp()` always rejects with `MIGRATION.UNFILLED_PLACEHOLDER`: the planner cannot lower a stubbed
  * transform to a runtime op — the user must edit the rendered
  * `migration.ts` and re-emit.
  */
@@ -609,22 +1003,25 @@ export class DataTransformCall extends SqliteOpFactoryCallNode {
   readonly label: string;
   readonly tableName: string;
   readonly columnName: string;
+  /** The slot the user fills with the statement that fills the column: `<Model.field>:run`. */
+  readonly slot: string;
 
-  constructor(id: string, label: string, tableName: string, columnName: string) {
+  constructor(id: string, label: string, tableName: string, columnName: string, slot: string) {
     super();
     this.id = id;
     this.label = label;
     this.tableName = tableName;
     this.columnName = columnName;
+    this.slot = slot;
     this.freeze();
   }
 
-  toOp(_lowerer?: Lowerer): Op {
-    throw errorUnfilledPlaceholder(this.label);
+  toOp(_lowerer?: Lowerer): Promise<Op> {
+    return unfilledPlaceholderOperation(this.label);
   }
 
   renderTypeScript(): string {
-    const slot = `${this.tableName}-${this.columnName}-backfill-sql`;
+    const slot = this.slot;
     return [
       'dataTransform({',
       `  id: ${jsonToTsSource(this.id)},`,
@@ -688,9 +1085,75 @@ export type SqliteOpFactoryCall =
   | CreateTableCall
   | DropTableCall
   | RecreateTableCall
+  | RenameTableCall
+  | RenameColumnCall
   | AddColumnCall
   | DropColumnCall
   | CreateIndexCall
   | DropIndexCall
   | DataTransformCall
   | RawSqlCall;
+
+type RenderedSources<T> = { readonly [K in keyof T]-?: string | undefined };
+
+function definedSourceEntries(
+  sources: Readonly<Record<string, string | undefined>>,
+): readonly (readonly [key: string, source: string])[] {
+  return Object.entries(sources).flatMap(([key, source]) =>
+    source === undefined ? [] : [[key, source] as const],
+  );
+}
+
+function renderIfDefined(value: unknown): string | undefined {
+  return value === undefined ? undefined : jsonToTsSource(value);
+}
+
+function renderColumnSpec(column: SqliteColumnSpec, sql: SqlTextSources): string {
+  const sources: RenderedSources<SqliteColumnSpec> = {
+    name: jsonToTsSource(column.name),
+    typeSql: jsonToTsSource(column.typeSql),
+    default: column.default === undefined ? undefined : renderSpecDefault(column.default, sql),
+    codecRef: renderIfDefined(column.codecRef),
+    nullable: jsonToTsSource(column.nullable),
+    inlineAutoincrementPrimaryKey: renderIfDefined(column.inlineAutoincrementPrimaryKey),
+  };
+  return tsObjectSource(definedSourceEntries(sources));
+}
+
+function renderTableSpec(table: SqliteTableSpec, sql: SqlTextSources): string {
+  const sources: RenderedSources<SqliteTableSpec> = {
+    columns: tsArraySource(table.columns.map((column) => renderColumnSpec(column, sql))),
+    primaryKey: renderIfDefined(table.primaryKey),
+    uniques: renderIfDefined(table.uniques),
+    foreignKeys: renderIfDefined(table.foreignKeys),
+  };
+  return tsObjectSource(definedSourceEntries(sources));
+}
+
+function renderSpecDefault(columnDefault: ColumnDefault, sql: SqlTextSources): string {
+  if (columnDefault.kind === 'literal') return jsonToTsSource(columnDefault);
+  const sources: RenderedSources<typeof columnDefault> = {
+    kind: jsonToTsSource(columnDefault.kind),
+    expression: sql.source(columnDefault.expression),
+  };
+  return tsObjectSource(definedSourceEntries(sources));
+}
+
+function renderPostcheck(postcheck: RecreatePostcheck): string {
+  if ('sql' in postcheck) {
+    const sources: RenderedSources<typeof postcheck> = {
+      description: jsonToTsSource(postcheck.description),
+      sql: tsQuotedTextSource(postcheck.sql),
+      requiredColumn:
+        postcheck.requiredColumn === undefined
+          ? undefined
+          : jsonToTsSource(postcheck.requiredColumn),
+    };
+    return tsObjectSource(definedSourceEntries(sources));
+  }
+  const sources: RenderedSources<typeof postcheck> = {
+    description: jsonToTsSource(postcheck.description),
+    columnDefault: jsonToTsSource(postcheck.columnDefault),
+  };
+  return tsObjectSource(definedSourceEntries(sources));
+}

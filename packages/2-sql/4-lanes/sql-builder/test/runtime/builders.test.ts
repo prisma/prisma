@@ -1,3 +1,9 @@
+import { type ContractExecutionSection, executionHash } from '@internal/contract/types';
+import {
+  applyMutationDefaults,
+  collectMutationDefaultGenerators,
+  type MutationDefaultsOptions,
+} from '@internal/framework-components/runtime';
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import {
   AndExpr,
@@ -6,6 +12,7 @@ import {
   DerivedTableSource,
   ExistsExpr,
   IdentifierRef,
+  OrderByItem,
   ParamRef,
   SelectAst,
   TableSource,
@@ -45,9 +52,14 @@ const emptyAggregateRegistry = {
 
 const sqlContract = validateSqlContractFully<Contract>(contractJson);
 
+const registeredCodecIds = new Set(['pg/bool@1', 'pg/int4@1', 'pg/text@1']);
+
 const stubBase = {
   operations: {},
   codecs: {},
+  codecDescriptors: {
+    descriptorFor: (codecId: string) => (registeredCodecIds.has(codecId) ? {} : undefined),
+  },
   queryOperations: { entries: () => ({}) },
   aggregateDescriptors: emptyAggregateRegistry,
   types: {},
@@ -137,6 +149,59 @@ describe('select', () => {
     expect(ast.projection).toHaveLength(2);
     expect(ast.projection[0]!.alias).toBe('myId');
     expect(ast.projection[1]!.alias).toBe('myName');
+  });
+
+  it('computed projections carry the codec of their return type', () => {
+    const ast = getAst(
+      db().public.users.select((f, fns) => ({
+        isFirst: fns.eq(f.id, 1),
+        hasPosts: fns.exists(db().public.posts.select('id')),
+      })),
+    );
+    expect(ast.projection.map((item) => [item.alias, item.codec])).toEqual([
+      ['isFirst', { codecId: 'pg/bool@1' }],
+      ['hasPosts', { codecId: 'pg/bool@1' }],
+    ]);
+  });
+
+  it('an aliased computed projection carries the codec of its return type', () => {
+    const ast = getAst(db().public.users.select('isFirst', (f, fns) => fns.eq(f.id, 1)));
+    expect(ast.projection.map((item) => item.codec)).toEqual([{ codecId: 'pg/bool@1' }]);
+  });
+
+  it('a computed projection whose codec id the stack does not register carries no codec', () => {
+    const d = sql({
+      context: {
+        ...stubBase,
+        codecDescriptors: { descriptorFor: () => undefined },
+        contract: sqlContract,
+      } as unknown as ExecutionContext<typeof sqlContract>,
+      rawCodecInferer: stubInferer,
+    });
+    const ast = getAst(d.public.users.select('isFirst', (f, fns) => fns.eq(f.id, 1)));
+    expect(ast.projection.map((item) => item.codec)).toEqual([undefined]);
+  });
+
+  it('a computed projection whose codec needs type parameters carries no codec', () => {
+    const requiresTypeName = {
+      '~standard': {
+        version: 1,
+        vendor: 'test',
+        validate: () => ({ issues: [{ message: 'typeName must be a string' }] }),
+      },
+    };
+    const d = sql({
+      context: {
+        ...stubBase,
+        codecDescriptors: { descriptorFor: () => ({ paramsSchema: requiresTypeName }) },
+        contract: sqlContract,
+      } as unknown as ExecutionContext<typeof sqlContract>,
+      rawCodecInferer: stubInferer,
+    });
+    const ast = getAst(
+      d.public.users.select('mood', (_f, fns) => fns.raw`'happy'`.returns('pg/enum@1')),
+    );
+    expect(ast.projection.map((item) => item.codec)).toEqual([undefined]);
   });
 
   it('chained select accumulates projections', () => {
@@ -274,6 +339,35 @@ describe('orderBy', () => {
     expect(ast.orderBy![0]!.dir).toBe('desc');
     expect(ast.orderBy![0]!.expr).toBeInstanceOf(IdentifierRef);
     expect((ast.orderBy![0]!.expr as IdentifierRef).name).toBe('name');
+  });
+
+  it('orderBy carries null placement into the order item', () => {
+    const ast = getAst(
+      db()
+        .public.users.select('id')
+        .orderBy('name', { direction: 'asc', nulls: 'last' })
+        .orderBy((f) => f.id, { direction: 'desc', nulls: 'first' }),
+    );
+    expect(ast.orderBy).toEqual([
+      OrderByItem.asc(IdentifierRef.of('name'), { nulls: 'last' }),
+      OrderByItem.desc(IdentifierRef.of('id'), { nulls: 'first' }),
+    ]);
+  });
+
+  it('orderBy refuses a direction outside asc and desc', () => {
+    expect(() =>
+      db()
+        .public.users.select('id')
+        .orderBy('name', { direction: 'asc, (SELECT 1)' as never }),
+    ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
+  });
+
+  it('orderBy refuses a null placement outside first and last', () => {
+    expect(() =>
+      db()
+        .public.users.select('id')
+        .orderBy((f) => f.id, { nulls: 'last, (SELECT 1)' as never }),
+    ).toThrow(expect.objectContaining({ code: 'ORM.ARGUMENT_INVALID' }));
   });
 
   it('orderBy defaults to asc', () => {
@@ -500,7 +594,7 @@ describe('mutation defaults', () => {
     d.public.users.insert([{ id: 1, name: 'A', email: 'a@b.com' }]).build();
     expect(spy).toHaveBeenCalledWith({
       op: 'create',
-      table: 'users',
+      entry: 'users',
       namespace: 'public',
       values: { id: 1, name: 'A', email: 'a@b.com' },
     });
@@ -514,10 +608,60 @@ describe('mutation defaults', () => {
       .build();
     expect(spy).toHaveBeenCalledWith({
       op: 'update',
-      table: 'users',
+      entry: 'users',
       namespace: 'public',
       values: { name: 'B' },
     });
+  });
+  it('treats a key present with an undefined value as explicit, so no default fills it', () => {
+    const execution: ContractExecutionSection = {
+      executionHash: executionHash('test'),
+      mutations: {
+        defaults: [
+          {
+            ref: { namespace: 'public', entry: 'users', field: 'email' },
+            onCreate: { kind: 'generator', id: 'fill' },
+            onUpdate: { kind: 'generator', id: 'fill' },
+          },
+        ],
+      },
+    };
+    const generators = collectMutationDefaultGenerators([
+      {
+        id: 'test',
+        mutationDefaultGenerators: () => [
+          { id: 'fill', generate: () => 'filled@x.com', stability: 'field' },
+        ],
+      },
+    ]);
+    const d = sql({
+      context: {
+        ...stubBase,
+        contract: sqlContract,
+        applyMutationDefaults: (options: MutationDefaultsOptions) =>
+          applyMutationDefaults(execution, generators, options),
+      } as unknown as ExecutionContext<typeof sqlContract>,
+      rawCodecInferer: stubInferer,
+    });
+    const emailOf = (row: Readonly<Record<string, unknown>> | undefined) =>
+      (row?.['email'] as { readonly value: unknown } | undefined)?.value;
+
+    const inserted = d.public.users
+      .insert([
+        { id: 1, name: 'A', email: undefined },
+        { id: 2, name: 'B' },
+      ] as never)
+      .build().ast;
+    if (inserted.kind !== 'insert') throw new Error('expected insert');
+    expect(inserted.rows.map(emailOf)).toEqual([undefined, 'filled@x.com']);
+
+    const updated = d.public.users
+      .update({ name: 'C', email: undefined } as never)
+      .where((f, fns) => fns.eq(f.id, 1))
+      .build().ast;
+    if (updated.kind !== 'update') throw new Error('expected update');
+    expect(emailOf(updated.set)).toBeUndefined();
+    expect(updated.set).toHaveProperty('email');
   });
 });
 
@@ -542,14 +686,14 @@ describe('INSERT multi-row', () => {
     expect(spy).toHaveBeenCalledTimes(1);
     expect(spy).toHaveBeenCalledWith({
       op: 'create',
-      table: 'users',
+      entry: 'users',
       namespace: 'public',
       values: { id: 1, name: 'A' },
     });
   });
 
   it('multi-row calls applyMutationDefaults once per row', () => {
-    const spy = vi.fn(() => [{ column: 'email', value: 'default@x.com' }]);
+    const spy = vi.fn(() => [{ field: 'email', value: 'default@x.com' }]);
     const d = sql({
       context: {
         ...stubBase,
@@ -589,7 +733,7 @@ describe('INSERT multi-row', () => {
   it('multi-row with defaults hook: each row gets its own defaults independently', () => {
     const spy = vi.fn((args: { values: Record<string, unknown> }) => {
       if ('id' in args.values && (args.values['id'] as number) === 1) {
-        return [{ column: 'email', value: 'default@x.com' }];
+        return [{ field: 'email', value: 'default@x.com' }];
       }
       return [];
     });
@@ -647,7 +791,29 @@ describe('UPDATE callback overload', () => {
       .where((f, fns) => fns.eq(f.id, 1))
       .build();
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ op: 'update', table: 'users' }));
+    expect(spy).toHaveBeenCalledWith(expect.objectContaining({ op: 'update', entry: 'users' }));
+  });
+
+  it('returning projections carry the codec of each returned column', () => {
+    const insertAst = db()
+      .public.users.insert([{ name: 'Alice' }])
+      .returning('id', 'name')
+      .build().ast;
+    const updateAst = db()
+      .public.users.update({ name: 'x' })
+      .where((f, fns) => fns.eq(f.id, 42))
+      .returning('id')
+      .build().ast;
+    if (insertAst.kind !== 'insert' || updateAst.kind !== 'update') {
+      throw new Error('expected insert and update');
+    }
+    expect(insertAst.returning?.map((item) => [item.alias, item.codec?.codecId])).toEqual([
+      ['id', 'pg/int4@1'],
+      ['name', 'pg/text@1'],
+    ]);
+    expect(updateAst.returning?.map((item) => [item.alias, item.codec?.codecId])).toEqual([
+      ['id', 'pg/int4@1'],
+    ]);
   });
 
   it('where and returning clauses are identical between object and callback overloads', () => {

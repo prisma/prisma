@@ -1,7 +1,7 @@
+import { structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { CliStructuredError } from '../src/control';
 import {
-  errorDestructiveChanges,
   errorHashMismatch,
   errorMarkerMissing,
   errorMarkerReadFailed,
@@ -104,23 +104,6 @@ describe('Runtime Errors', () => {
     const cause = new Error('underlying failure');
     const error = errorRunnerFailed('Runner failed', { cause });
     expect(error.cause).toBe(cause);
-  });
-
-  it('errorDestructiveChanges creates correct error', () => {
-    const error = errorDestructiveChanges('Destructive changes detected');
-    expect(error.code).toBe('MIGRATION.DESTRUCTIVE_CHANGES');
-    expect(error.message).toBe('Destructive changes detected');
-  });
-
-  it('errorDestructiveChanges with all options', () => {
-    const error = errorDestructiveChanges('Destructive changes detected', {
-      why: 'Custom why',
-      fix: 'Custom fix',
-      meta: { key: 'value' },
-    });
-    expect(error.why).toBe('Custom why');
-    expect(error.fix).toBe('Custom fix');
-    expect(error.meta).toEqual({ key: 'value' });
   });
 
   it('errorRuntime carries the caller-provided code', () => {
@@ -271,6 +254,68 @@ describe('Runtime Errors', () => {
         markerLocation: 'prisma_contract.marker',
       }),
     ).toThrow(existing);
+  });
+
+  it('rethrowMarkerReadError passes a DRIVER error through unchanged', () => {
+    const driverError = Object.assign(new Error('Postgres driver is closed'), {
+      code: 'DRIVER.NOT_CONNECTED',
+      category: 'DRIVER',
+      severity: 'error',
+    });
+    const invoke = () =>
+      rethrowMarkerReadError(driverError, {
+        space: 'app',
+        markerLocation: 'prisma_contract.marker',
+      });
+
+    expect(invoke).toThrow(
+      expect.objectContaining({
+        code: 'DRIVER.NOT_CONNECTED',
+        category: 'DRIVER',
+        message: 'Postgres driver is closed',
+      }),
+    );
+    expect(invoke).not.toThrow(CliStructuredError);
+  });
+
+  it('withMarkerReadErrorHandling passes a DRIVER error through unchanged', async () => {
+    const driverError = Object.assign(new Error('connection lost'), {
+      code: 'DRIVER.NOT_CONNECTED',
+      category: 'DRIVER',
+    });
+
+    await expect(
+      withMarkerReadErrorHandling(
+        async () => {
+          throw driverError;
+        },
+        { space: 'app', markerLocation: 'prisma_contract.marker' },
+      ),
+    ).rejects.toBe(driverError);
+  });
+
+  it('rethrowMarkerReadError passes a DRIVER-namespace structured error without a category through unchanged', () => {
+    const closed = structuredError('DRIVER.NOT_CONNECTED', 'Runtime is closed');
+
+    expect(() =>
+      rethrowMarkerReadError(closed, { space: 'app', markerLocation: 'prisma_contract.marker' }),
+    ).toThrow(closed);
+  });
+
+  it('rethrowMarkerReadError wraps a structured error outside the DRIVER namespace', () => {
+    const other = structuredError('RUNTIME.ENCODE_FAILED', 'encode failed');
+
+    expect(() =>
+      rethrowMarkerReadError(other, { space: 'app', markerLocation: 'prisma_contract.marker' }),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.MARKER_READ_FAILED', cause: other }));
+  });
+
+  it('rethrowMarkerReadError wraps a plain Error', () => {
+    const plain = new Error('socket reset');
+
+    expect(() =>
+      rethrowMarkerReadError(plain, { space: 'app', markerLocation: 'prisma_contract.marker' }),
+    ).toThrow(expect.objectContaining({ code: 'CONTRACT.MARKER_READ_FAILED', cause: plain }));
   });
 
   it('withMarkerReadErrorHandling wraps async query failures', async () => {

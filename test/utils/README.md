@@ -1,6 +1,6 @@
 # @repo/test-utils
 
-Shared test utilities for Prisma Next test suites.
+Shared test utilities for Prisma 8 test suites.
 
 ## Location
 
@@ -8,7 +8,7 @@ This package is located at `test/utils/` (not in `packages/`) as it is a test ut
 
 ## Overview
 
-The test-utils package provides shared generic test helpers used across multiple test suites in Prisma Next. It centralizes common testing patterns to reduce duplication and ensure consistency.
+The test-utils package provides shared generic test helpers used across multiple test suites in Prisma 8. It centralizes common testing patterns to reduce duplication and ensure consistency.
 
 ## Purpose
 
@@ -127,7 +127,7 @@ import type { ColumnBuilder, OperationsForTypeId } from '@internal/sql-relationa
 // Use in type-level tests
 type TestColumnBuilder = ColumnBuilder<
   'vector',
-  { nativeType: 'vector'; codecId: 'pg/vector@1'; nullable: false },
+  { dataType: 'pgvector/vector'; codecId: 'pg/vector@1'; nullable: false },
   unknown,
   PgVectorOperations
 >;

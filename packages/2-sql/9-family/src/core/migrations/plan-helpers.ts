@@ -1,3 +1,11 @@
+import type {
+  AppliedMigrationStatement,
+  FailedTypeChange,
+  MigrationPlanSubjects,
+  RowsWithoutValue,
+} from '@internal/framework-components/control';
+import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import type { NotOk, Ok } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
 import type {
@@ -21,7 +29,9 @@ function cloneRecord<T extends AnyRecord>(value: T): T {
   if (value === readOnlyEmptyObject) {
     return value;
   }
-  return Object.freeze({ ...value }) as T;
+  return blindCast<T, 'shallow clone preserves the input record shape while freezing it'>(
+    Object.freeze({ ...value }),
+  );
 }
 
 function freezeSteps(
@@ -52,10 +62,14 @@ function freezeDetailsValue<T>(value: T): T {
   }
   // Arrays: shallow clone and freeze
   if (Array.isArray(value)) {
-    return Object.freeze([...value]) as T;
+    return blindCast<T, 'shallow clone preserves the input array shape while freezing it'>(
+      Object.freeze([...value]),
+    );
   }
   // Objects: shallow clone and freeze (matching cloneRecord pattern)
-  return Object.freeze({ ...value }) as T;
+  return blindCast<T, 'shallow clone preserves the input object shape while freezing it'>(
+    Object.freeze({ ...value }),
+  );
 }
 
 function freezeTargetDetails<TTargetDetails>(
@@ -111,11 +125,17 @@ export function createMigrationPlan<TTargetDetails>(
 
 export function plannerSuccess<TTargetDetails>(
   plan: SqlMigrationPlan<TTargetDetails>,
+  appliedStatements: readonly AppliedMigrationStatement[],
+  subjects: MigrationPlanSubjects,
   warnings?: readonly SqlPlannerConflict[],
 ): SqlPlannerSuccessResult<TTargetDetails> {
   return Object.freeze({
     kind: 'success',
     plan,
+    appliedStatements: Object.freeze([...appliedStatements]),
+    dataLoss: Object.freeze([...subjects.dataLoss]),
+    accessWidening: Object.freeze([...subjects.accessWidening]),
+    temporaryValues: Object.freeze([...subjects.temporaryValues]),
     ...(warnings && warnings.length > 0
       ? {
           warnings: Object.freeze(
@@ -125,6 +145,12 @@ export function plannerSuccess<TTargetDetails>(
                 summary: conflict.summary,
                 ...(conflict.why ? { why: conflict.why } : {}),
                 ...(conflict.location ? { location: Object.freeze({ ...conflict.location }) } : {}),
+                ...(conflict.refusedStatement
+                  ? { refusedStatement: conflict.refusedStatement }
+                  : {}),
+                ...(conflict.refusedOperationClass
+                  ? { refusedOperationClass: conflict.refusedOperationClass }
+                  : {}),
                 ...(conflict.meta ? { meta: cloneRecord(conflict.meta) } : {}),
               }),
             ),
@@ -144,6 +170,10 @@ export function plannerFailure(conflicts: readonly SqlPlannerConflict[]): SqlPla
           summary: conflict.summary,
           ...(conflict.why ? { why: conflict.why } : {}),
           ...(conflict.location ? { location: Object.freeze({ ...conflict.location }) } : {}),
+          ...(conflict.refusedStatement ? { refusedStatement: conflict.refusedStatement } : {}),
+          ...(conflict.refusedOperationClass
+            ? { refusedOperationClass: conflict.refusedOperationClass }
+            : {}),
           ...(conflict.meta ? { meta: cloneRecord(conflict.meta) } : {}),
         }),
       ),
@@ -172,13 +202,20 @@ export function runnerSuccess(value: {
 export function runnerFailure(
   code: SqlMigrationRunnerErrorCode,
   summary: string,
-  options?: { why?: string; meta?: AnyRecord },
+  options?: {
+    why?: string;
+    meta?: AnyRecord;
+    failedTypeChange?: FailedTypeChange | undefined;
+    rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
+  },
 ): NotOk<SqlMigrationRunnerFailure> {
   const failure: SqlMigrationRunnerFailure = Object.freeze({
     code,
     summary,
     ...(options?.why ? { why: options.why } : {}),
     ...(options?.meta ? { meta: cloneRecord(options.meta) } : {}),
+    ...ifDefined('failedTypeChange', options?.failedTypeChange),
+    ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
   });
   return notOk(failure);
 }

@@ -1,30 +1,35 @@
 import type { SqlStorage } from '@internal/sql-contract/types';
-import { check, defineContract, field, model } from '@internal/sql-contract-ts/contract-builder';
+import {
+  check,
+  defineContract,
+  field,
+  model,
+  sql,
+} from '@internal/sql-contract-ts/contract-builder';
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { interpretPslDocumentToSqlContract } from '../src/interpreter';
+import { fixtureInterpreterTypes, fixtureTypeLookups } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
+  interpretSqlContract,
   postgresScalarTypeDescriptors,
   postgresTarget,
   sqliteScalarColumnDescriptors,
   sqliteTarget,
-  symbolTableInputFromParseArgs,
   testEnumEntityContributions,
 } from './fixtures';
 
 const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
 
 function interpret(schema: string) {
-  const document = symbolTableInputFromParseArgs({ schema, sourceId: 'schema.prisma' });
-  return interpretPslDocumentToSqlContract({
-    ...document,
+  return interpretSqlContract(schema, {
     target: postgresTarget,
     scalarColumnDescriptors: postgresScalarTypeDescriptors,
     authoringContributions: { entityTypes: testEnumEntityContributions, type: {}, field: {} },
     composedExtensionContracts: new Map(),
     controlMutationDefaults: builtinControlMutationDefaults,
     createNamespace: createTestSqlNamespace,
+    ...fixtureInterpreterTypes,
     capabilities: { sql: { scalarList: true, checkConstraint: true } },
   });
 }
@@ -46,12 +51,12 @@ const postgresTargetPack = {
 };
 
 const orderFields = {
-  id: field.column({ codecId: 'pg/int4@1', nativeType: 'int4' }).id(),
-  total: field.column({ codecId: 'pg/numeric@1', nativeType: 'numeric' }),
+  id: field.column({ codecId: 'pg/int4@1' }).id(),
+  total: field.column({ codecId: 'pg/numeric@1' }),
 };
 
 function orderTableOf(storage: SqlStorage) {
-  return storage.namespaces['public']?.entries.table?.['order'];
+  return storage.namespaces['public']?.entries.table?.['Order'];
 }
 
 describe('@@check PSL ↔ TS parity', () => {
@@ -61,7 +66,7 @@ model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "total > 0", name: "order_total_positive")
+  @@check(expression: sql\`total > 0\`, name: "order_total_positive")
 }
 `);
     expect(pslResult.ok, pslResult.ok ? '' : JSON.stringify(pslResult.failure.diagnostics)).toBe(
@@ -70,13 +75,14 @@ model Order {
     if (!pslResult.ok) return;
 
     const tsContract = defineContract({
+      ...fixtureTypeLookups,
       family: sqlFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
       models: {
         Order: model('Order', { fields: orderFields }).sql({
-          table: 'order',
-          checks: [check({ expression: 'total > 0', name: 'order_total_positive' })],
+          table: 'Order',
+          checks: [check({ expression: sql`total > 0`, name: 'order_total_positive' })],
         }),
       },
     });
@@ -102,7 +108,7 @@ model LegacyOrder {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "(total > (0)::numeric)", map: "positive_total")
+  @@check(expression: sql\`(total > (0)::numeric)\`, map: "positive_total")
 }
 `);
       expect(pslResult.ok, pslResult.ok ? '' : JSON.stringify(pslResult.failure.diagnostics)).toBe(
@@ -111,21 +117,22 @@ model LegacyOrder {
       if (!pslResult.ok) return;
 
       const tsContract = defineContract({
+        ...fixtureTypeLookups,
         family: sqlFamilyPack,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
         models: {
           LegacyOrder: model('LegacyOrder', { fields: orderFields }).sql({
-            table: 'legacyOrder',
-            checks: [check({ expression: '(total > (0)::numeric)', map: 'positive_total' })],
+            table: 'LegacyOrder',
+            checks: [check({ expression: sql`(total > (0)::numeric)`, map: 'positive_total' })],
           }),
         },
       });
 
       const pslStorage = pslResult.value.storage as unknown as SqlStorage;
       const tsStorage = tsContract.storage as unknown as SqlStorage;
-      const pslTable = pslStorage.namespaces['public']?.entries.table?.['legacyOrder'];
-      const tsTable = tsStorage.namespaces['public']?.entries.table?.['legacyOrder'];
+      const pslTable = pslStorage.namespaces['public']?.entries.table?.['LegacyOrder'];
+      const tsTable = tsStorage.namespaces['public']?.entries.table?.['LegacyOrder'];
 
       expect(pslTable?.checks).toEqual([
         { name: 'positive_total', expression: '(total > (0)::numeric)' },
@@ -146,8 +153,8 @@ model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "total > 0", name: "order_total_positive")
-  @@check(expression: "(total > (0)::numeric)", map: "positive_total")
+  @@check(expression: sql\`total > 0\`, name: "order_total_positive")
+  @@check(expression: sql\`(total > (0)::numeric)\`, map: "positive_total")
 }
 `);
       expect(pslResult.ok, pslResult.ok ? '' : JSON.stringify(pslResult.failure.diagnostics)).toBe(
@@ -156,15 +163,16 @@ model Order {
       if (!pslResult.ok) return;
 
       const tsContract = defineContract({
+        ...fixtureTypeLookups,
         family: sqlFamilyPack,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
         models: {
           Order: model('Order', { fields: orderFields }).sql({
-            table: 'order',
+            table: 'Order',
             checks: [
-              check({ expression: 'total > 0', name: 'order_total_positive' }),
-              check({ expression: '(total > (0)::numeric)', map: 'positive_total' }),
+              check({ expression: sql`total > 0`, name: 'order_total_positive' }),
+              check({ expression: sql`(total > (0)::numeric)`, map: 'positive_total' }),
             ],
           }),
         },
@@ -204,7 +212,7 @@ model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "total > 0")
+  @@check(expression: sql\`total > 0\`)
 }
 `,
       'PSL_CHECK_REQUIRES_NAME_OR_MAP',
@@ -219,7 +227,7 @@ model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "total > 0", name: "a", map: "b")
+  @@check(expression: sql\`total > 0\`, name: "a", map: "b")
 }
 `,
       'PSL_CHECK_NAME_XOR_MAP',
@@ -234,7 +242,7 @@ model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "", name: "order_total_positive")
+  @@check(expression: sql\`\`, name: "order_total_positive")
 }
 `,
       'PSL_CHECK_EXPRESSION_EMPTY',
@@ -249,7 +257,7 @@ model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "   ", name: "order_total_positive")
+  @@check(expression: sql\`   \`, name: "order_total_positive")
 }
 `,
       'PSL_CHECK_EXPRESSION_EMPTY',
@@ -272,7 +280,7 @@ model Bug {
   severity String
 
   @@base(Task, "bug")
-  @@check(expression: "severity <> ''", name: "bug_severity_present")
+  @@check(expression: sql\`severity <> ''\`, name: "bug_severity_present")
 }
 `,
       'PSL_CHECK_ON_STI_VARIANT',
@@ -296,7 +304,7 @@ model Bug {
 
   @@base(Task, "bug")
   @@map("bug")
-  @@check(expression: "severity <> ''", name: "bug_severity_present")
+  @@check(expression: sql\`severity <> ''\`, name: "bug_severity_present")
 }
 `);
     expect(result.ok, result.ok ? '' : JSON.stringify(result.failure.diagnostics)).toBe(true);
@@ -312,27 +320,25 @@ model Bug {
 
 describe('@@check capability gating', () => {
   it('rejects @@check against a target whose adapter lacks the checkConstraint capability', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `
+    const result = interpretSqlContract(
+      `
 model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "total > 0", name: "order_total_positive")
+  @@check(expression: sql\`total > 0\`, name: "order_total_positive")
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      target: sqliteTarget,
-      scalarColumnDescriptors: sqliteScalarColumnDescriptors,
-      composedExtensionContracts: new Map(),
-      createNamespace: createTestSqlNamespace,
-      capabilities: { sql: {} },
-      ...document,
-      controlMutationDefaults: builtinControlMutationDefaults,
-    });
+      {
+        target: sqliteTarget,
+        scalarColumnDescriptors: sqliteScalarColumnDescriptors,
+        composedExtensionContracts: new Map(),
+        createNamespace: createTestSqlNamespace,
+        ...fixtureInterpreterTypes,
+        capabilities: { sql: {} },
+        controlMutationDefaults: builtinControlMutationDefaults,
+      },
+    );
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -348,27 +354,25 @@ model Order {
   });
 
   it('rejects @@check against an empty capability matrix (fail-closed)', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `
+    const result = interpretSqlContract(
+      `
 model Order {
   id    Int     @id
   total Decimal
 
-  @@check(expression: "total > 0", name: "order_total_positive")
+  @@check(expression: sql\`total > 0\`, name: "order_total_positive")
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      target: postgresTarget,
-      scalarColumnDescriptors: postgresScalarTypeDescriptors,
-      composedExtensionContracts: new Map(),
-      createNamespace: createTestSqlNamespace,
-      capabilities: {},
-      ...document,
-      controlMutationDefaults: builtinControlMutationDefaults,
-    });
+      {
+        target: postgresTarget,
+        scalarColumnDescriptors: postgresScalarTypeDescriptors,
+        composedExtensionContracts: new Map(),
+        createNamespace: createTestSqlNamespace,
+        ...fixtureInterpreterTypes,
+        capabilities: {},
+        controlMutationDefaults: builtinControlMutationDefaults,
+      },
+    );
 
     expect(result.ok).toBe(false);
     if (result.ok) return;

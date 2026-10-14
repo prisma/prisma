@@ -23,7 +23,7 @@ export type ContractFieldType = ScalarFieldType | ValueObjectFieldType | UnionFi
 export type ContractField = {
   readonly nullable: boolean;
   readonly type: ContractFieldType;
-  readonly many?: true;
+  readonly many?: false | { readonly elementNullable: boolean };
   readonly dict?: true;
   readonly valueSet?: ValueSetRef;
 };
@@ -58,12 +58,26 @@ export type ContractManyToManyRelation = {
   readonly through: ContractRelationThrough;
 };
 
-export type ContractNonJunctionRelation = {
+/**
+ * A to-one reference relation. `nullable` records whether the related row may be
+ * absent, as stated by the schema (`author User?` versus `author User`).
+ */
+export type ContractToOneRelation = {
   readonly to: CrossReference;
-  readonly cardinality: '1:1' | '1:N' | 'N:1';
+  readonly cardinality: '1:1' | 'N:1';
+  readonly nullable: boolean;
   readonly on: ContractRelationOn;
   readonly through?: never;
 };
+
+export type ContractToManyRelation = {
+  readonly to: CrossReference;
+  readonly cardinality: '1:N';
+  readonly on: ContractRelationOn;
+  readonly through?: never;
+};
+
+export type ContractNonJunctionRelation = ContractToOneRelation | ContractToManyRelation;
 
 export type ContractReferenceRelation = ContractManyToManyRelation | ContractNonJunctionRelation;
 
@@ -78,10 +92,6 @@ export type ContractDiscriminator = {
   readonly field: string;
 };
 
-export type ContractVariantEntry = {
-  readonly value: string;
-};
-
 export type ContractValueObject = {
   readonly fields: Record<string, ContractField>;
 };
@@ -93,7 +103,7 @@ export interface ContractModelBase<TModelStorage extends ModelStorageBase = Mode
   readonly relations: Record<string, ContractRelation>;
   readonly storage: TModelStorage;
   readonly discriminator?: ContractDiscriminator;
-  readonly variants?: Record<string, ContractVariantEntry>;
+  readonly variants?: Record<string, CrossReference>;
   readonly base?: CrossReference;
   readonly owner?: string;
 }

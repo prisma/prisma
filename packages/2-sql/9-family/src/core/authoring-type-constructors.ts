@@ -4,10 +4,10 @@ export const sqlFamilyAuthoringTypes = {
   sql: {
     String: {
       kind: 'typeConstructor',
-      args: [{ kind: 'number', name: 'length', integer: true, minimum: 1, maximum: 10485760 }],
+      documentation: 'Variable-length text with a required maximum character length.',
+      args: [{ kind: 'number', name: 'length', integer: true }],
       output: {
         codecId: 'sql/varchar@1',
-        nativeType: 'character varying',
         typeParams: {
           length: { kind: 'arg', index: 0 },
         },

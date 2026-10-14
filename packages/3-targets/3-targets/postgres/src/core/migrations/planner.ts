@@ -1,42 +1,59 @@
 import type { Contract } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
+  PlannedStatements,
   SqlMigrationPlannerPlanOptions,
   SqlPlannerConflict,
   SqlPlannerFailureResult,
   SuppressionRecord,
 } from '@internal/family-sql/control';
 import {
+  appliedStatementsInOrder,
+  backfillOfDefaultedField,
   controlPolicyForCall,
+  detectTableNameCaseChanges,
   extractCodecControlHooks,
+  fieldStatementColumns,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
-  planFieldEventOperations,
+  planFieldEventCalls,
   plannerFailure,
+  planStatements,
+  sqlTypeLookupsOf,
+  subjectsOfCalls,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
+  AppliedMigrationStatement,
+  MigrationAccessChange,
+  MigrationDataLoss,
   MigrationOperationClass,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
+  MigrationTemporaryValue,
+  PlanOrigin,
+  ResolvedMigrationStatement,
   SchemaDiffIssue,
   SchemaOwnership,
 } from '@internal/framework-components/control';
-import { issueOutcome } from '@internal/framework-components/control';
+import { isRenameStatement, issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
-import { SqlCheckConstraintIR, SqlIndexIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { ok, type Result } from '@internal/utils/result';
+import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresRlsPolicy } from '../postgres-rls-policy';
 import { postgresNodeStorageCoordinate } from '../schema-ir/node-storage-coordinate';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
+import { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import type { SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
+import { plannedConstraintNameRenames } from './constraint-name-renames';
 import {
   renderPostgresSuppression,
   resolveNamespaceIdForDdlSchema,
@@ -45,6 +62,7 @@ import {
   resolvePostgresNodeIssueCreationFactoryName,
 } from './control-policy';
 import { buildPostgresPlanDiff } from './diff-database-schema';
+import { pairCheckRenames, pairIndexRenames } from './index-and-check-renames';
 import {
   coalesceSubtreeIssues,
   conflictForDisallowedCall,
@@ -54,16 +72,32 @@ import {
 } from './issue-planner';
 import type { PostgresOpFactoryCall } from './op-factory-call';
 import {
+  AlterColumnTypeCall,
   CreatePostgresRlsPolicyCall,
+  DropColumnCall,
+  DropNativeEnumTypeCall,
   DropPostgresRlsPolicyCall,
-  RenameCheckConstraintCall,
-  RenameIndexCall,
+  DropTableCall,
+  RawSqlCall,
+  type RenameColumnCall,
   RenamePostgresRlsPolicyCall,
+  type RenameTableCall,
 } from './op-factory-call';
+import { postgresCallSubjects } from './operation-subjects';
 import { TypeScriptRenderablePostgresMigration } from './planner-produced-postgres-migration';
 import { postgresPlannerStrategies } from './planner-strategies';
 import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
+import { postgresSchemaTables } from './schema-tables';
+import {
+  postgresColumnRenameCall,
+  postgresTableRenameByHand,
+  postgresTableRenameCall,
+  renameTableByHandStatements,
+  renderRenameTableCall,
+} from './table-rename-calls';
+import { withChecksAroundTypeChanges } from './type-change-checks';
 import { verifyPostgresNamespacePresence } from './verify-postgres-namespaces';
+import { createWorkingSchema } from './working-schema';
 
 type PlannerFrameworkComponents = SqlMigrationPlannerPlanOptions extends {
   readonly frameworkComponents: infer T;
@@ -74,6 +108,18 @@ type PlannerFrameworkComponents = SqlMigrationPlannerPlanOptions extends {
 type PlannerOptionsWithComponents = SqlMigrationPlannerPlanOptions & {
   readonly frameworkComponents: PlannerFrameworkComponents;
 };
+
+function partitionPostgresCallsByControlPolicy<TCall extends PostgresOpFactoryCall>(
+  calls: readonly TCall[],
+  contract: Contract<SqlStorage>,
+) {
+  return partitionCallsByControlPolicy({
+    calls,
+    contract,
+    resolveControlPolicySubject: (call) => resolvePostgresCallControlPolicySubject(call, contract),
+    resolveFactoryName: (call) => call.factoryName,
+  });
+}
 
 export function createPostgresMigrationPlanner(
   lowerer: ExecuteRequestLowerer,
@@ -93,6 +139,10 @@ export type PostgresPlanResult =
       readonly kind: 'success';
       readonly plan: TypeScriptRenderablePostgresMigration;
       readonly warnings?: readonly SqlPlannerConflict[];
+      readonly appliedStatements: readonly AppliedMigrationStatement[];
+      readonly dataLoss: readonly MigrationDataLoss[];
+      readonly accessWidening: readonly MigrationAccessChange[];
+      readonly temporaryValues: readonly MigrationTemporaryValue[];
     }
   | SqlPlannerFailureResult;
 
@@ -135,11 +185,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
      *
      * Typed as the framework `Contract | null` to satisfy the
      * `MigrationPlanner` interface contract; `planSql` narrows to the SQL
-     * shape via `SqlMigrationPlannerPlanOptions`. Used to populate
-     * `describe().from` on the produced plan as
-     * `fromContract?.storage.storageHash ?? null`.
+     * shape via `SqlMigrationPlannerPlanOptions`.
      */
     readonly fromContract: Contract | null;
+    /** The origin the produced plan asserts: its `describe().from` and `origin`. */
+    readonly origin: PlanOrigin | null;
+    readonly statements: readonly ResolvedMigrationStatement[];
     readonly schemaName?: string;
     readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
     /**
@@ -160,7 +211,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
      */
     readonly snapshotsImportPath: string;
   }): PostgresPlanResult {
-    return this.planSql(options as SqlMigrationPlannerPlanOptions);
+    return this.planSql(
+      blindCast<
+        SqlMigrationPlannerPlanOptions,
+        'framework planner options are the SQL-specific planner options for the Postgres planner implementation'
+      >(options),
+    );
   }
 
   emptyMigration(
@@ -195,9 +251,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     // (`diffSchema`) over the same schema and rejects on a
     // surviving failure.
     PostgresDatabaseSchemaNode.assert(options.schema);
-    const { issues: rawIssues } = buildPostgresPlanDiff({
+    const statements = this.planStatements(options, options.schema);
+    if (!statements.ok) {
+      return plannerFailure([statements.failure]);
+    }
+    const { schema } = statements.value;
+    const { issues: rawIssues, expected: expectedSchema } = buildPostgresPlanDiff({
       contract: options.contract,
-      actualSchema: options.schema,
+      actualSchema: schema,
       frameworkComponents: options.frameworkComponents,
     });
     const policyDiffIssues = rawIssues.filter((issue) => isPolicyDiffIssue(issue));
@@ -244,7 +305,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     // sibling-space scoping, matching the retired coordinate walk exactly.
     const namespaceIssues = verifyPostgresNamespacePresence({
       contract: options.contract,
-      schema: options.schema,
+      schema,
     });
     const schemaIssues = [...namespaceIssues, ...gated];
 
@@ -254,8 +315,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     // mapping turns them into create + drop. Consumed issues never reach
     // `planIssues`; the rename calls go through the same call-side
     // control-policy partition the policy ops use.
-    const indexRenames = this.pairIndexRenames(options, schemaIssues);
-    const checkRenames = this.pairCheckRenames(options, schemaIssues);
+    const indexRenames = pairIndexRenames(options, schemaIssues);
+    const checkRenames = pairCheckRenames(options, schemaIssues);
     const renameConsumed = new Set([...indexRenames.consumed, ...checkRenames.consumed]);
     const plannableIssues =
       renameConsumed.size === 0
@@ -263,13 +324,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         : schemaIssues.filter((issue) => !renameConsumed.has(issue));
 
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
+    const types = sqlTypeLookupsOf(options.frameworkComponents);
     const storageTypes = options.contract.storage.types ?? {};
     // The strategy layer reads the live schema by bare table name for existence
     // checks (shared-temp-default safety, FK/unique probes), so it takes one
     // per-schema namespace node — never the whole tree root, and never a flat
     // merge of every namespace (which would collide same-named tables across
     // schemas). Probing more than one namespace at once is future work.
-    const relationalSchema = relationalNamespaceNode(options.schema, schemaName);
+    const relationalSchema = relationalNamespaceNode(schema, schemaName);
 
     // Input-side control-policy partition. `external` / `observed` subjects
     // — and non-creation issues for `tolerated` subjects — are dropped from
@@ -286,6 +348,34 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       resolveCreationFactoryName: resolvePostgresNodeIssueCreationFactoryName,
     });
 
+    // The case guard runs on the plannable partition only: a table the
+    // control policy keeps the planner away from (`external`, `observed`) is
+    // never dropped or created, so it cannot form a drop-and-create pair.
+    const caseChangeConflicts = detectTableNameCaseChanges({
+      issues: issuePartition.plannable,
+      tableOf: (issue) => {
+        const node = issueNode(issue);
+        return node !== undefined && PostgresTableSchemaNode.is(node) ? node : undefined;
+      },
+      namespaceIdOf: (issue) =>
+        resolveNamespaceIdForDdlSchema(options.contract, issueSchemaName(issue) ?? schemaName),
+      renameByHandStatements: (rename) => renameTableByHandStatements(options.contract, rename),
+      renameTableCall: renderRenameTableCall,
+      contract: options.contract,
+      defaultNamespaceId: DEFAULT_NAMESPACE_ID,
+    });
+    if (caseChangeConflicts.length > 0) {
+      return plannerFailure(caseChangeConflicts);
+    }
+    const defaultedBackfill = backfillOfDefaultedField(
+      options.statements,
+      options.fromContract,
+      options.contract,
+    );
+    if (defaultedBackfill !== undefined) {
+      return plannerFailure([defaultedBackfill]);
+    }
+
     const result = planIssues({
       issues: issuePartition.plannable,
       toContract: options.contract,
@@ -297,10 +387,12 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       fromContract: options.fromContract,
       schemaName,
       codecHooks,
+      types,
       storageTypes,
       ...ifDefined('schema', relationalSchema),
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
+      statementColumns: fieldStatementColumns(options.statements, options.contract),
       strategies: postgresPlannerStrategies,
     });
 
@@ -311,49 +403,60 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       return plannerFailure([...(result.ok ? [] : result.failure), ...schemaDiff.conflicts]);
     }
 
-    const indexRenamePartition = partitionCallsByControlPolicy({
-      calls: [...indexRenames.calls, ...checkRenames.calls],
-      contract: options.contract,
-      resolveControlPolicySubject: (call) =>
-        resolvePostgresCallControlPolicySubject(call, options.contract),
-      resolveFactoryName: (call) => call.factoryName,
-    });
+    const renamePartition = partitionPostgresCallsByControlPolicy(
+      [
+        ...indexRenames.calls,
+        ...checkRenames.calls,
+        ...plannedConstraintNameRenames({ ...options, schema }),
+      ],
+      options.contract,
+    );
 
-    const schemaDiffPartition = partitionCallsByControlPolicy({
-      calls: schemaDiff.calls,
-      contract: options.contract,
-      resolveControlPolicySubject: (call) =>
-        resolvePostgresCallControlPolicySubject(call, options.contract),
-      resolveFactoryName: (call) => call.factoryName,
-    });
+    const schemaDiffPartition = partitionPostgresCallsByControlPolicy(
+      schemaDiff.calls,
+      options.contract,
+    );
 
     // Inline `onFieldEvent`-emitted ops after structural DDL. The fixed
     // ordering is `structural → added → dropped → altered`, with
     // within-group sorting by `(tableName, fieldName)` so re-emits are
     // byte-stable. The hook fires only at the application emitter —
     // extension-space planning never reaches this helper.
-    const fieldEventOps = planFieldEventOperations({
-      priorContract: options.fromContract,
+    const fieldEventCalls = planFieldEventCalls({
+      priorContract: options.origin === null ? null : options.fromContract,
       newContract: options.contract,
       codecHooks,
+      tableRenames: statements.value.tableRenames,
+      columnRenames: statements.value.columnRenames,
     });
+    const fieldEventOps = fieldEventCalls.map(({ call }) => call);
     // Codec hook ops are target-agnostic `OpFactoryCall`; Postgres planning
     // lifts them at this integration boundary (see field-event-planner JSDoc).
     const fieldEventPostgresCalls = blindCast<
       readonly PostgresOpFactoryCall[],
       'Codec hook ops conform to PostgresOpFactoryCall at the app emitter boundary'
     >(fieldEventOps);
-    const fieldEventPartition = partitionCallsByControlPolicy({
-      calls: fieldEventPostgresCalls,
-      contract: options.contract,
-      resolveControlPolicySubject: (call) =>
-        resolvePostgresCallControlPolicySubject(call, options.contract),
-      resolveFactoryName: (call) => call.factoryName,
-    });
+    const fieldEventPartition = partitionPostgresCallsByControlPolicy(
+      fieldEventPostgresCalls,
+      options.contract,
+    );
+    const ordered = movePolicyDropsBeforeBlockedDdl(
+      withChecksAroundTypeChanges({
+        calls: result.value.calls,
+        expected: expectedSchema,
+        actual: schema,
+        ddlSchemaOf: (name) =>
+          name === UNBOUND_NAMESPACE_ID
+            ? resolveDdlSchemaForNamespaceStorage(options.contract.storage, UNBOUND_NAMESPACE_ID)
+            : name,
+      }),
+      schemaDiffPartition.kept,
+    );
     const calls = [
-      ...result.value.calls,
-      ...indexRenamePartition.kept,
-      ...schemaDiffPartition.kept,
+      ...statements.value.calls,
+      ...ordered.structural,
+      ...renamePartition.kept,
+      ...ordered.policyCalls,
       ...fieldEventPartition.kept,
     ];
     // Byte-identical suppression warnings (the same subject suppressed by
@@ -363,7 +466,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     const seenWarnings = new Set<string>();
     const warnings: SqlPlannerConflict[] = [
       ...issuePartition.suppressions,
-      ...indexRenamePartition.suppressions,
+      ...renamePartition.suppressions,
       ...schemaDiff.suppressions,
       ...schemaDiffPartition.suppressions,
       ...fieldEventPartition.suppressions,
@@ -381,237 +484,31 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       plan: new TypeScriptRenderablePostgresMigration(
         calls,
         {
-          from: options.fromContract?.storage.storageHash ?? null,
+          from: options.origin?.storageHash ?? null,
           to: options.contract.storage.storageHash,
         },
         options.spaceId,
         options.snapshotsImportPath,
         this.#lowerer,
       ),
+      appliedStatements: appliedStatementsInOrder(
+        options.statements,
+        statements.value.appliedStatements,
+      ),
+      ...subjectsOfCalls(
+        postgresCallSubjects(calls, {
+          contract: options.fromContract ?? options.contract,
+          fieldEvents: new Map(fieldEventCalls.map((fieldEvent) => [fieldEvent.call, fieldEvent])),
+        }),
+        {
+          fromContract: options.fromContract,
+          contract: options.contract,
+          statements: options.statements,
+          byHand: postgresTableRenameByHand(options.contract),
+        },
+      ),
       ...(warnings.length > 0 ? { warnings: Object.freeze(warnings) } : {}),
     });
-  }
-
-  /**
-   * Rename post-pass for indexes, per `(schema, table)`, widening-only,
-   * deterministic by sorted names — the same structure as the policy pass
-   * below (which stays untouched: policies pair by hash only).
-   *
-   * Hash pairing (prefix-only renames): extras whose live names parse as
-   * wire names, grouped by `(schema, table, hash)`; missing nodes iterated
-   * in sorted-name order consume the sorted-name-first candidate.
-   *
-   * Content pairing (exact→wire convergence), after hash pairing has
-   * consumed its matches: the remaining wire-named-missing nodes
-   * (`prefix` defined) against the remaining extras of any name shape,
-   * paired iff content-equal (columns ordered-strict both-defined-or-
-   * both-undefined, `unique`/`type` strict, `options` loose, bodies
-   * byte-equal).
-   *
-   * Leftovers proceed as create/drop exactly as before; without the
-   * widening allowance the pass is skipped and pairing degrades to the
-   * additive half, like the policy pass.
-   */
-  private pairIndexRenames(
-    options: PlannerOptionsWithComponents,
-    issues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
-  ): {
-    readonly calls: readonly RenameIndexCall[];
-    readonly consumed: ReadonlySet<SchemaDiffIssue<SqlSchemaDiffNode>>;
-  } {
-    const consumed = new Set<SchemaDiffIssue<SqlSchemaDiffNode>>();
-    const calls: RenameIndexCall[] = [];
-    if (!options.policy.allowedOperationClasses.includes('widening')) {
-      return { calls, consumed };
-    }
-
-    interface IndexFinding {
-      readonly issue: SchemaDiffIssue<SqlSchemaDiffNode>;
-      readonly node: SqlIndexIR;
-      readonly ddlSchema: string;
-      readonly tableName: string;
-    }
-    const missing: IndexFinding[] = [];
-    const extra: IndexFinding[] = [];
-    for (const issue of issues) {
-      const node = issueNode(issue);
-      if (node === undefined || !SqlIndexIR.is(node)) continue;
-      const ddlSchema = issue.path[1];
-      const tableName = issue.path[2];
-      if (ddlSchema === undefined || tableName === undefined) continue;
-      if (issueOutcome(issue) === 'not-found') {
-        missing.push({ issue, node, ddlSchema, tableName });
-      } else if (issueOutcome(issue) === 'not-expected') {
-        extra.push({ issue, node, ddlSchema, tableName });
-      }
-    }
-    if (missing.length === 0 || extra.length === 0) {
-      return { calls, consumed };
-    }
-
-    const byName = (a: IndexFinding, b: IndexFinding): number =>
-      a.node.name < b.node.name ? -1 : a.node.name > b.node.name ? 1 : 0;
-    // DDL emission must stay unqualified for the unbound namespace, exactly
-    // like the per-issue mapping's `emissionSchemaName`.
-    const emissionSchema = (ddlSchema: string): string =>
-      resolveNamespaceIdForDdlSchema(options.contract, ddlSchema) === UNBOUND_NAMESPACE_ID
-        ? UNBOUND_NAMESPACE_ID
-        : ddlSchema;
-    const pairingKey = (finding: IndexFinding, hash: string): string =>
-      JSON.stringify([finding.ddlSchema, finding.tableName, hash]);
-    const rename = (missingFinding: IndexFinding, candidate: IndexFinding): void => {
-      consumed.add(missingFinding.issue);
-      consumed.add(candidate.issue);
-      calls.push(
-        new RenameIndexCall(
-          emissionSchema(missingFinding.ddlSchema),
-          missingFinding.tableName,
-          candidate.node.name,
-          missingFinding.node.name,
-        ),
-      );
-    };
-
-    const sortedMissing = [...missing].sort(byName);
-
-    const extrasByHash = new Map<string, IndexFinding[]>();
-    for (const finding of extra) {
-      const parsed = parseWireName(finding.node.name);
-      if (parsed === undefined) continue;
-      const key = pairingKey(finding, parsed.hash);
-      const group = extrasByHash.get(key) ?? [];
-      group.push(finding);
-      extrasByHash.set(key, group);
-    }
-    for (const group of extrasByHash.values()) {
-      group.sort(byName);
-    }
-    for (const missingFinding of sortedMissing) {
-      const parsed = parseWireName(missingFinding.node.name);
-      if (parsed === undefined) continue;
-      const candidate = extrasByHash.get(pairingKey(missingFinding, parsed.hash))?.shift();
-      if (candidate === undefined) continue;
-      rename(missingFinding, candidate);
-    }
-
-    const sortedExtras = [...extra].sort(byName);
-    for (const missingFinding of sortedMissing) {
-      if (consumed.has(missingFinding.issue)) continue;
-      if (missingFinding.node.prefix === undefined) continue;
-      const candidate = sortedExtras.find(
-        (extraFinding) =>
-          !consumed.has(extraFinding.issue) &&
-          extraFinding.ddlSchema === missingFinding.ddlSchema &&
-          extraFinding.tableName === missingFinding.tableName &&
-          missingFinding.node.contentEquals(extraFinding.node, {
-            columnPresence: 'matching',
-            bodies: 'verbatim',
-          }),
-      );
-      if (candidate === undefined) continue;
-      rename(missingFinding, candidate);
-    }
-
-    return { calls, consumed };
-  }
-
-  /**
-   * Check-constraint rename post-pass: a `not-found` and a `not-expected`
-   * check on the same table whose wire-name content hashes match but whose
-   * prefixes differ is a prefix-only rename, and collapses into one
-   * `ALTER TABLE … RENAME CONSTRAINT`.
-   *
-   * This is the index pass's hash-pairing phase and nothing else. There is
-   * deliberately no content-pairing phase: a live check body is whatever
-   * Postgres reprinted, so it never byte-matches the authored text, and
-   * pairing an exact-named live check by content would bless whatever
-   * predicate is actually live. Adoption of an old exact-named check stays
-   * drop + add.
-   *
-   * Runs only when the policy allows `widening` (rename's class). Without it
-   * the pass no-ops and the pair degrades to the slice-1 behavior: an add,
-   * plus a drop when `destructive` is allowed too.
-   */
-  private pairCheckRenames(
-    options: PlannerOptionsWithComponents,
-    issues: readonly SchemaDiffIssue<SqlSchemaDiffNode>[],
-  ): {
-    readonly calls: readonly RenameCheckConstraintCall[];
-    readonly consumed: ReadonlySet<SchemaDiffIssue<SqlSchemaDiffNode>>;
-  } {
-    const consumed = new Set<SchemaDiffIssue<SqlSchemaDiffNode>>();
-    const calls: RenameCheckConstraintCall[] = [];
-    if (!options.policy.allowedOperationClasses.includes('widening')) {
-      return { calls, consumed };
-    }
-
-    interface CheckFinding {
-      readonly issue: SchemaDiffIssue<SqlSchemaDiffNode>;
-      readonly node: SqlCheckConstraintIR;
-      readonly ddlSchema: string;
-      readonly tableName: string;
-    }
-    const missing: CheckFinding[] = [];
-    const extra: CheckFinding[] = [];
-    for (const issue of issues) {
-      const node = issueNode(issue);
-      if (node === undefined || !SqlCheckConstraintIR.is(node)) continue;
-      const ddlSchema = issue.path[1];
-      const tableName = issue.path[2];
-      if (ddlSchema === undefined || tableName === undefined) continue;
-      if (issueOutcome(issue) === 'not-found') {
-        missing.push({ issue, node, ddlSchema, tableName });
-      } else if (issueOutcome(issue) === 'not-expected') {
-        extra.push({ issue, node, ddlSchema, tableName });
-      }
-    }
-    if (missing.length === 0 || extra.length === 0) {
-      return { calls, consumed };
-    }
-
-    const byName = (a: CheckFinding, b: CheckFinding): number =>
-      a.node.name < b.node.name ? -1 : a.node.name > b.node.name ? 1 : 0;
-    // DDL emission must stay unqualified for the unbound namespace, exactly
-    // like the per-issue mapping's `emissionSchemaName`.
-    const emissionSchema = (ddlSchema: string): string =>
-      resolveNamespaceIdForDdlSchema(options.contract, ddlSchema) === UNBOUND_NAMESPACE_ID
-        ? UNBOUND_NAMESPACE_ID
-        : ddlSchema;
-    const pairingKey = (finding: CheckFinding, hash: string): string =>
-      JSON.stringify([finding.ddlSchema, finding.tableName, hash]);
-
-    const sortedMissing = [...missing].sort(byName);
-
-    const extrasByHash = new Map<string, CheckFinding[]>();
-    for (const finding of extra) {
-      const parsed = parseWireName(finding.node.name);
-      if (parsed === undefined) continue;
-      const key = pairingKey(finding, parsed.hash);
-      const group = extrasByHash.get(key) ?? [];
-      group.push(finding);
-      extrasByHash.set(key, group);
-    }
-    for (const group of extrasByHash.values()) {
-      group.sort(byName);
-    }
-    for (const missingFinding of sortedMissing) {
-      const parsed = parseWireName(missingFinding.node.name);
-      if (parsed === undefined) continue;
-      const candidate = extrasByHash.get(pairingKey(missingFinding, parsed.hash))?.shift();
-      if (candidate === undefined) continue;
-      consumed.add(missingFinding.issue);
-      consumed.add(candidate.issue);
-      calls.push(
-        new RenameCheckConstraintCall(
-          emissionSchema(missingFinding.ddlSchema),
-          missingFinding.tableName,
-          candidate.node.name,
-          missingFinding.node.name,
-        ),
-      );
-    }
-
-    return { calls, consumed };
   }
 
   /**
@@ -620,7 +517,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * `CREATE POLICY` / `DROP POLICY` / `ALTER POLICY … RENAME TO` ops — a
    * `not-equal` finding (an exact-named policy whose content drifted)
    * becomes drop + create, or a disallowed-call conflict when the policy
-   * forbids the destructive drop. It
+   * forbids the drop, which is `widening`. It
    * does not re-diff — it consumes exactly the policy-node subset of the
    * shared diff's issues. Enablement is NOT decided here: `ENABLE`/`DISABLE
    * ROW LEVEL SECURITY` derive from the table's marker-driven `rlsEnabled`
@@ -638,7 +535,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
    * The pairing runs only when the policy allows `widening` (rename's
    * class). Without it (db-init's additive-only set), pairing degrades
    * deliberately to the additive half: the new name is CREATEd and the old
-   * policy survives live until a widening/destructive-allowed plan runs —
+   * policy survives live until a plan that allows `widening` runs —
    * emitting an ungated widening rename would only fail at the runner's
    * class re-enforcement.
    */
@@ -650,7 +547,6 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     readonly conflicts: readonly SqlPlannerConflict[];
     readonly suppressions: readonly SuppressionRecord[];
   } {
-    const allowsDestructive = options.policy.allowedOperationClasses.includes('destructive');
     const allowsWidening = options.policy.allowedOperationClasses.includes('widening');
 
     interface PolicyFinding {
@@ -825,7 +721,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         ),
       );
     }
-    if (allowsDestructive) {
+    if (allowsWidening) {
       for (const finding of extra) {
         if (renamedExtras.has(finding)) continue;
         calls.push(
@@ -839,6 +735,49 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     }
 
     return { calls, conflicts, suppressions };
+  }
+
+  /**
+   * Plans the statements against a working copy of `schema`, in order, so each rename's companions
+   * are computed against the schema the earlier statements left. The diff then runs on that schema.
+   */
+  private planStatements(
+    options: SqlMigrationPlannerPlanOptions,
+    schema: PostgresDatabaseSchemaNode,
+  ): Result<
+    PlannedStatements<RenameTableCall | RenameColumnCall> & {
+      readonly schema: PostgresDatabaseSchemaNode;
+    },
+    SqlPlannerConflict
+  > {
+    const working = createWorkingSchema(schema);
+    const planned = planStatements<RenameTableCall | RenameColumnCall>({
+      statements: options.statements.filter(isRenameStatement),
+      fromContract: options.fromContract,
+      contract: options.contract,
+      policy: options.policy,
+      target: {
+        tables: () => postgresSchemaTables(working.current, options.contract),
+        renameTableCall: (rename) =>
+          postgresTableRenameCall({
+            previous: working.current,
+            contract: options.contract,
+            rename,
+            frameworkComponents: options.frameworkComponents,
+          }),
+        renameColumnCall: (rename) =>
+          postgresColumnRenameCall({
+            previous: working.current,
+            contract: options.contract,
+            rename,
+            frameworkComponents: options.frameworkComponents,
+          }),
+        apply: (call) => working.apply(call),
+        ...postgresTableRenameByHand(options.contract),
+      },
+    });
+    if (!planned.ok) return planned;
+    return ok({ ...planned.value, schema: working.current });
   }
 
   private ensureAdditivePolicy(policy: MigrationOperationPolicy) {
@@ -863,6 +802,52 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
 function isPolicyDiffIssue(issue: SchemaDiffIssue<SqlSchemaDiffNode>): boolean {
   const node = issue.expected ?? issue.actual;
   return node !== undefined && PostgresPolicySchemaNode.is(node);
+}
+
+/**
+ * Postgres refuses these statements while a policy uses the object they touch:
+ * - dropping a column (2BP01) or changing its type (0A000);
+ * - dropping a table that a policy on another table uses (2BP01); a table's own policies go with it;
+ * - dropping a native enum type (2BP01);
+ * - a destructive codec type operation (a `RawSqlCall` on a type), such as dropping or rebuilding
+ *   the type (2BP01) or changing a composite type's attribute type (0A000). Additive and widening
+ *   type operations, such as adding an enum value or renaming the type, go through.
+ *
+ * So every policy drop moves to just before the first structural call that a policy can block.
+ * Without such a call, the policy calls keep their place after the structural calls.
+ */
+function movePolicyDropsBeforeBlockedDdl(
+  structural: readonly PostgresOpFactoryCall[],
+  policyCalls: readonly PostgresOpFactoryCall[],
+): {
+  readonly structural: readonly PostgresOpFactoryCall[];
+  readonly policyCalls: readonly PostgresOpFactoryCall[];
+} {
+  const firstBlockable = structural.findIndex(policyCanBlock);
+  if (firstBlockable === -1) {
+    return { structural, policyCalls };
+  }
+  const isPolicyDrop = (call: PostgresOpFactoryCall) => call instanceof DropPostgresRlsPolicyCall;
+  return {
+    structural: [
+      ...structural.slice(0, firstBlockable),
+      ...policyCalls.filter(isPolicyDrop),
+      ...structural.slice(firstBlockable),
+    ],
+    policyCalls: policyCalls.filter((call) => !isPolicyDrop(call)),
+  };
+}
+
+function policyCanBlock(call: PostgresOpFactoryCall): boolean {
+  if (call instanceof RawSqlCall) {
+    return call.operationClass === 'destructive' && call.op.target.details?.objectType === 'type';
+  }
+  return (
+    call instanceof DropColumnCall ||
+    call instanceof AlterColumnTypeCall ||
+    call instanceof DropTableCall ||
+    call instanceof DropNativeEnumTypeCall
+  );
 }
 
 /**
@@ -983,7 +968,7 @@ function gradePolicyReplacement(
       },
     };
   }
-  if (!allowedOperationClasses.includes('destructive')) {
+  if (!allowedOperationClasses.includes('widening')) {
     return {
       disposition: 'conflict',
       conflict: conflictForDisallowedCall(replacement.drop, allowedOperationClasses),

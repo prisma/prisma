@@ -22,12 +22,12 @@ import {
 import { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { buildControlTableBootstrapQueries } from '@internal/target-sqlite/contract-free';
 import sqliteTargetDescriptor, { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import type { SqliteDdlNode } from '@internal/target-sqlite/ddl';
 import type { SqlitePlanTargetDetails } from '@internal/target-sqlite/planner-target-details';
 import { applicationDomainOf } from '@repo/test-utils';
-import { createSqliteBuiltinCodecLookup } from '../../../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../../../src/core/control-adapter';
 import type { SqliteContract } from '../../../src/core/types';
 import sqliteAdapterDescriptor from '../../../src/exports/control';
@@ -45,8 +45,8 @@ export const contract: Contract<SqlStorage> = {
           table: {
             user: {
               columns: {
-                id: { nativeType: 'integer', codecId: 'sqlite/integer@1', nullable: false },
-                email: { nativeType: 'text', codecId: 'sqlite/text@1', nullable: false },
+                id: { dataType: 'sqlite/integer', codecId: 'sqlite/integer@1', nullable: false },
+                email: { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: false },
               },
               primaryKey: { columns: ['id'] },
               uniques: [{ columns: ['email'] }],

@@ -1,13 +1,21 @@
+import { blindCast } from '@internal/utils/casts';
 import { ContractValidationError } from './contract-validation-error';
 import type { CrossReference } from './cross-reference';
 import type { ContractWithDomain } from './domain-envelope';
 import { asNamespaceId, type NamespaceId } from './namespace-id';
 
+export interface DomainRelationShape {
+  readonly to: CrossReference;
+  readonly cardinality?: string;
+  readonly on?: unknown;
+  readonly nullable?: unknown;
+}
+
 export interface DomainModelShape {
   readonly fields: Record<string, unknown>;
-  readonly relations?: Record<string, { readonly to: CrossReference }>;
+  readonly relations?: Record<string, DomainRelationShape>;
   readonly discriminator?: { readonly field: string };
-  readonly variants?: Record<string, unknown>;
+  readonly variants?: Record<string, CrossReference>;
   readonly base?: CrossReference;
   readonly owner?: string;
 }
@@ -59,6 +67,7 @@ export function validateContractDomain(contract: DomainContractShape): void {
   validateRoots(contract, modelIndex, errors);
   validateVariantsAndBases(modelIndex, errors);
   validateRelationTargets(modelIndex, errors);
+  validateRelationNullability(modelIndex, errors);
   validateDiscriminators(modelIndex, errors);
   validateOwnership(contract, modelIndex, errors);
   validateValueObjectReferences(contract, errors);
@@ -102,19 +111,27 @@ function validateRoots(
 function validateVariantsAndBases(modelIndex: ModelIndex, errors: string[]): void {
   for (const { namespaceId, name: modelName, model } of iterateIndexedModels(modelIndex)) {
     if (model.variants) {
-      for (const variantName of Object.keys(model.variants)) {
-        const variantRef: CrossReference = { namespace: namespaceId, model: variantName };
+      const valuesByVariant = new Map<string, string>();
+      for (const [value, variantRef] of Object.entries(model.variants)) {
+        const variantKey = JSON.stringify([variantRef.namespace, variantRef.model]);
+        const earlierValue = valuesByVariant.get(variantKey);
+        if (earlierValue !== undefined) {
+          errors.push(
+            `Model "${namespaceId}:${modelName}" lists variant "${variantRef.namespace}:${variantRef.model}" under both discriminator values "${earlierValue}" and "${value}"`,
+          );
+        }
+        valuesByVariant.set(variantKey, value);
         const variantEntry = lookupModel(modelIndex, variantRef);
         if (!variantEntry) {
           errors.push(
-            `Model "${namespaceId}:${modelName}" lists variant "${variantName}" which does not exist at that namespace coordinate`,
+            `Model "${namespaceId}:${modelName}" lists variant "${variantRef.namespace}:${variantRef.model}" which does not exist in domain.namespaces`,
           );
           continue;
         }
         const variantBase = variantEntry.model.base;
         if (variantBase?.namespace !== namespaceId || variantBase?.model !== modelName) {
           errors.push(
-            `Variant "${namespaceId}:${variantName}" has base "${variantBase?.namespace ?? '?'}:${variantBase?.model ?? '(none)'}" but expected "${namespaceId}:${modelName}"`,
+            `Variant "${variantRef.namespace}:${variantRef.model}" has base "${variantBase?.namespace ?? '?'}:${variantBase?.model ?? '(none)'}" but expected "${namespaceId}:${modelName}"`,
           );
         }
       }
@@ -128,7 +145,8 @@ function validateVariantsAndBases(modelIndex: ModelIndex, errors: string[]): voi
         );
         continue;
       }
-      if (!baseEntry.model.variants || !Object.hasOwn(baseEntry.model.variants, modelName)) {
+      const listedVariants = Object.values(baseEntry.model.variants ?? {});
+      if (!listedVariants.some((ref) => ref.namespace === namespaceId && ref.model === modelName)) {
         errors.push(
           `Model "${namespaceId}:${modelName}" has base "${model.base.namespace}:${model.base.model}" which does not list it as a variant`,
         );
@@ -149,6 +167,34 @@ function validateRelationTargets(modelIndex: ModelIndex, errors: string[]): void
       if (!lookupModel(modelIndex, relation.to)) {
         errors.push(
           `Relation "${relName}" on model "${namespaceId}:${modelName}" targets "${relation.to.namespace}:${relation.to.model}" which does not exist in domain.namespaces`,
+        );
+      }
+    }
+  }
+}
+
+function relationKindLabel(relation: DomainRelationShape): string {
+  return relation.on === undefined ? 'embed relation' : `${relation.cardinality} relation`;
+}
+
+function validateRelationNullability(modelIndex: ModelIndex, errors: string[]): void {
+  for (const { namespaceId, name: modelName, model } of iterateIndexedModels(modelIndex)) {
+    for (const [relName, relation] of Object.entries(model.relations ?? {})) {
+      const location = `Relation "${relName}" on model "${namespaceId}:${modelName}"`;
+      const isToOneReference =
+        relation.on !== undefined &&
+        (relation.cardinality === '1:1' || relation.cardinality === 'N:1');
+      if (isToOneReference) {
+        if (relation.nullable !== undefined && typeof relation.nullable !== 'boolean') {
+          errors.push(
+            `${location} is a ${relation.cardinality} relation and its "nullable" must be a boolean`,
+          );
+        }
+        continue;
+      }
+      if (relation.nullable !== undefined) {
+        errors.push(
+          `${location} is a ${relationKindLabel(relation)} and must not carry "nullable"`,
         );
       }
     }
@@ -220,7 +266,8 @@ interface FieldTypeLike {
 
 interface FieldLike {
   readonly type?: FieldTypeLike;
-  readonly many?: boolean;
+  readonly many?: unknown;
+  readonly elementNullable?: unknown;
   readonly dict?: boolean;
 }
 
@@ -253,13 +300,17 @@ function validateValueObjectReferences(contract: DomainContractShape, errors: st
     const namespaceId = asNamespaceId(namespaceKey);
     for (const [modelName, model] of Object.entries(namespace.models)) {
       for (const [fieldName, field] of Object.entries(model.fields)) {
-        const f = field as FieldLike | undefined;
+        const f = blindCast<FieldLike | undefined, 'domain fields are runtime-validated shapes'>(
+          field,
+        );
         checkType(f?.type, `Model "${namespaceId}:${modelName}" field "${fieldName}"`, namespaceId);
       }
     }
     for (const [voName, vo] of Object.entries(namespace.valueObjects ?? {})) {
       for (const [fieldName, field] of Object.entries(vo.fields)) {
-        const f = field as FieldLike | undefined;
+        const f = blindCast<FieldLike | undefined, 'domain fields are runtime-validated shapes'>(
+          field,
+        );
         checkType(
           f?.type,
           `Value object "${namespaceId}:${voName}" field "${fieldName}"`,
@@ -275,26 +326,43 @@ function validateFieldModifiers(
   contract: DomainContractShape,
   errors: string[],
 ): void {
+  function validateField(location: string, field: unknown): void {
+    const candidate = blindCast<
+      FieldLike | undefined,
+      'domain fields are runtime-validated shapes'
+    >(field);
+    const many = candidate?.many;
+    const isList =
+      typeof many === 'object' &&
+      many !== null &&
+      !Array.isArray(many) &&
+      Object.keys(many).length === 1 &&
+      'elementNullable' in many &&
+      typeof many.elementNullable === 'boolean';
+
+    if (many !== undefined && many !== false && !isList) {
+      errors.push(
+        `${location} has invalid "many"; expected false or an elementNullable descriptor`,
+      );
+    }
+    if (candidate?.elementNullable !== undefined) {
+      errors.push(`${location} cannot have sibling "elementNullable"; put it inside "many"`);
+    }
+    if (isList && candidate?.dict) {
+      errors.push(`${location} cannot have both "many" and "dict" modifiers`);
+    }
+  }
+
   for (const { namespaceId, name: modelName, model } of iterateIndexedModels(modelIndex)) {
     for (const [fieldName, field] of Object.entries(model.fields)) {
-      const f = field as FieldLike | undefined;
-      if (f?.many && f?.dict) {
-        errors.push(
-          `Model "${namespaceId}:${modelName}" field "${fieldName}" cannot have both "many" and "dict" modifiers`,
-        );
-      }
+      validateField(`Model "${namespaceId}:${modelName}" field "${fieldName}"`, field);
     }
   }
   for (const [namespaceKey, namespace] of Object.entries(contract.domain.namespaces)) {
     const namespaceId = asNamespaceId(namespaceKey);
     for (const [voName, vo] of Object.entries(namespace.valueObjects ?? {})) {
       for (const [fieldName, field] of Object.entries(vo.fields)) {
-        const f = field as FieldLike | undefined;
-        if (f?.many && f?.dict) {
-          errors.push(
-            `Value object "${namespaceId}:${voName}" field "${fieldName}" cannot have both "many" and "dict" modifiers`,
-          );
-        }
+        validateField(`Value object "${namespaceId}:${voName}" field "${fieldName}"`, field);
       }
     }
   }

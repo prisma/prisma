@@ -19,14 +19,17 @@
 import type { Contract } from '@internal/contract/types';
 import type {
   CodecControlHooks,
+  FieldStatementColumns,
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
 } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
 import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/types';
 import type { DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
@@ -50,11 +53,16 @@ import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
 import {
+  buildSetDefaultColumn,
   renderColumnAlterType,
   renderColumnDdl,
-  renderColumnDefaultSql,
 } from './column-ddl-rendering';
 import { resolveNamespaceIdForDdlSchema } from './control-policy';
+import {
+  defaultForeignKeyName,
+  defaultPrimaryKeyName,
+  defaultUniqueName,
+} from './default-constraint-names';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
@@ -67,6 +75,7 @@ import {
   CreateNativeEnumTypeCall,
   CreateSchemaCall,
   CreateTableCall,
+  columnNameOfCall,
   DisableRowLevelSecurityCall,
   DropCheckConstraintCall,
   DropColumnCall,
@@ -82,11 +91,13 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import type { ForeignKeySpec } from './operations/shared';
+import { stackDataTypes } from './planner-sql-checks';
 import {
   type CallMigrationStrategy,
   postgresPlannerStrategies,
   type StrategyContext,
 } from './planner-strategies';
+import { liveColumnWidensSafely } from './safe-widenings';
 
 export type { CallMigrationStrategy, StrategyContext };
 
@@ -158,9 +169,10 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
     case 'dropDefault':
       return 'drop';
     case 'addCheckConstraint':
-    case 'renameCheckConstraint':
+    case 'renameConstraint':
       return 'unique'; // after uniques, before indexes
     case 'createTable':
+    case 'renameTable':
       return 'table';
     case 'enableRowLevelSecurity':
     case 'disableRowLevelSecurity':
@@ -170,6 +182,7 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
     case 'dropRlsPolicy':
       return 'drop';
     case 'addColumn':
+    case 'renameColumn':
       return 'column';
     case 'alterColumnType':
     case 'setNotNull':
@@ -190,13 +203,10 @@ function classifyCall(call: PostgresOpFactoryCall): CallCategory {
       // to preserve the codec-emitted label and precheck/postcheck.
       // Classification falls back to inspecting the underlying op's target
       // details (`objectType: 'type'`).
-      const op = (
-        call as {
-          op?: {
-            target?: { details?: { objectType?: string } };
-          };
-        }
-      ).op;
+      const op = blindCast<
+        { op?: { target?: { details?: { objectType?: string } } } },
+        'RawSqlCall exposes op details used only for sequencing type operations'
+      >(call).op;
       const objectType = op?.target?.details?.objectType;
       if (objectType === 'type') return 'dep';
       return 'alter';
@@ -246,18 +256,20 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
   // Most Postgres call classes expose `tableName`/`columnName`/`indexName`/
   // `constraintName` as readonly fields. We avoid `toOp()` here because a
   // `DataTransformCall` intentionally throws from `toOp`.
-  const anyCall = call as unknown as {
-    tableName?: string;
-    columnName?: string;
-    indexName?: string;
-    newIndexName?: string;
-    constraintName?: string;
-    newConstraintName?: string;
-    typeName?: string;
-    policyName?: string;
-    newPolicyName?: string;
-    policy?: { readonly name?: string };
-  };
+  const anyCall = blindCast<
+    {
+      tableName?: string;
+      indexName?: string;
+      newIndexName?: string;
+      constraintName?: string;
+      newConstraintName?: string;
+      typeName?: string;
+      policyName?: string;
+      newPolicyName?: string;
+      policy?: { readonly name?: string };
+    },
+    'Postgres migration call classes expose location-bearing readonly properties without a shared interface'
+  >(call);
   const location: {
     entityKind?: string;
     entityName?: string;
@@ -273,7 +285,8 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
     location.entityKind = 'native_enum';
     location.entityName = anyCall.typeName;
   }
-  if (anyCall.columnName) location.column = anyCall.columnName;
+  const columnName = columnNameOfCall(call);
+  if (columnName) location.column = columnName;
   // A rename call carries old/new index names; the new name is the index's
   // contract-side identity, so it is the conflict location.
   if (anyCall.indexName) location.index = anyCall.indexName;
@@ -287,7 +300,12 @@ function locationForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['locat
   if (anyCall.policyName) location.rlsPolicy = anyCall.policyName;
   else if (anyCall.policy?.name) location.rlsPolicy = anyCall.policy.name;
   else if (anyCall.newPolicyName) location.rlsPolicy = anyCall.newPolicyName;
-  return Object.keys(location).length > 0 ? (location as SqlPlannerConflictLocation) : undefined;
+  return Object.keys(location).length > 0
+    ? blindCast<
+        SqlPlannerConflictLocation,
+        'non-empty conflict location has at least one valid discriminating property'
+      >(location)
+    : undefined;
 }
 
 export function conflictForDisallowedCall(
@@ -300,6 +318,7 @@ export function conflictForDisallowedCall(
     kind: conflictKindForCall(call),
     summary,
     why: 'Use `migration new` to author a custom migration for this change.',
+    refusedOperationClass: call.operationClass,
     ...(location ? { location } : {}),
   };
 }
@@ -409,7 +428,7 @@ function isStrictDescendantPath(path: readonly string[], ancestor: readonly stri
 // ----------------------------------------------------------------------------
 
 function fkSpecFromNode(fk: SqlForeignKeyIR, tableName: string): ForeignKeySpec {
-  const name = fk.name ?? `${tableName}_${fk.columns.join('_')}_fkey`;
+  const name = fk.name ?? defaultForeignKeyName(tableName, fk.columns);
   return {
     name,
     columns: [...fk.columns],
@@ -438,11 +457,9 @@ function buildCreateTableCallsFromNode(
   schemaName: string,
   ddlSchemaName: string,
   table: PostgresTableSchemaNode,
-  codecHooks: ReadonlyMap<string, CodecControlHooks>,
+  types: SqlTypeLookups,
 ): PostgresOpFactoryCall[] {
-  const ddlColumns = Object.values(table.columns).map((c) =>
-    renderColumnDdl(c.name, c, codecHooks),
-  );
+  const ddlColumns = Object.values(table.columns).map((c) => renderColumnDdl(c.name, c, types));
   const primaryKeyConstraints: DdlTableConstraint[] = table.primaryKey
     ? [
         contractFree.primaryKey([...table.primaryKey.columns], {
@@ -469,7 +486,7 @@ function buildCreateTableCallsFromNode(
     calls.push(new AddForeignKeyCall(schemaName, table.name, fkSpecFromNode(fk, table.name)));
   }
   for (const unique of table.uniques) {
-    const constraintName = unique.name ?? `${table.name}_${unique.columns.join('_')}_key`;
+    const constraintName = unique.name ?? defaultUniqueName(table.name, unique.columns);
     calls.push(new AddUniqueCall(schemaName, table.name, constraintName, [...unique.columns]));
   }
   // Marker-driven: a newly-created table that is RLS-controlled enables RLS
@@ -513,7 +530,7 @@ function nativeEnumMemberChangeRefusal(options: {
   return (
     `Native enum type "${options.ddlSchemaName}"."${options.typeName}" changed beyond appending new values ` +
     `(contract declares [${options.expectedMembers.join(', ')}], database has [${options.actualMembers.join(', ')}]). ` +
-    "Prisma Next does not modify a native enum's existing values (rename, removal, reorder) — " +
+    "Prisma 8 does not modify a native enum's existing values (rename, removal, reorder) — " +
     'see https://pris.ly/d/postgres-native-enums. Author the change manually with `migration new`.'
   );
 }
@@ -521,7 +538,7 @@ function nativeEnumMemberChangeRefusal(options: {
 /**
  * Managed native-enum issue -> op lowering. A missing declared type creates
  * it; an unclaimed live type drops it (ownership-scoped upstream by
- * `retainUnownedExtras`, destructiveness gated by the operation-class
+ * `retainUnownedExtras`, and the `widening` drop gated by the operation-class
  * policy); a paired member-value mismatch lowers to one `ALTER TYPE ... ADD
  * VALUE` per appended member when the database's members are a strict,
  * order-preserving prefix of the contract's — any other change (rename,
@@ -594,14 +611,14 @@ function mapTableNodeIssue(
   // never match a live nspname), mirroring the schema the retired
   // policy-half enable resolved via `resolveDdlSchemaForNamespaceStorage`.
   ddlSchemaName: string,
-  codecHooks: ReadonlyMap<string, CodecControlHooks>,
+  types: SqlTypeLookups,
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const table = blindCast<
       PostgresTableSchemaNode,
       'a not-found table issue always carries the expected PostgresTableSchemaNode'
     >(issue.expected);
-    return ok(buildCreateTableCallsFromNode(schemaName, ddlSchemaName, table, codecHooks));
+    return ok(buildCreateTableCallsFromNode(schemaName, ddlSchemaName, table, types));
   }
   if (issueOutcome(issue) === 'not-expected') {
     const table = blindCast<
@@ -643,7 +660,8 @@ function mapColumnNodeIssue(
   issue: SchemaDiffIssue,
   schemaName: string,
   tableName: string,
-  codecHooks: ReadonlyMap<string, CodecControlHooks>,
+  types: SqlTypeLookups,
+  dataTypes: readonly DataType[],
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const column = blindCast<
@@ -651,7 +669,7 @@ function mapColumnNodeIssue(
       'a not-found column issue always carries the expected column node'
     >(issue.expected);
     return ok([
-      new AddColumnCall(schemaName, tableName, renderColumnDdl(column.name, column, codecHooks)),
+      new AddColumnCall(schemaName, tableName, renderColumnDdl(column.name, column, types)),
     ]);
   }
   if (issueOutcome(issue) === 'not-expected') {
@@ -672,12 +690,16 @@ function mapColumnNodeIssue(
   >(issue.actual);
   const calls: PostgresOpFactoryCall[] = [];
   if (columnTypeChanged(expected, actual)) {
-    const { qualifiedTargetType, formatTypeExpected } = renderColumnAlterType(expected, codecHooks);
     calls.push(
-      new AlterColumnTypeCall(schemaName, tableName, expected.name, {
-        qualifiedTargetType,
-        formatTypeExpected,
-        rawTargetTypeForLabel: qualifiedTargetType,
+      new AlterColumnTypeCall({
+        schemaName,
+        tableName,
+        columnName: expected.name,
+        type: renderColumnAlterType(expected, types),
+        dataTypes,
+        operationClass: liveColumnWidensSafely(expected, actual, types)
+          ? 'widening'
+          : 'destructive',
       }),
     );
   }
@@ -696,6 +718,7 @@ function mapColumnDefaultNodeIssue(
   schemaName: string,
   tableName: string,
   columnName: string,
+  types: SqlTypeLookups,
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-expected') {
     return ok([new DropDefaultCall(schemaName, tableName, columnName)]);
@@ -706,14 +729,13 @@ function mapColumnDefaultNodeIssue(
     SqlColumnDefaultIR,
     'a not-found/not-equal column-default issue always carries the expected default node'
   >(issue.expected);
-  const defaultSql = renderColumnDefaultSql(defaultNode);
-  if (!defaultSql) return ok([]);
+  const column = buildSetDefaultColumn(columnName, defaultNode, types);
+  if (column === undefined) return ok([]);
   return ok([
     new SetDefaultCall(
       schemaName,
       tableName,
-      columnName,
-      defaultSql,
+      column,
       issueOutcome(issue) === 'not-equal' ? 'widening' : 'additive',
     ),
   ]);
@@ -729,7 +751,7 @@ function mapPrimaryKeyNodeIssue(
       { readonly columns: readonly string[]; readonly name?: string },
       'a not-found primary-key issue always carries the expected PrimaryKey node'
     >(issue.expected);
-    const constraintName = pk.name ?? `${tableName}_pkey`;
+    const constraintName = pk.name ?? defaultPrimaryKeyName(tableName);
     return ok([new AddPrimaryKeyCall(schemaName, tableName, constraintName, [...pk.columns])]);
   }
   if (issueOutcome(issue) === 'not-expected') {
@@ -738,7 +760,12 @@ function mapPrimaryKeyNodeIssue(
       'a not-expected primary-key issue always carries the actual PrimaryKey node'
     >(issue.actual);
     return ok([
-      new DropConstraintCall(schemaName, tableName, pk.name ?? `${tableName}_pkey`, 'primaryKey'),
+      new DropConstraintCall(
+        schemaName,
+        tableName,
+        pk.name ?? defaultPrimaryKeyName(tableName),
+        'primaryKey',
+      ),
     ]);
   }
   return notOk(nodeConflict('indexIncompatible', issue.path.join('/')));
@@ -761,7 +788,7 @@ function mapForeignKeyNodeIssue(
       SqlForeignKeyIR,
       'a not-expected foreign-key issue always carries the actual foreign-key node'
     >(issue.actual);
-    const name = fk.name ?? `${tableName}_${fk.columns.join('_')}_fkey`;
+    const name = fk.name ?? defaultForeignKeyName(tableName, fk.columns);
     return ok([new DropConstraintCall(schemaName, tableName, name, 'foreignKey')]);
   }
   return notOk(nodeConflict('foreignKeyConflict', issue.path.join('/')));
@@ -777,7 +804,7 @@ function mapUniqueNodeIssue(
       SqlUniqueIR,
       'a not-found unique issue always carries the expected unique node'
     >(issue.expected);
-    const name = unique.name ?? `${tableName}_${unique.columns.join('_')}_key`;
+    const name = unique.name ?? defaultUniqueName(tableName, unique.columns);
     return ok([new AddUniqueCall(schemaName, tableName, name, [...unique.columns])]);
   }
   if (issueOutcome(issue) === 'not-expected') {
@@ -785,7 +812,7 @@ function mapUniqueNodeIssue(
       SqlUniqueIR,
       'a not-expected unique issue always carries the actual unique node'
     >(issue.actual);
-    const name = unique.name ?? `${tableName}_${unique.columns.join('_')}_key`;
+    const name = unique.name ?? defaultUniqueName(tableName, unique.columns);
     return ok([new DropConstraintCall(schemaName, tableName, name, 'unique')]);
   }
   return notOk(nodeConflict('indexIncompatible', issue.path.join('/')));
@@ -922,9 +949,9 @@ export function mapNodeIssueToCall(
 
   switch (node.nodeKind) {
     case PostgresSchemaNodeKind.table:
-      return mapTableNodeIssue(issue, schemaName, ddlSchemaName, ctx.codecHooks);
+      return mapTableNodeIssue(issue, schemaName, ddlSchemaName, ctx.types);
     case RelationalSchemaNodeKind.column:
-      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.codecHooks);
+      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types, ctx.dataTypes);
     case RelationalSchemaNodeKind.columnDefault: {
       const columnName = issueColumnName(issue);
       if (columnName === undefined) {
@@ -935,7 +962,7 @@ export function mapNodeIssueToCall(
           ),
         );
       }
-      return mapColumnDefaultNodeIssue(issue, schemaName, tableName, columnName);
+      return mapColumnDefaultNodeIssue(issue, schemaName, tableName, columnName, ctx.types);
     }
     case RelationalSchemaNodeKind.primaryKey:
       return mapPrimaryKeyNodeIssue(issue, schemaName, tableName);
@@ -958,6 +985,8 @@ export interface IssuePlannerOptions {
   readonly fromContract: Contract<SqlStorage> | null;
   readonly schemaName: string;
   readonly codecHooks: ReadonlyMap<string, CodecControlHooks>;
+  /** The composed stack's codecs and data types, which write each column's type. */
+  readonly types: SqlTypeLookups;
   readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   /**
    * Current database schema IR. Strategies read this to detect whether a
@@ -978,6 +1007,8 @@ export interface IssuePlannerOptions {
    * future strategies that may consult component metadata at plan time.
    */
   readonly frameworkComponents?: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /** The columns of the fields convert and backfill statements name; none when omitted. */
+  readonly statementColumns?: FieldStatementColumns;
   readonly strategies?: readonly CallMigrationStrategy[];
 }
 
@@ -1001,10 +1032,13 @@ export function planIssues(
     fromContract: options.fromContract,
     schemaName: options.schemaName,
     codecHooks: options.codecHooks,
+    types: options.types,
     storageTypes: options.storageTypes,
     schema,
     policy,
     frameworkComponents,
+    statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
+    dataTypes: stackDataTypes(frameworkComponents),
   };
 
   const strategies = options.strategies ?? postgresPlannerStrategies;
@@ -1090,7 +1124,7 @@ export function planIssues(
     ...byCategory('index'),
     ...byCategory('foreignKey'),
     // Enablement changes run after all relational DDL (the table must exist)
-    // and before the policy calls the planner appends after `planIssues` —
+    // and before the policy creates the planner appends after `planIssues` —
     // the same position the retired imperative enable-on-first-policy used.
     ...byCategory('rlsEnable'),
   ];

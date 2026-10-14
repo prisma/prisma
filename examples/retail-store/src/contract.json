@@ -105,7 +105,9 @@
                 }
               },
               "items": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -123,6 +125,7 @@
             "relations": {
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -187,14 +190,17 @@
               "collection": "events"
             },
             "variants": {
-              "AddToCartEvent": {
-                "value": "add-to-cart"
+              "add-to-cart": {
+                "model": "AddToCartEvent",
+                "namespace": "__unbound__"
               },
-              "SearchEvent": {
-                "value": "search"
+              "search": {
+                "model": "SearchEvent",
+                "namespace": "__unbound__"
               },
-              "ViewProductEvent": {
-                "value": "view-product"
+              "view-product": {
+                "model": "ViewProductEvent",
+                "namespace": "__unbound__"
               }
             }
           },
@@ -215,7 +221,9 @@
                 }
               },
               "items": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -254,6 +262,7 @@
             "relations": {
               "order": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "orderId"
@@ -332,7 +341,9 @@
                 }
               },
               "items": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -347,7 +358,9 @@
                 }
               },
               "statusHistory": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": false,
                 "type": {
                   "kind": "valueObject",
@@ -393,6 +406,7 @@
               },
               "user": {
                 "cardinality": "N:1",
+                "nullable": false,
                 "on": {
                   "localFields": [
                     "userId"
@@ -449,7 +463,9 @@
                 }
               },
               "embedding": {
-                "many": true,
+                "many": {
+                  "elementNullable": false
+                },
                 "nullable": true,
                 "type": {
                   "codecId": "mongo/double@1",
@@ -1461,7 +1477,10 @@
                       "bsonType": "string"
                     },
                     "embedding": {
-                      "bsonType": "array",
+                      "bsonType": [
+                        "null",
+                        "array"
+                      ],
                       "items": {
                         "bsonType": "double"
                       }
@@ -1625,7 +1644,7 @@
         "kind": "mongo-database"
       }
     },
-    "storageHash": "bd938b4f8a10c688bd32dc61ec1dd808dcf34e725f08505b39ce365a39c97e1b"
+    "storageHash": "41bd5540ea833c009b5eacf6db7d489e88bdd5062554398ba8aa2657fa19d27e"
   },
   "capabilities": {},
   "extensions": {},

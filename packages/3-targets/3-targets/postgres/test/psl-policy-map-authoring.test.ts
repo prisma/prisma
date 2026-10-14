@@ -9,9 +9,16 @@
  */
 
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
-import { buildSymbolTable } from '@internal/psl-parser';
+import { buildSymbolTable, createBinder, interpretExtensionBlocks } from '@internal/psl-parser';
+import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { parse } from '@internal/psl-parser/syntax';
+import { bindPslSchema } from '@internal/psl-parser/test';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import {
+  describeUnsupportedSqlAttribute,
+  sqlAttributeSpecs,
+} from '@internal/sql-contract-psl/attribute-specs';
+import { sqlContextInput } from '@internal/sql-contract-psl/test';
 import {
   afterAll,
   afterEach,
@@ -27,9 +34,13 @@ import {
   postgresAuthoringModelAttributes,
   postgresAuthoringPslBlockDescriptors,
 } from '../src/core/authoring';
+import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import type { PostgresSchema } from '../src/core/postgres-schema';
 import { postgresCreateNamespace } from '../src/core/postgres-schema';
+import { postgresDataTypeSupport } from './fixtures/postgres-data-type-support';
+
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -41,6 +52,24 @@ const assembled = assembleAuthoringContributions([
   },
 ]);
 
+function blockResolutionBinder(
+  symbolTable: Parameters<typeof interpretExtensionBlocks>[0]['symbolTable'],
+  sources: Parameters<typeof interpretExtensionBlocks>[0]['sources'],
+) {
+  return createBinder({
+    sources,
+    symbolTable,
+    context: {
+      authoringContributions: {
+        ...assembleAuthoringContributions([]),
+        pslBlockDescriptors: assembled.pslBlockDescriptors,
+      },
+      controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      dataTypes: postgresDataTypeSupport,
+    },
+  }).binder;
+}
+
 const postgresTarget = {
   kind: 'target' as const,
   familyId: 'sql' as const,
@@ -51,30 +80,78 @@ const postgresTarget = {
   defaultNamespaceId: 'public',
 };
 
-const scalarColumnDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-  ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-  ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
+const scalarColumnDescriptors = new Map<string, { codecId: string }>([
+  ['String', { codecId: 'pg/text@1' }],
+  ['Int', { codecId: 'pg/int4@1' }],
 ]);
 
-function interpret(source: string) {
-  const { document, sourceFile } = parse(source);
-  const { table: symbolTable, diagnostics } = buildSymbolTable({
-    document,
-    sourceFile,
+function parsePsl(source: string) {
+  const { document, sources } = parse(source, 'psl-policy-map-authoring.test.psl');
+  const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
+    documents: [document],
+    sources,
+  });
+  const blocks = interpretExtensionBlocks({
+    symbolTable,
+    sources,
     pslBlockDescriptors: assembled.pslBlockDescriptors,
+    binder: blockResolutionBinder(symbolTable, sources),
+    dataTypes: postgresDataTypeSupport,
+  });
+  return {
+    symbolTable,
+    parsedBlocks: blocks.parsedBlocks,
+    diagnostics: [...collectionDiagnostics, ...blocks.diagnostics],
+  };
+}
+
+const scalarTypeConstructors = Object.fromEntries(
+  [...scalarColumnDescriptors].map(([name, output]) => [
+    name,
+    { kind: 'typeConstructor' as const, output },
+  ]),
+);
+
+function interpret(source: string) {
+  const { document, sources } = parse(source, 'psl-policy-map-authoring.test.psl');
+  const { diagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
+    documents: [document],
+    sources,
   });
   expect(diagnostics).toEqual([]);
-  return interpretPslDocumentToSqlContract({
-    symbolTable,
-    sourceFile,
-    sourceId: 'schema.prisma',
-    target: postgresTarget,
-    scalarColumnDescriptors,
-    authoringContributions: assembled,
-    composedExtensionContracts: new Map(),
-    createNamespace: postgresCreateNamespace,
-    capabilities: { sql: { scalarList: true } },
+  const bound = bindPslSchema(source, {
+    sourceId: 'psl-policy-map-authoring.test.psl',
+    context: {
+      composedExtensions: [],
+      defaultNamespaceId: 'public',
+      composedExtensionContracts: new Map(),
+      authoringContributions: {
+        ...assembled,
+        type: { ...scalarTypeConstructors, ...assembled.type },
+        attributeSpecs: sqlAttributeSpecs,
+      },
+      pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+      codecLookup: postgresCodecLookup,
+      controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      dataTypes: postgresDataTypeSupport,
+      resolvedInputs: [],
+      capabilities: { sql: { scalarList: true } },
+    },
   });
+  return withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: postgresTarget,
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
+  );
 }
 
 function policyDoc(policyBlocks: string, modelAttributes = ''): string {
@@ -129,7 +206,7 @@ describe('@@map lowers an exact-named policy', () => {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
     @@map("Tenant members can read")
   }
 `),
@@ -151,7 +228,7 @@ describe('@@map lowers an exact-named policy', () => {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("${longName}")
   }
 `),
@@ -167,14 +244,14 @@ describe('@@map lowers an exact-named policy', () => {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("shared physical name")
   }
 
   policy_update p_write {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("shared physical name")
   }
 `),
@@ -202,14 +279,14 @@ namespace public {
   policy_select p_read_profile {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("shared physical name")
   }
 
   policy_select p_read_account {
     target = account
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("shared physical name")
   }
 }
@@ -218,21 +295,21 @@ namespace public {
     expect(Object.keys(ns.policy).sort()).toEqual(['p_read_account', 'p_read_profile']);
   });
 
-  it('two reopened spellings sharing one head stay a duplicate-entity diagnostic (head-keyed)', () => {
-    const result = interpret(`
+  it('a policy repeated at top level and in namespace public is a duplicate declaration', () => {
+    const { diagnostics } = parsePsl(`
+model profile {
+  id       Int @id
+  owner_id Int
+  email    String
+
+  @@rls
+}
+
 namespace public {
-  model profile {
-    id       Int @id
-    owner_id Int
-    email    String
-
-    @@rls
-  }
-
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("first physical name")
   }
 }
@@ -240,87 +317,70 @@ namespace public {
 policy_select p_read {
   target = profile
   roles  = [app_user]
-  using  = "owner_id = 1"
+  using  = sql\`owner_id = 1\`
   @@map("second physical name")
 }
 `);
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toContainEqual(
-      expect.objectContaining({
-        code: 'PSL_DUPLICATE_EXTENSION_ENTITY',
-        message: expect.stringContaining('p_read'),
-      }),
-    );
+    expect(diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      { code: 'PSL_DUPLICATE_DECLARATION', message: 'Duplicate declaration of "p_read"' },
+    ]);
   });
 
-  it('an argument-less @@map() is PSL_POLICY_INVALID_MAP and the policy is skipped', () => {
-    const result = interpret(
+  it('an argument-less @@map() is a symbol-table diagnostic from the kit', () => {
+    const { diagnostics } = parsePsl(
       policyDoc(`
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map()
   }
 `),
     );
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toContainEqual(
+    expect(diagnostics).toEqual([
       expect.objectContaining({
-        code: 'PSL_POLICY_INVALID_MAP',
-        message:
-          '`policy_select` policy "p_read" @@map attribute must have a quoted, non-empty policy-name argument',
-        span: expect.anything(),
+        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
+        message: 'Attribute "map" is missing required argument "name"',
       }),
-    );
+    ]);
   });
 
-  it('an unquoted @@map(foo) argument is PSL_POLICY_INVALID_MAP and the policy is skipped', () => {
-    const result = interpret(
+  it('an unquoted @@map(foo) argument is a symbol-table diagnostic from the kit', () => {
+    const { diagnostics } = parsePsl(
       policyDoc(`
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map(foo)
   }
 `),
     );
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toContainEqual(
+    expect(diagnostics).toEqual([
       expect.objectContaining({
-        code: 'PSL_POLICY_INVALID_MAP',
-        message:
-          '`policy_select` policy "p_read" @@map attribute must have a quoted, non-empty policy-name argument',
-        span: expect.anything(),
+        code: 'PSL_INVALID_ATTRIBUTE_SYNTAX',
+        message: 'Expected a string literal',
       }),
-    );
+    ]);
   });
 
   it('an empty @@map("") argument is PSL_POLICY_INVALID_MAP — an empty string is not a legal physical name', () => {
-    const result = interpret(
+    const { diagnostics } = parsePsl(
       policyDoc(`
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("")
   }
 `),
     );
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-    expect(result.failure.diagnostics).toContainEqual(
+    expect(diagnostics).toEqual([
       expect.objectContaining({
         code: 'PSL_POLICY_INVALID_MAP',
-        message:
-          '`policy_select` policy "p_read" @@map attribute must have a quoted, non-empty policy-name argument',
-        span: expect.anything(),
+        message: '@@map policy name must be a non-empty string',
       }),
-    );
+    ]);
   });
 
   it('without @@map the wire lowering is unchanged — head prefix, wire name', () => {
@@ -329,7 +389,7 @@ policy_select p_read {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
   }
 `),
     );
@@ -355,7 +415,7 @@ describe('permissive is an authorable block property', () => {
   policy_select p_read {
     target     = profile
     roles      = [app_user]
-    using      = "owner_id = 1"
+    using      = sql\`owner_id = 1\`
     permissive = false
   }
 `),
@@ -372,7 +432,7 @@ describe('permissive is an authorable block property', () => {
   policy_select p_read {
     target     = profile
     roles      = [app_user]
-    using      = "owner_id = 1"
+    using      = sql\`owner_id = 1\`
     permissive = false
   }
 `),
@@ -382,7 +442,7 @@ describe('permissive is an authorable block property', () => {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
   }
 `),
     );
@@ -397,7 +457,7 @@ describe('permissive is an authorable block property', () => {
   policy_select p_read {
     target     = profile
     roles      = [app_user]
-    using      = "owner_id = 1"
+    using      = sql\`owner_id = 1\`
     permissive = true
   }
 `),
@@ -407,7 +467,7 @@ describe('permissive is an authorable block property', () => {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
   }
 `),
     );
@@ -423,7 +483,7 @@ describe('permissive is an authorable block property', () => {
   policy_select p_read {
     target     = profile
     roles      = [app_user]
-    using      = "owner_id = 1"
+    using      = sql\`owner_id = 1\`
     permissive = false
     @@map("Restrictive tenant read")
   }
@@ -451,7 +511,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("Tenant members can read")
   }
 `),
@@ -468,7 +528,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
 
   it('an over-threshold mixed batch flushes once as TWO summaries, each true of every member', () => {
     const indexAttributes = [1, 2, 3, 4, 5, 6]
-      .map((n) => `    @@index([email], where: "(owner_id = ${n})", map: "adopted_idx_${n}")`)
+      .map((n) => `    @@index([email], where: sql\`(owner_id = \${n})\`, map: "adopted_idx_${n}")`)
       .join('\n');
     const policyBlocks = ['a', 'b', 'c', 'd', 'e', 'f']
       .map(
@@ -476,7 +536,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
   policy_select p_read_${n} {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = 1"
+    using  = sql\`owner_id = 1\`
     @@map("adopted policy ${n}")
   }
 `,
@@ -503,7 +563,7 @@ describe('exact-name body-comparison warning for @@map policies — shared per-b
     }
     expect(policySummary).not.toContain('index "');
     expect(indexSummary).toContain(
-      'use name: and let Prisma Next manage the physical name; to migrate an adopted object to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
+      'use name: and let Prisma 8 manage the physical name; to migrate an adopted object to wire naming, replace map: with name: (keeping the body text unchanged) and apply the resulting rename migration.',
     );
     for (const n of [1, 2, 3, 4, 5, 6]) {
       expect(indexSummary).toContain(`  - index "adopted_idx_${n}"`);

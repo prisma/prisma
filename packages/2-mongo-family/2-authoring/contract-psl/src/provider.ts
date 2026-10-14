@@ -2,13 +2,17 @@ import { readFile } from 'node:fs/promises';
 import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
-import { buildSymbolTable, rangeToPslSpan } from '@internal/psl-parser';
+import {
+  buildSymbolTable,
+  createBinder,
+  isPrismaNextSchema,
+  mapPslDiagnostics,
+} from '@internal/psl-parser';
 import type { PslInterpretCapable } from '@internal/psl-parser/interpret';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
-import type { ParseDiagnostic, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
+import { assertDefined } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError } from '@internal/utils/internal-error';
 import { notOk } from '@internal/utils/result';
 
 import { interpretPslDocumentToMongoContract } from './interpreter';
@@ -25,77 +29,112 @@ function collectScalarTypeCodecIds(namespace: AuthoringTypeNamespace): ReadonlyM
   );
 }
 
-function mapParseDiagnostics(
-  diagnostics: readonly ParseDiagnostic[],
-  sourceFile: SourceFile,
-  sourceId: string,
-): ContractSourceDiagnostic[] {
-  return diagnostics.map((diagnostic) => ({
-    code: diagnostic.code,
-    message: diagnostic.message,
-    sourceId,
-    span: rangeToPslSpan(diagnostic.range, sourceFile),
-  }));
-}
-
 export function mongoContract(schemaPath: string, options?: MongoContractOptions): ContractConfig {
   const source: PslInterpretCapable = {
     format: 'psl',
     inputs: [schemaPath],
     interpret(input, context) {
       return interpretPslDocumentToMongoContract({
+        documents: input.documents,
         symbolTable: input.symbolTable,
-        sourceFile: input.sourceFile,
-        sourceId: input.sourceId,
+        sources: input.sources,
+        binder: input.binder,
         seedDiagnostics: [],
         scalarTypeCodecIds: collectScalarTypeCodecIds(context.authoringContributions.type),
+        defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
+        dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
         ...ifDefined('enumInferenceCodecs', options?.enumInferenceCodecs),
+        ...ifDefined('reportWarning', context.reportWarning),
       });
     },
     async load(context) {
-      const [absoluteSchemaPath] = context.resolvedInputs;
-      if (absoluteSchemaPath === undefined) {
-        throw new InternalError(
-          'mongoContract: context.resolvedInputs is empty. The CLI config loader should populate it positional-matched with source.inputs.',
-        );
-      }
-      let schema: string;
-      try {
-        schema = await readFile(absoluteSchemaPath, 'utf-8');
-      } catch (error) {
-        const message = String(error);
+      const candidates = [...new Set(context.resolvedInputs)].sort();
+      if (candidates.length === 0) {
         return notOk({
-          summary: `Failed to read Prisma schema at "${schemaPath}"`,
+          summary: 'No schema files matched the configured contract source',
           diagnostics: [
             {
-              code: 'PSL_SCHEMA_READ_FAILED',
-              message,
+              code: 'PSL_NO_SCHEMA_FILES_MATCHED',
+              message: `No files matched the configured pattern "${schemaPath}"`,
               sourceId: schemaPath,
             },
           ],
-          meta: { schemaPath, absoluteSchemaPath, cause: message },
         });
       }
 
-      const { document, sourceFile, diagnostics: parseDiagnostics } = parse(schema);
-      const { table: symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
-        document,
-        sourceFile,
-        pslBlockDescriptors: context.authoringContributions.pslBlockDescriptors,
-      });
+      const readDiagnostics: ContractSourceDiagnostic[] = [];
+      const members: { readonly path: string; readonly text: string }[] = [];
+      const undirected: string[] = [];
+      for (const path of candidates) {
+        let text: string;
+        try {
+          text = await readFile(path, 'utf-8');
+        } catch (error) {
+          const message = String(error);
+          readDiagnostics.push({ code: 'PSL_SCHEMA_READ_FAILED', message, sourceId: path });
+          continue;
+        }
+        if (isPrismaNextSchema(text)) {
+          members.push({ path, text });
+        } else {
+          undirected.push(path);
+        }
+      }
+
+      if (members.length === 0) {
+        if (undirected.length === 0) {
+          return notOk({
+            summary: 'Failed to read Prisma schema files',
+            diagnostics: readDiagnostics,
+          });
+        }
+        return notOk({
+          summary: 'No schema file carries the "// use prisma-8" directive',
+          diagnostics: [
+            ...readDiagnostics,
+            {
+              code: 'PSL_NO_OPTED_IN_SCHEMA_FILES',
+              message: `None of the matched files carry the "// use prisma-8" directive: ${undirected.join(', ')}`,
+              sourceId: schemaPath,
+            },
+          ],
+        });
+      }
+
+      const parsed = members.map(({ path, text }) => parse(text, path));
+      const documents = parsed.map(({ document }) => document);
+      const [firstSources, ...restSources] = parsed.map(({ sources }) => sources);
+      assertDefined(firstSources, 'mongoContract requires at least one parsed schema file');
+      const sources = firstSources.merge(...restSources);
 
       // Do not short-circuit on provider-level diagnostics; recovered CST can
       // still produce interpreter diagnostics in the same response.
       const seedDiagnostics = [
-        ...mapParseDiagnostics(parseDiagnostics, sourceFile, schemaPath),
-        ...mapParseDiagnostics(symbolTableDiagnostics, sourceFile, schemaPath),
+        ...readDiagnostics,
+        ...mapPslDiagnostics(
+          parsed.flatMap(({ diagnostics }) => diagnostics),
+          sources,
+        ),
       ];
 
+      const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
+        documents,
+        sources,
+        defaultNamespaceId: context.defaultNamespaceId,
+      });
+      const { binder, diagnostics: binderDiagnostics } = createBinder({
+        symbolTable,
+        sources,
+        context,
+      });
       return withSeedDiagnostics(
-        this.interpret({ document, sourceFile, symbolTable, sourceId: schemaPath }, context),
-        seedDiagnostics,
+        this.interpret({ documents, sources, symbolTable, binder }, context),
+        [
+          ...seedDiagnostics,
+          ...mapPslDiagnostics([...symbolTableDiagnostics, ...binderDiagnostics], sources),
+        ],
       );
     },
   };

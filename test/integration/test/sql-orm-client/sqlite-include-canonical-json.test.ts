@@ -25,9 +25,9 @@ import { rejectionShape } from './error-shape';
 /**
  * SQLite's side of the cut, through a real ORM include.
  *
- * The include nests the child row set through a derived table, which is where
- * SQLite drops the JSON subtype — so this is the shape that exercises the retag,
- * rather than a flat projection over a base table.
+ * The include nests the child row set through a derived table, so every value
+ * crosses into JSON there: a JSON column as its stored text, which its codec
+ * reads back as the document, rather than a flat projection over a base table.
  */
 
 /** Past 2^53, where a JSON number stops carrying an int64. */
@@ -36,7 +36,7 @@ const WIDE_BIGINT = 9007199254740993n;
 const WIDE_BLOB = Uint8Array.from({ length: 80 }, (_, index) => (index * 7) % 256);
 /**
  * A document, and a text value whose characters happen to look like one. The
- * pair separates retagging by codec identity from retagging by content: only
+ * pair separates decoding by codec identity from decoding by content: only
  * the first is a `sqlite/json@1` column, so only the first may come back as a
  * parsed object.
  */
@@ -111,7 +111,7 @@ describe('integration/sqlite include canonical JSON', () => {
       throw new InternalError('SQLite execution stack is missing its adapter or driver');
     }
     await driver.connect({ kind: 'path', path });
-    runtime = new SqliteRuntimeImpl({ context, adapter, driver });
+    runtime = new SqliteRuntimeImpl({ context, adapter, driver, closeRefusal: undefined });
     // SQLite has no schema namespaces, so the contract builder leaves models in
     // the unbound namespace rather than `public`.
     stations = new Collection({ runtime, context }, 'Station', {
@@ -170,12 +170,11 @@ describe('integration/sqlite include canonical JSON', () => {
     ]);
   });
 
-  // A document and a text value spelled the same way must not converge. The
-  // retag reaches the document column because that column's codec is
-  // `sqlite/json@1`, not because its stored characters look like JSON — so a
-  // `sqlite/text@1` column holding those same characters stays a string. Were
-  // the retag driven by content instead, both would parse and the two columns
-  // would become indistinguishable.
+  // A document and a text value written the same way must not converge. The
+  // document column is parsed because that column's codec is `sqlite/json@1`,
+  // not because its stored characters look like JSON — so a `sqlite/text@1`
+  // column holding those same characters stays a string. Were parsing driven by
+  // content instead, the two columns would become indistinguishable.
   it('keeps a document apart from a string that merely contains JSON', async () => {
     seed(2, { document: JSON.stringify(DOCUMENT), label: STRING_CONTAINING_JSON });
 
@@ -272,10 +271,9 @@ describe('integration/sqlite include canonical JSON', () => {
     expect(rows).toEqual([{ id: 200, stations: { tally: 2, weight: 7 } }]);
   });
 
-  // The same JSON number carries the full digits of a total no double holds, so
-  // the rounding happens in `JSON.parse` and the codec's guard refuses the
-  // result. A monotone rounding is what makes that guard un-foolable: the value
-  // that reaches it is out of range whenever the total was.
+  // The sum is carried as the digit text `sqlite/bigint` stores, so the exact
+  // total reaches the codec and the codec refuses it: a number-valued codec
+  // produces a JavaScript number, and this total is past what one holds.
   it('refuses an include sum past 2^53 rather than answering with a rounded total', async () => {
     database!.prepare('insert into canon_readings (id) values (?)').run(300);
     seedStation(300, 300, WIDE_BIGINT.toString());
@@ -291,19 +289,20 @@ describe('integration/sqlite include canonical JSON', () => {
         .all(),
     );
 
-    const rounded = 9007199254740996;
+    const exactTotal = (WIDE_BIGINT + 2n).toString();
     expect(shape).toEqual({
       name: 'RuntimeError',
-      message: `Failed to decode column canon_stations.stations with codec 'sqlite/bigintnumber@1': sqlite/bigintnumber@1 value must be an integer within the safe integer range, got ${rounded}`,
+      message: `Failed to decode column canon_stations.stations with codec 'sqlite/bigintnumber@1': sqlite/bigintnumber@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991`,
       code: 'RUNTIME.DECODE_FAILED',
       category: 'RUNTIME',
       severity: 'error',
       details: { table: 'canon_stations', column: 'stations', codec: 'sqlite/bigintnumber@1' },
       cause: {
         name: 'StructuredError',
-        message: `sqlite/bigintnumber@1 value must be an integer within the safe integer range, got ${rounded}`,
+        message:
+          'sqlite/bigintnumber@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991',
         code: 'RUNTIME.DECODE_FAILED',
-        meta: { codecId: 'sqlite/bigintnumber@1', received: String(rounded) },
+        meta: { codecId: 'sqlite/bigintnumber@1', received: JSON.stringify(exactTotal) },
       },
     });
   });

@@ -1,4 +1,11 @@
 export type {
+  RelationNamesOf,
+  Scalars,
+  Shape,
+  ShapeSpec,
+} from '@internal/framework-components/runtime';
+export { RelationKeys } from '@internal/framework-components/runtime';
+export type {
   StorageColumnMapAt,
   StorageColumnTypeAcrossNamespaces,
 } from '../column-type-resolution';
@@ -7,6 +14,7 @@ export type {
   AggregateResultType,
   AggregateTypesBase,
   AggregateTypesOf,
+  AuthoredStorageTypeInstance,
   CheckConstraintInput,
   CodecTypesOf,
   ContractWithTypeMaps,
@@ -20,6 +28,7 @@ export type {
   ExtractTypeMapsFromContract,
   FieldInputTypesOf,
   FieldOutputTypesOf,
+  ForeignKeyIndex,
   ForeignKeyInput,
   ForeignKeyOptions,
   ForeignKeyReferenceInput,
@@ -74,6 +83,7 @@ export {
   isStorageTypeInstance,
   isStorageValueSet,
   PrimaryKey,
+  resolvedTypeParams,
   SqlNamespaceBase,
   SqlNode,
   SqlStorage,

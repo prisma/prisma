@@ -18,6 +18,7 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { inferBuildContext } from './fixtures';
 
 interface PolicyFixture {
   readonly name: string;
@@ -69,7 +70,7 @@ function pslWithPolicies(policies: readonly PostgresPolicySchemaNode[], rlsEnabl
     existingSchemas: ['public'],
     pgVersion: '',
   });
-  return printPsl(inferPostgresPslContract(tree), {
+  return printPsl(inferPostgresPslContract(tree, inferBuildContext), {
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
   });
 }
@@ -94,7 +95,7 @@ describe('policy block emission', () => {
     expect(psl).toContain('policy_select p_read {');
     expect(psl).toContain('target = Profile');
     expect(psl).toContain('roles = [app_user]');
-    expect(psl).toContain('using = "(owner_id = 1)"');
+    expect(psl).toContain('using = sql`(owner_id = 1)`');
     expect(psl).toContain('@@map("p_read_ab12cd34")');
     expect(psl).not.toContain('permissive');
   });
@@ -130,8 +131,8 @@ describe('policy block emission', () => {
     ]);
     expect(psl).toContain('policy_update p_write {');
     expect(psl).toContain('roles = [app_user, auditor]');
-    expect(psl).toContain('using = "(owner_id = 1)"');
-    expect(psl).toContain('withCheck = "(owner_id = 2)"');
+    expect(psl).toContain('using = sql`(owner_id = 1)`');
+    expect(psl).toContain('withCheck = sql`(owner_id = 2)`');
   });
 
   it('a non-wire physical name sanitizes into the head with @@map carrying the truth', () => {
@@ -165,7 +166,7 @@ describe('policy block emission', () => {
       policyNode({ name: 'odd role policy', roles: ['my role'], using: '(owner_id = 1)' }),
     ]);
     expect(psl).not.toContain('policy_select');
-    expect(psl).toContain('// prisma-next: skipped policy "odd role policy"');
+    expect(psl).toContain('// prisma: skipped policy "odd role policy"');
     expect(psl).toContain('@@rls');
   });
 });
@@ -216,7 +217,7 @@ function pslFromTables(
     existingSchemas: ['public'],
     pgVersion: '',
   });
-  return printPsl(inferPostgresPslContract(tree), {
+  return printPsl(inferPostgresPslContract(tree, inferBuildContext), {
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
   });
 }

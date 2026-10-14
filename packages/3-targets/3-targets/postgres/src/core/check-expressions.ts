@@ -19,8 +19,8 @@ export type PostgresCheckKind = CheckKind;
 export interface PostgresCheckExpressionInput {
   readonly tableName: string;
   readonly columnName: string;
-  readonly many: boolean;
-  readonly memberValues: readonly string[] | undefined;
+  readonly many: boolean | { readonly elementNullable: boolean };
+  readonly memberValues: readonly (string | number)[] | undefined;
 }
 
 /**
@@ -40,40 +40,48 @@ export interface PostgresCheckExpressionCandidate {
 /**
  * Renders the checks a Postgres column needs, as opaque predicate text.
  *
- * A text-backed domain enum has no type-level enforcement, so membership is a
+ * A domain enum has no type-level enforcement, so membership is a
  * predicate: `IN` for a scalar, and `<@` containment for an array — an array
- * column cannot use `IN` at all (`operator does not exist: text[] = text`),
- * and containment additionally rejects NULL elements. Every list column also
- * gets an element-non-null check, which no Postgres column type can express.
+ * column cannot use `IN` at all (`operator does not exist: text[] = text`).
+ * Array membership strips NULL elements first, leaving element nullability to
+ * the separate element-non-null check emitted for semantically strict lists.
  *
- * The array side casts the COLUMN to `text[]` rather than assuming its element
- * type already is: `<@` needs both operands in one type, so a `varchar[]` or
- * `char[]` column meeting a bare `text[]` literal raises the same
- * `operator does not exist` this project exists to eliminate. The scalar `IN`
- * form needs no cast — `varchar = text` resolves on its own.
+ * Both forms compare members in the column's own type: the `IN` list and
+ * the `<@` array literal are untyped, so Postgres reads each member as the
+ * column (or element) type. A cast to `text` would compare the type's text
+ * output instead, which for `inet` always carries the prefix length.
  */
 export function postgresRenderCheckExpressions(
   input: PostgresCheckExpressionInput,
 ): readonly PostgresCheckExpressionCandidate[] {
   const candidates: PostgresCheckExpressionCandidate[] = [];
   const column = quoteIdentifier(input.columnName);
+  const isMany = input.many !== false;
+  const elementNullable =
+    (typeof input.many === 'object' && input.many.elementNullable) ||
+    ('elementNullable' in input && input.elementNullable === true);
 
   if (input.memberValues !== undefined) {
     invariant(
       input.memberValues.length > 0,
       `check for "${input.tableName}"."${input.columnName}": empty member set; both authoring surfaces reject a member-less enum before rendering`,
     );
-    const members = input.memberValues.map((value) => `'${escapeLiteral(value)}'`).join(', ');
+    for (const value of input.memberValues) {
+      invariant(
+        typeof value === 'string' || Number.isFinite(value),
+        `check for "${input.tableName}"."${input.columnName}": non-finite numeric member`,
+      );
+    }
     candidates.push({
       kind: 'membership',
       columnName: input.columnName,
-      expression: input.many
-        ? `${column}::text[] <@ ARRAY[${members}]::text[]`
-        : `${column} IN (${members})`,
+      expression: isMany
+        ? `array_remove(${column}, NULL) <@ '${escapeLiteral(arrayLiteral(input.memberValues))}'`
+        : `${column} IN (${input.memberValues.map(sqlLiteral).join(', ')})`,
     });
   }
 
-  if (input.many) {
+  if (isMany && !elementNullable) {
     candidates.push({
       kind: 'elementNotNull',
       columnName: input.columnName,
@@ -82,4 +90,15 @@ export function postgresRenderCheckExpressions(
   }
 
   return candidates;
+}
+
+function sqlLiteral(value: string | number): string {
+  return typeof value === 'string' ? `'${escapeLiteral(value)}'` : String(value);
+}
+
+function arrayLiteral(values: readonly (string | number)[]): string {
+  const elements = values.map((value) =>
+    typeof value === 'string' ? `"${value.replace(/["\\]/g, '\\$&')}"` : String(value),
+  );
+  return `{${elements.join(',')}}`;
 }

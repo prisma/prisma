@@ -10,39 +10,75 @@ import type {
   ControlExtensionDescriptor,
   ControlFamilyInstance,
   MigrationOperationPolicy,
+  MigrationOperationSubject,
   MigrationPlannerConflict,
   MigrationPlanOperation,
+  MigrationPlanSubjects,
   OperationPreview,
+  ResolvedMigrationStatement,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
-import { hasOperationPreview } from '@internal/framework-components/control';
 import {
+  CONTRACT_SNAPSHOTS_DIRNAME,
+  hasOperationPreview,
+  isStorageHashHex,
+  migrationSubjectKey,
+} from '@internal/framework-components/control';
+import type { ContractMarkerRecordLike } from '@internal/migration-tools/aggregate';
+import {
+  type PlannerSuccess as AggregatePlan,
   type ContractSpaceAggregate,
   collectAggregateNamespaces,
   type PlannerError,
   planMigration,
 } from '@internal/migration-tools/aggregate';
+import {
+  contractSnapshotDir,
+  readContractSnapshotJson,
+  type SnapshotContentVerifier,
+} from '@internal/migration-tools/contract-snapshot-store';
+import { MigrationToolsError } from '@internal/migration-tools/errors';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
-import { notOk, ok } from '@internal/utils/result';
+import { notOk, ok, type Result } from '@internal/utils/result';
+import { join } from 'pathe';
 import { CliStructuredError } from '../../utils/cli-errors';
+import {
+  type AnswerPlanQuestions,
+  askPlanQuestions,
+  type ConsentedSubject,
+  type PlannedQuestions,
+  refuseUnusedConsents,
+  subjectText,
+} from '../statements/plan-questions';
+import {
+  type AppliedStatementReport,
+  reportAppliedStatements,
+  reportConsentStatement,
+} from '../statements/report-applied-statements';
+import { resolveStatements, type StatementOrigin } from '../statements/resolve-statements';
+import { isPlannedStatement, type StatementText } from '../statements/statement-text';
+import { reportTemporaryValues, type TemporaryValueReport } from '../statements/temporary-values';
 import type {
+  AskedAccessChange,
+  AskedDataLoss,
   DbInitFailure,
   DbInitResult,
   DbInitSuccess,
   DbUpdateFailure,
   DbUpdateResult,
   DbUpdateSuccess,
+  FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
+  RowsWithoutValueReport,
 } from '../types';
 import {
   type BuildAggregateInputs,
   buildContractSpaceAggregate,
 } from './contract-space-aggregate-loader';
 import { stripOperations } from './migration-helpers';
-import { computePlanHash } from './plan-identity';
 import {
   buildPerSpaceBreakdown,
   collectOrdered,
@@ -69,7 +105,7 @@ const SPAN_IDS = {
  * loader gathers the rest from disk + descriptors. The CLI is the
  * descriptor-import boundary; everything downstream is descriptor-free.
  */
-export interface ExecuteRunOptions<TFamilyId extends string, TTargetId extends string> {
+export interface ExecuteRunSharedOptions<TFamilyId extends string, TTargetId extends string> {
   readonly driver: ControlDriverInstance<TFamilyId, TTargetId>;
   readonly adapter: ControlAdapterInstance<TFamilyId, TTargetId>;
   readonly familyInstance: ControlFamilyInstance<TFamilyId, unknown>;
@@ -85,16 +121,31 @@ export interface ExecuteRunOptions<TFamilyId extends string, TTargetId extends s
   readonly extensions: ReadonlyArray<ControlExtensionDescriptor<TFamilyId, TTargetId>>;
   readonly targetId: TTargetId;
   readonly policy: MigrationOperationPolicy;
-  readonly action: 'dbInit' | 'dbUpdate';
-  /**
-   * Identity of the plan the caller consented to (`db update` only). When
-   * set, the apply refuses with `CONSENT_PLAN_MISMATCH` if the freshly
-   * computed plan differs — consent binds to one plan, not to data loss in
-   * general.
-   */
-  readonly consentedPlanHash?: string;
+  /** Content check for contract snapshots the aggregate loader resolves. */
+  readonly verifySnapshotContent?: SnapshotContentVerifier;
   readonly onProgress?: OnControlProgress;
 }
+
+/**
+ * `db init` takes no statements. `db update` takes the statements as the user wrote them, in
+ * order, and the answer to each question its plan raises: what an operation that would lose data
+ * means and, when it applies, whether an operation may widen access. `acceptDataLoss` answers
+ * every data-loss question with consent, and `acceptAccessWidening` every access question.
+ */
+export type ExecuteRunOptions<
+  TFamilyId extends string,
+  TTargetId extends string,
+> = ExecuteRunSharedOptions<TFamilyId, TTargetId> &
+  (
+    | { readonly action: 'dbInit' }
+    | {
+        readonly action: 'dbUpdate';
+        readonly statements: readonly StatementText[];
+        readonly answerQuestions: AnswerPlanQuestions;
+        readonly acceptDataLoss: boolean;
+        readonly acceptAccessWidening: boolean;
+      }
+  );
 
 /**
  * Loader → planner → runner pipeline shared by `db init` and `db update`.
@@ -142,6 +193,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     appContract: contract,
     extensions,
     deserializeContract: (json) => familyInstance.deserializeContract(json),
+    ...ifDefined('verifySnapshotContent', options.verifySnapshotContent),
   };
   const loaded = await buildContractSpaceAggregate(loadInputs);
   if (!loaded.ok) {
@@ -151,6 +203,37 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
 
   // 2. Read live DB state (markers + schema).
   const markerRows = await familyInstance.readAllMarkers({ driver });
+
+  // 2b. The application space's origin is the contract its marker names, read from the snapshot
+  // store. The planner names each subject it would lose through it, and rename statements resolve
+  // against it. Without a readable snapshot every subject is a storage name, and a rename cannot
+  // resolve.
+  const appOrigin =
+    options.action === 'dbUpdate'
+      ? await readAppOrigin({
+          marker: markerRows.get(aggregate.app.spaceId) ?? null,
+          migrationsDir,
+          deserializeContract: (json) => familyInstance.deserializeContract(json),
+          ...ifDefined('verifySnapshotContent', options.verifySnapshotContent),
+        })
+      : undefined;
+  const fromContract = appOrigin?.contract ?? null;
+  const statementTexts = options.action === 'dbUpdate' ? options.statements : [];
+  const resolveRenames = (
+    texts: readonly StatementText[],
+  ): readonly ResolvedMigrationStatement[] => {
+    if (texts.length === 0 || appOrigin === undefined) return [];
+    const resolved = resolveStatements({
+      statements: texts,
+      origin: appOrigin.origin,
+      destination: contract,
+    });
+    if (!resolved.ok) {
+      throw resolved.failure;
+    }
+    return resolved.value;
+  };
+  const statements = resolveRenames(statementTexts);
 
   // 2a. Orphan-marker pre-flight: refuse to *apply* when a marker row
   // exists for a space that is not declared in the aggregate. Plan mode
@@ -181,28 +264,100 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // 3. Plan via aggregate planner. App is forced through planFromDiff
   // (today's `db init` / `db update` daily-driver behaviour); extensions
   // walk their on-disk migration graphs via resolveRecordedPath.
-  onProgress?.({
-    action,
-    kind: 'spanStart',
-    spanId: SPAN_IDS.plan,
-    label: 'Planning migration',
-  });
-  const planResult = await planMigration<TFamilyId, TTargetId>({
-    aggregate,
-    currentDBState: { markersBySpaceId: markerRows, schemaIntrospection: schemaIR },
-    adapter,
-    migrations,
-    frameworkComponents,
-    callerPolicy: { ignoreGraphFor: new Set([aggregate.app.spaceId]) },
-    operationPolicy: policy,
-  });
-  if (!planResult.ok) {
-    onProgress?.({ action, kind: 'spanEnd', spanId: SPAN_IDS.plan, outcome: 'error' });
-    return mapPlannerError(planResult.failure);
-  }
-  onProgress?.({ action, kind: 'spanEnd', spanId: SPAN_IDS.plan, outcome: 'ok' });
+  const plan = async (
+    resolved: readonly ResolvedMigrationStatement[],
+  ): Promise<Result<PlannedRun, DbInitResult | DbUpdateResult>> => {
+    onProgress?.({
+      action,
+      kind: 'spanStart',
+      spanId: SPAN_IDS.plan,
+      label: 'Planning migration',
+    });
+    const planned = await planMigration<TFamilyId, TTargetId>({
+      aggregate,
+      currentDBState: { markersBySpaceId: markerRows, schemaIntrospection: schemaIR },
+      adapter,
+      migrations,
+      frameworkComponents,
+      callerPolicy: { ignoreGraphFor: new Set([aggregate.app.spaceId]) },
+      operationPolicy: policy,
+      appSpace: { fromContract, statements: resolved },
+      storageNameOf: (operation) => familyInstance.storageNameOf(operation),
+    });
+    if (!planned.ok) {
+      onProgress?.({ action, kind: 'spanEnd', spanId: SPAN_IDS.plan, outcome: 'error' });
+      return notOk(mapPlannerError(planned.failure));
+    }
+    onProgress?.({ action, kind: 'spanEnd', spanId: SPAN_IDS.plan, outcome: 'ok' });
+    const orderedResolutions = collectOrdered(planned.value.applyOrder, planned.value.perSpace);
+    const subjects: MigrationPlanSubjects =
+      action === 'dbUpdate'
+        ? subjectsAcrossSpaces(orderedResolutions)
+        : { dataLoss: [], accessWidening: [], temporaryValues: [] };
+    const operations = orderedResolutions.flatMap((r) => r.entry.displayOps);
+    const labelled = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
+      entries.map((entry) => ({
+        ...entry,
+        label: operations[entry.operationIndex]?.label ?? JSON.stringify(entry.subject),
+      }));
+    return ok({
+      planned: planned.value,
+      orderedResolutions,
+      subjects,
+      dataLoss: labelled(subjects.dataLoss).map((entry) => ({ ...entry, loss: entry.loss })),
+      accessWidening: labelled(subjects.accessWidening),
+    });
+  };
 
-  const orderedResolutions = collectOrdered(planResult.value.applyOrder, planResult.value.perSpace);
+  const first = await plan(statements);
+  if (!first.ok) {
+    return first.failure;
+  }
+  let run = first.value;
+  let plannedTexts: readonly StatementText[] = statementTexts.filter(isPlannedStatement);
+  let consented: readonly ConsentedSubject[] = [];
+  // 3a. Questions: an apply of `db update` asks what each operation that would lose data means,
+  // and whether each that would widen access may run, before it applies anything. A dry run asks
+  // nothing and lists them.
+  if (options.action === 'dbUpdate' && mode === 'apply') {
+    const answered = await askPlanQuestions({
+      plan: run,
+      askAccess: true,
+      canConvert: false,
+      statements: plannedTexts,
+      preAnswers: statementTexts.filter((statement) => !isPlannedStatement(statement)),
+      consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessWidening },
+      origin: fromContract ?? EMPTY_ORIGIN,
+      originKnown: fromContract !== null,
+      destination: contract,
+      answer: options.answerQuestions,
+      replan: (planned) => plan(resolveRenames(planned)),
+    });
+    if (!answered.ok) {
+      if (CliStructuredError.is(answered.failure)) {
+        throw answered.failure;
+      }
+      return answered.failure;
+    }
+    run = answered.value.plan;
+    plannedTexts = answered.value.statements;
+    consented = answered.value.consented;
+  }
+  if (options.action === 'dbUpdate' && mode === 'plan') {
+    const refused = refuseUnusedConsents({
+      plan: run,
+      statements: statementTexts,
+      contracts: {
+        origin: fromContract ?? EMPTY_ORIGIN,
+        destination: contract,
+        statements: plannedTexts,
+      },
+    });
+    if (!refused.ok) {
+      throw refused.failure;
+    }
+  }
+  const { planned, orderedResolutions } = run;
   const plannerWarnings = aggregatePlannerWarnings(orderedResolutions);
 
   // The destination's structural shape comes from the app's plan — its
@@ -214,6 +369,47 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     );
   }
   const appPlan = appResolution.entry.plan;
+  const appliedStatements =
+    action === 'dbUpdate'
+      ? [
+          ...reportAppliedStatements(
+            appResolution.entry.appliedStatements,
+            fromContract,
+            contract,
+            operationsBefore(orderedResolutions, aggregate.app.spaceId),
+          ),
+          ...consented.map((entry) =>
+            reportConsentStatement(
+              entry,
+              entry.verb === 'allow' && entry.operationIndex !== undefined
+                ? [entry.operationIndex]
+                : run.subjects.dataLoss
+                    .filter(
+                      ({ subject }) =>
+                        migrationSubjectKey(subject) === migrationSubjectKey(entry.subject),
+                    )
+                    .map(({ operationIndex }) => operationIndex),
+            ),
+          ),
+        ]
+      : undefined;
+  const contractsAsked = {
+    origin: fromContract ?? EMPTY_ORIGIN,
+    destination: contract,
+    statements: plannedTexts,
+  };
+  const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
+    entries.map((entry) => ({ ...entry, text: subjectText(entry.subject, contractsAsked) }));
+  const databaseStorageHash =
+    action === 'dbUpdate' ? recordedDatabaseContract(aggregate, markerRows) : undefined;
+  const subjects =
+    action === 'dbUpdate'
+      ? {
+          dataLoss: asked(run.subjects.dataLoss),
+          accessWidening: asked(run.subjects.accessWidening),
+          temporaryValues: reportTemporaryValues(run.subjects.temporaryValues, contract),
+        }
+      : undefined;
 
   // 4. Plan-mode: surface aggregate operations without applying.
   if (mode === 'plan') {
@@ -231,30 +427,11 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       preview,
       perSpace,
       summary,
+      appliedStatements,
+      subjects,
+      databaseStorageHash,
       ...ifDefined('warnings', plannerWarnings),
     });
-  }
-
-  // 4a. Consent binding: the caller consented to one specific plan. The
-  // freshly computed plan must be that plan, or the apply is refused before
-  // anything runs.
-  if (options.consentedPlanHash !== undefined) {
-    const planHash = computePlanHash({
-      operations: stripOperations(orderedResolutions.flatMap((r) => r.entry.displayOps)),
-      destination: appPlan.destination,
-    });
-    if (planHash !== options.consentedPlanHash) {
-      const failure: DbUpdateFailure = {
-        code: 'CONSENT_PLAN_MISMATCH',
-        summary: 'The plan changed between consent and apply',
-        why: 'The plan recomputed for the consented apply is not the plan that was consented to, so applying it could destroy something nobody agreed to.',
-        conflicts: undefined,
-        meta: undefined,
-        consentPlanMismatch: { consentedPlanHash: options.consentedPlanHash, planHash },
-        ...ifDefined('warnings', plannerWarnings),
-      };
-      return notOk(failure);
-    }
   }
 
   // 5. Run mode: hand off to the shared `runMigration` primitive.
@@ -265,8 +442,8 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   // perSpacePlans differently; this helper handles the shared run tail.
   const applied = await runMigration({
     aggregate,
-    perSpacePlans: planResult.value.perSpace,
-    applyOrder: planResult.value.applyOrder,
+    perSpacePlans: planned.perSpace,
+    applyOrder: planned.applyOrder,
     driver,
     familyInstance,
     migrations,
@@ -281,6 +458,9 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('why', applied.failure.why),
       meta: applied.failure.meta,
       ...ifDefined('warnings', plannerWarnings),
+      ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
+      ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
+      ...ifDefined('databaseStorageHash', databaseStorageHash),
       ...ifDefined('cause', applied.failure.cause),
     });
   }
@@ -300,8 +480,106 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     operationsExecuted: applied.value.totalOpsExecuted,
     perSpace: applied.value.perSpace,
     summary,
+    appliedStatements,
+    subjects,
+    databaseStorageHash,
     ...ifDefined('warnings', plannerWarnings),
   });
+}
+
+/** The origin of a database whose marker names no readable contract: no models. */
+const EMPTY_ORIGIN = { domain: { namespaces: {} } };
+
+/** A plan of every space, and what it would lose and whose access it would widen. */
+interface PlannedRun extends PlannedQuestions {
+  readonly planned: AggregatePlan;
+  readonly orderedResolutions: readonly OrderedResolution[];
+  readonly subjects: MigrationPlanSubjects;
+}
+
+/**
+ * The contract the application space's marker names, from the local snapshot
+ * store, or where it was looked for and why it could not be used.
+ */
+async function readAppOrigin(input: {
+  readonly marker: ContractMarkerRecordLike | null;
+  readonly migrationsDir: string;
+  readonly deserializeContract: (json: unknown) => Contract;
+  readonly verifySnapshotContent?: SnapshotContentVerifier;
+}): Promise<{ readonly origin: StatementOrigin; readonly contract: Contract | null }> {
+  const snapshotsDir = join(input.migrationsDir, CONTRACT_SNAPSHOTS_DIRNAME);
+  if (input.marker === null) {
+    const origin: StatementOrigin = {
+      kind: 'missing',
+      hash: null,
+      snapshotDirectory: snapshotsDir,
+      unreadable: undefined,
+    };
+    return { origin, contract: null };
+  }
+  const hash = input.marker.storageHash;
+  if (!isStorageHashHex(hash)) {
+    return {
+      origin: { kind: 'missing', hash, snapshotDirectory: snapshotsDir, unreadable: undefined },
+      contract: null,
+    };
+  }
+  const snapshotDirectory = contractSnapshotDir(input.migrationsDir, hash);
+  let json: unknown;
+  try {
+    json = await readContractSnapshotJson(input.migrationsDir, hash, input.verifySnapshotContent);
+  } catch (error) {
+    if (!MigrationToolsError.is(error)) throw error;
+    const unreadable = error.code === 'MIGRATION.CONTRACT_SNAPSHOT_MISSING' ? undefined : error.why;
+    return { origin: { kind: 'missing', hash, snapshotDirectory, unreadable }, contract: null };
+  }
+  try {
+    const contract = input.deserializeContract(json);
+    return { origin: { kind: 'contract', contract }, contract };
+  } catch (error) {
+    const unreadable = error instanceof Error ? error.message : String(error);
+    return { origin: { kind: 'missing', hash, snapshotDirectory, unreadable }, contract: null };
+  }
+}
+
+/** How many operations the spaces applied before `spaceId` list ahead of it in `operations`. */
+function operationsBefore(
+  orderedResolutions: readonly OrderedResolution[],
+  spaceId: string,
+): number {
+  const position = orderedResolutions.findIndex((resolution) => resolution.spaceId === spaceId);
+  return orderedResolutions
+    .slice(0, position)
+    .reduce((count, resolution) => count + resolution.entry.displayOps.length, 0);
+}
+
+/**
+ * What the planned operations lose and whose access they widen, across every space, each at its
+ * position in the operations the result reports.
+ */
+function subjectsAcrossSpaces(
+  orderedResolutions: readonly OrderedResolution[],
+): MigrationPlanSubjects {
+  const offset = <TEntry extends MigrationOperationSubject>(
+    resolution: OrderedResolution,
+    entries: readonly TEntry[],
+  ) =>
+    entries.map((entry) => ({
+      ...entry,
+      operationIndex:
+        entry.operationIndex + operationsBefore(orderedResolutions, resolution.spaceId),
+    }));
+  return {
+    dataLoss: orderedResolutions.flatMap((resolution) =>
+      offset(resolution, resolution.entry.dataLoss),
+    ),
+    accessWidening: orderedResolutions.flatMap((resolution) =>
+      offset(resolution, resolution.entry.accessWidening),
+    ),
+    temporaryValues: orderedResolutions.flatMap((resolution) =>
+      offset(resolution, resolution.entry.temporaryValues),
+    ),
+  };
 }
 
 function aggregatePlannerWarnings(
@@ -404,10 +682,21 @@ function wrapPlanResult(args: {
   readonly preview: OperationPreview | undefined;
   readonly perSpace: readonly PerSpaceExecutionEntry[];
   readonly summary: string;
+  /** `undefined` for `db init`, which reports no statements. */
+  readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
+  /** `undefined` for `db init`, which reports no data loss. */
+  readonly subjects:
+    | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
+    | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  /** `undefined` for `db init`, which prints no `migration plan`. */
+  readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'plan',
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
+    ...ifDefined('appliedStatements', args.appliedStatements),
+    ...args.subjects,
     plan: {
       operations: stripOperations(args.operations),
       ...ifDefined('preview', args.preview),
@@ -430,10 +719,21 @@ function wrapApplyResult(args: {
   readonly operationsExecuted: number;
   readonly perSpace: readonly PerSpaceExecutionEntry[];
   readonly summary: string;
+  /** `undefined` for `db init`, which reports no statements. */
+  readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
+  /** `undefined` for `db init`, which reports no data loss. */
+  readonly subjects:
+    | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
+    | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  /** `undefined` for `db init`, which prints no `migration plan`. */
+  readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'apply',
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
+    ...ifDefined('appliedStatements', args.appliedStatements),
+    ...args.subjects,
     plan: { operations: stripOperations(args.operations) },
     destination: {
       storageHash: args.destination.storageHash,
@@ -458,6 +758,10 @@ function buildRunnerFailure(args: {
   readonly why?: string;
   readonly meta: Record<string, unknown>;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  readonly failedTypeChange?: FailedTypeChangeReport;
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The contract the database is at, when a migration of the graph ends at it. */
+  readonly databaseStorageHash?: string;
   readonly cause?: unknown;
 }): DbInitResult | DbUpdateResult {
   const failure: DbInitFailure | DbUpdateFailure = {
@@ -467,10 +771,26 @@ function buildRunnerFailure(args: {
     meta: args.meta,
     conflicts: undefined,
     ...ifDefined('warnings', args.warnings),
+    ...ifDefined('failedTypeChange', args.failedTypeChange),
+    ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('cause', args.cause),
   };
   return blindCast<
     DbInitResult | DbUpdateResult,
     'notOk(failure) is shape-compatible with both DbInitResult and DbUpdateResult; the union is the return type of the surrounding function'
   >(notOk(failure));
+}
+
+/**
+ * The storage hash of the contract the application space's database is at, when the migration
+ * graph has it: `migration plan --from` then resolves it. Without a migration that ends at it,
+ * `migration plan` starts from the `db` ref that `db update` keeps.
+ */
+function recordedDatabaseContract(
+  aggregate: ContractSpaceAggregate,
+  markerRows: ReadonlyMap<string, { readonly storageHash: string }>,
+): string | undefined {
+  const hash = markerRows.get(aggregate.app.spaceId)?.storageHash;
+  return hash !== undefined && aggregate.app.graph().nodes.has(hash) ? hash : undefined;
 }

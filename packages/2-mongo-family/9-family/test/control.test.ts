@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   MongoControlAdapter,
   MongoControlAdapterDescriptor,
+  MongoRunnerDependencies,
 } from '../src/core/control-adapter';
 import { mongoFamilyDescriptor } from '../src/core/control-descriptor';
 import { createMongoFamilyInstance } from '../src/core/control-instance';
@@ -68,6 +69,7 @@ describe('mongoFamilyPack', () => {
     expect(mongoFamilyPack.version).toBe('0.0.1');
     expect(mongoFamilyPack.authoring?.entityTypes).toBeDefined();
     expect(mongoFamilyPack.authoring?.pslBlockDescriptors).toBeDefined();
+    expect(mongoFamilyPack.authoring?.attributeSpecs).toBeDefined();
   });
 });
 
@@ -102,14 +104,6 @@ describe('createMongoFamilyInstance', () => {
     ).toThrow();
   });
 
-  it('sign() requires a valid contract', async () => {
-    const instance = createMongoFamilyInstance(createMinimalControlStack());
-    const fakeDriver = {} as Parameters<typeof instance.sign>[0]['driver'];
-    await expect(
-      instance.sign({ driver: fakeDriver, contract: {}, contractPath: '/test' }),
-    ).rejects.toThrow();
-  });
-
   it('introspect() requires an adapter on the control stack', async () => {
     const instance = createMongoFamilyInstance(createMinimalControlStack());
     const fakeDriver = {} as Parameters<typeof instance.introspect>[0]['driver'];
@@ -142,9 +136,13 @@ describe('createMongoFamilyInstance', () => {
     }
   });
 
-  it('sign() raises MIGRATION.MARKER_CAS_FAILURE when the marker CAS update fails', async () => {
+  it('signSpaces() reports a space whose compare-and-swap update fails as a conflict', async () => {
+    const reads = [
+      { storageHash: 'stale', profileHash: 'stale' },
+      { storageHash: 'moved', profileHash: 'moved-profile' },
+    ];
     const adapter = {
-      readMarker: async () => ({ storageHash: 'stale', profileHash: 'stale' }),
+      readMarker: async () => reads.shift() ?? null,
       updateMarker: async () => false,
     } as unknown as MongoControlAdapter<'mongo'>;
     const stack = createControlStack({
@@ -153,20 +151,159 @@ describe('createMongoFamilyInstance', () => {
       adapter: stubAdapterDescriptor(adapter),
     });
     const instance = createMongoFamilyInstance(stack);
-    const driver = { targetId: 'mongo' } as Parameters<typeof instance.sign>[0]['driver'];
-    try {
-      await instance.sign({
-        driver,
-        contract: mongoContractJson({}),
-        contractPath: '/test',
-      });
-      expect.fail('expected throw');
-    } catch (e) {
-      expect(isStructuredError(e)).toBe(true);
-      if (!isStructuredError(e)) return;
-      expect(e.code).toBe('MIGRATION.MARKER_CAS_FAILURE');
-      expect(e.message).toBe('CAS conflict: marker was modified by another process during sign');
-    }
+    const driver = { targetId: 'mongo' } as Parameters<typeof instance.signSpaces>[0]['driver'];
+    const contract = instance.deserializeContract(mongoContractJson({}));
+
+    const signatures = await instance.signSpaces({
+      driver,
+      spaces: [
+        {
+          space: 'app',
+          contract,
+          expected: { storageHash: 'stale', profileHash: 'stale' },
+        },
+      ],
+    });
+
+    expect(signatures).toEqual([
+      {
+        status: 'conflict',
+        space: 'app',
+        contract: {
+          storageHash: contract.storage.storageHash,
+          profileHash: contract.profileHash,
+        },
+        expected: { storageHash: 'stale', profileHash: 'stale' },
+        found: { storageHash: 'moved', profileHash: 'moved-profile' },
+      },
+    ]);
+  });
+
+  it('signSpaces() writes the marker of each space it is given', async () => {
+    const writes: string[] = [];
+    const adapter = {
+      readMarker: async (_driver: unknown, space: string) =>
+        space === 'app' ? null : { storageHash: 'old', profileHash: 'old' },
+      initMarker: async (_driver: unknown, space: string) => {
+        writes.push(`init ${space}`);
+      },
+      updateMarker: async (_driver: unknown, space: string) => {
+        writes.push(`update ${space}`);
+        return true;
+      },
+    } as unknown as MongoControlAdapter<'mongo'>;
+    const instance = createMongoFamilyInstance(
+      createControlStack({
+        family: mongoFamilyDescriptor,
+        target: stubMongoTargetDescriptor,
+        adapter: stubAdapterDescriptor(adapter),
+      }),
+    );
+    const contract = instance.deserializeContract(mongoContractJson({}));
+    const driver = { targetId: 'mongo' } as Parameters<typeof instance.signSpaces>[0]['driver'];
+
+    const signatures = await instance.signSpaces({
+      driver,
+      spaces: [
+        { space: 'app', contract, expected: null },
+        { space: 'audit', contract, expected: { storageHash: 'old', profileHash: 'old' } },
+      ],
+    });
+
+    expect(signatures).toEqual([
+      {
+        status: 'created',
+        space: 'app',
+        contract: { storageHash: contract.storage.storageHash, profileHash: contract.profileHash },
+      },
+      {
+        status: 'updated',
+        space: 'audit',
+        contract: { storageHash: contract.storage.storageHash, profileHash: contract.profileHash },
+        previous: { storageHash: 'old', profileHash: 'old' },
+      },
+    ]);
+    expect(writes).toEqual(['init app', 'update audit']);
+  });
+
+  it('signSpaces() leaves a marker that changed after verification as it was', async () => {
+    const writes: string[] = [];
+    const adapter = {
+      readMarker: async () => ({ storageHash: 'moved', profileHash: 'moved-profile' }),
+      initMarker: async (_driver: unknown, space: string) => {
+        writes.push(`init ${space}`);
+      },
+      updateMarker: async (_driver: unknown, space: string) => {
+        writes.push(`update ${space}`);
+        return true;
+      },
+    } as unknown as MongoControlAdapter<'mongo'>;
+    const instance = createMongoFamilyInstance(
+      createControlStack({
+        family: mongoFamilyDescriptor,
+        target: stubMongoTargetDescriptor,
+        adapter: stubAdapterDescriptor(adapter),
+      }),
+    );
+    const contract = instance.deserializeContract(mongoContractJson({}));
+    const driver = { targetId: 'mongo' } as Parameters<typeof instance.signSpaces>[0]['driver'];
+
+    const signatures = await instance.signSpaces({
+      driver,
+      spaces: [{ space: 'app', contract, expected: null }],
+    });
+
+    expect(signatures).toEqual([
+      {
+        status: 'conflict',
+        space: 'app',
+        contract: {
+          storageHash: contract.storage.storageHash,
+          profileHash: contract.profileHash,
+        },
+        expected: null,
+        found: { storageHash: 'moved', profileHash: 'moved-profile' },
+      },
+    ]);
+    expect(writes).toEqual([]);
+  });
+
+  it('createRunnerDependencies() returns the dependencies the adapter builds for the driver', () => {
+    const runnerDeps = {} as MongoRunnerDependencies;
+    const driversSeen: unknown[] = [];
+    const stack = createControlStack({
+      family: mongoFamilyDescriptor,
+      target: stubMongoTargetDescriptor,
+      adapter: stubAdapterDescriptor({
+        createRunnerDependencies: (driver) => {
+          driversSeen.push(driver);
+          return runnerDeps;
+        },
+      }),
+    });
+    const instance = createMongoFamilyInstance(stack);
+    const driver = { targetId: 'mongo' } as Parameters<
+      typeof instance.createRunnerDependencies
+    >[0]['driver'];
+
+    expect(instance.createRunnerDependencies({ driver })).toBe(runnerDeps);
+    expect(driversSeen).toEqual([driver]);
+  });
+
+  it('createRunnerDependencies() with a non-mongo driver raises CONTRACT.TARGET_MISMATCH', () => {
+    const stack = createControlStack({
+      family: mongoFamilyDescriptor,
+      target: stubMongoTargetDescriptor,
+      adapter: stubAdapterDescriptor({}),
+    });
+    const instance = createMongoFamilyInstance(stack);
+    const driver = { targetId: 'postgres' } as Parameters<
+      typeof instance.createRunnerDependencies
+    >[0]['driver'];
+
+    expect(() => instance.createRunnerDependencies({ driver })).toThrow(
+      expect.objectContaining({ code: 'CONTRACT.TARGET_MISMATCH' }),
+    );
   });
 });
 
@@ -338,6 +475,34 @@ describe('toSchemaView', () => {
     expect(validatorNode.children![1]!.label).toBe('email: string (required)');
     expect(validatorNode.children![2]!.label).toBe('name: string');
     expect(validatorNode.children![3]!.label).toBe('age: int');
+  });
+
+  it('labels a property the validator does not constrain as any', () => {
+    const instance = createInstance();
+    const ir = new MongoSchemaIR([
+      new MongoSchemaCollection({
+        name: 'posts',
+        validator: new MongoSchemaValidator({
+          jsonSchema: {
+            bsonType: 'object',
+            required: ['meta'],
+            properties: { meta: {}, notes: {} },
+          },
+          validationLevel: 'strict',
+          validationAction: 'error',
+        }),
+      }),
+    ]);
+
+    const view = instance.toSchemaView(ir);
+
+    const validatorNode = view.root.children![0]!.children!.find(
+      (n) => n.id === 'validator-posts',
+    )!;
+    expect(validatorNode.children!.map((n) => n.label)).toEqual([
+      'meta: any (required)',
+      'notes: any',
+    ]);
   });
 
   it('maps collection options to a child node', () => {

@@ -4,25 +4,31 @@ export {
   CONTRACT_SNAPSHOTS_DIRNAME,
   contractSnapshotJsonSpecifier,
   contractSnapshotTypesSpecifier,
+  isStorageHashHex,
   storageHashHex,
 } from '../control/contract-snapshot-layout';
 export type {
   DiffSubjectGranularity,
   MigratableTargetDescriptor,
   OperationPreviewCapable,
+  PslContractBuildCapable,
+  PslContractDocument,
   PslContractInferCapable,
+  PslSourceSettings,
   SchemaSubjectClassifierCapable,
   SchemaViewCapable,
 } from '../control/control-capabilities';
 export {
   hasMigrations,
   hasOperationPreview,
+  hasPslContractBuild,
   hasPslContractInfer,
   hasSchemaSubjectClassifier,
   hasSchemaView,
 } from '../control/control-capabilities';
 export type {
   ControlAdapterDescriptor,
+  ControlDriverConnectOptions,
   ControlDriverDescriptor,
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,
@@ -36,6 +42,9 @@ export type {
   ControlTargetInstance,
 } from '../control/control-instances';
 export type {
+  FailedCast,
+  FailedConversion,
+  FailedTypeChange,
   MigrationMetadata,
   MigrationOperationClass,
   MigrationOperationPolicy,
@@ -56,10 +65,13 @@ export type {
   MigrationRunnerSuccessValue,
   MigrationScaffoldContext,
   OpFactoryCall,
+  PlanOrigin,
+  RowsWithoutValue,
   SchemaEntityCoordinate,
   SchemaOwnership,
   TargetMigrationsCapability,
 } from '../control/control-migration-types';
+export { planOriginOf } from '../control/control-migration-types';
 export type {
   OperationPreview,
   OperationPreviewStatement,
@@ -67,12 +79,17 @@ export type {
 export type {
   EmitContractResult,
   IntrospectSchemaResult,
+  MarkerHashes,
   OperationContext,
-  SignDatabaseResult,
+  SpaceMarkerConflict,
+  SpaceSignature,
+  SpaceSigned,
+  SpaceToSign,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '../control/control-operation-results';
 export {
+  sameMarkerHashes,
   VERIFY_CODE_HASH_MISMATCH,
   VERIFY_CODE_MARKER_MISSING,
   VERIFY_CODE_SCHEMA_FAILURE,
@@ -95,18 +112,53 @@ export type {
   AssembledAuthoringContributions,
   ControlStack,
   CreateControlStackInput,
+  DataTypeInvariantInput,
 } from '../control/control-stack';
 export {
   assembleAuthoringContributions,
+  assembleAuthoringDataTypes,
   assembleControlMutationDefaults,
   assertUniqueCodecOwner,
   buildExtensionLoadOrder,
   createControlStack,
+  enforceDataTypeInvariants,
   extractCodecLookup,
   extractCodecTypeImports,
   extractComponentIds,
   extractQueryOperationTypeImports,
 } from '../control/control-stack';
+export type {
+  AppliedMigrationStatement,
+  FieldCoordinate,
+  FieldCoordinateJson,
+  MigrationAccessChange,
+  MigrationDataLoss,
+  MigrationDataLossKind,
+  MigrationOperationSubject,
+  MigrationPlanSubjects,
+  MigrationStatementJson,
+  MigrationSubject,
+  MigrationSubjectJson,
+  MigrationTemporaryValue,
+  ModelCoordinate,
+  ModelCoordinateJson,
+  ResolvedFieldBackfillStatement,
+  ResolvedFieldConvertStatement,
+  ResolvedFieldRenameStatement,
+  ResolvedMigrationStatement,
+  ResolvedModelRenameStatement,
+  ResolvedRenameStatement,
+} from '../control/migration-statements';
+export {
+  describeMigrationStatement,
+  fieldStatementText,
+  isRenameStatement,
+  migrationStatementJson,
+  migrationSubjectJson,
+  migrationSubjectKey,
+  modelDisplayName,
+  modelStatementText,
+} from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
 export type {
   DiffableNode,
@@ -138,3 +190,10 @@ export type {
   SourceSpan,
   TypedDefaultFunctionCall,
 } from '../shared/mutation-default-types';
+export {
+  describeTaggedLiteralFailure,
+  resolvePslBacktickEscapes,
+  resolveTemplateTagEscapes,
+  TAGGED_LITERAL_MAX_BYTES,
+} from '../shared/tagged-literal';
+export { timestampNowControlDescriptor } from '../shared/temporal-presets';

@@ -1,3 +1,4 @@
+import type { EnumAccessor } from '@internal/contract/enum-accessor';
 import {
   type ContractField,
   type ContractReferenceRelation,
@@ -6,9 +7,13 @@ import {
   domainValueObjectsAtDefaultNamespace,
   type PlanMeta,
 } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   AsyncIterableResult,
+  type MutationDefaults,
+  type MutationDefaultsOp,
   type RuntimeStatementStats,
+  runtimeError,
 } from '@internal/framework-components/runtime';
 import type {
   AnyMongoTypeMaps,
@@ -19,6 +24,8 @@ import type {
 } from '@internal/mongo-contract';
 import type {
   AnyMongoCommand,
+  InsertManyResult,
+  InsertOneResult,
   MongoFieldShape,
   MongoFilterExpr,
   MongoQueryPlan,
@@ -45,6 +52,7 @@ import { MongoParamRef } from '@internal/mongo-value';
 import { blindCast, castAs } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import type { MongoIncludeExpr } from './collection-state';
 import { emptyCollectionState, type MongoCollectionState } from './collection-state';
 import { compileMongoQuery } from './compile';
@@ -54,18 +62,21 @@ import {
   createFieldAccessor,
   type FieldAccessor,
   type FieldOperation,
+  type UpdateOperator,
 } from './field-accessor';
 import { ormError } from './orm-errors';
 import type {
-  DefaultModelRow,
+  DiscriminatorValues,
   IncludedRow,
   MongoIncludeSpec,
   MongoWhereFilter,
   NoIncludes,
   ReferenceRelationKeys,
   ResolvedCreateInput,
-  VariantNames,
+  UpdateInput,
+  VariantSelectable,
 } from './types';
+import { upsertPipeline } from './upsert-pipeline';
 
 type ModelFieldKeys<
   TContract extends MongoContract,
@@ -76,53 +87,60 @@ export interface MongoCollection<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
   TIncludes extends MongoIncludeSpec<TContract, ModelName> = NoIncludes,
-  TVariant extends string = never,
+  TVariantValue extends string = never,
 > {
-  /** Narrows to a specific variant, injecting a discriminator filter. */
-  variant<V extends VariantNames<TContract, ModelName>>(
-    variantName: V,
+  readonly _row?: SimplifyDeep<IncludedRow<TContract, ModelName, TIncludes>>;
+  /**
+   * Narrows to the variant declared with the given discriminator value,
+   * injecting a discriminator filter. Call it once, on the base collection:
+   * a collection that already has a variant selected refuses it.
+   */
+  variant<V extends DiscriminatorValues<TContract, ModelName>>(
+    this: VariantSelectable<TVariantValue>,
+    value: V,
   ): MongoCollection<TContract, ModelName, TIncludes, V>;
   /** Appends equality filters from a plain object. Values are encoded through codecs. */
   where(
     filter: MongoWhereFilter<TContract, ModelName>,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
-  /** Appends a filter condition from a raw filter expression. */
-  where(filter: MongoFilterExpr): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
+  /** Appends a filter condition from a raw filter expression. Comparison and `$in`/`$nin` values on a scalar field are encoded through the field's codec. */
+  where(filter: MongoFilterExpr): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Restricts returned fields to the given subset. Returns a new immutable collection. */
   select(
     ...fields: ModelFieldKeys<TContract, ModelName>[]
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Adds a `$lookup` for a reference relation. Returns a new immutable collection. */
   include<K extends ReferenceRelationKeys<TContract, ModelName> & string>(
     relationName: K,
-  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariantValue>;
   /** Sets sort order. Returns a new immutable collection. */
   orderBy(
     spec: Partial<Record<ModelFieldKeys<TContract, ModelName>, 1 | -1>>,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Limits the number of results. Returns a new immutable collection. */
-  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Offsets the results by `n`. Returns a new immutable collection. */
-  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant>;
+  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Executes the query and returns all matching rows as an async iterable. */
   all(): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Executes the query with limit 1. Returns the first matching row or `null`. */
   first(): Promise<IncludedRow<TContract, ModelName, TIncludes> | null>;
-  /** Returns the input data with the server-assigned `_id`. Does not re-read the stored document. */
+  firstOrThrow(): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
+  /** Inserts the document and returns it as stored, decoded like a read, without reading it back. */
   create(
-    data: ResolvedCreateInput<TContract, ModelName, TVariant>,
+    data: ResolvedCreateInput<TContract, ModelName, TVariantValue>,
   ): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
-  /** Returns input rows with server-assigned `_id`s. Does not re-read stored documents. */
+  /** Inserts the documents and returns them as stored, in input order and decoded like a read, without reading them back. */
   createAll(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Inserts multiple documents and returns the number inserted. */
   createAndCount(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): Promise<number>;
   /** Updates one matching document via `findOneAndUpdate`. Returns the updated document or `null`. Requires `.where()`. */
   update(
-    data: Partial<DefaultModelRow<TContract, ModelName>>,
+    data: UpdateInput<TContract, ModelName>,
   ): Promise<IncludedRow<TContract, ModelName, TIncludes> | null>;
   /** Updates one matching document using field operations from a callback. Requires `.where()`. */
   update(
@@ -130,14 +148,14 @@ export interface MongoCollection<
   ): Promise<IncludedRow<TContract, ModelName, TIncludes> | null>;
   /** Non-atomic: captures matching `_id`s, updates, then re-reads by `_id`. Requires `.where()`. */
   updateAll(
-    data: Partial<DefaultModelRow<TContract, ModelName>>,
+    data: UpdateInput<TContract, ModelName>,
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Updates all matching documents using field operations from a callback. Requires `.where()`. */
   updateAll(
     callback: (u: FieldAccessor<TContract, ModelName>) => FieldOperation[],
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Updates all matching documents and returns the number modified. Requires `.where()`. */
-  updateAndCount(data: Partial<DefaultModelRow<TContract, ModelName>>): Promise<number>;
+  updateAndCount(data: UpdateInput<TContract, ModelName>): Promise<number>;
   /** Updates all matching documents using field operations and returns the number modified. Requires `.where()`. */
   updateAndCount(
     callback: (u: FieldAccessor<TContract, ModelName>) => FieldOperation[],
@@ -151,21 +169,62 @@ export interface MongoCollection<
   /**
    * On insert: `update` fields are applied via `$set`, remaining `create` fields via `$setOnInsert`.
    * This means `update` values take precedence over `create` for overlapping fields on insert.
+   * A field that `create` sets and that has an update default (such as `temporal.updatedAt()`) keeps the `create` value on insert and advances on update; that case is sent as one upsert with an update pipeline that tells an insert from an update.
    * Requires `.where()`.
    */
   upsert(input: {
-    create: ResolvedCreateInput<TContract, ModelName, TVariant>;
-    update: Partial<DefaultModelRow<TContract, ModelName>>;
+    create: ResolvedCreateInput<TContract, ModelName, TVariantValue>;
+    update: UpdateInput<TContract, ModelName>;
   }): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
   /** Upsert using field operations callback for the update part. Requires `.where()`. */
   upsert(input: {
-    create: ResolvedCreateInput<TContract, ModelName, TVariant>;
+    create: ResolvedCreateInput<TContract, ModelName, TVariantValue>;
     update: (u: FieldAccessor<TContract, ModelName>) => FieldOperation[];
   }): Promise<IncludedRow<TContract, ModelName, TIncludes>>;
 }
 
+const COMPARISON_OPERATORS: ReadonlySet<string> = new Set([
+  '$eq',
+  '$ne',
+  '$gt',
+  '$gte',
+  '$lt',
+  '$lte',
+]);
+const MEMBERSHIP_OPERATORS: ReadonlySet<string> = new Set(['$in', '$nin']);
+
+type ValuePurpose = 'write' | 'filter';
+
 function resolveCollectionName(model: MongoModelDefinition, modelName: string): string {
   return model.storage.collection ?? modelName;
+}
+
+function topLevelUpdateFields(
+  updateDoc: Record<string, Record<string, MongoValue>>,
+): ReadonlySet<string> {
+  const fields = new Set<string>();
+  for (const operatorGroup of Object.values(updateDoc)) {
+    for (const fieldPath of Object.keys(operatorGroup)) {
+      fields.add(fieldPath.split('.')[0] ?? fieldPath);
+    }
+  }
+  return fields;
+}
+
+/**
+ * The contract's enum accessors by namespace and enum name, as `db.enums` holds them. The ORM checks a written enum value against them.
+ */
+export type MongoOrmEnums = Readonly<
+  Record<string, Readonly<Record<string, Pick<EnumAccessor, 'has' | 'values'>>>>
+>;
+
+function describeValue(value: unknown): string {
+  if (typeof value === 'bigint') return `${value}n`;
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return String(value);
+  }
 }
 
 function isUnknownRecord(value: unknown): value is Record<string, unknown> {
@@ -176,20 +235,30 @@ class MongoCollectionImpl<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
   TIncludes extends MongoIncludeSpec<TContract, ModelName> = NoIncludes,
-  TVariant extends string = never,
-> implements MongoCollection<TContract, ModelName, TIncludes, TVariant>
+  TVariantValue extends string = never,
+> implements MongoCollection<TContract, ModelName, TIncludes, TVariantValue>
 {
   readonly #contract: TContract;
   readonly #modelName: ModelName;
   readonly #executor: MongoQueryExecutor;
+  readonly #mutationDefaults: MutationDefaults | undefined;
+  readonly #enums: MongoOrmEnums;
   #collectionName: string;
   #state: MongoCollectionState;
-  #variantName: string | undefined;
+  #variantValue: string | undefined;
 
-  constructor(contract: TContract, modelName: ModelName, executor: MongoQueryExecutor) {
+  constructor(
+    contract: TContract,
+    modelName: ModelName,
+    executor: MongoQueryExecutor,
+    mutationDefaults: MutationDefaults | undefined,
+    enums: MongoOrmEnums,
+  ) {
     this.#contract = contract;
     this.#modelName = modelName;
     this.#executor = executor;
+    this.#mutationDefaults = mutationDefaults;
+    this.#enums = enums;
     const model = blindCast<
       MongoModelDefinition,
       'modelName is constrained to Mongo contract model keys but namespace lookup erases storage type'
@@ -198,43 +267,63 @@ class MongoCollectionImpl<
     this.#state = emptyCollectionState();
   }
 
-  variant<V extends VariantNames<TContract, ModelName>>(
-    variantName: V,
+  variant<V extends DiscriminatorValues<TContract, ModelName>>(
+    value: V,
   ): MongoCollection<TContract, ModelName, TIncludes, V> {
     const model = blindCast<
       MongoModelDefinition | undefined,
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
     >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
-    if (!model?.discriminator || !model.variants) {
-      // No polymorphism metadata on this model — return unchanged. Cast required
-      // because TS cannot verify TVariant (the current variant) is assignable to V.
-      return blindCast<
-        MongoCollection<TContract, ModelName, TIncludes, V>,
-        'no-op variant refinement preserves runtime state while changing only the type-level variant'
-      >(this);
+    const discriminator = model?.discriminator;
+    const selectedValue = this.#variantValue;
+
+    if (selectedValue !== undefined) {
+      throw ormError(
+        'ORM.OPERATION_UNSUPPORTED',
+        `variant("${value}") cannot be called on model "${this.#modelName}" because variant("${selectedValue}") is already selected; call variant() on the base collection instead`,
+        {
+          meta: {
+            method: 'variant',
+            model: this.#modelName,
+            variant: model?.variants?.[selectedValue]?.model,
+            selectedValue,
+            reason: 'variant-already-selected',
+          },
+        },
+      );
     }
 
-    const variantEntry = model.variants[variantName];
-    if (!variantEntry) {
-      // Unknown variant name at runtime — return unchanged. Same cast rationale.
-      return blindCast<
-        MongoCollection<TContract, ModelName, TIncludes, V>,
-        'unknown variant fallback preserves runtime state while changing only the type-level variant'
-      >(this);
+    if (!discriminator || model?.variants?.[value] === undefined) {
+      const declaredValues = discriminator ? Object.keys(model?.variants ?? {}) : [];
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
+        declaredValues.length === 0
+          ? `variant("${value}") cannot narrow model "${this.#modelName}": it declares no discriminator values`
+          : `variant("${value}") cannot narrow model "${this.#modelName}": the declared discriminator values are ${declaredValues.map((declared) => `"${declared}"`).join(', ')}`,
+        {
+          meta: {
+            method: 'variant',
+            argument: 'value',
+            model: this.#modelName,
+            value,
+            declaredValues,
+          },
+        },
+      );
     }
 
-    const filter = MongoFieldFilter.eq(
-      model.discriminator.field,
-      new MongoParamRef(variantEntry.value),
-    );
-    return this.#cloneWithVariant<V>({ filters: [...this.#state.filters, filter] }, variantName);
+    const filter = MongoFieldFilter.eq(discriminator.field, new MongoParamRef(value));
+    return this.#cloneWithVariant<V>({ filters: [...this.#state.filters, filter] }, value);
   }
 
   where(
     filter: MongoWhereFilter<TContract, ModelName> | MongoFilterExpr,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     if (isMongoFilterExpr(filter)) {
-      return this.#clone({ filters: [...this.#state.filters, filter] });
+      const encoded = filter.rewrite({
+        field: (fieldFilter) => this.#encodeFieldFilter(fieldFilter),
+      });
+      return this.#clone({ filters: [...this.#state.filters, encoded] });
     }
     const compiled = this.#compileWhereObject(
       blindCast<
@@ -247,13 +336,13 @@ class MongoCollectionImpl<
 
   select(
     ...fields: ModelFieldKeys<TContract, ModelName>[]
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     return this.#clone({ selectedFields: [...(this.#state.selectedFields ?? []), ...fields] });
   }
 
   include<K extends ReferenceRelationKeys<TContract, ModelName> & string>(
     relationName: K,
-  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariantValue> {
     const model = blindCast<
       MongoModelDefinition,
       'modelName is constrained to Mongo contract model keys but namespace lookup erases storage type'
@@ -303,6 +392,7 @@ class MongoCollectionImpl<
 
     const includeExpr: MongoIncludeExpr = {
       relationName,
+      targetModel,
       from: resolveCollectionName(targetModel, targetModelName),
       localField,
       foreignField,
@@ -310,7 +400,7 @@ class MongoCollectionImpl<
     };
 
     return blindCast<
-      MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariant>,
+      MongoCollection<TContract, ModelName, TIncludes & Record<K, true>, TVariantValue>,
       'include clone state contains the appended relation but the generic include refinement is not inferred'
     >(
       this.#clone({
@@ -321,16 +411,16 @@ class MongoCollectionImpl<
 
   orderBy(
     spec: Partial<Record<ModelFieldKeys<TContract, ModelName>, 1 | -1>>,
-  ): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     const merged: Readonly<Record<string, 1 | -1>> = { ...this.#state.orderBy, ...spec };
     return this.#clone({ orderBy: merged });
   }
 
-  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  limit(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     return this.#clone({ limit: n });
   }
 
-  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariant> {
+  offset(n: number): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
     return this.#clone({ offset: n });
   }
 
@@ -347,75 +437,93 @@ class MongoCollectionImpl<
     return null;
   }
 
+  async firstOrThrow(): Promise<IncludedRow<TContract, ModelName, TIncludes>> {
+    return this.#clone({ limit: 1 }).#query().firstOrThrow();
+  }
+
   async create(
-    data: ResolvedCreateInput<TContract, ModelName, TVariant>,
+    data: ResolvedCreateInput<TContract, ModelName, TVariantValue>,
   ): Promise<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#rejectIncludes('create');
-    const normalized = this.#injectDiscriminator(
-      this.#stripUndefined(
-        blindCast<
-          Record<string, unknown>,
-          'resolved Mongo create input is a model-field value record'
-        >(data),
+    const normalized = this.#withCreateDefaults(
+      this.#injectDiscriminator(
+        this.#stripUndefined(
+          blindCast<
+            Record<string, unknown>,
+            'resolved Mongo create input is a model-field value record'
+          >(data),
+        ),
       ),
+      new Map(),
     );
     const document = this.#toDocument(normalized);
     const command = new InsertOneCommand(this.#collectionName, document);
     const results = await this.#drainPlan(command, this.#insertOneResultShape());
-    const insertedId = blindCast<
-      { insertedId: unknown },
-      'InsertOneCommand runtime result exposes the server-assigned insertedId, decoded via the _id codec'
-    >(results[0]).insertedId;
     return blindCast<
       IncludedRow<TContract, ModelName, TIncludes>,
-      'created row combines resolved model input with the server-assigned _id'
-    >({ _id: insertedId, ...normalized });
+      'the insert result carries the written document, decoded through the model result shape like a read'
+    >(
+      blindCast<InsertOneResult, 'InsertOneCommand yields one InsertOneResult'>(results[0])
+        .document,
+    );
   }
 
   createAll(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#rejectIncludes('createAll');
     const self = this;
     async function* gen(): AsyncGenerator<IncludedRow<TContract, ModelName, TIncludes>> {
+      const defaultValueCache = new Map<string, unknown>();
       const normalizedRows = data.map((d) =>
-        self.#injectDiscriminator(
-          self.#stripUndefined(
-            blindCast<
-              Record<string, unknown>,
-              'resolved Mongo create-all input is a model-field value record'
-            >(d),
+        self.#withCreateDefaults(
+          self.#injectDiscriminator(
+            self.#stripUndefined(
+              blindCast<
+                Record<string, unknown>,
+                'resolved Mongo create-all input is a model-field value record'
+              >(d),
+            ),
           ),
+          defaultValueCache,
         ),
       );
-      const documents = normalizedRows.map((d) => self.#toDocument(d));
-      const command = new InsertManyCommand(self.#collectionName, documents);
+      const command = new InsertManyCommand(
+        self.#collectionName,
+        normalizedRows.map((d) => self.#toDocument(d)),
+      );
       const results = await self.#drainPlan(command, self.#insertManyResultShape());
-      const insertedIds = blindCast<
-        { insertedIds: readonly unknown[] },
-        'InsertManyCommand runtime result exposes insertedIds in input order, decoded via the _id codec'
-      >(results[0]).insertedIds;
-      for (let i = 0; i < normalizedRows.length; i++) {
+      const { documents } = blindCast<
+        InsertManyResult,
+        'InsertManyCommand yields one InsertManyResult'
+      >(results[0]);
+      for (const document of documents) {
         yield blindCast<
           IncludedRow<TContract, ModelName, TIncludes>,
-          'created row combines resolved model input with its server-assigned _id'
-        >({ _id: insertedIds[i], ...normalizedRows[i] });
+          'the insert result carries the written documents, decoded through the model result shape like a read'
+        >(document);
       }
     }
     return new AsyncIterableResult(gen());
   }
 
   async createAndCount(
-    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariant>>,
+    data: ReadonlyArray<ResolvedCreateInput<TContract, ModelName, TVariantValue>>,
   ): Promise<number> {
     this.#rejectIncludes('createAndCount');
+    const defaultValueCache = new Map<string, unknown>();
     const documents = data.map((d) =>
       this.#toDocument(
-        this.#injectDiscriminator(
-          blindCast<
-            Record<string, unknown>,
-            'resolved Mongo create-and-count input is a model-field value record'
-          >(d),
+        this.#withCreateDefaults(
+          this.#injectDiscriminator(
+            this.#stripUndefined(
+              blindCast<
+                Record<string, unknown>,
+                'resolved Mongo create-and-count input is a model-field value record'
+              >(d),
+            ),
+          ),
+          defaultValueCache,
         ),
       ),
     );
@@ -429,14 +537,14 @@ class MongoCollectionImpl<
 
   async update(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): Promise<IncludedRow<TContract, ModelName, TIncludes> | null> {
     this.#requireFilters('update');
     this.#rejectWindowing('update');
     this.#rejectIncludes('update');
     const filter = this.#mergeFilters();
-    const updateDoc = this.#resolveUpdateDoc(dataOrCallback);
+    const updateDoc = this.#withUpdateDefaults(this.#resolveUpdateDoc(dataOrCallback), new Map());
     const command = new FindOneAndUpdateCommand(this.#collectionName, filter, updateDoc, false);
     const results = await this.#drainPlan(command, this.#modelResultShape());
     const result = results[0];
@@ -450,7 +558,7 @@ class MongoCollectionImpl<
 
   updateAll(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): AsyncIterableResult<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#requireFilters('updateAll');
@@ -461,7 +569,7 @@ class MongoCollectionImpl<
       if (ids.length === 0) return;
 
       const filter = self.#mergeFilters();
-      const updateDoc = self.#resolveUpdateDoc(dataOrCallback);
+      const updateDoc = self.#withUpdateDefaults(self.#resolveUpdateDoc(dataOrCallback), new Map());
       const command = new UpdateManyCommand(self.#collectionName, filter, updateDoc);
       await self.#drainPlan(command);
 
@@ -476,14 +584,14 @@ class MongoCollectionImpl<
 
   async updateAndCount(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): Promise<number> {
     this.#requireFilters('updateAndCount');
     this.#rejectWindowing('updateAndCount');
     this.#rejectIncludes('updateAndCount');
     const filter = this.#mergeFilters();
-    const updateDoc = this.#resolveUpdateDoc(dataOrCallback);
+    const updateDoc = this.#withUpdateDefaults(this.#resolveUpdateDoc(dataOrCallback), new Map());
     const command = new UpdateManyCommand(this.#collectionName, filter, updateDoc);
     const stats = await this.#executePlan(command);
     return stats.affectedRows;
@@ -533,23 +641,27 @@ class MongoCollectionImpl<
   }
 
   async upsert(input: {
-    create: ResolvedCreateInput<TContract, ModelName, TVariant>;
+    create: ResolvedCreateInput<TContract, ModelName, TVariantValue>;
     update:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]);
   }): Promise<IncludedRow<TContract, ModelName, TIncludes>> {
     this.#requireFilters('upsert');
     this.#rejectWindowing('upsert');
     this.#rejectIncludes('upsert');
     const filter = this.#mergeFilters();
+    const defaultValueCache = new Map<string, unknown>();
 
-    const allCreateFields = this.#toDocument(
-      this.#injectDiscriminator(
+    const explicitCreate = this.#injectDiscriminator(
+      this.#stripUndefined(
         blindCast<
           Record<string, unknown>,
           'resolved Mongo upsert create input is a model-field value record'
         >(input.create),
       ),
+    );
+    const allCreateFields = this.#toDocument(
+      this.#withCreateDefaults(explicitCreate, defaultValueCache),
     );
 
     let updateDoc: Record<string, Record<string, MongoValue>>;
@@ -588,23 +700,55 @@ class MongoCollectionImpl<
       }
     }
 
-    const updatedFields = new Set<string>();
-    for (const operatorGroup of Object.values(updateDoc)) {
-      for (const fieldPath of Object.keys(operatorGroup)) {
-        updatedFields.add(fieldPath.split('.')[0] ?? fieldPath);
-      }
+    const explicitUpdateFields = topLevelUpdateFields(updateDoc);
+    const withUpdateDefaults = this.#withUpdateDefaults(updateDoc, defaultValueCache);
+    const generatedSetByCreate = Object.keys(withUpdateDefaults['$set'] ?? {}).filter(
+      (field) => !explicitUpdateFields.has(field) && Object.hasOwn(explicitCreate, field),
+    );
+    if (generatedSetByCreate.length === 0) {
+      return this.#upsertCommand(filter, withUpdateDefaults, allCreateFields);
     }
+
+    const results = await this.#drainPlan(
+      new FindOneAndUpdateCommand(
+        this.#collectionName,
+        filter,
+        upsertPipeline({
+          filter,
+          update: withUpdateDefaults,
+          create: allCreateFields,
+          createWins: new Set(generatedSetByCreate),
+        }),
+        true,
+      ),
+      this.#modelResultShape(),
+    );
+    return blindCast<
+      IncludedRow<TContract, ModelName, TIncludes>,
+      'FindOneAndUpdateCommand upsert plan carries the model resultShape; the runtime decodes the returned document like a read'
+    >(results[0]);
+  }
+
+  async #upsertCommand(
+    filter: MongoFilterExpr,
+    updateDoc: Record<string, Record<string, MongoValue>>,
+    allCreateFields: Record<string, MongoValue>,
+  ): Promise<IncludedRow<TContract, ModelName, TIncludes>> {
+    const updatedFields = topLevelUpdateFields(updateDoc);
     const insertOnlyFields: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(allCreateFields)) {
       if (!updatedFields.has(key)) {
         insertOnlyFields[key] = value;
       }
     }
-    if (Object.keys(insertOnlyFields).length > 0) {
-      updateDoc['$setOnInsert'] = insertOnlyFields;
-    }
-
-    const command = new FindOneAndUpdateCommand(this.#collectionName, filter, updateDoc, true);
+    const command = new FindOneAndUpdateCommand(
+      this.#collectionName,
+      filter,
+      Object.keys(insertOnlyFields).length > 0
+        ? { ...updateDoc, $setOnInsert: insertOnlyFields }
+        : updateDoc,
+      true,
+    );
     const results = await this.#drainPlan(command, this.#modelResultShape());
     return blindCast<
       IncludedRow<TContract, ModelName, TIncludes>,
@@ -644,10 +788,7 @@ class MongoCollectionImpl<
   }
 
   #compile(): MongoQueryPlan<IncludedRow<TContract, ModelName, TIncludes>> {
-    const model = blindCast<
-      MongoModelDefinition | undefined,
-      'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
-    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
+    const model = this.#modelWithVariantFields();
     if (!model) {
       throw ormError('ORM.MODEL_UNKNOWN', `Unknown model: "${this.#modelName}".`, {
         meta: { model: this.#modelName },
@@ -658,6 +799,7 @@ class MongoCollectionImpl<
       this.#state,
       this.#contract.storage.storageHash,
       model,
+      this.#valueObjects(),
     );
   }
 
@@ -685,11 +827,25 @@ class MongoCollectionImpl<
   }
 
   #modelFields(): Record<string, ContractField> {
+    return this.#modelWithVariantFields()?.fields ?? {};
+  }
+
+  #modelWithVariantFields(): MongoModelDefinition | undefined {
+    const models = domainModelsAtDefaultNamespace(this.#contract.domain);
     const model = blindCast<
       MongoModelDefinition | undefined,
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
-    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
-    return model?.fields ?? {};
+    >(models[this.#modelName]);
+    const variantRef =
+      this.#variantValue === undefined ? undefined : model?.variants?.[this.#variantValue];
+    if (model === undefined || variantRef === undefined) return model;
+    const variant = blindCast<
+      MongoModelDefinition | undefined,
+      'a variant reference names the variant model in the same namespace'
+    >(models[variantRef.model]);
+    return variant === undefined
+      ? model
+      : { ...model, fields: { ...model.fields, ...variant.fields } };
   }
 
   #idFieldShape(): MongoFieldShape {
@@ -702,26 +858,37 @@ class MongoCollectionImpl<
   #insertOneResultShape(): MongoResultShape {
     return freezeMongoResultShape({
       kind: 'document',
-      fields: { insertedId: this.#idFieldShape() },
+      fields: { insertedId: this.#idFieldShape(), document: this.#documentShape() },
     });
   }
 
   #insertManyResultShape(): MongoResultShape {
     return freezeMongoResultShape({
       kind: 'document',
-      fields: { insertedIds: { kind: 'array', nullable: false, element: this.#idFieldShape() } },
+      fields: {
+        insertedIds: { kind: 'array', nullable: false, element: this.#idFieldShape() },
+        documents: { kind: 'array', nullable: false, element: this.#documentShape() },
+      },
     });
   }
 
+  #documentShape(): MongoFieldShape {
+    const shape = this.#modelResultShape();
+    return shape.kind === 'document'
+      ? { kind: 'document', nullable: false, fields: shape.fields, row: true }
+      : { kind: 'unknown' };
+  }
+
   #modelResultShape(): MongoResultShape {
-    const model = blindCast<
-      MongoModelDefinition | undefined,
-      'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
-    >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
+    const model = this.#modelWithVariantFields();
     if (!model) {
       return Object.freeze({ kind: 'unknown' as const });
     }
-    return contractModelToMongoResultShape(model);
+    return contractModelToMongoResultShape(model, { valueObjects: this.#valueObjects() });
+  }
+
+  #valueObjects(): Readonly<Record<string, ContractValueObject>> {
+    return domainValueObjectsAtDefaultNamespace(this.#contract.domain) ?? {};
   }
 
   #compileWhereObject(data: Record<string, unknown>): MongoFilterExpr[] {
@@ -729,33 +896,88 @@ class MongoCollectionImpl<
     const filters: MongoFilterExpr[] = [];
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
-      const wrapped = this.#wrapFieldValue(value, fields[key]);
+      const wrapped = this.#wrapFieldValue(value, fields[key], key, 'filter');
       filters.push(MongoFieldFilter.eq(key, wrapped));
     }
     return filters;
   }
 
-  #wrapFieldValue(value: unknown, field: ContractField | undefined): MongoValue {
+  /**
+   * Encodes the comparison values of a filter on a scalar field through the field's codec, as the object form of `where` and every update does. Without it a driver class such as an `ObjectId` would be copied into a plain object and match nothing.
+   */
+  #encodeFieldFilter(filter: MongoFieldFilter): MongoFieldFilter {
+    const field = this.#fieldAtPath(filter.field);
+    if (field?.type.kind !== 'scalar') return filter;
+    const encode = (value: MongoValue): MongoValue => {
+      if (value === null) return null;
+      if (value instanceof MongoParamRef) {
+        return value.codecId === undefined
+          ? this.#wrapFieldValue(value.value, field, filter.field, 'filter')
+          : value;
+      }
+      if (field.many && Array.isArray(value)) return value.map(encode);
+      return this.#wrapFieldValue(value, field, filter.field, 'filter');
+    };
+    if (COMPARISON_OPERATORS.has(filter.op)) {
+      return MongoFieldFilter.of(filter.field, filter.op, encode(filter.value));
+    }
+    if (MEMBERSHIP_OPERATORS.has(filter.op) && Array.isArray(filter.value)) {
+      const values = filter.value;
+      const encoded = values.map(encode);
+      return encoded.every((value, index) => value === values[index])
+        ? filter
+        : MongoFieldFilter.of(filter.field, filter.op, encoded);
+    }
+    return filter;
+  }
+
+  #fieldAtPath(path: string): ContractField | undefined {
+    const [head, ...rest] = path.split('.');
+    let field: ContractField | undefined =
+      head === undefined ? undefined : this.#modelFields()[head];
+    for (const segment of rest) {
+      if (field?.type.kind !== 'valueObject') return undefined;
+      field = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[field.type.name]
+        ?.fields[segment];
+    }
+    return field;
+  }
+
+  /**
+   * A value written to a field is checked against the field's enum and must not be `null` unless the field is nullable; a value compared in a filter is not, so a filter can find stored values the contract does not allow.
+   */
+  #wrapFieldValue(
+    value: unknown,
+    field: ContractField | undefined,
+    path: string,
+    purpose: ValuePurpose,
+  ): MongoValue {
     if (field === undefined) return new MongoParamRef(value);
+    if (value === null) return this.#nullParam(field, path, purpose);
 
     if (field.type.kind === 'scalar') {
-      return new MongoParamRef(value, { codecId: field.type.codecId });
+      if (purpose === 'write') this.#assertEnumValues(field, value, path);
+      return this.#scalarParam(value, field, path, purpose);
     }
 
     if (field.type.kind === 'valueObject') {
       const voName = field.type.name;
       const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[voName];
-      if (!voDef || value === null) return new MongoParamRef(value);
+      if (!voDef) return new MongoParamRef(value);
 
       if (field.many && Array.isArray(value)) {
-        return value.map((item) =>
-          this.#wrapValueObject(
-            blindCast<
-              Record<string, unknown>,
-              'contract-typed value-object array elements are field-value records'
-            >(item),
-            voDef,
-          ),
+        return value.map((item, index) =>
+          item === null
+            ? null
+            : this.#wrapValueObject(
+                blindCast<
+                  Record<string, unknown>,
+                  'non-null contract-typed value-object array elements are field-value records'
+                >(item),
+                voDef,
+                `${path}.${index}`,
+                purpose,
+              ),
         );
       }
       return this.#wrapValueObject(
@@ -764,21 +986,100 @@ class MongoCollectionImpl<
           'contract-typed value-object input is a field-value record'
         >(value),
         voDef,
+        path,
+        purpose,
       );
     }
 
     return new MongoParamRef(value);
   }
 
+  #nullParam(field: ContractField, path: string, purpose: ValuePurpose): null {
+    if (purpose === 'write' && !field.nullable) {
+      throw runtimeError(
+        'RUNTIME.ENCODE_FAILED',
+        `Failed to encode field ${path} in collection '${this.#collectionName}': the field is required and cannot be null`,
+        { label: path, collection: this.#collectionName },
+      );
+    }
+    return null;
+  }
+
+  /**
+   * A contract without a collection validator (TypeScript builder, Prisma 6 schema) stores whatever reaches the driver, so a value outside the field's enum is refused here.
+   */
+  #assertEnumValues(field: ContractField, value: unknown, path: string): void {
+    const valueSet = field.valueSet;
+    if (valueSet === undefined || valueSet.entityKind !== 'enum' || value === null) return;
+    const contractEnum =
+      this.#contract.domain.namespaces[valueSet.namespaceId]?.enum?.[valueSet.entityName];
+    if (contractEnum === undefined) return;
+    const accessor = this.#enums[valueSet.namespaceId]?.[valueSet.entityName];
+    if (accessor === undefined) {
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
+        `The ORM has no accessor for enum ${valueSet.entityName}, so it cannot check the value written to ${path} in collection '${this.#collectionName}'. Pass the contract's enum accessors: enums: buildMongoEnums(contract, context.codecs).`,
+        { meta: { argument: 'enums', enum: valueSet.entityName } },
+      );
+    }
+    const values: readonly unknown[] = field.many && Array.isArray(value) ? value : [value];
+    const outside = values.findIndex((entry) => entry !== null && !accessor.has(entry));
+    if (outside === -1) return;
+    const received = values[outside];
+    const described = accessor.values.map(describeValue);
+    const list =
+      described.length > 1
+        ? `${described.slice(0, -1).join(', ')} and ${described.at(-1)}`
+        : described.join('');
+    throw runtimeError(
+      'RUNTIME.ENCODE_FAILED',
+      `Failed to encode field ${path} in collection '${this.#collectionName}': ${describeValue(received)} is not a value of enum ${valueSet.entityName}; the values are ${list}`,
+      {
+        label: path,
+        collection: this.#collectionName,
+        received,
+        allowed: contractEnum.members.map((member) => member.value),
+      },
+    );
+  }
+
+  /**
+   * A scalar field's value as parameters: a list field's array is encoded element by element through the element codec, so the codec never sees the whole list.
+   */
+  #scalarParam(
+    value: unknown,
+    field: ContractField,
+    path: string,
+    purpose: ValuePurpose,
+  ): MongoValue {
+    if (field.type.kind !== 'scalar') return new MongoParamRef(value);
+    const codecId = field.type.codecId;
+    if (field.many && Array.isArray(value)) {
+      const acceptsNull = field.many.elementNullable || purpose === 'filter';
+      return value.map((element, index) =>
+        element === null && acceptsNull
+          ? null
+          : this.#fieldParam(element, codecId, `${path}.${index}`),
+      );
+    }
+    return this.#fieldParam(value, codecId, path);
+  }
+
+  #fieldParam(value: unknown, codecId: string, path: string): MongoParamRef {
+    return new MongoParamRef(value, { codecId, name: path, collection: this.#collectionName });
+  }
+
   #wrapValueObject(
     data: Record<string, unknown>,
     voDef: ContractValueObject,
+    path: string,
+    purpose: ValuePurpose,
   ): Record<string, MongoValue> {
     const doc: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
       const fieldDef = voDef.fields[key];
-      doc[key] = this.#wrapFieldValue(value, fieldDef);
+      doc[key] = this.#wrapFieldValue(value, fieldDef, `${path}.${key}`, purpose);
     }
     return doc;
   }
@@ -788,7 +1089,7 @@ class MongoCollectionImpl<
     const doc: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value !== undefined) {
-        doc[key] = this.#wrapFieldValue(value, fields[key]);
+        doc[key] = this.#wrapFieldValue(value, fields[key], key, 'write');
       }
     }
     return doc;
@@ -804,10 +1105,47 @@ class MongoCollectionImpl<
         });
       }
       if (value !== undefined) {
-        result[key] = this.#wrapFieldValue(value, fields[key]);
+        result[key] = this.#wrapFieldValue(value, fields[key], key, 'write');
       }
     }
     return result;
+  }
+
+  #appliedDefaults(
+    op: MutationDefaultsOp,
+    values: Readonly<Record<string, unknown>>,
+    defaultValueCache: Map<string, unknown>,
+  ): Record<string, unknown> {
+    const applied =
+      this.#mutationDefaults?.applyMutationDefaults({
+        op,
+        namespace: UNBOUND_NAMESPACE_ID,
+        entry: this.#collectionName,
+        values,
+        defaultValueCache,
+      }) ?? [];
+    return Object.fromEntries(applied.map(({ field, value }) => [field, value]));
+  }
+
+  #withCreateDefaults(
+    values: Record<string, unknown>,
+    defaultValueCache: Map<string, unknown>,
+  ): Record<string, unknown> {
+    return { ...values, ...this.#appliedDefaults('create', values, defaultValueCache) };
+  }
+
+  #withUpdateDefaults(
+    updateDoc: Record<string, Record<string, MongoValue>>,
+    defaultValueCache: Map<string, unknown>,
+  ): Record<string, Record<string, MongoValue>> {
+    const explicit = Object.fromEntries(
+      [...topLevelUpdateFields(updateDoc)].map((field) => [field, true]),
+    );
+    const generated = this.#appliedDefaults('update', explicit, defaultValueCache);
+    if (Object.keys(generated).length === 0) {
+      return updateDoc;
+    }
+    return { ...updateDoc, $set: { ...updateDoc['$set'], ...this.#toSetFields(generated) } };
   }
 
   #stripUndefined(data: Record<string, unknown>): Record<string, unknown> {
@@ -826,7 +1164,7 @@ class MongoCollectionImpl<
 
   #resolveUpdateDoc(
     dataOrCallback:
-      | Partial<DefaultModelRow<TContract, ModelName>>
+      | UpdateInput<TContract, ModelName>
       | ((u: FieldAccessor<TContract, ModelName>) => FieldOperation[]),
   ): Record<string, Record<string, MongoValue>> {
     if (typeof dataOrCallback === 'function') {
@@ -853,65 +1191,32 @@ class MongoCollectionImpl<
     );
   }
 
-  #wrapFieldOpValue(field: string, value: MongoValue, operator?: string): MongoValue {
-    if (operator === '$unset') return value;
-
-    const topLevelField = field.split('.')[0] ?? field;
-    const fields = this.#modelFields();
-    const contractField = fields[topLevelField];
-    if (!contractField) return value;
-
-    if (field.includes('.')) {
-      return this.#wrapDotPathValue(field, value);
+  /**
+   * `$set` carries the field's whole value; `$push`, `$addToSet`, `$pull`, `$inc` and `$mul` carry one element or number; `$pop` and `$unset` carry no field value and are not encoded.
+   */
+  #wrapFieldOpValue(path: string, value: MongoValue, operator: UpdateOperator): MongoValue {
+    if (operator === '$unset' || operator === '$pop' || !(value instanceof MongoParamRef)) {
+      return value;
     }
-
-    if (value instanceof MongoParamRef && contractField.type.kind === 'scalar') {
-      return new MongoParamRef(value.value, { codecId: contractField.type.codecId });
+    const field = this.#fieldAtPath(path);
+    if (field === undefined) return value;
+    if (operator === '$set') return this.#wrapFieldValue(value.value, field, path, 'write');
+    if (
+      value.value === null &&
+      field.many &&
+      (field.many.elementNullable || operator === '$pull')
+    ) {
+      return null;
     }
-
-    if (contractField.type.kind === 'valueObject' && value instanceof MongoParamRef) {
-      const raw = value.value;
-      if (isUnknownRecord(raw)) {
-        const voName = contractField.type.name;
-        const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[voName];
-        if (voDef) {
-          return this.#wrapValueObject(raw, voDef);
-        }
-      }
+    if (operator === '$pull') return this.#wrapFieldValue(value.value, field, path, 'filter');
+    if (field.type.kind === 'scalar') {
+      this.#assertEnumValues(field, field.many ? [value.value] : value.value, path);
+      return this.#fieldParam(value.value, field.type.codecId, path);
     }
-
-    return value;
-  }
-
-  #wrapDotPathValue(dotPath: string, value: MongoValue): MongoValue {
-    const parts = dotPath.split('.');
-    const fields = this.#modelFields();
-    let currentField: ContractField | undefined = parts[0] ? fields[parts[0]] : undefined;
-
-    for (let i = 1; i < parts.length; i++) {
-      if (currentField?.type.kind !== 'valueObject') return value;
-      const voName = currentField.type.name;
-      const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[voName];
-      if (!voDef) return value;
-      const partKey = parts[i];
-      currentField = partKey ? voDef.fields[partKey] : undefined;
+    if (field.type.kind === 'valueObject' && isUnknownRecord(value.value)) {
+      const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[field.type.name];
+      if (voDef) return this.#wrapValueObject(value.value, voDef, path, 'write');
     }
-
-    if (currentField?.type.kind === 'scalar' && value instanceof MongoParamRef) {
-      return new MongoParamRef(value.value, { codecId: currentField.type.codecId });
-    }
-
-    if (currentField?.type.kind === 'valueObject' && value instanceof MongoParamRef) {
-      const raw = value.value;
-      if (isUnknownRecord(raw)) {
-        const voName = currentField.type.name;
-        const voDef = domainValueObjectsAtDefaultNamespace(this.#contract.domain)?.[voName];
-        if (voDef) {
-          return this.#wrapValueObject(raw, voDef);
-        }
-      }
-    }
-
     return value;
   }
 
@@ -966,43 +1271,45 @@ class MongoCollectionImpl<
   }
 
   #injectDiscriminator(data: Record<string, unknown>): Record<string, unknown> {
-    if (!this.#variantName) return data;
+    if (!this.#variantValue) return data;
     const model = blindCast<
       MongoModelDefinition | undefined,
       'Mongo contract model lookup preserves target storage metadata erased by the namespace helper'
     >(domainModelsAtDefaultNamespace(this.#contract.domain)[this.#modelName]);
-    if (!model?.discriminator || !model.variants) return data;
-    const variantEntry = model.variants[this.#variantName];
-    if (!variantEntry) return data;
-    return { ...data, [model.discriminator.field]: variantEntry.value };
+    if (!model?.discriminator) return data;
+    return { ...data, [model.discriminator.field]: this.#variantValue };
   }
 
   #clone(
     overrides: Partial<MongoCollectionState>,
-  ): MongoCollectionImpl<TContract, ModelName, TIncludes, TVariant> {
-    const instance = new MongoCollectionImpl<TContract, ModelName, TIncludes, TVariant>(
+  ): MongoCollectionImpl<TContract, ModelName, TIncludes, TVariantValue> {
+    const instance = new MongoCollectionImpl<TContract, ModelName, TIncludes, TVariantValue>(
       this.#contract,
       this.#modelName,
       this.#executor,
+      this.#mutationDefaults,
+      this.#enums,
     );
     instance.#state = { ...this.#state, ...overrides };
     instance.#collectionName = this.#collectionName;
-    instance.#variantName = this.#variantName;
+    instance.#variantValue = this.#variantValue;
     return instance;
   }
 
   #cloneWithVariant<VNew extends string>(
     overrides: Partial<MongoCollectionState>,
-    variantName: string,
+    variantValue: string,
   ): MongoCollectionImpl<TContract, ModelName, TIncludes, VNew> {
     const instance = new MongoCollectionImpl<TContract, ModelName, TIncludes, VNew>(
       this.#contract,
       this.#modelName,
       this.#executor,
+      this.#mutationDefaults,
+      this.#enums,
     );
     instance.#state = { ...this.#state, ...overrides };
     instance.#collectionName = this.#collectionName;
-    instance.#variantName = variantName;
+    instance.#variantValue = variantValue;
     return instance;
   }
 }
@@ -1014,6 +1321,8 @@ export function createMongoCollection<
   contract: TContract,
   modelName: ModelName,
   executor: MongoQueryExecutor,
+  enums: MongoOrmEnums,
+  mutationDefaults?: MutationDefaults,
 ): MongoCollection<TContract, ModelName> {
-  return new MongoCollectionImpl(contract, modelName, executor);
+  return new MongoCollectionImpl(contract, modelName, executor, mutationDefaults, enums);
 }

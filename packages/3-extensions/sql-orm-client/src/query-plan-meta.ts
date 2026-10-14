@@ -4,8 +4,6 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import { type AnyQueryAst, collectOrderedParamRefs } from '@internal/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { ifDefined } from '@internal/utils/defined';
-import { ormError } from './orm-errors';
-import { storageTableForContract } from './storage-resolution';
 
 export function deriveParamsFromAst(ast: AnyQueryAst): {
   params: unknown[];
@@ -13,25 +11,6 @@ export function deriveParamsFromAst(ast: AnyQueryAst): {
   return {
     params: collectOrderedParamRefs(ast).map((p) => (p.kind === 'param-ref' ? p.value : undefined)),
   };
-}
-
-export function resolveTableColumns(
-  contract: Contract<SqlStorage>,
-  namespaceId: string,
-  tableName: string,
-): string[] {
-  try {
-    return Object.keys(storageTableForContract(contract, namespaceId, tableName).columns);
-  } catch (error) {
-    // Surface the ambiguous-bare-name fail-fast rather than masking it as an
-    // unknown table.
-    if (error instanceof Error && error.message.includes('ambiguous')) {
-      throw error;
-    }
-    throw ormError('ORM.TABLE_UNKNOWN', `Unknown table "${tableName}" in SQL ORM query planner`, {
-      meta: { namespaceId, tableName },
-    });
-  }
 }
 
 export function buildOrmPlanMeta(
@@ -77,8 +56,8 @@ export function buildOrmQueryPlan<Row>(
  * terminals where annotations arrive at the call site, not via state.
  *
  * Returns the input plan unchanged when `annotations` is undefined
- * or empty. Reserved framework namespaces (`codecs`, `limit`) on the
- * input plan win over caller-supplied entries under the same key —
+ * or empty. Reserved namespaces already on the input plan (`codecs`, target keys such as `pg`)
+ * win over caller-supplied entries under the same key —
  * see the reserved-namespace policy on `defineAnnotation`.
  */
 export function mergeAnnotations<Row>(
@@ -92,9 +71,9 @@ export function mergeAnnotations<Row>(
   for (const [namespace, value] of annotations) {
     callerEntries[namespace] = value;
   }
-  // Caller-supplied annotations go first so framework-reserved keys on
-  // the existing plan (codecs, limit) override any collision under the
-  // same namespace.
+  // Caller-supplied annotations go first so reserved keys already on the
+  // existing plan (codecs, target keys such as pg) override any collision
+  // under the same namespace.
   const mergedAnnotations = Object.freeze({
     ...callerEntries,
     ...(plan.meta.annotations ?? {}),

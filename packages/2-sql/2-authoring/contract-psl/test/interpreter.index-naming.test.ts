@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { interpretPslDocumentToSqlContract } from '../src/interpreter';
+import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
+  interpretSqlContract,
   postgresScalarTypeDescriptors,
   postgresTarget,
-  symbolTableInputFromParseArgs,
   testEnumEntityContributions,
 } from './fixtures';
 import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
@@ -15,15 +15,14 @@ describe('index naming at PSL lowering', () => {
   const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
 
   function interpret(schema: string) {
-    const document = symbolTableInputFromParseArgs({ schema, sourceId: 'schema.prisma' });
-    return interpretPslDocumentToSqlContract({
-      ...document,
+    return interpretSqlContract(schema, {
       target: postgresTarget,
       scalarColumnDescriptors: postgresScalarTypeDescriptors,
       authoringContributions: { entityTypes: testEnumEntityContributions, type: {}, field: {} },
       composedExtensionContracts: new Map(),
       controlMutationDefaults: builtinControlMutationDefaults,
       createNamespace: createTestSqlNamespace,
+      ...fixtureInterpreterTypes,
       capabilities: { sql: { scalarList: true } },
     });
   }
@@ -38,10 +37,10 @@ describe('index naming at PSL lowering', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const storage = sqlStorageFromSuccessfulSqlInterpretation(result.value);
-    expect(unboundTables(storage)['doc']!.indexes).toEqual([
+    expect(unboundTables(storage)['Doc']!.indexes).toEqual([
       {
-        name: 'doc_body_idx_f3377346',
-        prefix: 'doc_body_idx',
+        name: 'Doc_body_idx_f3377346',
+        prefix: 'Doc_body_idx',
         columns: ['body'],
         unique: false,
       },
@@ -58,7 +57,7 @@ describe('index naming at PSL lowering', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const storage = sqlStorageFromSuccessfulSqlInterpretation(result.value);
-    expect(unboundTables(storage)['doc']!.indexes).toEqual([
+    expect(unboundTables(storage)['Doc']!.indexes).toEqual([
       {
         name: 'doc_body_lookup',
         columns: ['body'],
@@ -72,15 +71,14 @@ describe('@@index matrix threading at PSL lowering', () => {
   const builtinControlMutationDefaults = createBuiltinLikeControlMutationDefaults();
 
   function interpretMatrix(schema: string) {
-    const document = symbolTableInputFromParseArgs({ schema, sourceId: 'schema.prisma' });
-    return interpretPslDocumentToSqlContract({
-      ...document,
+    return interpretSqlContract(schema, {
       target: postgresTarget,
       scalarColumnDescriptors: postgresScalarTypeDescriptors,
       authoringContributions: { entityTypes: testEnumEntityContributions, type: {}, field: {} },
       composedExtensionContracts: new Map(),
       controlMutationDefaults: builtinControlMutationDefaults,
       createNamespace: createTestSqlNamespace,
+      ...fixtureInterpreterTypes,
       capabilities: { sql: { scalarList: true } },
     });
   }
@@ -89,12 +87,12 @@ describe('@@index matrix threading at PSL lowering', () => {
     const result = interpretMatrix(`model User {
   id    Int    @id
   email String
-  @@index(expression: "lower(email)", name: "users_email_eq")
+  @@index(expression: sql\`lower(email)\`, name: "users_email_eq")
 }`);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const storage = sqlStorageFromSuccessfulSqlInterpretation(result.value);
-    expect(unboundTables(storage)['user']!.indexes).toEqual([
+    expect(unboundTables(storage)['User']!.indexes).toEqual([
       {
         name: 'users_email_eq_17273133',
         prefix: 'users_email_eq',
@@ -108,12 +106,12 @@ describe('@@index matrix threading at PSL lowering', () => {
     const result = interpretMatrix(`model User {
   id    Int    @id
   email String
-  @@index([email], where: "(deleted_at IS NULL)", unique: true, name: "users_email_active")
+  @@index([email], where: sql\`(deleted_at IS NULL)\`, unique: true, name: "users_email_active")
 }`);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const storage = sqlStorageFromSuccessfulSqlInterpretation(result.value);
-    const index = unboundTables(storage)['user']!.indexes[0];
+    const index = unboundTables(storage)['User']!.indexes[0];
     expect(index).toMatchObject({
       prefix: 'users_email_active',
       columns: ['email'],
@@ -126,12 +124,12 @@ describe('@@index matrix threading at PSL lowering', () => {
     const result = interpretMatrix(`model User {
   id    Int    @id
   email String
-  @@index(expression: "eql_v3.eq_term(email)", name: "users_email_eq")
+  @@index(expression: sql\`eql_v3.eq_term(email)\`, name: "users_email_eq")
 }`);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     const storage = sqlStorageFromSuccessfulSqlInterpretation(result.value);
-    const index = unboundTables(storage)['user']!.indexes[0];
+    const index = unboundTables(storage)['User']!.indexes[0];
     expect(index).toMatchObject({
       prefix: 'users_email_eq',
       expression: 'eql_v3.eq_term(email)',
@@ -145,12 +143,12 @@ describe('@@index matrix threading at PSL lowering', () => {
       const result = interpretMatrix(`model User {
   id    Int    @id
   email String
-  @@index(expression: "lower(email)", map: "users_email_adopted")
+  @@index(expression: sql\`lower(email)\`, map: "users_email_adopted")
 }`);
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       const storage = sqlStorageFromSuccessfulSqlInterpretation(result.value);
-      expect(unboundTables(storage)['user']!.indexes).toEqual([
+      expect(unboundTables(storage)['User']!.indexes).toEqual([
         { name: 'users_email_adopted', expression: 'lower(email)', unique: false },
       ]);
       expect(emitWarning).toHaveBeenCalledTimes(1);

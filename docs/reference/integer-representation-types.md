@@ -1,6 +1,6 @@
 # Integer representation types
 
-Prisma Next SQL contracts can choose how integer columns appear in application code. Use the default `BigInt` type when the database's integer range is sufficient and the application can work with `bigint`; opt into `BigIntNumber` for JavaScript `number` values guarded by the safe-integer range; use PostgreSQL-only `UnboundedInt` when values must remain exact beyond 64-bit storage.
+Prisma 8 SQL contracts can choose how integer columns appear in application code. Use the default `BigInt` type when the database's integer range is sufficient and the application can work with `bigint`; opt into `BigIntNumber` for JavaScript `number` values guarded by the safe-integer range; use PostgreSQL-only `UnboundedInt` when values must remain exact beyond 64-bit storage.
 
 ## Choose a representation
 
@@ -55,7 +55,7 @@ return {
 
 For direct per-column declarations, use `field.column(pgInt8NumberColumn())` or `field.column(pgUnboundedIntColumn())` on PostgreSQL, and `field.column(sqliteBigintNumberColumn())` on SQLite. The named and direct forms select the same codecs and application types.
 
-All three alternative-representation descriptors declare `targetTypes: []`, so PostgreSQL `int8` and `numeric` and SQLite `integer` in type position keep their existing codecs and introspection remains unambiguous. Authoring availability does not make a reverse-introspection claim.
+Introspection chooses a codec for a reported type from the target's own table of codecs, which names only the original codecs, so PostgreSQL `int8` and `numeric` and SQLite `integer` in type position keep their existing codecs and introspection remains unambiguous. Authoring availability does not make a reverse-introspection claim.
 
 ## Aggregate results
 

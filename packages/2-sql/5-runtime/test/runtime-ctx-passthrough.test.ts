@@ -48,7 +48,6 @@ function createCodecs(): ReadonlyArray<Codec<string>> {
   return [
     defineTestCodec({
       typeId: 'pg/int4@1',
-      targetTypes: ['int4'],
       encode: (v: number) => v,
       decode: (w: number) => w,
     }),
@@ -135,7 +134,7 @@ describe('SQL middleware context surface', () => {
     const probe: SqlMiddleware = {
       name: 'probe',
       familyId: 'sql' as const,
-      async beforeQuery(plan, ctx) {
+      async beforeEncode(plan, ctx) {
         observedNow = ctx.now();
         observedHash = await ctx.contentHash(plan as unknown as SqlExecutionPlan);
       },

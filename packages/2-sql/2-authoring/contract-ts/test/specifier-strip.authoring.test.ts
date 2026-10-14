@@ -1,12 +1,14 @@
 import { fileURLToPath } from 'node:url';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import { type Contract, type ControlPolicy, coreHash, profileHash } from '@internal/contract/types';
+import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { FamilyPackRef } from '@internal/framework-components/components';
 import { type CheckConstraint, SqlStorage, type StorageTable } from '@internal/sql-contract/types';
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
+import { testTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
 import { typescriptContract, typescriptContractFromPath } from '../src/config-types';
 import { defineContract } from '../src/contract-builder';
 import { applySqlSpecifierControlPolicy } from '../src/derived-checks';
@@ -22,7 +24,7 @@ const sqlFamilyPack = {
     field: {
       text: {
         kind: 'fieldPreset',
-        output: { codecId: 'pg/text@1', nativeType: 'text' },
+        output: { codecId: 'pg/text@1' },
       },
     },
   },
@@ -38,12 +40,13 @@ const postgresTargetPack = {
   authoring: { field: {}, renderCheckExpressions },
 } as const;
 
-const pgText = { codecId: 'pg/text@1' as const, nativeType: 'text' } as const;
+const pgText = { codecId: 'pg/text@1' as const } as const;
 const Role = enumType('Role', pgText, member('User', 'user'), member('Admin', 'admin'));
 
 function buildUser(options?: { readonly control?: ControlPolicy }): Contract<SqlStorage> {
   return defineContract(
     {
+      ...testTypeLookups,
       family: sqlFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
@@ -63,6 +66,7 @@ function buildUser(options?: { readonly control?: ControlPolicy }): Contract<Sql
 function buildMixedControl(): Contract<SqlStorage> {
   return defineContract(
     {
+      ...testTypeLookups,
       family: sqlFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
@@ -91,8 +95,10 @@ function checksOf(contract: Contract, tableName = 'User'): readonly CheckConstra
 
 const stubContext: ContractSourceContext = {
   composedExtensions: [],
+  defaultNamespaceId: 'public',
   composedExtensionContracts: new Map(),
   authoringContributions: {
+    dataTypes: {},
     field: {},
     type: {},
     entityTypes: {},
@@ -100,12 +106,16 @@ const stubContext: ContractSourceContext = {
     modelAttributes: {},
     attributeSpecs: { model: {}, field: {} },
   },
+  dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
   codecLookup: {
     get: () => undefined,
-    targetTypesFor: () => undefined,
     renderOutputTypeFor: () => undefined,
+    descriptorFor: () => undefined,
   },
-  controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+  controlMutationDefaults: {
+    defaultFunctionRegistry: new Map(),
+    generatorDescriptors: [],
+  },
   resolvedInputs: [],
   capabilities: {},
 };

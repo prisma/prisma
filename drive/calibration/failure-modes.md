@@ -565,6 +565,46 @@ Patterns to **catch** the F-family modes live in [`grep-library.md`](./grep-libr
 
 **Reference incident.** 2026-08, public-npm-surface switchover: the operator cancelled the switchover-slice dispatch; the privatization flip it carried (64 manifests → `private: true`) was silently dropped from the consolidated delivery PR, which merged with every internal package still publishable. Caught by the operator post-merge; fixed in an emergency PR plus a two-direction publishability lint so the class cannot recur.
 
+### F34. The in-loop reviewer passes SQL lowering by reading it; a review that runs the code finds injection and invalid SQL
+
+**Symptom.** Every dispatch in a slice closes SATISFIED, and a separate review after PR-open finds defects that any execution would have shown: a string interpolated into SQL text with no runtime check, a query shape that the database rejects outright, a guard stricter than the database's own rule. The in-loop reviewer read the diff and the tests and reasoned that they were right. The second review typed a hostile value into the public API and looked at the rendered SQL, compiled the suspect query shape and ran it on PGlite, and read the database documentation for the rule the guard claimed to enforce.
+
+**Detection signal.**
+
+- The reviewer brief says the implementer's gate run is trusted and the reviewer's `pnpm` budget is zero, and the dispatch produces code that renders or rewrites SQL, builds a query plan from user input, or validates user input.
+- The reviewer's round note says "would fail if removed" about a test without saying which input was tried.
+- A renderer or builder takes a string from the public API and interpolates it (`toUpperCase()`, template literal) with the type system as the only check.
+- A guard names a database rule ("DISTINCT ON requires ...") and the round note does not cite where that rule comes from.
+- A new expression kind is accepted on a path (ORDER BY, WHERE, projection) and no test compiles it through every wrapper that path has (dedup wrappers, include remaps, aggregate inputs, cursor keysets).
+
+**Mitigation.**
+
+- A reviewer of code that renders SQL, lowers an AST, validates user input, or encodes and decodes stored values (a codec) has a non-zero execution budget by default. For a codec the brief names three codec probes the reviewer must run: (1) build the value the way the driver produces it, not the way the target's own import produces it (a class from `mongodb`'s CommonJS `bson` is not the class from the target's ESM `bson`, so `instanceof` silently never matches); (2) write a document with the raw driver that the codec must refuse, and read it back; (3) remove the fix and show which test goes red. For SQL, an AST or input validation, the brief names three SQL probes the reviewer must run, not read: (1) push a hostile value through every public entry point that reaches SQL text and show the rendered SQL rejects or escapes it; (2) compile the new construct through every wrapper on its path and run the result on PGlite or SQLite; (3) for any guard that cites a database rule, quote the rule from the database documentation and test both the allowed and the refused side.
+- "Trust the implementer's gates" means the reviewer does not re-run typecheck, lint and the package suite. It never means the reviewer does not execute anything. Reading is for design judgment; correctness of lowering is empirical (sibling of F13 and F15).
+- Run the two-pass local review (`drive-code-review`, architect and principal-engineer lenses, with execution allowed) before opening the PR, not after. Its findings then land as dispatches in the same build loop instead of a fix round on a public PR.
+
+**Reference incident.** prisma/orm#30402 (2026-09-25, relation ordering in the SQL ORM client). Six dispatches and eight review rounds closed SATISFIED. The reviewer brief said the implementer's gates were green and the reviewer's `pnpm` budget was zero. A `drive-code-review` pass after PR-open, with execution allowed, found: `nulls: 'last, (SELECT 1/0)'` rendered as `NULLS LAST, (SELECT 1/0)` on both adapters, and the sql-builder's `direction` had lost its normalisation on the same path; `aggregate()` over `distinct()` rows with a relation order emitted `ORDER BY (SELECT ... WHERE ... = "posts"."user_id")` over a derived table that no longer had `user_id`, which PGlite rejected; and the `distinctOn` guard refused trailing expression orders that Postgres accepts and that worked before the PR. All three were fixed in a second round (`57e5c01b81`, `e9c626fede`, `459774dfd1`).
+
+**Second incident.** prisma/orm#30439 (2026-09-28, Mongo `Json` and `Bson` codecs). The in-loop reviewer closed the slice SATISFIED by reading. A `drive-code-review` pass after PR-open, with execution allowed, ran the built codecs and found: both decoders threw a raw `TypeError` on a stored plain subdocument carrying a `_bsontype` key; `Bson` encode let through look-alike objects and values from another `bson` major that the driver then rejected without naming the field; the `Bson` JSON form turned bytes into `$numberInt` documents. The first fix round then introduced an `instanceof Code` check that never matched a `Code` the driver had read, because the target loads `bson`'s ESM build and `mongodb` loads the CommonJS build; only a test built from a CommonJS load of `bson` exposed it. Three fix rounds, 33 commits, before the PR could be queued.
+
+### F42. A branch-only CI failure gets "fixed" by rescheduling CI instead of by finding the cause
+
+**Symptom.** A test fails on a branch and not on `main`, in a package the branch does not touch. The orchestrator forms a hypothesis from the failure's shape (ports, timing, a shared daemon), changes the CI workflow to run suites in series, and the same test fails again with the change in place. The real cause turns out to be a race inside the test and a test that never exercised the behaviour it was named for, exposed by a timing shift on the branch; the subsystem already supported the isolation the orchestrator was trying to schedule around.
+
+**Detection signal.**
+
+- A proposed fix edits `.github/workflows/*` and no test or source file.
+- The hypothesis has not been reproduced locally against `main` and the branch.
+- The subsystem's design doc describes an isolation mechanism (per-registry daemons, per-checkout instances) that the proposal does not mention.
+
+**Mitigation.**
+
+- Reproduce before proposing: run the failing suite locally on `main` and on the branch, several times, alone and under the same parallel load CI applies.
+- Read the subsystem's design doc for how isolation is meant to work before touching CI; the fix is almost always a test assumption or a missing isolation knob, never a schedule.
+- A CI scheduling change (serialising or reordering steps) is not a fix for a flaky test. Propose one only after the reproduction shows no in-code fix exists, and then only with the operator's approval, because everyone pays for it on every run.
+- Do not ship a failing hypothesis in a PR that is otherwise ready; revert it the moment the evidence contradicts it.
+
+**Reference incident.** prisma/composer#328 and #331 (2026-10-01). Four CI runs failed on different port and timing tests in untouched packages. The orchestrator serialised the integration package in `ci.yml`; the emulator port-retry test failed again. The cause (prisma/composer#333): the test raced the daemon's "listening on" log line and, because `get-port` locks the ports it hands out, never forced the bind failure it claimed to test. The emulator daemons already took a `registryRoot` for parallel copies; the fix added the test's missing retry fixture and a `PRISMA_COMPOSER_EMULATORS_DIR` variable so a checkout or CI job can choose its registry. The CI change was reverted.
 ## Slice-shape scope traps
 
 Patterns that have produced scope creep in the past — catch these at triage or slice-spec time, not at execution time.
@@ -595,3 +635,254 @@ Per-repo stop conditions beyond the canonical ones:
 
 - Any dispatch that would touch `packages/0-shared/contract/types/**` halts for operator review before merge (contract surface is downstream-visible).
 - Any dispatch that would change the public surface of `packages/0-shared/exports/**` halts for `drive-discussion` (downstream extensions consume this surface).
+
+### F20. Long-lived PR drifts under `main`: numbering, version dirs, and write-once artefacts move without the branch noticing
+
+**Symptom.** A PR that stays open across other merges passes locally and fails only in CI's merge tree, or fails in ways no local command reproduces: an ADR number taken by `main` collides in the index; a version bump on `main` moves the required upgrade-instructions directory (`rc.8-to-rc.9` becomes `rc.9-to-rc.10`); `main` adds content-addressed migration snapshots that the branch's emitter would have written differently, so `fixtures:check` fails only in the merge.
+
+**Detection signal.**
+
+- CI `Fixtures` names files that do not exist on the branch.
+- `check-upgrade-coverage` demands a transition directory the branch never created.
+- Two ADR files or index rows share a number after fetching `origin/main`.
+
+**Mitigation.**
+
+- Merge `origin/main` into the branch before every review round and before declaring CI green, then re-run `fixtures:check`, `check:upgrade-coverage --mode pr --prev origin/main`, and `check:error-reference` on the merged tree.
+- At merge time, re-derive every number or directory the branch chose from `main`: ADR numbers, upgrade transition directories, error-reference entries.
+
+### F30. A syntax deletion lands before the committed generated artefact that still uses it is regenerated
+
+**Symptom.** A slice removes a form from a language (an attribute, a function, a value syntax). A committed generated artefact elsewhere in the repository still uses the old form, and the check that rebuilds that artefact (`fixtures:check` builds every extension's contract space) goes red from the deletion dispatch until the regeneration dispatch, so no dispatch in between can report the gate green.
+
+**Detection signal.**
+
+- `fixtures:check` fails inside an extension package's `build:contract-space` with the slice's own new diagnostic.
+- The slice plan declares the gate on the deletion dispatch and the regeneration on a later one.
+
+**Mitigation.**
+
+- At slice planning, grep every committed generated artefact (`packages/3-extensions/*/src/contract/contract.prisma`, parity fixtures, example contracts) for the form being deleted, and order the plan so regeneration lands in the same dispatch as the deletion or before it. When the regeneration needs a printer the slice has not built yet, declare `fixtures:check` as a gate of the regeneration dispatch only, and say so in the plan.
+- Only the branch tip must be green; do not spend dispatches making intermediate commits pass a gate that a later dispatch owns.
+
+**Reference incident.** remove-dbgenerated slice C (2026-09-22): dispatch 2 deleted `dbgenerated` from the registries, the Supabase `contract.prisma` still carried 15 uses, and `fixtures:check` stayed red until dispatch 4 regenerated it with the printer dispatch 3 built. The plan was amended mid-slice.
+
+### F31. A stale `dist/` in a worktree makes a journey fail on behaviour the branch already has
+
+**Symptom.** An integration journey fails locally with output that the source no longer produces (for example `contract infer` printing a form the printer stopped printing). The implementer reports it as a pre-existing failure on `main`, but CI on `main` is green.
+
+**Detection signal.**
+
+- The failing output matches an older version of a package under `packages/**/src`, not the current source.
+- The journey runs the CLI, which resolves workspace packages through `dist/*.mjs`, not through source.
+- `pnpm typecheck` or `fixtures:check` earlier in the session failed with a missing workspace package and was fixed by `pnpm install --frozen-lockfile`, which does not rebuild `dist`.
+
+**Mitigation.**
+
+- Before attributing a journey failure to `main`, run `pnpm --filter <package> build` for every package the journey's code path touched on the branch, or `pnpm build`, then re-run the one file.
+- An implementer's claim "predates this dispatch" about a journey is verified by the reviewer with `git log -1 origin/main -- <file>` and by asking whether `dist` was rebuilt after the last source change.
+
+**Reference incident.** remove-dbgenerated slice C dispatch 1 (2026-09-22): `infer-roundtrip-fidelity.prisma7-defaults` failed on a stale `family-sql` dist; the reviewer accepted the "red on main" claim in round 1 and corrected it in dispatch 3 after the implementer rebuilt the package.
+
+### F32. A brief restates an operator ruling in its own words, and the restatement is stricter than the ruling
+
+**Symptom.** An implementer builds work, or asks the operator a round of questions, on a premise the operator never held. The operator's answer to the first question is "this is wrong", and every question built on the premise has to be asked again.
+
+**Detection signal.**
+
+- The brief or design notes state a ruling as a rule ("init must be target-agnostic") without the operator's words, date, or context.
+- Several open questions in the brief depend on that one rule.
+- The rule forbids something the codebase already does in many places, and the brief treats those places as debt to remove.
+
+**Mitigation.**
+
+- Record a ruling as a quote, with speaker and date, and write the interpretation separately under it.
+- In the first question round, restate the interpretation in one sentence and ask the operator to confirm it before asking any question that depends on it.
+
+**Reference incident.** orm-init-prisma7-detection (2026-09-23): the ruling "Our init command cannot be target specific" was recorded as "init must be target-agnostic". The brief planned to stop choosing the target from the Prisma 7 schema's provider and asked whether to remove 17 existing target branches. Will's intent was narrower: init must not be coupled to one database, and choosing among known targets is fine.
+
+### F33. A test double returns what the real dependency never returns, so the test covers a path production cannot reach
+
+**Symptom.** A test passes, and the behaviour it names never happens for a user. The fake that drives the test answers with a value or outcome the real implementation cannot produce.
+
+**Detection signal.**
+
+- A fake implements an interface whose real implementation lives in another package (for example `PromptSurface` from `@prisma/cli-engine`).
+- The fake's return values were chosen for the test's convenience, not read from the real implementation.
+- A reviewer asks "can the real surface return this?" and nobody has checked.
+
+**Mitigation.**
+
+- When writing a fake for another package's surface, read the real implementation and make the fake return and throw exactly what it does. When the behaviour depends on the real surface's outcomes, drive it through that package's own test harness (for the CLI engine, `createTestCli` with scripted `answers`).
+- The reviewer checks each fake's possible outcomes against the real implementation, not only the code under test.
+
+**Reference incident.** prisma/orm#30291 (2026-09-24): a scripted prompt returned `false` from `consent`, and a test showed that a declined consent printed the command to remove packages init had installed. The engine's `consent` with a token never returns `false`: it returns `true` or throws `CLI.CONSENT_REQUIRED`, a token mismatch, or `CLI.PROMPT_CANCELLED`. Real users never saw the command. An independent review found it; the fix attached the command to whatever error follows the install.
+
+### F36. Stacked PR fails upgrade coverage because the fragment lives on its base branch
+
+**Symptom.** A stacked PR's local `pnpm check:upgrade-coverage --mode pr` passes, but CI's `Lint` job fails it with `[per-pr-declaration] ... requires a new declaration relative to --prev`.
+
+**Root cause.** CI passes `--prev <PR base sha>`; for a stacked PR that is the previous slice's head, which already carries the earlier fragment. Fragments inherited from the base do not count, so the stacked PR needs its own declaration even for an additive change. Locally the default base is `origin/main`, where the inherited fragment masks the gap.
+
+**Fix.** Run the check with `--prev $(git rev-parse <base-branch>)` in every dispatch gate on a stacked branch, and add a `changes: []` declaration for additive changes under `packages/3-extensions/**` or `examples/**`.
+
+**Reference incident.** 2026-09-24, the Mongo defaults project's slice 5 PR (#30405, stacked on #30403): the facade widening `contract: string | ContractConfig` was additive, the slice 3 fragment sat on the base branch, and CI refused the PR until a `changes: []` extension declaration was added. Same project, slice 3 (#30403): CI `Lint` failed on biome `no-bare-cast` and `noBannedTypes` because the dispatch briefs never listed the always-run per-package `pnpm lint` from `dod.md`; the F14 rule was already on file, the orchestrator did not thread it into the briefs.
+
+### F35. Code that parses database-reported text passes review by reading it; only a comparison with what the database returns finds wrong values
+
+**Symptom.** A dispatch changes code that turns text the database reports back (column defaults, type names, introspection output) into typed values. Every round closes SATISFIED, unit tests and the end-to-end journey pass, and a later review that creates the real column and reads back its value finds the parser returns the wrong value for inputs it now accepts. The wrong value survives every existing check because each check compares the parser with itself: unit tests assert its output against hand-written expectations that share the author's assumption, and `db verify` runs the same parser on the live column and on the contract default, so a consistently wrong value verifies clean.
+
+**Detection signal.**
+
+- The dispatch changes a parser for text the database reports, and the reviewer's budget allows running the package suite but not creating a table and reading back what the database stores.
+- The test fixtures spell the database's output by hand (for example `'{a,b}'::text[]`) instead of capturing what the database actually reports for that column.
+- The end-to-end evidence is infer followed by `db verify`, or any other comparison where the same function produces both sides.
+- The round note says the parser handles a new form without naming a value whose meaning depends on escaping, quoting or the type's delimiter.
+
+**Mitigation.**
+
+- A reviewer of code that parses database-reported text has a non-zero execution budget. The brief names three probes the reviewer must run, not read: (1) create the real column on PGlite and read back the exact text Postgres reports, instead of trusting the test fixture's spelling; (2) for every value the parser now accepts, compare the parsed value with what the database itself says about the same object: for a default, create the column, run `INSERT ... DEFAULT VALUES` and select the stored value; for a type name or other introspection output, query the catalog for that object (for example `format_type`, `pg_type`, `pg_attribute`) and compare with what the parser derived; (3) find each check that compares the code with itself (the same function on both sides of a comparison) and name the independent check that would fail on a wrong value.
+- A self-consistent comparison such as `db verify` after infer is not evidence that a value is correct. It shows only that the parser agrees with itself.
+- Sibling of F34: that entry covers SQL the code writes; this one covers text the database writes and the code reads.
+
+**Reference incident.** prisma/orm#30436 (2026-09-28, brace-form Postgres array defaults infer as literal lists). `parseArrayLiteralBody` in `packages/3-targets/3-targets/postgres/src/core/default-normalizer.ts` gained a reading rule per element type for unquoted elements. The Drive loop ran one implementer and one reviewer; two rounds closed SATISFIED after the reviewer read the diff and tests and ran the package suite. A `drive-code-review` pass after PR-open, with the principal-engineer reviewer allowed to run node scripts against the built dist and to create tables on PGlite, found three wrong-value defects: the SQL `''` escape was never undone on the array body, so a text element `a'b`, stored by Postgres as `'{a''b}'::text[]`, read back as `a''b`, infer printed it, `db verify` passed because both sides read the same wrong value, and a database created from the emitted contract would store the wrong string; `'{(3,4),(1,2)}'::box[]` was split on commas, because `box` is the one core type whose array delimiter is `;`; and `'{a\,b}'::text[]` read as two elements. Fixed in `3912519a86`, `d6bf888a37` and `8a89d6d3c7`.
+
+### F37. Stacked PRs that ship in one release each write an upgrade entry relative to the previous slice, so the release guide describes states users never had
+
+**Symptom.** A release's upgrade guide tells users to change something that did not exist in the previous release. A user of the previous tag reads "`Json` now refuses non-JSON values" for a type their version refused outright, or a variant-field entry that names scalar types added in the same release.
+
+**Root cause.** Each stacked PR records a fragment against its own base branch, which is the previous slice, not the previous release. When every slice of a project ships in the same release, the guide concatenates the intermediate steps instead of describing the difference between the two released tags.
+
+**Mitigation.**
+
+- Each stacked PR still records its own pending declaration, because the per-PR upgrade coverage check requires one relative to the PR's base. Each entry names the release its "before" state comes from.
+- When the release guide is assembled, entries whose "before" state is an earlier unreleased slice of the same release are merged into one entry that describes the change from the previous tag. The folding happens at release, never by leaving a PR's declaration out.
+- At release, check every entry against `git diff <previous tag> <new tag>` and against a checkout of the previous tag: build a small project on the previous tag and follow the guide literally.
+
+**Reference incident.** 2026-09-29, the rc.12 to rc.13 guides: manual QA on a real rc.12 project found `mongo-json-field-semantics` describing a change to Mongo `Json`, which rc.12 did not support, and `mongo-variant-field-codecs` naming `Int64`, `Decimal128`, `Binary` and Prisma 6 contracts, none of which rc.12 had.
+
+### F38. Slice close treats a green review and green CI as manual QA, and the project reaches close-out with no QA run
+
+**Symptom.** Close-out finds no `drive-qa-plan` script and no `drive-qa-run` report for any slice. Manual QA run at close-out against merged `main` then finds user-blocking bugs that every slice's review and CI passed.
+
+**Root cause.** The slice-close walk marked the QA-side items as covered by the reviewer's verdict, which [`dod.md`](./dod.md#slice-close-ritual-added-2026-05-21-retro) already names as a known failure. Nothing stopped the next slice from starting.
+
+**Mitigation.** A slice is not closed until its QA report exists. The orchestrator runs manual QA after each slice merges, against a build of `main`, as a real user following the docs and upgrade guide, before starting the next slice. Where the QA skills are not installed, the runner writes the script and reports by hand where [`drive/qa/README.md`](../qa/README.md) puts them: `projects/<x>/manual-qa.md` and `projects/<x>/manual-qa-reports/<YYYY-MM-DD>-<runner>.md` for a slice in a project, or the PR description for a slice with no project.
+
+**Reference incident.** 2026-09-29, the Mongo defaults, codecs and Prisma 6 source project: six slices merged with no manual QA. The close-out QA found that Mongo `db update` could not confirm any destructive change, a `Double` field refused whole numbers, `include()` returned related documents undecoded, a `Bson` filter on an `ObjectId` matched nothing, and `orm init` sent Prisma 6 Mongo users down the Prisma 7 path. Twelve bugs and about thirty points of friction were fixed in follow-up PRs before the project closed.
+
+### F39. A rebase squashes or rewrites history the operator has already reviewed, so they can no longer see what changed since their last review
+
+**Symptom.** The operator asks "what changed since I last looked?" and the answer is a single squashed commit, or force-pushed SHAs that no longer contain the reviewed states.
+
+**Root cause.** Squashing was chosen to avoid replaying conflicts commit by commit, without asking. The operator reviews by commit range, so the squash removed the boundary between reviewed and unreviewed work.
+
+**Mitigation.**
+
+- Never squash, amend or reorder commits on a branch the operator has reviewed without asking first. Review fixes go in as new commits on top.
+- A requested rebase replays the commits as they are (`git rebase origin/main`, or `git rebase --onto origin/main <old-base>` after a squash-merged parent). Keep a backup branch before force-pushing.
+- If a commit-by-commit replay looks too costly, ask; do not substitute a squash.
+
+**Reference incident.** 2026-10-01, lsp-go-to-definition slice 1 (#30563): a rebase onto a Mongo binder change squashed 35 commits into one; later rounds were amended into it. The intermediate states were recovered from push SHAs as a four-commit series, but the rebase step itself could only be shown as a range-diff.
+
+### F40. Test filters after `--` are dropped, so a "targeted" run executes the whole suite
+
+**Symptom.** A dispatch meant to run three integration files runs for 30+ minutes, sometimes twice in parallel, and reports failures in files it never touched.
+
+**Mitigation.** Pass file paths directly: `pnpm test <file>`, `pnpm --filter <pkg> test <file>`. Never `pnpm test -- <file>`. Briefs that ask for targeted runs say so explicitly; the orchestrator checks running processes when a targeted run takes more than a few minutes.
+
+**Reference incident.** 2026-09-30 and 2026-10-01, lsp-go-to-definition: three separate runs of `vitest run -- test/...` executed the full integration suite; one stalled a dispatch for 40 minutes, another ran it twice concurrently.
+
+### F41. An implementer fans a mechanical migration out to parallel helpers without a decided shape, and each helper writes its own copy
+
+**Symptom.** A dispatch that changes a widely called API comes back green but adds thousands of lines: each of ~30 call sites hand-assembles the same setup. A follow-up round consolidates it.
+
+**Root cause.** The brief named the call sites to migrate but not the single helper they should go through, and the implementer split the work across parallel sub-agents, each of which made its own choice.
+
+**Mitigation.** When a dispatch changes an API with many callers, the brief names the helper or entry point the callers move onto, or makes deciding it the first step. The implementer applies the decided shape itself or hands helpers a reference implementation to copy exactly. Sizing pattern: "mechanical fan-out + design judgment in one dispatch".
+
+**Reference incident.** 2026-09-30, lsp-go-to-definition slice 1 dispatch 4: four parallel helpers migrated ~33 test files to build a binder; the diff grew by ~2,500 lines and a second round introduced one shared function.
+
+### F43. A change to a dependency in another package or repository is specified from the dependency's side, and the consumer finds the gaps only when it integrates
+
+**Symptom.** A slice needs a new API in a shared package or another repository. The dependency gets its own spec, implementer and reviewer, passes review, and then the consumer's first dispatch halts: the API cannot do something the consumer needs. Each halt sends the dependency back for another round.
+
+**Root cause.** The dependency's spec described the API in the dependency's own terms. Nobody wrote the code the consumer would call, so nothing checked that the consumer could read what it needed, or that every value the consumer passes is accepted. The dependency's reviewer checked the dependency against its own spec.
+
+**Detection signal.** The dependency spec has API signatures but no consumer code. The consumer slice's plan says "dispatch N adopts the new API" with no sketch of the calls.
+
+**Mitigation.**
+
+- The dependency spec contains the consumer's call sites as code: every call the consumer slice will write, including how the consumer reads results and the full range of values it passes (for example, names that contain the separator the API parses).
+- The dependency's reviewer checks each consumer call against the dependency before it ships, and the consumer's orchestrator reads the dependency's public surface before writing the consumer's briefs.
+
+**Reference incident.** 2026-10-07, migration statements slice 2 and prisma/prisma-cli#337 (statement prompts in the CLI engine). Three reworks after review: verbs registered for the whole command family collided with the ORM's own `--rename` flag and put ORM verbs on every command (the operator caught it); the engine kept statement values private, so the ORM could not read its `--rename` values (consumer dispatch 3 halted); and the engine refused `:` in a question's subject, which a storage name can contain (same halt).
+
+### F44. A change in what a command does passes PR CI and fails in the merge queue, in integration tests the slice never touched
+
+**Symptom.** A slice changes how a command behaves (a new refusal, a new required flag). Its own journeys pass, PR CI passes, and the merge queue ejects the PR: older integration tests that run the same command now fail.
+
+**Root cause.** PR CI skips integration tests on purpose, because they are slow and costly; only the merge queue runs them. The dispatch gate ran "the touched integration files", but a behaviour change breaks every test that runs the command, touched or not.
+
+**Mitigation.** When a slice changes what a command does, the gate before queueing includes every integration and e2e test file that runs that command, and runs those files locally (`pnpm test <file>`). Most journeys do not name the command: they call a helper in `test/integration/test/utils/journey-test-helpers.ts` (for example `planMigrationAndSelfEmit` runs `migration plan`). So find the helpers that run the command first, then grep `test/integration` and `test/e2e` for the command name and for each of those helpers. Never run the full suites locally.
+
+**Reference incident.** 2026-10-08, prisma/orm#30648 (refuse data loss without `--delete`): ejected from the merge queue by `migration-apply-edge-cases` and `rollback-cycle`, which planned column drops with no `--delete`.
+
+### F45. A safety check is moved to a new mechanism, and one path that fed the old check does not feed the new one
+
+**Symptom.** A check that guards every operation (consent, a policy, a refusal) is reimplemented on a new data source. Review finds that one way operations reach the runner never fills the new source, so those operations would run unchecked.
+
+**Root cause.** The spec and brief named the new mechanism but not the list of paths the old check covered. The implementer covered the paths it knew.
+
+**Mitigation.** A brief that replaces a check lists every path that feeds the old check, with file references, and the done conditions name a test per path. A path that no shipped fixture exercises gets a test built for it; "no shipped extension has one" is not a reason to skip the probe.
+
+**Reference incident.** 2026-10-07, migration statements slice 2 dispatch 2: the old `db update` consent counted the destructive operations of every contract space; the new questions came from the planner's `dataLoss`, which spaces that apply recorded migrations always left empty. The reviewer found it (D2-1, high); without the fix an extension's destructive migration would have run without consent. The executed probe for that path was still never run end to end.
+
+### F46. Advice that a refusal or error prints is checked by reading it, and following it loses data or does not work
+
+**Symptom.** A command refuses and prints what to do next. Tests assert the text is present. A user who follows it literally drops the table, moves half the documents, changes the wrong database, or types a flag the next command rejects.
+
+**Root cause.** Advice is product behaviour, but reviewers and tests treat it as copy. Nobody runs the steps it gives.
+
+**Mitigation.** Every printed next step (error advice, refusal flags, dry-run suggestions, recovery steps) is followed literally in an executed probe or a manual QA scenario, on each database the command supports, and the end state is checked: rows and documents kept, the right database changed, the suggested command accepted. The manual QA script lists each advice text as its own scenario.
+
+**Reference incidents.** Migration statements slice 1 (2026-10-06 and 07): the first `@@map` refusal advice dropped the table when followed; the MongoDB field-rename advice left documents half moved (QA F3). Slice 2 (2026-10-08): the dry run printed flags the apply rejected; the no-snapshot recovery steps omitted `--db` and could change the wrong database; the MongoDB refusal offered only `--delete` to a user who had renamed a model (QA F1). All were found by executed review probes or manual QA, none by the in-loop review.
+
+### F47. A stack of PRs outlives its base's squash merge, and the last PR cannot pass the DCO check
+
+**Symptom.** A slice PR built on another slice's branch reaches review with hundreds of commits. After the base PR merges, `main` holds the base as one squash commit, so merging `main` into the next slice conflicts in every file the base touched. Once the PR carries more than 250 commits, the DCO app cannot read the full commit list and fails without checking any sign-off ("The DCO check could not be evaluated because the complete pull request commit list could not be retrieved").
+
+**Root cause.** Each stacked branch merges its base's branch history, and every review round and `main` merge adds commits. The squash merge of the base hides that shared history from git, and the DCO app reads at most 250 commits through the REST API.
+
+**Mitigation.** Build each slice from `main` after the previous slice merges, not on the previous slice's branch. When a stacked PR must catch up with a squash-merged base, merge the base branch's final commit first (shared history, few conflicts), then `main`. If a PR passes 250 commits anyway, ask the operator before reducing it: the fix is a rebase onto `main` as one commit and a force-push, which only the operator can authorize.
+
+**Reference incident.** 2026-10-08 and 09, SQL expression literals slice 3 (prisma/orm#30558): stacked on 2b, it conflicted in 154 files after 2b's squash merge and reached 300 commits. DCO failed on every push until the operator had the branch rebased onto `main` as one commit.
+
+### F48. A new committed contract fixture passes PR CI and fails the planner golden test in the merge queue
+
+**Symptom.** A slice adds or changes a committed `contract.json` (a parity fixture, a journey fixture). PR CI passes; the merge queue ejects the PR with `test/planner-golden/planner-ddl-golden.test.ts`: `expected [ …(353) ] to deeply equal [ …(354) ]` or `The planner output for <fixture> does not match manifest.json`.
+
+**Root cause.** The planner golden test records the DDL the planner writes for every committed contract, keyed in `test/integration/test/planner-golden/manifest.json`. It is an integration test, so only the merge queue runs it.
+
+**Mitigation.** A slice that adds or changes a committed contract fixture runs `PLANNER_GOLDEN_WRITE=1 pnpm --filter integration-tests test test/planner-golden` before queueing, reads the recorded DDL for the changed fixture (written in full to `wip/planner-golden/`), and commits every file the write changed under `test/integration/test/planner-golden/`: always `manifest.json`, and the fixture recordings in `fixtures/<target>/planned.golden.json` when the planner's output for those two fixture contracts changed.
+
+**Reference incident.** 2026-10-09, SQL expression literals slice 3 (prisma/orm#30558): review round 3 extended the PSL/TypeScript parity fixture, and the first queue run failed on its missing golden entry.
+
+### F49. Guards, helpers and tests are written for inputs the public API cannot produce, then removed
+
+**Symptom.** A slice adds checks, helpers, tests and doc caveats for inputs that only hand-built internal state or a hand-edited contract can produce. The operator has each one removed, and the pattern repeats in the next round.
+
+**Root cause.** Two sources ask for them. Dispatch briefs and review prompts say "make sure X cannot happen" or "does anything still …" about a case no supported call reaches. Reviewers file "add a test" or "add a check" for such a case, and the orchestrator accepts the finding.
+
+**Detection signal.**
+
+- A new test builds collection state, a scope or a contract by hand to reach the branch it covers.
+- A finding or brief item names an input without naming the public call that produces it.
+
+**Mitigation.**
+
+- Before a brief or a review asks for a guard, name the supported call path that reaches it. If there is none, the guard, its test and its doc caveat are not written.
+- The slice plan's standing rules and the reviewer prompt both say so in those words, at the top.
+- The orchestrator applies the same test to each review finding before accepting it.
+
+**Reference incident.** Cross-namespace inheritance, table-scope slice (prisma/orm#30646, 2026-10): four additions were written and then removed at the operator's direction: a check that `merge()` rejects a scope the package did not create; a planner helper that checked derived-table aliases against every `combine` branch scope; a rename pass for hand-built `where()` expressions in an aliased child; and a rejection of an include refinement that returns a collection it was not handed. The third slice (prisma/orm#30696) put the rule in the plan's standing rules and in the reviewer prompt, and the pattern did not recur.

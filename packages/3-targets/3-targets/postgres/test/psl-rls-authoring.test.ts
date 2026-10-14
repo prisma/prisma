@@ -12,11 +12,19 @@
  */
 
 import type { Contract } from '@internal/contract/types';
+import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
-import { buildSymbolTable } from '@internal/psl-parser';
+import { buildSymbolTable, createBinder, interpretExtensionBlocks } from '@internal/psl-parser';
+import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { parse } from '@internal/psl-parser/syntax';
+import { type BoundPslSchema, bindPslSchema } from '@internal/psl-parser/test';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import {
+  describeUnsupportedSqlAttribute,
+  sqlAttributeSpecs,
+} from '@internal/sql-contract-psl/attribute-specs';
+import { sqlContextInput } from '@internal/sql-contract-psl/test';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
@@ -24,11 +32,15 @@ import {
   postgresAuthoringModelAttributes,
   postgresAuthoringPslBlockDescriptors,
 } from '../src/core/authoring';
+import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { PostgresContractSerializer } from '../src/core/postgres-contract-serializer';
 import { PostgresRlsEnablement } from '../src/core/postgres-rls-enablement';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';
 import { PostgresSchema, postgresCreateNamespace } from '../src/core/postgres-schema';
+import { postgresDataTypeSupport } from './fixtures/postgres-data-type-support';
+
+const postgresCodecLookup = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -40,6 +52,24 @@ const assembled = assembleAuthoringContributions([
   },
 ]);
 
+function blockResolutionBinder(
+  symbolTable: Parameters<typeof interpretExtensionBlocks>[0]['symbolTable'],
+  sources: Parameters<typeof interpretExtensionBlocks>[0]['sources'],
+) {
+  return createBinder({
+    sources,
+    symbolTable,
+    context: {
+      authoringContributions: {
+        ...assembleAuthoringContributions([]),
+        pslBlockDescriptors: assembled.pslBlockDescriptors,
+      },
+      controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      dataTypes: postgresDataTypeSupport,
+    },
+  }).binder;
+}
+
 const postgresTarget = {
   kind: 'target' as const,
   familyId: 'sql' as const,
@@ -50,33 +80,85 @@ const postgresTarget = {
   defaultNamespaceId: 'public',
 };
 
-const scalarTypeDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-  ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-  ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
+const scalarTypeDescriptors = new Map<string, { codecId: string }>([
+  ['String', { codecId: 'pg/text@1' }],
+  ['Int', { codecId: 'pg/int4@1' }],
 ]);
 
-function interpret(source: string, options?: { readonly withoutModelAttributes?: boolean }) {
-  const { document, sourceFile } = parse(source);
-  const { table: symbolTable, diagnostics } = buildSymbolTable({
-    document,
-    sourceFile,
-    pslBlockDescriptors: assembled.pslBlockDescriptors,
-  });
-  expect(diagnostics).toEqual([]);
+const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor> =
+  Object.fromEntries(
+    [...scalarTypeDescriptors].map(([name, output]) => [
+      name,
+      { kind: 'typeConstructor' as const, output },
+    ]),
+  );
 
-  return interpretPslDocumentToSqlContract({
-    symbolTable,
-    sourceFile,
-    sourceId: 'schema.prisma',
-    target: postgresTarget,
-    scalarColumnDescriptors: scalarTypeDescriptors,
-    authoringContributions: options?.withoutModelAttributes
-      ? { ...assembled, modelAttributes: {} }
-      : assembled,
+function contextFor(authoringContributions: typeof assembled): BoundPslSchema['context'] {
+  return {
+    composedExtensions: [],
+    defaultNamespaceId: 'public',
     composedExtensionContracts: new Map(),
-    createNamespace: postgresCreateNamespace,
+    authoringContributions: {
+      ...authoringContributions,
+      type: { ...scalarTypeConstructors, ...authoringContributions.type },
+      attributeSpecs: sqlAttributeSpecs,
+    },
+    pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+    codecLookup: postgresCodecLookup,
+    controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+    dataTypes: postgresDataTypeSupport,
+    resolvedInputs: [],
     capabilities: { sql: { scalarList: true } },
+  };
+}
+
+function interpretWithSymbolDiagnostics(
+  source: string,
+  options?: { readonly withoutModelAttributes?: boolean },
+) {
+  const { document, sources } = parse(source, 'psl-rls-authoring.test.psl');
+  const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
+    documents: [document],
+    sources,
   });
+  const diagnostics = [
+    ...collectionDiagnostics,
+    ...interpretExtensionBlocks({
+      symbolTable,
+      sources,
+      pslBlockDescriptors: assembled.pslBlockDescriptors,
+      binder: blockResolutionBinder(symbolTable, sources),
+      dataTypes: postgresDataTypeSupport,
+    }).diagnostics,
+  ];
+
+  const authoringContributions = options?.withoutModelAttributes
+    ? { ...assembled, modelAttributes: {} }
+    : assembled;
+  const bound = bindPslSchema(source, {
+    sourceId: 'psl-rls-authoring.test.psl',
+    context: contextFor(authoringContributions),
+  });
+  const result = withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: postgresTarget,
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
+  );
+  return { result, symbolTableDiagnostics: diagnostics };
+}
+
+function interpret(source: string, options?: { readonly withoutModelAttributes?: boolean }) {
+  const { result, symbolTableDiagnostics } = interpretWithSymbolDiagnostics(source, options);
+  expect(symbolTableDiagnostics).toEqual([]);
+  return result;
 }
 
 const MARKED_MODEL_WITH_POLICY = `
@@ -91,7 +173,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `;
@@ -228,7 +310,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `);
@@ -252,7 +334,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 
   model profile {
@@ -275,7 +357,7 @@ namespace public {
   policy_select p_read {
     target = profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 
   model profile {
@@ -291,8 +373,8 @@ namespace public {
 });
 
 describe('a policy whose target does not resolve to a declared model', () => {
-  it('emits PSL_EXTENSION_MODEL_REF_UNRESOLVED naming the prefix and the model, without throwing', () => {
-    const result = interpret(`
+  it("is the binder's unresolved-reference diagnostic; the invalid block never lowers", () => {
+    const { result, symbolTableDiagnostics } = interpretWithSymbolDiagnostics(`
 namespace public {
   model profile {
     id Int @id
@@ -303,21 +385,19 @@ namespace public {
   policy_select p_read {
     target = porfile
     roles  = [app_user]
-    using  = "true"
+    using  = sql\`true\`
   }
 }
 `);
+    expect(symbolTableDiagnostics).toEqual([]);
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    const diagnostic = result.failure.diagnostics.find(
-      (d) => d.code === 'PSL_EXTENSION_MODEL_REF_UNRESOLVED',
-    );
-    expect(diagnostic).toMatchObject({
-      code: 'PSL_EXTENSION_MODEL_REF_UNRESOLVED',
-      message: expect.stringContaining('"p_read"'),
-    });
-    expect(diagnostic?.message).toContain('"porfile"');
-    expect(diagnostic?.message).not.toMatch(/p_read_[0-9a-f]{8}/);
+    expect(result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_UNRESOLVED_REFERENCE',
+        message: 'Cannot find entity "porfile"',
+      }),
+    ]);
   });
 });
 
@@ -336,7 +416,7 @@ namespace public {
   policy_select p_read {
     target = Profile
     roles  = [app_user]
-    using  = "owner_id = current_setting('app.uid')::int"
+    using  = sql\`owner_id = current_setting('app.uid')::int\`
   }
 }
 `);
@@ -363,7 +443,7 @@ describe('PostgresContractSerializer rls round-trip survives serialize → deser
               table: {
                 profile: {
                   columns: {
-                    id: { nativeType: 'int4', codecId: 'pg/int4@1', nullable: false },
+                    id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
                   },
                   primaryKey: { columns: ['id'] },
                   uniques: [],
@@ -481,5 +561,124 @@ describe('PostgresRlsEnablement IR class', () => {
       tableName: 'profile',
       namespaceId: 'public',
     });
+  });
+});
+
+describe('typed policy values', () => {
+  it('accepts an omitted supported predicate (SELECT without using)', () => {
+    const result = interpret(`
+namespace public {
+  model profile {
+    id Int @id
+
+    @@rls
+  }
+
+  policy_select p_read {
+    target = profile
+    roles  = [app_user]
+  }
+}
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = result.value.storage.namespaces['public'] as PostgresSchema;
+    const policy = Object.values(ns.policy)[0];
+    expect(policy?.using).toBeUndefined();
+    expect(policy?.withCheck).toBeUndefined();
+  });
+
+  it('decodes the escapes of a double-quoted sql literal through the shared grammar', () => {
+    const result = interpret(`
+namespace public {
+  model profile {
+    id Int @id
+
+    @@rls
+  }
+
+  policy_select p_read {
+    target = profile
+    using  = sql"name = 'line\\nbreak \\"quoted\\"'"
+  }
+}
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = result.value.storage.namespaces['public'] as PostgresSchema;
+    const policy = Object.values(ns.policy)[0];
+    expect(policy?.using).toBe('name = \'line\nbreak "quoted"\'');
+  });
+
+  it('reads permissive as a typed boolean and defaults roles to []', () => {
+    const result = interpret(`
+namespace public {
+  model profile {
+    id Int @id
+
+    @@rls
+  }
+
+  policy_select p_read {
+    target     = profile
+    using      = sql\`true\`
+    permissive = false
+  }
+}
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = result.value.storage.namespaces['public'] as PostgresSchema;
+    const policy = Object.values(ns.policy)[0];
+    expect(policy?.permissive).toBe(false);
+    expect(policy?.roles).toEqual([]);
+  });
+
+  it('prefers a declared role reference, keeps external names, and sorts the projection', () => {
+    const result = interpret(`
+namespace unbound {
+  role zz_declared {
+  }
+
+  policy_select p_read {
+    target = profile
+    roles  = [zz_declared, aa_external]
+    using  = sql\`true\`
+  }
+}
+
+model profile {
+  id Int @id
+
+  @@rls
+}
+`);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = result.value.storage.namespaces['public'] as PostgresSchema;
+    const policy = Object.values(ns.policy)[0];
+    expect(policy?.roles).toEqual(['aa_external', 'zz_declared']);
+    expect(policy?.tableName).toBe('profile');
+  });
+
+  it('anchors the @@rls requirement diagnostic on the target entry', () => {
+    const { result } = interpretWithSymbolDiagnostics(`
+namespace public {
+  model profile {
+    id Int @id
+  }
+
+  policy_select p_read {
+    target = profile
+    using  = sql\`true\`
+  }
+}
+`);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    const diagnostic = result.failure.diagnostics.find(
+      (d) => d.code === 'PSL_EXTENSION_TARGET_MODEL_MISSING_ATTRIBUTE',
+    );
+    expect(diagnostic?.span).toMatchObject({ start: { line: 8, column: 5 } });
   });
 });

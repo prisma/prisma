@@ -1,5 +1,6 @@
 import { ColumnRef, type ProjectionExpr } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
+import { pgTimestamptzDateColumn, pgTimestamptzDateDescriptor } from '../src/core/date-codecs';
 import {
   pgDateTemporalColumn,
   pgDateTemporalDescriptor,
@@ -23,7 +24,7 @@ import {
 
 interface ColumnSpecShape {
   readonly codecId: string;
-  readonly nativeType: string;
+  readonly nativeType?: string;
   readonly typeParams: Record<string, unknown> | undefined;
 }
 
@@ -32,10 +33,9 @@ interface Representation {
   readonly descriptor: {
     readonly codecId: string;
     readonly traits: readonly string[];
-    readonly targetTypes: readonly string[];
     readonly renderOutputType?: (params: never) => string | undefined;
     readonly factory: (params: never) => (ctx: { name: string }) => { id: string };
-    readonly nativeTypeFor: (ref: { codecId: string }) => string;
+    readonly dataType: string;
     readonly projectJson: (
       expression: ProjectionExpr,
       ref: { codecId: string; many?: boolean },
@@ -47,16 +47,17 @@ interface Representation {
 
 interface TaxonomyRow {
   readonly nativeType: string;
-  readonly ddlType: string;
+  readonly dataType: string;
   readonly precisionBearing: boolean;
   readonly temporal: Representation;
   readonly string: Representation;
+  readonly date?: Representation;
 }
 
 const TAXONOMY: readonly TaxonomyRow[] = [
   {
     nativeType: 'date',
-    ddlType: 'date',
+    dataType: 'pg/date',
     precisionBearing: false,
     temporal: {
       codecId: 'pg/date-temporal@1',
@@ -73,7 +74,7 @@ const TAXONOMY: readonly TaxonomyRow[] = [
   },
   {
     nativeType: 'timestamp',
-    ddlType: 'timestamp without time zone',
+    dataType: 'pg/timestamp',
     precisionBearing: true,
     temporal: {
       codecId: 'pg/timestamp-temporal@1',
@@ -90,7 +91,7 @@ const TAXONOMY: readonly TaxonomyRow[] = [
   },
   {
     nativeType: 'timestamptz',
-    ddlType: 'timestamp with time zone',
+    dataType: 'pg/timestamptz',
     precisionBearing: true,
     temporal: {
       codecId: 'pg/timestamptz-temporal@1',
@@ -104,10 +105,16 @@ const TAXONOMY: readonly TaxonomyRow[] = [
       column: pgTimestamptzStringColumn,
       rendersAtPrecisionSix: 'TimestamptzString<6>',
     },
+    date: {
+      codecId: 'pg/timestamptz-date@1',
+      descriptor: pgTimestamptzDateDescriptor,
+      column: pgTimestamptzDateColumn,
+      rendersAtPrecisionSix: 'Date',
+    },
   },
   {
     nativeType: 'time',
-    ddlType: 'time',
+    dataType: 'pg/time',
     precisionBearing: true,
     temporal: {
       codecId: 'pg/time-temporal@1',
@@ -124,45 +131,37 @@ const TAXONOMY: readonly TaxonomyRow[] = [
   },
 ];
 
-const halves = TAXONOMY.flatMap((row) => [
+const representations = TAXONOMY.flatMap((row) => [
   { row, kind: 'temporal' as const, rep: row.temporal },
   { row, kind: 'string' as const, rep: row.string },
+  ...(row.date ? [{ row, kind: 'date' as const, rep: row.date }] : []),
 ]);
 
 const sourceExpression = ColumnRef.of('reading', 'at');
 
-describe('the eight representation-explicit temporal codecs', () => {
-  it('covers every PostgreSQL temporal type that has two representations, and no others', () => {
+describe('the nine representation-explicit temporal codecs', () => {
+  it('covers Temporal and string representations plus Date for timestamptz', () => {
     expect(TAXONOMY.map((row) => row.nativeType)).toEqual([
       'date',
       'timestamp',
       'timestamptz',
       'time',
     ]);
-    expect(halves).toHaveLength(8);
+    expect(representations).toHaveLength(9);
   });
 
-  describe.each(halves)('$rep.codecId', ({ row, kind, rep }) => {
+  describe.each(representations)('$rep.codecId', ({ row, rep }) => {
     it('declares the id the taxonomy names', () => {
       expect(rep.descriptor.codecId).toBe(rep.codecId);
     });
 
-    it('stores into the same PostgreSQL type as its counterpart', () => {
-      expect(rep.descriptor.nativeTypeFor({ codecId: rep.codecId })).toBe(row.ddlType);
+    it('represents the same data type as its counterpart', () => {
+      expect(rep.descriptor.dataType).toBe(row.dataType);
     });
 
     it('carries equality and ordering', () => {
       expect(rep.descriptor.traits).toEqual(['equality', 'order']);
     });
-
-    it(
-      kind === 'temporal'
-        ? 'claims its native type for introspection'
-        : 'claims no native type, so introspection cannot land on it',
-      () => {
-        expect(rep.descriptor.targetTypes).toEqual(kind === 'temporal' ? [row.nativeType] : []);
-      },
-    );
 
     it('renders the read type the emitter splices, or none', () => {
       const render = rep.descriptor.renderOutputType;
@@ -189,9 +188,8 @@ describe('the eight representation-explicit temporal codecs', () => {
       const spec = row.precisionBearing
         ? rep.column({ precision: 6 } as never)
         : rep.column(...([] as never[]));
-      expect({ codecId: spec.codecId, nativeType: spec.nativeType }).toEqual({
+      expect({ codecId: spec.codecId }).toEqual({
         codecId: rep.codecId,
-        nativeType: row.nativeType,
       });
       expect(spec.typeParams).toEqual(row.precisionBearing ? { precision: 6 } : undefined);
     });

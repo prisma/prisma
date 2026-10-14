@@ -25,10 +25,14 @@ pnpm --filter <pkg> lint        # biome check --error-on-warnings, per touched p
 pnpm lint:deps              # when imports/exports/architectural structure changes
 pnpm test:packages          # when source or test code changes (almost always)
 pnpm test:integration       # when changes affect PGlite / PG / mongo paths
+# when a command's behaviour changes: every integration and e2e file that runs that command, before queueing (F44)
 pnpm test:e2e               # when changes affect emit / migrate / run cycle
 pnpm fixtures:check         # when IR / emitter / serialiser changes
+pnpm check:upgrade-coverage --mode pr --prev <PR base sha> --head HEAD   # when packages/3-extensions/** or examples/** change
 ```
 
+> **Upgrade coverage runs against the PR's base, not `main`.** CI passes `--prev <base sha>`. For a stacked PR the base is the previous slice's head, so a fragment on that base branch does not count and every stacked PR needs its own `upgrade-instructions/pending/<name>/` declaration (an `extension` or `app` file with `changes: []` when the change is additive). The local default base is `origin/main`, which hides this; pass `--prev $(git rev-parse <base-branch>)`. See [`failure-modes.md § F36`](./failure-modes.md#f36-stacked-pr-fails-upgrade-coverage-because-the-fragment-lives-on-its-base-branch).
+>
 > **Per-package test invocation.** To gate a single package, use `pnpm --filter <pkg> test` (e.g. `pnpm --filter @internal/migration-tools test`). `pnpm test:packages -- <name>` is **not** a package filter — the `-- <arg>` is a workspace-wide vitest *path* filter, so it matches every path containing `<name>` (adapters, CLI, …) and red-fails on unrelated infra (e.g. a postgres `ECONNRESET`, a missing `prisma-next` bin). Use the `--filter` form for a per-package gate; pair it with `cd <pkg> && pnpm typecheck` for a package-scoped typecheck.
 
 ### Brief-specified
@@ -43,7 +47,8 @@ A brief may add gates specific to the work:
 ### Cadence
 
 - **Per-commit** (during the dispatch): typecheck and any grep gates the brief specifies.
-- **End-of-dispatch**: full conditional set + brief-specified gates.
+- **End-of-dispatch**: typecheck, the touched packages' tests and lint, `lint:deps`, and brief-specified gates. Workspace-wide `pnpm test:packages` and `pnpm test:integration` run once per slice, before the PR opens, not per dispatch (lsp-go-to-definition, 2026-09-30: per-dispatch full suites cost hours).
+- **The orchestrator picks the gate.** It does not ask the operator to confirm an inferred gate list; it writes the gate into the plan and states it.
 - **Orchestrator-side post-dispatch**: re-run the grep gates independently; spot-check the diff for spec compliance; run intent-validation.
 
 ## Dispatch-DoD overlay (beyond validation gates)
@@ -52,6 +57,9 @@ A brief may add gates specific to the work:
 - [ ] No new TODOs left behind by this dispatch.
 - [ ] Per-commit messages reference the source spike artifact / slice spec where appropriate.
 - [ ] If the dispatch touched test fixtures: `fixtures:check` passes; drift in unrelated fixture files is investigated, not committed.
+- [ ] If the dispatch renders SQL, lowers an AST, or validates user input, the reviewer brief grants an execution budget and names the three SQL probes from [`failure-modes.md § F34`](./failure-modes.md#f34-the-in-loop-reviewer-passes-sql-lowering-by-reading-it-a-review-that-runs-the-code-finds-injection-and-invalid-sql): a hostile value through every public entry point, the new construct compiled through every wrapper on its path and run on a database, and each cited database rule quoted and tested on both sides. "Trust the implementer's gates" never means "read only".
+- [ ] If the dispatch changes a codec (code that encodes and decodes stored values), the reviewer brief grants an execution budget and names the three codec probes from the same entry: build each value the way the driver produces it, write with the raw driver a stored document the codec must refuse and read it back, and remove the fix to show which test fails.
+- [ ] If the dispatch parses text the database reports back (defaults, type names, introspection output), the reviewer brief grants an execution budget and names the three probes from [`failure-modes.md § F35`](./failure-modes.md#f35-code-that-parses-database-reported-text-passes-review-by-reading-it-only-a-comparison-with-what-the-database-returns-finds-wrong-values): the real column created on PGlite and its reported text read back, each newly accepted value compared with what the database itself says about the same object (the stored value after `INSERT ... DEFAULT VALUES` for a default, a catalog query for a type name or other introspection output), and every check that compares the code with itself named along with the independent check that would fail. `db verify` agreeing with infer is not evidence of a correct value.
 
 ## Slice-DoD overlay
 
@@ -62,6 +70,8 @@ In addition to the canonical slice DoD:
 - If the slice touches `packages/3-*-extensions/**`, the slice plan must include a `pnpm fixtures:check` dispatch step.
 - If the slice touches package boundaries / imports, the slice plan must include `pnpm lint:deps`.
 - If the slice changes typed surfaces consumed elsewhere, the slice plan must include a downstream `pnpm typecheck` after the producing package's `pnpm build`.
+- If the slice adds or changes a committed `contract.json`, the gate before queueing includes `PLANNER_GOLDEN_WRITE=1 pnpm --filter integration-tests test test/planner-golden` a read of the recorded DDL, and a commit of every file the write changed under `test/integration/test/planner-golden/`; see [`failure-modes.md § F48`](./failure-modes.md#f48-a-new-committed-contract-fixture-passes-pr-ci-and-fails-the-planner-golden-test-in-the-merge-queue). (Added 2026-10-12, SQL expression literals close-out.)
+- If a dispatch adds a JavaScript or TypeScript file outside a package, `projects/` included, the gate includes `pnpm lint:throws` and `pnpm lint:casts`: CI's Lint job runs them over those files too. (Added 2026-10-07, lsp-find-references: a QA driver under `projects/` failed CI's Lint job on a bare `throw new Error`.)
 
 ### PR-side items
 
@@ -114,7 +124,7 @@ Beyond the canonical project DoD items:
 
 ### ADR audit (final-retro item)
 
-Walk `design-decisions.md` for any decision that hasn't migrated to an ADR. If unmigrated decisions exist that are architecturally durable (cross-cutting, hard to reverse, affect future work), block close-out until they have ADRs — closing with un-ADR'd architectural decisions is a known close-out failure mode.
+Walk `design-decisions.md`, and the decisions section or decision log of the project `spec.md` if it has one, for any decision that hasn't migrated to an ADR. If unmigrated decisions exist that are architecturally durable (cross-cutting, hard to reverse, affect future work), block close-out until they have ADRs — closing with un-ADR'd architectural decisions is a known close-out failure mode.
 
 ## Test-dispatch brief overlay
 

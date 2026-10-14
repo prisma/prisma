@@ -1,4 +1,5 @@
 import type {
+  ContractSourceDiagnostic,
   ContractSourceDiagnostics,
   ContractSourceProvider,
   PrismaNextConfig,
@@ -7,21 +8,34 @@ import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@interna
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type {
   ControlAdapterDescriptor,
+  ControlDriverConnectOptions,
   ControlDriverDescriptor,
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,
   ControlTargetDescriptor,
   CoreSchemaView,
+  FailedCast,
+  FailedConversion,
+  FailedTypeChange,
+  MigrationAccessChange,
+  MigrationDataLoss,
+  MigrationOperationSubject,
   MigrationPlannerConflict,
   MigrationPlanOperation,
+  MigrationPlanSubjects,
   OperationPreview,
-  SignDatabaseResult,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import type { Result } from '@internal/utils/result';
+import type { ExecuteDbSignResult } from './operations/db-sign';
 import type { ExecuteDbVerifyResult } from './operations/db-verify';
+import type { RenderContractDtsOptions, RenderContractDtsResult } from './render-contract-dts';
+import type { AnswerPlanQuestions } from './statements/plan-questions';
+import type { AppliedStatementReport } from './statements/report-applied-statements';
+import type { StatementText } from './statements/statement-text';
+import type { TemporaryValueReport } from './statements/temporary-values';
 
 // ============================================================================
 // Client Options
@@ -75,10 +89,10 @@ export type ControlActionName =
   | 'dbInit'
   | 'dbUpdate'
   | 'dbVerify'
+  | 'dbSign'
   | 'migrate'
   | 'verify'
   | 'schemaVerify'
-  | 'sign'
   | 'introspect'
   | 'emit';
 
@@ -160,30 +174,6 @@ export interface SchemaVerifyOptions {
 }
 
 /**
- * Options for the sign operation.
- */
-export interface SignOptions {
-  /** Contract or unvalidated JSON - validated at runtime via familyInstance.deserializeContract() */
-  readonly contract: unknown;
-  /**
-   * Path to the contract file (for metadata in the result).
-   */
-  readonly contractPath?: string;
-  /**
-   * Path to the config file (for metadata in the result).
-   */
-  readonly configPath?: string;
-  /**
-   * Database connection. If provided, sign will connect before executing.
-   * If omitted, the client must already be connected.
-   * The type is driver-specific (e.g., string URL for Postgres).
-   */
-  readonly connection?: unknown;
-  /** Optional progress callback for observing operation progress */
-  readonly onProgress?: OnControlProgress;
-}
-
-/**
  * Options for the dbInit operation.
  */
 export interface DbInitOptions {
@@ -230,22 +220,10 @@ export interface DbUpdateOptions {
    * The type is driver-specific (e.g., string URL for Postgres).
    */
   readonly connection?: unknown;
-  /**
-   * When true, allows applying plans that contain destructive operations
-   * (e.g., DROP TABLE, DROP COLUMN, ALTER TYPE).
-   * When false (default), the operation returns a failure if the plan
-   * includes destructive operations, which `db update` turns into its consent
-   * prompt: the user types the database name, or passes `--confirm <database>`
-   * where there is nobody to ask.
-   */
+  /** Consents to every operation that would lose data, without asking. */
   readonly acceptDataLoss?: boolean;
-  /**
-   * Consent to the destructive plan a prior `DESTRUCTIVE_CHANGES` refusal
-   * named, identified by that refusal's `planHash`. The apply recomputes its
-   * plan and refuses with `CONSENT_PLAN_MISMATCH` when the fresh plan is not
-   * the one that was consented to.
-   */
-  readonly consent?: { readonly planHash: string };
+  /** Consents to every operation that would widen who can read or write rows, without asking. */
+  readonly acceptAccessWidening?: boolean;
   /**
    * On-disk migrations directory. Always required — every `db update`
    * routes through the per-space flow, which reads on-disk
@@ -253,6 +231,20 @@ export interface DbUpdateOptions {
    * root.
    */
   readonly migrationsDir: string;
+  /**
+   * The statements as the user wrote them, in the order given. A `rename`
+   * resolves against the contract the database marker names, read from the
+   * snapshot store, and the destination contract; a `delete` or `allow`
+   * answers the question about the subject it names.
+   */
+  readonly statements?: readonly StatementText[];
+  /**
+   * Asks, before an apply, what each operation that would lose data means and
+   * whether each that would widen who can read or write rows may run, for the
+   * questions no statement answered. The `db update` command asks through its
+   * prompt.
+   */
+  readonly answerQuestions: AnswerPlanQuestions;
   /** Optional progress callback for observing operation progress */
   readonly onProgress?: OnControlProgress;
 }
@@ -284,6 +276,17 @@ export interface DbVerifyOptions {
   readonly strict: boolean;
   readonly skipSchema: boolean;
   readonly skipMarker: boolean;
+  readonly connection?: unknown;
+  readonly onProgress?: OnControlProgress;
+}
+
+/**
+ * Options for the dbSign operation.
+ */
+export interface DbSignOptions {
+  /** The app space's contract, already deserialized through the family seam. */
+  readonly contract: Contract;
+  readonly migrationsDir: string;
   readonly connection?: unknown;
   readonly onProgress?: OnControlProgress;
 }
@@ -435,6 +438,8 @@ export interface DbInitFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
   readonly marker?: {
@@ -453,10 +458,22 @@ export interface DbInitFailure {
  */
 export type DbInitResult = Result<DbInitSuccess, DbInitFailure>;
 
+/** An operation an apply asks about, with its subject written as the question writes it: `User.nickname`. */
+export interface AskedSubject extends MigrationOperationSubject {
+  readonly text: string;
+}
+
+/** An operation an apply asks about because it loses its subject's data. */
+export interface AskedDataLoss extends AskedSubject, MigrationDataLoss {}
+
+/** An operation an apply asks about because it changes who can read or write its subject's rows. */
+export interface AskedAccessChange extends AskedSubject, MigrationAccessChange {}
+
 /**
  * Successful dbUpdate result.
  */
-export interface DbUpdateSuccess {
+export interface DbUpdateSuccess
+  extends MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport> {
   readonly mode: 'plan' | 'apply';
   readonly plan: {
     readonly operations: ReadonlyArray<{
@@ -490,47 +507,40 @@ export interface DbUpdateSuccess {
    * alphabetically, then app). See {@link PerSpaceExecutionEntry}.
    */
   readonly perSpace?: ReadonlyArray<PerSpaceExecutionEntry>;
+  /** The statements the application space's plan applied, in order; empty when none were given. */
+  readonly appliedStatements: readonly AppliedStatementReport[];
+  /**
+   * The storage hash of the contract the database was at before the run, when a migration of the
+   * graph ends at it: the origin a `migration plan` for this database starts from.
+   */
+  readonly databaseStorageHash?: string;
   readonly summary: string;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
 }
 
 /**
+ * A type change that failed, as the advice for it names it: the field as a `convert` statement
+ * names it, who converted its values, and why it failed (see {@link FailedTypeChange}).
+ */
+export type FailedTypeChangeReport =
+  | (Pick<FailedCast, 'by' | 'reason'> & { readonly field: string })
+  | (Pick<FailedConversion, 'by' | 'reason'> & { readonly field: string });
+
+/** A field that was to become required while rows had no value for it, as the advice names it. */
+export interface RowsWithoutValueReport {
+  /** The field, as a `backfill` statement names it, when the contract names one. */
+  readonly field: string | undefined;
+  /**
+   * `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no
+   * rows. `backfillMissedRows`: the migration's backfill step for the field left rows without a value.
+   */
+  readonly reason: 'nullValues' | 'newField' | 'backfillMissedRows';
+}
+
+/**
  * Failure codes for dbUpdate operation.
  */
-export type DbUpdateFailureCode =
-  | 'PLANNING_FAILED'
-  | 'RUNNER_FAILED'
-  | 'DESTRUCTIVE_CHANGES'
-  | 'CONSENT_PLAN_MISMATCH';
-
-/** One planned operation whose class is destructive, as the refusal names it. */
-export interface DestructivePlanOperation {
-  readonly id: string;
-  readonly label: string;
-}
-
-/**
- * The verdict a `DESTRUCTIVE_CHANGES` refusal carries: what the plan would
- * destroy, the database it would destroy it in, and the identity of the plan
- * that was refused. Consent is granted against `planHash` — the caller passes
- * it back as `DbUpdateOptions.consent`.
- */
-export interface DestructiveChangesVerdict {
-  readonly destructiveOperations: ReadonlyArray<DestructivePlanOperation>;
-  /** The connected database's name, when the driver can name it. */
-  readonly databaseName: string | undefined;
-  /** Content hash of the refused plan. */
-  readonly planHash: string;
-}
-
-/**
- * Why an apply carrying consent was refused: the plan recomputed for the
- * apply is not the plan that was consented to.
- */
-export interface ConsentPlanMismatchVerdict {
-  readonly consentedPlanHash: string;
-  readonly planHash: string;
-}
+export type DbUpdateFailureCode = 'PLANNING_FAILED' | 'RUNNER_FAILED';
 
 /**
  * Failure details for dbUpdate operation.
@@ -542,10 +552,15 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
-  /** Present exactly when `code` is `'DESTRUCTIVE_CHANGES'`. */
-  readonly destructiveChanges?: DestructiveChangesVerdict;
-  /** Present exactly when `code` is `'CONSENT_PLAN_MISMATCH'`. */
-  readonly consentPlanMismatch?: ConsentPlanMismatchVerdict;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /**
+   * The storage hash of the contract the database is at, when a migration of the graph ends at it:
+   * the origin a `migration plan` for this database starts from.
+   */
+  readonly databaseStorageHash?: string;
+  /** The type change that failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -571,6 +586,8 @@ export interface EmitSuccess {
   readonly contractJson: string;
   /** The emitted contract TypeScript declarations */
   readonly contractDts: string;
+  /** Warnings the contract source reported while producing the contract. Undefined when there were none. */
+  readonly sourceWarnings?: readonly ContractSourceDiagnostic[];
 }
 
 /**
@@ -756,6 +773,12 @@ export interface MigrateFailure {
   readonly summary: string;
   readonly why: string | undefined;
   readonly meta: Record<string, unknown> | undefined;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The written migration of the failed operation: its directory, and the contract it starts from. */
+  readonly failedMigration?: { readonly directory: string; readonly from: string };
+  /** The type change that failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -787,13 +810,13 @@ export interface ContractEmitOptions {
   /** Directory the caller was invoked from. */
   readonly cwd: string;
   /**
-   * Path to the prisma.config.ts file. Used to find the project manifest
-   * whose dependencies decide the import specifiers in emitted files; the
-   * config itself is never read from it. Omit it and the manifest is looked up
-   * from the directory the artifacts are written to, which is the package that
+   * The project's directory, normally the validated config's `baseDir`. Used
+   * to find the project manifest whose dependencies decide the import
+   * specifiers in emitted files. Omit it and the manifest is looked up from
+   * the directory the artifacts are written to, which is the package that
    * will import them.
    */
-  readonly configPath?: string;
+  readonly projectDir?: string;
   /**
    * Directory to write contract artifacts into. When set, `contract.json` and
    * `contract.d.ts` are written inside this directory, taking precedence over
@@ -834,6 +857,8 @@ export interface ContractEmitResult {
    * not write to stderr itself. Undefined when no warning was raised.
    */
   readonly validationWarning?: string;
+  /** Warnings the contract source reported while producing the contract. Undefined when there were none. */
+  readonly sourceWarnings?: readonly ContractSourceDiagnostic[];
 }
 
 // ============================================================================
@@ -871,7 +896,7 @@ export interface ControlClient {
    * @throws If connection fails, already connected, driver is not configured,
    *   or no connection provided and no default connection in options.
    */
-  connect(connection?: unknown): Promise<void>;
+  connect(connection?: unknown, options?: ControlDriverConnectOptions): Promise<void>;
 
   /**
    * Closes the database connection.
@@ -897,16 +922,6 @@ export interface ControlClient {
    * @throws If not connected or infrastructure failure
    */
   schemaVerify(options: SchemaVerifyOptions): Promise<VerifyDatabaseSchemaResult>;
-
-  /**
-   * Signs the database with a contract signature.
-   * Writes or updates the signature if schema verification passes.
-   * Idempotent (no-op if signature already matches).
-   *
-   * @returns Structured result
-   * @throws If not connected or infrastructure failure
-   */
-  sign(options: SignOptions): Promise<SignDatabaseResult>;
 
   /**
    * Initializes database schema from contract.
@@ -943,6 +958,14 @@ export interface ControlClient {
    * @throws If not connected or infrastructure failure
    */
   dbVerify(options: DbVerifyOptions): Promise<ExecuteDbVerifyResult>;
+
+  /**
+   * Verifies every contract space (app and extensions) against the live schema without strict mode, then signs every space that verified, in one transaction where the family supports one.
+   *
+   * @returns Result pattern: each space's outcome on success; structured CLI error on loader failure.
+   * @throws If not connected or infrastructure failure
+   */
+  dbSign(options: DbSignOptions): Promise<ExecuteDbSignResult>;
 
   /**
    * Reads the contract marker from the database.
@@ -1034,4 +1057,13 @@ export interface ControlClient {
    * @returns Result pattern: Ok with emit details, NotOk with failure details
    */
   emit(options: EmitOptions): Promise<EmitResult>;
+
+  /**
+   * Renders the `contract.d.ts` text for a `contract.json` that was already
+   * emitted. A snapshot of a contract is that JSON plus these declarations, so
+   * whoever writes a snapshot renders them from the JSON it is storing rather
+   * than reading a sibling file that may have drifted or gone missing.
+   * Offline: uses `init()` but never `connect()`.
+   */
+  renderContractDts(options: RenderContractDtsOptions): Promise<RenderContractDtsResult>;
 }

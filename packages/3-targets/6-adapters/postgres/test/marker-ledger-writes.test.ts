@@ -1,5 +1,6 @@
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
+import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
-import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
 import { PostgresControlAdapter } from '../src/core/control-adapter';
 
 interface CapturedCall {
@@ -22,7 +23,10 @@ function createCapturingDriver(rows: Record<string, unknown>[] = []) {
 }
 
 describe('PostgresControlAdapter marker/ledger write lowering', () => {
-  const adapter = new PostgresControlAdapter(createPostgresBuiltinCodecLookup());
+  const adapter = new PostgresControlAdapter(
+    createPostgresBuiltinCodecLookup(),
+    createPostgresBuiltinDataTypeLookup(),
+  );
 
   it('insertMarker lowers to a plain insert with DB-side updated_at', async () => {
     const driver = createCapturingDriver();
@@ -69,9 +73,9 @@ describe('PostgresControlAdapter marker/ledger write lowering', () => {
 
   it('updateMarker reads the current invariants and writes the deduped union (no overwrite)', async () => {
     // The capturing driver returns this row for the internal readMarker probe
-    // and select; a Postgres driver yields `invariants` as a string[] already.
+    // and select; Postgres drivers expose array fields as raw text.
     const driver = createCapturingDriver([
-      { core_hash: 'from', profile_hash: 'prof', invariants: ['inv-a', 'inv-b'] },
+      { core_hash: 'from', profile_hash: 'prof', invariants: '{"inv-a","inv-b"}' },
     ]);
     const matched = await adapter.updateMarker(driver, 'app', 'from', {
       storageHash: 'to',

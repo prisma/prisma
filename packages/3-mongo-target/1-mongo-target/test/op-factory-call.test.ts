@@ -20,14 +20,16 @@ import {
   createIndex,
   dropCollection,
   dropIndex,
-} from '../src/core/migration-factories';
+  renameCollection,
+} from '../src/core/migrations/migration-factories';
 import {
   CollModCall,
   CreateCollectionCall,
   CreateIndexCall,
   DropCollectionCall,
   DropIndexCall,
-} from '../src/core/op-factory-call';
+  RenameCollectionCall,
+} from '../src/core/migrations/op-factory-call';
 
 describe('Mongo call classes', () => {
   describe('construction + toOp parity', () => {
@@ -48,13 +50,13 @@ describe('Mongo call classes', () => {
       );
     });
 
-    it('DropIndexCall freezes, labels destructively, and lowers to dropIndex(...)', () => {
+    it('DropIndexCall freezes, labels as widening, and lowers to dropIndex(...)', () => {
       const call = new DropIndexCall('users', [{ field: 'legacy', direction: -1 }]);
 
       expect(Object.isFrozen(call)).toBe(true);
       expect(call).toMatchObject({
         factoryName: 'dropIndex',
-        operationClass: 'destructive',
+        operationClass: 'widening',
         label: 'Drop index on users (legacy:-1)',
       });
 
@@ -87,13 +89,26 @@ describe('Mongo call classes', () => {
       expect(call.toOp()).toEqual(dropCollection('users'));
     });
 
-    it('CollModCall defaults operationClass to destructive, uses a default label, and lowers to collMod(...)', () => {
+    it('RenameCollectionCall freezes, labels as widening, and lowers to renameCollection(...)', () => {
+      const call = new RenameCollectionCall('profiles', 'users');
+
+      expect(Object.isFrozen(call)).toBe(true);
+      expect(call).toMatchObject({
+        factoryName: 'renameCollection',
+        operationClass: 'widening',
+        label: 'Rename collection profiles to users',
+      });
+
+      expect(call.toOp()).toEqual(renameCollection('profiles', 'users'));
+    });
+
+    it('CollModCall defaults operationClass to widening, uses a default label, and lowers to collMod(...)', () => {
       const call = new CollModCall('users', { validator: { $jsonSchema: { type: 'object' } } });
 
       expect(Object.isFrozen(call)).toBe(true);
       expect(call).toMatchObject({
         factoryName: 'collMod',
-        operationClass: 'destructive',
+        operationClass: 'widening',
         label: 'Modify collection users',
       });
 
@@ -180,6 +195,15 @@ describe('Mongo call classes', () => {
       expect(call.renderTypeScript()).toBe('dropCollection("users")');
       expect(call.importRequirements()).toEqual([
         { moduleSpecifier: '@internal/target-mongo/migration', symbol: 'dropCollection' },
+      ]);
+    });
+
+    it('RenameCollectionCall emits the source and target names and imports renameCollection only', () => {
+      const call = new RenameCollectionCall('profiles', 'users');
+
+      expect(call.renderTypeScript()).toBe('renameCollection("profiles", "users")');
+      expect(call.importRequirements()).toEqual([
+        { moduleSpecifier: '@internal/target-mongo/migration', symbol: 'renameCollection' },
       ]);
     });
 

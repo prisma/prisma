@@ -24,7 +24,6 @@ describe('pgvector codecs', () => {
     'has vector codec registered',
     () => {
       expect(pgVectorDescriptor.codecId).toBe('pg/vector@1');
-      expect(pgVectorDescriptor.targetTypes).toEqual(['vector']);
     },
     timeouts.default,
   );
@@ -94,7 +93,7 @@ describe('pgvector codecs', () => {
         'Vector value must contain only finite numbers',
       );
       expect(() => vectorCodec.decodeJson(value)).toThrow(
-        'Vector value must contain only finite numbers',
+        'pg/vector@1 JSON value must be an array of 3 finite numbers',
       );
     }
   });
@@ -151,7 +150,7 @@ describe('pgvector codecs', () => {
     it('rejects the text form, which reads back at the wrong precision', () => {
       const codec = asAsyncCodec(3);
       expect(() => codec.decodeJson('[0.1,0.2,0.3]')).toThrow(
-        'Vector database JSON value must be an array',
+        'pg/vector@1 JSON value must be an array of 3 finite numbers',
       );
     });
 
@@ -164,18 +163,19 @@ describe('pgvector codecs', () => {
 
     it('rejects decodeJson when the array has the wrong length or bad elements', () => {
       const codec = asAsyncCodec(3);
-      expect(() => codec.decodeJson([1, 2])).toThrow(/Vector length mismatch/);
+      expect(() => codec.decodeJson([1, 2])).toThrow(
+        'pg/vector@1 JSON value must be an array of 3 finite numbers',
+      );
       expect(() => codec.decodeJson([1, 'two', 3] as unknown as number[])).toThrow(
-        /Vector value must contain only numbers/,
+        'pg/vector@1 JSON value must be an array of 3 finite numbers',
       );
     });
   });
 
   describe('pgVectorColumn helper', () => {
-    it('produces a ColumnSpec with the codec id, vector nativeType, and length typeParams', () => {
+    it('produces a ColumnSpec with the codec id and length typeParams', () => {
       const spec = pgVectorColumn(1536);
       expect(spec.codecId).toBe(VECTOR_CODEC_ID);
-      expect(spec.nativeType).toBe('vector');
       expect(spec.typeParams).toEqual({ length: 1536 });
     });
 

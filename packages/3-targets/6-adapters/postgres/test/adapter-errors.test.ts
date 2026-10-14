@@ -14,16 +14,17 @@ import {
   TableSource,
   UpdateAst,
 } from '@internal/sql-relational-core/ast';
-import { col, lit } from '@internal/sql-relational-core/contract-free';
+import { col } from '@internal/sql-relational-core/contract-free';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
+import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
 import { PostgresCreateTable } from '@internal/target-postgres/ddl';
 import { PostgresSchema } from '@internal/target-postgres/types';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createPostgresAdapter, postgresRawCodecInferer } from '../src/core/adapter';
-import { createPostgresBuiltinCodecLookup } from '../src/core/codec-lookup';
+import { postgresAdapterCapabilities } from '../src/core/capabilities';
 import { PostgresControlAdapter, parsePgReloptions } from '../src/core/control-adapter';
-import { postgresAdapterDescriptorMeta } from '../src/core/descriptor-meta';
 import { renderLoweredSql } from '../src/core/sql-renderer';
 import type { PostgresContract } from '../src/core/types';
 
@@ -44,8 +45,8 @@ const contract = {
           table: {
             user: new StorageTable({
               columns: {
-                id: { codecId: 'pg/int4@1', nativeType: 'int4', nullable: false },
-                email: { codecId: 'pg/text@1', nativeType: 'text', nullable: false },
+                id: { codecId: 'pg/int4@1', dataType: 'pg/int4', nullable: false },
+                email: { codecId: 'pg/text@1', dataType: 'pg/text', nullable: false },
               },
               uniques: [],
               indexes: [],
@@ -80,7 +81,10 @@ describe('adapter-postgres structured error codes', () => {
   });
 
   it('raises RUNTIME.DDL_UNSUPPORTED when the control adapter sync lower() receives DDL', () => {
-    const controlAdapter = new PostgresControlAdapter(codecLookup);
+    const controlAdapter = new PostgresControlAdapter(
+      codecLookup,
+      createPostgresBuiltinDataTypeLookup(),
+    );
     const ddl = new PostgresCreateTable({ table: 't', columns: [col('a', 'text')] });
     expect(structuredCodeOf(() => controlAdapter.lower(ddl, { contract }))).toBe(
       'RUNTIME.DDL_UNSUPPORTED',
@@ -94,16 +98,6 @@ describe('adapter-postgres structured error codes', () => {
     );
   });
 
-  it('raises RUNTIME.TYPE_PARAMS_INVALID for a non-positive length type param', () => {
-    const hooks = postgresAdapterDescriptorMeta.types.codecTypes.controlPlaneHooks;
-    const expand = hooks['pg/varchar@1'].expandNativeType;
-    expect(
-      structuredCodeOf(() =>
-        expand?.({ nativeType: 'character varying', typeParams: { length: 0 } }),
-      ),
-    ).toBe('RUNTIME.TYPE_PARAMS_INVALID');
-  });
-
   it('raises RUNTIME.PARAM_REF_MISSING_CODEC for a ParamRef with an unregistered codecId', () => {
     const ast = DeleteAst.from(TableSource.named('user', undefined, 'public')).withWhere(
       BinaryExpr.eq(
@@ -111,9 +105,17 @@ describe('adapter-postgres structured error codes', () => {
         ParamRef.of(1, { name: 'id', codec: { codecId: 'test/unknown@1' } }),
       ),
     );
-    expect(structuredCodeOf(() => renderLoweredSql(ast, contract, codecLookup))).toBe(
-      'RUNTIME.PARAM_REF_MISSING_CODEC',
-    );
+    expect(
+      structuredCodeOf(() =>
+        renderLoweredSql(
+          ast,
+          contract,
+          codecLookup,
+          createPostgresBuiltinDataTypeLookup(),
+          postgresAdapterCapabilities,
+        ),
+      ),
+    ).toBe('RUNTIME.PARAM_REF_MISSING_CODEC');
   });
 
   it('raises RUNTIME.NAMESPACE_UNKNOWN when a table references a namespace missing from the contract', () => {
@@ -122,7 +124,13 @@ describe('adapter-postgres structured error codes', () => {
     ]);
     const error = (() => {
       try {
-        renderLoweredSql(ast, contract, codecLookup);
+        renderLoweredSql(
+          ast,
+          contract,
+          codecLookup,
+          createPostgresBuiltinDataTypeLookup(),
+          postgresAdapterCapabilities,
+        );
       } catch (e) {
         return e;
       }
@@ -137,16 +145,32 @@ describe('adapter-postgres structured error codes', () => {
 
   it('raises RUNTIME.AST_INVALID for an UPDATE with no SET assignments', () => {
     const ast = UpdateAst.table(TableSource.named('user', undefined, 'public')).withSet({});
-    expect(structuredCodeOf(() => renderLoweredSql(ast, contract, codecLookup))).toBe(
-      'RUNTIME.AST_INVALID',
-    );
+    expect(
+      structuredCodeOf(() =>
+        renderLoweredSql(
+          ast,
+          contract,
+          codecLookup,
+          createPostgresBuiltinDataTypeLookup(),
+          postgresAdapterCapabilities,
+        ),
+      ),
+    ).toBe('RUNTIME.AST_INVALID');
   });
 
   it('raises RUNTIME.AST_INVALID for an INSERT with zero rows', () => {
     const ast = InsertAst.into(TableSource.named('user', undefined, 'public')).withRows([]);
-    expect(structuredCodeOf(() => renderLoweredSql(ast, contract, codecLookup))).toBe(
-      'RUNTIME.AST_INVALID',
-    );
+    expect(
+      structuredCodeOf(() =>
+        renderLoweredSql(
+          ast,
+          contract,
+          codecLookup,
+          createPostgresBuiltinDataTypeLookup(),
+          postgresAdapterCapabilities,
+        ),
+      ),
+    ).toBe('RUNTIME.AST_INVALID');
   });
 
   it('raises CONTRACT.PACK_CONTRIBUTION_INVALID for a lowering template referencing a missing argument', () => {
@@ -155,30 +179,27 @@ describe('adapter-postgres structured error codes', () => {
       self: ColumnRef.of('user', 'email'),
       args: [],
       returns: { codecId: 'pg/bool@1', nullable: false },
-      lowering: { targetFamily: 'sql', strategy: 'function', template: 'f({{self}}, {{arg0}})' },
+      lowering: { targetFamily: 'sql', template: 'f({{self}}, {{arg0}})' },
     });
     const ast = SelectAst.from(TableSource.named('user', undefined, 'public'))
       .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
       .withWhere(NullCheckExpr.isNull(op));
-    expect(structuredCodeOf(() => renderLoweredSql(ast, contract, codecLookup))).toBe(
-      'CONTRACT.PACK_CONTRIBUTION_INVALID',
-    );
+    expect(
+      structuredCodeOf(() =>
+        renderLoweredSql(
+          ast,
+          contract,
+          codecLookup,
+          createPostgresBuiltinDataTypeLookup(),
+          postgresAdapterCapabilities,
+        ),
+      ),
+    ).toBe('CONTRACT.PACK_CONTRIBUTION_INVALID');
   });
 
   it('raises CONTRACT.INTROSPECTION_UNSUPPORTED for a malformed index reloption entry', () => {
-    expect(structuredCodeOf(() => parsePgReloptions(['no_eq_sign'], 'item_body_idx'))).toBe(
+    expect(structuredCodeOf(() => parsePgReloptions('{no_eq_sign}', 'item_body_idx'))).toBe(
       'CONTRACT.INTROSPECTION_UNSUPPORTED',
-    );
-  });
-
-  it('raises CONTRACT.DEFAULT_INVALID for a non-finite numeric literal default', async () => {
-    const controlAdapter = new PostgresControlAdapter(codecLookup);
-    const ast = new PostgresCreateTable({
-      table: 'defaults',
-      columns: [col('x', 'double precision', { default: lit(Number.NaN) })],
-    });
-    await expect(controlAdapter.lowerToExecuteRequest(ast, { contract })).rejects.toSatisfy(
-      (e) => isStructuredError(e) && e.code === 'CONTRACT.DEFAULT_INVALID',
     );
   });
 });

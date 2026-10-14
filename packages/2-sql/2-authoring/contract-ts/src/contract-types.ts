@@ -11,10 +11,11 @@ import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-compon
 import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import type {
+  AuthoredStorageTypeInstance,
   ContractWithTypeMaps,
+  ForeignKeyIndex,
   Index,
   ReferentialAction,
-  StorageTypeInstance,
   TypeMaps,
 } from '@internal/sql-contract/types';
 import type { UnionToIntersection } from './authoring-type-utils';
@@ -40,7 +41,7 @@ export type MergeExtensionCodecTypes<Packs extends Record<string, unknown>> = Un
   }[keyof Packs]
 >;
 
-type MergeExtensionCodecTypesSafe<Packs> =
+export type MergeExtensionCodecTypesSafe<Packs> =
   Packs extends Record<string, unknown>
     ? keyof Packs extends never
       ? Record<string, never>
@@ -286,7 +287,11 @@ type FieldNullableOf<FieldState> = FieldState extends {
   ? Nullable
   : boolean;
 
-type FieldManyOf<FieldState> = FieldState extends { readonly many?: true } ? true : false;
+type FieldManyOf<FieldState> = FieldState extends {
+  readonly many: infer Many extends false | { readonly elementNullable: boolean };
+}
+  ? Many
+  : false;
 
 type FieldColumnOverrideOf<FieldState> = Present<
   FieldState extends { readonly columnName?: infer ColumnName } ? ColumnName : never
@@ -300,12 +305,6 @@ type DescriptorCodecId<Descriptor> = Descriptor extends {
   readonly codecId: infer CodecId extends string;
 }
   ? CodecId
-  : string;
-
-type DescriptorNativeType<Descriptor> = Descriptor extends {
-  readonly nativeType: infer NativeType extends string;
-}
-  ? NativeType
   : string;
 
 type DescriptorTypeParams<Descriptor> = Descriptor extends {
@@ -342,14 +341,14 @@ type ResolveNamedStorageType<Definition, TypeRef> =
   ResolveNamedStorageTypeKey<Definition, TypeRef> extends infer TypeName extends string
     ? TypeName extends keyof DefinitionTypes<Definition>
       ? DefinitionTypes<Definition>[TypeName]
-      : StorageTypeInstance
-    : StorageTypeInstance;
+      : AuthoredStorageTypeInstance
+    : AuthoredStorageTypeInstance;
 
 // An enum-typed field carries its `EnumTypeHandle` (an object with a `codecId`
-// and `nativeType`, but no `kind`) as the field's `typeRef`. It is neither a
-// string nor a registered `StorageType`, so the named-type lookup cannot reach
-// it; `EnumFieldHandle` short-circuits the resolvers to read codec + native type
-// straight off the handle, with no column type-ref (the enum name is carried
+// but no `kind`) as the field's `typeRef`. It is neither a string nor a
+// registered `StorageType`, so the named-type lookup cannot reach it;
+// `EnumFieldHandle` short-circuits the resolvers to read the codec straight
+// off the handle, with no column type-ref (the enum name is carried
 // elsewhere). The `[...] extends [never]` guard excludes plain column fields,
 // whose `typeRef` is `never`.
 type EnumFieldHandle<FieldState> = [FieldTypeRefOf<FieldState>] extends [never]
@@ -360,9 +359,8 @@ type EnumFieldHandle<FieldState> = [FieldTypeRefOf<FieldState>] extends [never]
 
 type EnumHandleDescriptor<Handle> = Handle extends {
   readonly codecId: infer CodecId extends string;
-  readonly nativeType: infer NativeType extends string;
 }
-  ? { readonly codecId: CodecId; readonly nativeType: NativeType }
+  ? { readonly codecId: CodecId }
   : never;
 
 type ResolveFieldDescriptor<Definition, FieldState> = [EnumFieldHandle<FieldState>] extends [never]
@@ -477,20 +475,20 @@ type ModelIdName<Definition, ModelName extends ModelNames<Definition>> = [
 type StorageColumn<
   CodecId extends string,
   Nullable extends boolean,
-  NativeType extends string,
   TypeRef extends string | undefined = undefined,
   TypeParams extends Record<string, unknown> | undefined = undefined,
-  Many extends boolean = false,
+  Many extends false | { readonly elementNullable: boolean } = false,
 > = {
-  readonly nativeType: NativeType;
+  readonly dataType: string;
   readonly codecId: CodecId;
   readonly nullable: Nullable;
   readonly default?: ColumnDefault;
 } & (TypeRef extends string ? { readonly typeRef: TypeRef } : Record<never, never>) &
   (TypeParams extends Record<string, unknown>
     ? { readonly typeParams: TypeParams }
-    : Record<never, never>) &
-  (Many extends true ? { readonly many: true } : Record<never, never>);
+    : Record<never, never>) & {
+    readonly many: Many;
+  };
 
 type ModelStorageColumn<
   Definition,
@@ -503,9 +501,6 @@ type ModelStorageColumn<
           ResolveFieldDescriptor<Definition, ModelFieldState<Definition, ModelName, FieldName>>
         >,
         FieldNullableOf<ModelFieldState<Definition, ModelName, FieldName>>,
-        DescriptorNativeType<
-          ResolveFieldDescriptor<Definition, ModelFieldState<Definition, ModelName, FieldName>>
-        >,
         ResolveFieldColumnTypeRef<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
         ResolveFieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
         FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>
@@ -529,6 +524,8 @@ type BuiltModels<Definition> = {
           readonly kind: 'scalar';
           readonly codecId: ModelStorageColumn<Definition, ModelName, FieldName>['codecId'];
         };
+      } & {
+        readonly many: FieldManyOf<ModelFieldState<Definition, ModelName, FieldName>>;
       };
     };
     readonly relations: {
@@ -555,8 +552,11 @@ type BuiltStorageTableColumns<Definition, ModelName extends ModelNames<Definitio
   >[FieldName]['column']]: ModelStorageColumn<Definition, ModelName, FieldName>;
 };
 
-type BuiltStorageTables<Definition> = {
-  readonly [ModelName in ModelNames<Definition> as BuiltModelTableName<Definition, ModelName>]: {
+type BuiltStorageTables<Definition, Ns extends string> = {
+  readonly [ModelName in ModelsInNamespace<Definition, Ns> as BuiltModelTableName<
+    Definition,
+    ModelName
+  >]: {
     readonly columns: BuiltStorageTableColumns<Definition, ModelName>;
     readonly uniques: ReadonlyArray<{
       readonly columns: readonly string[];
@@ -578,8 +578,7 @@ type BuiltStorageTables<Definition> = {
       readonly name?: string;
       readonly onDelete?: ReferentialAction;
       readonly onUpdate?: ReferentialAction;
-      readonly constraint: boolean;
-      readonly index: boolean;
+      readonly index?: ForeignKeyIndex;
     }>;
   } & (ModelIdFieldNames<Definition, ModelName> extends readonly string[]
     ? {
@@ -627,9 +626,9 @@ type BuiltEnumAccessors<Definition> = {
 };
 
 type BuiltDocumentScopedTypes<Definition> = {
-  readonly [K in keyof DefinitionTypes<Definition> as DefinitionTypes<Definition>[K] extends StorageTypeInstance
+  readonly [K in keyof DefinitionTypes<Definition> as DefinitionTypes<Definition>[K] extends AuthoredStorageTypeInstance
     ? K
-    : never]: DefinitionTypes<Definition>[K];
+    : never]: DefinitionTypes<Definition>[K] & { readonly dataType: string };
 };
 
 type BuiltDomain<Definition> =
@@ -641,55 +640,93 @@ type BuiltDomain<Definition> =
         };
       };
 
-// Per-namespace domain entry carrying the precise per-model field/storage shapes
-// for DSL inference. Modelled as an index signature (rather than enumerating
-// namespace ids) so that any namespace coordinate resolves the full model map,
-// matching how the authoring path lumps every model under the default storage
-// namespace.
-type BuiltDomainNamespace<Definition> = {
-  readonly models: BuiltModels<Definition>;
+type BuiltDomainNamespace<Definition, Ns extends string> = {
+  readonly models: {
+    readonly [ModelName in ModelsInNamespace<Definition, Ns>]: BuiltModels<Definition>[ModelName];
+  };
   readonly valueObjects?: Record<string, ContractValueObject>;
   readonly enum?: Record<string, ContractEnum>;
 };
 
 type DefaultStorageNamespaceId<Definition> =
-  DefinitionTargetId<Definition> extends 'postgres' ? 'public' : '__unbound__';
+  DefinitionTarget<Definition> extends {
+    readonly defaultNamespaceId: infer Id extends string;
+  }
+    ? Id
+    : never;
+
+type ModelNamespaceOf<Definition, Namespace> = [Namespace] extends [undefined]
+  ? DefaultStorageNamespaceId<Definition>
+  : Namespace extends '' | undefined
+    ? DefaultStorageNamespaceId<Definition>
+    : Namespace;
+
+type ModelNamespace<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+> = DefinitionModels<Definition>[ModelName] extends {
+  readonly __namespace: infer Namespace extends string | undefined;
+}
+  ? ModelNamespaceOf<Definition, Namespace>
+  : DefaultStorageNamespaceId<Definition>;
+
+type ModelNamespaces<Definition> = {
+  [ModelName in ModelNames<Definition>]: ModelNamespace<Definition, ModelName>;
+}[ModelNames<Definition>] &
+  string;
+
+// A model whose namespace is a non-literal `string` cannot be placed, so every namespace lists every model.
+type ModelsInNamespace<Definition, Ns extends string> =
+  string extends ModelNamespaces<Definition>
+    ? ModelNames<Definition>
+    : {
+        [ModelName in ModelNames<Definition>]: Ns extends ModelNamespace<Definition, ModelName>
+          ? ModelName
+          : never;
+      }[ModelNames<Definition>];
+
+// Mirrors the namespaces `buildSqlContractFromDefinition` puts in `domain.namespaces`: each
+// model's namespace, and the default namespace when the contract has no models or has enums.
+type DomainNamespaceIds<Definition> = (
+  | ModelNamespaces<Definition>
+  | ([ModelNames<Definition>] extends [never] ? DefaultStorageNamespaceId<Definition> : never)
+  | (keyof DefinitionEnums<Definition> extends never
+      ? never
+      : DefaultStorageNamespaceId<Definition>)
+) &
+  string;
+
+type StorageNamespaceIds<Definition> = (
+  | DefaultStorageNamespaceId<Definition>
+  | DefinitionNamespaces<Definition>
+  | ModelNamespaces<Definition>
+) &
+  string;
 
 type BuiltStorage<Definition> = {
   readonly storageHash: StorageHashBase<string>;
   readonly types?: BuiltDocumentScopedTypes<Definition>;
-  // The primary namespace key is target-specific: Postgres uses `public` (the
-  // default schema), all other SQL targets use `__unbound__`. The namespace
-  // carries the narrowed `entries.table` shape so downstream DSL surfaces keep
-  // literal-keyed access without an optional-narrowing dance. The shape is
-  // described inline (rather than intersecting with `SqlStorage['namespaces']`)
-  // so its `Readonly<Record<string, Namespace>>` index signature doesn't
-  // collapse slot keys to `string`. The literal object is still structurally
-  // assignable to `SqlStorage['namespaces']` because every value satisfies the
-  // framework `Namespace` interface.
+  // The shape is described inline (rather than intersecting with
+  // `SqlStorage['namespaces']`) so its `Readonly<Record<string, Namespace>>`
+  // index signature doesn't collapse slot keys to `string`. The literal object
+  // is still structurally assignable to `SqlStorage['namespaces']` because
+  // every value satisfies the framework `Namespace` interface.
   readonly namespaces: {
-    readonly [K in DefaultStorageNamespaceId<Definition>]: {
-      readonly id: K;
-      readonly kind: string;
-      readonly entries: {
-        readonly table: BuiltStorageTables<Definition>;
-      };
-    };
-  } & {
-    readonly [Ns in Exclude<
-      DefinitionNamespaces<Definition>,
-      DefaultStorageNamespaceId<Definition>
-    >]: {
+    readonly [Ns in StorageNamespaceIds<Definition>]: {
       readonly id: Ns;
       readonly kind: string;
       readonly entries: {
-        readonly table: Record<never, never>;
+        readonly table: BuiltStorageTables<Definition, Ns>;
       };
     };
   };
 };
 
-type StorageColumnManyOf<Col> = Col extends { readonly many: true } ? true : false;
+type StorageColumnManyOf<Col> = Col extends {
+  readonly many: infer Many extends false | { readonly elementNullable: boolean };
+}
+  ? Many
+  : false;
 
 // The enum value union for an enum-typed field, or `never` for a non-enum
 // field. The field's `typeRef` carries the authored `EnumTypeHandle`, whose
@@ -737,9 +774,11 @@ type CodecChannelType<
 > = ModelStorageColumn<Definition, ModelName, FieldName>['codecId'] extends infer Id extends
   keyof CodecTypesFromDefinition<Definition>
   ? CodecTypesFromDefinition<Definition>[Id] extends { readonly [K in Channel]: infer T }
-    ? StorageColumnManyOf<ModelStorageColumn<Definition, ModelName, FieldName>> extends true
-      ? ReadonlyArray<T>
-      : T
+    ? StorageColumnManyOf<ModelStorageColumn<Definition, ModelName, FieldName>> extends infer Many
+      ? Many extends { readonly elementNullable: infer ElementNullable }
+        ? ReadonlyArray<T | (ElementNullable extends true ? null : never)>
+        : T
+      : never
     : unknown
   : unknown;
 
@@ -761,34 +800,51 @@ type FieldChannelType<
 > =
   | ([FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>] extends [never]
       ? CodecChannelType<Definition, ModelName, FieldName, Channel>
-      : StorageColumnManyOf<ModelStorageColumn<Definition, ModelName, FieldName>> extends true
-        ? ReadonlyArray<FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>>
-        : FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>)
+      : StorageColumnManyOf<ModelStorageColumn<Definition, ModelName, FieldName>> extends infer Many
+        ? Many extends { readonly elementNullable: infer ElementNullable }
+          ? ReadonlyArray<
+              | FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>
+              | (ElementNullable extends true ? null : never)
+            >
+          : FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>
+        : never)
   | (FieldNullableOf<ModelFieldState<Definition, ModelName, FieldName>> extends true
       ? null
       : never);
 
 // Nested by namespace coordinate (`{ [ns]: { [model]: { [field]: type } } }`)
 // to mirror the emitter's namespace-nested `FieldOutputTypes` (and the
-// `TypeMaps` constraint). The TS authoring path lumps every model under the
-// target's default storage namespace (see `BuiltStorage`), so the per-model
-// field-type map nests under that same coordinate.
+// `TypeMaps` constraint).
+type ModelFieldChannelTypes<
+  Definition,
+  ModelName extends ModelNames<Definition>,
+  Channel extends 'output' | 'input',
+> = {
+  readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldChannelType<
+    Definition,
+    ModelName,
+    FieldName,
+    Channel
+  >;
+};
+
+type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
+
+// Matches the emitter: output types are `{}` for a model with no fields, input types are closed.
 type FieldChannelTypes<Definition, Channel extends 'output' | 'input'> = {
-  readonly [Ns in DefaultStorageNamespaceId<Definition>]: {
-    readonly [ModelName in ModelNames<Definition>]: {
-      readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldChannelType<
-        Definition,
-        ModelName,
-        FieldName,
-        Channel
-      >;
-    };
+  readonly [Ns in DomainNamespaceIds<Definition>]: {
+    readonly [ModelName in ModelsInNamespace<Definition, Ns>]: Channel extends 'input'
+      ? ClosedWhenEmpty<ModelFieldChannelTypes<Definition, ModelName, Channel>>
+      : ModelFieldChannelTypes<Definition, ModelName, Channel>;
   };
 };
 
 type StorageColumnChannelTypes<Definition, Channel extends 'output' | 'input'> = {
-  readonly [Ns in DefaultStorageNamespaceId<Definition>]: {
-    readonly [ModelName in ModelNames<Definition> as BuiltModelTableName<Definition, ModelName>]: {
+  readonly [Ns in StorageNamespaceIds<Definition>]: {
+    readonly [ModelName in ModelsInNamespace<Definition, Ns> as BuiltModelTableName<
+      Definition,
+      ModelName
+    >]: {
       readonly [FieldName in ModelFieldNames<Definition, ModelName> as BuiltModelColumnMappings<
         Definition,
         ModelName
@@ -803,7 +859,9 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
     readonly targetFamily: 'sql';
   } & {
     readonly domain: {
-      readonly namespaces: Readonly<Record<string, BuiltDomainNamespace<Definition>>>;
+      readonly namespaces: {
+        readonly [Ns in DomainNamespaceIds<Definition>]: BuiltDomainNamespace<Definition, Ns>;
+      };
     } & BuiltDomain<Definition>;
   } & {
     readonly extensions: keyof DefinitionExtensions<Definition> extends never

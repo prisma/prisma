@@ -1,6 +1,6 @@
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import type { SqlSchemaDiffResult } from '@internal/family-sql/control';
-import { buildNativeTypeExpander } from '@internal/family-sql/control';
+import { sqlTypeLookupsOf } from '@internal/family-sql/control';
 import { classifyDiffSubjectGranularity } from '@internal/family-sql/diff';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
@@ -9,7 +9,6 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
-import { ifDefined } from '@internal/utils/defined';
 import { postgresResolveDefault } from '../default-normalizer';
 import type { PostgresContract } from '../postgres-schema';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
@@ -106,7 +105,7 @@ function resolveControlPolicy(
 
 /**
  * The Postgres full-tree node diff for the family verify verdict: derive
- * the expected tree (resolved leaf values, expander threaded, FK schemas
+ * the expected tree (resolved leaf values, FK schemas
  * resolved, table-less namespaces pruned), run the generic
  * differ over the trees as derived, and scope out `not-expected` findings under namespaces the
  * contract does not own. Ownership scoping bypasses cluster-scoped subjects
@@ -132,10 +131,11 @@ export function diffPostgresSchema(input: {
   >(input.contract);
   PostgresDatabaseSchemaNode.assert(input.schema);
   const actual = input.schema;
-  const expandNativeType = buildNativeTypeExpander(input.frameworkComponents);
+  const types = sqlTypeLookupsOf(input.frameworkComponents);
   const fullExpected = contractToPostgresDatabaseSchemaNode(postgresContract, {
     annotationNamespace: 'pg',
-    ...ifDefined('expandNativeType', expandNativeType),
+    dataTypeLookup: types.dataTypeLookup,
+    codecLookup: types.codecLookup,
     resolveDefault: postgresResolveDefault,
   });
   const expected = pruneTableLessNamespaces(fullExpected);
@@ -207,7 +207,7 @@ export interface PostgresPlanDiff {
 
 /**
  * The Postgres planner's diff input: the SAME tree-building
- * `diffPostgresSchema` uses (expander threaded, FK schemas resolved,
+ * `diffPostgresSchema` uses (FK schemas resolved,
  * table-less namespaces pruned, cluster-scope-aware ownership filter) plus
  * actual namespace padding (so a missing
  * schema's tables surface as `not-found` instead of a swallowed namespace
@@ -228,10 +228,11 @@ export function buildPostgresPlanDiff(input: {
   >(input.contract);
   PostgresDatabaseSchemaNode.assert(input.actualSchema);
   const actual = input.actualSchema;
-  const expandNativeType = buildNativeTypeExpander(input.frameworkComponents);
+  const types = sqlTypeLookupsOf(input.frameworkComponents);
   const projectionOptions = {
     annotationNamespace: 'pg',
-    ...ifDefined('expandNativeType', expandNativeType),
+    dataTypeLookup: types.dataTypeLookup,
+    codecLookup: types.codecLookup,
     resolveDefault: postgresResolveDefault,
   };
   const fullExpected = contractToPostgresDatabaseSchemaNode(postgresContract, projectionOptions);

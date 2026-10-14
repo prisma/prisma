@@ -1,4 +1,4 @@
-import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
@@ -9,15 +9,18 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { createSqliteMigrationPlanner } from '../../src/core/migrations/planner';
 import { sqliteCreateNamespace } from '../../src/core/sqlite-unbound-database';
+import { sqliteTestComponents } from '../sqlite-test-types';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => ({ sql: '', params: [] }),
+  renderColumnDefault: async () => '',
   lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
 };
 
 function makeColumn(overrides: Partial<StorageColumn> = {}): StorageColumn {
   return {
-    nativeType: 'text',
+    many: false,
+    dataType: 'sqlite/text',
     nullable: true,
     codecId: 'sqlite/text@1',
     ...overrides,
@@ -49,7 +52,22 @@ function makeContract(tables: Record<string, StorageTable>): Contract<SqlStorage
       },
     }),
     roots: {},
-    domain: applicationDomainOf({ models: {} }),
+    domain: applicationDomainOf({
+      models: {
+        User: {
+          fields: {
+            id: { nullable: false, type: { kind: 'scalar', codecId: 'sqlite/integer@1' } },
+            email: { nullable: false, type: { kind: 'scalar', codecId: 'sqlite/text@1' } },
+          },
+          relations: {},
+          storage: {
+            table: 'users',
+            namespaceId: UNBOUND_NAMESPACE_ID,
+            fields: { id: { column: 'id' }, email: { column: 'email' } },
+          },
+        },
+      },
+    }),
     capabilities: {},
     extensions: {},
     meta: {},
@@ -90,8 +108,12 @@ function tightenedEmailContract() {
   return makeContract({
     users: makeTable({
       columns: {
-        id: makeColumn({ nativeType: 'integer', nullable: false }),
-        email: makeColumn({ nativeType: 'text', nullable: false }),
+        id: makeColumn({
+          dataType: 'sqlite/integer',
+          codecId: 'sqlite/integer@1',
+          nullable: false,
+        }),
+        email: makeColumn({ nullable: false }),
       },
       primaryKey: { columns: ['id'] },
     }),
@@ -105,9 +127,11 @@ describe('nullability-tightening backfill', async () => {
     const result = planner.plan({
       contract: tightenedEmailContract(),
       schema: nullableEmailSchema(),
-      policy: { allowedOperationClasses: ['additive', 'destructive'] },
+      policy: { allowedOperationClasses: ['additive', 'widening'] },
       fromContract: null,
-      frameworkComponents: [],
+      origin: null,
+      statements: [],
+      frameworkComponents: sqliteTestComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
     });
@@ -118,16 +142,24 @@ describe('nullability-tightening backfill', async () => {
     const ops = await Promise.all(result.plan.operations);
     expect(ops).toHaveLength(1);
     expect(ops[0]?.id).toBe('recreateTable.users');
-    expect(ops[0]?.operationClass).toBe('destructive');
+    expect(ops[0]?.operationClass).toBe('widening');
   });
 
-  it("with 'data' allowed, emits a backfill data-transform stub before the recreate", async () => {
+  it("with 'data' allowed and --backfill, emits a backfill data-transform stub before the recreate", async () => {
     const result = planner.plan({
       contract: tightenedEmailContract(),
       schema: nullableEmailSchema(),
-      policy: { allowedOperationClasses: ['additive', 'destructive', 'data'] },
+      policy: { allowedOperationClasses: ['additive', 'widening', 'data'] },
       fromContract: null,
-      frameworkComponents: [],
+      origin: null,
+      statements: [
+        {
+          kind: 'backfill',
+          entity: 'field',
+          field: { namespaceId: asNamespaceId('__unbound__'), model: 'User', field: 'email' },
+        },
+      ],
+      frameworkComponents: sqliteTestComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
     });
@@ -135,11 +167,17 @@ describe('nullability-tightening backfill', async () => {
     expect(result.kind).toBe('success');
     if (result.kind !== 'success') return;
 
-    // Accessing operations throws because the DataTransformCall stub's
-    // toOp() unconditionally throws MIGRATION.UNFILLED_PLACEHOLDER — the user must fill the
-    // rendered migration.ts before the plan is executable. This mirrors
-    // Postgres's behavior.
-    expect(() => result.plan.operations).toThrowError(/unfilled/i);
+    // The DataTransformCall stub's operation rejects with MIGRATION.UNFILLED_PLACEHOLDER — the
+    // user must fill the rendered migration.ts before the plan is executable — while the other
+    // operations still resolve. This mirrors Postgres's behavior.
+    const settled = await Promise.allSettled(result.plan.operations);
+    expect(settled.filter((entry) => entry.status === 'rejected')).toEqual([
+      {
+        status: 'rejected',
+        reason: expect.objectContaining({ code: 'MIGRATION.UNFILLED_PLACEHOLDER' }),
+      },
+    ]);
+    expect(settled.some((entry) => entry.status === 'fulfilled')).toBe(true);
 
     // The rendered TypeScript contains the dataTransform placeholder and
     // the recreate follows it.
@@ -149,7 +187,7 @@ describe('nullability-tightening backfill', async () => {
     expect(backfillIdx).toBeGreaterThan(-1);
     expect(recreateIdx).toBeGreaterThan(-1);
     expect(backfillIdx).toBeLessThan(recreateIdx);
-    expect(ts).toContain('placeholder("users-email-backfill-sql")');
+    expect(ts).toContain('placeholder("User.email:run")');
   });
 
   it("relaxing NOT NULL → nullable does not emit a backfill even with 'data' allowed", async () => {
@@ -182,8 +220,12 @@ describe('nullability-tightening backfill', async () => {
     const contract = makeContract({
       users: makeTable({
         columns: {
-          id: makeColumn({ nativeType: 'integer', nullable: false }),
-          email: makeColumn({ nativeType: 'text', nullable: true }),
+          id: makeColumn({
+            dataType: 'sqlite/integer',
+            codecId: 'sqlite/integer@1',
+            nullable: false,
+          }),
+          email: makeColumn({ nullable: true }),
         },
         primaryKey: { columns: ['id'] },
       }),
@@ -194,7 +236,9 @@ describe('nullability-tightening backfill', async () => {
       schema,
       policy: { allowedOperationClasses: ['additive', 'widening', 'data'] },
       fromContract: null,
-      frameworkComponents: [],
+      origin: null,
+      statements: [],
+      frameworkComponents: sqliteTestComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
     });

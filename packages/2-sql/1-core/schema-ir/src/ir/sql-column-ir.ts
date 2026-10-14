@@ -1,5 +1,5 @@
 import type { ColumnDefault } from '@internal/contract/types';
-import type { CodecRef } from '@internal/framework-components/codec';
+import type { CodecRef, DataType, ToCanonicalForm } from '@internal/framework-components/codec';
 import type { DiffableNode } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { blindCast } from '@internal/utils/casts';
@@ -43,6 +43,12 @@ export interface SqlColumnIRInput {
    */
   readonly resolvedDefault?: ColumnDefault;
   /**
+   * The contract's default exactly as authored, before the target's `resolveDefault` hook. The
+   * planner's DDL builders render this one, so the DDL carries the authored expression while
+   * `resolvedDefault` is what the diff compares. Absent on the introspected side.
+   */
+  readonly authoredDefault?: ColumnDefault;
+  /**
    * The column's resolved codec reference — the identity the migration
    * planner's op-builders resolve DDL type rendering against at plan time
    * (parameterized type expansion, e.g. `character` + `{ length: 36 }` →
@@ -66,13 +72,16 @@ export interface SqlColumnIRInput {
    */
   readonly codecBaseNativeType?: string;
   /**
-   * True when the contract column declared its type via a named
-   * `storage.types` reference (`typeRef`) rather than inline fields — the
-   * migration planner quotes the base native type as an identifier in this
-   * case (e.g. a native enum's type name), matching the pre-`plan(start,
-   * end)` rendering exactly.
+   * The data type the column's codec represents, from the assembled stack (ADR 254). Stamped on the
+   * contract-derived column; absent on introspected nodes.
    */
-  readonly codecNamedType?: boolean;
+  readonly dataType?: DataType;
+  /**
+   * The canonical form of the column's values, from `canonicalFormOf` (ADR 254). A literal default
+   * compares through it, so two forms of one value are equal, and DDL writes the canonical form.
+   * Stamped on the contract-derived column; absent on introspected nodes.
+   */
+  readonly toCanonicalForm?: ToCanonicalForm;
 }
 
 /**
@@ -103,12 +112,16 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly many?: boolean;
   declare readonly resolvedNativeType?: string;
   declare readonly resolvedDefault?: ColumnDefault;
+  /** See {@link SqlColumnIRInput.authoredDefault}. Non-enumerable so it stays out of JSON and structural equality. */
+  declare readonly authoredDefault?: ColumnDefault;
   /** See {@link SqlColumnIRInput.codecRef}. Non-enumerable so it stays out of JSON and structural equality. */
   declare readonly codecRef?: CodecRef;
   /** See {@link SqlColumnIRInput.codecBaseNativeType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly codecBaseNativeType?: string;
-  /** See {@link SqlColumnIRInput.codecNamedType}. Non-enumerable, same reason as {@link codecRef}. */
-  declare readonly codecNamedType?: boolean;
+  /** See {@link SqlColumnIRInput.dataType}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly dataType?: DataType;
+  /** See {@link SqlColumnIRInput.toCanonicalForm}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly toCanonicalForm?: ToCanonicalForm;
 
   constructor(input: SqlColumnIRInput) {
     super();
@@ -120,9 +133,11 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     if (input.many !== undefined) this.many = input.many;
     if (input.resolvedNativeType !== undefined) this.resolvedNativeType = input.resolvedNativeType;
     if (input.resolvedDefault !== undefined) this.resolvedDefault = input.resolvedDefault;
+    defineNonEnumerable(this, 'authoredDefault', input.authoredDefault);
     defineNonEnumerable(this, 'codecRef', input.codecRef);
     defineNonEnumerable(this, 'codecBaseNativeType', input.codecBaseNativeType);
-    defineNonEnumerable(this, 'codecNamedType', input.codecNamedType);
+    defineNonEnumerable(this, 'dataType', input.dataType);
+    defineNonEnumerable(this, 'toCanonicalForm', input.toCanonicalForm);
     freezeNode(this);
   }
 
@@ -144,6 +159,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
       new SqlColumnDefaultIR({
         ...ifDefined('resolved', this.resolvedDefault),
         ...ifDefined('raw', this.default),
+        ...ifDefined('authored', this.authoredDefault),
         ...ifDefined('nativeTypeContext', this.resolvedNativeType),
         // Contract-derived and introspected columns both set `this.many`
         // directly (with `nativeType` as the bare element type; array-ness
@@ -152,6 +168,9 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
         // flag. Either source works for the default node's array-literal
         // rendering.
         ...ifDefined('many', this.many ?? this.codecRef?.many),
+        ...ifDefined('codecRef', this.codecRef),
+        ...ifDefined('codecBaseNativeType', this.codecBaseNativeType),
+        ...ifDefined('toCanonicalForm', this.toCanonicalForm),
       }),
     ];
   }

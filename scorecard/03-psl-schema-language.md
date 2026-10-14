@@ -4,13 +4,13 @@
 
 Legend:
 
-- `✅` **Works** — proven by a Prisma Next **integration** test (one that executes the feature against a database — Postgres via PGlite, SQLite via its real driver, or MongoDB via mongodb-memory-server — and asserts the observable runtime result). Unit-tier tests (SQL/AST/plan/type/snapshot assertions, or any test that never hits a database) do not qualify. Per-database rigor applies: a Postgres integration test cannot justify a SQLite or MongoDB `✅`, and vice versa.
-- `🟡` **Untested** — reachable through the Prisma Next public surface, but no proving Prisma Next integration test exists yet (evidence left blank). This includes features whose only backing is a unit-tier test.
-- `🧪` **Experimental** — shipped in Prisma Next but outside the stability promise (polymorphism / multi-table inheritance).
-- `❌` **Not in 8.0** — deliberately absent from Prisma Next.
+- `✅` **Works** — proven by a Prisma 8 **integration** test (one that executes the feature against a database — Postgres via PGlite, SQLite via its real driver, or MongoDB via mongodb-memory-server — and asserts the observable runtime result). Unit-tier tests (SQL/AST/plan/type/snapshot assertions, or any test that never hits a database) do not qualify. Per-database rigor applies: a Postgres integration test cannot justify a SQLite or MongoDB `✅`, and vice versa.
+- `🟡` **Untested** — reachable through the Prisma 8 public surface, but no proving Prisma 8 integration test exists yet (evidence left blank). This includes features whose only backing is a unit-tier test.
+- `🧪` **Experimental** — shipped in Prisma 8 but outside the stability promise (polymorphism / multi-table inheritance).
+- `❌` **Not in 8.0** — deliberately absent from Prisma 8.
 - `—` **n/a** — feature does not apply to that database.
 
-| Feature | Postgres | SQLite | MongoDB | Prisma Next evidence |
+| Feature | Postgres | SQLite | MongoDB | Prisma 8 evidence |
 | --- | --- | --- | --- | --- |
 | `model` block | 🟡 | 🟡 | ✅ | `test/integration/test/mongo/migration-psl-authoring.test.ts` |
 | `enum` block | 🟡 | 🟡 | 🟡 | |
@@ -42,7 +42,7 @@ Legend:
 | `@default(cuid(2))` | 🟡 | 🟡 | — | |
 | `@default(ulid())` | 🟡 | 🟡 | — | |
 | `@default(nanoid())` | 🟡 | 🟡 | — | |
-| `@default(dbgenerated("..."))` | 🟡 | 🟡 | — | |
+| `@default(dbgenerated("..."))` | ❌ | ❌ | — | Removed; a raw SQL default is `` @default(sql`...`) `` (`packages/2-sql/2-authoring/contract-psl/test/interpreter.defaults.tagged-literal.test.ts`). A `dbgenerated(...)` call is `PSL_UNKNOWN_DEFAULT_FUNCTION` naming the replacement (`test/integration/test/authoring/diagnostics/removed-dbgenerated/`). |
 | TS ID generator `ulid` | 🟡 | 🟡 | — | |
 | TS ID generator `nanoid` | 🟡 | 🟡 | — | |
 | TS ID generator `uuidv7` | ✅ | 🟡 | — | `test/e2e/framework/test/dml.test.ts` (`auto-generates a valid UUIDv7 id on insert`) |

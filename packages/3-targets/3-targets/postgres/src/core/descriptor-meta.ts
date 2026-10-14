@@ -9,6 +9,7 @@ import {
 } from './authoring';
 import { postgresRenderCheckExpressions } from './check-expressions';
 import { postgresQualifyColumnType } from './codecs';
+import { postgresDataTypeEntries } from './data-type-entries';
 import { postgresTargetDescriptorMetaRuntime } from './descriptor-meta-runtime';
 import { postgresIndexTypes } from './index-types';
 import { DEFAULT_NAMESPACE_ID } from './namespace-ids';
@@ -17,10 +18,12 @@ import { postgresCreateNamespace } from './postgres-schema';
 const postgresTargetDescriptorMetaBase = {
   ...postgresTargetDescriptorMetaRuntime,
   defaultNamespaceId: DEFAULT_NAMESPACE_ID,
+  supportsNamespaces: true,
   indexTypes: postgresIndexTypes,
   authoring: {
     type: postgresAuthoringTypes,
     field: postgresAuthoringFieldPresets,
+    dataTypes: postgresDataTypeEntries(),
     entityTypes: postgresAuthoringEntityTypes,
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
     modelAttributes: postgresAuthoringModelAttributes,
@@ -28,6 +31,15 @@ const postgresTargetDescriptorMetaBase = {
     qualifyColumnType: postgresQualifyColumnType,
     renderCheckExpressions: postgresRenderCheckExpressions,
     lowerEntityHandles: postgresLowerEntityHandles,
+  },
+  types: {
+    queryOperationTypes: {
+      import: {
+        package: '@internal/target-postgres/operation-types',
+        named: 'QueryOperationTypes',
+        alias: 'PgTargetQueryOps',
+      },
+    },
   },
 } as const;
 

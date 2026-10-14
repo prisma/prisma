@@ -1,4 +1,11 @@
 export type { PgInterval } from '../core/codec-helpers';
+export {
+  assemblePostgresCodecRegistry,
+  assemblePostgresCodecRegistryWithBuiltins,
+  createPostgresBuiltinCodecLookup,
+  createPostgresCodecRegistryWithBuiltins,
+  type PostgresCodecRegistry,
+} from '../core/codec-registry';
 export type {
   PgBitDescriptor,
   PgBoolDescriptor,
@@ -52,6 +59,13 @@ export {
   pgVarbitColumn,
   pgVarcharColumn,
 } from '../core/codecs';
+export {
+  PgTimestamptzDateCodec,
+  PgTimestamptzDateDescriptor,
+  pgTimestamptzDateColumn,
+  pgTimestamptzDateDescriptor,
+} from '../core/date-codecs';
+export { parsePostgresListText } from '../core/list-decoder';
 export {
   postgresCodecDescriptorRegistry,
   postgresCodecRegistry,

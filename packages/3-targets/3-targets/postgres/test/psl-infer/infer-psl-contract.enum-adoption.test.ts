@@ -6,17 +6,26 @@
  * design — a top-level `native_enum` never lowers), subtracts pack-owned
  * enum types by TYPE NAME, and leaves enum-free output flat and byte-identical.
  */
+
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { SqlDescribedContractSpace } from '@internal/family-sql/control';
-import type { Codec, CodecLookup } from '@internal/framework-components/codec';
+import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { UNSPECIFIED_PSL_NAMESPACE_ID } from '@internal/framework-components/psl-ast';
-import { buildSymbolTable } from '@internal/psl-parser';
-import { parse } from '@internal/psl-parser/syntax';
+import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
+import { bindPslSchema } from '@internal/psl-parser/test';
 import { printPsl } from '@internal/psl-printer';
 import { SqlStorage } from '@internal/sql-contract/types';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import {
+  describeUnsupportedSqlAttribute,
+  sqlAttributeSpecs,
+} from '@internal/sql-contract-psl/attribute-specs';
+import { sqlContextInput } from '@internal/sql-contract-psl/test';
 import type { SqlColumnIRInput } from '@internal/sql-schema-ir/types';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import {
@@ -24,8 +33,8 @@ import {
   postgresAuthoringPslBlockDescriptors,
   postgresAuthoringTypes,
 } from '../../src/core/authoring';
-import { PG_ENUM_CODEC_ID } from '../../src/core/codec-ids';
-import { pgEnumDescriptor, postgresQualifyColumnType } from '../../src/core/codecs';
+import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-registry';
+import { postgresQualifyColumnType } from '../../src/core/codecs';
 import { PostgresContractSerializer } from '../../src/core/postgres-contract-serializer';
 import { PostgresNativeEnum } from '../../src/core/postgres-native-enum';
 import { PostgresSchema, postgresCreateNamespace } from '../../src/core/postgres-schema';
@@ -34,6 +43,9 @@ import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-da
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { inferBuildContext } from './fixtures';
+
+const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
 
 // ---------------------------------------------------------------------------
 // Tree fixtures
@@ -89,7 +101,7 @@ function inferAndPrint(
   dbTree: PostgresDatabaseSchemaNode,
   describedContracts?: readonly SqlDescribedContractSpace[],
 ): string {
-  return printPsl(inferPostgresPslContract(dbTree, describedContracts), {
+  return printPsl(inferPostgresPslContract(dbTree, inferBuildContext, describedContracts), {
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
   });
 }
@@ -179,21 +191,7 @@ function throughSerializedForm(space: SqlDescribedContractSpace): SqlDescribedCo
 // Production interpret harness (mirrors psl-pg-enum-column.test.ts)
 // ---------------------------------------------------------------------------
 
-const pgEnumCodec = {
-  id: PG_ENUM_CODEC_ID,
-  descriptor: pgEnumDescriptor,
-  encode: () => Promise.reject(new Error('unused')),
-  decode: () => Promise.reject(new Error('unused')),
-  encodeJson: (value) => value,
-  decodeJson: (json) => json,
-} as Codec;
-
-const codecLookup: CodecLookup = {
-  get: (id) => (id === PG_ENUM_CODEC_ID ? pgEnumCodec : undefined),
-  targetTypesFor: () => undefined,
-  renderOutputTypeFor: () => undefined,
-  descriptorFor: (id) => (id === PG_ENUM_CODEC_ID ? pgEnumDescriptor : undefined),
-};
+const codecLookup: CodecLookupWithDescriptors = createPostgresBuiltinCodecLookup();
 
 const assembled = assembleAuthoringContributions([
   {
@@ -216,30 +214,51 @@ const postgresTarget = {
   authoring: { type: postgresAuthoringTypes, qualifyColumnType: postgresQualifyColumnType },
 };
 
-const scalarTypeDescriptors = new Map<string, { codecId: string; nativeType: string }>([
-  ['String', { codecId: 'pg/text@1', nativeType: 'text' }],
-  ['Int', { codecId: 'pg/int4@1', nativeType: 'int4' }],
+const scalarTypeDescriptors = new Map<string, { codecId: string }>([
+  ['String', { codecId: 'pg/text@1' }],
+  ['Int', { codecId: 'pg/int4@1' }],
 ]);
 
+const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor> =
+  Object.fromEntries(
+    [...scalarTypeDescriptors].map(([name, output]) => [
+      name,
+      { kind: 'typeConstructor' as const, output },
+    ]),
+  );
+
 function interpret(source: string) {
-  const { document, sourceFile } = parse(source);
-  const { table: symbolTable } = buildSymbolTable({
-    document,
-    sourceFile,
-    pslBlockDescriptors: assembled.pslBlockDescriptors,
+  const bound = bindPslSchema(source, {
+    sourceId: 'infer-psl-contract.enum-adoption.test.psl',
+    context: {
+      composedExtensions: [],
+      defaultNamespaceId: 'public',
+      composedExtensionContracts: new Map(),
+      authoringContributions: {
+        ...assembled,
+        type: { ...scalarTypeConstructors, ...assembled.type },
+        attributeSpecs: sqlAttributeSpecs,
+      },
+      pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+      codecLookup,
+      controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      dataTypes: { entries: assembled.dataTypes, lookup: postgresDataTypeLookup },
+      resolvedInputs: [],
+      capabilities: {},
+    },
   });
-  return interpretPslDocumentToSqlContract({
-    symbolTable,
-    sourceFile,
-    sourceId: 'schema.prisma',
-    capabilities: {},
-    target: postgresTarget,
-    scalarColumnDescriptors: scalarTypeDescriptors,
-    authoringContributions: assembled,
-    composedExtensionContracts: new Map(),
-    createNamespace: postgresCreateNamespace,
-    codecLookup,
-  });
+  return withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: postgresTarget,
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -312,7 +331,7 @@ describe('native enum adoption — happy path', () => {
 
   it('does not throw the old remediation diagnostic', () => {
     expect(() =>
-      inferPostgresPslContract(tree({ public: sessionsNamespace('public') })),
+      inferPostgresPslContract(tree({ public: sessionsNamespace('public') }), inferBuildContext),
     ).not.toThrow();
   });
 });
@@ -323,7 +342,7 @@ describe('enum-free output stays flat', () => {
       public: namespaceNode('public', { user: table('user', { id: idColumn }) }),
     });
 
-    const ast = inferPostgresPslContract(enumFree);
+    const ast = inferPostgresPslContract(enumFree, inferBuildContext);
     expect(ast.namespaces).toHaveLength(1);
     expect(ast.namespaces[0]?.name).toBe(UNSPECIFIED_PSL_NAMESPACE_ID);
 
@@ -340,7 +359,7 @@ describe('single-namespace stopgap guard', () => {
       auth: sessionsNamespace('auth'),
     });
 
-    expect(() => inferPostgresPslContract(multi)).toThrow(
+    expect(() => inferPostgresPslContract(multi, inferBuildContext)).toThrow(
       /adopting native enums or RLS policies with content across multiple schemas/,
     );
   });
@@ -400,7 +419,7 @@ describe('pack-owned enum subtraction (by type name)', () => {
       ),
     });
 
-    expect(() => inferPostgresPslContract(dbTree, [pack])).toThrow(
+    expect(() => inferPostgresPslContract(dbTree, inferBuildContext, [pack])).toThrow(
       /aal_level.*(pack|space "pack")/i,
     );
 
@@ -417,7 +436,7 @@ describe('pack-owned enum subtraction (by type name)', () => {
       ),
     });
 
-    expect(() => inferPostgresPslContract(qualifiedTree, [pack])).toThrow(
+    expect(() => inferPostgresPslContract(qualifiedTree, inferBuildContext, [pack])).toThrow(
       /aal_level.*(pack|space "pack")/i,
     );
   });
@@ -502,7 +521,7 @@ describe('enum-typed column defaults', () => {
     expect(output).toContain('@default("aal1")');
   });
 
-  it('a schema-qualified cast default is preserved raw via dbgenerated, never mis-parsed', () => {
+  it('reads a schema-qualified cast default as the member literal, which interprets', () => {
     const output = inferAndPrint(
       tree({
         auth: namespaceNode(
@@ -523,8 +542,15 @@ describe('enum-typed column defaults', () => {
       }),
     );
 
-    expect(output).toContain('@default(dbgenerated("\'aal1\'::auth.aal_level"))');
-    expect(output).toContain('pg.enum(AalLevel)');
+    expect(output).toContain('aal pg.enum(AalLevel) @default("aal1")');
+    const result = interpret(output);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = result.value.storage.namespaces['auth'] as PostgresSchema;
+    expect(ns.table['sessions']?.columns['aal']?.default).toEqual({
+      kind: 'literal',
+      value: 'aal1',
+    });
   });
 });
 
@@ -541,7 +567,7 @@ describe('adopted output lowers through the production interpret chain', () => {
     const aalColumn = ns.table['sessions']?.columns['aal'];
     expect(aalColumn).toMatchObject({
       codecId: 'pg/enum@1',
-      nativeType: 'aal_level',
+      dataType: 'pg/enum',
       nullable: true,
       valueSet: {
         plane: 'storage',
@@ -563,7 +589,6 @@ describe('adopted output lowers through the production interpret chain', () => {
     const aalColumn = ns.table['sessions']?.columns['aal'];
     expect(aalColumn).toMatchObject({
       codecId: 'pg/enum@1',
-      nativeType: 'auth.aal_level',
       typeParams: { typeName: 'auth.aal_level' },
     });
   });
@@ -635,7 +660,6 @@ describe('mixed-case enum type names (Prisma-ORM-created types)', () => {
     expect(ns.valueSet?.['HoldType']).toMatchObject({ values: ['active', 'released'] });
     expect(ns.table['orders']?.columns['hold']).toMatchObject({
       codecId: 'pg/enum@1',
-      nativeType: 'HoldType',
       typeParams: { typeName: 'HoldType' },
     });
   });

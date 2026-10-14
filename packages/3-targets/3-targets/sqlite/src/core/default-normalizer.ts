@@ -8,12 +8,22 @@
  */
 
 import type { ColumnDefault } from '@internal/contract/types';
+import { SQLITE_DATETIME_TEXT_FORMAT } from './datetime-text';
 
 const NULL_PATTERN = /^NULL$/i;
 const INTEGER_PATTERN = /^-?\d+$/;
-const REAL_PATTERN = /^-?\d+\.\d+(?:[eE][+-]?\d+)?$/;
+const REAL_PATTERN = /^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?$/;
 const HEX_PATTERN = /^0[xX][\dA-Fa-f]+$/;
 const STRING_LITERAL_PATTERN = /^'((?:[^']|'')*)'$/;
+const STRFTIME_NOW_PATTERN = /^strftime\s*\(\s*(['"])([^'"]*)\1\s*,\s*(['"])now\3\s*\)$/i;
+
+function isCurrentTimestamp(expression: string): boolean {
+  const lower = expression.toLowerCase();
+  if (lower === 'current_timestamp' || lower === "datetime('now')" || lower === 'datetime("now")') {
+    return true;
+  }
+  return expression.match(STRFTIME_NOW_PATTERN)?.[2] === SQLITE_DATETIME_TEXT_FORMAT;
+}
 
 function isNumericLiteral(value: string): boolean {
   return INTEGER_PATTERN.test(value) || REAL_PATTERN.test(value) || HEX_PATTERN.test(value);
@@ -54,14 +64,10 @@ export function parseSqliteDefault(
     trimmed = stripped;
   }
 
-  // SQLite has several spellings for "current timestamp" — `CURRENT_TIMESTAMP`
-  // (keyword) and `datetime('now')` / `datetime("now")` (function call). The
-  // contract authoring side canonicalizes `dbgenerated("CURRENT_TIMESTAMP")`
-  // (and friends) to `now()` via `lowerDbgenerated`; mirror that here so a
-  // schema produced by either spelling round-trips to the same canonical
-  // form for verification.
-  const lower = trimmed.toLowerCase();
-  if (lower === 'current_timestamp' || lower === "datetime('now')" || lower === 'datetime("now")') {
+  // A named `now()` default is rendered as `SQLITE_NOW_EXPRESSION`; databases created earlier hold
+  // `datetime('now')` or `CURRENT_TIMESTAMP`. All of them read back as `now()`, and
+  // `sqliteResolveDefault` applies the same rule to the contract side.
+  if (isCurrentTimestamp(trimmed)) {
     return { kind: 'function', expression: 'now()' };
   }
 
@@ -69,14 +75,18 @@ export function parseSqliteDefault(
     return { kind: 'literal', value: null };
   }
 
-  // SQLite integers are 64-bit, so values outside the JS safe-integer range can't
-  // be faithfully represented as `number`. Mirror `parsePostgresDefault`'s bigint
-  // handling: parse as JS `number` when safe, fall back to the raw text otherwise.
+  // An `integer` column's default is read in `sqlite/integer`'s stored form, digit text, which
+  // keeps every 64-bit value exact.
+  if (nativeType?.toLowerCase() === 'integer' && INTEGER_PATTERN.test(trimmed)) {
+    return { kind: 'literal', value: BigInt(trimmed).toString() };
+  }
+
   if (isNumericLiteral(trimmed)) {
     const num = Number(trimmed);
-    if (!Number.isFinite(num)) return undefined;
-    if (nativeType?.toLowerCase() === 'integer' && !Number.isSafeInteger(num)) {
-      return { kind: 'literal', value: trimmed };
+    // A number no double holds reads as an infinity, which is how SQLite stores it and how the
+    // float codecs write an infinite default: `9e999` in DDL, the text `Infinity` in the contract.
+    if (!Number.isFinite(num)) {
+      return { kind: 'literal', value: num > 0 ? 'Infinity' : '-Infinity' };
     }
     return { kind: 'literal', value: num };
   }
@@ -89,4 +99,20 @@ export function parseSqliteDefault(
 
   // Unrecognized expression — preserve as function
   return { kind: 'function', expression: trimmed };
+}
+
+/**
+ * The contract-derived side of verify: an authored function default is read
+ * through the same parser as an introspected one, so `` sql`CURRENT_TIMESTAMP` ``
+ * and the database's `CURRENT_TIMESTAMP` compare equal. Mirrors Postgres's
+ * `postgresResolveDefault`.
+ */
+export function sqliteResolveDefault(
+  def: ColumnDefault,
+  resolvedNativeType: string,
+): ColumnDefault {
+  if (def.kind !== 'function') {
+    return def;
+  }
+  return parseSqliteDefault(def.expression, resolvedNativeType) ?? def;
 }

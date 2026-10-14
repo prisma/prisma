@@ -1,3 +1,7 @@
+import type {
+  MarkerOperations,
+  MongoRunnerDependencies,
+} from '@internal/family-mongo/control-adapter';
 import type { CodecCallContext } from '@internal/framework-components/codec';
 import type {
   MigrationOperationPolicy,
@@ -35,14 +39,17 @@ import type {
   AnyMongoDmlWireCommand,
   AnyMongoWireCommand,
 } from '@internal/mongo-wire';
+import { MongoServerError } from 'mongodb';
 import { describe, expect, it } from 'vitest';
-import { createCollection, dataTransform } from '../src/core/migration-factories';
-import { serializeMongoOps } from '../src/core/mongo-ops-serializer';
 import {
-  type MarkerOperations,
-  MongoMigrationRunner,
-  type MongoRunnerDependencies,
-} from '../src/core/mongo-runner';
+  createCollection,
+  dataTransform,
+  renameCollection,
+  renameField,
+  unsetField,
+} from '../src/core/migrations/migration-factories';
+import { serializeMongoOps } from '../src/core/migrations/mongo-ops-serializer';
+import { MongoMigrationRunner } from '../src/core/migrations/mongo-runner';
 
 type Row = Record<string, unknown>;
 type WireCommand = AnyMongoWireCommand;
@@ -68,8 +75,13 @@ class EventLog {
 class StubMongoDriver implements MongoDriver {
   readonly executeCalls: WireCommand[] = [];
   private readonly responses: Row[][] = [];
+  private failure: unknown;
 
   constructor(private readonly log?: EventLog) {}
+
+  failUpdateManyWith(error: unknown): void {
+    this.failure = error;
+  }
 
   queueResponse(rows: Row[]): void {
     this.responses.push(rows);
@@ -78,8 +90,10 @@ class StubMongoDriver implements MongoDriver {
   execute<R>(wireCommand: WireCommand): AsyncIterable<R> {
     this.executeCalls.push(wireCommand);
     this.log?.record(`dml:${wireCommand.kind}:${wireCommand.collection}`);
-    const rows = this.responses.shift() ?? [];
+    const failure = wireCommand.kind === 'updateMany' ? this.failure : undefined;
+    const rows = failure === undefined ? (this.responses.shift() ?? []) : [];
     return (async function* () {
+      if (failure !== undefined) throw failure;
       for (const row of rows) yield row as R;
     })();
   }
@@ -131,6 +145,7 @@ class StubMongoAdapter implements MongoAdapter {
 
 class StubInspectionExecutor implements MongoInspectionCommandVisitor<Promise<Row[]>> {
   readonly calls: AnyMongoInspectionCommand[] = [];
+  collections: Row[] = [];
 
   async listIndexes(command: AnyMongoInspectionCommand): Promise<Row[]> {
     this.calls.push(command);
@@ -138,7 +153,7 @@ class StubInspectionExecutor implements MongoInspectionCommandVisitor<Promise<Ro
   }
   async listCollections(command: AnyMongoInspectionCommand): Promise<Row[]> {
     this.calls.push(command);
-    return [];
+    return this.collections;
   }
 }
 
@@ -280,7 +295,7 @@ async function execute(
   });
 }
 
-describe('MongoMigrationRunner.executeDataTransform', () => {
+describe('MongoMigrationRunner.executeDmlOperation', () => {
   it('runs the DML wire command once when there are no checks to gate it', async () => {
     const harness = makeHarness();
     const op = dataTransform('backfill-status', { run: () => makeRunPlan() });
@@ -777,5 +792,85 @@ describe('MongoMigrationRunner - per-edge ledger', () => {
       migrationHash: destHash,
     });
     expect((ledgerEntries[0]!.operations as unknown[]).length).toBe(1);
+  });
+});
+
+const COMMAND_ECHO =
+  'not authorized on app to execute command { update: "users", ordered: true, bypassDocumentValidation: true, lsid: { id: UUID("0b2c8a4e-6f0d-4a7e-9d6f-2f1d5c3e8a91") }, txnNumber: 1, $clusterTime: { clusterTime: Timestamp(1791552000, 3), signature: { hash: BinData(0, 7F3C1D9E2A4B6C8D0E1F2A3B4C5D6E7F8A9B0C1D), keyId: 7421987654321098753 } }, $db: "app" }';
+
+describe('MongoMigrationRunner, a document rewrite without the privilege to skip validation', () => {
+  const unauthorized = () =>
+    new MongoServerError({
+      ok: 0,
+      code: 13,
+      codeName: 'Unauthorized',
+      errmsg: COMMAND_ECHO,
+    });
+
+  it('names the bypassDocumentValidation action and the roles that grant it', async () => {
+    const harness = makeHarness();
+    harness.driver.queueResponse([{ _id: 1 }]);
+    harness.driver.failUpdateManyWith(unauthorized());
+
+    const result = await execute(harness, [unsetField('users', 'nickname')]);
+
+    expect(JSON.stringify(result.assertNotOk())).not.toContain('clusterTime');
+    expect(result.assertNotOk()).toEqual({
+      code: 'MIGRATION.EXECUTION_FAILED',
+      summary:
+        'Operation field.users.nickname.unset failed: the database user may not skip document validation',
+      why: 'Renaming or removing a field rewrites documents with bypassDocumentValidation, because the old validator requires the old field. MongoDB refused it with error 13 (Unauthorized). Grant the user the bypassDocumentValidation action on the database, for example with the dbAdmin or restore role, then run the command again; operations that already ran are skipped.',
+      meta: { operationId: 'field.users.nickname.unset', mongoCode: 13, codeName: 'Unauthorized' },
+    });
+  });
+
+  it('lets any other failure of a data transform through unchanged', async () => {
+    const harness = makeHarness();
+    harness.driver.failUpdateManyWith(unauthorized());
+
+    await expect(
+      execute(harness, [dataTransform('backfill-status', { run: () => makeRunPlan() })]),
+    ).rejects.toBeInstanceOf(MongoServerError);
+  });
+});
+
+describe('MongoMigrationRunner, a field rename stopped because documents already hold the new name', () => {
+  it('says which collection, how to find the documents, and that the operations before it already ran', async () => {
+    const harness = makeHarness();
+    harness.driver.queueResponse([{ _id: 1 }]);
+    harness.driver.queueResponse([{ _id: 2 }]);
+
+    const result = await execute(harness, [
+      renameField('posts', 'title', 'headline', { filter: { type: 'bug' } }),
+    ]);
+
+    expect(result.assertNotOk()).toEqual({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      summary:
+        'Operation field.posts.title.rename(headline).where({"type":"bug"}) stopped: some documents in collection posts already hold headline as well as title',
+      why: 'Renaming title to headline would overwrite their headline. Find them with db.getCollection("posts").find({"$and":[{"type":"bug"},{"title":{"$exists":true}},{"headline":{"$exists":true}}]}) in mongosh, and move or remove one of the two values in each. Nothing was renamed. The operations before this one in the plan already ran, such as dropping an index on title; once the documents are fixed, run the command again and the plan finishes from here.',
+      meta: {
+        operationId: 'field.posts.title.rename(headline).where({"type":"bug"})',
+        name: 'field.posts.title.rename(headline).where({"type":"bug"})',
+      },
+    });
+  });
+});
+
+describe('MongoMigrationRunner, a collection rename stopped because the new collection exists', () => {
+  it('says that the new collection exists, names both collections, and that nothing was renamed', async () => {
+    const harness = makeHarness();
+    harness.inspectionExecutor.collections = [{ name: 'events' }, { name: 'occasions' }];
+
+    const result = await execute(harness, [renameCollection('events', 'occasions')]);
+
+    expect(harness.ddlCalls).toEqual([]);
+    expect(result.assertNotOk()).toEqual({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      summary:
+        'Operation collection.events.rename(occasions) stopped: collection occasions already exists, so collection events cannot be renamed to it',
+      why: 'Nothing was renamed. If occasions holds nothing you need, drop it, then run the command again; operations that already ran are skipped. If an earlier operation of the same migration created occasions, as a createIndex on occasions does, make renameCollection("events", "occasions") the first operation of its migration.ts, run node on that migration.ts, and then drop occasions and run the command again.',
+      meta: { operationId: 'collection.events.rename(occasions)' },
+    });
   });
 });

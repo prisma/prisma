@@ -1,3 +1,5 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import type { ContractSourceProvider } from '@internal/config/config-types';
 import type { Contract, LedgerEntryRecord } from '@internal/contract/types';
 import type {
@@ -7,14 +9,15 @@ import type {
   ControlFamilyDescriptor,
   ControlFamilyInstance,
   ControlTargetDescriptor,
-  SignDatabaseResult,
+  SpaceToSign,
   VerifyDatabaseResult,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
 import type { EmissionSpi } from '@internal/framework-components/emission';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok } from '@internal/utils/result';
-import { timeouts } from '@repo/test-utils';
+import { createContract, timeouts } from '@repo/test-utils';
+import { join } from 'pathe';
 import { describe, expect, it, vi } from 'vitest';
 import { createControlClient } from '../../src/control-api/client';
 import type { ControlProgressEvent } from '../../src/control-api/types';
@@ -46,6 +49,7 @@ function createSourceProvider(
   inputs?: readonly string[],
 ): ContractSourceProvider {
   return {
+    format: 'typescript',
     ...ifDefined('inputs', inputs),
     load,
   };
@@ -60,6 +64,7 @@ function createMockComponents() {
     introspect: async () => ({ tables: [] }),
     deserializeContract: (ir: unknown) => ir as Contract,
     readMarker: async () => null,
+    readAllMarkers: async () => new Map(),
     readLedger: async () => [],
     verify: async (): Promise<VerifyDatabaseResult> => ({
       ok: true,
@@ -79,14 +84,12 @@ function createMockComponents() {
       },
       timings: { total: 10 },
     }),
-    sign: async (): Promise<SignDatabaseResult> => ({
-      ok: true,
-      summary: 'Database signed successfully',
-      contract: { storageHash: 'test-hash' },
-      target: { expected: 'postgres' },
-      marker: { created: false, updated: true },
-      timings: { total: 10 },
-    }),
+    signSpaces: async ({ spaces }: { readonly spaces: readonly SpaceToSign[] }) =>
+      spaces.map(({ space, contract }) => ({
+        status: 'created',
+        space,
+        contract: { storageHash: contract.storage.storageHash, profileHash: contract.profileHash },
+      })),
   } as unknown as ControlFamilyInstance<string, unknown>;
 
   const mockHook: EmissionSpi = {
@@ -305,10 +308,11 @@ describe('ControlClient progress emission', () => {
     });
   });
 
-  describe('sign()', () => {
-    it('emits connect and sign spans when connection provided', async () => {
+  describe('dbSign()', () => {
+    it('emits connect, introspect and sign spans when connection provided', async () => {
       const events: ControlProgressEvent[] = [];
       const { mockFamily, mockTarget, mockAdapter, mockDriverDescriptor } = createMockComponents();
+      const contract = createContract();
 
       const client = createControlClient({
         family: mockFamily,
@@ -317,29 +321,40 @@ describe('ControlClient progress emission', () => {
         driver: mockDriverDescriptor,
       });
 
-      await client.sign({
-        contract: {},
+      const result = await client.dbSign({
+        contract,
+        migrationsDir: '/tmp/__test-client-migrations',
         connection: 'postgres://test',
         onProgress: (event) => events.push(event),
       });
 
       await client.close();
 
-      // Should emit connect span
-      const connectStart = events.find((e) => e.kind === 'spanStart' && e.spanId === 'connect');
-      const connectEnd = events.find((e) => e.kind === 'spanEnd' && e.spanId === 'connect');
-      expect(connectStart).toBeDefined();
-      expect(connectEnd).toMatchObject({ outcome: 'ok' });
-
-      // Should emit sign span
-      const signStart = events.find((e) => e.kind === 'spanStart' && e.spanId === 'sign');
-      const signEnd = events.find((e) => e.kind === 'spanEnd' && e.spanId === 'sign');
-      expect(signStart).toBeDefined();
-      expect(signEnd).toMatchObject({ outcome: 'ok' });
-
-      // All events should have action = 'sign'
+      expect(result).toEqual(
+        ok({
+          spaces: [
+            {
+              space: 'app',
+              status: 'created',
+              contract: {
+                storageHash: contract.storage.storageHash,
+                profileHash: contract.profileHash,
+              },
+            },
+          ],
+        }),
+      );
+      expect(
+        events.flatMap((event) =>
+          event.kind === 'spanEnd' ? [[event.spanId, event.outcome]] : [],
+        ),
+      ).toEqual([
+        ['connect', 'ok'],
+        ['introspect', 'ok'],
+        ['sign', 'ok'],
+      ]);
       for (const event of events) {
-        expect(event.action).toBe('sign');
+        expect(event.action).toBe('dbSign');
       }
     });
   });
@@ -466,33 +481,41 @@ describe('ControlClient progress emission', () => {
     );
 
     it(
-      'passes declared source inputs to the provider',
+      'passes the expanded source inputs to the provider',
       async () => {
-        const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
-        const load = vi.fn<ContractSourceProvider['load']>(async () => ok(emittableContract()));
-        const source = createSourceProvider(load, ['/tmp/schema.prisma']);
+        const dir = await mkdtemp(join(tmpdir(), 'control-client-emit-'));
+        try {
+          const schemaPath = join(dir, 'schema.prisma');
+          await writeFile(schemaPath, 'model User {}\n', 'utf-8');
 
-        const client = createControlClient({
-          family: mockFamily,
-          target: mockTarget,
-          adapter: mockAdapter,
-        });
+          const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
+          const load = vi.fn<ContractSourceProvider['load']>(async () => ok(emittableContract()));
+          const source = createSourceProvider(load, [schemaPath]);
 
-        const result = await client.emit({
-          contractConfig: {
-            source,
-            output: '/tmp/contract.json',
-          },
-        });
+          const client = createControlClient({
+            family: mockFamily,
+            target: mockTarget,
+            adapter: mockAdapter,
+          });
 
-        await client.close();
+          const result = await client.emit({
+            contractConfig: {
+              source,
+              output: '/tmp/contract.json',
+            },
+          });
 
-        expect(result.ok).toBe(true);
-        expect(load).toHaveBeenCalledWith(
-          expect.objectContaining({
-            resolvedInputs: ['/tmp/schema.prisma'],
-          }),
-        );
+          await client.close();
+
+          expect(result.ok).toBe(true);
+          expect(load).toHaveBeenCalledWith(
+            expect.objectContaining({
+              resolvedInputs: [schemaPath],
+            }),
+          );
+        } finally {
+          await rm(dir, { recursive: true, force: true });
+        }
       },
       timeouts.databaseOperation,
     );
@@ -559,15 +582,9 @@ describe('ControlClient progress emission', () => {
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.failure.code).toBe('CONTRACT_SOURCE_INVALID');
-        expect(result.failure.diagnostics).toEqual({
-          summary: 'Contract source provider threw an exception',
-          diagnostics: [
-            {
-              code: 'PROVIDER_THROW',
-              message: 'Source load error',
-            },
-          ],
-        });
+        expect(result.failure.summary).toBe('Failed to resolve contract source');
+        expect(result.failure.why).toBe('Source load error');
+        expect(result.failure).not.toHaveProperty('diagnostics');
       }
 
       // Should emit resolveSource span with error outcome
@@ -609,8 +626,42 @@ describe('ControlClient progress emission', () => {
       if (!result.ok) {
         expect(result.failure.code).toBe('CONTRACT_SOURCE_INVALID');
         expect(result.failure.diagnostics?.summary).toBe('Provider failed');
-        expect(result.failure.diagnostics?.diagnostics).toHaveLength(1);
+        expect(result.failure.diagnostics?.diagnostics).toEqual([
+          {
+            code: 'PSL_INVALID_MODEL',
+            message: 'Model declaration is invalid',
+            sourceId: 'schema.prisma',
+          },
+        ]);
       }
+    });
+
+    it('rejects a malformed source result with the check contract emit runs', async () => {
+      const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
+      const client = createControlClient({
+        family: mockFamily,
+        target: mockTarget,
+        adapter: mockAdapter,
+      });
+
+      const result = await client.emit({
+        contractConfig: {
+          source: createSourceProvider(
+            async () => ({}) as unknown as Awaited<ReturnType<ContractSourceProvider['load']>>,
+          ),
+          output: '/tmp/contract.json',
+        },
+      });
+
+      await client.close();
+
+      expect(result.ok).toBe(false);
+      expect(result.ok ? undefined : result.failure).toEqual({
+        code: 'CONTRACT_SOURCE_INVALID',
+        summary: 'Failed to resolve contract source',
+        why: 'Contract source provider returned malformed result shape.',
+        meta: undefined,
+      });
     });
 
     it('emits error outcome when emit throws', async () => {
@@ -667,6 +718,10 @@ describe('ControlClient progress emission', () => {
         createPlanner: () => ({
           plan: () => ({
             kind: 'success',
+            appliedStatements: [],
+            dataLoss: [],
+            accessWidening: [],
+            temporaryValues: [],
             plan: {
               targetId: 'postgres',
               destination: { storageHash: 'dest' },
@@ -733,6 +788,7 @@ describe('ControlClient progress emission', () => {
         mode: 'apply',
         connection: 'postgres://test',
         migrationsDir: '/tmp/__test-client-migrations',
+        answerQuestions: async () => [],
         acceptDataLoss: true,
         onProgress: (event) => events.push(event),
       });
@@ -795,6 +851,7 @@ describe('ControlClient progress emission', () => {
         mode: 'plan',
         connection: 'postgres://test',
         migrationsDir: '/tmp/__test-client-migrations',
+        answerQuestions: async () => [],
       });
 
       expect(result.ok).toBe(true);
@@ -821,6 +878,7 @@ describe('ControlClient progress emission', () => {
         mode: 'plan',
         connection: 'postgres://test',
         migrationsDir: '/tmp/__test-client-migrations',
+        answerQuestions: async () => [],
       });
 
       await client.close();
@@ -1039,7 +1097,7 @@ describe('ControlClient progress emission', () => {
       expect(result.ok).toBe(true);
     });
 
-    it('does not throw when onProgress is omitted from sign', async () => {
+    it('does not throw when onProgress is omitted from dbSign', async () => {
       const { mockFamily, mockTarget, mockAdapter, mockDriverDescriptor } = createMockComponents();
 
       const client = createControlClient({
@@ -1049,8 +1107,9 @@ describe('ControlClient progress emission', () => {
         driver: mockDriverDescriptor,
       });
 
-      const result = await client.sign({
-        contract: {},
+      const result = await client.dbSign({
+        contract: createContract(),
+        migrationsDir: '/tmp/__test-client-migrations',
         connection: 'postgres://test',
       });
 
@@ -1102,5 +1161,128 @@ describe('ControlClient progress emission', () => {
       },
       timeouts.databaseOperation,
     );
+  });
+
+  describe('renderContractDts()', () => {
+    it(
+      'renders the same declarations emit() produces for the contract',
+      async () => {
+        const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
+        const client = createControlClient({
+          family: mockFamily,
+          target: mockTarget,
+          adapter: mockAdapter,
+        });
+
+        const emitted = await client.emit({
+          contractConfig: { source: createSourceProvider(), output: '/tmp/contract.json' },
+        });
+        const rendered = await client.renderContractDts({
+          contract: emittableContract(),
+          resolveImportSpecifier: (specifier) => specifier,
+        });
+        await client.close();
+
+        expect(emitted.ok).toBe(true);
+        expect(rendered.ok).toBe(true);
+        if (emitted.ok && rendered.ok) {
+          expect(rendered.value.contractDts).toContain('export type Contract');
+          expect(rendered.value.contractDts).toBe(emitted.value.contractDts);
+        }
+      },
+      timeouts.databaseOperation,
+    );
+
+    it(
+      'rewrites the import specifiers through the resolver it is given',
+      async () => {
+        const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
+        const client = createControlClient({
+          family: mockFamily,
+          target: mockTarget,
+          adapter: mockAdapter,
+        });
+
+        const rendered = await client.renderContractDts({
+          contract: emittableContract(),
+          resolveImportSpecifier: (specifier) => specifier.replace(/^@internal\//, '@published/'),
+        });
+        await client.close();
+
+        expect(rendered.ok).toBe(true);
+        if (rendered.ok) {
+          expect(rendered.value.contractDts).toContain("from '@published/contract/types'");
+        }
+      },
+      timeouts.databaseOperation,
+    );
+
+    it("canonicalises with the target's preserve-empty hook before the family re-reads the contract", async () => {
+      const { mockFamily, mockTarget, mockAdapter, mockFamilyInstance } = createMockComponents();
+      const target = {
+        ...mockTarget,
+        contractSerializer: {
+          ...mockTarget.contractSerializer,
+          shouldPreserveEmpty: (path: readonly string[]) => path.at(-1) === 'tables',
+        },
+      } as unknown as typeof mockTarget;
+      mockFamilyInstance.deserializeContract = (json: unknown) => {
+        const tables = (json as { storage: { namespaces: { app: { tables?: unknown } } } }).storage
+          .namespaces.app.tables;
+        if (tables === undefined) {
+          throw new Error('storage.namespaces.app.tables must be an object (was missing)');
+        }
+        return json as Contract;
+      };
+      const client = createControlClient({ family: mockFamily, target, adapter: mockAdapter });
+
+      const rendered = await client.renderContractDts({ contract: emittableContract() });
+      await client.close();
+
+      expect(rendered.ok).toBe(true);
+    });
+
+    it('reports a contract the family rejects as CONTRACT_VALIDATION_FAILED', async () => {
+      const { mockFamily, mockTarget, mockAdapter, mockFamilyInstance } = createMockComponents();
+      mockFamilyInstance.deserializeContract = () => {
+        throw new Error('storage.storageHash must be a string');
+      };
+      const client = createControlClient({
+        family: mockFamily,
+        target: mockTarget,
+        adapter: mockAdapter,
+      });
+
+      const rendered = await client.renderContractDts({ contract: { storage: {} } });
+      await client.close();
+
+      expect(rendered.ok).toBe(false);
+      if (!rendered.ok) {
+        expect(rendered.failure).toMatchObject({
+          code: 'CONTRACT_VALIDATION_FAILED',
+          why: 'storage.storageHash must be a string',
+        });
+      }
+    });
+
+    it('reports a contract the emitter refuses as RENDER_FAILED', async () => {
+      const { mockFamily, mockTarget, mockAdapter, mockFamilyInstance } = createMockComponents();
+      mockFamilyInstance.deserializeContract = () =>
+        ({ ...emittableContract(), storage: undefined }) as unknown as Contract;
+      const client = createControlClient({
+        family: mockFamily,
+        target: mockTarget,
+        adapter: mockAdapter,
+      });
+
+      const rendered = await client.renderContractDts({ contract: emittableContract() });
+      await client.close();
+
+      expect(rendered.ok).toBe(false);
+      if (!rendered.ok) {
+        expect(rendered.failure.code).toBe('RENDER_FAILED');
+        expect(rendered.failure.why).toEqual(expect.any(String));
+      }
+    });
   });
 });

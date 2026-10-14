@@ -1,7 +1,7 @@
 import type { Contract } from '@internal/contract/types';
 import type { ExtractAggregateTypes, SqlStorage } from '@internal/sql-contract/types';
-import type { AnyExpression } from '@internal/sql-relational-core/ast';
 import type { Collection } from './collection';
+import type { CollectionRowOf, HasRow, RowType } from './collection-types';
 import type {
   CollectionContext,
   CollectionTypeState,
@@ -11,9 +11,11 @@ import type {
   IncludeCombineBranch,
   IncludeRelationValue,
   IncludeScalar,
-  ModelAccessor,
+  ModelCallbackTools,
   RelationCardinality,
   ShorthandWhereFilter,
+  VariantAwareModelAccessor,
+  WhereCallbackResult,
 } from './types';
 
 export interface CollectionInit<TContract extends Contract<SqlStorage>> {
@@ -34,15 +36,11 @@ export type WithWhereState<State extends CollectionTypeState> = Omit<State, 'has
   readonly hasWhere: true;
 };
 
-export type WithOrderByState<State extends CollectionTypeState> = Omit<State, 'hasOrderBy'> & {
-  readonly hasOrderBy: true;
-};
-
 export type WithVariantState<State extends CollectionTypeState, V extends string> = Omit<
   State,
-  'variantName'
+  'variantValue'
 > & {
-  readonly variantName: V;
+  readonly variantValue: V;
 };
 
 export type IncludedRelationsForRow<
@@ -54,6 +52,7 @@ export type IncludedRelationsForRow<
 export type IncludeRefinementTerminals =
   | 'all'
   | 'first'
+  | 'firstOrThrow'
   | 'aggregate'
   | 'groupBy'
   | 'create'
@@ -89,6 +88,7 @@ export type IncludeRefinementCollection<
 > = Omit<
   Collection<TContract, ModelName, Row, State>,
   | IncludeRefinementTerminals
+  | 'whereUnique'
   | (IsToMany extends true ? never : IncludeRefinementScalarMethods<TContract>)
 >;
 
@@ -109,12 +109,6 @@ export type IncludeRefinementResult<
       ? IncludeScalar<unknown> | IncludeCombine<Record<string, unknown>>
       : never);
 
-export declare const RowType: unique symbol;
-
-export interface RowSelection<T> {
-  [RowType]: T;
-}
-
 export type StripRowType<T> = Omit<T, typeof RowType>;
 
 export type IncludeRefinementValue<
@@ -125,20 +119,45 @@ export type IncludeRefinementValue<
   RefinedResult,
   NsId extends string = never,
 > =
-  RefinedResult extends RowSelection<infer V>
+  RefinedResult extends HasRow<infer V>
     ? // IncludeScalar / IncludeCombine carry a final value that must not be
       // cardinality-wrapped; Collection carries a raw row that still needs it.
       RefinedResult extends { readonly kind: 'includeScalar' | 'includeCombine' }
       ? V
-      : IncludeRelationValue<TContract, ParentModelName, RelName, V, NsId>
+      : RefinedIncludeRelationValue<
+          TContract,
+          ParentModelName,
+          RelName,
+          CollectionRowOf<HasRow<V>>,
+          NsId
+        >
     : IncludeRelationValue<TContract, ParentModelName, RelName, DefaultIncludedRow, NsId>;
+
+/**
+ * A refined to-one include is nullable whatever the relation's `nullable` flag
+ * says: the refinement's filter can exclude the related row.
+ */
+type RefinedIncludeRelationValue<
+  TContract extends Contract<SqlStorage>,
+  ParentModelName extends string,
+  RelName extends string,
+  IncludedRow,
+  NsId extends string = never,
+> =
+  RelationCardinality<TContract, ParentModelName, RelName, NsId> extends '1:1' | 'N:1'
+    ? IncludedRow | null
+    : IncludedRow[];
 
 export type WhereInput<
   TContract extends Contract<SqlStorage>,
   NsId extends string,
   ModelName extends string,
+  VariantValue extends string | undefined = undefined,
 > =
-  | ((model: ModelAccessor<TContract, ModelName, NsId>) => AnyExpression)
+  | ((
+      model: VariantAwareModelAccessor<TContract, ModelName, VariantValue, NsId>,
+      tools: ModelCallbackTools<TContract, ModelName, NsId>,
+    ) => WhereCallbackResult)
   | ShorthandWhereFilter<TContract, NsId, ModelName>;
 
 export interface IncludeRefinementEvaluation {

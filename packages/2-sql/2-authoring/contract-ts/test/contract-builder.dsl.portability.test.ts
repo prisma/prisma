@@ -1,8 +1,9 @@
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { sql } from '@internal/sql-contract/sql-expression';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
+import { testTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
 import { defineContract, field, model, rel } from '../src/contract-builder';
-
 import { columnDescriptor } from './helpers/column-descriptor';
 import { unboundTables } from './unbound-tables';
 
@@ -41,7 +42,7 @@ const sqliteTargetPack = {
   defaultNamespaceId: '__unbound__',
 } as const satisfies PortableTargetPack<'sqlite'>;
 
-const uuidColumn = columnDescriptor('sql/char@1', 'character', { length: 36 });
+const uuidColumn = columnDescriptor('sql/char@1', { length: 36 });
 const textColumn = columnDescriptor('sql/text@1');
 const portableTimestampColumn = columnDescriptor('test/timestamp@1');
 
@@ -50,7 +51,7 @@ function buildPortableContract<TTarget extends string>(target: PortableTargetPac
     fields: {
       id: field.column(uuidColumn).id({ name: 'app_user_pkey' }),
       email: field.column(textColumn).unique({ name: 'app_user_email_key' }),
-      createdAt: field.column(portableTimestampColumn).defaultSql('CURRENT_TIMESTAMP'),
+      createdAt: field.column(portableTimestampColumn).default(sql`CURRENT_TIMESTAMP`),
     },
   }).sql({
     table: 'app_user',
@@ -80,6 +81,7 @@ function buildPortableContract<TTarget extends string>(target: PortableTargetPac
   });
 
   return defineContract({
+    ...testTypeLookups,
     family: bareFamilyPack,
     target,
     createNamespace: createTestSqlNamespace,
@@ -105,7 +107,6 @@ describe('contract DSL portability coverage', () => {
     expect(sqliteContract.target).toBe('sqlite');
     expect(postgresStorageTables['app_user']?.columns['created_at']).toMatchObject({
       codecId: 'test/timestamp@1',
-      nativeType: 'timestamp',
       default: {
         kind: 'function',
         expression: 'CURRENT_TIMESTAMP',
@@ -113,7 +114,6 @@ describe('contract DSL portability coverage', () => {
     });
     expect(postgresStorageTables['blog_post']?.columns['author_id']).toMatchObject({
       codecId: 'sql/char@1',
-      nativeType: 'character',
       typeParams: { length: 36 },
     });
 

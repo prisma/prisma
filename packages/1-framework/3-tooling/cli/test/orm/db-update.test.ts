@@ -1,19 +1,33 @@
-import { rmSync, writeFileSync } from 'node:fs';
+import { existsSync, rmSync, writeFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { contractSnapshotDir } from '@internal/migration-tools/contract-snapshot-store';
 import { notOk, ok } from '@internal/utils/result';
+import { structuredError } from '@internal/utils/structured-error';
 import type { EngineEvent, StreamEvent } from '@prisma/cli-engine';
-import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ControlClient } from '../../src/control-api/types';
 import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
-import { createTestProjectDir } from '../utils/test-project-dir';
+import { createOrmTestCli } from '../helpers/orm-test-cli';
+import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
+
+const REFUSAL =
+  'Column "at": The contract holds this default in a form its data type does not store: pg/timestamptz needs a UTC offset, but "2024-01-01 00:00:00" has none. Add Z for UTC or an offset such as +02:00, as in "2024-01-01T12:34:56Z". Re-emit the contract, then try again.';
+
+function refusedDefault(): Error {
+  return structuredError('CONTRACT.DEFAULT_INVALID', REFUSAL, {
+    meta: { reason: 'default-not-canonical', column: 'at' },
+  });
+}
 
 const mocks = {
   connect: vi.fn(),
   dbUpdate: vi.fn(),
+  renderContractDts: vi.fn(),
   close: vi.fn(),
 };
+const RENDERED_CONTRACT_DTS = '// rendered\nexport type Contract = { rendered: true };\n';
 
 /** The command tree mounted over a control-client double instead of the real client. */
 const commands = createBinCommands(
@@ -21,6 +35,7 @@ const commands = createBinCommands(
     ({
       connect: mocks.connect,
       dbUpdate: mocks.dbUpdate,
+      renderContractDts: mocks.renderContractDts,
       close: mocks.close,
     }) as unknown as ControlClient,
 );
@@ -44,6 +59,7 @@ const projectDirs: string[] = [];
 beforeEach(() => {
   projectDir = createTestProjectDir('orm-db-update');
   projectDirs.push(projectDir);
+  writeProjectManifest(projectDir);
   writeFileSync(
     join(projectDir, 'contract.json'),
     JSON.stringify({ storage: { storageHash: MARKER_HASH } }),
@@ -52,6 +68,7 @@ beforeEach(() => {
   mocks.connect.mockReset().mockResolvedValue(undefined);
   mocks.close.mockReset().mockResolvedValue(undefined);
   mocks.dbUpdate.mockReset().mockResolvedValue(ok(applySuccess()));
+  mocks.renderContractDts.mockReset().mockResolvedValue(ok({ contractDts: RENDERED_CONTRACT_DTS }));
 });
 
 function ormConfig(overrides: Record<string, unknown> = {}): Record<string, unknown> {
@@ -79,6 +96,9 @@ function ormConfig(overrides: Record<string, unknown> = {}): Record<string, unkn
 function applySuccess(): Record<string, unknown> {
   return {
     mode: 'apply',
+    appliedStatements: [],
+    dataLoss: [],
+    accessWidening: [],
     destination: { storageHash: DEST_HASH },
     plan: {
       operations: [
@@ -106,6 +126,9 @@ function applySuccess(): Record<string, unknown> {
 function planSuccess(): Record<string, unknown> {
   return {
     mode: 'plan',
+    appliedStatements: [],
+    dataLoss: [],
+    accessWidening: [],
     destination: { storageHash: DEST_HASH },
     plan: {
       operations: [{ id: 'op-2', label: 'drop relation legacy', operationClass: 'destructive' }],
@@ -123,7 +146,7 @@ function planSuccess(): Record<string, unknown> {
 }
 
 function harness(config: Record<string, unknown> = ormConfig()) {
-  return createTestCli({ commands, groups, config: { orm: config } });
+  return createOrmTestCli({ commands, groups, orm: config });
 }
 
 function envelopeOf(json: readonly StreamEvent[]): unknown {
@@ -134,6 +157,292 @@ function envelopeOf(json: readonly StreamEvent[]): unknown {
 function stepEvents(events: readonly EngineEvent[]): readonly EngineEvent[] {
   return events.filter((event) => event.kind === 'step-started' || event.kind === 'step-finished');
 }
+
+const PROFILE_TO_USER = {
+  statement: {
+    kind: 'rename',
+    entity: 'model',
+    from: { namespaceId: 'app', model: 'Profile' },
+    to: { namespaceId: 'app', model: 'User' },
+  },
+  operationIndexes: [0, 1],
+  description: 'rename model "Profile" to "User"',
+};
+
+describe('db update --rename', () => {
+  it('hands every --rename to the control API in the order given', async () => {
+    await harness().run(['db', 'update', '--rename', 'Profile:User', '--rename', 'User.a:User.b'], {
+      cwd: projectDir,
+    });
+    expect(mocks.dbUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        statements: [
+          { verb: 'rename', text: 'Profile:User' },
+          { verb: 'rename', text: 'User.a:User.b' },
+        ],
+      }),
+    );
+  });
+
+  it('hands an empty list when no --rename is given', async () => {
+    await harness().run(['db', 'update'], { cwd: projectDir });
+    expect(mocks.dbUpdate).toHaveBeenCalledWith(expect.objectContaining({ statements: [] }));
+  });
+
+  it('lists the applied statements after the operations, and in the JSON document', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({ ...applySuccess(), appliedStatements: [PROFILE_TO_USER] }),
+    );
+    const run = await harness().run(['db', 'update', '--rename', 'Profile:User'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+    const human = run.presented?.presentation.human ?? [];
+    expect(human).toContainEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: 'Statements applied',
+          children: [{ label: 'rename model "Profile" to "User" (2 operations)' }],
+        },
+      ],
+    });
+    expect(run.presented?.data).toMatchObject({ appliedStatements: [PROFILE_TO_USER] });
+  });
+
+  it('says which field gets a temporary value in existing rows, and that migration plan --backfill chooses it', async () => {
+    const temporaryValues = [{ field: 'User.email', value: "''" }];
+    mocks.dbUpdate
+      .mockResolvedValueOnce(ok({ ...planSuccess(), temporaryValues }))
+      .mockResolvedValueOnce(ok({ ...applySuccess(), temporaryValues }));
+    const dryRun = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+    const applied = await harness().run(['db', 'update'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(dryRun.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email instead.`,
+    });
+    expect(applied.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows got '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email instead.`,
+    });
+    expect(applied.presented?.data).toMatchObject({ temporaryValues });
+  });
+
+  it('starts the migration plan it suggests for a temporary value from the contract the database is at', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        temporaryValues: [{ field: 'User.email', value: "''" }],
+        databaseStorageHash: MARKER_HASH,
+      }),
+    );
+    const run = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --from ${MARKER_HASH} --backfill User.email instead.`,
+    });
+    expect(run.presented?.data).not.toHaveProperty('databaseStorageHash');
+  });
+
+  it('lists what an apply would ask about on a dry run, in its output and its JSON', async () => {
+    const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
+    const age = { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' } as const;
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        dataLoss: [
+          { operationIndex: 0, subject: legacy, text: 'Legacy', loss: 'drop' },
+          { operationIndex: 0, subject: age, text: 'User.age', loss: 'typeChange' },
+        ],
+      }),
+    );
+    const human = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+    const json = await harness().run(['db', 'update', '--dry-run', '--json'], { cwd: projectDir });
+
+    expect(human.presented?.presentation.human).toContainEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: 'An apply asks about',
+          children: [
+            { label: 'drop relation legacy: --delete Legacy' },
+            { label: 'drop relation legacy: --delete User.age' },
+          ],
+        },
+      ],
+    });
+    expect(json.presented?.data).toMatchObject({
+      dataLoss: [
+        { operationIndex: 0, subject: legacy, text: 'Legacy', loss: 'drop', answered: false },
+        {
+          operationIndex: 0,
+          subject: age,
+          text: 'User.age',
+          loss: 'typeChange',
+          answered: false,
+        },
+      ],
+      accessWidening: [],
+    });
+  });
+
+  it('marks the questions the flags of a dry run answer, and repeats the flags in the apply it suggests', async () => {
+    const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
+    const audit = { kind: 'storage', name: "audit log's" } as const;
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        dataLoss: [
+          { operationIndex: 0, subject: legacy, text: 'Legacy' },
+          { operationIndex: 0, subject: audit, text: "audit log's" },
+        ],
+      }),
+    );
+    const run = await harness().run(
+      ['db', 'update', '--dry-run', '--rename', 'Profile:User', '--delete', 'Legacy'],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: 'An apply asks about',
+          children: [
+            { label: 'drop relation legacy: --delete Legacy (answered)' },
+            { label: "drop relation legacy: --delete 'audit log'\\''s'" },
+          ],
+        },
+      ],
+    });
+    expect(run.presented?.presentation.next).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Apply the planned operations',
+        command: 'prisma-test db update --rename Profile:User --delete Legacy',
+      },
+    ]);
+  });
+
+  it('suggests the apply with the database as a placeholder and the ref it advances', async () => {
+    mocks.dbUpdate.mockResolvedValue(ok(planSuccess()));
+    const run = await harness().run(
+      [
+        'db',
+        'update',
+        '--dry-run',
+        '--db',
+        'postgres://user:secret@localhost/appdb',
+        '--advance-ref',
+        'qa',
+      ],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect(run.presented?.presentation.next).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Apply the planned operations',
+        command: 'prisma-test db update --advance-ref qa --db <url>',
+      },
+    ]);
+  });
+
+  it('repeats --config and --db in every command a dry run prints, as a shell reads them', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({ ...planSuccess(), temporaryValues: [{ field: 'User.email', value: "''" }] }),
+    );
+    const run = await harness().run(
+      [
+        'db',
+        'update',
+        '--dry-run',
+        '--db',
+        CONNECTION,
+        '--advance-ref',
+        'qa',
+        '--config',
+        'my app/prisma.config.ts',
+      ],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect({
+      next: run.presented?.presentation.next,
+      temporaryValue: run.presented?.presentation.human.find(
+        (block) =>
+          block.kind === 'summary' &&
+          typeof block.text === 'string' &&
+          block.text.startsWith('Existing rows'),
+      ),
+    }).toEqual({
+      next: [
+        {
+          kind: 'run-command',
+          label: 'Apply the planned operations',
+          command:
+            "prisma-test db update --advance-ref qa --config 'my app/prisma.config.ts' --db <url>",
+        },
+      ],
+      temporaryValue: {
+        kind: 'summary',
+        status: 'warn',
+        text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email --config 'my app/prisma.config.ts' instead.`,
+      },
+    });
+  });
+
+  it('repeats --config and --db in the command an apply says to run next', async () => {
+    const run = await harness().run(
+      ['db', 'update', '--db', CONNECTION, '--config', 'app/prisma.config.ts'],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect(run.presented?.presentation.next).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Confirm the space is up to date',
+        command: 'prisma-test migration status --config app/prisma.config.ts --db <url>',
+      },
+    ]);
+  });
+
+  it('lists the applied statements on a dry run', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({ ...planSuccess(), appliedStatements: [{ ...PROFILE_TO_USER, operationIndexes: [] }] }),
+    );
+    const run = await harness().run(['db', 'update', '--dry-run', '--rename', 'Profile:User'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'tree',
+      roots: [
+        {
+          label: 'Statements applied',
+          children: [{ label: 'rename model "Profile" to "User" (no operations)' }],
+        },
+      ],
+    });
+  });
+});
 
 describe('db update', () => {
   it('settles as a completed envelope carrying the migration document', async () => {
@@ -278,7 +587,7 @@ describe('db update', () => {
       {
         kind: 'run-command',
         label: 'Confirm the space is up to date',
-        command: '{bin} migration status',
+        command: 'prisma-test migration status',
       },
     ]);
   });
@@ -319,7 +628,7 @@ describe('db update', () => {
         {
           kind: 'run-command',
           label: 'Apply the planned operations',
-          command: '{bin} db update',
+          command: 'prisma-test db update',
         },
       ]);
     });
@@ -381,6 +690,38 @@ describe('db update', () => {
     expect(envelopeOf(run.json)).toMatchObject({
       ok: false,
       error: { code: 'MIGRATION.PLANNING_FAILED' },
+    });
+  });
+
+  describe('a contract default its data type refuses', () => {
+    it('reports the planner`s CONTRACT.DEFAULT_INVALID, not an unexpected error', async () => {
+      mocks.dbUpdate.mockRejectedValue(refusedDefault());
+
+      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run.json)).toMatchObject({
+        ok: false,
+        error: {
+          code: 'CONTRACT.DEFAULT_INVALID',
+          summary: REFUSAL,
+          meta: { reason: 'default-not-canonical', column: 'at' },
+        },
+      });
+    });
+
+    it('shows the refusal and the hint to re-emit', async () => {
+      mocks.dbUpdate.mockRejectedValue(refusedDefault());
+
+      const run = await harness().run(['db', 'update'], {
+        cwd: projectDir,
+        isTty: { stdout: true, stderr: true },
+      });
+      const shown = stripAnsi(run.stderr);
+
+      expect(shown).toContain('CONTRACT.DEFAULT_INVALID');
+      expect(shown).toContain(REFUSAL);
+      expect(shown).not.toContain('Unexpected error');
     });
   });
 
@@ -461,6 +802,56 @@ describe('db update', () => {
       expect(run.exitCode).toBe(2);
       expect(settled).toContain('ECONNREFUSED 127.0.0.1:5432');
       expect(settled).not.toContain('close on an unconnected client');
+    });
+  });
+
+  describe('ref advancement', () => {
+    it('renders the snapshot types from the contract before touching the database', async () => {
+      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+
+      expect(run.exitCode).toBe(0);
+      expect(mocks.renderContractDts).toHaveBeenCalledWith({
+        contract: { storage: { storageHash: MARKER_HASH } },
+        resolveImportSpecifier: expect.any(Function),
+      });
+      expect(mocks.renderContractDts.mock.invocationCallOrder[0]).toBeLessThan(
+        mocks.connect.mock.invocationCallOrder[0]!,
+      );
+      const storeDir = contractSnapshotDir(join(projectDir, 'migrations'), MARKER_HASH);
+      expect(await readFile(join(storeDir, 'contract.d.ts'), 'utf-8')).toBe(RENDERED_CONTRACT_DTS);
+    });
+
+    it('refuses before connecting when the contract types cannot be rendered', async () => {
+      mocks.renderContractDts.mockResolvedValue(
+        notOk({
+          code: 'RENDER_FAILED',
+          summary: 'Failed to render contract types',
+          why: 'relation author must declare nullability',
+        }),
+      );
+
+      const run = await harness().run(['db', 'update', '--json'], { cwd: projectDir });
+
+      expect(run.exitCode).toBe(2);
+      expect(envelopeOf(run.json)).toMatchObject({
+        ok: false,
+        error: { code: 'CONTRACT.TYPES_RENDER_FAILED' },
+      });
+      expect(JSON.stringify(run.json.at(-1))).toContain('relation author must declare nullability');
+      expect(mocks.connect).not.toHaveBeenCalled();
+      expect(mocks.dbUpdate).not.toHaveBeenCalled();
+      expect(existsSync(join(projectDir, 'migrations'))).toBe(false);
+    });
+
+    it('does not render when --db leaves the ref alone', async () => {
+      const run = await harness().run(
+        [...['db', 'update', '--json'], '--db', 'postgres://user:secret@localhost:5432/other'],
+        { cwd: projectDir },
+      );
+
+      expect(run.exitCode).toBe(0);
+      expect(mocks.renderContractDts).not.toHaveBeenCalled();
+      expect(run.presented?.data).toMatchObject({ advancedRef: null });
     });
   });
 });

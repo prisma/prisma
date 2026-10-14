@@ -29,9 +29,9 @@ import { defineTestCodec } from './test-codec';
 import { createTestRuntime as createRuntime, descriptorsFromCodecs } from './utils';
 
 /**
- * Documents the contract: when a `SqlMiddleware.interceptQuery` hook short-circuits execution and returns raw rows, those rows go through the SQL runtime's normal codec decode pass — exactly as if they had come from the driver.
+ * Documents the contract: when a `SqlMiddleware.intercept.onQuery` handler short-circuits execution and returns raw rows, those rows go through the SQL runtime's normal codec decode pass — exactly as if they had come from the driver.
  *
- * The cache middleware (TML-2143 M3) relies on this: it stores raw (undecoded) rows on first execution, then returns them from `interceptQuery` on subsequent executions. Decoding happens once per row consumption regardless of whether the row originated from the driver or the cache.
+ * The cache middleware (TML-2143 M3) relies on this: it stores raw (undecoded) rows on first execution, then returns them from `intercept.onQuery` on subsequent executions. Decoding happens once per row consumption regardless of whether the row originated from the driver or the cache.
  */
 
 const testContract: Contract<SqlStorage> = {
@@ -52,20 +52,18 @@ const testContract: Contract<SqlStorage> = {
 };
 
 /**
- * A JSON codec that takes wire-format strings and decodes them into parsed objects. Used to demonstrate that interceptQueryed rows containing JSON-encoded values come back to the consumer as parsed objects.
+ * A JSON codec that takes wire-format strings and decodes them into parsed objects. Used to demonstrate that intercepted rows containing JSON-encoded values come back to the consumer as parsed objects.
  */
 function createJsonCodecs(): ReadonlyArray<Codec<string>> {
   return [
     defineTestCodec({
       typeId: 'pg/jsonb@1',
-      targetTypes: ['jsonb'],
       encode: (value: string | JsonValue): string => JSON.stringify(value),
       decode: (wire: string | JsonValue): JsonValue =>
         typeof wire === 'string' ? (JSON.parse(wire) as JsonValue) : wire,
     }),
     defineTestCodec({
       typeId: 'pg/int4@1',
-      targetTypes: ['int4'],
       encode: (v: number) => v,
       decode: (w: number) => w,
     }),
@@ -93,7 +91,7 @@ function createStubAdapter(codecs: ReadonlyArray<Codec<string>>) {
 
 function createMockDriver(): SqlDriver {
   const rootExecute = vi.fn().mockImplementation(async function* (_request: SqlExecuteRequest) {
-    // Default driver path; real test cases below either interceptQuery (skipping this) or assert it was called.
+    // Default driver path; real test cases below either intercept (skipping this) or assert it was called.
     yield {} as Record<string, unknown>;
   });
 
@@ -180,7 +178,7 @@ function createTestSetup(middleware: readonly SqlMiddleware[]) {
 }
 
 /**
- * Builds an execution plan whose AST projection maps the named alias to the JSON codec via `ProjectionItem.codecId`, so any row yielded for this plan (driver or interceptQueryed) is decoded through the JSON codec before reaching the consumer.
+ * Builds an execution plan whose AST projection maps the named alias to the JSON codec via `ProjectionItem.codecId`, so any row yielded for this plan (driver or intercepted) is decoded through the JSON codec before reaching the consumer.
  */
 function createJsonProjectionPlan(alias: string): SqlExecutionPlan {
   const ast = SelectAst.from(TableSource.named('users')).withProjection([
@@ -199,20 +197,22 @@ function createJsonProjectionPlan(alias: string): SqlExecutionPlan {
   };
 }
 
-describe('interceptQueryed rows go through codec decoding', () => {
-  it('decodes JSON wire values returned by an interceptQueryor into parsed objects', async () => {
+describe('intercepted rows go through codec decoding', () => {
+  it('decodes JSON wire values returned by an interceptor into parsed objects', async () => {
     const wireValue = JSON.stringify({ name: 'Alice', tags: ['admin', 'staff'] });
 
-    const interceptQueryor: SqlMiddleware = {
+    const interceptor: SqlMiddleware = {
       name: 'mock-cache',
       familyId: 'sql',
-      async interceptQuery() {
-        // Raw wire row, as the driver would have produced it: a string containing JSON-encoded data.
-        return { operation: 'query', rows: [{ profile: wireValue }] };
+      intercept: {
+        async onQuery() {
+          // Raw wire row, as the driver would have produced it: a string containing JSON-encoded data.
+          return { rows: [{ profile: wireValue }] };
+        },
       },
     };
 
-    const { runtime, driver } = createTestSetup([interceptQueryor]);
+    const { runtime, driver } = createTestSetup([interceptor]);
     const plan = createJsonProjectionPlan('profile');
 
     const out = await runtime.query(plan).toArray();
@@ -222,23 +222,24 @@ describe('interceptQueryed rows go through codec decoding', () => {
     expect(driver.execute).not.toHaveBeenCalled();
   });
 
-  it('decodes multiple interceptQueryed rows independently', async () => {
-    const interceptQueryor: SqlMiddleware = {
+  it('decodes multiple intercepted rows independently', async () => {
+    const interceptor: SqlMiddleware = {
       name: 'mock-cache',
       familyId: 'sql',
-      async interceptQuery() {
-        return {
-          operation: 'query',
-          rows: [
-            { profile: JSON.stringify({ id: 1 }) },
-            { profile: JSON.stringify({ id: 2 }) },
-            { profile: JSON.stringify({ id: 3 }) },
-          ],
-        };
+      intercept: {
+        async onQuery() {
+          return {
+            rows: [
+              { profile: JSON.stringify({ id: 1 }) },
+              { profile: JSON.stringify({ id: 2 }) },
+              { profile: JSON.stringify({ id: 3 }) },
+            ],
+          };
+        },
       },
     };
 
-    const { runtime, driver } = createTestSetup([interceptQueryor]);
+    const { runtime, driver } = createTestSetup([interceptor]);
     const plan = createJsonProjectionPlan('profile');
 
     const out = await runtime.query(plan).toArray();
@@ -247,21 +248,23 @@ describe('interceptQueryed rows go through codec decoding', () => {
     expect(driver.execute).not.toHaveBeenCalled();
   });
 
-  it('decodes interceptQueryed rows yielded from an AsyncIterable', async () => {
+  it('decodes intercepted rows yielded from an AsyncIterable', async () => {
     async function* asyncRows(): AsyncGenerator<Record<string, unknown>, void, unknown> {
       yield { profile: JSON.stringify({ kind: 'first' }) };
       yield { profile: JSON.stringify({ kind: 'second' }) };
     }
 
-    const interceptQueryor: SqlMiddleware = {
+    const interceptor: SqlMiddleware = {
       name: 'mock-cache',
       familyId: 'sql',
-      async interceptQuery() {
-        return { operation: 'query', rows: asyncRows() };
+      intercept: {
+        async onQuery() {
+          return { rows: asyncRows() };
+        },
       },
     };
 
-    const { runtime, driver } = createTestSetup([interceptQueryor]);
+    const { runtime, driver } = createTestSetup([interceptor]);
     const plan = createJsonProjectionPlan('profile');
 
     const out = await runtime.query(plan).toArray();
@@ -270,12 +273,12 @@ describe('interceptQueryed rows go through codec decoding', () => {
     expect(driver.query).not.toHaveBeenCalled();
   });
 
-  it('decodes driver rows and interceptQueryed rows the same way (round-trip via the same codec path)', async () => {
+  it('decodes driver rows and intercepted rows the same way (round-trip via the same codec path)', async () => {
     // First, capture what the driver path produces for a known wire value.
     const driverDecoded = await (async () => {
       const wireValue = JSON.stringify({ x: 42 });
 
-      // No interceptQueryor — driver path.
+      // No interceptor — driver path.
       const { runtime, driver } = createTestSetup([]);
 
       // Override the driver to produce the wire value.
@@ -291,23 +294,25 @@ describe('interceptQueryed rows go through codec decoding', () => {
 
     expect(driverDecoded).toEqual([{ profile: { x: 42 } }]);
 
-    // Now run the same wire value through the interceptQuery path.
-    const interceptQueryDecoded = await (async () => {
+    // Now run the same wire value through the intercept path.
+    const interceptedDecoded = await (async () => {
       const wireValue = JSON.stringify({ x: 42 });
 
-      const interceptQueryor: SqlMiddleware = {
+      const interceptor: SqlMiddleware = {
         name: 'mock-cache',
         familyId: 'sql',
-        async interceptQuery() {
-          return { operation: 'query', rows: [{ profile: wireValue }] };
+        intercept: {
+          async onQuery() {
+            return { rows: [{ profile: wireValue }] };
+          },
         },
       };
 
-      const { runtime } = createTestSetup([interceptQueryor]);
+      const { runtime } = createTestSetup([interceptor]);
       return runtime.query(createJsonProjectionPlan('profile')).toArray();
     })();
 
     // Both paths produce identical decoded output.
-    expect(interceptQueryDecoded).toEqual(driverDecoded);
+    expect(interceptedDecoded).toEqual(driverDecoded);
   });
 });

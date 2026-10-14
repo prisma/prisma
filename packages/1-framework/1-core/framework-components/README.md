@@ -1,13 +1,13 @@
 # @internal/framework-components
 
-> **Internal package.** This package is an implementation detail of Prisma Next and is published only to support its runtime. Its API is unstable and may change without notice. Do not depend on this package directly; install `@prisma/cli` and a database facade (e.g. `@prisma/orm-postgres`) instead.
+> **Internal package.** This package is an implementation detail of Prisma 8 and is published only to support its runtime. Its API is unstable and may change without notice. Do not depend on this package directly; install `@prisma/cli` and a database facade (e.g. `@prisma/orm-postgres`) instead.
 
-Framework component types, authoring logic, control stack assembly, and emission SPI for Prisma Next.
+Framework component types, authoring logic, control stack assembly, and emission SPI for Prisma 8.
 
 ## What this package provides
 
 - **Component types** (`./components`): Base descriptor and instance interfaces for framework components (family, target, adapter, driver, extension), pack refs, and type renderer system
-- **Authoring types** (`./authoring`): Declarative authoring contribution types, template resolution, and validation for type constructors and field presets
+- **Authoring types** (`./authoring`): Declarative authoring contribution types, template resolution, and validation for type constructors and field presets. `findAuthoringTypeConstructorCall(namespace, output)` is the inverse of `instantiateAuthoringTypeConstructor`: the first call to a constructor in a namespace that produces a given codec, native type and type parameters
 - **Codec base interface** (`./codec`): The cross-family `Codec` base type that SQL `Codec` and Mongo `MongoCodec` extend
 - **Control stack** (`./control`): Assembly functions that combine component descriptors into a unified `ControlStack` with derived state (codec imports, renderers, authoring contributions)
 - **Emission SPI** (`./emission`): Types for the emission pipeline — `TargetFamilyHook`, `ValidationContext`, `GenerateContractTypesOptions`, `TypeRenderEntry`, `TypeRenderer`, `ParameterizedCodecDescriptor`, and related types
@@ -72,12 +72,11 @@ Codec metadata, parameterized-codec registration, and runtime materialization li
 
 ```ts
 import type { CodecDescriptor, CodecInstanceContext } from '@internal/framework-components/codec';
-import { voidParamsSchema } from '@internal/framework-components/codec';
 ```
 
-- `CodecDescriptor<P = void>` carries `codecId`, `traits`, `targetTypes`, `meta`, `paramsSchema: StandardSchemaV1<P>`, optional `renderOutputType`, and a curried `factory: (P) => (CodecInstanceContext) => Codec`. Non-parameterized codecs use `P = void` (with the framework-supplied `voidParamsSchema`) and a constant factory; parameterized codecs use a non-empty `P` (e.g. `{ length: number }` for pgvector).
+- `CodecDescriptor<P = void>` carries `dataType`, `codecId`, `traits`, `meta`, `paramsSchema: StandardSchemaV1<P> | undefined`, optional `renderOutputType`, and a curried `factory: (P) => (CodecInstanceContext) => Codec`. `dataType` is the id of the data type the codec represents; assembly refuses a codec whose data type no component registers (see [ADR 254 — Data types and casts](../../../../../docs/architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md)). A codec whose data type depends on the target that adapts it is declared as a `CodecDescriptorTemplate<P>`, the same shape without `dataType`, and the target supplies the id when it adapts the template. Non-parameterized codecs use `P = void`, set `paramsSchema` to `undefined`, and use a constant factory. Such a codec rejects any `typeParams`. Parameterized codecs use a non-empty `P` (e.g. `{ length: number }` for pgvector).
 - `CodecInstanceContext` (family-agnostic, `{ name }` only) is supplied by the runtime when materializing a per-instance codec. Pack authors close over it inside the factory; they never construct it. This is the **per-materialization** context, sibling to the **per-call** `CodecCallContext` documented above. Family-specific extensions augment it — the SQL family ships `SqlCodecInstanceContext extends CodecInstanceContext` in `@internal/sql-relational-core/ast`, adding `usedAt: ReadonlyArray<{ table; column }>` for SQL-domain codecs that need column-set metadata.
-- Contributors expose their descriptors through `ComponentMetadata.types.codecTypes.codecDescriptors` and the unified `codecs: () => ReadonlyArray<CodecDescriptor>` slot. `extractCodecLookup` reads `targetTypes` / `meta` / `renderOutputType` directly off the descriptors — there is no parameterized vs. non-parameterized split and no synthesis bridge.
+- Contributors expose their descriptors through `ComponentMetadata.types.codecTypes.codecDescriptors` and the unified `codecs: () => ReadonlyArray<CodecDescriptor>` slot. `extractCodecLookup` reads `meta` / `renderOutputType` directly off the descriptors — there is no parameterized vs. non-parameterized split and no synthesis bridge.
 
 `paramsSchema` is typed as Standard Schema (`StandardSchemaV1<P>`), not arktype-specific. arktype `Type`s satisfy the shape via their `~standard` getter, so existing arktype-typed descriptors satisfy the new shape transparently while `framework-components` itself takes no dependency on arktype.
 

@@ -9,7 +9,6 @@ import {
   assertNoCrossRegistryCollisions,
   classifyEnumMemberType,
   collectScalarTypeConstructors,
-  hasRegisteredFieldNamespace,
   instantiateAuthoringFieldPreset,
   instantiateAuthoringTypeConstructor,
   isAuthoringArgRef,
@@ -18,19 +17,15 @@ import {
   resolveAuthoringTemplateValue,
   validateAuthoringHelperArguments,
 } from '../src/shared/framework-authoring';
-import type {
-  PslExtensionBlock,
-  PslExtensionBlockParamValue,
-} from '../src/shared/psl-extension-block';
 
 describe('authoring template resolution', () => {
   const typeConstructor = {
     kind: 'typeConstructor',
-    output: { codecId: 'test/text@1', nativeType: 'text' },
+    output: { codecId: 'test/text@1' },
   } satisfies AuthoringTypeConstructorDescriptor;
   const fieldPreset = {
     kind: 'fieldPreset',
-    output: { codecId: 'test/text@1', nativeType: 'text' },
+    output: { codecId: 'test/text@1' },
   } satisfies AuthoringFieldPresetDescriptor;
 
   it('narrows a descriptor by kind', () => {
@@ -43,35 +38,6 @@ describe('authoring template resolution', () => {
     const fieldNamespace = { nested: fieldPreset } satisfies AuthoringFieldNamespace;
     expect(isAuthoringTypeConstructorDescriptor(typeNamespace)).toBe(false);
     expect(isAuthoringFieldPresetDescriptor(fieldNamespace)).toBe(false);
-  });
-
-  describe('hasRegisteredFieldNamespace', () => {
-    const presetLeaf = {
-      kind: 'fieldPreset',
-      output: { codecId: 'test/text@1', nativeType: 'text' },
-    } as const;
-
-    it('returns true for a non-leaf namespace key', () => {
-      expect(
-        hasRegisteredFieldNamespace({ field: { temporal: { createdAt: presetLeaf } } }, 'temporal'),
-      ).toBe(true);
-    });
-
-    it('returns true for an empty sub-namespace', () => {
-      expect(hasRegisteredFieldNamespace({ field: { temporal: {} } }, 'temporal')).toBe(true);
-    });
-
-    it('returns false for a leaf preset registered at the root', () => {
-      expect(hasRegisteredFieldNamespace({ field: { temporal: presetLeaf } }, 'temporal')).toBe(
-        false,
-      );
-    });
-
-    it('returns false for missing contributions or unknown key', () => {
-      expect(hasRegisteredFieldNamespace(undefined, 'temporal')).toBe(false);
-      expect(hasRegisteredFieldNamespace({}, 'temporal')).toBe(false);
-      expect(hasRegisteredFieldNamespace({ field: {} }, 'temporal')).toBe(false);
-    });
   });
 
   it('rejects arg refs with invalid index or path', () => {
@@ -142,7 +108,7 @@ describe('authoring template resolution', () => {
         [{ kind: 'object', properties: { label: { kind: 'string' } } }],
         [{}],
       ),
-    ).toThrow(/Missing required authoring helper argument at field\.test\[0\]\.label/);
+    ).toThrow('Authoring helper argument at field.test[0].label is missing');
   });
 
   it('rejects malformed helper argument values', () => {
@@ -238,7 +204,6 @@ describe('authoring template resolution', () => {
       kind: 'typeConstructor',
       output: {
         codecId: 'test/text@1',
-        nativeType: 'text',
         typeParams: {
           label: {
             kind: 'arg',
@@ -254,20 +219,17 @@ describe('authoring template resolution', () => {
 
     expect(instantiateAuthoringTypeConstructor(descriptor, args)).toEqual({
       codecId: 'test/text@1',
-      nativeType: 'text',
       typeParams: { label: 'fallback' },
     });
   });
 
-  it('rejects instantiation of an output template without a nativeType', () => {
+  it('instantiates an output template to its codec and parameters, naming no database type', () => {
     const descriptor = {
       kind: 'typeConstructor',
       output: { codecId: 'test/text@1' },
     } as const;
 
-    expect(() => instantiateAuthoringTypeConstructor(descriptor, [])).toThrow(
-      /declares no nativeType; only entity-ref constructors may omit it/,
-    );
+    expect(instantiateAuthoringTypeConstructor(descriptor, [])).toEqual({ codecId: 'test/text@1' });
   });
 
   it('rejects malformed resolved typeParams values', () => {
@@ -275,7 +237,6 @@ describe('authoring template resolution', () => {
       kind: 'typeConstructor',
       output: {
         codecId: 'test/vector@1',
-        nativeType: 'vector',
         typeParams: {
           kind: 'arg',
           index: 0,
@@ -294,7 +255,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/text@1',
-        nativeType: 'text',
         default: {
           kind: 'function',
           expression: {
@@ -315,7 +275,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/text@1',
-        nativeType: 'text',
         default: {
           kind: 'literal',
           value: {
@@ -337,7 +296,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/vector@1',
-        nativeType: 'vector',
         typeParams: {
           length: {
             kind: 'arg',
@@ -373,7 +331,6 @@ describe('authoring template resolution', () => {
     ).toEqual({
       descriptor: {
         codecId: 'test/vector@1',
-        nativeType: 'vector',
         typeParams: { length: 1536 },
       },
       nullable: true,
@@ -396,7 +353,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/timestamp@1',
-        nativeType: 'timestamp',
         executionDefaults: {
           onCreate: {
             kind: 'arg',
@@ -422,7 +378,6 @@ describe('authoring template resolution', () => {
     ).toEqual({
       descriptor: {
         codecId: 'test/timestamp@1',
-        nativeType: 'timestamp',
       },
       nullable: false,
       executionDefaults: {
@@ -439,7 +394,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/timestamp@1',
-        nativeType: 'timestamp',
         executionDefaults: {
           onCreate: {
             kind: 'arg',
@@ -459,7 +413,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/timestamp@1',
-        nativeType: 'timestamp',
         executionDefaults: {
           onUpdate: {
             kind: 'arg',
@@ -493,13 +446,31 @@ describe('authoring template resolution', () => {
         [{ kind: 'option', values: ['now'] }],
         ['later'],
       ),
-    ).toThrow(/Authoring helper argument at field\.test\[0\] must be one of: now/);
+    ).toThrow('Authoring helper argument at field.test[0] must be "now"; received "later"');
   });
 
   it('rejects a non-string value for an option-kind argument', () => {
     expect(() =>
       validateAuthoringHelperArguments('field.test', [{ kind: 'option', values: ['now'] }], [42]),
-    ).toThrow(/Authoring helper argument at field\.test\[0\] must be one of: now/);
+    ).toThrow('Authoring helper argument at field.test[0] must be "now"; received 42');
+  });
+
+  it('says an option that lists no values takes none', () => {
+    expect(() =>
+      validateAuthoringHelperArguments('field.test', [{ kind: 'option', values: [] }], ['now']),
+    ).toThrow('Authoring helper argument at field.test[0] takes no value; received "now"');
+  });
+
+  it('names a named argument and lists every value an option takes', () => {
+    expect(() =>
+      validateAuthoringHelperArguments(
+        'temporal.timestamp',
+        [{ name: 'onCreate', kind: 'option', values: ['now', 'never'], optional: true }],
+        ['later'],
+      ),
+    ).toThrow(
+      'Argument "onCreate" of temporal.timestamp must be one of "now", "never"; received "later"',
+    );
   });
 
   it('rejects a missing required option-kind argument', () => {
@@ -509,7 +480,7 @@ describe('authoring template resolution', () => {
         [{ kind: 'option', values: ['now'] }],
         [undefined],
       ),
-    ).toThrow(/Missing required authoring helper argument at field\.test\[0\]/);
+    ).toThrow('Authoring helper argument at field.test[0] is missing');
   });
 
   it('allows an omitted optional option-kind argument', () => {
@@ -567,7 +538,6 @@ describe('authoring template resolution', () => {
         args: [{ name: 'onCreate', kind: 'option', values: ['now'], optional: true }],
         output: {
           codecId: 'test/timestamp@1',
-          nativeType: 'timestamp',
           executionDefaults: {
             onCreate: { kind: 'select', index: 0, cases: { now: { kind: 'generator', id: 'g' } } },
           },
@@ -590,7 +560,6 @@ describe('authoring template resolution', () => {
         args,
         output: {
           codecId: 'test/timestamp@1',
-          nativeType: 'timestamp',
           executionDefaults: { onCreate },
         },
       },
@@ -703,7 +672,6 @@ describe('authoring template resolution', () => {
         kind: 'fieldPreset',
         output: {
           codecId: 'test/timestamp@1',
-          nativeType: 'timestamp',
           executionDefaults: {
             onCreate: { kind: 'arg', index: 0 },
             onUpdate: { kind: 'generator', id: 'timestampNow' },
@@ -721,7 +689,6 @@ describe('authoring template resolution', () => {
         kind: 'fieldPreset',
         output: {
           codecId: 'test/timestamp@1',
-          nativeType: 'timestamp',
           executionDefaults: {
             onCreate: { kind: 'arg', index: 0 },
             onUpdate: { kind: 'arg', index: 1 },
@@ -738,7 +705,6 @@ describe('authoring template resolution', () => {
         kind: 'fieldPreset',
         output: {
           codecId: 'test/timestamp@1',
-          nativeType: 'timestamp',
           executionDefaults: {
             onCreate: { kind: 'arg', index: 0 },
             onUpdate: { kind: 'arg', index: 1 },
@@ -761,14 +727,12 @@ describe('authoring template resolution', () => {
         kind: 'typeConstructor',
         output: {
           codecId: 'test/timestamp@1',
-          nativeType: 'timestamp',
           typeParams: { precision: { kind: 'arg', index: 0 } },
         },
       } as const;
 
       expect(instantiateAuthoringTypeConstructor(descriptor, [undefined])).toEqual({
         codecId: 'test/timestamp@1',
-        nativeType: 'timestamp',
       });
     });
 
@@ -777,14 +741,12 @@ describe('authoring template resolution', () => {
         kind: 'typeConstructor',
         output: {
           codecId: 'test/timestamp@1',
-          nativeType: 'timestamp',
           typeParams: { precision: { kind: 'arg', index: 0 } },
         },
       } as const;
 
       expect(instantiateAuthoringTypeConstructor(descriptor, [3])).toEqual({
         codecId: 'test/timestamp@1',
-        nativeType: 'timestamp',
         typeParams: { precision: 3 },
       });
     });
@@ -795,7 +757,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/timestamp@1',
-        nativeType: 'timestamp',
         executionDefaults: {
           onCreate: { kind: 'generator', id: 'timestampNow' },
           onUpdate: { kind: 'generator', id: 'timestampNow' },
@@ -804,7 +765,7 @@ describe('authoring template resolution', () => {
     } as const;
 
     expect(instantiateAuthoringFieldPreset(descriptor, [])).toEqual({
-      descriptor: { codecId: 'test/timestamp@1', nativeType: 'timestamp' },
+      descriptor: { codecId: 'test/timestamp@1' },
       nullable: false,
       executionDefaults: {
         onCreate: { kind: 'generator', id: 'timestampNow' },
@@ -820,7 +781,6 @@ describe('authoring template resolution', () => {
       kind: 'fieldPreset',
       output: {
         codecId: 'test/text@1',
-        nativeType: 'text',
         default: {
           kind: 'function',
           expression: {
@@ -839,26 +799,26 @@ describe('authoring template resolution', () => {
 });
 
 describe('collectScalarTypeConstructors', () => {
-  it('collects top-level zero-arg constructors with explicit nativeType as {codecId, nativeType}', () => {
+  it('collects top-level zero-arg constructors as {codecId}', () => {
     const namespace = {
-      String: { kind: 'typeConstructor', output: { codecId: 'pg/text@1', nativeType: 'text' } },
-      Int: { kind: 'typeConstructor', output: { codecId: 'pg/int4@1', nativeType: 'int4' } },
+      String: { kind: 'typeConstructor', output: { codecId: 'pg/text@1' } },
+      Int: { kind: 'typeConstructor', output: { codecId: 'pg/int4@1' } },
     } satisfies AuthoringTypeNamespace;
 
     expect(Object.fromEntries(collectScalarTypeConstructors(namespace))).toEqual({
-      String: { codecId: 'pg/text@1', nativeType: 'text' },
-      Int: { codecId: 'pg/int4@1', nativeType: 'int4' },
+      String: { codecId: 'pg/text@1' },
+      Int: { codecId: 'pg/int4@1' },
     });
   });
 
   it('excludes namespaced constructors from the scalar view', () => {
     const namespace = {
-      String: { kind: 'typeConstructor', output: { codecId: 'pg/text@1', nativeType: 'text' } },
+      String: { kind: 'typeConstructor', output: { codecId: 'pg/text@1' } },
       sql: {
         String: {
           kind: 'typeConstructor',
           args: [{ kind: 'number', name: 'length' }],
-          output: { codecId: 'sql/varchar@1', nativeType: 'character varying' },
+          output: { codecId: 'sql/varchar@1' },
         },
       },
     } satisfies AuthoringTypeNamespace;
@@ -871,7 +831,7 @@ describe('collectScalarTypeConstructors', () => {
       Vector: {
         kind: 'typeConstructor',
         args: [{ kind: 'number', name: 'length', integer: true, minimum: 1 }],
-        output: { codecId: 'pg/vector@1', nativeType: 'vector' },
+        output: { codecId: 'pg/vector@1' },
       },
     } satisfies AuthoringTypeNamespace;
 
@@ -884,7 +844,6 @@ describe('collectScalarTypeConstructors', () => {
       args: [{ kind: 'number', name: 'length', integer: true, minimum: 1, optional: true }],
       output: {
         codecId: 'sql/varchar@1',
-        nativeType: 'character varying',
         typeParams: { length: { kind: 'arg', index: 0 } },
       },
     } satisfies AuthoringTypeConstructorDescriptor;
@@ -894,7 +853,6 @@ describe('collectScalarTypeConstructors', () => {
     expect(bare).toEqual(instantiateAuthoringTypeConstructor(VarCharish, []));
     expect(bare).toEqual({
       codecId: 'sql/varchar@1',
-      nativeType: 'character varying',
     });
   });
 
@@ -904,7 +862,6 @@ describe('collectScalarTypeConstructors', () => {
       args: [{ kind: 'number', name: 'length', integer: true, minimum: 1, optional: true }],
       output: {
         codecId: 'sql/varchar@1',
-        nativeType: 'character varying',
         typeParams: { length: { kind: 'arg', index: 0, default: 191 } },
       },
     } satisfies AuthoringTypeConstructorDescriptor;
@@ -914,7 +871,6 @@ describe('collectScalarTypeConstructors', () => {
     expect(bare).toEqual(instantiateAuthoringTypeConstructor(Defaulted, []));
     expect(bare).toEqual({
       codecId: 'sql/varchar@1',
-      nativeType: 'character varying',
       typeParams: { length: 191 },
     });
   });
@@ -927,7 +883,7 @@ describe('collectScalarTypeConstructors', () => {
           { kind: 'number', name: 'precision', integer: true },
           { kind: 'number', name: 'scale', integer: true, optional: true },
         ],
-        output: { codecId: 'pg/numeric@1', nativeType: 'numeric' },
+        output: { codecId: 'pg/numeric@1' },
       },
     } satisfies AuthoringTypeNamespace;
 
@@ -940,7 +896,7 @@ describe('collectScalarTypeConstructors', () => {
         kind: 'typeConstructor',
         args: [{ kind: 'string', name: 'entity', optional: true }],
         entityRefArg: { index: 0, entityKind: 'native_enum' },
-        output: { codecId: 'pg/enum@1', nativeType: 'enum' },
+        output: { codecId: 'pg/enum@1' },
       },
     } satisfies AuthoringTypeNamespace;
 
@@ -961,95 +917,57 @@ describe('collectScalarTypeConstructors', () => {
 
   it('treats an explicit empty args array as zero-arg', () => {
     const namespace = {
-      Plain: { kind: 'typeConstructor', args: [], output: { codecId: 'a@1', nativeType: 'text' } },
+      Plain: { kind: 'typeConstructor', args: [], output: { codecId: 'a@1' } },
     } satisfies AuthoringTypeNamespace;
 
     expect(Object.fromEntries(collectScalarTypeConstructors(namespace))).toEqual({
-      Plain: { codecId: 'a@1', nativeType: 'text' },
+      Plain: { codecId: 'a@1' },
     });
   });
 });
 
 describe('classifyEnumMemberType', () => {
-  const testSpan = {
-    start: { offset: 0, line: 1, column: 1 },
-    end: { offset: 0, line: 1, column: 1 },
-  };
-
-  function testBlock(parameters: Record<string, PslExtensionBlockParamValue>): PslExtensionBlock {
-    return {
-      kind: 'enum',
-      keyword: 'enum',
-      name: 'TestEnum',
-      parameters,
-      blockAttributes: [],
-      span: testSpan,
-    };
-  }
-
-  const bare: PslExtensionBlockParamValue = { kind: 'bare', span: testSpan };
-  const value = (raw: string): PslExtensionBlockParamValue => ({
-    kind: 'value',
-    raw,
-    span: testSpan,
-  });
-  const ref: PslExtensionBlockParamValue = { kind: 'ref', identifier: 'Foo', span: testSpan };
-  const option: PslExtensionBlockParamValue = { kind: 'option', token: 'Foo', span: testSpan };
-  const list: PslExtensionBlockParamValue = { kind: 'list', items: [], span: testSpan };
-
-  it('classifies all-bare members as text', () => {
-    expect(classifyEnumMemberType(testBlock({ Admin: bare, User: bare }))).toBe('text');
+  it('classifies all-bare members (undefined values) as text', () => {
+    expect(classifyEnumMemberType({ Admin: undefined, User: undefined })).toBe('text');
   });
 
-  it('classifies all-string-value members as text', () => {
-    expect(
-      classifyEnumMemberType(testBlock({ Admin: value('"admin"'), User: value('"user"') })),
-    ).toBe('text');
+  it('classifies all-string members as text', () => {
+    expect(classifyEnumMemberType({ Admin: 'admin', User: 'user' })).toBe('text');
   });
 
-  it('classifies a mix of bare and string-value members as text', () => {
-    expect(classifyEnumMemberType(testBlock({ Admin: bare, User: value('"user"') }))).toBe('text');
+  it('classifies a mix of bare and string members as text', () => {
+    expect(classifyEnumMemberType({ Admin: undefined, User: 'user' })).toBe('text');
   });
 
-  it('classifies all-integer-value members as int', () => {
-    expect(classifyEnumMemberType(testBlock({ Low: value('1'), High: value('10') }))).toBe('int');
+  it('classifies all-integer members as int', () => {
+    expect(classifyEnumMemberType({ Low: 1, High: 10 })).toBe('int');
   });
 
   it('returns null for a float value', () => {
-    expect(classifyEnumMemberType(testBlock({ Low: value('1.5') }))).toBeNull();
+    expect(classifyEnumMemberType({ Low: 1.5 })).toBeNull();
   });
 
   it('returns null for a boolean value', () => {
-    expect(classifyEnumMemberType(testBlock({ Flag: value('true') }))).toBeNull();
+    expect(classifyEnumMemberType({ Flag: true })).toBeNull();
+  });
+
+  it('returns null for an explicit null value', () => {
+    expect(classifyEnumMemberType({ Empty: null })).toBeNull();
   });
 
   it('returns null for a mix of string and integer values', () => {
-    expect(
-      classifyEnumMemberType(testBlock({ Low: value('1'), High: value('"high"') })),
-    ).toBeNull();
+    expect(classifyEnumMemberType({ Low: 1, High: 'high' })).toBeNull();
   });
 
   it('returns null for a mix of bare and integer values', () => {
-    expect(classifyEnumMemberType(testBlock({ Admin: bare, Low: value('1') }))).toBeNull();
+    expect(classifyEnumMemberType({ Admin: undefined, Low: 1 })).toBeNull();
   });
 
-  it('returns null for a ref parameter', () => {
-    expect(classifyEnumMemberType(testBlock({ Admin: ref }))).toBeNull();
-  });
-
-  it('returns null for an option parameter', () => {
-    expect(classifyEnumMemberType(testBlock({ Admin: option }))).toBeNull();
-  });
-
-  it('returns null for a list parameter', () => {
-    expect(classifyEnumMemberType(testBlock({ Admin: list }))).toBeNull();
-  });
-
-  it('returns null for invalid JSON in a value parameter', () => {
-    expect(classifyEnumMemberType(testBlock({ Admin: value('notjson') }))).toBeNull();
+  it('returns null for a structured value', () => {
+    expect(classifyEnumMemberType({ Admin: { nested: true } })).toBeNull();
   });
 
   it('returns null for an enum with no members', () => {
-    expect(classifyEnumMemberType(testBlock({}))).toBeNull();
+    expect(classifyEnumMemberType({})).toBeNull();
   });
 });

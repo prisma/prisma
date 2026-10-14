@@ -10,7 +10,19 @@ import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { orm } from '../src/orm';
-import { createMockRuntime, getTestAggregates, type MockRuntime } from './helpers';
+import { createMockRuntime, getTestAggregates, getTestContext, type MockRuntime } from './helpers';
+
+const DATA_TYPE_OF_CODEC: Readonly<Record<string, string>> = {
+  'pg/int4@1': 'pg/int4',
+  'pg/text@1': 'pg/text',
+  'pg/varchar@1': 'pg/varchar',
+};
+
+function dataTypeOf(codecId: string): string {
+  const dataType = DATA_TYPE_OF_CODEC[codecId];
+  if (dataType === undefined) throw new Error(`no data type listed for codec ${codecId}`);
+  return dataType;
+}
 
 function model(table: string, fieldColumns: Record<string, string>) {
   const fields: Record<string, { type: { kind: string; codecId: string } }> = {};
@@ -23,9 +35,9 @@ function model(table: string, fieldColumns: Record<string, string>) {
 }
 
 function storageTable(columnCodecs: Record<string, string>) {
-  const cols: Record<string, { codecId: string; nativeType: string; nullable: boolean }> = {};
+  const cols: Record<string, { codecId: string; dataType: string; nullable: boolean }> = {};
   for (const [column, codecId] of Object.entries(columnCodecs)) {
-    cols[column] = { codecId, nativeType: codecId, nullable: false };
+    cols[column] = { codecId, dataType: dataTypeOf(codecId), nullable: false };
   }
   return {
     columns: cols,
@@ -100,6 +112,7 @@ function setup(): { db: TwoNamespaceOrm; runtime: MockRuntime } {
       context: blindCast<ExecutionContext<Contract<SqlStorage>>, 'stub execution context'>({
         contract: twoNamespaceContract,
         applyMutationDefaults: () => [],
+        contractCodecs: getTestContext().contractCodecs,
         codecDescriptors: { descriptorFor: () => ({ traits: ['equality'] }) },
         // The real registry: what a `max` over each namespace's column resolves
         // to is the target's answer, which is the whole subject of these cases.

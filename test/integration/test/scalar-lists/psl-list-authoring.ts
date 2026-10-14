@@ -32,9 +32,11 @@ const mongoStack = createControlStack({
 
 const sqlSourceContext: ContractSourceContext = {
   composedExtensions: [],
+  defaultNamespaceId: sqlStack.target.defaultNamespaceId,
   composedExtensionContracts: new Map(),
   authoringContributions: sqlStack.authoringContributions,
   codecLookup: sqlStack.codecLookup,
+  dataTypes: sqlStack.dataTypes,
   controlMutationDefaults: sqlStack.controlMutationDefaults,
   resolvedInputs: [],
   capabilities: sqlStack.capabilities,
@@ -42,9 +44,11 @@ const sqlSourceContext: ContractSourceContext = {
 
 const mongoSourceContext: ContractSourceContext = {
   composedExtensions: [],
+  defaultNamespaceId: mongoStack.target.defaultNamespaceId,
   composedExtensionContracts: new Map(),
   authoringContributions: mongoStack.authoringContributions,
   codecLookup: mongoStack.codecLookup,
+  dataTypes: mongoStack.dataTypes,
   controlMutationDefaults: mongoStack.controlMutationDefaults,
   resolvedInputs: [],
   capabilities: mongoStack.capabilities,
@@ -56,7 +60,7 @@ export const mongoFrameworkComponents = [mongoTargetDescriptor, mongoAdapter] as
 function writeSchemaToTempFile(schema: string): string {
   const dir = mkdtempSync(join(tmpdir(), 'psl-list-'));
   const path = join(dir, 'schema.prisma');
-  writeFileSync(path, schema, 'utf-8');
+  writeFileSync(path, `// use prisma-8\n\n${schema}`, 'utf-8');
   return path;
 }
 

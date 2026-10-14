@@ -6,9 +6,9 @@ import {
   buildFabricatedMigrationEdge,
 } from '@internal/migration-tools/aggregate';
 import { EMPTY_CONTRACT_HASH } from '@internal/migration-tools/constants';
+import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
-import { createSqliteBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../../src/core/control-adapter';
 import {
   contract,
@@ -391,6 +391,8 @@ describe('SqliteMigrationRunner - per-edge ledger', { timeout: timeouts.database
       schema: emptySchema,
       policy: INIT_ADDITIVE_POLICY,
       fromContract: null,
+      origin: null,
+      statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',

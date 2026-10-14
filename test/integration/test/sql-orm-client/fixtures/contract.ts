@@ -7,7 +7,14 @@ import {
 import { vector } from '@internal/extension-pgvector/column-types';
 import pgvector from '@internal/extension-pgvector/pack';
 import { uuidv4 } from '@internal/ids';
-import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
+import {
+  defineContract,
+  field,
+  fullTextIndex,
+  model,
+  now,
+  rel,
+} from '@internal/postgres/contract-builder';
 
 const UserBase = model('User', {
   fields: {
@@ -74,7 +81,7 @@ const UserTag = model('UserTag', {
     userId: field.column(int4Column).column('user_id'),
     tagId: field.column(charColumn(36)).column('tag_id'),
     note: field.column(textColumn).optional(),
-    createdAt: field.column(textColumn).column('created_at').defaultSql('now()'),
+    createdAt: field.column(textColumn).column('created_at').default(now()),
   },
 })
   .attributes(({ fields, constraints }) => ({
@@ -152,7 +159,13 @@ const User = UserBase.relations({
     from: 'userId',
     to: 'roleId',
   }),
-}).sql({ table: 'users' });
+}).sql(({ cols, constraints }) => ({
+  table: 'users',
+  indexes: [
+    fullTextIndex([[cols.name], cols.email], { name: 'users_search' }),
+    constraints.index([cols.email, cols.invitedById], { name: 'users_invited_by_id_idx' }),
+  ],
+}));
 
 const baseContract = defineContract({
   extensions: { pgvector },
@@ -188,6 +201,7 @@ export const contract = {
             fields: {
               ...userModel.fields,
               address: {
+                many: false as const,
                 nullable: true as const,
                 type: { kind: 'valueObject' as const, name: 'Address' },
               },
@@ -198,14 +212,17 @@ export const contract = {
           Address: {
             fields: {
               street: {
+                many: false as const,
                 nullable: false as const,
                 type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
               },
               city: {
+                many: false as const,
                 nullable: false as const,
                 type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
               },
               zip: {
+                many: false as const,
                 nullable: true as const,
                 type: { kind: 'scalar' as const, codecId: 'pg/text@1' as const },
               },

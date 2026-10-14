@@ -12,6 +12,10 @@ export interface GenerateContractTypesOptions {
    */
   readonly aggregateDescriptors?: ReadonlyArray<AggregateDescriptor>;
   readonly codecDescriptors?: ReadonlyArray<AnyCodecDescriptor>;
+  /**
+   * The target's namespace declaration. `false` drops the namespace segment from emitted `Models` member names and from the `models` constant; absent means `true`.
+   */
+  readonly supportsNamespaces?: boolean;
 }
 
 export interface ValidationContext {
@@ -38,13 +42,6 @@ export interface EmissionSpi {
   getTypeMapsExpression(): string;
 
   getContractWrapper(contractBaseName: string, typeMapsName: string): string;
-
-  resolveFieldTypeParams?(
-    modelName: string,
-    fieldName: string,
-    model: ContractModelBase,
-    contract: Contract,
-  ): Record<string, unknown> | undefined;
 
   /**
    * Resolves a field's permitted values (codec-encoded) plus the codec that types them, or

@@ -1,18 +1,27 @@
-import type { MigrationOperationClass } from '@internal/family-sql/control';
+import {
+  convertedColumnMeta,
+  type MigrationOperationClass,
+  requiredColumnMeta,
+  type SqlMigrationPlanOperationStep,
+} from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
 import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
+import { type } from 'arktype';
 import { tableExistsAst } from '../../../contract-free/checks';
 import { stripOuterParens } from '../../default-normalizer';
 import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
+import { sqliteIdentifiersCollide } from '../identifier-case';
 import { buildCreateIndexSql } from '../planner-ddl-builders';
 import { buildTargetDetails } from '../planner-target-details';
 import {
   type Op,
+  refuseEarlierColumnSpecs,
   renderColumnDefinition,
   renderForeignKeyClause,
+  renderSpecDefault,
   type SqliteIndexSpec,
   type SqliteTableSpec,
   step,
@@ -36,8 +45,14 @@ async function tableExistsSteps(
  * inline on the column; the table-level PRIMARY KEY clause is emitted only
  * when no column carries `inlineAutoincrementPrimaryKey`.
  */
-function renderCreateTableSql(tableName: string, spec: SqliteTableSpec): string {
-  const columnDefs = spec.columns.map(renderColumnDefinition);
+function renderCreateTableSql(
+  tableName: string,
+  spec: SqliteTableSpec,
+  defaultClauses: readonly string[],
+): string {
+  const columnDefs = spec.columns.map((column, index) =>
+    renderColumnDefinition(column, defaultClauses[index] ?? ''),
+  );
 
   const constraintDefs: string[] = [];
   const hasInlinePk = spec.columns.some((c) => c.inlineAutoincrementPrimaryKey);
@@ -64,6 +79,7 @@ export async function createTable(
   spec: SqliteTableSpec,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
+  const defaultClauses = await renderSpecDefaults(spec, tableName, lowerer);
   const { present, absent } = await tableExistsSteps(lowerer, tableName);
   return {
     id: `table.${tableName}`,
@@ -72,9 +88,43 @@ export async function createTable(
     operationClass: 'additive',
     target: { id: 'sqlite', details: buildTargetDetails('table', tableName) },
     precheck: [step(`ensure table "${tableName}" does not exist`, absent.sql, absent.params)],
-    execute: [step(`create table "${tableName}"`, renderCreateTableSql(tableName, spec))],
+    execute: [
+      step(`create table "${tableName}"`, renderCreateTableSql(tableName, spec, defaultClauses)),
+    ],
     postcheck: [step(`verify table "${tableName}" exists`, present.sql, present.params)],
   };
+}
+
+export function renameTableViaName(toName: string): string {
+  return `_prisma_rename_${toName}`;
+}
+
+export function renameChangesOnlyCase(fromName: string, toName: string): boolean {
+  return sqliteIdentifiersCollide(fromName, toName);
+}
+
+/**
+ * SQLite takes names that differ only in the case of ASCII letters for the
+ * same name, so such a rename (`userProfile` to `UserProfile`) is refused as
+ * "already exists" when done in one statement. It goes through a temporary name.
+ */
+export function renameTableSteps(fromName: string, toName: string): Op['execute'] {
+  const from = quoteIdentifier(fromName);
+  const to = quoteIdentifier(toName);
+  if (!renameChangesOnlyCase(fromName, toName)) {
+    return [
+      step(`rename table "${fromName}" to "${toName}"`, `ALTER TABLE ${from} RENAME TO ${to}`),
+    ];
+  }
+  const viaName = renameTableViaName(toName);
+  const via = quoteIdentifier(viaName);
+  return [
+    step(
+      `rename table "${fromName}" to "${viaName}" (SQLite table names are case-insensitive)`,
+      `ALTER TABLE ${from} RENAME TO ${via}`,
+    ),
+    step(`rename table "${viaName}" to "${toName}"`, `ALTER TABLE ${via} RENAME TO ${to}`),
+  ];
 }
 
 export async function dropTable(tableName: string, lowerer: ExecuteRequestLowerer): Promise<Op> {
@@ -114,8 +164,31 @@ export interface RecreateTableArgs {
    * planner pre-builds these via `buildRecreatePostchecks` so the call IR
    * carries flat, serializable data only — no `SchemaDiffIssue` references.
    */
-  readonly postchecks: readonly { readonly description: string; readonly sql: string }[];
+  readonly postchecks: readonly RecreatePostcheck[];
   readonly operationClass: MigrationOperationClass;
+  /**
+   * The conversion each named column of the new table is copied through, in place of the live
+   * column of the same name, keyed by the new table's column names. The rebuild checks after its
+   * copy that every value of each such column took the column's type, and a failure of the copy or
+   * the check is reported as a failed conversion of the column's field.
+   */
+  readonly copyExpressions?: Readonly<Record<string, string>>;
+  /**
+   * The value each named column the live table does not have takes in the existing rows, keyed by
+   * the new table's column names. It is copied like a copy expression, with no check of its own.
+   */
+  readonly temporaryValues?: Readonly<Record<string, string>>;
+  /**
+   * The columns whose type changes. The rebuild checks after its copy that every value of each took
+   * the new type: a column with a copy expression as a conversion, and one the copy takes unchanged,
+   * for SQLite's type affinity to convert, as a cast.
+   */
+  readonly retypedColumns?: readonly string[];
+}
+
+/** The table a rebuild of `tableName` creates, copies into, and renames to `tableName`. */
+export function rebuiltTableName(tableName: string): string {
+  return `_prisma_new_${tableName}`;
 }
 
 export async function recreateTable(
@@ -130,11 +203,25 @@ export async function recreateTable(
     summary,
     postchecks,
     operationClass,
+    copyExpressions = {},
+    temporaryValues = {},
+    retypedColumns = [],
   } = args;
-  const tempName = `_prisma_new_${tableName}`;
+  refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
+  const tempName = rebuiltTableName(tableName);
   const liveSet = new Set(schemaColumnNames);
-  const sharedColumns = contractTable.columns.filter((c) => liveSet.has(c.name)).map((c) => c.name);
+  const convertedBy = (column: string): string | undefined =>
+    Object.hasOwn(copyExpressions, column) ? copyExpressions[column] : undefined;
+  const copiedFrom = (column: string): string | undefined =>
+    convertedBy(column) ??
+    (Object.hasOwn(temporaryValues, column) ? temporaryValues[column] : undefined);
+  const sharedColumns = contractTable.columns
+    .filter((c) => liveSet.has(c.name) || copiedFrom(c.name) !== undefined)
+    .map((c) => c.name);
   const columnList = sharedColumns.map(quoteIdentifier).join(', ');
+  const selectList = sharedColumns
+    .map((column) => copiedFrom(column) ?? quoteIdentifier(column))
+    .join(', ');
 
   const indexStatements = indexes.map((idx) => ({
     description: `recreate index "${idx.name}" on "${tableName}"`,
@@ -145,16 +232,31 @@ export async function recreateTable(
   // tmp () SELECT FROM old` is invalid SQL — and would also be a no-op since
   // there's nothing to copy. Skip the copy step in that case; the new
   // (empty) table replaces the old one directly.
+  const conversions = Object.fromEntries(
+    sharedColumns.flatMap((column) => {
+      const expression = convertedBy(column);
+      return expression === undefined ? [] : [[column, expression] as const];
+    }),
+  );
   const copyStep =
     sharedColumns.length > 0
       ? [
-          step(
-            `copy data from "${tableName}" to "${tempName}"`,
-            `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${columnList} FROM ${quoteIdentifier(tableName)}`,
-          ),
+          {
+            ...step(
+              `copy data from "${tableName}" to "${tempName}"`,
+              `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${selectList} FROM ${quoteIdentifier(tableName)}`,
+            ),
+            ...(Object.keys(conversions).length === 0
+              ? {}
+              : { meta: { conversionCopy: { table: tableName, expressions: conversions } } }),
+          },
         ]
       : [];
 
+  const defaultClauses = await renderSpecDefaults(contractTable, tableName, lowerer);
+  const clauseByColumn = new Map(
+    contractTable.columns.map((column, index) => [column.name, defaultClauses[index] ?? '']),
+  );
   const tableSteps = await tableExistsSteps(lowerer, tableName);
   const tempSteps = await tableExistsSteps(lowerer, tempName);
 
@@ -175,7 +277,7 @@ export async function recreateTable(
     execute: [
       step(
         `create new table "${tempName}" with desired schema`,
-        renderCreateTableSql(tempName, contractTable),
+        renderCreateTableSql(tempName, contractTable, defaultClauses),
       ),
       ...copyStep,
       step(`drop old table "${tableName}"`, `DROP TABLE ${quoteIdentifier(tableName)}`),
@@ -192,9 +294,136 @@ export async function recreateTable(
         tempSteps.absent.sql,
         tempSteps.absent.params,
       ),
-      ...postchecks,
+      ...postchecks.flatMap((check) =>
+        'sql' in check
+          ? [markedStep(tableName, check)]
+          : defaultPostcheck(tableName, check, clauseByColumn.get(check.columnDefault)),
+      ),
+      ...contractTable.columns.flatMap((column) => {
+        const by = Object.hasOwn(conversions, column.name)
+          ? ('conversion' as const)
+          : retypedColumns.includes(column.name)
+            ? ('cast' as const)
+            : undefined;
+        return by === undefined
+          ? []
+          : [
+              {
+                ...storageClassCheck(tableName, column),
+                meta: convertedColumnMeta(tableName, column.name, by),
+              },
+            ];
+      }),
     ],
   };
+}
+
+/** A column the rebuild makes required: one that held NULL before, or a new one the copy gives no value. */
+export interface RecreateRequiredColumn {
+  readonly column: string;
+  readonly reason: RowsWithoutValue['reason'];
+}
+
+/** A recreate postcheck written as SQL. */
+export interface RecreateSqlPostcheck {
+  readonly description: string;
+  readonly sql: string;
+  /** The column the check finds required; when the copy fails on it, the runner counts its rows. */
+  readonly requiredColumn?: RecreateRequiredColumn;
+}
+
+/**
+ * A recreate postcheck: SQL, or the name of a column whose default the recreated table must carry,
+ * which becomes SQL once the adapter has written the column's `DEFAULT …` clause.
+ */
+export type RecreatePostcheck =
+  | RecreateSqlPostcheck
+  | { readonly description: string; readonly columnDefault: string };
+
+function markedStep(tableName: string, check: RecreateSqlPostcheck): SqlMigrationPlanOperationStep {
+  const { requiredColumn, ...step } = check;
+  const meta = {
+    ...(requiredColumn === undefined
+      ? {}
+      : requiredColumnMeta(tableName, requiredColumn.column, requiredColumn.reason)),
+  };
+  return Object.keys(meta).length === 0 ? step : { ...step, meta };
+}
+
+/**
+ * The storage classes SQLite keeps a value in once a column of `typeSql` has taken it: the column's
+ * type affinity converts what it can, so a value of another class is one it could not convert.
+ * See https://www.sqlite.org/datatype3.html#determination_of_column_affinity.
+ */
+export function affinityStorageClasses(typeSql: string): readonly string[] {
+  const declared = typeSql.toUpperCase();
+  if (declared.includes('INT')) return ['integer'];
+  if (['CHAR', 'CLOB', 'TEXT'].some((part) => declared.includes(part))) return ['text'];
+  if (declared === '' || declared.includes('BLOB')) return ['blob'];
+  if (['REAL', 'FLOA', 'DOUB'].some((part) => declared.includes(part))) return ['real'];
+  return ['integer', 'real'];
+}
+
+/**
+ * The check that the copy into a rebuilt table converted every value of a retyped column to the
+ * column's new type. SQLite keeps a value it cannot convert in its old storage class, so a value of
+ * any other class than the column's affinity keeps fails the check.
+ */
+export function storageClassCheck(
+  tableName: string,
+  column: { readonly name: string; readonly typeSql: string },
+): { readonly description: string; readonly sql: string } {
+  const classes = ['null', ...affinityStorageClasses(column.typeSql)]
+    .map((storageClass) => `'${storageClass}'`)
+    .join(', ');
+  return {
+    description: `verify every value of "${column.name}" on "${tableName}" is stored as ${column.typeSql}`,
+    sql: `SELECT NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE typeof(${quoteIdentifier(column.name)}) NOT IN (${classes}))`,
+  };
+}
+
+const ConversionCopyMeta = type({
+  conversionCopy: { table: 'string', expressions: 'Record<string, string>' },
+});
+
+/**
+ * The table a rebuild's copy step reads and the copy expression of each column its conversions
+ * convert, when the step converts any: an error of the step may be an error of one of them.
+ */
+export function conversionCopyOf(
+  step: SqlMigrationPlanOperationStep,
+): { readonly table: string; readonly expressions: Readonly<Record<string, string>> } | undefined {
+  const meta = ConversionCopyMeta(step.meta ?? {});
+  return meta instanceof type.errors ? undefined : meta.conversionCopy;
+}
+
+function renderSpecDefaults(
+  spec: SqliteTableSpec,
+  tableName: string,
+  lowerer: ExecuteRequestLowerer,
+): Promise<readonly string[]> {
+  return Promise.all(spec.columns.map((column) => renderSpecDefault(column, tableName, lowerer)));
+}
+
+/**
+ * Checks the column's default is the text of its `DEFAULT …` clause. SQLite's
+ * `pragma_table_info.dflt_value` strips the outer parentheses of an expression
+ * default, so `(strftime('%Y-%m-%dT%H:%M:%fZ','now'))` is stored as `strftime('%Y-%m-%dT%H:%M:%fZ','now')`; they are
+ * stripped here too.
+ */
+function defaultPostcheck(
+  tableName: string,
+  check: { readonly description: string; readonly columnDefault: string },
+  clause: string | undefined,
+): { description: string; sql: string }[] {
+  if (clause === undefined || !clause.startsWith('DEFAULT ')) return [];
+  const expectedRaw = stripOuterParens(clause.slice('DEFAULT '.length));
+  return [
+    {
+      description: check.description,
+      sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${escapeLiteral(tableName)}') WHERE name = '${escapeLiteral(check.columnDefault)}' AND dflt_value = '${escapeLiteral(expectedRaw)}'`,
+    },
+  ];
 }
 
 /**
@@ -245,6 +474,16 @@ function quoteSqlList(values: readonly string[]): string {
   return values.map((v) => `'${escapeLiteral(v)}'`).join(', ');
 }
 
+/**
+ * A condition on the index aliased `l`: it covers exactly these columns. Order is not checked, because SQLite identifies a unique index by its column set.
+ */
+function indexCoversExactly(columns: readonly string[]): string {
+  return (
+    `(SELECT COUNT(*) FROM pragma_index_info(l.name)) = ${columns.length}` +
+    ` AND (SELECT COUNT(*) FROM pragma_index_info(l.name) WHERE name IN (${quoteSqlList(columns)})) = ${columns.length}`
+  );
+}
+
 function columnNameFromNode(issue: SchemaDiffIssue): string | undefined {
   const node = issue.expected ?? issue.actual;
   if (node === undefined) return undefined;
@@ -284,8 +523,10 @@ export function buildRecreatePostchecks(
   tableName: string,
   issues: readonly SchemaDiffIssue[],
   spec: SqliteTableSpec,
-): Array<{ description: string; sql: string }> {
-  const checks: Array<{ description: string; sql: string }> = [];
+  copiedColumns: ReadonlySet<string> = new Set(),
+  backfilledColumns: ReadonlySet<string> = new Set(),
+): RecreatePostcheck[] {
+  const checks: RecreatePostcheck[] = [];
   const t = escapeLiteral(tableName);
   const byName = new Map(spec.columns.map((c) => [c.name, c]));
 
@@ -295,6 +536,23 @@ export function buildRecreatePostchecks(
 
   for (const issue of issues) {
     const nodeKind = nodeKindOf(issue);
+    if (nodeKind === RelationalSchemaNodeKind.column && issueOutcome(issue) === 'not-found') {
+      const columnName = columnNameFromNode(issue);
+      const column = columnName === undefined ? undefined : byName.get(columnName);
+      if (columnName === undefined || column === undefined) continue;
+      const takesNoValue =
+        !column.nullable && column.default === undefined && !copiedColumns.has(columnName);
+      checks.push({
+        description: `verify "${columnName}" nullability on "${tableName}"`,
+        sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${escapeLiteral(columnName)}' AND "notnull" = ${column.nullable ? 0 : 1}`,
+        ...(backfilledColumns.has(columnName)
+          ? { requiredColumn: { column: columnName, reason: 'backfillMissedRows' } }
+          : takesNoValue
+            ? { requiredColumn: { column: columnName, reason: 'newField' } }
+            : {}),
+      });
+      continue;
+    }
     if (nodeKind === RelationalSchemaNodeKind.column && issueOutcome(issue) === 'not-equal') {
       const columnName = columnNameFromNode(issue);
       if (columnName === undefined) continue;
@@ -309,6 +567,14 @@ export function buildRecreatePostchecks(
         checks.push({
           description: `verify "${columnName}" nullability on "${tableName}"`,
           sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND "notnull" = ${expected.nullable ? 0 : 1}`,
+          ...(expected.nullable
+            ? {}
+            : {
+                requiredColumn: {
+                  column: columnName,
+                  reason: backfilledColumns.has(columnName) ? 'backfillMissedRows' : 'nullValues',
+                },
+              }),
         });
       }
       if (columnTypeChanged(expected, actual)) {
@@ -334,19 +600,11 @@ export function buildRecreatePostchecks(
         continue;
       }
       // not-found (missing) or not-equal (drift) — both want the expected
-      // default SQL present on the live column.
-      const colSpec = byName.get(columnName);
-      const expectedRaw = colSpec?.defaultSql.startsWith('DEFAULT ')
-        ? // SQLite's pragma_table_info.dflt_value strips outer parens for
-          // expression defaults (per the SQLite docs), so `(datetime('now'))`
-          // is stored as `datetime('now')`. Strip them here so the postcheck
-          // matches.
-          stripOuterParens(colSpec.defaultSql.slice('DEFAULT '.length))
-        : null;
-      if (expectedRaw) {
+      // default present on the live column, as the adapter writes it.
+      if (byName.get(columnName)?.default !== undefined) {
         checks.push({
           description: `verify "${columnName}" default on "${tableName}"`,
-          sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND dflt_value = '${escapeLiteral(expectedRaw)}'`,
+          columnDefault: columnName,
         });
       }
       continue;
@@ -382,22 +640,31 @@ export function buildRecreatePostchecks(
 
   if (hasUniqueIssue) {
     for (const u of spec.uniques ?? []) {
-      const colCount = u.columns.length;
       const description = u.name
         ? `verify unique constraint "${u.name}" on "${tableName}"`
         : `verify unique constraint (${u.columns.join(', ')}) on "${tableName}"`;
-      // Match any unique index whose covered columns are exactly the expected
-      // set. Order is intentionally not checked — SQLite's unique-index
-      // identity is column-set, not column-sequence.
       checks.push({
         description,
         sql:
           `SELECT EXISTS (SELECT 1 FROM pragma_index_list('${t}') l` +
-          ` WHERE l."unique" = 1` +
-          ` AND (SELECT COUNT(*) FROM pragma_index_info(l.name)) = ${colCount}` +
-          ` AND (SELECT COUNT(*) FROM pragma_index_info(l.name) WHERE name IN (${quoteSqlList(u.columns)})) = ${colCount})`,
+          ` WHERE l."unique" = 1 AND ${indexCoversExactly(u.columns)})`,
       });
     }
+  }
+
+  // The checks above only prove expected uniques exist, so removing one would
+  // leave the postcheck already true and the runner would skip the recreate.
+  // This check fails while a UNIQUE constraint index (`origin = 'u'`) matches
+  // no expected unique. It does not count indexes: SQLite folds a unique that
+  // repeats a non-integer primary key into the primary key's index.
+  if (hasUniqueIssue) {
+    const expected = (spec.uniques ?? []).map((u) => `(${indexCoversExactly(u.columns)})`);
+    checks.push({
+      description: `verify "${tableName}" has no unique constraint besides the expected ones`,
+      sql:
+        `SELECT NOT EXISTS (SELECT 1 FROM pragma_index_list('${t}') l` +
+        ` WHERE l.origin = 'u' AND NOT (${expected.length === 0 ? '0' : expected.join(' OR ')}))`,
+    });
   }
 
   if (hasFkIssue) {
@@ -424,6 +691,11 @@ export function buildRecreatePostchecks(
           ` AND SUM(CASE WHEN (f."from", f."to") IN (${tuples}) THEN 1 ELSE 0 END) = ${colCount})`,
       });
     }
+    const expected = spec.foreignKeys?.length ?? 0;
+    checks.push({
+      description: `verify "${tableName}" has exactly ${expected} foreign keys`,
+      sql: `SELECT (SELECT COUNT(DISTINCT id) FROM pragma_foreign_key_list('${t}')) = ${expected}`,
+    });
   }
 
   return checks;

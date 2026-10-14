@@ -11,10 +11,21 @@ import type {
   SqlMigrationRunnerResult,
   SqlMigrationRunnerSuccessValue,
 } from '@internal/family-sql/control';
-import { runnerFailure, runnerSuccess } from '@internal/family-sql/control';
-import type { MigrationRunnerResult } from '@internal/framework-components/control';
+import {
+  convertedColumnOf,
+  type RequiredColumn,
+  requiredColumnOf,
+  requiredColumnsOfMigration,
+  rowsWithoutValueFailure,
+  runnerFailure,
+  runnerSuccess,
+  unconvertedFieldOf,
+} from '@internal/family-sql/control';
+import type {
+  FailedTypeChange,
+  MigrationRunnerResult,
+} from '@internal/framework-components/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlControlDriverInstance, SqlStorage } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
@@ -24,14 +35,15 @@ import { InternalError } from '@internal/utils/internal-error';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok, okVoid } from '@internal/utils/result';
 import { postgresError } from '../errors';
+import { quoteIdentifier } from '../sql-utils';
+import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from './marker-lock';
+import { qualifyTableName } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 
 interface ApplyPlanSuccessValue {
   readonly operationsExecuted: number;
   readonly executedOperations: readonly SqlMigrationPlanOperation<PostgresPlanTargetDetails>[];
 }
-
-const LOCK_DOMAIN = 'prisma_next.contract.marker';
 
 /**
  * Deep clones and freezes a record object to prevent mutation.
@@ -45,12 +57,63 @@ function cloneAndFreezeRecord<T extends Record<string, unknown>>(value: T): T {
     } else if (Array.isArray(val)) {
       cloned[key] = Object.freeze([...val]);
     } else if (typeof val === 'object') {
-      cloned[key] = cloneAndFreezeRecord(val as Record<string, unknown>);
+      cloned[key] = cloneAndFreezeRecord(
+        blindCast<
+          Record<string, unknown>,
+          'recursive clone only recurses into plain record-shaped values'
+        >(val),
+      );
     } else {
       cloned[key] = val;
     }
   }
-  return Object.freeze(cloned) as T;
+  return blindCast<T, 'cloned record preserves the key/value shape of the input record'>(
+    Object.freeze(cloned),
+  );
+}
+
+/** Where a failed operation sits in its plan, and what the runner needs to name what blocked it. */
+interface PlanPosition {
+  readonly contract: Contract<SqlStorage>;
+  readonly operationIndex: number;
+  readonly operations: readonly SqlMigrationPlanOperation<PostgresPlanTargetDetails>[];
+  readonly edges: readonly { readonly operationCount: number }[];
+}
+
+/**
+ * SQLSTATE classes of failures that come from the connection or the server, not from the SQL a step
+ * runs: connection exceptions, transaction rollbacks, resources, operator intervention, system and
+ * internal errors.
+ */
+const NOT_THE_STEPS_SQL = ['08', '40', '53', '57', '58', 'XX'];
+
+/**
+ * The type change a failed step carries out. For the database's cast, a data exception (class 22)
+ * is a value it could not convert, and 42846 (`cannot_coerce`) a pair of types with no cast. For
+ * the migration's own conversion, every error of the step's SQL is the conversion's: a data
+ * exception is a value, an integrity violation (class 23) a value the new type cannot hold, and
+ * anything else an error in its expression.
+ */
+function failedTypeChangeOf(
+  step: SqlMigrationPlanOperationStep,
+  sqlState: string | undefined,
+  plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
+): FailedTypeChange | undefined {
+  const converted = convertedColumnOf(step);
+  const field = unconvertedFieldOf(step, plan.contract);
+  if (converted === undefined || field === undefined || sqlState === undefined) return undefined;
+  const { operationIndex } = plan;
+  if (converted.by === 'conversion') {
+    if (NOT_THE_STEPS_SQL.some((sqlClass) => sqlState.startsWith(sqlClass))) return undefined;
+    const reason = sqlState.startsWith('22')
+      ? 'value'
+      : sqlState.startsWith('23')
+        ? 'invalidResult'
+        : 'expressionError';
+    return { field, by: 'conversion', reason, operationIndex };
+  }
+  const reason = sqlState === '42846' ? 'noCast' : sqlState.startsWith('22') ? 'value' : undefined;
+  return reason === undefined ? undefined : { field, by: 'cast', reason, operationIndex };
 }
 
 export function createPostgresMigrationRunner(
@@ -70,12 +133,6 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
   async executeOnConnection(
     options: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>,
   ): Promise<SqlMigrationRunnerResult> {
-    const schema =
-      options.schemaName ??
-      Object.keys(options.destinationContract.storage.namespaces).find(
-        (id) => id !== UNBOUND_NAMESPACE_ID,
-      ) ??
-      UNBOUND_NAMESPACE_ID;
     const driver = options.driver;
     if (options.space !== undefined && options.space !== options.plan.spaceId) {
       throw postgresError(
@@ -85,7 +142,6 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       );
     }
     const space = options.plan.spaceId;
-    const lockKey = `${LOCK_DOMAIN}:${schema}:${space}`;
 
     // Materialize any async ops before running checks or executing.
     const planOps = blindCast<
@@ -104,7 +160,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     const policyCheck = this.enforcePolicyCompatibility(options.policy, planOps);
     if (!policyCheck.ok) return policyCheck;
 
-    await this.acquireLock(driver, lockKey);
+    await this.acquireLock(driver);
     const ensureResult = await this.ensureControlTables(driver, options.destinationContract);
     if (!ensureResult.ok) return ensureResult;
     const existingMarker = await this.family.readMarker({ driver, space });
@@ -239,6 +295,13 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           }
         }
 
+        const position: PlanPosition = {
+          contract: options.destinationContract,
+          operationIndex: ops.indexOf(operation),
+          operations: ops,
+          edges: options.migrationEdges,
+        };
+
         // Prechecks: only run if enabled
         if (runPrechecks) {
           const precheckResult = await this.runExpectationSteps(
@@ -246,13 +309,14 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             operation.precheck,
             operation,
             'precheck',
+            position,
           );
           if (!precheckResult.ok) {
             return precheckResult;
           }
         }
 
-        const executeResult = await this.runExecuteSteps(driver, operation.execute, operation);
+        const executeResult = await this.runExecuteSteps(driver, operation, position);
         if (!executeResult.ok) {
           return executeResult;
         }
@@ -264,6 +328,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             operation.postcheck,
             operation,
             'postcheck',
+            position,
           );
           if (!postcheckResult.ok) {
             return postcheckResult;
@@ -319,7 +384,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     return runnerFailure(
       'MIGRATION.LEGACY_MARKER_SHAPE',
       'Legacy marker-table shape detected on prisma_contract.marker (no `space` column). ' +
-        'Prisma Next is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
+        'Prisma 8 is in pre-1.0; the previous transitional auto-migration to the per-space-row schema has been removed. ' +
         'Drop `prisma_contract.marker` and re-run `dbInit` to reinitialise from a clean baseline.',
       {
         meta: {
@@ -335,34 +400,66 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
     steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
     phase: 'precheck' | 'postcheck',
+    plan: PlanPosition,
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
     for (const step of steps) {
       const result = await driver.query(step.sql, step.params ?? []);
       if (!this.stepResultIsTrue(result.rows)) {
         const code =
           phase === 'precheck' ? 'MIGRATION.PRECHECK_FAILED' : 'MIGRATION.POSTCHECK_FAILED';
-        return runnerFailure(
-          code,
-          `Operation ${operation.id} failed during ${phase}: ${step.description}`,
-          {
-            meta: {
-              operationId: operation.id,
-              phase,
-              stepDescription: step.description,
-            },
+        const failed = `Operation ${operation.id} failed during ${phase}: ${step.description}`;
+        const required = requiredColumnOf(step);
+        const rowsWithoutValue =
+          required === undefined
+            ? undefined
+            : await this.rowsWithoutValue(driver, operation, required, plan);
+        return runnerFailure(code, rowsWithoutValue?.summary ?? failed, {
+          ...ifDefined('why', rowsWithoutValue === undefined ? undefined : failed),
+          meta: {
+            operationId: operation.id,
+            phase,
+            stepDescription: step.description,
           },
-        );
+          rowsWithoutValue: rowsWithoutValue?.reports,
+        });
       }
     }
     return okVoid();
   }
 
+  /**
+   * Counts the rows the failed step's column has no value in, then those of every other column the
+   * failed operation's migration makes required.
+   */
+  private rowsWithoutValue(
+    driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
+    operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
+    required: RequiredColumn,
+    plan: PlanPosition,
+  ): ReturnType<typeof rowsWithoutValueFailure> {
+    return rowsWithoutValueFailure({
+      failed: [{ operation, operationIndex: plan.operationIndex, required }],
+      others: requiredColumnsOfMigration(plan.operations, plan.edges, plan.operationIndex),
+      count: async ({ operation: marked, required: column }) => {
+        const schema = marked.target.details?.schema;
+        if (schema === undefined) return 0;
+        const where =
+          column.reason !== 'newField' ? ` WHERE ${quoteIdentifier(column.column)} IS NULL` : '';
+        const counted = await driver.query<{ rows: number }>(
+          `SELECT COUNT(*)::int AS rows FROM ${qualifyTableName(schema, column.table)}${where}`,
+        );
+        return counted.rows[0]?.rows ?? 0;
+      },
+      contract: plan.contract,
+    });
+  }
+
   private async runExecuteSteps(
     driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
-    steps: readonly SqlMigrationPlanOperationStep[],
     operation: SqlMigrationPlanOperation<PostgresPlanTargetDetails>,
+    plan: { readonly contract: Contract<SqlStorage>; readonly operationIndex: number },
   ): Promise<Result<void, SqlMigrationRunnerFailure>> {
-    for (const step of steps) {
+    for (const step of operation.execute) {
       try {
         await driver.query(step.sql, step.params ?? []);
       } catch (error: unknown) {
@@ -372,6 +469,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             `Operation ${operation.id} failed during execution: ${step.description}`,
             {
               why: error.message,
+              failedTypeChange: failedTypeChangeOf(step, error.sqlState, plan),
               meta: {
                 operationId: operation.id,
                 stepDescription: step.description,
@@ -618,6 +716,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
       destination,
     });
     if (!updated) {
+      const found = await this.family.readMarker({ driver, space });
       return runnerFailure(
         'MIGRATION.MARKER_CAS_FAILURE',
         'Marker was modified by another process during migration execution.',
@@ -625,6 +724,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
           meta: {
             space,
             expectedStorageHash: existingMarker.storageHash,
+            foundStorageHash: found?.storageHash ?? null,
             destinationStorageHash: options.plan.destination.storageHash,
           },
         },
@@ -673,9 +773,8 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
 
   private async acquireLock(
     driver: SqlMigrationRunnerExecuteOptions<PostgresPlanTargetDetails>['driver'],
-    key: string,
   ): Promise<void> {
-    await driver.query('select pg_advisory_xact_lock(hashtext($1))', [key]);
+    await driver.query(MARKER_LOCK_SQL, [MARKER_LOCK_KEY]);
   }
 
   private async beginTransaction(

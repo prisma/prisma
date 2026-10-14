@@ -1,5 +1,11 @@
-import type { SqlMiddleware } from '@internal/sql-runtime';
+import { Collection } from '@internal/sql-orm-client';
+import {
+  type SqlMiddleware,
+  type TransactionContext,
+  withTransaction,
+} from '@internal/sql-runtime';
 import { describe, expect, it } from 'vitest';
+import { getTestContext } from './helpers';
 import {
   createReturningUsersCollection,
   createUsersCollection,
@@ -9,18 +15,44 @@ import {
 } from './integration-helpers';
 import { seedPosts, seedUsers } from './runtime-helpers';
 
+function recordStatementFinalization(stages: string[]): SqlMiddleware {
+  return {
+    name: 'statement-finalization-recorder',
+    familyId: 'sql',
+    async activityFinalized(activity, result) {
+      if (activity.kind === 'statement') stages.push(result.outcome);
+    },
+  };
+}
+
+const returnsKey = Symbol('returns');
+
+/** Records the SQL of every statement sent for its statistics. */
+function statisticsStatementObserver(name: string, observed: string[]): SqlMiddleware {
+  return {
+    name,
+    familyId: 'sql',
+    async activityStarted(activity, ctx) {
+      if (activity.kind === 'statement') ctx.state(returnsKey)['returns'] = activity.returns;
+    },
+    beforeEncode(exec, ctx) {
+      if (ctx.state(returnsKey)['returns'] === 'stats') observed.push(exec.sql);
+    },
+  };
+}
+
+function usersIn(tx: TransactionContext) {
+  return new Collection({ runtime: tx, context: getTestContext() }, 'User', {
+    namespaceId: 'public',
+  });
+}
+
 describe('integration/update', () => {
   it(
     'updateAndCount() returns matched row count and updates data',
     async () => {
       const observedStatements: string[] = [];
-      const observer: SqlMiddleware = {
-        name: 'update-count-observer',
-        familyId: 'sql',
-        beforeExecute(exec) {
-          observedStatements.push(exec.sql);
-        },
-      };
+      const observer = statisticsStatementObserver('update-count-observer', observedStatements);
       await withCollectionRuntime(
         async (runtime) => {
           const users = createUsersCollection(runtime);
@@ -211,6 +243,124 @@ describe('integration/update', () => {
           /requires contract capability "returning"/,
         );
       });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'update() finalizes its UPDATE committed once, after its transaction commits',
+    async () => {
+      const events: Array<{ readonly hook: string; readonly sql: string; readonly scope: string }> =
+        [];
+      const sqlKey = Symbol('sql');
+      const sqlOf = (ctx: { state(key: symbol): Record<string | symbol, unknown> }): string => {
+        const sql = ctx.state(sqlKey)['sql'];
+        return typeof sql === 'string' ? sql : '';
+      };
+      const observer: SqlMiddleware = {
+        name: 'statement-finalization-observer',
+        familyId: 'sql',
+        beforeEncode(exec, ctx) {
+          ctx.state(sqlKey)['sql'] = exec.sql;
+        },
+        async activityEnded(activity, _result, ctx) {
+          if (activity.kind !== 'statement') return;
+          events.push({ hook: 'ended', sql: sqlOf(ctx), scope: ctx.scope });
+        },
+        async activityFinalized(activity, result, ctx) {
+          if (activity.kind !== 'statement') return;
+          events.push({ hook: `finalized:${result.outcome}`, sql: sqlOf(ctx), scope: ctx.scope });
+        },
+      };
+      await withCollectionRuntime(
+        async (runtime) => {
+          const users = createReturningUsersCollection(runtime);
+          await seedUsers(runtime, [{ id: 1, name: 'Stale', email: 'a@example.com' }]);
+          events.length = 0;
+
+          await users.where({ id: 1 }).update({ name: 'Updated' });
+
+          const updateEvents = events.filter((event) =>
+            event.sql.toLowerCase().startsWith('update'),
+          );
+          expect(updateEvents.map(({ hook, scope }) => ({ hook, scope }))).toEqual([
+            { hook: 'ended', scope: 'transaction' },
+            { hook: 'finalized:committed', scope: 'transaction' },
+          ]);
+          expect(events.map((event) => event.hook)).toEqual([
+            'ended',
+            'ended',
+            'finalized:committed',
+            'finalized:committed',
+          ]);
+        },
+        undefined,
+        [],
+        [observer],
+      );
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'a statement that fails inside a transaction, caught by the callback, makes the commit report unknown',
+    async () => {
+      const stages: string[] = [];
+      await withCollectionRuntime(
+        async (runtime) => {
+          await seedUsers(runtime, [{ id: 1, name: 'Stale', email: 'a@example.com' }]);
+
+          await withTransaction(runtime, async (tx) => {
+            const users = usersIn(tx);
+            await users.where({ id: 1 }).updateAndCount({ name: 'Updated' });
+            await expect(
+              users.createAndCount([{ id: 1, name: 'Duplicate', email: 'b@example.com' }]),
+            ).rejects.toThrow(/duplicate key value violates unique constraint/);
+          });
+
+          const rows = await runtime.query('select name from users where id = 1');
+          expect({ stages, rows }).toEqual({
+            stages: ['unknown', 'unknown'],
+            rows: [{ name: 'Stale' }],
+          });
+        },
+        undefined,
+        [],
+        [recordStatementFinalization(stages)],
+      );
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'the runtime does not count a row stream the caller stopped inside a transaction as a failed query, so the commit reports committed',
+    async () => {
+      const stages: string[] = [];
+      await withCollectionRuntime(
+        async (runtime) => {
+          await seedUsers(runtime, [
+            { id: 1, name: 'Stale', email: 'a@example.com' },
+            { id: 2, name: 'Stale', email: 'b@example.com' },
+          ]);
+
+          await withTransaction(runtime, async (tx) => {
+            const users = usersIn(tx);
+            for await (const _user of users.all()) {
+              break;
+            }
+            await users.where({ id: 1 }).updateAndCount({ name: 'Updated' });
+          });
+
+          const rows = await runtime.query('select name from users where id = 1');
+          expect({ stages, rows }).toEqual({
+            stages: ['committed', 'committed'],
+            rows: [{ name: 'Updated' }],
+          });
+        },
+        undefined,
+        [],
+        [recordStatementFinalization(stages)],
+      );
     },
     timeouts.spinUpPpgDev,
   );

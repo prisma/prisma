@@ -1,5 +1,5 @@
 import type { Codec } from '@internal/framework-components/codec';
-import { CodecDescriptorImpl, voidParamsSchema } from '@internal/framework-components/codec';
+import { CodecDescriptorImpl, dataType, dataTypeId } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, type StorageTableInput } from '@internal/sql-contract/types';
 import type { ContractCodecRegistry } from '@internal/sql-relational-core/ast';
@@ -8,15 +8,15 @@ import {
   type AnySqliteCodecDescriptor,
   sqliteCodec,
 } from '@internal/target-sqlite/codec-descriptor';
+import {
+  createSqliteBuiltinCodecLookup,
+  createSqliteCodecRegistryWithBuiltins,
+} from '@internal/target-sqlite/codecs';
 import { jsonText, sqliteTable, text } from '@internal/target-sqlite/contract-free';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { SqliteCreateTable } from '@internal/target-sqlite/ddl';
 import { createContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import {
-  createSqliteBuiltinCodecLookup,
-  createSqliteCodecRegistryWithBuiltins,
-} from '../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../src/core/control-adapter';
 import { encodeControlQueryParams } from '../src/core/control-codecs';
 import type { SqliteContract } from '../src/core/types';
@@ -40,9 +40,9 @@ const transformingCodec = {
 const transformingDescriptor: AnySqliteCodecDescriptor = {
   descriptorKind: 'sqlite-codec',
   codecId: 'test/transform@1',
+  dataType: dataTypeId('test/transform'),
   traits: [],
-  targetTypes: ['TEXT'],
-  paramsSchema: voidParamsSchema,
+  paramsSchema: undefined,
   isParameterized: false,
   factory: () => () => transformingCodec,
   projectJson: (expression) => expression,
@@ -133,15 +133,28 @@ describe('SqliteControlAdapter.lowerToExecuteRequest — DDL literal defaults', 
     expect(result.sql).not.toContain('autoincrement');
   });
 
-  it("maps the canonical now() function default to SQLite's datetime('now')", async () => {
+  it('refuses a function default containing a line comment', async () => {
+    const ast = new SqliteCreateTable({
+      table: 't',
+      columns: [col('n', 'INTEGER', { default: fn('1 -- c') })],
+    });
+    await expect(adapter.lowerToExecuteRequest(ast, ctx)).rejects.toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DEFAULT_INVALID',
+        meta: { expression: '1 -- c' },
+      }),
+    );
+  });
+
+  it('maps the canonical now() function default to the expression that stores the datetime codec text', async () => {
     const ast = new SqliteCreateTable({
       table: 't',
       columns: [col('created_at', 'TEXT', { default: fn('now()') })],
     });
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
-    // SQLite has no now(); the contract canonicalizes CURRENT_TIMESTAMP to
-    // now(), which must map back to a valid SQLite expression at apply time.
-    expect(result.sql).toContain(`"created_at" TEXT DEFAULT (datetime('now'))`);
+    expect(result.sql).toContain(
+      `"created_at" TEXT DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+    );
     expect(result.sql).not.toContain('(now())');
     expect(result.params).toEqual([]);
   });
@@ -158,24 +171,49 @@ describe('SqliteControlAdapter.lowerToExecuteRequest — DDL literal defaults', 
 });
 
 describe('SqliteControlAdapter.lowerToExecuteRequest — guards', () => {
-  it('throws when a numeric literal default is non-finite (NaN / ±Infinity)', async () => {
-    for (const value of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
-      const ast = new SqliteCreateTable({
-        table: 'defaults',
-        columns: [col('x', 'INTEGER', { default: lit(value) })],
-      });
-      await expect(adapter.lowerToExecuteRequest(ast, ctx)).rejects.toThrow(
-        /non-finite number wire value/,
-      );
-    }
+  it('refuses a NaN literal default, which SQLite stores as NULL, naming the column', async () => {
+    const ast = new SqliteCreateTable({
+      table: 'defaults',
+      columns: [col('x', 'REAL', { default: lit(Number.NaN) })],
+    });
+    await expect(adapter.lowerToExecuteRequest(ast, ctx)).rejects.toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DEFAULT_INVALID',
+        message: 'Column "defaults"."x" has a NaN default, which SQLite stores as NULL',
+        meta: { table: 'defaults', column: 'x', value: 'NaN', reason: 'nan-default' },
+      }),
+    );
   });
 
-  it('throws when a Date literal default is invalid', async () => {
+  it('renders an infinite numeric literal default as the number SQLite reads as an infinity', async () => {
+    const lowered = await Promise.all(
+      [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY].map((value) =>
+        adapter.lowerToExecuteRequest(
+          new SqliteCreateTable({
+            table: 'defaults',
+            columns: [col('x', 'REAL', { default: lit(value) })],
+          }),
+          ctx,
+        ),
+      ),
+    );
+    expect(lowered.map(({ sql }) => sql)).toEqual(
+      ['9e999', '-9e999'].map((text) => `CREATE TABLE "defaults" (\n  "x" REAL DEFAULT ${text}\n)`),
+    );
+  });
+
+  it('refuses an invalid Date literal default, naming the column', async () => {
     const ast = new SqliteCreateTable({
       table: 'defaults',
       columns: [col('x', 'TEXT', { default: lit(new Date('not-a-date')) })],
     });
-    await expect(adapter.lowerToExecuteRequest(ast, ctx)).rejects.toThrow(/invalid Date/);
+    await expect(adapter.lowerToExecuteRequest(ast, ctx)).rejects.toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DEFAULT_INVALID',
+        message: 'Column "defaults"."x" has an invalid Date default',
+        meta: { table: 'defaults', column: 'x', reason: 'invalid-date-default' },
+      }),
+    );
   });
 });
 
@@ -194,6 +232,17 @@ describe('SqliteControlAdapter.lowerToExecuteRequest — codec routing + DDL sha
     const result = await codecAdapter.lowerToExecuteRequest(ast, ctx);
     expect(result.sql).toContain(`DEFAULT 'ENC:PLAINTEXT'`);
     expect(result.sql).not.toContain('plaintext');
+  });
+
+  it('renders a null literal default on a codec-bearing column as DEFAULT NULL', async () => {
+    const ast = new SqliteCreateTable({
+      table: 'notes',
+      columns: [
+        col('body', 'TEXT', { default: lit(null), codecRef: { codecId: 'sqlite/text@1' } }),
+      ],
+    });
+    const result = await adapter.lowerToExecuteRequest(ast, ctx);
+    expect(result.sql).toBe('CREATE TABLE "notes" (\n  "body" TEXT DEFAULT NULL\n)');
   });
 
   it('renders IF NOT EXISTS with quoted identifiers (bootstrap control-table shape)', async () => {
@@ -275,10 +324,10 @@ describe('SqliteControlAdapter.lowerToExecuteRequest — query branch encoding',
 const EXT_CODEC_ID = 'test/ext-transform@1';
 
 class ExtTransformDescriptor extends CodecDescriptorImpl<void> {
+  override readonly dataType = dataTypeId('demo/fixture');
   override readonly codecId = EXT_CODEC_ID;
   override readonly traits = [] as const;
-  override readonly targetTypes = ['TEXT'] as const;
-  override readonly paramsSchema = voidParamsSchema;
+  override readonly paramsSchema = undefined;
   override factory(): (ctx: object) => Codec {
     return () =>
       ({
@@ -292,13 +341,14 @@ class ExtTransformDescriptor extends CodecDescriptorImpl<void> {
 }
 
 const extTransformDescriptor = sqliteCodec(new ExtTransformDescriptor(), {
+  dataType: dataType('demo/fixture', {}),
   jsonProjection: (expression) => expression,
 });
 
 function buildExtContractAndTable() {
   const tableColumns: StorageTableInput['columns'] = {
-    label: { codecId: EXT_CODEC_ID, nativeType: 'TEXT', nullable: false },
-    name: { codecId: 'sqlite/text@1', nativeType: 'TEXT', nullable: true },
+    label: { codecId: EXT_CODEC_ID, dataType: 'demo/fixture', nullable: false },
+    name: { codecId: 'sqlite/text@1', dataType: 'sqlite/text', nullable: true },
   };
   const ns = sqliteCreateNamespace({
     id: UNBOUND_NAMESPACE_ID,

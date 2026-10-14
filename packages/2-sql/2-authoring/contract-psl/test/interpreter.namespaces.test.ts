@@ -4,12 +4,14 @@ import type { ForeignKey, SqlModelStorage, SqlStorage } from '@internal/sql-cont
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
-import { interpretPslDocumentToSqlContract } from '../src/interpreter';
+import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import {
   createBuiltinLikeControlMutationDefaults,
+  interpretSqlContract,
   postgresScalarTypeDescriptors,
   postgresTarget,
-  symbolTableInputFromParseArgs,
+  sqliteScalarColumnDescriptors,
+  sqliteTarget,
 } from './fixtures';
 
 function makeSupabaseExtensionContract(): Contract {
@@ -97,6 +99,7 @@ function makeSupabaseExtensionContractUnbound(): Contract {
 }
 
 const baseInput = {
+  ...fixtureInterpreterTypes,
   target: postgresTarget,
   scalarColumnDescriptors: postgresScalarTypeDescriptors,
   controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
@@ -107,15 +110,13 @@ const baseInput = {
 
 describe('un-namespaced PG model defaults to public namespace (TML-2916)', () => {
   it('places a bare model in domain.namespaces.public and storage.namespaces.public, with no __unbound__ slot', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model user {
+    const result = interpretSqlContract(
+      `model user {
   id String @id @default(uuid())
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+      { ...baseInput },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -130,8 +131,8 @@ describe('un-namespaced PG model defaults to public namespace (TML-2916)', () =>
 
 describe('interpretPslDocumentToSqlContract cross-namespace FK resolution', () => {
   it('lowers a qualified relation field type to a FK with target.namespaceId from the qualifier', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `namespace public {
+    const result = interpretSqlContract(
+      `namespace public {
   model Post {
     id Int @id
     userId Int
@@ -146,16 +147,14 @@ namespace auth {
   }
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+      { ...baseInput },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
 
     const storage = result.value.storage as SqlStorage;
-    const postTable = storage.namespaces['public']!.entries.table?.['post'];
+    const postTable = storage.namespaces['public']!.entries.table?.['Post'];
     expect(postTable).toBeDefined();
 
     const fks: readonly ForeignKey[] = postTable?.foreignKeys ?? [];
@@ -166,8 +165,8 @@ namespace auth {
   });
 
   it('carries the related-model namespace into a 1:N backrelation toNamespaceId', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `namespace public {
+    const result = interpretSqlContract(
+      `namespace public {
   model User {
     id Int @id
     posts blog.Post[]
@@ -178,14 +177,12 @@ namespace blog {
   model Post {
     id Int @id
     authorId Int
-    author User @relation(fields: [authorId], references: [id])
+    author public.User @relation(fields: [authorId], references: [id])
   }
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+      { ...baseInput },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -199,9 +196,9 @@ namespace blog {
     });
   });
 
-  it('lowers an unqualified relation to a model that lives in another namespace', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `namespace public {
+  it('refuses an unqualified relation to a model in a sibling namespace', () => {
+    const result = interpretSqlContract(
+      `namespace public {
   model Post {
     id Int @id
     userId Int
@@ -216,26 +213,66 @@ namespace auth {
   }
 }
 `,
-      sourceId: 'schema.prisma',
-    });
+      { ...baseInput },
+    );
 
-    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: 'PSL_UNRESOLVED_REFERENCE',
+          message: expect.stringContaining('Cannot find type "User"'),
+        }),
+      ]),
+    );
+  });
 
-    expect(result.ok).toBe(true);
+  it('lowers an unqualified relation from another namespace to top-level and namespace public models', () => {
+    const result = interpretSqlContract(
+      [
+        'model Account {\n  id Int @id\n}',
+        'namespace public {\n  model Invoice {\n    id Int @id\n  }\n}',
+        'namespace auth {\n  model Session {\n    id Int @id\n    accountId Int\n    invoiceId Int',
+        '    account Account @relation(fields: [accountId], references: [id])',
+        '    invoice Invoice @relation(fields: [invoiceId], references: [id])\n  }\n}\n',
+      ].join('\n'),
+      { ...baseInput },
+    );
+
+    expect(result.ok ? [] : result.failure.diagnostics).toEqual([]);
     if (!result.ok) return;
+    const session = (result.value.storage as SqlStorage).namespaces['auth']!.entries.table?.[
+      'Session'
+    ];
+    expect(session?.foreignKeys?.map((fk) => fk.target)).toEqual([
+      { namespaceId: 'public', tableName: 'Account', columns: ['id'] },
+      { namespaceId: 'public', tableName: 'Invoice', columns: ['id'] },
+    ]);
+  });
 
-    const storage = result.value.storage as SqlStorage;
-    const postTable = storage.namespaces['public']!.entries.table?.['post'];
-    const fks: readonly ForeignKey[] = postTable?.foreignKeys ?? [];
-    expect(fks.length).toBe(1);
-    expect(fks[0]).toMatchObject({
-      target: { namespaceId: 'auth', tableName: 'user' },
-    });
+  it('on SQLite, reads unbound.User as the top-level User and emits the same contract', () => {
+    const sqlite = {
+      ...baseInput,
+      target: sqliteTarget,
+      scalarColumnDescriptors: sqliteScalarColumnDescriptors,
+    };
+    const schema = (type: string) =>
+      `model User {\n  id Int @id\n}\nmodel Post {\n  id Int @id\n  userId Int\n  user ${type} @relation(fields: [userId], references: [id])\n}\n`;
+    const bare = interpretSqlContract(schema('User'), sqlite);
+    const qualified = interpretSqlContract(schema('unbound.User'), sqlite);
+
+    expect(bare.ok && qualified.ok).toBe(true);
+    if (!bare.ok || !qualified.ok) return;
+    expect(qualified.value).toEqual(bare.value);
+    expect(Object.keys((qualified.value.storage as SqlStorage).namespaces)).toEqual([
+      '__unbound__',
+    ]);
   });
 
   it('lowers the same bare table name in two namespaces with differing columns and a cross-namespace FK', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `namespace public {
+    const result = interpretSqlContract(
+      `namespace public {
   model User {
     id Int @id
     email String
@@ -257,10 +294,8 @@ namespace auth {
   }
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+      { ...baseInput },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -291,60 +326,48 @@ namespace auth {
       model: 'User',
     });
   });
-
-  it('emits PSL_INVALID_RELATION_TARGET when qualifier names a non-existent namespace', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `namespace public {
-  model Post {
-    id Int @id
-    userId Int
-    user wrong.User @relation(fields: [userId], references: [id])
-  }
-}
-
-namespace auth {
-  model User {
-    id Int @id
-  }
-}
-`,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
-
-    expect(result.ok).toBe(false);
-    if (result.ok) return;
-
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_RELATION_TARGET',
-          message: expect.stringContaining('wrong.User'),
-        }),
-      ]),
-    );
-  });
 });
 
 describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-prefix)', () => {
+  it('refuses a field typed by another contract space without @relation', () => {
+    const result = interpretSqlContract(
+      `model Profile {
+  id Int @id
+  user supabase:auth.User
+}
+`,
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+        composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+        message:
+          'Field "Profile.user" type "User" is a type of contract space "supabase"; only a relation field can name a type of another contract space.',
+      },
+    ]);
+  });
+
   it('lowers supabase:auth.User to a FK with spaceId=supabase and namespaceId=auth', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   user supabase:auth.User @relation(fields: [userId], references: [id])
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: ['supabase'],
-      composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
-    });
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+        composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
+      },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -368,22 +391,19 @@ describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-p
   });
 
   it('lowers supabase:User (no-namespace form) with namespaceId=__unbound__ (AC3)', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   user supabase:User @relation(fields: [userId], references: [id])
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: ['supabase'],
-      composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContractUnbound()]]),
-    });
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+        composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContractUnbound()]]),
+      },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -404,18 +424,16 @@ describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-p
   });
 
   it('emits PSL_UNKNOWN_CONTRACT_SPACE when the space is not in composedExtensions', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    // supabase is NOT in composedExtensions
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   user supabase:auth.User @relation(fields: [userId], references: [id])
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    // supabase is NOT in composedExtensions
-    const result = interpretPslDocumentToSqlContract({ ...baseInput, ...document });
+      { ...baseInput },
+    );
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -431,21 +449,18 @@ describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-p
   });
 
   it('F-list: cross-space list relation emits PSL_UNSUPPORTED_CROSS_SPACE_LIST diagnostic instead of silently dropping it', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   posts supabase:auth.Post[] @relation(fields: [userId], references: [id])
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: ['supabase'],
-    });
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+      },
+    );
 
     // The result should fail with a diagnostic (not silently succeed with 0 FKs)
     expect(result.ok).toBe(false);
@@ -462,22 +477,19 @@ describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-p
   });
 
   it('cross-space FK with onDelete:cascade emits no diagnostic (AC4)', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   user supabase:auth.User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: ['supabase'],
-      composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
-    });
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+        composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
+      },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -495,22 +507,19 @@ describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-p
   });
 
   it('resolves FK target.tableName from the extension contract when composedExtensionContracts is provided', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   user supabase:auth.User @relation(fields: [userId], references: [id])
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: ['supabase'],
-      composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
-    });
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+        composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
+      },
+    );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
@@ -532,23 +541,20 @@ describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-p
   });
 
   it('emits PSL_UNKNOWN_CONTRACT_SPACE when the named space has no entry in composedExtensionContracts (fail-fast, no toLowerCase fallback)', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    // supabase IS in composedExtensions but NOT in composedExtensionContracts
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   user supabase:auth.User @relation(fields: [userId], references: [id])
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    // supabase IS in composedExtensions but NOT in composedExtensionContracts
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: ['supabase'],
-      composedExtensionContracts: new Map(), // empty — no contract for supabase
-    });
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+        composedExtensionContracts: new Map(), // empty — no contract for supabase
+      },
+    );
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
@@ -568,22 +574,19 @@ describe('interpretPslDocumentToSqlContract cross-contract-space FK (PSL colon-p
   });
 
   it('emits PSL_UNKNOWN_CROSS_SPACE_TARGET when the extension contract is provided but the model is not found', () => {
-    const document = symbolTableInputFromParseArgs({
-      schema: `model Profile {
+    const result = interpretSqlContract(
+      `model Profile {
   id Int @id
   userId Int
   user supabase:auth.NonExistentModel @relation(fields: [userId], references: [id])
 }
 `,
-      sourceId: 'schema.prisma',
-    });
-
-    const result = interpretPslDocumentToSqlContract({
-      ...baseInput,
-      ...document,
-      composedExtensions: ['supabase'],
-      composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
-    });
+      {
+        ...baseInput,
+        composedExtensions: ['supabase'],
+        composedExtensionContracts: new Map([['supabase', makeSupabaseExtensionContract()]]),
+      },
+    );
 
     expect(result.ok).toBe(false);
     if (result.ok) return;

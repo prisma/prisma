@@ -6,6 +6,7 @@
  * so journey tests stay concise and readable.
  */
 
+import { spawnSync } from 'node:child_process';
 import {
   copyFileSync,
   existsSync,
@@ -54,6 +55,8 @@ export interface JourneyContext {
   testDir: string;
   configPath: string;
   outputDir: string;
+  /** The config's `migrations.dir`, relative to `testDir`, when it is not `migrations`. */
+  migrationsDir?: string;
 }
 
 // Re-export timeouts so journey tests can import from a single module.
@@ -98,7 +101,7 @@ export function useDevDatabase(options?: {
 
   afterAll(async () => {
     await close();
-  });
+  }, timeouts.spinUpPpgDev);
 
   return {
     get connectionString() {
@@ -198,6 +201,7 @@ export const contractFixtures = {
     'contract-nullable-name-required.ts',
   ),
   'contract-expression-authored': join(JOURNEY_FIXTURES_DIR, 'contract-expression-authored.ts'),
+  'contract-date-time-defaults': join(JOURNEY_FIXTURES_DIR, 'contract-date-time-defaults.ts'),
 } as const;
 
 export type ContractVariant = keyof typeof contractFixtures;
@@ -218,9 +222,31 @@ export const pslContractFixtures = {
   ),
   'contract-rls-adopted': join(JOURNEY_FIXTURES_DIR, 'contract-rls-adopted.prisma'),
   'contract-rls-wire': join(JOURNEY_FIXTURES_DIR, 'contract-rls-wire.prisma'),
+  'contract-rename-table-objects-from': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-rename-table-objects-from.prisma',
+  ),
+  'contract-rename-table-objects-to': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-rename-table-objects-to.prisma',
+  ),
+  'contract-rename-table-objects-dropped': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-rename-table-objects-dropped.prisma',
+  ),
+  'contract-rename-statements-from': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-rename-statements-from.prisma',
+  ),
+  'contract-rename-statements-to': join(
+    JOURNEY_FIXTURES_DIR,
+    'contract-rename-statements-to.prisma',
+  ),
 } as const;
 
 export type PslContractVariant = keyof typeof pslContractFixtures;
+
+export const sqlitePslConfigFixture = join(JOURNEY_FIXTURES_DIR, 'prisma.config.sqlite.psl.ts');
 
 /**
  * Swaps the active contract in the test directory to a different variant.
@@ -292,6 +318,14 @@ export async function runContractInfer(
   return runOnEngine(ctx, ['contract', 'infer', ...extraArgs], options);
 }
 
+export async function runContractPrint(
+  ctx: JourneyContext,
+  extraArgs: readonly string[] = [],
+  options?: RunCommandOptions,
+): Promise<EngineCommandResult> {
+  return runOnEngine(ctx, ['contract', 'print', ...extraArgs], options);
+}
+
 export async function runDbInit(
   ctx: JourneyContext,
   extraArgs: readonly string[] = [],
@@ -306,21 +340,6 @@ export async function runDbUpdate(
   options?: RunCommandOptions,
 ): Promise<EngineCommandResult> {
   return runOnEngine(ctx, ['db', 'update', ...extraArgs], options);
-}
-
-/**
- * What `db update` asks the user to type before it destroys anything: the name
- * of the connected database, which for these Postgres-backed tests is the
- * database segment of the connection URL. A run that means to accept data loss
- * passes it as `--confirm`, because `--yes` cannot grant a consent.
- */
-export function consentTokenFor(connectionString: string): string {
-  const parsed = new URL(connectionString);
-  const name = parsed.pathname.split('/').filter((segment) => segment.length > 0)[0];
-  if (name === undefined) {
-    throw new Error(`Connection URL names no database: ${connectionString}`);
-  }
-  return decodeURIComponent(name);
 }
 
 export async function runDbVerify(
@@ -361,6 +380,34 @@ export async function runMigrationNew(
   options?: RunCommandOptions,
 ): Promise<EngineCommandResult> {
   return runOnEngine(ctx, ['migration', 'new', ...extraArgs], options);
+}
+
+/**
+ * Authors a migration by hand: `migration new` scaffolds `migration.ts`, the given source replaces the body of its `operations` array, and `migration.ts` is run to write `ops.json` and `migration.json`. `origin` is the target hash of the migration the new one chains from, which `migration new` needs whenever migrations exist and no `db` ref names the origin. Returns the directory name and the self-emit result, which carries the error when building the operations fails.
+ */
+export async function authorMigration(
+  ctx: JourneyContext,
+  name: string,
+  operationsSource: string,
+  origin: string,
+): Promise<{ readonly dirName: string; readonly emit: CommandResult }> {
+  const scaffold = await runMigrationNew(ctx, ['--name', name, '--from', origin]);
+  if (scaffold.exitCode !== 0) {
+    throw new Error(`authorMigration: migration new failed: ${scaffold.stderr}`);
+  }
+  const dirName = latestMigrationDirName(ctx);
+  const migrationTsPath = join(appMigrationsDir(ctx), dirName, 'migration.ts');
+  const scaffolded = readFileSync(migrationTsPath, 'utf-8');
+  const authored = scaffolded.replace(
+    /return \[[\s\S]*?\];/,
+    () => `return [\n      ${operationsSource},\n    ];`,
+  );
+  if (authored === scaffolded) {
+    throw new Error('authorMigration: the scaffold has no operations array to fill');
+  }
+  writeFileSync(migrationTsPath, authored, 'utf-8');
+  const emit = await selfEmitMigration(ctx, ['--dir', join(appMigrationsDir(ctx), dirName)]);
+  return { dirName, emit };
 }
 
 export async function runMigrate(
@@ -438,7 +485,7 @@ const MIGRATION_CLASS_HEADER_RE = /export default class M extends Migration(?:<[
  * `Migration` base. This helper rewrites the scaffold for the journey test's
  * runtime apply: it drops the raw-JSON import, deserializes the contract
  * (runtime SQL qualification needs a hydrated Postgres schema namespace with
- * `qualifyTable`), and wires a `db = sql(...)` the filled-in dataTransform
+ * `qualifyTable`), and wires a `db = sqlBuilder(...)` the filled-in dataTransform
  * closures use. The deserialized contract is bound back to `endContract`, so
  * the scaffold's `endContractJson = endContract` field still resolves (and
  * the base still derives `describe()` from its `storage.storageHash`).
@@ -457,13 +504,13 @@ export function injectMigrationSqlDbSetup(scaffold: string): string {
     `import endContractJson from '${endContractSpecifier}' with { type: 'json' };`,
     `import { PostgresContractSerializer } from '@internal/target-postgres/runtime';`,
     `import postgresAdapter from '@internal/adapter-postgres/runtime';`,
-    `import { sql } from '@internal/sql-builder/runtime';`,
+    `import { sql as sqlBuilder } from '@internal/sql-builder/runtime';`,
     `import { createExecutionContext, createSqlExecutionStack } from '@internal/sql-runtime';`,
     `import postgresTarget from '@internal/target-postgres/runtime';`,
     '',
     'const endContract = new PostgresContractSerializer().deserializeContract(endContractJson);',
     '',
-    'const db = sql({',
+    'const db = sqlBuilder({',
     '  context: createExecutionContext({',
     '    contract: endContract,',
     '    stack: createSqlExecutionStack({ target: postgresTarget, adapter: postgresAdapter }),',
@@ -507,6 +554,67 @@ export async function selfEmitMigration(
 }
 
 /**
+ * Follows a message that says to run a migration's `migration.ts` with node: runs `node migration.ts` inside `packageDir`, the migration package directory, as a user would.
+ */
+export function runPrintedSelfEmit(message: string, packageDir: string): CommandResult {
+  if (!/\bnode on that migration\.ts\b/.test(message)) {
+    return {
+      exitCode: -1,
+      stdout: '',
+      stderr: `the message does not say to run node on that migration.ts: ${message}`,
+    };
+  }
+  const run = spawnSync(process.execPath, ['migration.ts'], { cwd: packageDir, encoding: 'utf-8' });
+  return { exitCode: run.status ?? -1, stdout: run.stdout, stderr: run.stderr };
+}
+
+/**
+ * Splits the body of a `return [ ... ]` operations list into its top-level entries, keeping each entry's source text.
+ */
+function operationEntries(body: string): string[] {
+  const entries: string[] = [];
+  let depth = 0;
+  let quote: string | undefined;
+  let start = 0;
+  for (let i = 0; i < body.length; i++) {
+    const char = body[i]!;
+    if (quote !== undefined) {
+      if (char === '\\') i++;
+      else if (char === quote) quote = undefined;
+    } else if (char === "'" || char === '"' || char === '`') quote = char;
+    else if ('([{'.includes(char)) depth++;
+    else if (')]}'.includes(char)) depth--;
+    else if (char === ',' && depth === 0) {
+      entries.push(body.slice(start, i));
+      start = i + 1;
+    }
+  }
+  entries.push(body.slice(start));
+  return entries.map((entry) => entry.trim()).filter((entry) => entry !== '');
+}
+
+/**
+ * Edits a MongoDB `migration.ts` as the advice to keep a dropped collection's documents says: `renameCollection(from, to)` becomes the first operation, imported with the others, and the drop of `from` and any create of `to` are deleted.
+ */
+export function followRenameCollectionAdvice(source: string, from: string, to: string): string {
+  const operations = /(override get operations\(\) \{\s*return \[)([\s\S]*?)(\];\s*\})/;
+  const match = operations.exec(source);
+  if (match === null) throw new Error(`no operations list in:\n${source}`);
+  const isCall = (entry: string, factory: string, collection: string) =>
+    new RegExp(`^${factory}\\(\\s*['"]${collection}['"]`).test(entry);
+  const kept = operationEntries(match[2]!).filter(
+    (entry) => !isCall(entry, 'dropCollection', from) && !isCall(entry, 'createCollection', to),
+  );
+  const entries = [`renameCollection(${JSON.stringify(from)}, ${JSON.stringify(to)})`, ...kept];
+  return source
+    .replace(
+      operations,
+      (_all, open: string, _body, close: string) => `${open}${entries.join(', ')}${close}`,
+    )
+    .replace(/import \{/, 'import { renameCollection,');
+}
+
+/**
  * Runs `migration plan` (which scaffolds a draft migration.ts), then runs
  * that migration.ts in-process so it writes its own ops.json and
  * migration.json (self-emission; see {@link runMigrationFile}).
@@ -523,7 +631,7 @@ export async function planMigrationAndSelfEmit(
   if (planResult.exitCode !== 0) return planResult;
   const latest = getLatestMigrationDir(ctx);
   if (!latest) return planResult;
-  const emitResult = await selfEmitMigration(ctx, ['--dir', `migrations/app/${latest}`]);
+  const emitResult = await selfEmitMigration(ctx, ['--dir', join(appMigrationsDir(ctx), latest)]);
   if (emitResult.exitCode !== 0) {
     return {
       ...planResult,
@@ -701,7 +809,7 @@ export function migrationStatusAppSpace(
  * test root (`migrations/app/`).
  */
 function appMigrationsDir(ctx: JourneyContext): string {
-  return join(ctx.testDir, 'migrations', 'app');
+  return join(ctx.testDir, ctx.migrationsDir ?? 'migrations', 'app');
 }
 
 /**
@@ -740,6 +848,16 @@ export function latestMigrationDirName(ctx: JourneyContext): string {
     throw new Error('latestMigrationDirName: the journey has no migration directories yet');
   }
   return latest;
+}
+
+/**
+ * The destination contract hash of the newest migration — what `migration new
+ * --from` takes when a journey has no `db` ref (plain `migrate` never writes one).
+ */
+export function latestMigrationToHash(ctx: JourneyContext): string {
+  const manifestPath = join(appMigrationsDir(ctx), latestMigrationDirName(ctx), 'migration.json');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf-8')) as { to: string };
+  return manifest.to;
 }
 
 export function getLatestMigrationDir(ctx: JourneyContext): string | undefined {

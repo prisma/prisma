@@ -24,8 +24,8 @@ const contract = new SqlContractSerializer().deserializeContract({
           table: {
             user: {
               columns: {
-                id: { codecId: 'sqlite/integer@1', nativeType: 'integer', nullable: false },
-                email: { codecId: 'sqlite/text@1', nativeType: 'text', nullable: false },
+                id: { codecId: 'sqlite/integer@1', dataType: 'sqlite/integer', nullable: false },
+                email: { codecId: 'sqlite/text@1', dataType: 'sqlite/text', nullable: false },
               },
               uniques: [],
               indexes: [],
@@ -66,7 +66,7 @@ describe('raw-query sqlite lowering', () => {
       method: 'lower',
       args: [ColumnRef.of('user', 'email')],
       returns: { codecId: 'sqlite/text@1', nullable: false },
-      lowering: { targetFamily: 'sql', strategy: 'function', template: 'lower({{self}})' },
+      lowering: { targetFamily: 'sql', template: 'lower({{self}})' },
     });
 
     const plan = rawSql`SELECT ${lowerEmail} AS email FROM "user"`

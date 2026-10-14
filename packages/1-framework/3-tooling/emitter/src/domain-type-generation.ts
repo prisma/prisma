@@ -38,10 +38,12 @@ export function serializeValue(value: unknown): string {
     return `readonly [${items}]`;
   }
   if (typeof value === 'object') {
-    const entries: string[] = [];
-    for (const [k, v] of Object.entries(value)) {
-      entries.push(`readonly ${serializeObjectKey(k)}: ${serializeValue(v)}`);
-    }
+    // Key order carries no meaning in a literal type, and the same contract
+    // reaches here in authoring order from the source and in canonical order
+    // from contract.json. Sorting makes both render the same text.
+    const entries = Object.entries(value)
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([k, v]) => `readonly ${serializeObjectKey(k)}: ${serializeValue(v)}`);
     return `{ ${entries.join('; ')} }`;
   }
   return 'unknown';
@@ -76,7 +78,9 @@ export function generateRootsType(roots: Record<string, CrossReference> | undefi
 }
 
 function contractFieldModifierSuffix(field: ContractField): string {
-  const many = field.many === true ? '; readonly many: true' : '';
+  const many = field.many
+    ? `; readonly many: { readonly elementNullable: ${field.many.elementNullable} }`
+    : '';
   const dict = field.dict === true ? '; readonly dict: true' : '';
   return many + dict;
 }
@@ -97,12 +101,21 @@ export function generateModelFieldEntry(fieldName: string, field: ContractField)
   return `readonly ${serializeObjectKey(fieldName)}: { readonly nullable: ${nullable}; readonly type: ${serializeValue(type)}${mods} }`;
 }
 
+// An empty field map is `{}` in a descriptor or output (row) type, since `keyof Record<string, never>` is `string`, and `Record<string, never>` in an input type, since TypeScript accepts any object where `{}` is expected.
+function objectTypeOpenWhenEmpty(entries: readonly string[]): string {
+  return entries.length > 0 ? `{ ${entries.join('; ')} }` : '{}';
+}
+
+function objectTypeClosedWhenEmpty(entries: readonly string[]): string {
+  return entries.length > 0 ? `{ ${entries.join('; ')} }` : 'Record<string, never>';
+}
+
 export function generateModelFieldsType(fields: Record<string, ContractField>): string {
   const fieldEntries: string[] = [];
   for (const [fieldName, field] of Object.entries(fields)) {
     fieldEntries.push(generateModelFieldEntry(fieldName, field));
   }
-  return fieldEntries.length > 0 ? `{ ${fieldEntries.join('; ')} }` : 'Record<string, never>';
+  return objectTypeOpenWhenEmpty(fieldEntries);
 }
 
 export function generateModelRelationsType(relations: Record<string, unknown>): string {
@@ -110,7 +123,10 @@ export function generateModelRelationsType(relations: Record<string, unknown>): 
 
   for (const [relName, rel] of Object.entries(relations)) {
     if (typeof rel !== 'object' || rel === null) continue;
-    const relObj = rel as Record<string, unknown>;
+    const relObj = blindCast<
+      Record<string, unknown>,
+      'relation narrowed to a non-null object above'
+    >(rel);
 
     // Option B: cross-space relations are declared but non-navigable.
     // A relation whose `to.space` is set lives in a foreign contract space;
@@ -139,8 +155,13 @@ export function generateModelRelationsType(relations: Record<string, unknown>): 
       );
     if (relObj['cardinality'])
       parts.push(`readonly cardinality: ${serializeValue(relObj['cardinality'])}`);
+    if (typeof relObj['nullable'] === 'boolean')
+      parts.push(`readonly nullable: ${relObj['nullable']}`);
 
-    const on = relObj['on'] as { localFields?: string[]; targetFields?: string[] } | undefined;
+    const on = blindCast<
+      { localFields?: string[]; targetFields?: string[] } | undefined,
+      'contract relation on block is validated before type generation'
+    >(relObj['on']);
     if (on && (!on.localFields || !on.targetFields)) {
       throw emitterError(
         'CONTRACT.RELATION_INVALID',
@@ -210,7 +231,13 @@ export function generateModelsType(
       modelParts.push(`readonly discriminator: ${serializeValue(model.discriminator)}`);
     }
     if (model.variants) {
-      modelParts.push(`readonly variants: ${serializeValue(model.variants)}`);
+      const variantEntries = Object.entries(model.variants)
+        .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+        .map(
+          ([value, ref]) =>
+            `readonly ${serializeObjectKey(value)}: ${serializeCrossReference(ref)}`,
+        );
+      modelParts.push(`readonly variants: { ${variantEntries.join('; ')} }`);
     }
     if (model.base) {
       modelParts.push(`readonly base: ${serializeCrossReference(model.base)}`);
@@ -286,17 +313,14 @@ export type ResolvedFieldType = { readonly input: string; readonly output: strin
 
 function applyModifiers(base: string, field: ContractField): string {
   let result = base;
-  if (field.many === true) result = `ReadonlyArray<${result}>`;
+  if (field.many) {
+    if (field.many.elementNullable) result = `${result} | null`;
+    result = `ReadonlyArray<${result}>`;
+  }
   if (field.dict === true) result = `Readonly<Record<string, ${result}>>`;
   if (field.nullable) result = `${result} | null`;
   return result;
 }
-
-export type FieldTypeParamsResolver = (
-  modelName: string,
-  fieldName: string,
-  model: ContractModelBase,
-) => Record<string, unknown> | undefined;
 
 /**
  * A field's permitted values (codec-encoded) plus the codec that types them, as supplied by the
@@ -343,7 +367,6 @@ export function renderValueSetType(
 export function resolveFieldType(
   field: ContractField,
   codecLookup?: CodecLookup,
-  resolvedTypeParams?: Record<string, unknown>,
   resolvedValueSet?: ResolvedFieldValueSet,
 ): ResolvedFieldType {
   const { type } = field;
@@ -372,15 +395,14 @@ export function resolveFieldType(
       }
       let outputResolved: string | undefined;
       let inputResolved: string | undefined;
-      const inlineTypeParams =
+      const typeParams =
         type.typeParams && Object.keys(type.typeParams).length > 0 ? type.typeParams : undefined;
-      const effectiveTypeParams = inlineTypeParams ?? resolvedTypeParams;
-      if (codecLookup && effectiveTypeParams && Object.keys(effectiveTypeParams).length > 0) {
-        const rendered = codecLookup.renderOutputTypeFor(type.codecId, effectiveTypeParams);
+      if (codecLookup && typeParams) {
+        const rendered = codecLookup.renderOutputTypeFor(type.codecId, typeParams);
         if (rendered && isSafeTypeExpression(rendered)) {
           outputResolved = rendered;
         }
-        const renderedInput = codecLookup.renderInputTypeFor?.(type.codecId, effectiveTypeParams);
+        const renderedInput = codecLookup.renderInputTypeFor?.(type.codecId, typeParams);
         if (renderedInput && isSafeTypeExpression(renderedInput)) {
           inputResolved = renderedInput;
         }
@@ -428,16 +450,37 @@ export function generateFieldResolvedType(
   return resolveFieldType(field, codecLookup)[side];
 }
 
+export type ModelFieldTypeResolvers = {
+  readonly codecLookup: CodecLookup | undefined;
+  readonly resolveFieldValueSet: FieldValueSetResolver | undefined;
+};
+
+/**
+ * Resolves one model field's input and output types the way `FieldOutputTypes` /
+ * `FieldInputTypes` do: the field's type parameters refine its codec's type, and a family-resolved
+ * value set renders as a literal union.
+ */
+export function resolveModelFieldType(
+  modelName: string,
+  fieldName: string,
+  field: ContractField,
+  model: ContractModelBase,
+  resolvers: ModelFieldTypeResolvers,
+): ResolvedFieldType {
+  const resolvedValueSet = resolvers.resolveFieldValueSet?.(modelName, fieldName, model);
+  return resolveFieldType(field, resolvers.codecLookup, resolvedValueSet);
+}
+
 export function generateBothFieldTypesMaps(
   models: Record<string, ContractModelBase> | undefined,
   codecLookup?: CodecLookup,
-  resolveFieldTypeParams?: FieldTypeParamsResolver,
   resolveFieldValueSet?: FieldValueSetResolver,
 ): ResolvedFieldType {
   if (!models || Object.keys(models).length === 0) {
     return { output: 'Record<string, never>', input: 'Record<string, never>' };
   }
 
+  const resolvers: ModelFieldTypeResolvers = { codecLookup, resolveFieldValueSet };
   const outputModelEntries: string[] = [];
   const inputModelEntries: string[] = [];
   for (const [modelName, model] of Object.entries(models).sort(([a], [b]) => a.localeCompare(b))) {
@@ -445,28 +488,13 @@ export function generateBothFieldTypesMaps(
     const outputFieldEntries: string[] = [];
     const inputFieldEntries: string[] = [];
     for (const [fieldName, field] of Object.entries(model.fields)) {
-      const inlineTypeParams =
-        field.type.kind === 'scalar' &&
-        field.type.typeParams &&
-        Object.keys(field.type.typeParams).length > 0
-          ? field.type.typeParams
-          : undefined;
-      const resolvedTypeParams =
-        inlineTypeParams ?? resolveFieldTypeParams?.(modelName, fieldName, model);
-      const resolvedValueSet = resolveFieldValueSet?.(modelName, fieldName, model);
-      const resolved = resolveFieldType(field, codecLookup, resolvedTypeParams, resolvedValueSet);
+      const resolved = resolveModelFieldType(modelName, fieldName, field, model, resolvers);
       const key = `readonly ${serializeObjectKey(fieldName)}`;
       outputFieldEntries.push(`${key}: ${resolved.output}`);
       inputFieldEntries.push(`${key}: ${resolved.input}`);
     }
-    const outputFields =
-      outputFieldEntries.length > 0
-        ? `{ ${outputFieldEntries.join('; ')} }`
-        : 'Record<string, never>';
-    const inputFields =
-      inputFieldEntries.length > 0
-        ? `{ ${inputFieldEntries.join('; ')} }`
-        : 'Record<string, never>';
+    const outputFields = objectTypeOpenWhenEmpty(outputFieldEntries);
+    const inputFields = objectTypeClosedWhenEmpty(inputFieldEntries);
     const modelKey = `readonly ${serializeObjectKey(modelName)}`;
     outputModelEntries.push(`${modelKey}: ${outputFields}`);
     inputModelEntries.push(`${modelKey}: ${inputFields}`);
@@ -481,7 +509,6 @@ export function generateBothFieldTypesMaps(
 export function generateFieldTypesMapsByNamespace(
   namespaceModels: ReadonlyArray<readonly [string, Record<string, ContractModelBase>]>,
   codecLookup?: CodecLookup,
-  resolveFieldTypeParams?: FieldTypeParamsResolver,
   resolveFieldValueSet?: FieldValueSetResolver,
 ): ResolvedFieldType {
   if (namespaceModels.length === 0) {
@@ -491,12 +518,7 @@ export function generateFieldTypesMapsByNamespace(
   const outputNamespaceEntries: string[] = [];
   const inputNamespaceEntries: string[] = [];
   for (const [nsId, models] of namespaceModels) {
-    const inner = generateBothFieldTypesMaps(
-      models,
-      codecLookup,
-      resolveFieldTypeParams,
-      resolveFieldValueSet,
-    );
+    const inner = generateBothFieldTypesMaps(models, codecLookup, resolveFieldValueSet);
     const nsKey = `readonly ${serializeObjectKey(nsId)}`;
     outputNamespaceEntries.push(`${nsKey}: ${inner.output}`);
     inputNamespaceEntries.push(`${nsKey}: ${inner.input}`);
@@ -511,17 +533,15 @@ export function generateFieldTypesMapsByNamespace(
 export function generateFieldOutputTypesMap(
   models: Record<string, ContractModelBase> | undefined,
   codecLookup?: CodecLookup,
-  resolveFieldTypeParams?: FieldTypeParamsResolver,
 ): string {
-  return generateBothFieldTypesMaps(models, codecLookup, resolveFieldTypeParams).output;
+  return generateBothFieldTypesMaps(models, codecLookup).output;
 }
 
 export function generateFieldInputTypesMap(
   models: Record<string, ContractModelBase> | undefined,
   codecLookup?: CodecLookup,
-  resolveFieldTypeParams?: FieldTypeParamsResolver,
 ): string {
-  return generateBothFieldTypesMaps(models, codecLookup, resolveFieldTypeParams).input;
+  return generateBothFieldTypesMaps(models, codecLookup).input;
 }
 
 export function generateValueObjectType(
@@ -556,11 +576,7 @@ export function resolveValueObjectType(
 }
 
 export function generateContractFieldDescriptor(fieldName: string, field: ContractField): string {
-  const mods: string[] = [];
-  if (field.many === true) mods.push('; readonly many: true');
-  if (field.dict === true) mods.push('; readonly dict: true');
-  const modStr = mods.join('');
-
+  const modStr = contractFieldModifierSuffix(field);
   const { type } = field;
   if (type.kind === 'scalar') {
     const typeParamsSpec =

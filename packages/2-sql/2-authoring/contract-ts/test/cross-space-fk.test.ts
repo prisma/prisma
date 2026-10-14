@@ -12,6 +12,7 @@ import type {
 } from '@internal/framework-components/components';
 import { describe, expect, expectTypeOf, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
+import { testTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
 import { defineContract, field, model } from '../src/contract-builder';
 import type { TargetFieldRef } from '../src/contract-dsl';
 import { ContractModelBuilder } from '../src/contract-dsl';
@@ -171,6 +172,7 @@ describe('cross-space FK via constraints.foreignKey in sql()', () => {
     }));
 
     const contract = defineContract({
+      ...testTypeLookups,
       family: bareFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
@@ -200,6 +202,7 @@ describe('cross-space FK via constraints.foreignKey in sql()', () => {
     }));
 
     const contract = defineContract({
+      ...testTypeLookups,
       family: bareFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
@@ -215,6 +218,62 @@ describe('cross-space FK via constraints.foreignKey in sql()', () => {
 // ---------------------------------------------------------------------------
 // Missing-pack fail-fast (AC5 TS half)
 // ---------------------------------------------------------------------------
+
+/**
+ * Synthetic supabase OrderItem handle whose `.sql()` stage is a factory
+ * function, so the handle carries no statically readable table name.
+ */
+function buildSyntheticSupabaseOrderItem() {
+  return new ContractModelBuilder(
+    {
+      modelName: 'OrderItem' as const,
+      namespace: 'auth',
+      fields: {
+        id: field.column(int4Column).id(),
+        sku: field.column(textColumn),
+      },
+      relations: {},
+    },
+    undefined,
+    undefined,
+    'supabase' as const,
+  ).sql(() => ({ table: 'order_items' }));
+}
+
+describe('cross-space FK to a handle with no statically readable table name', () => {
+  const defineLineNoteContract = () => {
+    const ExtOrderItem = buildSyntheticSupabaseOrderItem();
+
+    const LineNote = model('LineNote', {
+      fields: {
+        id: field.column(int4Column).id(),
+        orderItemId: field.column(int4Column),
+      },
+    }).sql(({ cols, constraints }) => ({
+      table: 'line_note',
+      foreignKeys: [constraints.foreignKey(cols.orderItemId, ExtOrderItem.refs.id)],
+    }));
+
+    return defineContract({
+      ...testTypeLookups,
+      family: bareFamilyPack,
+      target: postgresTargetPack,
+      createNamespace: createTestSqlNamespace,
+      extensions: { supabase: supabasePack },
+      models: { LineNote },
+    });
+  };
+
+  it('throws a structured error instead of guessing the target table', () => {
+    expect(defineLineNoteContract).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.FOREIGN_KEY_INVALID',
+        message:
+          'Foreign key on "LineNote" references model "OrderItem" in contract space "supabase" but the target table name is unknown: the handle\'s .sql() stage is a factory function, so its table cannot be read statically. Declare the target model\'s .sql() stage with a static object carrying `table`.',
+      }),
+    );
+  });
+});
 
 describe('missing-pack fail-fast diagnostic', () => {
   it('throws when the referenced spaceId is not in extensions', () => {
@@ -232,6 +291,7 @@ describe('missing-pack fail-fast diagnostic', () => {
 
     expect(() =>
       defineContract({
+        ...testTypeLookups,
         family: bareFamilyPack,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
@@ -242,6 +302,7 @@ describe('missing-pack fail-fast diagnostic', () => {
 
     expect(() =>
       defineContract({
+        ...testTypeLookups,
         family: bareFamilyPack,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
@@ -265,6 +326,7 @@ describe('missing-pack fail-fast diagnostic', () => {
 
     expect(() =>
       defineContract({
+        ...testTypeLookups,
         family: bareFamilyPack,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,
@@ -293,6 +355,7 @@ describe('cascade on cross-space FK (AC4)', () => {
     }));
 
     const contract = defineContract({
+      ...testTypeLookups,
       family: bareFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
@@ -317,6 +380,7 @@ describe('local FK regression (NFR2 / AC9)', () => {
     const Post = buildLocalPostModel(User);
 
     const contract = defineContract({
+      ...testTypeLookups,
       family: bareFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
@@ -367,6 +431,7 @@ describe('F-col: cross-space FK target columns prefer physical column name', () 
     }));
 
     const contract = defineContract({
+      ...testTypeLookups,
       family: bareFamilyPack,
       target: postgresTargetPack,
       createNamespace: createTestSqlNamespace,
@@ -446,6 +511,7 @@ describe('F-compound: normalizeTargetFieldRefInput rejects mixed-space compound 
 
     expect(() =>
       defineContract({
+        ...testTypeLookups,
         family: bareFamilyPack,
         target: postgresTargetPack,
         createNamespace: createTestSqlNamespace,

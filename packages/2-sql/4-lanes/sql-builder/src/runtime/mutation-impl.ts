@@ -1,5 +1,6 @@
 import type {
   AnnotationValue,
+  MutationDefaultsOp,
   OperationKind,
   ValidAnnotations,
 } from '@internal/framework-components/runtime';
@@ -15,8 +16,8 @@ import {
   type TableSource,
   UpdateAst,
 } from '@internal/sql-relational-core/ast';
+import { createFunctions } from '@internal/sql-relational-core/functions';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type { MutationDefaultsOp } from '@internal/sql-relational-core/query-lane-context';
 import { ifDefined } from '@internal/utils/defined';
 import { structuredError } from '@internal/utils/structured-error';
 import type { Expression, ExpressionBuilder } from '../expression';
@@ -33,10 +34,10 @@ import {
   type BuilderContext,
   buildQueryPlan,
   codecRefFor,
+  codecRefOf,
   combineWhereExprs,
 } from './builder-base';
 import { createFieldProxy } from './field-proxy';
-import { createFunctions } from './functions';
 
 /**
  * Validates and merges a variadic annotations call into a builder's
@@ -84,12 +85,12 @@ export function buildParamValues(
   for (const def of ctx.applyMutationDefaults({
     op,
     namespace: namespaceId,
-    table: tableName,
+    entry: tableName,
     values,
   })) {
-    const column = table.columns[def.column];
-    const codec = column ? codecRefFor(ctx, namespaceId, tableName, def.column) : undefined;
-    params[def.column] = ParamRef.of(def.value, codec ? { codec } : undefined);
+    const column = table.columns[def.field];
+    const codec = column ? codecRefFor(ctx, namespaceId, tableName, def.field) : undefined;
+    params[def.field] = ParamRef.of(def.value, codec ? { codec } : undefined);
   }
   return params;
 }
@@ -98,10 +99,16 @@ function buildReturningProjections(
   tableName: string,
   columns: string[],
   rowFields: Record<string, ScopeField>,
+  ctx: BuilderContext,
 ): ProjectionItem[] {
-  return columns.map((col) =>
-    ProjectionItem.of(col, ColumnRef.of(tableName, col), rowFields[col]?.codec),
-  );
+  return columns.map((col) => {
+    const field = rowFields[col];
+    return ProjectionItem.of(
+      col,
+      ColumnRef.of(tableName, col),
+      field === undefined ? undefined : codecRefOf(field, ctx),
+    );
+  });
 }
 
 function evaluateWhere(
@@ -146,13 +153,13 @@ export function buildSetExpressions(
   for (const def of ctx.applyMutationDefaults({
     op,
     namespace: namespaceId,
-    table: tableName,
+    entry: tableName,
     values: exprs,
   })) {
-    if (!(def.column in set)) {
-      const column = table.columns[def.column];
-      const codec = column ? codecRefFor(ctx, namespaceId, tableName, def.column) : undefined;
-      set[def.column] = ParamRef.of(def.value, ifDefined('codec', codec));
+    if (!(def.field in set)) {
+      const column = table.columns[def.field];
+      const codec = column ? codecRefFor(ctx, namespaceId, tableName, def.field) : undefined;
+      set[def.field] = ParamRef.of(def.value, ifDefined('codec', codec));
     }
   }
   return set;
@@ -275,7 +282,12 @@ export class InsertQueryImpl<
 
     if (this.#returningColumns.length > 0) {
       ast = ast.withReturning(
-        buildReturningProjections(this.#tableName, this.#returningColumns, this.#rowFields),
+        buildReturningProjections(
+          this.#tableName,
+          this.#returningColumns,
+          this.#rowFields,
+          this.ctx,
+        ),
       );
     }
 
@@ -397,7 +409,12 @@ export class UpdateQueryImpl<
 
     if (this.#returningColumns.length > 0) {
       ast = ast.withReturning(
-        buildReturningProjections(this.#tableName, this.#returningColumns, this.#rowFields),
+        buildReturningProjections(
+          this.#tableName,
+          this.#returningColumns,
+          this.#rowFields,
+          this.ctx,
+        ),
       );
     }
 
@@ -513,7 +530,12 @@ export class DeleteQueryImpl<
 
     if (this.#returningColumns.length > 0) {
       ast = ast.withReturning(
-        buildReturningProjections(this.#tableName, this.#returningColumns, this.#rowFields),
+        buildReturningProjections(
+          this.#tableName,
+          this.#returningColumns,
+          this.#rowFields,
+          this.ctx,
+        ),
       );
     }
 

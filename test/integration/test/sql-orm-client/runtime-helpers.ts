@@ -15,6 +15,7 @@ import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-co
 import {
   createExecutionContext,
   createSqlExecutionStack,
+  type RuntimeConnection,
   type SqlMiddleware,
   type SqlRuntimeExtensionDescriptor,
   type RuntimeQueryable as SqlRuntimeQueryable,
@@ -74,6 +75,7 @@ interface SeedUserRole {
 
 export interface PgIntegrationRuntime extends RuntimeQueryable {
   readonly executions: readonly SqlExecutionPlan[];
+  connection(): Promise<RuntimeConnection>;
   query<Row>(
     plan: (SqlExecutionPlan | SqlQueryPlan) & { readonly _row?: Row },
     options?: RuntimeExecuteOptions,
@@ -150,6 +152,7 @@ export async function createPgIntegrationRuntime(
       await driver.connect({ kind: 'pgClient', client });
 
       const realRuntime = new PostgresRuntimeImpl({
+        closeRefusal: undefined,
         context,
         adapter: stackInstance.adapter,
         driver,
@@ -195,7 +198,7 @@ export async function createPgIntegrationRuntime(
       options?: RuntimeExecuteOptions,
     ): AsyncIterableResult<Row> {
       record(plan);
-      return target.query(plan, options);
+      return target.query<Row>(plan, options);
     };
   }
 

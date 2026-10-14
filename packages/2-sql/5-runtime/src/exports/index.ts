@@ -1,9 +1,14 @@
 export type {
-  AfterExecuteResult,
-  AfterQueryResult,
+  ActivityEndedResult,
+  ActivityFinalizedResult,
   ExecuteInterceptResult,
   QueryInterceptResult,
+  RuntimeActivity,
   RuntimeLog as Log,
+  StatementActivity,
+  StatementEnded,
+  TransactionActivity,
+  TransactionEnded,
 } from '@internal/framework-components/runtime';
 export type { MarkerReadResult } from '@internal/sql-relational-core/ast';
 export { createAstCodecRegistry } from '../codecs/ast-codec-registry';
@@ -45,8 +50,6 @@ export type {
 } from '../runtime-spi';
 export type {
   ExecutionContext,
-  GeneratorStability,
-  RuntimeMutationDefaultGenerator,
   RuntimeParameterizedCodecDescriptor,
   SqlExecutionStack,
   SqlExecutionStackWithDriver,
@@ -64,9 +67,11 @@ export {
   createSqlExecutionStack,
 } from '../sql-context';
 export type {
+  CloseRefusal,
   ConnectionProvider,
   Runtime,
   RuntimeConnection,
+  RuntimeOptions,
   RuntimeQueryable,
   RuntimeTransaction,
   TransactionContext,

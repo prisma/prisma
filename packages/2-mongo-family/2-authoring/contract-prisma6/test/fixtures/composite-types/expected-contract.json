@@ -1,0 +1,138 @@
+{
+  "targetFamily": "mongo",
+  "target": "mongo",
+  "roots": {
+    "Post": {
+      "namespace": "__unbound__",
+      "model": "Post"
+    }
+  },
+  "domain": {
+    "namespaces": {
+      "__unbound__": {
+        "models": {
+          "Post": {
+            "fields": {
+              "_id": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/objectId@1"
+                },
+                "nullable": false,
+                "many": false
+              },
+              "address": {
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Address"
+                },
+                "nullable": false,
+                "many": false
+              },
+              "history": {
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Address"
+                },
+                "nullable": false,
+                "many": {
+                  "elementNullable": false
+                }
+              },
+              "backup": {
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Address"
+                },
+                "nullable": true,
+                "many": false
+              }
+            },
+            "relations": {},
+            "storage": {
+              "collection": "Post"
+            }
+          }
+        },
+        "valueObjects": {
+          "Address": {
+            "fields": {
+              "street": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": false,
+                "many": false
+              },
+              "zip": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/string@1"
+                },
+                "nullable": true,
+                "many": false
+              },
+              "ownerId": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/objectId@1"
+                },
+                "nullable": false,
+                "many": false
+              },
+              "geo": {
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Geo"
+                },
+                "nullable": false,
+                "many": false
+              }
+            }
+          },
+          "Geo": {
+            "fields": {
+              "lat": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/double@1"
+                },
+                "nullable": false,
+                "many": false
+              },
+              "lng": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "mongo/double@1"
+                },
+                "nullable": false,
+                "many": false
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "extensions": {},
+  "capabilities": {},
+  "profileHash": "251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3",
+  "meta": {},
+  "storage": {
+    "storageHash": "dd22a5221b155cd435b52d49dd4a066c207d083079a291c2340674f70d8e067a",
+    "namespaces": {
+      "__unbound__": {
+        "id": "__unbound__",
+        "kind": "mongo-database",
+        "entries": {
+          "collection": {
+            "Post": {
+              "kind": "mongo-collection"
+            }
+          }
+        }
+      }
+    }
+  }
+}

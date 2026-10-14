@@ -1,17 +1,23 @@
+import { convertedColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import type { DdlColumn } from '@internal/sql-relational-core/ast';
+import { type DdlColumn, opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
 import {
   columnDefaultAst,
+  columnDefaultSequenceAst,
   columnExistsAst,
   columnNullabilityAst,
   columnTypeAst,
   noNullValuesAst,
+  sequenceNameAvailableAst,
   tableIsEmptyAst,
 } from '../../../contract-free/checks';
 import * as contractFreeDdl from '../../../contract-free/ddl';
-import { quoteIdentifier } from '../../sql-utils';
+import { postgresError } from '../../errors';
+import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
+import { autoincrementWidth } from '../autoincrement-widths';
 import { boundSchema } from '../bound-schema';
+import { defaultSequenceName } from '../default-sequence-name';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type Op, step, targetDetails } from './shared';
 
@@ -55,30 +61,84 @@ export async function dropColumn(
   };
 }
 
+export function renameColumnStatement(
+  schemaName: string,
+  tableName: string,
+  fromName: string,
+  toName: string,
+): string {
+  return `ALTER TABLE ${qualifyTableName(schemaName, tableName)} RENAME COLUMN ${quoteIdentifier(fromName)} TO ${quoteIdentifier(toName)}`;
+}
+
+export function renameColumnOperationId(tableName: string, fromName: string): string {
+  return `renameColumn.${tableName}.${fromName}`;
+}
+
+export async function renameColumn(
+  schemaName: string,
+  tableName: string,
+  fromName: string,
+  toName: string,
+  lowerer: ExecuteRequestLowerer,
+): Promise<Op> {
+  const from = await columnExistsSteps(lowerer, {
+    schema: schemaName,
+    table: tableName,
+    column: fromName,
+  });
+  const to = await columnExistsSteps(lowerer, {
+    schema: schemaName,
+    table: tableName,
+    column: toName,
+  });
+  return {
+    id: renameColumnOperationId(tableName, fromName),
+    label: `Rename column "${tableName}"."${fromName}" to "${toName}"`,
+    operationClass: 'widening',
+    target: targetDetails('column', toName, schemaName, tableName),
+    precheck: [
+      step(`ensure column "${fromName}" exists`, from.present.sql, from.present.params),
+      step(`ensure column "${toName}" does not exist`, to.absent.sql, to.absent.params),
+    ],
+    execute: [
+      step(
+        `rename column "${fromName}" to "${toName}"`,
+        renameColumnStatement(schemaName, tableName, fromName, toName),
+      ),
+    ],
+    postcheck: [
+      step(`verify column "${toName}" exists`, to.present.sql, to.present.params),
+      step(`verify column "${fromName}" no longer exists`, from.absent.sql, from.absent.params),
+    ],
+  };
+}
+
 /**
- * `qualifiedTargetType` is the new column type as it appears in the
- * `ALTER COLUMN TYPE` clause (schema-qualified for user-defined types, raw
- * native name for built-ins). `formatTypeExpected` is the unqualified
- * `format_type` form used in the postcheck. `rawTargetTypeForLabel` is the
- * string appearing in the human-readable label (typically `toType` when
- * explicit, else the column's native type).
+ * A type change is `widening` when every value of the old type converts to the new type unchanged,
+ * and `data` when the user writes the conversion in its USING clause.
+ */
+export type AlterColumnTypeClass = 'widening' | 'destructive' | 'data';
+
+/**
+ * `type` is the new column type as a migration writes it, into the `ALTER COLUMN TYPE` clause.
+ * `checkType` is the type `format_type` prints for it, which the postcheck compares.
  */
 export async function alterColumnType(
   schemaName: string,
   tableName: string,
   columnName: string,
   options: {
-    readonly qualifiedTargetType: string;
-    readonly formatTypeExpected: string;
-    readonly rawTargetTypeForLabel: string;
+    readonly type: string;
+    readonly checkType: string;
     readonly using?: string;
   },
   lowerer: ExecuteRequestLowerer,
+  operationClass: AlterColumnTypeClass = 'destructive',
 ): Promise<Op> {
   const qualified = qualifyTableName(schemaName, tableName);
   const usingClause = options.using
-    ? ` USING ${options.using}`
-    : ` USING ${quoteIdentifier(columnName)}::${options.qualifiedTargetType}`;
+    ? ` USING ${renderOpaqueSql(opaqueSql(options.using))}`
+    : ` USING ${quoteIdentifier(columnName)}::${options.type}`;
   const { present } = await columnExistsSteps(lowerer, {
     schema: schemaName,
     table: tableName,
@@ -89,24 +149,31 @@ export async function alterColumnType(
       schema: schemaName,
       table: tableName,
       column: columnName,
-      expectedType: options.formatTypeExpected,
+      expectedType: options.checkType,
     }),
   );
   return {
     id: `alterType.${tableName}.${columnName}`,
-    label: `Alter type of "${tableName}"."${columnName}" to ${options.rawTargetTypeForLabel}`,
-    operationClass: 'destructive',
+    label: `Alter type of "${tableName}"."${columnName}" to ${options.type}`,
+    operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
     execute: [
-      step(
-        `alter type of "${columnName}"`,
-        `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.qualifiedTargetType}${usingClause}`,
-      ),
+      {
+        ...step(
+          `alter type of "${columnName}"`,
+          `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.type}${usingClause}`,
+        ),
+        ...(options.using !== undefined
+          ? { meta: convertedColumnMeta(tableName, columnName, 'conversion') }
+          : operationClass === 'destructive'
+            ? { meta: convertedColumnMeta(tableName, columnName, 'cast') }
+            : {}),
+      },
     ],
     postcheck: [
       step(
-        `verify column "${columnName}" has type "${options.formatTypeExpected}"`,
+        `verify column "${columnName}" has type "${options.checkType}"`,
         typeCheck.sql,
         typeCheck.params,
       ),
@@ -141,11 +208,14 @@ export async function setNotNull(
   return {
     id: `alterNullability.setNotNull.${tableName}.${columnName}`,
     label: `Set NOT NULL on "${tableName}"."${columnName}"`,
-    operationClass: 'destructive',
+    operationClass: 'widening',
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
       step(`ensure column "${columnName}" exists`, present.sql, present.params),
-      step(`ensure no NULL values in "${columnName}"`, noNulls.sql, noNulls.params),
+      {
+        ...step(`ensure no NULL values in "${columnName}"`, noNulls.sql, noNulls.params),
+        meta: requiredColumnMeta(tableName, columnName, 'nullValues'),
+      },
     ],
     execute: [
       step(
@@ -196,32 +266,55 @@ export async function dropNotNull(
 }
 
 /**
- * `defaultSql` is the full `DEFAULT …` clause as produced by
- * `buildColumnDefaultSql` — e.g. `"DEFAULT 42"`,
- * `"DEFAULT (CURRENT_TIMESTAMP)"`, or `"DEFAULT nextval('seq'::regclass)"`.
+ * Sets `column`'s default. The adapter writes the `DEFAULT …` clause, reading a literal default with
+ * the column's codec first, as every DDL statement that writes a default does. An `autoincrement()`
+ * default attaches a sequence instead ({@link setAutoincrementDefault}).
  *
  * `operationClass` defaults to `'additive'` (setting a default on a column
  * that currently has none). The reconciliation planner passes `'widening'`
  * when the column already has a different default — policy enforcement
- * treats that as a widening change rather than an additive one.
+ * treats that as a widening change rather than an additive one. A widening
+ * change has no postcheck: the old default would pass a check for a default,
+ * and the runner skips an operation whose postcheck already passes. Setting a
+ * default again is harmless.
  */
 export async function setDefault(
   schemaName: string,
   tableName: string,
-  columnName: string,
-  defaultSql: string,
+  column: DdlColumn,
   lowerer: ExecuteRequestLowerer,
   operationClass: 'additive' | 'widening' = 'additive',
 ): Promise<Op> {
+  if (column.default === undefined) {
+    throw postgresError(
+      'CONTRACT.DEFAULT_INVALID',
+      `setDefault on column "${column.name}" of table "${tableName}" has no default. Pass the column with its default, as in col(name, type, { default: lit(value) }) or col(name, type, { default: fn(expression) }).`,
+      {
+        meta: { table: tableName, column: column.name, reason: 'set-default-without-default' },
+      },
+    );
+  }
+  if (column.default.kind === 'function' && column.default.expression.text === 'autoincrement()') {
+    return setAutoincrementDefault(schemaName, tableName, column, lowerer, operationClass);
+  }
+  const columnName = column.name;
   const qualified = qualifyTableName(schemaName, tableName);
+  const clause = await lowerer.renderColumnDefault(column, tableName);
   const { present } = await columnExistsSteps(lowerer, {
     schema: schemaName,
     table: tableName,
     column: columnName,
   });
-  const hasDefault = await lowerer.lowerToExecuteRequest(
-    columnDefaultAst({ schema: schemaName, table: tableName, column: columnName }).defaultPresent(),
-  );
+  const hasDefault =
+    operationClass === 'additive'
+      ? await lowerer.lowerToExecuteRequest(
+          columnDefaultAst({
+            schema: schemaName,
+            table: tableName,
+            column: columnName,
+          }).defaultPresent(),
+        )
+      : undefined;
   return {
     id: `setDefault.${tableName}.${columnName}`,
     label: `Set default on "${tableName}"."${columnName}"`,
@@ -231,11 +324,102 @@ export async function setDefault(
     execute: [
       step(
         `set default on "${columnName}"`,
-        `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} SET ${defaultSql}`,
+        `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} SET ${clause}`,
+      ),
+    ],
+    postcheck:
+      hasDefault === undefined
+        ? []
+        : [step(`verify column "${columnName}" has a default`, hasDefault.sql, hasDefault.params)],
+  };
+}
+
+/**
+ * Gives an existing smallint, integer or bigint column an `autoincrement()` default: creates the
+ * sequence a SERIAL column of that width would get (or reuses it, since dropping the default leaves
+ * it in place, retyped to the column's current width), sets the column's default to it, makes the column own it, and starts it past the
+ * column's largest value so existing rows never collide. The precheck refuses a name another
+ * relation holds, which `IF NOT EXISTS` would otherwise skip over and then attach. The postcheck asks
+ * for both the attached sequence and the `nextval(` default, which no earlier default satisfies.
+ */
+async function setAutoincrementDefault(
+  schemaName: string,
+  tableName: string,
+  column: DdlColumn,
+  lowerer: ExecuteRequestLowerer,
+  operationClass: 'additive' | 'widening',
+): Promise<Op> {
+  const columnName = column.name;
+  const sequenceType = autoincrementWidth(column.type)?.sequenceType;
+  if (sequenceType === undefined) {
+    throw postgresError(
+      'CONTRACT.DEFAULT_INVALID',
+      `setDefault can give the column "${columnName}" of table "${tableName}" an autoincrement() default only when its type is smallint, integer or bigint (int2, int4 or int8); its type is "${column.type}".`,
+      { meta: { table: tableName, column: columnName, reason: 'set-default-autoincrement' } },
+    );
+  }
+  const qualifiedTable = qualifyTableName(schemaName, tableName);
+  const qualifiedColumn = quoteIdentifier(columnName);
+  const sequenceName = defaultSequenceName(tableName, columnName);
+  const qualifiedSequence = qualifyTableName(schemaName, sequenceName);
+  const sequenceRegclass = `'${escapeLiteral(qualifiedSequence)}'::regclass`;
+  const { present } = await columnExistsSteps(lowerer, {
+    schema: schemaName,
+    table: tableName,
+    column: columnName,
+  });
+  const nameAvailable = await lowerer.lowerToExecuteRequest(
+    sequenceNameAvailableAst({
+      schema: schemaName,
+      table: tableName,
+      column: columnName,
+      sequence: sequenceName,
+    }),
+  );
+  const attached = await lowerer.lowerToExecuteRequest(
+    columnDefaultSequenceAst({ schema: schemaName, table: tableName, column: columnName }),
+  );
+  return {
+    id: `setDefault.${tableName}.${columnName}`,
+    label: `Set default on "${tableName}"."${columnName}"`,
+    operationClass,
+    target: targetDetails('column', columnName, schemaName, tableName),
+    precheck: [
+      step(`ensure column "${columnName}" exists`, present.sql, present.params),
+      step(
+        `ensure no relation other than the sequence column "${columnName}" owns is named ${qualifiedSequence} (rename that relation, or write this migration with migration new)`,
+        nameAvailable.sql,
+        nameAvailable.params,
+      ),
+    ],
+    execute: [
+      step(
+        `widen any existing sequence "${sequenceName}" to ${sequenceType}`,
+        `ALTER SEQUENCE IF EXISTS ${qualifiedSequence} AS ${sequenceType}`,
+      ),
+      step(
+        `create sequence "${sequenceName}"`,
+        `CREATE SEQUENCE IF NOT EXISTS ${qualifiedSequence} AS ${sequenceType}`,
+      ),
+      step(
+        `set default on "${columnName}"`,
+        `ALTER TABLE ${qualifiedTable} ALTER COLUMN ${qualifiedColumn} SET DEFAULT nextval(${sequenceRegclass})`,
+      ),
+      step(
+        `attach sequence "${sequenceName}" to "${columnName}"`,
+        `ALTER SEQUENCE ${qualifiedSequence} OWNED BY ${qualifiedTable}.${qualifiedColumn}`,
+      ),
+      step(
+        `start sequence "${sequenceName}" past the largest "${columnName}"`,
+        `SELECT setval(${sequenceRegclass}, GREATEST(COALESCE(MAX(${qualifiedColumn}), 0), 0) + 1, false) FROM ${qualifiedTable}`,
       ),
     ],
     postcheck: [
-      step(`verify column "${columnName}" has a default`, hasDefault.sql, hasDefault.params),
+      step(
+        `verify column "${columnName}" takes its default from an attached sequence`,
+        attached.sql,
+        attached.params,
+      ),
     ],
   };
 }
@@ -264,7 +448,7 @@ export async function dropDefault(
   return {
     id: `dropDefault.${tableName}.${columnName}`,
     label: `Drop default on "${tableName}"."${columnName}"`,
-    operationClass: 'destructive',
+    operationClass: 'widening',
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
     execute: [step(`drop default on "${columnName}"`, dropDefaultExec.sql)],
@@ -280,7 +464,7 @@ export async function dropDefault(
  * empty; the execute step lowers the typed `AddColumn` DDL node through the
  * adapter; postchecks assert the column exists and is NOT NULL.
  */
-export async function addNotNullColumnDirect(
+export async function addRequiredColumnToEmptyTable(
   schemaName: string,
   tableName: string,
   column: DdlColumn,
@@ -317,11 +501,14 @@ export async function addNotNullColumnDirect(
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
       step(`ensure column "${columnName}" is missing`, absent.sql, absent.params),
-      step(
-        `ensure table "${tableName}" is empty before adding NOT NULL column without default`,
-        tableEmpty.sql,
-        tableEmpty.params,
-      ),
+      {
+        ...step(
+          `ensure table "${tableName}" is empty before adding NOT NULL column without default`,
+          tableEmpty.sql,
+          tableEmpty.params,
+        ),
+        meta: requiredColumnMeta(tableName, columnName, 'newField'),
+      },
     ],
     execute: [step(`add column "${columnName}"`, addColumn.sql)],
     postcheck: [

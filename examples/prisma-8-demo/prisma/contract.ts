@@ -1,14 +1,22 @@
 import pgvector from '@prisma/orm-extension-pgvector/pack';
-import { defineContract, enumType, member, rel } from '@prisma/orm-postgres/contract-builder';
+import { timestamptzTemporalColumn } from '@prisma/orm-postgres/adapter/column-types';
+import {
+  defineContract,
+  enumType,
+  fullTextIndex,
+  member,
+  rel,
+  sql,
+} from '@prisma/orm-postgres/contract-builder';
 
-const pgText = { codecId: 'pg/text@1', nativeType: 'text' } as const;
+const pgText = { codecId: 'pg/text@1' } as const;
 
 const Priority = enumType(
   'Priority',
-  pgText,
-  member('Low', 'low'),
-  member('High', 'high'),
-  member('Urgent', 'urgent'),
+  { codecId: 'pg/int4@1' },
+  member('Low', 0),
+  member('High', 1),
+  member('Urgent', 2),
 );
 
 const UserEnum = enumType('user_type', pgText, member('admin', 'admin'), member('user', 'user'));
@@ -37,9 +45,13 @@ export const contract = defineContract(
       fields: {
         id: field.id.uuidv4String(),
         title: field.text(),
+        body: field.text().optional(),
         userId: field.uuidString(),
         priority: field.namedType(Priority).default(Priority.members.Low),
         createdAt: field.temporal.createdAt(),
+        expiresAt: field
+          .column(timestamptzTemporalColumn)
+          .default(sql`(now() + '7 days'::interval)`),
         updatedAt: field.temporal.updatedAt(),
         embedding: field.namedType(types.Embedding1536).optional(),
       },
@@ -58,6 +70,10 @@ export const contract = defineContract(
           user: rel.belongsTo(User, { from: 'userId', to: 'id' }),
         }).sql(({ cols, constraints }) => ({
           table: 'post',
+          indexes: [
+            fullTextIndex(cols.title, { name: 'post_title_search' }),
+            fullTextIndex([[cols.title], cols.body], { name: 'post_search' }),
+          ],
           foreignKeys: [
             constraints.foreignKey(cols.userId, User.refs.id, {
               name: 'post_userId_fkey',

@@ -1,6 +1,7 @@
 import type { OperationPreview } from '@internal/framework-components/control';
 import type { Block, TreeNode } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
+import { statementFlag } from '../../control-api/statements/statement-flag';
 import type { PerSpaceExecutionEntry } from '../../control-api/types';
 import {
   type MigrationCommandResult,
@@ -8,6 +9,8 @@ import {
   renderPreviewStatement,
 } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
+import { type CliInvocation, cliCommand, printedPlanCommand } from '../../utils/printed-command';
+import { appliedStatementBlocks } from '../statement-blocks';
 
 interface PlannedOperation {
   readonly label: string;
@@ -134,6 +137,22 @@ function plannerWarningBlocks(result: MigrationCommandResult): readonly Block[] 
   ];
 }
 
+/** The new required fields whose existing rows get a temporary value, and how to choose the value. */
+function temporaryValueBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
+): readonly Block[] {
+  const get = result.mode === 'plan' ? 'would get' : 'got';
+  return (result.temporaryValues ?? []).map(
+    ({ field, value }): Block => ({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows ${get} ${value} in field "${field}". To choose the value, plan a migration with ${printedPlanCommand(invocation, databaseStorageHash, [statementFlag({ verb: 'backfill', text: field })])} instead.`,
+    }),
+  );
+}
+
 function planSummaryText(result: MigrationCommandResult): string {
   const operations = result.plan.operations.length;
   const spaces = result.perSpace?.length ?? 0;
@@ -152,12 +171,46 @@ function applySummaryText(result: MigrationCommandResult): string {
   return `Applied ${executed} operation(s)${across}`;
 }
 
-function planBlocks(result: MigrationCommandResult): readonly Block[] {
+/**
+ * The questions an apply would ask, as a dry run lists them: each operation that would lose data,
+ * answered by `--delete` or `--rename`, and each that would widen access, answered by `--allow`.
+ */
+function questionBlocks(result: MigrationCommandResult): readonly Block[] {
+  const entries = [
+    ...(result.dataLoss ?? []).map((entry) => ({ entry, verb: 'delete' as const })),
+    ...(result.accessWidening ?? []).map((entry) => ({ entry, verb: 'allow' as const })),
+  ];
+  if (entries.length === 0) {
+    return [];
+  }
+  return [
+    {
+      kind: 'tree',
+      roots: [
+        {
+          label: 'An apply asks about',
+          children: entries.map(({ entry, verb }) => ({
+            label: `${result.plan.operations[entry.operationIndex]?.label ?? 'an operation'}: ${statementFlag({ verb, text: entry.text })}${entry.answered ? ' (answered)' : ''}`,
+          })),
+        },
+      ],
+    },
+  ];
+}
+
+function planBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
+): readonly Block[] {
   const planned = result.plannedAdvanceRef;
   return [
     { kind: 'summary', status: 'ok', text: planSummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
+    ...temporaryValueBlocks(result, invocation, databaseStorageHash),
+    ...appliedStatementBlocks(result.appliedStatements ?? []),
+    ...questionBlocks(result),
     {
       kind: 'fields',
       rows: [
@@ -216,12 +269,18 @@ function fallbackMarkerBlocks(result: MigrationCommandResult): readonly Block[] 
   ];
 }
 
-function applyBlocks(result: MigrationCommandResult): readonly Block[] {
+function applyBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
+): readonly Block[] {
   const advanced = result.advancedRef;
   return [
     { kind: 'summary', status: 'ok', text: applySummaryText(result) },
     ...plannerWarningBlocks(result),
     ...operationBlocks(result),
+    ...temporaryValueBlocks(result, invocation, databaseStorageHash),
+    ...appliedStatementBlocks(result.appliedStatements ?? []),
     ...fallbackMarkerBlocks(result),
     ...(advanced === null || advanced === undefined
       ? []
@@ -238,14 +297,25 @@ function applyBlocks(result: MigrationCommandResult): readonly Block[] {
   ];
 }
 
-/** What a `db init` / `db update` result looks like in human mode. */
-export function migrationResultBlocks(result: MigrationCommandResult): readonly Block[] {
-  return result.mode === 'plan' ? planBlocks(result) : applyBlocks(result);
+/**
+ * What a `db init` / `db update` result looks like in human mode. Printed commands repeat
+ * `invocation`, and a printed `migration plan` starts from `databaseStorageHash`, the contract the
+ * database was at before the run, when a migration on disk ends at it.
+ */
+export function migrationResultBlocks(
+  result: MigrationCommandResult,
+  invocation: CliInvocation,
+  databaseStorageHash: string | undefined,
+): readonly Block[] {
+  return result.mode === 'plan'
+    ? planBlocks(result, invocation, databaseStorageHash)
+    : applyBlocks(result, invocation, databaseStorageHash);
 }
 
 /** Where the user goes next, as typed actions rather than trailing prose. */
 export function migrationResultNextActions(
   result: MigrationCommandResult,
+  invocation: CliInvocation,
   applyCommand: string,
 ): readonly NextAction[] {
   return result.mode === 'plan'
@@ -255,7 +325,7 @@ export function migrationResultNextActions(
           result.perSpace !== undefined && result.perSpace.length === 1
             ? 'Confirm the space is up to date'
             : 'Confirm every space is up to date',
-          '{bin} migration status',
+          cliCommand(invocation, 'migration status'),
         ),
       ];
 }

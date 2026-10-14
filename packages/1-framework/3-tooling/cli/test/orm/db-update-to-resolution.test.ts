@@ -5,12 +5,12 @@ import { computeMigrationHash } from '@internal/migration-tools/hash';
 import { formatMigrationDirName, writeMigrationPackage } from '@internal/migration-tools/io';
 import type { MigrationMetadata } from '@internal/migration-tools/metadata';
 import { ok } from '@internal/utils/result';
-import { createTestCli } from '@prisma/cli-engine/testing';
 import { join } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ControlClient } from '../../src/control-api/types';
 import { BIN_GROUPS, createBinCommands } from '../../src/orm/cli';
-import { createTestProjectDir } from '../utils/test-project-dir';
+import { createOrmTestCli } from '../helpers/orm-test-cli';
+import { createTestProjectDir, writeProjectManifest } from '../utils/test-project-dir';
 
 /**
  * `db update --to <bundle>` resolves the destination contract through the
@@ -22,6 +22,7 @@ import { createTestProjectDir } from '../utils/test-project-dir';
 const mocks = {
   connect: vi.fn(),
   dbUpdate: vi.fn(),
+  renderContractDts: vi.fn(),
   close: vi.fn(),
 };
 
@@ -30,6 +31,7 @@ const commands = createBinCommands(
     ({
       connect: mocks.connect,
       dbUpdate: mocks.dbUpdate,
+      renderContractDts: mocks.renderContractDts,
       close: mocks.close,
     }) as unknown as ControlClient,
 );
@@ -52,6 +54,9 @@ beforeEach(() => {
   mocks.connect.mockReset().mockResolvedValue(undefined);
   mocks.close.mockReset().mockResolvedValue(undefined);
   mocks.dbUpdate.mockReset();
+  mocks.renderContractDts
+    .mockReset()
+    .mockResolvedValue(ok({ contractDts: 'export type Contract = unknown;\n' }));
 });
 
 interface Fixture {
@@ -63,6 +68,7 @@ interface Fixture {
 async function setupFixture(): Promise<Fixture> {
   const cwd = createTestProjectDir('orm-db-update-to');
   tempDirs.push(cwd);
+  writeProjectManifest(cwd);
   const endContract = {
     storage: { storageHash: HASH_B },
     schemaVersion: '1.0.0',
@@ -129,10 +135,94 @@ function ormConfig(cwd: string): Record<string, unknown> {
 }
 
 function harness(cwd: string) {
-  return createTestCli({ commands, groups: BIN_GROUPS, config: { orm: ormConfig(cwd) } });
+  return createOrmTestCli({ commands, groups: BIN_GROUPS, orm: ormConfig(cwd) });
 }
 
 describe('db update --to bundle resolution', () => {
+  it.each(['@empty', '@contract', '@db'])(
+    'refuses the reserved reference %s with a structured envelope',
+    async (input) => {
+      const { cwd } = await setupFixture();
+
+      const run = await harness(cwd).run(['db', 'update', '--to', input, '--dry-run', '--json'], {
+        cwd,
+      });
+
+      expect(run.exitCode).toBe(2);
+      expect(run.json.at(-1)).toMatchObject({
+        kind: 'result',
+        envelope: {
+          ok: false,
+          error: {
+            code: 'MIGRATION.REF_WRONG_GRAMMAR',
+            why: `"${input}" is a reserved reference; --to takes a migration destination recorded in the migrations directory (hash, prefix, ref name, migration dir name, or <dir>^)`,
+            meta: { input, expectedGrammar: 'contract' },
+          },
+        },
+      });
+      expect(mocks.connect).not.toHaveBeenCalled();
+      expect(mocks.dbUpdate).not.toHaveBeenCalled();
+    },
+  );
+
+  it('refuses @db before it asks for a connection', async () => {
+    const { cwd } = await setupFixture();
+
+    const run = await createOrmTestCli({
+      commands,
+      groups: BIN_GROUPS,
+      orm: { ...ormConfig(cwd), db: undefined },
+    }).run(['db', 'update', '--to', '@db', '--json'], { cwd });
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: { ok: false, error: { code: 'MIGRATION.REF_WRONG_GRAMMAR' } },
+    });
+  });
+
+  it.each([
+    { flags: [], command: 'db update', after: '' },
+    { flags: ['--advance-ref', 'staging'], command: 'db update', after: ' --advance-ref staging' },
+    { flags: ['--dry-run'], command: 'db update --dry-run', after: '' },
+    {
+      flags: ['--rename', 'Profile:User', '--rename', 'User.name:User.fullName'],
+      command: 'db update',
+      after: ' --rename Profile:User --rename User.name:User.fullName',
+    },
+  ])(
+    'keeps --to and $flags in the retry command when no connection is configured',
+    async ({ flags, command, after }) => {
+      const { cwd, dirNext } = await setupFixture();
+
+      const run = await createOrmTestCli({
+        commands,
+        groups: BIN_GROUPS,
+        orm: { ...ormConfig(cwd), db: undefined },
+      }).run(['db', 'update', '--to', dirNext, ...flags, '--json'], { cwd });
+
+      expect(run.exitCode).toBe(2);
+      expect(run.json.at(-1)).toMatchObject({
+        kind: 'result',
+        envelope: {
+          ok: false,
+          error: {
+            code: 'CONFIG.DB_CONNECTION_REQUIRED',
+            meta: { missingFlags: ['--db'] },
+            nextActions: [
+              expect.objectContaining({
+                label: expect.stringContaining(
+                  `Run \`prisma-test ${command} --to ${dirNext}${after} --db $DATABASE_URL\``,
+                ),
+              }),
+            ],
+          },
+        },
+      });
+      expect(mocks.connect).not.toHaveBeenCalled();
+    },
+  );
+
   it('errors on an invalid --advance-ref name with the structured ref envelope', async () => {
     const { cwd, dirNext } = await setupFixture();
     mocks.dbUpdate.mockResolvedValue(
@@ -175,6 +265,9 @@ describe('db update --to bundle resolution', () => {
           preview: undefined,
         },
         destination: { storageHash: HASH_B },
+        appliedStatements: [],
+        dataLoss: [],
+        accessWidening: [],
         summary: 'Plan ready',
       }),
     );
@@ -186,6 +279,9 @@ describe('db update --to bundle resolution', () => {
     expect(run.exitCode).toBe(0);
     const callContract = mocks.dbUpdate.mock.calls[0]![0].contract as Record<string, unknown>;
     expect(callContract).toEqual(endContract);
+    expect(mocks.renderContractDts).toHaveBeenCalledWith(
+      expect.objectContaining({ contract: endContract }),
+    );
     expect(run.presented?.data).toEqual({
       ok: true,
       mode: 'plan',
@@ -194,6 +290,9 @@ describe('db update --to bundle resolution', () => {
         destination: { storageHash: HASH_B },
         operations: [{ id: 'table.users', label: 'Create users', operationClass: 'additive' }],
       },
+      appliedStatements: [],
+      dataLoss: [],
+      accessWidening: [],
       advancedRef: null,
       plannedAdvanceRef: { name: 'db', hash: HASH_B },
       summary: 'Plan ready',

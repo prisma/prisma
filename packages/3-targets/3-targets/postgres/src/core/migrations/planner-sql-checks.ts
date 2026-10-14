@@ -1,7 +1,20 @@
-import type { CodecControlHooks } from '@internal/family-sql/control';
+import { assembleDataTypes, type DataType } from '@internal/framework-components/codec';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
+import {
+  dataTypeParams,
+  isSqlDataType,
+  type ResolvedSqlType,
+  renderSqlCatalogText,
+  resolveWrittenSqlTypes,
+  type SqlTypeLookups,
+  sqlDataTypeOfCodec,
+  unquotedSqlBaseName,
+} from '@internal/sql-contract/data-type';
 import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
+import { postgresError } from '../errors';
+import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { postgresCreateNamespace } from '../postgres-schema';
-import { quoteIdentifier } from '../sql-utils';
+import { quoteIdentifierWhereNeeded } from '../sql-utils';
 import { resolveColumnTypeMetadata } from './planner-type-resolution';
 
 /**
@@ -19,151 +32,110 @@ export function qualifyTableName(schema: string, table: string): string {
   return postgresCreateNamespace({ id: schema, entries: { table: {} } }).qualifyTable(table);
 }
 
-const FORMAT_TYPE_DISPLAY: ReadonlyMap<string, string> = new Map([
-  ['int2', 'smallint'],
-  ['int4', 'integer'],
-  ['int8', 'bigint'],
-  ['float4', 'real'],
-  ['float8', 'double precision'],
-  ['bool', 'boolean'],
-  ['timestamp', 'timestamp without time zone'],
-  ['timestamptz', 'timestamp with time zone'],
-  ['time', 'time without time zone'],
-  ['timetz', 'time with time zone'],
-]);
-
-const UNQUOTED_POSTGRES_IDENTIFIER_PATTERN = /^[a-z_][a-z0-9_$]*$/;
-
-const POSTGRES_RESERVED_IDENTIFIER_WORDS = new Set([
-  'all',
-  'analyse',
-  'analyze',
-  'and',
-  'any',
-  'array',
-  'as',
-  'asc',
-  'asymmetric',
-  'authorization',
-  'between',
-  'binary',
-  'both',
-  'case',
-  'cast',
-  'check',
-  'collate',
-  'column',
-  'constraint',
-  'create',
-  'current_catalog',
-  'current_date',
-  'current_role',
-  'current_time',
-  'current_timestamp',
-  'current_user',
-  'default',
-  'deferrable',
-  'desc',
-  'distinct',
-  'do',
-  'else',
-  'end',
-  'except',
-  'false',
-  'fetch',
-  'for',
-  'foreign',
-  'freeze',
-  'from',
-  'full',
-  'grant',
-  'group',
-  'having',
-  'ilike',
-  'in',
-  'initially',
-  'inner',
-  'intersect',
-  'into',
-  'is',
-  'isnull',
-  'join',
-  'lateral',
-  'leading',
-  'left',
-  'like',
-  'limit',
-  'localtime',
-  'localtimestamp',
-  'natural',
-  'not',
-  'notnull',
-  'null',
-  'offset',
-  'on',
-  'only',
-  'or',
-  'order',
-  'outer',
-  'overlaps',
-  'placing',
-  'primary',
-  'references',
-  'right',
-  'select',
-  'session_user',
-  'similar',
-  'some',
-  'symmetric',
-  'table',
-  'then',
-  'to',
-  'trailing',
-  'true',
-  'union',
-  'unique',
-  'user',
-  'using',
-  'variadic',
-  'verbose',
-  'when',
-  'where',
-  'window',
-  'with',
-]);
-
-function formatUserDefinedTypeName(identifier: string): string {
-  if (
-    UNQUOTED_POSTGRES_IDENTIFIER_PATTERN.test(identifier) &&
-    !POSTGRES_RESERVED_IDENTIFIER_WORDS.has(identifier)
-  ) {
-    return identifier;
-  }
-
-  return quoteIdentifier(identifier);
-}
-
+/**
+ * The type `format_type` prints, for the column's ALTER COLUMN TYPE postcheck: the catalog text of
+ * its data type with normalised parameters, or for an enum its name, quoted where Postgres quotes
+ * it.
+ */
 export function buildExpectedFormatType(
-  column: StorageColumn,
-  codecHooks: ReadonlyMap<string, CodecControlHooks>,
+  column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
+  types: SqlTypeLookups,
   storageTypes: Record<string, StorageTypeInstance> = {},
 ): string {
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
-
-  if (resolved.typeParams && resolved.codecId) {
-    const hooks = codecHooks.get(resolved.codecId);
-    if (hooks?.expandNativeType) {
-      return hooks.expandNativeType({
-        nativeType: resolved.nativeType,
-        codecId: resolved.codecId,
-        typeParams: resolved.typeParams,
-      });
-    }
+  const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
+  const params = dataTypeParams(dataType, resolved.typeParams);
+  if (dataType.sql.claimsKind !== undefined) {
+    return unquotedSqlBaseName(dataType, params)
+      .split('.')
+      .map(quoteIdentifierWhereNeeded)
+      .join('.');
   }
+  return renderSqlCatalogText(dataType, params);
+}
 
-  if (column.typeRef) {
-    return formatUserDefinedTypeName(resolved.nativeType);
+/** The data types the components of a stack register. */
+export function stackDataTypes(
+  frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>,
+): readonly DataType[] {
+  return assembleDataTypes(frameworkComponents).declared.map(({ type }) => type);
+}
+
+const ARRAY_SUFFIX = /^(.*?)(?:\s*\[\s*\])+$/s;
+const QUOTED_SEGMENT = /^"((?:[^"]|"")+)"/;
+
+/** The segments of a name written as one or two double-quoted identifiers, `"Mood"` or `"app"."status"`. */
+function quotedName(text: string): readonly string[] | undefined {
+  const segments: string[] = [];
+  let rest = text;
+  while (rest !== '') {
+    const match = QUOTED_SEGMENT.exec(rest);
+    if (match === null) return undefined;
+    segments.push((match[1] ?? '').replaceAll('""', '"'));
+    rest = rest.slice(match[0].length);
+    if (rest.startsWith('.')) rest = rest.slice(1);
+    else if (rest !== '') return undefined;
   }
+  return segments.length === 1 || segments.length === 2 ? segments : undefined;
+}
 
-  return FORMAT_TYPE_DISPLAY.get(resolved.nativeType) ?? resolved.nativeType;
+function catalogTextOf(resolved: ResolvedSqlType, dataTypes: readonly DataType[]): string {
+  const type = dataTypes.filter(isSqlDataType).find(({ id }) => id === resolved.dataType);
+  return type === undefined ? resolved.dataType : renderSqlCatalogText(type, resolved.typeParams);
+}
+
+function columnTypeUnreadable(type: string, where: string, reason: string): never {
+  throw postgresError('MIGRATION.COLUMN_TYPE_UNREADABLE', `${where}: ${reason}`, {
+    why: 'A column type change checks afterwards that the column has the new type as the database prints it, and finds that text through the data types the configured stack registers.',
+    fix: 'Write the type as a migration writes it, for example int4 or varchar(20), or an enum by its quoted name, such as "Mood". If the type comes from an extension, add that extension to the configuration.',
+    meta: { type, where },
+  });
+}
+
+/**
+ * The type `format_type` prints for a column altered to `type`, written as a migration writes it:
+ * the catalog text of the one data type of `dataTypes` that reads it, or for an enum, named by its
+ * quoted name, that name quoted where Postgres quotes it, without the `public` schema, which
+ * `format_type` leaves out as the planner's own enum names do. A list type keeps one `[]`, as
+ * `format_type` prints it. The planner and the `alterColumnType` facade both check the alter with
+ * this text, so re-running a migration reproduces its operations. `where` names the call in the
+ * error a type no data type reads raises.
+ */
+export function alterTypeCheckText(
+  type: string,
+  dataTypes: readonly DataType[],
+  where: string,
+): string {
+  const trimmed = type.trim();
+  const array = ARRAY_SUFFIX.exec(trimmed);
+  const base = array?.[1] ?? trimmed;
+  const suffix = array === null ? '' : '[]';
+  const texts = [
+    ...new Set(
+      resolveWrittenSqlTypes(base, dataTypes).map((resolved) => catalogTextOf(resolved, dataTypes)),
+    ),
+  ];
+  const [only] = texts;
+  if (only !== undefined && texts.length === 1) return `${only}${suffix}`;
+  if (texts.length > 1) {
+    return columnTypeUnreadable(
+      type,
+      where,
+      `more than one data type of the configured stack reads the type "${type}", as ${texts.join(' and ')}`,
+    );
+  }
+  const name = quotedName(base);
+  const namesItself = dataTypes.some(
+    (dataType) => isSqlDataType(dataType) && dataType.sql.claimsKind !== undefined,
+  );
+  if (name !== undefined && namesItself) {
+    const [schema, ...rest] = name;
+    const unqualified = rest.length > 0 && schema === DEFAULT_NAMESPACE_ID ? rest : name;
+    return `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}`;
+  }
+  return columnTypeUnreadable(
+    type,
+    where,
+    `no data type of the configured stack reads the type "${type}"`,
+  );
 }

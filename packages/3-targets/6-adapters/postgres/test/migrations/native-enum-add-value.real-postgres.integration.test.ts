@@ -6,31 +6,40 @@
  * cover planning/apply-ordering but can't prove this cross-transaction
  * usability).
  *
- * Isolated in a throwaway database (`prisma_next_native_enum_add_value_realdb`)
+ * Isolated in a throwaway database (`prisma_8_native_enum_add_value_realdb`)
  * dropped and recreated on a maintenance connection; skips (does not fail)
  * when no real Postgres is reachable.
  */
+
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
+import { createDataTypeLookup } from '@internal/framework-components/codec';
 import {
   APP_SPACE_ID,
   assembleAuthoringContributions,
   type MigrationOperationPolicy,
 } from '@internal/framework-components/control';
-import { buildSymbolTable } from '@internal/psl-parser';
-import { parse } from '@internal/psl-parser/syntax';
+import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
+import { bindPslSchema } from '@internal/psl-parser/test';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
+import {
+  describeUnsupportedSqlAttribute,
+  sqlAttributeSpecs,
+} from '@internal/sql-contract-psl/attribute-specs';
+import { sqlContextInput } from '@internal/sql-contract-psl/test';
 import type { SqlSchemaIRNode } from '@internal/sql-schema-ir/types';
+import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
+import { postgresScalarAuthoringTypes } from '@internal/target-postgres/control';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   PostgresDatabaseSchemaNode,
   postgresCreateNamespace,
 } from '@internal/target-postgres/types';
 import { ifDefined } from '@internal/utils/defined';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-lookup';
-import { postgresScalarAuthoringTypes } from '../../src/core/control-mutation-defaults';
 import {
   controlAdapter,
   createDriver,
@@ -43,6 +52,8 @@ import {
   synthEdges,
   testTimeout,
 } from './fixtures/runner-fixtures';
+
+const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
 
 // ============================================================================
 // PSL sources
@@ -83,45 +94,61 @@ namespace public {
 // PSL → contract helpers (mirrors native-enum-lifecycle-e2e.integration.test.ts)
 // ============================================================================
 
-function buildScalarTypeDescriptors(): ReadonlyMap<
-  string,
-  { codecId: string; nativeType: string }
-> {
+function buildScalarTypeDescriptors(): ReadonlyMap<string, { codecId: string }> {
   return collectScalarTypeConstructors(postgresScalarAuthoringTypes);
 }
 
 function buildContractFromPsl(psl: string, control: ControlPolicy): Contract<SqlStorage> {
   const assembled = assembleAuthoringContributions([postgresTargetDescriptor]);
   const scalarTypeDescriptors = buildScalarTypeDescriptors();
+  const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor> =
+    Object.fromEntries(
+      [...scalarTypeDescriptors].map(([name, output]) => [
+        name,
+        { kind: 'typeConstructor' as const, output },
+      ]),
+    );
 
-  const { document, sourceFile } = parse(psl);
-  const { table: symbolTable } = buildSymbolTable({
-    document,
-    sourceFile,
-    pslBlockDescriptors: assembled.pslBlockDescriptors,
-  });
-
-  const result = interpretPslDocumentToSqlContract({
-    symbolTable,
-    sourceFile,
-    sourceId: 'schema.prisma',
-    target: {
-      kind: 'target' as const,
-      familyId: 'sql' as const,
-      targetId: 'postgres' as const,
-      id: 'postgres',
-      version: postgresTargetDescriptor.version,
-      capabilities: {},
+  const bound = bindPslSchema(psl, {
+    sourceId: 'native-enum-add-value.real-postgres.integration.test.psl',
+    context: {
+      composedExtensions: [],
       defaultNamespaceId: 'public',
-      ...ifDefined('authoring', postgresTargetDescriptor.authoring),
+      composedExtensionContracts: new Map(),
+      authoringContributions: {
+        ...assembled,
+        type: { ...scalarTypeConstructors, ...assembled.type },
+        attributeSpecs: sqlAttributeSpecs,
+      },
+      pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+      codecLookup: createPostgresBuiltinCodecLookup(),
+      controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      dataTypes: { entries: assembled.dataTypes, lookup: postgresDataTypeLookup },
+      resolvedInputs: [],
+      capabilities: { sql: { scalarList: true } },
     },
-    scalarColumnDescriptors: scalarTypeDescriptors,
-    authoringContributions: assembled,
-    composedExtensionContracts: new Map(),
-    createNamespace: postgresCreateNamespace,
-    codecLookup: createPostgresBuiltinCodecLookup(),
-    capabilities: { sql: { scalarList: true } },
   });
+  const result = withSeedDiagnostics(
+    interpretPslDocumentToSqlContract({
+      documents: bound.documents,
+      sources: bound.sources,
+      symbolTable: bound.symbolTable,
+      binder: bound.binder,
+      ...sqlContextInput(bound.context),
+      target: {
+        kind: 'target' as const,
+        familyId: 'sql' as const,
+        targetId: 'postgres' as const,
+        id: 'postgres',
+        version: postgresTargetDescriptor.version,
+        capabilities: {},
+        defaultNamespaceId: 'public',
+        ...ifDefined('authoring', postgresTargetDescriptor.authoring),
+      },
+      createNamespace: postgresCreateNamespace,
+    }),
+    bound.seedDiagnostics,
+  );
 
   if (!result.ok) throw new Error(`PSL interpretation failed: ${JSON.stringify(result)}`);
   return { ...(result.value as Contract<SqlStorage>), defaultControlPolicy: control };
@@ -138,6 +165,8 @@ async function planContract(
     schema,
     policy,
     fromContract: null,
+    origin: null,
+    statements: [],
     frameworkComponents,
     spaceId: APP_SPACE_ID,
     snapshotsImportPath: '../../snapshots',
@@ -193,7 +222,7 @@ function nativeEnumMembers(
 
 const MAINTENANCE_URL =
   process.env['DATABASE_URL'] ?? 'postgres://postgres:postgres@localhost:5432/postgres';
-const TEST_DB = 'prisma_next_native_enum_add_value_realdb';
+const TEST_DB = 'prisma_8_native_enum_add_value_realdb';
 
 function testDatabaseUrl(): string {
   const u = new URL(MAINTENANCE_URL);
@@ -214,7 +243,9 @@ async function isRealPostgresAvailable(): Promise<boolean> {
 
 async function dropTestDatabaseViaMaintenance(): Promise<void> {
   const maintenance = await createDriver(MAINTENANCE_URL);
-  await maintenance.query(`DROP DATABASE IF EXISTS ${TEST_DB} WITH (FORCE)`);
+  await maintenance.query(
+    'DROP DATABASE IF EXISTS prisma_8_native_enum_add_value_realdb WITH (FORCE)',
+  );
   await maintenance.close();
 }
 
@@ -229,8 +260,10 @@ describe.runIf(await isRealPostgresAvailable())(
 
     beforeAll(async () => {
       const maintenance = await createDriver(MAINTENANCE_URL);
-      await maintenance.query(`DROP DATABASE IF EXISTS ${TEST_DB} WITH (FORCE)`);
-      await maintenance.query(`CREATE DATABASE ${TEST_DB}`);
+      await maintenance.query(
+        'DROP DATABASE IF EXISTS prisma_8_native_enum_add_value_realdb WITH (FORCE)',
+      );
+      await maintenance.query('CREATE DATABASE prisma_8_native_enum_add_value_realdb');
       await maintenance.close();
 
       driver = await createDriver(testDatabaseUrl());

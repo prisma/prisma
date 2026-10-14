@@ -3,29 +3,11 @@ import { isColumnDefaultLiteralInputValue } from '@internal/contract/types';
 import type { ReferentialAction } from '@internal/sql-contract/types';
 import { structuredError } from '@internal/utils/structured-error';
 import type { CodecRef } from './codec-types';
+import type { OpaqueSql } from './opaque-sql';
 import type { AnyParamRef } from './types';
-
-/**
- * Render-time context the column-default visitor needs to make dialect
- * decisions that depend on the parent column. Today only the parent
- * column's native type (`"jsonb"`, `"text"`, …) — the Postgres renderer
- * uses it to decide whether to emit a `::jsonb` / `::json` cast on JSON
- * literal defaults so the emitted DDL matches the column type without
- * relying on Postgres's implicit text → jsonb cast at default-evaluation
- * time. Additional fields can join without re-shaping the interface.
- */
-export interface DdlColumnRenderContext {
-  readonly nativeType: string;
-}
-
-export interface DdlColumnDefaultVisitor<R> {
-  literal(node: LiteralColumnDefault, ctx: DdlColumnRenderContext): R;
-  function(node: FunctionColumnDefault, ctx: DdlColumnRenderContext): R;
-}
 
 export abstract class DdlColumnDefault {
   abstract readonly kind: string;
-  abstract accept<R>(visitor: DdlColumnDefaultVisitor<R>, ctx: DdlColumnRenderContext): R;
 
   protected freeze(): void {
     Object.freeze(this);
@@ -44,24 +26,16 @@ export class LiteralColumnDefault extends DdlColumnDefault {
     this.value = value;
     this.freeze();
   }
-
-  override accept<R>(visitor: DdlColumnDefaultVisitor<R>, ctx: DdlColumnRenderContext): R {
-    return visitor.literal(this, ctx);
-  }
 }
 
 export class FunctionColumnDefault extends DdlColumnDefault {
   readonly kind = 'function' as const;
-  readonly expression: string;
+  readonly expression: OpaqueSql;
 
-  constructor(expression: string) {
+  constructor(expression: OpaqueSql) {
     super();
     this.expression = expression;
     this.freeze();
-  }
-
-  override accept<R>(visitor: DdlColumnDefaultVisitor<R>, ctx: DdlColumnRenderContext): R {
-    return visitor.function(this, ctx);
   }
 }
 
@@ -73,7 +47,7 @@ export class DdlColumn {
   readonly notNull?: boolean | undefined;
   readonly primaryKey?: boolean | undefined;
   readonly default?: AnyDdlColumnDefault | undefined;
-  /** Codec identity for this column. When present, the DDL walker resolves the codec via `codecLookup.get(codecRef.codecId)` and runs the literal default through both declared conversions in order — `codec.encode(codec.decodeJson(default.value), {})` — to obtain the wire value it inlines into the DDL string. The read-back is what makes the pair sound: a contract stores a literal default in the codec's canonical JSON, which is not always the application value `encode` takes (`pg/int8@1` stores decimal text for a `bigint`). A `Date` is the one authored value JSON has no notation for, so it arrives as itself and skips `decodeJson`. When absent, literal defaults follow RawSqlLiteral wire-scalar semantics (string / number / boolean / bigint / null / Uint8Array / Date inlined directly). */
+  /** Codec identity for this column. When present, the DDL walker builds the codec with the column's type parameters and runs the literal default through both declared conversions in order — `codec.encode(codec.decodeJson(default.value), {})` — to obtain the wire value it inlines into the DDL string (`encodeLiteralDefault`), and reads each element of a list default the same way (`encodeListLiteralDefault`). A target may write a default of one of its date or time types as that type's text instead, once the codec has read it. The read-back is what makes the pair sound: a contract stores a literal default in the codec's canonical JSON, which is not always the application value `encode` takes (`pg/int8@1` stores decimal text for a `bigint`). A `Date` is the one authored value JSON has no notation for, so it arrives as itself and skips `decodeJson`. A `null` default the codec refuses is SQL NULL, `DEFAULT NULL`; a JSON codec reads it as the JSON value null. When absent, literal defaults follow RawSqlLiteral wire-scalar semantics (string / number / boolean / bigint / null / Uint8Array / Date inlined directly). */
   readonly codecRef?: CodecRef | undefined;
 
   constructor(options: {
@@ -205,7 +179,7 @@ export class UniqueConstraint {
  * A table-level CHECK constraint carrying a raw SQL predicate expression. Used
  * for checks that are not enum value-set restrictions — e.g. the element-non-null
  * constraint on a scalar-array column (`array_position(col, NULL) IS NULL`).
- * The `expression` is emitted verbatim, so callers must supply safe,
+ * The `expression` is emitted through `renderOpaqueSql`, so callers must supply safe,
  * pre-validated SQL.
  *
  * Frozen on construction — immutable after creation.
@@ -213,9 +187,9 @@ export class UniqueConstraint {
 export class CheckExpressionConstraint {
   readonly kind = 'check-expression' as const;
   readonly name: string;
-  readonly expression: string;
+  readonly expression: OpaqueSql;
 
-  constructor(options: { readonly name: string; readonly expression: string }) {
+  constructor(options: { readonly name: string; readonly expression: OpaqueSql }) {
     this.name = options.name;
     this.expression = options.expression;
     Object.freeze(this);

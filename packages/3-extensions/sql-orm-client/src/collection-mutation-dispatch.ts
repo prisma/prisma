@@ -10,6 +10,7 @@ import {
   mapStorageRowToModelFields,
   stripHiddenMappedFields,
 } from './collection-runtime';
+import type { CollectionTables } from './collection-tables';
 import { ormError } from './orm-errors';
 import { queryPlanRows } from './query-plan-rows';
 import type { CollectionContext, IncludeExpr } from './types';
@@ -18,11 +19,13 @@ function createMutationRowMapper(
   contract: Contract<SqlStorage>,
   namespaceId: string,
   modelName: string,
-  variantName: string | undefined,
+  tables: CollectionTables,
+  variantValue: string | undefined,
 ): (row: Record<string, unknown>) => Record<string, unknown> {
   const polyInfo = resolvePolymorphismInfo(contract, namespaceId, modelName);
   return polyInfo
-    ? (row) => mapPolymorphicRow(contract, namespaceId, modelName, polyInfo, row, variantName)
+    ? (row) =>
+        mapPolymorphicRow(contract, namespaceId, modelName, polyInfo, tables, row, variantValue)
     : (row) => mapStorageRowToModelFields(contract, namespaceId, modelName, row);
 }
 
@@ -30,10 +33,10 @@ interface DispatchMutationRowsOptions<Row> {
   readonly context: CollectionContext<Contract<SqlStorage>>['context'];
   readonly runtime: CollectionContext<Contract<SqlStorage>>['runtime'];
   readonly compiled: SqlQueryPlan<Record<string, unknown>>;
-  readonly tableName: string;
+  readonly tables: CollectionTables;
   readonly modelName: string;
   readonly namespaceId: string;
-  readonly variantName?: string | undefined;
+  readonly variantValue?: string | undefined;
   readonly includes: readonly IncludeExpr[];
   readonly selectedFields: readonly string[] | undefined;
   readonly hiddenColumns: readonly string[];
@@ -47,17 +50,23 @@ export function dispatchMutationRows<Row>(
     context,
     runtime,
     compiled,
-    tableName,
+    tables,
     modelName,
     namespaceId,
-    variantName,
+    variantValue,
     includes,
     selectedFields,
     hiddenColumns,
     mapRow,
   } = options;
   const { contract } = context;
-  const mapStorageRow = createMutationRowMapper(contract, namespaceId, modelName, variantName);
+  const mapStorageRow = createMutationRowMapper(
+    contract,
+    namespaceId,
+    modelName,
+    tables,
+    variantValue,
+  );
 
   if (includes.length === 0) {
     const source = queryPlanRows<Record<string, unknown>>(runtime, compiled);
@@ -81,7 +90,7 @@ export function dispatchMutationRows<Row>(
     yield* reloadMutationRowsByIdentities<Row>({
       context,
       runtime,
-      tableName,
+      tables,
       modelName,
       namespaceId,
       identityRows,
@@ -97,10 +106,10 @@ interface DispatchSplitMutationRowsOptions<Row> {
   readonly context: CollectionContext<Contract<SqlStorage>>['context'];
   readonly runtime: CollectionContext<Contract<SqlStorage>>['runtime'];
   readonly plans: ReadonlyArray<SqlQueryPlan<Record<string, unknown>>>;
-  readonly tableName: string;
+  readonly tables: CollectionTables;
   readonly modelName: string;
   readonly namespaceId: string;
-  readonly variantName?: string | undefined;
+  readonly variantValue?: string | undefined;
   readonly includes: readonly IncludeExpr[];
   readonly selectedFields: readonly string[] | undefined;
   readonly hiddenColumns: readonly string[];
@@ -114,17 +123,23 @@ export function dispatchSplitMutationRows<Row>(
     context,
     runtime,
     plans,
-    tableName,
+    tables,
     modelName,
     namespaceId,
-    variantName,
+    variantValue,
     includes,
     selectedFields,
     hiddenColumns,
     mapRow,
   } = options;
   const { contract } = context;
-  const mapStorageRow = createMutationRowMapper(contract, namespaceId, modelName, variantName);
+  const mapStorageRow = createMutationRowMapper(
+    contract,
+    namespaceId,
+    modelName,
+    tables,
+    variantValue,
+  );
 
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
     if (includes.length > 0) {
@@ -137,7 +152,7 @@ export function dispatchSplitMutationRows<Row>(
       yield* reloadMutationRowsByIdentities<Row>({
         context,
         runtime,
-        tableName,
+        tables,
         modelName,
         namespaceId,
         identityRows,
@@ -165,10 +180,10 @@ interface ExecuteSingleMutationOptions<Row> {
   readonly context: CollectionContext<Contract<SqlStorage>>['context'];
   readonly runtime: CollectionContext<Contract<SqlStorage>>['runtime'];
   readonly compiled: SqlQueryPlan<Record<string, unknown>>;
-  readonly tableName: string;
+  readonly tables: CollectionTables;
   readonly modelName: string;
   readonly namespaceId: string;
-  readonly variantName?: string | undefined;
+  readonly variantValue?: string | undefined;
   readonly includes: readonly IncludeExpr[];
   readonly selectedFields: readonly string[] | undefined;
   readonly hiddenColumns: readonly string[];
@@ -184,10 +199,10 @@ export async function executeMutationReturningSingleRow<Row>(
     context,
     runtime,
     compiled,
-    tableName,
+    tables,
     modelName,
     namespaceId,
-    variantName,
+    variantValue,
     includes,
     selectedFields,
     hiddenColumns,
@@ -196,7 +211,13 @@ export async function executeMutationReturningSingleRow<Row>(
     onMissingRowMessage,
   } = options;
   const { contract } = context;
-  const mapStorageRow = createMutationRowMapper(contract, namespaceId, modelName, variantName);
+  const mapStorageRow = createMutationRowMapper(
+    contract,
+    namespaceId,
+    modelName,
+    tables,
+    variantValue,
+  );
 
   if (includes.length === 0) {
     const rows = await queryPlanRows<Record<string, unknown>>(runtime, compiled).toArray();
@@ -222,7 +243,7 @@ export async function executeMutationReturningSingleRow<Row>(
   for await (const row of reloadMutationRowsByIdentities<Row>({
     context,
     runtime,
-    tableName,
+    tables,
     modelName,
     namespaceId,
     identityRows,
@@ -232,6 +253,6 @@ export async function executeMutationReturningSingleRow<Row>(
     return row;
   }
   throw ormError('ORM.MUTATION_ROW_MISSING', onMissingRowMessage, {
-    meta: { operation, model: modelName, tableName },
+    meta: { operation, model: modelName, tableName: tables.root.storage.tableName },
   });
 }

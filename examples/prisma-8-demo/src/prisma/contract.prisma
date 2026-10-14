@@ -1,4 +1,4 @@
-// use prisma-next
+// use prisma-8
 
 types {
   Embedding1536 = pgvector.Vector(1536)
@@ -18,10 +18,10 @@ enum user_type {
 }
 
 enum Priority {
-  @@type("pg/text@1")
-  Low    = "low"
-  High   = "high"
-  Urgent = "urgent"
+  @@type("pg/int4@1")
+  Low    = 0
+  High   = 1
+  Urgent = 2
 }
 
 model User {
@@ -40,9 +40,11 @@ model User {
 model Post {
   id        Uuid           @id @default(uuid())
   title     String
+  body      String?
   userId    Uuid
   priority  Priority @default(Low)
   createdAt DateTime       @default(now())
+  expiresAt DateTime       @default(sql`(now() + '7 days'::interval)`)
   embedding Embedding1536?
 
   // Three engagement counters, one per integer representation. They are
@@ -64,6 +66,10 @@ model Post {
   user User  @relation(fields: [userId], references: [id])
   tags Tag[]
 
+  @@fullTextIndex([title], name: "post_title_search")
+  // One search document over the title and the body; a match in the title
+  // counts more than a match in the body.
+  @@fullTextIndex([[title], body], name: "post_search")
   @@map("post")
 }
 

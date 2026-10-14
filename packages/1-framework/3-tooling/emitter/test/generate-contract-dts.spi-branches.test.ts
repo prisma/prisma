@@ -14,7 +14,6 @@ const HASHES = {
 function literalCodecLookup(): CodecLookup {
   return {
     get: () => undefined,
-    targetTypesFor: () => undefined,
     renderOutputTypeFor: () => undefined,
     renderValueLiteralFor: (_id, value) =>
       typeof value === 'string'
@@ -34,13 +33,13 @@ function makeEnumContract(opts: {
   };
   includeEnumBlock: boolean;
 }): Contract {
-  const base = createTestContract();
   const post = {
     fields: {
       priority: {
         nullable: false,
         type: { kind: 'scalar' as const, codecId: 'pg/text@1' },
         valueSet: opts.valueSet,
+        many: false,
       },
     },
     relations: {},
@@ -58,10 +57,7 @@ function makeEnumContract(opts: {
       },
     };
   }
-  return {
-    ...base,
-    domain: { namespaces: { public: publicNs } },
-  } as unknown as Contract;
+  return createTestContract({ namespaces: { public: publicNs } });
 }
 
 describe('generateContractDts SPI hook plumbing', () => {

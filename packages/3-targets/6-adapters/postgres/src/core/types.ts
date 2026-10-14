@@ -1,4 +1,4 @@
-import type { CodecRegistry } from '@internal/framework-components/codec';
+import type { DataType } from '@internal/framework-components/codec';
 import type { StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import type {
   AnyQueryAst,
@@ -16,12 +16,7 @@ import type {
   SelectAst,
   UpdateAst,
 } from '@internal/sql-relational-core/ast';
-import type {
-  AnyPostgresCodecDescriptor,
-  PostgresCodecDescriptorRegistry,
-} from '@internal/target-postgres/codec-descriptor';
-
-export type PostgresCodecRegistry = CodecRegistry & PostgresCodecDescriptorRegistry;
+import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 
 export interface PostgresAdapterOptions {
   readonly profileId?: string;
@@ -31,6 +26,8 @@ export interface PostgresAdapterOptions {
    * single source for both codec materialization and target-specific lowering.
    */
   readonly codecDescriptors?: readonly AnyPostgresCodecDescriptor[];
+  /** The data types `codecDescriptors` represent, beyond the target's own. */
+  readonly dataTypes?: readonly DataType[];
 }
 
 export type { PostgresContract } from '@internal/target-postgres/types';

@@ -1,17 +1,30 @@
-import type { Contract } from '@internal/contract/types';
-import type {
-  MigrationOperationClass,
-  SqlMigrationPlanOperation,
+import type { ColumnDefault, Contract } from '@internal/contract/types';
+import {
+  type ColumnRenameRequest,
+  type MigrationOperationClass,
+  resolveColumnRenameAgainst,
+  resolveTableRenameAgainst,
+  type SqlMigrationPlanOperation,
+  type SqlSlot,
+  sqlTypeLookupsOf,
+  type TableRenameRequest,
+  unmatchedColumnRename,
+  unmatchedTableRename,
 } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { Migration as SqlMigration } from '@internal/family-sql/migration';
+import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { ControlStack } from '@internal/framework-components/control';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
+import { type SqlTextInput, sqlTextOf } from '@internal/sql-relational-core/contract-free';
+import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { errorSqliteMigrationStackMissing } from '../errors';
 import { SqliteContractView } from '../sqlite-contract-view';
+import { sqliteContractToSchema } from './diff-database-schema';
 import {
   AddColumnCall,
   CreateIndexCall,
@@ -20,9 +33,15 @@ import {
   DropIndexCall,
   DropTableCall,
   RecreateTableCall,
+  type RenameColumnCall,
+  type RenameTableCall,
 } from './op-factory-call';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
+import type { RecreatePostcheck } from './operations/tables';
 import type { SqlitePlanTargetDetails } from './planner-target-details';
+import { sqliteSchemaTables } from './schema-tables';
+import { sqliteColumnRenameCall, sqliteTableRenameCall } from './table-rename-calls';
+import { createWorkingSchema } from './working-schema';
 
 type Op = SqlMigrationPlanOperation<SqlitePlanTargetDetails>;
 
@@ -65,6 +84,9 @@ export abstract class SqliteMigration<
   #endView = new MigrationContractViews<SqliteContractView<End>>(this, 'SqliteMigration', (json) =>
     SqliteContractView.fromJson<End>(json),
   );
+  /** The rename calls this read of `operations` has made so far, in order. */
+  #renames: (RenameTableCall | RenameColumnCall)[] = [];
+
   #startView = new MigrationContractViews<SqliteContractView<Start>>(
     this,
     'SqliteMigration',
@@ -79,6 +101,16 @@ export abstract class SqliteMigration<
           'The SQLite descriptor create() returns SqlControlAdapter<sqlite>; typed as wider ControlAdapterInstance at the framework boundary'
         >(stack.adapter.create(stack))
       : undefined;
+  }
+
+  private frameworkComponents(): ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>> {
+    const stack = this.stack;
+    if (stack === undefined) return [];
+    return [
+      stack.target,
+      ...(stack.adapter === undefined ? [] : [stack.adapter]),
+      ...stack.extensions,
+    ];
   }
 
   /**
@@ -125,13 +157,111 @@ export abstract class SqliteMigration<
     return new DropTableCall(options.table).toOp(this.controlAdapterFor('dropTable'));
   }
 
+  /**
+   * Emit the operations that rename a table: the table rename, then a drop and a create under the
+   * new name of each index whose name was derived from the old table name. The old name is resolved
+   * against the schema as this migration's earlier `renameTable` calls leave it, and the new name
+   * against the end contract. Spread the result into `operations`:
+   * `...this.renameTable({ table: 'userProfile', to: 'UserProfile' })`. Throws
+   * `MIGRATION.TABLE_RENAME_UNMATCHED` when the table does not exist at that point of the migration
+   * or the end contract lacks the new name.
+   */
+  protected renameTable(options: {
+    readonly table: string;
+    readonly to: string;
+  }): readonly Promise<Op>[] {
+    const adapter = this.controlAdapterFor('renameTable');
+    const rename: TableRenameRequest = {
+      namespaceId: undefined,
+      from: options.table,
+      to: options.to,
+    };
+    const startContract = this.startContract;
+    if (startContract === null) {
+      throw unmatchedTableRename(rename, 'the migration has no start contract');
+    }
+    const current = this.schemaAfterRenames(startContract);
+    const endContract = this.endContract;
+    const resolved = resolveTableRenameAgainst(sqliteSchemaTables(current), endContract, rename);
+    if (!resolved.ok) {
+      throw resolved.failure;
+    }
+    const call = sqliteTableRenameCall({
+      previous: current,
+      contract: endContract,
+      rename: resolved.value,
+      frameworkComponents: this.frameworkComponents(),
+    });
+    this.#renames.push(call);
+    return call.toOps(adapter);
+  }
+
+  /**
+   * Emit the operations that rename a column: the column rename, then a drop and a create under
+   * the new name of each index on the column whose name was derived from the old column name. The
+   * column is resolved against the schema as this migration's earlier rename calls leave it, so a
+   * column of a table an earlier `renameTable` renamed is named on the table's new name. Spread the
+   * result into `operations`: `...this.renameColumn({ table: 'User', column: 'name', to:
+   * 'fullName' })`. Throws `MIGRATION.COLUMN_RENAME_UNMATCHED` when the table or column does not
+   * exist at that point of the migration, the table already has the new column, or the end
+   * contract lacks it.
+   */
+  protected renameColumn(options: {
+    readonly table: string;
+    readonly column: string;
+    readonly to: string;
+  }): readonly Promise<Op>[] {
+    const adapter = this.controlAdapterFor('renameColumn');
+    const rename: ColumnRenameRequest = {
+      namespaceId: undefined,
+      table: options.table,
+      from: options.column,
+      to: options.to,
+    };
+    const startContract = this.startContract;
+    if (startContract === null) {
+      throw unmatchedColumnRename(rename, 'the migration has no start contract');
+    }
+    const current = this.schemaAfterRenames(startContract);
+    const resolved = resolveColumnRenameAgainst(
+      sqliteSchemaTables(current),
+      this.endContract,
+      rename,
+    );
+    if (!resolved.ok) {
+      throw resolved.failure;
+    }
+    const call = sqliteColumnRenameCall({
+      previous: current,
+      contract: this.endContract,
+      rename: resolved.value,
+      frameworkComponents: this.frameworkComponents(),
+    });
+    this.#renames.push(call);
+    return call.toOps(adapter);
+  }
+
+  /** The start contract's schema with this read's rename calls applied in order. */
+  private schemaAfterRenames(startContract: Contract<SqlStorage>): SqlSchemaIR {
+    const working = createWorkingSchema(
+      sqliteContractToSchema(startContract, sqlTypeLookupsOf(this.frameworkComponents())),
+    );
+    for (const call of this.#renames) working.apply(call);
+    return working.current;
+  }
+
+  protected override beginOperationsRead(): void {
+    this.#renames = [];
+  }
+
   protected addColumn(options: {
     readonly table: string;
-    readonly column: SqliteColumnSpec;
+    readonly column: SqliteColumnSpecInput;
   }): Promise<Op> {
-    return new AddColumnCall(options.table, options.column).toOp(
-      this.controlAdapterFor('addColumn'),
-    );
+    return new AddColumnCall(
+      options.table,
+      columnSpecOf(options.column, 'addColumn', options.table),
+    ).toOp(this.controlAdapterFor('addColumn'));
   }
 
   protected dropColumn(options: { readonly table: string; readonly column: string }): Promise<Op> {
@@ -158,13 +288,90 @@ export abstract class SqliteMigration<
 
   protected recreateTable(options: {
     readonly tableName: string;
-    readonly contractTable: SqliteTableSpec;
+    readonly contractTable: SqliteTableSpecInput;
     readonly schemaColumnNames: readonly string[];
     readonly indexes: readonly SqliteIndexSpec[];
     readonly summary: string;
-    readonly postchecks: readonly { readonly description: string; readonly sql: string }[];
+    readonly postchecks: readonly RecreatePostcheck[];
     readonly operationClass: MigrationOperationClass;
+    /** SQL each named column is copied from, such as `CAST("age" AS INTEGER)`. */
+    readonly copyExpressions?: Readonly<Record<string, SqlTextInput>>;
+    /** The value each named new column takes in the existing rows, such as `''`. */
+    readonly temporaryValues?: Readonly<Record<string, SqlTextInput>>;
+    /** The columns whose type changes; the rebuild checks each after its copy, as a conversion when it has a copy expression and as SQLite's cast otherwise. */
+    readonly retypedColumns?: readonly string[];
   }): Promise<Op> {
-    return new RecreateTableCall(options).toOp(this.controlAdapterFor('recreateTable'));
+    const { copyExpressions, temporaryValues, ...args } = options;
+    return new RecreateTableCall({
+      ...args,
+      contractTable: {
+        ...options.contractTable,
+        columns: options.contractTable.columns.map((column) =>
+          columnSpecOf(column, 'recreateTable', options.tableName),
+        ),
+      },
+      ...ifDefined(
+        'copyExpressions',
+        copyExpressions === undefined
+          ? undefined
+          : copyExpressionSlotsOf(copyExpressions, options.tableName),
+      ),
+      ...ifDefined(
+        'temporaryValues',
+        temporaryValues === undefined
+          ? undefined
+          : copyExpressionSlotsOf(temporaryValues, options.tableName, 'temporaryValues'),
+      ),
+    }).toOp(this.controlAdapterFor('recreateTable'));
   }
+}
+
+type ColumnDefaultInput =
+  | Exclude<ColumnDefault, { readonly kind: 'function' }>
+  | { readonly kind: 'function'; readonly expression: SqlTextInput };
+
+type SqliteColumnSpecInput = Omit<SqliteColumnSpec, 'default'> & {
+  readonly default?: ColumnDefaultInput;
+};
+
+type SqliteTableSpecInput = Omit<SqliteTableSpec, 'columns'> & {
+  readonly columns: readonly SqliteColumnSpecInput[];
+};
+
+function columnDefaultOf(columnDefault: ColumnDefaultInput, what: string): ColumnDefault {
+  return columnDefault.kind === 'function'
+    ? { kind: 'function', expression: sqlTextOf(columnDefault.expression, what) }
+    : columnDefault;
+}
+
+function columnSpecOf(
+  column: SqliteColumnSpecInput,
+  operation: 'addColumn' | 'recreateTable',
+  table: string,
+): SqliteColumnSpec {
+  const { default: columnDefault, ...rest } = column;
+  const what = `${operation} ${JSON.stringify(table)}.${JSON.stringify(column.name)} default`;
+  return {
+    ...rest,
+    ...ifDefined(
+      'default',
+      columnDefault === undefined ? undefined : columnDefaultOf(columnDefault, what),
+    ),
+  };
+}
+
+function copyExpressionSlotsOf(
+  copyExpressions: Readonly<Record<string, SqlTextInput>>,
+  table: string,
+  option: 'copyExpressions' | 'temporaryValues' = 'copyExpressions',
+): Record<string, SqlSlot> {
+  return Object.fromEntries(
+    Object.entries(copyExpressions).map(([column, expression]) => [
+      column,
+      {
+        kind: 'sql',
+        sql: sqlTextOf(expression, `recreateTable ${JSON.stringify(table)} ${option}.${column}`),
+      },
+    ]),
+  );
 }

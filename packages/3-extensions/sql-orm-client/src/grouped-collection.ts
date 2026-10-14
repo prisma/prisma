@@ -5,28 +5,33 @@ import type {
   OperationKind,
 } from '@internal/framework-components/runtime';
 import { createMetaBuilder } from '@internal/framework-components/runtime';
-import type { SqlStorage } from '@internal/sql-contract/types';
+import type { ExtractCodecTypes, SqlStorage } from '@internal/sql-contract/types';
 import {
   AggregateExpr,
   type AnyExpression,
-  BinaryExpr,
   type BinaryOp,
-  ColumnRef,
   isAggregateFn,
   LiteralExpr,
   type OrderByItem,
 } from '@internal/sql-relational-core/ast';
+import { type TraitExpression, toExpr } from '@internal/sql-relational-core/expression';
+import type { Preparable } from '@internal/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
 import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
+import { resolveAggregate } from './aggregate-codecs';
 import { aggregateOperationNames } from './aggregate-operations';
-import { getFieldToColumnMap } from './collection-contract';
-import { mapStorageRowToModelFields } from './collection-runtime';
+import { columnOfCallerField, getModelFieldColumns } from './collection-contract';
+import { createStorageRowMapper } from './collection-runtime';
+import { withScopeCopy } from './collection-tables';
 import { createModelAccessor } from './model-accessor';
 import { ormError } from './orm-errors';
+import { predicateComparison } from './predicate-comparison';
+import { predicateExpression } from './predicate-expression';
 import { compileGroupedAggregate, mergeAnnotations } from './query-plan';
 import { queryPlanRows } from './query-plan-rows';
+import type { AliasedTable } from './table-scope';
 import type {
   AggregateBuilder,
   AggregateResult,
@@ -134,7 +139,7 @@ export class GroupedCollection<
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
-        this.tableName,
+        this.preGroupState.tables.root,
       ),
     );
     return this.#clone({ havingFilters: [...this.havingFilters, havingExpr] });
@@ -170,13 +175,16 @@ export class GroupedCollection<
         { meta: { method: 'orderBy', model: this.modelName } },
       );
     }
+    const tables = withScopeCopy(this.preGroupState.tables);
     const accessor = createModelAccessor<TContract, ModelName, undefined, NsId>(
       this.ctx.context,
       this.namespaceId,
       this.modelName,
+      tables,
     );
     const nextOrders = selectors.map((selector) => selector(accessor));
     return this.#clone<true>({
+      preGroupState: { ...this.preGroupState, tables },
       postGroup: { ...this.postGroup, orderBy: [...this.postGroup.orderBy, ...nextOrders] },
     });
   }
@@ -187,9 +195,13 @@ export class GroupedCollection<
    * any order, so "the first n groups" is undefined without one.
    */
   limit(
-    n: HasOrderBy extends true ? number : never,
+    n: HasOrderBy extends true
+      ? number | TraitExpression<readonly ['numeric'], false, ExtractCodecTypes<TContract>>
+      : never,
   ): GroupedCollection<TContract, ModelName, GroupFields, NsId, HasOrderBy> {
-    return this.#clone({ postGroup: { ...this.postGroup, limit: n } });
+    return this.#clone({
+      postGroup: { ...this.postGroup, limit: typeof n === 'number' ? n : toExpr(n) },
+    });
   }
 
   /**
@@ -198,9 +210,13 @@ export class GroupedCollection<
    * pagination methods need a deterministic group order.
    */
   offset(
-    n: HasOrderBy extends true ? number : never,
+    n: HasOrderBy extends true
+      ? number | TraitExpression<readonly ['numeric'], false, ExtractCodecTypes<TContract>>
+      : never,
   ): GroupedCollection<TContract, ModelName, GroupFields, NsId, HasOrderBy> {
-    return this.#clone({ postGroup: { ...this.postGroup, offset: n } });
+    return this.#clone({
+      postGroup: { ...this.postGroup, offset: typeof n === 'number' ? n : toExpr(n) },
+    });
   }
 
   /**
@@ -210,10 +226,30 @@ export class GroupedCollection<
    * `MetaBuilder<'read'>` for attaching typed annotations.
    * Annotations are merged into the compiled plan's `meta.annotations`.
    */
+  get prepared() {
+    return {
+      aggregate: <Spec extends AggregateSpec>(
+        fn: (aggregate: AggregateBuilder<TContract, ModelName, NsId>) => Spec,
+        configure?: (meta: MetaBuilder<'read'>) => void,
+      ) => this.#describeAggregate(fn, configure),
+    };
+  }
+
   async aggregate<Spec extends AggregateSpec>(
     fn: (aggregate: AggregateBuilder<TContract, ModelName, NsId>) => Spec,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<Array<GroupedAggregateRow<TContract, ModelName, GroupFields, NsId, Spec>>> {
+    const description = this.#describeAggregate(fn, configure);
+    return description.consume(queryPlanRows(this.ctx.runtime, description.plan));
+  }
+
+  #describeAggregate<Spec extends AggregateSpec>(
+    fn: (aggregate: AggregateBuilder<TContract, ModelName, NsId>) => Spec,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Preparable<
+    Record<string, unknown>,
+    Promise<Array<GroupedAggregateRow<TContract, ModelName, GroupFields, NsId, Spec>>>
+  > {
     const aggregateSpec = fn(
       createAggregateBuilder<TContract, ModelName, NsId>(
         this.contract,
@@ -254,8 +290,6 @@ export class GroupedCollection<
       compileGroupedAggregate(
         this.contract,
         this.ctx.context.aggregateDescriptors,
-        this.namespaceId,
-        this.tableName,
         this.preGroupState,
         this.groupByColumns,
         aggregateSpec,
@@ -265,23 +299,21 @@ export class GroupedCollection<
       ),
       annotationsMap,
     );
-    const rows = await queryPlanRows<Record<string, unknown>>(this.ctx.runtime, compiled).toArray();
-
-    return rows.map((row) => {
-      const mapped = mapStorageRowToModelFields(
-        this.contract,
-        this.namespaceId,
-        this.modelName,
-        row,
-      );
-      for (const [alias] of aggregateEntries) {
-        mapped[alias] = row[alias];
-      }
-      return blindCast<
-        GroupedAggregateRow<TContract, ModelName, GroupFields, NsId, Spec>,
-        'group keys are mapped from storage columns and aggregate aliases are copied from the decoded query row'
-      >(mapped);
-    });
+    const mapRow = createStorageRowMapper(this.contract, this.namespaceId, this.modelName);
+    return {
+      plan: compiled,
+      async consume(source) {
+        const rows = await source.toArray();
+        return rows.map((row) => {
+          const mapped = mapRow(row);
+          for (const [alias] of aggregateEntries) mapped[alias] = row[alias];
+          return blindCast<
+            GroupedAggregateRow<TContract, ModelName, GroupFields, NsId, Spec>,
+            'group keys are mapped from storage columns and aggregate aliases are copied from the decoded query row'
+          >(mapped);
+        });
+      },
+    };
   }
 }
 
@@ -304,9 +336,10 @@ function createHavingBuilder<
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   modelName: ModelName,
-  tableName: string,
+  root: AliasedTable,
 ): HavingBuilder<TContract, ModelName, NsId> {
-  const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
+  const { tableName } = root.storage;
+  const fieldColumns = getModelFieldColumns(contract, namespaceId, modelName);
   const builder: Record<string, (field?: string) => HavingComparisonMethods<number | null>> = {};
   for (const operation of aggregateOperationNames(aggregates)) {
     builder[operation] = (field?: string) => {
@@ -321,11 +354,26 @@ function createHavingBuilder<
           },
         );
       }
+      const column =
+        field === undefined
+          ? undefined
+          : columnOfCallerField(contract, namespaceId, fieldColumns, modelName, field);
       const metric = new AggregateExpr(
         operation,
-        field === undefined ? undefined : ColumnRef.of(tableName, fieldToColumn[field] ?? field),
+        column === undefined ? undefined : root.column(column),
       );
-      return createHavingComparisonMethods(metric);
+      return createHavingComparisonMethods(
+        metric,
+        () =>
+          resolveAggregate({
+            aggregates,
+            contract,
+            namespaceId,
+            tableName,
+            fn: operation,
+            column,
+          }).codec.codecId,
+      );
     };
   }
   return blindCast<
@@ -336,9 +384,22 @@ function createHavingBuilder<
 
 function createHavingComparisonMethods<T extends number | null>(
   metric: AggregateExpr,
+  outputCodecId: () => string,
 ): HavingComparisonMethods<T> {
-  const buildBinaryExpr = (op: BinaryOp, value: unknown): AnyExpression =>
-    new BinaryExpr(op, metric, LiteralExpr.of(value));
+  const buildBinaryExpr = (op: BinaryOp, value: unknown): AnyExpression => {
+    const expression = predicateExpression(value);
+    if (
+      expression !== undefined &&
+      (expression.kind !== 'prepared-param-ref' || expression.codec.codecId !== outputCodecId())
+    ) {
+      throw ormError(
+        'ORM.HAVING_EXPRESSION_UNSUPPORTED',
+        'HAVING comparands require a prepared parameter with the aggregate output codec',
+        { meta: { kind: expression.kind } },
+      );
+    }
+    return predicateComparison(op, metric, expression ?? LiteralExpr.of(value));
+  };
 
   return {
     eq(value) {

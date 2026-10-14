@@ -1,8 +1,9 @@
 import type { ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
 import { parseMarkerRowSafely, withMarkerReadErrorHandling } from '@internal/errors/execution';
+import { checkSqlDefaultText } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import { parseContractMarkerRow } from '@internal/family-sql/verify';
-import type { CodecLookup } from '@internal/framework-components/codec';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import { APP_SPACE_ID, type SchemaNodeRef } from '@internal/framework-components/control';
 import { ledgerOriginFromStored } from '@internal/migration-tools/ledger-origin';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
@@ -21,7 +22,12 @@ import type {
   MarkerReadResult,
   SqlExecuteRequest,
 } from '@internal/sql-relational-core/ast';
-import { isDdlNode } from '@internal/sql-relational-core/ast';
+import {
+  encodeLiteralDefault,
+  isDdlNode,
+  type LiteralDefaultColumn,
+  renderOpaqueSql,
+} from '@internal/sql-relational-core/ast';
 import type {
   PrimaryKeyInput,
   SqlColumnIRInput,
@@ -31,6 +37,7 @@ import type {
   SqlUniqueIRInput,
 } from '@internal/sql-schema-ir/types';
 import { RelationalSchemaNodeKind, SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
+import { SQLITE_NOW_EXPRESSION, type SqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import {
   buildControlTableBootstrapQueries,
   buildSignMarkerBootstrapQueries,
@@ -55,7 +62,7 @@ import {
   NOW,
   sqliteCatalog,
 } from './marker-ledger';
-import type { SqliteCodecRegistry, SqliteContract } from './types';
+import type { SqliteContract } from './types';
 
 const SQLITE_MARKER_TABLE = '_prisma_marker';
 const SQLITE_LEDGER_TABLE = '_prisma_ledger';
@@ -123,7 +130,6 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
   }
 
   readonly normalizeDefault = parseSqliteDefault;
-  readonly normalizeNativeType = normalizeSqliteNativeType;
 
   bootstrapControlTableQueries(): readonly DdlNode[] {
     return buildControlTableBootstrapQueries();
@@ -154,6 +160,14 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
       blindCast<SqliteContract, 'caller must supply a matching SqliteContract'>(context.contract),
       this.codecRegistry,
     );
+  }
+
+  async renderColumnDefault(column: DdlColumn, table: string): Promise<string> {
+    if (column.default === undefined) return '';
+    return sqliteRenderDdlColumnDefault(column.default, this.codecRegistry, column.codecRef, {
+      table,
+      column: column.name,
+    });
   }
 
   /**
@@ -427,9 +441,32 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
     return rows.length > 0;
   }
 
+  async withTransaction<T>(
+    driver: SqlControlDriverInstance<'sqlite'>,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    await driver.query('BEGIN IMMEDIATE');
+    let result: T;
+    try {
+      result = await fn();
+    } catch (error) {
+      try {
+        await driver.query('ROLLBACK');
+      } catch (rollbackError) {
+        if (error instanceof Error && error.cause === undefined) {
+          error.cause = rollbackError;
+        }
+      }
+      throw error;
+    }
+    await driver.query('COMMIT');
+    return result;
+  }
+
+  async lockMarker(_driver: SqlControlDriverInstance<'sqlite'>): Promise<void> {}
+
   /**
-   * Appends a ledger entry for `space`. See the
-   * `SqlControlAdapter.writeLedgerEntry` contract.
+   * Appends a ledger entry for `space`. See the `SqlControlAdapter.writeLedgerEntry` contract.
    */
   async writeLedgerEntry(
     driver: SqlControlDriverInstance<'sqlite'>,
@@ -514,13 +551,13 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
 
       // SQLite's synchronous driver serializes reads — no benefit from Promise.all
       const columnsResult = await driver.query<PragmaTableInfoRow>(
-        `PRAGMA table_info("${escapePragmaArg(tableName)}")`,
+        `PRAGMA table_info(${quoteIdentifier(tableName)})`,
       );
       const fkResult = await driver.query<PragmaForeignKeyRow>(
-        `PRAGMA foreign_key_list("${escapePragmaArg(tableName)}")`,
+        `PRAGMA foreign_key_list(${quoteIdentifier(tableName)})`,
       );
       const indexListResult = await driver.query<PragmaIndexListRow>(
-        `PRAGMA index_list("${escapePragmaArg(tableName)}")`,
+        `PRAGMA index_list(${quoteIdentifier(tableName)})`,
       );
 
       const columns: Record<string, SqlColumnIRInput> = {};
@@ -597,7 +634,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
       for (const idx of indexListResult.rows) {
         // origin: 'c' = CREATE INDEX, 'u' = UNIQUE constraint, 'pk' = PRIMARY KEY
         const idxInfoResult = await driver.query<PragmaIndexInfoRow>(
-          `PRAGMA index_info("${escapePragmaArg(idx.name)}")`,
+          `PRAGMA index_info(${quoteIdentifier(idx.name)})`,
         );
 
         const idxColumns = idxInfoResult.rows.sort((a, b) => a.seqno - b.seqno).map((r) => r.name);
@@ -638,13 +675,6 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
       tables,
     });
   }
-}
-
-// PRAGMA queries use the function-argument form (`PRAGMA table_info("name")`)
-// which doesn't support `?` placeholders — the argument is part of the
-// statement name, not a bound parameter. We quote-escape the table name instead.
-function escapePragmaArg(name: string): string {
-  return name.replace(/"/g, '""');
 }
 
 const SQLITE_REFERENTIAL_ACTION_MAP: Record<string, SqlReferentialAction> = {
@@ -700,16 +730,18 @@ function flatColumnDependsOn(tableName: string, columns: readonly string[]): Sch
 // sqliteRenderDdlExecuteRequest — independent DDL walker for lowerToExecuteRequest
 // ---------------------------------------------------------------------------
 
-function sqliteInlineLiteral(wire: unknown): string {
+function sqliteInlineLiteral(wire: unknown, where: LiteralDefaultColumn): string {
   if (wire === null) return 'NULL';
   if (typeof wire === 'boolean') return wire ? '1' : '0';
   if (typeof wire === 'number') {
-    if (!Number.isFinite(wire)) {
+    if (Number.isNaN(wire)) {
       throw structuredError(
         'CONTRACT.DEFAULT_INVALID',
-        `sqliteRenderDdlExecuteRequest: non-finite number wire value ${String(wire)} cannot be emitted as a DEFAULT literal`,
+        `Column "${where.table}"."${where.column}" has a NaN default, which SQLite stores as NULL`,
+        { meta: { table: where.table, column: where.column, value: 'NaN', reason: 'nan-default' } },
       );
     }
+    if (!Number.isFinite(wire)) return wire > 0 ? '9e999' : '-9e999';
     return String(wire);
   }
   if (typeof wire === 'bigint') return String(wire);
@@ -717,7 +749,8 @@ function sqliteInlineLiteral(wire: unknown): string {
     if (Number.isNaN(wire.getTime())) {
       throw structuredError(
         'CONTRACT.DEFAULT_INVALID',
-        'sqliteRenderDdlExecuteRequest: invalid Date value cannot be emitted as a DEFAULT literal',
+        `Column "${where.table}"."${where.column}" has an invalid Date default`,
+        { meta: { table: where.table, column: where.column, reason: 'invalid-date-default' } },
       );
     }
     return `'${escapeLiteral(wire.toISOString())}'`;
@@ -739,36 +772,38 @@ function sqliteInlineLiteral(wire: unknown): string {
 
 async function sqliteRenderDdlColumnDefault(
   def: LiteralColumnDefault | FunctionColumnDefault,
-  codecLookup: CodecLookup,
+  codecLookup: CodecLookupWithDescriptors,
   codecRef: CodecRef | undefined,
+  where: LiteralDefaultColumn,
 ): Promise<string> {
   if (def.kind === 'function') {
-    if (def.expression === 'autoincrement()') return '';
-    // SQLite has no `now()` function; the contract canonicalizes
-    // `CURRENT_TIMESTAMP` / `datetime('now')` to `now()`, so map it back to a
-    // valid SQLite expression on the way out.
-    if (def.expression === 'now()') return "DEFAULT (datetime('now'))";
-    return `DEFAULT (${def.expression})`;
-  }
-  if (codecRef !== undefined) {
-    const codec = codecLookup.get(codecRef.codecId);
-    if (codec !== undefined) {
-      // A literal default reaches here either as the canonical JSON a
-      // contract stores or as the value an authoring surface built, and only
-      // the first needs reading back: `sqlite/bigint@1` stores decimal text
-      // for a `bigint`, which `encode` does not take. A `Date` is the one
-      // authored value JSON has no notation for, so it is the one that
-      // arrives as itself.
-      const value = def.value instanceof Date ? def.value : codec.decodeJson(def.value);
-      const wire = await codec.encode(value, {});
-      return `DEFAULT ${sqliteInlineLiteral(wire)}`;
+    if (def.expression.text === 'autoincrement()') return '';
+    if (def.expression.text === 'now()') return `DEFAULT (${SQLITE_NOW_EXPRESSION})`;
+    if (checkSqlDefaultText(def.expression.text) !== undefined) {
+      throw structuredError(
+        'CONTRACT.DEFAULT_INVALID',
+        `Unsafe default expression in contract: "${def.expression.text}". ` +
+          'Default expressions must not contain semicolons, SQL comment tokens, dollar-quoting, or subqueries.',
+        { meta: { expression: def.expression.text } },
+      );
     }
+    return `DEFAULT (${renderOpaqueSql(def.expression)})`;
   }
+  const encoded =
+    codecRef === undefined
+      ? undefined
+      : await encodeLiteralDefault(codecLookup, codecRef, def.value, where);
+  if (encoded?.kind === 'sql-null') return 'DEFAULT NULL';
+  if (encoded !== undefined) return `DEFAULT ${sqliteInlineLiteral(encoded.wire, where)}`;
   // Fallback: codec-less literal defaults follow RawSqlLiteral wire-scalar semantics.
-  return `DEFAULT ${sqliteInlineLiteral(def.value)}`;
+  return `DEFAULT ${sqliteInlineLiteral(def.value, where)}`;
 }
 
-async function sqliteRenderDdlColumn(column: DdlColumn, codecLookup: CodecLookup): Promise<string> {
+async function sqliteRenderDdlColumn(
+  column: DdlColumn,
+  codecLookup: CodecLookupWithDescriptors,
+  table: string,
+): Promise<string> {
   if (column.type.includes('AUTOINCREMENT')) {
     return `${quoteIdentifier(column.name)} ${column.type}`;
   }
@@ -776,7 +811,15 @@ async function sqliteRenderDdlColumn(column: DdlColumn, codecLookup: CodecLookup
   if (column.notNull) parts.push('NOT NULL');
   if (column.primaryKey) parts.push('PRIMARY KEY');
   if (column.default) {
-    const clause = await sqliteRenderDdlColumnDefault(column.default, codecLookup, column.codecRef);
+    const clause = await sqliteRenderDdlColumnDefault(
+      column.default,
+      codecLookup,
+      column.codecRef,
+      {
+        table,
+        column: column.name,
+      },
+    );
     if (clause.length > 0) parts.push(clause);
   }
   return parts.join(' ');
@@ -822,13 +865,13 @@ function sqliteRenderDdlConstraint(constraint: DdlTableConstraint): string {
 
 async function sqliteRenderDdlExecuteRequest(
   ast: SqliteDdlNode,
-  codecLookup: CodecLookup,
+  codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
   const node = blindCast<SqliteCreateTable, 'SQLite DDL only has create-table'>(ast);
   const ifNotExists = node.ifNotExists ? 'IF NOT EXISTS ' : '';
   const tableRef = quoteIdentifier(node.table);
   const columnDefs = await Promise.all(
-    node.columns.map((col) => sqliteRenderDdlColumn(col, codecLookup)),
+    node.columns.map((col) => sqliteRenderDdlColumn(col, codecLookup, node.table)),
   );
   const constraintDefs =
     node.constraints !== undefined ? node.constraints.map(sqliteRenderDdlConstraint) : [];

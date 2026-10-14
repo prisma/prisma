@@ -1,25 +1,6 @@
 import type { ColumnDefault } from '@internal/contract/types';
-import type { DefaultMappingOptions } from './default-mapping';
-
-export type PslTypeReference = {
-  readonly name: string;
-  readonly args?: readonly string[];
-};
-
-export type PslTypeResolution =
-  | {
-      readonly pslType: PslTypeReference;
-      readonly nativeType: string;
-      readonly typeParams?: Record<string, unknown>;
-    }
-  | {
-      readonly unsupported: true;
-      readonly nativeType: string;
-    };
-
-export interface PslTypeMap {
-  resolve(nativeType: string, annotations?: Record<string, unknown>): PslTypeResolution;
-}
+import type { DefaultMappingOptions } from '../psl-build/default-mapping';
+import type { PslTypeMap } from '../psl-build/type-map';
 
 export interface EnumInfo {
   readonly typeNames: ReadonlySet<string>;
@@ -57,6 +38,6 @@ export type RelationField = {
   readonly references?: readonly string[] | undefined;
   readonly onDelete?: string | undefined;
   readonly onUpdate?: string | undefined;
-  /** `false` when the FK's source columns have no live backing index; omitted (the default) otherwise. */
-  readonly index?: boolean | undefined;
+  /** `false` when nothing live serves the FK's lookups, the name of the live key or index that serves them where the derived backing index would not match it, omitted (the default) otherwise. */
+  readonly index?: false | string | undefined;
 };

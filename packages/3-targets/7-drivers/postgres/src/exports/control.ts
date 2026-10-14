@@ -1,13 +1,18 @@
 import { errorRuntime } from '@internal/errors/execution';
-import type { ControlDriverDescriptor } from '@internal/framework-components/control';
+import type {
+  ControlDriverConnectOptions,
+  ControlDriverDescriptor,
+} from '@internal/framework-components/control';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { redactDatabaseUrl } from '@internal/utils/redact-db-url';
 import { suppressIdleConnectionErrors } from '@internal/utils/suppress-idle-connection-errors';
 import { Client } from 'pg';
 import { postgresDriverDescriptorMeta } from '../core/descriptor-meta';
 import { normalizePgError } from '../normalize-error';
+import { controlTextTypes } from '../server-text-types';
 
 export class PostgresControlDriver implements SqlControlDriverInstance<'postgres'> {
   readonly familyId = 'sql' as const;
@@ -20,8 +25,14 @@ export class PostgresControlDriver implements SqlControlDriverInstance<'postgres
     params?: readonly unknown[],
   ): Promise<{ readonly rows: Row[] }> {
     try {
-      const result = await this.client.query(sql, params as unknown[] | undefined);
-      return { rows: result.rows as Row[] };
+      const query =
+        params === undefined
+          ? { text: sql, types: controlTextTypes }
+          : { text: sql, values: [...params], types: controlTextTypes };
+      const result = await this.client.query(query);
+      return {
+        rows: blindCast<Row[], 'pg query rows are shaped by the query result type'>(result.rows),
+      };
     } catch (error) {
       throw normalizePgError(error);
     }
@@ -46,8 +57,16 @@ export class PostgresControlDriver implements SqlControlDriverInstance<'postgres
 const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', PostgresControlDriver> =
   {
     ...postgresDriverDescriptorMeta,
-    async create(url: string): Promise<PostgresControlDriver> {
-      const client = suppressIdleConnectionErrors(new Client({ connectionString: url }));
+    async create(
+      url: string,
+      options?: ControlDriverConnectOptions,
+    ): Promise<PostgresControlDriver> {
+      const client = suppressIdleConnectionErrors(
+        new Client({
+          connectionString: url,
+          ...ifDefined('connectionTimeoutMillis', options?.connectTimeoutMs),
+        }),
+      );
       try {
         await client.connect();
         return new PostgresControlDriver(client);
@@ -62,8 +81,11 @@ const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', Postg
 
         const codeFromSqlState = SqlQueryError.is(normalized) ? normalized.sqlState : undefined;
         const causeCode =
-          'cause' in normalized && normalized.cause
-            ? (normalized.cause as { code?: unknown }).code
+          'cause' in normalized && normalized.cause && typeof normalized.cause === 'object'
+            ? blindCast<
+                { readonly code?: unknown },
+                'normalized connection cause is object-shaped'
+              >(normalized.cause).code
             : undefined;
         const sqlState = codeFromSqlState ?? causeCode;
 

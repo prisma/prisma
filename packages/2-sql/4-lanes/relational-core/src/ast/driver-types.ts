@@ -35,10 +35,16 @@ export interface SqlDriver<TBinding = void> extends SqlQueryable {
   readonly state?: SqlDriverState;
   connect(binding: TBinding): Promise<void>;
   acquireConnection(): Promise<SqlConnection>;
+  /**
+   * The SQL runtime stops waiting for a query once the driver has answered its first row, so it relies on `close()` waiting for every connection the driver has handed out to be released, and for every query stream it has started to finish or be returned, before it releases its resources. The Postgres drivers do this; the SQLite driver does not yet.
+   */
   close(): Promise<void>;
 }
 
 export interface SqlConnection extends SqlQueryable {
+  /**
+   * Begins a transaction on this connection's session. Until it commits or rolls back, a statement sent on this connection runs inside it.
+   */
   beginTransaction(): Promise<SqlTransaction>;
   /**
    * Returns the connection to the pool for reuse. Must only be called when the
@@ -73,6 +79,9 @@ export interface SqlConnection extends SqlQueryable {
   destroy(reason?: unknown): Promise<void>;
 }
 
+/**
+ * A transaction begun on a connection. A statement sent on the transaction or on its connection after `commit()` or `rollback()` is called reaches the database after the `COMMIT` or `ROLLBACK`.
+ */
 export interface SqlTransaction extends SqlQueryable {
   commit(): Promise<void>;
   rollback(): Promise<void>;

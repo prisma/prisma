@@ -35,8 +35,8 @@ import { createTestRuntime as createRuntime, descriptorsFromCodecs } from './uti
  * matching marker (silent), verifyMarker: false (reader never called), and one-shot semantics
  * (at most one log per runtime lifetime).
  *
- * Storage-hash mismatch ordering against middleware interceptQuerys is covered by
- * `marker-vs-interceptQuery-ordering.test.ts`.
+ * Storage-hash mismatch ordering against middleware interceptors is covered by
+ * `marker-vs-intercept-ordering.test.ts`.
  */
 
 const testContract: Contract<SqlStorage> = {
@@ -60,7 +60,6 @@ function createCodecs(): ReadonlyArray<Codec<string>> {
   return [
     defineTestCodec({
       typeId: 'pg/int4@1',
-      targetTypes: ['int4'],
       encode: (v: number) => v,
       decode: (w: number) => w,
     }),

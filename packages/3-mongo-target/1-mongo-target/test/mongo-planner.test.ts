@@ -1,5 +1,6 @@
 import { coreHash, type JsonValue } from '@internal/contract/types';
 import type { MigrationOperationPolicy } from '@internal/framework-components/control';
+import { planOriginOf } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
 import {
   buildMongoNamespace,
@@ -29,8 +30,8 @@ import {
   MongoSchemaValidator,
 } from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
-import { MongoMigrationPlanner } from '../src/core/mongo-planner';
-import { CollModCall, CreateIndexCall } from '../src/core/op-factory-call';
+import { MongoMigrationPlanner } from '../src/core/migrations/mongo-planner';
+import { CollModCall, CreateIndexCall } from '../src/core/migrations/op-factory-call';
 import type { PlannerProducedMongoMigration } from '../src/exports/control';
 
 const ALL_CLASSES_POLICY: MigrationOperationPolicy = {
@@ -111,6 +112,8 @@ function planSuccess(
     schema,
     policy,
     fromContract: null,
+    origin: null,
+    statements: [],
     frameworkComponents: [],
     snapshotsImportPath: '../../snapshots',
   });
@@ -146,7 +149,7 @@ describe('MongoMigrationPlanner', () => {
 
       expect(plan.operations).toHaveLength(1);
       const op = plan.operations[0] as MongoMigrationPlanOperation;
-      expect(op.operationClass).toBe('destructive');
+      expect(op.operationClass).toBe('widening');
       expect(op.execute).toHaveLength(1);
       expect(op.execute[0]!.command.kind).toBe('dropIndex');
       const cmd = op.execute[0]!.command as DropIndexCommand;
@@ -190,7 +193,7 @@ describe('MongoMigrationPlanner', () => {
       expect(plan.operations).toHaveLength(2);
       const drop = plan.operations[0] as MongoMigrationPlanOperation;
       const create = plan.operations[1] as MongoMigrationPlanOperation;
-      expect(drop.operationClass).toBe('destructive');
+      expect(drop.operationClass).toBe('widening');
       expect(create.operationClass).toBe('additive');
     });
 
@@ -264,7 +267,11 @@ describe('MongoMigrationPlanner', () => {
       ]);
       const plan = planSuccess(planner, contract, origin);
       expect(plan.operations).toHaveLength(3);
-      expect(plan.operations.every((op) => op.operationClass === 'destructive')).toBe(true);
+      expect(plan.operations.map((op) => op.operationClass)).toEqual([
+        'widening',
+        'widening',
+        'destructive',
+      ]);
       expect(plan.operations[2]!.id).toBe('collection.users.drop');
     });
 
@@ -292,7 +299,7 @@ describe('MongoMigrationPlanner', () => {
       const plan = planSuccess(planner, contract, origin);
 
       expect(plan.operations).toHaveLength(2);
-      expect(plan.operations[0]!.operationClass).toBe('destructive');
+      expect(plan.operations[0]!.operationClass).toBe('widening');
       expect(plan.operations[1]!.operationClass).toBe('additive');
     });
 
@@ -310,7 +317,7 @@ describe('MongoMigrationPlanner', () => {
   });
 
   describe('policy gating', () => {
-    it('returns conflicts when destructive operations are disallowed', () => {
+    it('returns conflicts when the policy disallows an index drop', () => {
       const contract = makeContract({ users: {} });
       const origin = irWithCollection('users', [ascIndex('email')]);
       const result = planner.plan({
@@ -318,6 +325,8 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ADDITIVE_ONLY_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -349,6 +358,8 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ADDITIVE_ONLY_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -357,7 +368,7 @@ describe('MongoMigrationPlanner', () => {
       expect(result.conflicts).toHaveLength(3);
     });
 
-    it('rejects destructive validator add with additive-only policy', () => {
+    it('rejects a validator add, which is widening, with additive-only policy', () => {
       const contract = makeContract({
         users: {
           validator: {
@@ -373,13 +384,15 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ADDITIVE_ONLY_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
       expect(result.kind).toBe('failure');
       if (result.kind !== 'failure') throw new Error('Expected failure');
       expect(result.conflicts).toHaveLength(1);
-      expect(result.conflicts[0]!.summary).toContain('destructive');
+      expect(result.conflicts[0]!.summary).toContain('widening');
     });
 
     it('allows widening validator removal with widening policy', () => {
@@ -609,6 +622,7 @@ describe('MongoMigrationPlanner', () => {
       const cmd = collModOps[0]!.execute[0]!.command as CollModCommand;
       expect(cmd.validator).toEqual({ $jsonSchema: { bsonType: 'object' } });
       expect(cmd.validationLevel).toBe('strict');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
     it('validator add has precheck (collection exists) and postcheck (validator applied)', () => {
@@ -680,6 +694,104 @@ describe('MongoMigrationPlanner', () => {
       expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
+    describe('a property whose schema admits more', () => {
+      const JSON_TYPES = ['object', 'array', 'string', 'double', 'int', 'long', 'bool', 'null'];
+
+      function validatorUpdate(originMeta: unknown, destMeta: unknown) {
+        const jsonSchema = (meta: unknown) => ({
+          bsonType: 'object',
+          required: ['_id'],
+          properties: { _id: { bsonType: 'objectId' }, name: { bsonType: 'string' }, meta },
+          additionalProperties: false,
+        });
+        const contract = makeContract({
+          items: {
+            validator: {
+              jsonSchema: jsonSchema(destMeta),
+              validationLevel: 'strict',
+              validationAction: 'error',
+            },
+          },
+        });
+        const origin = new MongoSchemaIR([
+          new MongoSchemaCollection({
+            name: 'items',
+            validator: new MongoSchemaValidator({
+              jsonSchema: jsonSchema(originMeta),
+              validationLevel: 'strict',
+              validationAction: 'error',
+            }),
+          }),
+        ]);
+        const [operation] = planSuccess(planner, contract, origin).operations;
+        return operation;
+      }
+
+      it('is widening when the schema becomes {}, as changing Json to Bson does', () => {
+        expect(validatorUpdate({ bsonType: JSON_TYPES }, {})).toMatchObject({
+          operationClass: 'widening',
+          label: 'Update validator on items (changed: meta)',
+        });
+      });
+
+      it('is widening when the bsonType list gains a type, as making a field optional does', () => {
+        expect(validatorUpdate({ bsonType: 'int' }, { bsonType: ['null', 'int'] })).toMatchObject({
+          operationClass: 'widening',
+        });
+      });
+
+      it('is widening when the items of an array schema admit more', () => {
+        expect(
+          validatorUpdate(
+            { bsonType: 'array', items: { bsonType: JSON_TYPES } },
+            { bsonType: 'array', items: {} },
+          ),
+        ).toMatchObject({ operationClass: 'widening' });
+      });
+
+      it('is widening when the bsonType list loses a type, as changing Bson to Json does', () => {
+        expect(validatorUpdate({}, { bsonType: JSON_TYPES })).toMatchObject({
+          operationClass: 'widening',
+          label: 'Update validator on items (changed: meta)',
+        });
+      });
+
+      it('names added and removed properties in the label', () => {
+        const contract = makeContract({
+          items: {
+            validator: {
+              jsonSchema: {
+                bsonType: 'object',
+                properties: { name: { bsonType: 'string' }, note: { bsonType: 'string' } },
+              },
+              validationLevel: 'strict',
+              validationAction: 'error',
+            },
+          },
+        });
+        const origin = new MongoSchemaIR([
+          new MongoSchemaCollection({
+            name: 'items',
+            validator: new MongoSchemaValidator({
+              jsonSchema: {
+                bsonType: 'object',
+                properties: { name: { bsonType: 'int' }, legacy: { bsonType: 'string' } },
+              },
+              validationLevel: 'strict',
+              validationAction: 'error',
+            }),
+          }),
+        ]);
+        const labels = planSuccess(planner, contract, origin).operations.map(
+          (operation) => operation.label,
+        );
+        expect(labels).toEqual([
+          'Remove field legacy from collection items',
+          'Update validator on items (changed: name; added: note; removed: legacy)',
+        ]);
+      });
+    });
+
     it('classifies adding a non-required property as widening', () => {
       const contract = makeContract({
         users: {
@@ -719,7 +831,7 @@ describe('MongoMigrationPlanner', () => {
       expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
-    it('classifies the open->closed transition (adding additionalProperties:false) as destructive', () => {
+    it('classifies the open->closed transition (adding additionalProperties:false) as widening', () => {
       const contract = makeContract({
         users: {
           validator: {
@@ -753,7 +865,7 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
     it('classifies adding a non-required property to an already-closed schema as widening', () => {
@@ -797,7 +909,7 @@ describe('MongoMigrationPlanner', () => {
       expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
-    it('classifies narrowing an existing property type as destructive', () => {
+    it('classifies narrowing an existing property type as widening', () => {
       const contract = makeContract({
         users: {
           validator: {
@@ -828,10 +940,10 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
-    it('classifies adding a field to required as destructive', () => {
+    it('classifies adding a field to required as widening', () => {
       const contract = makeContract({
         users: {
           validator: {
@@ -870,7 +982,7 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
     it('treats reordered jsonSchema keys as equivalent (no operation emitted)', () => {
@@ -928,7 +1040,7 @@ describe('MongoMigrationPlanner', () => {
       expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
-    it('classifies validationAction warn->error as destructive', () => {
+    it('classifies validationAction warn->error as widening', () => {
       const contract = makeContract({
         users: {
           validator: {
@@ -953,7 +1065,7 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
     it('classifies validationLevel strict->moderate as widening', () => {
@@ -984,7 +1096,7 @@ describe('MongoMigrationPlanner', () => {
       expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
-    it('classifies validationLevel moderate->strict as destructive', () => {
+    it('classifies validationLevel moderate->strict as widening', () => {
       const contract = makeContract({
         users: {
           validator: {
@@ -1009,10 +1121,10 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
-    it('classifies mixed widening+destructive changes as destructive', () => {
+    it('classifies a validator that both relaxes and tightens as widening', () => {
       const contract = makeContract({
         users: {
           validator: {
@@ -1037,7 +1149,7 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
     it('no-ops when validators are identical', () => {
@@ -1085,7 +1197,7 @@ describe('MongoMigrationPlanner', () => {
 
     // TML-2486: bare collections (no validator/options/indexes) must still
     // round-trip through `db init`. MongoDB creates collections implicitly
-    // on first insert, but Prisma Next's schema verifier treats a contract-
+    // on first insert, but Prisma 8's schema verifier treats a contract-
     // declared collection that is absent from the live database as a
     // `missing_table` issue. The planner therefore has to emit an explicit
     // createCollection op so the runner provisions the collection before
@@ -1149,6 +1261,8 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ALL_CLASSES_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -1169,6 +1283,8 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ALL_CLASSES_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -1192,6 +1308,8 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ALL_CLASSES_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -1219,12 +1337,67 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ALL_CLASSES_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
       expect(result.kind).toBe('failure');
       if (result.kind !== 'failure') throw new Error('Expected failure');
       expect(result.conflicts.some((c) => c.summary.includes('clusteredIndex'))).toBe(true);
+    });
+
+    function liveClusteredIndex(name: string) {
+      const clusteredIndex = { v: 2, key: { _id: 1 }, unique: true, name };
+      return clusteredIndex;
+    }
+
+    it('plans nothing for the clustered index fields the server fills in', () => {
+      const contract = makeContract({ events: { options: { clusteredIndex: {} } } });
+      const origin = new MongoSchemaIR([
+        new MongoSchemaCollection({
+          name: 'events',
+          options: new MongoSchemaCollectionOptions({
+            clusteredIndex: liveClusteredIndex('_id_'),
+          }),
+        }),
+      ]);
+      const result = planner.plan({
+        contract,
+        schema: origin,
+        policy: ALL_CLASSES_POLICY,
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents: [],
+        snapshotsImportPath: '../../snapshots',
+      });
+      expect(result.kind).toBe('success');
+    });
+
+    it('reports conflict when the contract removes a declared clustered index name', () => {
+      const contract = makeContract({ events: { options: { clusteredIndex: {} } } });
+      const origin = new MongoSchemaIR([
+        new MongoSchemaCollection({
+          name: 'events',
+          options: new MongoSchemaCollectionOptions({
+            clusteredIndex: liveClusteredIndex('byId'),
+          }),
+        }),
+      ]);
+      const result = planner.plan({
+        contract,
+        schema: origin,
+        policy: ALL_CLASSES_POLICY,
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents: [],
+        snapshotsImportPath: '../../snapshots',
+      });
+      expect(
+        result.kind === 'failure' ? result.conflicts.map(({ summary }) => summary) : [],
+      ).toEqual([expect.stringContaining('clusteredIndex')]);
     });
 
     it('reports conflict when timeseries changes', () => {
@@ -1248,6 +1421,8 @@ describe('MongoMigrationPlanner', () => {
         schema: origin,
         policy: ALL_CLASSES_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -1268,6 +1443,8 @@ describe('MongoMigrationPlanner', () => {
         schema: emptyIR(),
         policy: { allowedOperationClasses: [] },
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -1321,7 +1498,7 @@ describe('MongoMigrationPlanner', () => {
       expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
-    it('classifies disabling changeStreamPreAndPostImages as destructive', () => {
+    it('classifies disabling changeStreamPreAndPostImages as widening', () => {
       const contract = makeContract({
         events: {
           options: { changeStreamPreAndPostImages: { enabled: false } },
@@ -1340,7 +1517,7 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
     });
 
     it('emits { enabled: false } when destination removes changeStreamPreAndPostImages', () => {
@@ -1358,7 +1535,7 @@ describe('MongoMigrationPlanner', () => {
         (op) => op.execute[0]?.command.kind === 'collMod',
       );
       expect(collModOps).toHaveLength(1);
-      expect(collModOps[0]!.operationClass).toBe('destructive');
+      expect(collModOps[0]!.operationClass).toBe('widening');
       const cmd = collModOps[0]!.execute[0]!.command as CollModCommand;
       expect(cmd.changeStreamPreAndPostImages).toEqual({ enabled: false });
     });
@@ -1506,7 +1683,7 @@ describe('MongoMigrationPlanner', () => {
       expect((calls[0] as CollModCall).meta).toMatchObject({
         id: 'validator.users.update',
         label: 'Update validator on users',
-        operationClass: 'destructive',
+        operationClass: 'widening',
       });
     });
 
@@ -1567,7 +1744,7 @@ describe('MongoMigrationPlanner', () => {
     });
   });
 
-  describe('polymorphic collections (FL-09)', () => {
+  describe('polymorphic collections', () => {
     it('does not createCollection for variant names when contract has only the base collection', () => {
       const contract = makeContract({
         tasks: {
@@ -1626,6 +1803,8 @@ describe('MongoMigrationPlanner', () => {
         schema: emptyIR(),
         policy: ALL_CLASSES_POLICY,
         fromContract,
+        origin: planOriginOf(fromContract),
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -1641,6 +1820,8 @@ describe('MongoMigrationPlanner', () => {
         schema: emptyIR(),
         policy: ALL_CLASSES_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });

@@ -1,5 +1,7 @@
 # ADR 207 — Codec call context: per-query `AbortSignal` and column metadata
 
+> **Update — `targetTypes` is removed** by [ADR 254 — Data types and casts](ADR%20254%20-%20Data%20types%20and%20casts.md): a codec names the data type it represents, and the data type declares how the database names the type. Where this ADR names `targetTypes`, it describes the codec shape of its time.
+
 ## Status
 
 Accepted. Apr 30, 2026.
@@ -14,7 +16,6 @@ A codec author shipping an encrypted-JSON column type with cancellation and colu
 import {
   CodecDescriptorImpl,
   CodecImpl,
-  voidParamsSchema,
   type CodecInstanceContext,
 } from '@internal/framework-components/codec';
 import type { JsonValue } from '@internal/contract/types';
@@ -51,7 +52,7 @@ class EncryptedJsonDescriptor extends CodecDescriptorImpl<void> {
   override readonly codecId = 'encrypted/json@1';
   override readonly traits = [] as const;
   override readonly targetTypes = ['jsonb'] as const;
-  override readonly paramsSchema = voidParamsSchema;
+  override readonly paramsSchema = undefined;
   override readonly factory = () => (_ctx: CodecInstanceContext) => new EncryptedJsonCodec();
 }
 ```

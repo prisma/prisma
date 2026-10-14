@@ -1,3 +1,4 @@
+import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import {
   type AuthoringEntityTypeNamespace,
   isAuthoringEntityTypeDescriptor,
@@ -10,10 +11,17 @@ import {
   type ResolvedPackEntityHandle,
 } from '@internal/sql-contract/entity-handle-lowering-hook';
 import type { AuthoredIndexMethod } from '@internal/sql-contract/index-naming';
-import type { StorageTypeInstance } from '@internal/sql-contract/types';
+import {
+  isSqlExpression,
+  readSqlExpression,
+  requireSqlExpression,
+  SqlExpression,
+} from '@internal/sql-contract/sql-expression';
+import type { AuthoredStorageTypeInstance } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 import type {
   AttachedEntities,
   CheckNode,
@@ -30,9 +38,12 @@ import {
   applyNaming,
   type ContractInput,
   type ContractModelBuilder,
+  type DeferredIndexColumn,
   type FieldStateOf,
   type ForeignKeyConstraint,
   type IdConstraint,
+  type IndexConstraint,
+  type IndexExpressionInput,
   isCrossSpaceHandle,
   type ModelAttributesSpec,
   normalizeRelationFieldNames,
@@ -49,6 +60,7 @@ import {
   emitTypedNamedTypeFallbackWarnings,
 } from './contract-warnings';
 import { isEnumTypeHandle } from './enum-type';
+import { toOneNullabilityContradictionMessage } from './to-one-nullability-message';
 
 type RuntimeModel = ContractModelBuilder<
   string | undefined,
@@ -71,15 +83,15 @@ type RuntimeModelSpec = {
 };
 
 type RuntimeCollection = {
-  readonly storageTypes: Record<string, StorageTypeInstance>;
+  readonly storageTypes: Record<string, AuthoredStorageTypeInstance>;
   readonly models: Record<string, RuntimeModel>;
   readonly modelSpecs: ReadonlyMap<string, RuntimeModelSpec>;
 };
 
 function buildStorageTypeReverseLookup(
-  storageTypes: Record<string, StorageTypeInstance>,
-): ReadonlyMap<StorageTypeInstance, string> {
-  const lookup = new Map<StorageTypeInstance, string>();
+  storageTypes: Record<string, AuthoredStorageTypeInstance>,
+): ReadonlyMap<AuthoredStorageTypeInstance, string> {
+  const lookup = new Map<AuthoredStorageTypeInstance, string>();
   for (const [key, instance] of Object.entries(storageTypes)) {
     lookup.set(instance, key);
   }
@@ -90,8 +102,8 @@ function resolveFieldDescriptor(
   modelName: string,
   fieldName: string,
   fieldState: FieldStateOf<ScalarFieldBuilder>,
-  storageTypes: Record<string, StorageTypeInstance>,
-  storageTypeReverseLookup: ReadonlyMap<StorageTypeInstance, string>,
+  storageTypes: Record<string, AuthoredStorageTypeInstance>,
+  storageTypeReverseLookup: ReadonlyMap<AuthoredStorageTypeInstance, string>,
 ): ColumnTypeDescriptor {
   if ('descriptor' in fieldState && fieldState.descriptor) {
     return fieldState.descriptor;
@@ -99,16 +111,13 @@ function resolveFieldDescriptor(
 
   if ('typeRef' in fieldState && fieldState.typeRef) {
     if (isEnumTypeHandle(fieldState.typeRef)) {
-      return {
-        codecId: fieldState.typeRef.codecId,
-        nativeType: fieldState.typeRef.nativeType,
-      };
+      return { codecId: fieldState.typeRef.codecId };
     }
 
     const typeRef =
       typeof fieldState.typeRef === 'string'
         ? fieldState.typeRef
-        : storageTypeReverseLookup.get(fieldState.typeRef as StorageTypeInstance);
+        : storageTypeReverseLookup.get(fieldState.typeRef as AuthoredStorageTypeInstance);
 
     if (!typeRef) {
       throw contractError(
@@ -127,11 +136,7 @@ function resolveFieldDescriptor(
       );
     }
 
-    return {
-      codecId: referencedType.codecId,
-      nativeType: referencedType.nativeType,
-      typeRef,
-    };
+    return { codecId: referencedType.codecId, typeRef };
   }
 
   throw contractError(
@@ -390,6 +395,38 @@ function resolveRelationAnchorFields(spec: RuntimeModelSpec): readonly string[] 
   );
 }
 
+function belongsToNullable(
+  relationName: string,
+  declaredNullable: boolean | undefined,
+  spec: RuntimeModelSpec,
+  fieldNames: readonly string[],
+): boolean {
+  const { nullable, contradiction } = resolveToOneRelationNullable({
+    declaredNullable,
+    localFieldNullability: fieldNames.map(
+      (fieldName) => spec.fieldBuilders[fieldName]?.build().nullable === true,
+    ),
+    ownsReference: true,
+  });
+  if (contradiction !== undefined) {
+    throw contractError(
+      'CONTRACT.RELATION_INVALID',
+      toOneNullabilityContradictionMessage(
+        `Relation "${spec.modelName}.${relationName}"`,
+        contradiction,
+      ),
+      {
+        meta: {
+          modelName: spec.modelName,
+          relationName,
+          reason: 'to-one-nullability-mismatch',
+        },
+      },
+    );
+  }
+  return nullable;
+}
+
 function lowerBelongsToRelation(
   relationName: string,
   relation: Extract<RelationState, { kind: 'belongsTo' }>,
@@ -419,7 +456,6 @@ function lowerBelongsToRelation(
       relation.spaceId,
       `Relation "${currentSpec.modelName}.${relationName}"`,
     );
-    const targetTable = relation.tableName ?? targetModelName.toLowerCase();
     const parentColumns = mapFieldNamesToColumnNames(
       currentSpec.modelName,
       fromFields,
@@ -427,19 +463,18 @@ function lowerBelongsToRelation(
     );
     // For cross-space relations, the `to` field names map directly to column
     // names because we have no fieldToColumn map for the remote model.
-    // (The brand carries the table name; field→column resolution on the remote
-    // side is deferred to the planner which has access to the remote contract.)
     return {
       fieldName: relationName,
       toModel: targetModelName,
-      toTable: targetTable,
+      toTable: relation.tableName,
       cardinality: 'N:1',
+      nullable: belongsToNullable(relationName, relation.optional, currentSpec, fromFields),
       spaceId: relation.spaceId,
       ...(relation.namespaceId !== undefined ? { namespaceId: relation.namespaceId } : {}),
       on: {
         parentTable: currentSpec.tableName,
         parentColumns,
-        childTable: targetTable,
+        childTable: relation.tableName,
         childColumns: toFields,
       },
     };
@@ -459,6 +494,7 @@ function lowerBelongsToRelation(
     toModel: targetModelName,
     toTable: targetSpec.tableName,
     cardinality: 'N:1',
+    nullable: belongsToNullable(relationName, relation.optional, currentSpec, fromFields),
     on: {
       parentTable: currentSpec.tableName,
       parentColumns: mapFieldNamesToColumnNames(
@@ -507,7 +543,9 @@ function lowerHasOwnershipRelation(
     fieldName: relationName,
     toModel: targetModelName,
     toTable: targetSpec.tableName,
-    cardinality: relation.kind === 'hasMany' ? '1:N' : '1:1',
+    ...(relation.kind === 'hasMany'
+      ? { cardinality: '1:N' as const }
+      : { cardinality: '1:1' as const, nullable: true }),
     on: {
       parentTable: currentSpec.tableName,
       parentColumns: mapFieldNamesToColumnNames(
@@ -636,7 +674,7 @@ function lowerLocalForeignKeyNode(
     readonly onDelete?: ForeignKeyConstraint['onDelete'] | undefined;
     readonly onUpdate?: ForeignKeyConstraint['onUpdate'] | undefined;
     readonly constraint?: boolean | undefined;
-    readonly index?: boolean | undefined;
+    readonly index?: boolean | string | undefined;
   },
 ): ForeignKeyNode {
   return {
@@ -671,14 +709,27 @@ function lowerCrossSpaceForeignKeyNode(
     readonly onDelete?: ForeignKeyConstraint['onDelete'] | undefined;
     readonly onUpdate?: ForeignKeyConstraint['onUpdate'] | undefined;
     readonly constraint?: boolean | undefined;
-    readonly index?: boolean | undefined;
+    readonly index?: boolean | string | undefined;
   },
 ): ForeignKeyNode {
+  if (foreignKey.targetTableName === undefined) {
+    throw contractError(
+      'CONTRACT.FOREIGN_KEY_INVALID',
+      `Foreign key on "${spec.modelName}" references model "${foreignKey.targetModel}" in contract space "${foreignKey.targetSpaceId}" but the target table name is unknown: the handle's .sql() stage is a factory function, so its table cannot be read statically. Declare the target model's .sql() stage with a static object carrying \`table\`.`,
+      {
+        meta: {
+          sourceModel: spec.modelName,
+          targetModel: foreignKey.targetModel,
+          spaceId: foreignKey.targetSpaceId,
+        },
+      },
+    );
+  }
   return {
     columns: mapFieldNamesToColumnNames(spec.modelName, foreignKey.fields, spec.fieldToColumn),
     references: {
       model: foreignKey.targetModel,
-      table: foreignKey.targetTableName ?? foreignKey.targetModel.toLowerCase(),
+      table: foreignKey.targetTableName,
       columns: foreignKey.targetFields,
       ...(foreignKey.targetNamespaceId !== undefined
         ? { namespaceId: foreignKey.targetNamespaceId }
@@ -768,14 +819,97 @@ function resolveForeignKeyNodes(
   return [...relationForeignKeys, ...sqlForeignKeys];
 }
 
+/**
+ * Resolves a deferred index expression's field refs the way the field-tuple form
+ * resolves its columns, and pairs each with the codec the column stores through
+ * so a renderer can refuse a column it cannot express.
+ */
+function resolveDeferredColumns(
+  spec: Pick<RuntimeModelSpec, 'modelName' | 'fieldToColumn'>,
+  fieldNames: readonly string[],
+  fieldCodecIds: Readonly<Record<string, string>>,
+): readonly DeferredIndexColumn[] {
+  const columnNames = mapFieldNamesToColumnNames(spec.modelName, fieldNames, spec.fieldToColumn);
+  return fieldNames.map((fieldName, position) => {
+    const name = columnNames[position];
+    const codecId = fieldCodecIds[fieldName];
+    if (name === undefined || codecId === undefined) {
+      throw new InternalError(
+        `Deferred index expression on "${spec.modelName}" resolved no column for field "${fieldName}"`,
+      );
+    }
+    return { name, codecId };
+  });
+}
+
+/**
+ * The text of an index expression. A string has no `render`, and `'render' in` a string throws a
+ * `TypeError`, so the `sql` value is recognized first and anything else is refused last.
+ */
+function indexExpressionText(
+  spec: Pick<RuntimeModelSpec, 'modelName' | 'fieldToColumn'>,
+  expression: IndexExpressionInput,
+  fieldCodecIds: Readonly<Record<string, string>>,
+  owner: string,
+): string {
+  const sqlExpression = readSqlExpression(expression);
+  if (sqlExpression !== undefined) return sqlExpression.text;
+  if (typeof expression === 'object' && expression !== null && 'render' in expression) {
+    return renderedSqlText(
+      expression.render(
+        resolveDeferredColumns(
+          spec,
+          expression.fields.map((ref) => ref.fieldName),
+          fieldCodecIds,
+        ),
+      ),
+      `${owner} expression`,
+    );
+  }
+  return requireSqlExpression(expression, `${owner} expression`).text;
+}
+
+function renderedSqlText(rendered: string, what: string): string {
+  try {
+    return new SqlExpression(rendered).text;
+  } catch (cause) {
+    if (!isStructuredError(cause) || cause.code !== 'CONTRACT.SQL_EXPRESSION_INVALID') throw cause;
+    throw contractError('CONTRACT.SQL_EXPRESSION_INVALID', `${what}: ${cause.message}`, {
+      meta: { what, ...cause.meta },
+      cause,
+    });
+  }
+}
+
+function constraintOwner(
+  kind: 'Index' | 'Check',
+  modelName: string,
+  constraint: { readonly name?: string | undefined; readonly map?: string | undefined },
+): string {
+  const name = constraint.name ?? constraint.map;
+  return name === undefined ? `${kind} on "${modelName}"` : `${kind} "${name}"`;
+}
+
+/** The fields an index covers, in order: its own, or those of its deferred expression. */
+function coveredFieldNames(index: IndexConstraint): readonly string[] {
+  if (index.fields !== undefined) return index.fields;
+  const { expression } = index;
+  if (expression === undefined || isSqlExpression(expression) || typeof expression !== 'object') {
+    return [];
+  }
+  return expression.fields.map((ref) => ref.fieldName);
+}
+
 function resolveModelNode(
   spec: RuntimeModelSpec,
   allSpecs: ReadonlyMap<string, RuntimeModelSpec>,
-  storageTypes: Record<string, StorageTypeInstance>,
-  storageTypeReverseLookup: ReadonlyMap<StorageTypeInstance, string>,
+  storageTypes: Record<string, AuthoredStorageTypeInstance>,
+  storageTypeReverseLookup: ReadonlyMap<AuthoredStorageTypeInstance, string>,
   extensions?: Record<string, ExtensionPackRef<'sql', string>>,
 ): ModelNode {
   const fields: FieldNode[] = [];
+  /** Filled by the field loop below, read by a deferred index expression. */
+  const fieldCodecIds: Record<string, string> = {};
 
   for (const [fieldName, fieldBuilder] of Object.entries(spec.fieldBuilders)) {
     const fieldState = fieldBuilder.build();
@@ -790,6 +924,7 @@ function resolveModelNode(
     if (!columnName) {
       throw new InternalError(`Column name resolution failed for "${spec.modelName}.${fieldName}"`);
     }
+    fieldCodecIds[fieldName] = descriptor.codecId;
 
     const enumHandle =
       'typeRef' in fieldState && isEnumTypeHandle(fieldState.typeRef)
@@ -801,7 +936,8 @@ function resolveModelNode(
       columnName,
       descriptor,
       nullable: fieldState.nullable,
-      ...(fieldState.many === true ? { many: true } : {}),
+      many: fieldState.many !== false,
+      ...(fieldState.many !== false ? { elementNullable: fieldState.many.elementNullable } : {}),
       ...(fieldState.noCheck !== undefined ? { noCheck: fieldState.noCheck } : {}),
       ...(fieldState.default ? { default: fieldState.default } : {}),
       ...(fieldState.executionDefaults ? { executionDefaults: fieldState.executionDefaults } : {}),
@@ -819,19 +955,30 @@ function resolveModelNode(
     // forbids options without a type, but a caller that suppresses the
     // compile error still reaches here, and dropping the orphaned options
     // would hide it from lowerAuthoredIndex's runtime backstop.
+    const options =
+      typeof index.options === 'function'
+        ? index.options(resolveDeferredColumns(spec, coveredFieldNames(index), fieldCodecIds))
+        : index.options;
     const method = blindCast<
       AuthoredIndexMethod,
       'the constraint type carries the union; reading the two fields separately loses the correlation'
-    >({ type: index.type, options: index.options });
+    >({ type: index.type, options });
+    const owner = constraintOwner('Index', spec.modelName, index);
     const carried = {
-      where: index.where,
+      where:
+        index.where === undefined
+          ? undefined
+          : requireSqlExpression(index.where, `${owner} where`).text,
       unique: index.unique,
       name: index.name,
       map: index.map,
       ...method,
     };
     return index.expression !== undefined
-      ? { ...carried, expression: index.expression }
+      ? {
+          ...carried,
+          expression: indexExpressionText(spec, index.expression, fieldCodecIds, owner),
+        }
       : {
           ...carried,
           columns: mapFieldNamesToColumnNames(
@@ -843,7 +990,10 @@ function resolveModelNode(
   });
   const checks = (spec.sqlSpec?.checks ?? []).map(
     (authoredCheck): CheckNode => ({
-      expression: authoredCheck.expression,
+      expression: requireSqlExpression(
+        authoredCheck.expression,
+        `${constraintOwner('Check', spec.modelName, authoredCheck)} expression`,
+      ).text,
       name: authoredCheck.name,
       map: authoredCheck.map,
     }),
@@ -879,8 +1029,19 @@ function resolveModelNode(
   };
 }
 
-function collectRuntimeModelSpecs(definition: ContractInput): RuntimeCollection {
-  const storageTypes = { ...(definition.types ?? {}) } as Record<string, StorageTypeInstance>;
+/**
+ * `ContractInput`'s `Extensions` parameter defaults to `undefined`, but lowering
+ * reads the extension-pack record at runtime, so the input is widened here.
+ */
+type LoweringInput = Omit<ContractInput, 'extensions' | 'codecLookup' | 'dataTypeLookup'> & {
+  readonly extensions?: Record<string, ExtensionPackRef<'sql', string>> | undefined;
+};
+
+function collectRuntimeModelSpecs(definition: LoweringInput): RuntimeCollection {
+  const storageTypes = { ...(definition.types ?? {}) } as Record<
+    string,
+    AuthoredStorageTypeInstance
+  >;
   const models = { ...(definition.models ?? {}) } as Record<string, RuntimeModel>;
 
   emitTypedNamedTypeFallbackWarnings(models, storageTypes);
@@ -995,7 +1156,7 @@ function lowerModels(
  * No entity kind is named anywhere in this walk.
  */
 function lowerPackEntityHandles(
-  definition: ContractInput,
+  definition: LoweringInput,
   modelSpecs: ReadonlyMap<string, RuntimeModelSpec>,
 ): AttachedEntities | undefined {
   const entities = definition.entities;
@@ -1120,7 +1281,7 @@ function lowerPackEntityHandles(
   return pack;
 }
 
-export function buildContractDefinition(definition: ContractInput): ContractDefinition {
+export function buildContractDefinition(definition: LoweringInput): ContractDefinition {
   const collection = collectRuntimeModelSpecs(definition);
   const models = lowerModels(collection, definition.extensions);
   const attachedEntities = lowerPackEntityHandles(definition, collection.modelSpecs);

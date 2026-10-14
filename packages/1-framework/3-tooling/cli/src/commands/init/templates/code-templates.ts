@@ -46,6 +46,15 @@ export function targetPackageName(
   return resolveImportSpecifier(target === 'postgres' ? '@internal/postgres' : '@internal/mongo');
 }
 
+// biome-ignore lint/plugin/no-family-vocabulary: the driver the target package declares as a required peer dependency, which init installs with it
+const DRIVER_PEERS: ReadonlyMap<TargetId, string> = new Map([['mongo', 'mongodb']]);
+
+/** Packages the target package declares as required peer dependencies; init installs them with it. */
+export function targetPeerPackages(target: TargetId): readonly string[] {
+  const driver = DRIVER_PEERS.get(target);
+  return driver === undefined ? [] : [driver];
+}
+
 /** One entrypoint of the scaffolded project's target package. */
 export function targetEntrypoint(
   target: TargetId,
@@ -81,7 +90,7 @@ export function starterSchema(
 
 /**
  * Renders a short authoring-appropriate schema sample for embedding in
- * `prisma-next.md`. Returns a complete fenced markdown code block.
+ * `prisma-8.md`. Returns a complete fenced markdown code block.
  *
  * The sample intentionally shows just one model: it's illustrative, not
  * a substitute for the full scaffolded contract file. The TS samples use
@@ -169,7 +178,7 @@ export const contract = defineContract(
 }
 
 function starterSchemaPslPostgres(): string {
-  return `// use prisma-next
+  return `// use prisma-8
 
 model User {
   id        Int      @id @default(autoincrement())
@@ -194,7 +203,7 @@ model Post {
 }
 
 function starterSchemaPslMongo(): string {
-  return `// use prisma-next
+  return `// use prisma-8
 
 model User {
   id       ObjectId @id @map("_id")
@@ -307,6 +316,35 @@ import { defineConfig as ormConfig } from '${configEntrypoint}';
 export default definePrismaConfig({
   orm: ormConfig({
     contract: ${JSON.stringify(contractPath)},
+    db: {
+      connection: process.env['DATABASE_URL']!,
+    },
+  }),
+});
+`;
+}
+
+/**
+ * The config for a project whose contract source is its Prisma 7 schema:
+ * `prisma7Schema` beside `defineConfig`, from the same entrypoint, with the
+ * schema path as the user gave it and the emitted artifacts under Prisma 8's
+ * own directory (`output` is the directory; the facade names `contract.json`).
+ */
+export function prisma7ConfigFile(
+  target: TargetId,
+  schemaPath: string,
+  outputDir: string,
+  resolveImportSpecifier: ImportSpecifierResolver = keepInternalSpecifiers,
+): string {
+  const configEntrypoint = targetEntrypoint(target, 'config', resolveImportSpecifier);
+  return `import 'dotenv/config';
+import { definePrismaConfig } from '@prisma/cli-engine';
+import { defineConfig as ormConfig, prisma7Schema } from '${configEntrypoint}';
+
+export default definePrismaConfig({
+  orm: ormConfig({
+    contract: prisma7Schema(${JSON.stringify(schemaPath)}),
+    output: ${JSON.stringify(outputDir)},
     db: {
       connection: process.env['DATABASE_URL']!,
     },

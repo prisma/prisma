@@ -2,7 +2,7 @@ import { CliStructuredError } from '@internal/errors/control';
 import { placeholder } from '@internal/errors/migration';
 import type {
   AnyMongoMigrationOperation,
-  MongoDataTransformOperation,
+  MongoDmlOperation,
 } from '@internal/mongo-query-ast/control';
 import {
   AggregateCommand,
@@ -14,14 +14,17 @@ import {
   RawUpdateManyCommand,
 } from '@internal/mongo-query-ast/execution';
 import { describe, expect, it } from 'vitest';
-import { dataTransform } from '../src/core/migration-factories';
-import { deserializeMongoOps, serializeMongoOps } from '../src/core/mongo-ops-serializer';
+import { dataTransform } from '../src/core/migrations/migration-factories';
+import {
+  deserializeMongoOps,
+  serializeMongoOps,
+} from '../src/core/migrations/mongo-ops-serializer';
 
-function asDataTransformOp(op: AnyMongoMigrationOperation): MongoDataTransformOperation {
+function asDataTransformOp(op: AnyMongoMigrationOperation): MongoDmlOperation {
   if (op.operationClass !== 'data') {
     throw new Error('Expected data transform operation');
   }
-  return op as MongoDataTransformOperation;
+  return op as MongoDmlOperation;
 }
 
 function makePlanMeta() {

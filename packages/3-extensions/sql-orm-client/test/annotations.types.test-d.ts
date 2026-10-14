@@ -180,10 +180,9 @@ declare const userCollectionWithWhere: Collection<
   'User',
   Record<string, unknown>,
   {
-    readonly hasOrderBy: false;
+    readonly hasOrderBy: boolean;
     readonly hasWhere: true;
-    readonly hasUniqueFilter: false;
-    readonly variantName: undefined;
+    readonly variantValue: undefined;
     readonly nsId: never;
   }
 >;

@@ -6,7 +6,8 @@ import {
   CodecDescriptorImpl,
   CodecImpl,
   type CodecInstanceContext,
-  voidParamsSchema,
+  dataType,
+  dataTypeId,
 } from '@internal/framework-components/codec';
 import type { ControlExtensionDescriptor } from '@internal/framework-components/control';
 import { createControlStack } from '@internal/framework-components/control';
@@ -34,22 +35,31 @@ import {
   SQLITE_BLOB_CODEC_ID,
   SQLITE_JSON_CODEC_ID,
 } from '@internal/target-sqlite/codec-ids';
-import { sqliteCodecDescriptorRegistry } from '@internal/target-sqlite/codecs';
+import {
+  assembleSqliteCodecRegistry,
+  createSqliteBuiltinCodecLookup,
+  createSqliteCodecRegistryWithBuiltins,
+  sqliteCodecDescriptorRegistry,
+} from '@internal/target-sqlite/codecs';
 import sqliteTargetControlDescriptor from '@internal/target-sqlite/control';
 import sqliteRuntimeTargetDescriptor from '@internal/target-sqlite/runtime';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { TestSqlContractSerializer as SqlContractSerializer } from '../../../../2-sql/9-family/test/test-sql-contract-serializer';
 import { createSqliteAdapter } from '../src/core/adapter';
-import {
-  assembleSqliteCodecRegistry,
-  createSqliteBuiltinCodecLookup,
-  createSqliteCodecRegistryWithBuiltins,
-} from '../src/core/codec-lookup';
 import { sqliteAdapterDescriptorMeta } from '../src/core/descriptor-meta';
 import type { SqliteContract } from '../src/core/types';
 import sqliteAdapterControlDescriptor from '../src/exports/control';
 import sqliteRuntimeAdapterDescriptor from '../src/exports/runtime';
+
+/** The data types the fixture codecs of one contribution represent, so assembly finds them. */
+/** A fixture codec's data type: its own id without the version. */
+const fixtureTypeId = (codecId: string) => dataTypeId(codecId.split('@')[0] ?? codecId);
+
+const fixtureDataTypes = (descriptors: readonly { readonly dataType?: string }[]) =>
+  [...new Set(descriptors.map((descriptor) => descriptor.dataType))]
+    .filter((id): id is string => id !== undefined)
+    .map((id) => dataType(id, {}));
 
 class TestCodec extends CodecImpl<string, readonly ['equality'], string, string> {
   constructor(
@@ -80,9 +90,9 @@ class TestCodec extends CodecImpl<string, readonly ['equality'], string, string>
 }
 
 class TestGenericDescriptor extends CodecDescriptorImpl<void> {
+  override readonly dataType = dataTypeId('demo/fixture');
   override readonly traits = ['equality'] as const;
-  override readonly targetTypes = ['text'] as const;
-  override readonly paramsSchema = voidParamsSchema;
+  override readonly paramsSchema = undefined;
 
   constructor(
     override readonly codecId: string,
@@ -110,6 +120,7 @@ function sqliteDescriptor(options: {
     options.transform,
   );
   return sqliteCodec(descriptor, {
+    dataType: dataType(fixtureTypeId(options.codecId), {}),
     jsonProjection(expression: ProjectionExpr): ProjectionExpr {
       options.onProjection?.();
       return expression;
@@ -127,6 +138,7 @@ function runtimeExtension(
     version: '0.0.1',
     familyId: 'sql',
     targetId: 'sqlite',
+    dataTypes: fixtureDataTypes(descriptors),
     types: { codecTypes: { codecDescriptors: descriptors } },
     create() {
       return { familyId: 'sql', targetId: 'sqlite' };
@@ -144,6 +156,7 @@ function controlExtension(
     version: '0.0.1',
     familyId: 'sql',
     targetId: 'sqlite',
+    dataTypes: fixtureDataTypes(descriptors),
     types: { codecTypes: { codecDescriptors: descriptors } },
     create() {
       return { familyId: 'sql', targetId: 'sqlite' };
@@ -199,8 +212,8 @@ const contract = new SqlContractSerializer().deserializeContract({
           table: {
             records: {
               columns: {
-                id: { codecId: 'sqlite/integer@1', nativeType: 'integer', nullable: false },
-                value: { codecId: 'app/transform@1', nativeType: 'text', nullable: false },
+                id: { codecId: 'sqlite/integer@1', dataType: 'sqlite/integer', nullable: false },
+                value: { codecId: 'app/transform@1', dataType: 'app/transform', nullable: false },
               },
               uniques: [],
               indexes: [],
@@ -257,12 +270,11 @@ describe('SQLite adapter codec registry composition', () => {
       (descriptor) => descriptor.codecId,
     );
     const expectedIds = ['app/target@1', ...builtinIds, 'app/first@1', 'app/second@1'];
-    const filteredMetadataIds = sqliteAdapterDescriptorMeta.types.codecTypes.codecDescriptors.map(
+    const metadataIds = sqliteAdapterDescriptorMeta.types.codecTypes.codecDescriptors.map(
       (descriptor) => descriptor.codecId,
     );
 
-    expect(filteredMetadataIds).not.toContain(SQL_CHAR_CODEC_ID);
-    expect(filteredMetadataIds).not.toContain(SQL_VARCHAR_CODEC_ID);
+    expect(metadataIds).toEqual(builtinIds);
     expect(Object.isFrozen(runtimeRegistry)).toBe(true);
     expect(Object.isFrozen(controlRegistry)).toBe(true);
     expect(Array.from(runtimeRegistry.values(), (descriptor) => descriptor.codecId)).toEqual(
@@ -351,12 +363,10 @@ describe('SQLite adapter codec registry composition', () => {
       ...raw,
       codecId: 'app/wrong-target@1',
       traits: raw.traits,
-      targetTypes: raw.targetTypes,
       paramsSchema: raw.paramsSchema,
       isParameterized: raw.isParameterized,
       factory: raw.factory.bind(raw),
       descriptorKind: 'postgres-codec',
-      nativeTypeFor: () => 'text',
       projectJson: (expression: ProjectionExpr) => expression,
     } as const;
     const malformed = {
@@ -383,7 +393,7 @@ describe('SQLite adapter codec registry composition', () => {
       /Duplicate SQLite codec descriptor id.*sql\/char@1/,
     );
     expect(() => createComposedControlAdapter([duplicate])).toThrow(
-      /Duplicate SQLite codec descriptor id.*sql\/char@1/,
+      /Duplicate codec descriptor for codecId "sql\/char@1"/,
     );
   });
 
@@ -422,7 +432,7 @@ describe('SQLite adapter codec registry composition', () => {
     expect(projectionCalls).toBe(4);
   });
 
-  it('preserves built-in BLOB, bigint, and structured JSON representations', () => {
+  it('preserves built-in BLOB and bigint representations, and stores JSON as its text', () => {
     const registry = createSqliteBuiltinCodecLookup();
     const blob = registry.get(SQLITE_BLOB_CODEC_ID);
     const bigint = registry.get(SQLITE_BIGINT_CODEC_ID);
@@ -432,6 +442,6 @@ describe('SQLite adapter codec registry composition', () => {
     expect(blob?.encodeJson(new Uint8Array([0x0a, 0xbc]))).toBe('0ABC');
     expect(bigint?.encodeJson(42n)).toBe('42');
     expect(bigint?.encodeJson(9007199254740993n)).toBe('9007199254740993');
-    expect(json?.encodeJson(document)).toEqual(document);
+    expect(json?.encodeJson(document)).toBe('{"nested":["value",1,true,null]}');
   });
 });

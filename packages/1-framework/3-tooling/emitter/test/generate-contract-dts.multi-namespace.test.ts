@@ -59,7 +59,11 @@ describe('generateContractDts domain namespace handling', () => {
     // under its own coordinate, and field types resolve per-namespace.
     const authUserModel = {
       fields: {
-        emailAddress: { type: { kind: 'scalar' as const, codecId: 'pg/text@1' }, nullable: false },
+        emailAddress: {
+          type: { kind: 'scalar' as const, codecId: 'pg/text@1' },
+          nullable: false,
+          many: false as const,
+        },
       },
       relations: {},
       storage: {
@@ -70,7 +74,11 @@ describe('generateContractDts domain namespace handling', () => {
     };
     const publicUserModel = {
       fields: {
-        roleLabel: { type: { kind: 'scalar' as const, codecId: 'pg/text@1' }, nullable: true },
+        roleLabel: {
+          type: { kind: 'scalar' as const, codecId: 'pg/text@1' },
+          nullable: true,
+          many: false as const,
+        },
       },
       relations: {},
       storage: {
@@ -95,11 +103,11 @@ describe('generateContractDts domain namespace handling', () => {
     const emailCount = (dts.match(/emailAddress/g) ?? []).length;
     const roleLabelCount = (dts.match(/roleLabel/g) ?? []).length;
     // emailAddress appears per-namespace only: (1) the auth domain block,
-    // (2) FieldOutputTypes[auth], (3) FieldInputTypes[auth].
-    expect(emailCount).toBe(3);
+    // (2) FieldOutputTypes[auth], (3) FieldInputTypes[auth], (4) Models.auth_User.
+    expect(emailCount).toBe(4);
     // roleLabel appears per-namespace only: (1) the public domain block,
-    // (2) FieldOutputTypes[public], (3) FieldInputTypes[public].
-    expect(roleLabelCount).toBe(3);
+    // (2) FieldOutputTypes[public], (3) FieldInputTypes[public], (4) Models.public_User.
+    expect(roleLabelCount).toBe(4);
   });
 
   it('throws CONTRACT.NAMESPACE_INVALID when the domain has no namespaces', () => {

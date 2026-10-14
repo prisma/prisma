@@ -50,10 +50,7 @@ function setup() {
   const recordCompiled: SqlMiddleware = {
     name: 'compiled-recorder',
     familyId: 'sql',
-    beforeQuery(plan) {
-      compiled.push({ sql: plan.sql, params: plan.params });
-    },
-    beforeExecute(plan) {
+    beforeEncode(plan) {
       compiled.push({ sql: plan.sql, params: plan.params });
     },
   };

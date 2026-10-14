@@ -1,16 +1,12 @@
-import type { DefaultMappingOptions } from '@internal/family-sql/psl-infer';
-
-const POSTGRES_FUNCTION_ATTRIBUTES: Readonly<Record<string, string>> = {
-  'gen_random_uuid()': '@default(dbgenerated("gen_random_uuid()"))',
-};
-
-function formatDbGeneratedAttribute(expression: string): string {
-  return `@default(dbgenerated(${JSON.stringify(expression)}))`;
-}
+import type { DefaultMappingOptions } from '@internal/family-sql/psl-build';
+import { postgresDataTypeEntries } from '../data-type-entries';
+import { createPostgresBuiltinDataTypeLookup } from '../data-types';
 
 export function createPostgresDefaultMapping(): DefaultMappingOptions {
   return {
-    functionAttributes: POSTGRES_FUNCTION_ATTRIBUTES,
-    fallbackFunctionAttribute: formatDbGeneratedAttribute,
+    dataTypes: {
+      entries: postgresDataTypeEntries(),
+      lookup: createPostgresBuiltinDataTypeLookup(),
+    },
   };
 }

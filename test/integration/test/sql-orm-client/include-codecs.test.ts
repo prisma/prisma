@@ -12,7 +12,6 @@ import {
   CodecImpl,
   type CodecInstanceContext,
   type ColumnTypeDescriptor,
-  voidParamsSchema,
 } from '@internal/framework-components/codec';
 import { defineContract, field, model, rel } from '@internal/postgres/contract-builder';
 import { Collection } from '@internal/sql-orm-client';
@@ -22,6 +21,8 @@ import {
   type SqlRuntimeExtensionDescriptor,
 } from '@internal/sql-runtime';
 import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
+import { createPostgresCodecRegistryWithBuiltins } from '@internal/target-postgres/codecs';
+import { pgText } from '@internal/target-postgres/data-types';
 import postgresTarget from '@internal/target-postgres/runtime';
 import { describe, expect, it } from 'vitest';
 import { timeouts, withCollectionRuntime } from './integration-helpers';
@@ -50,7 +51,7 @@ class IncludedTextCodec extends CodecImpl<
 
   decodeJson(json: JsonValue): string {
     if (typeof json !== 'string') {
-      throw new TypeError(`expected included text database JSON value, got ${typeof json}`);
+      throw new TypeError(`expected included text JSON value, got ${typeof json}`);
     }
     if (json === SENSITIVE_DATABASE_VALUE) {
       throw new Error('intentional included text decode failure');
@@ -60,10 +61,10 @@ class IncludedTextCodec extends CodecImpl<
 }
 
 class IncludedTextDescriptor extends CodecDescriptorImpl<void> {
+  override readonly dataType = pgText.id;
   override readonly codecId = TEST_INCLUDED_TEXT_CODEC_ID;
   override readonly traits = ['textual'] as const;
-  override readonly targetTypes = ['text'] as const;
-  override readonly paramsSchema = voidParamsSchema;
+  override readonly paramsSchema = undefined;
 
   override factory(): (ctx: CodecInstanceContext) => IncludedTextCodec {
     return () => new IncludedTextCodec(this);
@@ -76,12 +77,11 @@ class IncludedTextDescriptor extends CodecDescriptorImpl<void> {
  * assuming. This one stores and projects text unchanged.
  */
 const includedTextDescriptor = postgresCodec(new IncludedTextDescriptor(), {
-  nativeType: () => 'text',
+  dataType: pgText,
   jsonProjection: (expression) => expression,
 });
 const includedTextColumn = {
   codecId: TEST_INCLUDED_TEXT_CODEC_ID,
-  nativeType: 'text',
 } as const satisfies ColumnTypeDescriptor;
 
 const includedTextExtension: SqlRuntimeExtensionDescriptor<'postgres'> = {
@@ -119,7 +119,10 @@ const Branch = model('Branch', {
   },
 }).sql({ table: 'codec_branches' });
 
-const contract = defineContract({ models: { Project, Branch } });
+const contract = defineContract({
+  codecLookup: createPostgresCodecRegistryWithBuiltins([includedTextDescriptor]),
+  models: { Project, Branch },
+});
 const context = createExecutionContext({
   contract,
   stack: createSqlExecutionStack({
@@ -151,7 +154,7 @@ async function setupCodecTables(runtime: PgIntegrationRuntime): Promise<void> {
 
 describe('integration/include codecs', () => {
   it(
-    'delegates database JSON values to codec.decodeJson',
+    'delegates JSON values to codec.decodeJson',
     async () => {
       await withCollectionRuntime(
         async (runtime) => {

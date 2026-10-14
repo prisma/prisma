@@ -1,6 +1,6 @@
-# Prisma Next CLI Style Guide
+# Prisma 8 CLI Style Guide
 
-This guide defines how Prisma Next's CLI behaves and looks. It exists to keep our developer experience consistent across commands and packages while aligning with our architecture: contract‑first, deterministic, agent‑friendly.
+This guide defines how Prisma 8's CLI behaves and looks. It exists to keep our developer experience consistent across commands and packages while aligning with our architecture: contract‑first, deterministic, agent‑friendly.
 
 For the architectural view of the CLI (distribution, command surface, init pipeline, programmatic API, layering), see the [CLI subsystem doc](architecture%20docs/subsystems/11.%20CLI.md).
 
@@ -58,7 +58,7 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 - Verbose: `-v/--verbose` (debug: timings, resolved config), `--trace` (deep internals, stack traces).
 - JSON: `--json` outputs single JSON object to stdout.
 - Interactivity: `--interactive`/`--no-interactive`. Defaults to `process.stdout.isTTY`. `-y/--yes` accepts prompts.
-- Env toggles: `PRISMA_NEXT_DEBUG=1` ≅ `-v`, `PRISMA_NEXT_TRACE=1` ≅ `--trace`.
+- Env toggles: `PRISMA_DEBUG=1` ≅ `-v`, `PRISMA_TRACE=1` ≅ `--trace`.
 - CLI flags take precedence over env vars.
 
 > **Future**: If long-running streaming commands are introduced, `--json` may auto‑select NDJSON for those commands, and `--json=object|ndjson` override syntax can be re‑introduced.
@@ -117,33 +117,40 @@ The CLI checks `process.stdout.isTTY` once at startup to determine the output mo
 
 ### Destructive operation confirmation
 
-Destructive operations (drops, type changes, overwriting generated files, overwriting an existing signature marker, …) require **explicit consent**: the user types the name of the thing being changed, or passes that name as `--confirm <token>`. Consent is separate from the `-y` "accept prompt defaults" mechanism, and no command invents a flag that skips it.
+Operations that lose data (dropping a table or a column, a type change that can change values), operations that widen who can read or write rows, overwriting generated files, and overwriting an existing signature marker require **explicit consent**. Dropping an object that holds no data, such as an index or a constraint, is `widening` and asks nothing. Consent takes one of two forms:
+
+- **Statements**, for a plan that would lose data or widen access. The command asks one question per model, field or storage name at stake, and each is answered with a statement naming it: `--delete <subject>`, `--rename <subject>:<new name>` or `--allow <subject>`. `migration plan` and `db update` use this form.
+- **A consent token**, for a command with one thing at stake. The user types the name of the thing being changed, or passes that name as `--confirm <token>`. `init` uses this form.
+
+Consent is separate from the `-y` "accept prompt defaults" mechanism, and no command invents a flag that skips it.
 
 This is a deliberate divergence from clig.dev §Arguments §Confirmation. AI agents and CI scripts routinely pass `-y` to suppress prompts on long-running pipelines; conflating "skip prompts" with "consent to destruction" is a footgun the project has decided to avoid. Typing a name also rules out the other accident a yes/no prompt allows — consenting to the right operation against the wrong database.
 
 #### Rules
 
-- A command that performs a destructive action MUST ask for it with `ctx.prompt.consent(question, { token })`. The token is the natural noun of what is at stake: the database name for `db update`, the working directory's basename for an `init` re-scaffold. Interactively the user types the token; non-interactively `--confirm <token>` grants it. There is no `--force`.
+- A command whose plan can lose data or widen access MUST ask about each subject with `ctx.prompt.statements(questions)`, one question per subject, before it writes or applies anything. A statement that answers no question fails the run with the engine's `CLI.CONSENT_UNUSED`; non-interactively, unanswered questions fail it with `CLI.CONSENT_REQUIRED`, listing each question and the flags that answer it. `--confirm` answers none of these questions.
+- A command with one thing at stake MUST ask for it with `ctx.prompt.consent(question, { token })`. The token is the natural noun of what is at stake: the working directory's basename for an `init` re-scaffold. Interactively the user types the token; non-interactively `--confirm <token>` grants it. There is no `--force`.
 - The question MUST list the destructive operations (or describe them concretely, e.g. "this will overwrite all generated files") so the user can decline knowing what's at stake. A command that cannot fill the list, or cannot derive a token, MUST fail with a structured error rather than ask a question that says nothing or accepts anything.
 - The token MUST identify the thing being changed as precisely as the invocation allows. Falling back to something a whole class of runs shares — a target id, a product name — makes one `--confirm` value grant data loss in every project that shares it.
 - Non-interactively (closed stdin, CI, `--no-interactive`) without `--confirm`: no prompt is shown; the command fails with the engine's `CLI.CONSENT_REQUIRED` (exit `2`), whose `meta.consentToken` and `nextActions` name the token to pass. A cancelled prompt is `CLI.PROMPT_CANCELLED` (exit `3`); a mistyped token is `CLI.PROMPT_INVALID` (exit `2`).
 - `--confirm` is read only when the run is non-interactive or `--yes` is set. A script that runs from a terminal must pass `--no-interactive --confirm <token>`, or it will stop at the prompt.
 - Each `--confirm` value grants at most one consent; a command that asks twice needs two.
-- The internal control API retains a programmatic equivalent (e.g. `acceptDataLoss: boolean`) for consumers that drive the planner directly; `--confirm` is the user-facing CLI form. Note that consent authorises the operations the user was shown, and the plan is recomputed on the call that carries it — a command that cannot bind the two SHOULD report what it applied beyond what was consented to.
+- The control API takes the same consent programmatically: `migration plan` and `db update` take an answer callback for their questions, and `db update`'s `acceptDataLoss: true` answers every data-loss question and `acceptAccessWidening: true` every access question.
 
 #### Examples
 
-- `db update`: when the plan includes destructive ops, asks the user to type the database name; `--no-interactive --confirm <database>` applies without a prompt. The name is the `database` a driver connection object carries, or the connection URL's first path segment, else its host, falling back to the target id.
+- `db update`: asks one question per model, field or storage name an operation would lose data from, answered by `--delete` or `--rename`, and one per model whose rows an operation would open up, answered by `--allow`; `--no-interactive --delete Legacy --allow User` applies without a prompt.
 - `init`: re-running `init` in a directory with a generated `prisma.config.ts` asks the user to type the directory's basename; `-y` alone is not sufficient to authorise overwriting generated files. (The commander-era `--force` retired with the commander shell in the S5 cutover; the engine-hosted `init` uses the consent form above.)
-- `db sign`: the `--force` this guide lists in its flags was never implemented. When overwriting a marker with a different hash grows a switch, it takes the consent form above.
+- `db sign`: overwriting a marker that holds a different hash happens without consent (the previous hash is reported). This is an intentional exception to the rule above: `db sign` verifies the live schema against the contract before writing, so the overwrite only ever records a contract the database already satisfies. If that ever grows a switch, it takes the consent form above — not a `--force`.
 
 ## Config & Environment
 - Config file names: `prisma.config.ts|.mjs|.js` (ESM); optional CJS fallback.
-- Discovery precedence: `--config <path>` > `PRISMA_NEXT_CONFIG` > nearest `prisma.config.*` in CWD (no upward search).
+- Discovery precedence: `--config <path>` > `PRISMA_CONFIG` > nearest `prisma.config.*` in CWD (no upward search).
+- Relative paths inside the config file (`contract` source inputs, `contract.output`, `migrations.dir`) are relative to the config file that wrote them, not to CWD, so `--config ./sub/prisma.config.ts` reads and writes under `sub/`.
 - Precedence: flags > config > defaults.
 - Env policy: the CLI does not auto‑load `.env`. Apps may do so in `prisma.config.*` and pass values (e.g., `db.connection`).
 - Contract source: defined in config; no flag override.
-- Contract output directory: `--output-path <dir>` on `contract emit` sets the directory where `contract.json` and `contract.d.ts` are written. The filenames are canonical and not user-controlled. Precedence: `--output-path` flag > `output` in config > derived default (directory of the contract source file). The path is resolved relative to CWD. Extension wrappers (`defineConfig` from `@internal/mongo` and `@internal/postgres`) expose an `output?: string` option that maps directly to this config field.
+- Contract output directory: `--output-path <dir>` on `contract emit` sets the directory where `contract.json` and `contract.d.ts` are written. The filenames are canonical and not user-controlled. Precedence: `--output-path` flag > `output` in config > derived default (directory of the contract source file). The flag is resolved relative to CWD; `output` in config, like every relative path in `prisma.config.ts`, is resolved relative to the config file that wrote it, whichever directory the command runs from. Extension wrappers (`defineConfig` from `@internal/mongo` and `@internal/postgres`) expose an `output?: string` option that maps directly to this config field.
 - Migration directory: defined in config; no flag override.
 - DB Connection: `--db=<URL>` or `config.db.connection`.
 
@@ -155,7 +162,7 @@ Streams are covered in [Output Conventions](#output-conventions-composable-cli-o
 
 ### Reserved (CLI-wide)
 
-These codes have a fixed meaning across every Prisma Next CLI command. Specific commands MUST NOT redefine them.
+These codes have a fixed meaning across every Prisma 8 CLI command. Specific commands MUST NOT redefine them.
 
 | Code | Name | Meaning |
 |---|---|---|
@@ -240,21 +247,24 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
   - `--marker-only` cannot be combined with `--schema-only` or `--strict` (exit code 2, `CLI.INVALID_VERIFY_MODE`). `--schema-only --strict` is valid.
   - Non‑interactive; single JSON with `--json`.
 - `db sign` (canonical):
-  - Runs the same verify phase first, then writes/updates the marker row.
-  - Missing marker → insert; same hash → no‑op; different hash → never overwrite unless `--force`.
-  - Options: `--force`, `--dry-run`, `--include-contract-json`, `--app-tag`, `--canonical-version`.
+  - For every contract space (the application's and each extension's), runs the schema verification that `db verify --schema-only` runs (non-strict) and skips the marker checks, since the database being signed usually has no marker yet. A space that fails is not signed and is reported with its findings; the other spaces are still signed, and the command exits 4.
+  - Writes or updates the marker of every space that verified, in one transaction on PostgreSQL and SQLite: missing marker → insert; same hash → no‑op; different hash → overwrite, reporting the previous hash.
+  - Then writes each signed space's contract into its snapshot store and advances its `db` ref to the signed hash (`--advance-ref <name>` picks another ref). Unlike `db init` / `db update`, `--db` does not suppress this — signing never mutates the schema, and adoption normally runs against the real database via `--db`. `--no-advance-ref` signs without writing any ref or snapshot; combining it with `--advance-ref` is `CLI.ADVANCE_REF_ARG_CONFLICT` (exit code 2). Human output names the advanced ref and, when it existed, the previous hash; JSON is `{ ok, summary, spaces, advancedRefs }`: one outcome per space (`signed`, `unchanged` or `failed`) and one `{ space, name, hash }` per advanced ref.
+  - No migration package is written.
+  - Options: `[contract]` positional or `--contract <ref>` (hash, prefix, ref name, migration dir name, or `<dir>^`; both accept the same forms; defaults to the emitted `contract.json`; both together is `CLI.CONTRACT_ARG_CONFLICT`), `--db <url>`, `--advance-ref <name>`, `--no-advance-ref`.
+  - Exit codes: 0 signed; 2 the command could not run (unresolvable contract reference, no emitted contract, unreachable database, conflicting flags); 4 verification failed for at least one space.
 
 ## Init Flow
 - `prisma orm init` is the greenfield-app entry point (distinct from `prisma db init`, which adopts an existing database).
 - Prompts: target (Postgres or Mongo, default Postgres) and schema location (default `prisma/contract.prisma`). The contract output path is derived from the schema path (replace extension with `.json`); no separate prompt.
 - Detects the package manager from lockfiles (`pnpm-lock.yaml`, `yarn.lock`, `bun.lock`/`bun.lockb`, `package.json#packageManager`, falls back to npm), installs the target facade package as a dependency and `@prisma/cli` (from the `next` dist-tag) plus `@prisma/cli-engine` as dev dependencies, then runs `prisma contract emit` programmatically to produce `contract.json` and `contract.d.ts`.
 - Scaffolds (all colocated; no `src/prisma/` split):
-  - `prisma.config.ts` at the project root — the engine envelope: `defineConfig` from `@prisma/cli-engine` wrapping the target facade's `defineConfig` (e.g. `@prisma/orm-postgres/config`) under an `orm` key.
+  - `prisma.config.ts` at the project root — the engine envelope: `definePrismaConfig` from `@prisma/cli-engine` wrapping the target facade's `defineConfig` (e.g. `@prisma/orm-postgres/config`) under an `orm` key.
   - `prisma/contract.prisma` (PSL) — starter schema with two related models so the user has something to query immediately.
   - `prisma/db.ts` — runtime client (e.g. `postgres<Contract>({ contractJson })`) typed against the emitted contract.
   - `prisma/contract.json` and `prisma/contract.d.ts` — emitted by the post-install `contract emit` step.
-  - `prisma-next.md` — short human-facing quick reference (file locations, common commands, minimal query example).
-  - `.agents/skills/prisma-next/SKILL.md` — agent skill so AI tooling in the project knows the layout and conventions.
+  - `prisma-8.md` — short human-facing quick reference (file locations, common commands, minimal query example).
+  - `.agents/skills/prisma-8/SKILL.md` — agent skill so AI tooling in the project knows the layout and conventions.
   - `.env.example` with `DATABASE_URL=`; CLI still does not read `.env`.
   - After-init output: small celebratory header + a numbered "Next steps" list (edit the schema, run `pnpm prisma contract emit`, import `db` from `./prisma/db`).
 - Re-init detection: if `prisma.config.ts` already exists, init prompts once — *"This project is already initialized. Re-initialize? This will overwrite all generated files."* — and then either overwrites everything or exits. No per-file overwrite prompts.
@@ -270,7 +280,7 @@ Concrete examples (from the migration CLI verb refactor, TML-2546). Each entry b
 - Per‑command examples:
   - `contract emit`: `--contract <path>`, `--out <dir>`, `--show-sql`, `--show-diff`.
   - `migration plan`: `--out <dir>`, `--show-sql`, `--show-diff`, `--max-sql-lines <n>`, `--yes`.
-  - `db sign`: `--include-contract-json`, `--app-tag`, `--canonical-version`, `--force`, `--dry-run`.
+  - `db sign`: `[contract]` / `--contract <ref>`, `--db <url>`, `--advance-ref <name>`, `--no-advance-ref`.
 
 ## Rationale
 - Predictable, human‑oriented text with clear errors; mirror determinism and actionable messages while avoiding heavy codegen.

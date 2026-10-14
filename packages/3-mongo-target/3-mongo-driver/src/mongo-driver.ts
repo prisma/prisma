@@ -18,13 +18,14 @@ import type {
   InsertManyWireCommand,
   InsertOneResult,
   InsertOneWireCommand,
+  RenameCollectionWireCommand,
   UpdateManyResult,
   UpdateManyWireCommand,
   UpdateOneResult,
   UpdateOneWireCommand,
 } from '@internal/mongo-wire';
 import { assertNever } from '@internal/utils/internal-error';
-import { type Db, MongoClient } from 'mongodb';
+import { BSON, type Db, type Document, MongoClient } from 'mongodb';
 import { DRIVER_INFO } from './core/driver-info';
 
 /* v8 ignore start */
@@ -98,6 +99,8 @@ export class MongoDriverImpl implements MongoDriver {
         return this.executeCreateIndexCommand(wireCommand);
       case 'dropCollection':
         return this.executeDropCollectionCommand(wireCommand);
+      case 'renameCollection':
+        return this.executeRenameCollectionCommand(wireCommand);
       case 'dropIndex':
         return this.executeDropIndexCommand(wireCommand);
       case 'collMod':
@@ -120,7 +123,18 @@ export class MongoDriverImpl implements MongoDriver {
   ): AsyncIterable<InsertOneResult> {
     const collection = this.db.collection(cmd.collection);
     const result = await collection.insertOne(cmd.document);
-    yield { insertedId: result.insertedId };
+    yield {
+      insertedId: result.insertedId,
+      document: this.asRead({ _id: result.insertedId, ...cmd.document }),
+    };
+  }
+
+  /**
+   * The server stores an inserted document as the driver wrote it, apart from moving `_id` first, so writing it to BSON and reading it back with the client's options gives what a read returns, without a query.
+   */
+  protected asRead(document: Document): Document {
+    const { raw: _raw, ...options } = this.db.bsonOptions;
+    return BSON.deserialize(BSON.serialize(document, options), options);
   }
 
   protected async *executeUpdateOneCommand(
@@ -142,14 +156,23 @@ export class MongoDriverImpl implements MongoDriver {
     const collection = this.db.collection(cmd.collection);
     const result = await collection.insertMany(cmd.documents as Record<string, unknown>[]);
     const insertedIds = Object.values(result.insertedIds);
-    yield { insertedIds, insertedCount: result.insertedCount };
+    yield {
+      insertedIds,
+      insertedCount: result.insertedCount,
+      documents: cmd.documents.map((document, index) =>
+        this.asRead({ _id: insertedIds[index], ...document }),
+      ),
+    };
   }
 
   protected async *executeUpdateManyCommand(
     cmd: UpdateManyWireCommand,
   ): AsyncIterable<UpdateManyResult> {
     const collection = this.db.collection(cmd.collection);
-    const result = await collection.updateMany(cmd.filter, cmd.update, { upsert: cmd.upsert });
+    const result = await collection.updateMany(cmd.filter, cmd.update, {
+      upsert: cmd.upsert,
+      ...(cmd.bypassDocumentValidation ? { bypassDocumentValidation: true } : {}),
+    });
     yield {
       matchedCount: result.matchedCount,
       modifiedCount: result.modifiedCount,
@@ -262,6 +285,10 @@ export class MongoDriverImpl implements MongoDriver {
 
   protected async executeDropCollectionCommand(cmd: DropCollectionWireCommand): Promise<void> {
     await this.db.collection(cmd.collection).drop();
+  }
+
+  protected async executeRenameCollectionCommand(cmd: RenameCollectionWireCommand): Promise<void> {
+    await this.db.renameCollection(cmd.collection, cmd.to);
   }
 
   protected async executeDropIndexCommand(cmd: DropIndexWireCommand): Promise<void> {

@@ -1,11 +1,17 @@
-import { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
+import mongoAdapterDescriptor, { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
 import { coreHash, crossRef, profileHash } from '@internal/contract/types';
 import mongoControlDriver, { MongoControlDriver } from '@internal/driver-mongo/control';
-import { contractToMongoSchemaIR, createMongoFamilyInstance } from '@internal/family-mongo/control';
+import {
+  contractToMongoSchemaIR,
+  createMongoFamilyInstance,
+  mongoFamilyDescriptor,
+} from '@internal/family-mongo/control';
 import {
   APP_SPACE_ID,
+  createControlStack,
   hasMigrations,
   type MigrationRunnerPerSpaceOptions,
+  planOriginOf,
 } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
 import type { MongoMigrationPlanOperation } from '@internal/mongo-query-ast/control';
@@ -38,7 +44,11 @@ function withSynthEdges(entry: Omit<PerSpaceOptions, 'migrationEdges'>): PerSpac
 
 function makeFamily(): ReturnType<typeof createMongoFamilyInstance> {
   return createMongoFamilyInstance(
-    {} as unknown as Parameters<typeof createMongoFamilyInstance>[0],
+    createControlStack({
+      family: mongoFamilyDescriptor,
+      target: mongoTargetDescriptor,
+      adapter: mongoAdapterDescriptor,
+    }),
   );
 }
 
@@ -56,16 +66,32 @@ function buildAppContract(): MongoContract {
       models: {
         User: {
           fields: {
-            _id: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
-            email: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+            _id: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+            },
+            email: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+            },
           },
           relations: {},
           storage: { collection: 'users' },
         },
         Post: {
           fields: {
-            _id: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
-            slug: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+            _id: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+            },
+            slug: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+            },
           },
           relations: {},
           storage: { collection: 'posts' },
@@ -129,8 +155,16 @@ function buildAppContractMissingPosts(): MongoContract {
       models: {
         User: {
           fields: {
-            _id: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
-            email: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+            _id: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+            },
+            email: {
+              nullable: false,
+              many: false,
+              type: { kind: 'scalar', codecId: 'mongo/string@1' },
+            },
           },
           relations: {},
           storage: { collection: 'users' },
@@ -210,6 +244,8 @@ function planFor(contract: MongoContract, fromContract: MongoContract | null) {
     schema: contractToMongoSchemaIR(fromContract),
     policy: ALL_POLICY,
     fromContract,
+    origin: planOriginOf(fromContract),
+    statements: [],
     frameworkComponents: [],
     snapshotsImportPath: '../../snapshots',
   });

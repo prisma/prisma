@@ -1,6 +1,6 @@
 import { type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import { APP_SPACE_ID } from '@internal/framework-components/control';
+import { APP_SPACE_ID, planOriginOf } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage } from '@internal/sql-contract/types';
@@ -12,11 +12,13 @@ import {
   SqliteUnboundDatabase,
   sqliteCreateNamespace,
 } from '../../src/core/sqlite-unbound-database';
+import { sqliteTestComponents } from '../sqlite-test-types';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => {
     throw new Error('lower() called on stubLowerer — planner must use lowerToExecuteRequest()');
   },
+  renderColumnDefault: async () => '',
   lowerToExecuteRequest: async () => ({ sql: '', params: [] }),
 };
 
@@ -38,8 +40,8 @@ function createContract(): Contract<SqlStorage> {
             table: {
               user: {
                 columns: {
-                  id: { nativeType: 'integer', codecId: 'sqlite/integer@1', nullable: false },
-                  email: { nativeType: 'text', codecId: 'sqlite/text@1', nullable: false },
+                  id: { dataType: 'sqlite/integer', codecId: 'sqlite/integer@1', nullable: false },
+                  email: { dataType: 'sqlite/text', codecId: 'sqlite/text@1', nullable: false },
                 },
                 primaryKey: { columns: ['id'] },
                 uniques: [],
@@ -80,7 +82,9 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: fromContractWithHash(FROM_STORAGE_HASH),
-        frameworkComponents: [],
+        origin: { storageHash: FROM_STORAGE_HASH },
+        statements: [],
+        frameworkComponents: sqliteTestComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       });
@@ -99,7 +103,9 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract,
-        frameworkComponents: [],
+        origin: planOriginOf(fromContract),
+        statements: [],
+        frameworkComponents: sqliteTestComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       });
@@ -117,7 +123,9 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: null,
-        frameworkComponents: [],
+        origin: null,
+        statements: [],
+        frameworkComponents: sqliteTestComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       });
@@ -134,7 +142,9 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: null,
-        frameworkComponents: [],
+        origin: null,
+        statements: [],
+        frameworkComponents: sqliteTestComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       });
@@ -153,7 +163,9 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: null,
-        frameworkComponents: [],
+        origin: null,
+        statements: [],
+        frameworkComponents: sqliteTestComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       });
@@ -172,7 +184,9 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: fromContractWithHash(FROM_STORAGE_HASH),
-        frameworkComponents: [],
+        origin: { storageHash: FROM_STORAGE_HASH },
+        statements: [],
+        frameworkComponents: sqliteTestComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       });
@@ -245,7 +259,9 @@ describe('SqliteMigrationPlanner authoring surface', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['widening', 'destructive'] },
         fromContract: null,
-        frameworkComponents: [],
+        origin: null,
+        statements: [],
+        frameworkComponents: sqliteTestComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
       });

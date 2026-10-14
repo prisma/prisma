@@ -14,7 +14,8 @@
  * op-factory-call.lowering.test.ts.
  */
 
-import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { col, fn, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
   AddForeignKeyCall,
@@ -55,23 +56,19 @@ describe('Postgres call classes - renderTypeScript + importRequirements', () => 
     expect(call.importRequirements()).toEqual([]);
   });
 
-  it('SetDefaultCall emits this.setDefault({...}), omits operationClass when additive', () => {
-    const additive = new SetDefaultCall('public', 'user', 'created_at', "DEFAULT 'now'");
-    expect(additive.renderTypeScript()).toBe(
-      `this.setDefault({ schema: "public", table: "user", column: "created_at", defaultSql: "DEFAULT 'now'" })`,
-    );
-    expect(additive.importRequirements()).toEqual([]);
-
-    const widening = new SetDefaultCall(
-      'public',
-      'user',
-      'created_at',
-      "DEFAULT 'now'",
-      'widening',
-    );
-    expect(widening.renderTypeScript()).toBe(
-      `this.setDefault({ schema: "public", table: "user", column: "created_at", defaultSql: "DEFAULT 'now'", operationClass: "widening" })`,
-    );
+  it('SetDefaultCall emits this.setDefault({...}) with the column, omits operationClass when additive', () => {
+    const column = col('created_at', 'timestamptz', { default: fn('now()') });
+    const additive = new SetDefaultCall('public', 'user', column);
+    const widening = new SetDefaultCall('public', 'user', column, 'widening');
+    expect({
+      additive: additive.renderTypeScript(),
+      widening: widening.renderTypeScript(),
+      imports: additive.importRequirements().map((requirement) => requirement.symbol),
+    }).toEqual({
+      additive: `this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql\`now()\`) }) })`,
+      widening: `this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql\`now()\`) }), operationClass: "widening" })`,
+      imports: ['col', 'fn', 'sql'],
+    });
   });
 
   it('DropConstraintCall omits kind when unique, emits it otherwise', () => {
@@ -215,28 +212,30 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
     expect(call.importRequirements()).toEqual([]);
   });
 
-  it('AlterColumnTypeCall emits this.alterColumnType({...}) and contributes no imports', () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      qualifiedTargetType: 'integer',
-      formatTypeExpected: 'integer',
-      rawTargetTypeForLabel: 'integer',
+  const alterAge = (using?: { readonly kind: 'sql'; readonly sql: string }) =>
+    new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'user',
+      columnName: 'age',
+      type: 'integer',
+      dataTypes: postgresDataTypes,
+      ...(using === undefined ? {} : { using }),
     });
-    const rendered = call.renderTypeScript();
-    expect(rendered.startsWith('this.alterColumnType({')).toBe(true);
-    expect(rendered).toContain('table: "user"');
-    expect(rendered).toContain('column: "age"');
-    expect(rendered).toContain('qualifiedTargetType: "integer"');
+
+  it('AlterColumnTypeCall emits this.alterColumnType({...}) with plain options and contributes no imports', () => {
+    const call = alterAge();
+    expect(call.renderTypeScript()).toBe(
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "integer" })',
+    );
     expect(call.importRequirements()).toEqual([]);
   });
 
-  it('AlterColumnTypeCall preserves an explicit USING clause in the options literal', () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      qualifiedTargetType: 'integer',
-      formatTypeExpected: 'integer',
-      rawTargetTypeForLabel: 'integer',
-      using: '"age"::integer',
+  it('AlterColumnTypeCall writes an explicit USING clause as a sql template and imports sql', () => {
+    const call = alterAge({ kind: 'sql', sql: '"age"::integer' });
+    expect({ source: call.renderTypeScript(), imports: call.importRequirements() }).toMatchObject({
+      source: expect.stringContaining('using: sql`"age"::integer`'),
+      imports: [{ symbol: 'sql' }],
     });
-    expect(call.renderTypeScript()).toContain('using: "\\"age\\"::integer"');
   });
 
   it('SetNotNullCall / DropNotNullCall / DropDefaultCall emit this.X({...}) and contribute no imports', () => {

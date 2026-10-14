@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { AnyCodecDescriptor } from '../../src/ast/codec-types';
+import type { AnyCodecDescriptorTemplate } from '../../src/ast/codec-types';
 import {
   SQL_CHAR_CODEC_ID,
   SQL_FLOAT_CODEC_ID,
@@ -21,7 +21,7 @@ const descriptorsByScalar = {
   int: sqlIntDescriptor,
   float: sqlFloatDescriptor,
   text: sqlTextDescriptor,
-} as const satisfies Record<string, AnyCodecDescriptor>;
+} as const satisfies Record<string, AnyCodecDescriptorTemplate>;
 
 describe('sql-codec-helpers', () => {
   it('exports expected codec IDs', () => {
@@ -43,27 +43,20 @@ describe('sql-codec-helpers', () => {
   const codecDefinitionCases: ReadonlyArray<{
     scalar: keyof typeof descriptorsByScalar;
     id: string;
-    targetTypes: readonly string[];
     hasParamsSchema: boolean;
   }> = [
-    { scalar: 'char', id: SQL_CHAR_CODEC_ID, targetTypes: ['char'], hasParamsSchema: true },
-    {
-      scalar: 'varchar',
-      id: SQL_VARCHAR_CODEC_ID,
-      targetTypes: ['varchar'],
-      hasParamsSchema: true,
-    },
-    { scalar: 'int', id: SQL_INT_CODEC_ID, targetTypes: ['int'], hasParamsSchema: true },
-    { scalar: 'float', id: SQL_FLOAT_CODEC_ID, targetTypes: ['float'], hasParamsSchema: true },
-    { scalar: 'text', id: SQL_TEXT_CODEC_ID, targetTypes: ['text'], hasParamsSchema: true },
+    { scalar: 'char', id: SQL_CHAR_CODEC_ID, hasParamsSchema: false },
+    { scalar: 'varchar', id: SQL_VARCHAR_CODEC_ID, hasParamsSchema: false },
+    { scalar: 'int', id: SQL_INT_CODEC_ID, hasParamsSchema: false },
+    { scalar: 'float', id: SQL_FLOAT_CODEC_ID, hasParamsSchema: false },
+    { scalar: 'text', id: SQL_TEXT_CODEC_ID, hasParamsSchema: false },
   ];
 
   it.each(codecDefinitionCases)(
-    'defines descriptor for $scalar',
-    ({ scalar, id, targetTypes, hasParamsSchema }) => {
+    'defines descriptor for $scalar, with no parameter bound of its own',
+    ({ scalar, id, hasParamsSchema }) => {
       const descriptor = descriptorsByScalar[scalar];
       expect(descriptor.codecId).toBe(id);
-      expect(descriptor.targetTypes).toEqual(targetTypes);
       expect(descriptor.paramsSchema !== undefined).toBe(hasParamsSchema);
     },
   );
@@ -89,7 +82,7 @@ describe('sql-codec-helpers', () => {
   it.each(codecRoundTripCases)(
     'encodes and decodes $scalar values',
     async ({ scalar, input, expectedEncoded, expectedDecoded }) => {
-      const descriptor = descriptorsByScalar[scalar] as AnyCodecDescriptor;
+      const descriptor = descriptorsByScalar[scalar] as AnyCodecDescriptorTemplate;
       const codec = descriptor.factory(undefined as never)({ name: 'test' });
       expect(await codec.encode(input, {})).toBe(expectedEncoded);
       expect(await codec.decode(input, {})).toBe(expectedDecoded);

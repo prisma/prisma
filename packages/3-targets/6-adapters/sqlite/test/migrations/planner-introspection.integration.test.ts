@@ -15,12 +15,13 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { index } from '@internal/sql-contract/factories';
 import { SqlStorage, type StorageColumn, type StorageTable } from '@internal/sql-contract/types';
 import { PrimaryKey } from '@internal/sql-schema-ir/types';
+import { createSqliteBuiltinCodecLookup } from '@internal/target-sqlite/codecs';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { createSqliteBuiltinCodecLookup } from '../../src/core/codec-lookup';
 import { SqliteControlAdapter } from '../../src/core/control-adapter';
+import { sqliteComponents } from './fixtures/sqlite-components';
 
 function createMemoryDriver() {
   const db = new DatabaseSync(':memory:');
@@ -42,7 +43,8 @@ function createMemoryDriver() {
 
 function makeColumn(overrides: Partial<StorageColumn> = {}): StorageColumn {
   return {
-    nativeType: 'text',
+    many: false,
+    dataType: 'sqlite/text',
     nullable: true,
     codecId: 'sqlite/text@1',
     ...overrides,
@@ -105,15 +107,17 @@ describe('SQLite planner + introspection round-trip', () => {
         users: makeTable({
           columns: {
             id: makeColumn({
-              nativeType: 'integer',
+              dataType: 'sqlite/integer',
+              codecId: 'sqlite/integer@1',
               nullable: false,
               default: { kind: 'function', expression: 'autoincrement()' },
             }),
-            email: makeColumn({ nativeType: 'text', nullable: false }),
+            email: makeColumn({ nullable: false }),
             active: makeColumn({
-              nativeType: 'integer',
+              dataType: 'sqlite/integer',
+              codecId: 'sqlite/integer@1',
               nullable: false,
-              default: { kind: 'literal', value: 1 },
+              default: { kind: 'literal', value: '1' },
             }),
           },
           primaryKey: { columns: ['id'] },
@@ -126,7 +130,9 @@ describe('SQLite planner + introspection round-trip', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: null,
-        frameworkComponents: [],
+        origin: null,
+        statements: [],
+        frameworkComponents: sqliteComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: '../../snapshots',
       });
@@ -176,11 +182,12 @@ describe('SQLite planner + introspection round-trip', () => {
         items: makeTable({
           columns: {
             id: makeColumn({
-              nativeType: 'integer',
+              dataType: 'sqlite/integer',
+              codecId: 'sqlite/integer@1',
               nullable: false,
               default: { kind: 'function', expression: 'autoincrement()' },
             }),
-            value: makeColumn({ nativeType: 'text', nullable: true }),
+            value: makeColumn({ nullable: true }),
           },
           primaryKey: { columns: ['id'] },
         }),
@@ -191,7 +198,9 @@ describe('SQLite planner + introspection round-trip', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: null,
-        frameworkComponents: [],
+        origin: null,
+        statements: [],
+        frameworkComponents: sqliteComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: '../../snapshots',
       });
@@ -227,14 +236,26 @@ describe('SQLite planner + introspection round-trip', () => {
       const contract = makeContract({
         authors: makeTable({
           columns: {
-            id: makeColumn({ nativeType: 'integer', nullable: false }),
+            id: makeColumn({
+              dataType: 'sqlite/integer',
+              codecId: 'sqlite/integer@1',
+              nullable: false,
+            }),
           },
           primaryKey: { columns: ['id'] },
         }),
         posts: makeTable({
           columns: {
-            id: makeColumn({ nativeType: 'integer', nullable: false }),
-            author_id: makeColumn({ nativeType: 'integer', nullable: false }),
+            id: makeColumn({
+              dataType: 'sqlite/integer',
+              codecId: 'sqlite/integer@1',
+              nullable: false,
+            }),
+            author_id: makeColumn({
+              dataType: 'sqlite/integer',
+              codecId: 'sqlite/integer@1',
+              nullable: false,
+            }),
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [
@@ -260,7 +281,9 @@ describe('SQLite planner + introspection round-trip', () => {
         schema: emptySchema,
         policy: { allowedOperationClasses: ['additive'] },
         fromContract: null,
-        frameworkComponents: [],
+        origin: null,
+        statements: [],
+        frameworkComponents: sqliteComponents,
         spaceId: APP_SPACE_ID,
         snapshotsImportPath: '../../snapshots',
       });

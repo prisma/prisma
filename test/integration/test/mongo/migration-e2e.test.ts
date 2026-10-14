@@ -1,12 +1,8 @@
-import {
-  createMongoRunnerDeps,
-  extractDb,
-  MongoControlAdapterImpl,
-} from '@internal/adapter-mongo/control';
+import { MongoControlAdapterImpl } from '@internal/adapter-mongo/control';
 import { coreHash, crossRef, profileHash } from '@internal/contract/types';
-import { MongoDriverImpl } from '@internal/driver-mongo';
 import mongoControlDriver, { MongoControlDriver } from '@internal/driver-mongo/control';
-import { contractToMongoSchemaIR, createMongoFamilyInstance } from '@internal/family-mongo/control';
+import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
+import { planOriginOf } from '@internal/framework-components/control';
 import { MongoCollection, type MongoContract, MongoIndex } from '@internal/mongo-contract';
 import type { MongoMigrationPlanOperation } from '@internal/mongo-query-ast/control';
 import {
@@ -32,8 +28,16 @@ const emptyContract: MongoContract = {
     models: {
       User: {
         fields: {
-          _id: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
-          email: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+          _id: {
+            nullable: false,
+            many: false,
+            type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+          },
+          email: {
+            nullable: false,
+            many: false,
+            type: { kind: 'scalar', codecId: 'mongo/string@1' },
+          },
         },
         relations: {},
         storage: { collection: 'users' },
@@ -68,8 +72,16 @@ const indexedContract: MongoContract = {
     models: {
       User: {
         fields: {
-          _id: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/objectId@1' } },
-          email: { nullable: false, type: { kind: 'scalar', codecId: 'mongo/string@1' } },
+          _id: {
+            nullable: false,
+            many: false,
+            type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+          },
+          email: {
+            nullable: false,
+            many: false,
+            type: { kind: 'scalar', codecId: 'mongo/string@1' },
+          },
         },
         relations: {},
         storage: { collection: 'users' },
@@ -103,13 +115,6 @@ const indexedContract: MongoContract = {
 const ALL_POLICY = {
   allowedOperationClasses: ['additive', 'widening', 'destructive'] as const,
 };
-
-function makeFamily(): ReturnType<typeof createMongoFamilyInstance> {
-  // ControlStack arg is unused by the mongo factory; an empty object suffices for these integration tests.
-  return createMongoFamilyInstance(
-    {} as unknown as Parameters<typeof createMongoFamilyInstance>[0],
-  );
-}
 
 describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer }, () => {
   let replSet: MongoMemoryReplSet;
@@ -151,6 +156,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
         schema,
         policy: ALL_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -173,6 +180,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
         schema,
         policy: ALL_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -184,11 +193,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
       const controlDriver = await mongoControlDriver.create(replSet.getUri(dbName));
       try {
         const runner = new MongoMigrationRunner(
-          createMongoRunnerDeps(
-            controlDriver,
-            MongoDriverImpl.fromDb(extractDb(controlDriver)),
-            makeFamily(),
-          ),
+          controlAdapter.createRunnerDependencies(controlDriver),
         );
         const plan = {
           targetId: 'mongo',
@@ -225,6 +230,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
         schema,
         policy: ALL_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -236,11 +243,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
       const controlDriver = await mongoControlDriver.create(replSet.getUri(dbName));
       try {
         const runner = new MongoMigrationRunner(
-          createMongoRunnerDeps(
-            controlDriver,
-            MongoDriverImpl.fromDb(extractDb(controlDriver)),
-            makeFamily(),
-          ),
+          controlAdapter.createRunnerDependencies(controlDriver),
         );
         const plan = {
           targetId: 'mongo',
@@ -271,6 +274,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
         schema,
         policy: ALL_POLICY,
         fromContract: null,
+        origin: null,
+        statements: [],
         frameworkComponents: [],
         snapshotsImportPath: '../../snapshots',
       });
@@ -282,11 +287,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
       const controlDriver = await mongoControlDriver.create(replSet.getUri(dbName));
       try {
         const runner = new MongoMigrationRunner(
-          createMongoRunnerDeps(
-            controlDriver,
-            MongoDriverImpl.fromDb(extractDb(controlDriver)),
-            makeFamily(),
-          ),
+          controlAdapter.createRunnerDependencies(controlDriver),
         );
         const plan = {
           targetId: 'mongo',
@@ -319,11 +320,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
       try {
         const planner = new MongoMigrationPlanner();
         const runner = new MongoMigrationRunner(
-          createMongoRunnerDeps(
-            controlDriver,
-            MongoDriverImpl.fromDb(extractDb(controlDriver)),
-            makeFamily(),
-          ),
+          controlAdapter.createRunnerDependencies(controlDriver),
         );
 
         // Step 1: Apply create index
@@ -333,6 +330,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
           schema: createSchema,
           policy: ALL_POLICY,
           fromContract: null,
+          origin: null,
+          statements: [],
           frameworkComponents: [],
           snapshotsImportPath: '../../snapshots',
         });
@@ -364,6 +363,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
           schema: dropSchema,
           policy: ALL_POLICY,
           fromContract: indexedContract,
+          origin: planOriginOf(indexedContract),
+          statements: [],
           frameworkComponents: [],
           snapshotsImportPath: '../../snapshots',
         });
@@ -371,7 +372,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
 
         expect(dropResult.plan.operations).toHaveLength(1);
         const dropOp = await dropResult.plan.operations[0]!;
-        expect(dropOp.operationClass).toBe('destructive');
+        expect(dropOp.operationClass).toBe('widening');
         expect(dropOp.label).toContain('Drop index');
 
         // Step 3: Apply drop
@@ -423,11 +424,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
       try {
         const planner = new MongoMigrationPlanner();
         const runner = new MongoMigrationRunner(
-          createMongoRunnerDeps(
-            controlDriver,
-            MongoDriverImpl.fromDb(extractDb(controlDriver)),
-            makeFamily(),
-          ),
+          controlAdapter.createRunnerDependencies(controlDriver),
         );
 
         // First apply
@@ -437,6 +434,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
           schema,
           policy: ALL_POLICY,
           fromContract: null,
+          origin: null,
+          statements: [],
           frameworkComponents: [],
           snapshotsImportPath: '../../snapshots',
         });
@@ -492,11 +491,7 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
 
         const planner = new MongoMigrationPlanner();
         const runner = new MongoMigrationRunner(
-          createMongoRunnerDeps(
-            controlDriver,
-            MongoDriverImpl.fromDb(extractDb(controlDriver)),
-            makeFamily(),
-          ),
+          controlAdapter.createRunnerDependencies(controlDriver),
         );
         const schema = contractToMongoSchemaIR(null);
         const result = planner.plan({
@@ -504,6 +499,8 @@ describe('MongoDB migration E2E', { timeout: timeouts.spinUpMongoMemoryServer },
           schema,
           policy: ALL_POLICY,
           fromContract: null,
+          origin: null,
+          statements: [],
           frameworkComponents: [],
           snapshotsImportPath: '../../snapshots',
         });

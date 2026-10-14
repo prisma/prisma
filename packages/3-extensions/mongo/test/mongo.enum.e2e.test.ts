@@ -1,9 +1,16 @@
 import { generateContractDts } from '@internal/emitter';
-import { type CodecLookup, renderTsLiteral } from '@internal/framework-components/codec';
+import {
+  type CodecLookup,
+  type CodecLookupWithDescriptors,
+  createDataTypeLookup,
+  renderTsLiteral,
+} from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { ExtractMongoFieldOutputTypes } from '@internal/mongo-contract';
 import { deriveJsonSchema, type FieldValueSets } from '@internal/mongo-contract-psl';
 import { mongoEmission } from '@internal/mongo-emitter';
+import { mongoDescriptorById } from '@internal/target-mongo/codecs';
+import { mongoDataTypes } from '@internal/target-mongo/data-types';
 import { blindCast } from '@internal/utils/casts';
 import { timeouts } from '@repo/test-utils';
 import { MongoClient } from 'mongodb';
@@ -14,7 +21,7 @@ import mongo, { type MongoClient as MongoFacadeClient } from '../src/runtime/mon
 
 const Role = enumType(
   'Role',
-  { codecId: 'mongo/string@1', nativeType: 'string' },
+  { codecId: 'mongo/string@1' },
   member('User', 'user'),
   member('Admin', 'admin'),
 );
@@ -23,7 +30,7 @@ const Role = enumType(
 // ordinalOf() returns declaration order, not lexical order.
 const Status = enumType(
   'Status',
-  { codecId: 'mongo/string@1', nativeType: 'string' },
+  { codecId: 'mongo/string@1' },
   member('Pending', 'pending'),
   member('Active', 'active'),
   member('Inactive', 'inactive'),
@@ -44,15 +51,11 @@ const contract = defineContract({
   models: { Account },
 });
 
-const mongoTargetTypes: Record<string, readonly string[]> = {
-  'mongo/string@1': ['string'],
-  'mongo/objectId@1': ['objectId'],
-};
+const knownCodecIds = new Set(['mongo/string@1', 'mongo/objectId@1']);
 
-const codecLookup: CodecLookup = {
+const codecLookup: CodecLookupWithDescriptors = {
   get: (id: string) => {
-    const targetTypes = mongoTargetTypes[id];
-    if (!targetTypes) return undefined;
+    if (!knownCodecIds.has(id)) return undefined;
     return {
       id,
       encode: async (v: unknown) => v,
@@ -61,7 +64,7 @@ const codecLookup: CodecLookup = {
       decodeJson: (j: unknown) => j,
     } as ReturnType<CodecLookup['get']>;
   },
-  targetTypesFor: (id: string) => mongoTargetTypes[id],
+  descriptorFor: (id: string) => (knownCodecIds.has(id) ? mongoDescriptorById(id) : undefined),
   renderOutputTypeFor: () => undefined,
   // Enum field types are produced through the codec seam (TML-2952): the emitter
   // renders each value-set value via `renderValueLiteralFor`. `mongo/string@1` is an
@@ -85,7 +88,12 @@ const storageValueSets = blindCast<
   (contract.storage as { namespaces: Record<string, { entries: { valueSet?: unknown } }> })
     .namespaces[UNBOUND_NAMESPACE_ID]?.entries.valueSet ?? {},
 );
-const ACCOUNT_VALIDATOR = deriveJsonSchema(accountFields, undefined, codecLookup, storageValueSets);
+const ACCOUNT_VALIDATOR = deriveJsonSchema(
+  accountFields,
+  { codecLookup, dataTypeLookup: createDataTypeLookup(mongoDataTypes) },
+  undefined,
+  storageValueSets,
+);
 
 describe('mongo enum — end-to-end (replica set)', {
   timeout: timeouts.spinUpMongoMemoryServer,
@@ -138,17 +146,24 @@ describe('mongo enum — end-to-end (replica set)', {
 
   describe('out-of-set scalar write is rejected', () => {
     it('rejects an insert with a role value not in the enum', async () => {
-      // 'nope' is not in the value union — bypass TS to test MongoDB's $jsonSchema enforcement.
+      // 'nope' is not in the value union — bypass TS; the ORM refuses it before the validator sees it.
       await expect(
         db.orm.accounts.create({ role: 'nope' as never, mood: null, tags: [] }),
-      ).rejects.toMatchObject({ code: 121 });
+      ).rejects.toMatchObject({
+        code: 'RUNTIME.ENCODE_FAILED',
+        details: { label: 'role', received: 'nope', allowed: ['user', 'admin'] },
+      });
     });
 
     it('rejects an insert with a null value on a non-nullable field', async () => {
-      // null is not valid for a non-nullable field — bypass TS to test MongoDB enforcement.
+      // null is not valid for a non-nullable field — bypass TS; the ORM refuses it before the validator sees it.
       await expect(
         db.orm.accounts.create({ role: null as never, mood: null, tags: [] }),
-      ).rejects.toMatchObject({ code: 121 });
+      ).rejects.toMatchObject({
+        code: 'RUNTIME.ENCODE_FAILED',
+        message:
+          "Failed to encode field role in collection 'accounts': the field is required and cannot be null",
+      });
     });
   });
 
@@ -187,10 +202,10 @@ describe('mongo enum — end-to-end (replica set)', {
     });
 
     it('rejects an out-of-set value on a nullable enum field', async () => {
-      // 'bogus' is not in the value union — bypass TS to test MongoDB enforcement.
+      // 'bogus' is not in the value union — bypass TS; the ORM refuses it before the validator sees it.
       await expect(
         db.orm.accounts.create({ role: 'user', mood: 'bogus' as never, tags: [] }),
-      ).rejects.toMatchObject({ code: 121 });
+      ).rejects.toMatchObject({ code: 'RUNTIME.ENCODE_FAILED', details: { label: 'mood' } });
     });
   });
 
@@ -211,10 +226,13 @@ describe('mongo enum — end-to-end (replica set)', {
     });
 
     it('rejects an array containing an out-of-set element', async () => {
-      // 'bogus' is not in the value union — bypass TS to test MongoDB enforcement.
+      // 'bogus' is not in the value union — bypass TS; the ORM refuses it before the validator sees it.
       await expect(
         db.orm.accounts.create({ role: 'user', mood: null, tags: ['bogus' as never] }),
-      ).rejects.toMatchObject({ code: 121 });
+      ).rejects.toMatchObject({
+        code: 'RUNTIME.ENCODE_FAILED',
+        details: { label: 'tags', received: 'bogus' },
+      });
     });
   });
 
@@ -276,7 +294,7 @@ describe('mongo enum — end-to-end (replica set)', {
 describe('emit-then-consume: value-union narrowing through the emitted contract.d.ts', () => {
   const mongoCodecImports = [
     {
-      package: '@internal/adapter-mongo/codec-types',
+      package: '@internal/target-mongo/codec-types',
       named: 'CodecTypes' as const,
       alias: 'MongoCodecTypes' as const,
     },
