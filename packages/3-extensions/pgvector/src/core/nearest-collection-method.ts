@@ -35,7 +35,7 @@ type NearestMethodTable<Model extends CollectionMethodModelType> = {
   };
 };
 
-/** One method for each vector field of a model, named `<field>_nearest`: the rows nearest to a vector by cosine distance, nearest first, optionally only those within `maxDistance`. It declares no filter, because it filters only when `maxDistance` is given. */
+/** One method for each vector field of a model, named `<field>_nearest`: the rows nearest to a vector by cosine distance, nearest first, optionally only those within `maxDistance`. Without `maxDistance` it only orders, so rows whose field is null come back too, last. It declares no filter, because it filters only when `maxDistance` is given. */
 export interface PgvectorNearestMethods extends CollectionMethodContributionType {
   readonly methods: NearestMethodTable<this['model']>;
 }
@@ -72,10 +72,15 @@ function nearestMethod(field: string): CollectionMethodBody {
       readonly [readonly number[], number | undefined],
       'the type half declares a vector and an optional distance'
     >(args);
-    const ordered = collection.orderBy((model) => distanceTo(model, field, vector).asc());
+    let shared: Distance | undefined;
+    const distance = (model: unknown): Distance => {
+      shared ??= distanceTo(model, field, vector);
+      return shared;
+    };
+    const ordered = collection.orderBy((model) => distance(model).asc());
     return maxDistance === undefined
       ? ordered
-      : ordered.where((model) => distanceTo(model, field, vector).lt(maxDistance));
+      : ordered.where((model) => distance(model).lt(maxDistance));
   };
 }
 
