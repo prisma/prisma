@@ -318,17 +318,17 @@ function resolveEntityRefTypeConstructorCall(input: {
     return NOT_RESOLVED;
   }
 
+  let entityName = ref;
+  let entityNamespaceId = input.namespaceId;
   const reportUnknownRef = (): ResolveFieldTypeResult => {
     input.diagnostics.push({
       code: 'PSL_UNKNOWN_ENTITY_REF',
-      message: `${input.entityLabel} type constructor "${helperPath}(${ref})" does not resolve — no entity named "${ref}" was found in namespace "${input.namespaceId ?? '(unspecified)'}"`,
+      message: `${input.entityLabel} type constructor "${helperPath}(${ref})" does not resolve — no entity named "${ref}" was found in namespace "${entityNamespaceId ?? '(unspecified)'}"`,
       ...input.source.at(input.call.span),
     });
     return NOT_RESOLVED;
   };
 
-  let entityName = ref;
-  let entityNamespaceId = input.namespaceId;
   if (resolution !== undefined) {
     if (resolution.kind === 'unresolved') return NOT_RESOLVED;
     if (resolution.kind !== 'block') return reportUnknownRef();

@@ -382,90 +382,54 @@ namespace docs {
     ]);
   });
 
-  it('resolves an entity of another namespace named qualified from a top-level model', () => {
+  it('refuses a string argument as not naming an entity, though an entity of that name exists', () => {
     const result = interpretWith(`
 namespace docs {
   native_enum AalLevel {
     aal1
   }
-}
-
-model AuthSession {
-  id Int @id
-  aal pg.enum(docs.AalLevel)
-}
-`);
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.value.storage).toMatchObject({
-      namespaces: {
-        public: {
-          entries: {
-            table: {
-              AuthSession: {
-                columns: {
-                  aal: {
-                    typeParams: { typeName: 'AalLevel' },
-                    valueSet: { namespaceId: 'docs', entityName: 'AalLevel' },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-  });
-
-  it('resolves a top-level entity named unqualified from a model of a namespace', () => {
-    const result = interpretWith(`
-native_enum AalLevel {
-  aal1
-}
-
-namespace docs {
-  model AuthSession {
-    id Int @id
-    aal pg.enum(AalLevel)
-  }
-}
-`);
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-    expect(result.value.storage).toMatchObject({
-      namespaces: {
-        docs: {
-          entries: {
-            table: {
-              AuthSession: {
-                columns: { aal: { valueSet: { namespaceId: 'public', entityName: 'AalLevel' } } },
-              },
-            },
-          },
-        },
-      },
-    });
-  });
-
-  it('refuses a name that resolves to a model with the existing diagnostic alone', () => {
-    const result = interpretWith(`
-namespace docs {
-  model AalLevel {
-    id Int @id
-  }
 
   model AuthSession {
     id Int @id
-    aal pg.enum(AalLevel)
+    aal pg.enum("AalLevel")
   }
 }
 `);
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics.map(({ code }) => code)).toEqual(['PSL_UNKNOWN_ENTITY_REF']);
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
+        message:
+          'Field "AuthSession.aal" type constructor "pg.enum" expects exactly one positional argument naming the referenced entity',
+      },
+    ]);
+  });
+
+  it('names the namespace it looked in when a block of another namespace is not an entity of the expected kind', () => {
+    const result = interpretWith(`
+namespace docs {
+  plain_ref Other {
+    a
+  }
+}
+
+model AuthSession {
+  id Int @id
+  aal pg.enum(docs.Other)
+}
+`);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_UNKNOWN_ENTITY_REF',
+        message:
+          'Field "AuthSession.aal" type constructor "pg.enum(docs.Other)" does not resolve — no entity named "docs.Other" was found in namespace "docs"',
+      },
+    ]);
   });
 
   it('rejects an entity-ref call with no arguments', () => {
