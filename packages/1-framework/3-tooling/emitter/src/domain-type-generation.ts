@@ -731,42 +731,38 @@ export function renderTypeOverride(override: TypeOverride): string {
   return `{ ${sides.join('; ')} }`;
 }
 
+type OverridePath = readonly [string, string, string];
+
 /** A nested map of type overrides, ordered by name at every level, leaving out every branch with no entry. */
 export function renderTypeOverridesMap(
   entries: ReadonlyArray<readonly [string, string, string, TypeOverride | undefined]>,
 ): string {
-  const override = entries
-    .flatMap(([first, second, third, type]) =>
-      type === undefined ? [] : [{ path: [first, second, third] as const, type }],
-    )
+  const sorted = entries
+    .flatMap(([first, second, third, type]) => {
+      const path: OverridePath = [first, second, third];
+      return type === undefined ? [] : [{ path, type }];
+    })
     .sort((a, b) => comparePaths(a.path, b.path));
-  return renderLevel(override, 0);
-}
-
-type OverrideEntry = {
-  readonly path: readonly [string, string, string];
-  readonly type: TypeOverride;
-};
-
-function comparePaths(a: readonly string[], b: readonly string[]): number {
-  for (let i = 0; i < a.length; i++) {
-    const order = (a[i] ?? '').localeCompare(b[i] ?? '');
-    if (order !== 0) return order;
+  const outer = new Map<string, Map<string, string[]>>();
+  for (const { path, type } of sorted) {
+    const [first, second, third] = path;
+    const middle = outer.get(first) ?? new Map<string, string[]>();
+    outer.set(first, middle);
+    const inner = middle.get(second) ?? [];
+    middle.set(second, inner);
+    inner.push(`readonly ${serializeObjectKey(third)}: ${renderTypeOverride(type)}`);
   }
-  return 0;
+  const firstParts = [...outer].map(([first, middle]) => {
+    const secondParts = [...middle].map(
+      ([second, inner]) => `readonly ${serializeObjectKey(second)}: { ${inner.join('; ')} }`,
+    );
+    return `readonly ${serializeObjectKey(first)}: { ${secondParts.join('; ')} }`;
+  });
+  return `{ ${firstParts.join('; ')} }`;
 }
 
-function renderLevel(entries: readonly OverrideEntry[], depth: number): string {
-  const keys = [...new Set(entries.map((entry) => entry.path[depth] ?? ''))];
-  const parts = keys.map((key) => {
-    const below = entries.filter((entry) => entry.path[depth] === key);
-    const value =
-      depth === 2 && below[0] !== undefined
-        ? renderTypeOverride(below[0].type)
-        : renderLevel(below, depth + 1);
-    return `readonly ${serializeObjectKey(key)}: ${value}`;
-  });
-  return `{ ${parts.join('; ')} }`;
+function comparePaths(a: OverridePath, b: OverridePath): number {
+  return a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]) || a[2].localeCompare(b[2]);
 }
 
 /** `FieldTypeOverrides`: per namespace, model and field, the type of each field its codec does not give. */
@@ -777,7 +773,7 @@ export function generateFieldTypeOverridesMap(
 ): string {
   return renderTypeOverridesMap(
     namespaceModels.flatMap(([nsId, models]) =>
-      Object.entries(models ?? {}).flatMap(([modelName, model]) =>
+      Object.entries(models).flatMap(([modelName, model]) =>
         Object.entries(model.fields).map(
           ([fieldName, field]) =>
             [

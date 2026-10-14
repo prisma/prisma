@@ -163,3 +163,15 @@ describe('generateContractDts for a family that types its fields with a generic'
     expect(dts).toContain('address: FieldOutputTypes["public"]["User"]["address"];');
   });
 });
+
+describe('generateContractDts for a family generic that names the type function union', () => {
+  it('declares the union as never when the stack declares no type function', () => {
+    const spi = createMockSpi({
+      fieldTypesExpression: (side) =>
+        `FieldTypesFrom<ContractBase, ParameterizedOutputTypeFunctions, '${side}'>`,
+    });
+    const dts = generateContractDts(createTestContract(), spi, [CODEC_TYPES], HASHES);
+
+    expect(dts).toContain('type ParameterizedOutputTypeFunctions = never;');
+  });
+});
