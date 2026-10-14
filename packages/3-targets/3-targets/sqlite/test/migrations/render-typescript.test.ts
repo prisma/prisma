@@ -152,7 +152,10 @@ describe('renderCallsToTypeScript (sqlite)', () => {
 });
 
 describe('renderCallsToTypeScript (sqlite) — the sql import', () => {
-  const recreateTable = (columns: readonly SqliteColumnSpec[]) =>
+  const recreateTable = (
+    columns: readonly SqliteColumnSpec[],
+    copyExpressions?: Readonly<Record<string, string>>,
+  ) =>
     new RecreateTableCall({
       tableName: 'note',
       contractTable: { columns, primaryKey: { columns: ['id'] }, uniques: [], foreignKeys: [] },
@@ -161,6 +164,16 @@ describe('renderCallsToTypeScript (sqlite) — the sql import', () => {
       summary: 'Recreates table note',
       postchecks: [{ description: 'verify', sql: `SELECT "a" = 'b'` }],
       operationClass: 'widening',
+      ...(copyExpressions === undefined
+        ? {}
+        : {
+            copyExpressions: Object.fromEntries(
+              Object.entries(copyExpressions).map(([column, sql]) => [
+                column,
+                { kind: 'sql' as const, sql },
+              ]),
+            ),
+          }),
     });
   const idColumn: SqliteColumnSpec = { name: 'id', typeSql: 'INTEGER', nullable: false };
   const functionDefault = (expression: string): SqliteColumnSpec => ({
@@ -183,7 +196,7 @@ describe('renderCallsToTypeScript (sqlite) — the sql import', () => {
     new DropColumnCall('note', 'nickname'),
     new CreateIndexCall('note', 'note_kind_idx', ['kind']),
     new DropIndexCall('note', 'note_kind_idx'),
-    new DataTransformCall('data_migration.backfill', 'Backfill', 'note', 'kind'),
+    new DataTransformCall('data_migration.backfill', 'Backfill', 'note', 'kind', 'Note.kind:run'),
     new RawSqlCall({
       id: 'raw.custom.1',
       label: 'raw custom 1',
@@ -199,12 +212,14 @@ describe('renderCallsToTypeScript (sqlite) — the sql import', () => {
     new CreateTableCall('note', [col('created', 'TEXT', { default: fn("datetime('now')") })]),
     new AddColumnCall('note', functionDefault('lower(hex(randomblob(4)))')),
     recreateTable([idColumn, functionDefault('lower(hex(randomblob(4)))')]),
+    recreateTable([idColumn], { id: 'CAST("id" AS INTEGER)' }),
   ];
 
   const fallbackOnlyCalls = [
     new CreateTableCall('note', [col('created', 'TEXT', { default: fn("  datetime('now')") })]),
     new AddColumnCall('note', functionDefault('lower(\n  x)  ')),
     recreateTable([idColumn, functionDefault('\nx')]),
+    recreateTable([idColumn], { id: '  CAST("id" AS INTEGER)' }),
   ];
 
   function facadeImportNames(output: string): string[] {
@@ -251,6 +266,6 @@ describe('renderCallsToTypeScript (sqlite) — the sql import', () => {
       oneCallPerClass: printing(oneCallPerClass),
       templateCalls: printing(templateCalls),
       fallbackOnlyCalls: printing(fallbackOnlyCalls),
-    }).toEqual({ oneCallPerClass: 0, templateCalls: 3, fallbackOnlyCalls: 0 });
+    }).toEqual({ oneCallPerClass: 0, templateCalls: 4, fallbackOnlyCalls: 0 });
   });
 });

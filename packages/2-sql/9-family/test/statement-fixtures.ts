@@ -9,6 +9,8 @@ import {
 } from '@internal/contract/types';
 import type {
   MigrationOperationClass,
+  ResolvedFieldBackfillStatement,
+  ResolvedFieldConvertStatement,
   ResolvedFieldRenameStatement,
   ResolvedModelRenameStatement,
 } from '@internal/framework-components/control';
@@ -155,6 +157,26 @@ export function renameField(
     entity: 'field',
     from: { namespaceId: asNamespaceId('app'), model, field: from },
     to: { namespaceId: asNamespaceId('app'), model: newModel, field: to },
+  };
+}
+
+export function convertField(model: string, field: string): ResolvedFieldConvertStatement {
+  return {
+    kind: 'convert',
+    entity: 'field',
+    field: { namespaceId: asNamespaceId('app'), model, field },
+  };
+}
+
+export function backfillField(
+  model: string,
+  field: string,
+  namespace = 'app',
+): ResolvedFieldBackfillStatement {
+  return {
+    kind: 'backfill',
+    entity: 'field',
+    field: { namespaceId: asNamespaceId(namespace), model, field },
   };
 }
 

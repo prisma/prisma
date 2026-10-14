@@ -8,12 +8,17 @@ import type { Contract, ContractMarkerRecord, LedgerEntryRecord } from '@interna
 import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-components/authoring';
 import type {
   ControlAdapterDescriptor,
+  ControlDriverConnectOptions,
   ControlDriverDescriptor,
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,
   ControlTargetDescriptor,
   CoreSchemaView,
+  FailedCast,
+  FailedConversion,
+  FailedTypeChange,
   MigrationAccessChange,
+  MigrationDataLoss,
   MigrationOperationSubject,
   MigrationPlannerConflict,
   MigrationPlanOperation,
@@ -30,6 +35,7 @@ import type { RenderContractDtsOptions, RenderContractDtsResult } from './render
 import type { AnswerPlanQuestions } from './statements/plan-questions';
 import type { AppliedStatementReport } from './statements/report-applied-statements';
 import type { StatementText } from './statements/statement-text';
+import type { TemporaryValueReport } from './statements/temporary-values';
 
 // ============================================================================
 // Client Options
@@ -432,6 +438,8 @@ export interface DbInitFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
   readonly marker?: {
@@ -455,13 +463,17 @@ export interface AskedSubject extends MigrationOperationSubject {
   readonly text: string;
 }
 
+/** An operation an apply asks about because it loses its subject's data. */
+export interface AskedDataLoss extends AskedSubject, MigrationDataLoss {}
+
 /** An operation an apply asks about because it changes who can read or write its subject's rows. */
 export interface AskedAccessChange extends AskedSubject, MigrationAccessChange {}
 
 /**
  * Successful dbUpdate result.
  */
-export interface DbUpdateSuccess extends MigrationPlanSubjects<AskedSubject, AskedAccessChange> {
+export interface DbUpdateSuccess
+  extends MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport> {
   readonly mode: 'plan' | 'apply';
   readonly plan: {
     readonly operations: ReadonlyArray<{
@@ -497,8 +509,32 @@ export interface DbUpdateSuccess extends MigrationPlanSubjects<AskedSubject, Ask
   readonly perSpace?: ReadonlyArray<PerSpaceExecutionEntry>;
   /** The statements the application space's plan applied, in order; empty when none were given. */
   readonly appliedStatements: readonly AppliedStatementReport[];
+  /**
+   * The storage hash of the contract the database was at before the run, when a migration of the
+   * graph ends at it: the origin a `migration plan` for this database starts from.
+   */
+  readonly databaseStorageHash?: string;
   readonly summary: string;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
+}
+
+/**
+ * A type change that failed, as the advice for it names it: the field as a `convert` statement
+ * names it, who converted its values, and why it failed (see {@link FailedTypeChange}).
+ */
+export type FailedTypeChangeReport =
+  | (Pick<FailedCast, 'by' | 'reason'> & { readonly field: string })
+  | (Pick<FailedConversion, 'by' | 'reason'> & { readonly field: string });
+
+/** A field that was to become required while rows had no value for it, as the advice names it. */
+export interface RowsWithoutValueReport {
+  /** The field, as a `backfill` statement names it, when the contract names one. */
+  readonly field: string | undefined;
+  /**
+   * `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no
+   * rows. `backfillMissedRows`: the migration's backfill step for the field left rows without a value.
+   */
+  readonly reason: 'nullValues' | 'newField' | 'backfillMissedRows';
 }
 
 /**
@@ -516,6 +552,15 @@ export interface DbUpdateFailure {
   readonly conflicts: ReadonlyArray<MigrationPlannerConflict> | undefined;
   readonly warnings?: ReadonlyArray<MigrationPlannerConflict>;
   readonly meta: Record<string, unknown> | undefined;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /**
+   * The storage hash of the contract the database is at, when a migration of the graph ends at it:
+   * the origin a `migration plan` for this database starts from.
+   */
+  readonly databaseStorageHash?: string;
+  /** The type change that failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -728,6 +773,12 @@ export interface MigrateFailure {
   readonly summary: string;
   readonly why: string | undefined;
   readonly meta: Record<string, unknown> | undefined;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The written migration of the failed operation: its directory, and the contract it starts from. */
+  readonly failedMigration?: { readonly directory: string; readonly from: string };
+  /** The type change that failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
 }
@@ -845,7 +896,7 @@ export interface ControlClient {
    * @throws If connection fails, already connected, driver is not configured,
    *   or no connection provided and no default connection in options.
    */
-  connect(connection?: unknown): Promise<void>;
+  connect(connection?: unknown, options?: ControlDriverConnectOptions): Promise<void>;
 
   /**
    * Closes the database connection.

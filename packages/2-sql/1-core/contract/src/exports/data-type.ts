@@ -17,6 +17,7 @@ export {
   renderSqlCatalogText,
   renderSqlTypeName,
   resolveReportedSqlType,
+  resolveWrittenSqlTypes,
   sqlBaseName,
   sqlDataType,
   sqlDataTypeOfCodec,

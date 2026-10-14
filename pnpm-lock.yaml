@@ -2970,6 +2970,9 @@ importers:
       '@internal/sql-schema-ir':
         specifier: workspace:8.0.0-rc.17
         version: link:../1-core/schema-ir
+      '@internal/ts-render':
+        specifier: workspace:8.0.0-rc.17
+        version: link:../../1-framework/1-core/ts-render
       '@internal/utils':
         specifier: workspace:8.0.0-rc.17
         version: link:../../1-framework/0-foundation/utils

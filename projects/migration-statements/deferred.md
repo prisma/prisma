@@ -36,18 +36,11 @@ On SQL a statement names the model's field (`User.fullName`), and the storage br
 
 When one plan renames a column on SQLite and a later step rebuilds the same table, the column rename's companion index replacement (drop and create) runs, then the rebuild creates the index again. Rows are kept; one index build is wasted. Removing the companion would need the planner to rewrite statement calls after the diff, and then re-running `migration.ts` (whose `renameColumn` cannot see the later rebuild) would no longer reproduce `ops.json`. Fixing it properly needs operations that carry dependency information, which the design notes already name as a direction.
 
-## SQLite `db update` cannot add a required field to a table that has rows
-
-**Found:** slice 2, dispatch 5 (2026-10-08). Pre-existing, not caused by the refusal.
-
-The Postgres planner has a temporary-default recipe for a required column added to a populated table under `db update`; SQLite has none, so the runner fails with `MIGRATION.RUNNER_FAILED` ("Cannot add a NOT NULL column with default value NULL"). The slice 2 SQLite journey adds the field to an empty table and says so. Resolving it means a SQLite temporary-default recipe or a table rebuild with a backfill; `--backfill` (slice 3) covers `migration plan`, not `db update`.
-
 ## `--delete <namespace>` consenting for every model in the namespace
 
 **Found:** slice 2, whole-slice architect review (2026-10-08). For slice 3.
 
 Project decision 6 lets a namespace delete cover everything in the namespace while the refusal lists each model. The engine answers a question only by a value equal to its subject or starting with it, so a namespace-wide answer has to be expanded by the ORM before the questions are asked. Slice 3 adds the namespace noun to `rename` and `delete` together and does that expansion there. Until then every `delete` names one model, field or storage object.
-
 
 ## A MongoDB validator that requires a new field leaves existing documents unwritable
 
@@ -72,7 +65,6 @@ Adding a required field to a populated collection, or making an optional field r
 **Found:** slice 4a design (2026-10-09). Will: SQL will need to handle multi-table storage of variants in the future.
 
 On MongoDB a variant's field rename touches only that variant's documents. On SQL today a variant's field is a column in the shared table, and a rename applies to every row. When SQL supports variants stored in their own tables, a variant's field statements must act on that variant's table only.
-
 
 ## MongoDB `@map` accepts field names MongoDB cannot validate
 
@@ -104,13 +96,30 @@ A migration written with a placeholder has `ops.json` as `[]`. Running `db migra
 
 The Migration System doc lists emit-drift detection (re-emit `migration.ts` in memory and compare with `ops.json` before applying) as architecturally required and not yet implemented. Without it, a user who edits `migration.ts` and forgets to run it applies the old operations; in slice 4a's review that turned a wrong advice text into a dropped collection. Worth a ticket when this project closes, if none exists.
 
-## A `--convert` expression can leave values the field's type cannot hold
-
-**Found:** slice 3a review (2026-10-12).
-
-A SQLite `--convert` rebuild runs the user's expression without the storage-class check the direct rebuild gets, so `trim("n")` on a field changed to `Int` leaves `'abc'` as text, and the ORM returns `"abc"` for an `Int` field. Postgres refuses such a value itself. Consider running the same check after a converted copy.
-
 ## `migration status --json` prints `{bin}` unreplaced
 
 **Found:** slice 3a review (2026-10-12). Outside this project. The summary text in the JSON output contains a raw `{bin}` placeholder.
 
+## A Postgres `dataTransform` whose `run` returns the wrong shape fails with an unclear error
+
+**Found:** slice 3a review (2026-10-12). Outside this project.
+
+When `run` returns an array of plans or a SQL string, `node migration.ts` fails with "Cannot read properties of undefined (reading 'storageHash')". It should say what `run` must return.
+
+## A data-loss question can offer one flag value per verb
+
+**Found:** slice 4a review, dispatch 3 (2026-10-09). Engine side.
+
+The statement prompt writes one flag value per verb, so a question about a field whose model the destination names differently cannot print the two statements that keep its values (the model rename, then the field rename). The question offers only `--delete` and says to pass the model rename first, after which the next question offers the field rename. Printing both statements at once would need the engine to accept several flag values for one verb.
+
+## The SQLite `recreateTable` call in `migration.ts` is hard to read
+
+**Found:** slice 3a manual QA (2026-10-12), F11. Older than this project's slices.
+
+A SQLite table rebuild renders as a 40-line `recreateTable` call full of internal fields, so a `--convert` slot sits at its end where it is easy to miss. A shorter rendering, or one built from the contract the way `alterColumnType` is on Postgres, would make the slot easy to find.
+
+## Printed commands in other commands' outputs still leave out `--config` and `--db`
+
+**Found:** slice 3a review round 2 (2026-10-13), S07. Tracked as TML-3575.
+
+`db migrate`, `db update` and `migration plan` print every command through `cliCommand` in `packages/1-framework/3-tooling/cli/src/utils/printed-command.ts`. About 100 other `{bin} …` literals do not: `migration status`, `db init` failures (`db-init-failure.ts`), `db sign` beyond its re-run command, `contract emit`, `prepare.ts`, `cli-errors.ts` (for example `MIGRATION.PLAN_ORIGIN_UNKNOWN`), and `reemitHint` in the migration package. Followed from another directory, they load a different config or none.

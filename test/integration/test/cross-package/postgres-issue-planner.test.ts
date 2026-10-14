@@ -2,8 +2,8 @@ import postgresAdapterControl, {
   createPostgresBuiltinCodecLookup,
   PostgresControlAdapter,
 } from '@internal/adapter-postgres/control';
-import { type Contract, coreHash, profileHash } from '@internal/contract/types';
-import { sqlTypeLookupsOf } from '@internal/family-sql/control';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { type FieldStatementColumns, sqlTypeLookupsOf } from '@internal/family-sql/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   SqlStorage,
@@ -82,6 +82,7 @@ function planAgainst(
   options: {
     readonly fromContract?: Contract<SqlStorage> | null;
     readonly strategies?: readonly [];
+    readonly statementColumns?: FieldStatementColumns;
   } = {},
 ) {
   const { issues } = buildPostgresPlanDiff({
@@ -98,8 +99,27 @@ function planAgainst(
     codecHooks: new Map(),
     types: sqlTypeLookupsOf(frameworkComponents),
     storageTypes: contract.storage.types ?? {},
+    frameworkComponents,
     ...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
+    ...(options.statementColumns !== undefined
+      ? { statementColumns: options.statementColumns }
+      : {}),
   });
+}
+
+function backfillOf(column: string): FieldStatementColumns {
+  return {
+    convert: [],
+    backfill: [
+      {
+        namespaceId: UNBOUND_NAMESPACE_ID,
+        table: 'user',
+        column,
+        field: { namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID), model: 'User', field: column },
+        text: `User.${column}`,
+      },
+    ],
+  };
 }
 
 describe('planIssues', () => {
@@ -187,8 +207,10 @@ describe('planIssues', () => {
       });
     }
 
-    it('emits AddColumnCall(nullable) + DataTransformCall + SetNotNullCall', () => {
-      const result = planAgainst(contractWithStatus(), actualWithoutStatus());
+    it('emits AddColumnCall(nullable) + DataTransformCall + SetNotNullCall for --backfill', () => {
+      const result = planAgainst(contractWithStatus(), actualWithoutStatus(), {
+        statementColumns: backfillOf('status'),
+      });
 
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error('expected ok');
@@ -200,7 +222,9 @@ describe('planIssues', () => {
     });
 
     it('DataTransformCall.toOp() rejects with MIGRATION.UNFILLED_PLACEHOLDER', async () => {
-      const result = planAgainst(contractWithStatus(), actualWithoutStatus());
+      const result = planAgainst(contractWithStatus(), actualWithoutStatus(), {
+        statementColumns: backfillOf('status'),
+      });
 
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error('expected ok');
@@ -211,7 +235,7 @@ describe('planIssues', () => {
   });
 
   describe('nullableTightening call strategy', () => {
-    it('emits DataTransformCall + SetNotNullCall', () => {
+    it('emits DataTransformCall + SetNotNullCall for --backfill, and a direct SetNotNullCall without it', () => {
       const toContract = makeContract({
         entries: {
           table: {
@@ -264,7 +288,8 @@ describe('planIssues', () => {
         pgVersion: 'unknown',
       });
 
-      const result = planAgainst(toContract, actual);
+      const result = planAgainst(toContract, actual, { statementColumns: backfillOf('email') });
+      const direct = planAgainst(toContract, actual);
 
       expect(result.ok).toBe(true);
       if (!result.ok) throw new Error('expected ok');
@@ -272,6 +297,9 @@ describe('planIssues', () => {
       expect(calls).toHaveLength(2);
       expect(calls[0]).toMatchObject({ factoryName: 'dataTransform' });
       expect(calls[1]).toMatchObject({ factoryName: 'setNotNull', operationClass: 'widening' });
+      expect(direct.ok && direct.value.calls).toEqual([
+        expect.objectContaining({ factoryName: 'setNotNull', operationClass: 'widening' }),
+      ]);
     });
   });
 
@@ -350,14 +378,14 @@ describe('planIssues', () => {
       });
     });
 
-    it('emits DataTransformCall + AlterColumnTypeCall for unsafe change', () => {
+    it('emits one destructive AlterColumnTypeCall for an unsafe change no statement names, and a data one with a USING slot for a converted one', () => {
       const toContract = makeContract({
         entries: {
           table: {
             user: {
               columns: {
                 id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
-                age: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
+                age: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -368,19 +396,41 @@ describe('planIssues', () => {
         },
       });
 
-      const result = planAgainst(toContract, actualWithAge('int4', 'pg/int4@1'), {
+      const plain = planAgainst(toContract, actualWithAge('text', 'pg/text@1'), {
         fromContract: toContract,
       });
-
-      expect(result.ok).toBe(true);
-      if (!result.ok) throw new Error('expected ok');
-      const calls = result.value.calls;
-      expect(calls).toHaveLength(2);
-      expect(calls[0]).toMatchObject({ factoryName: 'dataTransform' });
-      expect(calls[1]).toMatchObject({
-        factoryName: 'alterColumnType',
-        operationClass: 'destructive',
+      const converted = planAgainst(toContract, actualWithAge('text', 'pg/text@1'), {
+        fromContract: toContract,
+        statementColumns: {
+          convert: [
+            {
+              namespaceId: UNBOUND_NAMESPACE_ID,
+              table: 'user',
+              column: 'age',
+              field: {
+                namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
+                model: 'User',
+                field: 'age',
+              },
+              text: 'User.age',
+            },
+          ],
+          backfill: [],
+        },
       });
+
+      expect([plain.ok, converted.ok]).toEqual([true, true]);
+      if (!plain.ok || !converted.ok) throw new Error('expected ok');
+      expect(plain.value.calls).toEqual([
+        expect.objectContaining({ factoryName: 'alterColumnType', operationClass: 'destructive' }),
+      ]);
+      expect(converted.value.calls).toEqual([
+        expect.objectContaining({
+          factoryName: 'alterColumnType',
+          operationClass: 'data',
+          using: { kind: 'placeholder', slot: 'User.age:convert' },
+        }),
+      ]);
     });
   });
 
@@ -641,7 +691,7 @@ describe('planIssues', () => {
         pgVersion: 'unknown',
       });
 
-      const result = planAgainst(toContract, actual);
+      const result = planAgainst(toContract, actual, { statementColumns: backfillOf('status') });
       if (!result.ok) throw new Error('expected ok');
 
       const ts = renderCallsToTypeScript(result.value.calls, {

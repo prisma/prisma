@@ -19,6 +19,7 @@ import {
   type ContractIR,
   preflightRefAdvancement,
 } from '../../control-api/operations/ref-advancement';
+import { shellQuoted } from '../../control-api/statements/statement-flag';
 import {
   type CliStructuredError,
   errorAdvanceRefArgConflict,
@@ -29,6 +30,7 @@ import {
 } from '../../utils/cli-errors';
 import { closeQuietly, maskConnectionUrl } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
+import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { appRefsDirFor, baseDirFor, migrationsDirFor } from '../migration/paths';
@@ -206,24 +208,20 @@ function signSummary(spaces: readonly DbSignSpaceOutcome[]): string {
   return `${problems.charAt(0).toUpperCase()}${problems.slice(1)}; ${signedText}`;
 }
 
-/** The arguments of a `db sign` run that change what it signs or where, repeated in the command that runs it again. */
-interface SignInvocation {
-  readonly contractRef: string | undefined;
-  readonly advanceRef: string | undefined;
-  readonly noAdvanceRef: boolean;
-  readonly configPath: string | undefined;
-  readonly db: string | undefined;
-}
-
-function rerunCommand(invocation: SignInvocation): string {
-  return [
-    '{bin} db sign',
-    ...(invocation.contractRef === undefined ? [] : [`--contract "${invocation.contractRef}"`]),
-    ...(invocation.advanceRef === undefined ? [] : [`--advance-ref ${invocation.advanceRef}`]),
-    ...(invocation.noAdvanceRef ? ['--no-advance-ref'] : []),
-    ...(invocation.configPath === undefined ? [] : [`--config "${invocation.configPath}"`]),
-    ...(invocation.db === undefined ? [] : ['--db <url>']),
-  ].join(' ');
+/** The `db sign` command that runs this one again, with the arguments that change what it signs or where. */
+function rerunCommand(
+  invocation: CliInvocation,
+  args: {
+    readonly contractRef: string | undefined;
+    readonly advanceRef: string | undefined;
+    readonly noAdvanceRef: boolean;
+  },
+): string {
+  return cliCommand(invocation, 'db sign', [
+    ...(args.contractRef === undefined ? [] : ['--contract', shellQuoted(args.contractRef)]),
+    ...(args.advanceRef === undefined ? [] : ['--advance-ref', shellQuoted(args.advanceRef)]),
+    ...(args.noAdvanceRef ? ['--no-advance-ref'] : []),
+  ]);
 }
 
 function markerConflictDiagnostic(
@@ -518,18 +516,16 @@ export function createDbSignCommand(
       const connection = requireVerifyConnection({
         config: ctx.config,
         db: args.flags.db,
-        invocation: 'db sign',
+        commandLine: 'db sign',
       });
       if (!connection.ok) {
         return notOk(connection.failure);
       }
       const dbConnection = connection.value;
-      const rerun = rerunCommand({
+      const rerun = rerunCommand(cliInvocation(ctx, args.flags.db), {
         contractRef,
         advanceRef: args.flags.advanceRef,
         noAdvanceRef: args.flags.noAdvanceRef,
-        configPath: ctx.configPath,
-        db: args.flags.db,
       });
 
       const header = headerBlock({
@@ -639,7 +635,9 @@ export function createDbSignCommand(
           ),
         );
       } catch (error) {
-        return notOk(verificationThrow({ error, invocation: 'db sign', connection: dbConnection }));
+        return notOk(
+          verificationThrow({ error, commandLine: 'db sign', connection: dbConnection }),
+        );
       } finally {
         await closeQuietly(client);
       }

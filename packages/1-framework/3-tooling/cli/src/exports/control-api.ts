@@ -160,6 +160,7 @@ export {
 export type { StatementText, StatementVerb } from '../control-api/statements/statement-text';
 // CLI-specific types
 export type {
+  AskedDataLoss,
   AskedSubject,
   ContractEmitOptions,
   ContractEmitResult,

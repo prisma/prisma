@@ -1,8 +1,14 @@
 import type { Block } from '@prisma/cli-engine';
 import type { AppliedStatementReport } from '../control-api/statements/report-applied-statements';
 
-function operationCountText(count: number): string {
-  if (count === 0) return 'no operations';
+const SLOT_TEXT: Partial<Record<AppliedStatementReport['verb'], string>> = {
+  convert: 'conversion slot written in migration.ts',
+  backfill: 'backfill slots written in migration.ts',
+};
+
+function operationCountText(entry: AppliedStatementReport): string {
+  const count = entry.operationIndexes.length;
+  if (count === 0) return SLOT_TEXT[entry.verb] ?? 'no operations';
   return count === 1 ? '1 operation' : `${count} operations`;
 }
 
@@ -24,7 +30,7 @@ export function appliedStatementBlocks(
         {
           label: 'Statements applied',
           children: applied.map((entry) => ({
-            label: `${entry.description} (${operationCountText(entry.operationIndexes.length)})`,
+            label: `${entry.description} (${operationCountText(entry)})`,
           })),
         },
       ],

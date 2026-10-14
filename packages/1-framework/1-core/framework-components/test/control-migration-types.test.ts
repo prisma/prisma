@@ -14,6 +14,7 @@ describe('MigrationPlannerSuccessResult', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     };
     expect(result).toEqual({
       kind: 'success',
@@ -21,6 +22,7 @@ describe('MigrationPlannerSuccessResult', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
     });
     expect('warnings' in result).toBe(false);
   });
@@ -36,6 +38,7 @@ describe('MigrationPlannerSuccessResult', () => {
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
       warnings: Object.freeze([Object.freeze(warning)]),
     };
     expect(result.warnings).toEqual([warning]);

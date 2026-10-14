@@ -28,6 +28,7 @@ export {
 } from '../control/control-capabilities';
 export type {
   ControlAdapterDescriptor,
+  ControlDriverConnectOptions,
   ControlDriverDescriptor,
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,
@@ -41,6 +42,9 @@ export type {
   ControlTargetInstance,
 } from '../control/control-instances';
 export type {
+  FailedCast,
+  FailedConversion,
+  FailedTypeChange,
   MigrationMetadata,
   MigrationOperationClass,
   MigrationOperationPolicy,
@@ -62,6 +66,7 @@ export type {
   MigrationScaffoldContext,
   OpFactoryCall,
   PlanOrigin,
+  RowsWithoutValue,
   SchemaEntityCoordinate,
   SchemaOwnership,
   TargetMigrationsCapability,
@@ -128,23 +133,31 @@ export type {
   FieldCoordinateJson,
   MigrationAccessChange,
   MigrationDataLoss,
+  MigrationDataLossKind,
   MigrationOperationSubject,
   MigrationPlanSubjects,
   MigrationStatementJson,
   MigrationSubject,
   MigrationSubjectJson,
+  MigrationTemporaryValue,
   ModelCoordinate,
   ModelCoordinateJson,
+  ResolvedFieldBackfillStatement,
+  ResolvedFieldConvertStatement,
   ResolvedFieldRenameStatement,
   ResolvedMigrationStatement,
   ResolvedModelRenameStatement,
+  ResolvedRenameStatement,
 } from '../control/migration-statements';
 export {
   describeMigrationStatement,
+  fieldStatementText,
+  isRenameStatement,
   migrationStatementJson,
   migrationSubjectJson,
   migrationSubjectKey,
   modelDisplayName,
+  modelStatementText,
 } from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
 export type {

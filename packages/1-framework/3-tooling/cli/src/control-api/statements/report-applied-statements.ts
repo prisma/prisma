@@ -6,6 +6,7 @@ import {
   type MigrationSubjectJson,
   migrationStatementJson,
   migrationSubjectJson,
+  type ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import type { ConsentVerb } from './parse-consent';
 import { type ConsentedSubject, consentDescription } from './plan-questions';
@@ -22,10 +23,10 @@ export interface ConsentStatementJson {
  */
 export type AppliedStatementReport =
   | {
-      readonly verb: 'rename';
+      readonly verb: ResolvedMigrationStatement['kind'];
       readonly statement: MigrationStatementJson;
       readonly operationIndexes: readonly number[];
-      /** The statement in domain names, for example `rename model "Profile" to "User"`. */
+      /** The statement in domain names, for example `rename model "Profile" to "User"` or `convert field "User.age"`. */
       readonly description: string;
     }
   | {
@@ -47,7 +48,7 @@ export function reportAppliedStatements(
   operationOffset: number,
 ): readonly AppliedStatementReport[] {
   return applied.map((entry) => ({
-    verb: 'rename',
+    verb: entry.statement.kind,
     statement: migrationStatementJson(entry.statement),
     operationIndexes: entry.operationIndexes.map((index) => operationOffset + index),
     description: describeMigrationStatement(entry.statement, fromContract ?? contract, contract),
@@ -63,6 +64,11 @@ export function reportConsentStatement(
     verb: consented.verb,
     statement: { kind: consented.verb, subject: migrationSubjectJson(consented.subject) },
     operationIndexes,
-    description: consentDescription(consented.verb, consented.subject, consented.text),
+    description: consentDescription(
+      consented.verb,
+      consented.subject,
+      consented.text,
+      consented.loss,
+    ),
   };
 }

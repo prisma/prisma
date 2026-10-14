@@ -1,8 +1,11 @@
 import type {
   AppliedMigrationStatement,
+  FailedTypeChange,
   MigrationPlanSubjects,
+  RowsWithoutValue,
 } from '@internal/framework-components/control';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import type { NotOk, Ok } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
 import type {
@@ -132,6 +135,7 @@ export function plannerSuccess<TTargetDetails>(
     appliedStatements: Object.freeze([...appliedStatements]),
     dataLoss: Object.freeze([...subjects.dataLoss]),
     accessWidening: Object.freeze([...subjects.accessWidening]),
+    temporaryValues: Object.freeze([...subjects.temporaryValues]),
     ...(warnings && warnings.length > 0
       ? {
           warnings: Object.freeze(
@@ -198,13 +202,20 @@ export function runnerSuccess(value: {
 export function runnerFailure(
   code: SqlMigrationRunnerErrorCode,
   summary: string,
-  options?: { why?: string; meta?: AnyRecord },
+  options?: {
+    why?: string;
+    meta?: AnyRecord;
+    failedTypeChange?: FailedTypeChange | undefined;
+    rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
+  },
 ): NotOk<SqlMigrationRunnerFailure> {
   const failure: SqlMigrationRunnerFailure = Object.freeze({
     code,
     summary,
     ...(options?.why ? { why: options.why } : {}),
     ...(options?.meta ? { meta: cloneRecord(options.meta) } : {}),
+    ...ifDefined('failedTypeChange', options?.failedTypeChange),
+    ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
   });
   return notOk(failure);
 }

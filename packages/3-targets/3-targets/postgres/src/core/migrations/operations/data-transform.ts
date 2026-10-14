@@ -56,16 +56,17 @@
 
 import type { Contract } from '@internal/contract/types';
 import { errorDataTransformContractMismatch } from '@internal/errors/migration';
-import type {
-  SqlMigrationPlanOperation,
-  SqlMigrationPlanOperationStep,
+import {
+  requiredColumnMeta,
+  type SqlMigrationPlanOperation,
+  type SqlMigrationPlanOperationStep,
 } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlExecuteRequest } from '@internal/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { ifDefined } from '@internal/utils/defined';
-import type { PostgresPlanTargetDetails } from '../planner-target-details';
+import { buildTargetDetails, type PostgresPlanTargetDetails } from '../planner-target-details';
 
 interface Buildable<R = unknown> {
   build(): SqlQueryPlan<R>;
@@ -76,6 +77,13 @@ interface Buildable<R = unknown> {
  * `check` and each `run` entry.
  */
 export type DataTransformClosure = () => SqlQueryPlan | Buildable;
+
+/** The column a backfill fills before it becomes required. */
+export interface DataTransformColumn {
+  readonly schema: string;
+  readonly table: string;
+  readonly column: string;
+}
 
 export interface DataTransformOptions {
   /**
@@ -94,6 +102,11 @@ export interface DataTransformOptions {
   readonly check?: DataTransformClosure;
   /** One or more mutation queries to execute. */
   readonly run: DataTransformClosure | readonly DataTransformClosure[];
+  /**
+   * The column the transform fills before a later operation makes it required. When `check` still
+   * finds rows after `run`, the failure counts the rows the column holds NULL in.
+   */
+  readonly backfillsColumn?: DataTransformColumn;
 }
 
 export async function dataTransform<TContract extends Contract<SqlStorage>>(
@@ -135,12 +148,22 @@ export async function dataTransform<TContract extends Contract<SqlStorage>>(
     params: plan.params ?? [],
   }));
 
+  const { backfillsColumn } = options;
   const postcheck: readonly SqlMigrationPlanOperationStep[] = checkPlan
     ? [
         {
           description: `Verify ${name} resolved all violations`,
           sql: `SELECT NOT EXISTS (${checkPlan.sql}) AS ok`,
           params: checkPlan.params ?? [],
+          ...ifDefined(
+            'meta',
+            backfillsColumn &&
+              requiredColumnMeta(
+                backfillsColumn.table,
+                backfillsColumn.column,
+                'backfillMissedRows',
+              ),
+          ),
         },
       ]
     : [];
@@ -150,7 +173,19 @@ export async function dataTransform<TContract extends Contract<SqlStorage>>(
     label: `Data transform: ${name}`,
     operationClass: 'data',
     ...ifDefined('invariantId', options.invariantId),
-    target: { id: 'postgres' },
+    target: {
+      id: 'postgres',
+      ...ifDefined(
+        'details',
+        backfillsColumn &&
+          buildTargetDetails(
+            'column',
+            backfillsColumn.column,
+            backfillsColumn.schema,
+            backfillsColumn.table,
+          ),
+      ),
+    },
     precheck,
     execute,
     postcheck,

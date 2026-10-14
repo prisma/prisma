@@ -1,5 +1,8 @@
 import { errorRuntime } from '@internal/errors/execution';
-import type { ControlDriverDescriptor } from '@internal/framework-components/control';
+import type {
+  ControlDriverConnectOptions,
+  ControlDriverDescriptor,
+} from '@internal/framework-components/control';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import { SqlQueryError } from '@internal/sql-errors';
 import { blindCast } from '@internal/utils/casts';
@@ -54,8 +57,16 @@ export class PostgresControlDriver implements SqlControlDriverInstance<'postgres
 const postgresDriverDescriptor: ControlDriverDescriptor<'sql', 'postgres', PostgresControlDriver> =
   {
     ...postgresDriverDescriptorMeta,
-    async create(url: string): Promise<PostgresControlDriver> {
-      const client = suppressIdleConnectionErrors(new Client({ connectionString: url }));
+    async create(
+      url: string,
+      options?: ControlDriverConnectOptions,
+    ): Promise<PostgresControlDriver> {
+      const client = suppressIdleConnectionErrors(
+        new Client({
+          connectionString: url,
+          ...ifDefined('connectionTimeoutMillis', options?.connectTimeoutMs),
+        }),
+      );
       try {
         await client.connect();
         return new PostgresControlDriver(client);

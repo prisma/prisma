@@ -109,7 +109,7 @@ function modeLabel(mode: DbVerifyMode, strict: boolean): string {
     : `full (marker + schema, ${strictness})`;
 }
 
-function invocation(mode: DbVerifyMode, strict: boolean): string {
+function commandLine(mode: DbVerifyMode, strict: boolean): string {
   return [
     'db verify',
     ...(mode === 'marker-only' ? ['--marker-only'] : []),
@@ -408,12 +408,12 @@ export function createDbVerifyCommand(
         return notOk(resolved.failure);
       }
       const mode = resolved.value;
-      const commandInvocation = invocation(mode, strict);
+      const command = commandLine(mode, strict);
 
       const emitted = await readEmittedContract({
         config: ctx.config,
         cwd: ctx.cwd,
-        commandName: commandInvocation,
+        commandName: command,
       });
       if (!emitted.ok) {
         return notOk(emitted.failure);
@@ -422,7 +422,7 @@ export function createDbVerifyCommand(
       const connection = requireVerifyConnection({
         config: ctx.config,
         db: args.flags.db,
-        invocation: commandInvocation,
+        commandLine: command,
       });
       if (!connection.ok) {
         return notOk(connection.failure);
@@ -637,9 +637,7 @@ export function createDbVerifyCommand(
           ctx.present({ data: document, exitCode: 0 }, verifyPresentations({ document, header })),
         );
       } catch (error) {
-        return notOk(
-          verificationThrow({ error, invocation: commandInvocation, connection: dbConnection }),
-        );
+        return notOk(verificationThrow({ error, commandLine: command, connection: dbConnection }));
       } finally {
         await closeQuietly(client);
       }

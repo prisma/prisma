@@ -8,8 +8,12 @@ import type {
   SqlPlannerFailureResult,
 } from '@internal/family-sql/control';
 import {
+  appliedStatementsInOrder,
+  backfillOfDefaultedField,
+  columnTakesTemporaryValue,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
+  fieldStatementColumns,
   planFieldEventCalls,
   plannerFailure,
   planStatements,
@@ -20,15 +24,16 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type {
   AppliedMigrationStatement,
   MigrationAccessChange,
-  MigrationOperationSubject,
+  MigrationDataLoss,
   MigrationPlanner,
   MigrationScaffoldContext,
+  MigrationTemporaryValue,
   PlanOrigin,
   ResolvedMigrationStatement,
   SchemaDiffIssue,
   SchemaOwnership,
 } from '@internal/framework-components/control';
-import { issueOutcome } from '@internal/framework-components/control';
+import { isRenameStatement, issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   RelationalSchemaNodeKind,
@@ -73,8 +78,9 @@ export type SqlitePlanResult =
       readonly kind: 'success';
       readonly plan: TypeScriptRenderableSqliteMigration;
       readonly appliedStatements: readonly AppliedMigrationStatement[];
-      readonly dataLoss: readonly MigrationOperationSubject[];
+      readonly dataLoss: readonly MigrationDataLoss[];
       readonly accessWidening: readonly MigrationAccessChange[];
+      readonly temporaryValues: readonly MigrationTemporaryValue[];
     }
   | SqlPlannerFailureResult;
 
@@ -196,6 +202,14 @@ export class SqliteMigrationPlanner
     if (caseChangeConflicts.length > 0) {
       return plannerFailure(caseChangeConflicts);
     }
+    const defaultedBackfill = backfillOfDefaultedField(
+      options.statements,
+      options.fromContract,
+      options.contract,
+    );
+    if (defaultedBackfill !== undefined) {
+      return plannerFailure([defaultedBackfill]);
+    }
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
 
     const result = planIssues({
@@ -204,6 +218,15 @@ export class SqliteMigrationPlanner
       actual,
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
+      statementColumns: fieldStatementColumns(options.statements, options.contract),
+      originCodecId: (table, column) =>
+        options.fromContract?.storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.table?.[table]
+          ?.columns[column]?.codecId,
+      takesTemporaryValue: (table, column) => {
+        const storageTable =
+          options.contract.storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.table?.[table];
+        return storageTable !== undefined && columnTakesTemporaryValue(storageTable, column);
+      },
       strategies: sqlitePlannerStrategies,
     });
 
@@ -255,7 +278,10 @@ export class SqliteMigrationPlanner
         destination,
         this.#lowerer,
       ),
-      appliedStatements: statements.value.appliedStatements,
+      appliedStatements: appliedStatementsInOrder(
+        options.statements,
+        statements.value.appliedStatements,
+      ),
       ...subjectsOfCalls(
         sqliteCallSubjects(
           calls,
@@ -284,7 +310,7 @@ export class SqliteMigrationPlanner
   > {
     const working = createWorkingSchema(sqliteActualSchema(options.schema));
     const planned = planStatements<RenameTableCall | RenameColumnCall>({
-      statements: options.statements,
+      statements: options.statements.filter(isRenameStatement),
       fromContract: options.fromContract,
       contract: options.contract,
       policy: options.policy,
