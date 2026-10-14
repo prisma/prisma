@@ -769,7 +769,7 @@ export type ModelIndexReferences<
     >;
 
 /** One model as a collection method contribution reads it: the contract's target, the model's fields and relations, and its storage table. */
-export type CollectionMethodModelOf<
+export type CollectionMethodModelTypeOf<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string,

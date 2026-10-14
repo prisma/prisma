@@ -3,27 +3,29 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type {
   CollectionMethodBody,
   CollectionMethodContribution,
-  CollectionMethodModelView,
+  CollectionMethodContributionId,
+  CollectionMethodModel,
   CollectionMethodReceiver,
   CollectionMethodRegistry,
-  ExecutionContext,
-} from '@internal/sql-relational-core/query-lane-context';
+  ContributedMethodSignature,
+} from '@internal/sql-relational-core/collection-methods';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
+import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import type { Filtered, Ordered } from './collection-types';
 import { ormError } from './orm-errors';
 import { resolveTableForContract } from './storage-resolution';
-import type { CollectionMethodModelOf } from './types';
-
-type ContributionId = Exclude<keyof CollectionMethodRegistry, '__collectionMethodRegistry'>;
+import type { CollectionMethodModelTypeOf } from './types';
 
 type MethodsOf<Entry, Model> = (Entry & { readonly model: Model })['methods' & keyof Entry];
 
 type ContributedTables<Model> = {
-  readonly [Id in ContributionId]: MethodsOf<CollectionMethodRegistry[Id], Model>;
+  readonly [Id in CollectionMethodContributionId]: MethodsOf<CollectionMethodRegistry[Id], Model>;
 };
 
 type MethodNames<Tables> = { [Id in keyof Tables]: keyof Tables[Id] }[keyof Tables];
 
-type ParametersFrom<Tables, Name> = {
+type SignatureFrom<Tables, Name> = {
   [Id in keyof Tables]: Name extends keyof Tables[Id] ? Tables[Id][Name] : never;
 }[keyof Tables];
 
@@ -35,12 +37,20 @@ export interface CollectionMethodNameClash<Name, ModelName, Contributions> {
   readonly contributions: Contributions;
 }
 
-/** What a contributed method returns: the collection it was called on, filtered and ordered. */
-export type CollectionMethodResult<Self> = Ordered<Filtered<Self>>;
+/** What a contributed method returns: the collection it was called on, with `Filtered` and `Ordered` added as its signature declares. */
+export type ContributedMethodResult<Signature, Self> = Signature extends { readonly filters: true }
+  ? Signature extends { readonly orders: true }
+    ? Ordered<Filtered<Self>>
+    : Filtered<Self>
+  : Signature extends { readonly orders: true }
+    ? Ordered<Self>
+    : Self;
 
-export type CollectionMethod<Parameters, Self> = <Receiver extends Self = Self>(
-  ...args: Extract<Parameters, readonly unknown[]>
-) => CollectionMethodResult<Receiver>;
+export type ContributedCollectionMethod<Signature extends ContributedMethodSignature, Self> = <
+  Receiver extends Self = Self,
+>(
+  ...args: Signature['parameters']
+) => ContributedMethodResult<Signature, Receiver>;
 
 type MergedTable<Tables, ModelName> = {
   readonly [Name in MethodNames<Tables>]: {
@@ -48,29 +58,32 @@ type MergedTable<Tables, ModelName> = {
   }[keyof Tables] extends infer Ids
     ? true extends IsUnion<Ids>
       ? CollectionMethodNameClash<Name, ModelName, Ids>
-      : ParametersFrom<Tables, Name>
+      : SignatureFrom<Tables, Name>
     : never;
 };
 
-/** Each contributed method of a model, by name, with its parameter list. It does not depend on the receiver, so TypeScript computes it once per model. */
-export type ModelCollectionMethodTable<
+/** Each contributed method of a model, by name, with its signature. It does not depend on the receiver, so TypeScript computes it once per model. */
+export type ModelContributedMethodTable<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string,
 > = string extends ModelName | NsId
   ? Record<never, never>
-  : MergedTable<ContributedTables<CollectionMethodModelOf<TContract, ModelName, NsId>>, ModelName>;
+  : MergedTable<
+      ContributedTables<CollectionMethodModelTypeOf<TContract, ModelName, NsId>>,
+      ModelName
+    >;
 
-/** The contributed methods of a model's collection `Self`. */
-export type CollectionMethods<
+/** The contributed methods of a model's collection `Self`: the type of `using`. */
+export type ContributedCollectionMethods<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string,
   Self,
-  Table = ModelCollectionMethodTable<TContract, ModelName, NsId>,
+  Table = ModelContributedMethodTable<TContract, ModelName, NsId>,
 > = {
-  readonly [Name in keyof Table]: Table[Name] extends readonly unknown[]
-    ? CollectionMethod<Table[Name], Self>
+  readonly [Name in keyof Table]: Table[Name] extends ContributedMethodSignature
+    ? ContributedCollectionMethod<Table[Name], Self>
     : Table[Name];
 };
 
@@ -101,15 +114,21 @@ function assertUniqueIds(contributions: ReadonlyArray<CollectionMethodContributi
   }
 }
 
-function modelViews(context: ExecutionContext): Array<[string, CollectionMethodModelView]> {
+function modelViews(context: ExecutionContext): Array<[string, CollectionMethodModel]> {
   const { contract } = context;
-  const views: Array<[string, CollectionMethodModelView]> = [];
+  const views: Array<[string, CollectionMethodModel]> = [];
   for (const [namespaceId, namespace] of Object.entries(contract.domain.namespaces)) {
     for (const [name, model] of Object.entries(namespace.models)) {
       const tableName = model.storage['table'];
-      if (typeof tableName !== 'string') continue;
-      const resolved = resolveTableForContract(contract, namespaceId, tableName);
-      if (resolved === undefined) continue;
+      const resolved =
+        typeof tableName === 'string'
+          ? resolveTableForContract(contract, namespaceId, tableName)
+          : undefined;
+      if (resolved === undefined) {
+        throw new InternalError(
+          `Model "${name}" in namespace "${namespaceId}" has no storage table the contract declares.`,
+        );
+      }
       views.push([
         modelKey(namespaceId, name),
         {
@@ -125,14 +144,52 @@ function modelViews(context: ExecutionContext): Array<[string, CollectionMethodM
   return views;
 }
 
+function methodsOf(
+  contribution: CollectionMethodContribution,
+  view: CollectionMethodModel,
+): Readonly<Record<string, CollectionMethodBody>> {
+  let methods: Readonly<Record<string, unknown>>;
+  try {
+    methods = contribution.methodsFor(view);
+  } catch (cause) {
+    throw ormError(
+      'ORM.ARGUMENT_INVALID',
+      `Collection method contribution "${contribution.id}" failed for model "${view.name}".`,
+      {
+        why: "The ORM client asks every contribution for every model's methods when it is created.",
+        fix: `Fix or remove the extension that contributes "${contribution.id}"; the cause is the contribution's own error.`,
+        meta: { model: view.name, contribution: contribution.id },
+        cause,
+      },
+    );
+  }
+  for (const [name, body] of Object.entries(methods)) {
+    if (typeof body !== 'function') {
+      throw ormError(
+        'ORM.ARGUMENT_INVALID',
+        `Collection method "${name}" that contribution "${contribution.id}" gives model "${view.name}" is not a function.`,
+        {
+          why: "A contribution returns each of a model's methods as a function of the collection and the caller's arguments.",
+          fix: `Fix or remove the extension that contributes "${contribution.id}".`,
+          meta: { model: view.name, method: name, contribution: contribution.id },
+        },
+      );
+    }
+  }
+  return blindCast<
+    Readonly<Record<string, CollectionMethodBody>>,
+    "each value was checked to be a function; its parameters are the type half's to declare"
+  >(methods);
+}
+
 function mergedTable(
-  view: CollectionMethodModelView,
+  view: CollectionMethodModel,
   contributions: ReadonlyArray<CollectionMethodContribution>,
 ): MethodTable {
   const methods: Record<string, CollectionMethodBody> = {};
   const owners = new Map<string, string>();
   for (const contribution of contributions) {
-    for (const [name, body] of Object.entries(contribution.methodsFor(view))) {
+    for (const [name, body] of Object.entries(methodsOf(contribution, view))) {
       const owner = owners.get(name);
       if (owner !== undefined) {
         throw ormError(
@@ -153,7 +210,7 @@ function mergedTable(
 }
 
 /**
- * Asks each contribution for each model's methods, once per execution context. Throws `ORM.ARGUMENT_INVALID` when two contributions share an id, or give one model two methods with the same name.
+ * Asks each contribution for each model's methods, once per execution context. Throws `ORM.ARGUMENT_INVALID` when two contributions share an id, give one model two methods with the same name, fail, or return a method that is not a function.
  */
 export function collectionMethodTables(
   context: ExecutionContext,
