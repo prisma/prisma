@@ -96,6 +96,7 @@ const scalarTypeConstructors = Object.fromEntries(
 function parsePsl(source: string) {
   const { document, sources } = parse(source, 'psl-native-enum-authoring.test.psl');
   const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -118,6 +119,7 @@ function interpret(source: string) {
     sourceId: 'psl-native-enum-authoring.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,
@@ -178,7 +180,7 @@ namespace auth {
 
   it('places the parsed block in the auth namespace with a native_enum envelope', () => {
     const { symbolTable, parsedBlocks } = parsePsl(source);
-    const authNs = symbolTable.topLevel.namespaces['auth'];
+    const authNs = symbolTable.namespaces['auth'];
     expect(authNs).toBeDefined();
     const blocks = Object.values(authNs!.blocks);
     expect(blocks).toHaveLength(1);

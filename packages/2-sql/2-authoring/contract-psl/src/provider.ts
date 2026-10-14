@@ -181,6 +181,7 @@ export function prismaContract(schemaPath: string, options: PrismaContractOption
       const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
         documents,
         sources,
+        defaultNamespaceId: context.defaultNamespaceId,
       });
       const { binder, diagnostics: binderDiagnostics } = createBinder({
         symbolTable,

@@ -99,6 +99,7 @@ function authoredContract(schema: string): Contract<SqlStorage> {
     sourceId: 'full-text-index-planning.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

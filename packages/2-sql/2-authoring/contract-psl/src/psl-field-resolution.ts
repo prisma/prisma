@@ -161,15 +161,14 @@ export type ResolvedField = {
 };
 
 /**
- * A PSL model paired with its resolved namespace coordinate (undefined when
- * the target leaves the model late-bound). Two models may share a bare name
+ * A PSL model paired with its resolved namespace coordinate. Two models may share a bare name
  * across namespaces, so structures that must distinguish them are keyed by
  * the `(namespaceId, modelName)` coordinate produced by
  * {@link modelCoordinateKey} rather than the bare model name.
  */
 export type ModelNamespaceEntry = {
   readonly model: ModelSymbol;
-  readonly namespaceId: string | undefined;
+  readonly namespaceId: string;
 };
 
 const MODEL_COORDINATE_SEPARATOR = '\u0000';

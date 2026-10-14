@@ -37,6 +37,7 @@ function load(directory: string, fileName: string, schema: string) {
   });
   return prisma7Schema(schemaPath).source.load({
     composedExtensions: [],
+    defaultNamespaceId: stack.target.defaultNamespaceId,
     composedExtensionContracts: stack.extensionContracts,
     authoringContributions: stack.authoringContributions,
     codecLookup: stack.codecLookup,

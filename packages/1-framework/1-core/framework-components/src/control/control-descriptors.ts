@@ -49,6 +49,7 @@ export interface ControlTargetDescriptor<
    * `deserializeContract` helper. The descriptor IS the aggregator.
    */
   readonly contractSerializer: ContractSerializer<TContract>;
+  readonly defaultNamespaceId: string;
   create(): TTargetInstance;
 }
 

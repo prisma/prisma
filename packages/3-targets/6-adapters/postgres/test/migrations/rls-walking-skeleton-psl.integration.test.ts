@@ -82,6 +82,7 @@ function buildPslContract() {
     sourceId: 'rls-walking-skeleton-psl.integration.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

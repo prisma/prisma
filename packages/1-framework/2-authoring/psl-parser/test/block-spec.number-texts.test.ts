@@ -15,8 +15,12 @@ function interpretOnlyBlock<S extends BlockSpec<unknown>>(
   spec: S,
 ) {
   const { document, sources } = parse(source, 'test.psl');
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
-  const [block] = Object.values(symbolTable.topLevel.blocks);
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
+  const [block] = Object.values(symbolTable.defaultNamespace.blocks);
   if (block === undefined) throw new Error('expected one block in the symbol table');
   return interpretExtensionBlock({
     block,

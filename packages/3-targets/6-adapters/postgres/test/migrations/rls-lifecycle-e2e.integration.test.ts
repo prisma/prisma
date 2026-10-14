@@ -158,6 +158,7 @@ function buildContractFromPsl(psl: string): Contract<SqlStorage> {
     sourceId: 'rls-lifecycle-e2e.integration.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

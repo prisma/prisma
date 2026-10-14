@@ -238,6 +238,7 @@ function project(files: Files, stack: FixtureStack) {
   const { symbolTable } = buildSymbolTable({
     documents: parsed.map((file) => file.document),
     sources,
+    defaultNamespaceId: 'public',
   });
   const binder = testBinder({
     sources,

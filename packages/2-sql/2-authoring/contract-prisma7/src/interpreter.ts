@@ -99,6 +99,7 @@ export interface InterpretPrisma7DocumentsInput {
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
   readonly composedExtensions: readonly string[];
+  readonly defaultNamespaceId: string;
 }
 
 const SUMMARY = 'Prisma 7 schema interpretation failed';
@@ -239,7 +240,7 @@ export function interpretPrisma7Documents(
 ): Result<Contract, ContractSourceDiagnostics> {
   const { binding } = input;
   const diagnostics: ContractSourceDiagnostic[] = [...input.seedDiagnostics];
-  const defaultNamespaceId = binding.target.defaultNamespaceId;
+  const { defaultNamespaceId } = input;
   const datasources: SourceBlock[] = [];
   const enumBlocks: SourceBlock[] = [];
   const models: ModelDeclaration[] = [];
@@ -265,6 +266,7 @@ export function interpretPrisma7Documents(
     const { symbolTable, diagnostics: tableDiagnostics } = buildSymbolTable({
       documents: [document],
       sources,
+      defaultNamespaceId,
     });
     for (const diagnostic of tableDiagnostics) {
       diagnostics.push({
@@ -297,7 +299,7 @@ export function interpretPrisma7Documents(
         }
       }
     };
-    for (const block of Object.values(symbolTable.topLevel.blocks)) {
+    for (const block of Object.values(symbolTable.defaultNamespace.blocks)) {
       switch (block.keyword) {
         case 'datasource':
           datasources.push({ block, sourceId, sources, sourceFile });
@@ -325,23 +327,26 @@ export function interpretPrisma7Documents(
           unsupported(block.keyword, keywordPslSpan(block.node.syntax, block.keyword, sources));
       }
     }
-    for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
+    for (const namespace of Object.values(symbolTable.namespaces)) {
       for (const { span } of namespace.declarations) {
         unsupported('namespace', span);
       }
     }
-    for (const compositeType of Object.values(symbolTable.topLevel.compositeTypes)) {
+    for (const compositeType of Object.values(symbolTable.defaultNamespace.compositeTypes)) {
       unsupported('type', compositeType.span);
     }
-    for (const namedType of Object.values(symbolTable.topLevel.namedTypes)) {
+    for (const namedType of Object.values(symbolTable.namedTypes)) {
       unsupported('types', namedType.span);
     }
-    for (const mixin of Object.values(symbolTable.topLevel.mixins)) {
+    for (const mixin of Object.values(symbolTable.defaultNamespace.mixins)) {
       unsupported(`${mixin.keyword} mixin`, mixin.span);
     }
-    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.topLevel.models);
-    unsupportedInclusions('PSL_INVALID_EXTENSION_BLOCK_MEMBER', symbolTable.topLevel.blocks);
-    for (const symbol of Object.values(symbolTable.topLevel.models)) {
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.defaultNamespace.models);
+    unsupportedInclusions(
+      'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
+      symbolTable.defaultNamespace.blocks,
+    );
+    for (const symbol of Object.values(symbolTable.defaultNamespace.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       models.push(
         readModelDeclaration(symbol, sourceId, sources, defaultNamespaceId, binding, diagnostics),

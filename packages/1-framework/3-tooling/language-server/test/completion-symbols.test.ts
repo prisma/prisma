@@ -17,6 +17,7 @@ function fields(
   const { symbolTable } = buildSymbolTable({
     documents: [document],
     sources,
+    defaultNamespaceId: 'public',
   });
   const context = classifyPslCompletionContext({
     document,
@@ -26,7 +27,11 @@ function fields(
   if (context.kind !== 'fieldAttributeValue' && context.kind !== 'modelAttributeValue') {
     throw new Error(`Unexpected context: ${context.kind}`);
   }
-  const emptyContext = binderContextFromStack({ scalarTypes: [], pslBlockDescriptors: {} });
+  const emptyContext = binderContextFromStack({
+    scalarTypes: [],
+    defaultNamespaceId: 'public',
+    pslBlockDescriptors: {},
+  });
   const { binder } = createBinder({
     sources,
     symbolTable,

@@ -83,6 +83,7 @@ function pslToContract(schema: string): MongoContract {
     sourceId: 'mongo-migration-schema.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         field: {},

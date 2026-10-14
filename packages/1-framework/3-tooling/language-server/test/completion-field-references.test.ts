@@ -60,6 +60,7 @@ function complete(markedSource: string, siblings: readonly string[] = []) {
   const { symbolTable } = buildSymbolTable({
     documents: [...others.map((other) => other.document), document],
     sources,
+    defaultNamespaceId: 'public',
   });
   const items = providePslCompletionItems({
     context: classifyPslCompletionContext({
