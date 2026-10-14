@@ -23,6 +23,7 @@ import type { OperationContext } from './control-operation-results';
 import type {
   AppliedMigrationStatement,
   MigrationPlanSubjects,
+  MigrationSubject,
   ResolvedMigrationStatement,
 } from './migration-statements';
 
@@ -375,7 +376,59 @@ export interface MigrationRunnerFailure {
    * {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
+  /** The type change that failed, when the failed step converts a column's values. */
+  readonly failedTypeChange?: FailedTypeChange;
+  /**
+   * The fields that were to become required while rows had no value for them, when that made the
+   * step fail: first the field of the failed step, then the others of the same migration.
+   */
+  readonly rowsWithoutValue?: readonly RowsWithoutValue[];
 }
+
+/** A field that is to become required while existing rows have no value for it. */
+export interface RowsWithoutValue {
+  /** The field, when the destination contract names the storage that lacks the value. */
+  readonly field: MigrationSubject | undefined;
+  /**
+   * `nullValues`: rows hold no value for the field. `newField`: the field is new, and can be added only where there are no
+   * rows. `backfillMissedRows`: the migration's backfill step for the field left rows without a value.
+   */
+  readonly reason: 'nullValues' | 'newField' | 'backfillMissedRows';
+  /** How many rows have no value. */
+  readonly rows: number;
+  /** The position of the operation in the operations of the failing space's plan. */
+  readonly operationIndex: number;
+}
+
+interface FailedTypeChangeOf {
+  /** The field whose type changes. */
+  readonly field: MigrationSubject;
+  /** The position of the operation in the operations of the failing space's plan. */
+  readonly operationIndex: number;
+}
+
+/**
+ * A type change whose values the database's own cast converted, and why it failed. `value`: the
+ * cast met a value it could not convert. `noCast`: the database has no cast between the two types.
+ */
+export interface FailedCast extends FailedTypeChangeOf {
+  readonly by: 'cast';
+  readonly reason: 'value' | 'noCast';
+}
+
+/**
+ * A type change whose values the migration's own conversion converted, and why it failed. `value`:
+ * the database raised an error on a value the conversion produced or read. `invalidResult`: the
+ * conversion left a value the new type cannot hold. `expressionError`: the conversion's expression
+ * has an error, such as an unknown function.
+ */
+export interface FailedConversion extends FailedTypeChangeOf {
+  readonly by: 'conversion';
+  readonly reason: 'value' | 'invalidResult' | 'expressionError';
+}
+
+/** A type change that failed: who converted the values, and why it failed. */
+export type FailedTypeChange = FailedCast | FailedConversion;
 
 /**
  * Result type for migration runner execution.

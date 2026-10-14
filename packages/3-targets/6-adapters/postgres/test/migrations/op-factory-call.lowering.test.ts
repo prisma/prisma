@@ -9,7 +9,7 @@ import { type as arktype } from 'arktype';
  *   because the planner can only emit unfilled stubs; the other operations still lower.
  * - `TypeScriptRenderablePostgresMigration` routes `operations` through
  *   `renderOps` and `renderTypeScript()` through `renderCallsToTypeScript`.
- * - `AddNotNullColumnWithTempDefaultCall` pins the exact `ADD COLUMN` SQL
+ * - `AddColumnWithTemporaryDefaultCall` pins the exact `ADD COLUMN` SQL
  *   for a codec-typed, parameterized column resolved via `codecHooks`
  *   (type token + temp-default backfill via `resolveIdentityValue`).
  *
@@ -32,11 +32,14 @@ import {
   createPostgresBuiltinCodecLookup,
   postgresCodecDescriptorRegistry,
 } from '@internal/target-postgres/codecs';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
   AddUniqueCall,
   AlterColumnTypeCall,
@@ -88,10 +91,12 @@ describe('renderOps', () => {
       new DropTableCall('public', 'stale'),
       new AddColumnCall('public', 'user', col('email', 'text')),
       new DropColumnCall('public', 'user', 'legacy'),
-      new AlterColumnTypeCall('public', 'user', 'age', {
-        qualifiedTargetType: 'integer',
-        formatTypeExpected: 'integer',
-        rawTargetTypeForLabel: 'integer',
+      new AlterColumnTypeCall({
+        schemaName: 'public',
+        tableName: 'user',
+        columnName: 'age',
+        type: 'integer',
+        dataTypes: postgresDataTypes,
       }),
       new SetNotNullCall('public', 'user', 'email'),
       new DropNotNullCall('public', 'user', 'nickname'),
@@ -289,7 +294,7 @@ describe('TypeScriptRenderablePostgresMigration', () => {
   });
 });
 
-describe('AddNotNullColumnWithTempDefaultCall', () => {
+describe('AddColumnWithTemporaryDefaultCall', () => {
   it('renders the exact ADD COLUMN SQL for a parameterized codec type with its temp-default backfill', async () => {
     const vectorType = sqlDataType('test/vector', {
       params: arktype({ length: 'number.integer > 0' }),
@@ -321,15 +326,13 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
     }
     expect(temporaryDefault).toBe("'[0,0,0]'");
 
-    const call = new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'doc',
-      columnName: 'embedding',
-      column,
-      types,
-      storageTypes: {},
+    const call = new AddColumnWithTemporaryDefaultCall(
+      'public',
+      'doc',
+      'embedding',
+      'vector(3)',
       temporaryDefault,
-    });
+    );
     const op = await call.toOp(testAdapter);
 
     expect(op.execute[0]?.sql).toBe(

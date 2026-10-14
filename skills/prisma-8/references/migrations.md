@@ -30,8 +30,8 @@ Once the contract changes, you choose how the change reaches the database. This 
 
 ## Key Concepts
 
-- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. Before an apply it asks what each operation that would lose data means, answered by `--delete <subject>` or `--rename <subject>:<new name>`, and whether each operation that would widen who can read or write a model's rows may run, answered by `--allow <Model>` (see *Answer the data-loss questions* below). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. Use only against a database that has no shared history with anyone else (your local dev DB).
-- **`migration plan` (formal path).** Reads the emitted contract, diffs it against a resolved origin — explicit `--from`, else the `db` ref, else the empty database; there is no "head of the graph" to chain from (see `references/migration-model.md`) — and writes a new migration package under `migrations/app/<YYYYMMDDTHHMM>_<snake_slug>/`. A plan that would lose data is written only once `--delete` or `--rename` says what each such operation means. If any operation needs a data transform, the package's `migration.ts` contains `placeholder(...)` calls you fill in.
+- **`db update` (quick path).** Reads the emitted contract, diffs against the live DB, applies the change. Optional `--dry-run` prints the plan without executing. Before an apply it asks what each operation that would lose data means, answered by `--delete <subject>` or `--rename <subject>:<new name>`, and whether each operation that would widen who can read or write a model's rows may run, answered by `--allow <Model>` (see *Answer the data-loss questions* below). **Writes no migration directory.** Operations needing data transforms are not handled by this path — `db update` excludes the `data` operation class entirely and short-circuits where a data transform would be required. It refuses `--convert` and `--backfill` (`MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE`) and prints the `migration plan` command to run instead. Use only against a database that has no shared history with anyone else (your local dev DB).
+- **`migration plan` (formal path).** Reads the emitted contract, diffs it against a resolved origin — explicit `--from`, else the `db` ref, else the empty database; there is no "head of the graph" to chain from (see `references/migration-model.md`) — and writes a new migration package under `migrations/app/<YYYYMMDDTHHMM>_<snake_slug>/`. A plan that would lose data is written only once `--delete`, `--rename` or, for a type change, `--convert` says what each such operation means. The package's `migration.ts` contains `placeholder(...)` calls only where `--convert` or `--backfill` asked for a slot (see *Type changes and new required fields*).
 - **The `app/` segment in migration paths is the consuming application's contract-space id.** Every migration *you* author lives under `migrations/app/`. Extensions your contract depends on get their own sibling directories (`migrations/<extension-space-id>/`) — those are managed by the extension package and you don't write into them. The `app/` segment lands automatically the first time you run `migration plan` / `db init` against an app-level config.
 - **Migration package files** (inside each `migrations/app/<dir>/`):
   - `migration.json` — manifest (metadata + `migrationHash`).
@@ -87,7 +87,8 @@ Treat the rendered import lines as framework-managed on both targets:
 | Local dev, schema in flux | `db update` | Fast, interactive, no migration files. |
 | Shared branch with other developers | `migration plan` + `db migrate` | Replayable, reviewable, content-hashed. |
 | Anything reaching production | `migration plan` + `db migrate` | Production must run a reviewed, hashed migration. |
-| Adding a column that needs a backfill | `migration plan` (writes `placeholder`), edit `migration.ts`, self-emit, then `db migrate` | `db update` does not author data transforms; the formal path does. |
+| Adding a column that needs a backfill | `migration plan --backfill Model.field` (writes `placeholder`), edit `migration.ts`, self-emit, then `db migrate` | `db update` does not author data transforms; the formal path does. Without `--backfill`, existing rows get a temporary value. |
+| Changing a field's type so values may not survive | `migration plan --convert Model.field`, fill `using`, self-emit, `db migrate` | Or `--delete Model.field` to let the database cast; the cast may cut or round values (Postgres cuts a longer text to a shorter `VarChar`), and a value it cannot cast fails the apply. |
 | Recovering from drift (DB diverged from contract) | `db sign` after manual fix, *or* `migration plan` if PN can plan the fix | Depends on which side is right. See *Recover from drift* below. |
 
 ## Dev → ship transition (the `db` ref pattern)
@@ -222,7 +223,7 @@ The concept: the planner can detect *that* a data transform is needed but not *w
 
 ### Postgres
 
-The planner can detect *that* a data transform is needed (e.g. backfilling a new `NOT NULL` column with no default) but not *what* it should do. You fill `check` and `run` closures with real query plans built against `endContract`.
+`--backfill` asks the planner for a data transform it cannot write itself, for example to fill a new required column `name` on a table with rows: `pnpm prisma migration plan --name add_user_name --backfill User.name`. Without the flag the rows get a temporary value instead. Each slot is named by the field and the part to fill, `User.name:check` and `User.name:run`. You fill `check` and `run` closures with real query plans built against `endContract`.
 
 The scaffold the planner emits looks like:
 
@@ -246,8 +247,9 @@ export default class M extends Migration<Start, End> {
         column: col('name', 'text', { codecRef: { codecId: 'pg/text@1' } }),
       }),
       this.dataTransform(endContract, 'backfill-user-name', {
-        check: () => placeholder('backfill-user-name:check'),
-        run: () => placeholder('backfill-user-name:run'),
+        backfillsColumn: { schema: 'public', table: 'user', column: 'name' },
+        check: () => placeholder('User.name:check'),
+        run: () => placeholder('User.name:run'),
       }),
       this.setNotNull({ schema: 'public', table: 'user', column: 'name' }),
     ];
@@ -285,6 +287,7 @@ export default class M extends Migration<Start, End> {
         column: col('name', 'text', { codecRef: { codecId: 'pg/text@1' } }),
       }),
       this.dataTransform(contract, 'backfill-user-name', {
+        backfillsColumn: { schema: 'public', table: 'user', column: 'name' },
         check: () => db.public.user.select('id').where((f, fns) => fns.eq(f.name, null)).limit(1),
         run: () => db.public.user.update({ name: '' }).where((f, fns) => fns.eq(f.name, null)),
       }),
@@ -296,11 +299,31 @@ export default class M extends Migration<Start, End> {
 MigrationCLI.run(import.meta.url, M);
 ```
 
+`backfillsColumn` names the column the transform fills. Keep it: when `check` still finds rows after `run`, the apply fails, changes nothing, and counts the rows that still hold NULL, as on SQLite: `1 row of "user" still holds NULL in "name" after its backfill step, so it cannot become required.` The advice then says to make `run` fill every row in that `migration.ts` and re-run `db migrate`. Without `backfillsColumn` the same failure reports only that the postcheck failed.
+
+`run` takes one closure, or an array of closures, each returning one query: `run: [() => db.public.user.update(…), () => db.public.post.update(…)]`. It does not take one closure that returns an array.
+
 Self-emit:
 
 ```bash
 node migrations/app/20260515T1200_add_user_name/migration.ts
 ```
+
+### SQLite
+
+On SQLite, `--backfill User.name` writes a `dataTransform` with one slot, `User.name:run`, and no `check`; the table rebuild after it makes the column required, and fails, changing nothing, if a row still has no value. `run` is a closure that returns the SQL text of one statement:
+
+```typescript
+dataTransform({
+  id: 'data_migration.backfill-User-name',
+  label: 'Backfill NULLs in "User"."name" before NOT NULL tightening',
+  table: 'User',
+  description: 'Backfill NULL name values in User',
+  run: () => `UPDATE "User" SET name = 'user ' || id WHERE name IS NULL`,
+}),
+```
+
+Write the statement so it fills every row the field has no value in, then self-emit with `node <package dir>/migration.ts` as on Postgres.
 
 Self-emit regenerates `ops.json` and recomputes `migrationHash` in `migration.json`. The next `db migrate` will see a consistent package.
 
@@ -351,6 +374,15 @@ MigrationCLI.run(import.meta.url, M);
 
 Self-emit the same way: `node <package dir>/migration.ts`.
 
+## Type changes and new required fields
+
+Postgres and SQLite. `migration plan` cannot see rows, so these rules are about what you state, not what the table holds.
+
+- **A type change that can lose values is a question.** Answer it with `--convert User.age` (the plan has a slot for the conversion: `using: placeholder('User.age:convert')` in `this.alterColumnType(...)` on Postgres, the column's copy expression in `this.recreateTable(...)` on SQLite; write SQL over the column, such as `'"age"::integer'`, self-emit, `db migrate`) or `--delete User.age` (the database's own cast runs; it is listed as `accept lossy type change of field "User.age"`). The cast may cut or round values: on Postgres a longer text is cut to a shorter `VarChar` and a number rounded to fewer digits. A value the cast cannot convert fails the apply, changes nothing, and the error names `--convert`. On SQLite the rebuild checks after its copy that every value took the new type: each column listed in `retypedColumns` is checked, as the conversion when it has a copy expression in `copyExpressions` and as SQLite's own cast when it has none, and a column with a copy expression that is not listed is checked as a conversion too. A hand-written rebuild that converts needs only its copy expression. A widening such as `int4` to `int8` asks nothing.
+- **A new required field** gets a temporary value in the existing rows (`''`, `0`, `false`, …) with no question and no placeholder; the output names the field and the value. On SQLite the rebuild writes it in `temporaryValues: { name: sql`''` }`, apart from the conversions in `copyExpressions`. `--backfill User.name` writes a data transform to fill instead: add nullable, fill (`check` and `run` slots on Postgres, `run` on SQLite), then make it required. A new unique, primary-key or foreign-key field, or one whose values come from a value set, gets no temporary value: on a table with rows, use `--backfill`.
+- **An optional field made required** is tightened directly. If rows hold NULL, the apply fails and counts them (`3 rows of "Item" hold NULL in "note", so it cannot become required.`); set the values and re-run, or plan with `--backfill`.
+- **Following failure advice under `db migrate`:** the migration is already written, so the error says to copy any code you wrote in its `migration.ts`, delete its directory, and run the printed `migration plan --from <hash> --name <name> …` command, which keeps the migration's name, together with the other statements you planned it with. Paths in the advice are relative to the directory the command ran from, and the commands it prints repeat the `--config` it was given, so each runs as printed from there.
+
 ## Workflow — Author a migration by hand
 
 The concept: the same `Migration` class shape lets you author operations directly when the planner has nothing to plan (a custom data fix, an extension install, a baseline). Even here you don't write the file from scratch — `migration new` renders an empty package for you, and you edit the `operations` getter inside it, then self-emit.
@@ -364,7 +396,7 @@ On Postgres the operations are **methods on the `Migration` base class**, each t
 **Postgres** operations (representative set, all `this.<name>({...})`):
 
 - Tables: `createTable`, `renameTable`, `dropTable`. `renameTable` reads the migration's start and end contracts and returns the table rename plus a rename of every constraint and index named after the old table, so spread it: `...this.renameTable({ table: 'userProfile', to: 'UserProfile' })`.
-- Columns: `addColumn` (`column: col(name, nativeType, { codecRef })`), `renameColumn` (also renames the constraints and indexes named after the column, so spread it: `...this.renameColumn({ table: 'User', column: 'email', to: 'emailAddress' })`), `dropColumn`, `alterColumnType` (pass `operationClass: 'widening'` only when every value of the old type converts to the new type unchanged, such as `int4` to `int8`; the default is `'destructive'`), `setNotNull`, `dropNotNull`, `setDefault` (`column: col(name, nativeType, { default: lit(value) or fn(…), codecRef })`, where `fn` takes a SQL expression; `fn`, `checkExpression` and the methods that take a SQL fragment accept a ``sql`...` `` value, which generated files write, or a string; a `sql` value's text is canonicalized like a contract's, a string is kept exactly as written, so do not wrap a committed string in `sql`; `fn('autoincrement()')` on a smallint, integer or bigint column creates or reuses the `{table}_{column}_seq` sequence, attaches it, and starts it past the column's largest value), `dropDefault`.
+- Columns: `addColumn` (`column: col(name, nativeType, { codecRef })`), `renameColumn` (also renames the constraints and indexes named after the column, so spread it: `...this.renameColumn({ table: 'User', column: 'email', to: 'emailAddress' })`), `dropColumn`, `alterColumnType({ schema, table, column, type, using? })` (`type` is the new type as a migration writes it, such as `int8` or `varchar(20)`; `using` is a SQL expression over the column that converts each value, and without it the database casts the column; the class is `'data'` with `using` and `'destructive'` without it; pass `operationClass: 'widening'` only when every value of the old type converts to the new type unchanged, such as `int4` to `int8`), `setNotNull`, `dropNotNull`, `setDefault` (`column: col(name, nativeType, { default: lit(value) or fn(…), codecRef })`, where `fn` takes a SQL expression; `fn`, `checkExpression` and the methods that take a SQL fragment accept a ``sql`...` `` value, which generated files write, or a string; a `sql` value's text is canonicalized like a contract's, a string is kept exactly as written, so do not wrap a committed string in `sql`; `fn('autoincrement()')` on a smallint, integer or bigint column creates or reuses the `{table}_{column}_seq` sequence, attaches it, and starts it past the column's largest value), `dropDefault`.
 - Constraints: `addPrimaryKey`, `addForeignKey`, `addUnique`, `addCheckConstraint`, `renameConstraint` (`kind`: `primaryKey`, `unique`, `foreignKey` or `checkConstraint`), `renameCheckConstraint`, `dropCheckConstraint`, `dropConstraint`.
 - Indexes: `createIndex`, `renameIndex`, `dropIndex`.
 - Enums: `createNativeEnumType`, `addNativeEnumValue`, `dropNativeEnumType`.

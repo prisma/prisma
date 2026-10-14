@@ -148,6 +148,8 @@ describe('MongoMigrationPlanner, removed fields', () => {
         {
           operationIndex: 0,
           subject: { kind: 'field', namespaceId: NS, model: 'Profile', field: 'name' },
+          loss: 'drop',
+          label: 'Remove field name from collection profiles',
         },
       ],
     });
@@ -155,7 +157,12 @@ describe('MongoMigrationPlanner, removed fields', () => {
 
   it('names the field by its storage name when the origin contract is unknown', () => {
     expect(planned(plan({ from: null, to: withoutName, schema })).dataLoss).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'profiles.name' } },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'profiles.name' },
+        loss: 'drop',
+        label: 'Remove field name from collection profiles',
+      },
     ]);
   });
 
@@ -200,6 +207,8 @@ describe('MongoMigrationPlanner, removed fields', () => {
         {
           operationIndex: 0,
           subject: { kind: 'field', namespaceId: NS, model: 'Bug', field: 'score' },
+          loss: 'drop',
+          label: 'Remove field score from collection tasks in documents whose type is "bug"',
         },
       ],
     });
@@ -220,6 +229,8 @@ describe('MongoMigrationPlanner, removed fields', () => {
         {
           operationIndex: 0,
           subject: { kind: 'field', namespaceId: NS, model: 'Task', field: 'note' },
+          loss: 'drop',
+          label: 'Remove field note from collection tasks in documents whose type is not "bug"',
         },
       ],
     });

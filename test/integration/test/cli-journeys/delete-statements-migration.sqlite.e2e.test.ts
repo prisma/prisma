@@ -3,7 +3,7 @@
  *
  * The SQLite twin of `delete-statements-migration.e2e.test.ts`. SQLite has no checks and no row-level security, so the fixture has a unique field, a secondary index and a foreign key from `Post`, and there is no access to widen.
  *
- * Journey S1 renames `Profile` to `User` and its field `name` to `fullName`, and removes `Legacy`, through `migration plan`: refused without `--delete Legacy`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents, and the same statements fail on a second run. Journey S3 adds a required field with no refusal, to an empty table: SQLite's `db update` has no temporary default to fill existing rows, so on a table with rows the runner fails with `MIGRATION.RUNNER_FAILED` rather than asking. Journey S4 drops a model with no snapshot of the database's contract, so the subject is the table's unqualified name.
+ * Journey S1 renames `Profile` to `User` and its field `name` to `fullName`, and removes `Legacy`, through `migration plan`: refused without `--delete Legacy`, planned with it, and applied by `migrate`. Journey S2 does the same through `db update`, where `--confirm <database>` no longer consents, and the same statements fail on a second run. Journey S3 adds a required field to a table with rows without asking: the table rebuild fills the existing rows with a temporary value. Journey S4 drops a model with no snapshot of the database's contract, so the subject is the table's unqualified name.
  */
 
 import { readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -278,23 +278,32 @@ withTempDir(({ createTempDir }) => {
 
   describe('Journey S3 (SQLite): a required field', () => {
     it(
-      'adds a non-nullable field to an empty table without asking',
+      'adds a non-nullable field to a table with rows without asking, filling them with a temporary value',
       async () => {
         const ctx = setupSqliteJourney(createTempDir);
         await emitContract(ctx, TO_PSL, 'S3.01');
         const create = await runDbUpdate(ctx, ['--json']);
         expect(create.exitCode, `S3.02: db update creates User: ${create.stderr}`).toBe(0);
+        withDatabase(ctx.dbPath, (db) =>
+          db.exec(`INSERT INTO "User" (id, "fullName", handle) VALUES (1, 'alice', 'al')`),
+        );
         await emitContract(ctx, TO_REQUIRED_FIELD_PSL, 'S3.03');
 
         const update = await runDbUpdate(ctx, ['--no-interactive', '--json']);
         expect(update.exitCode, `S3.04: db update adds the field: ${update.stdout}`).toBe(0);
-        const columns = withDatabase(ctx.dbPath, (db) =>
-          db
-            .prepare(`SELECT name FROM pragma_table_info('User') ORDER BY name`)
-            .all()
-            .map((row) => row['name']),
-        );
-        expect(columns, 'S3.04: the field has a column').toContain('nickname');
+        const stored = withDatabase(ctx.dbPath, (db) => ({
+          rows: db.prepare(`SELECT id, nickname FROM "User"`).all(),
+          column: db
+            .prepare(`SELECT "notnull" FROM pragma_table_info('User') WHERE name = 'nickname'`)
+            .all(),
+        }));
+        expect(
+          stored,
+          'S3.04: the old row holds the temporary value, and the field is NOT NULL',
+        ).toEqual({
+          rows: [{ id: 1, nickname: '' }],
+          column: [{ notnull: 1 }],
+        });
       },
       timeouts.spinUpPpgDev,
     );

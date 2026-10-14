@@ -137,7 +137,7 @@ describe('migration new', () => {
       {
         kind: 'run-command',
         label: 'Run it to self-emit ops.json and attest the package',
-        command: `node "${migrationTs}"`,
+        command: `node ${migrationTs}`,
       },
     ]);
   });
@@ -155,7 +155,7 @@ describe('migration new', () => {
     expect(run.presented?.presentation.next?.at(-1)).toEqual({
       kind: 'run-command',
       label: 'Run it to self-emit ops.json and attest the package',
-      command: `node "${migrationTs}" --config "prisma.config.ts"`,
+      command: `node ${migrationTs} --config prisma.config.ts`,
     });
   });
 

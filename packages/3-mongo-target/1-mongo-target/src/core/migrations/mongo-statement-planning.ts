@@ -15,6 +15,7 @@ import {
   type ResolvedFieldRenameStatement,
   type ResolvedMigrationStatement,
   type ResolvedModelRenameStatement,
+  type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
@@ -171,7 +172,7 @@ export function timeSeriesRemovalRefusals(
  * changes renames the field in the documents that hold it.
  */
 export function planStatements(input: {
-  readonly statements: readonly ResolvedMigrationStatement[];
+  readonly statements: readonly ResolvedRenameStatement[];
   readonly fromContract: ContractWithDomain;
   readonly contract: MongoContract;
   readonly schema: MongoSchemaIR;
@@ -460,7 +461,7 @@ function destinationModelOf(
 }
 
 interface FieldRemovalInput {
-  readonly statements: readonly ResolvedMigrationStatement[];
+  readonly statements: readonly ResolvedRenameStatement[];
   readonly fromContract: ContractWithDomain;
   readonly contract: MongoContract;
   readonly collectionAfterRenames: (collection: string) => string;

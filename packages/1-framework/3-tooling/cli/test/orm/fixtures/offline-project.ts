@@ -40,19 +40,29 @@ export async function removeOfflineProjects(): Promise<void> {
  * An emitted contract. With `models`, it carries an application domain whose
  * one namespace `app` declares those models, so statements can resolve.
  */
-/** A model of a fixture contract: its name, or its name and the names of its scalar fields. */
-export type FixtureModel = string | { readonly name: string; readonly fields: readonly string[] };
+/**
+ * A model of a fixture contract: its name, or its name and the names of its scalar fields, each
+ * `pg/text@1` unless `codecs` names another codec for it.
+ */
+export type FixtureModel =
+  | string
+  | {
+      readonly name: string;
+      readonly fields: readonly string[];
+      readonly codecs?: Readonly<Record<string, string>>;
+    };
 
 function modelEntry(model: FixtureModel): readonly [string, Record<string, unknown>] {
   const name = typeof model === 'string' ? model : model.name;
   const fields = typeof model === 'string' ? [] : model.fields;
+  const codecs = typeof model === 'string' ? {} : (model.codecs ?? {});
   return [
     name,
     {
       fields: Object.fromEntries(
         fields.map((field) => [
           field,
-          { nullable: false, type: { kind: 'scalar', codecId: 'pg/text@1' } },
+          { nullable: false, type: { kind: 'scalar', codecId: codecs[field] ?? 'pg/text@1' } },
         ]),
       ),
       relations: {},
@@ -207,15 +217,24 @@ export interface FakePlannerScript {
   readonly statementsResolveDataLoss?: boolean;
   /** Reports `dataLoss` only from a `plan` call given fewer statements than this. */
   readonly statementsResolvingDataLoss?: number;
+  /** The first `plan` call whose operations reject with `throwOnOperations`; every call by default. */
+  readonly throwOnOperationsFromPlan?: number;
   /** Where in the operations the placeholder that `throwOnOperations` rejects sits; last by default. */
   readonly placeholderAt?: number;
   /** Makes the plan's `operations` accessor throw this synchronously. */
   readonly operationsAccessorThrows?: unknown;
+  /** The new required fields every `plan` call reports it gives a temporary value. */
+  readonly temporaryValues?: readonly unknown[];
 }
 
-/** A `dataLoss` entry of a scripted plan: the position of an operation and what it loses. */
+/**
+ * A `dataLoss` entry of a scripted plan: the position of an operation, what it loses, and how; a
+ * drop unless `loss` says otherwise, labelled by its operation unless `label` says otherwise.
+ */
 export interface ScriptedDataLoss {
   readonly operationIndex: number;
+  readonly loss?: 'drop' | 'typeChange';
+  readonly label?: string;
   readonly subject:
     | { readonly kind: 'model'; readonly namespaceId: string; readonly model: string }
     | {
@@ -242,6 +261,8 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
           (script.statementsResolvingDataLoss ?? Number.POSITIVE_INFINITY)
           ? []
           : (script.dataLossByPlan?.[planCalls] ?? script.dataLoss ?? []);
+      const throwOnOperations =
+        planCalls >= (script.throwOnOperationsFromPlan ?? 0) ? script.throwOnOperations : undefined;
       planCalls += 1;
       const [refused] = script.refuseStatements === true ? options.statements : [];
       if (refused !== undefined) {
@@ -253,8 +274,13 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
       return script.conflicts === undefined
         ? {
             kind: 'success',
-            dataLoss,
+            dataLoss: dataLoss.map((entry) => ({
+              loss: 'drop',
+              label: (operations ?? [ADDITIVE_OP])[entry.operationIndex]?.label,
+              ...entry,
+            })),
             accessWidening: [],
+            temporaryValues: script.temporaryValues ?? [],
             appliedStatements: options.statements.map((statement) => ({
               statement,
               operationIndexes: (operations ?? [ADDITIVE_OP]).map((_, index) => index),
@@ -264,11 +290,11 @@ function fakePlanner(script: FakePlannerScript): Record<string, unknown> {
                 if (script.operationsAccessorThrows !== undefined) {
                   throw script.operationsAccessorThrows;
                 }
-                if (script.throwOnOperations === undefined) {
+                if (throwOnOperations === undefined) {
                   return (operations ?? [ADDITIVE_OP]).map((op) => Promise.resolve(op));
                 }
                 const resolved = (operations ?? []).map((op) => Promise.resolve(op));
-                const placeholder = Promise.reject(script.throwOnOperations);
+                const placeholder = Promise.reject(throwOnOperations);
                 placeholder.catch(() => undefined);
                 const at = script.placeholderAt ?? resolved.length;
                 return [...resolved.slice(0, at), placeholder, ...resolved.slice(at)];

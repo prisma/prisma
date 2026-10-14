@@ -112,7 +112,7 @@ describe('db sign when a ref cannot be written after the markers are written', (
         {
           kind: 'run-command',
           command:
-            'prisma-test db sign --contract "staging" --advance-ref production --config "custom.config.ts"',
+            'prisma-test db sign --contract staging --advance-ref production --config custom.config.ts',
         },
       ],
     });

@@ -21,19 +21,21 @@ import { type SqlTextInput, sqlTextOf } from '@internal/sql-relational-core/cont
 import { nameOf } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { errorPostgresMigrationStackMissing } from '../errors';
+import { errorPostgresMigrationStackMissing, postgresError } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
 import { PostgresRlsPolicy, type RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   AlterColumnTypeCall,
-  type AlterColumnTypeOptions,
+  alterColumnTypeCallText,
   CreateIndexCall,
   CreateNativeEnumTypeCall,
   CreatePostgresRlsPolicyCall,
@@ -62,6 +64,7 @@ import { type DataTransformOptions, dataTransform } from './operations/data-tran
 import { installExtension } from './operations/dependencies';
 import type { CreateIndexExtras } from './operations/indexes';
 import type { ForeignKeySpec } from './operations/shared';
+import { stackDataTypes } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
 import { postgresSchemaTables } from './schema-tables';
@@ -273,6 +276,45 @@ export abstract class PostgresMigration<
     return new AddColumnCall(options.schema, options.table, options.column).toOp(
       this.controlAdapterFor('addColumn'),
     );
+  }
+
+  /**
+   * Adds a required column of `type` to a table that may have rows. Every existing row takes
+   * `temporaryDefault`, SQL such as `''` or `0`, and the default is dropped once the column is added.
+   */
+  protected addColumnWithTemporaryDefault(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: string;
+    readonly type: string;
+    readonly temporaryDefault: SqlTextInput;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    const adapter = this.controlAdapterFor('addColumnWithTemporaryDefault');
+    return new AddColumnWithTemporaryDefaultCall(
+      options.schema,
+      options.table,
+      options.column,
+      options.type,
+      sqlTextOf(
+        options.temporaryDefault,
+        `addColumnWithTemporaryDefault ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} temporaryDefault`,
+      ),
+    ).toOp(adapter);
+  }
+
+  /** Adds a required column of `type` with no default, checking first that the table is empty. */
+  protected addRequiredColumnToEmptyTable(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: string;
+    readonly type: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new AddRequiredColumnToEmptyTableCall(
+      options.schema,
+      options.table,
+      options.column,
+      options.type,
+    ).toOp(this.controlAdapterFor('addRequiredColumnToEmptyTable'));
   }
 
   protected addPrimaryKey(options: {
@@ -516,16 +558,28 @@ export abstract class PostgresMigration<
     readonly schema: string;
     readonly table: string;
     readonly column: string;
-    readonly options: AlterColumnTypeOptionsInput;
+    /** The new type as a migration writes it, such as `int4` or `varchar(20)`. */
+    readonly type: string;
+    /** The SQL that converts each value to the new type; by default a cast of the column. */
+    readonly using?: SqlTextInput;
+    /** By default `data` when `using` is given, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AlterColumnTypeCall(
-      options.schema,
-      options.table,
-      options.column,
-      alterColumnTypeOptionsOf(options.options, options.table, options.column),
-      options.operationClass,
-    ).toOp(this.controlAdapterFor('alterColumnType'));
+    refuseInvalidAlterColumnTypeOptions(options);
+    const adapter = this.controlAdapterFor('alterColumnType');
+    const using = optionalSqlTextOf(
+      options.using,
+      `alterColumnType ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} using`,
+    );
+    return new AlterColumnTypeCall({
+      schemaName: options.schema,
+      tableName: options.table,
+      columnName: options.column,
+      type: options.type,
+      ...ifDefined('using', using === undefined ? undefined : { kind: 'sql' as const, sql: using }),
+      dataTypes: stackDataTypes(this.frameworkComponents()),
+      ...ifDefined('operationClass', options.operationClass),
+    }).toOp(adapter);
   }
 
   protected setNotNull(options: {
@@ -717,12 +771,38 @@ function refuseEarlierSetDefaultOptions(options: {
   });
 }
 
+/**
+ * `alterColumnType` options as a hand-written `migration.ts` may pass them, which `node migration.ts` does not type-check: the
+ * `options` object an earlier version wrote, or no `type`.
+ */
+function refuseInvalidAlterColumnTypeOptions(options: {
+  readonly schema: string;
+  readonly table: string;
+  readonly column: string;
+  readonly type: string;
+}): void {
+  if (Object.hasOwn(options, 'options')) {
+    throw errorMigrationOperationOptionRemoved({
+      operation: 'alterColumnType',
+      option: 'options',
+      subject: `column ${JSON.stringify(options.column)} of table ${JSON.stringify(options.table)}`,
+      rewrite:
+        'Pass `{ schema, table, column, type, using? }`: move `options.qualifiedTargetType` to `type` and `options.using` to `using`, and drop the other options.',
+      upgradeEntry: 'postgres-alter-column-type-plain-options',
+    });
+  }
+  const type: unknown = options.type;
+  if (typeof type === 'string') return;
+  const where = alterColumnTypeCallText(options.schema, options.table, options.column);
+  throw postgresError('MIGRATION.COLUMN_TYPE_UNREADABLE', `${where}: it has no \`type\``, {
+    why: 'A column type change needs the new type, and node migration.ts does not check the types of the options it is given.',
+    fix: 'Pass `{ schema, table, column, type, using? }`, with `type` written as a migration writes it, such as int4 or varchar(20).',
+    meta: { type: String(type), where },
+  });
+}
+
 type CreateIndexExtrasInput = Omit<CreateIndexExtras, 'where'> & {
   readonly where?: SqlTextInput;
-};
-
-type AlterColumnTypeOptionsInput = Omit<AlterColumnTypeOptions, 'using'> & {
-  readonly using?: SqlTextInput;
 };
 
 type RlsPolicyInput = Omit<RenderedRlsPolicyLiteral, 'using' | 'withCheck'> & {
@@ -732,16 +812,6 @@ type RlsPolicyInput = Omit<RenderedRlsPolicyLiteral, 'using' | 'withCheck'> & {
 
 function optionalSqlTextOf(value: SqlTextInput | undefined, what: string): string | undefined {
   return value === undefined ? undefined : sqlTextOf(value, what);
-}
-
-function alterColumnTypeOptionsOf(
-  options: AlterColumnTypeOptionsInput,
-  table: string,
-  column: string,
-): AlterColumnTypeOptions {
-  const { using, ...rest } = options;
-  const what = `alterColumnType ${JSON.stringify(table)}.${JSON.stringify(column)} using`;
-  return { ...rest, ...ifDefined('using', optionalSqlTextOf(using, what)) };
 }
 
 function createIndexExtrasOf(extras: CreateIndexExtrasInput, index: string): CreateIndexExtras {
