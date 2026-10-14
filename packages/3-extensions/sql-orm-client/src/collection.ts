@@ -27,6 +27,7 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { type TraitExpression, toExpr } from '@internal/sql-relational-core/expression';
 import type { Preparable } from '@internal/sql-relational-core/plan';
+import type { CollectionMethodReceiver } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -84,6 +85,11 @@ import type {
   WithVariantState,
   WithWhereState,
 } from './collection-internal-types';
+import {
+  type CollectionMethods,
+  collectionMethodTable,
+  createCollectionMethods,
+} from './collection-methods';
 import {
   dispatchMutationRows,
   dispatchSplitMutationRows,
@@ -572,6 +578,21 @@ export class CollectionBase<
       tables,
       filters: [...this.state.filters, filter],
     });
+  }
+
+  /**
+   * The collection methods packages contribute for this model. Each contribution reads the model and names its methods. Each method returns this collection with the method's filter and order added.
+   */
+  get using(): CollectionMethods<TContract, ModelName, State['nsId'], this> {
+    return blindCast<
+      CollectionMethods<TContract, ModelName, State['nsId'], this>,
+      'the run time offers the methods each contribution gives this model, as the type does for the registry'
+    >(
+      createCollectionMethods(
+        blindCast<CollectionMethodReceiver, 'a collection has where and orderBy'>(this),
+        collectionMethodTable(this.ctx.context, this.namespaceId, this.modelName),
+      ),
+    );
   }
 
   whereUnique<Self>(

@@ -81,6 +81,34 @@ A reusable condition types its second parameter as `ModelCallbackTools<Contract,
 
 Naming the index makes the query search the document the index was built over, so Postgres uses the index. See [ADR 270](../../../docs/architecture%20docs/adrs/ADR%20270%20-%20ORM%20queries%20use%20the%20query%20builder's%20functions%20and%20a%20model's%20indexes.md).
 
+## Collection methods packages contribute
+
+A package can contribute collection methods. For each model, it reads the model's definition in the contract and returns the methods it offers, under names it chooses. Every collection offers them under `using`:
+
+```ts
+const q = websearchToTsquery(input.search);
+
+await db.Post.using.post_search(q).limit(10).all();
+await db.Post.where({ userId }).using.embedding_nearest(vector, 0.5).limit(5).all();
+await db.User.include('posts', (posts) => posts.using.post_search(q).limit(3)).all();
+```
+
+- The Postgres target contributes one method for each full-text index, named after the index, so `postgres()` and the serverless client both offer it. It filters with `fns.fullTextMatches` and orders by `fns.fullTextRank`, descending, both naming the index. A name two indexes of one table share gets no method.
+- The pgvector package contributes `<field>_nearest(vector, maxDistance?)` for each vector field. It orders by cosine distance to `vector`, nearest first, and keeps only the rows within `maxDistance` when one is given. The vector's length is typed from the field.
+- A method returns the collection it was called on, with `Filtered` and `Ordered` added: a custom class stays the class. It works on a root collection, after other methods, inside an include refinement, inside `with` and a fragment for one model, and on `this` in a custom class. In the body of a fragment for any model (`db.orm.fragment(fields, body)`), the collection's type has no `using` member, and at run time its `using` is an empty object.
+- Its order is an ordinary order, added where it is called: an `orderBy` before it comes first, and one after it comes after.
+- A model that no contribution serves has a `using` with no members. On a collection narrowed by `variant`, a contribution sees the base model.
+- `using` is a member of every collection: a custom class cannot declare its own `using`, and an aggregate operation named `using` is refused.
+
+A contribution has two halves with the same id, both typed in `@internal/sql-relational-core` (`query-lane-context`):
+
+- **The type half** is an interface extending `CollectionMethodsEntry`. The ORM fills its `model` with one model's `CollectionMethodModel` (target, name, fields, relations, and storage table with columns and indexes), and reads back `methods`: method names mapped to parameter lists. The package registers the interface in `CollectionMethodRegistry` by declaration merging, in a module its own entry points load. The emitted `contract.d.ts` must not load it.
+- **The run-time half**, a `CollectionMethodContribution`, goes on a target or extension descriptor as `collectionMethods`. Its `methodsFor(model)` returns one model's methods by name; each method receives the collection and the caller's arguments and returns the collection with a `where`, an `orderBy` or both added.
+
+`orm()` asks each contribution for each model's methods once per execution context. It refuses, with `ORM.ARGUMENT_INVALID`, two contributions with the same id and two contributions that give one model a method with the same name. In the types, such a name is a `CollectionMethodNameClash`, which cannot be called.
+
+The registry is global to a program: if anything in the program imports a package, every client in it shows that package's methods. See the [declaration-merging registries](../../../docs/architecture%20docs/patterns/declaration-merging-registries.md) pattern and [ADR 272](../../../docs/architecture%20docs/adrs/ADR%20272%20-%20Packages%20contribute%20collection%20methods%20computed%20from%20a%20model.md).
+
 ## Custom collections
 
 An application extends `Collection` with its own query methods and registers the class with `orm({ collections })`:

@@ -1,4 +1,11 @@
 export { Collection } from '../collection';
+export type {
+  CollectionMethod,
+  CollectionMethodNameClash,
+  CollectionMethodResult,
+  CollectionMethods,
+  ModelCollectionMethodTable,
+} from '../collection-methods';
 export type { CollectionTables } from '../collection-tables';
 export { createCollectionTables } from '../collection-tables';
 export type {
