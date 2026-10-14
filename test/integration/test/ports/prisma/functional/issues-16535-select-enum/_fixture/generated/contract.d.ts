@@ -236,9 +236,9 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutputTypes = PgParameterizedOutputTypes;
+type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
-type KnownFieldTypes = {
+type FieldTypeOverrides = {
   readonly public: {
     readonly User: {
       readonly role: { readonly output: 'ADMIN' | 'USER'; readonly input: 'ADMIN' | 'USER' };
@@ -248,18 +248,18 @@ type KnownFieldTypes = {
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'input'
 >;
-type KnownColumnTypes = {
+type ColumnTypeOverrides = {
   readonly public: {
     readonly user: {
       readonly role: { readonly output: 'ADMIN' | 'USER'; readonly input: 'ADMIN' | 'USER' };
@@ -269,15 +269,15 @@ type KnownColumnTypes = {
 export type StorageColumnTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'output'
 >;
 export type StorageColumnInputTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'input'
 >;
 

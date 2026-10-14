@@ -15,20 +15,20 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import {
+  CODEC_OUTPUT_FOR,
+  codecOutputForAlias,
   deduplicateImports,
   generateCodecTypeIntersection,
+  generateFieldTypeOverridesMap,
   generateFieldTypesMapsByNamespace,
   generateHashTypeAliases,
   generateImportLines,
-  generateKnownFieldTypesMap,
   generateModelsType,
   generateRootsType,
   generateValueObjectsDescriptorType,
   generateValueObjectTypeAliases,
-  PARAMETERIZED_OUTPUT,
-  PARAMETERIZED_OUTPUT_TYPES,
-  parameterizedOutputAlias,
-  parameterizedOutputTypesAlias,
+  PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS,
+  parameterizedOutputTypeFunctionsAlias,
   serializeExecutionType,
   serializeObjectKey,
   serializeValue,
@@ -223,7 +223,7 @@ export function generateContractDts(
   const knownFieldTypesDeclaration =
     fieldTypesExpression === undefined
       ? ''
-      : `type KnownFieldTypes = ${generateKnownFieldTypesMap(namespaceModelsForFieldTypes, codecLookup, resolveFieldValueSet)};\n`;
+      : `type FieldTypeOverrides = ${generateFieldTypeOverridesMap(namespaceModelsForFieldTypes, codecLookup, resolveFieldValueSet)};\n`;
 
   const extraTypeExports = emitter.getStorageTypeExports?.(contract, codecLookup);
 
@@ -246,15 +246,13 @@ export function generateContractDts(
     modelTypesBlock,
     valueObjectTypeAliases,
   ];
-  const parameterizedOutputDeclaration = typeTexts.some((text) =>
-    mentions(text, PARAMETERIZED_OUTPUT),
-  )
-    ? `${parameterizedOutputAlias}\n`
+  const parameterizedOutputDeclaration = typeTexts.some((text) => mentions(text, CODEC_OUTPUT_FOR))
+    ? `${codecOutputForAlias}\n`
     : '';
   const parameterizedOutputTypesDeclaration = [...typeTexts, parameterizedOutputDeclaration].some(
-    (text) => mentions(text, PARAMETERIZED_OUTPUT_TYPES),
+    (text) => mentions(text, PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS),
   )
-    ? `${parameterizedOutputTypesAlias(options?.parameterizedOutputTypeImports ?? [])}\n`
+    ? `${parameterizedOutputTypeFunctionsAlias(options?.parameterizedOutputTypeImports ?? [])}\n`
     : '';
 
   const body = `${hashAliases}

@@ -63,8 +63,8 @@ describe('CodecField against every scalar field of the test contract', () => {
     >();
   });
 
-  test('a field whose codec the contract types do not declare has no CodecField', () => {
-    expectTypeOf<Unmatched>().toEqualTypeOf<'Post.embedding'>();
+  test('every scalar field of the test contract has a CodecField', () => {
+    expectTypeOf<Unmatched>().toBeNever();
   });
 
   test('every method takes the same parameters, except the value methods of a value-object field, whose input type refines its codec input', () => {

@@ -52,11 +52,11 @@ changes:
         - '\.enums\.'
   - id: emitted-contract-types-from-generics
     summary: |
-      `prisma contract emit` now writes the field and storage column type maps of a SQL contract (`FieldOutputTypes`, `FieldInputTypes`, `StorageColumnTypes`, `StorageColumnInputTypes`) as generics applied to the contract's own shape, the ones a contract built with `defineContract` uses, with only the types a codec computes at emit time written out (`KnownFieldTypes`, `KnownColumnTypes`). A column with type parameters is typed through the pack's type function (`ParameterizedOutputTypes`) instead of a named type such as `Char<24>`; it resolves to the same type. `Models` members index `FieldOutputTypes`. The types do not change; re-emit to update the committed `contract.d.ts`. The extension metadata in `contract.json` changes too: a pack's codec types name their `parameterizedOutputTypes` instead of `typeImports` such as `Vector`. The detection matches a `contract.d.ts` emitted before this change.
+      `prisma contract emit` now writes the field and storage column type maps of a SQL contract (`FieldOutputTypes`, `FieldInputTypes`, `StorageColumnTypes`, `StorageColumnInputTypes`) as generics applied to the contract's own shape, the ones a contract built with `defineContract` uses, with only the types a codec computes at emit time written out (`FieldTypeOverrides`, `ColumnTypeOverrides`). A column with type parameters is typed through the pack's type function (`ParameterizedOutputTypeFunctions`) instead of a named type such as `Char<24>`; it resolves to the same type. `Models` members index `FieldOutputTypes`. The types do not change; re-emit to update the committed `contract.d.ts`. The extension metadata in `contract.json` changes too: a pack's codec types name their `parameterizedOutputTypes` instead of `typeImports` such as `Vector`. Migration snapshots keep the form they were written in and need no change. The detection matches a SQL `contract.d.ts` emitted before this change; Mongo contracts never have `StorageColumnTypes`.
     detection:
       glob: "**/contract.d.ts"
       matches:
-        - 'export type FieldOutputTypes = \{'
+        - 'export type StorageColumnTypes = \{'
   - id: typescript-contract-enums-in-domain
     summary: |
       The type of a contract built with `defineContract` carries its enums as an emitted `contract.d.ts` does: in the domain namespace's `enum` and `enumMemberTypes`, and in the storage namespace's `valueSet`. The type-only `enumAccessors` key is gone. `db.enums` reads its accessors from `enumMemberTypes` for both kinds of contract, so its types are the emitted ones: `has(value)` takes any value and narrows it to the enum's values, and `nameOf` and `ordinalOf` take the enum's values as before. Code that read `enumAccessors` from the contract's type should use `NamespacedEnums<typeof contract>` from `@prisma/orm-framework/contract/enum-accessor`, or `db.enums`. The detection matches reads of `enumAccessors`.
@@ -165,7 +165,7 @@ An application that exports a contract built with `defineContract` and builds wi
 
 ## Emitted contract types use the same generics
 
-Re-run `prisma contract emit` and commit the new `contract.d.ts`. The file now types fields and storage columns with the generics a contract built with `defineContract` uses, and writes out only the types a codec computes when emitting, such as the literal union of an enum's values. A column with type parameters reads as before, for example `Char<24>`, through `ParameterizedOutputTypes`. No code needs to change.
+Re-run `prisma contract emit` and commit the new `contract.d.ts`. Leave the `contract.d.ts` files in migration snapshots as they are. The file now types fields and storage columns with the generics a contract built with `defineContract` uses, and writes out only the types a codec computes when emitting, such as the literal union of an enum's values. A column with type parameters reads as before, for example `Char<24>`, through `ParameterizedOutputTypeFunctions`. No code needs to change.
 
 ## Enums of a TypeScript contract
 

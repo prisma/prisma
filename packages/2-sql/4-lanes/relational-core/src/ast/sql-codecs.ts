@@ -3,7 +3,7 @@
  *
  * Each codec ships as three artifacts:
  *
- * 1. A `SqlXCodec` class extending {@link CodecImpl} that wraps the module-level encode/decode constants exported from `sql-codec-helpers.ts` (the single source of truth for runtime behaviour). 2. A `SqlXDescriptor` class extending {@link CodecDescriptorTemplateImpl} declaring the codec id, traits, target types, params schema, and (where applicable) the emit-path `renderOutputType`; the data type is left to the target that adapts the template. 3. A per-codec column helper (`sqlXColumn`)
+ * 1. A `SqlXCodec` class extending {@link CodecImpl} that wraps the module-level encode/decode constants exported from `sql-codec-helpers.ts` (the single source of truth for runtime behaviour). 2. A `SqlXDescriptor` class extending {@link CodecDescriptorTemplateImpl} declaring the codec id, traits, target types, and params schema; the data type is left to the target that adapts the template. 3. A per-codec column helper (`sqlXColumn`)
  * that calls `descriptor.factory(...)` directly and packages the result into a {@link ColumnSpec} via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor`.
  *
  * After TML-2357 this file is the canonical source of SQL base codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers retired with the deletion sweep.

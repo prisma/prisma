@@ -61,7 +61,7 @@ export interface EmissionSpi {
   getStorageTypeExports?(contract: Contract, codecLookup?: CodecLookup): string | undefined;
 
   /**
-   * The family's `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`) as an application of its own generic to the emitted contract's shape: it may name `ContractBase`, `CodecTypes`, `ParameterizedOutputTypes` (the union of the stack's parameterized output type functions) and `KnownFieldTypes` (each field's type where the codec does not give it: a value set, a value object, a union, or text the codec renders), which the framework declares. Absent, the framework writes each field's type out.
+   * The family's `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`) as an application of its own generic to the emitted contract's shape: it may name `ContractBase`, `CodecTypes`, `ParameterizedOutputTypeFunctions` (the union of the stack's parameterized output type functions) and `FieldTypeOverrides` (each field's type where the codec does not give it: a value set, a value object, a union, or text the codec renders), which the framework declares. Absent, the framework writes each field's type out.
    */
   fieldTypesExpression?(side: 'output' | 'input'): string;
 }

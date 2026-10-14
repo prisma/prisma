@@ -77,7 +77,6 @@ describe('generateContractDts parameterized output types', () => {
   const lookup = {
     get: () => undefined,
     renderOutputTypeFor: () => undefined,
-    parameterizedOutputTypesFor: (id: string) => (id === 'demo/char@1' ? TYPE_FUNCTION : undefined),
   };
 
   it('declares the alias a column with type parameters is typed through, and imports what it names', () => {
@@ -90,12 +89,10 @@ describe('generateContractDts parameterized output types', () => {
       lookup,
     );
 
+    expect(dts).toContain('readonly id: CodecOutputFor<"demo/char@1", { readonly length: 24 }>');
+    expect(dts).toContain('type ParameterizedOutputTypeFunctions = DemoParameterizedOutputTypes;');
     expect(dts).toContain(
-      'readonly id: ParameterizedOutput<"demo/char@1", { readonly length: 24 }>',
-    );
-    expect(dts).toContain('type ParameterizedOutputTypes = DemoParameterizedOutputTypes;');
-    expect(dts).toContain(
-      'type ParameterizedOutput<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<ParameterizedOutputTypes, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;',
+      'type CodecOutputFor<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<ParameterizedOutputTypeFunctions, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;',
     );
     expect(importLines(dts)).toContain(
       'ParameterizedOutputTypesForTypeParams as DemoParameterizedOutputTypes',
@@ -142,20 +139,20 @@ describe('generateContractDts for a family that types its fields with a generic'
     },
   });
   const spi = createMockSpi({
-    fieldTypesExpression: (side) => `FieldTypesFrom<ContractBase, KnownFieldTypes, '${side}'>`,
+    fieldTypesExpression: (side) => `FieldTypesFrom<ContractBase, FieldTypeOverrides, '${side}'>`,
   });
 
-  it('writes the field type maps as the family expression, over the known types it declares', () => {
+  it('writes the field type maps as the family expression, over the type overrides it declares', () => {
     const dts = generateContractDts(contract, spi, [CODEC_TYPES], HASHES);
 
     expect(dts).toContain(
-      'type KnownFieldTypes = { readonly public: { readonly User: { readonly address: { readonly output: AddressOutput; readonly input: AddressInput } } } };',
+      'type FieldTypeOverrides = { readonly public: { readonly User: { readonly address: { readonly output: AddressOutput; readonly input: AddressInput } } } };',
     );
     expect(dts).toContain(
-      "export type FieldOutputTypes = FieldTypesFrom<ContractBase, KnownFieldTypes, 'output'>;",
+      "export type FieldOutputTypes = FieldTypesFrom<ContractBase, FieldTypeOverrides, 'output'>;",
     );
     expect(dts).toContain(
-      "export type FieldInputTypes = FieldTypesFrom<ContractBase, KnownFieldTypes, 'input'>;",
+      "export type FieldInputTypes = FieldTypesFrom<ContractBase, FieldTypeOverrides, 'input'>;",
     );
   });
 

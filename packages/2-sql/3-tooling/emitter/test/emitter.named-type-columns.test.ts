@@ -6,7 +6,7 @@ import { createEmitterTestContract as createContract } from './create-emitter-te
 
 const testHashes = { storageHash: 'test', profileHash: 'test' };
 
-function knownTypes(dts: string, name: 'KnownColumnTypes' | 'KnownFieldTypes'): string {
+function typeOverrides(dts: string, name: 'ColumnTypeOverrides' | 'FieldTypeOverrides'): string {
   return dts.match(new RegExp(`^type ${name} = (.*);$`, 'm'))?.[1] ?? '';
 }
 
@@ -85,10 +85,10 @@ describe('contract.d.ts types of a column typed by a named type', () => {
       vectorCodecLookup(),
     );
 
-    expect(knownTypes(dts, 'KnownFieldTypes')).toContain(
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
       'readonly embedding: { readonly output: Vector<1536> }',
     );
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly embedding: { readonly output: Vector<1536> }',
     );
   });
@@ -151,10 +151,10 @@ describe('contract.d.ts types of a column typed by a named type', () => {
       vectorCodecLookup(),
     );
 
-    expect(knownTypes(dts, 'KnownFieldTypes')).toContain(
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
       'readonly embedding: { readonly output: Vector<768> }',
     );
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly embedding: { readonly output: Vector<1536> }',
     );
   });

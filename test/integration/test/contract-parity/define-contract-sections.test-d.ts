@@ -405,6 +405,42 @@ type ComparedField<Field> = Field extends {
 
 type DomainOf<Contract> = Contract extends { readonly domain: infer Domain } ? Domain : never;
 
+/** Each enum of the contract's domain, keyed `'<namespace>.<enum>'`, as `Slot` (`'enum'` or `'enumMemberTypes'`) types it. */
+type DomainEnums<Contract, Slot extends 'enum' | 'enumMemberTypes'> = UnionToIntersection<
+  {
+    [Ns in keyof DomainNamespaces<Contract> & string]: DomainNamespaces<Contract>[Ns] extends {
+      readonly [K in Slot]?: infer Enums;
+    }
+      ? {
+          readonly [Name in keyof NonNullable<Enums> &
+            string as `${Ns}.${Name}`]: Slot extends 'enum'
+            ? NonNullable<Enums>[Name] extends { readonly members: infer Members }
+              ? Members
+              : never
+            : NonNullable<Enums>[Name];
+        }
+      : Record<never, never>;
+  }[keyof DomainNamespaces<Contract> & string]
+>;
+
+type EnumDifferences<Slot extends 'enum' | 'enumMemberTypes'> = {
+  [F in keyof Fixtures]: {
+    [Name in
+      | keyof DomainEnums<Built<F>, Slot>
+      | keyof DomainEnums<Emitted<F>, Slot>]: Name extends keyof DomainEnums<Built<F>, Slot>
+      ? Name extends keyof DomainEnums<Emitted<F>, Slot>
+        ? SameType<
+            DomainEnums<Built<F>, Slot>[Name],
+            DomainEnums<Emitted<F>, Slot>[Name],
+            3
+          > extends true
+          ? never
+          : `${F}: ${Slot} ${Name & string}`
+        : `${F}: ${Slot} ${Name & string} (built only)`
+      : `${F}: ${Slot} ${Name & string} (emitted only)`;
+  }[keyof DomainEnums<Built<F>, Slot> | keyof DomainEnums<Emitted<F>, Slot>];
+}[keyof Fixtures];
+
 describe('domain', () => {
   test('every key is compared or excluded', () => {
     expectTypeOf<
@@ -424,6 +460,16 @@ describe('domain', () => {
 
   test('model storage', () => {
     expectTypeOf<MapDifferences<'model storage'>>().toBeNever();
+  });
+
+  // An enum authored with enumType types its codec id as string, so only the members are compared. A member that is not a JSON value, such as a bigint or a Date, is typed JsonValue in the built enum, where the emitted one has its stored literal; only migrations read stored values. db.enums reads enumMemberTypes, compared above through NamespacedEnums and here directly.
+  test('enum members, as stored and as read', () => {
+    expectTypeOf<EnumDifferences<'enum'>>().toBeNever();
+    expectTypeOf<EnumDifferences<'enumMemberTypes'>>().toBeNever();
+    expectTypeOf<'public.Plan'>().toExtend<keyof DomainEnums<Built<'postgresParity'>, 'enum'>>();
+    expectTypeOf<'public.Plan'>().toExtend<
+      keyof DomainEnums<Emitted<'postgresParity'>, 'enumMemberTypes'>
+    >();
   });
 
   test('fields', () => {

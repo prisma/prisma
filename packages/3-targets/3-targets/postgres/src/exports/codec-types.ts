@@ -92,7 +92,7 @@ type OutputTypeMap<TypeParams> = {
 };
 
 /**
- * The output type of each codec whose `renderOutputType` refines it by the column's type parameters, for a contract written in TypeScript. It mirrors what `prisma contract emit` writes; `test/integration/test/contract-parity` checks the two agree.
+ * The output type of each codec whose output type depends on the column's type parameters: the only declaration of these types, which a contract written with `defineContract` and the `contract.d.ts` that `prisma contract emit` writes both apply.
  */
 export interface ParameterizedOutputTypesForTypeParams extends ParameterizedOutputTypesFunction {
   readonly outputTypes: OutputTypeMap<this['typeParams']>;

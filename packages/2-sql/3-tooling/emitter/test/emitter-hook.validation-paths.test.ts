@@ -173,7 +173,7 @@ describe('getStorageTypeExports', () => {
   };
   const statusValueSet = { Status: { kind: 'valueSet', values: ['on', 'off'] } };
 
-  it('orders the known column types by namespace and table name', () => {
+  it('orders the column type overrides by namespace and table name', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({
         storage: {
@@ -203,14 +203,14 @@ describe('getStorageTypeExports', () => {
 
     expect(exports).toBe(
       [
-        'type KnownColumnTypes = {  };',
-        'export type StorageColumnTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypes, KnownColumnTypes, "output">;',
-        'export type StorageColumnInputTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypes, KnownColumnTypes, "input">;',
+        'type ColumnTypeOverrides = {  };',
+        'export type StorageColumnTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "output">;',
+        'export type StorageColumnInputTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "input">;',
       ].join('\n'),
     );
   });
 
-  it('gives no known type to a column that names a value set the storage does not carry', () => {
+  it('gives no type override to a column that names a value set the storage does not carry', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({
         storage: {
@@ -245,6 +245,6 @@ describe('getStorageTypeExports', () => {
       identityCodecLookup,
     );
 
-    expect(exports).toContain('type KnownColumnTypes = {  };');
+    expect(exports).toContain('type ColumnTypeOverrides = {  };');
   });
 });

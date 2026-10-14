@@ -24,6 +24,7 @@ import {
   generateValueObjectsDescriptorType,
   generateValueObjectType,
   generateValueObjectTypeAliases,
+  renderValueSetOverride,
   renderValueSetType,
   resolveFieldType,
   serializeExecutionType,
@@ -1082,35 +1083,28 @@ describe('generateFieldResolvedType', () => {
     expect(generateFieldResolvedType(field, lookup)).toBe('Char<36>');
   });
 
-  describe('a codec whose contributor declares a parameterized output type function', () => {
-    const typeFunction = {
-      package: '@internal/demo/codec-types',
-      named: 'ParameterizedOutputTypesForTypeParams',
-      alias: 'PgParameterizedOutputTypes',
-    };
-    const lookupWith = (renderOutputType?: (params: Record<string, unknown>) => string) => ({
-      ...stubCodecLookup({
+  describe('a column with type parameters whose codec renders no type text', () => {
+    const lookupWith = (renderOutputType?: (params: Record<string, unknown>) => string) =>
+      stubCodecLookup({
         'pg/char@1': stubCodec({
           id: 'pg/char@1',
           ...(renderOutputType ? { renderOutputType } : {}),
         }),
-      }),
-      parameterizedOutputTypesFor: (id: string) => (id === 'pg/char@1' ? typeFunction : undefined),
-    });
+      });
 
-    it('types a column with type parameters by applying the type function', () => {
+    it('is typed through the alias that applies the type functions', () => {
       const field: ContractField = {
         nullable: true,
         type: { kind: 'scalar', codecId: 'pg/char@1', typeParams: { length: 36 } },
         many: false,
       };
       expect(resolveFieldType(field, lookupWith())).toEqual({
-        output: 'ParameterizedOutput<"pg/char@1", { readonly length: 36 }> | null',
+        output: 'CodecOutputFor<"pg/char@1", { readonly length: 36 }> | null',
         input: 'CodecTypes["pg/char@1"]["input"] | null',
       });
     });
 
-    it('prefers the type text the codec renders', () => {
+    it('takes the type text the codec renders instead', () => {
       const field: ContractField = {
         nullable: false,
         type: { kind: 'scalar', codecId: 'pg/char@1', typeParams: { length: 36 } },
@@ -1124,7 +1118,7 @@ describe('generateFieldResolvedType', () => {
       ).toBe('Char<36>');
     });
 
-    it('types a column without type parameters by the plain output type', () => {
+    it('is typed by the plain output type without type parameters', () => {
       const field: ContractField = {
         nullable: false,
         type: { kind: 'scalar', codecId: 'pg/char@1' },
@@ -1145,7 +1139,7 @@ describe('generateFieldResolvedType', () => {
     expect(generateFieldResolvedType(field)).toBe('CodecTypes["pg/int4@1"]["output"]');
   });
 
-  it('falls back to CodecTypes when renderOutputType returns unsafe expression', () => {
+  it('types through CodecOutputFor when renderOutputType returns an unsafe expression', () => {
     const lookup = stubCodecLookup({
       'test@1': stubCodec({
         id: 'test@1',
@@ -1157,10 +1151,12 @@ describe('generateFieldResolvedType', () => {
       type: { kind: 'scalar', codecId: 'test@1', typeParams: { x: 1 } },
       many: false,
     };
-    expect(generateFieldResolvedType(field, lookup)).toBe('CodecTypes["test@1"]["output"]');
+    expect(generateFieldResolvedType(field, lookup)).toBe(
+      'CodecOutputFor<"test@1", { readonly x: 1 }>',
+    );
   });
 
-  it('falls back to CodecTypes when codec has no renderOutputType', () => {
+  it('types through CodecOutputFor when the codec has no renderOutputType', () => {
     const lookup = stubCodecLookup({
       'pg/int4@1': stubCodec({ id: 'pg/int4@1' }),
     });
@@ -1169,7 +1165,9 @@ describe('generateFieldResolvedType', () => {
       type: { kind: 'scalar', codecId: 'pg/int4@1', typeParams: { x: 1 } },
       many: false,
     };
-    expect(generateFieldResolvedType(field, lookup)).toBe('CodecTypes["pg/int4@1"]["output"]');
+    expect(generateFieldResolvedType(field, lookup)).toBe(
+      'CodecOutputFor<"pg/int4@1", { readonly x: 1 }>',
+    );
   });
 
   it('falls back to CodecTypes when typeParams is empty', () => {
@@ -1652,5 +1650,23 @@ describe('serializeValue object key order', () => {
     expect(serializeValue([{ b: 1 }, { a: 2 }])).toBe(
       'readonly [{ readonly b: 1 }, { readonly a: 2 }]',
     );
+  });
+});
+
+describe('renderValueSetOverride', () => {
+  it('keeps the side whose values have literal types when the other side has none', () => {
+    const lookup: CodecLookup = {
+      get: () => undefined,
+      renderOutputTypeFor: () => undefined,
+      renderValueLiteralFor: (_id, value, side) =>
+        side === 'output' && typeof value === 'string' ? `"${value}"` : undefined,
+    };
+    expect(renderValueSetOverride(['low', 'high'], 'demo/text@1', lookup)).toEqual({
+      output: '"low" | "high"',
+    });
+  });
+
+  it('gives no type override when neither side has literal types', () => {
+    expect(renderValueSetOverride(['low'], 'demo/text@1', undefined)).toBeUndefined();
   });
 });

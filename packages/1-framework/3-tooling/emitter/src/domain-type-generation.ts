@@ -365,24 +365,24 @@ export function renderValueSetType(
 }
 
 /** The local alias an emitted `contract.d.ts` types a column with type parameters through. */
-export const PARAMETERIZED_OUTPUT = 'ParameterizedOutput';
+export const CODEC_OUTPUT_FOR = 'CodecOutputFor';
 
 /** The local alias for the union of the stack's parameterized output type functions. */
-export const PARAMETERIZED_OUTPUT_TYPES = 'ParameterizedOutputTypes';
+export const PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS = 'ParameterizedOutputTypeFunctions';
 
-/** The declaration of {@link PARAMETERIZED_OUTPUT}: `ParameterizedOutputType` from `@internal/contract/types` applied to {@link PARAMETERIZED_OUTPUT_TYPES}, falling back to the codec's plain output type. */
-export const parameterizedOutputAlias = `type ${PARAMETERIZED_OUTPUT}<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<${PARAMETERIZED_OUTPUT_TYPES}, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;`;
+/** The declaration of {@link CODEC_OUTPUT_FOR}: `ParameterizedOutputType` from `@internal/contract/types` applied to {@link PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, falling back to the codec's plain output type. */
+export const codecOutputForAlias = `type ${CODEC_OUTPUT_FOR}<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;`;
 
-/** The declaration of {@link PARAMETERIZED_OUTPUT_TYPES} for the type functions the stack's components declare. */
-export function parameterizedOutputTypesAlias(
+/** The declaration of {@link PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS} for the type functions the stack's components declare. */
+export function parameterizedOutputTypeFunctionsAlias(
   typeFunctions: ReadonlyArray<TypesImportSpec>,
 ): string {
   const aliases = [...new Set(typeFunctions.map((typeFunction) => typeFunction.alias))];
-  return `type ${PARAMETERIZED_OUTPUT_TYPES} = ${aliases.length > 0 ? aliases.join(' | ') : 'never'};`;
+  return `type ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS} = ${aliases.length > 0 ? aliases.join(' | ') : 'never'};`;
 }
 
 /**
- * The output type of a value of codec `codecId` in a column with these type parameters. A codec that renders its own type text (`renderOutputType`) gets that text. Otherwise, when the codec's contributor declares a type function for parameterized output types, the type applies it, through {@link PARAMETERIZED_OUTPUT}, so the pack's type-level declaration is the only one. Otherwise it is the codec's plain output type.
+ * The output type of a value of codec `codecId` in a column with these type parameters. A codec that renders its own type text (`renderOutputType`) gets that text. Otherwise a column with type parameters is typed through {@link CODEC_OUTPUT_FOR}, which applies the stack's type functions as the field type generic does and falls back to the codec's plain output type; a column without them gets the plain output type.
  */
 export function codecOutputType(
   codecId: string,
@@ -390,12 +390,10 @@ export function codecOutputType(
   codecLookup: CodecLookup | undefined,
 ): string {
   const plain = `CodecTypes[${serializeValue(codecId)}]["output"]`;
-  if (codecLookup === undefined || typeParams === undefined) return plain;
-  const rendered = codecLookup.renderOutputTypeFor(codecId, typeParams);
+  if (typeParams === undefined) return plain;
+  const rendered = codecLookup?.renderOutputTypeFor(codecId, typeParams);
   if (rendered && isSafeTypeExpression(rendered)) return rendered;
-  const typeFunction = codecLookup.parameterizedOutputTypesFor?.(codecId);
-  if (typeFunction === undefined) return plain;
-  return `${PARAMETERIZED_OUTPUT}<${serializeValue(codecId)}, ${serializeValue(typeParams)}>`;
+  return `${CODEC_OUTPUT_FOR}<${serializeValue(codecId)}, ${serializeValue(typeParams)}>`;
 }
 
 /** The input type of a value of codec `codecId` in a column with these type parameters: the text the codec renders (`renderInputType`), or its plain input type. */
@@ -666,84 +664,88 @@ export function generateValueObjectTypeAliases(
 }
 
 /** A field's or column's type on each side where its codec does not give it, as type text. */
-export type KnownValueType = { readonly output?: string; readonly input?: string };
+export type TypeOverride = { readonly output?: string; readonly input?: string };
 
 /**
  * The type of a field that its codec does not give, for a family that types its fields with a generic over the contract's shape: the literal union of the value set it holds, the type of a value object or union field, or the text its codec renders for its type parameters. `undefined` when the codec gives both sides.
  */
-export function resolveKnownFieldType(
+export function resolveFieldTypeOverride(
   field: ContractField,
   codecLookup: CodecLookup | undefined,
   resolvedValueSet: ResolvedFieldValueSet | undefined,
-): KnownValueType | undefined {
+): TypeOverride | undefined {
   const { type } = field;
   if (type.kind !== 'scalar') {
     const resolved = resolveFieldType({ nullable: false, type }, codecLookup);
     return { output: resolved.output, input: resolved.input };
   }
   if (resolvedValueSet) {
-    const known = renderKnownValueSetType(
+    const override = renderValueSetOverride(
       resolvedValueSet.encodedValues,
       resolvedValueSet.codecId,
       codecLookup,
     );
-    if (known !== undefined) return known;
+    if (override !== undefined) return override;
   }
   const typeParams =
     type.typeParams && Object.keys(type.typeParams).length > 0 ? type.typeParams : undefined;
-  return renderKnownCodecType(type.codecId, typeParams, codecLookup);
+  return renderCodecTypeOverride(type.codecId, typeParams, codecLookup);
 }
 
-/** The literal unions of a value set on both sides, or `undefined` when a value has no literal type. */
-export function renderKnownValueSetType(
+/** The literal union of a value set on each side whose values all have literal types, or `undefined` when neither side has. */
+export function renderValueSetOverride(
   values: readonly JsonValue[],
   codecId: string,
   codecLookup: CodecLookup | undefined,
-): KnownValueType | undefined {
+): TypeOverride | undefined {
   const output = renderValueSetType(values, codecId, 'output', codecLookup);
   const input = renderValueSetType(values, codecId, 'input', codecLookup);
-  return output !== undefined && input !== undefined ? { output, input } : undefined;
+  const override = {
+    ...(output !== undefined ? { output } : {}),
+    ...(input !== undefined ? { input } : {}),
+  };
+  return Object.keys(override).length > 0 ? override : undefined;
 }
 
 /** The type text a codec renders for these type parameters, on the sides it renders one. */
-export function renderKnownCodecType(
+export function renderCodecTypeOverride(
   codecId: string,
   typeParams: Record<string, unknown> | undefined,
   codecLookup: CodecLookup | undefined,
-): KnownValueType | undefined {
+): TypeOverride | undefined {
   if (codecLookup === undefined || typeParams === undefined) return undefined;
   const output = codecLookup.renderOutputTypeFor(codecId, typeParams);
   const input = codecLookup.renderInputTypeFor?.(codecId, typeParams);
-  const known = {
+  const override = {
     ...(output && isSafeTypeExpression(output) ? { output } : {}),
     ...(input && isSafeTypeExpression(input) ? { input } : {}),
   };
-  return Object.keys(known).length > 0 ? known : undefined;
+  return Object.keys(override).length > 0 ? override : undefined;
 }
 
-export function renderKnownValueType(known: KnownValueType): string {
+export function renderTypeOverride(override: TypeOverride): string {
   const sides = (['output', 'input'] as const).flatMap((side) => {
-    const type = known[side];
+    const type = override[side];
     return type === undefined ? [] : [`readonly ${side}: ${type}`];
   });
   return `{ ${sides.join('; ')} }`;
 }
 
-/** A nested map of known types, ordered by name at every level, leaving out every branch with no entry. */
-export function renderKnownTypesMap(
-  entries: ReadonlyArray<readonly [string, string, string, KnownValueType | undefined]>,
+/** A nested map of type overrides, ordered by name at every level, leaving out every branch with no entry. */
+export function renderTypeOverridesMap(
+  entries: ReadonlyArray<readonly [string, string, string, TypeOverride | undefined]>,
 ): string {
-  const known = entries
+  const override = entries
     .flatMap(([first, second, third, type]) =>
       type === undefined ? [] : [{ path: [first, second, third] as const, type }],
     )
     .sort((a, b) => comparePaths(a.path, b.path));
-  return renderLevel(known, 0);
+  return renderLevel(override, 0);
 }
 
-type KnownEntry = {
+type OverrideEntry = {
   readonly path: readonly [string, string, string];
-  readonly type: KnownValueType;
+  readonly type: TypeOverride;
 };
 
 function comparePaths(a: readonly string[], b: readonly string[]): number {
@@ -754,26 +756,26 @@ function comparePaths(a: readonly string[], b: readonly string[]): number {
   return 0;
 }
 
-function renderLevel(entries: readonly KnownEntry[], depth: number): string {
+function renderLevel(entries: readonly OverrideEntry[], depth: number): string {
   const keys = [...new Set(entries.map((entry) => entry.path[depth] ?? ''))];
   const parts = keys.map((key) => {
     const below = entries.filter((entry) => entry.path[depth] === key);
     const value =
       depth === 2 && below[0] !== undefined
-        ? renderKnownValueType(below[0].type)
+        ? renderTypeOverride(below[0].type)
         : renderLevel(below, depth + 1);
     return `readonly ${serializeObjectKey(key)}: ${value}`;
   });
   return `{ ${parts.join('; ')} }`;
 }
 
-/** `KnownFieldTypes`: per namespace, model and field, the type of each field its codec does not give. */
-export function generateKnownFieldTypesMap(
+/** `FieldTypeOverrides`: per namespace, model and field, the type of each field its codec does not give. */
+export function generateFieldTypeOverridesMap(
   namespaceModels: ReadonlyArray<readonly [string, Record<string, ContractModelBase>]>,
   codecLookup: CodecLookup | undefined,
   resolveFieldValueSet: FieldValueSetResolver | undefined,
 ): string {
-  return renderKnownTypesMap(
+  return renderTypeOverridesMap(
     namespaceModels.flatMap(([nsId, models]) =>
       Object.entries(models ?? {}).flatMap(([modelName, model]) =>
         Object.entries(model.fields).map(
@@ -782,7 +784,7 @@ export function generateKnownFieldTypesMap(
               nsId,
               modelName,
               fieldName,
-              resolveKnownFieldType(
+              resolveFieldTypeOverride(
                 field,
                 codecLookup,
                 resolveFieldValueSet?.(modelName, fieldName, model),

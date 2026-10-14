@@ -179,7 +179,7 @@ export interface ParameterizedOutputTypesForTypeParams extends ParameterizedOutp
 The pack exports this interface from its public `codec-types` entry and names it twice:
 
 - in its pack meta, as `__parameterizedOutputTypes?: ParameterizedOutputTypesForTypeParams`, which `defineContract` reads;
-- in `types.codecTypes.parameterizedOutputTypes`, as an import of that interface, on the component that contributes the codecs. The emitted `contract.d.ts` imports it into `ParameterizedOutputTypes`, through which `ParameterizedOutputType` types a `vector(3)` column as `Vector<3>`.
+- in `types.codecTypes.parameterizedOutputTypes`, as an import of that interface, on the component that contributes the codecs. The emitted `contract.d.ts` imports it into `ParameterizedOutputTypeFunctions`, through which `ParameterizedOutputType` types a `vector(3)` column as `Vector<3>`.
 
 A codec the map leaves out, or maps to `never` for some parameters, keeps its plain output type. Do not write `renderOutputType` for such a codec. `renderOutputType` is only for a codec whose output type cannot come from its type parameters as a type, such as `arktype/json@1` below, whose type is the text of its schema.
 

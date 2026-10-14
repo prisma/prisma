@@ -572,7 +572,7 @@ describe('sql-target-family-hook', () => {
     expect(types).toContain('storage: { readonly table: "user"');
     expect(types).toContain('readonly fields: {}');
     expect(types).toContain('export type FieldOutputTypes = FieldTypesFromDomain<');
-    expect(types).toContain('type KnownFieldTypes = {  };');
+    expect(types).toContain('type FieldTypeOverrides = {  };');
     expect(types).not.toContain('fieldToColumn');
     expect(types).not.toContain('columnToField');
   });

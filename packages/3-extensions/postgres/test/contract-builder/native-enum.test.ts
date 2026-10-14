@@ -317,13 +317,13 @@ describe('nativeEnum + pg.enum (TS native-enum authoring)', () => {
       );
     }
 
-    it('gives the storage column and the field the member-value literal union as their known type', () => {
+    it('gives the storage column and the field the member-value literal union as their type override', () => {
       const dts = emit();
 
-      const known =
+      const override =
         'readonly aal: { readonly output: "aal1" | "aal2" | "aal3"; readonly input: "aal1" | "aal2" | "aal3" }';
-      expect(dts.match(/^type KnownColumnTypes = (.*);$/m)?.[1]).toContain(known);
-      expect(dts.match(/^type KnownFieldTypes = (.*);$/m)?.[1]).toContain(known);
+      expect(dts.match(/^type ColumnTypeOverrides = (.*);$/m)?.[1]).toContain(override);
+      expect(dts.match(/^type FieldTypeOverrides = (.*);$/m)?.[1]).toContain(override);
     });
 
     it("nativeEnum's handle preserves name, mapped type name, and the literal member tuple", () => {

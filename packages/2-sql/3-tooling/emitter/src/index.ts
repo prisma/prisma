@@ -5,13 +5,13 @@ import type {
   JsonValue,
 } from '@internal/contract/types';
 import {
-  type KnownValueType,
-  renderKnownCodecType,
-  renderKnownTypesMap,
-  renderKnownValueSetType,
+  renderCodecTypeOverride,
+  renderTypeOverridesMap,
+  renderValueSetOverride,
   serializeNamespaceId,
   serializeObjectKey,
   serializeValue,
+  type TypeOverride,
 } from '@internal/emitter/domain-type-generation';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import type { AggregateDescriptor } from '@internal/framework-components/components';
@@ -465,14 +465,14 @@ export const sqlEmission = {
     >(contract.storage);
     if (!storage?.namespaces) return undefined;
     return [
-      `type KnownColumnTypes = ${generateKnownColumnTypesMap(storage, codecLookup)};`,
+      `type ColumnTypeOverrides = ${generateColumnTypeOverridesMap(storage, codecLookup)};`,
       `export type StorageColumnTypes = ${columnTypesExpression('output')};`,
       `export type StorageColumnInputTypes = ${columnTypesExpression('input')};`,
     ].join('\n');
   },
 
   fieldTypesExpression(side: 'output' | 'input'): string {
-    return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypes, KnownFieldTypes, ${serializeValue(side)}>`;
+    return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, ${serializeValue(side)}>`;
   },
 
   getFamilyImports(resolveImportSpecifier: ImportSpecifierResolver): string[] {
@@ -529,11 +529,11 @@ export const sqlEmission = {
 } as const;
 
 function columnTypesExpression(side: 'output' | 'input'): string {
-  return `ColumnTypesFromStorage<ContractBase['storage'], CodecTypes, ParameterizedOutputTypes, KnownColumnTypes, ${serializeValue(side)}>`;
+  return `ColumnTypesFromStorage<ContractBase['storage'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, ${serializeValue(side)}>`;
 }
 
-/** `KnownColumnTypes`: per namespace, table and column, the type of each column its codec does not give. */
-function generateKnownColumnTypesMap(
+/** `ColumnTypeOverrides`: per namespace, table and column, the type of each column its codec does not give. */
+function generateColumnTypeOverridesMap(
   storage: SqlStorage,
   codecLookup: CodecLookup | undefined,
 ): string {
@@ -545,30 +545,30 @@ function generateKnownColumnTypesMap(
     return Object.entries(tables).flatMap(([tableName, table]) =>
       Object.entries(table.columns).map(
         ([columnName, column]) =>
-          [nsId, tableName, columnName, knownColumnType(storage, column, codecLookup)] as const,
+          [nsId, tableName, columnName, columnTypeOverride(storage, column, codecLookup)] as const,
       ),
     );
   });
-  return renderKnownTypesMap(entries);
+  return renderTypeOverridesMap(entries);
 }
 
-function knownColumnType(
+function columnTypeOverride(
   storage: SqlStorage,
   column: StorageColumn,
   codecLookup: CodecLookup | undefined,
-): KnownValueType | undefined {
+): TypeOverride | undefined {
   if (column.valueSet) {
     const valueSet = entityAt<StorageValueSet>(storage, {
       namespaceId: column.valueSet.namespaceId,
       entityKind: column.valueSet.entityKind,
       entityName: column.valueSet.entityName,
     });
-    const known = valueSet
-      ? renderKnownValueSetType(valueSet.values, column.codecId, codecLookup)
+    const override = valueSet
+      ? renderValueSetOverride(valueSet.values, column.codecId, codecLookup)
       : undefined;
-    if (known !== undefined) return known;
+    if (override !== undefined) return override;
   }
-  return renderKnownCodecType(
+  return renderCodecTypeOverride(
     column.codecId,
     resolvedTypeParams(column, storage.types),
     codecLookup,

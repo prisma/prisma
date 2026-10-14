@@ -235,9 +235,9 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutputTypes = PgParameterizedOutputTypes;
+type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
-type KnownFieldTypes = {
+type FieldTypeOverrides = {
   readonly public: {
     readonly TestModel: {
       readonly my_enum: { readonly output: 'A' | 'B' | 'C'; readonly input: 'A' | 'B' | 'C' };
@@ -247,18 +247,18 @@ type KnownFieldTypes = {
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'input'
 >;
-type KnownColumnTypes = {
+type ColumnTypeOverrides = {
   readonly public: {
     readonly testModel: {
       readonly my_enum: { readonly output: 'A' | 'B' | 'C'; readonly input: 'A' | 'B' | 'C' };
@@ -268,15 +268,15 @@ type KnownColumnTypes = {
 export type StorageColumnTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'output'
 >;
 export type StorageColumnInputTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'input'
 >;
 

@@ -1378,7 +1378,7 @@ type EnumHandleMembers<Handle, Stored extends boolean> =
 // The domain `enum` entries for enums authored with `enumType`, keyed by enum name, with each member's value as it is stored.
 type EnumHandleEntries<Enums> = {
   readonly [K in keyof Enums as HandleName<Enums[K]>]: {
-    readonly codecId: string;
+    readonly codecId: Enums[K] extends { readonly codecId: infer CodecId } ? CodecId : string;
     readonly members: EnumHandleMembers<Enums[K], true>;
   };
 };
@@ -1572,7 +1572,7 @@ type FieldValueUnion<FieldState> = [EnumValueUnion<FieldState>] extends [never]
   : EnumValueUnion<FieldState>;
 
 // The type that replaces a field's codec type: on both sides, the members of the enum or value set it holds; on the output side, the type its column spec's codec reads.
-type FieldKnownType<
+type FieldTypeOverride<
   Definition,
   ModelName extends ModelNames<Definition>,
   FieldName extends ModelFieldNames<Definition, ModelName>,
@@ -1588,10 +1588,10 @@ type FieldKnownType<
         }
     : never;
 
-type KnownFieldTypes<Definition> = {
+type FieldTypeOverrides<Definition> = {
   readonly [Ns in DomainNamespaceIds<Definition>]: {
     readonly [ModelName in ModelsInNamespace<Definition, Ns>]: {
-      readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldKnownType<
+      readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldTypeOverride<
         Definition,
         ModelName,
         FieldName
@@ -1600,7 +1600,7 @@ type KnownFieldTypes<Definition> = {
   };
 };
 
-type KnownColumnTypes<Definition> = {
+type ColumnTypeOverrides<Definition> = {
   readonly [Ns in StorageNamespaceIds<Definition>]: {
     readonly [ModelName in ModelsInNamespace<Definition, Ns> as BuiltModelTableName<
       Definition,
@@ -1609,8 +1609,17 @@ type KnownColumnTypes<Definition> = {
       readonly [FieldName in ModelFieldNames<Definition, ModelName> as BuiltModelColumnMappings<
         Definition,
         ModelName
-      >[FieldName]['column']]: FieldKnownType<Definition, ModelName, FieldName>;
+      >[FieldName]['column']]: FieldTypeOverride<Definition, ModelName, FieldName>;
     };
+  };
+};
+
+// Resolves a field or column type map, so declaration output writes the map itself rather than the generic and the whole contract shape it reads.
+type ResolvedTypeMap<Map> = {
+  readonly [Ns in keyof Map]: {
+    readonly [Entity in keyof Map[Ns]]: string extends keyof Map[Ns][Entity]
+      ? Map[Ns][Entity]
+      : { readonly [Name in keyof Map[Ns][Entity]]: Map[Ns][Entity][Name] };
   };
 };
 
@@ -1635,33 +1644,41 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
   {
     readonly codecTypes: CodecTypesFromDefinition<Definition>;
     readonly queryOperationTypes: QueryOperationTypesFromDefinition<Definition>;
-    readonly fieldOutputTypes: FieldTypesFromDomain<
-      BuiltDomainNamespaces<Definition>,
-      CodecTypesFromDefinition<Definition>,
-      ParameterizedOutputTypesFromDefinition<Definition>,
-      KnownFieldTypes<Definition>,
-      'output'
+    readonly fieldOutputTypes: ResolvedTypeMap<
+      FieldTypesFromDomain<
+        BuiltDomainNamespaces<Definition>,
+        CodecTypesFromDefinition<Definition>,
+        ParameterizedOutputTypesFromDefinition<Definition>,
+        FieldTypeOverrides<Definition>,
+        'output'
+      >
     >;
-    readonly fieldInputTypes: FieldTypesFromDomain<
-      BuiltDomainNamespaces<Definition>,
-      CodecTypesFromDefinition<Definition>,
-      ParameterizedOutputTypesFromDefinition<Definition>,
-      KnownFieldTypes<Definition>,
-      'input'
+    readonly fieldInputTypes: ResolvedTypeMap<
+      FieldTypesFromDomain<
+        BuiltDomainNamespaces<Definition>,
+        CodecTypesFromDefinition<Definition>,
+        ParameterizedOutputTypesFromDefinition<Definition>,
+        FieldTypeOverrides<Definition>,
+        'input'
+      >
     >;
-    readonly storageColumnTypes: ColumnTypesFromStorage<
-      BuiltStorage<Definition>,
-      CodecTypesFromDefinition<Definition>,
-      ParameterizedOutputTypesFromDefinition<Definition>,
-      KnownColumnTypes<Definition>,
-      'output'
+    readonly storageColumnTypes: ResolvedTypeMap<
+      ColumnTypesFromStorage<
+        BuiltStorage<Definition>,
+        CodecTypesFromDefinition<Definition>,
+        ParameterizedOutputTypesFromDefinition<Definition>,
+        ColumnTypeOverrides<Definition>,
+        'output'
+      >
     >;
-    readonly storageColumnInputTypes: ColumnTypesFromStorage<
-      BuiltStorage<Definition>,
-      CodecTypesFromDefinition<Definition>,
-      ParameterizedOutputTypesFromDefinition<Definition>,
-      KnownColumnTypes<Definition>,
-      'input'
+    readonly storageColumnInputTypes: ResolvedTypeMap<
+      ColumnTypesFromStorage<
+        BuiltStorage<Definition>,
+        CodecTypesFromDefinition<Definition>,
+        ParameterizedOutputTypesFromDefinition<Definition>,
+        ColumnTypeOverrides<Definition>,
+        'input'
+      >
     >;
     readonly aggregateTypes: AggregateTypesFromDefinition<Definition>;
   }

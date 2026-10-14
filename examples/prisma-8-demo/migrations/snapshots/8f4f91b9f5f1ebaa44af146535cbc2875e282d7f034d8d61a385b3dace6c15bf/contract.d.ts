@@ -258,7 +258,8 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutputTypes = PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes;
+type ParameterizedOutputTypeFunctions =
+  PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes;
 export type AddressOutput = {
   readonly city: CodecTypes['pg/text@1']['output'];
   readonly country: CodecTypes['pg/text@1']['output'];
@@ -271,7 +272,7 @@ export type AddressInput = {
   readonly street: CodecTypes['pg/text@1']['input'];
   readonly zip: CodecTypes['pg/text@1']['input'] | null;
 };
-type KnownFieldTypes = {
+type FieldTypeOverrides = {
   readonly public: {
     readonly Post: { readonly priority: { readonly output: 0 | 1 | 2; readonly input: 0 | 1 | 2 } };
     readonly User: {
@@ -283,18 +284,18 @@ type KnownFieldTypes = {
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'input'
 >;
-type KnownColumnTypes = {
+type ColumnTypeOverrides = {
   readonly public: {
     readonly post: { readonly priority: { readonly output: 0 | 1 | 2; readonly input: 0 | 1 | 2 } };
     readonly user: {
@@ -305,15 +306,15 @@ type KnownColumnTypes = {
 export type StorageColumnTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'output'
 >;
 export type StorageColumnInputTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'input'
 >;
 

@@ -12,8 +12,8 @@ import {
 
 const testHashes = { storageHash: 'test-core-hash', profileHash: 'test-profile-hash' };
 
-/** The one-line declaration of a known types map, or `''` when the file has none. */
-function knownTypes(dts: string, name: 'KnownColumnTypes' | 'KnownFieldTypes'): string {
+/** The one-line declaration of a type overrides map, or `''` when the file has none. */
+function typeOverrides(dts: string, name: 'ColumnTypeOverrides' | 'FieldTypeOverrides'): string {
   return dts.match(new RegExp(`^type ${name} = (.*);$`, 'm'))?.[1] ?? '';
 }
 
@@ -119,15 +119,15 @@ describe('StorageColumnTypes', () => {
     );
 
     expect(dts).toContain(
-      'export type StorageColumnTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypes, KnownColumnTypes, "output">;',
+      'export type StorageColumnTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "output">;',
     );
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly priority: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
     );
     expect(dts).not.toContain('["members"][number]');
   });
 
-  it('gives a non-enum column no known type, so its codec types it', () => {
+  it('gives a non-enum column no type override, so its codec types it', () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -176,7 +176,7 @@ describe('StorageColumnTypes', () => {
     const dts = generateContractDts(contract, sqlEmission, [], testHashes);
 
     expect(dts).toContain('export type StorageColumnTypes = ColumnTypesFromStorage<');
-    expect(knownTypes(dts, 'KnownColumnTypes')).toBe('{  }');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
     expect(storageColumn(dts, 'email')).toContain('readonly codecId: "pg/text@1"');
   });
 
@@ -263,7 +263,7 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly level: { readonly output: 1 | 2; readonly input: 1 | 2 }',
     );
   });
@@ -390,13 +390,13 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly action: { readonly output: "create" | "update" | "delete"; readonly input: "create" | "update" | "delete" }',
     );
-    expect(knownTypes(dts, 'KnownFieldTypes')).not.toContain('action');
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).not.toContain('action');
   });
 
-  it('gives an enum field the literal union of its column value set as its known type', () => {
+  it('gives an enum field the literal union of its column value set as its type override', () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -480,7 +480,7 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(knownTypes(dts, 'KnownFieldTypes')).toContain(
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
       'readonly priority: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
     );
     expect(dts).not.toContain('["members"][number]');
@@ -553,12 +553,12 @@ describe('StorageColumnTypes', () => {
       vectorCodecLookup(),
     );
 
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly embedding: { readonly output: Vector<1536>; readonly input: VectorInput<1536> }',
     );
   });
 
-  it('emits a StorageColumnInputTypes map, with the input type a codec renders as known', () => {
+  it('emits a StorageColumnInputTypes map, with the input type a codec renders as an override', () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -632,10 +632,12 @@ describe('StorageColumnTypes', () => {
     );
 
     expect(dts).toContain(
-      'export type StorageColumnInputTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypes, KnownColumnTypes, "input">;',
+      'export type StorageColumnInputTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "input">;',
     );
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain('readonly input: VectorInput<1536>');
-    expect(knownTypes(dts, 'KnownColumnTypes')).not.toContain('title');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly input: VectorInput<1536>',
+    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).not.toContain('title');
   });
 
   it('narrows StorageColumnInputTypes to the value-set union for an enum column', () => {
@@ -712,7 +714,7 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly priority: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
     );
   });
@@ -753,13 +755,13 @@ describe('StorageColumnTypes', () => {
     const dts = generateContractDts(contract, sqlEmission, [], testHashes);
 
     expect(dts).toContain(
-      "export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypes, KnownFieldTypes, \"output\">;",
+      "export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, \"output\">;",
     );
     expect(dts).toContain(
       'readonly tags: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" }; readonly many: { readonly elementNullable: false } }',
     );
     expect(storageColumn(dts, 'tags')).toContain('readonly codecId: "pg/jsonb@1"');
-    expect(knownTypes(dts, 'KnownFieldTypes')).toBe('{  }');
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toBe('{  }');
   });
 
   function nonIdentityEnumColumnContract() {
@@ -834,10 +836,10 @@ describe('StorageColumnTypes', () => {
     );
 
     // Codec OUTPUT (decoded literals), not the raw encoded ints 0 | 1 | 2.
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
       'readonly level: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
     );
-    expect(knownTypes(dts, 'KnownColumnTypes')).not.toContain('0 | 1 | 2');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).not.toContain('0 | 1 | 2');
   });
 
   it('falls back to the codec output type when a value is not literal-expressible', () => {
@@ -857,13 +859,13 @@ describe('StorageColumnTypes', () => {
       fallbackLookup,
     );
 
-    expect(knownTypes(dts, 'KnownColumnTypes')).toBe('{  }');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
   });
 
   it('falls back to the codec output type when no codec lookup is supplied', () => {
     const dts = generateContractDts(nonIdentityEnumColumnContract(), sqlEmission, [], testHashes);
 
-    expect(knownTypes(dts, 'KnownColumnTypes')).toBe('{  }');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
   });
 
   it("types a non-identity enum FIELD (via its column) as the codec's decoded output, not the encoded literal", () => {
@@ -878,10 +880,10 @@ describe('StorageColumnTypes', () => {
 
     // The SQL field resolves through its column's value set, so the FIELD type matches the COLUMN
     // type: the codec OUTPUT (decoded literals), not the raw encoded ints 0 | 1 | 2.
-    const known =
+    const override =
       'readonly level: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }';
-    expect(knownTypes(dts, 'KnownFieldTypes')).toContain(known);
-    expect(knownTypes(dts, 'KnownColumnTypes')).toContain(known);
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(override);
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(override);
   });
 
   describe('a native-enum column (pg/enum@1, value-set-typed, no domain enum)', () => {
@@ -969,7 +971,7 @@ describe('StorageColumnTypes', () => {
         pgEnumCodecLookup(),
       );
 
-      expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+      expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
         'readonly aal: { readonly output: "aal1" | "aal2" | "aal3";',
       );
     });
@@ -984,7 +986,7 @@ describe('StorageColumnTypes', () => {
         pgEnumCodecLookup(),
       );
 
-      expect(knownTypes(dts, 'KnownColumnTypes')).toContain(
+      expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
         'readonly input: "aal1" | "aal2" | "aal3" }',
       );
     });
@@ -992,7 +994,7 @@ describe('StorageColumnTypes', () => {
     it('falls back to the codec output type when no codec lookup is supplied (no renderValueLiteral)', () => {
       const dts = generateContractDts(nativeEnumColumnContract(), sqlEmission, [], testHashes);
 
-      expect(knownTypes(dts, 'KnownColumnTypes')).toBe('{  }');
+      expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
     });
 
     it("also types FieldOutputTypes as the literal union, via the storage column's valueSet (no domain field valueSet involved)", () => {
@@ -1011,7 +1013,7 @@ describe('StorageColumnTypes', () => {
         pgEnumCodecLookup(),
       );
 
-      expect(knownTypes(dts, 'KnownFieldTypes')).toContain(
+      expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
         'readonly aal: { readonly output: "aal1" | "aal2" | "aal3"; readonly input: "aal1" | "aal2" | "aal3" }',
       );
     });
@@ -1074,10 +1076,10 @@ describe('StorageColumnTypes', () => {
     expect(storageColumn(dts, 'labels')).toContain(
       'readonly nullable: true; readonly many: { readonly elementNullable: false }',
     );
-    expect(knownTypes(dts, 'KnownColumnTypes')).toBe('{  }');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
   });
 
-  it('carries element and column nullability apart, and gives known types without the list', () => {
+  it('carries element and column nullability apart, and gives overrides without the list', () => {
     const contract = createContract({
       models: {
         Post: {
@@ -1198,13 +1200,13 @@ describe('StorageColumnTypes', () => {
     expect(storageColumn(dts, 'waived')).toContain(
       'readonly many: { readonly elementNullable: false }',
     );
-    const known = knownTypes(dts, 'KnownColumnTypes');
-    expect(known).toContain(
+    const override = typeOverrides(dts, 'ColumnTypeOverrides');
+    expect(override).toContain(
       'readonly priorities: { readonly output: "low" | "high"; readonly input: "low" | "high" }',
     );
-    expect(known).toContain(
+    expect(override).toContain(
       'readonly vectors: { readonly output: Vector<3>; readonly input: VectorInput<3> }',
     );
-    expect(known).not.toContain('ReadonlyArray');
+    expect(override).not.toContain('ReadonlyArray');
   });
 });

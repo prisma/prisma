@@ -748,7 +748,7 @@ type EnumHandleMembers<Handle, Stored extends boolean> =
 // The domain `enum` entries for enums authored with `enumType`, keyed by enum name, with each member's value as it is stored.
 type EnumHandleEntries<Enums> = {
   readonly [K in keyof Enums as HandleName<Enums[K]>]: {
-    readonly codecId: string;
+    readonly codecId: Enums[K] extends { readonly codecId: infer CodecId } ? CodecId : string;
     readonly members: EnumHandleMembers<Enums[K], true>;
   };
 };

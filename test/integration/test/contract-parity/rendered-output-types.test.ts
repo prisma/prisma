@@ -40,19 +40,38 @@ const declaredByTypeFunction = [
   'pg/vector@1',
 ] as const satisfies readonly DeclaredCodecs[];
 
-/** Parameterized codecs whose output type is the same whatever their type parameters, with the reason. */
-const outputIndependentOfTypeParams: Readonly<Record<string, string>> = {
-  'pg/enum@1':
-    'Its type parameter names the native enum type; the column reads as the members of its value set.',
-  'pg/geometry@1': 'Geometry<Srid> is the same type for every SRID.',
-  'pg/time-temporal@1': 'A precision does not change the Temporal type a value reads as.',
-  'pg/timestamp-temporal@1': 'A precision does not change the Temporal type a value reads as.',
-  'pg/timestamptz-temporal@1': 'A precision does not change the Temporal type a value reads as.',
-  'pg/unboundedint@1': 'A numeric(P, 0) column reads as a bigint whatever its precision.',
+const temporalPrecision = 'A precision does not change the Temporal type a value reads as.';
+
+/** Per stack: the codecs its type functions declare, the parameterized codecs whose output type is the same whatever their type parameters (with the reason), and those that render their output type as text, because no type can compute it from their type parameters. */
+type StackClassification = {
+  readonly declaredByTypeFunction: readonly string[];
+  readonly outputIndependentOfTypeParams: Readonly<Record<string, string>>;
+  readonly renderedAsText: readonly string[];
 };
 
-/** Parameterized codecs that render their output type as text, because no type can compute it from their type parameters. */
-const renderedAsText = ['arktype/json@1'];
+const stacks: Readonly<Record<'Postgres and its extensions' | 'SQLite', StackClassification>> = {
+  'Postgres and its extensions': {
+    declaredByTypeFunction,
+    outputIndependentOfTypeParams: {
+      'pg/enum@1':
+        'Its type parameter names the native enum type; the column reads as the members of its value set.',
+      'pg/geometry@1': 'Geometry<Srid> is the same type for every SRID.',
+      'pg/time-temporal@1': temporalPrecision,
+      'pg/timestamp-temporal@1': temporalPrecision,
+      'pg/timestamptz-temporal@1': temporalPrecision,
+      'pg/unboundedint@1': 'A numeric(P, 0) column reads as a bigint whatever its precision.',
+    },
+    renderedAsText: ['arktype/json@1'],
+  },
+  SQLite: {
+    declaredByTypeFunction: [],
+    outputIndependentOfTypeParams: {
+      'sql/char@1': 'SQLite declares no type function; a character column reads as a string.',
+      'sql/varchar@1': 'SQLite declares no type function; a character column reads as a string.',
+    },
+    renderedAsText: [],
+  },
+};
 
 type Descriptor = {
   readonly codecId: string;
@@ -82,24 +101,47 @@ describe('every parameterized codec says how its output type is given', () => {
     );
   });
 
-  it.each([
+  describe.each([
     ['Postgres and its extensions', postgresRegistry],
     ['SQLite', sqliteRegistry],
-  ] as const)('%s', (_stack, registry) => {
-    const declared = new Set<string>([...declaredByTypeFunction, ...renderedAsText]);
-    expect(
-      parameterizedCodecs(registry.values())
-        .map((descriptor) => descriptor.codecId)
-        .filter((id) => !declared.has(id) && !(id in outputIndependentOfTypeParams))
-        .sort(),
-    ).toEqual([]);
-  });
+  ] as const)('%s', (stack, registry) => {
+    const {
+      declaredByTypeFunction: declared,
+      outputIndependentOfTypeParams,
+      renderedAsText,
+    } = stacks[stack];
 
-  it('renders text only for the codecs listed as rendering it', () => {
-    expect(
-      parameterizedCodecs([...postgresRegistry.values(), ...sqliteRegistry.values()])
-        .filter((descriptor) => typeof descriptor.renderOutputType === 'function')
-        .map((descriptor) => descriptor.codecId),
-    ).toEqual(renderedAsText);
+    it('declares, renders or lists every parameterized codec', () => {
+      const classified = new Set<string>([
+        ...declared,
+        ...renderedAsText,
+        ...Object.keys(outputIndependentOfTypeParams),
+      ]);
+      expect(
+        parameterizedCodecs(registry.values())
+          .map((descriptor) => descriptor.codecId)
+          .filter((id) => !classified.has(id))
+          .sort(),
+      ).toEqual([]);
+    });
+
+    it('lists only parameterized codecs the stack has', () => {
+      const codecIds = new Set(
+        parameterizedCodecs(registry.values()).map((descriptor) => descriptor.codecId),
+      );
+      expect(
+        [...declared, ...renderedAsText, ...Object.keys(outputIndependentOfTypeParams)].filter(
+          (id) => !codecIds.has(id),
+        ),
+      ).toEqual([]);
+    });
+
+    it('renders text only for the codecs listed as rendering it', () => {
+      expect(
+        parameterizedCodecs(registry.values())
+          .filter((descriptor) => typeof descriptor.renderOutputType === 'function')
+          .map((descriptor) => descriptor.codecId),
+      ).toEqual(renderedAsText);
+    });
   });
 });

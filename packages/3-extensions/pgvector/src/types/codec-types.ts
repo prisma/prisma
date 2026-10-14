@@ -27,7 +27,7 @@ type OutputTypeMap<TypeParams> = {
 };
 
 /**
- * The output type of a `vector(N)` column, `Vector<N>`, for a contract written in TypeScript. It mirrors what `prisma contract emit` writes.
+ * The output type of a `vector(N)` column, `Vector<N>`: the only declaration of it, which a contract written with `defineContract` and the `contract.d.ts` that `prisma contract emit` writes both apply.
  */
 export interface ParameterizedOutputTypesForTypeParams extends ParameterizedOutputTypesFunction {
   readonly outputTypes: OutputTypeMap<this['typeParams']>;

@@ -1,5 +1,5 @@
 /**
- * An application that exports a contract written with `defineContract` and builds with `declaration: true` needs TypeScript to name every type the contract's inferred type mentions. The public packages bundle the internal ones into chunks, so a type is nameable only when an export path of a public package reaches it. Each source here imports only the public packages, as an outside application does.
+ * An application that exports a contract written with `defineContract`, or a row read through an emitted contract (`postgis-emitted-row.ts`), and builds with `declaration: true` needs TypeScript to name every type the contract's inferred type mentions. The public packages bundle the internal ones into chunks, so a type is nameable only when an export path of a public package reaches it. Each source here imports only the public packages, as an outside application does.
  */
 import { readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -22,6 +22,7 @@ const applicationOptions: ts.CompilerOptions = {
   declaration: true,
   emitDeclarationOnly: true,
   skipLibCheck: true,
+  resolveJsonModule: true,
   types: [],
 };
 
@@ -41,7 +42,7 @@ function declarationErrors(source: string): readonly string[] {
   ];
 }
 
-describe('declaration emit of an exported defineContract contract through the public packages', () => {
+describe('declaration emit of an exported contract, or of rows read through one, through the public packages', () => {
   it('has a source per contract shape', () => {
     expect(sources).toEqual([
       'indexes.ts',
@@ -49,6 +50,7 @@ describe('declaration emit of an exported defineContract contract through the pu
       'paradedb.ts',
       'pgvector.ts',
       'plain.ts',
+      'postgis-emitted-row.ts',
       'postgis.ts',
       'sqlite.ts',
     ]);

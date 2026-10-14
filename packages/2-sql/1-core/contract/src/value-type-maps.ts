@@ -41,9 +41,9 @@ type CodecType<
     : PlainCodecType<CodecTypes, CodecId, Side>
   : PlainCodecType<CodecTypes, CodecId, Side>;
 
-type BaseType<Known, Codec, Side extends ValueTypeSide> = [Known] extends [never]
+type BaseType<Override, Codec, Side extends ValueTypeSide> = [Override] extends [never]
   ? Codec
-  : Known extends { readonly [S in Side]: infer T }
+  : Override extends { readonly [S in Side]: infer T }
     ? T
     : Codec;
 
@@ -53,24 +53,33 @@ type WithList<Base, Item> = Item extends {
   ? ReadonlyArray<Base | (ElementNullable extends true ? null : never)>
   : Base;
 
-type WithModifiers<Base, Item> =
-  | (Item extends { readonly dict: true }
-      ? Readonly<Record<string, WithList<Base, Item>>>
-      : WithList<Base, Item>)
-  | (Item extends { readonly nullable: true } ? null : never);
+type WithCollection<Base, Item> = Item extends { readonly dict: true }
+  ? Readonly<Record<string, WithList<Base, Item>>>
+  : WithList<Base, Item>;
+
+type Nullability<Item> = Item extends { readonly nullable: true } ? null : never;
 
 type ValueType<
   Item,
   CodecId,
   TypeParams,
-  Known,
+  Override,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
-> = WithModifiers<
-  BaseType<Known, CodecType<CodecTypes, CodecId, TypeParams, ParameterizedOutputs, Side>, Side>,
-  Item
->;
+> =
+  // The union is written here, and read through an indexed access, so TypeScript prints the resolved type, such as `bigint | null`, in hovers and errors instead of this file's generics.
+    | WithCollection<
+        BaseType<
+          Override,
+          CodecType<CodecTypes, CodecId, TypeParams, ParameterizedOutputs, Side>,
+          Side
+        >,
+        Item
+      >
+    | Nullability<Item> extends infer Value
+    ? { readonly [K in 'value']: Value }['value']
+    : never;
 
 type FieldScalarType<Field> = Lookup<Field, 'type'>;
 
@@ -80,7 +89,7 @@ type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
 
 type ModelFieldTypes<
   Fields,
-  KnownForModel,
+  OverridesForModel,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
@@ -89,7 +98,7 @@ type ModelFieldTypes<
     Fields[F],
     Lookup<FieldScalarType<Fields[F]>, 'codecId'>,
     TypeParamsOf<FieldScalarType<Fields[F]>>,
-    Lookup<KnownForModel, F>,
+    Lookup<OverridesForModel, F>,
     CodecTypes,
     ParameterizedOutputs,
     Side
@@ -101,7 +110,7 @@ type ModelFieldTypes<
  *
  * Each value is typed by, in order:
  *
- * 1. its known type for that side, when `KnownTypes` gives one at `[namespace][model][field]` as `{ output?, input? }`: the members of the enum a field holds, or the type a column spec's codec reads;
+ * 1. its override for that side, when `Overrides` gives one at `[namespace][model][field]` as `{ output?, input? }`: the members of the enum a field holds, or the type a column spec's codec reads;
  * 2. on the output side, the type a pack's type function in `ParameterizedOutputs` gives a column with its type parameters (`ParameterizedOutputType`);
  * 3. its codec's `output` or `input` type, or `unknown` for a codec `CodecTypes` lacks;
  *
@@ -111,13 +120,13 @@ export type FieldTypesFromDomain<
   DomainNamespaces,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
-  KnownTypes,
+  Overrides,
   Side extends ValueTypeSide,
 > = {
   readonly [Ns in keyof DomainNamespaces]: {
     readonly [M in keyof Lookup<DomainNamespaces[Ns], 'models'>]: ModelFieldTypes<
       Lookup<Lookup<DomainNamespaces[Ns], 'models'>[M], 'fields'>,
-      Lookup<Lookup<KnownTypes, Ns>, M>,
+      Lookup<Lookup<Overrides, Ns>, M>,
       CodecTypes,
       ParameterizedOutputs,
       Side
@@ -140,13 +149,13 @@ type ColumnTypeParams<Column, StorageTypes> = Column extends {
 type TablesOf<Namespace> = Lookup<Lookup<Namespace, 'entries'>, 'table'>;
 
 /**
- * `StorageColumnTypes` (`Side` `'output'`) or `StorageColumnInputTypes` (`'input'`) of a contract whose storage is `Storage`, by the rules of {@link FieldTypesFromDomain}, with `KnownTypes` keyed by namespace, table and column. A column typed by a named storage type takes that type's parameters.
+ * `StorageColumnTypes` (`Side` `'output'`) or `StorageColumnInputTypes` (`'input'`) of a contract whose storage is `Storage`, by the rules of {@link FieldTypesFromDomain}, with `Overrides` keyed by namespace, table and column. A column typed by a named storage type takes that type's parameters.
  */
 export type ColumnTypesFromStorage<
   Storage,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
-  KnownTypes,
+  Overrides,
   Side extends ValueTypeSide,
 > = {
   readonly [Ns in keyof Lookup<Storage, 'namespaces'>]: {
@@ -159,7 +168,7 @@ export type ColumnTypesFromStorage<
             Column,
             Lookup<Column, 'codecId'>,
             ColumnTypeParams<Column, NonNullable<Lookup<Storage, 'types'>>>,
-            Lookup<Lookup<Lookup<KnownTypes, Ns>, T>, C>,
+            Lookup<Lookup<Lookup<Overrides, Ns>, T>, C>,
             CodecTypes,
             ParameterizedOutputs,
             Side

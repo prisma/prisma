@@ -94,7 +94,7 @@ describe('postgres defineContract wrap', () => {
     );
     expect(dts).toContain('import type { CodecTypes as PgTypes }');
     expect(dts).toContain('readonly codecId: "pg/timestamptz-date@1"');
-    expect(dts).toContain('type KnownFieldTypes = {  };');
+    expect(dts).toContain('type FieldTypeOverrides = {  };');
     expect(dts).not.toContain('Date<');
     expect(dts).not.toContain('import type { Date }');
   });

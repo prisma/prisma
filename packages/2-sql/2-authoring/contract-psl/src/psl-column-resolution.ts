@@ -93,8 +93,8 @@ export type ColumnDescriptor = {
    * Storage-plane value-set ref, set only by an entity-ref type constructor
    * (e.g. `pg.enum(Ref)`) resolving `Ref` against a document-local
    * value-set-deriving entity. Threaded straight onto the `StorageColumn` —
-   * this is what drives value-set → codec typing (`computeColumnType`
-   * gating on `column.valueSet`); every other resolution path leaves it
+   * the emitter types such a column by its value set (`ColumnTypeOverrides`
+   * in the emitted `contract.d.ts`); every other resolution path leaves it
    * unset.
    */
   readonly valueSet?: ValueSetRef;

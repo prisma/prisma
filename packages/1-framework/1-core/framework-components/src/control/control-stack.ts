@@ -705,7 +705,6 @@ export function extractCodecLookup(
     string,
     (value: JsonValue, side: 'output' | 'input') => string | undefined
   >();
-  const parameterizedOutputTypesById = new Map<string, TypesImportSpec>();
   const owners = new Map<string, string>();
   for (const descriptor of descriptors) {
     const codecTypes = descriptor.types?.codecTypes;
@@ -721,12 +720,6 @@ export function extractCodecLookup(
       });
       owners.set(codecDescriptor.codecId, descriptorId);
       descriptorsById.set(codecDescriptor.codecId, codecDescriptor);
-      if (codecTypes?.parameterizedOutputTypes !== undefined) {
-        parameterizedOutputTypesById.set(
-          codecDescriptor.codecId,
-          codecTypes.parameterizedOutputTypes,
-        );
-      }
       if (typeof codecDescriptor.renderOutputType === 'function') {
         renderersById.set(codecDescriptor.codecId, codecDescriptor.renderOutputType);
       }
@@ -770,7 +763,6 @@ export function extractCodecLookup(
     },
     forColumn: () => undefined,
     renderOutputTypeFor: (id, params) => renderersById.get(id)?.(params),
-    parameterizedOutputTypesFor: (id) => parameterizedOutputTypesById.get(id),
     renderInputTypeFor: (id, params) => inputRenderersById.get(id)?.(params),
     renderValueLiteralFor: (id, value, side) => valueLiteralRenderersById.get(id)?.(value, side),
     descriptorFor: (id) => descriptorsById.get(id),

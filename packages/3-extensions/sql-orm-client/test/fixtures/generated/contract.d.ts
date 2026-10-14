@@ -7,7 +7,13 @@
 // (@internal/extension-pgvector → @internal/postgres → @internal/sql-orm-client)
 // The integration tests that exercise pgvector-specific operations live in test/integration/.
 // pgvector types replaced with local aliases (see note above)
-type PgVectorTypes = object;
+type PgVectorTypes = {
+  readonly 'pg/vector@1': {
+    readonly input: number[];
+    readonly output: number[];
+    readonly traits: 'equality';
+  };
+};
 type PgVectorParameterizedOutputTypes = {
   readonly typeParams: Record<never, unknown>;
   readonly outputTypes: { readonly 'pg/vector@1': number[] };
@@ -249,7 +255,8 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutputTypes = PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes;
+type ParameterizedOutputTypeFunctions =
+  PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes;
 export type AddressOutput = {
   readonly city: CodecTypes['pg/text@1']['output'];
   readonly street: CodecTypes['pg/text@1']['output'];
@@ -260,7 +267,7 @@ export type AddressInput = {
   readonly street: CodecTypes['pg/text@1']['input'];
   readonly zip: CodecTypes['pg/text@1']['input'] | null;
 };
-type KnownFieldTypes = {
+type FieldTypeOverrides = {
   readonly public: {
     readonly User: {
       readonly address: { readonly output: AddressOutput; readonly input: AddressInput };
@@ -270,30 +277,30 @@ type KnownFieldTypes = {
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'input'
 >;
-type KnownColumnTypes = {};
+type ColumnTypeOverrides = {};
 export type StorageColumnTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'output'
 >;
 export type StorageColumnInputTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'input'
 >;
 

@@ -8,8 +8,10 @@ import arktypeJsonPack from '@internal/extension-arktype-json/pack';
 import { cuid2, ksuid, nanoid, ulid, uuidv4, uuidv7 } from '@internal/ids';
 import {
   defineContract,
+  enumType,
   field,
   fullTextIndex,
+  member,
   model,
   rel,
   sql,
@@ -26,6 +28,13 @@ const timestamptzString3 = {
   codecId: 'pg/timestamptz-string@1',
   typeParams: { precision: 3 },
 } as const;
+
+const Plan = enumType(
+  'Plan',
+  { codecId: 'pg/text@1' } as const,
+  member('Free', 'free'),
+  member('Paid', 'paid'),
+);
 
 const pgVarchar20 = { codecId: 'pg/varchar@1', typeParams: { length: 20 } } as const;
 
@@ -49,6 +58,7 @@ const User = model('User', {
     timestamptzStringAlias: field.namedType(timestamptzString3).optional(),
     seenAt: field.temporal.timestamptzJsDate(3),
     handle: field.column(pgVarchar20),
+    plan: field.namedType(Plan),
   },
 });
 
@@ -155,6 +165,7 @@ const Profile = model('Profile', {
 export const contract = defineContract({
   extensions: { 'arktype-json': arktypeJsonPack },
   namespaces: ['auth'],
+  enums: { Plan },
   types: { TimestampString3: timestampString3, TimestamptzString3: timestamptzString3 },
   models: {
     User: User.relations({

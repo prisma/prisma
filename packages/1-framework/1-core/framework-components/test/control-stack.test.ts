@@ -1222,27 +1222,6 @@ describe('extractCodecLookup', () => {
     expect(lookup.get('b@1')?.id).toBe('b@1');
   });
 
-  it('names the parameterized output type function of the component that contributes each codec', () => {
-    const typeFunction = { package: '@test/codec-types', named: 'Outputs', alias: 'TestOutputs' };
-    const lookup = extractCodecLookup([
-      {
-        id: 'with-function',
-        types: {
-          codecTypes: {
-            codecDescriptors: [stubDescriptor('a@1')],
-            parameterizedOutputTypes: typeFunction,
-          },
-        },
-      },
-      { id: 'without', types: { codecTypes: { codecDescriptors: [stubDescriptor('b@1')] } } },
-    ]);
-    expect([
-      lookup.parameterizedOutputTypesFor?.('a@1'),
-      lookup.parameterizedOutputTypesFor?.('b@1'),
-      lookup.parameterizedOutputTypesFor?.('z@1'),
-    ]).toEqual([typeFunction, undefined, undefined]);
-  });
-
   it('returns undefined for unknown codec ids', () => {
     const lookup = extractCodecLookup([
       { id: 'desc', types: { codecTypes: { codecDescriptors: [stubDescriptor('a@1')] } } },

@@ -136,6 +136,21 @@
         }
       },
       "public": {
+        "enum": {
+          "Plan": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "Free",
+                "value": "free"
+              },
+              {
+                "name": "Paid",
+                "value": "paid"
+              }
+            ]
+          }
+        },
         "models": {
           "Badge": {
             "fields": {
@@ -882,6 +897,19 @@
                   }
                 }
               },
+              "plan": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Plan",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
               "seenAt": {
                 "nullable": false,
                 "type": {
@@ -1081,6 +1109,9 @@
                 },
                 "nanoid": {
                   "column": "nanoid"
+                },
+                "plan": {
+                  "column": "plan"
                 },
                 "seenAt": {
                   "column": "seenAt"
@@ -1816,6 +1847,13 @@
               "uniques": []
             },
             "users": {
+              "checks": [
+                {
+                  "expression": "\"plan\" IN ('free', 'paid')",
+                  "name": "users_plan_check_af7dbeb0",
+                  "prefix": "users_plan_check"
+                }
+              ],
               "columns": {
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
@@ -1873,6 +1911,17 @@
                   "nullable": false,
                   "typeParams": {
                     "length": 21
+                  }
+                },
+                "plan": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "Plan",
+                    "namespaceId": "public",
+                    "plane": "storage"
                   }
                 },
                 "seenAt": {
@@ -2004,13 +2053,22 @@
               },
               "uniques": []
             }
+          },
+          "valueSet": {
+            "Plan": {
+              "kind": "valueSet",
+              "values": [
+                "free",
+                "paid"
+              ]
+            }
           }
         },
         "id": "public",
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "d3bcf0f23153e1cc157891c62d8f5dcbdf50a00ea9ffc187ff1f6b9562c690c6",
+    "storageHash": "7b726ff2c750b13ac5dd2966b8a7c42317a368c40faae5b2231611ac56a0dc59",
     "types": {
       "TimestampString3": {
         "codecId": "pg/timestamp-string@1",

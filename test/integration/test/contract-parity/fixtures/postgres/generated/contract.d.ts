@@ -24,7 +24,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'d3bcf0f23153e1cc157891c62d8f5dcbdf50a00ea9ffc187ff1f6b9562c690c6'>;
+  StorageHashBase<'7b726ff2c750b13ac5dd2966b8a7c42317a368c40faae5b2231611ac56a0dc59'>;
 export type ExecutionHash =
   ExecutionHashBase<'8dc724abf2c39e55e3fed5fc39649c060b472d1c8da3ec479a76352456916a5a'>;
 export type ProfileHash =
@@ -237,48 +237,54 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
-type ParameterizedOutputTypes = PgParameterizedOutputTypes;
+type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
-type KnownFieldTypes = {
+type FieldTypeOverrides = {
   readonly public: {
     readonly Profile: {
       readonly settings: { readonly output: { fontSize: number; theme: string } };
+    };
+    readonly User: {
+      readonly plan: { readonly output: 'free' | 'paid'; readonly input: 'free' | 'paid' };
     };
   };
 };
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownFieldTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
   'input'
 >;
-type KnownColumnTypes = {
+type ColumnTypeOverrides = {
   readonly public: {
     readonly profiles: {
       readonly settings: { readonly output: { fontSize: number; theme: string } };
+    };
+    readonly users: {
+      readonly plan: { readonly output: 'free' | 'paid'; readonly input: 'free' | 'paid' };
     };
   };
 };
 export type StorageColumnTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'output'
 >;
 export type StorageColumnInputTypes = ColumnTypesFromStorage<
   ContractBase['storage'],
   CodecTypes,
-  ParameterizedOutputTypes,
-  KnownColumnTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
   'input'
 >;
 
@@ -373,6 +379,7 @@ export namespace Models {
     id: FieldOutputTypes['public']['User']['id'];
     ksuid: FieldOutputTypes['public']['User']['ksuid'];
     nanoid: FieldOutputTypes['public']['User']['nanoid'];
+    plan: FieldOutputTypes['public']['User']['plan'];
     seenAt: FieldOutputTypes['public']['User']['seenAt'];
     shortNanoid: FieldOutputTypes['public']['User']['shortNanoid'];
     timestamp: FieldOutputTypes['public']['User']['timestamp'];
@@ -1003,6 +1010,12 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly length: 21 };
                   readonly many: false;
                 };
+                readonly plan: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
                 readonly seenAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-date@1';
@@ -1106,6 +1119,12 @@ type ContractBase = Omit<
                 },
               ];
               foreignKeys: readonly [];
+            };
+          };
+          readonly valueSet: {
+            readonly Plan: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['free', 'paid'];
             };
           };
         };
@@ -1765,6 +1784,10 @@ type ContractBase = Omit<
                   readonly typeParams: { readonly length: 21 };
                 };
               };
+              readonly plan: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly seenAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -1908,6 +1931,7 @@ type ContractBase = Omit<
                 readonly id: { readonly column: 'id' };
                 readonly ksuid: { readonly column: 'ksuid' };
                 readonly nanoid: { readonly column: 'nanoid' };
+                readonly plan: { readonly column: 'plan' };
                 readonly seenAt: { readonly column: 'seenAt' };
                 readonly shortNanoid: { readonly column: 'shortNanoid' };
                 readonly timestamp: { readonly column: 'timestamp' };
@@ -1946,6 +1970,21 @@ type ContractBase = Omit<
               };
             };
           };
+        };
+        readonly enum: {
+          readonly Plan: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'Free'; readonly value: 'free' },
+              { readonly name: 'Paid'; readonly value: 'paid' },
+            ];
+          };
+        };
+        readonly enumMemberTypes?: {
+          readonly Plan: readonly [
+            { readonly name: 'Free'; readonly value: 'free' },
+            { readonly name: 'Paid'; readonly value: 'paid' },
+          ];
         };
       };
     };
