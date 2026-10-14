@@ -30,18 +30,11 @@ import type {
   CodecLookupWithDescriptors,
 } from '@internal/framework-components/codec';
 import { dataTypeId } from '@internal/framework-components/codec';
-import {
-  buildSymbolTable,
-  createPslDiagnosticCollector,
-  jsonValue,
-  mapBlock,
-} from '@internal/psl-parser';
-import { parse } from '@internal/psl-parser/syntax';
+import { jsonValue, mapBlock } from '@internal/psl-parser';
 import type { SqlValueSetDerivingEntityTypeOutput } from '@internal/sql-contract/value-set-derivation-hook';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { testSqlTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
-import { resolveFieldTypeDescriptor } from '../src/psl-column-resolution';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import { interpretSqlContract, postgresScalarTypeDescriptors, postgresTarget } from './fixtures';
 
@@ -372,7 +365,7 @@ namespace docs {
     expect((column as { valueSet?: unknown } | undefined)?.valueSet).toBeUndefined();
   });
 
-  it('rejects an unresolvable entity ref with PSL_UNKNOWN_ENTITY_REF', () => {
+  it('leaves an unknown name to the diagnostic the binder reported', () => {
     const result = interpretWith(`
 namespace docs {
   model AuthSession {
@@ -384,9 +377,95 @@ namespace docs {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_UNKNOWN_ENTITY_REF' })]),
-    );
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find entity "NoSuchEnum"' },
+    ]);
+  });
+
+  it('resolves an entity of another namespace named qualified from a top-level model', () => {
+    const result = interpretWith(`
+namespace docs {
+  native_enum AalLevel {
+    aal1
+  }
+}
+
+model AuthSession {
+  id Int @id
+  aal pg.enum(docs.AalLevel)
+}
+`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.storage).toMatchObject({
+      namespaces: {
+        public: {
+          entries: {
+            table: {
+              AuthSession: {
+                columns: {
+                  aal: {
+                    typeParams: { typeName: 'AalLevel' },
+                    valueSet: { namespaceId: 'docs', entityName: 'AalLevel' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('resolves a top-level entity named unqualified from a model of a namespace', () => {
+    const result = interpretWith(`
+native_enum AalLevel {
+  aal1
+}
+
+namespace docs {
+  model AuthSession {
+    id Int @id
+    aal pg.enum(AalLevel)
+  }
+}
+`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.storage).toMatchObject({
+      namespaces: {
+        docs: {
+          entries: {
+            table: {
+              AuthSession: {
+                columns: { aal: { valueSet: { namespaceId: 'public', entityName: 'AalLevel' } } },
+              },
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it('refuses a name that resolves to a model with the existing diagnostic alone', () => {
+    const result = interpretWith(`
+namespace docs {
+  model AalLevel {
+    id Int @id
+  }
+
+  model AuthSession {
+    id Int @id
+    aal pg.enum(AalLevel)
+  }
+}
+`);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics.map(({ code }) => code)).toEqual(['PSL_UNKNOWN_ENTITY_REF']);
   });
 
   it('rejects an entity-ref call with no arguments', () => {
@@ -485,73 +564,6 @@ namespace docs {
 `),
     ).toThrowError(
       expect.objectContaining({ code: 'CONTRACT.PACK_CONTRIBUTION_INVALID' }) as unknown as Error,
-    );
-  });
-
-  it('rejects a value-set-typed entity-ref resolution when the field has no resolvable namespace', () => {
-    // Composite-type field resolution never threads a namespace id or
-    // namespace-extension-entities map (`buildValueObjects` in the
-    // interpreter), so this diagnostic is unreachable end-to-end once the
-    // generic entity lookup requires a namespace-scoped map to find
-    // anything. Drive `resolveFieldTypeDescriptor` directly instead, with a
-    // hand-built `namespaceExtensionEntities` that has already resolved the
-    // ref (mirroring what a real namespace lowering pass would have
-    // produced) but no `namespaceId` — a combination the exported function
-    // signature permits even though production never produces it.
-    const { document, sources } = parse(
-      `
-model AuthSession {
-  id Int @id
-  aal pg.enum(AalLevel)
-}
-`,
-      'schema.prisma',
-    );
-    const { symbolTable } = buildSymbolTable({
-      documents: [document],
-      sources,
-      defaultNamespaceId: 'public',
-    });
-    const field = symbolTable.defaultNamespace.models['AuthSession']?.fields['aal'];
-    expect(field).toBeDefined();
-    if (!field) return;
-
-    const diagnostics = createPslDiagnosticCollector(sources);
-    const result = resolveFieldTypeDescriptor({
-      field,
-      resolution: {
-        kind: 'contributedType',
-        symbol: {
-          kind: 'contributedType',
-          name: 'enum',
-          path: ['pg', 'enum'],
-          descriptor: {
-            kind: 'typeConstructor',
-            entityRefArg: { index: 0, entityKind: NATIVE_ENUM_DISCRIMINATOR },
-            output: { codecId: nativeEnumCodec.codecId },
-          },
-        },
-      },
-      enumTypeDescriptors: new Map(),
-      namedTypeDescriptors: new Map(),
-      diagnostics,
-      sources,
-      entityLabel: 'Field "AuthSession.aal"',
-      namespaceExtensionEntities: {
-        [NATIVE_ENUM_DISCRIMINATOR]: { AalLevel: { typeName: 'AalLevel', members: ['aal1'] } },
-        valueSet: { AalLevel: { kind: 'valueSet', values: ['aal1'] } },
-      },
-      codecLookup,
-    });
-
-    expect(result.ok).toBe(false);
-    expect(diagnostics.toExternal()).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-          message: expect.stringContaining('no resolvable namespace'),
-        }),
-      ]),
     );
   });
 });

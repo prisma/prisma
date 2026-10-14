@@ -112,6 +112,7 @@ export function buildColumnType(input: {
   readonly dataTypeLookup: DataTypeLookup;
   readonly enumBlockNames: ReadonlyMap<string, string>;
   readonly coordinate: string;
+  readonly namespaceId?: string;
 }): PslColumnType {
   const { column, typeMap, authoringTypes, enumBlockNames, coordinate } = input;
   const baseName = baseTypeName(column, input.dataTypeLookup, coordinate);
@@ -123,7 +124,13 @@ export function buildColumnType(input: {
       typeConstructor: {
         kind: 'typeConstructor',
         path: ['pg', 'enum'],
-        args: [positionalArg(enumBlockName)],
+        args: [
+          positionalArg(
+            column.valueSet !== undefined && column.valueSet.namespaceId !== input.namespaceId
+              ? `${column.valueSet.namespaceId}.${enumBlockName}`
+              : enumBlockName,
+          ),
+        ],
         span: SYNTHETIC_SPAN,
       },
     };
