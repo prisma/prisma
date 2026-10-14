@@ -1,7 +1,14 @@
 // use prisma-8
 
 // Emitted fixture for the sql-orm-client tests of contributed collection
-// methods. Memo is a variant of Note, stored in the notes table.
+// methods. Memo is a variant of Note, stored in the notes table. The test-only
+// contributions in the package's collection-methods-fixture.ts serve only
+// models with a `collectionMethodsTestMarker` field, so they do not reach
+// models of other test contracts.
+
+types {
+  Embedding3 = pgvector.Vector(3)
+}
 
 model Note {
   id    Int    @id
@@ -22,8 +29,18 @@ model Memo {
 }
 
 model Tag {
-  id    Int    @id
-  label String
+  id                          Int     @id
+  label                       String
+  collectionMethodsTestMarker Boolean
 
   @@map("tags")
+}
+
+model Reading {
+  id                          Int         @id
+  embedding                   Embedding3?
+  payload                     Json?
+  collectionMethodsTestMarker Boolean
+
+  @@map("readings")
 }

@@ -18,6 +18,7 @@ import { compileSelect, compileSelectWithIncludes } from '../src/query-plan-sele
 import type { CollectionState } from '../src/types';
 import {
   contextWithClash,
+  notesContract,
   testAsOfMethods,
   testClosestMethods,
 } from './collection-methods-fixture';
@@ -51,16 +52,16 @@ describe('using', () => {
       post: Object.keys(plain.Post.using),
       note: Object.keys(notes.Note.using),
       tag: Object.keys(notes.Tag.using),
-      extendedUser: Object.keys(extended.User.using),
-      extendedPost: Object.keys(extended.Post.using),
+      extendedNote: Object.keys(extended.Note.using),
+      extendedReading: Object.keys(extended.Reading.using),
       extendedTag: Object.keys(extended.Tag.using),
     }).toEqual({
       user: ['users_search'],
       post: [],
       note: ['notes_search'],
       tag: [],
-      extendedUser: ['users_search', 'as_of'],
-      extendedPost: ['embedding_closest'],
+      extendedNote: ['notes_search'],
+      extendedReading: ['embedding_closest', 'as_of'],
       extendedTag: ['labelled'],
     });
   });
@@ -175,10 +176,11 @@ describe('a contributed method', () => {
 
   it('comes from a contribution that names its method after a field', () => {
     const { extended } = createCollectionMethodsOrm();
-    const found = extended.Post.select('id').using.embedding_closest([1, 2, 3]);
+    const found = extended.Reading.select('id').using.embedding_closest([1, 2, 3]);
+    const notes = notesContract();
 
-    expect(sqlOf(contract, compileSelect(contract, 'Post', found.state))).toBe(
-      'SELECT "posts"."id" AS "id" FROM "public"."posts" ORDER BY "posts"."id" ASC',
+    expect(sqlOf(notes, compileSelect(notes, 'Reading', found.state))).toBe(
+      'SELECT "readings"."id" AS "id" FROM "public"."readings" ORDER BY "readings"."id" ASC',
     );
   });
 });

@@ -8,6 +8,10 @@
       "model": "Note",
       "namespace": "public"
     },
+    "readings": {
+      "model": "Reading",
+      "namespace": "public"
+    },
     "tags": {
       "model": "Tag",
       "namespace": "public"
@@ -102,8 +106,69 @@
               }
             }
           },
+          "Reading": {
+            "fields": {
+              "collectionMethodsTestMarker": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "embedding": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/vector@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 3
+                  }
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "payload": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/json@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
+            "storage": {
+              "fields": {
+                "collectionMethodsTestMarker": {
+                  "column": "collectionMethodsTestMarker"
+                },
+                "embedding": {
+                  "column": "embedding"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "payload": {
+                  "column": "payload"
+                }
+              },
+              "namespaceId": "public",
+              "table": "readings"
+            }
+          },
           "Tag": {
             "fields": {
+              "collectionMethodsTestMarker": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -122,6 +187,9 @@
             "relations": {},
             "storage": {
               "fields": {
+                "collectionMethodsTestMarker": {
+                  "column": "collectionMethodsTestMarker"
+                },
                 "id": {
                   "column": "id"
                 },
@@ -209,8 +277,46 @@
               },
               "uniques": []
             },
+            "readings": {
+              "columns": {
+                "collectionMethodsTestMarker": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "nullable": false
+                },
+                "embedding": {
+                  "codecId": "pg/vector@1",
+                  "dataType": "pgvector/vector",
+                  "nullable": true,
+                  "typeRef": "Embedding3"
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "payload": {
+                  "codecId": "pg/json@1",
+                  "dataType": "pg/json",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "tags": {
               "columns": {
+                "collectionMethodsTestMarker": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "nullable": false
+                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
@@ -237,7 +343,17 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "fe10776636414221fc2bdc886e2c34e6c3d16aed1c7f7037d4e815bc7bdf5d21"
+    "storageHash": "1d7498824aaec4864eebeecab12912101510d4f14ce6fa794c49cbc779a1227f",
+    "types": {
+      "Embedding3": {
+        "codecId": "pg/vector@1",
+        "dataType": "pgvector/vector",
+        "kind": "codec-instance",
+        "typeParams": {
+          "length": 3
+        }
+      }
+    }
   },
   "capabilities": {
     "postgres": {
@@ -248,6 +364,7 @@
       "lateral": true,
       "limit": true,
       "orderBy": true,
+      "pgvector.cosine": true,
       "returning": true
     },
     "sql": {
@@ -266,7 +383,50 @@
       "scalarList": true
     }
   },
-  "extensions": {},
+  "extensions": {
+    "pgvector": {
+      "capabilities": {
+        "postgres": {
+          "pgvector.cosine": true
+        }
+      },
+      "familyId": "sql",
+      "id": "pgvector",
+      "kind": "extension",
+      "targetId": "postgres",
+      "types": {
+        "codecTypes": {
+          "import": {
+            "alias": "PgVectorTypes",
+            "named": "CodecTypes",
+            "package": "@internal/extension-pgvector/codec-types"
+          },
+          "typeImports": [
+            {
+              "alias": "Vector",
+              "named": "Vector",
+              "package": "@internal/extension-pgvector/codec-types"
+            }
+          ]
+        },
+        "operationTypes": {
+          "import": {
+            "alias": "PgVectorOperationTypes",
+            "named": "OperationTypes",
+            "package": "@internal/extension-pgvector/operation-types"
+          }
+        },
+        "queryOperationTypes": {
+          "import": {
+            "alias": "PgVectorQueryOperationTypes",
+            "named": "QueryOperationTypes",
+            "package": "@internal/extension-pgvector/operation-types"
+          }
+        }
+      },
+      "version": "0.0.1"
+    }
+  },
   "meta": {},
   "_generated": {
     "warning": "⚠️  GENERATED FILE - DO NOT EDIT",

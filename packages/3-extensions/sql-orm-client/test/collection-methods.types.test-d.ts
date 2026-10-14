@@ -26,15 +26,22 @@ import {
 } from './collection-methods-orm-fixture';
 import { createMockRuntime, getTestContext, type TestContract } from './helpers';
 
-const { db, plain, notes, fragment } = createCollectionMethodsOrm();
+const { db, plain, notes, extended, fragment } = createCollectionMethodsOrm();
 const q = websearchToTsquery('alice');
 
 describe('using', () => {
   test('has the methods each contribution gives the model, under the names it chose', () => {
     expectTypeOf(plain.User.using).not.toBeAny();
-    expectTypeOf<keyof typeof plain.User.using>().toEqualTypeOf<'users_search' | 'as_of'>();
-    expectTypeOf<keyof typeof plain.Post.using>().toEqualTypeOf<'embedding_closest'>();
+    expectTypeOf<keyof typeof plain.User.using>().toEqualTypeOf<'users_search'>();
     expectTypeOf<keyof typeof notes.Note.using>().toEqualTypeOf<'notes_search'>();
+    expectTypeOf<keyof typeof extended.Reading.using>().toEqualTypeOf<
+      'embedding_closest' | 'as_of'
+    >();
+  });
+
+  test('has no methods from the test-only contributions on a model without their marker', () => {
+    expectTypeOf<keyof typeof plain.Post.using>().toBeNever();
+    expectTypeOf<keyof typeof plain.Tag.using>().toBeNever();
   });
 
   test('serves a collection narrowed by variant from the base model table', () => {
@@ -86,43 +93,45 @@ describe('using', () => {
 
 describe('a contribution that reads the whole model', () => {
   test('names a method after a field of a codec, and types its argument from the field', () => {
-    expectTypeOf(plain.Post.using.embedding_closest).parameter(0).toEqualTypeOf<TestVector<3>>();
-    expectTypeOf(plain.Post.using.embedding_closest([1, 2, 3])).toExtend<HasOrderBy>();
+    expectTypeOf(extended.Reading.using.embedding_closest)
+      .parameter(0)
+      .toEqualTypeOf<TestVector<3>>();
+    expectTypeOf(extended.Reading.using.embedding_closest([1, 2, 3])).toExtend<HasOrderBy>();
   });
 
   test('offers a method with a fixed name on a model whose table has a column of a codec', () => {
-    expectTypeOf(plain.User.using.as_of).parameter(0).toEqualTypeOf<Date>();
-    // @ts-expect-error Post has no jsonb column, so it has no as_of
-    plain.Post.using.as_of(new Date());
+    expectTypeOf(extended.Reading.using.as_of).parameter(0).toEqualTypeOf<Date>();
+    // @ts-expect-error Tag has no json column, so it has no as_of
+    extended.Tag.using.as_of(new Date());
   });
 });
 
 describe('the facts a contributed method adds', () => {
   test('are only those its signature declares', () => {
-    const ordered = plain.Post.using.embedding_closest([1, 2, 3]);
-    expectTypeOf(ordered).toEqualTypeOf<Ordered<typeof plain.Post>>();
+    const ordered = extended.Reading.using.embedding_closest([1, 2, 3]);
+    expectTypeOf(ordered).toEqualTypeOf<Ordered<typeof extended.Reading>>();
     expectTypeOf(ordered).not.toExtend<HasWhere>();
   });
 
   test('allow a bulk write only after a method that filters', () => {
     // @ts-expect-error an order-only method does not filter, so deleteAll would delete every row
-    plain.Post.using.embedding_closest([1, 2, 3]).deleteAll();
+    extended.Reading.using.embedding_closest([1, 2, 3]).deleteAll();
     // @ts-expect-error an order-only method does not filter, so updateAll would update every row
-    plain.Post.using.embedding_closest([1, 2, 3]).updateAll({ views: 0 });
+    extended.Reading.using.embedding_closest([1, 2, 3]).updateAll({ payload: null });
     expectTypeOf(plain.User.using.users_search(q).deleteAll).toBeFunction();
   });
 });
 
 describe('two contributions that give a model the same method name', () => {
   test('type the name as a clash that names the model and both contributions', () => {
-    expectTypeOf(plain.Tag.using.labelled).toEqualTypeOf<
+    expectTypeOf(extended.Tag.using.labelled).toEqualTypeOf<
       CollectionMethodNameClash<'labelled', 'Tag', 'test/clash-a' | 'test/clash-b'>
     >();
   });
 
   test('make a call a compile error', () => {
     // @ts-expect-error the method name is contributed twice
-    plain.Tag.using.labelled('x');
+    extended.Tag.using.labelled('x');
   });
 });
 

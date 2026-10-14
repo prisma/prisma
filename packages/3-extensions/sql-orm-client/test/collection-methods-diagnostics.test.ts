@@ -10,11 +10,11 @@ const fixture = `
 import { websearchToTsquery } from '@internal/target-postgres/full-text';
 import { createCollectionMethodsOrm } from './collection-methods-orm-fixture';
 
-const { plain } = createCollectionMethodsOrm();
+const { plain, extended } = createCollectionMethodsOrm();
 const q = websearchToTsquery('alice');
 plain.User.using.search(q);
 plain.Comment.using.users_search(q);
-plain.Tag.using.labelled('x');
+extended.Tag.using.labelled('x');
 `;
 
 function fixtureDiagnostics(): string[] {
