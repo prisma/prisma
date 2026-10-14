@@ -77,6 +77,22 @@ The first implementation of the default-namespace rule expressed it as **framewo
 
 ---
 
+## Amendment (October 14, 2026) — the PSL symbol table holds the default namespace
+
+PSL authoring reads the target's default namespace when it builds the symbol table, before it binds a schema ([#30700](https://github.com/prisma/orm/pull/30700)). `buildSymbolTable` takes a required `defaultNamespaceId`. The value comes from the target descriptor: `ControlTargetDescriptor` and `ContractSourceContext` both carry `defaultNamespaceId`, and the language server reads it from its control stack. Runtime is unchanged.
+
+Top-level models, composite types, blocks and mixins are members of one `NamespaceSymbol`, `symbolTable.defaultNamespace`, together with the members of any block written with that namespace's name. On Postgres, a model declared at the top level and a model inside `namespace public { … }` are in the same namespace, so they reference each other by bare name and a second declaration of the same name is a duplicate. The binder, the PSL interpreters and the language server read this one namespace and have no separate top-level record.
+
+A `NamespaceSymbol` carries the contract `id` and the PSL `name`. The two are equal for every namespace except the late-bound one: PSL writes it `unbound` (or `__unbound__`), and its id is `__unbound__`. The symbol table is the only place that translates between the two (`namespaceIdOfPslName`, `pslNameOfNamespaceId`), and the interpreters read ids.
+
+The default namespace's PSL name is reserved at the top level. A top-level declaration named `public` on Postgres, or `unbound` or `__unbound__` where the late-bound namespace is the default, is reported as a duplicate declaration.
+
+Because the default reaches PSL authoring from the descriptor, the SQL PSL interpreter has no placement rule of its own. `resolveNamespaceIdForSqlTarget`, which returned `public` when the target id was `postgres`, is removed.
+
+**Alternative rejected: rename the contract id `__unbound__` to `unbound`,** so that a PSL name and a contract id are always equal and no translation is needed. Contracts, stored migration operations and the `DefaultNamespaceEntries` view type (which looks the id up in a snapshot's `contract.d.ts`) written before such a rename name the old id, so every reader of them would have to keep accepting it.
+
+---
+
 ## References
 
 - [ADR 221 — Contract IR two planes with uniform entity coordinate and pack-contributed entity kinds](ADR%20221%20-%20Contract%20IR%20two%20planes%20with%20uniform%20entity%20coordinate%20and%20pack-contributed%20entity%20kinds.md)
