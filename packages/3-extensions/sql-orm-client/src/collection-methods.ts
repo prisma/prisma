@@ -197,7 +197,7 @@ function mergedTable(
   view: CollectionMethodModel,
   contributions: ReadonlyArray<CollectionMethodContribution>,
 ): MethodTable {
-  const methods: Record<string, CollectionMethodBody> = {};
+  const methods: Record<string, CollectionMethodBody> = Object.create(null);
   const owners = new Map<string, string>();
   for (const contribution of contributions) {
     for (const [name, body] of Object.entries(methodsOf(contribution, view))) {

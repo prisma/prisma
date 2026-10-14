@@ -317,6 +317,25 @@ describe('the ORM client', () => {
     },
   );
 
+  it('offers a method named __proto__ as its own method', () => {
+    const body: CollectionMethodBody = (collection) => collection;
+    const protoNamed: CollectionMethodContribution = {
+      id: 'test/proto-named',
+      methodsFor: (model) =>
+        model.name === 'User' ? Object.fromEntries([['__proto__', body]]) : {},
+    };
+    const table = collectionMethodTable(
+      { ...context, collectionMethods: [fullText, protoNamed] },
+      'public',
+      'User',
+    );
+
+    expect({
+      own: Object.hasOwn(table, '__proto__'),
+      prototype: Object.getPrototypeOf(table),
+    }).toEqual({ own: true, prototype: null });
+  });
+
   it('accepts a context with no contributions', () => {
     const client = orm({ runtime, context: { ...context, collectionMethods: [] } });
     expect(Object.keys(client.public.User.using)).toEqual([]);
