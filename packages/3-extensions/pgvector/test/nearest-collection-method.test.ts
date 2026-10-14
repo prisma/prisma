@@ -1,9 +1,9 @@
 import type { ContractField } from '@internal/contract/types';
 import type { StorageTable } from '@internal/sql-contract/types';
 import type {
-  CollectionMethodModelView,
+  CollectionMethodModel,
   CollectionMethodReceiver,
-} from '@internal/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/collection-methods';
 import { describe, expect, it } from 'vitest';
 import { pgvectorNearestMethods } from '../src/core/nearest-collection-method';
 import pgvectorRuntimeDescriptor from '../src/exports/runtime';
@@ -13,7 +13,7 @@ const vector = (length: number): ContractField => ({
   type: { kind: 'scalar', codecId: 'pg/vector@1', typeParams: { length } },
 });
 
-const post: CollectionMethodModelView = {
+const post: CollectionMethodModel = {
   target: 'postgres',
   name: 'Post',
   fields: {
@@ -83,5 +83,22 @@ describe('the pgvector nearest-neighbour collection methods', () => {
       { orderBy: { ascending: [1, 2, 3] } },
       { where: { below: 0.5, to: [1, 2, 3] } },
     ]);
+  });
+});
+
+describe('a nearest-neighbour method', () => {
+  it('fails loudly when the model accessor has no such field', () => {
+    const receiver: CollectionMethodReceiver = {
+      where: () => receiver,
+      orderBy(order) {
+        order({}, { fns: {}, indexes: {} });
+        return receiver;
+      },
+    };
+    const nearest = pgvectorNearestMethods.methodsFor(post)['embedding_nearest'];
+
+    expect(() => nearest?.(receiver, ...([[1, 2, 3]] as never[]))).toThrow(
+      'The model accessor has no vector field "embedding".',
+    );
   });
 });

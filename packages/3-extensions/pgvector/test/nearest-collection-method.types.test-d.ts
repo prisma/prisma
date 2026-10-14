@@ -31,13 +31,25 @@ type PostFields = {
 };
 
 describe('the pgvector nearest-neighbour collection methods', () => {
-  test('are one per vector field that is not a list, taking a vector of the field length', () => {
+  test('are one per vector field that is not a list, taking a vector of the field length, ordering only', () => {
     expectTypeOf<MethodsFor<PostFields>>().toEqualTypeOf<{
-      readonly embedding_nearest: readonly [vector: Vector<1536>, maxDistance?: number];
+      readonly embedding_nearest: {
+        readonly parameters: readonly [vector: Vector<1536>, maxDistance?: number];
+        readonly filters: false;
+        readonly orders: true;
+      };
     }>();
   });
 
   test('are none for a model with no vector field', () => {
     expectTypeOf<MethodsFor<Pick<PostFields, 'id'>>>().toEqualTypeOf<Record<never, never>>();
   });
+});
+
+test('a vector typed with another length is refused', () => {
+  type Parameters = MethodsFor<PostFields>['embedding_nearest']['parameters'];
+  const wrongLength: Vector<3> = [1, 2, 3];
+  // @ts-expect-error the field holds vectors of length 1536
+  const parameters: Parameters = [wrongLength];
+  expectTypeOf(parameters).not.toBeAny();
 });
