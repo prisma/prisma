@@ -262,12 +262,13 @@ function buildPrimaryKeyJoinOn(
 function labeledVariantColumn(
   contract: Contract<SqlStorage>,
   variantTable: AliasedTable,
+  source: AliasedTable,
   column: string,
 ): ProjectionItem {
   const { namespaceId, tableName } = variantTable.storage;
   return ProjectionItem.of(
     variantColumnLabel(variantTable, column),
-    variantTable.column(column),
+    source.column(column),
     codecRefForStorageColumn(contract.storage, namespaceId, tableName, column),
   );
 }
@@ -275,13 +276,14 @@ function labeledVariantColumn(
 export function variantReturning(
   contract: Contract<SqlStorage>,
   variantTable: AliasedTable,
+  insertTarget: AliasedTable,
   variantModelName: string,
   keyColumns: readonly string[],
 ): readonly ProjectionItem[] {
   const { namespaceId, tableName } = variantTable.storage;
   return getColumnsReadOnTable(contract, namespaceId, variantModelName, tableName)
     .filter((column) => !keyColumns.includes(column))
-    .map((column) => labeledVariantColumn(contract, variantTable, column));
+    .map((column) => labeledVariantColumn(contract, variantTable, insertTarget, column));
 }
 
 function buildMtiJoins(
@@ -329,7 +331,7 @@ function buildMtiJoins(
       if (selectedColumnsByVariant !== undefined && selectedVariantColumns?.has(col) !== true) {
         continue;
       }
-      projection.push(labeledVariantColumn(contract, variantTable, col));
+      projection.push(labeledVariantColumn(contract, variantTable, variantTable, col));
     }
   }
 

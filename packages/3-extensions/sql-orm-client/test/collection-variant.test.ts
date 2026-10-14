@@ -743,7 +743,7 @@ describe('MTI variant create (two-INSERT orchestration)', () => {
     const { collection, runtime } = createReturningMixedPolyCollection();
     runtime.setNextResults([
       [{ id: 10, title: 'Dark mode', type: 'feature' }],
-      [{ id: 10, priority: 99 }],
+      [{ features__priority: 99 }],
     ]);
 
     const narrowed = collection.variant('feature' as never) as typeof collection;

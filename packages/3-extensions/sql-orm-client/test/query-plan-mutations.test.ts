@@ -2,7 +2,6 @@ import {
   BinaryExpr,
   ColumnRef,
   type DeleteAst,
-  type DoUpdateSetConflictAction,
   type InsertAst,
   ParamRef,
   ParamRef as ParamRefClass,
@@ -11,15 +10,12 @@ import {
 import { describe, expect, it } from 'vitest';
 import {
   compileDeleteCount,
-  compileDeleteReturning,
   compileInsertCount,
-  compileInsertCountSplit,
   compileInsertReturning,
-  compileInsertReturningSplit,
   compileUpdateCount,
   compileUpdateReturning,
-  compileUpsertReturning,
 } from '../src/query-plan';
+import { groupRowsByColumnSignature } from '../src/query-plan-mutations';
 import { withReturningCapability } from './collection-fixtures';
 import { getTestContract, tablesForTable } from './helpers';
 import { unboundTables } from './unbound-tables';
@@ -158,70 +154,6 @@ describe('query plan mutations', () => {
     expect(plan.ast.returning).toHaveLength(1);
   });
 
-  it('compileInsertCountSplit() puts the skip clause on every group statement', () => {
-    const contract = getTestContract();
-    const plans = compileInsertCountSplit(
-      contract,
-      'public',
-      'users',
-      [
-        { id: 10, name: 'Alice', email: 'alice@example.com' },
-        { id: 11, name: 'Bob', email: 'bob@example.com', invited_by_id: 10 },
-      ],
-      { columns: [] },
-    );
-
-    expect(plans).toHaveLength(2);
-    for (const plan of plans) {
-      assertInsertAst(plan.ast);
-      expect(plan.ast.onConflict?.columns).toEqual([]);
-      expect(plan.ast.onConflict?.action.kind).toBe('do-nothing');
-    }
-  });
-
-  it('compileInsertReturningSplit() puts the skip clause on every group statement', () => {
-    const contract = withReturningCapability(getTestContract());
-    const plans = compileInsertReturningSplit(
-      contract,
-      'public',
-      'User',
-      'users',
-      [
-        { id: 10, name: 'Alice', email: 'alice@example.com' },
-        { id: 11, name: 'Bob', email: 'bob@example.com', invited_by_id: 10 },
-      ],
-      ['id'],
-      { columns: ['email'] },
-    );
-
-    expect(plans).toHaveLength(2);
-    for (const plan of plans) {
-      assertInsertAst(plan.ast);
-      expect(plan.ast.onConflict?.columns).toEqual([ColumnRef.of('users', 'email')]);
-    }
-  });
-
-  it('compileUpsertReturning() uses DO NOTHING and default returning columns when update is empty', () => {
-    const contract = withReturningCapability(getTestContract());
-    const plan = compileUpsertReturning(
-      contract,
-      'public',
-      'User',
-      'users',
-      { id: 10, name: 'Alice', email: 'alice@example.com' },
-      {},
-      ['email'],
-      undefined,
-    );
-
-    assertInsertAst(plan.ast);
-    expect(plan.ast.onConflict?.action?.kind).toBe('do-nothing');
-    expect(plan.params).toEqual([10, 'Alice', 'alice@example.com']);
-    expect(plan.ast.returning?.map((item) => item.alias)).toEqual(
-      Object.keys(unboundTables(contract.storage)['users']!.columns),
-    );
-  });
-
   it('compileInsertReturning() rejects empty rows array', () => {
     const contract = withReturningCapability(getTestContract());
 
@@ -236,167 +168,35 @@ describe('query plan mutations', () => {
     expect(() => compileInsertCount(contract, 'public', 'users', [])).toThrow('at least one row');
   });
 
-  it('compileUpsertReturning() produces DoUpdateSetConflictAction with correct params when update is non-empty', () => {
-    const contract = withReturningCapability(getTestContract());
-    const plan = compileUpsertReturning(
-      contract,
-      'public',
-      'User',
-      'users',
-      { id: 10, name: 'Alice', email: 'alice@example.com' },
-      { name: 'Updated Alice' },
-      ['email'],
-      undefined,
-    );
+  describe('groupRowsByColumnSignature()', () => {
+    const alice = { id: 1, name: 'Alice', email: 'a@a.com' };
+    const bob = { id: 2, name: 'Bob', email: 'b@b.com' };
+    const invitedCarol = { id: 3, name: 'Carol', email: 'c@c.com', invited_by_id: 1 };
+    const invitedDiana = { id: 4, name: 'Diana', email: 'd@d.com', invited_by_id: 2 };
 
-    assertInsertAst(plan.ast);
-    expect(plan.ast.onConflict?.action?.kind).toBe('do-update-set');
-    const action = plan.ast.onConflict?.action as DoUpdateSetConflictAction;
-    expect(action.set).toEqual({
-      name: usersColParam(contract, 'name', 'Updated Alice'),
-    });
-    expect(plan.params).toEqual([10, 'Alice', 'alice@example.com', 'Updated Alice']);
-  });
-
-  describe('compileInsertReturningSplit()', () => {
-    it('produces a single plan when all rows have the same columns', () => {
-      const contract = withReturningCapability(getTestContract());
-      const plans = compileInsertReturningSplit(
-        contract,
-        'public',
-        'User',
-        'users',
-        [
-          { id: 1, name: 'Alice', email: 'a@a.com' },
-          { id: 2, name: 'Bob', email: 'b@b.com' },
-        ],
-        undefined,
-      );
-      expect(plans).toHaveLength(1);
-      assertInsertAst(plans[0]!.ast);
-      expect(plans[0]!.ast.rows).toHaveLength(2);
+    it('keeps rows that set the same columns in one group', () => {
+      expect(groupRowsByColumnSignature([alice, bob])).toEqual([[alice, bob]]);
     });
 
-    it('splits rows with different column sets into separate plans', () => {
-      const contract = withReturningCapability(getTestContract());
-      const plans = compileInsertReturningSplit(
-        contract,
-        'public',
-        'User',
-        'users',
-        [
-          { id: 1, name: 'Alice', email: 'a@a.com' },
-          { id: 2, name: 'Bob', email: 'b@b.com', invited_by_id: 1 },
-        ],
-        undefined,
-      );
-      expect(plans).toHaveLength(2);
-      assertInsertAst(plans[0]!.ast);
-      assertInsertAst(plans[1]!.ast);
-      expect(plans[0]!.ast.rows).toHaveLength(1);
-      expect(plans[1]!.ast.rows).toHaveLength(1);
-    });
-
-    it('preserves input order: non-adjacent rows with same signature produce separate groups', () => {
-      const contract = withReturningCapability(getTestContract());
-      const plans = compileInsertReturningSplit(
-        contract,
-        'public',
-        'User',
-        'users',
-        [
-          { id: 1, name: 'Alice', email: 'a@a.com' },
-          { id: 2, name: 'Bob', email: 'b@b.com', invited_by_id: 1 },
-          { id: 3, name: 'Charlie', email: 'c@c.com' },
-        ],
-        undefined,
-      );
-      expect(plans).toHaveLength(3);
+    it('starts a new group where the set of columns changes, in input order', () => {
+      expect(groupRowsByColumnSignature([alice, invitedCarol, bob])).toEqual([
+        [alice],
+        [invitedCarol],
+        [bob],
+      ]);
     });
 
     it('groups adjacent rows with identical columns together', () => {
-      const contract = withReturningCapability(getTestContract());
-      const plans = compileInsertReturningSplit(
-        contract,
-        'public',
-        'User',
-        'users',
-        [
-          { id: 1, name: 'Alice', email: 'a@a.com' },
-          { id: 2, name: 'Bob', email: 'b@b.com' },
-          { id: 3, name: 'Charlie', email: 'c@c.com', invited_by_id: 1 },
-          { id: 4, name: 'Diana', email: 'd@d.com', invited_by_id: 2 },
-        ],
-        undefined,
-      );
-      expect(plans).toHaveLength(2);
-      assertInsertAst(plans[0]!.ast);
-      assertInsertAst(plans[1]!.ast);
-      expect(plans[0]!.ast.rows).toHaveLength(2);
-      expect(plans[1]!.ast.rows).toHaveLength(2);
+      expect(groupRowsByColumnSignature([alice, bob, invitedCarol, invitedDiana])).toEqual([
+        [alice, bob],
+        [invitedCarol, invitedDiana],
+      ]);
     });
 
     it('treats undefined values as absent columns', () => {
-      const contract = withReturningCapability(getTestContract());
-      const plans = compileInsertReturningSplit(
-        contract,
-        'public',
-        'User',
-        'users',
-        [
-          { id: 1, name: 'Alice', email: 'a@a.com', invited_by_id: undefined },
-          { id: 2, name: 'Bob', email: 'b@b.com' },
-        ],
-        undefined,
-      );
-      expect(plans).toHaveLength(1);
-      assertInsertAst(plans[0]!.ast);
-      expect(plans[0]!.ast.rows).toHaveLength(2);
-    });
-
-    it('handles a single row', () => {
-      const contract = withReturningCapability(getTestContract());
-      const plans = compileInsertReturningSplit(
-        contract,
-        'public',
-        'User',
-        'users',
-        [{ id: 1, name: 'Alice', email: 'a@a.com' }],
-        undefined,
-      );
-      expect(plans).toHaveLength(1);
-      assertInsertAst(plans[0]!.ast);
-      expect(plans[0]!.ast.rows).toHaveLength(1);
-    });
-  });
-
-  describe('compileInsertCountSplit()', () => {
-    it('produces a single plan when all rows have the same columns', () => {
-      const contract = getTestContract();
-      const plans = compileInsertCountSplit(contract, 'public', 'users', [
-        { id: 1, name: 'Alice', email: 'a@a.com' },
-        { id: 2, name: 'Bob', email: 'b@b.com' },
+      expect(groupRowsByColumnSignature([{ ...alice, invited_by_id: undefined }, bob])).toEqual([
+        [alice, bob],
       ]);
-      expect(plans).toHaveLength(1);
-    });
-
-    it('splits rows with different column sets', () => {
-      const contract = getTestContract();
-      const plans = compileInsertCountSplit(contract, 'public', 'users', [
-        { id: 1, name: 'Alice', email: 'a@a.com' },
-        { id: 2, name: 'Bob', email: 'b@b.com', invited_by_id: 1 },
-      ]);
-      expect(plans).toHaveLength(2);
-    });
-
-    it('preserves input order over minimizing group count', () => {
-      const contract = getTestContract();
-      const plans = compileInsertCountSplit(contract, 'public', 'users', [
-        { id: 1, name: 'A', email: 'a@a.com' },
-        { id: 2, name: 'B', email: 'b@b.com', invited_by_id: 1 },
-        { id: 3, name: 'C', email: 'c@c.com' },
-      ]);
-      expect(plans).toHaveLength(3);
     });
   });
 
@@ -421,22 +221,6 @@ describe('query plan mutations', () => {
     expect(deletePlan.ast.kind).toBe('delete');
     expect((deletePlan.ast as DeleteAst).where).toBeUndefined();
     expect(deletePlan.params).toEqual([]);
-  });
-
-  describe('split helpers reject empty rows', () => {
-    it('compileInsertReturningSplit() rejects an empty rows array', () => {
-      const contract = withReturningCapability(getTestContract());
-      expect(() =>
-        compileInsertReturningSplit(contract, 'public', 'User', 'users', [], undefined),
-      ).toThrowError(/at least one row/);
-    });
-
-    it('compileInsertCountSplit() rejects an empty rows array', () => {
-      const contract = getTestContract();
-      expect(() => compileInsertCountSplit(contract, 'public', 'users', [])).toThrowError(
-        /at least one row/,
-      );
-    });
   });
 
   describe('UPDATE / DELETE WHERE preservation', () => {
@@ -475,29 +259,6 @@ describe('query plan mutations', () => {
       );
       expect((plan.ast as UpdateAst).where).toBeDefined();
       expect(plan.params).toEqual(['Bob', 9]);
-    });
-
-    it('compileDeleteReturning() preserves WHERE when filters are present and omits when empty', () => {
-      const contract = withReturningCapability(getTestContract());
-      const planWithWhere = compileDeleteReturning(
-        contract,
-        'User',
-        tablesForTable(contract, 'users', 'public'),
-        [eqOnUserId(3)],
-        undefined,
-      );
-      expect((planWithWhere.ast as DeleteAst).where).toBeDefined();
-      expect(planWithWhere.params).toEqual([3]);
-
-      const planNoWhere = compileDeleteReturning(
-        contract,
-        'User',
-        tablesForTable(contract, 'users', 'public'),
-        [],
-        undefined,
-      );
-      expect((planNoWhere.ast as DeleteAst).where).toBeUndefined();
-      expect(planNoWhere.params).toEqual([]);
     });
   });
 

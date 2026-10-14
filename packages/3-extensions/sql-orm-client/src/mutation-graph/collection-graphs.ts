@@ -2,9 +2,10 @@ import {
   type AnyExpression,
   ColumnRef,
   checkLimitOffset,
+  type ProjectionItem,
   type SelectAst,
 } from '@internal/sql-relational-core/ast';
-import { resolveRowIdentityColumns } from '../collection-contract';
+import { resolvePrimaryKeyColumns, resolveRowIdentityColumns } from '../collection-contract';
 import type { DescribeCollectionRowsOptions } from '../collection-dispatch';
 import { ormError } from '../orm-errors';
 import {
@@ -13,20 +14,28 @@ import {
   groupRowsByColumnSignature,
   type InsertConflictSkip,
   insertAst,
+  projectTableColumn,
   projectTableColumns,
+  returningProjection,
   updateAssignments,
   updateAst,
   upsertAst,
 } from '../query-plan-mutations';
 import { collectionSelectAst, collectionSelectWithIncludesAst } from '../query-plan-select';
+import { variantReturning } from '../query-plan-source';
+import { type AliasedTable, createTableScope } from '../table-scope';
 import { type CollectionState, emptyState } from '../types';
+import { ConcatRows } from './concat-rows';
 import { Delete } from './delete';
-import type { NodeId } from './edge';
+import type { ColumnPair, NodeId } from './edge';
 import { FilterData } from './filter-data';
 import { Find } from './find';
 import { Graph } from './graph';
 import { Insert } from './insert';
 import { InsertChunked } from './insert-chunked';
+import { Merge } from './merge';
+import { PayloadData } from './payload-data';
+import { Rows } from './rows';
 import { Update } from './update';
 
 export function updateAllGraph(
@@ -135,6 +144,78 @@ export function createGraph(
       : graph.add(new InsertChunked(asts), {});
   graph.setResult(addWithIncludes(graph, collection, inserted));
   return graph;
+}
+
+export interface VariantCreateRow {
+  readonly base: Readonly<Record<string, unknown>>;
+  readonly variant: Readonly<Record<string, unknown>>;
+}
+
+export function createVariantGraph(
+  collection: DescribeCollectionRowsOptions,
+  variantTable: AliasedTable,
+  variantModelName: string,
+  rows: readonly VariantCreateRow[],
+): Graph {
+  const { context, modelName, state } = collection;
+  const { contract } = context;
+  const { root } = state.tables;
+  const graph = new Graph();
+  const keyColumns = resolvePrimaryKeyColumns(
+    contract,
+    root.storage.namespaceId,
+    root.storage.tableName,
+  );
+  const variantTarget = createTableScope().aliasTable(variantTable.storage);
+  const keyPairs = keyColumns.map(
+    (column): ColumnPair => [
+      projectTableColumn(contract, root, column),
+      projectTableColumn(contract, variantTarget, column),
+    ],
+  );
+  const baseColumns = returningProjection(contract, modelName, root, undefined);
+  const variantColumns = variantReturning(
+    contract,
+    variantTable,
+    variantTarget,
+    variantModelName,
+    keyColumns,
+  );
+
+  const merges = rows.map((row) => {
+    const baseInsert = insertAst(contract, root, [row.base], undefined).withReturning(baseColumns);
+    const base = graph.add(new Insert(baseInsert), { payload: [] });
+    const variantInsert = insertAst(
+      contract,
+      variantTarget,
+      [row.variant],
+      undefined,
+    ).withReturning(variantColumns);
+    const variant = graph.add(new Insert(variantInsert), {
+      payload: [new PayloadData(base, keyPairs)],
+    });
+    return graph.add(new Merge(), {
+      rows: [
+        new Rows(base, sameColumns(baseColumns)),
+        new Rows(variant, sameColumns(variantColumns)),
+      ],
+    });
+  });
+
+  const [only, ...others] = merges;
+  if (only !== undefined && others.length === 0) {
+    graph.setResult(only);
+  } else if (only !== undefined) {
+    const merged = sameColumns([...baseColumns, ...variantColumns]);
+    graph.setResult(
+      graph.add(new ConcatRows(), { rows: merges.map((merge) => new Rows(merge, merged)) }),
+    );
+  }
+  return graph;
+}
+
+function sameColumns(columns: readonly ProjectionItem[]): ColumnPair[] {
+  return columns.map((column) => [column, column]);
 }
 
 export function upsertGraph(

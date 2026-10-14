@@ -31,19 +31,25 @@ function aliasTarget(namespaceId: string, tableName: string): AliasedTable {
   return createTableScope().aliasTable({ namespaceId, tableName });
 }
 
+export function projectTableColumn(
+  contract: Contract<SqlStorage>,
+  target: AliasedTable,
+  column: string,
+): ProjectionItem {
+  const { namespaceId, tableName } = target.storage;
+  return ProjectionItem.of(
+    column,
+    target.column(column),
+    codecRefForStorageColumn(contract.storage, namespaceId, tableName, column),
+  );
+}
+
 export function projectTableColumns(
   contract: Contract<SqlStorage>,
   target: AliasedTable,
   columns: readonly string[],
 ): ReadonlyArray<ProjectionItem> {
-  const { namespaceId, tableName } = target.storage;
-  return columns.map((column) =>
-    ProjectionItem.of(
-      column,
-      target.column(column),
-      codecRefForStorageColumn(contract.storage, namespaceId, tableName, column),
-    ),
-  );
+  return columns.map((column) => projectTableColumn(contract, target, column));
 }
 
 export function returningProjection(
@@ -283,50 +289,6 @@ export function groupRowsByColumnSignature(
   return groups;
 }
 
-export function compileInsertReturningSplit(
-  contract: Contract<SqlStorage>,
-  namespaceId: string,
-  modelName: string,
-  tableName: string,
-  rows: readonly Record<string, unknown>[],
-  returningColumns: readonly string[] | undefined,
-  conflictSkip?: InsertConflictSkip,
-): ReadonlyArray<SqlQueryPlan<Record<string, unknown>>> {
-  if (rows.length === 0) {
-    throw ormError('ORM.MUTATION_DATA_MISSING', 'create() requires at least one row', {
-      meta: { method: 'create', namespaceId, tableName },
-    });
-  }
-  return groupRowsByColumnSignature(rows).map((group) =>
-    compileInsertReturning(
-      contract,
-      namespaceId,
-      modelName,
-      tableName,
-      group,
-      returningColumns,
-      conflictSkip,
-    ),
-  );
-}
-
-export function compileInsertCountSplit(
-  contract: Contract<SqlStorage>,
-  namespaceId: string,
-  tableName: string,
-  rows: readonly Record<string, unknown>[],
-  conflictSkip?: InsertConflictSkip,
-): ReadonlyArray<SqlQueryPlan<Record<string, unknown>>> {
-  if (rows.length === 0) {
-    throw ormError('ORM.MUTATION_DATA_MISSING', 'createAndCount() requires at least one row', {
-      meta: { method: 'createAndCount', namespaceId, tableName },
-    });
-  }
-  return groupRowsByColumnSignature(rows).map((group) =>
-    compileInsertCount(contract, namespaceId, tableName, group, conflictSkip),
-  );
-}
-
 export function upsertAst(
   contract: Contract<SqlStorage>,
   target: AliasedTable,
@@ -353,28 +315,6 @@ export function updateAssignments(
 ): Readonly<Record<string, ParamRef>> {
   const { namespaceId, tableName } = target.storage;
   return toParamAssignments(contract, namespaceId, tableName, values).assignments;
-}
-
-export function compileUpsertReturning(
-  contract: Contract<SqlStorage>,
-  namespaceId: string,
-  modelName: string,
-  tableName: string,
-  createValues: Record<string, unknown>,
-  updateValues: Record<string, unknown>,
-  conflictColumns: readonly string[],
-  returningColumns: readonly string[] | undefined,
-): SqlQueryPlan<Record<string, unknown>> {
-  const target = aliasTarget(namespaceId, tableName);
-  const updateSet =
-    Object.keys(updateValues).length > 0
-      ? updateAssignments(contract, target, updateValues)
-      : undefined;
-  const ast = upsertAst(contract, target, createValues, conflictColumns, updateSet).withReturning(
-    returningProjection(contract, modelName, target, returningColumns),
-  );
-  const { params } = deriveParamsFromAst(ast);
-  return buildOrmQueryPlan(contract, ast, params);
 }
 
 export function updateAst(
@@ -421,20 +361,6 @@ export function compileUpdateCount(
 ): SqlQueryPlan<Record<string, unknown>> {
   const where = countMutationWhere(contract, tables, filters, variantValue);
   const ast = updateAst(contract, tables, setValues, where);
-  const { params } = deriveParamsFromAst(ast);
-  return buildOrmQueryPlan(contract, ast, params);
-}
-
-export function compileDeleteReturning(
-  contract: Contract<SqlStorage>,
-  modelName: string,
-  tables: CollectionTables,
-  filters: readonly AnyExpression[],
-  returningColumns: readonly string[] | undefined,
-): SqlQueryPlan<Record<string, unknown>> {
-  const ast = deleteAst(contract, tables, combineWhereExprs(filters)).withReturning(
-    returningProjection(contract, modelName, tables.root, returningColumns),
-  );
   const { params } = deriveParamsFromAst(ast);
   return buildOrmQueryPlan(contract, ast, params);
 }
