@@ -78,4 +78,4 @@ The same shape as slice `graph-core`: new node and edge classes with unit tests,
 
 ## Open questions
 
-None.
+1. **Where the variant's columns are renamed** (asked 2026-10-14, paused by the owner; re-ask before dispatch 2). As built in dispatch 1, `Merge` is constructed with the variant table and key columns, has `base` and `variant` slots, drops the variant's key and renames its columns. Alternative: a generic `Merge` that sets one row from each input side by side, with the renaming and the dropped key expressed by the variant's `Rows` edge column pairs.
