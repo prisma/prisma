@@ -1,11 +1,12 @@
 import type {
   CollectionMethodBody,
   CollectionMethodContribution,
-  CollectionMethodModel,
-  CollectionMethodRegistry,
-  CollectionMethodsEntry,
-} from '@internal/sql-relational-core/query-lane-context';
+  CollectionMethodContributionId,
+  CollectionMethodContributionType,
+  CollectionMethodModelType,
+} from '@internal/sql-relational-core/collection-methods';
 import { blindCast } from '@internal/utils/casts';
+import { InternalError } from '@internal/utils/internal-error';
 import type { Vector } from '../types/codec-types';
 import { VECTOR_CODEC_ID } from './constants';
 
@@ -23,19 +24,23 @@ type VectorLength<Field> = Field extends {
   ? Length
   : number;
 
-type NearestMethodTable<Model extends CollectionMethodModel> = {
-  readonly [Name in VectorFieldNames<Model['fields']> & string as `${Name}_nearest`]: readonly [
-    vector: Vector<VectorLength<Model['fields'][Name & keyof Model['fields']]>>,
-    maxDistance?: number,
-  ];
+type NearestMethodTable<Model extends CollectionMethodModelType> = {
+  readonly [Name in VectorFieldNames<Model['fields']> & string as `${Name}_nearest`]: {
+    readonly parameters: readonly [
+      vector: Vector<VectorLength<Model['fields'][Name & keyof Model['fields']]>>,
+      maxDistance?: number,
+    ];
+    readonly filters: false;
+    readonly orders: true;
+  };
 };
 
-/** One method for each vector field of a model, named `<field>_nearest`: the rows nearest to a vector by cosine distance, nearest first, optionally only those within `maxDistance`. */
-export interface PgvectorNearestMethods extends CollectionMethodsEntry {
+/** One method for each vector field of a model, named `<field>_nearest`: the rows nearest to a vector by cosine distance, nearest first, optionally only those within `maxDistance`. It declares no filter, because it filters only when `maxDistance` is given. */
+export interface PgvectorNearestMethods extends CollectionMethodContributionType {
   readonly methods: NearestMethodTable<this['model']>;
 }
 
-declare module '@internal/sql-relational-core/query-lane-context' {
+declare module '@internal/sql-relational-core/collection-methods' {
   interface CollectionMethodRegistry {
     readonly 'pgvector/nearest': PgvectorNearestMethods;
   }
@@ -50,10 +55,15 @@ type VectorFields = Readonly<
   Record<string, { cosineDistance(vector: readonly number[]): Distance }>
 >;
 
-function vectorFields(model: unknown): VectorFields {
-  return blindCast<VectorFields, 'a vector field of the ORM model accessor has cosineDistance'>(
-    model,
-  );
+function distanceTo(model: unknown, field: string, vector: readonly number[]): Distance {
+  const accessor = blindCast<
+    VectorFields,
+    'a vector field of the ORM model accessor has cosineDistance'
+  >(model)[field];
+  if (accessor === undefined) {
+    throw new InternalError(`The model accessor has no vector field "${field}".`);
+  }
+  return accessor.cosineDistance(vector);
 }
 
 function nearestMethod(field: string): CollectionMethodBody {
@@ -62,20 +72,16 @@ function nearestMethod(field: string): CollectionMethodBody {
       readonly [readonly number[], number | undefined],
       'the type half declares a vector and an optional distance'
     >(args);
-    const ordered = collection.orderBy((model) =>
-      vectorFields(model)[field]?.cosineDistance(vector).asc(),
-    );
+    const ordered = collection.orderBy((model) => distanceTo(model, field, vector).asc());
     return maxDistance === undefined
       ? ordered
-      : ordered.where((model) =>
-          vectorFields(model)[field]?.cosineDistance(vector).lt(maxDistance),
-        );
+      : ordered.where((model) => distanceTo(model, field, vector).lt(maxDistance));
   };
 }
 
 /** The run-time half of `PgvectorNearestMethods`. */
 export const pgvectorNearestMethods: CollectionMethodContribution = {
-  id: 'pgvector/nearest' satisfies keyof CollectionMethodRegistry,
+  id: 'pgvector/nearest' satisfies CollectionMethodContributionId,
   methodsFor: (model) =>
     Object.fromEntries(
       Object.entries(model.fields).flatMap(([name, field]) =>
