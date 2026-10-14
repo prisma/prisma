@@ -52,7 +52,6 @@ type ComparedSections =
   | 'execution'
   | 'storage'
   | 'domain'
-  | 'enumAccessors'
   | TypeMapsPhantomKey;
 
 type ExcludedSections = {
@@ -133,7 +132,7 @@ describe('every section of a defineContract contract equals the emitted one, or 
     expectTypeOf<Differences>().toBeNever();
   });
 
-  test('enums, which the built contract carries as enumAccessors and the emitted one in domain', () => {
+  test('enums, as db.enums reads them', () => {
     type Differences = {
       [F in keyof Fixtures]: SameType<
         NamespacedEnums<Built<F>>,
@@ -280,7 +279,7 @@ describe('storage', () => {
         'storage entries',
         'table',
         {
-          readonly valueSet: 'The storage of a native enum type, which only migrations read. Enum values reach the ORM through the enums comparison above.';
+          readonly valueSet: 'Stored enum values, which only migrations read. A defineContract contract types the value sets of enums authored with enumType, not those of native enum types. Enum values reach the ORM through the enums comparison above.';
         }
       >
     >().toBeNever();

@@ -3,6 +3,7 @@ import type {
   Contract,
   ContractExecutionSection,
   ContractRelation,
+  JsonValue,
   NamespaceId,
   ParameterizedOutputType,
   ParameterizedOutputTypesFunction,
@@ -1343,24 +1344,6 @@ type DefinitionEnums<Definition> = Definition extends {
     : Record<never, never>
   : Record<never, never>;
 
-type EnumHandleAccessorType<Handle> =
-  Handle extends EnumTypeHandle<infer _Name, infer Values, infer Names, infer MembersMap>
-    ? {
-        readonly values: Values;
-        readonly names: Names;
-        readonly members: MembersMap;
-        has(v: Values[number]): boolean;
-        nameOf(v: Values[number]): string | undefined;
-        ordinalOf(v: Values[number]): number;
-      }
-    : never;
-
-type BuiltEnumAccessors<Definition> = {
-  readonly [K in keyof DefinitionEnums<Definition>]: EnumHandleAccessorType<
-    DefinitionEnums<Definition>[K]
-  >;
-};
-
 type BuiltDocumentScopedTypes<Definition> = {
   readonly [K in keyof DefinitionTypes<Definition> as DefinitionTypes<Definition>[K] extends AuthoredStorageTypeInstance
     ? K
@@ -1376,11 +1359,66 @@ type BuiltDomain<Definition> =
         };
       };
 
+type HandleName<Handle> = Handle extends EnumTypeHandle<infer Name> ? Name : never;
+
+// A member is stored in its codec's JSON form, which is the authored literal only when that literal is JSON; a bigint or Date member is stored as text.
+type StoredEnumValue<Value> = Value extends JsonValue ? Value : JsonValue;
+
+type EnumHandleMembers<Handle, Stored extends boolean> =
+  Handle extends EnumTypeHandle<string, infer Values, infer Names>
+    ? {
+        readonly [I in keyof Values]: {
+          readonly name: I extends keyof Names ? Names[I] : never;
+          readonly value: Stored extends true ? StoredEnumValue<Values[I]> : Values[I];
+        };
+      }
+    : never;
+
+// The domain `enum` entries for enums authored with `enumType`, keyed by enum name, with each member's value as it is stored.
+type EnumHandleEntries<Enums> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: {
+    readonly codecId: string;
+    readonly members: EnumHandleMembers<Enums[K], true>;
+  };
+};
+
+// The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
+type EnumHandleMemberTypes<Enums> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleMembers<Enums[K], false>;
+};
+
+// The storage `valueSet` entries for enums authored with `enumType`: each enum's member values as they are stored.
+type EnumHandleValueSets<Enums> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: {
+    readonly kind: 'valueSet';
+    readonly values: Enums[K] extends EnumTypeHandle<string, infer Values>
+      ? { readonly [I in keyof Values]: StoredEnumValue<Values[I]> }
+      : never;
+  };
+};
+
+type DefinitionHasEnums<Definition> = keyof DefinitionEnums<Definition> extends never
+  ? false
+  : true;
+
+// Authored enums are registered in the default namespace, whatever namespace the fields that use them are in.
+type HoldsDefinitionEnums<Definition, Ns extends string> =
+  DefinitionHasEnums<Definition> extends true
+    ? Ns extends DefaultStorageNamespaceId<Definition>
+      ? true
+      : false
+    : false;
+
 type BuiltDomainNamespace<Definition, Ns extends string> = {
   readonly models: {
     readonly [ModelName in ModelsInNamespace<Definition, Ns>]: BuiltModels<Definition>[ModelName];
   };
-};
+} & (HoldsDefinitionEnums<Definition, Ns> extends true
+  ? {
+      readonly enum: EnumHandleEntries<DefinitionEnums<Definition>>;
+      readonly enumMemberTypes?: EnumHandleMemberTypes<DefinitionEnums<Definition>>;
+    }
+  : Record<never, never>);
 
 type DefaultStorageNamespaceId<Definition> =
   DefinitionTarget<Definition> extends {
@@ -1451,7 +1489,9 @@ type BuiltStorage<Definition> = {
       readonly kind: string;
       readonly entries: {
         readonly table: BuiltStorageTables<Definition, Ns>;
-      };
+      } & (HoldsDefinitionEnums<Definition, Ns> extends true
+        ? { readonly valueSet: EnumHandleValueSets<DefinitionEnums<Definition>> }
+        : Record<never, never>);
     };
   };
 };
@@ -1661,7 +1701,6 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
     } & {
       readonly extensions: DefinitionExtensions<Definition>;
       readonly capabilities: DerivedCapabilities<Definition>;
-      readonly enumAccessors: BuiltEnumAccessors<Definition>;
     },
   // The shape of `TypeMaps`, written out so the aggregate types are not checked against `AggregateTypesBase` for every contract: their settled shape satisfies it, and the parity test compares them with the emitted ones.
   {
