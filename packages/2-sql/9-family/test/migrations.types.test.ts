@@ -162,7 +162,7 @@ describe('planner helpers', () => {
       operations: [],
       providedInvariants: [],
     });
-    const noSubjects = { dataLoss: [], accessWidening: [] };
+    const noSubjects = { dataLoss: [], accessWidening: [], temporaryValues: [] };
     const success = plannerSuccess(plan, [], noSubjects);
     expect(success).toEqual({ kind: 'success', plan, appliedStatements: [], ...noSubjects });
     expect(Object.isFrozen(success)).toBe(true);

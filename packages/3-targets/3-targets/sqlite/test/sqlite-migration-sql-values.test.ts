@@ -47,6 +47,7 @@ class ExposedMigration extends SqliteMigration<Contract, Contract> {
     readonly summary: string;
     readonly postchecks: readonly RecreatePostcheck[];
     readonly operationClass: MigrationOperationClass;
+    readonly copyExpressions?: Readonly<Record<string, SqlTextInput>>;
   }): Promise<Op> {
     return this.recreateTable(options);
   }
@@ -66,6 +67,24 @@ function astRecordingControlStack(): ControlStack<'sql', 'sqlite'> {
 
 const DEFAULT_SQL = "lower(\n  'a' || 'b'\n)";
 
+function recreateUserWithCopy(m: ExposedMigration, copyExpression: SqlTextInput): Promise<Op> {
+  return m.callRecreateTable({
+    tableName: 'user',
+    contractTable: {
+      columns: [
+        { name: 'id', typeSql: 'INTEGER', nullable: false },
+        { name: 'slug', typeSql: 'TEXT', nullable: true },
+      ],
+    },
+    schemaColumnNames: ['id', 'slug'],
+    indexes: [],
+    summary: 'Recreates table user',
+    postchecks: [],
+    operationClass: 'data',
+    copyExpressions: { slug: copyExpression },
+  });
+}
+
 describe('SqliteMigration function defaults written as sql values', () => {
   const cases: ReadonlyArray<{
     readonly name: string;
@@ -83,6 +102,10 @@ describe('SqliteMigration function defaults written as sql values', () => {
             nullable: true,
           },
         }),
+    },
+    {
+      name: 'recreateTable copyExpressions',
+      run: (m, expression) => recreateUserWithCopy(m, expression),
     },
     {
       name: 'recreateTable',
@@ -136,6 +159,17 @@ describe('SqliteMigration function defaults written as sql values', () => {
         code: 'CONTRACT.ARGUMENT_INVALID',
         message: 'addColumn "user"."slug" default must be a string or a sql`...` value.',
         meta: { what: 'addColumn "user"."slug" default' },
+      }),
+    );
+  });
+
+  it('names the copy expression when it is neither a string nor a sql value', () => {
+    const m = new ExposedMigration(astRecordingControlStack());
+
+    expect(() => recreateUserWithCopy(m, { text: 'x' } as unknown as SqlTextInput)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ARGUMENT_INVALID',
+        message: 'recreateTable "user" copyExpressions.slug must be a string or a sql`...` value.',
       }),
     );
   });

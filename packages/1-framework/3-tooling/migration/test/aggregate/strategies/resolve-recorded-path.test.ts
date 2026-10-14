@@ -20,7 +20,7 @@ function makeSpace(
 }
 
 describe('resolveRecordedPath', () => {
-  it('names each destructive operation of the path by its storage name, and widens no access', () => {
+  it('names each destructive operation of the path by its storage name and label, says nothing of how it loses data, and widens no access', () => {
     const headHash = 'cipher-head';
     const pkg = createAttestedPackage('20260101T0000_init', { from: null, to: headHash }, [
       { id: 'table.events', label: 'Create table events', operationClass: 'additive' },
@@ -37,10 +37,15 @@ describe('resolveRecordedPath', () => {
 
     expect(outcome.kind === 'ok' && outcome.result).toMatchObject({
       dataLoss: [
-        { operationIndex: 1, subject: { kind: 'storage', name: 'storage of table.legacy' } },
+        {
+          operationIndex: 1,
+          subject: { kind: 'storage', name: 'storage of table.legacy' },
+          label: 'Drop table legacy',
+        },
       ],
       accessWidening: [],
     });
+    expect(outcome.kind === 'ok' && outcome.result.dataLoss[0]).not.toHaveProperty('loss');
   });
 
   it('walks the shortest path from the live marker to the on-disk head ref', () => {

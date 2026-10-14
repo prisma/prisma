@@ -18,13 +18,12 @@ import { postgresError } from '../errors';
 import { postgresDefaultToDdlColumnDefault } from './op-factory-call';
 import { buildColumnTypeSql } from './planner-ddl-builders';
 import { resolveIdentityValue } from './planner-identity-values';
-import { buildExpectedFormatType } from './planner-sql-checks';
 
 const AUTOINCREMENT = 'autoincrement()';
 
 /**
  * Reconstructs the `StorageColumn`-shaped fields the DDL builder functions
- * (`buildColumnTypeSql`, `buildExpectedFormatType`, `resolveIdentityValue`)
+ * (`buildColumnTypeSql`, `resolveIdentityValue`)
  * expect, from a column node's own stamped codec identity (`codecRef` /
  * `codecBaseNativeType`, Decision 5) — never the contract. The node's fields
  * are already resolved past any `typeRef` indirection, so the builders get
@@ -117,15 +116,8 @@ export function renderColumnDdl(
 /**
  * Builds the `ALTER COLUMN … TYPE` operands for an expected column node.
  */
-export function renderColumnAlterType(
-  column: SqlColumnIR,
-  types: SqlTypeLookups,
-): { readonly qualifiedTargetType: string; readonly formatTypeExpected: string } {
-  const like = columnLike(column);
-  return {
-    qualifiedTargetType: buildColumnTypeSql(like, types, {}, false),
-    formatTypeExpected: buildExpectedFormatType(like, types),
-  };
+export function renderColumnAlterType(column: SqlColumnIR, types: SqlTypeLookups): string {
+  return buildColumnTypeSql(columnLike(column), types, {}, false);
 }
 
 /**

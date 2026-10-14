@@ -243,6 +243,24 @@ describe('migration plan', () => {
     ]);
   });
 
+  it('repeats --config in the db migrate command it says to run next', async () => {
+    const project = await plannableProject();
+
+    const run = await harness(project).run(
+      ['migration', 'plan', '--config', 'app/prisma.config.ts'],
+      {
+        cwd: project.dir,
+        isTty: { stdout: true },
+      },
+    );
+
+    expect(run.presented?.presentation.next?.at(-1)).toEqual({
+      kind: 'run-command',
+      label: 'Apply the migration',
+      command: 'prisma-test db migrate --config app/prisma.config.ts',
+    });
+  });
+
   it('reports no changes without writing a package', async () => {
     const project = await upToDateProject();
 
@@ -814,7 +832,7 @@ describe('migration plan', () => {
         expect.stringMatching(/^migrations\/app\/[^/]+$/),
       ]);
       expect(data.summary).toBe(
-        `Planned baseline + migration with placeholder(s) — edit migration.ts, then run \`node "${data.baselineDir}/migration.ts"\` and \`node "${data.dir}/migration.ts"\` to self-emit`,
+        `Planned baseline + migration with placeholder(s) — edit migration.ts, then run \`node ${data.baselineDir}/migration.ts\` and \`node ${data.dir}/migration.ts\` to self-emit`,
       );
       expect(
         data.appliedStatements.map(({ operationIndexes }) =>
@@ -846,7 +864,7 @@ describe('migration plan', () => {
       expect(data.dir).toMatch(/^migrations\/app\/[^/]+$/);
       expect(data).toMatchObject({
         pendingPlaceholders: true,
-        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node "${data.dir}/migration.ts"\` to self-emit`,
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node ${data.dir}/migration.ts\` to self-emit`,
       });
     });
 
@@ -867,13 +885,26 @@ describe('migration plan', () => {
         summary: data.summary,
         next: answered.presented?.presentation.next?.at(-1),
       }).toEqual({
-        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node "${data.dir}/migration.ts" --config "prisma.config.ts"\` to self-emit`,
+        summary: `Planned migration with placeholder(s) — edit migration.ts, then run \`node ${data.dir}/migration.ts --config prisma.config.ts\` to self-emit`,
         next: {
           kind: 'run-command',
           label: 'Run it to self-emit ops.json and attest the package',
-          command: `node "${data.dir}/migration.ts" --config "prisma.config.ts"`,
+          command: `node ${data.dir}/migration.ts --config prisma.config.ts`,
         },
       });
+    });
+
+    it('names a loss by the planned call that loses it while a slot of the plan is unfilled', async () => {
+      const project = await losingProject();
+      const refused = await harness(project, {
+        script: {
+          operations: [ADDITIVE_OP, DESTRUCTIVE_OP],
+          operationsAccessorThrows: errorUnfilledPlaceholder('backfill'),
+          dataLoss: [{ ...LEGACY_LOSS, loss: 'drop', label: 'Drop table "legacy"' }],
+        },
+      }).run(['migration', 'plan', '--json'], { cwd: project.dir });
+
+      expect(JSON.stringify(envelopeOf(refused))).toContain('Drop table \\"legacy\\" would lose');
     });
 
     it('asks a question a re-plan brings up in a second batch', async () => {

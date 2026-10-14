@@ -2,6 +2,7 @@ import type {
   ControlDriverInstance,
   ControlFamilyInstance,
   MigrationPlan,
+  MigrationRunnerFailure,
   MigrationRunnerResult,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
@@ -182,6 +183,71 @@ describe('runMigration runner-failure cause forwarding', () => {
       failingSpace: 'app',
       runnerErrorCode: 'MIGRATION.APPLY_FAILED',
       sqlState: '42P07',
+    });
+  });
+});
+
+describe('runMigration, a type change that failed', () => {
+  it('names the field as a convert statement names it, and the migration of the failed operation', async () => {
+    const failingResult: MigrationRunnerResult = notOk({
+      code: 'MIGRATION.EXECUTION_FAILED',
+      summary: 'Operation alterType.user.age failed during execution: alter type of "age"',
+      failingSpace: 'app',
+      failedTypeChange: {
+        field: { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' },
+        by: 'cast',
+        reason: 'value',
+        operationIndex: 2,
+      },
+    } as MigrationRunnerFailure);
+    const migrations = {
+      createRunner: () => ({ execute: async () => failingResult }),
+    } as unknown as TargetMigrationsCapability<
+      'sql',
+      'postgres',
+      ControlFamilyInstance<'sql', unknown>
+    >;
+    const edge = (dirName: string, from: string, operationCount: number) => ({
+      migrationHash: `sha256:${dirName}`,
+      dirName,
+      from,
+      to: `${from}-next`,
+      operationCount,
+    });
+    const migrationEdges = [
+      edge('first', 'h0', 2),
+      edge('second', 'h1', 1),
+      edge('third', 'h2', 1),
+    ];
+    const destinationContract = { domain: { namespaces: { app: { models: {} } } } };
+
+    const result = await runMigration<'sql', 'postgres'>({
+      aggregate: makeAggregate(),
+      perSpacePlans: new Map([
+        [
+          'app',
+          { ...makePerSpacePlan(), destinationContract, migrationEdges } as unknown as PerSpacePlan,
+        ],
+      ]),
+      applyOrder: ['app'],
+      driver: {} as ControlDriverInstance<'sql', 'postgres'>,
+      familyInstance: { familyId: 'sql' } as unknown as ControlFamilyInstance<'sql', unknown>,
+      migrations,
+      frameworkComponents: [],
+      policy: { allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'] },
+      action: 'migrate',
+    });
+
+    expect(
+      result.ok
+        ? undefined
+        : {
+            failedTypeChange: result.failure.failedTypeChange,
+            failedMigration: result.failure.failedMigration,
+          },
+    ).toEqual({
+      failedTypeChange: { field: 'User.age', by: 'cast', reason: 'value' },
+      failedMigration: { spaceId: 'app', edge: migrationEdges[1] },
     });
   });
 });

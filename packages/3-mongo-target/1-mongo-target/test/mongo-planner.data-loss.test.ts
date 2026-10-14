@@ -113,6 +113,8 @@ describe('MongoDB planner, data loss', () => {
         {
           operationIndex: dropCollection,
           subject: { kind: 'model', namespaceId: asNamespaceId('__unbound__'), model: 'Event' },
+          loss: 'drop',
+          label: 'Drop collection events',
         },
       ],
       accessWidening: [],

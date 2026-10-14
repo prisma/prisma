@@ -177,6 +177,7 @@ export async function planMigration<TFamilyId extends string, TTargetId extends 
       appliedStatements: [],
       dataLoss: [],
       accessWidening: [],
+      temporaryValues: [],
       migrationEdges: [
         buildFabricatedMigrationEdge({
           currentMarkerStorageHash: currentMarker?.storageHash,

@@ -7,14 +7,27 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type {
   ControlDriverInstance,
   ControlFamilyInstance,
+  FailedTypeChange,
   MigrationOperationPolicy,
+  MigrationRunnerFailure,
+  MigrationSubject,
   TargetMigrationsCapability,
 } from '@internal/framework-components/control';
-import type { ContractSpaceAggregate, PerSpacePlan } from '@internal/migration-tools/aggregate';
+import type {
+  AggregateMigrationEdgeRef,
+  ContractSpaceAggregate,
+  PerSpacePlan,
+} from '@internal/migration-tools/aggregate';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import type { OnControlProgress, PerSpaceExecutionEntry } from '../types';
+import { subjectText } from '../statements/plan-questions';
+import type {
+  FailedTypeChangeReport,
+  OnControlProgress,
+  PerSpaceExecutionEntry,
+  RowsWithoutValueReport,
+} from '../types';
 
 /**
  * Span id emitted via `onProgress` for the run phase. Stable
@@ -40,11 +53,70 @@ export interface RunnerFailure {
   readonly summary: string;
   readonly why?: string;
   readonly meta: Record<string, unknown>;
+  /** The type change whose cast failed. */
+  readonly failedTypeChange?: FailedTypeChangeReport;
+  /** The fields that were to become required while rows had no value for them; the failed one first. */
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The written migration of the failed operation, when the runner named the operation. */
+  readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
    * The runner's original failure object, preserved verbatim so callers
    * can attach it as `cause` on the CLI error they build from this shape.
    */
   readonly cause?: unknown;
+}
+
+function edgeOfOperation(
+  edges: readonly AggregateMigrationEdgeRef[],
+  operationIndex: number,
+): AggregateMigrationEdgeRef | undefined {
+  let end = 0;
+  return edges.find((edge) => {
+    end += edge.operationCount;
+    return operationIndex < end;
+  });
+}
+
+function failedTypeChangeReport(change: FailedTypeChange, field: string): FailedTypeChangeReport {
+  return change.by === 'cast'
+    ? { field, by: 'cast', reason: change.reason }
+    : { field, by: 'conversion', reason: change.reason };
+}
+
+/** What the runner said blocked the failed operation, named as the advice names it. */
+function failureReports(
+  failure: MigrationRunnerFailure,
+  resolutions: readonly OrderedResolution[],
+): Pick<RunnerFailure, 'failedTypeChange' | 'rowsWithoutValue' | 'failedMigration'> {
+  const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
+  if (resolution === undefined) return {};
+  const fieldText = (field: MigrationSubject) =>
+    subjectText(field, { origin: resolution.entry.destinationContract, statements: [] });
+  const { failedTypeChange, rowsWithoutValue } = failure;
+  const operationIndex = failedTypeChange?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
+  const edge =
+    operationIndex === undefined
+      ? undefined
+      : edgeOfOperation(resolution.entry.migrationEdges, operationIndex);
+  return {
+    ...ifDefined(
+      'failedTypeChange',
+      failedTypeChange === undefined
+        ? undefined
+        : failedTypeChangeReport(failedTypeChange, fieldText(failedTypeChange.field)),
+    ),
+    ...ifDefined(
+      'rowsWithoutValue',
+      rowsWithoutValue?.map(({ field, reason }) => ({
+        field: field === undefined ? undefined : fieldText(field),
+        reason,
+      })),
+    ),
+    ...ifDefined(
+      'failedMigration',
+      edge === undefined ? undefined : { spaceId: resolution.spaceId, edge },
+    ),
+  };
 }
 
 export interface RunMigrationInputs<TFamilyId extends string, TTargetId extends string> {
@@ -173,6 +245,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
         failingSpace: runnerResult.failure.failingSpace,
         runnerErrorCode: runnerResult.failure.code,
       },
+      ...failureReports(runnerResult.failure, orderedResolutions),
       cause: runnerResult.failure,
     });
   }

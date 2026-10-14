@@ -2,13 +2,17 @@ import { asNamespaceId, type ContractWithDomain } from '@internal/contract/types
 import type {
   MigrationAccessChange,
   MigrationDataLoss,
+  MigrationDataLossKind,
   MigrationPlanSubjects,
   MigrationSubject,
+  MigrationTemporaryValue,
   ModelCoordinate,
   ResolvedMigrationStatement,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlModelStorage } from '@internal/sql-contract/types';
+import { ifDefined } from '@internal/utils/defined';
+import { fieldOfColumn } from './field-of-column';
 import {
   fieldRenameStorageEffect,
   isSqlModelStorage,
@@ -68,16 +72,27 @@ export function unknownCallNames<TCall extends { readonly factoryName: string }>
 /** A call of a plan: how many operations it lowers to, and what the first of them is about. */
 export interface CallSubjects {
   readonly operationCount: number;
-  /** What the call's operation loses, one entry per model, field or storage name. */
-  readonly dataLoss: readonly SubjectStorage[];
+  /** The call's label, which names its operation before the plan's slots are filled. */
+  readonly label: string;
+  /** What the call's operation loses, one entry per model, field or storage name, and how. */
+  readonly dataLoss: readonly (SubjectStorage & { readonly loss: MigrationDataLossKind })[];
   /** What the call's operation changes access to, and whether it widens it. */
   readonly accessWidening: readonly (SubjectStorage & { readonly widens: boolean })[];
+  /** The new required columns the call's operation gives a temporary value in existing rows, and the value. */
+  readonly temporaryValues: readonly TemporaryColumnValue[];
+}
+
+/** A new required column of `table` in the destination, and the temporary value its existing rows get. */
+export interface TemporaryColumnValue {
+  readonly table: string;
+  readonly column: string;
+  readonly value: string;
 }
 
 interface SubjectContext {
   readonly fromContract: ContractWithDomain | null;
   readonly contract: ContractWithDomain;
-  /** The rename statements the plan applied, whose renames a target names the new way. */
+  /** The statements the plan applied: a target names what their renames renamed the new way. */
   readonly statements: readonly ResolvedMigrationStatement[];
   readonly byHand: TableRenameByHand;
 }
@@ -88,7 +103,7 @@ function originTable(
   table: string,
 ): string {
   for (const statement of context.statements) {
-    if (statement.entity !== 'model') continue;
+    if (statement.kind !== 'rename' || statement.entity !== 'model') continue;
     const effect = modelRenameStorageEffect(statement, context.fromContract, context.contract);
     if (!effect.ok || effect.value.kind !== 'renameTable') continue;
     const { rename } = effect.value;
@@ -104,7 +119,7 @@ function originColumn(
   column: string,
 ): string {
   for (const statement of context.statements) {
-    if (statement.entity !== 'field') continue;
+    if (statement.kind !== 'rename' || statement.entity !== 'field') continue;
     const effect = fieldRenameStorageEffect(statement, context.fromContract, context.contract);
     if (!effect.ok || effect.value.kind !== 'renameColumn') continue;
     const rename = effect.value;
@@ -201,16 +216,28 @@ export function subjectsOfCalls(
 ): MigrationPlanSubjects {
   const dataLoss: MigrationDataLoss[] = [];
   const accessWidening: MigrationAccessChange[] = [];
+  const temporaryValues: MigrationTemporaryValue[] = [];
   let operationIndex = 0;
   for (const call of calls) {
+    for (const { table, column, value } of call.temporaryValues) {
+      temporaryValues.push({
+        operationIndex,
+        subject: fieldOfColumn(context.contract, table, column) ?? {
+          kind: 'storage',
+          name: `${table}.${column}`,
+        },
+        value,
+      });
+    }
     for (const target of call.dataLoss) {
       const subject = subjectOf(target, context);
-      const keepDataAdvice = keepTableAdvice(target, subject, context);
-      dataLoss.push(
-        keepDataAdvice === undefined
-          ? { operationIndex, subject }
-          : { operationIndex, subject, keepDataAdvice },
-      );
+      dataLoss.push({
+        operationIndex,
+        subject,
+        loss: target.loss,
+        label: call.label,
+        ...ifDefined('keepDataAdvice', keepTableAdvice(target, subject, context)),
+      });
     }
     for (const target of call.accessWidening) {
       accessWidening.push({
@@ -221,5 +248,5 @@ export function subjectsOfCalls(
     }
     operationIndex += call.operationCount;
   }
-  return { dataLoss, accessWidening };
+  return { dataLoss, accessWidening, temporaryValues };
 }

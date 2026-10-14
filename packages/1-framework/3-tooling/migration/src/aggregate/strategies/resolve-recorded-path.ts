@@ -123,11 +123,13 @@ export function resolveRecordedPath(input: ResolveRecordedPathInputs): ResolveRe
               {
                 operationIndex,
                 subject: { kind: 'storage' as const, name: input.storageNameOf(operation) },
+                label: operation.label,
               },
             ]
           : [],
       ),
       accessWidening: [],
+      temporaryValues: [],
       migrationEdges: edgeRefs,
       pathDecision: outcome.decision,
     },
