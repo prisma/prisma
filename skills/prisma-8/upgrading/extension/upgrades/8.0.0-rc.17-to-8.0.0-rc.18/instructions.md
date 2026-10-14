@@ -38,23 +38,6 @@ changes:
         - '(^|\n)\s*namespace\s+(public|unbound|__unbound__)\s*\{'
         - '(^|\n)[ \t]*(?!namespace[ \t])[A-Za-z_]\w*[ \t]+(public|unbound|__unbound__)[ \t]*\{'
         - '(^|\n)\s*(public|unbound|__unbound__)\s*=\s*\S'
-  - id: raw-sql-is-a-sql-literal
-    summary: |
-      `@@index(where:)`, `@@index(expression:)`, `@@fullTextIndex(where:)`, `@@check(expression:)` and a policy's `using` and `withCheck` take `sql` literals. A quoted string there is refused with `PSL_VALUE_TYPE_INCOMPATIBLE`.
-    detection:
-      glob: "**/*.prisma"
-      matches:
-        - '\b(where|expression)\s*:\s*["'']'
-        - '^\s*(using|withCheck)\s*=\s*["'']'
-    script: ./scripts/sql-expression-literals-psl/rewrite-sql-strings.mjs
-  - id: psl-storage-hash-may-change-once
-    summary: |
-      A raw SQL text with indentation shared by every line, blank lines at the start or end, a whitespace-only line or CRLF line breaks is stored as its canonical text once it is written as a `sql` literal, which changes the contract's storage hash once. For an index or check named with `map:`, `migration plan` then stops with a conflict and asks for a migration written with `migration new`. For a policy named with `@@map`, `migration plan` writes a migration that drops the policy and creates it again.
-    detection:
-      glob: "**/*.prisma"
-      matches:
-        - '\b(where|expression)\s*:\s*["'']'
-        - '^\s*(using|withCheck)\s*=\s*["'']'
   - id: block-spec-context-carries-data-types
     summary: |
       `BlockSpecContext` gains `dataTypes`, and `interpretExtensionBlocks`, `interpretExtensionBlock` and `interpretExtensionBlockAttributes` take a required `dataTypes`. `ControlDefaultRegistries` is deleted: an attribute spec context, `createBinder` and the Mongo PSL interpreter take `defaultFunctionRegistry` directly. Every factory in `sqlAttributeSpecs` takes the spec context.
@@ -73,14 +56,6 @@ changes:
         - '\bcanonicalizeTaggedLiteralBody\b'
         - '\bTaggedLiteralCanonicalization\b'
         - '\bprintSqlExpressionLiteral\b'
-  - id: supabase-contract-writes-sql-literals
-    summary: |
-      A pack's PSL contract, such as the Supabase pack's `src/contract/contract.prisma`, writes its raw SQL as `sql` literals. Its `contract.json` does not change.
-    detection:
-      glob: "**/src/contract/contract.prisma"
-      matches:
-        - '\b(where|expression)\s*:\s*["'']'
-        - '^\s*(using|withCheck)\s*=\s*["'']'
   - id: builder-raw-sql-is-a-sql-value
     summary: |
       In a TypeScript contract, `index({ where, expression })`, `check({ expression })`, `fullTextIndex({ where })` and the `using` and `withCheck` of `policySelect`, `policyInsert`, `policyUpdate`, `policyDelete` and `policyAll` take a `sql` value. A string there does not compile. Migration files keep strings.
@@ -403,35 +378,6 @@ A name declared both at the top level and inside `namespace public { … }` (the
 
 ## Raw SQL in PSL is a `sql` literal
 
-### Every place that holds raw SQL takes a `sql` literal
-
-Raw SQL in a PSL schema is written as a `sql` literal, the form `@default` already uses. A quoted string is refused in `@@index(where:)`, `@@index(expression:)`, `@@fullTextIndex(where:)`, `@@check(expression:)`, and a policy's `using` and `withCheck`:
-
-```diff
-- @@index([email], where: "(archived_at IS NULL)", name: "users_email_active")
-+ @@index([email], where: sql`(archived_at IS NULL)`, name: "users_email_active")
-- @@check(expression: "total > 0", name: "order_total_positive")
-+ @@check(expression: sql`total > 0`, name: "order_total_positive")
-- using = "\"userId\"::uuid = auth.uid()"
-+ using = sql`"userId"::uuid = auth.uid()`
-```
-
-Inside a `sql` literal no quote is escaped. Run the script from the package root to rewrite every `.prisma` file, including test fixtures and PSL held in `.prisma` files your tests read:
-
-```sh
-node <skill>/upgrading/extension/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/scripts/sql-expression-literals-psl/rewrite-sql-strings.mjs '**/*.prisma'
-```
-
-It skips `//` and `///` comments, decodes each quoted string's escapes, and writes the same text as a `sql` literal, in the double-quote form `sql"..."` when the text holds a backtick. It prints each changed file and its number of rewrites. It does not see PSL written inline in TypeScript, such as a schema string in a test; rewrite those by hand the same way.
-
-A place left as a quoted string is refused when the schema is interpreted: ``Expected sql`...`; write sql`(archived_at IS NULL)` ``, or ``Expected sql`...` `` alone when the text would read back from a `sql` literal as different text. A test that asserts the old acceptance, or the text of these messages, needs the new form.
-
-`contract infer` writes these places as `sql` literals. It writes the canonical text of an index with a Prisma-generated name, which keeps the name, and skips an object named with `map:` whose SQL would read back as different text, with a comment such as `// prisma: skipped check "c": its SQL cannot be written as a sql literal that reads back unchanged. It is not in this schema, so migration plan will drop it. A sql literal written by hand holds different text, so migration plan then stops with a conflict for an index or check, or drops and recreates a policy. Either change the SQL in the database to the text of the literal, or add the object without map: or @@map so Prisma names it.` `contract print` refuses such an object with `CONTRACT.PRINT_UNSUPPORTED`. A test that snapshots printed PSL expects `sql` literals.
-
-### `psl-storage-hash-may-change-once`
-
-A `sql` literal stores its canonical text: indentation shared by every line, blank lines at the start and end, whitespace-only lines and carriage returns are removed. Every blank line at the start and end is now removed, not only the first and the last, so a `sql` literal in PSL or a `sql` template in TypeScript that starts or ends with two or more blank lines also stores a different text once. A quoted string whose text had any of these is stored differently once it is rewritten, so the contract's storage hash changes once. Wire names of indexes, checks and policies do not change. Emit the contract again, and for a pack with migrations run `prisma migration plan` once and commit the migration, which has no operations for wire-named objects. For an index or check named with `map:` whose text changed, `migration plan` stops with a conflict and asks for a migration written with `migration new`; the database needs no change, so that migration has no operations. For a policy named with `@@map` whose text changed, `migration plan` writes a migration that drops the policy and creates it again with the canonical text.
-
 ### Spec contexts carry the stack's data types
 
 A block spec can now read the stack's data types, so a block parameter can receive a data type through `dataTypeValue`:
@@ -459,10 +405,6 @@ A spec factory that read `ctx.controlMutationDefaults.defaultFunctionRegistry` r
 `blockSpecContext({ symbols, dataTypes })` from `@internal/psl-parser` builds a `BlockSpecContext`. Every factory in `sqlAttributeSpecs` (from `@internal/sql-contract-psl/attribute-specs`) takes the spec context, including those whose spec does not read it: call `sqlAttributeSpecs.model.map(ctx)`, not `sqlAttributeSpecs.model.map()`.
 
 A spec that takes raw SQL can do what the SQL family and Postgres now do: declare `dataTypeValue(SQL_EXPRESSION_DATA_TYPE_ID, ctx.dataTypes)`, with `SQL_EXPRESSION_DATA_TYPE_ID` from `@internal/sql-contract/sql-expression`. The value it returns holds the canonical text; `sqlTextFromCanonical(value.value)` reads it.
-
-### A pack's PSL contract writes `sql` literals
-
-A pack that ships a PSL contract, such as the Supabase pack's `src/contract/contract.prisma`, rewrites its raw SQL with the script above and regenerates its contract (for Supabase, `pnpm --filter @internal/extension-supabase run contract:generate`). The texts in the Supabase contract are already canonical, so its `contract.json` and `contract.d.ts` do not change.
 
 ### Tagged literal text helpers
 
@@ -526,7 +468,7 @@ Update code that matches on these codes. Code that catches `CONTRACT.DEFAULT_INV
 
 ### `ts-storage-hash-may-change-once`
 
-A `sql` value stores its canonical text, as a PSL `sql` literal does: indentation shared by every line, blank lines at the start and end, whitespace-only lines and carriage returns are removed. A raw SQL string whose text had any of these, for example a multi-line template string, is stored differently once it is written as a `sql` value, so the contract's storage hash changes once. Prisma-generated index, check and policy names do not change. Skip files under a `migrations/` folder and leave them as they are: migration functions take a string or a `sql` value, and a string keeps its exact text, while wrapping it in `sql` canonicalizes it, which can change the SQL that migration runs. Follow the steps of `psl-storage-hash-may-change-once` in this guide: run `prisma migration plan` once and commit the migration it writes. For an index or check named with `map:` whose text changed, `migration plan` stops with a conflict and asks for a migration written with `migration new`, which needs no operations. The TypeScript policy helpers take no exact name, so a policy never needs this. A `{ fields, render }` index expression whose `render` returns text that is not canonical, such as indented multi-line text, also stores different text once, with the same steps; `fullTextIndex` stores its fields and language as data, renders no SQL, and is not affected.
+A `sql` value stores its canonical text, as a PSL `sql` literal does: indentation shared by every line, blank lines at the start and end, whitespace-only lines and carriage returns are removed. A raw SQL string whose text had any of these, for example a multi-line template string, is stored differently once it is written as a `sql` value, so the contract's storage hash changes once. Prisma-generated index, check and policy names do not change. Skip files under a `migrations/` folder and leave them as they are: migration functions take a string or a `sql` value, and a string keeps its exact text, while wrapping it in `sql` canonicalizes it, which can change the SQL that migration runs. Emit the contract again, and for a pack with migrations run `prisma migration plan` once and commit the migration it writes. For an index or check named with `map:` whose text changed, `migration plan` stops with a conflict and asks for a migration written with `migration new`, which needs no operations. The TypeScript policy helpers take no exact name, so a policy never needs this. A `{ fields, render }` index expression whose `render` returns text that is not canonical, such as indented multi-line text, also stores different text once, with the same steps; `fullTextIndex` stores its fields and language as data, renders no SQL, and is not affected.
 
 A contract built before this release can hold a column default whose text is not canonical. `contract infer` writes such a default with a note and `contract print` refuses it, for the reason ADR 268 gives ("Column defaults that do not read back"); the app instructions of this release say what to do.
 
