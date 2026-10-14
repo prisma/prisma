@@ -8,7 +8,7 @@
 
 ## At a glance
 
-A schema declares a full-text index and a vector field:
+A schema declares a full-text index over a post's title and body, and a vector field:
 
 ```prisma
 types {
@@ -17,87 +17,70 @@ types {
 
 model Post {
   id        Int            @id
+  userId    Int
   title     String
   body      String?
+  pinned    Boolean        @default(false)
   embedding Embedding1536?
 
   @@fullTextIndex([title, body], name: "post_search")
 }
 ```
 
-The application can search posts with no code of its own:
+With no code of its own, the application can search posts by text or by similarity:
 
 ```ts
-await db.Post.using.post_search(websearchToTsquery(input)).limit(10).all();
-await db.Post.using.embedding_nearest(queryVector).limit(5).all();
+await db.Post.using.post_search(websearchToTsquery('zebra crossing')).limit(10).all();
+await db.Post.where({ userId }).using.embedding_nearest(queryVector).limit(5).all();
 ```
 
-- `post_search` comes from the Postgres package. It gives one method for each full-text index, named after the index. The method keeps the posts that match and orders them by relevance.
-- `embedding_nearest` comes from the pgvector package. It gives one method for each vector field, named after the field.
-- Each package reads the model from the contract and decides which methods to give and what to call them. The ORM client collects them under `using`.
+The first call runs:
+
+```sql
+SELECT … FROM "post"
+WHERE <search document> @@ websearch_to_tsquery('english', $1)
+ORDER BY ts_rank(<search document>, websearch_to_tsquery('english', $1)) DESC
+LIMIT $2
+```
+
+`<search document>` is the expression the index was built over, the title weighted A and the body weighted B, so Postgres uses the index.
+
+Neither method is written by the application or declared in the schema. The Postgres package supplies `post_search`, because it knows how to search a full-text index. The pgvector package supplies `embedding_nearest`, because it knows how to search a vector field. Each package reads the model and decides which methods it offers and what to call them.
 
 ## Decision
 
-1. **A package can contribute collection methods.** For each model, the package reads the model and returns a table of methods. A method is a collection method like `where` or a method of a custom collection class: it receives the collection and returns it refined.
-2. **A contribution reads one model at a time:** the contract's target, the model's name, its fields with their codec ids and type parameters, its relations, and its storage table with columns and indexes. It does not read other models.
-3. **The package names its methods.** The ORM imposes no naming rule. Our packages name a method that serves an index after the index, and a method that serves a field after the field.
-4. **The ORM client offers the contributed methods under `using` on every collection.** A method returns the collection it was called on, with the `Filtered` and `Ordered` facts of what it applied (ADR 265).
-5. **The schema declares no methods.** A package works its methods out from what the contract already holds. The schema author controls them through the schema: naming an index names its method.
-6. **The types reach the application through a registry filled by declaration merging, loaded by the package's own import.** Never through the emitted `contract.d.ts` or anything it imports. The application writes `postgres<Contract>({ contractJson, extensions })` as today.
-7. **Two contributions that give one model a method with the same name are an error:** a compile error where the method is called, and a run-time refusal when the client is created.
-8. **A contributed method's order is an ordinary order.** It is added where the method is called, as `orderBy` is.
-9. **Each ORM client defines its own contribution interface.** This ADR defines the SQL ORM's. A MongoDB contribution's body would add pipeline stages, not `where` and `orderBy`, so it needs the MongoDB ORM's own interface, designed when its first case arrives.
+A package can contribute collection methods to the SQL ORM client. For each model, the package reads the model's definition in the contract and returns a set of named methods. The ORM client offers them on every collection of that model, under the member `using`. The application writes no code and no type arguments to get them.
 
-## Why
+## Why packages contribute methods
 
-### Every application wrote the same query
+A **collection** is what the ORM client gives the application for each model: `db.Post` is the collection of posts. Collection methods such as `where`, `orderBy` and `limit` each return a collection, so they chain. An application can add its own methods by writing a custom collection class.
 
-ADR 270 lets an ORM query name an index, so a search matches the index exactly:
+ADR 270 lets a query name one of the model's indexes, so a search matches the index exactly:
 
 ```ts
 db.Post
-  .where((p, { fns, indexes }) => fns.fullTextMatches(indexes.post_search, q))
-  .orderBy((p, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc());
+  .where((post, { fns, indexes }) => fns.fullTextMatches(indexes.post_search, q))
+  .orderBy((post, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc());
 ```
 
-Every application that searches writes these lines, usually as a method of its collection class. Nothing in them belongs to the application. The package that owns the index type knows the query, so it writes it once, for every model it applies to.
+Without contributed methods, every application that searches writes these two lines, usually as a method of its custom collection class. Nothing in them belongs to the application: given a full-text index, the query is always "match, then rank by relevance". The package that defines full-text indexes knows that query, so it should write it once, for every model that has such an index.
 
-### A package needs the whole model, not one index
+## A contribution
 
-The cases a package serves read different parts of a model:
+A package supplies its methods as a **contribution**, which has a run-time half and a type half. The pgvector one:
 
-| Case | Reads |
-| --- | --- |
-| Postgres full-text search | The table's `fullText` indexes, with their weights and language |
-| pgvector nearest neighbour | A field's codec (`pg/vector@1`) and its length |
-| A feature of the whole table, such as querying a system-versioned table as of a time | A table property; one method per model, with a name nothing in the schema gives |
-
-So a contribution receives the whole model and returns whatever methods it finds there. Limiting it to one index, or deciding names in the ORM, would rule out the second and third rows.
-
-A field already has its own operations, such as `cosineDistance` or `fullTextMatches`. A contributed method adds what a field operation cannot: a filter and an order together, and the settings an index holds, so the query matches the index.
-
-### The package names its methods
-
-Only the package knows what a method does, so only it can name it well. Naming a method after the element it serves is the convention our packages follow, because readers can then predict the name from the schema. A feature of the whole table has no element to name it after, and needs no special case.
-
-### Grouped under `using`
-
-`using` keeps contributed names apart from the collection's own methods and from a custom class's methods, so neither side can break the other by adding a method later. Placing contributed methods directly on the collection was measured in an earlier spike at about 4% more type checking for every application, and it breaks generic collection subclasses (TS2509) and custom class methods that share a name (TS2416).
-
-### Types through the package's own import
-
-The application already imports each package it uses, to pass it to the client, so that import can register the package's method types. The two other routes fail:
-
-- **A type argument inferred from the client call.** TypeScript infers no further type argument once the application writes `<Contract>`, so the application would have to write the contributions' types.
-- **The emitted `contract.d.ts`.** The contract's types describe the contract's data. They must not carry the types of one query interface, because the ORM client is interchangeable.
-
-The registry is global to a program: a client built without a package still shows that package's methods if anything in the program imports it. A method still only appears on a model with the matching field or index, and a client created without a package the contract lists already throws ("Contract requires extension pack(s) …").
-
-## How it works
-
-### A contribution
-
-A contribution has a type half and a run-time half. The pgvector one:
+```ts
+export const pgvectorNearestMethods: CollectionMethodContribution = {
+  id: 'pgvector/nearest',
+  methodsFor: (model) =>
+    Object.fromEntries(
+      vectorFields(model).map((field) => [
+        `${field}_nearest`,
+        (collection, vector, maxDistance) => /* a where and an orderBy on the distance to `vector` */,
+      ]),
+    ),
+};
+```
 
 ```ts
 type NearestMethodTable<Model extends CollectionMethodModel> = {
@@ -110,77 +93,111 @@ type NearestMethodTable<Model extends CollectionMethodModel> = {
 export interface PgvectorNearestMethods extends CollectionMethodsEntry {
   readonly methods: NearestMethodTable<this['model']>;
 }
+```
 
+- **The run-time half** has an id and a function, `methodsFor`, that receives one model and returns its methods by name. Each method receives the collection and the caller's arguments, and returns the collection with a `where`, an `orderBy` or both added. It uses only the public collection methods and ADR 270's `fns` and `indexes`.
+- **The type half** computes the same table for the type checker: method names and their parameter lists, from the model's type. Here the vector's length comes from the field's declared type, so passing a vector of the wrong length is a compile error.
+
+A method returns the collection it was called on, not a new kind of object. So it chains before and after other methods, works inside an `include`, inside a query fragment (ADR 259), and on `this` in a custom collection class, and a custom class stays that class (ADR 265).
+
+## What a contribution reads
+
+A contribution reads one model at a time: the contract's database target, the model's name, its fields with their types, its relations, and the table it is stored in, with that table's columns and indexes. It does not read other models.
+
+The cases a package serves need different parts of a model:
+
+| Case | Reads |
+| --- | --- |
+| Postgres full-text search | The table's full-text indexes, with their fields, weights and language |
+| pgvector nearest neighbour | A field whose type is a vector, and the vector's length |
+| A feature of the whole table, such as reading a system-versioned table as of a past time | A property of the table |
+
+One model is enough for all of them, and it keeps the type checker's work proportional to each model on its own.
+
+A field already has its own query operations, such as `cosineDistance` on a vector. A contributed method adds what a field operation cannot: a filter and an order together, built from settings the contract holds, such as an index's weights, so the query matches the index.
+
+## The package names its methods
+
+The ORM imposes no naming rule. Only the package knows what a method does, so it chooses the name. The packages in this repository name a method after the schema element it serves: the full-text method after its index (`post_search`), the vector method after its field (`embedding_nearest`). Readers can then predict the name from the schema, and the schema author controls it: naming an index names its method.
+
+A method for a feature of the whole table has no element to name it after. The package simply picks a name, such as `as_of`.
+
+The schema declares no methods. A package works its methods out from what the contract already holds.
+
+## Methods appear under `using`
+
+Contributed methods sit under one member, `using`, on every collection: `db.Post.using.post_search(q)`. The name reads as plain English ("posts, using `post_search`") and echoes SQL's `USING` for an index's access method.
+
+Keeping them under `using` means a contributed name can never collide with a collection method or with a method of a custom collection class, whatever either side adds later. It also keeps the cost to the type checker low, because the methods are computed in one place instead of being merged into every collection type.
+
+## How the types reach the application
+
+The application creates its client as usual and passes the packages it uses:
+
+```ts
+import pgvector from '@prisma/orm-extension-pgvector/runtime';
+
+const db = postgres<Contract>({ contractJson, extensions: [pgvector] });
+```
+
+The type half reaches the type checker through that import. The ORM defines an interface, `CollectionMethodRegistry`, and each package adds its entry to it with TypeScript's declaration merging, in a module the package's own entry point loads:
+
+```ts
 declare module '@internal/sql-relational-core/query-lane-context' {
   interface CollectionMethodRegistry {
     readonly 'pgvector/nearest': PgvectorNearestMethods;
   }
 }
-
-export const pgvectorNearestMethods: CollectionMethodContribution = {
-  id: 'pgvector/nearest',
-  methodsFor: (model) =>
-    Object.fromEntries(
-      vectorFields(model).map((field) => [
-        `${field}_nearest`,
-        (collection, vector, maxDistance) => /* where and orderBy on the field's distance */,
-      ]),
-    ),
-};
 ```
 
-- **The type half** is an interface whose `methods` is computed from `this['model']`. The ORM client fills `model` with each model's type and reads `methods` back: method names and their parameter lists.
-- **The run-time half** has the same id. `methodsFor` returns the model's methods by name. Each method receives the collection and the arguments and returns the collection, using only `where`, `orderBy` and ADR 270's `fns` and `indexes`.
-- `CollectionMethodRegistry` declares one optional marker member, so it is never an empty interface. An empty interface is rewritten by the lint to a type alias, which cannot be merged.
+For each model, the ORM's types read every registered entry, compute its method table for that model, and merge the tables into `using`.
 
-### At run time
+The emitted `contract.d.ts` never loads a registration. The contract's types describe the contract's data; they must not carry the types of one query interface, because the ORM client is interchangeable. The Postgres full-text entry loads through the Postgres client's entry points, `@prisma/orm-postgres/runtime` and `/serverless`.
 
-A target or extension descriptor may carry `collectionMethods`. When the ORM client is created, it asks each contribution for each model's methods once per execution context, and refuses with `ORM.ARGUMENT_INVALID` two contributions with the same id or two that give one model the same method name. A collection's `using` binds the model's methods to that collection.
+The registry is global to a program. If anything in a program imports pgvector, every client in it shows pgvector's methods, even one created without pgvector. A method still appears only on a model that has a vector field, and a client created without a package the contract lists fails at creation: "Contract requires extension pack(s) …".
 
-### In the types
+## Two packages, one name
 
-For each model, the ORM client builds the model's view, reads every registered entry's `methods` by indexed access, `(Entry & { readonly model: View })['methods']`, and merges the tables. A name that two entries give becomes `CollectionMethodNameClash<Name, Model, Ids>`, which has no call signature, so calling it fails with an error naming the method, the model and both contributions. `using` maps each parameter list to a method generic over its receiver, `<Receiver extends Self = Self>(...args) => Ordered<Filtered<Receiver>>`.
+If two contributions give one model a method with the same name, it is an error in both halves:
 
-The error texts:
+- **In the types,** the method's type is `CollectionMethodNameClash`, which cannot be called. The error names the method, the model and both contributions:
+  ```
+  This expression is not callable.
+    Type 'CollectionMethodNameClash<"post_search", "Post", "postgres/fullText" | "acme/search">' has no call signatures.
+  ```
+- **At run time,** the ORM client refuses to be created, with `ORM.ARGUMENT_INVALID`. It also refuses two contributions with the same id.
 
+A misspelled method is an ordinary compile error, `Property 'post_serach' does not exist on type 'CollectionMethods<Contract, "Post", …>'`. A model that no contribution serves has a `using` with no members.
+
+## A contributed method's order
+
+A contributed method's order is an ordinary order, added where the method is called, as `orderBy` is:
+
+```ts
+db.Post.orderBy((p) => p.pinned.desc()).using.post_search(q); // pinned posts first, then by relevance
+db.Post.using.post_search(q).orderBy((p) => p.id.asc());       // by relevance, then by id among equal matches
 ```
-Property 'search' does not exist on type 'CollectionMethods<Contract, "User", "public", ...>'.
 
-This expression is not callable.
-  Type 'CollectionMethodNameClash<"labelled", "Tag", "test/clash-a" | "test/clash-b">' has no call signatures.
-```
+## Cost
 
-### Where the types load
-
-The Postgres full-text entry loads through the Postgres client's own entry points (`@prisma/orm-postgres/runtime` and `/serverless`). The pgvector entry loads through the pgvector package's runtime entry. The emitted `contract.d.ts` imports neither.
-
-### Cost
-
-Type instantiations, `pnpm typecheck --extendedDiagnostics`, TypeScript 5.9.3, each count run twice with the same result, against the main commit the spike started from (`5ce30c940b`). The demo registers two contributions, full-text and pgvector.
-
-| | Client package, unused | Ten uses | `examples/prisma-8-demo`, unused | Ten uses |
-| --- | --- | --- | --- | --- |
-| Before | 2,393,607 | — | 904,324 | — |
-| This design | +1.66% | +1.73% | +1.20% | +1.39% |
-
-Reading an entry's table with a conditional type and `infer` instead of indexed access cost about one more point in both. The implementation records its final numbers here.
+With the Postgres full-text and pgvector contributions registered and no method in use, type checking `examples/prisma-8-demo` takes about 1.2% more type instantiations than with no contributions, and the ORM client package about 1.7% more. Ten uses add about 0.2 points. Measured with `pnpm typecheck --extendedDiagnostics` on TypeScript 5.9.3.
 
 ## Consequences
 
 - **An application searches a model with no code.** The Postgres clients register the full-text contribution for every application, and pgvector registers its own.
-- **Any package can add methods from anything in a model,** with no change to the ORM client.
-- **`using` is a member of every collection.** A custom class cannot declare its own `using`, and an aggregate cannot be named `using`.
-- **A library that uses contributed methods only inside function bodies** emits a declaration file that does not load the package's types. A program that sees only that file and the contract types has no methods until it imports the package itself. An application always imports its client, so this only affects such a program.
-- **Two cases the types accept that they should not.** A method infers its receiver from an expected type, so `const x: PostCollection = plain.using.post_search(q)` compiles when `PostCollection` is a subtype of the receiver. Inside an include refinement the result has the terminal methods back, so `.all()` compiles there; the ORM already refuses a terminal inside a refinement at run time.
-- **The word "scope" keeps its meaning** (ADR 259): a query fragment that only imposes conditions. A contributed method may also order, so it is a collection method.
-- **The MongoDB ORM client is unchanged.** Its first contribution, such as `$geoNear`, will also need its indexes to have names in the contract.
+- **Any package can add methods computed from anything in a model,** with no change to the ORM client.
+- **`using` is a member of every collection.** A custom collection class cannot declare its own `using`, and an aggregate cannot be named `using`.
+- **A library's declaration file may not load a package's types.** A library that uses contributed methods only inside function bodies emits a `.d.ts` without the import that registers them. A program that sees only that file and the contract types has no methods until it imports the package itself. An application always imports its client, so this only affects such a program.
+- **Two cases the types accept that they should not.** A method infers its receiver from an expected type, so `const x: PostCollection = plainPosts.using.post_search(q)` compiles when `PostCollection` is a subtype of the receiver. Inside an `include` refinement the result has the terminal methods back, so `.all()` compiles there; the ORM refuses a terminal inside a refinement at run time.
+- **The word "scope" keeps its meaning** (ADR 259): a query fragment that only imposes conditions. A contributed method may also order, so it is a collection method, not a scope.
+- **This covers the SQL ORM client only.** A MongoDB method would add pipeline stages rather than a `where` and an `orderBy`, so the MongoDB ORM client needs its own contribution interface. MongoDB indexes also need names in the contract before a package can name methods after them.
 
 ## Alternatives considered
 
-- **A contribution matches one index type, and its method is named after the index.** The first version of this ADR. It cannot serve a method computed from a field or from the table, and it decides names in the ORM.
-- **The package declares rules (per index, per field, per model) and the ORM builds names from a prefix and suffix.** About 0.5 points cheaper in the client package, but the ORM decides the names, and a rule cannot express "every model whose table has a column of codec X".
-- **Methods declared in the schema,** for example in a `scopes {}` block. Every case so far can be worked out from the model, and declarations would put the ORM's surface into the contract.
-- **Methods placed directly on the collection, `db.Post.post_search(q)`.** About 4% more type checking for every application, and it breaks generic collection subclasses (TS2509) and class methods sharing a name (TS2416).
+- **A contribution matches one index type, and its method is named after the index.** It cannot serve a method computed from a field or from the table, and the ORM decides the names.
+- **The package declares rules (one method per index, per field or per model) and the ORM builds the names from a prefix and a suffix.** About 0.5 points cheaper in the ORM client package, but the ORM decides the names, and no rule can express "every model whose table has a column of type X".
+- **Methods declared in the schema,** for example in a `scopes {}` block. Every case can be worked out from the model, and declarations would put the ORM's surface into the contract.
+- **Methods placed directly on the collection, `db.Post.post_search(q)`.** About 4% more type checking on the demo for every application, used or not. It also breaks a generic collection subclass (TS2509) and a custom class method that shares a contributed name (TS2416).
+- **A method name in two parts, element then operation, `db.Post.using.embedding.nearest(v)`.** A package that names its own methods can choose such names; the ORM need not require them.
 - **The method types loaded through the emitted `contract.d.ts`.** It ties the contract's types to one query interface.
-- **The contributions as a type argument of the client.** TypeScript infers no further type argument once `<Contract>` is written.
-- **A method name made of two parts, element then operation (`using.embedding.nearest(v)`).** Unnecessary once the package names methods itself; it can choose such names if it wants them.
+- **The contributions passed as a type argument of the client.** TypeScript infers no further type argument once the application writes `<Contract>`, so the application would have to write the contributions' types.
