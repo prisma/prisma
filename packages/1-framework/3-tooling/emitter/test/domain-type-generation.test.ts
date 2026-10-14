@@ -1084,7 +1084,7 @@ describe('generateFieldResolvedType', () => {
 
   describe('a codec whose contributor declares a parameterized output type function', () => {
     const typeFunction = {
-      package: '@internal/target-postgres/codec-types',
+      package: '@internal/demo/codec-types',
       named: 'ParameterizedOutputTypesForTypeParams',
       alias: 'PgParameterizedOutputTypes',
     };
