@@ -211,7 +211,7 @@ db.orm.public.Post.using.post_search(q).orderBy((p) => p.id.asc());       // by 
 
 ## Cost
 
-With the Postgres full-text and pgvector contributions registered and no method in use, type checking `examples/prisma-8-demo` takes 1.2% more type instantiations than the main branch this builds on (906,502 against 896,074). The ORM client package takes 0.7% more (2,445,552 against 2,427,689) with its test-only contributions removed; its tests register four test-only type halves, and with them it takes 1.2% more (2,456,360). Ten uses add 0.2 points in the demo and 0.1 points in the client package. Requiring each method's signature in the type half's table costs 41 instantiations in the package and none in the demo. Measured with `pnpm typecheck --extendedDiagnostics` on TypeScript 5.9.3; each count was the same in two runs.
+With the Postgres full-text and pgvector contributions registered and no method in use, type checking `examples/prisma-8-demo` takes 1.2% more type instantiations than the main branch this builds on (906,529 against 896,074). The ORM client package takes 0.7% more (2,445,578 against 2,427,715) with its test-only contributions removed; its tests register four test-only type halves, which serve only the models of their own fixture contract, and with them it takes 1.2% more (2,457,184). Ten uses add 0.2 points in the demo and 0.1 points in the client package. Requiring each method's signature in the type half's table costs 41 instantiations in the package and none in the demo. Measured with `pnpm typecheck --extendedDiagnostics` on TypeScript 5.9.3; each count was the same in two runs.
 
 ## Consequences
 
