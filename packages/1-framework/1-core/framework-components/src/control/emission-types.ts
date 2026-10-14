@@ -7,6 +7,8 @@ import type { TypesImportSpec } from '../shared/types-import-spec';
 
 export interface GenerateContractTypesOptions {
   readonly queryOperationTypeImports?: ReadonlyArray<TypesImportSpec>;
+  /** The type functions that give the output types of the stack's codecs for a column's type parameters (`types.codecTypes.parameterizedOutputTypes`). */
+  readonly parameterizedOutputTypeImports?: ReadonlyArray<TypesImportSpec>;
   /**
    * The aggregate overloads the composed stack contributes, and the codec descriptors they are settled against. A family emits result types from these — the same declarations its runtime registry resolves against, so emitted types and decoded results cannot disagree.
    */

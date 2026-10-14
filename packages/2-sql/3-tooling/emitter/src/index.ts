@@ -5,12 +5,13 @@ import type {
   JsonValue,
 } from '@internal/contract/types';
 import {
+  codecInputType,
+  codecOutputType,
   renderValueSetType,
   serializeNamespaceId,
   serializeObjectKey,
   serializeValue,
 } from '@internal/emitter/domain-type-generation';
-import { isSafeTypeExpression } from '@internal/emitter/type-expression-safety';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import type { AggregateDescriptor } from '@internal/framework-components/components';
 import { settleAggregateOverloads } from '@internal/framework-components/components';
@@ -523,24 +524,6 @@ export const sqlEmission = {
 
 type ColumnTypeSide = 'output' | 'input';
 
-function renderRefinedCodecType(
-  column: StorageColumn,
-  side: ColumnTypeSide,
-  params: Record<string, unknown> | undefined,
-  codecLookup: CodecLookup | undefined,
-): string {
-  if (codecLookup && params) {
-    const rendered =
-      side === 'output'
-        ? codecLookup.renderOutputTypeFor(column.codecId, params)
-        : codecLookup.renderInputTypeFor?.(column.codecId, params);
-    if (rendered && isSafeTypeExpression(rendered)) {
-      return rendered;
-    }
-  }
-  return `CodecTypes[${serializeValue(column.codecId)}][${serializeValue(side)}]`;
-}
-
 function computeColumnType(
   storage: SqlStorage,
   column: StorageColumn,
@@ -559,12 +542,11 @@ function computeColumnType(
       : undefined;
   }
   if (base === undefined) {
-    base = renderRefinedCodecType(
-      column,
-      side,
-      resolvedTypeParams(column, storage.types),
-      codecLookup,
-    );
+    const params = resolvedTypeParams(column, storage.types);
+    base =
+      side === 'output'
+        ? codecOutputType(column.codecId, params, codecLookup)
+        : codecInputType(column.codecId, params, codecLookup);
   }
   if (column.many !== false) {
     const element = column.many.elementNullable ? `${base} | null` : base;

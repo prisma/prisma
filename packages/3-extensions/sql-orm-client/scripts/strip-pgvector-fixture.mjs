@@ -10,7 +10,8 @@
  * devDependencies. The pgvector-typed surfaces (`Vector<N>`, parameterized
  * codec inputs) are exercised in `test/integration/test/sql-orm-client/`,
  * which keeps the dependency; the package-local fixture only needs neutral
- * stubs so `tsc --noEmit` resolves every type.
+ * stubs so `tsc --noEmit` resolves every type. The stub type function types a
+ * `vector(N)` column as `number[]`.
  *
  * The replacements mirror the hand-edit recorded in `d47ac6c25` so that
  * `pnpm fixtures:check` stays a no-op after `pnpm emit`.
@@ -38,7 +39,10 @@ const importBlock =
 const replacement = [
   '// pgvector types replaced with local aliases (see note above)',
   'type PgVectorTypes = object;',
-  'type Vector<_N extends number> = number[];',
+  'type PgVectorParameterizedOutputTypes = {',
+  '  readonly typeParams: Record<never, unknown>;',
+  "  readonly outputTypes: { readonly 'pg/vector@1': number[] };",
+  '};',
   'type PgVectorQueryOperationTypes<_C> = object;',
 ].join('\n');
 

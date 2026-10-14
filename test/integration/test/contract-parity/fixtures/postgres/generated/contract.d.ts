@@ -3,11 +3,8 @@
 // To regenerate, run: prisma contract emit
 import type { CodecTypes as ArktypeJsonTypes } from '@internal/extension-arktype-json/codec-types';
 import type {
-  Char,
   CodecTypes as PgTypes,
-  TimestampString,
-  TimestamptzString,
-  Varchar,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
 } from '@internal/target-postgres/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
@@ -20,6 +17,7 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
+  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -238,13 +236,22 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutput<
+  CodecId extends keyof CodecTypes,
+  TypeParams extends Record<string, unknown>,
+> = ParameterizedOutputType<
+  PgParameterizedOutputTypes,
+  CodecId,
+  TypeParams,
+  CodecTypes[CodecId]['output']
+>;
 
 export type FieldOutputTypes = {
   readonly auth: {
     readonly Account: {
-      readonly id: Char<24>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
       readonly provider: CodecTypes['pg/text@1']['output'];
-      readonly userId: Char<36>;
+      readonly userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     };
   };
   readonly public: {
@@ -252,57 +259,96 @@ export type FieldOutputTypes = {
       readonly code: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
     };
-    readonly Employee: { readonly id: Char<21>; readonly managerId: Char<21> | null };
-    readonly Generated: {
-      readonly cuid2: Char<24>;
-      readonly id: Char<36>;
-      readonly ksuid: Char<27>;
-      readonly nanoid: Char<21>;
-      readonly shortNanoid: Char<12>;
-      readonly ulid: Char<26>;
-      readonly uuidv7: Char<36>;
+    readonly Employee: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+      readonly managerId: ParameterizedOutput<'sql/char@1', { readonly length: 21 }> | null;
     };
-    readonly KeyCovered: { readonly id: Char<36>; readonly writerId: Char<36> };
-    readonly LongNamed: { readonly id: Char<36>; readonly organizationReference: Char<36> };
-    readonly PartialIndexed: { readonly id: Char<36>; readonly writerId: Char<36> };
-    readonly PlainIndexed: { readonly id: Char<36>; readonly writerId: Char<36> };
+    readonly Generated: {
+      readonly cuid2: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly ksuid: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
+      readonly nanoid: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+      readonly shortNanoid: ParameterizedOutput<'sql/char@1', { readonly length: 12 }>;
+      readonly ulid: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
+      readonly uuidv7: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
+    readonly KeyCovered: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
+    readonly LongNamed: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly organizationReference: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
+    readonly PartialIndexed: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
+    readonly PlainIndexed: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
     readonly Post: {
-      readonly authorId: Char<36>;
-      readonly id: Char<36>;
+      readonly authorId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly title: CodecTypes['pg/text@1']['output'];
     };
-    readonly PostTag: { readonly postId: Char<36>; readonly tagId: Char<26> };
+    readonly PostTag: {
+      readonly postId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly tagId: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
+    };
     readonly Profile: {
-      readonly id: Char<27>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
       readonly rank: CodecTypes['pg/int4@1']['output'];
       readonly settings: { fontSize: number; theme: string };
-      readonly userId: Char<36>;
+      readonly userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     };
-    readonly Tag: { readonly id: Char<26>; readonly label: CodecTypes['pg/text@1']['output'] };
-    readonly Unindexed: { readonly id: Char<36>; readonly writerId: Char<36> };
+    readonly Tag: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
+      readonly label: CodecTypes['pg/text@1']['output'];
+    };
+    readonly Unindexed: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
     readonly User: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly cuid2: Char<24>;
+      readonly cuid2: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
       readonly email: CodecTypes['pg/text@1']['output'];
-      readonly externalId: Char<36>;
-      readonly handle: Varchar<20>;
-      readonly id: Char<36>;
-      readonly ksuid: Char<27>;
-      readonly nanoid: Char<21>;
-      readonly seenAt: Date;
-      readonly shortNanoid: Char<10>;
-      readonly timestamp: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestampString: TimestampString<3>;
-      readonly timestampStringAlias: TimestampString<3>;
-      readonly timestamptz: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptzString: TimestamptzString<3>;
-      readonly timestamptzStringAlias: TimestamptzString<3> | null;
-      readonly ulid: Char<26>;
+      readonly externalId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly handle: ParameterizedOutput<'pg/varchar@1', { readonly length: 20 }>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly ksuid: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
+      readonly nanoid: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+      readonly seenAt: ParameterizedOutput<'pg/timestamptz-date@1', { readonly precision: 3 }>;
+      readonly shortNanoid: ParameterizedOutput<'sql/char@1', { readonly length: 10 }>;
+      readonly timestamp: ParameterizedOutput<'pg/timestamp-temporal@1', { readonly precision: 3 }>;
+      readonly timestampString: ParameterizedOutput<
+        'pg/timestamp-string@1',
+        { readonly precision: 3 }
+      >;
+      readonly timestampStringAlias: ParameterizedOutput<
+        'pg/timestamp-string@1',
+        { readonly precision: 3 }
+      >;
+      readonly timestamptz: ParameterizedOutput<
+        'pg/timestamptz-temporal@1',
+        { readonly precision: 6 }
+      >;
+      readonly timestamptzString: ParameterizedOutput<
+        'pg/timestamptz-string@1',
+        { readonly precision: 3 }
+      >;
+      readonly timestamptzStringAlias: ParameterizedOutput<
+        'pg/timestamptz-string@1',
+        { readonly precision: 3 }
+      > | null;
+      readonly ulid: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
     readonly UserBadge: {
       readonly badgeCode: CodecTypes['pg/text@1']['output'];
-      readonly userId: Char<36>;
+      readonly userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     };
   };
 };
@@ -400,9 +446,9 @@ export type FieldInputTypes = {
 export type StorageColumnTypes = {
   readonly auth: {
     readonly accounts: {
-      readonly id: Char<24>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
       readonly provider: CodecTypes['pg/text@1']['output'];
-      readonly userId: Char<36>;
+      readonly userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     };
   };
   readonly public: {
@@ -410,59 +456,98 @@ export type StorageColumnTypes = {
       readonly code: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
     };
-    readonly employees: { readonly id: Char<21>; readonly managerId: Char<21> | null };
+    readonly employees: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+      readonly managerId: ParameterizedOutput<'sql/char@1', { readonly length: 21 }> | null;
+    };
     readonly generated: {
-      readonly cuid2: Char<24>;
-      readonly id: Char<36>;
-      readonly ksuid: Char<27>;
-      readonly nanoid: Char<21>;
-      readonly shortNanoid: Char<12>;
-      readonly ulid: Char<26>;
-      readonly uuidv7: Char<36>;
+      readonly cuid2: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly ksuid: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
+      readonly nanoid: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+      readonly shortNanoid: ParameterizedOutput<'sql/char@1', { readonly length: 12 }>;
+      readonly ulid: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
+      readonly uuidv7: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     };
-    readonly key_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
+    readonly key_writers: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writer_id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
     readonly organization_membership_invitations: {
-      readonly id: Char<36>;
-      readonly organization_reference_identifier: Char<36>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly organization_reference_identifier: ParameterizedOutput<
+        'sql/char@1',
+        { readonly length: 36 }
+      >;
     };
-    readonly partial_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
-    readonly plain_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
-    readonly post_tags: { readonly postId: Char<36>; readonly tagId: Char<26> };
+    readonly partial_writers: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writer_id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
+    readonly plain_writers: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writer_id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
+    readonly post_tags: {
+      readonly postId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly tagId: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
+    };
     readonly posts: {
-      readonly authorId: Char<36>;
-      readonly id: Char<36>;
+      readonly authorId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly title: CodecTypes['pg/text@1']['output'];
     };
     readonly profiles: {
-      readonly id: Char<27>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
       readonly rank: CodecTypes['pg/int4@1']['output'];
       readonly settings: { fontSize: number; theme: string };
-      readonly userId: Char<36>;
+      readonly userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     };
-    readonly tags: { readonly id: Char<26>; readonly label: CodecTypes['pg/text@1']['output'] };
-    readonly unindexed_writers: { readonly id: Char<36>; readonly writer_id: Char<36> };
+    readonly tags: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
+      readonly label: CodecTypes['pg/text@1']['output'];
+    };
+    readonly unindexed_writers: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly writer_id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    };
     readonly user_badges: {
       readonly badgeCode: CodecTypes['pg/text@1']['output'];
-      readonly userId: Char<36>;
+      readonly userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     };
     readonly users: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly cuid2: Char<24>;
+      readonly cuid2: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
       readonly email: CodecTypes['pg/text@1']['output'];
-      readonly externalId: Char<36>;
-      readonly handle: Varchar<20>;
-      readonly id: Char<36>;
-      readonly ksuid: Char<27>;
-      readonly nanoid: Char<21>;
-      readonly seenAt: Date;
-      readonly shortNanoid: Char<10>;
-      readonly timestamp: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestampString: TimestampString<3>;
-      readonly timestampStringAlias: TimestampString<3>;
-      readonly timestamptz: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptzString: TimestamptzString<3>;
-      readonly timestamptzStringAlias: TimestamptzString<3> | null;
-      readonly ulid: Char<26>;
+      readonly externalId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly handle: ParameterizedOutput<'pg/varchar@1', { readonly length: 20 }>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly ksuid: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
+      readonly nanoid: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+      readonly seenAt: ParameterizedOutput<'pg/timestamptz-date@1', { readonly precision: 3 }>;
+      readonly shortNanoid: ParameterizedOutput<'sql/char@1', { readonly length: 10 }>;
+      readonly timestamp: ParameterizedOutput<'pg/timestamp-temporal@1', { readonly precision: 3 }>;
+      readonly timestampString: ParameterizedOutput<
+        'pg/timestamp-string@1',
+        { readonly precision: 3 }
+      >;
+      readonly timestampStringAlias: ParameterizedOutput<
+        'pg/timestamp-string@1',
+        { readonly precision: 3 }
+      >;
+      readonly timestamptz: ParameterizedOutput<
+        'pg/timestamptz-temporal@1',
+        { readonly precision: 6 }
+      >;
+      readonly timestamptzString: ParameterizedOutput<
+        'pg/timestamptz-string@1',
+        { readonly precision: 3 }
+      >;
+      readonly timestamptzStringAlias: ParameterizedOutput<
+        'pg/timestamptz-string@1',
+        { readonly precision: 3 }
+      > | null;
+      readonly ulid: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
   };
@@ -561,9 +646,9 @@ export type StorageColumnInputTypes = {
 
 export namespace Models {
   export type auth_Account = {
-    id: Char<24>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
     provider: CodecTypes['pg/text@1']['output'];
-    userId: Char<36>;
+    userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
@@ -573,92 +658,95 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type public_Employee = {
-    id: Char<21>;
-    managerId: Char<21> | null;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+    managerId: ParameterizedOutput<'sql/char@1', { readonly length: 21 }> | null;
     manager: public_Employee | null;
     reports: public_Employee[];
     readonly [RelationKeys]?: 'manager' | 'reports';
   };
   export type public_Generated = {
-    cuid2: Char<24>;
-    id: Char<36>;
-    ksuid: Char<27>;
-    nanoid: Char<21>;
-    shortNanoid: Char<12>;
-    ulid: Char<26>;
-    uuidv7: Char<36>;
+    cuid2: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    ksuid: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
+    nanoid: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+    shortNanoid: ParameterizedOutput<'sql/char@1', { readonly length: 12 }>;
+    ulid: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
+    uuidv7: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     readonly [RelationKeys]?: never;
   };
   export type public_KeyCovered = {
-    id: Char<36>;
-    writerId: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     readonly [RelationKeys]?: never;
   };
   export type public_LongNamed = {
-    id: Char<36>;
-    organizationReference: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    organizationReference: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     readonly [RelationKeys]?: never;
   };
   export type public_PartialIndexed = {
-    id: Char<36>;
-    writerId: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     readonly [RelationKeys]?: never;
   };
   export type public_PlainIndexed = {
-    id: Char<36>;
-    writerId: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     readonly [RelationKeys]?: never;
   };
   export type public_Post = {
-    authorId: Char<36>;
-    id: Char<36>;
+    authorId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     title: CodecTypes['pg/text@1']['output'];
     author: public_User;
     tags: public_Tag[];
     readonly [RelationKeys]?: 'author' | 'tags';
   };
   export type public_PostTag = {
-    postId: Char<36>;
-    tagId: Char<26>;
+    postId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    tagId: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
     readonly [RelationKeys]?: never;
   };
   export type public_Profile = {
-    id: Char<27>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
     rank: CodecTypes['pg/int4@1']['output'];
     settings: { fontSize: number; theme: string };
-    userId: Char<36>;
+    userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
   export type public_Tag = {
-    id: Char<26>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
     label: CodecTypes['pg/text@1']['output'];
     posts: public_Post[];
     readonly [RelationKeys]?: 'posts';
   };
   export type public_Unindexed = {
-    id: Char<36>;
-    writerId: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    writerId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     readonly [RelationKeys]?: never;
   };
   export type public_User = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    cuid2: Char<24>;
+    cuid2: ParameterizedOutput<'sql/char@1', { readonly length: 24 }>;
     email: CodecTypes['pg/text@1']['output'];
-    externalId: Char<36>;
-    handle: Varchar<20>;
-    id: Char<36>;
-    ksuid: Char<27>;
-    nanoid: Char<21>;
-    seenAt: Date;
-    shortNanoid: Char<10>;
-    timestamp: CodecTypes['pg/timestamp-temporal@1']['output'];
-    timestampString: TimestampString<3>;
-    timestampStringAlias: TimestampString<3>;
-    timestamptz: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    timestamptzString: TimestamptzString<3>;
-    timestamptzStringAlias: TimestamptzString<3> | null;
-    ulid: Char<26>;
+    externalId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    handle: ParameterizedOutput<'pg/varchar@1', { readonly length: 20 }>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+    ksuid: ParameterizedOutput<'sql/char@1', { readonly length: 27 }>;
+    nanoid: ParameterizedOutput<'sql/char@1', { readonly length: 21 }>;
+    seenAt: ParameterizedOutput<'pg/timestamptz-date@1', { readonly precision: 3 }>;
+    shortNanoid: ParameterizedOutput<'sql/char@1', { readonly length: 10 }>;
+    timestamp: ParameterizedOutput<'pg/timestamp-temporal@1', { readonly precision: 3 }>;
+    timestampString: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
+    timestampStringAlias: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
+    timestamptz: ParameterizedOutput<'pg/timestamptz-temporal@1', { readonly precision: 6 }>;
+    timestamptzString: ParameterizedOutput<'pg/timestamptz-string@1', { readonly precision: 3 }>;
+    timestamptzStringAlias: ParameterizedOutput<
+      'pg/timestamptz-string@1',
+      { readonly precision: 3 }
+    > | null;
+    ulid: ParameterizedOutput<'sql/char@1', { readonly length: 26 }>;
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
     accounts: auth_Account[];
     badges: public_Badge[];
@@ -668,7 +756,7 @@ export namespace Models {
   };
   export type public_UserBadge = {
     badgeCode: CodecTypes['pg/text@1']['output'];
-    userId: Char<36>;
+    userId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     readonly [RelationKeys]?: never;
   };
 }

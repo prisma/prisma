@@ -83,7 +83,7 @@ export const contract = defineContract({
 });
 ```
 
-The `vector(N)` factory is registered through the unified `CodecDescriptor<{ length: number }>` shape — `paramsSchema` validates the dimension at the contract boundary, `renderOutputType: ({ length }) => 'Vector<' + length + '>'` produces the column's TS type for `contract.d.ts`, and the curried `factory` materializes the runtime codec at context construction. See [ADR 208 — Higher-order codecs for parameterized types](../../../docs/architecture%20docs/adrs/ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md) for the descriptor model. Every pgvector column must declare an explicit dimension via `vector(N)`; the runtime codec is constructed against `{ length: N }`, so an undimensioned form has no honest descriptor signature.
+The `vector(N)` factory is registered through the unified `CodecDescriptor<{ length: number }>` shape — `paramsSchema` validates the dimension at the contract boundary and the curried `factory` materializes the runtime codec at context construction. The column's TypeScript type, `Vector<N>`, comes from the `ParameterizedOutputTypesForTypeParams` type function the `codec-types` entry exports; both `defineContract` and the emitted `contract.d.ts` apply it. See [ADR 208 — Higher-order codecs for parameterized types](../../../docs/architecture%20docs/adrs/ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md) for the descriptor model. Every pgvector column must declare an explicit dimension via `vector(N)`; the runtime codec is constructed against `{ length: N }`, so an undimensioned form has no honest descriptor signature.
 
 ### Runtime Setup
 

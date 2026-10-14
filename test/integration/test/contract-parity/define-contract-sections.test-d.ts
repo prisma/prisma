@@ -1,10 +1,10 @@
 import type { NamespacedEnums } from '@internal/contract/enum-accessor';
-import type { ParameterizedOutputTypesForTypeParams as PgvectorOutputTypes } from '@internal/extension-pgvector/codec-types';
 import type {
   ApplyParameterizedOutputTypes,
   ParameterizedOutputTypesFunction,
-  TypeMapsPhantomKey,
-} from '@internal/sql-contract/types';
+} from '@internal/contract/types';
+import type { ParameterizedOutputTypesForTypeParams as PgvectorOutputTypes } from '@internal/extension-pgvector/codec-types';
+import type { TypeMapsPhantomKey } from '@internal/sql-contract/types';
 import type { TableIndexReferences } from '@internal/sql-relational-core/index-reference';
 import type { ParameterizedOutputTypesForTypeParams as PostgresOutputTypes } from '@internal/target-postgres/codec-types';
 import { describe, expectTypeOf, test } from 'vitest';
@@ -449,7 +449,7 @@ type CodecsWithTypeParams = {
 }[keyof Fixtures];
 
 describe('parameterized output types a pack declares', () => {
-  // A pack restates, as types, what its codecs' renderOutputType writes; rendered-output-types.test.ts checks the reverse direction at run time.
+  // The emitted contract and the built one both type these columns through the pack's type function; rendered-output-types.test.ts checks every parameterized codec is declared there or classified.
   test('each is exercised with type parameters by a parity fixture, so the field type comparison checks it', () => {
     expectTypeOf<
       Exclude<

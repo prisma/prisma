@@ -3,10 +3,13 @@
 // To regenerate, run: prisma contract emit
 import type {
   CodecTypes as PgVectorTypes,
-  Vector,
+  ParameterizedOutputTypesForTypeParams as PgVectorParameterizedOutputTypes,
 } from '@prisma/orm-extension-pgvector/codec-types';
 import type { QueryOperationTypes as PgVectorQueryOperationTypes } from '@prisma/orm-extension-pgvector/operation-types';
-import type { CodecTypes as PgTypes } from '@prisma/orm-postgres/target/codec-types';
+import type {
+  CodecTypes as PgTypes,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
+} from '@prisma/orm-postgres/target/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@prisma/orm-postgres/target/operation-types';
 
 import type {
@@ -18,6 +21,7 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
+  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@prisma/orm-postgres/contract/types';
@@ -253,6 +257,15 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutput<
+  CodecId extends keyof CodecTypes,
+  TypeParams extends Record<string, unknown>,
+> = ParameterizedOutputType<
+  PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes,
+  CodecId,
+  TypeParams,
+  CodecTypes[CodecId]['output']
+>;
 export type AddressOutput = {
   readonly city: CodecTypes['pg/text@1']['output'];
   readonly country: CodecTypes['pg/text@1']['output'];
@@ -277,7 +290,7 @@ export type FieldOutputTypes = {
     };
     readonly Post: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly embedding: Vector<1536> | null;
+      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 1536 }> | null;
       readonly id: CodecTypes['pg/uuid@1']['output'];
       readonly impressionCount: CodecTypes['pg/int8@1']['output'] | null;
       readonly priority: 0 | 1 | 2;
@@ -375,7 +388,7 @@ export type StorageColumnTypes = {
     };
     readonly post: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly embedding: Vector<1536> | null;
+      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 1536 }> | null;
       readonly id: CodecTypes['pg/uuid@1']['output'];
       readonly impressionCount: CodecTypes['pg/int8@1']['output'] | null;
       readonly priority: 0 | 1 | 2;
@@ -491,7 +504,7 @@ export namespace Models {
   };
   export type public_Post = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    embedding: Vector<1536> | null;
+    embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 1536 }> | null;
     id: CodecTypes['pg/uuid@1']['output'];
     impressionCount: CodecTypes['pg/int8@1']['output'] | null;
     priority: 0 | 1 | 2;
@@ -1423,13 +1436,11 @@ type ContractBase = Omit<
             readonly named: 'CodecTypes';
             readonly package: '@internal/extension-pgvector/codec-types';
           };
-          readonly typeImports: readonly [
-            {
-              readonly alias: 'Vector';
-              readonly named: 'Vector';
-              readonly package: '@internal/extension-pgvector/codec-types';
-            },
-          ];
+          readonly parameterizedOutputTypes: {
+            readonly alias: 'PgVectorParameterizedOutputTypes';
+            readonly named: 'ParameterizedOutputTypesForTypeParams';
+            readonly package: '@internal/extension-pgvector/codec-types';
+          };
         };
         readonly operationTypes: {
           readonly import: {

@@ -4,6 +4,8 @@ import type {
   ContractExecutionSection,
   ContractRelation,
   NamespaceId,
+  ParameterizedOutputType,
+  ParameterizedOutputTypesFunction,
   StorageHashBase,
 } from '@internal/contract/types';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
@@ -11,12 +13,10 @@ import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
 import type {
   AggregateTypesFromDescriptors,
-  ApplyParameterizedOutputTypes,
   ApplyQueryOperationTypes,
   AuthoredStorageTypeInstance,
   ContractWithTypeMaps,
   ForeignKeyIndex,
-  ParameterizedOutputTypesFunction,
   QueryOperationTypesFunction,
   ReferentialAction,
 } from '@internal/sql-contract/types';
@@ -1508,31 +1508,17 @@ type FieldColumnTypeParams<Definition, FieldState> =
       : undefined
     : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
-type PackParameterizedOutputType<
-  Pack,
-  CodecId,
-  TypeParams extends Record<string, unknown>,
-> = Pack extends { readonly __parameterizedOutputTypes?: infer TypeFunction }
+type PackParameterizedOutputTypes<Pack> = Pack extends {
+  readonly __parameterizedOutputTypes?: infer TypeFunction;
+}
   ? Present<TypeFunction> extends infer Defined extends ParameterizedOutputTypesFunction
-    ? ApplyParameterizedOutputTypes<Defined, TypeParams> extends infer Outputs
-      ? CodecId extends keyof Outputs
-        ? Outputs[CodecId]
-        : never
-      : never
+    ? Defined
     : never
   : never;
 
-// The output type a codec's `renderOutputType` gives a column with these type parameters, or `never` when it gives none.
-type ParameterizedOutputType<Definition, CodecId, TypeParams> =
-  TypeParams extends Record<string, unknown>
-    ? {
-        [K in keyof AllPacks<Definition>]: PackParameterizedOutputType<
-          AllPacks<Definition>[K],
-          CodecId,
-          TypeParams
-        >;
-      }[keyof AllPacks<Definition>]
-    : never;
+type ParameterizedOutputTypesFromDefinition<Definition> = {
+  [K in keyof AllPacks<Definition>]: PackParameterizedOutputTypes<AllPacks<Definition>[K]>;
+}[keyof AllPacks<Definition>];
 
 // The value type of the codec a column spec's factory builds, such as the type an arktype schema infers; `never` for a descriptor without a factory.
 type ColumnSpecCodecOutput<Descriptor> = Descriptor extends {
@@ -1551,11 +1537,16 @@ type RefinedChannelType<
   Plain,
   Descriptor,
 > = Channel extends 'output'
-  ? [ParameterizedOutputType<Definition, CodecId, TypeParams>] extends [never]
-    ? [ColumnSpecCodecOutput<Descriptor>] extends [never]
-      ? Plain
-      : ColumnSpecCodecOutput<Descriptor>
-    : ParameterizedOutputType<Definition, CodecId, TypeParams>
+  ? [ColumnSpecCodecOutput<Descriptor>] extends [never]
+    ? TypeParams extends Record<string, unknown>
+      ? ParameterizedOutputType<
+          ParameterizedOutputTypesFromDefinition<Definition>,
+          CodecId,
+          TypeParams,
+          Plain
+        >
+      : Plain
+    : ColumnSpecCodecOutput<Descriptor>
   : Plain;
 
 // The codec's `output` / `input` JS type for a field's column, before

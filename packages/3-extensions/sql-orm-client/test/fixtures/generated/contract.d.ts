@@ -8,9 +8,15 @@
 // The integration tests that exercise pgvector-specific operations live in test/integration/.
 // pgvector types replaced with local aliases (see note above)
 type PgVectorTypes = object;
-type Vector<_N extends number> = number[];
+type PgVectorParameterizedOutputTypes = {
+  readonly typeParams: Record<never, unknown>;
+  readonly outputTypes: { readonly 'pg/vector@1': number[] };
+};
 type PgVectorQueryOperationTypes<_C> = object;
-import type { Char, CodecTypes as PgTypes } from '@internal/target-postgres/codec-types';
+import type {
+  CodecTypes as PgTypes,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
+} from '@internal/target-postgres/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
@@ -22,6 +28,7 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
+  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -241,6 +248,15 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutput<
+  CodecId extends keyof CodecTypes,
+  TypeParams extends Record<string, unknown>,
+> = ParameterizedOutputType<
+  PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes,
+  CodecId,
+  TypeParams,
+  CodecTypes[CodecId]['output']
+>;
 export type AddressOutput = {
   readonly city: CodecTypes['pg/text@1']['output'];
   readonly street: CodecTypes['pg/text@1']['output'];
@@ -264,7 +280,7 @@ export type FieldOutputTypes = {
       readonly postId: CodecTypes['pg/int4@1']['output'];
     };
     readonly Post: {
-      readonly embedding: Vector<3> | null;
+      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 3 }> | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly userId: CodecTypes['pg/int4@1']['output'];
@@ -286,8 +302,14 @@ export type FieldOutputTypes = {
       readonly srcId: CodecTypes['pg/int4@1']['output'];
       readonly srcTenantId: CodecTypes['pg/int4@1']['output'];
     };
-    readonly Role: { readonly id: Char<36>; readonly name: CodecTypes['pg/text@1']['output'] };
-    readonly Tag: { readonly id: Char<36>; readonly name: CodecTypes['pg/text@1']['output'] };
+    readonly Role: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
+    readonly Tag: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
     readonly User: {
       readonly address: AddressOutput | null;
       readonly email: CodecTypes['pg/text@1']['output'];
@@ -297,13 +319,13 @@ export type FieldOutputTypes = {
     };
     readonly UserRole: {
       readonly level: CodecTypes['pg/int4@1']['output'];
-      readonly roleId: Char<36>;
+      readonly roleId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
     readonly UserTag: {
       readonly createdAt: CodecTypes['pg/text@1']['output'];
       readonly note: CodecTypes['pg/text@1']['output'] | null;
-      readonly tagId: Char<36>;
+      readonly tagId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly userId: CodecTypes['pg/int4@1']['output'];
     };
   };
@@ -384,7 +406,7 @@ export type StorageColumnTypes = {
       readonly post_id: CodecTypes['pg/int4@1']['output'];
     };
     readonly posts: {
-      readonly embedding: Vector<3> | null;
+      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 3 }> | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly title: CodecTypes['pg/text@1']['output'];
       readonly user_id: CodecTypes['pg/int4@1']['output'];
@@ -406,17 +428,23 @@ export type StorageColumnTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly tenant_id: CodecTypes['pg/int4@1']['output'];
     };
-    readonly roles: { readonly id: Char<36>; readonly name: CodecTypes['pg/text@1']['output'] };
-    readonly tags: { readonly id: Char<36>; readonly name: CodecTypes['pg/text@1']['output'] };
+    readonly roles: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
+    readonly tags: {
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
+      readonly name: CodecTypes['pg/text@1']['output'];
+    };
     readonly user_roles: {
       readonly level: CodecTypes['pg/int4@1']['output'];
-      readonly role_id: Char<36>;
+      readonly role_id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly user_id: CodecTypes['pg/int4@1']['output'];
     };
     readonly user_tags: {
       readonly created_at: CodecTypes['pg/text@1']['output'];
       readonly note: CodecTypes['pg/text@1']['output'] | null;
-      readonly tag_id: Char<36>;
+      readonly tag_id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly user_id: CodecTypes['pg/int4@1']['output'];
     };
     readonly users: {
@@ -507,7 +535,7 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type public_Post = {
-    embedding: Vector<3> | null;
+    embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 3 }> | null;
     id: CodecTypes['pg/int4@1']['output'];
     title: CodecTypes['pg/text@1']['output'];
     userId: CodecTypes['pg/int4@1']['output'];
@@ -538,12 +566,12 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type public_Role = {
-    id: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     name: CodecTypes['pg/text@1']['output'];
     readonly [RelationKeys]?: never;
   };
   export type public_Tag = {
-    id: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     name: CodecTypes['pg/text@1']['output'];
     readonly [RelationKeys]?: never;
   };
@@ -563,14 +591,14 @@ export namespace Models {
   };
   export type public_UserRole = {
     level: CodecTypes['pg/int4@1']['output'];
-    roleId: Char<36>;
+    roleId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     userId: CodecTypes['pg/int4@1']['output'];
     readonly [RelationKeys]?: never;
   };
   export type public_UserTag = {
     createdAt: CodecTypes['pg/text@1']['output'];
     note: CodecTypes['pg/text@1']['output'] | null;
-    tagId: Char<36>;
+    tagId: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     userId: CodecTypes['pg/int4@1']['output'];
     readonly [RelationKeys]?: never;
   };
@@ -1566,13 +1594,11 @@ type ContractBase = Omit<
             readonly named: 'CodecTypes';
             readonly package: '@internal/extension-pgvector/codec-types';
           };
-          readonly typeImports: readonly [
-            {
-              readonly alias: 'Vector';
-              readonly named: 'Vector';
-              readonly package: '@internal/extension-pgvector/codec-types';
-            },
-          ];
+          readonly parameterizedOutputTypes: {
+            readonly alias: 'PgVectorParameterizedOutputTypes';
+            readonly named: 'ParameterizedOutputTypesForTypeParams';
+            readonly package: '@internal/extension-pgvector/codec-types';
+          };
         };
         readonly operationTypes: {
           readonly import: {

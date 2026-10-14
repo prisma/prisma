@@ -1082,6 +1082,60 @@ describe('generateFieldResolvedType', () => {
     expect(generateFieldResolvedType(field, lookup)).toBe('Char<36>');
   });
 
+  describe('a codec whose contributor declares a parameterized output type function', () => {
+    const typeFunction = {
+      package: '@internal/target-postgres/codec-types',
+      named: 'ParameterizedOutputTypesForTypeParams',
+      alias: 'PgParameterizedOutputTypes',
+    };
+    const lookupWith = (renderOutputType?: (params: Record<string, unknown>) => string) => ({
+      ...stubCodecLookup({
+        'pg/char@1': stubCodec({
+          id: 'pg/char@1',
+          ...(renderOutputType ? { renderOutputType } : {}),
+        }),
+      }),
+      parameterizedOutputTypesFor: (id: string) => (id === 'pg/char@1' ? typeFunction : undefined),
+    });
+
+    it('types a column with type parameters by applying the type function', () => {
+      const field: ContractField = {
+        nullable: true,
+        type: { kind: 'scalar', codecId: 'pg/char@1', typeParams: { length: 36 } },
+        many: false,
+      };
+      expect(resolveFieldType(field, lookupWith())).toEqual({
+        output: 'ParameterizedOutput<"pg/char@1", { readonly length: 36 }> | null',
+        input: 'CodecTypes["pg/char@1"]["input"] | null',
+      });
+    });
+
+    it('prefers the type text the codec renders', () => {
+      const field: ContractField = {
+        nullable: false,
+        type: { kind: 'scalar', codecId: 'pg/char@1', typeParams: { length: 36 } },
+        many: false,
+      };
+      expect(
+        generateFieldResolvedType(
+          field,
+          lookupWith((p) => `Char<${p['length']}>`),
+        ),
+      ).toBe('Char<36>');
+    });
+
+    it('types a column without type parameters by the plain output type', () => {
+      const field: ContractField = {
+        nullable: false,
+        type: { kind: 'scalar', codecId: 'pg/char@1' },
+        many: false,
+      };
+      expect(generateFieldResolvedType(field, lookupWith())).toBe(
+        'CodecTypes["pg/char@1"]["output"]',
+      );
+    });
+  });
+
   it('falls back to CodecTypes lookup when no codecLookup provided', () => {
     const field: ContractField = {
       nullable: false,

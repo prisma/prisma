@@ -72,7 +72,7 @@ describe('postgres defineContract wrap', () => {
     });
   });
 
-  it('emits Date output via the codec map or the precision renderer', () => {
+  it('emits Date output via the codec map', () => {
     const contract = defineContract({}, ({ field: f, model: m }) => ({
       models: {
         Event: m('Event', {
@@ -94,7 +94,7 @@ describe('postgres defineContract wrap', () => {
     );
     expect(dts).toContain('import type { CodecTypes as PgTypes }');
     expect(dts).toContain('readonly at: CodecTypes["pg/timestamptz-date@1"]["output"]');
-    expect(dts).toContain('readonly maybe: Date | null');
+    expect(dts).toContain('readonly maybe: CodecTypes["pg/timestamptz-date@1"]["output"] | null');
     expect(dts).not.toContain('Date<');
     expect(dts).not.toContain('import type { Date }');
   });

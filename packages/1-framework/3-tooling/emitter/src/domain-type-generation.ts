@@ -364,6 +364,48 @@ export function renderValueSetType(
   return literals.join(' | ');
 }
 
+/** The local alias an emitted `contract.d.ts` types a column with type parameters through; see {@link parameterizedOutputAlias}. */
+export const PARAMETERIZED_OUTPUT = 'ParameterizedOutput';
+
+/**
+ * The declaration of {@link PARAMETERIZED_OUTPUT}: `ParameterizedOutputType` from `@internal/contract/types` applied to the type functions the stack's components declare, falling back to the codec's plain output type.
+ */
+export function parameterizedOutputAlias(typeFunctions: ReadonlyArray<TypesImportSpec>): string {
+  const aliases = [...new Set(typeFunctions.map((typeFunction) => typeFunction.alias))];
+  const combined = aliases.length > 0 ? aliases.join(' | ') : 'never';
+  return `type ${PARAMETERIZED_OUTPUT}<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<${combined}, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;`;
+}
+
+/**
+ * The output type of a value of codec `codecId` in a column with these type parameters. A codec that renders its own type text (`renderOutputType`) gets that text. Otherwise, when the codec's contributor declares a type function for parameterized output types, the type applies it, through {@link PARAMETERIZED_OUTPUT}, so the pack's type-level declaration is the only one. Otherwise it is the codec's plain output type.
+ */
+export function codecOutputType(
+  codecId: string,
+  typeParams: Record<string, unknown> | undefined,
+  codecLookup: CodecLookup | undefined,
+): string {
+  const plain = `CodecTypes[${serializeValue(codecId)}]["output"]`;
+  if (codecLookup === undefined || typeParams === undefined) return plain;
+  const rendered = codecLookup.renderOutputTypeFor(codecId, typeParams);
+  if (rendered && isSafeTypeExpression(rendered)) return rendered;
+  const typeFunction = codecLookup.parameterizedOutputTypesFor?.(codecId);
+  if (typeFunction === undefined) return plain;
+  return `${PARAMETERIZED_OUTPUT}<${serializeValue(codecId)}, ${serializeValue(typeParams)}>`;
+}
+
+/** The input type of a value of codec `codecId` in a column with these type parameters: the text the codec renders (`renderInputType`), or its plain input type. */
+export function codecInputType(
+  codecId: string,
+  typeParams: Record<string, unknown> | undefined,
+  codecLookup: CodecLookup | undefined,
+): string {
+  if (codecLookup !== undefined && typeParams !== undefined) {
+    const rendered = codecLookup.renderInputTypeFor?.(codecId, typeParams);
+    if (rendered && isSafeTypeExpression(rendered)) return rendered;
+  }
+  return `CodecTypes[${serializeValue(codecId)}]["input"]`;
+}
+
 export function resolveFieldType(
   field: ContractField,
   codecLookup?: CodecLookup,
@@ -393,24 +435,11 @@ export function resolveFieldType(
           };
         }
       }
-      let outputResolved: string | undefined;
-      let inputResolved: string | undefined;
       const typeParams =
         type.typeParams && Object.keys(type.typeParams).length > 0 ? type.typeParams : undefined;
-      if (codecLookup && typeParams) {
-        const rendered = codecLookup.renderOutputTypeFor(type.codecId, typeParams);
-        if (rendered && isSafeTypeExpression(rendered)) {
-          outputResolved = rendered;
-        }
-        const renderedInput = codecLookup.renderInputTypeFor?.(type.codecId, typeParams);
-        if (renderedInput && isSafeTypeExpression(renderedInput)) {
-          inputResolved = renderedInput;
-        }
-      }
-      const codecAccessor = `CodecTypes[${serializeValue(type.codecId)}]`;
       return {
-        output: applyModifiers(outputResolved ?? `${codecAccessor}["output"]`, field),
-        input: applyModifiers(inputResolved ?? `${codecAccessor}["input"]`, field),
+        output: applyModifiers(codecOutputType(type.codecId, typeParams, codecLookup), field),
+        input: applyModifiers(codecInputType(type.codecId, typeParams, codecLookup), field),
       };
     }
     case 'valueObject':

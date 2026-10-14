@@ -371,19 +371,6 @@ export type ApplyQueryOperationTypes<
   CodecTypes extends Record<string, { readonly input: unknown; readonly output: unknown }>,
 > = (TypeFunction & { readonly codecTypes: CodecTypes })['queryOperationTypes'];
 
-/**
- * A pack's codec output types refined by a column's type parameters, as the codecs' `renderOutputType` writes them into an emitted `contract.d.ts`. A pack declares an interface extending this one whose `outputTypes` reads `this['typeParams']`; a codec it leaves out, or maps to `never`, keeps its plain output type.
- */
-export interface ParameterizedOutputTypesFunction {
-  readonly typeParams: Record<never, unknown>;
-  readonly outputTypes: Record<string, unknown>;
-}
-
-export type ApplyParameterizedOutputTypes<
-  TypeFunction extends ParameterizedOutputTypesFunction,
-  TypeParams extends Record<string, unknown>,
-> = (TypeFunction & { readonly typeParams: TypeParams })['outputTypes'];
-
 export type QueryOperationTypesOf<T> = [T] extends [never]
   ? Record<string, never>
   : T extends { readonly queryOperationTypes: infer Q }

@@ -4,18 +4,12 @@
 import type { CodecTypes as ArktypeJsonTypes } from '@prisma/orm-extension-arktype-json/codec-types';
 import type {
   CodecTypes as PgVectorTypes,
-  Vector,
+  ParameterizedOutputTypesForTypeParams as PgVectorParameterizedOutputTypes,
 } from '@prisma/orm-extension-pgvector/codec-types';
 import type { QueryOperationTypes as PgVectorQueryOperationTypes } from '@prisma/orm-extension-pgvector/operation-types';
 import type {
-  Bit,
-  Char,
   CodecTypes as PgTypes,
-  Interval,
-  Numeric,
-  Timetz,
-  VarBit,
-  Varchar,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
 } from '@prisma/orm-postgres/target/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@prisma/orm-postgres/target/operation-types';
 
@@ -28,6 +22,7 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
+  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@prisma/orm-postgres/contract/types';
@@ -247,6 +242,15 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutput<
+  CodecId extends keyof CodecTypes,
+  TypeParams extends Record<string, unknown>,
+> = ParameterizedOutputType<
+  PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes,
+  CodecId,
+  TypeParams,
+  CodecTypes[CodecId]['output']
+>;
 
 export type FieldOutputTypes = {
   readonly public: {
@@ -258,13 +262,13 @@ export type FieldOutputTypes = {
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
     };
     readonly Embedding: {
-      readonly embedding: Vector<1536>;
+      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 1536 }>;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly profile: { age: number; name: string };
     };
     readonly Event: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: Char<36>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly scheduledAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -279,16 +283,25 @@ export type FieldOutputTypes = {
       readonly tags: CodecTypes['pg/jsonb@1']['output'];
     };
     readonly ParamTypes: {
-      readonly bits: VarBit<12> | null;
-      readonly code: Char<16> | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-      readonly duration: Interval<6> | null;
-      readonly flags: Bit<8> | null;
+      readonly bits: ParameterizedOutput<'pg/varbit@1', { readonly length: 12 }> | null;
+      readonly code: ParameterizedOutput<'sql/char@1', { readonly length: 16 }> | null;
+      readonly createdAt: ParameterizedOutput<
+        'pg/timestamptz-temporal@1',
+        { readonly precision: 3 }
+      > | null;
+      readonly duration: ParameterizedOutput<'pg/interval@1', { readonly precision: 6 }> | null;
+      readonly flags: ParameterizedOutput<'pg/bit@1', { readonly length: 8 }> | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: Varchar<255> | null;
-      readonly price: Numeric<10, 2> | null;
-      readonly startsAt: CodecTypes['pg/time-temporal@1']['output'] | null;
-      readonly startsAtTz: Timetz<2> | null;
+      readonly name: ParameterizedOutput<'sql/varchar@1', { readonly length: 255 }> | null;
+      readonly price: ParameterizedOutput<
+        'pg/numeric@1',
+        { readonly precision: 10; readonly scale: 2 }
+      > | null;
+      readonly startsAt: ParameterizedOutput<
+        'pg/time-temporal@1',
+        { readonly precision: 2 }
+      > | null;
+      readonly startsAtTz: ParameterizedOutput<'pg/timetz@1', { readonly precision: 2 }> | null;
     };
     readonly Post: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -301,7 +314,7 @@ export type FieldOutputTypes = {
     };
     readonly User: {
       readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly email: Varchar<255>;
+      readonly email: ParameterizedOutput<'sql/varchar@1', { readonly length: 255 }>;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly profile: CodecTypes['pg/jsonb@1']['output'] | null;
       readonly updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
@@ -378,13 +391,13 @@ export type StorageColumnTypes = {
       readonly update_at: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
     };
     readonly embedding: {
-      readonly embedding: Vector<1536>;
+      readonly embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 1536 }>;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly profile: { age: number; name: string };
     };
     readonly event: {
       readonly created_at: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: Char<36>;
+      readonly id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
       readonly name: CodecTypes['pg/text@1']['output'];
       readonly scheduled_at: CodecTypes['pg/timestamptz-string@1']['output'];
     };
@@ -399,16 +412,25 @@ export type StorageColumnTypes = {
       readonly tags: CodecTypes['pg/jsonb@1']['output'];
     };
     readonly param_types: {
-      readonly bits: VarBit<12> | null;
-      readonly code: Char<16> | null;
-      readonly created_at: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-      readonly duration: Interval<6> | null;
-      readonly flags: Bit<8> | null;
+      readonly bits: ParameterizedOutput<'pg/varbit@1', { readonly length: 12 }> | null;
+      readonly code: ParameterizedOutput<'sql/char@1', { readonly length: 16 }> | null;
+      readonly created_at: ParameterizedOutput<
+        'pg/timestamptz-temporal@1',
+        { readonly precision: 3 }
+      > | null;
+      readonly duration: ParameterizedOutput<'pg/interval@1', { readonly precision: 6 }> | null;
+      readonly flags: ParameterizedOutput<'pg/bit@1', { readonly length: 8 }> | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: Varchar<255> | null;
-      readonly price: Numeric<10, 2> | null;
-      readonly starts_at: CodecTypes['pg/time-temporal@1']['output'] | null;
-      readonly starts_at_tz: Timetz<2> | null;
+      readonly name: ParameterizedOutput<'sql/varchar@1', { readonly length: 255 }> | null;
+      readonly price: ParameterizedOutput<
+        'pg/numeric@1',
+        { readonly precision: 10; readonly scale: 2 }
+      > | null;
+      readonly starts_at: ParameterizedOutput<
+        'pg/time-temporal@1',
+        { readonly precision: 2 }
+      > | null;
+      readonly starts_at_tz: ParameterizedOutput<'pg/timetz@1', { readonly precision: 2 }> | null;
     };
     readonly post: {
       readonly created_at: CodecTypes['pg/timestamptz-temporal@1']['output'];
@@ -421,7 +443,7 @@ export type StorageColumnTypes = {
     };
     readonly user: {
       readonly created_at: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly email: Varchar<255>;
+      readonly email: ParameterizedOutput<'sql/varchar@1', { readonly length: 255 }>;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly profile: CodecTypes['pg/jsonb@1']['output'] | null;
       readonly update_at: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
@@ -500,14 +522,14 @@ export namespace Models {
     readonly [RelationKeys]?: 'post';
   };
   export type public_Embedding = {
-    embedding: Vector<1536>;
+    embedding: ParameterizedOutput<'pg/vector@1', { readonly length: 1536 }>;
     id: CodecTypes['pg/int4@1']['output'];
     profile: { age: number; name: string };
     readonly [RelationKeys]?: never;
   };
   export type public_Event = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    id: Char<36>;
+    id: ParameterizedOutput<'sql/char@1', { readonly length: 36 }>;
     name: CodecTypes['pg/text@1']['output'];
     scheduledAt: CodecTypes['pg/timestamptz-string@1']['output'];
     readonly [RelationKeys]?: never;
@@ -524,16 +546,19 @@ export namespace Models {
     readonly [RelationKeys]?: never;
   };
   export type public_ParamTypes = {
-    bits: VarBit<12> | null;
-    code: Char<16> | null;
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
-    duration: Interval<6> | null;
-    flags: Bit<8> | null;
+    bits: ParameterizedOutput<'pg/varbit@1', { readonly length: 12 }> | null;
+    code: ParameterizedOutput<'sql/char@1', { readonly length: 16 }> | null;
+    createdAt: ParameterizedOutput<'pg/timestamptz-temporal@1', { readonly precision: 3 }> | null;
+    duration: ParameterizedOutput<'pg/interval@1', { readonly precision: 6 }> | null;
+    flags: ParameterizedOutput<'pg/bit@1', { readonly length: 8 }> | null;
     id: CodecTypes['pg/int4@1']['output'];
-    name: Varchar<255> | null;
-    price: Numeric<10, 2> | null;
-    startsAt: CodecTypes['pg/time-temporal@1']['output'] | null;
-    startsAtTz: Timetz<2> | null;
+    name: ParameterizedOutput<'sql/varchar@1', { readonly length: 255 }> | null;
+    price: ParameterizedOutput<
+      'pg/numeric@1',
+      { readonly precision: 10; readonly scale: 2 }
+    > | null;
+    startsAt: ParameterizedOutput<'pg/time-temporal@1', { readonly precision: 2 }> | null;
+    startsAtTz: ParameterizedOutput<'pg/timetz@1', { readonly precision: 2 }> | null;
     readonly [RelationKeys]?: never;
   };
   export type public_Post = {
@@ -550,7 +575,7 @@ export namespace Models {
   };
   export type public_User = {
     createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    email: Varchar<255>;
+    email: ParameterizedOutput<'sql/varchar@1', { readonly length: 255 }>;
     id: CodecTypes['pg/int4@1']['output'];
     profile: CodecTypes['pg/jsonb@1']['output'] | null;
     updatedAt: CodecTypes['pg/timestamptz-temporal@1']['output'] | null;
@@ -1487,13 +1512,11 @@ type ContractBase = Omit<
             readonly named: 'CodecTypes';
             readonly package: '@internal/extension-pgvector/codec-types';
           };
-          readonly typeImports: readonly [
-            {
-              readonly alias: 'Vector';
-              readonly named: 'Vector';
-              readonly package: '@internal/extension-pgvector/codec-types';
-            },
-          ];
+          readonly parameterizedOutputTypes: {
+            readonly alias: 'PgVectorParameterizedOutputTypes';
+            readonly named: 'ParameterizedOutputTypesForTypeParams';
+            readonly package: '@internal/extension-pgvector/codec-types';
+          };
         };
         readonly operationTypes: {
           readonly import: {

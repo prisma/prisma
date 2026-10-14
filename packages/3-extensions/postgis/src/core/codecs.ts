@@ -123,11 +123,6 @@ export class PostgisGeometryDescriptor extends PostgresCodecDescriptor<GeometryP
   override readonly codecId = POSTGIS_GEOMETRY_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly paramsSchema: StandardSchemaV1<GeometryParams> = postgisGeometryParams;
-  override renderOutputType(params: GeometryParams): string {
-    const { srid } = params;
-    if (srid === undefined) return 'Geometry';
-    return `Geometry<${srid}>`;
-  }
   /**
    * Runtime materialization uses an empty parameter object for the
    * existing unparameterized `geometryColumn` variant and `{ srid }` for

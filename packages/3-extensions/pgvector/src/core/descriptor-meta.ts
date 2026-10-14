@@ -79,13 +79,11 @@ const pgvectorPackMetaBase = {
         named: 'CodecTypes',
         alias: 'PgVectorTypes',
       },
-      typeImports: [
-        {
-          package: '@internal/extension-pgvector/codec-types',
-          named: 'Vector',
-          alias: 'Vector',
-        },
-      ],
+      parameterizedOutputTypes: {
+        package: '@internal/extension-pgvector/codec-types',
+        named: 'ParameterizedOutputTypesForTypeParams',
+        alias: 'PgVectorParameterizedOutputTypes',
+      },
     },
     operationTypes: {
       import: {

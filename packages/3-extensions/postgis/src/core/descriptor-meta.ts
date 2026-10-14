@@ -155,13 +155,6 @@ const postgisPackMetaBase = {
         named: 'CodecTypes',
         alias: 'PostgisTypes',
       },
-      typeImports: [
-        {
-          package: '@internal/extension-postgis/codec-types',
-          named: 'Geometry',
-          alias: 'Geometry',
-        },
-      ],
     },
     queryOperationTypes: {
       import: {

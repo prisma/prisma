@@ -24,6 +24,8 @@ import {
   generateRootsType,
   generateValueObjectsDescriptorType,
   generateValueObjectTypeAliases,
+  PARAMETERIZED_OUTPUT,
+  parameterizedOutputAlias,
   serializeExecutionType,
   serializeObjectKey,
   serializeValue,
@@ -91,6 +93,9 @@ export function generateContractDts(
   const allImports: TypesImportSpec[] = [...codecTypeImports];
   if (options?.queryOperationTypeImports) {
     allImports.push(...options.queryOperationTypeImports);
+  }
+  if (options?.parameterizedOutputTypeImports) {
+    allImports.push(...options.parameterizedOutputTypeImports);
   }
   const uniqueImports = deduplicateImports(allImports);
 
@@ -219,11 +224,20 @@ export function generateContractDts(
     options?.supportsNamespaces ?? true,
   );
 
+  const parameterizedOutputDeclaration = [
+    fieldTypesMaps.output,
+    extraTypeExports ?? '',
+    modelTypesBlock,
+    valueObjectTypeAliases,
+  ].some((text) => mentions(text, PARAMETERIZED_OUTPUT))
+    ? `${parameterizedOutputAlias(options?.parameterizedOutputTypeImports ?? [])}\n`
+    : '';
+
   const body = `${hashAliases}
 
 export type CodecTypes = ${codecTypes};
 ${familyTypeAliases}
-${valueObjectTypeAliases}
+${parameterizedOutputDeclaration}${valueObjectTypeAliases}
 export type FieldOutputTypes = ${fieldTypesMaps.output};
 export type FieldInputTypes = ${fieldTypesMaps.input};
 ${extraTypeExports ? `${extraTypeExports}\n` : ''}
@@ -267,7 +281,7 @@ ${familyImportLines.join('\n')}
 import type {
   Contract as ContractType,
   ExecutionHashBase,
-  NamespaceId,
+  NamespaceId,${mentions(body, 'ParameterizedOutputType') ? '\n  ParameterizedOutputType,' : ''}
   ProfileHashBase,
   StorageHashBase,
 } from '${resolveImportSpecifier('@internal/contract/types')}';

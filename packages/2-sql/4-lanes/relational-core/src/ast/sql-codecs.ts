@@ -32,7 +32,6 @@ import {
   SQL_VARCHAR_CODEC_ID,
   sqlCharDecode,
   sqlCharEncode,
-  sqlCharRenderOutputType,
   sqlFloatDecode,
   sqlFloatEncode,
   sqlIntDecode,
@@ -41,7 +40,6 @@ import {
   sqlTextEncode,
   sqlVarcharDecode,
   sqlVarcharEncode,
-  sqlVarcharRenderOutputType,
 } from './sql-codec-helpers';
 
 type LengthParams = { readonly length?: number };
@@ -181,9 +179,6 @@ export class SqlCharDescriptor extends CodecDescriptorTemplateImpl<LengthParams>
   override readonly codecId = SQL_CHAR_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return sqlCharRenderOutputType(params);
-  }
   override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlCharCodec {
     return () => new SqlCharCodec(this);
   }
@@ -221,9 +216,6 @@ export class SqlVarcharDescriptor extends CodecDescriptorTemplateImpl<LengthPara
   override readonly codecId = SQL_VARCHAR_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return sqlVarcharRenderOutputType(params);
-  }
   override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlVarcharCodec {
     return () => new SqlVarcharCodec(this);
   }

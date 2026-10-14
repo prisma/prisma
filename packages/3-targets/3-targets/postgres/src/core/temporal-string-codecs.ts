@@ -10,7 +10,7 @@ import {
 import { CastExpr, type ProjectionExpr } from '@internal/sql-relational-core/ast';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { PostgresCodecDescriptor } from './codec-descriptor';
-import { type PrecisionParams, renderPrecision } from './codec-helpers';
+import type { PrecisionParams } from './codec-helpers';
 import {
   PG_DATE_STRING_CODEC_ID,
   PG_TIME_STRING_CODEC_ID,
@@ -124,9 +124,6 @@ export class PgTimestampStringDescriptor extends PostgresCodecDescriptor<Precisi
     'pg/timestamp-temporal@1',
   );
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
-  override renderOutputType(params: PrecisionParams): string | undefined {
-    return renderPrecision('TimestampString', params);
-  }
   override factory(
     _params: PrecisionParams,
   ): (ctx: CodecInstanceContext) => PgTimestampStringCodec {
@@ -179,9 +176,6 @@ export class PgTimestamptzStringDescriptor extends PostgresCodecDescriptor<Preci
     'pg/timestamptz-temporal@1',
   );
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
-  override renderOutputType(params: PrecisionParams): string | undefined {
-    return renderPrecision('TimestamptzString', params);
-  }
   override factory(
     _params: PrecisionParams,
   ): (ctx: CodecInstanceContext) => PgTimestamptzStringCodec {
@@ -229,9 +223,6 @@ export class PgTimeStringDescriptor extends PostgresCodecDescriptor<PrecisionPar
   override readonly codecId = PG_TIME_STRING_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
-  override renderOutputType(params: PrecisionParams): string | undefined {
-    return renderPrecision('TimeString', params);
-  }
   override factory(_params: PrecisionParams): (ctx: CodecInstanceContext) => PgTimeStringCodec {
     return () => new PgTimeStringCodec(this);
   }

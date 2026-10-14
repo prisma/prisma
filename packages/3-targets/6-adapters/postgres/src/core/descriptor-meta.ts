@@ -1,16 +1,6 @@
 import { postgresCodecRegistry } from '@internal/target-postgres/codecs';
 import { postgresAdapterContractContributions } from './contract-contributions';
 
-// ============================================================================ Helper functions for reducing boilerplate ============================================================================
-
-/** Creates a type import spec for codec types */
-const codecTypeImport = (named: string) =>
-  ({
-    package: '@internal/target-postgres/codec-types',
-    named,
-    alias: named,
-  }) as const;
-
 // ============================================================================ Descriptor metadata ============================================================================
 
 export const postgresAdapterDescriptorMeta = {
@@ -35,20 +25,12 @@ export const postgresAdapterDescriptorMeta = {
           named: 'JsonValue',
           alias: 'JsonValue',
         },
-        codecTypeImport('Char'),
-        codecTypeImport('Varchar'),
-        codecTypeImport('Numeric'),
-        codecTypeImport('Bit'),
-        codecTypeImport('VarBit'),
-        codecTypeImport('Timestamp'),
-        codecTypeImport('Timestamptz'),
-        codecTypeImport('Time'),
-        codecTypeImport('Timetz'),
-        codecTypeImport('Interval'),
-        codecTypeImport('TimestampString'),
-        codecTypeImport('TimestamptzString'),
-        codecTypeImport('TimeString'),
       ],
+      parameterizedOutputTypes: {
+        package: '@internal/target-postgres/codec-types',
+        named: 'ParameterizedOutputTypesForTypeParams',
+        alias: 'PgParameterizedOutputTypes',
+      },
     },
   },
 } as const;

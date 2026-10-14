@@ -3,7 +3,7 @@
 // To regenerate, run: prisma contract emit
 import type {
   CodecTypes as PgTypes,
-  TimestampString,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
 } from '@prisma/orm-postgres/target/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@prisma/orm-postgres/target/operation-types';
 
@@ -16,6 +16,7 @@ import type {
   Contract as ContractType,
   ExecutionHashBase,
   NamespaceId,
+  ParameterizedOutputType,
   ProfileHashBase,
   StorageHashBase,
 } from '@prisma/orm-postgres/contract/types';
@@ -234,6 +235,15 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutput<
+  CodecId extends keyof CodecTypes,
+  TypeParams extends Record<string, unknown>,
+> = ParameterizedOutputType<
+  PgParameterizedOutputTypes,
+  CodecId,
+  TypeParams,
+  CodecTypes[CodecId]['output']
+>;
 
 export type FieldOutputTypes = {
   readonly public: {
@@ -254,12 +264,12 @@ export type FieldOutputTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
     };
     readonly User: {
-      readonly createdAt: TimestampString<3>;
+      readonly createdAt: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
       readonly email: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'] | null;
       readonly role: 'USER' | 'ADMIN';
-      readonly updatedAt: TimestampString<3>;
+      readonly updatedAt: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
     };
   };
 };
@@ -310,12 +320,12 @@ export type StorageColumnTypes = {
       readonly name: CodecTypes['pg/text@1']['output'];
     };
     readonly User: {
-      readonly createdAt: TimestampString<3>;
+      readonly createdAt: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
       readonly email: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly name: CodecTypes['pg/text@1']['output'] | null;
       readonly role: 'USER' | 'ADMIN';
-      readonly updatedAt: TimestampString<3>;
+      readonly updatedAt: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
     };
   };
 };
@@ -374,12 +384,12 @@ export namespace Models {
     readonly [RelationKeys]?: 'posts';
   };
   export type public_User = {
-    createdAt: TimestampString<3>;
+    createdAt: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
     email: CodecTypes['pg/text@1']['output'];
     id: CodecTypes['pg/int4@1']['output'];
     name: CodecTypes['pg/text@1']['output'] | null;
     role: 'USER' | 'ADMIN';
-    updatedAt: TimestampString<3>;
+    updatedAt: ParameterizedOutput<'pg/timestamp-string@1', { readonly precision: 3 }>;
     posts: public_Post[];
     readonly [RelationKeys]?: 'posts';
   };

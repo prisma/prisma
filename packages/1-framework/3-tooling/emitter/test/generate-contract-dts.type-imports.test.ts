@@ -48,3 +48,72 @@ describe('generateContractDts codec type imports', () => {
     expect(importLines(dts)).toMatch(/\bVector\b/);
   });
 });
+
+describe('generateContractDts parameterized output types', () => {
+  const TYPE_FUNCTION: TypesImportSpec = {
+    package: '@internal/demo/codec-types',
+    named: 'ParameterizedOutputTypesForTypeParams',
+    alias: 'DemoParameterizedOutputTypes',
+  };
+  const contractWithCharColumn = createTestContract({
+    namespaces: {
+      public: {
+        models: {
+          User: {
+            fields: {
+              id: {
+                nullable: false,
+                type: { kind: 'scalar', codecId: 'demo/char@1', typeParams: { length: 24 } },
+                many: false,
+              },
+            },
+            relations: {},
+            storage: {},
+          },
+        },
+      },
+    },
+  });
+  const lookup = {
+    get: () => undefined,
+    renderOutputTypeFor: () => undefined,
+    parameterizedOutputTypesFor: (id: string) => (id === 'demo/char@1' ? TYPE_FUNCTION : undefined),
+  };
+
+  it('declares the alias a column with type parameters is typed through, and imports what it names', () => {
+    const dts = generateContractDts(
+      contractWithCharColumn,
+      createMockSpi(),
+      [CODEC_TYPES],
+      HASHES,
+      { parameterizedOutputTypeImports: [TYPE_FUNCTION] },
+      lookup,
+    );
+
+    expect(dts).toContain(
+      'readonly id: ParameterizedOutput<"demo/char@1", { readonly length: 24 }>',
+    );
+    expect(dts).toContain(
+      'type ParameterizedOutput<CodecId extends keyof CodecTypes, TypeParams extends Record<string, unknown>> = ParameterizedOutputType<DemoParameterizedOutputTypes, CodecId, TypeParams, CodecTypes[CodecId]["output"]>;',
+    );
+    expect(importLines(dts)).toContain(
+      'ParameterizedOutputTypesForTypeParams as DemoParameterizedOutputTypes',
+    );
+    expect(importLines(dts)).toMatch(/\n {2}ParameterizedOutputType,\n/);
+  });
+
+  it('declares no alias and imports no type function when no column uses one', () => {
+    const dts = generateContractDts(
+      createTestContract(),
+      createMockSpi(),
+      [CODEC_TYPES],
+      HASHES,
+      { parameterizedOutputTypeImports: [TYPE_FUNCTION] },
+      lookup,
+    );
+
+    expect(dts).not.toMatch(/\bParameterizedOutput\b/);
+    expect(dts).not.toMatch(/\bParameterizedOutputType\b/);
+    expect(dts).not.toContain('DemoParameterizedOutputTypes');
+  });
+});

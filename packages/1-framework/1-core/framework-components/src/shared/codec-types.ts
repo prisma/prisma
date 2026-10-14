@@ -1,6 +1,7 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { Codec } from './codec';
 import type { AnyCodecDescriptor } from './codec-descriptor';
+import type { TypesImportSpec } from './types-import-spec';
 
 /** Every semantic trait a codec may advertise. The runtime tuple backs validation of trait-keyed contributions arriving from JavaScript. */
 export const CODEC_TRAITS = ['equality', 'order', 'boolean', 'numeric', 'textual'] as const;
@@ -53,6 +54,8 @@ export interface CodecCallContext {
 export interface CodecLookup {
   get(id: string): Codec | undefined;
   renderOutputTypeFor(id: string, params: Record<string, unknown>): string | undefined;
+  /** The type function that gives the output type of codec `id` for a column's type parameters, as the import of the component that contributes the codec declares it (`types.codecTypes.parameterizedOutputTypes`). Optional so existing lookups need not provide it; `undefined` when the contributor declares none or the id is unknown. */
+  parameterizedOutputTypesFor?(id: string): TypesImportSpec | undefined;
   /** Codec-id-keyed `renderInputType` renderer for the `contract.d.ts` input position. Optional so existing lookups need not provide it; returns `undefined` when the codec renders no custom input type or the id is unknown. */
   renderInputTypeFor?(id: string, params: Record<string, unknown>): string | undefined;
   /** Codec-id-keyed `renderValueLiteral` renderer for the emit path (`side`: `output` = read type, `input` = create/update type). Optional so existing lookups need not provide it; returns `undefined` when the codec's output isn't literal-expressible or the id is unknown. */

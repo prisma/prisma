@@ -140,9 +140,6 @@ export class PgTimestamptzDateDescriptor extends PostgresCodecDescriptor<Precisi
   override readonly codecId = PG_TIMESTAMPTZ_DATE_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
-  override renderOutputType(_params: PrecisionParams): string {
-    return 'Date';
-  }
   override factory(
     _params: PrecisionParams,
   ): (ctx: CodecInstanceContext) => PgTimestamptzDateCodec {

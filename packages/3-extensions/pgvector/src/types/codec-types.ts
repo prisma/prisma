@@ -7,7 +7,7 @@
  * Runtime codec implementations are provided by the extension's codec registry.
  */
 
-import type { ParameterizedOutputTypesFunction } from '@internal/sql-contract/types';
+import type { ParameterizedOutputTypesFunction } from '@internal/contract/types';
 import type { CodecTypes as CoreCodecTypes } from '../core/codecs';
 
 /**

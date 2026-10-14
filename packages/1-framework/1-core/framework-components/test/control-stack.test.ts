@@ -10,6 +10,7 @@ import {
   extractCodecLookup,
   extractCodecTypeImports,
   extractComponentIds,
+  extractParameterizedOutputTypeImports,
   extractQueryOperationTypeImports,
 } from '../src/control/control-stack';
 import type { Codec } from '../src/shared/codec';
@@ -97,6 +98,24 @@ describe('extractCodecTypeImports', () => {
       }),
     ]);
     expect(result).toHaveLength(2);
+  });
+});
+
+describe('extractParameterizedOutputTypeImports', () => {
+  it('lists the type function each component declares', () => {
+    const typeFunction = { package: '@test/codec-types', named: 'Outputs', alias: 'O' };
+    const result = extractParameterizedOutputTypeImports([
+      createDescriptor(),
+      createDescriptor({
+        types: {
+          codecTypes: {
+            import: { package: '@test/codec-types', named: 'CodecTypes', alias: 'T' },
+            parameterizedOutputTypes: typeFunction,
+          },
+        },
+      }),
+    ]);
+    expect(result).toEqual([typeFunction]);
   });
 });
 
@@ -1201,6 +1220,27 @@ describe('extractCodecLookup', () => {
     ]);
     expect(lookup.get('a@1')?.id).toBe('a@1');
     expect(lookup.get('b@1')?.id).toBe('b@1');
+  });
+
+  it('names the parameterized output type function of the component that contributes each codec', () => {
+    const typeFunction = { package: '@test/codec-types', named: 'Outputs', alias: 'TestOutputs' };
+    const lookup = extractCodecLookup([
+      {
+        id: 'with-function',
+        types: {
+          codecTypes: {
+            codecDescriptors: [stubDescriptor('a@1')],
+            parameterizedOutputTypes: typeFunction,
+          },
+        },
+      },
+      { id: 'without', types: { codecTypes: { codecDescriptors: [stubDescriptor('b@1')] } } },
+    ]);
+    expect([
+      lookup.parameterizedOutputTypesFor?.('a@1'),
+      lookup.parameterizedOutputTypesFor?.('b@1'),
+      lookup.parameterizedOutputTypesFor?.('z@1'),
+    ]).toEqual([typeFunction, undefined, undefined]);
   });
 
   it('returns undefined for unknown codec ids', () => {

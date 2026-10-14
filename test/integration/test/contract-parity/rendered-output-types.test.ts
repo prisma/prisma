@@ -1,62 +1,67 @@
 /**
- * The parity type test compares a defineContract contract's field types with the emitted ones only for the columns its fixtures declare. A codec whose `renderOutputType` refines the output type by the column's type parameters is typed for a defineContract contract by a separate declaration in its pack, so each such codec has to appear in a fixture with type parameters, or a disagreement between the two goes unnoticed.
+ * A codec whose output type depends on a column's type parameters is typed, in an emitted `contract.d.ts` and in a `defineContract` contract alike, by its pack's type function (`ParameterizedOutputTypesForTypeParams`). These tests make every parameterized codec of the Postgres and SQLite stacks say how its output type is given, so a new codec cannot fall back to its plain output type unnoticed. `define-contract-sections.test-d.ts` checks that each codec a type function declares appears with type parameters in a parity fixture, where the field type comparison checks the emitted type against the built one.
  */
-import { readFileSync } from 'node:fs';
+import type {
+  ApplyParameterizedOutputTypes,
+  ParameterizedOutputTypesFunction,
+} from '@internal/contract/types';
 import arktypeJsonPack from '@internal/extension-arktype-json/pack';
 import paradedbPack from '@internal/extension-paradedb/pack';
+import type { ParameterizedOutputTypesForTypeParams as PgvectorOutputTypes } from '@internal/extension-pgvector/codec-types';
 import pgvectorPack from '@internal/extension-pgvector/pack';
 import postgisPack from '@internal/extension-postgis/pack';
 import { assembleDataTypes } from '@internal/framework-components/codec';
+import type { ParameterizedOutputTypesForTypeParams as PostgresOutputTypes } from '@internal/target-postgres/codec-types';
 import { assemblePostgresCodecRegistryWithBuiltins } from '@internal/target-postgres/codecs';
 import postgresPack from '@internal/target-postgres/pack';
 import { createSqliteCodecRegistryWithBuiltins } from '@internal/target-sqlite/codecs';
-import { join } from 'pathe';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 
-const fixtureContracts = [
-  '../planner-golden/fixtures/postgres/generated/contract.json',
-  '../planner-golden/fixtures/sqlite/generated/contract.json',
-  '../sql-builder/fixtures/generated-no-pgvector/contract.json',
-  './fixtures/postgres/generated/contract.json',
-  './fixtures/sqlite/generated/contract.json',
-];
+type DeclaredBy<TypeFunction extends ParameterizedOutputTypesFunction> =
+  keyof ApplyParameterizedOutputTypes<TypeFunction, Record<string, unknown>>;
 
-type StoredColumn = { readonly codecId: string; readonly typeParams?: Record<string, unknown> };
+type DeclaredCodecs = DeclaredBy<PostgresOutputTypes> | DeclaredBy<PgvectorOutputTypes>;
 
-function columnsOf(contractPath: string): readonly StoredColumn[] {
-  const contract: {
-    readonly storage: {
-      readonly namespaces: Record<
-        string,
-        {
-          readonly entries: {
-            readonly table?: Record<string, { readonly columns: Record<string, StoredColumn> }>;
-          };
-        }
-      >;
-    };
-  } = JSON.parse(readFileSync(join(import.meta.dirname, contractPath), 'utf8'));
-  return Object.values(contract.storage.namespaces).flatMap((namespace) =>
-    Object.values(namespace.entries.table ?? {}).flatMap((table) => Object.values(table.columns)),
-  );
-}
+/** The codecs the type functions declare, listed so a run-time test can read them; the type test below keeps the list equal to the declarations. */
+const declaredByTypeFunction = [
+  'pg/numeric@1',
+  'pg/char@1',
+  'sql/char@1',
+  'pg/varchar@1',
+  'sql/varchar@1',
+  'pg/bit@1',
+  'pg/varbit@1',
+  'pg/timetz@1',
+  'pg/interval@1',
+  'pg/time-string@1',
+  'pg/timestamp-string@1',
+  'pg/timestamptz-string@1',
+  'pg/timestamptz-date@1',
+  'pg/vector@1',
+] as const satisfies readonly DeclaredCodecs[];
 
-function codecsWithTypeParams(): ReadonlySet<string> {
-  return new Set(
-    fixtureContracts
-      .flatMap(columnsOf)
-      .filter((column) => Object.keys(column.typeParams ?? {}).length > 0)
-      .map((column) => column.codecId),
-  );
-}
+/** Parameterized codecs whose output type is the same whatever their type parameters, with the reason. */
+const outputIndependentOfTypeParams: Readonly<Record<string, string>> = {
+  'pg/enum@1':
+    'Its type parameter names the native enum type; the column reads as the members of its value set.',
+  'pg/geometry@1': 'Geometry<Srid> is the same type for every SRID.',
+  'pg/time-temporal@1': 'A precision does not change the Temporal type a value reads as.',
+  'pg/timestamp-temporal@1': 'A precision does not change the Temporal type a value reads as.',
+  'pg/timestamptz-temporal@1': 'A precision does not change the Temporal type a value reads as.',
+  'pg/unboundedint@1': 'A numeric(P, 0) column reads as a bigint whatever its precision.',
+};
 
-function codecsRenderingOutputTypes(
-  descriptors: Iterable<{ readonly codecId: string; readonly renderOutputType?: unknown }>,
-): readonly string[] {
-  return Array.from(descriptors)
-    .filter((descriptor) => typeof descriptor.renderOutputType === 'function')
-    .map((descriptor) => descriptor.codecId)
-    .sort();
+/** Parameterized codecs that render their output type as text, because no type can compute it from their type parameters. */
+const renderedAsText = ['arktype/json@1'];
+
+type Descriptor = {
+  readonly codecId: string;
+  readonly isParameterized: boolean;
+  readonly renderOutputType?: unknown;
+};
+
+function parameterizedCodecs(descriptors: Iterable<Descriptor>): readonly Descriptor[] {
+  return Array.from(descriptors).filter((descriptor) => descriptor.isParameterized);
 }
 
 const postgresExtensions = [pgvectorPack, postgisPack, paradedbPack, arktypeJsonPack];
@@ -66,23 +71,35 @@ const postgresRegistry = assemblePostgresCodecRegistryWithBuiltins(
 );
 const sqliteRegistry = createSqliteCodecRegistryWithBuiltins();
 
-describe('every codec that renders its output type from type parameters is in a parity fixture', () => {
-  it('finds the codecs, so the check is not empty', () => {
-    expect(codecsRenderingOutputTypes(postgresRegistry.values())).toContain('pg/vector@1');
-    expect(codecsWithTypeParams()).toContain('sql/char@1');
+describe('every parameterized codec says how its output type is given', () => {
+  it('lists every codec the type functions declare', () => {
+    expectTypeOf<(typeof declaredByTypeFunction)[number]>().toEqualTypeOf<DeclaredCodecs>();
   });
 
-  it('Postgres and its extensions', () => {
-    const exercised = codecsWithTypeParams();
+  it('finds the parameterized codecs, so the check is not empty', () => {
+    expect(parameterizedCodecs(postgresRegistry.values()).map((d) => d.codecId)).toEqual(
+      expect.arrayContaining(['pg/vector@1', 'sql/char@1', 'arktype/json@1']),
+    );
+  });
+
+  it.each([
+    ['Postgres and its extensions', postgresRegistry],
+    ['SQLite', sqliteRegistry],
+  ] as const)('%s', (_stack, registry) => {
+    const declared = new Set<string>([...declaredByTypeFunction, ...renderedAsText]);
     expect(
-      codecsRenderingOutputTypes(postgresRegistry.values()).filter((id) => !exercised.has(id)),
+      parameterizedCodecs(registry.values())
+        .map((descriptor) => descriptor.codecId)
+        .filter((id) => !declared.has(id) && !(id in outputIndependentOfTypeParams))
+        .sort(),
     ).toEqual([]);
   });
 
-  it('SQLite', () => {
-    const exercised = codecsWithTypeParams();
+  it('renders text only for the codecs listed as rendering it', () => {
     expect(
-      codecsRenderingOutputTypes(sqliteRegistry.values()).filter((id) => !exercised.has(id)),
-    ).toEqual([]);
+      parameterizedCodecs([...postgresRegistry.values(), ...sqliteRegistry.values()])
+        .filter((descriptor) => typeof descriptor.renderOutputType === 'function')
+        .map((descriptor) => descriptor.codecId),
+    ).toEqual(renderedAsText);
   });
 });

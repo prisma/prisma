@@ -367,14 +367,7 @@
             "alias": "PostgisTypes",
             "named": "CodecTypes",
             "package": "@internal/extension-postgis/codec-types"
-          },
-          "typeImports": [
-            {
-              "alias": "Geometry",
-              "named": "Geometry",
-              "package": "@internal/extension-postgis/codec-types"
-            }
-          ]
+          }
         },
         "queryOperationTypes": {
           "import": {

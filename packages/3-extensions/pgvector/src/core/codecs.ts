@@ -173,9 +173,6 @@ export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
   override readonly codecId = VECTOR_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly paramsSchema: StandardSchemaV1<VectorParams> = pgvectorVectorParams;
-  override renderOutputType(params: VectorParams): string {
-    return `Vector<${params.length}>`;
-  }
   override factory(params: VectorParams): (ctx: CodecInstanceContext) => PgVectorCodec {
     return () => new PgVectorCodec(this, params.length);
   }
