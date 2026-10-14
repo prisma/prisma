@@ -1,5 +1,6 @@
 import {
   type AnyExpression,
+  ColumnRef,
   checkLimitOffset,
   type SelectAst,
 } from '@internal/sql-relational-core/ast';
@@ -9,8 +10,13 @@ import { ormError } from '../orm-errors';
 import {
   countMutationWhere,
   deleteAst,
+  groupRowsByColumnSignature,
+  type InsertConflictSkip,
+  insertAst,
   projectTableColumns,
+  updateAssignments,
   updateAst,
+  upsertAst,
 } from '../query-plan-mutations';
 import { collectionSelectAst, collectionSelectWithIncludesAst } from '../query-plan-select';
 import { type CollectionState, emptyState } from '../types';
@@ -19,6 +25,8 @@ import type { NodeId } from './edge';
 import { FilterData } from './filter-data';
 import { Find } from './find';
 import { Graph } from './graph';
+import { Insert } from './insert';
+import { InsertChunked } from './insert-chunked';
 import { Update } from './update';
 
 export function updateAllGraph(
@@ -100,6 +108,54 @@ export function deleteFirstGraph(collection: DescribeCollectionRowsOptions): Gra
   const del = deleteAst(context.contract, state.tables, undefined);
   const deleted = graph.add(new Delete(del), { filter: [sameRow(find, collection)] });
   graph.setResult(withIncludes ? find : deleted);
+  return graph;
+}
+
+export function createGraph(
+  collection: DescribeCollectionRowsOptions,
+  rows: readonly Record<string, unknown>[],
+  conflict: InsertConflictSkip | undefined,
+): Graph {
+  const { context, state } = collection;
+  const graph = new Graph();
+  if (rows.length === 0) {
+    return graph;
+  }
+  requireIdentityColumnsForIncludes(collection);
+  const { contract } = context;
+  const groups =
+    contract.capabilities?.['sql']?.['defaultInInsert'] === true
+      ? [rows]
+      : groupRowsByColumnSignature(rows);
+  const asts = groups.map((group) => insertAst(contract, state.tables.root, group, conflict));
+  const [only, ...others] = asts;
+  const inserted =
+    only !== undefined && others.length === 0
+      ? graph.add(new Insert(only), { payload: [] })
+      : graph.add(new InsertChunked(asts), {});
+  graph.setResult(addWithIncludes(graph, collection, inserted));
+  return graph;
+}
+
+export function upsertGraph(
+  collection: DescribeCollectionRowsOptions,
+  create: Readonly<Record<string, unknown>>,
+  update: Readonly<Record<string, unknown>>,
+  conflictColumns: readonly string[],
+): Graph {
+  const { context, state } = collection;
+  const { root } = state.tables;
+  const graph = new Graph();
+  requireIdentityColumnsForIncludes(collection);
+  const updateSet =
+    Object.keys(update).length > 0
+      ? updateAssignments(context.contract, root, update)
+      : Object.fromEntries(
+          conflictColumns.slice(0, 1).map((column) => [column, ColumnRef.of('excluded', column)]),
+        );
+  const upsert = upsertAst(context.contract, root, create, conflictColumns, updateSet);
+  const upserted = graph.add(new Insert(upsert), { payload: [] });
+  graph.setResult(addWithIncludes(graph, collection, upserted));
   return graph;
 }
 
