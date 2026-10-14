@@ -11,6 +11,7 @@ import type { PslSources, Range } from './source-file';
 import { type FieldAttributeAst, ModelAttributeAst } from './syntax/ast/attributes';
 import {
   CompositeTypeDeclarationAst,
+  type DeclarationAst,
   type DocumentAst,
   FieldDeclarationAst,
   GenericBlockDeclarationAst,
@@ -183,6 +184,7 @@ export function buildSymbolTable(options: BuildSymbolTableOptions): SymbolTableR
     };
 
     for (const declaration of document.declarations()) {
+      if (lacksBlockKeyword(declaration, sources, diagnostics)) continue;
       if (declaration instanceof ModelDeclarationAst) {
         const name = claim(topLevelNames, declaration.name());
         if (name !== undefined) models[name] = buildModel(name, declaration, sources, diagnostics);
@@ -192,7 +194,6 @@ export function buildSymbolTable(options: BuildSymbolTableOptions): SymbolTableR
           compositeTypes[name] = buildCompositeType(name, declaration, sources, diagnostics);
         }
       } else if (declaration instanceof GenericBlockDeclarationAst) {
-        if (hasReservedKeyword(declaration)) continue;
         const name = claim(topLevelNames, declaration.name());
         if (name !== undefined) {
           blocks[name] = buildBlock(name, declaration, sources);
@@ -316,8 +317,30 @@ function buildMixin(
   };
 }
 
-function hasReservedKeyword(block: GenericBlockDeclarationAst): boolean {
-  return block.keyword()?.text === 'mixin';
+function lacksBlockKeyword(
+  declaration: DeclarationAst,
+  sources: PslSources,
+  diagnostics: ParseDiagnostic[],
+): boolean {
+  if (
+    !(declaration instanceof GenericBlockDeclarationAst) &&
+    !(declaration instanceof MixinDeclarationAst)
+  ) {
+    return false;
+  }
+  const keyword = declaration.keyword();
+  if (keyword?.text !== 'mixin') return false;
+  const sourceFile = sources.sourceFileFor(declaration.syntax);
+  diagnostics.push({
+    code: 'PSL_INVALID_DECLARATION',
+    message: `A mixin starts with the keyword of the block it is for, for example "model mixin ${declaration.name()?.name() ?? 'Name'}"`,
+    filename: sourceFile.filename,
+    range: {
+      start: sourceFile.positionAt(keyword.offset),
+      end: sourceFile.positionAt(keyword.endOffset),
+    },
+  });
+  return true;
 }
 
 function extendNamespace(
@@ -329,7 +352,7 @@ function extendNamespace(
   const { models, compositeTypes, blocks, mixins } = namespace;
 
   for (const member of node.declarations()) {
-    if (member instanceof GenericBlockDeclarationAst && hasReservedKeyword(member)) continue;
+    if (lacksBlockKeyword(member, sources, diagnostics)) continue;
     const memberName = member.name()?.name();
     if (memberName === undefined) continue;
     if (

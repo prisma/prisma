@@ -54,14 +54,43 @@ describe('prismaContract given a mixin written without its block keyword', () =>
         ['mixin Timestamps {', '  createdAt DateTime @default(now())', '}', ...model].join('\n'),
       ),
     ).toEqual([
+      { code: 'PSL_INVALID_EXTENSION_BLOCK_MEMBER', message: 'Invalid block entry', line: 3 },
       {
         code: 'PSL_INVALID_DECLARATION',
         message:
           'A mixin starts with the keyword of the block it is for, for example "model mixin Timestamps"',
         line: 2,
       },
-      { code: 'PSL_INVALID_EXTENSION_BLOCK_MEMBER', message: 'Invalid block entry', line: 3 },
       { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find mixin "Timestamps"', line: 8 },
+    ]);
+  });
+
+  it('reports a declaration with no body', async () => {
+    expect(await diagnosticsOf(['mixin Timestamps', ...model].join('\n'))).toEqual([
+      {
+        code: 'PSL_INVALID_DECLARATION',
+        message: 'Expected "{" to open the "mixin" block',
+        line: 2,
+      },
+      {
+        code: 'PSL_INVALID_DECLARATION',
+        message:
+          'A mixin starts with the keyword of the block it is for, for example "model mixin Name"',
+        line: 2,
+      },
+      { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find mixin "Timestamps"', line: 6 },
+    ]);
+  });
+
+  it('reports a mixin whose block keyword is mixin', async () => {
+    expect(await diagnosticsOf(['mixin mixin Timestamps {', '}', ...model].join('\n'))).toEqual([
+      {
+        code: 'PSL_INVALID_DECLARATION',
+        message:
+          'A mixin starts with the keyword of the block it is for, for example "model mixin Timestamps"',
+        line: 2,
+      },
+      { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find mixin "Timestamps"', line: 7 },
     ]);
   });
 });
