@@ -886,3 +886,35 @@ Per-repo stop conditions beyond the canonical ones:
 - The orchestrator applies the same test to each review finding before accepting it.
 
 **Reference incident.** Cross-namespace inheritance, table-scope slice (prisma/orm#30646, 2026-10): four additions were written and then removed at the operator's direction: a check that `merge()` rejects a scope the package did not create; a planner helper that checked derived-table aliases against every `combine` branch scope; a rename pass for hand-built `where()` expressions in an aliased child; and a rejection of an include refinement that returns a collection it was not handed. The third slice (prisma/orm#30696) put the rule in the plan's standing rules and in the reviewer prompt, and the pattern did not recur.
+
+### F50. The orchestrator settles a design point the operator never decided, writes it into a brief or a slice spec, and it ships
+
+**Symptom.** A rule or shape that nobody asked for reaches a PR: a grammar rule, a claim about behaviour, a public accessor, a workaround for a constraint the orchestrator set itself. The operator finds it in review, asks why it exists, and it is removed or reworked, sometimes after it has already merged.
+
+**Root cause.** While turning a decision into a brief, the orchestrator fills the gaps it meets with its own choices and states them in the same voice as the operator's decisions. The implementer and the reviewer treat the brief as the contract, so nothing downstream questions them.
+
+**Detection signal.**
+
+- A slice spec or brief contains a rule that changes what users can write, which diagnostic they get, or the shape of a public type, and no operator message decided it.
+- A brief constraint ("no public mutable type", "do not change what `members()` returns") forces the implementer into extra machinery.
+- A statement about observable behaviour ("column order follows the source") is written from expectation, not from a run.
+
+**Mitigation.**
+
+- Before a brief goes out, every rule in it that the operator did not decide is either removed or sent to the operator as a question with the alternatives. "It follows from the design" is not a decision.
+- A constraint the orchestrator adds is stated as a trade-off with its cost, so the operator can drop it before the implementer works around it.
+- A claim about what the product does is checked against a run before it goes into a spec, an ADR or a PR description.
+
+**Reference incident.** PSL mixins (prisma/orm#30675 to #30714, 2026-10). Unasked additions, each found by the operator: a rule that `+` starts an inclusion only at the start of a line; mixin text in two internal package READMEs; a separate `membersWithInclusions()` accessor; a separate mixin lookup function; a private `WeakMap` of writable member records, written to satisfy an orchestrator rule against public mutable types; "column order follows the source", which manual QA showed to be false. Each was removed or rewritten after review.
+
+### F51. Where a new pipeline step runs is chosen by the first design that works, and review moves it twice
+
+**Symptom.** A feature adds work between existing phases (here: replacing inclusions with members between parsing, the symbol table and the binder). The first version passes tests. Review then asks why the work is in that phase, and the PR is reworked or closed and replaced.
+
+**Root cause.** The spec decided what the feature does and left where it happens to the slice. The slice put it in the first phase that could do it, without listing what each alternative would duplicate or move.
+
+**Detection signal.** A slice spec for a feature that crosses phases names one phase for the new work and gives no alternatives with their costs.
+
+**Mitigation.** Before the slice spec is written, list each candidate phase with what it would have to duplicate (scope construction, name resolution, duplicate checks) and what it would make a component do that it does not do today, and put that list to the operator. Record the choice in the spec.
+
+**Reference incident.** PSL mixins, inclusion slice (2026-10): inclusions were first resolved and placed in the symbol table (prisma/orm#30678), then simplified there, then the PR was closed and rebuilt with name resolution in the binder and placement between the binder's two passes (prisma/orm#30694), after the operator compared the three placements.
