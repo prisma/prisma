@@ -26,10 +26,15 @@ type Indexes = readonly [
 ];
 
 describe('the Postgres full-text collection methods', () => {
-  test('are one per full-text index, named after the index, taking a tsquery', () => {
+  test('are one per full-text index, named after the index, taking a tsquery, filtering and ordering', () => {
+    type Search = {
+      readonly parameters: readonly [query: PostgresTsqueryArgument];
+      readonly filters: true;
+      readonly orders: true;
+    };
     expectTypeOf<MethodsFor<'postgres', Indexes>>().toEqualTypeOf<{
-      readonly post_search: readonly [query: PostgresTsqueryArgument];
-      readonly title_search: readonly [query: PostgresTsqueryArgument];
+      readonly post_search: Search;
+      readonly title_search: Search;
     }>();
   });
 

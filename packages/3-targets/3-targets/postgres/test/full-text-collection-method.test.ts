@@ -1,9 +1,9 @@
 import type { StorageTable } from '@internal/sql-contract/types';
 import type {
-  CollectionMethodModelView,
+  CollectionMethodModel,
   CollectionMethodReceiver,
   CollectionMethodTools,
-} from '@internal/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/collection-methods';
 import { describe, expect, it } from 'vitest';
 import { postgresFullTextMethods } from '../src/core/full-text-collection-method';
 import postgresRuntimeTargetDescriptor from '../src/exports/runtime';
@@ -23,7 +23,7 @@ function recordingReceiver(tools: CollectionMethodTools) {
   return { receiver, calls };
 }
 
-function model(target: string, indexes: StorageTable['indexes']): CollectionMethodModelView {
+function model(target: string, indexes: StorageTable['indexes']): CollectionMethodModel {
   return {
     target,
     name: 'Post',
@@ -35,6 +35,7 @@ function model(target: string, indexes: StorageTable['indexes']): CollectionMeth
 
 const indexes = [
   { name: 'post_search_1', prefix: 'post_search', columns: ['title'], type: 'fullText' },
+  { name: 'title_search', columns: ['title'], type: 'fullText' },
   { name: 'post_title', columns: ['title'] },
   { name: 'shared_a', prefix: 'shared', columns: ['title'], type: 'fullText' },
   { name: 'shared_b', prefix: 'shared', columns: ['body'], type: 'fullText' },
@@ -45,11 +46,11 @@ describe('the Postgres full-text collection methods', () => {
     expect(postgresRuntimeTargetDescriptor.collectionMethods()).toEqual([postgresFullTextMethods]);
   });
 
-  it('name one method after each full-text index whose authored name is its own, for Postgres only', () => {
-    expect({
-      postgres: Object.keys(postgresFullTextMethods.methodsFor(model('postgres', indexes))),
-      other: Object.keys(postgresFullTextMethods.methodsFor(model('other', indexes))),
-    }).toEqual({ postgres: ['post_search'], other: [] });
+  it('name one method after each full-text index whose authored name is its own', () => {
+    expect(Object.keys(postgresFullTextMethods.methodsFor(model('postgres', indexes)))).toEqual([
+      'post_search',
+      'title_search',
+    ]);
   });
 
   it('filters with fullTextMatches and then orders by fullTextRank, descending', () => {
