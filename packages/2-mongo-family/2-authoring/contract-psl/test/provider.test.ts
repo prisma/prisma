@@ -45,7 +45,11 @@ function codecLookupOf(codec: Codec): CodecLookupWithDescriptors {
     get: (id) => (id === codec.id ? codec : undefined),
     descriptorFor: (id) =>
       id === codec.id
-        ? ({ codecId: id, factory: () => () => codec } as unknown as AnyCodecDescriptor)
+        ? ({
+            codecId: id,
+            traits: ['equality'],
+            factory: () => () => codec,
+          } as unknown as AnyCodecDescriptor)
         : undefined,
   };
 }

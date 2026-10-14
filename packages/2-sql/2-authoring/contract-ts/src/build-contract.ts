@@ -14,6 +14,7 @@ import {
   type ExecutionMutationDefault,
   type StorageHashBase,
 } from '@internal/contract/types';
+import { encodeEnumTypeMembers } from '@internal/contract-authoring';
 import {
   type AuthoringWarning,
   flushAuthoringWarnings,
@@ -45,7 +46,6 @@ import { contractError } from './contract-errors';
 import { describeModel, type ModelDescription } from './describe-model';
 import { describeTableNode } from './describe-table-node';
 import { buildDomainField } from './domain-fields';
-import { encodeEnumMembers } from './enum-members';
 import type { TypeLookups } from './lower-column';
 import { lowerTable, type TableLoweringContext } from './lower-table';
 import { mergeTables } from './merge-tables';
@@ -258,7 +258,7 @@ export function buildSqlContractFromDefinition(
       domainSlot = {};
       domainEnumsByNs[nsId] = domainSlot;
     }
-    const storedMembers = encodeEnumMembers(handle, codecLookup);
+    const storedMembers = encodeEnumTypeMembers(handle, codecLookup, 'the column');
     domainSlot[enumName] = {
       codecId: handle.codecId,
       members: storedMembers,

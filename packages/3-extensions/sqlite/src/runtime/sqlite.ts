@@ -14,6 +14,7 @@ import type {
   BindSiteParams,
   Declaration,
   ExecutionContext,
+  Log,
   ParamsFromDeclaration,
   Runtime,
   SqlExecutionStackWithDriver,
@@ -92,6 +93,7 @@ export interface SqliteOptionsBase {
   readonly extensions?: readonly SqlRuntimeExtensionDescriptor<SqliteTargetId>[];
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
+  readonly log?: Log;
 }
 
 export type SqliteOptionsWithContract<TContract extends Contract<SqlStorage>> = {
@@ -224,6 +226,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
       driver,
       ...ifDefined('verifyMarker', options.verifyMarker),
       ...ifDefined('middleware', options.middleware),
+      ...ifDefined('log', options.log),
       closeRefusal: 'at-once',
     });
 

@@ -1,7 +1,4 @@
-import {
-  duplicateStoredMembers,
-  type StoredEnumMember,
-} from '@internal/framework-components/authoring';
+import type { DuplicateStoredValue } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { contractError } from './contract-errors';
@@ -248,16 +245,9 @@ export function enumType(
   };
 }
 
-/**
- * Refuses two members of an `enumType` that store the same value, as `CONTRACT.ENUM_INVALID` naming both members and the stored value. `enumType` has no codec, so the contract build calls this once it has each member's stored form.
- */
-export function assertEnumMembersStoredUniquely(
-  enumName: string,
-  members: readonly StoredEnumMember[],
-): void {
-  const [duplicate] = duplicateStoredMembers(members);
-  if (duplicate === undefined) return;
-  throw contractError(
+/** Two members of an `enumType` that store the same value, as `CONTRACT.ENUM_INVALID` naming both members and the stored value. */
+export function duplicateMemberError(enumName: string, duplicate: DuplicateStoredValue) {
+  return contractError(
     'CONTRACT.ENUM_INVALID',
     `enumType("${enumName}"): members "${duplicate.earlier}" and "${duplicate.later}" both store ${JSON.stringify(duplicate.stored)}. Member values must be unique as their codec stores them.`,
     {
