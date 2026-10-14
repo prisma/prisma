@@ -28,12 +28,16 @@ const post: CollectionMethodModel = {
 
 function distanceRecorder() {
   const steps: unknown[] = [];
+  const distances: unknown[] = [];
   const row = {
     embedding: {
-      cosineDistance: (to: readonly number[]) => ({
-        asc: () => ({ ascending: to }),
-        lt: (limit: number) => ({ below: limit, to }),
-      }),
+      cosineDistance: (to: readonly number[]) => {
+        distances.push(to);
+        return {
+          asc: () => ({ ascending: to }),
+          lt: (limit: number) => ({ below: limit, to }),
+        };
+      },
     },
   };
   const receiver: CollectionMethodReceiver = {
@@ -46,7 +50,7 @@ function distanceRecorder() {
       return receiver;
     },
   };
-  return { receiver, steps };
+  return { receiver, steps, distances };
 }
 
 describe('the pgvector nearest-neighbour collection methods', () => {
@@ -73,8 +77,8 @@ describe('the pgvector nearest-neighbour collection methods', () => {
     });
   });
 
-  it('keep only the rows within a maximum distance when one is given', () => {
-    const { receiver, steps } = distanceRecorder();
+  it('keep only the rows within a maximum distance when one is given, from the same distance expression', () => {
+    const { receiver, steps, distances } = distanceRecorder();
     const nearest = pgvectorNearestMethods.methodsFor(post)['embedding_nearest'];
 
     nearest?.(receiver, ...([[1, 2, 3], 0.5] as never[]));
@@ -83,6 +87,7 @@ describe('the pgvector nearest-neighbour collection methods', () => {
       { orderBy: { ascending: [1, 2, 3] } },
       { where: { below: 0.5, to: [1, 2, 3] } },
     ]);
+    expect(distances).toEqual([[1, 2, 3]]);
   });
 });
 

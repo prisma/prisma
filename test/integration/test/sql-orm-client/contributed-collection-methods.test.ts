@@ -197,8 +197,14 @@ describe('contributed collection methods', {
   describe('pgvector nearest neighbour', () => {
     const near = [1, 0, 0];
 
-    it('orders the root collection by distance and keeps the rows within the maximum', async () => {
-      const { db } = ormClient();
+    beforeAll(async () => {
+      await client().query(
+        "INSERT INTO posts (id, title, user_id, views, embedding) VALUES (5, 'No Vector', 3, 0, NULL)",
+      );
+    });
+
+    it('orders the root collection by distance and keeps the rows within the maximum, binding the vector once', async () => {
+      const { db, captured } = ormClient();
 
       const rows = await db.Post.select('id', 'title').using.embedding_nearest(near, 0.5).all();
 
@@ -206,6 +212,22 @@ describe('contributed collection methods', {
         { id: 1, title: 'Hello World' },
         { id: 4, title: 'Another One' },
       ]);
+      const [plan] = captured;
+      if (plan === undefined) throw new Error('the query sent no plan');
+      expect(lower(plan).sql).toBe(
+        'SELECT "posts"."id" AS "id", "posts"."title" AS "title" FROM "public"."posts" WHERE ("posts"."embedding" <=> $1::vector) < $2 ORDER BY "posts"."embedding" <=> $1::vector ASC',
+      );
+    });
+
+    it('returns the rows with no vector last when no maximum is given', async () => {
+      const { db } = ormClient();
+
+      const rows = await db.Post.select('id')
+        .where((p) => p.id.in([1, 2, 5]))
+        .using.embedding_nearest([0, 1, 0])
+        .all();
+
+      expect(rows).toEqual([{ id: 2 }, { id: 1 }, { id: 5 }]);
     });
 
     it('orders every row when no maximum is given, after where and limit', async () => {
