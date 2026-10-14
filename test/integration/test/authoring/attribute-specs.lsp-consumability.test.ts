@@ -14,10 +14,11 @@ const mongoConfigPath = join(
 function modelSymbolFor(source: string) {
   const { document, sources } = parse(source, 'attribute-specs-consumability.prisma');
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
-  return { symbolTable, model: symbolTable.topLevel.models['Widget'] };
+  return { symbolTable, model: symbolTable.defaultNamespace.models['Widget'] };
 }
 
 describe('postgres attribute specs are consumable from a resolved language-server project', () => {

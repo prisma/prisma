@@ -37,6 +37,7 @@ function interpret(schema: string) {
     sourceId: 'index-type-options.prisma',
     context: {
       composedExtensions: [paradedbPack.id],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         field: {},

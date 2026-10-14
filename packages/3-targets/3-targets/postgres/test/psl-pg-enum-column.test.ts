@@ -92,6 +92,7 @@ function interpret(source: string, capabilities: Record<string, Record<string, b
     sourceId: 'psl-pg-enum-column.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

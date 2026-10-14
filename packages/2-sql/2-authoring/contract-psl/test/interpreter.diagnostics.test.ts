@@ -1187,6 +1187,26 @@ namespace auth {}`,
       ]);
     });
 
+    it('SQLite names a rejected namespace block as it is written', () => {
+      const result = interpretSqlContract(
+        'namespace __unbound__ {\n  model Tenant {\n    id Int @id\n  }\n}\n',
+        {
+          ...baseInput,
+          target: sqliteTarget,
+          scalarColumnDescriptors: sqliteScalarColumnDescriptors,
+        },
+      );
+
+      expect(
+        result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => [code, message]),
+      ).toEqual([
+        [
+          'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
+          'SQLite does not support `namespace __unbound__ { … }` blocks (SQLite has no schema concept; declare models at the document top level instead).',
+        ],
+      ]);
+    });
+
     it('SQLite rejects every explicit `namespace { … }` block with a SQLite-flavoured diagnostic', () => {
       const result = interpretSqlContract(
         `namespace auth {

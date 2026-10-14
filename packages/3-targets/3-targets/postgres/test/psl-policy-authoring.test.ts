@@ -105,7 +105,11 @@ namespace public {
 
   function buildInput() {
     const { document, sources } = parse(source, 'psl-policy-authoring.test.psl');
-    const { symbolTable, diagnostics } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable, diagnostics } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
     const { parsedBlocks } = interpretExtensionBlocks({
       symbolTable,
       sources,
@@ -123,7 +127,7 @@ namespace public {
 
   it('places the parsed block in the public namespace with a policy envelope', () => {
     const { symbolTable, parsedBlocks } = buildInput();
-    const publicNs = symbolTable.topLevel.namespaces['public'];
+    const publicNs = symbolTable.namespaces['public'];
     expect(publicNs).toBeDefined();
     const blocks = Object.values(publicNs!.blocks);
     expect(blocks).toHaveLength(1);
@@ -132,7 +136,7 @@ namespace public {
 
   it('lowers the block to a PostgresRlsPolicy with the expected fields', () => {
     const { symbolTable, parsedBlocks } = buildInput();
-    const publicNs = symbolTable.topLevel.namespaces['public'];
+    const publicNs = symbolTable.namespaces['public'];
     const blockSymbol = Object.values(publicNs!.blocks)[0];
     if (!blockSymbol) throw new Error('expected one extension block');
     const envelope = parsedBlocks.get(blockSymbol);
@@ -241,6 +245,7 @@ namespace public {
   function contextFor(): BoundPslSchema['context'] {
     return {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,
@@ -291,7 +296,11 @@ namespace public {
 
   it('lowers a policy_select block to entries.policy without test-side hand-lowering', () => {
     const { document, sources } = parse(source, 'psl-policy-authoring.test.psl');
-    const { diagnostics } = buildSymbolTable({ documents: [document], sources });
+    const { diagnostics } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
 
     expect(diagnostics).toEqual([]);
 

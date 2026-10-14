@@ -78,6 +78,7 @@ const scalarTypeConstructors = Object.fromEntries(
 function interpret(source: string) {
   const { document, sources } = parse(source, 'psl-role-authoring.test.psl');
   const { diagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -87,6 +88,7 @@ function interpret(source: string) {
     sourceId: 'psl-role-authoring.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

@@ -192,8 +192,8 @@ function roleExtensionBlock(name: string): PslExtensionBlock {
  * Roles are cluster-scoped in Postgres: the `role` block factory stamps the
  * unbound coordinate on every lowered entity, so the blocks must be declared
  * inside an explicit `namespace unbound { … }` block, not in `auth` or
- * `storage`. `resolveNamespaceIdForSqlTarget` maps the `unbound` bucket name
- * to the framework's `__unbound__` sentinel.
+ * `storage`. The PSL symbol table maps the `unbound` namespace name to the
+ * framework's `__unbound__` sentinel.
  */
 function roleNamespace(): PslNamespace {
   return makePslNamespace({

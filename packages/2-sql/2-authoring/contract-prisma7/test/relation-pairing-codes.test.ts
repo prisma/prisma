@@ -28,10 +28,11 @@ function fieldSymbol(
     'schema.prisma',
   );
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
-  const field = symbolTable.topLevel.models['Test']?.fields[fieldName];
+  const field = symbolTable.defaultNamespace.models['Test']?.fields[fieldName];
   if (field === undefined) throw new Error(`field ${fieldName} missing`);
   candidateSources.set(field, sources);
   return field;

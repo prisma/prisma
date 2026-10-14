@@ -28,7 +28,6 @@ import {
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoStorage,
   type MongoCollectionInput,
@@ -98,6 +97,7 @@ export interface InterpretPrisma6DocumentsInput {
   readonly authoringContributions: AssembledAuthoringContributions;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
+  readonly defaultNamespaceId: string;
 }
 
 const SUMMARY = 'Prisma 6 MongoDB schema interpretation failed';
@@ -224,6 +224,7 @@ export function interpretPrisma6Documents(
     const { symbolTable, diagnostics: tableDiagnostics } = buildSymbolTable({
       documents: [document],
       sources,
+      defaultNamespaceId: input.defaultNamespaceId,
     });
     for (const diagnostic of tableDiagnostics) {
       diagnostics.push({
@@ -256,7 +257,7 @@ export function interpretPrisma6Documents(
         }
       }
     };
-    for (const block of Object.values(symbolTable.topLevel.blocks)) {
+    for (const block of Object.values(symbolTable.defaultNamespace.blocks)) {
       switch (block.keyword) {
         case 'datasource':
           datasources.push({ symbol: block, sourceId, sources });
@@ -284,24 +285,27 @@ export function interpretPrisma6Documents(
           unsupported(block.keyword, keywordPslSpan(block.node.syntax, block.keyword, sources));
       }
     }
-    for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
+    for (const namespace of Object.values(symbolTable.namespaces)) {
       for (const { span } of namespace.declarations) unsupported('namespace', span);
     }
-    for (const namedType of Object.values(symbolTable.topLevel.namedTypes)) {
+    for (const namedType of Object.values(symbolTable.namedTypes)) {
       unsupported('types', namedType.span);
     }
-    for (const mixin of Object.values(symbolTable.topLevel.mixins)) {
+    for (const mixin of Object.values(symbolTable.defaultNamespace.mixins)) {
       unsupported(`${mixin.keyword} mixin`, mixin.span);
     }
-    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.topLevel.models);
-    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.topLevel.compositeTypes);
-    unsupportedInclusions('PSL_INVALID_EXTENSION_BLOCK_MEMBER', symbolTable.topLevel.blocks);
-    for (const symbol of Object.values(symbolTable.topLevel.compositeTypes)) {
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.defaultNamespace.models);
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.defaultNamespace.compositeTypes);
+    unsupportedInclusions(
+      'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
+      symbolTable.defaultNamespace.blocks,
+    );
+    for (const symbol of Object.values(symbolTable.defaultNamespace.compositeTypes)) {
       if (claimName('type', symbol.name, sourceId, symbol.span)) {
         compositeTypes.push({ symbol, sourceId, sources });
       }
     }
-    for (const symbol of Object.values(symbolTable.topLevel.models)) {
+    for (const symbol of Object.values(symbolTable.defaultNamespace.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       if (symbol.attributes.some((attribute) => attribute.name === 'ignore')) {
         ignoredModels.add(symbol.name);
@@ -332,7 +336,14 @@ export function interpretPrisma6Documents(
   const modelNames = new Set([...models.map((m) => m.symbol.name), ...ignoredModels]);
   const compositeTypeNames = new Set(compositeTypes.map((c) => c.symbol.name));
   const enumNames = new Set(enumBlocks.map((located) => located.symbol.name));
-  const typeContext: TypeContext = { binding, enums, enumNames, compositeTypeNames, diagnostics };
+  const typeContext: TypeContext = {
+    binding,
+    enums,
+    enumNames,
+    compositeTypeNames,
+    diagnostics,
+    namespaceId: input.defaultNamespaceId,
+  };
 
   const valueObjects: Record<string, ContractValueObject> = {};
   for (const located of compositeTypes) {
@@ -353,12 +364,14 @@ export function interpretPrisma6Documents(
       builds,
       { foreignKeys, invalidFkPairings, backRelations },
       diagnostics,
+      input.defaultNamespaceId,
     );
   }
   const paired = pairMongoBackRelations({
     foreignKeys,
     candidates: backRelations,
     invalidFkPairings,
+    namespaceId: input.defaultNamespaceId,
   });
   diagnostics.push(...mapPslDiagnostics(paired.diagnostics, mergedSources(input.documents)));
   for (const { modelName, fieldName, relation } of paired.relations) {
@@ -373,10 +386,10 @@ export function interpretPrisma6Documents(
     const indexes = buildIndexes(build, diagnostics);
     const existing = collections[build.collection];
     collections[build.collection] = { indexes: [...(existing?.indexes ?? []), ...indexes] };
-    roots[build.collection] = crossRef(modelName, UNBOUND_NAMESPACE_ID);
+    roots[build.collection] = crossRef(modelName, input.defaultNamespaceId);
     for (const { field, phases } of build.executionDefaults) {
       executionDefaults.push({
-        ref: { namespace: UNBOUND_NAMESPACE_ID, entry: build.collection, field },
+        ref: { namespace: input.defaultNamespaceId, entry: build.collection, field },
         ...phases,
       });
     }
@@ -403,6 +416,7 @@ export function interpretPrisma6Documents(
       valueObjects,
       enums,
       executionDefaults,
+      namespaceId: input.defaultNamespaceId,
     }),
   );
 }
@@ -598,6 +612,7 @@ interface TypeContext {
   readonly enumNames: ReadonlySet<string>;
   readonly compositeTypeNames: ReadonlySet<string>;
   readonly diagnostics: Diagnostics;
+  readonly namespaceId: string;
 }
 
 interface FieldOwner {
@@ -732,7 +747,7 @@ function resolveFieldType(
     const valueSet: ValueSetRef = {
       plane: 'domain',
       entityKind: 'enum',
-      namespaceId: UNBOUND_NAMESPACE_ID,
+      namespaceId: ctx.namespaceId,
       entityName: field.typeName,
     };
     return {
@@ -1242,6 +1257,7 @@ function readRelationFields(
     readonly backRelations: MongoBackRelationCandidate[];
   },
   diagnostics: Diagnostics,
+  namespaceId: string,
 ): void {
   const { symbol, sourceId, sources } = build.located;
   for (const { field, relation } of build.relationFields) {
@@ -1359,7 +1375,7 @@ function readRelationFields(
     const local = localFields.filter((name): name is string => name !== undefined);
     const referenced = targetFields.filter((name): name is string => name !== undefined);
     build.relations[field.name] = {
-      to: crossRef(field.typeName, UNBOUND_NAMESPACE_ID),
+      to: crossRef(field.typeName, namespaceId),
       cardinality: 'N:1',
       nullable: field.optional,
       on: { localFields: local, targetFields: referenced },
@@ -1443,6 +1459,7 @@ function assembleContract(input: {
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: ReadonlyMap<string, ContractEnum>;
   readonly executionDefaults: readonly ExecutionMutationDefault[];
+  readonly namespaceId: string;
 }): Contract {
   const target = input.binding.target.targetId;
   const targetFamily = input.binding.target.familyId;
@@ -1478,7 +1495,7 @@ function assembleContract(input: {
     roots: input.roots,
     domain: {
       namespaces: {
-        [UNBOUND_NAMESPACE_ID]: {
+        [input.namespaceId]: {
           models: blindCast<
             Contract['domain']['namespaces'][string]['models'],
             'Mongo model entries built above'

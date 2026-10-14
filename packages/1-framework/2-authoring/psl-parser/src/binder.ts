@@ -268,24 +268,20 @@ function walkFieldOwners(
   symbolTable: SymbolTable,
   stack: ScopeStack,
   binder: Binder,
-  visit: (owner: FieldOwner, namespace?: NamespaceSymbol) => void,
+  visit: (owner: FieldOwner, namespace: NamespaceSymbol) => void,
 ): void {
-  const { topLevel } = symbolTable;
-  const visitAll = (
-    records: SymbolTable['topLevel'] | NamespaceSymbol,
-    namespace?: NamespaceSymbol,
-  ): void => {
+  const visitAll = (records: NamespaceSymbol, namespace: NamespaceSymbol): void => {
     for (const entity of Object.values(records.models)) visit(entity, namespace);
     for (const entity of Object.values(records.compositeTypes)) visit(entity, namespace);
     for (const mixin of Object.values(records.mixins)) {
       if (hasFields(mixin)) visit(mixin, namespace);
     }
   };
-  visitAll(topLevel);
-  for (const namespace of Object.values(topLevel.namespaces)) {
-    stack.push(binder.scopeAt(namespace.declarations[0].node.syntax));
+  for (const namespace of Object.values(symbolTable.namespaces)) {
+    const [declaration] = namespace.declarations;
+    if (declaration !== undefined) stack.push(binder.scopeAt(declaration.node.syntax));
     visitAll(namespace, namespace);
-    stack.pop();
+    if (declaration !== undefined) stack.pop();
   }
 }
 
@@ -306,11 +302,11 @@ function ownAttributes<TAttribute extends ResolvedAttribute>(holder: {
 
 function declarationResolution(
   entity: ModelSymbol | CompositeTypeSymbol,
-  namespace: NamespaceSymbol | undefined,
+  namespace: NamespaceSymbol,
 ): Resolution {
   return entity.kind === 'model'
-    ? { kind: 'model', symbol: entity, ...(namespace === undefined ? {} : { namespace }) }
-    : { kind: 'compositeType', symbol: entity, ...(namespace === undefined ? {} : { namespace }) };
+    ? { kind: 'model', symbol: entity, namespace }
+    : { kind: 'compositeType', symbol: entity, namespace };
 }
 
 export function createBinder(input: CreateBinderInput): BinderResult {
@@ -351,7 +347,7 @@ function bind(options: BindingInputs): BinderResult {
   } = options;
   const pslBlockDescriptors = options.pslBlockDescriptors ?? {};
   const contributed = contributedScope(contributedTypeScope(contributedTypes));
-  const document = documentScope(symbolTable.topLevel, contributed);
+  const document = documentScope(symbolTable, contributed);
   const stack = new ScopeStack(document);
   const scopes = new WeakMap<SyntaxNode, Scope>();
   const declarations = new WeakMap<SyntaxNode, PslSymbol>();
@@ -359,8 +355,8 @@ function bind(options: BindingInputs): BinderResult {
   const diagnostics: ParseDiagnostic[] = [];
   const binder = new PslBinder(declarations, references, document, scopes);
 
-  const baseScope = namedTypeBaseScope(symbolTable.topLevel, contributed);
-  for (const symbol of Object.values(symbolTable.topLevel.namedTypes)) {
+  const baseScope = namedTypeBaseScope(symbolTable, contributed);
+  for (const symbol of Object.values(symbolTable.namedTypes)) {
     declarations.set(symbol.node.syntax, symbol);
     const declaredName = symbol.node.name()?.syntax;
     if (declaredName !== undefined) references.set(declaredName, { kind: 'namedType', symbol });
@@ -375,18 +371,9 @@ function bind(options: BindingInputs): BinderResult {
       diagnostics,
     });
   }
-  for (const symbol of Object.values(symbolTable.topLevel.blocks)) {
-    declarations.set(symbol.node.syntax, symbol);
-    const declaredName = symbol.node.name()?.syntax;
-    if (declaredName !== undefined) references.set(declaredName, { kind: 'block', symbol });
-  }
-  for (const symbol of Object.values(symbolTable.topLevel.mixins)) {
-    declarations.set(symbol.node.syntax, symbol);
-    const declaredName = symbol.node.name()?.syntax;
-    if (declaredName !== undefined) references.set(declaredName, { kind: 'mixin', symbol });
-  }
-  for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
-    const scope = namespaceScope(namespace, document);
+  for (const namespace of Object.values(symbolTable.namespaces)) {
+    const scope =
+      namespace === symbolTable.defaultNamespace ? document : namespaceScope(namespace, document);
     for (const declaration of namespace.declarations) {
       declarations.set(declaration.node.syntax, namespace);
       scopes.set(declaration.node.syntax, scope);
@@ -412,9 +399,9 @@ function bind(options: BindingInputs): BinderResult {
   }
   const included = new Map<SyntaxNode, MixinSymbol>();
   const inclusionContext = { sources, references, diagnostics, included };
-  bindInclusions(symbolTable.topLevel, document, inclusionContext);
-  for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
-    const scope = binder.scopeAt(namespace.declarations[0].node.syntax);
+  for (const namespace of Object.values(symbolTable.namespaces)) {
+    const [declaration] = namespace.declarations;
+    const scope = declaration === undefined ? document : binder.scopeAt(declaration.node.syntax);
     bindInclusions(namespace, scope, inclusionContext);
   }
   diagnostics.push(
@@ -514,7 +501,7 @@ function bind(options: BindingInputs): BinderResult {
     references,
     diagnostics,
   };
-  const bindBlocks = (records: SymbolTable['topLevel'] | NamespaceSymbol) => {
+  const bindBlocks = (records: NamespaceSymbol) => {
     const context = { ...blockContext, scope: stack.current() };
     for (const block of Object.values(records.blocks)) {
       bindBlock(
@@ -530,11 +517,11 @@ function bind(options: BindingInputs): BinderResult {
       if (!hasFields(mixin)) bindBlock(mixin, context);
     }
   };
-  bindBlocks(symbolTable.topLevel);
-  for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
-    stack.push(binder.scopeAt(namespace.declarations[0].node.syntax));
+  for (const namespace of Object.values(symbolTable.namespaces)) {
+    const [declaration] = namespace.declarations;
+    if (declaration !== undefined) stack.push(binder.scopeAt(declaration.node.syntax));
     bindBlocks(namespace);
-    stack.pop();
+    if (declaration !== undefined) stack.pop();
   }
 
   return { binder, diagnostics };
@@ -547,11 +534,7 @@ interface InclusionContext {
   readonly included: Map<SyntaxNode, MixinSymbol>;
 }
 
-function bindInclusions(
-  records: SymbolTable['topLevel'] | NamespaceSymbol,
-  scope: Scope,
-  ctx: InclusionContext,
-): void {
+function bindInclusions(records: NamespaceSymbol, scope: Scope, ctx: InclusionContext): void {
   const report = (code: string, message: string, inclusion: MixinInclusionAst): void => {
     ctx.diagnostics.push({
       code,

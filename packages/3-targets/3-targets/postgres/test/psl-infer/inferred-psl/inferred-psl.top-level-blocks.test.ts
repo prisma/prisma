@@ -109,6 +109,7 @@ function parseAndInterpret(source: string) {
     diagnostics: parseDiagnostics,
   } = parse(source, 'print-psl.top-level-blocks.test.psl');
   const { diagnostics: symbolTableDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -116,6 +117,7 @@ function parseAndInterpret(source: string) {
     sourceId: 'print-psl.top-level-blocks.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

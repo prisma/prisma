@@ -69,7 +69,11 @@ function completeAt(markedSource: string, dataTypes: DataTypeSupport | undefined
   const source = `${markedSource.slice(0, cursorOffset)}${markedSource.slice(cursorOffset + 1)}`;
   const { document, sources } = parse(source, 'block-spec-context.psl');
   const sourceFile = sources.sourceFileFor(document.syntax);
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   const pslBlockDescriptors = recordingDescriptors(seen);
   const items = providePslCompletionItems({
     context: classifyPslCompletionContext({

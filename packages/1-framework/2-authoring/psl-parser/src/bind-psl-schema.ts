@@ -25,6 +25,7 @@ export function contractSourceContextFromControlStack(
     controlMutationDefaults: stack.controlMutationDefaults,
     resolvedInputs: [],
     capabilities: stack.capabilities,
+    defaultNamespaceId: stack.target.defaultNamespaceId,
     ...overrides,
   };
 }
@@ -48,6 +49,7 @@ export function bindPslSchema(
   const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
     documents,
     sources,
+    defaultNamespaceId: context.defaultNamespaceId,
   });
   const { binder, diagnostics: binderDiagnostics } = createBinder({
     symbolTable,

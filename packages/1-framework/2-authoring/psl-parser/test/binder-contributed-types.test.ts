@@ -69,14 +69,18 @@ function context(): BinderContext {
 function bindProject(text: string) {
   const { document, sources } = parse(text, 'schema.prisma');
   const pslSources = new PslSources([[document.syntax, sources.sourceFileFor(document.syntax)]]);
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources: pslSources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources: pslSources,
+    defaultNamespaceId: 'public',
+  });
   const { binder, diagnostics } = createBinder({
     symbolTable,
     sources: pslSources,
     context: context(),
   });
   const resolve = (fieldName: string) => {
-    const field = symbolTable.topLevel.models['Post']?.fields[fieldName];
+    const field = symbolTable.defaultNamespace.models['Post']?.fields[fieldName];
     const node = field === undefined ? undefined : typeReferenceNode(field);
     return node === undefined ? undefined : binder.symbolForNode(node);
   };
@@ -190,12 +194,13 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged(TopTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.blocks['TopTag'],
+      symbol: symbolTable.defaultNamespace.blocks['TopTag'],
+      namespace: symbolTable.defaultNamespace,
     });
   });
 
@@ -203,12 +208,13 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged(TopModel)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'model',
-      symbol: symbolTable.topLevel.models['TopModel'],
+      symbol: symbolTable.defaultNamespace.models['TopModel'],
+      namespace: symbolTable.defaultNamespace,
     });
   });
 
@@ -216,18 +222,18 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged(auth.AuthTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
     const [qualifier] = (argument && PathExprAst.cast(argument)?.segments()) ?? [];
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.namespaces['auth']?.blocks['AuthTag'],
-      namespace: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth']?.blocks['AuthTag'],
+      namespace: symbolTable.namespaces['auth'],
     });
     expect(qualifier && binder.symbolForNode(qualifier.syntax)).toEqual({
       kind: 'namespace',
-      symbol: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth'],
     });
   });
 
@@ -235,7 +241,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics, sources } = bindProject(
       `${entities}model Post {\n  value db.tagged(Nope)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
     const file = argument && sources.sourceFileFor(argument);
 
     expect(diagnostics).toEqual([
@@ -261,7 +267,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged(AuthTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
       { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find entity "AuthTag"' },
@@ -276,12 +282,13 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.secondTagged(TopModel, TopTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value'], 1);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value'], 1);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.blocks['TopTag'],
+      symbol: symbolTable.defaultNamespace.blocks['TopTag'],
+      namespace: symbolTable.defaultNamespace,
     });
   });
 
@@ -289,12 +296,13 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.secondTagged(TopModel, extra: TopModel, TopTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value'], 2);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value'], 2);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.blocks['TopTag'],
+      symbol: symbolTable.defaultNamespace.blocks['TopTag'],
+      namespace: symbolTable.defaultNamespace,
     });
   });
 
@@ -302,7 +310,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged("TopTag")\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toBeUndefined();
@@ -312,7 +320,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged(1)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toBeUndefined();
@@ -322,7 +330,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged(auth.AuthTag.more)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toBeUndefined();
@@ -332,7 +340,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged(tag: TopTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toBeUndefined();
@@ -342,7 +350,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.tagged()\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toBeUndefined();
@@ -352,7 +360,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}model Post {\n  value db.VarChar(TopTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.models['Post']?.fields['value']);
+    const argument = argumentNode(symbolTable.defaultNamespace.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toBeUndefined();
@@ -362,15 +370,13 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}namespace auth {\n  model Post {\n    value db.tagged(AuthTag)\n  }\n}`,
     );
-    const argument = argumentNode(
-      symbolTable.topLevel.namespaces['auth']?.models['Post']?.fields['value'],
-    );
+    const argument = argumentNode(symbolTable.namespaces['auth']?.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.namespaces['auth']?.blocks['AuthTag'],
-      namespace: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth']?.blocks['AuthTag'],
+      namespace: symbolTable.namespaces['auth'],
     });
   });
 
@@ -378,14 +384,13 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}namespace auth {\n  model Post {\n    value db.tagged(TopTag)\n  }\n}`,
     );
-    const argument = argumentNode(
-      symbolTable.topLevel.namespaces['auth']?.models['Post']?.fields['value'],
-    );
+    const argument = argumentNode(symbolTable.namespaces['auth']?.models['Post']?.fields['value']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.blocks['TopTag'],
+      symbol: symbolTable.defaultNamespace.blocks['TopTag'],
+      namespace: symbolTable.defaultNamespace,
     });
   });
 
@@ -393,20 +398,18 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}namespace auth {\n  model Post {\n    value db.tagged(auth.AuthTag)\n  }\n}`,
     );
-    const argument = argumentNode(
-      symbolTable.topLevel.namespaces['auth']?.models['Post']?.fields['value'],
-    );
+    const argument = argumentNode(symbolTable.namespaces['auth']?.models['Post']?.fields['value']);
     const [qualifier] = (argument && PathExprAst.cast(argument)?.segments()) ?? [];
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.namespaces['auth']?.blocks['AuthTag'],
-      namespace: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth']?.blocks['AuthTag'],
+      namespace: symbolTable.namespaces['auth'],
     });
     expect(qualifier && binder.symbolForNode(qualifier.syntax)).toEqual({
       kind: 'namespace',
-      symbol: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth'],
     });
   });
 
@@ -414,9 +417,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}namespace auth {\n  model Post {\n    value db.tagged(Nope)\n  }\n}`,
     );
-    const argument = argumentNode(
-      symbolTable.topLevel.namespaces['auth']?.models['Post']?.fields['value'],
-    );
+    const argument = argumentNode(symbolTable.namespaces['auth']?.models['Post']?.fields['value']);
 
     expect(diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
       { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find entity "Nope"' },
@@ -431,12 +432,15 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}type Address {\n  value db.tagged(TopTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.compositeTypes['Address']?.fields['value']);
+    const argument = argumentNode(
+      symbolTable.defaultNamespace.compositeTypes['Address']?.fields['value'],
+    );
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.blocks['TopTag'],
+      symbol: symbolTable.defaultNamespace.blocks['TopTag'],
+      namespace: symbolTable.defaultNamespace,
     });
   });
 
@@ -444,18 +448,20 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}type Address {\n  value db.tagged(auth.AuthTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.compositeTypes['Address']?.fields['value']);
+    const argument = argumentNode(
+      symbolTable.defaultNamespace.compositeTypes['Address']?.fields['value'],
+    );
     const [qualifier] = (argument && PathExprAst.cast(argument)?.segments()) ?? [];
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.namespaces['auth']?.blocks['AuthTag'],
-      namespace: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth']?.blocks['AuthTag'],
+      namespace: symbolTable.namespaces['auth'],
     });
     expect(qualifier && binder.symbolForNode(qualifier.syntax)).toEqual({
       kind: 'namespace',
-      symbol: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth'],
     });
   });
 
@@ -463,7 +469,9 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}type Address {\n  value db.tagged(Nope)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.compositeTypes['Address']?.fields['value']);
+    const argument = argumentNode(
+      symbolTable.defaultNamespace.compositeTypes['Address']?.fields['value'],
+    );
 
     expect(diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
       { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find entity "Nope"' },
@@ -478,12 +486,13 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}types {\n  Alias = db.tagged(TopTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.namedTypes['Alias']);
+    const argument = argumentNode(symbolTable.namedTypes['Alias']);
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.blocks['TopTag'],
+      symbol: symbolTable.defaultNamespace.blocks['TopTag'],
+      namespace: symbolTable.defaultNamespace,
     });
   });
 
@@ -491,18 +500,18 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}types {\n  Alias = db.tagged(auth.AuthTag)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.namedTypes['Alias']);
+    const argument = argumentNode(symbolTable.namedTypes['Alias']);
     const [qualifier] = (argument && PathExprAst.cast(argument)?.segments()) ?? [];
 
     expect(diagnostics).toEqual([]);
     expect(argument && binder.symbolForNode(argument)).toEqual({
       kind: 'block',
-      symbol: symbolTable.topLevel.namespaces['auth']?.blocks['AuthTag'],
-      namespace: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth']?.blocks['AuthTag'],
+      namespace: symbolTable.namespaces['auth'],
     });
     expect(qualifier && binder.symbolForNode(qualifier.syntax)).toEqual({
       kind: 'namespace',
-      symbol: symbolTable.topLevel.namespaces['auth'],
+      symbol: symbolTable.namespaces['auth'],
     });
   });
 
@@ -510,7 +519,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}types {\n  Alias = db.tagged(Nope)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.namedTypes['Alias']);
+    const argument = argumentNode(symbolTable.namedTypes['Alias']);
 
     expect(diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
       { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find entity "Nope"' },
@@ -525,7 +534,7 @@ describe('createBinder — entity argument of a type constructor', () => {
     const { symbolTable, binder, diagnostics } = bindProject(
       `${entities}types {\n  Alias = db.tagged(Alias)\n}`,
     );
-    const argument = argumentNode(symbolTable.topLevel.namedTypes['Alias']);
+    const argument = argumentNode(symbolTable.namedTypes['Alias']);
 
     expect(diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
       { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find entity "Alias"' },

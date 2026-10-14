@@ -49,6 +49,7 @@ describe('defineConfig with a glob contract path', () => {
     const resolvedInputs = await expandContractInputs(config.contract?.source.inputs);
     const context: ContractSourceContext = {
       composedExtensions: [...stack.extensionIds],
+      defaultNamespaceId: stack.target.defaultNamespaceId,
       composedExtensionContracts: stack.extensionContracts,
       authoringContributions: stack.authoringContributions,
       pslDiagnostics: stack.family.pslDiagnostics,

@@ -10,6 +10,8 @@ import {
   interpretSqlContract,
   postgresScalarTypeDescriptors,
   postgresTarget,
+  sqliteScalarColumnDescriptors,
+  sqliteTarget,
 } from './fixtures';
 
 function makeSupabaseExtensionContract(): Contract {
@@ -224,6 +226,48 @@ namespace auth {
         }),
       ]),
     );
+  });
+
+  it('lowers an unqualified relation from another namespace to top-level and namespace public models', () => {
+    const result = interpretSqlContract(
+      [
+        'model Account {\n  id Int @id\n}',
+        'namespace public {\n  model Invoice {\n    id Int @id\n  }\n}',
+        'namespace auth {\n  model Session {\n    id Int @id\n    accountId Int\n    invoiceId Int',
+        '    account Account @relation(fields: [accountId], references: [id])',
+        '    invoice Invoice @relation(fields: [invoiceId], references: [id])\n  }\n}\n',
+      ].join('\n'),
+      { ...baseInput },
+    );
+
+    expect(result.ok ? [] : result.failure.diagnostics).toEqual([]);
+    if (!result.ok) return;
+    const session = (result.value.storage as SqlStorage).namespaces['auth']!.entries.table?.[
+      'Session'
+    ];
+    expect(session?.foreignKeys?.map((fk) => fk.target)).toEqual([
+      { namespaceId: 'public', tableName: 'Account', columns: ['id'] },
+      { namespaceId: 'public', tableName: 'Invoice', columns: ['id'] },
+    ]);
+  });
+
+  it('on SQLite, reads unbound.User as the top-level User and emits the same contract', () => {
+    const sqlite = {
+      ...baseInput,
+      target: sqliteTarget,
+      scalarColumnDescriptors: sqliteScalarColumnDescriptors,
+    };
+    const schema = (type: string) =>
+      `model User {\n  id Int @id\n}\nmodel Post {\n  id Int @id\n  userId Int\n  user ${type} @relation(fields: [userId], references: [id])\n}\n`;
+    const bare = interpretSqlContract(schema('User'), sqlite);
+    const qualified = interpretSqlContract(schema('unbound.User'), sqlite);
+
+    expect(bare.ok && qualified.ok).toBe(true);
+    if (!bare.ok || !qualified.ok) return;
+    expect(qualified.value).toEqual(bare.value);
+    expect(Object.keys((qualified.value.storage as SqlStorage).namespaces)).toEqual([
+      '__unbound__',
+    ]);
   });
 
   it('lowers the same bare table name in two namespaces with differing columns and a cross-namespace FK', () => {
