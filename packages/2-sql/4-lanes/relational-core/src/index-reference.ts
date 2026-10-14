@@ -56,6 +56,15 @@ type IndexesNamed<I, Key> = I extends unknown
 
 type IsUnion<T, Whole = T> = T extends unknown ? ([Whole] extends [T] ? false : true) : never;
 
+/** The authored names of the indexes in `I` of type `Type`, leaving out a name another index in `I` shares. */
+export type UniqueIndexNamesOfType<I, Type extends string> = {
+  [Key in AuthoredIndexName<Extract<I, { readonly type: Type }>>]: true extends IsUnion<
+    IndexesNamed<I, Key>
+  >
+    ? never
+    : Key;
+}[AuthoredIndexName<Extract<I, { readonly type: Type }>>];
+
 /**
  * A storage table's indexes, keyed by the name the contract source gave each: the `name:` prefix, or the `map:` name. An unnamed index, such as a derived foreign-key backing index, appears under its default prefix. A name that more than one index shares is left out, as reading it is refused at runtime.
  */
