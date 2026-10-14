@@ -1,15 +1,16 @@
 import type {
-  IndexReference,
-  UniqueIndexNamesOfType,
-} from '@internal/sql-relational-core/index-reference';
-import type {
   CollectionMethodBody,
   CollectionMethodContribution,
-  CollectionMethodModel,
-  CollectionMethodRegistry,
-  CollectionMethodsEntry,
+  CollectionMethodContributionId,
+  CollectionMethodContributionType,
+  CollectionMethodModelType,
   CollectionMethodTools,
-} from '@internal/sql-relational-core/query-lane-context';
+} from '@internal/sql-relational-core/collection-methods';
+import {
+  type IndexReference,
+  type UniqueIndexNamesOfType,
+  uniqueIndexNamesOfType,
+} from '@internal/sql-relational-core/index-reference';
 import { blindCast } from '@internal/utils/casts';
 import type { TsqueryArgument } from '../types/operation-types';
 import type { ExtractedCodecTypes, Resolve } from './codec-type-map';
@@ -18,21 +19,28 @@ import { FULL_TEXT_INDEX_TYPE } from './full-text-index-definition';
 /** A `tsquery` expression from a parser or the `tsquery` tag, or a `tsquery` value read back from a query. */
 export type PostgresTsqueryArgument = TsqueryArgument<Resolve<ExtractedCodecTypes>>;
 
-type FullTextMethodTable<Model extends CollectionMethodModel> = Model['target'] extends 'postgres'
-  ? {
-      readonly [Name in UniqueIndexNamesOfType<
-        Model['table']['indexes'][number],
-        typeof FULL_TEXT_INDEX_TYPE
-      >]: readonly [query: PostgresTsqueryArgument];
-    }
-  : Record<never, never>;
+interface FullTextSearchSignature {
+  readonly parameters: readonly [query: PostgresTsqueryArgument];
+  readonly filters: true;
+  readonly orders: true;
+}
+
+type FullTextMethodTable<Model extends CollectionMethodModelType> =
+  Model['target'] extends 'postgres'
+    ? {
+        readonly [Name in UniqueIndexNamesOfType<
+          Model['table']['indexes'][number],
+          typeof FULL_TEXT_INDEX_TYPE
+        >]: FullTextSearchSignature;
+      }
+    : Record<never, never>;
 
 /** One method for each full-text index of a Postgres model, named after the index: `using.<index>(query)` filters to the rows that match `query`, most relevant first. */
-export interface PostgresFullTextMethods extends CollectionMethodsEntry {
+export interface PostgresFullTextMethods extends CollectionMethodContributionType {
   readonly methods: FullTextMethodTable<this['model']>;
 }
 
-declare module '@internal/sql-relational-core/query-lane-context' {
+declare module '@internal/sql-relational-core/collection-methods' {
   interface CollectionMethodRegistry {
     readonly 'postgres/fullText': PostgresFullTextMethods;
   }
@@ -63,18 +71,12 @@ function fullTextMethod(indexName: string): CollectionMethodBody {
 
 /** The run-time half of `PostgresFullTextMethods`. */
 export const postgresFullTextMethods: CollectionMethodContribution = {
-  id: 'postgres/fullText' satisfies keyof CollectionMethodRegistry,
-  methodsFor: (model) => {
-    if (model.target !== 'postgres') return {};
-    const names = model.table.indexes.map((index) => index.prefix ?? index.name);
-    return Object.fromEntries(
-      model.table.indexes.flatMap((index) => {
-        const name = index.prefix ?? index.name;
-        const unique = names.indexOf(name) === names.lastIndexOf(name);
-        return index.type === FULL_TEXT_INDEX_TYPE && name !== undefined && unique
-          ? [[name, fullTextMethod(name)]]
-          : [];
-      }),
-    );
-  },
+  id: 'postgres/fullText' satisfies CollectionMethodContributionId,
+  methodsFor: (model) =>
+    Object.fromEntries(
+      uniqueIndexNamesOfType(model.table.indexes, FULL_TEXT_INDEX_TYPE).map((name) => [
+        name,
+        fullTextMethod(name),
+      ]),
+    ),
 };

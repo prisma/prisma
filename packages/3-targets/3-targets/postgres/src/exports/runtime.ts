@@ -4,12 +4,13 @@ import type {
   RuntimeTargetInstance,
 } from '@internal/framework-components/execution';
 import type { SqlOperationDescriptors } from '@internal/sql-operations';
-import type { CollectionMethodContribution } from '@internal/sql-relational-core/query-lane-context';
+import type { CollectionMethodContribution } from '@internal/sql-relational-core/collection-methods';
 import { postgresTargetDescriptorMetaRuntime } from '../core/descriptor-meta-runtime';
 import { postgresFullTextMethods } from '../core/full-text-collection-method';
 import { decodePostgresListText } from '../core/list-decoder';
 import { postgresQueryOperations } from '../core/query-operations';
 
+export type { PostgresFullTextMethods } from '../core/full-text-collection-method';
 export { INSTANT_NOW_GENERATOR_ID, instantNow } from '../core/instant-now-generator';
 export { decodePostgresListText } from '../core/list-decoder';
 export {
