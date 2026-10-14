@@ -1,0 +1,29 @@
+// use prisma-8
+
+// Emitted fixture for the sql-orm-client tests of contributed collection
+// methods. Memo is a variant of Note, stored in the notes table.
+
+model Note {
+  id    Int    @id
+  title String
+  body  String
+  kind  String
+
+  @@discriminator(kind)
+  @@fullTextIndex([title, body], name: "notes_search")
+  @@index([title], name: "notes_title")
+  @@map("notes")
+}
+
+model Memo {
+  pinned Boolean
+
+  @@base(Note, "memo")
+}
+
+model Tag {
+  id    Int    @id
+  label String
+
+  @@map("tags")
+}
