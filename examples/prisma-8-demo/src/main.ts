@@ -71,11 +71,11 @@
  * - repo-similar-posts <postId> [limit]
  *                              Cosine-distance similarity search via ORM client
  * - repo-search-posts <embedding> <maxDistance> [limit]
- *                              Vector similarity search via ORM client
+ *                              Nearest posts to a vector via ORM client (using.embedding_nearest)
  * - repo-search-posts-text <query> [limit]
  *                              Full-text search over post titles via ORM client
  * - repo-search-posts-weighted <query> [limit]
- *                              Weighted full-text search over post title and body via ORM client
+ *                              Weighted full-text search over post title and body via ORM client (using.post_search)
  * - users-paginate [cursor]    Cursor-based pagination
  * - similarity-search <vec>    Vector similarity search (pgvector)
  * - full-text-search <query> [limit]

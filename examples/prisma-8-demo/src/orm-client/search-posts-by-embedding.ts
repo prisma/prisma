@@ -1,6 +1,9 @@
 import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import { createOrmClient } from './client';
 
+/**
+ * The posts nearest to `searchEmbedding` by cosine distance, within `maxDistance`. `using.embedding_nearest` is the method the pgvector package contributes for the `embedding` field.
+ */
 export async function ormClientSearchPostsByEmbedding(
   searchEmbedding: number[],
   maxDistance: number,
@@ -8,8 +11,5 @@ export async function ormClientSearchPostsByEmbedding(
   runtime: Runtime,
 ) {
   const db = createOrmClient(runtime);
-  return db.Post.where((p) => p.embedding.cosineDistance(searchEmbedding).lt(maxDistance))
-    .orderBy((p) => p.embedding.cosineDistance(searchEmbedding).asc())
-    .limit(limit)
-    .all();
+  return db.Post.using.embedding_nearest(searchEmbedding, maxDistance).limit(limit).all();
 }
