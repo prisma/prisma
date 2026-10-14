@@ -71,7 +71,7 @@
  * - repo-similar-posts <postId> [limit]
  *                              Cosine-distance similarity search via ORM client
  * - repo-search-posts <embedding> <maxDistance> [limit]
- *                              Nearest posts to a vector via ORM client (using.embedding_nearest)
+ *                              Nearest posts to a 1536-number vector via ORM client (using.embedding_nearest)
  * - repo-search-posts-text <query> [limit]
  *                              Full-text search over post titles via ORM client
  * - repo-search-posts-weighted <query> [limit]
@@ -206,6 +206,11 @@ function describe(value: unknown): string {
   if (typeof value === 'string') return `'${value}' (string)`;
   return `${String(value)} (${typeof value})`;
 }
+
+const EMBEDDING_ARGUMENT_HELP = [
+  '  embedding: a JSON array of exactly 1536 numbers, the length of Post.embedding. For example, the embedding the seed gives "First Post":',
+  `    pnpm start -- repo-search-posts "$(node -e 'console.log(JSON.stringify(Array.from({ length: 1536 }, (_, i) => Math.sin(1 + i) * 0.1)))')" 0.5`,
+].join('\n');
 
 /**
  * `JSON.stringify` refuses a `bigint`, and a raw row spec naming an
@@ -531,7 +536,7 @@ async function main() {
       const [embeddingStr, maxDistanceStr, limitStr] = args;
       if (!embeddingStr || !maxDistanceStr) {
         console.error('Usage: pnpm start -- repo-search-posts <embedding> <maxDistance> [limit]');
-        console.error('  embedding: JSON array of numbers, e.g., "[0.1,0.2,0.3]"');
+        console.error(EMBEDDING_ARGUMENT_HELP);
         process.exit(1);
       }
       let searchEmbedding: number[];
@@ -548,7 +553,7 @@ async function main() {
           'Error parsing embedding:',
           error instanceof Error ? error.message : String(error),
         );
-        console.error('Expected JSON array of numbers, e.g., "[0.1,0.2,0.3]"');
+        console.error(EMBEDDING_ARGUMENT_HELP);
         process.exit(1);
       }
       const maxDistance = Number.parseFloat(maxDistanceStr);
@@ -560,7 +565,7 @@ async function main() {
         runtime,
       );
 
-      console.log(JSON.stringify(posts, null, 2));
+      console.log(toJson(posts));
     } else if (cmd === 'repo-search-posts-text') {
       const [query, limitStr] = args;
       if (!query) {

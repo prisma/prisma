@@ -11,5 +11,8 @@ export async function ormClientSearchPostsByEmbedding(
   runtime: Runtime,
 ) {
   const db = createOrmClient(runtime);
-  return db.Post.using.embedding_nearest(searchEmbedding, maxDistance).limit(limit).all();
+  return db.Post.select('id', 'title', 'userId')
+    .using.embedding_nearest(searchEmbedding, maxDistance)
+    .limit(limit)
+    .all();
 }
