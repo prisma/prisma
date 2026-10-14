@@ -278,72 +278,27 @@ describe('buildSymbolTable() given a block that includes a mixin', () => {
   });
 });
 
-describe('buildSymbolTable() given a mixin written without its block keyword', () => {
-  const message = (name: string) =>
-    `A mixin starts with the keyword of the block it is for, for example "model mixin ${name}"`;
+describe('buildSymbolTable() given a block whose keyword is the word mixin', () => {
+  it('collects it in no record at the top level and leaves its name free', () => {
+    const { topLevel, diagnostics } = build(
+      lines('mixin X {', '  a = 1', '}', 'model X {', '  id Int', '}'),
+    );
 
-  it('reports it at the keyword, collects it in no record and leaves its name free', () => {
-    const source = lines('mixin X {', '  a = 1', '}', 'model X {', '  id Int', '}');
-    const { topLevel, diagnostics } = build(source);
-
-    expect(diagnostics).toEqual([
-      {
-        code: 'PSL_INVALID_DECLARATION',
-        message: message('X'),
-        filename: '0.psl',
-        range: rangeOf(source, 'mixin'),
-      },
-    ]);
+    expect(diagnostics).toEqual([]);
     expect(Object.keys(topLevel.blocks)).toEqual([]);
     expect(Object.keys(topLevel.mixins)).toEqual([]);
     expect(Object.keys(topLevel.models)).toEqual(['X']);
   });
 
-  it('reports it in a namespace, collects it in no record and leaves its name free', () => {
-    const source = lines(
-      'namespace app {',
-      '  model X {',
-      '    id Int',
-      '  }',
-      '  mixin X {',
-      '  }',
-      '}',
+  it('collects it in no record in a namespace and leaves its name free', () => {
+    const { topLevel, diagnostics } = build(
+      lines('namespace app {', '  model X {', '    id Int', '  }', '  mixin X {', '  }', '}'),
     );
-    const { topLevel, diagnostics } = build(source);
     const app = topLevel.namespaces['app'];
 
-    expect(diagnostics).toEqual([
-      {
-        code: 'PSL_INVALID_DECLARATION',
-        message: message('X'),
-        filename: '0.psl',
-        range: rangeOf(source, 'mixin'),
-      },
-    ]);
+    expect(diagnostics).toEqual([]);
     expect(Object.keys(app?.blocks ?? {})).toEqual([]);
     expect(Object.keys(app?.mixins ?? {})).toEqual([]);
     expect(Object.keys(app?.models ?? {})).toEqual(['X']);
-  });
-
-  it('reports a mixin whose block keyword is mixin at that keyword and collects it in no record', () => {
-    const source = lines('mixin mixin X {', '  a = 1', '}', 'model X {', '  id Int', '}');
-    const { topLevel, diagnostics } = build(source);
-
-    expect(diagnostics).toEqual([
-      {
-        code: 'PSL_INVALID_DECLARATION',
-        message: message('X'),
-        filename: '0.psl',
-        range: rangeOf(source, 'mixin'),
-      },
-    ]);
-    expect(Object.keys(topLevel.mixins)).toEqual([]);
-    expect(Object.keys(topLevel.models)).toEqual(['X']);
-  });
-
-  it('names the placeholder Name when the declaration has no name', () => {
-    const { diagnostics } = build('mixin {\n}');
-
-    expect(diagnostics.map((diagnostic) => diagnostic.message)).toEqual([message('Name')]);
   });
 });
