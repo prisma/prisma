@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { pathToFileURL } from 'node:url';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { timeouts } from '@repo/test-utils';
 import { FSWatcher } from 'chokidar';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -18,6 +19,7 @@ import {
 } from 'vscode-languageserver/node';
 import { resolveSchemaInputs } from '../src/schema-inputs';
 import { createServer } from '../src/server';
+import { testTypeConstructors } from './helpers/binder';
 
 const observed = vi.hoisted(() => new Map<string, string | undefined>());
 
@@ -43,7 +45,14 @@ vi.mock('../src/config-resolution', async (original) => ({
         observed.set(uri, text);
         return text;
       }),
-      controlStack: { scalarTypes: ['Int'], pslBlockDescriptors: {} },
+      controlStack: {
+        scalarTypes: ['Int'],
+        defaultNamespaceId: 'public',
+        pslBlockDescriptors: {},
+        authoringContributions: assembleAuthoringContributions([
+          { id: 'scalars', authoring: { type: testTypeConstructors(['Int']) } },
+        ]),
+      },
     };
   },
 }));
