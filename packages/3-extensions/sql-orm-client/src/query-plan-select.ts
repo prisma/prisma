@@ -1404,34 +1404,41 @@ function buildRootPolymorphism(
   };
 }
 
-export function compileSelect(
+export function collectionSelectAst(
   contract: Contract<SqlStorage>,
   modelName: string,
   state: CollectionState,
-): SqlQueryPlan<Record<string, unknown>> {
+): SelectAst {
   assertLockCompatible(state);
   if (state.distinctOn !== undefined && state.distinctOn.length > 0) {
     assertDistinctOnCapability(contract, 'distinctOn');
   }
 
   const polymorphism = buildRootPolymorphism(contract, state, modelName);
-  const ast = buildSelectAst(
+  return buildSelectAst(
     contract,
     modelName,
     { ...polymorphism.projectionState, includes: [] },
     { joins: polymorphism.joins, includeProjection: polymorphism.projection },
   );
+}
 
+export function compileSelect(
+  contract: Contract<SqlStorage>,
+  modelName: string,
+  state: CollectionState,
+): SqlQueryPlan<Record<string, unknown>> {
+  const ast = collectionSelectAst(contract, modelName, state);
   const { params } = deriveParamsFromAst(ast);
   return buildOrmQueryPlan(contract, ast, params, state.annotations);
 }
 
-export function compileSelectWithIncludes(
+export function collectionSelectWithIncludesAst(
   contract: Contract<SqlStorage>,
   aggregates: SqlAggregateDescriptorRegistry,
   modelName: string,
   state: CollectionState,
-): SqlQueryPlan<Record<string, unknown>> {
+): SelectAst {
   assertLockCompatible(state);
   const topLevelWhere = buildStateWhere(contract, state);
   const polymorphism = buildRootPolymorphism(contract, state, modelName);
@@ -1444,7 +1451,7 @@ export function compileSelectWithIncludes(
     includeProjection.push(artifact.projection);
   }
 
-  const ast = buildSelectAst(
+  return buildSelectAst(
     contract,
     modelName,
     { ...polymorphism.projectionState, includes: [] },
@@ -1454,7 +1461,15 @@ export function compileSelectWithIncludes(
       ...ifDefined('where', topLevelWhere),
     },
   );
+}
 
+export function compileSelectWithIncludes(
+  contract: Contract<SqlStorage>,
+  aggregates: SqlAggregateDescriptorRegistry,
+  modelName: string,
+  state: CollectionState,
+): SqlQueryPlan<Record<string, unknown>> {
+  const ast = collectionSelectWithIncludesAst(contract, aggregates, modelName, state);
   const { params } = deriveParamsFromAst(ast);
   return buildOrmQueryPlan(contract, ast, params, state.annotations);
 }
