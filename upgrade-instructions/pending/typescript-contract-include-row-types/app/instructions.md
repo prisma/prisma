@@ -59,7 +59,7 @@ changes:
         - 'export type StorageColumnTypes = \{'
   - id: typescript-contract-enums-in-domain
     summary: |
-      The type of a contract built with `defineContract` carries its enums as an emitted `contract.d.ts` does: in the domain namespace's `enum` and `enumMemberTypes`, and in the storage namespace's `valueSet`. The type-only `enumAccessors` key is gone. `db.enums` reads its accessors from `enumMemberTypes` for both kinds of contract, so its types are the emitted ones: `has(value)` takes any value and narrows it to the enum's values, and `nameOf` and `ordinalOf` take the enum's values as before. Code that read `enumAccessors` from the contract's type should use `NamespacedEnums<typeof contract>` from `@prisma/orm-framework/contract/enum-accessor`, or `db.enums`. The detection matches reads of `enumAccessors`.
+      The type of a contract built with `defineContract` carries its enums as an emitted `contract.d.ts` does: in the domain namespace's `enum` and `enumMemberTypes`, and in the storage namespace's `valueSet`. The type-only `enumAccessors` key is gone. `db.enums` reads its accessors from `enumMemberTypes` for both kinds of contract, so its types are the emitted ones: `has(value)` takes any value and narrows it to the enum's values, and `nameOf` and `ordinalOf` take the enum's values as before. An `enumType` keeps its codec id as a literal, so its fields gain their codec's query methods, such as `eq`, `ilike`, `gt` and `asc`. Code that read `enumAccessors` from the contract's type should use `NamespacedEnums<typeof contract>` from `@prisma/orm-framework/contract/enum-accessor`, or `db.enums`. The detection matches reads of `enumAccessors`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -177,3 +177,5 @@ A contract built with `defineContract` no longer has an `enumAccessors` key in i
 ```
 
 `db.enums.<namespace>.<Enum>.has(value)` now takes any value and narrows it to the enum's values, as it does for an emitted contract.
+
+An `enumType` keeps its codec id as a literal type, as the emitted contract does, so a field typed by it now has its codec's query methods: `where((i) => i.role.eq('admin'))`, `i.role.ilike('ad%')`, `i.priority.gt(1)` and `orderBy((i) => i.priority.asc())` compile where they failed before with "Property 'eq' does not exist". Remove the casts or raw SQL that worked around this.

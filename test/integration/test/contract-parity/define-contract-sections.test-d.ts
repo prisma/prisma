@@ -73,6 +73,20 @@ type SectionDifferences<Key extends string> = {
 }[keyof Fixtures];
 
 describe('the comparisons see what they compare', () => {
+  test('a value that is any on one side only differs', () => {
+    // What `JSON.parse` returns: `any`, as a type that cannot be resolved becomes.
+    type Planted = ReturnType<typeof JSON.parse>;
+    expectTypeOf<SameType<Planted, string>>().toEqualTypeOf<false>();
+    expectTypeOf<SameType<string, Planted>>().toEqualTypeOf<false>();
+    expectTypeOf<
+      DifferingKeys<
+        { readonly id: Planted; readonly name: string },
+        { readonly id: number; readonly name: string }
+      >
+    >().toEqualTypeOf<'id'>();
+    expectTypeOf<SameType<Planted, Planted>>().toEqualTypeOf<true>();
+  });
+
   test('two instantiations of an alias built from conditional types are told apart', () => {
     type Conditional<T> = { readonly value: T extends string ? 'text' : 'other' };
     expectTypeOf<SameType<Conditional<string>, Conditional<number>>>().toEqualTypeOf<false>();
@@ -405,7 +419,7 @@ type ComparedField<Field> = Field extends {
 
 type DomainOf<Contract> = Contract extends { readonly domain: infer Domain } ? Domain : never;
 
-/** Each enum of the contract's domain, keyed `'<namespace>.<enum>'`, as `Slot` (`'enum'` or `'enumMemberTypes'`) types it. */
+/** Each enum of the contract's domain, keyed `'<namespace>.<enum>'`, as `Slot` types it: `'enum'` with its codec id and stored members, `'enumMemberTypes'` with the members as read. */
 type DomainEnums<Contract, Slot extends 'enum' | 'enumMemberTypes'> = UnionToIntersection<
   {
     [Ns in keyof DomainNamespaces<Contract> & string]: DomainNamespaces<Contract>[Ns] extends {
@@ -413,11 +427,7 @@ type DomainEnums<Contract, Slot extends 'enum' | 'enumMemberTypes'> = UnionToInt
     }
       ? {
           readonly [Name in keyof NonNullable<Enums> &
-            string as `${Ns}.${Name}`]: Slot extends 'enum'
-            ? NonNullable<Enums>[Name] extends { readonly members: infer Members }
-              ? Members
-              : never
-            : NonNullable<Enums>[Name];
+            string as `${Ns}.${Name}`]: NonNullable<Enums>[Name];
         }
       : Record<never, never>;
   }[keyof DomainNamespaces<Contract> & string]
@@ -462,7 +472,7 @@ describe('domain', () => {
     expectTypeOf<MapDifferences<'model storage'>>().toBeNever();
   });
 
-  // An enum authored with enumType types its codec id as string, so only the members are compared. A member that is not a JSON value, such as a bigint or a Date, is typed JsonValue in the built enum, where the emitted one has its stored literal; only migrations read stored values. db.enums reads enumMemberTypes, compared above through NamespacedEnums and here directly.
+  // Each enum's codec id and stored members, and the members as the application reads them. A member that is not a JSON value, such as a bigint or a Date, is typed JsonValue in the built enum, where the emitted one has its stored literal; only migrations read stored values. db.enums reads enumMemberTypes, compared above through NamespacedEnums and here directly.
   test('enum members, as stored and as read', () => {
     expectTypeOf<EnumDifferences<'enum'>>().toBeNever();
     expectTypeOf<EnumDifferences<'enumMemberTypes'>>().toBeNever();

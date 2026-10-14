@@ -1,3 +1,4 @@
+/// <reference types="temporal-polyfill/types/global" />
 import type { contract as postgresScalarSource } from '../planner-golden/fixtures/postgres/contract';
 import type { Contract as PostgresScalarEmitted } from '../planner-golden/fixtures/postgres/generated/contract';
 import type { contract as sqliteScalarSource } from '../planner-golden/fixtures/sqlite/contract';
@@ -24,7 +25,11 @@ export type Fixtures = {
 export type Built<F extends keyof Fixtures> = Fixtures[F][0];
 export type Emitted<F extends keyof Fixtures> = Fixtures[F][1];
 
-type MutuallyAssignable<A, B> = [A] extends [B] ? ([B] extends [A] ? true : false) : false;
+type IsAny<T> = 0 extends 1 & T ? true : false;
+
+// `any` is assignable both ways, so a leaf counts as equal only when both sides are `any` or neither is.
+type MutuallyAssignable<A, B> =
+  IsAny<A> extends IsAny<B> ? ([A] extends [B] ? ([B] extends [A] ? true : false) : false) : false;
 
 type IsUnion<T, Whole = T> = T extends unknown ? ([Whole] extends [T] ? false : true) : never;
 
