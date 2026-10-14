@@ -1,6 +1,6 @@
 # ADR 272 — Packages contribute collection methods computed from a model
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-13
 **Builds on:** [ADR 270 — ORM queries use the query builder's functions and a model's indexes](ADR%20270%20-%20ORM%20queries%20use%20the%20query%20builder's%20functions%20and%20a%20model's%20indexes.md), [ADR 265 — A collection keeps its class through the chain](ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md), [ADR 259 — Query fragments are functions](ADR%20259%20-%20Query%20fragments%20are%20functions.md), [ADR 210 — Index-type registry](ADR%20210%20-%20Index-type%20registry.md)
 
@@ -180,7 +180,7 @@ db.Post.using.post_search(q).orderBy((p) => p.id.asc());       // by relevance, 
 
 ## Cost
 
-With the Postgres full-text and pgvector contributions registered and no method in use, type checking `examples/prisma-8-demo` takes about 1.2% more type instantiations than with no contributions, and the ORM client package about 1.7% more. Ten uses add about 0.2 points. Measured with `pnpm typecheck --extendedDiagnostics` on TypeScript 5.9.3.
+With the Postgres full-text and pgvector contributions registered and no method in use, type checking `examples/prisma-8-demo` takes 1.1% more type instantiations than the main branch this builds on (906,301 against 896,074), and the ORM client package 1.2% more (2,456,741 against 2,427,689). Ten uses add 0.2 points in the demo and 0.1 points in the client package. Measured with `pnpm typecheck --extendedDiagnostics` on TypeScript 5.9.3; each count was the same in two runs.
 
 ## Consequences
 
