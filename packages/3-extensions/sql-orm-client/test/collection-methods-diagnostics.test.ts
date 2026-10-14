@@ -49,8 +49,8 @@ describe('the errors for collection methods', () => {
     const collection = (model: string) =>
       `Collection<Contract, "${model}", DefaultModelRow<Contract, "${model}", "public">, WithNsId<DefaultCollectionTypeState, "public">>`;
     expect(fixtureDiagnostics()).toEqual([
-      `Property 'search' does not exist on type 'CollectionMethods<Contract, "User", "public", ${collection('User')}, MergedTable<...>>'.`,
-      `Property 'users_search' does not exist on type 'CollectionMethods<Contract, "Comment", "public", ${collection('Comment')}, MergedTable<...>>'.`,
+      `Property 'search' does not exist on type 'ContributedCollectionMethods<Contract, "User", "public", ${collection('User')}, MergedTable<...>>'.`,
+      `Property 'users_search' does not exist on type 'ContributedCollectionMethods<Contract, "Comment", "public", ${collection('Comment')}, MergedTable<...>>'.`,
       `This expression is not callable.\n  Type 'CollectionMethodNameClash<"labelled", "Tag", "test/clash-a" | "test/clash-b">' has no call signatures.`,
     ]);
   });

@@ -1,11 +1,11 @@
 import type {
   CollectionMethodBody,
   CollectionMethodContribution,
+  CollectionMethodContributionType,
   CollectionMethodModel,
-  CollectionMethodModelView,
-  CollectionMethodsEntry,
-  ExecutionContext,
-} from '@internal/sql-relational-core/query-lane-context';
+  CollectionMethodModelType,
+} from '@internal/sql-relational-core/collection-methods';
+import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { SqlRuntimeExtensionDescriptor } from '@internal/sql-runtime';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
 import type { Contract as NotesContract } from './fixtures/collection-methods/generated/contract';
@@ -31,17 +31,20 @@ type LengthOf<Field> = Field extends {
   ? Length
   : number;
 
-/** One method per vector field, `<field>_closest(vector)`, with the vector typed from the field. */
-export interface TestClosestMethods extends CollectionMethodsEntry {
-  readonly methods: {
-    readonly [Name in FieldsOfCodec<this['model']['fields'], 'pg/vector@1'> &
-      string as `${Name}_closest`]: readonly [
-      vector: TestVector<LengthOf<this['model']['fields'][Name & keyof this['model']['fields']]>>,
-    ];
+type ClosestMethodTable<Fields> = {
+  readonly [Name in FieldsOfCodec<Fields, 'pg/vector@1'> & string as `${Name}_closest`]: {
+    readonly parameters: readonly [vector: TestVector<LengthOf<Fields[Name & keyof Fields]>>];
+    readonly filters: false;
+    readonly orders: true;
   };
+};
+
+/** One method per vector field, `<field>_closest(vector)`, with the vector typed from the field. It only orders. */
+export interface TestClosestMethods extends CollectionMethodContributionType {
+  readonly methods: ClosestMethodTable<this['model']['fields']>;
 }
 
-type HasColumnOfCodec<Model extends CollectionMethodModel, CodecId extends string> = {
+type HasColumnOfCodec<Model extends CollectionMethodModelType, CodecId extends string> = {
   [Column in keyof Model['table']['columns']]: Model['table']['columns'][Column] extends {
     readonly codecId: CodecId;
   }
@@ -50,27 +53,45 @@ type HasColumnOfCodec<Model extends CollectionMethodModel, CodecId extends strin
 }[keyof Model['table']['columns']];
 
 /** `as_of(at)` on every model whose table has a `pg/jsonb@1` column; the name does not come from the schema. */
-export interface TestAsOfMethods extends CollectionMethodsEntry {
+export interface TestAsOfMethods extends CollectionMethodContributionType {
   readonly methods: [HasColumnOfCodec<this['model'], 'pg/jsonb@1'>] extends [never]
     ? Record<never, never>
-    : { readonly as_of: readonly [at: Date] };
+    : {
+        readonly as_of: {
+          readonly parameters: readonly [at: Date];
+          readonly filters: false;
+          readonly orders: true;
+        };
+      };
 }
 
 /** One half of a clashing pair: gives `Tag` a method `labelled`. */
-export interface TestClashA extends CollectionMethodsEntry {
+export interface TestClashA extends CollectionMethodContributionType {
   readonly methods: this['model']['name'] extends 'Tag'
-    ? { readonly labelled: readonly [label: string] }
+    ? {
+        readonly labelled: {
+          readonly parameters: readonly [label: string];
+          readonly filters: false;
+          readonly orders: false;
+        };
+      }
     : Record<never, never>;
 }
 
 /** The other half of the clashing pair: also gives `Tag` a method `labelled`. */
-export interface TestClashB extends CollectionMethodsEntry {
+export interface TestClashB extends CollectionMethodContributionType {
   readonly methods: this['model']['name'] extends 'Tag'
-    ? { readonly labelled: readonly [label: string, exact: boolean] }
+    ? {
+        readonly labelled: {
+          readonly parameters: readonly [label: string, exact: boolean];
+          readonly filters: false;
+          readonly orders: false;
+        };
+      }
     : Record<never, never>;
 }
 
-declare module '@internal/sql-relational-core/query-lane-context' {
+declare module '@internal/sql-relational-core/collection-methods' {
   interface CollectionMethodRegistry {
     readonly 'test/closest': TestClosestMethods;
     readonly 'test/as-of': TestAsOfMethods;
@@ -112,7 +133,7 @@ export const testAsOfMethods: CollectionMethodContribution = {
 function labelledFor(id: string): CollectionMethodContribution {
   return {
     id,
-    methodsFor: (model: CollectionMethodModelView) =>
+    methodsFor: (model: CollectionMethodModel) =>
       model.name === 'Tag' ? { labelled: (collection) => collection } : {},
   };
 }

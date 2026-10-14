@@ -8,11 +8,16 @@ import { describe, expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
 import type {
   CollectionMethodNameClash,
-  CollectionMethodResult,
-  CollectionMethods,
-  ModelCollectionMethodTable,
+  ContributedCollectionMethods,
+  ModelContributedMethodTable,
 } from '../src/collection-methods';
-import type { CollectionRowOf, Filtered, HasOrderBy, HasWhere } from '../src/collection-types';
+import type {
+  CollectionRowOf,
+  Filtered,
+  HasOrderBy,
+  HasWhere,
+  Ordered,
+} from '../src/collection-types';
 import { orm } from '../src/orm';
 import type { TestVector } from './collection-methods-fixture';
 import {
@@ -60,10 +65,10 @@ describe('using', () => {
   });
 
   test('has no members when the model name is not known', () => {
-    expectTypeOf<ModelCollectionMethodTable<TestContract, string, 'public'>>().toEqualTypeOf<
+    expectTypeOf<ModelContributedMethodTable<TestContract, string, 'public'>>().toEqualTypeOf<
       Record<never, never>
     >();
-    expectTypeOf<ModelCollectionMethodTable<TestContract, 'User', string>>().toEqualTypeOf<
+    expectTypeOf<ModelContributedMethodTable<TestContract, 'User', string>>().toEqualTypeOf<
       Record<never, never>
     >();
   });
@@ -82,13 +87,29 @@ describe('using', () => {
 describe('a contribution that reads the whole model', () => {
   test('names a method after a field of a codec, and types its argument from the field', () => {
     expectTypeOf(plain.Post.using.embedding_closest).parameter(0).toEqualTypeOf<TestVector<3>>();
-    expectTypeOf(plain.Post.using.embedding_closest([1, 2, 3])).toExtend<HasWhere & HasOrderBy>();
+    expectTypeOf(plain.Post.using.embedding_closest([1, 2, 3])).toExtend<HasOrderBy>();
   });
 
   test('offers a method with a fixed name on a model whose table has a column of a codec', () => {
     expectTypeOf(plain.User.using.as_of).parameter(0).toEqualTypeOf<Date>();
     // @ts-expect-error Post has no jsonb column, so it has no as_of
     plain.Post.using.as_of(new Date());
+  });
+});
+
+describe('the facts a contributed method adds', () => {
+  test('are only those its signature declares', () => {
+    const ordered = plain.Post.using.embedding_closest([1, 2, 3]);
+    expectTypeOf(ordered).toEqualTypeOf<Ordered<typeof plain.Post>>();
+    expectTypeOf(ordered).not.toExtend<HasWhere>();
+  });
+
+  test('allow a bulk write only after a method that filters', () => {
+    // @ts-expect-error an order-only method does not filter, so deleteAll would delete every row
+    plain.Post.using.embedding_closest([1, 2, 3]).deleteAll();
+    // @ts-expect-error an order-only method does not filter, so updateAll would update every row
+    plain.Post.using.embedding_closest([1, 2, 3]).updateAll({ views: 0 });
+    expectTypeOf(plain.User.using.users_search(q).deleteAll).toBeFunction();
   });
 });
 
@@ -109,7 +130,7 @@ describe('a contributed method', () => {
   test('returns the collection it was called on, filtered and ordered', () => {
     const result = plain.User.using.users_search(q);
     expectTypeOf(result).not.toBeAny();
-    expectTypeOf(result).toEqualTypeOf<CollectionMethodResult<typeof plain.User>>();
+    expectTypeOf(result).toEqualTypeOf<Ordered<Filtered<typeof plain.User>>>();
     expectTypeOf(result).toExtend<HasWhere & HasOrderBy>();
     expectTypeOf(result.limit(3).all).toBeFunction();
   });
@@ -192,8 +213,8 @@ describe('a contributed method', () => {
   });
 });
 
-test('CollectionMethods names the model in its type arguments', () => {
+test('ContributedCollectionMethods names the model in its type arguments', () => {
   expectTypeOf(plain.User.using).toEqualTypeOf<
-    CollectionMethods<TestContract, 'User', 'public', typeof plain.User>
+    ContributedCollectionMethods<TestContract, 'User', 'public', typeof plain.User>
   >();
 });

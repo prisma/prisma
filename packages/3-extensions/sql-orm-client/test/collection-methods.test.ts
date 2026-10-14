@@ -3,9 +3,13 @@ import { int4Column } from '@internal/adapter-postgres/column-types';
 import type { Contract } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { field } from '@internal/sql-contract-ts/contract-builder';
+import type {
+  CollectionMethodBody,
+  CollectionMethodContribution,
+} from '@internal/sql-relational-core/collection-methods';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type { CollectionMethodContribution } from '@internal/sql-relational-core/query-lane-context';
 import { websearchToTsquery } from '@internal/target-postgres/full-text';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import type { PostgresContract } from '../../../3-targets/6-adapters/postgres/src/core/types';
 import { collectionMethodTable } from '../src/collection-methods';
@@ -236,6 +240,52 @@ describe('the ORM client', () => {
       once: true,
       afterSecond: afterFirst,
     });
+  });
+
+  it('names the contribution and the model when a contribution fails', () => {
+    const failure = new Error('boom');
+    const failing: CollectionMethodContribution = {
+      id: 'test/failing',
+      methodsFor: (model) => {
+        if (model.name === 'Post') throw failure;
+        return {};
+      },
+    };
+
+    expect(() =>
+      orm({ runtime, context: { ...context, collectionMethods: [fullText, failing] } }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'ORM.ARGUMENT_INVALID',
+        message: 'Collection method contribution "test/failing" failed for model "Post".',
+        meta: { model: 'Post', contribution: 'test/failing' },
+        cause: failure,
+      }),
+    );
+  });
+
+  it('refuses a contributed method that is not a function', () => {
+    const broken: CollectionMethodContribution = {
+      id: 'test/broken',
+      methodsFor: (model) =>
+        model.name === 'Post'
+          ? blindCast<
+              Record<string, CollectionMethodBody>,
+              'a contribution that breaks its contract'
+            >({ latest: 'not a function' })
+          : {},
+    };
+
+    expect(() =>
+      orm({ runtime, context: { ...context, collectionMethods: [fullText, broken] } }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'ORM.ARGUMENT_INVALID',
+        message:
+          'Collection method "latest" that contribution "test/broken" gives model "Post" is not a function.',
+        meta: { model: 'Post', method: 'latest', contribution: 'test/broken' },
+      }),
+    );
   });
 
   it('accepts a context with no contributions', () => {
