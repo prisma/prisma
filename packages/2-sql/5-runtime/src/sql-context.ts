@@ -55,10 +55,10 @@ import type {
   SqlDriver,
 } from '@internal/sql-relational-core/ast';
 import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { CollectionMethodContribution } from '@internal/sql-relational-core/collection-methods';
 import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type {
   CodecDescriptorRegistry,
-  CollectionMethodContribution,
   ExecutionContext,
   TypeHelperRegistry,
 } from '@internal/sql-relational-core/query-lane-context';

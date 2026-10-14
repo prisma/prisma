@@ -6,7 +6,7 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationRegistry } from '@internal/sql-operations';
 import type { SqlAggregateDescriptor, SqlAggregateLowering } from './aggregate-descriptor';
 import type { ContractCodecRegistry } from './ast/codec-types';
-import type { CollectionMethodContribution } from './collection-method-contribution';
+import type { CollectionMethodContribution } from './collection-methods';
 import type { RawCodecInferer } from './expression';
 
 /**

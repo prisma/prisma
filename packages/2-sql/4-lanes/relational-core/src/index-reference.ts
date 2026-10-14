@@ -95,6 +95,28 @@ export interface IndexReferencesInput {
   readonly column: (columnName: string) => Expression<ScopeField>;
 }
 
+type NamedIndex = Pick<Index, 'name' | 'prefix' | 'type'>;
+
+/** The name the contract source gave an index: the prefix of a wire name, or an exact (`map:`) name. */
+function authoredIndexName(index: Pick<Index, 'name' | 'prefix'>): string {
+  return index.prefix ?? index.name;
+}
+
+/** The authored names of the indexes of type `type`, leaving out a name another index shares. The run-time counterpart of `UniqueIndexNamesOfType`. */
+export function uniqueIndexNamesOfType(
+  indexes: ReadonlyArray<NamedIndex>,
+  type: string,
+): readonly string[] {
+  const counts = new Map<string, number>();
+  for (const index of indexes) {
+    const name = authoredIndexName(index);
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+  }
+  return indexes
+    .filter((index) => index.type === type && counts.get(authoredIndexName(index)) === 1)
+    .map(authoredIndexName);
+}
+
 /**
  * The index references of a table, keyed by authored name. A name more than one index shares throws `ORM.ARGUMENT_INVALID` when it is read.
  */
@@ -103,7 +125,7 @@ export function createIndexReferences(
 ): Readonly<Record<string, IndexReference>> {
   const byName = new Map<string, IndexReference[]>();
   for (const index of input.table.indexes) {
-    const authoredName = index.prefix ?? index.name;
+    const authoredName = authoredIndexName(index);
     const columns = Object.fromEntries(
       (index.columns ?? []).map((column) => [column, input.column(column)]),
     );

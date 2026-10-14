@@ -4,4 +4,5 @@ export {
   type IndexReferencesInput,
   type TableIndexReferences,
   type UniqueIndexNamesOfType,
+  uniqueIndexNamesOfType,
 } from '../index-reference';
