@@ -4,6 +4,7 @@ export {
   defineConfig,
   normalizeContractConfig,
 } from '../config-types';
+export { contractInputDirectory } from '../contract-input-directory';
 export type {
   ContractSourceContext,
   ContractSourceDiagnostic,
