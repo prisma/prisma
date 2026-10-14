@@ -1137,7 +1137,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       range: true,
     });
     expect(result.capabilities.completionProvider).toEqual({
-      triggerCharacters: ['.', '@', '[', '(', '{', ':', ','],
+      triggerCharacters: ['.', '@', '[', '(', '{', ':', ',', '+'],
     });
     expect(result.capabilities.signatureHelpProvider).toEqual({
       triggerCharacters: ['(', ','],
@@ -1891,10 +1891,13 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     const items = completionItems(await requestCompletion(harness, schemaUri, position));
     expect(items.map((item) => item.label)).toEqual([
       'model',
+      'model mixin',
       'type',
+      'type mixin',
       'types',
       'namespace',
       'policy',
+      'policy mixin',
     ]);
     expect(items.find((item) => item.label === 'model')).toMatchObject({
       textEdit: { newText: 'model ' },
@@ -1958,7 +1961,14 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.waitForDiagnostics(schemaUri);
 
     const items = completionItems(await requestCompletion(harness, schemaUri, position));
-    expect(items.map((item) => item.label)).toEqual(['model', 'type', 'policy']);
+    expect(items.map((item) => item.label)).toEqual([
+      'model',
+      'model mixin',
+      'type',
+      'type mixin',
+      'policy',
+      'policy mixin',
+    ]);
     expect(items.map((item) => item.label)).not.toContain('types');
     expect(items.map((item) => item.label)).not.toContain('namespace');
   });
