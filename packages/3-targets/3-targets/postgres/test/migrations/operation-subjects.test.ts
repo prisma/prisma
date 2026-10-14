@@ -100,6 +100,8 @@ describe('postgresCallSubjects', () => {
           model: 'User',
           field: 'email',
         },
+        loss: 'drop',
+        label: 'Drop the search config: dropSearchConfig',
       },
       {
         operationIndex: 1,
@@ -109,20 +111,37 @@ describe('postgresCallSubjects', () => {
           model: 'User',
           field: 'bio',
         },
+        loss: 'drop',
+        label: 'Drop the search config: dropSearchConfig',
       },
     ]);
   });
 
-  it('numbers destructive calls of one unknown factory, never naming them by label', () => {
+  it('numbers destructive calls of one unknown factory, never naming their subject by label', () => {
     expect(
       subjectsOf(
         [destructiveCall('rebuild'), destructiveCall('rebuild'), destructiveCall('purge')],
         [],
       ),
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'rebuild#1' } },
-      { operationIndex: 1, subject: { kind: 'storage', name: 'rebuild#2' } },
-      { operationIndex: 2, subject: { kind: 'storage', name: 'purge' } },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'rebuild#1' },
+        loss: 'drop',
+        label: 'Drop the search config: rebuild',
+      },
+      {
+        operationIndex: 1,
+        subject: { kind: 'storage', name: 'rebuild#2' },
+        loss: 'drop',
+        label: 'Drop the search config: rebuild',
+      },
+      {
+        operationIndex: 2,
+        subject: { kind: 'storage', name: 'purge' },
+        loss: 'drop',
+        label: 'Drop the search config: purge',
+      },
     ]);
   });
 });

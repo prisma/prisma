@@ -106,7 +106,7 @@ describe('db sign when a marker changes while it runs', () => {
       {
         code: 'MIGRATION.MARKER_CAS_FAILURE',
         nextActions: [
-          { command: 'prisma-test db sign --contract "production" --advance-ref production' },
+          { command: 'prisma-test db sign --contract production --advance-ref production' },
         ],
       },
     ]);
@@ -124,7 +124,7 @@ describe('db sign when a marker changes while it runs', () => {
     expect(diagnosticsOf(run)).toMatchObject([
       {
         code: 'MIGRATION.MARKER_CAS_FAILURE',
-        nextActions: [{ command: 'prisma-test db sign --config "custom.config.ts" --db <url>' }],
+        nextActions: [{ command: 'prisma-test db sign --config custom.config.ts --db <url>' }],
       },
     ]);
   });

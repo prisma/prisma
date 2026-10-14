@@ -12,6 +12,8 @@ import {
   errorRuntime,
 } from './cli-errors';
 import { runCommandAction } from './next-actions';
+import type { CliInvocation } from './printed-command';
+import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
   '`db init` applies only additive changes. Run `{bin} db update`, which also applies widening and destructive ones once you answer what each operation that would lose data means, with `--delete` or `--rename`.';
@@ -78,7 +80,10 @@ function markerMismatchDetail(failure: DbInitFailure): string {
  * The `assertNever` is deliberate: a control-API failure code this does not
  * handle must stop the command rather than degrade into a generic message.
  */
-export function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
+export function mapDbInitFailure(
+  failure: DbInitFailure,
+  invocation: CliInvocation,
+): CliStructuredError {
   if (failure.code === 'PLANNING_FAILED') {
     const conflicts = failure.conflicts ?? [];
     const planningFailed = errorMigrationPlanningFailed({ conflicts });
@@ -123,10 +128,12 @@ export function mapDbInitFailure(failure: DbInitFailure): CliStructuredError {
         ? failure.meta['runnerErrorCode']
         : undefined;
     const fix =
-      runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-        ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
-          'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
-        : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
+      failure.rowsWithoutValue !== undefined
+        ? dbInitRowsWithoutValueFix(failure.rowsWithoutValue, invocation)
+        : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
+          ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
+            'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
+          : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
     return errorRunnerFailed(failure.summary, {
       why: failure.why ?? 'Migration runner failed',
       fix,

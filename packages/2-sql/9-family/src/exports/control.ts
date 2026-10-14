@@ -45,6 +45,7 @@ export {
   planFieldEventCalls,
   planFieldEventOperations,
 } from '../core/migrations/field-event-planner';
+export { fieldOfColumn } from '../core/migrations/field-of-column';
 export { storageNameOfOperation } from '../core/migrations/operation-storage-name';
 export type {
   CallSubjects,
@@ -63,6 +64,14 @@ export {
   runnerSuccess,
 } from '../core/migrations/plan-helpers';
 export { INIT_ADDITIVE_POLICY } from '../core/migrations/policies';
+export type { RequiredColumn, RequiredColumnMark } from '../core/migrations/required-column';
+export {
+  requiredColumnMeta,
+  requiredColumnOf,
+  requiredColumnsOfMigration,
+  rowsWithoutValueFailure,
+  rowsWithoutValueSummary,
+} from '../core/migrations/required-column';
 export type {
   ColumnRename,
   ColumnRenameRequest,
@@ -86,6 +95,10 @@ export type {
   SqlSchemaDiffResult,
 } from '../core/migrations/schema-differ';
 export type { SchemaTables } from '../core/migrations/schema-tables';
+export type { SqlQuote, SqlQuotingRules } from '../core/migrations/sql-expression-text';
+export { checkSqlExpressionText } from '../core/migrations/sql-expression-text';
+export type { SqlSlot } from '../core/migrations/sql-slot';
+export { isUnfilledSlot, slotSource, sqlOfSlot } from '../core/migrations/sql-slot';
 export {
   createSqlTextSources,
   type SqlTextSources,
@@ -94,17 +107,22 @@ export { sqlTypeLookupsOf } from '../core/migrations/sql-type-lookups';
 export type {
   CallWithCompanions,
   ColumnOnOneSide,
+  FieldStatementColumns,
   FieldStorageEffect,
   ModelStorageEffect,
   ModelTable,
   NoTable,
   PlannedStatements,
   SingleOperationCall,
+  StatementColumn,
   StatementPlanningTarget,
   TableRenameByHand,
 } from '../core/migrations/statement-planning';
 export {
+  appliedStatementsInOrder,
+  backfillOfDefaultedField,
   fieldRenameStorageEffect,
+  fieldStatementColumns,
   modelRenameStorageEffect,
   planStatements,
 } from '../core/migrations/statement-planning';
@@ -113,6 +131,7 @@ export {
   detectTableNameCaseChanges,
   TABLE_NAME_CASE_CHANGED_CODE,
 } from '../core/migrations/table-name-case-guard';
+export { columnTakesTemporaryValue } from '../core/migrations/temporary-value';
 export type {
   CodecControlHooks,
   CreateSqlMigrationPlanOptions,
@@ -144,6 +163,12 @@ export type {
   SqlPlanTargetDetails,
   StorageTypePlanResult,
 } from '../core/migrations/types';
+export {
+  type ConvertedColumn,
+  convertedColumnMeta,
+  convertedColumnOf,
+  unconvertedFieldOf,
+} from '../core/migrations/unconverted-field';
 export {
   temporalCodecPresetWithPrecision,
   temporalStringAuthoringPresets,

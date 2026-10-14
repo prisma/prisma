@@ -21,9 +21,15 @@ import { keepInternalSpecifiers } from '@internal/framework-components/emission'
 import { formatMigrationTs } from '@internal/migration-tools/migration-ts';
 import { checkExpression, col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
+  AddRequiredColumnToEmptyTableCall,
+  AlterColumnTypeCall,
   CreateExtensionCall,
   CreateIndexCall,
   CreatePostgresRlsPolicyCall,
@@ -245,6 +251,16 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       ),
       new AddColumnCall('public', 'user', col('nickname', 'text')),
       new AddColumnCall('public', 'user', col('meta', 'jsonb')),
+      new AddColumnWithTemporaryDefaultCall('public', 'user', 'handle', 'text', "''"),
+      new AddRequiredColumnToEmptyTableCall('public', 'user', 'code', 'int4'),
+      new AlterColumnTypeCall({
+        schemaName: 'public',
+        tableName: 'user',
+        columnName: 'nickname',
+        type: 'varchar(40)',
+        using: { kind: 'sql', sql: 'left("nickname", 40)' },
+        dataTypes: postgresDataTypes,
+      }),
       new SetDefaultCall(
         'public',
         'user',
@@ -556,7 +572,8 @@ function handWrittenMigration(write: (text: string) => string): string {
     `this.addCheckConstraint({ schema: "public", table: "account", constraint: "account_id_format", expression: ${write(`"id" ~ '^[a-z]'`)} }),`,
     `this.createIndex({ schema: "public", table: "account", index: "account_id_lower", expression: ${write('lower("id")')}, extras: { where: ${write(`"id" <> 'system'`)} } }),`,
     `this.createRlsPolicy({ schema: "public", table: "account", policy: { naming: { kind: "wire", prefix: "account_owner", hash: "ab12cd34" }, tableName: "account", namespaceId: "public", operation: "all", roles: ["authenticated"], using: ${write('"userId" = auth.uid()')}, withCheck: ${write(`"userId" = auth.uid()\n  AND NOT "locked"`)}, permissive: true } }),`,
-    `this.alterColumnType({ schema: "public", table: "account", column: "id", options: { qualifiedTargetType: "text", formatTypeExpected: "text", rawTargetTypeForLabel: "text", using: ${write('"id"::text')} } }),`,
+    `this.alterColumnType({ schema: "public", table: "account", column: "id", type: "text", using: ${write('"id"::text')} }),`,
+    `this.addColumnWithTemporaryDefault({ schema: "public", table: "account", column: "title", type: "text", temporaryDefault: ${write("''")} }),`,
   ].join('\n');
   const scaffold = new TypeScriptRenderablePostgresMigration(
     [],

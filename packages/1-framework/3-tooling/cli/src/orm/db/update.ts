@@ -1,5 +1,6 @@
 import { ormConfigSection } from '@internal/config-loader';
-import { migrationSubjectJson } from '@internal/framework-components/control';
+import { APP_SPACE_ID, migrationSubjectJson } from '@internal/framework-components/control';
+import { readMigrationsDir } from '@internal/migration-tools/io';
 import { ifDefined } from '@internal/utils/defined';
 import { isStructuredError } from '@internal/utils/structured-error';
 import type { Block, Presentations } from '@prisma/cli-engine';
@@ -9,6 +10,7 @@ import {
   notOk,
   ok,
 } from '@prisma/cli-engine/protocol';
+import { join } from 'pathe';
 import { createControlClient } from '../../control-api/client';
 import { errorFromCaught } from '../../control-api/operations/caught-errors';
 import {
@@ -24,31 +26,43 @@ import {
 } from '../../control-api/operations/ref-advancement';
 import { retryCommandFor } from '../../control-api/operations/ref-resolution';
 import { shellQuoted, statementFlag } from '../../control-api/statements/statement-flag';
-import type { StatementText } from '../../control-api/statements/statement-text';
-import type { AskedSubject, CreateControlClient, DbUpdateSuccess } from '../../control-api/types';
-import { CliStructuredError, errorContractValidationFailed } from '../../utils/cli-errors';
+import { isStatementVerb, type StatementText } from '../../control-api/statements/statement-text';
+import type {
+  AskedDataLoss,
+  AskedSubject,
+  CreateControlClient,
+  DbUpdateSuccess,
+} from '../../control-api/types';
+import {
+  CliStructuredError,
+  errorContractValidationFailed,
+  errorStatementNeedsMigrationFile,
+} from '../../utils/cli-errors';
 import { closeQuietly } from '../../utils/command-helpers';
 import { RECORDED_CONTRACT_REF_FORMS } from '../../utils/contract-ref-forms';
 import { mapDbUpdateFailure } from '../../utils/db-update-failure';
 import type { MigrationCommandResult } from '../../utils/formatters/migrations';
+import { type CliInvocation, cliCommand, cliInvocation } from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { dbFlag } from '../flags';
 import { baseDirFor, migrationsDirFor } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
 import { controlProgressReporter } from '../progress';
-import { ormStatementVerbs } from '../statement-verbs';
+import { dbUpdateStatementVerbs } from '../statement-verbs';
 import { migrationResultBlocks, migrationResultNextActions } from './migration-blocks';
 import { prepareMigrationRun } from './prepare';
 
 function updatePresentations(inputs: {
   readonly document: MigrationCommandResult;
+  /** Where the CLI ran and the `--config` and `--db` it was given, which printed commands repeat. */
+  readonly invocation: CliInvocation;
+  /** The contract the database was at before the run, when a migration on disk ends at it. */
+  readonly databaseStorageHash: string | undefined;
   readonly contractPath: string;
   readonly database: string | undefined;
   readonly to: string | undefined;
   readonly dryRun: boolean;
-  /** Whether the run named its database with `--db`, which the suggested apply repeats as a placeholder. */
-  readonly dbGiven: boolean;
   readonly advanceRef: string | undefined;
   readonly statements: readonly StatementText[];
 }): Presentations {
@@ -66,34 +80,33 @@ function updatePresentations(inputs: {
           ...(dryRun ? [{ label: 'mode', value: 'dry run' }] : []),
         ],
       },
-      ...migrationResultBlocks(document),
+      ...migrationResultBlocks(document, inputs.invocation, inputs.databaseStorageHash),
     ],
     json: () => document,
     next: () =>
       migrationResultNextActions(
         document,
-        [
-          '{bin} db update',
-          ...(inputs.to === undefined ? [] : [`--to ${shellQuoted(inputs.to)}`]),
-          ...(inputs.dbGiven ? ['--db <url>'] : []),
+        inputs.invocation,
+        cliCommand(inputs.invocation, 'db update', [
+          ...(inputs.to === undefined ? [] : ['--to', shellQuoted(inputs.to)]),
           ...(inputs.advanceRef === undefined
             ? []
-            : [`--advance-ref ${shellQuoted(inputs.advanceRef)}`]),
+            : ['--advance-ref', shellQuoted(inputs.advanceRef)]),
           ...inputs.statements.map(statementFlag),
-        ].join(' '),
+        ]),
       ),
   };
 }
 
 /**
- * The entries a dry run lists, each marked answered when a flag it was given answers its question:
- * a `--delete` answers every loss of its subject, and an `--allow` one operation, in order.
+ * Whether a flag the run was given answers each entry's question: a `--delete` answers every loss
+ * of its subject, and an `--allow` one operation, in order.
  */
-function subjectEntriesJson(
+function answeredByFlags(
   entries: readonly AskedSubject[],
   verb: 'delete' | 'allow',
   given: readonly StatementText[],
-) {
+): readonly boolean[] {
   const flagsLeft = new Map<string, number>();
   for (const statement of given) {
     if (statement.verb === verb) {
@@ -103,13 +116,32 @@ function subjectEntriesJson(
   return entries.map((entry) => {
     const left = flagsLeft.get(entry.text) ?? 0;
     if (left > 0 && verb === 'allow') flagsLeft.set(entry.text, left - 1);
-    return {
-      operationIndex: entry.operationIndex,
-      subject: migrationSubjectJson(entry.subject),
-      text: entry.text,
-      answered: left > 0,
-    };
+    return left > 0;
   });
+}
+
+function subjectEntryJson(entry: AskedSubject, answered: boolean | undefined) {
+  return {
+    operationIndex: entry.operationIndex,
+    subject: migrationSubjectJson(entry.subject),
+    text: entry.text,
+    answered: answered === true,
+  };
+}
+
+/** The data-loss entries a dry run lists, each with how it loses data and whether a flag answers it. */
+function dataLossEntriesJson(entries: readonly AskedDataLoss[], given: readonly StatementText[]) {
+  const answered = answeredByFlags(entries, 'delete', given);
+  return entries.map((entry, index) => ({
+    ...subjectEntryJson(entry, answered[index]),
+    ...ifDefined('loss', entry.loss),
+  }));
+}
+
+/** The access entries a dry run lists, each marked answered when an `--allow` it was given answers it. */
+function accessEntriesJson(entries: readonly AskedSubject[], given: readonly StatementText[]) {
+  const answered = answeredByFlags(entries, 'allow', given);
+  return entries.map((entry, index) => subjectEntryJson(entry, answered[index]));
 }
 
 function updateDocument(inputs: {
@@ -156,10 +188,11 @@ function updateDocument(inputs: {
         }),
     ...ifDefined('perSpace', value.perSpace),
     appliedStatements: value.appliedStatements,
+    temporaryValues: value.temporaryValues,
     ...(value.mode === 'plan'
       ? {
-          dataLoss: subjectEntriesJson(value.dataLoss, 'delete', inputs.statements),
-          accessWidening: subjectEntriesJson(value.accessWidening, 'allow', inputs.statements),
+          dataLoss: dataLossEntriesJson(value.dataLoss, inputs.statements),
+          accessWidening: accessEntriesJson(value.accessWidening, inputs.statements),
         }
       : {}),
     ...ifDefined('warnings', value.warnings),
@@ -213,10 +246,34 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         }),
       },
     },
-    statements: ormStatementVerbs,
+    statements: dbUpdateStatementVerbs,
     needs: { config: ormConfigSection },
     handler: async (args, ctx) => {
       const startedAt = Date.now();
+      const given = ctx.statements
+        .values()
+        .flatMap(({ verb, text }) => (isStatementVerb(verb) ? [{ verb, text }] : []));
+      const needsMigrationFile = (['convert', 'backfill'] as const).flatMap((verb) =>
+        ctx.statements.take(verb),
+      );
+      if (needsMigrationFile.length > 0) {
+        const databaseStorageHash = await databaseContractIfReachable({
+          config: ctx.config,
+          cwd: ctx.cwd,
+          db: args.flags.db,
+          commandName: 'db update',
+          createClient,
+        });
+        return notOk(
+          normalizeError(
+            errorStatementNeedsMigrationFile(
+              given,
+              cliInvocation(ctx, args.flags.db),
+              databaseStorageHash,
+            ),
+          ),
+        );
+      }
       const renames = ctx.statements
         .take('rename')
         .map(({ text }) => ({ verb: 'rename' as const, text }));
@@ -286,6 +343,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
 
       const mode = args.flags.dryRun ? 'plan' : 'apply';
       let document: MigrationCommandResult;
+      let databaseStorageHash: string | undefined;
       try {
         await client.connect(dbConnection);
 
@@ -308,7 +366,9 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
         });
         if (!result.ok) {
           reportPlannerWarnings(result.failure.warnings ?? []);
-          return notOk(normalizeError(mapDbUpdateFailure(result.failure)));
+          return notOk(
+            normalizeError(mapDbUpdateFailure(result.failure, cliInvocation(ctx, args.flags.db))),
+          );
         }
 
         const advancementHash =
@@ -330,6 +390,7 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           return notOk(normalizeError(advanced.failure));
         }
 
+        databaseStorageHash = result.value.databaseStorageHash;
         document = updateDocument({
           value: result.value,
           targetId: ctx.config.target.targetId,
@@ -380,11 +441,12 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
           { data: document },
           updatePresentations({
             document,
+            invocation: cliInvocation(ctx, args.flags.db),
+            databaseStorageHash,
             contractPath: prepared.value.contractDisplayPath,
             database: prepared.value.database,
             to: args.flags.to,
             dryRun: args.flags.dryRun,
-            dbGiven: args.flags.db !== undefined,
             advanceRef: args.flags.advanceRef,
             statements: [...renames, ...previewConsents],
           }),
@@ -395,3 +457,49 @@ export function createDbUpdateCommand(createClient: CreateControlClient) {
 }
 
 export const dbUpdateCommand = createDbUpdateCommand(createControlClient);
+
+/**
+ * The storage hash of the contract the database is at, when the database already exists and can be
+ * reached and a migration of the application space ends at that contract, so that `migration plan
+ * --from` resolves it. Anything else gives undefined: this only adds `--from` to a refusal, and it
+ * never creates a database to read the marker.
+ */
+async function databaseContractIfReachable(
+  inputs: Parameters<typeof prepareMigrationRun>[0],
+): Promise<string | undefined> {
+  const prepared = await prepareMigrationRun(inputs);
+  if (!prepared.ok) return undefined;
+  const { client, dbConnection, migrationsDir } = prepared.value;
+  const read = async (): Promise<string | undefined> => {
+    await client.connect(dbConnection, {
+      existingDatabaseOnly: true,
+      connectTimeoutMs: MARKER_READ_TIMEOUT_MS,
+    });
+    const marker = await client.readMarker();
+    if (marker === null) return undefined;
+    const { packages } = await readMigrationsDir(join(migrationsDir, APP_SPACE_ID), {
+      migrationsDir,
+    });
+    return packages.some(({ metadata }) => metadata.to === marker.storageHash)
+      ? marker.storageHash
+      : undefined;
+  };
+  const settled = read()
+    .catch(() => undefined)
+    .finally(() => closeQuietly(client));
+  return settledWithin(settled, MARKER_READ_TIMEOUT_MS);
+}
+
+/** How long the refusal waits for the marker before it refuses without `--from`. */
+const MARKER_READ_TIMEOUT_MS = 3000;
+
+function settledWithin<T>(promise: Promise<T>, ms: number): Promise<T | undefined> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(undefined), ms);
+    timer.unref();
+    void promise.then((value) => {
+      clearTimeout(timer);
+      resolve(value);
+    });
+  });
+}

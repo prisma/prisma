@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import {
@@ -27,6 +28,9 @@ const emptyCtx: StrategyContext = {
   policy: { allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'] },
   frameworkComponents: sqliteTestComponents,
   types: sqliteTestTypes,
+  statementColumns: { convert: [], backfill: [] },
+  takesTemporaryValue: () => true,
+  originCodecId: () => undefined,
 };
 
 describe('mapNodeIssueToCall — table', () => {
@@ -401,5 +405,50 @@ describe('planIssues — policy', () => {
         refusedOperationClass: 'destructive',
       }),
     ]);
+  });
+});
+
+const userField = (field: string) => ({
+  namespaceId: asNamespaceId('__unbound__'),
+  model: 'User',
+  field,
+});
+
+describe('planIssues — statement columns', () => {
+  it('hands the columns of convert and backfill statements to every strategy', () => {
+    const statementColumns = {
+      convert: [
+        {
+          namespaceId: '__unbound__',
+          table: 'user',
+          column: 'age',
+          field: userField('age'),
+          text: 'User.age',
+        },
+      ],
+      backfill: [
+        {
+          namespaceId: '__unbound__',
+          table: 'user',
+          column: 'email',
+          field: userField('email'),
+          text: 'User.email',
+        },
+      ],
+    };
+    const seen: unknown[] = [];
+    planIssues({
+      issues: [],
+      frameworkComponents: sqliteTestComponents,
+      statementColumns,
+      strategies: [
+        (issues, context) => {
+          seen.push(context.statementColumns);
+          return { kind: 'match', issues, calls: [] };
+        },
+      ],
+    });
+
+    expect(seen).toEqual([statementColumns]);
   });
 });

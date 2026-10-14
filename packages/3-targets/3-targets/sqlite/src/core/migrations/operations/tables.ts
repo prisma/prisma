@@ -1,9 +1,15 @@
-import type { MigrationOperationClass } from '@internal/family-sql/control';
+import {
+  convertedColumnMeta,
+  type MigrationOperationClass,
+  requiredColumnMeta,
+  type SqlMigrationPlanOperationStep,
+} from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import type { SchemaDiffIssue } from '@internal/framework-components/control';
+import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
 import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
+import { type } from 'arktype';
 import { tableExistsAst } from '../../../contract-free/checks';
 import { stripOuterParens } from '../../default-normalizer';
 import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
@@ -160,6 +166,29 @@ export interface RecreateTableArgs {
    */
   readonly postchecks: readonly RecreatePostcheck[];
   readonly operationClass: MigrationOperationClass;
+  /**
+   * The conversion each named column of the new table is copied through, in place of the live
+   * column of the same name, keyed by the new table's column names. The rebuild checks after its
+   * copy that every value of each such column took the column's type, and a failure of the copy or
+   * the check is reported as a failed conversion of the column's field.
+   */
+  readonly copyExpressions?: Readonly<Record<string, string>>;
+  /**
+   * The value each named column the live table does not have takes in the existing rows, keyed by
+   * the new table's column names. It is copied like a copy expression, with no check of its own.
+   */
+  readonly temporaryValues?: Readonly<Record<string, string>>;
+  /**
+   * The columns whose type changes. The rebuild checks after its copy that every value of each took
+   * the new type: a column with a copy expression as a conversion, and one the copy takes unchanged,
+   * for SQLite's type affinity to convert, as a cast.
+   */
+  readonly retypedColumns?: readonly string[];
+}
+
+/** The table a rebuild of `tableName` creates, copies into, and renames to `tableName`. */
+export function rebuiltTableName(tableName: string): string {
+  return `_prisma_new_${tableName}`;
 }
 
 export async function recreateTable(
@@ -174,12 +203,25 @@ export async function recreateTable(
     summary,
     postchecks,
     operationClass,
+    copyExpressions = {},
+    temporaryValues = {},
+    retypedColumns = [],
   } = args;
   refuseEarlierColumnSpecs('recreateTable', tableName, contractTable.columns);
-  const tempName = `_prisma_new_${tableName}`;
+  const tempName = rebuiltTableName(tableName);
   const liveSet = new Set(schemaColumnNames);
-  const sharedColumns = contractTable.columns.filter((c) => liveSet.has(c.name)).map((c) => c.name);
+  const convertedBy = (column: string): string | undefined =>
+    Object.hasOwn(copyExpressions, column) ? copyExpressions[column] : undefined;
+  const copiedFrom = (column: string): string | undefined =>
+    convertedBy(column) ??
+    (Object.hasOwn(temporaryValues, column) ? temporaryValues[column] : undefined);
+  const sharedColumns = contractTable.columns
+    .filter((c) => liveSet.has(c.name) || copiedFrom(c.name) !== undefined)
+    .map((c) => c.name);
   const columnList = sharedColumns.map(quoteIdentifier).join(', ');
+  const selectList = sharedColumns
+    .map((column) => copiedFrom(column) ?? quoteIdentifier(column))
+    .join(', ');
 
   const indexStatements = indexes.map((idx) => ({
     description: `recreate index "${idx.name}" on "${tableName}"`,
@@ -190,13 +232,24 @@ export async function recreateTable(
   // tmp () SELECT FROM old` is invalid SQL — and would also be a no-op since
   // there's nothing to copy. Skip the copy step in that case; the new
   // (empty) table replaces the old one directly.
+  const conversions = Object.fromEntries(
+    sharedColumns.flatMap((column) => {
+      const expression = convertedBy(column);
+      return expression === undefined ? [] : [[column, expression] as const];
+    }),
+  );
   const copyStep =
     sharedColumns.length > 0
       ? [
-          step(
-            `copy data from "${tableName}" to "${tempName}"`,
-            `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${columnList} FROM ${quoteIdentifier(tableName)}`,
-          ),
+          {
+            ...step(
+              `copy data from "${tableName}" to "${tempName}"`,
+              `INSERT INTO ${quoteIdentifier(tempName)} (${columnList}) SELECT ${selectList} FROM ${quoteIdentifier(tableName)}`,
+            ),
+            ...(Object.keys(conversions).length === 0
+              ? {}
+              : { meta: { conversionCopy: { table: tableName, expressions: conversions } } }),
+          },
         ]
       : [];
 
@@ -243,11 +296,40 @@ export async function recreateTable(
       ),
       ...postchecks.flatMap((check) =>
         'sql' in check
-          ? [check]
+          ? [markedStep(tableName, check)]
           : defaultPostcheck(tableName, check, clauseByColumn.get(check.columnDefault)),
       ),
+      ...contractTable.columns.flatMap((column) => {
+        const by = Object.hasOwn(conversions, column.name)
+          ? ('conversion' as const)
+          : retypedColumns.includes(column.name)
+            ? ('cast' as const)
+            : undefined;
+        return by === undefined
+          ? []
+          : [
+              {
+                ...storageClassCheck(tableName, column),
+                meta: convertedColumnMeta(tableName, column.name, by),
+              },
+            ];
+      }),
     ],
   };
+}
+
+/** A column the rebuild makes required: one that held NULL before, or a new one the copy gives no value. */
+export interface RecreateRequiredColumn {
+  readonly column: string;
+  readonly reason: RowsWithoutValue['reason'];
+}
+
+/** A recreate postcheck written as SQL. */
+export interface RecreateSqlPostcheck {
+  readonly description: string;
+  readonly sql: string;
+  /** The column the check finds required; when the copy fails on it, the runner counts its rows. */
+  readonly requiredColumn?: RecreateRequiredColumn;
 }
 
 /**
@@ -255,8 +337,65 @@ export async function recreateTable(
  * which becomes SQL once the adapter has written the column's `DEFAULT …` clause.
  */
 export type RecreatePostcheck =
-  | { readonly description: string; readonly sql: string }
+  | RecreateSqlPostcheck
   | { readonly description: string; readonly columnDefault: string };
+
+function markedStep(tableName: string, check: RecreateSqlPostcheck): SqlMigrationPlanOperationStep {
+  const { requiredColumn, ...step } = check;
+  const meta = {
+    ...(requiredColumn === undefined
+      ? {}
+      : requiredColumnMeta(tableName, requiredColumn.column, requiredColumn.reason)),
+  };
+  return Object.keys(meta).length === 0 ? step : { ...step, meta };
+}
+
+/**
+ * The storage classes SQLite keeps a value in once a column of `typeSql` has taken it: the column's
+ * type affinity converts what it can, so a value of another class is one it could not convert.
+ * See https://www.sqlite.org/datatype3.html#determination_of_column_affinity.
+ */
+export function affinityStorageClasses(typeSql: string): readonly string[] {
+  const declared = typeSql.toUpperCase();
+  if (declared.includes('INT')) return ['integer'];
+  if (['CHAR', 'CLOB', 'TEXT'].some((part) => declared.includes(part))) return ['text'];
+  if (declared === '' || declared.includes('BLOB')) return ['blob'];
+  if (['REAL', 'FLOA', 'DOUB'].some((part) => declared.includes(part))) return ['real'];
+  return ['integer', 'real'];
+}
+
+/**
+ * The check that the copy into a rebuilt table converted every value of a retyped column to the
+ * column's new type. SQLite keeps a value it cannot convert in its old storage class, so a value of
+ * any other class than the column's affinity keeps fails the check.
+ */
+export function storageClassCheck(
+  tableName: string,
+  column: { readonly name: string; readonly typeSql: string },
+): { readonly description: string; readonly sql: string } {
+  const classes = ['null', ...affinityStorageClasses(column.typeSql)]
+    .map((storageClass) => `'${storageClass}'`)
+    .join(', ');
+  return {
+    description: `verify every value of "${column.name}" on "${tableName}" is stored as ${column.typeSql}`,
+    sql: `SELECT NOT EXISTS (SELECT 1 FROM ${quoteIdentifier(tableName)} WHERE typeof(${quoteIdentifier(column.name)}) NOT IN (${classes}))`,
+  };
+}
+
+const ConversionCopyMeta = type({
+  conversionCopy: { table: 'string', expressions: 'Record<string, string>' },
+});
+
+/**
+ * The table a rebuild's copy step reads and the copy expression of each column its conversions
+ * convert, when the step converts any: an error of the step may be an error of one of them.
+ */
+export function conversionCopyOf(
+  step: SqlMigrationPlanOperationStep,
+): { readonly table: string; readonly expressions: Readonly<Record<string, string>> } | undefined {
+  const meta = ConversionCopyMeta(step.meta ?? {});
+  return meta instanceof type.errors ? undefined : meta.conversionCopy;
+}
 
 function renderSpecDefaults(
   spec: SqliteTableSpec,
@@ -384,6 +523,8 @@ export function buildRecreatePostchecks(
   tableName: string,
   issues: readonly SchemaDiffIssue[],
   spec: SqliteTableSpec,
+  copiedColumns: ReadonlySet<string> = new Set(),
+  backfilledColumns: ReadonlySet<string> = new Set(),
 ): RecreatePostcheck[] {
   const checks: RecreatePostcheck[] = [];
   const t = escapeLiteral(tableName);
@@ -395,6 +536,23 @@ export function buildRecreatePostchecks(
 
   for (const issue of issues) {
     const nodeKind = nodeKindOf(issue);
+    if (nodeKind === RelationalSchemaNodeKind.column && issueOutcome(issue) === 'not-found') {
+      const columnName = columnNameFromNode(issue);
+      const column = columnName === undefined ? undefined : byName.get(columnName);
+      if (columnName === undefined || column === undefined) continue;
+      const takesNoValue =
+        !column.nullable && column.default === undefined && !copiedColumns.has(columnName);
+      checks.push({
+        description: `verify "${columnName}" nullability on "${tableName}"`,
+        sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${escapeLiteral(columnName)}' AND "notnull" = ${column.nullable ? 0 : 1}`,
+        ...(backfilledColumns.has(columnName)
+          ? { requiredColumn: { column: columnName, reason: 'backfillMissedRows' } }
+          : takesNoValue
+            ? { requiredColumn: { column: columnName, reason: 'newField' } }
+            : {}),
+      });
+      continue;
+    }
     if (nodeKind === RelationalSchemaNodeKind.column && issueOutcome(issue) === 'not-equal') {
       const columnName = columnNameFromNode(issue);
       if (columnName === undefined) continue;
@@ -409,6 +567,14 @@ export function buildRecreatePostchecks(
         checks.push({
           description: `verify "${columnName}" nullability on "${tableName}"`,
           sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND "notnull" = ${expected.nullable ? 0 : 1}`,
+          ...(expected.nullable
+            ? {}
+            : {
+                requiredColumn: {
+                  column: columnName,
+                  reason: backfilledColumns.has(columnName) ? 'backfillMissedRows' : 'nullValues',
+                },
+              }),
         });
       }
       if (columnTypeChanged(expected, actual)) {
