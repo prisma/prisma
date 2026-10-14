@@ -8,7 +8,7 @@ export class Rows extends Edge<StorageRow> {
 
   override output(sourceRow: StorageRow): StorageRow {
     return Object.fromEntries(
-      this.columns.map(([source, target]) => [target.alias, sourceRow[source.alias]]),
+      this.columns.map(([source]) => [source.alias, sourceRow[source.alias]]),
     );
   }
 }

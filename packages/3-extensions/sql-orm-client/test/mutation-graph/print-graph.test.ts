@@ -163,9 +163,8 @@ describe('printGraph', () => {
         const variant = graph.add(new Insert(insertInto('posts', [{ title: 'Hello' }])), {
           payload: [new PayloadData(base, idToUserId)],
         });
-        return graph.add(new Merge(aliasedTable('posts'), ['id']), {
-          base: [new Rows(base, sameUserId)],
-          variant: [new Rows(variant, samePostId)],
+        return graph.add(new Merge(), {
+          rows: [new Rows(base, sameUserId), new Rows(variant, samePostId)],
         });
       });
       graph.setResult(

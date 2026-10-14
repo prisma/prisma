@@ -23,4 +23,10 @@ describe('Rows', () => {
 
     expect(edge.output({ id: 7, name: 'Ada', email: 'a@b.c' })).toEqual({ id: 7, name: 'Ada' });
   });
+
+  it('passes each column through under the name it has in the source row', () => {
+    const edge = new Rows(from, columnPairs('users', 'posts', [['id', 'user_id']]));
+
+    expect(edge.output({ id: 7, name: 'Ada' })).toEqual({ id: 7 });
+  });
 });

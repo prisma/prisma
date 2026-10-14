@@ -1,42 +1,38 @@
 import { describe, expect, it } from 'vitest';
 import { Merge } from '../../src/mutation-graph/merge';
-import { aliasedTable, recordingRun } from './statements';
-
-const variantTable = aliasedTable('posts');
+import { recordingRun } from './statements';
 
 describe('Merge', () => {
   it('is frozen', () => {
-    expect(Object.isFrozen(new Merge(variantTable, ['id']))).toBe(true);
+    expect(Object.isFrozen(new Merge())).toBe(true);
   });
 
-  it('makes one row from the base row and the variant row, as the variant create on main does', async () => {
+  it('makes one row from one row of each input, side by side, without a statement', async () => {
     const run = recordingRun();
 
-    const rows = await new Merge(variantTable, ['id']).execute(
+    const rows = await new Merge().execute(
       {
-        base: [[{ id: 7, name: 'Ada', type: 'feature' }]],
-        variant: [[{ id: 7, title: 'Hello', views: 3 }]],
+        rows: [[{ id: 7, name: 'Ada', type: 'feature' }], [{ features__priority: 3 }]],
       },
       run,
     );
 
-    expect(rows).toEqual([
-      { id: 7, name: 'Ada', type: 'feature', posts__title: 'Hello', posts__views: 3 },
-    ]);
+    expect(rows).toEqual([{ id: 7, name: 'Ada', type: 'feature', features__priority: 3 }]);
     expect(run.queried).toEqual([]);
     expect(run.executed).toEqual([]);
   });
 
-  it('gives no row when either input has no row', async () => {
-    const merge = new Merge(variantTable, ['id']);
+  it('gives no row when an input has no row or the slot has no edge', async () => {
+    const merge = new Merge();
     const run = recordingRun();
 
-    expect(await merge.execute({ base: [[]], variant: [[{ id: 7 }]] }, run)).toEqual([]);
-    expect(await merge.execute({ base: [[{ id: 7 }]], variant: [[]] }, run)).toEqual([]);
+    expect(await merge.execute({ rows: [[], [{ features__priority: 3 }]] }, run)).toEqual([]);
+    expect(await merge.execute({ rows: [[{ id: 7 }], []] }, run)).toEqual([]);
+    expect(await merge.execute({ rows: null }, run)).toEqual([]);
   });
 
   it('returns no column of its own and is unchanged when asked to return more', () => {
-    const merge = new Merge(variantTable, ['id']);
+    const merge = new Merge();
 
     expect(merge.returns).toEqual([]);
     expect(merge.withReturning([])).toBe(merge);
