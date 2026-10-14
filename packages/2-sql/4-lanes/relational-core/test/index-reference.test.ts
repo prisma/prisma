@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ColumnRef } from '../src/ast/types';
 import { ExpressionImpl } from '../src/expression-impl';
-import { createIndexReferences } from '../src/index-reference';
+import { createIndexReferences, uniqueIndexNamesOfType } from '../src/index-reference';
 
 const table = {
   indexes: [
@@ -64,5 +64,22 @@ describe('createIndexReferences', () => {
     const references = referencesFor('posts');
 
     expect(references['post_search']).toBe(references['post_search']);
+  });
+});
+
+describe('uniqueIndexNamesOfType', () => {
+  it('names the indexes of one type by authored name, leaving out a name another index shares', () => {
+    const indexes = [
+      { name: 'a_11111111', prefix: 'a', type: 'fullText' },
+      { name: 'b', type: 'fullText' },
+      { name: 'shared_22222222', prefix: 'shared', type: 'fullText' },
+      { name: 'shared_33333333', prefix: 'shared' },
+      { name: 'c_44444444', prefix: 'c', type: 'gin' },
+    ];
+
+    expect({
+      fullText: uniqueIndexNamesOfType(indexes, 'fullText'),
+      hash: uniqueIndexNamesOfType(indexes, 'hash'),
+    }).toEqual({ fullText: ['a', 'b'], hash: [] });
   });
 });

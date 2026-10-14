@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 describe('the shell build rewrites internal module names in declarations', () => {
   it('rewrites a module augmentation and an inline import to their published specifiers', () => {
     const declarations = [
-      "declare module '@internal/sql-relational-core/query-lane-context' {",
+      "declare module '@internal/sql-relational-core/collection-methods' {",
       '  interface CollectionMethodRegistry {}',
       '}',
       'type Reference = import("@internal/sql-relational-core/index-reference").IndexReference;',
@@ -12,7 +12,7 @@ describe('the shell build rewrites internal module names in declarations', () =>
 
     expect(rewriteInternalModuleNames(declarations, '@prisma/orm-target-postgres')).toBe(
       [
-        "declare module '@prisma/orm-family-sql/relational-core/query-lane-context' {",
+        "declare module '@prisma/orm-family-sql/relational-core/collection-methods' {",
         '  interface CollectionMethodRegistry {}',
         '}',
         'type Reference = import("@prisma/orm-family-sql/relational-core/index-reference").IndexReference;',
