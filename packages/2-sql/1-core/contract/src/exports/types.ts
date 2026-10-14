@@ -96,3 +96,8 @@ export {
   toStorageTypeInstance,
   UniqueConstraint,
 } from '../types';
+export type {
+  ColumnTypesFromStorage,
+  FieldTypesFromDomain,
+  ValueTypeSide,
+} from '../value-type-maps';

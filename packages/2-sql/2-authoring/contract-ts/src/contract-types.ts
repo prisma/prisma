@@ -5,7 +5,6 @@ import type {
   ContractRelation,
   JsonValue,
   NamespaceId,
-  ParameterizedOutputType,
   ParameterizedOutputTypesFunction,
   StorageHashBase,
 } from '@internal/contract/types';
@@ -16,7 +15,9 @@ import type {
   AggregateTypesFromDescriptors,
   ApplyQueryOperationTypes,
   AuthoredStorageTypeInstance,
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   ForeignKeyIndex,
   QueryOperationTypesFunction,
   ReferentialAction,
@@ -1496,12 +1497,6 @@ type BuiltStorage<Definition> = {
   };
 };
 
-type StorageColumnManyOf<Col> = Col extends {
-  readonly many: infer Many extends false | { readonly elementNullable: boolean };
-}
-  ? Many
-  : false;
-
 // The enum value union for an enum-typed field, or `never` for a non-enum
 // field. The field's `typeRef` carries the authored `EnumTypeHandle`, whose
 // `Values` tuple preserves the literal member values (text or numeric).
@@ -1569,53 +1564,6 @@ type ColumnSpecCodecOutput<Descriptor> = Descriptor extends {
     : never
   : never;
 
-type RefinedChannelType<
-  Definition,
-  CodecId,
-  Channel extends 'output' | 'input',
-  TypeParams,
-  Plain,
-  Descriptor,
-> = Channel extends 'output'
-  ? [ColumnSpecCodecOutput<Descriptor>] extends [never]
-    ? TypeParams extends Record<string, unknown>
-      ? ParameterizedOutputType<
-          ParameterizedOutputTypesFromDefinition<Definition>,
-          CodecId,
-          TypeParams,
-          Plain
-        >
-      : Plain
-    : ColumnSpecCodecOutput<Descriptor>
-  : Plain;
-
-// The codec's `output` / `input` JS type for a field's column, before
-// nullability. `unknown` when the codec is not in the definition's codec map.
-type CodecChannelType<
-  Definition,
-  ModelName extends ModelNames<Definition>,
-  FieldName extends ModelFieldNames<Definition, ModelName>,
-  Channel extends 'output' | 'input',
-> = ModelStorageColumn<Definition, ModelName, FieldName>['codecId'] extends infer Id extends
-  keyof CodecTypesFromDefinition<Definition>
-  ? CodecTypesFromDefinition<Definition>[Id] extends { readonly [K in Channel]: infer Plain }
-    ? RefinedChannelType<
-        Definition,
-        Id,
-        Channel,
-        FieldColumnTypeParams<Definition, ModelFieldState<Definition, ModelName, FieldName>>,
-        Plain,
-        FieldDescriptorOf<ModelFieldState<Definition, ModelName, FieldName>>
-      > extends infer T
-      ? StorageColumnManyOf<ModelStorageColumn<Definition, ModelName, FieldName>> extends infer Many
-        ? Many extends { readonly elementNullable: infer ElementNullable }
-          ? ReadonlyArray<T | (ElementNullable extends true ? null : never)>
-          : T
-        : never
-      : never
-    : unknown
-  : unknown;
-
 // The literal value union for a field: the enum-typed union takes precedence
 // (matching today's behavior), falling back to the descriptor-carried
 // value-set union; `never` when neither applies.
@@ -1623,57 +1571,36 @@ type FieldValueUnion<FieldState> = [EnumValueUnion<FieldState>] extends [never]
   ? DescriptorValueSetUnion<FieldState>
   : EnumValueUnion<FieldState>;
 
-// A field's read/write JS type: the value union (enum or descriptor value-set)
-// when the field carries one, otherwise the codec channel type, with column
-// nullability applied.
-type FieldChannelType<
+// The type that replaces a field's codec type: on both sides, the members of the enum or value set it holds; on the output side, the type its column spec's codec reads.
+type FieldKnownType<
   Definition,
   ModelName extends ModelNames<Definition>,
   FieldName extends ModelFieldNames<Definition, ModelName>,
-  Channel extends 'output' | 'input',
 > =
-  | ([FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>] extends [never]
-      ? CodecChannelType<Definition, ModelName, FieldName, Channel>
-      : StorageColumnManyOf<ModelStorageColumn<Definition, ModelName, FieldName>> extends infer Many
-        ? Many extends { readonly elementNullable: infer ElementNullable }
-          ? ReadonlyArray<
-              | FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>
-              | (ElementNullable extends true ? null : never)
-            >
-          : FieldValueUnion<ModelFieldState<Definition, ModelName, FieldName>>
-        : never)
-  | (FieldNullableOf<ModelFieldState<Definition, ModelName, FieldName>> extends true
-      ? null
-      : never);
+  ModelFieldState<Definition, ModelName, FieldName> extends infer FieldState
+    ? [FieldValueUnion<FieldState>] extends [never]
+      ? [ColumnSpecCodecOutput<FieldDescriptorOf<FieldState>>] extends [never]
+        ? never
+        : { readonly output: ColumnSpecCodecOutput<FieldDescriptorOf<FieldState>> }
+      : {
+          readonly output: FieldValueUnion<FieldState>;
+          readonly input: FieldValueUnion<FieldState>;
+        }
+    : never;
 
-// Nested by namespace coordinate (`{ [ns]: { [model]: { [field]: type } } }`)
-// to mirror the emitter's namespace-nested `FieldOutputTypes` (and the
-// `TypeMaps` constraint).
-type ModelFieldChannelTypes<
-  Definition,
-  ModelName extends ModelNames<Definition>,
-  Channel extends 'output' | 'input',
-> = {
-  readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldChannelType<
-    Definition,
-    ModelName,
-    FieldName,
-    Channel
-  >;
-};
-
-type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
-
-// Matches the emitter: output types are `{}` for a model with no fields, input types are closed.
-type FieldChannelTypes<Definition, Channel extends 'output' | 'input'> = {
+type KnownFieldTypes<Definition> = {
   readonly [Ns in DomainNamespaceIds<Definition>]: {
-    readonly [ModelName in ModelsInNamespace<Definition, Ns>]: Channel extends 'input'
-      ? ClosedWhenEmpty<ModelFieldChannelTypes<Definition, ModelName, Channel>>
-      : ModelFieldChannelTypes<Definition, ModelName, Channel>;
+    readonly [ModelName in ModelsInNamespace<Definition, Ns>]: {
+      readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldKnownType<
+        Definition,
+        ModelName,
+        FieldName
+      >;
+    };
   };
 };
 
-type StorageColumnChannelTypes<Definition, Channel extends 'output' | 'input'> = {
+type KnownColumnTypes<Definition> = {
   readonly [Ns in StorageNamespaceIds<Definition>]: {
     readonly [ModelName in ModelsInNamespace<Definition, Ns> as BuiltModelTableName<
       Definition,
@@ -1682,9 +1609,13 @@ type StorageColumnChannelTypes<Definition, Channel extends 'output' | 'input'> =
       readonly [FieldName in ModelFieldNames<Definition, ModelName> as BuiltModelColumnMappings<
         Definition,
         ModelName
-      >[FieldName]['column']]: FieldChannelType<Definition, ModelName, FieldName, Channel>;
+      >[FieldName]['column']]: FieldKnownType<Definition, ModelName, FieldName>;
     };
   };
+};
+
+type BuiltDomainNamespaces<Definition> = {
+  readonly [Ns in DomainNamespaceIds<Definition>]: BuiltDomainNamespace<Definition, Ns>;
 };
 
 export type SqlContractResult<Definition> = ContractWithTypeMaps<
@@ -1694,9 +1625,7 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
       readonly targetFamily: 'sql';
     } & {
       readonly domain: {
-        readonly namespaces: {
-          readonly [Ns in DomainNamespaceIds<Definition>]: BuiltDomainNamespace<Definition, Ns>;
-        };
+        readonly namespaces: BuiltDomainNamespaces<Definition>;
       } & BuiltDomain<Definition>;
     } & {
       readonly extensions: DefinitionExtensions<Definition>;
@@ -1706,10 +1635,34 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
   {
     readonly codecTypes: CodecTypesFromDefinition<Definition>;
     readonly queryOperationTypes: QueryOperationTypesFromDefinition<Definition>;
-    readonly fieldOutputTypes: FieldChannelTypes<Definition, 'output'>;
-    readonly fieldInputTypes: FieldChannelTypes<Definition, 'input'>;
-    readonly storageColumnTypes: StorageColumnChannelTypes<Definition, 'output'>;
-    readonly storageColumnInputTypes: StorageColumnChannelTypes<Definition, 'input'>;
+    readonly fieldOutputTypes: FieldTypesFromDomain<
+      BuiltDomainNamespaces<Definition>,
+      CodecTypesFromDefinition<Definition>,
+      ParameterizedOutputTypesFromDefinition<Definition>,
+      KnownFieldTypes<Definition>,
+      'output'
+    >;
+    readonly fieldInputTypes: FieldTypesFromDomain<
+      BuiltDomainNamespaces<Definition>,
+      CodecTypesFromDefinition<Definition>,
+      ParameterizedOutputTypesFromDefinition<Definition>,
+      KnownFieldTypes<Definition>,
+      'input'
+    >;
+    readonly storageColumnTypes: ColumnTypesFromStorage<
+      BuiltStorage<Definition>,
+      CodecTypesFromDefinition<Definition>,
+      ParameterizedOutputTypesFromDefinition<Definition>,
+      KnownColumnTypes<Definition>,
+      'output'
+    >;
+    readonly storageColumnInputTypes: ColumnTypesFromStorage<
+      BuiltStorage<Definition>,
+      CodecTypesFromDefinition<Definition>,
+      ParameterizedOutputTypesFromDefinition<Definition>,
+      KnownColumnTypes<Definition>,
+      'input'
+    >;
     readonly aggregateTypes: AggregateTypesFromDefinition<Definition>;
   }
 >;
