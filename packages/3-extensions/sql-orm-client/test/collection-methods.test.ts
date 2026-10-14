@@ -288,6 +288,33 @@ describe('the ORM client', () => {
     );
   });
 
+  it.each([null, undefined, 'methods'])(
+    'refuses a contribution that returns %s instead of an object of methods',
+    (returned) => {
+      const broken: CollectionMethodContribution = {
+        id: 'test/no-object',
+        methodsFor: (model) =>
+          model.name === 'User'
+            ? blindCast<
+                Record<string, CollectionMethodBody>,
+                'a contribution that breaks its contract'
+              >(returned)
+            : {},
+      };
+
+      expect(() =>
+        orm({ runtime, context: { ...context, collectionMethods: [fullText, broken] } }),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'ORM.ARGUMENT_INVALID',
+          message:
+            'Collection method contribution "test/no-object" returned no object of methods for model "User".',
+          meta: { model: 'User', contribution: 'test/no-object' },
+        }),
+      );
+    },
+  );
+
   it('accepts a context with no contributions', () => {
     const client = orm({ runtime, context: { ...context, collectionMethods: [] } });
     expect(Object.keys(client.public.User.using)).toEqual([]);
