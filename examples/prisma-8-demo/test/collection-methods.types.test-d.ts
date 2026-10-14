@@ -31,7 +31,13 @@ describe('collection methods from the Postgres facade and pgvector, through buil
 
   test('a pgvector method takes a vector typed from the field', () => {
     expectTypeOf(plain.Post.using.embedding_nearest).parameter(0).toEqualTypeOf<Vector<1536>>();
-    expectTypeOf(plain.Post.using.embedding_nearest([0.1], 0.5)).toExtend<HasWhere & HasOrderBy>();
+    expectTypeOf(plain.Post.using.embedding_nearest([0.1], 0.5)).toExtend<HasOrderBy>();
+    expectTypeOf(plain.Post.using.embedding_nearest([0.1], 0.5)).not.toExtend<HasWhere>();
+    // @ts-expect-error a nearest-neighbour search does not declare a filter, so deleteAll could delete every post
+    plain.Post.using.embedding_nearest([0.1]).deleteAll();
+    // @ts-expect-error a nearest-neighbour search does not declare a filter, so updateAll could update every post
+    plain.Post.using.embedding_nearest([0.1]).updateAll({ title: 'x' });
+    expectTypeOf(plain.Post.using.post_search(q).deleteAll).toBeFunction();
     // @ts-expect-error a vector is a list of numbers
     plain.Post.using.embedding_nearest('x');
   });
