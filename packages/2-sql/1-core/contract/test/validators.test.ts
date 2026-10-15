@@ -1281,6 +1281,19 @@ describe('SQL contract validators', () => {
       );
     });
 
+    it('refuses a contract that stores both removed keys for its type names first', () => {
+      const userTable = table({ tags: col('pg/text', 'pg/text@1') });
+      const c = JSON.parse(
+        JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
+      );
+      const column = c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns.tags;
+      column.noCheck = ['elementNotNull'];
+      column.nativeType = 'text';
+      expect(() => validateSqlContractFully(c)).toThrow(
+        `Contract structural validation failed: storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.tags.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
+      );
+    });
+
     it('validates FK with source and target coordinates only', () => {
       const userTable = table({ id: col('pg/int4', 'pg/int4@1') }, { pk: pk('id') });
       const postTable = table(

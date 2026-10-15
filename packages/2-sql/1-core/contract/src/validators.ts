@@ -250,8 +250,10 @@ function checkWaiverProblems(storage: unknown): readonly string[] {
   );
 }
 
+/** The removed keys of the oldest format the contract is in: a contract that still stores `nativeType` is refused for that first, since its `noCheck` keys are rewritten at a later step of the upgrade. */
 function removedKeyProblems(storage: unknown): readonly string[] {
-  return [...storedTypeNameProblems(storage), ...checkWaiverProblems(storage)];
+  const storedTypeNames = storedTypeNameProblems(storage);
+  return storedTypeNames.length > 0 ? storedTypeNames : checkWaiverProblems(storage);
 }
 
 type NamespacedStorageWalk = {
