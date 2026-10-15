@@ -50,7 +50,7 @@ export interface ClientActivityRun<
 }
 
 /** How a runtime runs a client activity. */
-export interface ClientActivityRunOptions<TContext extends ActivityContext> {
+export interface ClientActivityOptions<TContext extends ActivityContext> {
   readonly middleware: ReadonlyArray<ActivityObserver & Pick<RuntimeMiddleware, 'intercept'>>;
   readonly context: ActivityContextFields<TContext>;
   /** The open activity the client activity starts beneath. */
@@ -67,7 +67,7 @@ export async function startClientActivity<
   TContext extends ActivityContext = ActivityContext,
 >(
   activity: StartActivity<K>,
-  options: ClientActivityRunOptions<TContext>,
+  options: ClientActivityOptions<TContext>,
 ): Promise<ClientActivityRun<K, TContext>> {
   const kind: string = activity.kind;
   if (!kind.includes('-')) {
@@ -114,7 +114,7 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
   #ended = false;
   #everythingBeneathCommitted = true;
 
-  constructor(activity: StartActivity<K>, options: ClientActivityRunOptions<TContext>) {
+  constructor(activity: StartActivity<K>, options: ClientActivityOptions<TContext>) {
     this.activity = {
       id: crypto.randomUUID(),
       kind: activity.kind,

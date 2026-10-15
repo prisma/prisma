@@ -7,7 +7,7 @@ import {
   type ClientActivityRun,
   checkAborted,
   checkMiddlewareCompatibility,
-  createStandaloneContext,
+  createContextBeneath,
   executeStatement,
   type QueryPlan,
   RuntimeCore,
@@ -500,7 +500,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     }
     const compiled = await this.compilePlan(
       plan,
-      createStandaloneContext<SqlMiddlewareContext>({ ...this.sqlCtx, scope }, parent),
+      createContextBeneath<SqlMiddlewareContext>({ ...this.sqlCtx, scope }, parent),
     );
     return computeSqlContentHash(await this.encodeDraftParams(this.lowerToDraft(compiled), {}));
   }
@@ -994,7 +994,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     const userPlan = callback(bindSiteParams);
     const finalPlan = await this.compilePlan(
       userPlan,
-      createStandaloneContext<SqlMiddlewareContext>(this.sqlCtx, undefined),
+      createContextBeneath<SqlMiddlewareContext>(this.sqlCtx, undefined),
     );
 
     const orderedRefs = collectOrderedParamRefs(finalPlan.ast);

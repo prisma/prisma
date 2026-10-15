@@ -31,7 +31,7 @@ describe('a role-bound activity handle', () => {
   it('sends each statement on a role session, as a child of the activity', async () => {
     const { runtime, driver, started } = createRecordingSetup();
 
-    const call = await runtime.startActivityWithRole(testCall, binding);
+    const call = await runtime.roleActivitySource(binding).startActivity(testCall);
     await call.execute(stubPlan());
     await call.end({ outcome: 'succeeded' });
 
@@ -59,7 +59,7 @@ describe('a role-bound activity handle', () => {
   it('begins its transaction on a role session it releases after the commit', async () => {
     const { runtime, driver, started } = createRecordingSetup();
 
-    const call = await runtime.startActivityWithRole(testCall, binding);
+    const call = await runtime.roleActivitySource(binding).startActivity(testCall);
     const transaction = await call.transaction?.();
     await transaction?.execute(stubPlan());
     await transaction?.commit();
@@ -100,7 +100,7 @@ describe('a role-bound activity handle', () => {
   });
 });
 
-describe('planContentHashForRoleSession', () => {
+describe('the planContentHash of a role activity source', () => {
   it('hashes at the scope role-bound statements run at', async () => {
     const scopes: string[] = [];
     const { runtime } = createTestSetup({
@@ -116,7 +116,7 @@ describe('planContentHashForRoleSession', () => {
       ],
     });
 
-    await runtime.planContentHashForRoleSession({
+    await runtime.roleActivitySource(binding).planContentHash({
       ast: SelectAst.from(TableSource.named('users')),
       params: [],
       meta: stubPlan().meta,
@@ -129,7 +129,7 @@ describe('planContentHashForRoleSession', () => {
 describe('an ended role-bound activity handle', () => {
   it('rejects statements before it opens a role session', async () => {
     const { runtime, driver } = createRecordingSetup();
-    const call = await runtime.startActivityWithRole(testCall, binding);
+    const call = await runtime.roleActivitySource(binding).startActivity(testCall);
     await call.end({ outcome: 'succeeded' });
 
     await expect(call.execute(stubPlan())).rejects.toMatchObject({

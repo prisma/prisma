@@ -372,7 +372,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return roleRuntime.executeWithRole(plan, binding);
         },
         connection: () => roleRuntime.openRoleSession(binding),
-        [activitySource]: roleRuntime.activitySourceForRole(binding),
+        [activitySource]: roleRuntime.roleActivitySource(binding),
       },
       context: roleContext,
     });
@@ -444,7 +444,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return extRuntime.executeWithRole(plan, serviceRoleBinding);
         },
         connection: () => extRuntime.openRoleSession(serviceRoleBinding),
-        [activitySource]: extRuntime.activitySourceForRole(serviceRoleBinding),
+        [activitySource]: extRuntime.roleActivitySource(serviceRoleBinding),
       },
       context: extContext,
     }),

@@ -13,12 +13,12 @@ export type {
   ActivityParent,
   ActivityStateStore,
 } from '../execution/activity-lifecycle';
-export { createStandaloneContext, createStateStore } from '../execution/activity-lifecycle';
+export { createContextBeneath, createStateStore } from '../execution/activity-lifecycle';
 export { AsyncIterableResult } from '../execution/async-iterable-result';
 export type {
   ClientActivityEnd,
+  ClientActivityOptions,
   ClientActivityRun,
-  ClientActivityRunOptions,
 } from '../execution/client-activity';
 export { startClientActivity } from '../execution/client-activity';
 export type {

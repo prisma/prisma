@@ -1,9 +1,5 @@
 import type { Contract } from '@internal/contract/types';
-import type {
-  ActivityParent,
-  ClientActivityKind,
-  RuntimeExecuteOptions,
-} from '@internal/framework-components/runtime';
+import type { ActivityParent, RuntimeExecuteOptions } from '@internal/framework-components/runtime';
 import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import { type PostgresRuntime, PostgresRuntimeImpl } from '@internal/postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
@@ -16,7 +12,6 @@ import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-co
 import type { SqlOrmPlan } from '@internal/sql-relational-core/types';
 import type {
   ActivityExecuteOptions,
-  ActivityHandle,
   ActivityRoute,
   ActivitySource,
   ActivitySourceTarget,
@@ -26,7 +21,6 @@ import type {
   PreparedStatementImpl,
   RuntimeConnection,
   RuntimeTransaction,
-  StartActivity,
 } from '@internal/sql-runtime';
 import { activitySource } from '@internal/sql-runtime';
 import type {
@@ -166,25 +160,13 @@ export class SupabaseRuntimeImpl<
     return { conn, session };
   }
 
-  /** Starts an activity whose statements and transaction run on role sessions bound to `binding`. Not on the `SupabaseRuntime` interface; the facade passes it to the ORM. */
-  startActivityWithRole<K extends ClientActivityKind>(
-    activity: StartActivity<K>,
-    binding: SupabaseRoleBinding,
-  ): Promise<ActivityHandle<K>> {
-    return this.startActivityOnRoute(this.roleRoute(binding), activity, undefined);
-  }
-
-  /** The activity source the facade gives the role-bound ORM: activities whose statements run on role sessions bound to `binding`. */
-  activitySourceForRole(binding: SupabaseRoleBinding): ActivitySource {
+  /** The activity source the facade gives the role-bound ORM: activities whose statements and transaction run on role sessions bound to `binding`, and content hashes at the `'connection'` scope role sessions run at. Not on the `SupabaseRuntime` interface. */
+  roleActivitySource(binding: SupabaseRoleBinding): ActivitySource {
     return {
-      startActivity: (activity) => this.startActivityWithRole(activity, binding),
-      planContentHash: (plan) => this.planContentHashForRoleSession(plan),
+      startActivity: (activity) =>
+        this.startActivityOnRoute(this.roleRoute(binding), activity, undefined),
+      planContentHash: (plan) => this.planContentHashFor(plan, 'connection', undefined),
     };
-  }
-
-  /** The content hash of the statement `plan` sends on a role session, which runs at `'connection'` scope. */
-  planContentHashForRoleSession(plan: SqlExecutionPlan | SqlQueryPlan): Promise<string> {
-    return this.planContentHashFor(plan, 'connection', undefined);
   }
 
   // Each statement of a role-bound activity runs on a role session of its own, as a role-bound query does; its transaction holds one session until it settles.

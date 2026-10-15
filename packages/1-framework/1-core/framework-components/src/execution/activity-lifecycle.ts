@@ -210,7 +210,7 @@ export function createActivityRecord<TContext extends ActivityContext>(
 /**
  * The context of work that belongs to no activity but runs beneath `parent`, such as compiling a plan outside any statement: `parent` and `inTransaction()` as a child of `parent` would have them, and state of its own.
  */
-export function createStandaloneContext<TContext extends ActivityContext>(
+export function createContextBeneath<TContext extends ActivityContext>(
   fields: ActivityContextFields<TContext>,
   parent: ActivityParent | undefined,
 ): TContext {
