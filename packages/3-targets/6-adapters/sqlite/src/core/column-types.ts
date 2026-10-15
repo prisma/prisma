@@ -1,3 +1,4 @@
+import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import {
   SQL_RAW_CODEC_ID,
   SQLITE_BIGINT_CODEC_ID,
@@ -37,7 +38,9 @@ export const bigintColumn = {
   codecId: SQLITE_BIGINT_CODEC_ID,
 } as const;
 
-/** A column of a type no other column type covers, written as given, such as `rawColumn('circle')`. Its values are typed `unknown`. */
-export function rawColumn<const Sql extends string>(sql: Sql) {
+/** A column of a type no other column type covers, named exactly as the database catalog prints it, such as `rawColumn('tsvector')` (ADR 273). Its values are typed `unknown`. */
+export function rawColumn<const Sql extends string>(
+  sql: Sql,
+): ColumnTypeDescriptor<typeof SQL_RAW_CODEC_ID> & { readonly typeParams: { readonly sql: Sql } } {
   return { codecId: SQL_RAW_CODEC_ID, typeParams: { sql } } as const;
 }

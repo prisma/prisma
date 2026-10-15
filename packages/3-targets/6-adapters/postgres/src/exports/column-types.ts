@@ -67,7 +67,7 @@ export function varcharColumn(length: number): ColumnTypeDescriptor<typeof SQL_V
   } as const;
 }
 
-/** A column of a type no other column type covers, written exactly as the catalog prints it, such as `rawColumn('tsvector')`. Its values are typed `unknown`. */
+/** A column of a type no other column type covers, named exactly as the database catalog prints it, such as `rawColumn('tsvector')` (ADR 273). Its values are typed `unknown`. */
 export function rawColumn<const Sql extends string>(
   sql: Sql,
 ): ColumnTypeDescriptor<typeof SQL_RAW_CODEC_ID> & { readonly typeParams: { readonly sql: Sql } } {
