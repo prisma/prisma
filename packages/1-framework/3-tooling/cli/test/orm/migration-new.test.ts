@@ -509,7 +509,10 @@ describe('migration new', () => {
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
 
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
+    expect(envelope).toMatchObject({
+      ok: false,
+      error: expect.not.objectContaining({ fix: expect.anything() }),
+    });
   });
 });
 

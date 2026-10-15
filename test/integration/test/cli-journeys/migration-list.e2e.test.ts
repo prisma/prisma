@@ -105,7 +105,10 @@ withTempDir(({ createTempDir }) => {
           error: { code: 'MIGRATION.SPACE_NOT_FOUND' },
         });
         expect(envelope?.nextActions.length).toBeGreaterThan(0);
-        expect(envelope).not.toHaveProperty('fix');
+        expect(envelope).toMatchObject({
+          ok: false,
+          error: expect.not.objectContaining({ fix: expect.anything() }),
+        });
       },
       timeouts.coldTransformImport,
     );

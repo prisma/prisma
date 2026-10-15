@@ -294,7 +294,10 @@ describe('migration list', () => {
 
     expect(envelope?.ok).toBe(false);
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
+    expect(envelope).toMatchObject({
+      ok: false,
+      error: expect.not.objectContaining({ fix: expect.anything() }),
+    });
   });
 
   it('fails before the handler when the orm section is structurally invalid', async () => {

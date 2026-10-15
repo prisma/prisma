@@ -206,7 +206,10 @@ describe('migration log', () => {
       error: { code: 'CONFIG.DB_CONNECTION_REQUIRED' },
     });
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
+    expect(envelope).toMatchObject({
+      ok: false,
+      error: expect.not.objectContaining({ fix: expect.anything() }),
+    });
   });
 
   it('raises the migration namespace code when the target has no runner', async () => {
