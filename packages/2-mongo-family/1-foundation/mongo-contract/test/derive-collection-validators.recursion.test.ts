@@ -253,5 +253,93 @@ describe('deriveCollectionValidators for types that contain themselves', () => {
         rootSchema({ a: closed({ b: openObject }) }, []),
       );
     });
+
+    describe('in a polymorphic collection', () => {
+      const typeField = () => scalarField('mongo/string@1');
+      const task = (variants: Record<string, string>) =>
+        model(
+          { _id: objectId(), type: typeField() },
+          {
+            discriminator: { field: 'type' },
+            variants: Object.fromEntries(
+              Object.entries(variants).map(([value, name]) => [value, crossRef(name)]),
+            ),
+          },
+        );
+      const tasksBase = {
+        bsonType: 'object',
+        required: ['_id', 'type'],
+        properties: { _id: { bsonType: 'objectId' }, type: { bsonType: 'string' } },
+      };
+
+      it('opens the embed of a root model that embeds itself, for comparison', () => {
+        const validators = derive({
+          roots: { nodes: crossRef('Node') },
+          models: {
+            Node: model({ _id: objectId() }, { relations: { children: embedMany('Node') } }),
+          },
+        });
+
+        expect(jsonSchemas(validators)['nodes']).toEqual(
+          rootSchema({ children: { bsonType: 'array', items: openObject } }, []),
+        );
+      });
+
+      it('opens the embed of a variant that embeds itself, as for a root model', () => {
+        const validators = derive({
+          roots: { tasks: crossRef('Task') },
+          models: {
+            Task: task({ bug: 'Bug' }),
+            Bug: model(
+              { _id: objectId(), type: typeField() },
+              { relations: { subtasks: embedMany('Bug') } },
+            ),
+          },
+        });
+
+        expect(jsonSchemas(validators)['tasks']).toEqual({
+          ...tasksBase,
+          oneOf: [
+            {
+              properties: {
+                _id: { bsonType: 'objectId' },
+                type: { enum: ['bug'] },
+                subtasks: { bsonType: 'array', items: openObject },
+              },
+              required: ['type'],
+              additionalProperties: false,
+            },
+          ],
+        });
+      });
+
+      it('describes the base model in full where a variant embeds it', () => {
+        const validators = derive({
+          roots: { tasks: crossRef('Task') },
+          models: {
+            Task: task({ bug: 'Bug' }),
+            Bug: model(
+              { _id: objectId(), type: typeField() },
+              { relations: { parent: embedOne('Task') } },
+            ),
+          },
+        });
+
+        expect(jsonSchemas(validators)['tasks']).toEqual({
+          ...tasksBase,
+          oneOf: [
+            {
+              properties: {
+                _id: { bsonType: 'objectId' },
+                type: { enum: ['bug'] },
+                parent: { ...tasksBase, additionalProperties: false },
+              },
+              required: ['type'],
+              additionalProperties: false,
+            },
+          ],
+        });
+      });
+    });
   });
 });

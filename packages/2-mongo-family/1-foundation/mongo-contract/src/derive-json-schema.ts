@@ -59,13 +59,17 @@ function objectSchemaOf(
   shape: StoredShape,
   sources: SchemaSources,
 ): Record<string, unknown> {
-  const group = sources.groups.get(typeKey(kind, name));
-  if (group === undefined) return deriveObjectSchema(shape, sources);
-  if (sources.enteredGroups.has(group)) return OPEN_OBJECT;
-  return deriveObjectSchema(shape, {
-    ...sources,
-    enteredGroups: new Set([...sources.enteredGroups, group]),
-  });
+  const key = typeKey(kind, name);
+  const group = sources.groups.get(key);
+  if (group !== undefined && sources.enteredGroups.has(group)) return OPEN_OBJECT;
+  return deriveObjectSchema(shape, entering(key, sources));
+}
+
+/** `sources` with the recursive group of the type `key` entered, if it has one. */
+function entering(key: string, sources: SchemaSources): SchemaSources {
+  const group = sources.groups.get(key);
+  if (group === undefined || sources.enteredGroups.has(group)) return sources;
+  return { ...sources, enteredGroups: new Set([...sources.enteredGroups, group]) };
 }
 
 interface StoredShape {
@@ -244,6 +248,8 @@ export interface PolymorphicVariant {
 
 interface StoredVariant extends StoredShape {
   readonly discriminatorValue: string;
+  /** The variant's model, when it has one; a variant in a recursive group enters it, as a root model does. */
+  readonly modelName: string | undefined;
 }
 
 function polymorphicSchema(
@@ -257,7 +263,13 @@ function polymorphicSchema(
 
   const oneOf: Record<string, unknown>[] = [];
   for (const variant of variants) {
-    const { properties: variantProperties, required } = propertiesOf(variant, sources, base);
+    const { properties: variantProperties, required } = propertiesOf(
+      variant,
+      variant.modelName === undefined
+        ? sources
+        : entering(typeKey('model', variant.modelName), sources),
+      base,
+    );
 
     oneOf.push({
       properties: {
@@ -290,7 +302,7 @@ export function derivePolymorphicJsonSchema(
     polymorphicSchema(
       { fields: baseFields, relations: NO_RELATIONS },
       discriminatorField,
-      variants.map((variant) => ({ ...variant, relations: NO_RELATIONS })),
+      variants.map((variant) => ({ ...variant, relations: NO_RELATIONS, modelName: undefined })),
       sourcesFor({ lookups, valueObjects, valueSets, models: {} }, undefined),
     ),
   );
@@ -319,7 +331,7 @@ export function deriveModelValidator(
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
     const variantModel = sources.models[variant.model];
     assertDefined(variantModel, `Variant model "${variant.model}" of "${modelName}" is missing`);
-    return { discriminatorValue, ...variantModel };
+    return { discriminatorValue, modelName: variant.model, ...variantModel };
   });
   return validatorOf(polymorphicSchema(model, model.discriminator.field, variants, schemaSources));
 }
