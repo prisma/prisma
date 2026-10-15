@@ -53,7 +53,7 @@ type WithList<Base, Item> = Item extends {
   ? ReadonlyArray<Base | (ElementNullable extends true ? null : never)>
   : Base;
 
-type WithCollection<Base, Item> = Item extends { readonly dict: true }
+type WithListOrDictionary<Base, Item> = Item extends { readonly dict: true }
   ? Readonly<Record<string, WithList<Base, Item>>>
   : WithList<Base, Item>;
 
@@ -61,7 +61,7 @@ type Nullability<Item> = Item extends { readonly nullable: true } ? null : never
 
 // The union is written here, and read through an indexed access, so TypeScript prints the resolved type, such as `bigint | null`, in hovers and errors instead of this file's generics.
 type WrappedValueType<Item, Base> =
-  | WithCollection<Base, Item>
+  | WithListOrDictionary<Base, Item>
   | Nullability<Item> extends infer Value
   ? { readonly [K in 'value']: Value }['value']
   : never;
