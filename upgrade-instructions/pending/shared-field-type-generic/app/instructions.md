@@ -10,7 +10,7 @@ changes:
         - 'FieldTypesFromDomain,\s+RelationKeys,'
   - id: mongo-define-contract-readonly-rows
     summary: |
-      A Mongo contract built with `defineContract` now types its fields with the same generic as an emitted `contract.d.ts`. Lists read and write as `readonly T[]` instead of `T[]`, value object fields are `readonly`, and a vector field with a `length` type parameter reads as `Vector<N>` instead of `readonly number[]`. A type annotation that expects a mutable array or mutable value object from a row must change to the readonly form, or copy the value first. The detection matches Mongo `defineContract` sources with lists, value objects or vectors.
+      A Mongo contract built with `defineContract` now types its fields with the same generic as an emitted `contract.d.ts`. Lists read and write as `readonly T[]` instead of `T[]`, value object fields are `readonly`, and a vector field with a `length` type parameter reads as `Vector<N>` instead of `readonly number[]`. `field.vector()` without type parameters no longer types the field's `typeParams` as `Record<string, unknown>`; its contract type has no `typeParams`, as the built value has none. A type annotation that expects a mutable array or mutable value object from a row must change to the readonly form, or copy the value first. The detection matches Mongo `defineContract` sources with lists, value objects or vectors.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -22,6 +22,21 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '(?<![\s\S])(?=[\s\S]*orm-mongo/contract-builder)[\s\S]*defineContract\(\s*\{[^}]*\}\s*,'
+  - id: value-object-enum-fields-narrow
+    summary: |
+      An enum field inside a value object (a composite type in PSL) now reads and writes the members of its enum, in an emitted `contract.d.ts` and in a contract built with `defineContract`, as an enum field of a model does. Before, the emitted contract typed it as its codec's type, such as `string`. A value object field whose codec renders its own type text, such as `arktype/json@1`, has that type, as before this change. Code that assigns an arbitrary string to such a field now fails to typecheck. Re-emit `contract.d.ts`. The detection matches PSL sources with composite types and TypeScript value objects that hold an enum field.
+    detection:
+      glob: "**/*.{prisma,ts,mts,cts,tsx}"
+      matches:
+        - '(?:^|\n)type\s+\w+\s*\{'
+        - 'valueObject\([^)]*\{[\s\S]*?field\.namedType\('
+  - id: mongo-update-accessors-take-input-types
+    summary: |
+      In Mongo ORM updates, the field accessor's `set`, `push`, `pull` and `addToSet` take each field's input type from the contract, including fields reached by a dot path into a value object. `u.role.set(...)` on an enum field takes only its members, a list field takes a readonly list, and a vector field takes `readonly number[]`, which a `Vector<N>` satisfies. Code that passed a value outside an enum now fails to typecheck. The detection matches update callbacks.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - '\.(set|push|pull|addToSet)\('
 ---
 
 # Emitted field types name the shared generic; Mongo `defineContract` rows match emitted ones

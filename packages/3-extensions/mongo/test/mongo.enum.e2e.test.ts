@@ -291,7 +291,7 @@ describe('mongo enum — end-to-end (replica set)', {
   });
 });
 
-describe('emit-then-consume: value-union narrowing through the emitted contract.d.ts', () => {
+describe('the field type overrides the emitter writes for enum fields', () => {
   const mongoCodecImports = [
     {
       package: '@internal/target-mongo/codec-types',
@@ -314,6 +314,8 @@ describe('emit-then-consume: value-union narrowing through the emitted contract.
       undefined,
       codecLookup,
     );
+    expect(dts).toContain('type FieldTypeOverrides');
+    expect(dts).toContain('export type FieldOutputTypes');
     return dts.slice(
       dts.indexOf('type FieldTypeOverrides'),
       dts.indexOf('export type FieldOutputTypes'),
