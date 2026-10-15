@@ -70,6 +70,16 @@ describe('using', () => {
     expect(Object.keys(notes.Note.variant('memo').using)).toEqual(['notes_search']);
   });
 
+  it('is built once per collection, and again for each derived collection', () => {
+    const users = plain.User;
+    const first = users.using;
+    const second = users.using;
+    expect({ same: first === second, derived: first === users.limit(1).using }).toEqual({
+      same: true,
+      derived: false,
+    });
+  });
+
   it('works out the methods of a model once per execution context', () => {
     const context = getTestContext();
     expect(collectionMethodTable(context, 'public', 'User')).toBe(

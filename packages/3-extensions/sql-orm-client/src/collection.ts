@@ -397,6 +397,7 @@ export class CollectionBase<
   readonly registry: ReadonlyMap<string, CollectionConstructor<TContract>>;
   /** @internal */
   readonly includeRefinementMode: boolean;
+  #using: ReturnType<typeof createCollectionMethods> | undefined;
 
   constructor(
     ctx: CollectionContext<TContract>,
@@ -565,15 +566,14 @@ export class CollectionBase<
    * The collection methods packages contribute for this model. Each contribution reads the model and names its methods. Each method returns this collection with the method's filter and order added.
    */
   get using(): ContributedCollectionMethods<TContract, ModelName, State['nsId'], this> {
+    this.#using ??= createCollectionMethods(
+      blindCast<CollectionMethodReceiver, 'a collection has where and orderBy'>(this),
+      collectionMethodTable(this.ctx.context, this.namespaceId, this.modelName),
+    );
     return blindCast<
       ContributedCollectionMethods<TContract, ModelName, State['nsId'], this>,
       'the run time offers the methods each contribution gives this model, as the type does for the registry'
-    >(
-      createCollectionMethods(
-        blindCast<CollectionMethodReceiver, 'a collection has where and orderBy'>(this),
-        collectionMethodTable(this.ctx.context, this.namespaceId, this.modelName),
-      ),
-    );
+    >(this.#using);
   }
 
   whereUnique<Self>(
