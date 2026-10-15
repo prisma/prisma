@@ -253,19 +253,48 @@ describe('createCacheMiddleware — the default store copies call results', () =
 });
 
 describe('createCacheMiddleware — the default store copies statement rows', () => {
-  it('serves a row holding a Buffer as an equal Buffer that is not the stored one', async () => {
+  it('serves a row holding a Buffer, in a row object that is not the stored one', async () => {
     const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
     const exec = makeExec('select bytes', annotated);
     const bytes = Buffer.from([1, 2, 3]);
+    const stored = { bytes };
 
-    await runMiss(mw, exec, makeCtx(), [{ bytes }]);
+    await runMiss(mw, exec, makeCtx(), [stored]);
     const hit = await mw.intercept!.onQuery!(exec, makeCtx());
     const [row] = [...((hit?.rows ?? []) as Iterable<{ bytes: Buffer }>)];
 
     expect({
       isBuffer: Buffer.isBuffer(row?.bytes),
       equal: row?.bytes.equals(bytes),
-      sameObject: row?.bytes === bytes,
-    }).toEqual({ isBuffer: true, equal: true, sameObject: false });
+      sameRow: row === stored,
+    }).toEqual({ isBuffer: true, equal: true, sameRow: false });
+  });
+});
+
+describe('createCacheMiddleware — statement rows with driver class instances', () => {
+  it('stores and serves a row holding a class instance, in a row object that is not the stored one', async () => {
+    class ObjectId {
+      constructor(readonly hex: string) {}
+    }
+    const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
+    const exec = makeExec('find users', annotated);
+    const row = { _id: new ObjectId('abc') };
+
+    await runMiss(mw, exec, makeCtx(), [row]);
+    const hit = await mw.intercept!.onQuery!(exec, makeCtx());
+    const [served] = [...((hit?.rows ?? []) as Iterable<{ _id: ObjectId }>)];
+
+    expect({ id: served?._id, sameRow: served === row }).toEqual({ id: row._id, sameRow: false });
+  });
+
+  it('does not store a call result holding an Error', async () => {
+    const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
+    const call = makeCall(annotated);
+    const ctx = makeCtx();
+
+    await mw.intercept!.onActivity!(call, ctx);
+    await endCall(mw, call, ctx, { result: { failure: new Error('x') } });
+
+    expect(await mw.intercept!.onActivity!(makeCall(annotated), makeCtx())).toBeUndefined();
   });
 });

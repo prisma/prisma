@@ -96,7 +96,6 @@ describe('createInMemoryCacheStore', () => {
         bytes: new Uint8Array([1, 2]),
         list: [null, { nested: true }],
         map: new Map([['a', new Set([1])]]),
-        error: new TypeError('x'),
       };
 
       await put(store, 'k', value);
@@ -131,6 +130,7 @@ describe('createInMemoryCacheStore', () => {
       ],
       ['a function', { compute: () => 1 }],
       ['a symbol', { tag: Symbol('x') }],
+      ['an Error', { error: new TypeError('x') }],
       ['an Error subclass', { error: new (class AppError extends Error {})('x') }],
       ['a class instance inside a Map', { map: new Map([['k', new (class Point {})()]]) }],
     ])('refuses to store a value holding %s, and set returns false', async (_name, value) => {
@@ -173,6 +173,61 @@ describe('createInMemoryCacheStore', () => {
         bytes: held === undefined ? [] : [held.getUint8(0), held.getUint8(1)],
         sameMemory: held?.buffer === view.buffer,
       }).toEqual({ bytes: [8, 7], sameMemory: false });
+    });
+
+    it('keeps statement rows with their driver values by reference, copying the array and each row', async () => {
+      class ObjectId {
+        constructor(readonly hex: string) {}
+      }
+      const store = createInMemoryCacheStore();
+      const id = new ObjectId('abc');
+      const row = { _id: id, name: 'Ada' };
+      await put(store, 'k', { kind: 'rows', rows: [row] });
+
+      const first = await storedValue(store, 'k');
+      const second = await storedValue(store, 'k');
+      const rowOf = (value: typeof first) => (value?.kind === 'rows' ? value.rows[0] : undefined);
+
+      expect({
+        stored: first,
+        rowCopied: rowOf(first) !== row,
+        rowsCopiedPerGet: rowOf(first) !== rowOf(second),
+        driverValueKept: rowOf(first)?.['_id'] === id,
+      }).toEqual({
+        stored: { kind: 'rows', rows: [{ _id: id, name: 'Ada' }] },
+        rowCopied: true,
+        rowsCopiedPerGet: true,
+        driverValueKept: true,
+      });
+    });
+
+    it('copies an array as its elements only, with holes read as undefined', async () => {
+      const store = createInMemoryCacheStore<unknown, unknown>();
+      const list: unknown[] = [1];
+      list[2] = 3;
+      Object.assign(list, { extra: true });
+      await put(store, 'k', { kind: 'result', result: list });
+
+      const held = await storedValue(store, 'k');
+
+      expect(held).toEqual({ kind: 'result', result: [1, undefined, 3] });
+    });
+
+    it('keeps a Temporal value by reference, since Temporal values are immutable', async () => {
+      class Instant {
+        get [Symbol.toStringTag]() {
+          return 'Temporal.Instant';
+        }
+      }
+      const store = createInMemoryCacheStore<unknown, unknown>();
+      const at = new Instant();
+      await put(store, 'k', { kind: 'result', result: [{ at }] });
+
+      expect(await storedValue(store, 'k')).toEqual({ kind: 'result', result: [{ at }] });
+      const held = await storedValue(store, 'k');
+      expect((held as { result: { at: unknown }[] }).result.map((row) => row.at === at)).toEqual([
+        true,
+      ]);
     });
 
     it('stores a value that refers to the same object twice or to itself', async () => {
