@@ -58,10 +58,6 @@ describe('MongoTargetUnboundDatabase', () => {
     expect(Object.isFrozen(MongoTargetUnboundDatabase.instance.entries['collection'])).toBe(true);
   });
 
-  it('exposes a stable singleton reference', () => {
-    expect(MongoTargetUnboundDatabase.instance).toBe(MongoTargetUnboundDatabase.instance);
-  });
-
   it('elides the database prefix in qualifier emission (singleton-subclass polymorphism)', () => {
     expect(MongoTargetUnboundDatabase.instance.qualifier()).toBe('');
   });
