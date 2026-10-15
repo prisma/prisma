@@ -1,3 +1,7 @@
+import {
+  printedTaggedLiteralReadsBack,
+  printTaggedLiteral,
+} from '@internal/framework-components/authoring';
 import type { ToCanonicalForm } from '@internal/framework-components/codec';
 import { diffSchemas } from '@internal/framework-components/control';
 import { structuredError } from '@internal/utils/structured-error';
@@ -128,58 +132,117 @@ describe('SqlColumnDefaultIR', () => {
     });
 
     describe('two default expressions', () => {
-      function expression(text: string): SqlColumnDefaultIR {
-        return new SqlColumnDefaultIR({ resolved: { kind: 'function', expression: text } });
+      const sqlLiteralFor = (text: string) =>
+        printedTaggedLiteralReadsBack(text) ? printTaggedLiteral('sql', text) : undefined;
+      const HEDGE =
+        'The database may store a default expression in its own form, so the two can mean the same.';
+
+      function declared(text: string): SqlColumnDefaultIR {
+        return new SqlColumnDefaultIR({
+          resolved: { kind: 'function', expression: text },
+          sqlLiteralFor,
+        });
       }
 
-      it('names the stored form and says to write the default as the database stores it', () => {
+      function stored(raw: string, parsed = raw): SqlColumnDefaultIR {
+        return new SqlColumnDefaultIR({ resolved: { kind: 'function', expression: parsed }, raw });
+      }
+
+      it('shows the text the database reads back and the literal that writes it', () => {
         expect(
-          expression("now() - interval '1 day'").explainMismatch(
-            expression("(now() - '1 day'::interval)"),
+          declared("now() - interval '1 day'").explainMismatch(
+            stored("(now() - '1 day'::interval)"),
           ),
         ).toEqual({
-          text: "The database stores this default as `(now() - '1 day'::interval)`; the contract declares `now() - interval '1 day'`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default's SQL in the contract to `(now() - '1 day'::interval)`.",
-          cause: 'equivalent-form',
+          text: `The database reads this default back as sql\`(now() - '1 day'::interval)\`; the contract declares sql\`now() - interval '1 day'\`. ${HEDGE} If they do, write the default as sql\`(now() - '1 day'::interval)\`.`,
+          cause: 'possibly-equivalent',
         });
       });
 
-      it('shows a text holding a backtick as it is', () => {
-        expect(expression('"a`b"').explainMismatch(expression('("a`b")'))?.text).toBe(
-          'The database stores this default as `("a`b")`; the contract declares `"a`b"`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default\'s SQL in the contract to `("a`b")`.',
+      it('writes a text holding a backtick in the double-quote form', () => {
+        expect(declared("lower('a`b')").explainMismatch(stored("lower('a`b'::text)"))?.text).toBe(
+          `The database reads this default back as sql"lower('a\`b'::text)"; the contract declares sql"lower('a\`b')". ${HEDGE} If they do, write the default as sql"lower('a\`b'::text)".`,
         );
       });
 
-      it('shows a multi-line text as it is', () => {
+      it('doubles a backslash, so the literal reads back as the stored text', () => {
         expect(
-          expression('now()').explainMismatch(expression('CASE\n  WHEN true THEN now()\nEND'))
-            ?.text,
+          declared(String.raw`lower('a\\b')`).explainMismatch(
+            stored(String.raw`lower('a\\b'::text)`),
+          )?.text,
         ).toBe(
-          "The database stores this default as `CASE\n  WHEN true THEN now()\nEND`; the contract declares `now()`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default's SQL in the contract to `CASE\n  WHEN true THEN now()\nEND`.",
+          String.raw`The database reads this default back as sql` +
+            '`' +
+            String.raw`lower('a\\\\b'::text)` +
+            '`' +
+            String.raw`; the contract declares sql` +
+            '`' +
+            String.raw`lower('a\\\\b')` +
+            '`' +
+            `. ${HEDGE} If they do, write the default as sql\`` +
+            String.raw`lower('a\\\\b'::text)` +
+            '`.',
         );
+      });
+
+      it('writes a multi-line text on its own lines', () => {
+        expect(
+          declared('now()').explainMismatch(stored('CASE\n  WHEN true THEN now()\nEND'))?.text,
+        ).toBe(
+          `The database reads this default back as sql\`\nCASE\n  WHEN true THEN now()\nEND\n\`; the contract declares sql\`now()\`. ${HEDGE} If they do, write the default as sql\`\nCASE\n  WHEN true THEN now()\nEND\n\`.`,
+        );
+      });
+
+      it('says when no literal writes the stored text, and quotes it plainly', () => {
+        expect(declared('now()').explainMismatch(stored('now()\r'))?.text).toBe(
+          `The database reads this default back as "now()\\r"; the contract declares sql\`now()\`. ${HEDGE} No \`sql\` literal writes that text unchanged, so change it in the database or keep the contract's form.`,
+        );
+      });
+
+      it('shows the text the database stores, not its parsed form', () => {
+        expect(
+          declared('now() + 1').explainMismatch(stored('CURRENT_TIMESTAMP', 'now()'))?.text,
+        ).toContain('reads this default back as sql`CURRENT_TIMESTAMP`');
+      });
+
+      it('explains real drift between two expressions too, as possibly equivalent', () => {
+        expect(declared('now()').explainMismatch(stored('gen_random_uuid()'))?.cause).toBe(
+          'possibly-equivalent',
+        );
+      });
+
+      it('gives no explanation without a way to write a literal', () => {
+        const expected = new SqlColumnDefaultIR({
+          resolved: { kind: 'function', expression: 'now()' },
+        });
+        expect(expected.explainMismatch(stored('(now())'))).toBeUndefined();
       });
 
       it('gives no explanation for an expression against a literal', () => {
         const actual = new SqlColumnDefaultIR({ resolved: { kind: 'literal', value: 'x' } });
-        expect(expression('now()').explainMismatch(actual)).toBeUndefined();
+        expect(declared('now()').explainMismatch(actual)).toBeUndefined();
       });
 
       it('gives no explanation for a literal against an expression', () => {
-        const expected = new SqlColumnDefaultIR({ resolved: { kind: 'literal', value: 'x' } });
-        expect(expected.explainMismatch(expression('now()'))).toBeUndefined();
+        const expected = new SqlColumnDefaultIR({
+          resolved: { kind: 'literal', value: 'x' },
+          sqlLiteralFor,
+        });
+        expect(expected.explainMismatch(stored('now()'))).toBeUndefined();
       });
 
       it('gives no explanation for an expression the database lacks', () => {
-        expect(expression('now()').explainMismatch(undefined)).toBeUndefined();
+        expect(declared('now()').explainMismatch(undefined)).toBeUndefined();
       });
 
       it('gives no explanation for an expression against an unparsed database default', () => {
         expect(
-          expression('now()').explainMismatch(new SqlColumnDefaultIR({ raw: 'now()' })),
+          declared('now()').explainMismatch(new SqlColumnDefaultIR({ raw: 'now()' })),
         ).toBeUndefined();
       });
 
       it('raises no issue for texts that differ only in case, so nothing is explained', () => {
-        expect(diffSchemas(expression('now()'), expression('NOW()'))).toEqual([]);
+        expect(diffSchemas(declared('now()'), stored('NOW()'))).toEqual([]);
       });
     });
   });

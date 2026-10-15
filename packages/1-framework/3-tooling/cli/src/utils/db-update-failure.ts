@@ -5,6 +5,7 @@ import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
 import { type CliInvocation, cliCommand } from './printed-command';
 import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
+import { runnerSchemaCheckWhy, runnerSchemaIssues } from './schema-issues';
 
 /**
  * A `db update` failure as the CLI's structured error.
@@ -38,12 +39,14 @@ export function mapDbUpdateFailure(
               failure.databaseStorageHash,
               invocation,
             )
-          : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-            ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
-              `Legacy marker-table shape detected. Drop \`prisma_contract.marker\` (Postgres) or \`_prisma_marker\` (SQLite) and re-run \`${cliCommand(invocation, 'db init')}\` to recreate it with the current per-space schema.`
-            : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
+          : runnerSchemaIssues(failure.meta) !== undefined
+            ? `Change the contract source to resolve the issues listed, re-run \`${cliCommand(invocation, 'contract emit')}\`, then re-run \`${cliCommand(invocation, 'db update')}\`.`
+            : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
+              ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
+                `Legacy marker-table shape detected. Drop \`prisma_contract.marker\` (Postgres) or \`_prisma_marker\` (SQLite) and re-run \`${cliCommand(invocation, 'db init')}\` to recreate it with the current per-space schema.`
+              : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
     return errorRunnerFailed(failure.summary, {
-      why: failure.why ?? 'Migration runner failed',
+      why: runnerSchemaCheckWhy(failure.meta) ?? failure.why ?? 'Migration runner failed',
       fix,
       meta: {
         ...failure.meta,

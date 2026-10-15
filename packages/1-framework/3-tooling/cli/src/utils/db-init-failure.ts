@@ -14,6 +14,7 @@ import {
 import { runCommandAction } from './next-actions';
 import type { CliInvocation } from './printed-command';
 import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
+import { runnerSchemaCheckWhy } from './schema-issues';
 
 const DB_INIT_ADDITIVE_ONLY_FIX =
   '`db init` applies only additive changes. Run `{bin} db update`, which also applies widening and destructive ones once you answer what each operation that would lose data means, with `--delete` or `--rename`.';
@@ -135,7 +136,7 @@ export function mapDbInitFailure(
             'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
           : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
     return errorRunnerFailed(failure.summary, {
-      why: failure.why ?? 'Migration runner failed',
+      why: runnerSchemaCheckWhy(failure.meta) ?? failure.why ?? 'Migration runner failed',
       fix,
       ...ifDefined('meta', failure.meta),
       ...ifDefined('cause', failure.cause),

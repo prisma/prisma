@@ -7,6 +7,7 @@ export type {
   SqlColumnIRInput,
   SqlForeignKeyIRInput,
   SqlIndexIRInput,
+  SqlLiteralFor,
   SqlReferentialAction,
   SqlSchemaIRInput,
   SqlTableIRInput,

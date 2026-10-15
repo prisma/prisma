@@ -57,7 +57,7 @@ export interface RunnerFailure {
   readonly failedTypeChange?: FailedTypeChangeReport;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
-  /** The written migration of the failed operation, when the runner named the operation. */
+  /** The written migration of the failed operation, when the runner named the operation, or the last one applied when the schema check after apply failed. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
    * The runner's original failure object, preserved verbatim so callers
@@ -95,9 +95,11 @@ function failureReports(
   const { failedTypeChange, rowsWithoutValue } = failure;
   const operationIndex = failedTypeChange?.operationIndex ?? rowsWithoutValue?.[0]?.operationIndex;
   const edge =
-    operationIndex === undefined
-      ? undefined
-      : edgeOfOperation(resolution.entry.migrationEdges, operationIndex);
+    operationIndex !== undefined
+      ? edgeOfOperation(resolution.entry.migrationEdges, operationIndex)
+      : failure.code === 'MIGRATION.SCHEMA_VERIFY_FAILED'
+        ? resolution.entry.migrationEdges.at(-1)
+        : undefined;
   return {
     ...ifDefined(
       'failedTypeChange',

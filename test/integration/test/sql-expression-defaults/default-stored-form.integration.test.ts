@@ -24,7 +24,7 @@ const familyInstance = sql.create(controlStack);
 
 const WRITTEN = "now() - interval '1 day'";
 const STORED = "(now() - '1 day'::interval)";
-const EXPLANATION = `The database stores this default as \`${STORED}\`; the contract declares \`${WRITTEN}\`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default's SQL in the contract to \`${STORED}\`.`;
+const EXPLANATION = `The database reads this default back as sql\`${STORED}\`; the contract declares sql\`${WRITTEN}\`. The database may store a default expression in its own form, so the two can mean the same. If they do, write the default as sql\`${STORED}\`.`;
 
 async function contractWithDefault(expression: string): Promise<Contract<SqlStorage>> {
   const authored = await authorSqlContractFromPsl(`model Event {
@@ -132,13 +132,11 @@ describe('a raw SQL default the database stores in its own form', { concurrent: 
           issues.map((issue) => ({
             path: issue.path.join('/'),
             explanation: issue.explanation,
-            explanationCause: issue.explanationCause,
           })),
       ).toEqual([
         {
           path: 'database/public/Event/column:at/default',
-          explanation: EXPLANATION,
-          explanationCause: 'equivalent-form',
+          explanation: { text: EXPLANATION, cause: 'possibly-equivalent' },
         },
       ]);
     },
@@ -157,13 +155,11 @@ describe('a raw SQL default the database stores in its own form', { concurrent: 
         result.schema.issues.map((issue) => ({
           path: issue.path.join('/'),
           explanation: issue.explanation,
-          explanationCause: issue.explanationCause,
         })),
       ).toEqual([
         {
           path: 'database/public/Event/column:at/default',
-          explanation: EXPLANATION,
-          explanationCause: 'equivalent-form',
+          explanation: { text: EXPLANATION, cause: 'possibly-equivalent' },
         },
       ]);
     },

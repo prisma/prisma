@@ -27,6 +27,7 @@ export {
 export {
   SqlColumnDefaultIR,
   type SqlColumnDefaultIRInput,
+  type SqlLiteralFor,
 } from './ir/sql-column-default-ir';
 export {
   type SqlAnnotations,

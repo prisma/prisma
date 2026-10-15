@@ -467,7 +467,7 @@ describe('diffSchemas mismatch explanations', () => {
         rootOf([
           explainedNode('old', {
             text: 'the database writes it its own way',
-            cause: 'equivalent-form',
+            cause: 'possibly-equivalent',
           }),
         ]),
         rootOf([makeNode('default')]),
@@ -475,19 +475,14 @@ describe('diffSchemas mismatch explanations', () => {
     ).toMatchObject([
       {
         path: ['root', 'default'],
-        explanation: 'the database writes it its own way',
-        explanationCause: 'equivalent-form',
+        explanation: { text: 'the database writes it its own way', cause: 'possibly-equivalent' },
       },
     ]);
   });
 
   it('carries the explanation the expected node gives when the actual side lacks it', () => {
     expect(diffSchemas(rootOf([explainedNode('old', refused)]), rootOf([]))).toMatchObject([
-      {
-        path: ['root', 'default'],
-        explanation: 'the contract text is refused',
-        explanationCause: 'expected-refused',
-      },
+      { path: ['root', 'default'], explanation: refused },
     ]);
   });
 
@@ -497,6 +492,5 @@ describe('diffSchemas mismatch explanations', () => {
       rootOf([makeNode('default')]),
     );
     expect(issue).not.toHaveProperty('explanation');
-    expect(issue).not.toHaveProperty('explanationCause');
   });
 });
