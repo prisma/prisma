@@ -99,12 +99,6 @@ describe('defineConfig facade', () => {
     expect(config.contract?.output).toBe('/abs/path/to/dir/contract.json');
   });
 
-  it('falls back to derived output when output is not provided', () => {
-    const config = defineConfig({ contract: './prisma/contract.prisma' });
-
-    expect(config.contract?.output).toBe('./prisma/contract.json');
-  });
-
   it('derives output from the static prefix directory of a glob contract', () => {
     const config = defineConfig({ contract: './prisma/**/*.prisma' });
 

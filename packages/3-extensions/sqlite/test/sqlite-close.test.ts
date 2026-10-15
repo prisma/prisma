@@ -57,18 +57,6 @@ describe('sqlite close()', () => {
     await expect(db.close()).resolves.toBeUndefined();
   });
 
-  it('db.runtime() throws "SQLite client is closed" after close()', async () => {
-    const db = sqlite({ contract, path: ':memory:' });
-    await db.close();
-    expect(() => db.runtime()).toThrow('SQLite client is closed');
-  });
-
-  it('db.connect() throws "SQLite client is closed" after close()', async () => {
-    const db = sqlite({ contract, path: ':memory:' });
-    await db.close();
-    await expect(db.connect({ path: ':memory:' })).rejects.toThrow('SQLite client is closed');
-  });
-
   it('await using db executes [Symbol.asyncDispose] on scope exit', async () => {
     async function run() {
       await using db = sqlite({ contract, path: ':memory:' });

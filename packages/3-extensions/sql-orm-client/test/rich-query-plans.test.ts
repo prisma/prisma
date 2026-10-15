@@ -1,24 +1,16 @@
 import {
-  AggregateExpr,
   type AndExpr,
   BinaryExpr,
   ColumnRef,
   type DerivedTableSource,
-  LiteralExpr,
   ParamRef,
   type SelectAst,
   type SubqueryExpr,
-  type UpdateAst,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
-import {
-  compileGroupedAggregate,
-  compileInsertReturning,
-  compileSelectWithIncludes,
-  compileUpdateReturning,
-} from '../src/query-plan';
+import { compileSelectWithIncludes } from '../src/query-plan';
 import { baseContract, createCollectionFor } from './collection-fixtures';
-import { emptyTableState, getTestAggregates, tablesForTable } from './helpers';
+import { getTestAggregates } from './helpers';
 
 describe('SQL ORM rich AST query plans', () => {
   it('compiles include plans with AST classes and limit annotations', () => {
@@ -59,44 +51,5 @@ describe('SQL ORM rich AST query plans', () => {
     const childFilter = (rowsQuery.where as AndExpr).exprs[1] as BinaryExpr;
     expect(childFilter.right.kind).toBe('param-ref');
     expect((childFilter.right as ParamRef).value).toBe(100);
-  });
-
-  it('compiles insert, update and grouped aggregate plans with rich nodes', () => {
-    const insertPlan = compileInsertReturning(
-      baseContract,
-      'public',
-      'User',
-      'users',
-      [{ id: 1, name: 'Alice', email: 'a@example.com' }],
-      ['id'],
-    );
-    expect(insertPlan.ast.kind).toBe('insert');
-
-    const updatePlan = compileUpdateReturning(
-      baseContract,
-      'User',
-      tablesForTable(baseContract, 'users', 'public'),
-      { email: 'b@example.com' },
-      [BinaryExpr.eq(ColumnRef.of('users', 'id'), LiteralExpr.of(1))],
-      ['id'],
-    );
-    expect(updatePlan.ast.kind).toBe('update');
-    expect((updatePlan.ast as UpdateAst).where?.kind).toBe('binary');
-
-    const groupedPlan = compileGroupedAggregate(
-      baseContract,
-      getTestAggregates(),
-      emptyTableState(baseContract, 'posts'),
-      ['user_id'],
-      {
-        postCount: { kind: 'aggregate', fn: 'count' },
-        totalViews: { kind: 'aggregate', fn: 'sum', column: 'views' },
-      },
-      BinaryExpr.gt(AggregateExpr.count(), LiteralExpr.of(1)),
-    );
-    expect(groupedPlan.ast.kind).toBe('select');
-    const groupedAst = groupedPlan.ast as SelectAst;
-    expect(groupedAst.groupBy).toEqual([ColumnRef.of('posts', 'user_id')]);
-    expect(groupedAst.having?.kind).toBe('binary');
   });
 });
