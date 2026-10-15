@@ -1,3 +1,4 @@
+import { blindCast } from '@internal/utils/casts';
 import { structuredError } from '@internal/utils/structured-error';
 
 /**
@@ -93,7 +94,7 @@ export interface InMemoryCacheStoreOptions {
   readonly clock?: () => number;
 }
 
-const clonedPrototypes: ReadonlySet<object | null> = new Set<object | null>([
+const copiedPrototypes: ReadonlySet<object | null> = new Set<object | null>([
   null,
   Object.prototype,
   Array.prototype,
@@ -102,18 +103,6 @@ const clonedPrototypes: ReadonlySet<object | null> = new Set<object | null>([
   Map.prototype,
   Set.prototype,
   ArrayBuffer.prototype,
-  DataView.prototype,
-  Int8Array.prototype,
-  Uint8Array.prototype,
-  Uint8ClampedArray.prototype,
-  Int16Array.prototype,
-  Uint16Array.prototype,
-  Int32Array.prototype,
-  Uint32Array.prototype,
-  Float32Array.prototype,
-  Float64Array.prototype,
-  BigInt64Array.prototype,
-  BigUint64Array.prototype,
   Error.prototype,
   EvalError.prototype,
   RangeError.prototype,
@@ -123,24 +112,75 @@ const clonedPrototypes: ReadonlySet<object | null> = new Set<object | null>([
   URIError.prototype,
 ]);
 
-/** Whether `structuredClone` copies `value` without changing what it is: no function, no symbol, and no object whose prototype it would drop, such as a class instance. */
-function clonesFaithfully(value: unknown, seen = new Set<object>()): boolean {
+const typedArraySlice: (this: ArrayBufferView) => ArrayBufferView = Reflect.get(
+  Object.getPrototypeOf(Uint8Array.prototype),
+  'slice',
+);
+
+/** Whether `copyValue` copies `value` without changing what it is: no function, no symbol, and no object of a prototype it does not copy, such as a class instance. Any typed array or `DataView` is accepted, including a subclass such as Node's `Buffer`. */
+function copiesFaithfully(value: unknown, seen = new Set<object>()): boolean {
   if (typeof value === 'function' || typeof value === 'symbol') return false;
   if (typeof value !== 'object' || value === null) return true;
+  if (ArrayBuffer.isView(value)) return true;
   if (seen.has(value)) return true;
   seen.add(value);
-  if (!clonedPrototypes.has(Object.getPrototypeOf(value))) return false;
+  if (!copiedPrototypes.has(Object.getPrototypeOf(value))) return false;
   if (Object.getOwnPropertySymbols(value).length > 0) return false;
   if (value instanceof Map) {
     return [...value].every(
-      ([key, entry]) => clonesFaithfully(key, seen) && clonesFaithfully(entry, seen),
+      ([key, entry]) => copiesFaithfully(key, seen) && copiesFaithfully(entry, seen),
     );
   }
   if (value instanceof Set) {
-    return [...value].every((entry) => clonesFaithfully(entry, seen));
+    return [...value].every((entry) => copiesFaithfully(entry, seen));
   }
-  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) return true;
-  return Object.values(value).every((entry) => clonesFaithfully(entry, seen));
+  if (value instanceof ArrayBuffer || value instanceof Error) return true;
+  return Object.values(value).every((entry) => copiesFaithfully(entry, seen));
+}
+
+/** A deep copy of a value `copiesFaithfully` accepts. A typed array is copied with `TypedArray.prototype.slice`, which keeps its class, so a `Buffer` copies to a `Buffer` with its own memory. */
+function copyValue<T>(value: T, copies = new Map<object, unknown>()): T {
+  if (typeof value !== 'object' || value === null) return value;
+  const known = copies.get(value);
+  if (known !== undefined)
+    return blindCast<T, 'the copy of a value has the type of the value'>(known);
+  const copy = copyObject(value, copies);
+  copies.set(value, copy);
+  return blindCast<T, 'the copy of a value has the type of the value'>(copy);
+}
+
+function copyObject(value: object, copies: Map<object, unknown>): unknown {
+  if (value instanceof DataView) {
+    const start = value.byteOffset;
+    return new DataView(value.buffer.slice(start, start + value.byteLength));
+  }
+  if (ArrayBuffer.isView(value)) return typedArraySlice.call(value);
+  if (value instanceof ArrayBuffer) return value.slice(0);
+  if (value instanceof Date) return new Date(value.getTime());
+  if (value instanceof RegExp) return new RegExp(value.source, value.flags);
+  if (value instanceof Error) return structuredClone(value);
+  if (value instanceof Map) {
+    const copy = new Map<unknown, unknown>();
+    copies.set(value, copy);
+    for (const [key, entry] of value) copy.set(copyValue(key, copies), copyValue(entry, copies));
+    return copy;
+  }
+  if (value instanceof Set) {
+    const copy = new Set<unknown>();
+    copies.set(value, copy);
+    for (const entry of value) copy.add(copyValue(entry, copies));
+    return copy;
+  }
+  if (Array.isArray(value)) {
+    const copy: unknown[] = [];
+    copies.set(value, copy);
+    for (const entry of value) copy.push(copyValue(entry, copies));
+    return copy;
+  }
+  const copy: Record<string, unknown> = Object.create(Object.getPrototypeOf(value));
+  copies.set(value, copy);
+  for (const [key, entry] of Object.entries(value)) copy[key] = copyValue(entry, copies);
+  return copy;
 }
 
 interface StoredRecord<TValue> {
@@ -175,10 +215,11 @@ function invalidOption(argument: 'maxEntries' | 'ttlMs', received: number, expec
 /**
  * The default cache store: a least-recently-used map with one lifetime for every value, local to
  * the process. It holds `CachedValue` unless given another `TValue`. It holds copies: `set` stores a
- * `structuredClone` of the value and `get` returns a fresh one, so no caller shares an object with
- * the cache. It stores only plain data that `structuredClone` copies faithfully; for a value holding
- * a function, a symbol or an object of another prototype, such as a class instance, `set` stores
- * nothing and returns `false`. A key's version is kept for
+ * deep copy of the value and `get` returns a fresh one, so no caller shares an object with the
+ * cache. It stores only plain data it can copy faithfully: primitives, plain objects and arrays,
+ * `Date`, `RegExp`, `Map`, `Set`, `ArrayBuffer`, any typed array or `DataView` (a subclass such as
+ * Node's `Buffer` keeps its class), and the built-in errors. For a value holding anything else, such
+ * as a function, a symbol or a class instance, `set` stores nothing and returns `false`. A key's version is kept for
  * `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in
  * `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything.
  * It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
@@ -236,18 +277,16 @@ export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
       meta: target.meta,
       version: versionOf(target.key),
       data:
-        record === undefined
-          ? { empty: true }
-          : { empty: false, value: structuredClone(record.value) },
+        record === undefined ? { empty: true } : { empty: false, value: copyValue(record.value) },
     };
   }
 
   async function set(entry: CacheEntry<TMeta, TValue>, value: TValue): Promise<boolean> {
-    if (entry.version !== versionOf(entry.key) || !clonesFaithfully(value)) {
+    if (entry.version !== versionOf(entry.key) || !copiesFaithfully(value)) {
       return false;
     }
     records.delete(entry.key);
-    records.set(entry.key, { value: structuredClone(value), expiresAt: clock() + ttlMs });
+    records.set(entry.key, { value: copyValue(value), expiresAt: clock() + ttlMs });
     for (const leastRecentlyUsed of records.keys()) {
       if (records.size <= maxEntries) {
         break;

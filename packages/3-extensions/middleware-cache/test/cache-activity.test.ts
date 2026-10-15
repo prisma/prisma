@@ -251,3 +251,21 @@ describe('createCacheMiddleware — the default store copies call results', () =
     expect(await hit(mw)).toBeUndefined();
   });
 });
+
+describe('createCacheMiddleware — the default store copies statement rows', () => {
+  it('serves a row holding a Buffer as an equal Buffer that is not the stored one', async () => {
+    const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
+    const exec = makeExec('select bytes', annotated);
+    const bytes = Buffer.from([1, 2, 3]);
+
+    await runMiss(mw, exec, makeCtx(), [{ bytes }]);
+    const hit = await mw.intercept!.onQuery!(exec, makeCtx());
+    const [row] = [...((hit?.rows ?? []) as Iterable<{ bytes: Buffer }>)];
+
+    expect({
+      isBuffer: Buffer.isBuffer(row?.bytes),
+      equal: row?.bytes.equals(bytes),
+      sameObject: row?.bytes === bytes,
+    }).toEqual({ isBuffer: true, equal: true, sameObject: false });
+  });
+});

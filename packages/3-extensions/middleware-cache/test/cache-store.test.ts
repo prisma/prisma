@@ -132,7 +132,6 @@ describe('createInMemoryCacheStore', () => {
       ['a function', { compute: () => 1 }],
       ['a symbol', { tag: Symbol('x') }],
       ['an Error subclass', { error: new (class AppError extends Error {})('x') }],
-      ['a Buffer', { bytes: Buffer.from([1]) }],
       ['a class instance inside a Map', { map: new Map([['k', new (class Point {})()]]) }],
     ])('refuses to store a value holding %s, and set returns false', async (_name, value) => {
       const store = createInMemoryCacheStore<unknown, unknown>();
@@ -140,6 +139,40 @@ describe('createInMemoryCacheStore', () => {
       expect({ stored: await put(store, 'k', value), held: await storedValue(store, 'k') }).toEqual(
         { stored: false, held: undefined },
       );
+    });
+
+    it.each([
+      ['a Buffer', () => Buffer.from([1, 2, 3]), Buffer],
+      ['a Uint8Array', () => new Uint8Array([1, 2, 3]), Uint8Array],
+    ])(
+      'stores %s in a row and returns an equal copy of the same class',
+      async (_name, make, Class) => {
+        const store = createInMemoryCacheStore<unknown, { rows: { bytes: Uint8Array }[] }>();
+        const bytes = make();
+        await put(store, 'k', { rows: [{ bytes }] });
+
+        const held = (await storedValue(store, 'k'))?.rows[0]?.bytes;
+
+        expect({
+          sameClass: held?.constructor === Class,
+          equal: held !== undefined && [...held].join() === [...bytes].join(),
+          sameObject: held === bytes,
+          sameMemory: held?.buffer === bytes.buffer,
+        }).toEqual({ sameClass: true, equal: true, sameObject: false, sameMemory: false });
+      },
+    );
+
+    it('stores a DataView and returns a copy of its bytes', async () => {
+      const store = createInMemoryCacheStore<unknown, { view: DataView }>();
+      const view = new DataView(new Uint8Array([9, 8, 7, 6]).buffer, 1, 2);
+      await put(store, 'k', { view });
+
+      const held = (await storedValue(store, 'k'))?.view;
+
+      expect({
+        bytes: held === undefined ? [] : [held.getUint8(0), held.getUint8(1)],
+        sameMemory: held?.buffer === view.buffer,
+      }).toEqual({ bytes: [8, 7], sameMemory: false });
     });
 
     it('stores a value that refers to the same object twice or to itself', async () => {
