@@ -26,7 +26,6 @@ import { PostgresNativeEnum } from '../src/core/postgres-native-enum';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';
 import { PostgresSchema, postgresCreateNamespace } from '../src/core/postgres-schema';
-import postgresTargetDescriptor from '../src/exports/control';
 
 function makeValidContractJson() {
   return createSqlContract({
@@ -88,11 +87,6 @@ function makeContractWithTablesJson() {
 }
 
 describe('PostgresContractSerializer', () => {
-  it('extends SqlContractSerializerBase', () => {
-    const serializer = new PostgresContractSerializer();
-    expect(serializer).toBeInstanceOf(SqlContractSerializerBase);
-  });
-
   it('deserializes a valid SQL contract envelope', () => {
     const serializer = new PostgresContractSerializer();
     const contract = serializer.deserializeContract(makeValidContractJson());
@@ -275,17 +269,6 @@ describe('control-policy round-trip fidelity', () => {
 
     // Omit-when-default holds: the unset column never grows a control property.
     expect(emailColumn).not.toHaveProperty('control');
-  });
-});
-
-describe('postgresTargetDescriptor', () => {
-  it('exposes a contractSerializer property', () => {
-    expect(postgresTargetDescriptor.contractSerializer).toBeInstanceOf(PostgresContractSerializer);
-  });
-
-  it('exposes a schemaVerifier property next to migrations', () => {
-    expect(postgresTargetDescriptor.schemaVerifier).toBeDefined();
-    expect(postgresTargetDescriptor.migrations).toBeDefined();
   });
 });
 

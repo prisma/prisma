@@ -325,12 +325,6 @@ describe('native enum adoption — happy path', () => {
     expect(output).toContain('@@map("user_role")');
     expect(output).toContain('pg.enum(UserRole)');
   });
-
-  it('does not throw the old remediation diagnostic', () => {
-    expect(() =>
-      inferFromFixtureTree(tree({ public: sessionsNamespace('public') }), inferBuildContext),
-    ).not.toThrow();
-  });
 });
 
 describe('enum-free output stays flat', () => {

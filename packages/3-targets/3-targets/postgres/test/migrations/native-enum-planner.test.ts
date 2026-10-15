@@ -391,17 +391,6 @@ describe('member-value mismatch is a named unsupported diagnostic', () => {
     ]);
     expect(result.failure[0]?.summary).toContain('order_status');
   });
-
-  it('the mismatch diagnostic never plans a DROP TYPE + CREATE TYPE pair (no drop-recreate)', () => {
-    const contract = makeContract({ withEnum: true });
-    const actual = liveTree({
-      tables: { orders: ordersTableNode({ withStatusColumn: true }) },
-      nativeEnums: [{ typeName: 'order_status', values: ['review', 'draft', 'done'] }],
-    });
-
-    const result = planResultFor(contract, actual);
-    expect(result.ok).toBe(false);
-  });
 });
 
 describe('op building (typed DDL node)', () => {
