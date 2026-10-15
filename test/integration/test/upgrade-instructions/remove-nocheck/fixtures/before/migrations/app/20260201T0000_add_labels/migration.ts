@@ -1,4 +1,21 @@
-export const snapshots = {
-  start: 'ad0bc3ee0563adb89674d70fd1bdc18736f916051c08c2f9420e7512715e213b',
-  end: '0836e8859a7b03210c89087f930f92b280024b1509c5e6ae8ea5aec2b8fb34b0',
+#!/usr/bin/env -S node
+import { Migration, MigrationCLI } from '@prisma/orm-postgres/migration';
+import type { Contract as End } from '../../snapshots/0afd7bad7a1e491be0530915cb0a910ce38a75e6195e0cf37fd752329d2bb9ab/contract';
+import endContract from '../../snapshots/0afd7bad7a1e491be0530915cb0a910ce38a75e6195e0cf37fd752329d2bb9ab/contract.json' with {
+  type: 'json',
 };
+import type { Contract as Start } from '../../snapshots/1cc4868e51782f6a87585b26cbfdd83c44f89b973de022f42bfdddf93bce72cb/contract';
+import startContract from '../../snapshots/1cc4868e51782f6a87585b26cbfdd83c44f89b973de022f42bfdddf93bce72cb/contract.json' with {
+  type: 'json',
+};
+
+export default class M extends Migration<Start, End> {
+  override readonly startContractJson = startContract;
+  override readonly endContractJson = endContract;
+
+  override get operations() {
+    return [];
+  }
+}
+
+MigrationCLI.run(import.meta.url, M);

@@ -1,20 +1,63 @@
 {
-  "target": "postgres",
+  "schemaVersion": "1",
   "targetFamily": "sql",
+  "target": "postgres",
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "roots": {
+    "post": {
+      "model": "Post",
+      "namespace": "public"
+    }
+  },
   "domain": {
     "namespaces": {
       "public": {
         "models": {
           "Post": {
+            "fields": {
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "labels": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "scores": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "tags": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {},
             "storage": {
-              "table": "post",
-              "namespaceId": "public",
               "fields": {
                 "id": {
                   "column": "id"
-                },
-                "tags": {
-                  "column": "tags"
                 },
                 "labels": {
                   "column": "labels"
@@ -22,93 +65,85 @@
                 "scores": {
                   "column": "scores"
                 },
-                "priority": {
-                  "column": "priority"
-                }
-              }
-            },
-            "fields": {
-              "id": {
-                "type": {
-                  "kind": "scalar",
-                  "codecId": "pg/int4@1"
-                },
-                "nullable": false,
-                "many": false
-              },
-              "tags": {
-                "type": {
-                  "kind": "scalar",
-                  "codecId": "pg/text@1"
-                },
-                "nullable": false,
-                "many": {
-                  "elementNullable": false
+                "tags": {
+                  "column": "tags"
                 }
               },
-              "labels": {
-                "type": {
-                  "kind": "scalar",
-                  "codecId": "pg/text@1"
-                },
-                "nullable": false,
-                "many": {
-                  "elementNullable": false
-                }
-              },
-              "scores": {
-                "type": {
-                  "kind": "scalar",
-                  "codecId": "pg/int4@1"
-                },
-                "nullable": false,
-                "many": {
-                  "elementNullable": false
-                }
-              },
-              "priority": {
-                "type": {
-                  "kind": "scalar",
-                  "codecId": "pg/text@1"
-                },
-                "nullable": false,
-                "many": false,
-                "valueSet": {
-                  "plane": "domain",
-                  "entityKind": "enum",
-                  "namespaceId": "public",
-                  "entityName": "Priority"
-                }
-              }
-            },
-            "relations": {}
-          }
-        },
-        "enum": {
-          "Priority": {
-            "codecId": "pg/text@1",
-            "members": [
-              {
-                "name": "Low",
-                "value": "low"
-              },
-              {
-                "name": "High",
-                "value": "high"
-              }
-            ]
+              "namespaceId": "public",
+              "table": "post"
+            }
           }
         }
       }
     }
   },
-  "roots": {
-    "post": {
-      "namespace": "public",
-      "model": "Post"
-    }
+  "storage": {
+    "namespaces": {
+      "public": {
+        "entries": {
+          "table": {
+            "post": {
+              "checks": [
+                {
+                  "expression": "array_position(\"scores\", NULL) IS NULL",
+                  "name": "post_scores_elem_not_null_0d0de0bd",
+                  "prefix": "post_scores_elem_not_null"
+                }
+              ],
+              "columns": {
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "labels": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "many": {
+                    "elementNullable": false
+                  },
+                  "nullable": false,
+                  "noCheck": [
+                    "elementNotNull"
+                  ]
+                },
+                "scores": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "many": {
+                    "elementNullable": false
+                  },
+                  "nullable": false
+                },
+                "tags": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "many": {
+                    "elementNullable": false
+                  },
+                  "nullable": false,
+                  "noCheck": [
+                    "elementNotNull"
+                  ]
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            }
+          }
+        },
+        "id": "public",
+        "kind": "postgres-schema"
+      }
+    },
+    "storageHash": "0afd7bad7a1e491be0530915cb0a910ce38a75e6195e0cf37fd752329d2bb9ab"
   },
-  "extensions": {},
   "capabilities": {
     "postgres": {
       "distinctOn": true,
@@ -136,98 +171,11 @@
       "scalarList": true
     }
   },
-  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "extensions": {},
   "meta": {},
-  "storage": {
-    "storageHash": "0836e8859a7b03210c89087f930f92b280024b1509c5e6ae8ea5aec2b8fb34b0",
-    "namespaces": {
-      "public": {
-        "id": "public",
-        "kind": "postgres-schema",
-        "entries": {
-          "table": {
-            "post": {
-              "columns": {
-                "id": {
-                  "dataType": "pg/int4",
-                  "codecId": "pg/int4@1",
-                  "nullable": false,
-                  "many": false
-                },
-                "tags": {
-                  "dataType": "pg/text",
-                  "codecId": "pg/text@1",
-                  "nullable": false,
-                  "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": [
-                    "elementNotNull"
-                  ]
-                },
-                "labels": {
-                  "dataType": "pg/text",
-                  "codecId": "pg/text@1",
-                  "nullable": false,
-                  "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": [
-                    "elementNotNull"
-                  ]
-                },
-                "scores": {
-                  "dataType": "pg/int4",
-                  "codecId": "pg/int4@1",
-                  "nullable": false,
-                  "many": {
-                    "elementNullable": false
-                  }
-                },
-                "priority": {
-                  "dataType": "pg/text",
-                  "codecId": "pg/text@1",
-                  "nullable": false,
-                  "many": false,
-                  "valueSet": {
-                    "plane": "storage",
-                    "entityKind": "valueSet",
-                    "namespaceId": "public",
-                    "entityName": "Priority"
-                  },
-                  "noCheck": [
-                    "membership"
-                  ]
-                }
-              },
-              "uniques": [],
-              "indexes": [],
-              "foreignKeys": [],
-              "primaryKey": {
-                "columns": [
-                  "id"
-                ]
-              },
-              "checks": [
-                {
-                  "name": "post_scores_elem_not_null_0d0de0bd",
-                  "expression": "array_position(\"scores\", NULL) IS NULL",
-                  "prefix": "post_scores_elem_not_null"
-                }
-              ]
-            }
-          },
-          "valueSet": {
-            "Priority": {
-              "kind": "valueSet",
-              "values": [
-                "low",
-                "high"
-              ]
-            }
-          }
-        }
-      }
-    }
+  "_generated": {
+    "warning": "⚠️  GENERATED FILE - DO NOT EDIT",
+    "message": "This file is automatically generated by \"prisma contract emit\".",
+    "regenerate": "To regenerate, run: prisma contract emit"
   }
 }

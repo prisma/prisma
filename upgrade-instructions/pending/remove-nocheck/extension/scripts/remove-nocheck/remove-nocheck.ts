@@ -1,20 +1,12 @@
 #!/usr/bin/env node
 /**
- * Removes the `noCheck` key from every column of every SQL contract in a project, then renames
- * the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts`
- * that names an old storage hash. The checks each contract declares are left as they are.
+ * Removes the `noCheck` key from every column of every SQL contract in a project. Where the key waived the element check of a list, the column and the field that maps it become lists whose elements may be null, in `contract.json` and `contract.d.ts`, because that is what the database enforces. The checks each contract declares are left as they are. The script then renames the snapshot directories and rewrites every migration, ref, `migration.ts` and `contract.d.ts` that names an old storage hash.
  *
  * Usage: node remove-nocheck.ts [project-root]
  *
- * The project root defaults to the working directory. The script reads and writes files only. It
- * needs no database, network or configured stack, and a project with no `noCheck` key is left
- * unchanged. When it stops (a file it must read is not valid JSON, or a snapshot directory that
- * already exists with different content) it changes no file, prints one line per case and exits 1.
- * When it finishes it prints how many files and snapshot directories it changed and each storage
- * hash it replaced.
+ * The project root defaults to the working directory. The script reads and writes files only. It needs no database, network or configured stack, and a project with no `noCheck` key is left unchanged. When it stops (a file it must read is not valid JSON, a contract whose stored hash does not match its content, or a snapshot directory that already exists with different content) it changes no file, prints one line per case and exits 1. When it finishes it prints how many files and snapshot directories it changed and each storage hash it replaced.
  *
- * The storage hash and migration hash rules are copied from `@internal/contract` and
- * `@internal/migration-tools` because a project's strict `node_modules` does not expose them.
+ * The storage hash and migration hash rules are copied from `@internal/contract` and `@internal/migration-tools` because a project's strict `node_modules` does not expose them.
  */
 import { createHash } from 'node:crypto';
 import {
@@ -418,29 +410,81 @@ function count(amount: number, singular: string, plural: string): string {
 }
 
 const REMOVED_KEY = 'noCheck';
-const REMOVED_MEMBER = new RegExp(`"${REMOVED_KEY}"\\s*:\\s*\\[[^\\]]*\\]`, 'g');
+const ELEMENT_KIND = 'elementNotNull';
 
-/** The contract with the key removed from each column, and whether any column had it. */
-function withoutRemovedKey(contract: JsonRecord): { contract: JsonRecord; changed: boolean } {
+function listKey(namespace: string, owner: string, member: string): string {
+  return `${namespace}\u0000${owner}\u0000${member}`;
+}
+
+interface Rewrite {
+  readonly contract: JsonRecord;
+  readonly changed: boolean;
+  readonly columns: ReadonlySet<string>;
+  readonly fields: ReadonlySet<string>;
+}
+
+function allowNullElements(holder: JsonRecord): void {
+  const many = holder['many'];
+  if (isRecord(many)) holder['many'] = { ...many, elementNullable: true };
+}
+
+/** Mutates `copy`: the domain fields that map a column whose element check was waived. */
+function fieldsMappingColumns(copy: JsonRecord, columns: ReadonlySet<string>): Set<string> {
+  const fields = new Set<string>();
+  const domain = copy['domain'];
+  const namespaces = isRecord(domain) ? domain['namespaces'] : undefined;
+  for (const [namespaceId, namespace] of isRecord(namespaces) ? Object.entries(namespaces) : []) {
+    const models = isRecord(namespace) ? namespace['models'] : undefined;
+    for (const [modelName, model] of isRecord(models) ? Object.entries(models) : []) {
+      if (!isRecord(model)) continue;
+      const storage = model['storage'];
+      const modelFields = model['fields'];
+      if (!isRecord(storage) || !isRecord(modelFields)) continue;
+      const table = storage['table'];
+      const tableNamespace =
+        typeof storage['namespaceId'] === 'string' ? storage['namespaceId'] : namespaceId;
+      const mapped = storage['fields'];
+      for (const [fieldName, mapping] of isRecord(mapped) ? Object.entries(mapped) : []) {
+        const column = isRecord(mapping) ? mapping['column'] : undefined;
+        const field = modelFields[fieldName];
+        if (typeof table !== 'string' || typeof column !== 'string' || !isRecord(field)) continue;
+        if (!columns.has(listKey(tableNamespace, table, column))) continue;
+        allowNullElements(field);
+        fields.add(listKey(namespaceId, modelName, fieldName));
+      }
+    }
+  }
+  return fields;
+}
+
+/** The contract with the key removed from each column, and the lists whose element check it waived made element-nullable. */
+function rewriteContract(contract: JsonRecord): Rewrite {
   const copy = parseJson(JSON.stringify(contract));
-  if (!isRecord(copy)) return { contract, changed: false };
+  if (!isRecord(copy)) return { contract, changed: false, columns: new Set(), fields: new Set() };
   let changed = false;
+  const columns = new Set<string>();
   const storage = copy['storage'];
   const namespaces = isRecord(storage) ? storage['namespaces'] : undefined;
-  for (const namespace of isRecord(namespaces) ? Object.values(namespaces) : []) {
+  for (const [namespaceId, namespace] of isRecord(namespaces) ? Object.entries(namespaces) : []) {
     const entries = isRecord(namespace) ? namespace['entries'] : undefined;
     const tables = isRecord(entries) ? entries['table'] : undefined;
-    for (const table of isRecord(tables) ? Object.values(tables) : []) {
-      const columns = isRecord(table) ? table['columns'] : undefined;
-      for (const column of isRecord(columns) ? Object.values(columns) : []) {
-        if (isRecord(column) && Object.hasOwn(column, REMOVED_KEY)) {
-          delete column[REMOVED_KEY];
-          changed = true;
+    for (const [tableName, table] of isRecord(tables) ? Object.entries(tables) : []) {
+      const tableColumns = isRecord(table) ? table['columns'] : undefined;
+      for (const [columnName, column] of isRecord(tableColumns)
+        ? Object.entries(tableColumns)
+        : []) {
+        if (!isRecord(column) || !Object.hasOwn(column, REMOVED_KEY)) continue;
+        const kinds = column[REMOVED_KEY];
+        delete column[REMOVED_KEY];
+        changed = true;
+        if (Array.isArray(kinds) && kinds.includes(ELEMENT_KIND) && isRecord(column['many'])) {
+          allowNullElements(column);
+          columns.add(listKey(namespaceId, tableName, columnName));
         }
       }
     }
   }
-  return { contract: copy, changed };
+  return { contract: copy, changed, columns, fields: fieldsMappingColumns(copy, columns) };
 }
 
 function withStorageHash(contract: JsonRecord, hash: string): JsonRecord {
@@ -449,26 +493,116 @@ function withStorageHash(contract: JsonRecord, hash: string): JsonRecord {
   return { ...contract, storage: { ...storage, storageHash: hash } };
 }
 
-/**
- * The contract text with the key and the stored hash replaced in place, so the file keeps its
- * layout. Undefined when the edited text does not parse to exactly the expected contract.
- */
-function editedText(
+/** The contract written the way the file held it: a snapshot's canonical line, or indented JSON. */
+function writtenForm(contract: JsonRecord, original: JsonRecord, text: string): string {
+  const newline = text.endsWith('\n') ? '\n' : '';
+  if (text === `${canonicalizeJson(original)}${newline}`)
+    return `${canonicalizeJson(contract)}${newline}`;
+  return `${JSON.stringify(contract, null, 2)}${newline}`;
+}
+
+interface Block {
+  readonly start: number;
+  end: number;
+  readonly label: string;
+  readonly parent: Block | undefined;
+}
+
+function scanBlocks(text: string): Block[] {
+  const blocks: Block[] = [];
+  const open: Block[] = [];
+  let quote: string | undefined;
+  for (let index = 0; index < text.length; index++) {
+    const char = text[index];
+    if (quote !== undefined) {
+      if (char === '\\') index++;
+      else if (char === quote) quote = undefined;
+      continue;
+    }
+    if (char === "'" || char === '"' || char === '`') {
+      quote = char;
+      continue;
+    }
+    if (char === '{') {
+      const key =
+        /(?:readonly\s+)?([\p{ID_Start}_$][\p{ID_Continue}$]*|'[^']*'|"[^"]*")\s*\??\s*:\s*$/u.exec(
+          text.slice(Math.max(0, index - 200), index),
+        );
+      const block: Block = {
+        start: index,
+        end: text.length,
+        label: key?.[1]?.replace(/^['"]|['"]$/g, '') ?? '',
+        parent: open.at(-1),
+      };
+      open.push(block);
+      blocks.push(block);
+    } else if (char === '}') {
+      const block = open.pop();
+      if (block !== undefined) block.end = index;
+    }
+  }
+  return blocks;
+}
+
+function innermostBlock(blocks: readonly Block[], position: number): Block | undefined {
+  let found: Block | undefined;
+  for (const block of blocks)
+    if (
+      block.start < position &&
+      position < block.end &&
+      (found === undefined || block.start > found.start)
+    )
+      found = block;
+  return found;
+}
+
+/** The key of a storage column block (`namespaces.<ns>.entries.table.<table>.columns.<column>`). */
+function columnBlockKey(block: Block): string | undefined {
+  const table = block.parent?.parent;
+  const namespace = table?.parent?.parent?.parent;
+  if (block.parent?.label !== 'columns' || table?.parent?.label !== 'table') return undefined;
+  if (table.parent.parent?.label !== 'entries' || namespace === undefined) return undefined;
+  return listKey(namespace.label, table.label, block.label);
+}
+
+/** The key of a domain field block (`namespaces.<ns>.models.<model>.fields.<field>`). */
+function fieldBlockKey(block: Block): string | undefined {
+  const model = block.parent?.parent;
+  const namespace = model?.parent?.parent;
+  if (block.parent?.label !== 'fields' || model?.parent?.label !== 'models') return undefined;
+  if (namespace === undefined) return undefined;
+  return listKey(namespace.label, model.label, block.label);
+}
+
+function rewriteDts(
   text: string,
-  expected: JsonRecord,
-  oldHash: Json,
-  newHash: string,
-): string | undefined {
-  let next = text
-    .replace(new RegExp(`${REMOVED_MEMBER.source}\\s*,\\s*`, 'g'), '')
-    .replace(new RegExp(`\\s*,\\s*${REMOVED_MEMBER.source}`, 'g'), '');
-  if (typeof oldHash === 'string')
-    next = next.replace(
-      new RegExp(`("storageHash"\\s*:\\s*)"${oldHash}"`),
-      (_match: string, key: string) => `${key}"${newHash}"`,
-    );
-  const parsed = parseJson(next);
-  return JSON.stringify(parsed) === JSON.stringify(expected) ? next : undefined;
+  columns: ReadonlySet<string>,
+  fields: ReadonlySet<string>,
+  hashes: ReadonlyMap<string, string>,
+): string {
+  const blocks = scanBlocks(text);
+  const edits: { start: number; end: number; text: string }[] = [];
+  for (const match of text.matchAll(/readonly elementNullable:\s*false/g)) {
+    const many = innermostBlock(blocks, match.index);
+    const holder = many?.label === 'many' ? many.parent : undefined;
+    if (holder === undefined) continue;
+    const column = columnBlockKey(holder);
+    const field = fieldBlockKey(holder);
+    if (
+      !(column !== undefined && columns.has(column)) &&
+      !(field !== undefined && fields.has(field))
+    )
+      continue;
+    edits.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      text: 'readonly elementNullable: true',
+    });
+  }
+  let result = text;
+  for (const edit of edits.sort((a, b) => b.start - a.start))
+    result = `${result.slice(0, edit.start)}${edit.text}${result.slice(edit.end)}`;
+  return replaceHashTokens(result, hashes);
 }
 
 function replaceHashTokens(text: string, hashes: ReadonlyMap<string, string>): string {
@@ -484,6 +618,8 @@ interface ContractPlan {
   readonly oldHash: string;
   readonly newHash: string;
   readonly content: string;
+  readonly columns: ReadonlySet<string>;
+  readonly fields: ReadonlySet<string>;
 }
 
 function summary(
@@ -513,7 +649,6 @@ function main(root: string): number {
   const display = (path: string): string => relative(root, path).split(sep).join('/');
   const files = listFiles(root);
   const plans: ContractPlan[] = [];
-  const notices: string[] = [];
   const stops: string[] = [];
   let contractsFound = 0;
 
@@ -535,22 +670,28 @@ function main(root: string): number {
     )
       continue;
     contractsFound++;
-    const rewrite = withoutRemovedKey(contract);
+    const rewrite = rewriteContract(contract);
     if (!rewrite.changed) continue;
     const snapshot = isSnapshotContract(path);
     const stored = contract['storage']['storageHash'];
     const oldHash = snapshot ? basename(dirname(path)) : typeof stored === 'string' ? stored : '';
-    if (computeStorageHash(contract) !== oldHash)
-      notices.push(`${display(path)}: stored hash did not recompute; rehashed from content`);
-    const newHash = computeStorageHash(rewrite.contract);
-    const content = editedText(text, withStorageHash(rewrite.contract, newHash), stored, newHash);
-    if (content === undefined) {
+    const computed = computeStorageHash(contract);
+    if (computed !== oldHash || (typeof stored === 'string' && stored !== oldHash)) {
       stops.push(
-        `${display(path)}: could not remove the noCheck keys without changing the file's layout`,
+        `${display(path)}: the stored storage hash ${oldHash} does not match the contract's content, which hashes to ${computed}; restore the file from version control, or re-emit it, and run the script again`,
       );
       continue;
     }
-    plans.push({ path, snapshot, oldHash, newHash, content });
+    const newHash = computeStorageHash(rewrite.contract);
+    plans.push({
+      path,
+      snapshot,
+      oldHash,
+      newHash,
+      content: writtenForm(withStorageHash(rewrite.contract, newHash), contract, text),
+      columns: rewrite.columns,
+      fields: rewrite.fields,
+    });
   }
 
   const hashes = new Map<string, string>();
@@ -571,7 +712,7 @@ function main(root: string): number {
       : `${plan.path.slice(0, -'.json'.length)}.d.ts`;
     const dtsHashes = new Map([...hashes, [plan.oldHash, plan.newHash]]);
     const dts = existsSync(dtsPath)
-      ? replaceHashTokens(readFileSync(dtsPath, 'utf8'), dtsHashes)
+      ? rewriteDts(readFileSync(dtsPath, 'utf8'), plan.columns, plan.fields, dtsHashes)
       : undefined;
     if (!plan.snapshot) {
       if (dts !== undefined) referenceWrites.set(dtsPath, dts);
@@ -664,10 +805,7 @@ function main(root: string): number {
     return 1;
   }
   const rewrittenFiles = snapshotRewrites.length + referenceWrites.size + contractWrites.size;
-  const lines = [
-    ...notices,
-    ...summary(root, contractsFound, rewrittenFiles, removals.size, hashes),
-  ];
+  const lines = summary(root, contractsFound, rewrittenFiles, removals.size, hashes);
   process.stdout.write(`${lines.join('\n')}\n`);
   return 0;
 }
