@@ -23,7 +23,7 @@ With `postgis` in `extensionPacks`, the same database infers `location postgis.G
 - Introspection stores a list column's element type in written form (`int4`, `timestamptz(3)`), through `normalizeSchemaNativeType`. Written texts are not claiming texts, so infer cannot resolve `nativeType` for a list column. It needs the catalog text.
 - Only Postgres implements infer. SQLite has no infer hook, so SQLite is not part of this slice.
 - PostGIS claims only `geometry` and `geometry(Geometry,<srid>)`. A column declared with a subtype, such as `geometry(Point,4326)`, has no claiming text, so infer will fail on it. Recognising subtypes needs a new parameter on `postgis/geometry`; it is not in this slice.
-- `PSL_UNSUPPORTED_FIELD_TYPE` is the code the Prisma 8 interpreter already uses for a field type it cannot resolve.
+- The framework binder reports `Unsupported("x")` as an unresolved type, `PSL_UNRESOLVED_REFERENCE`, and lets a family describe the message through `describeUnresolvedType`.
 - The CLI's `errorInitPrisma7ProviderUnsupported` is about a Prisma 7 datasource provider, not this type. It does not change.
 
 ## Scope
@@ -34,7 +34,7 @@ From design sections 11 to 13:
 2. The resolver's placeholders accept a leading minus where the parameter schema allows a negative number, so `numeric(10,-2)` resolves (from `deferred.md`).
 3. **13.5.** New Postgres constructors `Bit(length?)`, `VarBit(length?)`, `Interval(precision?)`, marked `inferred`. Without them, infer would fail on those columns instead of printing them.
 4. **13.2, 13.3.** Infer resolves each non-enum column through `resolveReportedSqlType` over `context.dataTypes` and prints the constructor marked `inferred` for the data type, with the fewest arguments that give the same normalised parameters. Enum columns keep today's `pg.enum(Name)` path. A column with no claiming data type, or a data type with no marked constructor, goes into one `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` error that lists every such column as `<schema>.<table>.<column>: <reported text>`.
-5. **13.6, 13.7.** `contract print` picks the marked constructor of the column's data type instead of the name tables. `POSTGRES_TO_PSL`, `PRESERVED_NATIVE_TYPES`, `PARAMETERIZED_NATIVE_TYPES`, `INFERRED_PSL_TYPE_NAMES`, `createPostgresTypeMap`, the `PslTypeMap` types and the PSL printer's `isUnsupported` are deleted. The Prisma 8 interpreter gives `PSL_UNSUPPORTED_FIELD_TYPE` a specific message for a field typed `Unsupported("x")`.
+5. **13.6, 13.7.** `contract print` picks the marked constructor of the column's data type instead of the name tables. `POSTGRES_TO_PSL`, `PRESERVED_NATIVE_TYPES`, `PARAMETERIZED_NATIVE_TYPES`, `INFERRED_PSL_TYPE_NAMES`, `createPostgresTypeMap`, the `PslTypeMap` types and the PSL printer's `isUnsupported` are deleted. The SQL family gives the binder a specific message for a field typed `Unsupported("x")`, keeping the code `PSL_UNRESOLVED_REFERENCE`.
 
 Not in this slice:
 
