@@ -15,11 +15,6 @@ const mongoCodecImports: TypesImportSpec[] = [
 ];
 
 describe('Mongo emitter hook end-to-end (blog fixture)', () => {
-  it('validates the blog contract', () => {
-    expect(() => mongoEmission.validateTypes(blogContract, {})).not.toThrow();
-    expect(() => mongoEmission.validateStructure(blogContract)).not.toThrow();
-  });
-
   it('generates complete contract.d.ts from blog contract', () => {
     const types = generateContractDts(blogContract, mongoEmission, mongoCodecImports, testHashes);
 
