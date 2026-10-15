@@ -133,6 +133,31 @@ export function refuseGeneratorsNoPresetWritesTogether(phases: GeneratorPhases):
   );
 }
 
+export function refuseGeneratorParamsPresetDoesNotWrite(input: {
+  readonly coordinate: string;
+  readonly preset: string;
+  readonly phase: 'onCreate' | 'onUpdate';
+  readonly generator: string;
+  readonly params: Readonly<Record<string, unknown>> | undefined;
+  readonly presetParams: Readonly<Record<string, unknown>> | undefined;
+}): void {
+  const params = input.params ?? {};
+  const presetParams = input.presetParams ?? {};
+  if (sameJson(params, presetParams)) return;
+  throw unsupported(
+    `column ${input.coordinate} generates "${input.generator}" ${input.phase === 'onCreate' ? 'on create' : 'on update'} with params ${canonicalizeJson(params)}, but field preset ${input.preset} writes it with params ${canonicalizeJson(presetParams)}, so the written file would read back differently.`,
+    "The printer writes the column's generators as the field preset of its codec, and the preset derives the generator params from the column's type params.",
+    KEEP_SOURCE,
+    {
+      coordinate: input.coordinate,
+      generator: input.generator,
+      phase: input.phase,
+      params,
+      presetParams,
+    },
+  );
+}
+
 export function refuseGeneratorOnUpdate(phases: GeneratorPhases): never {
   throw unsupported(
     `column ${phases.coordinate} generates a value on update ("${phases.onUpdate}"), which cannot be written in Prisma 8 PSL.`,

@@ -4,6 +4,7 @@ import {
   defaultFunctionCallFor,
   type FieldPresetArgument,
   fieldPresetArguments,
+  fieldPresetGenerators,
 } from '@internal/family-sql/psl-build';
 import type {
   FieldPresetPhasePrintForm,
@@ -16,6 +17,7 @@ import type {
 import { buildAttribute, namedArg, positionalArg } from '../psl-build/psl-literals';
 import {
   refuseGeneratorOnUpdate,
+  refuseGeneratorParamsPresetDoesNotWrite,
   refuseGeneratorsNoPresetWritesTogether,
   refuseGeneratorWithoutPslFunction,
 } from './refusals';
@@ -44,10 +46,11 @@ function writesPhase(
 export function buildExecutionDefault(input: {
   readonly executionDefault: ExecutionMutationDefault;
   readonly codecId: string;
+  readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly coordinate: string;
   readonly context: SqlPslBuildContext;
 }): BuiltExecutionDefault {
-  const { executionDefault, codecId, coordinate, context } = input;
+  const { executionDefault, codecId, typeParams, coordinate, context } = input;
   const onCreateId = executionDefault.onCreate?.id;
   const onUpdateId = executionDefault.onUpdate?.id;
 
@@ -64,6 +67,24 @@ export function buildExecutionDefault(input: {
         coordinate,
         onCreate: onCreateId,
         onUpdate: onUpdateId,
+      });
+    }
+    const written = fieldPresetGenerators({
+      preset,
+      typeParams,
+      onCreate: onCreateId,
+      onUpdate: onUpdateId,
+    });
+    for (const phase of ['onCreate', 'onUpdate'] as const) {
+      const generator = executionDefault[phase];
+      if (generator === undefined) continue;
+      refuseGeneratorParamsPresetDoesNotWrite({
+        coordinate,
+        preset: preset.path.join('.'),
+        phase,
+        generator: generator.id,
+        params: generator.params,
+        presetParams: written[phase]?.params,
       });
     }
     return { kind: 'preset', phases: { preset, onCreate: onCreateId, onUpdate: onUpdateId } };

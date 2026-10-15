@@ -12,9 +12,10 @@ import {
 } from './framework-authoring';
 import { runtimeError } from './runtime-error';
 
-/** The option argument that switches a preset's phase on, and the value of it that selects each generator. */
+/** The option argument that switches a preset's phase on, its position in the preset's arguments, and the value of it that selects each generator. */
 export interface FieldPresetPhasePrintForm {
   readonly argument: string;
+  readonly index: number;
   readonly valuesByGenerator: ReadonlyMap<string, string>;
 }
 
@@ -30,6 +31,7 @@ export interface FieldPresetPrintForm {
 
 export interface PrintableFieldPreset {
   readonly path: readonly string[];
+  readonly descriptor: AuthoringFieldPresetDescriptor;
   readonly printForm: FieldPresetPrintForm;
 }
 
@@ -70,7 +72,7 @@ function phasePrintForm(
     if (!isExecutionMutationDefaultValue(selected)) return UNREADABLE;
     if (!valuesByGenerator.has(selected.id)) valuesByGenerator.set(selected.id, value);
   }
-  return { argument: argument.name, valuesByGenerator };
+  return { argument: argument.name, index: template.index, valuesByGenerator };
 }
 
 function argumentIndexesRead(template: AuthoringTemplateValue | undefined): readonly number[] {
@@ -139,7 +141,7 @@ function printableFieldPresets(
     const memberPath = [...path, name];
     if (!isAuthoringFieldPresetDescriptor(member)) return printableFieldPresets(member, memberPath);
     const printForm = fieldPresetPrintForm(member);
-    return printForm === undefined ? [] : [{ path: memberPath, printForm }];
+    return printForm === undefined ? [] : [{ path: memberPath, descriptor: member, printForm }];
   });
 }
 

@@ -6,6 +6,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import {
   PG_DATE_STRING_CODEC_ID,
+  PG_TIME_TEMPORAL_CODEC_ID,
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
   PG_TIMETZ_CODEC_ID,
 } from '../../src/core/codec-ids';
@@ -294,5 +295,55 @@ describe('generated values', () => {
         context,
       ),
     ).toBe('value clock.stamped(6, stampedOn: insert)');
+  });
+
+  describe('generator params', () => {
+    const time3 = {
+      dataType: 'pg/time',
+      codecId: PG_TIME_TEMPORAL_CODEC_ID,
+      nullable: false,
+      typeParams: { precision: 3 },
+    };
+    const plainTimeNow = postgresNowGeneratorIds[PG_TIME_TEMPORAL_CODEC_ID];
+
+    it('prints a preset whose generators take the params it derives from the column', () => {
+      expect(
+        withGenerator(time3, {
+          onCreate: { kind: 'generator', id: plainTimeNow, params: { precision: 3 } },
+          onUpdate: { kind: 'generator', id: plainTimeNow, params: { precision: 3 } },
+        }),
+      ).toBe('value temporal.time(3, onCreate: now, onUpdate: now)');
+    });
+
+    it('prints a preset that derives no params for a generator without params', () => {
+      expect(
+        withGenerator(
+          { dataType: 'pg/time', codecId: PG_TIME_TEMPORAL_CODEC_ID, nullable: false },
+          { onCreate: { kind: 'generator', id: plainTimeNow } },
+        ),
+      ).toBe('value temporal.time(onCreate: now)');
+    });
+
+    it('refuses a generator whose params differ from the params the preset derives', () => {
+      expect(
+        refusalOf(() =>
+          withGenerator(time3, {
+            onCreate: { kind: 'generator', id: plainTimeNow, params: { precision: 3 } },
+            onUpdate: { kind: 'generator', id: plainTimeNow, params: { precision: 0 } },
+          }),
+        ),
+      ).toMatchObject({
+        code: 'CONTRACT.PRINT_UNSUPPORTED',
+        message:
+          'contract print: column "public"."Widget"."value" generates "plainTimeNow" on update with params {"precision":0}, but field preset temporal.time writes it with params {"precision":3}, so the written file would read back differently.',
+        meta: {
+          coordinate: '"public"."Widget"."value"',
+          generator: 'plainTimeNow',
+          phase: 'onUpdate',
+          params: { precision: 0 },
+          presetParams: { precision: 3 },
+        },
+      });
+    });
   });
 });

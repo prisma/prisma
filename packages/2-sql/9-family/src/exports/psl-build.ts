@@ -19,6 +19,7 @@ export type { FieldPresetArgument } from '../core/psl-build/generated-values';
 export {
   defaultFunctionCallFor,
   fieldPresetArguments,
+  fieldPresetGenerators,
 } from '../core/psl-build/generated-values';
 export {
   fewestArgumentsCall,

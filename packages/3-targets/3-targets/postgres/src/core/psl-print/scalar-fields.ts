@@ -164,6 +164,7 @@ export function buildScalarFields(input: {
       const built = buildExecutionDefault({
         executionDefault: execution,
         codecId: column.codecId,
+        typeParams: column.typeParams,
         coordinate,
         context,
       });

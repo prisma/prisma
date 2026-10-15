@@ -41,8 +41,8 @@ describe('fieldPresetPrintForm', () => {
     expect(fieldPresetPrintForm(clock('pg/date-string@1', 'dateStringNow'))).toEqual({
       codecId: 'pg/date-string@1',
       typeParams: [],
-      onCreate: { argument: 'onCreate', valuesByGenerator: now('dateStringNow') },
-      onUpdate: { argument: 'onUpdate', valuesByGenerator: now('dateStringNow') },
+      onCreate: { argument: 'onCreate', index: 0, valuesByGenerator: now('dateStringNow') },
+      onUpdate: { argument: 'onUpdate', index: 1, valuesByGenerator: now('dateStringNow') },
     });
   });
 
@@ -54,7 +54,11 @@ describe('fieldPresetPrintForm', () => {
     ).toEqual({
       codecId: 'pg/timestamptz@1',
       typeParams: ['precision', 'scale'],
-      onCreate: { argument: 'stampedOn', valuesByGenerator: new Map([['clusterNow', 'insert']]) },
+      onCreate: {
+        argument: 'stampedOn',
+        index: 2,
+        valuesByGenerator: new Map([['clusterNow', 'insert']]),
+      },
     });
   });
 
@@ -157,6 +161,7 @@ describe('assembleFieldPresetsByCodecAndGenerator', () => {
       temporal: { dateString, date },
       clock: { cluster },
     });
+    expect(presets.get('pg/date-string@1')?.get('dateStringNow')?.descriptor).toBe(dateString);
     expect(
       [...presets].map(([codecId, byGenerator]) => [
         codecId,
