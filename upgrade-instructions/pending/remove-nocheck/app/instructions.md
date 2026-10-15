@@ -74,6 +74,8 @@ prisma db sign --db "$DATABASE_URL"
 
 `db sign` checks the database against the rewritten contract and writes the new hash to its marker.
 
+The script also gives each rewritten migration a new hash, and the database's migration history keeps the old ones. After the upgrade, `prisma migration status` therefore no longer marks the migrations applied before it as applied, although it still reports the database as up to date. Nothing else is affected: `prisma db migrate` runs none of them again, `prisma db verify` passes, and migrations you plan and apply after the upgrade are marked as usual.
+
 ## `psl-nocheck-removed`
 
 Write a list whose elements may be null as `T?[]`:
