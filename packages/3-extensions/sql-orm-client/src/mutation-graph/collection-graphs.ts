@@ -23,7 +23,7 @@ import {
 } from '../query-plan-mutations';
 import { collectionSelectAst, collectionSelectWithIncludesAst } from '../query-plan-select';
 import { variantReturning } from '../query-plan-source';
-import { type AliasedTable, createTableScope } from '../table-scope';
+import type { AliasedTable } from '../table-scope';
 import { type CollectionState, emptyState } from '../types';
 import { ConcatRows } from './concat-rows';
 import { Delete } from './delete';
@@ -166,31 +166,21 @@ export function createAllVariantGraph(
     root.storage.namespaceId,
     root.storage.tableName,
   );
-  const variantTarget = createTableScope().aliasTable(variantTable.storage);
   const keyPairs = keyColumns.map(
     (column): ColumnPair => [
       projectTableColumn(contract, root, column),
-      projectTableColumn(contract, variantTarget, column),
+      projectTableColumn(contract, variantTable, column),
     ],
   );
   const baseColumns = returningProjection(contract, modelName, root, undefined);
-  const variantColumns = variantReturning(
-    contract,
-    variantTable,
-    variantTarget,
-    variantModelName,
-    keyColumns,
-  );
+  const variantColumns = variantReturning(contract, variantTable, variantModelName, keyColumns);
 
   const merges = rows.map((row) => {
     const baseInsert = insertAst(contract, root, [row.base], undefined).withReturning(baseColumns);
     const base = graph.add(new Insert(baseInsert), { payload: [] });
-    const variantInsert = insertAst(
-      contract,
-      variantTarget,
-      [row.variant],
-      undefined,
-    ).withReturning(variantColumns);
+    const variantInsert = insertAst(contract, variantTable, [row.variant], undefined).withReturning(
+      variantColumns,
+    );
     const variant = graph.add(new Insert(variantInsert), {
       payload: [new PayloadData(base, keyPairs)],
     });

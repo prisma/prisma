@@ -14,7 +14,7 @@ describe('variantReturning', () => {
       throw new Error('the fixture has an MTI variant feature');
     }
 
-    const returning = variantReturning(contract, variantTable, variantTable, 'Feature', ['id']);
+    const returning = variantReturning(contract, variantTable, 'Feature', ['id']);
 
     expect(
       returning.map((item) => ({ alias: item.alias, expr: item.expr, codec: item.codec?.codecId })),
@@ -32,22 +32,21 @@ describe('variantReturning', () => {
     ]);
   });
 
-  it('labels by the read alias of the variant table and reads the columns from the insert target', () => {
+  it('labels and reads the columns through the alias of the variant table', () => {
     const scope = createTableScope();
     scope.alias('features');
     const variantTable = scope.aliasTable({ namespaceId: 'public', tableName: 'features' });
-    const insertTarget = createTableScope().aliasTable(variantTable.storage);
 
-    const returning = variantReturning(contract, variantTable, insertTarget, 'Feature', ['id']);
+    const returning = variantReturning(contract, variantTable, 'Feature', ['id']);
 
     expect(returning.map((item) => ({ alias: item.alias, expr: item.expr }))).toEqual([
       {
         alias: 'features_2__priority',
-        expr: expect.objectContaining({ table: 'features', column: 'priority' }),
+        expr: expect.objectContaining({ table: 'features_2', column: 'priority' }),
       },
       {
         alias: 'features_2__assignee_id',
-        expr: expect.objectContaining({ table: 'features', column: 'assignee_id' }),
+        expr: expect.objectContaining({ table: 'features_2', column: 'assignee_id' }),
       },
     ]);
   });
