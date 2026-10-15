@@ -59,9 +59,13 @@ withTempDir(({ createTempDir }) => {
           contractMode: 'psl',
         });
 
+        const contractPath = join(ctx.testDir, 'contract.prisma');
+        const before = readFileSync(contractPath, 'utf-8');
+
         const infer = await runContractInfer(ctx);
         const output = stripAnsi(`${infer.stdout}\n${infer.stderr}`);
         expect(infer.exitCode).not.toBe(0);
+        expect(readFileSync(contractPath, 'utf-8'), 'a failed infer writes no schema').toBe(before);
         expect(output).toContain('CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED');
         expect(output).toContain('public.item.embedding: vector(3)');
       },
