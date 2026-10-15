@@ -145,7 +145,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "bigLong": {
@@ -163,7 +163,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               }
             },
@@ -184,7 +184,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "184b66567883e2099c10dd01f98199893f5326c83a4a59ad474bb9d90d8ab757",
+    "storageHash": "61312b4f3168ea8949d19a23b7b463ad997356f404290931c55de1c999cb2843",
     "namespaces": {
       "public": {
         "id": "public",
@@ -298,9 +298,8 @@
                   "codecId": "pg/numeric@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 65,
                     "scale": 30
@@ -325,9 +324,8 @@
                   "codecId": "pg/int8@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "literal",
                     "value": ["9007199254740993", "-1"]

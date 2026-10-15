@@ -117,7 +117,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "boolean": {
@@ -143,7 +143,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "int": {
@@ -169,7 +169,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "bigInt": {
@@ -195,7 +195,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "float": {
@@ -221,7 +221,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "decimal": {
@@ -259,7 +259,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "dateTime": {
@@ -294,7 +294,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "json": {
@@ -320,7 +320,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "bytes": {
@@ -346,7 +346,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               }
             },
@@ -367,7 +367,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "53afd58a57587efd4161e5258222ae97de61193f5f5e40e66b4974344b2dba1e",
+    "storageHash": "936fa7188bbe44706b929d6392eb9f0b9c0329f0b3cd9a513c78ac9126b64424",
     "namespaces": {
       "public": {
         "id": "public",
@@ -393,9 +393,8 @@
                   "codecId": "pg/text@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 },
                 "boolean": {
                   "dataType": "pg/bool",
@@ -414,9 +413,8 @@
                   "codecId": "pg/bool@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 },
                 "int": {
                   "dataType": "pg/int4",
@@ -435,9 +433,8 @@
                   "codecId": "pg/int4@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 },
                 "bigInt": {
                   "dataType": "pg/int8",
@@ -456,9 +453,8 @@
                   "codecId": "pg/int8@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 },
                 "float": {
                   "dataType": "pg/float8",
@@ -477,9 +473,8 @@
                   "codecId": "pg/float8@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 },
                 "decimal": {
                   "dataType": "pg/numeric",
@@ -506,9 +501,8 @@
                   "codecId": "pg/numeric@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 65,
                     "scale": 30
@@ -537,9 +531,8 @@
                   "codecId": "pg/timestamp-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 3
                   }
@@ -561,9 +554,8 @@
                   "codecId": "pg/jsonb@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 },
                 "bytes": {
                   "dataType": "pg/bytea",
@@ -582,9 +574,8 @@
                   "codecId": "pg/bytea@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 }
               },
               "uniques": [],
