@@ -10,10 +10,10 @@ $ prisma-next contract infer
   contract infer: Prisma 8 cannot write these column types with the configured stack:
     public.place.location: geometry(Geometry,4326)
     public.doc.meta: hstore
-  Add the extension pack that declares the type to extensionPacks in prisma-next.config.ts.
+  If a type comes from a database extension, add its pack to `extensions` in prisma.config.ts.
 ```
 
-With `postgis` in `extensionPacks`, the same database infers `location postgis.Geometry(4326)`. `contract infer` never prints `Unsupported(...)`, and prints no schema when any column is unclaimed. `contract emit` on a Prisma 8 schema that says `Unsupported("hstore")` gives a message that names the type and says what to do, instead of the generic unknown-type message.
+With `postgis` in the config's `extensions`, the same database infers `location postgis.Geometry(4326)`. `contract infer` never prints `Unsupported(...)`, and prints no schema when any column is unclaimed. `contract emit` on a Prisma 8 schema that says `Unsupported("hstore")` gives a message that names the type and says what to do, instead of the generic unknown-type message.
 
 ## What the code does today
 
