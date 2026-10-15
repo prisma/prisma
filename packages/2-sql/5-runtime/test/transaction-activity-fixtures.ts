@@ -175,16 +175,17 @@ export function createSetup(options: SetupOptions = {}) {
     adapter: createTestAdapterDescriptor(adapter),
     extensions: [],
   });
+  const driver = createDriver(events, options.failures ?? {});
   const runtime = createRuntime({
     stackInstance: instantiateExecutionStack(stack),
     context: createTestContext(testContract, adapter),
-    driver: createDriver(events, options.failures ?? {}),
+    driver,
     verifyMarker: readMarker === undefined ? false : 'onFirstUse',
     middleware: [middleware, ...(options.middleware ?? [])],
     ...(options.log ? { log: options.log } : {}),
     ...(options.mode ? { mode: options.mode } : {}),
   });
-  return { runtime, events, middleware };
+  return { runtime, events, middleware, driver };
 }
 
 export type Setup = ReturnType<typeof createSetup>;

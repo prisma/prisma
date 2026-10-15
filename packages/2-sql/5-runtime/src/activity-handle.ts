@@ -12,7 +12,7 @@ import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import { invariant } from '@internal/utils/assertions';
 import type { RuntimeQueryable, RuntimeTransaction } from './sql-runtime';
 
-/** What starts client activities and hashes plans. The runtime's queryables carry one through `activitySource`; an activity handle has the members itself. */
+/** What starts client activities and hashes plans. The runtime's queryables and activity handles carry one through `activitySource`. */
 export interface ActivitySource {
   /**
    * Starts an activity for an act the runtime would not otherwise see, such as an ORM call. Statements and activities started through the handle are its children. An open handle on the runtime keeps the runtime busy, so `close()` waits for its `end()`; a handle never ended keeps it busy, as a connection never released does.
@@ -24,10 +24,11 @@ export interface ActivitySource {
   planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string>;
 }
 
-/** An open client activity, to send its statements through and to end. */
+/** An open client activity, to send its statements through and to end. Its `startActivity` and `planContentHash` members are those of its `activitySource` member. */
 export interface ActivityHandle<K extends ClientActivityKind>
   extends RuntimeQueryable,
-    ActivitySource {
+    ActivitySource,
+    ActivitySourceTarget {
   readonly activity: ClientActivity<K>;
   /** Set when an `intercept.onActivity` handler supplied the result; the client then returns it without running anything. */
   readonly intercepted: { readonly result: ClientActivityResult<K> } | undefined;
@@ -42,7 +43,7 @@ export interface ActivityExecuteOptions extends RuntimeExecuteOptions {
   readonly activityParent?: ActivityParent | undefined;
 }
 
-/** The symbol-keyed member through which a runtime, connection, transaction or `withTransaction` context starts activities; user-facing types do not show it. */
+/** The symbol-keyed member through which a runtime, connection, transaction, `withTransaction` context or activity handle starts activities; user-facing types do not show it. */
 export const activitySource = Symbol('activitySource');
 
 export interface ActivitySourceTarget {
@@ -55,14 +56,9 @@ function hasActivitySourceMember(
   return activitySource in target;
 }
 
-function isActivitySource(target: RuntimeScope): target is RuntimeScope & ActivitySource {
-  return 'startActivity' in target && 'planContentHash' in target;
-}
-
-/** The activity source of a queryable, from its `activitySource` member or, for an activity handle, the handle itself; `undefined` for a queryable that cannot start activities, such as a test stub. */
+/** The `activitySource` member of a queryable; `undefined` for a queryable that cannot start activities, such as a test stub. */
 export function findActivitySource(target: RuntimeScope): ActivitySource | undefined {
-  if (hasActivitySourceMember(target)) return target[activitySource];
-  return isActivitySource(target) ? target : undefined;
+  return hasActivitySourceMember(target) ? target[activitySource] : undefined;
 }
 
 function activitySourceOf(target: RuntimeScope): ActivitySource {
@@ -79,7 +75,7 @@ export function delegatingActivitySource(target: () => RuntimeScope): ActivitySo
   };
 }
 
-/** Starts an activity on a queryable through its `activitySource` member, or on an activity handle. */
+/** Starts an activity on a queryable through its `activitySource` member. */
 export function startActivityOn<K extends ClientActivityKind>(
   target: RuntimeScope,
   activity: StartActivity<K>,

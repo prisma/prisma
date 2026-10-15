@@ -3,7 +3,7 @@ import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { planFromAst } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
-import { findActivitySource, startActivityOn } from '../src/activity-handle';
+import { activitySource, findActivitySource, startActivityOn } from '../src/activity-handle';
 import { withTransaction } from '../src/sql-runtime';
 import { testCall } from './client-activity-kinds';
 import {
@@ -273,6 +273,28 @@ describe('startActivity', () => {
       true,
       undefined,
     ]);
+  });
+
+  it('finds the activity source of a handle through its activitySource member', async () => {
+    const { runtime } = createSetup();
+    const call = await startActivityOn(runtime, testCall);
+
+    expect(findActivitySource(call)).toBe(call[activitySource]);
+    await call.end({ outcome: 'succeeded' });
+  });
+
+  it('does not treat plain startActivity and planContentHash members as an activity source', async () => {
+    const { runtime } = createSetup();
+    const call = await startActivityOn(runtime, testCall);
+    const lookalike = {
+      query: call.query.bind(call),
+      execute: call.execute.bind(call),
+      startActivity: call.startActivity.bind(call),
+      planContentHash: call.planContentHash.bind(call),
+    };
+
+    expect(findActivitySource(lookalike)).toBeUndefined();
+    await call.end({ outcome: 'succeeded' });
   });
 
   describe('close', () => {

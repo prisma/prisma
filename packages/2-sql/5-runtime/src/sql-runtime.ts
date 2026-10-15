@@ -595,9 +595,22 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       activityParent: run,
     });
     const beginTransaction = route.transaction;
+    const source: ActivitySource = {
+      async startActivity<Nested extends ClientActivityKind>(
+        activity: StartActivity<Nested>,
+      ): Promise<ActivityHandle<Nested>> {
+        run.assertAcceptsChildren();
+        return self.startActivityOnRoute(route, activity, run);
+      },
+      planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> {
+        return self.planContentHashFor(plan, route.scope, run);
+      },
+    };
     const handle: ActivityHandle<K> &
       PreparedStatementQueryTarget &
       PreparedStatementExecuteTarget = {
+      ...source,
+      [activitySource]: source,
       activity: run.activity,
       get intercepted() {
         return run.intercepted;
@@ -645,15 +658,6 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
           params,
           beneath(options),
         );
-      },
-      async startActivity<Nested extends ClientActivityKind>(
-        activity: StartActivity<Nested>,
-      ): Promise<ActivityHandle<Nested>> {
-        run.assertAcceptsChildren();
-        return self.startActivityOnRoute(route, activity, run);
-      },
-      planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> {
-        return self.planContentHashFor(plan, route.scope, run);
       },
       async end(end): Promise<void> {
         try {
@@ -1648,6 +1652,67 @@ export async function withTransaction<R>(
     }
   }
 
+  function guardedSource(target: RuntimeScope): ActivitySource {
+    return {
+      async startActivity<K extends ClientActivityKind>(
+        activity: StartActivity<K>,
+      ): Promise<ActivityHandle<K>> {
+        if (invalidated) throw transactionClosedError();
+        return guardedHandle(await startActivityOn(target, activity));
+      },
+      planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> {
+        return planContentHashOn(target, plan);
+      },
+    };
+  }
+
+  function guardedHandle<K extends ClientActivityKind>(
+    handle: ActivityHandle<K>,
+  ): ActivityHandle<K> & PreparedStatementQueryTarget & PreparedStatementExecuteTarget {
+    const source = guardedSource(handle);
+    return {
+      ...source,
+      [activitySource]: source,
+      activity: handle.activity,
+      get intercepted() {
+        return handle.intercepted;
+      },
+      query<Row>(
+        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        if (invalidated) throw transactionClosedError();
+        return new AsyncIterableResult(guardedStream(handle.query<Row>(plan, options)));
+      },
+      async execute(
+        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        if (invalidated) throw transactionClosedError();
+        return handle.execute(plan, options);
+      },
+      [preparedStatementQuery]<Params, Row>(
+        ps: PreparedStatement<Params, Row>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        if (invalidated) throw transactionClosedError();
+        return new AsyncIterableResult(
+          guardedStream(runPreparedQuery(handle, ps, params, options)),
+        );
+      },
+      [preparedStatementExecute]<Params>(
+        ps: PreparedExecution<Params>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        if (invalidated) throw transactionClosedError();
+        return runPreparedExecute(handle, ps, params, options);
+      },
+      end: (end) => handle.end(end),
+    };
+  }
+
   const txContext: TransactionContext &
     PreparedStatementQueryTarget &
     PreparedStatementExecuteTarget &
@@ -1655,17 +1720,7 @@ export async function withTransaction<R>(
     get invalidated() {
       return invalidated;
     },
-    [activitySource]: {
-      async startActivity<K extends ClientActivityKind>(
-        activity: StartActivity<K>,
-      ): Promise<ActivityHandle<K>> {
-        if (invalidated) throw transactionClosedError();
-        return startActivityOn(transaction, activity);
-      },
-      planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> {
-        return planContentHashOn(transaction, plan);
-      },
-    },
+    [activitySource]: guardedSource(transaction),
     query<Row>(
       plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
       options?: RuntimeExecuteOptions,
