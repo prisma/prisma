@@ -1,6 +1,5 @@
 export { numeralText } from '../numeral-text';
 export type {
-  ReportedSqlType,
   ResolvedSqlType,
   SqlDataType,
   SqlDataTypeCollision,

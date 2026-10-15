@@ -1,12 +1,12 @@
 import type { RuntimeExecuteOptions } from '@internal/framework-components/runtime';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import { invariant } from '@internal/utils/assertions';
-import type { RuntimeQueryable } from '../sql-runtime';
 import type { PreparedExecution } from './types';
 
 export const preparedStatementExecute = Symbol('preparedStatementExecute');
 
-export interface PreparedStatementExecuteTarget extends RuntimeQueryable {
+export interface PreparedStatementExecuteTarget extends RuntimeScope {
   [preparedStatementExecute]<Params>(
     statement: PreparedExecution<Params>,
     params: Params,
@@ -15,13 +15,13 @@ export interface PreparedStatementExecuteTarget extends RuntimeQueryable {
 }
 
 function isPreparedStatementExecuteTarget(
-  target: RuntimeQueryable,
+  target: RuntimeScope,
 ): target is PreparedStatementExecuteTarget {
   return preparedStatementExecute in target;
 }
 
 export function runPreparedExecute<Params>(
-  target: RuntimeQueryable,
+  target: RuntimeScope,
   statement: PreparedExecution<Params>,
   params: Params,
   options?: RuntimeExecuteOptions,

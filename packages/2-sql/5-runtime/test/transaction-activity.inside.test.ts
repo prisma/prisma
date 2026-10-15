@@ -1,8 +1,9 @@
 import { RawQueryAst } from '@internal/sql-relational-core/ast';
 import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import { planFromAst } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import { describe, expect, it, vi } from 'vitest';
-import type { RuntimeConnection, RuntimeQueryable } from '../src/sql-runtime';
+import type { RuntimeConnection } from '../src/sql-runtime';
 import { withTransaction } from '../src/sql-runtime';
 import {
   afterHookNames,
@@ -341,7 +342,7 @@ describe('a transaction activity driven by hand', () => {
 interface FailedQueryCase {
   readonly title: string;
   readonly failures: DriverFailures;
-  readonly run: (tx: RuntimeQueryable) => Promise<void>;
+  readonly run: (tx: RuntimeScope) => Promise<void>;
 }
 
 const failedQueryCases: ReadonlyArray<FailedQueryCase> = [

@@ -59,6 +59,34 @@ describe('cross-shell tarball chain (target-postgres -> family-sql -> framework,
     expect(runInScratch(scratch, script)).toContain('prepared-query bridge ok');
   });
 
+  it('exports the activity-starting functions from the public runtime entry', () => {
+    const script = `
+      import { strict as assert } from 'node:assert';
+      const runtime = await import('@prisma/orm-family-sql/runtime');
+      const preparedQuery = await import('@prisma/orm-family-sql/runtime/internal/prepared-query');
+      assert.deepEqual(
+        {
+          startActivityOn: typeof runtime.startActivityOn,
+          planContentHashOn: typeof runtime.planContentHashOn,
+          findActivitySource: typeof runtime.findActivitySource,
+          delegatingActivitySource: typeof runtime.delegatingActivitySource,
+          activitySource: typeof runtime.activitySource,
+          internalActivitySource: typeof preparedQuery.activitySource,
+        },
+        {
+          startActivityOn: 'function',
+          planContentHashOn: 'function',
+          findActivitySource: 'function',
+          delegatingActivitySource: 'function',
+          activitySource: 'symbol',
+          internalActivitySource: 'undefined',
+        },
+      );
+      console.log('activity exports ok');
+    `;
+    expect(runInScratch(scratch, script)).toContain('activity exports ok');
+  });
+
   it('keeps framework modules identical when reached through family-sql', () => {
     const script = `
       import { strict as assert } from 'node:assert';

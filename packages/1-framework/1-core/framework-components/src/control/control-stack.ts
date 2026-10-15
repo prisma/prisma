@@ -90,6 +90,7 @@ export interface ControlStack<
 
   readonly codecTypeImports: ReadonlyArray<TypesImportSpec>;
   readonly queryOperationTypeImports: ReadonlyArray<TypesImportSpec>;
+  readonly parameterizedOutputTypeImports: ReadonlyArray<TypesImportSpec>;
   readonly extensionIds: ReadonlyArray<string>;
   readonly codecLookup: CodecRegistry;
   /** Every codec descriptor the composed components contribute — the set an emitted type surface may resolve against, which is not always the set a target's own registry holds. */
@@ -163,6 +164,15 @@ export function extractCodecTypeImports(
   }
 
   return imports;
+}
+
+export function extractParameterizedOutputTypeImports(
+  descriptors: ReadonlyArray<Pick<ComponentMetadata, 'types'>>,
+): ReadonlyArray<TypesImportSpec> {
+  return descriptors.flatMap((descriptor) => {
+    const typeFunction = descriptor.types?.codecTypes?.parameterizedOutputTypes;
+    return typeFunction === undefined ? [] : [typeFunction];
+  });
 }
 
 export function extractQueryOperationTypeImports(
@@ -731,7 +741,7 @@ export function extractCodecLookup(
   for (const descriptor of descriptors) {
     const codecTypes = descriptor.types?.codecTypes;
     const descriptorId = descriptor.id;
-    // Descriptor-side metadata is the single source of truth for `renderOutputType`. A component contributes its codecs by listing `codecDescriptors` on `types.codecTypes`; each codecId has exactly one contributor across the stack.
+    // Descriptor-side metadata is the single source of truth for `renderOutputType` and `renderValueLiteral`. A component contributes its codecs by listing `codecDescriptors` on `types.codecTypes`; each codecId has exactly one contributor across the stack.
     for (const codecDescriptor of codecTypes?.codecDescriptors ?? []) {
       assertUniqueCodecOwner({
         codecId: codecDescriptor.codecId,
@@ -943,6 +953,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
 
     codecTypeImports: extractCodecTypeImports(allDescriptors),
     queryOperationTypeImports: extractQueryOperationTypeImports(allDescriptors),
+    parameterizedOutputTypeImports: extractParameterizedOutputTypeImports(allDescriptors),
     extensionIds: extractComponentIds(family, target, adapter, orderedExtensions),
     codecLookup,
     codecDescriptors,

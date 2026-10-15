@@ -2,6 +2,7 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';
+import { identityCodecLookup } from './value-set-codec-lookups';
 
 const idColumn = { id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false } };
 const userTable = { columns: idColumn, uniques: [], indexes: [], foreignKeys: [] };
@@ -67,35 +68,58 @@ describe('getStorageTypeExports', () => {
     expect(sqlEmission.getStorageTypeExports(createContract({ storage: {} }))).toBeUndefined();
   });
 
-  it('orders the column type maps by namespace name', () => {
+  const statusColumn = {
+    dataType: 'pg/text',
+    codecId: 'pg/text@1',
+    nullable: false,
+    valueSet: { namespaceId: 'alpha', entityKind: 'valueSet', entityName: 'Status' },
+  };
+  const statusTable = {
+    columns: { status: statusColumn },
+    uniques: [],
+    indexes: [],
+    foreignKeys: [],
+  };
+  const statusValueSet = { Status: { kind: 'valueSet', values: ['on', 'off'] } };
+
+  it('orders the column type overrides by namespace and table name', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({
         storage: {
           namespaces: {
-            zeta: { id: 'zeta', entries: { table: { audit: userTable } } },
-            alpha: { id: 'alpha', entries: { table: { user: userTable } } },
+            zeta: { id: 'zeta', entries: { table: { audit: statusTable } } },
+            alpha: {
+              id: 'alpha',
+              entries: {
+                table: { user: statusTable, account: statusTable },
+                valueSet: statusValueSet,
+              },
+            },
           },
         },
       }),
+      identityCodecLookup,
     );
 
     expect(exports?.indexOf('alpha')).toBeLessThan(exports?.indexOf('zeta') ?? -1);
+    expect(exports?.indexOf('account')).toBeLessThan(exports?.indexOf('user') ?? -1);
   });
 
-  it('emits both column type maps as Record<string, never> for an empty namespace map', () => {
+  it('types both column maps by the column type generic over the contract storage', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({ storage: { namespaces: {} } }),
     );
 
     expect(exports).toBe(
       [
-        'export type StorageColumnTypes = Record<string, never>;',
-        'export type StorageColumnInputTypes = Record<string, never>;',
+        'type ColumnTypeOverrides = {  };',
+        'export type StorageColumnTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "output">;',
+        'export type StorageColumnInputTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "input">;',
       ].join('\n'),
     );
   });
 
-  it('falls back to the codec type when a column names a value set the storage does not carry', () => {
+  it('gives no type override to a column that names a value set the storage does not carry', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({
         storage: {
@@ -127,13 +151,9 @@ describe('getStorageTypeExports', () => {
           },
         },
       }),
+      identityCodecLookup,
     );
 
-    expect(exports).toBe(
-      [
-        'export type StorageColumnTypes = { readonly app: { readonly user: { readonly role: CodecTypes["pg/text@1"]["output"] } } };',
-        'export type StorageColumnInputTypes = { readonly app: { readonly user: { readonly role: CodecTypes["pg/text@1"]["input"] } } };',
-      ].join('\n'),
-    );
+    expect(exports).toContain('type ColumnTypeOverrides = {  };');
   });
 });

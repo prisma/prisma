@@ -4,6 +4,12 @@
  * the dialect maps imports them.
  */
 
+export {
+  type ColumnTypeOf,
+  type IntrospectedTable,
+  inferColumnTypes,
+  type PslTypeCall,
+} from '../core/psl-build/column-types';
 export type {
   DefaultMappingOptions,
   DefaultMappingResult,
@@ -14,5 +20,11 @@ export {
   defaultFunctionCallFor,
   fieldPresetArguments,
 } from '../core/psl-build/generated-values';
+export {
+  fewestArgumentsCall,
+  type InferredTypeConstructor,
+  type InferredTypeConstructors,
+  inferredTypeConstructors,
+  pslTypeArgumentText,
+} from '../core/psl-build/inferred-type-constructors';
 export { toEnumMemberName } from '../core/psl-build/psl-names';
-export type { PslTypeMap, PslTypeReference, PslTypeResolution } from '../core/psl-build/type-map';

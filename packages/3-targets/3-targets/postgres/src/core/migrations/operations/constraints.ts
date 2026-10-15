@@ -1,9 +1,12 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
-import { opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
+import { checkExpression } from '@internal/sql-relational-core/contract-free';
+import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { constraintExistsAst } from '../../../contract-free/checks';
+import * as contractFreeDdl from '../../../contract-free/ddl';
 import { quoteIdentifier } from '../../sql-utils';
+import { boundSchema } from '../bound-schema';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type ForeignKeySpec, type Op, step, targetDetails } from './shared';
 
@@ -138,12 +141,18 @@ export async function addCheckConstraint(
   expression: string,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
-  const qualified = qualifyTableName(schemaName, tableName);
   const { absent, present } = await constraintCheckSteps(lowerer, {
     constraintName,
     schema: schemaName,
     table: tableName,
   });
+  const addCheck = await lowerer.lowerToExecuteRequest(
+    contractFreeDdl.alterTable({
+      ...ifDefined('schema', boundSchema(schemaName)),
+      table: tableName,
+      actions: [contractFreeDdl.addConstraintAction(checkExpression(constraintName, expression))],
+    }),
+  );
   return {
     id: `checkConstraint.${tableName}.${constraintName}`,
     label: `Add check constraint "${constraintName}" on "${tableName}"`,
@@ -152,12 +161,7 @@ export async function addCheckConstraint(
     precheck: [
       step(`ensure constraint "${constraintName}" does not exist`, absent.sql, absent.params),
     ],
-    execute: [
-      step(
-        `add check constraint "${constraintName}"`,
-        `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} CHECK (${renderOpaqueSql(opaqueSql(expression))})`,
-      ),
-    ],
+    execute: [step(`add check constraint "${constraintName}"`, addCheck.sql)],
     postcheck: [step(`verify constraint "${constraintName}" exists`, present.sql, present.params)],
   };
 }

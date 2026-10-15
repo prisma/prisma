@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { findAuthoringTypeConstructorCall } from '../src/shared/authoring-type-constructor-call';
+import {
+  authoringTypeConstructorArguments,
+  authoringTypeConstructors,
+  findAuthoringTypeConstructorCall,
+} from '../src/shared/authoring-type-constructor-call';
 import type { AuthoringTypeNamespace } from '../src/shared/framework-authoring';
 
 const namespace = {
@@ -118,5 +122,33 @@ describe('findAuthoringTypeConstructorCall', () => {
       path: ['First'],
       args: [],
     });
+  });
+});
+
+describe('authoringTypeConstructors', () => {
+  it('lists every constructor with its path, nested ones included', () => {
+    expect([...authoringTypeConstructors(namespace)].map(({ path }) => path)).toEqual([
+      ['Text'],
+      ['Decimal'],
+      ['vector', 'Vector'],
+      ['Ref'],
+    ]);
+  });
+});
+
+describe('authoringTypeConstructorArguments', () => {
+  it('gives the arguments that make one constructor produce the output', () => {
+    expect(
+      authoringTypeConstructorArguments(namespace.Decimal, {
+        codecId: 'test/numeric@1',
+        typeParams: { precision: 10, scale: 2 },
+      }),
+    ).toEqual([10, 2]);
+  });
+
+  it('gives nothing when the constructor cannot produce the output', () => {
+    expect(
+      authoringTypeConstructorArguments(namespace.Decimal, { codecId: 'test/text@1' }),
+    ).toBeUndefined();
   });
 });

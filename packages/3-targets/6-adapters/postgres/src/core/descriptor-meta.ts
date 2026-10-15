@@ -1,16 +1,5 @@
-import { postgresAggregateDescriptors } from '@internal/target-postgres/aggregates';
 import { postgresCodecRegistry } from '@internal/target-postgres/codecs';
-import { postgresAdapterCapabilities } from './capabilities';
-
-// ============================================================================ Helper functions for reducing boilerplate ============================================================================
-
-/** Creates a type import spec for codec types */
-const codecTypeImport = (named: string) =>
-  ({
-    package: '@internal/target-postgres/codec-types',
-    named,
-    alias: named,
-  }) as const;
+import { postgresAdapterContractContributions } from './contract-contributions';
 
 // ============================================================================ Descriptor metadata ============================================================================
 
@@ -20,9 +9,9 @@ export const postgresAdapterDescriptorMeta = {
   targetId: 'postgres',
   id: 'postgres',
   version: '0.0.1',
-  capabilities: postgresAdapterCapabilities,
+  capabilities: postgresAdapterContractContributions.capabilities,
   types: {
-    aggregateDescriptors: postgresAggregateDescriptors,
+    aggregateDescriptors: postgresAdapterContractContributions.types.aggregateDescriptors,
     codecTypes: {
       codecDescriptors: Array.from(postgresCodecRegistry.values()),
       import: {
@@ -36,20 +25,12 @@ export const postgresAdapterDescriptorMeta = {
           named: 'JsonValue',
           alias: 'JsonValue',
         },
-        codecTypeImport('Char'),
-        codecTypeImport('Varchar'),
-        codecTypeImport('Numeric'),
-        codecTypeImport('Bit'),
-        codecTypeImport('VarBit'),
-        codecTypeImport('Timestamp'),
-        codecTypeImport('Timestamptz'),
-        codecTypeImport('Time'),
-        codecTypeImport('Timetz'),
-        codecTypeImport('Interval'),
-        codecTypeImport('TimestampString'),
-        codecTypeImport('TimestamptzString'),
-        codecTypeImport('TimeString'),
       ],
+      parameterizedOutputTypes: {
+        package: '@internal/target-postgres/codec-types',
+        named: 'ParameterizedOutputTypesForTypeParams',
+        alias: 'PgParameterizedOutputTypes',
+      },
     },
   },
 } as const;

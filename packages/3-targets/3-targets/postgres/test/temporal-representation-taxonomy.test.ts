@@ -33,7 +33,6 @@ interface Representation {
   readonly descriptor: {
     readonly codecId: string;
     readonly traits: readonly string[];
-    readonly renderOutputType?: (params: never) => string | undefined;
     readonly factory: (params: never) => (ctx: { name: string }) => { id: string };
     readonly dataType: string;
     readonly projectJson: (
@@ -42,7 +41,6 @@ interface Representation {
     ) => ProjectionExpr;
   };
   readonly column: (...args: never[]) => ColumnSpecShape;
-  readonly rendersAtPrecisionSix: string | undefined;
 }
 
 interface TaxonomyRow {
@@ -63,13 +61,11 @@ const TAXONOMY: readonly TaxonomyRow[] = [
       codecId: 'pg/date-temporal@1',
       descriptor: pgDateTemporalDescriptor,
       column: pgDateTemporalColumn,
-      rendersAtPrecisionSix: undefined,
     },
     string: {
       codecId: 'pg/date-string@1',
       descriptor: pgDateStringDescriptor,
       column: pgDateStringColumn,
-      rendersAtPrecisionSix: undefined,
     },
   },
   {
@@ -80,13 +76,11 @@ const TAXONOMY: readonly TaxonomyRow[] = [
       codecId: 'pg/timestamp-temporal@1',
       descriptor: pgTimestampTemporalDescriptor,
       column: pgTimestampTemporalColumn,
-      rendersAtPrecisionSix: undefined,
     },
     string: {
       codecId: 'pg/timestamp-string@1',
       descriptor: pgTimestampStringDescriptor,
       column: pgTimestampStringColumn,
-      rendersAtPrecisionSix: 'TimestampString<6>',
     },
   },
   {
@@ -97,19 +91,16 @@ const TAXONOMY: readonly TaxonomyRow[] = [
       codecId: 'pg/timestamptz-temporal@1',
       descriptor: pgTimestamptzTemporalDescriptor,
       column: pgTimestamptzTemporalColumn,
-      rendersAtPrecisionSix: undefined,
     },
     string: {
       codecId: 'pg/timestamptz-string@1',
       descriptor: pgTimestamptzStringDescriptor,
       column: pgTimestamptzStringColumn,
-      rendersAtPrecisionSix: 'TimestamptzString<6>',
     },
     date: {
       codecId: 'pg/timestamptz-date@1',
       descriptor: pgTimestamptzDateDescriptor,
       column: pgTimestamptzDateColumn,
-      rendersAtPrecisionSix: 'Date',
     },
   },
   {
@@ -120,13 +111,11 @@ const TAXONOMY: readonly TaxonomyRow[] = [
       codecId: 'pg/time-temporal@1',
       descriptor: pgTimeTemporalDescriptor,
       column: pgTimeTemporalColumn,
-      rendersAtPrecisionSix: undefined,
     },
     string: {
       codecId: 'pg/time-string@1',
       descriptor: pgTimeStringDescriptor,
       column: pgTimeStringColumn,
-      rendersAtPrecisionSix: 'TimeString<6>',
     },
   },
 ];
@@ -161,11 +150,6 @@ describe('the nine representation-explicit temporal codecs', () => {
 
     it('carries equality and ordering', () => {
       expect(rep.descriptor.traits).toEqual(['equality', 'order']);
-    });
-
-    it('renders the read type the emitter splices, or none', () => {
-      const render = rep.descriptor.renderOutputType;
-      expect(render?.({ precision: 6 } as never)).toBe(rep.rendersAtPrecisionSix);
     });
 
     it('builds a codec instance carrying the same id', () => {

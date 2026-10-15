@@ -29,7 +29,7 @@ import { Client } from 'pg';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { getTestContract } from './helpers';
 
-type Row = { name: string; posts: { title: unknown }[] };
+type Row = { name: string; posts: { title: string }[] };
 interface Environment {
   runtime: Runtime;
   all(): Preparable<Record<string, unknown>, AsyncIterableResult<Row>>;

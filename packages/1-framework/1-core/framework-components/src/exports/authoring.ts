@@ -2,7 +2,11 @@ export type {
   AuthoringTypeConstructorCall,
   AuthoringTypeConstructorOutput,
 } from '../shared/authoring-type-constructor-call';
-export { findAuthoringTypeConstructorCall } from '../shared/authoring-type-constructor-call';
+export {
+  authoringTypeConstructorArguments,
+  authoringTypeConstructors,
+  findAuthoringTypeConstructorCall,
+} from '../shared/authoring-type-constructor-call';
 export {
   type EnumBlockDiagnostic,
   type EnumBlockMember,

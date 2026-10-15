@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { prisma7PostgresTypeMap } from '../src/core/prisma7-type-map';
-import { INFERRED_PSL_TYPE_NAMES } from '../src/core/psl-build/postgres-type-map';
 import { postgresPslTypeConstructors } from '../src/core/type-constructors';
 
 const TEMPORAL_CODEC_IDS = [
@@ -11,7 +10,9 @@ const TEMPORAL_CODEC_IDS = [
 ];
 
 const constructorNames = [
-  ...[...INFERRED_PSL_TYPE_NAMES].map((name) => ({ source: 'contract infer', name })),
+  ...Object.entries(postgresPslTypeConstructors)
+    .filter(([, descriptor]) => 'inferred' in descriptor)
+    .map(([name]) => ({ source: 'contract infer', name })),
   ...[
     ...Object.values(prisma7PostgresTypeMap.scalars),
     ...Object.values(prisma7PostgresTypeMap.nativeTypes),

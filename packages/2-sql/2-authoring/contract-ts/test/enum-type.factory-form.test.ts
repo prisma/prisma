@@ -1,3 +1,4 @@
+import type { NamespacedEnums } from '@internal/contract/enum-accessor';
 import type { Contract } from '@internal/contract/types';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type {
@@ -115,30 +116,53 @@ describe('factory-form enums narrow field writes to the value union', () => {
   });
 });
 
-describe('factory-form db.enums matches the definition form', () => {
-  type FactoryAccessors = typeof factoryContract extends { enumAccessors: infer A } ? A : never;
-  type DefinitionAccessors = typeof definitionContract extends { enumAccessors: infer A }
-    ? A
-    : never;
+describe('a defineContract contract carries its enums as an emitted contract does', () => {
+  type PublicDomain = (typeof factoryContract)['domain']['namespaces']['public'];
+  type PublicStorage = (typeof factoryContract)['storage']['namespaces']['public'];
 
-  it('exposes the same enumAccessors shape as the definition form', () => {
+  it('types each domain enum member as it is stored', () => {
+    expectTypeOf<PublicDomain['enum']['Priority']['members']>().toEqualTypeOf<
+      readonly [
+        { readonly name: 'Low'; readonly value: 1 },
+        { readonly name: 'High'; readonly value: 10 },
+      ]
+    >();
+  });
+
+  it('types each member as the application reads it in enumMemberTypes', () => {
+    expectTypeOf<NonNullable<PublicDomain['enumMemberTypes']>['Role']>().toEqualTypeOf<
+      readonly [
+        { readonly name: 'User'; readonly value: 'user' },
+        { readonly name: 'Admin'; readonly value: 'admin' },
+      ]
+    >();
+  });
+
+  it('types the storage value set of each enum', () => {
+    expectTypeOf<PublicStorage['entries']['valueSet']['Role']>().toEqualTypeOf<{
+      readonly kind: 'valueSet';
+      readonly values: readonly ['user', 'admin'];
+    }>();
+  });
+});
+
+describe('factory-form db.enums matches the definition form', () => {
+  type FactoryAccessors = NamespacedEnums<typeof factoryContract>['public'];
+  type DefinitionAccessors = NamespacedEnums<typeof definitionContract>['public'];
+
+  it('exposes the same enum accessors as the definition form', () => {
     expectTypeOf<FactoryAccessors>().toEqualTypeOf<DefinitionAccessors>();
   });
 
   it('keeps the literal declaration-ordered value tuple', () => {
-    type Values = FactoryAccessors extends { Priority: { values: infer V } } ? V : never;
-    expectTypeOf<Values>().toEqualTypeOf<readonly [1, 10]>();
+    expectTypeOf<FactoryAccessors['Priority']['values']>().toEqualTypeOf<readonly [1, 10]>();
   });
 
-  it('int-enum accessors accept the int value union', () => {
-    type PriorityAccessor = FactoryAccessors extends { Priority: infer A } ? A : never;
-    expectTypeOf<PriorityAccessor>().toHaveProperty('has');
-    expectTypeOf<PriorityAccessor>().toHaveProperty('has').parameter(0).toEqualTypeOf<1 | 10>();
-    expectTypeOf<PriorityAccessor>().toHaveProperty('nameOf').parameter(0).toEqualTypeOf<1 | 10>();
-    expectTypeOf<PriorityAccessor>()
-      .toHaveProperty('ordinalOf')
-      .parameter(0)
-      .toEqualTypeOf<1 | 10>();
+  it('int-enum accessors take the int value union', () => {
+    type PriorityAccessor = FactoryAccessors['Priority'];
+    expectTypeOf<PriorityAccessor['nameOf']>().parameter(0).toEqualTypeOf<1 | 10>();
+    expectTypeOf<PriorityAccessor['ordinalOf']>().parameter(0).toEqualTypeOf<1 | 10>();
+    expectTypeOf<PriorityAccessor['has']>().guards.toEqualTypeOf<1 | 10>();
   });
 });
 
@@ -173,8 +197,8 @@ describe('factory form merges scaffold-authored and factory-authored enums', () 
     expect(domainNs?.enum?.['Priority']).toBeDefined();
   });
 
-  it('advertises both enums in the enumAccessors type', () => {
-    type MixedAccessors = typeof mixedContract extends { enumAccessors: infer A } ? A : never;
+  it('advertises both enums in the db.enums type', () => {
+    type MixedAccessors = NamespacedEnums<typeof mixedContract>['public'];
     expectTypeOf<MixedAccessors>().toHaveProperty('Role');
     expectTypeOf<MixedAccessors>().toHaveProperty('Priority');
   });

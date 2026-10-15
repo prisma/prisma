@@ -143,16 +143,6 @@ describe('codecs-class', () => {
       expect(await codec.decode('123.45', callCtx)).toBe('123.45');
       expect(await codec.decode(123 as unknown as string, callCtx)).toBe('123');
     });
-
-    it('renderOutputType returns Numeric<precision, scale>', () => {
-      expect(pgNumericDescriptor.renderOutputType?.({ precision: 10, scale: 2 })).toBe(
-        'Numeric<10, 2>',
-      );
-    });
-
-    it('renderOutputType returns Numeric<precision> when scale absent', () => {
-      expect(pgNumericDescriptor.renderOutputType?.({ precision: 10 })).toBe('Numeric<10>');
-    });
   });
 
   describe('pg/numeric@1 with no typeParams (unbounded numeric / bare Decimal)', () => {
@@ -165,10 +155,6 @@ describe('codecs-class', () => {
     it('encodes and decodes strings verbatim with no precision/scale supplied', async () => {
       expect(await codec.encode('123.45', callCtx)).toBe('123.45');
       expect(await codec.decode('123.45', callCtx)).toBe('123.45');
-    });
-
-    it('renderOutputType returns undefined when precision is absent', () => {
-      expect(pgNumericDescriptor.renderOutputType?.({})).toBeUndefined();
     });
   });
 
@@ -192,12 +178,6 @@ describe('codecs-class', () => {
       expect(await codec.encode('10101010', callCtx)).toBe('10101010');
       expect(await codec.decode('10101010', callCtx)).toBe('10101010');
     });
-    it('renderOutputType returns Bit<length>', () => {
-      expect(pgBitDescriptor.renderOutputType?.({ length: 8 })).toBe('Bit<8>');
-    });
-    it('renderOutputType returns undefined when length absent', () => {
-      expect(pgBitDescriptor.renderOutputType?.({})).toBeUndefined();
-    });
   });
 
   describe('pg/varbit@1', () => {
@@ -208,9 +188,6 @@ describe('codecs-class', () => {
     it('round-trips bit strings verbatim', async () => {
       expect(await codec.encode('1010', callCtx)).toBe('1010');
       expect(await codec.decode('1010', callCtx)).toBe('1010');
-    });
-    it('renderOutputType returns VarBit<length>', () => {
-      expect(pgVarbitDescriptor.renderOutputType?.({ length: 16 })).toBe('VarBit<16>');
     });
   });
 

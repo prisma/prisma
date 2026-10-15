@@ -393,7 +393,11 @@ describe('whereUnique on a contract written with defineContract, whose argument 
       'Customer',
       createCollectionTables(context.contract, 'public', 'Customer'),
     );
-    expect(() => collection.whereUnique({ tenantId: 1, id: customer.id })).toThrow(
+    const criterion = { tenantId: 1, id: customer.id } as unknown as {
+      tenantId: number;
+      id: number;
+    };
+    expect(() => collection.whereUnique(criterion)).toThrow(
       expect.objectContaining({
         code: 'ORM.ARGUMENT_INVALID',
         meta: { method: 'whereUnique', argument: 'criterion', model: 'Customer' },
@@ -404,7 +408,8 @@ describe('whereUnique on a contract written with defineContract, whose argument 
 
   it('throws when one field of the compound key is undefined', () => {
     const { collection, runtime } = customers();
-    expect(() => collection.whereUnique({ tenantId: 1, id: undefined })).toThrow(
+    const criterion = { tenantId: 1, id: undefined } as unknown as { tenantId: number; id: number };
+    expect(() => collection.whereUnique(criterion)).toThrow(
       expect.objectContaining({
         code: 'ORM.ARGUMENT_INVALID',
         meta: { method: 'whereUnique', argument: 'criterion', model: 'Customer' },

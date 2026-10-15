@@ -165,4 +165,31 @@ model Doc {
 `),
     ).toEqual([{ code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find type "Missing"' }]);
   });
+
+  it('names Unsupported("x") as no Prisma 8 type, at the field type', () => {
+    const schema = `model Doc {
+  id Int @id
+  meta Unsupported("hstore")
+}
+`;
+    const result = interpretSqlContract(schema, baseInput);
+    expect(result.ok).toBe(false);
+    const typeStart = schema.indexOf('Unsupported');
+    expect(
+      result.ok
+        ? []
+        : result.failure.diagnostics.map(({ code, message, span }) => ({
+            code,
+            message,
+            start: span?.start.offset,
+          })),
+    ).toEqual([
+      {
+        code: 'PSL_UNRESOLVED_REFERENCE',
+        message:
+          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor. If "hstore" comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
+        start: typeStart,
+      },
+    ]);
+  });
 });

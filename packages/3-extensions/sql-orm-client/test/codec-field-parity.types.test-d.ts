@@ -53,9 +53,7 @@ type FieldsWithoutCodecField<M extends ModelName> = {
 type Differences = { [M in ModelName]: FieldDifferences<M> }[ModelName];
 
 type ValueMethod = 'eq' | 'neq' | 'in' | 'notIn';
-type OrderedValueMethod = ValueMethod | 'gt' | 'lt' | 'gte' | 'lte';
-type CharIdField = 'Role.id' | 'Tag.id' | 'UserRole.roleId' | 'UserTag.tagId';
-type RefinedValueMethods = `${CharIdField}.${OrderedValueMethod}` | `User.address.${ValueMethod}`;
+type RefinedValueMethods = `User.address.${ValueMethod}`;
 type Unmatched = { [M in ModelName]: FieldsWithoutCodecField<M> }[ModelName];
 
 describe('CodecField against every scalar field of the test contract', () => {
@@ -65,11 +63,11 @@ describe('CodecField against every scalar field of the test contract', () => {
     >();
   });
 
-  test('a field whose codec the contract types do not declare has no CodecField', () => {
-    expectTypeOf<Unmatched>().toEqualTypeOf<'Post.embedding'>();
+  test('every scalar field of the test contract has a CodecField', () => {
+    expectTypeOf<Unmatched>().toBeNever();
   });
 
-  test('every method takes the same parameters, except the value methods of fields that refine their codec value', () => {
+  test('every method takes the same parameters, except the value methods of a value-object field, whose input type refines its codec input', () => {
     expectTypeOf<Differences>().toEqualTypeOf<RefinedValueMethods>();
   });
 });

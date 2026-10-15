@@ -282,6 +282,10 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     { reason: 'has no foreign key in storage', meta: { model: 'Comment', field: 'post' } },
   ],
   [
+    'test/integration/test/contract-parity/fixtures/postgres/generated/contract.json',
+    { reason: 'has no foreign key in storage', meta: { model: 'Account', field: 'user' } },
+  ],
+  [
     'test/integration/test/fixtures/contract-format/supabase-before-dbgenerated-removal.contract.json',
     {
       reason: 'has a different codec or type parameters from its column',
@@ -299,14 +303,18 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     'test/integration/test/planner-golden/fixtures/postgres/generated/contract.json',
     {
       reason: 'no PSL type in the configured stack',
-      meta: { coordinate: '"public"."list"."bit"', dataType: 'pg/bit', codecId: 'pg/bit@1' },
+      meta: {
+        coordinate: '"public"."other_codec"."pgChar"',
+        dataType: 'pg/char',
+        codecId: 'pg/char@1',
+      },
     },
   ],
   [
     'test/integration/test/ports/engines/queries/data_types/native/postgres/_fixture/string/generated/contract.json',
     {
       reason: 'no PSL type in the configured stack',
-      meta: { coordinate: '"public"."Child"."bit"', dataType: 'pg/bit', codecId: 'pg/bit@1' },
+      meta: { coordinate: '"public"."Child"."char"', dataType: 'pg/char', codecId: 'pg/char@1' },
     },
   ],
   [

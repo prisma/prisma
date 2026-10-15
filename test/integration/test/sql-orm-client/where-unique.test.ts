@@ -18,8 +18,8 @@ import {
   seedUsers,
 } from './runtime-helpers';
 
-const ROLE_ADMIN = 'role-admin' as Char<36>;
-const ROLE_EDITOR = 'role-editor' as Char<36>;
+const ROLE_ADMIN = 'role-admin';
+const ROLE_EDITOR = 'role-editor';
 
 function createReturningUserRolesCollection(runtime: PgIntegrationRuntime) {
   const contract = withReturningCapability(getTestContract());
