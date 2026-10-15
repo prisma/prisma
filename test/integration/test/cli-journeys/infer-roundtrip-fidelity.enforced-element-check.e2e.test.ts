@@ -21,9 +21,9 @@ import {
 withTempDir(({ createTempDir }) => {
   describe('Journey: infer preserves an enforced element check', () => {
     // The enforced check is installed by the toolchain itself rather than
-    // seeded with a precomputed name: sign the opted-out pull, delete the
-    // `@noCheck` attribute, and let `db update` install the derived
-    // wire-named check. The re-pull must then infer the enforced form. This
+    // seeded with a precomputed name: sign the pull, whose list allows null
+    // elements, change it to a list of non-null elements, and let `db update`
+    // install the derived wire-named check. The re-pull must then infer the enforced form. This
     // keeps the journey on the published import root — no internal naming
     // helpers — and proves the name the toolchain installs is the name infer
     // compares against.
@@ -51,8 +51,8 @@ withTempDir(({ createTempDir }) => {
         const infer = await runContractInfer(ctx);
         expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
         const pulled = readContractPsl(ctx);
-        expect(pulled, 'the pull of a check-less database is opted out').toMatch(
-          /tags\s+String\[\][^\n]*@noCheck\(elementNotNull\)/,
+        expect(pulled, 'the pull of a check-less database allows null elements').toMatch(
+          /tags\s+String\?\[\]/,
         );
 
         const emit = await runContractEmit(ctx);
@@ -60,8 +60,8 @@ withTempDir(({ createTempDir }) => {
         const sign = await runDbSign(ctx);
         expect(sign.exitCode, `db sign\n${stripAnsi(sign.stderr)}`).toBe(0);
 
-        // The author accepts enforcement: delete the opt-out and apply.
-        writeContractPsl(ctx, pulled.replace(/\s*@noCheck\(elementNotNull\)/, ''));
+        // The author wants non-null elements: change the type and apply.
+        writeContractPsl(ctx, pulled.replace(/(tags\s+)String\?\[\]/, '$1String[]'));
         const emitEnforced = await runContractEmit(ctx);
         expect(emitEnforced.exitCode, `contract emit\n${stripAnsi(emitEnforced.stderr)}`).toBe(0);
         const update = await runDbUpdate(ctx);
@@ -81,7 +81,7 @@ withTempDir(({ createTempDir }) => {
         const repull = await runContractInfer(ctx);
         expect(repull.exitCode, `contract infer (re-pull)\n${stripAnsi(repull.stderr)}`).toBe(0);
         const psl = readContractPsl(ctx);
-        expect(psl, 'the enforced form carries no opt-out').not.toContain('@noCheck');
+        expect(psl, 'the enforced form has non-null elements').toMatch(/tags\s+String\[\]/);
 
         const emitRepull = await runContractEmit(ctx);
         expect(emitRepull.exitCode, `contract emit\n${stripAnsi(emitRepull.stderr)}`).toBe(0);
