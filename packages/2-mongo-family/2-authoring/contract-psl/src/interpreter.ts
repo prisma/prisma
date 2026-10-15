@@ -42,6 +42,7 @@ import {
   type MongoIndexKeyDirection,
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
+import { assertMongoFieldTypeParams } from '@internal/mongo-contract/data-type';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
   AttributeSpecContext,
@@ -1744,6 +1745,11 @@ export function interpretPslDocumentToMongoContract(
   const capabilities: Record<string, Record<string, boolean>> = {};
 
   const hasEnums = Object.keys(builtEnums).length > 0;
+
+  assertMongoFieldTypeParams(
+    { [defaultNamespace.id]: { models: polyResult.models, valueObjects } },
+    { codecLookup, dataTypeLookup: input.dataTypes.lookup },
+  );
 
   return ok({
     targetFamily,

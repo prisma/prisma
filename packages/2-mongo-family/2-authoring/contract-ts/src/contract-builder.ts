@@ -76,6 +76,7 @@ import {
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
+import { assertMongoFieldTypeParams } from '@internal/mongo-contract/data-type';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
 import { blindCast } from '@internal/utils/casts';
@@ -2500,6 +2501,18 @@ function buildContractFromDefinition<
   });
 
   const codecLookup = extractCodecLookup([definition.target]);
+  const components = [
+    definition.family,
+    definition.target,
+    ...Object.values(definition.extensions ?? {}),
+  ];
+  assertMongoFieldTypeParams(
+    { [UNBOUND_NAMESPACE_ID]: { models: builtModels, valueObjects: builtValueObjects } },
+    {
+      codecLookup: extractCodecLookup(components),
+      dataTypeLookup: assembleDataTypes(components).lookup,
+    },
+  );
 
   const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {

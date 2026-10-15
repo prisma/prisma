@@ -2006,6 +2006,9 @@ importers:
       '@repo/tsdown':
         specifier: workspace:8.0.0-rc.18
         version: link:../../../0-config/tsdown
+      arktype:
+        specifier: 'catalog:'
+        version: 2.2.7
       tsdown:
         specifier: 'catalog:'
         version: 0.22.14(tsx@4.23.12)(typescript@5.9.3)
