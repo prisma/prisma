@@ -14,7 +14,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\bderiveKey\s*:'
+        - '\bderiveKey\b(?!FromContentHash)'
   - id: cache-store-holds-cached-values
     summary: |
       A cache store holds `CachedValue`, `{ kind: 'rows', rows } | { kind: 'result', result }`, not `CachedRows`. Type a custom store as `CacheStore<TMeta, CachedValue>` (or `CacheStore<TMeta>`), store and return the value whole, `kind` included, and make a store that serialises values round-trip the decoded values an ORM call returns, such as `Date` and `bigint`.
@@ -24,11 +24,11 @@ changes:
         - '\bCachedRows\b'
   - id: close-lets-open-orm-calls-finish
     summary: |
-      On a client that closes at once (`postgres({ url })`, `sqlite()`, `supabase()`), an ORM call that resolves to one value, such as `first()`, `create()` or a nested create, starts when it is called, and `close()` waits for it, so one left pending at `close()` now completes instead of rejecting. A streaming read such as `all()` starts when it is read; read after `close()`, it rejects with "Postgres client is closed" instead of "Runtime is closed". Update code or tests that expect the old outcome.
+      On a client that closes at once (`postgres({ url })`, `sqlite()`, `supabase()`), an ORM call that resolves to one value, such as `first()`, `create()`, `include(...).create()` or a nested create, starts when it is called, and `close()` waits for it, so one left pending at `close()` now completes instead of rejecting: a `create()` used to reject with "Runtime is closed", and `include(...).create()` and a nested create with "Postgres client is closed". A streaming read such as `all()` starts when it is read; read after `close()`, it rejects with "Postgres client is closed" instead of "Runtime is closed". Update code or tests that expect the old outcome.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - 'Runtime is closed'
+        - 'Runtime is closed|Postgres client is closed'
 ---
 
 # ORM calls are activities

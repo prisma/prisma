@@ -21,7 +21,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '\.\.\.(?:real|runtime|target|conn|connection|tx|transaction)\s*,\s*\n\s*query\s*[:(]'
+        - '\.\.\.\s*[\w.]+\s*,\s*(?:query|execute)\s*[:(]'
 ---
 
 # ORM calls are activities
