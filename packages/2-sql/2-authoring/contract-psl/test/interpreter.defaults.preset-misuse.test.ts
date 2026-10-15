@@ -75,15 +75,11 @@ example temporal.exampleField
     ]);
   });
 
-  it.each([
-    ['contributes id semantics', 'idField'],
-    ['fixes the nullability to NOT NULL', 'notNullField'],
-    ['fixes the nullability to NULL', 'nullField'],
-  ])('rejects ? on a preset that %s with PSL_PRESET_NOT_OPTIONAL', (_, preset) => {
+  it('rejects ? on a preset that contributes id semantics with PSL_PRESET_NOT_OPTIONAL', () => {
     const result = interpretPostgresSchema(
       `model Bad {
 id Int @id
-example temporal.${preset}()?
+example temporal.idField()?
 }`,
       {
         controlMutationDefaults: builtinControlMutationDefaults,
@@ -96,12 +92,36 @@ example temporal.${preset}()?
     expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
       {
         code: 'PSL_PRESET_NOT_OPTIONAL',
-        message: `Field "Bad.example" uses a field-preset call that fixes its id or nullability, so it cannot be optional. Remove "?" or use a different field type.`,
+        message: `Field "Bad.example" uses a field-preset call that fixes its id, so it cannot be optional. Remove "?" or use a different field type.`,
       },
     ]);
   });
 
-  it('accepts ? on a preset that fixes neither id nor nullability', () => {
+  it.each(['notNullField', 'nullField'])(
+    'makes the column of temporal.%s()? nullable, as .optional() does in TypeScript',
+    (preset) => {
+      const result = interpretPostgresSchema(
+        `model Good {
+id Int @id
+example temporal.${preset}()?
+}`,
+        {
+          controlMutationDefaults: builtinControlMutationDefaults,
+          authoringContributions: syntheticPresetContributions,
+        },
+      );
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(
+        unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value))['Good']?.columns[
+          'example'
+        ],
+      ).toEqual({ many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: true });
+    },
+  );
+
+  it('accepts ? on a preset that does not fix the id', () => {
     const result = interpretPostgresSchema(
       `model Good {
 id Int @id

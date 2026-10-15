@@ -385,7 +385,7 @@ function resolveEntityRefTypeConstructorCall(input: {
  * Contract contributions a field preset adds beyond the bare storage-type triple. Set when a field is resolved through the field-preset dispatch path; absent when resolved through the type-constructor path or as a scalar/enum/named-type lookup.
  */
 export type FieldPresetContributions = {
-  readonly nullable: boolean | undefined;
+  readonly nullable: boolean;
   readonly id: boolean;
   readonly unique: boolean;
   readonly default?: ColumnDefault;
@@ -491,7 +491,7 @@ function instantiateFieldPreset(input: {
     return NOT_RESOLVED;
   }
   const presetContributions: FieldPresetContributions = {
-    nullable: input.descriptor.output.nullable,
+    nullable: instantiated.nullable,
     id: instantiated.id,
     unique: instantiated.unique,
     ...(instantiated.default !== undefined ? { default: instantiated.default } : {}),

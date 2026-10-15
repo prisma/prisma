@@ -4,8 +4,8 @@ import type { CodecLookupWithDescriptors } from '@internal/framework-components/
 import type {
   AssembledAuthoringContributions,
   ContractSerializer,
-  ControlMutationDefaults,
   DiffSubjectGranularity,
+  LiftedDefaultFunctionCall,
   MigratableTargetDescriptor,
   SchemaVerifier,
 } from '@internal/framework-components/control';
@@ -40,7 +40,8 @@ export interface SqlPslBuildContext {
   readonly authoringContributions: Pick<AssembledAuthoringContributions, 'type' | 'field'>;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
-  readonly controlMutationDefaults: ControlMutationDefaults;
+  /** For each generator id, the default function in the stack whose PSL call produces it. */
+  readonly defaultFunctionCallsByGenerator: ReadonlyMap<string, LiftedDefaultFunctionCall>;
 }
 
 export interface SqlControlTargetDescriptor<

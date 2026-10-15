@@ -529,8 +529,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       if (!resolved.ok) {
         continue;
       }
-      // Field presets are complete declarations — they carry their own codec
-      // and do not compose with `[]` list-of semantics. Reject early.
+      // A preset fixes its codec, which `[]` would change to a list. Reject early.
       if (resolved.presetContributions) {
         diagnostics.push({
           code: 'PSL_PRESET_NOT_LIST',
@@ -553,14 +552,10 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
-    if (
-      presetContributions &&
-      field.optional &&
-      (presetContributions.id || presetContributions.nullable !== undefined)
-    ) {
+    if (presetContributions?.id && field.optional) {
       diagnostics.push({
         code: 'PSL_PRESET_NOT_OPTIONAL',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call that fixes its id or nullability, so it cannot be optional. Remove "?" or use a different field type.`,
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that fixes its id, so it cannot be optional. Remove "?" or use a different field type.`,
         ...source.at(field.span),
       });
       continue;
@@ -715,7 +710,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       field,
       columnName: mappedColumnName,
       descriptor,
-      nullable: presetContributions?.nullable ?? field.optional,
+      nullable: field.optional || Boolean(presetContributions?.nullable),
       ...ifDefined('defaultValue', fieldDefaultValue),
       ...ifDefined('executionDefaults', fieldExecutionDefaults),
       isId: isIdField || Boolean(presetContributions?.id),

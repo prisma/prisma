@@ -1,5 +1,8 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type { AuthoringFieldPresetDescriptor } from '@internal/framework-components/authoring';
+import {
+  type AuthoringFieldPresetDescriptor,
+  temporalCodecPreset,
+} from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
 import {
   PG_DATE_STRING_CODEC_ID,
@@ -134,19 +137,7 @@ describe('generated values', () => {
   }
 
   function nowPreset(codecId: string, generatorId: string): AuthoringFieldPresetDescriptor {
-    const phase = (index: number) => ({
-      kind: 'select' as const,
-      index,
-      cases: { now: { kind: 'generator', id: generatorId } },
-    });
-    return {
-      kind: 'fieldPreset',
-      args: [
-        { name: 'onCreate', kind: 'option', values: ['now'], optional: true },
-        { name: 'onUpdate', kind: 'option', values: ['now'], optional: true },
-      ],
-      output: { codecId, executionDefaults: { onCreate: phase(0), onUpdate: phase(1) } },
-    };
+    return temporalCodecPreset({ codecId, generatorId });
   }
 
   const timestamptz = {
@@ -157,16 +148,8 @@ describe('generated values', () => {
 
   it('prints a generator through the default function an extension registers', () => {
     const context = testBuildContext({
-      defaultFunctions: new Map([
-        [
-          'slugid',
-          {
-            lower: () => {
-              throw new Error('the printer never lowers a default function');
-            },
-            generatorCalls: { slugid: () => 'slugid()' },
-          },
-        ],
+      defaultFunctionCalls: new Map([
+        ['slugid', { functionName: 'slugid', liftArguments: () => '' }],
       ]),
     });
     expect(
@@ -232,22 +215,48 @@ describe('generated values', () => {
     ).toBe('value temporal.clusterClock(onCreate: now, onUpdate: now)');
   });
 
-  it('refuses a column two temporal presets could write, naming both', () => {
-    const generatorId = postgresNowGeneratorIds[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID];
+  it('prints a now generator through a preset outside the temporal namespace', () => {
     const context = testBuildContext({
-      temporalPresets: { instantClock: nowPreset(PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID, generatorId) },
-    });
-    expect(
-      refusalOf(() =>
-        withGenerator(timestamptz, { onCreate: { kind: 'generator', id: generatorId } }, context),
-      ),
-    ).toMatchObject({
-      code: 'CONTRACT.PRINT_UNSUPPORTED',
-      message: expect.stringContaining('"temporal.timestamptz" and "temporal.instantClock"'),
-      meta: {
-        coordinate: '"public"."Widget"."value"',
-        presets: ['temporal.timestamptz', 'temporal.instantClock'],
+      fieldPresets: {
+        clock: { cluster: nowPreset(PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID, 'clusterNow') },
       },
     });
+    expect(
+      withGenerator(timestamptz, { onUpdate: { kind: 'generator', id: 'clusterNow' } }, context),
+    ).toBe('value clock.cluster(onUpdate: now)');
+  });
+
+  it('writes the arguments a preset lift names', () => {
+    const preset: AuthoringFieldPresetDescriptor = {
+      kind: 'fieldPreset',
+      args: [
+        { name: 'scale', kind: 'number', optional: true, integer: true },
+        { name: 'stampedOn', kind: 'option', values: ['insert'], optional: true },
+      ],
+      output: {
+        codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+        typeParams: { precision: { kind: 'arg', index: 0 } },
+        executionDefaults: {
+          onCreate: {
+            kind: 'select',
+            index: 1,
+            cases: { insert: { kind: 'generator', id: 'clusterNow' } },
+          },
+        },
+      },
+      lift: {
+        codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+        typeParams: ['precision'],
+        onCreate: { argument: 'stampedOn', value: 'insert', generatorId: 'clusterNow' },
+      },
+    };
+    const context = testBuildContext({ fieldPresets: { clock: { stamped: preset } } });
+    expect(
+      withGenerator(
+        { ...timestamptz, typeParams: { precision: 6 } },
+        { onCreate: { kind: 'generator', id: 'clusterNow' } },
+        context,
+      ),
+    ).toBe('value clock.stamped(6, stampedOn: insert)');
   });
 });

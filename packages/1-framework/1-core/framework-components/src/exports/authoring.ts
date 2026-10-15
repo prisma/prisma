@@ -39,7 +39,9 @@ export type {
   AuthoringEntityTypeTemplateOutput,
   AuthoringFieldNamespace,
   AuthoringFieldPresetDescriptor,
+  AuthoringFieldPresetLift,
   AuthoringFieldPresetOutput,
+  AuthoringFieldPresetPhaseLift,
   AuthoringModelAttributeContext,
   AuthoringModelAttributeDescriptor,
   AuthoringModelAttributeDescriptorNamespace,
@@ -110,6 +112,7 @@ export {
   temporalAuthoringPresets,
   temporalCodecPreset,
   temporalPhaseTemplate,
+  temporalPresetLift,
 } from '../shared/temporal-presets';
 export type {
   CastRefusal,

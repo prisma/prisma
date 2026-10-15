@@ -1079,6 +1079,17 @@ function readField(args: ReadFieldArgs): void {
     );
     return;
   }
+  if (updatedAt !== undefined && field.list) {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UPDATED_AT_NOT_DATE_TIME',
+        `${label} is a list, but @updatedAt is not allowed on a list field. Prisma 7 refuses this schema too: "Fields that are marked with @updatedAt cannot be lists." Remove @updatedAt, or make the field a single DateTime.`,
+        sourceId,
+        updatedAt.span,
+      ),
+    );
+    return;
+  }
 
   const enumDeclaration = args.enums.get(field.typeName);
   let call: ResolvedTypeConstructorCall;

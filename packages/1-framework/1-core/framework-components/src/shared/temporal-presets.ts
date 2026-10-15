@@ -78,6 +78,28 @@ export const TEMPORAL_ON_UPDATE_ARG = {
 } as const;
 
 /**
+ * The lift of a preset whose `onCreate` and `onUpdate` arguments select `generatorId` with `now`, writing `codecId`. `typeParams` names the column type params the preset's leading positional arguments write.
+ */
+export function temporalPresetLift<
+  const CodecId extends string,
+  const GeneratorId extends string,
+  const TypeParams extends readonly string[] = readonly [],
+>(input: {
+  readonly codecId: CodecId;
+  readonly generatorId: GeneratorId;
+  readonly typeParams?: TypeParams;
+}) {
+  const phase = <const Argument extends string>(argument: Argument) =>
+    ({ argument, value: 'now', generatorId: input.generatorId }) as const;
+  return {
+    codecId: input.codecId,
+    typeParams: input.typeParams ?? [],
+    onCreate: phase(TEMPORAL_ON_CREATE_ARG.name),
+    onUpdate: phase(TEMPORAL_ON_UPDATE_ARG.name),
+  } as const;
+}
+
+/**
  * Selects a generator descriptor for the preset's `now` token. The token is preset vocabulary; the generator id never appears in a user's spelling (ADR 169 — these generators are preset-only). `params` is the template of the generator's params, resolved against the preset's arguments.
  */
 export function temporalPhaseTemplate<
@@ -117,5 +139,6 @@ export function temporalCodecPreset<
         onUpdate: temporalPhaseTemplate(1, nowGeneratorId),
       },
     },
+    lift: temporalPresetLift({ codecId: storage.codecId, generatorId: nowGeneratorId }),
   } as const;
 }

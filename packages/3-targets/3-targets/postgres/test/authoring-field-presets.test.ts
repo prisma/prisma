@@ -12,6 +12,13 @@ import { describe, expect, it } from 'vitest';
 import { postgresAuthoringFieldPresets, postgresAuthoringTypes } from '../src/core/authoring';
 
 describe('postgresAuthoringFieldPresets', () => {
+  it('exposes json preset with pg/jsonb@1 and nothing else, as the contract-psl mirror pgJson states', () => {
+    expect(postgresAuthoringFieldPresets.json).toEqual({
+      kind: 'fieldPreset',
+      output: { codecId: 'pg/jsonb@1' },
+    });
+  });
+
   it('exposes uuidNative preset with pg/uuid@1', () => {
     expect(postgresAuthoringFieldPresets.uuidNative).toMatchObject({
       kind: 'fieldPreset',

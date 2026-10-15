@@ -1,6 +1,11 @@
 import { temporalCodecPreset } from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
-import { modelsOf, postgresScalarTypeDescriptors, temporalCodecPresetMirrors } from './fixtures';
+import {
+  modelsOf,
+  nonTemporalPresetMirrors,
+  postgresScalarTypeDescriptors,
+  temporalCodecPresetMirrors,
+} from './fixtures';
 import { sqlStorageFromSuccessfulSqlInterpretation } from './interpret-sql-contract-storage';
 import {
   builtinControlMutationDefaults,
@@ -112,5 +117,77 @@ describe('generated values with a database default or on an optional field', () 
       { ref: ref('touchedAt'), onUpdate: { kind: 'generator', id: 'timestampNow' } },
       { ref: ref('updatedAt'), onCreate: timestampStringNow, onUpdate: timestampStringNow },
     ]);
+  });
+});
+
+describe('a preset that is not temporal, on an optional field or beside a database default', () => {
+  it('keeps the nullability and the database default', () => {
+    const result = interpretPostgresSchema(
+      `model Doc {
+  id      Int @id
+  token   uuidString()?
+  meta    json()?
+  options json() @default(json\`{ "plan": "free" }\`)
+}`,
+      {
+        scalarColumnDescriptors: postgresScalarTypeDescriptors,
+        controlMutationDefaults: builtinControlMutationDefaults,
+        authoringContributions: {
+          field: {
+            uuidString: nonTemporalPresetMirrors.uuidString,
+            json: nonTemporalPresetMirrors.pgJson,
+          },
+        },
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value))['Doc']).toEqual({
+      columns: {
+        id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+        token: {
+          many: false,
+          dataType: 'pg/char',
+          codecId: 'sql/char@1',
+          nullable: true,
+          typeParams: { length: 36 },
+        },
+        meta: { many: false, dataType: 'pg/jsonb', codecId: 'pg/jsonb@1', nullable: true },
+        options: {
+          many: false,
+          dataType: 'pg/jsonb',
+          codecId: 'pg/jsonb@1',
+          nullable: false,
+          default: { kind: 'literal', value: { plan: 'free' } },
+        },
+      },
+      primaryKey: { columns: ['id'] },
+      uniques: [],
+      indexes: [],
+      foreignKeys: [],
+    });
+    const scalar = (codecId: string, nullable: boolean, typeParams?: { length: number }) => ({
+      many: false,
+      nullable,
+      type: { kind: 'scalar', codecId, ...(typeParams ? { typeParams } : {}) },
+    });
+    expect(JSON.parse(JSON.stringify(modelsOf(result.value)['Doc']))).toEqual({
+      fields: {
+        id: scalar('pg/int4@1', false),
+        token: scalar('sql/char@1', true, { length: 36 }),
+        meta: scalar('pg/jsonb@1', true),
+        options: scalar('pg/jsonb@1', false),
+      },
+      relations: {},
+      storage: {
+        namespaceId: 'public',
+        table: 'Doc',
+        fields: Object.fromEntries(
+          ['id', 'token', 'meta', 'options'].map((name) => [name, { column: name }]),
+        ),
+      },
+    });
+    expect(result.value.execution?.mutations.defaults ?? []).toEqual([]);
   });
 });

@@ -75,7 +75,7 @@ export const inferBuildContext: SqlPslBuildContext = {
     },
     field: postgresAuthoringFieldPresets,
   },
-  controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+  defaultFunctionCallsByGenerator: new Map(),
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypes: {
     entries: postgresDataTypeEntries(),

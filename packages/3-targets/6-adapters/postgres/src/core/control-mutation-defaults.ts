@@ -76,9 +76,9 @@ function lowerNanoid(input: {
     : executionGenerator('nanoid');
 }
 
-function writeNanoidCall(params: Readonly<Record<string, unknown>> | undefined): string {
+function liftNanoidArguments(params: Readonly<Record<string, unknown>> | undefined): string {
   const size = params?.['size'];
-  return typeof size === 'number' ? `nanoid(${size})` : 'nanoid()';
+  return typeof size === 'number' ? String(size) : '';
 }
 
 const nowSig: FuncCallSig = {
@@ -133,7 +133,7 @@ const postgresDefaultFunctionRegistryEntries: ReadonlyArray<
       signature: uuidSig,
       lower: lowerUuid,
       usageSignatures: ['uuid()', 'uuid(4)', 'uuid(7)'],
-      generatorCalls: { uuidv4: () => 'uuid()', uuidv7: () => 'uuid(7)' },
+      liftArguments: { uuidv4: () => '', uuidv7: () => '7' },
     },
   ],
   [
@@ -142,7 +142,7 @@ const postgresDefaultFunctionRegistryEntries: ReadonlyArray<
       signature: cuidSig,
       lower: lowerCuid,
       usageSignatures: ['cuid(2)'],
-      generatorCalls: { cuid2: () => 'cuid(2)' },
+      liftArguments: { cuid2: () => '2' },
     },
   ],
   [
@@ -151,7 +151,7 @@ const postgresDefaultFunctionRegistryEntries: ReadonlyArray<
       signature: ulidSig,
       lower: lowerUlid,
       usageSignatures: ['ulid()'],
-      generatorCalls: { ulid: () => 'ulid()' },
+      liftArguments: { ulid: () => '' },
     },
   ],
   [
@@ -160,7 +160,7 @@ const postgresDefaultFunctionRegistryEntries: ReadonlyArray<
       signature: nanoidSig,
       lower: lowerNanoid,
       usageSignatures: ['nanoid()', 'nanoid(<2-255>)'],
-      generatorCalls: { nanoid: writeNanoidCall },
+      liftArguments: { nanoid: liftNanoidArguments },
     },
   ],
 ];

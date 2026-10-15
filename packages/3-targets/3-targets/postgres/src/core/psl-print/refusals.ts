@@ -117,25 +117,6 @@ interface GeneratorPhases {
   readonly onUpdate: string | undefined;
 }
 
-export function refuseTemporalPresetChoice(input: {
-  readonly coordinate: string;
-  readonly codecId: string;
-  readonly generatorId: string;
-  readonly presets: readonly string[];
-}): never {
-  throw unsupported(
-    `column ${input.coordinate} could be written as ${input.presets.map((preset) => `"${preset}"`).join(' and ')}, which both make "${input.generatorId}" on codec "${input.codecId}".`,
-    'Two field presets in the configured stack write the same codec and generator, so the printer cannot choose one.',
-    'Remove one of the presets from the configured stack, or keep authoring this contract in its current source.',
-    {
-      coordinate: input.coordinate,
-      codecId: input.codecId,
-      generatorId: input.generatorId,
-      presets: input.presets,
-    },
-  );
-}
-
 export function refuseNowGeneratorPairedWithAnother(
   phases: GeneratorPhases & { readonly other: string | undefined },
 ): never {

@@ -38,8 +38,9 @@ import {
 } from '../shared/framework-authoring';
 import type { ComponentMetadata } from '../shared/framework-components';
 import type {
+  AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,
-  ControlMutationDefaults,
+  LiftedDefaultFunctionCall,
   MutationDefaultGeneratorDescriptor,
 } from '../shared/mutation-default-types';
 import {
@@ -101,7 +102,7 @@ export interface ControlStack<
   }>;
   /** Names of the top-level zero-arg type constructors in the assembled authoring namespace — the base scalars of the composed stack. */
   readonly scalarTypes: ReadonlyArray<string>;
-  readonly controlMutationDefaults: ControlMutationDefaults;
+  readonly controlMutationDefaults: AssembledControlMutationDefaults;
   readonly capabilities: CapabilityMatrix;
 }
 
@@ -584,15 +585,13 @@ export function assembleControlMutationDefaults(
   descriptors: ReadonlyArray<
     Pick<ComponentMetadata, 'controlMutationDefaults'> & { readonly id?: string }
   >,
-): ControlMutationDefaults {
+): AssembledControlMutationDefaults {
   const defaultFunctionRegistry = new Map<string, ControlMutationDefaultEntry>();
   const functionOwners = new Map<string, string>();
   const generatorMap = new Map<string, MutationDefaultGeneratorDescriptor>();
   const generatorOwners = new Map<string, string>();
-  const generatorCallOwners = new Map<
-    string,
-    { readonly functionName: string; readonly descriptorId: string }
-  >();
+  const callsByGenerator = new Map<string, LiftedDefaultFunctionCall>();
+  const callOwners = new Map<string, string>();
 
   for (const descriptor of descriptors) {
     const contributions = descriptor.controlMutationDefaults;
@@ -622,22 +621,32 @@ export function assembleControlMutationDefaults(
       defaultFunctionRegistry.set(functionName, handler);
       functionOwners.set(functionName, descriptorId);
 
-      for (const generatorId of Object.keys(handler.generatorCalls ?? {})) {
-        const existingCall = generatorCallOwners.get(generatorId);
+      for (const [generatorId, liftArguments] of Object.entries(handler.liftArguments ?? {})) {
+        const existingCall = callsByGenerator.get(generatorId);
         if (existingCall !== undefined) {
           throw new InternalError(
             `Duplicate PSL call for mutation default generator "${generatorId}". ` +
-              `Function "${functionName}" from "${descriptorId}" conflicts with function "${existingCall.functionName}" from "${existingCall.descriptorId}".`,
+              `Function "${functionName}" from "${descriptorId}" conflicts with function "${existingCall.functionName}" from "${callOwners.get(generatorId)}".`,
           );
         }
-        generatorCallOwners.set(generatorId, { functionName, descriptorId });
+        callsByGenerator.set(generatorId, { functionName, liftArguments });
+        callOwners.set(generatorId, descriptorId);
       }
+    }
+  }
+
+  for (const [generatorId, call] of callsByGenerator) {
+    if (!generatorMap.has(generatorId)) {
+      throw new InternalError(
+        `Mutation default function "${call.functionName}" from "${callOwners.get(generatorId)}" writes a PSL call for generator "${generatorId}", which no generator descriptor in the stack registers.`,
+      );
     }
   }
 
   return {
     defaultFunctionRegistry,
     generatorDescriptors: Array.from(generatorMap.values()),
+    callsByGenerator,
   };
 }
 

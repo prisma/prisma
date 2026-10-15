@@ -6,6 +6,7 @@ import {
   TIMESTAMP_NOW_GENERATOR_ID,
   temporalAuthoringPresets,
   temporalPhaseTemplate,
+  temporalPresetLift,
 } from '@internal/framework-components/authoring';
 
 export function temporalStringAuthoringPresets<
@@ -61,5 +62,10 @@ export function temporalCodecPresetWithPrecision<
         onUpdate: temporalPhaseTemplate(2, generatorId, params),
       },
     },
+    lift: temporalPresetLift({
+      codecId: input.codecId,
+      generatorId,
+      typeParams: [TEMPORAL_PRECISION_ARG.name],
+    }),
   } as const satisfies AuthoringFieldPresetDescriptor;
 }

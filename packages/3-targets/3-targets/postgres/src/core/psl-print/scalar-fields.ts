@@ -19,7 +19,7 @@ import { buildColumnDefault } from './column-defaults';
 import { buildColumnType } from './column-types';
 import type { ModelWithTable, VariantInfo } from './contract-model-index';
 import type { NativeEnumEmission } from './enum-blocks';
-import { buildExecutionDefault, temporalPresetArguments } from './generated-values';
+import { buildExecutionDefault, presetArguments } from './generated-values';
 import {
   refuseColumnControl,
   refuseColumnDifferingFromNamedType,
@@ -166,15 +166,12 @@ export function buildScalarFields(input: {
         coordinate,
         context,
       });
-      if (built.kind === 'temporal') {
-        typeName = `temporal.${built.phases.presetName}`;
+      if (built.kind === 'preset') {
+        typeName = built.phases.path.join('.');
         typeConstructor = {
           kind: 'typeConstructor',
-          path: ['temporal', built.phases.presetName],
-          args: temporalPresetArguments({
-            phases: built.phases,
-            precision: column.typeParams?.['precision'],
-          }),
+          path: built.phases.path,
+          args: presetArguments({ phases: built.phases, typeParams: column.typeParams }),
           span: SYNTHETIC_SPAN,
         };
       } else if (column.default !== undefined) {

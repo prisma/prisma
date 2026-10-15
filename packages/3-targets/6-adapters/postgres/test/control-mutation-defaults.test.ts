@@ -1,3 +1,4 @@
+import { assembleControlMutationDefaults } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import {
   createPostgresDefaultFunctionRegistry,
@@ -145,34 +146,51 @@ describe('createPostgresDefaultFunctionRegistry', () => {
     });
   });
 
-  it('writes the PSL call of each generator a function produces', () => {
-    const calls = Object.fromEntries(
+  it('lifts the PSL call arguments of each generator a function produces', () => {
+    const lifted = Object.fromEntries(
       [...registry].map(([name, entry]) => [
         name,
         Object.fromEntries(
-          Object.entries(entry.generatorCalls ?? {}).map(([id, write]) => [id, write(undefined)]),
+          Object.entries(entry.liftArguments ?? {}).map(([id, lift]) => [id, lift(undefined)]),
         ),
       ]),
     );
-    expect(calls).toEqual({
+    expect(lifted).toEqual({
       autoincrement: {},
       now: {},
-      uuid: { uuidv4: 'uuid()', uuidv7: 'uuid(7)' },
-      cuid: { cuid2: 'cuid(2)' },
-      ulid: { ulid: 'ulid()' },
-      nanoid: { nanoid: 'nanoid()' },
+      uuid: { uuidv4: '', uuidv7: '7' },
+      cuid: { cuid2: '2' },
+      ulid: { ulid: '' },
+      nanoid: { nanoid: '' },
     });
   });
 
-  it('writes a nanoid size so that it lowers back to the same params', () => {
+  it('lifts a nanoid size so that it lowers back to the same params', () => {
     const entry = registry.get('nanoid')!;
-    expect(entry.generatorCalls?.['nanoid']?.({ size: 21 })).toBe('nanoid(21)');
+    expect(entry.liftArguments?.['nanoid']?.({ size: 21 })).toBe('21');
     expect(
       entry.lower({ call: makeCall('nanoid', { size: 21 }), context: stubContext }),
     ).toMatchObject({
       ok: true,
       value: { kind: 'execution', generated: { id: 'nanoid', params: { size: 21 } } },
     });
+  });
+
+  it('assembles with a registered generator for every lifted call', () => {
+    const assembled = assembleControlMutationDefaults([
+      {
+        id: 'postgres',
+        controlMutationDefaults: {
+          defaultFunctionRegistry: registry,
+          generatorDescriptors: createPostgresMutationDefaultGeneratorDescriptors(),
+        },
+      },
+    ]);
+    expect(
+      Object.fromEntries(
+        [...assembled.callsByGenerator].map(([id, call]) => [id, call.functionName]),
+      ),
+    ).toEqual({ uuidv4: 'uuid', uuidv7: 'uuid', cuid2: 'cuid', ulid: 'ulid', nanoid: 'nanoid' });
   });
 });
 

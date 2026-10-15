@@ -154,10 +154,28 @@ export interface AuthoringFieldPresetOutput extends AuthoringStorageTypeTemplate
   readonly unique?: boolean;
 }
 
+/** The option argument of a preset that selects a generator for one phase, and the generator it selects. */
+export interface AuthoringFieldPresetPhaseLift {
+  readonly argument: string;
+  readonly value: string;
+  readonly generatorId: string;
+}
+
+/**
+ * The reverse of a preset whose option arguments select a generator: the codec it writes, the column type params its leading positional arguments write, in order, and the generator each phase argument selects. `contract print` reads it to find the preset that writes a column and to write the preset's arguments.
+ */
+export interface AuthoringFieldPresetLift {
+  readonly codecId: string;
+  readonly typeParams: readonly string[];
+  readonly onCreate?: AuthoringFieldPresetPhaseLift;
+  readonly onUpdate?: AuthoringFieldPresetPhaseLift;
+}
+
 export interface AuthoringFieldPresetDescriptor {
   readonly kind: 'fieldPreset';
   readonly args?: readonly AuthoringArgumentDescriptor[];
   readonly output: AuthoringFieldPresetOutput;
+  readonly lift?: AuthoringFieldPresetLift;
 }
 
 export type AuthoringTypeNamespace = {
@@ -1426,6 +1444,70 @@ export function assertNoCrossRegistryCollisions(
   assertPslBlocksHaveFactories(entityTypeNamespace, pslBlockNamespace);
   assertUniqueModelAttributeNames(collectModelAttributeEntries(modelAttributeNamespace));
   assertSelectTemplatesMatchOptionArgs(typeNamespace, fieldNamespace, entityTypeNamespace);
+  assertFieldPresetLiftsAreUnique(fieldNamespace);
+}
+
+const FIELD_PRESET_LIFT_PHASES = ['onCreate', 'onUpdate'] as const;
+
+function assertFieldPresetLiftMatchesTemplate(
+  helperPath: string,
+  descriptor: AuthoringFieldPresetDescriptor & { readonly lift: AuthoringFieldPresetLift },
+): void {
+  const invalid = (detail: string): never => {
+    throw runtimeError(
+      'CONTRACT.PACK_CONTRIBUTION_INVALID',
+      `Field preset "${helperPath}" declares a lift that does not match its output: ${detail}.`,
+    );
+  };
+  const { lift, output } = descriptor;
+  if (lift.codecId !== output.codecId) {
+    invalid(`the lift names codec "${lift.codecId}", the output "${output.codecId}"`);
+  }
+  for (const phase of FIELD_PRESET_LIFT_PHASES) {
+    const phaseLift = lift[phase];
+    if (phaseLift === undefined) continue;
+    const template = output.executionDefaults?.[phase];
+    const selected = isAuthoringSelectRef(template) ? template.cases[phaseLift.value] : undefined;
+    const argument = isAuthoringSelectRef(template) ? descriptor.args?.[template.index] : undefined;
+    if (
+      argument?.name !== phaseLift.argument ||
+      !isExecutionMutationDefaultValue(selected) ||
+      selected.id !== phaseLift.generatorId
+    ) {
+      invalid(
+        `${phase} does not select generator "${phaseLift.generatorId}" with ${phaseLift.argument}: ${phaseLift.value}`,
+      );
+    }
+  }
+}
+
+/**
+ * At most one preset writes a codec with a generator, so `contract print` has one preset to write a column with (ADR 246: one preset per codec).
+ */
+function assertFieldPresetLiftsAreUnique(fieldNamespace: AuthoringFieldNamespace): void {
+  const claimants = new Map<string, string>();
+  for (const [helperPath, descriptor] of collectDescriptorNodes(
+    fieldNamespace,
+    isAuthoringFieldPresetDescriptor,
+  )) {
+    const { lift } = descriptor;
+    if (lift === undefined) continue;
+    assertFieldPresetLiftMatchesTemplate(helperPath, { ...descriptor, lift });
+    const generatorIds = new Set(
+      FIELD_PRESET_LIFT_PHASES.flatMap((phase) => lift[phase]?.generatorId ?? []),
+    );
+    for (const generatorId of generatorIds) {
+      const claim = `codec "${lift.codecId}" with generator "${generatorId}"`;
+      const existing = claimants.get(claim);
+      if (existing !== undefined) {
+        throw runtimeError(
+          'CONTRACT.PACK_CONTRIBUTION_INVALID',
+          `Field presets "${existing}" and "${helperPath}" both write ${claim}, so \`contract print\` cannot choose one. Register one of them only.`,
+        );
+      }
+      claimants.set(claim, helperPath);
+    }
+  }
 }
 
 function collectDescriptorNodes<D>(

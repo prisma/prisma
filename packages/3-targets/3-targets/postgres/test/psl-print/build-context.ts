@@ -8,7 +8,7 @@ import {
   createDataTypeLookup,
   type DataType,
 } from '@internal/framework-components/codec';
-import type { ControlMutationDefaultEntry } from '@internal/framework-components/control';
+import type { LiftedDefaultFunctionCall } from '@internal/framework-components/control';
 import { postgresAuthoringFieldPresets, postgresAuthoringTypes } from '../../src/core/authoring';
 import { type AnyPostgresCodecDescriptor, postgresCodec } from '../../src/core/codec-descriptor';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
@@ -32,28 +32,22 @@ export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTe
   jsonProjection: (expression) => expression,
 });
 
-function defaultFunction(
-  generatorCalls: NonNullable<ControlMutationDefaultEntry['generatorCalls']>,
-): ControlMutationDefaultEntry {
-  return {
-    lower: () => {
-      throw new Error('the printer never lowers a default function');
-    },
-    generatorCalls,
-  };
-}
-
 /** The PSL calls of the default functions the Postgres adapter registers, as the printer reads them. */
-const adapterDefaultFunctions: ReadonlyMap<string, ControlMutationDefaultEntry> = new Map([
-  ['uuid', defaultFunction({ uuidv4: () => 'uuid()', uuidv7: () => 'uuid(7)' })],
-  ['cuid', defaultFunction({ cuid2: () => 'cuid(2)' })],
-  ['ulid', defaultFunction({ ulid: () => 'ulid()' })],
+const adapterDefaultFunctionCalls: ReadonlyMap<string, LiftedDefaultFunctionCall> = new Map<
+  string,
+  LiftedDefaultFunctionCall
+>([
+  ['uuidv4', { functionName: 'uuid', liftArguments: () => '' }],
+  ['uuidv7', { functionName: 'uuid', liftArguments: () => '7' }],
+  ['cuid2', { functionName: 'cuid', liftArguments: () => '2' }],
+  ['ulid', { functionName: 'ulid', liftArguments: () => '' }],
   [
     'nanoid',
-    defaultFunction({
-      nanoid: (params) =>
-        typeof params?.['size'] === 'number' ? `nanoid(${params['size']})` : 'nanoid()',
-    }),
+    {
+      functionName: 'nanoid',
+      liftArguments: (params) =>
+        typeof params?.['size'] === 'number' ? String(params['size']) : '',
+    },
   ],
 ]);
 
@@ -61,13 +55,14 @@ const adapterDefaultFunctions: ReadonlyMap<string, ControlMutationDefaultEntry> 
  * A stand-in for the stack the SQL family hands the printer: the target's own type constructors,
  * field presets, codecs and data types, the type constructors and default functions the adapter
  * contributes, and what `extra` adds. `extra.temporalPresets` joins the target's `temporal.*`
- * presets.
+ * presets; `extra.fieldPresets` adds top-level field namespaces.
  */
 export function testBuildContext(
   extra: {
     readonly types?: AuthoringTypeNamespace;
     readonly temporalPresets?: AuthoringFieldNamespace;
-    readonly defaultFunctions?: ReadonlyMap<string, ControlMutationDefaultEntry>;
+    readonly fieldPresets?: AuthoringFieldNamespace;
+    readonly defaultFunctionCalls?: ReadonlyMap<string, LiftedDefaultFunctionCall>;
     readonly codecs?: readonly AnyPostgresCodecDescriptor[];
     readonly dataTypes?: readonly DataType[];
   } = {},
@@ -83,15 +78,13 @@ export function testBuildContext(
       field: {
         ...postgresAuthoringFieldPresets,
         temporal: { ...postgresAuthoringFieldPresets.temporal, ...extra.temporalPresets },
+        ...extra.fieldPresets,
       },
     },
-    controlMutationDefaults: {
-      defaultFunctionRegistry: new Map([
-        ...adapterDefaultFunctions,
-        ...(extra.defaultFunctions ?? []),
-      ]),
-      generatorDescriptors: [],
-    },
+    defaultFunctionCallsByGenerator: new Map([
+      ...adapterDefaultFunctionCalls,
+      ...(extra.defaultFunctionCalls ?? []),
+    ]),
     codecLookup: {
       get: () => undefined,
       renderOutputTypeFor: () => undefined,

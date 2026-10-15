@@ -179,11 +179,13 @@ export type {
 } from '../control/verifier-disposition';
 export { dispositionForCategory } from '../control/verifier-disposition';
 export type {
+  AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,
   ControlMutationDefaultRegistry,
   ControlMutationDefaults,
+  DefaultFunctionArgumentsLifter,
   DefaultFunctionLoweringContext,
-  GeneratorCallWriter,
+  LiftedDefaultFunctionCall,
   LoweredDefaultResult,
   LoweredDefaultValue,
   MutationDefaultGeneratorDescriptor,
