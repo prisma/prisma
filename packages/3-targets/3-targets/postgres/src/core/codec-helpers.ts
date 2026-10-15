@@ -53,46 +53,6 @@ export function fitsFloat4(value: number): boolean {
 
 export type PrecisionParams = { readonly precision?: number };
 
-export function renderLength(
-  typeName: string,
-  typeParams: { readonly length?: unknown },
-): string | undefined {
-  const length = typeParams.length;
-  if (length === undefined) {
-    return undefined;
-  }
-  if (typeof length !== 'number' || !Number.isFinite(length) || !Number.isInteger(length)) {
-    throw postgresError(
-      'RUNTIME.TYPE_PARAMS_INVALID',
-      `renderOutputType: expected integer "length" in typeParams for ${typeName}, got ${String(length)}`,
-      { meta: { typeName, param: 'length', received: String(length) } },
-    );
-  }
-  return `${typeName}<${length}>`;
-}
-
-export function renderPrecision(
-  typeName: string,
-  typeParams: { readonly precision?: unknown },
-): string {
-  const precision = typeParams.precision;
-  if (precision === undefined) {
-    return typeName;
-  }
-  if (
-    typeof precision !== 'number' ||
-    !Number.isFinite(precision) ||
-    !Number.isInteger(precision)
-  ) {
-    throw postgresError(
-      'RUNTIME.TYPE_PARAMS_INVALID',
-      `renderOutputType: expected integer "precision" in typeParams for ${typeName}, got ${String(precision)}`,
-      { meta: { typeName, param: 'precision', received: String(precision) } },
-    );
-  }
-  return `${typeName}<${precision}>`;
-}
-
 /**
  * A `numeric` value as its canonical decimal text. A number is written out without an exponent,
  * because `numeric` text has no exponent syntax and `toDataTypeValue` refuses one.
@@ -256,35 +216,6 @@ export const floatNumberLiteral = (value: JsonValue): string | undefined =>
 /** Renders the decimal text of `pg/int8number@1`, whose application type is `number`, as a number literal. */
 export const decimalTextNumberLiteral = (value: JsonValue): string | undefined =>
   typeof value === 'string' && DECIMAL_INTEGER.test(value) ? value : undefined;
-
-export const pgNumericRenderOutputType = (typeParams: {
-  readonly precision?: number;
-  readonly scale?: number;
-}): string | undefined => {
-  const precision = typeParams.precision;
-  if (precision === undefined) return undefined;
-  if (
-    typeof precision !== 'number' ||
-    !Number.isFinite(precision) ||
-    !Number.isInteger(precision)
-  ) {
-    throw postgresError(
-      'RUNTIME.TYPE_PARAMS_INVALID',
-      `renderOutputType: expected integer "precision" in typeParams for Numeric, got ${String(precision)}`,
-      { meta: { typeName: 'Numeric', param: 'precision', received: String(precision) } },
-    );
-  }
-  const scale = typeParams.scale;
-  if (scale === undefined) return `Numeric<${precision}>`;
-  if (typeof scale !== 'number' || !Number.isFinite(scale) || !Number.isInteger(scale)) {
-    throw postgresError(
-      'RUNTIME.TYPE_PARAMS_INVALID',
-      `renderOutputType: expected integer "scale" in typeParams for Numeric, got ${String(scale)}`,
-      { meta: { typeName: 'Numeric', param: 'scale', received: String(scale) } },
-    );
-  }
-  return `Numeric<${precision}, ${scale}>`;
-};
 
 /**
  * The application value of a `pg/interval@1` column.

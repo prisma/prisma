@@ -299,6 +299,17 @@ describe('MongoAdapter', () => {
       expect(wire.update).toEqual(update);
     });
 
+    it('passes bypassDocumentValidation through to the wire command', async () => {
+      const command = new RawUpdateManyCommand(
+        'users',
+        {},
+        { $rename: { name: 'fullName' } },
+        { bypassDocumentValidation: true },
+      );
+      const wire = narrowWire(await adapter.lower(plan('users', command), {}), 'updateMany');
+      expect(wire.bypassDocumentValidation).toBe(true);
+    });
+
     it('passes pipeline-style update (array) through unchanged', async () => {
       const filter = { firstName: { $exists: true } };
       const update = [{ $set: { fullName: { $concat: ['$firstName', ' ', '$lastName'] } } }];

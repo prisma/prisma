@@ -4,7 +4,6 @@ import {
   BinaryExpr,
   ColumnRef,
   type DerivedTableSource,
-  type InsertAst,
   LiteralExpr,
   ParamRef,
   type SelectAst,
@@ -13,16 +12,13 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import {
-  compileDeleteReturning,
   compileGroupedAggregate,
   compileInsertReturning,
   compileSelectWithIncludes,
   compileUpdateReturning,
-  compileUpsertReturning,
 } from '../src/query-plan';
-import { emptyState } from '../src/types';
 import { baseContract, createCollectionFor } from './collection-fixtures';
-import { getTestAggregates } from './helpers';
+import { emptyTableState, getTestAggregates, tablesForTable } from './helpers';
 
 describe('SQL ORM rich AST query plans', () => {
   it('compiles include plans with AST classes and limit annotations', () => {
@@ -44,13 +40,7 @@ describe('SQL ORM rich AST query plans', () => {
       )
       .limit(5).state;
 
-    const plan = compileSelectWithIncludes(
-      baseContract,
-      getTestAggregates(),
-      'public',
-      'users',
-      state,
-    );
+    const plan = compileSelectWithIncludes(baseContract, getTestAggregates(), 'User', state);
 
     expect(plan.ast.kind).toBe('select');
     expect(plan.params).toEqual([100, 'Alice']);
@@ -71,32 +61,21 @@ describe('SQL ORM rich AST query plans', () => {
     expect((childFilter.right as ParamRef).value).toBe(100);
   });
 
-  it('compiles insert, upsert, update, delete, and grouped aggregate plans with rich nodes', () => {
+  it('compiles insert, update and grouped aggregate plans with rich nodes', () => {
     const insertPlan = compileInsertReturning(
       baseContract,
       'public',
+      'User',
       'users',
       [{ id: 1, name: 'Alice', email: 'a@example.com' }],
       ['id'],
     );
     expect(insertPlan.ast.kind).toBe('insert');
 
-    const upsertPlan = compileUpsertReturning(
-      baseContract,
-      'public',
-      'users',
-      { id: 1, name: 'Alice', email: 'a@example.com' },
-      { name: 'Alice Updated' },
-      ['email'],
-      ['id'],
-    );
-    expect(upsertPlan.ast.kind).toBe('insert');
-    expect((upsertPlan.ast as InsertAst).onConflict?.action.kind).toBe('do-update-set');
-
     const updatePlan = compileUpdateReturning(
       baseContract,
-      'public',
-      'users',
+      'User',
+      tablesForTable(baseContract, 'users', 'public'),
       { email: 'b@example.com' },
       [BinaryExpr.eq(ColumnRef.of('users', 'id'), LiteralExpr.of(1))],
       ['id'],
@@ -104,21 +83,10 @@ describe('SQL ORM rich AST query plans', () => {
     expect(updatePlan.ast.kind).toBe('update');
     expect((updatePlan.ast as UpdateAst).where?.kind).toBe('binary');
 
-    const deletePlan = compileDeleteReturning(
-      baseContract,
-      'public',
-      'users',
-      [BinaryExpr.eq(ColumnRef.of('users', 'id'), LiteralExpr.of(1))],
-      ['id'],
-    );
-    expect(deletePlan.ast.kind).toBe('delete');
-
     const groupedPlan = compileGroupedAggregate(
       baseContract,
       getTestAggregates(),
-      'public',
-      'posts',
-      emptyState(),
+      emptyTableState(baseContract, 'posts'),
       ['user_id'],
       {
         postCount: { kind: 'aggregate', fn: 'count' },

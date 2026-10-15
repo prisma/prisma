@@ -11,6 +11,10 @@ import { createEmitterTestContract as createContract } from './create-emitter-te
 
 const testHashes = { storageHash: 'test', profileHash: 'test' };
 
+function typeOverrides(dts: string, name: 'ColumnTypeOverrides' | 'FieldTypeOverrides'): string {
+  return dts.match(new RegExp(`^type ${name} = (.*);$`, 'm'))?.[1] ?? '';
+}
+
 function vectorCodecLookup(): CodecLookup {
   const vectorType = dataType('pg/vector', { read: (json) => json });
   const vectorCodec: Codec = {
@@ -88,14 +92,12 @@ describe('contract.d.ts types of a column typed by a named type', () => {
       vectorCodecLookup(),
     );
 
-    expect(dts).toContain('readonly embedding: Vector<1536> | null');
-    const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({.+?});/s);
-    expect(fieldOutputMatch).not.toBeNull();
-    expect(fieldOutputMatch![0]).not.toContain('CodecTypes["pg/vector@1"]["output"]');
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch).not.toBeNull();
-    expect(storageColumnMatch![0]).toContain('Vector<1536>');
-    expect(storageColumnMatch![0]).not.toContain('CodecTypes["pg/vector@1"]["output"]');
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
+      'readonly embedding: { readonly output: Vector<1536> }',
+    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly embedding: { readonly output: Vector<1536> }',
+    );
   });
 
   it('types the field by its domain type and the column by its named type when the two differ', () => {
@@ -156,15 +158,11 @@ describe('contract.d.ts types of a column typed by a named type', () => {
       vectorCodecLookup(),
     );
 
-    const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({.+?});/s);
-    expect(fieldOutputMatch).not.toBeNull();
-    expect(fieldOutputMatch![0]).toContain('readonly embedding: Vector<768>');
-    expect(fieldOutputMatch![0]).not.toContain('Vector<1536>');
-    const fieldInputMatch = dts.match(/export type FieldInputTypes = ({.+?});/s);
-    expect(fieldInputMatch).not.toBeNull();
-    expect(fieldInputMatch![0]).not.toContain('Vector<1536>');
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch).not.toBeNull();
-    expect(storageColumnMatch![0]).toContain('Vector<1536>');
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
+      'readonly embedding: { readonly output: Vector<768> }',
+    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly embedding: { readonly output: Vector<1536> }',
+    );
   });
 });

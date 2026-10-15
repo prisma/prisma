@@ -14,6 +14,7 @@ import type {
   BindSiteParams,
   Declaration,
   ExecutionContext,
+  Log,
   ParamsFromDeclaration,
   Runtime,
   SqlExecutionStackWithDriver,
@@ -23,8 +24,10 @@ import type {
   VerifyMarkerOption,
 } from '@internal/sql-runtime';
 import {
+  activitySource,
   createExecutionContext,
   createSqlExecutionStack,
+  delegatingActivitySource,
   withTransaction,
 } from '@internal/sql-runtime';
 import sqliteTarget, {
@@ -92,6 +95,7 @@ export interface SqliteOptionsBase {
   readonly extensions?: readonly SqlRuntimeExtensionDescriptor<SqliteTargetId>[];
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
+  readonly log?: Log;
 }
 
 export type SqliteOptionsWithContract<TContract extends Contract<SqlStorage>> = {
@@ -224,6 +228,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
       driver,
       ...ifDefined('verifyMarker', options.verifyMarker),
       ...ifDefined('middleware', options.middleware),
+      ...ifDefined('log', options.log),
       closeRefusal: 'at-once',
     });
 
@@ -243,6 +248,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
         connection() {
           return getRuntime().connection();
         },
+        [activitySource]: delegatingActivitySource(() => getRuntime()),
       },
     }),
   );
@@ -336,6 +342,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
               execute(plan) {
                 return txCtx.execute(plan);
               },
+              [activitySource]: delegatingActivitySource(() => txCtx),
             },
             context,
           }),

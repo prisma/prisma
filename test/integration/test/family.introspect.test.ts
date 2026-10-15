@@ -238,4 +238,35 @@ describe('family instance introspect', () => {
       timeouts.spinUpPpgDev,
     );
   });
+
+  describe('for an invalid database connection', () => {
+    it(
+      'handles connection errors gracefully',
+      async () => {
+        if (!connectionString) {
+          throw new Error('Connection string not set');
+        }
+
+        const invalidDriver = await postgresDriver.create(connectionString);
+        await invalidDriver.close();
+
+        const familyInstance = sql.create(
+          createControlStack({
+            family: sql,
+            target: postgres,
+            adapter: postgresAdapter,
+            driver: postgresDriver,
+            extensions: [],
+          }),
+        );
+
+        await expect(
+          familyInstance.introspect({
+            driver: invalidDriver,
+          }),
+        ).rejects.toThrow();
+      },
+      timeouts.databaseOperation,
+    );
+  });
 });

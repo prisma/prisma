@@ -4,7 +4,6 @@ import type { StorageColumn } from '@internal/sql-contract/types';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 import { postgresLowerEntityHandles } from '../src/core/authoring';
-import { renderLength } from '../src/core/codec-helpers';
 import { pgNumericDescriptor } from '../src/core/codecs';
 import { errorPostgresMigrationStackMissing } from '../src/core/errors';
 import { buildColumnTypeSql } from '../src/core/migrations/planner-ddl-builders';
@@ -42,12 +41,6 @@ describe('postgresError sites', () => {
     }
     throw new Error('expected function to throw');
   }
-
-  it('renderLength rejects non-integer length as RUNTIME.TYPE_PARAMS_INVALID', () => {
-    const error = catchError(() => renderLength('VarChar', { length: 1.5 }));
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({ code: 'RUNTIME.TYPE_PARAMS_INVALID' });
-  });
 
   it('pg/numeric toDataTypeValue rejects a non-numeral value as RUNTIME.ENCODE_FAILED', () => {
     const codec = pgNumericDescriptor.factory({ precision: 10, scale: 2 })({ name: 'test' });

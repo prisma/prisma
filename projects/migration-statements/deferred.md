@@ -12,6 +12,8 @@ A user keeps `model User` and changes `@@map("users")` to `@@map("app_users")`. 
 
 **Decided 2026-10-07 by Will:** no statement for this case in this project. Slice 2's refusal keeps slice 1's manual steps for both commands. A statement that can name storage objects rather than models and fields is wanted later; Will floated `--rename table/users:app_users` as an illustration only, and the syntax needs a critical design discussion and a survey of established prior art before anything is chosen.
 
+**What depends on it:** `MigrationDataLoss.keepDataAdvice` (framework components, `control/migration-statements.ts`) exists only because this statement is missing. The SQL family (`keepTableAdvice` in `operation-subjects.ts`) and the MongoDB target (`keepCollectionByHandAdvice`, reached from `collectionDrops` in `mongo-planner.ts`) use it to print manual steps for this one case. When the statement lands, the planner answers this case with it, and both advice texts go, with the field if nothing else uses it. Slice 3a (PR #30695) adds `label` to the same type, `MigrationDataLoss`; whichever of the two PRs merges second combines the two changes.
+
 ## A model move across namespaces (`auth.User:public.User`)
 
 **Found:** slice 1, dispatch 3 (2026-10-06). Resolves but is refused with `statementRejected`; needs a `set schema` operation with its working-schema step and companion names. Scheduled for slice 3 with the namespace renames (recorded in `plan.md`).
@@ -34,18 +36,11 @@ On SQL a statement names the model's field (`User.fullName`), and the storage br
 
 When one plan renames a column on SQLite and a later step rebuilds the same table, the column rename's companion index replacement (drop and create) runs, then the rebuild creates the index again. Rows are kept; one index build is wasted. Removing the companion would need the planner to rewrite statement calls after the diff, and then re-running `migration.ts` (whose `renameColumn` cannot see the later rebuild) would no longer reproduce `ops.json`. Fixing it properly needs operations that carry dependency information, which the design notes already name as a direction.
 
-## SQLite `db update` cannot add a required field to a table that has rows
-
-**Found:** slice 2, dispatch 5 (2026-10-08). Pre-existing, not caused by the refusal.
-
-The Postgres planner has a temporary-default recipe for a required column added to a populated table under `db update`; SQLite has none, so the runner fails with `MIGRATION.RUNNER_FAILED` ("Cannot add a NOT NULL column with default value NULL"). The slice 2 SQLite journey adds the field to an empty table and says so. Resolving it means a SQLite temporary-default recipe or a table rebuild with a backfill; `--backfill` (slice 3) covers `migration plan`, not `db update`.
-
 ## `--delete <namespace>` consenting for every model in the namespace
 
 **Found:** slice 2, whole-slice architect review (2026-10-08). For slice 3.
 
 Project decision 6 lets a namespace delete cover everything in the namespace while the refusal lists each model. The engine answers a question only by a value equal to its subject or starting with it, so a namespace-wide answer has to be expanded by the ORM before the questions are asked. Slice 3 adds the namespace noun to `rename` and `delete` together and does that expansion there. Until then every `delete` names one model, field or storage object.
-
 
 ## A MongoDB validator that requires a new field leaves existing documents unwritable
 
@@ -65,3 +60,66 @@ Adding a required field to a populated collection, or making an optional field r
 
 `CLI.CONSENT_REQUIRED` lists one `user-choice` next action per flag form ("Run the command again with --delete Legacy", another for the rename form), not grouped by subject and not a complete runnable command, and its summary says "N subjects need a statement", which is project vocabulary. Grouping the forms per subject and printing a full command would need the engine to know the invocation; raise it on prisma/prisma-cli once the statement prompt has shipped.
 
+## SQL variants stored in their own tables
+
+**Found:** slice 4a design (2026-10-09). Will: SQL will need to handle multi-table storage of variants in the future.
+
+On MongoDB a variant's field rename touches only that variant's documents. On SQL today a variant's field is a column in the shared table, and a rename applies to every row. When SQL supports variants stored in their own tables, a variant's field statements must act on that variant's table only.
+
+## MongoDB `@map` accepts field names MongoDB cannot validate
+
+**Found:** slice 4a review of dispatch 3 (2026-10-09). For the MongoDB authoring owners, not this project.
+
+`@map("o.d")` or `@map("$x")` is accepted in a MongoDB schema. MongoDB reads such a name as a path or an operator, and an insert of `{ "o.d": ... }` already fails the validator Prisma writes. Slice 4a skips such fields when planning statements. The fix belongs in authoring: reject the name with a diagnostic. When it lands, remove the framework resolver's fallback that reads `User.o.d` as field `o.d` (added in slice 4a), and the planner's silent skip of such fields.
+
+## A repeated run reports outdated statements one at a time
+
+**Found:** slice 4a manual QA (2026-10-09), F3. Applies to every family.
+
+Running the same `db update` again after it applied fails on the first outdated `--rename` or `--delete`, so a user with three outdated flags needs three runs to learn about all of them. The resolver could report every statement that no longer resolves in one error.
+
+## A collection name MongoDB rejects reaches the runner
+
+**Found:** slice 4a manual QA (2026-10-09), F9. For the MongoDB authoring owners.
+
+`@@map("system.x")` is accepted in a MongoDB schema. A rename onto it is refused with a reason, but a plan that creates or drops such a collection fails at apply with `CLI.UNEXPECTED`. Authoring should reject collection names MongoDB rejects.
+
+## `db migrate` of a migration with an unfilled placeholder gives advice that does not mention the slot
+
+**Found:** slice 3a review (2026-10-12). Older than this project's slices.
+
+A migration written with a placeholder has `ops.json` as `[]`. Running `db migrate` before filling the slot applies nothing and then fails at the destination check with general advice. It should say that the migration still has an unfilled slot, name the slot, and say to fill it and run `node migration.ts`.
+
+## `db migrate` applies an `ops.json` older than its `migration.ts`
+
+**Found:** slice 4a review (2026-10-12). Older than this project.
+
+The Migration System doc lists emit-drift detection (re-emit `migration.ts` in memory and compare with `ops.json` before applying) as architecturally required and not yet implemented. Without it, a user who edits `migration.ts` and forgets to run it applies the old operations; in slice 4a's review that turned a wrong advice text into a dropped collection. Worth a ticket when this project closes, if none exists.
+
+## `migration status --json` prints `{bin}` unreplaced
+
+**Found:** slice 3a review (2026-10-12). Outside this project. The summary text in the JSON output contains a raw `{bin}` placeholder.
+
+## A Postgres `dataTransform` whose `run` returns the wrong shape fails with an unclear error
+
+**Found:** slice 3a review (2026-10-12). Outside this project.
+
+When `run` returns an array of plans or a SQL string, `node migration.ts` fails with "Cannot read properties of undefined (reading 'storageHash')". It should say what `run` must return.
+
+## A data-loss question can offer one flag value per verb
+
+**Found:** slice 4a review, dispatch 3 (2026-10-09). Engine side.
+
+The statement prompt writes one flag value per verb, so a question about a field whose model the destination names differently cannot print the two statements that keep its values (the model rename, then the field rename). The question offers only `--delete` and says to pass the model rename first, after which the next question offers the field rename. Printing both statements at once would need the engine to accept several flag values for one verb.
+
+## The SQLite `recreateTable` call in `migration.ts` is hard to read
+
+**Found:** slice 3a manual QA (2026-10-12), F11. Older than this project's slices.
+
+A SQLite table rebuild renders as a 40-line `recreateTable` call full of internal fields, so a `--convert` slot sits at its end where it is easy to miss. A shorter rendering, or one built from the contract the way `alterColumnType` is on Postgres, would make the slot easy to find.
+
+## Printed commands in other commands' outputs still leave out `--config` and `--db`
+
+**Found:** slice 3a review round 2 (2026-10-13), S07. Tracked as TML-3575.
+
+`db migrate`, `db update` and `migration plan` print every command through `cliCommand` in `packages/1-framework/3-tooling/cli/src/utils/printed-command.ts`. About 100 other `{bin} …` literals do not: `migration status`, `db init` failures (`db-init-failure.ts`), `db sign` beyond its re-run command, `contract emit`, `prepare.ts`, `cli-errors.ts` (for example `MIGRATION.PLAN_ORIGIN_UNKNOWN`), and `reemitHint` in the migration package. Followed from another directory, they load a different config or none.

@@ -345,8 +345,8 @@ describe('defaults and generated values', () => {
     ).toThrow(refusal({ coordinate: '"public"."Widget"."value"', onCreate: 'uuidv4' }));
   });
 
-  it('refuses a generated value for a column no field is stored in', () => {
-    expect(
+  it('never sees a generated value for a column no field is stored in: the contract is refused when it is read', () => {
+    expect(() =>
       printingWidget({
         contract: {
           execution: {
@@ -361,7 +361,9 @@ describe('defaults and generated values', () => {
           },
         },
       }),
-    ).toThrow(refusal({ coordinate: '"public"."Widget"."missing"' }));
+    ).toThrow(
+      'Execution default for column "missing" of table "public.Widget" targets a column no field maps',
+    );
   });
 });
 

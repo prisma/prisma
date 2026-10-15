@@ -1,7 +1,8 @@
-import type { PslTypeMap } from '@internal/family-sql/psl-build';
+import { type InferredTypeConstructors, pslTypeArgumentText } from '@internal/family-sql/psl-build';
 import {
   type AuthoringTypeConstructorCall,
   type AuthoringTypeNamespace,
+  authoringTypeConstructorArguments,
   findAuthoringTypeConstructorCall,
 } from '@internal/framework-components/authoring';
 import type { DataTypeLookup } from '@internal/framework-components/codec';
@@ -22,13 +23,7 @@ export interface PslColumnType {
   readonly typeConstructor?: PslTypeConstructorCall;
 }
 
-/**
- * The type arguments a native type takes, in the order the PSL type
- * constructor declares them.
- */
-const TYPE_PARAM_ORDER = ['length', 'precision', 'scale'] as const;
-
-/** The name of the column's data type without parameters, as the type map knows it. */
+/** The name of the column's data type without parameters. */
 function baseTypeName(
   column: StorageColumn,
   dataTypeLookup: DataTypeLookup,
@@ -41,22 +36,9 @@ function baseTypeName(
   return unquotedSqlBaseName(dataType, dataTypeParams(dataType, column.typeParams));
 }
 
-/**
- * Re-composes the parenthesised native type the type map resolves
- * (`numeric(10,2)`) from a column's base type name and its type parameters.
- */
-function typeMapText(column: StorageColumn, baseName: string): string {
-  const args = TYPE_PARAM_ORDER.map((key) => column.typeParams?.[key]).filter(
-    (value) => typeof value === 'number',
-  );
-  return args.length === 0 ? baseName : `${baseName}(${args.join(', ')})`;
-}
-
 /** A type argument as PSL writes it: a number as written, a string between quotes. */
 function typeArgumentText(value: unknown, coordinate: string): string {
-  if (typeof value !== 'string') return String(value);
-  refuseUnwritableTypeArgument(value, coordinate);
-  return `"${value}"`;
+  return pslTypeArgumentText(value) ?? refuseUnwritableTypeArgument(String(value), coordinate);
 }
 
 function typeCall(path: readonly string[], args: readonly string[]): PslColumnType {
@@ -77,29 +59,22 @@ function typeCall(path: readonly string[], args: readonly string[]): PslColumnTy
 }
 
 /**
- * The call to the type constructor the type map `contract infer` uses names for the column's native
- * type, when the stack's constructor of that name produces exactly the column's codec, native type
- * and type parameters.
+ * The call to the constructor marked `inferred` for the column's data type, the one `contract
+ * infer` writes, when it produces exactly the column's codec and type parameters.
  */
-function typeMapCall(
+function inferredConstructorCall(
   column: StorageColumn,
-  baseName: string,
-  typeMap: PslTypeMap,
-  authoringTypes: AuthoringTypeNamespace,
+  inferredConstructors: InferredTypeConstructors,
 ): AuthoringTypeConstructorCall | undefined {
-  const resolution = typeMap.resolve(typeMapText(column, baseName));
-  if ('unsupported' in resolution) return undefined;
-  const { name } = resolution.pslType;
-  const descriptor = authoringTypes[name];
-  return descriptor === undefined
-    ? undefined
-    : findAuthoringTypeConstructorCall({ [name]: descriptor }, column);
+  const marked = inferredConstructors.get(column.dataType);
+  const args = marked && authoringTypeConstructorArguments(marked.descriptor, column);
+  return marked && args && { path: marked.path, args };
 }
 
 /**
  * The PSL type position for a storage column: a call to a type constructor the configured stack
  * contributes that produces exactly the column's codec, native type and type parameters. The
- * constructor the type map `contract infer` uses names for the native type comes first; otherwise
+ * constructor `contract infer` writes for the column's data type comes first; otherwise
  * the first one in the stack that produces them, such as `DateTime` for a `timestamptz` column read
  * as a `Temporal.Instant`, or `pgvector.Vector(3)`. An enum-typed column takes the
  * `pg.enum(<Block>)` constructor, named after the value set the column points at; a column typed by
@@ -107,13 +82,14 @@ function typeMapCall(
  */
 export function buildColumnType(input: {
   readonly column: StorageColumn;
-  readonly typeMap: PslTypeMap;
+  readonly inferredConstructors: InferredTypeConstructors;
   readonly authoringTypes: AuthoringTypeNamespace;
   readonly dataTypeLookup: DataTypeLookup;
   readonly enumBlockNames: ReadonlyMap<string, string>;
   readonly coordinate: string;
+  readonly namespaceId?: string;
 }): PslColumnType {
-  const { column, typeMap, authoringTypes, enumBlockNames, coordinate } = input;
+  const { column, inferredConstructors, authoringTypes, enumBlockNames, coordinate } = input;
   const baseName = baseTypeName(column, input.dataTypeLookup, coordinate);
 
   const enumBlockName = column.valueSet?.entityName ?? enumBlockNames.get(baseName);
@@ -123,7 +99,13 @@ export function buildColumnType(input: {
       typeConstructor: {
         kind: 'typeConstructor',
         path: ['pg', 'enum'],
-        args: [positionalArg(enumBlockName)],
+        args: [
+          positionalArg(
+            column.valueSet !== undefined && column.valueSet.namespaceId !== input.namespaceId
+              ? `${column.valueSet.namespaceId}.${enumBlockName}`
+              : enumBlockName,
+          ),
+        ],
         span: SYNTHETIC_SPAN,
       },
     };
@@ -135,7 +117,7 @@ export function buildColumnType(input: {
   }
 
   const call =
-    typeMapCall(column, baseName, typeMap, authoringTypes) ??
+    inferredConstructorCall(column, inferredConstructors) ??
     findAuthoringTypeConstructorCall(authoringTypes, column);
   if (call !== undefined) {
     return typeCall(

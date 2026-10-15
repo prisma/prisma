@@ -182,8 +182,7 @@ declare const userCollectionWithWhere: Collection<
   {
     readonly hasOrderBy: boolean;
     readonly hasWhere: true;
-    readonly hasUniqueFilter: boolean;
-    readonly variantName: undefined;
+    readonly variantValue: undefined;
     readonly nsId: never;
   }
 >;

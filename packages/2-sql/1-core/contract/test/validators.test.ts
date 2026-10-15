@@ -495,6 +495,33 @@ describe('SQL contract validators', () => {
       expect(() => validateModel(modelWithoutRelations)).not.toThrow();
     });
 
+    const polymorphicModel = (overrides: Record<string, unknown>) => ({
+      storage: { table: 'task', namespaceId: UNBOUND_NAMESPACE_ID, fields: {} },
+      discriminator: { field: 'type' },
+      variants: { bug: { namespace: UNBOUND_NAMESPACE_ID, model: 'Bug' } },
+      ...overrides,
+    });
+
+    it('validates a discriminator and variants that reference models', () => {
+      expect(() => validateModel(polymorphicModel({}))).not.toThrow();
+    });
+
+    it.each([
+      ['null', null],
+      ['a model name', 'Bug'],
+      ['a reference without a namespace', { model: 'Bug' }],
+    ])('rejects a variant entry that is %s', (_label, entry) => {
+      expect(() => validateModel(polymorphicModel({ variants: { bug: entry } }))).toThrow(
+        /variants\.bug/,
+      );
+    });
+
+    it('rejects a discriminator without a field', () => {
+      expect(() => validateModel(polymorphicModel({ discriminator: {} }))).toThrow(
+        /discriminator\.field/,
+      );
+    });
+
     const modelWithRelation = (relation: unknown) => ({
       storage: {
         table: 'parent',
@@ -872,7 +899,7 @@ describe('SQL contract validators', () => {
 
     it('rejects an N:M relation whose through references a column absent from the junction table', () => {
       const c = manyToManyContract({
-        on: { localFields: ['id'], targetFields: ['ghost'] },
+        on: { localFields: ['id'], targetFields: ['user_id'] },
         through: { ...consistentThrough, parentColumns: ['ghost'] },
       });
       expect(() => validateSqlContractFully(c)).toThrow(

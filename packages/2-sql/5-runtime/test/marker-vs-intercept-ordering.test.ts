@@ -26,10 +26,10 @@ import { createTestRuntime as createRuntime, descriptorsFromCodecs } from './uti
 
 /**
  * Pins the ordering invariant: marker verification runs upstream of `runWithMiddleware`, so the
- * CONTRACT.MARKER_MISMATCH warning is emitted before any `interceptQuery` hook is invoked.
+ * CONTRACT.MARKER_MISMATCH warning is emitted before any `intercept.onQuery` handler is invoked.
  *
  * If a future refactor moves marker verification into the orchestrator or after `runWithMiddleware`,
- * this test fails — surfacing the regression that cache middleware could interceptQuery a query before
+ * this test fails — surfacing the regression that cache middleware could intercept a query before
  * the runtime has checked for schema drift.
  */
 
@@ -195,8 +195,8 @@ function createPlan(): SqlExecutionPlan {
   };
 }
 
-describe('marker verification runs before interceptQuery', () => {
-  it('logs CONTRACT.MARKER_MISMATCH before invoking the interceptQueryor when the marker is stale', async () => {
+describe('marker verification runs before intercept.onQuery', () => {
+  it('logs CONTRACT.MARKER_MISMATCH before invoking the interceptor when the marker is stale', async () => {
     const callOrder: string[] = [];
 
     const log: RuntimeLog = {
@@ -207,17 +207,17 @@ describe('marker verification runs before interceptQuery', () => {
       error: () => {},
     };
 
-    const interceptQuery = vi.fn((_plan: unknown, _ctx: unknown) => {
-      callOrder.push('interceptQuery');
-      return Promise.resolve({ operation: 'query' as const, rows: [{ id: 1 }] });
+    const onQuery = vi.fn((_plan: unknown, _ctx: unknown) => {
+      callOrder.push('onQuery');
+      return Promise.resolve({ rows: [{ id: 1 }] });
     });
-    const interceptQueryor: SqlMiddleware = {
+    const interceptor: SqlMiddleware = {
       name: 'mock-cache',
       familyId: 'sql',
-      interceptQuery,
+      intercept: { onQuery },
     };
 
-    const { runtime, driver } = createTestSetup([interceptQueryor], log);
+    const { runtime, driver } = createTestSetup([interceptor], log);
 
     await runtime.query(createPlan()).toArray();
 
@@ -227,8 +227,8 @@ describe('marker verification runs before interceptQuery', () => {
         scope: 'marker-verification',
       }),
     );
-    expect(interceptQuery).toHaveBeenCalled();
+    expect(onQuery).toHaveBeenCalled();
     expect(driver.execute).not.toHaveBeenCalled();
-    expect(callOrder).toEqual(['verify', 'interceptQuery']);
+    expect(callOrder).toEqual(['verify', 'onQuery']);
   });
 });

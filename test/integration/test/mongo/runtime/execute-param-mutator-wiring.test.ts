@@ -49,12 +49,12 @@ function recordingDriver(): {
 }
 
 describe('MongoRuntime execute param-mutator wiring', () => {
-  it('beforeQuery entries expose pre-resolve MongoParamRef handles', async () => {
+  it('beforeEncode entries expose pre-resolve MongoParamRef handles', async () => {
     const observed: Array<{ readonly isParamRef: boolean; readonly codecId: string | undefined }> =
       [];
     const middleware: MongoMiddleware = {
       name: 'param-inspector',
-      async beforeQuery(_plan, _ctx, params) {
+      async beforeEncode(_plan, _ctx, params) {
         for (const entry of params?.entries() ?? []) {
           observed.push({
             isParamRef: entry.ref instanceof MongoParamRef,
@@ -90,7 +90,7 @@ describe('MongoRuntime execute param-mutator wiring', () => {
 
     const middleware: MongoMiddleware = {
       name: 'bulk-transform',
-      async beforeQuery(_plan, _ctx, params) {
+      async beforeEncode(_plan, _ctx, params) {
         const targets = [...(params?.entries() ?? [])].filter(
           (entry) => entry.codecId === BULK_CODEC_ID,
         );
@@ -179,7 +179,7 @@ describe('MongoRuntime execute param-mutator wiring', () => {
   it('content hash reflects middleware-mutated resolved values', async () => {
     const mutating: MongoMiddleware = {
       name: 'mutator',
-      async beforeQuery(_plan, _ctx, params) {
+      async beforeEncode(_plan, _ctx, params) {
         const updates = [...(params?.entries() ?? [])].map((entry) => ({
           ref: entry.ref,
           newValue: `mutated:${String(entry.value)}`,
@@ -196,8 +196,11 @@ describe('MongoRuntime execute param-mutator wiring', () => {
       let hash = '';
       const observer: MongoMiddleware = {
         name: 'hash-observer',
-        async afterQuery(plan, _result, ctx) {
-          hash = await ctx.contentHash(plan);
+        intercept: {
+          async onQuery(plan, ctx) {
+            hash = await ctx.contentHash(plan);
+            return undefined;
+          },
         },
       };
       const { driver } = recordingDriver();

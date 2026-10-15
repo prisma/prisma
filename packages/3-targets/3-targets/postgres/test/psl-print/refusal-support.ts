@@ -1,6 +1,7 @@
 import type { Contract, ContractField } from '@internal/contract/types';
 import { asNamespaceId } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { createSqlContract } from '@repo/test-utils';
@@ -129,7 +130,7 @@ export function deserializeEdited(
 export function printing(
   contract: Contract<SqlStorage>,
   context: SqlPslBuildContext = testBuildContext(),
-): () => unknown {
+): () => PslDocumentAst {
   return () => buildPostgresPslContract(contract, context);
 }
 

@@ -7,7 +7,8 @@ import type {
   StorageColumnMapAt,
   StorageTable,
 } from '@internal/sql-contract/types';
-import type { Expression, ExpressionBuilder, FieldProxy, Functions } from '../expression';
+import type { Functions } from '@internal/sql-relational-core/functions';
+import type { Expression, ExpressionBuilder, FieldProxy } from '../expression';
 import type {
   DefaultScope,
   EmptyRow,
@@ -18,6 +19,7 @@ import type {
   StorageTableToScopeTable,
 } from '../scope';
 import type { NamespaceTable, TableNamesInNamespace, TableProxyContract } from './db';
+import type { IndexReferences } from './index-reference';
 import type { DeleteQuery, InsertQuery, InsertValues, UpdateQuery } from './mutation-query';
 import type { ContractColumnRef } from './raw-query';
 import type { WithJoin, WithSelect } from './shared';
@@ -114,6 +116,9 @@ export interface TableProxy<
     WithJoin<QC, AvailableScope, C['capabilities']> {
   /** The table's columns, for naming in a raw statement's row spec. */
   readonly columns: ColumnRefs<C, NsId, Name>;
+
+  /** The table's indexes, keyed by the name the contract source gave each, with their columns bound to this table's alias. */
+  readonly indexes: IndexReferences<C, NsId, Name>;
 
   as<NewAlias extends string>(
     newAlias: NewAlias,

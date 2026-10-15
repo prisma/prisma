@@ -1,5 +1,6 @@
 import { asNamespaceId } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
+import { attributeText } from './print-support';
 import {
   deserialize,
   INT_COLUMN,
@@ -185,7 +186,7 @@ describe('models and relations', () => {
             tags: {
               to: { namespace: PUBLIC, model: 'Tag' },
               cardinality: 'N:M',
-              on: { localFields: ['id'], targetFields: ['id'] },
+              on: { localFields: ['id'], targetFields: ['widgetId'] },
               through: {
                 table: 'WidgetTag',
                 namespaceId: 'public',
@@ -290,7 +291,9 @@ describe('variants', () => {
     readonly variantColumns: Record<string, unknown>;
     readonly variantTableExtras?: Record<string, unknown>;
     readonly taskColumns?: Record<string, unknown>;
+    readonly variantNamespace?: string;
   }) {
+    const variantNamespace = parts.variantNamespace ?? 'public';
     const singleTable = parts.variantTable === 'Task';
     const variantTable = {
       columns: parts.variantColumns,
@@ -299,6 +302,17 @@ describe('variants', () => {
       foreignKeys: [],
       ...parts.variantTableExtras,
     };
+    const variantModel = {
+      storage: {
+        table: parts.variantTable,
+        namespaceId: variantNamespace,
+        fields: { scope: { column: 'scope' } },
+      },
+      fields: { scope: TEXT_FIELD },
+      relations: {},
+      base: { namespace: PUBLIC, model: 'Task' },
+    };
+    const crossNamespace = variantNamespace !== 'public';
     return printing(
       deserialize({
         roots: { Task: { namespace: PUBLIC, model: 'Task' } },
@@ -314,20 +328,12 @@ describe('variants', () => {
                 fields: { id: INT_FIELD, type: TEXT_FIELD },
                 relations: {},
                 discriminator: { field: 'type' },
-                variants: { Epic: { value: 'epic' } },
+                variants: { epic: { namespace: asNamespaceId(variantNamespace), model: 'Epic' } },
               },
-              Epic: {
-                storage: {
-                  table: parts.variantTable,
-                  namespaceId: 'public',
-                  fields: { scope: { column: 'scope' } },
-                },
-                fields: { scope: TEXT_FIELD },
-                relations: {},
-                base: { namespace: PUBLIC, model: 'Task' },
-              },
+              ...(crossNamespace ? {} : { Epic: variantModel }),
             },
           },
+          ...(crossNamespace ? { [variantNamespace]: { models: { Epic: variantModel } } } : {}),
         },
         storage: {
           namespaces: {
@@ -347,10 +353,18 @@ describe('variants', () => {
                     foreignKeys: [],
                     primaryKey: { columns: ['id'] },
                   },
-                  ...(singleTable ? {} : { [parts.variantTable]: variantTable }),
+                  ...(singleTable || crossNamespace ? {} : { [parts.variantTable]: variantTable }),
                 },
               },
             },
+            ...(crossNamespace
+              ? {
+                  [variantNamespace]: {
+                    id: variantNamespace,
+                    entries: { table: { [parts.variantTable]: variantTable } },
+                  },
+                }
+              : {}),
           },
         },
       }),
@@ -371,6 +385,25 @@ describe('variants', () => {
         variantTableExtras: { primaryKey: { columns: ['id'] }, foreignKeys: [LINK] },
       }),
     ).not.toThrow();
+  });
+
+  it('qualifies the base of a variant in another namespace', () => {
+    const document = taskWithVariant({
+      variantNamespace: 'auth',
+      variantTable: 'epics',
+      variantColumns: { id: INT_COLUMN, scope: TEXT_COLUMN },
+      variantTableExtras: {
+        primaryKey: { columns: ['id'] },
+        foreignKeys: [{ ...LINK, source: { ...LINK.source, namespaceId: 'auth' } }],
+      },
+    })();
+    const epic = document.namespaces
+      .flatMap((namespace) => namespace.models)
+      .find((model) => model.name === 'Epic');
+    expect(epic?.attributes.map(attributeText)).toEqual([
+      '@@base(public.Task, "epic")',
+      '@@map("epics")',
+    ]);
   });
 
   it.each([

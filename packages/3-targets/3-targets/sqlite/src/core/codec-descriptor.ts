@@ -86,12 +86,6 @@ export interface SqliteCodecOptions<
     dataType: DataType,
     params: P,
   ) => (ctx: CodecInstanceContext) => C;
-  /**
-   * `false` leaves out the template's TypeScript type renderers, so a column of the adapted codec is
-   * typed from the codec type map. A target passes it when its codec type map declares no named type
-   * for the renderers to print.
-   */
-  readonly renderTypes?: false;
 }
 
 export type AdaptedSqliteCodecDescriptor<D extends AnyCodecDescriptorTemplate> = Pick<
@@ -129,12 +123,12 @@ class SqliteCodecDescriptorAdapter<
     >(options.dataType.params);
 
     const renderOutputType = descriptor.renderOutputType;
-    if (renderOutputType !== undefined && options.renderTypes !== false) {
+    if (renderOutputType !== undefined) {
       this.renderOutputType = (params) => renderOutputType.call(descriptor, params);
     }
 
     const renderInputType = descriptor.renderInputType;
-    if (renderInputType !== undefined && options.renderTypes !== false) {
+    if (renderInputType !== undefined) {
       this.renderInputType = (params) => renderInputType.call(descriptor, params);
     }
 

@@ -1,6 +1,6 @@
 ## Rules for every subagent
 
-- Worktree: `/Users/will/Projects/prisma/orm/.claude/worktrees/data-types-value-ownership-7ec585`, branch `tml-3531-data-type-values`. Never read, write or run anything outside it. Working files go under `wip/s3/` (gitignored), never `/tmp`.
+- Worktree: `/Users/will/Projects/prisma/orm/.claude/worktrees/data-types-column-types-handover-f176c8`, local branch `s3-data-type-values`, which is `tml-3531-data-type-values` on the `bot` remote (the old local branch of that name is checked out in another worktree). Never read, write or run anything outside this worktree. Working files go under `wip/s3/` (gitignored), never `/tmp`.
 - Run every `node`, `pnpm` and `git commit` through `mise exec --` (for example `mise exec -- pnpm typecheck:agent`). Save slow command output to a file under `wip/s3/` once and read the file; do not rerun to grep different lines (`.agents/rules/running-tests.mdc`). After changing a package's exported types, run that package's `pnpm build` before checking its consumers.
 - Kill only processes you started, by PID. Never `pkill -f` or kill by pattern: other sessions run tests on this machine.
 - Tests first, red before the change that makes them green. Test descriptions omit "should". Use arktype, not zod. Never `any`, never bare `as` in production code (`blindCast`/`castAs` from `@internal/utils/casts`), never `@ts-expect-error` outside negative type tests. No comments unless unavoidable. No backwards-compat shims or re-exports. No file extensions in imports. Don't branch on target; use adapters.

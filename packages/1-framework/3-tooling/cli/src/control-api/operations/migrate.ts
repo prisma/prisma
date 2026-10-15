@@ -13,6 +13,7 @@ import type {
 } from '@internal/framework-components/control';
 import {
   type AggregateContractSpace,
+  type AggregateMigrationEdgeRef,
   allStorageElementsExternal,
   buildFabricatedMigrationEdge,
   type ContractMarkerRecordLike,
@@ -30,6 +31,7 @@ import { findPathWithDecision } from '@internal/migration-tools/migration-graph'
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok } from '@internal/utils/result';
+import { join } from 'pathe';
 import type {
   MigrateFailure,
   MigratePathDecision,
@@ -295,6 +297,14 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       summary: applied.failure.summary,
       why: applied.failure.why,
       meta: applied.failure.meta,
+      ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
+      ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
+      ...ifDefined(
+        'failedMigration',
+        applied.failure.failedMigration === undefined
+          ? undefined
+          : failedMigrationOnDisk(applied.failure.failedMigration, migrationsDir),
+      ),
       ...ifDefined('cause', applied.failure.cause),
     };
     return notOk(failure);
@@ -516,6 +526,7 @@ function buildAtHeadResolution(args: {
     appliedStatements: [],
     dataLoss: [],
     accessWidening: [],
+    temporaryValues: [],
     migrationEdges: [
       buildFabricatedMigrationEdge({
         currentMarkerStorageHash: liveMarker?.storageHash,
@@ -662,5 +673,15 @@ export function buildPathNotFoundFailure(
     summary,
     why: `No migration edge connects the current state "${fromHash}" to the target "${targetHash}" in contract space "${spaceId}". The on-disk migration graph does not join the two, and migrate replays existing edges — it never invents one.`,
     meta: { spaceId, fromHash, targetHash, kind: 'pathUnreachable' },
+  };
+}
+
+function failedMigrationOnDisk(
+  failed: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef },
+  migrationsDir: string,
+): { readonly directory: string; readonly from: string } {
+  return {
+    directory: join(migrationsDir, failed.spaceId, failed.edge.dirName),
+    from: failed.edge.from,
   };
 }

@@ -196,7 +196,7 @@ Text an entry cannot parse is `PSL_INVALID_LITERAL`, and a tag no component regi
 
 A value position whose receiving type is fixed, such as a function's parameter, is typed in its attribute specification with the combinator `dataTypeValue`, which runs the same rule for one written value ([ADR 231](ADR%20231%20-%20Declarative%20attribute%20specifications.md)). `@default` runs the rule in lowering instead, because its receiving type comes from the column.
 
-The TypeScript builder is not a text surface: `.default(value)` hands the column's codec an application value that TypeScript has typed, and `toDataTypeValue` gives the value to store. A PSL schema and a TypeScript contract that write the same default store the same value, whichever codec the column uses.
+The TypeScript builder is not a text surface: `.default(value)` hands the column's codec an application value that TypeScript has typed, and `toDataTypeValue` gives the value to store. A PSL schema and a TypeScript contract that write the same default store the same value, whichever codec the column uses. `sql/expression` has no codec, so it has a TypeScript value of its own: `SqlExpression`, made by the `sql` template tag, whose `text` is the stored value. `.default()` stores it as the column's default expression, and every builder field that takes raw SQL takes only that value ([ADR 129](ADR%20129%20-%20Template-Tagged%20Literals%20for%20Extensions.md)).
 
 ## Reading and writing a stored value
 
@@ -398,6 +398,7 @@ model Place {
 
 - [ADR 184 — Codec-owned value serialization](ADR%20184%20-%20Codec-owned%20value%20serialization.md): superseded. A value and its stored form belong to the data type, and a codec converts the value to and from the application and the wire.
 - [ADR 129 — Tagged literals](ADR%20129%20-%20Template-Tagged%20Literals%20for%20Extensions.md): the tag syntax and its canonical text; a tag is how PSL writes a value of a data type.
+- [ADR 268 — Raw SQL is a value of the data type `sql/expression`](ADR%20268%20-%20Raw%20SQL%20is%20a%20value%20of%20the%20data%20type%20sql-expression.md): every place that holds raw SQL receives `sql/expression` through `dataTypeValue`.
 - [ADR 208 — Higher-order codecs for parameterized types](ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md): a data type declares and checks its parameters; a codec instance checks only the parameters it keeps for itself.
 - [ADR 231 — Declarative attribute specifications](ADR%20231%20-%20Declarative%20attribute%20specifications.md): `dataTypeValue`, and the line between values and grammar.
 - [ADR 235 — The schema differ walks two derived schema IRs](ADR%20235%20-%20The%20schema%20differ%20walks%20two%20derived%20schema%20IRs.md): introspection reads a reported default through the column's codec while it builds the database's side of the diff.

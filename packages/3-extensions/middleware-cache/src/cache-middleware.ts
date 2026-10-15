@@ -1,8 +1,9 @@
 import type {
-  AfterQueryResult,
+  Activity,
+  ActivityContext,
+  ActivityEndedResult,
   CrossFamilyMiddleware,
   ExecutionPlan,
-  RuntimeMiddlewareContext,
 } from '@internal/framework-components/runtime';
 import { cacheAnnotation } from './cache-annotation';
 import {
@@ -26,10 +27,7 @@ import {
  */
 export interface CacheMiddlewareOptions<TMeta = unknown> {
   readonly store?: CacheStore<TMeta, CachedRows>;
-  readonly deriveKey?: (
-    exec: ExecutionPlan,
-    ctx: RuntimeMiddlewareContext,
-  ) => string | Promise<string>;
+  readonly deriveKey?: (exec: ExecutionPlan, ctx: ActivityContext) => string | Promise<string>;
 }
 
 /**
@@ -56,19 +54,29 @@ export type CacheMiddleware<TMeta = unknown> = CrossFamilyMiddleware & {
  */
 export function deriveKeyFromContentHash(
   exec: ExecutionPlan,
-  ctx: RuntimeMiddlewareContext,
+  ctx: ActivityContext,
 ): Promise<string> {
   return ctx.contentHash(exec);
 }
 
 /**
- * A cache miss in flight, keyed on the post-lowering `exec` object in a `WeakMap`. Family runtimes
- * build a fresh `exec` per call; the runtime subsystem doc records that invariant. `entry` is the
- * empty entry `store.get` returned; `store.set(entry, rows)` is conditional on its version.
+ * A cache miss in flight, kept in the statement's `ctx.state`. `entry` is the empty entry
+ * `store.get` returned; `store.set(entry, rows)` is conditional on its version.
  */
 interface PendingMiss {
   readonly entry: CacheEntry<unknown, CachedRows>;
   readonly buffer: Record<string, unknown>[];
+}
+
+const pendingMiss = Symbol('cache.pendingMiss');
+
+function pendingOf(ctx: ActivityContext): PendingMiss | undefined {
+  const miss = ctx.state(pendingMiss)['miss'];
+  return isPendingMiss(miss) ? miss : undefined;
+}
+
+function isPendingMiss(value: unknown): value is PendingMiss {
+  return typeof value === 'object' && value !== null && 'entry' in value && 'buffer' in value;
 }
 
 /**
@@ -78,10 +86,10 @@ interface PendingMiss {
  * `bypass`, and the read runs in runtime scope (not inside a connection or transaction). The key
  * is the annotation's `key`, else `deriveKey(exec, ctx)`.
  *
- * - `interceptQuery` — on a hit, returns the stored rows and the driver does not run. On a miss,
- *   starts collecting rows.
+ * - `intercept.onQuery` — on a hit, returns the stored rows and the driver does not run. On a
+ *   miss, starts collecting rows.
  * - `onRow` — collects each row of a miss.
- * - `afterQuery` — when the driver completed the read, calls `store.set(entry, rows)` with the
+ * - `activityEnded` — when the driver completed the read, calls `store.set(entry, rows)` with the
  *   entry `store.get` returned, which stores only if the key's version has not moved. If an
  *   `unset` moved it meanwhile, `set` returns `false` and the middleware logs
  *   `middleware.cache.store-skipped`.
@@ -104,11 +112,9 @@ export function createCacheMiddleware<TMeta = unknown>(
 ): CacheMiddleware<TMeta> {
   const store: CacheStore<unknown, CachedRows> = options?.store ?? createInMemoryCacheStore();
   const deriveKey = options?.deriveKey ?? deriveKeyFromContentHash;
-  const pending = new WeakMap<object, PendingMiss>();
-
-  async function interceptQuery(
+  async function onQuery(
     exec: ExecutionPlan,
-    ctx: RuntimeMiddlewareContext,
+    ctx: ActivityContext,
   ): Promise<{ readonly rows: Iterable<Record<string, unknown>> } | undefined> {
     if (ctx.scope !== 'runtime') {
       return undefined;
@@ -125,30 +131,34 @@ export function createCacheMiddleware<TMeta = unknown>(
       return { rows: entry.data.value };
     }
 
-    pending.set(exec, { entry, buffer: [] });
+    ctx.state(pendingMiss)['miss'] = { entry, buffer: [] };
     ctx.log.debug?.({ event: 'middleware.cache.miss', middleware: 'cache', key });
     return undefined;
   }
 
   async function onRow(
     row: Record<string, unknown>,
-    exec: ExecutionPlan,
-    _ctx: RuntimeMiddlewareContext,
+    _exec: ExecutionPlan,
+    ctx: ActivityContext,
   ): Promise<void> {
-    pending.get(exec)?.buffer.push(row);
+    pendingOf(ctx)?.buffer.push(row);
   }
 
-  async function afterQuery(
-    exec: ExecutionPlan,
-    result: AfterQueryResult,
-    ctx: RuntimeMiddlewareContext,
+  async function activityEnded(
+    _activity: Activity,
+    result: ActivityEndedResult,
+    ctx: ActivityContext,
   ): Promise<void> {
-    const miss = pending.get(exec);
+    const miss = pendingOf(ctx);
     if (miss === undefined) {
       return;
     }
-    pending.delete(exec);
-    if (!result.completed || result.source !== 'driver') {
+    delete ctx.state(pendingMiss)['miss'];
+    if (
+      result.kind !== 'statement' ||
+      result.outcome !== 'succeeded' ||
+      result.source !== 'driver'
+    ) {
       return;
     }
     const stored = await store.set(miss.entry, miss.buffer);
@@ -170,5 +180,5 @@ export function createCacheMiddleware<TMeta = unknown>(
     await store.unset({ keys, meta: target.meta });
   }
 
-  return { name: 'cache', interceptQuery, onRow, afterQuery, invalidate };
+  return { name: 'cache', intercept: { onQuery }, onRow, activityEnded, invalidate };
 }

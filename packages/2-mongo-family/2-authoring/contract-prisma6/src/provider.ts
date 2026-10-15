@@ -144,6 +144,7 @@ export function prisma6Contract(
             authoringContributions: context.authoringContributions,
             codecLookup: context.codecLookup,
             dataTypes: context.dataTypes,
+            defaultNamespaceId: context.defaultNamespaceId,
           });
           if (!interpreted.ok) return interpreted;
           contract = applySpecifierDefaultControlPolicy(

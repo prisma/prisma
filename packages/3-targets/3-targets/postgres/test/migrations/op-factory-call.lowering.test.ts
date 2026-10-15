@@ -13,6 +13,8 @@ import {
   rlsPolicyExistsAst,
   tableExistsAst,
 } from '../../src/contract-free/checks';
+import { alterColumnTypeAction, alterTable } from '../../src/contract-free/ddl';
+import { postgresDataTypes } from '../../src/core/data-types';
 import {
   PostgresAlterIndexRename,
   PostgresCreateIndex,
@@ -21,6 +23,7 @@ import {
 import {
   AddColumnCall,
   AddNativeEnumValueCall,
+  AddRequiredColumnToEmptyTableCall,
   AlterColumnTypeCall,
   CreateExtensionCall,
   CreateIndexCall,
@@ -147,15 +150,19 @@ describe('AddColumnCall', () => {
     ]);
   });
 
-  it('renders a function default holding both quote kinds as a template literal', () => {
+  it('renders a function default holding both quote kinds as a sql template', () => {
     const call = new AddColumnCall(
       'public',
       'user',
       col('label', 'text', { default: fn(`concat("prefix", 'user')`) }),
     );
     expect(call.renderTypeScript()).toBe(
-      'this.addColumn({ schema: "public", table: "user", column: col("label", "text", { default: fn(`concat("prefix", \'user\')`) }) })',
+      'this.addColumn({ schema: "public", table: "user", column: col("label", "text", { default: fn(sql`concat("prefix", \'user\')`) }) })',
     );
+    expect(call.importRequirements()).toContainEqual({
+      moduleSpecifier: '@internal/postgres/migration',
+      symbol: 'sql',
+    });
   });
 });
 
@@ -190,22 +197,36 @@ describe('DropColumnCall', () => {
 });
 
 describe('AlterColumnTypeCall', () => {
-  const options = {
-    qualifiedTargetType: 'bigint',
-    formatTypeExpected: 'bigint',
-    rawTargetTypeForLabel: 'bigint',
-  };
+  const alter = (
+    overrides: Partial<ConstructorParameters<typeof AlterColumnTypeCall>[0]> = {},
+  ): AlterColumnTypeCall =>
+    new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'user',
+      columnName: 'age',
+      type: 'int8',
+      dataTypes: postgresDataTypes,
+      ...overrides,
+    });
 
-  it('lowers typed checks and alters the column type with an implicit cast USING clause', async () => {
+  it('lowers typed checks and a typed ALTER COLUMN TYPE node with no USING text', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
+    const call = alter();
     const op = await call.toOp(lowerer);
 
-    expect(received).toHaveLength(3);
+    expect(received).toHaveLength(4);
+    expect(received[3]).toEqual(
+      alterTable({
+        schema: 'public',
+        table: 'user',
+        actions: [alterColumnTypeAction({ columnName: 'age', type: 'int8' })],
+      }),
+    );
     expect(op.execute).toEqual([
       {
         description: 'alter type of "age"',
-        sql: 'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE bigint USING "age"::bigint',
+        sql: 'LOWERED 4',
+        meta: { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
       },
     ]);
     expect(op.precheck).toEqual([
@@ -219,62 +240,189 @@ describe('AlterColumnTypeCall', () => {
       },
     ]);
     expect(op.meta).toEqual({ warning: 'TABLE_REWRITE' });
-    expect(call.label).toBe('Alter type of "user"."age" to bigint');
+    expect(call.label).toBe('Alter type of "user"."age" to int8');
   });
 
-  it('is destructive unless the planner says the type change is a safe widening', async () => {
+  it('marks a destructive cast of its own as a cast, and a USING conversion as a conversion', async () => {
     const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
-    const op = await call.toOp(lowerer);
-    expect([call.operationClass, op.operationClass]).toEqual(['destructive', 'destructive']);
+    const metaOf = async (call: AlterColumnTypeCall) => (await call.toOp(lowerer)).execute[0]?.meta;
+    expect([
+      await metaOf(alter()),
+      await metaOf(alter({ operationClass: 'widening' })),
+      await metaOf(alter({ using: { kind: 'sql', sql: '"age"::int8' } })),
+      await metaOf(
+        alter({ using: { kind: 'sql', sql: '"age"::int8' }, operationClass: 'destructive' }),
+      ),
+    ]).toEqual([
+      { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
+      undefined,
+      { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
+      { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
+    ]);
   });
 
-  it('is widening when constructed as a safe widening, and renders the class', async () => {
-    const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options, 'widening');
-    const op = await call.toOp(lowerer);
-    expect([call.operationClass, op.operationClass]).toEqual(['widening', 'widening']);
-    expect(call.renderTypeScript()).toContain('operationClass: "widening"');
+  it('is a data change when it converts with a USING clause and nothing says otherwise', () => {
+    expect([
+      alter({ using: { kind: 'sql', sql: '"age"::int8' } }).operationClass,
+      alter({ using: { kind: 'placeholder', slot: 'User.age:convert' } }).operationClass,
+      alter({ using: { kind: 'sql', sql: '"age"::int8' }, operationClass: 'destructive' })
+        .operationClass,
+    ]).toEqual(['data', 'data', 'destructive']);
   });
 
-  it('uses an explicit USING clause when provided', async () => {
+  it('is destructive unless the planner says the type change is a safe widening or a conversion', async () => {
     const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      ...options,
-      using: 'age::bigint * 2',
-    });
-    const op = await call.toOp(lowerer);
-    expect(op.execute[0]?.sql).toBe(
-      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE bigint USING age::bigint * 2',
+    const classes = await Promise.all(
+      [
+        alter(),
+        alter({ operationClass: 'widening' }),
+        alter({ operationClass: 'data', using: { kind: 'sql', sql: '"age"::int8' } }),
+      ].map(async (call) => [call.operationClass, (await call.toOp(lowerer)).operationClass]),
+    );
+    expect(classes).toEqual([
+      ['destructive', 'destructive'],
+      ['widening', 'widening'],
+      ['data', 'data'],
+    ]);
+  });
+
+  it('passes an explicit USING text to the ALTER COLUMN TYPE node', async () => {
+    const { lowerer, received } = recordingCheckLowerer();
+    await alter({ using: { kind: 'sql', sql: `nullif("age", ';')::int8` } }).toOp(lowerer);
+    expect(received[3]).toEqual(
+      alterTable({
+        schema: 'public',
+        table: 'user',
+        actions: [
+          alterColumnTypeAction({
+            columnName: 'age',
+            type: 'int8',
+            using: `nullif("age", ';')::int8`,
+          }),
+        ],
+      }),
     );
   });
 
-  it('ends a USING clause containing a line comment with a line break', async () => {
-    const { lowerer } = recordingCheckLowerer();
-    const call = new AlterColumnTypeCall('public', 'user', 'age', {
-      ...options,
-      using: 'age::bigint -- widen',
+  it('refuses a USING clause that could end or extend the statement, naming the call', () => {
+    const refusal = (sql: string) => {
+      try {
+        alter({ using: { kind: 'sql', sql } });
+        return undefined;
+      } catch (error) {
+        return error;
+      }
+    };
+    expect(refusal('"age"::int8; DROP TABLE "user"')).toMatchObject({
+      code: 'MIGRATION.SQL_EXPRESSION_INVALID',
+      message:
+        'alterColumnType({ schema: "public", table: "user", column: "age" }): using "\\"age\\"::int8; DROP TABLE \\"user\\"" holds a semicolon outside a quoted literal, which could end or extend the ALTER COLUMN … TYPE statement it is written into',
     });
-    const op = await call.toOp(lowerer);
-    expect(op.execute[0]?.sql).toBe(
-      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE bigint USING age::bigint -- widen\n',
+    expect(
+      ['age::int8 -- widen', '"age" FROM "user"', '1 UNION SELECT 2', '"age"::int8, DROP "x"'].map(
+        (sql) => (refusal(sql) as { code?: string } | undefined)?.code,
+      ),
+    ).toEqual(Array(4).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
+  });
+
+  it('reads USING with Postgres quoting: E strings with backslash escapes, no bracket or backtick quotes', () => {
+    const refusedFor = (sql: string) => {
+      try {
+        alter({ using: { kind: 'sql', sql } });
+        return undefined;
+      } catch (error) {
+        return (error as { meta?: { refused?: string } }).meta?.refused;
+      }
+    };
+    expect(
+      [
+        `ARRAY[']']::int8[]`,
+        `E'it\\'s'`,
+        `E'\\'' ; DROP TABLE "User"; --'`,
+        '`a;b`',
+        `"name" IS DISTINCT FROM 'al'`,
+        `"name" IS NOT DISTINCT FROM 'al'`,
+      ].map(refusedFor),
+    ).toEqual([
+      undefined,
+      undefined,
+      'a semicolon outside a quoted literal',
+      'a semicolon outside a quoted literal',
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it('advises parentheses when USING is refused', () => {
+    expect(() => alter({ using: { kind: 'sql', sql: '"age" FROM "user"' } })).toThrow(
+      expect.objectContaining({
+        fix: expect.stringContaining('wrap it in parentheses'),
+      }),
+    );
+  });
+
+  it('is an unfilled placeholder while its USING slot is unfilled', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const call = alter({
+      operationClass: 'data',
+      using: { kind: 'placeholder', slot: 'User.age:convert' },
+    });
+    await expect(call.toOp(lowerer)).rejects.toMatchObject({
+      code: 'MIGRATION.UNFILLED_PLACEHOLDER',
+    });
+  });
+
+  it('refuses a type no data type of the stack reads, naming the call', () => {
+    expect(() => alter({ type: 'int9' })).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        meta: {
+          type: 'int9',
+          where: 'alterColumnType({ schema: "public", table: "user", column: "age" })',
+        },
+      }),
     );
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
-    await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
+    await expect(async () => alter().toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 
-  it('renders this.alterColumnType with the schema/table/column and options fields', () => {
-    const call = new AlterColumnTypeCall('public', 'user', 'age', options);
-    const ts = call.renderTypeScript();
-    expect(ts).toContain('this.alterColumnType({ schema: "public", table: "user", column: "age"');
-    expect(ts).toContain('qualifiedTargetType: "bigint"');
-    expect(ts).toContain('formatTypeExpected: "bigint"');
-    expect(ts).toContain('rawTargetTypeForLabel: "bigint"');
-    expect(ts).not.toContain('operationClass');
-    expect(call.importRequirements()).toEqual([]);
+  it('renders this.alterColumnType with plain options, and the class when it is not the default', () => {
+    expect([
+      alter().renderTypeScript(),
+      alter({ operationClass: 'widening' }).renderTypeScript(),
+      alter({
+        using: { kind: 'sql', sql: '"age"::int8' },
+        operationClass: 'destructive',
+      }).renderTypeScript(),
+    ]).toEqual([
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8" })',
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", operationClass: "widening" })',
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: sql`"age"::int8`, operationClass: "destructive" })',
+    ]);
+    expect(alter().importRequirements()).toEqual([]);
+  });
+
+  it('renders an unfilled USING slot as a placeholder call, and imports placeholder', () => {
+    const call = alter({ using: { kind: 'placeholder', slot: 'User.age:convert' } });
+    expect(call.renderTypeScript()).toBe(
+      'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: placeholder("User.age:convert") })',
+    );
+    expect(call.importRequirements()).toEqual([expect.objectContaining({ symbol: 'placeholder' })]);
+  });
+});
+
+describe('AddRequiredColumnToEmptyTableCall', () => {
+  it('marks its empty-table precheck as the check a new required column fails on a table with rows', async () => {
+    const { lowerer } = recordingCheckLowerer();
+    const op = await new AddRequiredColumnToEmptyTableCall('public', 'user', 'code', 'text').toOp(
+      lowerer,
+    );
+    expect(op.precheck.map(({ meta }) => meta)).toEqual([
+      undefined,
+      { requiredColumn: { table: 'user', column: 'code', reason: 'newField' } },
+    ]);
   });
 });
 
@@ -293,7 +441,12 @@ describe('SetNotNullCall', () => {
     ]);
     expect(op.precheck).toEqual([
       { description: 'ensure column "email" exists', sql: 'LOWERED 1', params: ['p1'] },
-      { description: 'ensure no NULL values in "email"', sql: 'LOWERED 3', params: ['p3'] },
+      {
+        description: 'ensure no NULL values in "email"',
+        sql: 'LOWERED 3',
+        params: ['p3'],
+        meta: { requiredColumn: { table: 'user', column: 'email', reason: 'nullValues' } },
+      },
     ]);
     expect(op.postcheck).toEqual([
       { description: 'verify column "email" is NOT NULL', sql: 'LOWERED 4', params: ['p4'] },
@@ -449,11 +602,11 @@ describe('SetDefaultCall', () => {
     });
   });
 
-  it('renders a default holding both quote kinds as a template literal', () => {
+  it('renders a default holding both quote kinds as a sql template', () => {
     const meta = col('meta', 'jsonb', { default: fn(`'{"a": 1}'::jsonb`) });
     const call = new SetDefaultCall('public', 'user', meta);
     expect(call.renderTypeScript()).toBe(
-      'this.setDefault({ schema: "public", table: "user", column: col("meta", "jsonb", { default: fn(`\'{"a": 1}\'::jsonb`) }) })',
+      'this.setDefault({ schema: "public", table: "user", column: col("meta", "jsonb", { default: fn(sql`\'{"a": 1}\'::jsonb`) }) })',
     );
   });
 });
@@ -720,11 +873,14 @@ describe('CreateIndexCall', () => {
     expect(ddlNode.elements).toEqual({ expression: opaqueSql('lower(email)') });
     expect(op.execute[0]?.sql).toBe('LOWERED 1');
     expect(call.renderTypeScript()).toBe(
-      'this.createIndex({ schema: "public", table: "user", index: "user_email_eq", expression: "lower(email)", extras: { where: "deleted_at IS NULL", unique: true } })',
+      'this.createIndex({ schema: "public", table: "user", index: "user_email_eq", expression: sql`lower(email)`, extras: { where: sql`deleted_at IS NULL`, unique: true } })',
     );
+    expect(call.importRequirements()).toEqual([
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'sql' },
+    ]);
   });
 
-  it('renders an expression and a where holding both quote kinds as template literals', () => {
+  it('renders an expression and a where holding both quote kinds as sql templates', () => {
     const call = new CreateIndexCall(
       'public',
       'user',
@@ -733,7 +889,7 @@ describe('CreateIndexCall', () => {
       { where: `"kind" <> 'guest'` },
     );
     expect(call.renderTypeScript()).toBe(
-      'this.createIndex({ schema: "public", table: "user", index: "user_kind_idx", expression: `("kind" || \'x\')`, extras: { where: `"kind" <> \'guest\'` } })',
+      'this.createIndex({ schema: "public", table: "user", index: "user_kind_idx", expression: sql`("kind" || \'x\')`, extras: { where: sql`"kind" <> \'guest\'` } })',
     );
   });
 });
@@ -948,6 +1104,25 @@ describe('DataTransformCall', () => {
     expect(ts).toContain('run: () => placeholder("backfill-status:run")');
   });
 
+  it('renders the column a backfill fills, so its operation can name the rows it missed', () => {
+    const call = new DataTransformCall(
+      'backfill-user-title',
+      'User.title:check',
+      'User.title:run',
+      'data',
+      { schema: 'public', table: 'user', column: 'title' },
+    );
+    expect(call.renderTypeScript()).toBe(
+      [
+        'this.dataTransform(endContract, "backfill-user-title", {',
+        '  backfillsColumn: { schema: "public", table: "user", column: "title" },',
+        '  check: () => placeholder("User.title:check"),',
+        '  run: () => placeholder("User.title:run"),',
+        '})',
+      ].join('\n'),
+    );
+  });
+
   it('importRequirements() references only the placeholder facade import (endContract comes from the scaffold)', () => {
     const call = new DataTransformCall('Backfill status', 'check', 'run');
     expect(call.importRequirements()).toEqual([
@@ -1072,12 +1247,14 @@ describe('CreatePostgresRlsPolicyCall', () => {
         '  namespaceId: "public",',
         '  operation: "select",',
         '  roles: ["authenticated"],',
-        '  using: "author_id = current_user_id()",',
+        '  using: sql`author_id = current_user_id()`,',
         '  permissive: true,',
         '} })',
       ].join('\n'),
     );
-    expect(call.importRequirements()).toEqual([]);
+    expect(call.importRequirements()).toEqual([
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'sql' },
+    ]);
   });
 
   it('renders an exact policy literal as the exact naming arm', () => {
@@ -1103,14 +1280,14 @@ describe('CreatePostgresRlsPolicyCall', () => {
         '  namespaceId: "public",',
         '  operation: "select",',
         '  roles: ["app_user"],',
-        '  using: "(tenant_id = 1)",',
+        '  using: sql`(tenant_id = 1)`,',
         '  permissive: true,',
         '} })',
       ].join('\n'),
     );
   });
 
-  it('renders using and withCheck holding both quote kinds as template literals', () => {
+  it('renders using and withCheck holding both quote kinds as sql templates', () => {
     const call = new CreatePostgresRlsPolicyCall(
       'public',
       'post',
@@ -1133,8 +1310,8 @@ describe('CreatePostgresRlsPolicyCall', () => {
         '  namespaceId: "public",',
         '  operation: "all",',
         '  roles: ["app_user"],',
-        '  using: `"status" = \'published\'`,',
-        '  withCheck: `"status" <> \'archived\'`,',
+        '  using: sql`"status" = \'published\'`,',
+        '  withCheck: sql`"status" <> \'archived\'`,',
         '  permissive: false,',
         '} })',
       ].join('\n'),

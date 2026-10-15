@@ -6,6 +6,274 @@ Changelog tracking starts at **v0.12.0**, the first release cut after this conve
 
 <!-- New release entries go here, newest first, each mirroring docs/releases/v<version>.md under a `## v<version>` header. -->
 
+## v8.0.0-rc.18
+
+Raw SQL in a contract is now always a `sql` literal or value, a full-text index can span several weighted fields and is searched from the ORM by naming it, and middleware observes each statement and transaction as an activity. PSL gains mixins, the SQL ORM gains `whereUnique` and `firstOrThrow`, and MongoDB migrations carry out `--rename`.
+
+The upgrade recipes for this hop: the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/) and the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). Each breaking change below names the change ids to look for in them.
+
+## Breaking changes
+
+- **Raw SQL in a contract is a `sql` literal.** In PSL, `@@index(where:)`, `@@index(expression:)`, `@@fullTextIndex(where:)`, `@@check(expression:)` and a policy's `using` and `withCheck` take a `sql` literal, and a quoted string is refused with `PSL_VALUE_TYPE_INCOMPATIBLE`. The app recipe ships a script that rewrites every `.prisma` file. In a TypeScript contract the same fields take a `sql` value, and a string does not compile; migration files keep strings. A text with shared indentation, blank lines at its ends or CRLF line breaks is stored as its canonical text, which changes the storage hash once. See `raw-sql-is-a-sql-literal`, `builder-raw-sql-is-a-sql-value`, `psl-storage-hash-may-change-once` and `ts-storage-hash-may-change-once` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30550](https://github.com/prisma/orm/pull/30550), [#30558](https://github.com/prisma/orm/pull/30558))
+
+  Before:
+
+  ```prisma
+  @@index([email], where: "(archived_at IS NULL)", name: "users_email_active")
+  ```
+
+  After:
+
+  ```prisma
+  @@index([email], where: sql`(archived_at IS NULL)`, name: "users_email_active")
+  ```
+
+- **Middleware hooks are activity hooks.** The runtime runs every statement and transaction as an activity. `beforeQuery` and `beforeExecute` become `beforeEncode`; `interceptQuery` and `interceptExecute` become `intercept.onQuery` and `intercept.onExecute`; `afterQuery` and `afterExecute` become `activityEnded`; `afterTransaction` becomes `activityFinalized`. `RuntimeMiddlewareContext` is now `ActivityContext`, and `ctx.planExecutionId` is replaced by `activity.id`. `activityEnded` also fires for a statement the caller stopped reading and for one that failed before it ran, so a metrics middleware checks `result.outcome`. See `middleware-hooks-are-activity-hooks` and `every-started-statement-is-ended-and-finalized` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/), and `statement-runners-replace-middleware-runners` in the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30703](https://github.com/prisma/orm/pull/30703))
+
+  Before:
+
+  ```ts
+  async afterQuery(plan, result, ctx) {
+    if (result.latencyMs > 250) ctx.log.warn({ sql: plan.sql, rowCount: result.rowCount });
+  },
+  ```
+
+  After:
+
+  ```ts
+  async beforeEncode(plan, ctx) {
+    ctx.state(statementSql)['sql'] = plan.sql;
+  },
+  async activityEnded(activity, result, ctx) {
+    if (result.kind !== 'statement' || result.latencyMs <= 250) return;
+    ctx.log.warn({
+      sql: ctx.state(statementSql)['sql'],
+      ...(result.returns === 'rows' ? { rowCount: result.rowCount } : {}),
+    });
+  },
+  ```
+
+- **A full-text index is stored as data.** `@@fullTextIndex` and `fullTextIndex` store an index of type `fullText` with its columns, weight groups and language, not a SQL expression. The schema source does not change, but the index's generated name and the storage hash do: re-emit the contract and run `prisma migration plan`, which renames the index in place. Avoid `db update` for a large index, because it drops and rebuilds it. See `re-emit-contracts-with-a-full-text-index` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/) and `render-full-text-index-document-takes-a-definition` in the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30562](https://github.com/prisma/orm/pull/30562))
+
+  Before:
+
+  ```json
+  { "expression": "to_tsvector('english', \"title\")", "name": "post_title_search_724b05e5", "type": "gin" }
+  ```
+
+  After:
+
+  ```json
+  { "columns": ["title"], "name": "post_title_search_e0dd1131", "options": { "language": "english", "weightGroups": [["title"]] }, "type": "fullText" }
+  ```
+
+- **A base model lists its variants by discriminator value.** In `contract.json` and `contract.d.ts`, a polymorphic base's `variants` is keyed by discriminator value, and each entry names the variant model and its namespace. A contract in the previous form is refused with `CONTRACT.VALIDATION_FAILED`. Re-emit the contract and rewrite `variants` in the snapshots under `migrations/snapshots/`; the storage hash does not change. See `re-emit-contracts-with-polymorphic-models` and `read-variants-by-discriminator-value` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30696](https://github.com/prisma/orm/pull/30696))
+
+  Before:
+
+  ```json
+  "variants": { "Bug": { "value": "bug" }, "Feature": { "value": "feature" } }
+  ```
+
+  After:
+
+  ```json
+  "variants": { "bug": { "model": "Bug", "namespace": "public" }, "feature": { "model": "Feature", "namespace": "public" } }
+  ```
+
+- **The SQL ORM client accepts only field names.** Every name passed to the SQL ORM client must be a field of the model, or of the variant the collection is narrowed to; any other name, including a column name that differs from its field name, throws `ORM.FIELD_UNKNOWN`. Rows no longer carry a column no field maps. See `orm-refuses-names-that-are-not-fields` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30667](https://github.com/prisma/orm/pull/30667))
+
+  Before:
+
+  ```ts
+  await db.orm.Post.where({ user_id: 1 }).all();
+  ```
+
+  After:
+
+  ```ts
+  await db.orm.Post.where({ userId: 1 }).all();
+  ```
+
+- **The query fragment types are renamed, and a fragment is made from the model's root collection.** `Fragment` is now `QueryFragment` and `FieldFragment` is now `DeclaredFieldsFragment`. `collection.fragment(body)` throws `ORM.ARGUMENT_INVALID` on a collection with chained calls, which it used to ignore; chain on the collection directly, or move the calls into the fragment's body. See `fragment-types-are-renamed` and `fragment-is-made-from-the-root-collection` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30652](https://github.com/prisma/orm/pull/30652), [#30673](https://github.com/prisma/orm/pull/30673))
+
+  Before:
+
+  ```ts
+  const recentSummary = db.orm.public.Post.orderBy((p) => p.id.desc()).fragment((posts) =>
+    posts.select('id', 'title'),
+  );
+  ```
+
+  After:
+
+  ```ts
+  const recentSummary = db.orm.public.Post.fragment((posts) =>
+    posts.orderBy((p) => p.id.desc()).select('id', 'title'),
+  );
+  ```
+
+- **`migration plan` asks before a lossy type change, and writes placeholders only when asked.** On Postgres and SQLite, a type change that can lose values fails with `CLI.CONSENT_REQUIRED` where nobody can answer, until `--convert <Model.field>` (write the conversion yourself) or `--delete <Model.field>` (accept the database's cast) answers it. A new required field gets a temporary value in existing rows; pass `--backfill <Model.field>` to fill them yourself. In a hand-written Postgres `migration.ts`, `alterColumnType` takes `type` and `using` directly instead of an `options` object. See `lossy-type-changes-ask`, `placeholders-only-when-asked` and `postgres-alter-column-type-plain-options` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30695](https://github.com/prisma/orm/pull/30695))
+
+- **Removing a field from a MongoDB model asks first.** The plan now removes the field from every document that holds it, and `migration plan` and `db update` ask about it; add `--delete <Model>.<field>`, or `--rename` if the field was renamed, to scripts and CI. A MongoDB plan's preview writes `db.getCollection("users")` where it wrote `db.users`, and `node migration.ts` uses the config that owns the migration. See `mongo-removed-field-asks`, `mongo-preview-get-collection` and `migration-ts-finds-its-config` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30691](https://github.com/prisma/orm/pull/30691))
+
+- **A Prisma 7 schema's `@ignore` and `@@ignore` objects stay in the contract.** `prisma7Schema()` keeps their columns, tables, keys and indexes in storage, so a schema that uses them gets a new storage hash, and a schema that loaded only because they were dropped can be refused. Emit the contract, then sign each database, or plan a migration first if Prisma 8 already manages your migrations. See `prisma7-ignore-keeps-storage` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30672](https://github.com/prisma/orm/pull/30672))
+
+- **Top-level PSL declarations belong to the default namespace.** A top-level declaration and one inside `namespace public { … }` on Postgres share one set of names, so the same name declared both ways is `PSL_DUPLICATE_DECLARATION`, and a top-level declaration cannot be named like the default namespace (`public`, or `unbound` on SQLite and MongoDB). See `psl-default-namespace-duplicate-declaration` and `psl-default-namespace-name-is-reserved` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30700](https://github.com/prisma/orm/pull/30700))
+
+- **Stricter types for TypeScript contracts and the SQL ORM.** A contract built with `defineContract` types its namespaces with exactly the keys it has at runtime, and its ORM rows with each field's codec type instead of `unknown`. A model with no fields has no keys, so reading or writing one fails to compile; generic update code types its data as `ScalarUpdateInput`. `conflictOn`, `connect` and `disconnect` no longer accept `null` for a nullable unique column, and `prepared.all` and `prepared.aggregate` must be called on the `prepared` object. See `typescript-contract-namespace-keys`, `model-with-no-fields-has-no-keys`, `generic-update-data-uses-update-input-type`, `unique-criterion-rejects-null` and `prepared-all-and-aggregate-need-their-receiver` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30663](https://github.com/prisma/orm/pull/30663), [#30705](https://github.com/prisma/orm/pull/30705), [#30670](https://github.com/prisma/orm/pull/30670))
+
+- **`db.nativeEnums` lists native enum types only.** A domain enum (`enum` block or `enumType()`) is no longer listed there; read it through `db.enums`, which holds its values as a query returns them. See `native-enums-leave-out-domain-enums` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30661](https://github.com/prisma/orm/pull/30661))
+
+- **A MongoDB enum member must be written as its codec stores it.** A member that your own codec stores as a value it reads back differently is refused, with a message that says what to write. The built-in MongoDB codecs are not affected. See `mongo-enum-member-written-as-stored` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30711](https://github.com/prisma/orm/pull/30711))
+
+- **Extension authors: SQL ORM collection state, MongoDB migration operations and the PSL symbol table changed.** `CollectionState` requires `tables`, built with `createCollectionTables`, and names a variant by its discriminator value. The MongoDB DDL alphabet gains `RenameCollectionCommand`, and `MongoDataTransformOperation` is now `MongoDmlOperation`. `buildSymbolTable` requires `defaultNamespaceId`, and the symbol table places top-level declarations in its default namespace. See `collection-state-carries-tables`, `sql-orm-state-names-a-variant-by-value`, `mongo-ddl-rename-collection`, `mongo-dml-operations` and `symbol-table-has-no-top-level` in the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.18/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.17-to-8.0.0-rc.18/). ([#30646](https://github.com/prisma/orm/pull/30646), [#30696](https://github.com/prisma/orm/pull/30696), [#30691](https://github.com/prisma/orm/pull/30691), [#30700](https://github.com/prisma/orm/pull/30700))
+
+## Features
+
+- PSL mixins: declare shared fields, attributes or enum members once with `model mixin`, `enum mixin` or the mixin form of another block, and include them with `+Name`. The language server completes, navigates to, hovers, renames and colours them. ([#30675](https://github.com/prisma/orm/pull/30675), [#30694](https://github.com/prisma/orm/pull/30694), [#30679](https://github.com/prisma/orm/pull/30679), [#30681](https://github.com/prisma/orm/pull/30681))
+- A Postgres full-text index can cover several fields in weight groups, strongest first: `@@fullTextIndex([[title, subtitle], body], name: "post_search")`. ([#30562](https://github.com/prisma/orm/pull/30562))
+- ORM `where` and `orderBy` callbacks receive `{ fns, indexes }` as a second argument, so a query can search a weighted full-text index by naming it: `fns.fullTextMatches(indexes.post_search, q)` and `fns.fullTextRank(indexes.post_search, q)`. ([#30676](https://github.com/prisma/orm/pull/30676))
+- `whereUnique` on SQL ORM collections addresses at most one record by a unique key; a many-record call after it, such as `all()` or `limit()`, is a compile error. ([#30670](https://github.com/prisma/orm/pull/30670))
+- `firstOrThrow()` on SQL and MongoDB ORM collections and on the SQL prepared view reads one row with `LIMIT 1` and rejects with `RUNTIME.NO_ROWS` when nothing matches. ([#30644](https://github.com/prisma/orm/pull/30644))
+- On MongoDB, `migration plan` and `db update` carry out `--rename`: a model rename renames its collection and keeps its documents, indexes and validator, and a field rename renames the field in every document. ([#30691](https://github.com/prisma/orm/pull/30691))
+- `postgres()`, `postgresServerless()`, `sqlite()` and `supabase()` take a `log` option, so lint warnings, contract-marker warnings and errors swallowed from middleware hooks reach your logger. ([#30707](https://github.com/prisma/orm/pull/30707))
+- A polymorphic base can have variants in other namespaces: `@@base(a.Task, "chore")`. ([#30696](https://github.com/prisma/orm/pull/30696))
+- The `sql` tag interpolates other `sql` values, so predicates compose as `` sql`${owner} AND deleted_at IS NULL` `` instead of joined strings. ([#30558](https://github.com/prisma/orm/pull/30558))
+- `prisma migration plan` writes a contract's raw SQL into `migration.ts` as `sql` values, as a TypeScript contract writes it. ([#30677](https://github.com/prisma/orm/pull/30677))
+- The PSL language server renames symbols, and go-to-definition, hover, find references and rename work on the entity name inside a type-constructor argument, such as `OrderStatus` in `pg.enum(OrderStatus)`. ([#30633](https://github.com/prisma/orm/pull/30633), [#30659](https://github.com/prisma/orm/pull/30659))
+
+## Fixes
+
+- `prisma db verify --strict` passes on a database Prisma 7 built, and `prisma contract infer` no longer prints a model for Prisma 7's `_prisma_migrations` table. ([#30671](https://github.com/prisma/orm/pull/30671))
+- A repeated `db update` on a MongoDB database with a time-series collection no longer fails with "Cannot change immutable collection option 'timeseries'". ([#30691](https://github.com/prisma/orm/pull/30691))
+- The `budgets()` middleware enforces `maxRows` on the rows a query returns; the check never ran before, so a read over the limit now fails with `BUDGET.ROWS_EXCEEDED`. ([#30703](https://github.com/prisma/orm/pull/30703))
+- `update({})` resolves the first matching row and `updateAll({})` yields the matching rows, where they returned `null` and no rows. ([#30680](https://github.com/prisma/orm/pull/30680))
+- Two enum members are refused as duplicates only when their stored values are equal, so dates a millisecond apart and distinct object members are accepted. ([#30661](https://github.com/prisma/orm/pull/30661))
+- A migration that makes a field required while rows have no value for it fails with a summary that counts those rows and names the fix. ([#30695](https://github.com/prisma/orm/pull/30695))
+
+## v8.0.0-rc.17
+
+Migrations no longer lose data without being told to: `prisma migration plan` and `prisma db update` ask about each model or field a plan would drop, answered with `--delete` or with the new `--rename`, which keeps the rows. The ORM client gains row locks, `apply` and `scope` are renamed to `with` and `fragment`, and `db.enums` holds each member as a query returns it.
+
+The upgrade recipes for this hop: the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/) and the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). Each breaking change below names the change ids to look for in them.
+
+## Breaking changes
+
+- **`--confirm` no longer consents to data loss.** `prisma migration plan` and `prisma db update` ask one question for each model, field or table a plan would lose data from, before they write or apply anything. Answer with `--delete <subject>` to let the data go, or `--rename <old>:<new>` to keep it. `db update` also asks before an operation that widens who can read or write a model's rows, such as dropping a row-level-security policy, answered with `--allow <Model>`. Where nobody can answer, the command fails with `CLI.CONSENT_REQUIRED`, whose `nextActions` give the flags. Replace each `--confirm` in scripts and CI. See `migration-plan-refuses-data-loss` and `db-update-confirm-no-longer-consents` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30648](https://github.com/prisma/orm/pull/30648))
+
+  Before:
+
+  ```bash
+  prisma db update --confirm appdb
+  ```
+
+  After:
+
+  ```bash
+  prisma db update --delete Legacy --rename User.name:User.fullName
+  ```
+
+- **`destructive` now means data loss.** Dropping an index, a constraint, a check, a default or a native enum type, Postgres `setNotNull`, and type changes that keep every value are now `widening` operations, and no longer ask for consent. A `migration.ts` no database has applied yet writes a different `ops.json` and `migrationHash` when run again. See `non-data-drops-are-widening` and `destructive-means-data-loss` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30638](https://github.com/prisma/orm/pull/30638), [#30648](https://github.com/prisma/orm/pull/30648))
+
+- **The control API answers questions through a callback.** `executeMigrationPlanCommand`, `executeDbUpdate` and the control client's `dbUpdate` require an `answerQuestions` callback, and lose `consent`. `acceptDataLoss: true` no longer covers access widening; pass `acceptAccessWidening: true` too. The errors `MIGRATION.DESTRUCTIVE_CHANGES` and `MIGRATION.CONSENT_PLAN_MISMATCH` are no longer raised. See `control-api-answer-questions` and `consent-errors-removed` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30648](https://github.com/prisma/orm/pull/30648))
+
+- **The collection method `apply` is now `with`, and `scope` is now `fragment`.** A reusable function from a collection to a collection is a query fragment, made with `db.orm.fragment(...)` or `collection.fragment(...)` and run with `collection.with(...)`. The types `Scope`, `FieldScope` and `ScopeFacts` are now `Fragment`, `FieldFragment` and `FragmentFacts`. This applies to the SQL ORM client only. See `collection-apply-is-now-with` and `orm-scope-is-now-fragment` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30635](https://github.com/prisma/orm/pull/30635), [#30647](https://github.com/prisma/orm/pull/30647))
+
+  Before:
+
+  ```ts
+  const postSummary = db.orm.public.Post.scope((posts) => posts.select('id', 'title').include('user'));
+  const posts = await db.orm.public.Post.apply(notDeleted).apply(postSummary).all();
+  ```
+
+  After:
+
+  ```ts
+  const postSummary = db.orm.public.Post.fragment((posts) => posts.select('id', 'title').include('user'));
+  const posts = await db.orm.public.Post.with(notDeleted).with(postSummary).all();
+  ```
+
+- **`db.enums` holds each member as a query returns it.** A member whose codec stores another form in `contract.json` changes: a bigint member is a `bigint`, a date member a `Date` or a Temporal value, a byte member a `Uint8Array`, and a NaN or infinite float member a number. `has()`, `nameOf()` and `ordinalOf()` now find a value read from the database. Remove conversions your code applied to these members, and re-emit the contract. Code that builds the MongoDB ORM itself with `mongoOrm()` or `createMongoCollection()` must pass the enum accessors. See `db-enums-members-hold-read-values` and `mongo-orm-takes-enum-accessors` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30628](https://github.com/prisma/orm/pull/30628))
+
+  Before:
+
+  ```ts
+  // Level is @@type("pg/int8@1") with Low = "1"
+  db.enums.public.Level.members.Low; // "1"
+  ```
+
+  After:
+
+  ```ts
+  db.enums.public.Level.members.Low; // 1n
+  ```
+
+- **Enum members and values must be written as the database stores them.** A Postgres `numeric` or `inet` enum member written in a form Postgres prints differently, such as `"01.5"` or `"10.0.0.1/32"`, is refused, and the message says what to write. Enums can no longer use codecs whose values never equal a member: `pg/timestamp-string@1`, `pg/timestamptz-string@1`, `pg/bytea@1`, `pg/tsquery@1`, `pg/json@1`, and on MongoDB `mongo/json@1` and `mongo/bson@1`, plus PSL enums on BSON types the collection validator cannot list. See `ts-enum-members-written-as-stored`, `psl-enum-members-written-as-stored`, `enum-codecs-refused`, `enum-json-codec-refused` and `psl-enum-bson-types-refused` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30628](https://github.com/prisma/orm/pull/30628))
+
+  Before:
+
+  ```prisma
+  enum Ratio {
+    @@type("pg/numeric@1")
+    Half = "01.5"
+  }
+  ```
+
+  After:
+
+  ```prisma
+  enum Ratio {
+    @@type("pg/numeric@1")
+    Half = "1.5"
+  }
+  ```
+
+- **Contracts from a Prisma 7 schema state the constraint names Prisma 7 chose.** `prisma7Schema(...)` now writes the name of each primary key and foreign key whose Prisma 7 name differs from the one Prisma 8 derives. A contract with such a constraint gets a new storage hash: re-emit, then sign the database, plan a migration or run `db update`, depending on who manages it. See `prisma7-schema-states-constraint-names` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30606](https://github.com/prisma/orm/pull/30606))
+
+- **The CHECK constraint on an enum list column compares in the column's own type.** The constraint's expression and name change, so re-emit and apply a migration that replaces it. See `enum-list-check-compares-in-column-type` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30628](https://github.com/prisma/orm/pull/30628))
+
+- **Each foreign key in `contract.json` names the index that backs it.** A new `index` field on each foreign key says whether an index, the primary key or a unique constraint serves its lookups, so every SQL contract with a foreign key gets a new storage hash. Re-emit, then follow `migration plan`'s advice: write an empty migration with `prisma migration new --from <hash>`, or run `prisma db sign` on a database you manage with `db init` or `db update`. Two related changes can alter your database: a partial index, or an index with a non-default `type` or `options`, no longer counts as a relation's backing index, so `migration plan` creates one beside it; and an unnamed `@@index` on exactly the columns of a unique constraint or the primary key is left out of the contract, so `migration plan` drops it. To keep the database as it is, write `index: "<name>"` on the relation, or give the plain index a `name`. See `foreign-keys-name-their-backing-index`, `partial-or-typed-index-no-longer-backs-a-foreign-key` and `unnamed-index-on-unique-columns-left-out` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30561](https://github.com/prisma/orm/pull/30561))
+
+  ```prisma
+  author User @relation(fields: [authorId], references: [id], index: "post_author_live")
+  ```
+
+- **MongoDB PSL writes an index's sort direction as `sort(field, direction)`.** The old `field(sort: Desc)` form is no longer accepted in `@@index`, `@@unique` and `@@textIndex`. The database index does not change. See `mongo-index-sort-function` in the [app recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/app/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30636](https://github.com/prisma/orm/pull/30636))
+
+  Before:
+
+  ```prisma
+  @@index([createdAt(sort: Desc), authorId])
+  ```
+
+  After:
+
+  ```prisma
+  @@index([sort(createdAt, Desc), authorId])
+  ```
+
+- **Extension authors: migration planners take statements and report what they lose.** A planner's `plan(...)` takes required `statements` and `origin`, and its success result carries `appliedStatements`, `dataLoss` and `accessWidening`. `ControlFamilyInstance` requires `storageNameOf`. `plannerSuccess` takes `appliedStatements` and the subjects lists. See the planner entries in the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30638](https://github.com/prisma/orm/pull/30638), [#30648](https://github.com/prisma/orm/pull/30648))
+
+- **Extension authors: enum accessors read members through codecs.** `buildNamespacedEnums()` and `buildEnumsMapForNamespace()` take a codec lookup. A codec an enum may use must declare the `equality` trait, and can refuse enums with `enumRefusal`. `decodeJsonIntegerText` refuses leading zeros and negative zero. A target facade's `defineContract` carries an `Enums` type parameter. `CollectionState` has a required `locking` key. See the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30628](https://github.com/prisma/orm/pull/30628), [#30555](https://github.com/prisma/orm/pull/30555))
+
+- **Extension authors: foreign keys name their backing index.** Regenerate bundled SQL contracts that have a foreign key; their storage hash changes. A bundled relation with `index: false` whose model has a key or index starting with its columns names it with `index: "<name>"`. `materializeForeignKeysAndIndexes()` takes one object, and `backingIndexColumnKeys()`, `isBackedByColumnKeys()` and `BackingIndexCandidates` are removed. See the [extension recipe](https://github.com/prisma/orm/blob/v8.0.0-rc.17/skills/prisma-8/upgrading/extension/upgrades/8.0.0-rc.16-to-8.0.0-rc.17/). ([#30561](https://github.com/prisma/orm/pull/30561))
+
+## Features
+
+- `prisma migration plan` and `prisma db update` accept `--rename <old>:<new>`, repeatable, to rename a model or a field and keep its rows instead of dropping and creating its table or column. On MongoDB, renames are refused in this release. ([#30638](https://github.com/prisma/orm/pull/30638))
+- ORM collections lock the rows a read selects with `forUpdate()`, `forNoKeyUpdate()`, `forShare()` and `forKeyShare()`, each with optional `nowait` or `skipLocked`. Re-emit the contract to pick up the capabilities they need. ([#30555](https://github.com/prisma/orm/pull/30555))
+- Giving an existing integer column `@default(autoincrement())` now plans a sequence that starts past the column's current maximum, where it used to plan nothing. ([#30606](https://github.com/prisma/orm/pull/30606))
+- A relation can name the index, unique constraint or primary key that backs its foreign key with `index: "<name>"`, so no extra index is created. `prisma contract emit` warns when two named indexes of a table are identical (`PN_INDEX_DUPLICATE`), or when a named plain index has the same columns as a unique constraint or the primary key (`PN_INDEX_REDUNDANT`). ([#30561](https://github.com/prisma/orm/pull/30561))
+
+## Fixes
+
+- When a contract change needs no database change, `prisma migration plan` explains why and names the command to run next, instead of suggesting `db verify --schema-only`. ([#30639](https://github.com/prisma/orm/pull/30639))
+- Dropping a constraint of a table with a long name no longer fails: Prisma 8 derives the name Postgres stores for it. ([#30606](https://github.com/prisma/orm/pull/30606))
+- An `inet` enum list column takes host addresses such as `127.0.0.1`; its CHECK constraint refused every one. ([#30628](https://github.com/prisma/orm/pull/30628))
+- A `numeric` default with a leading zero, or an `inet` default in a form Postgres prints differently, is stored as Postgres prints it, so `db init`, `db update` and `db migrate` apply it instead of failing schema verification. ([#30628](https://github.com/prisma/orm/pull/30628))
+- The MongoDB ORM accepts writes of enum values whose stored form is not the value, such as bigint and date members. ([#30628](https://github.com/prisma/orm/pull/30628))
+
 ## v8.0.0-rc.16
 
 This release moves the toolchain to `@prisma/cli-engine` 0.6.3, which shares one ArkType copy with the Prisma ORM packages. With engine 0.6.2, a fresh Bun install could resolve two ArkType copies, and `prisma orm init` and `prisma contract emit` then failed on a valid contract. A `@default` that PSL refuses is now reported at the written value, with a message that says what to write instead.

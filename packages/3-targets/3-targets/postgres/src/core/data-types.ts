@@ -29,18 +29,14 @@ import {
   refuseJsonValue,
   type ToCanonicalForm,
 } from '@internal/framework-components/codec';
-import {
-  numeralText,
-  type ReportedSqlType,
-  type SqlTypeText,
-  sqlDataType,
-} from '@internal/sql-contract/data-type';
+import { numeralText, type SqlTypeText, sqlDataType } from '@internal/sql-contract/data-type';
 import {
   type CanonicalDateTimeOptions,
   canonicalDateTime,
   canonicalNumeralText,
   integerTextCanonicalForm,
 } from '@internal/sql-contract/data-type-support';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { isStructuredError, structuredError } from '@internal/utils/structured-error';
 import { counted, withoutTrailing } from '@internal/utils/text';
 import { type as arktype } from 'arktype';

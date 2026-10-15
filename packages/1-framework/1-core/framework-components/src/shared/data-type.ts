@@ -214,7 +214,7 @@ export function dataTypeValuesEqual(a: DataTypeValue, b: DataTypeValue): boolean
   );
 }
 
-type SchemaProp = { readonly key: PropertyKey; readonly kind?: unknown };
+type SchemaProp = { readonly key: PropertyKey; readonly kind?: unknown; readonly value?: unknown };
 
 function isSchemaPropList(value: unknown): value is readonly SchemaProp[] {
   return (
@@ -260,6 +260,20 @@ export function objectSchemaKeys(schema: unknown): readonly string[] | undefined
 export function requiredSchemaKeys(schema: unknown): readonly string[] | undefined {
   return objectSchemaProps(schema)?.flatMap((prop) =>
     prop.kind === 'required' && typeof prop.key === 'string' ? [prop.key] : [],
+  );
+}
+
+function propAllows(prop: SchemaProp, value: unknown): boolean {
+  const schema = prop.value;
+  if (schema === null || (typeof schema !== 'object' && typeof schema !== 'function')) return false;
+  const allows: unknown = Reflect.get(schema, 'allows');
+  return typeof allows === 'function' && allows.call(schema, value) === true;
+}
+
+/** The keys of an arktype object schema whose own schema accepts `value`, or undefined when `schema` is not one. */
+export function schemaKeysAllowing(schema: unknown, value: unknown): readonly string[] | undefined {
+  return objectSchemaProps(schema)?.flatMap((prop) =>
+    typeof prop.key === 'string' && propAllows(prop, value) ? [prop.key] : [],
   );
 }
 

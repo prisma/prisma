@@ -1,5 +1,9 @@
 import type { StorageTable } from '@internal/sql-contract/types';
-import type { AnyFromSource, TableSource } from '@internal/sql-relational-core/ast';
+import { type AnyFromSource, ColumnRef, type TableSource } from '@internal/sql-relational-core/ast';
+import { ExpressionImpl } from '@internal/sql-relational-core/expression';
+import type { Functions, Subquery } from '@internal/sql-relational-core/functions';
+import { createIndexReferences } from '@internal/sql-relational-core/index-reference';
+import { assertDefined } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import type {
   AggregateFunctions,
@@ -7,7 +11,6 @@ import type {
   ExpressionBuilder,
   ExtractScopeFields,
   FieldProxy,
-  Functions,
   WithField,
   WithFields,
 } from '../expression';
@@ -24,7 +27,6 @@ import type {
   ScopeField,
   ScopeTable,
   StorageTableToScopeTable,
-  Subquery,
 } from '../scope';
 import type { NamespaceTable, TableProxyContract } from '../types/db';
 import type { JoinedTables } from '../types/joined-tables';
@@ -63,10 +65,12 @@ export class TableProxyImpl<
   >[typeof JoinOuterScope];
 
   readonly #tableName: string;
+  readonly #alias: string;
   readonly #table: StorageTable;
   readonly #namespaceId: string;
   readonly #fromSource: TableSource;
   readonly #scope: Scope;
+  #indexes: TableProxy<C, NsId, Name, Alias, AvailableScope, QC>['indexes'] | undefined;
 
   constructor(
     tableName: string,
@@ -77,6 +81,7 @@ export class TableProxyImpl<
   ) {
     super(ctx);
     this.#tableName = tableName;
+    this.#alias = alias;
     this.#table = table;
     this.#namespaceId = namespaceId;
     this.#scope = tableToScope(alias, table, {
@@ -103,6 +108,33 @@ export class TableProxyImpl<
       TableProxy<C, NsId, Name, Alias, AvailableScope, QC>['columns'],
       "the storage table states each column's codec and nullability at runtime; the declared type is the contract's own statement about the same columns, which a runtime value cannot carry"
     >(Object.freeze(refs));
+  }
+
+  /**
+   * The table's indexes, keyed by the name the contract source gave each. An index's columns are this table's columns under its alias, so `post.as('p').indexes.post_search` reads `p`'s columns. A name more than one index shares is refused when it is read.
+   */
+  get indexes(): TableProxy<C, NsId, Name, Alias, AvailableScope, QC>['indexes'] {
+    this.#indexes ??= this.#indexReferences();
+    return this.#indexes;
+  }
+
+  #indexReferences(): TableProxy<C, NsId, Name, Alias, AvailableScope, QC>['indexes'] {
+    const fields = this.#scope.namespaces[this.#alias];
+    assertDefined(fields, 'a table proxy scopes its own alias');
+    const references = createIndexReferences({
+      namespaceId: this.#namespaceId,
+      tableName: this.#tableName,
+      table: this.#table,
+      column: (column) => {
+        const field = fields[column];
+        assertDefined(field, `an index covers a column of table "${this.#tableName}"`);
+        return new ExpressionImpl(ColumnRef.of(this.#alias, column), field);
+      },
+    });
+    return blindCast<
+      TableProxy<C, NsId, Name, Alias, AvailableScope, QC>['indexes'],
+      "the storage table states each index's name, columns, type and options at runtime; the declared type is the contract's own statement about the same indexes"
+    >(references);
   }
 
   lateralJoin = this._gate(

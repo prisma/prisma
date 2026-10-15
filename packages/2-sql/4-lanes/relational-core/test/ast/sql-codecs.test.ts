@@ -150,14 +150,6 @@ describe('sql-codecs', () => {
         'a\t',
       ]);
     });
-
-    it('renderOutputType returns Char<length>', () => {
-      expect(sqlCharDescriptor.renderOutputType?.({ length: 36 })).toBe('Char<36>');
-    });
-
-    it('renderOutputType returns undefined when length absent', () => {
-      expect(sqlCharDescriptor.renderOutputType?.({})).toBeUndefined();
-    });
   });
 
   describe('sql/varchar@1', () => {
@@ -175,14 +167,6 @@ describe('sql-codecs', () => {
     it('round-trips through JSON identity', () => {
       expect(storedJson(codec, 'hello')).toBe('hello');
       expect(readStored(codec, 'hello')).toBe('hello');
-    });
-
-    it('renderOutputType returns Varchar<length>', () => {
-      expect(sqlVarcharDescriptor.renderOutputType?.({ length: 255 })).toBe('Varchar<255>');
-    });
-
-    it('renderOutputType returns undefined when length absent', () => {
-      expect(sqlVarcharDescriptor.renderOutputType?.({})).toBeUndefined();
     });
   });
 

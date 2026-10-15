@@ -85,21 +85,13 @@ function isPolymorphicBase(model: ContractModelBase): boolean {
   return model.discriminator !== undefined && model.variants !== undefined;
 }
 
-function findModelByName(
-  namespaces: readonly NamespaceModels[],
-  namespaceId: string,
-  modelName: string,
-): ModelRef | undefined {
-  return namespaces
-    .find((ns) => ns.namespaceId === namespaceId)
-    ?.models.find((m) => m.modelName === modelName);
-}
-
 function findModel(
   namespaces: readonly NamespaceModels[],
   ref: CrossReference,
 ): ModelRef | undefined {
-  return findModelByName(namespaces, ref.namespace, ref.model);
+  return namespaces
+    .find((ns) => ns.namespaceId === ref.namespace)
+    ?.models.find((m) => m.modelName === ref.model);
 }
 
 function requireRelationTarget(
@@ -149,18 +141,19 @@ function requireBase(
 function requireVariant(
   namespaces: readonly NamespaceModels[],
   base: ModelRef,
-  variantName: string,
+  variantRef: CrossReference,
 ): ModelRef {
-  const variant = findModelByName(namespaces, base.namespaceId, variantName);
+  const variant = findModel(namespaces, variantRef);
   if (variant !== undefined) return variant;
   const baseSource = `${base.namespaceId}.${base.modelName}`;
+  const variantSource = `${variantRef.namespace}.${variantRef.model}`;
   throw emitterError(
     'CONTRACT.MODEL_VARIANT_MISSING',
-    `Polymorphic base ${baseSource} names variant "${variantName}", which is not in the contract`,
+    `Polymorphic base ${baseSource} names variant ${variantSource}, which is not in the contract`,
     {
-      why: 'The Any<Base> union is the union of the variant model types, so every variant a base declares must be a model in the same namespace.',
-      fix: "Declare the variant model in the same namespace as the base, or remove it from the base's variants.",
-      meta: { base: baseSource, variantName },
+      why: 'The Any<Base> union is the union of the variant model types, so every variant a base declares must be a model in the contract.',
+      fix: "Declare the variant model, or remove it from the base's variants.",
+      meta: { base: baseSource, variant: variantSource },
     },
   );
 }
@@ -175,7 +168,9 @@ function collectFieldLines(
     const type =
       discriminatorType !== undefined && fieldName === discriminatorType.field
         ? discriminatorType.type
-        : resolveModelFieldType(ref.modelName, fieldName, field, ref.model, resolvers).output;
+        : resolvers.referenceFieldOutputTypes === true
+          ? `FieldOutputTypes[${serializeValue(ref.namespaceId)}][${serializeValue(ref.modelName)}][${serializeValue(fieldName)}]`
+          : resolveModelFieldType(ref.modelName, fieldName, field, ref.model, resolvers).output;
     lines.set(fieldName, `${serializeObjectKey(fieldName)}: ${type};`);
   }
   return lines;
@@ -221,7 +216,7 @@ function collectRelationLines(ref: ModelRef, index: ModelIndex): Map<string, Rel
 }
 
 function discriminatorUnion(base: ContractModelBase): string {
-  const values = Object.values(base.variants ?? {}).map((v) => serializeValue(v.value));
+  const values = Object.keys(base.variants ?? {}).map((value) => serializeValue(value));
   return values.length > 0 ? values.join(' | ') : 'never';
 }
 
@@ -234,7 +229,9 @@ function memberLines(
     ref.model.base !== undefined ? requireBase(index.namespaces, ref, ref.model.base) : undefined;
   if (base !== undefined && isPolymorphicBase(base.model)) {
     const discriminatorField = base.model.discriminator?.field ?? '';
-    const variantValue = base.model.variants?.[ref.modelName]?.value;
+    const variantValue = Object.entries(base.model.variants ?? {}).find(
+      ([, variant]) => variant.namespace === ref.namespaceId && variant.model === ref.modelName,
+    )?.[0];
     const discriminatorType = {
       field: discriminatorField,
       type:
@@ -334,8 +331,8 @@ export function generateModelTypesBlock(
     for (const ref of ns.models) {
       if (!isPolymorphicBase(ref.model)) continue;
       const unionName = memberNameOf(ns.namespaceId, `Any${ref.modelName}`);
-      const variantMembers = Object.keys(ref.model.variants ?? {}).map((variantName) => {
-        const variant = requireVariant(namespaces, ref, variantName);
+      const variantMembers = Object.values(ref.model.variants ?? {}).map((variantRef) => {
+        const variant = requireVariant(namespaces, ref, variantRef);
         return memberNameOf(variant.namespaceId, variant.modelName);
       });
       members.push(

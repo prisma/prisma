@@ -10,7 +10,7 @@ import { PostgresSchema } from '../../../3-targets/3-targets/postgres/src/core/p
 import { SqliteDatabase } from '../../../3-targets/3-targets/sqlite/src/core/sqlite-unbound-database';
 import type { PostgresContract } from '../../../3-targets/6-adapters/postgres/src/core/types';
 import { compileDeleteCount, compileInsertReturning, compileSelect } from '../src/query-plan';
-import { emptyState } from '../src/types';
+import { emptyTableState, tablesForTable } from './helpers';
 
 const PUBLIC_NAMESPACE_ID = 'public';
 
@@ -71,38 +71,41 @@ describe('ORM namespace qualification', () => {
       },
     } as Contract<SqlStorageType>;
 
-    expect(() => compileSelect(contract, 'missing', 'users', emptyState(), 'User')).toThrow(
-      /namespace "missing" is not present/,
-    );
+    expect(() =>
+      compileSelect(contract, 'User', emptyTableState(contract, 'users', 'missing')),
+    ).toThrow(/namespace "missing" is not present/);
   });
 
   it('stamps public on TableSource for select, insert, and delete plans', () => {
     const selectPlan = compileSelect(
       publicPostgresContract,
-      'public',
-      'users',
-      emptyState(),
       'User',
+      emptyTableState(publicPostgresContract, 'users'),
     );
     expect((selectPlan.ast as { from: TableSource }).from.namespaceId).toBe('public');
 
     const insertPlan = compileInsertReturning(
       publicPostgresContract,
       'public',
+      'User',
       'users',
       [{ id: 1, email: 'a@example.com' }],
       ['id', 'email'],
     );
     expect((insertPlan.ast as { table: TableSource }).table.namespaceId).toBe('public');
 
-    const deletePlan = compileDeleteCount(publicPostgresContract, 'public', 'users', []);
+    const deletePlan = compileDeleteCount(
+      publicPostgresContract,
+      tablesForTable(publicPostgresContract, 'users', 'public'),
+      [],
+    );
     expect((deletePlan.ast as { table: TableSource }).table.namespaceId).toBe('public');
   });
 
   it('renders schema-qualified SQL for Postgres via the adapter lower path', () => {
     const adapter = createPostgresAdapter();
-    const selectPlan = compileSelect(publicPostgresContract, 'public', 'users', {
-      ...emptyState(),
+    const selectPlan = compileSelect(publicPostgresContract, 'User', {
+      ...emptyTableState(publicPostgresContract, 'users'),
       selectedFields: ['id', 'email'],
     });
     const selectSql = adapter.lower(selectPlan.ast, {
@@ -114,6 +117,7 @@ describe('ORM namespace qualification', () => {
     const insertPlan = compileInsertReturning(
       publicPostgresContract,
       'public',
+      'User',
       'users',
       [{ id: 1, email: 'a@example.com' }],
       ['id', 'email'],
@@ -165,8 +169,8 @@ describe('ORM namespace qualification', () => {
       }),
     } as unknown as Contract<SqlStorageType>;
 
-    const selectPlan = compileSelect(sqliteContract, UNBOUND_NAMESPACE_ID, 'users', {
-      ...emptyState(),
+    const selectPlan = compileSelect(sqliteContract, 'User', {
+      ...emptyTableState(sqliteContract, 'users', UNBOUND_NAMESPACE_ID),
       selectedFields: ['id'],
     });
     expect((selectPlan.ast as { from: TableSource }).from.namespaceId).toBe(UNBOUND_NAMESPACE_ID);

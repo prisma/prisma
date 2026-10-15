@@ -101,6 +101,7 @@ function interpretMongoPsl(schema: string) {
     sourceId: 'mongo-value-objects.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         field: {},
@@ -147,6 +148,7 @@ function interpretSqlPsl(schema: string) {
     sourceId: 'sql-value-objects.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       // Mirrors the real postgres adapter declaration.
       authoringContributions: {

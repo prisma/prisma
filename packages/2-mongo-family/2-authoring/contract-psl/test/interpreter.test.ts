@@ -49,6 +49,7 @@ function buildSymbolTableInput(
 ): { documents: readonly DocumentAst[]; symbolTable: SymbolTable; sources: PslSources } {
   const { document, sources } = parse(schema, filename);
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: '__unbound__',
     documents: [document],
     sources,
   });
@@ -107,9 +108,7 @@ function interpret(
     schema,
     {
       scalarTypeCodecIds: mongoScalarTypeDescriptors,
-      controlMutationDefaults: {
-        defaultFunctionRegistry: new Map(),
-      },
+      defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
       dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
       ...overrides,
@@ -203,7 +202,7 @@ model Item {
 `,
       'enum-owned.prisma',
     );
-    const enumBlock = input.symbolTable.topLevel.blocks['Role'];
+    const enumBlock = input.symbolTable.defaultNamespace.blocks['Role'];
     expect(enumBlock).toBeDefined();
     if (enumBlock === undefined) return;
 
@@ -228,6 +227,7 @@ model Item {
     };
     const context: ContractSourceContext = {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         type: {},
@@ -246,6 +246,7 @@ model Item {
       capabilities: {},
     };
     const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
+      defaultNamespaceId: '__unbound__',
       documents: input.documents,
       sources: input.sources,
     });
@@ -261,7 +262,7 @@ model Item {
         symbolTable,
         binder,
         scalarTypeCodecIds: new Map(),
-        controlMutationDefaults: context.controlMutationDefaults,
+        defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
@@ -451,6 +452,28 @@ model Item {
       expect(Object.keys(mongoCollectionsFromIr(ir))).toEqual(['UserProfile']);
     });
 
+    it('keeps every storage name when a model and a field are renamed and mapped to their old names', () => {
+      const before = interpretOk(`
+        model User {
+          id   ObjectId @id @map("_id")
+          name String
+        }
+      `);
+      const after = interpretOk(`
+        model Account {
+          id       ObjectId @id @map("_id")
+          fullName String @map("name")
+
+          @@map("User")
+        }
+      `);
+
+      expect(after.storage).toEqual(before.storage);
+      expect(Object.keys(model(after, 'Account').fields)).toEqual(
+        Object.keys(model(before, 'User').fields),
+      );
+    });
+
     it('uses @@map() to override collection name', () => {
       const ir = interpretOk(`
         model User {
@@ -545,6 +568,12 @@ model Item {
         author   User @relation(fields: [authorId], references: [id])
       }
     `;
+
+    it('reads unbound.User as the top-level User and emits the same contract', () => {
+      expect(interpretOk(blogSchema.replace('author   User @', 'author   unbound.User @'))).toEqual(
+        interpretOk(blogSchema),
+      );
+    });
 
     it('creates N:1 reference relation from @relation with fields/references', () => {
       const ir = interpretOk(blogSchema);
@@ -2587,6 +2616,16 @@ model Item {
       );
     });
 
+    it('names a rejected namespace block as it is written', () => {
+      const result = interpret(
+        'namespace __unbound__ {\n  model Tenant {\n    id ObjectId @id @map("_id")\n  }\n}\n',
+      );
+
+      expect(result.ok ? [] : result.failure.diagnostics.map(({ message }) => message)).toEqual([
+        'Mongo does not support `namespace __unbound__ { … }` blocks (the database is bound by the connection string; declare models at the document top level instead).',
+      ]);
+    });
+
     it('accepts top-level declarations (the implicit `__unspecified__` bucket) without diagnostics', () => {
       const ir = interpretOk(`
         model Item {
@@ -2614,9 +2653,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2642,9 +2679,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2666,9 +2701,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 

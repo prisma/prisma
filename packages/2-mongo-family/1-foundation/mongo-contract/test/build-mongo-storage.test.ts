@@ -1,50 +1,12 @@
 import { computeStorageHash } from '@internal/contract/hashing';
-import type { Codec, CodecLookup } from '@internal/framework-components/codec';
-import {
-  dataType,
-  dataTypeValueFor,
-  emptyCodecLookup,
-  readJsonString,
-} from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { buildMongoStorage, encodeMongoValueSets } from '../src/build-mongo-storage';
+import { buildMongoStorage } from '../src/build-mongo-storage';
 import { mongoContractCanonicalizationHooks } from '../src/canonicalization-hooks';
 import { MongoIndex } from '../src/ir/mongo-index';
 import { MongoStorage } from '../src/ir/mongo-storage';
 
-const textType = dataType('test/text', { read: (json) => readJsonString('test/text', json) });
-
-const upperCaseCodec = {
-  dataType: textType,
-  toDataTypeValue: (value: unknown) => dataTypeValueFor(textType, {}, String(value).toUpperCase()),
-} as unknown as Codec;
-
-const lookupWith = (codecs: Record<string, Codec>): CodecLookup => ({
-  ...emptyCodecLookup,
-  get: (id) => codecs[id],
-});
-
 const userIndex = new MongoIndex({ keys: [{ field: 'email', direction: 1 }], unique: true });
-
-describe('encodeMongoValueSets', () => {
-  it('encodes each member through its codec', () => {
-    const valueSets = encodeMongoValueSets(
-      { Role: { codecId: 'test/upper@1', members: [{ value: 'admin' }, { value: 'user' }] } },
-      lookupWith({ 'test/upper@1': upperCaseCodec }),
-    );
-    expect(valueSets).toEqual({ Role: { kind: 'valueSet', values: ['ADMIN', 'USER'] } });
-  });
-
-  it('rejects an enum whose codec is not in the lookup', () => {
-    expect(() =>
-      encodeMongoValueSets(
-        { Role: { codecId: 'test/missing@1', members: [{ value: 'admin' }] } },
-        emptyCodecLookup,
-      ),
-    ).toThrow(expect.objectContaining({ code: 'CONTRACT.ENUM_CODEC_NOT_IN_PACK_STACK' }));
-  });
-});
 
 describe('buildMongoStorage', () => {
   it('builds the unbound namespace from collections and value sets', () => {

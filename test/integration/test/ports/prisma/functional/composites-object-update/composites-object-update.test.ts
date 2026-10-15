@@ -68,60 +68,11 @@ describe('ports/prisma/functional/composites/object/update', () => {
       timeouts.spinUpMongoMemoryServer,
     );
 
-    it(
-      'set shorthand (same as set for ORM — no prisma set wrapper)',
-      () =>
-        withComposites(async ({ db }) => {
-          const id = new ObjectId().toHexString();
-          await db.comments_required.create({
-            _id: id,
-            country: 'France',
-            content: { text: 'Hello World', upvotes: [{ vote: true, userId: '10' }] },
-          });
-
-          const comment = await db.comments_required.where({ _id: id }).update({
-            country: 'Mars',
-            content: { text: 'Goodbye World', upvotes: [{ vote: false, userId: '42' }] },
-          });
-
-          expect(comment).toMatchObject({
-            country: 'Mars',
-            content: {
-              text: 'Goodbye World',
-              upvotes: [{ userId: '42', vote: false }],
-            },
-          });
-          expect(comment?._id).toEqual(expect.any(String));
-        }),
-      timeouts.spinUpMongoMemoryServer,
-    );
-
     // Upstream asserts null on required `content` is BOTH a type error and a runtime throw.
     // Prisma 8 rejects it at the type level (@ts-expect-error holds), and MongoDB
     // rejects it through the provisioned collection validator.
     it(
       'set null',
-      () =>
-        withComposites(async ({ db }) => {
-          const id = new ObjectId().toHexString();
-          await db.comments_required.create({
-            _id: id,
-            country: 'France',
-            content: { text: 'Hello World', upvotes: [{ vote: true, userId: '10' }] },
-          });
-
-          // @ts-expect-error required `content` cannot be null
-          const promise = db.comments_required.where({ _id: id }).update({
-            country: 'France',
-            content: null,
-          });
-          await expect(promise).rejects.toThrow();
-        }),
-      timeouts.spinUpMongoMemoryServer,
-    );
-
-    it(
-      'set null shorthand',
       () =>
         withComposites(async ({ db }) => {
           const id = new ObjectId().toHexString();

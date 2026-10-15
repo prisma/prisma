@@ -259,6 +259,7 @@ export class ProjectArtifacts {
     this.#symbolTableResult ??= buildSymbolTable({
       documents: currentDocuments,
       sources: this.sources,
+      defaultNamespaceId: this.#options.controlStack.defaultNamespaceId,
     });
     return this.#symbolTableResult;
   }

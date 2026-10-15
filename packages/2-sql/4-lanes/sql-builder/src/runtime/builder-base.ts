@@ -27,6 +27,7 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { codecRefForStorageColumn } from '@internal/sql-relational-core/codec-descriptor-registry';
 import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
+import { createFunctions } from '@internal/sql-relational-core/functions';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { SqlAggregateDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
 import { ifDefined } from '@internal/utils/defined';
@@ -47,9 +48,10 @@ import type {
   ScopeField,
   ScopeTable,
 } from '../scope';
+import { assertColumnsInScope } from './column-scope';
 import { projectionAstOf } from './expression-impl';
 import { createFieldProxy } from './field-proxy';
-import { createAggregateFunctions, createFunctions } from './functions';
+import { createAggregateFunctions } from './functions';
 
 export type ExprCallback = (fields: FieldProxy<Scope>, fns: unknown) => Expression<ScopeField>;
 
@@ -227,6 +229,7 @@ export function buildQueryPlan<Row = unknown>(
   ctx: BuilderContext,
   annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>,
 ): SqlQueryPlan<Row> {
+  assertColumnsInScope(ast);
   const paramValues = collectOrderedParamRefs(ast).map((r) =>
     r.kind === 'param-ref' ? r.value : undefined,
   );

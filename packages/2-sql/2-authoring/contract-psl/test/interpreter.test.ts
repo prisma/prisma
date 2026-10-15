@@ -98,22 +98,32 @@ describe('interpretPslDocumentToSqlContract', () => {
     expect(result.value.roots).toEqual({ User: crossRef('User', 'public') });
   });
 
-  it('does not synthesise capabilities the target did not contribute', () => {
-    const result = interpretPostgresSchema(
+  it('carries the enabled capabilities of the stack it is interpreted against', () => {
+    const result = interpretSqlContract(
       `model User {
   id Int @id
   email String
 }`,
-      {},
+      {
+        target: postgresTarget,
+        scalarColumnDescriptors: postgresScalarTypeDescriptors,
+        composedExtensionContracts: new Map(),
+        createNamespace: createTestSqlNamespace,
+        ...fixtureInterpreterTypes,
+        capabilities: {
+          sql: { scalarList: true, lateral: false },
+          postgres: { distinctOn: true },
+          disabled: { everything: false },
+        },
+      },
     );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    // The test `postgresTarget` fixture has `capabilities: {}`; with no
-    // extension packs and no author-declared capabilities, the interpreter
-    // must not inject anything of its own. Adapter and driver contributions
-    // are layered in later by CLI emit, not here.
-    expect(result.value.capabilities).toEqual({});
+    expect(result.value.capabilities).toEqual({
+      postgres: { distinctOn: true },
+      sql: { scalarList: true },
+    });
   });
 
   it('flows capabilities declared on the target pack through to the contract', () => {
@@ -141,7 +151,7 @@ describe('interpretPslDocumentToSqlContract', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.capabilities).toEqual({
-      sql: { returning: true },
+      sql: { returning: true, scalarList: true },
       postgres: { lateral: true },
     });
   });
@@ -426,6 +436,44 @@ model Comment {
     expect(Object.keys(result.value.storage.namespaces['public']!.entries['table'] ?? {})).toEqual([
       'UserProfile',
     ]);
+  });
+
+  it('keeps every storage name when a model and a field are renamed and mapped to their old names', () => {
+    const before = interpretPostgresSchema(
+      `model Team {
+  id    Int    @id
+  label String
+}
+
+model Member {
+  id     Int  @id
+  teamId Int
+  team   Team @relation(fields: [teamId], references: [id])
+}
+`,
+      { controlMutationDefaults: builtinControlMutationDefaults },
+    );
+    const after = interpretPostgresSchema(
+      `model Squad {
+  id    Int    @id
+  title String @map("label")
+
+  @@map("Team")
+}
+
+model Member {
+  id     Int   @id
+  teamId Int
+  team   Squad @relation(fields: [teamId], references: [id])
+}
+`,
+      { controlMutationDefaults: builtinControlMutationDefaults },
+    );
+
+    expect(before.ok && after.ok).toBe(true);
+    if (!before.ok || !after.ok) return;
+
+    expect(after.value.storage).toEqual(before.value.storage);
   });
 
   it('maps @@map and @map to storage table and column names', () => {

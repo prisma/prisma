@@ -1,6 +1,6 @@
 {
   "name": "@prisma/orm-postgres",
-  "version": "8.0.0-rc.16",
+  "version": "8.0.0-rc.18",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -16,10 +16,10 @@
     "clean": "rm -rf dist src-gen skills"
   },
   "dependencies": {
-    "@prisma/orm-family-sql": "workspace:8.0.0-rc.16",
-    "@prisma/orm-framework": "workspace:8.0.0-rc.16",
-    "@prisma/orm-target-postgres": "workspace:8.0.0-rc.16",
-    "@prisma/orm-toolchain": "workspace:8.0.0-rc.16",
+    "@prisma/orm-family-sql": "workspace:8.0.0-rc.18",
+    "@prisma/orm-framework": "workspace:8.0.0-rc.18",
+    "@prisma/orm-target-postgres": "workspace:8.0.0-rc.18",
+    "@prisma/orm-toolchain": "workspace:8.0.0-rc.18",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "arktype": "catalog:",
@@ -28,9 +28,9 @@
     "tinyglobby": "catalog:"
   },
   "devDependencies": {
-    "@internal/postgres": "workspace:8.0.0-rc.16",
-    "@repo/tsconfig": "workspace:8.0.0-rc.16",
-    "@repo/tsdown": "workspace:8.0.0-rc.16",
+    "@internal/postgres": "workspace:8.0.0-rc.18",
+    "@repo/tsconfig": "workspace:8.0.0-rc.18",
+    "@repo/tsdown": "workspace:8.0.0-rc.18",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
@@ -125,8 +125,11 @@
     "./relational-core/aggregate-descriptor-registry": "./dist/relational-core__aggregate-descriptor-registry.mjs",
     "./relational-core/ast": "./dist/relational-core__ast.mjs",
     "./relational-core/codec-descriptor-registry": "./dist/relational-core__codec-descriptor-registry.mjs",
+    "./relational-core/collection-methods": "./dist/relational-core__collection-methods.mjs",
     "./relational-core/contract-free": "./dist/relational-core__contract-free.mjs",
     "./relational-core/expression": "./dist/relational-core__expression.mjs",
+    "./relational-core/functions": "./dist/relational-core__functions.mjs",
+    "./relational-core/index-reference": "./dist/relational-core__index-reference.mjs",
     "./relational-core/middleware": "./dist/relational-core__middleware.mjs",
     "./relational-core/plan": "./dist/relational-core__plan.mjs",
     "./relational-core/query-lane-context": "./dist/relational-core__query-lane-context.mjs",
@@ -150,6 +153,7 @@
     "./target/diff-database-schema": "./dist/target__diff-database-schema.mjs",
     "./target/errors": "./dist/target__errors.mjs",
     "./target/full-text": "./dist/target__full-text.mjs",
+    "./target/full-text-index-authoring": "./dist/target__full-text-index-authoring.mjs",
     "./target/issue-planner": "./dist/target__issue-planner.mjs",
     "./target/marker-lock": "./dist/target__marker-lock.mjs",
     "./target/migration": "./dist/target__migration.mjs",

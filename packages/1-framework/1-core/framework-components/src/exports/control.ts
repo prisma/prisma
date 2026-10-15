@@ -28,6 +28,7 @@ export {
 } from '../control/control-capabilities';
 export type {
   ControlAdapterDescriptor,
+  ControlDriverConnectOptions,
   ControlDriverDescriptor,
   ControlExtensionDescriptor,
   ControlFamilyDescriptor,
@@ -41,6 +42,9 @@ export type {
   ControlTargetInstance,
 } from '../control/control-instances';
 export type {
+  FailedCast,
+  FailedConversion,
+  FailedTypeChange,
   MigrationMetadata,
   MigrationOperationClass,
   MigrationOperationPolicy,
@@ -62,6 +66,7 @@ export type {
   MigrationScaffoldContext,
   OpFactoryCall,
   PlanOrigin,
+  RowsWithoutValue,
   SchemaEntityCoordinate,
   SchemaOwnership,
   TargetMigrationsCapability,
@@ -120,6 +125,7 @@ export {
   extractCodecLookup,
   extractCodecTypeImports,
   extractComponentIds,
+  extractParameterizedOutputTypeImports,
   extractQueryOperationTypeImports,
 } from '../control/control-stack';
 export type {
@@ -127,23 +133,32 @@ export type {
   FieldCoordinate,
   FieldCoordinateJson,
   MigrationAccessChange,
+  MigrationDataLoss,
+  MigrationDataLossKind,
   MigrationOperationSubject,
   MigrationPlanSubjects,
   MigrationStatementJson,
   MigrationSubject,
   MigrationSubjectJson,
+  MigrationTemporaryValue,
   ModelCoordinate,
   ModelCoordinateJson,
+  ResolvedFieldBackfillStatement,
+  ResolvedFieldConvertStatement,
   ResolvedFieldRenameStatement,
   ResolvedMigrationStatement,
   ResolvedModelRenameStatement,
+  ResolvedRenameStatement,
 } from '../control/migration-statements';
 export {
   describeMigrationStatement,
+  fieldStatementText,
+  isRenameStatement,
   migrationStatementJson,
   migrationSubjectJson,
   migrationSubjectKey,
   modelDisplayName,
+  modelStatementText,
 } from '../control/migration-statements';
 export { orderIssuesByDependencies } from '../control/order-issues-by-dependencies';
 export type {
@@ -165,7 +180,6 @@ export type {
 } from '../control/verifier-disposition';
 export { dispositionForCategory } from '../control/verifier-disposition';
 export type {
-  ControlDefaultRegistries,
   ControlMutationDefaultEntry,
   ControlMutationDefaultRegistry,
   ControlMutationDefaults,
@@ -177,9 +191,7 @@ export type {
   SourceSpan,
   TypedDefaultFunctionCall,
 } from '../shared/mutation-default-types';
-export type { TaggedLiteralCanonicalization } from '../shared/tagged-literal';
 export {
-  canonicalizeTaggedLiteralBody,
   describeTaggedLiteralFailure,
   resolvePslBacktickEscapes,
   resolveTemplateTagEscapes,

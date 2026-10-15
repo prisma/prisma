@@ -13,6 +13,7 @@ export type {
   PrimaryKeyNode,
   RelationNode,
   ScalarFieldBuilder,
+  SqlExpression,
   UniqueConstraintNode,
 } from '@internal/sql-contract-ts/contract-builder';
 export {
@@ -25,6 +26,19 @@ export {
   rel,
   sql,
 } from '@internal/sql-contract-ts/contract-builder';
+// The output types a contract's inferred type names for columns with type parameters, so an application's declaration output can name them through this entry.
+export type {
+  Bit,
+  Char,
+  Interval,
+  Numeric,
+  TimeString,
+  TimestampString,
+  TimestamptzString,
+  Timetz,
+  VarBit,
+  Varchar,
+} from '@internal/target-postgres/codec-types';
 export { defineContract } from '../contract/define-contract';
 export { enumType } from '../contract/enum-type';
 export { field } from '../contract/field';

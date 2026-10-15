@@ -1,9 +1,10 @@
 /**
  * The six SQL base codecs (TML-2357).
  *
- * Each codec ships as two artifacts:
+ * Each codec ships as three artifacts:
  *
- * 1. A `SqlXCodec` class extending {@link CodecImpl} that wraps the module-level wire conversions exported from `sql-codec-helpers.ts` (the single source of truth for runtime behaviour). 2. A `SqlXDescriptor` class extending {@link CodecDescriptorTemplateImpl} declaring the codec id, traits, params schema, and (where applicable) the emit-path `renderOutputType`; the data type is left to the target that adapts the template, which builds the codec with that type.
+ * 1. A `SqlXCodec` class extending {@link CodecImpl} that wraps the module-level wire conversions exported from `sql-codec-helpers.ts` (the single source of truth for runtime behaviour). 2. A `SqlXDescriptor` class extending {@link CodecDescriptorTemplateImpl} declaring the codec id, traits, target types, and params schema; the data type is left to the target that adapts the template, which builds the codec with that type. 3. A per-codec column helper (`sqlXColumn`)
+ * that calls `descriptor.factory(...)` directly and packages the result into a {@link ColumnSpec} via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor`.
  *
  * After TML-2357 this file is the canonical source of SQL base codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers retired with the deletion sweep.
  */
@@ -31,7 +32,6 @@ import {
   SQL_VARCHAR_CODEC_ID,
   sqlCharDecode,
   sqlCharEncode,
-  sqlCharRenderOutputType,
   sqlFloatDecode,
   sqlFloatEncode,
   sqlIntDecode,
@@ -40,7 +40,6 @@ import {
   sqlTextEncode,
   sqlVarcharDecode,
   sqlVarcharEncode,
-  sqlVarcharRenderOutputType,
 } from './sql-codec-helpers';
 
 type LengthParams = { readonly length?: number };
@@ -188,9 +187,6 @@ export class SqlCharDescriptor extends CodecDescriptorTemplateImpl<LengthParams>
   override readonly codecId = SQL_CHAR_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return sqlCharRenderOutputType(params);
-  }
   override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlCharCodec {
     return () => unadapted(this.codecId);
   }
@@ -228,9 +224,6 @@ export class SqlVarcharDescriptor extends CodecDescriptorTemplateImpl<LengthPara
   override readonly codecId = SQL_VARCHAR_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return sqlVarcharRenderOutputType(params);
-  }
   override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlVarcharCodec {
     return () => unadapted(this.codecId);
   }

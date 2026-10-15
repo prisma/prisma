@@ -130,7 +130,7 @@ export default AddUsersCollection;
 MigrationCLI.run(import.meta.url, AddUsersCollection);
 ```
 
-Run `node migration.ts` to produce `ops.json` and `migration.json`. Use `--dry-run` to preview without writing.
+Run `node <directory>/migration.ts` from any directory to produce `ops.json` and `migration.json`. Use `--dry-run` to preview without writing.
 
 ## Package Structure
 

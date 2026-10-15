@@ -7,8 +7,7 @@ import type {
 import { createControlStack } from '@internal/framework-components/control';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
-  sqlExpressionAuthoringEntry,
-  sqlExpressionDataType,
+  sqlExpressionRegistration,
 } from '@internal/sql-contract/sql-expression';
 import { describe, expect, it } from 'vitest';
 import { createSqlFamilyInstance } from '../src/core/control-instance';
@@ -30,8 +29,8 @@ function makeStack(extensionDataTypes: readonly DataType[]): ControlStack<'sql',
       id: 'sql',
       familyId: 'sql',
       version: '0.0.1',
-      dataTypes: [sqlExpressionDataType],
-      authoring: { dataTypes: { [SQL_EXPRESSION_DATA_TYPE_ID]: sqlExpressionAuthoringEntry } },
+      dataTypes: [...sqlExpressionRegistration.dataTypes],
+      authoring: { dataTypes: { ...sqlExpressionRegistration.authoring.dataTypes } },
       create: (() => ({})) as unknown as ControlFamilyDescriptor<'sql'>['create'],
       emission: {
         id: 'sql',
@@ -49,6 +48,7 @@ function makeStack(extensionDataTypes: readonly DataType[]): ControlStack<'sql',
       version: '0.0.1',
       familyId: 'sql',
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       contractSerializer: {
         deserializeContract: (json) => json as never,
         serializeContract: (contract) => contract as never,

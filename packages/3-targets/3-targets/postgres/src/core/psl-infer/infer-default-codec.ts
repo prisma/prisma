@@ -26,9 +26,9 @@ import { ifDefined } from '@internal/utils/defined';
 import { isInternalError } from '@internal/utils/internal-error';
 import { PG_TEXT_CODEC_ID } from '../codec-ids';
 
-/** The type `contract infer` writes for a column: a PSL type name and the arguments of its type constructor call. */
+/** The type `contract infer` writes for a column: the path of its type constructor and the arguments of the call. */
 export interface InferredPslType {
-  readonly name: string;
+  readonly path: readonly string[];
   readonly args?: readonly string[];
 }
 
@@ -56,11 +56,11 @@ function inferredCodecRef(
   isEnum: boolean,
 ): CodecRef | undefined {
   if (isEnum) return { codecId: PG_TEXT_CODEC_ID };
-  const descriptor = getAuthoringTypeConstructor(context.authoringContributions, [pslType.name]);
+  const descriptor = getAuthoringTypeConstructor(context.authoringContributions, pslType.path);
   if (descriptor === undefined) return undefined;
   const args = parsePslPositionalArgs(descriptor.args ?? [], pslType.args ?? []);
   if (args === undefined) return undefined;
-  validateAuthoringHelperArguments(pslType.name, descriptor.args, args);
+  validateAuthoringHelperArguments(pslType.path.join('.'), descriptor.args, args);
   const { codecId, typeParams } = instantiateAuthoringTypeConstructor(descriptor, args);
   return {
     codecId,

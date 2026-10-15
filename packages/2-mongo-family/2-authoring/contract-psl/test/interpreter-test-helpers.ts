@@ -47,6 +47,7 @@ function contextForInterpretOptions(
   }
   return {
     composedExtensions: [],
+    defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       type: { ...scalarsFromCodecIds, ...authoring?.type },
@@ -64,8 +65,7 @@ function contextForInterpretOptions(
     codecLookup: options.codecLookup ?? { ...emptyCodecLookup, descriptorFor: () => undefined },
     dataTypes: options.dataTypes ?? EMPTY_DATA_TYPES,
     controlMutationDefaults: {
-      defaultFunctionRegistry:
-        options.controlMutationDefaults?.defaultFunctionRegistry ?? new Map(),
+      defaultFunctionRegistry: options.defaultFunctionRegistry,
       generatorDescriptors: [],
     },
     resolvedInputs: [],

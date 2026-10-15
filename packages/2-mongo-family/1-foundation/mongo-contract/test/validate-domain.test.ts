@@ -90,7 +90,7 @@ describe('validateContractDomain()', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { SpecialItem: { value: 'special' } },
+            variants: { special: crossRef('SpecialItem') },
           }),
           SpecialItem: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -110,7 +110,7 @@ describe('validateContractDomain()', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { Ghost: { value: 'ghost' } },
+            variants: { ghost: crossRef('Ghost') },
           }),
         },
       });
@@ -130,7 +130,7 @@ describe('validateContractDomain()', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Other: makeMinimalModel({
             fields: {
@@ -259,7 +259,7 @@ describe('validateContractDomain()', () => {
               },
             },
             discriminator: { field: 'kind' },
-            variants: { Special: { value: 'special' } },
+            variants: { special: crossRef('Special') },
           }),
           Special: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -282,7 +282,7 @@ describe('validateContractDomain()', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel({
             base: crossRef('Item'),
@@ -306,7 +306,7 @@ describe('validateContractDomain()', () => {
                 many: false,
               },
             },
-            variants: { Special: { value: 'special' } },
+            variants: { special: crossRef('Special') },
           }),
           Special: makeMinimalModel({ base: crossRef('Item') }),
         },
@@ -329,11 +329,11 @@ describe('validateContractDomain()', () => {
               },
             },
             discriminator: { field: 'type' },
-            variants: { Child: { value: 'child' } },
+            variants: { child: crossRef('Child') },
           }),
           Child: makeMinimalModel({
             base: crossRef('Item'),
-            variants: { Grandchild: { value: 'grandchild' } },
+            variants: { grandchild: crossRef('Grandchild') },
           }),
         },
       });
@@ -398,8 +398,8 @@ describe('validateContractDomain()', () => {
             },
             discriminator: { field: 'type' },
             variants: {
-              Bug: { value: 'bug' },
-              Feature: { value: 'feature' },
+              bug: crossRef('Bug'),
+              feature: crossRef('Feature'),
             },
           }),
           Bug: makeMinimalModel({

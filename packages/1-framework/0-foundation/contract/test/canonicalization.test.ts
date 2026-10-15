@@ -676,6 +676,24 @@ describe('index and unique sorting', () => {
     expect(uniques.map((u) => u.name)).toEqual(['uq_a', 'uq_z']);
   });
 
+  it('keeps column order inside primary key and unique column lists', () => {
+    const result = canonicalizeContractToObject(
+      minimal({
+        storage: unboundStorage({
+          users: {
+            columns: {},
+            primaryKey: { columns: ['second', 'first'] },
+            uniques: [{ name: 'uq_name', columns: ['last_name', 'first_name'] }],
+          },
+        }),
+      }),
+      { sortStorage: sqlSortStorage },
+    );
+    const table = drill(unboundTables(result), 'users');
+    expect(table['primaryKey']).toEqual({ columns: ['second', 'first'] });
+    expect(table['uniques']).toEqual([{ name: 'uq_name', columns: ['last_name', 'first_name'] }]);
+  });
+
   it('handles storage without namespaces (no-op)', () => {
     const result = canonicalizeContractToObject(
       minimal({ storage: { storageHash: 'stub', namespaces: {} } }),

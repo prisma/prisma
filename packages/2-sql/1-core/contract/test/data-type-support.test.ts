@@ -34,6 +34,9 @@ describe('canonicalNumeralText', () => {
     ['drops the sign of zero', '-0', '0'],
     ['drops the sign of a zero with a fraction', '-0.00', '0.00'],
     ['leaves a plain numeral alone', '-42', '-42'],
+    ['drops a plus sign', '+42', '42'],
+    ['drops a plus sign and leading zeros and keeps trailing zeros', '+007.50', '7.50'],
+    ['drops the plus sign of zero', '+0.0', '0.0'],
   ])('%s', (_name, text, canonical) => {
     expect(canonicalNumeralText(text)).toBe(canonical);
   });
@@ -52,6 +55,7 @@ describe('integerTextCanonicalForm', () => {
     ['a number past the safe integer range', Number.MAX_SAFE_INTEGER + 2],
     ['a fraction', 1.5],
     ['text that is not an integer', '1.5'],
+    ['digit text with a plus sign', '+7'],
   ])('refuses %s', (_name, value) => {
     expect(() => integerTextCanonicalForm(value)).toThrow(
       expect.objectContaining({
@@ -75,11 +79,11 @@ describe('escapePslString', () => {
 });
 
 describe('isNumeralText', () => {
-  it.each(['0', '-42', '1.50'])('reads %s as a numeral', (text) => {
+  it.each(['0', '-42', '1.50', '+42', '+1.50'])('reads %s as a numeral', (text) => {
     expect(isNumeralText(text)).toBe(true);
   });
 
-  it.each(['NaN', 'Infinity', '-Infinity', '1e3', '', 'x', '1.'])(
+  it.each(['NaN', 'Infinity', '-Infinity', '1e3', '', 'x', '1.', '+', '+-1', '++1', '+ 1'])(
     'reads %o as no numeral',
     (text) => {
       expect(isNumeralText(text)).toBe(false);
@@ -109,22 +113,37 @@ describe('createNumberClassifier', () => {
     ['a non-finite word', 'NaN', wide, 'NaN'],
     ['leading zeros', '007', small, 7],
     ['a negative zero', '-0', small, 0],
+    ['a whole number with a plus sign', '+1', small, 1],
+    ['a plus sign and leading zeros', '+007', small, 7],
+    ['a zero with a plus sign', '+0', small, 0],
+    ['a whole number with a plus sign past the first step', '+32768', large, '32768'],
+    [
+      'a whole number with a plus sign past the second step',
+      '+9223372036854775808',
+      wide,
+      '9223372036854775808',
+    ],
+    ['a number with a fraction and a plus sign', '+1.50', wide, '1.50'],
   ])('classifies %s', (_name, text, type, value) => {
     expect(classify(text)).toEqual({ type, value });
   });
 
-  it.each(['1e3', 'x', ''])('classifies %o as no type at all', (text) => {
-    expect(classify(text)).toBeUndefined();
-  });
+  it.each(['1e3', 'x', '', '+', '+x', '++1', '+-1', '+NaN'])(
+    'classifies %o as no type at all',
+    (text) => {
+      expect(classify(text)).toBeUndefined();
+    },
+  );
 
   it('classifies a number as no type when the target holds none that wide', () => {
     const narrow = createNumberClassifier({
       integers: [{ type: small, form: 'number', ...signedRange(16) }],
       fraction: { type: real, form: 'number' },
     });
-    expect([narrow('32768'), narrow('NaN'), narrow('1.5')]).toEqual([
+    expect([narrow('32768'), narrow('NaN'), narrow('1.5'), narrow('+1.5')]).toEqual([
       undefined,
       undefined,
+      { type: real, value: 1.5 },
       { type: real, value: 1.5 },
     ]);
   });

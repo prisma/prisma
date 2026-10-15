@@ -4,7 +4,7 @@
  * Mirrors the patterns in `postgres/codecs-class.ts` and `sqlite/codecs-class.ts` for the single `pg/vector@1` codec. Three artifacts:
  *
  * 1. `PgVectorCodec` extends {@link CodecImpl} with the wire and value conversions inline. Conversions are simple enough (PostgreSQL `[1,2,3]` text format) that no shared helper module is warranted; the class body is the source of truth.
- * 2. `PgVectorDescriptor` extends {@link PostgresCodecDescriptor} with the codec id, traits, the `pgvector/vector` data type and its params schema, explicit target behavior, and the emit-path `renderOutputType` producing `Vector<${length}>`. The data type declares the type's name and the bounds of `length`.
+ * 2. `PgVectorDescriptor` extends {@link PostgresCodecDescriptor} with the codec id, traits, the `pgvector/vector` data type and its params schema, and explicit target behavior. The column's type, `Vector<${length}>`, comes from the pack's type function in `types/codec-types.ts`. The data type declares the type's name and the bounds of `length`.
  * 3. `pgVectorColumn(length)` per-codec column helper invoking `descriptor.factory({ length })` directly.
  *
  * `length` threads into the runtime codec via the constructor so the wire methods enforce the declared dimension, and `pgvector/vector` checks it for every stored value. Without this, `vector(3)` and `vector(1536)` would produce codecs with identical behaviour and a dimension-mismatched value would round-trip undetected.
@@ -147,9 +147,6 @@ export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
   override readonly codecId = VECTOR_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly paramsSchema: StandardSchemaV1<VectorParams> = pgvectorVectorParams;
-  override renderOutputType(params: VectorParams): string {
-    return `Vector<${params.length}>`;
-  }
   override factory(params: VectorParams): (ctx: CodecInstanceContext) => PgVectorCodec {
     return () => new PgVectorCodec(this, params.length);
   }

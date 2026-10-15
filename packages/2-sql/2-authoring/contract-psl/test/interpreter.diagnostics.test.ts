@@ -1187,6 +1187,26 @@ namespace auth {}`,
       ]);
     });
 
+    it('SQLite names a rejected namespace block as it is written', () => {
+      const result = interpretSqlContract(
+        'namespace __unbound__ {\n  model Tenant {\n    id Int @id\n  }\n}\n',
+        {
+          ...baseInput,
+          target: sqliteTarget,
+          scalarColumnDescriptors: sqliteScalarColumnDescriptors,
+        },
+      );
+
+      expect(
+        result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => [code, message]),
+      ).toEqual([
+        [
+          'PSL_UNSUPPORTED_NAMESPACE_BLOCK',
+          'SQLite does not support `namespace __unbound__ { … }` blocks (SQLite has no schema concept; declare models at the document top level instead).',
+        ],
+      ]);
+    });
+
     it('SQLite rejects every explicit `namespace { … }` block with a SQLite-flavoured diagnostic', () => {
       const result = interpretSqlContract(
         `namespace auth {
@@ -1701,7 +1721,7 @@ describe('@@index parameter matrix diagnostics', () => {
     const schema = `model Doc {
   id Int @id
   body String
-  @@index([body], expression: "lower(body)", name: "doc_body_lower")
+  @@index([body], expression: sql\`lower(body)\`, name: "doc_body_lower")
 }`;
     const diagnostics = indexDiagnosticsFor(schema);
     const diagnostic = diagnostics.find((d) => d.code === 'PSL_INDEX_FIELDS_XOR_EXPRESSION');
@@ -1734,7 +1754,7 @@ describe('@@index parameter matrix diagnostics', () => {
     const schema = `model Doc {
   id Int @id
   body String
-  @@index(expression: "lower(body)")
+  @@index(expression: sql\`lower(body)\`)
 }`;
     const diagnostics = indexDiagnosticsFor(schema);
     const diagnostic = diagnostics.find((d) => d.code === 'PSL_INDEX_EXPRESSION_REQUIRES_NAME');
@@ -1765,7 +1785,7 @@ describe('@@index parameter matrix diagnostics', () => {
     const schema = `model Doc {
   id Int @id
   body String
-  @@index(expression: "lower(body)")
+  @@index(expression: sql\`lower(body)\`)
   @@index([body], name: "doc_body_idx", map: "doc_body_exact")
 }`;
     const diagnostics = indexDiagnosticsFor(schema);

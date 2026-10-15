@@ -553,6 +553,16 @@ namespace public {
     );
   });
 
+  it('names the namespace of a namespaced enum as it is written', () => {
+    const result = interpret(
+      '\nnamespace __unbound__ {\n  enum Priority {\n    @@type("pg/text@1")\n    Low = "low"\n  }\n}\n',
+    );
+
+    expect(result.ok ? [] : result.failure.diagnostics.map(({ message }) => message)).toEqual([
+      'enum "Priority" inside namespace "__unbound__" is not supported; declare enum at the top level',
+    ]);
+  });
+
   it('missing enum entityType factory emits diagnostic for each enum block', () => {
     const entityTypesWithoutEnum = {};
     const result = interpret(

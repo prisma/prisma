@@ -151,28 +151,6 @@ describe('representation-explicit temporal string codecs', () => {
     });
   }
 
-  describe('emitted read types', () => {
-    it('renders the precision-bearing spellings the adapter imports', () => {
-      expect([
-        pgTimestampStringDescriptor.renderOutputType({ precision: 6 }),
-        pgTimestamptzStringDescriptor.renderOutputType({ precision: 3 }),
-        pgTimeStringDescriptor.renderOutputType({ precision: 0 }),
-      ]).toEqual(['TimestampString<6>', 'TimestamptzString<3>', 'TimeString<0>']);
-    });
-
-    it('renders the bare spelling when the column declares no precision', () => {
-      expect([
-        pgTimestampStringDescriptor.renderOutputType({}),
-        pgTimestamptzStringDescriptor.renderOutputType({}),
-        pgTimeStringDescriptor.renderOutputType({}),
-      ]).toEqual(['TimestampString', 'TimestamptzString', 'TimeString']);
-    });
-
-    it('leaves pg/date-string@1 without a renderer, since a date carries no precision', () => {
-      expect(pgDateStringDescriptor.renderOutputType).toBeUndefined();
-    });
-  });
-
   it('encodes and decodes with no global Temporal available', async () => {
     const standIn = { note: 'stands in for a host Temporal implementation' };
     const hadHostTemporal = Object.hasOwn(globalThis, 'Temporal');

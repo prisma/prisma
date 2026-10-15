@@ -49,10 +49,10 @@ A collection's type is its class plus what the chain has established. Every meth
 export type Filtered<C> = C & HasWhere;
 export type Ordered<C> = C & HasOrderBy;
 export type Including<C extends HasRow, Added> = C & HasRow<CollectionRowOf<C> & Added>;
-export type Fragment<In, Out> = (collection: In) => Out;
+export type QueryFragment<In, Out> = (collection: In) => Out;
 ```
 
-`Fragment` places no constraint between `In` and `Out`, because a fragment written for one model may narrow the row, for example with `select`, so its output is not always a subtype of its input.
+`QueryFragment` places no constraint between `In` and `Out`, because a fragment written for one model may narrow the row, for example with `select`, so its output is not always a subtype of its input.
 
 Each fact has three names. The flag `hasWhere` in the type state is set to `true` by the interface `HasWhere`, and `Filtered<C>` is `C & HasWhere`. Users write `Filtered<C>`; TypeScript prints `HasWhere` when it explains why a type does not match. `hasOrderBy`, `HasOrderBy` and `Ordered<C>` are the same fact for an order.
 
@@ -61,8 +61,10 @@ Each fact has three names. The flag `hasWhere` in the type state is set to `true
 | `where` | `Filtered<Self>` | yes | a filter has been applied |
 | `orderBy` | `Ordered<Self>` | yes | an order has been applied |
 | `limit`, `offset`, `distinct`, `distinctOn`, `cursor` | `Self` | yes | nothing |
+| `forUpdate`, `forNoKeyUpdate`, `forShare`, `forKeyShare` | `Self` | yes | nothing; the contract's capabilities decide which arguments each accepts |
 | `include` | `Including<Self, { [K in Rel]: ... }>` | yes | each row has the included relation |
 | `with(fn)` | whatever `fn(this)` returns | as the function | as the function |
+| `using.<method>(...args)` | `Self` with `Filtered` and `Ordered` as the method declares | yes | the filter and order the method declares have been applied; a package contributes the method ([ADR 272](ADR%20272%20-%20Packages%20contribute%20collection%20methods%20computed%20from%20a%20model.md)) |
 | `select` | `Collection<Contract, Model, NarrowedRow, State>` | no | a different row |
 | `variant` | `Collection<Contract, Model, VariantRow, VariantState>` | no | a different row and a different type argument |
 
@@ -70,7 +72,7 @@ Each fact has three names. The flag `hasWhere` in the type state is set to `true
 
 The facts live in two declared properties on the class, the **type state** and the **row**:
 
-- The type state holds the flags `hasWhere` and `hasOrderBy`. A flag that has not been established is `boolean`, meaning not known; a method that establishes it sets it to `true`. The same object also holds `variantName` and `nsId`, which are not facts: they are fixed by the collection's type argument and select the model accessor.
+- The type state holds the flags `hasWhere` and `hasOrderBy`. A flag that has not been established is `boolean`, meaning not known; a method that establishes it sets it to `true`. The same object also holds `variantValue` and `nsId`, which are not facts: they are fixed by the collection's type argument and select the model accessor.
 - The row records the shape of the rows the collection produces, including the relations and values `include` adds.
 
 The methods that depend on a fact read it from the receiver. `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll` and `deleteAndCount` require `hasWhere`; `cursor` and `distinctOn` require `hasOrderBy`.
@@ -85,7 +87,7 @@ What a method can do is intersect. `Filtered<Self>` is the receiver's type plus 
 
 Narrowing the row is not monotonic. `select('id')` removes fields, and an intersection cannot remove anything. That is why `select` returns the base `Collection` type. It is also the right outcome: a method written against the model's row is not safe to call on a collection that produces something else.
 
-`variant` drops the class for a different reason. Its row, the variant's fields plus a narrowed discriminator, is a subtype of the model's row, so an intersection could hold it. But `variant` also changes `variantName` in the type state, and `where`, `orderBy` and the other methods read `variantName` and `nsId` from the class's type argument to build the model accessor their callbacks receive. A changed type argument means a different instantiation of the base class, which the receiver's class cannot express. `variant` therefore returns the base `Collection` type with the new type argument. `variant` adds a filter on the discriminator at run time, so it records `hasWhere: true` in that argument, which is a true fact.
+`variant` drops the class for a different reason. Its row, the variant's fields plus a narrowed discriminator, is a subtype of the model's row, so an intersection could hold it. But `variant` also changes `variantValue` in the type state, and `where`, `orderBy` and the other methods read `variantValue` and `nsId` from the class's type argument to build the model accessor their callbacks receive. A changed type argument means a different instantiation of the base class, which the receiver's class cannot express. `variant` therefore returns the base `Collection` type with the new type argument. `variant` adds a filter on the discriminator at run time, so it records `hasWhere: true` in that argument, which is a true fact.
 
 The receiver is captured with a `this` parameter rather than the polymorphic `this` type for one reason: inside an include refinement the collection is an `Omit` of `Collection`, and `Omit` fixes the polymorphic `this` of every method to the base `Collection` type, so a chain inside a refinement would lose what `include` had added. A `this` parameter is inferred from the actual receiver, whatever it is. It also lets `where`, `include` and `select` accept a union of differently flagged collections, since `Self` is inferred as the union.
 
@@ -170,6 +172,8 @@ The public `Collection` type is `CollectionBase` intersected with one reducer me
 
 **Guards.** All eight guarded methods use one form: a `this` parameter whose type parameter is constrained to the fact. `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll` and `deleteAndCount` take `this: Self` with `Self extends HasWhere`; `cursor` and `distinctOn` take `this: Self` with `Self extends HasOrderBy`. When the fact is missing, the error is on the receiver and names the fact: "The 'this' context of type 'PostCollection' is not assignable to method's 'this' of type 'HasWhere'".
 
+**Refusals.** `fragment` (ADR 259) refuses a receiver that has a fact, which a constraint cannot express: an unfiltered collection's state has `hasWhere: boolean`, and `true` is a subtype of `boolean`, so any constraint that accepts the unfiltered state also accepts the filtered one. A refusal therefore uses a second form: the `this` parameter is intersected with a conditional type, `RootCollectionOnly<Self, NsId>`, that resolves to an interface with one property naming the reason, `FragmentNeedsRootCollection`, when the receiver has the fact, and to `unknown` otherwise. The error is on the receiver: "Property 'fragmentNeedsRootCollection' is missing in type 'PostCollection & HasWhere'". A later refusal uses this form. It has two limits. Facts record what is known to be present, so a receiver without a fact in its type, such as a union with an unfiltered collection, is not refused. A receiver typed by a type parameter, such as `this` in a class method, leaves the conditional unresolved, so TypeScript refuses the call with an error that names the conditional type; a negative type test holds that behaviour.
+
 The requirement is about the receiver, so the receiver is where it is checked: no argument type changes with the state, and a cast on an argument cannot bypass it. The constraint keeps `Self` inferred as the whole receiver type, so `cursor` and `distinctOn` return the receiver with every fact it has. The writes return `CollectionRowOf<Self & HasRow<CollectionRowOf<this>>>`, the receiver's row.
 
 **Methods that narrow the row.** A signature that mentions the polymorphic `this` is instantiated again for every receiver type, and `select` and `variant` have large signatures. `select` infers the state and the row from its `this` parameter, which is instantiated once per receiver type, so `select` after `include` keeps the included relations. `variant` infers the state the same way. Each also carries an overload without the `this` parameter, for a receiver whose state is not one type, such as a union of differently flagged collections. That overload returns the root state, which refuses writes and `cursor`, so it is sound. It also uses the model's own row, so on such a receiver the included relations are missing from the type after `select`, although the rows still have them.
@@ -194,7 +198,7 @@ A conditional makes TypeScript compare the two branch types. It caches the compa
 - **After `select` or `variant`, class methods are gone.** After `select` the rows are no longer the model's; after `variant` the type argument is a different one.
 - **A conditional between two differently flagged collections keeps a union.** `flag ? db.Post.withTitle('orm') : db.Post.newestFirst()` is `Filtered<PostCollection> | Ordered<PostCollection>`. Reads, `select`, `include` and class methods work on it; writes and `cursor` are refused, and `select` on it drops included relations from the type. A write on it fails with "The 'this' context of type 'Ordered<PostCollection> | Filtered<PostCollection>' is not assignable to method's 'this' of type 'HasWhere'", because one branch has no filter; filter both branches, or annotate the result as `PostCollection`, which reduces the union and states that the filter is not known.
 - **Chains print with the fact names.** A chain on the base type prints as `Ordered<Filtered<Collection<Contract, "Post", ...>>>`, and one on a custom class as `Ordered<Filtered<PostCollection>>`.
-- **These names are part of the public surface**, because fragment authors write them and declaration output needs them for any library that exports a collection class: `Fragment`, `Filtered`, `Ordered`, `Including`, `HasWhere`, `HasOrderBy`, `HasRow`, `HasTypeState`, `TypeState`, `RowType`, `CollectionTypeStateOf`, `CollectionRowOf`, `AggregateIncludeReducers`, `AggregateSelector` and `IncludeScalar`.
+- **These names are part of the public surface**, because fragment authors write them and declaration output needs them for any library that exports a collection class: `QueryFragment`, `Filtered`, `Ordered`, `Including`, `HasWhere`, `HasOrderBy`, `HasRow`, `HasTypeState`, `TypeState`, `RowType`, `CollectionTypeStateOf`, `CollectionRowOf`, `AggregateIncludeReducers`, `AggregateSelector` and `IncludeScalar`.
 - **Declarations name the family package.** The declaration of an exported collection class, or of an exported chain, imports these names from `@prisma/orm-family-sql/orm-client`, the package the facade re-exports, not from the facade the application depends on. Under pnpm that package does not resolve from the application, and with `skipLibCheck` the consumer of the declaration silently gets `any`. This predates the decision: the same specifier appears for exported chains without it. It is a separate fix in how the facades publish their types.
 - **The state and the row are read with `CollectionTypeStateOf<C>` and `CollectionRowOf<C>`**, not by extracting a type argument of `Collection`. The type arguments hold what the collection started with, and the filter fact that `variant` writes into its new type argument; every other fact is in the intersection.
 - **`ReturnType` of a chaining method does not give a collection**, because `ReturnType` of a generic method uses the type parameter's constraint: `ReturnType<C['where']>` is `HasWhere`, and `ReturnType<C['limit']>` is `unknown`. Write `Filtered<C>` or `Ordered<C>`, or `C` for the methods that add nothing.
@@ -205,7 +209,7 @@ A conditional makes TypeScript compare the two branch types. It caches the compa
 
 **The class of a related model inside an include refinement.** In `db.User.include('posts', (posts) => posts.withTitle('orm'))`, the collection given to the callback is the base `Collection` type, not `PostCollection`. Giving it the class needs the parent's type to know which class is registered for `Post`. That is known once, at `orm({ collections })`, and would have to reach every collection type: as a type argument threaded through `Collection` and the refinement types, or as a declared property the client attaches to each root collection and the `this`-typed methods pass on. It cannot work inside a class body, because a class cannot name a registry that contains itself. It changes the shared collection interface for every family and is a decision of its own.
 
-**The class through `variant`.** Keeping the class after `variant` needs `variantName` and `nsId` to move from the class's type argument into the declared type state, so that `where`, `orderBy` and the other methods read them from the receiver.
+**The class through `variant`.** Keeping the class after `variant` needs `variantValue` and `nsId` to move from the class's type argument into the declared type state, so that `where`, `orderBy` and the other methods read them from the receiver.
 
 **The MongoDB ORM client.** Its collection keeps the type it had. Extracting the ADR 175 shared interface would need it to adopt the `this`-typed chaining, the symbol-keyed state and row, and the `boolean` flags.
 

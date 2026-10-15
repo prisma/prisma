@@ -1,4 +1,5 @@
-import type { CodecTypes } from '../exports/codec-types';
+import type { CodecTypes, ParameterizedOutputTypesForTypeParams } from '../exports/codec-types';
+import type { QueryOperationTypesForCodecs } from '../types/operation-types';
 import {
   postgresAuthoringEntityTypes,
   postgresAuthoringFieldPresets,
@@ -45,4 +46,6 @@ const postgresTargetDescriptorMetaBase = {
 
 export const postgresTargetDescriptorMeta: typeof postgresTargetDescriptorMetaBase & {
   readonly __codecTypes?: CodecTypes;
+  readonly __queryOperationTypes?: QueryOperationTypesForCodecs;
+  readonly __parameterizedOutputTypes?: ParameterizedOutputTypesForTypeParams;
 } = postgresTargetDescriptorMetaBase;

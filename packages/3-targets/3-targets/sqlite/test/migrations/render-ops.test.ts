@@ -44,7 +44,15 @@ describe('renderOps with a placeholder', () => {
     process.on('unhandledRejection', listener);
     try {
       expect(
-        renderOps([new DataTransformCall('data_migration.backfill', 'Backfill', 'user', 'email')]),
+        renderOps([
+          new DataTransformCall(
+            'data_migration.backfill',
+            'Backfill',
+            'user',
+            'email',
+            'User.email:run',
+          ),
+        ]),
       ).toHaveLength(1);
       await new Promise((resolve) => setImmediate(resolve));
       await new Promise((resolve) => setImmediate(resolve));
@@ -56,7 +64,13 @@ describe('renderOps with a placeholder', () => {
 
   it('still rejects with MIGRATION.UNFILLED_PLACEHOLDER for a reader that awaits it', async () => {
     const [operation] = renderOps([
-      new DataTransformCall('data_migration.backfill', 'Backfill', 'user', 'email'),
+      new DataTransformCall(
+        'data_migration.backfill',
+        'Backfill',
+        'user',
+        'email',
+        'User.email:run',
+      ),
     ]);
     await expect(operation).rejects.toMatchObject({ code: 'MIGRATION.UNFILLED_PLACEHOLDER' });
   });

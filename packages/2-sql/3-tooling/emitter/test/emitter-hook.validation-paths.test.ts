@@ -2,100 +2,10 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';
+import { identityCodecLookup } from './value-set-codec-lookups';
 
 const idColumn = { id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false } };
 const userTable = { columns: idColumn, uniques: [], indexes: [], foreignKeys: [] };
-
-function contractWithModelStorage(storage: Record<string, unknown>) {
-  return createContract({
-    domain: {
-      namespaces: {
-        app: {
-          models: { User: { fields: {}, relations: {}, storage } },
-        },
-      },
-    },
-    storage: {
-      namespaces: {
-        app: { id: 'app', entries: { table: { user: userTable } } },
-      },
-    },
-  });
-}
-
-describe('validateTypes', () => {
-  it('passes when there is no storage to walk', () => {
-    expect(() => sqlEmission.validateTypes(createContract({ storage: {} }), {})).not.toThrow();
-  });
-
-  it('rejects a column with no codec id', () => {
-    const contract = createContract({
-      storage: { tables: { user: { columns: { id: { dataType: 'pg/uuid' } } } } },
-    });
-
-    expect(() => sqlEmission.validateTypes(contract, {})).toThrow(
-      'Column "id" in table "user" is missing codecId',
-    );
-  });
-
-  it('rejects a codec id outside the ns/name@version shape', () => {
-    const contract = createContract({
-      storage: { tables: { user: { columns: { id: { dataType: 'pg/uuid', codecId: 'uuid' } } } } },
-    });
-
-    expect(() => sqlEmission.validateTypes(contract, {})).toThrow(
-      'has invalid codec ID format "uuid"',
-    );
-  });
-});
-
-describe('validateStructure', () => {
-  it('rejects a contract from another family', () => {
-    expect(() => sqlEmission.validateStructure(createContract({ targetFamily: 'mongo' }))).toThrow(
-      'Expected targetFamily "sql", got "mongo"',
-    );
-  });
-
-  it('rejects a model with no storage table', () => {
-    expect(() =>
-      sqlEmission.validateStructure(contractWithModelStorage({ namespaceId: 'app', fields: {} })),
-    ).toThrow('Model "app:User" is missing storage.table');
-  });
-
-  it('rejects a model with no storage namespace', () => {
-    expect(() =>
-      sqlEmission.validateStructure(
-        contractWithModelStorage({ namespaceId: undefined, table: 'user', fields: {} }),
-      ),
-    ).toThrow('Model "app:User" is missing storage.namespaceId');
-  });
-
-  it('rejects a model whose storage namespace disagrees with its domain namespace', () => {
-    expect(() =>
-      sqlEmission.validateStructure(
-        contractWithModelStorage({ namespaceId: 'other', table: 'user', fields: {} }),
-      ),
-    ).toThrow('Model "app:User" storage.namespaceId "other" does not match domain namespace "app"');
-  });
-
-  it('rejects a model with no storage fields', () => {
-    expect(() =>
-      sqlEmission.validateStructure(
-        contractWithModelStorage({ namespaceId: 'app', table: 'user', fields: {} }),
-      ),
-    ).toThrow('Model "app:User" is missing storage.fields');
-  });
-
-  it('rejects a table with no uniques array', () => {
-    const contract = createContract({
-      storage: { tables: { user: { columns: idColumn, indexes: [], foreignKeys: [] } } },
-    });
-
-    expect(() => sqlEmission.validateStructure(contract)).toThrow(
-      'Table "user" is missing required field "uniques" (must be an array)',
-    );
-  });
-});
 
 describe('storage type emission for namespace kinds', () => {
   function storageTypeFor(namespaces: Record<string, unknown>): string {
@@ -158,35 +68,58 @@ describe('getStorageTypeExports', () => {
     expect(sqlEmission.getStorageTypeExports(createContract({ storage: {} }))).toBeUndefined();
   });
 
-  it('orders the column type maps by namespace name', () => {
+  const statusColumn = {
+    dataType: 'pg/text',
+    codecId: 'pg/text@1',
+    nullable: false,
+    valueSet: { namespaceId: 'alpha', entityKind: 'valueSet', entityName: 'Status' },
+  };
+  const statusTable = {
+    columns: { status: statusColumn },
+    uniques: [],
+    indexes: [],
+    foreignKeys: [],
+  };
+  const statusValueSet = { Status: { kind: 'valueSet', values: ['on', 'off'] } };
+
+  it('orders the column type overrides by namespace and table name', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({
         storage: {
           namespaces: {
-            zeta: { id: 'zeta', entries: { table: { audit: userTable } } },
-            alpha: { id: 'alpha', entries: { table: { user: userTable } } },
+            zeta: { id: 'zeta', entries: { table: { audit: statusTable } } },
+            alpha: {
+              id: 'alpha',
+              entries: {
+                table: { user: statusTable, account: statusTable },
+                valueSet: statusValueSet,
+              },
+            },
           },
         },
       }),
+      identityCodecLookup,
     );
 
     expect(exports?.indexOf('alpha')).toBeLessThan(exports?.indexOf('zeta') ?? -1);
+    expect(exports?.indexOf('account')).toBeLessThan(exports?.indexOf('user') ?? -1);
   });
 
-  it('emits both column type maps as Record<string, never> for an empty namespace map', () => {
+  it('types both column maps by the column type generic over the contract storage', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({ storage: { namespaces: {} } }),
     );
 
     expect(exports).toBe(
       [
-        'export type StorageColumnTypes = Record<string, never>;',
-        'export type StorageColumnInputTypes = Record<string, never>;',
+        'type ColumnTypeOverrides = {  };',
+        'export type StorageColumnTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "output">;',
+        'export type StorageColumnInputTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "input">;',
       ].join('\n'),
     );
   });
 
-  it('falls back to the codec type when a column names a value set the storage does not carry', () => {
+  it('gives no type override to a column that names a value set the storage does not carry', () => {
     const exports = sqlEmission.getStorageTypeExports(
       createContract({
         storage: {
@@ -218,13 +151,9 @@ describe('getStorageTypeExports', () => {
           },
         },
       }),
+      identityCodecLookup,
     );
 
-    expect(exports).toBe(
-      [
-        'export type StorageColumnTypes = { readonly app: { readonly user: { readonly role: CodecTypes["pg/text@1"]["output"] } } };',
-        'export type StorageColumnInputTypes = { readonly app: { readonly user: { readonly role: CodecTypes["pg/text@1"]["input"] } } };',
-      ].join('\n'),
-    );
+    expect(exports).toContain('type ColumnTypeOverrides = {  };');
   });
 });

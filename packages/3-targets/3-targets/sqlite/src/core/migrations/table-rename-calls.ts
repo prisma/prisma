@@ -1,5 +1,10 @@
 import type { Contract } from '@internal/contract/types';
-import type { ColumnRename, TableRename, TableRenameRequest } from '@internal/family-sql/control';
+import type {
+  ColumnRename,
+  TableRename,
+  TableRenameByHand,
+  TableRenameRequest,
+} from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
@@ -19,6 +24,12 @@ export function renameTableByHandStatements(rename: TableRenameRequest): readonl
 export function renderRenameTableCall(rename: TableRenameRequest): string {
   return new RenameTableCall(rename.from, rename.to, []).renderTypeScript();
 }
+
+/** How a user renames a table by hand on SQLite. */
+export const sqliteTableRenameByHand: TableRenameByHand = {
+  renderTableRename: renderRenameTableCall,
+  tableRenameByHand: renameTableByHandStatements,
+};
 
 /**
  * The call that renames a table, carrying as companions a drop and a create under the new name of

@@ -114,9 +114,11 @@ async function planned(
   if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
   const operations = await Promise.all(result.plan.operations);
   const originModel = (table: string) =>
-    (options.statements ?? []).find(
-      (statement) => statement.entity === 'model' && statement.to.model === table,
-    )?.from.model ?? table;
+    (options.statements ?? []).flatMap((statement) =>
+      statement.kind === 'rename' && statement.entity === 'model' && statement.to.model === table
+        ? [statement.from.model]
+        : [],
+    )[0] ?? table;
   expectDataLossMatchesDestructive(result, operations, {
     subjectOf: ({ target }) =>
       target.details?.objectType === 'column' && target.details.table !== undefined
@@ -135,6 +137,8 @@ async function planned(
       operation: labels[operationIndex],
       subject,
     })),
+    losses: result.dataLoss.map(({ subject, loss }) => [subject, loss]),
+    appliedStatements: result.appliedStatements,
     accessWidening: result.accessWidening,
     classes: Object.fromEntries(operations.map((op) => [op.label, op.operationClass])),
   };
@@ -188,6 +192,49 @@ describe('SQLite planner, data loss', () => {
         subject: { kind: 'field', namespaceId: unbound, model: 'User', field: 'nickname' },
       },
     ]);
+  });
+
+  it('says a column a recreate leaves out is dropped and one whose type it changes changes type', async () => {
+    const from = contract('from', { User: { id: 'integer', nickname: 'text', age: 'text' } });
+    const to = contract('to', { User: { id: 'integer', age: 'integer' } });
+    const field = (name: string) => ({
+      kind: 'field',
+      namespaceId: unbound,
+      model: 'User',
+      field: name,
+    });
+
+    expect((await planned(from, to)).losses).toEqual([
+      [field('nickname'), 'drop'],
+      [field('age'), 'typeChange'],
+    ]);
+  });
+
+  it('plans no rename for a convert or backfill statement, and lists each with no operations', async () => {
+    const from = contract('from', { User: { id: 'integer', age: 'text' } });
+    const to = contract('to', { User: { id: 'integer', age: 'integer', email: 'text?' } });
+    const convert: ResolvedMigrationStatement = {
+      kind: 'convert',
+      entity: 'field',
+      field: { namespaceId: unbound, model: 'User', field: 'age' },
+    };
+    const backfill: ResolvedMigrationStatement = {
+      kind: 'backfill',
+      entity: 'field',
+      field: { namespaceId: unbound, model: 'User', field: 'email' },
+    };
+
+    const result = await planned(from, to, { statements: [convert, backfill] });
+    expect({
+      renames: result.labels.filter((label) => label.startsWith('Rename')),
+      appliedStatements: result.appliedStatements,
+    }).toEqual({
+      renames: [],
+      appliedStatements: [
+        { statement: convert, operationIndexes: [] },
+        { statement: backfill, operationIndexes: [] },
+      ],
+    });
   });
 
   it('names storage by the names the database has when the plan has no origin contract', async () => {

@@ -1,3 +1,4 @@
+import type { DuplicateStoredValue } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { contractError } from './contract-errors';
@@ -63,6 +64,7 @@ export interface EnumTypeHandle<
   Values extends readonly unknown[] = readonly unknown[],
   Names extends readonly string[] = readonly string[],
   MembersMap extends Record<string, unknown> = Record<string, unknown>,
+  CodecId extends string = string,
 > {
   /** Internal brand for lowering-pipeline detection. */
   readonly [ENUM_TYPE_HANDLE_BRAND]: true;
@@ -71,7 +73,7 @@ export interface EnumTypeHandle<
   readonly enumName: Name;
 
   /** codecId from the codec passed to `enumType`. */
-  readonly codecId: string;
+  readonly codecId: CodecId;
 
   /** Ordered member list for lowering (name + value pairs). */
   readonly enumMembers: readonly { readonly name: string; readonly value: Values[number] }[];
@@ -121,6 +123,16 @@ export type CodecInput<
     : unknown
   : unknown;
 
+function describeValue(value: unknown): string {
+  if (typeof value === 'bigint') return `${value}n`;
+  if (typeof value === 'number' && !Number.isFinite(value)) return String(value);
+  try {
+    return JSON.stringify(value) ?? String(value);
+  } catch {
+    return String(value);
+  }
+}
+
 /**
  * Declare a domain enum for use in TS-authoring contracts.
  *
@@ -131,7 +143,10 @@ export type CodecInput<
  *   value tuple so `Role.values` is `readonly ['user','admin']`, not
  *   `string[]`.
  * - Well-formedness assertions at construction: non-empty member list;
- *   unique names; unique values.
+ *   unique names; no two values equal by SameValueZero, the equality `has`,
+ *   `nameOf` and `ordinalOf` use. The contract build also refuses two members
+ *   that store the same value, because only the codec knows how a value is
+ *   stored.
  *
  * The returned handle wires into `field.namedType(handle)` to set
  * `valueSet` refs on both the domain field and the storage column.
@@ -162,7 +177,8 @@ export function enumType<
   Name,
   MembersToValues<[...Members]>,
   MembersToNames<[...Members]>,
-  MembersAccessorMap<[...Members]>
+  MembersAccessorMap<[...Members]>,
+  Codec['codecId']
 >;
 export function enumType(
   name: string,
@@ -183,7 +199,7 @@ export function enumType(
   }
 
   const seenNames = new Set<string>();
-  const seenValues = new Set<string>();
+  const nameByValue = new Map<unknown, string>();
   for (const m of members) {
     if (seenNames.has(m.name)) {
       throw contractError(
@@ -194,15 +210,17 @@ export function enumType(
     }
     seenNames.add(m.name);
 
-    const loweredValue = String(m.value);
-    if (seenValues.has(loweredValue)) {
+    const earlier = nameByValue.get(m.value);
+    if (earlier !== undefined) {
       throw contractError(
         'CONTRACT.ENUM_INVALID',
-        `enumType("${name}"): duplicate member value "${loweredValue}". Member values must be unique.`,
-        { meta: { enumName: name, member: loweredValue, reason: 'duplicate-member-value' } },
+        `enumType("${name}"): members "${earlier}" and "${m.name}" have the same value ${describeValue(m.value)}. Member values must be unique.`,
+        {
+          meta: { enumName: name, members: [earlier, m.name], reason: 'duplicate-member-value' },
+        },
       );
     }
-    seenValues.add(loweredValue);
+    nameByValue.set(m.value, m.name);
   }
 
   const values = Object.freeze(members.map((m) => m.value));
@@ -229,6 +247,21 @@ export function enumType(
   };
 }
 
+/** Two members of an `enumType` that store the same value, as `CONTRACT.ENUM_INVALID` naming both members and the stored value. */
+export function duplicateMemberError(enumName: string, duplicate: DuplicateStoredValue) {
+  return contractError(
+    'CONTRACT.ENUM_INVALID',
+    `enumType("${enumName}"): members "${duplicate.earlier}" and "${duplicate.later}" both store ${JSON.stringify(duplicate.stored)}. Member values must be unique as their codec stores them.`,
+    {
+      meta: {
+        enumName,
+        members: [duplicate.earlier, duplicate.later],
+        reason: 'duplicate-member-value',
+      },
+    },
+  );
+}
+
 /**
  * The signature of an `enumType` whose codec typemap is already bound — the
  * shape a target-bound wrapper (e.g. `@internal/postgres/contract-builder`)
@@ -251,7 +284,8 @@ export type BoundEnumType<CodecTypes extends CodecTypeMap> = <
   Name,
   MembersToValues<[...Members]>,
   MembersToNames<[...Members]>,
-  MembersAccessorMap<[...Members]>
+  MembersAccessorMap<[...Members]>,
+  Codec['codecId']
 >;
 
 /**

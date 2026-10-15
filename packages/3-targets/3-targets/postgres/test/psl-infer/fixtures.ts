@@ -1,8 +1,24 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import {
+  type ColumnTypeOf,
+  inferColumnTypes,
+  inferredTypeConstructors,
+} from '@internal/family-sql/psl-build';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
-import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import {
+  isSqlDataType,
+  renderSqlCatalogText,
+  resolveWrittenSqlTypes,
+} from '@internal/sql-contract/data-type';
+import {
+  type ReportedSqlType,
+  SqlColumnIR,
+  type SqlColumnIRInput,
+  type SqlSchemaIR,
+  type SqlTableIR,
+} from '@internal/sql-schema-ir/types';
 import {
   postgresAuthoringPslBlockDescriptors,
   postgresAuthoringTypes,
@@ -16,6 +32,140 @@ import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-n
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
+
+/** The native enums a fixture declares, by the type name a column is written with: bare or schema-qualified. */
+export type FixtureEnums = ReadonlyMap<string, { readonly schema: string; readonly name: string }>;
+
+/** `enums` keyed by bare and schema-qualified name, for enums of `schema`. */
+export function fixtureEnums(schema: string, typeNames: Iterable<string>): FixtureEnums {
+  return new Map(
+    [...typeNames].flatMap((name) => [
+      [name, { schema, name }],
+      [`${schema}.${name}`, { schema, name }],
+    ]),
+  );
+}
+
+/**
+ * The type Postgres reports for a column a fixture writes as a migration would (`int4`,
+ * `varchar(255)`): the catalog text of the data type that reads it, or the enum the name declares.
+ * A text no data type reads is reported as written.
+ */
+export function reportedFromWritten(
+  nativeType: string,
+  enums: FixtureEnums = new Map(),
+): ReportedSqlType {
+  const enumType = enums.get(nativeType);
+  if (enumType !== undefined) {
+    return { text: nativeType, kind: 'enum', schema: enumType.schema, name: enumType.name };
+  }
+  const [resolved] = resolveWrittenSqlTypes(nativeType, postgresDataTypes);
+  const dataType = postgresDataTypes.find((type) => type.id === resolved?.dataType);
+  const text =
+    resolved !== undefined &&
+    dataType !== undefined &&
+    isSqlDataType(dataType) &&
+    dataType.sql.claimsKind === undefined
+      ? renderSqlCatalogText(dataType, resolved.typeParams)
+      : nativeType;
+  return { text, kind: undefined, schema: 'pg_catalog', name: undefined };
+}
+
+/** `column` with the type Postgres would report for it, when the fixture gives none. */
+export function withReportedType(
+  column: SqlColumnIRInput,
+  enums: FixtureEnums = new Map(),
+): SqlColumnIR {
+  if (column.reportedType !== undefined) {
+    return column instanceof SqlColumnIR ? column : new SqlColumnIR(column);
+  }
+  return new SqlColumnIR({
+    ...column,
+    ...(column instanceof SqlColumnIR ? nonEnumerableFieldsOf(column) : {}),
+    reportedType: reportedFromWritten(column.nativeType, enums),
+  });
+}
+
+function nonEnumerableFieldsOf(column: SqlColumnIR): Partial<SqlColumnIRInput> {
+  return Object.fromEntries(
+    (['authoredDefault', 'codecRef', 'codecBaseNativeType', 'dataType', 'toCanonicalForm'] as const)
+      .filter((key) => column[key] !== undefined)
+      .map((key) => [key, column[key]]),
+  );
+}
+
+/** `columns` with the type Postgres would report for each column the fixture gives none. */
+export function withReportedTypes(
+  columns: Readonly<Record<string, SqlColumnIRInput>>,
+  enums: FixtureEnums = new Map(),
+): Record<string, SqlColumnIR> {
+  return Object.fromEntries(
+    Object.entries(columns).map(([name, column]) => [name, withReportedType(column, enums)]),
+  );
+}
+
+/** `tree` with the type Postgres would report for each column the fixture gives none. */
+export function withReportedTypesInTree(
+  tree: PostgresDatabaseSchemaNode,
+): PostgresDatabaseSchemaNode {
+  const enums: FixtureEnums = new Map(
+    Object.values(tree.namespaces).flatMap((namespace) => [
+      ...fixtureEnums(
+        namespace.schemaName,
+        namespace.nativeEnums.map(({ typeName }) => typeName),
+      ),
+    ]),
+  );
+  return new PostgresDatabaseSchemaNode({
+    ...tree,
+    namespaces: Object.fromEntries(
+      Object.entries(tree.namespaces).map(([id, namespace]) => [
+        id,
+        new PostgresNamespaceSchemaNode({
+          ...namespace,
+          tables: Object.fromEntries(
+            Object.entries(namespace.tables).map(([name, table]) => [
+              name,
+              new PostgresTableSchemaNode({
+                ...table,
+                columns: withReportedTypes(table.columns, enums),
+              }),
+            ]),
+          ),
+        }),
+      ]),
+    ),
+  });
+}
+
+/** {@link inferPostgresPslContract} over `tree`, each column given the type Postgres would report. */
+export function inferFromFixtureTree(
+  tree: PostgresDatabaseSchemaNode,
+  context: SqlPslBuildContext,
+  describedContracts?: Parameters<typeof inferPostgresPslContract>[2],
+): PslDocumentAst {
+  return inferPostgresPslContract(withReportedTypesInTree(tree), context, describedContracts);
+}
+
+/** The types `contract infer` writes for the columns of `tables`, all read from schema `public`. */
+export function inferredColumnTypesOf(
+  tables: Readonly<Record<string, SqlTableIR>>,
+  enums: FixtureEnums = new Map(),
+): ColumnTypeOf {
+  return inferColumnTypes({
+    tables: Object.values(tables).map((table) => ({
+      schemaName: 'public',
+      tableName: table.name,
+      columns: Object.values(withReportedTypes(table.columns, enums)),
+    })),
+    constructors: inferredTypeConstructors({
+      authoringTypes: inferBuildContext.authoringContributions.type,
+      codecLookup: inferBuildContext.codecLookup,
+      dataTypeLookup: inferBuildContext.dataTypes.lookup,
+    }),
+    isEnumColumn: (column) => column.reportedType?.kind === 'enum',
+  });
+}
 
 /**
  * Wraps a flat `{ tables, annotations? }` introspection fixture into the
@@ -38,7 +188,13 @@ export function treeFromFlat(schemaIR: SqlSchemaIR): PostgresDatabaseSchemaNode 
   for (const [name, table] of Object.entries(schemaIR.tables)) {
     tables[name] = new PostgresTableSchemaNode({
       name: table.name,
-      columns: table.columns,
+      columns: withReportedTypes(
+        table.columns,
+        fixtureEnums(
+          'public',
+          readNativeEnums(schemaIR.annotations).map(({ typeName }) => typeName),
+        ),
+      ),
       foreignKeys: table.foreignKeys,
       uniques: table.uniques,
       indexes: table.indexes,

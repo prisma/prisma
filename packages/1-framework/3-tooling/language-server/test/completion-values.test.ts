@@ -42,6 +42,7 @@ const emptyBinder = testBinder({
   symbolTable: buildSymbolTable({
     documents: [emptyDocument.document],
     sources: emptyDocument.sources,
+    defaultNamespaceId: 'public',
   }).symbolTable,
 });
 const emptyTabStop1 = '$' + '{1:}';
@@ -262,7 +263,11 @@ function complete(markedSource: string, snippets = false, parameterHints = false
   const source = markedSource.slice(0, offset) + markedSource.slice(offset + 1);
   const { document, sources } = parse(source, 'language-server-test.psl');
   const sourceFile = sources.sourceFileFor(document.syntax);
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   const items = providePslCompletionItems({
     context: classifyPslCompletionContext({
       document,
@@ -474,11 +479,11 @@ namespace sibling { model Hidden {} }
 `;
 
   it.each([
-    ['model', ['Example', 'Later', 'sibling']],
-    ['composite', ['Address']],
+    ['model', ['Example', 'Later', 'public', 'sibling']],
+    ['composite', ['Address', 'public']],
     ['named', ['Alias']],
-    ['block', ['Rules']],
-    ['enumeration', ['Choice']],
+    ['block', ['Rules', 'public']],
+    ['enumeration', ['Choice', 'public']],
   ])(
     'filters the %s selector to matches and namespaces holding one, without contributed types',
     (key, labels) => {
@@ -530,6 +535,7 @@ namespace sibling { model Hidden {} }
         detail: 'policy',
         filterText: 'Rules',
       }),
+      expect.objectContaining({ label: 'public', detail: 'Namespace' }),
     ]);
   });
 
@@ -544,6 +550,7 @@ namespace sibling { model Hidden {} }
         detail: 'enum',
         filterText: 'Choice',
       }),
+      expect.objectContaining({ label: 'public', detail: 'Namespace' }),
     ]);
     expect(result.apply('Choice')).toContain('@entity(enumeration: Choice)');
     expect(result.items[0]?.insertTextFormat).toBeUndefined();
@@ -564,6 +571,7 @@ namespace sibling { model Hidden {} }
     expect(result.labels).toEqual([
       ...(source.startsWith('model') ? ['Example'] : []),
       'Later',
+      'public',
       ...Object.keys(entitySignature.named),
     ]);
   });
@@ -585,6 +593,7 @@ namespace sibling { model Hidden {} }
         'Self',
         'Forward',
         'Global',
+        'public',
         'local',
         'sibling',
         ...(args === '|' ? Object.keys(entitySignature.named) : []),
@@ -672,12 +681,12 @@ describe('recursive attribute values', () => {
     ['records: { "key": [true, |] }', ['true', 'false']],
     ['records: { | }', []],
     ['records: { ke|y: [] }', []],
-    ['all: |', ['Example', 'Alpha', 'true', 'false']],
-    ['none: |', ['Example']],
+    ['all: |', ['Example', 'public', 'Alpha', 'true', 'false']],
+    ['none: |', ['Example', 'public']],
     ['rejected: |', []],
     ['recordValues: { enabled: | }', ['true', 'false']],
     ['recordValues: { enabled: true, next: | }', ['true', 'false']],
-    ['unionLists: [|]', ['Example', 'A', 'B']],
+    ['unionLists: [|]', ['Example', 'public', 'A', 'B']],
     ['flags: [|false]', ['true', 'false']],
   ])('completes %s', (args, expected) => {
     expect(field(args).labels).toEqual(expected);
@@ -706,13 +715,14 @@ describe('recursive attribute values', () => {
         },
         sortText: '0000',
       },
+      expect.objectContaining({ label: 'public', detail: 'Namespace' }),
     ]);
-    expect(field('unionLists: [|]').labels).toEqual(['Example', 'A', 'B']);
+    expect(field('unionLists: [|]').labels).toEqual(['Example', 'public', 'A', 'B']);
     expect(rejectedParse).not.toHaveBeenCalled();
   });
 
   it('never invokes combinator parsing to select alternatives', () => {
-    expect(field('none: |').labels).toEqual(['Example']);
+    expect(field('none: |').labels).toEqual(['Example', 'public']);
     expect(rejectedParse).not.toHaveBeenCalled();
   });
 

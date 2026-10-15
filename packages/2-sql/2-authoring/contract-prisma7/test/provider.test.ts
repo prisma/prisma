@@ -100,6 +100,21 @@ describe('prisma7Contract', () => {
     ).toBe('out/c.json');
   });
 
+  it('rejects a top-level model named like the default namespace', async () => {
+    const schemaPath = join(scratchDir('default-namespace-name'), 'schema.prisma');
+    writeFileSync(
+      schemaPath,
+      'datasource db {\n  provider = "postgresql"\n}\nmodel public {\n  id Int @id\n}\n',
+    );
+    const result = await prisma7Contract(schemaPath, postgres).source.load(
+      postgresSourceContext([schemaPath]),
+    );
+
+    expect(
+      result.ok ? [] : result.failure.diagnostics.map(({ code, message }) => [code, message]),
+    ).toEqual([['PSL_DUPLICATE_DECLARATION', 'Duplicate declaration of "public"']]);
+  });
+
   it('reads every .prisma file under a directory input, nested directories included, sorted by path', async () => {
     const dir = scratchDir('directory');
     writeFileSync(

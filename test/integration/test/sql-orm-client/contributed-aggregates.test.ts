@@ -142,7 +142,7 @@ async function setupTables(runtime: PgIntegrationRuntime): Promise<void> {
   );
 }
 
-/** The contract is authored here, so its static aggregate map is unknown and the derived builder surface is empty; the contributed names dispatch dynamically. */
+/** The contributed operations come from the execution stack, not from the contract's packs, so the contract's aggregate types do not name them and they dispatch dynamically. */
 type DynamicAggregates = Record<string, (field?: string) => AggregateSpec[string]>;
 
 function readingsCollection(runtime: PgIntegrationRuntime) {

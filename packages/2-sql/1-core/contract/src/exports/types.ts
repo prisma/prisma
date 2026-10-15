@@ -13,7 +13,9 @@ export type {
   AggregateOperationTypes,
   AggregateResultType,
   AggregateTypesBase,
+  AggregateTypesFromDescriptors,
   AggregateTypesOf,
+  ApplyQueryOperationTypes,
   AuthoredStorageTypeInstance,
   CheckConstraintInput,
   CodecTypesOf,
@@ -40,6 +42,7 @@ export type {
   QueryOperationSelfSpec,
   QueryOperationTypeEntry,
   QueryOperationTypesBase,
+  QueryOperationTypesFunction,
   QueryOperationTypesOf,
   ReferentialAction,
   ResolveCodecTypes,
@@ -93,3 +96,8 @@ export {
   toStorageTypeInstance,
   UniqueConstraint,
 } from '../types';
+export type {
+  ColumnTypesFromStorage,
+  FieldTypesFromDomain,
+  ValueTypeSide,
+} from '../value-type-maps';

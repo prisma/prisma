@@ -294,7 +294,8 @@ describe('migration list', () => {
 
     expect(envelope?.ok).toBe(false);
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
+    expect(envelope?.ok).toBe(false);
+    expect(envelope).not.toHaveProperty('error.fix');
   });
 
   it('fails before the handler when the orm section is structurally invalid', async () => {

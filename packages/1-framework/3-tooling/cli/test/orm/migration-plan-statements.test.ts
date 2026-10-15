@@ -282,6 +282,21 @@ describe('migration plan --rename', () => {
     expect(labels).toEqual(expect.arrayContaining([ADDITIVE_OP.label, 'Statements applied']));
   });
 
+  it('points only to the migration.ts that has placeholders, not the auto-baseline beside it', async () => {
+    const project = await renamingProject({ history: false });
+    const run = await harness(project, {
+      operations: [ADDITIVE_OP],
+      throwOnOperations: errorUnfilledPlaceholder('backfill'),
+      throwOnOperationsFromPlan: 1,
+    }).run(['migration', 'plan', '--name', 'delta'], { cwd: project.dir });
+
+    const [baseline, delta] = await plannedDirs(project);
+    expect(run.presented?.data).toMatchObject({ pendingPlaceholders: true });
+    const edit = run.presented?.presentation.next?.find((action) => action.kind === 'edit-file');
+    expect(edit?.label).toContain(`${delta}/migration.ts`);
+    expect(edit?.label).not.toContain(`${baseline}`);
+  });
+
   it('reports the statements of an auto-baseline plan whose storage did not change, with no operations', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO, models: ['User', 'Post'] });
     await seedContractSnapshot({
@@ -346,6 +361,128 @@ describe('migration plan --rename', () => {
     }).toEqual({
       refused: { kind: 'statementRefused', dirs: [] },
       empty: { kind: 'noDatabaseChange', dirs: ['baseline'] },
+    });
+  });
+});
+
+describe('migration plan --convert and --backfill', () => {
+  /** The database is at a contract whose `User.age` is text; the emitted contract has it as an integer. */
+  async function typeChangeProject() {
+    const project = await createOfflineProject({
+      storageHash: HASH_TO,
+      models: [{ name: 'User', fields: ['age', 'email'], codecs: { age: 'pg/int4@1' } }],
+    });
+    await seedMigrationPackage({
+      appMigrationsDir: project.appMigrationsDir,
+      dirName: '20260101T0000_initial',
+      from: null,
+      to: HASH_FROM,
+    });
+    await seedContractSnapshot({
+      migrationsDir: project.migrationsDir,
+      storageHash: HASH_FROM,
+      models: [{ name: 'User', fields: ['age'] }],
+    });
+    await seedDbRef({ appMigrationsDir: project.appMigrationsDir, storageHash: HASH_FROM });
+    return project;
+  }
+
+  const ageField = { namespaceId: 'app', model: 'User', field: 'age' };
+  const ageChange = {
+    operationIndex: 0,
+    subject: { kind: 'field', ...ageField },
+    loss: 'typeChange',
+  } as const;
+
+  function envelopeOf(run: { readonly json: readonly unknown[] }) {
+    const terminal = run.json.at(-1) as
+      | { readonly kind: string; readonly envelope?: unknown }
+      | undefined;
+    return terminal?.kind === 'result' ? terminal.envelope : undefined;
+  }
+
+  it('hands the planner the resolved convert and backfill statements with the renames, in the order given', async () => {
+    const project = await typeChangeProject();
+    const statementsReceived: unknown[][] = [];
+    const run = await harness(project, { statementsReceived }).run(
+      ['migration', 'plan', '--convert', 'User.age', '--backfill', 'User.email'],
+      { cwd: project.dir },
+    );
+
+    expect(run.exitCode).toBe(0);
+    expect(statementsReceived).toEqual([
+      [
+        { kind: 'convert', entity: 'field', field: ageField },
+        { kind: 'backfill', entity: 'field', field: { ...ageField, field: 'email' } },
+      ],
+    ]);
+  });
+
+  it('offers convert and delete for a type change where nobody can answer', async () => {
+    const project = await typeChangeProject();
+    const run = await harness(project, { dataLoss: [ageChange] }).run(
+      ['migration', 'plan', '--json'],
+      { cwd: project.dir },
+    );
+
+    expect(run.exitCode).toBe(2);
+    const actions = JSON.stringify(
+      (envelopeOf(run) as { readonly error: { readonly nextActions: unknown } }).error.nextActions,
+    );
+    expect(actions).toContain('--convert User.age');
+    expect(actions).toContain('--delete User.age');
+    expect(actions).not.toContain('--rename');
+  });
+
+  it('plans again with a convert typed at the prompt', async () => {
+    const project = await typeChangeProject();
+    const statementsReceived: unknown[][] = [];
+    const run = await harness(project, {
+      statementsReceived,
+      dataLoss: [ageChange],
+      statementsResolveDataLoss: true,
+    }).run(['migration', 'plan', '--json'], {
+      cwd: project.dir,
+      isTty: { stdin: true },
+      answers: ['convert User.age'],
+    });
+
+    expect(run.exitCode).toBe(0);
+    expect(statementsReceived).toEqual([
+      [],
+      [{ kind: 'convert', entity: 'field', field: ageField }],
+    ]);
+  });
+
+  it('says which field gets a temporary value in existing rows, and that --backfill chooses it', async () => {
+    const project = await typeChangeProject();
+    const run = await harness(project, {
+      temporaryValues: [
+        { operationIndex: 0, subject: { kind: 'field', ...ageField, field: 'email' }, value: "''" },
+      ],
+    }).run(['migration', 'plan'], { cwd: project.dir, isTty: { stdout: true } });
+
+    expect(run.presented?.data).toMatchObject({
+      temporaryValues: [{ field: 'User.email', value: "''" }],
+    });
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows get '' in field "User.email". To choose the value, plan again with --backfill User.email.`,
+    });
+  });
+
+  it('reports a delete that answers a type change as accepting the lossy type change', async () => {
+    const project = await typeChangeProject();
+    const run = await harness(project, { dataLoss: [ageChange] }).run(
+      ['migration', 'plan', '--delete', 'User.age'],
+      { cwd: project.dir },
+    );
+
+    expect(run.presented?.data).toMatchObject({
+      appliedStatements: [
+        { verb: 'delete', description: 'accept lossy type change of field "User.age"' },
+      ],
     });
   });
 });

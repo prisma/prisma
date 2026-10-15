@@ -3,14 +3,19 @@
 // To regenerate, run: prisma contract emit
 import type {
   CodecTypes as PgVectorTypes,
-  Vector,
+  ParameterizedOutputTypesForTypeParams as PgVectorParameterizedOutputTypes,
 } from '@prisma/orm-extension-pgvector/codec-types';
 import type { QueryOperationTypes as PgVectorQueryOperationTypes } from '@prisma/orm-extension-pgvector/operation-types';
-import type { CodecTypes as PgTypes } from '@prisma/orm-postgres/target/codec-types';
+import type {
+  CodecTypes as PgTypes,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
+} from '@prisma/orm-postgres/target/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@prisma/orm-postgres/target/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
@@ -23,7 +28,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'e6ffcff32f45de18e469df15dab64a2436682c3bfdbf62fd8b3a74d35e40014d'>;
+  StorageHashBase<'0cc3858331779e3853a61a911a7fe85ca764430aa9de12c2a0bb36bfa3165743'>;
 export type ExecutionHash =
   ExecutionHashBase<'eb9bffd4c01945792e83de10d571b20df42f5bf40405ec8c642c6592f7dc4655'>;
 export type ProfileHash =
@@ -253,6 +258,8 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypeFunctions =
+  PgParameterizedOutputTypes | PgVectorParameterizedOutputTypes;
 export type AddressOutput = {
   readonly city: CodecTypes['pg/text@1']['output'];
   readonly country: CodecTypes['pg/text@1']['output'];
@@ -265,280 +272,126 @@ export type AddressInput = {
   readonly street: CodecTypes['pg/text@1']['input'];
   readonly zip: CodecTypes['pg/text@1']['input'] | null;
 };
-export type FieldOutputTypes = {
+type FieldTypeOverrides = {
   readonly public: {
-    readonly Bug: {
-      readonly severity: CodecTypes['pg/text@1']['output'];
-      readonly stepsToRepro: CodecTypes['pg/text@1']['output'] | null;
-    };
-    readonly Feature: {
-      readonly priority: CodecTypes['pg/text@1']['output'];
-      readonly targetRelease: CodecTypes['pg/text@1']['output'] | null;
-    };
-    readonly Post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly embedding: Vector<1536> | null;
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly impressionCount: CodecTypes['pg/int8@1']['output'] | null;
-      readonly priority: 0 | 1 | 2;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['output'] | null;
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/uuid@1']['output'];
-      readonly viewCount: CodecTypes['pg/int8number@1']['output'] | null;
-    };
-    readonly PostTag: {
-      readonly postId: CodecTypes['pg/uuid@1']['output'];
-      readonly tagId: CodecTypes['pg/uuid@1']['output'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly label: CodecTypes['pg/text@1']['output'];
-    };
-    readonly Task: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly description: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly status: CodecTypes['pg/text@1']['output'];
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly type: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/uuid@1']['output'];
-    };
+    readonly Post: { readonly priority: { readonly output: 0 | 1 | 2; readonly input: 0 | 1 | 2 } };
     readonly User: {
-      readonly address: AddressOutput | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly displayName: CodecTypes['pg/text@1']['output'];
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly kind: 'admin' | 'user';
+      readonly address: { readonly output: AddressOutput; readonly input: AddressInput };
+      readonly kind: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
     };
   };
 };
-export type FieldInputTypes = {
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'input'
+>;
+type ColumnTypeOverrides = {
   readonly public: {
-    readonly Bug: {
-      readonly severity: CodecTypes['pg/text@1']['input'];
-      readonly stepsToRepro: CodecTypes['pg/text@1']['input'] | null;
-    };
-    readonly Feature: {
-      readonly priority: CodecTypes['pg/text@1']['input'];
-      readonly targetRelease: CodecTypes['pg/text@1']['input'] | null;
-    };
-    readonly Post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly impressionCount: CodecTypes['pg/int8@1']['input'] | null;
-      readonly priority: 0 | 1 | 2;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['input'] | null;
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/uuid@1']['input'];
-      readonly viewCount: CodecTypes['pg/int8number@1']['input'] | null;
-    };
-    readonly PostTag: {
-      readonly postId: CodecTypes['pg/uuid@1']['input'];
-      readonly tagId: CodecTypes['pg/uuid@1']['input'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly label: CodecTypes['pg/text@1']['input'];
-    };
-    readonly Task: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly description: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly status: CodecTypes['pg/text@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly type: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/uuid@1']['input'];
-    };
-    readonly User: {
-      readonly address: AddressInput | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly displayName: CodecTypes['pg/text@1']['input'];
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly kind: 'admin' | 'user';
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly bug: {
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly severity: CodecTypes['pg/text@1']['output'];
-      readonly stepsToRepro: CodecTypes['pg/text@1']['output'] | null;
-    };
-    readonly feature: {
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly priority: CodecTypes['pg/text@1']['output'];
-      readonly targetRelease: CodecTypes['pg/text@1']['output'] | null;
-    };
-    readonly post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly embedding: Vector<1536> | null;
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly impressionCount: CodecTypes['pg/int8@1']['output'] | null;
-      readonly priority: 0 | 1 | 2;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['output'] | null;
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/uuid@1']['output'];
-      readonly viewCount: CodecTypes['pg/int8number@1']['output'] | null;
-    };
-    readonly post_tag: {
-      readonly postId: CodecTypes['pg/uuid@1']['output'];
-      readonly tagId: CodecTypes['pg/uuid@1']['output'];
-    };
-    readonly tag: {
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly label: CodecTypes['pg/text@1']['output'];
-    };
-    readonly task: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly description: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly status: CodecTypes['pg/text@1']['output'];
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly type: CodecTypes['pg/text@1']['output'];
-      readonly userId: CodecTypes['pg/uuid@1']['output'];
-    };
+    readonly post: { readonly priority: { readonly output: 0 | 1 | 2; readonly input: 0 | 1 | 2 } };
     readonly user: {
-      readonly address: CodecTypes['pg/jsonb@1']['output'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly displayName: CodecTypes['pg/text@1']['output'];
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/uuid@1']['output'];
-      readonly kind: 'admin' | 'user';
+      readonly kind: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
     };
   };
 };
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly bug: {
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly severity: CodecTypes['pg/text@1']['input'];
-      readonly stepsToRepro: CodecTypes['pg/text@1']['input'] | null;
-    };
-    readonly feature: {
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly priority: CodecTypes['pg/text@1']['input'];
-      readonly targetRelease: CodecTypes['pg/text@1']['input'] | null;
-    };
-    readonly post: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly embedding: CodecTypes['pg/vector@1']['input'] | null;
-      readonly expiresAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly impressionCount: CodecTypes['pg/int8@1']['input'] | null;
-      readonly priority: 0 | 1 | 2;
-      readonly reachScore: CodecTypes['pg/unboundedint@1']['input'] | null;
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/uuid@1']['input'];
-      readonly viewCount: CodecTypes['pg/int8number@1']['input'] | null;
-    };
-    readonly post_tag: {
-      readonly postId: CodecTypes['pg/uuid@1']['input'];
-      readonly tagId: CodecTypes['pg/uuid@1']['input'];
-    };
-    readonly tag: {
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly label: CodecTypes['pg/text@1']['input'];
-    };
-    readonly task: {
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly description: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly status: CodecTypes['pg/text@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly type: CodecTypes['pg/text@1']['input'];
-      readonly userId: CodecTypes['pg/uuid@1']['input'];
-    };
-    readonly user: {
-      readonly address: CodecTypes['pg/jsonb@1']['input'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly displayName: CodecTypes['pg/text@1']['input'];
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/uuid@1']['input'];
-      readonly kind: 'admin' | 'user';
-    };
-  };
-};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'input'
+>;
 
 export namespace Models {
   export type public_Bug = {
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    description: CodecTypes['pg/text@1']['output'] | null;
-    id: CodecTypes['pg/uuid@1']['output'];
-    status: CodecTypes['pg/text@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
+    createdAt: FieldOutputTypes['public']['Task']['createdAt'];
+    description: FieldOutputTypes['public']['Task']['description'];
+    id: FieldOutputTypes['public']['Task']['id'];
+    status: FieldOutputTypes['public']['Task']['status'];
+    title: FieldOutputTypes['public']['Task']['title'];
     type: 'bug';
-    userId: CodecTypes['pg/uuid@1']['output'];
-    severity: CodecTypes['pg/text@1']['output'];
-    stepsToRepro: CodecTypes['pg/text@1']['output'] | null;
+    userId: FieldOutputTypes['public']['Task']['userId'];
+    severity: FieldOutputTypes['public']['Bug']['severity'];
+    stepsToRepro: FieldOutputTypes['public']['Bug']['stepsToRepro'];
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
   export type public_Feature = {
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    description: CodecTypes['pg/text@1']['output'] | null;
-    id: CodecTypes['pg/uuid@1']['output'];
-    status: CodecTypes['pg/text@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
+    createdAt: FieldOutputTypes['public']['Task']['createdAt'];
+    description: FieldOutputTypes['public']['Task']['description'];
+    id: FieldOutputTypes['public']['Task']['id'];
+    status: FieldOutputTypes['public']['Task']['status'];
+    title: FieldOutputTypes['public']['Task']['title'];
     type: 'feature';
-    userId: CodecTypes['pg/uuid@1']['output'];
-    priority: CodecTypes['pg/text@1']['output'];
-    targetRelease: CodecTypes['pg/text@1']['output'] | null;
+    userId: FieldOutputTypes['public']['Task']['userId'];
+    priority: FieldOutputTypes['public']['Feature']['priority'];
+    targetRelease: FieldOutputTypes['public']['Feature']['targetRelease'];
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
   export type public_Post = {
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    embedding: Vector<1536> | null;
-    expiresAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    id: CodecTypes['pg/uuid@1']['output'];
-    impressionCount: CodecTypes['pg/int8@1']['output'] | null;
-    priority: 0 | 1 | 2;
-    reachScore: CodecTypes['pg/unboundedint@1']['output'] | null;
-    title: CodecTypes['pg/text@1']['output'];
-    userId: CodecTypes['pg/uuid@1']['output'];
-    viewCount: CodecTypes['pg/int8number@1']['output'] | null;
+    body: FieldOutputTypes['public']['Post']['body'];
+    createdAt: FieldOutputTypes['public']['Post']['createdAt'];
+    embedding: FieldOutputTypes['public']['Post']['embedding'];
+    expiresAt: FieldOutputTypes['public']['Post']['expiresAt'];
+    id: FieldOutputTypes['public']['Post']['id'];
+    impressionCount: FieldOutputTypes['public']['Post']['impressionCount'];
+    priority: FieldOutputTypes['public']['Post']['priority'];
+    reachScore: FieldOutputTypes['public']['Post']['reachScore'];
+    title: FieldOutputTypes['public']['Post']['title'];
+    userId: FieldOutputTypes['public']['Post']['userId'];
+    viewCount: FieldOutputTypes['public']['Post']['viewCount'];
     tags: public_Tag[];
     user: public_User;
     readonly [RelationKeys]?: 'tags' | 'user';
   };
   export type public_PostTag = {
-    postId: CodecTypes['pg/uuid@1']['output'];
-    tagId: CodecTypes['pg/uuid@1']['output'];
+    postId: FieldOutputTypes['public']['PostTag']['postId'];
+    tagId: FieldOutputTypes['public']['PostTag']['tagId'];
     post: public_Post;
     tag: public_Tag;
     readonly [RelationKeys]?: 'post' | 'tag';
   };
   export type public_Tag = {
-    id: CodecTypes['pg/uuid@1']['output'];
-    label: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['public']['Tag']['id'];
+    label: FieldOutputTypes['public']['Tag']['label'];
     posts: public_Post[];
     readonly [RelationKeys]?: 'posts';
   };
   export type public_Task = {
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    description: CodecTypes['pg/text@1']['output'] | null;
-    id: CodecTypes['pg/uuid@1']['output'];
-    status: CodecTypes['pg/text@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
+    createdAt: FieldOutputTypes['public']['Task']['createdAt'];
+    description: FieldOutputTypes['public']['Task']['description'];
+    id: FieldOutputTypes['public']['Task']['id'];
+    status: FieldOutputTypes['public']['Task']['status'];
+    title: FieldOutputTypes['public']['Task']['title'];
     type: 'bug' | 'feature';
-    userId: CodecTypes['pg/uuid@1']['output'];
+    userId: FieldOutputTypes['public']['Task']['userId'];
     user: public_User;
     readonly [RelationKeys]?: 'user';
   };
   export type public_User = {
-    address: AddressOutput | null;
-    createdAt: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    displayName: CodecTypes['pg/text@1']['output'];
-    email: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/uuid@1']['output'];
-    kind: 'admin' | 'user';
+    address: FieldOutputTypes['public']['User']['address'];
+    createdAt: FieldOutputTypes['public']['User']['createdAt'];
+    displayName: FieldOutputTypes['public']['User']['displayName'];
+    email: FieldOutputTypes['public']['User']['email'];
+    id: FieldOutputTypes['public']['User']['id'];
+    kind: FieldOutputTypes['public']['User']['kind'];
     posts: public_Post[];
     tasks: public_AnyTask[];
     readonly [RelationKeys]?: 'posts' | 'tasks';
@@ -657,6 +510,12 @@ type ContractBase = Omit<
             };
             readonly post: {
               columns: {
+                readonly body: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly createdAt: {
                   readonly dataType: 'pg/timestamptz';
                   readonly codecId: 'pg/timestamptz-temporal@1';
@@ -732,11 +591,26 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
-                  readonly name: 'post_title_search_724b05e5';
-                  readonly prefix: 'post_title_search';
-                  readonly expression: 'to_tsvector(\'english\', "title")';
+                  readonly name: 'post_search_f03270be';
+                  readonly prefix: 'post_search';
+                  readonly columns: readonly ['title', 'body'];
                   readonly unique: false;
-                  readonly type: 'gin';
+                  readonly type: 'fullText';
+                  readonly options: {
+                    readonly language: 'english';
+                    readonly weightGroups: readonly [readonly ['title'], readonly ['body']];
+                  };
+                },
+                {
+                  readonly name: 'post_title_search_e0dd1131';
+                  readonly prefix: 'post_title_search';
+                  readonly columns: readonly ['title'];
+                  readonly unique: false;
+                  readonly type: 'fullText';
+                  readonly options: {
+                    readonly language: 'english';
+                    readonly weightGroups: readonly [readonly ['title']];
+                  };
                 },
                 {
                   readonly name: 'post_userId_idx_a489d58a';
@@ -1040,6 +914,10 @@ type ContractBase = Omit<
           };
           readonly Post: {
             readonly fields: {
+              readonly body: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -1121,6 +999,7 @@ type ContractBase = Omit<
               readonly table: 'post';
               readonly namespaceId: 'public';
               readonly fields: {
+                readonly body: { readonly column: 'body' };
                 readonly createdAt: { readonly column: 'createdAt' };
                 readonly embedding: { readonly column: 'embedding' };
                 readonly expiresAt: { readonly column: 'expiresAt' };
@@ -1271,8 +1150,11 @@ type ContractBase = Omit<
             };
             readonly discriminator: { readonly field: 'type' };
             readonly variants: {
-              readonly Bug: { readonly value: 'bug' };
-              readonly Feature: { readonly value: 'feature' };
+              readonly bug: { readonly namespace: 'public' & NamespaceId; readonly model: 'Bug' };
+              readonly feature: {
+                readonly namespace: 'public' & NamespaceId;
+                readonly model: 'Feature';
+              };
             };
           };
           readonly User: {
@@ -1450,13 +1332,11 @@ type ContractBase = Omit<
             readonly named: 'CodecTypes';
             readonly package: '@internal/extension-pgvector/codec-types';
           };
-          readonly typeImports: readonly [
-            {
-              readonly alias: 'Vector';
-              readonly named: 'Vector';
-              readonly package: '@internal/extension-pgvector/codec-types';
-            },
-          ];
+          readonly parameterizedOutputTypes: {
+            readonly alias: 'PgVectorParameterizedOutputTypes';
+            readonly named: 'ParameterizedOutputTypesForTypeParams';
+            readonly package: '@internal/extension-pgvector/codec-types';
+          };
         };
         readonly operationTypes: {
           readonly import: {

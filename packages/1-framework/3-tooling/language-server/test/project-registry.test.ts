@@ -26,7 +26,7 @@ function setup() {
   mocks.load.mockReset().mockResolvedValue({
     inputs: { includes: () => false, uris: () => [] },
     schemaInputConfig: {},
-    controlStack: { scalarTypes: [], pslBlockDescriptors: {} },
+    controlStack: { scalarTypes: [], defaultNamespaceId: 'public', pslBlockDescriptors: {} },
   });
   const documents = new DocumentStore();
   const connection = {

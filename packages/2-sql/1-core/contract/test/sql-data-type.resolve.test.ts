@@ -1,7 +1,8 @@
 import { dataType } from '@internal/framework-components/codec';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { type ReportedSqlType, resolveReportedSqlType, sqlDataType } from '../src/sql-data-type';
+import { resolveReportedSqlType, sqlDataType } from '../src/sql-data-type';
 import { allTypes } from './sql-data-type-fixtures';
 
 function reported(text: string, rest: Partial<ReportedSqlType> = {}): ReportedSqlType {
@@ -111,6 +112,26 @@ describe('resolveReportedSqlType', () => {
       dataType: 't/range',
       typeParams: { precision: 6 },
     });
+  });
+
+  it('reads a leading minus in a placeholder whose schema allows a negative integer', () => {
+    const signedNumeric = sqlDataType('t/signed-numeric', {
+      read: (json) => json,
+      params: type({
+        precision: 'number.integer >= 1 & number.integer <= 1000',
+        scale: 'number.integer >= -1000 & number.integer <= 1000',
+      }),
+      texts: [{ text: 'numeric({precision},{scale})', written: true, catalog: true }],
+    });
+    expect(resolveReportedSqlType(reported('numeric(10,-2)'), [signedNumeric])).toEqual({
+      dataType: 't/signed-numeric',
+      typeParams: { precision: 10, scale: -2 },
+    });
+    expect(resolveReportedSqlType(reported('numeric(-10,2)'), [signedNumeric])).toBeUndefined();
+  });
+
+  it('reads no minus in a placeholder whose schema forbids negative integers', () => {
+    expect(resolveReportedSqlType(reported('numeric(10,-2)'), allTypes)).toBeUndefined();
   });
 
   it('returns nothing for a text no type claims', () => {

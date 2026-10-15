@@ -52,7 +52,7 @@ function makeRawNamespace(id: string, entries: Record<string, unknown>): Storage
   } as unknown as StorageNamespace;
 }
 
-export function namespacedSqlStorage(parts: {
+function namespacedSqlStorage(parts: {
   readonly tables: Record<string, unknown>;
   readonly types?: Record<string, unknown>;
 }): EmitterTestStorage {

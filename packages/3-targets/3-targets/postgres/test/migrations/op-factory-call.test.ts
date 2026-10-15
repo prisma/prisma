@@ -6,18 +6,18 @@ import {
   constraintExistsAst,
   tableExistsAst,
 } from '../../src/contract-free/checks';
+import { addConstraintAction, alterTable } from '../../src/contract-free/ddl';
 import {
   AddCheckConstraintCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   CreateTableCall,
   DropCheckConstraintCall,
   DropConstraintCall,
 } from '../../src/core/migrations/op-factory-call';
-import { postgresTypeLookups } from '../postgres-type-lookups';
 
 function recordingCheckLowerer(): { lowerer: ExecuteRequestLowerer; received: unknown[] } {
   const received: unknown[] = [];
@@ -56,7 +56,7 @@ describe('CreateTableCall', () => {
     ]);
   });
 
-  it('renders a default and a CHECK holding both quote kinds as template literals', () => {
+  it('renders a default and a CHECK holding both quote kinds as sql templates', () => {
     const call = new CreateTableCall(
       'public',
       'user',
@@ -64,8 +64,12 @@ describe('CreateTableCall', () => {
       [checkExpression('user_kind_check', `"kind" IN ('admin', 'user')`)],
     );
     expect(call.renderTypeScript()).toBe(
-      'this.createTable({ schema: "public", table: "user", columns: [col("kind", "text", { default: fn(`concat("prefix", \'user\')`) })], constraints: [checkExpression("user_kind_check", `"kind" IN (\'admin\', \'user\')`)] })',
+      'this.createTable({ schema: "public", table: "user", columns: [col("kind", "text", { default: fn(sql`concat("prefix", \'user\')`) })], constraints: [checkExpression("user_kind_check", sql`"kind" IN (\'admin\', \'user\')`)] })',
     );
+    expect(call.importRequirements()).toContainEqual({
+      moduleSpecifier: '@internal/postgres/migration',
+      symbol: 'sql',
+    });
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
@@ -182,13 +186,27 @@ describe('AddCheckConstraintCall', () => {
         schema: 'public',
         table: 'post',
       });
-    expect(received).toEqual([checks().constraintAbsent(), checks().constraintPresent()]);
-    expect(op.execute[0]?.sql).toContain("CHECK (\"priority\" IN ('low', 'high'))");
+    expect(received).toEqual([
+      checks().constraintAbsent(),
+      checks().constraintPresent(),
+      alterTable({
+        schema: 'public',
+        table: 'post',
+        actions: [
+          addConstraintAction(
+            checkExpression('post_priority_check', `"priority" IN ('low', 'high')`),
+          ),
+        ],
+      }),
+    ]);
+    expect(op.execute[0]?.sql).toBe('LOWERED 3');
     expect(op.precheck[0]).toMatchObject({ sql: 'LOWERED 1', params: ['p1'] });
     expect(call.renderTypeScript()).toBe(
-      'this.addCheckConstraint({ schema: "public", table: "post", constraint: "post_priority_check", expression: `"priority" IN (\'low\', \'high\')` })',
+      'this.addCheckConstraint({ schema: "public", table: "post", constraint: "post_priority_check", expression: sql`"priority" IN (\'low\', \'high\')` })',
     );
-    expect(call.importRequirements()).toEqual([]);
+    expect(call.importRequirements()).toEqual([
+      { moduleSpecifier: '@internal/postgres/migration', symbol: 'sql' },
+    ]);
   });
 });
 
@@ -246,11 +264,10 @@ function isAlterTableNode(value: unknown): value is { kind: string } {
   );
 }
 
-describe('AddNotNullColumnDirectCall', () => {
+describe('AddRequiredColumnToEmptyTableCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const column = col('name', 'text', { notNull: true });
-    const call = new AddNotNullColumnDirectCall('public', 'user', 'name', column);
+    const call = new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text');
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
@@ -264,34 +281,47 @@ describe('AddNotNullColumnDirectCall', () => {
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddNotNullColumnDirectCall(
-      'public',
-      'user',
-      'name',
-      col('name', 'text', { notNull: true }),
-    );
+    const call = new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text');
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });
 
-describe('AddNotNullColumnWithTempDefaultCall', () => {
+describe('the NOT NULL add-column calls', () => {
+  it('render as migration methods with the column and, for the temporary default, its SQL', () => {
+    expect([
+      new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text').renderTypeScript(),
+      new AddColumnWithTemporaryDefaultCall(
+        'public',
+        'user',
+        'name',
+        'text',
+        "''",
+      ).renderTypeScript(),
+    ]).toEqual([
+      'this.addRequiredColumnToEmptyTable({ schema: "public", table: "user", column: "name", type: "text" })',
+      'this.addColumnWithTemporaryDefault({ schema: "public", table: "user", column: "name", type: "text", temporaryDefault: sql`\'\'` })',
+    ]);
+  });
+
+  it('refuses an unsafe temporary default, naming the call', () => {
+    expect(
+      () =>
+        new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''; DROP TABLE x"),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DEFAULT_INVALID',
+        message: expect.stringContaining(
+          'addColumnWithTemporaryDefault({ schema: "public", table: "user", column: "name" }): temporaryDefault',
+        ),
+      }),
+    );
+  });
+});
+
+describe('AddColumnWithTemporaryDefaultCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const storageColumn = {
-      many: false,
-      dataType: 'pg/text',
-      codecId: 'pg/text@1',
-      nullable: false,
-    } as const;
-    const call = new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'user',
-      columnName: 'name',
-      column: storageColumn,
-      types: postgresTypeLookups,
-      storageTypes: {},
-      temporaryDefault: "''",
-    });
+    const call = new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''");
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
@@ -306,15 +336,7 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'user',
-      columnName: 'name',
-      column: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
-      types: postgresTypeLookups,
-      storageTypes: {},
-      temporaryDefault: "''",
-    });
+    const call = new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''");
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });

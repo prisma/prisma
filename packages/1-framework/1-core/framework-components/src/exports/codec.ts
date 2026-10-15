@@ -64,6 +64,7 @@ export {
   objectSchemaKeys,
   requiredParamKeys,
   requiredSchemaKeys,
+  schemaKeysAllowing,
 } from '../shared/data-type';
 export { DATA_TYPE_ID_PATTERN } from '../shared/data-type-id-pattern';
 export type { BigIntRange, IntegerRange } from '../shared/json-readers';

@@ -340,15 +340,10 @@ const BLOB_HEX_TEXT = /^(?:[0-9A-F]{2})*$/;
 const unpaddedCharJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
   FunctionCallExpr.of('rtrim', [expression, LiteralExpr.of(' ')]);
 
-/**
- * SQLite does not enforce a character length, and its codec type map declares no `Char` or
- * `Varchar` type, so the two character codecs render no TypeScript type of their own.
- */
 export const sqliteSqlCharDescriptor = sqliteCodec(sqlCharDescriptor, {
   dataType: sqliteCharacter,
   jsonProjection: unpaddedCharJsonProjection,
   factory: (descriptor, dataType, params) => () => new SqlCharCodec(descriptor, dataType, params),
-  renderTypes: false,
 });
 
 export const sqliteSqlVarcharDescriptor = sqliteCodec(sqlVarcharDescriptor, {
@@ -356,7 +351,6 @@ export const sqliteSqlVarcharDescriptor = sqliteCodec(sqlVarcharDescriptor, {
   jsonProjection: identityJsonProjection,
   factory: (descriptor, dataType, params) => () =>
     new SqlVarcharCodec(descriptor, dataType, params),
-  renderTypes: false,
 });
 
 /** `sql/int@1` as SQLite stores it: its canonical form is `sqlite/integer`'s digit text. */

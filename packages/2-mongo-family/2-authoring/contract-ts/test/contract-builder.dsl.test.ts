@@ -326,9 +326,7 @@ describe('mongo contract builder', () => {
       },
     });
     expect(models['Task']!.discriminator).toEqual({ field: 'type' });
-    expect(models['Task']!.variants).toEqual({
-      Bug: { value: 'bug' },
-    });
+    expect(models['Task']!.variants).toEqual({ bug: crossRef('Bug') });
     expect(models['Bug']!.base).toEqual(crossRef('Task'));
     expect(models['Comment']!.owner).toBe('Task');
   });

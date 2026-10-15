@@ -15,8 +15,11 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 import {
+  CODEC_OUTPUT_FOR,
+  codecOutputForAlias,
   deduplicateImports,
   generateCodecTypeIntersection,
+  generateFieldTypeOverridesMap,
   generateFieldTypesMapsByNamespace,
   generateHashTypeAliases,
   generateImportLines,
@@ -24,6 +27,8 @@ import {
   generateRootsType,
   generateValueObjectsDescriptorType,
   generateValueObjectTypeAliases,
+  PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS,
+  parameterizedOutputTypeFunctionsAlias,
   serializeExecutionType,
   serializeObjectKey,
   serializeValue,
@@ -92,6 +97,9 @@ export function generateContractDts(
   const allImports: TypesImportSpec[] = [...codecTypeImports];
   if (options?.queryOperationTypeImports) {
     allImports.push(...options.queryOperationTypeImports);
+  }
+  if (options?.parameterizedOutputTypeImports) {
+    allImports.push(...options.parameterizedOutputTypeImports);
   }
   const uniqueImports = deduplicateImports(allImports);
 
@@ -204,11 +212,19 @@ export function generateContractDts(
     ([nsId, ns]) => [nsId, ns.models] as const,
   );
 
-  const fieldTypesMaps = generateFieldTypesMapsByNamespace(
-    namespaceModelsForFieldTypes,
-    codecLookup,
-    resolveFieldValueSet,
-  );
+  const fieldTypesExpression = emitter.fieldTypesExpression?.bind(emitter);
+  const fieldTypesMaps =
+    fieldTypesExpression === undefined
+      ? generateFieldTypesMapsByNamespace(
+          namespaceModelsForFieldTypes,
+          codecLookup,
+          resolveFieldValueSet,
+        )
+      : { output: fieldTypesExpression('output'), input: fieldTypesExpression('input') };
+  const knownFieldTypesDeclaration =
+    fieldTypesExpression === undefined
+      ? ''
+      : `type FieldTypeOverrides = ${generateFieldTypeOverridesMap(namespaceModelsForFieldTypes, codecLookup, resolveFieldValueSet)};\n`;
 
   const extraTypeExports = emitter.getStorageTypeExports?.(contract, codecLookup);
 
@@ -216,16 +232,36 @@ export function generateContractDts(
 
   const modelTypesBlock = generateModelTypesBlock(
     contract,
-    { codecLookup, resolveFieldValueSet },
+    {
+      codecLookup,
+      resolveFieldValueSet,
+      referenceFieldOutputTypes: fieldTypesExpression !== undefined,
+    },
     options?.supportsNamespaces ?? true,
   );
+
+  const typeTexts = [
+    fieldTypesMaps.output,
+    knownFieldTypesDeclaration,
+    extraTypeExports ?? '',
+    modelTypesBlock,
+    valueObjectTypeAliases,
+  ];
+  const parameterizedOutputDeclaration = typeTexts.some((text) => mentions(text, CODEC_OUTPUT_FOR))
+    ? `${codecOutputForAlias}\n`
+    : '';
+  const parameterizedOutputTypesDeclaration = [...typeTexts, parameterizedOutputDeclaration].some(
+    (text) => mentions(text, PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS),
+  )
+    ? `${parameterizedOutputTypeFunctionsAlias(options?.parameterizedOutputTypeImports ?? [])}\n`
+    : '';
 
   const body = `${hashAliases}
 
 export type CodecTypes = ${codecTypes};
 ${familyTypeAliases}
-${valueObjectTypeAliases}
-export type FieldOutputTypes = ${fieldTypesMaps.output};
+${parameterizedOutputTypesDeclaration}${parameterizedOutputDeclaration}${valueObjectTypeAliases}
+${knownFieldTypesDeclaration}export type FieldOutputTypes = ${fieldTypesMaps.output};
 export type FieldInputTypes = ${fieldTypesMaps.input};
 ${extraTypeExports ? `${extraTypeExports}\n` : ''}
 ${modelTypesBlock}
@@ -268,7 +304,7 @@ ${familyImportLines.join('\n')}
 import type {
   Contract as ContractType,
   ExecutionHashBase,
-  NamespaceId,
+  NamespaceId,${mentions(body, 'ParameterizedOutputType') ? '\n  ParameterizedOutputType,' : ''}
   ProfileHashBase,
   StorageHashBase,
 } from '${resolveImportSpecifier('@internal/contract/types')}';

@@ -125,11 +125,13 @@
               "collection": "posts"
             },
             "variants": {
-              "Article": {
-                "value": "article"
+              "article": {
+                "model": "Article",
+                "namespace": "__unbound__"
               },
-              "Tutorial": {
-                "value": "tutorial"
+              "tutorial": {
+                "model": "Tutorial",
+                "namespace": "__unbound__"
               }
             }
           },

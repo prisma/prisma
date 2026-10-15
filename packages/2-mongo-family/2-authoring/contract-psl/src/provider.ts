@@ -41,7 +41,7 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
         binder: input.binder,
         seedDiagnostics: [],
         scalarTypeCodecIds: collectScalarTypeCodecIds(context.authoringContributions.type),
-        controlMutationDefaults: context.controlMutationDefaults,
+        defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
@@ -122,6 +122,7 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
       const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
         documents,
         sources,
+        defaultNamespaceId: context.defaultNamespaceId,
       });
       const { binder, diagnostics: binderDiagnostics } = createBinder({
         symbolTable,

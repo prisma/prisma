@@ -29,6 +29,7 @@ export function pslSymbolOf(resolution: Resolution): PslSymbol | undefined {
     case 'compositeType':
     case 'namedType':
     case 'block':
+    case 'mixin':
     case 'field':
     case 'namespace':
       return resolution.symbol;

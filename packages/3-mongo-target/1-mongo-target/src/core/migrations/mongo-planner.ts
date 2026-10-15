@@ -3,8 +3,8 @@ import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   describeMigrationStatement,
+  type MigrationDataLoss,
   type MigrationOperationPolicy,
-  type MigrationOperationSubject,
   type MigrationPlanner,
   type MigrationPlannerConflict,
   type MigrationPlannerResult,
@@ -14,6 +14,7 @@ import {
   type ModelCoordinate,
   type PlanOrigin,
   type ResolvedMigrationStatement,
+  type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
 import type {
@@ -25,6 +26,16 @@ import type {
 } from '@internal/mongo-schema-ir';
 import { canonicalize, deepEqual } from '@internal/mongo-schema-ir';
 import { blindCast } from '@internal/utils/casts';
+import {
+  collectionOf,
+  type FieldRemoval,
+  keepCollectionByHandAdvice,
+  planFieldRemovals,
+  planStatements,
+  planValidatorFieldRemovals,
+  type StatementCalls,
+  timeSeriesRemovalRefusals,
+} from './mongo-statement-planning';
 import type { OpFactoryCall } from './op-factory-call';
 import {
   CollModCall,
@@ -36,6 +47,7 @@ import {
   schemaIndexToCreateIndexOptions,
 } from './op-factory-call';
 import { PlannerProducedMongoMigration } from './planner-produced-migration';
+import { sameHashFieldChangeRefusals } from './same-hash-field-changes';
 
 function buildIndexLookupKey(index: MongoSchemaIndex): string {
   const keys = index.keys.map((k) => `${k.field}:${k.direction}`).join(',');
@@ -103,14 +115,60 @@ function validatorUpdateLabel(
     : `Update validator on ${collName} (${parts.join('; ')})`;
 }
 
+/**
+ * The keys of an option MongoDB fills in when a collection is created without them, each with a
+ * test for the value it fills in. `listCollections` reports a time-series collection's granularity
+ * as "seconds" and its bucketMaxSpanSeconds when they were not given, and bucketRoundingSeconds only
+ * for custom bucketing, which a contract cannot state; and a clustered index's v, key and unique, and
+ * its name as "_id_".
+ */
+const SERVER_FILLED: Readonly<
+  Record<'timeseries' | 'clusteredIndex', Readonly<Record<string, (value: unknown) => boolean>>>
+> = {
+  timeseries: {
+    granularity: (value) => value === 'seconds',
+    bucketMaxSpanSeconds: () => true,
+    bucketRoundingSeconds: () => true,
+  },
+  clusteredIndex: {
+    v: () => true,
+    key: () => true,
+    unique: () => true,
+    name: (value) => value === '_id_',
+  },
+};
+
+/** The origin's value of an option without the keys the server filled in and the destination leaves out. */
+function withoutServerFilled(
+  option: keyof typeof SERVER_FILLED,
+  origin: unknown,
+  dest: unknown,
+): unknown {
+  if (!isPlainObject(origin)) return origin;
+  const filled = SERVER_FILLED[option];
+  return Object.fromEntries(
+    Object.entries(origin).filter(
+      ([key, value]) => (isPlainObject(dest) && Object.hasOwn(dest, key)) || !filled[key]?.(value),
+    ),
+  );
+}
+
 function hasImmutableOptionChange(
   origin: MongoSchemaCollectionOptions | undefined,
   dest: MongoSchemaCollectionOptions | undefined,
 ): string | undefined {
   if (canonicalize(origin?.capped) !== canonicalize(dest?.capped)) return 'capped';
-  if (canonicalize(origin?.timeseries) !== canonicalize(dest?.timeseries)) return 'timeseries';
+  if (
+    canonicalize(withoutServerFilled('timeseries', origin?.timeseries, dest?.timeseries)) !==
+    canonicalize(dest?.timeseries)
+  )
+    return 'timeseries';
   if (canonicalize(origin?.collation) !== canonicalize(dest?.collation)) return 'collation';
-  if (canonicalize(origin?.clusteredIndex) !== canonicalize(dest?.clusteredIndex))
+  if (
+    canonicalize(
+      withoutServerFilled('clusteredIndex', origin?.clusteredIndex, dest?.clusteredIndex),
+    ) !== canonicalize(dest?.clusteredIndex)
+  )
     return 'clusteredIndex';
   return undefined;
 }
@@ -122,15 +180,6 @@ function collectionHasOptions(coll: MongoSchemaCollection): boolean {
 export type PlanCallsResult =
   | { readonly kind: 'success'; readonly calls: OpFactoryCall[] }
   | { readonly kind: 'failure'; readonly conflicts: MigrationPlannerConflict[] };
-
-/** The collection a model stores its documents in; a model without `@@map` names it verbatim. */
-function collectionOf(contract: ContractWithDomain | null, coordinate: ModelCoordinate): string {
-  const collection =
-    contract?.domain.namespaces[coordinate.namespaceId]?.models[coordinate.model]?.storage[
-      'collection'
-    ];
-  return typeof collection === 'string' ? collection : coordinate.model;
-}
 
 /**
  * The model of `fromContract` that stores its documents in `collection`, if any: the root model
@@ -152,79 +201,68 @@ function modelStoredIn(
   return (storing.find(({ isRoot }) => isRoot) ?? storing[0])?.coordinate;
 }
 
-/** Each collection drop of the plan, with the model whose documents it loses. */
-function collectionDrops(
-  calls: readonly OpFactoryCall[],
-  fromContract: ContractWithDomain | null,
-): readonly MigrationOperationSubject[] {
-  return calls.flatMap((call, operationIndex) => {
-    if (!(call instanceof DropCollectionCall)) return [];
-    const model = fromContract === null ? undefined : modelStoredIn(fromContract, call.collection);
-    const subject: MigrationSubject =
-      model === undefined
-        ? { kind: 'storage', name: call.collection }
-        : { kind: 'model', ...model };
-    return [{ operationIndex, subject }];
-  });
-}
-
-const NOT_IN_THIS_RELEASE = 'MongoDB cannot carry out rename statements in this release.';
-
-function shellString(name: string): string {
-  return JSON.stringify(name);
-}
-
-/**
- * How to keep the documents of a subject a plan would drop, since the planner carries out no
- * rename: rename the collection by hand before a plan that drops it is applied. Right for both
- * `db update`, which then finds nothing to drop, and `migration plan`, whose written migration
- * still drops it.
- */
-export function keepDataByHand(
-  subject: MigrationSubject,
+/** A convert or backfill statement, which this release cannot carry out on MongoDB. */
+function unsupportedStatementConflict(
+  statement: ResolvedMigrationStatement,
   fromContract: ContractWithDomain,
-): string {
-  const collection =
-    subject.kind === 'storage' ? subject.name : collectionOf(fromContract, subject);
-  return `If it was renamed, keep its documents instead: rename collection "${collection}" by hand on each database before a plan that drops it is applied there, for example with db.getCollection(${shellString(collection)}).renameCollection("<new collection>") in mongosh. db update then drops nothing; a migration written by migration plan still drops "${collection}", so remove that operation from its migration.ts, or do not apply it where the collection was renamed.`;
-}
-
-/**
- * What a plan made without the statement does to the data, and how to keep it. Right for both
- * `db update` and `migration plan`, since the planner does not know which command it serves.
- * Mongo contracts key a model's fields by their stored names, so the statement's field names are
- * the names a `$rename` needs.
- */
-function keepTheData(
-  statement: ResolvedMigrationStatement,
-  fromContract: ContractWithDomain | null,
-  contract: ContractWithDomain,
-): string {
-  const from = collectionOf(fromContract, statement.from);
-  if (statement.entity === 'field') {
-    const { field } = statement.from;
-    const newField = statement.to.field;
-    const collection = `db.getCollection(${shellString(from)})`;
-    return `${NOT_IN_THIS_RELEASE} Without the statement, the documents in collection "${from}" keep their values under "${field}", and nothing moves them to "${newField}". To move them, run these in mongosh on each database before a plan made without the statement is applied there, using the field names as they are stored. First turn off the collection's validator, which still requires "${field}": db.runCommand({ collMod: ${shellString(from)}, validationLevel: "off" }). Then drop each unique index that includes "${field}", or the move fails once two documents have lost it, for example ${collection}.dropIndex(${shellString(`${field}_1`)}). Then move the values: ${collection}.updateMany({}, { $rename: { ${shellString(field)}: ${shellString(newField)} } }). Applying the plan then creates the indexes on "${newField}" and turns the validator back on.`;
-  }
-  const to = collectionOf(contract, statement.to);
-  if (from === to) {
-    return `${NOT_IN_THIS_RELEASE} Both models store their documents in collection "${from}", so a plan made without the statement keeps them.`;
-  }
-  return `${NOT_IN_THIS_RELEASE} Without the statement, a plan drops collection "${from}" with its documents and creates collection "${to}". To keep the documents, rename the collection by hand on each database before a plan made without the statement is applied there, for example with db.getCollection(${shellString(from)}).renameCollection(${shellString(to)}) in mongosh. A migration written by migration plan without the statement still drops "${from}" wherever it is applied, so check its operations first.`;
-}
-
-function statementNotApplied(
-  statement: ResolvedMigrationStatement,
-  fromContract: ContractWithDomain | null,
   contract: ContractWithDomain,
 ): MigrationPlannerConflict {
   return {
     kind: 'statementRefused',
-    summary: `MongoDB does not apply rename statements in this release, so nothing was planned: ${describeMigrationStatement(statement, fromContract ?? contract, contract)}`,
-    why: keepTheData(statement, fromContract, contract),
+    summary: `MongoDB does not apply ${statement.kind} statements in this release, so nothing was planned: ${describeMigrationStatement(statement, fromContract, contract)}`,
+    why: `MongoDB cannot carry out ${statement.kind} statements in this release. Leave out the statement.`,
     refusedStatement: statement,
   };
+}
+
+/**
+ * Each collection drop of the plan, with the model whose documents it loses. When that model keeps
+ * its name and the plan brings its new collection into existence, the drop says how to rename the
+ * collection by hand instead.
+ */
+function collectionDrops(
+  calls: readonly OpFactoryCall[],
+  fromContract: ContractWithDomain | null,
+  contract: ContractWithDomain,
+  collections: { readonly origin: MongoSchemaIR; readonly destination: MongoSchemaIR },
+): readonly MigrationDataLoss[] {
+  const created = (collection: string) =>
+    collections.origin.collection(collection) === undefined &&
+    collections.destination.collection(collection) !== undefined;
+  return calls.flatMap((call, operationIndex): readonly MigrationDataLoss[] => {
+    if (!(call instanceof DropCollectionCall)) return [];
+    const model = fromContract === null ? undefined : modelStoredIn(fromContract, call.collection);
+    const lost = { operationIndex, loss: 'drop', label: call.label } as const;
+    if (model === undefined) {
+      return [{ ...lost, subject: { kind: 'storage', name: call.collection } }];
+    }
+    const subject: MigrationSubject = { kind: 'model', ...model };
+    const destinationCollection = modelStoredInDestination(contract, model);
+    return [
+      destinationCollection !== undefined && created(destinationCollection)
+        ? {
+            ...lost,
+            subject,
+            keepDataAdvice: keepCollectionByHandAdvice(
+              model,
+              call.collection,
+              destinationCollection,
+            ),
+          }
+        : { ...lost, subject },
+    ];
+  });
+}
+
+/** The collection the destination stores `model` in, when the destination still has that model. */
+function modelStoredInDestination(
+  contract: ContractWithDomain,
+  model: ModelCoordinate,
+): string | undefined {
+  const namespace = contract.domain.namespaces[model.namespaceId];
+  return namespace !== undefined && Object.hasOwn(namespace.models, model.model)
+    ? collectionOf(contract, model)
+    : undefined;
 }
 
 export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'> {
@@ -233,15 +271,19 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     readonly schema: unknown;
     readonly policy: MigrationOperationPolicy;
     readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'mongo', 'mongo'>>;
+    /** What the statements and removed fields plan; its `schema` is diffed in place of `schema`. */
+    readonly statementCalls?: StatementCalls;
   }): PlanCallsResult {
     const contract = blindCast<
       MongoContract,
       'framework planner passes the Mongo contract selected for the mongo target'
     >(options.contract);
-    const originIR = blindCast<
-      MongoSchemaIR,
-      'framework planner passes the inspected Mongo schema IR selected for the mongo target'
-    >(options.schema);
+    const originIR =
+      options.statementCalls?.schema ??
+      blindCast<
+        MongoSchemaIR,
+        'framework planner passes the inspected Mongo schema IR selected for the mongo target'
+      >(options.schema);
     const destinationIR = contractToMongoSchemaIR(contract);
 
     const collCreates: OpFactoryCall[] = [];
@@ -342,8 +384,10 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     }
 
     const allCalls = [
+      ...(options.statementCalls?.collectionRenames ?? []),
       ...collCreates,
       ...drops,
+      ...(options.statementCalls?.rewrites ?? []),
       ...creates,
       ...validatorOps,
       ...mutableOptionOps,
@@ -376,7 +420,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     readonly fromContract: Contract | null;
     /** The origin the produced plan asserts: its `describe().from` and `origin`. */
     readonly origin: PlanOrigin | null;
-    /** The `--rename` statements, resolved; MongoDB refuses any statement in this release. */
+    /** The `--rename` statements, resolved. */
     readonly statements: readonly ResolvedMigrationStatement[];
     readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'mongo', 'mongo'>>;
     /**
@@ -390,28 +434,94 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       MongoContract,
       'framework planner passes the Mongo contract selected for the mongo target'
     >(options.contract);
-    const [statement] = options.statements;
-    if (statement !== undefined) {
+    const originIR = blindCast<
+      MongoSchemaIR,
+      'framework planner passes the inspected Mongo schema IR selected for the mongo target'
+    >(options.schema);
+    const fromContract = options.fromContract;
+    const unsupported = options.statements.find((statement) => statement.kind !== 'rename');
+    if (unsupported !== undefined) {
       return {
         kind: 'failure',
-        conflicts: [statementNotApplied(statement, options.fromContract, contract)],
+        conflicts: [unsupportedStatementConflict(unsupported, fromContract ?? contract, contract)],
       };
     }
-    const result = this.planCalls(options);
+    const renames = options.statements.filter(
+      (statement): statement is ResolvedRenameStatement => statement.kind === 'rename',
+    );
+    const statementPlan = planStatements({
+      statements: renames,
+      fromContract: fromContract ?? contract,
+      contract,
+      schema: originIR,
+    });
+    if (!statementPlan.ok) return { kind: 'failure', conflicts: statementPlan.failure };
+    const { schema, collectionRenames, fieldRenames, callOfStatement } = statementPlan.value;
+    const destinationIR = contractToMongoSchemaIR(contract);
+    const renamedTo = new Map(collectionRenames.map((call) => [call.from, call.to]));
+    const removals: readonly FieldRemoval[] =
+      fromContract === null
+        ? planValidatorFieldRemovals({ origin: schema, destination: destinationIR, contract })
+        : planFieldRemovals({
+            statements: renames,
+            fromContract,
+            contract,
+            collectionAfterRenames: (collection) => renamedTo.get(collection) ?? collection,
+            keptCollections: new Set(
+              schema.collectionNames.filter((name) => destinationIR.collection(name) !== undefined),
+            ),
+          });
+    const removalRefusals = [
+      ...timeSeriesRemovalRefusals(removals, schema),
+      ...sameHashFieldChangeRefusals({
+        origin: options.origin,
+        fromContract: fromContract ?? contract,
+        contract,
+        statements: renames,
+        callOfStatement,
+        removals,
+      }),
+    ];
+    if (removalRefusals.length > 0) return { kind: 'failure', conflicts: removalRefusals };
+    const result = this.planCalls({
+      ...options,
+      statementCalls: {
+        schema,
+        collectionRenames,
+        rewrites: [...fieldRenames, ...removals.map((removal) => removal.call)],
+      },
+    });
     if (result.kind === 'failure') return result;
+    const { calls } = result;
+    const fieldLoss: readonly MigrationDataLoss[] = removals.map((removal) => ({
+      operationIndex: calls.indexOf(removal.call),
+      subject: removal.subject,
+      loss: 'drop',
+      label: removal.call.label,
+    }));
     return {
       kind: 'success',
       plan: new PlannerProducedMongoMigration(
-        result.calls,
+        calls,
         {
           from: options.origin?.storageHash ?? null,
           to: contract.storage.storageHash,
         },
         options.snapshotsImportPath,
       ),
-      appliedStatements: [],
-      dataLoss: collectionDrops(result.calls, options.fromContract),
+      appliedStatements: options.statements.map((statement, index) => {
+        const call = callOfStatement[index];
+        return { statement, operationIndexes: call === undefined ? [] : [calls.indexOf(call)] };
+      }),
+      dataLoss: [
+        ...collectionDrops(calls, fromContract, contract, {
+          origin: schema,
+          destination: destinationIR,
+        }),
+        ...fieldLoss,
+      ].sort((a, b) => a.operationIndex - b.operationIndex),
       accessWidening: [],
+      temporaryValues: [],
     };
   }
 

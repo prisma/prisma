@@ -16,6 +16,7 @@ import type {
   Binder,
   BlockSymbol,
   DescribeUnsupportedAttribute,
+  FieldAttributeSpecContext,
   FieldSymbol,
   ModelSymbol,
   NamedTypeSymbol,
@@ -83,7 +84,7 @@ function lowerEnumDefaultForField(input: {
       model,
       field,
       binder: input.binder,
-      controlMutationDefaults: { defaultFunctionRegistry: input.defaultFunctionRegistry },
+      defaultFunctionRegistry: input.defaultFunctionRegistry,
       dataTypes: input.dataTypes,
     }),
   );
@@ -99,12 +100,19 @@ function lowerEnumDefaultForField(input: {
   });
   if (interpreted === undefined) return {};
   const member = interpreted.value;
-  if (Array.isArray(member)) {
-    if (member.includes(null) && rejectStrictListNullDefault({ ...input, node })) return {};
-    const values = member.map((entry) =>
-      entry === null
+  if (member.kind === 'member-list') {
+    if (
+      rejectStrictListNullDefault({
+        ...input,
+        elements: member.elements,
+        source: diagnosticSource(input.sources, node.syntax),
+      })
+    )
+      return {};
+    const values = member.elements.map((entry) =>
+      entry.kind === 'null'
         ? null
-        : enumHandle.enumMembers.find((candidate) => candidate.name === entry)?.value,
+        : enumHandle.enumMembers.find((candidate) => candidate.name === entry.name)?.value,
     );
     return {
       defaultValue: {
@@ -116,11 +124,8 @@ function lowerEnumDefaultForField(input: {
       },
     };
   }
-  invariant(
-    typeof member === 'string',
-    'the enum @default grammar admits only member identifiers, so the parsed value is a string',
-  );
-  const match = enumHandle.enumMembers.find((m) => m.name === member);
+  invariant(member.kind === 'member', 'the enum @default grammar admits only member identifiers');
+  const match = enumHandle.enumMembers.find((m) => m.name === member.name);
   if (!match) return {};
 
   return {
@@ -156,15 +161,14 @@ export type ResolvedField = {
 };
 
 /**
- * A PSL model paired with its resolved namespace coordinate (undefined when
- * the target leaves the model late-bound). Two models may share a bare name
+ * A PSL model paired with its resolved namespace coordinate. Two models may share a bare name
  * across namespaces, so structures that must distinguish them are keyed by
  * the `(namespaceId, modelName)` coordinate produced by
  * {@link modelCoordinateKey} rather than the bare model name.
  */
 export type ModelNamespaceEntry = {
   readonly model: ModelSymbol;
-  readonly namespaceId: string | undefined;
+  readonly namespaceId: string;
 };
 
 const MODEL_COORDINATE_SEPARATOR = '\u0000';
@@ -194,8 +198,11 @@ export interface CollectResolvedFieldsInput {
   readonly capabilities: CapabilityMatrix;
   /** The model's resolved namespace id — forwarded to `resolveFieldTypeDescriptor` for entity-ref value-set scoping. */
   readonly namespaceId?: string;
-  /** Extension entities already lowered for this namespace — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
-  readonly namespaceExtensionEntities?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  /** Extension entities already lowered, keyed by namespace id — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
+  readonly namespaceExtensionEntities?: ReadonlyMap<
+    string,
+    Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  >;
   /** Codec-id-keyed descriptor lookup — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
   readonly codecLookup: CodecLookupWithDescriptors;
 }
@@ -242,11 +249,12 @@ export function describeUnsupportedSqlAttribute(sources: PslSources): DescribeUn
   return ({ attribute, level, owner, field }) => {
     // A composite type takes no attributes at all; `buildValueObjectNodes` refuses each one once.
     if (owner.kind === 'compositeType') return undefined;
+    if (owner.kind === 'mixin' && owner.keyword === 'type') return undefined;
     if (level === 'model') {
       const source = diagnosticSource(sources, owner.node.syntax);
       return {
         code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
-        message: `Model "${owner.name}" uses unsupported attribute "@@${attribute.name}"`,
+        message: `${owner.kind === 'mixin' ? 'Mixin' : 'Model'} "${owner.name}" uses unsupported attribute "@@${attribute.name}"`,
         ...source.at(attribute.span),
       };
     }
@@ -281,6 +289,7 @@ function extractFieldConstraintNames(input: {
   readonly symbolTable: SymbolTable;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
+  readonly specContext: FieldAttributeSpecContext;
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly diagnostics: PslDiagnosticCollector;
@@ -299,7 +308,7 @@ function extractFieldConstraintNames(input: {
       : interpretFieldAttribute({
           node: idNode,
           symbols: input.symbolTable,
-          spec: sqlAttributeSpecs.field.id(),
+          spec: sqlAttributeSpecs.field.id(input.specContext),
           model: input.model,
           field: input.field,
           sources: input.sources,
@@ -313,7 +322,7 @@ function extractFieldConstraintNames(input: {
       : interpretFieldAttribute({
           node: uniqueNode,
           symbols: input.symbolTable,
-          spec: sqlAttributeSpecs.field.unique(),
+          spec: sqlAttributeSpecs.field.unique(input.specContext),
           model: input.model,
           field: input.field,
           sources: input.sources,
@@ -338,6 +347,7 @@ function lowerNoCheckForField(input: {
   readonly symbolTable: SymbolTable;
   readonly model: ModelSymbol;
   readonly field: FieldSymbol;
+  readonly specContext: FieldAttributeSpecContext;
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly isListColumn: boolean;
@@ -349,7 +359,7 @@ function lowerNoCheckForField(input: {
   if (node === undefined) return undefined;
   const interpreted = interpretFieldAttribute({
     node,
-    spec: sqlAttributeSpecs.field.noCheck(),
+    spec: sqlAttributeSpecs.field.noCheck(input.specContext),
     symbols: input.symbolTable,
     model: input.model,
     field: input.field,
@@ -487,6 +497,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       entityLabel: `Field "${model.name}.${field.name}"`,
       ...ifDefined('namespaceId', namespaceId),
       ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntities),
+      binder,
       codecLookup,
     };
 
@@ -639,10 +650,19 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
     const mappedColumnName = storageName(field, input.physicalNames);
+    const specContext = fieldSpecContext({
+      symbols: symbolTable,
+      model,
+      field,
+      binder,
+      defaultFunctionRegistry,
+      dataTypes,
+    });
     const { idAttribute, uniqueAttribute, idName, uniqueName } = extractFieldConstraintNames({
       symbolTable: input.symbolTable,
       model,
       field,
+      specContext,
       sources: input.sources,
       binder: input.binder,
       diagnostics,
@@ -690,6 +710,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
           symbolTable: input.symbolTable,
           model,
           field,
+          specContext,
           sources: input.sources,
           binder: input.binder,
           isListColumn,

@@ -64,14 +64,17 @@ import {
   type InitializeResult,
   InsertTextFormat,
   LogMessageNotification,
+  LSPErrorCodes,
   MarkupKind,
   MessageType,
   type Position,
+  PrepareRenameRequest,
   PublishDiagnosticsNotification,
   type Range,
   ReferencesRequest,
   type RegistrationParams,
   RegistrationRequest,
+  RenameRequest,
   type SemanticTokens,
   ShutdownRequest,
   type SignatureHelpContext,
@@ -238,6 +241,7 @@ async function resolutionForInputs(
     schemaInputConfig,
     controlStack: {
       scalarTypes: [...scalarTypes],
+      defaultNamespaceId: 'public',
       pslBlockDescriptors: descriptors,
       authoringContributions: assembleAuthoringContributions([
         { id: 'scalars', authoring: { type: testTypeConstructors(scalarTypes) } },
@@ -251,7 +255,11 @@ async function emptyResolution(): Promise<ConfigResolution> {
   return {
     inputs: await resolveSchemaInputs({}, alwaysMember),
     schemaInputConfig: {},
-    controlStack: { scalarTypes: [...scalarTypes], pslBlockDescriptors: {} },
+    controlStack: {
+      scalarTypes: [...scalarTypes],
+      defaultNamespaceId: 'public',
+      pslBlockDescriptors: {},
+    },
   };
 }
 
@@ -277,6 +285,43 @@ const resolveToSchemaWithAttributeContributions: ResolveInputs = async () => {
     interpretation: {
       source: completionInterpretationSource,
       context: completionInterpretationContext,
+    },
+  };
+};
+
+const resolveToSchemaWithMapAttributes: ResolveInputs = async () => {
+  const resolution = await resolutionForInputs([schemaPath], undefined, {
+    label: {
+      kind: 'pslBlock',
+      keyword: 'label',
+      discriminator: 'server-label',
+      name: { required: true },
+      spec: () => structBlock({ parameters: {} }),
+      nameIsStorageName: true,
+    },
+  });
+  const name = { key: 'name', type: str(), documentation: 'fixture' };
+  return {
+    ...resolution,
+    controlStack: {
+      ...resolution.controlStack,
+      authoringContributions: assembleAuthoringContributions([
+        {
+          id: 'map-attributes',
+          authoring: {
+            type: testTypeConstructors(scalarTypes),
+            attributeSpecs: {
+              field: {
+                map: () => fieldAttribute('map', { documentation: 'fixture', positional: [name] }),
+              },
+              model: {
+                map: () => modelAttribute('map', { documentation: 'fixture', positional: [name] }),
+              },
+            },
+          },
+        },
+      ]),
+      controlMutationDefaults: assembleControlMutationDefaults([]),
     },
   };
 };
@@ -411,6 +456,7 @@ function parseAndSymbolTableDiagnostics(source: string): {
   const { diagnostics: symbolTableDiagnostics } = buildSymbolTable({
     documents: [document],
     sources,
+    defaultNamespaceId: 'public',
   });
   return { parseDiagnostics, symbolTableDiagnostics };
 }
@@ -421,6 +467,10 @@ const watchedFilesCapabilities: ClientCapabilities = {
 
 const snippetCompletionCapabilities: ClientCapabilities = {
   textDocument: { completion: { completionItem: { snippetSupport: true } } },
+};
+
+const prepareRenameCapabilities: ClientCapabilities = {
+  textDocument: { rename: { prepareSupport: true } },
 };
 
 const pullDiagnosticsCapabilities: ClientCapabilities = {
@@ -434,6 +484,7 @@ const pullDiagnosticsWithRefreshCapabilities: ClientCapabilities = {
 
 interface Harness {
   readonly client: ReturnType<typeof createConnection>;
+  readonly unguardedClient: ReturnType<typeof createConnection>;
   readonly initialize: (initializationOptions?: unknown) => Promise<InitializeResult>;
   readonly waitForDiagnostics: (uri: string) => Promise<readonly Diagnostic[]>;
   readonly waitForDiagnosticsMatching: (
@@ -497,15 +548,14 @@ function startHarness(
   );
   const server = createServer(serverConnection);
 
+  const unguardedClient = createConnection(
+    new StreamMessageReader(serverToClient),
+    new StreamMessageWriter(clientToServer),
+    connectionOptions,
+  );
   // Guarded like the server: a client send whose write fails after dispose
   // must not become an unhandled rejection in the test process.
-  const client = guardedConnection(
-    createConnection(
-      new StreamMessageReader(serverToClient),
-      new StreamMessageWriter(clientToServer),
-      connectionOptions,
-    ),
-  );
+  const client = guardedConnection(unguardedClient);
 
   const pending = new Map<string, (diagnostics: readonly Diagnostic[]) => void>();
   const latest = new Map<string, readonly Diagnostic[]>();
@@ -631,6 +681,7 @@ function startHarness(
 
   return {
     client,
+    unguardedClient,
     registrations,
     waitForWatchedFilesRegistration: (timeoutMs) =>
       new Promise((resolve, reject) => {
@@ -784,6 +835,21 @@ function requestReferences(
     textDocument: { uri },
     position,
     context: { includeDeclaration },
+  });
+}
+
+function requestPrepareRename(harness: Harness, uri: string, position: Position) {
+  return harness.client.sendRequest(PrepareRenameRequest.type, {
+    textDocument: { uri },
+    position,
+  });
+}
+
+function requestRename(harness: Harness, uri: string, position: Position, newName: string) {
+  return harness.client.sendRequest(RenameRequest.type, {
+    textDocument: { uri },
+    position,
+    newName,
   });
 }
 
@@ -974,7 +1040,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     expect(harness.publishCount(schemaUri)).toBe(2);
     expect(harness.publishCount(alias)).toBe(0);
     expect(harness.getDocumentAst(schemaUri)).not.toBe(first);
-    expect(Object.keys(harness.getProjectSymbolTable(schemaUri)!.topLevel.models)).toEqual([
+    expect(Object.keys(harness.getProjectSymbolTable(schemaUri)!.defaultNamespace.models)).toEqual([
       'Post',
     ]);
     expect(configLoaderMock.findNearestConfigPathForFile).toHaveBeenCalledTimes(1);
@@ -993,7 +1059,9 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.waitForDiagnosticsCount(schemaUri, 4);
     expect(harness.publishCount(alias)).toBe(0);
     expect(harness.getDocumentAst(alias)?.sourceFile.filename).toBe(schemaUri);
-    expect(Object.keys(harness.getProjectSymbolTable(alias)!.topLevel.models)).toEqual(['User']);
+    expect(Object.keys(harness.getProjectSymbolTable(alias)!.defaultNamespace.models)).toEqual([
+      'User',
+    ]);
     expect(configResolutionMock.resolveConfigInputs).toHaveBeenCalledTimes(1);
   });
 
@@ -1077,7 +1145,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       range: true,
     });
     expect(result.capabilities.completionProvider).toEqual({
-      triggerCharacters: ['.', '@', '[', '(', '{', ':', ','],
+      triggerCharacters: ['.', '@', '[', '(', '{', ':', ',', '+'],
     });
     expect(result.capabilities.signatureHelpProvider).toEqual({
       triggerCharacters: ['(', ','],
@@ -1085,6 +1153,20 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     expect(result.capabilities.hoverProvider).toBe(true);
     expect(result.capabilities.definitionProvider).toBe(true);
     expect(result.capabilities.referencesProvider).toBe(true);
+  });
+
+  it('declares rename without the prepare provider for a client without prepare support', async () => {
+    harness = startHarness(resolveToSchema);
+    const result = await harness.initialize();
+
+    expect(result.capabilities.renameProvider).toBe(true);
+  });
+
+  it('declares rename with the prepare provider for a client with prepare support', async () => {
+    harness = startHarness(resolveToSchema, prepareRenameCapabilities);
+    const result = await harness.initialize();
+
+    expect(result.capabilities.renameProvider).toEqual({ prepareProvider: true });
   });
 
   it('serves hover content through the server for an opened document', async () => {
@@ -1353,6 +1435,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       'Post',
       'String',
       'User',
+      'public',
     ]);
     for (const item of items) expect(item).not.toHaveProperty('sortText');
   });
@@ -1390,6 +1473,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       'Post',
       'String',
       'User',
+      'public',
     ]);
     await republished;
   });
@@ -1454,6 +1538,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       'Post',
       'String',
       'User',
+      'public',
     ]);
     await republished;
     expect(vi.mocked(parse)).toHaveBeenCalledTimes(1);
@@ -1817,10 +1902,13 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     const items = completionItems(await requestCompletion(harness, schemaUri, position));
     expect(items.map((item) => item.label)).toEqual([
       'model',
+      'model mixin',
       'type',
+      'type mixin',
       'types',
       'namespace',
       'policy',
+      'policy mixin',
     ]);
     expect(items.find((item) => item.label === 'model')).toMatchObject({
       textEdit: { newText: 'model ' },
@@ -1884,7 +1972,14 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.waitForDiagnostics(schemaUri);
 
     const items = completionItems(await requestCompletion(harness, schemaUri, position));
-    expect(items.map((item) => item.label)).toEqual(['model', 'type', 'policy']);
+    expect(items.map((item) => item.label)).toEqual([
+      'model',
+      'model mixin',
+      'type',
+      'type mixin',
+      'policy',
+      'policy mixin',
+    ]);
     expect(items.map((item) => item.label)).not.toContain('types');
     expect(items.map((item) => item.label)).not.toContain('namespace');
   });
@@ -2334,6 +2429,267 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       },
     ]);
     expect(factory).toHaveBeenCalledTimes(2);
+  });
+
+  it('answers prepare rename with the range and text of the name at the cursor', async () => {
+    harness = startHarness(resolveToSchema, prepareRenameCapabilities);
+    await harness.initialize();
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel User {\n  id Int\n}\nmodel Post {\n  author Us|er\n}\n',
+    );
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    await expect(requestPrepareRename(harness, schemaUri, position)).resolves.toEqual({
+      range: { start: { line: 5, character: 9 }, end: { line: 5, character: 13 } },
+      placeholder: 'User',
+    });
+  });
+
+  it('answers prepare rename with null for a document outside the project', async () => {
+    harness = startHarness(resolveToSchema, prepareRenameCapabilities);
+    await harness.initialize();
+    const outsideUri = pathToFileURL(join(root, 'outside.prisma')).href;
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel User {\n  id Int\n}\nmodel Post {\n  author Us|er\n}\n',
+    );
+    openDocument(harness, outsideUri, source);
+
+    await expect(requestPrepareRename(harness, outsideUri, position)).resolves.toBeNull();
+  });
+
+  it('answers prepare rename with null for a document that is not open', async () => {
+    harness = startHarness(resolveToSchema, prepareRenameCapabilities);
+    await harness.initialize();
+
+    await expect(
+      requestPrepareRename(harness, schemaUri, { line: 1, character: 7 }),
+    ).resolves.toBeNull();
+  });
+
+  it('answers rename with an edit of the declaration and every reference', async () => {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel User {\n  id Int\n}\nmodel Post {\n  author Us|er\n}\n',
+    );
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    await expect(requestRename(harness, schemaUri, position, 'Account')).resolves.toEqual({
+      changes: {
+        [schemaUri]: [
+          {
+            range: { start: { line: 1, character: 6 }, end: { line: 1, character: 10 } },
+            newText: 'Account',
+          },
+          {
+            range: { start: { line: 5, character: 9 }, end: { line: 5, character: 13 } },
+            newText: 'Account',
+          },
+        ],
+      },
+    });
+  });
+
+  it('adds the map attribute to a renamed model and field when the control stack defines map', async () => {
+    harness = startHarness(resolveToSchemaWithMapAttributes);
+    await harness.initialize();
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel User {\n  id Int\n}\nmodel Post {\n  author Us|er\n}\n',
+    );
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    await expect(requestRename(harness, schemaUri, position, 'Account')).resolves.toEqual({
+      changes: {
+        [schemaUri]: [
+          {
+            range: { start: { line: 1, character: 6 }, end: { line: 1, character: 10 } },
+            newText: 'Account',
+          },
+          {
+            range: { start: { line: 5, character: 9 }, end: { line: 5, character: 13 } },
+            newText: 'Account',
+          },
+          {
+            range: { start: { line: 3, character: 0 }, end: { line: 3, character: 0 } },
+            newText: '\n  @@map("User")\n',
+          },
+        ],
+      },
+    });
+    await expect(
+      requestRename(harness, schemaUri, { line: 2, character: 3 }, 'uid'),
+    ).resolves.toEqual({
+      changes: {
+        [schemaUri]: [
+          {
+            range: { start: { line: 2, character: 2 }, end: { line: 2, character: 4 } },
+            newText: 'uid',
+          },
+          {
+            range: { start: { line: 2, character: 8 }, end: { line: 2, character: 8 } },
+            newText: ' @map("id")',
+          },
+        ],
+      },
+    });
+  });
+
+  it('adds the map attribute to a renamed block whose descriptor says its name is the storage name', async () => {
+    harness = startHarness(resolveToSchemaWithMapAttributes);
+    await harness.initialize();
+    const { source, position } = sourceWithCursor('// use prisma-8\nlabel Stic|ker {\n}\n');
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    await expect(requestRename(harness, schemaUri, position, 'Badge')).resolves.toEqual({
+      changes: {
+        [schemaUri]: [
+          {
+            range: { start: { line: 1, character: 6 }, end: { line: 1, character: 13 } },
+            newText: 'Badge',
+          },
+          {
+            range: { start: { line: 2, character: 0 }, end: { line: 2, character: 0 } },
+            newText: '\n  @@map("Sticker")\n',
+          },
+        ],
+      },
+    });
+  });
+
+  it('writes the inserted map attribute with the indent and line break of the formatter options of the project', async () => {
+    harness = startHarness(async (path) => ({
+      ...(await resolveToSchemaWithMapAttributes(path)),
+      formatter: { indent: 'tab', newline: 'CRLF' },
+    }));
+    await harness.initialize();
+    const { source, position } = sourceWithCursor('// use prisma-8\nlabel Stic|ker {\n}\n');
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    await expect(requestRename(harness, schemaUri, position, 'Badge')).resolves.toMatchObject({
+      changes: { [schemaUri]: [{ newText: 'Badge' }, { newText: '\r\n\t@@map("Sticker")\r\n' }] },
+    });
+  });
+
+  it('answers rename with an error response that quotes a new name that is not an identifier', async () => {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel User {\n  id Int\n}\nmodel Post {\n  author Us|er\n}\n',
+    );
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+
+    await expect(
+      harness.unguardedClient.sendRequest(RenameRequest.type, {
+        textDocument: { uri: schemaUri },
+        position,
+        newName: '1st',
+      }),
+    ).rejects.toMatchObject({
+      code: LSPErrorCodes.RequestFailed,
+      message: '"1st" is not a valid PSL identifier',
+    });
+    await expect(requestRename(harness, schemaUri, position, 'First')).resolves.toMatchObject({
+      changes: { [schemaUri]: [{ newText: 'First' }, { newText: 'First' }] },
+    });
+  });
+
+  it('answers rename with null for a document outside the project', async () => {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+    const outsideUri = pathToFileURL(join(root, 'outside.prisma')).href;
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel User {\n  id Int\n}\nmodel Post {\n  author Us|er\n}\n',
+    );
+    openDocument(harness, outsideUri, source);
+
+    await expect(requestRename(harness, outsideUri, position, 'Account')).resolves.toBeNull();
+  });
+
+  it('answers rename with null for a document that is not open', async () => {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+
+    await expect(
+      requestRename(harness, schemaUri, { line: 1, character: 7 }, 'Account'),
+    ).resolves.toBeNull();
+  });
+
+  it('answers prepare rename and rename with null when resolving an attribute argument throws and serves the next rename request', async () => {
+    const extendsAttribute = modelAttribute('extends', {
+      documentation: 'Extends another model.',
+      positional: [{ key: 'model', type: entityRef({ kind: 'model' }), documentation: 'fixture' }],
+    });
+    const factory = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error('broken prepare rename factory');
+      })
+      .mockImplementationOnce(() => {
+        throw new Error('broken rename factory');
+      })
+      .mockReturnValue(extendsAttribute);
+    const resolution = await resolveToSchemaWithAttributeContributions(configPath);
+    const brokenAuthoringContributions = assembleAuthoringContributions([
+      {
+        id: 'broken-rename',
+        authoring: {
+          type: testTypeConstructors(scalarTypes),
+          attributeSpecs: { field: {}, model: { extends: factory } },
+        },
+      },
+    ]);
+    if (resolution.interpretation === undefined) throw new Error('expected interpretation');
+    const interpretation = resolution.interpretation;
+    harness = startHarness(
+      async () => ({
+        ...resolution,
+        controlStack: {
+          ...resolution.controlStack,
+          authoringContributions: brokenAuthoringContributions,
+        },
+        interpretation: {
+          ...interpretation,
+          context: {
+            ...interpretation.context,
+            authoringContributions: brokenAuthoringContributions,
+          },
+        },
+      }),
+      {
+        textDocument: {
+          ...pullDiagnosticsCapabilities.textDocument,
+          ...prepareRenameCapabilities.textDocument,
+        },
+      },
+    );
+    await harness.initialize();
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel User {\n  id Int\n}\nmodel Post {\n  id Int\n  @@extends(Us|er)\n}\n',
+    );
+    openDocument(harness, schemaUri, source);
+    expect(await requestPrepareRename(harness, schemaUri, position)).toBeNull();
+    expect(await requestRename(harness, schemaUri, position, 'Account')).toBeNull();
+    await expect(requestRename(harness, schemaUri, position, 'Account')).resolves.toEqual({
+      changes: {
+        [schemaUri]: [
+          {
+            range: { start: { line: 1, character: 6 }, end: { line: 1, character: 10 } },
+            newText: 'Account',
+          },
+          {
+            range: { start: { line: 6, character: 12 }, end: { line: 6, character: 16 } },
+            newText: 'Account',
+          },
+        ],
+      },
+    });
+    expect(factory).toHaveBeenCalledTimes(3);
   });
 
   it('returns full semantic tokens for a configured open PSL input', async () => {
@@ -3435,9 +3791,9 @@ describe('language server preserved artifacts', { timeout: timeouts.databaseOper
 
     const secondAst = harness.getDocumentAst(schemaUri);
     expect(secondAst?.parse().document).not.toBe(firstAst?.parse().document);
-    expect(Object.keys(harness.getProjectSymbolTable(schemaUri)?.topLevel.models ?? {})).toEqual(
-      expect.arrayContaining(['User', 'Post']),
-    );
+    expect(
+      Object.keys(harness.getProjectSymbolTable(schemaUri)?.defaultNamespace.models ?? {}),
+    ).toEqual(expect.arrayContaining(['User', 'Post']));
   });
 
   it('ignores a publish that resolves after the document closes', async () => {
@@ -4366,7 +4722,9 @@ describe('language server prisma-8 directive gating', {
     openDocument(harness, schema2Uri, 'model Stray {\n  id Int @id\n}\n');
     expect(await harness.waitForDiagnostics(schema2Uri)).toEqual([]);
 
-    const models = Object.keys(harness.getProjectSymbolTable(schemaUri)?.topLevel.models ?? {});
+    const models = Object.keys(
+      harness.getProjectSymbolTable(schemaUri)?.defaultNamespace.models ?? {},
+    );
     expect(models).toContain('User');
     expect(models).not.toContain('Stray');
     expect(harness.getDocumentAst(schema2Uri)).toBeUndefined();
@@ -4503,6 +4861,47 @@ describe('language server whole-project push and freshness', {
         range: { start: { line: 3, character: 7 }, end: { line: 3, character: 11 } },
       },
     ]);
+  });
+
+  it('renames a usage in a project file that is not open, under the URI of that file', async () => {
+    const dir = await fixtureDir();
+    const memberAPath = join(dir, 'a.prisma');
+    const memberBPath = join(dir, 'b.prisma');
+    const memberAUri = pathToFileURL(memberAPath).toString();
+    const memberBUri = pathToFileURL(memberBPath).toString();
+    const { source, position } = sourceWithCursor(
+      '// use prisma-8\nmodel Post {\n  id Int @id\n  author Us|er\n}\n',
+    );
+    await writeFile(memberAPath, '// use prisma-8\nmodel User {\n  id Int @id\n  best Post\n}\n');
+    await writeFile(memberBPath, source);
+    harness = startHarness(
+      async () => resolutionForInputs([memberAPath, memberBPath]),
+      prepareRenameCapabilities,
+    );
+    await harness.initialize();
+    openDocument(harness, memberBUri, source);
+    await harness.waitForDiagnostics(memberBUri);
+
+    await expect(requestPrepareRename(harness, memberBUri, position)).resolves.toEqual({
+      range: { start: { line: 3, character: 9 }, end: { line: 3, character: 13 } },
+      placeholder: 'User',
+    });
+    await expect(requestRename(harness, memberBUri, position, 'Account')).resolves.toEqual({
+      changes: {
+        [memberAUri]: [
+          {
+            range: { start: { line: 1, character: 6 }, end: { line: 1, character: 10 } },
+            newText: 'Account',
+          },
+        ],
+        [memberBUri]: [
+          {
+            range: { start: { line: 3, character: 9 }, end: { line: 3, character: 13 } },
+            newText: 'Account',
+          },
+        ],
+      },
+    });
   });
 
   it('follows unsaved edits in another open project file', async () => {
@@ -4862,9 +5261,9 @@ describe('language server whole-project push and freshness', {
         await harness.waitForDiagnosticsMatching(memberBUri, isDuplicateDeclaration),
       ),
     ).toBe(true);
-    expect(Object.keys(harness.getProjectSymbolTable(memberAUri)?.topLevel.models ?? {})).toContain(
-      'Post',
-    );
+    expect(
+      Object.keys(harness.getProjectSymbolTable(memberAUri)?.defaultNamespace.models ?? {}),
+    ).toContain('Post');
 
     await rm(memberBPath);
     const cleared = harness.waitForDiagnosticsMatching(
@@ -4876,7 +5275,59 @@ describe('language server whole-project push and freshness', {
     });
     expect(await cleared).toEqual([]);
     expect(
-      Object.keys(harness.getProjectSymbolTable(memberAUri)?.topLevel.models ?? {}),
+      Object.keys(harness.getProjectSymbolTable(memberAUri)?.defaultNamespace.models ?? {}),
     ).not.toContain('Post');
+  });
+});
+
+describe('language server default namespace', { timeout: timeouts.databaseOperation }, () => {
+  const scalars = ['String', 'Int', 'Boolean', 'DateTime'];
+  const pg = (topLevelField: string, authField: string): string =>
+    [
+      '// use prisma-8',
+      'model Account {',
+      `  id Int @id${topLevelField}`,
+      '}',
+      'namespace public {',
+      '  model Invoice {',
+      '    id Int @id',
+      '  }',
+      '}',
+      'namespace auth {',
+      '  model Session {',
+      `    id Int @id${authField}`,
+      '  }',
+      '}',
+    ].join('\n');
+
+  async function open(markedSource: string): Promise<Position> {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+    const { source, position } = sourceWithCursor(markedSource);
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+    return position;
+  }
+
+  it.each([
+    [pg('\n  entry public.|', ''), ['Account', 'Invoice']],
+    [pg('\n  entry |', ''), ['Account', 'Invoice', 'public', 'auth', ...scalars]],
+    [pg('', '\n    entry |'), ['Session', 'Account', 'Invoice', 'public', 'auth', ...scalars]],
+  ])('completes a field type from the default namespace: %j', async (source, labels) => {
+    const position = await open(source);
+    const items = completionItems(await requestCompletion(harness!, schemaUri, position));
+
+    expect(items.map((item) => item.label)).toEqual(labels);
+  });
+
+  it('goes from a bare reference in another namespace to a default-namespace model', async () => {
+    const position = await open(pg('', '\n    invoice Inv|oice'));
+
+    await expect(requestDefinition(harness!, schemaUri, position)).resolves.toEqual([
+      {
+        uri: schemaUri,
+        range: { start: { line: 5, character: 8 }, end: { line: 5, character: 15 } },
+      },
+    ]);
   });
 });

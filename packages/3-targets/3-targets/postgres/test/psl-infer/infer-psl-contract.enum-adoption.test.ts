@@ -38,12 +38,11 @@ import { postgresQualifyColumnType } from '../../src/core/codecs';
 import { PostgresContractSerializer } from '../../src/core/postgres-contract-serializer';
 import { PostgresNativeEnum } from '../../src/core/postgres-native-enum';
 import { PostgresSchema, postgresCreateNamespace } from '../../src/core/postgres-schema';
-import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { inferBuildContext } from './fixtures';
+import { inferBuildContext, inferFromFixtureTree } from './fixtures';
 
 const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
 
@@ -101,7 +100,7 @@ function inferAndPrint(
   dbTree: PostgresDatabaseSchemaNode,
   describedContracts?: readonly SqlDescribedContractSpace[],
 ): string {
-  return printPsl(inferPostgresPslContract(dbTree, inferBuildContext, describedContracts), {
+  return printPsl(inferFromFixtureTree(dbTree, inferBuildContext, describedContracts), {
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
   });
 }
@@ -232,6 +231,7 @@ function interpret(source: string) {
     sourceId: 'infer-psl-contract.enum-adoption.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,
@@ -273,7 +273,6 @@ describe('native enum adoption — happy path', () => {
     expect(output).toContain('aal1 = "aal1"');
     expect(output).toContain('@@map("aal_level")');
     expect(output).toContain('pg.enum(AalLevel)?');
-    expect(output).not.toContain('Unsupported(');
   });
 
   it('wraps in the introspected schema name for a non-public schema (the auth shape)', () => {
@@ -304,7 +303,6 @@ describe('native enum adoption — happy path', () => {
     );
 
     expect(output).toContain('pg.enum(AalLevel)?');
-    expect(output).not.toContain('Unsupported(');
   });
 
   it('runs enum type names through the top-level name transforms', () => {
@@ -330,7 +328,7 @@ describe('native enum adoption — happy path', () => {
 
   it('does not throw the old remediation diagnostic', () => {
     expect(() =>
-      inferPostgresPslContract(tree({ public: sessionsNamespace('public') }), inferBuildContext),
+      inferFromFixtureTree(tree({ public: sessionsNamespace('public') }), inferBuildContext),
     ).not.toThrow();
   });
 });
@@ -341,7 +339,7 @@ describe('enum-free output stays flat', () => {
       public: namespaceNode('public', { user: table('user', { id: idColumn }) }),
     });
 
-    const ast = inferPostgresPslContract(enumFree, inferBuildContext);
+    const ast = inferFromFixtureTree(enumFree, inferBuildContext);
     expect(ast.namespaces).toHaveLength(1);
     expect(ast.namespaces[0]?.name).toBe(UNSPECIFIED_PSL_NAMESPACE_ID);
 
@@ -358,7 +356,7 @@ describe('single-namespace stopgap guard', () => {
       auth: sessionsNamespace('auth'),
     });
 
-    expect(() => inferPostgresPslContract(multi, inferBuildContext)).toThrow(
+    expect(() => inferFromFixtureTree(multi, inferBuildContext)).toThrow(
       /adopting native enums or RLS policies with content across multiple schemas/,
     );
   });
@@ -418,7 +416,7 @@ describe('pack-owned enum subtraction (by type name)', () => {
       ),
     });
 
-    expect(() => inferPostgresPslContract(dbTree, inferBuildContext, [pack])).toThrow(
+    expect(() => inferFromFixtureTree(dbTree, inferBuildContext, [pack])).toThrow(
       /aal_level.*(pack|space "pack")/i,
     );
 
@@ -435,7 +433,7 @@ describe('pack-owned enum subtraction (by type name)', () => {
       ),
     });
 
-    expect(() => inferPostgresPslContract(qualifiedTree, inferBuildContext, [pack])).toThrow(
+    expect(() => inferFromFixtureTree(qualifiedTree, inferBuildContext, [pack])).toThrow(
       /aal_level.*(pack|space "pack")/i,
     );
   });
@@ -491,7 +489,6 @@ describe('pack-owned enum subtraction from a serialized+hydrated described contr
     expect(output).toContain('native_enum FactorType {');
     expect(output).toContain('@@map("factor_type")');
     expect(output).toContain('pg.enum(FactorType)?');
-    expect(output).not.toContain('Unsupported(');
   });
 });
 
@@ -647,7 +644,6 @@ describe('mixed-case enum type names (Prisma-ORM-created types)', () => {
     expect(output).not.toContain('@@map("HoldType")');
     expect(output).toContain('pg.enum(HoldType)');
     expect(output).not.toContain('holdtype');
-    expect(output).not.toContain('Unsupported(');
   });
 
   it('interprets with the mixed-case typeName in typeParams — the input the cast-quoting policy keys on', () => {
@@ -661,5 +657,51 @@ describe('mixed-case enum type names (Prisma-ORM-created types)', () => {
       codecId: 'pg/enum@1',
       typeParams: { typeName: 'HoldType' },
     });
+  });
+});
+
+describe('an enum column whose type has no adopted block', () => {
+  const MOOD: FlatNativeEnumEntry = { typeName: 'mood', values: ['calm', 'busy'] };
+
+  function moodColumn(schema: string): SqlColumnIRInput {
+    return {
+      name: 'm',
+      nativeType: `${schema}.mood`,
+      nullable: true,
+      reportedType: { text: `${schema}.mood`, kind: 'enum', schema, name: 'mood' },
+    };
+  }
+
+  const unclaimed = (column: string) =>
+    expect.objectContaining({
+      code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
+      meta: { columns: [column] },
+    });
+
+  it('fails when no block declares the enum', () => {
+    const dbTree = tree({
+      public: namespaceNode('public', { t: table('t', { id: idColumn, m: moodColumn('other') }) }),
+    });
+    expect(() => inferAndPrint(dbTree)).toThrow(unclaimed('public.t.m: other.mood'));
+  });
+
+  it('fails when the block of that name is in another schema', () => {
+    const dbTree = tree({
+      public: namespaceNode('public', { t: table('t', { id: idColumn, m: moodColumn('other') }) }, [
+        MOOD,
+      ]),
+    });
+    expect(() => inferAndPrint(dbTree)).toThrow(unclaimed('public.t.m: other.mood'));
+  });
+
+  it('prints the enum when the block is in the schema the column reports', () => {
+    const dbTree = tree({
+      public: namespaceNode(
+        'public',
+        { t: table('t', { id: idColumn, m: moodColumn('public') }) },
+        [MOOD],
+      ),
+    });
+    expect(inferAndPrint(dbTree)).toContain('pg.enum(Mood)?');
   });
 });

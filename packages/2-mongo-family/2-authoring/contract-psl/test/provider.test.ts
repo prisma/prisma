@@ -53,7 +53,11 @@ function codecLookupOf(codec: Codec): CodecLookupWithDescriptors {
     get: (id) => (id === codec.id ? codec : undefined),
     descriptorFor: (id) =>
       id === codec.id
-        ? ({ codecId: id, factory: () => () => codec } as unknown as AnyCodecDescriptor)
+        ? ({
+            codecId: id,
+            traits: ['equality'],
+            factory: () => () => codec,
+          } as unknown as AnyCodecDescriptor)
         : undefined,
   };
 }
@@ -86,6 +90,7 @@ const enumBlockDescriptor = {
 function createMongoTestContext(overrides?: Partial<ContractSourceContext>): ContractSourceContext {
   return {
     composedExtensions: [],
+    defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
     authoringContributions: {

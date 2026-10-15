@@ -5,7 +5,7 @@ import type { SqlAggregateDescriptor } from '../src/aggregate-descriptor';
 import { buildSqlAggregateDescriptorRegistry } from '../src/aggregate-descriptor-registry';
 import type { AnyCodecDescriptor } from '../src/ast/codec-types';
 import { buildCodecDescriptorRegistry } from '../src/codec-descriptor-registry';
-import { AggregateExpr, LiteralColumnDefault, sqlCharRenderOutputType } from '../src/exports/ast';
+import { AggregateExpr, LiteralColumnDefault } from '../src/exports/ast';
 
 const stub = (codecId: string): AnyCodecDescriptor =>
   ({
@@ -121,15 +121,6 @@ describe('relational-core structured error codes', () => {
       code: 'ORM.ARGUMENT_INVALID',
       message: 'Aggregate function "sum" requires an expression',
       meta: { fn: 'sum' },
-    });
-  });
-
-  it('non-integer length typeParams raises RUNTIME.TYPE_PARAMS_INVALID', () => {
-    const error = capture(() => sqlCharRenderOutputType({ length: 1.5 }));
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'RUNTIME.TYPE_PARAMS_INVALID',
-      meta: { codec: 'sql/char@1', param: 'length', received: '1.5' },
     });
   });
 

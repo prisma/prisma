@@ -13,6 +13,7 @@
  *  3. Negative: a bare (value-less) member is a diagnostic, not accepted.
  */
 
+import { isAuthoringPslBlockDescriptor } from '@internal/framework-components/authoring';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import {
@@ -95,6 +96,7 @@ const scalarTypeConstructors = Object.fromEntries(
 function parsePsl(source: string) {
   const { document, sources } = parse(source, 'psl-native-enum-authoring.test.psl');
   const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -103,6 +105,7 @@ function parsePsl(source: string) {
     sources,
     pslBlockDescriptors: assembled.pslBlockDescriptors,
     binder: blockResolutionBinder(symbolTable, sources),
+    dataTypes: EMPTY_DATA_TYPES,
   });
   return {
     symbolTable,
@@ -116,6 +119,7 @@ function interpret(source: string) {
     sourceId: 'psl-native-enum-authoring.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,
@@ -160,6 +164,15 @@ namespace auth {
 }
 `;
 
+  it('declares the native_enum block name as the storage name, and no other block name', () => {
+    const keywords = Object.values(assembled.pslBlockDescriptors)
+      .filter(isAuthoringPslBlockDescriptor)
+      .filter((descriptor) => descriptor.nameIsStorageName === true)
+      .map((descriptor) => descriptor.keyword);
+
+    expect(keywords).toEqual(['native_enum']);
+  });
+
   it('parses the native_enum block without diagnostics', () => {
     const { diagnostics } = parsePsl(source);
     expect(diagnostics).toEqual([]);
@@ -167,7 +180,7 @@ namespace auth {
 
   it('places the parsed block in the auth namespace with a native_enum envelope', () => {
     const { symbolTable, parsedBlocks } = parsePsl(source);
-    const authNs = symbolTable.topLevel.namespaces['auth'];
+    const authNs = symbolTable.namespaces['auth'];
     expect(authNs).toBeDefined();
     const blocks = Object.values(authNs!.blocks);
     expect(blocks).toHaveLength(1);

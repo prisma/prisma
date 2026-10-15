@@ -35,11 +35,15 @@ export interface ComponentMetadata {
        */
       readonly typeImports?: ReadonlyArray<TypesImportSpec>;
       /**
+       * The type function, a `ParameterizedOutputTypesFunction` from `@internal/contract/types`, that gives the output type of each of this component's codecs whose output type depends on a column's type parameters. The emitted `contract.d.ts` types such a column by applying it, so the pack declares that type once.
+       */
+      readonly parameterizedOutputTypes?: TypesImportSpec;
+      /**
        * Optional control-plane hooks keyed by codecId. Used by family-specific planners/verifiers to handle storage types.
        */
       readonly controlPlaneHooks?: Record<string, unknown>;
       /**
-       * Codec descriptors contributed by this component. Source of truth for codec-id-keyed metadata (`traits`, `renderOutputType`) consumed by `extractCodecLookup`, and used to materialize representative `Codec` instances for codec-dispatched type rendering during emission.
+       * Codec descriptors contributed by this component. Source of truth for codec-id-keyed metadata (`traits`, `renderOutputType`, `renderValueLiteral`) consumed by `extractCodecLookup`, and used to materialize representative `Codec` instances for codec-dispatched type rendering during emission.
        */
       readonly codecDescriptors?: ReadonlyArray<AnyCodecDescriptor>;
     };

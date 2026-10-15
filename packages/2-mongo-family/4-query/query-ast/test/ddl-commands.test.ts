@@ -5,6 +5,7 @@ import {
   CreateIndexCommand,
   DropCollectionCommand,
   DropIndexCommand,
+  RenameCollectionCommand,
 } from '../src/ddl-commands';
 import type { MongoDdlCommandVisitor, MongoInspectionCommandVisitor } from '../src/ddl-visitors';
 import { ListCollectionsCommand, ListIndexesCommand } from '../src/inspection-commands';
@@ -17,6 +18,7 @@ function makeDdlVisitor(
     dropIndex: () => 'dropIndex',
     createCollection: () => 'createCollection',
     dropCollection: () => 'dropCollection',
+    renameCollection: () => 'renameCollection',
     collMod: () => 'collMod',
     ...overrides,
   };
@@ -249,6 +251,29 @@ describe('DropCollectionCommand', () => {
       dropCollection: (c) => `drop:${c.collection}`,
     });
     expect(cmd.accept(visitor)).toBe('drop:events');
+  });
+});
+
+describe('RenameCollectionCommand', () => {
+  it('constructs with the source collection and the new name', () => {
+    const cmd = new RenameCollectionCommand('profiles', 'users');
+    expect({ kind: cmd.kind, collection: cmd.collection, to: cmd.to }).toEqual({
+      kind: 'renameCollection',
+      collection: 'profiles',
+      to: 'users',
+    });
+  });
+
+  it('is frozen', () => {
+    expect(Object.isFrozen(new RenameCollectionCommand('profiles', 'users'))).toBe(true);
+  });
+
+  it('dispatches via DDL visitor', () => {
+    const cmd = new RenameCollectionCommand('profiles', 'users');
+    const visitor = makeDdlVisitor({
+      renameCollection: (c) => `rename:${c.collection}->${c.to}`,
+    });
+    expect(cmd.accept(visitor)).toBe('rename:profiles->users');
   });
 });
 

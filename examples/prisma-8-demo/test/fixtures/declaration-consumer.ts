@@ -1,3 +1,4 @@
+import '@prisma/orm-postgres/runtime';
 import type {
   AggregateResult,
   AggregateSelector,
@@ -6,9 +7,10 @@ import type {
   Collection,
   CollectionRowOf,
   DeclaredField,
-  FieldFragment,
+  DeclaredFieldsFragment,
   Filtered,
   Ordered,
+  UniquelyFiltered,
 } from '@prisma/orm-postgres/orm-client';
 import { expectTypeOf } from 'vitest';
 import type { Contract } from '../../src/prisma/contract.d';
@@ -19,18 +21,24 @@ import {
   type GenericLibrary,
   labelled,
   labelledAs,
+  matchesSearch,
   notExpired,
   type PostLibrary,
   type PrivateLibrary,
   plainChain,
+  plainUniqueChain,
+  plainUniqueInclude,
   type SubLibrary,
+  searched,
   type TaskLibrary,
   titleSummary,
   unexpired,
   unexpiredPosts,
+  uniqueChain,
 } from './declaration-library';
 
 type PostKey =
+  | 'body'
   | 'createdAt'
   | 'embedding'
   | 'expiresAt'
@@ -56,6 +64,13 @@ declare const subPosts: SubLibrary;
 export async function chainingMethods() {
   expectTypeOf(posts.filtered()).toEqualTypeOf<Filtered<PostLibrary>>();
   expectTypeOf(posts.ordered()).toEqualTypeOf<Ordered<PostLibrary>>();
+  expectTypeOf(posts.search('zebra')).toEqualTypeOf<Ordered<Filtered<PostLibrary>>>();
+  expectTypeOf(posts.searchUsing('zebra')).toEqualTypeOf<Ordered<Filtered<PostLibrary>>>();
+  expectTypeOf(posts.filtered().using.post_search).toBeFunction();
+  expectTypeOf(posts.where(matchesSearch('zebra'))).toEqualTypeOf<Filtered<PostLibrary>>();
+  expectTypeOf(posts.with(searched('zebra'))).toEqualTypeOf<
+    ReturnType<ReturnType<typeof searched>>
+  >();
   expectTypeOf(posts.paged()).toEqualTypeOf<PostLibrary>();
   expectTypeOf(posts.distinctTitles()).toEqualTypeOf<PostLibrary>();
   expectTypeOf(posts.distinctOnTitle()).toEqualTypeOf<Ordered<PostLibrary>>();
@@ -137,6 +152,39 @@ export function exportedValues() {
   expectTypeOf(filterPosts).returns.toEqualTypeOf<Filtered<Collection<Contract, 'Post'>>>();
 }
 
+export async function uniquelyFilteredChains() {
+  expectTypeOf(posts.byId('p1')).toEqualTypeOf<UniquelyFiltered<PostLibrary>>();
+  expectTypeOf(posts.byIdForUser('p1', 'u1')).toEqualTypeOf<UniquelyFiltered<PostLibrary>>();
+  expectTypeOf(posts.byId('p1').filtered()).toEqualTypeOf<UniquelyFiltered<PostLibrary>>();
+  expectTypeOf(uniqueChain).toEqualTypeOf<UniquelyFiltered<PostLibrary>>();
+  expectTypeOf(await posts.firstById('p1')).toEqualTypeOf<PostRow | null>();
+  expectTypeOf(await posts.firstOrThrowById('p1')).toEqualTypeOf<PostRow>();
+  expectTypeOf(await posts.byId('p1').firstOrThrow()).toEqualTypeOf<PostRow>();
+  expectTypeOf(await posts.byId('p1').update({ title: 'y' })).toEqualTypeOf<PostRow | null>();
+  expectTypeOf(await posts.byId('p1').delete()).toEqualTypeOf<PostRow | null>();
+  expectTypeOf<keyof CollectionRowOf<ReturnType<PostLibrary['byIdWithUser']>>>().toEqualTypeOf<
+    PostKey | 'user'
+  >();
+  expectTypeOf(
+    await posts.preparedById('p1').first().consume,
+  ).returns.resolves.toEqualTypeOf<PostRow | null>();
+  expectTypeOf(
+    await posts.preparedById('p1').firstOrThrow().consume,
+  ).returns.resolves.toEqualTypeOf<PostRow>();
+  expectTypeOf(plainUniqueChain).not.toBeAny();
+  expectTypeOf<keyof CollectionRowOf<typeof plainUniqueChain>>().toEqualTypeOf<PostKey>();
+  expectTypeOf(plainUniqueInclude).not.toBeAny();
+  expectTypeOf<keyof CollectionRowOf<typeof plainUniqueInclude>>().toEqualTypeOf<
+    PostKey | 'user'
+  >();
+  // @ts-expect-error a uniquely filtered collection has at most one record
+  posts.byId('p1').all();
+  // @ts-expect-error a uniquely filtered collection has at most one record
+  plainUniqueChain.limit(1);
+  // @ts-expect-error a uniquely filtered collection has at most one record
+  posts.byId('p1').prepared.all();
+}
+
 export function queryFragments(now: Temporal.Instant) {
   expectTypeOf(posts.live(now)).toEqualTypeOf<Filtered<PostLibrary>>();
   expectTypeOf(posts.orderedBy('title')).toEqualTypeOf<Ordered<PostLibrary>>();
@@ -177,7 +225,7 @@ export function listFragments() {
   // @ts-expect-error Post has no labels field
   posts.where(labelledAs(['a']));
   expectTypeOf(labelled(['a'])).toEqualTypeOf<
-    FieldFragment<
+    DeclaredFieldsFragment<
       Contract,
       {
         readonly labels: DeclaredField<'pg/text@1', false, { readonly elementNullable: false }>;

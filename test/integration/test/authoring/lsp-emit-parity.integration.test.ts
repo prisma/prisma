@@ -202,6 +202,22 @@ model Widget {
         exitCode: 2,
         diagnosticCodes: ['PSL_UNRESOLVED_REFERENCE'],
       },
+      {
+        name: 'unbound models next to a named namespace',
+        text: `// use prisma-8
+namespace unbound {
+  model Tenant {
+    id Int @id
+  }
+}
+namespace auth {
+  model User {
+    id Int @id
+  }
+}`,
+        exitCode: 2,
+        diagnosticCodes: ['PSL_RESERVED_NAMESPACE_NAME'],
+      },
     ])(
       'agrees with emit for $name across the internal/public parser boundary',
       async ({ text, exitCode, diagnosticCodes }) => {
@@ -325,6 +341,7 @@ namespace billing {
       const warnings: ContractSourceDiagnostic[] = [];
       const result = await contract.source.load({
         composedExtensions: stack.extensions.map((extension) => extension.id),
+        defaultNamespaceId: stack.target.defaultNamespaceId,
         composedExtensionContracts: stack.extensionContracts,
         authoringContributions: stack.authoringContributions,
         codecLookup: stack.codecLookup,
@@ -366,7 +383,7 @@ namespace billing {
           expect(diagnosticsFor(project, uri)).toEqual([]);
         }
         expect(onInterpretationError).not.toHaveBeenCalled();
-        const models = Object.keys(project.symbolTable().topLevel.models);
+        const models = Object.keys(project.symbolTable().defaultNamespace.models);
         expect(models.sort()).toEqual(['Post', 'User']);
 
         const namespaceModels = Object.values(contract.domain.namespaces).flatMap((namespace) =>

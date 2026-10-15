@@ -3,7 +3,7 @@
  *
  * Each codec ships as three artifacts:
  *
- * 1. A `PgXCodec` class extending {@link CodecImpl} that wraps the module-level conversions exported from `codec-helpers.ts` (the single source of truth for non-trivial runtime conversions; trivial identity passthroughs are inlined). 2. A `PgXDescriptor` class extending {@link PostgresCodecDescriptor} declaring the codec id, traits, target types, params schema, native type, canonical JSON projection, and (where applicable) the emit-path `renderOutputType`. 3. A per-codec column helper (`pgXColumn`) that calls `descriptor.factory(...)` directly and packages the result into a framework `ColumnSpec` via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor` (and `ColumnHelperForStrict` where the resolved codec type is well-defined).
+ * 1. A `PgXCodec` class extending {@link CodecImpl} that wraps the module-level conversions exported from `codec-helpers.ts` (the single source of truth for non-trivial runtime conversions; trivial identity passthroughs are inlined). 2. A `PgXDescriptor` class extending {@link PostgresCodecDescriptor} declaring the codec id, traits, target types, params schema, native type, and canonical JSON projection. A column type that depends on type parameters, such as `Char<36>`, comes from the pack's type function in `exports/codec-types.ts`. 3. A per-codec column helper (`pgXColumn`) that calls `descriptor.factory(...)` directly and packages the result into a framework `ColumnSpec` via the framework {@link column} packager. The helper is tied to its descriptor with `satisfies ColumnHelperFor` (and `ColumnHelperForStrict` where the resolved codec type is well-defined).
  *
  * After TML-2357 this is the canonical source of Postgres codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers (and the parallel `byScalar`/`codecDescriptorDefinitions`/ `codecDescriptorList` collection exports) retired with the deletion sweep.
  *
@@ -70,10 +70,7 @@ import {
   pgJsonDecode,
   pgJsonEncode,
   pgNumericDecode,
-  pgNumericRenderOutputType,
   pgUnboundedIntDecode,
-  renderLength,
-  renderPrecision,
 } from './codec-helpers';
 import {
   PG_BIT_CODEC_ID,
@@ -839,9 +836,6 @@ export class PgNumericDescriptor extends PostgresCodecDescriptor<NumericParams> 
   override readonly codecId = PG_NUMERIC_CODEC_ID;
   override readonly traits = ['equality', 'order', 'numeric'] as const;
   override readonly paramsSchema = pgNumericParams satisfies StandardSchemaV1<NumericParams>;
-  override renderOutputType(params: NumericParams): string | undefined {
-    return pgNumericRenderOutputType(params);
-  }
   override factory(params: NumericParams): (ctx: CodecInstanceContext) => PgNumericCodec {
     return () => new PgNumericCodec(this, pgNumeric, params ?? {});
   }
@@ -934,9 +928,6 @@ export class PgTimetzDescriptor extends PostgresCodecDescriptor<PrecisionParams>
   override readonly codecId = PG_TIMETZ_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
-  override renderOutputType(params: PrecisionParams): string | undefined {
-    return renderPrecision('Timetz', params);
-  }
   override factory(params: PrecisionParams): (ctx: CodecInstanceContext) => PgTimetzCodec {
     return () => new PgTimetzCodec(this, pgTimetz, params ?? {});
   }
@@ -978,9 +969,6 @@ export class PgBitDescriptor extends PostgresCodecDescriptor<LengthParams> {
   override readonly codecId = PG_BIT_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgBitLengthParams satisfies StandardSchemaV1<LengthParams>;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return renderLength('Bit', params);
-  }
   override factory(params: LengthParams): (ctx: CodecInstanceContext) => PgBitCodec {
     return () => new PgBitCodec(this, pgBit, params ?? {});
   }
@@ -1022,9 +1010,6 @@ export class PgVarbitDescriptor extends PostgresCodecDescriptor<LengthParams> {
   override readonly codecId = PG_VARBIT_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgBitLengthParams satisfies StandardSchemaV1<LengthParams>;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return renderLength('VarBit', params);
-  }
   override factory(params: LengthParams): (ctx: CodecInstanceContext) => PgVarbitCodec {
     return () => new PgVarbitCodec(this, pgVarbit, params ?? {});
   }
@@ -1266,9 +1251,6 @@ export class PgIntervalDescriptor extends PostgresCodecDescriptor<PrecisionParam
   override readonly codecId = PG_INTERVAL_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = pgPrecisionParams satisfies StandardSchemaV1<PrecisionParams>;
-  override renderOutputType(params: PrecisionParams): string | undefined {
-    return renderPrecision('Interval', params);
-  }
   override factory(params: PrecisionParams): (ctx: CodecInstanceContext) => PgIntervalCodec {
     return () => new PgIntervalCodec(this, pgInterval, params ?? {});
   }
@@ -1393,9 +1375,6 @@ export class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
   override readonly codecId = PG_CHAR_CODEC_ID;
   override readonly traits = sqlCharDescriptor.traits;
   override readonly paramsSchema = pgCharacterLengthParams satisfies StandardSchemaV1<LengthParams>;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return sqlCharDescriptor.renderOutputType(params);
-  }
   override renderValueLiteral(value: JsonValue): string | undefined {
     return renderTsLiteral(value);
   }
@@ -1419,9 +1398,6 @@ export class PgVarcharDescriptor extends PostgresCodecDescriptor<LengthParams> {
   override readonly codecId = PG_VARCHAR_CODEC_ID;
   override readonly traits = sqlVarcharDescriptor.traits;
   override readonly paramsSchema = pgCharacterLengthParams satisfies StandardSchemaV1<LengthParams>;
-  override renderOutputType(params: LengthParams): string | undefined {
-    return sqlVarcharDescriptor.renderOutputType(params);
-  }
   override renderValueLiteral(value: JsonValue): string | undefined {
     return renderTsLiteral(value);
   }

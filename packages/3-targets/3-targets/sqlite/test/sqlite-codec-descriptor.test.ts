@@ -243,19 +243,6 @@ describe('sqliteCodec', () => {
     expect(withoutParams.paramsSchema).toBeUndefined();
     expect(withoutParams.isParameterized).toBe(false);
   });
-
-  it('leaves out the template type renderers when asked to', () => {
-    const descriptor = sqliteCodec(genericVectorDescriptor, {
-      dataType: fixtureVectorType,
-      jsonProjection: (expression) => expression,
-      factory: buildVectorCodec,
-      renderTypes: false,
-    });
-
-    expect(descriptor.renderOutputType).toBeUndefined();
-    expect(descriptor.renderInputType).toBeUndefined();
-    expect(descriptor.renderValueLiteral?.('value', 'input')).toBe('input:value');
-  });
 });
 
 describe('SQLite codec descriptor registry', () => {

@@ -195,6 +195,31 @@ describe('SqlColumnIR', () => {
     });
   });
 
+  describe('reportedType', () => {
+    const reportedType = {
+      text: 'numeric(10,2)',
+      kind: undefined,
+      schema: 'pg_catalog',
+      name: 'numeric',
+    };
+
+    it('carries the type the database reports, outside JSON and equality', () => {
+      const column = new SqlColumnIR({
+        name: 'price',
+        nativeType: 'numeric',
+        nullable: false,
+        reportedType,
+      });
+      const bare = new SqlColumnIR({ name: 'price', nativeType: 'numeric', nullable: false });
+
+      expect({
+        reportedType: column.reportedType,
+        json: JSON.stringify(column),
+        equal: column.isEqualTo(bare),
+      }).toEqual({ reportedType, json: JSON.stringify(bare), equal: true });
+    });
+  });
+
   describe('identity columns (introspected, no raw default)', () => {
     it('yields a default child node from resolvedDefault alone, with no raw default', () => {
       // A `GENERATED ... AS IDENTITY` column has no `column_default` at

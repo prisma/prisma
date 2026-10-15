@@ -1,3 +1,4 @@
+import type { NamespacedEnums } from '@internal/contract/enum-accessor';
 import { expectTypeOf, test } from 'vitest';
 import { defineContract, enumType, field, member, model } from '../../src/exports/contract-builder';
 
@@ -58,6 +59,6 @@ const mixedEnums = defineContract({ enums: { Role } }, ({ model: m, field: f }) 
     Item: m('Item', { fields: { id: f.id.uuidv4String() } }),
   },
 }));
-type MixedAccessors = typeof mixedEnums extends { enumAccessors: infer A } ? A : never;
+type MixedAccessors = NamespacedEnums<typeof mixedEnums>['public'];
 expectTypeOf<MixedAccessors>().toHaveProperty('Role');
 expectTypeOf<MixedAccessors>().toHaveProperty('Priority');

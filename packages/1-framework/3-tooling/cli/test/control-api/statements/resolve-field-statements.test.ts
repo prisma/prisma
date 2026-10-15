@@ -274,3 +274,38 @@ describe('resolveStatements, field renames', () => {
     });
   });
 });
+
+describe('a field whose stored name holds a dot', () => {
+  it('reads Model.a.b as the field "a.b" when no namespace is named "Model"', () => {
+    const result = resolve(
+      ['User.o.d:User.od'],
+      contractOf({ __unbound__: { models: { User: { fields: ['_id', 'o.d'] } } } }),
+      contractOf({ __unbound__: { models: { User: { fields: ['_id', 'od'] } } } }),
+    );
+    expect(expectValue(result)).toEqual([
+      {
+        kind: 'rename',
+        entity: 'field',
+        from: { namespaceId: '__unbound__', model: 'User', field: 'o.d' },
+        to: { namespaceId: '__unbound__', model: 'User', field: 'od' },
+      },
+    ]);
+  });
+
+  it('refuses Model.a.b when it also resolves as namespace.Model.field', () => {
+    const origin = contractOf({
+      a: { models: { b: { fields: ['c'] } } },
+      app: { models: { a: { fields: ['b.c'] } } },
+    });
+    const destination = contractOf({
+      a: { models: { b: { fields: ['d'] } } },
+      app: { models: { a: { fields: ['b.d'] } } },
+    });
+    expectFailure(
+      resolve(['a.b.c:a.b.d'], origin, destination),
+      UNRESOLVED,
+      'namespace "a" model "b" field "c"',
+      'model "a" field "b.c"',
+    );
+  });
+});

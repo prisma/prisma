@@ -423,7 +423,14 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           dir: 'packages/2-sql/2-authoring/contract-psl',
           name: '@internal/sql-contract-psl',
           entry: 'contract-psl',
-          subpaths: ['.', 'attribute-specs', 'default-table-name', 'map-names', 'provider'],
+          subpaths: [
+            '.',
+            'attribute-specs',
+            'default-table-name',
+            'diagnostics',
+            'map-names',
+            'provider',
+          ],
         },
         {
           dir: 'packages/2-sql/2-authoring/contract-ts',
@@ -644,6 +651,7 @@ export const publicShells: ReadonlyMap<ShellName, ShellDefinition> = new Map<
           'diff-database-schema',
           'errors',
           'full-text',
+          'full-text-index-authoring',
           'issue-planner',
           'marker-lock',
           'migration',

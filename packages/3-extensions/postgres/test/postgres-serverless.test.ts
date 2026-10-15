@@ -494,7 +494,7 @@ describe('postgresServerless options', () => {
     const spyMiddleware: SqlMiddleware = {
       name: 'test-spy',
       familyId: 'sql',
-      async afterQuery(plan) {
+      async beforeEncode(plan) {
         queried.push(plan.sql);
       },
     };

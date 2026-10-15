@@ -29,12 +29,12 @@ import {
   createFieldHelpersFromNamespace,
   type EntityHelpersFromNamespace,
   type ExtractAuthoringNamespaceFromPack,
+  encodeEnumTypeMembers,
   type MergeExtensionAuthoringNamespaces,
   type ResolveTemplateValue,
   resolveToOneRelationNullable,
   type TupleFromArgumentDescriptors,
 } from '@internal/contract-authoring';
-import { errorEnumCodecNotInPackStack } from '@internal/errors/control';
 import type {
   AuthoringArgumentDescriptor,
   AuthoringFieldNamespace,
@@ -45,8 +45,7 @@ import {
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
-import type { CodecLookup, CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import { assembleDataTypes, enumRefusalOf } from '@internal/framework-components/codec';
+import { assembleDataTypes } from '@internal/framework-components/codec';
 import type {
   ExtensionPackRef,
   FamilyPackRef,
@@ -72,7 +71,7 @@ import {
   MongoStorage,
   type MongoStorageShape,
   type MongoTypeMaps,
-  type MongoValueSetInput,
+  mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import { mongoContractCanonicalizationHooks } from '@internal/mongo-contract/canonicalization-hooks';
 import type { BsonInputValue, BsonValue } from '@internal/mongo-value';
@@ -81,39 +80,6 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { contractError } from './contract-errors';
 import type { EnumTypeHandle } from './enum-type';
-
-/**
- * Encode an authored enum value to the JSON its codec's data type stores, mirroring SQL's `build-contract`.
- *
- * The codec is resolved by id from the lookup built from the contract's target pack, so a
- * codec whose application value differs from the stored JSON is respected. A codecId the
- * lookup cannot resolve is a hard error: the enum uses a codec that is not part of the contract's
- * pack stack.
- */
-function encodeEnumValue(value: unknown, codecId: string, codecLookup: CodecLookup): JsonValue {
-  const codec = codecLookup.get(codecId);
-  if (!codec) {
-    throw errorEnumCodecNotInPackStack({ codecId });
-  }
-  return codec.dataType.toContract(codec.toDataTypeValue(value));
-}
-
-function assertEnumCanUseCodec(
-  handle: EnumTypeHandle,
-  codecLookup: CodecLookupWithDescriptors,
-): void {
-  const descriptor = codecLookup.descriptorFor(handle.codecId);
-  const enumRefusal = descriptor === undefined ? undefined : enumRefusalOf(descriptor);
-  if (enumRefusal === undefined) return;
-  throw contractError(
-    'CONTRACT.ENUM_INVALID',
-    `enumType("${handle.enumName}"): an enum cannot use the codec ${handle.codecId}. ${enumRefusal}`,
-    {
-      fix: 'Type the enum with another codec.',
-      meta: { enumName: handle.enumName, codecId: handle.codecId, reason: 'codec-not-for-enums' },
-    },
-  );
-}
 
 // `canonicalStringify` rejects non-plain objects so a `Map` or class
 // instance cannot silently collapse to `{}`. The storage-shape values
@@ -644,7 +610,15 @@ type MaybeDiscriminator<Discriminator> = [Discriminator] extends [undefined]
   : { readonly discriminator: Discriminator & { readonly field: string } };
 type MaybeVariants<Variants> = [Variants] extends [undefined]
   ? EmptyObject
-  : { readonly variants: Variants };
+  : {
+      readonly variants: {
+        readonly [K in keyof Variants & string as Variants[K] extends {
+          readonly value: infer Value extends string;
+        }
+          ? Value
+          : never]: CrossRefFor<K>;
+      };
+    };
 
 type ContractModelFromBuilder<TBuilder> =
   TBuilder extends NamedModelBuilder<
@@ -712,24 +686,6 @@ type DefinitionEnums<Definition> = Definition extends {
     : Record<never, never>
   : Record<never, never>;
 
-type EnumHandleAccessorType<Handle> =
-  Handle extends EnumTypeHandle<infer _Name, infer Values, infer Names, infer MembersMap>
-    ? {
-        readonly values: Values;
-        readonly names: Names;
-        readonly members: MembersMap;
-        has(v: Values[number]): boolean;
-        nameOf(v: Values[number]): string | undefined;
-        ordinalOf(v: Values[number]): number;
-      }
-    : never;
-
-type BuiltEnumAccessors<Definition> = {
-  readonly [K in keyof DefinitionEnums<Definition>]: EnumHandleAccessorType<
-    DefinitionEnums<Definition>[K]
-  >;
-};
-
 type DefinitionRoots<Definition> = Definition extends {
   readonly roots?: infer Roots extends Record<string, ModelNameInput>;
 }
@@ -774,30 +730,39 @@ type MaybeValueObjectsSection<ValueObjects extends Record<string, AnyValueObject
         readonly valueObjects: ContractValueObjectsFromRecord<ValueObjects>;
       };
 
-// Project EnumTypeHandle to the namespace enum-entry shape. A member is stored in its codec's
-// JSON form, which is the authored literal only when that literal is JSON (a bigint or a Date
-// member is stored as text), so a member whose value is not JSON is typed as `JsonValue`.
-type EnumHandleToEntry<Handle> =
-  Handle extends EnumTypeHandle<string, infer Values, infer _Names, infer _MembersMap>
+type HandleName<Handle> = Handle extends EnumTypeHandle<infer Name> ? Name : never;
+
+// A member is stored in its codec's JSON form, which is the authored literal only when that literal is JSON; a bigint or Date member is stored as text.
+type StoredEnumValue<Value> = Value extends JsonValue ? Value : JsonValue;
+
+type EnumHandleMembers<Handle, Stored extends boolean> =
+  Handle extends EnumTypeHandle<string, infer Values, infer Names>
     ? {
-        readonly codecId: string;
-        readonly members: readonly {
-          readonly name: string;
-          readonly value: Values[number] extends JsonValue ? Values[number] : JsonValue;
-        }[];
+        readonly [I in keyof Values]: {
+          readonly name: I extends keyof Names ? Names[I] : never;
+          readonly value: Stored extends true ? StoredEnumValue<Values[I]> : Values[I];
+        };
       }
     : never;
 
-type ContractEnumsFromRecord<Enums extends Record<string, EnumTypeHandle>> = {
-  readonly [K in keyof Enums as Enums[K] extends EnumTypeHandle<infer Name>
-    ? Name
-    : never]: EnumHandleToEntry<Enums[K]>;
+// The domain `enum` entries for enums authored with `enumType`, keyed by enum name, with each member's value as it is stored.
+type EnumHandleEntries<Enums> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: {
+    readonly codecId: Enums[K] extends { readonly codecId: infer CodecId } ? CodecId : string;
+    readonly members: EnumHandleMembers<Enums[K], true>;
+  };
+};
+
+// The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
+type EnumHandleMemberTypes<Enums> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleMembers<Enums[K], false>;
 };
 
 type MaybeEnumsSection<Enums extends Record<string, EnumTypeHandle>> = keyof Enums extends never
   ? EmptyObject
   : {
-      readonly enum: ContractEnumsFromRecord<Enums>;
+      readonly enum: EnumHandleEntries<Enums>;
+      readonly enumMemberTypes?: EnumHandleMemberTypes<Enums>;
     };
 
 type MongoDomainNamespaceFromDefinition<Definition> = Simplify<
@@ -822,7 +787,6 @@ type MongoContractBaseFromDefinition<Definition> = Simplify<{
   readonly profileHash: ProfileHashBase<string>;
   readonly meta: Record<string, never>;
   readonly defaultControlPolicy?: ControlPolicy;
-  readonly enumAccessors?: BuiltEnumAccessors<Definition>;
   readonly execution?: ExecutionSectionFromDefinition<Definition>;
 }>;
 
@@ -2115,7 +2079,16 @@ function buildModels(
       ...(modelBuilder.__owner ? { owner: modelBuilder.__owner } : {}),
       ...(modelBuilder.__base ? { base: crossRef(modelBuilder.__base, UNBOUND_NAMESPACE_ID) } : {}),
       ...(modelBuilder.__discriminator ? { discriminator: modelBuilder.__discriminator } : {}),
-      ...(modelBuilder.__variants ? { variants: modelBuilder.__variants } : {}),
+      ...(modelBuilder.__variants
+        ? {
+            variants: Object.fromEntries(
+              Object.entries(modelBuilder.__variants).map(([variantName, { value }]) => [
+                value,
+                crossRef(variantName, UNBOUND_NAMESPACE_ID),
+              ]),
+            ),
+          }
+        : {}),
     };
   }
 
@@ -2123,9 +2096,9 @@ function buildModels(
 }
 
 function assertUniqueDiscriminatorValues(modelBuilder: AnyModelBuilder): void {
-  const variantsByValue = new Map<string, string>();
+  const variantNamesByValue = new Map<string, string>();
   for (const [variantName, { value }] of Object.entries(modelBuilder.__variants ?? {})) {
-    const existingVariant = variantsByValue.get(value);
+    const existingVariant = variantNamesByValue.get(value);
     if (existingVariant !== undefined) {
       throw contractError(
         'CONTRACT.ARGUMENT_INVALID',
@@ -2140,7 +2113,7 @@ function assertUniqueDiscriminatorValues(modelBuilder: AnyModelBuilder): void {
         },
       );
     }
-    variantsByValue.set(value, variantName);
+    variantNamesByValue.set(value, variantName);
   }
 }
 
@@ -2558,19 +2531,16 @@ function buildContractFromDefinition<
     defaults: buildExecutionDefaults(definition.models),
   });
 
-  // Resolve the target's codecs by id from the pack the contract binds, then encode each enum's
-  // member values through `codec.toDataTypeValue` — the same real codecs the runtime/control stacks use.
   const codecLookup = extractCodecLookup([definition.target]);
 
-  // The value set stores each enum's codec-encoded member values (mirroring SQL's build-contract).
-  const storageValueSets: Record<string, MongoValueSetInput> = {};
+  const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
-    assertEnumCanUseCodec(handle, codecLookup);
-    storageValueSets[enumName] = {
-      kind: 'valueSet',
-      values: handle.values.map((v) => encodeEnumValue(v, handle.codecId, codecLookup)),
+    builtEnums[enumName] = {
+      codecId: handle.codecId,
+      members: encodeEnumTypeMembers(handle, codecLookup, 'the field'),
     };
   }
+  const storageValueSets = mongoValueSetsOf(builtEnums);
   const hasValueSets = Object.keys(storageValueSets).length > 0;
 
   const unboundNamespace = buildMongoNamespace({
@@ -2606,7 +2576,6 @@ function buildContractFromDefinition<
     },
   });
 
-  const builtEnums: Record<string, ContractEnum> = {};
   for (const [enumName, handle] of Object.entries(definition.enums ?? {})) {
     if (enumName !== handle.enumName) {
       throw contractError(
@@ -2621,13 +2590,6 @@ function buildContractFromDefinition<
         },
       );
     }
-    builtEnums[enumName] = {
-      codecId: handle.codecId,
-      members: handle.enumMembers.map((m) => ({
-        name: m.name,
-        value: encodeEnumValue(m.value, handle.codecId, codecLookup),
-      })),
-    };
   }
   const hasEnums = Object.keys(builtEnums).length > 0;
 
