@@ -48,6 +48,12 @@ describe('validatorEnumMemberRefusalOf', () => {
     },
   );
 
+  it('refuses a member stored as a bigint', () => {
+    expect(validatorEnumMemberRefusalOf(['string'], 1n)).toBe(
+      'is stored as 1, which a collection validator cannot list as a string. A member of a string enum must be a string.',
+    );
+  });
+
   it('refuses every member of an enum whose BSON type is refused', () => {
     expect(validatorEnumMemberRefusalOf(['long'], 3)).toBe(validatorEnumRefusalOf(['long']));
   });

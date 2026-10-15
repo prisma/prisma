@@ -28,7 +28,9 @@ function storedJsonTypeOf(stored: unknown): string {
 }
 
 function storedText(stored: unknown): string {
-  return typeof stored === 'number' ? String(stored) : JSON.stringify(stored);
+  return typeof stored === 'number' || typeof stored === 'bigint'
+    ? String(stored)
+    : JSON.stringify(stored);
 }
 
 /**
