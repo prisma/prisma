@@ -2015,7 +2015,7 @@ type JunctionPayloadFieldNames<
  * column — a non-join column that is not nullable and has no default. Such a
  * relation can't be populated through nested `create`, so its create input is
  * disabled at the type level (mirroring the runtime guard in
- * `mutation-executor.ts`).
+ * `relation-mutations.ts`).
  */
 type HasRequiredJunctionPayload<
   TContract extends Contract<SqlStorage>,
