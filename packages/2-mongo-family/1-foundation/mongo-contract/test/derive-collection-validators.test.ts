@@ -9,7 +9,8 @@ import {
   type CollectionValidatorsInput,
   deriveCollectionValidators,
 } from '../src/derive-collection-validators';
-import { enumField, mongoTypeLookups, scalarField, voField } from './derive-json-schema-helpers';
+import { mongoTypeLookups } from '../src/fake-type-lookups';
+import { enumField, scalarField, voField } from './derive-json-schema-helpers';
 
 type Model = CollectionValidatorsInput['models'][string];
 

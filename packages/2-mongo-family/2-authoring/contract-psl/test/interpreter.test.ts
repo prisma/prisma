@@ -17,6 +17,7 @@ import {
   MongoStorage,
   MongoValidator,
 } from '@internal/mongo-contract';
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import {
   buildSymbolTable,
   createBinder,
@@ -41,7 +42,6 @@ import {
   expectUnresolvedReference,
   interpretMongoContract,
 } from './interpreter-test-helpers';
-import { mongoCodecLookup, mongoDataTypeLookup } from './mongo-type-lookups';
 
 function buildSymbolTableInput(
   schema: string,

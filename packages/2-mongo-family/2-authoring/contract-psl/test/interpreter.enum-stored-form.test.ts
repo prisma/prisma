@@ -8,10 +8,10 @@ import {
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { mongoDataType } from '@internal/mongo-contract/data-type';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { jsonValue, mapBlock } from '@internal/psl-parser';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
-import { mongoCodecLookup } from './mongo-type-lookups';
 
 function textCodec(
   id: string,

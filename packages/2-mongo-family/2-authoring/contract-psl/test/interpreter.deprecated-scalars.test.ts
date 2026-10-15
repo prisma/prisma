@@ -3,9 +3,10 @@ import type {
   AuthoringContributions,
   AuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
-import { mongoCodecLookup, mongoDataTypeSupport } from './mongo-type-lookups';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 function scalar(codecId: string, replacement?: string): AuthoringTypeConstructorDescriptor {
   return {

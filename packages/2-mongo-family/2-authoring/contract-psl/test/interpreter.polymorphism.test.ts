@@ -7,13 +7,13 @@ function modelsOf(ir: Contract): Record<string, unknown> {
   return ir.domain.namespaces[UNBOUND_NAMESPACE_ID]!.models;
 }
 
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,
   interpretMongoContract,
 } from './interpreter-test-helpers';
-import { mongoCodecLookup, mongoDataTypeLookup } from './mongo-type-lookups';
 
 const mongoScalarTypeDescriptors: ReadonlyMap<string, string> = new Map([
   ['String', 'mongo/string@1'],

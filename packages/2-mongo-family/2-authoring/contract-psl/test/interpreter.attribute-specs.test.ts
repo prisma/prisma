@@ -1,8 +1,9 @@
 import type { ContractSourceDiagnostic } from '@internal/config/config-types';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
-import { mongoCodecLookup, mongoDataTypeSupport } from './mongo-type-lookups';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const scalarTypeCodecIds: ReadonlyMap<string, string> = new Map([
   ['String', 'mongo/string@1'],

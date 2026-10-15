@@ -9,6 +9,7 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { bindPslSchema } from '@internal/psl-parser/test';
 import type { Result } from '@internal/utils/result';
@@ -21,7 +22,7 @@ import {
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
 import { mongoContextInput } from '../src/test';
-import { mongoCodecLookup, mongoDataTypeSupport } from './mongo-type-lookups';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 type InterpretOptionsWithDefaultLookups = Omit<
   InterpretPslDocumentToMongoContractInput,

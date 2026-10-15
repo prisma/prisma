@@ -6,9 +6,9 @@ import {
   temporalCodecPreset,
 } from '@internal/framework-components/authoring';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
-import { mongoCodecLookup, mongoDataTypeLookup } from './mongo-type-lookups';
 
 const mongoDate = { codecId: 'mongo/date@1' } as const;
 

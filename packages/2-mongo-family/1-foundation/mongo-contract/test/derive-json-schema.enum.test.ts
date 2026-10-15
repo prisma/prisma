@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { deriveJsonSchema, type FieldValueSets } from '../src/derive-json-schema';
-import {
-  arrayEnumField,
-  enumField,
-  mongoTypeLookups,
-  scalarField,
-} from './derive-json-schema-helpers';
+import { mongoTypeLookups } from '../src/fake-type-lookups';
+import { arrayEnumField, enumField, scalarField } from './derive-json-schema-helpers';
 
 describe('deriveJsonSchema — enum fields', () => {
   const valueSets: FieldValueSets = { Role: { values: ['user', 'admin'] } };

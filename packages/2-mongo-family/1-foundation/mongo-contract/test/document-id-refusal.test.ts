@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { documentIdRefusalOf } from '../src/document-id-refusal';
-import { mongoTypeLookups, scalarField, voField } from './derive-json-schema-helpers';
+import { mongoTypeLookups } from '../src/fake-type-lookups';
+import { scalarField, voField } from './derive-json-schema-helpers';
 
 const reason =
   'has no _id field stored as BSON type objectId. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.';

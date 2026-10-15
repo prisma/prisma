@@ -1,10 +1,10 @@
 import type { ContractValueObject } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { deriveJsonSchema, derivePolymorphicJsonSchema } from '../src/derive-json-schema';
+import { mongoTypeLookups } from '../src/fake-type-lookups';
 import {
   arrayEnumField,
   arrayField,
-  mongoTypeLookups,
   scalarField,
   voArrayField,
   voField,

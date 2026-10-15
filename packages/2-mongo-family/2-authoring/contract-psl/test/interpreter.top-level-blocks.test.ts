@@ -1,7 +1,8 @@
 import type { ContractSourceDiagnostic } from '@internal/config/config-types';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
-import { mongoCodecLookup, mongoDataTypeSupport } from './mongo-type-lookups';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 function diagnosticsOf(schema: string): readonly ContractSourceDiagnostic[] {
   const result = interpretMongoContract(schema, {

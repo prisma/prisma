@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { deriveJsonSchema } from '../src/derive-json-schema';
-import { arrayField, mongoTypeLookups, scalarField } from './derive-json-schema-helpers';
+import { mongoTypeLookups } from '../src/fake-type-lookups';
+import { arrayField, scalarField } from './derive-json-schema-helpers';
 
 describe('deriveJsonSchema BSON type lists', () => {
   it('maps Int64, Decimal128 and Binary to long, decimal and binData', () => {

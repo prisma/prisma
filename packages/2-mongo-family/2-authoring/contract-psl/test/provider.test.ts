@@ -9,6 +9,7 @@ import type {
   Codec,
   CodecLookupWithDescriptors,
 } from '@internal/framework-components/codec';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { jsonValue, mapBlock } from '@internal/psl-parser';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -17,7 +18,7 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
-import { mongoCodecLookup, mongoDataTypeSupport } from './mongo-type-lookups';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const originalCwd = process.cwd();
 const tempDirs: string[] = [];
