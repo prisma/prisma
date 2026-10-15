@@ -240,14 +240,17 @@ function storedTypeNameProblems(storage: unknown): readonly string[] {
 }
 
 /**
- * Contracts emitted before generated checks became mandatory stored the checks a column waived in `noCheck`. The key is reported the same way as `nativeType`, with what to do about it.
+ * Contracts emitted before generated checks became mandatory stored the checks a column waived in `noCheck`. One sentence says what to do, followed by the first five such columns and a count of the rest.
  */
 function checkWaiverProblems(storage: unknown): readonly string[] {
-  return listedProblems(
-    pathsHolding(storedColumnEntries(storage), 'noCheck'),
-    (path) =>
-      `${path}.noCheck: contracts no longer store check waivers; re-emit the contract from its source, or run the remove-nocheck upgrade script on a stored contract such as a migration snapshot`,
-  );
+  const paths = pathsHolding(storedColumnEntries(storage), 'noCheck');
+  if (paths.length === 0) return [];
+  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map((path) => `${path}.noCheck`);
+  const unlisted = paths.length - listed.length;
+  const more = unlisted > 0 ? `, and ${unlisted} more (${paths.length} in all)` : '';
+  return [
+    `contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide. Columns: ${listed.join(', ')}${more}`,
+  ];
 }
 
 /** The removed keys of the oldest format the contract is in: a contract that still stores `nativeType` is refused for that first, since its `noCheck` keys are rewritten at a later step of the upgrade. */

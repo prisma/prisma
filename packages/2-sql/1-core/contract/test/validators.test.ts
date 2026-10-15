@@ -1268,16 +1268,17 @@ describe('SQL contract validators', () => {
           'elementNotNull',
         ];
       }
-      const advice =
-        'contracts no longer store check waivers; re-emit the contract from its source, or run the remove-nocheck upgrade script on a stored contract such as a migration snapshot';
+      const listed = names
+        .slice(0, 5)
+        .map(
+          (name) =>
+            `storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.${name}.noCheck`,
+        )
+        .join(', ');
       expect(() => validateSqlContractFully(c)).toThrow(
-        `Contract structural validation failed: ${names
-          .slice(0, 5)
-          .map(
-            (name) =>
-              `storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.${name}.noCheck: ${advice}`,
-          )
-          .join('; ')}; and 1 more path (6 in all)`,
+        expect.objectContaining({
+          message: `Contract structural validation failed: contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide. Columns: ${listed}, and 1 more (6 in all)`,
+        }),
       );
     });
 
