@@ -230,7 +230,11 @@ export async function createPgIntegrationRuntime(
     );
   }
 
+  const realSource = findActivitySource(realRuntime);
   const runtime: PgIntegrationRuntime = {
+    ...(realSource === undefined
+      ? {}
+      : { [activitySource]: recordingActivitySource(realSource, record) }),
     executions,
     query,
     resetExecutions() {
@@ -268,17 +272,25 @@ export async function createPgIntegrationRuntime(
 }
 
 /** A copy of `target` that passes each plan it sends to `record`, including the plans an ORM call sends through its activity handle. */
-export function withPlanRecording<T extends SqlRuntimeQueryable>(
-  target: T,
+function recordingActivitySource(
+  source: ActivitySource,
   record: (plan: SqlExecutionPlan | SqlQueryPlan) => void,
-): T {
-  const source = findActivitySource(target);
-  const recordingSource: ActivitySource | undefined = source && {
+): ActivitySource {
+  return {
     async startActivity(activity) {
       return withPlanRecording(await source.startActivity(activity), record);
     },
     planContentHash: (plan) => source.planContentHash(plan),
   };
+}
+
+/** A copy of `target` that passes each plan it sends to `record`, including the plans an ORM call sends through its activity handle and the transaction it opens there. */
+export function withPlanRecording<T extends SqlRuntimeQueryable>(
+  target: T,
+  record: (plan: SqlExecutionPlan | SqlQueryPlan) => void,
+): T {
+  const source = findActivitySource(target);
+  const transaction: unknown = Reflect.get(target, 'transaction');
   return {
     ...target,
     query<Row>(
@@ -295,7 +307,13 @@ export function withPlanRecording<T extends SqlRuntimeQueryable>(
       record(plan);
       return await target.execute(plan, options);
     },
-    ...(recordingSource === undefined ? {} : { [activitySource]: recordingSource }),
+    ...(typeof transaction === 'function'
+      ? {
+          transaction: async () =>
+            withPlanRecording((await transaction.call(target)) as SqlRuntimeQueryable, record),
+        }
+      : {}),
+    ...(source === undefined ? {} : { [activitySource]: recordingActivitySource(source, record) }),
   };
 }
 
