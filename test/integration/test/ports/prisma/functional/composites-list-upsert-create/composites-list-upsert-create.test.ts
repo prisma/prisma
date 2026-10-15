@@ -53,58 +53,7 @@ describe('ports/prisma/functional/composites/list/upsert-create', () => {
   );
 
   it(
-    'set shorthand (same as set for ORM — no prisma set wrapper)',
-    () =>
-      withComposites(async ({ db }) => {
-        const id = new ObjectId().toHexString();
-        const comment = await db.comment_required_list.where({ _id: id }).upsert({
-          update: {},
-          create: {
-            _id: id,
-            country: 'France',
-            contents: [
-              {
-                text: 'Hello World',
-                upvotes: [{ vote: true, userId: '10' }],
-              },
-            ],
-          },
-        });
-
-        expect(comment).toMatchObject({
-          country: 'France',
-          contents: [
-            {
-              text: 'Hello World',
-              upvotes: [{ userId: '10', vote: true }],
-            },
-          ],
-        });
-        expect(comment._id).toEqual(expect.any(String));
-      }),
-    timeouts.spinUpMongoMemoryServer,
-  );
-
-  it(
     'set null',
-    () =>
-      withComposites(async ({ db }) => {
-        const id = new ObjectId().toHexString();
-        const promise = db.comment_required_list.where({ _id: id }).upsert({
-          update: {},
-          create: {
-            country: 'France',
-            // @ts-expect-error required `contents` list cannot be null
-            contents: null,
-          },
-        });
-        await expect(promise).rejects.toThrow();
-      }),
-    timeouts.spinUpMongoMemoryServer,
-  );
-
-  it(
-    'set null shorthand',
     () =>
       withComposites(async ({ db }) => {
         const id = new ObjectId().toHexString();
