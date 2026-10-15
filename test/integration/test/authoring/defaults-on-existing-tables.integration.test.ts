@@ -234,7 +234,7 @@ describe('a default the codecs read, on a table the database already has', () =>
       `model Note {
   id    Int      @id
   body  String   @default("ab")
-  at    DateTime @default("2024-01-01T01:00:00+01:00")
+  at    DateTime @default(datetime\`2024-01-01T01:00:00+01:00\`)
   data  Json     @default(json\`{"a": [1, "x"]}\`)
   big   BigInt   @default(9007199254740993)
   ratio Float    @default(1.5)
@@ -253,7 +253,7 @@ describe('a default the codecs read, on a table the database already has', () =>
       `model Note {
   id    Int      @id
   body  String   @default("z")
-  at    DateTime @default("2020-01-01T00:00:00Z")
+  at    DateTime @default(datetime\`2020-01-01T00:00:00Z\`)
   data  Json     @default(json\`{"a": 0}\`)
   big   BigInt   @default(1)
   ratio Float    @default(2.5)
@@ -262,7 +262,7 @@ describe('a default the codecs read, on a table the database already has', () =>
       `model Note {
   id    Int      @id
   body  String   @default("ab")
-  at    DateTime @default("2024-01-01T01:00:00+01:00")
+  at    DateTime @default(datetime\`2024-01-01T01:00:00+01:00\`)
   data  Json     @default(json\`{"a": [1, "x"]}\`)
   big   BigInt   @default(9007199254740993)
   ratio Float    @default(1.5)

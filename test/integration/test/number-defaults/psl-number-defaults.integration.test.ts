@@ -235,7 +235,7 @@ describe('PSL number defaults on columns whose data type casts from no number', 
     });
   });
 
-  it('refuse a number on a SQLite datetime column, whose text type casts from nothing', async () => {
+  it('refuse a number on a SQLite datetime column, whose type casts from nothing', async () => {
     const result = await authorSqliteContractFromPsl(
       'model Event {\n  id Int @id\n  at DateTime @default(0)\n}',
     );
@@ -243,7 +243,7 @@ describe('PSL number defaults on columns whose data type casts from no number', 
     expect(result.ok ? [] : result.failure.diagnostics).toEqual([
       expect.objectContaining({
         code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-        message: 'Field "Event.at": Expected a quoted string',
+        message: 'Field "Event.at": Expected datetime`...`',
       }),
     ]);
   });

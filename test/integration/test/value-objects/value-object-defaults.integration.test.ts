@@ -82,14 +82,14 @@ model User {
     expect(columns).toEqual({
       id: { dataType: 'sqlite/integer', codecId: 'sqlite/integer@1', nullable: false, many: false },
       home: {
-        dataType: 'sqlite/text',
+        dataType: 'sqlite/json',
         codecId: 'sqlite/json@1',
         nullable: false,
         many: false,
         default: { kind: 'literal', value: '{"street":"x"}' },
       },
       homes: {
-        dataType: 'sqlite/text',
+        dataType: 'sqlite/json',
         codecId: 'sqlite/json@1',
         nullable: false,
         many: false,
@@ -111,7 +111,7 @@ model User {
 }`);
 
     const jsonWithDefault = (value: unknown) => ({
-      dataType: 'sqlite/text',
+      dataType: 'sqlite/json',
       codecId: 'sqlite/json@1',
       nullable: false,
       many: false,
@@ -229,7 +229,7 @@ model User {
     ).toEqual({
       id: { dataType: 'sqlite/integer', codecId: 'sqlite/integer@1', nullable: false, many: false },
       home: {
-        dataType: 'sqlite/text',
+        dataType: 'sqlite/json',
         codecId: 'sqlite/json@1',
         nullable: true,
         many: false,

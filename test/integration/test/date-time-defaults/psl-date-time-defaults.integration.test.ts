@@ -76,11 +76,13 @@ describe('a PSL date or time default is stored in its data type canonical form',
 
   it('stores the canonical form of a SQLite DateTime default', async () => {
     const result = await authorSqliteContractFromPsl(
-      'model Event {\n  id Int @id\n  at DateTime @default("2024-01-01 01:00:00+01:00")\n}',
+      'model Event {\n  id Int @id\n  at DateTime @default(datetime`2024-01-01 01:00:00+01:00`)\n}',
     );
     if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
     const contract = result.value as Contract<SqlStorage>;
-    expect(findStorageColumn(contract, 'at')?.['default']).toEqual(literal('2024-01-01T00:00:00Z'));
+    expect(findStorageColumn(contract, 'at')?.['default']).toEqual(
+      literal('2024-01-01T00:00:00.000Z'),
+    );
   });
 
   it.each([
@@ -128,26 +130,26 @@ describe('a PSL date or time default is stored in its data type canonical form',
 
   it('refuses a SQLite DateTime default with no UTC offset', async () => {
     const result = await authorSqliteContractFromPsl(
-      'model Event {\n  id Int @id\n  at DateTime @default("2024-01-01 00:00:00")\n}',
+      'model Event {\n  id Int @id\n  at DateTime @default(datetime`2024-01-01 00:00:00`)\n}',
     );
     expect(result.ok ? [] : result.failure.diagnostics).toEqual([
       expect.objectContaining({
         code: 'PSL_INVALID_LITERAL',
         message:
-          'Field "Event.at": sqlite/datetime@1 needs a UTC offset, but "2024-01-01 00:00:00" has none. Add Z for UTC or an offset such as +02:00, as in "2024-01-01T12:34:56Z".',
+          'Field "Event.at": sqlite/datetime needs a UTC offset, but "2024-01-01 00:00:00" has none. Add Z for UTC or an offset such as +02:00, as in "2024-01-01T12:34:56Z".',
       }),
     ]);
   });
 
   it('refuses a SQLite DateTime default with more digits than milliseconds', async () => {
     const result = await authorSqliteContractFromPsl(
-      'model Event {\n  id Int @id\n  at DateTime @default("2024-01-01T00:00:00.1234Z")\n}',
+      'model Event {\n  id Int @id\n  at DateTime @default(datetime`2024-01-01T00:00:00.1234Z`)\n}',
     );
     expect(result.ok ? [] : result.failure.diagnostics).toEqual([
       expect.objectContaining({
         code: 'PSL_INVALID_LITERAL',
         message:
-          'Field "Event.at": "2024-01-01T00:00:00.1234Z" has 4 digits after the decimal point, but sqlite/datetime@1 holds milliseconds, so at most 3. Round it, as in "2024-01-01T12:34:56.123Z".',
+          'Field "Event.at": "2024-01-01T00:00:00.1234Z" has 4 digits after the decimal point, but sqlite/datetime holds milliseconds, so at most 3. Round it, as in "2024-01-01T12:34:56.123Z".',
       }),
     ]);
   });

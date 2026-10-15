@@ -67,7 +67,7 @@ async function verify(database: MemoryDatabase, contract: Contract<SqlStorage>) 
 const created = `model Event {
   id    Int      @id
   label String
-  at    DateTime @default("2024-01-01T01:00:00+01:00")
+  at    DateTime @default(datetime\`2024-01-01T01:00:00+01:00\`)
 
   @@map("event")
 }`;
@@ -75,8 +75,8 @@ const created = `model Event {
 const altered = `model Event {
   id    Int      @id
   label String
-  at    DateTime @default("2024-01-01T01:00:00+01:00")
-  later DateTime @default("2024-06-30T12:34:56.5Z")
+  at    DateTime @default(datetime\`2024-01-01T01:00:00+01:00\`)
+  later DateTime @default(datetime\`2024-06-30T12:34:56.5Z\`)
 
   @@map("event")
 }`;
@@ -138,7 +138,7 @@ describe('a SQLite datetime default', () => {
     const database = memoryDatabase();
     const contract = await sqliteContractFromPsl(`model Event {
   id Int      @id
-  at DateTime @default("2024-01-01T00:00:00.123Z")
+  at DateTime @default(datetime\`2024-01-01T00:00:00.123Z\`)
 
   @@map("event")
 }`);
