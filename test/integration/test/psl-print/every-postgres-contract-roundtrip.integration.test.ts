@@ -356,13 +356,14 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
 
 /**
  * Contracts emitted before a date or time default had one canonical form, each with the schema it
- * was emitted from. Such a contract prints each default in canonical form, so it reads back as
- * the contract that schema emits now, not as itself.
+ * was emitted from, its defaults written with the tags that schema needs now. Such a contract
+ * prints each default in canonical form, so it reads back as the contract that schema emits now,
+ * not as itself.
  */
 const emittedBeforeCanonicalForm: ReadonlyMap<string, string> = new Map([
   [
     'test/integration/test/date-time-defaults/_fixture-before-canonical-form/emitted-before/contract.json',
-    'test/integration/test/date-time-defaults/_fixture-before-canonical-form/contract.prisma',
+    'test/integration/test/date-time-defaults/_fixture-before-canonical-form/contract-with-tags.prisma',
   ],
 ]);
 

@@ -221,7 +221,7 @@ withTempDir(({ createTempDir }) => {
               negSafeBigInt BigInt             @default(-5)
               negBigInt     BigInt             @default(-9007199254740993)
               hugeBigInt    BigInt             @default(9007199254740993)
-              stamp         TimestampString(3) @default("2024-01-01T00:00:00")
+              stamp         TimestampString(3) @default(timestamp\`2024-01-01T00:00:00\`)
               jsonNull      Jsonb?             @default(json\`null\`)
 
               @@map("number_defaults")
@@ -234,10 +234,10 @@ withTempDir(({ createTempDir }) => {
               floatNegInf    Float                @default(-Infinity)
               realNaN        Real                 @default(NaN)
               decimalNaN     Numeric              @default(NaN)
-              timeWithZone   Timetz               @default("12:34:56Z")
-              stampInfinity  TimestampString(3)   @default("infinity")
-              dayNegInfinity DateString           @default("-infinity")
-              instantBc      TimestamptzString(6) @default("-000043-03-15T00:00:00Z")
+              timeWithZone   Timetz               @default(timetz\`12:34:56Z\`)
+              stampInfinity  TimestampString(3)   @default(timestamp\`infinity\`)
+              dayNegInfinity DateString           @default(date\`-infinity\`)
+              instantBc      TimestamptzString(6) @default(timestamptz\`-000043-03-15T00:00:00Z\`)
 
               @@map("sql_defaults")
             }
@@ -319,7 +319,7 @@ withTempDir(({ createTempDir }) => {
 
             model RawListDefaults {
               id         Int                   @id(map: "raw_list_defaults_pkey")
-              timestamps TimestampString(3)[]? @default(["2024-01-01T00:00:00"]) @noCheck(elementNotNull)
+              timestamps TimestampString(3)[]? @default([timestamp\`2024-01-01T00:00:00\`]) @noCheck(elementNotNull)
 
               @@map("raw_list_defaults")
             }
