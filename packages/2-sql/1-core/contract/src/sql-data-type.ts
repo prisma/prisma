@@ -531,12 +531,23 @@ export function resolveReportedSqlType(
   return undefined;
 }
 
+const signedParamKeysByType = new WeakMap<SqlDataType, readonly string[]>();
+
+/** The parameters of `type` that may be negative, whose placeholders read a leading minus. */
+function signedParamKeys(type: SqlDataType): readonly string[] {
+  const known = signedParamKeysByType.get(type);
+  if (known !== undefined) return known;
+  const keys = schemaKeysAllowing(type.params, -1) ?? [];
+  signedParamKeysByType.set(type, keys);
+  return keys;
+}
+
 function paramsMatching(
   type: SqlDataType,
   candidate: SqlTypeText,
   text: string,
 ): SqlTypeParams | undefined {
-  const match = patternOf(candidate.text, schemaKeysAllowing(type.params, -1)).exec(text);
+  const match = patternOf(candidate.text, signedParamKeys(type)).exec(text);
   if (match === null) return undefined;
   return Object.fromEntries(
     placeholdersOf(candidate.text).map((name, index) => [
