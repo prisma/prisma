@@ -24,10 +24,8 @@ import {
   readJsonIntegerText,
   refuseJsonValue,
   SAFE_INTEGER_BIGINT_RANGE,
-  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
-import { canonicalDateTime } from '@internal/sql-contract/data-type-support';
 import {
   BinaryExpr,
   CaseExpr,
@@ -45,7 +43,6 @@ import {
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
-import { structuredError } from '@internal/utils/structured-error';
 import { defineSqliteCodecs, SqliteCodecDescriptor, sqliteCodec } from './codec-descriptor';
 import {
   SQLITE_BIGINT_CODEC_ID,
@@ -61,7 +58,10 @@ import {
   sqliteBlob,
   sqliteCharacter,
   sqliteCharacterVarying,
+  sqliteDatetime,
+  sqliteDatetimeText,
   sqliteInteger,
+  sqliteJson,
   sqliteReal,
   sqliteText,
 } from './data-types';
@@ -556,19 +556,6 @@ sqliteBlobColumn satisfies ColumnHelperFor<SqliteBlobDescriptor>;
 sqliteBlobColumn satisfies ColumnHelperForStrict<SqliteBlobDescriptor>;
 
 /**
- * The canonical form of a `sqlite/datetime@1` value (ADR 254): the instant in UTC, from ISO 8601
- * text with a UTC offset. The range and the millisecond precision are those of a JavaScript `Date`,
- * the codec's value.
- */
-export const sqliteDatetimeCanonical = (text: string): string =>
-  canonicalDateTime(text, {
-    shape: 'instant',
-    ownerId: SQLITE_DATETIME_CODEC_ID,
-    maxFractionDigits: 3,
-    range: { earliest: '-271821-04-20T00:00:00Z', latest: '+275760-09-13T00:00:00Z' },
-  });
-
-/**
  * Reads the text SQLite holds for an instant. Rejects `Invalid Date` (NaN-time) at every decode
  * ingress so consumers never receive a Date whose downstream operations silently produce NaN.
  */
@@ -580,15 +567,6 @@ export function decodeSqliteDatetime(value: string): Date {
       `sqlite/datetime@1 value must be a valid ISO-8601 string: ${value}`,
       { meta: { codecId: SQLITE_DATETIME_CODEC_ID, received: value } },
     );
-  }
-  return date;
-}
-
-/** The instant text names, refused when it names none. */
-function datetimeOfText(text: string): Date {
-  const date = new Date(text);
-  if (Number.isNaN(date.getTime())) {
-    return refuseJsonValue(SQLITE_DATETIME_CODEC_ID, 'a date and time string', text);
   }
   return date;
 }
@@ -610,38 +588,24 @@ export class SqliteDatetimeCodec extends CodecImpl<
   async fromWire(wire: string, _ctx: CodecCallContext): Promise<Date> {
     return decodeSqliteDatetime(wire);
   }
-  /** `sqlite/text` holds any text, and a `Date` holds only text that names an instant. */
   fromDataTypeValue(value: DataTypeValue<string>): Date {
-    return datetimeOfText(value.value);
+    return new Date(value.value);
   }
   toDataTypeValue(input: Date): DataTypeValue {
-    return this.dataTypeValueOf(sqliteDatetimeCanonical(input.toISOString()));
+    return this.dataTypeValueOf(sqliteDatetimeText(input.toISOString()));
   }
 }
-
-/**
- * `sqlite/text` stores this codec's values as text and declares no canonical form for them, so the
- * codec declares it: written text with a UTC offset becomes the instant in UTC.
- */
-const datetimeCanonicalForm: ToCanonicalForm = (value) => {
-  if (typeof value === 'string') return sqliteDatetimeCanonical(value);
-  throw structuredError('CONTRACT.CAST_REFUSED', `Expected text, got ${JSON.stringify(value)}.`, {
-    why: 'A SQLite datetime is stored as text.',
-    fix: 'Write the date and time as text with a UTC offset, as in "2024-01-01T12:34:56Z".',
-  });
-};
 
 export class SqliteDatetimeDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
-  override readonly toCanonicalForm = datetimeCanonicalForm;
-  override readonly dataType = sqliteText.id;
+  override readonly dataType = sqliteDatetime.id;
   override readonly codecId = SQLITE_DATETIME_CODEC_ID;
   override readonly traits = ['equality', 'order'] as const;
   override readonly paramsSchema = undefined;
   override factory(): (ctx: CodecInstanceContext) => SqliteDatetimeCodec {
-    return () => new SqliteDatetimeCodec(this, sqliteText);
+    return () => new SqliteDatetimeCodec(this, sqliteDatetime);
   }
 }
 
@@ -667,54 +631,15 @@ export class SqliteJsonCodec extends CodecImpl<
       ? blindCast<JsonValue, 'JSON.parse of stored JSON text yields a JSON value'>(JSON.parse(wire))
       : wire;
   }
-  /** `sqlite/text` holds any text, and a document is only text that parses as JSON. */
   fromDataTypeValue(value: DataTypeValue<string>): JsonValue {
-    return documentOfText(value.value);
+    return blindCast<JsonValue, 'sqlite/json stores the JSON text of a document'>(
+      JSON.parse(value.value),
+    );
   }
   toDataTypeValue(input: JsonValue): DataTypeValue {
     return this.dataTypeValueOf(canonicalizeJson(input));
   }
 }
-
-function parseJsonText(text: string): { readonly value: JsonValue } | undefined {
-  try {
-    return { value: JSON.parse(text) };
-  } catch {
-    return undefined;
-  }
-}
-
-/** The document JSON text holds, refused when the text is not JSON. */
-function documentOfText(text: string): JsonValue {
-  const document = parseJsonText(text);
-  if (document === undefined) {
-    throw sqliteError(
-      'RUNTIME.DECODE_FAILED',
-      'sqlite/json@1 contract value must be the JSON text of a document',
-      { meta: { codecId: SQLITE_JSON_CODEC_ID, received: 'string' } },
-    );
-  }
-  return document.value;
-}
-
-/**
- * `sqlite/text` declares no canonical form, so the codec declares the one of its values: the JSON
- * text of the document, with sorted keys and no added whitespace.
- */
-const jsonTextCanonicalForm: ToCanonicalForm = (value) => {
-  const document = typeof value === 'string' ? parseJsonText(value) : undefined;
-  if (document === undefined) {
-    throw structuredError(
-      'CONTRACT.CAST_REFUSED',
-      `Expected the JSON text of a document, got ${JSON.stringify(value)}.`,
-      {
-        why: 'A SQLite JSON column stores the JSON text of its document.',
-        fix: 'Write the document as JSON text, as in {"plan": "free"}.',
-      },
-    );
-  }
-  return canonicalizeJson(document.value);
-};
 
 /**
  * The column stores the document's JSON text and the canonical form is that text, so the stored
@@ -724,13 +649,12 @@ export class SqliteJsonDescriptor extends SqliteCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
-  override readonly toCanonicalForm = jsonTextCanonicalForm;
-  override readonly dataType = sqliteText.id;
+  override readonly dataType = sqliteJson.id;
   override readonly codecId = SQLITE_JSON_CODEC_ID;
   override readonly traits = ['equality'] as const;
   override readonly paramsSchema = undefined;
   override factory(): (ctx: CodecInstanceContext) => SqliteJsonCodec {
-    return () => new SqliteJsonCodec(this, sqliteText);
+    return () => new SqliteJsonCodec(this, sqliteJson);
   }
 }
 

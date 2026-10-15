@@ -24,7 +24,7 @@ import {
 const CODEC_TEXT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
 
 const nowDefault: StorageColumnInput = {
-  dataType: 'sqlite/text',
+  dataType: 'sqlite/datetime',
   codecId: SQLITE_DATETIME_CODEC_ID,
   nullable: false,
   default: { kind: 'function', expression: 'now()' },

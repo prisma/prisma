@@ -8,7 +8,7 @@ import type { JsonValue } from '@internal/contract/types';
 import { isInternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { type DataTypeId, type DataTypeLookup, dataTypeId } from './data-type';
-import { authoringEntryType, type DataTypeAuthoringEntry } from './framework-authoring';
+import type { DataTypeAuthoringEntry } from './framework-authoring';
 import { printedTaggedLiteralReadsBack, printTaggedLiteral } from './tagged-literal';
 
 /** One written value, in the syntax a contract source wrote it in. The framework defines the list shape, and the family's default reader is the only reader of it. ADR 254. */
@@ -208,7 +208,7 @@ export function readWrittenValue(
   }
   try {
     return ok({
-      type: dataTypeId(authoringEntryType(found.key, found.entry)),
+      type: dataTypeId(found.key),
       value: form.parse(text),
     });
   } catch (error) {

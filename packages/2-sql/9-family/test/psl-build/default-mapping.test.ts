@@ -1,5 +1,5 @@
 import type { JsonValue } from '@internal/contract/types';
-import { type DataTypeAuthoringEntry, tagEntryKey } from '@internal/framework-components/authoring';
+import type { DataTypeAuthoringEntry } from '@internal/framework-components/authoring';
 import type { Cast, DataType } from '@internal/framework-components/codec';
 import {
   createDataTypeLookup,
@@ -294,43 +294,6 @@ describe('mapDefault prints a stored value as the literal its column takes', () 
   });
 });
 
-describe('mapDefault with a tag entry that names the type its body is', () => {
-  const storedText = dataType('demo/text', { read: (json) => json });
-  const textEntries: Readonly<Record<string, DataTypeAuthoringEntry>> = {
-    [tagEntryKey('json')]: {
-      written: {
-        kind: 'tag',
-        tag: 'json',
-        type: storedText.id,
-        parse: (body) => JSON.stringify(parseJsonText(body)),
-      },
-      print: (value) => String(value),
-      documentation: 'A JSON document stored as its text.',
-    },
-    [storedText.id]: {
-      written: { kind: 'plain', syntax: 'string', parse: (body) => body },
-      print: (value) => String(value),
-      documentation: 'Text.',
-    },
-  };
-
-  it('prints the stored JSON text as a string, the plain form of the type the tag names', () => {
-    expect(
-      mapDefault(
-        { kind: 'literal', value: '{"a":1}' },
-        {
-          dataTypes: {
-            entries: textEntries,
-            lookup: createDataTypeLookup([storedText]),
-            dataTypeOfCodec: () => undefined,
-          },
-          columnCodec: { dataType: storedText.id },
-        },
-      ),
-    ).toEqual({ attribute: '@default("{\\"a\\":1}")' });
-  });
-});
-
 describe('mapDefault on a type with a canonical form', () => {
   it('prints a stored value in its canonical form, element by element for a list', () => {
     expect({
@@ -343,17 +306,5 @@ describe('mapDefault on a type with a canonical form', () => {
       scalar: '@default("2024-01-01")',
       list: '@default(["2024-01-01", "2024-06-30"])',
     });
-  });
-
-  it("prints a stored value in the canonical form its codec declares, before its data type's", () => {
-    expect(
-      mapDefault(
-        { kind: 'literal', value: '20240101' },
-        {
-          ...forColumn(date),
-          columnCodec: { dataType: date.id, toCanonicalForm: (value) => `${String(value)}Z` },
-        },
-      )?.attribute,
-    ).toBe('@default("20240101Z")');
   });
 });

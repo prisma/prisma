@@ -152,13 +152,13 @@ describe('sqlite/json@1 JSON text', () => {
 
   it('refuses text that is not JSON', () => {
     expect(() => fromContractJson(codec, 'hello')).toThrow(
-      'sqlite/json@1 contract value must be the JSON text of a document',
+      'sqlite/json JSON value must be the JSON text of a document',
     );
   });
 
   it('refuses a document that is not text', () => {
     expect(() => fromContractJson(codec, { a: 1 })).toThrow(
-      'sqlite/text JSON value must be a string',
+      'sqlite/json JSON value must be the JSON text of a document',
     );
   });
 });

@@ -18,7 +18,7 @@ import type {
   DataTypeAuthoringEntry,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import { authoringEntryType, printTaggedLiteral } from '@internal/framework-components/authoring';
+import { printTaggedLiteral } from '@internal/framework-components/authoring';
 import type {
   CodecDescriptor,
   DataTypeId,
@@ -40,7 +40,7 @@ export interface DefaultMappingOptions {
   /** The stack's data types, whose casts say which other types' values each one takes, with the authoring entries that write them. */
   readonly dataTypes?: DataTypeSupport | undefined;
   /** The column's codec: the data type a default is written in, and the canonical form of its values. */
-  readonly columnCodec?: Pick<CodecDescriptor, 'dataType' | 'toCanonicalForm'> | undefined;
+  readonly columnCodec?: Pick<CodecDescriptor, 'dataType'> | undefined;
   /**
    * Whether the column is a list, whose elements each carry the column's own data type. A written
    * list on a scalar column goes through that type's list cast instead.
@@ -103,7 +103,7 @@ function writingSurface(entries: Readonly<Record<string, DataTypeAuthoringEntry>
   for (const [key, entry] of Object.entries(entries)) {
     const written = entry.written;
     if (written.kind === 'tag') {
-      const type = dataTypeId(authoringEntryType(key, entry));
+      const type = dataTypeId(key);
       if (!entryOf.has(type)) entryOf.set(type, entry);
       tagTypes.push(type);
       continue;

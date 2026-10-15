@@ -1876,6 +1876,7 @@ namespace app {
       value('null'),
       tag(sqliteEntries, 'sql', true),
       tag(sqliteEntries, 'json', true),
+      tag(sqliteEntries, 'datetime', true),
     ]);
     expect(complete(postgresEntries, false)).toEqual([
       value('true'),

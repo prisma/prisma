@@ -1,5 +1,4 @@
 import type { DataTypeAuthoringEntry } from '@internal/framework-components/authoring';
-import { tagEntryKey } from '@internal/framework-components/authoring';
 import { describe, expect, it } from 'vitest';
 import { sqliteDataTypeEntries } from '../src/core/data-type-entries';
 
@@ -20,8 +19,13 @@ const classify = (text: string) => {
 };
 
 describe('the authoring entries this target contributes', () => {
-  it('keys a value entry by data type and the json entry by its tag', () => {
-    expect(Object.keys(entries).sort()).toEqual(['sqlite/real', 'sqlite/text', 'tag:json']);
+  it('keys every entry by the data type it reads', () => {
+    expect(Object.keys(entries).sort()).toEqual([
+      'sqlite/datetime',
+      'sqlite/json',
+      'sqlite/real',
+      'sqlite/text',
+    ]);
   });
   it('names every type its classifier returns', () => {
     const written = entry('sqlite/real').written;
@@ -64,7 +68,7 @@ describe('the classifier this target contributes', () => {
 });
 
 describe('the json tag this target contributes', () => {
-  const json = entry(tagEntryKey('json'));
+  const json = entry('sqlite/json');
   const parse = (body: string) => {
     if (json.written.kind !== 'tag') throw new Error('the json entry is a tag entry');
     return json.written.parse(body);
@@ -88,5 +92,31 @@ describe('the json tag this target contributes', () => {
 
   it('prints the stored text as the body', () => {
     expect(json.print('{"a":1}')).toBe('{"a":1}');
+  });
+});
+
+describe('the datetime tag this target contributes', () => {
+  const datetime = entry('sqlite/datetime');
+  const parse = (body: string) => {
+    if (datetime.written.kind !== 'tag') throw new Error('the datetime entry is a tag entry');
+    return datetime.written.parse(body);
+  };
+
+  it.each([
+    ['2024-01-01T00:00:00Z', '2024-01-01T00:00:00.000Z'],
+    ['2024-01-01 01:00:00.5+01:00', '2024-01-01T00:00:00.500Z'],
+    ['2024-01-01T00:00:00.123Z', '2024-01-01T00:00:00.123Z'],
+  ])('reads %s as the instant with three fraction digits, %s', (body, stored) => {
+    expect(parse(body)).toBe(stored);
+  });
+
+  it('refuses a body with no UTC offset', () => {
+    expect(() => parse('2024-01-01 00:00:00')).toThrow(
+      expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED' }),
+    );
+  });
+
+  it('prints the stored text as the body', () => {
+    expect(datetime.print('2024-01-01T00:00:00.000Z')).toBe('2024-01-01T00:00:00.000Z');
   });
 });

@@ -1,7 +1,6 @@
-import {
-  type AuthoringModelAttributeDescriptor,
-  authoringEntryType,
-  type DataTypeSupport,
+import type {
+  AuthoringModelAttributeDescriptor,
+  DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
@@ -284,7 +283,7 @@ function scalarDefaultArms(
   const tagArms = (admits: (dataType: string) => boolean) => {
     const tagsByDocumentation = new Map<string, string[]>();
     for (const [key, entry] of Object.entries(dataTypes.entries)) {
-      if (entry.written.kind !== 'tag' || !admits(authoringEntryType(key, entry))) continue;
+      if (entry.written.kind !== 'tag' || !admits(key)) continue;
       const tags = tagsByDocumentation.get(entry.documentation);
       if (tags === undefined) tagsByDocumentation.set(entry.documentation, [entry.written.tag]);
       else tags.push(entry.written.tag);

@@ -1,6 +1,7 @@
 /**
- * The data types this target owns: the types SQLite stores, plus the two character types a column
- * may be declared with. Each is written by one text and reported by the catalog with that text.
+ * The data types this target owns: the types SQLite stores, the two character types a column may be
+ * declared with, each written by one text and reported by the catalog with that text, and the
+ * datetime and JSON types, which are stored as text.
  *
  * ADR 254.
  */
@@ -15,9 +16,15 @@ import {
   readJsonIntegerText,
   readJsonMatching,
   readJsonString,
+  refuseJsonValue,
+  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
+import { canonicalizeJson } from '@internal/framework-components/utils';
 import { sqlDataType } from '@internal/sql-contract/data-type';
-import { integerTextCanonicalForm } from '@internal/sql-contract/data-type-support';
+import {
+  canonicalDateTime,
+  integerTextCanonicalForm,
+} from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
 
@@ -103,6 +110,100 @@ export const sqliteCharacterVarying = sqlDataType('sqlite/character-varying', {
   casts: { [sqliteText.id]: unchanged },
 });
 
+const DATETIME_FRACTION = /^(.*:\d{2})(?:\.(\d{1,3}))?Z$/;
+
+/**
+ * The value of `sqlite/datetime` (ADR 254): the instant in UTC with exactly three fraction digits, the text `toISOString()` writes for every row, from ISO 8601 text with a UTC offset. The range and the millisecond precision are those of a JavaScript `Date`, the codec's value. Throws `CONTRACT.CAST_REFUSED` for text that names no instant the type holds.
+ */
+export function sqliteDatetimeText(text: string): string {
+  const canonical = canonicalDateTime(text, {
+    shape: 'instant',
+    ownerId: 'sqlite/datetime',
+    maxFractionDigits: 3,
+    range: { earliest: '-271821-04-20T00:00:00Z', latest: '+275760-09-13T00:00:00Z' },
+  });
+  const match = DATETIME_FRACTION.exec(canonical);
+  return match === null ? canonical : `${match[1]}.${(match[2] ?? '').padEnd(3, '0')}Z`;
+}
+
+/** What `sqliteDatetimeText` writes for `text`, or `undefined` when it names no instant the type holds. */
+function storedDatetime(text: string): string | undefined {
+  try {
+    return sqliteDatetimeText(text);
+  } catch {
+    return undefined;
+  }
+}
+
+const readDatetime: DataTypeReader = (json) => {
+  const stored = typeof json === 'string' ? storedDatetime(json) : undefined;
+  if (stored === json) return json;
+  return refuseJsonValue(
+    'sqlite/datetime',
+    stored === undefined
+      ? 'an instant in UTC with three fraction digits, as in "2024-01-01T00:00:00.000Z"'
+      : `"${stored}", as sqlite/datetime stores this value`,
+    json,
+  );
+};
+
+/** The document JSON text holds, or `undefined` when the text is not JSON. */
+function documentOf(text: string): { readonly value: JsonValue } | undefined {
+  try {
+    return { value: JSON.parse(text) };
+  } catch {
+    return undefined;
+  }
+}
+
+const readJson: DataTypeReader = (json) => {
+  const document = typeof json === 'string' ? documentOf(json) : undefined;
+  if (document === undefined) {
+    return refuseJsonValue('sqlite/json', 'the JSON text of a document', json);
+  }
+  const stored = canonicalizeJson(document.value);
+  if (stored === json) return json;
+  return refuseJsonValue(
+    'sqlite/json',
+    `${JSON.stringify(stored)}, the JSON text sqlite/json stores for this document`,
+    json,
+  );
+};
+
+const canonicalFromText =
+  (canonical: (text: string) => string): ToCanonicalForm =>
+  (value) =>
+    typeof value === 'string' ? canonical(value) : wrongShape(value, 'text');
+
+function canonicalJsonText(text: string): string {
+  const document = documentOf(text);
+  if (document === undefined) {
+    throw structuredError(
+      'CONTRACT.CAST_REFUSED',
+      `Expected the JSON text of a document, got ${JSON.stringify(text)}.`,
+      {
+        why: 'A SQLite JSON column stores the JSON text of its document.',
+        fix: 'Write the document as JSON text, as in {"plan": "free"}.',
+      },
+    );
+  }
+  return canonicalizeJson(document.value);
+}
+
+/** An instant, stored as text in the form `toISOString()` writes. */
+export const sqliteDatetime = sqlDataType('sqlite/datetime', {
+  storedAs: sqliteText.id,
+  read: readDatetime,
+  toCanonicalForm: canonicalFromText(sqliteDatetimeText),
+});
+
+/** A JSON document, stored as its JSON text with sorted keys and no added whitespace. A column declared `JSON` would have numeric affinity and store the document `"42"` as the integer 42. */
+export const sqliteJson = sqlDataType('sqlite/json', {
+  storedAs: sqliteText.id,
+  read: readJson,
+  toCanonicalForm: canonicalFromText(canonicalJsonText),
+});
+
 /** Every data type this target registers. */
 export const sqliteDataTypes: readonly DataType[] = [
   sqliteText,
@@ -111,4 +212,6 @@ export const sqliteDataTypes: readonly DataType[] = [
   sqliteBlob,
   sqliteCharacter,
   sqliteCharacterVarying,
+  sqliteDatetime,
+  sqliteJson,
 ];

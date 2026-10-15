@@ -564,12 +564,6 @@ export type DataTypeWrittenForm =
   | {
       readonly kind: 'tag';
       readonly tag: string;
-      /**
-       * The data type the body is a value of, for an entry under {@link tagEntryKey}: a tag that
-       * yields a type whose own entry reads another syntax. An entry under a data type id leaves it
-       * out.
-       */
-      readonly type?: DataTypeId;
       readonly parse: (text: string) => JsonValue;
     }
   | {
@@ -597,28 +591,6 @@ export interface DataTypeAuthoringEntry {
   readonly written: DataTypeWrittenForm;
   readonly print: (value: JsonValue) => string;
   readonly documentation: string;
-}
-
-const TAG_ENTRY_PREFIX = 'tag:';
-
-/**
- * The key an entry sits under when its tag yields a type whose own key is taken by the entry for
- * another syntax: SQLite's `json` tag yields `sqlite/text`, whose entry reads a plain string. A data
- * type id is `owner/name`, so this key never collides with one.
- */
-export function tagEntryKey(tag: string): string {
-  return `${TAG_ENTRY_PREFIX}${tag}`;
-}
-
-export function isTagEntryKey(key: string): boolean {
-  return key.startsWith(TAG_ENTRY_PREFIX);
-}
-
-/** The data type a value entry reads its written form as: its tag's `type`, or else its key. */
-export function authoringEntryType(key: string, entry: DataTypeAuthoringEntry): string {
-  return entry.written.kind === 'tag' && entry.written.type !== undefined
-    ? entry.written.type
-    : key;
 }
 
 export interface AuthoringContributions {
