@@ -99,9 +99,14 @@ describe('deriveCollectionValidators for types that contain themselves', () => {
         },
       });
 
-      expect(jsonSchemas(validators)['things']).toMatchObject({
+      expect(jsonSchemas(validators)['things']).toEqual({
+        bsonType: 'object',
+        required: ['_id', 'a'],
         properties: {
+          _id: { bsonType: 'objectId' },
           a: {
+            bsonType: 'object',
+            required: ['b', 'label'],
             properties: {
               label: { bsonType: 'string' },
               b: {
@@ -114,6 +119,7 @@ describe('deriveCollectionValidators for types that contain themselves', () => {
             additionalProperties: false,
           },
         },
+        additionalProperties: false,
       });
     });
 
@@ -181,10 +187,24 @@ describe('deriveCollectionValidators for types that contain themselves', () => {
         },
       });
 
-      expect(jsonSchemas(validators)['roots']).toMatchObject({
+      expect(jsonSchemas(validators)['roots']).toEqual({
+        bsonType: 'object',
+        required: ['_id'],
         properties: {
-          a: { properties: { b: { properties: { a: openObject }, additionalProperties: false } } },
+          _id: { bsonType: 'objectId' },
+          a: {
+            bsonType: 'object',
+            properties: {
+              b: {
+                bsonType: 'object',
+                properties: { a: openObject },
+                additionalProperties: false,
+              },
+            },
+            additionalProperties: false,
+          },
         },
+        additionalProperties: false,
       });
     });
   });
