@@ -1,21 +1,9 @@
-import type {
-  ContractEmbedRelation,
-  ContractField,
-  ContractRelation,
-  ContractValueObject,
-} from '@internal/contract/types';
-
-interface GroupedModel {
-  readonly fields: Record<string, ContractField>;
-  readonly relations: Record<string, ContractRelation>;
-}
+import type { ContractField, ContractValueObject } from '@internal/contract/types';
+import type { ValidatorModel } from './derive-json-schema';
+import { isEmbedRelation } from './relation-fields';
 
 export function typeKey(kind: 'valueObject' | 'model', name: string): string {
   return `${kind}:${name}`;
-}
-
-export function isEmbedRelation(relation: ContractRelation): relation is ContractEmbedRelation {
-  return !('on' in relation) && !('through' in relation);
 }
 
 function referencesOf(fields: Record<string, ContractField>): string[] {
@@ -29,7 +17,7 @@ function referencesOf(fields: Record<string, ContractField>): string[] {
  */
 export function recursiveGroupsOf(
   valueObjects: Record<string, ContractValueObject>,
-  models: Record<string, GroupedModel>,
+  models: Record<string, Pick<ValidatorModel, 'fields' | 'relations'>>,
 ): ReadonlyMap<string, number> {
   const edges = new Map<string, readonly string[]>();
   for (const [name, valueObject] of Object.entries(valueObjects)) {

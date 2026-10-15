@@ -9,7 +9,8 @@ import type {
 import { assertDefined } from '@internal/utils/assertions';
 import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
-import { isEmbedRelation, recursiveGroupsOf, typeKey } from './recursive-groups';
+import { recursiveGroupsOf, typeKey } from './recursive-groups';
+import { isEmbedRelation } from './relation-fields';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the
