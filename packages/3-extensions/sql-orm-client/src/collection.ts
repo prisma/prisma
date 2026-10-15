@@ -2350,13 +2350,14 @@ export class CollectionBase<
    *   conflictOn: { email: 'alice@example.com' },
    * });
    *
-   * // Conditional create — `update: {}` keeps the existing row
-   * // unchanged. `conflictOn` must reference the constraint that
-   * // makes the row "already exist"; omit only when the conflict is
-   * // on the primary key. On conflict,
-   * // `ON CONFLICT DO NOTHING RETURNING ...` may return zero rows,
-   * // so a follow-up reload is issued to fetch and return the
-   * // existing row.
+   * // Conditional create: with `update: {}` the row is returned whether it
+   * // was inserted or already existed. When it already exists, the conflict
+   * // clause assigns the first conflict column its own value, which is an
+   * // update: update triggers fire, the row is locked until the transaction
+   * // ends, the caller needs UPDATE privilege on the table, and the call
+   * // fails if that column is generated. `conflictOn` must reference the
+   * // constraint that makes the row "already exist"; omit it only when the
+   * // conflict is on the primary key.
    * await db.orm.User.upsert({
    *   create: { email: 'alice@example.com', name: 'Alice' },
    *   update: {},
