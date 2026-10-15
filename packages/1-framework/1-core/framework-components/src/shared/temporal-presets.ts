@@ -92,18 +92,22 @@ export function temporalPhaseTemplate<const Index extends number, const Generato
 }
 
 /**
- * Builds a `temporal.<codec>` field preset for a codec with no type parameters, carrying the codec's storage template through unchanged. Both phase arguments are optional, and omitting one omits that phase.
+ * Builds a `temporal.<codec>` field preset for a codec with no type parameters, carrying the codec's storage template through unchanged. Both phase arguments are optional, and omitting one omits that phase. `generatorId` names the generator a `now` argument selects, `timestampNow` when omitted.
  */
 /* @__NO_SIDE_EFFECTS__ */
-export function temporalCodecPreset<const Storage extends PresetStorageTemplate>(storage: Storage) {
+export function temporalCodecPreset<
+  const Storage extends PresetStorageTemplate,
+  const GeneratorId extends string = typeof TIMESTAMP_NOW_GENERATOR_ID,
+>(storage: Storage, generatorId?: GeneratorId) {
+  const nowGeneratorId = generatorId ?? TIMESTAMP_NOW_GENERATOR_ID;
   return {
     kind: 'fieldPreset',
     args: [TEMPORAL_ON_CREATE_ARG, TEMPORAL_ON_UPDATE_ARG],
     output: {
       ...storage,
       executionDefaults: {
-        onCreate: temporalPhaseTemplate(0, TIMESTAMP_NOW_GENERATOR_ID),
-        onUpdate: temporalPhaseTemplate(1, TIMESTAMP_NOW_GENERATOR_ID),
+        onCreate: temporalPhaseTemplate(0, nowGeneratorId),
+        onUpdate: temporalPhaseTemplate(1, nowGeneratorId),
       },
     },
   } as const satisfies AuthoringFieldPresetDescriptor;

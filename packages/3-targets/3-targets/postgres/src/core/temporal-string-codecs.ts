@@ -35,7 +35,6 @@ import {
   pgTimestampStoredText,
   pgTimestamptzStoredText,
 } from './date-time-stored-text';
-import { utcTimestampText, utcTimestamptzText } from './temporal-codec-helpers';
 
 export class PgDateStringCodec extends CodecImpl<
   typeof PG_DATE_STRING_CODEC_ID,
@@ -84,11 +83,8 @@ export class PgTimestampStringCodec extends CodecImpl<
   string,
   string
 > {
-  // `CodecTypes` reads the application type from the last signature, so `string` stays last.
-  encode(value: Date, ctx: CodecCallContext): Promise<string>;
-  encode(value: string, ctx: CodecCallContext): Promise<string>;
-  async encode(value: string | Date, _ctx: CodecCallContext): Promise<string> {
-    return value instanceof Date ? utcTimestampText(value, this.id) : value;
+  async encode(value: string, _ctx: CodecCallContext): Promise<string> {
+    return value;
   }
   async decode(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;
@@ -148,11 +144,8 @@ export class PgTimestamptzStringCodec extends CodecImpl<
   string,
   string
 > {
-  // `CodecTypes` reads the application type from the last signature, so `string` stays last.
-  encode(value: Date, ctx: CodecCallContext): Promise<string>;
-  encode(value: string, ctx: CodecCallContext): Promise<string>;
-  async encode(value: string | Date, _ctx: CodecCallContext): Promise<string> {
-    return value instanceof Date ? utcTimestamptzText(value, this.id) : value;
+  async encode(value: string, _ctx: CodecCallContext): Promise<string> {
+    return value;
   }
   async decode(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;

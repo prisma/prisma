@@ -85,6 +85,7 @@ function createPostgresTargetDescriptor(): SqlControlTargetDescriptor<
 
 const postgresTargetDescriptor = createPostgresTargetDescriptor();
 
+export { postgresDateTimeNowControlDescriptors } from '../core/date-time-now-generators';
 export {
   INSTANT_NOW_GENERATOR_ID,
   instantNowControlDescriptor,

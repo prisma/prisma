@@ -105,6 +105,16 @@ describe('temporalCodecPreset', () => {
       onUpdate: TIMESTAMP_NOW,
     });
   });
+
+  it('maps each phase argument to the supplied generator', () => {
+    expect(temporalCodecPreset({ codecId: 'test/date@1' }, 'dateNow').output).toEqual({
+      codecId: 'test/date@1',
+      executionDefaults: {
+        onCreate: temporalPhaseTemplate(0, 'dateNow'),
+        onUpdate: temporalPhaseTemplate(1, 'dateNow'),
+      },
+    });
+  });
 });
 
 const temporal = temporalAuthoringPresets({ codecId: 'test/date@1' });

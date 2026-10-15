@@ -4,11 +4,16 @@ import type {
   PslFieldAttribute,
 } from '@internal/framework-components/psl-ast';
 import {
+  PG_DATE_STRING_CODEC_ID,
+  PG_DATE_TEMPORAL_CODEC_ID,
+  PG_TIME_STRING_CODEC_ID,
+  PG_TIME_TEMPORAL_CODEC_ID,
   PG_TIMESTAMP_STRING_CODEC_ID,
   PG_TIMESTAMP_TEMPORAL_CODEC_ID,
   PG_TIMESTAMPTZ_DATE_CODEC_ID,
   PG_TIMESTAMPTZ_STRING_CODEC_ID,
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+  PG_TIMETZ_CODEC_ID,
 } from '../codec-ids';
 import { postgresNowGeneratorIdFor } from '../now-generators';
 import { buildAttribute, namedArg, positionalArg } from '../psl-build/psl-literals';
@@ -29,6 +34,11 @@ const TEMPORAL_PRESET_NAMES: ReadonlyMap<string, string> = new Map([
   [PG_TIMESTAMP_STRING_CODEC_ID, 'timestampString'],
   [PG_TIMESTAMPTZ_STRING_CODEC_ID, 'timestamptzString'],
   [PG_TIMESTAMPTZ_DATE_CODEC_ID, 'timestamptzJsDate'],
+  [PG_DATE_TEMPORAL_CODEC_ID, 'date'],
+  [PG_DATE_STRING_CODEC_ID, 'dateString'],
+  [PG_TIME_TEMPORAL_CODEC_ID, 'time'],
+  [PG_TIME_STRING_CODEC_ID, 'timeString'],
+  [PG_TIMETZ_CODEC_ID, 'timetz'],
 ]);
 
 /**

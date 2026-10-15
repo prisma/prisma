@@ -13,6 +13,7 @@ import { int, num, oneOf, optional } from '@internal/psl-parser';
 import {
   instantNowControlDescriptor,
   plainDateTimeNowControlDescriptor,
+  postgresDateTimeNowControlDescriptors,
 } from '@internal/target-postgres/control';
 
 function executionGenerator(
@@ -153,5 +154,6 @@ export function createPostgresMutationDefaultGeneratorDescriptors(): readonly Mu
     timestampNowControlDescriptor(),
     instantNowControlDescriptor(),
     plainDateTimeNowControlDescriptor(),
+    ...postgresDateTimeNowControlDescriptors(),
   ];
 }

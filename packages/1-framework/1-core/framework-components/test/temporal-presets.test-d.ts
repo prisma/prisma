@@ -8,6 +8,7 @@ const custom = temporalAuthoringPresets({
   generatorId: 'dateNow',
 });
 const codecPreset = temporalCodecPreset({ codecId: 'test/date@1' });
+const customCodecPreset = temporalCodecPreset({ codecId: 'test/date@1' }, 'dateNow');
 
 test('presets are field-preset descriptors', () => {
   expectTypeOf(presets).toExtend<Record<string, AuthoringFieldPresetDescriptor>>();
@@ -25,8 +26,12 @@ test('the storage template and generator id survive as literals', () => {
     'dateNow' | 'timestampNow'
   >();
   expectTypeOf(codecPreset.output).not.toHaveProperty('nativeType');
+  expectTypeOf(customCodecPreset.output.executionDefaults.onCreate.cases.now.id).toEqualTypeOf<
+    'dateNow' | 'timestampNow'
+  >();
 });
 
 test('the generator id is not part of the preset output', () => {
   expectTypeOf(custom.createdAt.output).not.toHaveProperty('generatorId');
+  expectTypeOf(customCodecPreset.output).not.toHaveProperty('generatorId');
 });
