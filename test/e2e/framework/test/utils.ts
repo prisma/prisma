@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import arktypeJson from '@prisma/orm-extension-arktype-json/control';
 import arktypeJsonRuntime from '@prisma/orm-extension-arktype-json/runtime';
@@ -56,43 +56,35 @@ async function loadRawContractFromDisk(contractJsonPath: string): Promise<Record
 }
 
 /**
- * Emits a contract via CLI and verifies it matches the on-disk contract.json.
- * This should be used in a single test to verify contract emission correctness.
+ * Emits a contract via CLI and verifies the emitted artifacts match the committed
+ * contract.json and contract.d.ts. The committed files are read before the emit
+ * overwrites them; on a mismatch they are restored and the helper throws.
  * Returns the emitted contract for further use in the test.
- *
- * The config file should already include the contract configuration with nested structure:
- * ```typescript
- * contract: {
- *   source: contract,
- *   output: 'path/to/contract.json',
- *   types: 'path/to/contract.d.ts',
- * }
- * ```
  */
 export async function emitAndVerifyContract(
   cliPath: string,
   configPath: string,
   expectedContractJsonPath: string,
 ): Promise<Contract<SqlStorage>> {
+  const expectedContractDtsPath = join(dirname(expectedContractJsonPath), 'contract.d.ts');
+  const expectedJson = await readFile(expectedContractJsonPath, 'utf-8');
+  const expectedDts = await readFile(expectedContractDtsPath, 'utf-8');
+
   await execFileAsync('node', [cliPath, 'contract', 'emit', '--config', configPath]);
 
-  // Read the emitted contract from the path specified in config.contract.output
-  // For now, we'll read from expectedContractJsonPath since that's what the test expects
-  // In the future, we could parse the config to get the actual output path
-  const emittedContractContent = await readFile(expectedContractJsonPath, 'utf-8');
-  const emittedContract = JSON.parse(emittedContractContent) as Record<string, unknown>;
+  const emittedJson = await readFile(expectedContractJsonPath, 'utf-8');
+  const emittedDts = await readFile(expectedContractDtsPath, 'utf-8');
 
-  const expectedContractContent = await readFile(expectedContractJsonPath, 'utf-8');
-  const expectedContract = JSON.parse(expectedContractContent) as Record<string, unknown>;
-
-  if (JSON.stringify(emittedContract) !== JSON.stringify(expectedContract)) {
+  if (emittedJson !== expectedJson || emittedDts !== expectedDts) {
+    await writeFile(expectedContractJsonPath, expectedJson);
+    await writeFile(expectedContractDtsPath, expectedDts);
     throw new Error(
-      `Emitted contract does not match expected contract on disk.\nExpected: ${expectedContractJsonPath}\nEmitted: ${expectedContractJsonPath}`,
+      `Emitted contract artifacts do not match the committed ones in ${dirname(expectedContractJsonPath)}. Run \`pnpm fixtures:check\` to see the drift.`,
     );
   }
 
   return new PostgresContractSerializer().deserializeContract(
-    emittedContract,
+    JSON.parse(emittedJson) as Record<string, unknown>,
   ) as Contract<SqlStorage>;
 }
 
