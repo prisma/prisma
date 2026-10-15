@@ -18,6 +18,8 @@ const contract = defineContract({ enums: { Level } }, ({ field, model, type }) =
         label: field.column(type.sql.String(50)),
         note: field.column(type.sql.String(50)).optional(),
         level: field.namedType(Level),
+        area: field.column(type.Raw('circle')),
+        search: field.column(type.Raw('tsvector')).optional(),
       },
     }).sql({ table: 'readings' }),
   },
@@ -32,5 +34,7 @@ test('the client returns rows of a TypeScript contract with the codec output typ
     label: Varchar<50>;
     note: Varchar<50> | null;
     level: 1n | 10n;
+    area: unknown;
+    search: unknown;
   } | null>();
 });

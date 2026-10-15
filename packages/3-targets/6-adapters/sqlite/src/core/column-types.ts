@@ -1,4 +1,5 @@
 import {
+  SQL_RAW_CODEC_ID,
   SQLITE_BIGINT_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
   SQLITE_DATETIME_CODEC_ID,
@@ -35,3 +36,8 @@ export const jsonColumn = {
 export const bigintColumn = {
   codecId: SQLITE_BIGINT_CODEC_ID,
 } as const;
+
+/** A column of a type no other column type covers, written as given, such as `rawColumn('circle')`. Its values are typed `unknown`. */
+export function rawColumn<const Sql extends string>(sql: Sql) {
+  return { codecId: SQL_RAW_CODEC_ID, typeParams: { sql } } as const;
+}
