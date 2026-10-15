@@ -1,7 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { cacheAnnotation } from '../src/cache-annotation';
 import { createCacheMiddleware } from '../src/cache-middleware';
-import { endCall, makeCall, makeCtx, makeExec, runMiss, spyStore } from './middleware-fixtures';
+import { createInMemoryCacheStore } from '../src/cache-store';
+import {
+  endCall,
+  endStatement,
+  makeCall,
+  makeCtx,
+  makeExec,
+  runMiss,
+  spyStore,
+} from './middleware-fixtures';
 
 const annotated = { cache: cacheAnnotation({}) };
 
@@ -115,30 +124,49 @@ describe('createCacheMiddleware — client activities such as ORM calls', () => 
 });
 
 describe('createCacheMiddleware — statement rows and call results under one key', () => {
-  it('does not serve statement rows to a call with the same key', async () => {
+  it('misses a call when the key holds statement rows, and stores the call result in their place', async () => {
     const store = spyStore();
     store.setRows('shared', [{ id: 1 }]);
+    const debug = vi.fn();
     const mw = createCacheMiddleware({ store });
+    const call = makeCall({ cache: cacheAnnotation({ key: 'shared' }) });
+    const ctx = makeCtx({ log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug } });
 
-    expect(
-      await mw.intercept!.onActivity!(
-        makeCall({ cache: cacheAnnotation({ key: 'shared' }) }),
-        makeCtx(),
-      ),
-    ).toBeUndefined();
+    const intercepted = await mw.intercept!.onActivity!(call, ctx);
+    await endCall(mw, call, ctx, { result: { id: 2 } });
+
+    expect({
+      intercepted,
+      events: debug.mock.calls.map(([event]) => event.event),
+      stored: store.inner.get('shared'),
+    }).toEqual({
+      intercepted: undefined,
+      events: ['middleware.cache.miss', 'middleware.cache.store'],
+      stored: { kind: 'result', result: { id: 2 } },
+    });
   });
 
-  it('does not serve a call result to a statement with the same key', async () => {
+  it('misses a statement when the key holds a call result, and stores the rows in its place', async () => {
     const store = spyStore();
     store.inner.set('shared', { kind: 'result', result: [{ id: 1 }] });
+    const debug = vi.fn();
     const mw = createCacheMiddleware({ store });
+    const exec = makeExec('select 1', { cache: cacheAnnotation({ key: 'shared' }) });
+    const ctx = makeCtx({ log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug } });
 
-    expect(
-      await mw.intercept!.onQuery!(
-        makeExec('select 1', { cache: cacheAnnotation({ key: 'shared' }) }),
-        makeCtx(),
-      ),
-    ).toBeUndefined();
+    const intercepted = await mw.intercept!.onQuery!(exec, ctx);
+    await mw.onRow!({ id: 2 }, exec, ctx);
+    await endStatement(mw, exec, ctx, { rowCount: 1 });
+
+    expect({
+      intercepted,
+      events: debug.mock.calls.map(([event]) => event.event),
+      stored: store.inner.get('shared'),
+    }).toEqual({
+      intercepted: undefined,
+      events: ['middleware.cache.miss', 'middleware.cache.store'],
+      stored: { kind: 'rows', rows: [{ id: 2 }] },
+    });
   });
 
   it('neither serves nor stores an annotated statement inside a transaction', async () => {
@@ -157,5 +185,69 @@ describe('createCacheMiddleware — statement rows and call results under one ke
       intercepted: undefined,
       sets: 0,
     });
+  });
+});
+
+describe('createCacheMiddleware — a call that overlaps an invalidate', () => {
+  it('does not store the result of a call that missed before an invalidate of its key', async () => {
+    const store = spyStore();
+    const debug = vi.fn();
+    const mw = createCacheMiddleware({ store });
+    const call = makeCall({ cache: cacheAnnotation({ key: 'user-1' }) });
+    const ctx = makeCtx({ log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug } });
+
+    await mw.intercept!.onActivity!(call, ctx);
+    await mw.invalidate({ keys: ['user-1'] });
+    await endCall(mw, call, ctx, { result: { id: 1 } });
+
+    expect({
+      stored: store.inner.get('user-1'),
+      skipped: debug.mock.calls.some(
+        ([event]) => event.event === 'middleware.cache.store-skipped' && event.key === 'user-1',
+      ),
+    }).toEqual({ stored: undefined, skipped: true });
+  });
+});
+
+describe('createCacheMiddleware — the default store copies call results', () => {
+  async function missThenStore(
+    mw: ReturnType<typeof createCacheMiddleware>,
+    result: unknown,
+  ): Promise<void> {
+    const call = makeCall(annotated);
+    const ctx = makeCtx();
+    await mw.intercept!.onActivity!(call, ctx);
+    await endCall(mw, call, ctx, { result });
+  }
+
+  async function hit(mw: ReturnType<typeof createCacheMiddleware>) {
+    return mw.intercept!.onActivity!(makeCall(annotated), makeCtx());
+  }
+
+  it('keeps a hit unchanged when the first caller or an earlier hit mutates its result', async () => {
+    const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
+    const alice = { id: 1, name: 'Alice' };
+
+    await missThenStore(mw, [alice]);
+    alice.name = 'changed by the first caller';
+    const second = await hit(mw);
+    for (const row of (second?.result ?? []) as { name: string }[]) row.name = 'changed by a hit';
+    const third = await hit(mw);
+
+    expect({ second: second?.result, third: third?.result }).toEqual({
+      second: [{ id: 1, name: 'changed by a hit' }],
+      third: [{ id: 1, name: 'Alice' }],
+    });
+  });
+
+  it('does not store a result holding a class instance', async () => {
+    class Money {
+      readonly cents = 100;
+    }
+    const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
+
+    await missThenStore(mw, { price: new Money() });
+
+    expect(await hit(mw)).toBeUndefined();
   });
 });

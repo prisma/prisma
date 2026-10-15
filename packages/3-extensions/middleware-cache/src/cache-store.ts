@@ -54,7 +54,8 @@ export interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
  *   must throw rather than ignore it. An `unset` by key must also drop that key from any `meta`
  *   index the store keeps.
  *
- * Lifetime and eviction are the store's policy. A version that `unset` moved must be kept at least
+ * Lifetime, eviction and whether values are copied are the store's policy; the middleware hands
+ * `set` the value it returns to its caller, so a store that keeps references shares that object. A version that `unset` moved must be kept at least
  * as long as a read can take, so that a read that started before the `unset` cannot store. `unset`
  * must not run queries through the runtime that uses the middleware.
  *
@@ -92,6 +93,56 @@ export interface InMemoryCacheStoreOptions {
   readonly clock?: () => number;
 }
 
+const clonedPrototypes: ReadonlySet<object | null> = new Set<object | null>([
+  null,
+  Object.prototype,
+  Array.prototype,
+  Date.prototype,
+  RegExp.prototype,
+  Map.prototype,
+  Set.prototype,
+  ArrayBuffer.prototype,
+  DataView.prototype,
+  Int8Array.prototype,
+  Uint8Array.prototype,
+  Uint8ClampedArray.prototype,
+  Int16Array.prototype,
+  Uint16Array.prototype,
+  Int32Array.prototype,
+  Uint32Array.prototype,
+  Float32Array.prototype,
+  Float64Array.prototype,
+  BigInt64Array.prototype,
+  BigUint64Array.prototype,
+  Error.prototype,
+  EvalError.prototype,
+  RangeError.prototype,
+  ReferenceError.prototype,
+  SyntaxError.prototype,
+  TypeError.prototype,
+  URIError.prototype,
+]);
+
+/** Whether `structuredClone` copies `value` without changing what it is: no function, no symbol, and no object whose prototype it would drop, such as a class instance. */
+function clonesFaithfully(value: unknown, seen = new Set<object>()): boolean {
+  if (typeof value === 'function' || typeof value === 'symbol') return false;
+  if (typeof value !== 'object' || value === null) return true;
+  if (seen.has(value)) return true;
+  seen.add(value);
+  if (!clonedPrototypes.has(Object.getPrototypeOf(value))) return false;
+  if (Object.getOwnPropertySymbols(value).length > 0) return false;
+  if (value instanceof Map) {
+    return [...value].every(
+      ([key, entry]) => clonesFaithfully(key, seen) && clonesFaithfully(entry, seen),
+    );
+  }
+  if (value instanceof Set) {
+    return [...value].every((entry) => clonesFaithfully(entry, seen));
+  }
+  if (ArrayBuffer.isView(value) || value instanceof ArrayBuffer) return true;
+  return Object.values(value).every((entry) => clonesFaithfully(entry, seen));
+}
+
 interface StoredRecord<TValue> {
   readonly value: TValue;
   readonly expiresAt: number;
@@ -123,7 +174,11 @@ function invalidOption(argument: 'maxEntries' | 'ttlMs', received: number, expec
 
 /**
  * The default cache store: a least-recently-used map with one lifetime for every value, local to
- * the process. It holds `CachedValue` unless given another `TValue`. A key's version is kept for
+ * the process. It holds `CachedValue` unless given another `TValue`. It holds copies: `set` stores a
+ * `structuredClone` of the value and `get` returns a fresh one, so no caller shares an object with
+ * the cache. It stores only plain data that `structuredClone` copies faithfully; for a value holding
+ * a function, a symbol or an object of another prototype, such as a class instance, `set` stores
+ * nothing and returns `false`. A key's version is kept for
  * `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in
  * `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything.
  * It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
@@ -180,16 +235,19 @@ export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
       key: target.key,
       meta: target.meta,
       version: versionOf(target.key),
-      data: record === undefined ? { empty: true } : { empty: false, value: record.value },
+      data:
+        record === undefined
+          ? { empty: true }
+          : { empty: false, value: structuredClone(record.value) },
     };
   }
 
   async function set(entry: CacheEntry<TMeta, TValue>, value: TValue): Promise<boolean> {
-    if (entry.version !== versionOf(entry.key)) {
+    if (entry.version !== versionOf(entry.key) || !clonesFaithfully(value)) {
       return false;
     }
     records.delete(entry.key);
-    records.set(entry.key, { value, expiresAt: clock() + ttlMs });
+    records.set(entry.key, { value: structuredClone(value), expiresAt: clock() + ttlMs });
     for (const leastRecentlyUsed of records.keys()) {
       if (records.size <= maxEntries) {
         break;

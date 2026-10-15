@@ -215,6 +215,7 @@ const cache = createCacheMiddleware({ store: redis });
 
 - **Size.** At most `maxEntries` values, a positive integer (default 1000). Reads and writes both count as a use; the least recently used value is evicted first.
 - **Lifetime.** Every value lives `ttlMs` after its `set`, a positive number of milliseconds (default 60 000). `ttlMs: Infinity` never expires. A key's version is kept for `ttlMs` after the `unset` that moved it. Versions are not bounded by `maxEntries`. A forgotten version reads as 0, so with a finite `ttlMs` a read that takes longer than `ttlMs` and overlaps an `invalidate` can store stale rows. With `ttlMs: Infinity`, the versions of invalidated keys are never forgotten and grow with the number of distinct keys invalidated. Any other `maxEntries` or `ttlMs`, such as `0` or `NaN`, throws `RUNTIME.ARGUMENT_INVALID`. Expiry is measured with `clock` (default `Date.now`); an expired value reads as empty and is dropped.
+- **Copies.** `set` stores a `structuredClone` of the value and `get` returns a fresh clone, so mutating a result changes neither the cache nor the next hit. It stores only plain data that `structuredClone` copies faithfully: primitives, plain objects and arrays, `Date`, `RegExp`, `Map`, `Set`, `ArrayBuffer`, typed arrays, `DataView` and the built-in errors. For a value holding anything else, such as a function, a symbol or a class instance, `set` stores nothing and returns `false`, so the read returns its own value and is not cached.
 - **`meta`.** `get` and `set` ignore it. `unset({ keys })` removes those keys; `unset` with any `meta` other than `undefined`, including `null`, throws `RUNTIME.CACHE_STORE_META_UNSUPPORTED` and removes nothing.
 
 To change the defaults, create the store yourself:
@@ -295,7 +296,7 @@ The middleware neither serves nor stores a read when `ActivityContext.scope` is 
 - **The default store is not coherent across replicas.** Use a custom `CacheStore` (Redis, etc.) for cross-process coherence.
 - **Concurrent misses both populate the store.** Two concurrent first-time reads of the same key both run the driver and both store their rows; last writer wins. Request coalescing is out of this package's scope (see [Scope](#scope)).
 - **Writes do not invalidate on their own.** The middleware never observes writes. Call `invalidate` after a write that changes cached reads, rely on the store's lifetime to bound staleness, or pass `cacheAnnotation({ bypass: true })` on a read that must be current.
-- **The default store hands every hit of an ORM call the same object.** It keeps the result by reference, so mutating a cached call's result changes what later hits return. Treat cached results as read-only, or use a store that copies values.
+- **The default store caches only plain data.** It holds copies, made with `structuredClone`, so no caller shares an object with the cache. A value holding a function, a symbol, or an object `structuredClone` would not copy as it is, such as a class instance or a Node `Buffer`, is not stored, and the read is not cached. A custom store decides for itself whether to copy and what it can store; one that keeps references shares the first caller's object with every later hit.
 - **`maxEntries` counts entries, not bytes.** A large result set takes one slot like a small one.
 
 ## Scope

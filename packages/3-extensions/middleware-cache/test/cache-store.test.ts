@@ -86,13 +86,69 @@ describe('createInMemoryCacheStore', () => {
       });
     });
 
-    it('round-trips any value type', async () => {
-      const store = createInMemoryCacheStore<unknown, { readonly n: number; readonly s: string }>();
-      const value = { n: 1, s: 'x' };
+    it('round-trips any structured-cloneable value type', async () => {
+      const store = createInMemoryCacheStore<unknown, unknown>();
+      const value = {
+        n: 1,
+        s: 'x',
+        big: 2n,
+        at: new Date(0),
+        bytes: new Uint8Array([1, 2]),
+        list: [null, { nested: true }],
+        map: new Map([['a', new Set([1])]]),
+        error: new TypeError('x'),
+      };
 
       await put(store, 'k', value);
 
-      expect(await storedValue(store, 'k')).toBe(value);
+      expect(await storedValue(store, 'k')).toEqual(value);
+    });
+
+    it('holds a copy, so mutating the stored value or a returned value changes no later get', async () => {
+      const store = createInMemoryCacheStore<unknown, { rows: { id: number }[] }>();
+      const row = { id: 1 };
+      await put(store, 'k', { rows: [row] });
+
+      row.id = 2;
+      const first = await storedValue(store, 'k');
+      for (const stored of first?.rows ?? []) stored.id = 3;
+      const second = await storedValue(store, 'k');
+
+      expect({ second, distinct: first !== second }).toEqual({
+        second: { rows: [{ id: 1 }] },
+        distinct: true,
+      });
+    });
+
+    it.each([
+      [
+        'a class instance',
+        {
+          at: new (class Money {
+            readonly cents = 1;
+          })(),
+        },
+      ],
+      ['a function', { compute: () => 1 }],
+      ['a symbol', { tag: Symbol('x') }],
+      ['an Error subclass', { error: new (class AppError extends Error {})('x') }],
+      ['a Buffer', { bytes: Buffer.from([1]) }],
+      ['a class instance inside a Map', { map: new Map([['k', new (class Point {})()]]) }],
+    ])('refuses to store a value holding %s, and set returns false', async (_name, value) => {
+      const store = createInMemoryCacheStore<unknown, unknown>();
+
+      expect({ stored: await put(store, 'k', value), held: await storedValue(store, 'k') }).toEqual(
+        { stored: false, held: undefined },
+      );
+    });
+
+    it('stores a value that refers to the same object twice or to itself', async () => {
+      const store = createInMemoryCacheStore<unknown, unknown>();
+      const shared = { id: 1 };
+      const cyclic: Record<string, unknown> = { a: shared, b: shared };
+      cyclic['self'] = cyclic;
+
+      expect(await put(store, 'k', cyclic)).toBe(true);
     });
 
     it('overwrites a value through a set on the non-empty entry get returned', async () => {

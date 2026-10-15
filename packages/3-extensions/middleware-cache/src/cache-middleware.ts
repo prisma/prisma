@@ -84,6 +84,13 @@ function isPendingMiss(value: unknown): value is PendingMiss {
   return typeof value === 'object' && value !== null && 'entry' in value && 'buffer' in value;
 }
 
+function isKind<K extends CachedValue['kind']>(
+  value: CachedValue,
+  kind: K,
+): value is Extract<CachedValue, { kind: K }> {
+  return value.kind === kind;
+}
+
 function cacheable(ctx: ActivityContext): boolean {
   return ctx.scope === 'runtime' && !ctx.inTransaction();
 }
@@ -117,7 +124,7 @@ function valueToStore(miss: PendingMiss, result: ActivityEndedResult): CachedVal
  *   the client ended the call with. The call is served as a whole, so a hit sends no statement.
  *
  * A stored value is served only to an activity of the kind that stored it; under the same key, a
- * value of the other kind is a miss.
+ * value of the other kind is a miss, and the read stores its own value in its place.
  *
  * - `intercept.onQuery` and `intercept.onActivity` — on a hit, return the stored rows or result,
  *   and nothing runs. On a miss, record the pending entry.
@@ -146,14 +153,15 @@ export function createCacheMiddleware<TMeta = unknown>(
   const store: CacheStore<unknown, CachedValue> = options?.store ?? createInMemoryCacheStore();
   const deriveKey = options?.deriveKey ?? deriveKeyFromContentHash;
 
-  async function lookUp(
+  async function lookUp<K extends CachedValue['kind']>(
+    kind: K,
     key: string,
     meta: unknown,
     ctx: ActivityContext,
     buffer: Record<string, unknown>[] | undefined,
-  ): Promise<CachedValue | undefined> {
+  ): Promise<Extract<CachedValue, { kind: K }> | undefined> {
     const entry = await store.get({ key, meta });
-    if (!entry.data.empty) {
+    if (!entry.data.empty && isKind(entry.data.value, kind)) {
       ctx.log.debug?.({ event: 'middleware.cache.hit', middleware: 'cache', key });
       return entry.data.value;
     }
@@ -174,8 +182,8 @@ export function createCacheMiddleware<TMeta = unknown>(
       return undefined;
     }
     const key = annotation.key ?? (await deriveKey(exec, ctx));
-    const value = await lookUp(key, annotation.meta, ctx, []);
-    return value?.kind === 'rows' ? { rows: value.rows } : undefined;
+    const value = await lookUp('rows', key, annotation.meta, ctx, []);
+    return value === undefined ? undefined : { rows: value.rows };
   }
 
   async function onActivity(
@@ -190,8 +198,8 @@ export function createCacheMiddleware<TMeta = unknown>(
       return undefined;
     }
     const key = annotation.key ?? (await activity.contentHash());
-    const value = await lookUp(key, annotation.meta, ctx, undefined);
-    return value?.kind === 'result' ? { result: value.result } : undefined;
+    const value = await lookUp('result', key, annotation.meta, ctx, undefined);
+    return value === undefined ? undefined : { result: value.result };
   }
 
   async function onRow(
