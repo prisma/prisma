@@ -996,6 +996,10 @@ An `include()` usage is structurally invalid: the refinement callback returned s
 
 The include is well-formed but not supported in this position: scalar aggregations or `combine()` on a to-one relation (SQL), or including an embed relation / compound reference (Mongo; only reference relations can be included). Payload: `relation`, `kind`, `model`.
 
+### ORM.INTERCEPTED_RESULT_INVALID
+
+An `intercept.onActivity` handler answered an `orm-call` activity with a value of the wrong shape for its terminal method: not an array for `all()` and the other streaming terminals, not an object for `create()`, `firstOrThrow()` or `aggregate()`, neither an object nor `null` for `first()`, `update()` or `delete()`, or not a number for a count. The SQL ORM ends the call `failed` and returns nothing. Payload: `method`.
+
 ### ORM.LOCK_INCOMPATIBLE
 
 A row-locking method (`forUpdate()`, `forNoKeyUpdate()`, `forShare()`, `forKeyShare()`) was combined with something that cannot be locked. Raised by the SQL builder: at `build()` when the select also has `distinct`, `distinctOn`, `groupBy` or `having`, or an aggregate or window function in the projection; and when a locked select is turned into a subquery through `.as()` or passed where a subquery is expected. Raised by the ORM client: when a locked collection is compiled with `include()`, `distinct()` or `distinctOn()`; when a row-locking method is called inside an `include()` refinement callback, or when a collection compiled with `include()` has a lock anywhere in its included rows (`includeRefinement`); when `groupBy()` or `aggregate()` is called on a locked collection; and when a mutation terminal (`create`, `createAll`, `createAndCount`, `upsert`, `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll`, `deleteAndCount`) is called on a locked collection, which already locks the rows it changes. Payload: `conflict` (`distinct`, `distinctOn`, `groupBy`, `having`, `aggregate`, `subquery`, `include`, `includeRefinement` or `mutation`).

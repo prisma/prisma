@@ -1,9 +1,5 @@
 import type { Contract } from '@internal/contract/types';
-import {
-  type AnnotationValue,
-  AsyncIterableResult,
-  type OperationKind,
-} from '@internal/framework-components/runtime';
+import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
@@ -11,7 +7,7 @@ import { getColumnsReadOnTable } from '../collection-contract';
 import { consumeCollectionRows, type DescribeCollectionRowsOptions } from '../collection-dispatch';
 import { mapResultRows, stripHiddenMappedFields } from '../collection-runtime';
 import { withMutationScope } from '../mutation-executor';
-import { buildOrmQueryPlan, deriveParamsFromAst, mergeAnnotations } from '../query-plan-meta';
+import { buildOrmQueryPlan, deriveParamsFromAst } from '../query-plan-meta';
 import { returningProjection } from '../query-plan-mutations';
 import { queryPlanRows } from '../query-plan-rows';
 import type { CollectionContext } from '../types';
@@ -20,7 +16,6 @@ import type { Graph } from './graph';
 import type { Executed, OutputsOf, Run, Slots, StatementAst } from './node';
 import { StatementNode } from './statement-node';
 
-type Annotations = ReadonlyMap<string, AnnotationValue<unknown, OperationKind>> | undefined;
 type Context = CollectionContext<Contract<SqlStorage>>;
 type Collected = readonly (readonly StorageRow[] | number)[];
 
@@ -32,7 +27,6 @@ interface Outcome<Row> {
 export function queryGraph<Row>(
   graph: Graph,
   ctx: Context,
-  annotations: Annotations,
   callerRows: DescribeCollectionRowsOptions,
 ): AsyncIterableResult<Row> {
   returnCallerColumns(graph, callerRows);
@@ -43,23 +37,19 @@ export function queryGraph<Row>(
   // and yielded afterwards.
   if (only !== undefined && others.length === 0 && only[0] === graph.result) {
     const [id, node] = only;
-    const run = runOn(ctx, annotations);
+    const run = runOn(ctx);
     const storageRows = rowStream(node.execute(inputsOf(graph, id, []), run));
     return shapeRows<Row>(graph, id, storageRows, callerRows);
   }
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-    const outcome = await runAllNodes<Row>(graph, ctx, annotations, callerRows);
+    const outcome = await runAllNodes<Row>(graph, ctx, callerRows);
     yield* outcome.rows;
   };
   return new AsyncIterableResult(generator());
 }
 
-export async function executeGraph(
-  graph: Graph,
-  ctx: Context,
-  annotations: Annotations,
-): Promise<SqlStatementStats> {
-  const outcome = await runAllNodes(graph, ctx, annotations, undefined);
+export async function executeGraph(graph: Graph, ctx: Context): Promise<SqlStatementStats> {
+  const outcome = await runAllNodes(graph, ctx, undefined);
   return { affectedRows: outcome.count };
 }
 
@@ -81,24 +71,22 @@ function returnCallerColumns(graph: Graph, callerRows: DescribeCollectionRowsOpt
 function runAllNodes<Row>(
   graph: Graph,
   ctx: Context,
-  annotations: Annotations,
   callerRows: DescribeCollectionRowsOptions | undefined,
 ): Promise<Outcome<Row>> {
   if (graph.nodes().length > 1) {
     return withMutationScope(ctx.runtime, (scope) =>
-      runNodesInOrder<Row>(graph, { ...ctx, runtime: scope }, annotations, callerRows),
+      runNodesInOrder<Row>(graph, { ...ctx, runtime: scope }, callerRows),
     );
   }
-  return runNodesInOrder<Row>(graph, ctx, annotations, callerRows);
+  return runNodesInOrder<Row>(graph, ctx, callerRows);
 }
 
 async function runNodesInOrder<Row>(
   graph: Graph,
   ctx: Context,
-  annotations: Annotations,
   callerRows: DescribeCollectionRowsOptions | undefined,
 ): Promise<Outcome<Row>> {
-  const run = runOn(ctx, annotations);
+  const run = runOn(ctx);
   const collected: (readonly StorageRow[] | number)[] = [];
   let rows: readonly Row[] = [];
   let count = 0;
@@ -133,13 +121,10 @@ function inputsOf(graph: Graph, id: NodeId, collected: Collected): OutputsOf<Slo
   return outputs;
 }
 
-function runOn(ctx: Context, annotations: Annotations): Run {
+function runOn(ctx: Context): Run {
   const { contract } = ctx.context;
   const planOf = (ast: StatementAst) =>
-    mergeAnnotations(
-      buildOrmQueryPlan<StorageRow>(contract, ast, deriveParamsFromAst(ast).params),
-      annotations,
-    );
+    buildOrmQueryPlan<StorageRow>(contract, ast, deriveParamsFromAst(ast).params);
   return {
     query: (ast) => queryPlanRows(ctx.runtime, planOf(ast)),
     execute: async (ast) => (await ctx.runtime.execute(planOf(ast))).affectedRows,

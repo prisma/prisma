@@ -1,5 +1,4 @@
 import type { Contract } from '@internal/contract/types';
-import type { AnnotationValue, OperationKind } from '@internal/framework-components/runtime';
 import type {
   ExtractAggregateTypes,
   ExtractCodecTypes,
@@ -116,16 +115,6 @@ export interface CollectionState {
   readonly offset: LimitOffsetValue | undefined;
   readonly variantValue: string | undefined;
   readonly locking: ReadonlyArray<LockingClause> | undefined;
-  /**
-   * Annotations attached to this query at terminal-call time.
-   * Populated transiently by the read terminals `all` and `first` just before dispatch. Terminals
-   * that compile a plan directly attach annotations to it with `mergeAnnotations` instead; nested
-   * `create()`/`update()` validate annotations and then discard them.
-   * `Collection` itself has no chainable `.annotate()`. Stored as a
-   * `Map<namespace, AnnotationValue>` so
-   * duplicate namespaces last-write-win. Empty on a fresh state.
-   */
-  readonly annotations: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>;
 }
 
 export function emptyState(tables: CollectionTables): CollectionState {
@@ -142,7 +131,6 @@ export function emptyState(tables: CollectionTables): CollectionState {
     offset: undefined,
     variantValue: undefined,
     locking: undefined,
-    annotations: new Map(),
   };
 }
 
