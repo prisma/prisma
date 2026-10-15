@@ -48,7 +48,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | ⏳ 0/4 | Emulator controls in the `prisma` CLI: start, stop, list, reset | Must, urgent | Will | Not started, no PR |  |
+| 1 | 🔄 0/4 | Emulator controls in the `prisma` CLI: start, stop, list, reset | Must, urgent | Will | In progress in Composer: 5 PRs open | Review the Composer PRs |
 | 2 | 🔄 2/4 | VS Code extension: formatter without the CLI, go-to-definition, multi-file PSL, emulator controls | Must | Serhii | Go-to-definition and multi-file PSL done. Rename merged. File watching in review. Formatter without the CLI unverified. Emulator controls wait on row 1 | Review the file-watching PR. Verify the formatter works without the CLI |
 | 3 | ⏳ | Make the extension's handling of local and remote Prisma Postgres match the CLI and its emulators | Must | Serhii | Not started |  |
 | 4 | ✅ 1/1 | Multi-file PSL | Must | Serhii | Done 2026-09-30 | |

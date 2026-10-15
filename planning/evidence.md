@@ -42,7 +42,7 @@ States were last checked against GitHub and Linear on 2026-10-15.
 
 ## Stream 3: Editor and tools
 
-**Row 1, emulator controls in the CLI.** Not tracked. Raised to the top of the stream by Will on 2026-09-30. Will takes it (2026-10-05). No PR found in prisma/orm, prisma/composer or prisma/prisma-cli.
+**Row 1, emulator controls in the CLI.** Raised to the top of the stream by Will on 2026-09-30. Will takes it (2026-10-05). In progress since 2026-10-15. The CLI engine gained subcommands, so `prisma dev <entry>` and `prisma dev url` can coexist (prisma/prisma-cli#349, merged 2026-10-15). Open in prisma/composer: `prisma dev url` and `prisma dev stop` (#357), `prisma dev --detach` (#363), each directory gets its own local services and ports (#354) and its own databases and buckets (#356), and a service reports running only once its port answers (#353).
 
 **Row 2, VS Code extension.** Language server, all merged: hover (prisma/orm#30569), hover on arguments (prisma/orm#30591), go to definition (prisma/orm#30578), find references (prisma/orm#30621), multi-file schemas (prisma/orm#30456), and resolution on the new binder (prisma/orm#30545, prisma/orm#30563). Rename symbol merged 2026-10-08 (prisma/orm#30633), closed out in prisma/orm#30724. Mixin support merged 2026-10-14 with stream 1 row 5. Open: file watching without client notifications (prisma/orm#30535; its ADR number clashes with ADR 256 on main since prisma/orm#30619). The formatter without the CLI was not checked.
 
