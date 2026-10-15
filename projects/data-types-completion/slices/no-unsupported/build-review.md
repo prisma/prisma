@@ -121,24 +121,22 @@ The five removed `not.toContain('Unsupported(')` assertions were not the only ch
 
 Checks run: `pnpm lint:deps`, `pnpm lint:docs`, `pnpm check:error-reference`, `pnpm lint:framework-vocabulary`, `pnpm fixtures:check` (tree left clean) and root `pnpm typecheck:agent` passed. `marked-types-round-trip.integration.test.ts`, `infer-pgvector-column.e2e.test.ts` and `native-enum-adoption.e2e.test.ts` passed (6 runs, 12 tests).
 
-`pnpm test --coverage` passed in every package the branch touches against `origin/main`. Each threshold in that package's `coverage.config.json` holds:
+`pnpm test --coverage` passed in every package the branch touches against `origin/main`. A package's own vitest config does not read `coverage.config.json`: only the root config applies its include, exclude and thresholds (`scripts/coverage-config.js`). So the package run's "All files" row also counts test fixtures. The table compares the `src` row with each package's thresholds; every threshold holds.
 
-| Package | Statements | Branches | Functions | Lines | Thresholds (lines, branches, functions, statements) |
-| --- | --- | --- | --- | --- | --- |
-| framework-components | 92.16 | 87.5 | 93.18 | 93.08 | none |
-| psl-printer | 94.75 | 84.44 | 96.66 | 96.12 | 95, 85, 95, 95 (see below) |
-| sql-contract | 92.35 | 86.22 | 94.8 | 93.83 | as configured; the run passed |
-| sql-schema-ir | 99.46 | 97.23 | 100 | 99.68 | 95, 95, 95, 95 |
-| contract-psl | 92.83 | 86.14 | 93.73 | 94.58 | 85, 81, 95, 85 (see below) |
-| family-sql | 85.74 | 76.37 | 86.05 | 87.6 | none |
-| pgvector | 97.45 | 96.87 | 95.65 | 97.94 | 95, 95, 95, 95 |
-| postgis | 98.07 | 95.86 | 92.64 | 97.99 | 90, 85, 90, 90 |
-| Postgres extension | 93.77 | 93.93 | 90.58 | 95.51 | none |
-| target-postgres | 91.4 | 84.25 | 92.29 | 92.32 | 79, 65, 88, 79 |
-| adapter-postgres | 94.75 | 89.68 | 96.67 | 95.16 | 84, 77, 88, 84 |
-| adapter-sqlite | 86.26 | 81.54 | 85 | 86.32 | none |
-
-The psl-printer statements (94.75 against 95), psl-printer branches (84.44 against 85) and contract-psl functions (93.73 against 95) read below the configured numbers in the summary row, yet vitest exited 0. The thresholds are applied to the merged report the repository's coverage scripts produce, not to this row. CI's coverage job is the authority. Dispatch d removed three lines from psl-printer and added a covered file to contract-psl, so the slice does not lower either package.
+| Package | `src` statements, branches, functions, lines | Thresholds (statements, branches, functions, lines) |
+| --- | --- | --- |
+| framework-components | all files 92.16, 87.5, 93.18, 93.08 | none |
+| psl-printer | 95.7, 86.41, 96.22, 97.36 | 95, 85, 95, 95 |
+| sql-contract | 93.41, 88.31, 95.5, 94.72 | 91, 85, 92, 90 |
+| sql-schema-ir | all files 99.46, 97.23, 100, 99.68 | 95, 95, 95, 95 |
+| contract-psl | 93.02, 85.98, 96.33, 94.78 | 85, 81, 95, 85 |
+| family-sql | all files 85.74, 76.37, 86.05, 87.6 | none |
+| pgvector | all files 97.45, 96.87, 95.65, 97.94 | 95, 95, 95, 95 |
+| postgis | all files 98.07, 95.86, 92.64, 97.99 | 90, 85, 90, 90 |
+| Postgres extension | all files 93.77, 93.93, 90.58, 95.51 | none |
+| target-postgres | all files 91.4, 84.25, 92.29, 92.32 | 79, 65, 88, 79 |
+| adapter-postgres | all files 94.75, 89.68, 96.67, 95.16 | 84, 77, 88, 84 |
+| adapter-sqlite | all files 86.26, 81.54, 85, 86.32 | none |
 
 The new and rewritten source files are fully covered except one line: the namespace-building callback in `inferredConstructorCall` (`psl-print/column-types.ts` line 74). It runs only for a namespaced marked constructor such as `pgvector.Vector`. Within target-postgres no test reaches it, but the print round-trip integration test does, through the pgvector contracts.
 
