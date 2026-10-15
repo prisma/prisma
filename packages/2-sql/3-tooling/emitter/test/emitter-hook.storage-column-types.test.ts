@@ -396,6 +396,81 @@ describe('StorageColumnTypes', () => {
     expect(typeOverrides(dts, 'FieldTypeOverrides')).not.toContain('action');
   });
 
+  it('gives a storage namespace that holds only value sets no column type overrides', () => {
+    const contract = createContract({
+      domain: {
+        namespaces: {
+          app: {
+            models: {
+              Audit: {
+                storage: { namespaceId: 'app', table: 'audit', fields: { id: { column: 'id' } } },
+                fields: {
+                  id: {
+                    nullable: false,
+                    many: false,
+                    type: { kind: 'scalar', codecId: 'pg/int4@1' },
+                  },
+                },
+                relations: {},
+              },
+            },
+          },
+        },
+      },
+      storage: {
+        namespaces: {
+          shared: {
+            id: 'shared',
+            entries: {
+              valueSet: {
+                AuditAction: { kind: 'valueSet', values: ['create', 'delete'] },
+              },
+            },
+          },
+          app: {
+            id: 'app',
+            entries: {
+              table: {
+                audit: {
+                  columns: {
+                    id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+                    action: {
+                      dataType: 'pg/text',
+                      codecId: 'pg/text@1',
+                      nullable: false,
+                      valueSet: {
+                        plane: 'storage',
+                        entityKind: 'valueSet',
+                        namespaceId: 'shared',
+                        entityName: 'AuditAction',
+                      },
+                    },
+                  },
+                  uniques: [],
+                  indexes: [],
+                  foreignKeys: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const dts = generateContractDts(
+      contract,
+      sqlEmission,
+      [],
+      testHashes,
+      undefined,
+      identityCodecLookup,
+    );
+
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe(
+      '{ readonly app: { readonly audit: { readonly action: { readonly output: "create" | "delete"; readonly input: "create" | "delete" } } } }',
+    );
+  });
+
   it('gives an enum field the literal union of its column value set as its type override', () => {
     const contract = createContract({
       domain: {
