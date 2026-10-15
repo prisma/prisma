@@ -7,8 +7,14 @@ Run against branch `tml-3267-generated-values` after merging `origin/main` and r
 Write `prisma/schema.prisma`:
 
 ```prisma
-datasource db { provider = "postgresql" }
-generator client { provider = "prisma-client" output = "../generated/prisma7" }
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma7"
+}
 
 model Post {
   id        String    @id @default(uuid())
@@ -47,7 +53,8 @@ Each must fail `contract emit` with one diagnostic naming the file, line and fix
 - `title String @updatedAt` → `PSL.PRISMA7_UPDATED_AT_FIELD_INVALID`.
 - `tags DateTime[] @updatedAt` → the same code, with Prisma 7's own message about lists.
 - `stamp DateTime @updatedAt @db.Text` → the same code, at the `@db.Text` attribute.
-- Prisma 8 PSL: a preset that makes the field the primary key, written with `?`, → `PSL_PRESET_NOT_OPTIONAL`. A preset that sets its own database default, written with `@default(...)`, → `PSL_PRESET_AND_DEFAULT_CONFLICT`. Find a real preset of each kind in the Postgres target's `authoring.ts`. Read each message and check it says what to change.
+- Prisma 8 PSL: a preset that makes the field the primary key, written with `?`, such as `id id.uuidv4Native()?`, → `PSL_PRESET_NOT_OPTIONAL`. A preset with an `onCreate` generator, written with a generating `@default(...)`, such as `id id.uuidv4Native() @default(uuid())`, → `PSL_PRESET_AND_DEFAULT_CONFLICT`, and the first fix it offers is to remove `@default(...)`. Read each message and check it says what to change.
+- No Postgres preset sets its own database default today, so the other case of `PSL_PRESET_AND_DEFAULT_CONFLICT` cannot be reached from a real preset.
 
 ## 5. An extension's default function prints
 

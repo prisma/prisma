@@ -79,7 +79,15 @@ export function buildExecutionDefault(input: {
           onCreateId,
           executionDefault.onCreate?.params,
         );
-  if (call === undefined) refuseGeneratorWithoutPslFunction(phases);
+  if (call === undefined) {
+    refuseGeneratorWithoutPslFunction({
+      ...phases,
+      registeredBy:
+        onCreateId !== undefined && context.componentIdsByGenerator.has(onCreateId)
+          ? { componentId: context.componentIdsByGenerator.get(onCreateId) }
+          : undefined,
+    });
+  }
   return {
     kind: 'attribute',
     attribute: buildAttribute('field', 'default', [positionalArg(call)]),

@@ -64,6 +64,7 @@ export function testBuildContext(
     readonly temporalPresets?: AuthoringFieldNamespace;
     readonly fieldPresets?: AuthoringFieldNamespace;
     readonly defaultFunctionPrinters?: ReadonlyMap<string, DefaultFunctionPrinter>;
+    readonly componentIdsByGenerator?: ReadonlyMap<string, string | undefined>;
     readonly codecs?: readonly AnyPostgresCodecDescriptor[];
     readonly dataTypes?: readonly DataType[];
   } = {},
@@ -88,6 +89,7 @@ export function testBuildContext(
       ...adapterDefaultFunctionPrinters,
       ...(extra.defaultFunctionPrinters ?? []),
     ]),
+    componentIdsByGenerator: extra.componentIdsByGenerator ?? new Map(),
     codecLookup: {
       get: () => undefined,
       renderOutputTypeFor: () => undefined,

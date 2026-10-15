@@ -103,4 +103,6 @@ export interface DefaultFunctionPrinter {
 /** The mutation defaults of a composed stack, with the default function that writes each generator. */
 export interface AssembledControlMutationDefaults extends ControlMutationDefaults {
   readonly defaultFunctionPrintersByGenerator: ReadonlyMap<string, DefaultFunctionPrinter>;
+  /** For each registered generator id, the id of the component that registers it, or `undefined` when that component has no id. */
+  readonly componentIdsByGenerator: ReadonlyMap<string, string | undefined>;
 }

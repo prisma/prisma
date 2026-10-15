@@ -69,6 +69,7 @@ function familyInstance(valueObjectStorageType: string | undefined) {
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
       defaultFunctionPrintersByGenerator: new Map(),
+      componentIdsByGenerator: new Map(),
     },
     fieldPresetsByCodecAndGenerator: new Map(),
     authoringContributions: {

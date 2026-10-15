@@ -45,6 +45,8 @@ export interface SqlPslBuildContext {
   readonly dataTypes: DataTypeSupport;
   /** For each generator id, the default function in the stack whose PSL call produces it. */
   readonly defaultFunctionPrintersByGenerator: ReadonlyMap<string, DefaultFunctionPrinter>;
+  /** For each generator id the stack registers, the id of the component that registers it, when that component has one. */
+  readonly componentIdsByGenerator: ReadonlyMap<string, string | undefined>;
   /** For each codec, the field preset in the stack that writes a column of it with each generator. */
   readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
 }

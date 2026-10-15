@@ -637,7 +637,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     if (presetContributions?.executionDefaults?.onCreate && loweredOnCreate) {
       diagnostics.push({
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Use a database default in @default(...) or a preset without an onCreate generator.`,
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Remove @default(...), write a database default in @default(...), or use a preset without an onCreate generator.`,
         ...source.at(defaultAttribute?.span ?? field.span),
       });
       continue;

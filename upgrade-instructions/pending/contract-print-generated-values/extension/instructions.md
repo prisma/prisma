@@ -20,7 +20,7 @@ changes:
 
 ## Default functions: `printArguments`
 
-`contract print` writes a column with a generated value as the `@default(...)` call of a default function in the configured stack. It finds that call through the new optional `printArguments` field of `ControlMutationDefaultEntry`, the reverse of `lower`. A function without it still reads PSL as before, but `contract print` refuses a contract that uses one of its generators with `CONTRACT.PRINT_UNSUPPORTED` ("there is no default function in the configured stack that writes it").
+`contract print` writes a column with a generated value as the `@default(...)` call of a default function in the configured stack. It finds that call through the new optional `printArguments` field of `ControlMutationDefaultEntry`, the reverse of `lower`. A function without it still reads PSL as before, but `contract print` refuses a contract that uses one of its generators with `CONTRACT.PRINT_UNSUPPORTED` that names your component: `which "<component id>" registers, but its default function does not say how contract print writes it`.
 
 For each entry whose `lower` returns `{ kind: 'execution', generated: { kind: 'generator', id } }`, add one key per generator id it can return. The value receives the generator's `params` from the contract and returns the text between the call's parentheses. The printer writes `<function name>(<arguments>)`, with the name the entry is registered under:
 

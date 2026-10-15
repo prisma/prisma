@@ -84,6 +84,7 @@ describe('sql family buildPslContract', () => {
       dataTypes: stack.dataTypes,
       defaultFunctionPrintersByGenerator:
         stack.controlMutationDefaults.defaultFunctionPrintersByGenerator,
+      componentIdsByGenerator: stack.controlMutationDefaults.componentIdsByGenerator,
       fieldPresetsByCodecAndGenerator: stack.fieldPresetsByCodecAndGenerator,
     });
   });

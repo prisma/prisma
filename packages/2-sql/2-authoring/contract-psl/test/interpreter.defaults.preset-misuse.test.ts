@@ -179,7 +179,7 @@ example temporal.generatedField() @default(uuid())
       {
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
         message:
-          'Field "Bad.example" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Use a database default in @default(...) or a preset without an onCreate generator.',
+          'Field "Bad.example" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Remove @default(...), write a database default in @default(...), or use a preset without an onCreate generator.',
       },
     ]);
   });

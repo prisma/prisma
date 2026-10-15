@@ -120,6 +120,7 @@ describe('SqlControlFamilyInstance OperationPreviewCapable', () => {
         defaultFunctionRegistry: new Map(),
         generatorDescriptors: [],
         defaultFunctionPrintersByGenerator: new Map(),
+        componentIdsByGenerator: new Map(),
       },
       fieldPresetsByCodecAndGenerator: new Map(),
       // biome-ignore lint/suspicious/noExplicitAny: minimal stub

@@ -232,6 +232,7 @@ export const inferBuildContext: SqlPslBuildContext = {
     field: postgresAuthoringFieldPresets,
   },
   defaultFunctionPrintersByGenerator: new Map(),
+  componentIdsByGenerator: new Map(),
   fieldPresetsByCodecAndGenerator: new Map(),
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypes: {

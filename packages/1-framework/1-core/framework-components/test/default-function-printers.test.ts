@@ -44,6 +44,24 @@ describe('assembleControlMutationDefaults default function printers', () => {
     );
   });
 
+  it('returns the component that registers each generator, when the component has an id', () => {
+    const assembled = assembleControlMutationDefaults([
+      contributor('adapter', [], ['uuidv4']),
+      {
+        controlMutationDefaults: {
+          defaultFunctionRegistry: new Map(),
+          generatorDescriptors: [{ id: 'slugid' }],
+        },
+      },
+    ]);
+    expect(assembled.componentIdsByGenerator).toEqual(
+      new Map([
+        ['uuidv4', 'adapter'],
+        ['slugid', undefined],
+      ]),
+    );
+  });
+
   it('throws when two functions from different descriptors print one generator', () => {
     expect(() =>
       assembleControlMutationDefaults([

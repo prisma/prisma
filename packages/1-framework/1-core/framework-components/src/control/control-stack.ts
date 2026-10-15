@@ -606,6 +606,7 @@ export function assembleControlMutationDefaults(
   const functionOwners = new Map<string, string>();
   const generatorMap = new Map<string, MutationDefaultGeneratorDescriptor>();
   const generatorOwners = new Map<string, string>();
+  const componentIdsByGenerator = new Map<string, string | undefined>();
   const defaultFunctionPrintersByGenerator = new Map<string, DefaultFunctionPrinter>();
   const printerOwners = new Map<string, string>();
 
@@ -624,6 +625,7 @@ export function assembleControlMutationDefaults(
       }
       generatorMap.set(generatorDescriptor.id, generatorDescriptor);
       generatorOwners.set(generatorDescriptor.id, descriptorId);
+      componentIdsByGenerator.set(generatorDescriptor.id, descriptor.id);
     }
 
     for (const [functionName, handler] of contributions.defaultFunctionRegistry) {
@@ -665,6 +667,7 @@ export function assembleControlMutationDefaults(
     defaultFunctionRegistry,
     generatorDescriptors: Array.from(generatorMap.values()),
     defaultFunctionPrintersByGenerator,
+    componentIdsByGenerator,
   };
 }
 
