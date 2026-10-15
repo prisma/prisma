@@ -10,7 +10,7 @@ This page lists the projects in priority order, by stream. Work the streams in p
 
 **Progress column:** one symbol, then done/total where the row has countable units. ✅ done · 🟡 code done, waiting on review or docs · 🔄 in progress · ⏳ not started · ❓ needs a decision from Will. The units are the slices, pull requests, tickets or items the Status column names; a row with no units yet has no count.
 
-States were last checked against GitHub and Linear on 2026-10-13.
+States were last checked against GitHub and Linear on 2026-10-15.
 
 ## Stream 1: Foundations and breaking changes
 
@@ -22,9 +22,9 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
-| 5 | 🔄 1/5 | PSL mixins, then remove type aliases and field presets | Must | Serhii | Mixin syntax merged. Inclusion and language-server support in 3 open PRs. Removing type aliases and field presets not started | Review the inclusion PR, then the two language-server PRs |
+| 5 | 🔄 4/5 | PSL mixins, then remove type aliases and field presets | Must | Serhii | Mixins done 2026-10-14. Removing type aliases and field presets not started |  |
 | 6 | ⏳ | Remove `@noCheck` and `.noCheck()` | Must | Will | Not started, no ticket, unblocked |  |
-| 7 | 🔄 2/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 2 of 7 slices merged, including the breaking one. MongoDB renames approved. Convert and backfill in review | Merge the MongoDB renames PR, then review convert and backfill |
+| 7 | 🔄 4/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 4 of 7 slices merged. The TypeScript MongoDB validator slice in progress | Finish the TypeScript MongoDB validator (TML-3553), then the remaining Postgres and SQLite renames (TML-3537) |
 
 ## Stream 2: Upgrade path from Prisma 7
 
@@ -61,7 +61,7 @@ Everything here is additive, so nothing here can block a breaking change.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | ⏳ | Transaction options: isolation levels and timeouts | Must | Serhii | Not designed. A stale draft exists |  |
 | 1b | ⏳ | Nested transactions | Must | Serhii | Not designed |  |
-| 2 | 🔄 0/5 | Nested writes on relations: `update`, `delete`, `upsert`, `set`, `connectOrCreate` | Aim | Serhii | Slice 1 (`update` and `delete` on a filtered set) in review. A rewrite of how writes run, as one mutation graph, in review | Review the slice 1 PR |
+| 2 | 🔄 0/5 | Nested writes on relations: `update`, `delete`, `upsert`, `set`, `connectOrCreate` | Aim | Serhii | Every write method now runs through one mutation graph. Slice 1 (`update` and `delete` on a filtered set) in review | Review the slice 1 PR |
 | 3 | ✅ 1/1 | Design the replacement for `omit` | Must (design only) | Will | Design done (Will, 2026-10-07) |  |
 | 4 | ⏳ | Expressions in updates (what `increment` and `decrement` did in Prisma 7) | When there is time | Serhii | Not designed | |
 | 5 | ✅ 1/1 | A query that fails when nothing matches (what `firstOrThrow` did in Prisma 7) | When there is time | Serhii | `firstOrThrow` on collections merged 2026-10-08 |  |
@@ -72,11 +72,11 @@ In progress but not ranked here:
 | Progress | Work | Owner | Status | Next |
 | --- | --- | --- | --- | --- |
 | ✅ 3/3 | Row locking on a select | Will | Done 2026-10-07 | |
-| 🔄 3/4 | Collection classes, query fragments and indexes | Will | Collection classes, fragments, and searching a full-text index by name merged. Index collection methods in review | Review the index collection methods PR |
+| 🔄 3/4 | Collection classes, query fragments and indexes | Will | Collection classes, fragments, and searching a full-text index by name merged. Collection methods contributed by packages approved | Merge the approved PR (TML-3549) |
 | ✅ 1/1 | `variant()` selects by discriminator value | Serhii | Merged 2026-10-06 | |
 | ✅ 1/1 | The Postgres driver returns every column as text | Will | Merged 2026-10-06 | |
 | 🔄 3/4 | Cache middleware | Will | Invalidation, keys and the after-transaction stage merged. Invalidation after commit waits on the activity tree | |
-| 🔄 1/5 | Middleware sees a tree of activities | Will | ADR 271 merged. The plan and slice 1 approved, 3 slices in backlog | Merge the plan and slice 1 |
+| 🔄 2/5 | Middleware sees a tree of activities | Will | ADR 271 and slice 1 merged. Slice 2 in review, 2 slices in backlog | Review slice 2 (TML-3560) |
 
 ## Stream 5: Docs and the new user's first hour
 
@@ -85,7 +85,7 @@ Test: the getting-started eval passes, in few steps and with no workarounds.
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | ✅ 2/2 | Docs and the shipped skill stop naming `prisma-composer` | Must, urgent | Will | Done 2026-10-08 |  |
-| 2 | 🔄 0/3 | Correct the query reference in the shipped skill, which promises features that do not exist | Must, urgent | Will | 2 PRs open, 3 tickets open | Review the two PRs |
+| 2 | 🔄 0/3 | Correct the query reference in the shipped skill, which promises features that do not exist | Must, urgent | Will | 1 PR approved, 1 PR open, 3 tickets open | Merge the approved data-transforms PR, then review the back-references PR |
 | 3 | 🔄 1/11 | Docs gaps found by the eval: 11 items, 5 high | Must | Will | 1 of 11 merged. The rest not re-checked | Re-check the 11 items against prisma/web |
 | 4 | ❓ | ORM scenario for the eval: decide the project, then build it | Must | Will | Not decided | Decide the project |
 | 5 | 🔄 | Docs restructure | Aim | Will | Draft since 2026-09-30 | |
