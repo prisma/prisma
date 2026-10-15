@@ -1142,7 +1142,7 @@ function readField(args: ReadFieldArgs): void {
     source: diagnosticSource(model.sources, field.node.syntax),
     entityLabel: label,
     namespaceId: model.namespaceId,
-    namespaceExtensionEntities: args.namespaceEntities.get(model.namespaceId),
+    namespaceExtensionEntities: args.namespaceEntities,
     codecLookup: input.codecLookup,
   });
   diagnostics.push(...typeDiagnostics.toExternal());

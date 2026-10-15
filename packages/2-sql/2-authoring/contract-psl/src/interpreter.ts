@@ -640,8 +640,6 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     dataTypes: input.dataTypes,
   });
   const modelNamespaceId = input.namespaceId;
-  const namespaceExtensionEntitiesForModel =
-    input.namespaceExtensionEntities?.get(modelNamespaceId);
 
   const resolvedFields = collectResolvedFields({
     model,
@@ -662,7 +660,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     enumHandles: input.enumHandles,
     capabilities: input.capabilities,
     namespaceId: modelNamespaceId,
-    ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntitiesForModel),
+    ...ifDefined('namespaceExtensionEntities', input.namespaceExtensionEntities),
     codecLookup: input.codecLookup,
   });
 
@@ -1471,9 +1469,10 @@ interface BuildValueObjectNodesInput {
   readonly sources: PslSources;
   /** Composite types are placed in the default namespace, so their members resolve against it. */
   readonly defaultNamespaceId: string;
-  readonly defaultNamespaceExtensionEntities:
-    | Readonly<Record<string, Readonly<Record<string, unknown>>>>
-    | undefined;
+  readonly namespaceExtensionEntities: ReadonlyMap<
+    string,
+    Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  >;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly binder: Binder;
 }
@@ -1520,7 +1519,8 @@ function buildValueObjectNodes(input: BuildValueObjectNodesInput): ValueObjectNo
         sources,
         entityLabel: `Field "${compositeType.name}.${field.name}"`,
         namespaceId: input.defaultNamespaceId,
-        ...ifDefined('namespaceExtensionEntities', input.defaultNamespaceExtensionEntities),
+        namespaceExtensionEntities: input.namespaceExtensionEntities,
+        binder,
         codecLookup: input.codecLookup,
       });
       if (!resolved.ok) {
@@ -2375,7 +2375,7 @@ export function interpretPslDocumentToSqlContract(
     diagnostics,
     sources: input.sources,
     defaultNamespaceId,
-    defaultNamespaceExtensionEntities: namespaceExtensionEntities.get(defaultNamespaceId),
+    namespaceExtensionEntities,
     codecLookup: input.codecLookup,
     binder,
   });

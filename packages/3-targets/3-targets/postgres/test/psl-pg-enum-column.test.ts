@@ -12,12 +12,15 @@
  *  3. Nullable variant (`pg.enum(E)?`).
  */
 
+import type { Contract } from '@internal/contract/types';
 import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { bindPslSchema } from '@internal/psl-parser/test';
+import { printPsl } from '@internal/psl-printer';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { interpretPslDocumentToSqlContract } from '@internal/sql-contract-psl';
 import {
   describeUnsupportedSqlAttribute,
@@ -25,6 +28,7 @@ import {
 } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlContextInput } from '@internal/sql-contract-psl/test';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
+import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import {
   postgresAuthoringEntityTypes,
@@ -36,6 +40,8 @@ import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { postgresQualifyColumnType } from '../src/core/codecs';
 import type { PostgresSchema } from '../src/core/postgres-schema';
 import { postgresCreateNamespace } from '../src/core/postgres-schema';
+import { buildPostgresPslContract } from '../src/core/psl-print/psl-contract';
+import { testBuildContext } from './psl-print/build-context';
 
 const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
 
@@ -391,6 +397,105 @@ namespace public {
   });
 });
 
+const crossNamespaceSource = `
+namespace auth {
+  native_enum OrderStatus {
+    pending = "pending"
+    shipped = "shipped"
+    @@map("order_status")
+  }
+}
+
+model Order {
+  id     Int @id
+  status pg.enum(auth.OrderStatus)
+}
+`;
+
+describe('PSL pg.enum(Ref) across namespaces', () => {
+  it('types a top-level column by a native_enum of another namespace, schema-qualified', () => {
+    const result = interpret(crossNamespaceSource);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = result.value.storage.namespaces['public'] as PostgresSchema;
+    expect(ns.table['Order']?.columns['status']).toMatchObject({
+      codecId: 'pg/enum@1',
+      typeParams: { typeName: 'auth.order_status' },
+      valueSet: {
+        plane: 'storage',
+        entityKind: 'valueSet',
+        namespaceId: 'auth',
+        entityName: 'OrderStatus',
+      },
+    });
+  });
+
+  it('types a column of a namespace by a top-level native_enum named unqualified', () => {
+    const result = interpret(`
+native_enum OrderStatus {
+  pending = "pending"
+  @@map("order_status")
+}
+
+namespace auth {
+  model Order {
+    id     Int @id
+    status pg.enum(OrderStatus)
+  }
+}
+`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const ns = result.value.storage.namespaces['auth'] as PostgresSchema;
+    expect(ns.table['Order']?.columns['status']).toMatchObject({
+      typeParams: { typeName: 'order_status' },
+      valueSet: { namespaceId: 'public', entityName: 'OrderStatus' },
+    });
+  });
+
+  it('prints the column back qualified and the enum block once, in its own namespace', () => {
+    const result = interpret(crossNamespaceSource);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    const printed = printPsl(
+      buildPostgresPslContract(
+        blindCast<Contract<SqlStorage>, 'the PSL interpreter yields a SQL contract'>(result.value),
+        testBuildContext(),
+      ),
+      { pslBlockDescriptors: assembled.pslBlockDescriptors },
+    );
+
+    expect(printed).toBe(
+      [
+        '// use prisma-8',
+        '',
+        'namespace auth {',
+        '  native_enum OrderStatus {',
+        '    pending = "pending"',
+        '    shipped = "shipped"',
+        '    @@map("order_status")',
+        '  }',
+        '}',
+        '',
+        'namespace public {',
+        '  model Order {',
+        '    id     Int                       @id',
+        '    status pg.enum(auth.OrderStatus)',
+        '  }',
+        '}',
+        '',
+      ].join('\n'),
+    );
+    const reread = interpret(printed);
+    expect(reread.ok).toBe(true);
+    if (!reread.ok) return;
+    expect(reread.value.storage).toEqual(result.value.storage);
+  });
+});
+
 describe('PSL pg.enum(Ref) diagnostics', () => {
   it('an unresolvable ref is a diagnostic, not a silent fallback', () => {
     const source = `
@@ -405,9 +510,9 @@ namespace auth {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_UNKNOWN_ENTITY_REF' })]),
-    );
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      { code: 'PSL_UNRESOLVED_REFERENCE', message: 'Cannot find entity "NoSuchEnum"' },
+    ]);
   });
 
   it('a ref naming something other than a native_enum block is a diagnostic', () => {
@@ -427,9 +532,7 @@ namespace auth {
 
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    expect(result.failure.diagnostics).toEqual(
-      expect.arrayContaining([expect.objectContaining({ code: 'PSL_UNKNOWN_ENTITY_REF' })]),
-    );
+    expect(result.failure.diagnostics.map(({ code }) => code)).toEqual(['PSL_UNKNOWN_ENTITY_REF']);
   });
 
   it('refuses pg.enum(E) on a composite type member, which has no column to store the enum in', () => {

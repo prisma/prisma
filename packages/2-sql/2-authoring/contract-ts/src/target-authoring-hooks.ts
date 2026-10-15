@@ -151,9 +151,6 @@ export function resolveColumnDescriptor(
   namespaceId: string,
   qualify: ColumnTypeQualifier | undefined,
 ): ColumnTypeDescriptor {
-  return qualifyColumnDescriptor(
-    resolveEntityRefDescriptor(descriptor, namespaceId),
-    namespaceId,
-    qualify,
-  );
+  const resolved = resolveEntityRefDescriptor(descriptor, namespaceId);
+  return qualifyColumnDescriptor(resolved, resolved.valueSet?.namespaceId ?? namespaceId, qualify);
 }
