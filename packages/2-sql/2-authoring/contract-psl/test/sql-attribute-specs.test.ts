@@ -30,8 +30,8 @@ function project(schema: string, modelName: string, namespaceName?: string) {
   const input = buildSymbolTableInput(schema);
   const scope =
     namespaceName === undefined
-      ? input.symbolTable.topLevel
-      : input.symbolTable.topLevel.namespaces[namespaceName];
+      ? input.symbolTable.defaultNamespace
+      : input.symbolTable.namespaces[namespaceName];
   const model = scope?.models[modelName];
   if (model === undefined) throw new Error(`model ${modelName} missing`);
   const { binder } = createBinder({
@@ -115,7 +115,7 @@ namespace scoped {
   model Variant { @@base(Base, "variant") }
   model Base { id String @id }
 }`);
-    const namespace = input.symbolTable.topLevel.namespaces['scoped'];
+    const namespace = input.symbolTable.namespaces['scoped'];
     const model = namespace?.models['Variant'];
     if (!namespace || !model) throw new Error('missing variant');
     const node = getAttribute(model.attributes, 'base')?.node;

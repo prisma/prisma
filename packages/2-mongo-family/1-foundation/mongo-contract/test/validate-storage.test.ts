@@ -502,7 +502,7 @@ describe('validateMongoStorage()', () => {
             storage: { collection: 'items' },
             relations: {},
             discriminator: { field: 'type' },
-            variants: { SpecialItem: { value: 'special' } },
+            variants: { special: crossRef('SpecialItem') },
           },
           SpecialItem: {
             fields: {
@@ -543,7 +543,7 @@ describe('validateMongoStorage()', () => {
             storage: { collection: 'items' },
             relations: {},
             discriminator: { field: 'type' },
-            variants: { SpecialItem: { value: 'special' } },
+            variants: { special: crossRef('SpecialItem') },
           },
           SpecialItem: {
             fields: {

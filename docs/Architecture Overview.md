@@ -235,7 +235,7 @@ sequenceDiagram
   Runtime->>DB: Parse/Bind/Execute
   DB-->>Runtime: Rows (buffer or cursor)
   Runtime->>Codecs: Decode rows to branded types
-  Runtime->>Plugins: onRow / afterExecute
+  Runtime->>Plugins: onRow / activityEnded
   Runtime-->>App: AsyncIterable<Row>
 ```
 ## Guardrails and Feedback Matrix

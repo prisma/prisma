@@ -191,6 +191,7 @@ export type {
   BuildSymbolTableOptions,
   CompositeTypeSymbol,
   FieldSymbol,
+  MixinSymbol,
   ModelSymbol,
   NamedTypeSymbol,
   NamespaceSymbol,
@@ -200,7 +201,6 @@ export type {
   ResolvedTypeConstructorCall,
   SymbolTable,
   SymbolTableResult,
-  TopLevelScope,
 } from '../symbol-table';
 export { buildSymbolTable } from '../symbol-table';
 export { isPslIdentifier } from '../tokenizer';

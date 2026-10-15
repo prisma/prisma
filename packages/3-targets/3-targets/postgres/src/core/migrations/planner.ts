@@ -8,9 +8,12 @@ import type {
   SuppressionRecord,
 } from '@internal/family-sql/control';
 import {
+  appliedStatementsInOrder,
+  backfillOfDefaultedField,
   controlPolicyForCall,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
+  fieldStatementColumns,
   partitionCallsByControlPolicy,
   partitionIssuesByControlPolicy,
   planFieldEventCalls,
@@ -24,17 +27,18 @@ import type { TargetBoundComponentDescriptor } from '@internal/framework-compone
 import type {
   AppliedMigrationStatement,
   MigrationAccessChange,
+  MigrationDataLoss,
   MigrationOperationClass,
-  MigrationOperationSubject,
   MigrationPlanner,
   MigrationPlanWithAuthoringSurface,
   MigrationScaffoldContext,
+  MigrationTemporaryValue,
   PlanOrigin,
   ResolvedMigrationStatement,
   SchemaDiffIssue,
   SchemaOwnership,
 } from '@internal/framework-components/control';
-import { issueOutcome } from '@internal/framework-components/control';
+import { isRenameStatement, issueOutcome } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { namingOf, parseWireName } from '@internal/sql-schema-ir/naming';
@@ -86,10 +90,12 @@ import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
 import {
   postgresColumnRenameCall,
+  postgresTableRenameByHand,
   postgresTableRenameCall,
   renameTableByHandStatements,
   renderRenameTableCall,
 } from './table-rename-calls';
+import { withChecksAroundTypeChanges } from './type-change-checks';
 import { verifyPostgresNamespacePresence } from './verify-postgres-namespaces';
 import { createWorkingSchema } from './working-schema';
 
@@ -134,8 +140,9 @@ export type PostgresPlanResult =
       readonly plan: TypeScriptRenderablePostgresMigration;
       readonly warnings?: readonly SqlPlannerConflict[];
       readonly appliedStatements: readonly AppliedMigrationStatement[];
-      readonly dataLoss: readonly MigrationOperationSubject[];
+      readonly dataLoss: readonly MigrationDataLoss[];
       readonly accessWidening: readonly MigrationAccessChange[];
+      readonly temporaryValues: readonly MigrationTemporaryValue[];
     }
   | SqlPlannerFailureResult;
 
@@ -249,7 +256,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       return plannerFailure([statements.failure]);
     }
     const { schema } = statements.value;
-    const { issues: rawIssues } = buildPostgresPlanDiff({
+    const { issues: rawIssues, expected: expectedSchema } = buildPostgresPlanDiff({
       contract: options.contract,
       actualSchema: schema,
       frameworkComponents: options.frameworkComponents,
@@ -360,6 +367,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     if (caseChangeConflicts.length > 0) {
       return plannerFailure(caseChangeConflicts);
     }
+    const defaultedBackfill = backfillOfDefaultedField(
+      options.statements,
+      options.fromContract,
+      options.contract,
+    );
+    if (defaultedBackfill !== undefined) {
+      return plannerFailure([defaultedBackfill]);
+    }
 
     const result = planIssues({
       issues: issuePartition.plannable,
@@ -377,6 +392,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       ...ifDefined('schema', relationalSchema),
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
+      statementColumns: fieldStatementColumns(options.statements, options.contract),
       strategies: postgresPlannerStrategies,
     });
 
@@ -424,7 +440,18 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       fieldEventPostgresCalls,
       options.contract,
     );
-    const ordered = movePolicyDropsBeforeBlockedDdl(result.value.calls, schemaDiffPartition.kept);
+    const ordered = movePolicyDropsBeforeBlockedDdl(
+      withChecksAroundTypeChanges({
+        calls: result.value.calls,
+        expected: expectedSchema,
+        actual: schema,
+        ddlSchemaOf: (name) =>
+          name === UNBOUND_NAMESPACE_ID
+            ? resolveDdlSchemaForNamespaceStorage(options.contract.storage, UNBOUND_NAMESPACE_ID)
+            : name,
+      }),
+      schemaDiffPartition.kept,
+    );
     const calls = [
       ...statements.value.calls,
       ...ordered.structural,
@@ -464,7 +491,10 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
         options.snapshotsImportPath,
         this.#lowerer,
       ),
-      appliedStatements: statements.value.appliedStatements,
+      appliedStatements: appliedStatementsInOrder(
+        options.statements,
+        statements.value.appliedStatements,
+      ),
       ...subjectsOfCalls(
         postgresCallSubjects(calls, {
           contract: options.fromContract ?? options.contract,
@@ -474,6 +504,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
           fromContract: options.fromContract,
           contract: options.contract,
           statements: options.statements,
+          byHand: postgresTableRenameByHand(options.contract),
         },
       ),
       ...(warnings.length > 0 ? { warnings: Object.freeze(warnings) } : {}),
@@ -721,7 +752,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
   > {
     const working = createWorkingSchema(schema);
     const planned = planStatements<RenameTableCall | RenameColumnCall>({
-      statements: options.statements,
+      statements: options.statements.filter(isRenameStatement),
       fromContract: options.fromContract,
       contract: options.contract,
       policy: options.policy,
@@ -742,8 +773,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
             frameworkComponents: options.frameworkComponents,
           }),
         apply: (call) => working.apply(call),
-        renderTableRename: renderRenameTableCall,
-        tableRenameByHand: (rename) => renameTableByHandStatements(options.contract, rename),
+        ...postgresTableRenameByHand(options.contract),
       },
     });
     if (!planned.ok) return planned;

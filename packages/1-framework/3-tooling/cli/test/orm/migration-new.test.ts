@@ -137,9 +137,26 @@ describe('migration new', () => {
       {
         kind: 'run-command',
         label: 'Run it to self-emit ops.json and attest the package',
-        command: `node "${migrationTs}"`,
+        command: `node ${migrationTs}`,
       },
     ]);
+  });
+
+  it('repeats the --config it was given in the command that runs the stub', async () => {
+    const project = await createOfflineProject({ storageHash: HASH_TO });
+
+    const run = await harness(project).run(['migration', 'new', '--config', 'prisma.config.ts'], {
+      cwd: project.dir,
+      isTty: { stdout: true },
+    });
+    const [dirName] = await scaffoldedDirs(project);
+    const migrationTs = join('migrations', 'app', dirName ?? '', 'migration.ts');
+
+    expect(run.presented?.presentation.next?.at(-1)).toEqual({
+      kind: 'run-command',
+      label: 'Run it to self-emit ops.json and attest the package',
+      command: `node ${migrationTs} --config prisma.config.ts`,
+    });
   });
 
   it('writes nothing to stdout in human mode', async () => {
@@ -492,7 +509,8 @@ describe('migration new', () => {
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
 
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
+    expect(envelope?.ok).toBe(false);
+    expect(envelope).not.toHaveProperty('error.fix');
   });
 });
 

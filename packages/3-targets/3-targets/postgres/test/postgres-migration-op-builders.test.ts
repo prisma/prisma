@@ -5,18 +5,26 @@ import type {
   SqlControlAdapter,
 } from '@internal/family-sql/control-adapter';
 import type { ControlStack } from '@internal/framework-components/control';
+import { SqlExpression } from '@internal/sql-contract/sql-expression';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
-import { col, lit } from '@internal/sql-relational-core/contract-free';
+import {
+  checkExpression,
+  col,
+  fn,
+  lit,
+  type SqlTextInput,
+} from '@internal/sql-relational-core/contract-free';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
-import type { AlterColumnTypeOptions } from '../src/core/migrations/op-factory-call';
+import { postgresDataTypes } from '../src/core/data-types';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
 import type { DataTransformOptions } from '../src/core/migrations/operations/data-transform';
 import type { CreateIndexExtras } from '../src/core/migrations/operations/indexes';
 import type { ForeignKeySpec } from '../src/core/migrations/operations/shared';
 import type { PostgresPlanTargetDetails } from '../src/core/migrations/planner-target-details';
 import { PostgresMigration } from '../src/core/migrations/postgres-migration';
+import type { RenderedRlsPolicyLiteral } from '../src/core/postgres-rls-policy';
 import type { Contract } from './fixtures/namespaced-contract.d';
 import contractJson from './fixtures/namespaced-contract.json' with { type: 'json' };
 
@@ -120,7 +128,7 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly schema: string;
     readonly table: string;
     readonly constraint: string;
-    readonly expression: string;
+    readonly expression: SqlTextInput;
   }): Promise<Op> {
     return this.addCheckConstraint(options);
   }
@@ -158,10 +166,21 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly schema: string;
     readonly table: string;
     readonly column: string;
-    readonly options: AlterColumnTypeOptions;
+    readonly type: string;
+    readonly using?: SqlTextInput;
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<Op> {
     return this.alterColumnType(options);
+  }
+
+  callAddColumnWithTemporaryDefault(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: string;
+    readonly type: string;
+    readonly temporaryDefault: SqlTextInput;
+  }): Promise<Op> {
+    return this.addColumnWithTemporaryDefault(options);
   }
 
   callSetNotNull(options: {
@@ -202,9 +221,30 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly table: string;
     readonly index: string;
     readonly columns: readonly string[];
-    readonly extras?: CreateIndexExtras;
+    readonly extras?: Omit<CreateIndexExtras, 'where'> & { readonly where?: SqlTextInput };
   }): Promise<Op> {
     return this.createIndex(options);
+  }
+
+  callCreateExpressionIndex(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly index: string;
+    readonly expression: SqlTextInput;
+    readonly extras?: Omit<CreateIndexExtras, 'where'> & { readonly where?: SqlTextInput };
+  }): Promise<Op> {
+    return this.createIndex(options);
+  }
+
+  callCreateRlsPolicy(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly policy: Omit<RenderedRlsPolicyLiteral, 'using' | 'withCheck'> & {
+      readonly using?: SqlTextInput;
+      readonly withCheck?: SqlTextInput;
+    };
+  }): Promise<Op> {
+    return this.createRlsPolicy(options);
   }
 
   callDropIndex(options: {
@@ -345,11 +385,7 @@ const cases: ReadonlyArray<{
         schema: 'public',
         table: 'widget',
         column: 'name',
-        options: {
-          qualifiedTargetType: 'text',
-          formatTypeExpected: 'text',
-          rawTargetTypeForLabel: 'text',
-        },
+        type: 'text',
       }),
   },
   {
@@ -461,7 +497,9 @@ function fakeControlStack(): ControlStack<'sql', 'postgres'> {
   };
   const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
   return {
-    adapter: { create: () => adapter },
+    target: { id: 'postgres' },
+    adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
+    extensions: [],
   } as unknown as ControlStack<'sql', 'postgres'>;
 }
 
@@ -549,28 +587,77 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(typeof op.execute[0]?.sql).toBe('string');
   });
 
-  it('alterColumnType is destructive unless the migration says it is a widening', async () => {
+  it('alterColumnType takes plain options, and is destructive unless the migration says otherwise', async () => {
     const m = new ExposedMigration(fakeControlStack());
-    const options = {
-      qualifiedTargetType: 'int8',
-      formatTypeExpected: 'bigint',
-      rawTargetTypeForLabel: 'int8',
-    };
-    const lossy = await m.callAlterColumnType({
-      schema: 'public',
-      table: 'widget',
-      column: 'count',
-      options,
-    });
-    const widening = await m.callAlterColumnType({
-      schema: 'public',
-      table: 'widget',
-      column: 'count',
-      options,
-      operationClass: 'widening',
-    });
+    const where = { schema: 'public', table: 'widget', column: 'count', type: 'int8' };
+    const lossy = await m.callAlterColumnType(where);
+    const widening = await m.callAlterColumnType({ ...where, operationClass: 'widening' });
+    const converted = await m.callAlterColumnType({ ...where, using: '"count"::int8' });
 
-    expect([lossy.operationClass, widening.operationClass]).toEqual(['destructive', 'widening']);
+    expect([lossy.operationClass, widening.operationClass, converted.operationClass]).toEqual([
+      'destructive',
+      'widening',
+      'data',
+    ]);
+    expect(converted.execute[0]?.sql).toBe(
+      'ALTER TABLE "public"."widget" ALTER COLUMN "count" TYPE int8 USING "count"::int8',
+    );
+    expect(converted.postcheck[0]?.description).toBe('verify column "count" has type "bigint"');
+  });
+
+  it('alterColumnType refuses the options an earlier version wrote, naming the new shape', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    const earlier = {
+      schema: 'public',
+      table: 'User',
+      column: 'age',
+      options: {
+        qualifiedTargetType: 'int4',
+        formatTypeExpected: 'integer',
+        rawTargetTypeForLabel: 'int4',
+        using: 'trim("age")::integer',
+      },
+    } as unknown as Parameters<ExposedMigration['callAlterColumnType']>[0];
+
+    expect(() => m.callAlterColumnType(earlier)).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.OPERATION_OPTION_REMOVED',
+        message:
+          '`alterColumnType` in migration.ts passes `options`, which this version no longer reads, for column "age" of table "User"',
+        fix: 'Pass `{ schema, table, column, type, using? }`: move `options.qualifiedTargetType` to `type` and `options.using` to `using`, and drop the other options. Or, if the migration is not applied, delete its package and run `migration plan` again. The upgrade entry `postgres-alter-column-type-plain-options` shows the new shape: https://github.com/prisma/orm/tree/main/skills/prisma-8/upgrading',
+      }),
+    );
+  });
+
+  it('alterColumnType refuses a call with no type, naming the shape it takes', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    const typeless = { schema: 'public', table: 'User', column: 'age' } as unknown as Parameters<
+      ExposedMigration['callAlterColumnType']
+    >[0];
+
+    expect(() => m.callAlterColumnType(typeless)).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        message:
+          'alterColumnType({ schema: "public", table: "User", column: "age" }): it has no `type`',
+        fix: 'Pass `{ schema, table, column, type, using? }`, with `type` written as a migration writes it, such as int4 or varchar(20).',
+      }),
+    );
+  });
+
+  it('alterColumnType refuses a type the stack cannot read, naming the call', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    expect(() =>
+      m.callAlterColumnType({ schema: 'public', table: 'widget', column: 'count', type: 'int9' }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        meta: {
+          type: 'int9',
+          where: 'alterColumnType({ schema: "public", table: "widget", column: "count" })',
+        },
+      }),
+    );
   });
 
   it('setNotNull lowers to a widening operation', async () => {
@@ -578,5 +665,137 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     const op = await m.callSetNotNull({ schema: 'public', table: 'widget', column: 'name' });
 
     expect(op.operationClass).toBe('widening');
+  });
+});
+
+function astRecordingControlStack(): ControlStack<'sql', 'postgres'> {
+  const lowerer: ExecuteRequestLowerer = {
+    lower: () => ({ sql: 'UNUSED', params: [] }),
+    renderColumnDefault: async (column) => JSON.stringify(column.default),
+    lowerToExecuteRequest: async (ast) => ({ sql: JSON.stringify(ast), params: [] }),
+  };
+  const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
+  return {
+    target: { id: 'postgres' },
+    adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
+    extensions: [],
+  } as unknown as ControlStack<'sql', 'postgres'>;
+}
+
+describe('PostgresMigration op-builder methods with sql values', () => {
+  const sqlCases: ReadonlyArray<{
+    readonly name: string;
+    readonly run: (m: ExposedMigration, text: (body: string) => SqlTextInput) => Promise<Op>;
+  }> = [
+    {
+      name: 'createIndex expression',
+      run: (m, text) =>
+        m.callCreateExpressionIndex({
+          schema: 'public',
+          table: 'widget',
+          index: 'widget_lower_name_idx',
+          expression: text('lower("name")'),
+        }),
+    },
+    {
+      name: 'createIndex extras.where',
+      run: (m, text) =>
+        m.callCreateIndex({
+          schema: 'public',
+          table: 'widget',
+          index: 'widget_name_idx',
+          columns: ['name'],
+          extras: { unique: true, where: text(`"status" = 'active'`) },
+        }),
+    },
+    {
+      name: 'addCheckConstraint',
+      run: (m, text) =>
+        m.callAddCheckConstraint({
+          schema: 'public',
+          table: 'widget',
+          constraint: 'widget_status_check',
+          expression: text(`"status" IN ('active',\n  'inactive')`),
+        }),
+    },
+    {
+      name: 'createRlsPolicy using and withCheck',
+      run: (m, text) =>
+        m.callCreateRlsPolicy({
+          schema: 'public',
+          table: 'widget',
+          policy: {
+            naming: { kind: 'wire', prefix: 'widget_owner', hash: '0a1b2c3d' },
+            tableName: 'widget',
+            namespaceId: 'public',
+            operation: 'all',
+            roles: ['authenticated'],
+            using: text('"userId" = auth.uid()'),
+            withCheck: text('"userId" = auth.uid() AND NOT "locked"'),
+            permissive: true,
+          },
+        }),
+    },
+    {
+      name: 'alterColumnType using',
+      run: (m, text) =>
+        m.callAlterColumnType({
+          schema: 'public',
+          table: 'widget',
+          column: 'count',
+          type: 'int8',
+          using: text('"count"::int8'),
+        }),
+    },
+    {
+      name: 'addColumnWithTemporaryDefault temporaryDefault',
+      run: (m, text) =>
+        m.callAddColumnWithTemporaryDefault({
+          schema: 'public',
+          table: 'widget',
+          column: 'title',
+          type: 'text',
+          temporaryDefault: text("''"),
+        }),
+    },
+    {
+      name: 'fn and checkExpression',
+      run: (m, text) =>
+        m.callCreateTable({
+          schema: 'public',
+          table: 'widget',
+          columns: [col('created_at', 'timestamptz', { default: fn(text('now()')) })],
+          constraints: [checkExpression('widget_count_check', text('"count" >= 0'))],
+        }),
+    },
+  ];
+
+  it.each(sqlCases)('$name gives the same op for a string and a sql value', async ({ run }) => {
+    const m = new ExposedMigration(astRecordingControlStack());
+    const fromString = await run(m, (body) => body);
+    const fromSql = await run(m, (body) => new SqlExpression(body));
+
+    expect(fromSql).toEqual(fromString);
+  });
+
+  it('names the argument when a value is neither a string nor a sql value', () => {
+    const m = new ExposedMigration(astRecordingControlStack());
+    const notSql = { text: 'x' } as unknown as SqlTextInput;
+
+    expect(() =>
+      m.callCreateIndex({
+        schema: 'public',
+        table: 'widget',
+        index: 'widget_name_idx',
+        columns: ['name'],
+        extras: { where: notSql },
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.ARGUMENT_INVALID',
+        message: 'createIndex "widget_name_idx" where must be a string or a sql`...` value.',
+        meta: { what: 'createIndex "widget_name_idx" where' },
+      }),
+    );
   });
 });

@@ -8,6 +8,7 @@ import {
   fullTextIndex,
   model,
   rel,
+  sql,
 } from '@internal/postgres/contract-builder';
 
 const UserBase = model('User', {
@@ -50,17 +51,23 @@ const Comment = model('Comment', {
     fullTextIndex(cols.subject, { name: 'comments_subject_search' }),
     // Partial: the index-usage test proves Postgres picks this one up for a
     // query that carries the same predicate.
-    fullTextIndex(cols.body, { where: 'post_id = 1', name: 'comments_body_live' }),
+    fullTextIndex(cols.body, { where: sql`post_id = 1`, name: 'comments_body_live' }),
   ],
 }));
 
-const Document = model('Document', {
+const DocumentBase = model('Document', {
   fields: {
     id: field.column(int4Column).id(),
     title: field.column(textColumn),
     subtitle: field.column(textColumn).optional(),
     body: field.column(textColumn).optional(),
+    parentId: field.column(int4Column).optional().column('parent_id'),
   },
+});
+
+const Document = DocumentBase.relations({
+  parent: rel.belongsTo(DocumentBase, { from: 'parentId', to: 'id' }),
+  children: rel.hasMany(() => DocumentBase, { by: 'parentId' }),
 }).sql(({ cols }) => ({
   table: 'documents',
   indexes: [fullTextIndex([[cols.title, cols.subtitle], cols.body], { name: 'documents_search' })],

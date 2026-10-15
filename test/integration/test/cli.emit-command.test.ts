@@ -574,6 +574,7 @@ model Post {
       });
       const sourceResult = await contractConfig!.source.load({
         composedExtensions: stack.extensions.map((p) => p.id),
+        defaultNamespaceId: stack.target.defaultNamespaceId,
         composedExtensionContracts: new Map(),
         authoringContributions: stack.authoringContributions,
         codecLookup: stack.codecLookup,
@@ -795,7 +796,7 @@ model Post {
                   }),
                   discriminator: { field: 'type' },
                   variants: {
-                    Bug: { value: 'bug' },
+                    bug: { namespace: '__unbound__', model: 'Bug' },
                   },
                 }),
                 Bug: expect.objectContaining({

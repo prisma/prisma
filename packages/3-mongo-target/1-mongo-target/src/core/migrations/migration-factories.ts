@@ -1,6 +1,6 @@
 import type {
-  MongoDataTransformCheck,
-  MongoDataTransformOperation,
+  MongoDmlCheck,
+  MongoDmlOperation,
   MongoFilterExpr,
   MongoIndexKey,
 } from '@internal/mongo-query-ast/control';
@@ -20,13 +20,19 @@ import {
   MongoExistsExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
+  RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
-import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
+import {
+  type MongoQueryPlan,
+  RawAggregateCommand,
+  RawUpdateManyCommand,
+} from '@internal/mongo-query-ast/execution';
 import { createFieldAccessor } from '@internal/mongo-query-builder';
 import { collection } from '@internal/mongo-query-builder/contract-free';
-import type { MongoValue } from '@internal/mongo-value';
+import type { Document, MongoValue } from '@internal/mongo-value';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
+import { mongoTargetError } from '../mongo-target-errors';
 import type { CollModMeta } from './op-factory-call';
 
 type StringField = { readonly codecId: 'mongo/string@1'; readonly nullable: false };
@@ -77,9 +83,9 @@ export function dataTransform(
     };
     run: () => MongoQueryPlan | Buildable;
   },
-): MongoDataTransformOperation {
-  let precheck: readonly MongoDataTransformCheck[] = [];
-  let postcheck: readonly MongoDataTransformCheck[] = [];
+): MongoDmlOperation {
+  let precheck: readonly MongoDmlCheck[] = [];
+  let postcheck: readonly MongoDmlCheck[] = [];
 
   if (options.check) {
     const source = resolveQuery(options.check.source());
@@ -104,6 +110,177 @@ export function dataTransform(
     precheck,
     run,
     postcheck,
+  };
+}
+
+export interface FieldRewriteOptions {
+  readonly filter?: Document;
+}
+
+const REWRITE_PLAN_META = { target: 'mongo', storageHash: '', lane: 'mongo-raw' } as const;
+
+function documentsHolding(fields: readonly string[], filter: Document | undefined): Document {
+  const conditions: Document[] = [
+    ...(filter === undefined ? [] : [filter]),
+    ...fields.map((field) => ({ [field]: { $exists: true } })),
+  ];
+  const [only] = conditions;
+  return conditions.length === 1 && only !== undefined ? only : { $and: conditions };
+}
+
+const UNREWRITABLE_FIELD_NAMES: ReadonlyArray<{
+  readonly matches: (field: string) => boolean;
+  readonly reason: string;
+}> = [
+  { matches: (field) => field === '', reason: 'it is empty' },
+  { matches: (field) => field === '_id', reason: 'MongoDB does not let a document change its _id' },
+  {
+    matches: (field) => field.includes('.'),
+    reason: 'MongoDB reads a name containing "." as a path into embedded documents',
+  },
+  {
+    matches: (field) => field.startsWith('$'),
+    reason: 'MongoDB reads a name starting with "$" as an operator',
+  },
+];
+
+/** Why `renameField` and `unsetField` cannot rewrite a field of this name, if they cannot. */
+export function unrewritableFieldNameReason(field: string): string | undefined {
+  return UNREWRITABLE_FIELD_NAMES.find((rule) => rule.matches(field))?.reason;
+}
+
+function assertRewritableField(collectionName: string, field: string): void {
+  const reason = unrewritableFieldNameReason(field);
+  if (reason === undefined) return;
+  throw mongoTargetError(
+    'MIGRATION.FIELD_NAME_UNSUPPORTED',
+    `Field "${field}" in collection ${collectionName} cannot be rewritten: ${reason}.`,
+    { meta: { collection: collectionName, field, reason } },
+  );
+}
+
+function rewritePlan(collectionName: string, command: RawAggregateCommand | RawUpdateManyCommand) {
+  return { collection: collectionName, command, meta: { ...REWRITE_PLAN_META } };
+}
+
+function noDocumentHolds(
+  collectionName: string,
+  fields: readonly string[],
+  filter: Document | undefined,
+): MongoDmlCheck {
+  return {
+    description: `no document in ${collectionName} holds ${fields.length === 1 ? fields[0] : `both ${fields.join(' and ')}`}`,
+    source: rewritePlan(
+      collectionName,
+      new RawAggregateCommand(collectionName, [
+        { $match: documentsHolding(fields, filter) },
+        { $limit: 1 },
+      ]),
+    ),
+    filter: MATCH_ALL_FILTER,
+    expect: 'notExists',
+  };
+}
+
+function rewriteUpdate(
+  collectionName: string,
+  field: string,
+  filter: Document | undefined,
+  update: Document,
+): MongoQueryPlan {
+  return rewritePlan(
+    collectionName,
+    new RawUpdateManyCommand(collectionName, documentsHolding([field], filter), update, {
+      bypassDocumentValidation: true,
+    }),
+  );
+}
+
+function idSuffix(filter: Document | undefined): string {
+  return filter === undefined ? '' : `.where(${JSON.stringify(filter)})`;
+}
+
+function valueList(values: readonly unknown[]): string {
+  return values.map((value) => JSON.stringify(value)).join(', ');
+}
+
+/** A field condition in words: `type is "bug"`, `type is not "bug"`, `type is none of "bug", "task"`. */
+function conditionInWords(field: string, condition: unknown): string | undefined {
+  const excluded: unknown =
+    typeof condition === 'object' && condition !== null && !Array.isArray(condition)
+      ? Reflect.get(condition, '$nin')
+      : undefined;
+  if (Array.isArray(excluded)) {
+    return excluded.length === 1
+      ? `${field} is not ${valueList(excluded)}`
+      : `${field} is none of ${valueList(excluded)}`;
+  }
+  return typeof condition === 'object' && condition !== null
+    ? undefined
+    : `${field} is ${JSON.stringify(condition)}`;
+}
+
+/** The documents a filter selects, in words where the planner wrote it, for an operation's label. */
+function labelSuffix(filter: Document | undefined): string {
+  if (filter === undefined) return '';
+  const entries = Object.entries(filter);
+  const words = entries.map(([field, condition]) => conditionInWords(field, condition));
+  return words.every((word) => word !== undefined) && words.length > 0
+    ? ` in documents whose ${words.join(' and ')}`
+    : ` in documents matching ${JSON.stringify(filter)}`;
+}
+
+export function renameField(
+  collectionName: string,
+  from: string,
+  to: string,
+  options?: FieldRewriteOptions,
+): MongoDmlOperation {
+  assertRewritableField(collectionName, from);
+  assertRewritableField(collectionName, to);
+  if (from === to) {
+    throw mongoTargetError(
+      'MIGRATION.INVALID_OPERATION_ENTRY',
+      `renameField renames field "${from}" in collection ${collectionName} to its own name.`,
+      {
+        meta: {
+          context: 'renameField',
+          collection: collectionName,
+          field: from,
+          reason: 'the new name is the old name',
+        },
+      },
+    );
+  }
+  const filter = options?.filter;
+  const id = `field.${collectionName}.${from}.rename(${to})${idSuffix(filter)}`;
+  return {
+    id,
+    label: `Rename field ${from} to ${to} in collection ${collectionName}${labelSuffix(filter)}`,
+    operationClass: 'widening',
+    name: id,
+    precheck: [noDocumentHolds(collectionName, [from, to], filter)],
+    run: [rewriteUpdate(collectionName, from, filter, { $rename: { [from]: to } })],
+    postcheck: [noDocumentHolds(collectionName, [from], filter)],
+  };
+}
+
+export function unsetField(
+  collectionName: string,
+  field: string,
+  options?: FieldRewriteOptions,
+): MongoDmlOperation {
+  assertRewritableField(collectionName, field);
+  const filter = options?.filter;
+  const id = `field.${collectionName}.${field}.unset${idSuffix(filter)}`;
+  return {
+    id,
+    label: `Remove field ${field} from collection ${collectionName}${labelSuffix(filter)}`,
+    operationClass: 'destructive',
+    name: id,
+    precheck: [],
+    run: [rewriteUpdate(collectionName, field, filter, { $unset: { [field]: '' } })],
+    postcheck: [noDocumentHolds(collectionName, [field], filter)],
   };
 }
 
@@ -246,6 +423,32 @@ export function dropCollection(collectionName: string): MongoMigrationPlanOperat
       },
     ],
     postcheck: [],
+  };
+}
+
+function collectionCheck(name: string, expect: 'exists' | 'notExists') {
+  return {
+    description:
+      expect === 'exists' ? `collection ${name} exists` : `collection ${name} does not exist`,
+    source: new ListCollectionsCommand(),
+    filter: MongoFieldFilter.eq('name', name),
+    expect,
+  };
+}
+
+export function renameCollection(from: string, to: string): MongoMigrationPlanOperation {
+  return {
+    id: `collection.${from}.rename(${to})`,
+    label: `Rename collection ${from} to ${to}`,
+    operationClass: 'widening',
+    precheck: [collectionCheck(from, 'exists'), collectionCheck(to, 'notExists')],
+    execute: [
+      {
+        description: `rename collection ${from} to ${to}`,
+        command: new RenameCollectionCommand(from, to),
+      },
+    ],
+    postcheck: [collectionCheck(to, 'exists'), collectionCheck(from, 'notExists')],
   };
 }
 

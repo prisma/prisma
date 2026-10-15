@@ -353,7 +353,7 @@ describe('mongoEmission.generateContractTypes', () => {
             relations: {},
             storage: { collection: 'tasks' },
             discriminator: { field: 'type' },
-            variants: { Bug: { value: 'bug' }, Feature: { value: 'feature' } },
+            variants: { bug: crossRef('Bug'), feature: crossRef('Feature') },
           },
           Bug: {
             fields: {
@@ -384,8 +384,12 @@ describe('mongoEmission.generateContractTypes', () => {
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain('discriminator: { readonly field: "type" }');
-      expect(types).toContain('readonly Bug: { readonly value: "bug" }');
-      expect(types).toContain('readonly Feature: { readonly value: "feature" }');
+      expect(types).toContain(
+        'readonly bug: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Bug" }',
+      );
+      expect(types).toContain(
+        'readonly feature: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Feature" }',
+      );
       expect(types).toContain(
         'base: { readonly namespace: "__unbound__" & NamespaceId; readonly model: "Task" }',
       );

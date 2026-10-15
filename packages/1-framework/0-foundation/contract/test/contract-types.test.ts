@@ -21,7 +21,7 @@ describe('unified contract types', () => {
         relations: {},
         storage: {},
         discriminator: { field: 'type' },
-        variants: { Special: { value: 'special' } },
+        variants: { special: crossRef('Special') },
         owner: 'Parent',
       };
       expect(model.discriminator?.field).toBe('type');

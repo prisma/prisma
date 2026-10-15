@@ -103,16 +103,16 @@ export async function readEmittedContract(inputs: {
 export function requireVerifyConnection(inputs: {
   readonly config: PrismaNextConfig;
   readonly db: string | undefined;
-  readonly invocation: string;
+  readonly commandLine: string;
 }): Result<string, CliStructuredError> {
   const dbConnection = inputs.db ?? inputs.config.db?.connection;
   if (typeof dbConnection !== 'string' || dbConnection.length === 0) {
     return notOk(
       normalizeError(
         errorDatabaseConnectionRequired({
-          why: `Database connection is required for ${inputs.invocation} (set db.connection in prisma.config.ts, or pass --db <url>)`,
+          why: `Database connection is required for ${inputs.commandLine} (set db.connection in prisma.config.ts, or pass --db <url>)`,
           missingFlags: ['--db'],
-          retryCommand: `{bin} ${inputs.invocation} --db <url>`,
+          retryCommand: `{bin} ${inputs.commandLine} --db <url>`,
         }),
       ),
     );
@@ -120,7 +120,7 @@ export function requireVerifyConnection(inputs: {
   if (inputs.config.driver === undefined) {
     return notOk(
       normalizeError(
-        errorDriverRequired({ why: `Config.driver is required for ${inputs.invocation}` }),
+        errorDriverRequired({ why: `Config.driver is required for ${inputs.commandLine}` }),
       ),
     );
   }
@@ -132,13 +132,13 @@ export function requireVerifyConnection(inputs: {
  */
 export function verificationThrow(inputs: {
   readonly error: unknown;
-  readonly invocation: string;
+  readonly commandLine: string;
   readonly connection: string;
 }): CliStructuredError {
   return normalizeError(
     errorFromCaught(
       inputs.error,
-      (message) => `Unexpected error during ${inputs.invocation}: ${message}`,
+      (message) => `Unexpected error during ${inputs.commandLine}: ${message}`,
       { connection: inputs.connection },
     ),
   );

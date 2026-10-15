@@ -10,7 +10,6 @@ import {
   AggregateExpr,
   type AnyExpression,
   type BinaryOp,
-  ColumnRef,
   isAggregateFn,
   LiteralExpr,
   type OrderByItem,
@@ -23,14 +22,16 @@ import type { SimplifyDeep } from '@internal/utils/simplify-deep';
 import { createAggregateBuilder, isAggregateSelector } from './aggregate-builder';
 import { resolveAggregate } from './aggregate-codecs';
 import { aggregateOperationNames } from './aggregate-operations';
-import { getFieldToColumnMap } from './collection-contract';
+import { columnOfCallerField, getModelFieldColumns } from './collection-contract';
 import { createStorageRowMapper } from './collection-runtime';
+import { withScopeCopy } from './collection-tables';
 import { createModelAccessor } from './model-accessor';
 import { ormError } from './orm-errors';
 import { predicateComparison } from './predicate-comparison';
 import { predicateExpression } from './predicate-expression';
 import { compileGroupedAggregate, mergeAnnotations } from './query-plan';
 import { queryPlanRows } from './query-plan-rows';
+import type { AliasedTable } from './table-scope';
 import type {
   AggregateBuilder,
   AggregateResult,
@@ -138,7 +139,7 @@ export class GroupedCollection<
         this.ctx.context.aggregateDescriptors,
         this.namespaceId,
         this.modelName,
-        this.tableName,
+        this.preGroupState.tables.root,
       ),
     );
     return this.#clone({ havingFilters: [...this.havingFilters, havingExpr] });
@@ -174,13 +175,16 @@ export class GroupedCollection<
         { meta: { method: 'orderBy', model: this.modelName } },
       );
     }
+    const tables = withScopeCopy(this.preGroupState.tables);
     const accessor = createModelAccessor<TContract, ModelName, undefined, NsId>(
       this.ctx.context,
       this.namespaceId,
       this.modelName,
+      tables,
     );
     const nextOrders = selectors.map((selector) => selector(accessor));
     return this.#clone<true>({
+      preGroupState: { ...this.preGroupState, tables },
       postGroup: { ...this.postGroup, orderBy: [...this.postGroup.orderBy, ...nextOrders] },
     });
   }
@@ -286,8 +290,6 @@ export class GroupedCollection<
       compileGroupedAggregate(
         this.contract,
         this.ctx.context.aggregateDescriptors,
-        this.namespaceId,
-        this.tableName,
         this.preGroupState,
         this.groupByColumns,
         aggregateSpec,
@@ -334,9 +336,10 @@ function createHavingBuilder<
   aggregates: SqlAggregateDescriptorRegistry,
   namespaceId: string,
   modelName: ModelName,
-  tableName: string,
+  root: AliasedTable,
 ): HavingBuilder<TContract, ModelName, NsId> {
-  const fieldToColumn = getFieldToColumnMap(contract, namespaceId, modelName);
+  const { tableName } = root.storage;
+  const fieldColumns = getModelFieldColumns(contract, namespaceId, modelName);
   const builder: Record<string, (field?: string) => HavingComparisonMethods<number | null>> = {};
   for (const operation of aggregateOperationNames(aggregates)) {
     builder[operation] = (field?: string) => {
@@ -351,9 +354,13 @@ function createHavingBuilder<
           },
         );
       }
+      const column =
+        field === undefined
+          ? undefined
+          : columnOfCallerField(contract, namespaceId, fieldColumns, modelName, field);
       const metric = new AggregateExpr(
         operation,
-        field === undefined ? undefined : ColumnRef.of(tableName, fieldToColumn[field] ?? field),
+        column === undefined ? undefined : root.column(column),
       );
       return createHavingComparisonMethods(
         metric,
@@ -364,7 +371,7 @@ function createHavingBuilder<
             namespaceId,
             tableName,
             fn: operation,
-            column: field === undefined ? undefined : (fieldToColumn[field] ?? field),
+            column,
           }).codec.codecId,
       );
     };

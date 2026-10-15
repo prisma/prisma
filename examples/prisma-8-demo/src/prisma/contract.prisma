@@ -40,6 +40,7 @@ model User {
 model Post {
   id        Uuid           @id @default(uuid())
   title     String
+  body      String?
   userId    Uuid
   priority  Priority @default(Low)
   createdAt DateTime       @default(now())
@@ -66,6 +67,9 @@ model Post {
   tags Tag[]
 
   @@fullTextIndex([title], name: "post_title_search")
+  // One search document over the title and the body; a match in the title
+  // counts more than a match in the body.
+  @@fullTextIndex([title, body], name: "post_search")
   @@map("post")
 }
 

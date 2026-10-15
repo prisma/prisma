@@ -4,6 +4,8 @@
 
 ## Summary
 
+Slice 1 shipped. Slice 2 moved to the activity tree project ([`../activity-tree/plan.md`](../activity-tree/plan.md), slice 4), where the cache invalidates on `activityFinalized` instead of `afterTransaction`. This folder is deleted at that project's close-out.
+
 Two slices, one PR each, in order. Slice 2 is blocked by slice 1: the write annotation cannot be correct without a stage that fires once the write's transaction has ended.
 
 ## Slice 1: `afterTransaction` stage (TML-3399)

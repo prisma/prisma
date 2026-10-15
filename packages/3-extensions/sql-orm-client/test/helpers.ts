@@ -24,11 +24,116 @@ import {
   type SqlRuntimeExtensionDescriptor,
 } from '@internal/sql-runtime';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
-import type { RuntimeQueryable } from '../src/types';
+import { expect } from 'vitest';
+import { resolveIncludeRelation } from '../src/collection-contract';
+import {
+  type CollectionTables,
+  createCollectionTables,
+  createIncludeTables,
+  createStatementTables,
+} from '../src/collection-tables';
+import {
+  type CollectionState,
+  emptyState,
+  type IncludeExpr,
+  type RuntimeQueryable,
+} from '../src/types';
+import type { TableAliases } from '../src/where-binding';
 import { defineContract, field, model, rel, type ScalarFieldBuilder } from './contract-builder';
 import type { Contract } from './fixtures/generated/contract';
 import contractJson from './fixtures/generated/contract.json' with { type: 'json' };
 import { defineTestCodec } from './test-codec';
+
+export function publicTables(...tableNames: string[]): TableAliases {
+  return new Map(tableNames.map((tableName) => [tableName, { namespaceId: 'public', tableName }]));
+}
+
+export function tablesForTable(
+  contract: FrameworkContract<SqlStorage>,
+  tableName: string,
+  namespaceId = 'public',
+): CollectionTables {
+  const models = Object.entries(contract.domain.namespaces[namespaceId]?.models ?? {}).filter(
+    ([, model]) => model.storage['table'] === tableName,
+  );
+  const [modelName] = models.find(([, model]) => model.base === undefined) ?? models[0] ?? [];
+  return modelName === undefined
+    ? createStatementTables({ namespaceId, tableName })
+    : createCollectionTables(contract, namespaceId, modelName, tableName);
+}
+
+export type StateFields = Partial<Omit<CollectionState, 'tables'>>;
+
+export function tableState(
+  contract: FrameworkContract<SqlStorage>,
+  tableName: string,
+  fields: StateFields = {},
+  namespaceId = 'public',
+): CollectionState {
+  return { ...emptyState(tablesForTable(contract, tableName, namespaceId)), ...fields };
+}
+
+export type IncludeSpec = (parent: CollectionTables) => IncludeExpr;
+
+export interface StateSpec extends Omit<StateFields, 'includes'> {
+  readonly includes?: readonly IncludeSpec[];
+}
+
+export function specState(tables: CollectionTables, spec: StateSpec = {}): CollectionState {
+  const { includes = [], ...fields } = spec;
+  return {
+    ...emptyState(tables),
+    ...fields,
+    includes: includes.map((include) => include(tables)),
+  };
+}
+
+export function tableSpecState(
+  contract: FrameworkContract<SqlStorage>,
+  tableName: string,
+  spec: StateSpec,
+  namespaceId = 'public',
+): CollectionState {
+  return specState(tablesForTable(contract, tableName, namespaceId), spec);
+}
+
+export function relationInclude(
+  contract: FrameworkContract<SqlStorage>,
+  parentModel: string,
+  relationName: string,
+  nested: StateSpec = {},
+  namespaceId = 'public',
+): IncludeSpec {
+  const relation = resolveIncludeRelation(contract, namespaceId, parentModel, relationName);
+  return (parent) => {
+    const child = createIncludeTables(contract, parent, relation);
+    return {
+      relationName,
+      relatedModelName: relation.relatedModelName,
+      relatedTableName: relation.relatedTableName,
+      relatedNamespaceId: relation.relatedNamespaceId,
+      ...(relation.localVariantValue === undefined
+        ? {}
+        : { localVariantValue: relation.localVariantValue }),
+      targetColumns: relation.targetColumns,
+      localColumns: relation.localColumns,
+      cardinality: relation.cardinality,
+      ...(relation.through === undefined ? {} : { through: relation.through }),
+      ...(child.junction === undefined ? {} : { junction: child.junction }),
+      nested: specState(child.tables, nested),
+      scalar: undefined,
+      combine: undefined,
+    };
+  };
+}
+
+export function emptyTableState(
+  contract: FrameworkContract<SqlStorage>,
+  tableName: string,
+  namespaceId = 'public',
+): CollectionState {
+  return tableState(contract, tableName, {}, namespaceId);
+}
 
 export function isSelectAst(ast: unknown): ast is SelectAst {
   return typeof ast === 'object' && ast !== null && 'kind' in ast && ast.kind === 'select';
@@ -95,7 +200,7 @@ type MutableDomainModels = Record<
     relations: Record<string, unknown>;
     storage: Record<string, unknown>;
     discriminator?: { field: string };
-    variants?: Record<string, { value: string }>;
+    variants?: Record<string, { model: string; namespace: string }>;
     base?: { model: string; namespace: string };
   }
 >;
@@ -160,10 +265,14 @@ export function buildTestContextFromContract<TContract extends FrameworkContract
   contract: TContract,
   options?: {
     readonly mutationDefaultGenerators?: ReadonlyArray<RuntimeMutationDefaultGenerator>;
+    readonly extensions?: ReadonlyArray<SqlRuntimeExtensionDescriptor<'postgres'>>;
   },
 ): ExecutionContext<TContract> {
   const generators = options?.mutationDefaultGenerators ?? [];
-  const extensions: SqlRuntimeExtensionDescriptor<'postgres'>[] = [pgVectorCodecStubExtension];
+  const extensions: SqlRuntimeExtensionDescriptor<'postgres'>[] = [
+    pgVectorCodecStubExtension,
+    ...(options?.extensions ?? []),
+  ];
   if (generators.length > 0) {
     extensions.push({
       kind: 'extension',
@@ -235,6 +344,7 @@ export interface MockRuntime extends RuntimeQueryable {
  *   `assignee` relation (assignee_id → assignees.id, on the base table)
  * - Feature (MTI, table: features, value: feature) with `priority` field and
  *   an `assignee` relation (assignee_id → assignees.id, on the variant table)
+ * - `features.internal_note`, a column no field maps
  *
  * A non-polymorphic `Project` parent (table: projects_tbl) owns a `tasks`
  * relation targeting the polymorphic `Task`, so an include can be planned
@@ -273,7 +383,10 @@ export function buildMixedPolyContract(): TestContract {
       },
     },
     discriminator: { field: 'type' },
-    variants: { Bug: { value: 'bug' }, Feature: { value: 'feature' } },
+    variants: {
+      bug: { model: 'Bug', namespace: 'public' },
+      feature: { model: 'Feature', namespace: 'public' },
+    },
   };
 
   domainModels['Project'] = {
@@ -382,6 +495,7 @@ export function buildMixedPolyContract(): TestContract {
       id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
       priority: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
       assignee_id: { many: false, dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: true },
+      internal_note: { many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: true },
     },
     primaryKey: { columns: ['id'] },
     uniques: [],
@@ -437,8 +551,8 @@ export function buildStiPolyContract(): TestContract {
   };
   userModel.discriminator = { field: 'kind' };
   userModel.variants = {
-    Admin: { value: 'admin' },
-    Regular: { value: 'regular' },
+    admin: { model: 'Admin', namespace: 'public' },
+    regular: { model: 'Regular', namespace: 'public' },
   };
 
   domainModels['Account'] = {
@@ -818,4 +932,29 @@ export function createMockRuntime(): MockRuntime {
   };
 
   return runtime;
+}
+
+/** The refusal every name-resolution surface raises for a name that is not a field of the model in scope. */
+export function fieldUnknown(model: string, field: string) {
+  return expect.objectContaining({
+    code: 'ORM.FIELD_UNKNOWN',
+    message: `Model "${model}" has no field "${field}"`,
+    meta: { model, field },
+  });
+}
+
+export function columnPassedForField(model: string, column: string, field: string) {
+  return expect.objectContaining({
+    code: 'ORM.FIELD_UNKNOWN',
+    message: `Model "${model}" has no field "${column}". "${column}" is the column of field "${field}"; pass the field name.`,
+    meta: { model, field: column, fieldForColumn: field },
+  });
+}
+
+export function unmappedColumnPassed(model: string, table: string, column: string) {
+  return expect.objectContaining({
+    code: 'ORM.FIELD_UNKNOWN',
+    message: `Model "${model}" has no field "${column}". Table "${table}" has a column "${column}" that no field maps, so the ORM cannot read or write it.`,
+    meta: { model, field: column },
+  });
 }

@@ -11,7 +11,7 @@ import { sqlFamilyPslBlockDescriptors } from '../src/core/authoring-entity-types
 
 function build(source: string) {
   const { document, sources } = parse(source, 'schema.prisma');
-  const result = buildSymbolTable({ documents: [document], sources });
+  const result = buildSymbolTable({ documents: [document], sources, defaultNamespaceId: 'public' });
   const { binder } = createBinder({
     sources,
     symbolTable: result.symbolTable,
@@ -39,7 +39,7 @@ describe('enum @@type through the family descriptor', () => {
     const result = build('enum Role {\n  @@type("pg/text@1")\n  Admin\n}');
 
     expect(result.diagnostics).toEqual([]);
-    const block = result.symbolTable.topLevel.blocks['Role'];
+    const block = result.symbolTable.defaultNamespace.blocks['Role'];
     expect(block).toBeDefined();
     if (block === undefined) return;
     expect(result.parsedBlocks.get(block)?.attributes['type']?.args).toEqual({
@@ -56,7 +56,7 @@ describe('enum @@type through the family descriptor', () => {
         message: 'Expected a string literal',
       }),
     ]);
-    const block = result.symbolTable.topLevel.blocks['Role'];
+    const block = result.symbolTable.defaultNamespace.blocks['Role'];
     expect(block).toBeDefined();
     if (block === undefined) return;
     expect(result.parsedBlocks.has(block)).toBe(false);

@@ -1,6 +1,6 @@
 import {
-  type AfterExecuteResult,
-  type AfterQueryResult,
+  type ActivityEndedResult,
+  type RuntimeActivity,
   type RuntimeErrorEnvelope,
   runtimeError,
 } from '@internal/framework-components/runtime';
@@ -84,6 +84,8 @@ function emitBudgetViolation(
   });
 }
 
+const observedRows = Symbol('budgets.observedRows');
+
 export function budgets(options?: BudgetsOptions): SqlMiddleware {
   const maxRows = options?.maxRows ?? 10_000;
   const defaultTableRows = options?.defaultTableRows ?? 10_000;
@@ -92,25 +94,44 @@ export function budgets(options?: BudgetsOptions): SqlMiddleware {
   const rowSeverity = options?.severities?.rowCount ?? 'error';
   const latencySeverity = options?.severities?.latency ?? 'warn';
 
-  const observedRowsByPlan = new WeakMap<SqlExecutionPlan, { count: number }>();
+  return Object.freeze({
+    name: 'budgets',
+    familyId: 'sql' as const,
 
-  const beforeOperation = async (
-    plan: SqlExecutionPlan,
-    ctx: SqlMiddlewareContext,
-  ): Promise<void> => {
-    observedRowsByPlan.set(plan, { count: 0 });
+    async beforeEncode(plan: SqlExecutionPlan, ctx: SqlMiddlewareContext) {
+      if (isQueryAst(plan.ast) && plan.ast.kind === 'select') {
+        evaluateSelectAst(plan.ast, ctx);
+      }
+    },
 
-    if (isQueryAst(plan.ast) && plan.ast.kind === 'select') {
-      evaluateSelectAst(plan.ast, ctx);
-    }
-  };
+    async onRow(_row: Record<string, unknown>, _plan: SqlExecutionPlan, ctx: SqlMiddlewareContext) {
+      const observed = ctx.state(observedRows);
+      const count = (typeof observed['count'] === 'number' ? observed['count'] : 0) + 1;
+      observed['count'] = count;
+      if (count <= maxRows || observed['warned'] === true) return;
+      const shouldBlock = rowSeverity === 'error' || ctx.mode === 'strict';
+      if (!shouldBlock) observed['warned'] = true;
+      emitBudgetViolation(
+        runtimeError('BUDGET.ROWS_EXCEEDED', 'Observed row count exceeds budget', {
+          source: 'observed',
+          observedRows: count,
+          maxRows,
+        }),
+        shouldBlock,
+        ctx,
+      );
+    },
 
-  const afterOperation = async (
-    _plan: SqlExecutionPlan,
-    result: AfterQueryResult | AfterExecuteResult,
-    ctx: SqlMiddlewareContext,
-  ): Promise<void> => {
-    const latencyMs = result.latencyMs;
+    async activityEnded(
+      _activity: RuntimeActivity,
+      result: ActivityEndedResult,
+      ctx: SqlMiddlewareContext,
+    ) {
+      if (result.kind === 'statement') checkLatency(result.latencyMs, ctx);
+    },
+  });
+
+  function checkLatency(latencyMs: number, ctx: SqlMiddlewareContext): void {
     if (latencyMs > maxLatencyMs) {
       const shouldBlock = latencySeverity === 'error' || ctx.mode === 'strict';
       emitBudgetViolation(
@@ -122,30 +143,7 @@ export function budgets(options?: BudgetsOptions): SqlMiddleware {
         ctx,
       );
     }
-  };
-
-  return Object.freeze({
-    name: 'budgets',
-    familyId: 'sql' as const,
-    beforeQuery: beforeOperation,
-    beforeExecute: beforeOperation,
-
-    async onRow(_row: Record<string, unknown>, plan: SqlExecutionPlan, _ctx: SqlMiddlewareContext) {
-      const state = observedRowsByPlan.get(plan);
-      if (!state) return;
-      state.count += 1;
-      if (state.count > maxRows) {
-        throw runtimeError('BUDGET.ROWS_EXCEEDED', 'Observed row count exceeds budget', {
-          source: 'observed',
-          observedRows: state.count,
-          maxRows,
-        });
-      }
-    },
-
-    afterQuery: afterOperation,
-    afterExecute: afterOperation,
-  });
+  }
 
   function evaluateSelectAst(ast: SelectAst, ctx: SqlMiddlewareContext) {
     const hasAggNoGroup = hasAggregateWithoutGroupBy(ast);

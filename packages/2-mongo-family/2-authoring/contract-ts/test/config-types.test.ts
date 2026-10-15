@@ -10,6 +10,7 @@ import { typescriptContract, typescriptContractFromPath } from '../src/config-ty
 
 const emptyContext: ContractSourceContext = {
   composedExtensions: [],
+  defaultNamespaceId: '__unbound__',
   composedExtensionContracts: new Map(),
 
   authoringContributions: {

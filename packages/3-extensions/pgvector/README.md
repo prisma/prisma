@@ -10,6 +10,7 @@ This extension pack adds support for the `vector` data type and vector similarit
 
 - **Vector Codec**: Provides codec for `pg/vector@1` mapping to `number[]` at runtime, and a `Vector<N>` type for dimensioned typing in `contract.d.ts`
 - **Vector Operations**: Registers vector similarity operations (e.g., `cosineDistance`) for use in queries
+- **Collection Methods**: Contributes `<field>_nearest(vector, maxDistance?)` to the ORM client for each vector field
 - **CLI Integration**: Provides extension descriptor for `prisma.config.ts` configuration
 - **Runtime Extension**: Registers codecs and operations at runtime for vector column operations
 - **Pack Ref Export**: Ships a pure `/pack` entrypoint for TypeScript contract authoring without runtime filesystem access
@@ -129,6 +130,21 @@ const plan = sql
 
 type Row = ResultType<typeof plan>;
 ```
+
+### Nearest-neighbour search in the ORM
+
+The runtime extension contributes a collection method for each vector field of a model, named `<field>_nearest` ([ADR 272](../../../docs/architecture%20docs/adrs/ADR%20272%20-%20Packages%20contribute%20collection%20methods%20computed%20from%20a%20model.md)). It orders the rows by cosine distance to the vector, nearest first:
+
+```typescript
+const db = postgres<Contract>({ contractJson, extensions: [pgvector] });
+
+await db.orm.public.Post.using.embedding_nearest(queryVector, 0.5).limit(10).all();
+```
+
+- With `maxDistance`, only the rows within that distance are returned. Without it the method only orders, so rows whose vector is null are returned too, last.
+- The method declares no filter, because it filters only when `maxDistance` is given, so `updateAll` and `deleteAll` do not compile directly after it.
+- The vector parameter is typed `Vector<N>` with the field's length. A `Vector<N>` of another length is a compile error; the length of a plain `number[]` is checked when the value is encoded.
+- The query binds the vector once, for both the order and the filter.
 
 ## Types
 

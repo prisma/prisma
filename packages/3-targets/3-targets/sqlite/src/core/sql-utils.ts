@@ -34,3 +34,11 @@ export function escapeLiteral(value: string): string {
   }
   return value.replace(/'/g, "''");
 }
+
+/** The quotes this target's SQL knows, for the check of SQL a migration writes into a statement. */
+export const SQLITE_QUOTING = [
+  { open: "'", close: "'", doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '"', close: '"', doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '`', close: '`', doubledCloseEscapes: true, backslashEscapes: false },
+  { open: '[', close: ']', doubledCloseEscapes: false, backslashEscapes: false },
+] as const;

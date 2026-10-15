@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { index } from '@internal/sql-contract/factories';
 import { toStorageTypeInstance } from '@internal/sql-contract/types';
@@ -6,6 +7,7 @@ import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
+import { postgresDataTypes } from '../../src/core/data-types';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
 import {
   coalesceSubtreeIssues,
@@ -48,6 +50,12 @@ const userTable: TableSpec = {
   uniques: [],
   indexes: [],
 };
+
+const userField = (field: string) => ({
+  namespaceId: asNamespaceId('public'),
+  model: 'User',
+  field,
+});
 
 describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
   it('a fresh table becomes CreateTable (+ PK inline)', () => {
@@ -235,6 +243,49 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       ]).toEqual(['widening', 'widening', 'widening']);
     });
 
+    it('is widening for a parameter that grows on one data type, and varchar to text', () => {
+      const varchar = (length?: number) => ({
+        dataType: 'pg/varchar',
+        codecId: 'pg/varchar@1',
+        nullable: false,
+        ...(length === undefined ? {} : { typeParams: { length } }),
+      });
+      const numeric = (precision?: number, scale?: number) => ({
+        dataType: 'pg/numeric',
+        codecId: 'pg/numeric@1',
+        nullable: false,
+        ...(precision === undefined
+          ? {}
+          : { typeParams: { precision, ...(scale === undefined ? {} : { scale }) } }),
+      });
+      expect([
+        alterClass({ nativeType: 'character varying(10)' }, varchar(20)),
+        alterClass({ nativeType: 'character varying(10)' }, varchar()),
+        alterClass(
+          { nativeType: 'character varying(10)' },
+          { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
+        ),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric(12, 2)),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric(12, 4)),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric()),
+      ]).toEqual(Array(6).fill('widening'));
+      expect([
+        alterClass({ nativeType: 'character varying(20)' }, varchar(10)),
+        alterClass({ nativeType: 'text' }, varchar(10)),
+        alterClass({ nativeType: 'numeric(10,2)' }, numeric(10, 3)),
+        alterClass({ nativeType: 'numeric' }, numeric(10, 2)),
+        alterClass(
+          { nativeType: 'character(5)' },
+          {
+            dataType: 'pg/char',
+            codecId: 'pg/char@1',
+            nullable: false,
+            typeParams: { length: 10 },
+          },
+        ),
+      ]).toEqual(Array(5).fill('destructive'));
+    });
+
     it('is destructive for a type change that can change values, or one between lists', () => {
       expect([
         alterClass(
@@ -263,7 +314,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'int4' },
+          { nativeType: 'int8' },
           { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
         ),
       ]).toEqual(Array(6).fill('destructive'));
@@ -313,11 +364,9 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     });
     const [call] = planFor(contract, actual);
     expect(call).toBeInstanceOf(AlterColumnTypeCall);
-    expect(call instanceof AlterColumnTypeCall && call.options).toEqual({
-      qualifiedTargetType: 'int8',
-      formatTypeExpected: 'bigint',
-      rawTargetTypeForLabel: 'int8',
-    });
+    expect(
+      call instanceof AlterColumnTypeCall && { type: call.type, checkType: call.checkType },
+    ).toEqual({ type: 'int8', checkType: 'bigint' });
   });
 
   it.each([
@@ -362,13 +411,11 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         }),
       });
       const call = planFor(contract, actual).find((c) => c instanceof AlterColumnTypeCall);
-      expect(call instanceof AlterColumnTypeCall && call.options.formatTypeExpected).toBe(
-        formatTypeExpected,
-      );
+      expect(call instanceof AlterColumnTypeCall && call.checkType).toBe(formatTypeExpected);
     },
   );
 
-  it('refuses to plan a type change for a live column that carries no codec', () => {
+  it('refuses to plan a conversion for a live column that carries no codec', () => {
     const contract = makeContract({
       user: {
         columns: {
@@ -411,6 +458,19 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         codecHooks: new Map(),
         types: postgresTypeLookups,
         storageTypes: {},
+        frameworkComponents: postgresTypeComponents,
+        statementColumns: {
+          convert: [
+            {
+              namespaceId: 'public',
+              table: 'user',
+              column: 'age',
+              field: userField('age'),
+              text: 'User.age',
+            },
+          ],
+          backfill: [],
+        },
       }),
     ).toThrow(InternalError);
   });
@@ -470,6 +530,8 @@ describe('mapNodeIssueToCall — synthesized namespace issue', () => {
       schema: undefined as never,
       policy: { allowedOperationClasses: ['additive'] as const },
       frameworkComponents: postgresTypeComponents,
+      statementColumns: { convert: [], backfill: [] },
+      dataTypes: postgresDataTypes,
     };
     const result = mapNodeIssueToCall(issue, ctx);
     expect(result.ok).toBe(true);
@@ -643,6 +705,8 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
     schema: undefined as never,
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const },
     frameworkComponents: postgresTypeComponents,
+    statementColumns: { convert: [], backfill: [] },
+    dataTypes: postgresDataTypes,
   };
 
   function tableNode(rlsEnabled: boolean): PostgresTableSchemaNode {
@@ -758,5 +822,50 @@ describe('operation-class gating of a RenameIndexCall', () => {
         index: 'user_email_idx_46df9cad',
       },
     });
+  });
+});
+
+describe('statement columns', () => {
+  it('reach every strategy through its context', () => {
+    const contract = makeContract({ user: userTable });
+    const statementColumns = {
+      convert: [
+        {
+          namespaceId: 'public',
+          table: 'user',
+          column: 'email',
+          field: userField('email'),
+          text: 'User.email',
+        },
+      ],
+      backfill: [
+        {
+          namespaceId: 'public',
+          table: 'user',
+          column: 'id',
+          field: userField('id'),
+          text: 'User.id',
+        },
+      ],
+    };
+    const seen: unknown[] = [];
+    planNodeIssues({
+      issues: [],
+      toContract: contract,
+      fromContract: null,
+      schemaName: 'public',
+      codecHooks: new Map(),
+      types: postgresTypeLookups,
+      storageTypes: {},
+      statementColumns,
+      strategies: [
+        (issues, context) => {
+          seen.push(context.statementColumns);
+          return { kind: 'match', issues, calls: [] };
+        },
+      ],
+    });
+
+    expect(seen).toEqual([statementColumns]);
   });
 });

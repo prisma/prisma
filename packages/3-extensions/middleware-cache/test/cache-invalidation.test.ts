@@ -1,17 +1,24 @@
-import type { RuntimeMiddlewareContext } from '@internal/framework-components/runtime';
+import type { ActivityContext } from '@internal/framework-components/runtime';
 import { describe, expect, it, vi } from 'vitest';
 import { cacheAnnotation } from '../src/cache-annotation';
 import { type CacheMiddleware, createCacheMiddleware } from '../src/cache-middleware';
-import { type MockExec, makeCtx, makeExec, runMiss, spyStore } from './middleware-fixtures';
+import {
+  endStatement,
+  type MockExec,
+  makeCtx,
+  makeExec,
+  runMiss,
+  spyStore,
+} from './middleware-fixtures';
 
 async function startMiss(
   mw: CacheMiddleware,
-  ctx: RuntimeMiddlewareContext,
+  ctx: ActivityContext,
   key: string,
   meta?: unknown,
 ): Promise<MockExec> {
   const exec = makeExec(`select ${key}`, { cache: cacheAnnotation({ key, meta }) });
-  await mw.interceptQuery?.(exec, ctx);
+  await mw.intercept?.onQuery?.(exec, ctx);
   await mw.onRow?.({ id: 1 }, exec, ctx);
   return exec;
 }
@@ -19,13 +26,9 @@ async function startMiss(
 async function finishMiss(
   mw: CacheMiddleware,
   exec: MockExec,
-  ctx: RuntimeMiddlewareContext,
+  ctx: ActivityContext,
 ): Promise<void> {
-  await mw.afterQuery?.(
-    exec,
-    { rowCount: 1, latencyMs: 0, completed: true, source: 'driver' },
-    ctx,
-  );
+  await endStatement(mw, exec, ctx, { rowCount: 1 });
 }
 
 function debugCtx() {
@@ -92,11 +95,11 @@ describe('createCacheMiddleware — invalidate', () => {
     const exec = makeExec('select 1', { cache: cacheAnnotation({ key: 'user-1' }) });
     const ctx = makeCtx();
     await runMiss(mw, exec, ctx, [{ id: 1 }]);
-    expect(await mw.interceptQuery?.(exec, ctx)).toBeDefined();
+    expect(await mw.intercept?.onQuery?.(exec, ctx)).toBeDefined();
 
     await mw.invalidate({ keys: ['user-1'] });
 
-    expect(await mw.interceptQuery?.(exec, ctx)).toBeUndefined();
+    expect(await mw.intercept?.onQuery?.(exec, ctx)).toBeUndefined();
   });
 
   it.each([

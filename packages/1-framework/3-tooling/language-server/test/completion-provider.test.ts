@@ -256,8 +256,11 @@ interface ActualSqliteDataTypesModule {
 }
 
 interface ActualSqlExpressionModule {
-  readonly SQL_EXPRESSION_DATA_TYPE_ID: string;
-  readonly sqlExpressionAuthoringEntry: DataTypeAuthoringEntry;
+  readonly sqlExpressionRegistration: {
+    readonly authoring: {
+      readonly dataTypes: Readonly<Record<string, DataTypeAuthoringEntry>>;
+    };
+  };
 }
 
 interface ActualMongoAttributeModule {
@@ -292,6 +295,7 @@ function completeWithSource(input: {
   const { symbolTable } = buildSymbolTable({
     documents: [...others.map((other) => other.document), document],
     sources,
+    defaultNamespaceId: 'public',
   });
   const context = classifyPslCompletionContext({
     document,
@@ -367,7 +371,7 @@ async function sqlExpressionDataTypes(): Promise<Readonly<Record<string, DataTyp
   const family = await importFromPackageRoot<ActualSqlExpressionModule>(
     '../../../2-sql/1-core/contract/src/exports/sql-expression.ts',
   );
-  return { [family.SQL_EXPRESSION_DATA_TYPE_ID]: family.sqlExpressionAuthoringEntry };
+  return family.sqlExpressionRegistration.authoring.dataTypes;
 }
 
 async function importFromPackageRoot<T>(relativePath: string): Promise<T> {
@@ -455,6 +459,7 @@ namespace other { model Hidden { id Int } }`,
       ['ZRoot', 'Model'],
       ['app', 'Namespace'],
       ['other', 'Namespace'],
+      ['public', 'Namespace'],
     ]);
     expect(items.find(({ label }) => label === 'Int')?.kind).toBe(CompletionItemKind.Class);
   });
@@ -611,21 +616,31 @@ namespace app {
 
     expect(items.map((item) => item.label)).toEqual([
       'model',
+      'model mixin',
       'type',
+      'type mixin',
       'types',
       'namespace',
       'audit',
+      'audit mixin',
       'inventory',
+      'inventory mixin',
       'policy',
+      'policy mixin',
     ]);
     expect(items.map((item) => item.detail)).toEqual([
       'Defines a data model.',
+      'Declares a mixin for model blocks.',
       'Defines a reusable composite type.',
+      'Declares a mixin for type blocks.',
       'Defines reusable named types.',
       'Groups declarations belonging to the same database schema or database.',
       'Generic block keyword',
+      'Declares a mixin for audit blocks.',
       'An arbitrary-key block.',
+      'Declares a mixin for inventory blocks.',
       'Defines a security policy.',
+      'Declares a mixin for policy blocks.',
     ]);
     expect(items[0]).toMatchObject({
       kind: CompletionItemKind.Keyword,
@@ -646,12 +661,17 @@ namespace app {
 
     expect(items.map((item) => item.label)).toEqual([
       'model',
+      'model mixin',
       'type',
+      'type mixin',
       'types',
       'namespace',
       'audit',
+      'audit mixin',
       'inventory',
+      'inventory mixin',
       'policy',
+      'policy mixin',
     ]);
     expect(items[0]).toMatchObject({
       filterText: 'model',
@@ -670,10 +690,15 @@ namespace app {
 
     expect(items.map((item) => item.label)).toEqual([
       'model',
+      'model mixin',
       'type',
+      'type mixin',
       'audit',
+      'audit mixin',
       'inventory',
+      'inventory mixin',
       'policy',
+      'policy mixin',
     ]);
     expect(items.map((item) => item.label)).not.toContain('types');
     expect(items.map((item) => item.label)).not.toContain('namespace');
@@ -686,10 +711,15 @@ namespace app {
 
     expect(items.map((item) => item.label)).toEqual([
       'model',
+      'model mixin',
       'type',
+      'type mixin',
       'audit',
+      'audit mixin',
       'inventory',
+      'inventory mixin',
       'policy',
+      'policy mixin',
     ]);
     expect(items.find((item) => item.label === 'policy')).toMatchObject({
       filterText: 'policy',
@@ -751,6 +781,106 @@ namespace app {
     },
   );
 
+  describe('mixin declaration items', () => {
+    const sortedLabels = (items: readonly CompletionItem[]) =>
+      [...items]
+        .sort((left, right) => ((left.sortText ?? '') < (right.sortText ?? '') ? -1 : 1))
+        .map((item) => item.label);
+
+    it('offers model before model mixin when a prefix of the keyword is typed', () => {
+      const { items, sourceFile, cursorOffset } = complete('mo|');
+      const range = {
+        start: sourceFile.positionAt(cursorOffset - 'mo'.length),
+        end: sourceFile.positionAt(cursorOffset),
+      };
+
+      expect(sortedLabels(items).slice(0, 2)).toEqual(['model', 'model mixin']);
+      expect(completionItemByLabel(items, 'model mixin')).toMatchObject({
+        kind: CompletionItemKind.Keyword,
+        detail: 'Declares a mixin for model blocks.',
+        filterText: 'model mixin',
+        sortText: '0:model mixin',
+        textEdit: { range, newText: 'model mixin ' },
+      });
+    });
+
+    it('sorts each mixin item directly after the item of its keyword', () => {
+      expect(sortedLabels(complete('|').items)).toEqual([
+        'model',
+        'model mixin',
+        'namespace',
+        'type',
+        'type mixin',
+        'types',
+        'audit',
+        'audit mixin',
+        'inventory',
+        'inventory mixin',
+        'policy',
+        'policy mixin',
+      ]);
+    });
+
+    it('offers no mixin item for namespace or types, and never the word mixin alone', () => {
+      const labels = complete('|').items.map((item) => item.label);
+
+      expect(labels).not.toContain('namespace mixin');
+      expect(labels).not.toContain('types mixin');
+      expect(labels).not.toContain('mixin');
+    });
+
+    it('inserts a mixin declaration with an empty body for a native and for a struct block keyword', () => {
+      const { items } = completeWithSource({
+        markedSource: '|',
+        clientSupportsSnippets: true,
+        pslBlockDescriptors: {
+          security: {
+            policy: {
+              kind: 'pslBlock',
+              keyword: 'policy',
+              discriminator: 'policy',
+              name: { required: true },
+              spec: policySpec,
+              attributes: { audit: () => auditAttribute },
+            },
+          },
+        },
+      });
+
+      expect(completionItemByLabel(items, 'model mixin')).toMatchObject({
+        insertTextFormat: InsertTextFormat.Snippet,
+        textEdit: { newText: `model mixin ${nameSnippetPlaceholder} {\n  \${0:// Fields}\n}` },
+      });
+      expect(completionItemByLabel(items, 'policy mixin')).toMatchObject({
+        kind: CompletionItemKind.Keyword,
+        detail: 'Declares a mixin for policy blocks.',
+        filterText: 'policy mixin',
+        sortText: '1:policy mixin',
+        insertTextFormat: InsertTextFormat.Snippet,
+        textEdit: {
+          newText: `policy mixin ${nameSnippetPlaceholder} {\n  \${0:// Block keys and attributes}\n}`,
+        },
+      });
+    });
+
+    it('offers the mixin item while the whole keyword is the word before the cursor, and nothing once more is typed', () => {
+      expect(complete('model|').items.map((item) => item.label)).toContain('model mixin');
+      expect(complete('model m|').items).toEqual([]);
+      expect(complete('model mixin|').items).toEqual([]);
+    });
+
+    it.each([
+      ['a model', ['model User {', '  |', '}']],
+      ['a block', ['policy P {', '  |', '}']],
+      ['a model mixin', ['model mixin M {', '  |', '}']],
+      ['a block mixin', ['policy mixin M {', '  |', '}']],
+    ])('offers none inside %s', (_where, lines) => {
+      const labels = complete(lines.join('\n')).items.map((item) => item.label);
+
+      expect(labels.filter((label) => label.endsWith(' mixin'))).toEqual([]);
+    });
+  });
+
   it('returns registry-backed attribute name completions as function items', () => {
     const fieldItems = complete(['model Post {', '  id Int @|', '}'].join('\n')).items;
     expect(fieldItems.map((item) => item.label)).toEqual(['marker', 'orderFixture', 'ownerAware']);
@@ -789,24 +919,30 @@ namespace app {
     const source = `${markedSource.slice(0, cursorOffset)}${markedSource.slice(cursorOffset + 1)}`;
     const { document, sources } = parse(source, 'language-server-test.psl');
     const sourceFile = sources.sourceFileFor(document.syntax);
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
     const context = classifyPslCompletionContext({
       document,
       sourceFile,
       position: sourceFile.positionAt(cursorOffset),
     });
     let modelEnumerationCount = 0;
+    const observedDefaultNamespace = {
+      ...symbolTable.defaultNamespace,
+      models: new Proxy(symbolTable.defaultNamespace.models, {
+        ownKeys(target) {
+          modelEnumerationCount += 1;
+          return Reflect.ownKeys(target);
+        },
+      }),
+    };
     const observedSymbolTable = {
       ...symbolTable,
-      topLevel: {
-        ...symbolTable.topLevel,
-        models: new Proxy(symbolTable.topLevel.models, {
-          ownKeys(target) {
-            modelEnumerationCount += 1;
-            return Reflect.ownKeys(target);
-          },
-        }),
-      },
+      defaultNamespace: observedDefaultNamespace,
+      namespaces: { [observedDefaultNamespace.id]: observedDefaultNamespace },
     };
     const factoryOwnerNames: string[] = [];
     const observedAuthoringContributions = assembleAuthoringContributions([
@@ -1219,6 +1355,7 @@ namespace app {
       ['User', 'Model'],
       ['UserId', 'Type alias'],
       ['auth', 'Namespace'],
+      ['public', 'Namespace'],
     ]);
     for (const item of items) expect(item).not.toHaveProperty('sortText');
     expect(completionItemByLabel(items, 'Boolean').textEdit).toEqual({
@@ -1246,6 +1383,7 @@ namespace app {
       'User',
       'UserId',
       'auth',
+      'public',
     ]);
     expect(items.find((item) => item.label === 'User')).toMatchObject({
       filterText: 'User',
@@ -1275,6 +1413,7 @@ namespace app {
       'User',
       'UserId',
       'auth',
+      'public',
     ]);
     expect(items.find((item) => item.label === 'auth')).toMatchObject({
       kind: CompletionItemKind.Module,
@@ -1340,7 +1479,7 @@ namespace app {
   it('completes a generic block value from the block spec', () => {
     const { items } = complete(['policy Rule {', '  on = |', '}'].join('\n'));
 
-    expect(items.map((item) => item.label)).toEqual(['User', 'auth']);
+    expect(items.map((item) => item.label)).toEqual(['User', 'public', 'auth']);
   });
 
   it('returns descriptor-backed generic block parameter completions', () => {
@@ -1660,7 +1799,7 @@ namespace app {
     const withFamilyEntry = (
       targetEntries: Readonly<Record<string, DataTypeAuthoringEntry>>,
     ): Readonly<Record<string, DataTypeAuthoringEntry>> => ({
-      [family.SQL_EXPRESSION_DATA_TYPE_ID]: family.sqlExpressionAuthoringEntry,
+      ...family.sqlExpressionRegistration.authoring.dataTypes,
       ...targetEntries,
     });
     const complete = (
@@ -1798,5 +1937,385 @@ namespace app {
 
     expect(items.map((item) => item.label)).not.toContain('Audit');
     expect(items.map((item) => item.label)).not.toContain('auth.ScopedAudit');
+  });
+
+  it('offers the same field type candidates in a document that holds a mixin and an inclusion', () => {
+    const model = ['model Post {', '  author |', '}'].join('\n');
+    const mixins = [
+      'model mixin Timestamps {',
+      '  createdAt DateTime',
+      '}',
+      'model Tagged {',
+      '  id Int',
+      '  +Timestamps',
+      '}',
+    ].join('\n');
+    const plain = ['', '', '', 'model Tagged {', '  id Int', '', '}'].join('\n');
+
+    expect(complete(`${mixins}\n${model}`).items).toEqual(complete(`${plain}\n${model}`).items);
+  });
+
+  it.each([
+    ['in a mixin field type slot', 'model mixin Timestamps {\n  createdAt |\n}'],
+    ['in a mixin header', 'model mixin |'],
+    ['after the plus of an inclusion', 'model Post {\n  id Int\n  +|\n}'],
+    ['inside the name of an inclusion', 'model Post {\n  +auth.Ti|\n}'],
+    ['in an enum mixin body', 'enum mixin BaseRoles {\n  |\n}'],
+  ])('completes without an error %s', (_case, markedSource) => {
+    expect(() => complete(markedSource)).not.toThrow();
+  });
+
+  it('does not offer a mixin as a field type, by its name or as a namespace member', () => {
+    const mixins = [
+      'model mixin Timestamps {',
+      '  createdAt DateTime',
+      '}',
+      'namespace shared {',
+      '  model mixin Audited {',
+      '    actor String',
+      '  }',
+      '  model Marker {',
+      '    id Int',
+      '  }',
+      '}',
+    ].join('\n');
+    const unqualified = complete(`${mixins}\nmodel Post {\n  stamps |\n}`).items;
+    const qualified = complete(`${mixins}\nmodel Post {\n  stamps shared.|\n}`).items;
+
+    expect(unqualified.map((item) => item.label)).toContain('shared');
+    expect(unqualified.map((item) => item.label)).not.toContain('Timestamps');
+    expect(qualified.map((item) => item.label)).toEqual(['Marker']);
+  });
+});
+
+describe('providePslCompletionItems — after the plus of an inclusion', () => {
+  const mixinsOf = (prefix: string, indent: string) =>
+    [
+      `model mixin ${prefix}Stamps {`,
+      '}',
+      `type mixin ${prefix}Geo {`,
+      '}',
+      `enum mixin ${prefix}Roles {`,
+      '}',
+      `policy mixin ${prefix}Policy {`,
+      '}',
+    ].map((line) => `${indent}${line}`);
+
+  function after(block: readonly string[], placement: 'billing' | 'top' = 'billing') {
+    const namespace = placement === 'top' ? undefined : placement;
+    const blockLines =
+      namespace === undefined ? block : block.map((line) => (line === '' ? line : `  ${line}`));
+    const markedSource = [
+      ...mixinsOf('Top', ''),
+      ...(namespace === undefined ? blockLines : []),
+      'namespace auth {',
+      ...mixinsOf('Auth', '  '),
+      '}',
+      'namespace billing {',
+      ...mixinsOf('Billing', '  '),
+      '  model mixin Used {',
+      '  }',
+      ...(namespace === undefined ? [] : blockLines),
+      '}',
+    ].join('\n');
+    return completeWithSource({ markedSource, pslBlockDescriptors });
+  }
+
+  const offered = (block: readonly string[], placement: 'billing' | 'top' = 'billing') =>
+    after(block, placement)
+      .items.map(({ label, detail }) => [label, detail])
+      .sort();
+
+  const namespaces = [
+    ['auth', 'Namespace'],
+    ['billing', 'Namespace'],
+    ['public', 'Namespace'],
+  ];
+
+  it.each([
+    ['a model', ['model Invoice {', '  id Int', '  +Used', '  +|', '}'], 'Stamps', 'model mixin'],
+    ['a composite type', ['type Address {', '  +|', '  street String', '}'], 'Geo', 'type mixin'],
+    ['an enum', ['enum Role {', '  +|', '  GUEST', '}'], 'Roles', 'enum mixin'],
+    ['a struct block', ['policy P {', '  +|', '}'], 'Policy', 'policy mixin'],
+  ])(
+    'offers the mixins of the keyword that an unqualified name reaches, and each namespace, in %s',
+    (_block, lines, suffix, detail) => {
+      expect(offered(lines)).toEqual(
+        [[`Billing${suffix}`, detail], [`Top${suffix}`, detail], ...namespaces].sort(),
+      );
+    },
+  );
+
+  it('offers the same while a name is being typed after the plus', () => {
+    expect(offered(['model Invoice {', '  +Bil|', '}'])).toEqual(
+      offered(['model Invoice {', '  +|', '}']),
+    );
+  });
+
+  it('offers only top-level mixins of the keyword and each namespace in a top-level block', () => {
+    expect(offered(['enum Role {', '  +|', '}'], 'top')).toEqual(
+      [['TopRoles', 'enum mixin'], ...namespaces].sort(),
+    );
+  });
+
+  it.each([
+    ['a model', ['model Invoice {', '  +auth.|', '}'], [['AuthStamps', 'model mixin']]],
+    ['a composite type', ['type Address {', '  +auth.|', '}'], [['AuthGeo', 'type mixin']]],
+    ['an enum', ['enum Role {', '  +auth.|', '}'], [['AuthRoles', 'enum mixin']]],
+    ['a struct block', ['policy P {', '  +auth.|', '}'], [['AuthPolicy', 'policy mixin']]],
+  ])(
+    'offers the mixins of the keyword in the named namespace after a qualifier, in %s',
+    (_block, lines, expected) => {
+      expect(offered(lines)).toEqual(expected);
+      expect(offered(lines.map((line) => line.replace('auth.|', 'auth.Au|')))).toEqual(expected);
+    },
+  );
+
+  it('offers a namespace only when it has a mixin that would be offered after its qualifier', () => {
+    const source = (block: readonly string[]) =>
+      [
+        'namespace models {',
+        '  model mixin Stamps {',
+        '  }',
+        '}',
+        'namespace enums {',
+        '  enum mixin Roles {',
+        '  }',
+        '}',
+        'namespace empty {',
+        '  model Plain {',
+        '    id Int',
+        '  }',
+        '}',
+        ...block,
+      ].join('\n');
+    const labels = (block: readonly string[]) =>
+      completeWithSource({ markedSource: source(block), pslBlockDescriptors })
+        .items.map(({ label, detail }) => [label, detail])
+        .sort();
+
+    expect(labels(['model Invoice {', '  +|', '}'])).toEqual([['models', 'Namespace']]);
+    expect(labels(['enum Role {', '  +|', '}'])).toEqual([['enums', 'Namespace']]);
+    expect(labels(['model Invoice {', '  +models.Stamps', '  +|', '}'])).toEqual([]);
+    expect(labels(['policy P {', '  +|', '}'])).toEqual([]);
+  });
+
+  it('does not offer a top-level mixin whose name a model of the namespace hides', () => {
+    const { items } = completeWithSource({
+      markedSource: [
+        'model mixin Timestamps {',
+        '  createdAt DateTime',
+        '}',
+        'namespace app {',
+        '  model Timestamps {',
+        '    id Int',
+        '  }',
+        '  model User {',
+        '    id Int',
+        '    +|',
+        '  }',
+        '}',
+      ].join('\n'),
+      pslBlockDescriptors,
+    });
+
+    expect(items.map(({ label, detail }) => [label, detail])).toEqual([['public', 'Namespace']]);
+  });
+
+  it('offers nothing after a qualifier that names no namespace', () => {
+    expect(offered(['model Invoice {', '  +nowhere.|', '}'])).toEqual([]);
+    expect(offered(['model Invoice {', '  +Invoice.|', '}'])).toEqual([]);
+  });
+
+  it('leaves out a mixin the block already includes, by either spelling', () => {
+    expect(
+      offered(['model Invoice {', '  +Used', '  +billing.BillingStamps', '  +|', '}']),
+    ).toEqual([
+      ['TopStamps', 'model mixin'],
+      ['auth', 'Namespace'],
+      ['public', 'Namespace'],
+    ]);
+    expect(offered(['model Invoice {', '  +Used', '  +billing.|', '}'])).toEqual([
+      ['BillingStamps', 'model mixin'],
+    ]);
+  });
+
+  it('still offers the mixin whose complete name the cursor is at the end of', () => {
+    expect(offered(['model Invoice {', '  +Used|', '}'])).toContainEqual(['Used', 'model mixin']);
+  });
+
+  it('offers nothing after a plus inside a mixin body', () => {
+    expect(offered(['model mixin Audited {', '  +|', '}'])).toEqual([]);
+    expect(offered(['policy mixin Shared {', '  +auth.|', '}'])).toEqual([]);
+  });
+
+  it('offers no entry keys after a plus in a struct block', () => {
+    const labels = after(['policy P {', '  +|', '}']).items.map((item) => item.label);
+    const keys = after(['policy P {', '  |', '}']).items.map((item) => item.label);
+
+    expect(keys.length).toBeGreaterThan(0);
+    expect(labels.filter((label) => keys.includes(label))).toEqual([]);
+  });
+
+  it('offers no mixins on the line after a plus', () => {
+    expect(offered(['model Invoice {', '  +', '  |', '}'])).toEqual([]);
+  });
+
+  it('replaces the typed name with the mixin name, and a namespace with its name and a dot', () => {
+    const { items, sourceFile, cursorOffset } = after(['model Invoice {', '  +Bil|', '}']);
+    const range = {
+      start: sourceFile.positionAt(cursorOffset - 3),
+      end: sourceFile.positionAt(cursorOffset),
+    };
+
+    expect(completionItemByLabel(items, 'BillingStamps')).toMatchObject({
+      kind: CompletionItemKind.Interface,
+      detail: 'model mixin',
+      filterText: 'BillingStamps',
+      textEdit: { range, newText: 'BillingStamps' },
+    });
+    expect(completionItemByLabel(items, 'auth')).toMatchObject({
+      kind: CompletionItemKind.Module,
+      detail: 'Namespace',
+      textEdit: { range, newText: 'auth.' },
+    });
+  });
+});
+
+describe('providePslCompletionItems — inside a mixin body', () => {
+  const declarationKeywords = ['namespace', 'types'];
+
+  const withoutOwnName = (items: readonly CompletionItem[]) =>
+    items.filter((item) => item.label !== 'Probe');
+
+  function itemsIn(header: string, body: readonly string[], closed = true) {
+    return complete([header, ...body, ...(closed ? ['}'] : [])].join('\n')).items;
+  }
+
+  it.each([
+    ['a field type', ['  scopedOnly Int', '  value |']],
+    ['a field attribute name', ['  scopedOnly Int', '  value Int @|']],
+    ['a field attribute argument', ['  value Int @marker(|)']],
+    [
+      'a field attribute key that depends on the fields of the owner',
+      ['  scopedOnly Int', '  value Int @ownerAware(|)'],
+    ],
+    ['a field attribute key when the owner lacks the field', ['  value Int @ownerAware(|)']],
+    ['a block attribute name', ['  value Int', '  @@|']],
+    ['a block attribute argument', ['  value Int', '  @@security.rls(|)']],
+  ])('offers in a model mixin what a model offers at %s', (_position, body) => {
+    const inMixin = itemsIn('model mixin Probe {', body);
+
+    expect(inMixin).toEqual(withoutOwnName(itemsIn('model Probe {', body)));
+    expect(
+      inMixin.map((item) => item.label).filter((label) => declarationKeywords.includes(label)),
+    ).toEqual([]);
+  });
+
+  it('offers something at each model position the fixture has candidates for', () => {
+    expect(itemsIn('model mixin Probe {', ['  value |']).length).toBeGreaterThan(0);
+    expect(itemsIn('model mixin Probe {', ['  value Int @|']).length).toBeGreaterThan(0);
+    expect(itemsIn('model mixin Probe {', ['  value Int', '  @@|']).length).toBeGreaterThan(0);
+    expect(
+      itemsIn('model mixin Probe {', ['  scopedOnly Int', '  value Int @ownerAware(|)']).map(
+        (item) => item.label,
+      ),
+    ).toEqual(['scopedKey']);
+  });
+
+  it.each([
+    ['a field type', ['  value |']],
+    ['a field attribute name', ['  value Int @|']],
+    ['a field attribute argument', ['  value Int @marker(|)']],
+    ['a block attribute name', ['  value Int', '  @@|']],
+  ])('offers in a type mixin what a composite type offers at %s', (_position, body) => {
+    const inMixin = itemsIn('type mixin Probe {', body);
+
+    expect(inMixin).toEqual(withoutOwnName(itemsIn('type Probe {', body)));
+    expect(
+      inMixin.map((item) => item.label).filter((label) => declarationKeywords.includes(label)),
+    ).toEqual([]);
+  });
+
+  it.each([
+    ['an entry key', 'policy', ['  |']],
+    ['an entry key after another entry', 'policy', ['  on = User', '  |']],
+    ['an entry value that names a model', 'policy', ['  on = |']],
+    ['an entry value with fixed identifiers', 'policy', ['  mode = |']],
+    ['a block attribute name', 'policy', ['  @@|']],
+    ['a block attribute argument', 'policy', ['  @@audit(|)']],
+    ['an entry key of a map block', 'inventory', ['  |']],
+    ['an entry value of a map block', 'inventory', ['  count = |']],
+  ])(
+    'offers in a mixin for a key = value keyword what a block of that keyword offers at %s',
+    (_position, keyword, body) => {
+      const inMixin = itemsIn(`${keyword} mixin Probe {`, body);
+
+      expect(inMixin).toEqual(itemsIn(`${keyword} Probe {`, body));
+      expect(
+        inMixin.map((item) => item.label).filter((label) => declarationKeywords.includes(label)),
+      ).toEqual([]);
+    },
+  );
+
+  it('offers something at each struct block position', () => {
+    expect(itemsIn('policy mixin Probe {', ['  |']).map((item) => item.label)).toContain('on');
+    expect(itemsIn('policy mixin Probe {', ['  mode = |']).map((item) => item.label)).toEqual([
+      'permissive',
+      'restrictive',
+    ]);
+    expect(itemsIn('policy mixin Probe {', ['  @@|']).map((item) => item.label)).toEqual(['audit']);
+  });
+
+  it('offers nothing and does not fail in a mixin for a keyword with no registered block', () => {
+    expect(itemsIn('widget mixin Probe {', ['  |'])).toEqual(itemsIn('widget Probe {', ['  |']));
+    expect(itemsIn('widget mixin Probe {', ['  |'])).toEqual([]);
+    expect(itemsIn('widget mixin Probe {', ['  @@|'])).toEqual([]);
+    expect(itemsIn('widget mixin Probe {', ['  key = |'])).toEqual([]);
+  });
+
+  it('completes inside a mixin that is not closed yet as inside a model that is not closed yet', () => {
+    const body = ['  scopedOnly Int', '  value Int @|'];
+
+    expect(itemsIn('model mixin Probe {', body, false)).toEqual(
+      itemsIn('model Probe {', body, false),
+    );
+    expect(itemsIn('model mixin Probe {', body, false).length).toBeGreaterThan(0);
+    expect(itemsIn('policy mixin Probe {', ['  |'], false)).toEqual(
+      itemsIn('policy Probe {', ['  |'], false),
+    );
+  });
+
+  it('offers the same inside a mixin declared in a namespace', () => {
+    const inNamespace = (header: string) =>
+      complete(['namespace scoped {', `  ${header}`, '    value |', '  }', '}'].join('\n')).items;
+
+    expect(inNamespace('model mixin Probe {')).toEqual(
+      withoutOwnName(inNamespace('model Probe {')),
+    );
+  });
+});
+
+describe('providePslCompletionItems — keys a block already has', () => {
+  const keysOf = (block: readonly string[]) =>
+    complete(['policy mixin Shared {', '  on = User', '  where = "true"', '}', ...block].join('\n'))
+      .items.map((item) => item.label)
+      .sort();
+
+  it('does not offer a key that an included mixin provides', () => {
+    expect(keysOf(['policy P {', '  +Shared', '  |', '}'])).toEqual(['mode', 'using']);
+  });
+
+  it('offers that key in the same block without the inclusion', () => {
+    expect(keysOf(['policy P {', '  |', '}'])).toEqual(['mode', 'on', 'using', 'where']);
+  });
+
+  it('does not offer a key written in the block itself, and still offers the key under the cursor', () => {
+    expect(keysOf(['policy P {', '  mode = permissive', '  |', '}'])).toEqual([
+      'on',
+      'using',
+      'where',
+    ]);
+    expect(keysOf(['policy P {', '  +Shared', '  mo|', '}'])).toEqual(['mode', 'using']);
   });
 });

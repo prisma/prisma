@@ -3,6 +3,7 @@ import type { AsyncIterableResult } from '@internal/framework-components/runtime
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { expectTypeOf, test } from 'vitest';
 import { Collection } from '../src/collection';
+import { createCollectionTables } from '../src/collection-tables';
 import { createModelAccessor } from '../src/model-accessor';
 import type {
   CreateInput,
@@ -99,22 +100,22 @@ test('ResolvedCreateInput for non-polymorphic model equals CreateInput', () => {
 });
 
 test('VariantCreateInput includes base + variant fields minus discriminator', () => {
-  type BugCreate = VariantCreateInput<PolyContract, 'Task', 'Bug'>;
+  type BugCreate = VariantCreateInput<PolyContract, 'Task', 'bug'>;
   expectTypeOf<BugCreate>().toHaveProperty('title');
   expectTypeOf<BugCreate>().toHaveProperty('severity');
   expectTypeOf<BugCreate>().not.toHaveProperty('type');
 });
 
 test('VariantCreateInput for MTI variant includes base + variant fields minus discriminator', () => {
-  type FeatureCreate = VariantCreateInput<PolyContract, 'Task', 'Feature'>;
+  type FeatureCreate = VariantCreateInput<PolyContract, 'Task', 'feature'>;
   expectTypeOf<FeatureCreate>().toHaveProperty('title');
   expectTypeOf<FeatureCreate>().toHaveProperty('priority');
   expectTypeOf<FeatureCreate>().not.toHaveProperty('type');
 });
 
 test('ResolvedCreateInput with variant name equals VariantCreateInput', () => {
-  type Resolved = ResolvedCreateInput<PolyContract, 'Task', 'Bug'>;
-  type Direct = VariantCreateInput<PolyContract, 'Task', 'Bug'>;
+  type Resolved = ResolvedCreateInput<PolyContract, 'Task', 'bug'>;
+  type Direct = VariantCreateInput<PolyContract, 'Task', 'bug'>;
   expectTypeOf<Resolved>().toEqualTypeOf<Direct>();
 });
 
@@ -349,14 +350,25 @@ test('orderBy after variant("feature") on an include refinement exposes the MTI 
 });
 
 test('createModelAccessor with a selected variant returns a variant-aware accessor', () => {
-  const task = createModelAccessor(executionContext, '__unbound__', 'Task', 'Feature');
+  const task = createModelAccessor(
+    executionContext,
+    '__unbound__',
+    'Task',
+    createCollectionTables(executionContext.contract, '__unbound__', 'Task'),
+    'feature',
+  );
   expectTypeOf(task).toHaveProperty('priority');
   expectTypeOf(task).toHaveProperty('title');
   task.priority.gte(3);
 });
 
 test('createModelAccessor without a selected variant returns the base accessor', () => {
-  const task = createModelAccessor(executionContext, '__unbound__', 'Task');
+  const task = createModelAccessor(
+    executionContext,
+    '__unbound__',
+    'Task',
+    createCollectionTables(executionContext.contract, '__unbound__', 'Task'),
+  );
   expectTypeOf(task).toHaveProperty('title');
   // @ts-expect-error priority is an MTI variant field, absent without a selected variant
   task.priority;
@@ -446,17 +458,17 @@ test('a variant helper result rejects a second variant selection', () => {
 test('a zero-argument custom helper exposes the variant row and create input', () => {
   const bugs = taskCollection.bugs();
   expectTypeOf<RowOfCollection<typeof bugs>>().toEqualTypeOf<
-    VariantModelRow<PolyContract, 'Task', 'Bug'>
+    VariantModelRow<PolyContract, 'Task', 'bug'>
   >();
   type BugsState =
     typeof bugs extends Collection<PolyContract, 'Task', infer _Row, infer State> ? State : never;
-  expectTypeOf<BugsState['variantName']>().toEqualTypeOf<'Bug'>();
+  expectTypeOf<BugsState['variantValue']>().toEqualTypeOf<'bug'>();
 });
 
 test('create() on a zero-argument custom helper takes the variant create input', () => {
   const bugs = taskCollection.bugs();
   expectTypeOf(bugs.create({ id: 1, title: 'Crash', severity: 'high' })).resolves.toEqualTypeOf<
-    VariantModelRow<PolyContract, 'Task', 'Bug'>
+    VariantModelRow<PolyContract, 'Task', 'bug'>
   >();
   // @ts-expect-error priority belongs to the Feature variant
   bugs.create({ id: 1, title: 'Crash', severity: 'high', priority: 1 });

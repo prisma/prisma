@@ -4,6 +4,7 @@ import type {
   OperationPreview,
 } from '@internal/framework-components/control';
 import type { AppliedStatementReport } from '../../control-api/statements/report-applied-statements';
+import type { TemporaryValueReport } from '../../control-api/statements/temporary-values';
 import type { PerSpaceExecutionEntry } from '../../control-api/types';
 
 /**
@@ -95,6 +96,8 @@ export interface MigrationCommandResult {
   readonly perSpace?: ReadonlyArray<PerSpaceExecutionEntry>;
   /** `db update` only: the statements the plan applied, in order; empty when none were given. */
   readonly appliedStatements?: readonly AppliedStatementReport[];
+  /** `db update` only: the new required fields whose existing rows get a temporary value. */
+  readonly temporaryValues?: readonly TemporaryValueReport[];
   /** `db update --dry-run` only: the operations an apply would ask about because they lose data. */
   readonly dataLoss?: readonly PlannedSubjectJson[];
   /** `db update --dry-run` only: the operations an apply would ask about because they widen access. */

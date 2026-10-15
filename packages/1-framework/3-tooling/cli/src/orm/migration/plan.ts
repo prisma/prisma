@@ -4,23 +4,32 @@ import type { Block, Presentations, Text, TreeNode } from '@prisma/cli-engine';
 import { flag } from '@prisma/cli-engine';
 import type { NextAction } from '@prisma/cli-engine/protocol';
 import { notOk, ok } from '@prisma/cli-engine/protocol';
-import { join } from 'pathe';
+import { join, resolve } from 'pathe';
 import { createControlClient } from '../../control-api/client';
 import type { ContractSpaceSeedPhaseRecord } from '../../control-api/operations/contract-space-seed-phase';
 import type { MigrationPlanResult } from '../../control-api/operations/migration-plan';
 import { executeMigrationPlanCommand } from '../../control-api/operations/migration-plan';
+import { statementFlag } from '../../control-api/statements/statement-flag';
+import { convertAndDelete, isStatementVerb } from '../../control-api/statements/statement-text';
 import type { CreateControlClient } from '../../control-api/types';
+import { errorConvertAndDelete } from '../../utils/cli-errors';
 import {
   RECORDED_CONTRACT_REF_FORMS,
   RECORDED_OR_EMPTY_CONTRACT_REF_FORMS,
 } from '../../utils/contract-ref-forms';
 import { previewBlockHeader } from '../../utils/formatters/migrations';
 import { runCommandAction } from '../../utils/next-actions';
+import {
+  type CliInvocation,
+  cliCommand,
+  cliInvocation,
+  selfEmitCommand,
+} from '../../utils/printed-command';
 import { defineOrmCommand } from '../define-command';
 import { normalizeError } from '../normalize-error';
 import { promptPlanQuestions } from '../plan-question-prompt';
 import { appliedStatementBlocks } from '../statement-blocks';
-import { ormStatementVerbs } from '../statement-verbs';
+import { migrationPlanStatementVerbs } from '../statement-verbs';
 import {
   appMigrationsDirFor,
   baseDirFor,
@@ -148,6 +157,16 @@ function originNoticeBlocks(result: MigrationPlanResult): readonly Block[] {
   ];
 }
 
+function temporaryValueBlocks(result: MigrationPlanResult): readonly Block[] {
+  return result.temporaryValues.map(
+    ({ field, value }): Block => ({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows get ${value} in field "${field}". To choose the value, plan again with ${statementFlag({ verb: 'backfill', text: field })}.`,
+    }),
+  );
+}
+
 function warningBlocks(result: MigrationPlanResult): readonly Block[] {
   return (result.warnings ?? []).map((text): Block => ({ kind: 'summary', status: 'warn', text }));
 }
@@ -172,6 +191,7 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
       { kind: 'summary', status: 'warn', text: result.summary },
       ...originNoticeBlocks(result),
       ...operationBlocks(result),
+      ...temporaryValueBlocks(result),
       ...appliedStatementBlocks(result.appliedStatements),
       outcome,
     ];
@@ -181,6 +201,7 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
     { kind: 'summary', status: 'ok', text: result.summary },
     ...originNoticeBlocks(result),
     ...operationBlocks(result),
+    ...temporaryValueBlocks(result),
     ...appliedStatementBlocks(result.appliedStatements),
     outcome,
     ...previewBlocks(result),
@@ -190,14 +211,10 @@ function planBlocks(result: MigrationPlanResult, migrationsRelative: string): re
 function planNextActions(
   result: MigrationPlanResult,
   migrationsRelative: string,
+  invocation: CliInvocation,
 ): readonly NextAction[] {
   if (result.pendingPlaceholders === true) {
-    const stubFiles = [
-      ...new Set([
-        ...(result.baselineDir === undefined ? [] : [join(result.baselineDir, 'migration.ts')]),
-        ...(result.dir === undefined ? [] : [join(result.dir, 'migration.ts')]),
-      ]),
-    ];
+    const stubFiles = (result.placeholderDirs ?? []).map((dir) => join(dir, 'migration.ts'));
     const migrationTs = stubFiles.at(-1) ?? join('<dir>', 'migration.ts');
     return [
       {
@@ -206,7 +223,7 @@ function planNextActions(
       },
       runCommandAction(
         'Run it to self-emit ops.json and attest the package',
-        `node "${migrationTs}"`,
+        selfEmitCommand(invocation, resolve(invocation.cwd, migrationTs)),
       ),
     ];
   }
@@ -222,7 +239,7 @@ function planNextActions(
   }
   return [
     { kind: 'edit-file', label: `Review ${written.join(' and ')}` },
-    runCommandAction('Apply the migration', '{bin} db migrate'),
+    runCommandAction('Apply the migration', cliCommand(invocation, 'db migrate')),
   ];
 }
 
@@ -234,6 +251,7 @@ function planPresentations(inputs: {
   readonly from: string | undefined;
   readonly to: string | undefined;
   readonly name: string | undefined;
+  readonly invocation: CliInvocation;
 }): Presentations {
   return {
     stdout: () => [],
@@ -252,7 +270,7 @@ function planPresentations(inputs: {
       ...planBlocks(inputs.document, inputs.migrationsRelative),
     ],
     json: () => inputs.document,
-    next: () => planNextActions(inputs.document, inputs.migrationsRelative),
+    next: () => planNextActions(inputs.document, inputs.migrationsRelative, inputs.invocation),
   };
 }
 
@@ -290,7 +308,7 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
         }),
       },
     },
-    statements: { rename: ormStatementVerbs.rename, delete: ormStatementVerbs.delete },
+    statements: migrationPlanStatementVerbs,
     needs: { config: ormConfigSection },
     handler: async (args, ctx) => {
       const seeded = (record: ContractSpaceSeedPhaseRecord): void => {
@@ -307,17 +325,26 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
           data: { newHash: record.newHash, newMigrationDirs: record.newMigrationDirs },
         });
       };
+      const conflicting = convertAndDelete(
+        ctx.statements
+          .values()
+          .flatMap(({ verb, text }) => (isStatementVerb(verb) ? [{ verb, text }] : [])),
+      );
+      if (conflicting !== undefined) {
+        return notOk(normalizeError(errorConvertAndDelete(conflicting)));
+      }
       const planned = await executeMigrationPlanCommand(
         {
           config: ctx.config,
           cwd: ctx.cwd,
           projectDir: baseDirFor(ctx.config),
+          ...ifDefined('configPath', ctx.configPath),
           ...ifDefined('name', args.flags.name),
           ...ifDefined('from', args.flags.from),
           ...ifDefined('to', args.flags.to),
-          statements: ctx.statements
-            .take('rename')
-            .map(({ text }) => ({ verb: 'rename' as const, text })),
+          statements: (['rename', 'convert', 'backfill'] as const).flatMap((verb) =>
+            ctx.statements.take(verb).map(({ text }) => ({ verb, text })),
+          ),
           answerQuestions: promptPlanQuestions(ctx.prompt),
           client: createClient({
             family: ctx.config.family,
@@ -353,6 +380,7 @@ export function createMigrationPlanCommand(createClient: CreateControlClient) {
             from: args.flags.from,
             to: args.flags.to,
             name: args.flags.name,
+            invocation: cliInvocation(ctx, undefined),
           }),
         ),
       );

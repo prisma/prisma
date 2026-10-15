@@ -229,6 +229,7 @@ function buildContractFromPsl(psl: string, control: ControlPolicy): Contract<Sql
     sourceId: 'native-enum-lifecycle-e2e.integration.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

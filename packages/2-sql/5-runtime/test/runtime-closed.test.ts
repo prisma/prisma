@@ -238,23 +238,27 @@ describe('runtime-scope work started after close()', () => {
   });
 
   it('execute() is refused at once, without driver calls or middleware', async () => {
-    const { runtime, driver, beforeExecute, closeGate, closing } = closedWithSlowDriverClose();
+    const { runtime, driver, activityStarted, beforeEncode, closeGate, closing } =
+      closedWithSlowDriverClose();
     await afterRefusalBegins();
 
     expect(await outcomeWithin(runtime.execute(affectedCountPlan()))).toMatchObject(closedError);
     expect(driver.execute).not.toHaveBeenCalled();
-    expect(beforeExecute).not.toHaveBeenCalled();
+    expect(activityStarted).not.toHaveBeenCalled();
+    expect(beforeEncode).not.toHaveBeenCalled();
     closeGate.resolve();
     await closing;
   });
 
   it('query().toArray() is refused at once, without driver calls or middleware', async () => {
-    const { runtime, driver, beforeQuery, closeGate, closing } = closedWithSlowDriverClose();
+    const { runtime, driver, activityStarted, beforeEncode, closeGate, closing } =
+      closedWithSlowDriverClose();
     await afterRefusalBegins();
 
     expect(await outcomeWithin(runtime.query(rowsPlan()).toArray())).toMatchObject(closedError);
     expect(driver.query).not.toHaveBeenCalled();
-    expect(beforeQuery).not.toHaveBeenCalled();
+    expect(activityStarted).not.toHaveBeenCalled();
+    expect(beforeEncode).not.toHaveBeenCalled();
     closeGate.resolve();
     await closing;
   });
@@ -275,8 +279,8 @@ describe('runtime-scope work started after close()', () => {
     expect(await outcomeWithin(preparedExecute.execute(runtime, {}))).toMatchObject(closedError);
     expect(driver.query).not.toHaveBeenCalled();
     expect(driver.execute).not.toHaveBeenCalled();
-    expect(spy.beforeQuery).not.toHaveBeenCalled();
-    expect(spy.beforeExecute).not.toHaveBeenCalled();
+    expect(spy.activityStarted).not.toHaveBeenCalled();
+    expect(spy.beforeEncode).not.toHaveBeenCalled();
     closeGate.resolve();
     await closing;
   });

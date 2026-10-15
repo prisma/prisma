@@ -52,7 +52,7 @@ export type ParamRefEntryUnion<TCodecMap extends Record<string, unknown>> =
   | ParamRefEntry<undefined>;
 
 /**
- * SQL-family mutator threaded into `SqlMiddleware.beforeExecute` as
+ * SQL-family mutator threaded into `SqlMiddleware.beforeEncode` as
  * `params`. Scope is `ParamRef.value` slots only — middleware cannot
  * insert / remove `ParamRef`s, rewrite SQL, or modify projection. The
  * type-level `ParamRefHandle` brand and the `replaceValue(ref,
@@ -105,7 +105,7 @@ export interface SqlParamRefMutator<
 /**
  * Internal-only view of the mutator that exposes the post-mutation params
  * array to the SQL runtime. The runtime calls `currentParams()` after the
- * `beforeExecute` chain has run; the result is the plan's original
+ * `beforeEncode` chain has run; the result is the plan's original
  * `params` by reference identity if no middleware mutated, otherwise a
  * frozen new array carrying the mutations applied in chain order.
  *

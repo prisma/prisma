@@ -30,7 +30,7 @@ This skill covers the **runtime entry point** — `db.ts` — and how to compose
 - **`db.ts` is the runtime entry point.** Imports the runtime factory from the `@internal/<target>` façade (`@internal/postgres/runtime`, `@internal/sqlite/runtime`, or `@internal/mongo/runtime`), the contract artefacts (`contract.json` + the `Contract` type from `contract.d.ts`), and any middleware. Exports a `db` value the rest of your app imports. On a per-request runtime, `db.ts` imports `postgresServerless` from `@internal/postgres/serverless` instead and exports the serverless client `postgres`; see *Workflow — Serverless and per-request runtimes*.
 - **The façade's runtime factory is the only surface user-authored `db.ts` imports from.** Each factory is a *default* export. For Postgres: `import postgres from '@internal/postgres/runtime'`; SQLite: `import sqlite from '@internal/sqlite/runtime'`; Mongo: `import mongo from '@internal/mongo/runtime'`. The factory signature is `<Target><Contract>(options)` — a single type parameter (the `Contract` type from `contract.d.ts`), and one options object.
 - **Lazy connect.** The factory does not connect to the database synchronously. `db.sql` and `db.orm` are available immediately; the driver / pool is instantiated on the first call that needs a runtime (or when you explicitly call `await db.connect({ url })`, which binds the client to that URL), and the pool opens its first database connection on the first query. This is why `db.ts` can be imported in modules that load before the env is ready.
-- **Middleware composes in order.** The first middleware in the `middleware: [...]` array runs *outermost* — its `beforeQuery` sees the operation first, and `interceptQuery` hooks are consulted in registration order with the first non-`undefined` result winning. Register a cache first so it gets first claim on a hit. Every middleware's `afterQuery` still fires on a cache hit, with `result.source: 'middleware'`.
+- **Middleware composes in order.** Every hook runs in the order of the `middleware: [...]` array — the first middleware's `beforeEncode` sees the statement first, and `intercept.onQuery` handlers are consulted in registration order with the first non-`undefined` result winning. Register a cache first so it gets first claim on a hit. Every middleware's `activityEnded` still fires on a cache hit, with `result.source: 'middleware'`.
 - **`prisma.config.ts` vs `.env`.** The config (`definePrismaConfig({ orm: ormConfig({ contract, db, extensions, migrations }) })` — see `references/contract.md`) is for static project shape: contract path, installed extensions, migrations directory, default connection string. `.env` is for per-environment values (`DATABASE_URL`, secrets). Nothing reads `.env` on its own: the scaffolded `prisma.config.ts` starts with `import 'dotenv/config'`, and that import is what loads `.env` into `process.env` before the config (and the CLI running it) reads `process.env['DATABASE_URL']`. Keep the import; a config without it sees no `.env` values. Hardcoding `DATABASE_URL` in the config file leaks credentials and bypasses per-env overrides.
 - **Build-system / dev-server integration is a separate skill.** `vite dev` auto-emit lives in `references/build.md`. The runtime side (this skill) reads `contract.json` / `contract.d.ts` regardless of how they got onto disk, so the two skills compose cleanly.
 
@@ -172,22 +172,32 @@ How connections read rows, and the `cursor` option on the serverless client (wit
 
 ## Workflow — Custom middleware (query log, slow-query warning)
 
-The concept: a middleware is a plain object with `name`, `familyId: 'sql'`, and any of the hooks `beforeQuery`, `interceptQuery`, `afterQuery`, `beforeExecute`, `afterExecute`, `afterTransaction`. Row queries fire `afterQuery`; count-style writes fire `afterExecute`. `afterTransaction(plan, result, ctx)` is the last hook of every query whose before-hooks and parameter encoding succeeded (a query that fails in a before-hook or while encoding its parameters gets none), and fires once, when its effects are final: when the query ends outside a transaction, or when the enclosing transaction ends. `result.outcome` is `'committed'`, `'rolled-back'`, or `'unknown'` (a commit or statement that failed and may have landed, a row stream the caller stopped reading outside a transaction, or a committed transaction in which one of the queries failed). There is no separate telemetry package — observe queries with `afterQuery`, which fires once per execution after the rows are consumed, with `result.latencyMs`, `result.rowCount`, and `result.source` (`'driver'` or `'middleware'` for a cache hit). The `SqlMiddleware` type comes from `@prisma/orm-postgres/family-runtime`. `examples/prisma-8-demo/src/prisma/slow-query-warning.ts` is the canonical example:
+The concept: the runtime runs every statement and every transaction as an **activity**, and a middleware is a plain object with `name`, `familyId: 'sql'`, and any of these hooks:
+
+- Lifecycle events, for every activity: `activityStarted(activity, ctx)`, `activityEnded(activity, result, ctx)` and `activityFinalized(activity, result, ctx)`. Check `activity.kind` (`'statement'` or `'transaction'`) at the top. `activityEnded` fires when the act ends: for a statement with `result.outcome` (`'succeeded'`, `'failed'`, or `'stopped'` when the caller stopped reading), `result.latencyMs`, `result.source` (`'driver'`, or `'middleware'` for a cache hit) and `result.rowCount` or `result.stats` according to `result.returns`. `activityFinalized` fires once the effects are final, with `result.outcome` `'committed'`, `'rolled-back'` or `'unknown'`: right after the end outside a transaction, and when the transaction ends inside one. Every statement that started is finalized, even one blocked before it ran.
+- Interceptors, for statements: `beforeEncode(plan, ctx, params)` before parameters are encoded (throw to block the statement), `intercept.onQuery` / `intercept.onExecute` to supply a result instead of running it, and `onRow(row, plan, ctx)` for each driver row.
+
+Every hook of one activity receives the same `ctx`. Keep per-statement state in `ctx.state(key)` (use a `Symbol()` key); `activity.id` identifies the activity, and `ctx.parent` is the enclosing transaction's context. There is no separate telemetry package — observe statements with `activityEnded`. The `SqlMiddleware` type comes from `@prisma/orm-postgres/family-runtime`. `examples/prisma-8-demo/src/prisma/slow-query-warning.ts` is the canonical example:
 
 ```typescript
 import type { SqlMiddleware } from '@prisma/orm-postgres/family-runtime';
+
+const statementSql = Symbol('slow-query-warning.sql');
 
 export function slowQueryWarning(options?: { readonly thresholdMs?: number }): SqlMiddleware {
   const thresholdMs = options?.thresholdMs ?? 250;
   return {
     name: 'slow-query-warning',
     familyId: 'sql',
-    async afterQuery(plan, result, ctx) {
-      if (result.latencyMs <= thresholdMs) return;
+    async beforeEncode(plan, ctx) {
+      ctx.state(statementSql)['sql'] = plan.sql;
+    },
+    async activityEnded(activity, result, ctx) {
+      if (result.kind !== 'statement' || result.latencyMs <= thresholdMs) return;
       ctx.log.warn({
         code: 'APP.SLOW_QUERY',
         message: `Query took ${result.latencyMs}ms (threshold: ${thresholdMs}ms)`,
-        details: { sql: plan.sql, rowCount: result.rowCount, source: result.source },
+        details: { sql: ctx.state(statementSql)['sql'], source: result.source, activityId: activity.id },
       });
     },
   };
@@ -236,7 +246,7 @@ For the full option surface, read the source: `packages/2-sql/5-runtime/src/midd
 
 ## Workflow — Cache middleware
 
-The concept: `@prisma/orm-extension-middleware-cache` ships an opt-in read cache built on the `interceptQuery` hook. On a hit the driver is never called; on a miss the rows are buffered and stored when the query completes. Only a plan carrying `cacheAnnotation` is cached; `cacheAnnotation({ bypass: true })` skips the cache for one call. Cache keys default to the runtime's content hash of the plan (`key` overrides), and queries inside a transaction or pinned connection bypass the cache. How long an entry lives is the store's policy: the default store keeps up to 1000 entries for 60 seconds each, and `createInMemoryCacheStore({ maxEntries, ttlMs })` changes that (`ttlMs: Infinity` never expires). `CacheStore` is the interface for a Redis-style backend. The cache never sees writes: after the write commits, call `cache.invalidate({ keys })` for reads annotated with a `key`. `cacheAnnotation({ meta })` hands any value to the store with the entry, and `cache.invalidate({ meta })` hands one to its `unset`; only a custom store that indexes `meta` can act on it, and the default store throws `RUNTIME.CACHE_STORE_META_UNSUPPORTED`.
+The concept: `@prisma/orm-extension-middleware-cache` ships an opt-in read cache built on the `intercept.onQuery` handler. On a hit the driver is never called; on a miss the rows are buffered and stored when the query completes. Only a plan carrying `cacheAnnotation` is cached; `cacheAnnotation({ bypass: true })` skips the cache for one call. Cache keys default to the runtime's content hash of the plan (`key` overrides), and queries inside a transaction or pinned connection bypass the cache. How long an entry lives is the store's policy: the default store keeps up to 1000 entries for 60 seconds each, and `createInMemoryCacheStore({ maxEntries, ttlMs })` changes that (`ttlMs: Infinity` never expires). `CacheStore` is the interface for a Redis-style backend. The cache never sees writes: after the write commits, call `cache.invalidate({ keys })` for reads annotated with a `key`. `cacheAnnotation({ meta })` hands any value to the store with the entry, and `cache.invalidate({ meta })` hands one to its `unset`; only a custom store that indexes `meta` can act on it, and the default store throws `RUNTIME.CACHE_STORE_META_UNSUPPORTED`.
 
 ```typescript
 import {
@@ -272,18 +282,18 @@ await cache.invalidate({ keys: ['user-1'] });
 
 ```typescript
 middleware: [
-  createCacheMiddleware(),                      // first — gets first claim on an interceptQuery hit
+  createCacheMiddleware(),                      // first — gets first claim on an intercept.onQuery hit
   lints({ severities: { noLimit: 'error' } }),
   budgets({ maxLatencyMs: 5_000 }),
-  slowQueryWarning({ thresholdMs: 250 }),       // afterQuery fires for cache hits too (source: 'middleware')
+  slowQueryWarning({ thresholdMs: 250 }),       // activityEnded fires for cache hits too (source: 'middleware')
 ],
 ```
 
-Order matters: `beforeQuery` runs in registration order for every middleware before any `interceptQuery` is consulted, so lints and budgets still check a query the cache then answers; `afterQuery` fires for all of them either way.
+Order matters: `beforeEncode` runs in registration order for every middleware before any `intercept.onQuery` is consulted, so lints and budgets still check a query the cache then answers; `activityEnded` fires for all of them either way.
 
 ## Workflow — Configure the connection
 
-The concept: the runtime takes one of three binding shapes — `url`, `pg` (a pre-constructed `pg.Pool` or `pg.Client`), or `binding` (an explicit kind tag). They're mutually exclusive. The `pg` form is for projects that already manage their own pool (e.g. a Lambda layer); `url` is the default. Pool tuning is `poolOptions.connectionTimeoutMillis` / `poolOptions.idleTimeoutMillis` — *not* `driverOptions`. Reads are buffered by default; setting `cursor` (`{ batchSize: 100 }`; `{}` or `{ batchSize: undefined }` for batches of 100; a `batchSize` that is not a positive integer fails the factory call) makes them stream through a server-side cursor, and there is no flag that turns cursors off (see `references/queries.md` § *Streaming*). `postgresServerless()` takes the same `cursor` option.
+The concept: the runtime takes one of three binding shapes — `url`, `pg` (a pre-constructed `pg.Pool` or `pg.Client`), or `binding` (an explicit kind tag). They're mutually exclusive. The `pg` form is for projects that already manage their own pool (e.g. a Lambda layer); `url` is the default. Pool tuning is `poolOptions.connectionTimeoutMillis` / `poolOptions.idleTimeoutMillis` — *not* `driverOptions`. Reads are buffered by default; setting `cursor` (`{ batchSize: 100 }`; `{}` or `{ batchSize: undefined }` for batches of 100; a `batchSize` that is not a positive integer fails the factory call) makes them stream through a server-side cursor, and there is no flag that turns cursors off (see `references/queries.md` § *Streaming*). `postgresServerless()` takes the same `cursor` option. Pass `log` (an object with `info`, `warn`, `error` and an optional `debug`; `console` works, and the type is `Log` from `@prisma/orm-postgres/family-runtime`) to receive what the runtime logs: the marker-verification warnings `CONTRACT.MARKER_MISSING` and `CONTRACT.MARKER_MISMATCH` from the first query, the warnings `lints()` emits for rules whose severity is `warn`, and the errors a middleware's `activityEnded` or `activityFinalized` hook throws, which the runtime logs and swallows. If `log` has a `debug` method, it also receives debug events, for example when a middleware intercepts a statement. `budgets()` violations never reach `log`: the client runs its runtime in strict mode, so a violation throws, until the client exposes `mode` (TML-3567). Without `log`, the runtime drops these events. `postgresServerless()`, `sqlite()` and `supabase()` take the same option.
 
 ```typescript
 // Default — URL string, factory constructs the pool.
@@ -295,6 +305,7 @@ postgres<Contract>({
     idleTimeoutMillis: 30_000,
   },
   // cursor: { batchSize: 100 },  // optional — stream reads in batches instead of buffering
+  // log: console,                // optional — receive marker and lints() warnings
 });
 
 // BYO pool — pass a pg.Pool you already created.
@@ -386,18 +397,18 @@ The runtime side (this skill) is the same regardless: `db.ts` reads `contract.js
 1. **Hardcoding `DATABASE_URL` in `prisma.config.ts`.** Leaks credentials; bypasses per-environment overrides. Use `.env`.
 2. **Omitting the `<Contract>` type parameter** in `postgres<Contract>(...)`. Without it, static surfaces collapse to a generic shape and you lose autocomplete for models. There is no second type parameter — the older two-param signature (`postgres<Contract, TypeMaps>`) is gone.
 3. **Forgetting `with { type: 'json' }` on the contract import.** Required by Node's ESM JSON-import-attribute spec.
-4. **Middleware order matters.** Registration order is hook order; put the cache first so its `interceptQuery` is consulted first.
-5. **Importing middleware from a non-existent package or subpath.** There is no `@internal/postgres/middleware` subpath and no `@internal/middleware-telemetry` package. `lints` / `budgets` / `SqlMiddleware` come from `@prisma/orm-postgres/family-runtime`; the cache comes from `@prisma/orm-extension-middleware-cache`; a query log or telemetry hook is a custom `afterQuery` middleware (above).
+4. **Middleware order matters.** Registration order is hook order; put the cache first so its `intercept.onQuery` is consulted first.
+5. **Importing middleware from a non-existent package or subpath.** There is no `@internal/postgres/middleware` subpath and no `@internal/middleware-telemetry` package. `lints` / `budgets` / `SqlMiddleware` come from `@prisma/orm-postgres/family-runtime`; the cache comes from `@prisma/orm-extension-middleware-cache`; a query log or telemetry hook is a custom `activityEnded` middleware (above).
 6. **Confabulating lint / budget option names.** Lints take `severities` (with the five keys above), not `requireWhere` / `maxRowsWithoutLimit`. Budgets use `maxLatencyMs` (not `maxDurationMs`) plus `maxRows` / `defaultTableRows` / `tableRows`. When in doubt, read the source.
 7. **Switching targets without re-emitting.** The contract artefacts are target-shaped; emit after the target change.
 8. **Script hangs after queries finish on Postgres.** The `pg.Pool` keeps Node's event loop alive. Solution: `await db.close()` before the script returns, or `await using db = postgres<Contract>(...)` at the top of a script module. Do not put `await using db = postgres(...)` inside a request handler — it's block-scoped and would close the pool after every request. The right server pattern is a module-level singleton in `db.ts` that lives for the process lifetime. On a per-request runtime, use `postgresServerless()` and `await using db = await postgres.connect({ url })` in the handler instead (see *Workflow — Serverless and per-request runtimes*).
 
 ## What Prisma 8 doesn't do yet
 
-- **A `/middleware` subpath or a telemetry package.** Neither exists. The middleware surface is `lints`, `budgets`, and the `SqlMiddleware` type on `@prisma/orm-postgres/family-runtime`, plus the separately installed `@prisma/orm-extension-middleware-cache`. Anything else (query log, tracing spans, metrics) is a custom `afterQuery` middleware you write. File additional gaps you hit via `references/feedback.md`.
+- **A `/middleware` subpath or a telemetry package.** Neither exists. The middleware surface is `lints`, `budgets`, and the `SqlMiddleware` type on `@prisma/orm-postgres/family-runtime`, plus the separately installed `@prisma/orm-extension-middleware-cache`. Anything else (query log, tracing spans, metrics) is a custom middleware you write on the lifecycle events. File additional gaps you hit via `references/feedback.md`.
 - **Multi-database routing / read replicas.** Prisma 8 doesn't ship a built-in primary/replica router or shard-aware client. Workaround: configure separate `db.ts` instances per data store and call the right one in your application code. If you need first-class multi-database routing, file a feature request via the `references/feedback.md` skill.
 - **Connection pooling as a first-class config field.** `poolOptions.connectionTimeoutMillis` and `poolOptions.idleTimeoutMillis` are wired through, but the rest of `pg.Pool`'s tuning surface (max connections, `allowExitOnIdle`, ssl options, …) is not exposed by name. Workaround: construct the `pg.Pool` yourself and pass it via `pg:`. If you need more pool fields surfaced on the façade, file a feature request via the `references/feedback.md` skill.
-- **Query logger middleware as a built-in.** Prisma 8 doesn't ship a "log every query" middleware. Workaround: a custom `afterQuery` middleware (see *Workflow — Custom middleware*). If you need a built-in query log, file a feature request via the `references/feedback.md` skill.
+- **Query logger middleware as a built-in.** Prisma 8 doesn't ship a "log every query" middleware. Workaround: a custom `activityEnded` middleware (see *Workflow — Custom middleware*). If you need a built-in query log, file a feature request via the `references/feedback.md` skill.
 
 ## Reference Files
 

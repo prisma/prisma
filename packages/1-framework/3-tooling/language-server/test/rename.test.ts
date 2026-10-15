@@ -926,3 +926,38 @@ describe('provideRename — where the map attribute goes', () => {
     expect(format(renamed)).toBe(renamed);
   });
 });
+
+describe('rename — the default namespace', () => {
+  const postgres: Files = {
+    'a.prisma': [
+      'namespace public {',
+      '  model Account {',
+      '    id Int @id',
+      '  }',
+      '}',
+      'namespace auth {',
+      '  model Session {',
+      '    account public.Account',
+      '  }',
+      '}',
+      '',
+    ].join('\n'),
+  };
+  const noBlock: Files = { 'a.prisma': 'model User {\n  id Int @id\n  self public.User\n}\n' };
+
+  it.each([
+    [noBlock, 'pub|lic.User'],
+    [postgres, 'namespace pub|lic'],
+  ])('refuses to rename it at %j', (files, marked) => {
+    const input = cursorInput(files, 'a.prisma', marked);
+
+    expect(providePrepareRename(input)).toBeNull();
+    expect(provideRename({ ...input, newName: 'Renamed' })).toBeNull();
+  });
+
+  it('still renames another namespace', () => {
+    expect(renameAt(postgres, 'a.prisma', 'namespace au|th', 'identity')).toEqual([
+      'a.prisma: namespace identity {',
+    ]);
+  });
+});

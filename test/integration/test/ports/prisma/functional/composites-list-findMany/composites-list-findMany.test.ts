@@ -94,29 +94,4 @@ describe('ports/prisma/functional/composites/list/findMany', () => {
       }),
     timeouts.spinUpMongoMemoryServer,
   );
-
-  it(
-    'filter equals shorthand (same as filter equals for ORM)',
-    () =>
-      withComposites(async ({ db }) => {
-        const id1 = new ObjectId().toHexString();
-        const id2 = new ObjectId().toHexString();
-        await db.comment_required_list.createAndCount([dataA(id1), dataB(id2)]);
-
-        const comment = await db.comment_required_list.where({ contents: contentsA }).all();
-
-        expect(comment).toHaveLength(1);
-        expect(comment[0]).toEqual({
-          _id: id1,
-          country: null,
-          contents: [
-            {
-              text: 'Hello World',
-              upvotes: [{ userId: '10', vote: true }],
-            },
-          ],
-        });
-      }),
-    timeouts.spinUpMongoMemoryServer,
-  );
 });

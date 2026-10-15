@@ -114,9 +114,9 @@ Marker reads and writes go through the control adapter SPI (`adapter.readMarker`
 
 - `budgets` - **AST-first budget middleware** (canonical in SQL domain), inspects `plan.ast` when present for row estimation
 - `lints` - **AST-first lint middleware** (canonical in SQL domain), inspects `plan.ast` when present
-- `SqlMiddleware`, `SqlMiddlewareContext` - SQL-family middleware interface and per-execution context
+- `SqlMiddleware`, `SqlMiddlewareContext` - SQL-family middleware interface and per-activity context
 - `BudgetsOptions`, `LintsOptions` - Middleware option types
-- `AfterExecuteResult` - Middleware `afterExecute` hook result type (re-exported from `@internal/framework-components/runtime`)
+- `ActivityEndedResult`, `ActivityFinalizedResult`, `RuntimeActivity`, `StatementActivity`, `TransactionActivity`, `StatementEnded`, `TransactionEnded`, `QueryInterceptResult`, `ExecuteInterceptResult` - Activity and lifecycle result types (re-exported from `@internal/framework-components/runtime`)
 - `Log` - Log entry type (re-exported from `@internal/framework-components/runtime`)
 
 #### Lints middleware (SQL domain)

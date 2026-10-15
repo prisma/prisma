@@ -125,7 +125,7 @@ Then run `pnpm prisma contract emit` (or rely on the Vite plugin — see `refere
 @@index([authorId], where: sql`(archived_at IS NULL)`, name: "posts_author_active")
 ```
 
-`name:` declares a wire-named index (physical name `<name>_<8-hex hash>`, renames plan as `ALTER INDEX … RENAME`); `map:` adopts an exact physical name verbatim (for infer-captured objects — combining it with a SQL body warns, because drift detection byte-compares the authored text against Postgres's reprint). An `expression:` requires `name:` or `map:`. The TS builder mirrors this via `constraints.index([cols.x], {...})` / `constraints.index({ expression, ... })` — see `packages/2-sql/2-authoring/contract-ts/README.md`.
+`name:` declares a wire-named index (physical name `<name>_<8-hex hash>`, renames plan as `ALTER INDEX … RENAME`); `map:` adopts an exact physical name verbatim (for infer-captured objects — combining it with a SQL body warns, because drift detection byte-compares the authored text against Postgres's reprint). An `expression:` requires `name:` or `map:`. The TS builder mirrors this via `constraints.index([cols.x], {...})` / `constraints.index({ expression, ... })`, where `expression` and `where` are `sql` values such as ``sql`lower(email)` `` (a string does not compile) — see `packages/2-sql/2-authoring/contract-ts/README.md`.
 
 **Full-text search indexes (PostgreSQL).** Do not hand-write the `to_tsvector` expression — Postgres only uses the index when the query carries the same search document: the same columns, configuration and weights. Declare `@@fullTextIndex`, and the index and the queries `fullTextMatches` / `fullTextRank` / `fullTextHeadline` build are rendered from the same definition (see `references/queries-postgres.md`):
 
@@ -138,7 +138,7 @@ Then run `pnpm prisma contract emit` (or rely on the Vite plugin — see `refere
 
 The fields are one field, or a list whose items are fields or lists of fields. Each top-level item is a weight group, strongest first (`A` to `D`, so at most four groups); fields in a nested list share a weight. `[title, body]` is two groups, `[[title, body]]` one. A single field has no weight. Diagnostics refuse more than four groups, an empty group, a field named twice, an unknown field and a field that is not text.
 
-The TS builder has the same helper: `fullTextIndex(cols.text, { name: 'message_text_search' })` or `fullTextIndex([[cols.title, cols.subtitle], cols.body], { name: 'post_search' })`, from `@prisma/orm-postgres/contract-builder`, inside the model's `sql({ indexes: [...] })`. Both take an optional `language` (default `english`, from the same allowlist the operations accept), an optional `where:` for a partial index, and `name:` xor `map:`. Both are repeatable. In the SQL builder, pass the index itself, `table.indexes.<name>`, to `fullTextMatches` and `fullTextRank`, which then search its document with its groups and language. A column or a `fullTextDocument` given other groups or another `language` than the index is silent, costing the index and falling back to a sequential scan. The parser that builds the query (`websearchToTsquery` and the others) takes its own `language` for the query side; it does not affect index use. With `map:` the index keeps the exact database name you give it, and `db verify` compares the rendered search document with the text Postgres prints back for the index exactly, character for character. Postgres prints it in its own form (`to_tsvector('english'::regconfig, title)`), so a `map:` full-text index reports drift; `@@fullTextIndex` and `fullTextIndex` warn about this with `PN_EXACT_NAME_BODY_COMPARISON`. Use `name:` unless the database already has the index under that name.
+The TS builder has the same helper: `fullTextIndex(cols.text, { name: 'message_text_search' })` or `fullTextIndex([[cols.title, cols.subtitle], cols.body], { name: 'post_search' })`, from `@prisma/orm-postgres/contract-builder`, inside the model's `sql({ indexes: [...] })`. Both take an optional `language` (default `english`, from the same allowlist the operations accept), an optional `where:` for a partial index (a `sql` value, ``where: sql`archived_at IS NULL` ``), and `name:` xor `map:`. Both are repeatable. In the SQL builder, pass the index itself, `table.indexes.<name>`, to `fullTextMatches` and `fullTextRank`, which then search its document with its groups and language. A column or a `fullTextDocument` given other groups or another `language` than the index is silent, costing the index and falling back to a sequential scan. The parser that builds the query (`websearchToTsquery` and the others) takes its own `language` for the query side; it does not affect index use. With `map:` the index keeps the exact database name you give it, and `db verify` compares the rendered search document with the text Postgres prints back for the index exactly, character for character. Postgres prints it in its own form (`to_tsvector('english'::regconfig, title)`), so a `map:` full-text index reports drift; `@@fullTextIndex` and `fullTextIndex` warn about this with `PN_EXACT_NAME_BODY_COMPARISON`. Use `name:` unless the database already has the index under that name.
 
 The contract stores the index as data, not SQL: an index of type `fullText` whose `columns` are the covered storage columns and whose `options` are `{ weightGroups, language }`, the weight groups as storage column names. The DDL is a GIN index over the rendered document, `to_tsvector('<language>', "<column>")` for one field, and `setweight(...) || ...` with every column wrapped in `coalesce` for several. `@@index(expression: …)` remains only for expressions this attribute does not cover.
 
@@ -260,6 +260,8 @@ model Feature {
 }
 ```
 
+A variant's base can be in another namespace: write `@@base(ns.Model, "value")`. Such a variant must set `@@map(...)`, because a variant that shares its base's table has to be in the base's namespace.
+
 Verify the polymorphism syntax against the interpreter tests if in doubt: `packages/2-sql/2-authoring/contract-psl/test/interpreter.polymorphism.test.ts`.
 
 Mongo PSL takes the same `@@discriminator(field)` / `@@base(Base, "value")` attributes (the Mongo interpreter implements both; `examples/mongo-demo/src/contract.prisma` declares `Post` with `@@discriminator(kind)` and `Article` / `Tutorial` variants via `@@base(Post, "article")`). Variants share the base's collection — there is no `@@map` on a Mongo variant, since there is no second table to join. The TS builder's `discriminator` option on the model is the programmatic equivalent.
@@ -335,7 +337,7 @@ model Order {
 - **`name:`** — declaring a new rule. Prisma 8 picks the physical constraint name and future plans compare by that name, so Postgres's own reprint of your predicate (which rarely matches what you typed byte-for-byte) never causes false drift.
 - **`map:`** — adopting a rule that already exists. Give the constraint's exact physical name and Prisma 8 compares the predicate byte-for-byte against what's live. This is the form `contract infer` writes for you (see *Workflow — Brownfield introspection* below) when it finds a hand-written check in the database. Every `map:` body warns at emit time (`PN_EXACT_NAME_BODY_COMPARISON`) — the warning fires on the text, not on who wrote it, so the check `contract infer` just wrote warns again on your next `contract emit` too. That is expected, not a defect: the comparison is still sound because both sides are Postgres's own reprint. Prefer `name:` for anything you're authoring fresh: your text and Postgres's reprint of it rarely match character-for-character, and a byte comparison reports that as drift even when both mean exactly the same thing. Reserve `map:` for adopting what's already there, where both sides are the database's own reprint and so do match.
 
-A model can carry any number of `@@check` attributes. The TS builder mirrors this with `check({ expression, name })` / `check({ expression, map })` on a model's `.sql({ checks: [...] })`, next to `index()`.
+A model can carry any number of `@@check` attributes. The TS builder mirrors this with `check({ expression, name })` / `check({ expression, map })` on a model's `.sql({ checks: [...] })`, next to `index()`; `expression` is a `sql` value, as in ``check({ expression: sql`total > 0`, name: 'order_total_positive' })``. The `sql` tag, from the same contract-builder module, may interpolate other `sql` values: ``sql`${owner} AND deleted_at IS NULL` ``.
 
 Check constraints need the target's `checkConstraint` capability. Postgres has it; SQLite does not. `@@check` on a SQLite contract is rejected at authoring time; `check()` on a SQLite contract isn't caught until migration DDL is rendered, but either way you get a refusal, never a silently-dropped constraint.
 
@@ -355,6 +357,46 @@ namespace public {
 ```
 
 Canonical worked example: `examples/supabase/src/contract.prisma`.
+
+## Workflow — Mixins (shared members)
+
+The concept: a mixin is a named set of members for one kind of block. Declare it with the block's keyword followed by `mixin`, and include it in a block with `+<Name>`. The emitted contract is the same as if the mixin's members were written at the position of the inclusion.
+
+```prisma
+model mixin Timestamps {
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  @@index([createdAt])
+}
+
+enum mixin BaseRoles {
+  ADMIN = "admin"
+  USER  = "user"
+}
+
+model User {
+  id    Int    @id
+  +Timestamps
+  email String
+}
+
+enum Role {
+  @@type("pg/text@1")
+  +BaseRoles
+  GUEST = "guest"
+}
+```
+
+`User` has the fields `id`, `createdAt`, `updatedAt`, `email`, in that order, and the index on `createdAt`. `Role` has the members `ADMIN`, `USER`, `GUEST`.
+
+Rules:
+
+- **One keyword per mixin.** A `model mixin` can be included only in models, a `type mixin` only in composite types, an `enum mixin` only in enums, and a mixin for a block an extension defines (for example `policy_select mixin`) only in blocks of that keyword.
+- **A member provided twice is an error.** A field name or an enum member that the block already has, from its own body or from another mixin, is reported and the earlier one is kept. Including the same mixin twice in one block is also an error.
+- **A mixin's attributes can name only its own fields.** `@@index([createdAt])` inside `Timestamps` works because `createdAt` is a field of the mixin. An attribute that needs a field of the including model belongs in that model; a model's own attributes can name the fields a mixin provides, as in `@@id([tenantId, id])`.
+- **A mixin cannot include a mixin.**
+- **Names follow namespaces.** A mixin declared in `namespace auth { ... }` is included from another namespace as `+auth.Timestamps`. The types of its fields are looked up from the mixin's namespace, not from the including block's.
+- **A mixin is not a type.** It cannot be used as a field type, and it produces nothing in the contract unless a block includes it.
 
 ## Workflow — Cross-contract foreign keys
 

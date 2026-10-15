@@ -49,6 +49,7 @@ export interface ControlTargetDescriptor<
    * `deserializeContract` helper. The descriptor IS the aggregator.
    */
   readonly contractSerializer: ContractSerializer<TContract>;
+  readonly defaultNamespaceId: string;
   create(): TTargetInstance;
 }
 
@@ -79,7 +80,19 @@ export interface ControlDriverDescriptor<
   >,
   TConnection = string,
 > extends DriverDescriptor<TFamilyId, TTargetId> {
-  create(connection: TConnection): Promise<TDriverInstance>;
+  create(connection: TConnection, options?: ControlDriverConnectOptions): Promise<TDriverInstance>;
+}
+
+/** How a control driver connects. */
+export interface ControlDriverConnectOptions {
+  /**
+   * Connect only to a database that already exists, and never create one or its file. A driver
+   * whose connect could create a database must honour it; Postgres and MongoDB honour it as they
+   * are, since connecting never creates a database there.
+   */
+  readonly existingDatabaseOnly?: boolean;
+  /** Give up connecting after this many milliseconds, where the driver connects over a network. */
+  readonly connectTimeoutMs?: number;
 }
 
 export interface ControlExtensionDescriptor<

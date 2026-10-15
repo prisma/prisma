@@ -31,6 +31,7 @@ import { ormClientGetUsers } from '../src/orm-client/get-users';
 import { ormClientGetUsersBackwardCursor } from '../src/orm-client/get-users-backward-cursor';
 import { ormClientGetUsersByIdCursor } from '../src/orm-client/get-users-by-id-cursor';
 import { ormClientGetUsersCached } from '../src/orm-client/get-users-cached';
+import { ormClientSearchPosts } from '../src/orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from '../src/orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from '../src/orm-client/search-posts-by-title';
 import { ormClientUpdateUserEmail } from '../src/orm-client/update-user-email';
@@ -1202,6 +1203,11 @@ describe('ORM client integration examples', () => {
             embeddingPostIds.similar1,
             embeddingPostIds.similar2,
           ]);
+          expect(results.map((r) => Object.keys(r))).toEqual([
+            ['id', 'title', 'userId'],
+            ['id', 'title', 'userId'],
+            ['id', 'title', 'userId'],
+          ]);
         } finally {
           await runtime.close();
         }
@@ -1242,6 +1248,36 @@ describe('ORM client integration examples', () => {
     timeouts.spinUpPpgDev,
   );
 
+  it(
+    'ormClientSearchPosts searches the title and the body, title matches first',
+    async () => {
+      await withDevDatabase(async ({ connectionString }) => {
+        await initTestDatabase({ connection: connectionString, contract });
+        const runtime = await getRuntime(connectionString);
+
+        try {
+          await seedOrmClientData(runtime);
+          await createOrmClient(runtime)
+            .Post.where({ id: seededPostIds.memberNote })
+            .update({ body: 'A zebra crossed the road' });
+
+          const zebra = await ormClientSearchPosts('zebra', 10, runtime);
+          expect(zebra).toEqual([
+            { id: seededPostIds.adminZebra, title: 'Zebra post note', body: null },
+            {
+              id: seededPostIds.memberNote,
+              title: 'Other user note',
+              body: 'A zebra crossed the road',
+            },
+          ]);
+        } finally {
+          await runtime.close();
+        }
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
   // ---------------------------------------------------------------------------
   // Cache middleware integration tests.
   //
@@ -1249,7 +1285,7 @@ describe('ORM client integration examples', () => {
   // `src/orm-client/get-users-cached.ts` opt their reads into the
   // `@internal/middleware-cache` middleware via `cacheAnnotation(...)`.
   // The middleware short-circuits repeated executions of the same plan via
-  // its `interceptQuery` hook, so a cache hit means the SQL driver is *not*
+  // its `intercept.onQuery` handler, so a cache hit means the SQL driver is *not*
   // invoked again. We assert that contract by spying on `driver.query`.
   // ---------------------------------------------------------------------------
 

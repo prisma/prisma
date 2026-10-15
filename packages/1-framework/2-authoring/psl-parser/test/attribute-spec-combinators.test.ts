@@ -37,8 +37,9 @@ function makeCtx(sources: PslSources): FieldAttributeCtx {
   const { symbolTable } = buildSymbolTable({
     documents: [document],
     sources: modelSources,
+    defaultNamespaceId: 'public',
   });
-  const selfModel = symbolTable.topLevel.models['M'];
+  const selfModel = symbolTable.defaultNamespace.models['M'];
   if (!selfModel) throw new Error('expected model M in the symbol table');
   const field = selfModel.fields['id'];
   if (!field) throw new Error('expected field id on model M');
@@ -56,8 +57,9 @@ function schemaArg(schema: string, attribute: string, argName?: string) {
   const { symbolTable } = buildSymbolTable({
     documents: [document],
     sources: registry,
+    defaultNamespaceId: 'public',
   });
-  const model = symbolTable.topLevel.models['Post'];
+  const model = symbolTable.defaultNamespace.models['Post'];
   if (!model) throw new Error('expected model Post');
   const field = model.fields['author'];
   if (!field) throw new Error('expected field author');
@@ -401,6 +403,27 @@ describe('num', () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.failure).toHaveLength(1);
+  });
+});
+
+describe('a number written with a plus sign', () => {
+  it('is its value for int', () => {
+    const { expr, ctx } = argOf('+7');
+
+    expect(int({ min: 1, max: 10 }).parse(expr, ctx)).toEqual(ok(7));
+  });
+
+  it('is its value for num, unrestricted and fixed', () => {
+    const { expr, ctx } = argOf('+1.5');
+
+    expect(num().parse(expr, ctx)).toEqual(ok(1.5));
+    expect(num(1.5).parse(expr, ctx)).toEqual(ok(1.5));
+  });
+
+  it('is its text as written for numLiteral', () => {
+    const { expr, ctx } = argOf('+9007199254740993');
+
+    expect(numLiteral().parse(expr, ctx)).toEqual(ok({ text: '+9007199254740993' }));
   });
 });
 
@@ -771,8 +794,9 @@ describe('entityRef', () => {
     const { symbolTable } = buildSymbolTable({
       documents: [document],
       sources,
+      defaultNamespaceId: 'public',
     });
-    const selfModel = symbolTable.topLevel.models['M'];
+    const selfModel = symbolTable.defaultNamespace.models['M'];
     const field = selfModel?.fields['id'];
     const attribute = field?.node.attributes()[Symbol.iterator]().next().value;
     const expr = attribute?.argList()?.args()[Symbol.iterator]().next().value?.value();
@@ -800,7 +824,7 @@ describe('entityRef', () => {
 
   it('parses a bare identifier into its resolved model', () => {
     const { expr, ctx } = referenceArg('M');
-    const reference = { declaration: ctx.selfModel, namespace: undefined };
+    const reference = { declaration: ctx.selfModel, namespace: ctx.symbols.defaultNamespace };
     const result = entityRef({ kind: 'model' }).parse(expr, ctx);
 
     expect(result.ok).toBe(true);

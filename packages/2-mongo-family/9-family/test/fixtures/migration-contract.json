@@ -161,14 +161,17 @@
               "collection": "events"
             },
             "variants": {
-              "AddToCartEvent": {
-                "value": "add-to-cart"
+              "add-to-cart": {
+                "model": "AddToCartEvent",
+                "namespace": "__unbound__"
               },
-              "SearchEvent": {
-                "value": "search"
+              "search": {
+                "model": "SearchEvent",
+                "namespace": "__unbound__"
               },
-              "ViewProductEvent": {
-                "value": "view-product"
+              "view-product": {
+                "model": "ViewProductEvent",
+                "namespace": "__unbound__"
               }
             }
           },

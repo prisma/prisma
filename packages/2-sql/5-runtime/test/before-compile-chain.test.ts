@@ -38,7 +38,9 @@ function createContext(): SqlMiddlewareContext & {
     },
     contentHash: async () => 'mock-hash',
     scope: 'runtime' as const,
-    planExecutionId: 'test-fixture-plan-execution-id',
+    parent: undefined,
+    state: () => ({}),
+    inTransaction: () => false,
   };
 }
 
@@ -199,7 +201,7 @@ describe('runBeforeCompileChain', () => {
       const observerOnly: SqlMiddleware = {
         name: 'observer',
         familyId: 'sql',
-        async beforeQuery() {},
+        async beforeEncode() {},
       };
 
       const result = await runBeforeCompileChain([observerOnly], draft, ctx);

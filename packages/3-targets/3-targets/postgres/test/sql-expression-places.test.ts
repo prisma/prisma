@@ -29,8 +29,12 @@ const { document, sources } = parse(
   'model Post {\n  id Int @id\n}\n',
   'sql-expression-places.test.psl',
 );
-const { symbolTable } = buildSymbolTable({ documents: [document], sources });
-const model = symbolTable.topLevel.models['Post'];
+const { symbolTable } = buildSymbolTable({
+  documents: [document],
+  sources,
+  defaultNamespaceId: 'public',
+});
+const model = symbolTable.defaultNamespace.models['Post'];
 const field = model?.fields['id'];
 if (model === undefined || field === undefined) {
   throw new Error('expected the probe declarations');

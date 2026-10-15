@@ -206,19 +206,16 @@ describe('runtime.prepare', () => {
 
   it('runs the beforeCompile middleware chain exactly once at prepare time', async () => {
     const beforeCompile = vi.fn().mockResolvedValue(undefined);
-    const beforeQuery = vi.fn().mockResolvedValue(undefined);
-    const beforeExecute = vi.fn().mockResolvedValue(undefined);
-    const interceptExecute = vi.fn().mockResolvedValue(undefined);
-    const afterExecute = vi.fn().mockResolvedValue(undefined);
+    const beforeEncode = vi.fn().mockResolvedValue(undefined);
+    const onQuery = vi.fn().mockResolvedValue(undefined);
+    const onExecute = vi.fn().mockResolvedValue(undefined);
     const middleware: readonly SqlMiddleware[] = [
       {
         name: 'counter',
         familyId: 'sql',
         beforeCompile,
-        beforeQuery,
-        beforeExecute,
-        interceptExecute,
-        afterExecute,
+        beforeEncode,
+        intercept: { onQuery, onExecute },
       },
     ];
     const { runtime } = createSetup({ middleware, rows: [] });
@@ -227,16 +224,15 @@ describe('runtime.prepare', () => {
       buildEqUserIdPlan((params as Params<{ userId: unknown }>).userId),
     );
     expect(beforeCompile).toHaveBeenCalledTimes(1);
-    expect(beforeQuery).toHaveBeenCalledTimes(0);
+    expect(beforeEncode).toHaveBeenCalledTimes(0);
 
-    // Each statement.query() runs beforeQuery but NOT beforeCompile.
+    // Each statement.query() runs beforeEncode but NOT beforeCompile.
     await ps.query(runtime, { userId: 1 }).toArray();
     await ps.query(runtime, { userId: 2 }).toArray();
     expect(beforeCompile).toHaveBeenCalledTimes(1);
-    expect(beforeQuery).toHaveBeenCalledTimes(2);
-    expect(beforeExecute).not.toHaveBeenCalled();
-    expect(interceptExecute).not.toHaveBeenCalled();
-    expect(afterExecute).not.toHaveBeenCalled();
+    expect(beforeEncode).toHaveBeenCalledTimes(2);
+    expect(onQuery).toHaveBeenCalledTimes(2);
+    expect(onExecute).not.toHaveBeenCalled();
   });
 
   it('routes statement.query through driver.query with a prepared handle and reuses lowered SQL', async () => {
@@ -323,13 +319,13 @@ describe('runtime.prepare', () => {
     });
   });
 
-  it("beforeQuery's param mutator can override prepared param values before encode", async () => {
+  it("beforeEncode's param mutator can override prepared param values before encode", async () => {
     const captured: unknown[] = [];
     const middleware: readonly SqlMiddleware[] = [
       {
         name: 'override-userId',
         familyId: 'sql',
-        async beforeQuery(_plan, _ctx, params) {
+        async beforeEncode(_plan, _ctx, params) {
           if (!params) return;
           for (const entry of params.entries()) {
             captured.push(entry.value);

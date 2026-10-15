@@ -388,8 +388,8 @@ type ExtContract = MongoContractWithTypeMaps<
               };
               readonly discriminator: { readonly field: 'type' };
               readonly variants: {
-                readonly Bug: { readonly value: 'bug' };
-                readonly Feature: { readonly value: 'feature' };
+                readonly bug: CrossRefFor<'Bug'>;
+                readonly feature: CrossRefFor<'Feature'>;
               };
             };
             readonly Bug: {
@@ -486,7 +486,7 @@ test('IncludedRow resolves included reference relations when FieldOutputTypes is
 });
 
 test('VariantCreateInput resolves when FieldInputTypes is present', () => {
-  type BugInput = VariantCreateInput<ExtContract, 'Task', 'Bug'>;
+  type BugInput = VariantCreateInput<ExtContract, 'Task', 'bug'>;
   expectTypeOf<BugInput>().toHaveProperty('title');
   expectTypeOf<BugInput>().toHaveProperty('severity');
 });

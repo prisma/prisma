@@ -128,6 +128,37 @@ describe('dataTransform factory', () => {
     ]);
   });
 
+  it('marks the postcheck of a backfill with the column it fills, and targets its table', async () => {
+    lowerToExecuteRequestMock
+      .mockResolvedValueOnce({ sql: 'SELECT 1 FROM "user" WHERE "title" IS NULL', params: [] })
+      .mockResolvedValue({ sql: 'UPDATE "user" SET "title" = $1', params: ['x'] });
+    const op = await dataTransform(
+      makeContract(),
+      'backfill-user-title',
+      {
+        backfillsColumn: { schema: 'public', table: 'user', column: 'title' },
+        check: () => makePlan(),
+        run: () => makePlan(),
+      },
+      makeAdapter(),
+    );
+    expect(op.target).toEqual({
+      id: 'postgres',
+      details: { schema: 'public', objectType: 'column', name: 'title', table: 'user' },
+    });
+    expect(op.postcheck).toEqual([
+      {
+        description: 'Verify backfill-user-title resolved all violations',
+        sql: 'SELECT NOT EXISTS (SELECT 1 FROM "user" WHERE "title" IS NULL) AS ok',
+        params: [],
+        meta: {
+          requiredColumn: { table: 'user', column: 'title', reason: 'backfillMissedRows' },
+        },
+      },
+    ]);
+    expect(op.precheck[0]).not.toHaveProperty('meta');
+  });
+
   it('propagates MIGRATION.UNFILLED_PLACEHOLDER when a closure is a placeholder (never reaches the adapter)', async () => {
     lowerToExecuteRequestMock.mockResolvedValue({
       sql: 'X',

@@ -130,6 +130,7 @@ function makeContractFromPsl(): MongoContract {
     sourceId: 'polymorphic-schema.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         field: {},

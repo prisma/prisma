@@ -22,7 +22,7 @@ This package depends on:
 - `@internal/sql-contract` for contract shape and mappings
 - `@internal/contract` for the contract shape and `PlanMeta`
 - `@internal/framework-components` for `AsyncIterableResult`
-- `@internal/sql-relational-core` for SQL AST, plan types, and the `RuntimeScope` interface
+- `@internal/sql-relational-core` for SQL AST, plan types, the `RuntimeScope` interface, and the function surface and index references it shares with the SQL query builder
 
 This package should not depend on target adapters or drivers directly; execution is delegated to the runtime queryable interface.
 
@@ -60,6 +60,56 @@ const posts = await db.Post
   .all();
 ```
 
+## Functions and indexes in callbacks
+
+A `where` or `orderBy` callback receives a second argument, `{ fns, indexes }`. So do the filter of `first` and `firstOrThrow`, and these callbacks inside an include refinement, a fragment body and a relation filter (`some`, `every`, `none`, `count`).
+
+```ts
+const q = websearchToTsquery(input.search);
+
+db.Post
+  .where((p, { fns, indexes }) => fns.fullTextMatches(indexes.post_search, q))
+  .orderBy((p, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc())
+  .limit(20)
+  .all();
+```
+
+- `fns` is the SQL query builder's function surface for the contract: `eq`, `and`, `or`, `in`, `exists`, `raw` and every query operation the target and extensions register. It accepts ORM fields as expressions. Conditions combine in both directions: `and`, `or` and `not` from this package take ORM conditions such as `p.title.ilike('%x%')` and conditions from `fns`, and `fns.and` and `fns.or` take both too. `fns` has no `not`; use the package's `not`. A condition from `fns` also goes straight to `where`. A value it returns, and the result of `fns.raw`, has `asc()` and `desc()` for `orderBy`; a value keeps its own methods. `fns.raw` binds an interpolated value through the adapter's codec inferer, which the execution context carries when it is built from an execution stack, as a database client's `db.context` is.
+- `indexes` holds the indexes of the model's table, keyed by the name the contract source gave each, as the SQL query builder's `table.indexes` gives them. Each index's columns are bound to the table reference the query uses, so inside an include refinement or a relation filter they follow the alias the ORM gives the related table. A name that more than one index shares is left out of the type; at run time it is a key whose getter throws `ORM.ARGUMENT_INVALID` when read. On a collection narrowed by `variant`, `indexes` is the base model's table's indexes. The body of a fragment for any model receives an `indexes` with no members, since it does not know its model.
+
+A reusable condition types its second parameter as `ModelCallbackTools<Contract, 'Post'>`, beside `ModelAccessor<Contract, 'Post'>` for the first. `OrmFunctions<Contract>` and `ModelIndexReferences<Contract, 'Post'>` name its two members.
+
+Naming the index makes the query search the document the index was built over, so Postgres uses the index. See [ADR 270](../../../docs/architecture%20docs/adrs/ADR%20270%20-%20ORM%20queries%20use%20the%20query%20builder's%20functions%20and%20a%20model's%20indexes.md).
+
+## Collection methods packages contribute
+
+A package can contribute collection methods. For each model, it reads the model's definition in the contract and returns the methods it offers, under names it chooses. Every collection offers them under `using`. With `db` from `postgres<Contract>(…)`:
+
+```ts
+const q = websearchToTsquery(input.search);
+
+await db.orm.public.Post.using.post_search(q).limit(10).all();
+await db.orm.public.Post.where({ userId }).using.embedding_nearest(vector, 0.5).limit(5).all();
+await db.orm.public.User.include('posts', (posts) => posts.using.post_search(q).limit(3)).all();
+```
+
+- The Postgres target contributes one method for each full-text index, named after the index, so `postgres()` and the serverless client both offer it. It filters with `fns.fullTextMatches` and orders by `fns.fullTextRank`, descending, both naming the index. A name two indexes of one table share gets no method.
+- The pgvector package contributes `<field>_nearest(vector, maxDistance?)` for each vector field. It orders by cosine distance to `vector`, nearest first, and keeps only the rows within `maxDistance` when one is given. Without `maxDistance` it only orders, so rows whose field is null are returned too, last. The vector's length is typed from the field. It declares no filter, because it filters only when `maxDistance` is given, so `updateAll` and `deleteAll` do not compile after it.
+- A method returns the collection it was called on, with `Filtered` and `Ordered` added as the method declares: a custom class stays the class. It works on a root collection, after other methods, inside an include refinement, inside `with` and a fragment for one model, and on `this` in a custom class. In the body of a fragment for any model (`db.orm.fragment(fields, body)`), the collection's type has no `using` member, and at run time its `using` is an empty object.
+- Its order is an ordinary order, added where it is called: an `orderBy` before it comes first, and one after it comes after.
+- A model that no contribution serves has a `using` with no members. On a collection narrowed by `variant`, a contribution sees the base model.
+- `using` is a member of every collection: a custom class cannot declare its own `using`, and an aggregate operation named `using` is refused.
+
+A contribution has two halves with the same id, both typed in `@internal/sql-relational-core/collection-methods` (published as `@prisma/orm-family-sql/relational-core/collection-methods`):
+
+- **The type half** is an interface extending `CollectionMethodContributionType`. The ORM fills its `model` with one model's `CollectionMethodModelType` (target, name, fields, relations, and storage table with columns and indexes), and reads back `methods`: for each method name, a `ContributedMethodSignature` with its `parameters` and whether it `filters` and `orders`. The package registers the interface in `CollectionMethodRegistry` by declaration merging, and type-exports it from each entry point that should load it: a value import alone is dropped from declaration output. The emitted `contract.d.ts` must not load it. A package outside this repository augments the published module name.
+- **The run-time half**, a `CollectionMethodContribution` whose `id` satisfies `CollectionMethodContributionId`, goes on a target or extension descriptor as `collectionMethods`. Its `methodsFor(model)` receives a `CollectionMethodModel` and returns one model's methods by name; each method receives the collection and the caller's arguments and returns the collection with a `where`, an `orderBy` or both added.
+- A contribution produces methods only from contract data its own package introduces (its codecs, its index types) or that every contract of its target has, because the registry is global to a program.
+
+`orm()` asks each contribution for each model's methods once per execution context. It refuses, with `ORM.ARGUMENT_INVALID`, two contributions with the same id, two contributions that give one model a method with the same name, a contribution that throws (naming it and the model, with its error as the cause), and a method that is not a function. In the types, a name two contributions give is a `CollectionMethodNameClash`, which cannot be called.
+
+The registry is global to a program: if anything in the program imports a package, every client in it shows that package's methods. See the [declaration-merging registries](../../../docs/architecture%20docs/patterns/declaration-merging-registries.md) pattern and [ADR 272](../../../docs/architecture%20docs/adrs/ADR%20272%20-%20Packages%20contribute%20collection%20methods%20computed%20from%20a%20model.md).
+
 ## Custom collections
 
 An application extends `Collection` with its own query methods and registers the class with `orm({ collections })`:
@@ -78,11 +128,13 @@ db.Post.include('user').withTitle('orm');
 
 `where`, `orderBy`, `limit`, `offset`, `distinct`, `distinctOn`, `cursor` and `include` return the collection they were called on, so the class's methods stay available. What a chain has established is added to the type as a fact: `where` gives `Filtered<Self>`, `orderBy` gives `Ordered<Self>`, and `include` gives `Including<Self, ...>`, whose rows also have the included relation. Write a filtered collection's type as `Filtered<C>`; it is `C & HasWhere`, and `HasWhere` is the name error messages print. `select` changes the row and `variant` changes the collection's type argument, so both return the base `Collection` type and the class's methods are gone after them.
 
+Inside an include refinement, the related collection is typed as the base `Collection`, so the registered class's methods are not available there in the types ([ADR 265](../../../docs/architecture%20docs/adrs/ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md), "Later decisions"). Write the shared part as a fragment for the model and apply it with `with`: `db.User.include('posts', (posts) => posts.with(search).limit(3))`.
+
 Inside a class body, a class method called on the result of another call loses what that call established, and so does `.prepared` after `.include(...)`: in `latest() { return this.withTitle('orm').newestFirst(); }` the result is known to be ordered but not filtered, for every caller of `latest()` (TML-3434). Inside the class, follow a class method with built-in methods (`this.withTitle('orm').orderBy(...)`), or chain the class methods from outside the class, where they keep every fact.
 
 `with(fn)` calls `fn` with the collection and returns its result. `fn` is a query fragment, described in [Query fragments](#query-fragments) below, of type `QueryFragment<In, Out>`: `db.Post.with((posts) => posts.withTitle('orm'))` has the same type as `db.Post.withTitle('orm')`.
 
-The type state holds the flags `hasWhere` and `hasOrderBy`. A flag that has not been established is `boolean`; a method that establishes it sets it to `true`. `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll` and `deleteAndCount` need `hasWhere: true`; `cursor` and `distinctOn` need `hasOrderBy: true`. Because `true` is a subtype of `boolean`, a filtered collection is a subtype of an unfiltered one: `search ? db.Post.withTitle(search) : db.Post` is a `PostCollection` that may have no filter, and `deleteAll()` on it does not compile. Each fact has three names: the flag `hasWhere` is set to `true` by the interface `HasWhere`, which is what `Filtered<C>` adds and what error messages print; `hasOrderBy`, `HasOrderBy` and `Ordered<C>` are the same for an order. `variant` needs a collection with no variant selected: the type-state field `variantName` must be `undefined`, which error messages print as `HasNoVariant`. Read a collection's type state and row with `CollectionTypeStateOf<C>` and `CollectionRowOf<C>`. The row includes the relations and values `include` adds. See [ADR 265](../../../docs/architecture%20docs/adrs/ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md).
+The type state holds the flags `hasWhere` and `hasOrderBy`. A flag that has not been established is `boolean`; a method that establishes it sets it to `true`. `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll` and `deleteAndCount` need `hasWhere: true`; `cursor` and `distinctOn` need `hasOrderBy: true`. Because `true` is a subtype of `boolean`, a filtered collection is a subtype of an unfiltered one: `search ? db.Post.withTitle(search) : db.Post` is a `PostCollection` that may have no filter, and `deleteAll()` on it does not compile. Each fact has three names: the flag `hasWhere` is set to `true` by the interface `HasWhere`, which is what `Filtered<C>` adds and what error messages print; `hasOrderBy`, `HasOrderBy` and `Ordered<C>` are the same for an order. `variant` needs a collection with no variant selected: the type-state field `variantValue` must be `undefined`, which error messages print as `HasNoVariant`. Read a collection's type state and row with `CollectionTypeStateOf<C>` and `CollectionRowOf<C>`. The row includes the relations and values `include` adds. See [ADR 265](../../../docs/architecture%20docs/adrs/ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md).
 
 `examples/prisma-8-demo/test/declaration-emit.test.ts` checks that a library exporting collection classes emits declarations with these names and that a consumer can use them. It runs in the demo's `pnpm test`, not in `pnpm test:packages`.
 
@@ -133,7 +185,9 @@ db.User.include('posts', (posts) => posts.with(summary));
 db.Post.select('id').with(summary); // error: the rows no longer have every Post field
 ```
 
-The body receives the plain collection of the model in the receiver's namespace, even when the receiver is a custom class, so the class's methods are not available in it. A fragment made from a collection in one namespace refuses a collection of the same model name in another. The fragment accepts a root, filtered, ordered or included collection of the model, a custom class, an include refinement, or `this` in a custom class. It refuses a collection of another model, one narrowed by `select`, whose rows lack fields the body's result would claim, and one narrowed by `variant`. Its result is always the body's result on the plain collection, even when the body keeps the row: a custom class's methods and a filter or order applied before it are not in the result's type, although they still run, so `update` and `cursor` are refused after it. Use a class method or a fragment for any model for a filter on one model. At run time the fragment refuses a collection of another model or namespace with `ORM.ARGUMENT_INVALID`. A custom collection class carries no namespace in its type, so with the same model name in several namespaces it is checked only at run time.
+Define a fragment on the model's root collection, such as `db.Post`. The fragment is built from the model alone, so calls chained before `.fragment(...)` would be ignored: on a collection with chained calls, such as `db.Post.where(...)`, `fragment` throws `ORM.ARGUMENT_INVALID`. The type check catches part of this. A collection whose type records a filter, an order or an include is a compile error, and so is a collection typed by a type parameter, such as `this` in a class method or `C` in a generic function, because it may be chained. The type check does not see `limit`, `offset`, `select`, `cursor`, `distinct`, `variant` or a lock, a union with a root collection, or a value typed as the plain collection; the run-time check does. Inside a class method, chain on `this` directly instead of defining a fragment from it.
+
+The body receives the plain collection of the model, in the namespace of the collection `fragment` is called on, even when that is a custom class, so the class's methods are not available in it. A fragment can be applied, with `with`, to a root, filtered, ordered or included collection of the model, a custom class, an include refinement, or `this` in a custom class: `this.with(summary)` works, while `this.fragment(...)` does not compile. A fragment made from a collection in one namespace refuses a collection of the same model name in another. It refuses a collection of another model, one narrowed by `select`, whose rows lack fields the body's result would claim, and one narrowed by `variant`. Its result is always the body's result on the plain collection, even when the body keeps the row: a custom class's methods and a filter or order applied before it are not in the result's type, although they still run. So `update` and `cursor` are refused after it unless the body itself calls `where` or `orderBy`, which the result records. Use a class method or a fragment for any model for a filter on one model. At run time the fragment refuses a collection of another model or namespace with `ORM.ARGUMENT_INVALID`. A custom collection class carries no namespace in its type, so with the same model name in several namespaces it is checked only at run time.
 
 **A field to order by, from a request.** `orderByField(collection, name, direction, allowed)` returns an `orderBy` selector:
 
@@ -142,6 +196,63 @@ db.Post.orderBy(orderByField(db.Post, input.orderBy, input.direction, ['title', 
 ```
 
 `direction` is the request's string, `'asc'` or `'desc'`; `undefined` means `'asc'`. `allowed` is required and names at least one field; it takes only fields whose codec has the `order` trait (`OrderableFieldNames<Contract, Model>`). It is required because request text that may order by any field can order rows by a secret one and learn its value from the order of the results. `orderByField` throws `ORM.ARGUMENT_INVALID`, before any query runs, for a `name` that is not a field of the model, is a relation, has a codec without the `order` trait or is not in `allowed`, and for any other direction, including a name or direction that is not a string, such as a missing query parameter. An `allowed` that is not a list of names, from a JavaScript caller, throws `ORM.ARGUMENT_INVALID`; an empty one refuses every name. The error quotes the name and cuts it to 64 characters; `meta` has it in full. The trait is read with the same run-time lookup the model accessor uses. Only the model's own fields can be named: on a collection narrowed by `variant`, a field that only the variant has is refused. The selector fits any collection of a model with the allowed fields, and `orderBy` records the order, so `cursor` is allowed after it.
+
+## Reading or writing one record by its key
+
+`whereUnique(criterion)` filters a collection to at most one record. The criterion is an object that gives a value for every field of the model's primary key, or for every field of one of its unique constraints:
+
+```ts
+const post = await db.Post.whereUnique({ id }).first();
+const membership = await db.Membership.whereUnique({ tenantId, userId }).first();
+
+const renamed = await db.Post.whereUnique({ id }).where({ userId }).update({ title });
+const removed = await db.User.whereUnique({ email }).delete();
+```
+
+It applies the same filter as `where` with the same object, and returns the collection it was called on, so a custom collection class keeps its methods. `first()`, `update()` and `delete()` return the record or `null`; `firstOrThrow()` returns the record, or rejects with `RUNTIME.NO_ROWS` when no record has the key. A following `where` narrows further: `whereUnique({ id }).where({ userId })` is the record with that `id` if it also has that `userId`.
+
+The argument is checked at compile time. These are refused:
+
+- a field that is not a primary key or a unique constraint: `whereUnique({ title })`;
+- part of a compound key: `whereUnique({ tenantId })` when the key is `(tenantId, userId)`;
+- `null`, or a value whose type includes `null`, for a nullable unique column, because any number of rows can have no value there; use `where({ handle: null })` for those rows;
+- a callback. Only the object form exists.
+
+The same rule is checked again when the call runs, for code that gets past the types, such as plain JavaScript or a value cast to the key's type. A criterion that does not give a value for every field of the primary key or of one unique constraint throws `ORM.ARGUMENT_INVALID`. A field whose value is `undefined` or `null` counts as not given, so `whereUnique({ id: undefined })` throws instead of reading or writing some other row. A query expression is not accepted as a key value either: a key field given as an expression, such as another column, counts as not given.
+
+On a polymorphic model, the accepted keys are those of the model's own table. `conflictOn` in `upsert` and the criteria of a relation `connect` or `disconnect` take the same object and follow the same rules.
+
+After `whereUnique`:
+
+| Calls | |
+| --- | --- |
+| `where`, `variant`, `include`, `select`, `with`, `first`, `firstOrThrow`, `update`, `delete`, `prepared.first`, `prepared.firstOrThrow`, `forUpdate`, `forNoKeyUpdate`, `forShare`, `forKeyShare` | available |
+| `create`, `createAll`, `createAndCount`, `upsert` | unchanged; they do not use the filter |
+| `orderBy`, `limit`, `offset`, `cursor`, `distinct`, `distinctOn`, `all`, `aggregate`, `groupBy`, `updateAll`, `updateAndCount`, `deleteAll`, `deleteAndCount`, `prepared.all`, `prepared.aggregate` | compile error |
+
+The refused methods still appear in editor completion; calling one is the error. The error message names `HasNoUniqueFilter`.
+
+A row lock keeps the unique filter and the collection's class: after `whereUnique({ id }).forUpdate()` the same calls are available and the same calls are compile errors.
+
+`whereUnique` is not available inside an `include` refinement. The refinement collection does not have the method, and a call that reaches it another way, such as through a fragment made by `collection.fragment`, throws `ORM.INCLUDE_INVALID`.
+
+A helper that takes or returns such a collection writes its type as `UniquelyFiltered<C>`, which is `C & HasWhere & HasUniqueFilter`. Constrained as below, it accepts a custom collection class and the plain collection of the model, with or without an `include`, and its result keeps the class's methods:
+
+```ts
+function ownedBy<C extends Collection<Contract, 'Post', unknown, CollectionTypeState>>(
+  post: UniquelyFiltered<C>,
+  userId: string,
+) {
+  return post.where({ userId });
+}
+```
+
+These cases are not refused:
+
+- A method of a custom collection class is callable on a uniquely filtered collection whatever its body does, and so is a fragment made by the client's `fragment` method or by `collection.fragment`, run with `with`. One that adds an order or a limit is accepted; the query still matches at most one record. A function passed to `with` directly is checked: `db.Post.whereUnique({ id }).with((posts) => posts.limit(1))` is refused.
+- The result of `with(fragment)` for a fragment made by `collection.fragment` is the fragment's own result type and no longer records the unique filter, so the many-record methods compile on it.
+- Inside a method of a custom collection class, two results no longer record the unique filter: the result of another method of the class called after `this.whereUnique(...)`, and `.prepared` after `this.whereUnique(...)`, as `.prepared` after `.include(...)` loses what `include` established (see [Custom collections](#custom-collections)). `this.whereUnique({ id }).withTitle('orm').all()` and `this.whereUnique({ id }).prepared.all()` compile there, while the same calls from outside the class are refused. Every other many-record call after `this.whereUnique(...)` is refused inside the class as it is outside.
+- A conditional that mixes a uniquely filtered collection with another one, such as `flag ? db.Post.whereUnique({ id }) : db.Post.where({ userId })`, has the many-record methods.
 
 ## Skipping rows that collide with a unique constraint
 
@@ -255,6 +366,12 @@ SELECT "users"."id" AS "id" FROM "public"."users" ORDER BY (SELECT COUNT(*) AS "
 The reach is one hop: the related model's own relations are not exposed. A to-one relation has no `count`, and a to-many relation exposes no fields. If a related field is named `some`, `every`, `none` or `count`, the relation method wins and that field cannot be ordered through the relation.
 
 `cursor()` builds its keyset from plain columns only. It throws `ORM.ARGUMENT_INVALID`, naming the `orderBy` position, when an active order is a relation column, a relation count, an extension-operation result, or sets `nulls`. `distinctOn()` throws the same error when one of its leading orders (as many as there are `distinctOn` columns) is not a plain column, because Postgres needs those orders to match the `DISTINCT ON` columns; a relation order after them is accepted. Paginate such orders with `.limit(...)` / `.offset(...)`.
+
+## Tables in collection state
+
+`CollectionState.tables` holds a table scope and the aliased root table and multi-table-inheritance variant tables of the collection. Build it with `createCollectionTables(contract, namespaceId, modelName)` and pass it to `emptyState(tables)` and `createModelAccessor(context, namespaceId, modelName, tables)`.
+
+Every table a collection chain puts in a statement gets its alias from that scope. Relation filters, relation orders and includes at any depth take theirs from the scope of the collection they are called on. `createCollectionTables` starts a new scope, so build an include whose table already appears in the parent chain through `collection.include(...)` and read `collection.state`, not by hand.
 
 ## Codec Roundtrip
 

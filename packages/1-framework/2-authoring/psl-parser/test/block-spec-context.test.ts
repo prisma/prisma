@@ -50,7 +50,11 @@ describe('block spec context', () => {
     const binderDataTypes = dataTypeSupport();
     const interpreterDataTypes = dataTypeSupport();
     const { document, sources } = parse(SOURCE, 'test.psl');
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
 
     const { binder } = createBinder({
       sources,

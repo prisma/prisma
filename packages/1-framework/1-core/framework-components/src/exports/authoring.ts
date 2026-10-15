@@ -3,7 +3,24 @@ export type {
   AuthoringTypeConstructorOutput,
 } from '../shared/authoring-type-constructor-call';
 export { findAuthoringTypeConstructorCall } from '../shared/authoring-type-constructor-call';
-export { type EnumBlockMember, readEnumBlockMembers } from '../shared/enum-block-members';
+export {
+  type EnumBlockDiagnostic,
+  type EnumBlockMember,
+  type EnumBlockSite,
+  enumMemberProblemDiagnostic,
+  readEnumBlockMembers,
+} from '../shared/enum-block-members';
+export {
+  type DecodedEnum,
+  type EncodedEnumMember,
+  type EnumMemberProblem,
+  encodeEnumMembers,
+} from '../shared/enum-members';
+export {
+  type DuplicateStoredValue,
+  duplicateStoredMembers,
+  type StoredEnumMember,
+} from '../shared/enum-stored-members';
 export {
   fieldPresetSpellings,
   getAuthoringFieldPreset,
@@ -78,8 +95,11 @@ export type {
 export type { TaggedLiteralCanonicalization } from '../shared/tagged-literal';
 export {
   canonicalizeTaggedLiteralBody,
+  describeTaggedLiteralFailure,
   printedTaggedLiteralReadsBack,
   printTaggedLiteral,
+  resolveTemplateTagEscapes,
+  tsTaggedTemplateSource,
 } from '../shared/tagged-literal';
 export type { PresetStorageTemplate } from '../shared/temporal-presets';
 export {

@@ -443,6 +443,43 @@ export function errorTargetMigrationNotSupported(options?: {
   );
 }
 
+/** A config the migration-file CLI checked while looking for the one that owns the migration. */
+export interface CheckedMigrationConfig {
+  readonly configPath: string;
+  readonly migrationsDir?: string;
+  readonly loadFailure?: string;
+}
+
+/**
+ * Without `--config`, the migration-file CLI found no config whose migrations directory holds the migration.
+ */
+export function errorMigrationCliConfigNotFound(options: {
+  readonly migrationDir: string;
+  readonly checked: readonly CheckedMigrationConfig[];
+}): CliStructuredError {
+  const rule = `Without --config, a migration.ts uses the prisma.config.ts whose migrations directory holds it: the nearest one above ${options.migrationDir}, else the one in the working directory.`;
+  const found = options.checked.map(({ configPath, migrationsDir, loadFailure }) =>
+    loadFailure === undefined
+      ? `${configPath} keeps migrations in ${migrationsDir}`
+      : `${configPath} failed to load (${loadFailure})`,
+  );
+  return new CliStructuredError(
+    'CLI.MIGRATION_CONFIG_NOT_FOUND',
+    'No config found for this migration',
+    {
+      why:
+        found.length === 0
+          ? `${rule} There is neither.`
+          : `${rule} None of them does: ${found.join('; ')}.`,
+      fix: 'Run it again with `--config <path to the config of the project this migration belongs to>`.',
+      meta: {
+        migrationDir: options.migrationDir,
+        checked: options.checked.map(({ configPath }) => configPath),
+      },
+    },
+  );
+}
+
 /**
  * The migration-file CLI received `--config` without a path argument (either
  * a bare trailing `--config`, or `--config` followed by another flag like

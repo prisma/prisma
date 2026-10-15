@@ -540,7 +540,7 @@ describe('sql-target-family-hook', () => {
     );
   });
 
-  it('generates models with empty fields object when model has no fields', () => {
+  it('types a model with no fields with no row keys, and inputs that reject every key', () => {
     const ir = createContract({
       models: {
         User: {
@@ -570,7 +570,11 @@ describe('sql-target-family-hook', () => {
     const types = generateContractDts(ir, sqlEmission, [], testHashes);
     expect(types).toContain('readonly User: {');
     expect(types).toContain('storage: { readonly table: "user"');
-    expect(types).toContain('readonly fields: Record<string, never>');
+    expect(types).toContain('readonly fields: {}');
+    expect(types).toMatch(/export type FieldOutputTypes = \{[^;]*readonly User: \{\}/);
+    expect(types).toMatch(
+      /export type FieldInputTypes = \{[^;]*readonly User: Record<string, never>/,
+    );
     expect(types).not.toContain('fieldToColumn');
     expect(types).not.toContain('columnToField');
   });
