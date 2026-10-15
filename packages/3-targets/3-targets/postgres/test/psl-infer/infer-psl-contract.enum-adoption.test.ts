@@ -659,3 +659,49 @@ describe('mixed-case enum type names (Prisma-ORM-created types)', () => {
     });
   });
 });
+
+describe('an enum column whose type has no adopted block', () => {
+  const MOOD: FlatNativeEnumEntry = { typeName: 'mood', values: ['calm', 'busy'] };
+
+  function moodColumn(schema: string): SqlColumnIRInput {
+    return {
+      name: 'm',
+      nativeType: `${schema}.mood`,
+      nullable: true,
+      reportedType: { text: `${schema}.mood`, kind: 'enum', schema, name: 'mood' },
+    };
+  }
+
+  const unclaimed = (column: string) =>
+    expect.objectContaining({
+      code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
+      meta: { columns: [column] },
+    });
+
+  it('fails when no block declares the enum', () => {
+    const dbTree = tree({
+      public: namespaceNode('public', { t: table('t', { id: idColumn, m: moodColumn('other') }) }),
+    });
+    expect(() => inferAndPrint(dbTree)).toThrow(unclaimed('public.t.m: other.mood'));
+  });
+
+  it('fails when the block of that name is in another schema', () => {
+    const dbTree = tree({
+      public: namespaceNode('public', { t: table('t', { id: idColumn, m: moodColumn('other') }) }, [
+        MOOD,
+      ]),
+    });
+    expect(() => inferAndPrint(dbTree)).toThrow(unclaimed('public.t.m: other.mood'));
+  });
+
+  it('prints the enum when the block is in the schema the column reports', () => {
+    const dbTree = tree({
+      public: namespaceNode(
+        'public',
+        { t: table('t', { id: idColumn, m: moodColumn('public') }) },
+        [MOOD],
+      ),
+    });
+    expect(inferAndPrint(dbTree)).toContain('pg.enum(Mood)?');
+  });
+});
