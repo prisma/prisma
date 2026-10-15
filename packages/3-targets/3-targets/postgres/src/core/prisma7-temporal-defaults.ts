@@ -1,4 +1,5 @@
 import { pgDate, pgTime, pgTimestamptz, pgTimetz } from './data-types';
+import { postgresYearText } from './postgres-year-text';
 
 const RFC_3339 =
   /^(\d{4})-(\d{2})-(\d{2})[Tt ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(?:[Zz]|([+-])(\d{2}):(\d{2}))$/;
@@ -82,9 +83,7 @@ export function storedTemporalText(text: string, dataType: string): string | und
   midnight.setUTCFullYear(Number(year), Number(month) - 1, Number(day));
   const utcShift = dataType === pgTimestamptz.id ? offsetMinutesTotal * 60 : 0;
   const stamp = new Date(midnight.getTime() + (clockSeconds - utcShift) * 1000);
-  const astronomicalYear = stamp.getUTCFullYear();
-  const eraYear = astronomicalYear > 0 ? astronomicalYear : 1 - astronomicalYear;
-  const wallClock = `${pad(eraYear, 4)}-${pad(stamp.getUTCMonth() + 1)}-${pad(stamp.getUTCDate())} ${pad(stamp.getUTCHours())}:${pad(stamp.getUTCMinutes())}:${pad(stamp.getUTCSeconds())}${fractional}`;
-  const era = astronomicalYear > 0 ? '' : ' BC';
-  return dataType === pgTimestamptz.id ? `${wallClock}+00${era}` : `${wallClock}${era}`;
+  const isoDate = stamp.toISOString().split('T')[0] ?? '';
+  const wallClock = `${isoDate} ${pad(stamp.getUTCHours())}:${pad(stamp.getUTCMinutes())}:${pad(stamp.getUTCSeconds())}${fractional}`;
+  return postgresYearText(dataType === pgTimestamptz.id ? `${wallClock}+00` : wallClock);
 }

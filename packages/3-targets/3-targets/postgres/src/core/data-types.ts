@@ -51,6 +51,7 @@ import {
   pgIntervalCanonical,
   readPgByteaJson,
 } from './codec-helpers';
+import { isoYearText } from './postgres-year-text';
 import { quoteIdentifier } from './sql-utils';
 
 /** A cast between two types that store the same shape: the value is already the form this type stores. */
@@ -548,26 +549,6 @@ export const pgVarbit = sqlDataType('pg/varbit', {
   casts: fromText,
 });
 
-const POSTGRES_YEAR = /^(\d{4,6})(-.*?)( BC)?$/;
-
-/**
- * Text PostgreSQL prints, in ISO 8601. A year with a ` BC` suffix becomes the ISO year, one higher
- * than its negative, so 1 BC is 0000 and 44 BC is -000043. A year of five or six digits becomes a
- * signed six-digit year. 0 BC does not exist, so it stays as written and the reader refuses it.
- */
-function isoFromPostgresText(text: string): string {
-  const match = POSTGRES_YEAR.exec(text);
-  if (match === null) return text;
-  const [, digits = '', rest = '', bc] = match;
-  const year = Number(digits);
-  if (bc !== undefined) {
-    if (year === 0) return text;
-    const astronomical = 1 - year;
-    return astronomical === 0 ? `0000${rest}` : `-${String(-astronomical).padStart(6, '0')}${rest}`;
-  }
-  return digits.length > 4 ? `+${String(year).padStart(6, '0')}${rest}` : text;
-}
-
 const INFINITIES: ReadonlySet<string> = new Set(['infinity', '-infinity']);
 
 /**
@@ -581,7 +562,7 @@ function postgresDateTime(
   return (text) =>
     holdsInfinity && INFINITIES.has(text)
       ? text
-      : canonicalDateTime(isoFromPostgresText(text), options, text);
+      : canonicalDateTime(isoYearText(text), options, text);
 }
 
 /**

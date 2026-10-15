@@ -20,9 +20,6 @@ import {
   utcTimestamptzText,
 } from './temporal-codec-helpers';
 
-const TIMESTAMPTZ_TEXT =
-  /^([+-]\d{6}|\d{4,6})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,6}))?(?:Z|([+-])(\d{2})(?::?(\d{2}))?(?::?(\d{2}))?)( BC)?$/;
-
 function invalidDate(): RangeError {
   return new RangeError(
     `${PG_TIMESTAMPTZ_DATE_CODEC_ID} requires a valid Date or a representable ISO PostgreSQL timestamp with time zone; use TimestamptzString for unsupported values`,
@@ -43,62 +40,10 @@ function validateDate(value: Date): Date {
 }
 
 function decodeDate(wire: unknown): Date {
-  const date = typeof wire === 'string' ? parseDate(wire) : undefined;
-  if (date === undefined) throw invalidDate();
+  const instant = typeof wire === 'string' ? canonicalInstant(wire) : undefined;
+  const date = instant === undefined ? undefined : new Date(instant);
+  if (date === undefined || !isRepresentable(date)) throw invalidDate();
   return date;
-}
-
-/** The instant a timestamp with time zone as PostgreSQL writes it names, or `undefined` when the text is not one. */
-function parseDate(text: string): Date | undefined {
-  const match = TIMESTAMPTZ_TEXT.exec(text);
-  if (!match) return undefined;
-  const [
-    ,
-    yearText = '',
-    monthText,
-    dayText,
-    hourText,
-    minuteText,
-    secondText,
-    fraction = '',
-    sign,
-    offsetHour = '0',
-    offsetMinute = '0',
-    offsetSecond = '0',
-    era,
-  ] = match;
-  const year = era ? 1 - Number(yearText) : Number(yearText);
-  const month = Number(monthText) - 1;
-  const day = Number(dayText);
-  const hour = Number(hourText);
-  const minute = Number(minuteText);
-  const second = Number(secondText);
-  const milliseconds = Number(fraction.slice(0, 3).padEnd(3, '0'));
-  // Gregorian calendars repeat every 400 years. Validate in a safe cycle so local
-  // time cannot overflow Date's range before the timezone offset is applied.
-  const cycles = Math.floor((year - 2000) / 400);
-  const safeYear = year - cycles * 400;
-  const local = new Date(0);
-  local.setUTCFullYear(safeYear, month, day);
-  local.setUTCHours(hour, minute, second, milliseconds);
-  if (
-    (era !== undefined && (Number(yearText) === 0 || /^[+-]/.test(yearText))) ||
-    local.getUTCFullYear() !== safeYear ||
-    local.getUTCMonth() !== month ||
-    local.getUTCDate() !== day ||
-    local.getUTCHours() !== hour ||
-    local.getUTCMinutes() !== minute ||
-    local.getUTCSeconds() !== second ||
-    Number(offsetHour) > 15 ||
-    Number(offsetMinute) > 59 ||
-    Number(offsetSecond) > 59
-  )
-    return undefined;
-  const offset =
-    (Number(offsetHour) * 3600 + Number(offsetMinute) * 60 + Number(offsetSecond)) *
-    (sign === '-' ? -1 : 1);
-  const value = new Date(local.getTime() - offset * 1000 + cycles * 146097 * 86400000);
-  return isRepresentable(value) ? value : undefined;
 }
 
 /** The canonical instant a stored timestamp with time zone names, or `undefined` for `infinity` and an instant outside the range a `Date` holds. */

@@ -28,6 +28,7 @@ import {
   pgTimestamptz,
   pgTimestamptzCanonical,
 } from './data-types';
+import { postgresYearText } from './postgres-year-text';
 import { utcTimestampText, utcTimestamptzText } from './temporal-codec-helpers';
 
 export class PgDateStringCodec extends CodecImpl<
@@ -37,7 +38,7 @@ export class PgDateStringCodec extends CodecImpl<
   string
 > {
   async toWire(value: string, _ctx: CodecCallContext): Promise<string> {
-    return value;
+    return postgresYearText(value);
   }
   async fromWire(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;
@@ -81,7 +82,7 @@ export class PgTimestampStringCodec extends CodecImpl<
   toWire(value: Date, ctx: CodecCallContext): Promise<string>;
   toWire(value: string, ctx: CodecCallContext): Promise<string>;
   async toWire(value: string | Date, _ctx: CodecCallContext): Promise<string> {
-    return value instanceof Date ? utcTimestampText(value, this.id) : value;
+    return value instanceof Date ? utcTimestampText(value, this.id) : postgresYearText(value);
   }
   async fromWire(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;
@@ -140,7 +141,7 @@ export class PgTimestamptzStringCodec extends CodecImpl<
   toWire(value: Date, ctx: CodecCallContext): Promise<string>;
   toWire(value: string, ctx: CodecCallContext): Promise<string>;
   async toWire(value: string | Date, _ctx: CodecCallContext): Promise<string> {
-    return value instanceof Date ? utcTimestamptzText(value, this.id) : value;
+    return value instanceof Date ? utcTimestamptzText(value, this.id) : postgresYearText(value);
   }
   async fromWire(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;

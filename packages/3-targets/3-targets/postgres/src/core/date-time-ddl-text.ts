@@ -1,4 +1,5 @@
 import { pgDate, pgInterval, pgTime, pgTimestamp, pgTimestamptz, pgTimetz } from './data-types';
+import { postgresYearText } from './postgres-year-text';
 
 const DATE_TIME_TYPES: ReadonlySet<string> = new Set([
   pgDate.id,
@@ -29,11 +30,5 @@ export function isPostgresDateTimeDataType(dataTypeId: string | undefined): bool
  */
 export function postgresDateTimeDdlText(canonical: string, dataTypeId: string | undefined): string {
   if (dataTypeId === undefined || !TYPES_WITH_A_YEAR.has(dataTypeId)) return canonical;
-  const match = /^([+-]\d{6}|\d{4})(-.*)$/.exec(canonical);
-  if (match === null) return canonical;
-  const [, yearDigits = '', rest = ''] = match;
-  const year = Number(yearDigits);
-  if (year >= 1 && year <= 9999) return canonical;
-  if (year > 9999) return `${year}${rest}`;
-  return `${String(1 - year).padStart(4, '0')}${rest} BC`;
+  return postgresYearText(canonical);
 }
