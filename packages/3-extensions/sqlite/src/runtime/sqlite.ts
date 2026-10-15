@@ -24,8 +24,10 @@ import type {
   VerifyMarkerOption,
 } from '@internal/sql-runtime';
 import {
+  activitySource,
   createExecutionContext,
   createSqlExecutionStack,
+  delegatingActivitySource,
   withTransaction,
 } from '@internal/sql-runtime';
 import sqliteTarget, {
@@ -246,6 +248,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
         connection() {
           return getRuntime().connection();
         },
+        [activitySource]: delegatingActivitySource(() => getRuntime()),
       },
     }),
   );
@@ -339,6 +342,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
               execute(plan) {
                 return txCtx.execute(plan);
               },
+              [activitySource]: delegatingActivitySource(() => txCtx),
             },
             context,
           }),

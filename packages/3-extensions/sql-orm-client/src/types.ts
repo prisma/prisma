@@ -36,6 +36,7 @@ import type {
 } from '@internal/sql-relational-core/index-reference';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { ComputeColumnJsType, RuntimeScope } from '@internal/sql-relational-core/types';
+import type { ActivitySourceTarget } from '@internal/sql-runtime';
 import type { CollectionTables } from './collection-tables';
 import type { HasRow } from './collection-types';
 import { checkedOrderByItem } from './order-by-guards';
@@ -199,7 +200,8 @@ export interface RuntimeTransaction extends RuntimeScope {
   rollback?(): Promise<void>;
 }
 
-export interface RuntimeQueryable extends RuntimeScope {
+/** What the ORM sends its statements to. It may carry an `activitySource` member, as the SQL runtime's queryables do, through which `startActivityOn` reaches activities; a queryable without one, such as a test stub, has none. */
+export interface RuntimeQueryable extends RuntimeScope, Partial<ActivitySourceTarget> {
   connection?(): Promise<RuntimeConnection>;
   transaction?(): Promise<RuntimeTransaction>;
 }

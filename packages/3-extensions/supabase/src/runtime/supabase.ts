@@ -27,6 +27,7 @@ import type {
   VerifyMarkerOption,
 } from '@internal/sql-runtime';
 import {
+  activitySource,
   createExecutionContext,
   createSqlExecutionStack,
   withTransaction,
@@ -371,6 +372,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return roleRuntime.executeWithRole(plan, binding);
         },
         connection: () => roleRuntime.openRoleSession(binding),
+        [activitySource]: roleRuntime.roleActivitySource(binding),
       },
       context: roleContext,
     });
@@ -442,6 +444,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return extRuntime.executeWithRole(plan, serviceRoleBinding);
         },
         connection: () => extRuntime.openRoleSession(serviceRoleBinding),
+        [activitySource]: extRuntime.roleActivitySource(serviceRoleBinding),
       },
       context: extContext,
     }),

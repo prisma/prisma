@@ -23,6 +23,11 @@ export class InFlightOperations {
     return this.#started;
   }
 
+  /** How many operations are in flight. */
+  get count(): number {
+    return this.#count;
+  }
+
   get active(): boolean {
     return this.#count > 0;
   }
