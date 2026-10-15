@@ -116,6 +116,7 @@ import {
   mergeInvariants,
   NOW,
 } from './marker-ledger';
+import { reportedSqlType } from './reported-sql-type';
 import { renderLoweredSql } from './sql-renderer';
 import type { PostgresContract } from './types';
 
@@ -850,6 +851,10 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       column_default: string | null;
       formatted_type: string | null;
       attidentity: string;
+      reported_text: string | null;
+      reported_typtype: string;
+      reported_type_schema: string;
+      reported_type_name: string;
     }>(
       `SELECT
            c.table_name,
@@ -862,7 +867,11 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
            numeric_scale,
            column_default,
            format_type(a.atttypid, a.atttypmod) AS formatted_type,
-           a.attidentity
+           a.attidentity,
+           format_type(COALESCE(et.oid, t.oid), a.atttypmod) AS reported_text,
+           COALESCE(et.typtype, t.typtype) AS reported_typtype,
+           tns.nspname AS reported_type_schema,
+           COALESCE(et.typname, t.typname) AS reported_type_name
          FROM information_schema.columns c
          JOIN pg_catalog.pg_class cl
            ON cl.relname = c.table_name
@@ -874,6 +883,14 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
            AND a.attname = c.column_name
            AND a.attnum > 0
            AND NOT a.attisdropped
+         JOIN pg_catalog.pg_type t
+           ON t.oid = a.atttypid
+         LEFT JOIN pg_catalog.pg_type et
+           ON t.typcategory = 'A'
+           AND t.typelem <> 0
+           AND et.oid = t.typelem
+         JOIN pg_catalog.pg_namespace tns
+           ON tns.oid = COALESCE(et.typnamespace, t.typnamespace)
          WHERE c.table_schema = $1
          ORDER BY c.table_name, c.ordinal_position`,
       [schema],
@@ -1162,6 +1179,17 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           ...ifDefined('many', many),
           resolvedNativeType,
           ...ifDefined('resolvedDefault', resolvedDefault),
+          ...ifDefined(
+            'reportedType',
+            colRow.reported_text
+              ? reportedSqlType({
+                  text: colRow.reported_text,
+                  typtype: colRow.reported_typtype,
+                  schema: colRow.reported_type_schema,
+                  name: colRow.reported_type_name,
+                })
+              : undefined,
+          ),
         };
       }
 

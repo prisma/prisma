@@ -20,6 +20,7 @@ import {
   objectSchemaKeys,
   schemaKeysAllowing,
 } from '@internal/framework-components/codec';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -39,17 +40,6 @@ export interface SqlTypeText {
 }
 
 export type SqlTypeParams = Readonly<Record<string, unknown>>;
-
-/** What introspection hands over about the element type of one column. */
-export interface ReportedSqlType {
-  /** The catalog text of the element type. */
-  readonly text: string;
-  /** The target's word for the type's kind, such as `enum`; undefined for a base type. */
-  readonly kind: string | undefined;
-  readonly schema: string | undefined;
-  /** The type's name, unquoted. */
-  readonly name: string | undefined;
-}
 
 export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
   extends DataTypeSpec {

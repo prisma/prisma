@@ -1,7 +1,6 @@
 import type { DataType } from '@internal/framework-components/codec';
 import {
   isSqlDataType,
-  type ReportedSqlType,
   renderSqlCatalogText,
   renderSqlTypeName,
   resolveReportedSqlType,
@@ -9,6 +8,7 @@ import {
   type SqlTypeParams,
   sqlBaseName,
 } from '@internal/sql-contract/data-type';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import {

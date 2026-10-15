@@ -1,7 +1,8 @@
 import { dataType } from '@internal/framework-components/codec';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { type ReportedSqlType, resolveReportedSqlType, sqlDataType } from '../src/sql-data-type';
+import { resolveReportedSqlType, sqlDataType } from '../src/sql-data-type';
 import { allTypes } from './sql-data-type-fixtures';
 
 function reported(text: string, rest: Partial<ReportedSqlType> = {}): ReportedSqlType {
