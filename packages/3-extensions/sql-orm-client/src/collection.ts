@@ -2649,7 +2649,7 @@ export class CollectionBase<
     const values = this.#updateValues(data);
     const graph =
       Object.keys(values).length === 0
-        ? new Graph()
+        ? new Graph(this.contract)
         : updateAllGraph(this.#descriptionWithoutIncludes(), values);
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'updateAndCount');
     const stats = await executeGraph(graph, this.ctx, annotationsMap);
