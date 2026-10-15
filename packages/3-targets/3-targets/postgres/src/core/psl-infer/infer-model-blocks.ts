@@ -4,9 +4,9 @@ import {
   isColumnDefault,
 } from '@internal/contract/types';
 import {
+  type ColumnTypeOf,
   type DefaultMappingOptions,
   mapDefault,
-  type PslTypeMap,
 } from '@internal/family-sql/psl-build';
 import type { PslPrinterOptions, RelationField } from '@internal/family-sql/psl-infer';
 import { toFieldName, toModelName } from '@internal/family-sql/psl-infer';
@@ -59,8 +59,8 @@ import {
 
 export function buildModel(
   table: SqlTableIR,
-  typeMap: PslTypeMap,
-  enumNameMap: ReadonlyMap<string, string>,
+  columnTypes: ColumnTypeOf,
+  enumNameOf: (column: SqlColumnIR) => string | undefined,
   fieldNamesByTable: ReadonlyMap<string, TableColumnFieldNameMap>,
   defaultMapping: DefaultMappingOptions | undefined,
   rawDefaultParser: PslPrinterOptions['parseRawDefault'],
@@ -97,8 +97,8 @@ export function buildModel(
       buildScalarField(
         column,
         table,
-        typeMap,
-        enumNameMap,
+        columnTypes,
+        enumNameOf,
         fieldNameMap,
         defaultMapping,
         rawDefaultParser,
@@ -235,8 +235,8 @@ function computeDerivedCheckNames(table: SqlTableIR): ReadonlySet<string> {
 function buildScalarField(
   column: SqlColumnIR,
   table: SqlTableIR,
-  typeMap: PslTypeMap,
-  enumNameMap: ReadonlyMap<string, string>,
+  columnTypes: ColumnTypeOf,
+  enumNameOf: (column: SqlColumnIR) => string | undefined,
   fieldNameMap: TableColumnFieldNameMap | undefined,
   defaultMapping: DefaultMappingOptions | undefined,
   rawDefaultParser: PslPrinterOptions['parseRawDefault'],
@@ -252,47 +252,32 @@ function buildScalarField(
   const fieldName = resolvedField?.fieldName ?? toFieldName(column.name).name;
   const fieldMap = resolvedField?.fieldMap;
 
-  const resolution = typeMap.resolve(column.nativeType, table.annotations);
-
-  if ('unsupported' in resolution) {
-    const attrs: PslFieldAttribute[] = [];
-    if (fieldMap !== undefined) {
-      attrs.push(buildMapAttribute('field', fieldMap));
-    }
-    return {
-      kind: 'field',
-      name: fieldName,
-      typeName: `Unsupported("${escapePslString(resolution.nativeType)}")`,
-      optional: column.nullable,
-      list: column.many === true,
-      attributes: attrs,
-      span: SYNTHETIC_SPAN,
-    };
-  }
-
   // An enum-typed column emits the `pg.enum(<Name>)` type-constructor call —
   // the Phase-1 authoring form a `native_enum` ref field takes — not a bare
   // name substitution. The printer renders `typeConstructor` when present and
   // composes `?`/`[]` exactly like any other field type.
-  let typeName = resolution.pslType.name;
-  let typeConstructor: PslTypeConstructorCall | undefined = resolution.pslType.args
-    ? {
-        kind: 'typeConstructor',
-        path: [resolution.pslType.name],
-        args: resolution.pslType.args.map(positionalArg),
-        span: SYNTHETIC_SPAN,
-      }
-    : undefined;
-  const enumPslName = enumNameMap.get(column.nativeType);
-  if (enumPslName) {
-    typeName = enumPslName;
-    typeConstructor = {
-      kind: 'typeConstructor',
-      path: ['pg', 'enum'],
-      args: [positionalArg(enumPslName)],
-      span: SYNTHETIC_SPAN,
-    };
-  }
+  const enumPslName = enumNameOf(column);
+  const pslType =
+    enumPslName === undefined
+      ? columnTypes(table.name, column.name)
+      : { path: [enumPslName], args: [] };
+  const typeName = pslType.path.join('.');
+  const typeConstructor: PslTypeConstructorCall | undefined =
+    enumPslName !== undefined
+      ? {
+          kind: 'typeConstructor',
+          path: ['pg', 'enum'],
+          args: [positionalArg(enumPslName)],
+          span: SYNTHETIC_SPAN,
+        }
+      : pslType.args.length > 0 || pslType.path.length > 1
+        ? {
+            kind: 'typeConstructor',
+            path: pslType.path,
+            args: pslType.args.map(positionalArg),
+            span: SYNTHETIC_SPAN,
+          }
+        : undefined;
 
   const attributes: PslFieldAttribute[] = [];
   const isId = isSinglePk && pkColumns.has(column.name);
@@ -306,11 +291,10 @@ function buildScalarField(
     rawDefaultParser,
     {
       ...defaultMapping,
-      ...ifDefined('columnCodec', columnDefaults.codecOf(resolution.pslType, isEnumColumn)),
+      ...ifDefined('columnCodec', columnDefaults.codecOf(pslType, isEnumColumn)),
       list: column.many === true,
     },
-    (value) =>
-      columnDefaults.readsBack(value, resolution.pslType, isEnumColumn, column.many === true),
+    (value) => columnDefaults.readsBack(value, pslType, isEnumColumn, column.many === true),
     noteDefaultThatDoesNotReadBack,
   );
   if (defaultAttribute !== undefined) {

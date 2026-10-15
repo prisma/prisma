@@ -1,14 +1,11 @@
 import type { ColumnDefault } from '@internal/contract/types';
 import type { DefaultMappingOptions } from '../psl-build/default-mapping';
-import type { PslTypeMap } from '../psl-build/type-map';
 
 export interface EnumInfo {
-  readonly typeNames: ReadonlySet<string>;
   readonly definitions: ReadonlyMap<string, readonly string[]>;
 }
 
 export interface PslPrinterOptions {
-  readonly typeMap: PslTypeMap;
   readonly defaultMapping?: DefaultMappingOptions;
   readonly enumInfo?: EnumInfo;
   readonly parseRawDefault?: (rawDefault: string, nativeType?: string) => ColumnDefault | undefined;

@@ -17,7 +17,6 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { UNBOUND_PSL_NAMESPACE_NAME } from '@internal/framework-components/psl-ast';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { isPslIdentifier, NAME_THE_PSL_SOURCE_LOSES } from '@internal/psl-parser';
-import { escapePslString } from '@internal/sql-contract/data-type-support';
 import { sqlTextsReadBack } from '@internal/sql-contract/sql-expression';
 import {
   type ForeignKey,
@@ -73,8 +72,7 @@ export function refuseColumnWithoutPslType(column: StorageColumn, coordinate: st
  * Refuses a string type argument the PSL source would read back differently: it reads a string
  * argument between its quotes as written, with no escapes.
  */
-export function refuseUnwritableTypeArgument(value: string, coordinate: string): void {
-  if (escapePslString(value) === value) return;
+export function refuseUnwritableTypeArgument(value: string, coordinate: string): never {
   throw unsupported(
     `column ${coordinate} takes the type argument ${JSON.stringify(value)}, which a PSL type argument cannot carry.`,
     'The PSL source reads a string type argument as written between its quotes, with no escapes, so a quote, backslash or line break in it would read back differently.',

@@ -7,12 +7,14 @@ import {
   describeUnsupportedSqlAttribute,
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
+import { describeUnresolvedSqlType } from '@internal/sql-contract-psl/diagnostics';
 import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from './authoring-entity-types';
 import { sqlFamilyAuthoringFieldPresets } from './authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from './authoring-type-constructors';
 import { createSqlFamilyInstance, type SqlControlFamilyInstance } from './control-instance';
 
 const sqlFamilyDescribeUnsupportedAttribute: unknown = describeUnsupportedSqlAttribute;
+const sqlFamilyDescribeUnresolvedType: unknown = describeUnresolvedSqlType;
 
 export class SqlFamilyDescriptor
   implements ControlFamilyDescriptor<'sql', SqlControlFamilyInstance>
@@ -33,6 +35,7 @@ export class SqlFamilyDescriptor
   } as const;
   readonly pslDiagnostics = {
     describeUnsupportedAttribute: sqlFamilyDescribeUnsupportedAttribute,
+    describeUnresolvedType: sqlFamilyDescribeUnresolvedType,
   } as const;
 
   create<TTargetId extends string>(

@@ -10,6 +10,7 @@ Spec: [`spec.md`](spec.md). Design: [`design.md`](design.md). Linear project: Da
 | 2 | The contract stores `dataType`; SQLite's data types are the ones the database stores; upgrade script; `db sign` signs every space; ADR 254 accepted | TML-3388 | `tml-3388-data-type-in-contract` | 7 to 10 | slice 1 merged |
 | 3 | Introspection resolves reported types through the declarations; verify compares exactly; infer prints constructors and fails on unclaimed types | TML-3387 | `tml-3387-resolve-reported-types` | 11 to 13 | slice 2 merged; TML-3253 merged |
 | 4 | Default function arguments, enum member values and discriminator values are checked by the cast rule | TML-3389 | `tml-3389-typed-written-values` | 14 | slice 1 merged; TML-3367 merged |
+| 3a | `contract infer` reads column types from data types; `Unsupported(...)` leaves Prisma 8 | TML-3582 | `tml-3582-infer-reads-data-types` | 11.1, 13.2 to 13.7 | nothing; built before slice 3 at Will's request on 2026-10-15; plan in [`slices/no-unsupported/plan.md`](slices/no-unsupported/plan.md) |
 
 Each slice is one pull request against `main`, titled `TML-NNNN: <sentence>`. Slice 4 does not depend on slices 2 or 3 and may run beside them once TML-3367 has merged. Slices 1 and 2 are large but each has one outcome, and the repository prefers fewer, larger pull requests (`.agents/rules/optimize-for-human-time-on-prs.mdc`); the build loop splits them into dispatches, not pull requests.
 

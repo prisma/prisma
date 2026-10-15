@@ -263,7 +263,7 @@ describe('printPsl', () => {
     `);
   });
 
-  it('unsupported (unmappable) types', () => {
+  it('refuses every column whose type no data type in the stack claims', () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         geo_data: {
@@ -288,20 +288,14 @@ describe('printPsl', () => {
         },
       },
     });
-    const result = printPslFromSql(schemaIR);
-    expect(result).toMatchInlineSnapshot(`
-      "// use prisma-8
-      // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
-
-      model GeoData {
-        id       Int                      @id
-        location Unsupported("geometry")?
-        metadata Unsupported("hstore")
-
-        @@map("geo_data")
-      }
-      "
-    `);
+    expect(() => printPslFromSql(schemaIR)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
+        meta: {
+          columns: ['public.geo_data.location: geometry', 'public.geo_data.metadata: hstore'],
+        },
+      }),
+    );
   });
 
   it('uuid default', () => {
