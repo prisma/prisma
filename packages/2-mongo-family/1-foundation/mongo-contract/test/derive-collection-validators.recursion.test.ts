@@ -1,3 +1,4 @@
+import type { ContractField, ContractValueObject } from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
@@ -13,140 +14,204 @@ import { scalarField, voArrayField, voField } from './derive-json-schema-helpers
 const label = () => scalarField('mongo/string@1');
 const openObject = { bsonType: 'object' };
 
+function closed(properties: Record<string, unknown>, required: string[] = []) {
+  return {
+    bsonType: 'object',
+    ...(required.length > 0 ? { required } : {}),
+    properties,
+    additionalProperties: false,
+  };
+}
+
+function rootSchema(properties: Record<string, unknown>, required: string[]) {
+  return closed({ _id: { bsonType: 'objectId' }, ...properties }, ['_id', ...required].sort());
+}
+
+function deriveThing(
+  fields: Record<string, ContractField>,
+  valueObjects: Record<string, ContractValueObject>,
+) {
+  return jsonSchemas(
+    derive({
+      roots: { things: crossRef('Thing') },
+      models: { Thing: model({ _id: objectId(), ...fields }) },
+      valueObjects,
+    }),
+  )['things'];
+}
+
 describe('deriveCollectionValidators for types that contain themselves', () => {
   describe('value objects', () => {
-    it('describes a list of a value object inside itself as a list of open objects', () => {
-      const validators = derive({
-        roots: { menus: crossRef('Menu') },
-        models: { Menu: model({ _id: objectId(), items: voArrayField('NavItem') }) },
-        valueObjects: {
-          NavItem: { fields: { label: label(), children: voArrayField('NavItem') } },
-        },
-      });
+    const navItem = {
+      fields: { label: label(), children: voArrayField('NavItem') },
+    };
 
-      expect(jsonSchemas(validators)['menus']).toEqual({
-        bsonType: 'object',
-        required: ['_id', 'items'],
-        properties: {
-          _id: { bsonType: 'objectId' },
-          items: {
-            bsonType: 'array',
+    it('describes a value object that contains itself in full, and its own field as a list of open objects', () => {
+      expect(deriveThing({ items: voArrayField('NavItem') }, { NavItem: navItem })).toEqual(
+        rootSchema(
+          {
             items: {
-              bsonType: 'object',
-              required: ['children', 'label'],
-              properties: {
-                label: { bsonType: 'string' },
-                children: { bsonType: 'array', items: openObject },
-              },
-              additionalProperties: false,
+              bsonType: 'array',
+              items: closed(
+                {
+                  label: { bsonType: 'string' },
+                  children: { bsonType: 'array', items: openObject },
+                },
+                ['children', 'label'],
+              ),
             },
           },
-        },
-        additionalProperties: false,
-      });
+          ['items'],
+        ),
+      );
     });
 
-    it('describes an optional value object inside itself as an open object or null', () => {
-      const validators = derive({
-        roots: { lists: crossRef('List') },
-        models: { List: model({ _id: objectId(), head: voField('Node') }) },
-        valueObjects: { Node: { fields: { label: label(), next: voField('Node', true) } } },
-      });
+    it('describes the recursive type in full again in a sibling field', () => {
+      const described = closed(
+        { label: { bsonType: 'string' }, children: { bsonType: 'array', items: openObject } },
+        ['children', 'label'],
+      );
 
-      expect(jsonSchemas(validators)['lists']).toMatchObject({
-        properties: {
-          head: {
-            bsonType: 'object',
-            required: ['label'],
-            properties: {
-              label: { bsonType: 'string' },
-              next: { oneOf: [{ bsonType: 'null' }, openObject] },
-            },
-            additionalProperties: false,
+      expect(
+        deriveThing({ main: voField('NavItem'), footer: voField('NavItem') }, { NavItem: navItem }),
+      ).toEqual(rootSchema({ main: described, footer: described }, ['footer', 'main']));
+    });
+
+    it('writes an optional value object inside itself as an open object or null', () => {
+      expect(
+        deriveThing(
+          { head: voField('Node') },
+          { Node: { fields: { label: label(), next: voField('Node', true) } } },
+        ),
+      ).toEqual(
+        rootSchema(
+          {
+            head: closed(
+              {
+                label: { bsonType: 'string' },
+                next: { oneOf: [{ bsonType: 'null' }, openObject] },
+              },
+              ['label'],
+            ),
           },
-        },
-      });
+          ['head'],
+        ),
+      );
     });
 
     it('keeps the nullable forms of a list at the repeat', () => {
-      const validators = derive({
-        roots: { trees: crossRef('Tree') },
-        models: { Tree: model({ _id: objectId(), root: voField('Node') }) },
-        valueObjects: { Node: { fields: { children: voArrayField('Node', true, true) } } },
-      });
-
-      expect(jsonSchemas(validators)['trees']).toMatchObject({
-        properties: {
-          root: {
-            properties: {
+      expect(
+        deriveThing(
+          { root: voField('Node') },
+          { Node: { fields: { children: voArrayField('Node', true, true) } } },
+        ),
+      ).toEqual(
+        rootSchema(
+          {
+            root: closed({
               children: {
                 bsonType: ['null', 'array'],
                 items: { oneOf: [{ bsonType: 'null' }, openObject] },
               },
-            },
+            }),
           },
-        },
-      });
+          ['root'],
+        ),
+      );
     });
 
-    it('describes a value object reached again through another value object as an open object', () => {
-      const validators = derive({
-        roots: { things: crossRef('Thing') },
-        models: { Thing: model({ _id: objectId(), a: voField('A') }) },
-        valueObjects: {
-          A: { fields: { label: label(), b: voField('B') } },
-          B: { fields: { as: voArrayField('A') } },
-        },
-      });
-
-      expect(jsonSchemas(validators)['things']).toEqual({
-        bsonType: 'object',
-        required: ['_id', 'a'],
-        properties: {
-          _id: { bsonType: 'objectId' },
-          a: {
-            bsonType: 'object',
-            required: ['b', 'label'],
-            properties: {
-              label: { bsonType: 'string' },
-              b: {
-                bsonType: 'object',
-                required: ['as'],
-                properties: { as: { bsonType: 'array', items: openObject } },
-                additionalProperties: false,
-              },
-            },
-            additionalProperties: false,
+    it('opens every field that refers back into the group of the type it entered', () => {
+      expect(
+        deriveThing(
+          { a: voField('A') },
+          {
+            A: { fields: { label: label(), b: voField('B') } },
+            B: { fields: { as: voArrayField('A') } },
           },
-        },
-        additionalProperties: false,
-      });
+        ),
+      ).toEqual(
+        rootSchema(
+          { a: closed({ label: { bsonType: 'string' }, b: openObject }, ['b', 'label']) },
+          ['a'],
+        ),
+      );
     });
 
-    it('describes the same value object in full beside itself, since it is not inside itself', () => {
-      const address = { fields: { city: scalarField('mongo/string@1') } };
-      const validators = derive({
-        roots: { users: crossRef('User') },
-        models: {
-          User: model({ _id: objectId(), home: voField('Address'), work: voField('Address') }),
-        },
-        valueObjects: { Address: address },
-      });
+    it('describes only the entry type of a group whose types all refer to each other', () => {
+      const names = ['T0', 'T1', 'T2'];
+      const valueObjects = Object.fromEntries(
+        names.map((name) => [
+          name,
+          {
+            fields: Object.fromEntries(
+              names.filter((other) => other !== name).map((other) => [other, voField(other, true)]),
+            ),
+          },
+        ]),
+      );
+      const openOrNull = { oneOf: [{ bsonType: 'null' }, openObject] };
 
-      const described = {
-        bsonType: 'object',
-        required: ['city'],
-        properties: { city: { bsonType: 'string' } },
-        additionalProperties: false,
-      };
-      expect(jsonSchemas(validators)['users']).toMatchObject({
-        properties: { home: described, work: described },
-      });
+      expect(deriveThing({ t: voField('T0') }, valueObjects)).toEqual(
+        rootSchema({ t: closed({ T1: openOrNull, T2: openOrNull }) }, ['t']),
+      );
+    });
+
+    it('keeps the validator small when many types refer to each other', () => {
+      const names = Array.from({ length: 8 }, (_, index) => `T${index}`);
+      const valueObjects = Object.fromEntries(
+        names.map((name) => [
+          name,
+          { fields: Object.fromEntries(names.map((other) => [other, voField(other, true)])) },
+        ]),
+      );
+
+      expect(JSON.stringify(deriveThing({ t: voField('T0') }, valueObjects)).length).toBeLessThan(
+        2000,
+      );
+    });
+
+    it('describes a type that is not in the group in full inside the group', () => {
+      expect(
+        deriveThing(
+          { items: voArrayField('NavItem') },
+          {
+            NavItem: { fields: { icon: voField('Icon'), children: voArrayField('NavItem') } },
+            Icon: { fields: { name: label() } },
+          },
+        ),
+      ).toEqual(
+        rootSchema(
+          {
+            items: {
+              bsonType: 'array',
+              items: closed(
+                {
+                  icon: closed({ name: { bsonType: 'string' } }, ['name']),
+                  children: { bsonType: 'array', items: openObject },
+                },
+                ['children', 'icon'],
+              ),
+            },
+          },
+          ['items'],
+        ),
+      );
+    });
+
+    it('describes two fields of the same type that is not recursive in full', () => {
+      const address = closed({ city: { bsonType: 'string' } }, ['city']);
+
+      expect(
+        deriveThing(
+          { home: voField('Address'), work: voField('Address') },
+          { Address: { fields: { city: label() } } },
+        ),
+      ).toEqual(rootSchema({ home: address, work: address }, ['home', 'work']));
     });
   });
 
   describe('embedded models', () => {
-    it('describes a list of a model embedded in itself as a list of open objects', () => {
+    it('describes a model embedded in itself in full, and its own embed as a list of open objects', () => {
       const validators = derive({
         roots: { roots: crossRef('Root') },
         models: {
@@ -155,29 +220,26 @@ describe('deriveCollectionValidators for types that contain themselves', () => {
         },
       });
 
-      expect(jsonSchemas(validators)['roots']).toEqual({
-        bsonType: 'object',
-        required: ['_id'],
-        properties: {
-          _id: { bsonType: 'objectId' },
-          nodes: {
-            bsonType: 'array',
-            items: {
-              bsonType: 'object',
-              required: ['label'],
-              properties: {
-                label: { bsonType: 'string' },
-                children: { bsonType: 'array', items: openObject },
-              },
-              additionalProperties: false,
+      expect(jsonSchemas(validators)['roots']).toEqual(
+        rootSchema(
+          {
+            nodes: {
+              bsonType: 'array',
+              items: closed(
+                {
+                  label: { bsonType: 'string' },
+                  children: { bsonType: 'array', items: openObject },
+                },
+                ['label'],
+              ),
             },
           },
-        },
-        additionalProperties: false,
-      });
+          [],
+        ),
+      );
     });
 
-    it('describes a model reached again through another embedded model as an open object', () => {
+    it('opens every embed that refers back into the group of the model it entered', () => {
       const validators = derive({
         roots: { roots: crossRef('Root') },
         models: {
@@ -187,25 +249,9 @@ describe('deriveCollectionValidators for types that contain themselves', () => {
         },
       });
 
-      expect(jsonSchemas(validators)['roots']).toEqual({
-        bsonType: 'object',
-        required: ['_id'],
-        properties: {
-          _id: { bsonType: 'objectId' },
-          a: {
-            bsonType: 'object',
-            properties: {
-              b: {
-                bsonType: 'object',
-                properties: { a: openObject },
-                additionalProperties: false,
-              },
-            },
-            additionalProperties: false,
-          },
-        },
-        additionalProperties: false,
-      });
+      expect(jsonSchemas(validators)['roots']).toEqual(
+        rootSchema({ a: closed({ b: openObject }) }, []),
+      );
     });
   });
 });

@@ -9,6 +9,7 @@ import type {
 import { assertDefined } from '@internal/utils/assertions';
 import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
+import { isEmbedRelation, recursiveGroupsOf, typeKey } from './recursive-groups';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the
@@ -27,18 +28,29 @@ interface SchemaSources {
   readonly valueObjects: Record<string, ContractValueObject> | undefined;
   readonly valueSets: FieldValueSets | undefined;
   readonly models: Record<string, ValidatorModel>;
-  /** The value objects and embedded models whose schema is being written, from the root down: {@link typeKey} of each. */
-  readonly describing: ReadonlySet<string>;
-}
-
-function typeKey(kind: 'valueObject' | 'model', name: string): string {
-  return `${kind}:${name}`;
+  /** The recursive group of each value object and embedded model in one, from {@link recursiveGroupsOf}. */
+  readonly groups: ReadonlyMap<string, number>;
+  /** The recursive groups entered on the path from the root to the schema being written. */
+  readonly enteredGroups: ReadonlySet<number>;
 }
 
 /**
- * `$jsonSchema` has no references, so a type that contains itself cannot be described at every depth. Where a type appears again inside itself, the validator accepts any object there: the levels above are checked in full and no valid document is refused.
+ * `$jsonSchema` has no references, so a type that contains itself, directly or through other types, cannot be described at every depth. The validator describes the type through which a path enters a recursive group in full, and accepts any object for each field below it that refers back into that group. Each group is so written out once per entry, and no valid document is refused.
  */
 const OPEN_OBJECT: Record<string, unknown> = { bsonType: 'object' };
+
+function sourcesFor(
+  input: Omit<SchemaSources, 'groups' | 'enteredGroups'>,
+  rootKey: string | undefined,
+): SchemaSources {
+  const groups = recursiveGroupsOf(input.valueObjects ?? {}, input.models);
+  const rootGroup = rootKey === undefined ? undefined : groups.get(rootKey);
+  return {
+    ...input,
+    groups,
+    enteredGroups: new Set(rootGroup === undefined ? [] : [rootGroup]),
+  };
+}
 
 function objectSchemaOf(
   kind: 'valueObject' | 'model',
@@ -46,11 +58,12 @@ function objectSchemaOf(
   shape: StoredShape,
   sources: SchemaSources,
 ): Record<string, unknown> {
-  const key = typeKey(kind, name);
-  if (sources.describing.has(key)) return OPEN_OBJECT;
+  const group = sources.groups.get(typeKey(kind, name));
+  if (group === undefined) return deriveObjectSchema(shape, sources);
+  if (sources.enteredGroups.has(group)) return OPEN_OBJECT;
   return deriveObjectSchema(shape, {
     ...sources,
-    describing: new Set([...sources.describing, key]),
+    enteredGroups: new Set([...sources.enteredGroups, group]),
   });
 }
 
@@ -80,10 +93,6 @@ function anyValueSchema(field: ContractField): Record<string, unknown> {
     return { bsonType: field.nullable ? ['null', 'array'] : 'array', items: {} };
   }
   return {};
-}
-
-function isEmbedRelation(relation: ContractRelation): relation is ContractEmbedRelation {
-  return !('on' in relation) && !('through' in relation);
 }
 
 function fieldToBsonSchema(
@@ -222,7 +231,7 @@ export function deriveJsonSchema(
   return validatorOf(
     deriveObjectSchema(
       { fields, relations: NO_RELATIONS },
-      { lookups, valueObjects, valueSets, models: {}, describing: new Set() },
+      sourcesFor({ lookups, valueObjects, valueSets, models: {} }, undefined),
     ),
   );
 }
@@ -281,7 +290,7 @@ export function derivePolymorphicJsonSchema(
       { fields: baseFields, relations: NO_RELATIONS },
       discriminatorField,
       variants.map((variant) => ({ ...variant, relations: NO_RELATIONS })),
-      { lookups, valueObjects, valueSets, models: {}, describing: new Set() },
+      sourcesFor({ lookups, valueObjects, valueSets, models: {} }, undefined),
     ),
   );
 }
@@ -301,10 +310,9 @@ export function deriveModelValidator(
   model: ValidatorModel,
   sources: ModelValidatorSources,
 ): MongoValidator {
+  const schemaSources = sourcesFor(sources, typeKey('model', modelName));
   if (!model.discriminator || !model.variants) {
-    return validatorOf(
-      deriveObjectSchema(model, { ...sources, describing: new Set([typeKey('model', modelName)]) }),
-    );
+    return validatorOf(deriveObjectSchema(model, schemaSources));
   }
 
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
@@ -312,10 +320,5 @@ export function deriveModelValidator(
     assertDefined(variantModel, `Variant model "${variant.model}" of "${modelName}" is missing`);
     return { discriminatorValue, ...variantModel };
   });
-  return validatorOf(
-    polymorphicSchema(model, model.discriminator.field, variants, {
-      ...sources,
-      describing: new Set([typeKey('model', modelName)]),
-    }),
-  );
+  return validatorOf(polymorphicSchema(model, model.discriminator.field, variants, schemaSources));
 }

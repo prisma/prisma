@@ -1,0 +1,91 @@
+import type {
+  ContractEmbedRelation,
+  ContractField,
+  ContractRelation,
+  ContractValueObject,
+} from '@internal/contract/types';
+
+interface GroupedModel {
+  readonly fields: Record<string, ContractField>;
+  readonly relations: Record<string, ContractRelation>;
+}
+
+export function typeKey(kind: 'valueObject' | 'model', name: string): string {
+  return `${kind}:${name}`;
+}
+
+export function isEmbedRelation(relation: ContractRelation): relation is ContractEmbedRelation {
+  return !('on' in relation) && !('through' in relation);
+}
+
+function referencesOf(fields: Record<string, ContractField>): string[] {
+  return Object.values(fields).flatMap((field) =>
+    field.type.kind === 'valueObject' ? [typeKey('valueObject', field.type.name)] : [],
+  );
+}
+
+/**
+ * The recursive groups of value objects and embedded models: each set of types that can reach each other through value-object fields and embed relations (a strongly connected component of that graph), and each type that refers to itself. Maps the {@link typeKey} of every type in such a group to the group's number; a type in no recursive group is absent.
+ */
+export function recursiveGroupsOf(
+  valueObjects: Record<string, ContractValueObject>,
+  models: Record<string, GroupedModel>,
+): ReadonlyMap<string, number> {
+  const edges = new Map<string, readonly string[]>();
+  for (const [name, valueObject] of Object.entries(valueObjects)) {
+    edges.set(typeKey('valueObject', name), referencesOf(valueObject.fields));
+  }
+  for (const [name, model] of Object.entries(models)) {
+    const embeds = Object.values(model.relations).flatMap((relation) =>
+      isEmbedRelation(relation) ? [typeKey('model', relation.to.model)] : [],
+    );
+    edges.set(typeKey('model', name), [...referencesOf(model.fields), ...embeds]);
+  }
+
+  const groups = new Map<string, number>();
+  const index = new Map<string, number>();
+  const lowLink = new Map<string, number>();
+  const stack: string[] = [];
+  const onStack = new Set<string>();
+  let nextIndex = 0;
+  let nextGroup = 0;
+
+  const visit = (node: string): void => {
+    index.set(node, nextIndex);
+    lowLink.set(node, nextIndex);
+    nextIndex++;
+    stack.push(node);
+    onStack.add(node);
+
+    for (const target of edges.get(node) ?? []) {
+      if (!edges.has(target)) continue;
+      if (!index.has(target)) {
+        visit(target);
+        lowLink.set(node, Math.min(lowLink.get(node) ?? 0, lowLink.get(target) ?? 0));
+      } else if (onStack.has(target)) {
+        lowLink.set(node, Math.min(lowLink.get(node) ?? 0, index.get(target) ?? 0));
+      }
+    }
+
+    if (lowLink.get(node) !== index.get(node)) return;
+    const members: string[] = [];
+    let member: string | undefined;
+    do {
+      member = stack.pop();
+      if (member === undefined) break;
+      onStack.delete(member);
+      members.push(member);
+    } while (member !== node);
+
+    const refersToItself = (edges.get(node) ?? []).includes(node);
+    if (members.length > 1 || refersToItself) {
+      for (const each of members) groups.set(each, nextGroup);
+      nextGroup++;
+    }
+  };
+
+  for (const node of edges.keys()) {
+    if (!index.has(node)) visit(node);
+  }
+  return groups;
+}
