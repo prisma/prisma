@@ -420,6 +420,23 @@ describe('native types as bare scalar types — parity with the live bare-type p
     expect(column).not.toHaveProperty('default');
   });
 
+  it('names Unsupported("x") as no Prisma 8 type through the SQL family, as the language server does', () => {
+    const result = emit(`model sample {
+  id Int @id
+  meta Unsupported("hstore")
+}
+`);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+      {
+        code: 'PSL_UNRESOLVED_REFERENCE',
+        message:
+          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor, or add the extension pack that declares "hstore" to extensionPacks in the config.',
+      },
+    ]);
+  });
+
   it('rejects VarChar(0) in field position via its data type’s bound', () => {
     const result = emit(`model sample {
   id Int @id
