@@ -524,6 +524,8 @@ interface BuildModelNodeInput {
   readonly valueObjectTypes: ValueObjectTypes;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
+  /** The storage types the named types declare, by name, whose parameters a column declared with one takes. */
+  readonly namedTypes: Record<string, AuthoredStorageTypeInstance>;
   /** Extension contracts keyed by space ID for cross-space FK table-name resolution. */
   readonly composedExtensionContracts: ReadonlyMap<string, Contract>;
   readonly familyId: string;
@@ -647,6 +649,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
     symbolTable: input.symbolTable,
     enumTypeDescriptors: input.enumTypeDescriptors,
     namedTypeDescriptors: input.namedTypeDescriptors,
+    namedTypes: input.namedTypes,
     valueObjectTypes: input.valueObjectTypes,
     authoringContributions: input.authoringContributions,
     targetId: input.targetId,
@@ -2397,6 +2400,7 @@ export function interpretPslDocumentToSqlContract(
       valueObjectTypes,
       enumTypeDescriptors: allEnumTypeDescriptors,
       namedTypeDescriptors: namedTypeResult.namedTypeDescriptors,
+      namedTypes: namedTypeResult.storageTypes,
       composedExtensionContracts,
       familyId: input.target.familyId,
       targetId: input.target.targetId,

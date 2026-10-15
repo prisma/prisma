@@ -84,6 +84,37 @@ describe('a numeric default on a column with a scale', () => {
     }).toEqual({ diagnostics: [], default: { kind: 'literal', value: '1.50' } });
   });
 
+  it('takes the scale of a named type the column is declared with', async () => {
+    const aliased = (defaultValue: string) => `
+types {
+  Money = Numeric(10, 2)
+}
+
+model Price {
+  id Int   @id
+  n  Money @default(${defaultValue})
+}
+`;
+    const padded = await authorSqlContractFromPsl(aliased('1.5'));
+    const refused = await authorSqlContractFromPsl(aliased('1.234'));
+
+    expect({
+      diagnostics: padded.diagnostics,
+      default: findStorageColumn(padded.contract!, 'n')?.['default'],
+      refused: refused.diagnostics,
+    }).toEqual({
+      diagnostics: [],
+      default: { kind: 'literal', value: '1.50' },
+      refused: [
+        expect.objectContaining({
+          code: 'PSL_INVALID_DEFAULT_LITERAL',
+          message:
+            'Field "Price.n": pg/numeric JSON value must be a decimal string that numeric(10, 2) stores without rounding',
+        }),
+      ],
+    });
+  });
+
   it.each([
     ['a third fraction digit', '1.234'],
     ['more whole digits than the precision leaves', '123456789.5'],

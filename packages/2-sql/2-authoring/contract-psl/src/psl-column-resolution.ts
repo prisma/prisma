@@ -676,6 +676,8 @@ export function lowerDefaultForField(input: {
   readonly sources: PslSources;
   readonly binder: Binder;
   readonly columnDescriptor: ColumnDescriptor;
+  /** The column's parameters: its own, or those of the named type it is declared with. */
+  readonly columnTypeParams: Record<string, unknown> | undefined;
   /** Whether the field is stored in a list column. A list of value objects is not: its one column holds the whole list as one JSON array. */
   readonly isListColumn: boolean;
   /** For a field typed by a value object, the value objects a literal default is checked against. */
@@ -748,7 +750,7 @@ export function lowerDefaultForField(input: {
       spans,
       sourceElementIndexes,
       isList: readsListElements(written),
-      column: input.columnDescriptor,
+      column: { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
       codecLookup: input.codecLookup,
       dataTypes: input.dataTypes,
       fieldPath: `${input.modelName}.${input.fieldName}`,
