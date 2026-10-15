@@ -7,7 +7,7 @@ Ticket TML-3582, branch `tml-3582-infer-reads-data-types`. Cut from slice 4 (TML
 ```
 $ prisma-next contract infer
 ✖ CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED
-  No data type in the configured stack claims these column types:
+  contract infer: Prisma 8 cannot write these column types with the configured stack:
     public.place.location: geometry(Geometry,4326)
     public.doc.meta: hstore
   Add the extension pack that declares the type to extensionPacks in prisma-next.config.ts.
