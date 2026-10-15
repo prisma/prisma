@@ -101,6 +101,30 @@ describe('the ORM objects a postgres client builds', () => {
     ]);
   });
 
+  it('run each ORM terminal as an orm-call whose statements are its children, beneath the transaction inside db.transaction', async () => {
+    const started: Array<{ kind: string; parentKind: string | undefined }> = [];
+    const db = postgres<Contract>({
+      contractJson: fixtureContract,
+      url: 'postgres://localhost:5432/db',
+      verifyMarker: false,
+      middleware: [tracer(started)],
+    });
+
+    await db.orm.public.User.first({ id: 1 });
+    await db.transaction(async (tx) => {
+      await tx.orm.public.User.all();
+    });
+    await db.close();
+
+    expect(started).toEqual([
+      { kind: 'orm-call', parentKind: undefined },
+      { kind: 'statement', parentKind: 'orm-call' },
+      { kind: 'transaction', parentKind: undefined },
+      { kind: 'orm-call', parentKind: 'transaction' },
+      { kind: 'statement', parentKind: 'orm-call' },
+    ]);
+  });
+
   it('db.runtime() carries an activity source, so orm({ runtime: db.runtime() }) can start activities', async () => {
     const db = postgres<Contract>({
       contractJson: fixtureContract,

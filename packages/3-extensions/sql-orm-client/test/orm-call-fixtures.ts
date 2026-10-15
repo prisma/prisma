@@ -71,7 +71,7 @@ export function createActivityRuntime(options: ActivityRuntimeOptions = {}): {
       const activity: ClientActivity<K> = {
         id: `call-${calls.length + 1}`,
         kind: start.kind,
-        contentHash: start.contentHash,
+        contentHash: await start.contentHash,
         annotations: start.annotations ?? new Map(),
       };
       const call: RecordedCall = { activity, statements: [], transactions: [], ended: undefined };
