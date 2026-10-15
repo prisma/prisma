@@ -72,9 +72,9 @@ namespace public {
   model Money {
     id    Int               @id
     one   Numeric(65, 30)
-    many  Numeric(65, 30)[] @noCheck(elementNotNull)
+    many  Numeric(65, 30)[]
     label VarChar(32)
-    tags  VarChar(32)[]     @noCheck(elementNotNull)
+    tags  VarChar(32)[]
   }
 }
 `,
