@@ -7,6 +7,10 @@ import postgresAdapter from '@internal/adapter-postgres/control';
 import type { Contract } from '@internal/contract/types';
 import postgresControlDriver from '@internal/driver-postgres/control';
 import sql, { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
+import {
+  type AuthoringTypeNamespace,
+  isAuthoringTypeConstructorDescriptor,
+} from '@internal/framework-components/authoring';
 import { APP_SPACE_ID, createControlStack } from '@internal/framework-components/control';
 import { buildFabricatedMigrationEdge } from '@internal/migration-tools/aggregate';
 import { printPsl } from '@internal/psl-printer';
@@ -28,6 +32,16 @@ const controlStack = createControlStack({
   extensions: [],
 });
 const familyInstance = sql.create(controlStack);
+
+/** The data types whose constructor the stack marks `inferred`, found by walking every constructor. */
+function dataTypesWithMarkedConstructor(namespace: AuthoringTypeNamespace): readonly string[] {
+  return Object.values(namespace).flatMap((value) => {
+    if (!isAuthoringTypeConstructorDescriptor(value)) return dataTypesWithMarkedConstructor(value);
+    if (value.inferred !== true) return [];
+    const dataType = controlStack.codecLookup.descriptorFor(value.output.codecId)?.dataType;
+    return dataType === undefined ? [] : [dataType];
+  });
+}
 
 /** Each marked constructor, bare and with arguments, as the authored schema writes it. */
 const AUTHORED_TYPES = [
@@ -183,6 +197,14 @@ describe('contract infer over every Postgres data type with a marked constructor
       const authored = await authorSqlContractFromPsl(AUTHORED_SCHEMA);
       expect(authored.diagnostics).toEqual([]);
       if (!authored.contract) throw new Error('authoring produced no contract');
+      const authoredDataTypes = Object.values(columnTypes(authored.contract)).map(
+        (column) => (column as { readonly dataType: string }).dataType,
+      );
+      expect([...new Set([...authoredDataTypes, 'pg/enum'])].sort()).toEqual(
+        [
+          ...new Set(dataTypesWithMarkedConstructor(controlStack.authoringContributions.type)),
+        ].sort(),
+      );
 
       await resetDatabase(database.connectionString);
       await migrateContract(database.connectionString, authored.contract);
