@@ -1069,7 +1069,7 @@
             "fields": {
               "acceptableClientIds": {
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 },
                 "nullable": false,
                 "type": {
@@ -1205,7 +1205,7 @@
               },
               "scopes": {
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 },
                 "nullable": false,
                 "type": {
@@ -4258,7 +4258,7 @@
               },
               "allowedMimeTypes": {
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 },
                 "nullable": true,
                 "type": {
@@ -4477,7 +4477,7 @@
               },
               "pathTokens": {
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 },
                 "nullable": true,
                 "type": {
@@ -5023,11 +5023,8 @@
                     "value": []
                   },
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": [
-                    "elementNotNull"
-                  ],
                   "nullable": false
                 },
                 "attribute_mapping": {
@@ -5157,11 +5154,8 @@
                     "value": []
                   },
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": [
-                    "elementNotNull"
-                  ],
                   "nullable": false
                 },
                 "skip_nonce_check": {
@@ -7946,11 +7940,8 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": [
-                    "elementNotNull"
-                  ],
                   "nullable": true
                 },
                 "avif_autodetection": {
@@ -8531,11 +8522,8 @@
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": [
-                    "elementNotNull"
-                  ],
                   "nullable": true
                 },
                 "updated_at": {
@@ -8939,7 +8927,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "cb23216599e58b222c1fe7d880105d8f166c8490935cec5ed539dbe77847d679",
+    "storageHash": "292489649ae6d6928de98a32b544bd9caf6b7d49718c10fe2720b83545a4b5a2",
     "types": {
       "CreatedAt": {
         "codecId": "pg/timestamp-temporal@1",
