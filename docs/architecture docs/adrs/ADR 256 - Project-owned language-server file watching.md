@@ -44,7 +44,7 @@ Initial loading does not wait for either backend. When internal subscriptions be
 
 ## Directory coverage and limits
 
-Chokidar receives literal directories, not input globs. Positive patterns contribute their static directory prefix; literal files contribute their containing directory. Missing roots use their nearest safe existing ancestor, and equivalent or nested roots within one project are deduplicated. Consequently empty globs and future subdirectories are covered without enumerating only the files present at startup. Inputs outside the config directory remain supported when their roots are safe.
+Chokidar receives literal directories, not input globs. Patterns contribute their static directory prefix; literal files contribute their containing directory. Missing roots use their nearest safe existing ancestor. Exact duplicate roots are removed; overlapping roots are passed to Chokidar without separate containment filtering. Consequently empty globs and future subdirectories are covered without enumerating only the files present at startup. Inputs outside the config directory remain supported when their roots are safe.
 
 The owning config's directory has its own permanent shallow subscription to survive atomic replacement. It remains subscribed even when schema roots overlap it, during config loading, and when client registration is pending. Internal events retain their owning project identity, including events for deleted files and inputs outside the config directory.
 
