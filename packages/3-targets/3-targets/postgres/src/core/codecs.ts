@@ -370,9 +370,22 @@ export const postgresSqlTextDescriptor = postgresCodec(sqlTextDescriptor, {
   jsonProjection: identityJsonProjection,
 });
 
+/**
+ * Projects a raw value as the text its type's output function prints, which a flat read returns
+ * too, so an include reads the same value. Postgres' JSON form of `integer` or `boolean` would be a
+ * number or a boolean, and a cast to `text` does not always print the output form: `true::text` is
+ * `true` where the output is `t`. `format('%s', …)` prints through the output function, and turns
+ * NULL into an empty string, so NULL is kept apart.
+ */
+const printedTextJsonProjection = (expression: ProjectionExpr): ProjectionExpr =>
+  CaseExpr.of(
+    [{ condition: NullCheckExpr.isNull(expression), value: LiteralExpr.of(null) }],
+    FunctionCallExpr.of('format', [LiteralExpr.of('%s'), expression]),
+  );
+
 export const postgresSqlRawDescriptor = postgresCodec(sqlRawDescriptor, {
   dataType: sqlRawDataType,
-  jsonProjection: identityJsonProjection,
+  jsonProjection: printedTextJsonProjection,
 });
 
 export class PgTextCodec extends CodecImpl<
