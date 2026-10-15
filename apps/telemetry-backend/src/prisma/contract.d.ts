@@ -18,7 +18,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'e67e21d7b394c09f2b8def12f966ffbef30679d7802e3f721850782fb1e1a83b'>;
+  StorageHashBase<'5c5d220650a29b58c074b0ede44aff73cfb5d301fb42bcff5fa654c782ea785b'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -246,6 +246,7 @@ export type FieldOutputTypes = {
       readonly installationId: CodecTypes['pg/text@1']['output'];
       readonly os: CodecTypes['pg/text@1']['output'];
       readonly packageManager: CodecTypes['pg/text@1']['output'] | null;
+      readonly properties: CodecTypes['pg/jsonb@1']['output'] | null;
       readonly runtimeName: CodecTypes['pg/text@1']['output'];
       readonly runtimeVersion: CodecTypes['pg/text@1']['output'];
       readonly tsVersion: CodecTypes['pg/text@1']['output'] | null;
@@ -268,6 +269,7 @@ export type FieldInputTypes = {
       readonly installationId: CodecTypes['pg/text@1']['input'];
       readonly os: CodecTypes['pg/text@1']['input'];
       readonly packageManager: CodecTypes['pg/text@1']['input'] | null;
+      readonly properties: CodecTypes['pg/jsonb@1']['input'] | null;
       readonly runtimeName: CodecTypes['pg/text@1']['input'];
       readonly runtimeVersion: CodecTypes['pg/text@1']['input'];
       readonly tsVersion: CodecTypes['pg/text@1']['input'] | null;
@@ -290,6 +292,7 @@ export type StorageColumnTypes = {
       readonly installationId: CodecTypes['pg/text@1']['output'];
       readonly os: CodecTypes['pg/text@1']['output'];
       readonly packageManager: CodecTypes['pg/text@1']['output'] | null;
+      readonly properties: CodecTypes['pg/jsonb@1']['output'] | null;
       readonly runtimeName: CodecTypes['pg/text@1']['output'];
       readonly runtimeVersion: CodecTypes['pg/text@1']['output'];
       readonly tsVersion: CodecTypes['pg/text@1']['output'] | null;
@@ -312,6 +315,7 @@ export type StorageColumnInputTypes = {
       readonly installationId: CodecTypes['pg/text@1']['input'];
       readonly os: CodecTypes['pg/text@1']['input'];
       readonly packageManager: CodecTypes['pg/text@1']['input'] | null;
+      readonly properties: CodecTypes['pg/jsonb@1']['input'] | null;
       readonly runtimeName: CodecTypes['pg/text@1']['input'];
       readonly runtimeVersion: CodecTypes['pg/text@1']['input'];
       readonly tsVersion: CodecTypes['pg/text@1']['input'] | null;
@@ -334,6 +338,7 @@ export namespace Models {
     installationId: CodecTypes['pg/text@1']['output'];
     os: CodecTypes['pg/text@1']['output'];
     packageManager: CodecTypes['pg/text@1']['output'] | null;
+    properties: CodecTypes['pg/jsonb@1']['output'] | null;
     runtimeName: CodecTypes['pg/text@1']['output'];
     runtimeVersion: CodecTypes['pg/text@1']['output'];
     tsVersion: CodecTypes['pg/text@1']['output'] | null;
@@ -445,6 +450,12 @@ type ContractBase = Omit<
                   readonly nullable: true;
                   readonly many: false;
                 };
+                readonly properties: {
+                  readonly dataType: 'pg/jsonb';
+                  readonly codecId: 'pg/jsonb@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
                 readonly runtimeName: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
@@ -474,8 +485,7 @@ type ContractBase = Omit<
               uniques: readonly [];
               indexes: readonly [
                 {
-                  readonly name: 'telemetry_event_ingestedAt_idx_272db6ba';
-                  readonly prefix: 'telemetry_event_ingestedAt_idx';
+                  readonly name: 'telemetry_event_ingestedAt_idx';
                   readonly columns: readonly ['ingestedAt'];
                   readonly unique: false;
                 },
@@ -555,6 +565,10 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
+              readonly properties: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/jsonb@1' };
+              };
               readonly runtimeName: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
@@ -589,6 +603,7 @@ type ContractBase = Omit<
                 readonly installationId: { readonly column: 'installationId' };
                 readonly os: { readonly column: 'os' };
                 readonly packageManager: { readonly column: 'packageManager' };
+                readonly properties: { readonly column: 'properties' };
                 readonly runtimeName: { readonly column: 'runtimeName' };
                 readonly runtimeVersion: { readonly column: 'runtimeVersion' };
                 readonly tsVersion: { readonly column: 'tsVersion' };

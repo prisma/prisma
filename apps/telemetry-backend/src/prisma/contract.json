@@ -99,6 +99,13 @@
                   "kind": "scalar"
                 }
               },
+              "properties": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/jsonb@1",
+                  "kind": "scalar"
+                }
+              },
               "runtimeName": {
                 "nullable": false,
                 "type": {
@@ -166,6 +173,9 @@
                 },
                 "packageManager": {
                   "column": "packageManager"
+                },
+                "properties": {
+                  "column": "properties"
                 },
                 "runtimeName": {
                   "column": "runtimeName"
@@ -263,6 +273,11 @@
                   "dataType": "pg/text",
                   "nullable": true
                 },
+                "properties": {
+                  "codecId": "pg/jsonb@1",
+                  "dataType": "pg/jsonb",
+                  "nullable": true
+                },
                 "runtimeName": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -290,8 +305,7 @@
                   "columns": [
                     "ingestedAt"
                   ],
-                  "name": "telemetry_event_ingestedAt_idx_272db6ba",
-                  "prefix": "telemetry_event_ingestedAt_idx",
+                  "name": "telemetry_event_ingestedAt_idx",
                   "unique": false
                 }
               ],
@@ -308,7 +322,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "e67e21d7b394c09f2b8def12f966ffbef30679d7802e3f721850782fb1e1a83b"
+    "storageHash": "5c5d220650a29b58c074b0ede44aff73cfb5d301fb42bcff5fa654c782ea785b"
   },
   "capabilities": {
     "postgres": {

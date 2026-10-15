@@ -2,7 +2,11 @@ import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTelemetryDb, type TelemetryDb } from '../src/db';
 import { createHandler, MAX_EVENT_BODY_BYTES } from '../src/handler';
-import { MAX_TELEMETRY_ARRAY_ITEM_LENGTH, MAX_TELEMETRY_STRING_LENGTH } from '../src/schema';
+import {
+  MAX_TELEMETRY_ARRAY_ITEM_LENGTH,
+  MAX_TELEMETRY_PROPERTY_COUNT,
+  MAX_TELEMETRY_STRING_LENGTH,
+} from '../src/schema';
 import { resetTelemetrySchema } from './db-setup';
 
 const REQUIRED_FIELDS = [
@@ -89,6 +93,13 @@ describe('telemetry POST /events', () => {
       agent: 'claude-code',
       extensions: ['pgvector', 'paradedb'],
       exitCode: 4,
+      properties: {
+        template: 'next',
+        'duration-ms': 1234,
+        json: false,
+        'agent-skills': ['claude-code'],
+        'failure-reason': null,
+      },
       // Forward-compat unknown keys; the backend must silently drop these.
       crashStackHash: 'abcdef',
       gpuVendor: 'apple',
@@ -113,7 +124,14 @@ describe('telemetry POST /events', () => {
     expect(row.agent).toBe('claude-code');
     expect(row.extensions).toEqual(['pgvector', 'paradedb']);
     expect(row.exitCode).toBe(4);
-    expect(row.ingestedAt).toBeInstanceOf(Date);
+    expect(row.properties).toEqual({
+      template: 'next',
+      'duration-ms': 1234,
+      json: false,
+      'agent-skills': ['claude-code'],
+      'failure-reason': null,
+    });
+    expect(Object.prototype.toString.call(row.ingestedAt)).toBe('[object Temporal.Instant]');
     expect(row).not.toHaveProperty('crashStackHash');
     expect(row).not.toHaveProperty('gpuVendor');
     expect(row).not.toHaveProperty('experimentalCapabilities');
@@ -137,6 +155,7 @@ describe('telemetry POST /events', () => {
     expect(row.tsVersion).toBeNull();
     expect(row.exitCode).toBeNull();
     expect(row.agent).toBeNull();
+    expect(row.properties).toBeNull();
   });
 
   it('accepts strings and array items at the configured schema bounds', async () => {
@@ -187,6 +206,30 @@ describe('telemetry POST /events', () => {
 
     expect(response.status).toBe(400);
     expect(await rowCount()).toBe(0);
+  });
+
+  describe('rejects properties outside the flat, bounded shape with 400', () => {
+    const cases: Record<string, unknown> = {
+      'a nested object value': { install: { manager: 'npm' } },
+      'a string value beyond the string bound': {
+        why: 'x'.repeat(MAX_TELEMETRY_STRING_LENGTH + 1),
+      },
+      'a key beyond the array item bound': { ['k'.repeat(MAX_TELEMETRY_ARRAY_ITEM_LENGTH + 1)]: 1 },
+      'more than the property count bound': Object.fromEntries(
+        Array.from({ length: MAX_TELEMETRY_PROPERTY_COUNT + 1 }, (_, index) => [
+          `p${index}`,
+          index,
+        ]),
+      ),
+      'an array instead of an object': ['template:next'],
+    };
+    for (const [name, properties] of Object.entries(cases)) {
+      it(`rejects ${name}`, async () => {
+        const response = await postEvent({ ...baseRequiredPayload(), properties });
+        expect(response.status).toBe(400);
+        expect(await rowCount()).toBe(0);
+      });
+    }
   });
 
   describe('rejects payloads missing any required field with 400', () => {

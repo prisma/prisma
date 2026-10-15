@@ -17,7 +17,9 @@ model TelemetryEvent {
   agent          String?
   extensions     Jsonb
   exitCode       Int?
+  properties     Jsonb?
 
-  @@index([ingestedAt])
+  // Named as the first migration created it in production.
+  @@index([ingestedAt], map: "telemetry_event_ingestedAt_idx")
   @@map("telemetry_event")
 }
