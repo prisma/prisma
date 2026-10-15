@@ -16,7 +16,8 @@ export interface AuthoringTypeConstructorCall {
   readonly args: readonly unknown[];
 }
 
-function* typeConstructors(
+/** Every type constructor of `namespace`, with its path, in namespace order. */
+export function* authoringTypeConstructors(
   namespace: AuthoringTypeNamespace,
   path: readonly string[] = [],
 ): Generator<{
@@ -27,7 +28,7 @@ function* typeConstructors(
     if (isAuthoringTypeConstructorDescriptor(value)) {
       yield { path: [...path, name], descriptor: value };
     } else {
-      yield* typeConstructors(value, [...path, name]);
+      yield* authoringTypeConstructors(value, [...path, name]);
     }
   }
 }
@@ -50,7 +51,7 @@ function produces(
  * comes straight from one argument; `undefined` when it cannot produce `output`, including when
  * `output` has no value for an argument the constructor requires.
  */
-function argumentsFor(
+export function authoringTypeConstructorArguments(
   descriptor: AuthoringTypeConstructorDescriptor,
   output: AuthoringTypeConstructorOutput,
 ): readonly unknown[] | undefined {
@@ -85,8 +86,8 @@ export function findAuthoringTypeConstructorCall(
   namespace: AuthoringTypeNamespace,
   output: AuthoringTypeConstructorOutput,
 ): AuthoringTypeConstructorCall | undefined {
-  for (const { path, descriptor } of typeConstructors(namespace)) {
-    const args = argumentsFor(descriptor, output);
+  for (const { path, descriptor } of authoringTypeConstructors(namespace)) {
+    const args = authoringTypeConstructorArguments(descriptor, output);
     if (args !== undefined) return { path, args };
   }
   return undefined;
