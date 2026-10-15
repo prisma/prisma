@@ -24,14 +24,18 @@ import postgresAdapter from '@internal/adapter-postgres/control';
 import { createControlClient } from '@internal/cli/control-api';
 import postgresDriver from '@internal/driver-postgres/control';
 import sql from '@internal/family-sql/control';
-import { cacheAnnotation, createCacheMiddleware } from '@internal/middleware-cache';
+import {
+  cacheAnnotation,
+  createCacheMiddleware,
+  createInMemoryCacheStore,
+} from '@internal/middleware-cache';
 import { emitContractSpaceArtifacts } from '@internal/migration-tools/spaces';
 import type { SqlMiddleware } from '@internal/sql-runtime';
 import postgres from '@internal/target-postgres/control';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { createDevDatabase, timeouts, withClient } from '@repo/test-utils';
 import { SignJWT } from 'jose';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import supabasePack from '../src/exports/pack';
 import { supabase } from '../src/exports/runtime';
 import type { Contract } from './fixtures/example-app/contract';
@@ -420,7 +424,13 @@ describe('RLS — role-bound Supabase runtime acceptance', () => {
         );
       });
 
-      const cache = createCacheMiddleware();
+      const inner = createInMemoryCacheStore();
+      const store = {
+        get: vi.fn(inner.get),
+        set: vi.fn(inner.set),
+        unset: vi.fn(inner.unset),
+      };
+      const cache = createCacheMiddleware({ store });
       const db = await createDb(connectionString, { middleware: [cache] });
       try {
         const usernamesOf = async (sub: string) => {
@@ -431,10 +441,12 @@ describe('RLS — role-bound Supabase runtime acceptance', () => {
           return rows.map((row) => row.username);
         };
 
-        expect({ userA: await usernamesOf(userAId), userB: await usernamesOf(userBId) }).toEqual({
-          userA: ['alice'],
-          userB: ['bob'],
-        });
+        expect({
+          userA: await usernamesOf(userAId),
+          userB: await usernamesOf(userBId),
+          storeGets: store.get.mock.calls.length,
+          storeSets: store.set.mock.calls.length,
+        }).toEqual({ userA: ['alice'], userB: ['bob'], storeGets: 0, storeSets: 0 });
       } finally {
         await db.close();
       }
