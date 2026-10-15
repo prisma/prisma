@@ -1652,6 +1652,45 @@ export async function withTransaction<R>(
     }
   }
 
+  function guardedQueryable(
+    target: RuntimeScope,
+  ): RuntimeScope & PreparedStatementQueryTarget & PreparedStatementExecuteTarget {
+    return {
+      query<Row>(
+        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        if (invalidated) throw transactionClosedError();
+        return new AsyncIterableResult(guardedStream(target.query<Row>(plan, options)));
+      },
+      async execute(
+        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        if (invalidated) throw transactionClosedError();
+        return target.execute(plan, options);
+      },
+      [preparedStatementQuery]<Params, Row>(
+        ps: PreparedStatement<Params, Row>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        if (invalidated) throw transactionClosedError();
+        return new AsyncIterableResult(
+          guardedStream(runPreparedQuery(target, ps, params, options)),
+        );
+      },
+      [preparedStatementExecute]<Params>(
+        ps: PreparedExecution<Params>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        if (invalidated) throw transactionClosedError();
+        return runPreparedExecute(target, ps, params, options);
+      },
+    };
+  }
+
   function guardedSource(target: RuntimeScope): ActivitySource {
     return {
       async startActivity<K extends ClientActivityKind>(
@@ -1672,42 +1711,11 @@ export async function withTransaction<R>(
     const source = guardedSource(handle);
     return {
       ...source,
+      ...guardedQueryable(handle),
       [activitySource]: source,
       activity: handle.activity,
       get intercepted() {
         return handle.intercepted;
-      },
-      query<Row>(
-        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        if (invalidated) throw transactionClosedError();
-        return new AsyncIterableResult(guardedStream(handle.query<Row>(plan, options)));
-      },
-      async execute(
-        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
-        options?: RuntimeExecuteOptions,
-      ): Promise<SqlStatementStats> {
-        if (invalidated) throw transactionClosedError();
-        return handle.execute(plan, options);
-      },
-      [preparedStatementQuery]<Params, Row>(
-        ps: PreparedStatement<Params, Row>,
-        params: Params,
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        if (invalidated) throw transactionClosedError();
-        return new AsyncIterableResult(
-          guardedStream(runPreparedQuery(handle, ps, params, options)),
-        );
-      },
-      [preparedStatementExecute]<Params>(
-        ps: PreparedExecution<Params>,
-        params: Params,
-        options?: RuntimeExecuteOptions,
-      ): Promise<SqlStatementStats> {
-        if (invalidated) throw transactionClosedError();
-        return runPreparedExecute(handle, ps, params, options);
       },
       end: (end) => handle.end(end),
     };
@@ -1717,50 +1725,11 @@ export async function withTransaction<R>(
     PreparedStatementQueryTarget &
     PreparedStatementExecuteTarget &
     ActivitySourceTarget = {
+    ...guardedQueryable(transaction),
     get invalidated() {
       return invalidated;
     },
     [activitySource]: guardedSource(transaction),
-    query<Row>(
-      plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return new AsyncIterableResult(guardedStream(transaction.query<Row>(plan, options)));
-    },
-    async execute(
-      plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
-      options?: RuntimeExecuteOptions,
-    ): Promise<SqlStatementStats> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return transaction.execute(plan, options);
-    },
-    [preparedStatementQuery]<Params, Row>(
-      ps: PreparedStatement<Params, Row>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return new AsyncIterableResult(
-        guardedStream(runPreparedQuery(transaction, ps, params, options)),
-      );
-    },
-    [preparedStatementExecute]<Params>(
-      ps: PreparedExecution<Params>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): Promise<SqlStatementStats> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return runPreparedExecute(transaction, ps, params, options);
-    },
   };
 
   let connectionDisposed = false;
