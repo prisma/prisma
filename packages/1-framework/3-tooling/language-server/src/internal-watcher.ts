@@ -13,10 +13,10 @@ interface WatchCallbacks {
 export async function watchRoots(inputs: readonly string[]): Promise<string[]> {
   const roots: string[] = [];
   for (const input of inputs) {
-    const { directory, hasPatternBoundary } = contractInputDirectory(
+    const { directory, patternSuffix } = contractInputDirectory(
       sep === '\\' ? input.replaceAll('\\', '/') : input,
     );
-    if (hasPatternBoundary && /(?:^|[/\\({,|])\.\.(?:$|[/\\)},|])/.test(input)) {
+    if (patternSuffix && /(?:^|[/\\({,|])\.\.(?:$|[/\\)},|])/.test(patternSuffix)) {
       throw structuredError(
         'LSP.WATCH_UNAVAILABLE',
         `Dynamic parent traversal is unsupported: ${input}`,

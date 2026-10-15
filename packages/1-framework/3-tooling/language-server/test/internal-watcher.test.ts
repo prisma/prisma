@@ -76,7 +76,12 @@ it('keeps literal parent traversal and external roots available', async () => {
   expect(await watchRoots([`${dir}/config/../outside/schema.prisma`])).toEqual([
     join(dir, 'outside'),
   ]);
-  await expect(watchRoots([`${dir}/config/../outside/**/*.prisma`])).rejects.toThrow('traversal');
+  expect(await watchRoots([`${dir}/config/../outside/**/*.prisma`])).toEqual([
+    join(dir, 'outside'),
+  ]);
+  await expect(watchRoots([`${dir}/config/{../outside,inside}/*.prisma`])).rejects.toThrow(
+    'traversal',
+  );
 });
 
 it.each(['*', '?', '[unfinished', '{literal}', '@(one|two)', '!(one)', '\\[id\\]'])(
@@ -182,16 +187,17 @@ it.each([false, true])(
   },
 );
 
-it('observes real external changes and atomic config replacement', async () => {
+it('observes real external changes through a static parent segment and atomic config replacement', async () => {
   const dir = await directory();
   const schemas = join(dir, 'schemas');
   await mkdir(schemas);
+  await mkdir(join(dir, 'config'));
   const config = join(dir, 'prisma.config.ts');
   await writeFile(config, 'first');
   const onReady = vi.fn();
   const onChange = vi.fn();
   const onError = vi.fn();
-  const watcher = new InternalWatcher(config, [join(schemas, '**/*.prisma')], {
+  const watcher = new InternalWatcher(config, [`${dir}/config/../schemas/**/*.prisma`], {
     onReady,
     onChange,
     onError,

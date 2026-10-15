@@ -22,7 +22,7 @@ This package owns the shared config contract used by tooling and authoring packa
 - Pure config validation and normalization with no file system access
 - Shared conservative input-directory resolution via `contractInputDirectory()` in `@internal/config/config-types`, used by default glob output paths and language-server watch roots
 
-`contractInputDirectory()` accepts slash-separated paths and stops before the first segment containing possible glob syntax, including incomplete syntax and brace expressions spanning directories. It returns the literal directory and whether a pattern boundary was encountered; it does not expand patterns or inspect the filesystem. Callers normalize platform separators before calling it. `defaultContractOutputPath()` retains the existing `tinyglobby` classification of the full input to choose between glob output and literal-file extension replacement.
+`contractInputDirectory()` accepts slash-separated paths and stops before the first segment containing possible glob syntax, including incomplete syntax and brace expressions spanning directories. It uses path APIs to extract the literal directory and returns the suffix starting at the first possible glob metacharacter (or `undefined` for a literal input); it does not expand patterns or inspect the filesystem. Callers normalize platform separators before calling it. `defaultContractOutputPath()` retains the existing `tinyglobby` classification of the full input to choose between glob output and literal-file extension replacement.
 
 ## Non-responsibilities
 
