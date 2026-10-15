@@ -267,6 +267,7 @@ export class Project {
         position,
         documents,
         binder: data.artifacts.binder(),
+        symbolTable: data.artifacts.symbolTable(),
       });
     } catch {
       return null;

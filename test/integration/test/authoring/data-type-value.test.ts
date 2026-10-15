@@ -23,7 +23,11 @@ const PREFIX = '  id Int @id @x(';
 
 function parseArgument(source: string) {
   const { document, sources } = parse(`model M {\n${PREFIX}${source})\n}\n`, 'schema.prisma');
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   const binder = createBinder({
     sources,
     symbolTable,

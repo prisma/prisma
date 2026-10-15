@@ -241,6 +241,7 @@ async function resolutionForInputs(
     schemaInputConfig,
     controlStack: {
       scalarTypes: [...scalarTypes],
+      defaultNamespaceId: 'public',
       pslBlockDescriptors: descriptors,
       authoringContributions: assembleAuthoringContributions([
         { id: 'scalars', authoring: { type: testTypeConstructors(scalarTypes) } },
@@ -254,7 +255,11 @@ async function emptyResolution(): Promise<ConfigResolution> {
   return {
     inputs: await resolveSchemaInputs({}, alwaysMember),
     schemaInputConfig: {},
-    controlStack: { scalarTypes: [...scalarTypes], pslBlockDescriptors: {} },
+    controlStack: {
+      scalarTypes: [...scalarTypes],
+      defaultNamespaceId: 'public',
+      pslBlockDescriptors: {},
+    },
   };
 }
 
@@ -451,6 +456,7 @@ function parseAndSymbolTableDiagnostics(source: string): {
   const { diagnostics: symbolTableDiagnostics } = buildSymbolTable({
     documents: [document],
     sources,
+    defaultNamespaceId: 'public',
   });
   return { parseDiagnostics, symbolTableDiagnostics };
 }
@@ -1034,7 +1040,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     expect(harness.publishCount(schemaUri)).toBe(2);
     expect(harness.publishCount(alias)).toBe(0);
     expect(harness.getDocumentAst(schemaUri)).not.toBe(first);
-    expect(Object.keys(harness.getProjectSymbolTable(schemaUri)!.topLevel.models)).toEqual([
+    expect(Object.keys(harness.getProjectSymbolTable(schemaUri)!.defaultNamespace.models)).toEqual([
       'Post',
     ]);
     expect(configLoaderMock.findNearestConfigPathForFile).toHaveBeenCalledTimes(1);
@@ -1053,7 +1059,9 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.waitForDiagnosticsCount(schemaUri, 4);
     expect(harness.publishCount(alias)).toBe(0);
     expect(harness.getDocumentAst(alias)?.sourceFile.filename).toBe(schemaUri);
-    expect(Object.keys(harness.getProjectSymbolTable(alias)!.topLevel.models)).toEqual(['User']);
+    expect(Object.keys(harness.getProjectSymbolTable(alias)!.defaultNamespace.models)).toEqual([
+      'User',
+    ]);
     expect(configResolutionMock.resolveConfigInputs).toHaveBeenCalledTimes(1);
   });
 
@@ -1137,7 +1145,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       range: true,
     });
     expect(result.capabilities.completionProvider).toEqual({
-      triggerCharacters: ['.', '@', '[', '(', '{', ':', ','],
+      triggerCharacters: ['.', '@', '[', '(', '{', ':', ',', '+'],
     });
     expect(result.capabilities.signatureHelpProvider).toEqual({
       triggerCharacters: ['(', ','],
@@ -1427,6 +1435,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       'Post',
       'String',
       'User',
+      'public',
     ]);
     for (const item of items) expect(item).not.toHaveProperty('sortText');
   });
@@ -1464,6 +1473,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       'Post',
       'String',
       'User',
+      'public',
     ]);
     await republished;
   });
@@ -1528,6 +1538,7 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
       'Post',
       'String',
       'User',
+      'public',
     ]);
     await republished;
     expect(vi.mocked(parse)).toHaveBeenCalledTimes(1);
@@ -1891,10 +1902,13 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     const items = completionItems(await requestCompletion(harness, schemaUri, position));
     expect(items.map((item) => item.label)).toEqual([
       'model',
+      'model mixin',
       'type',
+      'type mixin',
       'types',
       'namespace',
       'policy',
+      'policy mixin',
     ]);
     expect(items.find((item) => item.label === 'model')).toMatchObject({
       textEdit: { newText: 'model ' },
@@ -1958,7 +1972,14 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     await harness.waitForDiagnostics(schemaUri);
 
     const items = completionItems(await requestCompletion(harness, schemaUri, position));
-    expect(items.map((item) => item.label)).toEqual(['model', 'type', 'policy']);
+    expect(items.map((item) => item.label)).toEqual([
+      'model',
+      'model mixin',
+      'type',
+      'type mixin',
+      'policy',
+      'policy mixin',
+    ]);
     expect(items.map((item) => item.label)).not.toContain('types');
     expect(items.map((item) => item.label)).not.toContain('namespace');
   });
@@ -3770,9 +3791,9 @@ describe('language server preserved artifacts', { timeout: timeouts.databaseOper
 
     const secondAst = harness.getDocumentAst(schemaUri);
     expect(secondAst?.parse().document).not.toBe(firstAst?.parse().document);
-    expect(Object.keys(harness.getProjectSymbolTable(schemaUri)?.topLevel.models ?? {})).toEqual(
-      expect.arrayContaining(['User', 'Post']),
-    );
+    expect(
+      Object.keys(harness.getProjectSymbolTable(schemaUri)?.defaultNamespace.models ?? {}),
+    ).toEqual(expect.arrayContaining(['User', 'Post']));
   });
 
   it('ignores a publish that resolves after the document closes', async () => {
@@ -4701,7 +4722,9 @@ describe('language server prisma-8 directive gating', {
     openDocument(harness, schema2Uri, 'model Stray {\n  id Int @id\n}\n');
     expect(await harness.waitForDiagnostics(schema2Uri)).toEqual([]);
 
-    const models = Object.keys(harness.getProjectSymbolTable(schemaUri)?.topLevel.models ?? {});
+    const models = Object.keys(
+      harness.getProjectSymbolTable(schemaUri)?.defaultNamespace.models ?? {},
+    );
     expect(models).toContain('User');
     expect(models).not.toContain('Stray');
     expect(harness.getDocumentAst(schema2Uri)).toBeUndefined();
@@ -5238,9 +5261,9 @@ describe('language server whole-project push and freshness', {
         await harness.waitForDiagnosticsMatching(memberBUri, isDuplicateDeclaration),
       ),
     ).toBe(true);
-    expect(Object.keys(harness.getProjectSymbolTable(memberAUri)?.topLevel.models ?? {})).toContain(
-      'Post',
-    );
+    expect(
+      Object.keys(harness.getProjectSymbolTable(memberAUri)?.defaultNamespace.models ?? {}),
+    ).toContain('Post');
 
     await rm(memberBPath);
     const cleared = harness.waitForDiagnosticsMatching(
@@ -5252,7 +5275,59 @@ describe('language server whole-project push and freshness', {
     });
     expect(await cleared).toEqual([]);
     expect(
-      Object.keys(harness.getProjectSymbolTable(memberAUri)?.topLevel.models ?? {}),
+      Object.keys(harness.getProjectSymbolTable(memberAUri)?.defaultNamespace.models ?? {}),
     ).not.toContain('Post');
+  });
+});
+
+describe('language server default namespace', { timeout: timeouts.databaseOperation }, () => {
+  const scalars = ['String', 'Int', 'Boolean', 'DateTime'];
+  const pg = (topLevelField: string, authField: string): string =>
+    [
+      '// use prisma-8',
+      'model Account {',
+      `  id Int @id${topLevelField}`,
+      '}',
+      'namespace public {',
+      '  model Invoice {',
+      '    id Int @id',
+      '  }',
+      '}',
+      'namespace auth {',
+      '  model Session {',
+      `    id Int @id${authField}`,
+      '  }',
+      '}',
+    ].join('\n');
+
+  async function open(markedSource: string): Promise<Position> {
+    harness = startHarness(resolveToSchema);
+    await harness.initialize();
+    const { source, position } = sourceWithCursor(markedSource);
+    openDocument(harness, schemaUri, source);
+    await harness.waitForDiagnostics(schemaUri);
+    return position;
+  }
+
+  it.each([
+    [pg('\n  entry public.|', ''), ['Account', 'Invoice']],
+    [pg('\n  entry |', ''), ['Account', 'Invoice', 'public', 'auth', ...scalars]],
+    [pg('', '\n    entry |'), ['Session', 'Account', 'Invoice', 'public', 'auth', ...scalars]],
+  ])('completes a field type from the default namespace: %j', async (source, labels) => {
+    const position = await open(source);
+    const items = completionItems(await requestCompletion(harness!, schemaUri, position));
+
+    expect(items.map((item) => item.label)).toEqual(labels);
+  });
+
+  it('goes from a bare reference in another namespace to a default-namespace model', async () => {
+    const position = await open(pg('', '\n    invoice Inv|oice'));
+
+    await expect(requestDefinition(harness!, schemaUri, position)).resolves.toEqual([
+      {
+        uri: schemaUri,
+        range: { start: { line: 5, character: 8 }, end: { line: 5, character: 15 } },
+      },
+    ]);
   });
 });

@@ -26,6 +26,7 @@ async function load(schema: string) {
   if (source === undefined) throw new Error('expected a contract source');
   return source.load({
     composedExtensions: [],
+    defaultNamespaceId: stack.target.defaultNamespaceId,
     composedExtensionContracts: stack.extensionContracts,
     authoringContributions: stack.authoringContributions,
     pslDiagnostics: stack.family.pslDiagnostics,

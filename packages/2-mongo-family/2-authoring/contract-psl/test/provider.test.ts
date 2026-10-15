@@ -82,6 +82,7 @@ const enumBlockDescriptor = {
 function createMongoTestContext(overrides?: Partial<ContractSourceContext>): ContractSourceContext {
   return {
     composedExtensions: [],
+    defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
     authoringContributions: {

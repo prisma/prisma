@@ -41,6 +41,7 @@ function recordingDescriptor(seen: BlockSpecContext[]) {
 function mongoContext(seen: BlockSpecContext[]): ContractSourceContext {
   return {
     composedExtensions: [],
+    defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       dataTypes: {},

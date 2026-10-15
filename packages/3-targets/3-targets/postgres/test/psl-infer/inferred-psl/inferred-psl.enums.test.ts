@@ -221,6 +221,7 @@ describe('emitted PSL parses', () => {
   function parseDiagnostics(source: string) {
     const { document, sources } = parse(source, 'print-psl.enums.test.psl');
     const { diagnostics } = buildSymbolTable({
+      defaultNamespaceId: 'public',
       documents: [document],
       sources,
     });

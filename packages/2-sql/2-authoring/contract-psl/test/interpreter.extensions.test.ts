@@ -744,7 +744,7 @@ namespace auth {
       pslBlockDescriptors: thingPslBlockDescriptors,
     };
 
-    it('rejects two reopened unbound spellings declaring the same named entity under the same entries kind', () => {
+    it('rejects two unbound spellings declaring the same named block as a duplicate declaration', () => {
       const result = interpretSqlContract(
         `namespace unbound {
   thing shared {
@@ -767,8 +767,8 @@ namespace __unbound__ {
       expect(result.failure.diagnostics).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
-            code: 'PSL_DUPLICATE_EXTENSION_ENTITY',
-            message: expect.stringContaining('shared'),
+            code: 'PSL_DUPLICATE_DECLARATION',
+            message: 'Duplicate declaration of "shared"',
           }),
         ]),
       );

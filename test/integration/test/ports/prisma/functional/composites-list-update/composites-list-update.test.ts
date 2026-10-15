@@ -83,47 +83,7 @@ describe('ports/prisma/functional/composites/list/update', () => {
   );
 
   it(
-    'set shorthand (same as set for ORM — no prisma set wrapper)',
-    run(async () => {
-      const comment = await db.comment_required_list.where({ _id: id }).update({
-        country: 'Mars',
-        contents: [
-          {
-            text: 'Goodbye World',
-            upvotes: [{ vote: false, userId: '42' }],
-          },
-        ],
-      });
-
-      expect(comment).toMatchObject({
-        country: 'Mars',
-        contents: [
-          {
-            text: 'Goodbye World',
-            upvotes: [{ userId: '42', vote: false }],
-          },
-        ],
-      });
-      expect(comment?._id).toEqual(expect.any(String));
-    }),
-    timeouts.spinUpMongoMemoryServer,
-  );
-
-  it(
     'set null',
-    run(async () => {
-      // @ts-expect-error required `contents` list cannot be null
-      const promise = db.comment_required_list.where({ _id: id }).update({
-        country: 'France',
-        contents: null,
-      });
-      await expect(promise).rejects.toThrow();
-    }),
-    timeouts.spinUpMongoMemoryServer,
-  );
-
-  it(
-    'set null shorthand',
     run(async () => {
       // @ts-expect-error required `contents` list cannot be null
       const promise = db.comment_required_list.where({ _id: id }).update({

@@ -55,6 +55,7 @@ it.each([
     const { symbolTable } = buildSymbolTable({
       documents: [document],
       sources,
+      defaultNamespaceId: 'public',
     });
     parseIdentifier.mockClear();
     const result = providePslSignatureHelp({

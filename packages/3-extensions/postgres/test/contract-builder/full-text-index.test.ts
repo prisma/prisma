@@ -86,6 +86,7 @@ function pslIndexes() {
     sourceId: 'full-text-index.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

@@ -28,6 +28,7 @@ export function postgresSourceContext(resolvedInputs: readonly string[]): Contra
   });
   return {
     composedExtensions: stack.extensions.map((extension) => extension.id),
+    defaultNamespaceId: stack.target.defaultNamespaceId,
     composedExtensionContracts: stack.extensionContracts,
     authoringContributions: stack.authoringContributions,
     codecLookup: stack.codecLookup,
@@ -114,6 +115,7 @@ export function interpretSchemaText(text: string): Contract<SqlStorage> {
       },
     ],
     seedDiagnostics: [],
+    defaultNamespaceId: context.defaultNamespaceId,
     binding: prisma7PostgresBinding,
     controlMutationDefaults: context.controlMutationDefaults,
     authoringContributions: context.authoringContributions,

@@ -69,10 +69,6 @@ describe('PostgresUnboundSchema', () => {
     expect(PostgresSchema.unbound.qualifier()).toBe('');
     expect(PostgresSchema.unbound.qualifyTable('users')).toBe('"users"');
   });
-
-  it('is a stable singleton — repeated access returns the same instance', () => {
-    expect(PostgresSchema.unbound).toBe(PostgresSchema.unbound);
-  });
 });
 
 describe('ddlSchemaName', () => {

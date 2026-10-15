@@ -765,7 +765,7 @@ function renderInsertValue(value: InsertValue, ctx: SqliteRenderContext): string
 }
 
 function renderInsert(ast: InsertAst, ctx: SqliteRenderContext): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, ctx);
+  const table = renderTableSource(ast.table, ctx);
   const rows = ast.rows;
   const firstRow = rows[0];
   if (firstRow === undefined) {
@@ -835,7 +835,7 @@ function renderInsert(ast: InsertAst, ctx: SqliteRenderContext): string {
 }
 
 function renderUpdate(ast: UpdateAst, ctx: SqliteRenderContext): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, ctx);
+  const table = renderTableSource(ast.table, ctx);
   const setClauses = Object.entries(ast.set).map(([col, val]) => {
     return `${quoteIdentifier(col)} = ${renderExpr(val, ctx)}`;
   });
@@ -847,7 +847,7 @@ function renderUpdate(ast: UpdateAst, ctx: SqliteRenderContext): string {
 }
 
 function renderDelete(ast: DeleteAst, ctx: SqliteRenderContext): string {
-  const table = qualifyTableFromNamespaceCoordinate(ast.table, ctx);
+  const table = renderTableSource(ast.table, ctx);
   const whereClause = ast.where ? ` WHERE ${renderExpr(ast.where, ctx)}` : '';
   const returningClause = renderReturning(ast.returning, ctx);
 
@@ -864,7 +864,8 @@ function renderReturning(
   return ` RETURNING ${returning
     .map((item) => {
       if (item.expr.kind === 'column-ref') {
-        const rendered = `${quoteIdentifier(item.expr.table)}.${quoteIdentifier(item.expr.column)}`;
+        // SQLite's RETURNING can only refer to the table being modified and does not accept that table's alias (https://www.sqlite.org/lang_returning.html), so returned columns are written without a qualifier.
+        const rendered = quoteIdentifier(item.expr.column);
         return item.expr.column === item.alias
           ? rendered
           : `${rendered} AS ${quoteIdentifier(item.alias)}`;

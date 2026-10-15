@@ -11,6 +11,7 @@ import { type BinderContext, EMPTY_DATA_TYPES } from '@internal/psl-parser';
 
 export interface LspControlStack {
   readonly scalarTypes: readonly string[];
+  readonly defaultNamespaceId: string;
   readonly pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace;
   readonly authoringContributions?: AssembledAuthoringContributions;
   readonly controlMutationDefaults?: ControlMutationDefaults;
