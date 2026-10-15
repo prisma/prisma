@@ -122,7 +122,7 @@ import {
 export type Log = RuntimeLog;
 
 /**
- * When `close()` starts refusing new runtime-scope work. `'when-idle'` (the default) waits until the runtime has been idle for one turn of the event loop, so work that keeps it busy from the close onward is admitted; use it for an owner with one caller, such as a per-request connection. `'at-once'` refuses from the call of `close()`; use it for an owner that many callers share. Both wait for work already in flight.
+ * When `close()` starts refusing new runtime-scope work. `'when-idle'` (the default) waits until the runtime has been idle for one turn of the event loop, so work that keeps it busy from the close onward is admitted; use it for an owner with one caller, such as a per-request connection. `'at-once'` refuses from the call of `close()`; use it for an owner that many callers share. Both wait for work already in flight, and an activity already open when `close()` is called, such as an ORM call, finishes its work: its statements, its transaction and the activities started beneath it are admitted until it ends.
  */
 export type CloseRefusal = 'when-idle' | 'at-once';
 
@@ -485,7 +485,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     activity: StartActivity<K>,
     parent: ActivityParent | undefined,
   ): Promise<ActivityHandle<K>> {
-    const endWork = route.runtimeWork ? this.beginActivityWork() : () => undefined;
+    const endWork = route.runtimeWork ? this.beginActivityWork(parent) : () => undefined;
     let run: ClientActivityRun<K, SqlMiddlewareContext>;
     try {
       run = await startClientActivity<K, SqlMiddlewareContext>(activity, {
@@ -750,8 +750,8 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   // An open activity handle on the runtime is runtime work in flight until its end().
-  private beginActivityWork(): () => void {
-    const endOperation = this.beginOperation(this.driver);
+  private beginActivityWork(parent: ActivityParent | undefined): () => void {
+    const endOperation = this.beginOperation(this.driver, { activityParent: parent });
     this.#openActivityHandles++;
     let ended = false;
     return () => {

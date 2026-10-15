@@ -355,6 +355,24 @@ describe('startActivity', () => {
       });
     });
 
+    it("with 'at-once' refusal, admits a nested activity started on an activity open before close()", async () => {
+      const { runtime, events } = createSetup({ closeRefusal: 'at-once' });
+      const call = await startActivityOn(runtime, testCall);
+
+      const closing = runtime.close();
+      const nested = await startActivityOn(call, testCall);
+      await nested.execute(rawPlan('update t set x = 1'));
+      await nested.end({ outcome: 'succeeded' });
+      await call.end({ outcome: 'succeeded' });
+      await closing;
+
+      expect(names(events).filter((name) => name.startsWith('ended:'))).toEqual([
+        'ended:statement:succeeded',
+        'ended:test-call:succeeded',
+        'ended:test-call:succeeded',
+      ]);
+    });
+
     it('refuses to start an activity on a closed runtime', async () => {
       const { runtime } = createSetup();
       await runtime.close();
