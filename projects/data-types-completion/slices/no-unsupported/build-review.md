@@ -9,6 +9,8 @@
 | b | 1 | `28bca080c5` | 1 | 0 | 1 | ANOTHER ROUND NEEDED |
 | b | 2 | `aa25910d4b` | 0 | 0 | 0 | SATISFIED |
 | c | 1 | `4ac4243a16`, `53096c9043` | 1 | 0 | 1 | ANOTHER ROUND NEEDED |
+| c | 2 | `d07a038ff3`, `63c91e5a78` | 0 | 0 | 0 | SATISFIED |
+| d | 1 | `3d23ff83e0`, `d2e3fa83ee`, `8784270c6d` | 0 | 0 | 1 | SATISFIED |
 
 ## Findings log
 
@@ -87,3 +89,29 @@ The implementer's choices and the coordinator's questions:
 - Where: the message `contract infer: no data type in the configured stack claims these column types:`, which the brief prescribes.
 - What is wrong: a `tsquery` column is listed under that heading, although `pg/tsquery` claims it. It has no marked constructor. The error reference entry describes both cases correctly.
 - Change: for the coordinator to decide. One option is "Prisma 8 cannot write these column types with the configured stack:".
+
+### Dispatch c, round 2
+
+U-c-R1-1 is closed. `infer-column-types.ts` throws an `InternalError` for a column without `reportedType`, and the unclaimed line prints `reportedType.text`. No production code reads the written `nativeType` to pick a column type any more. `default-fidelity.integration.test.ts` now reads `format_type` of the element type, `nspname` and `typname` from the catalog, joined on `typarray` as introspection does, and resolves that.
+
+The test helpers in `test/psl-infer/fixtures.ts` derive `reportedType` from a fixture's written type through `resolveWrittenSqlTypes` and `renderSqlCatalogText`. I checked the result against PGlite's `format_type` for every written type the Postgres infer tests use, plus `char`, `bit`, `varchar`, `timetz` and `interval`: 35 types, all identical (for example `int4` gives `integer`, `varchar(191)` gives `character varying(191)`, `timestamptz(3)` gives `timestamp(3) with time zone`, `char` gives `character(1)`, `numeric(5,-2)` stays `numeric(5,-2)`). A type no data type reads, such as `hstore` or an enum name, keeps its written text with `kind` undefined and schema `pg_catalog`. Real introspection would give a different schema and, for an enum or domain, a kind. Infer skips enum columns before it resolves, and a domain or unknown type is unclaimed either way, so no test result depends on this.
+
+U-c-R1-2 is closed: the heading reads "Prisma 8 cannot write these column types with the configured stack:", and the error reference describes both cases.
+
+Checks: target-postgres `test/psl-infer` and `default-fidelity.integration.test.ts` (22 files) passed; the package suites and integration files listed under dispatch d below ran at the same head.
+
+### Dispatch d, round 1
+
+Checks run: `pnpm build`, root `pnpm typecheck:agent`, `pnpm lint:deps`, `pnpm lint:framework-vocabulary`, and `pnpm lint` in psl-printer, contract-psl, family-sql, target-postgres and the Postgres extension package passed. `pnpm test` passed in psl-printer, contract-psl, family-sql, target-postgres, the Postgres extension package, pgvector, postgis and the language server. In `integration-tests`, `cli.emit-command.test.ts`, `native-enum-adoption.e2e.test.ts`, `every-postgres-contract-roundtrip.integration.test.ts`, `infer-roundtrip-runtime.integration.test.ts` and `infer-roundtrip-fidelity.e2e.test.ts` passed (10 runs, 674 tests).
+
+Both grep checks from the plan pass. `Unsupported(` outside the Prisma 6 and Prisma 7 readers and the Postgres extension README appears only in the new message and its two tests. The table and type-map names and `isUnsupported` are gone.
+
+Item 2 is built as ruled. `describeUnresolvedSqlType` is a factory like Mongo's `describeUnresolvedMongoType`, and the SQL family descriptor passes it as `pslDiagnostics.describeUnresolvedType`. It returns the message only for `Unsupported` called with one string argument. The binder test `leaves an unknown type name to the binder` now runs with the hook installed and still expects `Cannot find type "Missing"`. `cli.emit-command.test.ts` still expects `Cannot find type "Unsupported"` for a bare `Unsupported`. The language server passes the family's `pslDiagnostics` to the binder (`language-server/src/config-resolution.ts`), so it shows the new message with no extra code. The test through the SQL family in `native-type-parity.test.ts` covers that path.
+
+The five removed `not.toContain('Unsupported(')` assertions were not the only check of anything. Each sat next to a positive `pg.enum(<Name>)` assertion for the same column. If an enum column fell through to the data type path now, infer would throw `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` and the test would fail anyway. The enum test that asserted only the absence now asserts `aal pg.enum(AalLevel)?`. The scorecard row is updated.
+
+#### U-d-R1-1 (low): the SQL PSL interpreter's README does not mention the new message
+
+- Where: `packages/2-sql/2-authoring/contract-psl/README.md`.
+- What is wrong: the Mongo interpreter's README documents its `describeUnresolvedType` hook. The SQL README says nothing about `describeUnresolvedSqlType` or the message for `Unsupported("x")`.
+- Change: add one line naming the export and what it reports. Dispatch e can carry it with the other docs.
