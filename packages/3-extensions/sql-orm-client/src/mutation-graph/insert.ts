@@ -21,9 +21,11 @@ export class Insert extends StatementNode<Payloads> {
   }
 
   override execute(inputs: OutputsOf<Payloads>, run: Run): Executed {
+    // No PayloadData edge reaches this insert, so it runs with the values it was built with.
     if (inputs.payload === null) {
       return executeStatement(this.ast, run);
     }
+    // A PayloadData source produced no rows, so there are no values to insert with: nothing is inserted and the statement is not run.
     if (inputs.payload.some((records) => records.length === 0)) {
       return rowsResult([]);
     }
