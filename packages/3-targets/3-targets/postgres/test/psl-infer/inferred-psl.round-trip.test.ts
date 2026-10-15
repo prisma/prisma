@@ -31,7 +31,6 @@ import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { postgresDataTypes } from '../../src/core/data-types';
 import { parsePostgresDefault } from '../../src/core/default-normalizer';
 import { type PostgresSchema, postgresCreateNamespace } from '../../src/core/postgres-schema';
-import { INFERRED_PSL_TYPE_NAMES } from '../../src/core/psl-build/postgres-type-map';
 import { postgresCodecRegistry } from '../../src/core/registry';
 import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 import { printPslFromFlat } from './fixtures';
@@ -256,9 +255,5 @@ two lines é'::text`,
       clock: { kind: 'literal', value: '12:00:00' },
       zoned: { kind: 'literal', value: '12:00:00Z' },
     });
-  });
-
-  it('has a type constructor for every type name the type map writes', () => {
-    expect([...INFERRED_PSL_TYPE_NAMES].filter((name) => !(name in authoringTypes))).toEqual([]);
   });
 });

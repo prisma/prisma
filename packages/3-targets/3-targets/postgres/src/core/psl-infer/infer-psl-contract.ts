@@ -16,10 +16,14 @@ import {
 import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { parsePostgresDefault } from '../default-normalizer';
 import { postgresError } from '../errors';
-import { createPostgresTypeMap } from '../psl-build/postgres-type-map';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
+import {
+  type InferredColumnTypes,
+  type InferredTable,
+  inferColumnTypes,
+} from './infer-column-types';
 import { type InferredColumnDefaults, inferredColumnDefaults } from './infer-default-codec';
 import { buildNativeEnumBlocks, PSL_SCALAR_TYPE_NAMES } from './infer-enum-blocks';
 import {
@@ -115,6 +119,7 @@ export function inferPostgresPslContract(
   // single introspected namespace, and a same-named table in two schemas has no
   // unambiguous single-bucket model, so we throw rather than silently drop one.
   const tables: Record<string, SqlTableIR> = {};
+  const inferredTables: InferredTable[] = [];
   const tableNamespaceNames = new Set<string>();
   const rlsEnabledTables = new Set<string>();
   const policiesByTable = new Map<string, readonly PostgresPolicySchemaNode[]>();
@@ -158,6 +163,11 @@ export function inferPostgresPslContract(
         }
       }
       tables[tableName] = new SqlTableIR(table);
+      inferredTables.push({
+        schemaName: namespace.schemaName,
+        tableName,
+        columns: Object.values(table.columns),
+      });
       tableNamespaceNames.add(namespace.schemaName);
       if (table.rlsEnabled) {
         rlsEnabledTables.add(tableName);
@@ -219,7 +229,11 @@ export function inferPostgresPslContract(
     definitions: enumDefinitions,
   };
   const options: PostgresPslInferOptions = {
-    typeMap: createPostgresTypeMap(enumInfo.typeNames),
+    columnTypes: inferColumnTypes({
+      tables: inferredTables,
+      context,
+      isEnumColumn: (column) => enumTypeNames.has(column.nativeType),
+    }),
     defaultMapping: createPostgresDefaultMapping(),
     parseRawDefault: parsePostgresDefault,
     columnDefaults: inferredColumnDefaults(context),
@@ -247,6 +261,7 @@ export interface RlsEmissionExtras {
 
 /** The printer options, and how a column's literal default is checked to read back. */
 export type PostgresPslInferOptions = PslPrinterOptions & {
+  readonly columnTypes: InferredColumnTypes;
   readonly columnDefaults: InferredColumnDefaults;
 };
 
@@ -278,7 +293,7 @@ export function buildPslDocumentAst(
   rlsExtras?: RlsEmissionExtras,
   topLevelExtensionBlocks: readonly PslExtensionBlock[] = [],
 ): PslDocumentAst {
-  const { typeMap, defaultMapping, parseRawDefault: rawDefaultParser } = options;
+  const { columnTypes, defaultMapping, parseRawDefault: rawDefaultParser } = options;
   const { extraRelationsByTable, crossSpaceFieldNamesByTable, danglingForeignKeysByTable } =
     foreignKeyExtras;
 
@@ -360,7 +375,7 @@ export function buildPslDocumentAst(
     models.push(
       buildModel(
         table,
-        typeMap,
+        columnTypes,
         enumNameMap,
         fieldNamesByTable,
         defaultMapping,

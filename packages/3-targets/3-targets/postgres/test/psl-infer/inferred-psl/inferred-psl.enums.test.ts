@@ -17,14 +17,13 @@ import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringPslBlockDescriptors } from '../../../src/core/authoring';
 import { parsePostgresDefault } from '../../../src/core/default-normalizer';
-import { createPostgresTypeMap } from '../../../src/core/psl-build/postgres-type-map';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
 import {
   buildPslDocumentAst,
   type PostgresPslInferOptions,
 } from '../../../src/core/psl-infer/infer-psl-contract';
 import { createPostgresDefaultMapping } from '../../../src/core/psl-infer/postgres-default-mapping';
-import { inferBuildContext } from '../fixtures';
+import { inferBuildContext, inferredColumnTypesOf } from '../fixtures';
 
 function enumInfoOf(definitions: Record<string, readonly string[]>): EnumInfo {
   return {
@@ -38,14 +37,15 @@ function printWithEnums(
   definitions: Record<string, readonly string[]>,
 ): string {
   const enumInfo = enumInfoOf(definitions);
+  const schemaIR = new SqlSchemaIR({ tables });
   const options: PostgresPslInferOptions = {
     columnDefaults: inferredColumnDefaults(inferBuildContext),
-    typeMap: createPostgresTypeMap(enumInfo.typeNames),
+    columnTypes: inferredColumnTypesOf(schemaIR.tables, enumInfo.typeNames),
     defaultMapping: createPostgresDefaultMapping(),
     parseRawDefault: parsePostgresDefault,
     enumInfo,
   };
-  const ast = buildPslDocumentAst(new SqlSchemaIR({ tables }), options, {
+  const ast = buildPslDocumentAst(schemaIR, options, {
     extraRelationsByTable: new Map(),
     crossSpaceFieldNamesByTable: new Map(),
     danglingForeignKeysByTable: new Map(),

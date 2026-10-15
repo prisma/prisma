@@ -19,6 +19,7 @@ import { postgresCodecRegistry } from '../../src/core/registry';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
+import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 import postgresTargetDescriptor from '../../src/exports/control';
 import { inferBuildContext } from './fixtures';
 
@@ -570,6 +571,7 @@ function makeRealPostgresStack(
       familyId: TARGET_FAMILY,
       targetId: TARGET,
       types: { codecTypes: { codecDescriptors: Array.from(postgresCodecRegistry.values()) } },
+      authoring: { type: postgresPslTypeConstructors },
       create: () => ({ familyId: TARGET_FAMILY, targetId: TARGET }),
     },
     extensions: extensions,

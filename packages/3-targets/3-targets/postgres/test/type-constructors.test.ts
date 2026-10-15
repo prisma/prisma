@@ -11,7 +11,6 @@ import { postgresAuthoringTypes } from '../src/core/authoring';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { postgresDataTypes } from '../src/core/data-types';
 import { EXISTING_COLUMN_DATE_TIME_TYPES } from '../src/core/psl-build/existing-column-date-time-types';
-import { INFERRED_PSL_TYPE_NAMES } from '../src/core/psl-build/postgres-type-map';
 import {
   postgresNativeAuthoringTypes,
   postgresPslTypeConstructors,
@@ -73,9 +72,6 @@ const INFERRED = [
   'pg.enum',
 ];
 
-/** Marked constructors for data types today's name tables do not cover, so `contract infer` does not print them yet. */
-const NOT_YET_WRITTEN_BY_INFER = ['Bit', 'VarBit', 'Interval'];
-
 function constructorPaths(namespace: object, prefix: readonly string[] = []): string[] {
   return Object.entries(namespace).flatMap(([name, value]) =>
     value !== null && typeof value === 'object' && 'kind' in value
@@ -103,27 +99,9 @@ function markedInferred(): string[] {
   });
 }
 
-function constructorsByDataType(paths: readonly string[]): Record<string, string[]> {
-  const codecLookup = createPostgresBuiltinCodecLookup();
-  const byDataType: Record<string, string[]> = {};
-  for (const path of paths) {
-    const descriptor = constructorAt(path) as { output: { codecId: string } };
-    const dataType = codecLookup.descriptorFor(descriptor.output.codecId)?.dataType ?? path;
-    byDataType[dataType] = [...(byDataType[dataType] ?? []), path];
-  }
-  return byDataType;
-}
-
 describe('the constructors contract infer prints', () => {
   it('are marked inferred, and no other constructor is', () => {
     expect(markedInferred().sort()).toEqual([...INFERRED].sort());
-  });
-
-  it('are, for each data type, the one contract infer writes for a column of it', () => {
-    const writtenByInfer = [...INFERRED_PSL_TYPE_NAMES, 'pg.enum', ...NOT_YET_WRITTEN_BY_INFER];
-    expect(constructorsByDataType(markedInferred())).toEqual(
-      constructorsByDataType(writtenByInfer),
-    );
   });
 
   it('include every date and time constructor written for an existing column', () => {

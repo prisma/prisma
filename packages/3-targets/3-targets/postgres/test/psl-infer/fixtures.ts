@@ -2,7 +2,7 @@ import type { SqlPslBuildContext } from '@internal/family-sql/control';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
-import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
+import type { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import {
   postgresAuthoringPslBlockDescriptors,
   postgresAuthoringTypes,
@@ -10,6 +10,10 @@ import {
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-registry';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { postgresDataTypes } from '../../src/core/data-types';
+import {
+  type InferredColumnTypes,
+  inferColumnTypes,
+} from '../../src/core/psl-infer/infer-column-types';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
@@ -25,6 +29,22 @@ import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
  * All fixture tables live under the single `public` namespace (`contract
  * infer` introspects one live schema).
  */
+/** The types `contract infer` writes for the columns of `tables`, all read from schema `public`. */
+export function inferredColumnTypesOf(
+  tables: Readonly<Record<string, SqlTableIR>>,
+  enumTypeNames: ReadonlySet<string> = new Set(),
+): InferredColumnTypes {
+  return inferColumnTypes({
+    tables: Object.values(tables).map((table) => ({
+      schemaName: 'public',
+      tableName: table.name,
+      columns: Object.values(table.columns),
+    })),
+    context: inferBuildContext,
+    isEnumColumn: (column) => enumTypeNames.has(column.nativeType),
+  });
+}
+
 export function treeFromFlat(schemaIR: SqlSchemaIR): PostgresDatabaseSchemaNode {
   const enums = readNativeEnums(schemaIR.annotations).map(
     (entry) =>

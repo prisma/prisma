@@ -1,17 +1,22 @@
 import type { ColumnDefault, JsonValue } from '@internal/contract/types';
+import { instantiateAuthoringTypeConstructor } from '@internal/framework-components/authoring';
 import {
-  getAuthoringTypeConstructor,
-  instantiateAuthoringTypeConstructor,
-} from '@internal/framework-components/authoring';
-import { type Codec, materializeCodec } from '@internal/framework-components/codec';
-import { parsePslPositionalArgs } from '@internal/psl-parser/interpret';
+  type Codec,
+  createDataTypeLookup,
+  materializeCodec,
+} from '@internal/framework-components/codec';
+import { resolveWrittenSqlTypes } from '@internal/sql-contract/data-type';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { PG_TEXT_CODEC_ID } from '../src/core/codec-ids';
+import { postgresDataTypes } from '../src/core/data-types';
 import { parsePostgresDefault, postgresResolveDefault } from '../src/core/default-normalizer';
 import { parsePostgresListText } from '../src/core/list-decoder';
 import { type CatalogColumnType, introspectedNativeType } from '../src/core/native-type-normalizer';
-import { createPostgresTypeMap } from '../src/core/psl-build/postgres-type-map';
+import {
+  fewestArgumentsCall,
+  inferredTypeConstructors,
+} from '../src/core/psl-build/inferred-type-constructors';
 import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 import { postgresPslTypeConstructors } from '../src/core/type-constructors';
 import { enumTypes, type FidelityRow, rows } from './default-fidelity.rows';
@@ -37,27 +42,26 @@ interface CatalogColumn extends CatalogColumnType {
 }
 
 const enumNames: ReadonlySet<string> = new Set(enumTypes.map((enumType) => enumType.name));
-const typeMap = createPostgresTypeMap(enumNames);
-const typeConstructors = {
-  type: postgresPslTypeConstructors,
-};
+const constructors = inferredTypeConstructors({
+  authoringTypes: postgresPslTypeConstructors,
+  codecLookup: postgresCodecDescriptorRegistry,
+  dataTypeLookup: createDataTypeLookup(postgresDataTypes),
+});
 
-/** The codec and type parameters the type constructor `contract infer` writes names, as `contract emit` reads it. */
-function inferredCodecRef(pslType: { readonly name: string; readonly args?: readonly string[] }) {
-  const descriptor = getAuthoringTypeConstructor(typeConstructors, [pslType.name]);
-  if (descriptor === undefined) return undefined;
-  const args = parsePslPositionalArgs(descriptor.args ?? [], pslType.args ?? []);
-  return args === undefined ? undefined : instantiateAuthoringTypeConstructor(descriptor, args);
+/** The codec and type parameters of the call `contract infer` writes for a column of `elementType`, as `contract emit` reads it. */
+function inferredCodecRef(elementType: string) {
+  const [resolved] = resolveWrittenSqlTypes(elementType, postgresDataTypes);
+  const marked = resolved && constructors.get(resolved.dataType);
+  const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
+  return marked && call && instantiateAuthoringTypeConstructor(marked.descriptor, call.args);
 }
 
 /** The codec `contract infer` binds to the column, as `inferredColumnDefaults` chooses it. */
 function columnCodec(nativeType: string): Codec {
   const elementType = nativeType.endsWith('[]') ? nativeType.slice(0, -2) : nativeType;
-  const resolution = typeMap.resolve(elementType, undefined);
-  if ('unsupported' in resolution) throw new Error(`no PSL type for ${elementType}`);
   const ref = enumNames.has(elementType)
     ? { codecId: PG_TEXT_CODEC_ID, typeParams: undefined }
-    : inferredCodecRef(resolution.pslType);
+    : inferredCodecRef(elementType);
   const descriptor =
     ref === undefined ? undefined : postgresCodecDescriptorRegistry.descriptorFor(ref.codecId);
   if (ref === undefined || descriptor === undefined) {

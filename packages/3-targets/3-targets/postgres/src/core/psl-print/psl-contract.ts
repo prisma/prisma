@@ -5,7 +5,6 @@ import {
   effectiveControlPolicy,
 } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type { PslTypeMap } from '@internal/family-sql/psl-build';
 import type {
   PslDocumentAst,
   PslExtensionBlock,
@@ -23,7 +22,8 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresNativeEnum } from '../postgres-native-enum';
-import { createPostgresTypeMap } from '../psl-build/postgres-type-map';
+import type { InferredTypeConstructors } from '../psl-build/inferred-type-constructors';
+import { inferredTypeConstructors } from '../psl-build/inferred-type-constructors';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import {
   indexContractModels,
@@ -75,7 +75,7 @@ import { buildScalarFields, executionDefaultsByColumn } from './scalar-fields';
 interface ContractModels {
   readonly contract: Contract<SqlStorage>;
   readonly context: SqlPslBuildContext;
-  readonly typeMap: PslTypeMap;
+  readonly inferredConstructors: InferredTypeConstructors;
   readonly models: readonly ModelWithTable[];
   readonly byCoordinate: ReadonlyMap<string, ModelWithTable>;
   readonly variants: ReadonlyMap<ModelWithTable, VariantInfo | undefined>;
@@ -145,7 +145,7 @@ function buildModel(
       variant,
       enums,
       domainEnums: all.contract.domain.namespaces[entry.namespaceId]?.enum ?? {},
-      typeMap: all.typeMap,
+      inferredConstructors: all.inferredConstructors,
       context: all.context,
       executionDefaults: all.executionDefaults,
       defaultDomainEnumNames: new Set(Object.keys(all.defaultDomainEnums)),
@@ -233,7 +233,7 @@ function buildNamespace(
   const compositeTypes = buildCompositeTypes({
     contract,
     namespaceId,
-    typeMap: all.typeMap,
+    inferredConstructors: all.inferredConstructors,
     context: all.context,
     enumBlockNames: enums.blockNamesByTypeName,
     domainEnums: all.defaultDomainEnums,
@@ -304,7 +304,11 @@ export function buildPostgresPslContract(
   const all: ContractModels = {
     contract,
     context,
-    typeMap: createPostgresTypeMap(),
+    inferredConstructors: inferredTypeConstructors({
+      authoringTypes: context.authoringContributions.type,
+      codecLookup: context.codecLookup,
+      dataTypeLookup: context.dataTypes.lookup,
+    }),
     models,
     byCoordinate,
     variants: new Map(models.map((entry) => [entry, variantInfo(entry, byCoordinate)])),
@@ -346,7 +350,7 @@ export function buildPostgresPslContract(
   refuseContractMeta(contract);
   refuseUnderivedRoots(contract, models, all.variants);
 
-  const types = buildTypesBlock(contract, all.typeMap, context);
+  const types = buildTypesBlock(contract, all.inferredConstructors, context);
   return {
     kind: 'document',
     sourceId: '<contract>',

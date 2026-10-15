@@ -136,7 +136,7 @@ The runner returns structured errors with the following codes:
 
 - **`./control`**: Control plane entry point for CLI/config usage (exports `SqlFamilyDescriptor`)
 - **`./control-adapter`**: SQL control adapter interface (`SqlControlAdapter`, `SqlControlAdapterDescriptor`) for target-specific adapters
-- **`./psl-build`**: PSL building blocks both `contract infer` and `contract print` use, with no dialect knowledge: `mapDefault` (a stored default as the PSL attribute that reads back as it), the `PslTypeMap` types, and `toEnumMemberName`
+- **`./psl-build`**: PSL building blocks both `contract infer` and `contract print` use, with no dialect knowledge: `mapDefault` (a stored default as the PSL attribute that reads back as it), and `toEnumMemberName`
 - **`./psl-infer`**: Database-to-PSL inference utilities for `contract infer`: name transforms, relation inference, and the printer-config types
 - **`./runtime`**: Runtime plane identity exports only (family ID, types, descriptor identity). Does **not** export runtime creation helpers—use `instantiateExecutionStack` from `@internal/framework-components/execution` and `createExecutionContext`, `createRuntime`, `createSqlExecutionStack` from `@internal/sql-runtime`. See [ADR 152](../../../docs/architecture%20docs/adrs/ADR%20152%20-%20Execution%20Plane%20Descriptors%20and%20Instances.md).
 - **`./verify`**: Marker row parsing helper (`parseContractMarkerRow`). Marker reads are owned by each `SqlControlAdapter` (e.g. `PostgresControlAdapter.readMarker`) so dialect-specific SQL stays target-local.
