@@ -98,6 +98,18 @@ describe('runOrmCall', () => {
     expect(calls.map(({ ended }) => ended)).toEqual([{ outcome: 'failed' }]);
   });
 
+  it('rejects with the error that failed the call when ending it also rejects', async () => {
+    const { runtime, calls } = createActivityRuntime({ endRejects: new Error('children open') });
+    const failure = new Error('statement failed');
+
+    await expect(
+      runOrmCall(runtime, valueCall(), async () => {
+        throw failure;
+      }),
+    ).rejects.toBe(failure);
+    expect(calls.map(({ ended }) => ended)).toEqual([{ outcome: 'failed' }]);
+  });
+
   it('returns an intercepted result without running and ends the call with no result', async () => {
     const { runtime, calls } = createActivityRuntime({ intercept: () => ({ result: 7 }) });
     let ran = false;
@@ -171,6 +183,16 @@ describe('streamOrmCall', () => {
 
   it('ends the call failed when the stream fails', async () => {
     const { runtime, calls } = createActivityRuntime();
+    const failure = new Error('stream failed');
+
+    await expect(
+      streamOrmCall(runtime, rowsCall(), () => stream([{ id: 1 }], failure)).toArray(),
+    ).rejects.toBe(failure);
+    expect(calls.map(({ ended }) => ended)).toEqual([{ outcome: 'failed' }]);
+  });
+
+  it('rejects with the stream error when ending the failed call also rejects', async () => {
+    const { runtime, calls } = createActivityRuntime({ endRejects: new Error('children open') });
     const failure = new Error('stream failed');
 
     await expect(

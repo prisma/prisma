@@ -22,13 +22,17 @@ function source<Row>(rows: Row[]) {
 
 function preparedStatementOf(
   description: Preparable<Record<string, unknown>, unknown>,
+  targets: unknown[],
 ): PreparedStatement<{ id: number }, Record<string, unknown>> {
   return {
     sql: 'select rows',
     ast: description.plan.ast,
     meta: description.plan.meta,
     slots: [],
-    query: (_target, params) => source([{ user_id: params.id }]),
+    query: (target, params) => {
+      targets.push(target);
+      return source([{ user_id: params.id }]);
+    },
   };
 }
 
@@ -59,7 +63,11 @@ describe('prepared collection', () => {
       meta.annotate(annotation({ label: 'prepared' }));
     const all = selected.prepared.all(configure);
     const first = selected.prepared.first(undefined, configure);
-    const statements = { all: preparedStatementOf(all), first: preparedStatementOf(first) };
+    const targets: unknown[] = [];
+    const statements = {
+      all: preparedStatementOf(all, targets),
+      first: preparedStatementOf(first, targets),
+    };
     const preparedAll = createPreparedRowQuery(all, statements.all);
     const preparedFirst = createPreparedRowQuery(first, statements.first);
 
@@ -97,6 +105,7 @@ describe('prepared collection', () => {
         { statement: statements.first, params: { id: 2 } },
       ],
     });
+    expect(targets.map((target) => target === runtime)).toEqual([false, false]);
     expect(selected.state.limit).toBe(99);
   });
 

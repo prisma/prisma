@@ -17,13 +17,11 @@ import type { RuntimeQueryable } from './types';
 
 type Annotations = ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>;
 
-/** One terminal method call, run as an `orm-call` activity. */
 export interface OrmCall<Result> {
   readonly method: string;
   readonly annotations: Annotations | undefined;
   /** What the call's content hash digests besides its kind and method. */
   readonly identity: (source: ActivitySource) => Promise<unknown>;
-  /** Whether a value an `intercept.onActivity` handler supplied is a result of this call. */
   readonly accepts: (value: unknown) => value is Result;
 }
 
@@ -80,6 +78,15 @@ function startOrmCall<Result>(
   });
 }
 
+/** Ends a call whose work failed. The runtime has ended the activity `failed` even when `end` rejects, so the caller gets the error that failed the call, not the one from `end`. */
+async function endFailed(handle: ActivityHandle<'orm-call'>): Promise<void> {
+  try {
+    await handle.end({ outcome: 'failed' });
+  } catch {
+    return;
+  }
+}
+
 async function interceptedResult<Result>(
   handle: ActivityHandle<'orm-call'>,
   call: OrmCall<Result>,
@@ -98,7 +105,6 @@ async function interceptedResult<Result>(
   return result;
 }
 
-/** Runs a terminal that resolves to one value as an `orm-call` activity on `queryable`, sending its statements through the activity's handle. */
 export async function runOrmCall<Result>(
   queryable: RuntimeQueryable,
   call: OrmCall<Result>,
@@ -114,14 +120,14 @@ export async function runOrmCall<Result>(
   try {
     result = await run(handle);
   } catch (error) {
-    await handle.end({ outcome: 'failed' });
+    await endFailed(handle);
     throw error;
   }
   await handle.end({ outcome: 'succeeded', result });
   return result;
 }
 
-/** Runs a terminal that streams rows as an `orm-call` activity on `queryable`. The call ends when the caller reads to the end, stops early or the stream fails; its result holds the rows only when it carries annotations. */
+/** The call ends when the caller reads to the end, stops early or the stream fails. Its result holds the rows only when it carries annotations, so an unannotated stream does not hold its rows. */
 export function streamOrmCall<Row>(
   queryable: RuntimeQueryable,
   call: OrmCall<Row[]>,
@@ -148,11 +154,15 @@ export function streamOrmCall<Row>(
       outcome = 'failed';
       throw error;
     } finally {
-      await handle.end(
-        outcome === 'succeeded' && collected !== undefined
-          ? { outcome, result: collected }
-          : { outcome },
-      );
+      if (outcome === 'failed') {
+        await endFailed(handle);
+      } else {
+        await handle.end(
+          outcome === 'succeeded' && collected !== undefined
+            ? { outcome, result: collected }
+            : { outcome },
+        );
+      }
     }
   };
   return new AsyncIterableResult(generator());
@@ -160,7 +170,6 @@ export function streamOrmCall<Row>(
 
 const preparedOrmCall = Symbol('preparedOrmCall');
 
-/** Runs one execution of a prepared ORM read as an `orm-call` activity: `rows` sends the prepared statement to the queryable it is given. */
 export type PreparedOrmCall<DbRow, Result> = (
   target: RuntimeQueryable,
   rows: (queryable: RuntimeQueryable) => AsyncIterableResult<DbRow>,
@@ -171,7 +180,6 @@ interface PreparableOrmCall<DbRow, Result> extends Preparable<DbRow, Result> {
   readonly [preparedOrmCall]: PreparedOrmCall<DbRow, Result>;
 }
 
-/** Marks a prepared ORM read so each execution of the statement prepared from it runs as an `orm-call` activity. */
 export function asPreparedOrmCall<DbRow, Result>(
   preparable: Preparable<DbRow, Result>,
   call: PreparedOrmCall<DbRow, Result>,
@@ -192,7 +200,6 @@ export function preparedOrmCallOf<DbRow, Result>(
   return isPreparableOrmCall(preparable) ? preparable[preparedOrmCall] : undefined;
 }
 
-/** A prepared read that streams rows: each execution runs as {@link streamOrmCall}. */
 export function preparedRowsCall<DbRow, Row>(
   method: string,
   annotations: Annotations | undefined,
@@ -206,7 +213,6 @@ export function preparedRowsCall<DbRow, Row>(
     );
 }
 
-/** A prepared read that resolves to one value: each execution runs as {@link runOrmCall}. */
 export function preparedValueCall<DbRow, Result>(
   method: string,
   annotations: Annotations | undefined,

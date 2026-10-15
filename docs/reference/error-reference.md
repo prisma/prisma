@@ -998,7 +998,7 @@ The include is well-formed but not supported in this position: scalar aggregatio
 
 ### ORM.INTERCEPTED_RESULT_INVALID
 
-An `intercept.onActivity` handler answered an `orm-call` activity with a value of the wrong shape for its terminal method: not an array for `all()` and the other streaming terminals, not an object for `create()`, `firstOrThrow()` or `aggregate()`, neither an object nor `null` for `first()`, `update()` or `delete()`, or not a number for a count. The SQL ORM ends the call `failed` and returns nothing. Payload: `method`.
+An `intercept.onActivity` handler answered an `orm-call` activity with a value of the wrong shape for its terminal method: not an array for `all()`, `createAll()`, `updateAll()`, `deleteAll()` or `groupBy().aggregate()`; not an object for `create()`, `upsert()`, `firstOrThrow()` or `aggregate()`; neither an object nor `null` for `first()`, `update()` or `delete()`; or not a number for `createAndCount()`, `updateAndCount()` or `deleteAndCount()`. The SQL ORM ends the call `failed` and returns nothing. Payload: `method`.
 
 ### ORM.LOCK_INCOMPATIBLE
 

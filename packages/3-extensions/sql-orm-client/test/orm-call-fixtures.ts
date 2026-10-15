@@ -35,6 +35,8 @@ export interface ActivityRuntimeOptions {
   readonly intercept?: (activity: ClientActivity) => { readonly result: unknown } | undefined;
   /** Opens calls without `transaction()`, as a handle opened inside a transaction is. */
   readonly insideTransaction?: boolean;
+  /** Makes `end` record the end and then reject, as the runtime does when a child is still open. */
+  readonly endRejects?: Error;
 }
 
 export const fakePlanHash = 'plan-hash';
@@ -107,6 +109,7 @@ export function createActivityRuntime(options: ActivityRuntimeOptions = {}): {
         async end(end: ClientActivityEnd<K>) {
           if (call.ended !== undefined) throw new Error('ended twice');
           call.ended = end;
+          if (options.endRejects) throw options.endRejects;
         },
       };
       return handle as unknown as ActivityHandle<K>;
