@@ -183,6 +183,29 @@ describe('cli-telemetry e2e — engine bin against the real backend', () => {
     expect(rows[1]?.installationId).toBe(installationId);
   });
 
+  it('transmits only flag names, never flag values or positionals', async () => {
+    const installationId = randomUUID();
+    seedConsent(xdgDir, installationId);
+
+    await spawnCli(
+      [
+        'migration',
+        'show',
+        'customer-acme-payments',
+        '--config',
+        '/Users/alice/secrets/prisma.config.ts',
+      ],
+      { env: buildEnv(xdgDir), cwd: projectDir },
+    );
+    const [row] = await harness.awaitRowsForInstallation(installationId, 1);
+
+    expect(row?.command).toBe('migration show');
+    expect(row?.flags).toEqual(['config']);
+    const serialised = JSON.stringify(row);
+    expect(serialised).not.toContain('customer-acme-payments');
+    expect(serialised).not.toContain('/Users/alice/secrets');
+  });
+
   it('an erroring-but-settling run produces a row carrying the exit code', async () => {
     const installationId = randomUUID();
     seedConsent(xdgDir, installationId);
