@@ -47,6 +47,7 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 
 4. **Embedded models are validated as nested objects.** The TypeScript builder can embed one model inside another through an embed relation; PSL MongoDB has no such models. A closed validator built from a model's own fields alone would reject every document that holds an embedded model, so the embedded model's fields are validated as a nested closed object, as a value object's are (decided by the orchestrator, 2026-10-15, from the PR 1 design review).
 5. **Two root models in one collection without a discriminator** are decided in PR 2: today the second model's validator silently replaces the first.
+6. **A model that embeds itself** (a comment with replies) is decided in PR 2. A MongoDB validator cannot describe recursion; PR 1's derivation stops with an error that names the chain. PR 2 either reports that error as the builder's refusal or leaves the schema open where the embed repeats.
 
 ## How (two pull requests)
 
