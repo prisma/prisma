@@ -67,7 +67,7 @@ field.text().many({ elementsNullable: true })   // ReadonlyArray<string | null>,
 field.text().many()                             // ReadonlyArray<string>, element check derived
 ```
 
-Readers of an existing database therefore write the nullability the database enforces. When the live database lacks the derived check, `contract infer` writes `Foo?[]`. The Prisma 7 reader writes every list as `Foo?[]`, because Prisma 7 creates no element check. An author who wants non-null elements changes the source to `Foo[]`, and the next migration adds the check.
+Two producers describe a schema Prisma 8 did not create, and both write the nullability the database enforces. When the live database lacks the derived check, `contract infer` writes `Foo?[]`. The Prisma 7 reader reads every list in a Prisma 7 `schema.prisma` as nullable elements, because Prisma 7 creates no element check. A project that keeps its Prisma 7 schema as the contract source therefore always gets nullable element types. To get non-null elements, the project moves to a Prisma 8 source and writes `Foo[]`, and the next migration adds the check.
 
 ### Family enforcement follows the semantic marker
 
