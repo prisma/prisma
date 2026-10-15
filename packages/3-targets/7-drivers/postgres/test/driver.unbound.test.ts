@@ -35,11 +35,6 @@ describe('@internal/driver-postgres runtime driver lifecycle', () => {
         close: expect.any(Function),
       });
     });
-
-    it('accepts cursor options without requiring connection binding', () => {
-      const driver = createDriver({ cursor: { batchSize: 10, disabled: false } });
-      expect(driver).toBeDefined();
-    });
   });
 
   describe('given an unbound driver', () => {

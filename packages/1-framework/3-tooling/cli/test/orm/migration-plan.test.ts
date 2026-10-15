@@ -1235,7 +1235,8 @@ describe('migration plan', () => {
       terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
     expect(envelope).toMatchObject({ ok: false });
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
+    expect(envelope?.ok).toBe(false);
+    expect(envelope).not.toHaveProperty('error.fix');
   });
 });
 

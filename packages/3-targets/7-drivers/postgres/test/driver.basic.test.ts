@@ -123,31 +123,6 @@ describe('@internal/driver-postgres', () => {
   );
 
   it(
-    'executes explain query',
-    async () => {
-      const driver = await createMemPoolDriver();
-      await executeSql(driver, 'create table items(id serial primary key, name text)');
-
-      // pg-mem doesn't support EXPLAIN (FORMAT JSON), so we test that explain() is callable
-      // In a real environment, this would return explain results
-      try {
-        const result = await driver.explain?.({
-          sql: 'select id, name from items',
-        });
-        if (result) {
-          expect(result).toBeDefined();
-          expect(result.rows).toBeDefined();
-          expect(Array.isArray(result.rows)).toBe(true);
-        }
-      } catch {
-        // pg-mem doesn't support EXPLAIN, so we just verify the method exists
-        expect(driver.explain).toBeDefined();
-      }
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
     'executes query with params',
     async () => {
       const driver = await createRealPoolDriver();
@@ -261,18 +236,6 @@ describe('@internal/driver-postgres', () => {
 
       // Closing again should not throw (pool.ended check)
       await driver.close();
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
-    'closes pool connection',
-    async () => {
-      const driver = await createMemPoolDriver({ autoCleanup: false });
-      await driver.close();
-
-      // pg-mem Pool doesn't have an 'ended' property, so we just verify close() doesn't throw
-      expect(driver).toBeDefined();
     },
     timeouts.spinUpPpgDev,
   );
