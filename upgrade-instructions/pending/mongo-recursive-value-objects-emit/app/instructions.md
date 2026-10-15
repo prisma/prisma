@@ -18,4 +18,4 @@ type NavItem {
 }
 ```
 
-The validator for the collection that holds it requires the fields of the first `NavItem` level and refuses any other field there. It accepts any object inside `children`, because a MongoDB `$jsonSchema` validator cannot describe a type at every depth of itself. Then apply the contract as usual, with `prisma db update` or with `prisma migration plan` and `prisma db migrate`.
+The validator for the collection that holds it requires the fields of the first `NavItem` level and refuses any other field there. It accepts any object inside `children`, because a MongoDB `$jsonSchema` validator cannot describe a type at every depth of itself. Apply the contract as usual, with `prisma db update` or with `prisma migration plan` and `prisma db migrate`.
