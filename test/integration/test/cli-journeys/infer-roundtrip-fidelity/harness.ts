@@ -84,10 +84,7 @@ export function fixIndexTypes(psl: string): string {
 /**
  * Asserts a pulled schema verifies clean immediately.
  *
- * `contract infer` writes `T?[]` for every list column whose live database
- * does not carry the derived, wire-named element-non-null check, so the emitted contract declares exactly what the database enforces
- * and `db verify --schema-only` exits 0 with zero issues right after
- * infer -> emit.
+ * `contract infer` writes `T?[]` for every list column whose live database does not carry the derived, wire-named element-non-null check, so the emitted contract declares exactly what the database enforces and `db verify --schema-only` exits 0 with zero issues right after infer -> emit.
  */
 export async function expectVerifiesCleanAfterPull(
   ctx: JourneyContext,

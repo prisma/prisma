@@ -20,13 +20,7 @@ import {
 
 withTempDir(({ createTempDir }) => {
   describe('Journey: infer preserves an enforced element check', () => {
-    // The enforced check is installed by the toolchain itself rather than
-    // seeded with a precomputed name: sign the pull, whose list allows null
-    // elements, change it to a list of non-null elements, and let `db update`
-    // install the derived wire-named check. The re-pull must then infer the enforced form. This
-    // keeps the journey on the published import root — no internal naming
-    // helpers — and proves the name the toolchain installs is the name infer
-    // compares against.
+    // The enforced check is installed by the toolchain itself rather than seeded with a precomputed name: sign the pull, whose list allows null elements, change it to a list of non-null elements, and let `db update` install the derived wire-named check. The re-pull must then infer the enforced form. This keeps the journey on the published import root — no internal naming helpers — and proves the name the toolchain installs is the name infer compares against.
     const db = useDevDatabase({
       onReady: (cs) =>
         withClient(cs, (client) =>
@@ -60,7 +54,6 @@ withTempDir(({ createTempDir }) => {
         const sign = await runDbSign(ctx);
         expect(sign.exitCode, `db sign\n${stripAnsi(sign.stderr)}`).toBe(0);
 
-        // The author wants non-null elements: change the type and apply.
         writeContractPsl(ctx, pulled.replace(/(tags\s+)String\?\[\]/, '$1String[]'));
         const emitEnforced = await runContractEmit(ctx);
         expect(emitEnforced.exitCode, `contract emit\n${stripAnsi(emitEnforced.stderr)}`).toBe(0);

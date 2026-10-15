@@ -141,7 +141,7 @@ export function createNamespaceEntrySchema(
       for (const [, value] of Object.entries(innerMap)) {
         const parsed = entrySchema(value);
         if (parsed instanceof type.errors) {
-          return ctx.reject({ expected: parsed.map(describeProblem).join('; ') });
+          return ctx.reject({ expected: parsed.summary });
         }
       }
     }
@@ -178,7 +178,7 @@ export function valueObjectStorageTypeMissingMessage(columnPath: string): string
   return `${columnPath}: a value-object column needs the stack's value-object storage type, and the stack declares none`;
 }
 
-const LISTED_STORED_TYPE_NAMES = 5;
+const LISTED_REMOVED_KEYS = 5;
 
 function fieldOf(value: unknown, key: string): unknown {
   return isPlainRecord(value) ? value[key] : undefined;
@@ -188,8 +188,10 @@ function entriesOf(value: unknown): readonly (readonly [string, unknown])[] {
   return isPlainRecord(value) ? Object.entries(value) : [];
 }
 
-function storedTypeNamePaths(storage: unknown): readonly string[] {
-  const columns = entriesOf(fieldOf(storage, 'namespaces')).flatMap(([namespaceId, namespace]) =>
+function storedColumnEntries(
+  storage: unknown,
+): readonly { readonly path: string; readonly entry: unknown }[] {
+  return entriesOf(fieldOf(storage, 'namespaces')).flatMap(([namespaceId, namespace]) =>
     entriesOf(fieldOf(fieldOf(namespace, 'entries'), 'table')).flatMap(([tableName, table]) =>
       entriesOf(fieldOf(table, 'columns')).map(([columnName, column]) => ({
         path: `storage.namespaces.${namespaceId}.entries.table.${tableName}.columns.${columnName}`,
@@ -197,35 +199,22 @@ function storedTypeNamePaths(storage: unknown): readonly string[] {
       })),
     ),
   );
-  const types = entriesOf(fieldOf(storage, 'types')).map(([typeName, entry]) => ({
-    path: `storage.types.${typeName}`,
-    entry,
-  }));
-  return [...columns, ...types]
-    .filter(({ entry }) => isPlainRecord(entry) && Object.hasOwn(entry, 'nativeType'))
+}
+
+function pathsHolding(
+  entries: readonly { readonly path: string; readonly entry: unknown }[],
+  key: string,
+): readonly string[] {
+  return entries
+    .filter(({ entry }) => isPlainRecord(entry) && Object.hasOwn(entry, key))
     .map(({ path }) => path);
 }
 
-/**
- * Contracts emitted before a column named its data type stored the database type name in `nativeType` on columns and `storage.types` entries. The first five such keys are reported with their paths and the rest are counted, so an old contract is refused with a short message that says what changed.
- */
-function describeProblem(problem: {
-  readonly message: string;
-  readonly expected?: string;
-}): string {
-  return problem.expected === 'removed'
-    ? `${problem.message}: this version does not read that key, so re-emit the contract from its source`
-    : problem.message;
-}
-
-function storedTypeNameProblems(storage: unknown): readonly string[] {
-  const paths = storedTypeNamePaths(storage);
-  const listed = paths
-    .slice(0, LISTED_STORED_TYPE_NAMES)
-    .map(
-      (path) =>
-        `${path}.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
-    );
+function listedProblems(
+  paths: readonly string[],
+  describe: (path: string) => string,
+): readonly string[] {
+  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map(describe);
   const unlisted = paths.length - listed.length;
   return unlisted > 0
     ? [
@@ -233,6 +222,36 @@ function storedTypeNameProblems(storage: unknown): readonly string[] {
         `and ${unlisted} more ${unlisted === 1 ? 'path' : 'paths'} (${paths.length} in all)`,
       ]
     : listed;
+}
+
+/**
+ * Contracts emitted before a column named its data type stored the database type name in `nativeType` on columns and `storage.types` entries. The first five such keys are reported with their paths and the rest are counted, so an old contract is refused with a short message that says what changed.
+ */
+function storedTypeNameProblems(storage: unknown): readonly string[] {
+  const types = entriesOf(fieldOf(storage, 'types')).map(([typeName, entry]) => ({
+    path: `storage.types.${typeName}`,
+    entry,
+  }));
+  return listedProblems(
+    pathsHolding([...storedColumnEntries(storage), ...types], 'nativeType'),
+    (path) =>
+      `${path}.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
+  );
+}
+
+/**
+ * Contracts emitted before generated checks became mandatory stored the checks a column waived in `noCheck`. The key is reported the same way as `nativeType`, with what to do about it.
+ */
+function checkWaiverProblems(storage: unknown): readonly string[] {
+  return listedProblems(
+    pathsHolding(storedColumnEntries(storage), 'noCheck'),
+    (path) =>
+      `${path}.noCheck: contracts no longer store check waivers; re-emit the contract from its source, or run the remove-nocheck upgrade script on a stored contract such as a migration snapshot`,
+  );
+}
+
+function removedKeyProblems(storage: unknown): readonly string[] {
+  return [...storedTypeNameProblems(storage), ...checkWaiverProblems(storage)];
 }
 
 type NamespacedStorageWalk = {
@@ -526,13 +545,13 @@ const SqlContractSchema = createSqlContractSchema(DEFAULT_SQL_KINDS);
  * @throws Error if the storage structure is invalid
  */
 export function validateStorage(value: unknown): void {
-  const storedTypeNames = storedTypeNameProblems(value);
+  const removedKeys = removedKeyProblems(value);
   const result = StorageSchema(value);
   const errors =
-    storedTypeNames.length > 0
-      ? [...storedTypeNames]
+    removedKeys.length > 0
+      ? [...removedKeys]
       : result instanceof type.errors
-        ? result.map(describeProblem)
+        ? result.map((p: { message: string }) => p.message)
         : [];
   if (errors.length > 0) {
     throw contractError(
@@ -548,7 +567,7 @@ export function validateStorage(value: unknown): void {
 export function validateModel(value: unknown): unknown {
   const result = ModelSchema(value);
   if (result instanceof type.errors) {
-    const errors = result.map(describeProblem);
+    const errors = result.map((p: { message: string }) => p.message);
     throw contractError(
       'CONTRACT.VALIDATION_FAILED',
       `Model validation failed: ${errors.join('; ')}`,
@@ -582,10 +601,10 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
     throw new ContractValidationError(`Unsupported target family: ${targetFamily}`, 'structural');
   }
 
-  const storedTypeNames = storedTypeNameProblems(fieldOf(value, 'storage'));
-  if (storedTypeNames.length > 0) {
+  const removedKeys = removedKeyProblems(fieldOf(value, 'storage'));
+  if (removedKeys.length > 0) {
     throw new ContractValidationError(
-      `Contract structural validation failed: ${storedTypeNames.join('; ')}`,
+      `Contract structural validation failed: ${removedKeys.join('; ')}`,
       'structural',
     );
   }
@@ -593,7 +612,7 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
   const contractResult = contractSchema(value);
 
   if (contractResult instanceof type.errors) {
-    const messages = contractResult.map(describeProblem).join('; ');
+    const messages = contractResult.map((p: { message: string }) => p.message).join('; ');
     throw new ContractValidationError(
       `Contract structural validation failed: ${messages}`,
       'structural',

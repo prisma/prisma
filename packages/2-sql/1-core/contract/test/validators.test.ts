@@ -1255,16 +1255,29 @@ describe('SQL contract validators', () => {
       expect(() => validateSqlContractFully(c)).toThrow('mappings must be removed');
     });
 
-    it('rejects a column key this version does not read, and says to re-emit the contract', () => {
-      const userTable = table({ tags: col('pg/text', 'pg/text@1') });
+    it('refuses a contract that stores check waivers, naming the first five paths and counting the rest', () => {
+      const names = ['a', 'b', 'c', 'd', 'e', 'f'];
+      const userTable = table(
+        Object.fromEntries(names.map((name) => [name, col('pg/text', 'pg/text@1')])),
+      );
       const c = JSON.parse(
         JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
       );
-      c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns.tags.noCheck = [
-        'elementNotNull',
-      ];
+      for (const name of names) {
+        c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns[name].noCheck = [
+          'elementNotNull',
+        ];
+      }
+      const advice =
+        'contracts no longer store check waivers; re-emit the contract from its source, or run the remove-nocheck upgrade script on a stored contract such as a migration snapshot';
       expect(() => validateSqlContractFully(c)).toThrow(
-        'columns.tags.noCheck must be removed: this version does not read that key, so re-emit the contract from its source',
+        `Contract structural validation failed: ${names
+          .slice(0, 5)
+          .map(
+            (name) =>
+              `storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.${name}.noCheck: ${advice}`,
+          )
+          .join('; ')}; and 1 more path (6 in all)`,
       );
     });
 

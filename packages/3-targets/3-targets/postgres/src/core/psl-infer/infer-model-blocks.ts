@@ -206,18 +206,9 @@ export function buildModel(
 }
 
 /**
- * The live check names that are derived: a live check's name matches
- * `formatWireName(composeCheckWirePrefix(table, column, kind), computeCheckContentHash(expression))`
- * for some column of the table and some candidate `postgresRenderCheckExpressions`
- * would render for that column. Never by comparing expressions — the live
- * body is a Postgres reprint, never the authored text. One set serves both
- * the element nullability of list fields and `@@check` exclusion in `buildModel`, so the
- * two decisions cannot drift apart.
+ * The live check names that are derived: a live check's name matches `formatWireName(composeCheckWirePrefix(table, column, kind), computeCheckContentHash(expression))` for some column of the table and some candidate `postgresRenderCheckExpressions` would render for that column. Never by comparing expressions — the live body is a Postgres reprint, never the authored text. One set serves both the element nullability of list fields and `@@check` exclusion in `buildModel`, so the two decisions cannot drift apart.
  *
- * `membership` is unreachable here today: infer never emits domain enums
- * (`enumType()` is not inferred), so no inferred column has member values and
- * no membership check is ever derived. The day domain-enum inference exists,
- * its slice extends this by threading the column's member values through.
+ * `membership` is unreachable here today: infer never emits domain enums (`enumType()` is not inferred), so no inferred column has member values and no membership check is ever derived. Inferring domain enums would mean threading the column's member values through here.
  */
 function computeDerivedCheckNames(table: SqlTableIR): ReadonlySet<string> {
   const liveCheckNames = new Set((table.checks ?? []).map((check) => check.name));
