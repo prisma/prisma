@@ -36,10 +36,8 @@ describe('the sql/raw data type', () => {
     );
   });
 
-  it('keeps letter case, quotes and schema in the text', () => {
-    expect(renderSqlTypeName(sqlRawDataType, { sql: 'extensions."LTree"' })).toBe(
-      'extensions."LTree"',
-    );
+  it('keeps letter case and quotes in the text', () => {
+    expect(renderSqlTypeName(sqlRawDataType, { sql: '"LTree"' })).toBe('"LTree"');
   });
 
   it('refuses a missing or non-string sql parameter', () => {
@@ -49,13 +47,26 @@ describe('the sql/raw data type', () => {
 
   it.each([
     'tsvector',
+    'ltree',
+    'circle',
+    'cidr',
+    'hstore',
+    'integer',
+    'double precision',
     'character varying(10)',
-    'geometry(Point,4326)',
+    'bit varying(8)',
+    'numeric(10,2)',
     'numeric(10, 2)',
+    'geometry(Point,4326)',
     'timestamp(3) with time zone',
-    'extensions.ltree',
-    'extensions."LTree"',
+    'time without time zone',
+    'int4range',
+    '"LTree"',
+    '"my,type"',
+    '"my type"',
     'integer[]',
+    'text[][]',
+    '"Mood"[]',
   ])('takes the type text %s', (sql) => {
     expect(renderSqlTypeName(sqlRawDataType, { sql })).toBe(sql);
   });
@@ -65,19 +76,31 @@ describe('the sql/raw data type', () => {
     ['only spaces', '   '],
     ['a leading space', ' tsvector'],
     ['a trailing space', 'tsvector '],
+    ['two spaces between words', 'double  precision'],
+    ['a newline', 'text\nint4'],
     ['a semicolon', 'text; drop table "User"'],
     ['a line comment', 'text -- x'],
     ['a block comment', 'text /* x */'],
     ['dollar quoting', 'text default $$x$$'],
+    ['tagged dollar quoting', '$a$x$a$'],
+    ['single quotes hiding parentheses', `text CHECK ('(' <> ''), "y" int4 CHECK (')' <> '')`],
+    ['a single-quoted default', "text DEFAULT 'x'"],
     ['a comma outside parentheses', 'text, "y" int4'],
     ['an unclosed parenthesis', 'numeric(10'],
     ['a parenthesis closed before it opens', 'numeric)10('],
+    ['nested parentheses', 'int4 GENERATED ALWAYS AS (abs(1)) STORED'],
+    ['a schema', 'extensions.ltree'],
+    ['a quoted schema', 'extensions."LTree"'],
+    ['an empty quoted name', '""'],
+    ['an operator', 'int4 CHECK (1 = 1)'],
+    ['a minus sign', 'numeric(-1)'],
+    ['a list suffix before the end', 'integer[] x'],
   ])('refuses a type text with %s, saying what a raw type is', (_name, sql) => {
     expect(() => renderSqlTypeName(sqlRawDataType, { sql })).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.TYPE_PARAMS_INVALID',
         message: expect.stringContaining(
-          'A raw type is one type name as the database catalog prints it, such as tsvector or geometry(Point,4326): it must not be blank, start or end with whitespace, or contain semicolons, SQL comment tokens, dollar quoting, a comma outside parentheses or unbalanced parentheses.',
+          'A raw type is one type name as the database catalog prints it, with no schema, such as tsvector, double precision, geometry(Point,4326) or "MyType"[]: words of letters, digits and underscores separated by single spaces, each optionally followed by parentheses holding only letters, digits, underscores, commas and spaces; double-quoted names with no double quote inside; and trailing [].',
         ),
       }),
     );

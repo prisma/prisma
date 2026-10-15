@@ -8,30 +8,24 @@ export const SQL_RAW_DATA_TYPE_ID: DataTypeId = dataTypeId('sql/raw');
 
 export type SqlRawTypeParams = { readonly sql: string };
 
-const UNSAFE_RAW_TYPE_TEXT = /;|--|\/\*|\$\$/;
+const WORD = '[A-Za-z0-9_]+';
+const QUOTED_NAME = '"[^"]+"';
+const PARENTHESES = '\\([A-Za-z0-9_, ]*\\)';
+const TOKEN = `(?:${WORD}|${QUOTED_NAME})(?:${PARENTHESES})?`;
 
-/** Whether `text` has a comma outside parentheses, or parentheses that do not balance. */
-function hasTopLevelCommaOrUnbalancedParentheses(text: string): boolean {
-  let depth = 0;
-  for (const character of text) {
-    if (character === '(') depth += 1;
-    else if (character === ')') depth -= 1;
-    else if (character === ',' && depth === 0) return true;
-    if (depth < 0) return true;
-  }
-  return depth !== 0;
-}
+/**
+ * The texts a raw type may be: words and double-quoted names separated by single spaces, each
+ * optionally followed by parentheses holding only letters, digits, underscores, commas and spaces,
+ * then any number of `[]`. A text that names a schema, holds a quote of another kind, an operator or
+ * any other character is refused.
+ */
+const RAW_TYPE_TEXT = new RegExp(`^${TOKEN}(?: ${TOKEN})*(?:\\[\\])*$`);
 
 /** Returns undefined when `text` may be written as a column's type, else the reason. */
 export function checkRawTypeText(text: string): string | undefined {
-  const refused =
-    text.trim() === '' ||
-    text !== text.trim() ||
-    UNSAFE_RAW_TYPE_TEXT.test(text) ||
-    hasTopLevelCommaOrUnbalancedParentheses(text);
-  return refused
-    ? 'A raw type is one type name as the database catalog prints it, such as tsvector or geometry(Point,4326): it must not be blank, start or end with whitespace, or contain semicolons, SQL comment tokens, dollar quoting, a comma outside parentheses or unbalanced parentheses.'
-    : undefined;
+  return RAW_TYPE_TEXT.test(text)
+    ? undefined
+    : 'A raw type is one type name as the database catalog prints it, with no schema, such as tsvector, double precision, geometry(Point,4326) or "MyType"[]: words of letters, digits and underscores separated by single spaces, each optionally followed by parentheses holding only letters, digits, underscores, commas and spaces; double-quoted names with no double quote inside; and trailing [].';
 }
 
 const sqlRawParams = type({ sql: 'string' }).narrow((params, ctx) => {

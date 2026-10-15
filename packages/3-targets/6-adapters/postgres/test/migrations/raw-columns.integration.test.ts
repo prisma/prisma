@@ -232,6 +232,18 @@ describe('raw columns', { concurrent: false }, () => {
     expect(result.schema.issues).toEqual([]);
   });
 
+  it('rolls back a migration whose raw text adds a column clause, since verify then finds another type', {
+    timeout: testTimeout,
+  }, async () => {
+    const contract = contractOf({ size: raw('integer UNIQUE') });
+
+    await expect(migrate(contract, emptySchema)).rejects.toThrow(/runner failed/);
+    const { rows } = await driver!.query(
+      `SELECT count(*)::int AS "tables" FROM information_schema.tables WHERE table_name = '${table}'`,
+    );
+    expect(rows).toEqual([{ tables: 0 }]);
+  });
+
   it('plans a change from one raw type to another as ALTER COLUMN TYPE, whose check passes', {
     timeout: testTimeout,
   }, async () => {
