@@ -215,9 +215,7 @@ export function schemaVerdictDiagnostic(inputs: {
     code: dotted ? code : 'CONTRACT.VERIFY_FAILED',
     severity: 'error',
     summary: inputs.result.summary,
-    ...(issues.length === 0
-      ? {}
-      : { why: sentence(`The live schema differs: ${issues.join('; ')}`) }),
+    ...(issues.length === 0 ? {} : { why: schemaDiffersWhy(inputs.result.schema.issues) }),
     nextActions: inputs.nextActions,
     meta: {
       ...(inputs.space === undefined ? {} : { space: inputs.space }),
@@ -225,6 +223,11 @@ export function schemaVerdictDiagnostic(inputs: {
       ...(dotted || code === undefined ? {} : { code }),
     },
   };
+}
+
+/** The issues of a failed schema check, as one sentence for a diagnostic's why. */
+export function schemaDiffersWhy(issues: readonly SchemaDiffIssue[]): string {
+  return sentence(`The live schema differs: ${issues.map(issueLabel).join('; ')}`);
 }
 
 function sentence(text: string): string {
