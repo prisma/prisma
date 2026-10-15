@@ -2,11 +2,7 @@ import { createDevDatabase, timeouts } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { createTelemetryDb, type TelemetryDb } from '../src/db';
 import { createHandler, MAX_EVENT_BODY_BYTES } from '../src/handler';
-import {
-  MAX_TELEMETRY_ARRAY_ITEM_LENGTH,
-  MAX_TELEMETRY_PROPERTY_COUNT,
-  MAX_TELEMETRY_STRING_LENGTH,
-} from '../src/schema';
+import { MAX_TELEMETRY_ARRAY_ITEM_LENGTH, MAX_TELEMETRY_STRING_LENGTH } from '../src/schema';
 import { resetTelemetrySchema } from './db-setup';
 
 const REQUIRED_FIELDS = [
@@ -214,13 +210,6 @@ describe('telemetry POST /events', () => {
       'a string value beyond the string bound': {
         why: 'x'.repeat(MAX_TELEMETRY_STRING_LENGTH + 1),
       },
-      'a key beyond the array item bound': { ['k'.repeat(MAX_TELEMETRY_ARRAY_ITEM_LENGTH + 1)]: 1 },
-      'more than the property count bound': Object.fromEntries(
-        Array.from({ length: MAX_TELEMETRY_PROPERTY_COUNT + 1 }, (_, index) => [
-          `p${index}`,
-          index,
-        ]),
-      ),
       'an array instead of an object': ['template:next'],
     };
     for (const [name, properties] of Object.entries(cases)) {

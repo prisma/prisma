@@ -13,8 +13,6 @@ export default class M extends Migration<Start, End> {
   override readonly startContractJson = startContract;
   override readonly endContractJson = endContract;
 
-  // `exitCode` entered the contract without a migration, so the deployed
-  // handler has been writing a column production never had.
   override get operations() {
     return [
       this.addColumn({
