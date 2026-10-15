@@ -62,58 +62,48 @@ describe('client activity', () => {
     expect(call.activity).toEqual({
       id: expect.any(String),
       kind: 'test-call',
-      contentHash: 'call-hash',
+      contentHash: expect.any(Function),
       annotations: new Map(),
     });
+    expect(await call.activity.contentHash()).toBe('call-hash');
     expect({ parent: call.ctx.parent, intercepted: call.intercepted }).toEqual({
       parent: undefined,
       intercepted: undefined,
     });
   });
 
-  it('waits for a content hash that is still being computed before its hooks run', async () => {
+  it('computes the content hash once, on the first call, and only when asked', async () => {
+    const computeContentHash = vi.fn(async () => 'lazy-hash');
     const hashes: string[] = [];
-    const observer: RuntimeMiddleware<MockExec> = {
-      name: 'observer',
+    const asker: RuntimeMiddleware<MockExec> = {
+      name: 'asker',
       async activityStarted(activity) {
-        if (activity.kind !== 'statement' && activity.kind !== 'transaction') {
-          hashes.push(activity.contentHash);
-        }
+        if (activity.kind === 'statement' || activity.kind === 'transaction') return;
+        hashes.push(await activity.contentHash(), await activity.contentHash());
       },
     };
+    const options = {
+      context: contextFields(),
+      parent: undefined,
+      holdFinishedChildren: true,
+    } as const;
 
-    const call = await startClientActivity(
-      { kind: 'test-call', contentHash: Promise.resolve('later-hash') },
-      {
-        middleware: [observer],
-        context: contextFields(),
-        parent: undefined,
-        holdFinishedChildren: true,
-      },
+    const unasked = await startClientActivity(
+      { kind: 'test-call', contentHash: computeContentHash },
+      { ...options, middleware: [] },
+    );
+    const callsWhenUnasked = computeContentHash.mock.calls.length;
+    await startClientActivity(
+      { kind: 'test-call', contentHash: computeContentHash },
+      { ...options, middleware: [asker] },
     );
 
-    expect({ hashes, contentHash: call.activity.contentHash }).toEqual({
-      hashes: ['later-hash'],
-      contentHash: 'later-hash',
+    expect({ callsWhenUnasked, calls: computeContentHash.mock.calls.length, hashes }).toEqual({
+      callsWhenUnasked: 0,
+      calls: 1,
+      hashes: ['lazy-hash', 'lazy-hash'],
     });
-  });
-
-  it('rejects with the error of a content hash that fails, running no hook', async () => {
-    const events: string[] = [];
-    const failure = new Error('hash failed');
-
-    await expect(
-      startClientActivity(
-        { kind: 'test-call', contentHash: Promise.reject(failure) },
-        {
-          middleware: [recorder('A', events)],
-          context: contextFields(),
-          parent: undefined,
-          holdFinishedChildren: true,
-        },
-      ),
-    ).rejects.toBe(failure);
-    expect(events).toEqual([]);
+    await unasked.end({ outcome: 'succeeded' });
   });
 
   it.each(['statement', 'transaction', 'report'])(
@@ -218,7 +208,7 @@ describe('client activity', () => {
       const debug = vi.fn();
 
       await startClientActivity(
-        { kind: 'test-call', contentHash: 'call-hash' },
+        { kind: 'test-call', contentHash: async () => 'call-hash' },
         {
           middleware: [interceptor('hit', [], { result: [] })],
           context: contextFields({

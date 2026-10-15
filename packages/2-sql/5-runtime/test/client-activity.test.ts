@@ -50,7 +50,7 @@ describe('startActivity', () => {
       activity: {
         id: expect.any(String),
         kind: 'test-call',
-        contentHash: 'call-hash',
+        contentHash: expect.any(Function),
         annotations: new Map(),
       },
       callScope: 'runtime',
@@ -209,7 +209,7 @@ describe('startActivity', () => {
     const { runtime, events } = createSetup();
 
     await expect(
-      startActivityOn(runtime, { kind: kind as 'test-call', contentHash: 'hash' }),
+      startActivityOn(runtime, { kind: kind as 'test-call', contentHash: async () => 'hash' }),
     ).rejects.toMatchObject({ code: 'RUNTIME.ACTIVITY_KIND_RESERVED' });
     expect(events).toEqual([]);
   });

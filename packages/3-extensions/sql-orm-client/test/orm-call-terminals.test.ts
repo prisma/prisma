@@ -67,10 +67,24 @@ describe('read terminals run as one orm-call', () => {
     expect(summary(recorded)).toEqual(
       oneCall(['cache'], 1, { outcome: 'succeeded', result: [aliceModel] }),
     );
+    const contentHash = await recorded.calls[0]!.activity.contentHash();
     expect({
       hashed: recorded.hashed[0] === recorded.calls[0]!.statements[0],
-      contentHash: recorded.calls[0]!.activity.contentHash,
+      contentHash,
     }).toEqual({ hashed: true, contentHash: await ormCallHash('all', fakePlanHash) });
+  });
+
+  it('a read that no middleware asks for its content hash never hashes its plan', async () => {
+    const recorded = createActivityCollectionFor('User');
+    recorded.runtime.setNextResults([[aliceRow], [aliceRow]]);
+
+    await recorded.collection.all(cached);
+    await recorded.collection.first({ id: 1 });
+
+    expect({ calls: recorded.calls.length, hashed: recorded.hashed }).toEqual({
+      calls: 2,
+      hashed: [],
+    });
   });
 
   it('all() with includes hashes and sends the include query', async () => {
@@ -78,6 +92,7 @@ describe('read terminals run as one orm-call', () => {
     recorded.runtime.setNextResults([[{ ...aliceRow, posts: [] }]]);
 
     await recorded.collection.include('posts').all(cached);
+    await recorded.calls[0]!.activity.contentHash();
 
     expect(summary(recorded)).toEqual(
       oneCall(['cache'], 1, { outcome: 'succeeded', result: [{ ...aliceModel, posts: [] }] }),
@@ -97,7 +112,9 @@ describe('read terminals run as one orm-call', () => {
       { outcome: 'succeeded', result: aliceModel },
       { outcome: 'succeeded', result: null },
     ]);
-    expect(recorded.calls[0]!.activity.contentHash).toBe(await ormCallHash('first', fakePlanHash));
+    expect(await recorded.calls[0]!.activity.contentHash()).toBe(
+      await ormCallHash('first', fakePlanHash),
+    );
   });
 
   it('firstOrThrow() ends failed when nothing matches', async () => {
@@ -117,7 +134,7 @@ describe('read terminals run as one orm-call', () => {
     const result = await recorded.collection.aggregate((agg) => ({ count: agg.count() }), cached);
 
     expect(summary(recorded)).toEqual(oneCall(['cache'], 1, { outcome: 'succeeded', result }));
-    expect(recorded.calls[0]!.activity.contentHash).toBe(
+    expect(await recorded.calls[0]!.activity.contentHash()).toBe(
       await ormCallHash('aggregate', fakePlanHash),
     );
   });
@@ -131,7 +148,7 @@ describe('read terminals run as one orm-call', () => {
       .aggregate((agg) => ({ count: agg.count() }), cached);
 
     expect(summary(recorded)).toEqual(oneCall(['cache'], 1, { outcome: 'succeeded', result }));
-    expect(recorded.calls[0]!.activity.contentHash).toBe(
+    expect(await recorded.calls[0]!.activity.contentHash()).toBe(
       await ormCallHash('groupBy.aggregate', fakePlanHash),
     );
   });
@@ -160,7 +177,9 @@ describe('write terminals run as one orm-call', () => {
     expect(summary(recorded)).toEqual(
       oneCall(['audit'], 1, { outcome: 'succeeded', result: created }),
     );
-    expect(recorded.calls[0]!.activity.contentHash).toBe(await ormCallHash('create', userIdentity));
+    expect(await recorded.calls[0]!.activity.contentHash()).toBe(
+      await ormCallHash('create', userIdentity),
+    );
   });
 
   it('create() with a relation callback runs its statements and its read-back in a transaction of the call', async () => {
@@ -223,11 +242,13 @@ describe('write terminals run as one orm-call', () => {
       { outcome: 'succeeded', result: [aliceModel] },
       { outcome: 'succeeded', result: [aliceModel] },
     ]);
-    expect(recorded.calls.map(({ activity }) => activity.contentHash)).toEqual([
-      await ormCallHash('createAll', userIdentity),
-      await ormCallHash('updateAll', userIdentity),
-      await ormCallHash('deleteAll', userIdentity),
-    ]);
+    expect(await Promise.all(recorded.calls.map(({ activity }) => activity.contentHash()))).toEqual(
+      [
+        await ormCallHash('createAll', userIdentity),
+        await ormCallHash('updateAll', userIdentity),
+        await ormCallHash('deleteAll', userIdentity),
+      ],
+    );
   });
 
   it('createAndCount(), updateAndCount() and deleteAndCount() end with the count', async () => {

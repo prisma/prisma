@@ -39,6 +39,14 @@ export interface ActivityRuntimeOptions {
 
 export const fakePlanHash = 'plan-hash';
 
+function once(compute: () => Promise<string>): () => Promise<string> {
+  let computed: Promise<string> | undefined;
+  return () => {
+    computed ??= compute();
+    return computed;
+  };
+}
+
 /** A mock runtime that records the `orm-call` activities started on it, the statements sent through each and how each ended. */
 export function createActivityRuntime(options: ActivityRuntimeOptions = {}): {
   runtime: MockRuntime;
@@ -71,7 +79,7 @@ export function createActivityRuntime(options: ActivityRuntimeOptions = {}): {
       const activity: ClientActivity<K> = {
         id: `call-${calls.length + 1}`,
         kind: start.kind,
-        contentHash: await start.contentHash,
+        contentHash: once(start.contentHash),
         annotations: start.annotations ?? new Map(),
       };
       const call: RecordedCall = { activity, statements: [], transactions: [], ended: undefined };

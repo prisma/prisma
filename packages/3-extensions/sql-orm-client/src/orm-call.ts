@@ -68,16 +68,14 @@ async function ormCallContentHash(source: ActivitySource, call: OrmCall<unknown>
   );
 }
 
-/** Starts the call in the same turn as the terminal method, so a runtime closed after the method returns waits for it; the hooks run once the content hash resolves. A failed hash rejects the start; when the start fails first, the hash's failure is not reported as unhandled. */
+/** Starts the call in the same turn as the terminal method, so a runtime closed after the method returns waits for it. The content hash is computed only when a middleware asks for it. */
 function startOrmCall<Result>(
   source: ActivitySource,
   call: OrmCall<Result>,
 ): Promise<ActivityHandle<'orm-call'>> {
-  const contentHash = ormCallContentHash(source, call);
-  contentHash.catch(() => undefined);
   return source.startActivity({
     kind: 'orm-call',
-    contentHash,
+    contentHash: () => ormCallContentHash(source, call),
     ...(call.annotations === undefined ? {} : { annotations: call.annotations }),
   });
 }

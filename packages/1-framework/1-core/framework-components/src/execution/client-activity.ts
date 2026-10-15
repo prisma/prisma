@@ -60,7 +60,7 @@ export interface ClientActivityOptions<TContext extends ActivityContext> {
 }
 
 /**
- * Starts a client activity once its content hash has resolved: its `activityStarted` hooks, then each `intercept.onActivity` handler in registration order until one returns a result. When a hook or a handler throws, the activity ends `failed`, is finalized, and the error is rethrown. Rejects at once, running no hook, when `kind` has no hyphen (such as `statement` or `transaction`) or when `parent` no longer accepts children.
+ * Starts a client activity: its `activityStarted` hooks, then each `intercept.onActivity` handler in registration order until one returns a result. When a hook or a handler throws, the activity ends `failed`, is finalized, and the error is rethrown. Rejects at once, running no hook, when `kind` has no hyphen (such as `statement` or `transaction`) or when `parent` no longer accepts children.
  */
 export async function startClientActivity<
   K extends ClientActivityKind,
@@ -77,10 +77,7 @@ export async function startClientActivity<
       { kind },
     );
   }
-  const run = new ClientActivityRunImpl<K, TContext>(
-    { ...activity, contentHash: await activity.contentHash },
-    options,
-  );
+  const run = new ClientActivityRunImpl<K, TContext>(activity, options);
   try {
     await run.start();
   } catch (error) {
@@ -117,14 +114,16 @@ class ClientActivityRunImpl<K extends ClientActivityKind, TContext extends Activ
   #ended = false;
   #everythingBeneathCommitted = true;
 
-  constructor(
-    activity: StartActivity<K> & { readonly contentHash: string },
-    options: ClientActivityOptions<TContext>,
-  ) {
+  constructor(activity: StartActivity<K>, options: ClientActivityOptions<TContext>) {
+    const computeContentHash = activity.contentHash;
+    let contentHash: Promise<string> | undefined;
     this.activity = {
       id: crypto.randomUUID(),
       kind: activity.kind,
-      contentHash: activity.contentHash,
+      contentHash: () => {
+        contentHash ??= computeContentHash();
+        return contentHash;
+      },
       annotations: activity.annotations ?? brandedAnnotations(undefined),
     };
     this.#record = createActivityRecord<TContext>(

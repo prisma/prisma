@@ -66,6 +66,10 @@ describe('prepared collection', () => {
     expect(await preparedAll.query(runtime, { id: 1 })).toEqual([{ userId: 1 }]);
     expect(await preparedFirst.query(runtime, { id: 2 })).toEqual({ userId: 2 });
 
+    expect(await Promise.all(calls.map(({ activity }) => activity.contentHash()))).toEqual([
+      await ormCallHash('all', fakePlanHash),
+      await ormCallHash('first', fakePlanHash),
+    ]);
     expect({
       plans: [annotation.read(all.plan), annotation.read(first.plan)],
       calls: calls.map(({ activity, ended }) => ({
@@ -93,10 +97,6 @@ describe('prepared collection', () => {
         { statement: statements.first, params: { id: 2 } },
       ],
     });
-    expect(calls.map(({ activity }) => activity.contentHash)).toEqual([
-      await ormCallHash('all', fakePlanHash),
-      await ormCallHash('first', fakePlanHash),
-    ]);
     expect(selected.state.limit).toBe(99);
   });
 

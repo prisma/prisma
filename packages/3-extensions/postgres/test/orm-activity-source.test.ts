@@ -82,13 +82,13 @@ describe('the ORM objects a postgres client builds', () => {
 
     const call = await startActivityOn(dbOrmRuntime as never, {
       kind: 'facade-call',
-      contentHash: 'h',
+      contentHash: async () => 'h',
     });
     await call.end({ outcome: 'succeeded' });
     await db.transaction(async () => {
       const txCall = await startActivityOn(ormRuntimes.at(-1) as never, {
         kind: 'facade-call',
-        contentHash: 'h',
+        contentHash: async () => 'h',
       });
       await txCall.end({ outcome: 'succeeded' });
     });
@@ -123,6 +123,43 @@ describe('the ORM objects a postgres client builds', () => {
       { kind: 'orm-call', parentKind: 'transaction' },
       { kind: 'statement', parentKind: 'orm-call' },
     ]);
+  });
+
+  it('hash an ORM read only when middleware asks for its content hash, and once however often it asks', async () => {
+    const hashesSeen: string[] = [];
+    const asker: SqlMiddleware = {
+      name: 'asker',
+      familyId: 'sql',
+      async activityStarted(activity) {
+        if (activity.kind === 'orm-call') {
+          hashesSeen.push(await activity.contentHash(), await activity.contentHash());
+        }
+      },
+    };
+    const quiet = postgres<Contract>({
+      contractJson: fixtureContract,
+      url: 'postgres://localhost:5432/db',
+      verifyMarker: false,
+    });
+    const asking = postgres<Contract>({
+      contractJson: fixtureContract,
+      url: 'postgres://localhost:5432/db',
+      verifyMarker: false,
+      middleware: [asker],
+    });
+    const quietHash = vi.spyOn(findActivitySource(quiet.runtime())!, 'planContentHash');
+    const askingHash = vi.spyOn(findActivitySource(asking.runtime())!, 'planContentHash');
+
+    await quiet.orm.public.User.first({ id: 1 });
+    await asking.orm.public.User.first({ id: 1 });
+    await quiet.close();
+    await asking.close();
+
+    expect({
+      quiet: quietHash.mock.calls.length,
+      asking: askingHash.mock.calls.length,
+      sameHashTwice: hashesSeen.length === 2 && hashesSeen[0] === hashesSeen[1],
+    }).toEqual({ quiet: 0, asking: 1, sameHashTwice: true });
   });
 
   it('db.runtime() carries an activity source, so orm({ runtime: db.runtime() }) can start activities', async () => {

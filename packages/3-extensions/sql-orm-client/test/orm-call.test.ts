@@ -72,7 +72,7 @@ describe('runOrmCall', () => {
           activity: {
             id: 'call-1',
             kind: 'orm-call',
-            contentHash: await ormCallHash('count', { namespace: 'public', model: 'User' }),
+            contentHash: expect.any(Function),
             annotations: new Map(),
           },
           statements: [],
@@ -81,6 +81,9 @@ describe('runOrmCall', () => {
         },
       ],
     });
+    expect(await calls[0]!.activity.contentHash()).toBe(
+      await ormCallHash('count', { namespace: 'public', model: 'User' }),
+    );
   });
 
   it('ends the call failed with no result when the terminal throws', async () => {
