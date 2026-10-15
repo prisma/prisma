@@ -53,6 +53,7 @@
     "./aggregate-descriptor-registry": "./dist/exports/aggregate-descriptor-registry.mjs",
     "./ast": "./dist/exports/ast.mjs",
     "./codec-descriptor-registry": "./dist/exports/codec-descriptor-registry.mjs",
+    "./collection-methods": "./dist/exports/collection-methods.mjs",
     "./contract-free": "./dist/exports/contract-free.mjs",
     "./expression": "./dist/exports/expression.mjs",
     "./functions": "./dist/exports/functions.mjs",

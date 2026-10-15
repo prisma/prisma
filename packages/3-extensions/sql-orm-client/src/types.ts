@@ -770,6 +770,27 @@ export type ModelIndexReferences<
       >
     >;
 
+/** One model as a collection method contribution reads it: the contract's target, the model's fields and relations, and its storage table. */
+export type CollectionMethodModelTypeOf<
+  TContract extends Contract<SqlStorage>,
+  ModelName extends string,
+  NsId extends string,
+> = {
+  readonly target: TContract['target'];
+  readonly name: ModelName;
+  readonly fields: FieldsOf<TContract, ModelName, NsId>;
+  readonly relations: ModelDef<TContract, ModelName, NsId> extends {
+    readonly relations: infer Relations extends object;
+  }
+    ? Relations
+    : Record<string, never>;
+  readonly table: NamespaceTableDef<
+    TContract,
+    ModelTableName<TContract, ModelName, NsId> & string,
+    ResolvedNsId<TContract, ModelName, NsId>
+  >;
+};
+
 /** The second argument of a `where` or `orderBy` callback: the SQL query builder's functions, and the model's indexes. */
 export interface ModelCallbackTools<
   TContract extends Contract<SqlStorage>,

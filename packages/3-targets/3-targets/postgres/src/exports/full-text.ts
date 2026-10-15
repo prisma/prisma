@@ -1,3 +1,7 @@
+export type {
+  PostgresFullTextMethods,
+  PostgresTsqueryArgument,
+} from '../core/full-text-collection-method';
 export {
   FullTextDocument,
   type FullTextDocumentColumn,
