@@ -42,15 +42,21 @@ Every part of the system already works through a column's data type and codec. T
 
 ## The data type and the codec
 
-`sql/raw` is a SQL data type (ADR 254) whose name in SQL is its `sql` parameter, written as given. Every other data type writes its name from a fixed pattern such as `vector({length})`; `sql/raw` renders the parameter itself. Its catalog text is the parameter too, so verify's expected text is exactly what the author wrote. The data type claims no reported type: introspection never reads a column as `sql/raw` on its own, and `contract infer` refuses a type no data type claims.
+`sql/raw` is a SQL data type (ADR 254) whose name in SQL is its `sql` parameter, written as given. Every other data type writes its name from a fixed pattern such as `vector({length})`; `sql/raw` declares no texts and renders the parameter itself. Its catalog text is the parameter too, so verify's expected text is exactly what the author wrote. The data type claims no reported type: introspection never reads a column as `sql/raw` on its own, and `contract infer` refuses a type no data type claims. The SQL family contributes the `Raw` type constructor for PSL and the TypeScript builder (`type.Raw("tsvector")`), not marked as inferred; the Postgres and SQLite adapters also export `rawColumn(sql)`.
 
-The `sql` text must be the type as the catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Verify compares exactly, so a text in any other form reports a mismatch, and the finding shows the catalog's text to write instead.
+None of this is keyed on `sql/raw`. The rules below hold for any data type that renders its name and declares no texts and no kind: its catalog text is what it renders, verify compares it with the reported text, and SQLite writes it as given instead of in upper case.
+
+The `sql` text must be the type as the catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Verify compares the text with the type the database reports, not through the table of other names that matches `int4` with `integer` for other columns. So a text in any other form reports a mismatch, and the finding names the reported text to write instead. On SQLite the reported type is the declared type, which migrations write as given, so the comparison is exact there too.
+
+A PSL string has no escapes, so a `Raw("...")` text cannot hold a double quote. A type whose name needs quoting, such as one with capital letters, is out of reach in PSL, and `contract print` refuses a contract that holds one.
 
 For a base type the text names no schema. Introspection reports a base type from outside `pg_catalog` without its schema, as it does for the types extensions provide, so `ltree` matches whether the type lives in `public` or in `extensions`. Migrations write the text as given, so the type is found through the database's `search_path`, as it is for every extension type and as it was under Prisma 7.
 
-`sql/raw@1` encodes and decodes by identity. Its values are typed `unknown` in memory, which promises nothing about the representation a driver returns. The Postgres driver returns a type it does not know as text, and a text parameter is sent untyped, so Postgres parses it with the column's own input function. The codec declares no traits, so the ORM offers no filters or ordering on a raw column; a query that needs them uses SQL.
+`sql/raw@1` encodes and decodes by identity. Its values are typed `unknown` in memory, which promises nothing about the representation a driver returns: the Postgres driver returns most types it does not parse as text, but parses some, such as `circle`, into objects. A raw parameter is sent without a cast, so Postgres parses it with the column's own input function; a cast such as `$1::character varying(10)` would truncate. JSON the database returns, as for a raw field inside an include, is read unchanged, so an include gives the value as the database writes it in JSON. The codec declares no traits, so the ORM offers no filters or ordering on a raw column; a query that needs them uses SQL.
 
-A raw column's default is a `sql` expression (ADR 268), written as given. A literal default is refused: the codec cannot encode a value of a type it does not know.
+A raw column's default is a `sql` expression (ADR 268), written as given. A literal default is refused on every path, because the data type has no literal values: it declares no casts, so PSL's cast rule refuses a written literal (``Expected sql`...` ``); the codec writes no value as JSON, so the TypeScript builder refuses `.default(...)` with a value; and the data type's canonical form refuses every value, so a literal default in a hand-written `contract.json` is refused when a migration is planned.
+
+A change from one raw text to another plans `ALTER COLUMN ... TYPE`. The planner checks afterwards that the column has the type its data type prints. A hand-written `alterColumnType` call checks a text that no other data type reads as written, since the stack registers a data type that names any type exactly as the catalog prints it.
 
 ## The Prisma 7 reader
 
