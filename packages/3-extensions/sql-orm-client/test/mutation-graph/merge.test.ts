@@ -7,12 +7,13 @@ describe('Merge', () => {
     expect(Object.isFrozen(new Merge())).toBe(true);
   });
 
-  it('makes one row from one row of each input, side by side, without a statement', async () => {
+  it('makes one row from the first row of each side, side by side, without a statement', async () => {
     const run = recordingRun();
 
     const rows = await new Merge().execute(
       {
-        rows: [[{ id: 7, name: 'Ada', type: 'feature' }], [{ features__priority: 3 }]],
+        left: [{ id: 7, name: 'Ada', type: 'feature' }],
+        right: [{ features__priority: 3 }],
       },
       run,
     );
@@ -22,12 +23,11 @@ describe('Merge', () => {
     expect(run.executed).toEqual([]);
   });
 
-  it('gives no row when an input has no row or the slot has no edge', async () => {
+  it('gives no row when a side has no row', async () => {
     const merge = new Merge();
     const run = recordingRun();
 
-    expect(await merge.execute({ rows: [[], [{ features__priority: 3 }]] }, run)).toEqual([]);
-    expect(await merge.execute({ rows: [[{ id: 7 }], []] }, run)).toEqual([]);
-    expect(await merge.execute({ rows: null }, run)).toEqual([]);
+    expect(await merge.execute({ left: [], right: [{ features__priority: 3 }] }, run)).toEqual([]);
+    expect(await merge.execute({ left: [{ id: 7 }], right: [] }, run)).toEqual([]);
   });
 });

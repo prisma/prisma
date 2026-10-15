@@ -15,7 +15,7 @@ import { buildOrmQueryPlan, deriveParamsFromAst, mergeAnnotations } from '../que
 import { returningProjection } from '../query-plan-mutations';
 import { queryPlanRows } from '../query-plan-rows';
 import type { CollectionContext } from '../types';
-import type { NodeId, StorageRow } from './edge';
+import type { Edge, NodeId, StorageRow } from './edge';
 import type { Graph } from './graph';
 import type { Executed, OutputsOf, Run, Slots, StatementAst } from './node';
 import { StatementNode } from './statement-node';
@@ -120,14 +120,15 @@ async function runNodesInOrder<Row>(
 }
 
 function inputsOf(graph: Graph, id: NodeId, collected: Collected): OutputsOf<Slots> {
-  const outputs: Record<string, readonly (readonly unknown[])[] | null> = {};
-  const slots = graph.inputsOf(id);
-  for (const slot in slots) {
-    const edges = slots[slot] ?? [];
-    outputs[slot] =
-      edges.length === 0
-        ? null
-        : edges.map((edge) => rowsOf(collected[edge.from]).map((row) => edge.output(row)));
+  const outputs: Record<string, OutputsOf<Slots>[string]> = {};
+  const outputOf = (edge: Edge<unknown>) =>
+    rowsOf(collected[edge.from]).map((row) => edge.output(row));
+  for (const [name, slot] of Object.entries(graph.inputsOf(id))) {
+    if (!Array.isArray(slot)) {
+      outputs[name] = outputOf(slot);
+    } else {
+      outputs[name] = slot.length === 0 ? null : slot.map(outputOf);
+    }
   }
   return outputs;
 }

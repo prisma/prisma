@@ -2,7 +2,7 @@ import { type Executed, Node, type OutputsOf, type Run } from './node';
 import type { Rows } from './rows';
 import { rowsResult } from './run-statement';
 
-type Inputs = { rows: Rows[] };
+type Inputs = { left: Rows; right: Rows };
 
 export class Merge extends Node<Inputs> {
   constructor() {
@@ -11,10 +11,11 @@ export class Merge extends Node<Inputs> {
   }
 
   override execute(inputs: OutputsOf<Inputs>, _run: Run): Executed {
-    const edges = inputs.rows ?? [];
-    if (edges.length === 0 || edges.some((rows) => rows.length === 0)) {
+    const [left] = inputs.left;
+    const [right] = inputs.right;
+    if (left === undefined || right === undefined) {
       return rowsResult([]);
     }
-    return rowsResult([Object.assign({}, ...edges.map(([row]) => row))]);
+    return rowsResult([{ ...left, ...right }]);
   }
 }

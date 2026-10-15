@@ -49,9 +49,9 @@ export class Graph {
     }
     for (const { reader, edge } of this.readersOf(id)) {
       this.#inputs[reader] = Object.fromEntries(
-        Object.entries(this.inputsOf(reader)).map(([slot, edges]) => [
-          slot,
-          edges.filter((other) => other !== edge),
+        Object.entries(this.inputsOf(reader)).map(([name, slot]) => [
+          name,
+          Array.isArray(slot) ? slot.filter((other) => other !== edge) : slot,
         ]),
       );
     }

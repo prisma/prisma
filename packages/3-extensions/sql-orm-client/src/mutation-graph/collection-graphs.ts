@@ -185,10 +185,8 @@ export function createAllVariantGraph(
       payload: [new PayloadData(base, keyPairs)],
     });
     return graph.add(new Merge(), {
-      rows: [
-        new Rows(base, sameColumns(baseColumns)),
-        new Rows(variant, sameColumns(variantColumns)),
-      ],
+      left: new Rows(base, sameColumns(baseColumns)),
+      right: new Rows(variant, sameColumns(variantColumns)),
     });
   });
 

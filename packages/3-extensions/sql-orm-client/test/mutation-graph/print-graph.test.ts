@@ -164,7 +164,8 @@ describe('printGraph', () => {
           payload: [new PayloadData(base, idToUserId)],
         });
         return graph.add(new Merge(), {
-          rows: [new Rows(base, sameUserId), new Rows(variant, samePostId)],
+          left: new Rows(base, sameUserId),
+          right: new Rows(variant, samePostId),
         });
       });
       graph.setResult(

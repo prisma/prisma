@@ -3,6 +3,7 @@ import { ConcatRows } from '../../src/mutation-graph/concat-rows';
 import type { NodeId } from '../../src/mutation-graph/edge';
 import { FilterData } from '../../src/mutation-graph/filter-data';
 import { Graph } from '../../src/mutation-graph/graph';
+import { Merge } from '../../src/mutation-graph/merge';
 import { Rows } from '../../src/mutation-graph/rows';
 import { StatementNode } from '../../src/mutation-graph/statement-node';
 import { columnPairs, deletePosts, deleteUsers, findUsers, updateUsers } from './statements';
@@ -10,6 +11,10 @@ import { columnPairs, deletePosts, deleteUsers, findUsers, updateUsers } from '.
 const sameId = columnPairs('users', 'users', [['id', 'id']]);
 const idToUserId = columnPairs('users', 'posts', [['id', 'user_id']]);
 const emailToTitle = columnPairs('users', 'posts', [['email', 'title']]);
+
+function firstFilterOf(graph: Graph, id: NodeId): unknown {
+  return [graph.inputsOf(id)['filter'] ?? []].flat()[0];
+}
 
 function returned(graph: Graph, id: NodeId): string[] {
   return graph
@@ -113,7 +118,7 @@ describe('Graph', () => {
         { reader: update, edge: toUpdate },
         { reader: del, edge: toDelete },
       ]);
-      expect(graph.readersOf(find)[0]?.edge).toBe(graph.inputsOf(update)['filter']?.[0]);
+      expect(graph.readersOf(find)[0]?.edge).toBe(firstFilterOf(graph, update));
       expect(graph.readersOf(del)).toEqual([]);
     });
   });
@@ -149,11 +154,11 @@ describe('Graph', () => {
 
       graph.replace(update, updateUsers({ name: 'Grace' }));
 
-      expect(graph.inputsOf(update)['filter']?.[0]).toBe(into);
+      expect(firstFilterOf(graph, update)).toBe(into);
       expect(graph.readersOf(find)).toEqual([{ reader: update, edge: into }]);
       expect(graph.readersOf(find)[0]?.edge).toBe(into);
       expect(graph.readersOf(update)).toEqual([{ reader: del, edge: outOf }]);
-      expect(graph.inputsOf(del)['filter']?.[0]).toBe(outOf);
+      expect(firstFilterOf(graph, del)).toBe(outOf);
     });
   });
 
@@ -204,7 +209,20 @@ describe('Graph', () => {
       graph.remove(removed);
 
       expect(graph.readersOf(find)).toEqual([{ reader: del, edge: kept }]);
-      expect(graph.inputsOf(del)['filter']?.[0]).toBe(kept);
+      expect(firstFilterOf(graph, del)).toBe(kept);
+    });
+
+    it('keeps a slot that holds one edge when the source of that edge is removed', () => {
+      const graph = new Graph();
+      const left = graph.add(findUsers(), { filter: [] });
+      const right = graph.add(findUsers(), { filter: [] });
+      const inputs = { left: new Rows(left, sameId), right: new Rows(right, sameId) };
+      const merge = graph.add(new Merge(), inputs);
+
+      graph.remove(right);
+
+      expect(graph.inputsOf(merge)).toEqual(inputs);
+      expect(graph.readersOf(left)).toEqual([{ reader: merge, edge: inputs.left }]);
     });
 
     it('gives the next node the next position, not the emptied one', () => {
