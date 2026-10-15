@@ -8,7 +8,7 @@ import {
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import { enumRefusalOf } from '@internal/framework-components/codec';
-import { mongoEnumListabilityOf } from '@internal/mongo-contract';
+import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from '@internal/mongo-contract';
 import { isMongoDataType } from '@internal/mongo-contract/data-type';
 import { type EnumTypeHandle, enumType } from '@internal/mongo-contract-ts/contract-builder';
 import type { InferBlock, PslBlockSpecDescriptor } from '@internal/psl-parser';
@@ -67,11 +67,12 @@ export const mongoFamilyEnumEntityDescriptor = {
       if (!isMongoDataType(dataType)) {
         throw new InternalError(`Data type ${dataType.id} is not a Mongo data type.`);
       }
-      const listability = mongoEnumListabilityOf(dataType.mongo.bsonTypes);
-      if (listability.kind === 'refused') {
+      const { bsonTypes } = dataType.mongo;
+      const validatorRefusal = validatorEnumRefusalOf(bsonTypes);
+      if (validatorRefusal !== undefined) {
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" @@type codec "${codecId}" ${listability.reason}`,
+          message: `enum "${block.name}" @@type codec "${codecId}" ${validatorRefusal}`,
           sourceId,
           span: codecSpan,
         });
@@ -105,7 +106,7 @@ export const mongoFamilyEnumEntityDescriptor = {
 
       let unlistedMember = false;
       for (const member of members) {
-        const refusal = listability.memberRefusalOf(codec.encodeJson(member.value));
+        const refusal = validatorEnumMemberRefusalOf(bsonTypes, codec.encodeJson(member.value));
         if (refusal === undefined) continue;
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',
