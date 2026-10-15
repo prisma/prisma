@@ -798,6 +798,30 @@ export const temporalCodecPresetMirrors = {
       },
     },
   },
+  pgTimestampString: {
+    kind: 'fieldPreset',
+    args: [
+      TEMPORAL_MIRROR_PRECISION_ARG,
+      TEMPORAL_MIRROR_ON_CREATE_ARG,
+      TEMPORAL_MIRROR_ON_UPDATE_ARG,
+    ],
+    output: {
+      codecId: 'pg/timestamp-string@1',
+      typeParams: { precision: { kind: 'arg', index: 0 } },
+      executionDefaults: {
+        onCreate: {
+          kind: 'select',
+          index: 1,
+          cases: { now: { kind: 'generator', id: 'timestampTextNow' } },
+        },
+        onUpdate: {
+          kind: 'select',
+          index: 2,
+          cases: { now: { kind: 'generator', id: 'timestampTextNow' } },
+        },
+      },
+    },
+  },
   sqliteDatetime: {
     kind: 'fieldPreset',
     args: [TEMPORAL_MIRROR_ON_CREATE_ARG, TEMPORAL_MIRROR_ON_UPDATE_ARG],

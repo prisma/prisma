@@ -553,24 +553,24 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
-    // Field presets are complete declarations: the preset names its own codec
-    // and contributes any combination of default / executionDefaults / id /
-    // unique. Optional and `@default(...)` modifiers contradict that, so they
-    // are hard errors per spec FR7.
-    if (presetContributions && field.optional) {
+    if (
+      presetContributions &&
+      field.optional &&
+      (presetContributions.id || presetContributions.nullable !== undefined)
+    ) {
       diagnostics.push({
         code: 'PSL_PRESET_NOT_OPTIONAL',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call and cannot be optional. Remove "?" or use a different field type.`,
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that fixes its id or nullability, so it cannot be optional. Remove "?" or use a different field type.`,
         ...source.at(field.span),
       });
       continue;
     }
 
     const defaultAttribute = getAttribute(field.attributes, 'default');
-    if (presetContributions && defaultAttribute) {
+    if (presetContributions?.default && defaultAttribute) {
       diagnostics.push({
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call and cannot also declare @default(...). The preset already specifies the default value.`,
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that already sets a database default, so it cannot also declare @default(...). Remove @default(...) or use a preset without a default.`,
         ...source.at(defaultAttribute.span),
       });
       continue;
@@ -639,12 +639,10 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       });
       continue;
     }
-    if (field.optional && loweredOnCreate) {
-      const generatorDescription =
-        loweredOnCreate.kind === 'generator' ? `"${loweredOnCreate.id}"` : 'for this field';
+    if (presetContributions?.executionDefaults?.onCreate && loweredOnCreate) {
       diagnostics.push({
-        code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
-        message: `Field "${model.name}.${field.name}" cannot be optional when using execution default ${generatorDescription}. Remove "?" or use a storage default.`,
+        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Use a database default in @default(...) or a preset without an onCreate generator.`,
         ...source.at(defaultAttribute?.span ?? field.span),
       });
       continue;
@@ -685,12 +683,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       isIdField = false;
     }
 
-    // Field presets contribute their own default / executionDefaults / id /
-    // unique. They take precedence over attribute-derived contributions for
-    // this field, since a preset *is* the field declaration. Conflicts with
-    // `@default` and optional are already rejected above; explicit `@id`
-    // would be redundant noise on the resolved field, so we surface it as
-    // a hard error here for symmetry.
     if (presetContributions && idAttribute && !presetContributions.id) {
       diagnostics.push({
         code: 'PSL_PRESET_AND_ID_CONFLICT',
@@ -700,10 +692,10 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
-    // Field-preset contributions take precedence over attribute-derived
-    // sources when present.
-    const fieldExecutionDefaults =
-      presetContributions?.executionDefaults ?? loweredDefault.executionDefaults;
+    const fieldExecutionDefaults = mergeExecutionDefaults(
+      loweredDefault.executionDefaults,
+      presetContributions?.executionDefaults,
+    );
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
     const noCheckKinds = modelDerivesChecks
       ? lowerNoCheckForField({
@@ -739,4 +731,14 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
   }
 
   return resolvedFields;
+}
+
+function mergeExecutionDefaults(
+  fromDefaultAttribute: ExecutionMutationDefaultPhases | undefined,
+  fromPreset: ExecutionMutationDefaultPhases | undefined,
+): ExecutionMutationDefaultPhases | undefined {
+  if (fromDefaultAttribute === undefined || fromPreset === undefined) {
+    return fromPreset ?? fromDefaultAttribute;
+  }
+  return { ...fromDefaultAttribute, ...fromPreset };
 }

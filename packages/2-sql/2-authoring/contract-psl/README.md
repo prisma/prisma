@@ -80,7 +80,9 @@ Supported timestamp authoring surface:
 Field-preset calls in type position:
 
 - A field may use a registered field-preset call as its type (`createdAt temporal.createdAt()`). A preset is a complete field declaration — it carries its own codec, native type, and any default semantics.
-- Preset-call fields reject the modifiers the preset already decides: `?` optional (`PSL_PRESET_NOT_OPTIONAL`), `@default(...)` (`PSL_PRESET_AND_DEFAULT_CONFLICT`), `@id` unless the preset contributes id semantics (`PSL_PRESET_AND_ID_CONFLICT`), and list use (`PSL_PRESET_NOT_LIST`).
+- Preset-call fields reject the modifiers the preset already decides: `?` on a preset that fixes the id or the nullability (`PSL_PRESET_NOT_OPTIONAL`), `@default(...)` when the preset sets its own database default or when `@default(...)` generates a value and the preset already generates one on create (`PSL_PRESET_AND_DEFAULT_CONFLICT`), `@id` unless the preset contributes id semantics (`PSL_PRESET_AND_ID_CONFLICT`), and list use (`PSL_PRESET_NOT_LIST`).
+- Any other `@default(...)` is kept beside the preset: `updatedAt temporal.timestampString(3, onCreate: now, onUpdate: now) @default(now())` has the database default `now()` and the preset's generators. A `temporal.*` preset accepts `?`.
+- A generated `@default(...)`, such as `token String? @default(uuid())`, works on an optional field. On create and update, a value left out is generated and an explicit `null` is stored.
 
 Integer representation authoring surface:
 
