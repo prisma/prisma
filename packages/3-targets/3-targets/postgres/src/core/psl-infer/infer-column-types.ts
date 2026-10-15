@@ -75,7 +75,7 @@ export function inferColumnTypes(input: {
     throw postgresError(
       'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
       [
-        'contract infer: no data type in the configured stack claims these column types:',
+        'contract infer: Prisma 8 cannot write these column types with the configured stack:',
         ...columns.map((line) => `  ${line}`),
       ].join('\n'),
       {

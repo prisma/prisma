@@ -461,7 +461,7 @@ The Postgres `fullTextIndex` helper also raises it when its fields are not one t
 
 ### CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED
 
-`contract infer` found columns whose type no data type in the configured stack claims, or whose data type has no type constructor marked to be written by infer, so it prints no schema. Prisma 8 reads a column type only through a data type that the target or an extension pack declares. The message lists every such column as `<schema>.<table>.<column>: <type as the database reports it>`, with `[]` for a list. Fix path: add the extension pack that declares the type (for example `pgvector` or `postgis`) to `extensionPacks` in the config, or change the column to a type Prisma 8 supports. Payload: `columns`.
+`contract infer` found columns whose type Prisma 8 cannot write with the configured stack, so it prints no schema. A column type can be written only when a data type that the target or an extension pack declares claims it, and that data type has a type constructor marked to be written by infer. `tsquery`, for example, has a data type but no such constructor. The message starts `contract infer: Prisma 8 cannot write these column types with the configured stack:` and lists every such column as `<schema>.<table>.<column>: <type as the database reports it>`, with `[]` for a list. Fix path: add the extension pack that declares the type (for example `pgvector` or `postgis`) to `extensionPacks` in the config, or change the column to a type Prisma 8 supports. Payload: `columns`.
 
 ### CONTRACT.INFER_UNSUPPORTED
 

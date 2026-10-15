@@ -116,7 +116,7 @@ describe('contract infer picks each column type through its data type', () => {
       expect.objectContaining({
         code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
         message: [
-          'contract infer: no data type in the configured stack claims these column types:',
+          'contract infer: Prisma 8 cannot write these column types with the configured stack:',
           '  public.alpha.c1: hstore',
           '  public.alpha.c2: tsquery[]',
           '  public.alpha.c3: positive',
