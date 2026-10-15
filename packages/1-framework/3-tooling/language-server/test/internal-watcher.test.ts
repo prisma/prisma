@@ -1,6 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { buildLoadedConfig, requireConfigSections } from '@internal/config-loader';
 import { FSWatcher } from 'chokidar';
 import { afterEach, expect, it, vi } from 'vitest';
 import { InternalWatcher, watchRoots } from '../src/internal-watcher';
@@ -36,6 +37,37 @@ it('derives literal safe roots for glob syntax and future directories', async ()
   await mkdir(join(dir, '{one'));
   expect(await watchRoots([join(dir, '{one/nested,two}/**/*.prisma')])).toEqual([dir]);
   await expect(watchRoots([`${dir}/*/../../*.prisma`])).rejects.toThrow('traversal');
+});
+it('retains nested roots and removes only exact duplicates', async () => {
+  const dir = await directory();
+  const child = join(dir, 'schemas');
+  await mkdir(child);
+  expect(
+    await watchRoots([join(child, '*.prisma'), join(dir, '*.prisma'), join(child, '**/*.prisma')]),
+  ).toEqual([child, dir]);
+});
+it('receives resolved filesystem paths without interpreting leading exclamation marks', async () => {
+  const dir = await directory();
+  const schemas = join(dir, '!schemas');
+  await mkdir(schemas);
+  const loaded = buildLoadedConfig(
+    {
+      contract: {
+        source: {
+          format: 'psl',
+          inputs: ['!schemas/*.prisma', join(dir, 'schema.prisma')],
+          load: async () => undefined,
+        },
+      },
+    },
+    dir,
+  );
+  const result = requireConfigSections(loaded, ['contract']);
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw result.failure;
+  const inputs = result.value.contract?.source.inputs;
+  expect(inputs).toEqual([join(schemas, '*.prisma'), join(dir, 'schema.prisma')]);
+  expect(await watchRoots(inputs ?? [])).toEqual([schemas, dir]);
 });
 it('keeps literal parent traversal and external roots available', async () => {
   const dir = await directory();
@@ -114,6 +146,41 @@ it('keeps config observation and schema coverage through parent-child root trans
     });
   }
 });
+
+it.each([false, true])(
+  'observes overlapping native roots (child first: %s)',
+  async (childFirst) => {
+    const dir = await directory();
+    const child = join(dir, 'schemas');
+    await mkdir(child);
+    const roots = childFirst ? [child, dir] : [dir, child];
+    const add = vi.spyOn(FSWatcher.prototype, 'add');
+    const onReady = vi.fn();
+    const onChange = vi.fn();
+    const onError = vi.fn();
+    const watcher = new InternalWatcher(
+      join(dir, 'prisma.config.ts'),
+      roots.map((root) => join(root, '*.prisma')),
+      { onReady, onChange, onError },
+    );
+    cleanups.push(() => watcher.close());
+    await vi.waitFor(() => expect(onReady).toHaveBeenCalledTimes(2));
+    expect(add).toHaveBeenCalledWith(roots);
+    for (const root of roots) {
+      const member = join(root, 'user.prisma');
+      await writeFile(member, 'first');
+      await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith(member));
+      onChange.mockClear();
+      await writeFile(member, 'second');
+      await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith(member));
+      onChange.mockClear();
+      await rm(member);
+      await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith(member));
+      onChange.mockClear();
+    }
+    expect(onError).not.toHaveBeenCalled();
+  },
+);
 
 it('observes real external changes and atomic config replacement', async () => {
   const dir = await directory();

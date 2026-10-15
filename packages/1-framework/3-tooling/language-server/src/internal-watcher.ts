@@ -1,6 +1,5 @@
 import { lstat } from 'node:fs/promises';
-import { dirname, isAbsolute, parse, relative, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, parse, resolve, sep } from 'node:path';
 import { contractInputDirectory } from '@internal/config/config-types';
 import { structuredError } from '@internal/utils/structured-error';
 import { FSWatcher } from 'chokidar';
@@ -14,14 +13,10 @@ interface WatchCallbacks {
 export async function watchRoots(inputs: readonly string[]): Promise<string[]> {
   const roots: string[] = [];
   for (const input of inputs) {
-    if (input.startsWith('!') && !input.startsWith('!(')) continue;
-    const path = input.startsWith('file:') ? fileURLToPath(input) : input;
-    if (!isAbsolute(path))
-      throw structuredError('LSP.WATCH_UNAVAILABLE', `Watch input is not absolute: ${input}`);
     const { directory, hasPatternBoundary } = contractInputDirectory(
-      sep === '\\' ? path.replaceAll('\\', '/') : path,
+      sep === '\\' ? input.replaceAll('\\', '/') : input,
     );
-    if (hasPatternBoundary && /(?:^|[/\\({,|])\.\.(?:$|[/\\)},|])/.test(path)) {
+    if (hasPatternBoundary && /(?:^|[/\\({,|])\.\.(?:$|[/\\)},|])/.test(input)) {
       throw structuredError(
         'LSP.WATCH_UNAVAILABLE',
         `Dynamic parent traversal is unsupported: ${input}`,
@@ -44,15 +39,7 @@ export async function watchRoots(inputs: readonly string[]): Promise<string[]> {
     }
     roots.push(root);
   }
-  return [...new Set(roots)].filter(
-    (root, index, all) =>
-      !all.some((other, otherIndex) => otherIndex !== index && isWithin(other, root)),
-  );
-}
-
-function isWithin(root: string, path: string): boolean {
-  const child = relative(root, path);
-  return child === '' || (!child.startsWith(`..${sep}`) && child !== '..' && !isAbsolute(child));
+  return [...new Set(roots)];
 }
 
 export class InternalWatcher {
