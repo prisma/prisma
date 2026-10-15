@@ -21,3 +21,6 @@ const mongoTargetPack: {
 } = mongoTargetDescriptorMeta;
 
 export default mongoTargetPack;
+
+// The types an application's exported contract names when it uses this pack, so its declaration output can name them through this entry.
+export type { CodecTypes, Vector } from './codec-types';
