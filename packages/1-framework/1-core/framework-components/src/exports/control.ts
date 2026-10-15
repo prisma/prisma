@@ -164,6 +164,8 @@ export { orderIssuesByDependencies } from '../control/order-issues-by-dependenci
 export type {
   DiffableNode,
   ExpectationFailureReason,
+  MismatchCause,
+  MismatchExplanation,
   SchemaDiffIssue,
   SchemaNodeRef,
 } from '../control/schema-diff';

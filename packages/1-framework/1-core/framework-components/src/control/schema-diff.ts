@@ -1,4 +1,3 @@
-import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 
 /**
@@ -27,6 +26,21 @@ export interface SchemaDiffIssue<TNode extends DiffableNode = DiffableNode> {
   readonly dependsOn?: readonly (readonly string[])[];
   /** Why the actual node is not equal to the expected one, as text for people, when the expected node can say. Not an outcome: read that with `issueOutcome`. */
   readonly explanation?: string;
+  /** What kind of cause {@link explanation} names, for tools that choose an action from it. Present exactly when `explanation` is. */
+  readonly explanationCause?: MismatchCause;
+}
+
+/**
+ * The cause of a mismatch the expected node can name: the expected value is one its type refuses
+ * (`expected-refused`), or the database may store the expected value in a form of its own
+ * (`equivalent-form`).
+ */
+export type MismatchCause = 'expected-refused' | 'equivalent-form';
+
+export interface MismatchExplanation {
+  /** The explanation as text for people. */
+  readonly text: string;
+  readonly cause: MismatchCause;
 }
 
 /**
@@ -92,7 +106,7 @@ export interface DiffableNode {
    * the two values, such as an expected value the node's type refuses. Called after `isEqualTo`
    * returned false, and with `undefined` when the actual side has no such node.
    */
-  explainMismatch?(actual: DiffableNode | undefined): string | undefined;
+  explainMismatch?(actual: DiffableNode | undefined): MismatchExplanation | undefined;
   children(): readonly DiffableNode[];
 }
 
@@ -110,13 +124,21 @@ function insertNode(map: Map<string, DiffableNode>, node: DiffableNode): void {
   map.set(key, node);
 }
 
+function explanationFields(
+  explanation: MismatchExplanation | undefined,
+): Pick<SchemaDiffIssue, 'explanation' | 'explanationCause'> {
+  return explanation === undefined
+    ? {}
+    : { explanation: explanation.text, explanationCause: explanation.cause };
+}
+
 function emitMissingSubtree(node: DiffableNode, parentPath: readonly string[]): SchemaDiffIssue[] {
   const path = [...parentPath, node.id];
   return [
     {
       path,
       expected: node,
-      ...ifDefined('explanation', node.explainMismatch?.(undefined)),
+      ...explanationFields(node.explainMismatch?.(undefined)),
     },
     ...node.children().flatMap((c) => emitMissingSubtree(c, path)),
   ];
@@ -214,7 +236,7 @@ function diffPair(
       path,
       expected,
       actual,
-      ...ifDefined('explanation', expected.explainMismatch?.(actual)),
+      ...explanationFields(expected.explainMismatch?.(actual)),
     });
   }
   issues.push(...diffChildren(expected.children(), actual.children(), path));

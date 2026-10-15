@@ -513,6 +513,7 @@ describe('db verify', () => {
               path: ['public', 'event', 'at', 'default'],
               expected: { id: 'default', nodeKind: 'sql-column-default' },
               explanation: REFUSAL,
+              explanationCause: 'expected-refused',
             }),
           ],
         },

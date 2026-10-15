@@ -1,6 +1,6 @@
 import type { ColumnDefault } from '@internal/contract/types';
 import type { CodecRef, ToCanonicalForm } from '@internal/framework-components/codec';
-import type { DiffableNode } from '@internal/framework-components/control';
+import type { DiffableNode, MismatchExplanation } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { blindCast } from '@internal/utils/casts';
 import { contractDefaultRefusal } from './default-in-canonical-form';
@@ -124,13 +124,32 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
 
   /**
    * The refusal of an expected literal its canonical form does not take, which a contract emitted
-   * by an earlier version can carry, so the mismatch names its cause.
+   * by an earlier version can carry, so the mismatch names its cause. Failing that, for two default
+   * expressions, the database's text, since it may store an expression in a form of its own.
    */
-  explainMismatch(): string | undefined {
-    return contractDefaultRefusal(
+  explainMismatch(actual: DiffableNode | undefined): MismatchExplanation | undefined {
+    const refusal = contractDefaultRefusal(
       this.resolved,
       this.toCanonicalForm,
       (this.many ?? this.codecRef?.many) === true,
     );
+    return refusal === undefined
+      ? this.storedExpressionForm(actual)
+      : { text: refusal, cause: 'expected-refused' };
+  }
+
+  private storedExpressionForm(actual: DiffableNode | undefined): MismatchExplanation | undefined {
+    if (actual === undefined || this.resolved?.kind !== 'function') return undefined;
+    const node = blindCast<
+      SqlSchemaIRNode,
+      'every diff-tree node the differ pairs is a SqlSchemaIRNode'
+    >(actual);
+    assertNode(node, 'SqlColumnDefaultIR', SqlColumnDefaultIR.is);
+    if (node.resolved?.kind !== 'function') return undefined;
+    const stored = node.resolved.expression;
+    return {
+      text: `The database stores this default as \`${stored}\`; the contract declares \`${this.resolved.expression}\`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default's SQL in the contract to \`${stored}\`.`,
+      cause: 'equivalent-form',
+    };
   }
 }

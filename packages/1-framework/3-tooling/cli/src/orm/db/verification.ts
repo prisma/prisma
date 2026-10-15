@@ -232,36 +232,51 @@ function sentence(text: string): string {
 }
 
 /**
- * What to do about schema drift. An issue with an explanation means the emitted contract holds a
- * value its type refuses. Only re-emitting fixes that, and the re-emitted contract has a new hash,
- * so that is the one action offered.
+ * What to do about schema drift. A refused contract value is fixed only by re-emitting, and the
+ * re-emitted contract has a new hash, so re-emitting replaces the normal drift actions. A default
+ * the database may store in its own form is fixed in the contract source, not by `db update`, which
+ * would set the same default again.
  */
 export function schemaDriftNextActions(inputs: {
   readonly verb: 'sign' | 'verify';
   readonly contractRef: string | undefined;
   readonly issues: readonly SchemaDiffIssue[];
 }): readonly NextAction[] {
-  const { verb, contractRef } = inputs;
+  const { verb, contractRef, issues } = inputs;
   const retryAfterEmit =
     contractRef === undefined
       ? `${verb} again`
       : `${verb} the emitted contract instead of "${contractRef}"`;
-  const drift = [
-    runCommandAction(
-      `Change the database to match the contract, then ${verb} again`,
-      contractRef === undefined ? '{bin} db update' : `{bin} db update --to "${contractRef}"`,
-    ),
-    chooseAction(
-      `Or change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`,
-    ),
+  const contractRefused = issues.some((issue) => issue.explanationCause === 'expected-refused');
+  const equivalentForm = issues.some((issue) => issue.explanationCause === 'equivalent-form');
+  const plainDrift =
+    issues.length === 0 || issues.some((issue) => issue.explanationCause === undefined);
+  return [
+    ...(contractRefused
+      ? [
+          runCommandAction(
+            'Re-emit the contract, which stores the refused default as its type holds it',
+            '{bin} contract emit',
+          ),
+        ]
+      : []),
+    ...(equivalentForm
+      ? [
+          chooseAction(
+            `Change the contract source to match the database, as the issue says, re-run contract emit, then ${retryAfterEmit}`,
+          ),
+        ]
+      : []),
+    ...(plainDrift && !contractRefused
+      ? [
+          runCommandAction(
+            `Change the database to match the contract, then ${verb} again`,
+            contractRef === undefined ? '{bin} db update' : `{bin} db update --to "${contractRef}"`,
+          ),
+          chooseAction(
+            `Or change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`,
+          ),
+        ]
+      : []),
   ];
-  const contractRefused = inputs.issues.some((issue) => issue.explanation !== undefined);
-  return contractRefused
-    ? [
-        runCommandAction(
-          'Re-emit the contract, which stores the refused default as its type holds it',
-          '{bin} contract emit',
-        ),
-      ]
-    : drift;
 }

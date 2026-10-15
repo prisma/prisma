@@ -1,4 +1,5 @@
 import type { ToCanonicalForm } from '@internal/framework-components/codec';
+import { diffSchemas } from '@internal/framework-components/control';
 import { structuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
 
@@ -112,9 +113,10 @@ describe('SqlColumnDefaultIR', () => {
         resolved: { kind: 'literal', value: '2024-01-01 00:00:00' },
         toCanonicalForm: timestamptz,
       });
-      expect(expected.explainMismatch()).toBe(
-        'The contract holds this default in a form its data type does not store: pg/timestamptz needs a UTC offset, but "2024-01-01 00:00:00" has none. Re-emit the contract, then try again.',
-      );
+      expect(expected.explainMismatch(undefined)).toEqual({
+        text: 'The contract holds this default in a form its data type does not store: pg/timestamptz needs a UTC offset, but "2024-01-01 00:00:00" has none. Re-emit the contract, then try again.',
+        cause: 'expected-refused',
+      });
     });
 
     it('gives no explanation for a default its data type holds', () => {
@@ -122,7 +124,63 @@ describe('SqlColumnDefaultIR', () => {
         resolved: { kind: 'literal', value: '2024-01-01T00:00:00Z' },
         toCanonicalForm: timestamptz,
       });
-      expect(expected.explainMismatch()).toBeUndefined();
+      expect(expected.explainMismatch(undefined)).toBeUndefined();
+    });
+
+    describe('two default expressions', () => {
+      function expression(text: string): SqlColumnDefaultIR {
+        return new SqlColumnDefaultIR({ resolved: { kind: 'function', expression: text } });
+      }
+
+      it('names the stored form and says to write the default as the database stores it', () => {
+        expect(
+          expression("now() - interval '1 day'").explainMismatch(
+            expression("(now() - '1 day'::interval)"),
+          ),
+        ).toEqual({
+          text: "The database stores this default as `(now() - '1 day'::interval)`; the contract declares `now() - interval '1 day'`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default's SQL in the contract to `(now() - '1 day'::interval)`.",
+          cause: 'equivalent-form',
+        });
+      });
+
+      it('shows a text holding a backtick as it is', () => {
+        expect(expression('"a`b"').explainMismatch(expression('("a`b")'))?.text).toBe(
+          'The database stores this default as `("a`b")`; the contract declares `"a`b"`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default\'s SQL in the contract to `("a`b")`.',
+        );
+      });
+
+      it('shows a multi-line text as it is', () => {
+        expect(
+          expression('now()').explainMismatch(expression('CASE\n  WHEN true THEN now()\nEND'))
+            ?.text,
+        ).toBe(
+          "The database stores this default as `CASE\n  WHEN true THEN now()\nEND`; the contract declares `now()`. The database may store a default expression in its own form, so the two can mean the same. If they do, change the default's SQL in the contract to `CASE\n  WHEN true THEN now()\nEND`.",
+        );
+      });
+
+      it('gives no explanation for an expression against a literal', () => {
+        const actual = new SqlColumnDefaultIR({ resolved: { kind: 'literal', value: 'x' } });
+        expect(expression('now()').explainMismatch(actual)).toBeUndefined();
+      });
+
+      it('gives no explanation for a literal against an expression', () => {
+        const expected = new SqlColumnDefaultIR({ resolved: { kind: 'literal', value: 'x' } });
+        expect(expected.explainMismatch(expression('now()'))).toBeUndefined();
+      });
+
+      it('gives no explanation for an expression the database lacks', () => {
+        expect(expression('now()').explainMismatch(undefined)).toBeUndefined();
+      });
+
+      it('gives no explanation for an expression against an unparsed database default', () => {
+        expect(
+          expression('now()').explainMismatch(new SqlColumnDefaultIR({ raw: 'now()' })),
+        ).toBeUndefined();
+      });
+
+      it('raises no issue for texts that differ only in case, so nothing is explained', () => {
+        expect(diffSchemas(expression('now()'), expression('NOW()'))).toEqual([]);
+      });
     });
   });
 });
