@@ -7,7 +7,6 @@ import type {
   JsonValue,
 } from '@internal/contract/types';
 import { assertDefined } from '@internal/utils/assertions';
-import { structuredError } from '@internal/utils/structured-error';
 import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 
@@ -28,8 +27,31 @@ interface SchemaSources {
   readonly valueObjects: Record<string, ContractValueObject> | undefined;
   readonly valueSets: FieldValueSets | undefined;
   readonly models: Record<string, ValidatorModel>;
-  /** The models being described, from the root, with the embed relation between each pair: `[Root, nodes, Node]`. */
-  readonly embedPath: readonly string[];
+  /** The value objects and embedded models whose schema is being written, from the root down: {@link typeKey} of each. */
+  readonly describing: ReadonlySet<string>;
+}
+
+function typeKey(kind: 'valueObject' | 'model', name: string): string {
+  return `${kind}:${name}`;
+}
+
+/**
+ * `$jsonSchema` has no references, so a type that contains itself cannot be described at every depth. Where a type appears again inside itself, the validator accepts any object there: the levels above are checked in full and no valid document is refused.
+ */
+const OPEN_OBJECT: Record<string, unknown> = { bsonType: 'object' };
+
+function objectSchemaOf(
+  kind: 'valueObject' | 'model',
+  name: string,
+  shape: StoredShape,
+  sources: SchemaSources,
+): Record<string, unknown> {
+  const key = typeKey(kind, name);
+  if (sources.describing.has(key)) return OPEN_OBJECT;
+  return deriveObjectSchema(shape, {
+    ...sources,
+    describing: new Set([...sources.describing, key]),
+  });
 }
 
 interface StoredShape {
@@ -104,7 +126,12 @@ function fieldToBsonSchema(
   if (field.type.kind === 'valueObject') {
     const vo = valueObjects?.[field.type.name];
     if (!vo) return undefined;
-    const voSchema = deriveObjectSchema({ fields: vo.fields, relations: NO_RELATIONS }, sources);
+    const voSchema = objectSchemaOf(
+      'valueObject',
+      field.type.name,
+      { fields: vo.fields, relations: NO_RELATIONS },
+      sources,
+    );
     if (field.many) {
       return {
         bsonType: field.nullable ? ['null', 'array'] : 'array',
@@ -124,26 +151,13 @@ function fieldToBsonSchema(
  * An embedded model is stored inside its owner's document as a closed object (a list of them for `1:N`). The contract does not say whether one must be present, and the ORM creates documents without them, so the property is never required.
  */
 function embedToBsonSchema(
-  relationName: string,
   relation: ContractEmbedRelation,
   sources: SchemaSources,
 ): Record<string, unknown> {
   const embeddedName = relation.to.model;
   const embedded = sources.models[embeddedName];
   assertDefined(embedded, `Embedded model "${embeddedName}" is missing`);
-  const embedPath = [...sources.embedPath, relationName, embeddedName];
-  const cycleStart = sources.embedPath.findIndex(
-    (name, index) => index % 2 === 0 && name === embeddedName,
-  );
-  if (cycleStart !== -1) {
-    const chain = embedPath.slice(cycleStart);
-    throw structuredError(
-      'CONTRACT.RELATION_INVALID',
-      `Embedded model "${embeddedName}" embeds itself: ${chain.join(' → ')}. A collection validator cannot describe a recursive embed.`,
-      { meta: { chain } },
-    );
-  }
-  const schema = deriveObjectSchema(embedded, { ...sources, embedPath });
+  const schema = objectSchemaOf('model', embeddedName, embedded, sources);
   return relation.cardinality === '1:N' ? { bsonType: 'array', items: schema } : schema;
 }
 
@@ -171,7 +185,7 @@ function propertiesOf(
 
   for (const [relationName, relation] of Object.entries(shape.relations)) {
     if (Object.hasOwn(inherited.relations, relationName) || !isEmbedRelation(relation)) continue;
-    properties[relationName] = embedToBsonSchema(relationName, relation, sources);
+    properties[relationName] = embedToBsonSchema(relation, sources);
   }
 
   return { properties, required };
@@ -208,7 +222,7 @@ export function deriveJsonSchema(
   return validatorOf(
     deriveObjectSchema(
       { fields, relations: NO_RELATIONS },
-      { lookups, valueObjects, valueSets, models: {}, embedPath: [] },
+      { lookups, valueObjects, valueSets, models: {}, describing: new Set() },
     ),
   );
 }
@@ -267,7 +281,7 @@ export function derivePolymorphicJsonSchema(
       { fields: baseFields, relations: NO_RELATIONS },
       discriminatorField,
       variants.map((variant) => ({ ...variant, relations: NO_RELATIONS })),
-      { lookups, valueObjects, valueSets, models: {}, embedPath: [] },
+      { lookups, valueObjects, valueSets, models: {}, describing: new Set() },
     ),
   );
 }
@@ -288,7 +302,9 @@ export function deriveModelValidator(
   sources: ModelValidatorSources,
 ): MongoValidator {
   if (!model.discriminator || !model.variants) {
-    return validatorOf(deriveObjectSchema(model, { ...sources, embedPath: [modelName] }));
+    return validatorOf(
+      deriveObjectSchema(model, { ...sources, describing: new Set([typeKey('model', modelName)]) }),
+    );
   }
 
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
@@ -299,7 +315,7 @@ export function deriveModelValidator(
   return validatorOf(
     polymorphicSchema(model, model.discriminator.field, variants, {
       ...sources,
-      embedPath: [modelName],
+      describing: new Set([typeKey('model', modelName)]),
     }),
   );
 }

@@ -1,33 +1,15 @@
-import type {
-  ContractEmbedRelation,
-  ContractField,
-  ContractModelBase,
-} from '@internal/contract/types';
 import { crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import {
-  type CollectionValidatorsInput,
-  deriveCollectionValidators,
-} from '../src/derive-collection-validators';
-import { mongoTypeLookups } from '../src/fake-type-lookups';
+  derive,
+  embedMany,
+  embedOne,
+  jsonSchemas,
+  type Model,
+  model,
+  objectId,
+} from './collection-validator-helpers';
 import { enumField, scalarField, voField } from './derive-json-schema-helpers';
-
-type Model = CollectionValidatorsInput['models'][string];
-
-function model(
-  fields: Record<string, ContractField>,
-  extra: Partial<Pick<ContractModelBase, 'relations' | 'discriminator' | 'variants'>> = {},
-): Model {
-  return { fields, relations: {}, ...extra };
-}
-
-function embedOne(to: string): ContractEmbedRelation {
-  return { to: crossRef(to), cardinality: '1:1' };
-}
-
-function embedMany(to: string): ContractEmbedRelation {
-  return { to: crossRef(to), cardinality: '1:N' };
-}
 
 const addressSchema = {
   bsonType: 'object',
@@ -35,24 +17,6 @@ const addressSchema = {
   properties: { city: { bsonType: 'string' } },
   additionalProperties: false,
 };
-
-function derive(
-  input: Pick<CollectionValidatorsInput, 'roots' | 'models'> &
-    Partial<Pick<CollectionValidatorsInput, 'valueObjects' | 'valueSets'>>,
-) {
-  return deriveCollectionValidators({
-    lookups: mongoTypeLookups,
-    valueObjects: {},
-    valueSets: {},
-    ...input,
-  });
-}
-
-function jsonSchemas(validators: ReturnType<typeof deriveCollectionValidators>) {
-  return Object.fromEntries(Object.entries(validators).map(([name, v]) => [name, v.jsonSchema]));
-}
-
-const objectId = () => scalarField('mongo/objectId@1');
 
 describe('deriveCollectionValidators', () => {
   it('derives a closed validator for the root model of each collection', () => {
@@ -294,39 +258,6 @@ describe('deriveCollectionValidators', () => {
           },
         ],
       });
-    });
-
-    it('refuses a model that embeds itself, naming the chain', () => {
-      const derivation = () =>
-        derive({
-          roots: { roots: crossRef('Root') },
-          models: {
-            Root: model({ _id: objectId() }, { relations: { nodes: embedMany('Node') } }),
-            Node: model({}, { relations: { children: embedMany('Node') } }),
-          },
-        });
-
-      expect(derivation).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.RELATION_INVALID',
-          message:
-            'Embedded model "Node" embeds itself: Node → children → Node. A collection validator cannot describe a recursive embed.',
-          meta: { chain: ['Node', 'children', 'Node'] },
-        }),
-      );
-    });
-
-    it('refuses a model that embeds itself through other embedded models', () => {
-      expect(() =>
-        derive({
-          roots: { roots: crossRef('Root') },
-          models: {
-            Root: model({ _id: objectId() }, { relations: { a: embedOne('A') } }),
-            A: model({}, { relations: { b: embedOne('B') } }),
-            B: model({}, { relations: { a: embedMany('A') } }),
-          },
-        }),
-      ).toThrow(expect.objectContaining({ meta: { chain: ['A', 'b', 'B', 'a', 'A'] } }));
     });
 
     it('derives a deep chain of embedded models without a cycle', () => {
