@@ -46,10 +46,7 @@ export {
   defaultMongoDomainNamespaceId,
   defaultMongoStorageNamespaceId,
 } from '../default-namespace';
-export type {
-  CollectionValidatorModel,
-  CollectionValidatorsInput,
-} from '../derive-collection-validators';
+export type { CollectionValidatorsInput } from '../derive-collection-validators';
 export { deriveCollectionValidators } from '../derive-collection-validators';
 export type { FieldValueSets, PolymorphicVariant } from '../derive-json-schema';
 export { deriveJsonSchema, derivePolymorphicJsonSchema } from '../derive-json-schema';

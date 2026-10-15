@@ -1,6 +1,5 @@
 import type {
-  ContractDiscriminator,
-  ContractField,
+  ContractModelBase,
   ContractValueObject,
   CrossReference,
 } from '@internal/contract/types';
@@ -13,43 +12,40 @@ import {
 import type { MongoValidator } from './ir/mongo-validator';
 import type { MongoTypeLookups } from './mongo-data-type';
 
-export interface CollectionValidatorModel {
-  readonly fields: Record<string, ContractField>;
-  readonly storage: { readonly collection: string };
-  readonly discriminator?: ContractDiscriminator;
-  readonly variants?: Record<string, CrossReference>;
-  readonly base?: CrossReference;
-}
-
 export interface CollectionValidatorsInput {
-  readonly models: Record<string, CollectionValidatorModel>;
+  readonly roots: Record<string, CrossReference>;
+  readonly models: Record<
+    string,
+    Pick<ContractModelBase, 'fields' | 'relations' | 'discriminator' | 'variants'>
+  >;
   readonly lookups: MongoTypeLookups;
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly valueSets: FieldValueSets;
 }
 
 /**
- * The validator of each collection a root model is stored in, keyed by collection name. A model with variants gets one polymorphic validator covering every variant; variant models get none of their own.
+ * The validator of each collection in `roots`, keyed by collection name, derived from the collection's root model. A root model with variants gets one polymorphic validator covering every variant.
  */
 export function deriveCollectionValidators(
   input: CollectionValidatorsInput,
 ): Record<string, MongoValidator> {
-  const { models, lookups, valueObjects, valueSets } = input;
+  const { roots, models, lookups, valueObjects, valueSets } = input;
   const validators: Record<string, MongoValidator> = {};
 
-  for (const [modelName, model] of Object.entries(models)) {
-    if (model.base) continue;
+  for (const [collectionName, root] of Object.entries(roots)) {
+    const model = models[root.model];
+    assertDefined(model, `Root model "${root.model}" of collection "${collectionName}" is missing`);
 
     if (model.discriminator && model.variants) {
       const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
         const variantModel = models[variant.model];
         assertDefined(
           variantModel,
-          `Variant model "${variant.model}" of "${modelName}" is missing`,
+          `Variant model "${variant.model}" of "${root.model}" is missing`,
         );
         return { discriminatorValue, fields: variantModel.fields };
       });
-      validators[model.storage.collection] = derivePolymorphicJsonSchema(
+      validators[collectionName] = derivePolymorphicJsonSchema(
         model.fields,
         model.discriminator.field,
         variants,
@@ -58,12 +54,7 @@ export function deriveCollectionValidators(
         valueSets,
       );
     } else {
-      validators[model.storage.collection] = deriveJsonSchema(
-        model.fields,
-        lookups,
-        valueObjects,
-        valueSets,
-      );
+      validators[collectionName] = deriveJsonSchema(model.fields, lookups, valueObjects, valueSets);
     }
   }
 

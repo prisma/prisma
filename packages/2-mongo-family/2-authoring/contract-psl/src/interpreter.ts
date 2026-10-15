@@ -1697,6 +1697,7 @@ export function interpretPslDocumentToMongoContract(
   const storageValueSets = mongoValueSetsOf(builtEnums);
 
   const validators = deriveCollectionValidators({
+    roots: polyResult.roots,
     models: resolvedModels,
     lookups: { codecLookup, dataTypeLookup: input.dataTypes.lookup },
     valueObjects,
