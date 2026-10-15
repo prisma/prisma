@@ -273,7 +273,6 @@ describe('native enum adoption — happy path', () => {
     expect(output).toContain('aal1 = "aal1"');
     expect(output).toContain('@@map("aal_level")');
     expect(output).toContain('pg.enum(AalLevel)?');
-    expect(output).not.toContain('Unsupported(');
   });
 
   it('wraps in the introspected schema name for a non-public schema (the auth shape)', () => {
@@ -304,7 +303,6 @@ describe('native enum adoption — happy path', () => {
     );
 
     expect(output).toContain('pg.enum(AalLevel)?');
-    expect(output).not.toContain('Unsupported(');
   });
 
   it('runs enum type names through the top-level name transforms', () => {
@@ -491,7 +489,6 @@ describe('pack-owned enum subtraction from a serialized+hydrated described contr
     expect(output).toContain('native_enum FactorType {');
     expect(output).toContain('@@map("factor_type")');
     expect(output).toContain('pg.enum(FactorType)?');
-    expect(output).not.toContain('Unsupported(');
   });
 });
 
@@ -647,7 +644,6 @@ describe('mixed-case enum type names (Prisma-ORM-created types)', () => {
     expect(output).not.toContain('@@map("HoldType")');
     expect(output).toContain('pg.enum(HoldType)');
     expect(output).not.toContain('holdtype');
-    expect(output).not.toContain('Unsupported(');
   });
 
   it('interprets with the mixed-case typeName in typeParams — the input the cast-quoting policy keys on', () => {

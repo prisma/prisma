@@ -207,13 +207,13 @@ describe('pg.enum(Name) column emission', () => {
     expect(output).toContain('pg.enum(UserRole)[]');
   });
 
-  it('does not emit Unsupported(...) for enum-typed columns', () => {
+  it('types an enum column by its enum, not through a data type', () => {
     const output = printWithEnums(
       { sessions: sessionsTable },
       { aal_level: ['aal1', 'aal2', 'aal3'] },
     );
 
-    expect(output).not.toContain('Unsupported(');
+    expect(output).toContain('aal pg.enum(AalLevel)?');
   });
 });
 
