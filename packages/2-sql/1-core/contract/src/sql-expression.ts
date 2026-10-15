@@ -8,7 +8,12 @@ import {
   resolveTemplateTagEscapes,
 } from '@internal/framework-components/authoring';
 import type { DataType, DataTypeId } from '@internal/framework-components/codec';
-import { dataType, dataTypeId, readJsonString } from '@internal/framework-components/codec';
+import {
+  dataType,
+  dataTypeId,
+  readJsonString,
+  refuseJsonValue,
+} from '@internal/framework-components/codec';
 import { runtimeError } from '@internal/framework-components/components';
 import { InternalError } from '@internal/utils/internal-error';
 import { contractError } from './contract-errors';
@@ -18,10 +23,21 @@ export const SQL_EXPRESSION_TAG = 'sql';
 
 /** The data type of a SQL expression in the target database's language. It declares no casts. The SQL family registers it. ADR 254. */
 export const sqlExpressionDataType: DataType = frozenWithCasts(
-  dataType(SQL_EXPRESSION_DATA_TYPE_ID, {
-    read: (json) => readJsonString(SQL_EXPRESSION_DATA_TYPE_ID, json),
-  }),
+  dataType(SQL_EXPRESSION_DATA_TYPE_ID, { read: readCanonicalSqlText }),
 );
+
+function readCanonicalSqlText(json: JsonValue): string {
+  const text = readJsonString(SQL_EXPRESSION_DATA_TYPE_ID, json);
+  const canonical = canonicalSqlText(text);
+  if (canonical === text) return text;
+  return refuseJsonValue(
+    SQL_EXPRESSION_DATA_TYPE_ID,
+    canonical === undefined
+      ? 'text a sql literal can hold'
+      : `${JSON.stringify(canonical)}, the canonical text of the sql literal it was written as`,
+    json,
+  );
+}
 
 /** PSL support for `sql/expression`. The SQL family registers it under `SQL_EXPRESSION_DATA_TYPE_ID`. */
 export const sqlExpressionAuthoringEntry: DataTypeAuthoringEntry = Object.freeze({
