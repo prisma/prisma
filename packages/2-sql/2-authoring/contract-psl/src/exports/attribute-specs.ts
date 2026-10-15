@@ -7,4 +7,3 @@ export type {
   ParsedNullLiteral,
 } from '../sql-attribute-specs';
 export { sqlAttributeSpecs } from '../sql-attribute-specs';
-export { describeUnresolvedSqlType } from '../unresolved-type';

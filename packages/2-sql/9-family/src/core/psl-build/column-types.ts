@@ -1,22 +1,25 @@
-import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import { resolveReportedSqlType } from '@internal/sql-contract/data-type';
 import type { ReportedSqlType, SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { InternalError } from '@internal/utils/internal-error';
-import { postgresError } from '../errors';
+import { sqlFamilyError } from '../errors';
 import {
   fewestArgumentsCall,
-  inferredTypeConstructors,
-} from '../psl-build/inferred-type-constructors';
-import type { InferredPslType } from './infer-default-codec';
+  type InferredTypeConstructors,
+  pslTypeArgumentText,
+} from './inferred-type-constructors';
 
-/** The type `contract infer` writes for a column that is not an enum. */
-export type InferredColumnTypes = (
-  tableName: string,
-  columnName: string,
-) => Required<InferredPslType>;
+/** A call to a type constructor as PSL writes it: the constructor's path and its arguments' text. */
+export interface PslTypeCall {
+  readonly path: readonly string[];
+  readonly args: readonly string[];
+}
 
-/** One table `contract infer` writes, with the schema it was introspected from. */
-export interface InferredTable {
+/** The PSL type `contract infer` writes for a column that is not an enum, by table and column name. */
+export type ColumnTypeOf = (tableName: string, columnName: string) => PslTypeCall;
+
+/** One introspected table, with the schema it was read from. */
+export interface IntrospectedTable {
   readonly schemaName: string;
   readonly tableName: string;
   readonly columns: readonly SqlColumnIR[];
@@ -32,6 +35,19 @@ function reportedTypeOf(column: SqlColumnIR, tableName: string): ReportedSqlType
   return column.reportedType;
 }
 
+function writtenCall(
+  constructors: InferredTypeConstructors,
+  dataTypes: readonly DataType[],
+  reported: ReportedSqlType,
+): PslTypeCall | undefined {
+  const resolved = resolveReportedSqlType(reported, dataTypes);
+  const marked = resolved && constructors.get(resolved.dataType);
+  const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
+  if (call === undefined) return undefined;
+  const args = call.args.map(pslTypeArgumentText);
+  return args.every((arg) => arg !== undefined) ? { path: call.path, args } : undefined;
+}
+
 /**
  * The type of every column of `tables` that `isEnumColumn` does not claim: the call, with the
  * fewest arguments, to the constructor marked `inferred` for the data type that claims the
@@ -39,40 +55,30 @@ function reportedTypeOf(column: SqlColumnIR, tableName: string): ReportedSqlType
  * `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED` listing every one of them.
  */
 export function inferColumnTypes(input: {
-  readonly tables: readonly InferredTable[];
-  readonly context: SqlPslBuildContext;
+  readonly tables: readonly IntrospectedTable[];
+  readonly constructors: InferredTypeConstructors;
   readonly isEnumColumn: (column: SqlColumnIR) => boolean;
-}): InferredColumnTypes {
-  const constructors = inferredTypeConstructors({
-    authoringTypes: input.context.authoringContributions.type,
-    codecLookup: input.context.codecLookup,
-    dataTypeLookup: input.context.dataTypes.lookup,
-  });
-  const dataTypes = [...constructors.values()].map((marked) => marked.dataType);
-  const types = new Map<string, Required<InferredPslType>>();
+}): ColumnTypeOf {
+  const dataTypes = [...input.constructors.values()].map((marked) => marked.dataType);
+  const types = new Map<string, PslTypeCall>();
   const unclaimed: string[] = [];
   for (const { schemaName, tableName, columns } of input.tables) {
     for (const column of columns) {
       if (input.isEnumColumn(column)) continue;
       const reported = reportedTypeOf(column, tableName);
-      const resolved = resolveReportedSqlType(reported, dataTypes);
-      const marked = resolved && constructors.get(resolved.dataType);
-      const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
+      const call = writtenCall(input.constructors, dataTypes, reported);
       if (call === undefined) {
         unclaimed.push(
           `${schemaName}.${tableName}.${column.name}: ${reported.text}${column.many === true ? '[]' : ''}`,
         );
         continue;
       }
-      types.set(JSON.stringify([tableName, column.name]), {
-        path: call.path,
-        args: call.args.map(String),
-      });
+      types.set(JSON.stringify([tableName, column.name]), call);
     }
   }
   if (unclaimed.length > 0) {
     const columns = unclaimed.sort();
-    throw postgresError(
+    throw sqlFamilyError(
       'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
       [
         'contract infer: Prisma 8 cannot write these column types with the configured stack:',

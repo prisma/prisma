@@ -1,4 +1,10 @@
 import type { SqlDescribedContractSpace, SqlPslBuildContext } from '@internal/family-sql/control';
+import {
+  type ColumnTypeOf,
+  type IntrospectedTable,
+  inferColumnTypes,
+  inferredTypeConstructors,
+} from '@internal/family-sql/psl-build';
 import type { EnumInfo, PslPrinterOptions } from '@internal/family-sql/psl-infer';
 import { inferRelations, toModelName } from '@internal/family-sql/psl-infer';
 import { coordinateKey } from '@internal/framework-components/ir';
@@ -19,11 +25,6 @@ import { postgresError } from '../errors';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
-import {
-  type InferredColumnTypes,
-  type InferredTable,
-  inferColumnTypes,
-} from './infer-column-types';
 import { type InferredColumnDefaults, inferredColumnDefaults } from './infer-default-codec';
 import { buildNativeEnumBlocks, PSL_SCALAR_TYPE_NAMES } from './infer-enum-blocks';
 import {
@@ -119,7 +120,7 @@ export function inferPostgresPslContract(
   // single introspected namespace, and a same-named table in two schemas has no
   // unambiguous single-bucket model, so we throw rather than silently drop one.
   const tables: Record<string, SqlTableIR> = {};
-  const inferredTables: InferredTable[] = [];
+  const introspectedTables: IntrospectedTable[] = [];
   const tableNamespaceNames = new Set<string>();
   const rlsEnabledTables = new Set<string>();
   const policiesByTable = new Map<string, readonly PostgresPolicySchemaNode[]>();
@@ -163,7 +164,7 @@ export function inferPostgresPslContract(
         }
       }
       tables[tableName] = new SqlTableIR(table);
-      inferredTables.push({
+      introspectedTables.push({
         schemaName: namespace.schemaName,
         tableName,
         columns: Object.values(table.columns),
@@ -230,8 +231,12 @@ export function inferPostgresPslContract(
   };
   const options: PostgresPslInferOptions = {
     columnTypes: inferColumnTypes({
-      tables: inferredTables,
-      context,
+      tables: introspectedTables,
+      constructors: inferredTypeConstructors({
+        authoringTypes: context.authoringContributions.type,
+        codecLookup: context.codecLookup,
+        dataTypeLookup: context.dataTypes.lookup,
+      }),
       isEnumColumn: (column) => enumTypeNames.has(column.nativeType),
     }),
     defaultMapping: createPostgresDefaultMapping(),
@@ -261,7 +266,7 @@ export interface RlsEmissionExtras {
 
 /** The printer options, and how a column's literal default is checked to read back. */
 export type PostgresPslInferOptions = PslPrinterOptions & {
-  readonly columnTypes: InferredColumnTypes;
+  readonly columnTypes: ColumnTypeOf;
   readonly columnDefaults: InferredColumnDefaults;
 };
 

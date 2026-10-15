@@ -6,6 +6,7 @@ import type {
   ScalarFieldType,
 } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import type { InferredTypeConstructors } from '@internal/family-sql/psl-build';
 import { requiredParamKeys, validateCodecTypeParams } from '@internal/framework-components/codec';
 import type {
   PslCompositeType,
@@ -18,7 +19,6 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import { resolvedTypeParams, StorageColumn } from '@internal/sql-contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import type { InferredTypeConstructors } from '../psl-build/inferred-type-constructors';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import { buildColumnType, type PslColumnType } from './column-types';
 import {

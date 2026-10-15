@@ -1,13 +1,10 @@
+import { fewestArgumentsCall, inferredTypeConstructors } from '@internal/family-sql/psl-build';
 import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringTypes } from '../../src/core/authoring';
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-registry';
 import { postgresDataTypes } from '../../src/core/data-types';
-import {
-  fewestArgumentsCall,
-  inferredTypeConstructors,
-} from '../../src/core/psl-build/inferred-type-constructors';
 import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 
 const authoringTypes: AuthoringTypeNamespace = {

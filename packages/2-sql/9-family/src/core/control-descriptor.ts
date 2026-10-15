@@ -4,10 +4,10 @@ import type { EmissionSpi } from '@internal/framework-components/emission';
 import { sqlExpressionRegistration } from '@internal/sql-contract/sql-expression';
 import { sqlEmission } from '@internal/sql-contract-emitter';
 import {
-  describeUnresolvedSqlType,
   describeUnsupportedSqlAttribute,
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
+import { describeUnresolvedSqlType } from '@internal/sql-contract-psl/diagnostics';
 import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from './authoring-entity-types';
 import { sqlFamilyAuthoringFieldPresets } from './authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from './authoring-type-constructors';

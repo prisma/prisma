@@ -1,9 +1,9 @@
+import { inferredTypeConstructors } from '@internal/family-sql/psl-build';
 import { type SqlColumnIRInput, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { parsePostgresDefault } from '../../../src/core/default-normalizer';
-import { inferredTypeConstructors } from '../../../src/core/psl-build/inferred-type-constructors';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
 import { inferBuildContext, printPslFromFlat } from '../fixtures';
 

@@ -3,7 +3,11 @@ import {
   type ColumnDefaultLiteralInputValue,
   isColumnDefault,
 } from '@internal/contract/types';
-import { type DefaultMappingOptions, mapDefault } from '@internal/family-sql/psl-build';
+import {
+  type ColumnTypeOf,
+  type DefaultMappingOptions,
+  mapDefault,
+} from '@internal/family-sql/psl-build';
 import type { PslPrinterOptions, RelationField } from '@internal/family-sql/psl-infer';
 import { toFieldName, toModelName } from '@internal/family-sql/psl-infer';
 import { canonicalFormOf } from '@internal/framework-components/codec';
@@ -44,7 +48,6 @@ import {
   SYNTHETIC_SPAN,
 } from '../psl-build/psl-literals';
 import { createUniqueFieldName } from '../psl-build/unique-name';
-import type { InferredColumnTypes } from './infer-column-types';
 import type { InferredColumnDefaults } from './infer-default-codec';
 import { buildDanglingForeignKeyWarning, type DanglingForeignKeyInfo } from './infer-foreign-keys';
 import { resolveColumnFieldName, type TableColumnFieldNameMap } from './infer-names';
@@ -56,7 +59,7 @@ import {
 
 export function buildModel(
   table: SqlTableIR,
-  columnTypes: InferredColumnTypes,
+  columnTypes: ColumnTypeOf,
   enumNameMap: ReadonlyMap<string, string>,
   fieldNamesByTable: ReadonlyMap<string, TableColumnFieldNameMap>,
   defaultMapping: DefaultMappingOptions | undefined,
@@ -241,7 +244,7 @@ function computeDerivedCheckNames(table: SqlTableIR): ReadonlySet<string> {
 function buildScalarField(
   column: SqlColumnIR,
   table: SqlTableIR,
-  columnTypes: InferredColumnTypes,
+  columnTypes: ColumnTypeOf,
   enumNameMap: ReadonlyMap<string, string>,
   fieldNameMap: TableColumnFieldNameMap | undefined,
   defaultMapping: DefaultMappingOptions | undefined,

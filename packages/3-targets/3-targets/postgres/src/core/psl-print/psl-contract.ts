@@ -5,6 +5,8 @@ import {
   effectiveControlPolicy,
 } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import type { InferredTypeConstructors } from '@internal/family-sql/psl-build';
+import { inferredTypeConstructors } from '@internal/family-sql/psl-build';
 import type {
   PslDocumentAst,
   PslExtensionBlock,
@@ -22,8 +24,6 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresNativeEnum } from '../postgres-native-enum';
-import type { InferredTypeConstructors } from '../psl-build/inferred-type-constructors';
-import { inferredTypeConstructors } from '../psl-build/inferred-type-constructors';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import {
   indexContractModels,

@@ -1,4 +1,9 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import {
+  type ColumnTypeOf,
+  inferColumnTypes,
+  inferredTypeConstructors,
+} from '@internal/family-sql/psl-build';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
@@ -21,10 +26,6 @@ import {
 import { createPostgresBuiltinCodecLookup } from '../../src/core/codec-registry';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { postgresDataTypes } from '../../src/core/data-types';
-import {
-  type InferredColumnTypes,
-  inferColumnTypes,
-} from '../../src/core/psl-infer/infer-column-types';
 import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
@@ -123,14 +124,18 @@ export function inferFromFixtureTree(
 export function inferredColumnTypesOf(
   tables: Readonly<Record<string, SqlTableIR>>,
   enumTypeNames: ReadonlySet<string> = new Set(),
-): InferredColumnTypes {
+): ColumnTypeOf {
   return inferColumnTypes({
     tables: Object.values(tables).map((table) => ({
       schemaName: 'public',
       tableName: table.name,
       columns: Object.values(withReportedTypes(table.columns)),
     })),
-    context: inferBuildContext,
+    constructors: inferredTypeConstructors({
+      authoringTypes: inferBuildContext.authoringContributions.type,
+      codecLookup: inferBuildContext.codecLookup,
+      dataTypeLookup: inferBuildContext.dataTypes.lookup,
+    }),
     isEnumColumn: (column) => enumTypeNames.has(column.nativeType),
   });
 }

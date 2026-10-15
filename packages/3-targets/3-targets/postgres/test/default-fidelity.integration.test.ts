@@ -1,4 +1,5 @@
 import type { ColumnDefault, JsonValue } from '@internal/contract/types';
+import { fewestArgumentsCall, inferredTypeConstructors } from '@internal/family-sql/psl-build';
 import { instantiateAuthoringTypeConstructor } from '@internal/framework-components/authoring';
 import {
   type Codec,
@@ -14,10 +15,6 @@ import { postgresDataTypes } from '../src/core/data-types';
 import { parsePostgresDefault, postgresResolveDefault } from '../src/core/default-normalizer';
 import { parsePostgresListText } from '../src/core/list-decoder';
 import { type CatalogColumnType, introspectedNativeType } from '../src/core/native-type-normalizer';
-import {
-  fewestArgumentsCall,
-  inferredTypeConstructors,
-} from '../src/core/psl-build/inferred-type-constructors';
 import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 import { postgresPslTypeConstructors } from '../src/core/type-constructors';
 import { enumTypes, type FidelityRow, rows } from './default-fidelity.rows';

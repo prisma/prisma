@@ -1,6 +1,8 @@
+import { type InferredTypeConstructors, pslTypeArgumentText } from '@internal/family-sql/psl-build';
 import {
   type AuthoringTypeConstructorCall,
   type AuthoringTypeNamespace,
+  authoringTypeConstructorArguments,
   findAuthoringTypeConstructorCall,
 } from '@internal/framework-components/authoring';
 import type { DataTypeLookup } from '@internal/framework-components/codec';
@@ -12,7 +14,6 @@ import {
 } from '@internal/sql-contract/data-type';
 import type { StorageColumn } from '@internal/sql-contract/types';
 import { PG_ENUM_CODEC_ID } from '../codec-ids';
-import type { InferredTypeConstructors } from '../psl-build/inferred-type-constructors';
 import { positionalArg, SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import { refuseColumnWithoutPslType, refuseUnwritableTypeArgument } from './refusals';
 
@@ -37,9 +38,7 @@ function baseTypeName(
 
 /** A type argument as PSL writes it: a number as written, a string between quotes. */
 function typeArgumentText(value: unknown, coordinate: string): string {
-  if (typeof value !== 'string') return String(value);
-  refuseUnwritableTypeArgument(value, coordinate);
-  return `"${value}"`;
+  return pslTypeArgumentText(value) ?? refuseUnwritableTypeArgument(String(value), coordinate);
 }
 
 function typeCall(path: readonly string[], args: readonly string[]): PslColumnType {
@@ -68,13 +67,8 @@ function inferredConstructorCall(
   inferredConstructors: InferredTypeConstructors,
 ): AuthoringTypeConstructorCall | undefined {
   const marked = inferredConstructors.get(column.dataType);
-  if (marked === undefined) return undefined;
-  const [name = '', ...outer] = [...marked.path].reverse();
-  const namespace = outer.reduce<AuthoringTypeNamespace>(
-    (inner, segment) => ({ [segment]: inner }),
-    { [name]: marked.descriptor },
-  );
-  return findAuthoringTypeConstructorCall(namespace, column);
+  const args = marked && authoringTypeConstructorArguments(marked.descriptor, column);
+  return marked && args && { path: marked.path, args };
 }
 
 /**
