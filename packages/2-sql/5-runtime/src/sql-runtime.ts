@@ -709,7 +709,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 
   // A transaction beneath an activity on the runtime takes a connection of its own and gives it back when it settles.
   private async beginOwnedTransactionBeneath(parent: ActivityParent): Promise<RuntimeTransaction> {
-    const { driverConnection, connection } = await this.openConnection();
+    const { driverConnection, connection } = await this.openConnection({ activityParent: parent });
     return this.ownTransaction(connection, () =>
       this.beginTransactionOn(driverConnection, connection, parent),
     );
@@ -773,9 +773,12 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     });
   }
 
-  // Called synchronously when an operation enters the runtime; returns the callback that ends its in-flight record. Work on the driver is runtime-scope work and throws once refusal has begun. Work on any other queryable holds a connection, so it is never refused, but it is recorded, so the runtime counts as busy while it runs.
-  private beginOperation(queryable: SqlQueryable): () => void {
-    if (queryable === this.driver && this.#refusing) {
+  // Called synchronously when an operation enters the runtime; returns the callback that ends its in-flight record. Work on the driver is runtime-scope work and throws once refusal has begun, unless it belongs to an open activity, which was admitted when it started and keeps close() waiting until it ends. Work on any other queryable holds a connection, so it is never refused, but it is recorded, so the runtime counts as busy while it runs.
+  private beginOperation(
+    queryable: SqlQueryable,
+    options?: Pick<ActivityExecuteOptions, 'activityParent'>,
+  ): () => void {
+    if (queryable === this.driver && this.#refusing && options?.activityParent === undefined) {
       throw runtimeClosedError();
     }
     return this.#inFlight.begin();
@@ -915,7 +918,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     const self = this;
     const { codecCtx, contextFields } = this.createQueryContexts(options);
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-      const endOperation = self.beginOperation(queryable);
+      const endOperation = self.beginOperation(queryable, options);
       try {
         yield* streamStatement(
           {
@@ -952,7 +955,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     queryable: SqlQueryable,
     options?: ActivityExecuteOptions,
   ): Promise<SqlStatementStats> {
-    const endOperation = this.beginOperation(queryable);
+    const endOperation = this.beginOperation(queryable, options);
     try {
       return await this.executeStatisticsInFlight(plan, queryable, options);
     } finally {
@@ -1086,7 +1089,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     const { codecCtx, contextFields } = this.createQueryContexts(options);
 
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-      const endOperation = self.beginOperation(queryable);
+      const endOperation = self.beginOperation(queryable, options);
       try {
         yield* streamStatement(
           {
@@ -1173,7 +1176,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     queryable: SqlQueryable,
     options?: ActivityExecuteOptions,
   ): Promise<SqlStatementStats> {
-    const endOperation = this.beginOperation(queryable);
+    const endOperation = this.beginOperation(queryable, options);
     try {
       return await this.runPreparedExecuteInFlight(ps, userParams, queryable, options);
     } finally {
@@ -1250,11 +1253,11 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return (await this.openConnection()).connection;
   }
 
-  private async openConnection(): Promise<{
+  private async openConnection(options?: Pick<ActivityExecuteOptions, 'activityParent'>): Promise<{
     readonly driverConnection: SqlConnection;
     readonly connection: RuntimeConnection & TransactionStartTarget;
   }> {
-    const endOperation = this.beginOperation(this.driver);
+    const endOperation = this.beginOperation(this.driver, options);
     let driverConn: SqlConnection;
     try {
       driverConn = await this.driver.acquireConnection();

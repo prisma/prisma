@@ -71,6 +71,51 @@ describe('client activity', () => {
     });
   });
 
+  it('waits for a content hash that is still being computed before its hooks run', async () => {
+    const hashes: string[] = [];
+    const observer: RuntimeMiddleware<MockExec> = {
+      name: 'observer',
+      async activityStarted(activity) {
+        if (activity.kind !== 'statement' && activity.kind !== 'transaction') {
+          hashes.push(activity.contentHash);
+        }
+      },
+    };
+
+    const call = await startClientActivity(
+      { kind: 'test-call', contentHash: Promise.resolve('later-hash') },
+      {
+        middleware: [observer],
+        context: contextFields(),
+        parent: undefined,
+        holdFinishedChildren: true,
+      },
+    );
+
+    expect({ hashes, contentHash: call.activity.contentHash }).toEqual({
+      hashes: ['later-hash'],
+      contentHash: 'later-hash',
+    });
+  });
+
+  it('rejects with the error of a content hash that fails, running no hook', async () => {
+    const events: string[] = [];
+    const failure = new Error('hash failed');
+
+    await expect(
+      startClientActivity(
+        { kind: 'test-call', contentHash: Promise.reject(failure) },
+        {
+          middleware: [recorder('A', events)],
+          context: contextFields(),
+          parent: undefined,
+          holdFinishedChildren: true,
+        },
+      ),
+    ).rejects.toBe(failure);
+    expect(events).toEqual([]);
+  });
+
   it.each(['statement', 'transaction', 'report'])(
     'rejects the kind %s, which has no hyphen, and runs no hook',
     async (kind) => {

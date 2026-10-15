@@ -67,8 +67,8 @@ export type Activity = StatementActivity | TransactionActivity | ClientActivity;
 /** What a client gives to start an activity. */
 export interface StartActivity<K extends ClientActivityKind = ClientActivityKind> {
   readonly kind: K;
-  /** An opaque digest of what the activity does. */
-  readonly contentHash: string;
+  /** An opaque digest of what the activity does, or a promise of one. A client that must start the activity before it can compute the digest passes the promise; the activity's hooks run once it resolves. */
+  readonly contentHash: string | Promise<string>;
   readonly annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>;
 }
 

@@ -331,6 +331,30 @@ describe('startActivity', () => {
       expect(names(events)).toContain('ended:test-call:succeeded');
     });
 
+    it("with 'at-once' refusal, still runs the statements and the transaction of an activity started before close()", async () => {
+      const { runtime, events } = createSetup({ closeRefusal: 'at-once' });
+      const call = await startActivityOn(runtime, testCall);
+
+      const closing = runtime.close();
+      const refused = runtime.execute(rawPlan('update t set x = 0'));
+      await call.execute(rawPlan('update t set x = 1'));
+      const rows = await call.query(rawPlan('select 1')).toArray();
+      const transaction = await call.transaction?.();
+      await transaction?.execute(rawPlan('update t set x = 2'));
+      await transaction?.commit();
+      await call.end({ outcome: 'succeeded' });
+      await closing;
+
+      await expect(refused).rejects.toMatchObject({ code: 'DRIVER.NOT_CONNECTED' });
+      expect({
+        rows: rows.length,
+        ended: names(events).includes('ended:test-call:succeeded'),
+      }).toEqual({ rows: 2, ended: true });
+      await expect(startActivityOn(runtime, testCall)).rejects.toMatchObject({
+        code: 'DRIVER.NOT_CONNECTED',
+      });
+    });
+
     it('refuses to start an activity on a closed runtime', async () => {
       const { runtime } = createSetup();
       await runtime.close();
