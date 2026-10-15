@@ -111,7 +111,7 @@ export function addConstraintAction(constraint: DdlTableConstraint): AddConstrai
 }
 
 /**
- * Build an `ALTER COLUMN "<columnName>" TYPE <type> USING …` action for use inside {@link alterTable}. `type` is written verbatim; `using` is opaque SQL, and without it the conversion is `"<columnName>"::<type>`.
+ * Build an `ALTER COLUMN "<columnName>" TYPE <type> USING …` action for use inside {@link alterTable}. `type` is written verbatim; `using` is opaque SQL, and when it is absent or empty the conversion is `"<columnName>"::<type>`.
  */
 export function alterColumnTypeAction(options: {
   readonly columnName: string;
@@ -121,7 +121,7 @@ export function alterColumnTypeAction(options: {
   return new AlterColumnTypeAction({
     columnName: options.columnName,
     type: options.type,
-    using: options.using === undefined ? undefined : opaqueSql(options.using),
+    using: options.using ? opaqueSql(options.using) : undefined,
   });
 }
 

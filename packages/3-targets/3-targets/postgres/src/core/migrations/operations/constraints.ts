@@ -1,6 +1,6 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
-import { CheckExpressionConstraint, opaqueSql } from '@internal/sql-relational-core/ast';
+import { checkExpression } from '@internal/sql-relational-core/contract-free';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { constraintExistsAst } from '../../../contract-free/checks';
@@ -150,14 +150,7 @@ export async function addCheckConstraint(
     contractFreeDdl.alterTable({
       ...ifDefined('schema', boundSchema(schemaName)),
       table: tableName,
-      actions: [
-        contractFreeDdl.addConstraintAction(
-          new CheckExpressionConstraint({
-            name: constraintName,
-            expression: opaqueSql(expression),
-          }),
-        ),
-      ],
+      actions: [contractFreeDdl.addConstraintAction(checkExpression(constraintName, expression))],
     }),
   );
   return {

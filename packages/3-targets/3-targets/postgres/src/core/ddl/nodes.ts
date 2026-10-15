@@ -94,9 +94,7 @@ export class AlterColumnTypeAction extends AlterTableAction {
 }
 
 /**
- * The set of ALTER TABLE subactions currently expressible as typed DDL.
- *
- * The remaining actions — SetDefault, SetNotNull, DropNotNull — are still emitted as raw SQL by `operations/columns.ts` and join this union as they are converted to typed DDL.
+ * The ALTER TABLE subactions expressible as typed DDL. Other ALTER TABLE statements, such as the primary key, unique and foreign key `ADD CONSTRAINT` in `operations/constraints.ts` and the remaining column actions in `operations/columns.ts`, are built as template strings.
  */
 export type AnyAlterTableAction =
   | AddColumnAction

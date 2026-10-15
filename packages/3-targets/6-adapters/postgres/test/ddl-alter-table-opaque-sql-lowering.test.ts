@@ -77,7 +77,13 @@ describe('PostgresAlterTable ALTER COLUMN TYPE lowering', () => {
   });
 
   it('writes the USING text as given', async () => {
-    expect(await lowerSql('public', alterType('"a"::int8'))).toBe(
+    expect(await lowerSql('public', alterType('trim("a")::int8'))).toBe(
+      'ALTER TABLE "public"."t" ALTER COLUMN "a" TYPE int8 USING trim("a")::int8',
+    );
+  });
+
+  it('treats an empty USING text as no USING text', async () => {
+    expect(await lowerSql('public', alterType(''))).toBe(
       'ALTER TABLE "public"."t" ALTER COLUMN "a" TYPE int8 USING "a"::int8',
     );
   });
@@ -123,12 +129,36 @@ describe('migration operations that write opaque SQL into ALTER TABLE', () => {
       ).execute[0]?.sql;
     expect([
       await sqlOf(),
+      await sqlOf(''),
       await sqlOf('age::int8 * 2'),
       await sqlOf(`nullif("age", ';')::int8`),
     ]).toEqual([
       'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING "age"::int8',
+      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING "age"::int8',
       'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING age::int8 * 2',
       `ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING nullif("age", ';')::int8`,
     ]);
+  });
+
+  it('refuses an empty schema name when the migration is planned', async () => {
+    const alterType = new AlterColumnTypeCall({
+      schemaName: '',
+      tableName: 'user',
+      columnName: 'age',
+      type: 'int8',
+      dataTypes: postgresDataTypes,
+    });
+    const addCheck = new AddCheckConstraintCall(
+      '',
+      'post',
+      'post_priority_check',
+      '"priority" > 0',
+    );
+    await expect(alterType.toOp(adapter)).rejects.toMatchObject({
+      code: 'CONTRACT.IDENTIFIER_INVALID',
+    });
+    await expect(addCheck.toOp(adapter)).rejects.toMatchObject({
+      code: 'CONTRACT.IDENTIFIER_INVALID',
+    });
   });
 });

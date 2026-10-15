@@ -156,7 +156,7 @@ export async function alterColumnType(
         contractFreeDdl.alterColumnTypeAction({
           columnName,
           type: options.type,
-          ...ifDefined('using', options.using === '' ? undefined : options.using),
+          ...ifDefined('using', options.using),
         }),
       ],
     }),
