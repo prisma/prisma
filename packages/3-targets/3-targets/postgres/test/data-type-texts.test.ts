@@ -324,6 +324,14 @@ describe('resolveReportedSqlType over the Postgres declarations', () => {
     expect(resolve(text)).toBeUndefined();
   });
 
+  it('claims a negative numeric scale, as Postgres reports it', () => {
+    expect(resolve('numeric(10,-2)')).toEqual({
+      dataType: 'pg/numeric',
+      typeParams: { precision: 10, scale: -2 },
+    });
+    expect(resolve('numeric(-10,2)')).toBeUndefined();
+  });
+
   it.each([['"char"'], ['bpchar'], ['interval year to month'], ['text[]']])(
     'does not claim %s, which no data type declares',
     (text) => {
