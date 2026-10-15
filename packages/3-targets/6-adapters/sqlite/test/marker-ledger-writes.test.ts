@@ -105,7 +105,7 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
       'UPDATE "_prisma_marker" SET "core_hash" = ?, "profile_hash" = ?, ' +
         '"updated_at" = strftime(\'%Y-%m-%dT%H:%M:%fZ\',\'now\'), "invariants" = ? ' +
         'WHERE ("_prisma_marker"."space" = ? AND "_prisma_marker"."core_hash" = ?) ' +
-        'RETURNING "_prisma_marker"."space"',
+        'RETURNING "space"',
     );
     // union({a,b}, {b,c}) deduped + sorted, JSON-encoded — not the incoming set verbatim.
     expect(update.params).toEqual(['to', 'prof', '["inv-a","inv-b","inv-c"]', 'app', 'from']);
@@ -124,7 +124,7 @@ describe('SqliteControlAdapter marker/ledger write lowering', () => {
       'UPDATE "_prisma_marker" SET "core_hash" = ?, "profile_hash" = ?, ' +
         "\"updated_at\" = strftime('%Y-%m-%dT%H:%M:%fZ','now') " +
         'WHERE ("_prisma_marker"."space" = ? AND "_prisma_marker"."core_hash" = ?) ' +
-        'RETURNING "_prisma_marker"."space"',
+        'RETURNING "space"',
     );
     expect(params).toEqual(['to', 'prof', 'app', 'from']);
     expect(matched).toBe(false);
