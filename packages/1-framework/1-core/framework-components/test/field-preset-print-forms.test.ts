@@ -87,6 +87,65 @@ describe('fieldPresetPrintForm', () => {
       undefined,
     );
   });
+
+  it('has none for a preset that makes the column unique or nullable', () => {
+    const preset = clock('pg/date-string@1', 'dateStringNow');
+    expect(
+      fieldPresetPrintForm({ ...preset, output: { ...preset.output, unique: true } }),
+    ).toBeUndefined();
+    expect(
+      fieldPresetPrintForm({ ...preset, output: { ...preset.output, nullable: true } }),
+    ).toBeUndefined();
+  });
+
+  it('has none for a preset whose generator params read an argument that writes no type param', () => {
+    expect(
+      fieldPresetPrintForm({
+        kind: 'fieldPreset',
+        args: [
+          { name: 'onCreate', kind: 'option', values: ['now'], optional: true },
+          { name: 'digits', kind: 'number', optional: true },
+        ],
+        output: {
+          codecId: 'pg/time-string@1',
+          executionDefaults: {
+            onCreate: {
+              kind: 'select',
+              index: 0,
+              cases: {
+                now: {
+                  kind: 'generator',
+                  id: 'timeStringNow',
+                  params: { precision: { kind: 'arg', index: 1 } },
+                },
+              },
+            },
+          },
+        },
+      }),
+    ).toBeUndefined();
+  });
+
+  it('has none for a preset with a required argument the printer can leave out', () => {
+    const requiredPhase = stamped({ precision: { kind: 'arg', index: 0 } });
+    expect(
+      fieldPresetPrintForm({
+        ...requiredPhase,
+        args: [
+          { name: 'precision', kind: 'number', optional: true },
+          { name: 'scale', kind: 'number', optional: true },
+          { name: 'stampedOn', kind: 'option', values: ['insert', 'write'] },
+        ],
+      }),
+    ).toBeUndefined();
+    const unreadRequired = clock('pg/date-string@1', 'dateStringNow');
+    expect(
+      fieldPresetPrintForm({
+        ...unreadRequired,
+        args: [...(unreadRequired.args ?? []), { name: 'label', kind: 'string' }],
+      }),
+    ).toBeUndefined();
+  });
 });
 
 describe('assembleFieldPresetsByCodecAndGenerator', () => {

@@ -65,7 +65,9 @@ You add nothing to a field preset. `contract print` reads how to write a column 
 
 - each phase in `output.executionDefaults` is a `select` on an option argument with a name, and each case is a generator;
 - each entry of `output.typeParams` is a whole positional argument (`{ kind: 'arg', index }` with no `path` or `default`), and together they take the leading arguments `0, 1, …`;
-- the output sets no `default`, `id` or `unique`.
+- every argument the output reads, including in a generator's `params`, is one of those type-param arguments or a phase's option argument;
+- every argument that is not `optional` writes a type param, because `contract print` leaves out the option argument of a phase the column does not have;
+- the output sets no `default`, `id`, `unique` or `nullable`.
 
 ```ts
 const stamped: AuthoringFieldPresetDescriptor = {

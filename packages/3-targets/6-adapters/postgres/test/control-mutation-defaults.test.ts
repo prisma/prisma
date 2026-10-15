@@ -146,16 +146,16 @@ describe('createPostgresDefaultFunctionRegistry', () => {
     });
   });
 
-  it('lifts the PSL call arguments of each generator a function produces', () => {
-    const lifted = Object.fromEntries(
+  it('prints the PSL call arguments of each generator a function produces', () => {
+    const printed = Object.fromEntries(
       [...registry].map(([name, entry]) => [
         name,
         Object.fromEntries(
-          Object.entries(entry.printArguments ?? {}).map(([id, lift]) => [id, lift(undefined)]),
+          Object.entries(entry.printArguments ?? {}).map(([id, print]) => [id, print(undefined)]),
         ),
       ]),
     );
-    expect(lifted).toEqual({
+    expect(printed).toEqual({
       autoincrement: {},
       now: {},
       uuid: { uuidv4: '', uuidv7: '7' },
@@ -165,7 +165,7 @@ describe('createPostgresDefaultFunctionRegistry', () => {
     });
   });
 
-  it('lifts a nanoid size so that it lowers back to the same params', () => {
+  it('prints a nanoid size so that it lowers back to the same params', () => {
     const entry = registry.get('nanoid')!;
     expect(entry.printArguments?.['nanoid']?.({ size: 21 })).toBe('21');
     expect(
@@ -176,7 +176,7 @@ describe('createPostgresDefaultFunctionRegistry', () => {
     });
   });
 
-  it('assembles with a registered generator for every lifted call', () => {
+  it('assembles with a registered generator for every printed call', () => {
     const assembled = assembleControlMutationDefaults([
       {
         id: 'postgres',

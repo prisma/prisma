@@ -3,6 +3,7 @@ import {
   temporalStringAuthoringPresets,
 } from '@internal/family-sql/control';
 import {
+  assembleFieldPresetsByCodecAndGenerator,
   collectScalarTypeConstructors,
   instantiateAuthoringFieldPreset,
   temporalAuthoringPresets,
@@ -256,5 +257,27 @@ describe('postgres temporal per-codec presets', () => {
       onCreate: { kind: 'generator', id: generatorId },
     });
     expect(output).not.toHaveProperty('default');
+  });
+});
+
+describe('postgres field preset print forms', () => {
+  it('gives every temporal preset whose arguments select its generators a print form', () => {
+    const presets = assembleFieldPresetsByCodecAndGenerator(postgresAuthoringFieldPresets);
+    expect(
+      [...presets.values()].flatMap((byGenerator) =>
+        [...byGenerator.values()].map((preset) => preset.path.join('.')),
+      ),
+    ).toEqual([
+      'temporal.timestamptzJsDate',
+      'temporal.timestamp',
+      'temporal.timestamptz',
+      'temporal.timestampString',
+      'temporal.timestamptzString',
+      'temporal.date',
+      'temporal.dateString',
+      'temporal.time',
+      'temporal.timeString',
+      'temporal.timetz',
+    ]);
   });
 });

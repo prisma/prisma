@@ -4,6 +4,7 @@ import {
   type AuthoringArgumentDescriptor,
   type AuthoringFieldNamespace,
   type AuthoringFieldPresetDescriptor,
+  type AuthoringFieldPresetOutput,
   type AuthoringTemplateValue,
   isAuthoringArgRef,
   isAuthoringFieldPresetDescriptor,
@@ -72,24 +73,56 @@ function phasePrintForm(
   return { argument: argument.name, valuesByGenerator };
 }
 
+function argumentIndexesRead(template: AuthoringTemplateValue | undefined): readonly number[] {
+  if (template === undefined || template === null || typeof template !== 'object') return [];
+  if (Array.isArray(template)) return template.flatMap(argumentIndexesRead);
+  if (isAuthoringArgRef(template))
+    return [template.index, ...argumentIndexesRead(template.default)];
+  if (isAuthoringSelectRef(template)) {
+    return [template.index, ...Object.values(template.cases).flatMap(argumentIndexesRead)];
+  }
+  return Object.values(template).flatMap(argumentIndexesRead);
+}
+
+function fixesOnlyCodecTypeParamsAndGenerators(output: AuthoringFieldPresetOutput): boolean {
+  return (
+    output.default === undefined &&
+    output.id !== true &&
+    output.unique !== true &&
+    output.nullable === undefined
+  );
+}
+
 /**
- * The print form of a preset whose option arguments select its generators, read from its `args` and `output`. A preset of any other shape, such as one with a fixed generator, a database default or an id, has none.
+ * The print form of a preset, read from its `args` and `output`, when the printed call reads back as the same column. That holds when the preset fixes nothing but its codec, its type params and the generators its option arguments select; every argument its output reads is a leading positional argument that writes a type param or a phase's option argument; and every required argument writes a type param, since the printer leaves out a phase the column does not have. Any other preset, such as one with a fixed generator, a database default, an id, `unique` or `nullable`, has none.
  */
 export function fieldPresetPrintForm(
   descriptor: AuthoringFieldPresetDescriptor,
 ): FieldPresetPrintForm | undefined {
   const { output } = descriptor;
   const args = descriptor.args ?? [];
-  if (output.default !== undefined || output.id === true || output.unique === true) {
-    return undefined;
-  }
+  if (!fixesOnlyCodecTypeParamsAndGenerators(output)) return undefined;
   const typeParams = positionalTypeParams(output.typeParams, args);
-  const onCreate = phasePrintForm(output.executionDefaults?.onCreate, args);
-  const onUpdate = phasePrintForm(output.executionDefaults?.onUpdate, args);
+  const onCreateTemplate = output.executionDefaults?.onCreate;
+  const onUpdateTemplate = output.executionDefaults?.onUpdate;
+  const onCreate = phasePrintForm(onCreateTemplate, args);
+  const onUpdate = phasePrintForm(onUpdateTemplate, args);
   if (typeParams === UNREADABLE || onCreate === UNREADABLE || onUpdate === UNREADABLE) {
     return undefined;
   }
   if (onCreate === undefined && onUpdate === undefined) return undefined;
+  const writesTypeParam = (index: number) => index < typeParams.length;
+  const phaseIndexes = [onCreateTemplate, onUpdateTemplate].flatMap((template) =>
+    isAuthoringSelectRef(template) ? [template.index] : [],
+  );
+  const written = (index: number) => writesTypeParam(index) || phaseIndexes.includes(index);
+  const readsOnlyWrittenArguments = [output.typeParams, onCreateTemplate, onUpdateTemplate]
+    .flatMap(argumentIndexesRead)
+    .every(written);
+  const writesEveryRequiredArgument = args.every(
+    (argument, index) => argument.optional === true || writesTypeParam(index),
+  );
+  if (!readsOnlyWrittenArguments || !writesEveryRequiredArgument) return undefined;
   return {
     codecId: output.codecId,
     typeParams,
