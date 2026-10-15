@@ -25,7 +25,7 @@ function clientRejectingTransactionStart(error: Error) {
 }
 
 describe('ports/prisma/functional/driver-adapters/error-forwarding', () => {
-  it.fails('correctly forwards error for queryRaw', async () => {
+  it('correctly forwards error for queryRaw', async () => {
     const queryError = new Error('queryRaw sentinel');
     const db = clientRejectingQueries(queryError);
 
