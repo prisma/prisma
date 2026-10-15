@@ -1,0 +1,21 @@
+import type { Runtime } from '@prisma/orm-postgres/family-runtime';
+import { createOrmClient } from './client';
+import { createdBefore, postSummary } from './fragments';
+
+export interface ListPostsInput {
+  readonly userId?: string | undefined;
+  readonly before?: Temporal.Instant | undefined;
+}
+
+/**
+ * Summaries of the newest posts, filtered by author and by creation time only when the input names them.
+ */
+export async function ormClientListPosts(input: ListPostsInput, limit: number, runtime: Runtime) {
+  const db = createOrmClient(runtime);
+  return db.Post.with((posts) => (input.userId ? posts.where({ userId: input.userId }) : posts))
+    .with((posts) => (input.before ? posts.where(createdBefore(input.before)) : posts))
+    .orderBy((post) => post.createdAt.desc())
+    .with(postSummary)
+    .limit(limit)
+    .all();
+}

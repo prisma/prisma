@@ -100,7 +100,7 @@ A field matches on its codec and its nullability. The rest of the column type, i
 
 Inside the body, `CodecField` has the same methods as the field on a model, including operations a package contributes, and checks values against the codec's output type rather than one model's narrower field type. A fragment therefore accepts `kind.eq('superuser')` for an enum field where the same call written inline on that model is refused.
 
-The method lives on the client because the body's field types need the contract's codecs and operations, which the client knows. If the contract has a namespace named `fragment`, the namespace keeps the name and the client has no `fragment` method, so such an application cannot make a fragment for any model. This is a known limitation; the fix, putting the namespaces or the client's methods under a member of their own, is recorded in the project's deferred items.
+The method lives on the client because the body's field types need the contract's codecs and operations, which the client knows. If the contract has a namespace named `fragment`, the namespace keeps the name and the client has no `fragment` method, so such an application cannot make a fragment for any model. This is a known limitation. The fix is to put the namespaces or the client's methods under a member of their own.
 
 ### 2. A fragment for one model
 
