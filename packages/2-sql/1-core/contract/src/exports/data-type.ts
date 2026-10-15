@@ -21,6 +21,7 @@ export {
   sqlDataType,
   sqlDataTypeOfCodec,
   sqlStorageType,
+  sqlStorageTypeId,
   sqlStorageTypeOfCodec,
   unquotedSqlBaseName,
   unquotedSqlBaseNameOfCodec,

@@ -437,18 +437,26 @@ export function sqlStorageType(
   return storage;
 }
 
+/** The id of the type a column of the data type `dataTypeId` is stored as: the type it names as its storage, or itself, also when the lookup does not know it. */
+export function sqlStorageTypeId(dataTypeId: string, lookup: Pick<DataTypeLookup, 'get'>): string {
+  const type = lookup.get(dataTypeId);
+  return type !== undefined && isSqlDataType(type) && type.sql.storedAs !== undefined
+    ? type.sql.storedAs
+    : dataTypeId;
+}
+
 /** The type a column of the codec `codecId` is stored as: {@link sqlStorageType} of the data type it represents. */
 export function sqlStorageTypeOfCodec(codecId: string, lookups: SqlTypeLookups): SqlDataType {
   return sqlStorageType(sqlDataTypeOfCodec(codecId, lookups), lookups.dataTypeLookup);
 }
 
-/** {@link unquotedSqlBaseName} of the data type the codec `codecId` represents. */
+/** {@link unquotedSqlBaseName} of the type a column of the codec `codecId` is stored as. */
 export function unquotedSqlBaseNameOfCodec(
   codecId: string,
   typeParams: SqlTypeParams | undefined,
   lookups: SqlTypeLookups,
 ): string {
-  const type = sqlDataTypeOfCodec(codecId, lookups);
+  const type = sqlStorageTypeOfCodec(codecId, lookups);
   return unquotedSqlBaseName(type, dataTypeParams(type, typeParams));
 }
 
