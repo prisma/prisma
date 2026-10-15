@@ -1,8 +1,9 @@
 import type { ProjectionItem, UpdateAst } from '@internal/sql-relational-core/ast';
 import { executeFiltered, type Filtered, withColumns } from './filtered-statement';
-import { type Executed, Node, type OutputsOf, type Run } from './node';
+import type { Executed, OutputsOf, Run } from './node';
+import { StatementNode } from './statement-node';
 
-export class Update extends Node<Filtered> {
+export class Update extends StatementNode<Filtered> {
   readonly ast: UpdateAst;
 
   constructor(ast: UpdateAst) {

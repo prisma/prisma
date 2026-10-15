@@ -59,7 +59,7 @@ Both options are available in `create()` and `update()`. `'connect'` is valid in
 
 Every write method of the collection (`create`, `createAll`, `createAndCount`, `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll`, `deleteAndCount`, `upsert`) builds a **mutation graph** and hands it to one runner. The nested-write executor and the branch in `create()` and `update()` on "does the input contain a relation callback" are removed. The design, the reason for each decision and the rejected alternatives are in [`mutation-graph.md`](./mutation-graph.md); the rules below are the ones every slice works against.
 
-- **Nodes are database-level steps.** `Find`, `Insert`, `Update`, `Delete`, `Assert`, `Merge`. Each is a frozen class.
+- **Nodes are database-level steps.** `Find`, `Insert`, `Update`, `Delete`, `Assert`, `CrossJoin`. Each is a frozen class.
 - **Edges carry everything one node takes from another.** `PayloadData` copies columns into a write's values; `FilterData` adds a condition per source row. A data edge holds a list of column pairs, so a composite key is one edge. A node holds its statement as SQL AST (`SelectAst`, `InsertAst`, `UpdateAst`, `DeleteAst`) and nothing else that describes it.
 - **One translation turns a user operation on a relation layout into nodes and edges.** The runner and the nodes know nothing about relations.
 - **Nodes run in the order they were added,** and a data edge can only point backwards. The translation walks the caller's input in order and appends. Whether table state is also modelled as nodes is decided when slice `graph-nested` is specified.
@@ -188,6 +188,7 @@ Postgres and SQLite adapters: both render the insert conflict clause and must re
 ## Project Definition of Done
 
 - [ ] Team-DoD floor items (inherited; see [`drive/calibration/dod.md`](../../drive/calibration/dod.md)).
+- [ ] Every item under "Must be resolved before the project closes" is resolved and removed from that list.
 - [ ] All ten write methods of the collection run through the mutation graph; `mutation-executor.ts` and the branch on relation callbacks in `create()` and `update()` no longer exist.
 - [ ] Every integration test that was on main before stage 1 passes on Postgres and SQLite, unedited except for the three decided behaviour changes of slice `graph-nested`.
 - [ ] A nested many-to-many `updateAll` or `deleteAll` issues one statement on the target table with the junction condition as `IN (SELECT ...)`, shown by a graph test.
@@ -216,6 +217,10 @@ None open. The questions raised by the 2026-10-09 discussion and their decisions
 8. **Relation with no link columns.** Decided: the contract validator rejects a relation whose link-column lists are empty (minimum length 1 on `on.localFields`, `on.targetFields` and the three `through` column lists). The ORM has no check of its own; the executor's four guards are removed with it and not replaced. Rejected: one check in the graph's translation; no check anywhere.
 9. **A relation field that is not a callback** (`update({ posts: 'x' })`). Decided: rejected while the graph is built with `ORM.RELATION_MUTATION_INVALID`, saying the relation takes a callback. Main takes the plain path and reports `ORM.FIELD_UNKNOWN` ("has no field"), or resolves `null` when no row matches. Third deliberate behaviour change in slice `graph-nested`.
 10. **Fixtures for the remaining matrix suites.** Decided: `nested_upsert_inside_update.rs` and `combining_different_nested_mutations.rs` use the `_fixture/` directory the two ported matrix suites already share; a variant it lacks is added there. This extends the layout exception granted for those two suites and does not change the written port rule. Rejected: a fixture copy per suite.
+
+## Must be resolved before the project closes
+
+1. **`upsert` with nothing to update updates the existing row.** Since slice `graph-creates`, `upsert({ create, update: {} })` is one `INSERT … ON CONFLICT (…) DO UPDATE SET <first conflict column> = excluded.<column>`, so that the row is returned whether it was inserted or already existed. When the row exists this is a real update with the same value: update triggers fire, a new row version is written, the row is locked for the rest of the transaction, the caller needs `UPDATE` privilege on the table, and it fails outright when that conflict column is generated (`GENERATED ALWAYS`). Main issued `DO NOTHING` and read the row back only when the insert returned none. Raised by the automated review of PR #30726. Options considered: always read after a `DO NOTHING` insert (two statements on every call); a node that reads only when its input row is missing (main's statements, but a node whose statement is optional); a Postgres-only single statement with a data-modifying `WITH` (SQLite has none); `MERGE` (rejected: `MERGE … RETURNING` needs Postgres 17 while the floor is 15, SQLite has no `MERGE`, `DO NOTHING` rows are not returned so it still needs a no-op update, and it can raise a unique violation under concurrent inserts where `ON CONFLICT` does not). The `upsert()` doc comment describes the current behaviour until this is resolved.
 
 ## References
 

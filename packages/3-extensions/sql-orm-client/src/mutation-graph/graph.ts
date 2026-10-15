@@ -1,6 +1,7 @@
 import { blindCast } from '@internal/utils/casts';
 import type { Edge, NodeId } from './edge';
 import type { Node, Slots } from './node';
+import { StatementNode } from './statement-node';
 
 export interface Reader {
   readonly reader: NodeId;
@@ -30,9 +31,10 @@ export class Graph {
     this.#readers.push([]);
     for (const edge of Object.values(inputs).flat()) {
       this.#readers[edge.from]?.push({ reader: id, edge });
-      this.#nodes[edge.from] = this.#nodes[edge.from]?.withReturning(
-        edge.columns.map(([source]) => source),
-      );
+      const source = this.#nodes[edge.from];
+      if (source instanceof StatementNode) {
+        this.#nodes[edge.from] = source.withReturning(edge.columns.map(([column]) => column));
+      }
     }
     return id;
   }
@@ -47,9 +49,9 @@ export class Graph {
     }
     for (const { reader, edge } of this.readersOf(id)) {
       this.#inputs[reader] = Object.fromEntries(
-        Object.entries(this.inputsOf(reader)).map(([slot, edges]) => [
-          slot,
-          edges.filter((other) => other !== edge),
+        Object.entries(this.inputsOf(reader)).map(([name, slot]) => [
+          name,
+          Array.isArray(slot) ? slot.filter((other) => other !== edge) : slot,
         ]),
       );
     }

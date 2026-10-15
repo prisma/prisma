@@ -483,7 +483,7 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('id', ColumnRef.of('user', 'id'))]);
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toContain('RETURNING "user"."id"');
+      expect(sql).toContain('RETURNING "id"');
     });
 
     it('renders RETURNING with `AS <alias>` when the projection alias differs from the column name', () => {
@@ -492,7 +492,7 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('user_id', ColumnRef.of('user', 'id'))]);
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toContain('RETURNING "user"."id" AS "user_id"');
+      expect(sql).toContain('RETURNING "id" AS "user_id"');
     });
 
     it('throws on DEFAULT value in VALUES (unsupported by SQLite)', () => {
@@ -524,9 +524,7 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('email', ColumnRef.of('user', 'email'))]);
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toBe(
-        'UPDATE "user" SET "email" = ? WHERE "user"."id" = ? RETURNING "user"."email"',
-      );
+      expect(sql).toBe('UPDATE "user" SET "email" = ? WHERE "user"."id" = ? RETURNING "email"');
     });
   });
 
@@ -547,7 +545,50 @@ describe('SQLite adapter', () => {
         .withReturning([ProjectionItem.of('id', ColumnRef.of('user', 'id'))]);
 
       const { sql } = adapter.lower(ast, { contract });
-      expect(sql).toBe('DELETE FROM "user" WHERE "user"."id" = ? RETURNING "user"."id"');
+      expect(sql).toBe('DELETE FROM "user" WHERE "user"."id" = ? RETURNING "id"');
+    });
+  });
+
+  describe('aliased write target', () => {
+    const aliased = TableSource.named('user', 'u');
+
+    it('renders the alias on the insert target and returned columns without a qualifier', () => {
+      const ast = InsertAst.into(aliased)
+        .withRows([{ id: ParamRef.of(1), email: ParamRef.of('a@example.com') }])
+        .withOnConflict(
+          InsertOnConflict.on([ColumnRef.of('u', 'email')]).doUpdateSet({
+            email: ColumnRef.of('excluded', 'email'),
+          }),
+        )
+        .withReturning([
+          ProjectionItem.of('id', ColumnRef.of('u', 'id')),
+          ProjectionItem.of('user_email', ColumnRef.of('u', 'email')),
+        ]);
+
+      expect(adapter.lower(ast, { contract }).sql).toBe(
+        'INSERT INTO "user" AS "u" ("id", "email") VALUES (?, ?) ON CONFLICT ("email") DO UPDATE SET "email" = excluded."email" RETURNING "id", "email" AS "user_email"',
+      );
+    });
+
+    it('renders the alias on the update target and in its condition, and returned columns without a qualifier', () => {
+      const ast = UpdateAst.table(aliased)
+        .withSet({ email: ParamRef.of('b@example.com') })
+        .withWhere(BinaryExpr.eq(ColumnRef.of('u', 'id'), ParamRef.of(1)))
+        .withReturning([ProjectionItem.of('email', ColumnRef.of('u', 'email'))]);
+
+      expect(adapter.lower(ast, { contract }).sql).toBe(
+        'UPDATE "user" AS "u" SET "email" = ? WHERE "u"."id" = ? RETURNING "email"',
+      );
+    });
+
+    it('renders the alias on the delete target and in its condition, and returned columns without a qualifier', () => {
+      const ast = DeleteAst.from(aliased)
+        .withWhere(BinaryExpr.eq(ColumnRef.of('u', 'id'), ParamRef.of(1)))
+        .withReturning([ProjectionItem.of('id', ColumnRef.of('u', 'id'))]);
+
+      expect(adapter.lower(ast, { contract }).sql).toBe(
+        'DELETE FROM "user" AS "u" WHERE "u"."id" = ? RETURNING "id"',
+      );
     });
   });
 

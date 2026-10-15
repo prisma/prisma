@@ -307,6 +307,44 @@ describe('Postgres adapter', () => {
     );
   });
 
+  it('renders the alias on the target of insert, update and delete', () => {
+    const aliased = TableSource.named('user', 'u');
+    const insertAst = InsertAst.into(aliased)
+      .withRows([
+        {
+          id: ParamRef.of(1, { codec: { codecId: 'pg/int4@1' } }),
+          email: ParamRef.of('a@example.com', { codec: { codecId: 'pg/text@1' } }),
+        },
+      ])
+      .withOnConflict(
+        InsertOnConflict.on([ColumnRef.of('u', 'email')]).doUpdateSet({
+          email: ColumnRef.of('excluded', 'email'),
+        }),
+      )
+      .withReturning([ProjectionItem.of('id', ColumnRef.of('u', 'id'))]);
+    const updateAst = UpdateAst.table(aliased)
+      .withSet({ email: ParamRef.of('b@example.com', { codec: { codecId: 'pg/text@1' } }) })
+      .withWhere(
+        BinaryExpr.eq(ColumnRef.of('u', 'id'), ParamRef.of(1, { codec: { codecId: 'pg/int4@1' } })),
+      )
+      .withReturning([ProjectionItem.of('email', ColumnRef.of('u', 'email'))]);
+    const deleteAst = DeleteAst.from(aliased)
+      .withWhere(
+        BinaryExpr.eq(ColumnRef.of('u', 'id'), ParamRef.of(1, { codec: { codecId: 'pg/int4@1' } })),
+      )
+      .withReturning([ProjectionItem.of('id', ColumnRef.of('u', 'id'))]);
+
+    expect(adapter.lower(insertAst, { contract }).sql).toBe(
+      'INSERT INTO "user" AS "u" ("id", "email") VALUES ($1, $2) ON CONFLICT ("email") DO UPDATE SET "email" = excluded."email" RETURNING "u"."id"',
+    );
+    expect(adapter.lower(updateAst, { contract }).sql).toBe(
+      'UPDATE "user" AS "u" SET "email" = $1 WHERE "u"."id" = $2 RETURNING "u"."email"',
+    );
+    expect(adapter.lower(deleteAst, { contract }).sql).toBe(
+      'DELETE FROM "user" AS "u" WHERE "u"."id" = $1 RETURNING "u"."id"',
+    );
+  });
+
   it('throws on unsupported AST nodes and invalid insert rows', () => {
     const unsupported = {
       kind: 'unsupported',

@@ -1,24 +1,43 @@
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   type AnyExpression,
+  ColumnRef,
   checkLimitOffset,
+  type ProjectionItem,
   type SelectAst,
 } from '@internal/sql-relational-core/ast';
-import { resolveRowIdentityColumns } from '../collection-contract';
+import { resolvePrimaryKeyColumns, resolveRowIdentityColumns } from '../collection-contract';
 import type { DescribeCollectionRowsOptions } from '../collection-dispatch';
 import { ormError } from '../orm-errors';
 import {
   countMutationWhere,
   deleteAst,
+  groupRowsByColumnSignature,
+  type InsertConflictSkip,
+  insertAst,
+  projectTableColumn,
   projectTableColumns,
+  returningProjection,
+  updateAssignments,
   updateAst,
+  upsertAst,
 } from '../query-plan-mutations';
 import { collectionSelectAst, collectionSelectWithIncludesAst } from '../query-plan-select';
+import { variantReturning } from '../query-plan-source';
+import type { AliasedTable } from '../table-scope';
 import { type CollectionState, emptyState } from '../types';
+import { CrossJoin } from './cross-join';
 import { Delete } from './delete';
-import type { NodeId } from './edge';
+import type { ColumnPair, NodeId } from './edge';
 import { FilterData } from './filter-data';
 import { Find } from './find';
 import { Graph } from './graph';
+import { Insert } from './insert';
+import { InsertChunked } from './insert-chunked';
+import { PayloadData } from './payload-data';
+import { Rows } from './rows';
+import { UnionAll } from './union-all';
 import { Update } from './update';
 
 export function updateAllGraph(
@@ -100,6 +119,119 @@ export function deleteFirstGraph(collection: DescribeCollectionRowsOptions): Gra
   const del = deleteAst(context.contract, state.tables, undefined);
   const deleted = graph.add(new Delete(del), { filter: [sameRow(find, collection)] });
   graph.setResult(withIncludes ? find : deleted);
+  return graph;
+}
+
+export function createAllGraph(
+  collection: DescribeCollectionRowsOptions,
+  rows: readonly Record<string, unknown>[],
+  conflict: InsertConflictSkip | undefined,
+): Graph {
+  const { context, state } = collection;
+  const graph = new Graph();
+  if (rows.length === 0) {
+    return graph;
+  }
+  requireIdentityColumnsForIncludes(collection);
+  const { contract } = context;
+  const { root } = state.tables;
+  const inserted = supportsDefaultInInsert(contract)
+    ? graph.add(new Insert(insertAst(contract, root, rows, conflict)), { payload: [] })
+    : graph.add(
+        new InsertChunked(
+          groupRowsByColumnSignature(rows).map((group) =>
+            insertAst(contract, root, group, conflict),
+          ),
+        ),
+        {},
+      );
+  graph.setResult(addWithIncludes(graph, collection, inserted));
+  return graph;
+}
+
+function supportsDefaultInInsert(contract: Contract<SqlStorage>): boolean {
+  return contract.capabilities['sql']?.['defaultInInsert'] === true;
+}
+
+export interface VariantCreateRow {
+  readonly base: Readonly<Record<string, unknown>>;
+  readonly variant: Readonly<Record<string, unknown>>;
+}
+
+export function createAllVariantGraph(
+  collection: DescribeCollectionRowsOptions,
+  variantTable: AliasedTable,
+  variantModelName: string,
+  rows: readonly VariantCreateRow[],
+): Graph {
+  const { context, modelName, state } = collection;
+  const { contract } = context;
+  const { root } = state.tables;
+  const graph = new Graph();
+  const keyColumns = resolvePrimaryKeyColumns(
+    contract,
+    root.storage.namespaceId,
+    root.storage.tableName,
+  );
+  const keyPairs = keyColumns.map(
+    (column): ColumnPair => [
+      projectTableColumn(contract, root, column),
+      projectTableColumn(contract, variantTable, column),
+    ],
+  );
+  const baseColumns = returningProjection(contract, modelName, root, undefined);
+  const variantColumns = variantReturning(contract, variantTable, variantModelName, keyColumns);
+
+  const joins = rows.map((row) => {
+    const baseInsert = insertAst(contract, root, [row.base], undefined).withReturning(baseColumns);
+    const base = graph.add(new Insert(baseInsert), { payload: [] });
+    const variantInsert = insertAst(contract, variantTable, [row.variant], undefined).withReturning(
+      variantColumns,
+    );
+    const variant = graph.add(new Insert(variantInsert), {
+      payload: [new PayloadData(base, keyPairs)],
+    });
+    return graph.add(new CrossJoin(), {
+      left: new Rows(base, sameColumns(baseColumns)),
+      right: new Rows(variant, sameColumns(variantColumns)),
+    });
+  });
+
+  const [only, ...others] = joins;
+  if (only !== undefined && others.length === 0) {
+    graph.setResult(only);
+  } else if (only !== undefined) {
+    const joined = sameColumns([...baseColumns, ...variantColumns]);
+    graph.setResult(
+      graph.add(new UnionAll(), { rows: joins.map((join) => new Rows(join, joined)) }),
+    );
+  }
+  return graph;
+}
+
+function sameColumns(columns: readonly ProjectionItem[]): ColumnPair[] {
+  return columns.map((column) => [column, column]);
+}
+
+export function upsertGraph(
+  collection: DescribeCollectionRowsOptions,
+  create: Readonly<Record<string, unknown>>,
+  update: Readonly<Record<string, unknown>>,
+  conflictColumns: readonly string[],
+): Graph {
+  const { context, state } = collection;
+  const { root } = state.tables;
+  const graph = new Graph();
+  requireIdentityColumnsForIncludes(collection);
+  const updateSet =
+    Object.keys(update).length > 0
+      ? updateAssignments(context.contract, root, update)
+      : Object.fromEntries(
+          conflictColumns.slice(0, 1).map((column) => [column, ColumnRef.of('excluded', column)]),
+        );
+  const upsert = upsertAst(context.contract, root, create, conflictColumns, updateSet);
+  const upserted = graph.add(new Insert(upsert), { payload: [] });
+  graph.setResult(addWithIncludes(graph, collection, upserted));
   return graph;
 }
 

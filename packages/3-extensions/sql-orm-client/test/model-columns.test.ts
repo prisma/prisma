@@ -15,12 +15,7 @@ import {
   getColumnsReadOnTable,
   getModelFieldColumns,
 } from '../src/collection-contract';
-import {
-  compileDeleteReturning,
-  compileInsertReturning,
-  compileUpdateReturning,
-  compileUpsertReturning,
-} from '../src/query-plan-mutations';
+import { compileInsertReturning, compileUpdateReturning } from '../src/query-plan-mutations';
 import { compileSelect, compileSelectWithIncludes } from '../src/query-plan-select';
 import type { CollectionState } from '../src/types';
 import { field, model, rel } from './contract-builder';
@@ -229,24 +224,7 @@ describe('a query with no select reads only the model columns', () => {
       [],
       undefined,
     );
-    const del = compileDeleteReturning(
-      contract,
-      'Post',
-      tablesForTable(contract, 'posts'),
-      [],
-      undefined,
-    );
-    const upsert = compileUpsertReturning(
-      contract,
-      'public',
-      'Post',
-      'posts',
-      { id: 1, title: 'A', user_id: 1 },
-      { title: 'B' },
-      ['id'],
-      undefined,
-    );
-    for (const plan of [insert, update, del, upsert]) {
+    for (const plan of [insert, update]) {
       expect(returningOf(plan.ast)).toEqual(['id', 'title', 'user_id']);
     }
   });

@@ -1,8 +1,9 @@
 import type { DeleteAst, ProjectionItem } from '@internal/sql-relational-core/ast';
 import { executeFiltered, type Filtered, withColumns } from './filtered-statement';
-import { type Executed, Node, type OutputsOf, type Run } from './node';
+import type { Executed, OutputsOf, Run } from './node';
+import { StatementNode } from './statement-node';
 
-export class Delete extends Node<Filtered> {
+export class Delete extends StatementNode<Filtered> {
   readonly ast: DeleteAst;
 
   constructor(ast: DeleteAst) {
