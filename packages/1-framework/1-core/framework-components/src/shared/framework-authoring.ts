@@ -123,7 +123,7 @@ export interface AuthoringTypeConstructorDescriptor {
   readonly entityRefArg?: AuthoringTypeConstructorEntityRef;
   /** Present when this name is kept only as an alias of `replacement` and will be removed; it resolves as before, and a source may warn. */
   readonly deprecated?: { readonly replacement: string };
-  /** Marks the constructor `contract infer` prints for its codec's data type; at most one per data type. */
+  /** Marks the constructor written for a column of its codec's data type when no schema names one: `contract infer` and `contract print` write it, and the Prisma 7 reader will. At most one per data type. */
   readonly inferred?: true;
 }
 
