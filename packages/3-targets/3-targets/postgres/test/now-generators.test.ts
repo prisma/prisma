@@ -4,7 +4,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { postgresAuthoringFieldPresets } from '../src/core/authoring';
 import {
   dateStringNow,
+  instantNow,
   plainDateNow,
+  plainDateTimeNow,
   plainTimeNow,
   postgresNowGenerators,
   timeStringNow,
@@ -179,5 +181,38 @@ describe('the Temporal date and time "now" generators', () => {
       time.since(new Temporal.PlainTime()).total('millisecond') - (Date.now() % DAY_MILLISECONDS),
     );
     expect(Math.min(skew, DAY_MILLISECONDS - skew)).toBeLessThan(5_000);
+  });
+});
+
+describe('the Temporal "now" generators read the clock through Date', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it('follow a frozen Date even when Temporal.Now reads another clock', () => {
+    vi.useFakeTimers({ now: new Date('2024-01-02T23:59:59.999Z'), toFake: ['Date'] });
+    const otherClock = Temporal.Instant.from('2030-06-07T08:09:10Z');
+    vi.spyOn(Temporal.Now, 'instant').mockReturnValue(otherClock);
+    vi.spyOn(Temporal.Now, 'plainDateTimeISO').mockReturnValue(
+      otherClock.toZonedDateTimeISO('UTC').toPlainDateTime(),
+    );
+    vi.spyOn(Temporal.Now, 'plainDateISO').mockReturnValue(
+      otherClock.toZonedDateTimeISO('UTC').toPlainDate(),
+    );
+    vi.spyOn(Temporal.Now, 'plainTimeISO').mockReturnValue(
+      otherClock.toZonedDateTimeISO('UTC').toPlainTime(),
+    );
+    expect([
+      instantNow().toString(),
+      plainDateTimeNow().toString(),
+      plainDateNow().toString(),
+      plainTimeNow().toString(),
+    ]).toEqual([
+      '2024-01-02T23:59:59.999Z',
+      '2024-01-02T23:59:59.999',
+      '2024-01-02',
+      '23:59:59.999',
+    ]);
   });
 });

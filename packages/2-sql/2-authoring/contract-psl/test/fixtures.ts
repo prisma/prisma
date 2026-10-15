@@ -764,17 +764,6 @@ const TEMPORAL_MIRROR_ON_UPDATE_ARG = {
   optional: true,
 } as const;
 const TEMPORAL_MIRROR_NOW_PHASE = { kind: 'generator', id: 'timestampNow' } as const;
-const temporalMirrorLift = <const CodecId extends string, const GeneratorId extends string>(
-  codecId: CodecId,
-  generatorId: GeneratorId,
-  typeParams: readonly string[],
-) =>
-  ({
-    codecId,
-    typeParams,
-    onCreate: { argument: 'onCreate', value: 'now', generatorId },
-    onUpdate: { argument: 'onUpdate', value: 'now', generatorId },
-  }) as const;
 
 export const temporalCodecPresetMirrors = {
   pgTimestamp: {
@@ -792,7 +781,6 @@ export const temporalCodecPresetMirrors = {
         onUpdate: { kind: 'select', index: 2, cases: { now: TEMPORAL_MIRROR_NOW_PHASE } },
       },
     },
-    lift: temporalMirrorLift('pg/timestamp-temporal@1', 'timestampNow', ['precision']),
   },
   pgTimestamptz: {
     kind: 'fieldPreset',
@@ -809,7 +797,6 @@ export const temporalCodecPresetMirrors = {
         onUpdate: { kind: 'select', index: 2, cases: { now: TEMPORAL_MIRROR_NOW_PHASE } },
       },
     },
-    lift: temporalMirrorLift('pg/timestamptz-temporal@1', 'timestampNow', ['precision']),
   },
   pgTimestampString: {
     kind: 'fieldPreset',
@@ -834,7 +821,6 @@ export const temporalCodecPresetMirrors = {
         },
       },
     },
-    lift: temporalMirrorLift('pg/timestamp-string@1', 'timestampStringNow', ['precision']),
   },
   sqliteDatetime: {
     kind: 'fieldPreset',
@@ -846,7 +832,6 @@ export const temporalCodecPresetMirrors = {
         onUpdate: { kind: 'select', index: 1, cases: { now: TEMPORAL_MIRROR_NOW_PHASE } },
       },
     },
-    lift: temporalMirrorLift('sqlite/datetime@1', 'timestampNow', []),
   },
 } as const satisfies Record<string, AuthoringFieldPresetDescriptor>;
 

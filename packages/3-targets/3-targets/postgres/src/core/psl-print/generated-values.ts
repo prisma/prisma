@@ -4,9 +4,11 @@ import {
   defaultFunctionCallFor,
   type FieldPresetArgument,
   fieldPresetArguments,
-  fieldPresetWriting,
 } from '@internal/family-sql/psl-build';
-import type { AuthoringFieldPresetLift } from '@internal/framework-components/authoring';
+import type {
+  FieldPresetPhasePrintForm,
+  PrintableFieldPreset,
+} from '@internal/framework-components/authoring';
 import type {
   PslAttributeArgument,
   PslFieldAttribute,
@@ -14,21 +16,27 @@ import type {
 import { buildAttribute, namedArg, positionalArg } from '../psl-build/psl-literals';
 import {
   refuseGeneratorOnUpdate,
+  refuseGeneratorsNoPresetWritesTogether,
   refuseGeneratorWithoutPslFunction,
-  refuseNowGeneratorPairedWithAnother,
 } from './refusals';
 
-/** The field preset a column's generators are written with, and the phases it must switch on. */
+/** The field preset a column's generators are written with, and the generator of each phase. */
 export interface PresetPhases {
-  readonly path: readonly string[];
-  readonly lift: AuthoringFieldPresetLift;
-  readonly onCreate: boolean;
-  readonly onUpdate: boolean;
+  readonly preset: PrintableFieldPreset;
+  readonly onCreate: string | undefined;
+  readonly onUpdate: string | undefined;
 }
 
 export type BuiltExecutionDefault =
   | { readonly kind: 'attribute'; readonly attribute: PslFieldAttribute }
   | { readonly kind: 'preset'; readonly phases: PresetPhases };
+
+function writesPhase(
+  phase: FieldPresetPhasePrintForm | undefined,
+  generatorId: string | undefined,
+): boolean {
+  return generatorId === undefined || phase?.valuesByGenerator.has(generatorId) === true;
+}
 
 /**
  * How one column's execution generators are written in PSL: as the field preset of the stack that writes the column's codec with them, or else an id generator as a `@default(<fn>())` attribute.
@@ -45,19 +53,20 @@ export function buildExecutionDefault(input: {
 
   for (const generatorId of new Set([onCreateId, onUpdateId])) {
     if (generatorId === undefined) continue;
-    const preset = fieldPresetWriting(context.authoringContributions.field, codecId, generatorId);
+    const preset = context.fieldPresetsByCodecAndGenerator.get(codecId)?.get(generatorId);
     if (preset === undefined) continue;
-    const onCreate = onCreateId !== undefined && preset.lift.onCreate?.generatorId === onCreateId;
-    const onUpdate = onUpdateId !== undefined && preset.lift.onUpdate?.generatorId === onUpdateId;
-    if ((onCreateId !== undefined && !onCreate) || (onUpdateId !== undefined && !onUpdate)) {
-      refuseNowGeneratorPairedWithAnother({
+    const { printForm } = preset;
+    if (
+      !writesPhase(printForm.onCreate, onCreateId) ||
+      !writesPhase(printForm.onUpdate, onUpdateId)
+    ) {
+      refuseGeneratorsNoPresetWritesTogether({
         coordinate,
         onCreate: onCreateId,
         onUpdate: onUpdateId,
-        other: onCreate ? onUpdateId : onCreateId,
       });
     }
-    return { kind: 'preset', phases: { ...preset, onCreate, onUpdate } };
+    return { kind: 'preset', phases: { preset, onCreate: onCreateId, onUpdate: onUpdateId } };
   }
 
   const phases = { coordinate, onCreate: onCreateId, onUpdate: onUpdateId };
@@ -66,7 +75,7 @@ export function buildExecutionDefault(input: {
     onCreateId === undefined
       ? undefined
       : defaultFunctionCallFor(
-          context.defaultFunctionCallsByGenerator,
+          context.defaultFunctionPrintersByGenerator,
           onCreateId,
           executionDefault.onCreate?.params,
         );
@@ -89,7 +98,7 @@ export function presetArguments(input: {
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
 }): readonly PslAttributeArgument[] {
   return fieldPresetArguments({
-    lift: input.phases.lift,
+    printForm: input.phases.preset.printForm,
     typeParams: input.typeParams,
     onCreate: input.phases.onCreate,
     onUpdate: input.phases.onUpdate,

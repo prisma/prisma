@@ -1,14 +1,15 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type {
-  AuthoringFieldNamespace,
-  AuthoringTypeNamespace,
+import {
+  type AuthoringFieldNamespace,
+  type AuthoringTypeNamespace,
+  assembleFieldPresetsByCodecAndGenerator,
 } from '@internal/framework-components/authoring';
 import {
   type CodecDescriptorTemplate,
   createDataTypeLookup,
   type DataType,
 } from '@internal/framework-components/codec';
-import type { LiftedDefaultFunctionCall } from '@internal/framework-components/control';
+import type { DefaultFunctionPrinter } from '@internal/framework-components/control';
 import { postgresAuthoringFieldPresets, postgresAuthoringTypes } from '../../src/core/authoring';
 import { type AnyPostgresCodecDescriptor, postgresCodec } from '../../src/core/codec-descriptor';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
@@ -33,19 +34,19 @@ export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTe
 });
 
 /** The PSL calls of the default functions the Postgres adapter registers, as the printer reads them. */
-const adapterDefaultFunctionCalls: ReadonlyMap<string, LiftedDefaultFunctionCall> = new Map<
+const adapterDefaultFunctionPrinters: ReadonlyMap<string, DefaultFunctionPrinter> = new Map<
   string,
-  LiftedDefaultFunctionCall
+  DefaultFunctionPrinter
 >([
-  ['uuidv4', { functionName: 'uuid', liftArguments: () => '' }],
-  ['uuidv7', { functionName: 'uuid', liftArguments: () => '7' }],
-  ['cuid2', { functionName: 'cuid', liftArguments: () => '2' }],
-  ['ulid', { functionName: 'ulid', liftArguments: () => '' }],
+  ['uuidv4', { functionName: 'uuid', printArguments: () => '' }],
+  ['uuidv7', { functionName: 'uuid', printArguments: () => '7' }],
+  ['cuid2', { functionName: 'cuid', printArguments: () => '2' }],
+  ['ulid', { functionName: 'ulid', printArguments: () => '' }],
   [
     'nanoid',
     {
       functionName: 'nanoid',
-      liftArguments: (params) =>
+      printArguments: (params) =>
         typeof params?.['size'] === 'number' ? String(params['size']) : '',
     },
   ],
@@ -62,12 +63,17 @@ export function testBuildContext(
     readonly types?: AuthoringTypeNamespace;
     readonly temporalPresets?: AuthoringFieldNamespace;
     readonly fieldPresets?: AuthoringFieldNamespace;
-    readonly defaultFunctionCalls?: ReadonlyMap<string, LiftedDefaultFunctionCall>;
+    readonly defaultFunctionPrinters?: ReadonlyMap<string, DefaultFunctionPrinter>;
     readonly codecs?: readonly AnyPostgresCodecDescriptor[];
     readonly dataTypes?: readonly DataType[];
   } = {},
 ): SqlPslBuildContext {
   const extraCodecs = new Map((extra.codecs ?? []).map((codec) => [codec.codecId, codec]));
+  const field: AuthoringFieldNamespace = {
+    ...postgresAuthoringFieldPresets,
+    temporal: { ...postgresAuthoringFieldPresets.temporal, ...extra.temporalPresets },
+    ...extra.fieldPresets,
+  };
   return {
     authoringContributions: {
       type: {
@@ -75,15 +81,12 @@ export function testBuildContext(
         ...postgresPslTypeConstructors,
         ...extra.types,
       },
-      field: {
-        ...postgresAuthoringFieldPresets,
-        temporal: { ...postgresAuthoringFieldPresets.temporal, ...extra.temporalPresets },
-        ...extra.fieldPresets,
-      },
+      field,
     },
-    defaultFunctionCallsByGenerator: new Map([
-      ...adapterDefaultFunctionCalls,
-      ...(extra.defaultFunctionCalls ?? []),
+    fieldPresetsByCodecAndGenerator: assembleFieldPresetsByCodecAndGenerator(field),
+    defaultFunctionPrintersByGenerator: new Map([
+      ...adapterDefaultFunctionPrinters,
+      ...(extra.defaultFunctionPrinters ?? []),
     ]),
     codecLookup: {
       get: () => undefined,

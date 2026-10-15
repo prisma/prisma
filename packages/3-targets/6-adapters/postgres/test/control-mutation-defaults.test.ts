@@ -151,7 +151,7 @@ describe('createPostgresDefaultFunctionRegistry', () => {
       [...registry].map(([name, entry]) => [
         name,
         Object.fromEntries(
-          Object.entries(entry.liftArguments ?? {}).map(([id, lift]) => [id, lift(undefined)]),
+          Object.entries(entry.printArguments ?? {}).map(([id, lift]) => [id, lift(undefined)]),
         ),
       ]),
     );
@@ -167,7 +167,7 @@ describe('createPostgresDefaultFunctionRegistry', () => {
 
   it('lifts a nanoid size so that it lowers back to the same params', () => {
     const entry = registry.get('nanoid')!;
-    expect(entry.liftArguments?.['nanoid']?.({ size: 21 })).toBe('21');
+    expect(entry.printArguments?.['nanoid']?.({ size: 21 })).toBe('21');
     expect(
       entry.lower({ call: makeCall('nanoid', { size: 21 }), context: stubContext }),
     ).toMatchObject({
@@ -188,7 +188,10 @@ describe('createPostgresDefaultFunctionRegistry', () => {
     ]);
     expect(
       Object.fromEntries(
-        [...assembled.callsByGenerator].map(([id, call]) => [id, call.functionName]),
+        [...assembled.defaultFunctionPrintersByGenerator].map(([id, call]) => [
+          id,
+          call.functionName,
+        ]),
       ),
     ).toEqual({ uuidv4: 'uuid', uuidv7: 'uuid', cuid2: 'cuid', ulid: 'ulid', nanoid: 'nanoid' });
   });

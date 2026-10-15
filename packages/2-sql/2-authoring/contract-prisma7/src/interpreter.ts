@@ -2,7 +2,7 @@ import type {
   ContractSourceDiagnostic,
   ContractSourceDiagnostics,
 } from '@internal/config/config-types';
-import type { Contract, ExecutionMutationDefaultValue } from '@internal/contract/types';
+import type { Contract } from '@internal/contract/types';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
@@ -82,7 +82,7 @@ import {
   type RelationField,
   type RelationModel,
 } from './relations';
-import type { Prisma7ColumnType, Prisma7TargetBinding } from './target-binding';
+import type { Prisma7TargetBinding } from './target-binding';
 
 export interface Prisma7Document {
   readonly document: DocumentAst;
@@ -155,19 +155,6 @@ interface ModelBuild {
 }
 
 type NamespaceEntities = Map<string, Record<string, Record<string, unknown>>>;
-
-function updatedAtGeneratorOf(
-  binding: Prisma7TargetBinding,
-  column: Pick<Prisma7ColumnType, 'codecId' | 'typeParams'>,
-): ExecutionMutationDefaultValue {
-  const generator = binding.updatedAtGenerator(column);
-  if (generator === undefined) {
-    throw new InternalError(
-      `The Prisma 7 target binding has no "now" generator for codec "${column.codecId}". Every DateTime column type maps to a codec with one.`,
-    );
-  }
-  return generator;
-}
 
 function stringArgument(attribute: ResolvedAttribute): string | undefined {
   const argument =
@@ -1071,7 +1058,7 @@ function readField(args: ReadFieldArgs): void {
   if (updatedAt !== undefined && field.typeName !== 'DateTime') {
     diagnostics.push(
       prisma7Diagnostic(
-        'PSL.PRISMA7_UPDATED_AT_NOT_DATE_TIME',
+        'PSL.PRISMA7_UPDATED_AT_FIELD_INVALID',
         `${label} has type "${field.typeName}", but @updatedAt is only allowed on a DateTime field. Prisma 7 refuses this schema too: "Fields that are marked with @updatedAt must be of type DateTime." Remove @updatedAt, or change the field's type to DateTime.`,
         sourceId,
         updatedAt.span,
@@ -1082,7 +1069,7 @@ function readField(args: ReadFieldArgs): void {
   if (updatedAt !== undefined && field.list) {
     diagnostics.push(
       prisma7Diagnostic(
-        'PSL.PRISMA7_UPDATED_AT_NOT_DATE_TIME',
+        'PSL.PRISMA7_UPDATED_AT_FIELD_INVALID',
         `${label} is a list, but @updatedAt is not allowed on a list field. Prisma 7 refuses this schema too: "Fields that are marked with @updatedAt cannot be lists." Remove @updatedAt, or make the field a single DateTime.`,
         sourceId,
         updatedAt.span,
@@ -1183,7 +1170,23 @@ function readField(args: ReadFieldArgs): void {
   const updatedAtGenerator =
     updatedAt === undefined || ignored
       ? undefined
-      : updatedAtGeneratorOf(binding, resolved.descriptor);
+      : binding.updatedAtGenerator(resolved.descriptor);
+  if (updatedAt !== undefined && !ignored && updatedAtGenerator === undefined) {
+    if (nativeType === undefined) {
+      throw new InternalError(
+        `The Prisma 7 target binding has no "now" generator for codec "${resolved.descriptor.codecId}", which the DateTime scalar maps to.`,
+      );
+    }
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UPDATED_AT_FIELD_INVALID',
+        `${label} has @updatedAt, but "@db.${nativeType.name}" makes it a column that is not a date or time, so @updatedAt cannot set it. Prisma 7 refuses this schema too: "Native type ${nativeType.name} is not compatible with declared field type DateTime". Remove @updatedAt, or use a date or time native type such as @db.Timestamp.`,
+        sourceId,
+        nativeType.attribute.span,
+      ),
+    );
+    return;
+  }
   const lowered =
     defaultAttribute === undefined
       ? undefined

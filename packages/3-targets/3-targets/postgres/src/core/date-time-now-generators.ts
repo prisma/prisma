@@ -2,7 +2,7 @@ import type { MutationDefaultGeneratorDescriptor } from '@internal/framework-com
 import { requireTemporal } from './require-temporal';
 
 /**
- * The Postgres "now" generators, one per date and time codec except `pg/timestamptz-date@1`, which uses the framework's `timestampNow`. All read the UTC clock. The time generators round down to their `precision` param. The string generators are named after the codec they serve and write the text PostgreSQL prints in a UTC session, with milliseconds and no trailing zeros in the fraction.
+ * The Postgres "now" generators, one per date and time codec except `pg/timestamptz-date@1`, which uses the framework's `timestampNow`. All read the clock through `Date.now()` and write UTC. The time generators round down to their `precision` param. The string generators are named after the codec they serve and write the text PostgreSQL prints in a UTC session, with milliseconds and no trailing zeros in the fraction.
  */
 export const INSTANT_NOW_GENERATOR_ID = 'instantNow' as const;
 export const PLAIN_DATE_TIME_NOW_GENERATOR_ID = 'plainDateTimeNow' as const;
@@ -28,7 +28,7 @@ function utcNow(fractionDigits = MAX_TIME_PRECISION): {
   readonly date: string;
   readonly time: string;
 } {
-  const iso = new Date().toISOString();
+  const iso = new Date(Date.now()).toISOString();
   const [wholeSeconds = '', fraction = ''] = iso.slice(11, -1).split('.');
   const kept = fraction.slice(0, fractionDigits).replace(/0+$/, '');
   return {
@@ -49,25 +49,31 @@ function truncateTime(time: Temporal.PlainTime, fractionDigits: number): Tempora
   });
 }
 
+function utcDateTimeNow(generatorId: string): Temporal.ZonedDateTime {
+  return requireTemporal({ generatorId })
+    .Instant.fromEpochMilliseconds(Date.now())
+    .toZonedDateTimeISO('UTC');
+}
+
 export function instantNow(): Temporal.Instant {
-  return requireTemporal({ generatorId: INSTANT_NOW_GENERATOR_ID }).Now.instant();
+  return requireTemporal({ generatorId: INSTANT_NOW_GENERATOR_ID }).Instant.fromEpochMilliseconds(
+    Date.now(),
+  );
 }
 
 export function plainDateTimeNow(): Temporal.PlainDateTime {
-  return requireTemporal({ generatorId: PLAIN_DATE_TIME_NOW_GENERATOR_ID }).Now.plainDateTimeISO(
-    'UTC',
-  );
+  return utcDateTimeNow(PLAIN_DATE_TIME_NOW_GENERATOR_ID).toPlainDateTime();
 }
 
 export function plainDateNow(): Temporal.PlainDate {
-  return requireTemporal({ generatorId: PLAIN_DATE_NOW_GENERATOR_ID }).Now.plainDateISO('UTC');
+  return utcDateTimeNow(PLAIN_DATE_NOW_GENERATOR_ID).toPlainDate();
 }
 
 export function plainTimeNow(params?: GeneratorParams): Temporal.PlainTime {
-  const time = requireTemporal({ generatorId: PLAIN_TIME_NOW_GENERATOR_ID }).Now.plainTimeISO(
-    'UTC',
+  return truncateTime(
+    utcDateTimeNow(PLAIN_TIME_NOW_GENERATOR_ID).toPlainTime(),
+    fractionDigitsOf(params),
   );
-  return truncateTime(time, fractionDigitsOf(params));
 }
 
 export function timestampStringNow(): string {

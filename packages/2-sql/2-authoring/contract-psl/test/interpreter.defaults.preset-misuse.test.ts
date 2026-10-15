@@ -40,10 +40,6 @@ describe('field-preset misuse', () => {
             id: true,
           },
         },
-        notNullField: {
-          kind: 'fieldPreset',
-          output: { codecId: 'pg/text@1', nullable: false },
-        },
         nullField: {
           kind: 'fieldPreset',
           output: { codecId: 'pg/text@1', nullable: true },
@@ -92,34 +88,31 @@ example temporal.idField()?
     expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
       {
         code: 'PSL_PRESET_NOT_OPTIONAL',
-        message: `Field "Bad.example" uses a field-preset call that fixes its id, so it cannot be optional. Remove "?" or use a different field type.`,
+        message: `Field "Bad.example" is a primary key through its field preset, so it cannot be optional; primary key columns must be NOT NULL. Remove "?" or use a preset that does not make the field a primary key.`,
       },
     ]);
   });
 
-  it.each(['notNullField', 'nullField'])(
-    'makes the column of temporal.%s()? nullable, as .optional() does in TypeScript',
-    (preset) => {
-      const result = interpretPostgresSchema(
-        `model Good {
+  it('keeps the column of a nullable preset nullable with ?', () => {
+    const result = interpretPostgresSchema(
+      `model Good {
 id Int @id
-example temporal.${preset}()?
+example temporal.nullField()?
 }`,
-        {
-          controlMutationDefaults: builtinControlMutationDefaults,
-          authoringContributions: syntheticPresetContributions,
-        },
-      );
+      {
+        controlMutationDefaults: builtinControlMutationDefaults,
+        authoringContributions: syntheticPresetContributions,
+      },
+    );
 
-      expect(result.ok).toBe(true);
-      if (!result.ok) return;
-      expect(
-        unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value))['Good']?.columns[
-          'example'
-        ],
-      ).toEqual({ many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: true });
-    },
-  );
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(
+      unboundTables(sqlStorageFromSuccessfulSqlInterpretation(result.value))['Good']?.columns[
+        'example'
+      ],
+    ).toEqual({ many: false, dataType: 'pg/text', codecId: 'pg/text@1', nullable: true });
+  });
 
   it('accepts ? on a preset that does not fix the id', () => {
     const result = interpretPostgresSchema(

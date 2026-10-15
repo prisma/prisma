@@ -9,11 +9,10 @@ export type {
   DefaultMappingResult,
 } from '../core/psl-build/default-mapping';
 export { mapDefault } from '../core/psl-build/default-mapping';
-export type { FieldPresetArgument, LiftedFieldPreset } from '../core/psl-build/generated-values';
+export type { FieldPresetArgument } from '../core/psl-build/generated-values';
 export {
   defaultFunctionCallFor,
   fieldPresetArguments,
-  fieldPresetWriting,
 } from '../core/psl-build/generated-values';
 export { toEnumMemberName } from '../core/psl-build/psl-names';
 export type { PslTypeMap, PslTypeReference, PslTypeResolution } from '../core/psl-build/type-map';

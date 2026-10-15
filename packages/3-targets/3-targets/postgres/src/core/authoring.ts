@@ -944,6 +944,7 @@ export const postgresAuthoringFieldPresets = {
       generatorId: postgresNowGeneratorIds[PG_TIME_STRING_CODEC_ID],
       nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIME_STRING_CODEC_ID],
     }),
+    /** Produces a string: no Temporal type holds a time of day with an offset. */
     timetz: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       codecId: PG_TIMETZ_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMETZ_CODEC_ID],

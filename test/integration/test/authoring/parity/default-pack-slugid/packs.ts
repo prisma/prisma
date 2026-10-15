@@ -16,7 +16,7 @@ const slugidEntry: ControlMutationDefaultEntry = {
     },
   }),
   usageSignatures: ['slugid()'],
-  liftArguments: { slugid: () => '' },
+  printArguments: { slugid: () => '' },
 };
 
 const slugidDefaultsPack: SqlControlExtensionDescriptor<'postgres'> = {

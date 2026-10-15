@@ -323,7 +323,7 @@ describe('defaults and generated values', () => {
     });
   }
 
-  it('refuses a generator on update that is not the wall-clock-now generator', () => {
+  it('refuses a generator on update that no field preset writes', () => {
     expect(withGenerator({ onUpdate: { kind: 'generator', id: 'uuidv4' } })).toThrow(
       refusal({ coordinate: '"public"."Widget"."value"', onCreate: undefined, onUpdate: 'uuidv4' }),
     );

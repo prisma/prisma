@@ -33,10 +33,4 @@ export const sqlTimestampPresetMirror = {
       onUpdate: { kind: 'select', index: 2, cases: { now: NOW_PHASE } },
     },
   },
-  lift: {
-    codecId: 'test/timestamp@1',
-    typeParams: ['precision'],
-    onCreate: { argument: 'onCreate', value: 'now', generatorId: 'timestampNow' },
-    onUpdate: { argument: 'onUpdate', value: 'now', generatorId: 'timestampNow' },
-  },
 } as const satisfies AuthoringFieldPresetDescriptor;

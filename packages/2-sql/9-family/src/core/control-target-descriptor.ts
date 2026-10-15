@@ -1,11 +1,14 @@
 import type { Contract } from '@internal/contract/types';
-import type { DataTypeSupport } from '@internal/framework-components/authoring';
+import type {
+  DataTypeSupport,
+  FieldPresetsByCodecAndGenerator,
+} from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type {
   AssembledAuthoringContributions,
   ContractSerializer,
+  DefaultFunctionPrinter,
   DiffSubjectGranularity,
-  LiftedDefaultFunctionCall,
   MigratableTargetDescriptor,
   SchemaVerifier,
 } from '@internal/framework-components/control';
@@ -41,7 +44,9 @@ export interface SqlPslBuildContext {
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
   /** For each generator id, the default function in the stack whose PSL call produces it. */
-  readonly defaultFunctionCallsByGenerator: ReadonlyMap<string, LiftedDefaultFunctionCall>;
+  readonly defaultFunctionPrintersByGenerator: ReadonlyMap<string, DefaultFunctionPrinter>;
+  /** For each codec, the field preset in the stack that writes a column of it with each generator. */
+  readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
 }
 
 export interface SqlControlTargetDescriptor<

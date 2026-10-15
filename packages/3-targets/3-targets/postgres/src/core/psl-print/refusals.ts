@@ -117,12 +117,19 @@ interface GeneratorPhases {
   readonly onUpdate: string | undefined;
 }
 
-export function refuseNowGeneratorPairedWithAnother(
-  phases: GeneratorPhases & { readonly other: string | undefined },
-): never {
+function describePhases(phases: GeneratorPhases): string {
+  return [
+    phases.onCreate === undefined ? undefined : `"${phases.onCreate}" on create`,
+    phases.onUpdate === undefined ? undefined : `"${phases.onUpdate}" on update`,
+  ]
+    .filter((phase) => phase !== undefined)
+    .join(' and ');
+}
+
+export function refuseGeneratorsNoPresetWritesTogether(phases: GeneratorPhases): never {
   throw unsupported(
-    `column ${phases.coordinate} takes the wall-clock-now generator in one phase and "${phases.other}" in the other, which cannot be written in Prisma 8 PSL.`,
-    'The temporal preset a now generator is authored through writes each phase as `now`, so the other generator would be dropped from the written file.',
+    `column ${phases.coordinate} generates ${describePhases(phases)}, which cannot be written in Prisma 8 PSL.`,
+    'The field preset in the configured stack that writes one of these generators for the column codec does not also write the other phase, so that phase would be dropped from the written file.',
     KEEP_SOURCE,
     { coordinate: phases.coordinate, onCreate: phases.onCreate, onUpdate: phases.onUpdate },
   );
@@ -131,7 +138,7 @@ export function refuseNowGeneratorPairedWithAnother(
 export function refuseGeneratorOnUpdate(phases: GeneratorPhases): never {
   throw unsupported(
     `column ${phases.coordinate} generates a value on update ("${phases.onUpdate}"), which cannot be written in Prisma 8 PSL.`,
-    '`@default(…)` writes a generator for create only; a generator on update is written only through a temporal preset, which takes the wall-clock-now generator.',
+    '`@default(…)` writes a generator for create only; a generator on update is written only through a field preset, and no field preset in the configured stack writes this generator for the column codec.',
     KEEP_SOURCE,
     { coordinate: phases.coordinate, onCreate: phases.onCreate, onUpdate: phases.onUpdate },
   );

@@ -78,44 +78,31 @@ export const TEMPORAL_ON_UPDATE_ARG = {
 } as const;
 
 /**
- * The lift of a preset whose `onCreate` and `onUpdate` arguments select `generatorId` with `now`, writing `codecId`. `typeParams` names the column type params the preset's leading positional arguments write.
+ * Selects a generator descriptor for the preset's `now` token. The token is preset vocabulary; the generator id never appears in a user's spelling (ADR 169 — these generators are preset-only).
  */
-export function temporalPresetLift<
-  const CodecId extends string,
-  const GeneratorId extends string,
-  const TypeParams extends readonly string[] = readonly [],
->(input: {
-  readonly codecId: CodecId;
-  readonly generatorId: GeneratorId;
-  readonly typeParams?: TypeParams;
-}) {
-  const phase = <const Argument extends string>(argument: Argument) =>
-    ({ argument, value: 'now', generatorId: input.generatorId }) as const;
+export function temporalPhaseTemplate<const Index extends number, const GeneratorId extends string>(
+  index: Index,
+  generatorId: GeneratorId,
+) {
   return {
-    codecId: input.codecId,
-    typeParams: input.typeParams ?? [],
-    onCreate: phase(TEMPORAL_ON_CREATE_ARG.name),
-    onUpdate: phase(TEMPORAL_ON_UPDATE_ARG.name),
+    kind: 'select',
+    index,
+    cases: { now: { kind: 'generator', id: generatorId } },
   } as const;
 }
 
 /**
- * Selects a generator descriptor for the preset's `now` token. The token is preset vocabulary; the generator id never appears in a user's spelling (ADR 169 — these generators are preset-only). `params` is the template of the generator's params, resolved against the preset's arguments.
+ * {@link temporalPhaseTemplate} for a generator that takes params. `params` is the template of the generator's params, resolved against the preset's arguments.
  */
-export function temporalPhaseTemplate<
+export function temporalPhaseTemplateWithParams<
   const Index extends number,
   const GeneratorId extends string,
-  const Params extends Record<string, AuthoringTemplateValue> | undefined = undefined,
->(index: Index, generatorId: GeneratorId, params?: Params) {
+  const Params extends Record<string, AuthoringTemplateValue>,
+>(index: Index, generatorId: GeneratorId, params: Params) {
   return {
     kind: 'select',
     index,
-    cases: {
-      now:
-        params === undefined
-          ? ({ kind: 'generator', id: generatorId } as const)
-          : ({ kind: 'generator', id: generatorId, params } as const),
-    },
+    cases: { now: { kind: 'generator', id: generatorId, params } },
   } as const;
 }
 
@@ -139,6 +126,5 @@ export function temporalCodecPreset<
         onUpdate: temporalPhaseTemplate(1, nowGeneratorId),
       },
     },
-    lift: temporalPresetLift({ codecId: storage.codecId, generatorId: nowGeneratorId }),
   } as const;
 }

@@ -80,10 +80,10 @@ export interface ControlMutationDefaultEntry {
   /**
    * The reverse of `lower`: for each generator id the function lowers to, the arguments of the PSL call that produces it, written from the generator's params. `contract print` writes `<function name>(<arguments>)`; a function without it is never printed.
    */
-  readonly liftArguments?: Readonly<Record<string, DefaultFunctionArgumentsLifter>>;
+  readonly printArguments?: Readonly<Record<string, DefaultFunctionArgumentsPrinter>>;
 }
 
-export type DefaultFunctionArgumentsLifter = (
+export type DefaultFunctionArgumentsPrinter = (
   params: Readonly<Record<string, unknown>> | undefined,
 ) => string;
 
@@ -95,12 +95,12 @@ export interface ControlMutationDefaults {
 }
 
 /** The default function whose PSL call produces a generator. */
-export interface LiftedDefaultFunctionCall {
+export interface DefaultFunctionPrinter {
   readonly functionName: string;
-  readonly liftArguments: DefaultFunctionArgumentsLifter;
+  readonly printArguments: DefaultFunctionArgumentsPrinter;
 }
 
 /** The mutation defaults of a composed stack, with the default function that writes each generator. */
 export interface AssembledControlMutationDefaults extends ControlMutationDefaults {
-  readonly callsByGenerator: ReadonlyMap<string, LiftedDefaultFunctionCall>;
+  readonly defaultFunctionPrintersByGenerator: ReadonlyMap<string, DefaultFunctionPrinter>;
 }

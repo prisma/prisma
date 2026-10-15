@@ -67,7 +67,7 @@ describe('generated values', () => {
     ).toBe('value String @default(nanoid(10))');
   });
 
-  it('prints a wall-clock-now pair as the temporal preset of the column codec', () => {
+  it('prints a now generator pair as the temporal preset of the column codec', () => {
     expect(
       withGenerator(
         {
@@ -84,7 +84,7 @@ describe('generated values', () => {
     ).toBe('value temporal.timestamp(3, onCreate: now, onUpdate: now)');
   });
 
-  it('refuses a column that pairs the wall-clock-now generator with a different one', () => {
+  it('refuses generators that no field preset writes together', () => {
     const timestamp = {
       dataType: 'pg/timestamp',
       codecId: 'pg/timestamp-temporal@1',
@@ -106,6 +106,9 @@ describe('generated values', () => {
       }),
     ).toMatchObject({
       code: 'CONTRACT.PRINT_UNSUPPORTED',
+      message: expect.stringContaining(
+        'column "public"."Widget"."value" generates "plainDateTimeNow" on create and "uuidv4" on update, which cannot be written in Prisma 8 PSL.',
+      ),
       meta: {
         coordinate: '"public"."Widget"."value"',
         onCreate: 'plainDateTimeNow',
@@ -148,8 +151,8 @@ describe('generated values', () => {
 
   it('prints a generator through the default function an extension registers', () => {
     const context = testBuildContext({
-      defaultFunctionCalls: new Map([
-        ['slugid', { functionName: 'slugid', liftArguments: () => '' }],
+      defaultFunctionPrinters: new Map([
+        ['slugid', { functionName: 'slugid', printArguments: () => '' }],
       ]),
     });
     expect(
@@ -226,7 +229,7 @@ describe('generated values', () => {
     ).toBe('value clock.cluster(onUpdate: now)');
   });
 
-  it('writes the arguments a preset lift names', () => {
+  it('writes the arguments read from a preset template', () => {
     const preset: AuthoringFieldPresetDescriptor = {
       kind: 'fieldPreset',
       args: [
@@ -243,11 +246,6 @@ describe('generated values', () => {
             cases: { insert: { kind: 'generator', id: 'clusterNow' } },
           },
         },
-      },
-      lift: {
-        codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
-        typeParams: ['precision'],
-        onCreate: { argument: 'stampedOn', value: 'insert', generatorId: 'clusterNow' },
       },
     };
     const context = testBuildContext({ fieldPresets: { clock: { stamped: preset } } });

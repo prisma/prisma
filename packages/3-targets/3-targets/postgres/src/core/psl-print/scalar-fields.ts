@@ -167,10 +167,10 @@ export function buildScalarFields(input: {
         context,
       });
       if (built.kind === 'preset') {
-        typeName = built.phases.path.join('.');
+        typeName = built.phases.preset.path.join('.');
         typeConstructor = {
           kind: 'typeConstructor',
-          path: built.phases.path,
+          path: built.phases.preset.path,
           args: presetArguments({ phases: built.phases, typeParams: column.typeParams }),
           span: SYNTHETIC_SPAN,
         };

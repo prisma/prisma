@@ -6,7 +6,7 @@ import {
   TIMESTAMP_NOW_GENERATOR_ID,
   temporalAuthoringPresets,
   temporalPhaseTemplate,
-  temporalPresetLift,
+  temporalPhaseTemplateWithParams,
 } from '@internal/framework-components/authoring';
 
 export function temporalStringAuthoringPresets<
@@ -50,7 +50,10 @@ export function temporalCodecPresetWithPrecision<
   readonly nowTakesPrecision?: true;
 }) {
   const generatorId = input.generatorId ?? TIMESTAMP_NOW_GENERATOR_ID;
-  const params = input.nowTakesPrecision === true ? PRECISION_PARAMS : undefined;
+  const phase = <const Index extends number>(index: Index) =>
+    input.nowTakesPrecision === true
+      ? temporalPhaseTemplateWithParams(index, generatorId, PRECISION_PARAMS)
+      : temporalPhaseTemplate(index, generatorId);
   return {
     kind: 'fieldPreset',
     args: [TEMPORAL_PRECISION_ARG, TEMPORAL_ON_CREATE_ARG, TEMPORAL_ON_UPDATE_ARG],
@@ -58,14 +61,9 @@ export function temporalCodecPresetWithPrecision<
       codecId: input.codecId,
       typeParams: { precision: { kind: 'arg', index: 0 } },
       executionDefaults: {
-        onCreate: temporalPhaseTemplate(1, generatorId, params),
-        onUpdate: temporalPhaseTemplate(2, generatorId, params),
+        onCreate: phase(1),
+        onUpdate: phase(2),
       },
     },
-    lift: temporalPresetLift({
-      codecId: input.codecId,
-      generatorId,
-      typeParams: [TEMPORAL_PRECISION_ARG.name],
-    }),
   } as const satisfies AuthoringFieldPresetDescriptor;
 }

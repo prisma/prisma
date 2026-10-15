@@ -14,6 +14,7 @@ import {
   temporalAuthoringPresets,
   temporalCodecPreset,
   temporalPhaseTemplate,
+  temporalPhaseTemplateWithParams,
   timestampNowControlDescriptor,
 } from '../src/shared/temporal-presets';
 
@@ -149,7 +150,7 @@ describe('fieldPresetSpellings', () => {
   });
 });
 
-describe('temporalPhaseTemplate with params', () => {
+describe('temporalPhaseTemplateWithParams', () => {
   const preset = {
     kind: 'fieldPreset',
     args: [
@@ -159,7 +160,9 @@ describe('temporalPhaseTemplate with params', () => {
     output: {
       codecId: 'test/time@1',
       executionDefaults: {
-        onCreate: temporalPhaseTemplate(1, 'timeNow', { precision: { kind: 'arg', index: 0 } }),
+        onCreate: temporalPhaseTemplateWithParams(1, 'timeNow', {
+          precision: { kind: 'arg', index: 0 },
+        }),
       },
     },
   } as const;

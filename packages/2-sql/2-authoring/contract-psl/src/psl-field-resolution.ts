@@ -555,7 +555,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     if (presetContributions?.id && field.optional) {
       diagnostics.push({
         code: 'PSL_PRESET_NOT_OPTIONAL',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call that fixes its id, so it cannot be optional. Remove "?" or use a different field type.`,
+        message: `Field "${model.name}.${field.name}" is a primary key through its field preset, so it cannot be optional; primary key columns must be NOT NULL. Remove "?" or use a preset that does not make the field a primary key.`,
         ...source.at(field.span),
       });
       continue;
