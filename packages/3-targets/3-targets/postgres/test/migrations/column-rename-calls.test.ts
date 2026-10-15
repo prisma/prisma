@@ -158,7 +158,6 @@ describe('renameColumnInPostgresSchema on a raw column', () => {
             reportedType: { text: 'integer', kind: undefined, schema: 'pg_catalog', name: 'int4' },
           },
         },
-        primaryKey: undefined,
         foreignKeys: [],
         uniques: [],
         indexes: [],
