@@ -1255,6 +1255,19 @@ describe('SQL contract validators', () => {
       expect(() => validateSqlContractFully(c)).toThrow('mappings must be removed');
     });
 
+    it('rejects a column key this version does not read, and says to re-emit the contract', () => {
+      const userTable = table({ tags: col('pg/text', 'pg/text@1') });
+      const c = JSON.parse(
+        JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
+      );
+      c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns.tags.noCheck = [
+        'elementNotNull',
+      ];
+      expect(() => validateSqlContractFully(c)).toThrow(
+        'columns.tags.noCheck must be removed: this version does not read that key, so re-emit the contract from its source',
+      );
+    });
+
     it('validates FK with source and target coordinates only', () => {
       const userTable = table({ id: col('pg/int4', 'pg/int4@1') }, { pk: pk('id') });
       const postTable = table(

@@ -2,7 +2,6 @@ import type { ControlPolicy } from '@internal/contract/types';
 import type { EnumTypeHandle } from '@internal/contract-authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import type { ForeignKeyAuthoringInput } from '@internal/sql-contract/foreign-key-materialization';
-import type { CheckKind } from '@internal/sql-schema-ir/naming';
 import type {
   AuthoredColumnDefault,
   CheckNode,
@@ -19,7 +18,6 @@ export interface ColumnDescription {
   readonly nullable: boolean;
   readonly many: false | { readonly elementNullable: boolean };
   readonly default: AuthoredColumnDefault | undefined;
-  readonly noCheck: readonly CheckKind[] | undefined;
   /** The `enumType()` handle that types the column, which gives it a storage value set and a membership check. */
   readonly enumTypeHandle: EnumTypeHandle | undefined;
   readonly site: ColumnSite;

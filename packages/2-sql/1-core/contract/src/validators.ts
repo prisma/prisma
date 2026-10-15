@@ -141,7 +141,7 @@ export function createNamespaceEntrySchema(
       for (const [, value] of Object.entries(innerMap)) {
         const parsed = entrySchema(value);
         if (parsed instanceof type.errors) {
-          return ctx.reject({ expected: parsed.summary });
+          return ctx.reject({ expected: parsed.map(describeProblem).join('; ') });
         }
       }
     }
@@ -209,6 +209,15 @@ function storedTypeNamePaths(storage: unknown): readonly string[] {
 /**
  * Contracts emitted before a column named its data type stored the database type name in `nativeType` on columns and `storage.types` entries. The first five such keys are reported with their paths and the rest are counted, so an old contract is refused with a short message that says what changed.
  */
+function describeProblem(problem: {
+  readonly message: string;
+  readonly expected?: string;
+}): string {
+  return problem.expected === 'removed'
+    ? `${problem.message}: this version does not read that key, so re-emit the contract from its source`
+    : problem.message;
+}
+
 function storedTypeNameProblems(storage: unknown): readonly string[] {
   const paths = storedTypeNamePaths(storage);
   const listed = paths
@@ -523,7 +532,7 @@ export function validateStorage(value: unknown): void {
     storedTypeNames.length > 0
       ? [...storedTypeNames]
       : result instanceof type.errors
-        ? result.map((p: { message: string }) => p.message)
+        ? result.map(describeProblem)
         : [];
   if (errors.length > 0) {
     throw contractError(
@@ -539,7 +548,7 @@ export function validateStorage(value: unknown): void {
 export function validateModel(value: unknown): unknown {
   const result = ModelSchema(value);
   if (result instanceof type.errors) {
-    const errors = result.map((p: { message: string }) => p.message);
+    const errors = result.map(describeProblem);
     throw contractError(
       'CONTRACT.VALIDATION_FAILED',
       `Model validation failed: ${errors.join('; ')}`,
@@ -584,7 +593,7 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
   const contractResult = contractSchema(value);
 
   if (contractResult instanceof type.errors) {
-    const messages = contractResult.map((p: { message: string }) => p.message).join('; ');
+    const messages = contractResult.map(describeProblem).join('; ');
     throw new ContractValidationError(
       `Contract structural validation failed: ${messages}`,
       'structural',

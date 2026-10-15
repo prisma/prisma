@@ -44,7 +44,6 @@ export type {
 } from '../contract-definition';
 export { isValueObjectMember, storedAsListColumn } from '../contract-definition';
 export type {
-  CheckKind,
   ColumnRef,
   DeferredIndexColumn,
   DeferredIndexExpression,
