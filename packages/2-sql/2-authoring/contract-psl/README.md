@@ -18,7 +18,7 @@ This keeps core/CLI source-agnostic while giving PSL-first SQL users a one-line 
 - Interpret SQL timestamp semantics: `DateTime @default(now())` as a storage default, and `temporal.createdAt()` / `temporal.updatedAt()` as client-side execution mutation defaults
 - Lower shared constructor expressions in both `types {}` blocks and inline field positions (for example `ShortName = sql.String(length: 35)` and `embedding pgvector.Vector(length: 1536)?`)
 - Lower supported default functions through composed registry inputs
-- Resolve Postgres native storage types from bare names and constructor calls in type position (`Char`, `VarChar`, `Numeric`, `Uuid`, `Inet`, `SmallInt`, `Real`, `Timestamp`, `Timestamptz`, `Date`, `Time`, `Timetz`, `Json`, `Jsonb`, `BigIntNumber`, `UnboundedInt`)
+- Resolve Postgres native storage types from bare names and constructor calls in type position (`Char`, `VarChar`, `Numeric`, `Uuid`, `Inet`, `SmallInt`, `Real`, `Timestamp`, `Timestamptz`, `Date`, `Time`, `Timetz`, `Interval`, `Bit`, `VarBit`, `Json`, `Jsonb`, `BigIntNumber`, `UnboundedInt`)
 - Map PSL relation action tokens to SQL contract referential actions and emit diagnostics for unsupported values
 - Emit deterministic relation metadata in `models.<Model>.relations`
 - Enforce extension composition for namespaced constructor expressions and emit strict diagnostics for unsupported namespaced attributes
