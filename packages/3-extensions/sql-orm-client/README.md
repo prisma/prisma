@@ -12,6 +12,7 @@ This package provides a high-level ORM client surface on top of the runtime. Ord
 - Compile collection state into SQL AST query plans (`SqlQueryPlan`) without rendering SQL in ORM
 - Buffer SELECT include results and decode embedded include payloads in the ORM consumer
 - Orchestrate multi-statement mutations, such as nested creates
+- Run each terminal method as one `orm-call` activity that carries the user's annotations
 - Map storage-column rows back to model-field row shapes
 - Expose an `orm()` client with typed collection keys (for example `db.Post`)
 
@@ -33,6 +34,7 @@ This package should not depend on target adapters or drivers directly; execution
 - `query<Row>(plan)` — streams rows; `execute(plan)` — returns statement stats. Both come from `RuntimeScope` and accept AST-level `SqlQueryPlan` and pre-lowered `SqlExecutionPlan`.
 - `connection?()` — opt-in connection acquisition for grouped multi-statement work.
 - `transaction?()` — opt-in transaction acquisition for atomic mutation scopes.
+- `[activitySource]?` — the SQL runtime's activity source, through which the client starts an `orm-call` activity for each terminal method (see [Calls are activities](#calls-are-activities)). The runtime's queryables, connections, transactions and activity handles carry it.
 
 The optional methods are SQL-specific orchestration capabilities and are intentionally absent from the cross-family `RuntimeExecutor` contract. Runtimes that don't expose them are still valid `RuntimeQueryable`s and are used for single-statement execution.
 
@@ -48,6 +50,30 @@ flowchart LR
   F --> G[Row mapping + include stitching]
   G --> H[Model-field result rows]
 ```
+
+## Calls are activities
+
+Every terminal method (`all`, `first`, `firstOrThrow`, `aggregate`, `groupBy().aggregate`, `create`, `createAll`, `createAndCount`, `upsert`, `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll`, `deleteAndCount`, and each execution of a prepared collection) runs as one `orm-call` activity, started with `startActivityOn` on the queryable the client holds:
+
+```ts
+const audit: SqlMiddleware = {
+  name: 'audit',
+  familyId: 'sql',
+  async activityStarted(activity) {
+    if (activity.kind === 'orm-call') console.log(activity.annotations);
+  },
+};
+
+await db.orm.public.User.first({ id: 1 }, (meta) => meta.annotate(cacheAnnotation({ key: 'user-1' })));
+```
+
+- **Statements go through the call.** Reads, the statements of a mutation graph, nested-relation mutations and the read-back after a nested create or update are the call's children. The client's own transaction is `handle.transaction()`; inside `db.transaction(fn)` the call is a child of that transaction and opens none of its own.
+- **Annotations live on the call.** The annotations the `configure` callback records are the call's, including for writes with relation callbacks. The statements the call sends carry only the reserved keys the client sets itself, so a middleware that reads annotations from `plan.meta.annotations` sees none from an ORM call.
+- **The call ends with the value the method returns:** the model rows, the row or `null`, the aggregate object or the count. A failed call ends `failed`. A streaming terminal such as `all()` starts its call when the caller first reads it and ends it when the caller reads to the end (`succeeded`), stops early (`stopped`) or the stream fails (`failed`); it keeps the rows for the call's result only when the call carries annotations.
+- **Middleware can answer the call.** When an `intercept.onActivity` handler supplies a result, the client returns it without sending any statement. A value of the wrong shape for the method rejects with `ORM.INTERCEPTED_RESULT_INVALID`.
+- **Content hash.** The call's `activity.contentHash()` is computed only when a middleware asks: for a read, a digest of `orm-call`, the method and the content hash of the statement it sends first (for a prepared collection, the statement with that execution's parameters); for a write, of `orm-call`, the method and the model.
+- **A call that resolves to one value starts in the same turn as the method,** so a runtime closed after the method returns waits for it.
+- A queryable without an activity source, such as a test stub, starts no activity, and the call runs on it directly.
 
 ## Basic Usage
 
@@ -277,7 +303,7 @@ The optional `configure` callback may still be passed in second position when th
 
 ## Prepared row descriptions
 
-Built-in collection chains expose terminal-only `.prepared.all(configure?)`, `.prepared.first(filter?, configure?)` and `.prepared.firstOrThrow(filter?, configure?)` views. They synchronously return a `Preparable<DbRow, Result>` without executing it: a description containing a SQL `plan` and a required `consume` function. The description is not itself a `SqlQueryPlan`. Filters, projection, includes, variants, first-row limit replacement and read annotations use the ordinary row pipeline.
+Built-in collection chains expose terminal-only `.prepared.all(configure?)`, `.prepared.first(filter?, configure?)` and `.prepared.firstOrThrow(filter?, configure?)` views. They synchronously return a `Preparable<DbRow, Result>` without executing it: a description containing a SQL `plan` and a required `consume` function. The description is not itself a `SqlQueryPlan`. Filters, projection, includes, variants and first-row limit replacement use the ordinary row pipeline. Read annotations go on the `orm-call` activity of each execution, not on the plan.
 
 `createPreparedRowQuery(description, statement)` is the composition seam for client integrations: prepare `description.plan` through SQL runtime, then wrap that SQL row statement with the description. SQL runtime remains plan-only; the ORM consumer owns model mapping and include decoding.
 
