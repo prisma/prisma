@@ -19,14 +19,18 @@ import {
   makePslNamespaceEntries,
   UNSPECIFIED_PSL_NAMESPACE_ID,
 } from '@internal/framework-components/psl-ast';
-import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
+import { type SqlColumnIR, SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { parsePostgresDefault } from '../default-normalizer';
 import { postgresError } from '../errors';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
 import { type InferredColumnDefaults, inferredColumnDefaults } from './infer-default-codec';
-import { buildNativeEnumBlocks, PSL_SCALAR_TYPE_NAMES } from './infer-enum-blocks';
+import {
+  adoptedEnumTypeName,
+  buildNativeEnumBlocks,
+  PSL_SCALAR_TYPE_NAMES,
+} from './infer-enum-blocks';
 import {
   describedContractOwners,
   type ForeignKeyResolution,
@@ -86,7 +90,6 @@ export function inferPostgresPslContract(
   // VALUE`; any other member change (rename, removal, reorder) is refused
   // with a named diagnostic — see `docs/reference/postgres-native-enums.md`.
   const enumDefinitions = new Map<string, readonly string[]>();
-  const packOwnedEnumTypesByNamespace = new Map<string, Map<string, string>>();
   const enumNamespaceNames = new Set<string>();
   for (const namespace of namespaces) {
     for (const { typeName, members } of namespace.nativeEnums) {
@@ -97,16 +100,7 @@ export function inferPostgresPslContract(
           entityName: typeName,
         }),
       );
-      if (owner !== undefined) {
-        const owned = packOwnedEnumTypesByNamespace.get(namespace.schemaName) ?? new Map();
-        // Columns reference the type either bare or schema-qualified —
-        // `format_type` qualifies a type outside the connection's
-        // search_path — so both spellings are owned.
-        owned.set(typeName, owner.spaceId);
-        owned.set(`${namespace.schemaName}.${typeName}`, owner.spaceId);
-        packOwnedEnumTypesByNamespace.set(namespace.schemaName, owned);
-        continue;
-      }
+      if (owner !== undefined) continue;
       enumDefinitions.set(typeName, members);
       enumNamespaceNames.add(namespace.schemaName);
     }
@@ -125,7 +119,6 @@ export function inferPostgresPslContract(
   const rlsEnabledTables = new Set<string>();
   const policiesByTable = new Map<string, readonly PostgresPolicySchemaNode[]>();
   for (const namespace of namespaces) {
-    const ownedEnumTypes = packOwnedEnumTypesByNamespace.get(namespace.schemaName);
     for (const [tableName, table] of Object.entries(namespace.tables)) {
       if (
         owners.has(
@@ -147,20 +140,28 @@ export function inferPostgresPslContract(
           { meta: { tableName } },
         );
       }
-      if (ownedEnumTypes !== undefined) {
-        for (const column of Object.values(table.columns)) {
-          const owningSpaceId = ownedEnumTypes.get(column.nativeType);
-          if (owningSpaceId !== undefined) {
-            throw postgresError(
-              'CONTRACT.INFER_UNSUPPORTED',
-              `contract infer: column "${tableName}"."${column.name}" is typed by native enum ` +
-                `type "${column.nativeType}", which extension pack space "${owningSpaceId}" ` +
-                'already describes. A cross-space enum-typed column has no authorable PSL form ' +
-                "yet; describe the table in that pack's contract or retype the column before " +
-                're-running contract infer.',
-              { meta: { tableName, columnName: column.name } },
-            );
-          }
+      for (const column of Object.values(table.columns)) {
+        const reported = column.reportedType;
+        const owningSpaceId =
+          reported?.kind === 'enum' && reported.schema !== undefined && reported.name !== undefined
+            ? owners.get(
+                coordinateKey({
+                  namespaceId: reported.schema,
+                  entityKind: 'native_enum',
+                  entityName: reported.name,
+                }),
+              )?.spaceId
+            : undefined;
+        if (owningSpaceId !== undefined) {
+          throw postgresError(
+            'CONTRACT.INFER_UNSUPPORTED',
+            `contract infer: column "${tableName}"."${column.name}" is typed by native enum ` +
+              `type "${column.nativeType}", which extension pack space "${owningSpaceId}" ` +
+              'already describes. A cross-space enum-typed column has no authorable PSL form ' +
+              "yet; describe the table in that pack's contract or retype the column before " +
+              're-running contract infer.',
+            { meta: { tableName, columnName: column.name } },
+          );
         }
       }
       tables[tableName] = new SqlTableIR(table);
@@ -213,22 +214,7 @@ export function inferPostgresPslContract(
   } = resolveForeignKeys(tables, owners);
   const schemaIR = new SqlSchemaIR({ tables: resolvedTables });
 
-  // Live introspection reports an enum column's nativeType schema-qualified
-  // whenever the type sits outside the connection's search_path (`format_type`
-  // semantics; e.g. `auth.aal_level`), while `pg_type.typname` — the
-  // definitions key — is always bare. Register the qualified spelling as an
-  // alias so those columns resolve; block emission stays keyed on the bare
-  // name (one block per type).
-  const enumTypeNames = new Set(enumDefinitions.keys());
-  if (wrapNamespaceName !== undefined) {
-    for (const typeName of enumDefinitions.keys()) {
-      enumTypeNames.add(`${wrapNamespaceName}.${typeName}`);
-    }
-  }
-  const enumInfo: EnumInfo = {
-    typeNames: enumTypeNames,
-    definitions: enumDefinitions,
-  };
+  const enumInfo: EnumInfo = { definitions: enumDefinitions };
   const options: PostgresPslInferOptions = {
     columnTypes: inferColumnTypes({
       tables: introspectedTables,
@@ -237,7 +223,8 @@ export function inferPostgresPslContract(
         codecLookup: context.codecLookup,
         dataTypeLookup: context.dataTypes.lookup,
       }),
-      isEnumColumn: (column) => enumTypeNames.has(column.nativeType),
+      isEnumColumn: (column) =>
+        adoptedEnumTypeName(column, enumInfo.definitions, wrapNamespaceName) !== undefined,
     }),
     defaultMapping: createPostgresDefaultMapping(),
     parseRawDefault: parsePostgresDefault,
@@ -318,15 +305,10 @@ export function buildPslDocumentAst(
     modelNames,
   );
 
-  // Columns reference an enum type bare or schema-qualified (`format_type`
-  // qualifies types outside the search_path); alias the qualified spelling
-  // onto the same PSL name. Blocks stay keyed on the bare name.
-  const enumNameMap = new Map(bareEnumNameMap);
-  if (namespaceName !== undefined) {
-    for (const [typeName, pslName] of bareEnumNameMap) {
-      enumNameMap.set(`${namespaceName}.${typeName}`, pslName);
-    }
-  }
+  const enumNameOf = (column: SqlColumnIR): string | undefined => {
+    const typeName = adoptedEnumTypeName(column, bareEnumNameMap, namespaceName);
+    return typeName === undefined ? undefined : bareEnumNameMap.get(typeName);
+  };
 
   // Cross-space entries are seeded first so a real local table of the same
   // bare name (an existing single-namespace-flat-bucket limitation, not new
@@ -381,7 +363,7 @@ export function buildPslDocumentAst(
       buildModel(
         table,
         columnTypes,
-        enumNameMap,
+        enumNameOf,
         fieldNamesByTable,
         defaultMapping,
         rawDefaultParser,

@@ -60,7 +60,7 @@ import {
 export function buildModel(
   table: SqlTableIR,
   columnTypes: ColumnTypeOf,
-  enumNameMap: ReadonlyMap<string, string>,
+  enumNameOf: (column: SqlColumnIR) => string | undefined,
   fieldNamesByTable: ReadonlyMap<string, TableColumnFieldNameMap>,
   defaultMapping: DefaultMappingOptions | undefined,
   rawDefaultParser: PslPrinterOptions['parseRawDefault'],
@@ -98,7 +98,7 @@ export function buildModel(
         column,
         table,
         columnTypes,
-        enumNameMap,
+        enumNameOf,
         fieldNameMap,
         defaultMapping,
         rawDefaultParser,
@@ -245,7 +245,7 @@ function buildScalarField(
   column: SqlColumnIR,
   table: SqlTableIR,
   columnTypes: ColumnTypeOf,
-  enumNameMap: ReadonlyMap<string, string>,
+  enumNameOf: (column: SqlColumnIR) => string | undefined,
   fieldNameMap: TableColumnFieldNameMap | undefined,
   defaultMapping: DefaultMappingOptions | undefined,
   rawDefaultParser: PslPrinterOptions['parseRawDefault'],
@@ -265,7 +265,7 @@ function buildScalarField(
   // the Phase-1 authoring form a `native_enum` ref field takes — not a bare
   // name substitution. The printer renders `typeConstructor` when present and
   // composes `?`/`[]` exactly like any other field type.
-  const enumPslName = enumNameMap.get(column.nativeType);
+  const enumPslName = enumNameOf(column);
   const pslType =
     enumPslName === undefined
       ? columnTypes(table.name, column.name)

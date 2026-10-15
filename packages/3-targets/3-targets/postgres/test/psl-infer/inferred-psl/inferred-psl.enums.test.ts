@@ -23,11 +23,15 @@ import {
   type PostgresPslInferOptions,
 } from '../../../src/core/psl-infer/infer-psl-contract';
 import { createPostgresDefaultMapping } from '../../../src/core/psl-infer/postgres-default-mapping';
-import { inferBuildContext, inferredColumnTypesOf } from '../fixtures';
+import {
+  fixtureEnums,
+  inferBuildContext,
+  inferredColumnTypesOf,
+  withReportedTypes,
+} from '../fixtures';
 
 function enumInfoOf(definitions: Record<string, readonly string[]>): EnumInfo {
   return {
-    typeNames: new Set(Object.keys(definitions)),
     definitions: new Map(Object.entries(definitions)),
   };
 }
@@ -37,10 +41,18 @@ function printWithEnums(
   definitions: Record<string, readonly string[]>,
 ): string {
   const enumInfo = enumInfoOf(definitions);
-  const schemaIR = new SqlSchemaIR({ tables });
+  const enums = fixtureEnums('public', Object.keys(definitions));
+  const schemaIR = new SqlSchemaIR({
+    tables: Object.fromEntries(
+      Object.entries(tables).map(([name, table]) => [
+        name,
+        { ...table, columns: withReportedTypes(table.columns, enums) },
+      ]),
+    ),
+  });
   const options: PostgresPslInferOptions = {
     columnDefaults: inferredColumnDefaults(inferBuildContext),
-    columnTypes: inferredColumnTypesOf(schemaIR.tables, enumInfo.typeNames),
+    columnTypes: inferredColumnTypesOf(schemaIR.tables, enums),
     defaultMapping: createPostgresDefaultMapping(),
     parseRawDefault: parsePostgresDefault,
     enumInfo,

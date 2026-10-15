@@ -2,7 +2,6 @@ import type { ColumnDefault } from '@internal/contract/types';
 import type { DefaultMappingOptions } from '../psl-build/default-mapping';
 
 export interface EnumInfo {
-  readonly typeNames: ReadonlySet<string>;
   readonly definitions: ReadonlyMap<string, readonly string[]>;
 }
 
