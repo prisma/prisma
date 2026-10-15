@@ -36,7 +36,7 @@ it('derives literal safe roots for glob syntax and future directories', async ()
   await expect(watchRoots(['/**/*.prisma'])).rejects.toThrow('root');
   await mkdir(join(dir, '{one'));
   expect(await watchRoots([join(dir, '{one/nested,two}/**/*.prisma')])).toEqual([dir]);
-  await expect(watchRoots([`${dir}/*/../../*.prisma`])).rejects.toThrow('traversal');
+  expect(await watchRoots([`${dir}/*/../../*.prisma`])).toEqual([dir]);
 });
 it('retains nested roots and removes only exact duplicates', async () => {
   const dir = await directory();
@@ -79,20 +79,31 @@ it('keeps literal parent traversal and external roots available', async () => {
   expect(await watchRoots([`${dir}/config/../outside/**/*.prisma`])).toEqual([
     join(dir, 'outside'),
   ]);
-  await expect(watchRoots([`${dir}/config/{../outside,inside}/*.prisma`])).rejects.toThrow(
-    'traversal',
-  );
+  expect(await watchRoots([`${dir}/config/{../outside,inside}/*.prisma`])).toEqual([
+    join(dir, 'config'),
+  ]);
 });
 
-it.each(['*', '?', '[unfinished', '{literal}', '@(one|two)', '!(one)', '\\[id\\]'])(
+it('resolves escaped brackets to an existing literal directory', async () => {
+  const dir = await directory();
+  await mkdir(join(dir, '[id]'));
+  expect(await watchRoots([String.raw`${dir}/\[id\]/schema.prisma`])).toEqual([join(dir, '[id]')]);
+});
+
+it.each(['?', 'user?'])('uses glob-parent semantics for a %s directory', async (segment) => {
+  const dir = await directory();
+  await mkdir(join(dir, segment));
+  expect(await watchRoots([join(dir, segment, 'nested/schema.prisma')])).toEqual([
+    join(dir, segment),
+  ]);
+});
+
+it.each(['*', '[unfinished', '{literal}', '@(one|two)', '!(one)', '\\[id\\]'])(
   'uses a conservative root boundary for %s outside the config directory',
   async (segment) => {
     const dir = await directory();
     await mkdir(join(dir, segment));
     expect(await watchRoots([join(dir, segment, 'nested/schema.prisma')])).toEqual([dir]);
-    await expect(watchRoots([`${dir}/${segment}/../../schema.prisma`])).rejects.toThrow(
-      'traversal',
-    );
   },
 );
 it.each([undefined, 'true'])('allows library polling configuration: %s', async (usePolling) => {

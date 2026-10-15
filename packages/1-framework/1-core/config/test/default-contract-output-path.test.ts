@@ -21,6 +21,11 @@ describe('defaultContractOutputPath', () => {
     ['./schemas/[[]id[]]/*.prisma', './schemas/contract.json'],
     ['./schemas/@(one|two)/*.prisma', './schemas/contract.json'],
     ['/**/*.prisma', '/contract.json'],
+    ['./*.prisma', './contract.json'],
+    ['prefix{one/nested,two}/*.prisma', 'contract.json'],
+    ['C:/schemas/**/*.prisma', 'C:/schemas/contract.json'],
+    ['//server/share/schemas/**/*.prisma', '//server/share/schemas/contract.json'],
+    ['../outside/**/*.prisma', '../outside/contract.json'],
     ['./schemas/{literal}/schema.prisma', './schemas/{literal}/schema.json'],
     ['./schemas/[unfinished/schema.prisma', './schemas/[unfinished/schema.json'],
   ])('resolves %s to %s', (input, output) => {

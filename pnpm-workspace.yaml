@@ -16,6 +16,7 @@ blockExoticSubdeps: true
 
 catalog:
   '@prisma/dev': 0.25.2
+  '@types/glob-parent': ^5.1.3
   '@types/node': 26.1.2
   '@types/pg': 8.20.4
   ajv: ^8.20.0
@@ -25,6 +26,7 @@ catalog:
   # major. Use the bson range the mongodb release declares.
   bson: ^7.2.0
   chokidar: ^5.0.0
+  glob-parent: ^6.0.2
   gray-matter: ^4.0.3
   mongodb: ^7.4.0
   mongodb-connection-string-url: ^7.0.1

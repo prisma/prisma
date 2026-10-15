@@ -4,7 +4,9 @@ import { contractInputDirectory } from './contract-input-directory';
 
 export function defaultContractOutputPath(contractPath: string): string {
   if (isDynamicPattern(contractPath)) {
-    const { directory } = contractInputDirectory(contractPath.replaceAll('\\', '/'));
+    const normalizedPath = contractPath.replaceAll('\\', '/');
+    const directory = contractInputDirectory(normalizedPath);
+    if (directory === '.' && !normalizedPath.startsWith('./')) return 'contract.json';
     const separator = directory.length > 0 && !directory.endsWith('/') ? '/' : '';
     return `${directory}${separator}contract.json`;
   }
