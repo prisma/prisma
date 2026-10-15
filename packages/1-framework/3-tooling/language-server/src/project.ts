@@ -24,8 +24,8 @@ import {
   ResponseError,
   type SemanticTokens,
   type SignatureHelp,
-  type WorkspaceEdit,
   UnregistrationRequest,
+  type WorkspaceEdit,
 } from 'vscode-languageserver';
 import { classifyPslCompletionContext } from './completion-context';
 import { providePslCompletionItems } from './completion-provider';
@@ -34,8 +34,8 @@ import { provideDefinition } from './definition';
 import { type LspDiagnostic, ParseDiagnosticSeverity } from './diagnostic-mapping';
 import type { DocumentStore } from './document-store';
 import { computeFoldingRanges } from './folding-ranges';
-import { providePslHover } from './hover';
 import { requestWatcherRegistration } from './guarded-connection';
+import { providePslHover } from './hover';
 import { InternalWatcher } from './internal-watcher';
 import { ProjectArtifacts } from './project-artifacts';
 import { provideReferences } from './references';
@@ -71,7 +71,6 @@ interface ProjectOptions {
   readonly nextSequence: () => number;
   readonly unmanage: (uri?: string) => void;
   readonly refreshDiagnostics: () => void;
-  readonly registrationTimeoutMs?: number;
   readonly registerWatcher?: (patterns: readonly string[]) => Promise<Disposable | undefined>;
 }
 
@@ -82,17 +81,15 @@ export class Project {
   readonly #options: ProjectOptions;
   #state: LoadState = { status: 'failed' };
   #membershipSequence = 0;
-  #watcherGeneration = 0;
+  #registrationAttempt = 0;
+  #watchInputs: readonly string[] | undefined;
   #watcher: Disposable | undefined;
   #internalWatcher: InternalWatcher | undefined;
-  readonly #retainedConfigWatchers = new Set<InternalWatcher>();
-  readonly #closing = new Set<Promise<void>>();
   readonly #diskUris = new Set<string>();
-  readonly #pendingPaths = new Set<string>();
-  #reconcile = false;
+  #refreshNeeded = false;
+  #configReloadNeeded = false;
   #batchTimer: ReturnType<typeof setTimeout> | undefined;
   #batch: Promise<void> | undefined;
-  #cancelRegistration: (() => void) | undefined;
   #disposed = false;
   #reportedMembers: ReadonlySet<string> = new Set();
 
@@ -416,7 +413,11 @@ export class Project {
 
   #startLoad(): Promise<ResolvedProject> {
     this.#membershipSequence = this.#options.nextSequence();
-    this.#clearWatcher(true);
+    this.#internalWatcher ??= new InternalWatcher(this.configPath, [], {
+      onReady: () => this.#queueChanges([]),
+      onChange: (path) => this.#queueChanges([pathToFileURL(path).toString()]),
+      onError: (error) => this.#watchError(error),
+    });
     this.#invalidateSnapshots();
     const existing = this.#state;
     const previousLoad = existing.status === 'loading' ? existing.load : undefined;
@@ -441,12 +442,10 @@ export class Project {
             this.#publishConfigFailure(error);
             if (lastGood !== undefined) {
               this.#state = { status: 'loaded', data: lastGood };
-              void this.#registerWatcher(lastGood);
               return lastGood;
             }
             this.#state = { status: 'failed' };
             this.#options.unmanage();
-            this.#clearWatcher();
             this.#clearPublishedMembers();
           }
           throw error;
@@ -495,33 +494,6 @@ export class Project {
     }
   }
 
-  #clearWatcher(retainConfigObservation = false): number {
-    const generation = ++this.#watcherGeneration;
-    this.#cancelRegistration?.();
-    this.#cancelRegistration = undefined;
-    this.#watcher?.dispose();
-    this.#watcher = undefined;
-    if (this.#batchTimer !== undefined) clearTimeout(this.#batchTimer);
-    this.#batchTimer = undefined;
-    this.#pendingPaths.clear();
-    this.#reconcile = false;
-    if (this.#internalWatcher !== undefined) {
-      this.#retainedConfigWatchers.add(this.#internalWatcher);
-      this.#internalWatcher = undefined;
-    }
-    if (!retainConfigObservation) this.#closeRetainedConfigWatchers();
-    return generation;
-  }
-
-  #closeRetainedConfigWatchers(): void {
-    for (const watcher of this.#retainedConfigWatchers) {
-      const closing = watcher.close().catch((error: unknown) => this.#watchError(error));
-      this.#closing.add(closing);
-      void closing.finally(() => this.#closing.delete(closing));
-    }
-    this.#retainedConfigWatchers.clear();
-  }
-
   #watchError(error: unknown): void {
     const detail = error instanceof Error ? error.message : String(error);
     this.#options.connection.console.warn(
@@ -530,71 +502,40 @@ export class Project {
   }
 
   async #registerWatcher(project: ResolvedProject): Promise<void> {
-    const generation = this.#watcherGeneration;
-    const current = (): boolean => !this.#disposed && this.#watcherGeneration === generation;
     const patterns = project.schemaInputConfig.contract?.source.inputs ?? [];
+    if (
+      this.#watchInputs?.length === patterns.length &&
+      patterns.every((pattern, index) => pattern === this.#watchInputs?.[index])
+    )
+      return;
+    this.#watchInputs = [...patterns];
+    const attempt = ++this.#registrationAttempt;
+    const current = (): boolean => !this.#disposed && this.#registrationAttempt === attempt;
+    this.#watcher?.dispose();
+    this.#watcher = undefined;
     if (
       this.#options.watchedFilesRegistration &&
       isClientWatcherCompatible(project.schemaInputConfig)
     ) {
-      let accepting = true;
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      const deadline = new Promise<undefined>((resolve) => {
-        this.#cancelRegistration = () => {
-          accepting = false;
-          resolve(undefined);
-        };
-        timer = setTimeout(() => {
-          accepting = false;
-          resolve(undefined);
-        }, this.#options.registrationTimeoutMs ?? 10_000);
-        timer.unref();
-      });
+      void this.#internalWatcher?.update([]);
       try {
         const register =
           this.#options.registerWatcher ?? ((patterns) => this.#registerClientWatcher(patterns));
-        const registration = register([...patterns, this.configPath]).then((disposable) => {
-          if (!accepting || !current()) {
-            disposable?.dispose();
-            return undefined;
-          }
-          return disposable;
-        });
-        const disposable = await Promise.race([registration, deadline]);
-        if (disposable !== undefined && current()) {
-          this.#watcher = disposable;
-          this.#closeRetainedConfigWatchers();
-          this.#queueChanges([], true);
+        const disposable = await register(patterns);
+        if (!current()) {
+          disposable?.dispose();
           return;
         }
-        disposable?.dispose();
+        if (disposable !== undefined) {
+          this.#watcher = disposable;
+          this.#queueChanges([]);
+          return;
+        }
       } catch (error) {
         if (current()) this.#watchError(error);
-      } finally {
-        accepting = false;
-        clearTimeout(timer);
-        if (current()) this.#cancelRegistration = undefined;
       }
     }
-    if (!current()) return;
-    const watcher = new InternalWatcher(this.configPath, patterns, {
-      onReady: () => {
-        if (current()) {
-          this.#closeRetainedConfigWatchers();
-          this.#queueChanges([], true);
-        }
-      },
-      onChange: (path) => {
-        const uri = pathToFileURL(path).toString();
-        if (current() || (this.#retainedConfigWatchers.has(watcher) && this.#isConfigUri(uri))) {
-          this.#queueChanges([uri]);
-        }
-      },
-      onError: (error) => {
-        if (current() || this.#retainedConfigWatchers.has(watcher)) this.#watchError(error);
-      },
-    });
-    this.#internalWatcher = watcher;
+    if (current()) await this.#internalWatcher?.update(patterns);
   }
 
   async #registerClientWatcher(patterns: readonly string[]): Promise<Disposable> {
@@ -634,58 +575,51 @@ export class Project {
     if (uris.length > 0) this.#queueChanges(uris);
   }
 
-  #queueChanges(uris: readonly string[], reconcile = false): void {
+  #queueChanges(uris: readonly string[]): void {
     if (this.#disposed) return;
-    for (const uri of uris) this.#pendingPaths.add(uri);
-    this.#reconcile ||= reconcile;
+    this.#refreshNeeded = true;
+    this.#configReloadNeeded ||= uris.some((uri) => this.#isConfigUri(uri));
     if (this.#batch !== undefined) return;
     if (this.#batchTimer !== undefined) clearTimeout(this.#batchTimer);
     this.#batchTimer = setTimeout(() => {
       this.#batchTimer = undefined;
-      const generation = this.#watcherGeneration;
-      const paths = [...this.#pendingPaths];
-      const reconcile = this.#reconcile;
-      this.#pendingPaths.clear();
-      this.#reconcile = false;
-      this.#batch = this.#applyChanges(paths, reconcile, generation)
+      const reload = this.#configReloadNeeded;
+      this.#refreshNeeded = false;
+      this.#configReloadNeeded = false;
+      this.#batch = this.#applyChanges(reload)
         .catch((error: unknown) => this.#watchError(error))
         .finally(() => {
           this.#batch = undefined;
-          if (this.#pendingPaths.size > 0 || this.#reconcile) this.#queueChanges([]);
+          if (this.#refreshNeeded) this.#queueChanges([]);
         });
     }, 100);
   }
 
-  async #applyChanges(
-    uris: readonly string[],
-    reconcile: boolean,
-    generation: number,
-  ): Promise<void> {
-    if (this.#disposed || generation !== this.#watcherGeneration) return;
-    for (const uri of uris) this.#options.documents.invalidateTree(uri);
-    if (reconcile) this.#invalidateSnapshots();
-    if (uris.some((uri) => this.#isConfigUri(uri))) {
+  async #applyChanges(reload: boolean): Promise<void> {
+    if (this.#disposed) return;
+    this.#invalidateSnapshots();
+    if (reload) {
       await this.reload().catch(() => undefined);
       if (!this.#disposed) this.#options.refreshDiagnostics();
       return;
     }
-    for (const uri of this.#diskUris) this.documentChanged(uri);
     if (
       await this.refreshMembership(
-        uris[0] ?? pathToFileURL(this.configPath).toString(),
+        pathToFileURL(this.configPath).toString(),
         this.#options.nextSequence(),
       )
     ) {
-      if (!this.#disposed && generation === this.#watcherGeneration)
-        this.#options.refreshDiagnostics();
+      if (!this.#disposed) this.#options.refreshDiagnostics();
     }
   }
 
   async dispose(): Promise<void> {
     this.#disposed = true;
     this.#membershipSequence = this.#options.nextSequence();
-    this.#clearWatcher();
-    await Promise.all(this.#closing);
+    this.#watcher?.dispose();
+    this.#watcher = undefined;
+    if (this.#batchTimer !== undefined) clearTimeout(this.#batchTimer);
+    await this.#internalWatcher?.close();
   }
 
   #publishMembers(project: ResolvedProject): void {

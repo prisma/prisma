@@ -8,6 +8,7 @@ import { resolveSchemaInputs } from '../src/schema-inputs';
 
 vi.mock('../src/internal-watcher', () => ({
   InternalWatcher: class {
+    async update() {}
     async close() {}
   },
 }));

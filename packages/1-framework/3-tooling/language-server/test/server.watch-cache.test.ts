@@ -23,22 +23,25 @@ import { testTypeConstructors } from './helpers/binder';
 
 const state = vi.hoisted(() => ({
   inputs: undefined as readonly string[] | undefined,
+  loadError: undefined as Error | undefined,
   watchers: [] as {
     onReady: () => void;
     onChange: (path: string) => void;
     onError: (error: unknown) => void;
     close: ReturnType<typeof vi.fn>;
+    update: ReturnType<typeof vi.fn>;
   }[],
 }));
 vi.mock('../src/internal-watcher', () => ({
   InternalWatcher: class {
     readonly close = vi.fn(async () => {});
+    readonly update = vi.fn(async () => {});
     constructor(
       _config: string,
       _inputs: readonly string[],
-      callbacks: Omit<(typeof state.watchers)[number], 'close'>,
+      callbacks: Omit<(typeof state.watchers)[number], 'close' | 'update'>,
     ) {
-      state.watchers.push({ ...callbacks, close: this.close });
+      state.watchers.push({ ...callbacks, close: this.close, update: this.update });
     }
   },
 }));
@@ -50,6 +53,7 @@ vi.mock('../src/config-resolution', async (importOriginal) => {
       configPath: string,
       readText: (uri: string) => string | undefined,
     ) => {
+      if (state.loadError !== undefined) throw state.loadError;
       const schemaInputConfig = {
         contract: {
           source: {
@@ -76,7 +80,7 @@ vi.mock('../src/config-resolution', async (importOriginal) => {
 const cleanups: (() => void | Promise<void>)[] = [];
 const alpha = '// use prisma-8\nmodel Alpha {\n id Int\n}\n';
 const duplicate = `${alpha}\nmodel Alpha {\n id Int\n}\n`;
-async function fixture(watched = false, deadline = 10000, protocolRegistration = false) {
+async function fixture(watched = false, protocolRegistration = false) {
   const dir = await mkdtemp(join(tmpdir(), 'project-watching-'));
   const path = join(dir, 'schema.prisma');
   const config = join(dir, 'prisma.config.ts');
@@ -104,7 +108,6 @@ async function fixture(watched = false, deadline = 10000, protocolRegistration =
     nextSequence: () => ++sequence,
     unmanage: vi.fn(),
     refreshDiagnostics: refresh,
-    registrationTimeoutMs: deadline,
     ...(protocolRegistration ? {} : { registerWatcher: register }),
   });
   cleanups.push(async () => {
@@ -136,19 +139,21 @@ afterEach(async () => {
   cleanups.length = 0;
   state.watchers.length = 0;
   state.inputs = undefined;
+  state.loadError = undefined;
   vi.restoreAllMocks();
 });
 
 it.each(['success', 'rejection'] as const)(
   'distinguishes void registration success from rejection through the guarded connection: %s',
   async (outcome) => {
-    const h = await fixture(true, 10000, true);
+    const h = await fixture(true, true);
     if (outcome === 'success') h.request.mockResolvedValue(undefined);
     else h.request.mockRejectedValue(new Error('registration denied'));
     await h.project.reload();
     if (outcome === 'success') {
       await vi.waitFor(() => expect(h.refresh).toHaveBeenCalledOnce());
-      expect(state.watchers).toHaveLength(0);
+      expect(state.watchers).toHaveLength(1);
+      expect(state.watchers[0]!.update).toHaveBeenCalledWith([]);
       expect(h.warn).not.toHaveBeenCalled();
     } else {
       await vi.waitFor(() => expect(state.watchers).toHaveLength(1));
@@ -192,24 +197,28 @@ it.each(['success', 'rejection'] as const)(
     await vi.waitFor(() => expect(registration).toHaveBeenCalledOnce());
     if (outcome === 'rejection') {
       await vi.waitFor(() => expect(state.watchers).toHaveLength(1));
-      expect(h.warn).toHaveBeenCalledWith(expect.stringContaining('client refused watching'));
+      await vi.waitFor(() =>
+        expect(h.warn).toHaveBeenCalledWith(expect.stringContaining('client refused watching')),
+      );
     } else {
       await vi.waitFor(() =>
         expect(h.publish).toHaveBeenCalledWith({ uri: h.uri, diagnostics: [] }),
       );
-      expect(state.watchers).toHaveLength(0);
+      expect(state.watchers).toHaveLength(1);
+      expect(state.watchers[0]!.update).toHaveBeenCalledWith([]);
       expect(h.warn).not.toHaveBeenCalled();
     }
   },
 );
 
-it('uses compatible successful client registration without an internal duplicate', async () => {
+it('uses compatible client registration with only internal config observation', async () => {
   const h = await fixture(true);
   const dispose = vi.fn();
   h.register.mockResolvedValue({ dispose, disposeSingle: () => true });
   await h.project.reload();
   await vi.waitFor(() => expect(h.register).toHaveBeenCalledOnce());
-  expect(state.watchers).toHaveLength(0);
+  expect(state.watchers).toHaveLength(1);
+  expect(state.watchers[0]!.update).toHaveBeenCalledWith([]);
   await h.project.dispose();
   expect(dispose).toHaveBeenCalledOnce();
 });
@@ -225,8 +234,8 @@ it.each(['absent', 'failed', 'empty', 'incompatible'] as const)(
     expect(await h.project.diagnosticReport(h.uri)).toMatchObject({ items: [] });
   },
 );
-it('bounds registration, disposes late success, and keeps cached reads while pending', async () => {
-  const h = await fixture(true, 10);
+it('keeps features and disposal available when registration never answers', async () => {
+  const h = await fixture(true);
   let resolve!: (value: { dispose: () => void; disposeSingle: () => boolean }) => void;
   h.register.mockReturnValue(
     new Promise((done) => {
@@ -236,7 +245,9 @@ it('bounds registration, disposes late success, and keeps cached reads while pen
   await h.project.reload();
   await writeFile(h.path, duplicate);
   expect(h.documents.text(h.uri)).toBe(alpha);
-  await vi.waitFor(() => expect(state.watchers).toHaveLength(1));
+  expect(await h.project.foldingRanges(h.uri)).not.toEqual([]);
+  expect(state.watchers[0]!.update).toHaveBeenCalledWith([]);
+  await h.project.dispose();
   const dispose = vi.fn();
   resolve({ dispose, disposeSingle: () => true });
   await vi.waitFor(() => expect(dispose).toHaveBeenCalledOnce());
@@ -265,11 +276,56 @@ it('reconciles readiness and coalesces external changes without editor messages'
   await vi.waitFor(() => expect(h.publish).toHaveBeenCalledOnce());
   expect(h.publish).toHaveBeenLastCalledWith({ uri: h.uri, diagnostics: [] });
 });
+it('invalidates every project candidate even when only another path is notified', async () => {
+  const h = await fixture();
+  const candidate = join(h.dir, 'candidate.prisma');
+  const candidateUri = pathToFileURL(candidate).toString();
+  await writeFile(candidate, 'model Ignored {}');
+  await h.project.reload();
+  expect(h.documents.text(candidateUri)).toBe('model Ignored {}');
+  await writeFile(candidate, duplicate);
+  state.watchers[0]!.onChange(h.path);
+  await vi.waitFor(() =>
+    expect(h.publish).toHaveBeenCalledWith({
+      uri: candidateUri,
+      diagnostics: expect.arrayContaining([
+        expect.objectContaining({ code: 'PSL_DUPLICATE_DECLARATION' }),
+      ]),
+    }),
+  );
+});
+
+it('keeps existing subscriptions after failed reloads and updates only changed inputs', async () => {
+  const h = await fixture();
+  await h.project.reload();
+  const watcher = state.watchers[0]!;
+  expect(watcher.update).toHaveBeenCalledOnce();
+  state.loadError = new Error('invalid config');
+  await h.project.reload();
+  await writeFile(h.path, duplicate);
+  watcher.onChange(h.path);
+  await vi.waitFor(() =>
+    expect(h.publish).toHaveBeenCalledWith({
+      uri: h.uri,
+      diagnostics: expect.arrayContaining([
+        expect.objectContaining({ code: 'PSL_DUPLICATE_DECLARATION' }),
+      ]),
+    }),
+  );
+  expect(watcher.update).toHaveBeenCalledOnce();
+  expect(watcher.close).not.toHaveBeenCalled();
+  state.loadError = undefined;
+  state.inputs = [h.path];
+  await h.project.reload();
+  expect(state.watchers).toHaveLength(1);
+  expect(watcher.update).toHaveBeenLastCalledWith([h.path]);
+});
+
 it('batches multiple files after 100 ms of silence following the last notification', async () => {
   const h = await fixture();
   await h.project.reload();
   const membership = vi.spyOn(h.project, 'refreshMembership').mockResolvedValue(true);
-  const invalidate = vi.spyOn(h.documents, 'invalidateTree');
+  const invalidate = vi.spyOn(h.documents, 'invalidate');
   const other = join(h.dir, 'other.prisma');
   vi.useFakeTimers();
   try {
@@ -284,7 +340,7 @@ it('batches multiple files after 100 ms of silence following the last notificati
     expect(invalidate).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     expect(membership).toHaveBeenCalledOnce();
-    expect(invalidate.mock.calls).toEqual([[pathToFileURL(other).toString()], [h.uri]]);
+    expect(invalidate.mock.calls).toEqual([[h.uri]]);
     expect(h.refresh).toHaveBeenCalledOnce();
   } finally {
     vi.useRealTimers();
@@ -304,8 +360,7 @@ it('queues multiple files and readiness received during analysis for a later bat
           finish = resolve;
         }),
     );
-  const invalidate = vi.spyOn(h.documents, 'invalidateTree');
-  const snapshots = vi.spyOn(h.documents, 'invalidate');
+  const invalidate = vi.spyOn(h.documents, 'invalidate');
   const other = join(h.dir, 'other.prisma');
   vi.useFakeTimers();
   try {
@@ -313,7 +368,6 @@ it('queues multiple files and readiness received during analysis for a later bat
     await vi.advanceTimersByTimeAsync(100);
     expect(membership).toHaveBeenCalledOnce();
     invalidate.mockClear();
-    snapshots.mockClear();
     state.watchers[0]!.onChange(other);
     state.watchers[0]!.onChange(h.path);
     state.watchers[0]!.onReady();
@@ -327,8 +381,7 @@ it('queues multiple files and readiness received during analysis for a later bat
     expect(membership).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(1);
     expect(membership).toHaveBeenCalledTimes(2);
-    expect(invalidate.mock.calls).toEqual([[pathToFileURL(other).toString()], [h.uri]]);
-    expect(snapshots).toHaveBeenCalledWith(h.uri);
+    expect(invalidate.mock.calls).toEqual([[h.uri]]);
     expect(h.refresh).toHaveBeenCalledTimes(2);
   } finally {
     vi.useRealTimers();
@@ -348,7 +401,7 @@ it('logs errors without stat fallback or suspension and reload recovers missed c
     items: expect.arrayContaining([expect.objectContaining({ code: 'PSL_DUPLICATE_DECLARATION' })]),
   });
 });
-it('preserves overlays and rejects callbacks from superseded generations', async () => {
+it('preserves overlays and subscriptions across unchanged-input reloads', async () => {
   const h = await fixture();
   await h.project.reload();
   const old = state.watchers[0]!;
@@ -358,12 +411,12 @@ it('preserves overlays and rejects callbacks from superseded generations', async
   h.publish.mockClear();
   expect(old.close).not.toHaveBeenCalled();
   old.onReady();
-  state.watchers[1]!.onReady();
-  old.onChange(h.config);
+  old.onChange(h.path);
   await vi.waitFor(() => expect(h.publish).toHaveBeenCalledOnce());
   expect(h.documents.text(h.uri)).toBe(alpha);
-  expect(state.watchers).toHaveLength(2);
-  expect(old.close).toHaveBeenCalledOnce();
+  expect(state.watchers).toHaveLength(1);
+  expect(old.close).not.toHaveBeenCalled();
+  expect(old.update).toHaveBeenCalledOnce();
 });
 it('keeps owner-directed watching after the last document closes, including external inputs', async () => {
   const h = await fixture();
@@ -395,6 +448,7 @@ it('disposes superseded client registration without replacing the current backen
   );
   await h.project.reload();
   h.register.mockRejectedValueOnce(new Error('replacement failed'));
+  state.inputs = [join(h.dir, 'other.prisma')];
   await h.project.reload();
   await vi.waitFor(() => expect(state.watchers).toHaveLength(1));
   const dispose = vi.fn();
@@ -407,7 +461,7 @@ it('awaits asynchronous close and rejects events after disposal', async () => {
   const h = await fixture();
   await h.project.reload();
   let release!: () => void;
-  state.watchers[0]!.close.mockImplementation(
+  state.watchers[0]!.close.mockImplementationOnce(
     () =>
       new Promise<void>((done) => {
         release = done;

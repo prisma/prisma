@@ -24,6 +24,7 @@ import { testTypeConstructors } from './helpers/binder';
 
 vi.mock('../src/internal-watcher', () => ({
   InternalWatcher: class {
+    async update() {}
     async close() {}
   },
 }));

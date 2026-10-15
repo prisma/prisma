@@ -83,6 +83,38 @@ it.each([undefined, 'true'])('allows library polling configuration: %s', async (
   await watcher.close();
   expect(subscriptions[0]?.closed).toBe(true);
 });
+it('keeps config observation and schema coverage through parent-child root transitions', async () => {
+  const dir = await directory();
+  const child = join(dir, 'schemas');
+  await mkdir(child);
+  const config = join(dir, 'prisma.config.ts');
+  await writeFile(config, 'first');
+  const onReady = vi.fn();
+  const onChange = vi.fn();
+  const watcher = new InternalWatcher(config, [join(dir, '*.prisma')], {
+    onReady,
+    onChange,
+    onError: (error) => {
+      throw error;
+    },
+  });
+  cleanups.push(() => watcher.close());
+  await vi.waitFor(() => expect(onReady).toHaveBeenCalled());
+  for (const root of [child, dir, child, dir]) {
+    onReady.mockClear();
+    await watcher.update([join(root, '**/*.prisma')]);
+    await vi.waitFor(() => expect(onReady).toHaveBeenCalled());
+    onChange.mockClear();
+    const file = join(child, 'user.prisma');
+    await writeFile(file, String(Math.random()));
+    await writeFile(config, String(Math.random()));
+    await vi.waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(file);
+      expect(onChange).toHaveBeenCalledWith(config);
+    });
+  }
+});
+
 it('observes real external changes and atomic config replacement', async () => {
   const dir = await directory();
   const schemas = join(dir, 'schemas');
@@ -98,7 +130,7 @@ it('observes real external changes and atomic config replacement', async () => {
     onError,
   });
   cleanups.push(() => watcher.close());
-  await vi.waitFor(() => expect(onReady).toHaveBeenCalledOnce());
+  await vi.waitFor(() => expect(onReady).toHaveBeenCalledTimes(2));
   const member = join(schemas, 'new.prisma');
   await writeFile(member, 'first');
   await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith(member));

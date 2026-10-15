@@ -1029,15 +1029,15 @@ afterEach(async () => {
 });
 
 describe('language server', { timeout: timeouts.databaseOperation }, () => {
-  it('publishes once per open and edit, using a normalized URI across equivalent lifecycle notifications', async () => {
+  it('uses a normalized URI across readiness and equivalent lifecycle notifications', async () => {
     harness = startHarness(resolveToSchema, watchedFilesCapabilities);
     await harness.initialize();
     const registration = harness.delayNextSchemaWatcherRegistration();
     const alias = schemaUri.replace('schema.psl', '%73chema.psl');
     openDocument(harness, alias, unformattedPsl);
-    await harness.waitForDiagnostics(schemaUri);
+    await harness.waitForDiagnosticsCount(schemaUri, 2);
     await settle();
-    expect(harness.publishCount(schemaUri)).toBe(1);
+    expect(harness.publishCount(schemaUri)).toBe(2);
     expect(harness.publishCount(alias)).toBe(0);
     const first = harness.getDocumentAst(schemaUri)!;
     expect(first).toBe(harness.getDocumentAst(alias));
@@ -1057,9 +1057,9 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
         },
       ],
     });
-    await harness.waitForDiagnosticsCount(schemaUri, 2);
+    await harness.waitForDiagnosticsCount(schemaUri, 3);
     await settle();
-    expect(harness.publishCount(schemaUri)).toBe(2);
+    expect(harness.publishCount(schemaUri)).toBe(3);
     expect(harness.publishCount(alias)).toBe(0);
     expect(harness.getDocumentAst(schemaUri)).not.toBe(first);
     expect(Object.keys(harness.getProjectSymbolTable(schemaUri)!.defaultNamespace.models)).toEqual([
@@ -1072,13 +1072,13 @@ describe('language server', { timeout: timeouts.databaseOperation }, () => {
     });
     await requestFormatting(harness, alias);
     await settle();
-    expect(harness.publishCount(schemaUri)).toBe(2);
+    expect(harness.publishCount(schemaUri)).toBe(3);
     closeDocument(harness, schemaUri);
-    await harness.waitForDiagnosticsCount(schemaUri, 3);
+    await harness.waitForDiagnosticsCount(schemaUri, 4);
     expect(harness.getDocumentAst(alias)).toBeUndefined();
     expect(harness.getProjectSymbolTable(schemaUri)).toBeUndefined();
     openDocument(harness, schemaUri, unformattedPsl);
-    await harness.waitForDiagnosticsCount(schemaUri, 4);
+    await harness.waitForDiagnosticsCount(schemaUri, 5);
     expect(harness.publishCount(alias)).toBe(0);
     expect(harness.getDocumentAst(alias)?.sourceFile.filename).toBe(schemaUri);
     expect(Object.keys(harness.getProjectSymbolTable(alias)!.defaultNamespace.models)).toEqual([
@@ -5196,8 +5196,9 @@ describe('language server whole-project push and freshness', {
     const memberAUri = pathToFileURL(memberAPath).toString();
     await writeFile(memberAPath, userSchema, 'utf8');
 
+    let inputs = [memberAPath];
     const activeHarness = startHarness(
-      async () => resolutionForInputs([memberAPath]),
+      async () => resolutionForInputs(inputs),
       watchedFilesCapabilities,
     );
     harness = activeHarness;
@@ -5209,6 +5210,7 @@ describe('language server whole-project push and freshness', {
     await harness.waitForDiagnostics(memberAUri);
     const { id: firstRegistrationId, release: releaseFirstResponse } = await held;
 
+    inputs = [memberAPath, join(dir, 'future.prisma')];
     harness.notifyConfigChanged();
     await waitUntil(() => activeHarness.schemaWatcherRegistrationIds().length === 2);
     const secondRegistrationId = activeHarness

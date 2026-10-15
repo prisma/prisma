@@ -1,5 +1,4 @@
 import { readFileSync } from 'node:fs';
-import { sep } from 'node:path';
 import { InternalError } from '@internal/utils/internal-error';
 import type {
   OptionalVersionedTextDocumentIdentifier,
@@ -37,15 +36,6 @@ function readDiskEntry(path: string, uri: string): DiskEntry | undefined {
 
 export class DocumentStore {
   private readonly entries = new Map<string, StoreEntry>();
-  invalidateTree(uri: string): void {
-    const root = canonicalFileIdentity(uri);
-    for (const [identity, entry] of this.entries) {
-      if (entry.origin === 'disk' && (identity === root || identity.startsWith(`${root}${sep}`))) {
-        this.entries.delete(identity);
-      }
-    }
-  }
-
   readonly getOpenDocument = (uri: string): TextDocument | undefined => {
     const entry = this.entries.get(canonicalFileIdentity(uri));
     return entry?.origin === 'overlay' ? entry.document : undefined;

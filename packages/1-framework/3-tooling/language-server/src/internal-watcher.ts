@@ -36,27 +36,11 @@ export async function watchRoots(inputs: readonly string[]): Promise<string[]> {
         );
       try {
         const stats = await lstat(root);
-        if (stats.isSymbolicLink())
-          throw structuredError(
-            'LSP.WATCH_UNAVAILABLE',
-            `Symbolic watch root is unsupported: ${root}`,
-          );
         if (stats.isDirectory()) break;
       } catch (error) {
         if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error;
       }
       root = dirname(root);
-    }
-    for (
-      let ancestor = dirname(root);
-      ancestor !== dirname(ancestor);
-      ancestor = dirname(ancestor)
-    ) {
-      if ((await lstat(ancestor)).isSymbolicLink())
-        throw structuredError(
-          'LSP.WATCH_UNAVAILABLE',
-          `Symbolic watch ancestor is unsupported: ${ancestor}`,
-        );
     }
     roots.push(root);
   }
@@ -72,66 +56,66 @@ function isWithin(root: string, path: string): boolean {
 }
 
 export class InternalWatcher {
-  readonly #watchers: FSWatcher[] = [];
-  readonly #startup: Promise<void>;
+  readonly #config: FSWatcher;
+  readonly #callbacks: WatchCallbacks;
+  #schema: FSWatcher | undefined;
+  #roots: readonly string[] = [];
+  #updating = Promise.resolve();
   #closed = false;
 
   constructor(configPath: string, inputs: readonly string[], callbacks: WatchCallbacks) {
-    this.#startup = this.#start(configPath, inputs, callbacks).catch(callbacks.onError);
+    this.#callbacks = callbacks;
+    this.#config = this.#create({
+      depth: 0,
+      ignored: (path) => path !== dirname(configPath) && path !== configPath,
+    });
+    this.#config.add(dirname(configPath));
+    void this.update(inputs);
   }
 
-  async #start(
-    configPath: string,
-    inputs: readonly string[],
-    callbacks: WatchCallbacks,
-  ): Promise<void> {
-    const roots = await watchRoots(inputs);
-    if (this.#closed) return;
-    const configsOnly = !roots.some((root) => isWithin(root, configPath));
-    const subscriptions = [
-      ...(roots.length > 0 ? [{ paths: roots, configOnly: false }] : []),
-      ...(configsOnly ? [{ paths: [dirname(configPath)], configOnly: true }] : []),
-    ];
-    let pending = subscriptions.length;
-    for (const subscription of subscriptions) {
-      const reportedSymlinks = new Set<string>();
-      const watcher = new FSWatcher({
-        persistent: false,
-        ignoreInitial: true,
-        usePolling: false,
-        followSymlinks: false,
-        ...(subscription.configOnly ? { depth: 0 } : {}),
-        ignored: (path, stats) => {
-          if (stats?.isSymbolicLink()) {
-            if (!reportedSymlinks.has(path)) {
-              reportedSymlinks.add(path);
-              callbacks.onError(
-                structuredError(
-                  'LSP.WATCH_UNAVAILABLE',
-                  `Symbolic watch path is unsupported: ${path}`,
-                ),
-              );
-            }
-            return true;
-          }
-          return subscription.configOnly && path !== dirname(configPath) && path !== configPath;
-        },
-      });
-      this.#watchers.push(watcher);
-      watcher.on('error', callbacks.onError);
-      watcher.on('all', (_event, path) => {
-        if (!this.#closed) callbacks.onChange(path);
-      });
-      watcher.on('ready', () => {
-        if (--pending === 0 && !this.#closed) callbacks.onReady();
-      });
-      watcher.add(subscription.paths);
-    }
+  update(inputs: readonly string[]): Promise<void> {
+    this.#updating = this.#updating
+      .then(async () => {
+        const roots = await watchRoots(inputs);
+        if (
+          this.#closed ||
+          (roots.length === this.#roots.length &&
+            roots.every((root, index) => root === this.#roots[index]))
+        )
+          return;
+        await this.#schema?.close();
+        this.#schema = undefined;
+        this.#roots = roots;
+        if (!this.#closed && roots.length > 0) {
+          this.#schema = this.#create();
+          this.#schema.add(roots);
+        }
+      })
+      .catch(this.#callbacks.onError);
+    return this.#updating;
+  }
+
+  #create(options: ConstructorParameters<typeof FSWatcher>[0] = {}): FSWatcher {
+    const watcher = new FSWatcher({
+      persistent: false,
+      ignoreInitial: true,
+      usePolling: false,
+      followSymlinks: false,
+      ...options,
+    });
+    watcher.on('error', this.#callbacks.onError);
+    watcher.on('all', (_event, path) => {
+      if (!this.#closed) this.#callbacks.onChange(path);
+    });
+    watcher.on('ready', () => {
+      if (!this.#closed) this.#callbacks.onReady();
+    });
+    return watcher;
   }
 
   async close(): Promise<void> {
     this.#closed = true;
-    await this.#startup;
-    await Promise.all(this.#watchers.map((watcher) => watcher.close()));
+    await this.#updating;
+    await Promise.all([this.#config.close(), this.#schema?.close()]);
   }
 }

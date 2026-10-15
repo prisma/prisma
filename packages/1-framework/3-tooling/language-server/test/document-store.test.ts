@@ -235,15 +235,15 @@ describe('document store', () => {
       expect(store.text(unwatched.uri)).toBe('before');
     });
 
-    it('invalidates directory descendants without replacing overlays', async () => {
+    it('invalidates aliased disk entries without replacing overlays', async () => {
       const file = await fixtureFile('disk');
       const store = new DocumentStore();
       expect(store.text(file.uri)).toBe('disk');
       await writeFile(file.path, 'changed');
-      store.invalidateTree(file.uri.slice(0, file.uri.lastIndexOf('/')));
+      store.invalidate(file.uri.replace('member.prisma', '%6dember.prisma'));
       expect(store.text(file.uri)).toBe('changed');
       const overlay = open(store, file.uri, 'overlay');
-      store.invalidateTree(file.uri);
+      store.invalidate(file.uri);
       expect(store.getOpenDocument(file.uri)).toBe(overlay);
       expect(store.text(file.uri)).toBe('overlay');
     });

@@ -103,7 +103,7 @@ async function fixture(
     ...args: Parameters<FSWatcher['add']>
   ) {
     watchers.add(this);
-    if (starting) {
+    if (starting && this.options.depth !== 0) {
       starting = false;
       beforeWatch?.(dir);
     }
@@ -135,6 +135,7 @@ async function fixture(
   await vi.waitFor(
     () => {
       expect(add).toHaveBeenCalled();
+      expect(starting).toBe(false);
       for (const watcher of watchers) {
         expect(
           emit.mock.calls.some(

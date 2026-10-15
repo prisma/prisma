@@ -7,6 +7,7 @@ import { ProjectRegistry } from '../src/project-registry';
 
 vi.mock('../src/internal-watcher', () => ({
   InternalWatcher: class {
+    async update() {}
     async close() {}
   },
 }));

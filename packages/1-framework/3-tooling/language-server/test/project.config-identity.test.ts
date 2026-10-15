@@ -21,6 +21,7 @@ vi.mock('../src/config-resolution', async (original) => ({
 }));
 vi.mock('../src/internal-watcher', () => ({
   InternalWatcher: class {
+    async update() {}
     async close() {}
   },
 }));
