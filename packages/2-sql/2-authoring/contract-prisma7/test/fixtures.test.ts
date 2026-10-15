@@ -127,9 +127,9 @@ describe('Prisma 7 fixtures', () => {
       'unsupported-type',
       'unsupported-type-model-ignored',
       'updated-at',
+      'updated-at-date-time',
       'updated-at-optional',
       'updated-at-with-default',
-      'updated-at-without-generator',
       'view',
       'view-attributed-fields',
     ]);
