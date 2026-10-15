@@ -1076,8 +1076,6 @@ function fieldTypeResolution(field: FieldSymbol, binder: Binder): Resolution | u
   return node === undefined ? undefined : binder.symbolForNode(node);
 }
 
-// PSL scalar type name whose codec is mandated for a Mongo model's `_id`.
-
 interface PresetExecutionDefault {
   readonly modelName: string;
   readonly field: FieldSymbol;
