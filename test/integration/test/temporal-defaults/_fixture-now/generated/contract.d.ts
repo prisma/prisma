@@ -3,15 +3,14 @@
 // To regenerate, run: prisma contract emit
 import type {
   CodecTypes as PgTypes,
-  TimeString,
-  TimestampString,
-  TimestamptzString,
-  Timetz,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
 } from '@internal/target-postgres/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@internal/target-postgres/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -237,174 +236,69 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
-  readonly public: {
-    readonly Clock: {
-      readonly date: CodecTypes['pg/date-temporal@1']['output'];
-      readonly dateString: CodecTypes['pg/date-string@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly label: CodecTypes['pg/text@1']['output'];
-      readonly time0: CodecTypes['pg/time-temporal@1']['output'];
-      readonly time3: CodecTypes['pg/time-temporal@1']['output'];
-      readonly time6: CodecTypes['pg/time-temporal@1']['output'];
-      readonly timeString0: TimeString<0>;
-      readonly timeString3: TimeString<3>;
-      readonly timeString6: TimeString<6>;
-      readonly timestamp0: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestamp3: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestamp6: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestampString0: TimestampString<0>;
-      readonly timestampString3: TimestampString<3>;
-      readonly timestampString6: TimestampString<6>;
-      readonly timestamptz0: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptz3: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptz6: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptzJsDate0: Date;
-      readonly timestamptzJsDate3: Date;
-      readonly timestamptzJsDate6: Date;
-      readonly timestamptzString0: TimestamptzString<0>;
-      readonly timestamptzString3: TimestamptzString<3>;
-      readonly timestamptzString6: TimestamptzString<6>;
-      readonly timetz0: Timetz<0>;
-      readonly timetz3: Timetz<3>;
-      readonly timetz6: Timetz<6>;
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly public: {
-    readonly Clock: {
-      readonly date: CodecTypes['pg/date-temporal@1']['input'];
-      readonly dateString: CodecTypes['pg/date-string@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly label: CodecTypes['pg/text@1']['input'];
-      readonly time0: CodecTypes['pg/time-temporal@1']['input'];
-      readonly time3: CodecTypes['pg/time-temporal@1']['input'];
-      readonly time6: CodecTypes['pg/time-temporal@1']['input'];
-      readonly timeString0: CodecTypes['pg/time-string@1']['input'];
-      readonly timeString3: CodecTypes['pg/time-string@1']['input'];
-      readonly timeString6: CodecTypes['pg/time-string@1']['input'];
-      readonly timestamp0: CodecTypes['pg/timestamp-temporal@1']['input'];
-      readonly timestamp3: CodecTypes['pg/timestamp-temporal@1']['input'];
-      readonly timestamp6: CodecTypes['pg/timestamp-temporal@1']['input'];
-      readonly timestampString0: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly timestampString3: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly timestampString6: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly timestamptz0: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly timestamptz3: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly timestamptz6: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly timestamptzJsDate0: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly timestamptzJsDate3: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly timestamptzJsDate6: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly timestamptzString0: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly timestamptzString3: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly timestamptzString6: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly timetz0: CodecTypes['pg/timetz@1']['input'];
-      readonly timetz3: CodecTypes['pg/timetz@1']['input'];
-      readonly timetz6: CodecTypes['pg/timetz@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly clock: {
-      readonly date: CodecTypes['pg/date-temporal@1']['output'];
-      readonly dateString: CodecTypes['pg/date-string@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly label: CodecTypes['pg/text@1']['output'];
-      readonly time0: CodecTypes['pg/time-temporal@1']['output'];
-      readonly time3: CodecTypes['pg/time-temporal@1']['output'];
-      readonly time6: CodecTypes['pg/time-temporal@1']['output'];
-      readonly timestamp0: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestamp3: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestamp6: CodecTypes['pg/timestamp-temporal@1']['output'];
-      readonly timestampString0: TimestampString<0>;
-      readonly timestampString3: TimestampString<3>;
-      readonly timestampString6: TimestampString<6>;
-      readonly timestamptz0: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptz3: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptz6: CodecTypes['pg/timestamptz-temporal@1']['output'];
-      readonly timestamptzJsDate0: Date;
-      readonly timestamptzJsDate3: Date;
-      readonly timestamptzJsDate6: Date;
-      readonly timestamptzString0: TimestamptzString<0>;
-      readonly timestamptzString3: TimestamptzString<3>;
-      readonly timestamptzString6: TimestamptzString<6>;
-      readonly timeString0: TimeString<0>;
-      readonly timeString3: TimeString<3>;
-      readonly timeString6: TimeString<6>;
-      readonly timetz0: Timetz<0>;
-      readonly timetz3: Timetz<3>;
-      readonly timetz6: Timetz<6>;
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly clock: {
-      readonly date: CodecTypes['pg/date-temporal@1']['input'];
-      readonly dateString: CodecTypes['pg/date-string@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly label: CodecTypes['pg/text@1']['input'];
-      readonly time0: CodecTypes['pg/time-temporal@1']['input'];
-      readonly time3: CodecTypes['pg/time-temporal@1']['input'];
-      readonly time6: CodecTypes['pg/time-temporal@1']['input'];
-      readonly timestamp0: CodecTypes['pg/timestamp-temporal@1']['input'];
-      readonly timestamp3: CodecTypes['pg/timestamp-temporal@1']['input'];
-      readonly timestamp6: CodecTypes['pg/timestamp-temporal@1']['input'];
-      readonly timestampString0: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly timestampString3: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly timestampString6: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly timestamptz0: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly timestamptz3: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly timestamptz6: CodecTypes['pg/timestamptz-temporal@1']['input'];
-      readonly timestamptzJsDate0: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly timestamptzJsDate3: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly timestamptzJsDate6: CodecTypes['pg/timestamptz-date@1']['input'];
-      readonly timestamptzString0: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly timestamptzString3: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly timestamptzString6: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly timeString0: CodecTypes['pg/time-string@1']['input'];
-      readonly timeString3: CodecTypes['pg/time-string@1']['input'];
-      readonly timeString6: CodecTypes['pg/time-string@1']['input'];
-      readonly timetz0: CodecTypes['pg/timetz@1']['input'];
-      readonly timetz3: CodecTypes['pg/timetz@1']['input'];
-      readonly timetz6: CodecTypes['pg/timetz@1']['input'];
-    };
-  };
-};
+type FieldTypeOverrides = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'input'
+>;
+type ColumnTypeOverrides = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'input'
+>;
 
 export namespace Models {
   export type public_Clock = {
-    date: CodecTypes['pg/date-temporal@1']['output'];
-    dateString: CodecTypes['pg/date-string@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    label: CodecTypes['pg/text@1']['output'];
-    time0: CodecTypes['pg/time-temporal@1']['output'];
-    time3: CodecTypes['pg/time-temporal@1']['output'];
-    time6: CodecTypes['pg/time-temporal@1']['output'];
-    timeString0: TimeString<0>;
-    timeString3: TimeString<3>;
-    timeString6: TimeString<6>;
-    timestamp0: CodecTypes['pg/timestamp-temporal@1']['output'];
-    timestamp3: CodecTypes['pg/timestamp-temporal@1']['output'];
-    timestamp6: CodecTypes['pg/timestamp-temporal@1']['output'];
-    timestampString0: TimestampString<0>;
-    timestampString3: TimestampString<3>;
-    timestampString6: TimestampString<6>;
-    timestamptz0: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    timestamptz3: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    timestamptz6: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    timestamptzJsDate0: Date;
-    timestamptzJsDate3: Date;
-    timestamptzJsDate6: Date;
-    timestamptzString0: TimestamptzString<0>;
-    timestamptzString3: TimestamptzString<3>;
-    timestamptzString6: TimestamptzString<6>;
-    timetz0: Timetz<0>;
-    timetz3: Timetz<3>;
-    timetz6: Timetz<6>;
+    date: FieldOutputTypes['public']['Clock']['date'];
+    dateString: FieldOutputTypes['public']['Clock']['dateString'];
+    id: FieldOutputTypes['public']['Clock']['id'];
+    label: FieldOutputTypes['public']['Clock']['label'];
+    time0: FieldOutputTypes['public']['Clock']['time0'];
+    time3: FieldOutputTypes['public']['Clock']['time3'];
+    time6: FieldOutputTypes['public']['Clock']['time6'];
+    timeString0: FieldOutputTypes['public']['Clock']['timeString0'];
+    timeString3: FieldOutputTypes['public']['Clock']['timeString3'];
+    timeString6: FieldOutputTypes['public']['Clock']['timeString6'];
+    timestamp0: FieldOutputTypes['public']['Clock']['timestamp0'];
+    timestamp3: FieldOutputTypes['public']['Clock']['timestamp3'];
+    timestamp6: FieldOutputTypes['public']['Clock']['timestamp6'];
+    timestampString0: FieldOutputTypes['public']['Clock']['timestampString0'];
+    timestampString3: FieldOutputTypes['public']['Clock']['timestampString3'];
+    timestampString6: FieldOutputTypes['public']['Clock']['timestampString6'];
+    timestamptz0: FieldOutputTypes['public']['Clock']['timestamptz0'];
+    timestamptz3: FieldOutputTypes['public']['Clock']['timestamptz3'];
+    timestamptz6: FieldOutputTypes['public']['Clock']['timestamptz6'];
+    timestamptzJsDate0: FieldOutputTypes['public']['Clock']['timestamptzJsDate0'];
+    timestamptzJsDate3: FieldOutputTypes['public']['Clock']['timestamptzJsDate3'];
+    timestamptzJsDate6: FieldOutputTypes['public']['Clock']['timestamptzJsDate6'];
+    timestamptzString0: FieldOutputTypes['public']['Clock']['timestamptzString0'];
+    timestamptzString3: FieldOutputTypes['public']['Clock']['timestamptzString3'];
+    timestamptzString6: FieldOutputTypes['public']['Clock']['timestamptzString6'];
+    timetz0: FieldOutputTypes['public']['Clock']['timetz0'];
+    timetz3: FieldOutputTypes['public']['Clock']['timetz3'];
+    timetz6: FieldOutputTypes['public']['Clock']['timetz6'];
     readonly [RelationKeys]?: never;
   };
 }
