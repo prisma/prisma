@@ -4,6 +4,7 @@ import type {
   ContractValueObject,
   CrossReference,
 } from '@internal/contract/types';
+import { assertDefined } from '@internal/utils/assertions';
 import {
   deriveJsonSchema,
   derivePolymorphicJsonSchema,
@@ -36,14 +37,18 @@ export function deriveCollectionValidators(
   const { models, lookups, valueObjects, valueSets } = input;
   const validators: Record<string, MongoValidator> = {};
 
-  for (const model of Object.values(models)) {
+  for (const [modelName, model] of Object.entries(models)) {
     if (model.base) continue;
 
     if (model.discriminator && model.variants) {
-      const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => ({
-        discriminatorValue,
-        fields: models[variant.model]?.fields ?? {},
-      }));
+      const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
+        const variantModel = models[variant.model];
+        assertDefined(
+          variantModel,
+          `Variant model "${variant.model}" of "${modelName}" is missing`,
+        );
+        return { discriminatorValue, fields: variantModel.fields };
+      });
       validators[model.storage.collection] = derivePolymorphicJsonSchema(
         model.fields,
         model.discriminator.field,

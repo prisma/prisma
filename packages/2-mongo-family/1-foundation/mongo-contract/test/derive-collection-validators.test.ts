@@ -92,6 +92,23 @@ describe('deriveCollectionValidators', () => {
     });
   });
 
+  it('refuses a variant whose model is missing', () => {
+    expect(() =>
+      deriveCollectionValidators({
+        models: {
+          Task: model(
+            'tasks',
+            { _id: scalarField('mongo/objectId@1'), type: scalarField('mongo/string@1') },
+            { discriminator: { field: 'type' }, variants: { bug: crossRef('Bug') } },
+          ),
+        },
+        lookups: mongoTypeLookups,
+        valueObjects: {},
+        valueSets: {},
+      }),
+    ).toThrow('Variant model "Bug" of "Task" is missing');
+  });
+
   it('describes value object fields as nested closed objects', () => {
     const validators = deriveCollectionValidators({
       models: {
