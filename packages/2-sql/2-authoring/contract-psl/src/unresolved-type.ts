@@ -16,6 +16,6 @@ export function describeUnresolvedSqlType(): DescribeUnresolvedType {
     const typeName =
       argument?.kind === 'positional' ? parseQuotedStringLiteral(argument.value) : undefined;
     if (typeName === undefined) return undefined;
-    return `Unsupported(${JSON.stringify(typeName)}) is not a Prisma 8 type. Write the column's type with a type constructor, or add the extension pack that declares ${JSON.stringify(typeName)} to extensionPacks in the config.`;
+    return `Unsupported(${JSON.stringify(typeName)}) is not a Prisma 8 type. Write the column's type with a type constructor, or add the pack of the database extension that declares ${JSON.stringify(typeName)} to extensions in prisma.config.ts.`;
   };
 }

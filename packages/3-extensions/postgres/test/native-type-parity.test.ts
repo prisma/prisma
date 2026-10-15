@@ -432,7 +432,7 @@ describe('native types as bare scalar types — parity with the live bare-type p
       {
         code: 'PSL_UNRESOLVED_REFERENCE',
         message:
-          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor, or add the extension pack that declares "hstore" to extensionPacks in the config.',
+          'Unsupported("hstore") is not a Prisma 8 type. Write the column\'s type with a type constructor, or add the pack of the database extension that declares "hstore" to extensions in prisma.config.ts.',
       },
     ]);
   });
