@@ -1,12 +1,12 @@
 import {
   isSqlDataType,
-  type ReportedSqlType,
   renderSqlCatalogText,
   renderSqlTypeName,
   resolveReportedSqlType,
   type SqlDataType,
   sqlBaseName,
 } from '@internal/sql-contract/data-type';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { pgVectorDescriptor } from '../src/core/codecs';
 import { pgvectorPackMeta } from '../src/core/descriptor-meta';

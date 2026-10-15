@@ -1,6 +1,7 @@
 export type {
   DefaultInCanonicalForm,
   PrimaryKeyInput,
+  ReportedSqlType,
   SqlAnnotations,
   SqlCheckConstraintIRInput,
   SqlColumnDefaultIRInput,

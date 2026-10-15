@@ -16,6 +16,17 @@ export type SqlAnnotations = {
   readonly [namespace: string]: unknown;
 };
 
+/** What introspection hands over about the element type of one column. */
+export interface ReportedSqlType {
+  /** The element type's text as the database reports it: on Postgres its catalog text (`format_type`), on SQLite the declared type from `PRAGMA table_info`. */
+  readonly text: string;
+  /** The target's word for the type's kind, such as `enum`; undefined for a base type. */
+  readonly kind: string | undefined;
+  readonly schema: string | undefined;
+  /** The type's name, unquoted. */
+  readonly name: string | undefined;
+}
+
 export interface SqlColumnIRInput {
   readonly name: string;
   readonly nativeType: string;
@@ -88,6 +99,8 @@ export interface SqlColumnIRInput {
    * Stamped on the contract-derived column; absent on introspected nodes.
    */
   readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
+  /** The element type as the database reports it. Set by introspection; absent on contract-derived nodes. */
+  readonly reportedType?: ReportedSqlType;
 }
 
 /**
@@ -130,6 +143,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly toCanonicalForm?: ToCanonicalForm;
   /** See {@link SqlColumnIRInput.sqlExpressionLiteralFor}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
+  /** See {@link SqlColumnIRInput.reportedType}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly reportedType?: ReportedSqlType;
 
   constructor(input: SqlColumnIRInput) {
     super();
@@ -147,6 +162,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'dataType', input.dataType);
     defineNonEnumerable(this, 'toCanonicalForm', input.toCanonicalForm);
     defineNonEnumerable(this, 'sqlExpressionLiteralFor', input.sqlExpressionLiteralFor);
+    defineNonEnumerable(this, 'reportedType', input.reportedType);
     freezeNode(this);
   }
 
