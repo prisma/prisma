@@ -51,7 +51,7 @@ interface SqlDataType<Params> extends DataType {
 }
 ```
 
-and the functions `sqlDataType`, `isSqlDataType`, `dataTypeParams`, `sqlBaseName`, `renderSqlTypeName`, `renderSqlCatalogText`, `resolveReportedSqlType`, and the type `ReportedSqlType` (section 5).
+and the functions `sqlDataType`, `isSqlDataType`, `dataTypeParams`, `sqlBaseName`, `renderSqlTypeName`, `renderSqlCatalogText`, `resolveReportedSqlType`; the type `ReportedSqlType` is exported from `@internal/sql-schema-ir/types`, because `sql-contract` depends on `sql-schema-ir`.
 
 Rules, enforced by `sqlDataType` when called, with an `InternalError` naming the id:
 
@@ -284,7 +284,7 @@ interface ReportedSqlType {
 }
 ```
 
-`ReportedSqlType` describes the element only; introspection sets `many` on the `SqlColumnIR` itself. Postgres introspection (`packages/3-targets/6-adapters/postgres/src/core/control-adapter.ts`) reads, per column, from `pg_attribute` joined to `pg_type` and `pg_namespace`: whether the type is an array (`typelem <> 0` and `typcategory = 'A'`), and for the element type (or the type itself) `format_type(oid, atttypmod)`, `typtype`, `nspname`, `typname`. `kind` is `'enum'` for `typtype = 'e'`, `'domain'` for `'d'`, `'composite'` for `'c'`, `'range'` for `'r'`, `'multirange'` for `'m'`, and `undefined` for `'b'`. When `kind` is undefined and `nspname` is not `pg_catalog`, introspection removes a leading `<nspname>.` from the text (quoted as `format_type` quoted it), so an extension type installed in another schema, as Supabase does, is still claimed. SQLite hands over `text` from `PRAGMA table_info` and nothing else.
+`ReportedSqlType` describes the element only; introspection sets `many` on the `SqlColumnIR` itself. Postgres introspection (`packages/3-targets/6-adapters/postgres/src/core/control-adapter.ts`) reads, per column, from `pg_attribute` joined to `pg_type` and `pg_namespace`: whether the type is an array (it is the `typarray` of another type; `int2vector` and `oidvector` have a `typelem` but are not arrays, and `format_type` prints them without `[]`), and for the element type (or the type itself) `format_type(oid, atttypmod)`, `typtype`, `nspname`, `typname`. `kind` is `'enum'` for `typtype = 'e'`, `'domain'` for `'d'`, `'composite'` for `'c'`, `'range'` for `'r'`, `'multirange'` for `'m'`, and `undefined` for `'b'`. When `kind` is undefined and `nspname` is not `pg_catalog`, introspection removes a leading `<nspname>.` from the text (quoted as `format_type` quoted it), so an extension type installed in another schema, as Supabase does, is still claimed. SQLite hands over `text` from `PRAGMA table_info` and nothing else.
 
 ### 11.2 The resolver
 
