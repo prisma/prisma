@@ -13,7 +13,7 @@ import { isStructuredError } from '@internal/utils/structured-error';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { PostgresCodecDescriptor } from './codec-descriptor';
 import type { PrecisionParams } from './codec-helpers';
-import { PG_TIMESTAMPTZ_DATE_CODEC_ID } from './codec-ids';
+import { PG_TIMESTAMPTZ_DATE_CODEC_ID, PG_TIMESTAMPTZ_STRING_CODEC_ID } from './codec-ids';
 import { pgPrecisionParams, pgTimestamptz, pgTimestamptzCanonical } from './data-types';
 import {
   EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS,
@@ -64,7 +64,7 @@ function dateOfStoredText(codecId: string, text: string): Date {
   if (date === undefined || !isRepresentable(date)) {
     return refuseJsonValue(
       codecId,
-      'a timestamp with time zone a Date holds: not infinity, and from 4714-11-24 BC to +275760-09-13',
+      `an instant a Date holds, from 4714-11-24 BC to +275760-09-13 and not infinity or -infinity, which ${PG_TIMESTAMPTZ_STRING_CODEC_ID} holds`,
       text,
     );
   }

@@ -1,3 +1,4 @@
+import { refuseJsonValue } from '@internal/framework-components/codec';
 import {
   PG_DATE_TEMPORAL_CODEC_ID,
   PG_TIME_TEMPORAL_CODEC_ID,
@@ -80,6 +81,17 @@ function describeEncodeInput(value: unknown, tag: unknown): string {
     return 'null';
   }
   return `a ${typeof value}`;
+}
+
+/** Refuses `infinity` and `-infinity` in a stored value, which no Temporal value or `Date` holds, naming the text codec of the type that does. */
+export function refuseInfinity(
+  codecId: string,
+  holds: string,
+  textCodecId: string,
+  text: string,
+): void {
+  if (!POSTGRES_TEMPORAL_SENTINELS.has(text)) return;
+  refuseJsonValue(codecId, `${holds}, not infinity or -infinity, which ${textCodecId} holds`, text);
 }
 
 const DATE_TEMPORAL: TemporalCodecIdentity = {

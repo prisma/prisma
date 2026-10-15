@@ -12,9 +12,12 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { PostgresCodecDescriptor } from './codec-descriptor';
 import type { PrecisionParams } from './codec-helpers';
 import {
+  PG_DATE_STRING_CODEC_ID,
   PG_DATE_TEMPORAL_CODEC_ID,
   PG_TIME_TEMPORAL_CODEC_ID,
+  PG_TIMESTAMP_STRING_CODEC_ID,
   PG_TIMESTAMP_TEMPORAL_CODEC_ID,
+  PG_TIMESTAMPTZ_STRING_CODEC_ID,
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
 } from './codec-ids';
 import {
@@ -37,6 +40,7 @@ import {
   pgTimestamptzTemporalEncode,
   pgTimeTemporalDecode,
   pgTimeTemporalEncode,
+  refuseInfinity,
 } from './temporal-codec-helpers';
 
 export class PgDateTemporalCodec extends CodecImpl<
@@ -52,6 +56,12 @@ export class PgDateTemporalCodec extends CodecImpl<
     return pgDateTemporalDecode(wire);
   }
   fromDataTypeValue(value: DataTypeValue<string>): Temporal.PlainDate {
+    refuseInfinity(
+      this.id,
+      'a date a Temporal.PlainDate holds',
+      PG_DATE_STRING_CODEC_ID,
+      value.value,
+    );
     return pgDateTemporalDecode(value.value);
   }
   toDataTypeValue(input: Temporal.PlainDate): DataTypeValue {
@@ -93,6 +103,12 @@ export class PgTimestampTemporalCodec extends CodecImpl<
     return pgTimestampTemporalDecode(wire);
   }
   fromDataTypeValue(value: DataTypeValue<string>): Temporal.PlainDateTime {
+    refuseInfinity(
+      this.id,
+      'a date and time a Temporal.PlainDateTime holds',
+      PG_TIMESTAMP_STRING_CODEC_ID,
+      value.value,
+    );
     return pgTimestampTemporalDecode(value.value);
   }
   toDataTypeValue(input: Temporal.PlainDateTime): DataTypeValue {
@@ -140,6 +156,12 @@ export class PgTimestamptzTemporalCodec extends CodecImpl<
     return pgTimestamptzTemporalDecode(wire);
   }
   fromDataTypeValue(value: DataTypeValue<string>): Temporal.Instant {
+    refuseInfinity(
+      this.id,
+      'an instant a Temporal.Instant holds',
+      PG_TIMESTAMPTZ_STRING_CODEC_ID,
+      value.value,
+    );
     return pgTimestamptzTemporalDecode(value.value);
   }
   toDataTypeValue(input: Temporal.Instant): DataTypeValue {
