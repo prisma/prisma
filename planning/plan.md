@@ -93,7 +93,7 @@ In progress but not ranked here:
 | Progress | Work | Owner | Status | Next |
 | --- | --- | --- | --- | --- |
 | ✅ 3/3 | Row locking on a select | Will | Done 2026-10-07 | |
-| 🔄 3/4 | Collection classes, query fragments and indexes | Will | Collection classes, fragments, and searching a full-text index by name merged. Collection methods contributed by packages approved | Merge the approved PR (TML-3549) |
+| ✅ 4/4 | Collection classes, query fragments and indexes | Will | Done 2026-10-15. The project folder is not closed out yet | Close out `projects/collection-scopes/` |
 | ✅ 1/1 | `variant()` selects by discriminator value | Serhii | Merged 2026-10-06 | |
 | ✅ 1/1 | The Postgres driver returns every column as text | Will | Merged 2026-10-06 | |
 | 🔄 3/4 | Cache middleware | Will | Invalidation, keys and the after-transaction stage merged. Invalidation after commit waits on the activity tree | |
