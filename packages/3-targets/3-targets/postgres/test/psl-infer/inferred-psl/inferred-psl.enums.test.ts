@@ -204,7 +204,7 @@ describe('pg.enum(Name) column emission', () => {
       { user_role: ['admin', 'user'] },
     );
 
-    expect(output).toContain('pg.enum(UserRole)[]');
+    expect(output).toContain('pg.enum(UserRole)?[]');
   });
 
   it('does not emit Unsupported(...) for enum-typed columns', () => {
