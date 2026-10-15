@@ -18,17 +18,13 @@ import {
   isNonFiniteText,
   type ToCanonicalForm,
 } from '@internal/framework-components/codec';
-import {
-  numeralText,
-  type ReportedSqlType,
-  type SqlTypeText,
-  sqlDataType,
-} from '@internal/sql-contract/data-type';
+import { numeralText, type SqlTypeText, sqlDataType } from '@internal/sql-contract/data-type';
 import {
   type CanonicalDateTimeOptions,
   canonicalDateTime,
   integerTextCanonicalForm,
 } from '@internal/sql-contract/data-type-support';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
 import { canonicalInet } from './canonical-inet';

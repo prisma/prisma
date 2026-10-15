@@ -50,6 +50,7 @@ import { interpretPslDocumentToSqlContract } from '../src/interpreter';
 import { describeUnsupportedSqlAttribute } from '../src/psl-field-resolution';
 import { sqlAttributeSpecs } from '../src/sql-attribute-specs';
 import { sqlContextInput } from '../src/test';
+import { describeUnresolvedSqlType } from '../src/unresolved-type';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
 
@@ -454,7 +455,10 @@ function contextForInterpretOptions(
         ? {}
         : { valueObjectStorageType: authoring.valueObjectStorageType }),
     },
-    pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+    pslDiagnostics: {
+      describeUnsupportedAttribute: describeUnsupportedSqlAttribute,
+      describeUnresolvedType: describeUnresolvedSqlType,
+    },
     codecLookup: options.codecLookup,
     dataTypes: options.dataTypes,
     controlMutationDefaults: options.controlMutationDefaults ?? {
@@ -540,7 +544,10 @@ export function createPostgresTestContext(
       attributeSpecs: sqlAttributeSpecs,
       valueObjectStorageType: 'Jsonb',
     },
-    pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+    pslDiagnostics: {
+      describeUnsupportedAttribute: describeUnsupportedSqlAttribute,
+      describeUnresolvedType: describeUnresolvedSqlType,
+    },
     controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
     ...fixtureInterpreterTypes,
     resolvedInputs: [],

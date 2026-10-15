@@ -78,6 +78,7 @@
     "./contract-psl": "./dist/contract-psl.mjs",
     "./contract-psl/attribute-specs": "./dist/contract-psl__attribute-specs.mjs",
     "./contract-psl/default-table-name": "./dist/contract-psl__default-table-name.mjs",
+    "./contract-psl/diagnostics": "./dist/contract-psl__diagnostics.mjs",
     "./contract-psl/map-names": "./dist/contract-psl__map-names.mjs",
     "./contract-psl/provider": "./dist/contract-psl__provider.mjs",
     "./contract-ts": "./dist/contract-ts.mjs",
