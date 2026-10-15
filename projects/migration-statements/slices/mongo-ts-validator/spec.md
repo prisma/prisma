@@ -45,6 +45,9 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 2. **Existing documents are the main risk.** MongoDB does not check existing documents when `collMod` adds a validator, but every later write to a document must produce a valid one. A stored document with an extra field or a wrong type can no longer be updated. The upgrade instructions say so, give a `$jsonSchema` query that lists the documents that would fail, and say to fix them before applying the migration.
 3. **Models without `_id` are refused.** A closed validator without `_id` rejects every insert, because MongoDB adds `_id`. So the TypeScript builder refuses such a model, as PSL does, rather than writing a validator that cannot work.
 
+4. **Embedded models are validated as nested objects.** The TypeScript builder can embed one model inside another through an embed relation; PSL MongoDB has no such models. A closed validator built from a model's own fields alone would reject every document that holds an embedded model, so the embedded model's fields are validated as a nested closed object, as a value object's are (decided by the orchestrator, 2026-10-15, from the PR 1 design review).
+5. **Two root models in one collection without a discriminator** are decided in PR 2: today the second model's validator silently replaces the first.
+
 ## How (two pull requests)
 
 1. **Move the derivation; no output changes.** `deriveJsonSchema`, `derivePolymorphicJsonSchema`, the per-collection loop from the PSL interpreter, and the enum listability check from the family package move into `@internal/mongo-contract`. PSL calls them from there. Every PSL fixture and hash is unchanged (`pnpm fixtures:check`).
