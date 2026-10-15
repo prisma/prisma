@@ -172,7 +172,7 @@ const session: RoleSession & TransactionStartTarget & ActivitySourceTarget = {
 };
 ```
 
-`activitySource` and `ActivitySourceTarget` come from `@prisma/orm-family-sql/runtime`.
+`activitySource` and `ActivitySourceTarget` come from `@prisma/orm-family-sql/runtime`; `transactionStart`, `createTransactionStart` and `TransactionStartTarget` still come from `@prisma/orm-family-sql/runtime/internal/prepared-query`.
 
 ## Pass a parent when beginning or starting a transaction
 

@@ -72,7 +72,7 @@ A client, such as an extension, can start its own activity, send statements bene
 
 1. As in slice 1, but in a new database, for example `createdb prisma_8_demo_qa2`, then the in-repo CLI's `db init` and `pnpm seed` with `DATABASE_URL` pointing at it.
 2. A scratch folder `wip/qa2/` whose `node_modules` has the demo's packages plus `@prisma/orm-framework` and `@prisma/orm-family-sql` (symlinks into `packages/9-public/@prisma/`).
-3. A script that registers a client kind, for example `report-run`, by augmenting `ClientActivityRegistry` in `@prisma/orm-framework/components/runtime`, and imports `startActivityOn` and `planContentHashOn` from `@prisma/orm-family-sql/runtime/internal/prepared-query`.
+3. A script that registers a client kind, for example `report-run`, by augmenting `ClientActivityRegistry` in `@prisma/orm-framework/components/runtime`, and imports `startActivityOn` and `planContentHashOn` from `@prisma/orm-family-sql/runtime`.
 4. Two middleware: a tracer that logs started, ended and finalized with ids and parent ids, and one with `intercept.onActivity` that serves `report-run` from a `Map` keyed by `contentHash` after the first call.
 
 ## Checks

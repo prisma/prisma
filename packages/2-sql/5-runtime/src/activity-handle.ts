@@ -37,12 +37,12 @@ export interface ActivityHandle<K extends ClientActivityKind>
   end(end: ClientActivityEnd<K>): Promise<void>;
 }
 
-/** Options the runtime passes between its own queryables: the activity a statement starts beneath. */
+/** Options a queryable's statements carry: the activity they start beneath. */
 export interface ActivityExecuteOptions extends RuntimeExecuteOptions {
   readonly activityParent?: ActivityParent | undefined;
 }
 
-/** The internal member through which a runtime, connection, transaction or `withTransaction` context starts activities; user-facing types do not show it. */
+/** The symbol-keyed member through which a runtime, connection, transaction or `withTransaction` context starts activities; user-facing types do not show it. */
 export const activitySource = Symbol('activitySource');
 
 export interface ActivitySourceTarget {

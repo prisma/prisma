@@ -115,7 +115,7 @@ describe('startActivity', () => {
     ]);
   });
 
-  it('on the context of withTransaction, through the internal member', async () => {
+  it('on the context of withTransaction, through its activity source', async () => {
     const { runtime, events } = createSetup();
 
     await withTransaction(runtime, async (tx) => {
