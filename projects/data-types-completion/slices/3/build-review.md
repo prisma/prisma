@@ -31,6 +31,9 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | b | 1 (`682ee5dd54..7e742de7c9`) | ANOTHER ROUND NEEDED: 3 must-fix, 1 should-fix, 6 low |
 | b | 2 (`70d3259f29..eefeaa4e37`) | ANOTHER ROUND NEEDED: 1 must-fix, 0 should-fix, 1 low |
 | merge of `main` | 1 (`4ec1b78c80`) | SATISFIED: 0 must-fix, 0 should-fix, 1 low |
+| b | 3 (`71aec5b333`) | SATISFIED |
+| merge of `main` | 2 (`30254c5bbb`) | SATISFIED |
+| c | 1 (`5a62fd7a24..2c3c9433b3`) | ANOTHER ROUND NEEDED: 1 must-fix, 1 should-fix, 2 low |
 
 ## Findings log
 
@@ -293,3 +296,61 @@ Merge base `780a8208d7`; `main` at `94fc045c62`. 44 files needed a resolution.
 - Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1`, `test/authoring` and `test/date-time-defaults`: 52 files, 1136 tests, pass, `git status` clean. All of `test/sql-orm-client/`: 132 files, 916 pass, 6 fail (S3-b-R2-1). Five other include and aggregate files (`prepared-facades`, `group_by_having`, `issues-11974`, the TML-1664 enum read and `extended-where`): pass.
 - Probes against PGlite: the interval and bytea reads in S3-b-R1-1 and S3-b-R1-2.
 - Must-not-change: the committed contracts, migrations, snapshots and golden manifest that differ from `main` are the same set the branch changed before the merge, and the golden re-record leaves no diff.
+
+## Dispatch b, round 3, and the merge finding
+
+Orchestrator rulings since round 2: S3-b-R1-9 and S3-b-R2-2 are recorded in plan row g and brief g (`cba3077b82`). S3-merge-R1-1 is ruled strict: `sql/expression`'s reader refuses text that is not already canonical.
+
+- S3-b-R2-1: fixed in `71aec5b333`. The three tests expect the `fromWire` refusal with the whole error. `integer-representation.test.ts`, `integer-representation-sqlite.test.ts` and `connection-release.test.ts` pass; the `connection-release` failure in the implementer's run did not recur, so it was the connection timeout the implementer reported.
+- S3-merge-R1-1: fixed in `30254c5bbb`. The reader refuses text whose canonical text differs, naming the canonical text, and text no `sql` literal can hold. Four tests cover the canonical text, both refusals and a value that is not text; with the old reader the two refusal tests fail.
+
+## Dispatch c, round 1
+
+Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-c.md`. Range `5a62fd7a24..2c3c9433b3`.
+
+### The brief, item by item
+
+1. Year text: built. `isoYearText` and `postgresYearText` in `postgres-year-text.ts`. Every Temporal, text and `Date` codec's `toWire`, the Temporal codecs' `fromWire`, the type readers, the DDL default text and the Prisma 7 helper use them. `adaptPostgresEra`, `TIMESTAMPTZ_TEXT` and `encodeDate`'s own conversion are gone. The shared reader in `sql-contract` still refuses ` BC`, as it should, since the Postgres wrapper converts first. The integration test writes the seven dates through all eight codecs of `pg/date`, `pg/timestamp` and `pg/timestamptz` into PGlite and reads each back; before the change Temporal `toWire` wrote a signed year, which PostgreSQL refuses.
+2. Tags: built, one entry per type, `parse` the type's existing text reader, `print` the stored form (hex text for `bytea`). The unit tests cover reading, printing back, each refusal kind the ADR lists, and reading without `Temporal` or `Date`.
+3. Casts: the seven casts from `pg/text` are gone; `pg/inet` keeps its own. The integration test refuses a quoted string on each of the seven types with the tag in the message.
+4. `infinity`: built for the three Temporal codecs and the `Date` codec, tested in the codec and through PSL (`PSL_INVALID_DEFAULT_LITERAL`, naming the text codec).
+5. Language server: built in the `@default` spec, so parsing and completion agree. A mismatched tag now fails to parse with `PSL_VALUE_TYPE_INCOMPATIBLE`, naming the tag the column takes (`Expected date\`...\``, probe through `authorSqlContractFromPsl`); a list column given one tag still gets `PSL_DEFAULT_LIST_EXPECTED`.
+6. Rewrites: the remaining quoted date defaults in Prisma 8 sources are all on SQLite, which is dispatch d, or in the deliberately old `_fixture-before-canonical-form`.
+
+### Questions the orchestrator asked
+
+- **Doubled backslashes.** See S3-c-R1-2. In a backtick body only `` \` `` and `\\` are escapes (ADR 129; `resolvePslBacktickEscapes`), so `` bytea`\x68656c6c6f` `` reads back unchanged.
+- **Text codecs and the year text.** This matches ADR 254. Its "Codecs" section gives the text codecs PostgreSQL's text as their application value, and the ADR asks only that `fromWire` reads both year forms, which a text codec does by keeping them. `toWire` must convert, because a text codec also takes ISO text, and it does. The round trip the kits assert holds: the type reader reads ` BC` and five-digit years, so `toDataTypeValue(fromWire(...))` gives the stored value back. The ADR says none of this for text codecs; see S3-c-R1-4.
+- **`dataTypeOfCodec` required.** Accepted. If it were optional, a stack that forgot it would silently offer every tag. Every real stack derives it from the codec lookup (`control-stack.ts`), so only test fixtures had to change.
+- **Named type aliases.** See S3-c-R1-3.
+- **Tests written after the code.** Each can fail. The language-server integration test expects `date` and `bytea` alone, which no earlier build offers. With `receives` forced to `true`, the contract-psl spec test fails (mutation run). The quoted-string refusals fail while the casts exist. The `infinity` tests fail while the codecs read it. The year-text integration test fails while Temporal `toWire` writes signed years. The language-server unit test's change only adds the new tags for a stack with no constructors; it does not test the filter, which the other two do.
+
+### S3-c-R1-1 (must-fix): eight integration tests expect a reader message that names the codec
+
+- Where: `test/integration/test/value-objects/value-object-defaults.integration.test.ts` (2 tests), `test/integration/test/cli-journeys/stale-contract-default-existing-tables.e2e.test.ts` (4), `stale-contract-default.e2e.test.ts` (1), `test/integration/test/uuid-defaults/uuid-defaults.integration.test.ts` (1). Each fails in the `integration` and `packaging` projects: 16 failures.
+- What is wrong: since dispatch a a stored value is read by its data type, so the refusal says `pg/uuid JSON value must be ...` and `sqlite/text JSON value must be a string`, where the tests expect `pg/uuid@1 ...` and `sqlite/text@1 ...`. No slice 3 dispatch ran these files. The `uuid-defaults` enum test also receives a `sourceId` and `span` it does not expect. That probably comes from `main`'s enum diagnostics, but I did not check it against `main`.
+- Change: update the expected messages, and the enum diagnostic's position. Then run every integration file whose expectations hold a codec's or a type's refusal text (`git grep -l "JSON value must be" test/`), not only the files a dispatch touches.
+
+### S3-c-R1-2 (should-fix): the tag printer doubles every backslash
+
+- Where: `printTaggedLiteral` in `packages/1-framework/1-core/framework-components/src/shared/tagged-literal.ts`; the rewrite-hint test in `psl-date-time-defaults.integration.test.ts`, which pins the doubled form.
+- What is wrong: `contract infer` and the rewrite hint print `` bytea`\\x68656c6c6f` ``. It reads back the same, but nobody writes it that way, and this dispatch makes the doubled form routine. In a backtick body a backslash needs doubling only before another backslash or at the end of the body, where it would escape the closing backtick. The printer uses backticks only when the text has none.
+- Change: double a backslash only when the next character is a backslash or it is the last character, so `\x6865` prints as written and `a\\b` prints `a\\\b`. `printedTaggedLiteralReadsBack` and the stored values do not change. A `sql` body such as `E'\n'` also prints as written. Update the tests that pin `\\`, and add a printer test for a trailing backslash and a run of backslashes that reads each back.
+
+### S3-c-R1-3 (low): a column typed by a named type alias offers every tag
+
+- Where: `receivingDataType` in `packages/2-sql/2-authoring/contract-psl/src/sql-attribute-specs.ts`.
+- What is wrong: it knows the column's type only for a `contributedType` resolution. For a `namedType` alias it returns `undefined`, so completion offers all nine tags. Parsing then accepts any tag and the cast refuses it, so only the completion list is wrong.
+- Change: resolve the alias's constructor to its codec and data type, or record the gap in `deferred.md`.
+
+### S3-c-R1-4 (low, dispatch h): ADR 254 does not say a text codec keeps PostgreSQL's year text
+
+- Change: dispatch h adds to "Date and time types" that a text codec's `fromWire` returns PostgreSQL's text, ` BC` and five-digit years included, and its `toWire` converts ISO text through the year-text functions.
+
+### Checks run for dispatch c round 1
+
+- Root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `lint:framework-vocabulary` is 253 at threshold 253. `pnpm fixtures:check` passes, tree clean.
+- Package tests of target-postgres, adapter-postgres, sql-contract-psl, language-server, psl-parser, framework-components, family-sql, sql-contract, sql-contract-ts, mongo-contract-psl, cli and both codec test kits: all pass.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1`, `test/authoring`, `test/date-time-defaults`, every integration file the dispatch changed, `integer-representation` and `connection-release`: 1975 pass, 4 fail (`value-object-defaults`, S3-c-R1-1); `git status` clean after the re-record. `stale-contract-default*` and `uuid-defaults`: 12 fail (S3-c-R1-1); `migration-ts-column-defaults` passes.
+- Probes: mismatched and list tag diagnostics through `authorSqlContractFromPsl` (item 5), with the probe file deleted afterwards; the tag-filter mutation.
+- Must-not-change: no committed `contract.json`, `contract.d.ts`, migration, snapshot or golden recording changed.
