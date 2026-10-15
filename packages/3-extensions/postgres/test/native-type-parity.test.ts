@@ -420,7 +420,7 @@ describe('native types as bare scalar types — parity with the live bare-type p
     expect(column).not.toHaveProperty('default');
   });
 
-  it('names Unsupported("x") as no Prisma 8 type through the SQL family, as the language server does', () => {
+  it('names Unsupported("x") as no Prisma 8 type through the SQL family', () => {
     const result = emit(`model sample {
   id Int @id
   meta Unsupported("hstore")
