@@ -5,7 +5,7 @@
  * Following that advice word for word ends clean, with the stored default unchanged.
  */
 
-import { rmSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { withClient } from '@repo/test-utils';
 import stripAnsi from 'strip-ansi';
@@ -39,6 +39,17 @@ model Event {
 
 function shownOutput(result: { readonly stdout: string; readonly stderr: string }): string {
   return stripAnsi(`${result.stderr}\n${result.stdout}`);
+}
+
+function storageHash(ctx: JourneyContext): string {
+  const contractJson: { readonly storage: { readonly storageHash: string } } = JSON.parse(
+    readFileSync(join(ctx.testDir, 'contract.json'), 'utf-8'),
+  );
+  return contractJson.storage.storageHash;
+}
+
+function withoutContinuationIndent(text: string): string {
+  return text.replace(/\n {7}/g, '\n');
 }
 
 async function storedDefault(connectionString: string): Promise<string | undefined> {
@@ -79,6 +90,13 @@ const cases = [
     stored: "lower('a`b'::text)",
     literal: `sql"lower('a\`b'::text)"`,
   },
+  {
+    name: 'a CASE the database writes on several lines',
+    type: 'String',
+    written: "sql`CASE WHEN true THEN 'a' ELSE 'b' END`",
+    stored: "\nCASE\n    WHEN true THEN 'a'::text\n    ELSE 'b'::text\nEND",
+    literal: "sql`\nCASE\n    WHEN true THEN 'a'::text\n    ELSE 'b'::text\nEND\n`",
+  },
 ] as const;
 
 withTempDir(({ createTempDir }) => {
@@ -100,16 +118,20 @@ withTempDir(({ createTempDir }) => {
         const failed = await runMigrate(ctx);
         const shown = shownOutput(failed);
         expect(failed.exitCode, shown).not.toBe(0);
-        expect(shown).toContain(
-          `why: The live schema differs: mismatch: database/public/Event/column:at/default. The database reads this default back as ${literal}; the contract declares ${written}. ${HEDGE} If they do, write the default as ${literal}.`,
+        expect(withoutContinuationIndent(shown)).toContain(
+          `why: The schema check after apply found: mismatch: database/public/Event/column:at/default. The database reads this default back as ${literal}; the contract declares ${written}. ${HEDGE} If they do, write the default as ${literal}.`,
         );
 
-        const advised = /write the default as (.+)\.\n/.exec(shown)?.[1];
+        const advised = /write the default as ([\s\S]+?)\.\n→/.exec(shown)?.[1];
         const fix =
           /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`\./.exec(
             shown,
           );
-        expect({ advised, folder: fix?.[1], planArgs: fix?.[2] }).toEqual({
+        expect({
+          advised: advised && withoutContinuationIndent(advised),
+          folder: fix?.[1],
+          planArgs: fix?.[2],
+        }).toEqual({
           advised: literal,
           folder: expect.stringMatching(/^migrations\/app\/\w+_initial$/),
           planArgs: '--name initial',
@@ -126,6 +148,66 @@ withTempDir(({ createTempDir }) => {
         const verified = await runDbVerify(ctx);
         expect(verified.exitCode, shownOutput(verified)).toBe(0);
         expect(await storedDefault(db.connectionString)).toBe(stored);
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+
+  describe('two pending migrations, the first of which writes the default', () => {
+    const db = useDevDatabase();
+    const withTag = (literal: string) => `${schema('DateTime', literal)}
+model Tag {
+  id Int @id
+}
+`;
+
+    it(
+      'db migrate says to plan the last one again; following it ends clean',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+        writeContract(ctx, schema('DateTime', "sql`now() - interval '1 day'`"));
+        expect((await runContractEmit(ctx)).exitCode).toBe(0);
+        expect((await planMigrationAndSelfEmit(ctx, ['--name', 'first'])).exitCode).toBe(0);
+        const firstHash = storageHash(ctx);
+        writeContract(ctx, withTag("sql`now() - interval '1 day'`"));
+        expect((await runContractEmit(ctx)).exitCode).toBe(0);
+        const second = await planMigrationAndSelfEmit(ctx, [
+          '--from',
+          firstHash,
+          '--name',
+          'second',
+        ]);
+        expect(second.exitCode, shownOutput(second)).toBe(0);
+
+        const failed = await runMigrate(ctx);
+        const shown = shownOutput(failed);
+        expect(failed.exitCode, shown).not.toBe(0);
+        const advised = /write the default as ([\s\S]+?)\.\n→/.exec(shown)?.[1];
+        const fix =
+          /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`\./.exec(
+            shown,
+          );
+        expect({ advised, folder: fix?.[1], planArgs: fix?.[2] }).toEqual({
+          advised: "sql`(now() - '1 day'::interval)`",
+          folder: expect.stringMatching(/^migrations\/app\/\w+_second$/),
+          planArgs: `--from ${firstHash} --name second`,
+        });
+        if (advised === undefined || fix?.[1] === undefined || fix[2] === undefined) return;
+
+        writeContract(ctx, withTag(advised));
+        expect((await runContractEmit(ctx)).exitCode).toBe(0);
+        rmSync(join(ctx.testDir, fix[1]), { recursive: true });
+        const planned = await planMigrationAndSelfEmit(ctx, fix[2].split(' '));
+        expect(planned.exitCode, shownOutput(planned)).toBe(0);
+        const applied = await runMigrate(ctx);
+        expect(applied.exitCode, shownOutput(applied)).toBe(0);
+        const verified = await runDbVerify(ctx);
+        expect(verified.exitCode, shownOutput(verified)).toBe(0);
+        expect(await storedDefault(db.connectionString)).toBe("(now() - '1 day'::interval)");
       },
       timeouts.spinUpPpgDev,
     );
@@ -148,7 +230,7 @@ withTempDir(({ createTempDir }) => {
         const shown = shownOutput(failed);
         expect(failed.exitCode, shown).not.toBe(0);
         expect(shown).toContain(
-          "why: The live schema differs: mismatch: database/public/Event/column:at/default. The database reads this default back as sql`(now() - '1 day'::interval)`",
+          "why: The schema check after apply found: mismatch: database/public/Event/column:at/default. The database reads this default back as sql`(now() - '1 day'::interval)`",
         );
       },
       timeouts.spinUpPpgDev,
@@ -172,7 +254,7 @@ withTempDir(({ createTempDir }) => {
         const shown = shownOutput(failed);
         expect(failed.exitCode, shown).not.toBe(0);
         expect(shown).toContain(
-          "why: The live schema differs: mismatch: database/public/Event/column:at/default. The database reads this default back as sql`(now() - '1 day'::interval)`",
+          "why: The schema check after apply found: mismatch: database/public/Event/column:at/default. The database reads this default back as sql`(now() - '1 day'::interval)`",
         );
         expect(shown).toContain('Change the contract source to resolve the issues listed');
       },

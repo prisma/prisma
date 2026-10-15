@@ -22,7 +22,7 @@ import {
   errorFileNotFound,
 } from '../../utils/cli-errors';
 import { chooseAction, runCommandAction } from '../../utils/next-actions';
-import { issueLabel, schemaDiffersWhy } from '../../utils/schema-issues';
+import { issueLabel, schemaIssuesWhy } from '../../utils/schema-issues';
 import { contractPathFor, displayPath } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
 
@@ -205,7 +205,9 @@ export function schemaVerdictDiagnostic(inputs: {
     code: dotted ? code : 'CONTRACT.VERIFY_FAILED',
     severity: 'error',
     summary: inputs.result.summary,
-    ...(issues.length === 0 ? {} : { why: schemaDiffersWhy(inputs.result.schema.issues) }),
+    ...(issues.length === 0
+      ? {}
+      : { why: schemaIssuesWhy('The live schema differs', inputs.result.schema.issues) }),
     nextActions: inputs.nextActions,
     meta: {
       ...(inputs.space === undefined ? {} : { space: inputs.space }),
@@ -218,8 +220,10 @@ export function schemaVerdictDiagnostic(inputs: {
 /**
  * What to do about schema drift, by the causes the issues name. A value the emitted contract holds
  * that its type refuses is fixed only by re-emitting. A value the database may hold in a form of its
- * own is fixed in the contract when the two mean the same, and by `db update` when they do not. The
- * normal drift actions follow when some issue is not a refused contract value, or there is none.
+ * own is fixed in the contract when the two mean the same, and by `db update` when they do not.
+ * `db update` follows when some issue is not a refused contract value; changing the contract to
+ * describe the database follows when some issue has no explanation. Both follow when there is no
+ * issue.
  */
 export function schemaDriftNextActions(inputs: {
   readonly verb: 'sign' | 'verify';
@@ -234,6 +238,7 @@ export function schemaDriftNextActions(inputs: {
   const causes = new Set(issues.flatMap((issue) => issue.explanation?.cause ?? []));
   const drift =
     issues.length === 0 || issues.some((issue) => issue.explanation?.cause !== 'expected-refused');
+  const uncaused = issues.length === 0 || issues.some((issue) => issue.explanation === undefined);
   return [
     ...[...causes]
       .sort((a, b) => CAUSE_ORDER[a] - CAUSE_ORDER[b])
@@ -244,8 +249,14 @@ export function schemaDriftNextActions(inputs: {
             `Change the database to match the contract, then ${verb} again`,
             contractRef === undefined ? '{bin} db update' : `{bin} db update --to "${contractRef}"`,
           ),
+        ]
+      : []),
+    ...(uncaused
+      ? [
           chooseAction(
-            `Or change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`,
+            causes.has('possibly-equivalent')
+              ? `Or, for the issues with no explanation, change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`
+              : `Or change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`,
           ),
         ]
       : []),

@@ -28,7 +28,7 @@ const plain: SchemaDiffIssue = {
 
 const RUNNER_WHY = 'The resulting database schema does not satisfy the destination contract.';
 const LISTED =
-  'The live schema differs: mismatch: database/public/Event/column:at/default. The database reads this default back as sql`(now())`; missing: database/public/Event/column:id.';
+  'The schema check after apply found: mismatch: database/public/Event/column:at/default. The database reads this default back as sql`(now())`; missing: database/public/Event/column:id.';
 const PROJECT = '/work/app';
 const invocation = { cwd: PROJECT, configPath: undefined, dbGiven: false };
 const FROM = 'b'.repeat(64);
@@ -109,13 +109,15 @@ describe('a failed schema check after apply', () => {
   });
 
   describe('on db init', () => {
-    it('lists the issues in its why', () => {
-      expect(
-        mapDbInitFailure(
-          { ...schemaCheckFailure([explained, plain]), conflicts: undefined },
-          invocation,
-        ).why,
-      ).toBe(LISTED);
+    it('lists the issues in its why, and says to change the contract', () => {
+      const error = mapDbInitFailure(
+        { ...schemaCheckFailure([explained, plain]), conflicts: undefined },
+        invocation,
+      );
+      expect({ why: error.why, fix: error.fix }).toEqual({
+        why: LISTED,
+        fix: 'Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, then re-run `{bin} db init`.',
+      });
     });
 
     it('keeps the runner why when there are no issues', () => {

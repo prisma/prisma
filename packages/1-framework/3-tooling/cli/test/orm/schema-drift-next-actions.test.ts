@@ -40,6 +40,10 @@ const dbUpdate = (verb: string, command = '{bin} db update') => ({
   label: `Change the database to match the contract, then ${verb} again`,
   command,
 });
+const describeOtherIssues = (retry: string) => ({
+  kind: 'user-choice',
+  label: `Or, for the issues with no explanation, change the contract source to describe the database as it is, re-run contract emit, then ${retry}`,
+});
 const describeDatabase = (retry: string) => ({
   kind: 'user-choice',
   label: `Or change the contract source to describe the database as it is, re-run contract emit, then ${retry}`,
@@ -85,15 +89,10 @@ describe('schemaDriftNextActions', () => {
         contractRef: undefined,
         issues: [possiblyEquivalent],
       }),
-    ).toEqual([
-      writeAsStored('verify again'),
-      dbUpdate('verify'),
-      describeDatabase('verify again'),
-    ]);
+    ).toEqual([writeAsStored('verify again'), dbUpdate('verify')]);
   });
 
   it('aims each action at the ref being signed when a value may be in the database form', () => {
-    const retry = 'sign the emitted contract instead of "staging"';
     expect(
       schemaDriftNextActions({
         verb: 'sign',
@@ -101,13 +100,12 @@ describe('schemaDriftNextActions', () => {
         issues: [possiblyEquivalent],
       }),
     ).toEqual([
-      writeAsStored(retry),
+      writeAsStored('sign the emitted contract instead of "staging"'),
       dbUpdate('sign', '{bin} db update --to "staging"'),
-      describeDatabase(retry),
     ]);
   });
 
-  it('offers each action once when issues of one cause repeat beside plain drift', () => {
+  it('names the other issues in the contract change beside writing the stored form, once each', () => {
     expect(
       schemaDriftNextActions({
         verb: 'verify',
@@ -117,7 +115,7 @@ describe('schemaDriftNextActions', () => {
     ).toEqual([
       writeAsStored('verify again'),
       dbUpdate('verify'),
-      describeDatabase('verify again'),
+      describeOtherIssues('verify again'),
     ]);
   });
 
@@ -132,22 +130,17 @@ describe('schemaDriftNextActions', () => {
       REEMIT,
       writeAsStored('verify again'),
       dbUpdate('verify'),
-      describeDatabase('verify again'),
+      describeOtherIssues('verify again'),
     ]);
   });
 
-  it('keeps the drift actions for a refused value beside one that may be in the database form', () => {
+  it('offers re-emitting, writing the stored form and db update for a refused value beside one in the database form', () => {
     expect(
       schemaDriftNextActions({
         verb: 'verify',
         contractRef: undefined,
         issues: [refused, possiblyEquivalent],
       }),
-    ).toEqual([
-      REEMIT,
-      writeAsStored('verify again'),
-      dbUpdate('verify'),
-      describeDatabase('verify again'),
-    ]);
+    ).toEqual([REEMIT, writeAsStored('verify again'), dbUpdate('verify')]);
   });
 });

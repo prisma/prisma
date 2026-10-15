@@ -130,11 +130,11 @@ function convertColumn(
     codecBaseNativeType: baseTypeName,
     dataType,
     ...ifDefined('toCanonicalForm', codec && canonicalFormOf(codec, types.dataTypeLookup)),
-    sqlLiteralFor,
+    sqlExpressionLiteralFor,
   };
 }
 
-function sqlLiteralFor(text: string): string | undefined {
+function sqlExpressionLiteralFor(text: string): string | undefined {
   return sqlTextsReadBack([text]) ? printSqlExpressionLiteral(text) : undefined;
 }
 

@@ -132,7 +132,7 @@ describe('SqlColumnDefaultIR', () => {
     });
 
     describe('two default expressions', () => {
-      const sqlLiteralFor = (text: string) =>
+      const sqlExpressionLiteralFor = (text: string) =>
         printedTaggedLiteralReadsBack(text) ? printTaggedLiteral('sql', text) : undefined;
       const HEDGE =
         'The database may store a default expression in its own form, so the two can mean the same.';
@@ -140,7 +140,7 @@ describe('SqlColumnDefaultIR', () => {
       function declared(text: string): SqlColumnDefaultIR {
         return new SqlColumnDefaultIR({
           resolved: { kind: 'function', expression: text },
-          sqlLiteralFor,
+          sqlExpressionLiteralFor,
         });
       }
 
@@ -193,10 +193,21 @@ describe('SqlColumnDefaultIR', () => {
         );
       });
 
-      it('says when no literal writes the stored text, and quotes it plainly', () => {
-        expect(declared('now()').explainMismatch(stored('now()\r'))?.text).toBe(
-          `The database reads this default back as "now()\\r"; the contract declares sql\`now()\`. ${HEDGE} No \`sql\` literal writes that text unchanged, so change it in the database or keep the contract's form.`,
+      it('writes the parsed text when no literal writes the stored text', () => {
+        expect(
+          declared('now()').explainMismatch(
+            stored('\nCASE\n  WHEN true THEN now()\nEND', 'CASE\n  WHEN true THEN now()\nEND'),
+          )?.text,
+        ).toBe(
+          `The database reads this default back as sql\`\nCASE\n  WHEN true THEN now()\nEND\n\`; the contract declares sql\`now()\`. ${HEDGE} If they do, write the default as sql\`\nCASE\n  WHEN true THEN now()\nEND\n\`.`,
         );
+      });
+
+      it('says when no literal writes the stored or the parsed text, and quotes it plainly', () => {
+        expect(declared('now()').explainMismatch(stored('now()\r'))).toEqual({
+          text: `The database reads this default back as "now()\\r"; the contract declares sql\`now()\`. ${HEDGE} No \`sql\` literal writes that text unchanged, so change the default's SQL in the contract until the database stores it as written.`,
+          cause: 'possibly-equivalent',
+        });
       });
 
       it('shows the text the database stores, not its parsed form', () => {
@@ -211,11 +222,14 @@ describe('SqlColumnDefaultIR', () => {
         );
       });
 
-      it('gives no explanation without a way to write a literal', () => {
+      it('explains the mismatch without a way to write a literal, quoting the texts plainly', () => {
         const expected = new SqlColumnDefaultIR({
           resolved: { kind: 'function', expression: 'now()' },
         });
-        expect(expected.explainMismatch(stored('(now())'))).toBeUndefined();
+        expect(expected.explainMismatch(stored('(now())'))).toEqual({
+          text: `The database reads this default back as "(now())"; the contract declares "now()". ${HEDGE} If they do, write the default as "(now())".`,
+          cause: 'possibly-equivalent',
+        });
       });
 
       it('gives no explanation for an expression against a literal', () => {
@@ -226,7 +240,7 @@ describe('SqlColumnDefaultIR', () => {
       it('gives no explanation for a literal against an expression', () => {
         const expected = new SqlColumnDefaultIR({
           resolved: { kind: 'literal', value: 'x' },
-          sqlLiteralFor,
+          sqlExpressionLiteralFor,
         });
         expect(expected.explainMismatch(stored('now()'))).toBeUndefined();
       });

@@ -22,10 +22,10 @@ export function issueLabel(issue: SchemaDiffIssue): string {
   return issue.explanation === undefined ? label : `${label}. ${issue.explanation.text}`;
 }
 
-/** The issues of a failed schema check, as one sentence for a diagnostic's why. */
-export function schemaDiffersWhy(issues: readonly SchemaDiffIssue[]): string {
+/** The issues of a failed schema check, as one sentence for a diagnostic's why, after `opening`. */
+export function schemaIssuesWhy(opening: string, issues: readonly SchemaDiffIssue[]): string {
   const labels = issues.map((issue) => issueLabel(issue).replace(/\.$/, ''));
-  return `The live schema differs: ${labels.join('; ')}.`;
+  return `${opening}: ${labels.join('; ')}.`;
 }
 
 /**
@@ -47,7 +47,9 @@ export function runnerSchemaCheckWhy(
   meta: Record<string, unknown> | undefined,
 ): string | undefined {
   const issues = runnerSchemaIssues(meta);
-  return issues === undefined ? undefined : schemaDiffersWhy(issues);
+  return issues === undefined
+    ? undefined
+    : schemaIssuesWhy('The schema check after apply found', issues);
 }
 
 function isSchemaDiffIssue(value: unknown): value is SchemaDiffIssue {

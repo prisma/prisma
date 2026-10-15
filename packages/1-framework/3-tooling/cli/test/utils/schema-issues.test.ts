@@ -1,6 +1,6 @@
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
-import { issueLabel, runnerSchemaCheckWhy, schemaDiffersWhy } from '../../src/utils/schema-issues';
+import { issueLabel, runnerSchemaCheckWhy, schemaIssuesWhy } from '../../src/utils/schema-issues';
 
 const node: DiffableNode = {
   id: 'default',
@@ -31,9 +31,9 @@ describe('issueLabel', () => {
   });
 });
 
-describe('schemaDiffersWhy', () => {
-  it('joins the labels without doubling a full stop', () => {
-    expect(schemaDiffersWhy([explained, plain])).toBe(
+describe('schemaIssuesWhy', () => {
+  it('joins the labels after the opening without doubling a full stop', () => {
+    expect(schemaIssuesWhy('The live schema differs', [explained, plain])).toBe(
       'The live schema differs: mismatch: public/event/at/default. Re-emit the contract, then try again; missing: public/event/id.',
     );
   });
@@ -47,7 +47,7 @@ describe('runnerSchemaCheckWhy', () => {
 
   it('lists the issues of a failed schema check', () => {
     expect(runnerSchemaCheckWhy(failed([explained, plain]))).toBe(
-      schemaDiffersWhy([explained, plain]),
+      'The schema check after apply found: mismatch: public/event/at/default. Re-emit the contract, then try again; missing: public/event/id.',
     );
   });
 
@@ -66,6 +66,10 @@ describe('runnerSchemaCheckWhy', () => {
     ['no path', { expected: node }],
     ['neither side', { path: ['public', 'event'] }],
     ['an explanation that is text', { ...plain, explanation: 'text' }],
+    [
+      'an explanation whose text is not text',
+      { ...plain, explanation: { text: 1, cause: 'expected-refused' } },
+    ],
     ['an unknown cause', { ...plain, explanation: { text: 'text', cause: 'other' } }],
   ])('gives nothing for an issue with %s', (_, issue) => {
     expect(runnerSchemaCheckWhy(failed([plain, issue]))).toBeUndefined();
