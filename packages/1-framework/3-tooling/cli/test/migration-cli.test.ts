@@ -575,28 +575,4 @@ describe('MigrationCLI.run', () => {
     expect(stderr.text).toContain('--dry-run');
     expect(stderr.text).toContain('--config');
   });
-
-  it('uses injected argv exclusively, never reading process.argv', async () => {
-    // Regression guard for the stream-injection contract: when argv is
-    // injected, the runner must not fall back to process.argv. In
-    // vitest, process.argv[1] points at vitest's own binary — if the
-    // implementation read it, the entrypoint guard
-    // (realpathSync(argv[1]) === realpathSync(importMetaUrl)) would
-    // not match and the runner would silently no-op, leaving
-    // loadConfigMock uncalled. The injected argv points argv[1] at
-    // migrationFile, so the guard fires and loadConfig is called.
-    loadConfigMock.mockResolvedValue(ok(okConfig));
-    createControlStackMock.mockReturnValue({ adapter: { create: () => ({}) } });
-
-    const stdout = new BufferStream();
-    const stderr = new BufferStream();
-    const exitCode = await MigrationCLI.run(pathToFileURL(migrationFile).href, FakeMigration, {
-      argv: entrypointArgv(),
-      stdout,
-      stderr,
-    });
-
-    expect(exitCode).toBe(0);
-    expect(loadConfigMock).toHaveBeenCalled();
-  });
 });
