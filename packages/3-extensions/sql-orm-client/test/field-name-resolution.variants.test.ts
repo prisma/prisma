@@ -41,7 +41,7 @@ describe('a select of a field name two variants map to different columns', () =>
   });
 
   it('reads only the narrowed variant column when the collection is narrowed', () => {
-    expect(mapSelectedFieldsToColumns(poly, 'public', 'Task', 'Bug', ['assigneeId'])).toEqual([
+    expect(mapSelectedFieldsToColumns(poly, 'public', 'Task', 'bug', ['assigneeId'])).toEqual([
       'bug_assignee_person_id',
     ]);
   });

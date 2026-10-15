@@ -1,5 +1,4 @@
 import { sql } from '@internal/sql-contract/sql-expression';
-import { StorageColumn } from '@internal/sql-contract/types';
 import {
   checkExpression,
   col,
@@ -12,15 +11,16 @@ import {
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { TsExpression } from '@internal/ts-render';
 import { describe, expect, it } from 'vitest';
+import { postgresDataTypes } from '../../src/core/data-types';
 import * as opFactoryCalls from '../../src/core/migrations/op-factory-call';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   AlterColumnTypeCall,
   CreateExtensionCall,
@@ -53,7 +53,6 @@ import {
 import { renderCallsToTypeScript } from '../../src/core/migrations/render-typescript';
 import { PostgresRlsPolicy } from '../../src/core/postgres-rls-policy';
 import * as migrationFacade from '../../src/exports/migration';
-import { postgresTypeLookups } from '../postgres-type-lookups';
 
 const SNAPSHOTS_IMPORT_PATH = '../../snapshots';
 const FROM_HASH = 'a'.repeat(64);
@@ -181,12 +180,6 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     postcheck: [],
   };
 
-  const storageColumn = new StorageColumn({
-    dataType: 'pg/text',
-    codecId: 'pg/text@1',
-    nullable: false,
-  });
-
   const oneCallPerClass = [
     new CreateTableCall(
       'public',
@@ -208,25 +201,19 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new RenameColumnCall('public', 'archived', 'title', 'heading', []),
     new AddColumnCall('public', 'note', col('nickname', 'text')),
     new DropColumnCall('public', 'note', 'nickname'),
-    new AlterColumnTypeCall('public', 'note', 'kind', {
-      qualifiedTargetType: 'text',
-      formatTypeExpected: 'text',
-      rawTargetTypeForLabel: 'text',
+    new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'note',
+      columnName: 'kind',
+      type: 'text',
+      dataTypes: postgresDataTypes,
     }),
     new SetNotNullCall('public', 'note', 'kind'),
     new DropNotNullCall('public', 'note', 'kind'),
     new SetDefaultCall('public', 'note', col('kind', 'text', { default: lit('draft') })),
     new DropDefaultCall('public', 'note', 'kind'),
-    new AddNotNullColumnDirectCall('public', 'note', 'title', col('title', 'text')),
-    new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'note',
-      columnName: 'title',
-      column: storageColumn,
-      types: postgresTypeLookups,
-      storageTypes: {},
-      temporaryDefault: "''",
-    }),
+    new AddRequiredColumnToEmptyTableCall('public', 'note', 'title', 'text'),
+    new AddColumnWithTemporaryDefaultCall('public', 'note', 'title', 'text', "''"),
     new AddPrimaryKeyCall('public', 'note', 'note_pkey', ['id']),
     new AddForeignKeyCall('public', 'note', {
       name: 'note_owner_fkey',
@@ -318,6 +305,14 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new AddColumnCall('public', 'note', col('created', 'timestamptz', { default: fn('now()') })),
     new SetDefaultCall('public', 'note', col('created', 'timestamptz', { default: fn('now()') })),
     new CreateIndexCall('public', 'note', 'note_kind_idx', { columns: ['kind'] }, { where: 'x' }),
+    new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'note',
+      columnName: 'kind',
+      type: 'int4',
+      using: { kind: 'sql', sql: '"kind"::int4' },
+      dataTypes: postgresDataTypes,
+    }),
   ];
 
   const fallbackOnlyCalls = [
@@ -360,11 +355,13 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     );
     expect(printingCalls.map((call) => call.constructor.name)).toEqual([
       'CreateTableCall',
+      'AddColumnWithTemporaryDefaultCall',
       'AddCheckConstraintCall',
       'CreatePostgresRlsPolicyCall',
       'AddColumnCall',
       'SetDefaultCall',
       'CreateIndexCall',
+      'AlterColumnTypeCall',
     ]);
   });
 

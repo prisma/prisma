@@ -360,6 +360,57 @@ describe('TypeScriptRenderableSqliteMigration round-trip', () => {
     const expected = JSON.parse(JSON.stringify(await Promise.all(renderOps(calls, testAdapter))));
     expect(ops).toEqual(expected);
   });
+
+  it('preserves a rebuild that copies columns through expressions', {
+    timeout: timeouts.coldTransformImport,
+  }, async () => {
+    const calls = [
+      new RecreateTableCall({
+        tableName: 'user',
+        contractTable: {
+          columns: [
+            { name: 'id', typeSql: 'INTEGER', nullable: false },
+            { name: 'age', typeSql: 'INTEGER', nullable: false },
+            { name: 'name', typeSql: 'TEXT', nullable: false },
+          ],
+          primaryKey: { columns: ['id'] },
+          uniques: [],
+          foreignKeys: [],
+        },
+        schemaColumnNames: ['id', 'age'],
+        indexes: [],
+        summary: 'Recreates table user',
+        postchecks: [],
+        operationClass: 'data',
+        copyExpressions: {
+          age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' },
+          name: { kind: 'sql', sql: "''" },
+        },
+      }),
+    ];
+    const migration = new TypeScriptRenderableSqliteMigration(
+      calls,
+      META,
+      APP_SPACE_ID,
+      SNAPSHOTS_IMPORT_PATH,
+    );
+
+    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
+    expect(tsSource).toContain(
+      'copyExpressions: { "age": sql`CAST("age" AS INTEGER)`, "name": sql`\'\'` }',
+    );
+    await writeFile(join(tmpDir, 'migration.ts'), tsSource);
+
+    await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], { cwd: tmpDir });
+
+    const ops = JSON.parse(await readFile(join(tmpDir, 'ops.json'), 'utf-8'));
+    const expected = JSON.parse(JSON.stringify(await Promise.all(renderOps(calls, testAdapter))));
+    expect(ops).toEqual(expected);
+    expect(JSON.stringify(ops)).toContain(
+      'INSERT INTO \\"_prisma_new_user\\" (\\"id\\", \\"age\\", \\"name\\") SELECT \\"id\\", CAST(\\"age\\" AS INTEGER), \'\' FROM \\"user\\"',
+    );
+  });
+
   it('a migration file written with sql values produces the same ops.json as one written with strings', {
     timeout: timeouts.repeatedScriptRuns,
   }, async () => {

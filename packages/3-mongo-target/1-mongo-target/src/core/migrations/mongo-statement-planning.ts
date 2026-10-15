@@ -15,6 +15,7 @@ import {
   type ResolvedFieldRenameStatement,
   type ResolvedMigrationStatement,
   type ResolvedModelRenameStatement,
+  type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
 import { MongoSchemaCollection, MongoSchemaIR } from '@internal/mongo-schema-ir';
@@ -63,7 +64,11 @@ function variantFilter(
   if (base === undefined) return undefined;
   const baseModel = contract.domain.namespaces[base.namespace]?.models[base.model];
   const field = baseModel?.discriminator?.field;
-  const value = baseModel?.variants?.[coordinate.model]?.value;
+  const variants = Object.entries(baseModel?.variants ?? {});
+  const value = variants.find(
+    ([, variant]) =>
+      variant.namespace === coordinate.namespaceId && variant.model === coordinate.model,
+  )?.[0];
   return field === undefined || value === undefined ? undefined : { [field]: value };
 }
 
@@ -167,7 +172,7 @@ export function timeSeriesRemovalRefusals(
  * changes renames the field in the documents that hold it.
  */
 export function planStatements(input: {
-  readonly statements: readonly ResolvedMigrationStatement[];
+  readonly statements: readonly ResolvedRenameStatement[];
   readonly fromContract: ContractWithDomain;
   readonly contract: MongoContract;
   readonly schema: MongoSchemaIR;
@@ -456,7 +461,7 @@ function destinationModelOf(
 }
 
 interface FieldRemovalInput {
-  readonly statements: readonly ResolvedMigrationStatement[];
+  readonly statements: readonly ResolvedRenameStatement[];
   readonly fromContract: ContractWithDomain;
   readonly contract: MongoContract;
   readonly collectionAfterRenames: (collection: string) => string;
@@ -499,10 +504,13 @@ function rootDocumentsLosing(
   if (model === undefined || Object.hasOwn(model.fields, field)) return undefined;
   const discriminator = model.discriminator?.field;
   const keeping = Object.entries(model.variants ?? {})
-    .filter(([variant]) =>
-      Object.hasOwn(modelAt(contract, { ...root, model: variant })?.fields ?? {}, field),
+    .filter(([, variant]) =>
+      Object.hasOwn(
+        modelAt(contract, { namespaceId: variant.namespace, model: variant.model })?.fields ?? {},
+        field,
+      ),
     )
-    .map(([, entry]) => entry.value)
+    .map(([value]) => value)
     .sort();
   if (discriminator === undefined || keeping.length === 0) return { filter: undefined };
   return { filter: { [discriminator]: { $nin: keeping } } };

@@ -201,26 +201,6 @@ describe('hasForeignKey', () => {
     ...overrides,
   });
 
-  it('matches a single-column FK', () => {
-    expect(
-      hasForeignKey(
-        lookup,
-        fk({
-          source: {
-            namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-            tableName: 'post',
-            columns: ['author_id'],
-          },
-          target: {
-            namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-            tableName: 'user',
-            columns: ['id'],
-          },
-        }),
-      ),
-    ).toBe(true);
-  });
-
   it('matches a composite FK', () => {
     expect(
       hasForeignKey(

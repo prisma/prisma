@@ -24,7 +24,7 @@ async function setup(pullDiagnostics = false) {
   const resolution: ConfigResolution = {
     inputs: await resolveSchemaInputs({}, () => undefined),
     schemaInputConfig: {},
-    controlStack: { scalarTypes: ['Int'], pslBlockDescriptors: {} },
+    controlStack: { scalarTypes: ['Int'], defaultNamespaceId: 'public', pslBlockDescriptors: {} },
   };
   load.mockReset().mockResolvedValue(resolution);
   const sendDiagnostics = vi.fn();
@@ -82,7 +82,11 @@ describe('Project lifecycle', () => {
     );
     load.mockResolvedValueOnce({
       ...resolution,
-      controlStack: { scalarTypes: ['String'], pslBlockDescriptors: {} },
+      controlStack: {
+        scalarTypes: ['String'],
+        defaultNamespaceId: 'public',
+        pslBlockDescriptors: {},
+      },
     });
     await project.reload();
     expect(project.artifacts).not.toBe(artifacts);

@@ -197,6 +197,7 @@ function hover(markedSource: string, siblings: readonly string[] = []) {
   const { symbolTable } = buildSymbolTable({
     documents: [...others.map((other) => other.document), document],
     sources,
+    defaultNamespaceId: 'public',
   });
   return providePslHover({
     document,

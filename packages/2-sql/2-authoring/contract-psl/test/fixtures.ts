@@ -363,6 +363,7 @@ export function buildSymbolTableInput(
   schema: string,
   options?: {
     readonly sourceId?: string;
+    readonly defaultNamespaceId?: string;
   },
 ): {
   documents: readonly DocumentAst[];
@@ -376,7 +377,11 @@ export function buildSymbolTableInput(
   const sourceId = options?.sourceId ?? 'schema.prisma';
   const { document, sources } = parse(schema, sourceId);
   const sourceFile = sources.sourceFileFor(document.syntax);
-  const { symbolTable, diagnostics } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable, diagnostics } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: options?.defaultNamespaceId ?? postgresTarget.defaultNamespaceId,
+  });
   const seedDiagnostics: ContractSourceDiagnostic[] = diagnostics.map((diagnostic) => ({
     code: diagnostic.code,
     message: diagnostic.message,
@@ -422,6 +427,7 @@ function contextForInterpretOptions(
     | 'composedExtensionContracts'
     | 'capabilities'
     | 'scalarColumnDescriptors'
+    | 'target'
   >,
 ): ContractSourceContext {
   const authoring = options.authoringContributions;
@@ -434,6 +440,7 @@ function contextForInterpretOptions(
   }
   return {
     composedExtensions: options.composedExtensions ?? [],
+    defaultNamespaceId: options.target.defaultNamespaceId,
     composedExtensionContracts: options.composedExtensionContracts,
     authoringContributions: {
       type: { ...scalarsFromColumnDescriptors, ...authoring?.type },
@@ -521,6 +528,7 @@ export function createPostgresTestContext(
 ): ContractSourceContext {
   return {
     composedExtensions: [],
+    defaultNamespaceId: 'public',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       dataTypes: fixtureDataTypeSupport.entries,

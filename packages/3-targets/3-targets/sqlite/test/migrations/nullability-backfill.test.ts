@@ -1,4 +1,4 @@
-import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
@@ -52,7 +52,22 @@ function makeContract(tables: Record<string, StorageTable>): Contract<SqlStorage
       },
     }),
     roots: {},
-    domain: applicationDomainOf({ models: {} }),
+    domain: applicationDomainOf({
+      models: {
+        User: {
+          fields: {
+            id: { nullable: false, type: { kind: 'scalar', codecId: 'sqlite/integer@1' } },
+            email: { nullable: false, type: { kind: 'scalar', codecId: 'sqlite/text@1' } },
+          },
+          relations: {},
+          storage: {
+            table: 'users',
+            namespaceId: UNBOUND_NAMESPACE_ID,
+            fields: { id: { column: 'id' }, email: { column: 'email' } },
+          },
+        },
+      },
+    }),
     capabilities: {},
     extensions: {},
     meta: {},
@@ -130,14 +145,20 @@ describe('nullability-tightening backfill', async () => {
     expect(ops[0]?.operationClass).toBe('widening');
   });
 
-  it("with 'data' allowed, emits a backfill data-transform stub before the recreate", async () => {
+  it("with 'data' allowed and --backfill, emits a backfill data-transform stub before the recreate", async () => {
     const result = planner.plan({
       contract: tightenedEmailContract(),
       schema: nullableEmailSchema(),
       policy: { allowedOperationClasses: ['additive', 'widening', 'data'] },
       fromContract: null,
       origin: null,
-      statements: [],
+      statements: [
+        {
+          kind: 'backfill',
+          entity: 'field',
+          field: { namespaceId: asNamespaceId('__unbound__'), model: 'User', field: 'email' },
+        },
+      ],
       frameworkComponents: sqliteTestComponents,
       spaceId: APP_SPACE_ID,
       snapshotsImportPath: '../../snapshots',
@@ -166,7 +187,7 @@ describe('nullability-tightening backfill', async () => {
     expect(backfillIdx).toBeGreaterThan(-1);
     expect(recreateIdx).toBeGreaterThan(-1);
     expect(backfillIdx).toBeLessThan(recreateIdx);
-    expect(ts).toContain('placeholder("users-email-backfill-sql")');
+    expect(ts).toContain('placeholder("User.email:run")');
   });
 
   it("relaxing NOT NULL → nullable does not emit a backfill even with 'data' allowed", async () => {

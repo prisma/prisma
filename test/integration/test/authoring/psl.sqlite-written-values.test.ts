@@ -30,6 +30,7 @@ async function author(fields: string, blocks = '') {
     createNamespace: sqliteCreateNamespace,
   }).source.load({
     composedExtensions: [],
+    defaultNamespaceId: stack.target.defaultNamespaceId,
     composedExtensionContracts: new Map(),
     authoringContributions: stack.authoringContributions,
     codecLookup: stack.codecLookup,

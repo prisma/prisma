@@ -25,6 +25,7 @@ import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-s
 import { coalesceSubtreeIssues, planIssues } from '../../src/core/migrations/issue-planner';
 import {
   CreateNativeEnumTypeCall,
+  CreateTableCall,
   DropNativeEnumTypeCall,
 } from '../../src/core/migrations/op-factory-call';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
@@ -247,6 +248,66 @@ describe('managed enum create lowering + ordering', () => {
       typeName: 'order_status',
       members: [...MEMBERS],
     });
+  });
+});
+
+describe('enum column of another namespace', () => {
+  function crossNamespaceContract(): Contract<SqlStorage> {
+    const auth = new PostgresSchema({
+      id: 'auth',
+      entries: {
+        native_enum: {
+          order_status: { kind: 'postgres-enum', typeName: 'order_status', members: [...MEMBERS] },
+        },
+      },
+    });
+    const sales = new PostgresSchema({
+      id: 'sales',
+      entries: {
+        table: {
+          orders: new StorageTable({
+            columns: {
+              id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+              status: {
+                dataType: 'pg/enum',
+                codecId: 'pg/enum@1',
+                nullable: false,
+                typeParams: { typeName: 'auth.order_status' },
+                valueSet: {
+                  plane: 'storage',
+                  entityKind: 'valueSet',
+                  namespaceId: 'auth',
+                  entityName: 'OrderStatus',
+                },
+              },
+            },
+            primaryKey: { columns: ['id'] },
+            foreignKeys: [],
+            uniques: [],
+            indexes: [],
+          }),
+        },
+      },
+    });
+    return {
+      ...makeContract({ withEnum: false }),
+      storage: new SqlStorage({
+        storageHash: coreHash('native-enum-planner-cross-namespace'),
+        namespaces: { auth, sales },
+      }),
+    };
+  }
+
+  it('creates the column with the type of the other namespace, schema-qualified', () => {
+    const calls = callsFor(crossNamespaceContract(), liveTree({ tables: {} }));
+    const createTable = calls.find(
+      (call): call is CreateTableCall => call instanceof CreateTableCall,
+    );
+
+    expect(createTable?.schemaName).toBe('sales');
+    expect(createTable?.columns.find((column) => column.name === 'status')?.type).toBe(
+      '"auth"."order_status"',
+    );
   });
 });
 

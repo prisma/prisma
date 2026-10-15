@@ -126,6 +126,8 @@ describe('MongoMigrationPlanner and runner - statements on variants', () => {
         {
           operationIndex: 0,
           subject: { kind: 'field', namespaceId: NS, model: 'Task', field: 'note' },
+          label: 'Remove field note from collection tasks in documents whose type is not "bug"',
+          loss: 'drop',
         },
       ]);
       expect({

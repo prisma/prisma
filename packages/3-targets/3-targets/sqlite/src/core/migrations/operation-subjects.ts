@@ -6,9 +6,15 @@ import {
   storageNameOfOperation,
   unknownCallNames,
 } from '@internal/family-sql/control';
-import type { OpFactoryCall } from '@internal/framework-components/control';
+import type { MigrationDataLossKind, OpFactoryCall } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { DropColumnCall, DropTableCall, RawSqlCall, RecreateTableCall } from './op-factory-call';
+
+type LostStorage = CallSubjects['dataLoss'][number];
+
+function lost(target: SubjectStorage, loss: MigrationDataLossKind = 'drop'): LostStorage {
+  return { ...target, loss };
+}
 
 function tableTarget(table: string): SubjectStorage {
   return {
@@ -30,12 +36,31 @@ function operationCountOf(call: OpFactoryCall): number {
 
 /**
  * The columns a recreate loses: those the new table leaves out, whose values the copy drops, and,
- * when the recreate is destructive, those whose type it changes.
+ * when the recreate is destructive, those whose type it changes with no copy expression to convert them.
  */
-function recreateLosses(call: RecreateTableCall): readonly string[] {
+function recreateLosses(
+  call: RecreateTableCall,
+): readonly { readonly column: string; readonly loss: MigrationDataLossKind }[] {
   const kept = new Set(call.contractTable.columns.map((column) => column.name));
   const dropped = call.schemaColumnNames.filter((column) => !kept.has(column));
-  return [...dropped, ...(call.operationClass === 'destructive' ? call.lossyColumns : [])];
+  const retyped =
+    call.operationClass === 'destructive'
+      ? call.retypedColumns.filter((column) => !Object.hasOwn(call.copyExpressions, column))
+      : [];
+  return [
+    ...dropped.map((column) => ({ column, loss: 'drop' as const })),
+    ...retyped.map((column) => ({ column, loss: 'typeChange' as const })),
+  ];
+}
+
+/** The columns a recreate adds with a value its copy writes into every existing row. */
+function temporaryValuesOf(call: RecreateTableCall): CallSubjects['temporaryValues'] {
+  const copied = new Set(call.schemaColumnNames);
+  return Object.entries(call.temporaryValues).flatMap(([column, expression]) =>
+    copied.has(column) || expression.kind !== 'sql'
+      ? []
+      : [{ table: call.tableName, column, value: expression.sql }],
+  );
 }
 
 /**
@@ -46,7 +71,7 @@ export function sqliteCallSubjects(
   calls: readonly OpFactoryCall[],
   fieldEvents: ReadonlyMap<OpFactoryCall, FieldEventCall>,
 ): readonly CallSubjects[] {
-  const lost = new Set<string>();
+  const lostColumns = new Set<string>();
   const unknownNames = unknownCallNames(
     calls.filter(
       (call) =>
@@ -60,28 +85,43 @@ export function sqliteCallSubjects(
   );
   return calls.map((call): CallSubjects => {
     const operationCount = operationCountOf(call);
+    const { label } = call;
     if (call instanceof RecreateTableCall) {
       const columns = recreateLosses(call);
-      for (const column of columns) lost.add(`${call.tableName}.${column}`);
+      for (const { column } of columns) lostColumns.add(`${call.tableName}.${column}`);
       const dataLoss =
         columns.length === 0 && call.operationClass === 'destructive'
-          ? [tableTarget(call.tableName)]
-          : columns.map((column) => columnTarget(call.tableName, column));
-      return { operationCount, dataLoss, accessWidening: [] };
-    }
-    if (call instanceof DropColumnCall) {
-      const alreadyLost = lost.has(`${call.tableName}.${call.columnName}`);
+          ? [lost(tableTarget(call.tableName))]
+          : columns.map(({ column, loss }) => lost(columnTarget(call.tableName, column), loss));
       return {
         operationCount,
-        dataLoss: alreadyLost ? [] : [columnTarget(call.tableName, call.columnName)],
+        label,
+        dataLoss,
         accessWidening: [],
+        temporaryValues: temporaryValuesOf(call),
+      };
+    }
+    if (call instanceof DropColumnCall) {
+      const alreadyLost = lostColumns.has(`${call.tableName}.${call.columnName}`);
+      return {
+        operationCount,
+        label,
+        dataLoss: alreadyLost ? [] : [lost(columnTarget(call.tableName, call.columnName))],
+        accessWidening: [],
+        temporaryValues: [],
       };
     }
     if (call instanceof DropTableCall) {
-      return { operationCount, dataLoss: [tableTarget(call.tableName)], accessWidening: [] };
+      return {
+        operationCount,
+        label,
+        dataLoss: [lost(tableTarget(call.tableName))],
+        accessWidening: [],
+        temporaryValues: [],
+      };
     }
     if (call.operationClass !== 'destructive') {
-      return { operationCount, dataLoss: [], accessWidening: [] };
+      return { operationCount, label, dataLoss: [], accessWidening: [], temporaryValues: [] };
     }
     const fieldEvent = fieldEvents.get(call);
     const lossTarget: SubjectStorage =
@@ -90,6 +130,12 @@ export function sqliteCallSubjects(
         : fieldEvent !== undefined
           ? fieldEventStorage(fieldEvent)
           : { storageName: unknownNames.get(call) ?? call.factoryName, table: undefined };
-    return { operationCount, dataLoss: [lossTarget], accessWidening: [] };
+    return {
+      operationCount,
+      label,
+      dataLoss: [lost(lossTarget)],
+      accessWidening: [],
+      temporaryValues: [],
+    };
   });
 }

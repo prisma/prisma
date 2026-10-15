@@ -7,6 +7,7 @@ import {
   MixinInclusionAst,
   ModelDeclarationAst,
   NamespaceDeclarationAst,
+  TypesBlockAst,
 } from '../src/syntax/ast/declarations';
 import { filterChildren } from '../src/syntax/ast-helpers';
 import { type SyntaxNode, SyntaxNode as SyntaxNodeClass } from '../src/syntax/red';
@@ -303,8 +304,37 @@ describe('a mixin inclusion', () => {
     ]);
     expect(Array.from(model.members(), (member) => member.syntax.kind)).toEqual([
       'FieldDeclaration',
+      'MixinInclusion',
+      'MixinInclusion',
       'FieldDeclaration',
       'ModelAttribute',
+    ]);
+  });
+
+  it('is among the members of each kind of block and of a mixin, at its position', () => {
+    const result = parseSchema(
+      [
+        'model User {\n  id Int\n  +A\n  @@map("users")\n  name String\n}',
+        'type Address {\n  +A\n  street String\n}',
+        'enum Role {\n  ADMIN\n  +A\n  @@map("roles")\n}',
+        'policy_select ReadPosts {\n  using = "true"\n  +A\n}',
+        'model mixin M {\n  a Int\n  +A\n  @@index([a])\n}',
+        'enum mixin R {\n  +A\n  USER\n}',
+      ].join('\n'),
+    );
+    const kinds = Array.from(result.document.declarations(), (declaration) =>
+      declaration instanceof TypesBlockAst || declaration instanceof NamespaceDeclarationAst
+        ? []
+        : Array.from(declaration.members(), (member) => member.syntax.kind),
+    );
+
+    expect(kinds).toEqual([
+      ['FieldDeclaration', 'MixinInclusion', 'ModelAttribute', 'FieldDeclaration'],
+      ['MixinInclusion', 'FieldDeclaration'],
+      ['KeyValuePair', 'MixinInclusion', 'ModelAttribute'],
+      ['KeyValuePair', 'MixinInclusion'],
+      ['FieldDeclaration', 'MixinInclusion', 'ModelAttribute'],
+      ['MixinInclusion', 'KeyValuePair'],
     ]);
   });
 
@@ -326,7 +356,11 @@ describe('a mixin inclusion', () => {
     expect(result.diagnostics).toEqual([]);
     expect(inclusionPaths(block)).toEqual([['BaseRoles'], ['auth', 'StaffRoles']]);
     expect(Array.from(block.entries(), (entry) => entry.key()?.name())).toEqual(['GUEST']);
-    expect(Array.from(block.members(), (member) => member.syntax.kind)).toEqual(['KeyValuePair']);
+    expect(Array.from(block.members(), (member) => member.syntax.kind)).toEqual([
+      'MixinInclusion',
+      'MixinInclusion',
+      'KeyValuePair',
+    ]);
   });
 
   it('is a member of a key = value block', () => {
@@ -418,19 +452,6 @@ describe('a mixin inclusion', () => {
 });
 
 describe('the reserved word mixin in a block header', () => {
-  it('rejects mixin as a block keyword', () => {
-    const source = 'mixin X {\n  a = 1\n}';
-    const result = parseSchema(source);
-
-    expect(messages(result)).toEqual([
-      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin X"',
-    ]);
-    expect(diagnosedText(result, source)).toEqual(['mixin']);
-    expect(Array.from(result.document.syntax.childNodes(), (node) => node.kind)).toEqual([
-      'GenericBlockDeclaration',
-    ]);
-  });
-
   it.each([
     ['model', 'model mixin {\n  id Int\n}'],
     ['type', 'type mixin {\n  lat Float\n}'],
@@ -462,25 +483,6 @@ describe('the reserved word mixin in a block header', () => {
     expect(diagnosedText(result, source)).toEqual([keyword]);
     expect(mixin.name()?.name()).toBe('X');
     expect(mixin.rbrace()).toBeDefined();
-  });
-
-  it('reports only the keyword diagnostic for mixin as a keyword with no body', () => {
-    const result = parseSchema('mixin X');
-
-    expect(messages(result)).toEqual([
-      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin X"',
-    ]);
-  });
-
-  it('reports only the keyword diagnostic for a mixin whose block keyword is mixin', () => {
-    const source = 'mixin mixin X {\n  a = 1\n}';
-    const result = parseSchema(source);
-
-    expect(messages(result)).toEqual([
-      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin X"',
-    ]);
-    expect(result.diagnostics[0]?.range.start).toEqual({ line: 0, character: 0 });
-    expect(Array.from(onlyMixin(result).entries(), (entry) => entry.key()?.name())).toEqual(['a']);
   });
 
   it('rejects a namespace named mixin', () => {
@@ -625,7 +627,6 @@ describe('the prisma-7 grammar', () => {
     expect(inPrisma7.diagnostics).toEqual(inDefault.diagnostics);
     expect(messages(inPrisma7)).toEqual([
       'PSL_INVALID_DECLARATION: Expected a mixin name after "mixin"',
-      'PSL_INVALID_DECLARATION: A mixin starts with the keyword of the block it is for, for example "model mixin Lost"',
       'PSL_INVALID_MODEL_MEMBER: Expected a mixin name after "+"',
     ]);
     expect(descendantKinds(inPrisma7.document.syntax)).toEqual(

@@ -346,6 +346,23 @@ describe('migrate', () => {
     ]);
   });
 
+  it('repeats --config and --db in the command it says to run next', async () => {
+    const cwd = await buildProject();
+
+    const run = await harness(ormConfig(cwd)).run(
+      ['db', 'migrate', '--db', 'postgres://localhost/other', '--config', 'app/prisma.config.ts'],
+      { cwd, isTty: { stdout: true } },
+    );
+
+    expect(run.presented?.presentation.next).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Check every space against the database',
+        command: 'prisma-test migration status --config app/prisma.config.ts --db <url>',
+      },
+    ]);
+  });
+
   it('writes nothing to stdout in human mode', async () => {
     const cwd = await buildProject();
 

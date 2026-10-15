@@ -56,21 +56,25 @@ Strongly typed AST classes wrap the tree for convenient reading. See [ADR 253](.
 
 ### Symbol table
 
-`buildSymbolTable({ documents, sources })` collects the declarations of a schema's files: namespaces, models, composite types, named types, generic blocks and their fields. It reports duplicate declarations. It does not resolve references and does not interpret blocks.
+`buildSymbolTable({ documents, sources, defaultNamespaceId })` collects the declarations of a schema's files: namespaces, models, composite types, named types, generic blocks and their fields. It reports duplicate declarations. It does not resolve references and does not interpret blocks.
+
+`defaultNamespaceId` is the target's default namespace id, which a `ContractSourceContext` carries. The table is `{ defaultNamespace, namespaces, namedTypes }`. Every model, composite type, generic block and mixin is a member of a namespace symbol: one declared at the top level belongs to the default namespace, together with the members of any `namespace` block written with that namespace's name. `namespaces` is keyed by contract id and includes the default namespace, which exists even when no block is written for it. A namespace symbol has its contract `id`, its PSL `name` and the `namespace` blocks written for it; the two differ only for the late-bound namespace, whose id is `__unbound__` and whose name is `unbound`, and `namespace unbound { … }` and `namespace __unbound__ { … }` are one symbol. Named types belong to no namespace.
+
+The default namespace's members, the named types and the names of the namespaces share one set of names, and the default namespace's own name is taken there whether or not a block is written. A top-level declaration therefore cannot be named `public` where that is the default, or `unbound` or `__unbound__` where the late-bound namespace is.
 
 Each symbol carries the members of its declaration. A model or composite type symbol has its fields and attributes; a generic block symbol has its entries and its attributes, both in source order, and a repeated entry key appears once per occurrence. Consumers read a declaration's members from its symbol, not from the symbol's syntax node.
 
 ### Binder
 
-`createBinder({ sources, symbolTable, context })` resolves names. It decides which declaration a type reference, a field reference or an entity reference denotes, and it reports the ones it cannot resolve. Every consumer asks the binder instead of searching the symbol table, so the interpreters, the attribute specifications and the language server agree on what a name means, and an unresolved name is reported once.
+`createBinder({ sources, symbolTable, context })` resolves names. It decides which declaration a type reference, a field reference or an entity reference denotes, and it reports the ones it cannot resolve. Every consumer asks the binder instead of searching the symbol table, so the interpreters, the attribute specifications and the language server agree on what a name means, and an unresolved name is reported once. Creating a binder also completes the symbol table it is given: a block's member records are final only after `createBinder` returns, so read a block's members from the symbol table after creating the binder.
 
 An unqualified name is looked up in this order:
 
 1. the namespace the referring declaration is in;
-2. the top level;
+2. the document level: the members of the default namespace, the named types and the namespaces;
 3. the types the configured target and its extensions contribute (scalars, type constructors, field presets).
 
-Sibling namespaces are never searched. A nearer declaration hides an outer one of the same name. For `ns.Name`, `ns` must resolve to a namespace, and `Name` is looked up only inside it. The base of a named type is looked up without the named types in scope, so `Uuid = Uuid` in a `types` block refines the contributed `Uuid`.
+Other namespaces are never searched, apart from the default one, whose members are the document level. A nearer declaration hides an outer one of the same name. For `ns.Name`, `ns` must resolve to a namespace, and `Name` is looked up only inside it; the default namespace's name works as a qualifier even when no block is written for it. A resolved model, composite type or generic block always carries its namespace. The base of a named type is looked up without the named types in scope, so `Uuid = Uuid` in a `types` block refines the contributed `Uuid`.
 
 The binder also resolves what attribute and block specifications describe: attribute names, argument keys, function names, fixed identifier values, and the references inside argument values. Where a specification offers alternatives, the binder picks the first alternative the written value fits by its syntactic shape. Checking the value itself, such as a number range or an allowed string, is left to interpretation.
 

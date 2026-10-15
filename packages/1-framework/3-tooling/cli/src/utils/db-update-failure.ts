@@ -3,6 +3,8 @@ import { assertNever } from '@internal/utils/internal-error';
 import type { DbUpdateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
+import { type CliInvocation, cliCommand } from './printed-command';
+import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
 
 /**
  * A `db update` failure as the CLI's structured error.
@@ -10,7 +12,10 @@ import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
  * The `assertNever` is deliberate: a control-API failure code this does not
  * handle must stop the command rather than degrade into a generic message.
  */
-export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError {
+export function mapDbUpdateFailure(
+  failure: DbUpdateFailure,
+  invocation: CliInvocation,
+): CliStructuredError {
   if (failure.code === 'PLANNING_FAILED') {
     return errorMigrationPlanningFailed({ conflicts: failure.conflicts ?? [] });
   }
@@ -21,10 +26,22 @@ export function mapDbUpdateFailure(failure: DbUpdateFailure): CliStructuredError
         ? failure.meta['runnerErrorCode']
         : undefined;
     const fix =
-      runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-        ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
-          'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
-        : 'Inspect the reported conflict, reconcile schema drift if needed, then re-run `{bin} db update`';
+      failure.failedTypeChange !== undefined
+        ? dbUpdateFailedTypeChangeFix(
+            failure.failedTypeChange,
+            failure.databaseStorageHash,
+            invocation,
+          )
+        : failure.rowsWithoutValue !== undefined
+          ? dbUpdateRowsWithoutValueFix(
+              failure.rowsWithoutValue,
+              failure.databaseStorageHash,
+              invocation,
+            )
+          : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
+            ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
+              `Legacy marker-table shape detected. Drop \`prisma_contract.marker\` (Postgres) or \`_prisma_marker\` (SQLite) and re-run \`${cliCommand(invocation, 'db init')}\` to recreate it with the current per-space schema.`
+            : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
     return errorRunnerFailed(failure.summary, {
       why: failure.why ?? 'Migration runner failed',
       fix,

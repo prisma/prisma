@@ -27,7 +27,7 @@ import {
 describe('variant-owned include parent correlation', () => {
   it('correlates an MTI relation from the joined variant table without base-key projection', () => {
     const contract = buildMixedPolyContract();
-    const include = assigneeInclude('Feature');
+    const include = assigneeInclude('feature');
     const childRows = assigneeRows('features', 'assignee_id');
     const aggregate = rowAggregate('assignee', childRows, ['id', 'name']);
 
@@ -35,7 +35,7 @@ describe('variant-owned include parent correlation', () => {
       contract,
       getTestAggregates(),
       'Task',
-      rootState(include, 'Feature', 'title'),
+      rootState(include, 'feature', 'title'),
     );
 
     expect(plan.ast).toEqual(
@@ -58,7 +58,7 @@ describe('variant-owned include parent correlation', () => {
       contract,
       getTestAggregates(),
       'Task',
-      rootState(include, 'Bug', 'title'),
+      rootState(include, 'bug', 'title'),
     );
 
     expect(plan.ast).toEqual(
@@ -85,7 +85,7 @@ describe('variant-owned include parent correlation', () => {
       contract,
       getTestAggregates(),
       'Task',
-      rootState(include, 'Feature', 'title'),
+      rootState(include, 'feature', 'title'),
     );
     const childRows = childRowsFor(plan.ast, 'subtasks');
 
@@ -102,7 +102,7 @@ describe('variant-owned include child alias collisions', () => {
       relationName: 'relatedFeature',
       relatedModelName: 'Feature',
       relatedTableName: 'features',
-      localVariantName: 'Feature',
+      localVariantValue: 'feature',
       targetColumn: 'id',
       localColumn: 'assignee_id',
       cardinality: '1:N',
@@ -119,7 +119,7 @@ describe('variant-owned include child alias collisions', () => {
       contract,
       getTestAggregates(),
       'Task',
-      rootState(include, 'Feature', 'title'),
+      rootState(include, 'feature', 'title'),
     );
 
     expect(plan.ast).toEqual(
@@ -138,7 +138,7 @@ describe('variant-owned include child alias collisions', () => {
       relationName: 'featureCount',
       relatedModelName: 'Feature',
       relatedTableName: 'features',
-      localVariantName: 'Feature',
+      localVariantValue: 'feature',
       targetColumn: 'id',
       localColumn: 'assignee_id',
       cardinality: '1:N',
@@ -166,7 +166,7 @@ describe('variant-owned include child alias collisions', () => {
       contract,
       getTestAggregates(),
       'Task',
-      rootState(include, 'Feature', 'title'),
+      rootState(include, 'feature', 'title'),
     );
 
     expect(plan.ast).toEqual(

@@ -92,7 +92,7 @@ type MutableDomainModel = {
   relations: Record<string, unknown>;
   storage: Record<string, unknown>;
   discriminator?: { field: string };
-  variants?: Record<string, { value: string }>;
+  variants?: Record<string, { model: string; namespace: string }>;
   base?: { model: string; namespace: string };
 };
 
@@ -186,7 +186,10 @@ export function buildMixedPolyContract(): TestContract {
       fields: { id: { column: 'id' }, title: { column: 'title' }, type: { column: 'type' } },
     },
     discriminator: { field: 'type' },
-    variants: { Bug: { value: 'bug' }, Feature: { value: 'feature' } },
+    variants: {
+      bug: { model: 'Bug', namespace: POSTGRES_DEFAULT_NAMESPACE_ID },
+      feature: { model: 'Feature', namespace: POSTGRES_DEFAULT_NAMESPACE_ID },
+    },
   };
 
   domainModels['Bug'] = {
@@ -263,8 +266,8 @@ export function buildStiPolyContract(): TestContract {
   };
   userModel.discriminator = { field: 'kind' };
   userModel.variants = {
-    Admin: { value: 'admin' },
-    Regular: { value: 'regular' },
+    admin: { model: 'Admin', namespace: POSTGRES_DEFAULT_NAMESPACE_ID },
+    regular: { model: 'Regular', namespace: POSTGRES_DEFAULT_NAMESPACE_ID },
   };
 
   domainModels['Admin'] = {

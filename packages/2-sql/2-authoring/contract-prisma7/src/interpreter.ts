@@ -37,10 +37,11 @@ import {
 import type {
   DocumentAst,
   KeyValuePairAst,
+  MixinInclusionAst,
   PslSources,
   SourceFile,
 } from '@internal/psl-parser/syntax';
-import { dottedPathsIn, StringLiteralExprAst } from '@internal/psl-parser/syntax';
+import { dottedPathsIn, printSyntax, StringLiteralExprAst } from '@internal/psl-parser/syntax';
 import { sqlDataTypeOfCodec, unquotedSqlBaseNameOfCodec } from '@internal/sql-contract/data-type';
 import {
   declaredBackingObjectName,
@@ -98,6 +99,7 @@ export interface InterpretPrisma7DocumentsInput {
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
   readonly composedExtensions: readonly string[];
+  readonly defaultNamespaceId: string;
 }
 
 const SUMMARY = 'Prisma 7 schema interpretation failed';
@@ -229,12 +231,16 @@ function reportDuplicateBlockEntries(
   }
 }
 
+interface InclusionHolderAst {
+  inclusions(): Iterable<MixinInclusionAst>;
+}
+
 export function interpretPrisma7Documents(
   input: InterpretPrisma7DocumentsInput,
 ): Result<Contract, ContractSourceDiagnostics> {
   const { binding } = input;
   const diagnostics: ContractSourceDiagnostic[] = [...input.seedDiagnostics];
-  const defaultNamespaceId = binding.target.defaultNamespaceId;
+  const { defaultNamespaceId } = input;
   const datasources: SourceBlock[] = [];
   const enumBlocks: SourceBlock[] = [];
   const models: ModelDeclaration[] = [];
@@ -260,6 +266,7 @@ export function interpretPrisma7Documents(
     const { symbolTable, diagnostics: tableDiagnostics } = buildSymbolTable({
       documents: [document],
       sources,
+      defaultNamespaceId,
     });
     for (const diagnostic of tableDiagnostics) {
       diagnostics.push({
@@ -277,7 +284,22 @@ export function interpretPrisma7Documents(
         span,
       });
     };
-    for (const block of Object.values(symbolTable.topLevel.blocks)) {
+    const unsupportedInclusions = (
+      code: string,
+      holders: Readonly<Record<string, { readonly node: InclusionHolderAst }>>,
+    ): void => {
+      for (const holder of Object.values(holders)) {
+        for (const inclusion of holder.node.inclusions()) {
+          diagnostics.push({
+            code,
+            message: `Unsupported mixin inclusion "${printSyntax(inclusion.syntax).trim()}"`,
+            sourceId,
+            span: nodePslSpan(inclusion.syntax, sources),
+          });
+        }
+      }
+    };
+    for (const block of Object.values(symbolTable.defaultNamespace.blocks)) {
       switch (block.keyword) {
         case 'datasource':
           datasources.push({ block, sourceId, sources, sourceFile });
@@ -305,18 +327,26 @@ export function interpretPrisma7Documents(
           unsupported(block.keyword, keywordPslSpan(block.node.syntax, block.keyword, sources));
       }
     }
-    for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
+    for (const namespace of Object.values(symbolTable.namespaces)) {
       for (const { span } of namespace.declarations) {
         unsupported('namespace', span);
       }
     }
-    for (const compositeType of Object.values(symbolTable.topLevel.compositeTypes)) {
+    for (const compositeType of Object.values(symbolTable.defaultNamespace.compositeTypes)) {
       unsupported('type', compositeType.span);
     }
-    for (const namedType of Object.values(symbolTable.topLevel.namedTypes)) {
+    for (const namedType of Object.values(symbolTable.namedTypes)) {
       unsupported('types', namedType.span);
     }
-    for (const symbol of Object.values(symbolTable.topLevel.models)) {
+    for (const mixin of Object.values(symbolTable.defaultNamespace.mixins)) {
+      unsupported(`${mixin.keyword} mixin`, mixin.span);
+    }
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.defaultNamespace.models);
+    unsupportedInclusions(
+      'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
+      symbolTable.defaultNamespace.blocks,
+    );
+    for (const symbol of Object.values(symbolTable.defaultNamespace.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       models.push(
         readModelDeclaration(symbol, sourceId, sources, defaultNamespaceId, binding, diagnostics),
@@ -1112,7 +1142,7 @@ function readField(args: ReadFieldArgs): void {
     source: diagnosticSource(model.sources, field.node.syntax),
     entityLabel: label,
     namespaceId: model.namespaceId,
-    namespaceExtensionEntities: args.namespaceEntities.get(model.namespaceId),
+    namespaceExtensionEntities: args.namespaceEntities,
     codecLookup: input.codecLookup,
   });
   diagnostics.push(...typeDiagnostics.toExternal());

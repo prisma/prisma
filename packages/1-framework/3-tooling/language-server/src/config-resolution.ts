@@ -2,6 +2,7 @@ import type { ContractSourceContext, PslParserOptions } from '@internal/config/c
 import { loadConfig, type PrismaNextConfig, requireConfigSections } from '@internal/config-loader';
 import type { ControlStack } from '@internal/framework-components/control';
 import { createControlStack } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { FormatOptions } from '@internal/psl-parser/format';
 import { hasPslInterpreter, type PslInterpretCapable } from '@internal/psl-parser/interpret';
 import { ifDefined } from '@internal/utils/defined';
@@ -31,6 +32,7 @@ export interface ConfigResolution {
 
 const emptyLspControlStack: LspControlStack = {
   scalarTypes: [],
+  defaultNamespaceId: UNBOUND_NAMESPACE_ID,
   pslBlockDescriptors: {},
 };
 
@@ -89,6 +91,7 @@ export async function resolveConfigInputs(
 function lspControlStackFromStack(stack: ControlStack): LspControlStack {
   return {
     scalarTypes: [...stack.scalarTypes],
+    defaultNamespaceId: stack.target.defaultNamespaceId,
     pslBlockDescriptors: stack.authoringContributions.pslBlockDescriptors,
     authoringContributions: stack.authoringContributions,
     dataTypes: stack.dataTypes,
@@ -120,6 +123,7 @@ function resolveInterpretation(
       controlMutationDefaults: stack.controlMutationDefaults,
       resolvedInputs: [...inputs.uris()],
       capabilities: stack.capabilities,
+      defaultNamespaceId: stack.target.defaultNamespaceId,
     },
   };
 }

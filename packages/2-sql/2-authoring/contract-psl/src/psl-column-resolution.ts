@@ -283,8 +283,9 @@ function resolveEntityRefTypeConstructorCall(input: {
   readonly descriptor: AuthoringTypeConstructorDescriptor;
   readonly namespaceId: string | undefined;
   readonly namespaceExtensionEntities:
-    | Readonly<Record<string, Readonly<Record<string, unknown>>>>
+    | ReadonlyMap<string, Readonly<Record<string, Readonly<Record<string, unknown>>>>>
     | undefined;
+  readonly binder: Binder | undefined;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly diagnostics: PslDiagnosticCollector;
   readonly source: DiagnosticSource;
@@ -299,8 +300,16 @@ function resolveEntityRefTypeConstructorCall(input: {
 
   const helperPath = input.call.path.join('.');
   const positionalArgs = input.call.args.filter((arg) => arg.kind === 'positional');
-  const ref = positionalArgs[entityRefArg.index]?.value;
-  if (input.call.args.length !== 1 || positionalArgs.length !== 1 || ref === undefined) {
+  const argument = positionalArgs[entityRefArg.index];
+  const ref = argument?.value;
+  const node = argument?.expression?.syntax;
+  const resolution = node === undefined ? undefined : input.binder?.symbolForNode(node);
+  if (
+    input.call.args.length !== 1 ||
+    positionalArgs.length !== 1 ||
+    ref === undefined ||
+    (input.binder !== undefined && resolution === undefined)
+  ) {
     input.diagnostics.push({
       code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
       message: `${input.entityLabel} type constructor "${helperPath}" expects exactly one positional argument naming the referenced entity`,
@@ -309,16 +318,29 @@ function resolveEntityRefTypeConstructorCall(input: {
     return NOT_RESOLVED;
   }
 
+  let entityName = ref;
+  let entityNamespaceId = input.namespaceId;
   const reportUnknownRef = (): ResolveFieldTypeResult => {
     input.diagnostics.push({
       code: 'PSL_UNKNOWN_ENTITY_REF',
-      message: `${input.entityLabel} type constructor "${helperPath}(${ref})" does not resolve — no entity named "${ref}" was found in namespace "${input.namespaceId ?? '(unspecified)'}"`,
+      message: `${input.entityLabel} type constructor "${helperPath}(${ref})" does not resolve — no entity named "${ref}" was found in namespace "${entityNamespaceId ?? '(unspecified)'}"`,
       ...input.source.at(input.call.span),
     });
     return NOT_RESOLVED;
   };
 
-  const entity = input.namespaceExtensionEntities?.[entityRefArg.entityKind]?.[ref];
+  if (resolution !== undefined) {
+    if (resolution.kind === 'unresolved') return NOT_RESOLVED;
+    if (resolution.kind !== 'block') return reportUnknownRef();
+    entityName = resolution.symbol.name;
+    entityNamespaceId = resolution.namespace.id;
+  }
+  const entities =
+    entityNamespaceId === undefined
+      ? undefined
+      : input.namespaceExtensionEntities?.get(entityNamespaceId);
+
+  const entity = entities?.[entityRefArg.entityKind]?.[entityName];
   if (entity === undefined) {
     return reportUnknownRef();
   }
@@ -338,23 +360,14 @@ function resolveEntityRefTypeConstructorCall(input: {
     return reportUnknownRef();
   }
 
-  const derivedValueSet = input.namespaceExtensionEntities?.['valueSet']?.[ref];
-  if (derivedValueSet !== undefined && input.namespaceId === undefined) {
-    input.diagnostics.push({
-      code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `${input.entityLabel} type constructor "${helperPath}(${ref})" resolves to a value-set-typed entity, but the field has no resolvable namespace to scope the value-set ref to`,
-      ...input.source.at(input.call.span),
-    });
-    return NOT_RESOLVED;
-  }
-
+  const derivedValueSet = entities?.['valueSet']?.[entityName];
   const valueSet: ValueSetRef | undefined =
-    derivedValueSet !== undefined && input.namespaceId !== undefined
+    derivedValueSet !== undefined && entityNamespaceId !== undefined
       ? {
           plane: 'storage',
           entityKind: 'valueSet',
-          namespaceId: input.namespaceId,
-          entityName: ref,
+          namespaceId: entityNamespaceId,
+          entityName,
         }
       : undefined;
 
@@ -402,15 +415,17 @@ interface FieldTypeConstructorContext {
    */
   readonly namespaceId?: string | undefined;
   /**
-   * Extension entities already lowered for this namespace (the exact shape
+   * Extension entities already lowered (the exact shape
    * `lowerExtensionBlocksForNamespace` in the interpreter produces), keyed
-   * by entries-slot discriminator then block name. Consulted only when a
-   * type constructor's descriptor declares an `entityRefArg` (e.g.
-   * `pg.enum(Ref)`); every other resolution path ignores it.
+   * by namespace id, then entries-slot discriminator, then block name.
+   * Consulted only when a type constructor's descriptor declares an
+   * `entityRefArg` (e.g. `pg.enum(Ref)`); every other resolution path
+   * ignores it.
    */
   readonly namespaceExtensionEntities?:
-    | Readonly<Record<string, Readonly<Record<string, unknown>>>>
+    | ReadonlyMap<string, Readonly<Record<string, Readonly<Record<string, unknown>>>>>
     | undefined;
+  readonly binder?: Binder | undefined;
   /**
    * Codec-id-keyed descriptor lookup — consulted only when a type
    * constructor's descriptor declares an `entityRefArg`, to reach the
@@ -431,6 +446,7 @@ export function instantiateFieldTypeConstructor(
       descriptor: input.descriptor,
       namespaceId: input.namespaceId,
       namespaceExtensionEntities: input.namespaceExtensionEntities,
+      binder: input.binder,
       codecLookup: input.codecLookup,
       diagnostics: input.diagnostics,
       source: input.source,
@@ -535,6 +551,7 @@ export function resolveFieldTypeDescriptor(
     case 'unresolved':
     case 'namespace':
     case 'contributedNamespace':
+    case 'mixin':
       return NOT_RESOLVED;
     case 'contributedType': {
       const { descriptor, path } = resolution.symbol;

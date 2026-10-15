@@ -181,8 +181,12 @@ export function blockAttributeFixture(attributeSource: string): {
   readonly ctx: BlockAttributeCtx;
 } {
   const { document, sources } = parse(`fixture Probe {\n  ${attributeSource}\n}`, 'schema.prisma');
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
-  const block = symbolTable.topLevel.blocks['Probe'];
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
+  const block = symbolTable.defaultNamespace.blocks['Probe'];
   const node = block === undefined ? undefined : [...block.node.attributes()][0];
   if (block === undefined || node === undefined) throw new Error('expected a block attribute');
   return {

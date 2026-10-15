@@ -63,6 +63,7 @@ describe('defineConfig', () => {
       kind: 'target',
       familyId: 'sql',
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       id: 'postgres',
       version: '0.0.1',
       contractSerializer: {
@@ -167,6 +168,7 @@ describe('defineConfig', () => {
     const config = typescriptContract(contract, 'output/contract.json');
     const result = await config.source.load({
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         dataTypes: {},

@@ -165,6 +165,7 @@ function makeStack(
       version: '0.0.1',
       familyId: 'sql',
       targetId: 'postgres',
+      defaultNamespaceId: 'public',
       contractSerializer: {
         deserializeContract: (json) => json as never,
         serializeContract: (contract) => contract as never,

@@ -92,7 +92,7 @@ describe('renderColumnDdl', () => {
 });
 
 describe('renderColumnAlterType', () => {
-  it('renders the raw target type (no SERIAL pseudo-type) alongside the format_type display name', () => {
+  it('renders the raw target type, with no SERIAL pseudo-type', () => {
     const column = new SqlColumnIR({
       name: 'id3',
       nativeType: 'integer',
@@ -102,10 +102,7 @@ describe('renderColumnAlterType', () => {
       codecBaseNativeType: 'int4',
     });
 
-    expect(renderColumnAlterType(column, types)).toEqual({
-      qualifiedTargetType: 'int4',
-      formatTypeExpected: 'integer',
-    });
+    expect(renderColumnAlterType(column, types)).toBe('int4');
   });
 });
 

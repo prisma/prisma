@@ -16,6 +16,7 @@ import type { AttributeCtx } from '../src/attribute-spec/types';
 import { dataTypeValue, funcCall, oneOf, str } from '../src/exports';
 import { Cursor, parseAttribute } from '../src/parse';
 import { PslSources } from '../src/source-file';
+import { buildSymbolTable } from '../src/symbol-table';
 import { FieldAttributeAst } from '../src/syntax/ast/attributes';
 import { type ExpressionAst, NumberLiteralExprAst } from '../src/syntax/ast/expressions';
 import { type GreenElement, greenNode, greenToken } from '../src/syntax/green';
@@ -101,9 +102,11 @@ function argOf(source: string): { expr: ExpressionAst; ctx: AttributeCtx } {
   const expr = [...(FieldAttributeAst.cast(root)?.argList()?.args() ?? [])][0]?.value();
   if (expr === undefined) throw new Error('expected an argument expression');
   const sources = new PslSources([[root, cursor.sourceFile]]);
-  const symbols = {
-    topLevel: { namespaces: {}, models: {}, compositeTypes: {}, namedTypes: {}, blocks: {} },
-  };
+  const { symbolTable: symbols } = buildSymbolTable({
+    documents: [],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   return {
     expr,
     ctx: { sources, symbols, binder: supportBinder({ sources, symbolTable: symbols }) },
@@ -127,9 +130,11 @@ function colonQualifiedArgOf(source: string): { expr: ExpressionAst; ctx: Attrib
   const expr = [...(FieldAttributeAst.cast(root)?.argList()?.args() ?? [])][0]?.value();
   if (expr === undefined) throw new Error('expected an argument expression');
   const sources = new PslSources([[root, new Cursor('schema.prisma', `@x(${source})`).sourceFile]]);
-  const symbols = {
-    topLevel: { namespaces: {}, models: {}, compositeTypes: {}, namedTypes: {}, blocks: {} },
-  };
+  const { symbolTable: symbols } = buildSymbolTable({
+    documents: [],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   return {
     expr,
     ctx: { sources, symbols, binder: supportBinder({ sources, symbolTable: symbols }) },

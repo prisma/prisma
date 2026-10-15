@@ -1,19 +1,20 @@
 import { asNamespaceId, type Contract, type ContractWithDomain } from '@internal/contract/types';
 import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
-import type {
-  MigrationDataLoss,
-  MigrationOperationPolicy,
-  MigrationOperationSubject,
-  MigrationPlanner,
-  MigrationPlannerConflict,
-  MigrationPlannerResult,
-  MigrationPlanWithAuthoringSurface,
-  MigrationScaffoldContext,
-  MigrationSubject,
-  ModelCoordinate,
-  PlanOrigin,
-  ResolvedMigrationStatement,
+import {
+  describeMigrationStatement,
+  type MigrationDataLoss,
+  type MigrationOperationPolicy,
+  type MigrationPlanner,
+  type MigrationPlannerConflict,
+  type MigrationPlannerResult,
+  type MigrationPlanWithAuthoringSurface,
+  type MigrationScaffoldContext,
+  type MigrationSubject,
+  type ModelCoordinate,
+  type PlanOrigin,
+  type ResolvedMigrationStatement,
+  type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import type { MongoContract } from '@internal/mongo-contract';
 import type {
@@ -200,6 +201,20 @@ function modelStoredIn(
   return (storing.find(({ isRoot }) => isRoot) ?? storing[0])?.coordinate;
 }
 
+/** A convert or backfill statement, which this release cannot carry out on MongoDB. */
+function unsupportedStatementConflict(
+  statement: ResolvedMigrationStatement,
+  fromContract: ContractWithDomain,
+  contract: ContractWithDomain,
+): MigrationPlannerConflict {
+  return {
+    kind: 'statementRefused',
+    summary: `MongoDB does not apply ${statement.kind} statements in this release, so nothing was planned: ${describeMigrationStatement(statement, fromContract, contract)}`,
+    why: `MongoDB cannot carry out ${statement.kind} statements in this release. Leave out the statement.`,
+    refusedStatement: statement,
+  };
+}
+
 /**
  * Each collection drop of the plan, with the model whose documents it loses. When that model keeps
  * its name and the plan brings its new collection into existence, the drop says how to rename the
@@ -217,15 +232,16 @@ function collectionDrops(
   return calls.flatMap((call, operationIndex): readonly MigrationDataLoss[] => {
     if (!(call instanceof DropCollectionCall)) return [];
     const model = fromContract === null ? undefined : modelStoredIn(fromContract, call.collection);
+    const lost = { operationIndex, loss: 'drop', label: call.label } as const;
     if (model === undefined) {
-      return [{ operationIndex, subject: { kind: 'storage', name: call.collection } }];
+      return [{ ...lost, subject: { kind: 'storage', name: call.collection } }];
     }
     const subject: MigrationSubject = { kind: 'model', ...model };
     const destinationCollection = modelStoredInDestination(contract, model);
     return [
       destinationCollection !== undefined && created(destinationCollection)
         ? {
-            operationIndex,
+            ...lost,
             subject,
             keepDataAdvice: keepCollectionByHandAdvice(
               model,
@@ -233,7 +249,7 @@ function collectionDrops(
               destinationCollection,
             ),
           }
-        : { operationIndex, subject },
+        : { ...lost, subject },
     ];
   });
 }
@@ -423,8 +439,18 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       'framework planner passes the inspected Mongo schema IR selected for the mongo target'
     >(options.schema);
     const fromContract = options.fromContract;
+    const unsupported = options.statements.find((statement) => statement.kind !== 'rename');
+    if (unsupported !== undefined) {
+      return {
+        kind: 'failure',
+        conflicts: [unsupportedStatementConflict(unsupported, fromContract ?? contract, contract)],
+      };
+    }
+    const renames = options.statements.filter(
+      (statement): statement is ResolvedRenameStatement => statement.kind === 'rename',
+    );
     const statementPlan = planStatements({
-      statements: options.statements,
+      statements: renames,
       fromContract: fromContract ?? contract,
       contract,
       schema: originIR,
@@ -437,7 +463,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       fromContract === null
         ? planValidatorFieldRemovals({ origin: schema, destination: destinationIR, contract })
         : planFieldRemovals({
-            statements: options.statements,
+            statements: renames,
             fromContract,
             contract,
             collectionAfterRenames: (collection) => renamedTo.get(collection) ?? collection,
@@ -451,7 +477,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
         origin: options.origin,
         fromContract: fromContract ?? contract,
         contract,
-        statements: options.statements,
+        statements: renames,
         callOfStatement,
         removals,
       }),
@@ -467,9 +493,11 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     });
     if (result.kind === 'failure') return result;
     const { calls } = result;
-    const fieldLoss: readonly MigrationOperationSubject[] = removals.map((removal) => ({
+    const fieldLoss: readonly MigrationDataLoss[] = removals.map((removal) => ({
       operationIndex: calls.indexOf(removal.call),
       subject: removal.subject,
+      loss: 'drop',
+      label: removal.call.label,
     }));
     return {
       kind: 'success',
@@ -493,6 +521,7 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
         ...fieldLoss,
       ].sort((a, b) => a.operationIndex - b.operationIndex),
       accessWidening: [],
+      temporaryValues: [],
     };
   }
 

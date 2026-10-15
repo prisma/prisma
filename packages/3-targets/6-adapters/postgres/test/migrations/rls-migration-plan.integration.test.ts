@@ -93,6 +93,7 @@ function buildPslContract(psl: string = PSL) {
     sourceId: 'rls-migration-plan.integration.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

@@ -161,15 +161,14 @@ export type ResolvedField = {
 };
 
 /**
- * A PSL model paired with its resolved namespace coordinate (undefined when
- * the target leaves the model late-bound). Two models may share a bare name
+ * A PSL model paired with its resolved namespace coordinate. Two models may share a bare name
  * across namespaces, so structures that must distinguish them are keyed by
  * the `(namespaceId, modelName)` coordinate produced by
  * {@link modelCoordinateKey} rather than the bare model name.
  */
 export type ModelNamespaceEntry = {
   readonly model: ModelSymbol;
-  readonly namespaceId: string | undefined;
+  readonly namespaceId: string;
 };
 
 const MODEL_COORDINATE_SEPARATOR = '\u0000';
@@ -199,8 +198,11 @@ export interface CollectResolvedFieldsInput {
   readonly capabilities: CapabilityMatrix;
   /** The model's resolved namespace id — forwarded to `resolveFieldTypeDescriptor` for entity-ref value-set scoping. */
   readonly namespaceId?: string;
-  /** Extension entities already lowered for this namespace — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
-  readonly namespaceExtensionEntities?: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  /** Extension entities already lowered, keyed by namespace id — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
+  readonly namespaceExtensionEntities?: ReadonlyMap<
+    string,
+    Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  >;
   /** Codec-id-keyed descriptor lookup — forwarded to `resolveFieldTypeDescriptor` for entity-ref type-constructor resolution (e.g. `pg.enum(Ref)`). */
   readonly codecLookup: CodecLookupWithDescriptors;
 }
@@ -247,11 +249,12 @@ export function describeUnsupportedSqlAttribute(sources: PslSources): DescribeUn
   return ({ attribute, level, owner, field }) => {
     // A composite type takes no attributes at all; `buildValueObjectNodes` refuses each one once.
     if (owner.kind === 'compositeType') return undefined;
+    if (owner.kind === 'mixin' && owner.keyword === 'type') return undefined;
     if (level === 'model') {
       const source = diagnosticSource(sources, owner.node.syntax);
       return {
         code: 'PSL_UNSUPPORTED_MODEL_ATTRIBUTE',
-        message: `Model "${owner.name}" uses unsupported attribute "@@${attribute.name}"`,
+        message: `${owner.kind === 'mixin' ? 'Mixin' : 'Model'} "${owner.name}" uses unsupported attribute "@@${attribute.name}"`,
         ...source.at(attribute.span),
       };
     }
@@ -494,6 +497,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       entityLabel: `Field "${model.name}.${field.name}"`,
       ...ifDefined('namespaceId', namespaceId),
       ...ifDefined('namespaceExtensionEntities', namespaceExtensionEntities),
+      binder,
       codecLookup,
     };
 

@@ -127,6 +127,7 @@ async function interpret(fixture: string): Promise<Contract<SqlStorage>> {
   const loaded = await prisma7Contract(schemaPath, { binding: prisma7PostgresBinding }).source.load(
     {
       composedExtensions: [],
+      defaultNamespaceId: stack.target.defaultNamespaceId,
       composedExtensionContracts: stack.extensionContracts,
       authoringContributions: stack.authoringContributions,
       codecLookup: stack.codecLookup,

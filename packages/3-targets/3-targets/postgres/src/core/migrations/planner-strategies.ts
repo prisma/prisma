@@ -27,11 +27,15 @@
  */
 
 import type { Contract } from '@internal/contract/types';
-import type {
-  CodecControlHooks,
-  MigrationOperationPolicy,
-  SqlMigrationPlanOperation,
+import {
+  type CodecControlHooks,
+  columnTakesTemporaryValue,
+  type FieldStatementColumns,
+  type MigrationOperationPolicy,
+  type SqlMigrationPlanOperation,
+  type StatementColumn,
 } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
@@ -55,8 +59,8 @@ import { resolveNamespaceIdForDdlSchema } from './control-policy';
 import { emissionSchemaName, issueNode, issueSchemaName, issueTableName } from './issue-planner';
 import {
   AddColumnCall,
-  AddNotNullColumnDirectCall,
-  AddNotNullColumnWithTempDefaultCall,
+  AddColumnWithTemporaryDefaultCall,
+  AddRequiredColumnToEmptyTableCall,
   AlterColumnTypeCall,
   DataTransformCall,
   DropNotNullCall,
@@ -64,9 +68,8 @@ import {
   RawSqlCall,
   SetNotNullCall,
 } from './op-factory-call';
-import { buildSchemaLookupMap, hasForeignKey, hasUniqueConstraint } from './planner-schema-lookup';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
-import { columnDataType, isSafeTypeWidening } from './safe-widenings';
+import { columnType, isSafeTypeWidening } from './safe-widenings';
 
 /**
  * Look up a storage table by its explicit namespace coordinate. Returns
@@ -141,6 +144,10 @@ export interface StrategyContext {
   readonly schema: SqlSchemaIR;
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /** The columns of the fields `--convert` and `--backfill` statements name. */
+  readonly statementColumns: FieldStatementColumns;
+  /** The data types of the stack, which read a type as a migration writes it. */
+  readonly dataTypes: readonly DataType[];
 }
 
 // ============================================================================
@@ -186,10 +193,28 @@ function columnNodePair(
   };
 }
 
+/** The `--backfill` statement's column an issue is about, if a statement names it. */
+function backfilled(
+  ctx: StrategyContext,
+  ddlSchemaName: string,
+  tableName: string,
+  columnName: string,
+): StatementColumn | undefined {
+  const namespaceId = namespaceIdForDdlSchema(ctx, ddlSchemaName);
+  return ctx.statementColumns.backfill.find(
+    (column) =>
+      column.namespaceId === namespaceId &&
+      column.table === tableName &&
+      column.column === columnName,
+  );
+}
+
+/**
+ * Handles a required column with no default added to an existing table, for a field a
+ * `--backfill` statement names: a nullable add, a data transform whose slots the user fills, then
+ * `SET NOT NULL`. Every other such column is left to `notNullAddColumnCallStrategy`.
+ */
 export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) => {
-  // `DataTransformCall` is operation class `'data'`. When the policy excludes
-  // it (`db update` / `db init`), skip so `notNullAddColumnCallStrategy`
-  // (temp-default backfill) or `mapNodeIssueToCall` can take the issue.
   if (!ctx.policy.allowedOperationClasses.includes('data')) return { kind: 'no_match' };
 
   const matched: SchemaDiffIssue[] = [];
@@ -208,7 +233,10 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
+    const named = backfilled(ctx, ddlSchemaName, tableName, expected.name);
+    if (named === undefined) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
+    const slot = named.text;
 
     matched.push(issue);
     const ddl = renderColumnDdl(expected.name, expected, ctx.types);
@@ -219,8 +247,10 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
       new AddColumnCall(schemaName, tableName, nullableSpec),
       new DataTransformCall(
         `backfill-${tableName}-${expected.name}`,
-        `backfill-${tableName}-${expected.name}:check`,
-        `backfill-${tableName}-${expected.name}:run`,
+        `${slot}:check`,
+        `${slot}:run`,
+        'data',
+        { schema: schemaName, table: tableName, column: expected.name },
       ),
       new SetNotNullCall(schemaName, tableName, expected.name),
     );
@@ -236,22 +266,16 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
 };
 
 /**
- * Handles `not-equal` column issues whose TYPE differs, for a plan that has an
- * origin contract and may include `data` operations: `migration plan`. Under
- * `db update` or `db init`, whose policies leave out `data`, it never fires,
- * whether or not an origin contract is known: it could only plan the in-place
- * ALTER that `mapNodeIssueToCall` plans, so leaving that to the mapper keeps
- * the plan, and its order, the same either way.
+ * Handles a `not-equal` column issue whose type differs, for a field a `--convert` statement names,
+ * in a plan that may include `data` operations: `migration plan`. The alter is classed `data` and
+ * its USING clause is a slot the user fills with the conversion. A known-safe widening needs no
+ * conversion and is left to `mapNodeIssueToCall`, as is every type change no statement names: a
+ * direct alter, `widening` or `destructive`, which the plan asks about.
  *
- * A single node issue can carry BOTH type and nullability drift (Postgres
- * alters in place, so the differ emits one `not-equal` column issue where
- * the legacy coordinate walk emitted two: `type_mismatch` +
- * `nullability_mismatch`). When this strategy consumes the issue for its
- * type portion, it also emits whatever nullability delta the same node pair
- * carries — using the same construction `nullableTighteningCallStrategy` /
- * the mapper's direct dispatch would have used — so the issue is never
- * partially handled.
+ * One node issue can carry both type and nullability drift, so the strategy also emits the
+ * nullability change: `SET NOT NULL` after the alter, whose conversion can map NULL to a value.
  */
+/** A field as a statement names it: with its namespace only when the contract has several. */
 export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
   if (ctx.fromContract === null || !ctx.policy.allowedOperationClasses.includes('data')) {
     return { kind: 'no_match' };
@@ -266,51 +290,42 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
     if (pair === undefined) continue;
     const { expected, actual } = pair;
     if (!columnTypeChangedNativeOnly(expected, actual)) continue;
-
-    const fromType = columnDataType(actual, ctx.types);
-    const toType = columnDataType(expected, ctx.types);
-    const isSafeWidening = isSafeTypeWidening(fromType, toType);
-
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
-    const schemaName = emissionSchemaName(ctx, ddlSchemaName);
-
-    matched.push(issue);
-    const { qualifiedTargetType, formatTypeExpected } = renderColumnAlterType(expected, ctx.types);
-    const alterOpts = {
-      qualifiedTargetType,
-      formatTypeExpected,
-      rawTargetTypeForLabel: qualifiedTargetType,
-    };
-    if (isSafeWidening) {
-      calls.push(
-        new AlterColumnTypeCall(schemaName, tableName, expected.name, alterOpts, 'widening'),
-      );
-    } else {
-      calls.push(
-        new DataTransformCall(
-          `typechange-${tableName}-${expected.name}`,
-          `typechange-${tableName}-${expected.name}:check`,
-          `typechange-${tableName}-${expected.name}:run`,
-        ),
-        new AlterColumnTypeCall(schemaName, tableName, expected.name, alterOpts),
-      );
+    const namespaceId = namespaceIdForDdlSchema(ctx, ddlSchemaName);
+    const converted = ctx.statementColumns.convert.find(
+      (column) =>
+        column.namespaceId === namespaceId &&
+        column.table === tableName &&
+        column.column === expected.name,
+    );
+    if (converted === undefined) continue;
+    if (isSafeTypeWidening(columnType(actual, ctx.types), columnType(expected, ctx.types))) {
+      continue;
     }
 
+    const schemaName = emissionSchemaName(ctx, ddlSchemaName);
+    matched.push(issue);
+    calls.push(
+      new AlterColumnTypeCall({
+        schemaName,
+        tableName,
+        columnName: expected.name,
+        type: renderColumnAlterType(expected, ctx.types),
+        using: {
+          kind: 'placeholder',
+          slot: `${converted.text}:convert`,
+        },
+        dataTypes: ctx.dataTypes,
+      }),
+    );
     if (expected.nullable !== actual.nullable) {
-      if (expected.nullable) {
-        calls.push(new DropNotNullCall(schemaName, tableName, expected.name));
-      } else {
-        calls.push(
-          new DataTransformCall(
-            `handle-nulls-${tableName}-${expected.name}`,
-            `handle-nulls-${tableName}-${expected.name}:check`,
-            `handle-nulls-${tableName}-${expected.name}:run`,
-          ),
-          new SetNotNullCall(schemaName, tableName, expected.name),
-        );
-      }
+      calls.push(
+        expected.nullable
+          ? new DropNotNullCall(schemaName, tableName, expected.name)
+          : new SetNotNullCall(schemaName, tableName, expected.name),
+      );
     }
   }
 
@@ -335,16 +350,13 @@ function columnTypeChangedNativeOnly(expected: SqlColumnIR, actual: SqlColumnIR)
 }
 
 /**
- * Handles `not-equal` column issues whose type did NOT change but
- * nullability tightened (contract requires NOT NULL, live column is
- * nullable). A type-changed issue's nullability delta (if any) is already
- * handled by `typeChangeCallStrategy`, which runs first — this strategy
- * only ever sees issues that strategy left behind.
+ * Handles a `not-equal` column issue whose type did not change but which becomes required, for a
+ * field a `--backfill` statement names: a data transform whose slots the user fills with values for
+ * the NULLs, then `SET NOT NULL`. Every other such column gets the direct `SET NOT NULL` of
+ * `mapNodeIssueToCall`. A type-changed issue's nullability is handled by `typeChangeCallStrategy`
+ * or the direct alter.
  */
 export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ctx) => {
-  // `DataTransformCall` is operation class `'data'`. When the policy excludes
-  // it (`db update` / `db init`), skip so `mapNodeIssueToCall` emits a direct
-  // `SET NOT NULL` instead.
   if (!ctx.policy.allowedOperationClasses.includes('data')) return { kind: 'no_match' };
 
   const matched: SchemaDiffIssue[] = [];
@@ -361,14 +373,19 @@ export const nullableTighteningCallStrategy: CallMigrationStrategy = (issues, ct
     const ddlSchemaName = issueSchemaName(issue);
     const tableName = issueTableName(issue);
     if (ddlSchemaName === undefined || tableName === undefined) continue;
+    const named = backfilled(ctx, ddlSchemaName, tableName, expected.name);
+    if (named === undefined) continue;
     const schemaName = emissionSchemaName(ctx, ddlSchemaName);
+    const slot = named.text;
 
     matched.push(issue);
     calls.push(
       new DataTransformCall(
         `handle-nulls-${tableName}-${expected.name}`,
-        `handle-nulls-${tableName}-${expected.name}:check`,
-        `handle-nulls-${tableName}-${expected.name}:run`,
+        `${slot}:check`,
+        `${slot}:run`,
+        'data',
+        { schema: schemaName, table: tableName, column: expected.name },
       ),
       new SetNotNullCall(schemaName, tableName, expected.name),
     );
@@ -446,7 +463,8 @@ export const storageTypePlanCallStrategy: CallMigrationStrategy = (issues, ctx) 
  *    nullable → backfill identity value → `SET NOT NULL` → `DROP DEFAULT`).
  *    The temp-default value is resolved from the column node's `codecRef`
  *    (`resolveColumnTemporaryDefault`, wrapping `resolveIdentityValue`).
- *  - Empty-table guarded: emit a hand-built op with a `tableIsEmptyCheck`
+ *  - Empty-table guarded, for a column in a key, or whose values come from a value set, which
+ *    no one value stands in for: emit a hand-built op with a `tableIsEmptyCheck`
  *    precheck so the failure message is "table is not empty" rather than the
  *    raw PG NOT NULL violation.
  *
@@ -456,13 +474,6 @@ export const storageTypePlanCallStrategy: CallMigrationStrategy = (issues, ctx) 
 export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx) => {
   const matched: SchemaDiffIssue[] = [];
   const calls: PostgresOpFactoryCall[] = [];
-
-  const schemaLookups = buildSchemaLookupMap(ctx.schema);
-
-  const mutableStorageTypes = blindCast<
-    Record<string, StorageTypeInstance>,
-    'strategy context owns mutable storage type entries during planning'
-  >(ctx.storageTypes);
 
   for (const issue of issues) {
     if (issueOutcome(issue) !== 'not-found') continue;
@@ -484,44 +495,25 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
     const column = contractTable?.columns[expected.name];
     if (!contractTable || !column) continue;
 
-    const schemaTable = ctx.schema.tables[tableName];
-    if (!schemaTable) continue;
+    if (ctx.schema.tables[tableName] === undefined) continue;
 
     const temporaryDefault = resolveColumnTemporaryDefault(expected, ctx.codecHooks, ctx.types);
-    const schemaLookup = schemaLookups.get(tableName);
     const canUseSharedTempDefault =
-      temporaryDefault !== null &&
-      canUseSharedTemporaryDefaultStrategy({
-        table: contractTable,
-        schemaTable,
-        schemaLookup,
-        columnName: expected.name,
-      });
+      temporaryDefault !== null && columnTakesTemporaryValue(contractTable, expected.name);
 
     matched.push(issue);
 
-    if (canUseSharedTempDefault && temporaryDefault !== null) {
-      calls.push(
-        new AddNotNullColumnWithTempDefaultCall({
-          schemaName,
-          tableName,
-          columnName: expected.name,
-          column,
-          types: ctx.types,
-          storageTypes: mutableStorageTypes,
-          temporaryDefault,
-        }),
-      );
-      continue;
-    }
-
+    const ddl = renderColumnDdl(expected.name, expected, ctx.types);
     calls.push(
-      new AddNotNullColumnDirectCall(
-        schemaName,
-        tableName,
-        expected.name,
-        renderColumnDdl(expected.name, expected, ctx.types),
-      ),
+      canUseSharedTempDefault && temporaryDefault !== null
+        ? new AddColumnWithTemporaryDefaultCall(
+            schemaName,
+            tableName,
+            ddl.name,
+            ddl.type,
+            temporaryDefault,
+          )
+        : new AddRequiredColumnToEmptyTableCall(schemaName, tableName, ddl.name, ddl.type),
     );
   }
 
@@ -533,57 +525,19 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
   };
 };
 
-// ============================================================================
-// Strategy helpers
-// ============================================================================
-
-function canUseSharedTemporaryDefaultStrategy(options: {
-  readonly table: StorageTable;
-  readonly schemaTable: SqlSchemaIR['tables'][string];
-  readonly schemaLookup: ReturnType<typeof buildSchemaLookupMap> extends ReadonlyMap<
-    string,
-    infer V
-  >
-    ? V | undefined
-    : never;
-  readonly columnName: string;
-}): boolean {
-  const { table, schemaTable, schemaLookup, columnName } = options;
-
-  if (table.primaryKey?.columns.includes(columnName) && !schemaTable.primaryKey) {
-    return false;
-  }
-
-  for (const unique of table.uniques) {
-    if (!unique.columns.includes(columnName)) continue;
-    if (!schemaLookup || !hasUniqueConstraint(schemaLookup, unique.columns)) return false;
-  }
-
-  for (const foreignKey of table.foreignKeys) {
-    if (!foreignKey.source.columns.includes(columnName)) continue;
-    if (!schemaLookup || !hasForeignKey(schemaLookup, foreignKey)) return false;
-  }
-
-  return true;
-}
-
 /**
  * Ordered list of Postgres planner strategies, shared by `migration plan`
  * and `db update` / `db init`. The issue planner runs each strategy in
  * order, letting it consume any issues it handles, and routes whatever's
- * left through `mapNodeIssueToCall`. Behavior diverges purely on
- * `policy.allowedOperationClasses`:
+ * left through `mapNodeIssueToCall`.
  *
- * - When `'data'` is allowed (`migration plan`), the data-safe strategies
- *   (`notNullBackfillCallStrategy`, `typeChangeCallStrategy`,
- *   `nullableTighteningCallStrategy`) consume their matching issues and emit
- *   `DataTransformCall` placeholders or recipe ops.
- *
- * - When `'data'` is not allowed (`db update` / `db init`), the
- *   placeholder-emitting strategies short-circuit to `no_match`, leaving
- *   the issue for the downstream strategies (`storageTypePlanCallStrategy`,
- *   `notNullAddColumnCallStrategy`) or the `mapNodeIssueToCall` default to
- *   handle with direct DDL.
+ * The strategies that write a placeholder (`notNullBackfillCallStrategy`,
+ * `typeChangeCallStrategy`, `nullableTighteningCallStrategy`) act only on a
+ * field a `--backfill` or `--convert` statement names, and only when the
+ * policy allows `data` (`migration plan`). Every other required field added to
+ * an existing table gets the temporary default of
+ * `notNullAddColumnCallStrategy`, and every other change the direct DDL of
+ * `mapNodeIssueToCall`, under either command.
  *
  * Codec-typed storage type entries are dispatched through
  * `storageTypePlanCallStrategy`.
