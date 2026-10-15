@@ -78,6 +78,10 @@ export class PostLibrary extends Collection<Contract, 'Post'> {
     ).orderBy((_post, { fns, indexes }) => fns.fullTextRank(indexes.post_search, q).desc());
   }
 
+  searchUsing(query: string) {
+    return this.using.post_search(websearchToTsquery(query));
+  }
+
   summaries() {
     return this.with(titleSummary);
   }

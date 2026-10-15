@@ -55,6 +55,7 @@ import type {
   SqlDriver,
 } from '@internal/sql-relational-core/ast';
 import { buildCodecDescriptorRegistry } from '@internal/sql-relational-core/codec-descriptor-registry';
+import type { CollectionMethodContribution } from '@internal/sql-relational-core/collection-methods';
 import type { RawCodecInferer } from '@internal/sql-relational-core/expression';
 import type {
   CodecDescriptorRegistry,
@@ -82,6 +83,7 @@ export interface SqlStaticContributions
   extends Pick<MutationDefaultGeneratorContributor, 'mutationDefaultGenerators'> {
   readonly codecs: () => ReadonlyArray<AnyCodecDescriptor>;
   readonly queryOperations?: () => SqlOperationDescriptors;
+  readonly collectionMethods?: () => ReadonlyArray<CollectionMethodContribution>;
 }
 
 export interface SqlRuntimeTargetDescriptor<
@@ -662,6 +664,9 @@ export function createExecutionContext<
     queryOperations: queryOperationRegistry,
     types,
     rawCodecInferer: stack.adapter.rawCodecInferer,
+    collectionMethods: contributors.flatMap(
+      (contributor) => contributor.collectionMethods?.() ?? [],
+    ),
     applyMutationDefaults: (options) =>
       applyMutationDefaults(contract.execution, mutationDefaultGeneratorRegistry, options),
   };

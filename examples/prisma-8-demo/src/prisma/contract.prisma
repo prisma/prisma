@@ -69,7 +69,7 @@ model Post {
   @@fullTextIndex([title], name: "post_title_search")
   // One search document over the title and the body; a match in the title
   // counts more than a match in the body.
-  @@fullTextIndex([[title], body], name: "post_search")
+  @@fullTextIndex([title, body], name: "post_search")
   @@map("post")
 }
 
