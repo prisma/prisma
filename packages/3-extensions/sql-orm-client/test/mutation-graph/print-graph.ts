@@ -97,7 +97,8 @@ function printNode(node: Node): string {
     return printInsert(node.ast);
   }
   if (node instanceof InsertChunked) {
-    return `InsertChunked ${node.asts[0]?.table.name} (${node.asts.length} statements)`;
+    const count = node.asts.length;
+    return `InsertChunked ${node.asts[0]?.table.name} (${count} ${count === 1 ? 'statement' : 'statements'})`;
   }
   return node instanceof Delete ? printDelete(node.ast) : node.constructor.name;
 }

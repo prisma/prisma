@@ -31,14 +31,16 @@ describe('createAllGraph', () => {
     expect(returnedAt(graph, 0)).toEqual([]);
   });
 
-  it('builds one Insert when the rows set the same columns, without DEFAULT in a row', () => {
+  it('builds an InsertChunked of one statement when the rows set the same columns, without DEFAULT in a row', () => {
     const graph = createAllGraph(
       targetOf(users.state, contextWithoutDefault),
       [ada, grace],
       undefined,
     );
 
-    expect(printGraph(graph)).toBe(['n1 Insert users 2 rows', 'result: n1'].join('\n'));
+    expect(printGraph(graph)).toBe(
+      ['n1 InsertChunked users (1 statement)', 'result: n1'].join('\n'),
+    );
   });
 
   it('builds an InsertChunked of the runs of rows that set the same columns, in their order', () => {

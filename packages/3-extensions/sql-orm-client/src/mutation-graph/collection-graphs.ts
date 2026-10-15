@@ -1,3 +1,5 @@
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   type AnyExpression,
   ColumnRef,
@@ -132,18 +134,23 @@ export function createAllGraph(
   }
   requireIdentityColumnsForIncludes(collection);
   const { contract } = context;
-  const groups =
-    contract.capabilities?.['sql']?.['defaultInInsert'] === true
-      ? [rows]
-      : groupRowsByColumnSignature(rows);
-  const asts = groups.map((group) => insertAst(contract, state.tables.root, group, conflict));
-  const [only, ...others] = asts;
-  const inserted =
-    only !== undefined && others.length === 0
-      ? graph.add(new Insert(only), { payload: [] })
-      : graph.add(new InsertChunked(asts), {});
+  const { root } = state.tables;
+  const inserted = supportsDefaultInInsert(contract)
+    ? graph.add(new Insert(insertAst(contract, root, rows, conflict)), { payload: [] })
+    : graph.add(
+        new InsertChunked(
+          groupRowsByColumnSignature(rows).map((group) =>
+            insertAst(contract, root, group, conflict),
+          ),
+        ),
+        {},
+      );
   graph.setResult(addWithIncludes(graph, collection, inserted));
   return graph;
+}
+
+function supportsDefaultInInsert(contract: Contract<SqlStorage>): boolean {
+  return contract.capabilities['sql']?.['defaultInInsert'] === true;
 }
 
 export interface VariantCreateRow {
