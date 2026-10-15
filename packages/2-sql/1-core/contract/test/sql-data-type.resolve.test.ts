@@ -112,6 +112,25 @@ describe('resolveReportedSqlType', () => {
     });
   });
 
+  it('reads a leading minus in a placeholder whose schema allows a negative integer', () => {
+    const signedNumeric = sqlDataType('t/signed-numeric', {
+      params: type({
+        precision: 'number.integer >= 1 & number.integer <= 1000',
+        scale: 'number.integer >= -1000 & number.integer <= 1000',
+      }),
+      texts: [{ text: 'numeric({precision},{scale})', written: true, catalog: true }],
+    });
+    expect(resolveReportedSqlType(reported('numeric(10,-2)'), [signedNumeric])).toEqual({
+      dataType: 't/signed-numeric',
+      typeParams: { precision: 10, scale: -2 },
+    });
+    expect(resolveReportedSqlType(reported('numeric(-10,2)'), [signedNumeric])).toBeUndefined();
+  });
+
+  it('reads no minus in a placeholder whose schema forbids negative integers', () => {
+    expect(resolveReportedSqlType(reported('numeric(10,-2)'), allTypes)).toBeUndefined();
+  });
+
   it('returns nothing for a text no type claims', () => {
     expect(resolveReportedSqlType(reported('bpchar'), allTypes)).toBeUndefined();
     expect(resolveReportedSqlType(reported('interval year to month'), allTypes)).toBeUndefined();

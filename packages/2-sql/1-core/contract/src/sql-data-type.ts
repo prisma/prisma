@@ -15,7 +15,11 @@ import type {
   DataTypeLookup,
   DataTypeSpec,
 } from '@internal/framework-components/codec';
-import { dataType, objectSchemaKeys } from '@internal/framework-components/codec';
+import {
+  dataType,
+  objectSchemaKeys,
+  schemaKeysAllowing,
+} from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -97,9 +101,12 @@ function placeholderSetOf(text: string): string {
   return [...placeholdersOf(text)].sort().join(',');
 }
 
-function patternOf(text: string): RegExp {
+function patternOf(text: string, signedKeys: readonly string[] = []): RegExp {
   const escaped = text.replace(REGEXP_SPECIAL, '\\$&');
-  return new RegExp(`^${escaped.replace(/\\\{[A-Za-z][A-Za-z0-9]*\\\}/g, '(\\d+)')}$`);
+  const placeholders = escaped.replace(/\\\{([A-Za-z][A-Za-z0-9]*)\\\}/g, (_, name: string) =>
+    signedKeys.includes(name) ? '(-?\\d+)' : '(\\d+)',
+  );
+  return new RegExp(`^${placeholders}$`);
 }
 
 function refuseDeclaration(id: DataTypeId, why: string): never {
@@ -527,15 +534,19 @@ export function resolveReportedSqlType(
   for (const type of sqlTypes) {
     for (const candidate of type.sql.texts) {
       if (!claims(candidate)) continue;
-      const params = paramsMatching(candidate, text);
+      const params = paramsMatching(type, candidate, text);
       if (params !== undefined) return resolvedWith(type, params);
     }
   }
   return undefined;
 }
 
-function paramsMatching(candidate: SqlTypeText, text: string): SqlTypeParams | undefined {
-  const match = patternOf(candidate.text).exec(text);
+function paramsMatching(
+  type: SqlDataType,
+  candidate: SqlTypeText,
+  text: string,
+): SqlTypeParams | undefined {
+  const match = patternOf(candidate.text, schemaKeysAllowing(type.params, -1)).exec(text);
   if (match === null) return undefined;
   return Object.fromEntries(
     placeholdersOf(candidate.text).map((name, index) => [
@@ -558,7 +569,7 @@ export function resolveWrittenSqlTypes(
   const prepared = prepareReportedText(text);
   return dataTypes.filter(isSqlDataType).flatMap((type) => {
     for (const candidate of type.sql.texts) {
-      const params = paramsMatching(candidate, prepared);
+      const params = paramsMatching(type, candidate, prepared);
       if (params === undefined) continue;
       const resolved = resolvedWith(type, params);
       if (resolved !== undefined) return [resolved];
