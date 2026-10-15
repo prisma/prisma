@@ -1,0 +1,224 @@
+{
+  "target": "postgres",
+  "targetFamily": "sql",
+  "domain": {
+    "namespaces": {
+      "public": {
+        "models": {
+          "Post": {
+            "storage": {
+              "table": "post",
+              "namespaceId": "public",
+              "fields": {
+                "id": {
+                  "column": "id"
+                },
+                "tags": {
+                  "column": "tags"
+                },
+                "labels": {
+                  "column": "labels"
+                },
+                "scores": {
+                  "column": "scores"
+                },
+                "priority": {
+                  "column": "priority"
+                }
+              }
+            },
+            "fields": {
+              "id": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "pg/int4@1"
+                },
+                "nullable": false,
+                "many": false
+              },
+              "tags": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "pg/text@1"
+                },
+                "nullable": false,
+                "many": {
+                  "elementNullable": false
+                }
+              },
+              "labels": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "pg/text@1"
+                },
+                "nullable": false,
+                "many": {
+                  "elementNullable": false
+                }
+              },
+              "scores": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "pg/int4@1"
+                },
+                "nullable": false,
+                "many": {
+                  "elementNullable": false
+                }
+              },
+              "priority": {
+                "type": {
+                  "kind": "scalar",
+                  "codecId": "pg/text@1"
+                },
+                "nullable": false,
+                "many": false,
+                "valueSet": {
+                  "plane": "domain",
+                  "entityKind": "enum",
+                  "namespaceId": "public",
+                  "entityName": "Priority"
+                }
+              }
+            },
+            "relations": {}
+          }
+        },
+        "enum": {
+          "Priority": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "Low",
+                "value": "low"
+              },
+              {
+                "name": "High",
+                "value": "high"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "roots": {
+    "post": {
+      "namespace": "public",
+      "model": "Post"
+    }
+  },
+  "extensions": {},
+  "capabilities": {
+    "postgres": {
+      "distinctOn": true,
+      "forKeyShare": true,
+      "forNoKeyUpdate": true,
+      "jsonAgg": true,
+      "lateral": true,
+      "limit": true,
+      "orderBy": true,
+      "returning": true
+    },
+    "sql": {
+      "checkConstraint": true,
+      "defaultInInsert": true,
+      "enums": true,
+      "forShare": true,
+      "forUpdate": true,
+      "insertOnConflictSkip": true,
+      "insertOnConflictWithoutTarget": true,
+      "lateral": true,
+      "lockNowait": true,
+      "lockOf": true,
+      "lockSkipLocked": true,
+      "returning": true,
+      "scalarList": true
+    }
+  },
+  "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
+  "meta": {},
+  "storage": {
+    "storageHash": "f8494ee7fdd21cf27e9a52f023937f0445fbc05dde8f2ca04aa11645ccdd35c5",
+    "namespaces": {
+      "public": {
+        "id": "public",
+        "kind": "postgres-schema",
+        "entries": {
+          "table": {
+            "post": {
+              "columns": {
+                "id": {
+                  "dataType": "pg/int4",
+                  "codecId": "pg/int4@1",
+                  "nullable": false,
+                  "many": false
+                },
+                "tags": {
+                  "dataType": "pg/text",
+                  "codecId": "pg/text@1",
+                  "nullable": false,
+                  "many": {
+                    "elementNullable": false
+                  }
+                },
+                "labels": {
+                  "dataType": "pg/text",
+                  "codecId": "pg/text@1",
+                  "nullable": false,
+                  "many": {
+                    "elementNullable": false
+                  }
+                },
+                "scores": {
+                  "dataType": "pg/int4",
+                  "codecId": "pg/int4@1",
+                  "nullable": false,
+                  "many": {
+                    "elementNullable": false
+                  }
+                },
+                "priority": {
+                  "dataType": "pg/text",
+                  "codecId": "pg/text@1",
+                  "nullable": false,
+                  "many": false,
+                  "valueSet": {
+                    "plane": "storage",
+                    "entityKind": "valueSet",
+                    "namespaceId": "public",
+                    "entityName": "Priority"
+                  }
+                }
+              },
+              "uniques": [],
+              "indexes": [],
+              "foreignKeys": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "checks": [
+                {
+                  "name": "post_scores_elem_not_null_0d0de0bd",
+                  "expression": "array_position(\"scores\", NULL) IS NULL",
+                  "prefix": "post_scores_elem_not_null"
+                }
+              ]
+            }
+          },
+          "valueSet": {
+            "Priority": {
+              "kind": "valueSet",
+              "values": [
+                "low",
+                "high"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
