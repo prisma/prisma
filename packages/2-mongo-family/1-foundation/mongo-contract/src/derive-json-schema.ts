@@ -35,7 +35,7 @@ interface SchemaSources {
 }
 
 /**
- * `$jsonSchema` has no references, so a type that contains itself, directly or through other types, cannot be described at every depth. The validator describes the type through which a path enters a recursive group in full, and accepts any object for each field below it that refers back into that group. Each group is so written out once per entry, and no valid document is refused.
+ * `$jsonSchema` has no references, so a type that contains itself, directly or through other types, cannot be described at every depth. The validator describes the type through which a path enters a recursive group in full, and accepts any object for each field below it that refers back into that group. So each group is written out once for each place a document enters it, and no valid document is refused.
  */
 const OPEN_OBJECT: Record<string, unknown> = { bsonType: 'object' };
 
