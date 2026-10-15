@@ -6,9 +6,9 @@ import type {
   FieldTypesFromDomain,
   JsonValue,
   NamespaceId,
-  ParameterizedOutputTypesFunction,
   StorageHashBase,
 } from '@internal/contract/types';
+import type { PackParameterizedOutputTypes } from '@internal/contract-authoring';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
 import type { StorageType } from '@internal/framework-components/ir';
 import type { IndexTypeRegistration } from '@internal/sql-contract/index-types';
@@ -1543,14 +1543,6 @@ type FieldColumnTypeParams<Definition, FieldState> =
       : undefined
     : DescriptorTypeParams<FieldDescriptorOf<FieldState>>;
 
-type PackParameterizedOutputTypes<Pack> = Pack extends {
-  readonly __parameterizedOutputTypes?: infer TypeFunction;
-}
-  ? Present<TypeFunction> extends infer Defined extends ParameterizedOutputTypesFunction
-    ? Defined
-    : never
-  : never;
-
 type ParameterizedOutputTypesFromDefinition<Definition> = {
   [K in keyof AllPacks<Definition>]: PackParameterizedOutputTypes<AllPacks<Definition>[K]>;
 }[keyof AllPacks<Definition>];
@@ -1587,6 +1579,9 @@ type FieldTypeOverride<
           readonly input: FieldValueUnion<FieldState>;
         }
     : never;
+
+// A contract written with defineContract has no value objects.
+type NoValueObjectOverrides = Record<never, never>;
 
 type FieldTypeOverrides<Definition> = {
   readonly [Ns in DomainNamespaceIds<Definition>]: {
@@ -1650,6 +1645,7 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
         CodecTypesFromDefinition<Definition>,
         ParameterizedOutputTypesFromDefinition<Definition>,
         FieldTypeOverrides<Definition>,
+        NoValueObjectOverrides,
         'output'
       >
     >;
@@ -1659,6 +1655,7 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
         CodecTypesFromDefinition<Definition>,
         ParameterizedOutputTypesFromDefinition<Definition>,
         FieldTypeOverrides<Definition>,
+        NoValueObjectOverrides,
         'input'
       >
     >;

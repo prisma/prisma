@@ -35,12 +35,14 @@ type ValueObjectOutputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
+  ValueObjectFieldTypeOverrides,
   'output'
 >;
 type ValueObjectInputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
+  ValueObjectFieldTypeOverrides,
   'input'
 >;
 export type CompositeOutput = ValueObjectOutputTypes['__unbound__']['Composite'];
@@ -53,11 +55,13 @@ type FieldTypeOverrides = {
     };
   };
 };
+type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
+  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -65,6 +69,7 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
+  ValueObjectFieldTypeOverrides,
   'input'
 >;
 

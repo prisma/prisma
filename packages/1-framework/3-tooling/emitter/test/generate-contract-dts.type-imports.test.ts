@@ -111,11 +111,12 @@ describe('generateContractDts field type maps', () => {
     const dts = generateContractDts(contract, createMockSpi(), [CODEC_TYPES], HASHES);
 
     expect(dts).toContain('type FieldTypeOverrides = {  };');
+    expect(dts).toContain('type ValueObjectFieldTypeOverrides = {  };');
     expect(dts).toContain(
-      "export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, \"output\">;",
+      "export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, ValueObjectFieldTypeOverrides, \"output\">;",
     );
     expect(dts).toContain(
-      "export type FieldInputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, \"input\">;",
+      "export type FieldInputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, ValueObjectFieldTypeOverrides, \"input\">;",
     );
     expect(dts).toMatch(/\n {2}FieldTypesFromDomain,\n/);
   });

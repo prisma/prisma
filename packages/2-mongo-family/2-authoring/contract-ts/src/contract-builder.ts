@@ -20,7 +20,6 @@ import {
   type ExecutionMutationDefaultPhases,
   type FieldTypesFromDomain,
   type JsonValue,
-  type ParameterizedOutputTypesFunction,
   type ProfileHashBase,
   type StorageHashBase,
   type ValueSetRef,
@@ -33,6 +32,7 @@ import {
   type ExtractAuthoringNamespaceFromPack,
   encodeEnumTypeMembers,
   type MergeExtensionAuthoringNamespaces,
+  type PackParameterizedOutputTypes,
   type ResolveTemplateValue,
   resolveToOneRelationNullable,
   type TupleFromArgumentDescriptors,
@@ -876,13 +876,22 @@ type FieldTypeOverridesFromDefinition<Definition> = {
   };
 };
 
-type PackParameterizedOutputTypes<Pack> = Pack extends {
-  readonly __parameterizedOutputTypes?: infer TypeFunction;
-}
-  ? Present<TypeFunction> extends infer Defined extends ParameterizedOutputTypesFunction
-    ? Defined
-    : never
-  : never;
+type ExtractValueObjectFields<TBuilder> =
+  TBuilder extends NamedValueObjectBuilder<string, infer Fields> ? Fields : Record<never, never>;
+
+type ValueObjectFieldTypeOverridesFromDefinition<Definition> = {
+  readonly [K in typeof UNBOUND_NAMESPACE_ID]: {
+    readonly [Key in keyof DefinitionValueObjects<Definition> as ExtractValueObjectName<
+      DefinitionValueObjects<Definition>[Key]
+    >]: {
+      readonly [FieldName in keyof ExtractValueObjectFields<
+        DefinitionValueObjects<Definition>[Key]
+      >]: BuilderFieldTypeOverride<
+        ExtractValueObjectFields<DefinitionValueObjects<Definition>[Key]>[FieldName]
+      >;
+    };
+  };
+};
 
 type DefinitionTarget<Definition> = Definition extends { readonly target: infer Target }
   ? Target
@@ -901,6 +910,7 @@ type FieldTypesFromDefinition<Definition, Side extends 'output' | 'input'> = Fie
   CodecTypesFromDefinition<Definition>,
   ParameterizedOutputTypesFromDefinition<Definition>,
   FieldTypeOverridesFromDefinition<Definition>,
+  ValueObjectFieldTypeOverridesFromDefinition<Definition>,
   Side
 >;
 
@@ -2766,4 +2776,3 @@ export function defineContract(
   }
   return buildBoundContract(definition.family, definition.target, definition);
 }
-export type ZzDbgMerge<D> = MergeExtensionCodecTypesSafe<DefinitionExtensions<D>>;

@@ -35,12 +35,14 @@ type ValueObjectOutputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
+  ValueObjectFieldTypeOverrides,
   'output'
 >;
 type ValueObjectInputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
+  ValueObjectFieldTypeOverrides,
   'input'
 >;
 export type AddressOutput = ValueObjectOutputTypes['__unbound__']['Address'];
@@ -58,11 +60,19 @@ type FieldTypeOverrides = {
     };
   };
 };
+type ValueObjectFieldTypeOverrides = {
+  readonly __unbound__: {
+    readonly Address: {
+      readonly kind: { readonly output: 'reader' | 'editor'; readonly input: 'reader' | 'editor' };
+    };
+  };
+};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
+  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -70,6 +80,7 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
+  ValueObjectFieldTypeOverrides,
   'input'
 >;
 
@@ -341,6 +352,10 @@ type ContractBase = Omit<
         readonly valueObjects: {
           readonly Address: {
             readonly fields: {
+              readonly kind: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+              };
               readonly location: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Point' };
@@ -397,6 +412,10 @@ type ContractBase = Omit<
   readonly valueObjects: {
     readonly Address: {
       readonly fields: {
+        readonly kind: {
+          readonly nullable: true;
+          readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+        };
         readonly location: {
           readonly nullable: true;
           readonly type: { readonly kind: 'valueObject'; readonly name: 'Point' };

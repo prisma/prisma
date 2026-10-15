@@ -44,8 +44,8 @@ export type {
 } from '../domain-types';
 export { ContractExecutionSectionSchema } from '../execution-section-schema';
 export type {
-  CodecValueType,
   FieldTypesFromDomain,
+  StoredValueType,
   ValueObjectTypesFromDomain,
   ValueTypeSide,
 } from '../field-value-types';

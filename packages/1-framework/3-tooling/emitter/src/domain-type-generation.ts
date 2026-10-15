@@ -1,4 +1,5 @@
 import type {
+  Contract,
   ContractField,
   ContractManyToManyRelation,
   ContractModelBase,
@@ -360,7 +361,7 @@ export function parameterizedOutputTypeFunctionsAlias(
 
 /** `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`): the shared generic applied to the emitted contract's domain, with `FieldTypeOverrides`. */
 export function fieldTypesMapExpression(side: 'output' | 'input'): string {
-  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}>`;
+  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ValueObjectFieldTypeOverrides, ${serializeValue(side)}>`;
 }
 
 export function generateContractFieldDescriptor(fieldName: string, field: ContractField): string {
@@ -410,7 +411,7 @@ export function generateValueObjectTypeAliases(
     return '';
   }
   const generic = (side: 'output' | 'input') =>
-    `ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, ${serializeValue(side)}>`;
+    `ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, ValueObjectFieldTypeOverrides, ${serializeValue(side)}>`;
   const aliases = [
     `type ValueObjectOutputTypes = ${generic('output')};`,
     `type ValueObjectInputTypes = ${generic('input')};`,
@@ -542,6 +543,51 @@ export function generateFieldTypeOverridesMap(
                 codecLookup,
                 resolveFieldValueSet?.(modelName, fieldName, model),
               ),
+            ] as const,
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * The values of the domain enum a field's value set names, with the field's codec. A value object field has no storage of its own, so its value set is read from the domain: a reference to a storage value set gives `undefined`.
+ */
+export function resolveDomainValueSet(
+  field: ContractField,
+  contract: Pick<Contract, 'domain'>,
+): ResolvedFieldValueSet | undefined {
+  const ref = field.valueSet;
+  if (ref === undefined || field.type.kind !== 'scalar') return undefined;
+  if (ref.plane !== 'domain' || ref.entityKind !== 'enum') return undefined;
+  const domainEnum = contract.domain.namespaces[ref.namespaceId]?.enum?.[ref.entityName];
+  if (domainEnum === undefined) return undefined;
+  return {
+    encodedValues: domainEnum.members.map((member) => member.value),
+    codecId: field.type.codecId,
+  };
+}
+
+/** `ValueObjectFieldTypeOverrides`: per namespace, value object and field, the type of each field its codec does not give. */
+export function generateValueObjectFieldTypeOverridesMap(
+  contract: Pick<Contract, 'domain'>,
+  codecLookup: CodecLookup | undefined,
+): string {
+  return renderTypeOverridesMap(
+    Object.entries(contract.domain.namespaces).flatMap(([nsId, ns]) =>
+      Object.entries(
+        blindCast<
+          Record<string, ContractValueObject>,
+          'ns.valueObjects is a ContractValueObject record in the emitted IR (default to {} when absent)'
+        >(ns.valueObjects ?? {}),
+      ).flatMap(([valueObjectName, valueObject]) =>
+        Object.entries(valueObject.fields).map(
+          ([fieldName, field]) =>
+            [
+              nsId,
+              valueObjectName,
+              fieldName,
+              resolveFieldTypeOverride(field, codecLookup, resolveDomainValueSet(field, contract)),
             ] as const,
         ),
       ),

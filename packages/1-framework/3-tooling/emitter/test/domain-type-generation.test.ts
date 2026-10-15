@@ -748,8 +748,8 @@ describe('generateValueObjectTypeAliases', () => {
         ['Point', '__unbound__'],
       ]).split('\n'),
     ).toEqual([
-      "type ValueObjectOutputTypes = ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, \"output\">;",
-      "type ValueObjectInputTypes = ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, \"input\">;",
+      "type ValueObjectOutputTypes = ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, ValueObjectFieldTypeOverrides, \"output\">;",
+      "type ValueObjectInputTypes = ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, ValueObjectFieldTypeOverrides, \"input\">;",
       'export type AddressOutput = ValueObjectOutputTypes["public"]["Address"];',
       'export type AddressInput = ValueObjectInputTypes["public"]["Address"];',
       'export type PointOutput = ValueObjectOutputTypes["__unbound__"]["Point"];',

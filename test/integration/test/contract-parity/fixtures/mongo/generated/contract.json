@@ -305,6 +305,19 @@
         "valueObjects": {
           "Address": {
             "fields": {
+              "kind": {
+                "nullable": true,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "Role",
+                  "namespaceId": "__unbound__",
+                  "plane": "domain"
+                }
+              },
               "location": {
                 "nullable": true,
                 "type": {

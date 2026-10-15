@@ -151,6 +151,9 @@ describe('every type map of a Mongo defineContract contract equals the emitted o
     type UserOutput = Maps<Built>['fieldOutputTypes']['__unbound__']['User'];
     expectTypeOf<'embedding' | 'home' | 'pastRoles'>().toExtend<keyof UserOutput>();
     expectTypeOf<UserOutput['role']>().toEqualTypeOf<'reader' | 'editor'>();
+    expectTypeOf<NonNullable<UserOutput['home']>['kind']>().toEqualTypeOf<
+      'reader' | 'editor' | null
+    >();
     expectTypeOf<UserOutput['embedding']>().toEqualTypeOf<
       Maps<Emitted>['fieldOutputTypes']['__unbound__']['User']['embedding']
     >();
@@ -232,6 +235,17 @@ describe('every section of a Mongo defineContract contract equals the emitted on
   test('fields', () => {
     expectTypeOf<DifferingKeys<FieldMap<Built>, FieldMap<Emitted>>>().toBeNever();
     expectTypeOf<'User.embedding' | 'Article.body'>().toExtend<keyof FieldMap<Built>>();
+    expectTypeOf<
+      SameType<
+        FieldMap<Built>['Article.body'],
+        {
+          readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+          readonly nullable: false;
+          readonly many: false;
+        },
+        2
+      >
+    >().toEqualTypeOf<true>();
   });
 
   test('relations, model storage, bases, discriminators and variants', () => {

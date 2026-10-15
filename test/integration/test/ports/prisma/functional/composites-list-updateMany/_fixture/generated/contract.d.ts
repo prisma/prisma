@@ -35,12 +35,14 @@ type ValueObjectOutputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
+  ValueObjectFieldTypeOverrides,
   'output'
 >;
 type ValueObjectInputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
+  ValueObjectFieldTypeOverrides,
   'input'
 >;
 export type CommentContentOutput = ValueObjectOutputTypes['__unbound__']['CommentContent'];
@@ -50,11 +52,13 @@ export type CommentContentUpvotesOutput =
 export type CommentContentUpvotesInput =
   ValueObjectInputTypes['__unbound__']['CommentContentUpvotes'];
 type FieldTypeOverrides = {};
+type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
+  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -62,6 +66,7 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
+  ValueObjectFieldTypeOverrides,
   'input'
 >;
 

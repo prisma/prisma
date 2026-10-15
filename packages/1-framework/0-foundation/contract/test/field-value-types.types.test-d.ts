@@ -1,8 +1,8 @@
 import { describe, expectTypeOf, test } from 'vitest';
 import type {
-  CodecValueType,
   FieldTypesFromDomain,
   ParameterizedOutputTypesFunction,
+  StoredValueType,
   ValueObjectTypesFromDomain,
 } from '../src/exports/types';
 
@@ -98,6 +98,8 @@ type Domain = {
             readonly nullable: true;
             readonly type: { readonly kind: 'valueObject'; readonly name: 'Point' };
           };
+          readonly kind: { readonly nullable: true; readonly type: Scalar<'test/text@1'> };
+          readonly meta: { readonly nullable: false; readonly type: Scalar<'test/json@1'> };
         };
       };
       readonly Point: {
@@ -128,8 +130,31 @@ type Overrides = {
   };
 };
 
-type Output = FieldTypesFromDomain<Domain, CodecTypes, CharOutputTypes, Overrides, 'output'>;
-type Input = FieldTypesFromDomain<Domain, CodecTypes, CharOutputTypes, Overrides, 'input'>;
+type ValueObjectOverrides = {
+  readonly app: {
+    readonly Address: {
+      readonly kind: { readonly output: 'home' | 'work'; readonly input: 'home' | 'work' };
+      readonly meta: { readonly output: { readonly floor: number } };
+    };
+  };
+};
+
+type Output = FieldTypesFromDomain<
+  Domain,
+  CodecTypes,
+  CharOutputTypes,
+  Overrides,
+  ValueObjectOverrides,
+  'output'
+>;
+type Input = FieldTypesFromDomain<
+  Domain,
+  CodecTypes,
+  CharOutputTypes,
+  Overrides,
+  ValueObjectOverrides,
+  'input'
+>;
 type User = Output['app']['User'];
 type UserInput = Input['app']['User'];
 
@@ -137,11 +162,15 @@ type AddressOutput = {
   readonly street: string;
   readonly code: Char<5>;
   readonly geo: { readonly x: bigint } | null;
+  readonly kind: 'home' | 'work' | null;
+  readonly meta: { readonly floor: number };
 };
 type AddressInput = {
   readonly street: string;
   readonly code: string;
   readonly geo: { readonly x: number | bigint } | null;
+  readonly kind: 'home' | 'work' | null;
+  readonly meta: unknown;
 };
 
 describe('field types from a contract domain', () => {
@@ -176,6 +205,13 @@ describe('field types from a contract domain', () => {
     expectTypeOf<User['unknownCodec']>().toEqualTypeOf<unknown>();
   });
 
+  test('a value object field takes its override, such as the members of an enum or rendered type text, before nullability', () => {
+    expectTypeOf<NonNullable<User['home']>['kind']>().toEqualTypeOf<'home' | 'work' | null>();
+    expectTypeOf<NonNullable<UserInput['home']>['kind']>().toEqualTypeOf<'home' | 'work' | null>();
+    expectTypeOf<NonNullable<User['home']>['meta']>().toEqualTypeOf<{ readonly floor: number }>();
+    expectTypeOf<NonNullable<UserInput['home']>['meta']>().toEqualTypeOf<unknown>();
+  });
+
   test('a value object field is an object of its fields, typed by the same rules, nested value objects included', () => {
     expectTypeOf<User['home']>().toEqualTypeOf<AddressOutput | null>();
     expectTypeOf<UserInput['home']>().toEqualTypeOf<AddressInput | null>();
@@ -194,8 +230,20 @@ describe('field types from a contract domain', () => {
 });
 
 describe('value object types from a contract domain', () => {
-  type ValueObjects = ValueObjectTypesFromDomain<Domain, CodecTypes, CharOutputTypes, 'output'>;
-  type ValueObjectInputs = ValueObjectTypesFromDomain<Domain, CodecTypes, CharOutputTypes, 'input'>;
+  type ValueObjects = ValueObjectTypesFromDomain<
+    Domain,
+    CodecTypes,
+    CharOutputTypes,
+    ValueObjectOverrides,
+    'output'
+  >;
+  type ValueObjectInputs = ValueObjectTypesFromDomain<
+    Domain,
+    CodecTypes,
+    CharOutputTypes,
+    ValueObjectOverrides,
+    'input'
+  >;
 
   test('each value object is keyed by namespace and name', () => {
     expectTypeOf<ValueObjects['app']['Address']>().toEqualTypeOf<AddressOutput>();
@@ -218,7 +266,7 @@ describe('the value type of one storage entry', () => {
 
   test('applies the type parameters, the codec type and nullability', () => {
     expectTypeOf<
-      CodecValueType<
+      StoredValueType<
         Entry,
         'test/char@1',
         { readonly length: 3 },
@@ -229,7 +277,7 @@ describe('the value type of one storage entry', () => {
       >
     >().toEqualTypeOf<Char<3> | null>();
     expectTypeOf<
-      CodecValueType<Entry, 'test/char@1', undefined, never, CodecTypes, CharOutputTypes, 'input'>
+      StoredValueType<Entry, 'test/char@1', undefined, never, CodecTypes, CharOutputTypes, 'input'>
     >().toEqualTypeOf<string | null>();
   });
 });

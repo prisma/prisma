@@ -1,6 +1,6 @@
 import type {
-  CodecValueType,
   ParameterizedOutputTypesFunction,
+  StoredValueType,
   ValueTypeSide,
 } from '@internal/contract/types';
 
@@ -34,7 +34,7 @@ export type ColumnTypesFromStorage<
         TablesOf<Lookup<Storage, 'namespaces'>[Ns]>[T],
         'columns'
       >]: Lookup<TablesOf<Lookup<Storage, 'namespaces'>[Ns]>[T], 'columns'>[C] extends infer Column
-        ? CodecValueType<
+        ? StoredValueType<
             Column,
             Lookup<Column, 'codecId'>,
             ColumnTypeParams<Column, NonNullable<Lookup<Storage, 'types'>>>,

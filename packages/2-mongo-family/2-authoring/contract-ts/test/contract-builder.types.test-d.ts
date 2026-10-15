@@ -558,3 +558,43 @@ test('a vector without type parameters keeps the codec output type', () => {
     (typeof VectorContract)['domain']['namespaces']['__unbound__']['models']['Doc']['fields']['plain']['type']
   >().toEqualTypeOf<{ readonly kind: 'scalar'; readonly codecId: 'mongo/vector@1' }>();
 });
+
+// --- Enum fields inside value objects ---
+
+const BadgeRole = enumType(
+  'BadgeRole',
+  { codecId: 'mongo/string@1' },
+  member('Reader', 'reader'),
+  member('Editor', 'editor'),
+);
+
+const Badge = valueObject('Badge', {
+  fields: {
+    role: field.namedType(BadgeRole),
+    pastRoles: field.namedType(BadgeRole).optional().many(),
+  },
+});
+
+const BadgeContract = defineContract({
+  family: mongoFamilyPack,
+  target: mongoTargetPack,
+  enums: { BadgeRole },
+  valueObjects: { Badge },
+  models: {
+    Member: model('Member', {
+      collection: 'members',
+      fields: { _id: field.objectId(), badge: field.valueObject(Badge) },
+    }),
+  },
+});
+
+type BadgeRow = InferModelRow<typeof BadgeContract, 'Member'>;
+type BadgeInput = MongoUnboundFieldInputTypes<typeof BadgeContract>['Member'];
+
+test('an enum field inside a value object reads and writes the members of its enum', () => {
+  expectTypeOf<BadgeRow['badge']['role']>().toEqualTypeOf<'reader' | 'editor'>();
+  expectTypeOf<BadgeInput['badge']['role']>().toEqualTypeOf<'reader' | 'editor'>();
+  expectTypeOf<BadgeRow['badge']['pastRoles']>().toEqualTypeOf<
+    readonly ('reader' | 'editor')[] | null
+  >();
+});

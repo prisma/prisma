@@ -1,8 +1,9 @@
-import type { ContractField, ContractModelBase } from '@internal/contract/types';
+import type { Contract, ContractField, ContractModelBase } from '@internal/contract/types';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import {
   generateFieldTypeOverridesMap,
+  generateValueObjectFieldTypeOverridesMap,
   renderCodecTypeOverride,
   renderTypeOverride,
   renderTypeOverridesMap,
@@ -185,5 +186,83 @@ describe('generateFieldTypeOverridesMap', () => {
     ).toBe(
       '{ readonly public: { readonly User: { readonly embedding: { readonly output: Vector<2>; readonly input: VectorInput<2> }; readonly mood: { readonly output: "up" | "down"; readonly input: "up" | "down" } } } }',
     );
+  });
+});
+
+describe('generateValueObjectFieldTypeOverridesMap', () => {
+  it('collects the override of each value object field, from the domain enum its value set names or its codec text', () => {
+    const contract = {
+      domain: {
+        namespaces: {
+          public: {
+            models: {},
+            enum: {
+              Kind: {
+                codecId: 'demo/text@1',
+                members: [
+                  { name: 'Home', value: 'home' },
+                  { name: 'Work', value: 'work' },
+                ],
+              },
+            },
+            valueObjects: {
+              Address: {
+                fields: {
+                  street: { nullable: false, type: { kind: 'scalar', codecId: 'demo/text@1' } },
+                  kind: {
+                    nullable: true,
+                    type: { kind: 'scalar', codecId: 'demo/text@1' },
+                    valueSet: {
+                      plane: 'domain',
+                      entityKind: 'enum',
+                      namespaceId: 'public',
+                      entityName: 'Kind',
+                    },
+                  },
+                  embedding: {
+                    nullable: false,
+                    type: { kind: 'scalar', codecId: 'demo/vector@1', typeParams: { length: 2 } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as const satisfies Pick<Contract, 'domain'>;
+
+    expect(generateValueObjectFieldTypeOverridesMap(contract, literalLookup)).toBe(
+      '{ readonly public: { readonly Address: { readonly embedding: { readonly output: Vector<2>; readonly input: VectorInput<2> }; readonly kind: { readonly output: "home" | "work"; readonly input: "home" | "work" } } } }',
+    );
+  });
+
+  it('gives no override for a value set held in storage, which a value object field cannot name', () => {
+    const contract = {
+      domain: {
+        namespaces: {
+          public: {
+            models: {},
+            valueObjects: {
+              Address: {
+                fields: {
+                  kind: {
+                    nullable: false,
+                    type: { kind: 'scalar', codecId: 'demo/text@1' },
+                    valueSet: {
+                      plane: 'storage',
+                      entityKind: 'valueSet',
+                      namespaceId: 'public',
+                      entityName: 'Kind',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } as const satisfies Pick<Contract, 'domain'>;
+
+    expect(generateValueObjectFieldTypeOverridesMap(contract, literalLookup)).toBe('{  }');
   });
 });

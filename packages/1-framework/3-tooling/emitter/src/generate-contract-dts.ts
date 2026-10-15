@@ -23,6 +23,7 @@ import {
   generateImportLines,
   generateModelsType,
   generateRootsType,
+  generateValueObjectFieldTypeOverridesMap,
   generateValueObjectsDescriptorType,
   generateValueObjectTypeAliases,
   parameterizedOutputTypeFunctionsAlias,
@@ -216,6 +217,11 @@ export function generateContractDts(
     resolveFieldValueSet,
   );
 
+  const valueObjectFieldTypeOverrides = generateValueObjectFieldTypeOverridesMap(
+    contract,
+    codecLookup,
+  );
+
   const extraTypeExports = emitter.getStorageTypeExports?.(contract, codecLookup);
 
   const contractWrapper = emitter.getContractWrapper('ContractBase', 'TypeMaps');
@@ -233,6 +239,7 @@ ${familyTypeAliases}
 ${parameterizedOutputTypesDeclaration}
 ${valueObjectTypeAliases}
 type FieldTypeOverrides = ${fieldTypeOverrides};
+type ValueObjectFieldTypeOverrides = ${valueObjectFieldTypeOverrides};
 export type FieldOutputTypes = ${fieldTypesMapExpression('output')};
 export type FieldInputTypes = ${fieldTypesMapExpression('input')};
 ${extraTypeExports ? `${extraTypeExports}\n` : ''}

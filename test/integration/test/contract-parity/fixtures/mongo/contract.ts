@@ -26,6 +26,7 @@ const Address = valueObject('Address', {
     zip: field.string().optional(),
     location: field.valueObject(Point).optional(),
     tags: field.string().many(),
+    kind: field.namedType(Role).optional(),
   },
 });
 

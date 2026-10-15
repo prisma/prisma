@@ -9,7 +9,7 @@ changes:
         - '\bfieldTypesExpression\b'
   - id: field-types-generic-moved
     summary: |
-      `FieldTypesFromDomain` and `ValueTypeSide` moved from the SQL family contract types entry to `@prisma/orm-framework/contract/types`, and the generic now types value object and union fields itself, from the namespace's `valueObjects`. A storage type map can type one entry with `CodecValueType` from the same entry. `ColumnTypesFromStorage` stays in the SQL family. Update imports. The detection matches imports of the generic from the SQL family.
+      `FieldTypesFromDomain` and `ValueTypeSide` moved from the SQL family contract types entry to `@prisma/orm-framework/contract/types`, and the generic now types value object and union fields itself, from the namespace's `valueObjects`. A storage type map can type one entry with `StoredValueType` from the same entry. `ColumnTypesFromStorage` stays in the SQL family. Update imports. The detection matches imports of the generic from the SQL family.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
@@ -36,7 +36,7 @@ type FieldTypeOverrides = { /* value set members and codec-rendered text */ };
 export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, 'output'>;
 ```
 
-Import `FieldTypesFromDomain` and `ValueTypeSide` from `@prisma/orm-framework/contract/types`. For a storage map, apply `CodecValueType` to each entry, as `ColumnTypesFromStorage` does.
+Import `FieldTypesFromDomain` and `ValueTypeSide` from `@prisma/orm-framework/contract/types`. For a storage map, apply `StoredValueType` to each entry, as `ColumnTypesFromStorage` does.
 
 ## Mongo-family packs with parameterized output types
 
