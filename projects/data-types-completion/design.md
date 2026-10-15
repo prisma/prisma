@@ -270,6 +270,7 @@ ADR 254: status Accepted; "Data types" rewritten to the declaration of section 2
 # Slice 3: tools recognise a column's type from declarations (TML-3387)
 
 TML-3582 (`slices/no-unsupported/plan.md`) built section 11.1, the negative placeholders, and items 2 to 7 of section 13, except that `EXISTING_COLUMN_DATE_TIME_TYPES`, `normalizeFormattedType`, `normalizeSchemaNativeType` and `normalizeSqliteNativeType` stay until this slice deletes them with section 12 and item 8. The `Unsupported("x")` message goes through the binder's `describeUnresolvedType` hook and keeps the code `PSL_UNRESOLVED_REFERENCE`. TML-3387 keeps sections 11.2 wiring into verify, 11.3, 12 and 13.8.
+
 Outcome: introspection resolves every reported type through the stack's declarations; `db verify` compares data type ids exactly; `contract infer` prints constructors, including extension types, and fails on unclaimed types. Depends on slice 2 and TML-3253.
 
 ## 11. Reading a database type
