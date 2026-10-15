@@ -267,10 +267,8 @@ describe('ref set', () => {
 
     expect(envelope?.ok).toBe(false);
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).toMatchObject({
-      ok: false,
-      error: expect.not.objectContaining({ fix: expect.anything() }),
-    });
+    expect(envelope?.ok).toBe(false);
+    expect(envelope).not.toHaveProperty('error.fix');
   });
 
   it('resolves the refs directory against the run cwd, not the process cwd', async () => {

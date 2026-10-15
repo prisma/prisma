@@ -477,10 +477,8 @@ describe('migration check', () => {
         terminal !== undefined && terminal.kind === 'result' ? terminal.envelope : undefined;
 
       expect(envelope?.nextActions.length).toBeGreaterThan(0);
-      expect(envelope).toMatchObject({
-        ok: false,
-        error: expect.not.objectContaining({ fix: expect.anything() }),
-      });
+      expect(envelope?.ok).toBe(false);
+      expect(envelope).not.toHaveProperty('error.fix');
     });
   });
 
