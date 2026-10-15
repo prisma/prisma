@@ -4,7 +4,9 @@
 import type { CodecTypes as SqliteTypes } from '@internal/adapter-sqlite/codec-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -129,114 +131,57 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypeFunctions = never;
 
-export type FieldOutputTypes = {
-  readonly __unbound__: {
-    readonly Scalar: {
-      readonly bigint: CodecTypes['sqlite/bigint@1']['output'];
-      readonly bigintNumber: CodecTypes['sqlite/bigintnumber@1']['output'];
-      readonly blob: CodecTypes['sqlite/blob@1']['output'];
-      readonly char: CodecTypes['sql/char@1']['output'];
-      readonly charLength: CodecTypes['sql/char@1']['output'];
-      readonly datetime: CodecTypes['sqlite/datetime@1']['output'];
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly integer: CodecTypes['sqlite/integer@1']['output'];
-      readonly json: CodecTypes['sqlite/json@1']['output'];
-      readonly real: CodecTypes['sqlite/real@1']['output'];
-      readonly shortText: CodecTypes['sql/varchar@1']['output'];
-      readonly sqlFloat: CodecTypes['sql/float@1']['output'];
-      readonly sqlInt: CodecTypes['sql/int@1']['output'];
-      readonly text: CodecTypes['sqlite/text@1']['output'];
-      readonly varchar: CodecTypes['sql/varchar@1']['output'];
-      readonly varcharLength: CodecTypes['sql/varchar@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly __unbound__: {
-    readonly Scalar: {
-      readonly bigint: CodecTypes['sqlite/bigint@1']['input'];
-      readonly bigintNumber: CodecTypes['sqlite/bigintnumber@1']['input'];
-      readonly blob: CodecTypes['sqlite/blob@1']['input'];
-      readonly char: CodecTypes['sql/char@1']['input'];
-      readonly charLength: CodecTypes['sql/char@1']['input'];
-      readonly datetime: CodecTypes['sqlite/datetime@1']['input'];
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly integer: CodecTypes['sqlite/integer@1']['input'];
-      readonly json: CodecTypes['sqlite/json@1']['input'];
-      readonly real: CodecTypes['sqlite/real@1']['input'];
-      readonly shortText: CodecTypes['sql/varchar@1']['input'];
-      readonly sqlFloat: CodecTypes['sql/float@1']['input'];
-      readonly sqlInt: CodecTypes['sql/int@1']['input'];
-      readonly text: CodecTypes['sqlite/text@1']['input'];
-      readonly varchar: CodecTypes['sql/varchar@1']['input'];
-      readonly varcharLength: CodecTypes['sql/varchar@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly __unbound__: {
-    readonly scalar: {
-      readonly bigint: CodecTypes['sqlite/bigint@1']['output'];
-      readonly bigintNumber: CodecTypes['sqlite/bigintnumber@1']['output'];
-      readonly blob: CodecTypes['sqlite/blob@1']['output'];
-      readonly char: CodecTypes['sql/char@1']['output'];
-      readonly charLength: CodecTypes['sql/char@1']['output'];
-      readonly datetime: CodecTypes['sqlite/datetime@1']['output'];
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly integer: CodecTypes['sqlite/integer@1']['output'];
-      readonly json: CodecTypes['sqlite/json@1']['output'];
-      readonly real: CodecTypes['sqlite/real@1']['output'];
-      readonly shortText: CodecTypes['sql/varchar@1']['output'];
-      readonly sqlFloat: CodecTypes['sql/float@1']['output'];
-      readonly sqlInt: CodecTypes['sql/int@1']['output'];
-      readonly text: CodecTypes['sqlite/text@1']['output'];
-      readonly varchar: CodecTypes['sql/varchar@1']['output'];
-      readonly varcharLength: CodecTypes['sql/varchar@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly __unbound__: {
-    readonly scalar: {
-      readonly bigint: CodecTypes['sqlite/bigint@1']['input'];
-      readonly bigintNumber: CodecTypes['sqlite/bigintnumber@1']['input'];
-      readonly blob: CodecTypes['sqlite/blob@1']['input'];
-      readonly char: CodecTypes['sql/char@1']['input'];
-      readonly charLength: CodecTypes['sql/char@1']['input'];
-      readonly datetime: CodecTypes['sqlite/datetime@1']['input'];
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly integer: CodecTypes['sqlite/integer@1']['input'];
-      readonly json: CodecTypes['sqlite/json@1']['input'];
-      readonly real: CodecTypes['sqlite/real@1']['input'];
-      readonly shortText: CodecTypes['sql/varchar@1']['input'];
-      readonly sqlFloat: CodecTypes['sql/float@1']['input'];
-      readonly sqlInt: CodecTypes['sql/int@1']['input'];
-      readonly text: CodecTypes['sqlite/text@1']['input'];
-      readonly varchar: CodecTypes['sql/varchar@1']['input'];
-      readonly varcharLength: CodecTypes['sql/varchar@1']['input'];
-    };
-  };
-};
+type FieldTypeOverrides = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'input'
+>;
+type ColumnTypeOverrides = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'input'
+>;
 
 export namespace Models {
   export type Scalar = {
-    bigint: CodecTypes['sqlite/bigint@1']['output'];
-    bigintNumber: CodecTypes['sqlite/bigintnumber@1']['output'];
-    blob: CodecTypes['sqlite/blob@1']['output'];
-    char: CodecTypes['sql/char@1']['output'];
-    charLength: CodecTypes['sql/char@1']['output'];
-    datetime: CodecTypes['sqlite/datetime@1']['output'];
-    id: CodecTypes['sqlite/integer@1']['output'];
-    integer: CodecTypes['sqlite/integer@1']['output'];
-    json: CodecTypes['sqlite/json@1']['output'];
-    real: CodecTypes['sqlite/real@1']['output'];
-    shortText: CodecTypes['sql/varchar@1']['output'];
-    sqlFloat: CodecTypes['sql/float@1']['output'];
-    sqlInt: CodecTypes['sql/int@1']['output'];
-    text: CodecTypes['sqlite/text@1']['output'];
-    varchar: CodecTypes['sql/varchar@1']['output'];
-    varcharLength: CodecTypes['sql/varchar@1']['output'];
+    bigint: FieldOutputTypes['__unbound__']['Scalar']['bigint'];
+    bigintNumber: FieldOutputTypes['__unbound__']['Scalar']['bigintNumber'];
+    blob: FieldOutputTypes['__unbound__']['Scalar']['blob'];
+    char: FieldOutputTypes['__unbound__']['Scalar']['char'];
+    charLength: FieldOutputTypes['__unbound__']['Scalar']['charLength'];
+    datetime: FieldOutputTypes['__unbound__']['Scalar']['datetime'];
+    id: FieldOutputTypes['__unbound__']['Scalar']['id'];
+    integer: FieldOutputTypes['__unbound__']['Scalar']['integer'];
+    json: FieldOutputTypes['__unbound__']['Scalar']['json'];
+    real: FieldOutputTypes['__unbound__']['Scalar']['real'];
+    shortText: FieldOutputTypes['__unbound__']['Scalar']['shortText'];
+    sqlFloat: FieldOutputTypes['__unbound__']['Scalar']['sqlFloat'];
+    sqlInt: FieldOutputTypes['__unbound__']['Scalar']['sqlInt'];
+    text: FieldOutputTypes['__unbound__']['Scalar']['text'];
+    varchar: FieldOutputTypes['__unbound__']['Scalar']['varchar'];
+    varcharLength: FieldOutputTypes['__unbound__']['Scalar']['varcharLength'];
     readonly [RelationKeys]?: never;
   };
 }

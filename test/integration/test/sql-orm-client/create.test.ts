@@ -1,5 +1,4 @@
 import { DefaultValueExpr, InsertAst, ParamRef } from '@internal/sql-relational-core/ast';
-import type { Char } from '@internal/target-postgres/codec-types';
 import { describe, expect, it } from 'vitest';
 import {
   createReturningTagsCollection,
@@ -359,7 +358,7 @@ describe('integration/create', () => {
       async () => {
         await withCollectionRuntime(async (runtime) => {
           const tags = createReturningTagsCollection(runtime);
-          const customId = '123e4567-e89b-12d3-a456-426614174000' as Char<36>;
+          const customId = '123e4567-e89b-12d3-a456-426614174000';
 
           const created = await tags.create({ id: customId, name: 'rust' });
           expect(created).toEqual({ id: customId, name: 'rust' });

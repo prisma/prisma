@@ -290,6 +290,10 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     },
   ],
   [
+    'test/integration/test/contract-parity/fixtures/postgres/generated/contract.json',
+    { reason: 'has no foreign key in storage', meta: { model: 'Account', field: 'user' } },
+  ],
+  [
     'test/integration/test/fixtures/contract-format/supabase-before-dbgenerated-removal.contract.json',
     {
       reason: 'has a different codec or type parameters from its column',

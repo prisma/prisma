@@ -325,10 +325,17 @@ export interface TableNode extends TableProperties {
   readonly columns: readonly ColumnNode[];
 }
 
+/** A component whose capabilities a contract carries, such as an adapter. */
+export type CapabilityContributor = {
+  readonly capabilities: Readonly<Record<string, Readonly<Record<string, boolean>>>>;
+};
+
 export interface ContractDefinition {
   readonly target: TargetPackRef<'sql', string>;
   readonly defaultControlPolicy?: ControlPolicy;
   readonly extensions?: Record<string, ExtensionPackRef<'sql', string>>;
+  /** Capabilities of the stack the contract runs with beyond its target's and extensions', such as its adapter's. They join the target's and the extensions', as `prisma contract emit` joins them. */
+  readonly capabilities?: CapabilityContributor['capabilities'];
   /**
    * Test-fixture escape hatch: pins the emitted `storage.storageHash`
    * instead of computing it from content. A pinned hash is not

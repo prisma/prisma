@@ -21,7 +21,6 @@ describe('Postgres Date codec wiring', () => {
     expect(codecs).toHaveProperty('pgTimestamptzDateDescriptor', descriptor);
     expect(codecDescriptorMap).toHaveProperty('timestamptz-date', descriptor);
     expect(codecDescriptors.filter((entry) => entry.codecId === codecId)).toEqual([descriptor]);
-    expect(descriptor?.renderOutputType?.({ precision: 3 })).toBe('Date');
   });
 
   it('preserves the Date representation for min and max, but does not offer sum or avg', () => {

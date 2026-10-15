@@ -64,6 +64,7 @@ export interface EnumTypeHandle<
   Values extends readonly unknown[] = readonly unknown[],
   Names extends readonly string[] = readonly string[],
   MembersMap extends Record<string, unknown> = Record<string, unknown>,
+  CodecId extends string = string,
 > {
   /** Internal brand for lowering-pipeline detection. */
   readonly [ENUM_TYPE_HANDLE_BRAND]: true;
@@ -72,7 +73,7 @@ export interface EnumTypeHandle<
   readonly enumName: Name;
 
   /** codecId from the codec passed to `enumType`. */
-  readonly codecId: string;
+  readonly codecId: CodecId;
 
   /** Ordered member list for lowering (name + value pairs). */
   readonly enumMembers: readonly { readonly name: string; readonly value: Values[number] }[];
@@ -176,7 +177,8 @@ export function enumType<
   Name,
   MembersToValues<[...Members]>,
   MembersToNames<[...Members]>,
-  MembersAccessorMap<[...Members]>
+  MembersAccessorMap<[...Members]>,
+  Codec['codecId']
 >;
 export function enumType(
   name: string,
@@ -282,7 +284,8 @@ export type BoundEnumType<CodecTypes extends CodecTypeMap> = <
   Name,
   MembersToValues<[...Members]>,
   MembersToNames<[...Members]>,
-  MembersAccessorMap<[...Members]>
+  MembersAccessorMap<[...Members]>,
+  Codec['codecId']
 >;
 
 /**

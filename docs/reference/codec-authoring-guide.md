@@ -135,7 +135,6 @@ class PgVectorDescriptor extends PostgresCodecDescriptor<{ readonly length: numb
   override readonly codecId = 'pg/vector@1' as const;
   override readonly traits = ['equality'] as const;
   override readonly paramsSchema = pgvectorVectorParams;
-  override renderOutputType({ length }: { length: number }) { return `Vector<${length}>`; }
   override factory<N extends number>(
     params: { readonly length: N },
   ): (ctx: CodecInstanceContext) => VectorCodec<N> {
@@ -158,6 +157,31 @@ vector satisfies ColumnHelperFor<PgVectorDescriptor>;
 The params schema is the `pgvector/vector` data type's own `params`, referenced rather than restated, so the bound on `length` is written once — see [Declaring a data type](#declaring-a-data-type). The class-level params type is `{ readonly length: number }` (widest bound). The **method-level generic** `<N extends number>` on `factory` is what preserves the literal at the call site: when `vector(1536)` calls `pgVectorDescriptor.factory({ length: 1536 })` *directly*, TypeScript binds `N=1536`. The literal flows through `column(...)`'s generics into the column spec, into the contract type, and into `contract.d.ts`.
 
 This is the **load-bearing variance pattern**: method generics on the descriptor's factory are preserved by direct invocation inside the per-codec helper, not by structural extraction at a polymorphic helper. A polymorphic `column<P, R>(descriptor, params)` helper that tried to extract `R` from the descriptor's `factory` would lose the literal — TypeScript instantiates method generics to their constraint at every form of structural extraction (structural match, indexed access, `Parameters` / `ReturnType`, etc.).
+
+#### The output type of a column with type parameters
+
+A `vector(3)` column reads as `Vector<3>`, not as the codec's plain output type. The pack says so once, as a type, and both paths use it: a contract written with `defineContract` and the `contract.d.ts` that `prisma contract emit` writes.
+
+```ts
+import type { ParameterizedOutputTypesFunction } from '@internal/contract/types';
+
+type OutputTypeMap<TypeParams> = {
+  readonly 'pg/vector@1': TypeParams extends { readonly length: infer N extends number }
+    ? Vector<N>
+    : never;
+};
+
+export interface ParameterizedOutputTypesForTypeParams extends ParameterizedOutputTypesFunction {
+  readonly outputTypes: OutputTypeMap<this['typeParams']>;
+}
+```
+
+The pack exports this interface from its public `codec-types` entry and names it twice:
+
+- in its pack meta, as `__parameterizedOutputTypes?: ParameterizedOutputTypesForTypeParams`, which `defineContract` reads;
+- in `types.codecTypes.parameterizedOutputTypes`, as an import of that interface, on the component that contributes the codecs. The emitted `contract.d.ts` imports it into `ParameterizedOutputTypeFunctions`, through which `ParameterizedOutputType` types a `vector(3)` column as `Vector<3>`.
+
+A codec the map leaves out, or maps to `never` for some parameters, keeps its plain output type. Do not write `renderOutputType` for such a codec. `renderOutputType` is only for a codec whose output type cannot come from its type parameters as a type, such as `arktype/json@1` below, whose type is the text of its schema.
 
 ### Case 3 — Parameterized codec with typed schema (`arktype/json@1`)
 
@@ -254,7 +278,7 @@ class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
     return expression;
   }
 
-  // dataType, codecId, traits, paramsSchema, factory and renderOutputType
+  // dataType, codecId, traits, paramsSchema and factory
   // stay on the ordinary descriptor.
 }
 
@@ -748,10 +772,6 @@ class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
   override readonly codecId = 'pg/char@1' as const;
   override readonly traits = sqlCharDescriptor.traits;
   override readonly paramsSchema = pgCharacterLengthParams;
-
-  override renderOutputType(params: LengthParams): string | undefined {
-    return sqlCharDescriptor.renderOutputType(params);
-  }
 
   override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlCharCodec {
     return () => new SqlCharCodec(this);

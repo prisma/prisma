@@ -686,24 +686,6 @@ type DefinitionEnums<Definition> = Definition extends {
     : Record<never, never>
   : Record<never, never>;
 
-type EnumHandleAccessorType<Handle> =
-  Handle extends EnumTypeHandle<infer _Name, infer Values, infer Names, infer MembersMap>
-    ? {
-        readonly values: Values;
-        readonly names: Names;
-        readonly members: MembersMap;
-        has(v: Values[number]): boolean;
-        nameOf(v: Values[number]): string | undefined;
-        ordinalOf(v: Values[number]): number;
-      }
-    : never;
-
-type BuiltEnumAccessors<Definition> = {
-  readonly [K in keyof DefinitionEnums<Definition>]: EnumHandleAccessorType<
-    DefinitionEnums<Definition>[K]
-  >;
-};
-
 type DefinitionRoots<Definition> = Definition extends {
   readonly roots?: infer Roots extends Record<string, ModelNameInput>;
 }
@@ -748,30 +730,39 @@ type MaybeValueObjectsSection<ValueObjects extends Record<string, AnyValueObject
         readonly valueObjects: ContractValueObjectsFromRecord<ValueObjects>;
       };
 
-// Project EnumTypeHandle to the namespace enum-entry shape. A member is stored in its codec's
-// JSON form, which is the authored literal only when that literal is JSON (a bigint or a Date
-// member is stored as text), so a member whose value is not JSON is typed as `JsonValue`.
-type EnumHandleToEntry<Handle> =
-  Handle extends EnumTypeHandle<string, infer Values, infer _Names, infer _MembersMap>
+type HandleName<Handle> = Handle extends EnumTypeHandle<infer Name> ? Name : never;
+
+// A member is stored in its codec's JSON form, which is the authored literal only when that literal is JSON; a bigint or Date member is stored as text.
+type StoredEnumValue<Value> = Value extends JsonValue ? Value : JsonValue;
+
+type EnumHandleMembers<Handle, Stored extends boolean> =
+  Handle extends EnumTypeHandle<string, infer Values, infer Names>
     ? {
-        readonly codecId: string;
-        readonly members: readonly {
-          readonly name: string;
-          readonly value: Values[number] extends JsonValue ? Values[number] : JsonValue;
-        }[];
+        readonly [I in keyof Values]: {
+          readonly name: I extends keyof Names ? Names[I] : never;
+          readonly value: Stored extends true ? StoredEnumValue<Values[I]> : Values[I];
+        };
       }
     : never;
 
-type ContractEnumsFromRecord<Enums extends Record<string, EnumTypeHandle>> = {
-  readonly [K in keyof Enums as Enums[K] extends EnumTypeHandle<infer Name>
-    ? Name
-    : never]: EnumHandleToEntry<Enums[K]>;
+// The domain `enum` entries for enums authored with `enumType`, keyed by enum name, with each member's value as it is stored.
+type EnumHandleEntries<Enums> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: {
+    readonly codecId: Enums[K] extends { readonly codecId: infer CodecId } ? CodecId : string;
+    readonly members: EnumHandleMembers<Enums[K], true>;
+  };
+};
+
+// The `enumMemberTypes` for enums authored with `enumType`: each member with the value the application reads, as an emitted `contract.d.ts` types it. `db.enums` reads its accessors from it.
+type EnumHandleMemberTypes<Enums> = {
+  readonly [K in keyof Enums as HandleName<Enums[K]>]: EnumHandleMembers<Enums[K], false>;
 };
 
 type MaybeEnumsSection<Enums extends Record<string, EnumTypeHandle>> = keyof Enums extends never
   ? EmptyObject
   : {
-      readonly enum: ContractEnumsFromRecord<Enums>;
+      readonly enum: EnumHandleEntries<Enums>;
+      readonly enumMemberTypes?: EnumHandleMemberTypes<Enums>;
     };
 
 type MongoDomainNamespaceFromDefinition<Definition> = Simplify<
@@ -796,7 +787,6 @@ type MongoContractBaseFromDefinition<Definition> = Simplify<{
   readonly profileHash: ProfileHashBase<string>;
   readonly meta: Record<string, never>;
   readonly defaultControlPolicy?: ControlPolicy;
-  readonly enumAccessors?: BuiltEnumAccessors<Definition>;
   readonly execution?: ExecutionSectionFromDefinition<Definition>;
 }>;
 

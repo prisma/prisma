@@ -2624,6 +2624,7 @@ export function interpretPslDocumentToSqlContract(
     contract = buildSqlContractFromDefinition(
       {
         target: input.target,
+        capabilities: input.capabilities,
         warnings: authoringWarnings.length > 0 ? authoringWarnings : undefined,
         ...ifDefined(
           'extensions',

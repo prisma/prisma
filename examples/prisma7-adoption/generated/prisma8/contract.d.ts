@@ -3,12 +3,14 @@
 // To regenerate, run: prisma contract emit
 import type {
   CodecTypes as PgTypes,
-  TimestampString,
+  ParameterizedOutputTypesForTypeParams as PgParameterizedOutputTypes,
 } from '@prisma/orm-postgres/target/codec-types';
 import type { QueryOperationTypes as PgTargetQueryOps } from '@prisma/orm-postgres/target/operation-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@prisma/orm-postgres/family-contract/types';
@@ -234,152 +236,83 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
-export type FieldOutputTypes = {
+type FieldTypeOverrides = {
   readonly public: {
-    readonly Post: {
-      readonly authorId: CodecTypes['pg/int4@1']['output'];
-      readonly content: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly published: CodecTypes['pg/bool@1']['output'];
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly viewCount: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly PostToTag: {
-      readonly A: CodecTypes['pg/int4@1']['output'];
-      readonly B: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
     readonly User: {
-      readonly createdAt: TimestampString<3>;
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'] | null;
-      readonly role: 'USER' | 'ADMIN';
-      readonly updatedAt: TimestampString<3>;
+      readonly role: { readonly output: 'USER' | 'ADMIN'; readonly input: 'USER' | 'ADMIN' };
     };
   };
 };
-export type FieldInputTypes = {
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'input'
+>;
+type ColumnTypeOverrides = {
   readonly public: {
-    readonly Post: {
-      readonly authorId: CodecTypes['pg/int4@1']['input'];
-      readonly content: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly published: CodecTypes['pg/bool@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly viewCount: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly PostToTag: {
-      readonly A: CodecTypes['pg/int4@1']['input'];
-      readonly B: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
     readonly User: {
-      readonly createdAt: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'] | null;
-      readonly role: 'USER' | 'ADMIN';
-      readonly updatedAt: CodecTypes['pg/timestamp-string@1']['input'];
+      readonly role: { readonly output: 'USER' | 'ADMIN'; readonly input: 'USER' | 'ADMIN' };
     };
   };
 };
-export type StorageColumnTypes = {
-  readonly public: {
-    readonly _PostToTag: {
-      readonly A: CodecTypes['pg/int4@1']['output'];
-      readonly B: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly Post: {
-      readonly authorId: CodecTypes['pg/int4@1']['output'];
-      readonly content: CodecTypes['pg/text@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly published: CodecTypes['pg/bool@1']['output'];
-      readonly title: CodecTypes['pg/text@1']['output'];
-      readonly viewCount: CodecTypes['pg/int4@1']['output'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'];
-    };
-    readonly User: {
-      readonly createdAt: TimestampString<3>;
-      readonly email: CodecTypes['pg/text@1']['output'];
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'] | null;
-      readonly role: 'USER' | 'ADMIN';
-      readonly updatedAt: TimestampString<3>;
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly public: {
-    readonly _PostToTag: {
-      readonly A: CodecTypes['pg/int4@1']['input'];
-      readonly B: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly Post: {
-      readonly authorId: CodecTypes['pg/int4@1']['input'];
-      readonly content: CodecTypes['pg/text@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly published: CodecTypes['pg/bool@1']['input'];
-      readonly title: CodecTypes['pg/text@1']['input'];
-      readonly viewCount: CodecTypes['pg/int4@1']['input'];
-    };
-    readonly Tag: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'];
-    };
-    readonly User: {
-      readonly createdAt: CodecTypes['pg/timestamp-string@1']['input'];
-      readonly email: CodecTypes['pg/text@1']['input'];
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'] | null;
-      readonly role: 'USER' | 'ADMIN';
-      readonly updatedAt: CodecTypes['pg/timestamp-string@1']['input'];
-    };
-  };
-};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'input'
+>;
 
 export namespace Models {
   export type public_Post = {
-    authorId: CodecTypes['pg/int4@1']['output'];
-    content: CodecTypes['pg/text@1']['output'] | null;
-    id: CodecTypes['pg/int4@1']['output'];
-    published: CodecTypes['pg/bool@1']['output'];
-    title: CodecTypes['pg/text@1']['output'];
-    viewCount: CodecTypes['pg/int4@1']['output'];
+    authorId: FieldOutputTypes['public']['Post']['authorId'];
+    content: FieldOutputTypes['public']['Post']['content'];
+    id: FieldOutputTypes['public']['Post']['id'];
+    published: FieldOutputTypes['public']['Post']['published'];
+    title: FieldOutputTypes['public']['Post']['title'];
+    viewCount: FieldOutputTypes['public']['Post']['viewCount'];
     author: public_User;
     tags: public_Tag[];
     readonly [RelationKeys]?: 'author' | 'tags';
   };
   export type public_PostToTag = {
-    A: CodecTypes['pg/int4@1']['output'];
-    B: CodecTypes['pg/int4@1']['output'];
+    A: FieldOutputTypes['public']['PostToTag']['A'];
+    B: FieldOutputTypes['public']['PostToTag']['B'];
     post: public_Post;
     tag: public_Tag;
     readonly [RelationKeys]?: 'post' | 'tag';
   };
   export type public_Tag = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['public']['Tag']['id'];
+    name: FieldOutputTypes['public']['Tag']['name'];
     posts: public_Post[];
     readonly [RelationKeys]?: 'posts';
   };
   export type public_User = {
-    createdAt: TimestampString<3>;
-    email: CodecTypes['pg/text@1']['output'];
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'] | null;
-    role: 'USER' | 'ADMIN';
-    updatedAt: TimestampString<3>;
+    createdAt: FieldOutputTypes['public']['User']['createdAt'];
+    email: FieldOutputTypes['public']['User']['email'];
+    id: FieldOutputTypes['public']['User']['id'];
+    name: FieldOutputTypes['public']['User']['name'];
+    role: FieldOutputTypes['public']['User']['role'];
+    updatedAt: FieldOutputTypes['public']['User']['updatedAt'];
     posts: public_Post[];
     readonly [RelationKeys]?: 'posts';
   };
