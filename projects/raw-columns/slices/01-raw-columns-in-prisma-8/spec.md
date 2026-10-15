@@ -30,7 +30,7 @@ Postgres and SQLite each register it with their data types (`postgresDataTypes`,
 
 ### The codec
 
-`sql/raw@1` is a codec template in `packages/2-sql/4-lanes/relational-core/src/ast/sql-codecs.ts`, adapted by each target as the `sql/char@1` template is. It encodes and decodes by identity, is typed `unknown` for input and output, and declares no traits. `encodeJson` and `decodeJson` refuse every value, so every literal path refuses: a raw column has no literal default, enum members or JSON projection. It is listed in Postgres's and SQLite's codec lists and in `codecDescriptorMap`, so the emitted `CodecTypes` give `unknown`.
+`sql/raw@1` is a codec template in `packages/2-sql/4-lanes/relational-core/src/ast/sql-codecs.ts`, adapted by each target as the `sql/char@1` template is. It encodes and decodes by identity, is typed `unknown` for input and output, and declares no traits. `encodeJson` and `decodeJson` pass JSON through unchanged, so a raw field works inside an include, where Postgres projects it as the text its output function prints. Literal values are the data type's rule, not the codec's: the data type's canonical form refuses every literal, so a raw column has no literal default; its enum refusal keeps it out of enums. It is listed in Postgres's and SQLite's codec lists and in `codecDescriptorMap`, so the emitted `CodecTypes` give `unknown`.
 
 On Postgres, `sql/raw` joins the data types whose parameters are sent without a cast (`POSTGRES_INFERRABLE_DATA_TYPES` in the SQL renderer), so a value reaches the column's own input function. An explicit cast such as `$1::character varying(10)` would silently truncate.
 

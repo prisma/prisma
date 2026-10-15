@@ -233,7 +233,7 @@ For canonical worked examples covering single and multi-extension setups, read `
 
 ## Workflow — Raw columns (a type no column type covers)
 
-The concept: `Raw("<type>")` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`: the ORM reads and writes them unchanged and offers no filters or ordering on them. Raw columns exist on Postgres and SQLite.
+The concept: `Raw("<type>")` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`: the ORM reads each value as the text the database prints for it, flat and through includes, writes text back unchanged, and offers no filters or ordering on them. Raw columns exist on Postgres and SQLite.
 
 ```prisma
 model Category {
@@ -248,8 +248,9 @@ In the TypeScript builder, use `field.column(type.Raw('tsvector'))` in the callb
 
 - Write the type as the database catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Another form reports a type mismatch in `db verify`, and the finding names the text to write.
 - A raw column's default is a `sql` expression. A literal default is refused at emit (`` Expected sql`...` ``).
+- The text is one type name: `geometry(Point,4326)` is fine; blank or padded text, `;`, comments, or a comma outside parentheses are refused.
 - PSL strings have no escapes, so a type whose name needs double quotes cannot be written with `Raw`.
-- Changing the text changes the column's type: `migration plan` writes `ALTER COLUMN ... TYPE`. If the database has no cast between the two types, name the field with `--convert` and write the conversion.
+- Changing the text changes the column's type: `migration plan` writes `ALTER COLUMN ... TYPE`. If the database has no cast between the two types, name the field with `--convert` and write the conversion. The generated call is `alterColumnType({ ..., type: "text", raw: true })`; keep `raw: true` when editing it, since a raw type is checked as written.
 
 ## Workflow — Polymorphism (`@@discriminator` / `@@base`)
 
