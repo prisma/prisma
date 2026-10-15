@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createCollectionTables } from '../../src/collection-tables';
-import { createVariantGraph } from '../../src/mutation-graph/collection-graphs';
+import { createAllVariantGraph } from '../../src/mutation-graph/collection-graphs';
 import { emptyState } from '../../src/types';
 import { buildMixedPolyContract, buildTestContextFromContract } from '../helpers';
 import { printGraph } from './print-graph';
@@ -21,15 +21,15 @@ const collection = {
 const darkMode = { base: { title: 'Dark mode', type: 'feature' }, variant: { priority: 1 } };
 const exportPdf = { base: { title: 'Export to PDF', type: 'feature' }, variant: { priority: 3 } };
 
-describe('createVariantGraph', () => {
+describe('createAllVariantGraph', () => {
   it('builds no node for no rows', () => {
-    expect(printGraph(createVariantGraph(collection, features, 'Feature', []))).toBe(
+    expect(printGraph(createAllVariantGraph(collection, features, 'Feature', []))).toBe(
       'result: none',
     );
   });
 
   it('inserts the base row, then the variant row with its key, and merges them for one row', () => {
-    const graph = createVariantGraph(collection, features, 'Feature', [darkMode]);
+    const graph = createAllVariantGraph(collection, features, 'Feature', [darkMode]);
 
     expect(printGraph(graph)).toBe(
       [
@@ -43,7 +43,7 @@ describe('createVariantGraph', () => {
   });
 
   it('joins the merged rows of several rows one after another', () => {
-    const graph = createVariantGraph(collection, features, 'Feature', [darkMode, exportPdf]);
+    const graph = createAllVariantGraph(collection, features, 'Feature', [darkMode, exportPdf]);
 
     expect(printGraph(graph)).toBe(
       [

@@ -120,7 +120,7 @@ export function deleteFirstGraph(collection: DescribeCollectionRowsOptions): Gra
   return graph;
 }
 
-export function createGraph(
+export function createAllGraph(
   collection: DescribeCollectionRowsOptions,
   rows: readonly Record<string, unknown>[],
   conflict: InsertConflictSkip | undefined,
@@ -151,7 +151,7 @@ export interface VariantCreateRow {
   readonly variant: Readonly<Record<string, unknown>>;
 }
 
-export function createVariantGraph(
+export function createAllVariantGraph(
   collection: DescribeCollectionRowsOptions,
   variantTable: AliasedTable,
   variantModelName: string,

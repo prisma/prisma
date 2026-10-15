@@ -134,8 +134,8 @@ import {
   hasNestedMutationCallbacks,
 } from './mutation-executor';
 import {
-  createGraph,
-  createVariantGraph,
+  createAllGraph,
+  createAllVariantGraph,
   deleteAllGraph,
   deleteFirstGraph,
   updateAllGraph,
@@ -2051,7 +2051,7 @@ export class CollectionBase<
     const mtiContext = this.#resolveMtiCreateContext();
     if (mtiContext) {
       const variantTable = requireVariantTable(this.state.tables, mtiContext.variant.value);
-      const graph = createVariantGraph(
+      const graph = createAllVariantGraph(
         this.#descriptionWithoutIncludes(),
         variantTable,
         mtiContext.variant.modelName,
@@ -2060,7 +2060,11 @@ export class CollectionBase<
       return queryGraph(graph, this.ctx, annotationsMap, this.#descriptionWithoutIncludes());
     }
 
-    const graph = createGraph(this.#descriptionOptions(), this.#createValues(rows), conflictSkip);
+    const graph = createAllGraph(
+      this.#descriptionOptions(),
+      this.#createValues(rows),
+      conflictSkip,
+    );
     return queryGraph(graph, this.ctx, annotationsMap, this.#descriptionOptions());
   }
 
@@ -2321,7 +2325,7 @@ export class CollectionBase<
       readonly Record<string, unknown>[],
       'resolved create-and-count inputs are model-field records for storage mapping'
     >(data);
-    const graph = createGraph(
+    const graph = createAllGraph(
       this.#descriptionWithoutIncludes(),
       this.#createValues(rows),
       conflictSkip,
