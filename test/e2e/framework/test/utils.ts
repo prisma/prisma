@@ -58,7 +58,7 @@ async function loadRawContractFromDisk(contractJsonPath: string): Promise<Record
 /**
  * Emits a contract via CLI and verifies the emitted artifacts match the committed
  * contract.json and contract.d.ts. The committed files are read before the emit
- * overwrites them; on a mismatch they are restored and the helper throws.
+ * overwrites them; if the emit fails or its output differs, they are restored and the helper throws.
  * Returns the emitted contract for further use in the test.
  */
 export async function emitAndVerifyContract(
@@ -69,15 +69,23 @@ export async function emitAndVerifyContract(
   const expectedContractDtsPath = join(dirname(expectedContractJsonPath), 'contract.d.ts');
   const expectedJson = await readFile(expectedContractJsonPath, 'utf-8');
   const expectedDts = await readFile(expectedContractDtsPath, 'utf-8');
+  const restoreCommitted = async () => {
+    await writeFile(expectedContractJsonPath, expectedJson);
+    await writeFile(expectedContractDtsPath, expectedDts);
+  };
 
-  await execFileAsync('node', [cliPath, 'contract', 'emit', '--config', configPath]);
+  try {
+    await execFileAsync('node', [cliPath, 'contract', 'emit', '--config', configPath]);
+  } catch (error) {
+    await restoreCommitted();
+    throw error;
+  }
 
   const emittedJson = await readFile(expectedContractJsonPath, 'utf-8');
   const emittedDts = await readFile(expectedContractDtsPath, 'utf-8');
 
   if (emittedJson !== expectedJson || emittedDts !== expectedDts) {
-    await writeFile(expectedContractJsonPath, expectedJson);
-    await writeFile(expectedContractDtsPath, expectedDts);
+    await restoreCommitted();
     throw new Error(
       `Emitted contract artifacts do not match the committed ones in ${dirname(expectedContractJsonPath)}. Run \`pnpm fixtures:check\` to see the drift.`,
     );
