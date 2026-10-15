@@ -17,7 +17,7 @@
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
     "arktype": "catalog:",
-    "glob-parent": "catalog:",
+    "minimatch": "catalog:",
     "pathe": "^2.0.3",
     "tinyglobby": "catalog:",
     "uniku": "^0.5.0"

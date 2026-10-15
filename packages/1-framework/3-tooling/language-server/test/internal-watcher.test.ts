@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { buildLoadedConfig, requireConfigSections } from '@internal/config-loader';
 import { FSWatcher } from 'chokidar';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -34,9 +34,10 @@ it('derives literal safe roots for glob syntax and future directories', async ()
   expect(await watchRoots([join(dir, 'missing/deeper/*.prisma')])).toEqual([dir]);
   expect(await watchRoots([join(dir, 'schema.prisma')])).toEqual([dir]);
   await expect(watchRoots(['/**/*.prisma'])).rejects.toThrow('root');
+  await expect(watchRoots(['/schemas/{../outside,inside}/*.prisma'])).rejects.toThrow('root');
   await mkdir(join(dir, '{one'));
   expect(await watchRoots([join(dir, '{one/nested,two}/**/*.prisma')])).toEqual([dir]);
-  expect(await watchRoots([`${dir}/*/../../*.prisma`])).toEqual([dir]);
+  expect(await watchRoots([`${dir}/*/../../*.prisma`])).toEqual([dirname(dir)]);
 });
 it('retains nested roots and removes only exact duplicates', async () => {
   const dir = await directory();
@@ -79,9 +80,7 @@ it('keeps literal parent traversal and external roots available', async () => {
   expect(await watchRoots([`${dir}/config/../outside/**/*.prisma`])).toEqual([
     join(dir, 'outside'),
   ]);
-  expect(await watchRoots([`${dir}/config/{../outside,inside}/*.prisma`])).toEqual([
-    join(dir, 'config'),
-  ]);
+  expect(await watchRoots([`${dir}/config/{../outside,inside}/*.prisma`])).toEqual([dir]);
 });
 
 it('resolves escaped brackets to an existing literal directory', async () => {
@@ -90,7 +89,13 @@ it('resolves escaped brackets to an existing literal directory', async () => {
   expect(await watchRoots([String.raw`${dir}/\[id\]/schema.prisma`])).toEqual([join(dir, '[id]')]);
 });
 
-it.each(['?', 'user?'])('uses glob-parent semantics for a %s directory', async (segment) => {
+it.each(['?', 'user?'])('covers every match of a %s directory', async (segment) => {
+  const dir = await directory();
+  await mkdir(join(dir, segment));
+  expect(await watchRoots([join(dir, segment, 'nested/schema.prisma')])).toEqual([dir]);
+});
+
+it.each(['[unfinished', '{literal}'])('keeps a literal %s directory', async (segment) => {
   const dir = await directory();
   await mkdir(join(dir, segment));
   expect(await watchRoots([join(dir, segment, 'nested/schema.prisma')])).toEqual([
@@ -98,7 +103,7 @@ it.each(['?', 'user?'])('uses glob-parent semantics for a %s directory', async (
   ]);
 });
 
-it.each(['*', '[unfinished', '{literal}', '@(one|two)', '!(one)', '\\[id\\]'])(
+it.each(['*', '@(one|two)', '!(one)', '\\[id\\]'])(
   'uses a conservative root boundary for %s outside the config directory',
   async (segment) => {
     const dir = await directory();
@@ -106,6 +111,52 @@ it.each(['*', '[unfinished', '{literal}', '@(one|two)', '!(one)', '\\[id\\]'])(
     expect(await watchRoots([join(dir, segment, 'nested/schema.prisma')])).toEqual([dir]);
   },
 );
+it.each([
+  ['schemas/?/schema.prisma', ['schemas/a', 'schemas/b']],
+  ['schemas/user?/schema.prisma', ['schemas/usera', 'schemas/userb']],
+  ['schemas/{../outside,inside}/*.prisma', ['outside', 'schemas/inside']],
+  ['schemas/*/../../outside/*.prisma', ['outside']],
+  ['schemas/**/../outside/*.prisma', ['outside']],
+  ['schemas/[[]id[]]/*.prisma', ['schemas/[id]']],
+  [String.raw`schemas/\[id\]/*.prisma`, ['schemas/[id]']],
+])('observes existing and future matches of %s', async (pattern, members) => {
+  const dir = await directory();
+  await mkdir(join(dir, 'config'));
+  await mkdir(join(dir, 'schemas', '?'), { recursive: true });
+  await mkdir(join(dir, 'schemas', 'user?'));
+  const first = members[0];
+  if (!first) throw new Error('Expected a fixture member');
+  const existing = join(dir, first, 'schema.prisma');
+  await mkdir(dirname(existing), { recursive: true });
+  await writeFile(existing, 'first');
+  const onReady = vi.fn();
+  const onChange = vi.fn();
+  const onError = vi.fn();
+  const watcher = new InternalWatcher(join(dir, 'config/prisma.config.ts'), [`${dir}/${pattern}`], {
+    onReady,
+    onChange,
+    onError,
+  });
+  cleanups.push(() => watcher.close());
+  await vi.waitFor(() => expect(onReady).toHaveBeenCalledTimes(2));
+  await writeFile(existing, 'second');
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith(existing));
+  onChange.mockClear();
+  for (const member of members) {
+    const file = join(dir, member, 'schema.prisma');
+    if (file !== existing) {
+      await mkdir(dirname(file), { recursive: true });
+      await writeFile(file, 'third');
+      await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith(file));
+      onChange.mockClear();
+    }
+    await rm(file);
+    await vi.waitFor(() => expect(onChange).toHaveBeenCalledWith(file));
+    onChange.mockClear();
+  }
+  expect(onError).not.toHaveBeenCalled();
+});
+
 it.each([undefined, 'true'])('allows library polling configuration: %s', async (usePolling) => {
   const dir = await directory();
   vi.stubEnv('CHOKIDAR_USEPOLLING', usePolling);

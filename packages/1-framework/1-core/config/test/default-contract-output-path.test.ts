@@ -18,7 +18,11 @@ describe('defaultContractOutputPath', () => {
 
   it.each([
     ['./schemas/{one/nested,two}/**/*.prisma', './schemas/contract.json'],
-    ['./schemas/[[]id[]]/*.prisma', './schemas/contract.json'],
+    ['./schemas/[[]id[]]/*.prisma', './schemas/[id]/contract.json'],
+    ['./schemas/?/schema.prisma', './schemas/contract.json'],
+    ['./schemas/user?/schema.prisma', './schemas/contract.json'],
+    ['/app/schemas/{../outside,inside}/*.prisma', '/app/contract.json'],
+    ['/app/schemas/*/../../*.prisma', '/app/contract.json'],
     ['./schemas/@(one|two)/*.prisma', './schemas/contract.json'],
     ['/**/*.prisma', '/contract.json'],
     ['./*.prisma', './contract.json'],
