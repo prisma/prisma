@@ -172,7 +172,7 @@ db.Tag.where(notDeleted); // error: Property 'deletedAt' is missing in type 'Mod
 
 It has the same set of comparison methods as the field on the model accessor, chosen by the codec's traits, and the operations registered for the codec, such as `fullTextMatches` on a text field. A model without the field, a field of another codec and a field of another nullability are compile errors. The codec id must be one of the contract's codecs.
 
-A `CodecField` checks values against the codec's output type, not against the field's own type. Where a field refines its codec's value, such as a PSL enum stored as text or a `Char<36>` column, the fragment accepts values the field does not: `(row: { kind: CodecField<Contract, 'pg/text@1'> }) => row.kind.eq('superuser')` compiles, while `user.kind.eq('superuser')` written on the model is refused. One fragment serves many models, so it can only know the codec.
+A `CodecField` checks values against the codec's input type, not against the field's own type. Where a field refines its codec's value, such as a PSL enum stored as text or a `Char<36>` column, the fragment accepts values the field does not: `(row: { kind: CodecField<Contract, 'pg/text@1'> }) => row.kind.eq('superuser')` compiles, while `user.kind.eq('superuser')` written on the model is refused. One fragment serves many models, so it can only know the codec.
 
 **A fragment for one model, such as a shared `select` and `include`.** `collection.fragment(body)` types the body once, against the plain collection of the receiver's model, and returns a fragment:
 

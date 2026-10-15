@@ -18,6 +18,7 @@ import { ownedBy } from '../src/orm-client/fragments';
 import { ormClientGetAdminUsers } from '../src/orm-client/get-admin-users';
 import { ormClientGetDashboardUsers } from '../src/orm-client/get-dashboard-users';
 import { ormClientGetFeatureRoadmap } from '../src/orm-client/get-feature-roadmap';
+import { ormClientGetFilteredPosts } from '../src/orm-client/get-filtered-posts';
 import { ormClientGetLatestUserPerKind } from '../src/orm-client/get-latest-user-per-kind';
 import { ormClientGetPostFeed } from '../src/orm-client/get-post-feed';
 import { ormClientGetRecentPosts } from '../src/orm-client/get-recent-posts';
@@ -31,7 +32,6 @@ import { ormClientGetUsers } from '../src/orm-client/get-users';
 import { ormClientGetUsersBackwardCursor } from '../src/orm-client/get-users-backward-cursor';
 import { ormClientGetUsersByIdCursor } from '../src/orm-client/get-users-by-id-cursor';
 import { ormClientGetUsersCached } from '../src/orm-client/get-users-cached';
-import { ormClientListPosts } from '../src/orm-client/list-posts';
 import { ormClientSearchPosts } from '../src/orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from '../src/orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from '../src/orm-client/search-posts-by-title';
@@ -674,7 +674,7 @@ describe('ORM client integration examples', () => {
   );
 
   it(
-    'ormClientListPosts applies each filter only when the input names it',
+    'ormClientGetFilteredPosts applies each filter only when the input names it',
     async () => {
       await withDevDatabase(async ({ connectionString }) => {
         await initTestDatabase({ connection: connectionString, contract });
@@ -683,10 +683,10 @@ describe('ORM client integration examples', () => {
         try {
           await seedOrmClientData(runtime);
           await tagAdminDeepDive(runtime);
-          const listIds = async (input: Parameters<typeof ormClientListPosts>[0]) =>
-            (await ormClientListPosts(input, 10, runtime)).map((post) => post.id);
+          const listIds = async (input: Parameters<typeof ormClientGetFilteredPosts>[0]) =>
+            (await ormClientGetFilteredPosts(input, 10, runtime)).map((post) => post.id);
 
-          const byAuthor = await ormClientListPosts(
+          const byAuthor = await ormClientGetFilteredPosts(
             { userId: seededUserIds.adminTwo },
             10,
             runtime,
@@ -724,6 +724,13 @@ describe('ORM client integration examples', () => {
               before: Temporal.Instant.from('2024-01-02T00:00:00.000Z'),
             }),
           ).toEqual([seededPostIds.older]);
+          expect(
+            await listIds({ before: Temporal.Instant.from('2024-01-02T10:00:00.000Z') }),
+          ).toEqual([seededPostIds.older]);
+          expect((await ormClientGetFilteredPosts({}, 2, runtime)).map((post) => post.id)).toEqual([
+            seededPostIds.adminZebra,
+            seededPostIds.adminDeepDive,
+          ]);
         } finally {
           await runtime.close();
         }

@@ -31,9 +31,9 @@
  *                              Posts created since an ISO instant, ordered by a
  *                              field named on the command line (title or createdAt),
  *                              shaped by a shared post summary fragment
- * - repo-list-posts [userId|-] [before] [limit]
+ * - repo-list-posts [userId|-] [before|-] [limit]
  *                              Newest post summaries, filtered by author and by an
- *                              ISO instant only when those are given (`-` skips the author)
+ *                              ISO instant only when those are given (`-` skips either)
  * - repo-task-board [limit]    Users with their polymorphic `tasks` included —
  *                              each task comes back shaped per its variant
  *                              (Bug: severity/stepsToRepro, Feature: priority/targetRelease)
@@ -147,6 +147,7 @@ import { ormClientGetDashboardUsers } from './orm-client/get-dashboard-users';
 import { ormClientGetEngagementPrecision } from './orm-client/get-engagement-precision';
 import { ormClientGetEngagementSpread } from './orm-client/get-engagement-spread';
 import { ormClientGetFeatureRoadmap } from './orm-client/get-feature-roadmap';
+import { ormClientGetFilteredPosts } from './orm-client/get-filtered-posts';
 import { ormClientGetLatestUserPerKind } from './orm-client/get-latest-user-per-kind';
 import { ormClientGetPostEngagement } from './orm-client/get-post-engagement';
 import { ormClientGetPostFeed } from './orm-client/get-post-feed';
@@ -165,7 +166,6 @@ import { ormClientGetUsers } from './orm-client/get-users';
 import { ormClientGetUsersBackwardCursor } from './orm-client/get-users-backward-cursor';
 import { ormClientGetUsersByIdCursor } from './orm-client/get-users-by-id-cursor';
 import { ormClientGetUsersCached } from './orm-client/get-users-cached';
-import { ormClientListPosts } from './orm-client/list-posts';
 import { ormClientSearchPosts } from './orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from './orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from './orm-client/search-posts-by-title';
@@ -352,10 +352,12 @@ async function main() {
       console.log(JSON.stringify(posts, null, 2));
     } else if (cmd === 'repo-list-posts') {
       const [userIdStr, beforeStr, limitStr] = args;
-      const posts = await ormClientListPosts(
+      const given = (arg: string | undefined) => (arg && arg !== '-' ? arg : undefined);
+      const before = given(beforeStr);
+      const posts = await ormClientGetFilteredPosts(
         {
-          userId: userIdStr && userIdStr !== '-' ? userIdStr : undefined,
-          before: beforeStr ? Temporal.Instant.from(beforeStr) : undefined,
+          userId: given(userIdStr),
+          before: before !== undefined ? Temporal.Instant.from(before) : undefined,
         },
         limitStr ? Number.parseInt(limitStr, 10) : 10,
         runtime,
@@ -893,7 +895,7 @@ async function main() {
           'repo-dashboard <emailDomain> <postTitleTerm> [limit] [postsPerUser] | ' +
           'repo-post-feed <postTitleTerm> [limit] | repo-users-cursor [cursor] [limit] | ' +
           'repo-recent-posts <since> [orderBy] [asc|desc] [limit] | ' +
-          'repo-list-posts [userId|-] [before] [limit] | ' +
+          'repo-list-posts [userId|-] [before|-] [limit] | ' +
           'repo-tasks [limit] | repo-bugs [limit] | repo-features [limit] | ' +
           'repo-task-board [limit] | repo-bug-triage [severity] [limit] | ' +
           'repo-feature-roadmap <targetRelease> [limit] | ' +
