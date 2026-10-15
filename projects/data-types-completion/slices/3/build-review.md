@@ -7,6 +7,7 @@ Reviewer-maintained. Contract: [ADR 254](../../../../docs/architecture%20docs/ad
 - Implementer: slice 3 implementer (Opus), dispatch a rounds 1 and 2
 - Reviewer: slice 3 reviewer (Opus), dispatch a rounds 1 and 2, started 2026-10-08
 - Implementer and reviewer, dispatch b round 1: slice 3 implementer and reviewer (Opus)
+- Reviewer, dispatch b round 2 and the merge of `main`: slice 3 reviewer (Opus), 2026-10-15
 
 ## Orchestrator rulings
 
@@ -28,6 +29,8 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | a | 1 (`650fff0614..def805947b`) | ANOTHER ROUND NEEDED: 1 must-fix, 1 should-fix, 4 low |
 | a | 2 (`e2ecf45352^..7396cff3b8`) | ANOTHER ROUND NEEDED: 0 must-fix, 1 should-fix, 3 low |
 | b | 1 (`682ee5dd54..7e742de7c9`) | ANOTHER ROUND NEEDED: 3 must-fix, 1 should-fix, 6 low |
+| b | 2 (`70d3259f29..eefeaa4e37`) | ANOTHER ROUND NEEDED: 1 must-fix, 0 should-fix, 1 low |
+| merge of `main` | 1 (`4ec1b78c80`) | SATISFIED: 0 must-fix, 0 should-fix, 1 low |
 
 ## Findings log
 
@@ -220,3 +223,73 @@ Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-b.md`. Range 
 - Sweeps: no `emptyResultJson` outside `docs/`, `projects/` and the historical rc.1 to rc.2 upgrade instruction; no `canonicalFormOf` in either kit; no `any`, `@ts-expect-error`, lint suppression or bare `as` added in production code.
 - Must-not-change: no committed `contract.json`, `contract.d.ts`, migration, snapshot or golden recording changed. The SQL snapshot `json-projection-variants.test.ts.snap` changed for the vector projection, as ruling 1 accepts. What queries return changed in S3-b-R1-3 and S3-b-R1-8.
 - Commits: the two `test(...)` commits carry the implementation with the tests, so the history cannot show the tests red first; the mutations above show the new tests can fail.
+
+## Dispatch b, round 2
+
+Fix commits `70d3259f29` to `0e9254eb14`; status in `eefeaa4e37`. Reviewed on 2026-10-15 at `4ec1b78c80`, after `main` was merged in.
+
+### Orchestrator rulings for round 2
+
+5. S3-b-R1-6 is not applicable. The ORM sends no `signal` with any query, so an include has no row signal to pass on, and adding one is a public API change. Closed.
+6. S3-b-R1-3 was fixed as option (a): a SQLite value a column's codec cannot read is refused by a flat read and by an include alike. The implementer chose it; the handover accepts it.
+
+### The round 1 findings
+
+- S3-b-R1-1: fixed. `fromWire` reads `postgres`, `postgres_verbose`, `sql_standard` and `iso_8601` text, with unit tests per style (`session-output-styles.test.ts`), five kit cases under each non-default style, and the two `notYetCanonical` marks and the deferred line gone. A probe against PGlite stored 33 intervals once (signs mixed and single, zero, fractions, a microsecond, 178 million years) and read each under all four styles: all 132 reads equal the `iso_8601` read. The probe must store first: under `sql_standard` PostgreSQL also parses a leading sign as applying to every field, so `'-1 mon 1 day'::interval` is a different value in that session.
+- S3-b-R1-2: fixed. `fromWire` reads the escape format; all 256 byte values round-trip through `bytea_output = 'escape'` in PGlite. Kit cases cover it.
+- S3-b-R1-3: fixed as ruling 6 records. The blob projection is `json_array(hex(x))` only when `typeof(x) = 'blob'`, so text in a BLOB column stays text and is refused, as is a number. `sqlite-mistyped-column-include.test.ts` asserts each refusal flat and through an include. See S3-b-R2-2 for dispatch g.
+- S3-b-R1-4: fixed. The test pins 24 Promises per included row as well as linear growth.
+- S3-b-R1-5: fixed. The kit compares the projection with the row exactly unless a case gives `projectionEquality`; only the Temporal and `Date` cases do. The new harness test fails with a projection that changes case.
+- S3-b-R1-6: closed by ruling 5.
+- S3-b-R1-7: fixed. The orphaned comment is gone.
+- S3-b-R1-8: fixed. The refusal names the multi-dimensional array, and an integration test pins `max` of `text[]` as an array. The `min`/`max` change is in the handover's list for dispatch g.
+- S3-b-R1-9: open with the orchestrator. The handover lists the `emptyResultWire` rename for dispatch g; plan row g does not name it yet.
+- S3-b-R1-10: fixed. The SQLite kit reads the projection when the driver cannot read the row, and a harness test proves a wrong projection still fails; the deferred line is added.
+
+### S3-b-R2-1 (must-fix): three include tests still expect the error the old JSON reader gave
+
+- Where: `test/integration/test/sql-orm-client/integer-representation.test.ts` ("reading a stored value past the safe range through an include raises RUNTIME.DECODE_FAILED", "refuses a bare sum past the safe range through the include path too") and `integer-representation-sqlite.test.ts` (the first, for SQLite). Each fails in the `packaging` and `integration` projects: 6 failures.
+- What is wrong: since dispatch b an include is read with `fromWire`, so the cause is now `pg/int8number@1 value must be an integer within the safe integer range, got 9007199254740992` with `received: "9007199254740992"`, where the tests expect `... JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991` and the quoted JSON as `received`. The refusal and its code are unchanged; only the text and `meta.received` differ. Neither side of the merge touched these files, so the branch has been red here since round 1, whose include filter matched only file names containing include, relation or aggregate.
+- Change: update the three expected error shapes to the `fromWire` refusal, asserting the whole error as now. In later rounds run every file in `test/integration/test/sql-orm-client/`.
+
+### S3-b-R2-2 (low, for the orchestrator): dispatch g's list misses the BLOB refusals
+
+- Where: "Carried forward" in `slices/3/handover.md`.
+- What is wrong: it names SQLite REAL and INTEGER columns holding text. Under ruling 6 a flat read of a `sqlite/blob@1` column holding text or a number now throws too; before dispatch b a number passed through and text was returned as text.
+- Change: add BLOB columns holding text or a number to dispatch g's upgrade instruction.
+
+### Checks run for dispatch b round 2
+
+Shared with the merge review below.
+
+## The merge of `main`, commit `4ec1b78c80`
+
+Merge base `780a8208d7`; `main` at `94fc045c62`. 44 files needed a resolution.
+
+### What was checked
+
+- For each of the 44 files, `main`'s changes (`780a8208d7..94fc045c62`) were compared line by line with the merge's changes to the branch (`581bce47fd..4ec1b78c80`), and the branch's changes (`780a8208d7..581bce47fd`) with the merge's changes to `main` (`94fc045c62..4ec1b78c80`). In 30 files both sets reappear unchanged. In the rest, the only differences are `main`'s new code moved to the four codec methods, and the cases below.
+- `enum-members.ts` (new on `main`): `encodeJson` becomes `dataType.toContract(toDataTypeValue(v))` and `decodeJson` becomes `readContractValue(codec, stored, undefined)`, the strict read the branch already uses for enum members in `enum-block-members.ts`. `enum-block-members.ts` keeps `main`'s diagnostics and duplicate check with the branch's stored form. The test fixtures that build codecs by hand use `dataTypeValueFor`; their `toStored` returns `String(v)` where it returned `v`, which changes nothing because every member there is a string.
+- `column-defaults.ts` (moved out of `build-contract.ts` on `main`): `encodeViaCodec` is the branch's body exactly: `toDataTypeValue`, `fromDataTypeValue` as the check, `toContract`.
+- `contract-types.ts`: `ColumnSpecCodecOutput` infers from `fromWire`. Mutation: with `decode` put back, `test/integration` typecheck fails in `define-contract-parity.test-d.ts`, so the parity test guards it.
+- `collection-dispatch.ts`: `main`'s diff applies exactly; the include cell read stays the async `fromWire` path.
+- `postgres-type-map.test.ts`: `main` deleted it with `postgres-type-map.ts` (TML-3582 moved infer to the data types). The branch's only change to it was `encode`/`decode` renamed, so no slice 3 coverage is lost.
+- `sql-expression.ts`: `main`'s frozen registration with the branch's required `read`. See S3-merge-R1-1.
+- `data-type-default.ts`: `main`'s message and span split with the branch's `refused-by-column` name.
+- `default-fidelity.integration.test.ts`: `columnCodec` returns the codec only; the branch never used the `typeParams` it returned, and the codec is still built with them.
+- `deferred.md`: the line asking to reword the `inferred` mark is dropped. `main` did that rewording (`framework-authoring.ts`, codec guide "Declaring a data type"), so the drop is right.
+- No code `main` added calls `encode`, `decode`, `encodeJson`, `decodeJson`, `emptyResultJson`, `canonicalFormOf` or `readReportedValue` (diff grep over `packages/**/src`).
+
+### S3-merge-R1-1 (low, for the orchestrator): `sql/expression`'s reader reads text that is not canonical
+
+- Where: `sqlExpressionDataType` in `packages/2-sql/1-core/contract/src/sql-expression.ts`.
+- What is wrong: ADR 268 (from `main`) makes a `sql/expression` value canonical text (`canonicalizeTaggedLiteralBody`), and ADR 254 says `fromContract` refuses any spelling other than the stored one. The reader is `readJsonString`, so `fromContract('  now()\n', {})` is accepted. Today no stored contract value reaches this reader: `sql` defaults are function defaults, and the two deprecated forms ADR 268 keeps (`.defaultSql()`, `.default({ kind: 'function', expression })`) store text uncanonicalized as function defaults.
+- Change: decide before dispatch e whether the reader refuses text whose `canonicalSqlText` differs, naming the canonical text, or record why `sql/expression` is exempt.
+
+### Checks run for dispatch b round 2 and the merge
+
+- Root `typecheck:agent`: pass. `lint:agent`: pass. `lint:deps`: pass. `lint:framework-vocabulary`: 253 at threshold 253. `pnpm build`: pass. `pnpm fixtures:check`: pass, tree clean (`fixtures:check:agent` hits its 300-second limit on this machine; the plain script finished).
+- Package tests of 24 packages (framework-components, contract-authoring, language-server, the three Mongo authoring packages, mongo-runtime, sql-contract, sql-contract-psl, sql-contract-ts, sql-contract-emitter, sql-relational-core, sql-runtime, family-sql, pgvector, arktype-json, postgis, sql-orm-client, both targets, both adapters, both codec test kits with their integration files): all pass. Two timing tests failed under load and passed when run again alone: `server.membership-races.test.ts` (500 ms limit) and `render-typescript.roundtrip.test.ts`.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1`, `test/authoring` and `test/date-time-defaults`: 52 files, 1136 tests, pass, `git status` clean. All of `test/sql-orm-client/`: 132 files, 916 pass, 6 fail (S3-b-R2-1). Five other include and aggregate files (`prepared-facades`, `group_by_having`, `issues-11974`, the TML-1664 enum read and `extended-where`): pass.
+- Probes against PGlite: the interval and bytea reads in S3-b-R1-1 and S3-b-R1-2.
+- Must-not-change: the committed contracts, migrations, snapshots and golden manifest that differ from `main` are the same set the branch changed before the merge, and the golden re-record leaves no diff.
