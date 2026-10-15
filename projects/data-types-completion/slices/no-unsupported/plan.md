@@ -1,6 +1,6 @@
 # Slice plan: `contract infer` reads column types from data types, and `Unsupported(...)` leaves Prisma 8
 
-Cut from slice 4 (TML-3387) on 2026-10-15 at Will's request, and built from `main` before the rest of slice 3. It does not depend on slice 3's value work.
+Ticket TML-3582, branch `tml-3582-infer-reads-data-types`. Cut from slice 4 (TML-3387) on 2026-10-15 at Will's request, and built from `main` before the rest of slice 3. It does not depend on slice 3's value work.
 
 ## Outcome
 
