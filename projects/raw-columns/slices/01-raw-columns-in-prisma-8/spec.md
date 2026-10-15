@@ -19,12 +19,12 @@ model Category {
 
 ### The data type
 
-`sql/raw` is defined once, in `packages/2-sql/1-core/contract/src/sql-raw.ts` beside `sql-expression.ts`. Its parameters are `{ sql: string }`. It declares no texts and no `claimsKind`, so it claims no reported type: introspection and `contract infer` never produce it. Its `render` returns `params.sql`.
+`sql/raw` is defined once, in `packages/2-sql/1-core/contract/src/sql-raw.ts` beside `sql-expression.ts`. Its parameters are `{ sql: string }`, limited to the forms of one type name with no schema (ADR 273). It declares `nameIsCatalogText`, no texts and no `claimsKind`, so it claims no reported type: introspection and `contract infer` never produce it. Its `render` returns `params.sql`.
 
 Two rules in `sql-data-type.ts` change, for every data type, not for `sql/raw` by id:
 
-- A data type may declare `render` without `claimsKind` when it declares no texts (`checkKindClaim`). `fromReported` stays tied to `claimsKind`.
-- `renderSqlCatalogText` returns `render(params)` for a data type that renders and claims no kind.
+- A data type may declare `render` without `claimsKind` only when it declares `nameIsCatalogText`, which refuses texts and `claimsKind` (`checkKindClaim`). `fromReported` stays tied to `claimsKind`.
+- `renderSqlCatalogText` returns `render(params)` for a data type that declares `nameIsCatalogText`, and `sqlBaseName` refuses one: it has no base name.
 
 Postgres and SQLite each register it with their data types (`postgresDataTypes`, and SQLite's equivalent).
 
@@ -32,7 +32,7 @@ Postgres and SQLite each register it with their data types (`postgresDataTypes`,
 
 `sql/raw@1` is a codec template in `packages/2-sql/4-lanes/relational-core/src/ast/sql-codecs.ts`, adapted by each target as the `sql/char@1` template is. It encodes and decodes by identity, is typed `unknown` for input and output, and declares no traits. `encodeJson` and `decodeJson` pass JSON through unchanged, so a raw field works inside an include, where Postgres projects it as the text its output function prints. Literal values are the data type's rule, not the codec's: the data type's canonical form refuses every literal, so a raw column has no literal default; its enum refusal keeps it out of enums. It is listed in Postgres's and SQLite's codec lists and in `codecDescriptorMap`, so the emitted `CodecTypes` give `unknown`.
 
-On Postgres, `sql/raw` joins the data types whose parameters are sent without a cast (`POSTGRES_INFERRABLE_DATA_TYPES` in the SQL renderer), so a value reaches the column's own input function. An explicit cast such as `$1::character varying(10)` would silently truncate.
+On Postgres, a parameter of a data type that declares `nameIsCatalogText` is sent without a cast in every position, a list included, so a value reaches the column's own input function. An explicit cast such as `$1::character varying(10)` would silently truncate.
 
 ### Schemas and the TypeScript builder
 
@@ -42,7 +42,7 @@ On Postgres, `sql/raw` joins the data types whose parameters are sent without a 
 
 DDL already renders a column's type through its data type, so a raw column's DDL is its `sql` text. Verify compares a raw column's text with the type the database reports (the catalog's text, with no schema for a base type, as introspection's reported type gives it). It must not compare through the alias table that rewrites `integer` to `int4`: `Raw("integer")` verifies and `Raw("int4")` does not, as ADR 273 says.
 
-A change from one raw text to another plans `ALTER COLUMN ... TYPE`. The check that runs after it takes the expected text from the column's data type instead of reading the new text back through `resolveWrittenSqlTypes`, which no data type reads. Without a cast between the two types, Postgres refuses the alter; `--convert` is the answer, as for any lossy type change.
+A change from one raw text to another plans `ALTER COLUMN ... TYPE`. The planner writes the call with `raw: true`, and `alterTypeCheckText` checks a type so marked as written, after the raw text check, instead of reading it back through `resolveWrittenSqlTypes`, which no data type reads; any other type is still read through the data types, so a misspelt type stays an error. Without a cast between the two types, Postgres refuses the alter; `--convert` is the answer, as for any lossy type change.
 
 ### `contract print`
 
