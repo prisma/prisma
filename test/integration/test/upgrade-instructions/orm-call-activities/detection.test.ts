@@ -72,7 +72,7 @@ describe('app cached-orm-reads-key-on-the-call detection', () => {
       detects(
         'app',
         'cached-orm-reads-key-on-the-call',
-        "import { deriveKeyFromContentHash } from '@prisma/orm-extension-middleware-cache';",
+        'const key = await deriveKeyFromContentHash(exec, ctx);',
       ),
     ).toBe(false);
   });
