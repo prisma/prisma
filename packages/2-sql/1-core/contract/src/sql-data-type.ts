@@ -47,6 +47,8 @@ export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
   readonly texts?: readonly SqlTypeText[];
   /** The kind of reported type this data type claims, instead of any text. */
   readonly claimsKind?: string;
+  /** The id of the type a column of this type is stored as, with the same parameters. A type stored as another declares no texts. */
+  readonly storedAs?: DataTypeId;
   readonly normalize?: (params: Params) => Params;
   readonly render?: (params: Params) => string;
   readonly fromReported?: (reported: ReportedSqlType) => Params;
@@ -55,6 +57,7 @@ export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
 export interface SqlDataTypeFacts<Params extends SqlTypeParams = SqlTypeParams> {
   readonly texts: readonly SqlTypeText[];
   readonly claimsKind: string | undefined;
+  readonly storedAs: DataTypeId | undefined;
   readonly normalize: (params: Params) => Params;
   readonly render: ((params: Params) => string) | undefined;
   readonly fromReported: ((reported: ReportedSqlType) => Params) | undefined;
@@ -171,6 +174,22 @@ function checkKindClaim<Params extends SqlTypeParams>(
   }
 }
 
+function checkStoredAs<Params extends SqlTypeParams>(
+  id: DataTypeId,
+  spec: SqlDataTypeSpec<Params>,
+): void {
+  if (spec.storedAs === undefined) return;
+  if (spec.texts !== undefined) {
+    refuseDeclaration(
+      id,
+      'a type stored as another declares no texts; its name is the name of the type it is stored as.',
+    );
+  }
+  if (spec.claimsKind !== undefined) {
+    refuseDeclaration(id, 'a type stored as another claims no kind.');
+  }
+}
+
 const identity = <Params>(params: Params): Params => params;
 
 function acceptsParams<Params extends SqlTypeParams>(
@@ -216,12 +235,14 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
   for (const text of texts) checkText(declared.id, text, paramKeys);
   checkMarks(declared.id, texts);
   checkKindClaim(declared.id, spec);
+  checkStoredAs(declared.id, spec);
   const type: SqlDataType<Params> = {
     ...declared,
     ...ifDefined('params', spec.params),
     sql: {
       texts,
       claimsKind: spec.claimsKind,
+      storedAs: spec.storedAs,
       normalize: spec.normalize ?? identity,
       render: spec.render,
       fromReported: spec.fromReported,
@@ -397,6 +418,28 @@ export function sqlDataTypeOfCodec(codecId: string, lookups: SqlTypeLookups): Sq
     throw new InternalError(`Data type ${type.id} is not a SQL data type, so it has no type name.`);
   }
   return type;
+}
+
+/** The type a column of `type` is stored as, whose name DDL writes and the database reports: `type` itself unless it names another. */
+export function sqlStorageType(
+  type: SqlDataType,
+  lookup: Pick<DataTypeLookup, 'get'>,
+): SqlDataType {
+  if (type.sql.storedAs === undefined) return type;
+  const storage = lookup.get(type.sql.storedAs);
+  if (storage === undefined || !isSqlDataType(storage)) {
+    throw contractError(
+      'CONTRACT.DATA_TYPE_UNREGISTERED',
+      `Data type "${type.id}" is stored as "${type.sql.storedAs}", which no component registers as a SQL data type.`,
+      { meta: { dataType: type.sql.storedAs, storedBy: type.id } },
+    );
+  }
+  return storage;
+}
+
+/** The type a column of the codec `codecId` is stored as: {@link sqlStorageType} of the data type it represents. */
+export function sqlStorageTypeOfCodec(codecId: string, lookups: SqlTypeLookups): SqlDataType {
+  return sqlStorageType(sqlDataTypeOfCodec(codecId, lookups), lookups.dataTypeLookup);
 }
 
 /** {@link unquotedSqlBaseName} of the data type the codec `codecId` represents. */

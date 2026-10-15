@@ -1,4 +1,4 @@
-import { type DataType, dataType } from '@internal/framework-components/codec';
+import { type DataType, dataType, dataTypeId } from '@internal/framework-components/codec';
 import { sqlDataType } from '@internal/sql-contract/data-type';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
@@ -111,6 +111,38 @@ describe('enforceSqlDataTypeInvariants', () => {
           code: 'CONTRACT.DATA_TYPE_CASTS_FROM_SQL_EXPRESSION',
           details: { dataType: 'ext/geometry', contributedBy: 'ext' },
         }),
+      );
+    });
+  });
+
+  describe('stored as', () => {
+    it('passes a type stored as a registered SQL data type', () => {
+      const stored = sqlDataType('ext/stamp', { read: (json) => json, storedAs: int4.id });
+      expect(() => enforceSqlDataTypeInvariants(declaredWith([stored]), [])).not.toThrow();
+    });
+
+    it('refuses a type stored as a data type no component registers, naming the contributor and the id', () => {
+      const stored = sqlDataType('ext/stamp', {
+        read: (json) => json,
+        storedAs: dataTypeId('ext/gone'),
+      });
+      expect(() => enforceSqlDataTypeInvariants(declaredWith([stored]), [])).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
+          message:
+            'Data type "ext/stamp" is stored as data type "ext/gone", which no component registers. Contributed by "ext".',
+          details: { dataType: 'ext/gone', contributedBy: 'ext' },
+        }),
+      );
+    });
+
+    it('refuses a type stored as a data type that is not a SQL data type', () => {
+      const stored = sqlDataType('ext/stamp', {
+        read: (json) => json,
+        storedAs: SQL_EXPRESSION_DATA_TYPE_ID,
+      });
+      expect(() => enforceSqlDataTypeInvariants(declaredWith([stored]), [])).toThrow(
+        expect.objectContaining({ code: 'CONTRACT.DATA_TYPE_UNREGISTERED' }),
       );
     });
   });

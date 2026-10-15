@@ -20,6 +20,8 @@ export {
   sqlBaseName,
   sqlDataType,
   sqlDataTypeOfCodec,
+  sqlStorageType,
+  sqlStorageTypeOfCodec,
   unquotedSqlBaseName,
   unquotedSqlBaseNameOfCodec,
   validateSqlTypeParams,

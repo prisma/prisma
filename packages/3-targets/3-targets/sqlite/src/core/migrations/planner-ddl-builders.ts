@@ -12,7 +12,7 @@ import {
   dataTypeParams,
   renderSqlTypeName,
   type SqlTypeLookups,
-  sqlDataTypeOfCodec,
+  sqlStorageTypeOfCodec,
 } from '@internal/sql-contract/data-type';
 import type {
   StorageColumn,
@@ -26,8 +26,8 @@ import { sqliteError } from '../errors';
 import { escapeLiteral, quoteIdentifier } from '../sql-utils';
 
 /**
- * Renders the column's DDL type token (e.g. `"INTEGER"`, `"TEXT"`): the name the data type of its
- * codec is written with, in upper case. Resolves `typeRef` against `storageTypes`.
+ * Renders the column's DDL type token (e.g. `"INTEGER"`, `"TEXT"`): the name the type its codec's
+ * data type is stored as is written with, in upper case. Resolves `typeRef` against `storageTypes`.
  */
 export function buildColumnTypeSql(
   column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
@@ -35,8 +35,8 @@ export function buildColumnTypeSql(
   storageTypes: Record<string, StorageTypeInstance> = {},
 ): string {
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
-  const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
-  return renderSqlTypeName(dataType, dataTypeParams(dataType, resolved.typeParams)).toUpperCase();
+  const storage = sqlStorageTypeOfCodec(resolved.codecId, types);
+  return renderSqlTypeName(storage, dataTypeParams(storage, resolved.typeParams)).toUpperCase();
 }
 
 const DIGIT_TEXT = /^-?\d+$/;

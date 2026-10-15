@@ -10,6 +10,7 @@ import {
   type SqlDataType,
   type SqlTypeLookups,
   sqlDataTypeOfCodec,
+  sqlStorageType,
   unquotedSqlBaseName,
 } from '@internal/sql-contract/data-type';
 import {
@@ -78,9 +79,10 @@ function convertColumn(
   // `storage.types` entry's codec and parameters.
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
   const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
+  const storage = sqlStorageType(dataType, types.dataTypeLookup);
   const codec = types.codecLookup.descriptorFor(resolved.codecId);
-  const baseTypeName = unquotedSqlBaseName(dataType, dataTypeParams(dataType, resolved.typeParams));
-  const baseNativeType = schemaTypeText(dataType, resolved.typeParams);
+  const baseTypeName = unquotedSqlBaseName(storage, dataTypeParams(storage, resolved.typeParams));
+  const baseNativeType = schemaTypeText(storage, resolved.typeParams);
   // `many: true` columns keep `nativeType` as the bare element type (matching
   // how the introspected/"actual" side reports it — see the postgres control
   // adapter's own `many`-stripping normalization) and carry the array-ness in
@@ -133,7 +135,7 @@ function convertColumn(
 }
 
 /**
- * The column's type as the database reports it: the written name with its normal-form parameters (`character(1)` for a bare `character`), or for a
+ * The column's type as the database reports it, from the type it is stored as: the written name with its normal-form parameters (`character(1)` for a bare `character`), or for a
  * type that claims a kind (an enum), its type name as stored.
  */
 function schemaTypeText(
