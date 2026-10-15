@@ -52,7 +52,7 @@ The runtime defines two kinds of activity:
 - **`statement`**: one statement sent to the database. `query()` sends it for its rows and `execute()` sends it for its statistics, such as the number of affected rows; the activity's `returns` field is `'rows'` or `'stats'` accordingly. Both have the same lifecycle. A statement is a leaf.
 - **`transaction`**: started by `transaction()`, ended by `commit()` or `rollback()`.
 
-Clients add their own kinds. A client kind contains a hyphen, such as `orm-call`, so it is never `statement` or `transaction`. `Activity` is `StatementActivity | TransactionActivity | ClientActivity` in every program, so a middleware that knows no client kind still receives client activities, and a check such as `activity.kind !== 'statement'` leaves both a transaction and a client activity. A client may register a kind's result type by module augmentation of `ClientActivityRegistry` through the published entry `@prisma/orm-framework/components/runtime`. The registry types the handle side only, `intercepted.result` and `end({ result })`; in middleware hooks a client activity's result is `unknown` even after narrowing on its kind, because the hook types must accept unregistered kinds. The runtime rejects a kind without a hyphen at run time too. The SQL ORM is to start one `orm-call` activity for every terminal method. The framework names no client vocabulary.
+Clients add their own kinds. A client kind contains a hyphen, such as `orm-call`, so it is never `statement` or `transaction`. Kinds the runtime defines, in every family, never contain a hyphen. `Activity` is `StatementActivity | TransactionActivity | ClientActivity` in every program, so a middleware that knows no client kind still receives client activities, and a check such as `activity.kind !== 'statement'` leaves both a transaction and a client activity. A client may register a kind's result type by module augmentation of `ClientActivityRegistry` through the published entry `@prisma/orm-framework/components/runtime`. The registry types the handle side only, `intercepted.result` and `end({ result })`; in middleware hooks a client activity's result is `unknown` even after narrowing on its kind, because the hook types must accept unregistered kinds. The runtime rejects a kind without a hyphen at run time too. The SQL ORM is to start one `orm-call` activity for every terminal method. The framework names no client vocabulary.
 
 Middleware has two kinds of hook: **lifecycle events**, which observe, and **interceptors**, which can change or stop a statement while the runtime executes it.
 
@@ -114,6 +114,8 @@ The statement interceptors receive the plan at their stage: `beforeEncode(draft,
 
 `query()` and `execute()` start a statement activity for the call's duration. `transaction()` starts a transaction activity that `commit()` and `rollback()` end. A statement sent on a transaction's connection while the transaction is open is a child of that transaction, because the database runs it inside the transaction's session.
 
+A client is code that calls the runtime on the user's behalf, such as the ORM or an extension. `postgres()`, `sqlite()` and `supabase()` are facades: they build the runtime and the ORM, and start no client activities themselves.
+
 `startActivityOn(queryable, activity)` starts an activity for an act the runtime would not otherwise see. The runtime's queryables carry the member it calls under a symbol, so neither the public runtime types nor the user-facing ones show it. `startActivityOn`, `planContentHashOn` and the `activitySource` symbol are public exports of the SQL runtime, so a third-party client can start activities too:
 
 ```ts
@@ -123,7 +125,7 @@ startActivityOn<K extends ClientActivityKind>(queryable: RuntimeScope, activity:
   readonly annotations?: Annotations;
 }): Promise<ActivityHandle<K>>;
 
-interface ActivityHandle<K> extends RuntimeQueryable, ActivitySource {
+interface ActivityHandle<K> extends RuntimeQueryable, ActivitySource, ActivitySourceTarget {
   readonly activity: ClientActivity<K>;
   readonly intercepted: { readonly result: ClientActivityResult<K> } | undefined;
   readonly transaction?: () => Promise<RuntimeTransaction>;
@@ -131,7 +133,7 @@ interface ActivityHandle<K> extends RuntimeQueryable, ActivitySource {
 }
 ```
 
-Statements sent through the handle are the activity's children, and `handle.transaction()` starts a transaction activity beneath it. A handle opened under a transaction has no `transaction`, so transactions do not nest. `intercepted` is set when an `intercept.onActivity` handler supplied a result; the client then returns it without running anything. `end()` hands the runtime the value the client returns to its caller, which the runtime passes to middleware without reading it.
+Statements sent through the handle are the activity's children, and `handle.transaction()` starts a transaction activity beneath it. A handle carries the `activitySource` member too, so `startActivityOn(handle, activity)` nests an activity beneath it. A handle opened under a transaction has no `transaction`, so transactions do not nest. `intercepted` is set when an `intercept.onActivity` handler supplied a result; the client then returns it without running anything. `end()` hands the runtime the value the client returns to its caller, which the runtime passes to middleware without reading it.
 
 Ending an activity while one of its children is still open ends it `failed`, finalizes it, and rejects with a runtime error naming how many children are open. A transaction is the exception: the database ends it, so a child still open then is finalized when it ends (see "When an activity is finalized"). Starting a statement or an activity beneath an activity that no longer accepts children is rejected at entry with `RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN`. A client activity stops accepting children when it ends; a transaction, when its `commit()` or `rollback()` is called, before it ends, and with it every client activity inside it.
 
@@ -148,7 +150,7 @@ await call.end({ outcome: 'succeeded', result: rows });
 return rows;
 ```
 
-The user-facing types (`tx`, the client facades) and the public `Runtime`, `RuntimeConnection` and `RuntimeTransaction` types omit `startActivity` and `planContentHash`, as `tx` has no `transaction` method today. The ORM reaches activities the same way everything else does, with `startActivityOn` and `planContentHashOn` on the queryable it holds: the runtime's queryables carry the `activitySource` member, the client facades give the ORM runtime objects they build the same member, and a queryable without it, such as a test stub, starts no activity.
+The user-facing types (`tx`, the facades) and the public `Runtime`, `RuntimeConnection` and `RuntimeTransaction` types omit `startActivity` and `planContentHash`, as `tx` has no `transaction` method today. The ORM reaches activities the same way everything else does, with `startActivityOn` and `planContentHashOn` on the queryable it holds: the runtime's queryables carry the `activitySource` member, the facades give the ORM runtime objects they build the same member, and a queryable without it, such as a test stub, starts no activity.
 
 ### Annotations
 
@@ -156,7 +158,7 @@ An annotation lives on the activity the user annotated. An annotation on an ORM 
 
 ### Content hash
 
-A statement and a client activity each have a content hash: an opaque digest of what they do, used to derive a cache key when the annotation names none, and to name spans. A transaction has none. For a statement the runtime computes it from the contract's storage hash, the statement text and its parameters, as `ctx.contentHash` does today. For a client activity, the client supplies it. The SQL runtime's `planContentHash(plan)` gives a client the digest of the statement a plan would send: it runs `beforeCompile` and lowers and encodes the plan, without `beforeEncode`, whose lints would fire twice and whose parameter changes need not be deterministic. It equals the digest `ctx.contentHash(exec)` returns for the statement's execution plan only when three things hold: `beforeCompile` gives the same result for the plan in both places, no `beforeEncode` hook changes the parameters, and the codecs encode deterministically. `planContentHash` compiles the plan with the scope and parent of the queryable it is called on and with fresh state (a hash taken on the runtime before the activity starts has no parent), while the statement compiles beneath the handle with the state its `activityStarted` hooks wrote; a `beforeCompile` that reads `ctx.parent` or state, or is not deterministic, gives a different digest, as does a middleware that encrypts parameters with a fresh nonce. A cache keys on the client's content hash and must not rely on the two being equal.
+A statement and a client activity each have a content hash: an opaque digest of what they do, used to derive a cache key when the annotation names none, and to name spans. A transaction has none. For a statement the runtime computes it from the contract's storage hash, the statement text and its parameters, as `ctx.contentHash` does today. For a client activity, the client supplies it. The SQL runtime's `planContentHashOn(queryable, plan)` gives a client the digest of the statement a plan would send, through the `planContentHash` member of the queryable's activity source: it runs `beforeCompile` and lowers and encodes the plan, without `beforeEncode`, whose lints would fire twice and whose parameter changes need not be deterministic. It equals the digest `ctx.contentHash(exec)` returns for the statement's execution plan only when three things hold: `beforeCompile` gives the same result for the plan in both places, no `beforeEncode` hook changes the parameters, and the codecs encode deterministically. `planContentHash` compiles the plan with the scope and parent of the queryable it is called on and with fresh state (a hash taken on the runtime before the activity starts has no parent), while the statement compiles beneath the handle with the state its `activityStarted` hooks wrote; a `beforeCompile` that reads `ctx.parent` or state, or is not deterministic, gives a different digest, as does a middleware that encrypts parameters with a fresh nonce. A cache keys on the client's content hash and must not rely on the two being equal.
 
 ### The middleware context
 
@@ -272,7 +274,7 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
 - Nested transactions, when built, are a transaction activity under a transaction activity, and finalization waits for the outermost.
 - Mongo has no transactions; every Mongo activity is finalized right after it ends.
 - The direct single-client Postgres driver runs a runtime-scope statement sent while a transaction is open inside that transaction, and the runtime cannot see it. That limit is unchanged.
-- Touches: `RuntimeMiddleware` and `RuntimeMiddlewareContext` in `framework-components`; the runners in `run-with-middleware.ts`; the SQL runtime's transaction bookkeeping and queryables; the Mongo runtime; the Supabase role session; the Postgres, SQLite and Supabase client facades; `withMutationScope` and every terminal method in `sql-orm-client`; the ORM's structural `RuntimeQueryable` type, which may carry the `activitySource` member; the cache, budgets and lints middleware.
+- Touches: `RuntimeMiddleware` and `RuntimeMiddlewareContext` in `framework-components`; the runners in `run-with-middleware.ts`; the SQL runtime's transaction bookkeeping and queryables; the Mongo runtime; the Supabase role session; the Postgres, SQLite and Supabase facades; `withMutationScope` and every terminal method in `sql-orm-client`; the ORM's structural `RuntimeQueryable` type, which may carry the `activitySource` member; the cache, budgets and lints middleware.
 
 ## Alternatives considered
 
@@ -290,4 +292,7 @@ Rewriting the query tree before it becomes SQL is the standard home for soft del
 - **Name the leaf activity `execution` or `query`.** "Execution" already means running any plan, and "query" already means both a statement in general and the `query()` method. Rejected.
 - **Two finalization outcomes, as in Rails.** A rejected `COMMIT` and a silently rolled-back `COMMIT` fire nothing, and a cache holds stale rows until expiry. Rejected.
 - **`startActivity` on the user-facing scope.** Users would see a client-only method on `tx`. Rejected.
+- **`startActivity` and `planContentHash` as methods on the public `Runtime` types.** Users of `db.runtime()` would see two client-only methods, and every object that implements the types, including test stubs, would have to provide them. Rejected for members under a symbol, reached through `startActivityOn` and `planContentHashOn`, which a queryable without the member fails clearly.
+- **An explicit field marks a client activity, such as `origin: 'client'`, or a reserved prefix.** A field is one more thing to check before narrowing on `kind`, and a prefix such as `client:` is a rule a reader learns only from the docs. A hyphen keeps the kind a plain readable name, such as `orm-call`, and the type `` `${string}-${string}` `` checks it. Rejected for the hyphen; the cost is that no family may add a runtime kind with a hyphen.
+- **A generic parameter for client result types on the runtime or the middleware.** Every runtime, middleware and helper type would carry it, and middleware written once for every client could not name it. Rejected for module augmentation of `ClientActivityRegistry`, which a client does once and every program sees.
 - **`AsyncLocalStorage` to find the parent.** Rejected by ADR 160 and ADR 220; still rejected.

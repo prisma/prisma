@@ -41,7 +41,7 @@ changes:
         - '\.adopt\s*\('
   - id: orm-runtime-objects-carry-an-activity-source
     summary: |
-      The ORM reaches activities only through `startActivityOn` on the queryable it holds, and a queryable without an `activitySource` member starts none. `db.runtime()` passed straight to `orm()` carries one. A client facade that builds its own ORM runtime object, such as one that looks up its runtime on every call, adds `[activitySource]: delegatingActivitySource(() => runtime)` from `@prisma/orm-family-sql/runtime`, for the runtime and for the context of `db.transaction(fn)`. Where the facade's statements run through sessions of its own, such as role sessions, give an activity source whose statements go the same way, or none.
+      The ORM reaches activities only through `startActivityOn` on the queryable it holds, and a queryable without an `activitySource` member starts none. `db.runtime()` passed straight to `orm()` carries one. A facade, such as `postgres()`, that builds its own ORM runtime object, such as one that looks up its runtime on every call, adds `[activitySource]: delegatingActivitySource(() => runtime)` from `@prisma/orm-family-sql/runtime`, for the runtime and for the context of `db.transaction(fn)`. Where the facade's statements run through sessions of its own, such as role sessions, give an activity source whose statements go the same way, or none.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -86,7 +86,7 @@ A middleware that sees a kind it does not know should ignore it rather than fail
 
 An extension can start an activity for an act of its own, such as a report that sends several statements, so that middleware observe it, finalize it and can serve it from a cache.
 
-**Dependencies.** The types and the registry are in `@prisma/orm-framework/components/runtime`; `startActivityOn` and `planContentHashOn` are in `@prisma/orm-family-sql/runtime`. An application or extension that uses `postgres()` already depends on `@prisma/orm-postgres`, which re-exports both as `@prisma/orm-postgres/components/runtime` and `@prisma/orm-postgres/family-runtime`. Module augmentation works through either entry.
+**Dependencies.** `startActivityOn`, `planContentHashOn` and the types their signatures name, such as `StartActivity`, `ClientActivity`, `ClientActivityKind` and `ActivityInterceptResult`, are in `@prisma/orm-family-sql/runtime`. The registry, `ClientActivityRegistry`, is in `@prisma/orm-framework/components/runtime`, which also has the types. An application or extension that uses `postgres()` already depends on `@prisma/orm-postgres`, which re-exports both as `@prisma/orm-postgres/components/runtime` and `@prisma/orm-postgres/family-runtime`. Module augmentation works through either entry.
 
 **Register the kind.** A client kind contains a hyphen; a kind without one is rejected with `RUNTIME.ACTIVITY_KIND_RESERVED`. Registering the result type is optional. The file that augments the entry must also import from it, or TypeScript reports that the module cannot be found:
 
@@ -208,6 +208,6 @@ const orm = ormBuilder({
 });
 ```
 
-Do the same for the ORM object inside `db.transaction(fn)`, with `delegatingActivitySource(() => txCtx)`. Do not add plain `startActivity` or `planContentHash` members; the ORM does not read them.
+Do the same for the ORM object inside `db.transaction(fn)`, with `delegatingActivitySource(() => txCtx)`. Do not add plain `startActivity` or `planContentHash` members instead: `findActivitySource` and `startActivityOn` read only the `activitySource` member, so an object with only the plain members starts no activity.
 
 If the facade sends its statements through sessions of its own, such as role-bound sessions, the activity's statements and transaction must go through them too; give an activity source that does so, or none. The plain runtime's source would run the activity's statements without the session.

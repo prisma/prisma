@@ -50,7 +50,7 @@ export interface TransactionActivityOptions<TContext extends ActivityContext> {
 }
 
 /**
- * Starts a transaction activity and runs its `activityStarted` hooks. When one of them throws, the transaction ends `failed`, is finalized `rolled-back`, and the error is rethrown. Rejects at once, running no hook, when `parent` has ended.
+ * Starts a transaction activity and runs its `activityStarted` hooks. When one of them throws, the transaction ends `failed`, is finalized `rolled-back`, and the error is rethrown. Rejects at once, running no hook, when `parent` no longer accepts children.
  */
 export async function startTransactionActivity<TContext extends ActivityContext>(
   options: TransactionActivityOptions<TContext>,
