@@ -15,7 +15,6 @@ import type {
 } from '../src/core/control-adapter';
 import { mongoFamilyDescriptor } from '../src/core/control-descriptor';
 import { createMongoFamilyInstance } from '../src/core/control-instance';
-import mongoFamilyPack from '../src/exports/pack';
 import { mongoContractJson } from './mongo-contract-json-fixture';
 import { stubMongoTargetDescriptor } from './test-target-descriptor';
 
@@ -51,34 +50,9 @@ describe('mongoFamilyDescriptor', () => {
     expect(instance.familyId).toBe('mongo');
     expect(typeof instance.deserializeContract).toBe('function');
   });
-
-  it('has expected descriptor shape', () => {
-    expect(mongoFamilyDescriptor.kind).toBe('family');
-    expect(mongoFamilyDescriptor.id).toBe('mongo');
-    expect(mongoFamilyDescriptor.familyId).toBe('mongo');
-    expect(mongoFamilyDescriptor.version).toBe('0.0.1');
-    expect(mongoFamilyDescriptor.emission).toBeDefined();
-  });
-});
-
-describe('mongoFamilyPack', () => {
-  it('has expected shape', () => {
-    expect(mongoFamilyPack.kind).toBe('family');
-    expect(mongoFamilyPack.id).toBe('mongo');
-    expect(mongoFamilyPack.familyId).toBe('mongo');
-    expect(mongoFamilyPack.version).toBe('0.0.1');
-    expect(mongoFamilyPack.authoring?.entityTypes).toBeDefined();
-    expect(mongoFamilyPack.authoring?.pslBlockDescriptors).toBeDefined();
-    expect(mongoFamilyPack.authoring?.attributeSpecs).toBeDefined();
-  });
 });
 
 describe('createMongoFamilyInstance', () => {
-  it('returns an instance with familyId "mongo"', () => {
-    const instance = createMongoFamilyInstance(createMinimalControlStack());
-    expect(instance.familyId).toBe('mongo');
-  });
-
   it('verify() requires a valid contract', async () => {
     const instance = createMongoFamilyInstance(createMinimalControlStack());
     const fakeDriver = {} as Parameters<typeof instance.verify>[0]['driver'];

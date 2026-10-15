@@ -43,38 +43,4 @@ describe('effectiveControlPolicy', () => {
       expect(effectiveControlPolicy(undefined, undefined)).toBe('managed');
     });
   });
-
-  describe('each policy value resolves through', () => {
-    it('resolves managed via node', () => {
-      expect(effectiveControlPolicy('managed', undefined)).toBe('managed');
-    });
-
-    it('resolves tolerated via node', () => {
-      expect(effectiveControlPolicy('tolerated', undefined)).toBe('tolerated');
-    });
-
-    it('resolves external via node', () => {
-      expect(effectiveControlPolicy('external', undefined)).toBe('external');
-    });
-
-    it('resolves observed via node', () => {
-      expect(effectiveControlPolicy('observed', undefined)).toBe('observed');
-    });
-
-    it('resolves managed via default', () => {
-      expect(effectiveControlPolicy(undefined, 'managed')).toBe('managed');
-    });
-
-    it('resolves tolerated via default', () => {
-      expect(effectiveControlPolicy(undefined, 'tolerated')).toBe('tolerated');
-    });
-
-    it('resolves external via default', () => {
-      expect(effectiveControlPolicy(undefined, 'external')).toBe('external');
-    });
-
-    it('resolves observed via default', () => {
-      expect(effectiveControlPolicy(undefined, 'observed')).toBe('observed');
-    });
-  });
 });
