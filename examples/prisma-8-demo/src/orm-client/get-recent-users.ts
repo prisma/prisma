@@ -1,6 +1,6 @@
 import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import { createOrmClient } from './client';
-import { createdSince, postSummary } from './scopes';
+import { createdSince, postSummary } from './fragments';
 
 /**
  * Users created since a point in time, each with the summaries of their posts from the same period.
@@ -12,13 +12,13 @@ export async function ormClientGetRecentUsers(
   runtime: Runtime,
 ) {
   const db = createOrmClient(runtime);
-  return db.User.apply(createdSince(since))
+  return db.User.with(createdSince(since))
     .select('id', 'email')
     .include('posts', (posts) =>
       posts
-        .apply(createdSince(since))
+        .with(createdSince(since))
         .orderBy((post) => post.createdAt.asc())
-        .apply(postSummary),
+        .with(postSummary),
     )
     .orderBy((user) => user.createdAt.asc())
     .limit(limit)

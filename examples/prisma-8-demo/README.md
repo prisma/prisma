@@ -125,7 +125,7 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientUpsertUser(data, runtime)` — `upsert()` for create-or-update by primary key
 - `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ bypass? })` from `@internal/middleware-cache`
 - `ormClientGetUsersCached(limit, runtime, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
-- `ormClientGetRecentPosts(since, orderBy, direction, limit, runtime)` — **query fragments as scopes**: `createdSince` (`db.orm.scope`, a scope for any model with a `createdAt` field), `orderByField` (a field to order by, named in the request and checked at run time) and `postSummary` (`db.orm.public.Post.scope`, the shared `select` and `include` of a post), from `src/orm-client/fragments.ts`
+- `ormClientGetRecentPosts(since, orderBy, direction, limit, runtime)` — **query fragments**: `createdSince` (`db.orm.fragment`, a scope for any model with a `createdAt` field), `orderByField` (a field to order by, named in the request and checked at run time) and `postSummary` (`db.orm.public.Post.fragment`, the shared `select` and `include` of a post), from `src/orm-client/fragments.ts`
 - `ormClientGetRecentUsers(since, limit, runtime)` — the same `createdSince` on users and on their included posts, which `postSummary` shapes inside the include refinement
 - `ormClientSearchPostsByTitle(query, limit, runtime)` — **full-text search**: `p.title.fullTextMatches(websearchToTsquery(query))` filtered and `p.title.fullTextRank(websearchToTsquery(query)).desc()` ordered, over the GIN index `@@fullTextIndex([title])` declares
 
@@ -433,7 +433,7 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 - `src/prisma/db.ts` - One-liner Postgres client + query roots (emit workflow)
 - `src/prisma-no-emit/context.ts` - Env-free execution stack/context + query roots (no-emit workflow)
 - `src/prisma-no-emit/runtime.ts` - Runtime factory (no-emit workflow)
-- `src/orm-client/client.ts` - ORM client + custom collection scopes
+- `src/orm-client/client.ts` - ORM client, registering the custom collection classes in `collections.ts`
 - `src/orm-client/*.ts` - End-to-end ORM client query examples
 - `src/extensions/engagement-stats.ts` - Local extension contributing the `stddev` aggregate operation
 - `src/main.ts` - App entrypoint with arktype config validation (emit workflow)
@@ -442,11 +442,11 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 - `scripts/stamp-marker.ts` - Contract marker management
 - `scripts/seed.ts` - Database seeding (includes vector embeddings)
 - `src/queries/similarity-search.ts` - Example vector similarity search query
-- `src/queries/full-text-search.ts` - Example full-text search with `fullTextRank` and `fullTextHeadline`
+- `src/queries/full-text-search.ts` - Example full-text search over the `post_title_search` index with `fullTextMatches`, `fullTextRank` and `fullTextHeadline`
 - `test/` - Integration tests demonstrating Prisma 8 usage
 
 ## Features Demonstrated
 
 - **Vector Similarity Search**: The demo includes a `similarity-search.ts` query that demonstrates cosine distance operations using the pgvector extension pack.
-- **Full-Text Search**: `Post` declares `@@fullTextIndex([title], name: "post_title_search")` (the TypeScript twin is `fullTextIndex(cols.title, { name: 'post_title_search' })`), which emits a GIN index over `to_tsvector('english', "title")`. `src/orm-client/search-posts-by-title.ts` searches through the ORM with `fullTextMatches` and `fullTextRank`; `src/queries/full-text-search.ts` adds the rank and a `<mark>`-highlighted `fullTextHeadline` through the SQL DSL. The query argument is a `tsquery`: both files wrap the search string in `websearchToTsquery` (imported from `@prisma/orm-postgres/target/full-text` in the ORM file, a `fns` member in the DSL file), which binds it as a parameter and parses it with `websearch_to_tsquery`, so `"an exact phrase"`, `-excluded` and `or` work as in a search box. A bare string is a type error; for a typeahead prefix match, `` tsquery`${term}:*` `` from the same import quotes the typed text as one term. Try `pnpm start -- repo-search-posts-text second` and `pnpm start -- full-text-search "first or second"`.
+- **Full-Text Search**: `Post` declares `@@fullTextIndex([title], name: "post_title_search")` (the TypeScript twin is `fullTextIndex(cols.title, { name: 'post_title_search' })`), which emits a GIN index over `to_tsvector('english', "title")`. `src/orm-client/search-posts-by-title.ts` searches through the ORM with `fullTextMatches` and `fullTextRank`; `src/queries/full-text-search.ts` searches the same index through the SQL DSL, read from the table as `post.indexes.post_title_search`, so the query searches the document the index was built over, and adds the rank and a `<mark>`-highlighted `fullTextHeadline`. The query argument is a `tsquery`: both files wrap the search string in `websearchToTsquery` (imported from `@prisma/orm-postgres/target/full-text` in the ORM file, a `fns` member in the DSL file), which binds it as a parameter and parses it with `websearch_to_tsquery`, so `"an exact phrase"`, `-excluded` and `or` work as in a search box. A bare string is a type error; for a typeahead prefix match, `` tsquery`${term}:*` `` from the same import quotes the typed text as one term. Try `pnpm start -- repo-search-posts-text second` and `pnpm start -- full-text-search "first or second"`.
 - **Extension Packs**: Shows how to configure and use extension packs (pgvector) in `prisma.config.ts`.

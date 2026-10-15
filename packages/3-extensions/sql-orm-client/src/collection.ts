@@ -13,6 +13,16 @@ import {
   checkLimitOffset,
   isWhereExpr,
   LiteralExpr,
+  LockingClause,
+  type LockOptionCapabilities,
+  type LockStrength,
+  type LockStrengthCapabilities,
+  type LockWaitOptions,
+  type LockWaitRequest,
+  lockIncompatible,
+  lockOptionCapabilities,
+  lockStrengthCapabilities,
+  lockWaitPolicyOf,
   type OrderByItem,
   type ToWhereExpr,
   type WhereArg,
@@ -32,6 +42,7 @@ import { mapCursorValuesToColumns, mapFieldsToColumns } from './collection-colum
 import {
   assertDistinctOnCapability,
   assertInsertConflictSkipCapability,
+  assertLockCapability,
   assertReturningCapability,
   getColumnToFieldMap,
   getFieldToColumnMap,
@@ -50,6 +61,7 @@ import {
 import {
   consumeFirstRow,
   describeCollectionFirst,
+  describeCollectionFirstOrThrow,
   describeCollectionRows,
   dispatchCollectionRows,
 } from './collection-dispatch';
@@ -81,14 +93,21 @@ import type {
   HasTypeState,
   HasWhere,
   Including,
-  ModelScopeReceiver,
+  ModelFragmentReceiver,
   Ordered,
+  QueryFragment,
   // biome-ignore lint/correctness/noUnusedImports: used in `declare` properties
   RowType,
-  Scope,
   TypeState,
 } from './collection-types';
 import { shorthandToWhereExpr } from './filters';
+import {
+  assertFragmentBody,
+  assertModelFragmentReceiver,
+  type FragmentFacts,
+  type FragmentFactsType,
+  type WithFacts,
+} from './fragments';
 import { GroupedCollection } from './grouped-collection';
 import {
   createIncludeCombine,
@@ -97,6 +116,7 @@ import {
   isIncludeCombine,
   isIncludeScalar,
 } from './include-descriptors';
+import { assertLockCompatible } from './lock-guards';
 import { createModelAccessor } from './model-accessor';
 import {
   buildRowIdentityFilterFromRow,
@@ -123,13 +143,6 @@ import {
   mergeAnnotations,
 } from './query-plan';
 import { queryPlanRows } from './query-plan-rows';
-import {
-  assertModelScopeReceiver,
-  assertScopeBody,
-  type ScopeFacts,
-  type ScopeFactsType,
-  type WithFacts,
-} from './scopes';
 import {
   type AggregateBuilder,
   type AggregateIncludeReducers,
@@ -209,6 +222,13 @@ function applyUpdateDefaults(
 
 type WhereDirectInput = WhereArg;
 
+type LockMethodArgs<
+  Capabilities,
+  Strength extends LockStrength,
+> = Capabilities extends LockStrengthCapabilities[Strength] & LockOptionCapabilities['of']
+  ? [options?: LockWaitOptions<Capabilities>]
+  : never;
+
 function isToWhereExprInput(value: unknown): value is ToWhereExpr {
   return (
     typeof value === 'object' &&
@@ -275,18 +295,18 @@ interface MtiCreateContext {
   pkColumns: readonly string[];
 }
 
-/** What `scope` reads from the collection it is called on: its contract and its model. */
-interface ScopeSource {
+/** What `fragment` reads from the collection it is called on: its contract and its model. */
+interface FragmentSource {
   readonly modelName: string;
   readonly namespaceId: string;
   readonly ctx: { readonly context: { readonly contract: Contract<SqlStorage> } };
 }
 
-type ContractOf<C extends ScopeSource> = C['ctx']['context']['contract'];
+type ContractOf<C extends FragmentSource> = C['ctx']['context']['contract'];
 
-type ModelNameOf<C extends ScopeSource> = C['modelName'];
+type ModelNameOf<C extends FragmentSource> = C['modelName'];
 
-type ModelScopeBody<
+type ModelFragmentBody<
   TContract extends Contract<SqlStorage>,
   ModelName extends string,
   NsId extends string,
@@ -466,36 +486,36 @@ export class CollectionBase<
   }
 
   /**
-   * Call `fn` with this collection and return its result. For a scope made by the client's `scope` method, the result is this collection's own type plus the filter and order the scope's body established.
+   * Call `fn`, a query fragment, with this collection and return its result. `fn` may be a scope, which only imposes conditions and declares the fields it needs, or a fragment for what `where` cannot express, such as a shared `select` and `include`, an order or a limit. A condition on one row that needs no declared fields is `where(rowFragment)`. For a fragment made by the client's `fragment` method, the result is this collection's own type plus the filter and order the fragment's body established.
    */
-  apply<Self, Facts extends ScopeFacts>(
+  with<Self, Facts extends FragmentFacts>(
     this: Self,
-    scope: ((collection: NoInfer<Self>) => unknown) & { readonly [ScopeFactsType]: Facts },
+    fragment: ((collection: NoInfer<Self>) => unknown) & { readonly [FragmentFactsType]: Facts },
   ): WithFacts<Self, Facts>;
-  apply<Self, Out>(this: Self, fn: (collection: Self) => Out): Out;
-  apply(fn: (collection: unknown) => unknown): unknown {
+  with<Self, Out>(this: Self, fn: (collection: Self) => Out): Out;
+  with(fn: (collection: unknown) => unknown): unknown {
     return fn(this);
   }
 
   /**
-   * Define a scope for this collection's model, such as a shared `select` and `include`. The body is typed once, against the model's plain collection. The scope accepts any collection of the model that `select` and `variant` have not narrowed.
+   * Define a query fragment for this collection's model, such as a shared `select` and `include`. The body is typed once, against the model's plain collection. The fragment accepts any collection of the model that `select` and `variant` have not narrowed.
    *
    * ```ts
-   * const summary = db.Post.scope((posts) => posts.select('id', 'title').include('user'));
-   * db.User.include('posts', (posts) => posts.apply(summary));
+   * const summary = db.Post.fragment((posts) => posts.select('id', 'title').include('user'));
+   * db.User.include('posts', (posts) => posts.with(summary));
    * ```
    */
-  scope<Self extends ScopeSource, NsId extends string, Result>(
+  fragment<Self extends FragmentSource, NsId extends string, Result>(
     this: Self & HasTypeState<{ readonly nsId: NsId }>,
-    body: (collection: ModelScopeBody<ContractOf<Self>, ModelNameOf<Self>, NsId>) => Result,
-  ): Scope<ModelScopeReceiver<ContractOf<Self>, ModelNameOf<Self>, NsId>, Result> {
-    assertScopeBody(body);
+    body: (collection: ModelFragmentBody<ContractOf<Self>, ModelNameOf<Self>, NsId>) => Result,
+  ): QueryFragment<ModelFragmentReceiver<ContractOf<Self>, ModelNameOf<Self>, NsId>, Result> {
+    assertFragmentBody(body);
     const source = { modelName: this.modelName, namespaceId: this.namespaceId };
     return (collection) => {
-      assertModelScopeReceiver(source, collection);
+      assertModelFragmentReceiver(source, collection);
       return body(
         blindCast<
-          ModelScopeBody<ContractOf<Self>, ModelNameOf<Self>, NsId>,
+          ModelFragmentBody<ContractOf<Self>, ModelNameOf<Self>, NsId>,
           'a collection of this model that select and variant have not narrowed has the methods of its plain collection'
         >(collection),
       );
@@ -1070,6 +1090,7 @@ export class CollectionBase<
       ...(keyof DefaultModelRow<TContract, ModelName, State['nsId']> & string)[],
     ],
   >(...fields: Fields): GroupedCollection<TContract, ModelName, Fields, State['nsId']> {
+    assertLockCompatible(this.state, 'groupBy');
     const groupByColumns = mapFieldsToColumns(
       this.contract,
       this.namespaceId,
@@ -1286,6 +1307,54 @@ export class CollectionBase<
   }
 
   /**
+   * Lock the selected rows of this model with `FOR UPDATE` until the transaction ends.
+   *
+   * Requires the `sql.forUpdate` and `sql.lockOf` capabilities, because the lock always names the model's table with `OF`.
+   *
+   * ```typescript
+   * const job = await tx.orm.Job.where({ state: 'queued' }).limit(1).forUpdate({ skipLocked: true }).first();
+   * ```
+   */
+  forUpdate(
+    ...options: LockMethodArgs<TContract['capabilities'], 'forUpdate'>
+  ): Collection<TContract, ModelName, Row, State> {
+    return this.#lock('forUpdate', options[0]);
+  }
+
+  /**
+   * Lock the selected rows of this model with `FOR NO KEY UPDATE` until the transaction ends. Unlike `forUpdate`, it does not block foreign-key checks from rows that reference them.
+   *
+   * Requires the `postgres.forNoKeyUpdate` and `sql.lockOf` capabilities, because the lock always names the model's table with `OF`.
+   */
+  forNoKeyUpdate(
+    ...options: LockMethodArgs<TContract['capabilities'], 'forNoKeyUpdate'>
+  ): Collection<TContract, ModelName, Row, State> {
+    return this.#lock('forNoKeyUpdate', options[0]);
+  }
+
+  /**
+   * Lock the selected rows of this model with `FOR SHARE` until the transaction ends; other transactions may share-lock them but not write them.
+   *
+   * Requires the `sql.forShare` and `sql.lockOf` capabilities, because the lock always names the model's table with `OF`.
+   */
+  forShare(
+    ...options: LockMethodArgs<TContract['capabilities'], 'forShare'>
+  ): Collection<TContract, ModelName, Row, State> {
+    return this.#lock('forShare', options[0]);
+  }
+
+  /**
+   * Lock the selected rows of this model with `FOR KEY SHARE` until the transaction ends; only deletes and key changes are blocked.
+   *
+   * Requires the `postgres.forKeyShare` and `sql.lockOf` capabilities, because the lock always names the model's table with `OF`.
+   */
+  forKeyShare(
+    ...options: LockMethodArgs<TContract['capabilities'], 'forKeyShare'>
+  ): Collection<TContract, ModelName, Row, State> {
+    return this.#lock('forKeyShare', options[0]);
+  }
+
+  /**
    * Apply `LIMIT n`. Replaces any previous limit set on this collection.
    *
    * ```typescript
@@ -1379,12 +1448,13 @@ export class CollectionBase<
         const selected = this.#withAnnotationsFromMeta(configure, 'all');
         return describeCollectionRows<Row>(selected.#descriptionOptions());
       },
-      first: (
-        filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
-        configure?: (meta: MetaBuilder<'read'>) => void,
-      ) => {
-        const selected = this.#forFirst(filter, configure);
+      first: (filter, configure) => {
+        const selected = this.#forFirst(filter, configure, 'first');
         return describeCollectionFirst<Row>(selected.#descriptionOptions());
+      },
+      firstOrThrow: (filter, configure) => {
+        const selected = this.#forFirst(filter, configure, 'firstOrThrow');
+        return describeCollectionFirstOrThrow<Row>(selected.#descriptionOptions());
       },
     };
     return blindCast<
@@ -1406,6 +1476,7 @@ export class CollectionBase<
   #forFirst(
     filter: WhereInput<TContract, State['nsId'], ModelName, State['variantName']> | undefined,
     configure: ((meta: MetaBuilder<'read'>) => void) | undefined,
+    terminalName: 'first' | 'firstOrThrow',
   ) {
     const scoped =
       filter === undefined
@@ -1413,7 +1484,7 @@ export class CollectionBase<
         : typeof filter === 'function'
           ? this.where(filter)
           : this.where(filter);
-    return scoped.limit(1).#withAnnotationsFromMeta(configure, 'first');
+    return scoped.limit(1).#withAnnotationsFromMeta(configure, terminalName);
   }
 
   /**
@@ -1440,31 +1511,36 @@ export class CollectionBase<
    * );
    * ```
    */
-  async first<Self extends this>(this: Self): Promise<CollectionRowOf<Self> | null>;
   async first<Self extends this>(
     this: Self,
-    filter: undefined,
-    configure: (meta: MetaBuilder<'read'>) => void,
-  ): Promise<CollectionRowOf<Self> | null>;
-  async first<Self extends this>(
-    this: Self,
-    filter: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<Self> | null>;
-  async first(): Promise<CollectionRowOf<this> | null>;
   async first(
-    filter: undefined,
-    configure: (meta: MetaBuilder<'read'>) => void,
-  ): Promise<CollectionRowOf<this> | null>;
-  async first(
-    filter: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<CollectionRowOf<this> | null>;
   async first(
     filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Promise<unknown> {
-    return consumeFirstRow(this.#forFirst(filter, configure).#dispatch());
+    return consumeFirstRow(this.#forFirst(filter, configure, 'first').#dispatch());
+  }
+
+  async firstOrThrow<Self extends this>(
+    this: Self,
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Promise<CollectionRowOf<Self>>;
+  async firstOrThrow(
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Promise<CollectionRowOf<this>>;
+  async firstOrThrow(
+    filter?: WhereInput<TContract, State['nsId'], ModelName, State['variantName']>,
+    configure?: (meta: MetaBuilder<'read'>) => void,
+  ): Promise<unknown> {
+    return this.#forFirst(filter, configure, 'firstOrThrow').#dispatch().firstOrThrow();
   }
 
   /**
@@ -1500,6 +1576,7 @@ export class CollectionBase<
     fn: (aggregate: AggregateBuilder<TContract, ModelName, State['nsId']>) => Spec,
     configure?: (meta: MetaBuilder<'read'>) => void,
   ): Preparable<Record<string, unknown>, Promise<AggregateResult<Spec>>> {
+    assertLockCompatible(this.state, 'aggregate');
     const aggregateSpec = fn(
       createAggregateBuilder<TContract, ModelName, State['nsId']>(
         this.contract,
@@ -1644,6 +1721,7 @@ export class CollectionBase<
       | MutationCreateInputWithRelations<TContract, ModelName, State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<unknown> {
+    assertLockCompatible(this.state, 'mutation');
     assertReturningCapability(this.contract, 'create()');
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'create');
 
@@ -1773,6 +1851,7 @@ export class CollectionBase<
     optionsOrConfigure?: CreateConflictOptions<TContract, ModelName> | WriteConfigure,
     configure?: WriteConfigure,
   ): AsyncIterableResult<unknown> {
+    assertLockCompatible(this.state, 'mutation');
     const { options, configureCallback } = splitCreateArguments(optionsOrConfigure, configure);
     const conflictSkip = this.#resolveConflictSkip(options, 'createAll()');
     return this.#createAllWithAnnotations(
@@ -2154,6 +2233,7 @@ export class CollectionBase<
     optionsOrConfigure?: CreateConflictOptions<TContract, ModelName> | WriteConfigure,
     configure?: WriteConfigure,
   ): Promise<number> {
+    assertLockCompatible(this.state, 'mutation');
     const { options, configureCallback } = splitCreateArguments(optionsOrConfigure, configure);
     const conflictSkip = this.#resolveConflictSkip(options, 'createAndCount()');
 
@@ -2256,6 +2336,7 @@ export class CollectionBase<
     },
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<unknown> {
+    assertLockCompatible(this.state, 'mutation');
     assertReturningCapability(this.contract, 'upsert()');
     this.#assertNotMtiVariant('upsert()');
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'upsert');
@@ -2395,6 +2476,7 @@ export class CollectionBase<
     data: MutationUpdateInput<TContract, ModelName, State['nsId']>,
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<unknown> {
+    assertLockCompatible(this.state, 'mutation');
     assertReturningCapability(this.contract, 'update()');
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'update');
 
@@ -2487,6 +2569,7 @@ export class CollectionBase<
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): AsyncIterableResult<unknown> {
     assertBulkWriteIgnoresNothing(this.state, this.modelName, 'updateAll');
+    assertLockCompatible(this.state, 'mutation');
     return this.#updateAllWithAnnotations(
       data,
       this.#collectAnnotationsFromMeta(configure, 'write', 'updateAll'),
@@ -2564,6 +2647,7 @@ export class CollectionBase<
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<number> {
     assertBulkWriteIgnoresNothing(this.state, this.modelName, 'updateAndCount');
+    assertLockCompatible(this.state, 'mutation');
     const mappedData = mapModelDataToStorageRow(
       this.contract,
       this.namespaceId,
@@ -2613,6 +2697,7 @@ export class CollectionBase<
     configure?: (meta: MetaBuilder<'write'>) => void,
   ): Promise<CollectionRowOf<Self & HasRow<CollectionRowOf<this>>> | null>;
   async delete(configure?: (meta: MetaBuilder<'write'>) => void): Promise<unknown> {
+    assertLockCompatible(this.state, 'mutation');
     assertReturningCapability(this.contract, 'delete()');
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'delete');
     return withMutationScope(this.ctx.runtime, async (scope) => {
@@ -2660,6 +2745,7 @@ export class CollectionBase<
   ): AsyncIterableResult<CollectionRowOf<Self & HasRow<CollectionRowOf<this>>>>;
   deleteAll(configure?: (meta: MetaBuilder<'write'>) => void): AsyncIterableResult<unknown> {
     assertBulkWriteIgnoresNothing(this.state, this.modelName, 'deleteAll');
+    assertLockCompatible(this.state, 'mutation');
     return this.#deleteAllWithAnnotations(
       this.#collectAnnotationsFromMeta(configure, 'write', 'deleteAll'),
     );
@@ -2772,6 +2858,7 @@ export class CollectionBase<
   ): Promise<number>;
   async deleteAndCount(configure?: (meta: MetaBuilder<'write'>) => void): Promise<number> {
     assertBulkWriteIgnoresNothing(this.state, this.modelName, 'deleteAndCount');
+    assertLockCompatible(this.state, 'mutation');
     const annotationsMap = this.#collectAnnotationsFromMeta(configure, 'write', 'deleteAndCount');
 
     const compiled = mergeAnnotations(
@@ -2948,6 +3035,29 @@ export class CollectionBase<
       `${action} is only available inside include() refinement callbacks`,
       { meta: { action } },
     );
+  }
+
+  #lock(
+    strength: LockStrength,
+    options: LockWaitRequest | undefined,
+  ): Collection<TContract, ModelName, Row, State> {
+    if (this.includeRefinementMode) {
+      throw lockIncompatible(
+        'includeRefinement',
+        `${strength}() cannot be called inside an include() refinement callback`,
+      );
+    }
+    assertLockCapability(this.contract, lockStrengthCapabilities[strength], strength);
+    assertLockCapability(this.contract, lockOptionCapabilities.of, strength);
+    const waitPolicy = lockWaitPolicyOf(strength, options);
+    if (waitPolicy !== undefined) {
+      assertLockCapability(this.contract, lockOptionCapabilities[waitPolicy], strength);
+    }
+    const clause = LockingClause.of(strength, {
+      of: [this.tableName],
+      ...ifDefined('waitPolicy', waitPolicy),
+    });
+    return this.#clone({ locking: [...(this.state.locking ?? []), clause] });
   }
 
   #clone<NextState extends CollectionTypeState = State>(

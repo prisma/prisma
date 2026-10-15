@@ -15,6 +15,7 @@ import {
   type CodecTrait,
   type LimitOffsetValue,
   ListExpression,
+  type LockingClause,
   NullCheckExpr,
   type OrderByItem,
   type OrderByNulls,
@@ -97,6 +98,7 @@ export interface CollectionState {
   readonly limit: LimitOffsetValue | undefined;
   readonly offset: LimitOffsetValue | undefined;
   readonly variantName: string | undefined;
+  readonly locking: ReadonlyArray<LockingClause> | undefined;
   /**
    * Annotations attached to this query at terminal-call time.
    * Populated transiently by the read terminals `all` and `first` just before dispatch. Terminals
@@ -121,6 +123,7 @@ export function emptyState(): CollectionState {
     limit: undefined,
     offset: undefined,
     variantName: undefined,
+    locking: undefined,
     annotations: new Map(),
   };
 }
@@ -385,7 +388,7 @@ export type CodecField<
   > &
   CodecOperations<TContract, CodecId>;
 
-/** The model accessor's type for a list field whose elements have the codec `CodecId`, as a scope for any model declares it with `.many()`, or with `.many({ elementsNullable: true })` when `ElementNullable` is `true`. */
+/** The model accessor's type for a list field whose elements have the codec `CodecId`, as a fragment for any model declares it with `.many()`, or with `.many({ elementsNullable: true })` when `ElementNullable` is `true`. */
 export type CodecListField<
   TContract extends Contract<SqlStorage>,
   CodecId extends keyof ExtractCodecTypes<TContract> & string,
