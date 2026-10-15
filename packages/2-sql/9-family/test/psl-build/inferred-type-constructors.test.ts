@@ -164,7 +164,7 @@ describe('inferColumnTypes', () => {
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED',
-        fix: 'Prisma 8 has no type for these columns. Change their type or remove them from the database. If a type comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts.',
+        fix: "No configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack, add the pack to extensions in prisma.config.ts. Otherwise change the column's type or remove the column from the database.",
         meta: { columns: ['public.alpha.meta: hstore', 'public.zeta.tags: tsquery[]'] },
       }),
     );
