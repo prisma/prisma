@@ -1,6 +1,6 @@
 import { convertedColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import { type DdlColumn, opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
+import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
 import {
   columnDefaultAst,
@@ -135,10 +135,6 @@ export async function alterColumnType(
   lowerer: ExecuteRequestLowerer,
   operationClass: AlterColumnTypeClass = 'destructive',
 ): Promise<Op> {
-  const qualified = qualifyTableName(schemaName, tableName);
-  const usingClause = options.using
-    ? ` USING ${renderOpaqueSql(opaqueSql(options.using))}`
-    : ` USING ${quoteIdentifier(columnName)}::${options.type}`;
   const { present } = await columnExistsSteps(lowerer, {
     schema: schemaName,
     table: tableName,
@@ -152,6 +148,19 @@ export async function alterColumnType(
       expectedType: options.checkType,
     }),
   );
+  const alterType = await lowerer.lowerToExecuteRequest(
+    contractFreeDdl.alterTable({
+      ...ifDefined('schema', boundSchema(schemaName)),
+      table: tableName,
+      actions: [
+        contractFreeDdl.alterColumnTypeAction({
+          columnName,
+          type: options.type,
+          ...ifDefined('using', options.using === '' ? undefined : options.using),
+        }),
+      ],
+    }),
+  );
   return {
     id: `alterType.${tableName}.${columnName}`,
     label: `Alter type of "${tableName}"."${columnName}" to ${options.type}`,
@@ -160,10 +169,7 @@ export async function alterColumnType(
     precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
     execute: [
       {
-        ...step(
-          `alter type of "${columnName}"`,
-          `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.type}${usingClause}`,
-        ),
+        ...step(`alter type of "${columnName}"`, alterType.sql),
         ...(options.using !== undefined
           ? { meta: convertedColumnMeta(tableName, columnName, 'conversion') }
           : operationClass === 'destructive'

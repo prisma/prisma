@@ -13,6 +13,8 @@ import type { RlsPolicyOperation } from '../rls/canonicalize';
 export interface AlterTableActionVisitor<R> {
   addColumn(action: AddColumnAction): R;
   dropDefault(action: DropDefaultAction): R;
+  addConstraint(action: AddConstraintAction): R;
+  alterColumnType(action: AlterColumnTypeAction): R;
 }
 
 export abstract class AlterTableAction {
@@ -50,16 +52,57 @@ export class DropDefaultAction extends AlterTableAction {
   }
 }
 
+export class AddConstraintAction extends AlterTableAction {
+  readonly kind = 'add-constraint' as const;
+  readonly constraint: DdlTableConstraint;
+
+  constructor(constraint: DdlTableConstraint) {
+    super();
+    this.constraint = constraint;
+    Object.freeze(this);
+  }
+
+  override accept<R>(visitor: AlterTableActionVisitor<R>): R {
+    return visitor.addConstraint(this);
+  }
+}
+
+/**
+ * `ALTER COLUMN "<columnName>" TYPE <type> USING <using>`. `type` is written as given. Without `using`, the conversion is `"<columnName>"::<type>`.
+ */
+export class AlterColumnTypeAction extends AlterTableAction {
+  readonly kind = 'alter-column-type' as const;
+  readonly columnName: string;
+  readonly type: string;
+  readonly using: OpaqueSql | undefined;
+
+  constructor(options: {
+    readonly columnName: string;
+    readonly type: string;
+    readonly using: OpaqueSql | undefined;
+  }) {
+    super();
+    this.columnName = options.columnName;
+    this.type = options.type;
+    this.using = options.using;
+    Object.freeze(this);
+  }
+
+  override accept<R>(visitor: AlterTableActionVisitor<R>): R {
+    return visitor.alterColumnType(this);
+  }
+}
+
 /**
  * The set of ALTER TABLE subactions currently expressible as typed DDL.
  *
- * The remaining actions — SetDefault, SetNotNull, DropNotNull,
- * AlterColumnType — are still emitted as raw SQL by `operations/columns.ts`
- * and join this union as they are converted to typed DDL. Until then it is
- * intentionally partial: only the ALTER subactions used by the
- * already-converted ops (AddColumn, DropDefault) appear here.
+ * The remaining actions — SetDefault, SetNotNull, DropNotNull — are still emitted as raw SQL by `operations/columns.ts` and join this union as they are converted to typed DDL.
  */
-export type AnyAlterTableAction = AddColumnAction | DropDefaultAction;
+export type AnyAlterTableAction =
+  | AddColumnAction
+  | DropDefaultAction
+  | AddConstraintAction
+  | AlterColumnTypeAction;
 
 // ---------------------------------------------------------------------------
 // Top-level DDL visitor

@@ -65,6 +65,8 @@ import {
 } from '@internal/target-postgres/contract-free';
 import type {
   AddColumnAction,
+  AddConstraintAction,
+  AlterColumnTypeAction,
   AlterTableActionVisitor,
   AnyAlterTableAction,
   DropDefaultAction,
@@ -2030,6 +2032,15 @@ async function pgRenderAlterTable(
     },
     dropDefault(action: DropDefaultAction): Promise<string> {
       return Promise.resolve(`ALTER COLUMN ${quoteIdentifier(action.columnName)} DROP DEFAULT`);
+    },
+    addConstraint(action: AddConstraintAction): Promise<string> {
+      return Promise.resolve(`ADD ${pgRenderDdlConstraint(action.constraint)}`);
+    },
+    alterColumnType(action: AlterColumnTypeAction): Promise<string> {
+      const column = quoteIdentifier(action.columnName);
+      const using =
+        action.using === undefined ? `${column}::${action.type}` : renderOpaqueSql(action.using);
+      return Promise.resolve(`ALTER COLUMN ${column} TYPE ${action.type} USING ${using}`);
     },
   };
   const actionSqls = await Promise.all(
