@@ -146,7 +146,6 @@ describe('migration plan emits RLS (offline, no live database)', () => {
       frameworkComponents,
     ) as SqlSchemaIRNode;
     PostgresDatabaseSchemaNode.assert(fromSchema);
-    expect(fromSchema).toBeInstanceOf(PostgresDatabaseSchemaNode);
     const allPolicies = Object.values(fromSchema.namespaces).flatMap((ns) =>
       Object.values(ns.tables).flatMap((t) => t.policies),
     );

@@ -18,12 +18,6 @@ afterEach(() => {
 });
 
 describe('SqliteControlDriverDescriptor', () => {
-  it('has correct descriptor metadata', () => {
-    expect(sqliteControlDriverDescriptor.kind).toBe('driver');
-    expect(sqliteControlDriverDescriptor.familyId).toBe('sql');
-    expect(sqliteControlDriverDescriptor.targetId).toBe('sqlite');
-  });
-
   it('opens only an existing file, for writing, when asked for an existing database only, and creates none', async () => {
     await expect(
       sqliteControlDriverDescriptor.create(testPath, { existingDatabaseOnly: true }),

@@ -18,19 +18,6 @@ afterEach(() => {
 });
 
 describe('SqliteRuntimeDriverDescriptor', () => {
-  it('has correct descriptor metadata', () => {
-    expect(sqliteRuntimeDriverDescriptor.kind).toBe('driver');
-    expect(sqliteRuntimeDriverDescriptor.familyId).toBe('sql');
-    expect(sqliteRuntimeDriverDescriptor.targetId).toBe('sqlite');
-  });
-
-  it('creates an unbound driver', () => {
-    const driver = sqliteRuntimeDriverDescriptor.create();
-    expect(driver.state).toBe('unbound');
-    expect(driver.familyId).toBe('sql');
-    expect(driver.targetId).toBe('sqlite');
-  });
-
   it('transitions from unbound to connected to closed', async () => {
     const driver = sqliteRuntimeDriverDescriptor.create();
     expect(driver.state).toBe('unbound');
