@@ -16,6 +16,7 @@ import type { ColumnPair, NodeId, StorageRow } from '../../src/mutation-graph/ed
 import { Find } from '../../src/mutation-graph/find';
 import { Graph } from '../../src/mutation-graph/graph';
 import type { Run, StatementAst } from '../../src/mutation-graph/node';
+import { StatementNode } from '../../src/mutation-graph/statement-node';
 import { Update } from '../../src/mutation-graph/update';
 import { deleteAst, projectTableColumns, updateAst } from '../../src/query-plan-mutations';
 import { collectionSelectAst, collectionSelectWithIncludesAst } from '../../src/query-plan-select';
@@ -184,5 +185,5 @@ export function positions(): [NodeId, NodeId, NodeId] {
 
 export function returnedAt(graph: Graph, index: number): string[] {
   const [, node] = graph.nodes()[index] ?? [];
-  return (node?.returns ?? []).map((column) => column.alias);
+  return (node instanceof StatementNode ? node.returns : []).map((column) => column.alias);
 }

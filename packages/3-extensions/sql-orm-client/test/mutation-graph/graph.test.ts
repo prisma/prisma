@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
+import { ConcatRows } from '../../src/mutation-graph/concat-rows';
 import type { NodeId } from '../../src/mutation-graph/edge';
 import { FilterData } from '../../src/mutation-graph/filter-data';
 import { Graph } from '../../src/mutation-graph/graph';
+import { Rows } from '../../src/mutation-graph/rows';
+import { StatementNode } from '../../src/mutation-graph/statement-node';
 import { columnPairs, deletePosts, deleteUsers, findUsers, updateUsers } from './statements';
 
 const sameId = columnPairs('users', 'users', [['id', 'id']]);
@@ -12,7 +15,8 @@ function returned(graph: Graph, id: NodeId): string[] {
   return graph
     .nodes()
     .filter(([position]) => position === id)
-    .flatMap(([, node]) => node.returns.map((column) => column.alias));
+    .flatMap(([, node]) => (node instanceof StatementNode ? node.returns : []))
+    .map((column) => column.alias);
 }
 
 describe('Graph', () => {
@@ -81,6 +85,18 @@ describe('Graph', () => {
       graph.add(deleteUsers(), { filter: [] });
 
       expect(returned(graph, update)).toEqual([]);
+    });
+
+    it('leaves a node that runs no statement as it was when an edge reads from it', () => {
+      const graph = new Graph();
+      const find = graph.add(findUsers([], ['email']), { filter: [] });
+      const concat = new ConcatRows();
+      const concatId = graph.add(concat, { rows: [new Rows(find, sameId)] });
+
+      graph.add(updateUsers({ name: 'Ada' }), { filter: [new FilterData(concatId, sameId)] });
+
+      expect(graph.nodes().find(([id]) => id === concatId)?.[1]).toBe(concat);
+      expect(returned(graph, find)).toEqual(['email', 'id']);
     });
   });
 

@@ -1,11 +1,5 @@
 import type { AsyncIterableResult } from '@internal/framework-components/runtime';
-import type {
-  DeleteAst,
-  InsertAst,
-  ProjectionItem,
-  SelectAst,
-  UpdateAst,
-} from '@internal/sql-relational-core/ast';
+import type { DeleteAst, InsertAst, SelectAst, UpdateAst } from '@internal/sql-relational-core/ast';
 import type { Edge, StorageRow } from './edge';
 
 export type StatementAst = SelectAst | InsertAst | UpdateAst | DeleteAst;
@@ -26,9 +20,5 @@ export interface Run {
 }
 
 export abstract class Node<Inputs extends Slots = Slots> {
-  abstract readonly returns: readonly ProjectionItem[];
-
   abstract execute(inputs: OutputsOf<Inputs>, run: Run): Executed;
-
-  abstract withReturning(columns: readonly ProjectionItem[]): Node<Inputs>;
 }

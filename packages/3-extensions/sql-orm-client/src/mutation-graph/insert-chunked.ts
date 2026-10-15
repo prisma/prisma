@@ -2,11 +2,12 @@ import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type { InsertAst, ProjectionItem } from '@internal/sql-relational-core/ast';
 import type { StorageRow } from './edge';
 import { withColumns } from './filtered-statement';
-import { type Executed, Node, type OutputsOf, type Run } from './node';
+import type { Executed, OutputsOf, Run } from './node';
+import { StatementNode } from './statement-node';
 
 type NoInputs = Record<never, never>;
 
-export class InsertChunked extends Node<NoInputs> {
+export class InsertChunked extends StatementNode<NoInputs> {
   readonly asts: readonly InsertAst[];
 
   constructor(asts: readonly InsertAst[]) {

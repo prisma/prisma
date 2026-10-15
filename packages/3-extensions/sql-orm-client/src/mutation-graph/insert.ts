@@ -1,12 +1,13 @@
 import type { InsertAst, ProjectionItem } from '@internal/sql-relational-core/ast';
 import { withColumns } from './filtered-statement';
-import { type Executed, Node, type OutputsOf, type Run } from './node';
+import type { Executed, OutputsOf, Run } from './node';
 import type { PayloadData } from './payload-data';
 import { executeStatement, rowsResult } from './run-statement';
+import { StatementNode } from './statement-node';
 
 type Payloads = { payload: PayloadData[] };
 
-export class Insert extends Node<Payloads> {
+export class Insert extends StatementNode<Payloads> {
   readonly ast: InsertAst;
 
   constructor(ast: InsertAst) {

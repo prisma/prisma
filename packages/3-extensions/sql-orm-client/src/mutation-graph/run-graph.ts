@@ -18,6 +18,7 @@ import type { CollectionContext } from '../types';
 import type { NodeId, StorageRow } from './edge';
 import type { Graph } from './graph';
 import type { Executed, OutputsOf, Run, Slots, StatementAst } from './node';
+import { StatementNode } from './statement-node';
 
 type Annotations = ReadonlyMap<string, AnnotationValue<unknown, OperationKind>> | undefined;
 type Context = CollectionContext<Contract<SqlStorage>>;
@@ -71,7 +72,7 @@ function returnCallerColumns(graph: Graph, callerRows: DescribeCollectionRowsOpt
     state.selectedFields,
   );
   for (const [id, node] of graph.nodes()) {
-    if (id === graph.result) {
+    if (id === graph.result && node instanceof StatementNode) {
       graph.replace(id, node.withReturning(columns));
     }
   }

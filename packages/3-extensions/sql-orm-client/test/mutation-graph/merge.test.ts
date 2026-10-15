@@ -30,11 +30,4 @@ describe('Merge', () => {
     expect(await merge.execute({ rows: [[{ id: 7 }], []] }, run)).toEqual([]);
     expect(await merge.execute({ rows: null }, run)).toEqual([]);
   });
-
-  it('returns no column of its own and is unchanged when asked to return more', () => {
-    const merge = new Merge();
-
-    expect(merge.returns).toEqual([]);
-    expect(merge.withReturning([])).toBe(merge);
-  });
 });

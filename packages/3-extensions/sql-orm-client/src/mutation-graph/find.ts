@@ -1,8 +1,9 @@
 import type { ProjectionItem, SelectAst } from '@internal/sql-relational-core/ast';
 import { executeFiltered, type Filtered, withColumns } from './filtered-statement';
-import { type Executed, Node, type OutputsOf, type Run } from './node';
+import type { Executed, OutputsOf, Run } from './node';
+import { StatementNode } from './statement-node';
 
-export class Find extends Node<Filtered> {
+export class Find extends StatementNode<Filtered> {
   readonly ast: SelectAst;
 
   constructor(ast: SelectAst) {

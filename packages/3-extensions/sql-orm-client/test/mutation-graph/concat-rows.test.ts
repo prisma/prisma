@@ -23,11 +23,4 @@ describe('ConcatRows', () => {
   it('gives no row when the slot has no edge', async () => {
     expect(await new ConcatRows().execute({ rows: null }, recordingRun())).toEqual([]);
   });
-
-  it('returns no column of its own and is unchanged when asked to return more', () => {
-    const concat = new ConcatRows();
-
-    expect(concat.returns).toEqual([]);
-    expect(concat.withReturning([])).toBe(concat);
-  });
 });
