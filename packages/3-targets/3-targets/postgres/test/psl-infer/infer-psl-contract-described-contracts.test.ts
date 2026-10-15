@@ -14,14 +14,13 @@ import { SqlStorage } from '@internal/sql-contract/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { PostgresSchema } from '../../src/core/postgres-schema';
-import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { postgresCodecRegistry } from '../../src/core/registry';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 import postgresTargetDescriptor from '../../src/exports/control';
-import { inferBuildContext } from './fixtures';
+import { inferBuildContext, inferFromFixtureTree, withReportedTypesInTree } from './fixtures';
 
 const TARGET = 'postgres' as const;
 const TARGET_FAMILY = 'sql' as const;
@@ -165,7 +164,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       }),
     });
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, [
+    const ast = inferFromFixtureTree(database, inferBuildContext, [
       describedContract({ public: ['t_owned'] }),
     ]);
     const modelNames = flatPslModels(ast).map((m) => m.name);
@@ -182,8 +181,8 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       }),
     });
 
-    const withoutArgument = printPsl(inferPostgresPslContract(database, inferBuildContext));
-    const withEmptyList = printPsl(inferPostgresPslContract(database, inferBuildContext, []));
+    const withoutArgument = printPsl(inferFromFixtureTree(database, inferBuildContext));
+    const withEmptyList = printPsl(inferFromFixtureTree(database, inferBuildContext, []));
 
     expect(withEmptyList).toBe(withoutArgument);
   });
@@ -193,7 +192,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       public: namespaceNode('public', { users: idColumnTable('users') }),
     });
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, [
+    const ast = inferFromFixtureTree(database, inferBuildContext, [
       describedContract({ auth: ['users'] }),
     ]);
 
@@ -225,7 +224,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       },
     };
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, [contractWithNonTableEntity]);
+    const ast = inferFromFixtureTree(database, inferBuildContext, [contractWithNonTableEntity]);
 
     expect(flatPslModels(ast).map((m) => m.name)).toContain('Widgets');
   });
@@ -255,7 +254,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       },
     };
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, [contractWithRlsMarker]);
+    const ast = inferFromFixtureTree(database, inferBuildContext, [contractWithRlsMarker]);
 
     expect(flatPslModels(ast).map((m) => m.name)).toContain('Profile');
   });
@@ -295,7 +294,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       fields: { id: 'id', email: 'email' },
     });
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, [pack]);
+    const ast = inferFromFixtureTree(database, inferBuildContext, [pack]);
     const modelNames = flatPslModels(ast).map((m) => m.name);
     const profileModel = flatPslModels(ast).find((m) => m.name === 'Profile');
 
@@ -355,7 +354,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       fields: { id: 'id', email: 'email' },
     });
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, [pack]);
+    const ast = inferFromFixtureTree(database, inferBuildContext, [pack]);
     const models = flatPslModels(ast);
     const modelNames = models.map((m) => m.name);
     const profileModel = models.find((m) => m.name === 'Profile');
@@ -402,9 +401,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
     });
 
     expect(() =>
-      inferPostgresPslContract(database, inferBuildContext, [
-        describedContract({ auth: ['users'] }),
-      ]),
+      inferFromFixtureTree(database, inferBuildContext, [describedContract({ auth: ['users'] })]),
     ).toThrow(/owns storage coordinate "auth\.users" but declares no domain model/);
   });
 
@@ -434,7 +431,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       }),
     });
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, []);
+    const ast = inferFromFixtureTree(database, inferBuildContext, []);
     const modelNames = flatPslModels(ast).map((m) => m.name);
     const postsModel = flatPslModels(ast).find((m) => m.name === 'Posts');
 
@@ -475,7 +472,7 @@ describe('inferPostgresPslContract — described-contract omission', () => {
       }),
     });
 
-    const ast = inferPostgresPslContract(database, inferBuildContext, [
+    const ast = inferFromFixtureTree(database, inferBuildContext, [
       describedContract({ auth: ['users'] }),
     ]);
     const modelNames = flatPslModels(ast).map((m) => m.name);
@@ -499,9 +496,9 @@ describe('inferPostgresPslContract — described-contract omission', () => {
     const describedContracts = [describedContract({ other: ['t_owned'] })];
 
     expect(() =>
-      inferPostgresPslContract(database, inferBuildContext, describedContracts),
+      inferFromFixtureTree(database, inferBuildContext, describedContracts),
     ).not.toThrow();
-    const ast = inferPostgresPslContract(database, inferBuildContext, describedContracts);
+    const ast = inferFromFixtureTree(database, inferBuildContext, describedContracts);
     expect(flatPslModels(ast).map((m) => m.name)).toContain('TOwned');
   });
 });
@@ -590,7 +587,7 @@ describe('SqlFamilyInstance#inferPslContract — real postgres descriptor + real
       }),
     });
 
-    const ast = familyInstance.inferPslContract(database);
+    const ast = familyInstance.inferPslContract(withReportedTypesInTree(database));
     const modelNames = flatPslModels(ast).map((m) => m.name);
 
     expect(modelNames).toContain('AppTable');

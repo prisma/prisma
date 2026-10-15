@@ -5,7 +5,8 @@ import {
   createDataTypeLookup,
   materializeCodec,
 } from '@internal/framework-components/codec';
-import { resolveWrittenSqlTypes } from '@internal/sql-contract/data-type';
+import { resolveReportedSqlType } from '@internal/sql-contract/data-type';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { PG_TEXT_CODEC_ID } from '../src/core/codec-ids';
@@ -39,6 +40,15 @@ interface Observation {
 interface CatalogColumn extends CatalogColumnType {
   readonly columnName: string;
   readonly columnDefault: string;
+  readonly reportedText: string;
+  readonly reportedSchema: string;
+  readonly reportedName: string;
+}
+
+/** A fidelity column: its type as introspection normalizes it, and as the database reports its element type. */
+interface FidelityColumn {
+  readonly nativeType: string;
+  readonly reportedType: ReportedSqlType;
 }
 
 const enumNames: ReadonlySet<string> = new Set(enumTypes.map((enumType) => enumType.name));
@@ -48,20 +58,20 @@ const constructors = inferredTypeConstructors({
   dataTypeLookup: createDataTypeLookup(postgresDataTypes),
 });
 
-/** The codec and type parameters of the call `contract infer` writes for a column of `elementType`, as `contract emit` reads it. */
-function inferredCodecRef(elementType: string) {
-  const [resolved] = resolveWrittenSqlTypes(elementType, postgresDataTypes);
+/** The codec and type parameters of the call `contract infer` writes for the column, as `contract emit` reads it. */
+function inferredCodecRef(reportedType: ReportedSqlType) {
+  const resolved = resolveReportedSqlType(reportedType, postgresDataTypes);
   const marked = resolved && constructors.get(resolved.dataType);
   const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
   return marked && call && instantiateAuthoringTypeConstructor(marked.descriptor, call.args);
 }
 
 /** The codec `contract infer` binds to the column, as `inferredColumnDefaults` chooses it. */
-function columnCodec(nativeType: string): Codec {
+function columnCodec({ nativeType, reportedType }: FidelityColumn): Codec {
   const elementType = nativeType.endsWith('[]') ? nativeType.slice(0, -2) : nativeType;
   const ref = enumNames.has(elementType)
     ? { codecId: PG_TEXT_CODEC_ID, typeParams: undefined }
-    : inferredCodecRef(elementType);
+    : inferredCodecRef(reportedType);
   const descriptor =
     ref === undefined ? undefined : postgresCodecDescriptorRegistry.descriptorFor(ref.codecId);
   if (ref === undefined || descriptor === undefined) {
@@ -102,7 +112,7 @@ async function storedValue(
   oracle: Oracle,
   stored: string | null,
   storageType: string,
-  nativeType: string,
+  column: FidelityColumn,
 ): Promise<JsonValue> {
   if (stored === null) return null;
   const many = storageType.endsWith('[]');
@@ -114,7 +124,7 @@ async function storedValue(
     }
     return elements;
   }
-  const codec = columnCodec(nativeType);
+  const codec = columnCodec(column);
   if (!many) return inColumn(oracle, codec.encodeJson(await codec.decode(stored, {})), storageType);
   const elements: JsonValue[] = [];
   for (const element of parsePostgresListText(stored)) {
@@ -127,7 +137,7 @@ async function parsedValue(
   oracle: Oracle,
   parsed: ColumnDefault | undefined,
   storageType: string,
-  nativeType: string,
+  column: FidelityColumn,
   stored: JsonValue,
 ): Promise<Compared> {
   if (parsed?.kind !== 'literal') return parsed;
@@ -135,7 +145,7 @@ async function parsedValue(
   if (value instanceof Date) return parsed;
   try {
     if (!JSON_ELEMENT_TYPES.has(elementTypeOf(storageType))) {
-      return await inColumn(oracle, literalAsJson(value, nativeType), storageType);
+      return await inColumn(oracle, literalAsJson(value, column), storageType);
     }
     if (!storageType.endsWith('[]') || !Array.isArray(value)) {
       return await jsonbMatching(oracle, value, stored);
@@ -152,10 +162,10 @@ async function parsedValue(
   }
 }
 
-function literalAsJson(value: JsonValue, nativeType: string): JsonValue {
+function literalAsJson(value: JsonValue, column: FidelityColumn): JsonValue {
   if (value === null) return null;
-  const codec = columnCodec(nativeType);
-  if (!nativeType.endsWith('[]') || !Array.isArray(value)) {
+  const codec = columnCodec(column);
+  if (!column.nativeType.endsWith('[]') || !Array.isArray(value)) {
     return codec.encodeJson(codec.decodeJson(value));
   }
   return value.map((element) =>
@@ -241,10 +251,17 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
                 format_type(a.atttypid, a.atttypmod) AS "formattedType",
                 c.data_type AS "dataType", c.udt_name AS "udtName",
                 c.character_maximum_length AS "characterMaximumLength",
-                c.numeric_precision AS "numericPrecision", c.numeric_scale AS "numericScale"
+                c.numeric_precision AS "numericPrecision", c.numeric_scale AS "numericScale",
+                format_type(COALESCE(et.oid, t.oid), a.atttypmod) AS "reportedText",
+                tns.nspname AS "reportedSchema",
+                COALESCE(et.typname, t.typname) AS "reportedName"
            FROM information_schema.columns c
            JOIN pg_catalog.pg_attribute a
              ON a.attrelid = 'fidelity'::regclass AND a.attname = c.column_name
+           JOIN pg_catalog.pg_type t ON t.oid = a.atttypid
+           LEFT JOIN pg_catalog.pg_type et ON et.typarray = t.oid
+           JOIN pg_catalog.pg_namespace tns
+             ON tns.oid = COALESCE(et.typnamespace, t.typnamespace)
           WHERE c.table_name = 'fidelity'`,
       );
       await client.query('INSERT INTO fidelity DEFAULT VALUES');
@@ -264,6 +281,15 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
           throw new Error(`column ${row.name} missing from the catalog or the stored row`);
         }
         const { resolvedNativeType: nativeType } = introspectedNativeType(column);
+        const fidelityColumn: FidelityColumn = {
+          nativeType,
+          reportedType: {
+            text: column.reportedText,
+            kind: undefined,
+            schema: column.reportedSchema,
+            name: column.reportedName,
+          },
+        };
         const live = parsePostgresDefault(column.columnDefault, nativeType);
         const contract = postgresResolveDefault(
           { kind: 'function', expression: row.written },
@@ -271,10 +297,10 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
         );
         let values: ComparedValues | undefined;
         if (row.expect === 'literal' || row.expect === 'refused-by-codec') {
-          const stored = await storedValue(oracle, storedText, row.storageType, nativeType);
+          const stored = await storedValue(oracle, storedText, row.storageType, fidelityColumn);
           values = {
-            live: await parsedValue(oracle, live, row.storageType, nativeType, stored),
-            contract: await parsedValue(oracle, contract, row.storageType, nativeType, stored),
+            live: await parsedValue(oracle, live, row.storageType, fidelityColumn, stored),
+            contract: await parsedValue(oracle, contract, row.storageType, fidelityColumn, stored),
             stored,
           };
         }

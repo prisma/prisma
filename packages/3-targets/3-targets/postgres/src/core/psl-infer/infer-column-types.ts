@@ -1,11 +1,6 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type { DataType } from '@internal/framework-components/codec';
-import {
-  type ResolvedSqlType,
-  resolveReportedSqlType,
-  resolveWrittenSqlTypes,
-} from '@internal/sql-contract/data-type';
-import type { SqlColumnIR } from '@internal/sql-schema-ir/types';
+import { resolveReportedSqlType } from '@internal/sql-contract/data-type';
+import type { ReportedSqlType, SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { InternalError } from '@internal/utils/internal-error';
 import { postgresError } from '../errors';
 import {
@@ -27,20 +22,14 @@ export interface InferredTable {
   readonly columns: readonly SqlColumnIR[];
 }
 
-/**
- * The data type of `column` with its parameters in normal form: read from the type the database
- * reported when introspection recorded one, otherwise from `nativeType`, the column's type as a
- * migration writes it, when exactly one data type reads that text.
- */
-function resolveColumnType(
-  column: SqlColumnIR,
-  dataTypes: readonly DataType[],
-): ResolvedSqlType | undefined {
-  if (column.reportedType !== undefined) {
-    return resolveReportedSqlType(column.reportedType, dataTypes);
+/** The type the database reported for `column`, which introspection always records. */
+function reportedTypeOf(column: SqlColumnIR, tableName: string): ReportedSqlType {
+  if (column.reportedType === undefined) {
+    throw new InternalError(
+      `contract infer read column "${tableName}"."${column.name}" without the type the database reported for it.`,
+    );
   }
-  const written = resolveWrittenSqlTypes(column.nativeType, dataTypes);
-  return written.length === 1 ? written[0] : undefined;
+  return column.reportedType;
 }
 
 /**
@@ -65,12 +54,13 @@ export function inferColumnTypes(input: {
   for (const { schemaName, tableName, columns } of input.tables) {
     for (const column of columns) {
       if (input.isEnumColumn(column)) continue;
-      const resolved = resolveColumnType(column, dataTypes);
+      const reported = reportedTypeOf(column, tableName);
+      const resolved = resolveReportedSqlType(reported, dataTypes);
       const marked = resolved && constructors.get(resolved.dataType);
       const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
       if (call === undefined) {
         unclaimed.push(
-          `${schemaName}.${tableName}.${column.name}: ${column.reportedType?.text ?? column.nativeType}${column.many === true ? '[]' : ''}`,
+          `${schemaName}.${tableName}.${column.name}: ${reported.text}${column.many === true ? '[]' : ''}`,
         );
         continue;
       }
