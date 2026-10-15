@@ -7,6 +7,8 @@
 | a | 1 | `67963d5f75..5a0499d5d4` | 0 | 1 | 1 | ANOTHER ROUND NEEDED |
 | a | 2 | `62c15aa65e`, design `72b6bf7d91` | 0 | 0 | 0 | SATISFIED |
 | b | 1 | `28bca080c5` | 1 | 0 | 1 | ANOTHER ROUND NEEDED |
+| b | 2 | `aa25910d4b` | 0 | 0 | 0 | SATISFIED |
+| c | 1 | `4ac4243a16`, `53096c9043` | 1 | 0 | 1 | ANOTHER ROUND NEEDED |
 
 ## Findings log
 
@@ -56,3 +58,32 @@ The constructors match design 13.5 and the brief: names, codecs, optional argume
 - Where: `packages/2-sql/2-authoring/contract-psl/README.md` line 21, the list of Postgres native storage types the interpreter resolves in type position.
 - What is wrong: the list does not name `Bit`, `VarBit` or `Interval`.
 - Change: add them to the list.
+
+### Dispatch b, round 2
+
+U-b-R1-1 is closed. The print round-trip test expects the `pg/char` refusals and passes at the head of dispatch c. U-b-R1-2 is closed: the contract-psl README names `Interval`, `Bit` and `VarBit`.
+
+### Dispatch c, round 1
+
+Checks run: root `pnpm typecheck:agent`, `pnpm lint:deps`, `pnpm lint:framework-vocabulary`, and `pnpm lint` in target-postgres, family-sql, pgvector and postgis passed. `pnpm test` passed in target-postgres, family-sql, pgvector, postgis, the Postgres extension package and supabase. In `integration-tests` I ran `test/psl-print`, `infer-roundtrip-runtime`, every `infer-roundtrip-fidelity` journey, and the contract-infer-workflow, brownfield-adoption, native-enum-adoption, bytea-defaults, date-time-default-canonical-form, sql-expression-literals, control-plane-commands-without-temporal, composite-pk-greenfield, index-name-convergence and sign-the-database journeys, plus `cli.db-introspect`. All 58 files passed, so print output is unchanged and no infer journey changed. No `as`, `any`, `@ts-expect-error` or import extension was added in production code.
+
+Items 1 to 6 are built as the brief says. The only expected output an existing test changed is `Char(1)` to `Char` in `inferred-psl.defaults-and-types.test.ts`, which item 2 asks for. The Unsupported snapshot and the "falls back to the raw expression" case now expect `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED`.
+
+The dispatch d grep finds only what d still removes: the printer's `isUnsupported`, the `not.toContain('Unsupported(')` assertions in `infer-psl-contract.enum-adoption.test.ts`, `inferred-psl.enums.test.ts` and `native-enum-adoption.e2e.test.ts`. The table and type-map names, and `NOT_YET_WRITTEN_BY_INFER`, are gone from `packages`.
+
+The implementer's choices and the coordinator's questions:
+
+- Resolving only over data types with a marked constructor gives the same result as resolving over the whole stack. Assembly refuses two data types whose claiming texts collide or which claim the same kind (`findSqlDataTypeCollision`), and two constructors marked for one data type (`enforceDataTypeInvariants`). So a reported type matches at most one data type in the stack. When that type is marked, the smaller set finds it too. When it is not marked, the smaller set finds nothing. Both cases end in `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED`, which is the one error design 13.2 asks for.
+- The Supabase script. On `origin/main` (`dfc44c5ac5`, the branch base), `contract infer` writes a `timestamptz` column through `PRESERVED_NATIVE_TYPES`, which maps it to `EXISTING_COLUMN_DATE_TIME_TYPES.timestamptz`, and that is `'TimestamptzString'` (since TML-3366, #30553). So `main` also generates `TimestamptzString`, and the committed `contract.prisma` is out of date on `main`. The script's alias table still keys `CreatedAt` on `Timestamp`, which infer stopped writing at the same time. I ran `contract:generate` at the head of this dispatch. It hit no unclaimed column. Ignoring whitespace, the generated schema differs from the committed one only in `Timestamptz` to `TimestamptzString`, `Timestamp`/`CreatedAt` to `TimestampString`, and relation `index: false` to the index's name, which comes from foreign-key work on `main`. I restored the three files afterwards.
+
+#### U-c-R1-1 (must-fix): infer also resolves a column from its written `nativeType`, a path only test columns use
+
+- Where: `packages/3-targets/3-targets/postgres/src/core/psl-infer/infer-column-types.ts`, `resolveColumnType`'s `resolveWrittenSqlTypes(column.nativeType, ...)` branch and the `column.reportedType?.text ?? column.nativeType` in the unclaimed line.
+- What is wrong: Postgres introspection always sets `reportedType`, because `format_type` of a column's type is never null. Every production caller of infer passes an introspected schema: the CLI, the SQL family instance and the Supabase script. So the second branch runs only for hand-built columns in tests. It is a second way of resolving a column type, it reads the written form that design 11 says infer must not depend on, and it lets tests pass without exercising the reported-type path.
+- Change: a column without `reportedType` is an `InternalError` (it did not come from introspection), and the unclaimed line prints `reportedType.text`. The test helpers that build schema IR columns (the `psl-infer/fixtures.ts` builders and the tests that build columns by hand) derive `reportedType` from the written type, for example through `resolveWrittenSqlTypes` and `renderSqlCatalogText` in the helper. Sweep the same class in `default-fidelity.integration.test.ts`: its `inferredCodecRef` resolves the introspected element type from written text with `resolveWrittenSqlTypes`; read the column's `reportedType` instead.
+
+#### U-c-R1-2 (low): the unclaimed message says no data type claims a type that one does
+
+- Where: the message `contract infer: no data type in the configured stack claims these column types:`, which the brief prescribes.
+- What is wrong: a `tsquery` column is listed under that heading, although `pg/tsquery` claims it. It has no marked constructor. The error reference entry describes both cases correctly.
+- Change: for the coordinator to decide. One option is "Prisma 8 cannot write these column types with the configured stack:".
