@@ -406,7 +406,13 @@ function completeWithActualStack(
     authoringContributions: actualAuthoringContributions(stack),
     ...(options.dataTypes === undefined
       ? {}
-      : { dataTypes: { entries: options.dataTypes, lookup: createDataTypeLookup([]) } }),
+      : {
+          dataTypes: {
+            entries: options.dataTypes,
+            lookup: createDataTypeLookup([]),
+            dataTypeOfCodec: () => undefined,
+          },
+        }),
     controlMutationDefaults: options.controlMutationDefaults ?? controlMutationDefaults,
     clientSupportsSnippets: options.clientSupportsSnippets === true,
   });
@@ -1552,7 +1558,11 @@ namespace app {
   });
 
   it('calls the spec factory with the spec context and never invokes rule parsing', () => {
-    const dataTypes: DataTypeSupport = { entries: {}, lookup: createDataTypeLookup([]) };
+    const dataTypes: DataTypeSupport = {
+      entries: {},
+      lookup: createDataTypeLookup([]),
+      dataTypeOfCodec: () => undefined,
+    };
     const factoryContexts: BlockSpecContext[] = [];
     const throwingRule = {
       kind: 'str' as const,
@@ -1817,6 +1827,18 @@ namespace app {
         insertTextFormat: item.insertTextFormat,
       }));
     const postgresEntries = withFamilyEntry(postgres.postgresDataTypeEntries());
+    // This stack has no type constructors, so no column has a known type and every tag is offered.
+    const postgresTags = [
+      'sql',
+      'json',
+      'date',
+      'time',
+      'timetz',
+      'timestamp',
+      'timestamptz',
+      'interval',
+      'bytea',
+    ];
     const documentationOf = (
       entries: Readonly<Record<string, DataTypeAuthoringEntry>>,
       tag: string,
@@ -1845,8 +1867,7 @@ namespace app {
       value('true'),
       value('false'),
       value('null'),
-      tag(postgresEntries, 'sql', true),
-      tag(postgresEntries, 'json', true),
+      ...postgresTags.map((name) => tag(postgresEntries, name, true)),
     ]);
     const sqliteEntries = withFamilyEntry(sqlite.sqliteDataTypeEntries());
     expect(complete(sqliteEntries, true)).toEqual([
@@ -1860,8 +1881,7 @@ namespace app {
       value('true'),
       value('false'),
       value('null'),
-      tag(postgresEntries, 'sql', false),
-      tag(postgresEntries, 'json', false),
+      ...postgresTags.map((name) => tag(postgresEntries, name, false)),
     ]);
 
     // Each tag carries the text of the tag it names, not every registered tag's text.

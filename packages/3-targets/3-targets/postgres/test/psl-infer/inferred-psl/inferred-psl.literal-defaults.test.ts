@@ -111,8 +111,8 @@ describe('printPsl literal defaults', () => {
 
         model RawDefaults {
           id       Int                @id
-          stamp    TimestampString(3) @default("2024-01-01T00:00:00")
-          day      DateString         @default("2024-01-01")
+          stamp    TimestampString(3) @default(timestamp\`2024-01-01T00:00:00\`)
+          day      DateString         @default(date\`2024-01-01\`)
           jsonNull Jsonb?             @default(json\`null\`)
           textNull VarChar(32)?       @default(sql\`NULL::character varying\`)
 
@@ -144,7 +144,7 @@ describe('printPsl literal defaults', () => {
   });
 
   describe('given special values and a time with time zone, written in SQL', () => {
-    it('prints each default as the quoted text its codec accepts', () => {
+    it('prints each default as the literal its column takes', () => {
       const output = printTable('special_value_defaults', [
         introspected('floatNaN', 'float8', "'NaN'::double precision"),
         introspected('floatNegInf', 'float8', "'-Infinity'::double precision"),
@@ -163,7 +163,7 @@ describe('printPsl literal defaults', () => {
           floatNegInf  Float   @default(-Infinity)
           realNaN      Real    @default(NaN)
           decimalNaN   Numeric @default(NaN)
-          timeWithZone Timetz  @default("12:34:56Z")
+          timeWithZone Timetz  @default(timetz\`12:34:56Z\`)
 
           @@map("special_value_defaults")
         }
@@ -255,7 +255,7 @@ describe('printPsl literal defaults', () => {
 
         model RawListDefaults {
           id         Int                   @id
-          timestamps TimestampString(3)[]? @default(["2024-01-01T00:00:00"]) @noCheck(elementNotNull)
+          timestamps TimestampString(3)[]? @default([timestamp\`2024-01-01T00:00:00\`]) @noCheck(elementNotNull)
 
           @@map("raw_list_defaults")
         }

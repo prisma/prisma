@@ -233,5 +233,9 @@ export const fixtureInterpreterTypes: {
   readonly dataTypes: DataTypeSupport;
 } = {
   codecLookup: fixtureTypeLookups.codecLookup,
-  dataTypes: { entries: fixtureDataTypeSupport.entries, lookup: fixtureTypeLookups.dataTypeLookup },
+  dataTypes: {
+    entries: fixtureDataTypeSupport.entries,
+    lookup: fixtureTypeLookups.dataTypeLookup,
+    dataTypeOfCodec: () => undefined,
+  },
 };

@@ -104,6 +104,7 @@ const support: DataTypeSupport = {
     uuid,
     geometry,
   ]),
+  dataTypeOfCodec: () => undefined,
 };
 
 describe('entryForTag', () => {
@@ -124,7 +125,7 @@ describe('entryForPlain', () => {
   });
 
   it('finds nothing when no entry reads the syntax', () => {
-    expect(entryForPlain({ entries: {}, lookup: support.lookup }, 'string')).toBeUndefined();
+    expect(entryForPlain({ ...support, entries: {} }, 'string')).toBeUndefined();
   });
 });
 
@@ -169,7 +170,11 @@ describe('readWrittenValue', () => {
   });
 
   it('refuses a plain syntax no entry reads', () => {
-    const noEntries: DataTypeSupport = { entries: {}, lookup: support.lookup };
+    const noEntries: DataTypeSupport = {
+      entries: {},
+      lookup: support.lookup,
+      dataTypeOfCodec: () => undefined,
+    };
     expect(readWrittenValue(noEntries, { kind: 'string', text: 'a' })).toEqual(
       notOk({ kind: 'unwritable', syntax: 'string' }),
     );
@@ -254,6 +259,7 @@ describe('admittedTags', () => {
         },
       },
       lookup: createDataTypeLookup([json, geo]),
+      dataTypeOfCodec: () => undefined,
     };
     expect(admittedTags(withGeo, geo.id)).toEqual(['geo', 'json']);
   });

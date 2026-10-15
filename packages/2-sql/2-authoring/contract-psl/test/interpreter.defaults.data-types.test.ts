@@ -37,7 +37,7 @@ function interpret(
     target: postgresTarget,
     scalarColumnDescriptors: postgresNativeScalarTypeDescriptors,
     authoringContributions: pgvectorAuthoringContributions,
-    dataTypes: { entries: dataTypes, lookup },
+    dataTypes: { entries: dataTypes, lookup, dataTypeOfCodec: () => undefined },
     composedExtensionContracts: new Map(),
     createNamespace: createTestSqlNamespace,
     capabilities: { sql: { scalarList: true } },

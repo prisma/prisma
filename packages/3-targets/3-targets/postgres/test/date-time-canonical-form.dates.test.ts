@@ -262,11 +262,11 @@ describe('pg/date canonical form', () => {
 });
 
 describe('the date and time types declare their canonical form', () => {
-  it('gives pg/date its canonical-form function, which its cast from text shares', () => {
+  it('gives pg/date its canonical-form function, and takes no text through a cast', () => {
     expect({
       canonical: pgDate.toCanonicalForm?.('0044-03-15 BC'),
-      cast: pgDate.casts[pgText.id]?.('0044-03-15 BC'),
-    }).toEqual({ canonical: '-000043-03-15', cast: '-000043-03-15' });
+      castFromText: Object.hasOwn(pgDate.casts, pgText.id),
+    }).toEqual({ canonical: '-000043-03-15', castFromText: false });
   });
 
   it('refuses a value that is not text', () => {

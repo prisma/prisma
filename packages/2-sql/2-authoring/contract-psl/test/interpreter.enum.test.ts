@@ -108,6 +108,7 @@ function interpret(schema: string, overrides?: Partial<InterpretPslDocumentToSql
       entries:
         'dataTypes' in contributions ? contributions.dataTypes : fixtureDataTypeSupport.entries,
       lookup: fixtureTypeLookups.dataTypeLookup,
+      dataTypeOfCodec: () => undefined,
     },
     codecLookup: testCodecLookup,
     createNamespace: createTestSqlNamespace,

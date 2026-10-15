@@ -280,4 +280,5 @@ export const fixtureDataTypeEntries: Readonly<Record<string, DataTypeAuthoringEn
 export const fixtureDataTypeSupport: DataTypeSupport = {
   entries: fixtureDataTypeEntries,
   lookup: createDataTypeLookup(fixtureDataTypes),
+  dataTypeOfCodec: () => undefined,
 };

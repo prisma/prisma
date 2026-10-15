@@ -98,6 +98,7 @@ const support: DataTypeSupport = {
     pgJson,
     pgUuid,
   ]),
+  dataTypeOfCodec: () => undefined,
 };
 
 function argOf(source: string): { expr: ExpressionAst; ctx: AttributeCtx } {
@@ -213,6 +214,7 @@ describe('dataTypeValue', () => {
         },
       },
       lookup: createDataTypeLookup([pgJson, geo]),
+      dataTypeOfCodec: () => undefined,
     };
     const type = dataTypeValue(geo.id, withGeo);
     expect({ label: type.label, tags: type.tags }).toEqual({
@@ -302,6 +304,7 @@ describe('dataTypeValue', () => {
     const noText: DataTypeSupport = {
       entries: { [sqlExpression.id]: entries[sqlExpression.id] ?? fail() },
       lookup: support.lookup,
+      dataTypeOfCodec: () => undefined,
     };
     const source = '"x"';
     expect(parse(sqlExpression.id, source, noText)).toEqual(
@@ -410,7 +413,11 @@ describe('dataTypeValue', () => {
 
   it('throws an internal error when parsing for a registered type that nothing writes', () => {
     const pgBlob = dataType('pg/blob', { read: (json) => json });
-    const withBlob: DataTypeSupport = { entries, lookup: createDataTypeLookup([pgBlob]) };
+    const withBlob: DataTypeSupport = {
+      entries,
+      lookup: createDataTypeLookup([pgBlob]),
+      dataTypeOfCodec: () => undefined,
+    };
     const { expr, ctx } = argOf('"x"');
     expect(() => dataTypeValue(pgBlob.id, withBlob).parse(expr, ctx)).toThrow(
       new InternalError(

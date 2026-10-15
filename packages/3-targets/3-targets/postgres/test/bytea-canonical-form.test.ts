@@ -66,11 +66,12 @@ describe('the canonical form of pg/bytea', () => {
     );
   });
 
-  it('is the cast from pg/text, so a PSL default may be written in PostgreSQL hex', () => {
+  it('is not a cast from pg/text: a PSL default is written with the bytea tag', () => {
     expect({
-      hex: pgBytea.casts[pgText.id]?.('\\x68656c6c6f'),
-      base64: pgBytea.casts[pgText.id]?.(HELLO),
-    }).toEqual({ hex: HELLO, base64: HELLO });
+      hex: pgBytea.toCanonicalForm?.('\\x68656c6c6f'),
+      base64: pgBytea.toCanonicalForm?.(HELLO),
+      castFromText: Object.hasOwn(pgBytea.casts, pgText.id),
+    }).toEqual({ hex: HELLO, base64: HELLO, castFromText: false });
   });
 
   it('makes a default PostgreSQL prints in hex equal the base64 the contract stores', () => {

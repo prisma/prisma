@@ -605,7 +605,7 @@ const canonicalFromText =
   (value) =>
     typeof value === 'string' ? canonical(value) : wrongShape(value, 'text');
 
-/** A type whose canonical form reads text: that canonical form, and the same function as its cast from text. */
+/** A type whose canonical form reads text, which no other type's value is cast into: its tag reads the text (ADR 254). */
 function typeCanonicalFromText(
   id: string,
   canonical: (text: string) => string,
@@ -615,8 +615,7 @@ function typeCanonicalFromText(
     readonly read: DataTypeReader;
   },
 ) {
-  const toCanonicalForm = canonicalFromText(canonical);
-  return sqlDataType(id, { ...spec, toCanonicalForm, casts: { [pgText.id]: toCanonicalForm } });
+  return sqlDataType(id, { ...spec, toCanonicalForm: canonicalFromText(canonical) });
 }
 
 export const pgTimetz = typeCanonicalFromText('pg/timetz', pgTimetzCanonical, {
@@ -665,9 +664,11 @@ function pgInetCanonical(text: string): string {
   );
 }
 
-export const pgInet = typeCanonicalFromText('pg/inet', pgInetCanonical, {
+export const pgInet = sqlDataType('pg/inet', {
   read: readInet,
   texts: [writtenAndCatalog('inet')],
+  toCanonicalForm: canonicalFromText(pgInetCanonical),
+  casts: { [pgText.id]: canonicalFromText(pgInetCanonical) },
 });
 
 export const pgDate = typeCanonicalFromText('pg/date', pgDateCanonical, {

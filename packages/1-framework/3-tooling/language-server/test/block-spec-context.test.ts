@@ -30,6 +30,7 @@ const fixtureDataTypes: DataTypeSupport = {
     },
   },
   lookup: createDataTypeLookup([fixtureExpression]),
+  dataTypeOfCodec: () => undefined,
 };
 
 function recordingDescriptors(seen: BlockSpecContext[]): AuthoringPslBlockDescriptorNamespace {

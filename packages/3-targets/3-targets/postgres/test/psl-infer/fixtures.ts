@@ -233,6 +233,7 @@ export const inferBuildContext: SqlPslBuildContext = {
   dataTypes: {
     entries: postgresDataTypeEntries(),
     lookup: createDataTypeLookup(postgresDataTypes),
+    dataTypeOfCodec: () => undefined,
   },
 };
 

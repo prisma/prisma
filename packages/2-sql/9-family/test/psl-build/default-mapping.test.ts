@@ -131,7 +131,7 @@ function forColumn(
   shape: { readonly list?: true } = {},
 ): DefaultMappingOptions {
   return {
-    dataTypes: { entries, lookup: createDataTypeLookup(types) },
+    dataTypes: { entries, lookup: createDataTypeLookup(types), dataTypeOfCodec: () => undefined },
     columnCodec: { dataType: columnDataType.id },
     ...(shape.list === true ? { list: true } : {}),
   };
@@ -319,7 +319,11 @@ describe('mapDefault with a tag entry that names the type its body is', () => {
       mapDefault(
         { kind: 'literal', value: '{"a":1}' },
         {
-          dataTypes: { entries: textEntries, lookup: createDataTypeLookup([storedText]) },
+          dataTypes: {
+            entries: textEntries,
+            lookup: createDataTypeLookup([storedText]),
+            dataTypeOfCodec: () => undefined,
+          },
           columnCodec: { dataType: storedText.id },
         },
       ),

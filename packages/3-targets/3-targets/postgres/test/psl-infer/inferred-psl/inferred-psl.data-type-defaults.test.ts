@@ -146,10 +146,10 @@ describe('printPsl writes each default as the literal the column data type takes
     ['infinity', 'timestamptz', "'infinity'::timestamp with time zone"],
     ['-infinity', 'date', "'-infinity'::date"],
   ])(
-    'prints the %s sentinel on a %s column as a literal, which the text codec reads back',
+    'prints the %s sentinel on a %s column with the column type tag',
     (sentinel, nativeType, rawDefault) => {
       expect(printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
-        stamp: `@default("${sentinel}")`,
+        stamp: `@default(${tagged(nativeType, sentinel)})`,
       });
     },
   );
@@ -165,13 +165,13 @@ describe('printPsl writes each default as the literal the column data type takes
       "'0044-03-15 00:00:00+00 BC'::timestamp with time zone",
       '-000043-03-15T00:00:00Z',
     ],
-  ])('prints a %s default as a literal in canonical form', (nativeType, rawDefault, standard) => {
+  ])('prints a %s default with its tag, in canonical form', (nativeType, rawDefault, standard) => {
     expect(printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
-      stamp: `@default("${standard}")`,
+      stamp: `@default(${tagged(nativeType, standard)})`,
     });
   });
 
-  it('prints a bytea default, which PostgreSQL prints in hex, as base64 literals', () => {
+  it('prints a bytea default with the bytea tag, in the hex PostgreSQL prints, its backslash escaped as a tag body escapes one', () => {
     expect(
       printedDefaults([
         introspected('blob', 'bytea', "'\\x68656c6c6f'::bytea"),
@@ -181,9 +181,9 @@ describe('printPsl writes each default as the literal the column data type takes
         }),
       ]),
     ).toEqual({
-      blob: '@default("aGVsbG8=")',
-      empty: '@default("")',
-      blobs: '@default(["aGVsbG8=", "AAE="])',
+      blob: `@default(${tagged('bytea', '\\\\x68656c6c6f')})`,
+      empty: `@default(${tagged('bytea', '\\\\x')})`,
+      blobs: `@default([${tagged('bytea', '\\\\x68656c6c6f')}, ${tagged('bytea', '\\\\x0001')}])`,
     });
   });
 

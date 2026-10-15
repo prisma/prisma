@@ -555,6 +555,26 @@ function byteaRefused(message: string): never {
   });
 }
 
+/** The base64 `pg/bytea` stores for the hex text PostgreSQL prints, `\x68656c6c6f`. The `bytea` tag reads its body with this. */
+export function pgByteaFromHexText(text: string): string {
+  if (!BYTEA_TEXT.test(text)) {
+    throw structuredError(
+      'CONTRACT.CAST_REFUSED',
+      `"${text}" is not the hex text PostgreSQL prints for bytea, which is \\x followed by two hexadecimal digits for each byte, as in \\x68656c6c6f.`,
+      {
+        why: 'The bytea tag reads bytes as the hex text PostgreSQL prints under bytea_output = hex.',
+        fix: 'Write the bytes in hex after \\x, as in bytea`\\x68656c6c6f`.',
+      },
+    );
+  }
+  return Buffer.from(text.slice(2), 'hex').toString('base64');
+}
+
+/** The hex text PostgreSQL prints for the base64 `pg/bytea` stores. */
+export function pgByteaHexText(base64: string): string {
+  return `\\x${Buffer.from(base64, 'base64').toString('hex')}`;
+}
+
 /**
  * The canonical form of `pg/bytea` (ADR 254), the base64 its codec writes, from base64 or the hex
  * text PostgreSQL prints under `bytea_output = 'hex'`.
@@ -566,7 +586,7 @@ export function pgByteaCanonical(text: string): string {
         `${JSON.stringify(text)} is not PostgreSQL hex, which has two hexadecimal digits for each byte. ${BYTEA_FORMS}`,
       );
     }
-    return Buffer.from(text.slice(2), 'hex').toString('base64');
+    return pgByteaFromHexText(text);
   }
   if (!BASE64_TEXT.test(text)) {
     byteaRefused(

@@ -92,7 +92,7 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
     composedExtensions: [],
     defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
-    dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
+    dataTypes: { entries: {}, lookup: createDataTypeLookup([]), dataTypeOfCodec: () => undefined },
     authoringContributions: {
       dataTypes: {},
       field: {},

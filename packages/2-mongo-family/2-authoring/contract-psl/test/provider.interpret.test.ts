@@ -57,7 +57,7 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
       describeUnsupportedAttribute: describeUnsupportedMongoAttribute,
       describeUnresolvedType: describeUnresolvedMongoType,
     },
-    dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
+    dataTypes: { entries: {}, lookup: createDataTypeLookup([]), dataTypeOfCodec: () => undefined },
     codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
     controlMutationDefaults: {
       defaultFunctionRegistry: new Map(),

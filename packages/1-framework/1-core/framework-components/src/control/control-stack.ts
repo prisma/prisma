@@ -925,7 +925,11 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     extensionIds: extractComponentIds(family, target, adapter, orderedExtensions),
     codecLookup,
     codecDescriptors,
-    dataTypes: { entries: authoringContributions.dataTypes, lookup: dataTypes.lookup },
+    dataTypes: {
+      entries: authoringContributions.dataTypes,
+      lookup: dataTypes.lookup,
+      dataTypeOfCodec: (codecId) => codecLookup.descriptorFor?.(codecId)?.dataType,
+    },
     declaredDataTypes: dataTypes.declared,
     aggregateDescriptors: collectAggregateDescriptors(allDescriptors),
     authoringContributions,

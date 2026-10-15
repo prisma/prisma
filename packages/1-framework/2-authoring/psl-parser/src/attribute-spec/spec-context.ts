@@ -19,7 +19,11 @@ export interface AttributeSpecContext {
 }
 
 /** The data types of a stack that registers none. */
-export const EMPTY_DATA_TYPES: DataTypeSupport = { entries: {}, lookup: createDataTypeLookup([]) };
+export const EMPTY_DATA_TYPES: DataTypeSupport = {
+  entries: {},
+  lookup: createDataTypeLookup([]),
+  dataTypeOfCodec: () => undefined,
+};
 
 export interface FieldAttributeSpecContext extends AttributeSpecContext {
   readonly field: FieldSymbol;

@@ -222,8 +222,8 @@ describe('Number defaults on String, Bytes, DateTime and Boolean fields', () => 
   it('are refused, naming the data type and the casts the column type has', async () => {
     expect(await diagnosticsOf('number-default-spellings', 'other-types.prisma')).toEqual([
       'Field "OtherTypes.name": @default holds a pg/int2 value, which pg/text has no cast from; it casts from nothing.',
-      'Field "OtherTypes.payload": @default holds a pg/int2 value, which pg/bytea has no cast from; it casts from pg/text.',
-      'Field "OtherTypes.at": @default holds a pg/int2 value, which pg/timestamp has no cast from; it casts from pg/text.',
+      'Field "OtherTypes.payload": @default holds a pg/int2 value, which pg/bytea has no cast from; it casts from nothing.',
+      'Field "OtherTypes.at": @default holds a pg/int2 value, which pg/timestamp has no cast from; it casts from nothing.',
       'Field "OtherTypes.flag": @default holds a pg/int2 value, which pg/bool has no cast from; it casts from nothing.',
     ]);
   });

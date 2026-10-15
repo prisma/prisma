@@ -90,7 +90,7 @@ function interpretWithEnum(handle: EnumTypeHandle) {
     scalarTypeCodecIds: new Map([['ObjectId', 'mongo/objectId@1']]),
     defaultFunctionRegistry: new Map(),
     codecLookup,
-    dataTypes: { entries: {}, lookup: dataTypeLookup },
+    dataTypes: { entries: {}, lookup: dataTypeLookup, dataTypeOfCodec: () => undefined },
     authoringContributions: {
       field: {},
       type: {},

@@ -21,10 +21,11 @@ export type WrittenValue =
 
 export type WrittenScalar = Exclude<WrittenValue, { readonly kind: 'list' }>;
 
-/** A stack's registered data types with their authoring entries. */
+/** A stack's registered data types with their authoring entries, and the data type each of its codecs represents. */
 export interface DataTypeSupport {
   readonly entries: Readonly<Record<string, DataTypeAuthoringEntry>>;
   readonly lookup: DataTypeLookup;
+  readonly dataTypeOfCodec: (codecId: string) => DataTypeId | undefined;
 }
 
 /** A value with its data type; `value` is the canonical form of `type`. */

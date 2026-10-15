@@ -1,6 +1,7 @@
-import type {
-  AuthoringModelAttributeDescriptor,
-  DataTypeSupport,
+import {
+  type AuthoringModelAttributeDescriptor,
+  authoringEntryType,
+  type DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
@@ -250,8 +251,31 @@ function defaultFunctionArm(
   return mapArg(funcCall(name, signature), (call) => ({ kind: 'default-function', call }));
 }
 
+/** The data type of the column a field declares, when its type is a constructor or preset the stack knows. */
+function receivingDataType(ctx: FieldAttributeSpecContext): string | undefined {
+  const resolution = ctx.typeResolution;
+  if (resolution?.kind !== 'contributedType') return undefined;
+  return ctx.dataTypes.dataTypeOfCodec(resolution.symbol.descriptor.output.codecId);
+}
+
+/** Whether a value of `type` can be written for a column of `receiving`: it is that type, or the column's type casts from it. An unknown column takes every type. */
+function receives(
+  dataTypes: DataTypeSupport,
+  receiving: string | undefined,
+  type: string,
+): boolean {
+  if (receiving === undefined || type === receiving) return true;
+  const receivingType = dataTypes.lookup.get(receiving);
+  if (receivingType === undefined) return true;
+  return (
+    Object.hasOwn(receivingType.casts, type) ||
+    (receivingType.listCast?.of.some((of) => of === type) ?? false)
+  );
+}
+
 function scalarDefaultArms(
   isList: boolean,
+  receiving: string | undefined,
   dataTypes: DataTypeSupport,
   defaultFunctionRegistry: ControlMutationDefaultRegistry,
 ): readonly [ArgType<DefaultArgValue, AttributeCtx>, ...ArgType<DefaultArgValue, AttributeCtx>[]] {
@@ -259,8 +283,8 @@ function scalarDefaultArms(
   // text of the tag it names rather than every registered tag's text run together.
   const tagArms = (admits: (dataType: string) => boolean) => {
     const tagsByDocumentation = new Map<string, string[]>();
-    for (const [dataType, entry] of Object.entries(dataTypes.entries)) {
-      if (entry.written.kind !== 'tag' || !admits(dataType)) continue;
+    for (const [key, entry] of Object.entries(dataTypes.entries)) {
+      if (entry.written.kind !== 'tag' || !admits(authoringEntryType(key, entry))) continue;
       const tags = tagsByDocumentation.get(entry.documentation);
       if (tags === undefined) tagsByDocumentation.set(entry.documentation, [entry.written.tag]);
       else tags.push(entry.written.tag);
@@ -269,7 +293,13 @@ function scalarDefaultArms(
       writtenScalar(taggedLiteral(tags, { documentation })),
     );
   };
-  const anyTag = () => tagArms(() => true);
+  // A list column's single written value is an expression; a value of its element type goes in a list.
+  const columnTags = () =>
+    tagArms(
+      (dataType) =>
+        dataType === SQL_EXPRESSION_DATA_TYPE_ID ||
+        (!isList && receives(dataTypes, receiving, dataType)),
+    );
   // A list element may itself be a tagged literal, so `Jsonb[] @default([json`{}`])` parses. A
   // SQL expression is never a list element, so the list does not offer its tag.
   const literal = () =>
@@ -278,7 +308,10 @@ function scalarDefaultArms(
       writtenScalar(numLiteral()),
       writtenScalar(bool()),
       nullLiteral(),
-      ...tagArms((dataType) => dataType !== SQL_EXPRESSION_DATA_TYPE_ID),
+      ...tagArms(
+        (dataType) =>
+          dataType !== SQL_EXPRESSION_DATA_TYPE_ID && receives(dataTypes, receiving, dataType),
+      ),
     );
   const listArm = () => writtenList(literal());
   const funcArms = [...defaultFunctionRegistry.entries()].map(([name, entry]) =>
@@ -291,14 +324,14 @@ function scalarDefaultArms(
     ),
   );
   return isList
-    ? [listArm(), ...funcArms, ...anyTag()]
+    ? [listArm(), ...funcArms, ...columnTags()]
     : [
         writtenScalar(str()),
         writtenScalar(numLiteral()),
         writtenScalar(bool()),
         nullLiteral(),
         ...funcArms,
-        ...anyTag(),
+        ...columnTags(),
         listArm(),
       ];
 }
@@ -382,7 +415,12 @@ function defaultFieldSpec(ctx: FieldAttributeSpecContext) {
   const members = enumMemberNames(ctx);
   const valueArms =
     members === undefined
-      ? scalarDefaultArms(ctx.field.list, ctx.dataTypes, ctx.defaultFunctionRegistry)
+      ? scalarDefaultArms(
+          ctx.field.list,
+          receivingDataType(ctx),
+          ctx.dataTypes,
+          ctx.defaultFunctionRegistry,
+        )
       : enumDefaultArms(members, ctx.field.typeName, ctx.field.list);
   return fieldAttribute('default', {
     documentation: 'Supplies a default value when this field is omitted from a mutation.',

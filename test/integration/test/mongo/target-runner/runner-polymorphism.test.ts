@@ -154,7 +154,7 @@ function makeContractFromPsl(): MongoContract {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
       codecLookup: mongoCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
-      dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
+      dataTypes: { entries: {}, lookup: mongoDataTypeLookup, dataTypeOfCodec: () => undefined },
       resolvedInputs: [],
       capabilities: {},
     },

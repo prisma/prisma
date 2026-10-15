@@ -60,6 +60,7 @@ export function testBuildContext(
     dataTypes: {
       entries: postgresDataTypeEntries(),
       lookup: createDataTypeLookup([...postgresDataTypes, ...(extra.dataTypes ?? [])]),
+      dataTypeOfCodec: () => undefined,
     },
   };
 }
