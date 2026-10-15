@@ -96,6 +96,7 @@ const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor>
 function contextFor(authoringContributions: typeof assembled): BoundPslSchema['context'] {
   return {
     composedExtensions: [],
+    defaultNamespaceId: 'public',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       ...authoringContributions,
@@ -117,6 +118,7 @@ function interpretWithSymbolDiagnostics(
 ) {
   const { document, sources } = parse(source, 'psl-rls-authoring.test.psl');
   const { symbolTable, diagnostics: collectionDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });

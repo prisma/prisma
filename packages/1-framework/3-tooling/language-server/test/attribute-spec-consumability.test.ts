@@ -27,6 +27,7 @@ function pipelineWithSymbolTable(filename: string, text: string) {
   const { symbolTable } = buildSymbolTable({
     documents: [pipeline.document],
     sources: pipeline.sources,
+    defaultNamespaceId: 'public',
   });
   return { ...pipeline, sourceFile: snapshot.sourceFile, symbolTable };
 }
@@ -107,7 +108,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
     const controlMutationDefaults = assembleControlMutationDefaults([]);
     const source = 'model Variant {\n @@base(Missing, "v")\n}\nmodel Base { id Int }';
     const pipeline = pipelineWithSymbolTable('schema.prisma', source);
-    const model = pipeline.symbolTable.topLevel.models['Variant'];
+    const model = pipeline.symbolTable.defaultNamespace.models['Variant'];
     if (!model) throw new Error('missing variant');
     const spec = assembleAttributeSpecs(authoringContributions).model['base']?.({
       symbols: pipeline.symbolTable,
@@ -191,7 +192,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       'attribute-spec-consumability.psl',
       'model Widget {\n  id Int @id\n}\n',
     );
-    const model = pipeline.symbolTable.topLevel.models['Widget'];
+    const model = pipeline.symbolTable.defaultNamespace.models['Widget'];
     const field = model?.fields['id'];
     expect(field).toBeDefined();
     if (model === undefined || field === undefined) return;
@@ -229,7 +230,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       'attribute-spec-consumability.psl',
       'model Widget {\n  id Int @id\n}\n',
     );
-    const model = pipeline.symbolTable.topLevel.models['Widget'];
+    const model = pipeline.symbolTable.defaultNamespace.models['Widget'];
     expect(model).toBeDefined();
     if (model === undefined) return;
 

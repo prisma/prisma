@@ -110,6 +110,7 @@ function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
     sourceId: 'schema.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

@@ -331,9 +331,8 @@ export function interpretExtensionBlocks(
   const { symbolTable, sources, pslBlockDescriptors, binder, dataTypes } = input;
   const parsedBlocks = new Map<BlockSymbol, ParsedPslExtensionBlock>();
   const diagnostics: PslDiagnostic[] = [];
-  const scopes = [symbolTable.topLevel, ...Object.values(symbolTable.topLevel.namespaces)];
-  for (const scope of scopes) {
-    for (const block of Object.values(scope.blocks)) {
+  for (const namespace of Object.values(symbolTable.namespaces)) {
+    for (const block of Object.values(namespace.blocks)) {
       const descriptor = findBlockDescriptor(pslBlockDescriptors, block.keyword);
       if (descriptor === undefined) continue;
       const spec = blockSpecFactoryOf(descriptor)(

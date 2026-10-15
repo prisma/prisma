@@ -79,6 +79,7 @@ function interpret(
     sourceId: 'mongo-enum-schema.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         field: authoringContributions.field ?? {},

@@ -68,8 +68,10 @@ describe('pslBlockDescriptors.requiresModelAttribute enforcement', () => {
     ['', ''],
     ['public', 'public'],
     ['public', ''],
+    ['', 'public'],
     ['unbound', 'unbound'],
     ['__unbound__', '__unbound__'],
+    ['unbound', '__unbound__'],
   ])(
     'resolves mapped references from namespace "%s" to namespace "%s"',
     (namespace, modelNamespace) => {
@@ -95,8 +97,9 @@ describe('pslBlockDescriptors.requiresModelAttribute enforcement', () => {
   );
 
   it.each([
-    ['', 'public'],
-    ['unbound', '__unbound__'],
+    ['', 'auth'],
+    ['unbound', 'auth'],
+    ['auth', 'storage'],
   ])(
     'rejects unqualified references from namespace "%s" to namespace "%s"',
     (namespace, modelNamespace) => {

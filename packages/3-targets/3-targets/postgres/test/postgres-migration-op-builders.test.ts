@@ -17,7 +17,7 @@ import {
 } from '@internal/sql-relational-core/contract-free';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
-import type { AlterColumnTypeOptions } from '../src/core/migrations/op-factory-call';
+import { postgresDataTypes } from '../src/core/data-types';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
 import type { DataTransformOptions } from '../src/core/migrations/operations/data-transform';
 import type { CreateIndexExtras } from '../src/core/migrations/operations/indexes';
@@ -166,10 +166,21 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly schema: string;
     readonly table: string;
     readonly column: string;
-    readonly options: Omit<AlterColumnTypeOptions, 'using'> & { readonly using?: SqlTextInput };
+    readonly type: string;
+    readonly using?: SqlTextInput;
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<Op> {
     return this.alterColumnType(options);
+  }
+
+  callAddColumnWithTemporaryDefault(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: string;
+    readonly type: string;
+    readonly temporaryDefault: SqlTextInput;
+  }): Promise<Op> {
+    return this.addColumnWithTemporaryDefault(options);
   }
 
   callSetNotNull(options: {
@@ -374,11 +385,7 @@ const cases: ReadonlyArray<{
         schema: 'public',
         table: 'widget',
         column: 'name',
-        options: {
-          qualifiedTargetType: 'text',
-          formatTypeExpected: 'text',
-          rawTargetTypeForLabel: 'text',
-        },
+        type: 'text',
       }),
   },
   {
@@ -490,7 +497,9 @@ function fakeControlStack(): ControlStack<'sql', 'postgres'> {
   };
   const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
   return {
-    adapter: { create: () => adapter },
+    target: { id: 'postgres' },
+    adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
+    extensions: [],
   } as unknown as ControlStack<'sql', 'postgres'>;
 }
 
@@ -578,28 +587,77 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(typeof op.execute[0]?.sql).toBe('string');
   });
 
-  it('alterColumnType is destructive unless the migration says it is a widening', async () => {
+  it('alterColumnType takes plain options, and is destructive unless the migration says otherwise', async () => {
     const m = new ExposedMigration(fakeControlStack());
-    const options = {
-      qualifiedTargetType: 'int8',
-      formatTypeExpected: 'bigint',
-      rawTargetTypeForLabel: 'int8',
-    };
-    const lossy = await m.callAlterColumnType({
-      schema: 'public',
-      table: 'widget',
-      column: 'count',
-      options,
-    });
-    const widening = await m.callAlterColumnType({
-      schema: 'public',
-      table: 'widget',
-      column: 'count',
-      options,
-      operationClass: 'widening',
-    });
+    const where = { schema: 'public', table: 'widget', column: 'count', type: 'int8' };
+    const lossy = await m.callAlterColumnType(where);
+    const widening = await m.callAlterColumnType({ ...where, operationClass: 'widening' });
+    const converted = await m.callAlterColumnType({ ...where, using: '"count"::int8' });
 
-    expect([lossy.operationClass, widening.operationClass]).toEqual(['destructive', 'widening']);
+    expect([lossy.operationClass, widening.operationClass, converted.operationClass]).toEqual([
+      'destructive',
+      'widening',
+      'data',
+    ]);
+    expect(converted.execute[0]?.sql).toBe(
+      'ALTER TABLE "public"."widget" ALTER COLUMN "count" TYPE int8 USING "count"::int8',
+    );
+    expect(converted.postcheck[0]?.description).toBe('verify column "count" has type "bigint"');
+  });
+
+  it('alterColumnType refuses the options an earlier version wrote, naming the new shape', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    const earlier = {
+      schema: 'public',
+      table: 'User',
+      column: 'age',
+      options: {
+        qualifiedTargetType: 'int4',
+        formatTypeExpected: 'integer',
+        rawTargetTypeForLabel: 'int4',
+        using: 'trim("age")::integer',
+      },
+    } as unknown as Parameters<ExposedMigration['callAlterColumnType']>[0];
+
+    expect(() => m.callAlterColumnType(earlier)).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.OPERATION_OPTION_REMOVED',
+        message:
+          '`alterColumnType` in migration.ts passes `options`, which this version no longer reads, for column "age" of table "User"',
+        fix: 'Pass `{ schema, table, column, type, using? }`: move `options.qualifiedTargetType` to `type` and `options.using` to `using`, and drop the other options. Or, if the migration is not applied, delete its package and run `migration plan` again. The upgrade entry `postgres-alter-column-type-plain-options` shows the new shape: https://github.com/prisma/orm/tree/main/skills/prisma-8/upgrading',
+      }),
+    );
+  });
+
+  it('alterColumnType refuses a call with no type, naming the shape it takes', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    const typeless = { schema: 'public', table: 'User', column: 'age' } as unknown as Parameters<
+      ExposedMigration['callAlterColumnType']
+    >[0];
+
+    expect(() => m.callAlterColumnType(typeless)).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        message:
+          'alterColumnType({ schema: "public", table: "User", column: "age" }): it has no `type`',
+        fix: 'Pass `{ schema, table, column, type, using? }`, with `type` written as a migration writes it, such as int4 or varchar(20).',
+      }),
+    );
+  });
+
+  it('alterColumnType refuses a type the stack cannot read, naming the call', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    expect(() =>
+      m.callAlterColumnType({ schema: 'public', table: 'widget', column: 'count', type: 'int9' }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        meta: {
+          type: 'int9',
+          where: 'alterColumnType({ schema: "public", table: "widget", column: "count" })',
+        },
+      }),
+    );
   });
 
   it('setNotNull lowers to a widening operation', async () => {
@@ -618,7 +676,9 @@ function astRecordingControlStack(): ControlStack<'sql', 'postgres'> {
   };
   const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
   return {
-    adapter: { create: () => adapter },
+    target: { id: 'postgres' },
+    adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
+    extensions: [],
   } as unknown as ControlStack<'sql', 'postgres'>;
 }
 
@@ -683,12 +743,19 @@ describe('PostgresMigration op-builder methods with sql values', () => {
           schema: 'public',
           table: 'widget',
           column: 'count',
-          options: {
-            qualifiedTargetType: 'int8',
-            formatTypeExpected: 'bigint',
-            rawTargetTypeForLabel: 'int8',
-            using: text('"count"::int8'),
-          },
+          type: 'int8',
+          using: text('"count"::int8'),
+        }),
+    },
+    {
+      name: 'addColumnWithTemporaryDefault temporaryDefault',
+      run: (m, text) =>
+        m.callAddColumnWithTemporaryDefault({
+          schema: 'public',
+          table: 'widget',
+          column: 'title',
+          type: 'text',
+          temporaryDefault: text("''"),
         }),
     },
     {

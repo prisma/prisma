@@ -6,11 +6,13 @@ import {
   type ModelSymbol,
   type PslSymbol,
   type ResolvedAttribute,
+  type SymbolTable,
   typeReferenceNode,
 } from '@internal/psl-parser';
 import type { ResolvedFormatOptions } from '@internal/psl-parser/format';
 import {
   type AstNode,
+  MixinDeclarationAst,
   ModelDeclarationAst,
   type SourceFile,
   type SyntaxNode,
@@ -27,7 +29,10 @@ import { type AttributeSpecSource, attributeSpecResolver } from './attribute-spe
 import { identTokenAt, pslSymbolOf, resolvedNodeAt } from './cursor-resolution';
 import { type ProvideReferencesInput, provideReferences } from './references';
 
-export type ProvidePrepareRenameInput = Omit<ProvideReferencesInput, 'includeDeclaration'>;
+export interface ProvidePrepareRenameInput
+  extends Omit<ProvideReferencesInput, 'includeDeclaration'> {
+  readonly symbolTable: SymbolTable;
+}
 
 export interface ProvideRenameInput
   extends ProvidePrepareRenameInput,
@@ -45,6 +50,7 @@ export function providePrepareRename(input: ProvidePrepareRenameInput): PrepareR
   const { sourceFile } = input;
   const token = identTokenAt(input.document.syntax, sourceFile.offsetAt(input.position));
   if (token === undefined) return null;
+  if (renamedSymbol(input) === input.symbolTable.defaultNamespace) return null;
   if (provideReferences({ ...input, includeDeclaration: true }).length === 0) return null;
   return {
     range: {
@@ -63,6 +69,7 @@ export function provideRename(input: ProvideRenameInput): WorkspaceEdit | null {
       `"${newName}" is not a valid PSL identifier`,
     );
   }
+  if (renamedSymbol(input) === input.symbolTable.defaultNamespace) return null;
   const locations = provideReferences({ ...input, includeDeclaration: true });
   if (locations.length === 0) return null;
   const changes: Record<string, TextEdit[]> = {};
@@ -102,7 +109,7 @@ function mapAttributeEdit(input: ProvideRenameInput): MapAttributeEdit | undefin
   }
 }
 
-function renamedSymbol(input: ProvideRenameInput): PslSymbol | undefined {
+function renamedSymbol(input: ProvidePrepareRenameInput): PslSymbol | undefined {
   const token = identTokenAt(input.document.syntax, input.sourceFile.offsetAt(input.position));
   const resolved = token === undefined ? undefined : resolvedNodeAt(token, input.binder);
   return resolved === undefined ? undefined : pslSymbolOf(resolved.resolution);
@@ -118,7 +125,7 @@ function modelTakesMap(model: ModelSymbol, source: AttributeSpecSource): boolean
 
 function fieldTakesMap(field: FieldSymbol, source: AttributeSpecSource): boolean {
   const owner = field.node.syntax.parent;
-  const model = owner === undefined ? undefined : ModelDeclarationAst.cast(owner);
+  const model = owner === undefined ? undefined : fieldOwnerWithMap(owner);
   if (model === undefined) return false;
   if (hasAttribute(field.attributes, 'map')) return false;
   const type = typeReferenceNode(field);
@@ -126,6 +133,15 @@ function fieldTakesMap(field: FieldSymbol, source: AttributeSpecSource): boolean
   if (typeKind === 'model' || typeKind === 'crossSpace') return false;
   const resolve = attributeSpecResolver({ ownerKind: 'field', field: field.node, model }, source);
   return resolve('map') !== undefined;
+}
+
+function fieldOwnerWithMap(
+  owner: SyntaxNode,
+): ModelDeclarationAst | MixinDeclarationAst | undefined {
+  const model = ModelDeclarationAst.cast(owner);
+  if (model !== undefined) return model;
+  const mixin = MixinDeclarationAst.cast(owner);
+  return mixin?.keyword()?.text === 'model' ? mixin : undefined;
 }
 
 function blockTakesMap(block: BlockSymbol, source: AttributeSpecSource): boolean {

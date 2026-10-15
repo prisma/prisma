@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { errorStatementOriginUnknown } from '../src/utils/cli-errors';
+import {
+  errorStatementNeedsMigrationFile,
+  errorStatementOriginUnknown,
+} from '../src/utils/cli-errors';
 
 const HASH = 'sha256:abc';
 const DIR = 'migrations/snapshots/sha256:abc';
@@ -63,5 +66,76 @@ describe('errorStatementOriginUnknown', () => {
         'Adding --advance-ref to this command alone does not help: it would store the new contract, not the one the database is at. `migration plan --from` does not apply to `db update`.',
       ].join('\n'),
     );
+  });
+});
+
+describe('errorStatementNeedsMigrationFile', () => {
+  function commandOf(error: ReturnType<typeof errorStatementNeedsMigrationFile>) {
+    return (error.toEnvelope().nextActions ?? []).flatMap((action) =>
+      'command' in action && typeof action.command === 'string' ? [action.command] : [],
+    );
+  }
+
+  it('names the refused statements, and gives migration plan every statement it accepts, in the order given', () => {
+    const envelope = errorStatementNeedsMigrationFile(
+      [
+        { verb: 'rename', text: 'User.age:User.years' },
+        { verb: 'allow', text: 'User' },
+        { verb: 'convert', text: 'User.years' },
+        { verb: 'delete', text: 'Legacy' },
+        { verb: 'backfill', text: 'User.email' },
+      ],
+      undefined,
+    ).toEnvelope();
+
+    expect(envelope).toMatchObject({
+      code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+      summary: 'db update cannot carry out "--convert User.years" and "--backfill User.email"',
+      why: expect.stringContaining('db update has no migration file to fill'),
+      fix: 'Plan the change with {bin} migration plan --rename User.age:User.years --convert User.years --delete Legacy --backfill User.email, fill in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and apply it with {bin} db migrate. Or leave out these statements: db update then asks before it loses any data.',
+      meta: {
+        statements: [
+          { verb: 'convert', text: 'User.years' },
+          { verb: 'backfill', text: 'User.email' },
+        ],
+      },
+    });
+  });
+
+  it('repeats the --config the CLI was given in each command it prints', () => {
+    const envelope = errorStatementNeedsMigrationFile([{ verb: 'convert', text: 'User.years' }], {
+      cwd: '/work',
+      configPath: 'app/prisma.config.ts',
+      dbGiven: false,
+    }).toEnvelope();
+
+    expect({
+      fix: envelope.fix,
+      commands: commandOf(
+        errorStatementNeedsMigrationFile([{ verb: 'convert', text: 'User.years' }], {
+          cwd: '/work',
+          configPath: 'app/prisma.config.ts',
+          dbGiven: false,
+        }),
+      ),
+    }).toEqual({
+      fix: 'Plan the change with {bin} migration plan --convert User.years --config app/prisma.config.ts, fill in the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and apply it with {bin} db migrate --config app/prisma.config.ts. Or leave out these statements: db update then asks before it loses any data.',
+      commands: ['{bin} migration plan --convert User.years --config app/prisma.config.ts'],
+    });
+  });
+
+  it('quotes a value a shell would read', () => {
+    const error = errorStatementNeedsMigrationFile(
+      [
+        { verb: 'rename', text: "Old's:New" },
+        { verb: 'backfill', text: 'User.$(x)' },
+      ],
+      undefined,
+    );
+
+    expect(commandOf(error)).toEqual([
+      `{bin} migration plan --rename 'Old'\\''s:New' --backfill 'User.$(x)'`,
+    ]);
+    expect(error.toEnvelope().fix).toContain(`--backfill 'User.$(x)'`);
   });
 });

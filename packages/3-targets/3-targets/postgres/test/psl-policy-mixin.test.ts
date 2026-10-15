@@ -45,6 +45,7 @@ const scalarTypeConstructors: Record<string, AuthoringTypeConstructorDescriptor>
 
 function contextFor(): BoundPslSchema['context'] {
   return {
+    defaultNamespaceId: 'public',
     composedExtensions: [],
     composedExtensionContracts: new Map(),
     authoringContributions: {

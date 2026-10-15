@@ -151,6 +151,7 @@ export function buildScalarFields(input: {
               dataTypeLookup: context.dataTypes.lookup,
               enumBlockNames: enums.blockNamesByTypeName,
               coordinate,
+              namespaceId: entry.namespaceId,
             });
     let { typeName, typeConstructor } = columnType;
 

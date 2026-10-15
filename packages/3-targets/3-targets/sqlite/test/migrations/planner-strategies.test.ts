@@ -1,3 +1,4 @@
+import { asNamespaceId } from '@internal/contract/types';
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import type { RecreateTableCall } from '../../src/core/migrations/op-factory-call';
@@ -25,6 +26,9 @@ function makeContext(overrides: Partial<StrategyContext> = {}): StrategyContext 
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] },
     frameworkComponents: sqliteTestComponents,
     types: sqliteTestTypes,
+    statementColumns: { convert: [], backfill: [] },
+    takesTemporaryValue: () => true,
+    originCodecId: () => undefined,
     ...overrides,
   };
 }
@@ -228,7 +232,9 @@ describe('recreateTableStrategy', () => {
 
     expect(
       [lossy, lossless].map((result) =>
-        result.kind === 'match' ? (result.calls[0] as RecreateTableCall).lossyColumns : result.kind,
+        result.kind === 'match'
+          ? (result.calls[0] as RecreateTableCall).retypedColumns
+          : result.kind,
       ),
     ).toEqual([['email'], []]);
   });
@@ -334,15 +340,31 @@ describe('nullabilityTighteningBackfillStrategy', () => {
     expect(result.kind).toBe('no_match');
   });
 
-  it("emits a DataTransformCall per tightened column under 'data' policy without consuming the issue", () => {
+  it("emits a DataTransformCall per tightened column --backfill names, under 'data' policy, without consuming the issue", () => {
     const tightening = issue({
       path: ['database', 'user', 'column:email'],
       expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
       actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
     });
+    const policy = { allowedOperationClasses: ['additive', 'destructive', 'data'] } as const;
+    const backfill = {
+      convert: [],
+      backfill: [
+        {
+          namespaceId: '__unbound__',
+          table: 'user',
+          column: 'email',
+          field: { namespaceId: asNamespaceId('__unbound__'), model: 'User', field: 'email' },
+          text: 'User.email',
+        },
+      ],
+    };
+    expect(nullabilityTighteningBackfillStrategy([tightening], makeContext({ policy })).kind).toBe(
+      'no_match',
+    );
     const result = nullabilityTighteningBackfillStrategy(
       [tightening],
-      makeContext({ policy: { allowedOperationClasses: ['additive', 'destructive', 'data'] } }),
+      makeContext({ policy, statementColumns: backfill }),
     );
     expect(result.kind).toBe('match');
     if (result.kind !== 'match') return;

@@ -19,6 +19,7 @@ import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   ExecutionContext,
+  Log,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
@@ -116,6 +117,7 @@ export interface SupabaseOptionsBase {
   readonly extensions?: readonly SqlRuntimeExtensionDescriptor<SupabaseTargetId>[];
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
+  readonly log?: Log;
   readonly poolOptions?: {
     readonly connectionTimeoutMillis?: number;
     readonly idleTimeoutMillis?: number;
@@ -329,6 +331,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     driver,
     ...ifDefined('verifyMarker', options.verifyMarker),
     ...ifDefined('middleware', options.middleware),
+    ...ifDefined('log', options.log),
     closeRefusal: 'at-once',
   });
 
@@ -421,6 +424,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
       driver,
       verifyMarker: false,
       ...ifDefined('middleware', options.middleware),
+      ...ifDefined('log', options.log),
       closeRefusal: 'at-once',
     });
 

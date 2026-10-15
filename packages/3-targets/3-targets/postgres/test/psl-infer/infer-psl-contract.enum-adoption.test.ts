@@ -232,6 +232,7 @@ function interpret(source: string) {
     sourceId: 'infer-psl-contract.enum-adoption.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

@@ -47,14 +47,13 @@ import {
 } from '../../utils/command-helpers';
 import { toExtensionInputs } from '../../utils/extension-pack-inputs';
 import { assertFrameworkComponentsCompatible } from '../../utils/framework-components';
+import { type CliInvocation, selfEmitCommand } from '../../utils/printed-command';
 import { createProjectSpecifierResolver } from '../../utils/project-import-root';
-import { selfEmitCommand } from '../../utils/self-emit-command';
 import { snapshotVerifierFor } from '../../utils/snapshot-content-verification';
 import {
   type AnswerPlanQuestions,
   askPlanQuestions,
-  type PlannedLoss,
-  subjectText,
+  type PlannedDataLoss,
 } from '../statements/plan-questions';
 import {
   type AppliedStatementReport,
@@ -62,7 +61,8 @@ import {
   reportConsentStatement,
 } from '../statements/report-applied-statements';
 import { resolveStatements } from '../statements/resolve-statements';
-import type { StatementText } from '../statements/statement-text';
+import { isPlannedStatement, type StatementText } from '../statements/statement-text';
+import { reportTemporaryValues, type TemporaryValueReport } from '../statements/temporary-values';
 import type { ControlClient } from '../types';
 import { errorFromCaught } from './caught-errors';
 import {
@@ -115,18 +115,27 @@ type PlannerSuccess = {
   readonly hasPlaceholders: boolean;
   readonly appliedStatements: readonly AppliedStatementReport[];
   /** The operations that would lose data, positioned in the plan's operations. */
-  readonly dataLoss: readonly PlannedLoss[];
+  readonly dataLoss: readonly PlannedDataLoss[];
+  readonly temporaryValues: readonly TemporaryValueReport[];
 };
 
 function placeholderSummary(
   planned: string,
-  dirs: readonly string[],
-  configPath: string | undefined,
+  packageDirs: readonly string[],
+  invocation: CliInvocation,
 ): string {
-  const commands = dirs
-    .map((dir) => `\`${selfEmitCommand(join(dir, 'migration.ts'), configPath)}\``)
+  const commands = packageDirs
+    .map((dir) => `\`${selfEmitCommand(invocation, join(dir, 'migration.ts'))}\``)
     .join(' and ');
   return `Planned ${planned} with placeholder(s) — edit migration.ts, then run ${commands} to self-emit`;
+}
+
+/** The invocation the plan's printed commands repeat: `migration plan` takes no `--db`. */
+function invocationOf(options: {
+  readonly cwd: string;
+  readonly configPath?: string;
+}): CliInvocation {
+  return { cwd: options.cwd, configPath: options.configPath, dbGiven: false };
 }
 
 /** The origin of a plan from an empty database: no models, so no statement resolves. */
@@ -230,14 +239,15 @@ async function runPlannerLeg(
     plannedOps,
     migrationTsContent: plannerResult.plan.renderTypeScript(resolveImportSpecifier),
     hasPlaceholders,
-    dataLoss: plannerResult.dataLoss.map(({ operationIndex, subject, keepDataAdvice }) => ({
-      operationIndex: position(operationIndex),
-      subject,
-      ...ifDefined('keepDataAdvice', keepDataAdvice),
-      label:
-        resolved[operationIndex]?.label ??
-        subjectText(subject, { origin: fromContract ?? EMPTY_ORIGIN, renames: [] }),
-    })),
+    dataLoss: plannerResult.dataLoss.map(
+      ({ operationIndex, subject, loss, label, keepDataAdvice }) => ({
+        operationIndex: position(operationIndex),
+        subject,
+        loss,
+        label,
+        ...ifDefined('keepDataAdvice', keepDataAdvice),
+      }),
+    ),
     appliedStatements: reportAppliedStatements(
       plannerResult.appliedStatements.map((applied) => ({
         ...applied,
@@ -250,6 +260,7 @@ async function runPlannerLeg(
       contract,
       0,
     ),
+    temporaryValues: reportTemporaryValues(plannerResult.temporaryValues, contract),
   });
 }
 
@@ -301,21 +312,21 @@ async function writePlannedMigrationPackage(
 
 /**
  * Asks about every operation of the planned legs that would lose data, until each is answered,
- * before anything is written. A delete answer consents to the loss of its subject. A rename typed
- * at the prompt is a statement the plan did not have, so the delta is planned again with it, and
- * the loss it answered must be gone.
+ * before anything is written. A delete answer consents to the loss of its subject. A rename or
+ * convert typed at the prompt is a statement the plan did not have, so the delta is planned again
+ * with every statement, and the loss it answered must be gone.
  */
 async function answerPlannedDataLoss(input: {
   readonly baseline: PlannerSuccess | undefined;
   readonly delta: PlannerSuccess | undefined;
-  readonly renames: readonly StatementText[];
+  readonly statements: readonly StatementText[];
   readonly consents: readonly StatementText[];
   readonly origin: ContractWithDomain;
   readonly originKnown: boolean;
   readonly destination: ContractWithDomain;
   readonly answer: AnswerPlanQuestions;
   readonly planDelta: (
-    renames: readonly StatementText[],
+    statements: readonly StatementText[],
   ) => Promise<Result<PlannerSuccess, CliStructuredError>>;
 }): Promise<
   Result<
@@ -334,15 +345,16 @@ async function answerPlannedDataLoss(input: {
   const answered = await askPlanQuestions({
     plan: legs(input.delta),
     askAccess: false,
-    renames: input.renames,
+    canConvert: true,
+    statements: input.statements,
     preAnswers: input.consents,
     consentAll: { delete: false, allow: false },
     origin: input.origin,
     originKnown: input.originKnown,
     destination: input.destination,
     answer: input.answer,
-    replan: async (renames) => {
-      const replanned = await input.planDelta(renames);
+    replan: async (statements) => {
+      const replanned = await input.planDelta(statements);
       return replanned.ok ? ok(legs(replanned.value)) : replanned;
     },
   });
@@ -417,6 +429,8 @@ export interface MigrationPlanResult {
    * `node migration.ts` to self-emit `ops.json` / `migration.json`.
    */
   readonly pendingPlaceholders?: boolean;
+  /** With `pendingPlaceholders`: the written directories whose `migration.ts` has unfilled slots. */
+  readonly placeholderDirs?: readonly string[];
   /**
    * True when no `--from` was given and no `db` ref existed, so the origin
    * defaulted to the empty contract. Absent when the user named the origin.
@@ -428,6 +442,8 @@ export interface MigrationPlanResult {
    * `--rename` was given.
    */
   readonly appliedStatements: readonly AppliedStatementReport[];
+  /** The new required fields whose existing rows the plan gives a temporary value. */
+  readonly temporaryValues: readonly TemporaryValueReport[];
   readonly timings: {
     readonly total: number;
   };
@@ -691,6 +707,7 @@ async function executeMigrationPlanCommandInner(
       emittedExtensionDirs,
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [],
+      temporaryValues: [],
       summary: 'No changes detected between contracts',
       timings: { total: Date.now() - startTime },
     };
@@ -759,15 +776,15 @@ async function executeMigrationPlanCommandInner(
       answerPlannedDataLoss({
         baseline,
         delta,
-        renames: statementTexts.filter((statement) => statement.verb === 'rename'),
-        consents: statementTexts.filter((statement) => statement.verb !== 'rename'),
+        statements: statementTexts.filter(isPlannedStatement),
+        consents: statementTexts.filter((statement) => !isPlannedStatement(statement)),
         origin: fromContract ?? EMPTY_ORIGIN,
         originKnown: true,
         destination: toContract,
         answer: options.answerQuestions,
-        planDelta: async (renames) => {
+        planDelta: async (planned) => {
           const resolved = resolveStatements({
-            statements: renames,
+            statements: planned,
             origin: { kind: 'contract', contract: fromContract ?? EMPTY_ORIGIN },
             destination: toContract,
           });
@@ -877,8 +894,10 @@ async function executeMigrationPlanCommandInner(
             emittedExtensionDirs,
             ...(warnings.length > 0 ? { warnings } : {}),
             pendingPlaceholders: true,
+            placeholderDirs: [baselineDir],
             appliedStatements: [...statementsWithoutOperations, ...deletes],
-            summary: placeholderSummary('baseline', [baselineDir], options.configPath),
+            temporaryValues: baselineLeg.value.temporaryValues,
+            summary: placeholderSummary('baseline', [baselinePackageDir], invocationOf(options)),
             timings: { total: Date.now() - startTime },
           };
           return ok(result);
@@ -902,6 +921,7 @@ async function executeMigrationPlanCommandInner(
           ...(preview !== undefined ? { preview } : {}),
           ...(warnings.length > 0 ? { warnings } : {}),
           appliedStatements: [...statementsWithoutOperations, ...deletes],
+          temporaryValues: baselineLeg.value.temporaryValues,
           summary: buildAutoBaselinePlanSummary(baselineOps.length, 0, emittedExtensionDirs.length),
           timings: { total: Date.now() - startTime },
         };
@@ -934,11 +954,16 @@ async function executeMigrationPlanCommandInner(
           emittedExtensionDirs,
           ...(warnings.length > 0 ? { warnings } : {}),
           pendingPlaceholders: true,
+          placeholderDirs: [
+            ...(baselineLeg.value.hasPlaceholders ? [relative(cwd, baselinePackageDir)] : []),
+            ...(deltaLeg.value.hasPlaceholders ? [relative(cwd, deltaPackageDir)] : []),
+          ],
           appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+          temporaryValues: deltaLeg.value.temporaryValues,
           summary: placeholderSummary(
             'baseline + migration',
-            [baselineDir, deltaDir],
-            options.configPath,
+            [baselinePackageDir, deltaPackageDir],
+            invocationOf(options),
           ),
           timings: { total: Date.now() - startTime },
         };
@@ -971,6 +996,7 @@ async function executeMigrationPlanCommandInner(
         ...(preview !== undefined ? { preview } : {}),
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+        temporaryValues: deltaLeg.value.temporaryValues,
         summary: buildAutoBaselinePlanSummary(
           baselineOps.length,
           deltaOps.length,
@@ -1022,6 +1048,7 @@ async function executeMigrationPlanCommandInner(
         emittedExtensionDirs,
         ...(warnings.length > 0 ? { warnings } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+        temporaryValues: deltaLeg.value.temporaryValues,
         summary: 'No changes to plan: the statements need no operations',
         timings: { total: Date.now() - startTime },
       };
@@ -1049,9 +1076,11 @@ async function executeMigrationPlanCommandInner(
         emittedExtensionDirs,
         ...(warnings.length > 0 ? { warnings } : {}),
         pendingPlaceholders: true,
+        placeholderDirs: [relative(cwd, packageDir)],
         ...(fromDefaulted ? { fromDefaulted } : {}),
         appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
-        summary: placeholderSummary('migration', [dir], options.configPath),
+        temporaryValues: deltaLeg.value.temporaryValues,
+        summary: placeholderSummary('migration', [packageDir], invocationOf(options)),
         timings: { total: Date.now() - startTime },
       };
       return ok(result);
@@ -1077,6 +1106,7 @@ async function executeMigrationPlanCommandInner(
       ...(fromDefaulted ? { fromDefaulted } : {}),
       ...(warnings.length > 0 ? { warnings } : {}),
       appliedStatements: [...deltaLeg.value.appliedStatements, ...deletes],
+      temporaryValues: deltaLeg.value.temporaryValues,
       summary: buildPlanSummary(plannedOps.length, emittedExtensionDirs.length),
       timings: { total: Date.now() - startTime },
     };

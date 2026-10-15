@@ -54,7 +54,9 @@ describe('resolveStatements, model renames', () => {
     const origin = contractOf({ app: { models: { Profile: {}, Post: {} } } });
     const destination = contractOf({ app: { models: { User: {}, Article: {} } } });
     const resolved = expectValue(resolve(['Post:Article', 'Profile:User'], origin, destination));
-    expect(resolved.map((statement) => statement.to.model)).toEqual(['Article', 'User']);
+    expect(
+      resolved.map((statement) => (statement.kind === 'rename' ? statement.to.model : undefined)),
+    ).toEqual(['Article', 'User']);
   });
 
   it('returns no statements when none are given', () => {

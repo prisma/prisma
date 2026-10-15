@@ -52,6 +52,7 @@ function interpretCapableConfig(inputs: readonly string[]): PrismaNextConfig {
 
 function stubStackWithContext(): ControlStack {
   return {
+    target: { defaultNamespaceId: 'demo_default' },
     extensions: [{ id: 'ext-a' }, { id: 'ext-b' }],
     extensionContracts: new Map([['ext-a', { targetFamily: 'demo' }]]),
     scalarTypes: ['Int'],
@@ -97,6 +98,7 @@ function stubStack(
   pslBlockDescriptors: AuthoringPslBlockDescriptorNamespace,
 ): ControlStack {
   return {
+    target: { defaultNamespaceId: 'demo_default' },
     scalarTypes,
     authoringContributions: { pslBlockDescriptors, dataTypes: stubDataTypeEntries },
     dataTypes: stubDataTypes,
@@ -148,7 +150,11 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
 
     const result = await resolveConfigInputs(configPath, () => '// use prisma-8\n');
 
-    expect(result.controlStack).toEqual({ scalarTypes: [], pslBlockDescriptors: {} });
+    expect(result.controlStack).toEqual({
+      scalarTypes: [],
+      defaultNamespaceId: '__unbound__',
+      pslBlockDescriptors: {},
+    });
   });
 
   it('rejects a config that was not created by definePrismaConfig', async () => {
@@ -183,7 +189,11 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
 
     const result = await resolveConfigInputs('/abs/prisma.config.ts', () => '// use prisma-8\n');
 
-    expect(result.controlStack).toEqual({ scalarTypes: [], pslBlockDescriptors: {} });
+    expect(result.controlStack).toEqual({
+      scalarTypes: [],
+      defaultNamespaceId: '__unbound__',
+      pslBlockDescriptors: {},
+    });
   });
 
   it('rejects a psl project carrying the same control-section diagnostic', async () => {
@@ -226,6 +236,7 @@ describe('resolveConfigInputs', { timeout: timeouts.coldTransformImport }, () =>
 
     expect(result.controlStack).toEqual({
       scalarTypes: ['Int'],
+      defaultNamespaceId: 'demo_default',
       pslBlockDescriptors: {},
       authoringContributions: { pslBlockDescriptors: {}, dataTypes: stubDataTypeEntries },
       dataTypes: stubDataTypes,
@@ -247,7 +258,11 @@ describe('control-stack input derivation', () => {
 
     const result = await resolveConfigInputs('/abs/prisma.config.ts', () => '// use prisma-8\n');
 
-    expect(result.controlStack).toEqual({ scalarTypes: [], pslBlockDescriptors: {} });
+    expect(result.controlStack).toEqual({
+      scalarTypes: [],
+      defaultNamespaceId: '__unbound__',
+      pslBlockDescriptors: {},
+    });
     expect(createControlStack).not.toHaveBeenCalled();
   });
 
@@ -274,6 +289,7 @@ describe('control-stack input derivation', () => {
 
     expect(result.controlStack).toEqual({
       scalarTypes: ['Int', 'String'],
+      defaultNamespaceId: 'demo_default',
       pslBlockDescriptors,
       authoringContributions: { pslBlockDescriptors, dataTypes: stubDataTypeEntries },
       dataTypes: stubDataTypes,
@@ -329,6 +345,7 @@ describe('interpretation resolution', () => {
     expect(context?.controlMutationDefaults).toBe(stack.controlMutationDefaults);
     expect(context?.capabilities).toBe(stack.capabilities);
     expect(context?.resolvedInputs).toEqual([pathToFileURL('/abs/schema.prisma').toString()]);
+    expect(context?.defaultNamespaceId).toBe('demo_default');
   });
 
   it('creates the control stack once per resolution', async () => {

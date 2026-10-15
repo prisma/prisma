@@ -49,6 +49,7 @@ function buildSymbolTableInput(
 ): { documents: readonly DocumentAst[]; symbolTable: SymbolTable; sources: PslSources } {
   const { document, sources } = parse(schema, filename);
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: '__unbound__',
     documents: [document],
     sources,
   });
@@ -201,7 +202,7 @@ model Item {
 `,
       'enum-owned.prisma',
     );
-    const enumBlock = input.symbolTable.topLevel.blocks['Role'];
+    const enumBlock = input.symbolTable.defaultNamespace.blocks['Role'];
     expect(enumBlock).toBeDefined();
     if (enumBlock === undefined) return;
 
@@ -226,6 +227,7 @@ model Item {
     };
     const context: ContractSourceContext = {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         type: {},
@@ -244,6 +246,7 @@ model Item {
       capabilities: {},
     };
     const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
+      defaultNamespaceId: '__unbound__',
       documents: input.documents,
       sources: input.sources,
     });
@@ -565,6 +568,12 @@ model Item {
         author   User @relation(fields: [authorId], references: [id])
       }
     `;
+
+    it('reads unbound.User as the top-level User and emits the same contract', () => {
+      expect(interpretOk(blogSchema.replace('author   User @', 'author   unbound.User @'))).toEqual(
+        interpretOk(blogSchema),
+      );
+    });
 
     it('creates N:1 reference relation from @relation with fields/references', () => {
       const ir = interpretOk(blogSchema);
@@ -2605,6 +2614,16 @@ model Item {
           }),
         ]),
       );
+    });
+
+    it('names a rejected namespace block as it is written', () => {
+      const result = interpret(
+        'namespace __unbound__ {\n  model Tenant {\n    id ObjectId @id @map("_id")\n  }\n}\n',
+      );
+
+      expect(result.ok ? [] : result.failure.diagnostics.map(({ message }) => message)).toEqual([
+        'Mongo does not support `namespace __unbound__ { … }` blocks (the database is bound by the connection string; declare models at the document top level instead).',
+      ]);
     });
 
     it('accepts top-level declarations (the implicit `__unspecified__` bucket) without diagnostics', () => {

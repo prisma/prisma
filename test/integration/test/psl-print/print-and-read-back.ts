@@ -65,6 +65,7 @@ export function sourceContext(
 ): ContractSourceContext {
   return {
     composedExtensions: stack.extensions.map((extension) => extension.id),
+    defaultNamespaceId: stack.target.defaultNamespaceId,
     composedExtensionContracts: stack.extensionContracts,
     authoringContributions: stack.authoringContributions,
     codecLookup: stack.codecLookup,

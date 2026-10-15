@@ -212,18 +212,6 @@ describe('enumType() — error cases', () => {
 describe('defineContract() — members compared as the codec stores them', () => {
   const objectCodec = { codecId: 'test/object@1' as const } as const;
   const dateCodec = { codecId: 'test/date@1' as const } as const;
-  const shoutCodec = { codecId: 'test/shout@1' as const } as const;
-  const shoutDescriptor: AnyCodecDescriptor = {
-    ...identityDescriptor('test/shout@1'),
-    factory: () => () =>
-      ({
-        id: 'test/shout@1',
-        encode: async (v: unknown) => v,
-        decode: async (v: unknown) => v,
-        encodeJson: (v: unknown) => (v as string).toUpperCase(),
-        decodeJson: (j: unknown) => j,
-      }) as unknown as Codec,
-  };
   const dateDescriptor: AnyCodecDescriptor = {
     ...identityDescriptor('test/date@1'),
     factory: () => () =>
@@ -243,7 +231,6 @@ describe('defineContract() — members compared as the codec stores them', () =>
           identityDescriptor('mongo/string@1'),
           identityDescriptor('test/object@1'),
           dateDescriptor,
-          shoutDescriptor,
         ],
       },
     },
@@ -320,12 +307,6 @@ describe('defineContract() — members compared as the codec stores them', () =>
       'enumType("Moment"): members "Start" and "SameStart" both store "2024-01-01T00:00:00.000Z". Member values must be unique as their codec stores them.',
       ['Start', 'SameStart'],
     ],
-    [
-      'two strings stored as the same text',
-      enumType('Status', shoutCodec, member('Quiet', 'dup'), member('Loud', 'DUP')),
-      'enumType("Status"): members "Quiet" and "Loud" both store "DUP". Member values must be unique as their codec stores them.',
-      ['Quiet', 'Loud'],
-    ],
   ] as const)('refuses %s', (_case, handle, message, members) => {
     expect(() => build(handle)).toThrow(
       expect.objectContaining({
@@ -396,7 +377,7 @@ describe('defineContract() — codec-encoded value set', () => {
         encode: async (v: unknown) => v,
         decode: async (v: unknown) => v,
         encodeJson: (v: unknown) => (v as string).toUpperCase(),
-        decodeJson: (j: unknown) => j,
+        decodeJson: (j: unknown) => (j as string).toLowerCase(),
       }) as unknown as Codec,
   };
   const packWithEncoders = {

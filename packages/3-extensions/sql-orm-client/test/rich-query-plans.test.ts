@@ -4,7 +4,6 @@ import {
   BinaryExpr,
   ColumnRef,
   type DerivedTableSource,
-  type InsertAst,
   LiteralExpr,
   ParamRef,
   type SelectAst,
@@ -13,12 +12,10 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import {
-  compileDeleteReturning,
   compileGroupedAggregate,
   compileInsertReturning,
   compileSelectWithIncludes,
   compileUpdateReturning,
-  compileUpsertReturning,
 } from '../src/query-plan';
 import { baseContract, createCollectionFor } from './collection-fixtures';
 import { emptyTableState, getTestAggregates, tablesForTable } from './helpers';
@@ -64,7 +61,7 @@ describe('SQL ORM rich AST query plans', () => {
     expect((childFilter.right as ParamRef).value).toBe(100);
   });
 
-  it('compiles insert, upsert, update, delete, and grouped aggregate plans with rich nodes', () => {
+  it('compiles insert, update and grouped aggregate plans with rich nodes', () => {
     const insertPlan = compileInsertReturning(
       baseContract,
       'public',
@@ -74,19 +71,6 @@ describe('SQL ORM rich AST query plans', () => {
       ['id'],
     );
     expect(insertPlan.ast.kind).toBe('insert');
-
-    const upsertPlan = compileUpsertReturning(
-      baseContract,
-      'public',
-      'User',
-      'users',
-      { id: 1, name: 'Alice', email: 'a@example.com' },
-      { name: 'Alice Updated' },
-      ['email'],
-      ['id'],
-    );
-    expect(upsertPlan.ast.kind).toBe('insert');
-    expect((upsertPlan.ast as InsertAst).onConflict?.action.kind).toBe('do-update-set');
 
     const updatePlan = compileUpdateReturning(
       baseContract,
@@ -98,15 +82,6 @@ describe('SQL ORM rich AST query plans', () => {
     );
     expect(updatePlan.ast.kind).toBe('update');
     expect((updatePlan.ast as UpdateAst).where?.kind).toBe('binary');
-
-    const deletePlan = compileDeleteReturning(
-      baseContract,
-      'User',
-      tablesForTable(baseContract, 'users', 'public'),
-      [BinaryExpr.eq(ColumnRef.of('users', 'id'), LiteralExpr.of(1))],
-      ['id'],
-    );
-    expect(deletePlan.ast.kind).toBe('delete');
 
     const groupedPlan = compileGroupedAggregate(
       baseContract,

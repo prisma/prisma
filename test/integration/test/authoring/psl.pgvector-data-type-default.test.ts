@@ -96,6 +96,7 @@ model Document {
           createNamespace: postgresCreateNamespace,
         }).source.load({
           composedExtensions: [pgvector.id],
+          defaultNamespaceId: stack.target.defaultNamespaceId,
           composedExtensionContracts: new Map(),
           authoringContributions: stack.authoringContributions,
           codecLookup: stack.codecLookup,

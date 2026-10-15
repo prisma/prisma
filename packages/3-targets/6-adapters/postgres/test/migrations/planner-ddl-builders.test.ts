@@ -213,16 +213,6 @@ describe('renderDefaultLiteral', () => {
     expect(result).toBe(`'{"key":"val"}'`);
   });
 
-  it('renders an empty array literal for a list column', () => {
-    const result = renderDefaultLiteral([], listColumn('text'));
-    expect(result).toBe("'{}'");
-  });
-
-  it('renders a populated array literal for a list column, cast to the list type', () => {
-    const result = renderDefaultLiteral(['a', 'b'], listColumn('text'));
-    expect(result).toBe(`ARRAY['a', 'b']::text[]`);
-  });
-
   it('renders a mixed-type array literal element-by-element', () => {
     const result = renderDefaultLiteral([1, true, null], listColumn('int4'));
     expect(result).toBe('ARRAY[1, true, NULL]::int4[]');

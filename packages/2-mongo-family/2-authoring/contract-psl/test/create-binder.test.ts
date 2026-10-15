@@ -105,12 +105,17 @@ function collectResolutions(
 describe('createBinder', () => {
   it('produces the expected diagnostics and resolution for every node', () => {
     const { document, sources } = parse(SCHEMA, 'schema.prisma');
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: '__unbound__',
+    });
 
     const defaultFunctionRegistry = new Map();
 
     const context: ContractSourceContext = {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         dataTypes: {},
@@ -208,8 +213,13 @@ describe('createBinder', () => {
       '}',
     ].join('\n');
     const { document, sources } = parse(schema, 'schema.prisma');
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: '__unbound__',
+    });
     const context: ContractSourceContext = {
+      defaultNamespaceId: '__unbound__',
       composedExtensions: [],
       composedExtensionContracts: new Map(),
       authoringContributions: {

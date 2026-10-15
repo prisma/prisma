@@ -1,3 +1,4 @@
+import type { SqlSlot } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { DdlColumn, LiteralColumnDefault } from '@internal/sql-relational-core/ast';
 import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
@@ -430,8 +431,8 @@ describe('RecreateTableCall', () => {
     expect(op.postcheck.some((s) => s.description.includes('type'))).toBe(true);
   });
 
-  it('keeps its lossy columns out of the operation and the rendered migration', async () => {
-    const args = {
+  it('checks the values of a retyped column without a copy expression after the copy, as cast by SQLite', async () => {
+    const call = new RecreateTableCall({
       tableName: 'user',
       contractTable: tableSpec([
         colSpec({ name: 'id', typeSql: 'INTEGER', nullable: false }),
@@ -441,17 +442,25 @@ describe('RecreateTableCall', () => {
       indexes: [],
       summary: 'Recreates table user to apply schema changes: type mismatch on age',
       postchecks: [],
-      operationClass: 'destructive' as const,
-    };
-    const withLossy = new RecreateTableCall(args, ['age']);
-    const without = new RecreateTableCall(args);
-
-    expect(withLossy.lossyColumns).toEqual(['age']);
-    expect(without.lossyColumns).toEqual([]);
-    expect(withLossy.renderTypeScript()).toBe(without.renderTypeScript());
-    expect(JSON.stringify(await withLossy.toOp(stubLowerer('CHECK SQL')))).toBe(
-      JSON.stringify(await without.toOp(stubLowerer('CHECK SQL'))),
-    );
+      operationClass: 'destructive',
+      retypedColumns: ['age'],
+    });
+    const op = await call.toOp(stubLowerer('CHECK SQL'));
+    expect({
+      retypedColumns: call.retypedColumns,
+      check: op.postcheck.find((step) => step.meta !== undefined),
+      copy: op.execute.find((step) => step.description.startsWith('copy data'))?.meta,
+      rendered: call.renderTypeScript(),
+    }).toEqual({
+      retypedColumns: ['age'],
+      check: {
+        description: 'verify every value of "age" on "user" is stored as INTEGER',
+        sql: `SELECT NOT EXISTS (SELECT 1 FROM "user" WHERE typeof("age") NOT IN ('null', 'integer'))`,
+        meta: { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
+      },
+      copy: undefined,
+      rendered: expect.stringContaining('retypedColumns: ["age"]'),
+    });
   });
 
   it('writes each column default the adapter renders, and checks the recreated table carries it', async () => {
@@ -653,6 +662,7 @@ describe('DataTransformCall', () => {
       'Backfill NULLs in "user"."email" before NOT NULL tightening',
       'user',
       'email',
+      'User.email:run',
     );
 
   it('toOp() rejects with MIGRATION.UNFILLED_PLACEHOLDER (unfilled placeholder)', async () => {
@@ -664,7 +674,7 @@ describe('DataTransformCall', () => {
   it('renderTypeScript() emits a dataTransform({...}) call with a placeholder run slot', () => {
     const ts = makeCall().renderTypeScript();
     expect(ts).toContain('dataTransform({');
-    expect(ts).toContain('placeholder("user-email-backfill-sql")');
+    expect(ts).toContain('placeholder("User.email:run")');
     expect(ts).toContain('"data_migration.backfill-user-email"');
   });
 
@@ -674,5 +684,264 @@ describe('DataTransformCall', () => {
       { moduleSpecifier: '@internal/sqlite/migration', symbol: 'dataTransform' },
       { moduleSpecifier: '@internal/sqlite/migration', symbol: 'placeholder' },
     ]);
+  });
+});
+
+describe('RecreateTableCall copy expressions', () => {
+  const spec = {
+    columns: [
+      { name: 'id', typeSql: 'INTEGER', nullable: false },
+      { name: 'age', typeSql: 'INTEGER', nullable: false },
+    ],
+    primaryKey: { columns: ['id'] },
+    uniques: [],
+    foreignKeys: [],
+  };
+  const rebuild = (copyExpressions: Record<string, SqlSlot>) =>
+    new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [],
+      operationClass: 'data',
+      copyExpressions,
+    });
+
+  it('refuses an expression that could end or extend the statement, naming the call', () => {
+    expect(() => rebuild({ age: { kind: 'sql', sql: '0; DROP TABLE x' } })).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.SQL_EXPRESSION_INVALID',
+        message:
+          'recreateTable({ tableName: "user" }): copyExpressions.age "0; DROP TABLE x" holds a semicolon outside a quoted literal, which could end or extend the INSERT … SELECT statement it is written into',
+      }),
+    );
+    expect(
+      [
+        '"age" -- note',
+        '"age" FROM "user"',
+        '1 UNION SELECT 2',
+        '1 WHERE 1',
+        'CAST("age" AS INTEGER), "name"',
+      ].map((sql) => {
+        try {
+          rebuild({ age: { kind: 'sql', sql } });
+          return undefined;
+        } catch (error) {
+          return (error as { code?: string }).code;
+        }
+      }),
+    ).toEqual(Array(5).fill('MIGRATION.SQL_EXPRESSION_INVALID'));
+  });
+
+  it('reads copy expressions with SQLite quoting: bracket and backtick quotes, no E strings', () => {
+    const refusedFor = (sql: string) => {
+      try {
+        rebuild({ age: { kind: 'sql', sql } });
+        return undefined;
+      } catch (error) {
+        return (error as { meta?: { refused?: string } }).meta?.refused;
+      }
+    };
+    expect(
+      [
+        '[odd;name]',
+        '`odd;name`',
+        `ARRAY[']']`,
+        `E'\\'' ; DROP TABLE "User"; --'`,
+        `"age" IS DISTINCT FROM 'al'`,
+        `"age" IS NOT DISTINCT FROM 'al'`,
+      ].map(refusedFor),
+    ).toEqual([
+      undefined,
+      undefined,
+      'a quote that is not closed',
+      undefined,
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it('refuses a copy expression keyed by a name that is no column of the new table', () => {
+    expect(() => rebuild({ Age: { kind: 'sql', sql: 'CAST("age" AS INTEGER)' } })).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN',
+        message:
+          'recreateTable({ tableName: "user" }): copyExpressions.Age names no column of the new table. Its columns are "id", "age".',
+        meta: {
+          call: 'recreateTable({ tableName: "user" })',
+          key: 'Age',
+          columns: ['id', 'age'],
+        },
+      }),
+    );
+  });
+
+  it('advises parentheses when a copy expression is refused', () => {
+    expect(() => rebuild({ age: { kind: 'sql', sql: '"age" FROM "user"' } })).toThrow(
+      expect.objectContaining({
+        fix: expect.stringContaining('wrap it in parentheses'),
+      }),
+    );
+  });
+
+  it('accepts a semicolon inside a quoted literal', () => {
+    expect(
+      rebuild({ age: { kind: 'sql', sql: `coalesce(nullif("age", ';'), 0)` } }).copyExpressions,
+    ).toEqual({ age: { kind: 'sql', sql: `coalesce(nullif("age", ';'), 0)` } });
+  });
+
+  it('checks the values of each column a copy expression fills, and marks its copy, with no option written', async () => {
+    const call = new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [],
+      operationClass: 'data',
+      copyExpressions: { age: { kind: 'sql', sql: 'trim("age")' } },
+    });
+    const op = await call.toOp(stubLowerer('SQL'));
+    expect({
+      check: op.postcheck.find((step) => step.meta !== undefined),
+      copy: op.execute.find((step) => step.description.startsWith('copy data'))?.meta,
+    }).toEqual({
+      check: {
+        description: 'verify every value of "age" on "user" is stored as INTEGER',
+        sql: `SELECT NOT EXISTS (SELECT 1 FROM "user" WHERE typeof("age") NOT IN ('null', 'integer'))`,
+        meta: { convertedColumn: { table: 'user', column: 'age', by: 'conversion' } },
+      },
+      copy: { conversionCopy: { table: 'user', expressions: { age: 'trim("age")' } } },
+    });
+  });
+
+  it('checks a retyped column with a copy expression as a conversion', async () => {
+    const call = new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id', 'age'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [],
+      operationClass: 'data',
+      copyExpressions: { age: { kind: 'sql', sql: 'trim("age")' } },
+      retypedColumns: ['age'],
+    });
+    const op = await call.toOp(stubLowerer('SQL'));
+    expect(op.postcheck.filter((step) => step.meta !== undefined).map((step) => step.meta)).toEqual(
+      [{ convertedColumn: { table: 'user', column: 'age', by: 'conversion' } }],
+    );
+  });
+
+  it('copies a temporary value into a new column with no type-change check and no conversion mark, and renders it', async () => {
+    const call = new RecreateTableCall({
+      tableName: 'user',
+      contractTable: spec,
+      schemaColumnNames: ['id'],
+      indexes: [],
+      summary: 'Recreates table user',
+      postchecks: [],
+      operationClass: 'additive',
+      temporaryValues: { age: { kind: 'sql', sql: '0' } },
+    });
+    const op = await call.toOp(stubLowerer('SQL'));
+    const copy = op.execute.find((step) => step.description.startsWith('copy data'));
+    expect({
+      sql: copy?.sql,
+      marked: [...op.postcheck, ...op.execute].filter((step) => step.meta !== undefined),
+      rendered: call.renderTypeScript(),
+    }).toEqual({
+      sql: 'INSERT INTO "_prisma_new_user" ("id", "age") SELECT "id", 0 FROM "user"',
+      marked: [],
+      rendered: expect.stringContaining('temporaryValues: { "age": sql`0` }'),
+    });
+  });
+
+  it('refuses a temporary value for a column the old table already has, which would overwrite its values', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id', 'age'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'additive',
+          temporaryValues: { age: { kind: 'sql', sql: '0' } },
+        }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.TEMPORARY_VALUE_INVALID',
+        meta: expect.objectContaining({ column: 'age', reason: 'existingColumn' }),
+      }),
+    );
+  });
+
+  it('refuses a column named in both copyExpressions and temporaryValues', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'additive',
+          copyExpressions: { age: { kind: 'sql', sql: '1' } },
+          temporaryValues: { age: { kind: 'sql', sql: '0' } },
+        }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.TEMPORARY_VALUE_INVALID',
+        meta: expect.objectContaining({ column: 'age', reason: 'alsoConverted' }),
+      }),
+    );
+  });
+
+  it('refuses a temporary value for a name that is not a column of the new table', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'additive',
+          temporaryValues: { years: { kind: 'sql', sql: '0' } },
+        }),
+    ).toThrow(expect.objectContaining({ code: 'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN' }));
+  });
+
+  it('refuses a retyped column that is not a column of the new table', () => {
+    expect(
+      () =>
+        new RecreateTableCall({
+          tableName: 'user',
+          contractTable: spec,
+          schemaColumnNames: ['id', 'age'],
+          indexes: [],
+          summary: 'Recreates table user',
+          postchecks: [],
+          operationClass: 'destructive',
+          retypedColumns: ['years'],
+        }),
+    ).toThrow(expect.objectContaining({ code: 'MIGRATION.COPY_EXPRESSION_COLUMN_UNKNOWN' }));
+  });
+
+  it('is an unfilled placeholder while a slot is unfilled, and imports placeholder', async () => {
+    const call = rebuild({ age: { kind: 'placeholder', slot: 'User.age:convert' } });
+    await expect(call.toOp(stubLowerer('SQL'))).rejects.toMatchObject({
+      code: 'MIGRATION.UNFILLED_PLACEHOLDER',
+    });
+    expect(call.renderTypeScript()).toContain(
+      'copyExpressions: { "age": placeholder("User.age:convert") }',
+    );
+    expect(call.importRequirements()).toEqual([expect.objectContaining({ symbol: 'placeholder' })]);
   });
 });

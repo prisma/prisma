@@ -77,7 +77,7 @@ async function setup(pull: boolean) {
     return {
       schemaInputConfig,
       inputs: await resolveInputs(schemaInputConfig, () => text('Member')),
-      controlStack: { scalarTypes: ['Int'], pslBlockDescriptors: {} },
+      controlStack: { scalarTypes: ['Int'], defaultNamespaceId: 'public', pslBlockDescriptors: {} },
     };
   }
   const initial = await resolution();

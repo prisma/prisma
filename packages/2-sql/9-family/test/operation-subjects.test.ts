@@ -9,7 +9,7 @@ import {
   unknownCallNames,
 } from '../src/core/migrations/operation-subjects';
 import type { TableRenameByHand } from '../src/core/migrations/statement-planning';
-import { contractOf, renameField, renameModel } from './statement-fixtures';
+import { contractOf, convertField, renameField, renameModel } from './statement-fixtures';
 
 const app = asNamespaceId('app');
 
@@ -30,10 +30,22 @@ function column(tableName: string, columnName: string): SubjectStorage {
 }
 
 function losing(...targets: readonly SubjectStorage[]): CallSubjects {
-  return { operationCount: 1, dataLoss: targets, accessWidening: [] };
+  return {
+    operationCount: 1,
+    label: 'Drop',
+    dataLoss: targets.map((target) => ({ ...target, loss: 'drop' })),
+    accessWidening: [],
+    temporaryValues: [],
+  };
 }
 
-const unchanged: CallSubjects = { operationCount: 1, dataLoss: [], accessWidening: [] };
+const unchanged: CallSubjects = {
+  operationCount: 1,
+  label: 'Unchanged',
+  dataLoss: [],
+  accessWidening: [],
+  temporaryValues: [],
+};
 
 const origin = contractOf({
   Legacy: { table: 'legacy', fields: { id: 'id' } },
@@ -51,24 +63,46 @@ describe('subjectsOfCalls', () => {
       }),
     ).toEqual({
       dataLoss: [
-        { operationIndex: 1, subject: { kind: 'model', namespaceId: app, model: 'Legacy' } },
+        {
+          operationIndex: 1,
+          subject: { kind: 'model', namespaceId: app, model: 'Legacy' },
+          loss: 'drop',
+          label: 'Drop',
+        },
         {
           operationIndex: 2,
           subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
+          loss: 'drop',
+          label: 'Drop',
         },
       ],
       accessWidening: [],
+      temporaryValues: [],
     });
   });
 
   it('counts every operation of a call with companions before the next call', () => {
     expect(
       subjectsOfCalls(
-        [{ operationCount: 3, dataLoss: [], accessWidening: [] }, losing(table('legacy'))],
+        [
+          {
+            operationCount: 3,
+            label: 'Rename',
+            dataLoss: [],
+            accessWidening: [],
+            temporaryValues: [],
+          },
+          losing(table('legacy')),
+        ],
         { fromContract: origin, contract: origin, byHand, statements: [] },
       ).dataLoss,
     ).toEqual([
-      { operationIndex: 3, subject: { kind: 'model', namespaceId: app, model: 'Legacy' } },
+      {
+        operationIndex: 3,
+        subject: { kind: 'model', namespaceId: app, model: 'Legacy' },
+        loss: 'drop',
+        label: 'Drop',
+      },
     ]);
   });
 
@@ -93,8 +127,48 @@ describe('subjectsOfCalls', () => {
       {
         operationIndex: 0,
         subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
+        loss: 'drop',
+        label: 'Drop',
       },
     ]);
+  });
+
+  it('keeps how each operation loses data, and the label of the call that loses it', () => {
+    expect(
+      subjectsOfCalls(
+        [
+          {
+            operationCount: 1,
+            label: 'Alter type',
+            dataLoss: [{ ...column('user', 'full_name'), loss: 'typeChange' }],
+            accessWidening: [],
+            temporaryValues: [],
+          },
+        ],
+        { fromContract: origin, contract: origin, byHand, statements: [] },
+      ).dataLoss,
+    ).toEqual([
+      {
+        operationIndex: 0,
+        subject: { kind: 'field', namespaceId: app, model: 'User', field: 'name' },
+        loss: 'typeChange',
+        label: 'Alter type',
+      },
+    ]);
+  });
+
+  it('reads no rename into a convert statement', () => {
+    const destination = contractOf({
+      User: { table: 'user', fields: { id: 'id', name: 'display_name' } },
+    });
+    expect(
+      subjectsOfCalls([losing(column('user', 'full_name'))], {
+        fromContract: origin,
+        contract: destination,
+        byHand,
+        statements: [convertField('User', 'name')],
+      }).dataLoss.map(({ subject }) => subject),
+    ).toEqual([{ kind: 'field', namespaceId: app, model: 'User', field: 'name' }]);
   });
 
   it('names storage the origin contract does not declare by its storage name', () => {
@@ -109,8 +183,18 @@ describe('subjectsOfCalls', () => {
         },
       ).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'public.audit_log' } },
-      { operationIndex: 0, subject: { kind: 'storage', name: 'user.nickname' } },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'public.audit_log' },
+        loss: 'drop',
+        label: 'Drop',
+      },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'user.nickname' },
+        loss: 'drop',
+        label: 'Drop',
+      },
     ]);
   });
 
@@ -123,8 +207,18 @@ describe('subjectsOfCalls', () => {
         statements: [],
       }).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'storage', name: 'legacy' } },
-      { operationIndex: 0, subject: { kind: 'storage', name: 'user.full_name' } },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'legacy' },
+        loss: 'drop',
+        label: 'Drop',
+      },
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'user.full_name' },
+        loss: 'drop',
+        label: 'Drop',
+      },
     ]);
   });
 
@@ -136,7 +230,14 @@ describe('subjectsOfCalls', () => {
         byHand,
         statements: [],
       }).dataLoss,
-    ).toEqual([{ operationIndex: 0, subject: { kind: 'storage', name: 'public.mood' } }]);
+    ).toEqual([
+      {
+        operationIndex: 0,
+        subject: { kind: 'storage', name: 'public.mood' },
+        loss: 'drop',
+        label: 'Drop',
+      },
+    ]);
   });
 
   it('lists access-widening operations with the model of their table', () => {
@@ -146,8 +247,10 @@ describe('subjectsOfCalls', () => {
           unchanged,
           {
             operationCount: 1,
+            label: 'Drop policy',
             dataLoss: [],
             accessWidening: [{ ...table('user'), widens: false }],
+            temporaryValues: [],
           },
         ],
         { fromContract: origin, contract: origin, byHand, statements: [] },
@@ -161,6 +264,7 @@ describe('subjectsOfCalls', () => {
           widens: false,
         },
       ],
+      temporaryValues: [],
     });
   });
 
@@ -252,6 +356,8 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
       {
         operationIndex: 0,
         subject: { kind: 'model', namespaceId: app, model: 'Profile' },
+        loss: 'drop',
+        label: 'Drop',
         keepDataAdvice:
           'To keep its rows, rename table "profiles" to "people" instead; a statement cannot rename the table of a model that keeps its name. With db update, rename the table in the database yourself with ALTER TABLE "profiles" RENAME TO "people", then run prisma db update. With migration plan, write the rename as a migration of its own instead: run prisma migration new --name <name> --from <hash of the migration the database is at>, add this.renameTable("profiles", "people") to the operations of its migration.ts, run node on that migration.ts so it writes ops.json, then run prisma db migrate.',
       },
@@ -269,7 +375,12 @@ describe('subjectsOfCalls for a table whose model keeps its name', () => {
         byHand,
       }).dataLoss,
     ).toEqual([
-      { operationIndex: 0, subject: { kind: 'model', namespaceId: app, model: 'Profile' } },
+      {
+        operationIndex: 0,
+        subject: { kind: 'model', namespaceId: app, model: 'Profile' },
+        loss: 'drop',
+        label: 'Drop',
+      },
     ]);
   });
 

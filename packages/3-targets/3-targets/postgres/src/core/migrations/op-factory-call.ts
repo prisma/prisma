@@ -22,18 +22,23 @@
 
 import { unfilledPlaceholderOperation } from '@internal/errors/migration';
 import {
+  checkSqlDefaultText,
+  checkSqlExpressionText,
   createSqlTextSources,
+  isUnfilledSlot,
   type SqlMigrationPlanOperation,
+  type SqlSlot,
   type SqlTextSources,
+  slotSource,
+  sqlOfSlot,
 } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer, Lowerer } from '@internal/family-sql/control-adapter';
+import type { DataType } from '@internal/framework-components/codec';
 import type {
   OpFactoryCall as FrameworkOpFactoryCall,
   MigrationOperationClass,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { SqlTypeLookups } from '@internal/sql-contract/data-type';
-import type { StorageColumn, StorageTypeInstance } from '@internal/sql-contract/types';
 import type { AnyDdlColumnDefault, DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import {
   DdlColumn,
@@ -41,6 +46,7 @@ import {
   LiteralColumnDefault,
   opaqueSql,
 } from '@internal/sql-relational-core/ast';
+import { col } from '@internal/sql-relational-core/contract-free';
 import { namingOf } from '@internal/sql-schema-ir/naming';
 import {
   type ImportRequirement,
@@ -63,6 +69,7 @@ import { postgresError } from '../errors';
 import type { PostgresRlsPolicy, RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import {
   escapeLiteral,
+  POSTGRES_QUOTING,
   quoteIdentifier,
   quoteQualifiedName,
   validateEnumValueLength,
@@ -71,7 +78,7 @@ import type { PostgresColumnDefault } from '../types';
 import { boundSchema } from './bound-schema';
 import {
   type AlterColumnTypeClass,
-  addNotNullColumnDirect,
+  addRequiredColumnToEmptyTable,
   alterColumnType,
   dropColumn,
   dropDefault,
@@ -91,6 +98,7 @@ import {
   renameConstraint,
   renameConstraintLabel,
 } from './operations/constraints';
+import type { DataTransformColumn } from './operations/data-transform';
 import { createExtension } from './operations/dependencies';
 import { type CreateIndexExtras, createIndex, dropIndex, renameIndex } from './operations/indexes';
 import { createNativeEnumType, dropNativeEnumType } from './operations/native-enum-types';
@@ -105,6 +113,7 @@ import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
 import { dropTable, renameTable } from './operations/tables';
 import { buildAddNotNullColumnWithTemporaryDefaultOperation } from './planner-recipes';
+import { alterTypeCheckText } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 
 type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
@@ -656,11 +665,9 @@ export class DropColumnCall extends PostgresOpFactoryCallNode {
   }
 }
 
-export interface AlterColumnTypeOptions {
-  readonly qualifiedTargetType: string;
-  readonly formatTypeExpected: string;
-  readonly rawTargetTypeForLabel: string;
-  readonly using?: string;
+/** An `alterColumnType` call named by the column it alters, as its errors name it. */
+export function alterColumnTypeCallText(schema: string, table: string, column: string): string {
+  return `alterColumnType({ ${columnCallLocation(schema, table, column).join(', ')} })`;
 }
 
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
@@ -669,27 +676,65 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
-  readonly options: AlterColumnTypeOptions;
+  /** The new type as a migration writes it. */
+  readonly type: string;
+  readonly using: SqlSlot | undefined;
+  /** The type `format_type` prints once the alter has run, which the postcheck compares. */
+  readonly checkType: string;
   readonly label: string;
 
-  constructor(
-    schemaName: string,
-    tableName: string,
-    columnName: string,
-    options: AlterColumnTypeOptions,
-    operationClass: AlterColumnTypeClass = 'destructive',
-  ) {
+  constructor(input: {
+    readonly schemaName: string;
+    readonly tableName: string;
+    readonly columnName: string;
+    readonly type: string;
+    readonly using?: SqlSlot;
+    /** The data types of the stack, which read `type` for the postcheck. */
+    readonly dataTypes: readonly DataType[];
+    /** By default `data` when `using` converts the values, and `destructive` otherwise. */
+    readonly operationClass?: AlterColumnTypeClass;
+  }) {
     super();
-    this.schemaName = schemaName;
-    this.tableName = tableName;
-    this.columnName = columnName;
-    this.options = options;
-    this.operationClass = operationClass;
-    this.label = `Alter type of "${tableName}"."${columnName}" to ${options.rawTargetTypeForLabel}`;
+    this.schemaName = input.schemaName;
+    this.tableName = input.tableName;
+    this.columnName = input.columnName;
+    this.type = input.type;
+    this.using = input.using;
+    this.operationClass = input.operationClass ?? this.#defaultClass();
+    this.#refuseUnsafeUsing();
+    this.checkType = alterTypeCheckText(input.type, input.dataTypes, this.#callText());
+    this.label = `Alter type of "${input.tableName}"."${input.columnName}" to ${input.type}`;
     this.freeze();
   }
 
+  #refuseUnsafeUsing(): void {
+    if (this.using?.kind !== 'sql') return;
+    const refused = checkSqlExpressionText(this.using.sql, POSTGRES_QUOTING);
+    if (refused === undefined) return;
+    const call = this.#callText();
+    throw postgresError(
+      'MIGRATION.SQL_EXPRESSION_INVALID',
+      `${call}: using ${JSON.stringify(this.using.sql)} holds ${refused}, which could end or extend the ALTER COLUMN … TYPE statement it is written into`,
+      {
+        why: 'The conversion is written into the USING clause of ALTER COLUMN … TYPE. The check refuses a semicolon, a SQL comment, dollar quoting, and a comma or a statement keyword outside parentheses, since each could end or extend that statement; it does not check that the text is valid SQL.',
+        fix: `Write using as one SQL expression over the column, such as "${this.columnName}"::${this.type}. If it holds a comma or a keyword such as FROM outside parentheses, wrap it in parentheses.`,
+        meta: { call, field: 'using', expression: this.using.sql, refused },
+      },
+    );
+  }
+
+  #defaultClass(): AlterColumnTypeClass {
+    return this.using === undefined ? 'destructive' : 'data';
+  }
+
+  #callText(): string {
+    return alterColumnTypeCallText(this.schemaName, this.tableName, this.columnName);
+  }
+
   async toOp(lowerer?: ExecuteRequestLowerer): Promise<Op> {
+    if (isUnfilledSlot(this.using)) {
+      return unfilledPlaceholderOperation(this.label);
+    }
     if (lowerer === undefined) {
       throw postgresError(
         'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
@@ -701,28 +746,41 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
       this.schemaName,
       this.tableName,
       this.columnName,
-      this.options,
+      {
+        type: this.type,
+        checkType: this.checkType,
+        ...ifDefined('using', sqlOfSlot(this.using)),
+      },
       lowerer,
       this.operationClass,
     );
   }
 
   renderTypeScript(): string {
-    const opts: string[] = [];
-    if (this.schemaName !== UNBOUND_NAMESPACE_ID) {
-      opts.push(`schema: ${jsonToTsSource(this.schemaName)}`);
-    }
-    opts.push(`table: ${jsonToTsSource(this.tableName)}`);
-    opts.push(`column: ${jsonToTsSource(this.columnName)}`);
-    opts.push(`options: ${jsonToTsSource(this.options)}`);
-    if (this.operationClass !== 'destructive') {
-      opts.push(`operationClass: ${jsonToTsSource(this.operationClass)}`);
-    }
-    return `this.alterColumnType({ ${opts.join(', ')} })`;
+    return this.#written().source;
   }
 
   override importRequirements(): readonly ImportRequirement[] {
-    return [];
+    return [
+      ...(isUnfilledSlot(this.using)
+        ? [{ moduleSpecifier: POSTGRES_MIGRATION_FACADE, symbol: 'placeholder' }]
+        : []),
+      ...this.#written().imports,
+    ];
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
+    const using = this.using === undefined ? [] : [`using: ${slotSource(this.using, sql)}`];
+    const opts = [
+      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
+      `type: ${jsonToTsSource(this.type)}`,
+      ...using,
+      ...(this.operationClass === this.#defaultClass()
+        ? []
+        : [`operationClass: ${jsonToTsSource(this.operationClass)}`]),
+    ];
+    return { source: `this.alterColumnType({ ${opts.join(', ')} })`, imports: sql.imports() };
   }
 }
 
@@ -921,32 +979,38 @@ export class DropDefaultCall extends PostgresOpFactoryCallNode {
 }
 
 // ============================================================================
-// NOT NULL column additions (planner-internal; no authored surface)
+// NOT NULL column additions
 // ============================================================================
 
+function columnCallLocation(schemaName: string, tableName: string, columnName: string): string[] {
+  return [
+    ...(schemaName === UNBOUND_NAMESPACE_ID ? [] : [`schema: ${jsonToTsSource(schemaName)}`]),
+    `table: ${jsonToTsSource(tableName)}`,
+    `column: ${jsonToTsSource(columnName)}`,
+  ];
+}
+
 /**
- * Planner-internal call for adding a NOT NULL column (no contract default) to
- * a table that must be empty at migration time. Carries the typed `DdlColumn`
- * and lowers it to an ADD COLUMN execute step via the adapter at `toOp` time.
- *
- * No authored `PostgresMigration` method: this call is only emitted by the
- * planner, never hand-written by migration authors.
+ * Adds a required column with no default to a table that must be empty when the migration runs:
+ * a column in a new primary key, unique constraint or foreign key, where one temporary value in
+ * every row would break the constraint.
  */
-export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
-  readonly factoryName = 'rawSql' as const;
+export class AddRequiredColumnToEmptyTableCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'addRequiredColumnToEmptyTable' as const;
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
-  readonly column: DdlColumn;
+  /** The column's type as a migration writes it. */
+  readonly type: string;
   readonly label: string;
 
-  constructor(schemaName: string, tableName: string, columnName: string, column: DdlColumn) {
+  constructor(schemaName: string, tableName: string, columnName: string, type: string) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
-    this.column = column;
+    this.type = type;
     this.label = `Add column ${columnName} to ${tableName}`;
     this.freeze();
   }
@@ -955,58 +1019,72 @@ export class AddNotNullColumnDirectCall extends PostgresOpFactoryCallNode {
     if (lowerer === undefined) {
       throw postgresError(
         'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
-        `AddNotNullColumnDirectCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
-        { meta: { factory: 'AddNotNullColumnDirectCall' } },
+        `AddRequiredColumnToEmptyTableCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
+        { meta: { factory: 'AddRequiredColumnToEmptyTableCall' } },
       );
     }
-    return addNotNullColumnDirect(this.schemaName, this.tableName, this.column, lowerer);
+    return addRequiredColumnToEmptyTable(
+      this.schemaName,
+      this.tableName,
+      col(this.columnName, this.type, { notNull: true }),
+      lowerer,
+    );
   }
 
   renderTypeScript(): string {
-    return `rawSql(${jsonToTsSource({ id: `column.${this.tableName}.${this.columnName}`, label: this.label, operationClass: 'additive' })})`;
+    return `this.addRequiredColumnToEmptyTable({ ${[
+      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
+      `type: ${jsonToTsSource(this.type)}`,
+    ].join(', ')} })`;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return [];
   }
 }
 
 /**
- * Planner-internal call for adding a NOT NULL column (no contract default)
- * using a temporary default value for non-empty tables. Carries all parameters
- * needed for `buildAddNotNullColumnWithTemporaryDefaultOperation`; both the
- * typed ADD COLUMN execute step and the pre/postchecks are lowered via the
- * adapter at `toOp` time.
- *
- * No authored `PostgresMigration` method: this call is only emitted by the
- * planner, never hand-written by migration authors.
+ * Adds a required column with no default to a table that may have rows: the column is added with
+ * `temporaryDefault`, a SQL value every existing row takes, and the default is then dropped.
  */
-export class AddNotNullColumnWithTempDefaultCall extends PostgresOpFactoryCallNode {
-  readonly factoryName = 'rawSql' as const;
+export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode {
+  readonly factoryName = 'addColumnWithTemporaryDefault' as const;
   readonly operationClass = 'additive' as const;
   readonly schemaName: string;
   readonly tableName: string;
   readonly columnName: string;
-  readonly column: StorageColumn;
-  readonly types: SqlTypeLookups;
-  readonly storageTypes: Record<string, StorageTypeInstance>;
+  /** The column's type as a migration writes it. */
+  readonly type: string;
+  /** SQL for the value existing rows take, such as `''` or `0`. */
   readonly temporaryDefault: string;
   readonly label: string;
 
-  constructor(options: {
-    readonly schemaName: string;
-    readonly tableName: string;
-    readonly columnName: string;
-    readonly column: StorageColumn;
-    readonly types: SqlTypeLookups;
-    readonly storageTypes: Record<string, StorageTypeInstance>;
-    readonly temporaryDefault: string;
-  }) {
+  constructor(
+    schemaName: string,
+    tableName: string,
+    columnName: string,
+    type: string,
+    temporaryDefault: string,
+  ) {
     super();
-    this.schemaName = options.schemaName;
-    this.tableName = options.tableName;
-    this.columnName = options.columnName;
-    this.column = options.column;
-    this.types = options.types;
-    this.storageTypes = options.storageTypes;
-    this.temporaryDefault = options.temporaryDefault;
-    this.label = `Add column ${options.columnName} to ${options.tableName}`;
+    this.schemaName = schemaName;
+    this.tableName = tableName;
+    this.columnName = columnName;
+    this.type = type;
+    this.temporaryDefault = temporaryDefault;
+    const refused = checkSqlDefaultText(temporaryDefault);
+    if (refused !== undefined) {
+      const call = `addColumnWithTemporaryDefault({ ${columnCallLocation(schemaName, tableName, columnName).join(', ')} })`;
+      throw postgresError(
+        'CONTRACT.DEFAULT_INVALID',
+        `${call}: temporaryDefault ${JSON.stringify(temporaryDefault)} is not a value: ${refused}`,
+        {
+          fix: "Write temporaryDefault as one SQL value, such as '' or 0.",
+          meta: { expression: temporaryDefault, where: call },
+        },
+      );
+    }
+    this.label = `Add column ${columnName} to ${tableName}`;
     this.freeze();
   }
 
@@ -1014,24 +1092,36 @@ export class AddNotNullColumnWithTempDefaultCall extends PostgresOpFactoryCallNo
     if (lowerer === undefined) {
       throw postgresError(
         'MIGRATION.POSTGRES_CONTROL_STACK_MISSING',
-        `AddNotNullColumnWithTempDefaultCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
-        { meta: { factory: 'AddNotNullColumnWithTempDefaultCall' } },
+        `AddColumnWithTemporaryDefaultCall.toOp: a lowerer is required on the Postgres planner path (column "${this.columnName}" on table "${this.tableName}"). Pass the control adapter to createPostgresMigrationPlanner.`,
+        { meta: { factory: 'AddColumnWithTemporaryDefaultCall' } },
       );
     }
     return buildAddNotNullColumnWithTemporaryDefaultOperation({
       schema: this.schemaName,
       tableName: this.tableName,
       columnName: this.columnName,
-      column: this.column,
-      types: this.types,
-      storageTypes: this.storageTypes,
+      type: this.type,
       temporaryDefault: this.temporaryDefault,
       lowerer,
     });
   }
 
   renderTypeScript(): string {
-    return `rawSql(${jsonToTsSource({ id: `column.${this.tableName}.${this.columnName}`, label: this.label, operationClass: 'additive' })})`;
+    return this.#written().source;
+  }
+
+  override importRequirements(): readonly ImportRequirement[] {
+    return this.#written().imports;
+  }
+
+  #written(): WrittenCall {
+    const sql = createSqlTextSources(POSTGRES_MIGRATION_FACADE);
+    const source = `this.addColumnWithTemporaryDefault({ ${[
+      ...columnCallLocation(this.schemaName, this.tableName, this.columnName),
+      `type: ${jsonToTsSource(this.type)}`,
+      `temporaryDefault: ${sql.source(this.temporaryDefault)}`,
+    ].join(', ')} })`;
+    return { source, imports: sql.imports() };
   }
 }
 
@@ -1912,18 +2002,21 @@ export class DataTransformCall extends PostgresOpFactoryCallNode {
   readonly label: string;
   readonly checkSlot: string;
   readonly runSlot: string;
+  readonly backfillsColumn: DataTransformColumn | undefined;
 
   constructor(
     label: string,
     checkSlot: string,
     runSlot: string,
     operationClass: MigrationOperationClass = 'data',
+    backfillsColumn?: DataTransformColumn,
   ) {
     super();
     this.label = label;
     this.checkSlot = checkSlot;
     this.runSlot = runSlot;
     this.operationClass = operationClass;
+    this.backfillsColumn = backfillsColumn;
     this.freeze();
   }
 
@@ -1934,6 +2027,9 @@ export class DataTransformCall extends PostgresOpFactoryCallNode {
   renderTypeScript(): string {
     return [
       `this.dataTransform(endContract, ${jsonToTsSource(this.label)}, {`,
+      ...(this.backfillsColumn === undefined
+        ? []
+        : [`  backfillsColumn: ${jsonToTsSource(this.backfillsColumn).replaceAll('\n', '\n  ')},`]),
       `  check: () => placeholder(${jsonToTsSource(this.checkSlot)}),`,
       `  run: () => placeholder(${jsonToTsSource(this.runSlot)}),`,
       '})',
@@ -2185,8 +2281,8 @@ export type PostgresOpFactoryCall =
   | DropNotNullCall
   | SetDefaultCall
   | DropDefaultCall
-  | AddNotNullColumnDirectCall
-  | AddNotNullColumnWithTempDefaultCall
+  | AddRequiredColumnToEmptyTableCall
+  | AddColumnWithTemporaryDefaultCall
   | AddPrimaryKeyCall
   | AddForeignKeyCall
   | AddUniqueCall

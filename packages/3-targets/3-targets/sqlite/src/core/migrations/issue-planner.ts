@@ -15,6 +15,7 @@
  */
 
 import type {
+  FieldStatementColumns,
   MigrationOperationPolicy,
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
@@ -49,6 +50,7 @@ import {
   DropColumnCall,
   DropIndexCall,
   DropTableCall,
+  RecreateTableCall,
   type SqliteOpFactoryCall,
 } from './op-factory-call';
 import type {
@@ -421,6 +423,12 @@ export interface IssuePlannerOptions {
   readonly actual?: SqlSchemaIR;
   readonly policy?: MigrationOperationPolicy;
   readonly frameworkComponents?: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
+  /** The columns of the fields convert and backfill statements name; none when omitted. */
+  readonly statementColumns?: FieldStatementColumns;
+  /** Whether a required column the plan adds may take a temporary value; every column may when omitted. */
+  readonly takesTemporaryValue?: (table: string, column: string) => boolean;
+  /** The codec a column has in the origin contract; none known when omitted. */
+  readonly originCodecId?: (table: string, column: string) => string | undefined;
   readonly strategies?: readonly CallMigrationStrategy[];
 }
 
@@ -445,6 +453,9 @@ export function planIssues(
     policy,
     frameworkComponents,
     types: sqlTypeLookupsOf(frameworkComponents),
+    statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
+    takesTemporaryValue: options.takesTemporaryValue ?? (() => true),
+    originCodecId: options.originCodecId ?? (() => undefined),
   };
 
   const strategies = options.strategies ?? sqlitePlannerStrategies;
@@ -515,7 +526,38 @@ export function planIssues(
 
   // Final emission order matches the current monolithic planner:
   //   create-table → add-column → create-index → recreate → drop-column → drop-index → drop-table
-  const combined = [...gatedDefault, ...gatedBucketable];
+  // A rebuild creates its table's indexes itself, after any column it adds, so a separate
+  // createIndex on a column only the rebuild's recipe adds is left out.
+  const rebuiltIndexes = new Set(
+    gatedRecipe.flatMap((call) =>
+      call instanceof RecreateTableCall
+        ? call.indexes.map((index) => indexKey(call.tableName, index.name))
+        : [],
+    ),
+  );
+  const bucketed = [...gatedDefault, ...gatedBucketable];
+  const addedBeforeIndexes = new Set(
+    bucketed.flatMap((call) =>
+      call instanceof AddColumnCall ? [indexKey(call.tableName, call.columnName)] : [],
+    ),
+  );
+  const indexesANewColumn = (call: CreateIndexCall) => {
+    const live = context.actual.tables[call.tableName];
+    return (
+      live !== undefined &&
+      call.columns.some(
+        (column) =>
+          live.columns[column] === undefined &&
+          !addedBeforeIndexes.has(indexKey(call.tableName, column)),
+      )
+    );
+  };
+  const combined = bucketed.filter(
+    (call) =>
+      !(call instanceof CreateIndexCall) ||
+      !indexesANewColumn(call) ||
+      !rebuiltIndexes.has(indexKey(call.tableName, call.indexName)),
+  );
   const byCategory = (cat: CallCategory) => combined.filter((c) => classifyCall(c) === cat);
 
   const calls: SqliteOpFactoryCall[] = [
@@ -529,6 +571,10 @@ export function planIssues(
   ];
 
   return ok({ calls });
+}
+
+function indexKey(tableName: string, indexName: string): string {
+  return JSON.stringify([tableName, indexName]);
 }
 
 function emptySchemaIR(): SqlSchemaIR {

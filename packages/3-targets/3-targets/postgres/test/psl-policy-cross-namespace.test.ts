@@ -64,6 +64,7 @@ function interpret(text: string) {
     sourceId: 'psl-policy-cross-namespace.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

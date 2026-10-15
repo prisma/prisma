@@ -58,18 +58,21 @@ import {
   reportConsentStatement,
 } from '../statements/report-applied-statements';
 import { resolveStatements, type StatementOrigin } from '../statements/resolve-statements';
-import type { StatementText } from '../statements/statement-text';
+import { isPlannedStatement, type StatementText } from '../statements/statement-text';
+import { reportTemporaryValues, type TemporaryValueReport } from '../statements/temporary-values';
 import type {
   AskedAccessChange,
-  AskedSubject,
+  AskedDataLoss,
   DbInitFailure,
   DbInitResult,
   DbInitSuccess,
   DbUpdateFailure,
   DbUpdateResult,
   DbUpdateSuccess,
+  FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
+  RowsWithoutValueReport,
 } from '../types';
 import {
   type BuildAggregateInputs,
@@ -290,7 +293,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     const subjects: MigrationPlanSubjects =
       action === 'dbUpdate'
         ? subjectsAcrossSpaces(orderedResolutions)
-        : { dataLoss: [], accessWidening: [] };
+        : { dataLoss: [], accessWidening: [], temporaryValues: [] };
     const operations = orderedResolutions.flatMap((r) => r.entry.displayOps);
     const labelled = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
       entries.map((entry) => ({
@@ -301,7 +304,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       planned: planned.value,
       orderedResolutions,
       subjects,
-      dataLoss: labelled(subjects.dataLoss),
+      dataLoss: labelled(subjects.dataLoss).map((entry) => ({ ...entry, loss: entry.loss })),
       accessWidening: labelled(subjects.accessWidening),
     });
   };
@@ -311,7 +314,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     return first.failure;
   }
   let run = first.value;
-  let renameTexts = statementTexts.filter((statement) => statement.verb === 'rename');
+  let plannedTexts: readonly StatementText[] = statementTexts.filter(isPlannedStatement);
   let consented: readonly ConsentedSubject[] = [];
   // 3a. Questions: an apply of `db update` asks what each operation that would lose data means,
   // and whether each that would widen access may run, before it applies anything. A dry run asks
@@ -320,14 +323,15 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     const answered = await askPlanQuestions({
       plan: run,
       askAccess: true,
-      renames: renameTexts,
-      preAnswers: statementTexts.filter((statement) => statement.verb !== 'rename'),
+      canConvert: false,
+      statements: plannedTexts,
+      preAnswers: statementTexts.filter((statement) => !isPlannedStatement(statement)),
       consentAll: { delete: options.acceptDataLoss, allow: options.acceptAccessWidening },
       origin: fromContract ?? EMPTY_ORIGIN,
       originKnown: fromContract !== null,
       destination: contract,
       answer: options.answerQuestions,
-      replan: (renames) => plan(resolveRenames(renames)),
+      replan: (planned) => plan(resolveRenames(planned)),
     });
     if (!answered.ok) {
       if (CliStructuredError.is(answered.failure)) {
@@ -336,7 +340,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       return answered.failure;
     }
     run = answered.value.plan;
-    renameTexts = [...answered.value.renames];
+    plannedTexts = answered.value.statements;
     consented = answered.value.consented;
   }
   if (options.action === 'dbUpdate' && mode === 'plan') {
@@ -346,7 +350,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       contracts: {
         origin: fromContract ?? EMPTY_ORIGIN,
         destination: contract,
-        renames: renameTexts,
+        statements: plannedTexts,
       },
     });
     if (!refused.ok) {
@@ -392,15 +396,18 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
   const contractsAsked = {
     origin: fromContract ?? EMPTY_ORIGIN,
     destination: contract,
-    renames: renameTexts,
+    statements: plannedTexts,
   };
   const asked = <TEntry extends MigrationOperationSubject>(entries: readonly TEntry[]) =>
     entries.map((entry) => ({ ...entry, text: subjectText(entry.subject, contractsAsked) }));
+  const databaseStorageHash =
+    action === 'dbUpdate' ? recordedDatabaseContract(aggregate, markerRows) : undefined;
   const subjects =
     action === 'dbUpdate'
       ? {
           dataLoss: asked(run.subjects.dataLoss),
           accessWidening: asked(run.subjects.accessWidening),
+          temporaryValues: reportTemporaryValues(run.subjects.temporaryValues, contract),
         }
       : undefined;
 
@@ -422,6 +429,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       summary,
       appliedStatements,
       subjects,
+      databaseStorageHash,
       ...ifDefined('warnings', plannerWarnings),
     });
   }
@@ -450,6 +458,9 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('why', applied.failure.why),
       meta: applied.failure.meta,
       ...ifDefined('warnings', plannerWarnings),
+      ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
+      ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
+      ...ifDefined('databaseStorageHash', databaseStorageHash),
       ...ifDefined('cause', applied.failure.cause),
     });
   }
@@ -471,6 +482,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
     summary,
     appliedStatements,
     subjects,
+    databaseStorageHash,
     ...ifDefined('warnings', plannerWarnings),
   });
 }
@@ -563,6 +575,9 @@ function subjectsAcrossSpaces(
     ),
     accessWidening: orderedResolutions.flatMap((resolution) =>
       offset(resolution, resolution.entry.accessWidening),
+    ),
+    temporaryValues: orderedResolutions.flatMap((resolution) =>
+      offset(resolution, resolution.entry.temporaryValues),
     ),
   };
 }
@@ -670,11 +685,16 @@ function wrapPlanResult(args: {
   /** `undefined` for `db init`, which reports no statements. */
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
-  readonly subjects: MigrationPlanSubjects<AskedSubject, AskedAccessChange> | undefined;
+  readonly subjects:
+    | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
+    | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  /** `undefined` for `db init`, which prints no `migration plan`. */
+  readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'plan',
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
     plan: {
@@ -702,11 +722,16 @@ function wrapApplyResult(args: {
   /** `undefined` for `db init`, which reports no statements. */
   readonly appliedStatements: readonly AppliedStatementReport[] | undefined;
   /** `undefined` for `db init`, which reports no data loss. */
-  readonly subjects: MigrationPlanSubjects<AskedSubject, AskedAccessChange> | undefined;
+  readonly subjects:
+    | MigrationPlanSubjects<AskedDataLoss, AskedAccessChange, TemporaryValueReport>
+    | undefined;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  /** `undefined` for `db init`, which prints no `migration plan`. */
+  readonly databaseStorageHash: string | undefined;
 }): DbInitResult | DbUpdateResult {
   const success: DbInitSuccess | DbUpdateSuccess = {
     mode: 'apply',
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('appliedStatements', args.appliedStatements),
     ...args.subjects,
     plan: { operations: stripOperations(args.operations) },
@@ -733,6 +758,10 @@ function buildRunnerFailure(args: {
   readonly why?: string;
   readonly meta: Record<string, unknown>;
   readonly warnings?: readonly MigrationPlannerConflict[];
+  readonly failedTypeChange?: FailedTypeChangeReport;
+  readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The contract the database is at, when a migration of the graph ends at it. */
+  readonly databaseStorageHash?: string;
   readonly cause?: unknown;
 }): DbInitResult | DbUpdateResult {
   const failure: DbInitFailure | DbUpdateFailure = {
@@ -742,10 +771,26 @@ function buildRunnerFailure(args: {
     meta: args.meta,
     conflicts: undefined,
     ...ifDefined('warnings', args.warnings),
+    ...ifDefined('failedTypeChange', args.failedTypeChange),
+    ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
+    ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('cause', args.cause),
   };
   return blindCast<
     DbInitResult | DbUpdateResult,
     'notOk(failure) is shape-compatible with both DbInitResult and DbUpdateResult; the union is the return type of the surrounding function'
   >(notOk(failure));
+}
+
+/**
+ * The storage hash of the contract the application space's database is at, when the migration
+ * graph has it: `migration plan --from` then resolves it. Without a migration that ends at it,
+ * `migration plan` starts from the `db` ref that `db update` keeps.
+ */
+function recordedDatabaseContract(
+  aggregate: ContractSpaceAggregate,
+  markerRows: ReadonlyMap<string, { readonly storageHash: string }>,
+): string | undefined {
+  const hash = markerRows.get(aggregate.app.spaceId)?.storageHash;
+  return hash !== undefined && aggregate.app.graph().nodes.has(hash) ? hash : undefined;
 }

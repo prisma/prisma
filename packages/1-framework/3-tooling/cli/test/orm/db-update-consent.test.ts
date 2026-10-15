@@ -17,6 +17,7 @@ import { createTestProjectDir, writeProjectManifest } from '../utils/test-projec
 
 const mocks = {
   connect: vi.fn(),
+  readMarker: vi.fn(),
   dbUpdate: vi.fn(),
   renderContractDts: vi.fn(),
   close: vi.fn(),
@@ -27,6 +28,7 @@ const commands = createBinCommands(
   () =>
     ({
       connect: mocks.connect,
+      readMarker: mocks.readMarker,
       dbUpdate: mocks.dbUpdate,
       renderContractDts: mocks.renderContractDts,
       close: mocks.close,
@@ -68,7 +70,8 @@ const destination = {
 const contracts = {
   origin,
   destination,
-  renames: [],
+  statements: [],
+  canConvert: false,
   originKnown: true,
 };
 
@@ -80,6 +83,7 @@ function planQuestions(): readonly PlanQuestion[] {
         operationIndex: 0,
         label: 'Drop table "audit_old"',
         subject: { kind: 'storage', name: 'audit_old' },
+        loss: 'drop',
       },
       contracts,
     ),
@@ -88,6 +92,7 @@ function planQuestions(): readonly PlanQuestion[] {
         operationIndex: 1,
         label: 'Drop table "Legacy"',
         subject: { kind: 'model', namespaceId: asNamespaceId('app'), model: 'Legacy' },
+        loss: 'drop',
       },
       contracts,
     ),
@@ -126,6 +131,7 @@ beforeEach(() => {
   writeFileSync(join(projectDir, 'contract.d.ts'), 'export type Contract = never;\n');
   answers.splice(0);
   mocks.connect.mockReset().mockResolvedValue(undefined);
+  mocks.readMarker.mockReset().mockResolvedValue(null);
   mocks.close.mockReset().mockResolvedValue(undefined);
   mocks.dbUpdate.mockReset().mockImplementation(askThenApply(planQuestions));
   mocks.renderContractDts
@@ -210,6 +216,7 @@ describe('db update questions', () => {
             operationIndex: 0,
             label: 'Drop table "Legacy"',
             subject: { kind: 'model', namespaceId: asNamespaceId('app'), model: 'Legacy' },
+            loss: 'drop',
           },
           contracts,
         ),
@@ -218,6 +225,7 @@ describe('db update questions', () => {
             operationIndex: 1,
             label: 'Drop table "Legacy:x"',
             subject: { kind: 'storage', name: 'Legacy:x' },
+            loss: 'drop',
           },
           contracts,
         ),
@@ -288,6 +296,102 @@ describe('db update questions', () => {
       { error: { code: 'CLI.CONSENT_REQUIRED' } },
       { error: { code: 'CLI.CONSENT_REQUIRED' } },
     ]);
+  });
+
+  it('refuses --convert and --backfill before it plans anything, naming migration plan', async () => {
+    mocks.readMarker.mockResolvedValueOnce({ storageHash: 'c'.repeat(64) });
+    const run = await harness().run(
+      [
+        'db',
+        'update',
+        '--rename',
+        'User.years:User.age',
+        '--convert',
+        'User.age',
+        '--allow',
+        'User',
+        '--backfill',
+        'User.email',
+        '--json',
+      ],
+      { cwd: projectDir },
+    );
+
+    expect(run.exitCode).not.toBe(0);
+    expect(envelopeOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+        nextActions: [
+          expect.objectContaining({
+            command:
+              'prisma-test migration plan --rename User.years:User.age --convert User.age --backfill User.email',
+          }),
+          expect.anything(),
+        ],
+        meta: {
+          statements: [
+            { verb: 'convert', text: 'User.age' },
+            { verb: 'backfill', text: 'User.email' },
+          ],
+        },
+      },
+    });
+    expect(mocks.dbUpdate).not.toHaveBeenCalled();
+  });
+
+  it('refuses --convert and --backfill within a few seconds when the database never answers', async () => {
+    mocks.connect.mockReturnValueOnce(new Promise(() => {}));
+    const started = Date.now();
+    const run = await harness().run(['db', 'update', '--backfill', 'User.email', '--json'], {
+      cwd: projectDir,
+    });
+
+    expect(Date.now() - started).toBeLessThan(5000);
+    expect(envelopeOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+        nextActions: [
+          expect.objectContaining({ command: 'prisma-test migration plan --backfill User.email' }),
+          expect.anything(),
+        ],
+      },
+    });
+  }, 10_000);
+
+  it('refuses --convert and --backfill when the database cannot be reached, opening only an existing database', async () => {
+    mocks.connect.mockRejectedValueOnce(new Error('connect ECONNREFUSED 127.0.0.1:1'));
+    const run = await harness().run(['db', 'update', '--backfill', 'User.email', '--json'], {
+      cwd: projectDir,
+    });
+
+    expect(envelopeOf(run.json)).toMatchObject({
+      error: {
+        code: 'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+        nextActions: [
+          expect.objectContaining({ command: 'prisma-test migration plan --backfill User.email' }),
+          expect.anything(),
+        ],
+      },
+    });
+    expect(mocks.connect).toHaveBeenCalledWith(expect.anything(), {
+      existingDatabaseOnly: true,
+      connectTimeoutMs: 3000,
+    });
+    expect(mocks.dbUpdate).not.toHaveBeenCalled();
+  });
+
+  it('offers only delete for a type change, since it has no migration file to fill in', async () => {
+    const typeChange = dataLossQuestion(
+      {
+        operationIndex: 0,
+        label: 'Alter type of "User"."age" to int4',
+        subject: { kind: 'field', namespaceId: asNamespaceId('app'), model: 'User', field: 'age' },
+        loss: 'typeChange',
+      },
+      contracts,
+    );
+
+    expect(typeChange.verbs).toEqual(['delete']);
   });
 
   it('refuses a --delete no question asks about', async () => {

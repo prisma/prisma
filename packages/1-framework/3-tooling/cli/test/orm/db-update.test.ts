@@ -210,10 +210,65 @@ describe('db update --rename', () => {
     expect(run.presented?.data).toMatchObject({ appliedStatements: [PROFILE_TO_USER] });
   });
 
+  it('says which field gets a temporary value in existing rows, and that migration plan --backfill chooses it', async () => {
+    const temporaryValues = [{ field: 'User.email', value: "''" }];
+    mocks.dbUpdate
+      .mockResolvedValueOnce(ok({ ...planSuccess(), temporaryValues }))
+      .mockResolvedValueOnce(ok({ ...applySuccess(), temporaryValues }));
+    const dryRun = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+    const applied = await harness().run(['db', 'update'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(dryRun.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email instead.`,
+    });
+    expect(applied.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows got '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email instead.`,
+    });
+    expect(applied.presented?.data).toMatchObject({ temporaryValues });
+  });
+
+  it('starts the migration plan it suggests for a temporary value from the contract the database is at', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({
+        ...planSuccess(),
+        temporaryValues: [{ field: 'User.email', value: "''" }],
+        databaseStorageHash: MARKER_HASH,
+      }),
+    );
+    const run = await harness().run(['db', 'update', '--dry-run'], {
+      cwd: projectDir,
+      isTty: { stdout: true },
+    });
+
+    expect(run.presented?.presentation.human).toContainEqual({
+      kind: 'summary',
+      status: 'warn',
+      text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --from ${MARKER_HASH} --backfill User.email instead.`,
+    });
+    expect(run.presented?.data).not.toHaveProperty('databaseStorageHash');
+  });
+
   it('lists what an apply would ask about on a dry run, in its output and its JSON', async () => {
     const legacy = { kind: 'model', namespaceId: 'app', model: 'Legacy' } as const;
+    const age = { kind: 'field', namespaceId: 'app', model: 'User', field: 'age' } as const;
     mocks.dbUpdate.mockResolvedValue(
-      ok({ ...planSuccess(), dataLoss: [{ operationIndex: 0, subject: legacy, text: 'Legacy' }] }),
+      ok({
+        ...planSuccess(),
+        dataLoss: [
+          { operationIndex: 0, subject: legacy, text: 'Legacy', loss: 'drop' },
+          { operationIndex: 0, subject: age, text: 'User.age', loss: 'typeChange' },
+        ],
+      }),
     );
     const human = await harness().run(['db', 'update', '--dry-run'], {
       cwd: projectDir,
@@ -226,12 +281,24 @@ describe('db update --rename', () => {
       roots: [
         {
           label: 'An apply asks about',
-          children: [{ label: 'drop relation legacy: --delete Legacy' }],
+          children: [
+            { label: 'drop relation legacy: --delete Legacy' },
+            { label: 'drop relation legacy: --delete User.age' },
+          ],
         },
       ],
     });
     expect(json.presented?.data).toMatchObject({
-      dataLoss: [{ operationIndex: 0, subject: legacy, text: 'Legacy' }],
+      dataLoss: [
+        { operationIndex: 0, subject: legacy, text: 'Legacy', loss: 'drop', answered: false },
+        {
+          operationIndex: 0,
+          subject: age,
+          text: 'User.age',
+          loss: 'typeChange',
+          answered: false,
+        },
+      ],
       accessWidening: [],
     });
   });
@@ -293,7 +360,66 @@ describe('db update --rename', () => {
       {
         kind: 'run-command',
         label: 'Apply the planned operations',
-        command: 'prisma-test db update --db <url> --advance-ref qa',
+        command: 'prisma-test db update --advance-ref qa --db <url>',
+      },
+    ]);
+  });
+
+  it('repeats --config and --db in every command a dry run prints, as a shell reads them', async () => {
+    mocks.dbUpdate.mockResolvedValue(
+      ok({ ...planSuccess(), temporaryValues: [{ field: 'User.email', value: "''" }] }),
+    );
+    const run = await harness().run(
+      [
+        'db',
+        'update',
+        '--dry-run',
+        '--db',
+        CONNECTION,
+        '--advance-ref',
+        'qa',
+        '--config',
+        'my app/prisma.config.ts',
+      ],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect({
+      next: run.presented?.presentation.next,
+      temporaryValue: run.presented?.presentation.human.find(
+        (block) =>
+          block.kind === 'summary' &&
+          typeof block.text === 'string' &&
+          block.text.startsWith('Existing rows'),
+      ),
+    }).toEqual({
+      next: [
+        {
+          kind: 'run-command',
+          label: 'Apply the planned operations',
+          command:
+            "prisma-test db update --advance-ref qa --config 'my app/prisma.config.ts' --db <url>",
+        },
+      ],
+      temporaryValue: {
+        kind: 'summary',
+        status: 'warn',
+        text: `Existing rows would get '' in field "User.email". To choose the value, plan a migration with prisma-test migration plan --backfill User.email --config 'my app/prisma.config.ts' instead.`,
+      },
+    });
+  });
+
+  it('repeats --config and --db in the command an apply says to run next', async () => {
+    const run = await harness().run(
+      ['db', 'update', '--db', CONNECTION, '--config', 'app/prisma.config.ts'],
+      { cwd: projectDir, isTty: { stdout: true } },
+    );
+
+    expect(run.presented?.presentation.next).toEqual([
+      {
+        kind: 'run-command',
+        label: 'Confirm the space is up to date',
+        command: 'prisma-test migration status --config app/prisma.config.ts --db <url>',
       },
     ]);
   });
