@@ -1,11 +1,19 @@
 import { structuredError } from '@internal/utils/structured-error';
 
 /**
- * The rows one read produced, stored raw (undecoded): the value type the cache middleware stores.
- * The SQL runtime decodes intercepted rows the same way as driver rows, so a hit and a miss yield
- * the same values to the consumer.
+ * The rows one statement produced, stored raw (undecoded). The SQL runtime decodes intercepted rows
+ * the same way as driver rows, so a hit and a miss yield the same values to the consumer.
  */
 export type CachedRows = readonly Record<string, unknown>[];
+
+/**
+ * The value type the cache middleware stores: a statement's raw rows, or the result of a call a
+ * client started, such as an ORM call. The middleware serves a value only to an activity of the
+ * kind that stored it; a value of the other kind under the same key is a miss.
+ */
+export type CachedValue =
+  | { readonly kind: 'rows'; readonly rows: CachedRows }
+  | { readonly kind: 'result'; readonly result: unknown };
 
 /**
  * One key of a `CacheStore`, as `get` saw it.
@@ -17,7 +25,7 @@ export type CachedRows = readonly Record<string, unknown>[];
  * - `data` — `{ empty: true }` when the store holds no live value for the key, otherwise that
  *   value.
  */
-export interface CacheEntry<TMeta = unknown, TValue = CachedRows> {
+export interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
   readonly key: string;
   readonly meta: TMeta | undefined;
   readonly version: number;
@@ -26,7 +34,7 @@ export interface CacheEntry<TMeta = unknown, TValue = CachedRows> {
 
 /**
  * A cache of values that the cache middleware reads from and writes to. The middleware stores
- * `CachedRows`.
+ * `CachedValue`.
  *
  * The store keeps a version per key, an integer it keeps even for a key that holds no value. A key
  * never seen, or forgotten, has version 0. Only `unset` changes a version.
@@ -53,7 +61,7 @@ export interface CacheEntry<TMeta = unknown, TValue = CachedRows> {
  * `TMeta` is the shape of `meta` the store understands. The middleware does not check that a read
  * annotation's `meta` has this shape; see `cacheAnnotation`.
  */
-export interface CacheStore<TMeta = unknown, TValue = CachedRows> {
+export interface CacheStore<TMeta = unknown, TValue = CachedValue> {
   get(target: {
     readonly key: string;
     readonly meta: TMeta | undefined;
@@ -115,12 +123,12 @@ function invalidOption(argument: 'maxEntries' | 'ttlMs', received: number, expec
 
 /**
  * The default cache store: a least-recently-used map with one lifetime for every value, local to
- * the process. It holds `CachedRows` unless given another `TValue`. A key's version is kept for
+ * the process. It holds `CachedValue` unless given another `TValue`. A key's version is kept for
  * `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in
  * `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything.
  * It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
  */
-export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedRows>(
+export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
   options?: InMemoryCacheStoreOptions,
 ): CacheStore<TMeta, TValue> {
   const maxEntries = options?.maxEntries ?? 1000;
