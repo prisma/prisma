@@ -88,6 +88,9 @@ describe('postgres scalar types derived from the unified namespace', () => {
       TimestamptzString: { codecId: 'pg/timestamptz-string@1' },
       TimestamptzJsDate: { codecId: 'pg/timestamptz-date@1' },
       TimeString: { codecId: 'pg/time-string@1' },
+      Bit: { codecId: 'pg/bit@1' },
+      VarBit: { codecId: 'pg/varbit@1' },
+      Interval: { codecId: 'pg/interval@1' },
     });
   });
 
@@ -95,6 +98,7 @@ describe('postgres scalar types derived from the unified namespace', () => {
     expect([...stack.scalarTypes].sort()).toEqual([
       'BigInt',
       'BigIntNumber',
+      'Bit',
       'Boolean',
       'Bytes',
       'Char',
@@ -105,6 +109,7 @@ describe('postgres scalar types derived from the unified namespace', () => {
       'Float',
       'Inet',
       'Int',
+      'Interval',
       'Json',
       'Jsonb',
       'Numeric',
@@ -121,6 +126,7 @@ describe('postgres scalar types derived from the unified namespace', () => {
       'Timetz',
       'UnboundedInt',
       'Uuid',
+      'VarBit',
       'VarChar',
     ]);
   });

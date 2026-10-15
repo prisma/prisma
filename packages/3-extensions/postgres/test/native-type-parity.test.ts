@@ -49,6 +49,7 @@ interface ColumnShape {
   readonly dataType: string;
   readonly typeParams?: Record<string, unknown>;
   readonly typeRef?: string;
+  readonly many?: false | { readonly elementNullable: boolean };
 }
 
 function storageOf(value: unknown) {
@@ -306,6 +307,43 @@ const parityCases: readonly ParityCase[] = [
     expected: { dataType: 'pg/date', codecId: 'pg/date-temporal@1', typeParams: {} },
   },
 ];
+
+const bitAndIntervalCases = [
+  ['Bit', 'pg/bit', 'pg/bit@1', {}],
+  ['Bit(8)', 'pg/bit', 'pg/bit@1', { length: 8 }],
+  ['VarBit', 'pg/varbit', 'pg/varbit@1', {}],
+  ['VarBit(16)', 'pg/varbit', 'pg/varbit@1', { length: 16 }],
+  ['Interval', 'pg/interval', 'pg/interval@1', {}],
+  ['Interval(3)', 'pg/interval', 'pg/interval@1', { precision: 3 }],
+] as const;
+
+describe('Bit, VarBit and Interval', () => {
+  it.each(bitAndIntervalCases)(
+    '%s gives its codec and parameters as a scalar and as a list',
+    (spelling, dataType, codecId, typeParams) => {
+      const result = emit(`model sample {
+  id Int @id
+  one ${spelling}
+  many ${spelling}[]
+}
+`);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const columns = storageOf(result.value).namespaces['public']?.entries.table['sample']
+        ?.columns;
+      const shape = (column: ColumnShape | undefined) => ({
+        dataType: column?.dataType,
+        codecId: column?.codecId,
+        typeParams: column?.typeParams ?? {},
+        many: column?.many,
+      });
+      expect({ one: shape(columns?.['one']), many: shape(columns?.['many']) }).toEqual({
+        one: { dataType, codecId, typeParams, many: false },
+        many: { dataType, codecId, typeParams, many: { elementNullable: false } },
+      });
+    },
+  );
+});
 
 describe('native types as bare scalar types — parity with the live bare-type path', () => {
   it.each(parityCases)('$title', ({ bare, alias, expected }) => {

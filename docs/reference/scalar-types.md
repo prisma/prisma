@@ -92,6 +92,9 @@ These are the current names. The Postgres and SQLite rename project will change 
 | `Timetz(p?)` | — | `pg/timetz@1` | `timetz` | `string` |
 | `Uuid` | `field.uuidNative()` | `pg/uuid@1` | `uuid` | `string` |
 | `Inet` | — | `pg/inet@1` | `inet` | `string` |
+| `Interval(p?)` | — | `pg/interval@1` | `interval` | `{ months: number; days: number; micros: bigint }` |
+| `Bit(n?)` | — | `pg/bit@1` | `bit` | `string` (the bits as `0` and `1`) |
+| `VarBit(n?)` | — | `pg/varbit@1` | `bit varying` | `string` (the bits as `0` and `1`) |
 | `Json` | — | `pg/json@1` | `json` | `JsonValue` |
 | `Jsonb` | `field.json()` | `pg/jsonb@1` | `jsonb` | `JsonValue` |
 | `Bytes` | `field.bytes()` | `pg/bytea@1` | `bytea` | `Uint8Array` |
