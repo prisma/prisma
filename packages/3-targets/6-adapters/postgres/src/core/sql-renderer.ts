@@ -3,7 +3,12 @@ import type { JsonValue } from '@internal/contract/types';
 import type { CodecRef, DataTypeLookup } from '@internal/framework-components/codec';
 import type { CapabilityMatrix } from '@internal/framework-components/components';
 import { runtimeError } from '@internal/framework-components/runtime';
-import { dataTypeParams, sqlBaseName, sqlDataTypeOfCodec } from '@internal/sql-contract/data-type';
+import {
+  dataTypeParams,
+  sqlBaseName,
+  sqlDataTypeOfCodec,
+  sqlRawDataType,
+} from '@internal/sql-contract/data-type';
 import {
   type AggregateExpr,
   type AnyExpression,
@@ -77,6 +82,8 @@ import type { PostgresContract } from './types';
 /**
  * Data types whose unknown-OID parameter inference is reliable in arbitrary expression positions. A parameter whose codec represents one of these is emitted as plain `$N`; everything else (including `pg/json`, `pg/jsonb`, extension types like `pgvector/vector`, and enums) is emitted as `$N::<base name>` so the planner picks an unambiguous overload.
  *
+ * `sql/raw` is sent without a cast so the column's own input function reads the text: its base name is the whole type, so a cast to `character varying(10)` would truncate.
+ *
  * `pg/json` / `pg/jsonb` are intentionally excluded: their operator overloads make context inference unreliable in expression positions (e.g. `$1 -> 'key'` is ambiguous between the two).
  */
 const POSTGRES_INFERRABLE_DATA_TYPES: ReadonlySet<string> = new Set([
@@ -97,11 +104,12 @@ const POSTGRES_INFERRABLE_DATA_TYPES: ReadonlySet<string> = new Set([
   pgInterval.id,
   pgBit.id,
   pgVarbit.id,
+  sqlRawDataType.id,
 ]);
 
 /**
- * A parameter's cast names its data type's base name, never its parameters: an explicit cast to
- * `varchar(n)` truncates and to `numeric(p,s)` rounds.
+ * A parameter's cast names its data type's base name, which leaves out the parameters of a type
+ * written from texts: an explicit cast to `varchar(n)` truncates and to `numeric(p,s)` rounds.
  */
 function renderTypedParam(
   index: number,

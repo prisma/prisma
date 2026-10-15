@@ -48,6 +48,7 @@ export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
   /** The kind of reported type this data type claims, instead of any text. */
   readonly claimsKind?: string;
   readonly normalize?: (params: Params) => Params;
+  /** The type's name from its parameters, for a type that claims a kind or declares no texts. */
   readonly render?: (params: Params) => string;
   readonly fromReported?: (reported: ReportedSqlType) => Params;
 }
@@ -158,8 +159,8 @@ function checkKindClaim<Params extends SqlTypeParams>(
   spec: SqlDataTypeSpec<Params>,
 ): void {
   if (spec.claimsKind === undefined) {
-    if (spec.render !== undefined) {
-      refuseDeclaration(id, 'render is allowed only together with claimsKind.');
+    if (spec.render !== undefined && spec.texts !== undefined) {
+      refuseDeclaration(id, 'render is allowed only together with claimsKind or with no texts.');
     }
     if (spec.fromReported !== undefined) {
       refuseDeclaration(id, 'fromReported is allowed only together with claimsKind.');
@@ -229,6 +230,19 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
   };
   checkNormalFormsWritten(type);
   return type;
+}
+
+/**
+ * Whether `type` names its column type with `render` and declares no texts and no kind. The name is
+ * the text the database catalog prints, as the author wrote it, so it is compared with the reported
+ * text unchanged, not through a target's other names for its types.
+ */
+export function namesTypeAsReported(type: SqlDataType): boolean {
+  return (
+    type.sql.render !== undefined &&
+    type.sql.texts.length === 0 &&
+    type.sql.claimsKind === undefined
+  );
 }
 
 /** Whether `type` is a data type a SQL column can have. `sql/expression` is the one data type no column has. */
@@ -322,7 +336,11 @@ function substitute<Params extends SqlTypeParams>(
   });
 }
 
-/** The name of `type` with no parameters, for places where parameters must not appear. */
+/**
+ * The name of `type` with no parameters, for places where parameters must not appear. A type that
+ * renders its name gives what `render` writes, which for a type that declares no texts is its whole
+ * name, parameters included.
+ */
 export function sqlBaseName<Params extends SqlTypeParams>(
   type: SqlDataType<Params>,
   params: SqlTypeParams,
@@ -432,6 +450,7 @@ export function renderSqlCatalogText<Params extends SqlTypeParams>(
       `Data type ${type.id} claims the kind "${type.sql.claimsKind}" and has no catalog text.`,
     );
   }
+  if (type.sql.render !== undefined) return type.sql.render(validated);
   const normalized = type.sql.normalize(validated);
   return substitute(type, pickText(type, 'catalog', presentKeys(normalized)), normalized);
 }

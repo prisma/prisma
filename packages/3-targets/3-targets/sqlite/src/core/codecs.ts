@@ -29,6 +29,7 @@ import {
   type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
+import { sqlRawDataType } from '@internal/sql-contract/data-type';
 import { canonicalDateTime } from '@internal/sql-contract/data-type-support';
 import {
   BinaryExpr,
@@ -43,6 +44,7 @@ import {
   SqlIntDescriptor,
   sqlCharDescriptor,
   sqlFloatDescriptor,
+  sqlRawDescriptor,
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
@@ -311,6 +313,11 @@ export const sqliteSqlCharDescriptor = sqliteCodec(sqlCharDescriptor, {
 
 export const sqliteSqlVarcharDescriptor = sqliteCodec(sqlVarcharDescriptor, {
   dataType: sqliteCharacterVarying,
+  jsonProjection: identityJsonProjection,
+});
+
+export const sqliteSqlRawDescriptor = sqliteCodec(sqlRawDescriptor, {
+  dataType: sqlRawDataType,
   jsonProjection: identityJsonProjection,
 });
 
@@ -821,6 +828,7 @@ export const codecDescriptors = defineSqliteCodecs([
   sqliteSqlVarcharDescriptor,
   sqliteSqlIntDescriptor,
   sqliteSqlFloatDescriptor,
+  sqliteSqlRawDescriptor,
   sqliteTextDescriptor,
   sqliteIntegerDescriptor,
   sqliteRealDescriptor,

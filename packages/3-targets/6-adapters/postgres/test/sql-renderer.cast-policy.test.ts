@@ -164,6 +164,25 @@ describe('renderLoweredSql cast policy', () => {
     expect(lowered.sql).toBe('SELECT "user"."id" AS "id" FROM "user" WHERE "user"."score" = $1');
   });
 
+  it('emits plain $N for a raw column, so the column type reads the text with its own input function', () => {
+    const ast = selectWithTypeParams(
+      'name',
+      'sql/raw@1',
+      { sql: 'character varying(10)' },
+      'a longer text than ten characters',
+    );
+
+    const lowered = renderLoweredSql(
+      ast,
+      baseContract,
+      postgresCodecDescriptorRegistry,
+      dataTypes,
+      postgresAdapterCapabilities,
+    );
+
+    expect(lowered.sql).toBe('SELECT "user"."id" AS "id" FROM "user" WHERE "user"."name" = $1');
+  });
+
   it('emits exact native-enum casts from validated descriptor type parameters', () => {
     const publicAst = selectWithTypeParams(
       'status',

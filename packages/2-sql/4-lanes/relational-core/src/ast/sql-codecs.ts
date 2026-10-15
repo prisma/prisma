@@ -22,12 +22,15 @@ import {
   decodeJsonInteger,
   decodeJsonString,
   encodeJsonFloat,
+  refuseJsonValue,
   SAFE_INTEGER_RANGE,
 } from '@internal/framework-components/codec';
+import { structuredError } from '@internal/utils/structured-error';
 import {
   SQL_CHAR_CODEC_ID,
   SQL_FLOAT_CODEC_ID,
   SQL_INT_CODEC_ID,
+  SQL_RAW_CODEC_ID,
   SQL_TEXT_CODEC_ID,
   SQL_VARCHAR_CODEC_ID,
   sqlCharDecode,
@@ -228,3 +231,53 @@ export const sqlVarcharColumn = (params: LengthParams = {}) =>
 
 sqlVarcharColumn satisfies ColumnHelperFor<SqlVarcharDescriptor>;
 sqlVarcharColumn satisfies ColumnHelperForStrict<SqlVarcharDescriptor>;
+
+type RawParams = { readonly sql: string };
+
+const NO_JSON_FORM =
+  'absent: a raw column has no JSON form, so it has no literal default, enum member or JSON value';
+
+/**
+ * The codec of a raw column, whose type no other data type claims. Values pass through unchanged and
+ * are typed `unknown`, since nothing is known about how the driver represents them. It has no JSON
+ * form. ADR 273.
+ */
+export class SqlRawCodec extends CodecImpl<typeof SQL_RAW_CODEC_ID, readonly [], unknown, unknown> {
+  async encode(value: unknown, _ctx: CodecCallContext): Promise<unknown> {
+    return value;
+  }
+  async decode(wire: unknown, _ctx: CodecCallContext): Promise<unknown> {
+    return wire;
+  }
+  encodeJson(_value: unknown): JsonValue {
+    throw structuredError(
+      'RUNTIME.ENCODE_FAILED',
+      `${this.id} JSON value must be ${NO_JSON_FORM}`,
+      {
+        meta: { codecId: this.id },
+      },
+    );
+  }
+  decodeJson(json: JsonValue): unknown {
+    return refuseJsonValue(this.id, NO_JSON_FORM, json);
+  }
+}
+
+export class SqlRawDescriptor extends CodecDescriptorTemplateImpl<RawParams> {
+  override readonly codecId = SQL_RAW_CODEC_ID;
+  override readonly traits = [] as const;
+  override readonly enumRefusal =
+    'A raw column has a type Prisma does not interpret, so no member can be written as one of its values. No enum can use the raw codec; use a text enum instead.';
+  override readonly paramsSchema = undefined;
+  override factory(_params: RawParams): (ctx: CodecInstanceContext) => SqlRawCodec {
+    return () => new SqlRawCodec(this);
+  }
+}
+
+export const sqlRawDescriptor = new SqlRawDescriptor();
+
+export const sqlRawColumn = (sql: string) =>
+  column(sqlRawDescriptor.factory({ sql }), sqlRawDescriptor.codecId, { sql });
+
+sqlRawColumn satisfies ColumnHelperFor<SqlRawDescriptor>;
+sqlRawColumn satisfies ColumnHelperForStrict<SqlRawDescriptor>;

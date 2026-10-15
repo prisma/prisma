@@ -32,6 +32,7 @@ import {
   renderTsLiteral,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { sqlRawDataType } from '@internal/sql-contract/data-type';
 import { canonicalNumeralText } from '@internal/sql-contract/data-type-support';
 import {
   BinaryExpr,
@@ -49,6 +50,7 @@ import {
   sqlCharDescriptor,
   sqlFloatDescriptor,
   sqlIntDescriptor,
+  sqlRawDescriptor,
   sqlTextDescriptor,
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
@@ -365,6 +367,11 @@ export const postgresSqlFloatDescriptor = postgresCodec(sqlFloatDescriptor, {
 
 export const postgresSqlTextDescriptor = postgresCodec(sqlTextDescriptor, {
   dataType: pgText,
+  jsonProjection: identityJsonProjection,
+});
+
+export const postgresSqlRawDescriptor = postgresCodec(sqlRawDescriptor, {
+  dataType: sqlRawDataType,
   jsonProjection: identityJsonProjection,
 });
 
@@ -1726,6 +1733,7 @@ export const codecDescriptors = definePostgresCodecs([
   postgresSqlIntDescriptor,
   postgresSqlFloatDescriptor,
   postgresSqlTextDescriptor,
+  postgresSqlRawDescriptor,
   pgTextDescriptor,
   pgEnumDescriptor,
   pgCharDescriptor,

@@ -47,7 +47,7 @@ const PARAMETERLESS_CODEC_IDS: readonly string[] = [
   'pg/tsquery@1',
 ];
 
-const NEEDS_PARAMS = new Set(['pg/enum@1']);
+const NEEDS_PARAMS = new Set(['pg/enum@1', 'sql/raw@1']);
 
 const parameterless = codecDescriptors.filter((d) => !NEEDS_PARAMS.has(d.codecId));
 const source = ColumnRef.of('t', 'c');

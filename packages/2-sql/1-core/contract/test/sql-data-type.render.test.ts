@@ -191,6 +191,14 @@ describe('renderSqlCatalogText', () => {
     expect(() => renderSqlCatalogText(character, {})).toThrow(/t\/character/);
   });
 
+  it('is what render gives for a type that renders and claims no kind', () => {
+    const named = sqlDataType<{ name: string }>('t/named', {
+      params: type({ name: 'string' }),
+      render: ({ name }) => name,
+    });
+    expect(renderSqlCatalogText(named, { name: 'circle' })).toBe('circle');
+  });
+
   it('refuses a type that claims a kind, which has no catalog text', () => {
     expect(() => renderSqlCatalogText(enumType, { typeName: 'status' })).toThrow(InternalError);
   });

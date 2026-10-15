@@ -209,9 +209,17 @@ describe('sqlDataType', () => {
     });
   });
 
-  describe('render and fromReported go with claimsKind, which excludes texts', () => {
-    it('refuses render without claimsKind', () => {
-      expect(() => sqlDataType('t/bad', { render: () => 'x' })).toThrow(InternalError);
+  describe('render goes with claimsKind or with no texts; fromReported goes with claimsKind, which excludes texts', () => {
+    it('refuses render next to texts without claimsKind', () => {
+      expect(() =>
+        sqlDataType('t/bad', { texts: [{ text: 'x', written: true }], render: () => 'x' }),
+      ).toThrow(InternalError);
+    });
+
+    it('allows render without texts or claimsKind', () => {
+      const named = sqlDataType('t/named', { render: () => 'x' });
+      expect(named.sql).toMatchObject({ texts: [], claimsKind: undefined });
+      expect(named.sql.render?.({})).toBe('x');
     });
 
     it('refuses fromReported without claimsKind', () => {

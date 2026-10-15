@@ -1,6 +1,6 @@
 import type { DataType } from '@internal/framework-components/codec';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
-import { isSqlDataType, type SqlTypeText } from '@internal/sql-contract/data-type';
+import { isSqlDataType, type SqlTypeText, sqlRawDataType } from '@internal/sql-contract/data-type';
 import { SQL_EXPRESSION_DATA_TYPE_ID } from '@internal/sql-contract/sql-expression';
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../src/core/codecs';
@@ -107,6 +107,7 @@ const EXPECTED: Readonly<Record<string, ExpectedDeclaration>> = {
   'pg/interval': { texts: [both('interval'), both('interval({precision})')] },
   'pg/text-array': { texts: [] },
   'pg/enum': { texts: [], claimsKind: 'enum' },
+  'sql/raw': { texts: [] },
 };
 
 const registered: readonly DataType[] = postgresTargetDescriptorMeta.dataTypes;
@@ -136,13 +137,18 @@ describe('the Postgres data type declarations', () => {
     expect(postgresTargetDescriptorMetaRuntime.dataTypes).toBe(registered);
   });
 
-  it('declares render and fromReported only on the enum, which claims a kind', () => {
-    const withHooks = registered.filter(
-      (type) =>
-        isSqlDataType(type) &&
-        (type.sql.render !== undefined || type.sql.fromReported !== undefined),
+  it('declares render only on the enum, which claims a kind, and on sql/raw, which declares no texts', () => {
+    const rendering = registered.filter(
+      (type) => isSqlDataType(type) && type.sql.render !== undefined,
     );
-    expect(withHooks.map((type) => type.id)).toEqual([pgEnum.id]);
+    expect(rendering.map((type) => type.id)).toEqual([pgEnum.id, sqlRawDataType.id]);
+  });
+
+  it('declares fromReported only on the enum, which claims a kind', () => {
+    const reading = registered.filter(
+      (type) => isSqlDataType(type) && type.sql.fromReported !== undefined,
+    );
+    expect(reading.map((type) => type.id)).toEqual([pgEnum.id]);
   });
 });
 
