@@ -1,7 +1,6 @@
-import { emptyCodecLookup } from '@internal/framework-components/codec';
-import { EMPTY_DATA_TYPES } from '@internal/psl-parser';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
+import { mongoCodecLookup, mongoDataTypeSupport } from './mongo-type-lookups';
 
 function interpret(schema: string) {
   return interpretMongoContract(schema, {
@@ -9,9 +8,9 @@ function interpret(schema: string) {
       ['String', 'mongo/string@1'],
       ['ObjectId', 'mongo/objectId@1'],
     ]),
-    dataTypes: EMPTY_DATA_TYPES,
+    dataTypes: mongoDataTypeSupport,
     defaultFunctionRegistry: new Map(),
-    codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+    codecLookup: mongoCodecLookup,
   });
 }
 

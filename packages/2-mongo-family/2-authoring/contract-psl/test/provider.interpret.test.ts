@@ -5,7 +5,6 @@ import type {
   ContractSourceDiagnostic,
 } from '@internal/config/config-types';
 import type { AuthoringEntityContext } from '@internal/framework-components/authoring';
-import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import {
   buildSymbolTable,
   createBinder,
@@ -28,6 +27,7 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
+import { mongoCodecLookup, mongoDataTypeSupport } from './mongo-type-lookups';
 
 const SOURCE_ID = './schema.prisma';
 
@@ -57,8 +57,8 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
       describeUnsupportedAttribute: describeUnsupportedMongoAttribute,
       describeUnresolvedType: describeUnresolvedMongoType,
     },
-    dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
-    codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+    dataTypes: mongoDataTypeSupport,
+    codecLookup: mongoCodecLookup,
     controlMutationDefaults: {
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],

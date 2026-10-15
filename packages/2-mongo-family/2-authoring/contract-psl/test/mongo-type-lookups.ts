@@ -1,3 +1,4 @@
+import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import {
   type AnyCodecDescriptor,
   type CodecLookup,
@@ -22,6 +23,8 @@ const bsonTypesByCodecId: Record<string, readonly string[]> = {
   'mongo/bson@1': [],
   'test/int-or-long@1': ['int', 'long'],
   'test/number-or-null@1': ['null', 'int'],
+  'custom/oid@2': ['objectId'],
+  'custom/text@2': ['string'],
 };
 
 function dataTypeIdOf(codecId: string): string {
@@ -55,3 +58,5 @@ export const mongoCodecLookup: CodecLookupWithDescriptors = {
   },
   renderOutputTypeFor: () => undefined,
 };
+
+export const mongoDataTypeSupport: DataTypeSupport = { entries: {}, lookup: mongoDataTypeLookup };

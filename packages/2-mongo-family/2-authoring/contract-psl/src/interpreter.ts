@@ -38,6 +38,7 @@ import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
   deriveCollectionValidators,
+  documentIdRefusalOf,
   type MongoCollectionInput,
   MongoIndex,
   type MongoIndexKeyDirection,
@@ -1076,7 +1077,6 @@ function fieldTypeResolution(field: FieldSymbol, binder: Binder): Resolution | u
 }
 
 // PSL scalar type name whose codec is mandated for a Mongo model's `_id`.
-const MONGO_OBJECT_ID_PSL_TYPE = 'ObjectId';
 
 interface PresetExecutionDefault {
   readonly modelName: string;
@@ -1564,19 +1564,11 @@ export function interpretPslDocumentToMongoContract(
           ...modelSource.at(),
         });
       } else {
-        // The resulting document must carry an `_id` of BSON type objectId. We
-        // assert on the emitted shape (the mapped-name-keyed field record), not
-        // on how the user spelled it — `id ObjectId @id @map("_id")` and a field
-        // literally named `_id` both satisfy it; a non-objectId or unmapped id
-        // does not.
-        const objectIdCodecId = scalarTypeCodecIds.get(MONGO_OBJECT_ID_PSL_TYPE);
-        const idField = fields['_id'];
-        const idIsObjectId =
-          idField !== undefined &&
-          idField.type.kind === 'scalar' &&
-          objectIdCodecId !== undefined &&
-          idField.type.codecId === objectIdCodecId;
-        if (!idIsObjectId) {
+        const idRefusal = documentIdRefusalOf(fields, {
+          codecLookup,
+          dataTypeLookup: input.dataTypes.lookup,
+        });
+        if (idRefusal !== undefined) {
           diagnostics.pushUnlocated({
             code: 'PSL_MONGO_ID_REQUIRED',
             message: `Model "${pslModel.name}" must declare an _id field of type ObjectId (e.g. \`id ObjectId @id @map("_id")\`).`,
