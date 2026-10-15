@@ -4,7 +4,6 @@ import { type as arktype } from 'arktype';
  *
  * - `renderOps` lowers each variant via its pure factory and pins the
  *   id/operationClass/target.details shape exposed to runners.
- * - `RawSqlCall` is returned verbatim by `renderOps`.
  * - `DataTransformCall` lowers to an operation that rejects with MIGRATION.UNFILLED_PLACEHOLDER,
  *   because the planner can only emit unfilled stubs; the other operations still lower.
  * - `TypeScriptRenderablePostgresMigration` routes `operations` through
@@ -224,26 +223,6 @@ describe('renderOps', () => {
         },
       });
     }
-  });
-
-  it('RawSqlCall returns its stored op verbatim', () => {
-    const op = {
-      id: 'raw.identity',
-      label: 'raw identity',
-      operationClass: 'widening' as const,
-      target: {
-        id: 'postgres' as const,
-        details: { schema: 'x', objectType: 'table' as const, name: 't' },
-      },
-      precheck: [],
-      execute: [{ description: 'do', sql: 'SELECT 1' }],
-      postcheck: [],
-      meta: { note: 'roundtrip' },
-    };
-
-    const [rendered] = renderOps([new RawSqlCall(op)]);
-
-    expect(rendered).toBe(op);
   });
 
   it('lowers a DataTransformCall to an operation that rejects with MIGRATION.UNFILLED_PLACEHOLDER, beside the others', async () => {

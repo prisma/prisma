@@ -8,8 +8,16 @@ const infixLowering = {
 } as const;
 
 describe('toExpr', () => {
-  it('throws RUNTIME.PARAM_REF_CODEC_REQUIRED for raw values without codec', () => {
-    expect(() => toExpr('hello')).toThrow('Cannot construct a ParamRef');
+  it.each([
+    ['hello', 'string'],
+    [42, 'number'],
+  ])('throws RUNTIME.PARAM_REF_CODEC_REQUIRED naming the JS type for %o', (value, jsType) => {
+    expect(() => toExpr(value)).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.PARAM_REF_CODEC_REQUIRED',
+        message: expect.stringContaining(jsType),
+      }),
+    );
   });
 
   it('wraps raw values in a ParamRef tagged with codec when provided', () => {
