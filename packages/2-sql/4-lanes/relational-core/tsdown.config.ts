@@ -7,6 +7,7 @@ export default defineConfig({
     'src/exports/aggregate-descriptor-registry.ts',
     'src/exports/ast.ts',
     'src/exports/codec-descriptor-registry.ts',
+    'src/exports/collection-methods.ts',
     'src/exports/contract-free.ts',
     'src/exports/expression.ts',
     'src/exports/functions.ts',
