@@ -14,20 +14,20 @@ States were last checked against GitHub and Linear on 2026-10-15.
 
 ## How far from GA
 
-Each symbol is one row marked Must, sorted from done to not started. Rows marked Aim, Later or When there is time are left out. Recount on every refresh.
+Counts the projects marked Must in each stream. A project counts as done only when every part of it has merged. "Not started" includes the one project waiting on a decision. Recount on every refresh.
 
-| Stream | Progress | Must rows |
-| --- | --- | --- |
-| Foundations and breaking changes | ✅✅🔄🔄🔄⏳⏳ | 2 done, 3 in progress, 2 not started |
-| Upgrade path from Prisma 7 | ✅🔄🔄⏳⏳⏳⏳ | 1 done, 2 in progress, 4 not started |
-| Editor and tools | ✅🔄🔄⏳ | 1 done, 2 in progress, 1 not started |
-| Query features | ✅⏳⏳ | 1 done, 2 not started |
-| Docs and the new user's first hour | ✅🔄🔄❓ | 1 done, 2 in progress, 1 waiting on a decision |
-| **All streams** | ✅✅✅✅✅✅🔄🔄🔄🔄🔄🔄🔄🔄🔄❓⏳⏳⏳⏳⏳⏳⏳⏳⏳ | **6 done, 9 in progress, 9 not started, 1 waiting on a decision** |
+| Stream | Done | Bar | In progress | Not started |
+| --- | --- | --- | --- | --- |
+| Foundations and breaking changes | 2 of 7 (29%) | `███░░░░░░░` | 3 | 2 |
+| Upgrade path from Prisma 7 | 1 of 7 (14%) | `█░░░░░░░░░` | 2 | 4 |
+| Editor and tools | 1 of 4 (25%) | `██░░░░░░░░` | 2 | 1 |
+| Query features | 1 of 3 (33%) | `███░░░░░░░` | 0 | 2 |
+| Docs and the new user's first hour | 1 of 4 (25%) | `██░░░░░░░░` | 2 | 1 |
+| **All streams** | **6 of 25 (24%)** | `██░░░░░░░░` | **9** | **10** |
 
 ## Stream 1: Foundations and breaking changes
 
-**GA readiness:** ✅✅🔄🔄🔄⏳⏳ 7 Must rows: 2 done, 3 in progress, 2 not started.
+**GA readiness:** 2 of 7 Must projects done (29%). 3 in progress, 2 not started.
 
 GA is the last chance to make breaking changes, so this stream decides the date.
 
@@ -43,7 +43,7 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 
 ## Stream 2: Upgrade path from Prisma 7
 
-**GA readiness:** ✅🔄🔄⏳⏳⏳⏳ 7 Must rows: 1 done, 2 in progress, 4 not started.
+**GA readiness:** 1 of 7 Must projects done (14%). 2 in progress, 4 not started.
 
 Test: an existing Prisma 7 database can be signed by Prisma 8.
 
@@ -63,7 +63,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 
 ## Stream 3: Editor and tools
 
-**GA readiness:** ✅🔄🔄⏳ 4 Must rows: 1 done, 2 in progress, 1 not started.
+**GA readiness:** 1 of 4 Must projects done (25%). 2 in progress, 1 not started.
 
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -74,7 +74,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 
 ## Stream 4: Query features
 
-**GA readiness:** ✅⏳⏳ 3 Must rows: 1 done, 2 not started.
+**GA readiness:** 1 of 3 Must projects done (33%). 0 in progress, 2 not started.
 
 Everything here is additive, so nothing here can block a breaking change.
 
@@ -101,7 +101,7 @@ In progress but not ranked here:
 
 ## Stream 5: Docs and the new user's first hour
 
-**GA readiness:** ✅🔄🔄❓ 4 Must rows: 1 done, 2 in progress, 1 waiting on a decision.
+**GA readiness:** 1 of 4 Must projects done (25%). 2 in progress, 1 not started.
 
 Test: the getting-started eval passes, in few steps and with no workarounds.
 
