@@ -171,7 +171,7 @@ describe('printPsl writes each default as the literal the column data type takes
     });
   });
 
-  it('prints a bytea default with the bytea tag, in the hex PostgreSQL prints, its backslash escaped as a tag body escapes one', () => {
+  it('prints a bytea default with the bytea tag, in the hex PostgreSQL prints', () => {
     expect(
       printedDefaults([
         introspected('blob', 'bytea', "'\\x68656c6c6f'::bytea"),
@@ -181,9 +181,9 @@ describe('printPsl writes each default as the literal the column data type takes
         }),
       ]),
     ).toEqual({
-      blob: `@default(${tagged('bytea', '\\\\x68656c6c6f')})`,
-      empty: `@default(${tagged('bytea', '\\\\x')})`,
-      blobs: `@default([${tagged('bytea', '\\\\x68656c6c6f')}, ${tagged('bytea', '\\\\x0001')}])`,
+      blob: `@default(${tagged('bytea', '\\x68656c6c6f')})`,
+      empty: `@default(${tagged('bytea', '\\x')})`,
+      blobs: `@default([${tagged('bytea', '\\x68656c6c6f')}, ${tagged('bytea', '\\x0001')}])`,
     });
   });
 

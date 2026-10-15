@@ -162,20 +162,17 @@ describe('a quoted string on a Postgres date, time, interval or bytes column', (
     ['Timetz', '12:34:56+02:00', 'timetz'],
     ['Interval', 'P1D', 'interval'],
     ['Bytes', '\\x68656c6c6f', 'bytea'],
-  ])(
-    'on a %s column is refused, showing the tag to write, its backslashes escaped as a tag body escapes them',
-    async (type, written, tag) => {
-      const result = await authorSqlContractFromPsl(
-        `model Event {\n  id Int @id\n  at ${type} @default("${written.replaceAll('\\', '\\\\')}")\n}`,
-      );
-      expect(result.diagnostics).toEqual([
-        expect.objectContaining({
-          code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
-          message: expect.stringContaining(`write ${tag}\`${written.replaceAll('\\', '\\\\')}\``),
-        }),
-      ]);
-    },
-  );
+  ])('on a %s column is refused, showing the tag to write', async (type, written, tag) => {
+    const result = await authorSqlContractFromPsl(
+      `model Event {\n  id Int @id\n  at ${type} @default("${written.replaceAll('\\', '\\\\')}")\n}`,
+    );
+    expect(result.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_VALUE_TYPE_INCOMPATIBLE',
+        message: expect.stringContaining(`write ${tag}\`${written}\``),
+      }),
+    ]);
+  });
 
   it('stores an interval and bytes written with their tags', async () => {
     expect(

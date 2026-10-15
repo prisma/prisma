@@ -163,7 +163,7 @@ describe('mapDefault function defaults', () => {
     ['a database function', 'gen_random_uuid()'],
     ['a cast literal the column does not take as a value', "'{}'::jsonb"],
     ['an expression', "(now() + '00:03:00'::interval)"],
-    ['a body with a backslash, doubled inside the backtick fence', "E'\\n'", "E'\\\\n'"],
+    ['a body with a backslash, which escapes nothing inside the backtick fence', "E'\\n'"],
   ])('prints %s as a sql tagged literal', (_name, expression, body = expression) => {
     expect(mapDefault({ kind: 'function', expression })).toEqual({
       attribute: sqlLiteral(body),
