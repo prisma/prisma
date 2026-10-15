@@ -4,10 +4,10 @@ Slice spec: `projects/nested-mutations/slices/graph-creates/spec.md`. Three disp
 
 ### Dispatch 1: the new node and edge classes
 
-- **Outcome:** `Insert`, `InsertChunked`, `Merge`, `ConcatRows`, `PayloadData` and `Rows` exist under `src/mutation-graph/`, one file per class, with unit tests of each `execute` and `output` against a fake `Run`, and the test printer prints them. Nothing outside the directory uses them yet.
+- **Outcome:** `Insert`, `InsertChunked`, `CrossJoin`, `UnionAll`, `PayloadData` and `Rows` exist under `src/mutation-graph/`, one file per class, with unit tests of each `execute` and `output` against a fake `Run`, and the test printer prints them. Nothing outside the directory uses them yet.
 - **Builds on:** Slice `graph-core`'s graph, runner and node base.
 - **Hands to:** The classes dispatch 2's builders compose.
-- **Focus:** The class contracts in the slice spec. `Merge` and `ConcatRows` have no statement: their `execute` returns rows built from their inputs, and they return storage rows like every node. If the runner's handling of a node without a statement needs a change, it is made here and reported.
+- **Focus:** The class contracts in the slice spec. `CrossJoin` and `UnionAll` have no statement: their `execute` returns rows built from their inputs, and they return storage rows like every node. If the runner's handling of a node without a statement needs a change, it is made here and reported.
 
 ### Dispatch 2: create, createAll, createAndCount, upsert without variants in their own table
 
@@ -18,7 +18,7 @@ Slice spec: `projects/nested-mutations/slices/graph-creates/spec.md`. Three disp
 
 ### Dispatch 3: variants stored in their own table, and the slice gates
 
-- **Outcome:** `create` and `createAll` on a variant stored in its own table build the chain of `Insert`, `Insert` with `PayloadData`, `Merge`, joined by `ConcatRows` for several rows; `#executeMtiCreate` and every helper nothing calls are removed. Full gates pass: package tests, typecheck, lint, `lint:deps`, `check:upgrade-coverage`, the scoped integration run.
+- **Outcome:** `create` and `createAll` on a variant stored in its own table build the chain of `Insert`, `Insert` with `PayloadData`, `CrossJoin`, joined by `UnionAll` for several rows; `#executeMtiCreate` and every helper nothing calls are removed. Full gates pass: package tests, typecheck, lint, `lint:deps`, `check:upgrade-coverage`, the scoped integration run.
 - **Builds on:** Dispatch 2's builders.
 - **Hands to:** The slice ready for its PR, stacked on `mutation-graph-core`.
 - **Focus:** The combined row must equal main's (`mapPolymorphicRow` over the base row and the variant row with its columns renamed as main renames them). Report what main does for `select` and `include` here.

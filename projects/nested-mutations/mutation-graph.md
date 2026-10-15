@@ -29,7 +29,7 @@ class Find   extends Node<{ filter: FilterData[] }>                         { as
 class Insert extends Node<{ payload: PayloadData[] }>                       { ast: InsertAst }
 class Update extends Node<{ filter: FilterData[]; payload: PayloadData[] }> { ast: UpdateAst }
 class Delete extends Node<{ filter: FilterData[] }>                         { ast: DeleteAst }
-class Assert, Merge, State                                                   // slices 2 and 3
+class Assert, CrossJoin, UnionAll, State                                                   // slices 2 and 3
 
 class Graph {
   add<I>(node: Node<I>, inputs: I): NodeId
@@ -61,7 +61,7 @@ Each entry: the decision, why, and what it assumes. An assumption that turns out
 
 ### D1. Nodes are database-level steps, not user operations
 
-`Find`, `Insert`, `Update`, `Delete`, plus `Assert`, `Merge` and `State`. A translation in front turns each user operation on each relation layout into nodes and edges.
+`Find`, `Insert`, `Update`, `Delete`, plus `Assert`, `CrossJoin` and `State`. A translation in front turns each user operation on each relation layout into nodes and edges.
 
 - **Why.** A user operation does not map to one statement shape: `connect` is an update of the child on one-to-many, a lookup feeding the parent's write when the parent holds the key, and a lookup plus a junction insert on many-to-many. Putting that table in one translation keeps the runner and the nodes free of relation knowledge. An earlier attempt to make user operations the classes failed for this reason.
 - **Assumes.** Every user operation, present and planned, can be expressed as these node kinds.
@@ -182,9 +182,9 @@ The caller's annotation map is merged onto every statement of the call.
 
 - **Why.** The map describes the call, not a statement. Today statements issued for nested operations carry no annotations; with this they do.
 
-### D13. A `Merge` node, and variant writes go through the graph
+### D13. A `CrossJoin` node, and variant writes go through the graph
 
-A variant stored in its own table is an `Insert` into the base table, an `Insert` into the variant table with a data edge for the key, and a `Merge` of the two rows as the result. A variant stored in the base table is one `Insert` with a literal discriminator.
+A variant stored in its own table is an `Insert` into the base table, an `Insert` into the variant table with a data edge for the key, and a `CrossJoin` of the two rows as the result. A variant stored in the base table is one `Insert` with a literal discriminator.
 
 - **Why.** Variant handling then applies whether or not the call has relation callbacks. On main it exists only in the plain create path, and the nested executor has no variant handling at all.
 - **Assumes.** Main's tests pin base-then-variant order and that the returned row comes from the variant insert; the merge must reproduce both.

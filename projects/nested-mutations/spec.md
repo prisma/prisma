@@ -59,7 +59,7 @@ Both options are available in `create()` and `update()`. `'connect'` is valid in
 
 Every write method of the collection (`create`, `createAll`, `createAndCount`, `update`, `updateAll`, `updateAndCount`, `delete`, `deleteAll`, `deleteAndCount`, `upsert`) builds a **mutation graph** and hands it to one runner. The nested-write executor and the branch in `create()` and `update()` on "does the input contain a relation callback" are removed. The design, the reason for each decision and the rejected alternatives are in [`mutation-graph.md`](./mutation-graph.md); the rules below are the ones every slice works against.
 
-- **Nodes are database-level steps.** `Find`, `Insert`, `Update`, `Delete`, `Assert`, `Merge`. Each is a frozen class.
+- **Nodes are database-level steps.** `Find`, `Insert`, `Update`, `Delete`, `Assert`, `CrossJoin`. Each is a frozen class.
 - **Edges carry everything one node takes from another.** `PayloadData` copies columns into a write's values; `FilterData` adds a condition per source row. A data edge holds a list of column pairs, so a composite key is one edge. A node holds its statement as SQL AST (`SelectAst`, `InsertAst`, `UpdateAst`, `DeleteAst`) and nothing else that describes it.
 - **One translation turns a user operation on a relation layout into nodes and edges.** The runner and the nodes know nothing about relations.
 - **Nodes run in the order they were added,** and a data edge can only point backwards. The translation walks the caller's input in order and appends. Whether table state is also modelled as nodes is decided when slice `graph-nested` is specified.
