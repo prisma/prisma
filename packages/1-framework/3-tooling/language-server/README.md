@@ -58,8 +58,6 @@ The registry supplies the event sequence used by project membership transitions.
 
 Both backends use a 100 ms trailing debounce to coalesce notification bursts for analysis. Each notification resets the delay while no batch is running. This is not a write-completion guarantee and does not depend on Chokidar's private suppression timing. Each batch invalidates all project disk snapshots and their analysis artifacts, including candidates that have not opted in through the directive. It then reloads configuration or resolves membership and publishes clears or requests pull refresh. This costs more disk I/O than path-specific invalidation but needs only refresh-needed and config-reload-needed flags. Events arriving during asynchronous work schedule a later pass. Membership sequences and configuration identity reject stale analysis. Permanent config observation survives consecutive asynchronous reloads, without retained watcher generations or replacement-readiness coordination. Server shutdown and asynchronous disposal cancel queued work and await serialized internal updates and Chokidar closures, never an unanswered client registration.
 
-The decision and tradeoffs are recorded in [ADR 256 — Project-owned language-server file watching](../../../../docs/architecture%20docs/adrs/ADR%20256%20-%20Project-owned%20language-server%20file%20watching.md).
-
 ## Completion
 
 Attribute, argument, function, identifier-value, registered scalar, generic block, and block parameter completions use contribution documentation as their detail when available. Scalar constructors, generic block descriptors, and block parameter descriptors can supply this text through their optional `documentation` property. Undocumented descriptors retain their generic completion details.
