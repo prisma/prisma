@@ -87,26 +87,65 @@ function noLiteralValuesRefusal(site: ColumnDefaultSite, cause: StructuredError)
   );
 }
 
+/** The canonical form of a column's values, and the data type that gives it. */
+export interface DefaultCanonicalForm {
+  readonly dataTypeId: string;
+  readonly toCanonicalForm: ToCanonicalForm;
+}
+
+function dataTypeRefusal(
+  site: ColumnDefaultSite,
+  dataTypeId: string,
+  cause: unknown,
+  elementPosition?: number,
+): StructuredError {
+  const subject =
+    elementPosition === undefined ? 'default' : `default (element ${elementPosition})`;
+  const reason = cause instanceof Error ? cause.message : String(cause);
+  return contractError(
+    'CONTRACT.DEFAULT_INVALID',
+    `${columnSiteSubject(site)} has a ${subject} that its data type ${dataTypeId} refuses: ${reason}`,
+    {
+      cause,
+      meta: {
+        ...columnSiteMeta(site),
+        codecId: site.codecId,
+        dataType: dataTypeId,
+        reason: 'data-type-refused-default',
+        ...ifDefined('elementPosition', elementPosition),
+      },
+    },
+  );
+}
+
 /**
  * Encodes a literal default with the column's codec and gives it the canonical form of the column's
- * values, which refuses a literal of a data type that has none.
+ * values, as a PSL default is given it. The data type refuses a value it does not hold, and every
+ * literal of a data type that has none.
  */
 function encodeDefaultValue(
   value: unknown,
   codec: Codec,
   site: ColumnDefaultSite,
-  toCanonicalForm: ToCanonicalForm | undefined,
+  canonicalForm: DefaultCanonicalForm | undefined,
   elementPosition?: number,
 ): JsonValue {
+  let json: JsonValue;
   try {
-    const json = encodeViaCodec(value, codec);
-    return toCanonicalForm === undefined ? json : toCanonicalForm(json);
+    json = encodeViaCodec(value, codec);
+  } catch (cause) {
+    if (cause instanceof InternalError) throw cause;
+    throw defaultRefusal(site, cause, elementPosition);
+  }
+  if (canonicalForm === undefined) return json;
+  try {
+    return canonicalForm.toCanonicalForm(json);
   } catch (cause) {
     if (cause instanceof InternalError) throw cause;
     if (isStructuredError(cause) && cause.code === LITERAL_VALUES_ABSENT) {
       throw noLiteralValuesRefusal(site, cause);
     }
-    throw defaultRefusal(site, cause, elementPosition);
+    throw dataTypeRefusal(site, canonicalForm.dataTypeId, cause, elementPosition);
   }
 }
 
@@ -163,7 +202,7 @@ export function encodeColumnDefault(
   site: ColumnDefaultSite,
   many = false,
   elementNullable = false,
-  toCanonicalForm?: ToCanonicalForm,
+  canonicalForm?: DefaultCanonicalForm,
 ): ColumnDefault {
   if (defaultInput.kind === 'function') {
     return { kind: 'function', expression: defaultInput.expression };
@@ -196,7 +235,7 @@ export function encodeColumnDefault(
       kind: 'literal',
       value: defaultInput.value.map((element, index) => {
         if (element !== null) {
-          return encodeDefaultValue(element, codec, site, toCanonicalForm, index + 1);
+          return encodeDefaultValue(element, codec, site, canonicalForm, index + 1);
         }
         if (elementNullable) return null;
         throw new InternalError(
@@ -211,7 +250,7 @@ export function encodeColumnDefault(
       defaultInput.value,
       codecForDefault(codecLookup, resolveCodec, site),
       site,
-      toCanonicalForm,
+      canonicalForm,
     ),
   };
 }
