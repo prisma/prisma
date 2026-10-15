@@ -28,32 +28,32 @@ describe('createAllVariantGraph', () => {
     );
   });
 
-  it('inserts the base row, then the variant row with its key, and merges them for one row', () => {
+  it('inserts the base row, then the variant row with its key, and joins them for one row', () => {
     const graph = createAllVariantGraph(collection, features, 'Feature', [darkMode]);
 
     expect(printGraph(graph)).toBe(
       [
         'n1 Insert tasks',
         'n2 Insert features <- PayloadData n1 (id->id)',
-        'n3 Merge <- Rows n1, Rows n2',
+        'n3 CrossJoin <- Rows n1, Rows n2',
         'result: n3',
       ].join('\n'),
     );
     expect(returnedAt(graph, 1)).toEqual(['features__priority', 'features__assignee_id']);
   });
 
-  it('joins the merged rows of several rows one after another', () => {
+  it('puts the joined rows of several rows one after another', () => {
     const graph = createAllVariantGraph(collection, features, 'Feature', [darkMode, exportPdf]);
 
     expect(printGraph(graph)).toBe(
       [
         'n1 Insert tasks',
         'n2 Insert features <- PayloadData n1 (id->id)',
-        'n3 Merge <- Rows n1, Rows n2',
+        'n3 CrossJoin <- Rows n1, Rows n2',
         'n4 Insert tasks',
         'n5 Insert features <- PayloadData n4 (id->id)',
-        'n6 Merge <- Rows n4, Rows n5',
-        'n7 ConcatRows <- Rows n3, Rows n6',
+        'n6 CrossJoin <- Rows n4, Rows n5',
+        'n7 UnionAll <- Rows n3, Rows n6',
         'result: n7',
       ].join('\n'),
     );

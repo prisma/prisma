@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { ConcatRows } from '../../src/mutation-graph/concat-rows';
+import { UnionAll } from '../../src/mutation-graph/union-all';
 import { recordingRun } from './statements';
 
-describe('ConcatRows', () => {
+describe('UnionAll', () => {
   it('is frozen', () => {
-    expect(Object.isFrozen(new ConcatRows())).toBe(true);
+    expect(Object.isFrozen(new UnionAll())).toBe(true);
   });
 
   it('gives all rows of its inputs, one input after another, without a statement', async () => {
     const run = recordingRun();
 
-    const rows = await new ConcatRows().execute(
+    const rows = await new UnionAll().execute(
       { rows: [[{ id: 1 }, { id: 2 }], [], [{ id: 3 }]] },
       run,
     );
@@ -21,6 +21,6 @@ describe('ConcatRows', () => {
   });
 
   it('gives no row when the slot has no edge', async () => {
-    expect(await new ConcatRows().execute({ rows: null }, recordingRun())).toEqual([]);
+    expect(await new UnionAll().execute({ rows: null }, recordingRun())).toEqual([]);
   });
 });

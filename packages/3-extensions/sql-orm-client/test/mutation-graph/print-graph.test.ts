@@ -1,13 +1,13 @@
 import { InsertOnConflict } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
-import { ConcatRows } from '../../src/mutation-graph/concat-rows';
+import { CrossJoin } from '../../src/mutation-graph/cross-join';
 import { FilterData } from '../../src/mutation-graph/filter-data';
 import { Graph } from '../../src/mutation-graph/graph';
 import { Insert } from '../../src/mutation-graph/insert';
 import { InsertChunked } from '../../src/mutation-graph/insert-chunked';
-import { Merge } from '../../src/mutation-graph/merge';
 import { PayloadData } from '../../src/mutation-graph/payload-data';
 import { Rows } from '../../src/mutation-graph/rows';
+import { UnionAll } from '../../src/mutation-graph/union-all';
 import { printGraph } from './print-graph';
 import {
   aliasedTable,
@@ -153,34 +153,34 @@ describe('printGraph', () => {
       );
     });
 
-    it('prints the chain of a variant create: Insert, Insert with PayloadData, Merge, ConcatRows', () => {
+    it('prints the chain of a variant create: Insert, Insert with PayloadData, CrossJoin, UnionAll', () => {
       const graph = new Graph();
       const idToUserId = columnPairs('users', 'posts', [['id', 'user_id']]);
       const sameUserId = columnPairs('users', 'users', [['id', 'id']]);
       const samePostId = columnPairs('posts', 'posts', [['id', 'id']]);
-      const merges = [1, 2].map(() => {
+      const joins = [1, 2].map(() => {
         const base = graph.add(new Insert(insertInto('users', [{ name: 'Ada' }])), { payload: [] });
         const variant = graph.add(new Insert(insertInto('posts', [{ title: 'Hello' }])), {
           payload: [new PayloadData(base, idToUserId)],
         });
-        return graph.add(new Merge(), {
+        return graph.add(new CrossJoin(), {
           left: new Rows(base, sameUserId),
           right: new Rows(variant, samePostId),
         });
       });
       graph.setResult(
-        graph.add(new ConcatRows(), { rows: merges.map((merge) => new Rows(merge, sameUserId)) }),
+        graph.add(new UnionAll(), { rows: joins.map((join) => new Rows(join, sameUserId)) }),
       );
 
       expect(printGraph(graph)).toBe(
         [
           'n1 Insert users',
           'n2 Insert posts <- PayloadData n1 (id->user_id)',
-          'n3 Merge <- Rows n1, Rows n2',
+          'n3 CrossJoin <- Rows n1, Rows n2',
           'n4 Insert users',
           'n5 Insert posts <- PayloadData n4 (id->user_id)',
-          'n6 Merge <- Rows n4, Rows n5',
-          'n7 ConcatRows <- Rows n3, Rows n6',
+          'n6 CrossJoin <- Rows n4, Rows n5',
+          'n7 UnionAll <- Rows n3, Rows n6',
           'result: n7',
         ].join('\n'),
       );

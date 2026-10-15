@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { ConcatRows } from '../../src/mutation-graph/concat-rows';
+import { CrossJoin } from '../../src/mutation-graph/cross-join';
 import type { NodeId } from '../../src/mutation-graph/edge';
 import { FilterData } from '../../src/mutation-graph/filter-data';
 import { Graph } from '../../src/mutation-graph/graph';
-import { Merge } from '../../src/mutation-graph/merge';
 import { Rows } from '../../src/mutation-graph/rows';
 import { StatementNode } from '../../src/mutation-graph/statement-node';
+import { UnionAll } from '../../src/mutation-graph/union-all';
 import { columnPairs, deletePosts, deleteUsers, findUsers, updateUsers } from './statements';
 
 const sameId = columnPairs('users', 'users', [['id', 'id']]);
@@ -95,12 +95,12 @@ describe('Graph', () => {
     it('leaves a node that runs no statement as it was when an edge reads from it', () => {
       const graph = new Graph();
       const find = graph.add(findUsers([], ['email']), { filter: [] });
-      const concat = new ConcatRows();
-      const concatId = graph.add(concat, { rows: [new Rows(find, sameId)] });
+      const union = new UnionAll();
+      const unionId = graph.add(union, { rows: [new Rows(find, sameId)] });
 
-      graph.add(updateUsers({ name: 'Ada' }), { filter: [new FilterData(concatId, sameId)] });
+      graph.add(updateUsers({ name: 'Ada' }), { filter: [new FilterData(unionId, sameId)] });
 
-      expect(graph.nodes().find(([id]) => id === concatId)?.[1]).toBe(concat);
+      expect(graph.nodes().find(([id]) => id === unionId)?.[1]).toBe(union);
       expect(returned(graph, find)).toEqual(['email', 'id']);
     });
   });
@@ -217,12 +217,12 @@ describe('Graph', () => {
       const left = graph.add(findUsers(), { filter: [] });
       const right = graph.add(findUsers(), { filter: [] });
       const inputs = { left: new Rows(left, sameId), right: new Rows(right, sameId) };
-      const merge = graph.add(new Merge(), inputs);
+      const join = graph.add(new CrossJoin(), inputs);
 
       graph.remove(right);
 
-      expect(graph.inputsOf(merge)).toEqual(inputs);
-      expect(graph.readersOf(left)).toEqual([{ reader: merge, edge: inputs.left }]);
+      expect(graph.inputsOf(join)).toEqual(inputs);
+      expect(graph.readersOf(left)).toEqual([{ reader: join, edge: inputs.left }]);
     });
 
     it('gives the next node the next position, not the emptied one', () => {

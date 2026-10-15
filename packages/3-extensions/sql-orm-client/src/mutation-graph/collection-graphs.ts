@@ -25,7 +25,7 @@ import { collectionSelectAst, collectionSelectWithIncludesAst } from '../query-p
 import { variantReturning } from '../query-plan-source';
 import type { AliasedTable } from '../table-scope';
 import { type CollectionState, emptyState } from '../types';
-import { ConcatRows } from './concat-rows';
+import { CrossJoin } from './cross-join';
 import { Delete } from './delete';
 import type { ColumnPair, NodeId } from './edge';
 import { FilterData } from './filter-data';
@@ -33,9 +33,9 @@ import { Find } from './find';
 import { Graph } from './graph';
 import { Insert } from './insert';
 import { InsertChunked } from './insert-chunked';
-import { Merge } from './merge';
 import { PayloadData } from './payload-data';
 import { Rows } from './rows';
+import { UnionAll } from './union-all';
 import { Update } from './update';
 
 export function updateAllGraph(
@@ -175,7 +175,7 @@ export function createAllVariantGraph(
   const baseColumns = returningProjection(contract, modelName, root, undefined);
   const variantColumns = variantReturning(contract, variantTable, variantModelName, keyColumns);
 
-  const merges = rows.map((row) => {
+  const joins = rows.map((row) => {
     const baseInsert = insertAst(contract, root, [row.base], undefined).withReturning(baseColumns);
     const base = graph.add(new Insert(baseInsert), { payload: [] });
     const variantInsert = insertAst(contract, variantTable, [row.variant], undefined).withReturning(
@@ -184,19 +184,19 @@ export function createAllVariantGraph(
     const variant = graph.add(new Insert(variantInsert), {
       payload: [new PayloadData(base, keyPairs)],
     });
-    return graph.add(new Merge(), {
+    return graph.add(new CrossJoin(), {
       left: new Rows(base, sameColumns(baseColumns)),
       right: new Rows(variant, sameColumns(variantColumns)),
     });
   });
 
-  const [only, ...others] = merges;
+  const [only, ...others] = joins;
   if (only !== undefined && others.length === 0) {
     graph.setResult(only);
   } else if (only !== undefined) {
-    const merged = sameColumns([...baseColumns, ...variantColumns]);
+    const joined = sameColumns([...baseColumns, ...variantColumns]);
     graph.setResult(
-      graph.add(new ConcatRows(), { rows: merges.map((merge) => new Rows(merge, merged)) }),
+      graph.add(new UnionAll(), { rows: joins.map((join) => new Rows(join, joined)) }),
     );
   }
   return graph;

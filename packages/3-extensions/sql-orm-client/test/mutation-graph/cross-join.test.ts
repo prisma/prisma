@@ -1,16 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { Merge } from '../../src/mutation-graph/merge';
+import { CrossJoin } from '../../src/mutation-graph/cross-join';
 import { recordingRun } from './statements';
 
-describe('Merge', () => {
+describe('CrossJoin', () => {
   it('is frozen', () => {
-    expect(Object.isFrozen(new Merge())).toBe(true);
+    expect(Object.isFrozen(new CrossJoin())).toBe(true);
   });
 
   it('makes one row from the first row of each side, side by side, without a statement', async () => {
     const run = recordingRun();
 
-    const rows = await new Merge().execute(
+    const rows = await new CrossJoin().execute(
       {
         left: [{ id: 7, name: 'Ada', type: 'feature' }],
         right: [{ features__priority: 3 }],
@@ -24,10 +24,10 @@ describe('Merge', () => {
   });
 
   it('gives no row when a side has no row', async () => {
-    const merge = new Merge();
+    const join = new CrossJoin();
     const run = recordingRun();
 
-    expect(await merge.execute({ left: [], right: [{ features__priority: 3 }] }, run)).toEqual([]);
-    expect(await merge.execute({ left: [{ id: 7 }], right: [] }, run)).toEqual([]);
+    expect(await join.execute({ left: [], right: [{ features__priority: 3 }] }, run)).toEqual([]);
+    expect(await join.execute({ left: [{ id: 7 }], right: [] }, run)).toEqual([]);
   });
 });
