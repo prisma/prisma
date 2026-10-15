@@ -46,6 +46,8 @@ Every part of the system already works through a column's data type and codec. T
 
 The `sql` text must be the type as the catalog prints it: `integer`, not `int4`; `character varying(10)`, not `varchar(10)`. Verify compares exactly, so a text in any other form reports a mismatch, and the finding shows the catalog's text to write instead.
 
+For a base type the text names no schema. Introspection reports a base type from outside `pg_catalog` without its schema, as it does for the types extensions provide, so `ltree` matches whether the type lives in `public` or in `extensions`. Migrations write the text as given, so the type is found through the database's `search_path`, as it is for every extension type and as it was under Prisma 7.
+
 `sql/raw@1` encodes and decodes by identity. Its values are typed `unknown` in memory, which promises nothing about the representation a driver returns. The Postgres driver returns a type it does not know as text, and a text parameter is sent untyped, so Postgres parses it with the column's own input function. The codec declares no traits, so the ORM offers no filters or ordering on a raw column; a query that needs them uses SQL.
 
 A raw column's default is a `sql` expression (ADR 268), written as given. A literal default is refused: the codec cannot encode a value of a type it does not know.
@@ -67,6 +69,7 @@ Prisma 7 never compares an `Unsupported` type with the database: its migrations 
 - `contract print` writes a raw column as `Raw("...")`, so a converted Prisma 7 project keeps its raw columns.
 - A required raw column with no default and no field makes every ORM insert into its table fail. The lowering warns about it (`PN_COLUMN_REQUIRED_UNMAPPED`), as it does for any such column (ADR 267). Prisma 7 left `create` out of the client instead.
 - After Prisma 8 owns a project's migrations, changing a raw column's text changes the column's type, and the planner must plan it. Under Prisma 7 the same edit did nothing.
+- A raw column's type must be on the `search_path` that migrations run with. A project that installs a type in a schema outside that path must add the schema to it, as it must for an extension type.
 - Choosing `Raw(...)` over a data type the stack has is the author's call. Nothing refuses `Raw("vector(1536)")` when pgvector is installed.
 
 ## Alternatives considered
