@@ -7,6 +7,7 @@ import type {
   JsonValue,
 } from '@internal/contract/types';
 import { assertDefined } from '@internal/utils/assertions';
+import { structuredError } from '@internal/utils/structured-error';
 import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 
@@ -27,6 +28,8 @@ interface SchemaSources {
   readonly valueObjects: Record<string, ContractValueObject> | undefined;
   readonly valueSets: FieldValueSets | undefined;
   readonly models: Record<string, ValidatorModel>;
+  /** The models being described, from the root, with the embed relation between each pair: `[Root, nodes, Node]`. */
+  readonly embedPath: readonly string[];
 }
 
 interface StoredShape {
@@ -121,12 +124,26 @@ function fieldToBsonSchema(
  * An embedded model is stored inside its owner's document as a closed object (a list of them for `1:N`). The contract does not say whether one must be present, and the ORM creates documents without them, so the property is never required.
  */
 function embedToBsonSchema(
+  relationName: string,
   relation: ContractEmbedRelation,
   sources: SchemaSources,
 ): Record<string, unknown> {
-  const embedded = sources.models[relation.to.model];
-  assertDefined(embedded, `Embedded model "${relation.to.model}" is missing`);
-  const schema = deriveObjectSchema(embedded, sources);
+  const embeddedName = relation.to.model;
+  const embedded = sources.models[embeddedName];
+  assertDefined(embedded, `Embedded model "${embeddedName}" is missing`);
+  const embedPath = [...sources.embedPath, relationName, embeddedName];
+  const cycleStart = sources.embedPath.findIndex(
+    (name, index) => index % 2 === 0 && name === embeddedName,
+  );
+  if (cycleStart !== -1) {
+    const chain = embedPath.slice(cycleStart);
+    throw structuredError(
+      'CONTRACT.RELATION_INVALID',
+      `Embedded model "${embeddedName}" embeds itself: ${chain.join(' → ')}. A collection validator cannot describe a recursive embed.`,
+      { meta: { chain } },
+    );
+  }
+  const schema = deriveObjectSchema(embedded, { ...sources, embedPath });
   return relation.cardinality === '1:N' ? { bsonType: 'array', items: schema } : schema;
 }
 
@@ -154,7 +171,7 @@ function propertiesOf(
 
   for (const [relationName, relation] of Object.entries(shape.relations)) {
     if (Object.hasOwn(inherited.relations, relationName) || !isEmbedRelation(relation)) continue;
-    properties[relationName] = embedToBsonSchema(relation, sources);
+    properties[relationName] = embedToBsonSchema(relationName, relation, sources);
   }
 
   return { properties, required };
@@ -191,7 +208,7 @@ export function deriveJsonSchema(
   return validatorOf(
     deriveObjectSchema(
       { fields, relations: NO_RELATIONS },
-      { lookups, valueObjects, valueSets, models: {} },
+      { lookups, valueObjects, valueSets, models: {}, embedPath: [] },
     ),
   );
 }
@@ -250,7 +267,7 @@ export function derivePolymorphicJsonSchema(
       { fields: baseFields, relations: NO_RELATIONS },
       discriminatorField,
       variants.map((variant) => ({ ...variant, relations: NO_RELATIONS })),
-      { lookups, valueObjects, valueSets, models: {} },
+      { lookups, valueObjects, valueSets, models: {}, embedPath: [] },
     ),
   );
 }
@@ -271,7 +288,7 @@ export function deriveModelValidator(
   sources: ModelValidatorSources,
 ): MongoValidator {
   if (!model.discriminator || !model.variants) {
-    return validatorOf(deriveObjectSchema(model, sources));
+    return validatorOf(deriveObjectSchema(model, { ...sources, embedPath: [modelName] }));
   }
 
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {
@@ -279,5 +296,10 @@ export function deriveModelValidator(
     assertDefined(variantModel, `Variant model "${variant.model}" of "${modelName}" is missing`);
     return { discriminatorValue, ...variantModel };
   });
-  return validatorOf(polymorphicSchema(model, model.discriminator.field, variants, sources));
+  return validatorOf(
+    polymorphicSchema(model, model.discriminator.field, variants, {
+      ...sources,
+      embedPath: [modelName],
+    }),
+  );
 }
