@@ -677,7 +677,7 @@ export function isAuthoringArgRef(value: unknown): value is AuthoringArgRef {
   return true;
 }
 
-function isAuthoringSelectRef(value: unknown): value is AuthoringSelectRef {
+export function isAuthoringSelectRef(value: unknown): value is AuthoringSelectRef {
   if (!isAuthoringTemplateRecord(value) || value['kind'] !== 'select') {
     return false;
   }

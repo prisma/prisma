@@ -183,6 +183,7 @@ export type {
   ControlMutationDefaultRegistry,
   ControlMutationDefaults,
   DefaultFunctionLoweringContext,
+  GeneratorCallWriter,
   LoweredDefaultResult,
   LoweredDefaultValue,
   MutationDefaultGeneratorDescriptor,

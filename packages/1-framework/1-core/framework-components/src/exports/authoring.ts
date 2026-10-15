@@ -76,6 +76,7 @@ export {
   isAuthoringFieldPresetDescriptor,
   isAuthoringModelAttributeDescriptor,
   isAuthoringPslBlockDescriptor,
+  isAuthoringSelectRef,
   isAuthoringTypeConstructorDescriptor,
   isTagEntryKey,
   mergeAuthoringNamespaces,

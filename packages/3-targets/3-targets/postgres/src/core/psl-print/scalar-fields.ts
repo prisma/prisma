@@ -164,6 +164,7 @@ export function buildScalarFields(input: {
         executionDefault: execution,
         codecId: column.codecId,
         coordinate,
+        context,
       });
       if (built.kind === 'temporal') {
         typeName = `temporal.${built.phases.presetName}`;

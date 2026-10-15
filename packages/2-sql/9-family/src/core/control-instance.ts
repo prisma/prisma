@@ -531,6 +531,7 @@ export function createSqlFamilyInstance<TTargetId extends string>(
     authoringContributions: stack.authoringContributions,
     codecLookup: stack.codecLookup,
     dataTypes: stack.dataTypes,
+    controlMutationDefaults: stack.controlMutationDefaults,
   };
   // The hook that builds the PSL document of a contract is read off the descriptor the same way.
   // Absent for targets without `contract print`.

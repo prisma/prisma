@@ -4,6 +4,7 @@ import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import {
+  postgresAuthoringFieldPresets,
   postgresAuthoringPslBlockDescriptors,
   postgresAuthoringTypes,
 } from '../../src/core/authoring';
@@ -72,7 +73,9 @@ export const inferBuildContext: SqlPslBuildContext = {
       ...postgresAuthoringTypes,
       ...postgresPslTypeConstructors,
     },
+    field: postgresAuthoringFieldPresets,
   },
+  controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
   codecLookup: createPostgresBuiltinCodecLookup(),
   dataTypes: {
     entries: postgresDataTypeEntries(),

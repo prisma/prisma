@@ -1,63 +1,86 @@
 import type { ExecutionMutationDefault } from '@internal/contract/types';
+import { isExecutionMutationDefaultValue } from '@internal/contract/types';
+import type { SqlPslBuildContext } from '@internal/family-sql/control';
+import {
+  type AuthoringTemplateValue,
+  isAuthoringFieldPresetDescriptor,
+  isAuthoringSelectRef,
+} from '@internal/framework-components/authoring';
+import type { GeneratorCallWriter } from '@internal/framework-components/control';
 import type {
   PslAttributeArgument,
   PslFieldAttribute,
 } from '@internal/framework-components/psl-ast';
-import {
-  PG_DATE_STRING_CODEC_ID,
-  PG_DATE_TEMPORAL_CODEC_ID,
-  PG_TIME_STRING_CODEC_ID,
-  PG_TIME_TEMPORAL_CODEC_ID,
-  PG_TIMESTAMP_STRING_CODEC_ID,
-  PG_TIMESTAMP_TEMPORAL_CODEC_ID,
-  PG_TIMESTAMPTZ_DATE_CODEC_ID,
-  PG_TIMESTAMPTZ_STRING_CODEC_ID,
-  PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
-  PG_TIMETZ_CODEC_ID,
-} from '../codec-ids';
-import { postgresNowGeneratorIdFor } from '../now-generators';
 import { buildAttribute, namedArg, positionalArg } from '../psl-build/psl-literals';
 import {
   refuseGeneratorOnUpdate,
   refuseGeneratorWithoutPslFunction,
   refuseNowGeneratorPairedWithAnother,
+  refuseTemporalPresetChoice,
 } from './refusals';
 
-/**
- * The `temporal.*` field preset each codec with a "now" generator is authored through. The target
- * contributes the presets; `test/integration/test/psl-print/generated-values-roundtrip.integration.test.ts` writes and
- * reads back every one the stack contributes, so this table cannot drift from them.
- */
-const TEMPORAL_PRESET_NAMES: ReadonlyMap<string, string> = new Map([
-  [PG_TIMESTAMP_TEMPORAL_CODEC_ID, 'timestamp'],
-  [PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID, 'timestamptz'],
-  [PG_TIMESTAMP_STRING_CODEC_ID, 'timestampString'],
-  [PG_TIMESTAMPTZ_STRING_CODEC_ID, 'timestamptzString'],
-  [PG_TIMESTAMPTZ_DATE_CODEC_ID, 'timestamptzJsDate'],
-  [PG_DATE_TEMPORAL_CODEC_ID, 'date'],
-  [PG_DATE_STRING_CODEC_ID, 'dateString'],
-  [PG_TIME_TEMPORAL_CODEC_ID, 'time'],
-  [PG_TIME_STRING_CODEC_ID, 'timeString'],
-  [PG_TIMETZ_CODEC_ID, 'timetz'],
-]);
+const TEMPORAL_NAMESPACE = 'temporal';
+
+function generatorCallFor(
+  context: SqlPslBuildContext,
+  generatorId: string,
+): GeneratorCallWriter | undefined {
+  for (const entry of context.controlMutationDefaults.defaultFunctionRegistry.values()) {
+    const call = entry.generatorCalls?.[generatorId];
+    if (call !== undefined) return call;
+  }
+  return undefined;
+}
+
+function selectsNowGenerator(
+  template: AuthoringTemplateValue | undefined,
+  generatorId: string,
+): boolean {
+  if (!isAuthoringSelectRef(template)) return false;
+  const now = template.cases['now'];
+  return isExecutionMutationDefaultValue(now) && now.id === generatorId;
+}
 
 /**
- * The `@default(<fn>(…))` call each id generator is authored through. The Postgres adapter registers
- * the functions; `test/integration/test/psl-print/generated-values-roundtrip.integration.test.ts` writes and reads back
- * every call the stack registers, so this table cannot drift from them.
+ * The `temporal.*` presets that write `codecId` with `generatorId` chosen by `now` in each phase.
+ * A preset whose phases are fixed, such as `temporal.updatedAt`, takes no `now` and is skipped.
  */
-type GeneratorCall = (params: Record<string, unknown> | undefined) => string;
+function temporalPresetsFor(
+  context: SqlPslBuildContext,
+  codecId: string,
+  generatorId: string,
+): readonly string[] {
+  const temporal = context.authoringContributions.field[TEMPORAL_NAMESPACE];
+  if (temporal === undefined || isAuthoringFieldPresetDescriptor(temporal)) return [];
+  return Object.entries(temporal).flatMap(([name, member]) => {
+    if (!isAuthoringFieldPresetDescriptor(member) || member.output.codecId !== codecId) return [];
+    const phases = member.output.executionDefaults;
+    return selectsNowGenerator(phases?.onCreate, generatorId) &&
+      selectsNowGenerator(phases?.onUpdate, generatorId)
+      ? [name]
+      : [];
+  });
+}
 
-const GENERATOR_CALLS: ReadonlyMap<string, GeneratorCall> = new Map<string, GeneratorCall>([
-  ['uuidv4', () => 'uuid()'],
-  ['uuidv7', () => 'uuid(7)'],
-  ['cuid2', () => 'cuid(2)'],
-  ['ulid', () => 'ulid()'],
-  [
-    'nanoid',
-    (params) => (typeof params?.['size'] === 'number' ? `nanoid(${params['size']})` : 'nanoid()'),
-  ],
-]);
+function temporalPresetOf(input: {
+  readonly context: SqlPslBuildContext;
+  readonly codecId: string;
+  readonly generatorId: string | undefined;
+  readonly coordinate: string;
+}): string | undefined {
+  const { generatorId } = input;
+  if (generatorId === undefined) return undefined;
+  const presets = temporalPresetsFor(input.context, input.codecId, generatorId);
+  if (presets.length > 1) {
+    refuseTemporalPresetChoice({
+      coordinate: input.coordinate,
+      codecId: input.codecId,
+      generatorId,
+      presets: presets.map((preset) => `${TEMPORAL_NAMESPACE}.${preset}`),
+    });
+  }
+  return presets[0];
+}
 
 /** The phases a column's `temporal.*` preset must switch on. */
 export interface TemporalPresetPhases {
@@ -79,32 +102,36 @@ export function buildExecutionDefault(input: {
   readonly executionDefault: ExecutionMutationDefault;
   readonly codecId: string;
   readonly coordinate: string;
+  readonly context: SqlPslBuildContext;
 }): BuiltExecutionDefault {
-  const { executionDefault, codecId, coordinate } = input;
+  const { executionDefault, codecId, coordinate, context } = input;
   const onCreateId = executionDefault.onCreate?.id;
   const onUpdateId = executionDefault.onUpdate?.id;
 
-  const nowGeneratorId = postgresNowGeneratorIdFor(codecId);
-  const presetName = TEMPORAL_PRESET_NAMES.get(codecId);
-  if (nowGeneratorId !== undefined && presetName !== undefined) {
+  for (const nowGeneratorId of new Set([onCreateId, onUpdateId])) {
+    const presetName = temporalPresetOf({
+      context,
+      codecId,
+      generatorId: nowGeneratorId,
+      coordinate,
+    });
+    if (presetName === undefined) continue;
     const onCreate = onCreateId === nowGeneratorId;
     const onUpdate = onUpdateId === nowGeneratorId;
-    if (onCreate || onUpdate) {
-      if ((onCreateId !== undefined && !onCreate) || (onUpdateId !== undefined && !onUpdate)) {
-        refuseNowGeneratorPairedWithAnother({
-          coordinate,
-          onCreate: onCreateId,
-          onUpdate: onUpdateId,
-          other: onCreate ? onUpdateId : onCreateId,
-        });
-      }
-      return { kind: 'temporal', phases: { presetName, onCreate, onUpdate } };
+    if ((onCreateId !== undefined && !onCreate) || (onUpdateId !== undefined && !onUpdate)) {
+      refuseNowGeneratorPairedWithAnother({
+        coordinate,
+        onCreate: onCreateId,
+        onUpdate: onUpdateId,
+        other: onCreate ? onUpdateId : onCreateId,
+      });
     }
+    return { kind: 'temporal', phases: { presetName, onCreate, onUpdate } };
   }
 
   const phases = { coordinate, onCreate: onCreateId, onUpdate: onUpdateId };
   if (onUpdateId !== undefined) refuseGeneratorOnUpdate(phases);
-  const call = onCreateId === undefined ? undefined : GENERATOR_CALLS.get(onCreateId);
+  const call = onCreateId === undefined ? undefined : generatorCallFor(context, onCreateId);
   if (call === undefined) refuseGeneratorWithoutPslFunction(phases);
   return {
     kind: 'attribute',

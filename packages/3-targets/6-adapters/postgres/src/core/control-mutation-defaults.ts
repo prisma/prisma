@@ -80,6 +80,11 @@ function lowerNanoid(input: {
     : executionGenerator('nanoid');
 }
 
+function writeNanoidCall(params: Readonly<Record<string, unknown>> | undefined): string {
+  const size = params?.['size'];
+  return typeof size === 'number' ? `nanoid(${size})` : 'nanoid()';
+}
+
 const nowSig: FuncCallSig = {
   documentation: 'Uses the current database timestamp as the default value.',
 };
@@ -114,7 +119,9 @@ const nanoidSig: FuncCallSig = {
     },
   ],
 };
-const postgresDefaultFunctionRegistryEntries = [
+const postgresDefaultFunctionRegistryEntries: ReadonlyArray<
+  readonly [string, ControlMutationDefaultEntry]
+> = [
   [
     'autoincrement',
     {
@@ -126,15 +133,41 @@ const postgresDefaultFunctionRegistryEntries = [
   ['now', { signature: nowSig, lower: lowerNow, usageSignatures: ['now()'] }],
   [
     'uuid',
-    { signature: uuidSig, lower: lowerUuid, usageSignatures: ['uuid()', 'uuid(4)', 'uuid(7)'] },
+    {
+      signature: uuidSig,
+      lower: lowerUuid,
+      usageSignatures: ['uuid()', 'uuid(4)', 'uuid(7)'],
+      generatorCalls: { uuidv4: () => 'uuid()', uuidv7: () => 'uuid(7)' },
+    },
   ],
-  ['cuid', { signature: cuidSig, lower: lowerCuid, usageSignatures: ['cuid(2)'] }],
-  ['ulid', { signature: ulidSig, lower: lowerUlid, usageSignatures: ['ulid()'] }],
+  [
+    'cuid',
+    {
+      signature: cuidSig,
+      lower: lowerCuid,
+      usageSignatures: ['cuid(2)'],
+      generatorCalls: { cuid2: () => 'cuid(2)' },
+    },
+  ],
+  [
+    'ulid',
+    {
+      signature: ulidSig,
+      lower: lowerUlid,
+      usageSignatures: ['ulid()'],
+      generatorCalls: { ulid: () => 'ulid()' },
+    },
+  ],
   [
     'nanoid',
-    { signature: nanoidSig, lower: lowerNanoid, usageSignatures: ['nanoid()', 'nanoid(<2-255>)'] },
+    {
+      signature: nanoidSig,
+      lower: lowerNanoid,
+      usageSignatures: ['nanoid()', 'nanoid(<2-255>)'],
+      generatorCalls: { nanoid: writeNanoidCall },
+    },
   ],
-] satisfies ReadonlyArray<readonly [string, ControlMutationDefaultEntry]>;
+];
 
 export function createPostgresDefaultFunctionRegistry(): ReadonlyMap<
   string,

@@ -144,6 +144,36 @@ describe('createPostgresDefaultFunctionRegistry', () => {
       value: { kind: 'execution', generated: { kind: 'generator', id: 'uuidv4' } },
     });
   });
+
+  it('writes the PSL call of each generator a function produces', () => {
+    const calls = Object.fromEntries(
+      [...registry].map(([name, entry]) => [
+        name,
+        Object.fromEntries(
+          Object.entries(entry.generatorCalls ?? {}).map(([id, write]) => [id, write(undefined)]),
+        ),
+      ]),
+    );
+    expect(calls).toEqual({
+      autoincrement: {},
+      now: {},
+      uuid: { uuidv4: 'uuid()', uuidv7: 'uuid(7)' },
+      cuid: { cuid2: 'cuid(2)' },
+      ulid: { ulid: 'ulid()' },
+      nanoid: { nanoid: 'nanoid()' },
+    });
+  });
+
+  it('writes a nanoid size so that it lowers back to the same params', () => {
+    const entry = registry.get('nanoid')!;
+    expect(entry.generatorCalls?.['nanoid']?.({ size: 21 })).toBe('nanoid(21)');
+    expect(
+      entry.lower({ call: makeCall('nanoid', { size: 21 }), context: stubContext }),
+    ).toMatchObject({
+      ok: true,
+      value: { kind: 'execution', generated: { id: 'nanoid', params: { size: 21 } } },
+    });
+  });
 });
 
 describe('createPostgresMutationDefaultGeneratorDescriptors', () => {

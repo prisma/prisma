@@ -4,6 +4,7 @@ import type { CodecLookupWithDescriptors } from '@internal/framework-components/
 import type {
   AssembledAuthoringContributions,
   ContractSerializer,
+  ControlMutationDefaults,
   DiffSubjectGranularity,
   MigratableTargetDescriptor,
   SchemaVerifier,
@@ -33,12 +34,13 @@ export interface SqlDescribedContractSpace {
 }
 
 /**
- * The parts of the composed stack a target builds a PSL document with. The PSL contract source reads the document with the same parts, so the target writes a column type as a type constructor the stack contributes, and a literal default through the data type of the column's codec, and both read back.
+ * The parts of the composed stack a target builds a PSL document with. The PSL contract source reads the document with the same parts, so the target writes a column type as a type constructor the stack contributes, a literal default through the data type of the column's codec, and a generated value as a default function or field preset the stack contributes, and all of them read back.
  */
 export interface SqlPslBuildContext {
-  readonly authoringContributions: Pick<AssembledAuthoringContributions, 'type'>;
+  readonly authoringContributions: Pick<AssembledAuthoringContributions, 'type' | 'field'>;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
+  readonly controlMutationDefaults: ControlMutationDefaults;
 }
 
 export interface SqlControlTargetDescriptor<

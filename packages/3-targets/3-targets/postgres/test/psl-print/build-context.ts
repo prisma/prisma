@@ -1,11 +1,15 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+import type {
+  AuthoringFieldNamespace,
+  AuthoringTypeNamespace,
+} from '@internal/framework-components/authoring';
 import {
   type CodecDescriptorTemplate,
   createDataTypeLookup,
   type DataType,
 } from '@internal/framework-components/codec';
-import { postgresAuthoringTypes } from '../../src/core/authoring';
+import type { ControlMutationDefaultEntry } from '@internal/framework-components/control';
+import { postgresAuthoringFieldPresets, postgresAuthoringTypes } from '../../src/core/authoring';
 import { type AnyPostgresCodecDescriptor, postgresCodec } from '../../src/core/codec-descriptor';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { pgText, postgresDataTypes } from '../../src/core/data-types';
@@ -28,13 +32,42 @@ export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTe
   jsonProjection: (expression) => expression,
 });
 
+function defaultFunction(
+  generatorCalls: NonNullable<ControlMutationDefaultEntry['generatorCalls']>,
+): ControlMutationDefaultEntry {
+  return {
+    lower: () => {
+      throw new Error('the printer never lowers a default function');
+    },
+    generatorCalls,
+  };
+}
+
+/** The PSL calls of the default functions the Postgres adapter registers, as the printer reads them. */
+const adapterDefaultFunctions: ReadonlyMap<string, ControlMutationDefaultEntry> = new Map([
+  ['uuid', defaultFunction({ uuidv4: () => 'uuid()', uuidv7: () => 'uuid(7)' })],
+  ['cuid', defaultFunction({ cuid2: () => 'cuid(2)' })],
+  ['ulid', defaultFunction({ ulid: () => 'ulid()' })],
+  [
+    'nanoid',
+    defaultFunction({
+      nanoid: (params) =>
+        typeof params?.['size'] === 'number' ? `nanoid(${params['size']})` : 'nanoid()',
+    }),
+  ],
+]);
+
 /**
  * A stand-in for the stack the SQL family hands the printer: the target's own type constructors,
- * codecs and data types, the type constructors the adapter contributes, and what `extra` adds.
+ * field presets, codecs and data types, the type constructors and default functions the adapter
+ * contributes, and what `extra` adds. `extra.temporalPresets` joins the target's `temporal.*`
+ * presets.
  */
 export function testBuildContext(
   extra: {
     readonly types?: AuthoringTypeNamespace;
+    readonly temporalPresets?: AuthoringFieldNamespace;
+    readonly defaultFunctions?: ReadonlyMap<string, ControlMutationDefaultEntry>;
     readonly codecs?: readonly AnyPostgresCodecDescriptor[];
     readonly dataTypes?: readonly DataType[];
   } = {},
@@ -47,6 +80,17 @@ export function testBuildContext(
         ...postgresPslTypeConstructors,
         ...extra.types,
       },
+      field: {
+        ...postgresAuthoringFieldPresets,
+        temporal: { ...postgresAuthoringFieldPresets.temporal, ...extra.temporalPresets },
+      },
+    },
+    controlMutationDefaults: {
+      defaultFunctionRegistry: new Map([
+        ...adapterDefaultFunctions,
+        ...(extra.defaultFunctions ?? []),
+      ]),
+      generatorDescriptors: [],
     },
     codecLookup: {
       get: () => undefined,

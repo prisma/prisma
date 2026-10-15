@@ -589,6 +589,10 @@ export function assembleControlMutationDefaults(
   const functionOwners = new Map<string, string>();
   const generatorMap = new Map<string, MutationDefaultGeneratorDescriptor>();
   const generatorOwners = new Map<string, string>();
+  const generatorCallOwners = new Map<
+    string,
+    { readonly functionName: string; readonly descriptorId: string }
+  >();
 
   for (const descriptor of descriptors) {
     const contributions = descriptor.controlMutationDefaults;
@@ -617,6 +621,17 @@ export function assembleControlMutationDefaults(
       }
       defaultFunctionRegistry.set(functionName, handler);
       functionOwners.set(functionName, descriptorId);
+
+      for (const generatorId of Object.keys(handler.generatorCalls ?? {})) {
+        const existingCall = generatorCallOwners.get(generatorId);
+        if (existingCall !== undefined) {
+          throw new InternalError(
+            `Duplicate PSL call for mutation default generator "${generatorId}". ` +
+              `Function "${functionName}" from "${descriptorId}" conflicts with function "${existingCall.functionName}" from "${existingCall.descriptorId}".`,
+          );
+        }
+        generatorCallOwners.set(generatorId, { functionName, descriptorId });
+      }
     }
   }
 

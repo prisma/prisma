@@ -77,7 +77,13 @@ export interface ControlMutationDefaultEntry {
     readonly context: DefaultFunctionLoweringContext;
   }) => LoweredDefaultResult;
   readonly usageSignatures?: readonly string[];
+  /**
+   * The PSL call that produces each generator this function lowers to, written from the generator's params. `contract print` writes a generated value through it; a function without it is never printed.
+   */
+  readonly generatorCalls?: Readonly<Record<string, GeneratorCallWriter>>;
 }
+
+export type GeneratorCallWriter = (params: Readonly<Record<string, unknown>> | undefined) => string;
 
 export type ControlMutationDefaultRegistry = ReadonlyMap<string, ControlMutationDefaultEntry>;
 

@@ -1363,6 +1363,52 @@ describe('assembleControlMutationDefaults', () => {
       ]),
     ).toThrow(/Duplicate mutation default generator id "uuidv4".*"desc-b".*"desc-a"/);
   });
+
+  it('throws when two functions from different descriptors write one generator', () => {
+    expect(() =>
+      assembleControlMutationDefaults([
+        createDescriptor({
+          id: 'desc-a',
+          controlMutationDefaults: {
+            defaultFunctionRegistry: new Map([
+              ['uuid', { lower: stubLower, generatorCalls: { uuidv4: () => 'uuid()' } }],
+            ]),
+            generatorDescriptors: [],
+          },
+        }),
+        createDescriptor({
+          id: 'desc-b',
+          controlMutationDefaults: {
+            defaultFunctionRegistry: new Map([
+              ['guid', { lower: stubLower, generatorCalls: { uuidv4: () => 'guid()' } }],
+            ]),
+            generatorDescriptors: [],
+          },
+        }),
+      ]),
+    ).toThrow(
+      /Duplicate PSL call for mutation default generator "uuidv4"\. Function "guid" from "desc-b" conflicts with function "uuid" from "desc-a"\./,
+    );
+  });
+
+  it('throws when two functions from one descriptor write one generator', () => {
+    expect(() =>
+      assembleControlMutationDefaults([
+        createDescriptor({
+          id: 'desc-a',
+          controlMutationDefaults: {
+            defaultFunctionRegistry: new Map([
+              ['uuid', { lower: stubLower, generatorCalls: { uuidv4: () => 'uuid()' } }],
+              ['guid', { lower: stubLower, generatorCalls: { uuidv4: () => 'guid()' } }],
+            ]),
+            generatorDescriptors: [],
+          },
+        }),
+      ]),
+    ).toThrow(
+      /Duplicate PSL call for mutation default generator "uuidv4"\. Function "guid" from "desc-a" conflicts with function "uuid" from "desc-a"\./,
+    );
+  });
 });
 
 describe('createControlStack', () => {
