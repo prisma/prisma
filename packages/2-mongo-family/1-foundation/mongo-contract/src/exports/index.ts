@@ -46,6 +46,13 @@ export {
   defaultMongoDomainNamespaceId,
   defaultMongoStorageNamespaceId,
 } from '../default-namespace';
+export type {
+  CollectionValidatorModel,
+  CollectionValidatorsInput,
+} from '../derive-collection-validators';
+export { deriveCollectionValidators } from '../derive-collection-validators';
+export type { FieldValueSets, PolymorphicVariant } from '../derive-json-schema';
+export { deriveJsonSchema, derivePolymorphicJsonSchema } from '../derive-json-schema';
 export { buildMongoNamespace } from '../ir/build-mongo-namespace';
 export type { MongoChangeStreamPreAndPostImagesOptionsInput } from '../ir/mongo-change-stream-pre-and-post-images-options';
 export { MongoChangeStreamPreAndPostImagesOptions } from '../ir/mongo-change-stream-pre-and-post-images-options';

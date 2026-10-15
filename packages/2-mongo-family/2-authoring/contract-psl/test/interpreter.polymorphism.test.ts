@@ -8,12 +8,12 @@ function modelsOf(ir: Contract): Record<string, unknown> {
 }
 
 import { describe, expect, it } from 'vitest';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,
   interpretMongoContract,
 } from './interpreter-test-helpers';
+import { mongoCodecLookup, mongoDataTypeLookup } from './mongo-type-lookups';
 
 const mongoScalarTypeDescriptors: ReadonlyMap<string, string> = new Map([
   ['String', 'mongo/string@1'],

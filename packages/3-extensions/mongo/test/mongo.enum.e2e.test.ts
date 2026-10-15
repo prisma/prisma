@@ -6,8 +6,11 @@ import {
   renderTsLiteral,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { ExtractMongoFieldOutputTypes } from '@internal/mongo-contract';
-import { deriveJsonSchema, type FieldValueSets } from '@internal/mongo-contract-psl';
+import {
+  deriveJsonSchema,
+  type ExtractMongoFieldOutputTypes,
+  type FieldValueSets,
+} from '@internal/mongo-contract';
 import { mongoEmission } from '@internal/mongo-emitter';
 import { mongoDescriptorById } from '@internal/target-mongo/codecs';
 import { mongoDataTypes } from '@internal/target-mongo/data-types';

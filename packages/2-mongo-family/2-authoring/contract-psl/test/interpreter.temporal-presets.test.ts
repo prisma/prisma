@@ -7,8 +7,8 @@ import {
 } from '@internal/framework-components/authoring';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import { interpretMongoContract } from './interpreter-test-helpers';
+import { mongoCodecLookup, mongoDataTypeLookup } from './mongo-type-lookups';
 
 const mongoDate = { codecId: 'mongo/date@1' } as const;
 

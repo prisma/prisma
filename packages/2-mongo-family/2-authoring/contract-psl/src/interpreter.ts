@@ -37,6 +37,7 @@ import type { ControlMutationDefaultRegistry } from '@internal/framework-compone
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
+  deriveCollectionValidators,
   type MongoCollectionInput,
   MongoIndex,
   type MongoIndexKeyDirection,
@@ -91,7 +92,6 @@ import { assertDefined, invariant } from '@internal/utils/assertions';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import { deriveJsonSchema, derivePolymorphicJsonSchema } from './derive-json-schema';
 import {
   type FieldPresetContext,
   type PresetWithoutEffect,
@@ -1696,34 +1696,15 @@ export function interpretPslDocumentToMongoContract(
 
   const storageValueSets = mongoValueSetsOf(builtEnums);
 
-  for (const [, modelEntry] of Object.entries(resolvedModels)) {
-    if (modelEntry.base) continue;
-
-    const collectionName = modelEntry.storage.collection;
+  const validators = deriveCollectionValidators({
+    models: resolvedModels,
+    lookups: { codecLookup, dataTypeLookup: input.dataTypes.lookup },
+    valueObjects,
+    valueSets: storageValueSets,
+  });
+  for (const [collectionName, validator] of Object.entries(validators)) {
     const coll = resolvedCollections[collectionName];
-    if (!coll) continue;
-
-    if (modelEntry.discriminator && modelEntry.variants) {
-      const variantEntries = Object.entries(modelEntry.variants).map(([value, variant]) => ({
-        discriminatorValue: value,
-        fields: resolvedModels[variant.model]?.fields ?? {},
-      }));
-      coll['validator'] = derivePolymorphicJsonSchema(
-        modelEntry.fields,
-        modelEntry.discriminator.field,
-        variantEntries,
-        { codecLookup, dataTypeLookup: input.dataTypes.lookup },
-        valueObjects,
-        storageValueSets,
-      );
-    } else {
-      coll['validator'] = deriveJsonSchema(
-        modelEntry.fields,
-        { codecLookup, dataTypeLookup: input.dataTypes.lookup },
-        valueObjects,
-        storageValueSets,
-      );
-    }
+    if (coll) coll['validator'] = validator;
   }
 
   const collectionInputs: Record<string, MongoCollectionInput> = {};

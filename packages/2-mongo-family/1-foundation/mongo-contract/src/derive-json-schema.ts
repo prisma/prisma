@@ -1,6 +1,6 @@
 import type { ContractField, ContractValueObject, JsonValue } from '@internal/contract/types';
-import { MongoValidator } from '@internal/mongo-contract';
-import { bsonTypesOfCodec, type MongoTypeLookups } from '@internal/mongo-contract/data-type';
+import { MongoValidator } from './ir/mongo-validator';
+import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the

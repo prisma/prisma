@@ -36,12 +36,12 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,
   interpretMongoContract,
 } from './interpreter-test-helpers';
+import { mongoCodecLookup, mongoDataTypeLookup } from './mongo-type-lookups';
 
 function buildSymbolTableInput(
   schema: string,

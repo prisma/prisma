@@ -1,7 +1,7 @@
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import { interpretMongoContract } from './interpreter-test-helpers';
+import { mongoCodecLookup, mongoDataTypeLookup } from './mongo-type-lookups';
 
 const scalarTypeCodecIds: ReadonlyMap<string, string> = new Map([
   ['ObjectId', 'mongo/objectId@1'],
