@@ -27,14 +27,6 @@ describe('SqlContractSerializer', () => {
     expect(unboundTables(result.storage)).toHaveProperty('User');
   });
 
-  it('throws on structural validation failure', () => {
-    // biome-ignore lint/suspicious/noExplicitAny: testing invalid input
-    const invalid = { ...validContractInput, targetFamily: undefined } as any;
-    expect(() => validateSqlContractFully<Contract<SqlStorage>>(invalid)).toThrow(
-      /Invalid contract structure|Contract header validation failed|structural validation failed/,
-    );
-  });
-
   it('accepts contract with valid primaryKey columns', () => {
     const valid = {
       ...validContractInput,

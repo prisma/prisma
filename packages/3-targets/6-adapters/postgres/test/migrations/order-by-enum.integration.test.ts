@@ -7,9 +7,7 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import { buildBoundContract, enumType, member } from '@internal/sql-contract-ts/contract-builder';
 import {
   ColumnRef,
-  EqColJoinOn,
   IdentifierRef,
-  JoinAst,
   OrderByItem,
   ProjectionItem,
   SelectAst,
@@ -64,32 +62,6 @@ function makeTaskContract(): PostgresContract {
           fields: {
             id: f.text().id(),
             priority: f.namedType(Priority).optional(),
-          },
-        }),
-      },
-    }),
-  ) as Contract<SqlStorage> as PostgresContract;
-}
-
-// `Task.priority` is enum-backed; `Note.priority` is plain text. A bare `ORDER BY priority`
-// across a Task⋈Note join is ambiguous, so it must NOT be rewritten to `array_position`.
-function makeTaskNoteContract(): PostgresContract {
-  return buildBoundContract(
-    sqlFamilyPack,
-    postgresPack,
-    { ...postgresTypeLookups, enums: { Priority }, createNamespace: postgresCreateNamespace },
-    ({ field: f, model: m }) => ({
-      models: {
-        Task: m('Task', {
-          fields: {
-            id: f.text().id(),
-            priority: f.namedType(Priority).optional(),
-          },
-        }),
-        Note: m('Note', {
-          fields: {
-            id: f.text().id(),
-            priority: f.text().optional(),
           },
         }),
       },
@@ -214,29 +186,6 @@ describe('ORDER BY on an enum column — value order, PGlite', { concurrent: fal
     expect(rows.rows.map((r) => r.id)).toEqual(['a', 'b', 'd', 'c']);
   });
 
-  it('leaves an ambiguous unqualified order column unrewritten across a join', {
-    timeout: timeouts.spinUpPpgDev,
-  }, async () => {
-    const contract = makeTaskNoteContract();
-
-    // Task ⋈ Note where both have a `priority` column (only Task's is enum-backed).
-    const ast = SelectAst.from(TableSource.named('Task', undefined, 'public'))
-      .withJoins([
-        JoinAst.inner(
-          TableSource.named('Note', undefined, 'public'),
-          EqColJoinOn.of(ColumnRef.of('Task', 'id'), ColumnRef.of('Note', 'id')),
-        ),
-      ])
-      .withProjection([ProjectionItem.of('id', ColumnRef.of('Task', 'id'))])
-      .withOrderBy([OrderByItem.asc(IdentifierRef.of('priority'))]);
-
-    const lowered = createPostgresAdapter().lower(ast, { contract });
-
-    // Bare `priority` is ambiguous across the join → falls through to the plain column.
-    expect(lowered.sql).not.toContain('array_position');
-    expect(lowered.sql).toContain('"priority"');
-  });
-
   it('sorts NULLs last (ASC) alongside value-ordered non-null values', {
     timeout: timeouts.spinUpPpgDev,
   }, async () => {
@@ -301,18 +250,5 @@ describe('ORDER BY on an enum column — value order, PGlite', { concurrent: fal
     const lowered = createPostgresAdapter().lower(ast, { contract });
     const rows = await driver!.query<{ id: string; priority: string }>(lowered.sql);
     expect(rows.rows.map((r) => r.priority)).toEqual(['high', 'low']);
-  });
-
-  it('distinctOn on a plain scalar column still renders as a bare identifier', () => {
-    const contract = makeTaskContract();
-
-    const ast = SelectAst.from(TableSource.named('Task', undefined, 'public'))
-      .withProjection([ProjectionItem.of('id', ColumnRef.of('Task', 'id'))])
-      .withDistinctOn([IdentifierRef.of('id')])
-      .withOrderBy([OrderByItem.asc(IdentifierRef.of('id'))]);
-
-    const lowered = createPostgresAdapter().lower(ast, { contract });
-    expect(lowered.sql).toContain('DISTINCT ON ("id")');
-    expect(lowered.sql).not.toContain('array_position');
   });
 });

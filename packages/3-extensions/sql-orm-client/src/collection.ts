@@ -23,6 +23,7 @@ import {
   type ToWhereExpr,
   type WhereArg,
 } from '@internal/sql-relational-core/ast';
+import type { CollectionMethodReceiver } from '@internal/sql-relational-core/collection-methods';
 import { type TraitExpression, toExpr } from '@internal/sql-relational-core/expression';
 import type { Preparable } from '@internal/sql-relational-core/plan';
 import { blindCast } from '@internal/utils/casts';
@@ -46,9 +47,7 @@ import {
   assertLockCapability,
   assertReturningCapability,
   columnOfCallerField,
-  fieldOfColumn,
   getModelAndVariantFieldColumns,
-  getModelColumnFields,
   getModelFieldColumns,
   getOwnFieldColumns,
   hasCompleteUniqueKey,
@@ -59,8 +58,6 @@ import {
   resolveInsertConflictColumns,
   resolveModelTableName,
   resolvePolymorphismInfo,
-  resolvePrimaryKeyColumns,
-  resolveRowIdentityColumns,
   resolveUpsertConflictColumns,
 } from './collection-contract';
 import {
@@ -83,22 +80,17 @@ import type {
   WithWhereState,
 } from './collection-internal-types';
 import {
-  dispatchMutationRows,
-  dispatchSplitMutationRows,
-  executeMutationReturningSingleRow,
-} from './collection-mutation-dispatch';
-import {
-  assertModelFieldNames,
-  mapModelDataToStorageRow,
-  mapPolymorphicRow,
-} from './collection-runtime';
+  type ContributedCollectionMethods,
+  collectionMethodTable,
+  createCollectionMethods,
+} from './collection-methods';
+import { assertModelFieldNames, mapModelDataToStorageRow } from './collection-runtime';
 import {
   type CollectionTables,
   createCollectionTables,
   createIncludeTables,
   requireVariantTable,
   tableAliases,
-  variantColumnLabel,
   withScopeCopy,
 } from './collection-tables';
 import type {
@@ -146,30 +138,25 @@ import {
   executeNestedCreateMutation,
   executeNestedUpdateMutation,
   hasNestedMutationCallbacks,
-  withMutationScope,
 } from './mutation-executor';
 import {
+  createAllGraph,
+  createAllVariantGraph,
   deleteAllGraph,
   deleteFirstGraph,
   updateAllGraph,
   updateFirstGraph,
+  upsertGraph,
+  type VariantCreateRow,
 } from './mutation-graph/collection-graphs';
 import { Graph } from './mutation-graph/graph';
 import { executeGraph, queryGraph } from './mutation-graph/run-graph';
 import { assertCursorCompatibleOrder, assertDistinctOnCompatibleOrder } from './order-by-guards';
 import { ormError } from './orm-errors';
 import type { PreparedCollection } from './prepared-collection';
-import {
-  compileAggregate,
-  compileInsertCount,
-  compileInsertCountSplit,
-  compileInsertReturning,
-  compileInsertReturningSplit,
-  compileUpsertReturning,
-  type InsertConflictSkip,
-  mergeAnnotations,
-} from './query-plan';
+import { compileAggregate, type InsertConflictSkip, mergeAnnotations } from './query-plan';
 import { queryPlanRows } from './query-plan-rows';
+import type { AliasedTable } from './table-scope';
 import {
   type AggregateBuilder,
   type AggregateIncludeReducers,
@@ -333,7 +320,6 @@ interface MtiCreateContext {
   baseFieldToColumn: Readonly<Record<string, string>>;
   variantFieldToColumn: Readonly<Record<string, string>>;
   mergedFieldToColumn: Readonly<Record<string, string>>;
-  pkColumns: readonly string[];
 }
 
 /** What `fragment` reads from the collection it is called on: its contract, its model and its query state. */
@@ -411,6 +397,7 @@ export class CollectionBase<
   readonly registry: ReadonlyMap<string, CollectionConstructor<TContract>>;
   /** @internal */
   readonly includeRefinementMode: boolean;
+  #using: ReturnType<typeof createCollectionMethods> | undefined;
 
   constructor(
     ctx: CollectionContext<TContract>,
@@ -573,6 +560,20 @@ export class CollectionBase<
       tables,
       filters: [...this.state.filters, filter],
     });
+  }
+
+  /**
+   * The collection methods packages contribute for this model. Each contribution reads the model and names its methods. Each method returns this collection with the method's filter and order added.
+   */
+  get using(): ContributedCollectionMethods<TContract, ModelName, State['nsId'], this> {
+    this.#using ??= createCollectionMethods(
+      blindCast<CollectionMethodReceiver, 'a collection has where and orderBy'>(this),
+      collectionMethodTable(this.ctx.context, this.namespaceId, this.modelName),
+    );
+    return blindCast<
+      ContributedCollectionMethods<TContract, ModelName, State['nsId'], this>,
+      'the run time offers the methods each contribution gives this model, as the type does for the registry'
+    >(this.#using);
   }
 
   whereUnique<Self>(
@@ -2070,64 +2071,28 @@ export class CollectionBase<
     >(data);
     const mtiContext = this.#resolveMtiCreateContext();
     if (mtiContext) {
-      return this.#executeMtiCreate(rows, mtiContext);
+      const variantTable = requireVariantTable(this.state.tables, mtiContext.variant.value);
+      const graph = createAllVariantGraph(
+        this.#descriptionWithoutIncludes(),
+        variantTable,
+        mtiContext.variant.modelName,
+        this.#variantCreateRows(rows, mtiContext, variantTable),
+      );
+      return queryGraph(graph, this.ctx, annotationsMap, this.#descriptionWithoutIncludes());
     }
 
+    const graph = createAllGraph(
+      this.#descriptionOptions(),
+      this.#createValues(rows),
+      conflictSkip,
+    );
+    return queryGraph(graph, this.ctx, annotationsMap, this.#descriptionOptions());
+  }
+
+  #createValues(rows: readonly Record<string, unknown>[]): Record<string, unknown>[] {
     const mappedRows = this.#mapCreateRows(rows);
     applyCreateDefaults(this.ctx, this.namespaceId, this.tableName, mappedRows);
-    const { selectedForQuery: selectedForInsert, hiddenColumns } = this.#augmentMutationSelection();
-    if (this.contract.capabilities?.['sql']?.['defaultInInsert'] !== true) {
-      const plans = compileInsertReturningSplit(
-        this.contract,
-        this.namespaceId,
-        this.modelName,
-        this.tableName,
-        mappedRows,
-        selectedForInsert,
-        conflictSkip,
-      ).map((plan) => mergeAnnotations(plan, annotationsMap));
-      return dispatchSplitMutationRows<Row>({
-        context: this.ctx.context,
-        runtime: this.ctx.runtime,
-        plans,
-        tables: this.state.tables,
-        modelName: this.modelName,
-        namespaceId: this.namespaceId,
-        variantValue: this.state.variantValue,
-        includes: this.state.includes,
-        selectedFields: this.state.selectedFields,
-        hiddenColumns,
-        mapRow: (mapped) =>
-          blindCast<Row, 'mapped mutation storage row matches the collection generic row'>(mapped),
-      });
-    }
-
-    const compiled = mergeAnnotations(
-      compileInsertReturning(
-        this.contract,
-        this.namespaceId,
-        this.modelName,
-        this.tableName,
-        mappedRows,
-        selectedForInsert,
-        conflictSkip,
-      ),
-      annotationsMap,
-    );
-    return dispatchMutationRows<Row>({
-      context: this.ctx.context,
-      runtime: this.ctx.runtime,
-      compiled,
-      tables: this.state.tables,
-      modelName: this.modelName,
-      namespaceId: this.namespaceId,
-      variantValue: this.state.variantValue,
-      includes: this.state.includes,
-      selectedFields: this.state.selectedFields,
-      hiddenColumns,
-      mapRow: (mapped) =>
-        blindCast<Row, 'mapped mutation storage row matches the collection generic row'>(mapped),
-    });
+    return mappedRows;
   }
 
   #resolveConflictSkip(
@@ -2214,7 +2179,6 @@ export class CollectionBase<
       variant.namespaceId,
       variant.modelName,
     );
-    const pkColumns = resolvePrimaryKeyColumns(this.contract, this.namespaceId, this.tableName);
 
     return {
       polyInfo,
@@ -2227,153 +2191,57 @@ export class CollectionBase<
         this.modelName,
         variant.value,
       ),
-      pkColumns,
     };
   }
 
-  #executeMtiCreate(
+  #variantCreateRows(
     data: readonly Record<string, unknown>[],
     mtiCtx: MtiCreateContext,
-  ): AsyncIterableResult<Row> {
-    const {
-      polyInfo,
-      variant,
-      baseFieldToColumn,
-      variantFieldToColumn,
-      mergedFieldToColumn,
-      pkColumns,
-    } = mtiCtx;
-    const contract = this.contract;
-    const collectionCtx = this.ctx;
-    const runtime = collectionCtx.runtime;
-    const tableName = this.tableName;
-    const modelName = this.modelName;
-    const namespaceId = this.namespaceId;
-    const tables = this.state.tables;
-    const variantTable = requireVariantTable(tables, variant.value);
-
+    variantTable: AliasedTable,
+  ): VariantCreateRow[] {
+    const { polyInfo, variant, baseFieldToColumn, variantFieldToColumn, mergedFieldToColumn } =
+      mtiCtx;
     const baseFieldColumns = new Set(Object.values(baseFieldToColumn));
     const variantFieldColumns = new Set(Object.values(variantFieldToColumn));
+    const defaultValueCache = new Map<string, unknown>();
 
-    const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-      const defaultValueCache = new Map<string, unknown>();
-      for (const row of data) {
-        const allMapped: Record<string, unknown> = {};
-        for (const [fieldName, value] of Object.entries(row)) {
-          if (value === undefined) continue;
-          allMapped[
-            columnOfCallerField(
-              contract,
-              variant.namespaceId,
-              mergedFieldToColumn,
-              variant.modelName,
-              fieldName,
-            )
-          ] = value;
-        }
-        allMapped[polyInfo.discriminatorColumn] = variant.value;
-
-        const baseRow: Record<string, unknown> = {};
-        const variantRow: Record<string, unknown> = {};
-        for (const [col, val] of Object.entries(allMapped)) {
-          if (baseFieldColumns.has(col) || col === polyInfo.discriminatorColumn) {
-            baseRow[col] = val;
-          }
-          if (variantFieldColumns.has(col)) {
-            variantRow[col] = val;
-          }
-        }
-
-        const merged = await withMutationScope(runtime, async (scope) => {
-          applyCreateDefaults(collectionCtx, namespaceId, tableName, [baseRow], defaultValueCache);
-          const baseCompiled = compileInsertReturning(
-            contract,
-            namespaceId,
-            modelName,
-            tableName,
-            [baseRow],
-            undefined,
-          );
-          const baseResult = await queryPlanRows<Record<string, unknown>>(
-            scope,
-            baseCompiled,
-          ).toArray();
-          const baseCreated = baseResult[0];
-          if (!baseCreated) {
-            throw ormError(
-              'ORM.MUTATION_ROW_MISSING',
-              `MTI base INSERT for model "${modelName}" did not return a row`,
-              {
-                meta: {
-                  operation: 'create',
-                  model: modelName,
-                  table: tableName,
-                  phase: 'mti-base',
-                },
-              },
-            );
-          }
-
-          for (const pkColumn of pkColumns) {
-            variantRow[pkColumn] = baseCreated[pkColumn];
-          }
-          applyCreateDefaults(
-            collectionCtx,
-            variantTable.storage.namespaceId,
-            variantTable.storage.tableName,
-            [variantRow],
-            defaultValueCache,
-          );
-          const variantCompiled = compileInsertReturning(
-            contract,
-            variantTable.storage.namespaceId,
+    return data.map((row) => {
+      const allMapped: Record<string, unknown> = {};
+      for (const [fieldName, value] of Object.entries(row)) {
+        if (value === undefined) continue;
+        allMapped[
+          columnOfCallerField(
+            this.contract,
+            this.namespaceId,
+            mergedFieldToColumn,
             variant.modelName,
-            variantTable.storage.tableName,
-            [variantRow],
-            undefined,
-          );
-          const variantResult = await queryPlanRows<Record<string, unknown>>(
-            scope,
-            variantCompiled,
-          ).toArray();
-          const variantCreated = variantResult[0];
-          if (!variantCreated) {
-            throw ormError(
-              'ORM.MUTATION_ROW_MISSING',
-              `MTI variant INSERT for model "${modelName}" into "${variant.table}" did not return a row`,
-              {
-                meta: {
-                  operation: 'create',
-                  model: modelName,
-                  table: variant.table,
-                  phase: 'mti-variant',
-                },
-              },
-            );
-          }
-
-          const prefixedVariant: Record<string, unknown> = {};
-          for (const [col, val] of Object.entries(variantCreated)) {
-            if (pkColumns.includes(col)) continue;
-            prefixedVariant[variantColumnLabel(variantTable, col)] = val;
-          }
-
-          return mapPolymorphicRow(
-            contract,
-            namespaceId,
-            modelName,
-            polyInfo,
-            tables,
-            { ...baseCreated, ...prefixedVariant },
-            variant.value,
-          );
-        });
-
-        yield blindCast<Row, 'polymorphic storage rows map to the collection generic row'>(merged);
+            fieldName,
+          )
+        ] = value;
       }
-    };
+      allMapped[polyInfo.discriminatorColumn] = variant.value;
 
-    return new AsyncIterableResult(generator());
+      const baseRow: Record<string, unknown> = {};
+      const variantRow: Record<string, unknown> = {};
+      for (const [column, value] of Object.entries(allMapped)) {
+        if (baseFieldColumns.has(column) || column === polyInfo.discriminatorColumn) {
+          baseRow[column] = value;
+        }
+        if (variantFieldColumns.has(column)) {
+          variantRow[column] = value;
+        }
+      }
+
+      applyCreateDefaults(this.ctx, this.namespaceId, this.tableName, [baseRow], defaultValueCache);
+      applyCreateDefaults(
+        this.ctx,
+        variantTable.storage.namespaceId,
+        variantTable.storage.tableName,
+        [variantRow],
+        defaultValueCache,
+      );
+      return { base: baseRow, variant: variantRow };
+    });
   }
 
   #mapCreateRows(data: readonly Record<string, unknown>[]): Record<string, unknown>[] {
@@ -2478,30 +2346,12 @@ export class CollectionBase<
       readonly Record<string, unknown>[],
       'resolved create-and-count inputs are model-field records for storage mapping'
     >(data);
-    const mappedRows = this.#mapCreateRows(rows);
-    applyCreateDefaults(this.ctx, this.namespaceId, this.tableName, mappedRows);
-
-    if (this.contract.capabilities?.['sql']?.['defaultInInsert'] !== true) {
-      const plans = compileInsertCountSplit(
-        this.contract,
-        this.namespaceId,
-        this.tableName,
-        mappedRows,
-        conflictSkip,
-      ).map((plan) => mergeAnnotations(plan, annotationsMap));
-      let affectedRows = 0;
-      for (const plan of plans) {
-        const stats = await this.ctx.runtime.execute(plan);
-        affectedRows += stats.affectedRows;
-      }
-      return affectedRows;
-    }
-
-    const compiled = mergeAnnotations(
-      compileInsertCount(this.contract, this.namespaceId, this.tableName, mappedRows, conflictSkip),
-      annotationsMap,
+    const graph = createAllGraph(
+      this.#descriptionWithoutIncludes(),
+      this.#createValues(rows),
+      conflictSkip,
     );
-    const stats = await this.ctx.runtime.execute(compiled);
+    const stats = await executeGraph(graph, this.ctx, annotationsMap);
     return stats.affectedRows;
   }
 
@@ -2521,13 +2371,14 @@ export class CollectionBase<
    *   conflictOn: { email: 'alice@example.com' },
    * });
    *
-   * // Conditional create — `update: {}` keeps the existing row
-   * // unchanged. `conflictOn` must reference the constraint that
-   * // makes the row "already exist"; omit only when the conflict is
-   * // on the primary key. On conflict,
-   * // `ON CONFLICT DO NOTHING RETURNING ...` may return zero rows,
-   * // so a follow-up reload is issued to fetch and return the
-   * // existing row.
+   * // Conditional create: with `update: {}` the row is returned whether it
+   * // was inserted or already existed. When it already exists, the conflict
+   * // clause assigns the first conflict column its own value, which is an
+   * // update: update triggers fire, the row is locked until the transaction
+   * // ends, the caller needs UPDATE privilege on the table, and the call
+   * // fails if that column is generated. `conflictOn` must reference the
+   * // constraint that makes the row "already exist"; omit it only when the
+   * // conflict is on the primary key.
    * await db.orm.User.upsert({
    *   create: { email: 'alice@example.com', name: 'Alice' },
    *   update: {},
@@ -2602,49 +2453,17 @@ export class CollectionBase<
       );
     }
 
-    const { selectedForQuery: selectedForUpsert, hiddenColumns } = this.#augmentMutationSelection();
-    const compiled = mergeAnnotations(
-      compileUpsertReturning(
-        this.contract,
-        this.namespaceId,
-        this.modelName,
-        this.tableName,
-        createValues,
-        updateValues,
-        conflictColumns,
-        selectedForUpsert,
-      ),
-      annotationsMap,
+    const graph = upsertGraph(
+      this.#descriptionOptions(),
+      createValues,
+      updateValues,
+      conflictColumns,
     );
-    const row = await executeMutationReturningSingleRow<Row>({
-      context: this.ctx.context,
-      runtime: this.ctx.runtime,
-      compiled,
-      tables: this.state.tables,
-      modelName: this.modelName,
-      namespaceId: this.namespaceId,
-      variantValue: this.state.variantValue,
-      includes: this.state.includes,
-      selectedFields: this.state.selectedFields,
-      hiddenColumns,
-      mapRow: (mapped) =>
-        blindCast<Row, 'mapped upsert storage row matches the collection generic row'>(mapped),
-      operation: 'upsert',
-      onMissingRowMessage: `upsert() for model "${this.modelName}" did not return a row`,
-    });
+    const row = await consumeFirstRow(
+      queryGraph(graph, this.ctx, annotationsMap, this.#descriptionOptions()),
+    );
     if (row) {
       return row;
-    }
-
-    if (!hasUpdateValues) {
-      const conflictCriterion = this.#buildUpsertConflictCriterion(createValues, conflictColumns);
-      const existing = await this.#reloadMutationRowByCriterion(
-        conflictCriterion,
-        'upsert conflict',
-      );
-      if (existing) {
-        return existing;
-      }
     }
 
     throw ormError(
@@ -2936,64 +2755,6 @@ export class CollectionBase<
       applyUpdateDefaults(this.ctx, this.namespaceId, this.tableName, values);
     }
     return values;
-  }
-
-  #buildUpsertConflictCriterion(
-    createValues: Record<string, unknown>,
-    conflictColumns: readonly string[],
-  ): Record<string, unknown> {
-    const criterion: Record<string, unknown> = {};
-
-    for (const columnName of conflictColumns) {
-      if (!(columnName in createValues)) {
-        throw ormError(
-          'ORM.ARGUMENT_INVALID',
-          `upsert() for model "${this.modelName}" requires create value for conflict column "${columnName}"`,
-          { meta: { method: 'upsert', model: this.modelName, column: columnName } },
-        );
-      }
-
-      const fieldName = fieldOfColumn(
-        getModelColumnFields(this.contract, this.namespaceId, this.modelName),
-        this.modelName,
-        columnName,
-      );
-      criterion[fieldName] = createValues[columnName];
-    }
-
-    return criterion;
-  }
-
-  /**
-   * Shape the projection for a mutation's `RETURNING` clause.
-   *
-   * Without includes, the mutation returns the caller's projection
-   * directly. With includes, it returns only the row identity columns
-   * (PK / unique): those rows are reloaded through the read path
-   * (`reloadMutationRowsByIdentities`), which re-selects the caller's
-   * projection together with the relations, so the `RETURNING` clause
-   * need only carry enough to key that read-back.
-   */
-  #augmentMutationSelection(): {
-    selectedForQuery: readonly string[] | undefined;
-    hiddenColumns: readonly string[];
-  } {
-    if (this.state.includes.length > 0) {
-      const identityColumns = resolveRowIdentityColumns(
-        this.contract,
-        this.namespaceId,
-        this.tableName,
-      );
-      if (identityColumns.length === 0) {
-        throw ormError(
-          'ORM.ROW_IDENTITY_MISSING',
-          `Cannot load includes for the mutation result on model "${this.modelName}": table "${this.tableName}" has no primary key or unique constraint to key the include read-back on.`,
-          { meta: { model: this.modelName, table: this.tableName } },
-        );
-      }
-      return { selectedForQuery: identityColumns, hiddenColumns: [] };
-    }
-    return { selectedForQuery: this.state.selectedFields, hiddenColumns: [] };
   }
 
   async #reloadMutationRowByIdentity(criterion: Record<string, unknown>): Promise<Row | null> {

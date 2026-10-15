@@ -72,7 +72,7 @@ export const contract = defineContract(
           table: 'post',
           indexes: [
             fullTextIndex(cols.title, { name: 'post_title_search' }),
-            fullTextIndex([[cols.title], cols.body], { name: 'post_search' }),
+            fullTextIndex([cols.title, cols.body], { name: 'post_search' }),
           ],
           foreignKeys: [
             constraints.foreignKey(cols.userId, User.refs.id, {

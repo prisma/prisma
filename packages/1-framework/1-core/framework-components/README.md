@@ -10,7 +10,7 @@ Framework component types, authoring logic, control stack assembly, and emission
 - **Authoring types** (`./authoring`): Declarative authoring contribution types, template resolution, and validation for type constructors and field presets. `findAuthoringTypeConstructorCall(namespace, output)` is the inverse of `instantiateAuthoringTypeConstructor`: the first call to a constructor in a namespace that produces a given codec, native type and type parameters
 - **Codec base interface** (`./codec`): The cross-family `Codec` base type that SQL `Codec` and Mongo `MongoCodec` extend
 - **Control stack** (`./control`): Assembly functions that combine component descriptors into a unified `ControlStack` with derived state (codec imports, renderers, authoring contributions)
-- **Emission SPI** (`./emission`): Types for the emission pipeline — `TargetFamilyHook`, `ValidationContext`, `GenerateContractTypesOptions`, `TypeRenderEntry`, `TypeRenderer`, `ParameterizedCodecDescriptor`, and related types
+- **Emission SPI** (`./emission`): Types for the emission pipeline — `TargetFamilyHook`, `GenerateContractTypesOptions`, `TypeRenderEntry`, `TypeRenderer`, `ParameterizedCodecDescriptor`, and related types
 - **Execution types** (`./execution`): Execution-plane stack and instance interfaces
 - **Runtime SPI** (`./runtime`): Abstract `RuntimeCore<TPlan, TExec, TMiddleware>` base class, `RuntimeMiddleware` interface, and the canonical `runQueryWithMiddleware` and `runExecuteWithMiddleware` orchestrator helpers. Family runtimes (`@internal/sql-runtime`, `@internal/mongo-runtime`) extend `RuntimeCore` directly per [ADR 204](../../../../../docs/architecture%20docs/adrs/ADR%20204%20-%20Single-tier%20runtime.md).
 

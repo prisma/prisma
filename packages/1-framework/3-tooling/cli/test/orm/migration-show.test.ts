@@ -308,7 +308,8 @@ describe('migration show', () => {
     expect(run.exitCode).toBe(2);
     expect(envelope).toMatchObject({ ok: false, error: { code: 'MIGRATION.REF_NOT_FOUND' } });
     expect(envelope?.nextActions.length).toBeGreaterThan(0);
-    expect(envelope).not.toHaveProperty('fix');
+    expect(envelope?.ok).toBe(false);
+    expect(envelope).not.toHaveProperty('error.fix');
   });
 
   it('reports no migrations when the app space is empty', async () => {

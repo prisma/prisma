@@ -1,18 +1,27 @@
 import { describe, expect, it } from 'vitest';
+import { CrossJoin } from '../../src/mutation-graph/cross-join';
 import type { NodeId } from '../../src/mutation-graph/edge';
 import { FilterData } from '../../src/mutation-graph/filter-data';
 import { Graph } from '../../src/mutation-graph/graph';
+import { Rows } from '../../src/mutation-graph/rows';
+import { StatementNode } from '../../src/mutation-graph/statement-node';
+import { UnionAll } from '../../src/mutation-graph/union-all';
 import { columnPairs, deletePosts, deleteUsers, findUsers, updateUsers } from './statements';
 
 const sameId = columnPairs('users', 'users', [['id', 'id']]);
 const idToUserId = columnPairs('users', 'posts', [['id', 'user_id']]);
 const emailToTitle = columnPairs('users', 'posts', [['email', 'title']]);
 
+function firstFilterOf(graph: Graph, id: NodeId): unknown {
+  return [graph.inputsOf(id)['filter'] ?? []].flat()[0];
+}
+
 function returned(graph: Graph, id: NodeId): string[] {
   return graph
     .nodes()
     .filter(([position]) => position === id)
-    .flatMap(([, node]) => node.returns.map((column) => column.alias));
+    .flatMap(([, node]) => (node instanceof StatementNode ? node.returns : []))
+    .map((column) => column.alias);
 }
 
 describe('Graph', () => {
@@ -82,6 +91,18 @@ describe('Graph', () => {
 
       expect(returned(graph, update)).toEqual([]);
     });
+
+    it('leaves a node that runs no statement as it was when an edge reads from it', () => {
+      const graph = new Graph();
+      const find = graph.add(findUsers([], ['email']), { filter: [] });
+      const union = new UnionAll();
+      const unionId = graph.add(union, { rows: [new Rows(find, sameId)] });
+
+      graph.add(updateUsers({ name: 'Ada' }), { filter: [new FilterData(unionId, sameId)] });
+
+      expect(graph.nodes().find(([id]) => id === unionId)?.[1]).toBe(union);
+      expect(returned(graph, find)).toEqual(['email', 'id']);
+    });
   });
 
   describe('readersOf', () => {
@@ -97,7 +118,7 @@ describe('Graph', () => {
         { reader: update, edge: toUpdate },
         { reader: del, edge: toDelete },
       ]);
-      expect(graph.readersOf(find)[0]?.edge).toBe(graph.inputsOf(update)['filter']?.[0]);
+      expect(graph.readersOf(find)[0]?.edge).toBe(firstFilterOf(graph, update));
       expect(graph.readersOf(del)).toEqual([]);
     });
   });
@@ -133,11 +154,11 @@ describe('Graph', () => {
 
       graph.replace(update, updateUsers({ name: 'Grace' }));
 
-      expect(graph.inputsOf(update)['filter']?.[0]).toBe(into);
+      expect(firstFilterOf(graph, update)).toBe(into);
       expect(graph.readersOf(find)).toEqual([{ reader: update, edge: into }]);
       expect(graph.readersOf(find)[0]?.edge).toBe(into);
       expect(graph.readersOf(update)).toEqual([{ reader: del, edge: outOf }]);
-      expect(graph.inputsOf(del)['filter']?.[0]).toBe(outOf);
+      expect(firstFilterOf(graph, del)).toBe(outOf);
     });
   });
 
@@ -188,7 +209,20 @@ describe('Graph', () => {
       graph.remove(removed);
 
       expect(graph.readersOf(find)).toEqual([{ reader: del, edge: kept }]);
-      expect(graph.inputsOf(del)['filter']?.[0]).toBe(kept);
+      expect(firstFilterOf(graph, del)).toBe(kept);
+    });
+
+    it('keeps a slot that holds one edge when the source of that edge is removed', () => {
+      const graph = new Graph();
+      const left = graph.add(findUsers(), { filter: [] });
+      const right = graph.add(findUsers(), { filter: [] });
+      const inputs = { left: new Rows(left, sameId), right: new Rows(right, sameId) };
+      const join = graph.add(new CrossJoin(), inputs);
+
+      graph.remove(right);
+
+      expect(graph.inputsOf(join)).toEqual(inputs);
+      expect(graph.readersOf(left)).toEqual([{ reader: join, edge: inputs.left }]);
     });
 
     it('gives the next node the next position, not the emptied one', () => {

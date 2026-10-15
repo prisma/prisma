@@ -173,13 +173,13 @@ The adapter supports RETURNING clauses for INSERT, UPDATE, and DELETE:
 **Example SQL Output:**
 ```sql
 -- INSERT with RETURNING
-INSERT INTO "user" ("email") VALUES (?) RETURNING "user"."id", "user"."email"
+INSERT INTO "user" ("email") VALUES (?) RETURNING "id", "email"
 
 -- UPDATE with RETURNING
-UPDATE "user" SET "email" = ? WHERE "user"."id" = ? RETURNING "user"."id", "user"."email"
+UPDATE "user" SET "email" = ? WHERE "user"."id" = ? RETURNING "id", "email"
 
 -- DELETE with RETURNING
-DELETE FROM "user" WHERE "user"."id" = ? RETURNING "user"."id", "user"."email"
+DELETE FROM "user" WHERE "user"."id" = ? RETURNING "id", "email"
 ```
 
 ## Exports

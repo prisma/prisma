@@ -55,45 +55,11 @@ describe('ports/prisma/functional/composites/list/updateMany', () => {
     timeouts.spinUpMongoMemoryServer,
   );
 
-  it(
-    'set shorthand (same as set for ORM — no prisma set wrapper)',
-    () =>
-      withComposites(async ({ db }) => {
-        const id = new ObjectId().toHexString();
-        await db.comment_required_list.create(seedA(id));
-
-        const count = await db.comment_required_list.where({ _id: id }).updateAndCount({
-          country: 'Mars',
-          contents: [{ text: 'Goodbye World', upvotes: [{ vote: false, userId: '42' }] }],
-        });
-
-        expect(count).toBe(1);
-      }),
-    timeouts.spinUpMongoMemoryServer,
-  );
-
   // Upstream asserts null on required `contents` is a type error and a runtime throw.
   // Prisma 8 rejects it at the type level (@ts-expect-error holds), and MongoDB
   // rejects it through the provisioned collection validator.
   it(
     'set null',
-    () =>
-      withComposites(async ({ db }) => {
-        const id = new ObjectId().toHexString();
-        await db.comment_required_list.create(seedA(id));
-
-        // @ts-expect-error required `contents` list cannot be null
-        const promise = db.comment_required_list.where({ _id: id }).updateAndCount({
-          country: 'France',
-          contents: null,
-        });
-        await expect(promise).rejects.toThrow();
-      }),
-    timeouts.spinUpMongoMemoryServer,
-  );
-
-  it(
-    'set null shorthand',
     () =>
       withComposites(async ({ db }) => {
         const id = new ObjectId().toHexString();

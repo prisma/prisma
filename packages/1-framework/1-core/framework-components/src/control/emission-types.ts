@@ -20,11 +20,6 @@ export interface GenerateContractTypesOptions {
   readonly supportsNamespaces?: boolean;
 }
 
-export interface ValidationContext {
-  readonly codecTypeImports?: ReadonlyArray<TypesImportSpec>;
-  readonly extensionIds?: ReadonlyArray<string>;
-}
-
 export interface EmissionSpi {
   readonly id: string;
 

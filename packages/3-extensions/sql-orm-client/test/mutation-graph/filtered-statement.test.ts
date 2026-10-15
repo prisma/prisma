@@ -1,5 +1,6 @@
 import { BinaryExpr, ColumnRef, ParamRef } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
+import type { StatementAst } from '../../src/mutation-graph/node';
 import { printExpression } from './print-expression';
 import {
   columnPairs,
@@ -13,8 +14,10 @@ import {
 const idIs = (value: number) => BinaryExpr.eq(ColumnRef.of('users', 'id'), ParamRef.of(value));
 const emailColumn = columnPairs('users', 'users', [['email', 'email']]).map(([source]) => source);
 
-function whereOf(ast: { readonly where?: Parameters<typeof printExpression>[0] | undefined }) {
-  return ast.where === undefined ? undefined : printExpression(ast.where, 'users');
+function whereOf(ast: StatementAst): string | undefined {
+  return ast.kind === 'insert' || ast.where === undefined
+    ? undefined
+    : printExpression(ast.where, 'users');
 }
 
 describe.each([
