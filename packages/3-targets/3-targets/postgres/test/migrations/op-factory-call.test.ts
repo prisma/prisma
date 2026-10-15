@@ -6,6 +6,7 @@ import {
   constraintExistsAst,
   tableExistsAst,
 } from '../../src/contract-free/checks';
+import { addConstraintAction, alterTable } from '../../src/contract-free/ddl';
 import {
   AddCheckConstraintCall,
   AddColumnWithTemporaryDefaultCall,
@@ -185,8 +186,20 @@ describe('AddCheckConstraintCall', () => {
         schema: 'public',
         table: 'post',
       });
-    expect(received).toEqual([checks().constraintAbsent(), checks().constraintPresent()]);
-    expect(op.execute[0]?.sql).toContain("CHECK (\"priority\" IN ('low', 'high'))");
+    expect(received).toEqual([
+      checks().constraintAbsent(),
+      checks().constraintPresent(),
+      alterTable({
+        schema: 'public',
+        table: 'post',
+        actions: [
+          addConstraintAction(
+            checkExpression('post_priority_check', `"priority" IN ('low', 'high')`),
+          ),
+        ],
+      }),
+    ]);
+    expect(op.execute[0]?.sql).toBe('LOWERED 3');
     expect(op.precheck[0]).toMatchObject({ sql: 'LOWERED 1', params: ['p1'] });
     expect(call.renderTypeScript()).toBe(
       'this.addCheckConstraint({ schema: "public", table: "post", constraint: "post_priority_check", expression: sql`"priority" IN (\'low\', \'high\')` })',

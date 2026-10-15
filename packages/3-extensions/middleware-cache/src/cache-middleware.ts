@@ -1,9 +1,9 @@
 import type {
+  Activity,
   ActivityContext,
   ActivityEndedResult,
   CrossFamilyMiddleware,
   ExecutionPlan,
-  RuntimeActivity,
 } from '@internal/framework-components/runtime';
 import { cacheAnnotation } from './cache-annotation';
 import {
@@ -145,7 +145,7 @@ export function createCacheMiddleware<TMeta = unknown>(
   }
 
   async function activityEnded(
-    _activity: RuntimeActivity,
+    _activity: Activity,
     result: ActivityEndedResult,
     ctx: ActivityContext,
   ): Promise<void> {

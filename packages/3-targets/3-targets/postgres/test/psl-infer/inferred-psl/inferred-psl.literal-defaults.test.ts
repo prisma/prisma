@@ -136,7 +136,7 @@ describe('printPsl literal defaults', () => {
           'model CharDefaults {',
           '  id   Int         @id',
           '  code Char(10)    @default("abc")',
-          '  one  Char(1)     @default("a")',
+          '  one  Char        @default("a")',
           '  name VarChar(10) @default("abc")',
         ].join('\n'),
       );

@@ -34,3 +34,22 @@ test('tx.orm has the same type as db.orm', () => {
   type TxOrm = PostgresTransactionContext<TestContract>['orm'];
   expectTypeOf<TxOrm>().toEqualTypeOf<DbOrm>();
 });
+
+test('the client and the transaction context do not expose startActivity or planContentHash', () => {
+  expectTypeOf<PostgresClient<TestContract>>().not.toHaveProperty('startActivity');
+  expectTypeOf<PostgresClient<TestContract>>().not.toHaveProperty('planContentHash');
+  expectTypeOf<PostgresTransactionContext<TestContract>>().not.toHaveProperty('startActivity');
+  expectTypeOf<PostgresTransactionContext<TestContract>>().not.toHaveProperty('planContentHash');
+});
+
+test('db.runtime(), its connections and their transactions do not expose startActivity or planContentHash', () => {
+  type DbRuntime = ReturnType<PostgresClient<TestContract>['runtime']>;
+  type DbConnection = Awaited<ReturnType<DbRuntime['connection']>>;
+  type DbTransaction = Awaited<ReturnType<DbConnection['transaction']>>;
+  expectTypeOf<DbRuntime>().not.toHaveProperty('startActivity');
+  expectTypeOf<DbRuntime>().not.toHaveProperty('planContentHash');
+  expectTypeOf<DbConnection>().not.toHaveProperty('startActivity');
+  expectTypeOf<DbConnection>().not.toHaveProperty('planContentHash');
+  expectTypeOf<DbTransaction>().not.toHaveProperty('startActivity');
+  expectTypeOf<DbTransaction>().not.toHaveProperty('planContentHash');
+});

@@ -31,11 +31,17 @@ Four slices, one pull request each. Slice 1 changes the middleware interface for
 
 ## Slice 3: ORM calls are activities, and the cache caches them (TML-3561)
 
-**Outcome:** every SQL ORM terminal method, including prepared collections at each execution, starts an `orm-call` activity and sends its statements, and its own transaction, through the handle. The user's annotations live on the call; the ORM stops merging them onto statement plans. The cache serves and stores annotated ORM calls through `intercept.onActivity`, skipping calls inside a transaction or on a held connection, so a hit sends no statement. The ORM's structural `RuntimeQueryable` requires `startActivity`.
+**Outcome:** every SQL ORM terminal method, including prepared collections at each execution, starts an `orm-call` activity and sends its statements, and its own transaction, through the handle. The user's annotations live on the call; the ORM stops merging them onto statement plans. The cache serves and stores annotated ORM calls through `intercept.onActivity`, skipping calls inside a transaction or on a held connection, so a hit sends no statement. The ORM starts activities with `startActivityOn` on the queryable it holds, and starts none on a queryable without an activity source.
 
 **Builds on:** slice 2. **Hands to:** close-out. Write annotations on relation-callback writes and multi-table-inheritance creates now reach the cache.
 
 **Note:** moving annotations off statements and serving calls from the cache must land together, or the statement-level cache for ORM reads would stop working in between.
+
+**Content hashes:**
+
+- An ORM call's content hash is a digest of its kind, its terminal method and the hash of its plan from `planContentHashOn`, so an annotated ORM call and an annotated builder query on the same plan never share a cache key.
+- A prepared collection hashes each execution: its plan with that execution's bound parameters, not the prepared plan alone.
+- The cache must not rely on `planContentHash` equalling a statement's `ctx.contentHash(exec)`. They differ when `beforeCompile` reads `ctx.parent` or state, or is not deterministic, when a `beforeEncode` hook changes parameters, and when a codec does not encode deterministically. The cache keys a call only on the call's own content hash.
 
 ## Slice 4: a write carries its invalidation (TML-3400)
 

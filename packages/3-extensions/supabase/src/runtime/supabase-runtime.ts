@@ -1,11 +1,20 @@
 import type { Contract } from '@internal/contract/types';
-import type { RuntimeExecuteOptions } from '@internal/framework-components/runtime';
+import type { ActivityParent, RuntimeExecuteOptions } from '@internal/framework-components/runtime';
 import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import { type PostgresRuntime, PostgresRuntimeImpl } from '@internal/postgres/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { SqlQueryable, SqlStatementStats } from '@internal/sql-relational-core/ast';
-import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
+  SqlConnection,
+  SqlQueryable,
+  SqlStatementStats,
+} from '@internal/sql-relational-core/ast';
+import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { SqlOrmPlan } from '@internal/sql-relational-core/types';
+import type {
+  ActivityExecuteOptions,
+  ActivityRoute,
+  ActivitySource,
+  ActivitySourceTarget,
   PreparedExecution,
   PreparedExecutionImpl,
   PreparedStatement,
@@ -13,6 +22,7 @@ import type {
   RuntimeConnection,
   RuntimeTransaction,
 } from '@internal/sql-runtime';
+import { activitySource } from '@internal/sql-runtime';
 import type {
   PreparedStatementExecuteTarget,
   PreparedStatementQueryTarget,
@@ -60,6 +70,16 @@ export class SupabaseRuntimeImpl<
    * Not on the `SupabaseRuntime` interface; consumed by the facade, not by app code.
    */
   async openRoleSession(binding: SupabaseRoleBinding): Promise<RoleSession> {
+    return (await this.openRoleConnection(binding)).session;
+  }
+
+  private async openRoleConnection(binding: SupabaseRoleBinding): Promise<{
+    readonly conn: SqlConnection;
+    readonly session: RoleSession &
+      TransactionStartTarget &
+      PreparedStatementQueryTarget &
+      PreparedStatementExecuteTarget;
+  }> {
     const conn = await this.acquireRawConnection();
 
     try {
@@ -80,18 +100,20 @@ export class SupabaseRuntimeImpl<
 
     const session: RoleSession &
       TransactionStartTarget &
+      ActivitySourceTarget &
       PreparedStatementQueryTarget &
       PreparedStatementExecuteTarget = {
       [transactionStart]: createTransactionStart(),
+      [activitySource]: self.connectionActivitySource(conn, () => session),
       query<Row>(
         plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-        options?: RuntimeExecuteOptions,
+        options?: ActivityExecuteOptions,
       ): AsyncIterableResult<Row> {
         return self.queryAgainstQueryable<Row>(plan, conn, { ...options, scope: 'connection' });
       },
       execute(
         plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
-        options?: RuntimeExecuteOptions,
+        options?: ActivityExecuteOptions,
       ): Promise<SqlStatementStats> {
         return self.executeStatisticsAgainstQueryable(plan, conn, {
           ...options,
@@ -101,20 +123,20 @@ export class SupabaseRuntimeImpl<
       [preparedStatementQuery]<Params, Row>(
         prepared: PreparedStatement<Params, Row>,
         params: Params,
-        options?: RuntimeExecuteOptions,
+        options?: ActivityExecuteOptions,
       ): AsyncIterableResult<Row> {
         return self.runPreparedQueryAgainstRoleQueryable(prepared, params, conn, options);
       },
       [preparedStatementExecute]<Params>(
         prepared: PreparedExecution<Params>,
         params: Params,
-        options?: RuntimeExecuteOptions,
+        options?: ActivityExecuteOptions,
       ): Promise<SqlStatementStats> {
         return self.runPreparedExecuteAgainstRoleQueryable(prepared, params, conn, options);
       },
 
       async transaction(): Promise<RuntimeTransaction> {
-        return self.beginTransactionOn(conn, session);
+        return self.beginTransactionOn(conn, session, undefined);
       },
 
       /**
@@ -135,7 +157,53 @@ export class SupabaseRuntimeImpl<
       },
     };
 
-    return session;
+    return { conn, session };
+  }
+
+  /** The activity source the facade gives the role-bound ORM: activities whose statements and transaction run on role sessions bound to `binding`, and content hashes at the `'connection'` scope role sessions run at. Not on the `SupabaseRuntime` interface. */
+  roleActivitySource(binding: SupabaseRoleBinding): ActivitySource {
+    return {
+      startActivity: (activity) =>
+        this.startActivityOnRoute(this.roleRoute(binding), activity, undefined),
+      planContentHash: (plan) => this.planContentHashFor(plan, 'connection', undefined),
+    };
+  }
+
+  // Each statement of a role-bound activity runs on a role session of its own, as a role-bound query does; its transaction holds one session until it settles.
+  private roleRoute(binding: SupabaseRoleBinding): ActivityRoute {
+    return {
+      scope: 'connection',
+      parent: () => undefined,
+      runtimeWork: true,
+      query: <Row>(plan: SqlOrmPlan<Row>, options: ActivityExecuteOptions) =>
+        this.streamOnRoleSession(binding, (session) => session.query<Row>(plan, options)),
+      execute: (plan, options) => this.executeWithRole(plan, binding, options),
+      preparedQuery: <Params, Row>(
+        statement: PreparedStatementImpl<Params, Row>,
+        params: Params,
+        options: ActivityExecuteOptions,
+      ) =>
+        this.streamOnRoleSession<Row>(binding, (session) =>
+          session[preparedStatementQuery](statement, params, options),
+        ),
+      preparedExecute: <Params>(
+        statement: PreparedExecutionImpl<Params>,
+        params: Params,
+        options: ActivityExecuteOptions,
+      ) =>
+        this.executeOnRoleSession(binding, (session) =>
+          session[preparedStatementExecute](statement, params, options),
+        ),
+      transaction: (parent: ActivityParent) => this.beginRoleTransaction(binding, parent),
+    };
+  }
+
+  private async beginRoleTransaction(
+    binding: SupabaseRoleBinding,
+    parent: ActivityParent,
+  ): Promise<RuntimeTransaction> {
+    const { conn, session } = await this.openRoleConnection(binding);
+    return this.ownTransaction(session, () => this.beginTransactionOn(conn, session, parent));
   }
 
   /**
@@ -145,15 +213,32 @@ export class SupabaseRuntimeImpl<
   queryWithRole<Row>(
     plan: SqlExecutionPlan<Row> | SqlQueryPlan<Row>,
     binding: SupabaseRoleBinding,
-    options?: RuntimeExecuteOptions,
+    options?: ActivityExecuteOptions,
+  ): AsyncIterableResult<Row> {
+    return this.streamOnRoleSession(binding, (session) => session.query<Row>(plan, options));
+  }
+
+  executeWithRole(
+    plan: SqlExecutionPlan | SqlQueryPlan,
+    binding: SupabaseRoleBinding,
+    options?: ActivityExecuteOptions,
+  ): Promise<SqlStatementStats> {
+    return this.executeOnRoleSession(binding, (session) => session.execute(plan, options));
+  }
+
+  private streamOnRoleSession<Row>(
+    binding: SupabaseRoleBinding,
+    rows: (
+      session: RoleSession & PreparedStatementQueryTarget & PreparedStatementExecuteTarget,
+    ) => AsyncIterable<Row>,
   ): AsyncIterableResult<Row> {
     const self = this;
 
     const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-      const session = await self.openRoleSession(binding);
+      const { session } = await self.openRoleConnection(binding);
       let errored = false;
       try {
-        for await (const row of session.query(plan, options)) {
+        for await (const row of rows(session)) {
           yield row;
         }
       } catch (err) {
@@ -170,14 +255,15 @@ export class SupabaseRuntimeImpl<
     return new AsyncIterableResult(generator());
   }
 
-  async executeWithRole(
-    plan: SqlExecutionPlan | SqlQueryPlan,
+  private async executeOnRoleSession(
     binding: SupabaseRoleBinding,
-    options?: RuntimeExecuteOptions,
+    run: (
+      session: RoleSession & PreparedStatementQueryTarget & PreparedStatementExecuteTarget,
+    ) => Promise<SqlStatementStats>,
   ): Promise<SqlStatementStats> {
-    const session = await this.openRoleSession(binding);
+    const { session } = await this.openRoleConnection(binding);
     try {
-      const stats = await session.execute(plan, options);
+      const stats = await run(session);
       await session.release();
       return stats;
     } catch (err) {
@@ -190,7 +276,7 @@ export class SupabaseRuntimeImpl<
     prepared: PreparedExecution<Params>,
     params: Params,
     queryable: SqlQueryable,
-    options: RuntimeExecuteOptions | undefined,
+    options: ActivityExecuteOptions | undefined,
   ): Promise<SqlStatementStats> {
     return this.runPreparedExecuteAgainstQueryable<Params>(
       blindCast<
@@ -209,7 +295,7 @@ export class SupabaseRuntimeImpl<
     prepared: PreparedStatement<Params, Row>,
     params: Params,
     queryable: SqlQueryable,
-    options: RuntimeExecuteOptions | undefined,
+    options: ActivityExecuteOptions | undefined,
   ): AsyncIterableResult<Row> {
     return this.runPreparedQueryAgainstQueryable<Params, Row>(
       blindCast<

@@ -1,5 +1,9 @@
 import { requireSqlExpression, type SqlExpression } from '@internal/sql-contract/sql-expression';
-import type { ColumnRef, IndexConstraint } from '@internal/sql-contract-ts/contract-builder';
+import type {
+  ColumnRef,
+  IndexConstraint,
+  IndexOptionsFunction,
+} from '@internal/sql-contract-ts/contract-builder';
 import {
   describeFullTextIndexProblem,
   FULL_TEXT_INDEX_TYPE,
@@ -14,8 +18,8 @@ import { DEFAULT_FULL_TEXT_SEARCH_LANGUAGE } from '@internal/target-postgres/sql
 import { assertDefined } from '@internal/utils/assertions';
 import { postgresError } from '../errors';
 
-type FullTextIndexOptionsBase = {
-  readonly language?: FullTextSearchLanguage;
+type FullTextIndexOptionsBase<Language extends FullTextSearchLanguage = FullTextSearchLanguage> = {
+  readonly language?: Language;
   /** The SQL predicate restricting rows included in a partial index. */
   readonly where?: SqlExpression;
 };
@@ -24,14 +28,20 @@ type FullTextIndexOptionsBase = {
  * The wire-named form. `Name` stays literal so the model's `sql()` stage sees the
  * index's name and refuses a duplicate, exactly as it does for `constraints.index`.
  */
-type FullTextIndexNameOptions<Name extends string = string> = FullTextIndexOptionsBase & {
+type FullTextIndexNameOptions<
+  Name extends string = string,
+  Language extends FullTextSearchLanguage = FullTextSearchLanguage,
+> = FullTextIndexOptionsBase<Language> & {
   readonly name: Name;
   readonly map?: never;
 };
 
 /** The exact-named form: `map` is adopted verbatim and carries no wire name. */
-type FullTextIndexMapOptions = FullTextIndexOptionsBase & {
-  readonly map: string;
+type FullTextIndexMapOptions<
+  Map extends string = string,
+  Language extends FullTextSearchLanguage = FullTextSearchLanguage,
+> = FullTextIndexOptionsBase<Language> & {
+  readonly map: Map;
   readonly name?: never;
 };
 
@@ -54,18 +64,80 @@ function isColumnRef(value: unknown): value is ColumnRef {
  * table's `indexes` to the query operations, which then search its groups in
  * its language.
  */
-export function fullTextIndex<const Name extends string>(
-  fields: FullTextFieldsInput<ColumnRef>,
-  options: FullTextIndexNameOptions<Name>,
-): IndexConstraint<readonly string[], Name>;
-export function fullTextIndex(
-  fields: FullTextFieldsInput<ColumnRef>,
-  options: FullTextIndexMapOptions,
-): IndexConstraint<readonly string[], undefined>;
+type FieldNameOf<Ref> = Ref extends ColumnRef<infer FieldName> ? FieldName : string;
+
+// The weight groups as field names: one field is one group; each item of a list is a group of one field or of a list of fields.
+type GroupFieldNames<Group> = Group extends readonly unknown[]
+  ? { readonly [Member in keyof Group]: FieldNameOf<Group[Member]> }
+  : readonly [FieldNameOf<Group>];
+
+type FieldGroups<Fields> = Fields extends ColumnRef
+  ? readonly [readonly [FieldNameOf<Fields>]]
+  : { readonly [Group in keyof Fields]: GroupFieldNames<Fields[Group]> };
+
+type FlattenGroups<Groups> = Groups extends readonly [
+  infer First extends readonly string[],
+  ...infer Rest,
+]
+  ? readonly [...First, ...FlattenGroups<Rest>]
+  : readonly [];
+
+type GroupColumns<Group, ColumnOf> = {
+  readonly [Member in keyof Group]: Group[Member] extends keyof ColumnOf
+    ? ColumnOf[Group[Member]]
+    : Group[Member];
+};
+
+type ColumnGroups<Groups, ColumnOf> = {
+  readonly [Group in keyof Groups]: GroupColumns<Groups[Group], ColumnOf>;
+};
+
+/** The options the build writes for a full-text index: its weight groups as column names, and its language. */
+export interface FullTextIndexOptionsOf<Groups, Language extends FullTextSearchLanguage>
+  extends IndexOptionsFunction {
+  readonly options: FullTextOptions<Groups, Language, this['columnOf']>;
+}
+
+type FullTextOptions<Groups, Language, ColumnOf> = {
+  readonly language: Language;
+  readonly weightGroups: ColumnGroups<Groups, ColumnOf>;
+};
+
+type FullTextIndexConstraint<
+  Fields,
+  Name extends string | undefined,
+  Map extends string | undefined,
+  Language extends FullTextSearchLanguage,
+> = IndexConstraint<
+  FlattenGroups<FieldGroups<Fields>>,
+  Name,
+  {
+    readonly map: Map;
+    readonly type: typeof FULL_TEXT_INDEX_TYPE;
+    readonly options: FullTextIndexOptionsOf<FieldGroups<Fields>, Language>;
+  }
+>;
+
+export function fullTextIndex<
+  const Name extends string,
+  const Fields extends FullTextFieldsInput<ColumnRef> = FullTextFieldsInput<ColumnRef>,
+  const Language extends FullTextSearchLanguage = typeof DEFAULT_FULL_TEXT_SEARCH_LANGUAGE,
+>(
+  fields: Fields,
+  options: FullTextIndexNameOptions<Name, Language>,
+): FullTextIndexConstraint<Fields, Name, undefined, Language>;
+export function fullTextIndex<
+  const Map extends string,
+  const Fields extends FullTextFieldsInput<ColumnRef> = FullTextFieldsInput<ColumnRef>,
+  const Language extends FullTextSearchLanguage = typeof DEFAULT_FULL_TEXT_SEARCH_LANGUAGE,
+>(
+  fields: Fields,
+  options: FullTextIndexMapOptions<Map, Language>,
+): FullTextIndexConstraint<Fields, undefined, Map, Language>;
 export function fullTextIndex(
   fields: FullTextFieldsInput<ColumnRef>,
   options: FullTextIndexOptions,
-): IndexConstraint<readonly string[], string | undefined> {
+): IndexConstraint {
   const fieldGroups = weightGroupsOf(fields, isColumnRef).map((group) =>
     group.map((ref) => ref.fieldName),
   );

@@ -38,6 +38,11 @@ export const textColumn = {
   codecId: PG_TEXT_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
+export function charColumn<const Length extends number>(
+  length: Length,
+): ColumnTypeDescriptor<typeof SQL_CHAR_CODEC_ID> & {
+  readonly typeParams: { readonly length: Length };
+};
 export function charColumn(length: number): ColumnTypeDescriptor<typeof SQL_CHAR_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
@@ -47,6 +52,11 @@ export function charColumn(length: number): ColumnTypeDescriptor<typeof SQL_CHAR
   } as const;
 }
 
+export function varcharColumn<const Length extends number>(
+  length: Length,
+): ColumnTypeDescriptor<typeof SQL_VARCHAR_CODEC_ID> & {
+  readonly typeParams: { readonly length: Length };
+};
 export function varcharColumn(length: number): ColumnTypeDescriptor<typeof SQL_VARCHAR_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
@@ -76,6 +86,23 @@ export const float8Column = {
   codecId: PG_FLOAT8_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
+export function numericColumn<const Precision extends number>(
+  precision: Precision,
+): ColumnTypeDescriptor<typeof PG_NUMERIC_CODEC_ID> & {
+  readonly typeParams: { readonly precision: Precision };
+};
+export function numericColumn<const Precision extends number, const Scale extends number>(
+  precision: Precision,
+  scale: Scale,
+): ColumnTypeDescriptor<typeof PG_NUMERIC_CODEC_ID> & {
+  readonly typeParams: { readonly precision: Precision; readonly scale: Scale };
+};
+export function numericColumn(
+  precision: number,
+  scale?: number,
+): ColumnTypeDescriptor<typeof PG_NUMERIC_CODEC_ID> & {
+  readonly typeParams: { readonly precision: number; readonly scale?: number };
+};
 export function numericColumn(
   precision: number,
   scale?: number,
@@ -120,6 +147,17 @@ export const timestamptzStringColumn = {
   codecId: PG_TIMESTAMPTZ_STRING_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
+export function timeTemporalColumn(): ColumnTypeDescriptor<typeof PG_TIME_TEMPORAL_CODEC_ID>;
+export function timeTemporalColumn<const Precision extends number>(
+  precision: Precision,
+): ColumnTypeDescriptor<typeof PG_TIME_TEMPORAL_CODEC_ID> & {
+  readonly typeParams: { readonly precision: Precision };
+};
+export function timeTemporalColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_TIME_TEMPORAL_CODEC_ID
+> & {
+  readonly typeParams?: { readonly precision: number };
+};
 export function timeTemporalColumn(precision?: number): ColumnTypeDescriptor<
   typeof PG_TIME_TEMPORAL_CODEC_ID
 > & {
@@ -131,6 +169,17 @@ export function timeTemporalColumn(precision?: number): ColumnTypeDescriptor<
   } as const;
 }
 
+export function timeStringColumn(): ColumnTypeDescriptor<typeof PG_TIME_STRING_CODEC_ID>;
+export function timeStringColumn<const Precision extends number>(
+  precision: Precision,
+): ColumnTypeDescriptor<typeof PG_TIME_STRING_CODEC_ID> & {
+  readonly typeParams: { readonly precision: Precision };
+};
+export function timeStringColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_TIME_STRING_CODEC_ID
+> & {
+  readonly typeParams?: { readonly precision: number };
+};
 export function timeStringColumn(precision?: number): ColumnTypeDescriptor<
   typeof PG_TIME_STRING_CODEC_ID
 > & {
@@ -142,6 +191,17 @@ export function timeStringColumn(precision?: number): ColumnTypeDescriptor<
   } as const;
 }
 
+export function timetzColumn(): ColumnTypeDescriptor<typeof PG_TIMETZ_CODEC_ID>;
+export function timetzColumn<const Precision extends number>(
+  precision: Precision,
+): ColumnTypeDescriptor<typeof PG_TIMETZ_CODEC_ID> & {
+  readonly typeParams: { readonly precision: Precision };
+};
+export function timetzColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_TIMETZ_CODEC_ID
+> & {
+  readonly typeParams?: { readonly precision: number };
+};
 export function timetzColumn(precision?: number): ColumnTypeDescriptor<
   typeof PG_TIMETZ_CODEC_ID
 > & {
@@ -157,6 +217,11 @@ export const boolColumn = {
   codecId: PG_BOOL_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
+export function bitColumn<const Length extends number>(
+  length: Length,
+): ColumnTypeDescriptor<typeof PG_BIT_CODEC_ID> & {
+  readonly typeParams: { readonly length: Length };
+};
 export function bitColumn(length: number): ColumnTypeDescriptor<typeof PG_BIT_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
@@ -166,6 +231,11 @@ export function bitColumn(length: number): ColumnTypeDescriptor<typeof PG_BIT_CO
   } as const;
 }
 
+export function varbitColumn<const Length extends number>(
+  length: Length,
+): ColumnTypeDescriptor<typeof PG_VARBIT_CODEC_ID> & {
+  readonly typeParams: { readonly length: Length };
+};
 export function varbitColumn(length: number): ColumnTypeDescriptor<typeof PG_VARBIT_CODEC_ID> & {
   readonly typeParams: { readonly length: number };
 } {
@@ -184,6 +254,17 @@ export const byteaColumn = {
   codecId: PG_BYTEA_CODEC_ID,
 } as const satisfies ColumnTypeDescriptor;
 
+export function intervalColumn(): ColumnTypeDescriptor<typeof PG_INTERVAL_CODEC_ID>;
+export function intervalColumn<const Precision extends number>(
+  precision: Precision,
+): ColumnTypeDescriptor<typeof PG_INTERVAL_CODEC_ID> & {
+  readonly typeParams: { readonly precision: Precision };
+};
+export function intervalColumn(precision?: number): ColumnTypeDescriptor<
+  typeof PG_INTERVAL_CODEC_ID
+> & {
+  readonly typeParams?: { readonly precision: number };
+};
 export function intervalColumn(precision?: number): ColumnTypeDescriptor<
   typeof PG_INTERVAL_CODEC_ID
 > & {

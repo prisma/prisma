@@ -1,5 +1,7 @@
 export {
   AddColumnAction,
+  AddConstraintAction,
+  AlterColumnTypeAction,
   type AlterTableActionVisitor,
   type AnyAlterTableAction,
   type AnyPostgresDdlNode,

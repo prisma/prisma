@@ -98,22 +98,32 @@ describe('interpretPslDocumentToSqlContract', () => {
     expect(result.value.roots).toEqual({ User: crossRef('User', 'public') });
   });
 
-  it('does not synthesise capabilities the target did not contribute', () => {
-    const result = interpretPostgresSchema(
+  it('carries the enabled capabilities of the stack it is interpreted against', () => {
+    const result = interpretSqlContract(
       `model User {
   id Int @id
   email String
 }`,
-      {},
+      {
+        target: postgresTarget,
+        scalarColumnDescriptors: postgresScalarTypeDescriptors,
+        composedExtensionContracts: new Map(),
+        createNamespace: createTestSqlNamespace,
+        ...fixtureInterpreterTypes,
+        capabilities: {
+          sql: { scalarList: true, lateral: false },
+          postgres: { distinctOn: true },
+          disabled: { everything: false },
+        },
+      },
     );
 
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    // The test `postgresTarget` fixture has `capabilities: {}`; with no
-    // extension packs and no author-declared capabilities, the interpreter
-    // must not inject anything of its own. Adapter and driver contributions
-    // are layered in later by CLI emit, not here.
-    expect(result.value.capabilities).toEqual({});
+    expect(result.value.capabilities).toEqual({
+      postgres: { distinctOn: true },
+      sql: { scalarList: true },
+    });
   });
 
   it('flows capabilities declared on the target pack through to the contract', () => {
@@ -141,7 +151,7 @@ describe('interpretPslDocumentToSqlContract', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.capabilities).toEqual({
-      sql: { returning: true },
+      sql: { returning: true, scalarList: true },
       postgres: { lateral: true },
     });
   });

@@ -4,7 +4,9 @@
 import type { CodecTypes as SqliteTypes } from '@internal/adapter-sqlite/codec-types';
 
 import type {
+  ColumnTypesFromStorage,
   ContractWithTypeMaps,
+  FieldTypesFromDomain,
   RelationKeys,
   TypeMaps as TypeMapsType,
 } from '@internal/sql-contract/types';
@@ -129,59 +131,46 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
     ? Encoded
     : CodecTypes[CodecId]['json']
   : Encoded;
+type ParameterizedOutputTypeFunctions = never;
 
-export type FieldOutputTypes = {
-  readonly __unbound__: {
-    readonly Reading: {
-      readonly big: CodecTypes['sqlite/bigint@1']['output'];
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly real: CodecTypes['sqlite/real@1']['output'];
-      readonly text: CodecTypes['sqlite/text@1']['output'];
-      readonly when: CodecTypes['sqlite/datetime@1']['output'];
-    };
-  };
-};
-export type FieldInputTypes = {
-  readonly __unbound__: {
-    readonly Reading: {
-      readonly big: CodecTypes['sqlite/bigint@1']['input'];
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly real: CodecTypes['sqlite/real@1']['input'];
-      readonly text: CodecTypes['sqlite/text@1']['input'];
-      readonly when: CodecTypes['sqlite/datetime@1']['input'];
-    };
-  };
-};
-export type StorageColumnTypes = {
-  readonly __unbound__: {
-    readonly readings: {
-      readonly big: CodecTypes['sqlite/bigint@1']['output'];
-      readonly id: CodecTypes['sqlite/integer@1']['output'];
-      readonly real: CodecTypes['sqlite/real@1']['output'];
-      readonly text: CodecTypes['sqlite/text@1']['output'];
-      readonly when: CodecTypes['sqlite/datetime@1']['output'];
-    };
-  };
-};
-export type StorageColumnInputTypes = {
-  readonly __unbound__: {
-    readonly readings: {
-      readonly big: CodecTypes['sqlite/bigint@1']['input'];
-      readonly id: CodecTypes['sqlite/integer@1']['input'];
-      readonly real: CodecTypes['sqlite/real@1']['input'];
-      readonly text: CodecTypes['sqlite/text@1']['input'];
-      readonly when: CodecTypes['sqlite/datetime@1']['input'];
-    };
-  };
-};
+type FieldTypeOverrides = {};
+export type FieldOutputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'output'
+>;
+export type FieldInputTypes = FieldTypesFromDomain<
+  ContractBase['domain']['namespaces'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  FieldTypeOverrides,
+  'input'
+>;
+type ColumnTypeOverrides = {};
+export type StorageColumnTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'output'
+>;
+export type StorageColumnInputTypes = ColumnTypesFromStorage<
+  ContractBase['storage'],
+  CodecTypes,
+  ParameterizedOutputTypeFunctions,
+  ColumnTypeOverrides,
+  'input'
+>;
 
 export namespace Models {
   export type Reading = {
-    big: CodecTypes['sqlite/bigint@1']['output'];
-    id: CodecTypes['sqlite/integer@1']['output'];
-    real: CodecTypes['sqlite/real@1']['output'];
-    text: CodecTypes['sqlite/text@1']['output'];
-    when: CodecTypes['sqlite/datetime@1']['output'];
+    big: FieldOutputTypes['__unbound__']['Reading']['big'];
+    id: FieldOutputTypes['__unbound__']['Reading']['id'];
+    real: FieldOutputTypes['__unbound__']['Reading']['real'];
+    text: FieldOutputTypes['__unbound__']['Reading']['text'];
+    when: FieldOutputTypes['__unbound__']['Reading']['when'];
     readonly [RelationKeys]?: never;
   };
 }

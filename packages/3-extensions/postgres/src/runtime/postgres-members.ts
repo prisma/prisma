@@ -15,7 +15,7 @@ import type {
   SqlExecutionStackWithDriver,
   TransactionContext,
 } from '@internal/sql-runtime';
-import { withTransaction } from '@internal/sql-runtime';
+import { activitySource, delegatingActivitySource, withTransaction } from '@internal/sql-runtime';
 import { castAs } from '@internal/utils/casts';
 import type { PostgresStaticContext } from '../static/postgres-static';
 import type { NamespacedNativeEnums } from './native-enums';
@@ -81,6 +81,7 @@ export function buildPostgresRuntimeBoundMembers<TContract extends Contract<SqlS
       connection() {
         return getRuntimeForWork().connection();
       },
+      [activitySource]: delegatingActivitySource(() => getRuntimeForWork()),
     },
     context,
   });
@@ -120,6 +121,7 @@ export function buildPostgresRuntimeBoundMembers<TContract extends Contract<SqlS
             execute(plan) {
               return txCtx.execute(plan);
             },
+            [activitySource]: delegatingActivitySource(() => txCtx),
           },
           context,
         });

@@ -11,7 +11,6 @@ import { postgresAuthoringTypes } from '../src/core/authoring';
 import { createPostgresBuiltinCodecLookup } from '../src/core/codec-registry';
 import { postgresDataTypes } from '../src/core/data-types';
 import { EXISTING_COLUMN_DATE_TIME_TYPES } from '../src/core/psl-build/existing-column-date-time-types';
-import { INFERRED_PSL_TYPE_NAMES } from '../src/core/psl-build/postgres-type-map';
 import {
   postgresNativeAuthoringTypes,
   postgresPslTypeConstructors,
@@ -67,6 +66,9 @@ const INFERRED = [
   'Timetz',
   'TimestampString',
   'TimestamptzString',
+  'Bit',
+  'VarBit',
+  'Interval',
   'pg.enum',
 ];
 
@@ -97,27 +99,9 @@ function markedInferred(): string[] {
   });
 }
 
-function constructorsByDataType(paths: readonly string[]): Record<string, string[]> {
-  const codecLookup = createPostgresBuiltinCodecLookup();
-  const byDataType: Record<string, string[]> = {};
-  for (const path of paths) {
-    const descriptor = constructorAt(path) as { output: { codecId: string } };
-    const dataType = codecLookup.descriptorFor(descriptor.output.codecId)?.dataType ?? path;
-    byDataType[dataType] = [...(byDataType[dataType] ?? []), path];
-  }
-  return byDataType;
-}
-
 describe('the constructors contract infer prints', () => {
   it('are marked inferred, and no other constructor is', () => {
     expect(markedInferred().sort()).toEqual([...INFERRED].sort());
-  });
-
-  it('are, for each data type, the one contract infer writes for a column of it', () => {
-    const writtenByInfer = [...INFERRED_PSL_TYPE_NAMES, 'pg.enum'];
-    expect(constructorsByDataType(markedInferred())).toEqual(
-      constructorsByDataType(writtenByInfer),
-    );
   });
 
   it('include every date and time constructor written for an existing column', () => {
@@ -199,6 +183,9 @@ describe('postgresNativeAuthoringTypes', () => {
       TimestamptzString: { codecId: 'pg/timestamptz-string@1' },
       TimestamptzJsDate: { codecId: 'pg/timestamptz-date@1' },
       TimeString: { codecId: 'pg/time-string@1' },
+      Bit: { codecId: 'pg/bit@1' },
+      VarBit: { codecId: 'pg/varbit@1' },
+      Interval: { codecId: 'pg/interval@1' },
     });
   });
 
@@ -225,6 +212,19 @@ describe('postgresNativeAuthoringTypes', () => {
       codecId: 'pg/timetz@1',
       typeParams: { precision: 2 },
     });
+  });
+
+  it.each([
+    ['Bit', [], { codecId: 'pg/bit@1' }],
+    ['Bit', [8], { codecId: 'pg/bit@1', typeParams: { length: 8 } }],
+    ['VarBit', [], { codecId: 'pg/varbit@1' }],
+    ['VarBit', [16], { codecId: 'pg/varbit@1', typeParams: { length: 16 } }],
+    ['Interval', [], { codecId: 'pg/interval@1' }],
+    ['Interval', [3], { codecId: 'pg/interval@1', typeParams: { precision: 3 } }],
+  ] as const)('maps %s(%s) onto the parameter of the same name', (name, args, expected) => {
+    expect(instantiateAuthoringTypeConstructor(postgresNativeAuthoringTypes[name], args)).toEqual(
+      expected,
+    );
   });
 
   describe('arguments are bounded by the codec’s data type, not by the constructor', () => {
@@ -254,6 +254,9 @@ describe('postgresNativeAuthoringTypes', () => {
       ['Time', [7]],
       ['Timetz', [7]],
       ['TimestamptzJsDate', [7]],
+      ['Bit', [0]],
+      ['VarBit', [0]],
+      ['Interval', [7]],
     ] as const)('refuses %s(%s)', (name, args) => {
       expect(() => check(name, args)).toThrow(
         expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID' }),

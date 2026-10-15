@@ -133,6 +133,24 @@ function declaredTableKeys(definition: ContractDefinition): ReadonlySet<string> 
 /**
  * Builds the contract in two stages. First each model is converted on its own into the table it describes and its domain model, and each table node into the table it describes. Then the tables are merged, each is lowered, and the contract is assembled.
  */
+// A contract records enabled capabilities only, as its canonical form does: a disabled one is the same as an absent one.
+function enabledCapabilities(
+  matrix: Record<string, Record<string, boolean>>,
+): Record<string, Record<string, true>> {
+  const enabled: Record<string, Record<string, true>> = {};
+  for (const [namespace, flags] of Object.entries(matrix)) {
+    const enabledFlags = Object.fromEntries(
+      Object.entries(flags)
+        .filter(([, flag]) => flag)
+        .map(([name]) => [name, true] as const),
+    );
+    if (Object.keys(enabledFlags).length > 0) {
+      enabled[namespace] = enabledFlags;
+    }
+  }
+  return enabled;
+}
+
 export function buildSqlContractFromDefinition(
   definition: ContractDefinition,
   codecLookup: CodecLookupWithDescriptors,
@@ -321,10 +339,13 @@ export function buildSqlContractFromDefinition(
     }
   }
 
-  const capabilities = mergeCapabilityMatrices({}, [
-    definition.target,
-    ...Object.values(definition.extensions ?? {}),
-  ]);
+  const capabilities = enabledCapabilities(
+    mergeCapabilityMatrices({}, [
+      definition.target,
+      ...(definition.capabilities ? [{ capabilities: definition.capabilities }] : []),
+      ...Object.values(definition.extensions ?? {}),
+    ]),
+  );
   // Internal `profileHash` computation is unchanged from `origin/main`: it
   // continues to fingerprint the author-declared capability subset. With
   // `capabilities` removed from the `defineContract` input that subset is

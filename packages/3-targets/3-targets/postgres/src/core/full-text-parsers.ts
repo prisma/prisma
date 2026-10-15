@@ -28,10 +28,16 @@ export type TsqueryExpression = Expression<{
  */
 export type TextArgument = TraitExpression<readonly ['textual'], false, ExtractedCodecTypes>;
 
+/** A function that parses text into a `tsquery`, such as {@link websearchToTsquery}. */
+export type TsqueryParser = (
+  text: TextArgument,
+  options?: TsqueryParserOptions,
+) => TsqueryExpression;
+
 const TEXT_REF = { codecId: PG_TEXT_CODEC_ID } as const;
 
-function parser(method: string, fn: string) {
-  return (text: TextArgument, options: TsqueryParserOptions = {}): TsqueryExpression =>
+function parser(method: string, fn: string): TsqueryParser {
+  return (text, options = {}) =>
     buildOperation({
       method,
       args: [

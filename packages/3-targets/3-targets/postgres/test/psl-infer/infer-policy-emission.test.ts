@@ -12,13 +12,12 @@ import { printPsl } from '@internal/psl-printer';
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringPslBlockDescriptors } from '../../src/core/authoring';
-import { inferPostgresPslContract } from '../../src/core/psl-infer/infer-psl-contract';
 import { PostgresDatabaseSchemaNode } from '../../src/core/schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../../src/core/schema-ir/postgres-namespace-schema-node';
 import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-native-enum-schema-node';
 import { PostgresPolicySchemaNode } from '../../src/core/schema-ir/postgres-policy-schema-node';
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
-import { inferBuildContext } from './fixtures';
+import { inferBuildContext, inferFromFixtureTree } from './fixtures';
 
 interface PolicyFixture {
   readonly name: string;
@@ -70,7 +69,7 @@ function pslWithPolicies(policies: readonly PostgresPolicySchemaNode[], rlsEnabl
     existingSchemas: ['public'],
     pgVersion: '',
   });
-  return printPsl(inferPostgresPslContract(tree, inferBuildContext), {
+  return printPsl(inferFromFixtureTree(tree, inferBuildContext), {
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
   });
 }
@@ -217,7 +216,7 @@ function pslFromTables(
     existingSchemas: ['public'],
     pgVersion: '',
   });
-  return printPsl(inferPostgresPslContract(tree, inferBuildContext), {
+  return printPsl(inferFromFixtureTree(tree, inferBuildContext), {
     pslBlockDescriptors: postgresAuthoringPslBlockDescriptors,
   });
 }

@@ -1,8 +1,5 @@
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
-import type {
-  ActivityFinalizedResult,
-  RuntimeActivity,
-} from '@internal/framework-components/runtime';
+import type { Activity, ActivityFinalizedResult } from '@internal/framework-components/runtime';
 import {
   type MarkerReadResult,
   RawQueryAst,
@@ -31,6 +28,12 @@ import {
 
 export const testContract = createTestContract({ targetFamily: 'sql', target: 'postgres' });
 
+export const doublingCodec = defineTestCodec({
+  typeId: 'test/doubling@1',
+  encode: (value: number) => value * 2,
+  decode: (wire: number) => wire / 2,
+});
+
 const failingDecodeCodec = defineTestCodec({
   typeId: 'test/failing-decode@1',
   encode: (value: number) => value,
@@ -42,7 +45,7 @@ const failingDecodeCodec = defineTestCodec({
 export interface HookEvent {
   readonly name: string;
   readonly sql?: string;
-  readonly activity?: RuntimeActivity;
+  readonly activity?: Activity;
   readonly ctx?: SqlMiddlewareContext;
 }
 
@@ -54,6 +57,8 @@ export interface DriverFailures {
   readonly rollback?: Error;
   readonly commitHeldUntil?: Promise<void>;
   readonly rollbackHeldUntil?: Promise<void>;
+  readonly release?: Error;
+  readonly destroy?: Error;
 }
 
 function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver {
@@ -88,8 +93,8 @@ function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver 
       if (failures.begin) throw failures.begin;
       return transaction;
     }),
-    release: vi.fn().mockImplementation(settle('release', undefined)),
-    destroy: vi.fn().mockImplementation(settle('destroy', undefined)),
+    release: vi.fn().mockImplementation(settle('release', failures.release)),
+    destroy: vi.fn().mockImplementation(settle('destroy', failures.destroy)),
   };
   return {
     ...queryable,
@@ -99,7 +104,7 @@ function createDriver(events: HookEvent[], failures: DriverFailures): SqlDriver 
   };
 }
 
-function sqlOf(activity: RuntimeActivity): string | undefined {
+function sqlOf(activity: Activity): string | undefined {
   if (activity.kind !== 'statement') return undefined;
   const { plan } = activity;
   return 'sql' in plan && typeof plan.sql === 'string' ? plan.sql : undefined;
@@ -110,7 +115,7 @@ function recorder(
   activityFinalized: SqlMiddleware['activityFinalized'] | undefined,
   beforeHookFailure: Error | undefined,
 ): SqlMiddleware {
-  const record = (name: string, activity: RuntimeActivity, ctx: SqlMiddlewareContext) => {
+  const record = (name: string, activity: Activity, ctx: SqlMiddlewareContext) => {
     events.push({ name, ...ifDefined('sql', sqlOf(activity)), activity, ctx });
   };
   return {
@@ -161,7 +166,7 @@ export function createSetup(options: SetupOptions = {}) {
   const { readMarker } = options;
   const adapter = {
     ...stubAdapter,
-    __codecs: [...stubAdapter.__codecs, failingDecodeCodec],
+    __codecs: [...stubAdapter.__codecs, failingDecodeCodec, doublingCodec],
     profile:
       readMarker === undefined ? stubAdapter.profile : { ...stubAdapter.profile, readMarker },
   };
@@ -170,16 +175,17 @@ export function createSetup(options: SetupOptions = {}) {
     adapter: createTestAdapterDescriptor(adapter),
     extensions: [],
   });
+  const driver = createDriver(events, options.failures ?? {});
   const runtime = createRuntime({
     stackInstance: instantiateExecutionStack(stack),
     context: createTestContext(testContract, adapter),
-    driver: createDriver(events, options.failures ?? {}),
+    driver,
     verifyMarker: readMarker === undefined ? false : 'onFirstUse',
     middleware: [middleware, ...(options.middleware ?? [])],
     ...(options.log ? { log: options.log } : {}),
     ...(options.mode ? { mode: options.mode } : {}),
   });
-  return { runtime, events, middleware };
+  return { runtime, events, middleware, driver };
 }
 
 export type Setup = ReturnType<typeof createSetup>;

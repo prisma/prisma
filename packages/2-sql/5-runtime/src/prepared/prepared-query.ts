@@ -2,13 +2,13 @@ import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
 } from '@internal/framework-components/runtime';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import { invariant } from '@internal/utils/assertions';
-import type { RuntimeQueryable } from '../sql-runtime';
 import type { PreparedStatement } from './types';
 
 export const preparedStatementQuery = Symbol('preparedStatementQuery');
 
-export interface PreparedStatementQueryTarget extends RuntimeQueryable {
+export interface PreparedStatementQueryTarget extends RuntimeScope {
   [preparedStatementQuery]<Params, Row>(
     statement: PreparedStatement<Params, Row>,
     params: Params,
@@ -17,13 +17,13 @@ export interface PreparedStatementQueryTarget extends RuntimeQueryable {
 }
 
 function isPreparedStatementQueryTarget(
-  target: RuntimeQueryable,
+  target: RuntimeScope,
 ): target is PreparedStatementQueryTarget {
   return preparedStatementQuery in target;
 }
 
 export function runPreparedQuery<Params, Row>(
-  target: RuntimeQueryable,
+  target: RuntimeScope,
   statement: PreparedStatement<Params, Row>,
   params: Params,
   options?: RuntimeExecuteOptions,

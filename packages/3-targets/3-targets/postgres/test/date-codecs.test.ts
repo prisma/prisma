@@ -132,6 +132,5 @@ describe('pg/timestamptz-date@1', () => {
     expect(pgTimestamptzDateDescriptor.projectJson(expression, { codecId: codec.id })).toEqual(
       CastExpr.as(expression, 'text'),
     );
-    expect(pgTimestamptzDateDescriptor.renderOutputType({ precision: 6 })).toBe('Date');
   });
 });

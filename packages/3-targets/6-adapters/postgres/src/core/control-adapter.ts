@@ -65,6 +65,8 @@ import {
 } from '@internal/target-postgres/contract-free';
 import type {
   AddColumnAction,
+  AddConstraintAction,
+  AlterColumnTypeAction,
   AlterTableActionVisitor,
   AnyAlterTableAction,
   DropDefaultAction,
@@ -116,6 +118,7 @@ import {
   mergeInvariants,
   NOW,
 } from './marker-ledger';
+import { reportedSqlType } from './reported-sql-type';
 import { renderLoweredSql } from './sql-renderer';
 import type { PostgresContract } from './types';
 
@@ -850,6 +853,10 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       column_default: string | null;
       formatted_type: string | null;
       attidentity: string;
+      reported_text: string | null;
+      reported_typtype: string;
+      reported_type_schema: string;
+      reported_type_name: string;
     }>(
       `SELECT
            c.table_name,
@@ -862,7 +869,11 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
            numeric_scale,
            column_default,
            format_type(a.atttypid, a.atttypmod) AS formatted_type,
-           a.attidentity
+           a.attidentity,
+           format_type(COALESCE(et.oid, t.oid), a.atttypmod) AS reported_text,
+           COALESCE(et.typtype, t.typtype) AS reported_typtype,
+           tns.nspname AS reported_type_schema,
+           COALESCE(et.typname, t.typname) AS reported_type_name
          FROM information_schema.columns c
          JOIN pg_catalog.pg_class cl
            ON cl.relname = c.table_name
@@ -874,6 +885,12 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
            AND a.attname = c.column_name
            AND a.attnum > 0
            AND NOT a.attisdropped
+         JOIN pg_catalog.pg_type t
+           ON t.oid = a.atttypid
+         LEFT JOIN pg_catalog.pg_type et
+           ON et.typarray = t.oid
+         JOIN pg_catalog.pg_namespace tns
+           ON tns.oid = COALESCE(et.typnamespace, t.typnamespace)
          WHERE c.table_schema = $1
          ORDER BY c.table_name, c.ordinal_position`,
       [schema],
@@ -1162,6 +1179,17 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           ...ifDefined('many', many),
           resolvedNativeType,
           ...ifDefined('resolvedDefault', resolvedDefault),
+          ...ifDefined(
+            'reportedType',
+            colRow.reported_text
+              ? reportedSqlType({
+                  text: colRow.reported_text,
+                  typtype: colRow.reported_typtype,
+                  schema: colRow.reported_type_schema,
+                  name: colRow.reported_type_name,
+                })
+              : undefined,
+          ),
         };
       }
 
@@ -1972,9 +2000,7 @@ async function pgRenderCreateTable(
   codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
   const ifNotExists = node.ifNotExists ? 'IF NOT EXISTS ' : '';
-  const tableRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`
-    : quoteIdentifier(node.table);
+  const tableRef = pgQualify(node.schema, node.table);
   const columnDefs = await Promise.all(
     node.columns.map((col: DdlColumn) => pgRenderDdlColumn(col, codecLookup, node.table)),
   );
@@ -1996,9 +2022,7 @@ function pgRenderCreateSchema(node: PostgresCreateSchema): SqlExecuteRequest {
 }
 
 function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
-  const typeRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.name)}`
-    : quoteIdentifier(node.name);
+  const typeRef = pgQualify(node.schema, node.name);
   const values = node.values.map((value: string) => `'${escapeLiteral(value)}'`).join(', ');
   return {
     sql: `CREATE TYPE ${typeRef} AS ENUM (${values})`,
@@ -2007,9 +2031,7 @@ function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
 }
 
 function pgRenderDropType(node: PostgresDropType): SqlExecuteRequest {
-  const typeRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.name)}`
-    : quoteIdentifier(node.name);
+  const typeRef = pgQualify(node.schema, node.name);
   return {
     sql: `DROP TYPE ${typeRef}`,
     params: [],
@@ -2020,9 +2042,7 @@ async function pgRenderAlterTable(
   node: PostgresAlterTable,
   codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
-  const tableRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`
-    : quoteIdentifier(node.table);
+  const tableRef = pgQualify(node.schema, node.table);
   const actionVisitor: AlterTableActionVisitor<Promise<string>> = {
     async addColumn(action: AddColumnAction): Promise<string> {
       const colFragment = await pgRenderDdlColumn(action.column, codecLookup, node.table);
@@ -2030,6 +2050,15 @@ async function pgRenderAlterTable(
     },
     dropDefault(action: DropDefaultAction): Promise<string> {
       return Promise.resolve(`ALTER COLUMN ${quoteIdentifier(action.columnName)} DROP DEFAULT`);
+    },
+    addConstraint(action: AddConstraintAction): Promise<string> {
+      return Promise.resolve(`ADD ${pgRenderDdlConstraint(action.constraint)}`);
+    },
+    alterColumnType(action: AlterColumnTypeAction): Promise<string> {
+      const column = quoteIdentifier(action.columnName);
+      const using =
+        action.using === undefined ? `${column}::${action.type}` : renderOpaqueSql(action.using);
+      return Promise.resolve(`ALTER COLUMN ${column} TYPE ${action.type} USING ${using}`);
     },
   };
   const actionSqls = await Promise.all(

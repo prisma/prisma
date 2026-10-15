@@ -33,3 +33,10 @@ test('tx.orm has the same type as db.orm', () => {
   type TxOrm = SqliteTransactionContext<TestContract>['orm'];
   expectTypeOf<TxOrm>().toEqualTypeOf<DbOrm>();
 });
+
+test('the client and the transaction context do not expose startActivity or planContentHash', () => {
+  expectTypeOf<SqliteClient<TestContract>>().not.toHaveProperty('startActivity');
+  expectTypeOf<SqliteClient<TestContract>>().not.toHaveProperty('planContentHash');
+  expectTypeOf<SqliteTransactionContext<TestContract>>().not.toHaveProperty('startActivity');
+  expectTypeOf<SqliteTransactionContext<TestContract>>().not.toHaveProperty('planContentHash');
+});

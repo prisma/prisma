@@ -15,7 +15,7 @@ import type {
   Expression,
 } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import type { RuntimeQueryable } from '../sql-runtime';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 
 export type ParamSpec<CT extends CodecTypesBase = CodecTypesBase> =
   | (keyof CT & string)
@@ -58,7 +58,7 @@ export interface PreparedStatement<Params, Row> {
   readonly _params?: Params;
   readonly _row?: Row;
   query(
-    target: RuntimeQueryable,
+    target: RuntimeScope,
     params: Params,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row>;
@@ -77,7 +77,7 @@ export interface PreparedExecution<Params> {
   readonly slots: readonly LoweredParam[];
   readonly _params?: Params;
   execute(
-    target: RuntimeQueryable,
+    target: RuntimeScope,
     params: Params,
     options?: RuntimeExecuteOptions,
   ): Promise<SqlStatementStats>;

@@ -96,32 +96,9 @@ describe('sql-codec-helpers', () => {
   });
 
   describe('renderOutputType', () => {
-    it('sql/char@1 renders Char<length>', () => {
-      expect(sqlCharDescriptor.renderOutputType?.({ length: 36 })).toBe('Char<36>');
-    });
-
-    it('sql/char@1 returns undefined when length absent', () => {
-      expect(sqlCharDescriptor.renderOutputType?.({})).toBeUndefined();
-    });
-
-    it('sql/char@1 throws on invalid length type', () => {
-      expect(() =>
-        sqlCharDescriptor.renderOutputType?.({ length: 'bad' as unknown as number }),
-      ).toThrow(/expected integer "length"/);
-    });
-
-    it('sql/varchar@1 renders Varchar<length>', () => {
-      expect(sqlVarcharDescriptor.renderOutputType?.({ length: 255 })).toBe('Varchar<255>');
-    });
-
-    it('sql/varchar@1 returns undefined when length absent', () => {
-      expect(sqlVarcharDescriptor.renderOutputType?.({})).toBeUndefined();
-    });
-
-    it('sql/varchar@1 throws on invalid length type', () => {
-      expect(() =>
-        sqlVarcharDescriptor.renderOutputType?.({ length: 'bad' as unknown as number }),
-      ).toThrow(/expected integer "length"/);
+    it('sql/char@1 and sql/varchar@1 have none; their pack declares their output types', () => {
+      expect(sqlCharDescriptor.renderOutputType).toBeUndefined();
+      expect(sqlVarcharDescriptor.renderOutputType).toBeUndefined();
     });
 
     it('sql/int@1 has no renderOutputType', () => {

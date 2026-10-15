@@ -1,5 +1,6 @@
 import { toEnumName } from '@internal/family-sql/psl-infer';
 import type { PslExtensionBlock } from '@internal/framework-components/psl-ast';
+import type { SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { buildNativeEnumBlock } from '../psl-build/native-enum-block';
 import { createUniqueFieldName } from '../psl-build/unique-name';
 import { buildTopLevelNameMap, type TopLevelNameResult } from './infer-names';
@@ -58,4 +59,20 @@ export function buildNativeEnumBlocks(
   }
 
   return { enumNameMap, enumBlocks };
+}
+
+/**
+ * The name of the adopted native enum `column` is typed by: the database reported its type as an
+ * enum named in `enumTypeNames`, in `schemaName` when the output is wrapped in that schema's
+ * namespace. Undefined for any other column.
+ */
+export function adoptedEnumTypeName(
+  column: SqlColumnIR,
+  enumTypeNames: ReadonlyMap<string, unknown>,
+  schemaName: string | undefined,
+): string | undefined {
+  const reported = column.reportedType;
+  if (reported?.kind !== 'enum' || reported.name === undefined) return undefined;
+  if (schemaName !== undefined && reported.schema !== schemaName) return undefined;
+  return enumTypeNames.has(reported.name) ? reported.name : undefined;
 }

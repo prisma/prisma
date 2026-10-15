@@ -1,6 +1,6 @@
 import type { Contract, ContractEnum, ExecutionMutationDefault } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type { PslTypeMap } from '@internal/family-sql/psl-build';
+import type { InferredTypeConstructors } from '@internal/family-sql/psl-build';
 import type { PslField, PslFieldAttribute } from '@internal/framework-components/psl-ast';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
 import type { SqlStorage, StorageColumn } from '@internal/sql-contract/types';
@@ -101,13 +101,14 @@ export function buildScalarFields(input: {
   readonly variant: VariantInfo | undefined;
   readonly enums: NativeEnumEmission;
   readonly domainEnums: Readonly<Record<string, ContractEnum>>;
-  readonly typeMap: PslTypeMap;
+  readonly inferredConstructors: InferredTypeConstructors;
   readonly context: SqlPslBuildContext;
   readonly executionDefaults: ReadonlyMap<string, ExecutionMutationDefault>;
   readonly defaultDomainEnumNames: ReadonlySet<string>;
   readonly namedTypes: NonNullable<SqlStorage['types']>;
 }): readonly PslField[] {
-  const { entry, variant, enums, domainEnums, typeMap, context, executionDefaults } = input;
+  const { entry, variant, enums, domainEnums, inferredConstructors, context, executionDefaults } =
+    input;
   const primaryKeyColumns = variant === undefined ? (entry.table.primaryKey?.columns ?? []) : [];
   const fields: PslField[] = [];
 
@@ -146,7 +147,7 @@ export function buildScalarFields(input: {
           ? { typeName: field.type.name }
           : buildColumnType({
               column,
-              typeMap,
+              inferredConstructors,
               authoringTypes: context.authoringContributions.type,
               dataTypeLookup: context.dataTypes.lookup,
               enumBlockNames: enums.blockNamesByTypeName,

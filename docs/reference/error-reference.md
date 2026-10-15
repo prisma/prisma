@@ -459,6 +459,10 @@ A Mongo variant model declares an index that conflicts with the discriminator sc
 
 The Postgres `fullTextIndex` helper also raises it when its fields are not one to four non-empty weight groups naming each field once, or when a field is not stored through a textual codec (payload for both: `helper`, and `fields`, the weight groups as field names). `renderFullTextIndexDocument` raises it for a definition whose weight groups break the same rules (payload: `weightGroups`). Building or reading a Postgres contract raises it for an index of type `fullText` that is unique, whose options are not one to four weight groups and a language, or whose `columns` are not exactly the fields of its weight groups in order (payload: `index`, `columns`, `options`). Reading a Postgres contract also raises it for a foreign key whose `index` names a `fullText` index (payload: `index`, `columns`, the foreign key's columns). Building any SQL contract raises it for an index whose type requires column traits (`columnTraits` on its registration) over a column whose codec lacks one, such as a `fullText` index over a column that is not text (payload: `indexType`, `index`, `column`, `codecId`, `missingTraits`).
 
+### CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED
+
+`contract infer` found columns whose type Prisma 8 cannot write with the configured stack, so it prints no schema. A column type can be written only when a data type that the target or an extension pack declares claims it, and that data type has a type constructor marked to be written by infer. `tsquery`, for example, has a data type but no such constructor. The message starts `contract infer: Prisma 8 cannot write these column types with the configured stack:` and lists every such column as `<schema>.<table>.<column>: <type as the database reports it>`, with `[]` for a list. Some forms stay unclaimed even with their pack configured: a `vector` column with no dimension (`pgvector`), and `geometry(Point,<srid>)` and the other geometry subtypes (`postgis`). Some types have no data type at all: `interval` with fields, such as `interval year to month`, `"char"`, domains, and `hstore`. Fix path: no configured pack has a type for these columns. If a type comes from a database extension that has a Prisma 8 pack (for example `pgvector` or `postgis`), add the pack to `extensions` in `prisma.config.ts`. Otherwise change the column's type or remove the column from the database. Payload: `columns`.
+
 ### CONTRACT.INFER_UNSUPPORTED
 
 `contract infer` is not available: either the configured family does not implement the `PslContractInferCapable` capability (no meta at that site), or the family supports inference but the database shape cannot be expressed yet: duplicate table names across schemas, a column typed by a native enum that an extension pack space already describes in another schema, or native enum adoption with content spanning multiple schemas. Meta at the shape sites: `tableName`, `columnName`, `schemas`.
@@ -1058,6 +1062,26 @@ A Mongo mutation method (e.g. update/delete variants) requires a prior `.where()
 
 An in-flight `query()` or `execute()` operation was cancelled via the per-operation `AbortSignal` passed as the call's `{ signal }` option. `details.phase` says where the abort was observed: `encode`, `decode`, `stream`, or the middleware phases `beforeEncode` / `onRow`; the envelope's `cause` carries `signal.reason` verbatim. Payload: `phase`.
 
+### RUNTIME.ACTIVITY_ALREADY_ENDED
+
+A client called `end()` a second time on an activity it started. The activity ended and was finalized at the first call; the second changes nothing. Payload: `kind`, `id`.
+
+### RUNTIME.ACTIVITY_CHILDREN_OPEN
+
+A client ended an activity it started with `startActivity` while a statement or an activity beneath it had not ended, such as a row stream it had not finished reading. The activity is ended `failed` and finalized before the error is raised; each open child is finalized when it ends. End or drain every child before calling `end()`. Payload: `kind`, `id`, `openChildren`.
+
+### RUNTIME.ACTIVITY_KIND_RESERVED
+
+A client started an activity with a kind that has no hyphen, such as `statement`, `transaction` or `report`. A client kind contains a hyphen, such as `orm-call`; kinds without one belong to the runtime. The types reject such a kind, so this happens only when a caller casts it. Payload: `kind`.
+
+### RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN
+
+A statement or an activity was started beneath an activity that no longer accepts children: a transaction whose `commit()` or `rollback()` has been called, which happens before the transaction ends, a client activity after its `end()`, or a client activity inside such a transaction. Through an activity handle, the work is refused before it takes a connection or a session. No middleware hook runs for the refused work. Start the work before ending or settling its parent, or on a queryable that is still open. Payload: `parentKind`, `parentId`.
+
+### RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION
+
+A statement was sent through an activity handle opened on a connection after a transaction was opened on that connection. The statement would run inside the database transaction while its activity is outside it, so it would be reported committed before the transaction commits. Send the statement on the transaction, or start the activity on the transaction. Payload: `kind`, `id`, `transactionId`.
+
 ### RUNTIME.AGGREGATE_DESCRIPTOR_INVALID
 
 A component contributed an aggregate descriptor whose shape the SQL aggregate registry cannot read: a missing or empty `operation`, an `input` that is not `none` / `any` / `codec` / `trait` (including an unknown trait name), an `output` that is not `self` / `codec`, a non-boolean `nullable`, a `nullable: false` descriptor with no `emptyResultJson`, a `self` output on an operation that consumes no input, or a non-callable `lower`. `emptyResultJson` is the value a non-nullable operation answers with when no result row reaches the caller, stated in the result codec's canonical JSON: `0` under `pg/int8number@1`, `'0'` under `pg/int8@1`. Raised while the execution context assembles the registry. Payload: `descriptor`.
@@ -1279,6 +1303,10 @@ It is raised on **reads**, because the check is the first thing a Temporal codec
 This error never occurs in the control plane. The CLI commands, `node migration.ts`, the Vite plugin, the language server and the programmatic control client all load `prisma.config.ts` or the control descriptors, and so load the target's control entry. The target's control entry (`@internal/target-postgres/control`) sets the fallback `Temporal`, from `temporal-polyfill`, when it is loaded. It does not set `globalThis.Temporal`. `temporal-polyfill` is a required peer dependency of `@prisma/orm-postgres` and `@prisma/orm-target-postgres`. npm, pnpm and bun install it automatically; a project that uses Yarn adds it to its own dependencies. When it is not installed, loading the control entry fails because Node.js cannot find the package `temporal-polyfill`, not with this error. The fallback is held once per process, and every Postgres codec in the process uses it. An application process that loads no control-plane code and has no global `Temporal` gets `RUNTIME.TEMPORAL_UNAVAILABLE`. An application that loads control-plane code in its own process, such as server code under `vite dev` with the Prisma Vite plugin or a script that calls the control client, decodes dates without its own `Temporal`, and then fails in production. An application that uses the Temporal codecs must load its own `Temporal`.
 
 In the application, install a global implementation before any query runs (`import 'temporal-polyfill/full/global'`), or author the column with its `*String` type (`DateString`, `TimestampString(p)`, `TimestamptzString(p)`, `TimeString(p)`) to read and write PostgreSQL's own text, which needs no Temporal at all.
+
+### RUNTIME.TRANSACTION_ALREADY_OPEN
+
+`transaction()` was called on an activity handle opened on a connection while a transaction it began on that connection is still open. A connection runs one transaction at a time, and transactions do not nest. Commit or roll back the open transaction first, or send the work on it. Payload: `kind`, `id`, `transactionId`.
 
 ### RUNTIME.TRANSACTION_CLOSED
 
