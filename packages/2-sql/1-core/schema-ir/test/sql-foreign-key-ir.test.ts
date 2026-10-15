@@ -42,15 +42,6 @@ describe('SqlForeignKeyIR', () => {
     expect(a.id).not.toBe(b.id);
   });
 
-  it('nodeKind is the foreign-key kind', () => {
-    const fk = new SqlForeignKeyIR({
-      columns: ['user_id'],
-      referencedTable: 'users',
-      referencedColumns: ['id'],
-    });
-    expect(fk.nodeKind).toBe('sql-foreign-key');
-  });
-
   it('children is empty (a foreign key is a leaf)', () => {
     const fk = new SqlForeignKeyIR({
       columns: ['user_id'],

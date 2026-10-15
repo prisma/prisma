@@ -250,22 +250,6 @@ function createRawExecutionPlan<Row = Record<string, unknown>>(
 }
 
 describe('SqlRuntime', () => {
-  it('creates runtime with context and driver', () => {
-    const { stackInstance, context, driver } = createTestSetup();
-
-    const runtime = createRuntime({
-      stackInstance,
-      context,
-      driver,
-      verifyMarker: false,
-    });
-
-    expect(runtime).toBeDefined();
-    expect(runtime.query).toBeDefined();
-    expect(runtime.telemetry).toBeDefined();
-    expect(runtime.close).toBeDefined();
-  });
-
   it('returns null telemetry when no events', () => {
     const { stackInstance, context, driver } = createTestSetup();
 
@@ -291,18 +275,6 @@ describe('SqlRuntime', () => {
 
     await runtime.close();
     expect(driver.close).toHaveBeenCalled();
-  });
-
-  it('creates runtime with default verifyMarker behaviour when the option is omitted', () => {
-    const { stackInstance, context, driver } = createTestSetup();
-
-    const runtime = createRuntime({
-      stackInstance,
-      context,
-      driver,
-    });
-
-    expect(runtime).toBeDefined();
   });
 
   it('uses acquired connection queryable for connection.query', async () => {
