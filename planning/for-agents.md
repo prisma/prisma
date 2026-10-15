@@ -31,6 +31,9 @@ This file is for an agent picking up the planning discussion with Will. People s
 
 Linear and the ported test records drift from the code. Before relying on a status:
 
+- Work on a row can live in prisma/composer or prisma/prisma-cli as well as prisma/orm. Search open PRs in all three before calling a row not started.
+- After changing any Progress cell, recount the "How far from GA" table at the top of plan.md and the "GA readiness" line under each stream heading.
+
 - Open pull requests by the bot: `gh search prs --author wmadden-electric --state open`
 - Whether a ticket is done: search pull requests for its identifier, then read the code.
 - The eval: the newest scheduled run of "Nightly getting-started check" in `prisma/getting-started-eval`. The `report` artifact holds `report.md` and `report.html`.

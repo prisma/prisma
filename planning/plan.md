@@ -12,7 +12,22 @@ This page lists the projects in priority order, by stream. Work the streams in p
 
 States were last checked against GitHub and Linear on 2026-10-15.
 
+## How far from GA
+
+Each symbol is one row marked Must, sorted from done to not started. Rows marked Aim, Later or When there is time are left out. Recount on every refresh.
+
+| Stream | Progress | Must rows |
+| --- | --- | --- |
+| Foundations and breaking changes | ✅✅🔄🔄🔄⏳⏳ | 2 done, 3 in progress, 2 not started |
+| Upgrade path from Prisma 7 | ✅🔄🔄⏳⏳⏳⏳ | 1 done, 2 in progress, 4 not started |
+| Editor and tools | ✅🔄🔄⏳ | 1 done, 2 in progress, 1 not started |
+| Query features | ✅⏳⏳ | 1 done, 2 not started |
+| Docs and the new user's first hour | ✅🔄🔄❓ | 1 done, 2 in progress, 1 waiting on a decision |
+| **All streams** | ✅✅✅✅✅✅🔄🔄🔄🔄🔄🔄🔄🔄🔄❓⏳⏳⏳⏳⏳⏳⏳⏳⏳ | **6 done, 9 in progress, 9 not started, 1 waiting on a decision** |
+
 ## Stream 1: Foundations and breaking changes
+
+**GA readiness:** ✅✅🔄🔄🔄⏳⏳ 7 Must rows: 2 done, 3 in progress, 2 not started.
 
 GA is the last chance to make breaking changes, so this stream decides the date.
 
@@ -27,6 +42,8 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | 7 | 🔄 4/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 4 of 7 slices merged. The TypeScript MongoDB validator slice in progress | Finish the TypeScript MongoDB validator (TML-3553), then the remaining Postgres and SQLite renames (TML-3537) |
 
 ## Stream 2: Upgrade path from Prisma 7
+
+**GA readiness:** ✅🔄🔄⏳⏳⏳⏳ 7 Must rows: 1 done, 2 in progress, 4 not started.
 
 Test: an existing Prisma 7 database can be signed by Prisma 8.
 
@@ -46,6 +63,8 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 
 ## Stream 3: Editor and tools
 
+**GA readiness:** ✅🔄🔄⏳ 4 Must rows: 1 done, 2 in progress, 1 not started.
+
 | # | Progress | Project | GA | Owner | Status | Next |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | 🔄 0/4 | Emulator controls in the `prisma` CLI: start, stop, list, reset | Must, urgent | Will | In progress in Composer: 5 PRs open | Review the Composer PRs |
@@ -54,6 +73,8 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | 4 | ✅ 1/1 | Multi-file PSL | Must | Serhii | Done 2026-09-30 | |
 
 ## Stream 4: Query features
+
+**GA readiness:** ✅⏳⏳ 3 Must rows: 1 done, 2 not started.
 
 Everything here is additive, so nothing here can block a breaking change.
 
@@ -79,6 +100,8 @@ In progress but not ranked here:
 | 🔄 2/5 | Middleware sees a tree of activities | Will | ADR 271 and slice 1 merged. Slice 2 in review, 2 slices in backlog | Review slice 2 (TML-3560) |
 
 ## Stream 5: Docs and the new user's first hour
+
+**GA readiness:** ✅🔄🔄❓ 4 Must rows: 1 done, 2 in progress, 1 waiting on a decision.
 
 Test: the getting-started eval passes, in few steps and with no workarounds.
 
