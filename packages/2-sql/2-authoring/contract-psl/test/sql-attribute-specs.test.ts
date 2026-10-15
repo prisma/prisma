@@ -306,6 +306,36 @@ describe('the tags @default offers at a value position', () => {
     });
   });
 
+  it('offers a column declared with a named type the tags of the type it names', () => {
+    const aliased = project(
+      'types {\n  Doc = Jsonb\n  Title = String\n}\n\nmodel Note {\n  id Int @id\n  meta Doc\n  title Title\n}\n',
+      'Note',
+    );
+    const offered = (name: string) => {
+      const value = oneOfMetadata(
+        positionalType(
+          sqlAttributeSpecs.field.default(
+            fieldSpecContext({
+              symbols: aliased.symbolTable,
+              model: aliased.model,
+              field: field(aliased.model, name),
+              binder: aliased.binder,
+              defaultFunctionRegistry,
+              dataTypes: knowingCodecs,
+            }),
+          ),
+        ),
+      );
+      return value.alternatives.flatMap((alt) =>
+        alt.kind === 'taggedLiteral' ? (Reflect.get(alt, 'tags') as readonly string[]) : [],
+      );
+    };
+    expect({ meta: offered('meta'), title: offered('title') }).toEqual({
+      meta: ['sql', 'json'],
+      title: ['sql'],
+    });
+  });
+
   it('offers a list column the tags of its element type, and no sql in the list', () => {
     expect(tagsOffered('metas')).toEqual({ value: ['sql'], element: ['json'] });
   });

@@ -127,8 +127,12 @@ withTempDir(({ createTempDir }) => {
         const uri = pathToFileURL(schemaPath).href;
         const lines = [
           '// use prisma-8',
+          'types {',
+          '  Day = Date',
+          '}',
           'model Post {',
           '  id    Int   @id',
+          '  when  Day   @default()',
           '  day   Date  @default()',
           '  meta  Jsonb @default()',
           '  bytes Bytes @default()',
@@ -174,10 +178,12 @@ withTempDir(({ createTempDir }) => {
           };
 
           expect({
+            when: await tagsOffered('when'),
             day: await tagsOffered('day'),
             meta: await tagsOffered('meta'),
             bytes: await tagsOffered('bytes'),
           }).toEqual({
+            when: ['sql', 'date'],
             day: ['sql', 'date'],
             meta: ['sql', 'json'],
             bytes: ['sql', 'bytea'],

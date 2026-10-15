@@ -29,6 +29,7 @@ import type {
 } from '@internal/psl-parser';
 import {
   bool,
+  contributedTypeOf,
   dataTypeValue,
   diagnosticSource,
   entityRef,
@@ -250,11 +251,12 @@ function defaultFunctionArm(
   return mapArg(funcCall(name, signature), (call) => ({ kind: 'default-function', call }));
 }
 
-/** The data type of the column a field declares, when its type is a constructor or preset the stack knows. */
+/** The data type of the column a field declares, when its type, or the named type it is declared with, is a constructor or preset the stack knows. */
 function receivingDataType(ctx: FieldAttributeSpecContext): string | undefined {
-  const resolution = ctx.typeResolution;
-  if (resolution?.kind !== 'contributedType') return undefined;
-  return ctx.dataTypes.dataTypeOfCodec(resolution.symbol.descriptor.output.codecId);
+  const typeConstructor = ctx.typeConstructor;
+  return typeConstructor === undefined
+    ? undefined
+    : ctx.dataTypes.dataTypeOfCodec(typeConstructor.descriptor.output.codecId);
 }
 
 /** Whether a value of `type` can be written for a column of `receiving`: it is that type, or the column's type casts from it. An unknown column takes every type. */
@@ -839,11 +841,13 @@ export function fieldSpecContext(input: {
   readonly dataTypes: DataTypeSupport;
 }): FieldAttributeSpecContext {
   const node = typeReferenceNode(input.field);
+  const typeResolution = node === undefined ? undefined : input.binder.symbolForNode(node);
   return {
     symbols: input.symbols,
     model: input.model,
     field: input.field,
-    typeResolution: node === undefined ? undefined : input.binder.symbolForNode(node),
+    typeResolution,
+    typeConstructor: contributedTypeOf(typeResolution, input.binder),
     defaultFunctionRegistry: input.defaultFunctionRegistry,
     dataTypes: input.dataTypes,
   };
