@@ -130,7 +130,7 @@ function convertColumn(
     codecBaseNativeType: baseTypeName,
     dataType,
     ...ifDefined('toCanonicalForm', codec && canonicalFormOf(codec, types.dataTypeLookup)),
-    ...ifDefined('comparesReportedType', namesTypeAsReported(dataType) ? true : undefined),
+    ...(namesTypeAsReported(dataType) ? { comparesReportedType: true as const } : {}),
   };
 }
 
