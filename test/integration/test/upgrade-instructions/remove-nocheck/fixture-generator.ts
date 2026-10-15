@@ -142,18 +142,12 @@ function contractDts(hash: string): string {
 }
 
 function migrationTs(from: string | null, to: string): string {
-  const imports = [
-    ...(from === null
-      ? []
-      : [
-          `import startContract from '../../snapshots/${from}/contract.json' with { type: 'json' };`,
-        ]),
-    `import endContract from '../../snapshots/${to}/contract.json' with { type: 'json' };`,
-  ];
+  const snapshot = (hash: string | null) => (hash === null ? 'null' : `'${hash}'`);
   return [
-    ...imports,
-    '',
-    `export const contracts = { start: ${from === null ? 'null' : 'startContract'}, end: endContract };`,
+    'export const snapshots = {',
+    `  start: ${snapshot(from)},`,
+    `  end: ${snapshot(to)},`,
+    '};',
     '',
   ].join('\n');
 }
