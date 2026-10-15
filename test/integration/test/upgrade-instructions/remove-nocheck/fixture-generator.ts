@@ -233,7 +233,7 @@ export function migrationTs(from: string | null, to: string): string {
         ];
   return [
     '#!/usr/bin/env -S node',
-    "import { Migration, MigrationCLI } from '@prisma/orm-postgres/migration';",
+    "import { Migration, MigrationCLI } from '@internal/postgres/migration';",
     ...imports.flatMap((entry) => entry.lines),
     '',
     `export default class M extends Migration<${from === null ? 'never' : 'Start'}, End> {`,

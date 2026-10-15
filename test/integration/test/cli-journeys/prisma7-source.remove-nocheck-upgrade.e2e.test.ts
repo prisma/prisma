@@ -3,8 +3,8 @@
  */
 import { spawnSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { computeStorageHash } from '@internal/contract/hashing';
-import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { computeStorageHash } from '@prisma/orm-postgres/contract/hashing';
+import { PostgresContractSerializer } from '@prisma/orm-postgres/target/runtime';
 import { withClient } from '@repo/test-utils';
 import { join } from 'pathe';
 import stripAnsi from 'strip-ansi';
