@@ -95,6 +95,12 @@ export interface SqlColumnIRInput {
   readonly toCanonicalForm?: ToCanonicalForm;
   /** The element type as the database reports it. Set by introspection; absent on contract-derived nodes. */
   readonly reportedType?: ReportedSqlType;
+  /**
+   * Set on a contract-derived column whose data type names its type exactly as the catalog prints it
+   * (ADR 273). Its type compares with the other side's `reportedType` text unchanged, not through
+   * the target's other names for types that `resolvedNativeType` applies.
+   */
+  readonly comparesReportedType?: boolean;
 }
 
 /**
@@ -137,6 +143,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly toCanonicalForm?: ToCanonicalForm;
   /** See {@link SqlColumnIRInput.reportedType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly reportedType?: ReportedSqlType;
+  /** See {@link SqlColumnIRInput.comparesReportedType}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly comparesReportedType?: boolean;
 
   constructor(input: SqlColumnIRInput) {
     super();
@@ -154,6 +162,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'dataType', input.dataType);
     defineNonEnumerable(this, 'toCanonicalForm', input.toCanonicalForm);
     defineNonEnumerable(this, 'reportedType', input.reportedType);
+    defineNonEnumerable(this, 'comparesReportedType', input.comparesReportedType);
     freezeNode(this);
   }
 
@@ -196,24 +205,48 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   }
 
   /**
-   * Compares the column's own attributes only — the default lives on the
-   * child node. When both sides carry `resolvedNativeType`, the resolved
-   * value governs (array-ness rides on its `[]` suffix); otherwise raw
-   * fields compare.
+   * Compares the column's own attributes only — the default lives on the child node: its type, as
+   * {@link typeDiffersFrom} compares it, and its nullability.
    */
   isEqualTo(other: DiffableNode): boolean {
-    const node = blindCast<
-      SqlSchemaIRNode,
-      'every diff-tree node the differ pairs is a SqlSchemaIRNode'
-    >(other);
-    assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
-    if (this.resolvedNativeType !== undefined && node.resolvedNativeType !== undefined) {
-      return this.resolvedNativeType === node.resolvedNativeType && this.nullable === node.nullable;
-    }
-    return (
-      this.nativeType === node.nativeType &&
-      this.nullable === node.nullable &&
-      Boolean(this.many) === Boolean(node.many)
-    );
+    const node = columnNodeOf(other);
+    return !this.typeDiffersFrom(node) && this.nullable === node.nullable;
   }
+
+  /**
+   * Whether `actual` has a different type from this expected column. A column that compares the
+   * reported type matches `actual`'s reported text exactly; otherwise the resolved types compare
+   * when both sides carry one, and the raw native type and list flag when not.
+   */
+  typeDiffersFrom(actual: SqlColumnIR): boolean {
+    const reported = this.#comparedReportedText(actual);
+    if (reported !== undefined) return this.resolvedNativeType !== reported;
+    if (this.resolvedNativeType !== undefined && actual.resolvedNativeType !== undefined) {
+      return this.resolvedNativeType !== actual.resolvedNativeType;
+    }
+    return this.nativeType !== actual.nativeType || Boolean(this.many) !== Boolean(actual.many);
+  }
+
+  /** For a column that compares the reported type, the type the database reports when it differs. */
+  explainMismatch(actual: DiffableNode | undefined): string | undefined {
+    if (actual === undefined) return undefined;
+    const node = columnNodeOf(actual);
+    const reported = this.#comparedReportedText(node);
+    if (reported === undefined || reported === this.resolvedNativeType) return undefined;
+    return `The column type is "${this.resolvedNativeType}", but the database reports "${reported}". This type is compared with the text the database reports, exactly.`;
+  }
+
+  #comparedReportedText(actual: SqlColumnIR): string | undefined {
+    if (this.comparesReportedType !== true || actual.reportedType === undefined) return undefined;
+    return `${actual.reportedType.text}${actual.many === true ? '[]' : ''}`;
+  }
+}
+
+function columnNodeOf(other: DiffableNode): SqlColumnIR {
+  const node = blindCast<
+    SqlSchemaIRNode,
+    'every diff-tree node the differ pairs is a SqlSchemaIRNode'
+  >(other);
+  assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
+  return node;
 }

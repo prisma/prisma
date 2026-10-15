@@ -6,6 +6,7 @@ import type {
 } from '@internal/framework-components/control';
 import {
   dataTypeParams,
+  namesTypeAsReported,
   renderSqlTypeName,
   type SqlDataType,
   type SqlTypeLookups,
@@ -129,6 +130,7 @@ function convertColumn(
     codecBaseNativeType: baseTypeName,
     dataType,
     ...ifDefined('toCanonicalForm', codec && canonicalFormOf(codec, types.dataTypeLookup)),
+    ...ifDefined('comparesReportedType', namesTypeAsReported(dataType) ? true : undefined),
   };
 }
 

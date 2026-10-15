@@ -24,7 +24,6 @@ import type {
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
 } from '@internal/family-sql/control';
-import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
@@ -54,6 +53,7 @@ import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema
 import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
 import {
   buildSetDefaultColumn,
+  renderColumnAlterCheckType,
   renderColumnAlterType,
   renderColumnDdl,
 } from './column-ddl-rendering';
@@ -91,7 +91,6 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import type { ForeignKeySpec } from './operations/shared';
-import { stackDataTypes } from './planner-sql-checks';
 import {
   type CallMigrationStrategy,
   postgresPlannerStrategies,
@@ -380,16 +379,6 @@ export function emissionSchemaName(ctx: StrategyContext, ddlSchemaName: string):
   return namespaceId === UNBOUND_NAMESPACE_ID ? UNBOUND_NAMESPACE_ID : ddlSchemaName;
 }
 
-/** Whether the expected/actual native type (resolved, or raw+many fallback) differs — mirrors `SqlColumnIR.isEqualTo`'s type comparison. */
-export function columnTypeChanged(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
-  if (expected.resolvedNativeType !== undefined && actual.resolvedNativeType !== undefined) {
-    return expected.resolvedNativeType !== actual.resolvedNativeType;
-  }
-  return (
-    expected.nativeType !== actual.nativeType || Boolean(expected.many) !== Boolean(actual.many)
-  );
-}
-
 // ----------------------------------------------------------------------------
 // Subtree coalescing (the planner's responsibility per the differ's contract)
 // ----------------------------------------------------------------------------
@@ -661,7 +650,6 @@ function mapColumnNodeIssue(
   schemaName: string,
   tableName: string,
   types: SqlTypeLookups,
-  dataTypes: readonly DataType[],
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const column = blindCast<
@@ -689,14 +677,14 @@ function mapColumnNodeIssue(
     'a not-equal column issue always carries the actual column node'
   >(issue.actual);
   const calls: PostgresOpFactoryCall[] = [];
-  if (columnTypeChanged(expected, actual)) {
+  if (expected.typeDiffersFrom(actual)) {
     calls.push(
       new AlterColumnTypeCall({
         schemaName,
         tableName,
         columnName: expected.name,
         type: renderColumnAlterType(expected, types),
-        dataTypes,
+        checkType: renderColumnAlterCheckType(expected, types),
         operationClass: liveColumnWidensSafely(expected, actual, types)
           ? 'widening'
           : 'destructive',
@@ -951,7 +939,7 @@ export function mapNodeIssueToCall(
     case PostgresSchemaNodeKind.table:
       return mapTableNodeIssue(issue, schemaName, ddlSchemaName, ctx.types);
     case RelationalSchemaNodeKind.column:
-      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types, ctx.dataTypes);
+      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types);
     case RelationalSchemaNodeKind.columnDefault: {
       const columnName = issueColumnName(issue);
       if (columnName === undefined) {
@@ -1038,7 +1026,6 @@ export function planIssues(
     policy,
     frameworkComponents,
     statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
-    dataTypes: stackDataTypes(frameworkComponents),
   };
 
   const strategies = options.strategies ?? postgresPlannerStrategies;

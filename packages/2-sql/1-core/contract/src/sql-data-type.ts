@@ -237,7 +237,9 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
  * the text the database catalog prints, as the author wrote it, so it is compared with the reported
  * text unchanged, not through a target's other names for its types.
  */
-export function namesTypeAsReported(type: SqlDataType): boolean {
+export function namesTypeAsReported<Params extends SqlTypeParams>(
+  type: SqlDataType<Params>,
+): boolean {
   return (
     type.sql.render !== undefined &&
     type.sql.texts.length === 0 &&

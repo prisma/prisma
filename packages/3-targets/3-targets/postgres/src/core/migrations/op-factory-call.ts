@@ -670,6 +670,14 @@ export function alterColumnTypeCallText(schema: string, table: string, column: s
   return `alterColumnType({ ${columnCallLocation(schema, table, column).join(', ')} })`;
 }
 
+/**
+ * Where the postcheck's type comes from: the planner gives the text its column's data type prints;
+ * a migration's `alterColumnType` call gives the stack's data types, which read `type`.
+ */
+type AlterColumnTypeCheck =
+  | { readonly checkType: string; readonly dataTypes?: undefined }
+  | { readonly dataTypes: readonly DataType[]; readonly checkType?: undefined };
+
 export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'alterColumnType' as const;
   readonly operationClass: AlterColumnTypeClass;
@@ -683,17 +691,17 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly checkType: string;
   readonly label: string;
 
-  constructor(input: {
-    readonly schemaName: string;
-    readonly tableName: string;
-    readonly columnName: string;
-    readonly type: string;
-    readonly using?: SqlSlot;
-    /** The data types of the stack, which read `type` for the postcheck. */
-    readonly dataTypes: readonly DataType[];
-    /** By default `data` when `using` converts the values, and `destructive` otherwise. */
-    readonly operationClass?: AlterColumnTypeClass;
-  }) {
+  constructor(
+    input: {
+      readonly schemaName: string;
+      readonly tableName: string;
+      readonly columnName: string;
+      readonly type: string;
+      readonly using?: SqlSlot;
+      /** By default `data` when `using` converts the values, and `destructive` otherwise. */
+      readonly operationClass?: AlterColumnTypeClass;
+    } & AlterColumnTypeCheck,
+  ) {
     super();
     this.schemaName = input.schemaName;
     this.tableName = input.tableName;
@@ -702,7 +710,10 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     this.using = input.using;
     this.operationClass = input.operationClass ?? this.#defaultClass();
     this.#refuseUnsafeUsing();
-    this.checkType = alterTypeCheckText(input.type, input.dataTypes, this.#callText());
+    this.checkType =
+      input.checkType !== undefined
+        ? input.checkType
+        : alterTypeCheckText(input.type, input.dataTypes, this.#callText());
     this.label = `Alter type of "${input.tableName}"."${input.columnName}" to ${input.type}`;
     this.freeze();
   }

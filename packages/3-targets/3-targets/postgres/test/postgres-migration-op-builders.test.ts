@@ -658,19 +658,15 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     );
   });
 
-  it('alterColumnType refuses a type the stack cannot read, naming the call', () => {
+  it('alterColumnType checks a type no other data type reads as written, as a raw type', async () => {
     const m = new ExposedMigration(fakeControlStack());
-    expect(() =>
-      m.callAlterColumnType({ schema: 'public', table: 'widget', column: 'count', type: 'int9' }),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
-        meta: {
-          type: 'int9',
-          where: 'alterColumnType({ schema: "public", table: "widget", column: "count" })',
-        },
-      }),
-    );
+    const op = await m.callAlterColumnType({
+      schema: 'public',
+      table: 'widget',
+      column: 'count',
+      type: 'circle',
+    });
+    expect(op.postcheck[0]?.description).toBe('verify column "count" has type "circle"');
   });
 
   it('setNotNull lowers to a widening operation', async () => {

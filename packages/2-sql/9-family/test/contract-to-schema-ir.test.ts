@@ -12,7 +12,7 @@ import type {
 } from '@internal/framework-components/codec';
 import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { sqlDataType } from '@internal/sql-contract/data-type';
+import { sqlDataType, sqlRawDataType } from '@internal/sql-contract/data-type';
 import {
   CheckConstraint,
   Index,
@@ -104,6 +104,7 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/numeric@1': numericType,
   'pg/char@1': fixedCharacterType,
   'pg/enum@1': enumType,
+  'sql/raw@1': sqlRawDataType,
 };
 
 const testCodecLookup: CodecLookupWithDescriptors = {
@@ -131,6 +132,7 @@ const testDataTypes = createDataTypeLookup([
   numericType,
   fixedCharacterType,
   enumType,
+  sqlRawDataType,
 ]);
 
 function wrap(storage: SqlStorage): Contract<SqlStorage> {
@@ -414,6 +416,44 @@ describe('contractToSchemaIR', () => {
     expect({ nativeType: mood.nativeType, resolvedNativeType: mood.resolvedNativeType }).toEqual({
       nativeType: 'Mood',
       resolvedNativeType: 'Mood',
+    });
+  });
+
+  it('writes a raw column as its sql text, compared with the type the database reports', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          size: col({ codecId: 'sql/raw@1', typeParams: { sql: 'integer' } }),
+          tags: col({
+            codecId: 'sql/raw@1',
+            typeParams: { sql: 'tsvector' },
+            many: { elementNullable: false },
+          }),
+          name: col({ codecId: 'pg/text@1' }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect(
+      Object.fromEntries(
+        Object.entries(columns).map(([name, column]) => [
+          name,
+          {
+            nativeType: column.nativeType,
+            resolvedNativeType: column.resolvedNativeType,
+            comparesReportedType: column.comparesReportedType,
+          },
+        ]),
+      ),
+    ).toEqual({
+      size: { nativeType: 'integer', resolvedNativeType: 'integer', comparesReportedType: true },
+      tags: {
+        nativeType: 'tsvector',
+        resolvedNativeType: 'tsvector[]',
+        comparesReportedType: true,
+      },
+      name: { nativeType: 'text', resolvedNativeType: 'text', comparesReportedType: undefined },
     });
   });
 

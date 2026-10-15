@@ -107,6 +107,8 @@ function withColumnName(column: SqlColumnIR, name: string): SqlColumnIR {
     ...ifDefined('codecBaseNativeType', column.codecBaseNativeType),
     ...ifDefined('dataType', column.dataType),
     ...ifDefined('toCanonicalForm', column.toCanonicalForm),
+    ...ifDefined('reportedType', column.reportedType),
+    ...ifDefined('comparesReportedType', column.comparesReportedType),
   });
 }
 

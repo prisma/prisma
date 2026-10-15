@@ -18,6 +18,7 @@ import { postgresError } from '../errors';
 import { postgresDefaultToDdlColumnDefault } from './op-factory-call';
 import { buildColumnTypeSql } from './planner-ddl-builders';
 import { resolveIdentityValue } from './planner-identity-values';
+import { buildExpectedFormatType } from './planner-sql-checks';
 
 const AUTOINCREMENT = 'autoincrement()';
 
@@ -118,6 +119,16 @@ export function renderColumnDdl(
  */
 export function renderColumnAlterType(column: SqlColumnIR, types: SqlTypeLookups): string {
   return buildColumnTypeSql(columnLike(column), types, {}, false);
+}
+
+/**
+ * The type `format_type` prints for an expected column once `ALTER COLUMN … TYPE` has run, from the
+ * column's data type, which the alter's postcheck compares.
+ */
+export function renderColumnAlterCheckType(column: SqlColumnIR, types: SqlTypeLookups): string {
+  const like = columnLike(column);
+  const element = buildExpectedFormatType(like, types);
+  return like.many === false ? element : `${element}[]`;
 }
 
 /**

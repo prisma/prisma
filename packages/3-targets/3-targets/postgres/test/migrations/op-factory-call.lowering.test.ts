@@ -198,7 +198,12 @@ describe('DropColumnCall', () => {
 
 describe('AlterColumnTypeCall', () => {
   const alter = (
-    overrides: Partial<ConstructorParameters<typeof AlterColumnTypeCall>[0]> = {},
+    overrides: Partial<
+      Pick<
+        ConstructorParameters<typeof AlterColumnTypeCall>[0],
+        'type' | 'using' | 'operationClass'
+      >
+    > = {},
   ): AlterColumnTypeCall =>
     new AlterColumnTypeCall({
       schemaName: 'public',
@@ -373,7 +378,16 @@ describe('AlterColumnTypeCall', () => {
   });
 
   it('refuses a type no data type of the stack reads, naming the call', () => {
-    expect(() => alter({ type: 'int9' })).toThrow(
+    expect(
+      () =>
+        new AlterColumnTypeCall({
+          schemaName: 'public',
+          tableName: 'user',
+          columnName: 'age',
+          type: 'int9',
+          dataTypes: postgresDataTypes.filter((type) => type.id !== 'sql/raw'),
+        }),
+    ).toThrow(
       expect.objectContaining({
         code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
         meta: {

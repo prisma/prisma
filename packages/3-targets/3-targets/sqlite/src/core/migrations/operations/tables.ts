@@ -449,16 +449,6 @@ function nodeKindOf(issue: SchemaDiffIssue): string | undefined {
     .nodeKind;
 }
 
-/** Mirrors `SqlColumnIR.isEqualTo`'s type comparison, isolated so a `not-equal` column issue's postcheck can target type drift and nullability drift independently. */
-function columnTypeChanged(expected: SqlColumnIR, actual: SqlColumnIR): boolean {
-  if (expected.resolvedNativeType !== undefined && actual.resolvedNativeType !== undefined) {
-    return expected.resolvedNativeType !== actual.resolvedNativeType;
-  }
-  return (
-    expected.nativeType !== actual.nativeType || Boolean(expected.many) !== Boolean(actual.many)
-  );
-}
-
 /**
  * Returns the columns the contract expects as the table's primary key. Picks
  * up SQLite's inline `INTEGER PRIMARY KEY AUTOINCREMENT` form when no
@@ -577,7 +567,7 @@ export function buildRecreatePostchecks(
               }),
         });
       }
-      if (columnTypeChanged(expected, actual)) {
+      if (expected.typeDiffersFrom(actual)) {
         const colSpec = byName.get(columnName);
         if (colSpec) {
           checks.push({
