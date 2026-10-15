@@ -43,6 +43,12 @@ export type {
   ValueObjectFieldType,
 } from '../domain-types';
 export { ContractExecutionSectionSchema } from '../execution-section-schema';
+export type {
+  CodecValueType,
+  FieldTypesFromDomain,
+  ValueObjectTypesFromDomain,
+  ValueTypeSide,
+} from '../field-value-types';
 export type { NamespaceId } from '../namespace-id';
 export { asNamespaceId } from '../namespace-id';
 export type {

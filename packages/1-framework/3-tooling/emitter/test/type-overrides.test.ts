@@ -99,16 +99,29 @@ describe('resolveFieldTypeOverride', () => {
     ]).toEqual([undefined, undefined]);
   });
 
-  it('types a value object field by its aliases', () => {
-    const field: ContractField = {
+  it('gives nothing for a value object or union field, which the shared generic types itself', () => {
+    const valueObject: ContractField = {
       nullable: true,
       many: false,
       type: { kind: 'valueObject', name: 'Address' },
     };
-    expect(resolveFieldTypeOverride(field, literalLookup, undefined)).toEqual({
-      output: 'AddressOutput',
-      input: 'AddressInput',
-    });
+    const union: ContractField = {
+      nullable: false,
+      type: {
+        kind: 'union',
+        members: [
+          { kind: 'scalar', codecId: 'demo/text@1' },
+          { kind: 'valueObject', name: 'Address' },
+        ],
+      },
+    };
+    expect([
+      resolveFieldTypeOverride(valueObject, literalLookup, undefined),
+      resolveFieldTypeOverride(union, literalLookup, {
+        encodedValues: ['a'],
+        codecId: 'demo/text@1',
+      }),
+    ]).toEqual([undefined, undefined]);
   });
 });
 

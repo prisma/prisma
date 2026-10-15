@@ -348,22 +348,15 @@ describe('emitter integration', () => {
         enumResolvingSpi,
       );
 
-      const outputMap = result.contractDts.slice(
+      const overrides = result.contractDts.slice(
+        result.contractDts.indexOf('type FieldTypeOverrides'),
         result.contractDts.indexOf('export type FieldOutputTypes'),
-        result.contractDts.indexOf('export type FieldInputTypes'),
-      );
-      const inputMap = result.contractDts.slice(
-        result.contractDts.indexOf('export type FieldInputTypes'),
-        result.contractDts.indexOf('export type TypeMaps'),
       );
 
-      expect(outputMap).toContain("readonly priority: 'low' | 'high' | 'urgent'");
-      expect(outputMap).not.toContain("readonly priority: CodecTypes['pg/text@1']['output']");
-      // The non-enum field stays on the codec output channel.
-      expect(outputMap).toContain("readonly title: CodecTypes['pg/text@1']['output']");
-
-      expect(inputMap).toContain("readonly priority: 'low' | 'high' | 'urgent'");
-      expect(inputMap).not.toContain("readonly priority: CodecTypes['pg/text@1']['input']");
+      expect(overrides).toContain("readonly output: 'low' | 'high' | 'urgent';");
+      expect(overrides).toContain("readonly input: 'low' | 'high' | 'urgent';");
+      // The non-enum field has no override, so the shared generic gives it its codec type.
+      expect(overrides).not.toContain('title');
     },
     timeouts.typeScriptCompilation,
   );

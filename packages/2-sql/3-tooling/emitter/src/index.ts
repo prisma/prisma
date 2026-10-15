@@ -221,16 +221,11 @@ export const sqlEmission = {
     ].join('\n');
   },
 
-  fieldTypesExpression(side: 'output' | 'input'): string {
-    return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, ${serializeValue(side)}>`;
-  },
-
   getFamilyImports(resolveImportSpecifier: ImportSpecifierResolver): string[] {
     return [
       'import type {',
       '  ColumnTypesFromStorage,',
       '  ContractWithTypeMaps,',
-      '  FieldTypesFromDomain,',
       '  RelationKeys,',
       '  TypeMaps as TypeMapsType,',
       `} from '${resolveImportSpecifier('@internal/sql-contract/types')}';`,
