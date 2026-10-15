@@ -1974,9 +1974,7 @@ async function pgRenderCreateTable(
   codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
   const ifNotExists = node.ifNotExists ? 'IF NOT EXISTS ' : '';
-  const tableRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`
-    : quoteIdentifier(node.table);
+  const tableRef = pgQualify(node.schema, node.table);
   const columnDefs = await Promise.all(
     node.columns.map((col: DdlColumn) => pgRenderDdlColumn(col, codecLookup, node.table)),
   );
@@ -1998,9 +1996,7 @@ function pgRenderCreateSchema(node: PostgresCreateSchema): SqlExecuteRequest {
 }
 
 function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
-  const typeRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.name)}`
-    : quoteIdentifier(node.name);
+  const typeRef = pgQualify(node.schema, node.name);
   const values = node.values.map((value: string) => `'${escapeLiteral(value)}'`).join(', ');
   return {
     sql: `CREATE TYPE ${typeRef} AS ENUM (${values})`,
@@ -2009,9 +2005,7 @@ function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
 }
 
 function pgRenderDropType(node: PostgresDropType): SqlExecuteRequest {
-  const typeRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.name)}`
-    : quoteIdentifier(node.name);
+  const typeRef = pgQualify(node.schema, node.name);
   return {
     sql: `DROP TYPE ${typeRef}`,
     params: [],
