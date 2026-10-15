@@ -344,7 +344,7 @@ describe('TS and PSL authoring parity', () => {
       authoringContributions: target.authoringContributions,
       createNamespace: createTestSqlNamespace,
       ...fixtureInterpreterTypes,
-      capabilities: { sql: { scalarList: true } },
+      capabilities: {},
     });
 
     expect(interpreted.ok).toBe(true);
@@ -779,7 +779,7 @@ model Post {
           authoringContributions: postgresTimestampAuthoringContributions,
           createNamespace: createTestSqlNamespace,
           ...fixtureInterpreterTypes,
-          capabilities: { sql: { scalarList: true } },
+          capabilities: {},
         },
       );
       expect(result.ok).toBe(true);

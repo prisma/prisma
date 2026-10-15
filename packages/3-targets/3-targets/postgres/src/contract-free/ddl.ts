@@ -6,6 +6,8 @@ import {
 import { ifDefined } from '@internal/utils/defined';
 import {
   AddColumnAction,
+  AddConstraintAction,
+  AlterColumnTypeAction,
   type AnyAlterTableAction,
   type CreateIndexElements,
   DropDefaultAction,
@@ -102,8 +104,30 @@ export function dropDefaultAction(columnName: string): DropDefaultAction {
 }
 
 /**
+ * Build an `ADD CONSTRAINT` action for use inside {@link alterTable}. The renderer writes the constraint as `CREATE TABLE` writes it.
+ */
+export function addConstraintAction(constraint: DdlTableConstraint): AddConstraintAction {
+  return new AddConstraintAction(constraint);
+}
+
+/**
+ * Build an `ALTER COLUMN "<columnName>" TYPE <type> USING …` action for use inside {@link alterTable}. `type` is written verbatim; `using` is opaque SQL, and when it is absent or empty the conversion is `"<columnName>"::<type>`.
+ */
+export function alterColumnTypeAction(options: {
+  readonly columnName: string;
+  readonly type: string;
+  readonly using?: string;
+}): AlterColumnTypeAction {
+  return new AlterColumnTypeAction({
+    columnName: options.columnName,
+    type: options.type,
+    using: options.using ? opaqueSql(options.using) : undefined,
+  });
+}
+
+/**
  * Build a Postgres `ALTER TABLE` query node carrying one or more actions.
- * See {@link addColumnAction} / {@link dropDefaultAction} for building actions.
+ * See {@link addColumnAction}, {@link dropDefaultAction}, {@link addConstraintAction} and {@link alterColumnTypeAction} for building actions.
  */
 export function alterTable(options: {
   readonly table: string;

@@ -35,8 +35,6 @@ import {
 import { vector } from '@internal/extension-pgvector/column-types';
 import pgvector from '@internal/extension-pgvector/pack';
 import { geometry, geometryColumn } from '@internal/extension-postgis/column-types';
-// Lets the declaration of `contract` name postgis's geometry value type (TS2742).
-import type {} from '@internal/extension-postgis/geojson';
 import postgis from '@internal/extension-postgis/pack';
 import {
   autoincrement,

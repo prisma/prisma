@@ -12,6 +12,16 @@ import {
 
 const testHashes = { storageHash: 'test-core-hash', profileHash: 'test-profile-hash' };
 
+/** The one-line declaration of a type overrides map, or `''` when the file has none. */
+function typeOverrides(dts: string, name: 'ColumnTypeOverrides' | 'FieldTypeOverrides'): string {
+  return dts.match(new RegExp(`^type ${name} = (.*);$`, 'm'))?.[1] ?? '';
+}
+
+/** The emitted storage column of `table.column`, as `ContractBase` carries it. */
+function storageColumn(dts: string, column: string): string {
+  return dts.match(new RegExp(`readonly ${column}: \\{ readonly dataType: [^}]*\\}`))?.[0] ?? '';
+}
+
 function vectorCodecLookup(): CodecLookup {
   return {
     get: () => undefined,
@@ -108,14 +118,16 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(dts).toContain('export type StorageColumnTypes =');
-    // The column entry must be a plain literal union — no ContractBase[...] expression.
-    expect(dts).toContain('readonly priority: "low" | "high" | "urgent"');
-    expect(dts).not.toContain('ContractBase[');
+    expect(dts).toContain(
+      'export type StorageColumnTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "output">;',
+    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly priority: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
+    );
     expect(dts).not.toContain('["members"][number]');
   });
 
-  it('emits a codec output entry for a non-enum column', () => {
+  it('gives a non-enum column no type override, so its codec types it', () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -163,9 +175,9 @@ describe('StorageColumnTypes', () => {
 
     const dts = generateContractDts(contract, sqlEmission, [], testHashes);
 
-    expect(dts).toContain('export type StorageColumnTypes =');
-    // Non-enum column: codec output access.
-    expect(dts).toContain('readonly email: CodecTypes["pg/text@1"]["output"]');
+    expect(dts).toContain('export type StorageColumnTypes = ColumnTypesFromStorage<');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
+    expect(storageColumn(dts, 'email')).toContain('readonly codecId: "pg/text@1"');
   });
 
   it('emits a literal union for a numeric-codec (int) enum column', () => {
@@ -251,9 +263,9 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(dts).toContain('readonly level: 1 | 2');
-    // Must be plain literals, not a codec reference or ContractBase expression.
-    expect(dts).not.toContain('ContractBase[');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly level: { readonly output: 1 | 2; readonly input: 1 | 2 }',
+    );
   });
 
   it('emits the __unbound__ namespace in StorageColumnTypes', () => {
@@ -378,15 +390,88 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    expect(dts).toContain('readonly action: "create" | "update" | "delete"');
-    const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({[\s\S]*?});/);
-    expect(fieldOutputMatch).not.toBeNull();
-    const fieldOutputBlock = fieldOutputMatch![0];
-    expect(fieldOutputBlock).not.toContain('action');
-    expect(fieldOutputBlock).toContain('id');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly action: { readonly output: "create" | "update" | "delete"; readonly input: "create" | "update" | "delete" }',
+    );
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).not.toContain('action');
   });
 
-  it('derives FieldOutputTypes enum entry as plain literal union from StorageColumnTypes', () => {
+  it('gives a storage namespace that holds only value sets no column type overrides', () => {
+    const contract = createContract({
+      domain: {
+        namespaces: {
+          app: {
+            models: {
+              Audit: {
+                storage: { namespaceId: 'app', table: 'audit', fields: { id: { column: 'id' } } },
+                fields: {
+                  id: {
+                    nullable: false,
+                    many: false,
+                    type: { kind: 'scalar', codecId: 'pg/int4@1' },
+                  },
+                },
+                relations: {},
+              },
+            },
+          },
+        },
+      },
+      storage: {
+        namespaces: {
+          shared: {
+            id: 'shared',
+            entries: {
+              valueSet: {
+                AuditAction: { kind: 'valueSet', values: ['create', 'delete'] },
+              },
+            },
+          },
+          app: {
+            id: 'app',
+            entries: {
+              table: {
+                audit: {
+                  columns: {
+                    id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+                    action: {
+                      dataType: 'pg/text',
+                      codecId: 'pg/text@1',
+                      nullable: false,
+                      valueSet: {
+                        plane: 'storage',
+                        entityKind: 'valueSet',
+                        namespaceId: 'shared',
+                        entityName: 'AuditAction',
+                      },
+                    },
+                  },
+                  uniques: [],
+                  indexes: [],
+                  foreignKeys: [],
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const dts = generateContractDts(
+      contract,
+      sqlEmission,
+      [],
+      testHashes,
+      undefined,
+      identityCodecLookup,
+    );
+
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe(
+      '{ readonly app: { readonly audit: { readonly action: { readonly output: "create" | "delete"; readonly input: "create" | "delete" } } } }',
+    );
+  });
+
+  it('gives an enum field the literal union of its column value set as its type override', () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -470,13 +555,13 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    // FieldOutputTypes must show the plain literal union, not a ContractBase expression.
-    expect(dts).toContain('readonly priority: "low" | "high" | "urgent"');
-    expect(dts).not.toContain('ContractBase[');
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
+      'readonly priority: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
+    );
     expect(dts).not.toContain('["members"][number]');
   });
 
-  it('bakes the parameterized-codec-refined type for a typeRef column (not the raw accessor)', () => {
+  it("gives a typeRef column the type its codec renders for the named type's parameters", () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -543,14 +628,12 @@ describe('StorageColumnTypes', () => {
       vectorCodecLookup(),
     );
 
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch).not.toBeNull();
-    // The refined codec output is baked in, NOT the raw codec accessor.
-    expect(storageColumnMatch![0]).toContain('readonly embedding: Vector<1536> | null');
-    expect(storageColumnMatch![0]).not.toContain('CodecTypes["pg/vector@1"]["output"]');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly embedding: { readonly output: Vector<1536>; readonly input: VectorInput<1536> }',
+    );
   });
 
-  it('emits a StorageColumnInputTypes map (param-refined input side)', () => {
+  it('emits a StorageColumnInputTypes map, with the input type a codec renders as an override', () => {
     const contract = createContract({
       domain: {
         namespaces: {
@@ -623,11 +706,13 @@ describe('StorageColumnTypes', () => {
       vectorCodecLookup(),
     );
 
-    const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
-    expect(inputMatch).not.toBeNull();
-    // Refined input render for the parameterized column; codec input accessor for the plain one.
-    expect(inputMatch![0]).toContain('readonly embedding: VectorInput<1536>');
-    expect(inputMatch![0]).toContain('readonly title: CodecTypes["pg/text@1"]["input"]');
+    expect(dts).toContain(
+      'export type StorageColumnInputTypes = ColumnTypesFromStorage<ContractBase[\'storage\'], CodecTypes, ParameterizedOutputTypeFunctions, ColumnTypeOverrides, "input">;',
+    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly input: VectorInput<1536>',
+    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).not.toContain('title');
   });
 
   it('narrows StorageColumnInputTypes to the value-set union for an enum column', () => {
@@ -704,12 +789,12 @@ describe('StorageColumnTypes', () => {
       identityCodecLookup,
     );
 
-    const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
-    expect(inputMatch).not.toBeNull();
-    expect(inputMatch![0]).toContain('readonly priority: "low" | "high" | "urgent"');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly priority: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
+    );
   });
 
-  it('FieldOutputTypes uses the field element codec for a many[] field, not the storage column codec', () => {
+  it('types a many[] field from its domain field, whose element codec differs from its storage column codec', () => {
     const contract = createContract({
       models: {
         Config: {
@@ -744,16 +829,14 @@ describe('StorageColumnTypes', () => {
 
     const dts = generateContractDts(contract, sqlEmission, [], testHashes);
 
-    const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({.+?});/s);
-    expect(fieldOutputMatch).not.toBeNull();
-    expect(fieldOutputMatch![0]).toContain(
-      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["output"]>',
+    expect(dts).toContain(
+      "export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, \"output\">;",
     );
-    expect(fieldOutputMatch![0]).not.toContain('jsonb');
-
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch).not.toBeNull();
-    expect(storageColumnMatch![0]).toContain('readonly tags: CodecTypes["pg/jsonb@1"]["output"]');
+    expect(dts).toContain(
+      'readonly tags: { readonly nullable: false; readonly type: { readonly kind: "scalar"; readonly codecId: "pg/text@1" }; readonly many: { readonly elementNullable: false } }',
+    );
+    expect(storageColumn(dts, 'tags')).toContain('readonly codecId: "pg/jsonb@1"');
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toBe('{  }');
   });
 
   function nonIdentityEnumColumnContract() {
@@ -827,11 +910,11 @@ describe('StorageColumnTypes', () => {
       nonIdentityCodecLookup,
     );
 
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch).not.toBeNull();
     // Codec OUTPUT (decoded literals), not the raw encoded ints 0 | 1 | 2.
-    expect(storageColumnMatch![0]).toContain('readonly level: "low" | "high" | "urgent"');
-    expect(storageColumnMatch![0]).not.toContain('0 | 1 | 2');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+      'readonly level: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }',
+    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).not.toContain('0 | 1 | 2');
   });
 
   it('falls back to the codec output type when a value is not literal-expressible', () => {
@@ -851,22 +934,13 @@ describe('StorageColumnTypes', () => {
       fallbackLookup,
     );
 
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch).not.toBeNull();
-    expect(storageColumnMatch![0]).toContain(
-      `readonly level: CodecTypes["${NON_IDENTITY_CODEC_ID}"]["output"]`,
-    );
-    expect(storageColumnMatch![0]).not.toContain('0 | 1 | 2');
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
   });
 
   it('falls back to the codec output type when no codec lookup is supplied', () => {
     const dts = generateContractDts(nonIdentityEnumColumnContract(), sqlEmission, [], testHashes);
 
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch).not.toBeNull();
-    expect(storageColumnMatch![0]).toContain(
-      `readonly level: CodecTypes["${NON_IDENTITY_CODEC_ID}"]["output"]`,
-    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
   });
 
   it("types a non-identity enum FIELD (via its column) as the codec's decoded output, not the encoded literal", () => {
@@ -879,16 +953,12 @@ describe('StorageColumnTypes', () => {
       nonIdentityCodecLookup,
     );
 
-    const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({.+?});/s);
-    expect(fieldOutputMatch).not.toBeNull();
     // The SQL field resolves through its column's value set, so the FIELD type matches the COLUMN
     // type: the codec OUTPUT (decoded literals), not the raw encoded ints 0 | 1 | 2.
-    expect(fieldOutputMatch![0]).toContain('readonly level: "low" | "high" | "urgent"');
-    expect(fieldOutputMatch![0]).not.toContain('0 | 1 | 2');
-
-    // Field type and column type must be byte-identical.
-    const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(storageColumnMatch![0]).toContain('readonly level: "low" | "high" | "urgent"');
+    const override =
+      'readonly level: { readonly output: "low" | "high" | "urgent"; readonly input: "low" | "high" | "urgent" }';
+    expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(override);
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(override);
   });
 
   describe('a native-enum column (pg/enum@1, value-set-typed, no domain enum)', () => {
@@ -976,10 +1046,9 @@ describe('StorageColumnTypes', () => {
         pgEnumCodecLookup(),
       );
 
-      const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-      expect(storageColumnMatch).not.toBeNull();
-      expect(storageColumnMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3"');
-      expect(storageColumnMatch![0]).not.toContain('CodecTypes["pg/enum@1"]');
+      expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+        'readonly aal: { readonly output: "aal1" | "aal2" | "aal3";',
+      );
     });
 
     it('types the column input side as the same literal union (StorageColumnInputTypes)', () => {
@@ -992,17 +1061,15 @@ describe('StorageColumnTypes', () => {
         pgEnumCodecLookup(),
       );
 
-      const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
-      expect(inputMatch).not.toBeNull();
-      expect(inputMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3"');
+      expect(typeOverrides(dts, 'ColumnTypeOverrides')).toContain(
+        'readonly input: "aal1" | "aal2" | "aal3" }',
+      );
     });
 
     it('falls back to the codec output type when no codec lookup is supplied (no renderValueLiteral)', () => {
       const dts = generateContractDts(nativeEnumColumnContract(), sqlEmission, [], testHashes);
 
-      const storageColumnMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-      expect(storageColumnMatch).not.toBeNull();
-      expect(storageColumnMatch![0]).toContain(`readonly aal: CodecTypes["pg/enum@1"]["output"]`);
+      expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
     });
 
     it("also types FieldOutputTypes as the literal union, via the storage column's valueSet (no domain field valueSet involved)", () => {
@@ -1021,13 +1088,13 @@ describe('StorageColumnTypes', () => {
         pgEnumCodecLookup(),
       );
 
-      const fieldOutputMatch = dts.match(/export type FieldOutputTypes = ({[\s\S]*?});/);
-      expect(fieldOutputMatch).not.toBeNull();
-      expect(fieldOutputMatch![0]).toContain('readonly aal: "aal1" | "aal2" | "aal3"');
+      expect(typeOverrides(dts, 'FieldTypeOverrides')).toContain(
+        'readonly aal: { readonly output: "aal1" | "aal2" | "aal3"; readonly input: "aal1" | "aal2" | "aal3" }',
+      );
     });
   });
 
-  it('wraps StorageColumnTypes/StorageColumnInputTypes in ReadonlyArray for a native many[] column', () => {
+  it('carries the list and nullability of a native many[] column for the column type generic to apply', () => {
     const contract = createContract({
       models: {
         Post: {
@@ -1078,26 +1145,16 @@ describe('StorageColumnTypes', () => {
 
     const dts = generateContractDts(contract, sqlEmission, [], testHashes);
 
-    const outputMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-    expect(outputMatch).not.toBeNull();
-    expect(outputMatch![0]).toContain(
-      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["output"]>',
+    expect(storageColumn(dts, 'tags')).toContain(
+      'readonly nullable: false; readonly many: { readonly elementNullable: false }',
     );
-    expect(outputMatch![0]).toContain(
-      'readonly labels: ReadonlyArray<CodecTypes["pg/text@1"]["output"]> | null',
+    expect(storageColumn(dts, 'labels')).toContain(
+      'readonly nullable: true; readonly many: { readonly elementNullable: false }',
     );
-
-    const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
-    expect(inputMatch).not.toBeNull();
-    expect(inputMatch![0]).toContain(
-      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["input"]>',
-    );
-    expect(inputMatch![0]).toContain(
-      'readonly labels: ReadonlyArray<CodecTypes["pg/text@1"]["input"]> | null',
-    );
+    expect(typeOverrides(dts, 'ColumnTypeOverrides')).toBe('{  }');
   });
 
-  it('renders nullable elements inside the array before whole-column nullability', () => {
+  it('carries element and column nullability apart, and gives overrides without the list', () => {
     const contract = createContract({
       models: {
         Post: {
@@ -1209,39 +1266,22 @@ describe('StorageColumnTypes', () => {
       undefined,
       vectorCodecLookup(),
     );
-    const outputMatch = dts.match(/export type StorageColumnTypes = ({.+?});/s);
-
-    expect(outputMatch).not.toBeNull();
-    expect(outputMatch![0]).toContain(
-      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["output"] | null>',
+    expect(storageColumn(dts, 'tags')).toContain(
+      'readonly many: { readonly elementNullable: true }',
     );
-    expect(outputMatch![0]).toContain(
-      'readonly labels: ReadonlyArray<CodecTypes["pg/text@1"]["output"] | null> | null',
+    expect(storageColumn(dts, 'labels')).toContain(
+      'readonly nullable: true; readonly many: { readonly elementNullable: true }',
     );
-    expect(outputMatch![0]).toContain(
-      'readonly waived: ReadonlyArray<CodecTypes["pg/text@1"]["output"]>',
+    expect(storageColumn(dts, 'waived')).toContain(
+      'readonly many: { readonly elementNullable: false }',
     );
-    expect(outputMatch![0]).not.toContain(
-      'readonly waived: ReadonlyArray<CodecTypes["pg/text@1"]["output"] | null>',
+    const override = typeOverrides(dts, 'ColumnTypeOverrides');
+    expect(override).toContain(
+      'readonly priorities: { readonly output: "low" | "high"; readonly input: "low" | "high" }',
     );
-    expect(outputMatch![0]).toContain('readonly priorities: ReadonlyArray<"low" | "high" | null>');
-    expect(outputMatch![0]).toContain('readonly vectors: ReadonlyArray<Vector<3> | null>');
-
-    const inputMatch = dts.match(/export type StorageColumnInputTypes = ({.+?});/s);
-    expect(inputMatch).not.toBeNull();
-    expect(inputMatch![0]).toContain(
-      'readonly tags: ReadonlyArray<CodecTypes["pg/text@1"]["input"] | null>',
+    expect(override).toContain(
+      'readonly vectors: { readonly output: Vector<3>; readonly input: VectorInput<3> }',
     );
-    expect(inputMatch![0]).toContain(
-      'readonly labels: ReadonlyArray<CodecTypes["pg/text@1"]["input"] | null> | null',
-    );
-    expect(inputMatch![0]).toContain(
-      'readonly waived: ReadonlyArray<CodecTypes["pg/text@1"]["input"]>',
-    );
-    expect(inputMatch![0]).not.toContain(
-      'readonly waived: ReadonlyArray<CodecTypes["pg/text@1"]["input"] | null>',
-    );
-    expect(inputMatch![0]).toContain('readonly priorities: ReadonlyArray<"low" | "high" | null>');
-    expect(inputMatch![0]).toContain('readonly vectors: ReadonlyArray<VectorInput<3> | null>');
+    expect(override).not.toContain('ReadonlyArray');
   });
 });

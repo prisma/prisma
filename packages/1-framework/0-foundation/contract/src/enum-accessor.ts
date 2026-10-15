@@ -222,12 +222,6 @@ export type EnumEntriesToAccessors<Enums> = {
   readonly [K in keyof Enums]: Enums[K] extends EnumEntry ? ContractEnumAccessor<Enums[K]> : never;
 };
 
-type BuiltEnumAccessorsOf<TContract> = TContract extends {
-  readonly enumAccessors?: infer A;
-}
-  ? Exclude<A, undefined>
-  : Record<never, never>;
-
 type DomainEnumEntries<TNamespace> = TNamespace extends {
   readonly enum?: infer E;
 }
@@ -250,14 +244,10 @@ type NamespaceEnumEntries<TNamespace> = TNamespace extends {
       }
   : DomainEnumEntries<TNamespace>;
 
-// When `enumAccessors` is present (TS-DSL contract), it is the sole source because merging
-// both carriers would create conflicting `values` types for the same enum key.
 export type NamespaceEnumAccessors<
   TContract extends Contract,
   NsId extends keyof TContract['domain']['namespaces'],
-> = keyof BuiltEnumAccessorsOf<TContract> extends never
-  ? EnumEntriesToAccessors<NamespaceEnumEntries<TContract['domain']['namespaces'][NsId]>>
-  : BuiltEnumAccessorsOf<TContract>;
+> = EnumEntriesToAccessors<NamespaceEnumEntries<TContract['domain']['namespaces'][NsId]>>;
 
 export type NamespacedEnums<TContract extends Contract> = {
   readonly [Ns in keyof TContract['domain']['namespaces']]: NamespaceEnumAccessors<TContract, Ns>;

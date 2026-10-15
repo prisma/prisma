@@ -51,6 +51,7 @@ export type {
   DeferredIndexOptions,
   IndexConstraint,
   IndexExpressionInput,
+  IndexOptionsFunction,
   IndexOptionsInput,
   TargetFieldRef,
 } from '../contract-dsl';

@@ -1,17 +1,22 @@
 import type { Contract } from '@internal/contract/types';
 import {
   type ActivityContextFields,
+  type ActivityParent,
   AsyncIterableResult,
+  type ClientActivityKind,
+  type ClientActivityRun,
   checkAborted,
   checkMiddlewareCompatibility,
-  createStateStore,
+  createContextBeneath,
   executeStatement,
   type QueryPlan,
   RuntimeCore,
   type RuntimeExecuteOptions,
   type RuntimeLog,
   runtimeError,
+  type StartActivity,
   type StatementActivityRun,
+  startClientActivity,
   startTransactionActivity,
   streamStatement,
   type TransactionActivityRun,
@@ -39,10 +44,19 @@ import {
 } from '@internal/sql-relational-core/middleware';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { CodecDescriptorRegistry } from '@internal/sql-relational-core/query-lane-context';
-import type { RuntimeScope } from '@internal/sql-relational-core/types';
+import type { RuntimeScope, SqlOrmPlan } from '@internal/sql-relational-core/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { type StructuredError, structuredError } from '@internal/utils/structured-error';
+import {
+  type ActivityExecuteOptions,
+  type ActivityHandle,
+  type ActivitySource,
+  type ActivitySourceTarget,
+  activitySource,
+  planContentHashOn,
+  startActivityOn,
+} from './activity-handle';
 import {
   buildDecodeContext,
   type DecodeContext,
@@ -58,6 +72,7 @@ import { InFlightOperations } from './in-flight-operations';
 import { lowerSqlPlan } from './lower-sql-plan';
 import { runBeforeCompileChain } from './middleware/before-compile-chain';
 import type { SqlMiddleware, SqlMiddlewareContext } from './middleware/sql-middleware';
+import { beginOwnedTransaction } from './owned-transaction';
 import { buildBindSiteParams } from './prepared/bind-site-params';
 import { resolvePreparedSlotValues } from './prepared/encode-prepared';
 import {
@@ -177,6 +192,34 @@ type SqlStatementActivityRun = StatementActivityRun<
   SqlMiddlewareContext
 >;
 
+/**
+ * The route a client activity's statements and transaction take to the database. A subclass whose statements run on its own sessions, such as role sessions, builds one and starts activities on it with `startActivityOnRoute`.
+ */
+export interface ActivityRoute {
+  readonly scope: 'runtime' | 'connection' | 'transaction';
+  /** The parent of an activity started on the route itself. */
+  parent(): ActivityParent | undefined;
+  query<Row>(plan: SqlOrmPlan<Row>, options: ActivityExecuteOptions): AsyncIterableResult<Row>;
+  execute(
+    plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+    options: ActivityExecuteOptions,
+  ): Promise<SqlStatementStats>;
+  preparedQuery<Params, Row>(
+    statement: PreparedStatementImpl<Params, Row>,
+    params: Params,
+    options: ActivityExecuteOptions,
+  ): AsyncIterableResult<Row>;
+  preparedExecute<Params>(
+    statement: PreparedExecutionImpl<Params>,
+    params: Params,
+    options: ActivityExecuteOptions,
+  ): Promise<SqlStatementStats>;
+  /** Begins a transaction beneath `parent`; absent where the route is a transaction. */
+  readonly transaction: ((parent: ActivityParent) => Promise<RuntimeTransaction>) | undefined;
+  /** Whether an open activity on the route is runtime work that `close()` waits for. */
+  readonly runtimeWork: boolean;
+}
+
 function isExecutionPlan(plan: SqlExecutionPlan | SqlQueryPlan): plan is SqlExecutionPlan {
   return 'sql' in plan;
 }
@@ -216,6 +259,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   private closePromise: Promise<void> | null;
   private readonly closeRefusal: CloseRefusal;
   readonly #inFlight = new InFlightOperations();
+  #openActivityHandles = 0;
   #refusing = false;
   // Connections and transactions this runtime handed out. When the first query of the runtime runs on one of them, the runtime-wide marker read runs on it too, so it works while close() waits for their release, and concurrent first queries share its result. Other queryables, such as a subclass's raw connection, read the marker through the driver.
   readonly #heldQueryables = new WeakSet<SqlQueryable>();
@@ -402,6 +446,255 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     );
   }
 
+  readonly [activitySource]: ActivitySource = {
+    startActivity: <K extends ClientActivityKind>(
+      activity: StartActivity<K>,
+    ): Promise<ActivityHandle<K>> =>
+      this.startActivityOnRoute(
+        this.queryableRoute(this.driver, 'runtime', () => undefined, {
+          transaction: (parent) => this.beginOwnedTransactionBeneath(parent),
+          runtimeWork: true,
+        }),
+        activity,
+        undefined,
+      ),
+    planContentHash: (plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> =>
+      this.planContentHashFor(plan, 'runtime', undefined),
+  };
+
+  /**
+   * Starts a client activity whose statements and transaction run on `route`, beneath `parent` or, without one, beneath `route.parent()`.
+   */
+  protected async startActivityOnRoute<K extends ClientActivityKind>(
+    route: ActivityRoute,
+    activity: StartActivity<K>,
+    parent: ActivityParent | undefined,
+  ): Promise<ActivityHandle<K>> {
+    const endWork = route.runtimeWork ? this.beginActivityWork() : () => undefined;
+    let run: ClientActivityRun<K, SqlMiddlewareContext>;
+    try {
+      run = await startClientActivity<K, SqlMiddlewareContext>(activity, {
+        middleware: this.middleware,
+        context: { ...this.sqlCtx, scope: route.scope },
+        parent: parent ?? route.parent(),
+        holdFinishedChildren: this.#holdFinishedChildren,
+      });
+    } catch (error) {
+      endWork();
+      throw error;
+    }
+    return this.activityHandle(run, route, endWork);
+  }
+
+  /** The content hash of the statement `plan` would send on a queryable of `scope` beneath `parent`. */
+  protected async planContentHashFor(
+    plan: SqlQueryPlan | SqlExecutionPlan,
+    scope: ActivityRoute['scope'],
+    parent: ActivityParent | undefined,
+  ): Promise<string> {
+    this.ensureCodecRegistryValidated();
+    if (isExecutionPlan(plan)) {
+      return computeSqlContentHash(
+        Object.freeze({ ...plan, params: await encodeParams(plan, {}, this.contractCodecs) }),
+      );
+    }
+    const compiled = await this.compilePlan(
+      plan,
+      createContextBeneath<SqlMiddlewareContext>({ ...this.sqlCtx, scope }, parent),
+    );
+    return computeSqlContentHash(await this.encodeDraftParams(this.lowerToDraft(compiled), {}));
+  }
+
+  /** An activity route whose statements run on `queryable`. */
+  protected queryableRoute(
+    queryable: SqlQueryable,
+    scope: ActivityRoute['scope'],
+    parent: () => ActivityParent | undefined,
+    options: Pick<ActivityRoute, 'transaction' | 'runtimeWork'>,
+  ): ActivityRoute {
+    return {
+      scope,
+      parent,
+      ...options,
+      query: <Row>(plan: SqlOrmPlan<Row>, executeOptions: ActivityExecuteOptions) =>
+        this.queryAgainstQueryable<Row>(plan, queryable, { ...executeOptions, scope }),
+      execute: (plan, executeOptions) =>
+        this.executeStatisticsAgainstQueryable(plan, queryable, { ...executeOptions, scope }),
+      preparedQuery: <Params, Row>(
+        statement: PreparedStatementImpl<Params, Row>,
+        params: Params,
+        executeOptions: ActivityExecuteOptions,
+      ) =>
+        this.runPreparedQueryAgainstQueryable<Params, Row>(statement, params, queryable, {
+          ...executeOptions,
+          scope,
+        }),
+      preparedExecute: <Params>(
+        statement: PreparedExecutionImpl<Params>,
+        params: Params,
+        executeOptions: ActivityExecuteOptions,
+      ) =>
+        this.runPreparedExecuteAgainstQueryable<Params>(statement, params, queryable, {
+          ...executeOptions,
+          scope,
+        }),
+    };
+  }
+
+  /** The activity route of a held connection that `owner` wraps: its statements run on `connection`, and its transactions begin there. */
+  protected connectionRoute(
+    connection: SqlConnection,
+    owner: TransactionStartTarget,
+  ): ActivityRoute {
+    const openTransaction = this.#openTransactions.get(connection);
+    return this.queryableRoute(connection, 'connection', () => openTransaction, {
+      transaction:
+        openTransaction === undefined
+          ? (parent) => this.beginTransactionBeneathOn(connection, owner, parent)
+          : undefined,
+      runtimeWork: false,
+    });
+  }
+
+  // A connection runs one transaction at a time; a second one would send BEGIN inside the first.
+  private beginTransactionBeneathOn(
+    connection: SqlConnection,
+    owner: TransactionStartTarget,
+    parent: ActivityParent,
+  ): Promise<RuntimeTransaction> {
+    const openTransaction = this.#openTransactions.get(connection);
+    if (openTransaction !== undefined) {
+      return Promise.reject(transactionAlreadyOpenError(parent, openTransaction));
+    }
+    return this.beginTransactionOn(connection, owner, parent);
+  }
+
+  /** The `activitySource` member of a held connection that `owner()` wraps. */
+  protected connectionActivitySource(
+    connection: SqlConnection,
+    owner: () => TransactionStartTarget,
+  ): ActivitySource {
+    return {
+      startActivity: <K extends ClientActivityKind>(
+        activity: StartActivity<K>,
+      ): Promise<ActivityHandle<K>> =>
+        this.startActivityOnRoute(this.connectionRoute(connection, owner()), activity, undefined),
+      planContentHash: (plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> =>
+        this.planContentHashFor(plan, 'connection', this.#openTransactions.get(connection)),
+    };
+  }
+
+  private activityHandle<K extends ClientActivityKind>(
+    run: ClientActivityRun<K, SqlMiddlewareContext>,
+    route: ActivityRoute,
+    endWork: () => void,
+  ): ActivityHandle<K> {
+    const self = this;
+    const beneath = (options: RuntimeExecuteOptions | undefined): ActivityExecuteOptions => ({
+      ...options,
+      activityParent: run,
+    });
+    const beginTransaction = route.transaction;
+    const source: ActivitySource = {
+      async startActivity<Nested extends ClientActivityKind>(
+        activity: StartActivity<Nested>,
+      ): Promise<ActivityHandle<Nested>> {
+        run.assertAcceptsChildren();
+        return self.startActivityOnRoute(route, activity, run);
+      },
+      planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> {
+        return self.planContentHashFor(plan, route.scope, run);
+      },
+    };
+    const handle: ActivityHandle<K> &
+      PreparedStatementQueryTarget &
+      PreparedStatementExecuteTarget = {
+      ...source,
+      [activitySource]: source,
+      activity: run.activity,
+      get intercepted() {
+        return run.intercepted;
+      },
+      query<Row>(
+        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        return rowsBeneath(run, () => route.query<Row>(plan, beneath(options)));
+      },
+      async execute(
+        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        run.assertAcceptsChildren();
+        return route.execute(plan, beneath(options));
+      },
+      [preparedStatementQuery]<Params, Row>(
+        ps: PreparedStatement<Params, Row>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        return rowsBeneath(run, () =>
+          route.preparedQuery<Params, Row>(
+            blindCast<
+              PreparedStatementImpl<Params, Row>,
+              'prepared statements are created by this runtime implementation'
+            >(ps),
+            params,
+            beneath(options),
+          ),
+        );
+      },
+      async [preparedStatementExecute]<Params>(
+        ps: PreparedExecution<Params>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        run.assertAcceptsChildren();
+        return route.preparedExecute<Params>(
+          blindCast<
+            PreparedExecutionImpl<Params>,
+            'prepared statements are created by this runtime implementation'
+          >(ps),
+          params,
+          beneath(options),
+        );
+      },
+      async end(end): Promise<void> {
+        try {
+          await run.end(end);
+        } finally {
+          endWork();
+        }
+      },
+      ...ifDefined(
+        'transaction',
+        beginTransaction === undefined
+          ? undefined
+          : async () => {
+              run.assertAcceptsChildren();
+              return beginTransaction(run);
+            },
+      ),
+    };
+    return handle;
+  }
+
+  // A transaction beneath an activity on the runtime takes a connection of its own and gives it back when it settles.
+  private async beginOwnedTransactionBeneath(parent: ActivityParent): Promise<RuntimeTransaction> {
+    const { driverConnection, connection } = await this.openConnection();
+    return this.ownTransaction(connection, () =>
+      this.beginTransactionOn(driverConnection, connection, parent),
+    );
+  }
+
+  /** Begins a transaction with `begin` on a connection the transaction owns; see `beginOwnedTransaction`. */
+  protected ownTransaction(
+    connection: Pick<RuntimeConnection, 'release' | 'destroy'>,
+    begin: () => Promise<RuntimeTransaction>,
+  ): Promise<RuntimeTransaction> {
+    return beginOwnedTransaction(connection, begin, this.sqlCtx.log);
+  }
+
   /**
    * Returns the raw driver connection. The connection is a `SqlQueryable` — SQL
    * issued on it runs below the middleware/codec/telemetry pipeline. It carries
@@ -428,6 +721,30 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     await this.verifyMarkerPromise;
   }
 
+  // An open activity handle on the runtime is runtime work in flight until its end().
+  private beginActivityWork(): () => void {
+    const endOperation = this.beginOperation(this.driver);
+    this.#openActivityHandles++;
+    let ended = false;
+    return () => {
+      if (ended) return;
+      ended = true;
+      this.#openActivityHandles--;
+      endOperation();
+    };
+  }
+
+  // A handle never ended keeps close() waiting with no other trace, so close() says so once.
+  private warnWhenWaitingOnlyForActivities(warned: { done: boolean }): void {
+    if (warned.done || this.#openActivityHandles === 0) return;
+    if (this.#inFlight.count !== this.#openActivityHandles) return;
+    warned.done = true;
+    this.sqlCtx.log.warn({
+      event: 'runtime.close.waiting-for-activities',
+      openActivities: this.#openActivityHandles,
+    });
+  }
+
   // Called synchronously when an operation enters the runtime; returns the callback that ends its in-flight record. Work on the driver is runtime-scope work and throws once refusal has begun. Work on any other queryable holds a connection, so it is never refused, but it is recorded, so the runtime counts as busy while it runs.
   private beginOperation(queryable: SqlQueryable): () => void {
     if (queryable === this.driver && this.#refusing) {
@@ -436,11 +753,18 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     return this.#inFlight.begin();
   }
 
-  // A statement sent on an open transaction, or on its connection, is the transaction's child.
+  // A statement sent through an activity handle is the activity's child; one sent on an open transaction, or on its connection, is the transaction's.
   private parentOf(
     queryable: SqlQueryable,
-  ): TransactionActivityRun<SqlMiddlewareContext> | undefined {
-    return this.#openTransactions.get(queryable);
+    options: ActivityExecuteOptions | undefined,
+  ): ActivityParent | undefined {
+    const openTransaction = this.#openTransactions.get(queryable);
+    const activityParent = options?.activityParent;
+    if (activityParent === undefined) return openTransaction;
+    if (openTransaction !== undefined && !activityParent.ctx.inTransaction()) {
+      throw activityOutsideTransactionError(activityParent, openTransaction);
+    }
+    return activityParent;
   }
 
   protected getListDecoder(): ListDecoder {
@@ -556,7 +880,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   protected queryAgainstQueryable<Row>(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     queryable: SqlQueryable,
-    options?: RuntimeExecuteOptions,
+    options?: ActivityExecuteOptions,
   ): AsyncIterableResult<Row> {
     this.ensureCodecRegistryValidated();
 
@@ -570,7 +894,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
             middleware: self.middleware,
             plan,
             context: contextFields,
-            parent: self.parentOf(queryable),
+            parent: self.parentOf(queryable, options),
           },
           async function* (run: SqlStatementActivityRun): AsyncGenerator<Row, void, unknown> {
             const exec = await self.prepareOperation(plan, codecCtx, run);
@@ -598,7 +922,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   protected async executeStatisticsAgainstQueryable(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     queryable: SqlQueryable,
-    options?: RuntimeExecuteOptions,
+    options?: ActivityExecuteOptions,
   ): Promise<SqlStatementStats> {
     const endOperation = this.beginOperation(queryable);
     try {
@@ -611,12 +935,12 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   private async executeStatisticsInFlight(
     plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
     queryable: SqlQueryable,
-    options: RuntimeExecuteOptions | undefined,
+    options: ActivityExecuteOptions | undefined,
   ): Promise<SqlStatementStats> {
     this.ensureCodecRegistryValidated();
 
     const { codecCtx, contextFields } = this.createQueryContexts(options);
-    return this.executeOn(queryable, plan, contextFields, async (run) => {
+    return this.executeOn(queryable, options, plan, contextFields, async (run) => {
       const exec = await this.prepareOperation(plan, codecCtx, run);
       return this.executeEncodedPlan(run, exec, queryable, codecCtx, () =>
         queryable.execute({ sql: exec.sql, params: exec.params }),
@@ -626,12 +950,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 
   private executeOn(
     queryable: SqlQueryable,
+    options: ActivityExecuteOptions | undefined,
     plan: QueryPlan,
     context: ActivityContextFields<SqlMiddlewareContext>,
     body: (run: SqlStatementActivityRun) => Promise<SqlStatementStats>,
   ): Promise<SqlStatementStats> {
     return executeStatement(
-      { middleware: this.middleware, plan, context, parent: this.parentOf(queryable) },
+      { middleware: this.middleware, plan, context, parent: this.parentOf(queryable, options) },
       body,
     );
   }
@@ -667,7 +992,10 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     const bindSiteParams = buildBindSiteParams(declaration);
 
     const userPlan = callback(bindSiteParams);
-    const finalPlan = await this.compilePlan(userPlan, standaloneContext(this.sqlCtx));
+    const finalPlan = await this.compilePlan(
+      userPlan,
+      createContextBeneath<SqlMiddlewareContext>(this.sqlCtx, undefined),
+    );
 
     const orderedRefs = collectOrderedParamRefs(finalPlan.ast);
 
@@ -722,7 +1050,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     ps: PreparedStatementImpl<P, Row>,
     userParams: unknown,
     queryable: SqlQueryable,
-    options?: RuntimeExecuteOptions,
+    options?: ActivityExecuteOptions,
   ): AsyncIterableResult<Row> {
     this.ensureCodecRegistryValidated();
 
@@ -737,7 +1065,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
             middleware: self.middleware,
             plan: ps,
             context: contextFields,
-            parent: self.parentOf(queryable),
+            parent: self.parentOf(queryable, options),
           },
           (run: SqlStatementActivityRun) =>
             self.streamPreparedRows<P, Row>(run, ps, userParams, queryable, codecCtx, endOperation),
@@ -815,7 +1143,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     ps: PreparedExecutionImpl<P>,
     userParams: unknown,
     queryable: SqlQueryable,
-    options?: RuntimeExecuteOptions,
+    options?: ActivityExecuteOptions,
   ): Promise<SqlStatementStats> {
     const endOperation = this.beginOperation(queryable);
     try {
@@ -829,12 +1157,12 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     ps: PreparedExecutionImpl<P>,
     userParams: unknown,
     queryable: SqlQueryable,
-    options: RuntimeExecuteOptions | undefined,
+    options: ActivityExecuteOptions | undefined,
   ): Promise<SqlStatementStats> {
     this.ensureCodecRegistryValidated();
 
     const { codecCtx, contextFields } = this.createQueryContexts(options);
-    return this.executeOn(queryable, ps, contextFields, (run) =>
+    return this.executeOn(queryable, options, ps, contextFields, (run) =>
       this.executePrepared(run, ps, userParams, queryable, codecCtx),
     );
   }
@@ -891,6 +1219,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 
   async connection(): Promise<RuntimeConnection> {
+    return (await this.openConnection()).connection;
+  }
+
+  private async openConnection(): Promise<{
+    readonly driverConnection: SqlConnection;
+    readonly connection: RuntimeConnection & TransactionStartTarget;
+  }> {
     const endOperation = this.beginOperation(this.driver);
     let driverConn: SqlConnection;
     try {
@@ -903,12 +1238,14 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 
     const wrappedConnection: RuntimeConnection &
       TransactionStartTarget &
+      ActivitySourceTarget &
       PreparedStatementQueryTarget &
       PreparedStatementExecuteTarget = {
       [transactionStart]: createTransactionStart(),
       transaction(): Promise<RuntimeTransaction> {
-        return self.beginTransactionOn(driverConn, wrappedConnection);
+        return self.beginTransactionOn(driverConn, wrappedConnection, undefined);
       },
+      [activitySource]: self.connectionActivitySource(driverConn, () => wrappedConnection),
       async release(): Promise<void> {
         await self.#inFlight.track(() => driverConn.release());
       },
@@ -965,7 +1302,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       },
     };
 
-    return wrappedConnection;
+    return { driverConnection: driverConn, connection: wrappedConnection };
   }
 
   /**
@@ -974,6 +1311,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   protected async beginTransactionOn(
     connection: SqlConnection,
     owner: TransactionStartTarget,
+    parent: ActivityParent | undefined,
   ): Promise<RuntimeTransaction> {
     owner[transactionStart].refusedBeforeBegin = false;
     let activity: TransactionActivityRun<SqlMiddlewareContext>;
@@ -981,6 +1319,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
       activity = await startTransactionActivity<SqlMiddlewareContext>({
         middleware: this.middleware,
         context: { ...this.sqlCtx, scope: 'transaction' },
+        parent,
         holdFinishedChildren: this.#holdFinishedChildren,
       });
     } catch (error) {
@@ -1006,7 +1345,8 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     this.#openTransactions.set(driverTx, activity);
     this.#openTransactions.set(connection, activity);
     // A statement sent after commit() or rollback() is called reaches the database after the COMMIT or ROLLBACK (see SqlTransaction), so it is no longer the transaction's child.
-    const stopAdopting = (): void => {
+    const stopAcceptingChildren = (): void => {
+      activity.stopAcceptingChildren();
       for (const queryable of [driverTx, connection]) {
         if (this.#openTransactions.get(queryable) === activity) {
           this.#openTransactions.delete(queryable);
@@ -1029,12 +1369,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     const self = this;
     const wrappedTransaction: RuntimeTransaction &
       SettledTransactionTarget &
+      ActivitySourceTarget &
       PreparedStatementQueryTarget &
       PreparedStatementExecuteTarget = {
       [transactionSettlement]: settlement,
       async commit(): Promise<void> {
         commitAttempted = true;
-        stopAdopting();
+        stopAcceptingChildren();
         try {
           await self.#inFlight.track(() => driverTx.commit());
         } catch (error) {
@@ -1046,7 +1387,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         await commitEnding;
       },
       async rollback(): Promise<void> {
-        stopAdopting();
+        stopAcceptingChildren();
         if (settlement.committed) {
           await commitEnding?.catch(() => undefined);
           return;
@@ -1060,6 +1401,21 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         }
         settlement.rolledBack = true;
         await activity.end({ by: 'rollback', outcome: 'succeeded', commitAttempted });
+      },
+      [activitySource]: {
+        startActivity: <K extends ClientActivityKind>(
+          clientActivity: StartActivity<K>,
+        ): Promise<ActivityHandle<K>> =>
+          self.startActivityOnRoute(
+            self.queryableRoute(driverTx, 'transaction', () => activity, {
+              transaction: undefined,
+              runtimeWork: false,
+            }),
+            clientActivity,
+            undefined,
+          ),
+        planContentHash: (plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> =>
+          self.planContentHashFor(plan, 'transaction', activity),
       },
       query<Row>(
         plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
@@ -1125,21 +1481,24 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   // With 'when-idle', refusal begins once the runtime has been idle for one turn of the event loop (a setTimeout(0)): no database work in flight, and none started since the timer was set. A chain of dependent queries that keeps the runtime busy from the close onward, such as an ORM write and its reload, is admitted to its end. With 'at-once', close() has already started refusing.
   // With 'at-once' nothing is awaited before the refusal flag is set, so it is set inside the call of close().
   private async closeDriverAfterWork(): Promise<void> {
+    const warned = { done: false };
     if (this.closeRefusal === 'when-idle') {
-      await this.waitForIdleTurn();
+      await this.waitForIdleTurn(warned);
     }
     this.#refusing = true;
+    this.warnWhenWaitingOnlyForActivities(warned);
     await this.#inFlight.drained();
     await this.driver.close();
   }
 
-  private async waitForIdleTurn(): Promise<void> {
+  private async waitForIdleTurn(warned: { done: boolean }): Promise<void> {
     for (;;) {
       const startedBefore = this.#inFlight.started;
       await new Promise<void>((resolve) => scheduleTimer(resolve, 0));
       if (!this.#inFlight.active && this.#inFlight.started === startedBefore) {
         return;
       }
+      this.warnWhenWaitingOnlyForActivities(warned);
       await this.#inFlight.drained();
     }
   }
@@ -1201,16 +1560,47 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   }
 }
 
-// prepare() compiles a plan outside any statement, so its beforeCompile hooks get a context of their own.
-function standaloneContext(
-  fields: ActivityContextFields<SqlMiddlewareContext>,
-): SqlMiddlewareContext {
-  return {
-    ...fields,
-    parent: undefined,
-    state: createStateStore().state,
-    inTransaction: () => false,
-  };
+function activityOutsideTransactionError(
+  parent: ActivityParent,
+  openTransaction: ActivityParent,
+): Error {
+  return runtimeError(
+    'RUNTIME.ACTIVITY_OUTSIDE_TRANSACTION',
+    `Work was sent through a '${parent.activity.kind}' activity onto a connection whose open transaction the activity is not part of. Start the activity on the transaction instead.`,
+    {
+      kind: parent.activity.kind,
+      id: parent.activity.id,
+      transactionId: openTransaction.activity.id,
+    },
+  );
+}
+
+function transactionAlreadyOpenError(
+  parent: ActivityParent,
+  openTransaction: ActivityParent,
+): Error {
+  return runtimeError(
+    'RUNTIME.TRANSACTION_ALREADY_OPEN',
+    `A transaction is already open on this connection; a '${parent.activity.kind}' activity cannot begin another until it commits or rolls back.`,
+    {
+      kind: parent.activity.kind,
+      id: parent.activity.id,
+      transactionId: openTransaction.activity.id,
+    },
+  );
+}
+
+// Rows of a handle's statement, refused at the first read when the handle no longer accepts children, before the route takes a connection or session.
+function rowsBeneath<Row>(
+  run: ClientActivityRun<ClientActivityKind, SqlMiddlewareContext>,
+  rows: () => AsyncIterable<Row>,
+): AsyncIterableResult<Row> {
+  return new AsyncIterableResult(
+    (async function* (): AsyncGenerator<Row, void, unknown> {
+      run.assertAcceptsChildren();
+      yield* rows();
+    })(),
+  );
 }
 
 function transactionClosedError(): Error {
@@ -1262,52 +1652,84 @@ export async function withTransaction<R>(
     }
   }
 
+  function guardedQueryable(
+    target: RuntimeScope,
+  ): RuntimeScope & PreparedStatementQueryTarget & PreparedStatementExecuteTarget {
+    return {
+      query<Row>(
+        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        if (invalidated) throw transactionClosedError();
+        return new AsyncIterableResult(guardedStream(target.query<Row>(plan, options)));
+      },
+      async execute(
+        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        if (invalidated) throw transactionClosedError();
+        return target.execute(plan, options);
+      },
+      [preparedStatementQuery]<Params, Row>(
+        ps: PreparedStatement<Params, Row>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        if (invalidated) throw transactionClosedError();
+        return new AsyncIterableResult(
+          guardedStream(runPreparedQuery(target, ps, params, options)),
+        );
+      },
+      [preparedStatementExecute]<Params>(
+        ps: PreparedExecution<Params>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        if (invalidated) throw transactionClosedError();
+        return runPreparedExecute(target, ps, params, options);
+      },
+    };
+  }
+
+  function guardedSource(target: RuntimeScope): ActivitySource {
+    return {
+      async startActivity<K extends ClientActivityKind>(
+        activity: StartActivity<K>,
+      ): Promise<ActivityHandle<K>> {
+        if (invalidated) throw transactionClosedError();
+        return guardedHandle(await startActivityOn(target, activity));
+      },
+      planContentHash(plan: SqlQueryPlan | SqlExecutionPlan): Promise<string> {
+        return planContentHashOn(target, plan);
+      },
+    };
+  }
+
+  function guardedHandle<K extends ClientActivityKind>(
+    handle: ActivityHandle<K>,
+  ): ActivityHandle<K> & PreparedStatementQueryTarget & PreparedStatementExecuteTarget {
+    const source = guardedSource(handle);
+    return {
+      ...source,
+      ...guardedQueryable(handle),
+      [activitySource]: source,
+      activity: handle.activity,
+      get intercepted() {
+        return handle.intercepted;
+      },
+      end: (end) => handle.end(end),
+    };
+  }
+
   const txContext: TransactionContext &
     PreparedStatementQueryTarget &
-    PreparedStatementExecuteTarget = {
+    PreparedStatementExecuteTarget &
+    ActivitySourceTarget = {
+    ...guardedQueryable(transaction),
     get invalidated() {
       return invalidated;
     },
-    query<Row>(
-      plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return new AsyncIterableResult(guardedStream(transaction.query<Row>(plan, options)));
-    },
-    async execute(
-      plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
-      options?: RuntimeExecuteOptions,
-    ): Promise<SqlStatementStats> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return transaction.execute(plan, options);
-    },
-    [preparedStatementQuery]<Params, Row>(
-      ps: PreparedStatement<Params, Row>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): AsyncIterableResult<Row> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return new AsyncIterableResult(
-        guardedStream(runPreparedQuery(transaction, ps, params, options)),
-      );
-    },
-    [preparedStatementExecute]<Params>(
-      ps: PreparedExecution<Params>,
-      params: Params,
-      options?: RuntimeExecuteOptions,
-    ): Promise<SqlStatementStats> {
-      if (invalidated) {
-        throw transactionClosedError();
-      }
-      return runPreparedExecute(transaction, ps, params, options);
-    },
+    [activitySource]: guardedSource(transaction),
   };
 
   let connectionDisposed = false;

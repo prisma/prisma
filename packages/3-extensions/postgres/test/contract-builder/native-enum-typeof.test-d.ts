@@ -8,9 +8,9 @@
  * `PostgresNativeEnum<Members>` instead of erasing it to `unknown`.
  * `ScalarFieldState` threads that full descriptor type (not just its
  * `codecId`), so the member tuple survives into the field's built state.
- * `FieldChannelType` reads a `DescriptorValueSetUnion` off that descriptor
- * (structurally, via `entityRef.entity.members`) exactly like it already
- * reads `EnumValueUnion` off an enum field's `typeRef`.
+ * The field's type override is the `DescriptorValueSetUnion` read off that
+ * descriptor (structurally, via `entityRef.entity.members`), as an enum
+ * field's is the `EnumValueUnion` read off its `typeRef`.
  */
 import type {
   ExtractTypeMapsFromContract,

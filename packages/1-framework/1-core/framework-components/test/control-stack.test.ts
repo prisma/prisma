@@ -10,6 +10,7 @@ import {
   extractCodecLookup,
   extractCodecTypeImports,
   extractComponentIds,
+  extractParameterizedOutputTypeImports,
   extractQueryOperationTypeImports,
 } from '../src/control/control-stack';
 import type { Codec } from '../src/shared/codec';
@@ -97,6 +98,24 @@ describe('extractCodecTypeImports', () => {
       }),
     ]);
     expect(result).toHaveLength(2);
+  });
+});
+
+describe('extractParameterizedOutputTypeImports', () => {
+  it('lists the type function each component declares', () => {
+    const typeFunction = { package: '@test/codec-types', named: 'Outputs', alias: 'O' };
+    const result = extractParameterizedOutputTypeImports([
+      createDescriptor(),
+      createDescriptor({
+        types: {
+          codecTypes: {
+            import: { package: '@test/codec-types', named: 'CodecTypes', alias: 'T' },
+            parameterizedOutputTypes: typeFunction,
+          },
+        },
+      }),
+    ]);
+    expect(result).toEqual([typeFunction]);
   });
 });
 

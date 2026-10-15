@@ -1,7 +1,7 @@
 import type {
+  Activity,
   ActivityEndedResult,
   CrossFamilyMiddleware,
-  RuntimeActivity,
 } from '@internal/framework-components/runtime';
 import { assertType, expectTypeOf, test } from 'vitest';
 import type { SqlMiddleware, SqlMiddlewareContext } from '../src/middleware/sql-middleware';
@@ -27,7 +27,7 @@ test('a cross-family middleware with only lifecycle events is a SQL middleware',
 test('SQL middleware hooks receive the SQL context', () => {
   const middleware: SqlMiddleware = {
     name: 'sql',
-    async activityEnded(_activity: RuntimeActivity, _result: ActivityEndedResult, ctx) {
+    async activityEnded(_activity: Activity, _result: ActivityEndedResult, ctx) {
       assertType<SqlMiddlewareContext>(ctx);
     },
     async beforeEncode(plan, ctx) {

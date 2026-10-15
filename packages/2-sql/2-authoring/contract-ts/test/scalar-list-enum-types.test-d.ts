@@ -4,9 +4,9 @@
  * (`FieldOutputType`) path in SqlContractResult, while a non-`many` enum field
  * stays the scalar union.
  *
- * Mirrors `scalar-list-output-types.test-d.ts` but exercises the enum branch of
- * `FieldChannelType`, which short-circuits to `EnumValueUnion` and must apply
- * the same `StorageColumnManyOf` wrapping as `CodecChannelType`.
+ * Mirrors `scalar-list-output-types.test-d.ts` but exercises a field whose type
+ * override is an enum's value union: `FieldTypesFromDomain` must wrap the
+ * override in `ReadonlyArray` as it wraps a codec type.
  */
 
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';

@@ -13,6 +13,7 @@ import {
   rlsPolicyExistsAst,
   tableExistsAst,
 } from '../../src/contract-free/checks';
+import { alterColumnTypeAction, alterTable } from '../../src/contract-free/ddl';
 import { postgresDataTypes } from '../../src/core/data-types';
 import {
   PostgresAlterIndexRename,
@@ -208,16 +209,23 @@ describe('AlterColumnTypeCall', () => {
       ...overrides,
     });
 
-  it('lowers typed checks and alters the column type with an implicit cast USING clause', async () => {
+  it('lowers typed checks and a typed ALTER COLUMN TYPE node with no USING text', async () => {
     const { lowerer, received } = recordingCheckLowerer();
     const call = alter();
     const op = await call.toOp(lowerer);
 
-    expect(received).toHaveLength(3);
+    expect(received).toHaveLength(4);
+    expect(received[3]).toEqual(
+      alterTable({
+        schema: 'public',
+        table: 'user',
+        actions: [alterColumnTypeAction({ columnName: 'age', type: 'int8' })],
+      }),
+    );
     expect(op.execute).toEqual([
       {
         description: 'alter type of "age"',
-        sql: 'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING "age"::int8',
+        sql: 'LOWERED 4',
         meta: { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
       },
     ]);
@@ -278,14 +286,22 @@ describe('AlterColumnTypeCall', () => {
     ]);
   });
 
-  it('uses an explicit USING clause when provided', async () => {
-    const { lowerer } = recordingCheckLowerer();
-    const sqlOf = async (sql: string) =>
-      (await alter({ using: { kind: 'sql', sql } }).toOp(lowerer)).execute[0]?.sql;
-    expect([await sqlOf('age::int8 * 2'), await sqlOf(`nullif("age", ';')::int8`)]).toEqual([
-      'ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING age::int8 * 2',
-      `ALTER TABLE "public"."user" ALTER COLUMN "age" TYPE int8 USING nullif("age", ';')::int8`,
-    ]);
+  it('passes an explicit USING text to the ALTER COLUMN TYPE node', async () => {
+    const { lowerer, received } = recordingCheckLowerer();
+    await alter({ using: { kind: 'sql', sql: `nullif("age", ';')::int8` } }).toOp(lowerer);
+    expect(received[3]).toEqual(
+      alterTable({
+        schema: 'public',
+        table: 'user',
+        actions: [
+          alterColumnTypeAction({
+            columnName: 'age',
+            type: 'int8',
+            using: `nullif("age", ';')::int8`,
+          }),
+        ],
+      }),
+    );
   });
 
   it('refuses a USING clause that could end or extend the statement, naming the call', () => {

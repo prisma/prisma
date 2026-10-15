@@ -17,6 +17,7 @@ import {
 } from '@internal/sql-relational-core/contract-free';
 import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
+import { alterColumnTypeAction, alterTable } from '../src/contract-free/ddl';
 import { postgresDataTypes } from '../src/core/data-types';
 import type { AlterColumnTypeClass } from '../src/core/migrations/operations/columns';
 import type { DataTransformOptions } from '../src/core/migrations/operations/data-transform';
@@ -599,8 +600,20 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
       'widening',
       'data',
     ]);
-    expect(converted.execute[0]?.sql).toBe(
-      'ALTER TABLE "public"."widget" ALTER COLUMN "count" TYPE int8 USING "count"::int8',
+    const recorded = await new ExposedMigration(astRecordingControlStack()).callAlterColumnType({
+      ...where,
+      using: '"count"::int8',
+    });
+    expect(recorded.execute[0]?.sql).toBe(
+      JSON.stringify(
+        alterTable({
+          schema: 'public',
+          table: 'widget',
+          actions: [
+            alterColumnTypeAction({ columnName: 'count', type: 'int8', using: '"count"::int8' }),
+          ],
+        }),
+      ),
     );
     expect(converted.postcheck[0]?.description).toBe('verify column "count" has type "bigint"');
   });

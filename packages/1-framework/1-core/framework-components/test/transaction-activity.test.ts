@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type {
+  Activity,
   ActivityContext,
-  RuntimeActivity,
   RuntimeMiddleware,
 } from '../src/execution/runtime-middleware';
 import {
@@ -22,13 +22,14 @@ function openTransaction(middleware: ReadonlyArray<RuntimeMiddleware<MockExec>>)
   return startTransactionActivity({
     middleware,
     context: contextFields({ scope: 'transaction' }),
+    parent: undefined,
     holdFinishedChildren: true,
   });
 }
 
 describe('transaction activity', () => {
   it('starts with a transaction activity and its own context', async () => {
-    const started: Array<{ activity: RuntimeActivity; ctx: ActivityContext }> = [];
+    const started: Array<{ activity: Activity; ctx: ActivityContext }> = [];
     const observer: RuntimeMiddleware<MockExec> = {
       name: 'observer',
       async activityStarted(activity, ctx) {
@@ -257,7 +258,11 @@ describe('transaction activity', () => {
     await transaction.end({ by: 'commit', outcome: 'succeeded' });
 
     expect(() => transaction.adopt({ finalize: async () => {} })).toThrow(
-      'An activity was started beneath a transaction that has ended',
+      expect.objectContaining({
+        code: 'RUNTIME.ACTIVITY_NOT_ACCEPTING_CHILDREN',
+        message:
+          'An activity was started beneath a transaction that no longer accepts children: its commit() or rollback() has been called',
+      }),
     );
   });
 
@@ -352,6 +357,7 @@ describe('transaction activity', () => {
         holdFinishedChildren: true,
         middleware,
         context: contextFields({ log: { info: vi.fn(), warn: vi.fn(), error } }),
+        parent: undefined,
       });
       await executeStatementWith(middleware, async () => ({ affectedRows: 1 }), {
         parent: transaction,
@@ -399,6 +405,7 @@ describe('transaction activity', () => {
       return startTransactionActivity({
         middleware,
         context: contextFields({ scope: 'transaction' }),
+        parent: undefined,
         holdFinishedChildren: false,
       });
     }
@@ -407,8 +414,8 @@ describe('transaction activity', () => {
       const transaction = await open([]);
       const finalize = vi.fn(async () => {});
 
-      const childEnded = transaction.adopt({ finalize });
-      await childEnded('succeeded');
+      const slot = transaction.adopt({ finalize });
+      await slot.ended({ outcome: 'committed' });
       await transaction.end({ by: 'commit', outcome: 'succeeded' });
 
       expect(finalize).not.toHaveBeenCalled();

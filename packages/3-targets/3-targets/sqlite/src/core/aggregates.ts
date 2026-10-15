@@ -13,12 +13,8 @@
  * Result identity is declared; lowering hooks build the expression. A descriptor whose result is an integer wider than a JS number casts the aggregate to text (`castResultToText`) so the value survives the driver's numeric reads and the range error is the codec's own; a lossless variant computes with the SQL aggregate its bare namesake uses, since its name is not the database's. A hook returns an expression and nothing else, so which codec the result carries stays the descriptor's to declare.
  */
 
-import type { CodecTrait } from '@internal/framework-components/codec';
 import type { ValueInputAggregateDescriptor } from '@internal/framework-components/components';
-import type {
-  SqlAggregateDescriptor,
-  SqlAggregateLowering,
-} from '@internal/sql-relational-core/aggregate-descriptor-registry';
+import type { SqlAggregateLowering } from '@internal/sql-relational-core/aggregate-descriptor-registry';
 import type { AggregateFn } from '@internal/sql-relational-core/ast';
 import { AggregateExpr, CastExpr } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
@@ -37,17 +33,19 @@ import {
 /** The input matches available to an overload that consumes a value — the only ones these helpers build, since every aggregate here but `count` needs something to fold. */
 type ValueInput = ValueInputAggregateDescriptor['input'];
 
-const overCodec = (codecId: string): ValueInput => ({ kind: 'codec', codecId });
-const overTrait = (trait: CodecTrait): ValueInput => ({ kind: 'trait', trait });
+// The helpers keep each descriptor's operation, codec ids and nullability literal, so a contract written in TypeScript derives its aggregate result types from these descriptors, as emission does.
 
 /** An aggregate whose result is one of the input values, so it carries the input's codec. */
-const preservesInput = (operation: AggregateFn, input: ValueInput): SqlAggregateDescriptor => ({
-  operation,
-  input,
-  output: { kind: 'self' },
-  nullable: true,
-});
-
+const preservesInput = <const Operation extends AggregateFn, const Input extends ValueInput>(
+  operation: Operation,
+  input: Input,
+) =>
+  ({
+    operation,
+    input,
+    output: { kind: 'self' },
+    nullable: true,
+  }) as const;
 /**
  * Render the aggregate as text.
  *
@@ -74,35 +72,43 @@ const WIDE_INTEGER_CODECS: readonly string[] = [
 ];
 
 /** An aggregate whose result is a new value, named by codec and without the input's type parameters. */
-const produces = (
-  operation: AggregateFn,
-  input: ValueInput,
-  codecId: string,
-): SqlAggregateDescriptor => ({
-  operation,
-  input,
-  output: { kind: 'codec', codecId },
-  nullable: true,
-  ...ifDefined(
-    'lower',
-    WIDE_INTEGER_CODECS.includes(codecId) ? castResultToText(operation) : undefined,
-  ),
-});
-
+const produces = <
+  const Operation extends AggregateFn,
+  const Input extends ValueInput,
+  const CodecId extends string,
+>(
+  operation: Operation,
+  input: Input,
+  codecId: CodecId,
+) =>
+  ({
+    operation,
+    input,
+    output: { kind: 'codec', codecId },
+    nullable: true,
+    ...ifDefined(
+      'lower',
+      WIDE_INTEGER_CODECS.includes(codecId) ? castResultToText(operation) : undefined,
+    ),
+  }) as const;
 /** The same, for a lossless variant: an operation whose name the SQL alphabet does not carry, so its lowering names the aggregate it computes with. */
-const producesVia = (
-  operation: string,
-  input: ValueInput,
-  codecId: string,
+const producesVia = <
+  const Operation extends string,
+  const Input extends ValueInput,
+  const CodecId extends string,
+>(
+  operation: Operation,
+  input: Input,
+  codecId: CodecId,
   lower: SqlAggregateLowering,
-): SqlAggregateDescriptor => ({
-  operation,
-  input,
-  output: { kind: 'codec', codecId },
-  nullable: true,
-  lower,
-});
-
+) =>
+  ({
+    operation,
+    input,
+    output: { kind: 'codec', codecId },
+    nullable: true,
+    lower,
+  }) as const;
 /** Codecs stored as SQLite integers. Their `sum` is an integer of up to 64 bits — past `sqlite/integer@1`'s range, and past the safe-integer range too, since a total of safe-range values is free to leave it. The bare form therefore guards and the lossless one carries. */
 const INTEGER_CODECS = [
   SQLITE_INTEGER_CODEC_ID,
@@ -123,26 +129,29 @@ const MIN_MAX_PRESERVING_CODECS = [
   SQLITE_BLOB_CODEC_ID,
 ] as const;
 
-const orderingDescriptors = (operation: 'min' | 'max'): ReadonlyArray<SqlAggregateDescriptor> => [
-  preservesInput(operation, overTrait('numeric')),
-  preservesInput(operation, overTrait('textual')),
-  ...MIN_MAX_PRESERVING_CODECS.map((codecId) => preservesInput(operation, overCodec(codecId))),
-  // The bigint codec claims itself exactly, so its extremum leaves the database
-  // as text like every other bigint result; the trait fallback above serves the
-  // numeric codecs whose values a JS number holds.
-  {
-    operation,
-    input: { kind: 'codec', codecId: SQLITE_BIGINT_CODEC_ID },
-    output: { kind: 'self' },
-    nullable: true,
-    lower: castResultToText(operation),
-  },
-];
+const orderingDescriptors = <const Operation extends 'min' | 'max'>(operation: Operation) =>
+  [
+    preservesInput(operation, { kind: 'trait', trait: 'numeric' }),
+    preservesInput(operation, { kind: 'trait', trait: 'textual' }),
+    ...MIN_MAX_PRESERVING_CODECS.map((codecId) =>
+      preservesInput(operation, { kind: 'codec', codecId }),
+    ),
+    // The bigint codec claims itself exactly, so its extremum leaves the database
+    // as text like every other bigint result; the trait fallback above serves the
+    // numeric codecs whose values a JS number holds.
+    {
+      operation,
+      input: { kind: 'codec', codecId: SQLITE_BIGINT_CODEC_ID },
+      output: { kind: 'self' },
+      nullable: true,
+      lower: castResultToText(operation),
+    },
+  ] as const;
 
 /**
  * Every aggregate overload the SQLite target contributes. The adapter lists these on `types.aggregateDescriptors`, from where emission derives result types and the runtime builds its resolution registry.
  */
-export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> = [
+export const sqliteAggregateDescriptors = [
   // `count` returns an integer whether it counts rows or non-null values, which is what makes it input-agnostic rather than merely input-less. A row count is a `number` to a JS developer, so that is what the bare operation reads it as — and outside ±(2^53 − 1) it throws rather than answer with a rounded tally.
   {
     operation: 'count',
@@ -163,18 +172,25 @@ export const sqliteAggregateDescriptors: ReadonlyArray<SqlAggregateDescriptor> =
 
   // A `sum` of integers reads as a `number` whichever width the column has, and as an exact `bigint` through the variant — offered over every integer input, including those whose bare total a `number` already holds, so the escape hatch is one name rather than a rule about widths.
   ...INTEGER_CODECS.map((codecId) =>
-    produces('sum', overCodec(codecId), SQLITE_BIGINT_NUMBER_CODEC_ID),
+    produces('sum', { kind: 'codec', codecId }, SQLITE_BIGINT_NUMBER_CODEC_ID),
   ),
   ...INTEGER_CODECS.map((codecId) =>
-    producesVia('sumBigInt', overCodec(codecId), SQLITE_BIGINT_CODEC_ID, castResultToText('sum')),
+    producesVia(
+      'sumBigInt',
+      { kind: 'codec', codecId },
+      SQLITE_BIGINT_CODEC_ID,
+      castResultToText('sum'),
+    ),
   ),
-  ...REAL_CODECS.map((codecId) => produces('sum', overCodec(codecId), SQLITE_REAL_CODEC_ID)),
+  ...REAL_CODECS.map((codecId) =>
+    produces('sum', { kind: 'codec', codecId }, SQLITE_REAL_CODEC_ID),
+  ),
 
   // `avg` is real for every input, integers included — already the `number` the defaults policy asks for, and with no exact form to offer beside it.
   ...[...INTEGER_CODECS, ...REAL_CODECS].map((codecId) =>
-    produces('avg', overCodec(codecId), SQLITE_REAL_CODEC_ID),
+    produces('avg', { kind: 'codec', codecId }, SQLITE_REAL_CODEC_ID),
   ),
 
   ...orderingDescriptors('min'),
   ...orderingDescriptors('max'),
-];
+] as const;

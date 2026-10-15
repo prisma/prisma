@@ -65,6 +65,8 @@ import {
 } from '@internal/target-postgres/contract-free';
 import type {
   AddColumnAction,
+  AddConstraintAction,
+  AlterColumnTypeAction,
   AlterTableActionVisitor,
   AnyAlterTableAction,
   DropDefaultAction,
@@ -1998,9 +2000,7 @@ async function pgRenderCreateTable(
   codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
   const ifNotExists = node.ifNotExists ? 'IF NOT EXISTS ' : '';
-  const tableRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`
-    : quoteIdentifier(node.table);
+  const tableRef = pgQualify(node.schema, node.table);
   const columnDefs = await Promise.all(
     node.columns.map((col: DdlColumn) => pgRenderDdlColumn(col, codecLookup, node.table)),
   );
@@ -2022,9 +2022,7 @@ function pgRenderCreateSchema(node: PostgresCreateSchema): SqlExecuteRequest {
 }
 
 function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
-  const typeRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.name)}`
-    : quoteIdentifier(node.name);
+  const typeRef = pgQualify(node.schema, node.name);
   const values = node.values.map((value: string) => `'${escapeLiteral(value)}'`).join(', ');
   return {
     sql: `CREATE TYPE ${typeRef} AS ENUM (${values})`,
@@ -2033,9 +2031,7 @@ function pgRenderCreateType(node: PostgresCreateType): SqlExecuteRequest {
 }
 
 function pgRenderDropType(node: PostgresDropType): SqlExecuteRequest {
-  const typeRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.name)}`
-    : quoteIdentifier(node.name);
+  const typeRef = pgQualify(node.schema, node.name);
   return {
     sql: `DROP TYPE ${typeRef}`,
     params: [],
@@ -2046,9 +2042,7 @@ async function pgRenderAlterTable(
   node: PostgresAlterTable,
   codecLookup: CodecLookupWithDescriptors,
 ): Promise<SqlExecuteRequest> {
-  const tableRef = node.schema
-    ? `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`
-    : quoteIdentifier(node.table);
+  const tableRef = pgQualify(node.schema, node.table);
   const actionVisitor: AlterTableActionVisitor<Promise<string>> = {
     async addColumn(action: AddColumnAction): Promise<string> {
       const colFragment = await pgRenderDdlColumn(action.column, codecLookup, node.table);
@@ -2056,6 +2050,15 @@ async function pgRenderAlterTable(
     },
     dropDefault(action: DropDefaultAction): Promise<string> {
       return Promise.resolve(`ALTER COLUMN ${quoteIdentifier(action.columnName)} DROP DEFAULT`);
+    },
+    addConstraint(action: AddConstraintAction): Promise<string> {
+      return Promise.resolve(`ADD ${pgRenderDdlConstraint(action.constraint)}`);
+    },
+    alterColumnType(action: AlterColumnTypeAction): Promise<string> {
+      const column = quoteIdentifier(action.columnName);
+      const using =
+        action.using === undefined ? `${column}::${action.type}` : renderOpaqueSql(action.using);
+      return Promise.resolve(`ALTER COLUMN ${column} TYPE ${action.type} USING ${using}`);
     },
   };
   const actionSqls = await Promise.all(
