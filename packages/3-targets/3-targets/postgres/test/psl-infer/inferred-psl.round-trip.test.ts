@@ -233,7 +233,7 @@ two lines é'::text`,
     ).toEqual({ stamps: { kind: 'literal', value: ['2024-01-01T00:00:00'] } });
   });
 
-  it('round-trips a default of every parameterized type the type map writes', () => {
+  it('round-trips a default of every parameterized type infer writes', () => {
     expect(
       roundTrippedDefaults([
         introspected('name', 'character varying(10)', "'abc'::character varying"),

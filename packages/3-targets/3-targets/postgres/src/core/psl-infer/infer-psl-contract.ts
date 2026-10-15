@@ -45,10 +45,12 @@ import { createPostgresDefaultMapping } from './postgres-default-mapping';
  * Infers a PSL AST (for `printPsl`) from an introspected Postgres schema tree.
  *
  * Target-owned inference: it walks the `PostgresDatabaseSchemaNode` tree and
- * owns the Postgres dialect knowledge — the native type map and default map.
+ * owns the Postgres dialect knowledge — native enums and the default map.
  * It reads raw defaults with `parsePostgresDefault`, the parser introspection
- * and verify use. Relation inference, name transforms, and generic default
- * mapping are shape-neutral utilities imported from the SQL family.
+ * and verify use. A column's type is the SQL family's: the constructor marked
+ * `inferred` for the data type that claims the type the database reported.
+ * Relation inference, name transforms, and generic default mapping are
+ * shape-neutral utilities imported from the SQL family as well.
  *
  * The tree's tables (across its namespaces — `contract infer` introspects a
  * single live namespace) are gathered into the model set and emitted in one
