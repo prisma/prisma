@@ -23,7 +23,12 @@ const VALIDATOR_LISTABLE_BSON_TYPES: Readonly<Record<string, StoredJsonType>> = 
 function storedJsonTypeOf(stored: unknown): string {
   if (stored === null) return 'null';
   if (Array.isArray(stored)) return 'array';
+  if (typeof stored === 'number' && !Number.isFinite(stored)) return 'non-finite number';
   return typeof stored;
+}
+
+function storedText(stored: unknown): string {
+  return typeof stored === 'number' ? String(stored) : JSON.stringify(stored);
 }
 
 /**
@@ -53,5 +58,5 @@ export function validatorEnumMemberRefusalOf(
   const storedJsonType =
     bsonType === undefined ? undefined : VALIDATOR_LISTABLE_BSON_TYPES[bsonType];
   if (storedJsonType === undefined || storedJsonTypeOf(stored) === storedJsonType) return undefined;
-  return `is stored as ${JSON.stringify(stored)}, which a collection validator cannot list as a ${bsonType}. A member of a ${bsonType} enum must be ${STORED_JSON_TYPE_NAMES[storedJsonType]}.`;
+  return `is stored as ${storedText(stored)}, which a collection validator cannot list as a ${bsonType}. A member of a ${bsonType} enum must be ${STORED_JSON_TYPE_NAMES[storedJsonType]}.`;
 }

@@ -39,6 +39,15 @@ describe('validatorEnumMemberRefusalOf', () => {
     );
   });
 
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY])(
+    'refuses a member stored as %s, which JSON cannot hold',
+    (stored) => {
+      expect(validatorEnumMemberRefusalOf(['double'], stored)).toBe(
+        `is stored as ${stored}, which a collection validator cannot list as a double. A member of a double enum must be a finite number.`,
+      );
+    },
+  );
+
   it('refuses every member of an enum whose BSON type is refused', () => {
     expect(validatorEnumMemberRefusalOf(['long'], 3)).toBe(validatorEnumRefusalOf(['long']));
   });
