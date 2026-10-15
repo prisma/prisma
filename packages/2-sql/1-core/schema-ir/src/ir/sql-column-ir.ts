@@ -18,7 +18,7 @@ export type SqlAnnotations = {
 
 /** What introspection hands over about the element type of one column. */
 export interface ReportedSqlType {
-  /** The catalog text of the element type. */
+  /** The element type's text as the database reports it: on Postgres its catalog text (`format_type`), on SQLite the declared type from `PRAGMA table_info`. */
   readonly text: string;
   /** The target's word for the type's kind, such as `enum`; undefined for a base type. */
   readonly kind: string | undefined;
