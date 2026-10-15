@@ -1,3 +1,4 @@
+import { rawColumn } from '@internal/adapter-postgres/column-types';
 import type { Char, Varchar } from '@internal/target-postgres/codec-types';
 import { expectTypeOf, test } from 'vitest';
 import { defineContract, enumType, member } from '../../src/exports/contract-builder';
@@ -20,6 +21,8 @@ const contract = defineContract({ enums: { Level } }, ({ field, model, type }) =
         level: field.namedType(Level),
         area: field.column(type.Raw('circle')),
         search: field.column(type.Raw('tsvector')).optional(),
+        nets: field.column(type.Raw('cidr')).many(),
+        codes: field.column(rawColumn('character varying(3)')).many(),
       },
     }).sql({ table: 'readings' }),
   },
@@ -36,5 +39,7 @@ test('the client returns rows of a TypeScript contract with the codec output typ
     level: 1n | 10n;
     area: unknown;
     search: unknown;
+    nets: readonly unknown[];
+    codes: readonly unknown[];
   } | null>();
 });

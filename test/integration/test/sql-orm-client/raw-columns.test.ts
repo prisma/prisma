@@ -97,8 +97,8 @@ describe('raw fields through the ORM', () => {
             size: unknown;
             open: unknown;
             net: unknown;
-            nets: unknown[];
-            codes: unknown[];
+            nets: readonly unknown[];
+            codes: readonly unknown[];
           }[]
         >();
         expect({ flat, toMany, toOne, writtenBack }).toEqual({
