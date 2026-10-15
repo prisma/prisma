@@ -94,88 +94,68 @@ export interface InMemoryCacheStoreOptions {
   readonly clock?: () => number;
 }
 
-const copiedPrototypes: ReadonlySet<object | null> = new Set<object | null>([
-  null,
-  Object.prototype,
-  Array.prototype,
-  Date.prototype,
-  RegExp.prototype,
-  Map.prototype,
-  Set.prototype,
-  ArrayBuffer.prototype,
-]);
-
 const typedArraySlice: (this: ArrayBufferView) => ArrayBufferView = Reflect.get(
   Object.getPrototypeOf(Uint8Array.prototype),
   'slice',
 );
 
-/** Temporal values, native or polyfilled, are immutable, so a copy can share them. */
-function isTemporalValue(value: object): boolean {
-  return Object.prototype.toString.call(value).startsWith('[object Temporal.');
-}
-
-/** Whether `copyValue` can copy `value` as it is: no function, no symbol, and no object of a prototype it does not copy, such as a class instance or an error. Any typed array or `DataView` is accepted, including a subclass such as Node's `Buffer`. */
-function deepCopyable(value: unknown, seen = new Set<object>()): boolean {
-  if (typeof value === 'function' || typeof value === 'symbol') return false;
-  if (typeof value !== 'object' || value === null) return true;
-  if (ArrayBuffer.isView(value) || isTemporalValue(value)) return true;
-  if (seen.has(value)) return true;
-  seen.add(value);
-  if (!copiedPrototypes.has(Object.getPrototypeOf(value))) return false;
-  if (Object.getOwnPropertySymbols(value).length > 0) return false;
-  if (value instanceof Map) {
-    return [...value].every(([key, entry]) => deepCopyable(key, seen) && deepCopyable(entry, seen));
-  }
-  if (value instanceof Set) {
-    return [...value].every((entry) => deepCopyable(entry, seen));
-  }
-  if (value instanceof ArrayBuffer) return true;
-  return Object.values(value).every((entry) => deepCopyable(entry, seen));
-}
-
-/** A deep copy of a value `deepCopyable` accepts. A typed array is copied with `TypedArray.prototype.slice`, which keeps its class, so a `Buffer` copies to a `Buffer` with its own memory; a `DataView` copies to a plain `DataView`; an array copies to its elements only, with holes read as `undefined`. */
+/**
+ * A copy of the plain structure of `value`: plain and null-prototype objects, arrays, `Map`, `Set`,
+ * `Date`, `RegExp`, `ArrayBuffer`, typed arrays and `DataView` are copied, and every other value,
+ * such as a class instance or a function, is kept by reference. A typed array is copied with
+ * `TypedArray.prototype.slice`, which keeps its class, so a `Buffer` copies to a `Buffer` with its
+ * own memory; a `DataView` copies to a plain `DataView`; an array copies to its elements only, with
+ * holes read as `undefined`. Shared references and cycles are kept.
+ */
 function copyValue<T>(value: T, copies = new Map<object, unknown>()): T {
   if (typeof value !== 'object' || value === null) return value;
   const known = copies.get(value);
-  if (known !== undefined)
+  if (known !== undefined) {
     return blindCast<T, 'the copy of a value has the type of the value'>(known);
+  }
   const copy = copyObject(value, copies);
   copies.set(value, copy);
   return blindCast<T, 'the copy of a value has the type of the value'>(copy);
 }
 
 function copyObject(value: object, copies: Map<object, unknown>): unknown {
-  if (isTemporalValue(value)) return value;
   if (value instanceof DataView) {
     const start = value.byteOffset;
     return new DataView(value.buffer.slice(start, start + value.byteLength));
   }
   if (ArrayBuffer.isView(value)) return typedArraySlice.call(value);
-  if (value instanceof ArrayBuffer) return value.slice(0);
-  if (value instanceof Date) return new Date(value.getTime());
-  if (value instanceof RegExp) return new RegExp(value.source, value.flags);
-  if (value instanceof Map) {
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype === ArrayBuffer.prototype && value instanceof ArrayBuffer) return value.slice(0);
+  if (prototype === Date.prototype && value instanceof Date) return new Date(value.getTime());
+  if (prototype === RegExp.prototype && value instanceof RegExp) {
+    return new RegExp(value.source, value.flags);
+  }
+  if (prototype === Map.prototype && value instanceof Map) {
     const copy = new Map<unknown, unknown>();
     copies.set(value, copy);
     for (const [key, entry] of value) copy.set(copyValue(key, copies), copyValue(entry, copies));
     return copy;
   }
-  if (value instanceof Set) {
+  if (prototype === Set.prototype && value instanceof Set) {
     const copy = new Set<unknown>();
     copies.set(value, copy);
     for (const entry of value) copy.add(copyValue(entry, copies));
     return copy;
   }
-  if (Array.isArray(value)) {
+  if (prototype === Array.prototype && Array.isArray(value)) {
     const copy: unknown[] = [];
     copies.set(value, copy);
     for (const entry of value) copy.push(copyValue(entry, copies));
     return copy;
   }
-  const copy: Record<string, unknown> = Object.create(Object.getPrototypeOf(value));
+  if (prototype !== Object.prototype && prototype !== null) return value;
+  const copy: Record<string | symbol, unknown> = Object.create(prototype);
   copies.set(value, copy);
-  for (const [key, entry] of Object.entries(value)) copy[key] = copyValue(entry, copies);
+  for (const key of Reflect.ownKeys(value)) {
+    if (Object.prototype.propertyIsEnumerable.call(value, key)) {
+      copy[key] = copyValue(Reflect.get(value, key), copies);
+    }
+  }
   return copy;
 }
 
@@ -193,10 +173,6 @@ function isStatementRows(
 /** Statement rows hold driver values, such as BSON `ObjectId`s, that this package cannot copy; the runtime decodes them into new values on every hit. So the array and each row object are copied, and the driver's values are kept by reference. */
 function copyRows(value: { readonly kind: 'rows'; readonly rows: CachedRows }): CachedValue {
   return { kind: 'rows', rows: value.rows.map((row) => ({ ...row })) };
-}
-
-function storable(value: unknown): boolean {
-  return isStatementRows(value) || deepCopyable(value);
 }
 
 function copyStored<TValue>(value: TValue): TValue {
@@ -239,15 +215,15 @@ function invalidOption(argument: 'maxEntries' | 'ttlMs', received: number, expec
  * the process. It holds `CachedValue` unless given another `TValue`, and keeps statement rows and
  * other values differently. Statement rows (`{ kind: 'rows' }`) are copied one level deep on `set` and
  * `get`, the array and each row object, and the driver's values are kept by reference: the runtime
- * decodes them into new values on every hit. Every other value, such as an ORM call's result, is
- * deep copied on `set` and `get`, so no caller shares an object with the cache. Only plain data is
- * deep copied: primitives, plain objects, arrays (their elements only; holes read as `undefined`),
- * `Date`, `RegExp`, `Map`, `Set`, `ArrayBuffer`, typed arrays (a subclass such as Node's `Buffer`
- * keeps its class) and `DataView` (copied as a plain `DataView`); Temporal values, which are
- * immutable, are kept by reference. For a value holding anything else,
- * such as a function, a symbol, an error or a class instance, `set` stores nothing and returns
- * `false`. A key's version is kept for
- * `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in
+ * decodes them into new values on every hit. Every other value, such as an ORM call's result, has
+ * its plain structure copied on `set` and on every `get`: plain and null-prototype objects, arrays
+ * (their elements only; holes read as `undefined`), `Map`, `Set`, `Date`, `RegExp`, `ArrayBuffer`,
+ * typed arrays (a subclass such as Node's `Buffer` keeps its class) and `DataView` (copied as a plain
+ * `DataView`). Every other value in it, such as a class instance (a Temporal value, a BSON value, an
+ * error) or a function, is shared by reference, so mutating a result's objects or arrays changes
+ * neither the cache nor the next hit, and a codec should return values that are not mutated in
+ * place. It never refuses a value: `set` returns `false` only when the version moved. A key's
+ * version is kept for `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in
  * `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything.
  * It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
  */
@@ -309,7 +285,7 @@ export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
   }
 
   async function set(entry: CacheEntry<TMeta, TValue>, value: TValue): Promise<boolean> {
-    if (entry.version !== versionOf(entry.key) || !storable(value)) {
+    if (entry.version !== versionOf(entry.key)) {
       return false;
     }
     records.delete(entry.key);

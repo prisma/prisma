@@ -122,24 +122,42 @@ describe('createInMemoryCacheStore', () => {
     it.each([
       [
         'a class instance',
-        {
-          at: new (class Money {
-            readonly cents = 1;
-          })(),
-        },
+        new (class Money {
+          readonly cents = 1;
+        })(),
       ],
-      ['a function', { compute: () => 1 }],
-      ['a symbol', { tag: Symbol('x') }],
-      ['an Error', { error: new TypeError('x') }],
-      ['an Error subclass', { error: new (class AppError extends Error {})('x') }],
-      ['a class instance inside a Map', { map: new Map([['k', new (class Point {})()]]) }],
-    ])('refuses to store a value holding %s, and set returns false', async (_name, value) => {
-      const store = createInMemoryCacheStore<unknown, unknown>();
+      ['a function', () => 1],
+      ['an Error', new TypeError('x')],
+      ['an Error subclass', new (class AppError extends Error {})('x')],
+      [
+        'a Temporal-like value',
+        new (class Instant {
+          get [Symbol.toStringTag]() {
+            return 'Temporal.Instant';
+          }
+        })(),
+      ],
+    ])(
+      'stores a value holding %s, copying its structure and sharing the instance',
+      async (_name, shared) => {
+        const store = createInMemoryCacheStore<
+          unknown,
+          { outer: { inner: unknown }[]; map: Map<string, unknown> }
+        >();
+        const value = { outer: [{ inner: shared }], map: new Map([['k', shared]]) };
 
-      expect({ stored: await put(store, 'k', value), held: await storedValue(store, 'k') }).toEqual(
-        { stored: false, held: undefined },
-      );
-    });
+        const stored = await put(store, 'k', value);
+        const held = await storedValue(store, 'k');
+
+        expect({
+          stored,
+          newOuter:
+            held !== value && held?.outer !== value.outer && held?.outer[0] !== value.outer[0],
+          sharedInArray: held?.outer[0]?.inner === shared,
+          sharedInMap: held?.map.get('k') === shared,
+        }).toEqual({ stored: true, newOuter: true, sharedInArray: true, sharedInMap: true });
+      },
+    );
 
     it.each([
       ['a Buffer', () => Buffer.from([1, 2, 3]), Buffer],
@@ -211,23 +229,6 @@ describe('createInMemoryCacheStore', () => {
       const held = await storedValue(store, 'k');
 
       expect(held).toEqual({ kind: 'result', result: [1, undefined, 3] });
-    });
-
-    it('keeps a Temporal value by reference, since Temporal values are immutable', async () => {
-      class Instant {
-        get [Symbol.toStringTag]() {
-          return 'Temporal.Instant';
-        }
-      }
-      const store = createInMemoryCacheStore<unknown, unknown>();
-      const at = new Instant();
-      await put(store, 'k', { kind: 'result', result: [{ at }] });
-
-      expect(await storedValue(store, 'k')).toEqual({ kind: 'result', result: [{ at }] });
-      const held = await storedValue(store, 'k');
-      expect((held as { result: { at: unknown }[] }).result.map((row) => row.at === at)).toEqual([
-        true,
-      ]);
     });
 
     it('stores a value that refers to the same object twice or to itself', async () => {

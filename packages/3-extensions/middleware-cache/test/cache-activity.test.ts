@@ -240,15 +240,24 @@ describe('createCacheMiddleware — the default store copies call results', () =
     });
   });
 
-  it('does not store a result holding a class instance', async () => {
+  it('stores a result holding a class instance, and a hit returns a new outer object sharing the instance', async () => {
     class Money {
       readonly cents = 100;
     }
     const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
+    const price = new Money();
+    const first = { price };
 
-    await missThenStore(mw, { price: new Money() });
+    await missThenStore(mw, first);
+    const served = (await hit(mw))?.result as { price: Money } | undefined;
 
-    expect(await hit(mw)).toBeUndefined();
+    expect({
+      newOuter: served !== undefined && served !== first,
+      shared: served?.price === price,
+    }).toEqual({
+      newOuter: true,
+      shared: true,
+    });
   });
 });
 
@@ -287,14 +296,16 @@ describe('createCacheMiddleware — statement rows with driver class instances',
     expect({ id: served?._id, sameRow: served === row }).toEqual({ id: row._id, sameRow: false });
   });
 
-  it('does not store a call result holding an Error', async () => {
+  it('stores a call result holding an Error, sharing the Error', async () => {
     const mw = createCacheMiddleware({ store: createInMemoryCacheStore() });
     const call = makeCall(annotated);
     const ctx = makeCtx();
+    const failure = new Error('x');
 
     await mw.intercept!.onActivity!(call, ctx);
-    await endCall(mw, call, ctx, { result: { failure: new Error('x') } });
+    await endCall(mw, call, ctx, { result: { failure } });
+    const served = await mw.intercept!.onActivity!(makeCall(annotated), makeCtx());
 
-    expect(await mw.intercept!.onActivity!(makeCall(annotated), makeCtx())).toBeUndefined();
+    expect((served?.result as { failure: Error } | undefined)?.failure).toBe(failure);
   });
 });
