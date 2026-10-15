@@ -6,36 +6,23 @@
 
 The core of the project is finished. A Prisma 7 user can point Prisma 8 at their `schema.prisma`, sign the database, let Prisma 8 take over migrations while Prisma 7 still serves queries, and convert the schema to Prisma 8 when they drop Prisma 7.
 
-The GA plan sets the bar for what remains: every urgent and high upgrade issue is closed before GA, and medium and low issues may stay open (`planning/decisions.md` on the `planning/prisma-8-ga` branch). This project has three high issues left. One is already decided against, so two need building:
+The GA plan sets the bar for what remains: every urgent and high upgrade issue is closed before GA, and medium and low issues may stay open (`planning/decisions.md` on the `planning/prisma-8-ga` branch). The high issues are TML-3267, TML-3268 and TML-3457 here, and TML-3322, TML-3323 and TML-3326 in the Linear project "Contract print and Prisma 7 source follow-ups", which this plan also covers (Will, 2026-10-15).
 
-| | Work | Size |
-|---|---|---|
-| Before GA | 2 pull requests: generated values (TML-3267, TML-3268), and changing a foreign key's actions (TML-3457) | 2 medium |
-| Small, worth doing now | 3 pull requests: "now" generators, four very small fixes | 1 small, 2 very small |
-| After GA | 8 tickets, including views | Not scheduled |
-| Moved out | 4 tickets to a new project, 1 closed as already decided, 1 to another repository | |
+The work is grouped into three PRs, because each PR costs review time and CI. Smaller tickets ride along in the PR that touches the same code.
 
-## Before GA, in priority order
+## The three PRs, in order
 
-| # | What the user gets | Tickets | Size | Blocked on you? |
-|---|---|---|---|---|
-| 1 | Prisma 8 accepts `updatedAt DateTime @default(now()) @updatedAt`, and `uuid()` or `@updatedAt` on an optional field. Today Prisma 8 refuses the whole schema. The first is very common: Prisma's own documentation uses it. | TML-3267, TML-3268 (both high) | Medium: new Prisma 8 schema syntax, ORM behaviour for `null`, and the Prisma 7 reader | No |
-| 2 | After Prisma 8 takes over migrations, changing a relation's `onDelete` or `onUpdate` plans a migration. Today Prisma 8 refuses it and tells the user to write the migration by hand; Prisma 7 handled it. Changing a table's primary key columns (TML-3458, medium) uses the same planner change and can come with it. | TML-3457 (high), TML-3458 (medium) | Medium: one change to the Postgres migration planner, tested on a real database | Yes, see below |
+| PR | What the user gets | Tickets | Size |
+|---|---|---|---|
+| A. Generated values | Prisma 8 accepts `updatedAt DateTime @default(now()) @updatedAt`, and `uuid()` or `@updatedAt` on an optional field; today it refuses the whole schema. `@updatedAt` works on `@db.Date`, `@db.Time` and `@db.Timetz`. The string timestamp presets stop writing a JavaScript `Date` to a text column. `contract print` asks the stack which PSL call makes a generator, so it prints a default function an extension registers, and its two hand-written tables go. | TML-3267, TML-3268, TML-3322 (high); TML-3275, TML-3255 | Large |
+| B. Migrations after the handover | Changing a relation's `onDelete` or `onUpdate`, or a table's primary key columns, plans a migration; today Prisma 8 refuses both. Typing `prisma migrate dev` out of habit prints the Prisma 8 commands to use. | TML-3457 (high); TML-3458, TML-3461, TML-3262 | Medium |
+| C. `contract print` writes everything the reader reads | A relation to a model in another contract space, such as Supabase's `auth.AuthUser`, prints; today every Supabase contract is refused. An entity kind a pack adds prints through the pack's own block descriptor. `contract format` keeps a comment between a block's name and `{`. The `CONFIG.VERSION_MARKER_MISSING` advice shows the config that works. | TML-3326, TML-3323 (high); TML-3258, TML-3259 | Medium, plus a short ADR for TML-3323 |
 
 How I will build them:
 
-- **Item 1.** A value the client leaves out is generated, and an explicit `null` is stored as `null`, as in Prisma 7. Prisma 8's schema language accepts `@default(now())` together with `@updatedAt`. Agreed 2026-10-13.
-- **Item 2.** The migration drops the foreign key and adds it again with the new actions, as Prisma 7 did. Postgres checks every row again when the key is added. Changing a primary key also drops and adds back the foreign keys that point at it.
-
-## Small, worth doing now
-
-None of these is required for GA. Each is small and fixes something a user can hit today.
-
-| # | What the user gets | Tickets | Size |
-|---|---|---|---|
-| 3 | `@updatedAt` works on `@db.Date`, `@db.Time` and `@db.Timetz` columns. This also fixes a bug: two string timestamp presets write a JavaScript `Date` to a text column. The presets get a generator that writes text; removing their `now` option instead would break existing schemas. | TML-3275, TML-3255 | Small |
-| 4 | Typing `prisma migrate dev` out of habit prints the Prisma 8 commands to use. Today it fails with an unknown-command error. | TML-3461 | Very small |
-| 5 | `contract format` stops deleting a comment written between a block's name and `{`; the advice for `CONFIG.VERSION_MARKER_MISSING` shows the config that works; a test assertion that can never fail is replaced with one that can. | TML-3258, TML-3259, TML-3262 | Very small each |
+- **A.** A value the client leaves out is generated, and an explicit `null` is stored as `null`, as in Prisma 7. Prisma 8's schema language accepts `@default(now())` together with `@updatedAt` (agreed 2026-10-13). The string timestamp presets get a generator that writes text; removing their `now` option would break existing schemas.
+- **B.** The migration drops the foreign key and adds it again with the new actions, as Prisma 7 did. Changing a primary key also drops and adds back the foreign keys that point at it.
+- **C.** A pack's PSL block descriptor gains a `print` function next to its keyword and parameters, as TML-3323 recommends, so the way in and the way back cannot drift. The ADR goes to Will before C is built.
 
 ## After GA
 
@@ -56,4 +43,4 @@ Each stays in this Linear project. Each needs a product decision before code. In
 
 ## When the project closes
 
-When items 1 to 5 have merged. The tickets left for after GA move to a backlog project or stay with a closed note, long-lived docs move to `docs/`, and `projects/prisma7-contract-source/` is deleted, as `projects/README.md` describes.
+When PRs A, B and C have merged. The tickets left for after GA move to a backlog project or stay with a closed note, long-lived docs move to `docs/`, and `projects/prisma7-contract-source/` is deleted, as `projects/README.md` describes.
