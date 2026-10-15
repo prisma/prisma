@@ -168,6 +168,7 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly table: string;
     readonly column: string;
     readonly type: string;
+    readonly raw?: true;
     readonly using?: SqlTextInput;
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<Op> {
@@ -658,15 +659,31 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     );
   });
 
-  it('alterColumnType checks a type no other data type reads as written, as a raw type', async () => {
+  it('alterColumnType checks a type the call marks raw as written', async () => {
     const m = new ExposedMigration(fakeControlStack());
     const op = await m.callAlterColumnType({
       schema: 'public',
       table: 'widget',
       column: 'count',
       type: 'circle',
+      raw: true,
     });
     expect(op.postcheck[0]?.description).toBe('verify column "count" has type "circle"');
+  });
+
+  it('alterColumnType refuses a type the stack cannot read, naming the call', () => {
+    const m = new ExposedMigration(fakeControlStack());
+    expect(() =>
+      m.callAlterColumnType({ schema: 'public', table: 'widget', column: 'count', type: 'int9' }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
+        meta: {
+          type: 'int9',
+          where: 'alterColumnType({ schema: "public", table: "widget", column: "count" })',
+        },
+      }),
+    );
   });
 
   it('setNotNull lowers to a widening operation', async () => {

@@ -1,3 +1,4 @@
+import { rawColumn } from '@internal/adapter-postgres/column-types';
 import { describe, expect, it } from 'vitest';
 import { defineContract, type ScalarFieldBuilder, sql } from '../../src/exports/contract-builder';
 
@@ -35,14 +36,28 @@ describe('type.Raw in the Postgres contract builder', () => {
     ).toEqual({ kind: 'function', expression: "'<(0,0),1>'::circle" });
   });
 
-  it('refuses a literal default, since its codec writes no value as JSON', () => {
+  it('refuses a literal default through the data type, saying to write sql', () => {
     expect(() =>
       shapeColumn((field, type) => field.column(type.Raw('circle')).default('<(0,0),1>')),
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
-        cause: expect.objectContaining({ code: 'RUNTIME.ENCODE_FAILED' }),
+        message:
+          'Field "Shape.area" has a literal default. A raw column has no literal values, so its default cannot be a literal. Write the default as a SQL expression: sql`...`.',
+        cause: expect.objectContaining({ code: 'CONTRACT.LITERAL_VALUES_ABSENT' }),
       }),
+    );
+  });
+
+  it('refuses a raw type text that is not one type name, through type.Raw and rawColumn', () => {
+    const notOneTypeName = expect.stringContaining('A raw type is one type name');
+    expect(() => shapeColumn((field, type) => field.column(type.Raw('text, "y" int4')))).toThrow(
+      expect.objectContaining({ code: 'CONTRACT.ARGUMENT_INVALID', message: notOneTypeName }),
+    );
+    expect(() =>
+      shapeColumn((field) => field.column(rawColumn('text; drop table "User"'))),
+    ).toThrow(
+      expect.objectContaining({ code: 'CONTRACT.TYPE_PARAMS_INVALID', message: notOneTypeName }),
     );
   });
 });

@@ -10,7 +10,7 @@
 
 import {
   dataTypeParams,
-  namesTypeAsReported,
+  nameIsCatalogText,
   renderSqlTypeName,
   type SqlTypeLookups,
   sqlDataTypeOfCodec,
@@ -40,7 +40,7 @@ export function buildColumnTypeSql(
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
   const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
   const written = renderSqlTypeName(dataType, dataTypeParams(dataType, resolved.typeParams));
-  return namesTypeAsReported(dataType) ? written : written.toUpperCase();
+  return nameIsCatalogText(dataType) ? written : written.toUpperCase();
 }
 
 const DIGIT_TEXT = /^-?\d+$/;

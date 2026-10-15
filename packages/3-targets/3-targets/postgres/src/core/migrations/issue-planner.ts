@@ -24,6 +24,7 @@ import type {
   SqlPlannerConflict,
   SqlPlannerConflictLocation,
 } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { DiffableNode, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome, orderIssuesByDependencies } from '@internal/framework-components/control';
@@ -53,7 +54,7 @@ import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema
 import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
 import {
   buildSetDefaultColumn,
-  renderColumnAlterCheckType,
+  columnTypeIsCatalogText,
   renderColumnAlterType,
   renderColumnDdl,
 } from './column-ddl-rendering';
@@ -91,6 +92,7 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import type { ForeignKeySpec } from './operations/shared';
+import { stackDataTypes } from './planner-sql-checks';
 import {
   type CallMigrationStrategy,
   postgresPlannerStrategies,
@@ -650,6 +652,7 @@ function mapColumnNodeIssue(
   schemaName: string,
   tableName: string,
   types: SqlTypeLookups,
+  dataTypes: readonly DataType[],
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
     const column = blindCast<
@@ -684,7 +687,8 @@ function mapColumnNodeIssue(
         tableName,
         columnName: expected.name,
         type: renderColumnAlterType(expected, types),
-        checkType: renderColumnAlterCheckType(expected, types),
+        ...(columnTypeIsCatalogText(expected, types) ? { raw: true as const } : {}),
+        dataTypes,
         operationClass: liveColumnWidensSafely(expected, actual, types)
           ? 'widening'
           : 'destructive',
@@ -939,7 +943,7 @@ export function mapNodeIssueToCall(
     case PostgresSchemaNodeKind.table:
       return mapTableNodeIssue(issue, schemaName, ddlSchemaName, ctx.types);
     case RelationalSchemaNodeKind.column:
-      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types);
+      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types, ctx.dataTypes);
     case RelationalSchemaNodeKind.columnDefault: {
       const columnName = issueColumnName(issue);
       if (columnName === undefined) {
@@ -1026,6 +1030,7 @@ export function planIssues(
     policy,
     frameworkComponents,
     statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
+    dataTypes: stackDataTypes(frameworkComponents),
   };
 
   const strategies = options.strategies ?? postgresPlannerStrategies;

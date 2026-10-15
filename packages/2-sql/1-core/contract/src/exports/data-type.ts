@@ -13,7 +13,7 @@ export {
   dataTypeParams,
   findSqlDataTypeCollision,
   isSqlDataType,
-  namesTypeAsReported,
+  nameIsCatalogText,
   renderSqlCatalogText,
   renderSqlTypeName,
   resolveReportedSqlType,
@@ -26,4 +26,4 @@ export {
   validateSqlTypeParams,
 } from '../sql-data-type';
 export type { SqlRawTypeParams } from '../sql-raw';
-export { SQL_RAW_DATA_TYPE_ID, sqlRawDataType } from '../sql-raw';
+export { checkRawTypeText, SQL_RAW_DATA_TYPE_ID, sqlRawDataType } from '../sql-raw';

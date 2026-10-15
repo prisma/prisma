@@ -3,6 +3,7 @@ import {
   type Codec,
   type CodecLookupWithDescriptors,
   codecForRef,
+  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -72,16 +73,39 @@ function defaultRefusal(
   );
 }
 
+const LITERAL_VALUES_ABSENT = 'CONTRACT.LITERAL_VALUES_ABSENT';
+
+/** The refusal of a literal default by a data type that has no literal values, such as a raw column's. */
+function noLiteralValuesRefusal(site: ColumnDefaultSite, cause: StructuredError): StructuredError {
+  return contractError(
+    'CONTRACT.DEFAULT_INVALID',
+    `${columnSiteSubject(site)} has a literal default. ${cause.message}`,
+    {
+      cause,
+      meta: { ...columnSiteMeta(site), codecId: site.codecId, reason: 'no-literal-values' },
+    },
+  );
+}
+
+/**
+ * Encodes a literal default with the column's codec and gives it the canonical form of the column's
+ * values, which refuses a literal of a data type that has none.
+ */
 function encodeDefaultValue(
   value: unknown,
   codec: Codec,
   site: ColumnDefaultSite,
+  toCanonicalForm: ToCanonicalForm | undefined,
   elementPosition?: number,
 ): JsonValue {
   try {
-    return encodeViaCodec(value, codec);
+    const json = encodeViaCodec(value, codec);
+    return toCanonicalForm === undefined ? json : toCanonicalForm(json);
   } catch (cause) {
     if (cause instanceof InternalError) throw cause;
+    if (isStructuredError(cause) && cause.code === LITERAL_VALUES_ABSENT) {
+      throw noLiteralValuesRefusal(site, cause);
+    }
     throw defaultRefusal(site, cause, elementPosition);
   }
 }
@@ -139,6 +163,7 @@ export function encodeColumnDefault(
   site: ColumnDefaultSite,
   many = false,
   elementNullable = false,
+  toCanonicalForm?: ToCanonicalForm,
 ): ColumnDefault {
   if (defaultInput.kind === 'function') {
     return { kind: 'function', expression: defaultInput.expression };
@@ -170,7 +195,9 @@ export function encodeColumnDefault(
     return {
       kind: 'literal',
       value: defaultInput.value.map((element, index) => {
-        if (element !== null) return encodeDefaultValue(element, codec, site, index + 1);
+        if (element !== null) {
+          return encodeDefaultValue(element, codec, site, toCanonicalForm, index + 1);
+        }
         if (elementNullable) return null;
         throw new InternalError(
           'Literal default on a strict list column cannot contain null elements.',
@@ -184,6 +211,7 @@ export function encodeColumnDefault(
       defaultInput.value,
       codecForDefault(codecLookup, resolveCodec, site),
       site,
+      toCanonicalForm,
     ),
   };
 }

@@ -25,8 +25,9 @@ describe('sql/raw@1', () => {
     expect(codec.decodeJson(json)).toBe(json);
   });
 
-  it('refuses to write any value as JSON', () => {
-    expect(() => codec.encodeJson("'a':1")).toThrow(
+  it('writes a JSON value as itself, and refuses a value JSON cannot hold', () => {
+    expect(codec.encodeJson({ a: ['b', 1] })).toEqual({ a: ['b', 1] });
+    expect(() => codec.encodeJson(new Date(0))).toThrow(
       expect.objectContaining({
         code: 'RUNTIME.ENCODE_FAILED',
         meta: expect.objectContaining({ codecId: 'sql/raw@1' }),

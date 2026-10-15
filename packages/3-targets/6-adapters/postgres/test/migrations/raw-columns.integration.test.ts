@@ -211,7 +211,7 @@ describe('raw columns', { concurrent: false }, () => {
         {
           path: `database/public/${table}/column:size`,
           explanation:
-            'The column type is "int4", but the database reports "integer". This type is compared with the text the database reports, exactly.',
+            'The column type is "int4", but the database reports "integer". A type named by its catalog text is compared with the text the database reports, exactly.',
         },
       ],
     });

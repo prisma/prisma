@@ -3,7 +3,6 @@ import {
   isSqlDataType,
   renderSqlTypeName,
   type SqlDataType,
-  sqlRawDataType,
 } from '@internal/sql-contract/data-type';
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../../src/core/codecs';
@@ -16,7 +15,6 @@ import { postgresTypeLookups } from '../postgres-type-lookups';
 import { writtenTypeSamples } from './written-type-samples';
 
 const where = 'alterColumnType({ table: "User", column: "age" })';
-const withoutRaw = postgresDataTypes.filter((type) => type !== sqlRawDataType);
 
 describe('alterTypeCheckText', () => {
   it('gives the text format_type prints for a type as a migration writes it', () => {
@@ -43,23 +41,23 @@ describe('alterTypeCheckText', () => {
     ).toEqual(['"Mood"', 'app.status', 'app."Status"', '"Mood"', 'mood']);
   });
 
-  it('checks a type no other data type reads as written, when the stack has a data type that names any type as written', () => {
+  it('checks a raw type, which its text names, as written, list included', () => {
     expect(
-      ['circle', 'tsvector[]', 'extensions.ltree', 'mood'].map((type) =>
-        alterTypeCheckText(type, postgresDataTypes, where),
+      ['circle', 'cidr[]', 'extensions.ltree', 'character varying(3)'].map((type) =>
+        alterTypeCheckText(type, postgresDataTypes, where, true),
       ),
-    ).toEqual(['circle', 'tsvector[]', 'extensions.ltree', 'mood']);
+    ).toEqual(['circle', 'cidr[]', 'extensions.ltree', 'character varying(3)']);
   });
 
   it('refuses a type no data type of the stack reads, naming the text and where it was written', () => {
-    expect(() => alterTypeCheckText('int9', withoutRaw, where)).toThrow(
+    expect(() => alterTypeCheckText('int9', postgresDataTypes, where)).toThrow(
       expect.objectContaining({
         code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
         message: `${where}: no data type of the configured stack reads the type "int9"`,
         meta: { type: 'int9', where },
       }),
     );
-    expect(() => alterTypeCheckText('mood', withoutRaw, where)).toThrow(
+    expect(() => alterTypeCheckText('mood', postgresDataTypes, where)).toThrow(
       expect.objectContaining({ code: 'MIGRATION.COLUMN_TYPE_UNREADABLE' }),
     );
   });

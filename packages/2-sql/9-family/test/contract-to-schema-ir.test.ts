@@ -95,6 +95,13 @@ const enumType = sqlDataType('test/enum', {
   render: ({ typeName }) => `"${typeName}"`,
 });
 
+/** A data type unrelated to sql/raw whose name is its catalog text too. */
+const verbatimType = sqlDataType<{ name: string }>('test/verbatim', {
+  params: type({ name: 'string' }),
+  nameIsCatalogText: true,
+  render: ({ name }) => name,
+});
+
 const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/text@1': textType,
   'sql/char@1': characterType,
@@ -105,6 +112,7 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/char@1': fixedCharacterType,
   'pg/enum@1': enumType,
   'sql/raw@1': sqlRawDataType,
+  'test/verbatim@1': verbatimType,
 };
 
 const testCodecLookup: CodecLookupWithDescriptors = {
@@ -133,6 +141,7 @@ const testDataTypes = createDataTypeLookup([
   fixedCharacterType,
   enumType,
   sqlRawDataType,
+  verbatimType,
 ]);
 
 function wrap(storage: SqlStorage): Contract<SqlStorage> {
@@ -430,6 +439,7 @@ describe('contractToSchemaIR', () => {
             many: { elementNullable: false },
           }),
           name: col({ codecId: 'pg/text@1' }),
+          other: col({ codecId: 'test/verbatim@1', typeParams: { name: 'MyType' } }),
         },
       }),
     });
@@ -442,18 +452,19 @@ describe('contractToSchemaIR', () => {
           {
             nativeType: column.nativeType,
             resolvedNativeType: column.resolvedNativeType,
-            comparesReportedType: column.comparesReportedType,
+            reportedText: column.reportedType?.text,
           },
         ]),
       ),
     ).toEqual({
-      size: { nativeType: 'integer', resolvedNativeType: 'integer', comparesReportedType: true },
+      size: { nativeType: 'integer', resolvedNativeType: 'integer', reportedText: 'integer' },
       tags: {
         nativeType: 'tsvector',
         resolvedNativeType: 'tsvector[]',
-        comparesReportedType: true,
+        reportedText: 'tsvector',
       },
-      name: { nativeType: 'text', resolvedNativeType: 'text', comparesReportedType: undefined },
+      name: { nativeType: 'text', resolvedNativeType: 'text', reportedText: undefined },
+      other: { nativeType: 'MyType', resolvedNativeType: 'MyType', reportedText: 'MyType' },
     });
   });
 

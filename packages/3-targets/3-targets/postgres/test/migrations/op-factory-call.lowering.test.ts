@@ -198,12 +198,7 @@ describe('DropColumnCall', () => {
 
 describe('AlterColumnTypeCall', () => {
   const alter = (
-    overrides: Partial<
-      Pick<
-        ConstructorParameters<typeof AlterColumnTypeCall>[0],
-        'type' | 'using' | 'operationClass'
-      >
-    > = {},
+    overrides: Partial<ConstructorParameters<typeof AlterColumnTypeCall>[0]> = {},
   ): AlterColumnTypeCall =>
     new AlterColumnTypeCall({
       schemaName: 'public',
@@ -378,16 +373,7 @@ describe('AlterColumnTypeCall', () => {
   });
 
   it('refuses a type no data type of the stack reads, naming the call', () => {
-    expect(
-      () =>
-        new AlterColumnTypeCall({
-          schemaName: 'public',
-          tableName: 'user',
-          columnName: 'age',
-          type: 'int9',
-          dataTypes: postgresDataTypes.filter((type) => type.id !== 'sql/raw'),
-        }),
-    ).toThrow(
+    expect(() => alter({ type: 'int9' })).toThrow(
       expect.objectContaining({
         code: 'MIGRATION.COLUMN_TYPE_UNREADABLE',
         meta: {
@@ -416,6 +402,15 @@ describe('AlterColumnTypeCall', () => {
       'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "int8", using: sql`"age"::int8`, operationClass: "destructive" })',
     ]);
     expect(alter().importRequirements()).toEqual([]);
+  });
+
+  it('marks a raw type in the call it renders, and checks it as written', () => {
+    const call = alter({ type: 'circle', raw: true });
+    expect({ source: call.renderTypeScript(), checkType: call.checkType }).toEqual({
+      source:
+        'this.alterColumnType({ schema: "public", table: "user", column: "age", type: "circle", raw: true })',
+      checkType: 'circle',
+    });
   });
 
   it('renders an unfilled USING slot as a placeholder call, and imports placeholder', () => {

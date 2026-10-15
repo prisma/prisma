@@ -42,7 +42,19 @@ describe('the default of a raw column in a contract', () => {
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
         message:
-          'Column "area": The contract holds this default in a form its data type does not store: A raw column has no literal values, so "<(0,0),1>" cannot be one. Re-emit the contract, then try again.',
+          'Column "area": The contract holds a literal default. A raw column has no literal values, so its default cannot be a literal. Write the default as a SQL expression: sql`...`.',
+      }),
+    );
+  });
+});
+
+describe('the type text of a raw column in a contract', () => {
+  it('is refused when it is not one type name, which a hand-written contract.json can hold', () => {
+    const contract = contractWithArea({ ...rawCircle, typeParams: { sql: 'circle, "y" int4' } });
+    expect(() => planFor(contract, emptyRoot())).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.TYPE_PARAMS_INVALID',
+        message: expect.stringContaining('A raw type is one type name'),
       }),
     );
   });

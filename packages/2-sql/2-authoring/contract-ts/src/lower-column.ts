@@ -1,6 +1,8 @@
-import type {
-  CodecLookupWithDescriptors,
-  DataTypeLookup,
+import {
+  type CodecLookupWithDescriptors,
+  canonicalFormOf,
+  type DataTypeLookup,
+  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import {
   dataTypeParams,
@@ -139,6 +141,12 @@ function validateColumnTypeParams(
   }
 }
 
+/** The canonical form of the values of the codec `codecId`, from the codec or its data type. */
+function canonicalFormOfCodec(codecId: string, lookups: TypeLookups): ToCanonicalForm | undefined {
+  const descriptor = lookups.codecLookup.descriptorFor(codecId);
+  return descriptor === undefined ? undefined : canonicalFormOf(descriptor, lookups.dataTypeLookup);
+}
+
 export interface TypeLookups {
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypeLookup: DataTypeLookup;
@@ -214,6 +222,7 @@ export function lowerColumn(
           { ...site, codecId },
           many !== false,
           elementNullable,
+          canonicalFormOfCodec(codecId, context.lookups),
         )
       : undefined;
 

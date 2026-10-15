@@ -1,9 +1,9 @@
 import { assembleDataTypes, type DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
+  checkRawTypeText,
   dataTypeParams,
   isSqlDataType,
-  namesTypeAsReported,
   type ResolvedSqlType,
   renderSqlCatalogText,
   resolveWrittenSqlTypes,
@@ -95,24 +95,30 @@ function columnTypeUnreadable(type: string, where: string, reason: string): neve
 
 /**
  * The type `format_type` prints for a column altered to `type`, written as a migration writes it:
- * the catalog text of the one data type of `dataTypes` that reads it; for an enum, named by its
+ * for a raw type, which the call marks with `raw` (ADR 273), the text as written; otherwise the
+ * catalog text of the one data type of `dataTypes` that reads it, or for an enum, named by its
  * quoted name, that name quoted where Postgres quotes it, without the `public` schema, which
- * `format_type` leaves out as the planner's own enum names do; and for any other text, when the
- * stack has a data type that names a type exactly as the catalog prints it (ADR 273), the text as
- * written. A list type keeps one `[]`, as `format_type` prints it. The `alterColumnType` facade
- * checks the alter with this text; the planner checks it with the text the column's data type
- * prints, which is the same for every text a data type writes. `where` names the call in the error
- * a type no data type reads raises.
+ * `format_type` leaves out as the planner's own enum names do. A list type keeps one `[]`, as
+ * `format_type` prints it. The planner and the `alterColumnType` facade both check the alter with
+ * this text, so re-running a migration reproduces its operations. `where` names the call in the
+ * error a type no data type reads raises.
  */
 export function alterTypeCheckText(
   type: string,
   dataTypes: readonly DataType[],
   where: string,
+  raw = false,
 ): string {
   const trimmed = type.trim();
   const array = ARRAY_SUFFIX.exec(trimmed);
   const base = array?.[1] ?? trimmed;
   const suffix = array === null ? '' : '[]';
+  if (raw) {
+    const refused = checkRawTypeText(base);
+    return refused === undefined
+      ? `${base}${suffix}`
+      : columnTypeUnreadable(type, where, `the raw type "${type}" is refused: ${refused}`);
+  }
   const texts = [
     ...new Set(
       resolveWrittenSqlTypes(base, dataTypes).map((resolved) => catalogTextOf(resolved, dataTypes)),
@@ -135,9 +141,6 @@ export function alterTypeCheckText(
     const [schema, ...rest] = name;
     const unqualified = rest.length > 0 && schema === DEFAULT_NAMESPACE_ID ? rest : name;
     return `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}`;
-  }
-  if (dataTypes.some((dataType) => isSqlDataType(dataType) && namesTypeAsReported(dataType))) {
-    return `${base}${suffix}`;
   }
   return columnTypeUnreadable(
     type,

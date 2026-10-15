@@ -35,6 +35,7 @@ import {
   type SqlMigrationPlanOperation,
   type StatementColumn,
 } from '@internal/family-sql/control';
+import type { DataType } from '@internal/framework-components/codec';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
@@ -50,7 +51,7 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
 import {
-  renderColumnAlterCheckType,
+  columnTypeIsCatalogText,
   renderColumnAlterType,
   renderColumnDdl,
   resolveColumnTemporaryDefault,
@@ -146,6 +147,8 @@ export interface StrategyContext {
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
   readonly statementColumns: FieldStatementColumns;
+  /** The data types of the stack, which read a type as a migration writes it. */
+  readonly dataTypes: readonly DataType[];
 }
 
 // ============================================================================
@@ -315,7 +318,8 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
           kind: 'placeholder',
           slot: `${converted.text}:convert`,
         },
-        checkType: renderColumnAlterCheckType(expected, ctx.types),
+        ...(columnTypeIsCatalogText(expected, ctx.types) ? { raw: true as const } : {}),
+        dataTypes: ctx.dataTypes,
       }),
     );
     if (expected.nullable !== actual.nullable) {

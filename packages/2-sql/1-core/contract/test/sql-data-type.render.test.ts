@@ -191,9 +191,10 @@ describe('renderSqlCatalogText', () => {
     expect(() => renderSqlCatalogText(character, {})).toThrow(/t\/character/);
   });
 
-  it('is what render gives for a type that renders and claims no kind', () => {
+  it('is what render gives for a type whose name is its catalog text', () => {
     const named = sqlDataType<{ name: string }>('t/named', {
       params: type({ name: 'string' }),
+      nameIsCatalogText: true,
       render: ({ name }) => name,
     });
     expect(renderSqlCatalogText(named, { name: 'circle' })).toBe('circle');

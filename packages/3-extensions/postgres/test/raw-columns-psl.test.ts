@@ -94,3 +94,21 @@ describe('Raw(...) in a Postgres schema', () => {
     ]);
   });
 });
+
+describe('the text of Raw(...) in a Postgres schema', () => {
+  it.each([
+    ['a semicolon', 'text; drop table x'],
+    ['a line comment', 'text -- x'],
+    ['a trailing space', 'tsvector '],
+    ['a comma outside parentheses', 'text, y int4'],
+  ])('is refused when it has %s', (_name, sql) => {
+    const result = emit(`model Category {
+  id   Int @id
+  area Raw("${sql}")
+}
+`);
+    expect(result.ok ? [] : result.failure.diagnostics.map((d) => d.message)).toEqual([
+      expect.stringContaining('A raw type is one type name'),
+    ]);
+  });
+});

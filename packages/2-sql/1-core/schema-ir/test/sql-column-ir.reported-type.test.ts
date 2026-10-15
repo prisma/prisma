@@ -1,19 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { SqlColumnIR, type SqlColumnIRInput } from '../src/ir/sql-column-ir';
 
+function reported(text: string): NonNullable<SqlColumnIRInput['reportedType']> {
+  return { text, kind: undefined, schema: undefined, name: undefined };
+}
+
+/** A contract-derived column whose type is named by its catalog text. */
 function expectedColumn(type: string, overrides: Partial<SqlColumnIRInput> = {}): SqlColumnIR {
   return new SqlColumnIR({
     name: 'c',
     nativeType: type,
     nullable: false,
     resolvedNativeType: type,
-    comparesReportedType: true,
+    reportedType: reported(type),
     ...overrides,
   });
 }
 
 function introspectedColumn(
-  reported: string,
+  text: string,
   normalized: string,
   overrides: Partial<SqlColumnIRInput> = {},
 ): SqlColumnIR {
@@ -22,25 +27,33 @@ function introspectedColumn(
     nativeType: normalized,
     nullable: false,
     resolvedNativeType: normalized,
-    reportedType: { text: reported, kind: undefined, schema: 'pg_catalog', name: reported },
+    reportedType: { text, kind: undefined, schema: 'pg_catalog', name: text },
     ...overrides,
   });
 }
 
-describe('a column whose type compares with the reported type', () => {
+describe('two columns that both carry a reported type', () => {
   const integerColumn = introspectedColumn('integer', 'int4');
 
-  it('matches the text the database reports', () => {
-    expect(expectedColumn('integer').isEqualTo(integerColumn)).toBe(true);
-    expect(expectedColumn('integer').typeDiffersFrom(integerColumn)).toBe(false);
+  it('match when the reported texts match, whichever side is asked', () => {
+    expect([
+      expectedColumn('integer').isEqualTo(integerColumn),
+      integerColumn.isEqualTo(expectedColumn('integer')),
+      expectedColumn('integer').typeDiffersFrom(integerColumn),
+    ]).toEqual([true, true, false]);
   });
 
-  it('does not match another name for the type', () => {
-    expect(expectedColumn('int4').isEqualTo(integerColumn)).toBe(false);
-    expect(expectedColumn('int4').typeDiffersFrom(integerColumn)).toBe(true);
+  it('differ when the texts differ, even where the resolved types match, whichever side is asked', () => {
+    const alias = expectedColumn('int4');
+    expect([
+      alias.isEqualTo(integerColumn),
+      integerColumn.isEqualTo(alias),
+      alias.typeDiffersFrom(integerColumn),
+      integerColumn.typeDiffersFrom(alias),
+    ]).toEqual([false, false, true, true]);
   });
 
-  it('compares a list column by its element type and the list flag', () => {
+  it('compare a list column by its element type and the list flag', () => {
     const tsvectors = introspectedColumn('tsvector', 'tsvector', {
       many: true,
       resolvedNativeType: 'tsvector[]',
@@ -53,14 +66,7 @@ describe('a column whose type compares with the reported type', () => {
     ]).toEqual([true, false]);
   });
 
-  it('compares the resolved types when the other side reports no type', () => {
-    expect([
-      expectedColumn('integer').isEqualTo(expectedColumn('integer')),
-      expectedColumn('integer').isEqualTo(expectedColumn('int4')),
-    ]).toEqual([true, false]);
-  });
-
-  it('still compares nullability', () => {
+  it('still compare nullability', () => {
     expect(
       expectedColumn('integer').isEqualTo(
         introspectedColumn('integer', 'int4', { nullable: true }),
@@ -68,41 +74,23 @@ describe('a column whose type compares with the reported type', () => {
     ).toBe(false);
   });
 
-  it('explains a type mismatch with the text the database reports', () => {
+  it('explain a type mismatch with both texts', () => {
     expect(expectedColumn('int4').explainMismatch(integerColumn)).toBe(
-      'The column type is "int4", but the database reports "integer". This type is compared with the text the database reports, exactly.',
+      'The column type is "int4", but the database reports "integer". A type named by its catalog text is compared with the text the database reports, exactly.',
     );
   });
 
-  it('explains nothing when only the nullability differs', () => {
+  it('explain nothing when only the nullability differs', () => {
     expect(
       expectedColumn('integer').explainMismatch(
         introspectedColumn('integer', 'int4', { nullable: true }),
       ),
     ).toBeUndefined();
   });
-
-  it('carries the rule in JSON and structural equality', () => {
-    const plain = new SqlColumnIR({
-      name: 'c',
-      nativeType: 'integer',
-      nullable: false,
-      resolvedNativeType: 'integer',
-    });
-    expect(JSON.parse(JSON.stringify(expectedColumn('integer')))).toEqual({
-      nodeKind: 'sql-column',
-      name: 'c',
-      nativeType: 'integer',
-      nullable: false,
-      resolvedNativeType: 'integer',
-      comparesReportedType: true,
-    });
-    expect(expectedColumn('integer')).not.toEqual(plain);
-  });
 });
 
-describe('a column whose type compares through the resolved type', () => {
-  it('matches the normalized type and ignores the reported text', () => {
+describe('a column with no reported type', () => {
+  it('compares the resolved types, ignoring the reported text of the other side', () => {
     const expected = new SqlColumnIR({
       name: 'c',
       nativeType: 'int4',
@@ -112,8 +100,9 @@ describe('a column whose type compares through the resolved type', () => {
     const actual = introspectedColumn('integer', 'int4');
     expect([
       expected.isEqualTo(actual),
+      actual.isEqualTo(expected),
       expected.typeDiffersFrom(actual),
       expected.explainMismatch(actual),
-    ]).toEqual([true, false, undefined]);
+    ]).toEqual([true, true, false, undefined]);
   });
 });

@@ -1,7 +1,8 @@
+import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import {
   findSqlDataTypeCollision,
-  namesTypeAsReported,
+  nameIsCatalogText,
   renderSqlCatalogText,
   renderSqlTypeName,
   resolveReportedSqlType,
@@ -20,14 +21,19 @@ describe('the sql/raw data type', () => {
     expect(SQL_RAW_DATA_TYPE_ID).toBe('sql/raw');
   });
 
-  it('writes and prints its sql parameter as given', () => {
+  it('writes, prints and names its type as its sql parameter, as given', () => {
     const params = { sql: 'character varying(10)' };
     expect([
       renderSqlTypeName(sqlRawDataType, params),
       renderSqlCatalogText(sqlRawDataType, params),
-      sqlBaseName(sqlRawDataType, params),
       unquotedSqlBaseName(sqlRawDataType, params),
-    ]).toEqual(Array(4).fill('character varying(10)'));
+    ]).toEqual(Array(3).fill('character varying(10)'));
+  });
+
+  it('has no base name, since its parameters cannot be separated from its name', () => {
+    expect(() => sqlBaseName(sqlRawDataType, { sql: 'character varying(10)' })).toThrow(
+      InternalError,
+    );
   });
 
   it('keeps letter case, quotes and schema in the text', () => {
@@ -36,10 +42,45 @@ describe('the sql/raw data type', () => {
     );
   });
 
-  it('refuses a missing, empty or non-string sql parameter', () => {
+  it('refuses a missing or non-string sql parameter', () => {
     expect(() => renderSqlTypeName(sqlRawDataType, {})).toThrow(invalidParams);
-    expect(() => renderSqlTypeName(sqlRawDataType, { sql: '' })).toThrow(invalidParams);
     expect(() => renderSqlTypeName(sqlRawDataType, { sql: 4 })).toThrow(invalidParams);
+  });
+
+  it.each([
+    'tsvector',
+    'character varying(10)',
+    'geometry(Point,4326)',
+    'numeric(10, 2)',
+    'timestamp(3) with time zone',
+    'extensions.ltree',
+    'extensions."LTree"',
+    'integer[]',
+  ])('takes the type text %s', (sql) => {
+    expect(renderSqlTypeName(sqlRawDataType, { sql })).toBe(sql);
+  });
+
+  it.each([
+    ['blank', ''],
+    ['only spaces', '   '],
+    ['a leading space', ' tsvector'],
+    ['a trailing space', 'tsvector '],
+    ['a semicolon', 'text; drop table "User"'],
+    ['a line comment', 'text -- x'],
+    ['a block comment', 'text /* x */'],
+    ['dollar quoting', 'text default $$x$$'],
+    ['a comma outside parentheses', 'text, "y" int4'],
+    ['an unclosed parenthesis', 'numeric(10'],
+    ['a parenthesis closed before it opens', 'numeric)10('],
+  ])('refuses a type text with %s, saying what a raw type is', (_name, sql) => {
+    expect(() => renderSqlTypeName(sqlRawDataType, { sql })).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.TYPE_PARAMS_INVALID',
+        message: expect.stringContaining(
+          'A raw type is one type name as the database catalog prints it, such as tsvector or geometry(Point,4326): it must not be blank, start or end with whitespace, or contain semicolons, SQL comment tokens, dollar quoting, a comma outside parentheses or unbalanced parentheses.',
+        ),
+      }),
+    );
   });
 
   it('claims no reported type and reads no written text', () => {
@@ -54,10 +95,14 @@ describe('the sql/raw data type', () => {
     ]).toEqual([undefined, undefined, []]);
   });
 
-  it('has no literal values: its canonical form refuses every value', () => {
+  it('has no literal values: its canonical form refuses every value, saying to write sql', () => {
     for (const value of ["'a':1", 1, true, { a: 1 }]) {
       expect(() => sqlRawDataType.toCanonicalForm?.(value)).toThrow(
-        expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED' }),
+        expect.objectContaining({
+          code: 'CONTRACT.LITERAL_VALUES_ABSENT',
+          message:
+            'A raw column has no literal values, so its default cannot be a literal. Write the default as a SQL expression: sql`...`.',
+        }),
       );
     }
   });
@@ -73,12 +118,12 @@ describe('the sql/raw data type', () => {
   });
 });
 
-describe('namesTypeAsReported', () => {
-  it('holds for a type that renders and declares no texts and no kind', () => {
-    expect(namesTypeAsReported(sqlRawDataType)).toBe(true);
+describe('nameIsCatalogText', () => {
+  it('holds for a type that declares it', () => {
+    expect(nameIsCatalogText(sqlRawDataType)).toBe(true);
   });
 
   it('does not hold for a type with texts or one that claims a kind', () => {
-    expect([namesTypeAsReported(int4), namesTypeAsReported(enumType)]).toEqual([false, false]);
+    expect([nameIsCatalogText(int4), nameIsCatalogText(enumType)]).toEqual([false, false]);
   });
 });

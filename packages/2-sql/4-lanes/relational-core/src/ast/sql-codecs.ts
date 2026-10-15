@@ -233,11 +233,29 @@ sqlVarcharColumn satisfies ColumnHelperForStrict<SqlVarcharDescriptor>;
 
 type RawParams = { readonly sql: string };
 
+function isJsonValue(value: unknown): value is JsonValue {
+  if (value === null) return true;
+  switch (typeof value) {
+    case 'string':
+    case 'boolean':
+      return true;
+    case 'number':
+      return Number.isFinite(value);
+    case 'object':
+      if (Array.isArray(value)) return value.every(isJsonValue);
+      return (
+        Object.getPrototypeOf(value) === Object.prototype && Object.values(value).every(isJsonValue)
+      );
+    default:
+      return false;
+  }
+}
+
 /**
  * The codec of a raw column, whose type no other data type claims. Values pass through unchanged and
- * are typed `unknown`, since nothing is known about how the driver represents them. JSON the
- * database returns, such as a raw field inside an include, is read unchanged; no value is written
- * as JSON, so a contract holds no literal of the type. ADR 273.
+ * are typed `unknown`, since nothing is known about them beyond the text the database prints. JSON
+ * passes through unchanged too. A raw column has no literal values, but that is its data type's
+ * rule: the data type's canonical form refuses every literal, wherever one is read. ADR 273.
  */
 export class SqlRawCodec extends CodecImpl<typeof SQL_RAW_CODEC_ID, readonly [], unknown, unknown> {
   async encode(value: unknown, _ctx: CodecCallContext): Promise<unknown> {
@@ -246,12 +264,11 @@ export class SqlRawCodec extends CodecImpl<typeof SQL_RAW_CODEC_ID, readonly [],
   async decode(wire: unknown, _ctx: CodecCallContext): Promise<unknown> {
     return wire;
   }
-  encodeJson(_value: unknown): JsonValue {
-    throw structuredError(
-      'RUNTIME.ENCODE_FAILED',
-      `${this.id} writes no value as JSON: a raw column has no literal default, enum member or JSON value`,
-      { meta: { codecId: this.id } },
-    );
+  encodeJson(value: unknown): JsonValue {
+    if (isJsonValue(value)) return value;
+    throw structuredError('RUNTIME.ENCODE_FAILED', `${this.id} writes only JSON values as JSON`, {
+      meta: { codecId: this.id },
+    });
   }
   decodeJson(json: JsonValue): unknown {
     return json;

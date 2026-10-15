@@ -190,7 +190,7 @@ describe('postgres defineContract encodes literal defaults through the column co
       id,
       encode: async (value: unknown) => value,
       decode: async (wire: unknown) => wire,
-      encodeJson: () => 'encoded by the caller lookup',
+      encodeJson: () => '2030-06-01T00:00:00Z',
       decodeJson: (json: unknown) => json,
     });
     const contract = defineContract(
@@ -218,6 +218,6 @@ describe('postgres defineContract encodes literal defaults through the column co
     );
     expect(
       contract.storage.namespaces['public']?.entries.table?.['Event']?.columns['at']?.default,
-    ).toEqual({ kind: 'literal', value: 'encoded by the caller lookup' });
+    ).toEqual({ kind: 'literal', value: '2030-06-01T00:00:00Z' });
   });
 });

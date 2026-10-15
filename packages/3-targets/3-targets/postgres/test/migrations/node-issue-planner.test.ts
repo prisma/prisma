@@ -7,6 +7,7 @@ import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
+import { postgresDataTypes } from '../../src/core/data-types';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
 import {
   coalesceSubtreeIssues,
@@ -415,8 +416,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       });
       const call = planFor(contract, actual).find((c) => c instanceof AlterColumnTypeCall);
       expect(
-        call instanceof AlterColumnTypeCall && { type: call.type, checkType: call.checkType },
-      ).toEqual({ type: to, checkType });
+        call instanceof AlterColumnTypeCall && {
+          type: call.type,
+          raw: call.raw,
+          checkType: call.checkType,
+        },
+      ).toEqual({ type: to, raw: true, checkType });
     },
   );
 
@@ -582,6 +587,7 @@ describe('mapNodeIssueToCall — synthesized namespace issue', () => {
       policy: { allowedOperationClasses: ['additive'] as const },
       frameworkComponents: postgresTypeComponents,
       statementColumns: { convert: [], backfill: [] },
+      dataTypes: postgresDataTypes,
     };
     const result = mapNodeIssueToCall(issue, ctx);
     expect(result.ok).toBe(true);
@@ -756,6 +762,7 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const },
     frameworkComponents: postgresTypeComponents,
     statementColumns: { convert: [], backfill: [] },
+    dataTypes: postgresDataTypes,
   };
 
   function tableNode(rlsEnabled: boolean): PostgresTableSchemaNode {
