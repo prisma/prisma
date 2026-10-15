@@ -270,7 +270,7 @@ type NamespaceFieldTypes<
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = {
-  readonly [M in keyof Models]: Models[M] extends { readonly fields: infer Fields }
+  readonly [M in keyof Models]: Lookup<Models[M], 'fields'> extends infer Fields
     ? [Fields] extends [never]
       ? never
       : // The fields are a mapped type written here, not an alias, so hovers and errors show the field types.
