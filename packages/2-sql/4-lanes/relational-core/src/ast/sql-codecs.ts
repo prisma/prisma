@@ -22,7 +22,6 @@ import {
   decodeJsonInteger,
   decodeJsonString,
   encodeJsonFloat,
-  refuseJsonValue,
   SAFE_INTEGER_RANGE,
 } from '@internal/framework-components/codec';
 import { structuredError } from '@internal/utils/structured-error';
@@ -234,13 +233,11 @@ sqlVarcharColumn satisfies ColumnHelperForStrict<SqlVarcharDescriptor>;
 
 type RawParams = { readonly sql: string };
 
-const NO_JSON_FORM =
-  'absent: a raw column has no JSON form, so it has no literal default, enum member or JSON value';
-
 /**
  * The codec of a raw column, whose type no other data type claims. Values pass through unchanged and
- * are typed `unknown`, since nothing is known about how the driver represents them. It has no JSON
- * form. ADR 273.
+ * are typed `unknown`, since nothing is known about how the driver represents them. JSON the
+ * database returns, such as a raw field inside an include, is read unchanged; no value is written
+ * as JSON, so a contract holds no literal of the type. ADR 273.
  */
 export class SqlRawCodec extends CodecImpl<typeof SQL_RAW_CODEC_ID, readonly [], unknown, unknown> {
   async encode(value: unknown, _ctx: CodecCallContext): Promise<unknown> {
@@ -252,14 +249,12 @@ export class SqlRawCodec extends CodecImpl<typeof SQL_RAW_CODEC_ID, readonly [],
   encodeJson(_value: unknown): JsonValue {
     throw structuredError(
       'RUNTIME.ENCODE_FAILED',
-      `${this.id} JSON value must be ${NO_JSON_FORM}`,
-      {
-        meta: { codecId: this.id },
-      },
+      `${this.id} writes no value as JSON: a raw column has no literal default, enum member or JSON value`,
+      { meta: { codecId: this.id } },
     );
   }
   decodeJson(json: JsonValue): unknown {
-    return refuseJsonValue(this.id, NO_JSON_FORM, json);
+    return json;
   }
 }
 

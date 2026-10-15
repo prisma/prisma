@@ -54,6 +54,18 @@ describe('the sql/raw data type', () => {
     ]).toEqual([undefined, undefined, []]);
   });
 
+  it('has no literal values: its canonical form refuses every value', () => {
+    for (const value of ["'a':1", 1, true, { a: 1 }]) {
+      expect(() => sqlRawDataType.toCanonicalForm?.(value)).toThrow(
+        expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED' }),
+      );
+    }
+  });
+
+  it('takes no value of another type through a cast', () => {
+    expect([Object.keys(sqlRawDataType.casts), sqlRawDataType.listCast]).toEqual([[], undefined]);
+  });
+
   it('collides with no other data type', () => {
     expect(
       findSqlDataTypeCollision([sqlRawDataType, int4, numeric, timestamp, vector, enumType]),

@@ -98,9 +98,10 @@ export interface SqlColumnIRInput {
   /**
    * Set on a contract-derived column whose data type names its type exactly as the catalog prints it
    * (ADR 273). Its type compares with the other side's `reportedType` text unchanged, not through
-   * the target's other names for types that `resolvedNativeType` applies.
+   * the target's other names for types that `resolvedNativeType` applies. It is part of the
+   * column's JSON and structural equality, since it decides how the column's type compares.
    */
-  readonly comparesReportedType?: boolean;
+  readonly comparesReportedType?: true;
 }
 
 /**
@@ -143,8 +144,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly toCanonicalForm?: ToCanonicalForm;
   /** See {@link SqlColumnIRInput.reportedType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly reportedType?: ReportedSqlType;
-  /** See {@link SqlColumnIRInput.comparesReportedType}. Non-enumerable, same reason as {@link codecRef}. */
-  declare readonly comparesReportedType?: boolean;
+  /** See {@link SqlColumnIRInput.comparesReportedType}. */
+  declare readonly comparesReportedType?: true;
 
   constructor(input: SqlColumnIRInput) {
     super();
@@ -156,13 +157,13 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     if (input.many !== undefined) this.many = input.many;
     if (input.resolvedNativeType !== undefined) this.resolvedNativeType = input.resolvedNativeType;
     if (input.resolvedDefault !== undefined) this.resolvedDefault = input.resolvedDefault;
+    if (input.comparesReportedType === true) this.comparesReportedType = true;
     defineNonEnumerable(this, 'authoredDefault', input.authoredDefault);
     defineNonEnumerable(this, 'codecRef', input.codecRef);
     defineNonEnumerable(this, 'codecBaseNativeType', input.codecBaseNativeType);
     defineNonEnumerable(this, 'dataType', input.dataType);
     defineNonEnumerable(this, 'toCanonicalForm', input.toCanonicalForm);
     defineNonEnumerable(this, 'reportedType', input.reportedType);
-    defineNonEnumerable(this, 'comparesReportedType', input.comparesReportedType);
     freezeNode(this);
   }
 

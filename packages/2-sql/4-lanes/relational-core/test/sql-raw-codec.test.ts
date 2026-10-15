@@ -20,15 +20,9 @@ describe('sql/raw@1', () => {
   it.each([
     ['text', "'a':1"],
     ['a number', 1],
-    ['null', null],
-    ['an object', {}],
-  ])('refuses to read %s as JSON', (_name, json) => {
-    expect(() => codec.decodeJson(json)).toThrow(
-      expect.objectContaining({
-        code: 'RUNTIME.DECODE_FAILED',
-        meta: expect.objectContaining({ codecId: 'sql/raw@1' }),
-      }),
-    );
+    ['an object', { a: [1] }],
+  ])('reads %s the database returns in JSON unchanged', (_name, json) => {
+    expect(codec.decodeJson(json)).toBe(json);
   });
 
   it('refuses to write any value as JSON', () => {

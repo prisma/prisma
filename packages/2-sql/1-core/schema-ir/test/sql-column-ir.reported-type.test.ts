@@ -82,14 +82,22 @@ describe('a column whose type compares with the reported type', () => {
     ).toBeUndefined();
   });
 
-  it('keeps the flag outside JSON', () => {
+  it('carries the rule in JSON and structural equality', () => {
     const plain = new SqlColumnIR({
       name: 'c',
       nativeType: 'integer',
       nullable: false,
       resolvedNativeType: 'integer',
     });
-    expect(JSON.stringify(expectedColumn('integer'))).toBe(JSON.stringify(plain));
+    expect(JSON.parse(JSON.stringify(expectedColumn('integer')))).toEqual({
+      nodeKind: 'sql-column',
+      name: 'c',
+      nativeType: 'integer',
+      nullable: false,
+      resolvedNativeType: 'integer',
+      comparesReportedType: true,
+    });
+    expect(expectedColumn('integer')).not.toEqual(plain);
   });
 });
 
