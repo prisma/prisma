@@ -10,7 +10,7 @@ changes:
         - '@updatedAt\b'
   - id: string-timestamp-codecs-take-text-only
     summary: |
-      The Postgres `pg/timestamp-string@1` and `pg/timestamptz-string@1` codecs, behind `TimestampString(p)` and `TimestamptzString(p)`, no longer accept a `Date` when they encode. Code that writes a `Date` to such a column is now a type error. Write the text instead, such as `date.toISOString()`.
+      The Postgres `pg/timestamp-string@1` and `pg/timestamptz-string@1` codecs, behind `TimestampString(p)` and `TimestamptzString(p)`, now refuse a value that is not text with `RUNTIME.ENCODE_FAILED`. Before, a `Date` that reached them at runtime was converted. The ORM types were already `string`, so code that compiled still compiles. Code that passes a `Date` through a cast or from JavaScript now fails at runtime; write the text instead, such as `date.toISOString()`. A direct call of the codec's `encode` with a `Date` is now a type error.
 ---
 
 # Re-emit contracts that use a string timestamp preset
@@ -21,14 +21,16 @@ The generator's id is in the execution section of `contract.json`, so the execut
 
 # A string timestamp column takes text, not a `Date`
 
-`TimestampString(p)` and `TimestamptzString(p)` columns take and return text. Their codecs also accepted a `Date` on encode; that is removed. Code that passes a `Date` for such a column no longer compiles:
+`TimestampString(p)` and `TimestamptzString(p)` columns take and return text, and the ORM types for them were already `string`, so code that compiled before still compiles. What changes is at runtime: their codecs used to convert a `Date` that reached them, and now they refuse it with `RUNTIME.ENCODE_FAILED`. A `Date` reaches them only through a cast, from JavaScript, or from a contract emitted before this change, whose generator still produced a `Date`, so re-emit the contract first.
 
 ```ts
-// Before
-await db.orm.public.Post.create({ title: 'Hello', publishedAt: new Date() });
+// Before: compiles only through a cast, and was converted at runtime
+await db.orm.public.Post.create({ title: 'Hello', publishedAt: new Date() as unknown as string });
 
 // After
 await db.orm.public.Post.create({ title: 'Hello', publishedAt: new Date().toISOString() });
 ```
 
-To work with `Date` values, use a `TimestamptzJsDate(p)` column (`temporal.timestamptzJsDate(...)` as a preset) instead.
+A direct call of the codec's `encode` with a `Date` is now a type error as well.
+
+To work with `Date` values, you can change the column to `TimestamptzJsDate(p)` (`temporal.timestamptzJsDate(...)` as a preset). That changes the column type to `timestamptz`, so it needs a migration: plan and apply one with `prisma migration plan` and `prisma migration apply`, and check how existing `timestamp` values convert, because Postgres reads them in the session's time zone.

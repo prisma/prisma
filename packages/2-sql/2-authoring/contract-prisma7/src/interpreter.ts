@@ -2,7 +2,7 @@ import type {
   ContractSourceDiagnostic,
   ContractSourceDiagnostics,
 } from '@internal/config/config-types';
-import type { Contract } from '@internal/contract/types';
+import type { Contract, ExecutionMutationDefaultValue } from '@internal/contract/types';
 import type {
   AuthoringEntityContext,
   AuthoringEntityTypeDescriptor,
@@ -82,7 +82,7 @@ import {
   type RelationField,
   type RelationModel,
 } from './relations';
-import type { Prisma7TargetBinding } from './target-binding';
+import type { Prisma7ColumnType, Prisma7TargetBinding } from './target-binding';
 
 export interface Prisma7Document {
   readonly document: DocumentAst;
@@ -156,14 +156,17 @@ interface ModelBuild {
 
 type NamespaceEntities = Map<string, Record<string, Record<string, unknown>>>;
 
-function updatedAtGeneratorIdOf(binding: Prisma7TargetBinding, codecId: string): string {
-  const generatorId = binding.updatedAtGeneratorId(codecId);
-  if (generatorId === undefined) {
+function updatedAtGeneratorOf(
+  binding: Prisma7TargetBinding,
+  column: Pick<Prisma7ColumnType, 'codecId' | 'typeParams'>,
+): ExecutionMutationDefaultValue {
+  const generator = binding.updatedAtGenerator(column);
+  if (generator === undefined) {
     throw new InternalError(
-      `The Prisma 7 target binding has no "now" generator for codec "${codecId}". Every column type Prisma 7 accepts @updatedAt on maps to a codec with one.`,
+      `The Prisma 7 target binding has no "now" generator for codec "${column.codecId}". Every DateTime column type maps to a codec with one.`,
     );
   }
-  return generatorId;
+  return generator;
 }
 
 function stringArgument(attribute: ResolvedAttribute): string | undefined {
@@ -1065,6 +1068,18 @@ function readField(args: ReadFieldArgs): void {
     return;
   }
 
+  if (updatedAt !== undefined && field.typeName !== 'DateTime') {
+    diagnostics.push(
+      prisma7Diagnostic(
+        'PSL.PRISMA7_UPDATED_AT_NOT_DATE_TIME',
+        `${label} has type "${field.typeName}", but @updatedAt is only allowed on a DateTime field. Prisma 7 refuses this schema too: "Fields that are marked with @updatedAt must be of type DateTime." Remove @updatedAt, or change the field's type to DateTime.`,
+        sourceId,
+        updatedAt.span,
+      ),
+    );
+    return;
+  }
+
   const enumDeclaration = args.enums.get(field.typeName);
   let call: ResolvedTypeConstructorCall;
   if (enumDeclaration !== undefined) {
@@ -1157,10 +1172,7 @@ function readField(args: ReadFieldArgs): void {
   const updatedAtGenerator =
     updatedAt === undefined || ignored
       ? undefined
-      : {
-          kind: 'generator' as const,
-          id: updatedAtGeneratorIdOf(binding, resolved.descriptor.codecId),
-        };
+      : updatedAtGeneratorOf(binding, resolved.descriptor);
   const lowered =
     defaultAttribute === undefined
       ? undefined

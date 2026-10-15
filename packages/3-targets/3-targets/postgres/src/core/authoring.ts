@@ -83,7 +83,7 @@ import {
   fullTextIndexProblems,
 } from './full-text-index-definition';
 import { type FullTextFieldsInput, weightGroupsOf } from './full-text-weight-groups';
-import { postgresNowGeneratorIds } from './now-generators';
+import { postgresNowGeneratorIds, postgresNowGeneratorTakesPrecision } from './now-generators';
 import { postgresCodecTraitsOf } from './postgres-codec-traits';
 import { PostgresNativeEnum } from './postgres-native-enum';
 import { PostgresRlsEnablement, type PostgresRlsEnablementInput } from './postgres-rls-enablement';
@@ -926,25 +926,28 @@ export const postgresAuthoringFieldPresets = {
       codecId: PG_TIMESTAMPTZ_STRING_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMESTAMPTZ_STRING_CODEC_ID],
     }),
-    date: /* @__PURE__ */ temporalCodecPreset(
-      { codecId: PG_DATE_TEMPORAL_CODEC_ID },
-      postgresNowGeneratorIds[PG_DATE_TEMPORAL_CODEC_ID],
-    ),
-    dateString: /* @__PURE__ */ temporalCodecPreset(
-      { codecId: PG_DATE_STRING_CODEC_ID },
-      postgresNowGeneratorIds[PG_DATE_STRING_CODEC_ID],
-    ),
+    date: /* @__PURE__ */ temporalCodecPreset({
+      codecId: PG_DATE_TEMPORAL_CODEC_ID,
+      generatorId: postgresNowGeneratorIds[PG_DATE_TEMPORAL_CODEC_ID],
+    }),
+    dateString: /* @__PURE__ */ temporalCodecPreset({
+      codecId: PG_DATE_STRING_CODEC_ID,
+      generatorId: postgresNowGeneratorIds[PG_DATE_STRING_CODEC_ID],
+    }),
     time: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       codecId: PG_TIME_TEMPORAL_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIME_TEMPORAL_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIME_TEMPORAL_CODEC_ID],
     }),
     timeString: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       codecId: PG_TIME_STRING_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIME_STRING_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIME_STRING_CODEC_ID],
     }),
     timetz: /* @__PURE__ */ temporalCodecPresetWithPrecision({
       codecId: PG_TIMETZ_CODEC_ID,
       generatorId: postgresNowGeneratorIds[PG_TIMETZ_CODEC_ID],
+      nowTakesPrecision: postgresNowGeneratorTakesPrecision[PG_TIMETZ_CODEC_ID],
     }),
   },
   uuidNative: {

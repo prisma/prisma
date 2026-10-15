@@ -113,7 +113,7 @@
     }
   },
   "execution": {
-    "executionHash": "184d1a0ea370d8c292d2ea79c67627ef3c23e106bb2692b2ae49e8df135931e6",
+    "executionHash": "83f4b551a00cf2ae263f55d9867bf1014a7876d4667e3cae6ec350ad80301509",
     "mutations": {
       "defaults": [
         {
@@ -124,11 +124,11 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "dateTextNow"
+            "id": "dateStringNow"
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "dateTextNow"
+            "id": "dateStringNow"
           }
         },
         {
@@ -139,11 +139,11 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "dateTextNow"
+            "id": "dateStringNow"
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "dateTextNow"
+            "id": "dateStringNow"
           }
         },
         {
@@ -154,11 +154,11 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "dateTextNow"
+            "id": "dateStringNow"
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "dateTextNow"
+            "id": "dateStringNow"
           }
         },
         {
@@ -169,11 +169,17 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "timeTextNow"
+            "id": "timeStringNow",
+            "params": {
+              "precision": 6
+            }
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "timeTextNow"
+            "id": "timeStringNow",
+            "params": {
+              "precision": 6
+            }
           }
         },
         {
@@ -184,11 +190,17 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "timeTextNow"
+            "id": "timeStringNow",
+            "params": {
+              "precision": 6
+            }
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "timeTextNow"
+            "id": "timeStringNow",
+            "params": {
+              "precision": 6
+            }
           }
         },
         {
@@ -199,11 +211,17 @@
           },
           "onCreate": {
             "kind": "generator",
-            "id": "timetzTextNow"
+            "id": "timetzNow",
+            "params": {
+              "precision": 6
+            }
           },
           "onUpdate": {
             "kind": "generator",
-            "id": "timetzTextNow"
+            "id": "timetzNow",
+            "params": {
+              "precision": 6
+            }
           }
         }
       ]

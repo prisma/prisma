@@ -14,7 +14,10 @@ describe('generated values with a database default or on an optional field', () 
       temporal: {
         timestamptz: temporalCodecPresetMirrors.pgTimestamptz,
         timestampString: temporalCodecPresetMirrors.pgTimestampString,
-        dateString: temporalCodecPreset({ codecId: 'pg/date-string@1' }, 'dateTextNow'),
+        dateString: temporalCodecPreset({
+          codecId: 'pg/date-string@1',
+          generatorId: 'dateStringNow',
+        }),
       },
     },
   } as const;
@@ -97,17 +100,17 @@ describe('generated values with a database default or on an optional field', () 
     });
 
     const ref = (field: string) => ({ namespace: 'public', entry: 'Post', field });
-    const timestampTextNow = { kind: 'generator', id: 'timestampTextNow' };
+    const timestampStringNow = { kind: 'generator', id: 'timestampStringNow' };
     expect(result.value.execution?.mutations.defaults).toEqual([
       {
         ref: ref('day'),
-        onCreate: { kind: 'generator', id: 'dateTextNow' },
-        onUpdate: { kind: 'generator', id: 'dateTextNow' },
+        onCreate: { kind: 'generator', id: 'dateStringNow' },
+        onUpdate: { kind: 'generator', id: 'dateStringNow' },
       },
-      { ref: ref('editedAt'), onCreate: timestampTextNow, onUpdate: timestampTextNow },
+      { ref: ref('editedAt'), onCreate: timestampStringNow, onUpdate: timestampStringNow },
       { ref: ref('token'), onCreate: { kind: 'generator', id: 'uuidv4' } },
       { ref: ref('touchedAt'), onUpdate: { kind: 'generator', id: 'timestampNow' } },
-      { ref: ref('updatedAt'), onCreate: timestampTextNow, onUpdate: timestampTextNow },
+      { ref: ref('updatedAt'), onCreate: timestampStringNow, onUpdate: timestampStringNow },
     ]);
   });
 });

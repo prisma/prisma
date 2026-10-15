@@ -818,6 +818,10 @@ A `@default` value the source cannot read, or one the column's data type or code
 
 `Unsupported("...")` or an unknown field type. For `Unsupported("...")`, Prisma 8 cannot read the schema until it supports the column type; `@@ignore` on the model does not help, because Prisma 8 keeps the columns of ignored models in the contract, and removing the field drops its column on Prisma 7's next migration. For an unknown type, correct the type name. Reported by the Prisma 7 contract source (`prisma7Schema`) during `contract emit` or `contract print`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.
 
+### PSL.PRISMA7_UPDATED_AT_NOT_DATE_TIME
+
+`@updatedAt` on a field whose type is not `DateTime`. Prisma 7 refuses it too, with "Fields that are marked with @updatedAt must be of type DateTime." Remove `@updatedAt`, or change the field's type to `DateTime`. Reported at the `@updatedAt` attribute by the Prisma 7 contract source (`prisma7Schema`) during `contract emit` or `contract print`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.
+
 ### PSL.PRISMA7_VIEW_UNSUPPORTED
 
 A `view` block; Prisma 8 has no views. Remove the view, or replace it with a model over the underlying table. Reported by the Prisma 7 contract source (`prisma7Schema`) during `contract emit` or `contract print`, as a finding in the `diagnostics` list of `CONTRACT.SOURCE_LOAD_FAILED`, never on its own. `summary` is `<file>:<line>:<column> <message>`, with only the file when there is no position (the terminal prints the code before it), and `where` carries `path` and, when known, `line`. Payload: none.

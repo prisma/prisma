@@ -10,11 +10,7 @@ import { timestampNowControlDescriptor } from '@internal/framework-components/co
 import { builtinGeneratorRegistryMetadata } from '@internal/ids';
 import type { FuncCallSig } from '@internal/psl-parser';
 import { int, num, oneOf, optional } from '@internal/psl-parser';
-import {
-  instantNowControlDescriptor,
-  plainDateTimeNowControlDescriptor,
-  postgresDateTimeNowControlDescriptors,
-} from '@internal/target-postgres/control';
+import { postgresNowGeneratorControlDescriptors } from '@internal/target-postgres/control';
 
 function executionGenerator(
   id: ExecutionMutationDefaultValue['id'],
@@ -185,8 +181,6 @@ export function createPostgresMutationDefaultGeneratorDescriptors(): readonly Mu
       }),
     ),
     timestampNowControlDescriptor(),
-    instantNowControlDescriptor(),
-    plainDateTimeNowControlDescriptor(),
-    ...postgresDateTimeNowControlDescriptors(),
+    ...postgresNowGeneratorControlDescriptors(),
   ];
 }

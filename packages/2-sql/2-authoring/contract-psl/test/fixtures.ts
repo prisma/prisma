@@ -812,12 +812,12 @@ export const temporalCodecPresetMirrors = {
         onCreate: {
           kind: 'select',
           index: 1,
-          cases: { now: { kind: 'generator', id: 'timestampTextNow' } },
+          cases: { now: { kind: 'generator', id: 'timestampStringNow' } },
         },
         onUpdate: {
           kind: 'select',
           index: 2,
-          cases: { now: { kind: 'generator', id: 'timestampTextNow' } },
+          cases: { now: { kind: 'generator', id: 'timestampStringNow' } },
         },
       },
     },

@@ -1863,6 +1863,10 @@ function resolveExecutionMutationDefaultPhase(
       `Authoring preset executionDefaults.${phase} did not resolve to a valid generator descriptor (kind: 'generator', id: string).`,
     );
   }
+  if (value.params !== undefined && Object.keys(value.params).length === 0) {
+    const { params: _unfilled, ...generator } = value;
+    return generator;
+  }
   return value;
 }
 

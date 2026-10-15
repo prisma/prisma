@@ -35,6 +35,7 @@ import {
   pgTimestampStoredText,
   pgTimestamptzStoredText,
 } from './date-time-stored-text';
+import { errorTimestampTextWrongType } from './errors';
 
 export class PgDateStringCodec extends CodecImpl<
   typeof PG_DATE_STRING_CODEC_ID,
@@ -77,6 +78,17 @@ export const pgDateStringColumn = () =>
 pgDateStringColumn satisfies ColumnHelperFor<PgDateStringDescriptor>;
 pgDateStringColumn satisfies ColumnHelperForStrict<PgDateStringDescriptor>;
 
+function requireText(codecId: string, value: unknown): string {
+  if (typeof value === 'string') return value;
+  throw errorTimestampTextWrongType(codecId, describeValue(value));
+}
+
+function describeValue(value: unknown): string {
+  if (value === null) return 'null';
+  if (value instanceof Date) return 'a Date';
+  return `a ${typeof value}`;
+}
+
 export class PgTimestampStringCodec extends CodecImpl<
   typeof PG_TIMESTAMP_STRING_CODEC_ID,
   readonly ['equality', 'order'],
@@ -84,7 +96,7 @@ export class PgTimestampStringCodec extends CodecImpl<
   string
 > {
   async encode(value: string, _ctx: CodecCallContext): Promise<string> {
-    return value;
+    return requireText(this.id, value);
   }
   async decode(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;
@@ -145,7 +157,7 @@ export class PgTimestamptzStringCodec extends CodecImpl<
   string
 > {
   async encode(value: string, _ctx: CodecCallContext): Promise<string> {
-    return value;
+    return requireText(this.id, value);
   }
   async decode(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;

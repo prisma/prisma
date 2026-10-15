@@ -11,13 +11,7 @@ import {
   assemblePostgresCodecRegistry,
   postgresCodecRegistry,
 } from '@internal/target-postgres/codecs';
-import {
-  INSTANT_NOW_GENERATOR_ID,
-  instantNow,
-  PLAIN_DATE_TIME_NOW_GENERATOR_ID,
-  plainDateTimeNow,
-  postgresDateTimeNowGenerators,
-} from '@internal/target-postgres/runtime';
+import { postgresNowGenerators } from '@internal/target-postgres/runtime';
 import { createPostgresAdapterWithCodecRegistry, postgresRawCodecInferer } from '../core/adapter';
 import { postgresAdapterDescriptorMeta } from '../core/descriptor-meta';
 import type { PostgresContract, PostgresLoweredStatement } from '../core/types';
@@ -39,20 +33,10 @@ function createPostgresMutationDefaultGenerators(): ReadonlyArray<RuntimeMutatio
       }),
     ),
     timestampNowRuntimeGenerator(),
-    {
-      id: INSTANT_NOW_GENERATOR_ID,
-      generate: () => instantNow(),
-      stability: 'query',
-    },
-    {
-      id: PLAIN_DATE_TIME_NOW_GENERATOR_ID,
-      generate: () => plainDateTimeNow(),
-      stability: 'query',
-    },
-    ...postgresDateTimeNowGenerators.map(
+    ...postgresNowGenerators.map(
       ({ id, generate }): RuntimeMutationDefaultGenerator => ({
         id,
-        generate: () => generate(),
+        generate,
         stability: 'query',
       }),
     ),

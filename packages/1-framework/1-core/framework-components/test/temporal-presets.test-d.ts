@@ -8,12 +8,13 @@ const custom = temporalAuthoringPresets({
   generatorId: 'dateNow',
 });
 const codecPreset = temporalCodecPreset({ codecId: 'test/date@1' });
-const customCodecPreset = temporalCodecPreset({ codecId: 'test/date@1' }, 'dateNow');
+const customCodecPreset = temporalCodecPreset({ codecId: 'test/date@1', generatorId: 'dateNow' });
 
 test('presets are field-preset descriptors', () => {
   expectTypeOf(presets).toExtend<Record<string, AuthoringFieldPresetDescriptor>>();
   expectTypeOf(custom).toExtend<Record<string, AuthoringFieldPresetDescriptor>>();
   expectTypeOf(codecPreset).toExtend<AuthoringFieldPresetDescriptor>();
+  expectTypeOf(customCodecPreset).toExtend<AuthoringFieldPresetDescriptor>();
 });
 
 test('the storage template and generator id survive as literals', () => {

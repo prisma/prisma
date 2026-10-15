@@ -148,7 +148,7 @@ describe('downstream mirrors track the factories', () => {
     expect(temporalCodecPresetMirrors.pgTimestampString).toEqual(
       temporalCodecPresetWithPrecision({
         codecId: 'pg/timestamp-string@1',
-        generatorId: 'timestampTextNow',
+        generatorId: 'timestampStringNow',
       }),
     );
   });

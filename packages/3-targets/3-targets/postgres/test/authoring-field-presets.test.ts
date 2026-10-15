@@ -4,6 +4,7 @@ import {
 } from '@internal/family-sql/control';
 import {
   collectScalarTypeConstructors,
+  instantiateAuthoringFieldPreset,
   temporalAuthoringPresets,
   temporalCodecPreset,
 } from '@internal/framework-components/authoring';
@@ -97,7 +98,7 @@ describe('postgres temporal per-codec presets', () => {
       }),
       ...temporalStringAuthoringPresets({
         codecId: 'pg/timestamptz-string@1',
-        generatorId: 'timestamptzTextNow',
+        generatorId: 'timestamptzStringNow',
       }),
       createdAtJsDate: temporalAuthoringPresets({
         codecId: 'pg/timestamptz-date@1',
@@ -118,25 +119,31 @@ describe('postgres temporal per-codec presets', () => {
       }),
       timestampString: temporalCodecPresetWithPrecision({
         codecId: 'pg/timestamp-string@1',
-        generatorId: 'timestampTextNow',
+        generatorId: 'timestampStringNow',
       }),
       timestamptzString: temporalCodecPresetWithPrecision({
         codecId: 'pg/timestamptz-string@1',
-        generatorId: 'timestamptzTextNow',
+        generatorId: 'timestamptzStringNow',
       }),
-      date: temporalCodecPreset({ codecId: 'pg/date-temporal@1' }, 'plainDateNow'),
-      dateString: temporalCodecPreset({ codecId: 'pg/date-string@1' }, 'dateTextNow'),
+      date: temporalCodecPreset({ codecId: 'pg/date-temporal@1', generatorId: 'plainDateNow' }),
+      dateString: temporalCodecPreset({
+        codecId: 'pg/date-string@1',
+        generatorId: 'dateStringNow',
+      }),
       time: temporalCodecPresetWithPrecision({
         codecId: 'pg/time-temporal@1',
         generatorId: 'plainTimeNow',
+        nowTakesPrecision: true,
       }),
       timeString: temporalCodecPresetWithPrecision({
         codecId: 'pg/time-string@1',
-        generatorId: 'timeTextNow',
+        generatorId: 'timeStringNow',
+        nowTakesPrecision: true,
       }),
       timetz: temporalCodecPresetWithPrecision({
         codecId: 'pg/timetz@1',
-        generatorId: 'timetzTextNow',
+        generatorId: 'timetzNow',
+        nowTakesPrecision: true,
       }),
     });
   });
@@ -144,11 +151,8 @@ describe('postgres temporal per-codec presets', () => {
   it.each([
     ['timestamp', 'plainDateTimeNow'],
     ['timestamptz', 'instantNow'],
-    ['timestampString', 'timestampTextNow'],
-    ['timestamptzString', 'timestamptzTextNow'],
-    ['time', 'plainTimeNow'],
-    ['timeString', 'timeTextNow'],
-    ['timetz', 'timetzTextNow'],
+    ['timestampString', 'timestampStringNow'],
+    ['timestamptzString', 'timestamptzStringNow'],
   ] as const)(
     'temporal.%s answers `now` with the %s generator, the representation its codec encodes',
     (helper, generatorId) => {
@@ -168,8 +172,31 @@ describe('postgres temporal per-codec presets', () => {
   );
 
   it.each([
+    ['time', 'plainTimeNow'],
+    ['timeString', 'timeStringNow'],
+    ['timetz', 'timetzNow'],
+  ] as const)(
+    'temporal.%s answers `now` with the %s generator, given the precision so it rounds down',
+    (helper, generatorId) => {
+      const now = {
+        kind: 'generator',
+        id: generatorId,
+        params: { precision: { kind: 'arg', index: 0 } },
+      };
+      expect(postgresAuthoringFieldPresets.temporal[helper].output.executionDefaults).toEqual({
+        onCreate: { kind: 'select', index: 1, cases: { now } },
+        onUpdate: { kind: 'select', index: 2, cases: { now } },
+      });
+      expect(
+        instantiateAuthoringFieldPreset(postgresAuthoringFieldPresets.temporal[helper], [0, 'now'])
+          .executionDefaults,
+      ).toEqual({ onCreate: { kind: 'generator', id: generatorId, params: { precision: 0 } } });
+    },
+  );
+
+  it.each([
     ['date', 'plainDateNow'],
-    ['dateString', 'dateTextNow'],
+    ['dateString', 'dateStringNow'],
   ] as const)(
     'temporal.%s takes no precision and answers `now` with the %s generator',
     (helper, generatorId) => {
@@ -205,7 +232,7 @@ describe('postgres temporal per-codec presets', () => {
 
   it.each([
     ['updatedAt', 'instantNow'],
-    ['updatedAtString', 'timestamptzTextNow'],
+    ['updatedAtString', 'timestamptzStringNow'],
   ] as const)('gives %s the %s generator on both phases', (helper, generatorId) => {
     expect(postgresAuthoringFieldPresets.temporal[helper].output.executionDefaults).toEqual({
       onCreate: { kind: 'generator', id: generatorId },
@@ -215,7 +242,7 @@ describe('postgres temporal per-codec presets', () => {
 
   it.each([
     ['createdAt', 'instantNow'],
-    ['createdAtString', 'timestamptzTextNow'],
+    ['createdAtString', 'timestamptzStringNow'],
   ] as const)('gives %s the %s generator only on create', (helper, generatorId) => {
     const output = postgresAuthoringFieldPresets.temporal[helper].output;
     expect(output.executionDefaults).toEqual({

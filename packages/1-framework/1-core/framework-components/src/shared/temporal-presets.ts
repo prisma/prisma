@@ -1,6 +1,6 @@
 import type {
-  AuthoringFieldPresetDescriptor,
   AuthoringStorageTypeTemplate,
+  AuthoringTemplateValue,
   ScalarTypeConstructorOutput,
 } from './framework-authoring';
 import type { MutationDefaultGeneratorDescriptor } from './mutation-default-types';
@@ -78,16 +78,22 @@ export const TEMPORAL_ON_UPDATE_ARG = {
 } as const;
 
 /**
- * Selects a generator descriptor for the preset's `now` token. The token is preset vocabulary; the generator id never appears in a user's spelling (ADR 169 — these generators are preset-only).
+ * Selects a generator descriptor for the preset's `now` token. The token is preset vocabulary; the generator id never appears in a user's spelling (ADR 169 — these generators are preset-only). `params` is the template of the generator's params, resolved against the preset's arguments.
  */
-export function temporalPhaseTemplate<const Index extends number, const GeneratorId extends string>(
-  index: Index,
-  generatorId: GeneratorId,
-) {
+export function temporalPhaseTemplate<
+  const Index extends number,
+  const GeneratorId extends string,
+  const Params extends Record<string, AuthoringTemplateValue> | undefined = undefined,
+>(index: Index, generatorId: GeneratorId, params?: Params) {
   return {
     kind: 'select',
     index,
-    cases: { now: { kind: 'generator', id: generatorId } },
+    cases: {
+      now:
+        params === undefined
+          ? ({ kind: 'generator', id: generatorId } as const)
+          : ({ kind: 'generator', id: generatorId, params } as const),
+    },
   } as const;
 }
 
@@ -98,7 +104,8 @@ export function temporalPhaseTemplate<const Index extends number, const Generato
 export function temporalCodecPreset<
   const Storage extends PresetStorageTemplate,
   const GeneratorId extends string = typeof TIMESTAMP_NOW_GENERATOR_ID,
->(storage: Storage, generatorId?: GeneratorId) {
+>(input: Storage & { readonly generatorId?: GeneratorId }) {
+  const { generatorId, ...storage } = input;
   const nowGeneratorId = generatorId ?? TIMESTAMP_NOW_GENERATOR_ID;
   return {
     kind: 'fieldPreset',
@@ -110,5 +117,5 @@ export function temporalCodecPreset<
         onUpdate: temporalPhaseTemplate(1, nowGeneratorId),
       },
     },
-  } as const satisfies AuthoringFieldPresetDescriptor;
+  } as const;
 }
