@@ -886,9 +886,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
          JOIN pg_catalog.pg_type t
            ON t.oid = a.atttypid
          LEFT JOIN pg_catalog.pg_type et
-           ON t.typcategory = 'A'
-           AND t.typelem <> 0
-           AND et.oid = t.typelem
+           ON et.typarray = t.oid
          JOIN pg_catalog.pg_namespace tns
            ON tns.oid = COALESCE(et.typnamespace, t.typnamespace)
          WHERE c.table_schema = $1

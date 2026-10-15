@@ -69,7 +69,8 @@ describe('introspection reports each column type as the database reports it', {
            price numeric(10,2),
            prices numeric(10,2)[],
            stamps timestamptz(3)[],
-           shifted numeric(10,-2)
+           shifted numeric(10,-2),
+           positions int2vector
          )`,
     );
 
@@ -82,6 +83,7 @@ describe('introspection reports each column type as the database reports it', {
         reportedType: catalogType('timestamp(3) with time zone', 'timestamptz'),
       },
       shifted: { many: false, reportedType: catalogType('numeric(10,-2)', 'numeric') },
+      positions: { many: false, reportedType: catalogType('int2vector', 'int2vector') },
     });
   });
 
