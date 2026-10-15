@@ -52,7 +52,7 @@ interface Scenario {
 
 const UPPER_CASE_UUID = 'A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11';
 const UUID_MESSAGE =
-  'pg/uuid@1 JSON value must be a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12';
+  'pg/uuid JSON value must be a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12';
 
 const SCENARIOS: readonly Scenario[] = [
   {
@@ -93,7 +93,7 @@ const SCENARIOS: readonly Scenario[] = [
     column: 'body',
     codecId: 'sqlite/text@1',
     value: 1,
-    codecMessage: 'sqlite/text@1 JSON value must be a string',
+    codecMessage: 'sqlite/text JSON value must be a string',
   },
   {
     name: 'a SQLite table rebuilt for a changed default',
@@ -106,7 +106,7 @@ const SCENARIOS: readonly Scenario[] = [
     column: 'body',
     codecId: 'sqlite/text@1',
     value: 1,
-    codecMessage: 'sqlite/text@1 JSON value must be a string',
+    codecMessage: 'sqlite/text JSON value must be a string',
   },
 ];
 

@@ -208,9 +208,9 @@ model User {
     expect({ accepted, refused: refused.diagnostics }).toEqual({
       accepted: [[], [], [], [], [], []],
       refused: [
-        invalidLiteral('Field "User.a.price": sqlite/text@1 JSON value must be a string'),
+        invalidLiteral('Field "User.a.price": sqlite/text JSON value must be a string'),
         invalidLiteral(
-          'Field "User.a.big": sqlite/bigint@1 JSON value must be a decimal integer string from -9223372036854775808 to 9223372036854775807',
+          'Field "User.a.big": sqlite/integer JSON value must be a decimal integer string from -9223372036854775808 to 9223372036854775807',
         ),
       ],
     });
@@ -251,7 +251,7 @@ model User {
     expect(diagnostics).toEqual([
       {
         code: 'PSL_INVALID_DEFAULT_LITERAL',
-        message: 'Field "User.home.street": sqlite/text@1 JSON value must be a string',
+        message: 'Field "User.home.street": sqlite/text JSON value must be a string',
         sourceId: schemaPath,
         span: defaultSpanOf(schema, 'home'),
       },

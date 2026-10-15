@@ -442,7 +442,7 @@ model T {
       );
 
       const reason =
-        'pg/uuid@1 JSON value must be a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12';
+        'pg/uuid JSON value must be a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12';
       expect(emitted.ok ? [] : emitted.failure.diagnostics?.diagnostics).toEqual([
         expect.objectContaining({
           code: 'PSL_EXTENSION_INVALID_VALUE',
