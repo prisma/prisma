@@ -1,6 +1,6 @@
 import { validateSqlContractFully } from '@internal/sql-contract/validators';
 import type { SqlMiddleware } from '@internal/sql-runtime';
-import { findActivitySource, startActivityOn } from '@internal/sql-runtime/internal/prepared-query';
+import { findActivitySource, startActivityOn } from '@internal/sql-runtime';
 import { describe, expect, it, vi } from 'vitest';
 import type { Contract } from './fixtures/generated/contract';
 import fixtureContractJson from './fixtures/generated/contract.json' with { type: 'json' };

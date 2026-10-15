@@ -15,7 +15,11 @@ import type {
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type { SqlOrmPlan } from '@internal/sql-relational-core/types';
 import type {
+  ActivityExecuteOptions,
   ActivityHandle,
+  ActivityRoute,
+  ActivitySource,
+  ActivitySourceTarget,
   PreparedExecution,
   PreparedExecutionImpl,
   PreparedStatement,
@@ -24,17 +28,13 @@ import type {
   RuntimeTransaction,
   StartActivity,
 } from '@internal/sql-runtime';
+import { activitySource } from '@internal/sql-runtime';
 import type {
-  ActivityExecuteOptions,
-  ActivityRoute,
-  ActivitySource,
-  ActivitySourceTarget,
   PreparedStatementExecuteTarget,
   PreparedStatementQueryTarget,
   TransactionStartTarget,
 } from '@internal/sql-runtime/internal/prepared-query';
 import {
-  activitySource,
   createTransactionStart,
   preparedStatementExecute,
   preparedStatementQuery,

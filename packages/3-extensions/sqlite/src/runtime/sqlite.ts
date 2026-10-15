@@ -23,14 +23,12 @@ import type {
   VerifyMarkerOption,
 } from '@internal/sql-runtime';
 import {
+  activitySource,
   createExecutionContext,
   createSqlExecutionStack,
+  delegatingActivitySource,
   withTransaction,
 } from '@internal/sql-runtime';
-import {
-  activitySource,
-  delegatingActivitySource,
-} from '@internal/sql-runtime/internal/prepared-query';
 import sqliteTarget, {
   SqliteContractSerializer as SqlContractSerializer,
 } from '@internal/target-sqlite/runtime';

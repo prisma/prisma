@@ -36,7 +36,7 @@ import type {
 } from '@internal/sql-relational-core/index-reference';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import type { ComputeColumnJsType, RuntimeScope } from '@internal/sql-relational-core/types';
-import type { ActivitySourceTarget } from '@internal/sql-runtime/internal/prepared-query';
+import type { ActivitySourceTarget } from '@internal/sql-runtime';
 import type { CollectionTables } from './collection-tables';
 import type { HasRow } from './collection-types';
 import { checkedOrderByItem } from './order-by-guards';

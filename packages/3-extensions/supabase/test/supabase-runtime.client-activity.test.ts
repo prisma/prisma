@@ -1,6 +1,6 @@
 import { SelectAst, TableSource } from '@internal/sql-relational-core/ast';
 import type { SqlMiddleware, SqlMiddlewareContext } from '@internal/sql-runtime';
-import { startActivityOn } from '@internal/sql-runtime/internal/prepared-query';
+import { startActivityOn } from '@internal/sql-runtime';
 import { describe, expect, it } from 'vitest';
 import { createTestSetup, stubPlan } from './supabase-runtime-fixtures';
 

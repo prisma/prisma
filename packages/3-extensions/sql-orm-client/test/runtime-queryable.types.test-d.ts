@@ -5,8 +5,12 @@ import type {
   RuntimeScope as CanonicalRuntimeScope,
   SqlOrmPlan,
 } from '@internal/sql-relational-core/types';
-import type { Runtime, RuntimeQueryable as SqlRuntimeQueryable } from '@internal/sql-runtime';
-import type { ActivitySource, activitySource } from '@internal/sql-runtime/internal/prepared-query';
+import type {
+  ActivitySource,
+  activitySource,
+  Runtime,
+  RuntimeQueryable as SqlRuntimeQueryable,
+} from '@internal/sql-runtime';
 import { expectTypeOf, test } from 'vitest';
 import type { RuntimeConnection, RuntimeQueryable, RuntimeTransaction } from '../src/types';
 

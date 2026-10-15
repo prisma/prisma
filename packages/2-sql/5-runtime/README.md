@@ -73,7 +73,7 @@ const db = postgres<Contract>({
 - `Runtime` - Runtime instance interface
 - `withTransaction` - Helper to run a callback inside a transaction against any `Runtime`
 - `RuntimeQueryable` - What `Runtime`, `RuntimeConnection` and `RuntimeTransaction` share: `query` and `execute`. `TransactionContext`, the `tx` of `withTransaction`, has the same two plus `invalidated`
-- `ActivityHandle`, `StartActivity`, `ActivitySource` - Client activities. Every queryable carries an `ActivitySource` through the internal `activitySource` member: `startActivity` starts an activity whose statements, prepared statements, nested activities and `transaction()` run beneath it, and `planContentHash(plan)` returns the content hash of the statement a plan sends (after `beforeCompile`, without `beforeEncode`). Neither shows on the public queryable types. See the [runtime subsystem doc](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20%26%20Middleware%20Framework.md#client-activities)
+- `ActivityHandle`, `StartActivity`, `ActivitySource` - Client activities. Every queryable carries an `ActivitySource` through the `activitySource` symbol member: `startActivity` starts an activity whose statements, prepared statements, nested activities and `transaction()` run beneath it, and `planContentHash(plan)` returns the content hash of the statement a plan sends (after `beforeCompile`, without `beforeEncode`). Neither shows on the public queryable types. `startActivityOn(queryable, activity)` and `planContentHashOn(queryable, plan)` reach them, `findActivitySource` returns `undefined` for a queryable without them, `delegatingActivitySource(() => queryable)` builds one for an object that forwards to a queryable it looks up each call, and `ActivitySourceTarget` declares the member. `ActivityRoute` and `ActivityExecuteOptions` serve a subclass whose statements run on its own sessions, with the protected `startActivityOnRoute`, `connectionActivitySource` and `ownTransaction` on `SqlRuntimeBase`. See the [runtime subsystem doc](../../../docs/architecture%20docs/subsystems/4.%20Runtime%20%26%20Middleware%20Framework.md#client-activities)
 - `VerifyMarkerOption` - Marker-verification option (`'onFirstUse'` default; `false` to skip)
 - `RuntimeTelemetryEvent`, `TelemetryOutcome` - Telemetry event types
 
@@ -120,8 +120,6 @@ Marker reads and writes go through the control adapter SPI (`adapter.readMarker`
 - `BudgetsOptions`, `LintsOptions` - Middleware option types
 - `ActivityEndedResult`, `ActivityFinalizedResult`, `Activity`, `StatementActivity`, `TransactionActivity`, `StatementEnded`, `TransactionEnded`, `QueryInterceptResult`, `ExecuteInterceptResult` - Activity and lifecycle result types (re-exported from `@internal/framework-components/runtime`)
 - `Log` - Log entry type (re-exported from `@internal/framework-components/runtime`)
-
-The `./internal/prepared-query` entry carries the members other runtimes and facades use without showing them to users: the prepared-statement symbols, `activitySource` with `startActivityOn` and `planContentHashOn`, which reach a queryable's activity members, `findActivitySource`, which returns `undefined` for a queryable without them, `delegatingActivitySource(() => queryable)` for an object that forwards to a queryable it looks up each call, and `ActivityRoute` and `ActivityExecuteOptions` for a subclass whose statements run on its own sessions (with the protected `startActivityOnRoute`, `connectionActivitySource` and `ownTransaction` on `SqlRuntimeBase`).
 
 #### Lints middleware (SQL domain)
 

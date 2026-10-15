@@ -114,7 +114,7 @@ The statement interceptors receive the plan at their stage: `beforeEncode(draft,
 
 `query()` and `execute()` start a statement activity for the call's duration. `transaction()` starts a transaction activity that `commit()` and `rollback()` end. A statement sent on a transaction's connection while the transaction is open is a child of that transaction, because the database runs it inside the transaction's session.
 
-`startActivityOn(queryable, activity)` starts an activity for an act the runtime would not otherwise see. The runtime's queryables carry the member it calls through an internal symbol, so neither the public runtime types nor the user-facing ones show it:
+`startActivityOn(queryable, activity)` starts an activity for an act the runtime would not otherwise see. The runtime's queryables carry the member it calls under a symbol, so neither the public runtime types nor the user-facing ones show it. `startActivityOn`, `planContentHashOn` and the `activitySource` symbol are public exports of the SQL runtime, so a third-party client can start activities too:
 
 ```ts
 startActivityOn<K extends ClientActivityKind>(queryable: RuntimeScope, activity: {
@@ -148,7 +148,7 @@ await call.end({ outcome: 'succeeded', result: rows });
 return rows;
 ```
 
-The user-facing types (`tx`, the client facades) and the public `Runtime`, `RuntimeConnection` and `RuntimeTransaction` types omit `startActivity` and `planContentHash`, as `tx` has no `transaction` method today. The ORM reaches activities the same way everything else does, with `startActivityOn` and `planContentHashOn` on the queryable it holds: the runtime's queryables carry the internal `activitySource` member, the client facades give the ORM runtime objects they build the same member, and a queryable without it, such as a test stub, starts no activity.
+The user-facing types (`tx`, the client facades) and the public `Runtime`, `RuntimeConnection` and `RuntimeTransaction` types omit `startActivity` and `planContentHash`, as `tx` has no `transaction` method today. The ORM reaches activities the same way everything else does, with `startActivityOn` and `planContentHashOn` on the queryable it holds: the runtime's queryables carry the `activitySource` member, the client facades give the ORM runtime objects they build the same member, and a queryable without it, such as a test stub, starts no activity.
 
 ### Annotations
 

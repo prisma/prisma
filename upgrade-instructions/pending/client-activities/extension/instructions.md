@@ -19,7 +19,7 @@ changes:
       An extension can start an activity of its own kind with `startActivityOn(queryable, { kind, contentHash, annotations? })`, derive `contentHash` with `planContentHashOn(queryable, plan)`, send statements through the returned handle, and must end every handle with `end({ outcome, result? })`, in a `finally`; an open handle keeps `close()` waiting. A middleware can supply the activity's result through `intercept.onActivity(activity, ctx)`. Registering the kind in `ClientActivityRegistry` types the handle's `intercepted.result` and `end({ result })`; in middleware hooks the result stays `unknown`.
   - id: runtime-connections-carry-an-activity-source
     summary: |
-      The SQL runtime's queryables start client activities through an internal `activitySource` member, which `startActivityOn` and `planContentHashOn` read. A connection-like object that a `SqlRuntimeBase` subclass builds over a raw connection adds `[activitySource]: this.connectionActivitySource(connection, () => session)`, and `ActivitySourceTarget` to the object's declared type, so activities can start on it. The public `RuntimeConnection` type does not require it.
+      The SQL runtime's queryables start client activities through an `activitySource` member, keyed by a symbol so the public queryable types do not show it, which `startActivityOn` and `planContentHashOn` read. A connection-like object that a `SqlRuntimeBase` subclass builds over a raw connection adds `[activitySource]: this.connectionActivitySource(connection, () => session)`, and `ActivitySourceTarget` to the object's declared type, so activities can start on it. The public `RuntimeConnection` type does not require it.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -41,7 +41,7 @@ changes:
         - '\.adopt\s*\('
   - id: orm-runtime-objects-carry-an-activity-source
     summary: |
-      The ORM reaches activities only through `startActivityOn` on the queryable it holds, and a queryable without an `activitySource` member starts none. `db.runtime()` passed straight to `orm()` carries one. A client facade that builds its own ORM runtime object, such as one that looks up its runtime on every call, adds `[activitySource]: delegatingActivitySource(() => runtime)` from `@prisma/orm-family-sql/runtime/internal/prepared-query`, for the runtime and for the context of `db.transaction(fn)`. Where the facade's statements run through sessions of its own, such as role sessions, give an activity source whose statements go the same way, or none.
+      The ORM reaches activities only through `startActivityOn` on the queryable it holds, and a queryable without an `activitySource` member starts none. `db.runtime()` passed straight to `orm()` carries one. A client facade that builds its own ORM runtime object, such as one that looks up its runtime on every call, adds `[activitySource]: delegatingActivitySource(() => runtime)` from `@prisma/orm-family-sql/runtime`, for the runtime and for the context of `db.transaction(fn)`. Where the facade's statements run through sessions of its own, such as role sessions, give an activity source whose statements go the same way, or none.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -86,7 +86,7 @@ A middleware that sees a kind it does not know should ignore it rather than fail
 
 An extension can start an activity for an act of its own, such as a report that sends several statements, so that middleware observe it, finalize it and can serve it from a cache.
 
-**Dependencies.** The types and the registry are in `@prisma/orm-framework/components/runtime`; `startActivityOn` and `planContentHashOn` are in `@prisma/orm-family-sql/runtime/internal/prepared-query`. An application or extension that uses `postgres()` already depends on `@prisma/orm-postgres`, which re-exports both as `@prisma/orm-postgres/components/runtime` and `@prisma/orm-postgres/family-runtime/internal/prepared-query`. Module augmentation works through either entry.
+**Dependencies.** The types and the registry are in `@prisma/orm-framework/components/runtime`; `startActivityOn` and `planContentHashOn` are in `@prisma/orm-family-sql/runtime`. An application or extension that uses `postgres()` already depends on `@prisma/orm-postgres`, which re-exports both as `@prisma/orm-postgres/components/runtime` and `@prisma/orm-postgres/family-runtime`. Module augmentation works through either entry.
 
 **Register the kind.** A client kind contains a hyphen; a kind without one is rejected with `RUNTIME.ACTIVITY_KIND_RESERVED`. Registering the result type is optional. The file that augments the entry must also import from it, or TypeScript reports that the module cannot be found:
 
@@ -107,7 +107,7 @@ The registry types the handle side only: `call.intercepted.result` and `call.end
 **Start, use and end it.** Derive the content hash from the plan with `planContentHashOn`. It equals the digest `ctx.contentHash(exec)` returns for the statement's execution plan only when `beforeCompile` gives the same result for the plan in both places (for `planContentHashOn` it runs with the scope and parent of the queryable it is called on and with fresh state, so on the runtime itself it has no parent; for the statement it runs beneath the handle, with the state its `activityStarted` hooks wrote), no `beforeEncode` hook changes the parameters, and the codecs encode deterministically; a cache should key on the activity's own content hash and not rely on the two being equal. End every handle, in a `finally`, or `close()` waits for it forever:
 
 ```ts
-import { planContentHashOn, startActivityOn } from '@prisma/orm-postgres/family-runtime/internal/prepared-query';
+import { planContentHashOn, startActivityOn } from '@prisma/orm-postgres/family-runtime';
 import type { SqlQueryPlan } from '@prisma/orm-postgres/relational-core/plan';
 import type { PostgresClient } from '@prisma/orm-postgres/runtime';
 
@@ -172,7 +172,7 @@ const session: RoleSession & TransactionStartTarget & ActivitySourceTarget = {
 };
 ```
 
-`activitySource` and `ActivitySourceTarget` come from `@prisma/orm-family-sql/runtime/internal/prepared-query`.
+`activitySource` and `ActivitySourceTarget` come from `@prisma/orm-family-sql/runtime`.
 
 ## Pass a parent when beginning or starting a transaction
 
@@ -195,10 +195,7 @@ An `ActivityParent` you implement yourself has `acceptsChildren()` and returns a
 The ORM reaches activities only through the `activitySource` member of the queryable it holds. `db.runtime()` passed to `orm()` already carries it. A facade that builds its own runtime object for the ORM gives it the member:
 
 ```ts
-import {
-  activitySource,
-  delegatingActivitySource,
-} from '@prisma/orm-family-sql/runtime/internal/prepared-query';
+import { activitySource, delegatingActivitySource } from '@prisma/orm-family-sql/runtime';
 
 const orm = ormBuilder({
   runtime: {

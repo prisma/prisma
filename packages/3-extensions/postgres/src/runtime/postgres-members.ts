@@ -15,11 +15,7 @@ import type {
   SqlExecutionStackWithDriver,
   TransactionContext,
 } from '@internal/sql-runtime';
-import { withTransaction } from '@internal/sql-runtime';
-import {
-  activitySource,
-  delegatingActivitySource,
-} from '@internal/sql-runtime/internal/prepared-query';
+import { activitySource, delegatingActivitySource, withTransaction } from '@internal/sql-runtime';
 import { castAs } from '@internal/utils/casts';
 import type { PostgresStaticContext } from '../static/postgres-static';
 import type { NamespacedNativeEnums } from './native-enums';

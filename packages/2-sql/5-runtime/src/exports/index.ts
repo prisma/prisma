@@ -12,7 +12,17 @@ export type {
   TransactionEnded,
 } from '@internal/framework-components/runtime';
 export type { MarkerReadResult } from '@internal/sql-relational-core/ast';
-export type { ActivityHandle, ActivitySource } from '../activity-handle';
+export {
+  type ActivityExecuteOptions,
+  type ActivityHandle,
+  type ActivitySource,
+  type ActivitySourceTarget,
+  activitySource,
+  delegatingActivitySource,
+  findActivitySource,
+  planContentHashOn,
+  startActivityOn,
+} from '../activity-handle';
 export { createAstCodecRegistry } from '../codecs/ast-codec-registry';
 export { deriveParamMetadata, encodeParamsWithMetadata } from '../codecs/encoding';
 export {
@@ -69,6 +79,7 @@ export {
   createSqlExecutionStack,
 } from '../sql-context';
 export type {
+  ActivityRoute,
   CloseRefusal,
   ConnectionProvider,
   Runtime,
