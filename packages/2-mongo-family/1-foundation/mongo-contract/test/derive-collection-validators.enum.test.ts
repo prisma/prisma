@@ -1,24 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { deriveJsonSchema, type FieldValueSets } from '../src/derive-json-schema';
-import {
-  arrayEnumField,
-  enumField,
-  mongoTypeLookups,
-  scalarField,
-} from './derive-json-schema-helpers';
+import type { FieldValueSets } from '../src/derive-json-schema';
+import { rootValidator } from './collection-validator-helpers';
+import { arrayEnumField, enumField, scalarField } from './derive-json-schema-helpers';
 
-describe('deriveJsonSchema — enum fields', () => {
+describe('deriveCollectionValidators — enum fields', () => {
   const valueSets: FieldValueSets = { Role: { values: ['user', 'admin'] } };
 
   it('emits enum: [...values] in declaration order for an enum-valueSet field', () => {
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         role: enumField('mongo/string@1', 'Role'),
       },
-      mongoTypeLookups,
-      undefined,
-      valueSets,
+      { valueSets },
     );
 
     const props = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
@@ -27,14 +21,12 @@ describe('deriveJsonSchema — enum fields', () => {
   });
 
   it('omits enum keyword for non-enum scalar fields', () => {
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         name: scalarField('mongo/string@1'),
       },
-      mongoTypeLookups,
-      undefined,
-      valueSets,
+      { valueSets },
     );
 
     const props = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
@@ -43,14 +35,12 @@ describe('deriveJsonSchema — enum fields', () => {
   });
 
   it('nullable enum field includes null in the enum array so null writes are accepted', () => {
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         role: enumField('mongo/string@1', 'Role', true),
       },
-      mongoTypeLookups,
-      undefined,
-      valueSets,
+      { valueSets },
     );
 
     const props = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
@@ -58,14 +48,12 @@ describe('deriveJsonSchema — enum fields', () => {
   });
 
   it('array enum field emits enum inside items, not on the outer schema', () => {
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         roles: arrayEnumField('mongo/string@1', 'Role'),
       },
-      mongoTypeLookups,
-      undefined,
-      valueSets,
+      { valueSets },
     );
 
     const props = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
@@ -77,14 +65,12 @@ describe('deriveJsonSchema — enum fields', () => {
   });
 
   it('nullable array enum field emits enum inside items with no null in items', () => {
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         roles: arrayEnumField('mongo/string@1', 'Role', true),
       },
-      mongoTypeLookups,
-      undefined,
-      valueSets,
+      { valueSets },
     );
 
     expect(result.jsonSchema).toEqual({
@@ -102,14 +88,12 @@ describe('deriveJsonSchema — enum fields', () => {
   });
 
   it('preserves member value declaration order', () => {
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         status: enumField('mongo/string@1', 'Status'),
       },
-      mongoTypeLookups,
-      undefined,
-      { Status: { values: ['c', 'a', 'b'] } },
+      { valueSets: { Status: { values: ['c', 'a', 'b'] } } },
     );
 
     const props = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
@@ -117,14 +101,12 @@ describe('deriveJsonSchema — enum fields', () => {
   });
 
   it('skips enum injection when the value set does not contain the referenced entry', () => {
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         role: enumField('mongo/string@1', 'UnknownEnum'),
       },
-      mongoTypeLookups,
-      undefined,
-      valueSets,
+      { valueSets },
     );
 
     const props = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
@@ -136,14 +118,12 @@ describe('deriveJsonSchema — enum fields', () => {
     // The deriver takes a value-set map and nothing else — it cannot read `domain.enum`. Passing a
     // value set whose values differ from any domain enum proves the `enum` keyword follows the value
     // set, not the domain enum.
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       {
         _id: scalarField('mongo/objectId@1'),
         role: enumField('mongo/string@1', 'Role'),
       },
-      mongoTypeLookups,
-      undefined,
-      { Role: { values: ['from-value-set-a', 'from-value-set-b'] } },
+      { valueSets: { Role: { values: ['from-value-set-a', 'from-value-set-b'] } } },
     );
 
     const props = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
