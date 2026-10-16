@@ -132,7 +132,7 @@ function describePhases(phases: GeneratorPhases): string {
 export function refuseGeneratorsNoPresetWritesTogether(phases: GeneratorPhases): never {
   throw unsupported(
     `column ${phases.coordinate} generates ${describePhases(phases)}, which cannot be written in Prisma 8 PSL.`,
-    'The field preset in the configured stack that writes one of these generators for the column codec does not also write the other phase, so that phase would be dropped from the written file.',
+    "The field preset in the configured stack that writes one of these generators for the column codec does not also write the other phase, so that phase would be dropped from the written file, and no default function in the configured stack writes the column's generators instead.",
     KEEP_SOURCE,
     { coordinate: phases.coordinate, onCreate: phases.onCreate, onUpdate: phases.onUpdate },
   );
@@ -170,6 +170,8 @@ function describeUnwritableReason(
   switch (reason.kind) {
     case 'columnType':
       return `its type ${reason.typeName} is ${COLUMN_TYPE_KINDS[reason.columnType]}, which the preset call would replace`;
+    case 'list':
+      return 'the column is a list, and a preset call cannot be a list element';
     case 'unwritableArgument':
       return `its type param "${reason.argument}" is ${JSON.stringify(reason.value)}, which a PSL argument cannot carry`;
     case 'argumentsRejected':

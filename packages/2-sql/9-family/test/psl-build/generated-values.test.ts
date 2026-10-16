@@ -38,7 +38,7 @@ const fieldPresetsByCodecAndGenerator = assembleFieldPresetsByCodecAndGenerator(
 const time = fieldPresetsByCodecAndGenerator.get('pg/time@1')?.get('plainTimeNow');
 const money = fieldPresetsByCodecAndGenerator.get('pg/numeric@1')?.get('ledgerStamp');
 
-const constructorType = { kind: 'typeConstructor', name: 'Time' } as const;
+const dataType = { kind: 'dataType', typeName: 'Time' } as const;
 
 const plainTimeNow = (precision?: number) => ({
   kind: 'generator' as const,
@@ -53,7 +53,8 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
-          pslType: constructorType,
+          pslType: dataType,
+          list: false,
           typeParams: { precision: 3 },
           generators: { onCreate: plainTimeNow(3), onUpdate: plainTimeNow(3) },
         },
@@ -75,7 +76,8 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
-          pslType: constructorType,
+          pslType: dataType,
+          list: false,
           typeParams: undefined,
           generators: { onUpdate: plainTimeNow() },
         },
@@ -93,7 +95,8 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/text@1',
-          pslType: constructorType,
+          pslType: dataType,
+          list: false,
           typeParams: undefined,
           generators: { onCreate: plainTimeNow() },
         },
@@ -107,7 +110,8 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/numeric@1',
-          pslType: constructorType,
+          pslType: dataType,
+          list: false,
           typeParams: { precision: 10 },
           generators: {
             onCreate: { kind: 'generator', id: 'ledgerStamp' },
@@ -128,7 +132,8 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
-          pslType: constructorType,
+          pslType: dataType,
+          list: false,
           typeParams: { precision: 3, zone: 'utc' },
           generators: { onCreate: plainTimeNow(3), onUpdate: plainTimeNow(0) },
         },
@@ -155,7 +160,8 @@ describe('fieldPresetCallFor', () => {
           fieldPresetsByCodecAndGenerator,
           column: {
             codecId: 'pg/time@1',
-            pslType: { kind, name },
+            pslType: { kind, typeName: name },
+            list: false,
             typeParams: undefined,
             generators: { onCreate: plainTimeNow() },
           },
@@ -193,7 +199,8 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator: presets,
         column: {
           codecId: 'x/tagged@1',
-          pslType: constructorType,
+          pslType: dataType,
+          list: false,
           typeParams: { label: 'a"b' },
           generators: { onCreate: { kind: 'generator', id: 'taggedNow' } },
         },
@@ -211,7 +218,8 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/numeric@1',
-          pslType: constructorType,
+          pslType: dataType,
+          list: false,
           typeParams: { precision: 2.5 },
           generators: { onCreate: { kind: 'generator', id: 'ledgerStamp' } },
         },
@@ -224,5 +232,20 @@ describe('fieldPresetCallFor', () => {
         message: 'Argument "precision" of money.amount must be an integer',
       },
     });
+  });
+
+  it('cannot write a list column, since a preset call cannot be a list element', () => {
+    expect(
+      fieldPresetCallFor({
+        fieldPresetsByCodecAndGenerator,
+        column: {
+          codecId: 'pg/time@1',
+          pslType: dataType,
+          list: true,
+          typeParams: undefined,
+          generators: { onCreate: plainTimeNow() },
+        },
+      }),
+    ).toEqual({ kind: 'cannotWrite', preset: time, reason: { kind: 'list' } });
   });
 });

@@ -385,12 +385,36 @@ describe('generated values', () => {
         refusalOf(() => withGenerator(numeric({ precision: 10 }), stamp, context)),
       ).toMatchObject({
         code: 'CONTRACT.PRINT_UNSUPPORTED',
+        message:
+          'contract print: column "public"."Widget"."value" cannot be written with field preset money.amount: the preset does not accept the call, since Argument "precision" of money.amount must be <= 5, received 10.',
         meta: {
+          coordinate: '"public"."Widget"."value"',
           preset: 'money.amount',
           reason: {
             kind: 'argumentsRejected',
-            message: expect.stringContaining('Argument "precision" of money.amount must be <= 5'),
+            message: 'Argument "precision" of money.amount must be <= 5, received 10',
           },
+        },
+      });
+    });
+
+    it('refuses a list column, since a preset cannot be a list element', () => {
+      const generatorId = postgresNowGeneratorIds[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID];
+      expect(
+        refusalOf(() =>
+          withGenerator(
+            { ...timestamptz, many: { elementNullable: true } },
+            { onCreate: { kind: 'generator', id: generatorId } },
+          ),
+        ),
+      ).toMatchObject({
+        code: 'CONTRACT.PRINT_UNSUPPORTED',
+        message:
+          'contract print: column "public"."Widget"."value" cannot be written with field preset temporal.timestamptz: the column is a list, and a preset call cannot be a list element.',
+        meta: {
+          coordinate: '"public"."Widget"."value"',
+          preset: 'temporal.timestamptz',
+          reason: { kind: 'list' },
         },
       });
     });

@@ -32,18 +32,25 @@ export type FieldPresetArgument =
 
 type ColumnPhase = 'onCreate' | 'onUpdate';
 
-/** How the column's PSL type is written: a type-constructor call, or a name a preset call would replace. */
-export type FieldPresetColumnPslType =
-  | { readonly kind: 'typeConstructor'; readonly name: string }
-  | { readonly kind: 'namedType' | 'valueObject' | 'enum'; readonly name: string };
+/**
+ * What a column's PSL type stands for. `dataType` is a type that stands for the column's codec and type params alone, written as a bare name such as `String` or a call such as `Timestamptz(3)`. A named type, a value object or an enum, including a native enum written `pg.enum(<Block>)`, names something more.
+ */
+export type PslColumnTypeKind = 'dataType' | 'namedType' | 'valueObject' | 'enum';
+
+/** The name a column's PSL type is written with, and what it stands for. */
+export interface PslColumnTypeRef {
+  readonly kind: PslColumnTypeKind;
+  readonly typeName: string;
+}
 
 /** Why the call of the preset that writes a column's codec with its generators cannot be written. */
 export type FieldPresetUnwritableReason =
   | {
       readonly kind: 'columnType';
-      readonly columnType: 'namedType' | 'valueObject' | 'enum';
+      readonly columnType: Exclude<PslColumnTypeKind, 'dataType'>;
       readonly typeName: string;
     }
+  | { readonly kind: 'list' }
   | { readonly kind: 'phasesNotWrittenTogether' }
   | { readonly kind: 'unwritableArgument'; readonly argument: string; readonly value: unknown }
   | { readonly kind: 'argumentsRejected'; readonly message: string };
@@ -83,7 +90,8 @@ export type FieldPresetCallChoice =
 
 interface FieldPresetColumn {
   readonly codecId: string;
-  readonly pslType: FieldPresetColumnPslType;
+  readonly pslType: PslColumnTypeRef;
+  readonly list: boolean;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly generators: ExecutionMutationDefaultPhases;
 }
@@ -198,7 +206,7 @@ function cannotWrite(
 }
 
 /**
- * The call of the field preset in the stack that writes a column's codec with its generators. The call is written only for a column whose PSL type is a type-constructor call, which the preset call takes the place of, and when the preset accepts its arguments as the PSL reader checks them; it is then checked to read back with the column's codec, type params and generators with their params, where absent and empty params count as the same. Otherwise the reason it cannot be written that way.
+ * The call of the field preset in the stack that writes a column's codec with its generators. The call is written only for a column that is not a list and whose PSL type stands for its data type, which the preset call takes the place of, and when the preset accepts its arguments as the PSL reader checks them; it is then checked to read back with the column's codec, type params and generators with their params, where absent and empty params count as the same. Otherwise the reason it cannot be written that way.
  */
 export function fieldPresetCallFor(input: {
   readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
@@ -211,13 +219,14 @@ export function fieldPresetCallFor(input: {
     .find((found) => found !== undefined);
   if (preset === undefined) return { kind: 'noPreset' };
   const { pslType } = column;
-  if (pslType.kind !== 'typeConstructor') {
+  if (pslType.kind !== 'dataType') {
     return cannotWrite(preset, {
       kind: 'columnType',
       columnType: pslType.kind,
-      typeName: pslType.name,
+      typeName: pslType.typeName,
     });
   }
+  if (column.list) return cannotWrite(preset, { kind: 'list' });
   if (!writesEveryPhase(preset.printForm, column)) {
     return cannotWrite(preset, { kind: 'phasesNotWrittenTogether' });
   }

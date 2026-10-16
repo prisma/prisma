@@ -316,6 +316,91 @@ describe('columns and fields', () => {
       expect(withShape({ shape: 'Point' })).not.toThrow();
     });
 
+    it('refuses a preset call whose type param a PSL argument cannot carry', () => {
+      const shape = 'Point "A"';
+      const stamped: AuthoringFieldPresetDescriptor = {
+        kind: 'fieldPreset',
+        args: [
+          { name: 'shape', kind: 'string', optional: true },
+          { name: 'onCreate', kind: 'option', values: ['now'], optional: true },
+        ],
+        output: {
+          codecId: 'pg/geometry@1',
+          typeParams: { shape: { kind: 'arg', index: 0 } },
+          executionDefaults: {
+            onCreate: {
+              kind: 'select',
+              index: 1,
+              cases: { now: { kind: 'generator', id: 'geoNow' } },
+            },
+          },
+        },
+      };
+      const fixedShape = testBuildContext({
+        types: {
+          geo: {
+            PointA: {
+              kind: 'typeConstructor',
+              output: { codecId: 'pg/geometry@1', typeParams: { shape } },
+            },
+          },
+        },
+        fieldPresets: { geo: { stamped } },
+        dataTypes: [
+          sqlDataType('postgis/geometry', {
+            params: arktype({ 'shape?': 'string' }),
+            texts: [{ text: 'geometry', written: true, catalog: true }],
+          }),
+        ],
+      });
+      expect(
+        printingWidget(
+          {
+            columns: {
+              area: {
+                many: false,
+                dataType: 'postgis/geometry',
+                codecId: 'pg/geometry@1',
+                nullable: false,
+                typeParams: { shape },
+              },
+            },
+            fields: {
+              area: {
+                many: false,
+                nullable: false,
+                type: { kind: 'scalar', codecId: 'pg/geometry@1', typeParams: { shape } },
+              },
+            },
+            contract: {
+              execution: {
+                mutations: {
+                  defaults: [
+                    {
+                      ref: { namespace: 'public', entry: 'Widget', field: 'area' },
+                      onCreate: { kind: 'generator', id: 'geoNow' },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          fixedShape,
+        ),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.PRINT_UNSUPPORTED',
+          message:
+            'contract print: column "public"."Widget"."area" cannot be written with field preset geo.stamped: its type param "shape" is "Point \\"A\\"", which a PSL argument cannot carry.',
+          meta: {
+            coordinate: '"public"."Widget"."area"',
+            preset: 'geo.stamped',
+            reason: { kind: 'unwritableArgument', argument: 'shape', value: shape },
+          },
+        }),
+      );
+    });
+
     it('refuses a string type argument the PSL source would read back differently', () => {
       expect(withShape({ shape: 'Point "A"' })).toThrow(
         refusal({ coordinate: '"public"."Widget"."area"', argument: 'Point "A"' }),

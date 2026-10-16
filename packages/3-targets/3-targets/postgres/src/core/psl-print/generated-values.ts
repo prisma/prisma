@@ -3,8 +3,8 @@ import type { SqlPslBuildContext } from '@internal/family-sql/control';
 import {
   defaultFunctionCallFor,
   type FieldPresetArgument,
-  type FieldPresetColumnPslType,
   fieldPresetCallFor,
+  type PslColumnTypeRef,
 } from '@internal/family-sql/psl-build';
 import type {
   PslAttributeArgument,
@@ -39,19 +39,20 @@ function toPslArgument(argument: FieldPresetArgument): PslAttributeArgument {
 export function buildExecutionDefault(input: {
   readonly executionDefault: ExecutionMutationDefault;
   readonly codecId: string;
-  readonly pslType: FieldPresetColumnPslType;
+  readonly pslType: PslColumnTypeRef;
+  readonly list: boolean;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly coordinate: string;
   readonly context: SqlPslBuildContext;
 }): BuiltExecutionDefault {
-  const { executionDefault, codecId, pslType, typeParams, coordinate, context } = input;
+  const { executionDefault, codecId, pslType, list, typeParams, coordinate, context } = input;
   const onCreateId = executionDefault.onCreate?.id;
   const onUpdateId = executionDefault.onUpdate?.id;
   const phases = { coordinate, onCreate: onCreateId, onUpdate: onUpdateId };
 
   const choice = fieldPresetCallFor({
     fieldPresetsByCodecAndGenerator: context.fieldPresetsByCodecAndGenerator,
-    column: { codecId, pslType, typeParams, generators: executionDefault },
+    column: { codecId, pslType, list, typeParams, generators: executionDefault },
   });
   if (choice.kind === 'call') {
     return { kind: 'preset', path: choice.preset.path, args: choice.arguments.map(toPslArgument) };

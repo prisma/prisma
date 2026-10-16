@@ -18,9 +18,10 @@ export { mapDefault } from '../core/psl-build/default-mapping';
 export type {
   FieldPresetArgument,
   FieldPresetCallChoice,
-  FieldPresetColumnPslType,
   FieldPresetReadBackDifference,
   FieldPresetUnwritableReason,
+  PslColumnTypeKind,
+  PslColumnTypeRef,
 } from '../core/psl-build/generated-values';
 export { defaultFunctionCallFor, fieldPresetCallFor } from '../core/psl-build/generated-values';
 export {
