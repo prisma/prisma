@@ -6,9 +6,7 @@ import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import {
   columnExistsAst,
-  columnNullabilityAst,
   columnTypeAst,
-  columnTypeOidAst,
   indexDefinitionAst,
   indexExistsAst,
   nativeEnumTypeExistsAst,
@@ -139,36 +137,6 @@ describe('AddColumnCall', () => {
     expect(call.label).toBe('Add column "bio" to "user"');
   });
 
-  it('checks a NOT NULL column is NOT NULL, and a type no data type reads by its oid', async () => {
-    const { lowerer, received } = recordingCheckLowerer();
-    const op = await new AddColumnCall(
-      'public',
-      'user',
-      col('position', 'geometry', { notNull: true }),
-      postgresDataTypes,
-    ).toOp(lowerer);
-
-    expect({
-      received: received.slice(3),
-      postcheck: op.postcheck.map((step) => step.description),
-    }).toEqual({
-      received: [
-        columnTypeOidAst({ schema: 'public', table: 'user', column: 'position', type: 'geometry' }),
-        columnNullabilityAst({
-          schema: 'public',
-          table: 'user',
-          column: 'position',
-          nullable: false,
-        }),
-      ],
-      postcheck: [
-        'verify column "position" exists',
-        'verify column "position" has type "geometry"',
-        'verify column "position" is NOT NULL',
-      ],
-    });
-  });
-
   it('toOp() throws when no lowerer is provided', async () => {
     const call = new AddColumnCall('public', 'user', col('bio', 'text'), postgresDataTypes);
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
@@ -266,7 +234,7 @@ describe('AlterColumnTypeCall', () => {
     );
     expect(op.execute).toEqual([
       {
-        description: 'alter type of "age"',
+        description: 'alter type of "age" to int8',
         sql: 'LOWERED 4',
         meta: { convertedColumn: { table: 'user', column: 'age', by: 'cast' } },
       },

@@ -618,7 +618,7 @@ export abstract class PostgresMigration<
   }
 
   /**
-   * Refuses an `alterColumnType` with `using` to the type the column already has in the start contract, after this migration's earlier renames. Its postcheck compares only the type, which already holds, so the runner would skip the conversion.
+   * Refuses an `alterColumnType` with `using` to the type the start contract, after this migration's earlier renames, already gives the column. Its postcheck compares only the type, which already holds, so the runner would skip the conversion. Other earlier operations of the migration, such as an earlier `alterColumnType`, are not applied to the start contract.
    */
   private refuseUnchangedTypeConversion(call: AlterColumnTypeCall): void {
     const column = this.startColumnAfterRenames(call.schemaName, call.tableName, call.columnName);
@@ -627,8 +627,8 @@ export abstract class PostgresMigration<
     if (catalogTypeTextIfReadable(startType, this.dataTypes()) !== call.checkType) return;
     const where = alterColumnTypeCallText(call.schemaName, call.tableName, call.columnName);
     throw postgresError(
-      'MIGRATION.ALTER_COLUMN_TYPE_UNCHANGED',
-      `${where}: the column already has the type ${JSON.stringify(call.type)} at this point of the migration, so the conversion in using would not run`,
+      'MIGRATION.ALTER_COLUMN_TYPE_USING_WITHOUT_TYPE_CHANGE',
+      `${where}: the start contract, after the earlier renames in this migration, already gives the column the type ${JSON.stringify(call.type)}, so the conversion in using would never run`,
       {
         why: 'The runner skips an operation whose postchecks already hold. alterColumnType checks only that the column has the new type, which holds before it runs, so the values would never be converted.',
         fix: 'Write the conversion as a dataTransform, which checks the rows themselves, or change the column to another type.',

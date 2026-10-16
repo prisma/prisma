@@ -281,7 +281,7 @@ describe('D3 catalog check builders — lowering pins', () => {
     ]);
   });
 
-  it("sequenceNameAvailableAst — the name is free or is the column's own sequence", async () => {
+  it('sequenceNameAvailableAst — the column owns a sequence, or the name is free', async () => {
     const ast = sequenceNameAvailableAst({
       schema: 'public',
       table: 'Post',
@@ -292,14 +292,9 @@ describe('D3 catalog check builders — lowering pins', () => {
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
 
     expect(result.sql).toBe(
-      'SELECT ((to_regclass($1)) IS NULL OR (to_regclass($2)) = pg_get_serial_sequence($3, $4)::regclass) AS "result"',
+      'SELECT ((pg_get_serial_sequence($1, $2)::regclass) IS NOT NULL OR (to_regclass($3)) IS NULL) AS "result"',
     );
-    expect(result.params).toEqual([
-      '"public"."Post_serial_seq"',
-      '"public"."Post_serial_seq"',
-      '"public"."Post"',
-      'serial',
-    ]);
+    expect(result.params).toEqual(['"public"."Post"', 'serial', '"public"."Post_serial_seq"']);
   });
 
   it('tablePrimaryKeyAst — pg_index joins with LEFT JOIN and bare boolean conjunct', async () => {

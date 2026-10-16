@@ -7,6 +7,7 @@ import {
   columnDefaultSequenceAst,
   columnExistsAst,
   columnNullabilityAst,
+  columnOwnsASequenceAst,
   columnOwnsSequenceAst,
   columnTypeAst,
   columnTypeOidAst,
@@ -143,18 +144,13 @@ export async function renameColumn(
  */
 export type AlterColumnTypeClass = 'widening' | 'destructive' | 'data';
 
-/** The sequence an autoincrement column owns, and the width it takes when the column changes type. */
-export interface OwnedSequenceWidth {
-  readonly name: string;
-  readonly width: AutoincrementWidth;
-}
-
 /**
  * `type` is the new column type as a migration writes it, into the `ALTER COLUMN TYPE` clause.
  * `checkType` is the type `format_type` prints for it, which the postcheck compares. `sequence` is
- * the sequence the column owns when it has an `autoincrement()` default: the operation changes it to
- * the column's new width, refusing first when the sequence has handed out a value past that width,
- * and the postcheck asks for both the type and the sequence width.
+ * the width of the sequence the column owns when it has an `autoincrement()` default: the operation
+ * finds that sequence in the catalog and changes it to the new width, refusing first when the column
+ * owns none or the sequence has handed out a value past that width, and the postcheck asks for both
+ * the type and the sequence width.
  */
 export async function alterColumnType(
   schemaName: string,
@@ -164,7 +160,7 @@ export async function alterColumnType(
     readonly type: string;
     readonly checkType: string;
     readonly using?: string;
-    readonly sequence: OwnedSequenceWidth | undefined;
+    readonly sequenceWidth: AutoincrementWidth | undefined;
   },
   lowerer: ExecuteRequestLowerer,
   operationClass: AlterColumnTypeClass = 'destructive',
@@ -198,7 +194,7 @@ export async function alterColumnType(
   const sequenceSteps = await ownedSequenceSteps(
     lowerer,
     { schema: schemaName, table: tableName, column: columnName },
-    options.sequence,
+    options.sequenceWidth,
   );
   return {
     id: `alterType.${tableName}.${columnName}`,
@@ -211,7 +207,7 @@ export async function alterColumnType(
     ],
     execute: [
       {
-        ...step(`alter type of "${columnName}"`, alterType.sql),
+        ...step(`alter type of "${columnName}" to ${options.type}`, alterType.sql),
         ...(options.using !== undefined
           ? { meta: convertedColumnMeta(tableName, columnName, 'conversion') }
           : operationClass === 'destructive'
@@ -234,39 +230,64 @@ export async function alterColumnType(
 
 async function ownedSequenceSteps(
   lowerer: ExecuteRequestLowerer,
-  location: { readonly schema: string; readonly table: string; readonly column: string },
-  sequence: OwnedSequenceWidth | undefined,
+  location: ColumnLocation,
+  width: AutoincrementWidth | undefined,
 ) {
-  if (sequence === undefined) return { precheck: [], execute: [], postcheck: [] };
-  const { sequenceType, maxValue } = sequence.width;
-  const fits = await lowerer.lowerToExecuteRequest(
-    sequenceValuesFitAst({ schema: location.schema, sequence: sequence.name, maxValue }),
-  );
+  if (width === undefined) return { precheck: [], execute: [], postcheck: [] };
+  const { sequenceType, maxValue } = width;
+  const ownsOne = await lowerer.lowerToExecuteRequest(columnOwnsASequenceAst(location));
+  const fits = await lowerer.lowerToExecuteRequest(sequenceValuesFitAst({ ...location, maxValue }));
   const owns = await lowerer.lowerToExecuteRequest(
-    columnOwnsSequenceAst({ ...location, sequence: sequence.name, sequenceType }),
+    columnOwnsSequenceAst({ ...location, sequenceType }),
   );
   return {
     precheck: [
+      step(`ensure column "${location.column}" owns a sequence`, ownsOne.sql, ownsOne.params),
       step(
-        `ensure sequence "${sequence.name}" has no value past the ${sequenceType} range`,
+        `ensure the sequence column "${location.column}" owns has no value past the ${sequenceType} range`,
         fits.sql,
         fits.params,
       ),
     ],
     execute: [
       step(
-        `change sequence "${sequence.name}" to ${sequenceType}`,
-        `ALTER SEQUENCE ${qualifyTableName(location.schema, sequence.name)} AS ${sequenceType}`,
+        `change the sequence column "${location.column}" owns to ${sequenceType}`,
+        alterOwnedSequenceType(location, sequenceType),
       ),
     ],
     postcheck: [
       step(
-        `verify column "${location.column}" owns the ${sequenceType} sequence "${sequence.name}"`,
+        `verify column "${location.column}" owns a sequence of type ${sequenceType}`,
         owns.sql,
         owns.params,
       ),
     ],
   };
+}
+
+interface ColumnLocation {
+  readonly schema: string;
+  readonly table: string;
+  readonly column: string;
+}
+
+/** SQL for the sequence the column owns, as a `regclass`, found at run time. */
+function ownedSequenceSql(location: ColumnLocation): string {
+  return `pg_get_serial_sequence('${escapeLiteral(qualifyTableName(location.schema, location.table))}', '${escapeLiteral(location.column)}')::regclass`;
+}
+
+/** A `DO` block around `body`, quoted with a dollar tag that `body` does not contain. */
+function doBlock(body: string): string {
+  let tag = '$prisma$';
+  for (let n = 1; body.includes(tag); n += 1) tag = `$prisma${n}$`;
+  return `DO ${tag} BEGIN ${body} END ${tag}`;
+}
+
+/** `ALTER SEQUENCE … AS <type>` on the sequence the column owns, whatever its name. */
+function alterOwnedSequenceType(location: ColumnLocation, sequenceType: string): string {
+  return doBlock(
+    `EXECUTE format('ALTER SEQUENCE %s AS ${sequenceType}', ${ownedSequenceSql(location)});`,
+  );
 }
 
 export async function setNotNull(
@@ -405,12 +426,15 @@ export async function setDefault(
 }
 
 /**
- * Gives an existing smallint, integer or bigint column an `autoincrement()` default: creates the
- * sequence a SERIAL column of that width would get (or reuses it, since dropping the default leaves
- * it in place, retyped to the column's current width), sets the column's default to it, makes the column own it, and starts it past the
- * column's largest value so existing rows never collide. The precheck refuses a name another
- * relation holds, which `IF NOT EXISTS` would otherwise skip over and then attach. The postcheck asks
- * for the attached sequence and the `nextval(` default, which no earlier default satisfies, and that the column owns this sequence at this width, which a narrower sequence left from before the column was widened does not satisfy.
+ * Gives an existing smallint, integer or bigint column an `autoincrement()` default. When the column
+ * already owns a sequence, whatever its name (dropping the default leaves it in place, and a rename
+ * of the table or column does not rename it), the operation reuses it; otherwise it creates the
+ * sequence a SERIAL column of that width would get and makes the column own it. It then sets the
+ * sequence to the column's width, sets the column's default to it, and starts it past the column's
+ * largest value so existing rows never collide. The precheck refuses, when the column owns no
+ * sequence, a name another relation holds. The postcheck asks for the attached sequence and the
+ * `nextval(` default, which no earlier default satisfies, and that the sequence has the column's
+ * width, which a narrower sequence left from before the column was widened does not satisfy.
  */
 async function setAutoincrementDefault(
   schemaName: string,
@@ -430,33 +454,17 @@ async function setAutoincrementDefault(
   }
   const qualifiedTable = qualifyTableName(schemaName, tableName);
   const qualifiedColumn = quoteIdentifier(columnName);
+  const location = { schema: schemaName, table: tableName, column: columnName };
+  const ownedSequence = ownedSequenceSql(location);
   const sequenceName = defaultSequenceName(tableName, columnName);
   const qualifiedSequence = qualifyTableName(schemaName, sequenceName);
-  const sequenceRegclass = `'${escapeLiteral(qualifiedSequence)}'::regclass`;
-  const { present } = await columnExistsSteps(lowerer, {
-    schema: schemaName,
-    table: tableName,
-    column: columnName,
-  });
+  const { present } = await columnExistsSteps(lowerer, location);
   const nameAvailable = await lowerer.lowerToExecuteRequest(
-    sequenceNameAvailableAst({
-      schema: schemaName,
-      table: tableName,
-      column: columnName,
-      sequence: sequenceName,
-    }),
+    sequenceNameAvailableAst({ ...location, sequence: sequenceName }),
   );
-  const attached = await lowerer.lowerToExecuteRequest(
-    columnDefaultSequenceAst({ schema: schemaName, table: tableName, column: columnName }),
-  );
+  const attached = await lowerer.lowerToExecuteRequest(columnDefaultSequenceAst(location));
   const ownsSequence = await lowerer.lowerToExecuteRequest(
-    columnOwnsSequenceAst({
-      schema: schemaName,
-      table: tableName,
-      column: columnName,
-      sequence: sequenceName,
-      sequenceType,
-    }),
+    columnOwnsSequenceAst({ ...location, sequenceType }),
   );
   return {
     id: `setDefault.${tableName}.${columnName}`,
@@ -466,31 +474,31 @@ async function setAutoincrementDefault(
     precheck: [
       step(`ensure column "${columnName}" exists`, present.sql, present.params),
       step(
-        `ensure no relation other than the sequence column "${columnName}" owns is named ${qualifiedSequence} (rename that relation, or write this migration with migration new)`,
+        `ensure column "${columnName}" owns a sequence or no relation is named ${qualifiedSequence} (rename that relation, or write this migration with migration new)`,
         nameAvailable.sql,
         nameAvailable.params,
       ),
     ],
     execute: [
       step(
-        `widen any existing sequence "${sequenceName}" to ${sequenceType}`,
-        `ALTER SEQUENCE IF EXISTS ${qualifiedSequence} AS ${sequenceType}`,
+        `create sequence "${sequenceName}" owned by "${columnName}" unless the column owns one`,
+        doBlock(
+          `IF ${ownedSequence} IS NULL THEN CREATE SEQUENCE ${qualifiedSequence} AS ${sequenceType}; ALTER SEQUENCE ${qualifiedSequence} OWNED BY ${qualifiedTable}.${qualifiedColumn}; END IF;`,
+        ),
       ),
       step(
-        `create sequence "${sequenceName}"`,
-        `CREATE SEQUENCE IF NOT EXISTS ${qualifiedSequence} AS ${sequenceType}`,
+        `change the sequence column "${columnName}" owns to ${sequenceType}`,
+        alterOwnedSequenceType(location, sequenceType),
       ),
       step(
-        `set default on "${columnName}"`,
-        `ALTER TABLE ${qualifiedTable} ALTER COLUMN ${qualifiedColumn} SET DEFAULT nextval(${sequenceRegclass})`,
+        `set default on "${columnName}" to the sequence it owns`,
+        doBlock(
+          `EXECUTE format('ALTER TABLE %s ALTER COLUMN %I SET DEFAULT nextval(%L::regclass)', '${escapeLiteral(qualifiedTable)}', '${escapeLiteral(columnName)}', ${ownedSequence}::text);`,
+        ),
       ),
       step(
-        `attach sequence "${sequenceName}" to "${columnName}"`,
-        `ALTER SEQUENCE ${qualifiedSequence} OWNED BY ${qualifiedTable}.${qualifiedColumn}`,
-      ),
-      step(
-        `start sequence "${sequenceName}" past the largest "${columnName}"`,
-        `SELECT setval(${sequenceRegclass}, GREATEST(COALESCE(MAX(${qualifiedColumn}), 0), 0) + 1, false) FROM ${qualifiedTable}`,
+        `start the sequence column "${columnName}" owns past the largest "${columnName}"`,
+        `SELECT setval(${ownedSequence}, GREATEST(COALESCE(MAX(${qualifiedColumn}), 0), 0) + 1, false) FROM ${qualifiedTable}`,
       ),
     ],
     postcheck: [
@@ -500,7 +508,7 @@ async function setAutoincrementDefault(
         attached.params,
       ),
       step(
-        `verify column "${columnName}" owns the ${sequenceType} sequence "${sequenceName}"`,
+        `verify column "${columnName}" owns a sequence of type ${sequenceType}`,
         ownsSequence.sql,
         ownsSequence.params,
       ),

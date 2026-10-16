@@ -1340,9 +1340,9 @@ A prepared statement failed again after the PostgreSQL driver discarded a stale 
 
 ## MIGRATION
 
-### MIGRATION.ALTER_COLUMN_TYPE_UNCHANGED
+### MIGRATION.ALTER_COLUMN_TYPE_USING_WITHOUT_TYPE_CHANGE
 
-A hand-written PostgreSQL `this.alterColumnType({ schema, table, column, type, using })` converts a column to the type it already has at that point of the migration: in the start contract, after the migration's earlier renames. Its postcheck checks only the column's type, which already holds, so the runner would skip the operation and the conversion in `using` would never run. Raised when `migration.ts` builds its operations, so no `ops.json` is written. Write the conversion as a `dataTransform`, which checks the rows themselves, or change the column to another type. Payload: `where`, `type`.
+A hand-written PostgreSQL `this.alterColumnType({ schema, table, column, type, using })` has a `using` conversion, but the migration's start contract, after the renames made earlier in the same migration, already gives the column `type`. Only a call with `using` is refused; an unchanged type without `using` loses nothing when it is skipped. The operation's postcheck checks only the column's type, which already holds, so the runner would skip it and the conversion would never run. Raised when `migration.ts` builds its operations, so no `ops.json` is written. Write the conversion as a `dataTransform`, which checks the rows themselves, or change the column to another type. Payload: `where`, `type`.
 
 ### MIGRATION.AMBIGUOUS_MIGRATION_REF
 

@@ -237,7 +237,27 @@ export function columnDefaultSequenceAst(options: {
 }
 
 /**
- * Typed check that `sequence` is free for a column's autoincrement default: no relation has the name, or the relation that has it is the sequence the column already owns, left in place when its default was dropped.
+ * The sequence the column owns, as a `regclass`, found in the catalog with `pg_get_serial_sequence`; `NULL` when it owns none. A SERIAL column and an identity column both own one, and it keeps its name when the table or column is renamed.
+ */
+export function ownedSequenceOf(location: {
+  readonly schema: string;
+  readonly table: string;
+  readonly column: string;
+}): CfExpr {
+  return cfExpr.fn({
+    method: 'pg_get_serial_sequence',
+    template: 'pg_get_serial_sequence({{self}}, {{arg0}})::regclass',
+    self: cfExpr.param(
+      checkNamespace(location.schema).qualifyTable(location.table),
+      PG_TEXT_CODEC_ID,
+    ),
+    args: [cfExpr.param(location.column, PG_TEXT_CODEC_ID)],
+    returns: { codecId: PG_TEXT_CODEC_ID, nullable: true },
+  });
+}
+
+/**
+ * Typed check that a column's autoincrement default has a sequence to use: the column already owns one, whatever its name, or no relation has the name `sequence`, which the operation creates.
  */
 export function sequenceNameAvailableAst(options: {
   readonly schema: string;
@@ -245,23 +265,22 @@ export function sequenceNameAvailableAst(options: {
   readonly column: string;
   readonly sequence: string;
 }): SelectAst {
-  const namespace = checkNamespace(options.schema);
-  const qualifiedSequence = namespace.qualifyTable(options.sequence);
-  const ownedSequence = cfExpr.fn({
-    method: 'pg_get_serial_sequence',
-    template: 'pg_get_serial_sequence({{self}}, {{arg0}})::regclass',
-    self: cfExpr.param(namespace.qualifyTable(options.table), PG_TEXT_CODEC_ID),
-    args: [cfExpr.param(options.column, PG_TEXT_CODEC_ID)],
-    returns: { codecId: PG_TEXT_CODEC_ID, nullable: true },
-  });
+  const qualifiedSequence = checkNamespace(options.schema).qualifyTable(options.sequence);
   return exprSelect()
     .project(
       'result',
-      toRegclass(qualifiedSequence)
-        .isNull()
-        .or(toRegclass(qualifiedSequence).eqExpr(ownedSequence)),
+      ownedSequenceOf(options).isNotNull().or(toRegclass(qualifiedSequence).isNull()),
     )
     .build();
+}
+
+/** Typed check that the column owns a sequence. */
+export function columnOwnsASequenceAst(location: {
+  readonly schema: string;
+  readonly table: string;
+  readonly column: string;
+}): SelectAst {
+  return exprSelect().project('result', ownedSequenceOf(location).isNotNull()).build();
 }
 
 /**
@@ -684,7 +703,7 @@ export function constraintDefinitionAst(options: {
 }
 
 /**
- * Typed check that `index` is an index on `table` with the given uniqueness and access method, on the columns `columns` in order or on an expression, and with or without a predicate. It never compares the expression or predicate text, which Postgres prints in its own form.
+ * Typed check that `index` is an index on `table` with the given uniqueness and access method, on the columns `columns` in order, and with or without a predicate. For an index written as an element list (`expression`) it checks no elements: the list can be a real expression, which Postgres stores in `indexprs`, or plain columns with a sort order, operator class or collation, which it stores as columns, and comparing its text would need the form Postgres prints.
  */
 export function indexDefinitionAst(options: {
   readonly schema: string;
@@ -718,17 +737,19 @@ export function indexDefinitionAst(options: {
         indexColumn('indrelid').eqExpr(toRegclass(namespace.qualifyTable(options.table))),
         options.unique ? indexColumn('indisunique') : indexColumn('indisunique').not(),
         cfExpr.columnRef('m', 'amname').eqParam(options.method, PG_TEXT_CODEC_ID),
-        'columns' in options.elements
-          ? indexColumn('indexprs')
-              .isNull()
-              .and(
-                keyColumnsAre(
-                  indexColumn('indkey'),
-                  indexColumn('indrelid'),
-                  options.elements.columns,
+        ...('columns' in options.elements
+          ? [
+              indexColumn('indexprs')
+                .isNull()
+                .and(
+                  keyColumnsAre(
+                    indexColumn('indkey'),
+                    indexColumn('indrelid'),
+                    options.elements.columns,
+                  ),
                 ),
-              )
-          : indexColumn('indexprs').isNotNull(),
+            ]
+          : []),
         options.hasPredicate ? indexColumn('indpred').isNotNull() : indexColumn('indpred').isNull(),
       ]),
     );
@@ -736,7 +757,7 @@ export function indexDefinitionAst(options: {
 }
 
 /**
- * Typed check that the RLS policy `policyName` on `table` exists with the command `command` (as `pg_policies.cmd` prints it, such as `ALL` or `SELECT`), the permissive flag, and exactly the roles `roles`, in any order. It never compares the policy's expressions.
+ * Typed check that the RLS policy `policyName` on `table` exists with the command `command` (as `pg_policies.cmd` prints it, such as `ALL` or `SELECT`), the permissive flag, and exactly the roles `roles`, in any order. A role written as `current_user`, `current_role` or `session_user` stands for the role it names in the session that runs the check, as `CREATE POLICY` resolves it. It never compares the policy's expressions.
  */
 export function rlsPolicyDefinitionAst(options: {
   readonly schema: string;
@@ -748,10 +769,9 @@ export function rlsPolicyDefinitionAst(options: {
 }): SelectAst {
   const rolesAre = cfExpr.fn({
     method: 'roles_are',
-    template:
-      "(SELECT coalesce(jsonb_agg(policy_role ORDER BY policy_role), '[]'::jsonb) FROM unnest({{self}}) AS policy_role) = ({{arg0}})::jsonb",
+    template: `(SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT policy_role::text COLLATE "C" AS role_name FROM unnest({{self}}) AS policy_role) AS actual_roles) = (SELECT coalesce(jsonb_agg(role_name ORDER BY role_name), '[]'::jsonb) FROM (SELECT DISTINCT (CASE expected_role WHEN 'current_user' THEN current_user::text WHEN 'current_role' THEN current_role::text WHEN 'session_user' THEN session_user::text ELSE expected_role END) COLLATE "C" AS role_name FROM jsonb_array_elements_text(({{arg0}})::jsonb) AS expected_role) AS expected_roles)`,
     self: cfExpr.identifierRef('roles'),
-    args: [cfExpr.param(JSON.stringify([...options.roles].sort()), PG_TEXT_CODEC_ID)],
+    args: [cfExpr.param(JSON.stringify(options.roles), PG_TEXT_CODEC_ID)],
     returns: { codecId: PG_BOOL_CODEC_ID, nullable: false },
   });
   const inner = exprSelect()
@@ -773,24 +793,15 @@ export function rlsPolicyDefinitionAst(options: {
 }
 
 /**
- * Typed check that the column takes its default from the sequence `sequence`: the sequence `pg_get_serial_sequence` finds for the column is `sequence`, and `sequence` is of the type `sequenceType` (`smallint`, `integer` or `bigint`).
+ * Typed check that the column owns a sequence, whatever its name, and that the sequence is of the type `sequenceType` (`smallint`, `integer` or `bigint`).
  */
 export function columnOwnsSequenceAst(options: {
   readonly schema: string;
   readonly table: string;
   readonly column: string;
-  readonly sequence: string;
   readonly sequenceType: string;
 }): SelectAst {
-  const namespace = checkNamespace(options.schema);
-  const sequence = toRegclass(namespace.qualifyTable(options.sequence));
-  const ownedSequence = cfExpr.fn({
-    method: 'pg_get_serial_sequence',
-    template: 'pg_get_serial_sequence({{self}}, {{arg0}})::regclass',
-    self: cfExpr.param(namespace.qualifyTable(options.table), PG_TEXT_CODEC_ID),
-    args: [cfExpr.param(options.column, PG_TEXT_CODEC_ID)],
-    returns: { codecId: PG_TEXT_CODEC_ID, nullable: true },
-  });
+  const ownedSequence = ownedSequenceOf(options);
   const sequenceType = cfExpr.fn({
     method: 'to_regtype',
     template: 'to_regtype({{self}})',
@@ -802,12 +813,12 @@ export function columnOwnsSequenceAst(options: {
     .project('one', cfExpr.lit(1))
     .where(
       cfExpr.allOf([
-        cfExpr.columnRef('s', 'seqrelid').eqExpr(sequence),
+        cfExpr.columnRef('s', 'seqrelid').eqExpr(ownedSequence),
         cfExpr.columnRef('s', 'seqtypid').eqExpr(sequenceType),
       ]),
     );
   return exprSelect()
-    .project('result', ownedSequence.eqExpr(sequence).and(cfExpr.exists(sequenceOfType)))
+    .project('result', ownedSequence.isNotNull().and(cfExpr.exists(sequenceOfType)))
     .build();
 }
 
@@ -842,31 +853,20 @@ export function columnTypeOidAst(options: {
 }
 
 /**
- * Typed check that the sequence `sequence` has handed out no value above `maxValue`, so narrowing it to a smaller integer type keeps every value it already gave. A sequence that has never been read passes.
+ * Typed check that the sequence the column owns has handed out no value above `maxValue`, so narrowing it to a smaller integer type keeps every value it already gave. A sequence that has never been read, and a column that owns none, pass.
  */
 export function sequenceValuesFitAst(options: {
   readonly schema: string;
-  readonly sequence: string;
+  readonly table: string;
+  readonly column: string;
   readonly maxValue: string;
 }): SelectAst {
-  const pastMax = cfExpr.fn({
-    method: 'greater_than_bigint',
-    template: '{{self}} > ({{arg0}})::bigint',
-    self: cfExpr.identifierRef('last_value'),
+  const fits = cfExpr.fn({
+    method: 'sequence_values_fit',
+    template: 'coalesce(pg_sequence_last_value({{self}}), 0) <= ({{arg0}})::bigint',
+    self: ownedSequenceOf(options),
     args: [cfExpr.param(options.maxValue, PG_TEXT_CODEC_ID)],
-    returns: { codecId: PG_BOOL_CODEC_ID, nullable: true },
+    returns: { codecId: PG_BOOL_CODEC_ID, nullable: false },
   });
-  const inner = exprSelect()
-    .from(cfTable('pg_sequences'))
-    .project('one', cfExpr.lit(1))
-    .where(
-      cfExpr.allOf([
-        cfExpr
-          .identifierRef('schemaname')
-          .eqExpr(checkNamespace(options.schema).schemaFilterExpression()),
-        cfExpr.identifierRef('sequencename').eqParam(options.sequence, PG_TEXT_CODEC_ID),
-        pastMax,
-      ]),
-    );
-  return exprSelect().project('result', cfExpr.notExists(inner)).build();
+  return exprSelect().project('result', fits).build();
 }

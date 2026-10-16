@@ -1,7 +1,6 @@
 /**
  * The runner skips an operation whose postchecks all hold before it runs. So a postcheck may hold only once the operation's full effect is in place. Each case below prepares a database holding an object with the operation's name but another definition, and asserts the postchecks do not all hold there; then it runs the operation on a database without that object and asserts they all hold.
  */
-import type { SqlMigrationPlanOperationStep } from '@internal/family-sql/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { parseNaming } from '@internal/sql-schema-ir/naming';
@@ -24,30 +23,9 @@ import {
   SetDefaultCall,
 } from '@internal/target-postgres/op-factory-call';
 import { PostgresRlsPolicy } from '@internal/target-postgres/types';
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import {
-  controlAdapter,
-  createDriver,
-  createTestDatabase,
-  type PostgresControlDriver,
-  resetDatabase,
-  testTimeout,
-} from './fixtures/runner-fixtures';
-
-interface Operation {
-  readonly precheck: readonly SqlMigrationPlanOperationStep[];
-  readonly execute: readonly SqlMigrationPlanOperationStep[];
-  readonly postcheck: readonly SqlMigrationPlanOperationStep[];
-}
-
-interface Case {
-  readonly name: string;
-  /** Objects the operation needs, present in both databases. */
-  readonly before: readonly string[];
-  /** An object with the operation's name but another definition. */
-  readonly conflicting: readonly string[];
-  readonly operation: () => Promise<Operation>;
-}
+import { expect, it } from 'vitest';
+import { describePostcheckCases, type PostcheckCase } from './fixtures/postcheck-cases';
+import { controlAdapter, testTimeout } from './fixtures/runner-fixtures';
 
 function itemPolicy(name: string, operation: 'all' | 'select', permissive = true) {
   return new PostgresRlsPolicy({
@@ -65,7 +43,7 @@ function itemPolicy(name: string, operation: 'all' | 'select', permissive = true
 const ITEM = 'create table public.item (id int4 primary key, price int4, owner_id int4)';
 const OWNER = 'create table public.owner (id int4 primary key, code int4 unique)';
 
-const cases: readonly Case[] = [
+const cases: readonly PostcheckCase[] = [
   {
     name: 'createTable over a view of the same name',
     before: [],
@@ -192,9 +170,9 @@ const cases: readonly Case[] = [
       ).toOp(controlAdapter),
   },
   {
-    name: 'createIndex on an expression over an index on a column',
+    name: 'createIndex on an expression over a unique index',
     before: [ITEM],
-    conflicting: ['create index item_lookup on public.item (price)'],
+    conflicting: ['create unique index item_lookup on public.item ((price * 2))'],
     operation: () =>
       new CreateIndexCall('public', 'item', 'item_lookup', { expression: '(price * 2)' }).toOp(
         controlAdapter,
@@ -351,83 +329,25 @@ const cases: readonly Case[] = [
   },
 ];
 
-describe('postchecks hold only once the full effect is in place', { concurrent: false }, () => {
-  let database: Awaited<ReturnType<typeof createTestDatabase>>;
-  let driver: PostgresControlDriver | undefined;
+describePostcheckCases('postchecks hold only once the full effect is in place', cases, {
+  schemas: [],
+  extra: (db) => {
+    it('renameRlsPolicy refuses to run while a policy already has the new name', {
+      timeout: testTimeout,
+    }, async () => {
+      await db.run([
+        ITEM,
+        'create policy item_old on public.item for all using (price > 0)',
+        'create policy item_new on public.item for all using (price > 0)',
+      ]);
+      const op = await new RenamePostgresRlsPolicyCall(
+        'public',
+        'item',
+        'item_old',
+        'item_new',
+      ).toOp(controlAdapter);
 
-  beforeAll(async () => {
-    database = await createTestDatabase();
-  }, testTimeout);
-
-  afterAll(async () => {
-    await database?.close();
-  }, testTimeout);
-
-  beforeEach(async () => {
-    driver = await createDriver(database.connectionString);
-    await resetDatabase(driver);
-  }, testTimeout);
-
-  afterEach(async () => {
-    await driver?.close();
-    driver = undefined;
-  }, testTimeout);
-
-  function requireDriver(): PostgresControlDriver {
-    if (driver === undefined) throw new Error('driver not initialised');
-    return driver;
-  }
-
-  async function run(statements: readonly string[]): Promise<void> {
-    for (const statement of statements) await requireDriver().query(statement);
-  }
-
-  async function allHold(steps: readonly SqlMigrationPlanOperationStep[]): Promise<boolean> {
-    for (const step of steps) {
-      const result = await requireDriver().query<Record<string, unknown>>(
-        step.sql,
-        step.params ?? [],
-      );
-      if (Object.values(result.rows[0] ?? {})[0] !== true) return false;
-    }
-    return true;
-  }
-
-  it.each(cases)(
-    '$name: the postchecks do not all hold',
-    async ({ before, conflicting, operation }) => {
-      await run([...before, ...conflicting]);
-      const op = await operation();
-
-      expect(await allHold(op.postcheck)).toBe(false);
-    },
-    testTimeout,
-  );
-
-  it.each(cases)(
-    '$name: the postchecks all hold once the operation runs on a database without the object',
-    async ({ before, operation }) => {
-      await run(before);
-      const op = await operation();
-      await run(op.execute.map((step) => step.sql));
-
-      expect(await allHold(op.postcheck)).toBe(true);
-    },
-    testTimeout,
-  );
-
-  it('renameRlsPolicy refuses to run while a policy already has the new name', {
-    timeout: testTimeout,
-  }, async () => {
-    await run([
-      ITEM,
-      'create policy item_old on public.item for all using (price > 0)',
-      'create policy item_new on public.item for all using (price > 0)',
-    ]);
-    const op = await new RenamePostgresRlsPolicyCall('public', 'item', 'item_old', 'item_new').toOp(
-      controlAdapter,
-    );
-
-    expect(await allHold(op.precheck)).toBe(false);
-  });
+      expect(await db.allHold(op.precheck)).toBe(false);
+    });
+  },
 });

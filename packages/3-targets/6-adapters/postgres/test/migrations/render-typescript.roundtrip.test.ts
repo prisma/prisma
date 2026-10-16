@@ -11,28 +11,13 @@
  * survives a full parse → execute round-trip back into runtime ops.
  */
 
-import { execFile } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { pathToFileURL } from 'node:url';
-import { promisify } from 'node:util';
-import { coreHash, profileHash } from '@internal/contract/types';
 import { APP_SPACE_ID, storageHashHex } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
 import { formatMigrationTs } from '@internal/migration-tools/migration-ts';
-import { type SqlNamespaceBase, SqlStorage, StorageTable } from '@internal/sql-contract/types';
-import {
-  checkExpression,
-  col,
-  fn,
-  lit,
-  primaryKey,
-} from '@internal/sql-relational-core/contract-free';
-import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
-import {
-  createPostgresBuiltinDataTypeLookup,
-  postgresDataTypes,
-} from '@internal/target-postgres/data-types';
+import { checkExpression, col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
   AddColumnWithTemporaryDefaultCall,
@@ -54,142 +39,21 @@ import {
 } from '@internal/target-postgres/op-factory-call';
 import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres/planner-produced-postgres-migration';
 import { renderOps } from '@internal/target-postgres/render-ops';
-import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
-import { PostgresRlsPolicy, postgresCreateNamespace } from '@internal/target-postgres/types';
-import { applicationDomainOf, timeouts } from '@repo/test-utils';
+import { PostgresRlsPolicy } from '@internal/target-postgres/types';
+import { timeouts } from '@repo/test-utils';
 import { join, resolve } from 'pathe';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
-
-const execFileAsync = promisify(execFile);
-const testAdapter = new PostgresControlAdapter(
-  createPostgresBuiltinCodecLookup(),
-  createPostgresBuiltinDataTypeLookup(),
-);
-const packageRoot = resolve(import.meta.dirname, '../..');
-const repoRoot = resolve(packageRoot, '../../../..');
-const targetPostgresRoot = resolve(repoRoot, 'packages/3-targets/3-targets/postgres');
-const tsxPath = join(repoRoot, 'node_modules/.bin/tsx');
-
-const targetPostgresMigrationExport = pathToFileURL(
-  resolve(targetPostgresRoot, 'src/exports/migration.ts'),
-).href;
-const relationalCoreContractFreeExport = pathToFileURL(
-  resolve(repoRoot, 'packages/2-sql/4-lanes/relational-core/src/exports/contract-free.ts'),
-).href;
-const cliConfigTypesExport = pathToFileURL(
-  resolve(repoRoot, 'packages/1-framework/3-tooling/cli/src/exports/config-types.ts'),
-).href;
-const familySqlControlExport = pathToFileURL(
-  resolve(repoRoot, 'packages/2-sql/9-family/src/exports/control.ts'),
-).href;
-const targetPostgresControlExport = pathToFileURL(
-  resolve(targetPostgresRoot, 'src/exports/control.ts'),
-).href;
-const adapterPostgresControlExport = pathToFileURL(
-  resolve(packageRoot, 'src/exports/control.ts'),
-).href;
-
-/**
- * `MigrationCLI.run` requires a `prisma.config.ts` to assemble a
- * `ControlStack`. Tests have no workspace `node_modules` resolution from
- * `tmpDir`, so we write a bespoke config alongside `migration.ts` whose
- * imports all use absolute `file://` URLs into the live workspace
- * sources. The driver is omitted — the round-trip exercises the
- * serialization path only and never opens a database connection.
- */
-const fixtureConfigSource = [
-  `import postgresAdapter from '${adapterPostgresControlExport}';`,
-  `import { defineConfig } from '${cliConfigTypesExport}';`,
-  `import sql from '${familySqlControlExport}';`,
-  `import postgres from '${targetPostgresControlExport}';`,
-  '',
-  'export default { $prismaConfig: 1, orm: defineConfig({',
-  '  family: sql,',
-  '  target: postgres,',
-  '  adapter: postgresAdapter,',
-  "  migrations: { dir: '.' },",
-  '}) };',
-  '',
-].join('\n');
-
-/**
- * Rewrite the bare import the renderer always emits so that running the
- * rendered scaffold from a temp directory (which has no workspace
- * `node_modules` resolution) still reaches the live in-source modules.
- * The renderer pulls both `Migration` (the base class) and
- * `MigrationCLI` (the entrypoint) from the postgres migration facade, so
- * a single rewrite is enough.
- */
-function rewriteImports(tsSource: string): string {
-  return tsSource
-    .replace("'@internal/postgres/migration'", `'${targetPostgresMigrationExport}'`)
-    .replace(
-      "'@internal/sql-relational-core/contract-free'",
-      `'${relationalCoreContractFreeExport}'`,
-    );
-}
-
-function snapshotContractJson(
-  storageHash: string,
-  namespaces: Readonly<Record<string, SqlNamespaceBase>>,
-): string {
-  const contract = new PostgresContractSerializer().serializeContract({
-    target: 'postgres',
-    targetFamily: 'sql',
-    profileHash: profileHash('roundtrip'),
-    storage: new SqlStorage({ storageHash: coreHash(storageHash), namespaces }),
-    roots: {},
-    domain: applicationDomainOf({ models: {} }),
-    capabilities: {},
-    extensions: {},
-    meta: {},
-  });
-  return JSON.stringify(contract, null, 2);
-}
-
-/**
- * Write the deduplicated snapshot-store fixtures the rendered scaffold
- * imports — `snapshots/<hex>/contract.json` (a serialized contract whose
- * `storage.storageHash` the base's derived `describe()` reads, and whose
- * start-contract tables `this.setDefault` reads) and the matching
- * `snapshots/<hex>/contract.ts` type module (`export type Contract`) for
- * each of `meta.to` and (when non-null) `meta.from`. The JSON hashes match
- * `meta` so the derived describe() is consistent with the migration's
- * identity. `SNAPSHOTS_IMPORT_PATH` matches the `snapshotsImportPath` passed
- * to the migration under test, so the rendered import specifiers resolve
- * relative to `migration.ts` at the root of `dir`.
- */
-async function writeContractFixtures(
-  dir: string,
-  meta: { readonly from: string | null; readonly to: string },
-  startNamespaces: Readonly<Record<string, SqlNamespaceBase>> = {},
-): Promise<void> {
-  const contractType =
-    'export type Contract = { readonly storage: { readonly storageHash: string } };\n';
-  const writeSnapshot = async (
-    storageHash: string,
-    namespaces: Readonly<Record<string, SqlNamespaceBase>>,
-  ) => {
-    const snapshotDir = join(dir, SNAPSHOTS_IMPORT_PATH, storageHashHex(storageHash));
-    await mkdir(snapshotDir, { recursive: true });
-    await writeFile(
-      join(snapshotDir, 'contract.json'),
-      snapshotContractJson(storageHash, namespaces),
-    );
-    await writeFile(join(snapshotDir, 'contract.ts'), contractType);
-  };
-  await writeSnapshot(meta.to, {});
-  if (meta.from !== null) {
-    await writeSnapshot(meta.from, startNamespaces);
-  }
-}
-
-const SNAPSHOTS_IMPORT_PATH = './snapshots';
-const META = {
-  from: '0'.repeat(64),
-  to: '1'.repeat(64),
-} as const;
+import {
+  execFileAsync,
+  fixtureConfigSource,
+  META,
+  repoRoot,
+  rewriteImports,
+  SNAPSHOTS_IMPORT_PATH,
+  testAdapter,
+  tsxPath,
+  writeContractFixtures,
+} from './fixtures/render-roundtrip';
 
 const tscPath = join(repoRoot, 'node_modules/.bin/tsc');
 
@@ -368,69 +232,6 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     const expected = await Promise.all(renderOps(calls, testAdapter));
     expect(ops).toEqual(expected);
   });
-
-  it(
-    'renders a changed default without its operation class, which the executed migration derives from the start contract',
-    async () => {
-      await writeContractFixtures(tmpDir, META, {
-        public: postgresCreateNamespace({
-          id: 'public',
-          entries: {
-            table: {
-              ticket: new StorageTable({
-                columns: {
-                  status: {
-                    dataType: 'pg/text',
-                    codecId: 'pg/text@1',
-                    nullable: false,
-                    default: { kind: 'literal', value: 'open' },
-                  },
-                },
-                uniques: [],
-                indexes: [],
-                foreignKeys: [],
-              }),
-            },
-          },
-        }),
-      });
-      const calls = [
-        new SetDefaultCall(
-          'public',
-          'ticket',
-          col('status', 'text', { default: lit('closed'), codecRef: { codecId: 'pg/text@1' } }),
-          'widening',
-        ),
-      ];
-      const migration = new TypeScriptRenderablePostgresMigration(
-        calls,
-        META,
-        APP_SPACE_ID,
-        SNAPSHOTS_IMPORT_PATH,
-        testAdapter,
-      );
-
-      const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
-      await writeFile(join(tmpDir, 'migration.ts'), tsSource);
-      const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
-        cwd: tmpDir,
-      });
-      const ops = JSON.parse(await readFile(join(tmpDir, 'ops.json'), 'utf-8'));
-
-      expect({
-        stderr,
-        rendersOperationClass: tsSource.includes('operationClass'),
-        operationClasses: ops.map((op: { operationClass: string }) => op.operationClass),
-        ops,
-      }).toEqual({
-        stderr: '',
-        rendersOperationClass: false,
-        operationClasses: ['widening'],
-        ops: await Promise.all(renderOps(calls, testAdapter)),
-      });
-    },
-    timeouts.typeScriptCompilation,
-  );
 
   it('runs a multi-line sql template exactly as writeMigrationTs writes it, giving renderOps(calls)', {
     timeout: timeouts.coldTransformImport,

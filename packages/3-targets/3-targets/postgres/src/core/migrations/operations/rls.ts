@@ -12,7 +12,8 @@ import {
   dropPolicy,
 } from '../../../contract-free/ddl';
 import { postgresError } from '../../errors';
-import type { PostgresRlsPolicy, RlsPolicyOperation } from '../../postgres-rls-policy';
+import type { PostgresRlsPolicy } from '../../postgres-rls-policy';
+import { POLICY_COMMAND_SQL, policyRoleList } from '../../rls/canonicalize';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type Op, step, targetDetails } from './shared';
 
@@ -29,17 +30,10 @@ function validateRoleName(role: string): string {
   return role;
 }
 
-const POLICY_COMMAND: Readonly<Record<RlsPolicyOperation, string>> = {
-  select: 'SELECT',
-  insert: 'INSERT',
-  update: 'UPDATE',
-  delete: 'DELETE',
-  all: 'ALL',
-};
-
-/** The roles `pg_policies.roles` lists for a policy created for `roles`: unquoted names fold to lower case, and no roles means `public`. */
+/** The roles `pg_policies.roles` lists for a policy created for `roles`: the roles the `TO` clause names, which fold to lower case unquoted. Postgres ignores every other role when the clause names `public`. */
 function catalogPolicyRoles(roles: readonly string[]): readonly string[] {
-  return roles.length === 0 ? ['public'] : [...new Set(roles.map((role) => role.toLowerCase()))];
+  const named = [...new Set(policyRoleList(roles).map((role) => role.toLowerCase()))];
+  return named.includes('public') ? ['public'] : named;
 }
 
 export async function createRlsPolicy(
@@ -71,7 +65,7 @@ export async function createRlsPolicy(
       schema: schemaName,
       table: tableName,
       policyName: policy.name,
-      command: POLICY_COMMAND[policy.operation],
+      command: POLICY_COMMAND_SQL[policy.operation],
       permissive: policy.permissive,
       roles: catalogPolicyRoles(validatedRoles),
     }),

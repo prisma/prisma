@@ -244,7 +244,7 @@ describe('autoincrement() on an existing integer column', { concurrent: false },
       await driver!.query(create);
 
       await expect(apply(migrationPlan, withAutoincrement, anyClass)).rejects.toThrow(
-        'Operation setDefault.orders.number failed during precheck: ensure no relation other than the sequence column "number" owns is named "public"."orders_number_seq" (rename that relation, or write this migration with migration new)',
+        'Operation setDefault.orders.number failed during precheck: ensure column "number" owns a sequence or no relation is named "public"."orders_number_seq" (rename that relation, or write this migration with migration new)',
       );
       expect(await numberColumn()).toEqual({ column_default: null, serial_sequence: null });
     },
@@ -351,7 +351,7 @@ describe('autoincrement() on an existing integer column', { concurrent: false },
     const migrationPlan = plan(narrowed, await introspect(narrowed), anyClass);
 
     await expect(apply(migrationPlan, narrowed, anyClass)).rejects.toThrow(
-      'Operation alterType.orders.number failed during precheck: ensure sequence "orders_number_seq" has no value past the integer range',
+      'Operation alterType.orders.number failed during precheck: ensure the sequence column "number" owns has no value past the integer range',
     );
     expect(await sequenceType()).toBe('bigint');
   });
