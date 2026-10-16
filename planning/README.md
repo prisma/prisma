@@ -37,7 +37,7 @@ If you work on language tools or queries, streams 3 and 4 are yours to read firs
 ## How much to trust it
 
 - [plan.md](plan.md), [evidence.md](evidence.md) and [decisions.md](decisions.md) are kept current.
-- The states in the plan are as of 2026-10-07.
+- The states in the plan are as of 2026-10-16.
 - [query-feature-gaps.md](query-feature-gaps.md) and [open-projects.md](open-projects.md) are snapshots. Some entries are already out of date. Check the code before you act on one.
 
 ## How to change it
