@@ -146,7 +146,16 @@ The cases are:
 - a time default with more fraction digits than its column's precision;
 - a date or time default in a spelling earlier releases stored: an instant with `.000Z` (`"2024-01-01T00:00:00.000Z"` is now `"2024-01-01T00:00:00Z"`), an offset such as `+01:00` on a `timestamptz` (now converted to `Z`), a time without seconds (`"12:34"` is now `"12:34:00"`), or a space instead of `T` between date and time.
 
-The schema does not change. Run `prisma contract emit`, which writes the default in the new spelling, then `prisma db sign` (`sign-databases-after-data-type-values`).
+Then run `prisma contract emit`, which writes the default in the new spelling, then `prisma db sign` (`sign-databases-after-data-type-values`). Two kinds of default in the schema need rewriting first, or `contract emit` refuses them:
+
+- a quoted date, time, interval or bytes default, which is written with its tag (`date-time-interval-and-bytes-defaults-use-tags`);
+- a default with more fraction digits or more scale than its column holds, on a `time`, `timestamp`, `timestamptz`, `interval` or `numeric` column. Earlier releases let PostgreSQL round it; write the rounded value instead. For example, `Timestamptz(3) @default(timestamptz`2024-01-01T00:00:00.1234Z`)` is refused with:
+
+  ```text
+  Field "Event.at": pg/timestamptz JSON value must be a value with at most 3 fraction digits of a second, which precision 3 holds without rounding
+  ```
+
+  Write `timestamptz`2024-01-01T00:00:00.123Z``. A `Numeric(10, 2)` default of `1.234` is refused the same way (`pg/numeric JSON value must be a decimal string that numeric(10, 2) stores without rounding`); write `1.23`.
 
 ## `prisma7-datetime-default-finer-than-column`
 
