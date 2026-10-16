@@ -34,6 +34,8 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | b | 3 (`71aec5b333`) | SATISFIED |
 | merge of `main` | 2 (`30254c5bbb`) | SATISFIED |
 | c | 1 (`5a62fd7a24..2c3c9433b3`) | ANOTHER ROUND NEEDED: 1 must-fix, 1 should-fix, 2 low |
+| c | 2 (`3e3aad659b`, `b423685d38`, `e0e98b5e31`, `b309ab5499`) | SATISFIED |
+| d | 1 (`a39b9eddc6..6e944edb28`, `852ab43720`) | SATISFIED: 0 must-fix, 0 should-fix, 2 low |
 
 ## Findings log
 
@@ -354,3 +356,58 @@ Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-c.md`. Range 
 - Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1`, `test/authoring`, `test/date-time-defaults`, every integration file the dispatch changed, `integer-representation` and `connection-release`: 1975 pass, 4 fail (`value-object-defaults`, S3-c-R1-1); `git status` clean after the re-record. `stale-contract-default*` and `uuid-defaults`: 12 fail (S3-c-R1-1); `migration-ts-column-defaults` passes.
 - Probes: mismatched and list tag diagnostics through `authorSqlContractFromPsl` (item 5), with the probe file deleted afterwards; the tag-filter mutation.
 - Must-not-change: no committed `contract.json`, `contract.d.ts`, migration, snapshot or golden recording changed.
+
+## Dispatch c, round 2
+
+S3-c-R1-4 is recorded in brief h.
+
+- S3-c-R1-1: fixed in `3e3aad659b`. The four files now expect refusals that name the data type. The `uuid-defaults` assertion uses `objectContaining`, so the source and span I reported were only in the diff display, not a difference. All pass.
+- `b423685d38`: a default on a column declared with a named type now reads under the named type's parameters (`resolvedTypeParams`), tested with `Numeric(65, 30)`. I swept for the same defect: code that reads a column's parameters from its own constructor and misses a named type's. Every other reader resolves the parameters first: contract-ts `lower-column.ts`, the emitter, `codec-ref-for-column.ts`, `contract-to-schema-ir.ts`, and Postgres `psl-print`. `field-event-planner.ts` compares `typeRef` and `typeParams` as written, so it cannot miss a change. Mongo PSL refuses named types outright. A value-object member declared with a named type already took its parameters: a probe with `types { Money = Numeric(10, 2) }` gave the same diagnostics for `amount Money` as for `amount Numeric(10, 2)`.
+- S3-c-R1-2: fixed in `e0e98b5e31`. A backslash is doubled only before another backslash or at the end of the body. Tests cover a trailing backslash, runs of two and three backslashes, and a multi-line body ending in a backslash, and each reads back unchanged.
+- S3-c-R1-3: fixed in `b309ab5499`. `FieldAttributeSpecContext.typeConstructor` resolves through a named type, and the binder, the language server, contract-psl and the Mongo interpreter set it. A spec test and the language-server integration test cover an alias.
+
+## Dispatch d, round 1
+
+Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-d.md`. Range `a39b9eddc6..6e944edb28`, plus `852ab43720`.
+
+### Orchestrator rulings for dispatch d
+
+1. The committed SQLite contracts are regenerated in this dispatch rather than left failing until dispatch g.
+
+### The brief, item by item
+
+1. `storedAs`: built. `sqlDataType` refuses a type that has `storedAs` together with texts or a claimed kind, when the type is declared, which is earlier than assembly. Assembly refuses a `storedAs` that names an unregistered type. Both are tested.
+2. The two types: built, with strict readers. The codec-level `toCanonicalForm` and `CodecDescriptor.toCanonicalForm` are gone, and `sqlite/text` casts from neither type.
+3. The `datetime` tag: built. A quoted string on a `DateTime` column is refused with the tag to write.
+4. The `json` entry sits under `sqlite/json`. `tagEntryKey`, `isTagEntryKey`, `authoringEntryType`, the entry's `type` field and the assembly rule are all gone.
+5. The value-object column: the SQLite adapter's `valueObjectStorageType` is `Json`, whose codec now represents `sqlite/json`. `contract-stack-checks.ts` compares codecs, so it needed no change.
+6. The planner's change detection and the join check compare what each column is stored as. A planner test fires no `altered` event for `sqlite/text` changing to `sqlite/datetime`, and a validator test accepts the join.
+7. DDL and verify are unchanged. Against `node:sqlite`, the adapter test creates the table with both new columns through the planner (both written `TEXT`), reads it back as `text`, and verifies it clean. The golden planner re-record leaves no diff.
+8. The committed contracts are regenerated, per ruling 1.
+
+### The implementer's choices
+
+- `sqlite/datetime` and `sqlite/json` keep a type-level `toCanonicalForm` until dispatch e: accepted. Dispatch c kept it on the Postgres types for the same reason, and verify still depends on it. Against `node:sqlite`, a table created before this slice with `DEFAULT '2024-01-01T00:00:00Z'` verifies clean against a contract that stores `2024-01-01T00:00:00.000Z` (probe, reverted). See S3-d-R1-2.
+- A `sqlite/json` enum member written in another spelling is refused, naming the stored text: accepted. A PSL enum member is read as a stored value, as for `pg/uuid` members written in upper case.
+- `unquotedSqlBaseNameOfCodec` gives the name of the type a column is stored as: accepted. Its callers write DDL or compare it with the catalog, and the one outside DDL (the Prisma 7 reader) runs on Postgres, where no type is stored as another.
+- The hand-edited `packages/3-targets/3-targets/sqlite/test/fixtures/sqlite-contract.json` and its `.d.ts`: correct. Only the two `dataType` fields and the hash change; the fixture has no datetime or JSON default. I recomputed the storage hash with `computeStorageHash` and `sqlContractCanonicalizationHooks`, first checking the method on the file before the edit, where it reproduces the old hash. It gives `1156c66d9347…` for the edited file, which matches what is committed. The emitted SQLite example and the golden fixture also match their hashes.
+
+### S3-d-R1-1 (low): SQLite fill values are keyed by codec for the two new types
+
+- Where: `CODEC_FILL_VALUES` in `packages/3-targets/3-targets/sqlite/src/core/migrations/planner-fill-values.ts`.
+- What is wrong: a new required column gets `'1970-01-01T00:00:00.000Z'` or `'{}'` only when its codec is `sqlite/datetime@1` or `sqlite/json@1`. Now that both are data types, another codec of either type gets no fill value at all, not even the `''` a `sqlite/text` column gets.
+- Change: key the two values by `sqliteDatetime.id` and `sqliteJson.id` in `DATA_TYPE_FILL_VALUES`.
+
+### S3-d-R1-2 (low, for dispatch e): the verify test does not cover a datetime default written in the earlier spelling
+
+- Where: "verifies integer and JSON defaults written in their earlier stored form" in `packages/3-targets/6-adapters/sqlite/test/migrations/data-type-verify.test.ts`.
+- What is wrong: its datetime column uses the new spelling `.000Z`. A database created before this slice holds `'2024-01-01T00:00:00Z'`. That verifies today only through the type-level `toCanonicalForm`, which dispatch e deletes.
+- Change: write the datetime default there as `'2024-01-01T00:00:00Z'`, so dispatch e must keep it verifying through `fromWire`.
+
+### Checks run for dispatch c round 2 and dispatch d round 1
+
+- Root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `lint:framework-vocabulary` is 253 at threshold 253. `pnpm fixtures:check` passes, tree clean.
+- Package tests of target-sqlite, adapter-sqlite, sqlite-codec-testkit, sql-contract-psl, framework-components, sql-contract, family-sql, psl-parser, language-server, mongo-contract-psl, target-postgres, sql-contract-ts, cli, sql-contract-emitter and adapter-postgres: all pass.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/authoring`, `test/date-time-defaults`, `test/value-objects`, `stale-contract-default*`, `uuid-defaults`, `migration-ts-column-defaults`, `bytea-defaults`, `enum-members`, `contract-parity`, `psl-print` and `scalar-lists`: 109 files, 2134 tests, pass. `test/e2e` SQLite files: 12 files, 92 tests, pass.
+- Probes: the value-object named-type defaults (temporary file, deleted); the earlier-spelling datetime default (test edit, reverted); the storage hashes.
+- Must-not-change: no Postgres contract or DDL changed; SQLite DDL is unchanged.
