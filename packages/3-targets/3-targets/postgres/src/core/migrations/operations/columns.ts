@@ -7,7 +7,6 @@ import {
   columnDefaultSequenceAst,
   columnExistsAst,
   columnNullabilityAst,
-  columnOwnsASequenceAst,
   columnOwnsSequenceAst,
   columnTypeAst,
   columnTypeOidAst,
@@ -148,9 +147,10 @@ export type AlterColumnTypeClass = 'widening' | 'destructive' | 'data';
  * `type` is the new column type as a migration writes it, into the `ALTER COLUMN TYPE` clause.
  * `checkType` is the type `format_type` prints for it, which the postcheck compares. `sequence` is
  * the width of the sequence the column owns when it has an `autoincrement()` default: the operation
- * finds that sequence in the catalog and changes it to the new width, refusing first when the column
- * owns none or the sequence has handed out a value past that width, and the postcheck asks for both
- * the type and the sequence width.
+ * finds that sequence in the catalog and changes it to the new width, refusing first when the
+ * sequence has handed out a value past that width. A column whose default reads a sequence it does
+ * not own changes type and leaves the sequence alone. The postcheck asks for the type, and for the
+ * sequence width when the column owns one.
  */
 export async function alterColumnType(
   schemaName: string,
@@ -235,14 +235,12 @@ async function ownedSequenceSteps(
 ) {
   if (width === undefined) return { precheck: [], execute: [], postcheck: [] };
   const { sequenceType, maxValue } = width;
-  const ownsOne = await lowerer.lowerToExecuteRequest(columnOwnsASequenceAst(location));
   const fits = await lowerer.lowerToExecuteRequest(sequenceValuesFitAst({ ...location, maxValue }));
   const owns = await lowerer.lowerToExecuteRequest(
-    columnOwnsSequenceAst({ ...location, sequenceType }),
+    columnOwnsSequenceAst({ ...location, sequenceType, orNone: true }),
   );
   return {
     precheck: [
-      step(`ensure column "${location.column}" owns a sequence`, ownsOne.sql, ownsOne.params),
       step(
         `ensure the sequence column "${location.column}" owns has no value past the ${sequenceType} range`,
         fits.sql,
@@ -251,13 +249,15 @@ async function ownedSequenceSteps(
     ],
     execute: [
       step(
-        `change the sequence column "${location.column}" owns to ${sequenceType}`,
-        alterOwnedSequenceType(location, sequenceType),
+        `change the sequence column "${location.column}" owns, if any, to ${sequenceType}`,
+        doBlock(
+          `IF ${ownedSequenceSql(location)} IS NOT NULL THEN ${alterOwnedSequenceTypeStatement(location, sequenceType)} END IF;`,
+        ),
       ),
     ],
     postcheck: [
       step(
-        `verify column "${location.column}" owns a sequence of type ${sequenceType}`,
+        `verify the sequence column "${location.column}" owns, if any, is of type ${sequenceType}`,
         owns.sql,
         owns.params,
       ),
@@ -283,11 +283,9 @@ function doBlock(body: string): string {
   return `DO ${tag} BEGIN ${body} END ${tag}`;
 }
 
-/** `ALTER SEQUENCE … AS <type>` on the sequence the column owns, whatever its name. */
-function alterOwnedSequenceType(location: ColumnLocation, sequenceType: string): string {
-  return doBlock(
-    `EXECUTE format('ALTER SEQUENCE %s AS ${sequenceType}', ${ownedSequenceSql(location)});`,
-  );
+/** PL/pgSQL that runs `ALTER SEQUENCE … AS <type>` on the sequence the column owns, whatever its name. */
+function alterOwnedSequenceTypeStatement(location: ColumnLocation, sequenceType: string): string {
+  return `EXECUTE format('ALTER SEQUENCE %s AS ${sequenceType}', ${ownedSequenceSql(location)});`;
 }
 
 export async function setNotNull(
@@ -464,7 +462,7 @@ async function setAutoincrementDefault(
   );
   const attached = await lowerer.lowerToExecuteRequest(columnDefaultSequenceAst(location));
   const ownsSequence = await lowerer.lowerToExecuteRequest(
-    columnOwnsSequenceAst({ ...location, sequenceType }),
+    columnOwnsSequenceAst({ ...location, sequenceType, orNone: false }),
   );
   return {
     id: `setDefault.${tableName}.${columnName}`,
@@ -488,7 +486,7 @@ async function setAutoincrementDefault(
       ),
       step(
         `change the sequence column "${columnName}" owns to ${sequenceType}`,
-        alterOwnedSequenceType(location, sequenceType),
+        doBlock(alterOwnedSequenceTypeStatement(location, sequenceType)),
       ),
       step(
         `set default on "${columnName}" to the sequence it owns`,

@@ -1155,13 +1155,8 @@
         "params": ["public", "orders", "number"]
       },
       {
-        "description": "ensure column \"number\" owns a sequence",
-        "sql": "SELECT (pg_get_serial_sequence($1, $2)::regclass) IS NOT NULL AS \"result\"",
-        "params": ["\"public\".\"orders\"", "number"]
-      },
-      {
         "description": "ensure the sequence column \"number\" owns has no value past the bigint range",
-        "sql": "SELECT coalesce(pg_sequence_last_value(pg_get_serial_sequence($1, $2)::regclass), 0) <= ($3)::bigint AS \"result\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_sequence\" AS \"s\" WHERE (\"s\".\"seqrelid\" = pg_get_serial_sequence($1, $2)::regclass AND CASE WHEN \"s\".\"seqmax\" <= ($3)::bigint THEN false ELSE coalesce(pg_sequence_last_value(\"s\".\"seqrelid\"), 0) > ($3)::bigint END)) AS \"result\"",
         "params": ["\"public\".\"orders\"", "number", "9223372036854775807"]
       }
     ],
@@ -1178,8 +1173,8 @@
         }
       },
       {
-        "description": "change the sequence column \"number\" owns to bigint",
-        "sql": "DO $prisma$ BEGIN EXECUTE format('ALTER SEQUENCE %s AS bigint', pg_get_serial_sequence('\"public\".\"orders\"', 'number')::regclass); END $prisma$"
+        "description": "change the sequence column \"number\" owns, if any, to bigint",
+        "sql": "DO $prisma$ BEGIN IF pg_get_serial_sequence('\"public\".\"orders\"', 'number')::regclass IS NOT NULL THEN EXECUTE format('ALTER SEQUENCE %s AS bigint', pg_get_serial_sequence('\"public\".\"orders\"', 'number')::regclass); END IF; END $prisma$"
       }
     ],
     "postcheck": [
@@ -1189,8 +1184,8 @@
         "params": ["public", "orders", "number", "bigint"]
       },
       {
-        "description": "verify column \"number\" owns a sequence of type bigint",
-        "sql": "SELECT ((pg_get_serial_sequence($1, $2)::regclass) IS NOT NULL AND EXISTS (SELECT 1 AS \"one\" FROM \"pg_sequence\" AS \"s\" WHERE (\"s\".\"seqrelid\" = pg_get_serial_sequence($1, $2)::regclass AND \"s\".\"seqtypid\" = to_regtype($3)))) AS \"result\"",
+        "description": "verify the sequence column \"number\" owns, if any, is of type bigint",
+        "sql": "SELECT ((pg_get_serial_sequence($1, $2)::regclass) IS NULL OR EXISTS (SELECT 1 AS \"one\" FROM \"pg_sequence\" AS \"s\" WHERE (\"s\".\"seqrelid\" = pg_get_serial_sequence($1, $2)::regclass AND \"s\".\"seqtypid\" = to_regtype($3)))) AS \"result\"",
         "params": ["\"public\".\"orders\"", "number", "bigint"]
       }
     ],
@@ -1940,13 +1935,8 @@
         "params": ["public", "orders", "number"]
       },
       {
-        "description": "ensure column \"number\" owns a sequence",
-        "sql": "SELECT (pg_get_serial_sequence($1, $2)::regclass) IS NOT NULL AS \"result\"",
-        "params": ["\"public\".\"orders\"", "number"]
-      },
-      {
         "description": "ensure the sequence column \"number\" owns has no value past the bigint range",
-        "sql": "SELECT coalesce(pg_sequence_last_value(pg_get_serial_sequence($1, $2)::regclass), 0) <= ($3)::bigint AS \"result\"",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_sequence\" AS \"s\" WHERE (\"s\".\"seqrelid\" = pg_get_serial_sequence($1, $2)::regclass AND CASE WHEN \"s\".\"seqmax\" <= ($3)::bigint THEN false ELSE coalesce(pg_sequence_last_value(\"s\".\"seqrelid\"), 0) > ($3)::bigint END)) AS \"result\"",
         "params": ["\"public\".\"orders\"", "number", "9223372036854775807"]
       }
     ],
@@ -1963,8 +1953,8 @@
         }
       },
       {
-        "description": "change the sequence column \"number\" owns to bigint",
-        "sql": "DO $prisma$ BEGIN EXECUTE format('ALTER SEQUENCE %s AS bigint', pg_get_serial_sequence('\"public\".\"orders\"', 'number')::regclass); END $prisma$"
+        "description": "change the sequence column \"number\" owns, if any, to bigint",
+        "sql": "DO $prisma$ BEGIN IF pg_get_serial_sequence('\"public\".\"orders\"', 'number')::regclass IS NOT NULL THEN EXECUTE format('ALTER SEQUENCE %s AS bigint', pg_get_serial_sequence('\"public\".\"orders\"', 'number')::regclass); END IF; END $prisma$"
       }
     ],
     "postcheck": [
@@ -1974,8 +1964,8 @@
         "params": ["public", "orders", "number", "bigint"]
       },
       {
-        "description": "verify column \"number\" owns a sequence of type bigint",
-        "sql": "SELECT ((pg_get_serial_sequence($1, $2)::regclass) IS NOT NULL AND EXISTS (SELECT 1 AS \"one\" FROM \"pg_sequence\" AS \"s\" WHERE (\"s\".\"seqrelid\" = pg_get_serial_sequence($1, $2)::regclass AND \"s\".\"seqtypid\" = to_regtype($3)))) AS \"result\"",
+        "description": "verify the sequence column \"number\" owns, if any, is of type bigint",
+        "sql": "SELECT ((pg_get_serial_sequence($1, $2)::regclass) IS NULL OR EXISTS (SELECT 1 AS \"one\" FROM \"pg_sequence\" AS \"s\" WHERE (\"s\".\"seqrelid\" = pg_get_serial_sequence($1, $2)::regclass AND \"s\".\"seqtypid\" = to_regtype($3)))) AS \"result\"",
         "params": ["\"public\".\"orders\"", "number", "bigint"]
       }
     ],

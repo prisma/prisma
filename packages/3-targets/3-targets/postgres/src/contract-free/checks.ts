@@ -274,15 +274,6 @@ export function sequenceNameAvailableAst(options: {
     .build();
 }
 
-/** Typed check that the column owns a sequence. */
-export function columnOwnsASequenceAst(location: {
-  readonly schema: string;
-  readonly table: string;
-  readonly column: string;
-}): SelectAst {
-  return exprSelect().project('result', ownedSequenceOf(location).isNotNull()).build();
-}
-
 /**
  * Typed column-type check: EXISTS over `pg_attribute` joined to `pg_class`
  * and `pg_namespace`, comparing `format_type(a.atttypid, a.atttypmod)`
@@ -793,13 +784,15 @@ export function rlsPolicyDefinitionAst(options: {
 }
 
 /**
- * Typed check that the column owns a sequence, whatever its name, and that the sequence is of the type `sequenceType` (`smallint`, `integer` or `bigint`).
+ * Typed check that the column owns a sequence, whatever its name, of the type `sequenceType` (`smallint`, `integer` or `bigint`). With `orNone`, a column that owns no sequence passes too.
  */
 export function columnOwnsSequenceAst(options: {
   readonly schema: string;
   readonly table: string;
   readonly column: string;
   readonly sequenceType: string;
+  /** Whether a column that owns no sequence passes too. */
+  readonly orNone: boolean;
 }): SelectAst {
   const ownedSequence = ownedSequenceOf(options);
   const sequenceType = cfExpr.fn({
@@ -818,7 +811,12 @@ export function columnOwnsSequenceAst(options: {
       ]),
     );
   return exprSelect()
-    .project('result', ownedSequence.isNotNull().and(cfExpr.exists(sequenceOfType)))
+    .project(
+      'result',
+      options.orNone
+        ? ownedSequence.isNull().or(cfExpr.exists(sequenceOfType))
+        : ownedSequence.isNotNull().and(cfExpr.exists(sequenceOfType)),
+    )
     .build();
 }
 
@@ -853,7 +851,7 @@ export function columnTypeOidAst(options: {
 }
 
 /**
- * Typed check that the sequence the column owns has handed out no value above `maxValue`, so narrowing it to a smaller integer type keeps every value it already gave. A sequence that has never been read, and a column that owns none, pass.
+ * Typed check that the sequence the column owns has handed out no value above `maxValue`, so narrowing it to a smaller integer type keeps every value it already gave. The sequence's position is read only when its current maximum is above `maxValue`, that is when the change narrows it, so widening needs no rights on the sequence. A sequence that has never been read, and a column that owns none, pass.
  */
 export function sequenceValuesFitAst(options: {
   readonly schema: string;
@@ -861,12 +859,17 @@ export function sequenceValuesFitAst(options: {
   readonly column: string;
   readonly maxValue: string;
 }): SelectAst {
-  const fits = cfExpr.fn({
-    method: 'sequence_values_fit',
-    template: 'coalesce(pg_sequence_last_value({{self}}), 0) <= ({{arg0}})::bigint',
-    self: ownedSequenceOf(options),
+  const pastMax = cfExpr.fn({
+    method: 'sequence_past_max',
+    template:
+      'CASE WHEN {{self}} <= ({{arg0}})::bigint THEN false ELSE coalesce(pg_sequence_last_value("s"."seqrelid"), 0) > ({{arg0}})::bigint END',
+    self: cfExpr.columnRef('s', 'seqmax'),
     args: [cfExpr.param(options.maxValue, PG_TEXT_CODEC_ID)],
     returns: { codecId: PG_BOOL_CODEC_ID, nullable: false },
   });
-  return exprSelect().project('result', fits).build();
+  const narrowedPastMax = exprSelect()
+    .from(cfTable('pg_sequence', 's'))
+    .project('one', cfExpr.lit(1))
+    .where(cfExpr.columnRef('s', 'seqrelid').eqExpr(ownedSequenceOf(options)).and(pastMax));
+  return exprSelect().project('result', cfExpr.notExists(narrowedPastMax)).build();
 }

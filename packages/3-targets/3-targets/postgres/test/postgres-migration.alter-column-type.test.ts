@@ -101,18 +101,17 @@ describe('this.alterColumnType and the start contract', () => {
     }).toEqual({
       precheck: [
         'ensure column "changed" exists',
-        'ensure column "changed" owns a sequence',
         'ensure the sequence column "changed" owns has no value past the bigint range',
       ],
       execute: [
         'alter type of "changed" to int8',
-        'change the sequence column "changed" owns to bigint',
+        'change the sequence column "changed" owns, if any, to bigint',
       ],
       postcheck: [
         'verify column "changed" has type "bigint"',
-        'verify column "changed" owns a sequence of type bigint',
+        'verify the sequence column "changed" owns, if any, is of type bigint',
       ],
-      alterSequence: `DO $prisma$ BEGIN EXECUTE format('ALTER SEQUENCE %s AS bigint', pg_get_serial_sequence('"public"."Box"', 'changed')::regclass); END $prisma$`,
+      alterSequence: `DO $prisma$ BEGIN IF pg_get_serial_sequence('"public"."Box"', 'changed')::regclass IS NOT NULL THEN EXECUTE format('ALTER SEQUENCE %s AS bigint', pg_get_serial_sequence('"public"."Box"', 'changed')::regclass); END IF; END $prisma$`,
     });
   });
 });

@@ -13,6 +13,8 @@ import {
   type MigrationOperationPolicy,
 } from '@internal/framework-components/control';
 import { SqlStorage } from '@internal/sql-contract/types';
+import { postgresDataTypes } from '@internal/target-postgres/data-types';
+import { AlterColumnTypeCall } from '@internal/target-postgres/op-factory-call';
 import { postgresCreateNamespace } from '@internal/target-postgres/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -299,5 +301,65 @@ describe('the sequence an autoincrement() column owns, under another name', {
       sequences: [{ name: 'orders_number_seq', data_type: 'integer' }],
       inserted: '1',
     });
+  });
+
+  it('changes the type of a column whose nextval default reads a sequence it does not own, and leaves the sequence alone', {
+    timeout: testTimeout,
+  }, async () => {
+    await requireDriver().query('CREATE SEQUENCE public.shared_seq AS integer');
+    await requireDriver().query(
+      "CREATE TABLE public.orders (id int4 PRIMARY KEY, number int4 NOT NULL DEFAULT nextval('public.shared_seq'))",
+    );
+    const widened = ordersContract({
+      table: 'orders',
+      column: 'number',
+      nativeType: 'int8',
+      numberDefault: AUTOINCREMENT,
+    });
+
+    expect(await plannedOperationIds(widened)).toEqual(['alterType.orders.number']);
+    await migrateTo(widened);
+
+    const state = await requireDriver().query<{ column_type: string; sequence_type: string }>(
+      `SELECT format_type(a.atttypid, a.atttypmod) AS column_type,
+              (SELECT data_type::text FROM pg_sequences WHERE sequencename = 'shared_seq') AS sequence_type
+       FROM pg_attribute a WHERE a.attrelid = 'public.orders'::regclass AND a.attname = 'number'`,
+    );
+    expect(state.rows).toEqual([{ column_type: 'bigint', sequence_type: 'integer' }]);
+  });
+
+  it('reads no sequence value to widen, so a role without rights on the sequence can check it', {
+    timeout: testTimeout,
+  }, async () => {
+    await requireDriver().query(
+      'CREATE TABLE public.orders (id int4 PRIMARY KEY, number serial NOT NULL)',
+    );
+    await requireDriver().query('DROP ROLE IF EXISTS sequence_outsider');
+    await requireDriver().query('CREATE ROLE sequence_outsider');
+    await requireDriver().query('GRANT USAGE ON SCHEMA public TO sequence_outsider');
+    await requireDriver().query('GRANT SELECT ON public.orders TO sequence_outsider');
+    const op = await new AlterColumnTypeCall({
+      schemaName: 'public',
+      tableName: 'orders',
+      columnName: 'number',
+      type: 'int8',
+      dataTypes: postgresDataTypes,
+      ownsAutoincrementSequence: true,
+    }).toOp(controlAdapter);
+
+    await requireDriver().query('SET ROLE sequence_outsider');
+    try {
+      const results = [];
+      for (const step of op.precheck) {
+        const result = await requireDriver().query<Record<string, unknown>>(
+          step.sql,
+          step.params ?? [],
+        );
+        results.push(Object.values(result.rows[0] ?? {})[0]);
+      }
+      expect(results).toEqual(op.precheck.map(() => true));
+    } finally {
+      await requireDriver().query('RESET ROLE');
+    }
   });
 });
