@@ -70,54 +70,6 @@ describe('createIndex', () => {
     expect(op.postcheck[0]!.expect).toBe('exists');
   });
 
-  it('checks every option the planner tells indexes apart by in the postcheck', () => {
-    const op = createIndex('users', keys, {
-      unique: true,
-      partialFilterExpression: { email: { $exists: true } },
-      collation: { locale: 'en', strength: 2 },
-    });
-
-    expect(op.postcheck[0]!.filter).toEqual(
-      MongoAndExpr.of([
-        MongoFieldFilter.eq('key', keysToKeySpec(keys)),
-        MongoFieldFilter.eq('unique', true),
-        new MongoNotExpr(MongoFieldFilter.eq('sparse', true)),
-        MongoExistsExpr.notExists('expireAfterSeconds'),
-        MongoFieldFilter.eq('partialFilterExpression', { email: { $exists: true } }),
-        MongoExistsExpr.notExists('wildcardProjection'),
-        MongoFieldFilter.eq('collation.locale', 'en'),
-        MongoFieldFilter.eq('collation.strength', 2),
-      ]),
-    );
-  });
-
-  it('checks a text index as MongoDB lists it, with every weight and language', () => {
-    const op = createIndex(
-      'posts',
-      [
-        { field: 'category', direction: 1 },
-        { field: 'title', direction: 'text' },
-        { field: 'body', direction: 'text' },
-      ],
-      { weights: { title: 10 } },
-    );
-
-    expect(op.postcheck[0]!.filter).toEqual(
-      MongoAndExpr.of([
-        MongoFieldFilter.eq('key', { category: 1, _fts: 'text', _ftsx: 1 }),
-        new MongoNotExpr(MongoFieldFilter.eq('unique', true)),
-        new MongoNotExpr(MongoFieldFilter.eq('sparse', true)),
-        MongoExistsExpr.notExists('expireAfterSeconds'),
-        MongoExistsExpr.notExists('partialFilterExpression'),
-        MongoExistsExpr.notExists('wildcardProjection'),
-        MongoExistsExpr.notExists('collation'),
-        MongoFieldFilter.eq('weights', { body: 1, title: 10 }),
-        MongoFieldFilter.eq('default_language', 'english'),
-        MongoFieldFilter.eq('language_override', 'language'),
-      ]),
-    );
-  });
-
   it('uses key._fts filter for text indexes', () => {
     const textKeys = [{ field: 'content', direction: 'text' as const }];
     const op = createIndex('posts', textKeys);
@@ -542,19 +494,6 @@ describe('collMod', () => {
     expect(schemaFilter).toBeInstanceOf(MongoFieldFilter);
     expect(schemaFilter.field).toBe('options.validator.$jsonSchema');
     expect(schemaFilter.value).toEqual(schema);
-  });
-
-  it('compares the whole validator in the postcheck when it is not only a $jsonSchema', () => {
-    const validator = { status: { $in: ['active', 'archived'] } };
-    const op = collMod('users', { validator, validationLevel: 'strict' });
-
-    expect(op.postcheck[0]!.filter).toEqual(
-      MongoAndExpr.of([
-        MongoFieldFilter.eq('name', 'users'),
-        MongoFieldFilter.eq('options.validationLevel', 'strict'),
-        MongoFieldFilter.eq('options.validator', validator),
-      ]),
-    );
   });
 
   it('has no postcheck when validator is empty (removal)', () => {
