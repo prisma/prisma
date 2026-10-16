@@ -1,3 +1,5 @@
+import type { Contract } from '@internal/contract/types';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { authorSqliteContractFromPsl } from '../date-time-defaults/sqlite-authoring';
 
@@ -10,16 +12,8 @@ async function author(attribute: string) {
       diagnostics: result.failure.diagnostics.map(({ code, message }) => ({ code, message })),
     };
   }
-  const columns = (
-    result.value as {
-      storage: {
-        namespaces: Record<
-          string,
-          { entries: { table: Record<string, { columns: Record<string, unknown> }> } }
-        >;
-      };
-    }
-  ).storage.namespaces['__unbound__']?.entries.table['Event']?.columns;
+  const contract = result.value as Contract<SqlStorage>;
+  const columns = contract.storage.namespaces['__unbound__']?.entries['table']?.['Event']?.columns;
   return { payload: columns?.['payload'] };
 }
 
