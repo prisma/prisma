@@ -55,12 +55,14 @@ types {
 `);
     if (!result.ok) throw new Error(JSON.stringify(result.failure.diagnostics));
 
-    await emit(
-      enrichContract(result.value, [postgres, postgresAdapter]),
-      stack,
-      sqlEmission,
-      sqlContractCanonicalizationHooks,
-    );
+    await expect(
+      emit(
+        enrichContract(result.value, [postgres, postgresAdapter]),
+        stack,
+        sqlEmission,
+        sqlContractCanonicalizationHooks,
+      ),
+    ).resolves.not.toThrow();
   });
 
   it('reports a named type repeated in another types block', async () => {
