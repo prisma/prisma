@@ -89,13 +89,6 @@ describe('telemetry POST /events', () => {
       agent: 'claude-code',
       extensions: ['pgvector', 'paradedb'],
       exitCode: 4,
-      properties: {
-        template: 'next',
-        'duration-ms': 1234,
-        json: false,
-        'agent-skills': ['claude-code'],
-        'failure-reason': null,
-      },
       // Forward-compat unknown keys; the backend must silently drop these.
       crashStackHash: 'abcdef',
       gpuVendor: 'apple',
@@ -120,13 +113,6 @@ describe('telemetry POST /events', () => {
     expect(row.agent).toBe('claude-code');
     expect(row.extensions).toEqual(['pgvector', 'paradedb']);
     expect(row.exitCode).toBe(4);
-    expect(row.properties).toEqual({
-      template: 'next',
-      'duration-ms': 1234,
-      json: false,
-      'agent-skills': ['claude-code'],
-      'failure-reason': null,
-    });
     expect(Object.prototype.toString.call(row.ingestedAt)).toBe('[object Temporal.Instant]');
     expect(row).not.toHaveProperty('crashStackHash');
     expect(row).not.toHaveProperty('gpuVendor');
@@ -151,7 +137,6 @@ describe('telemetry POST /events', () => {
     expect(row.tsVersion).toBeNull();
     expect(row.exitCode).toBeNull();
     expect(row.agent).toBeNull();
-    expect(row.properties).toBeNull();
   });
 
   it('accepts strings and array items at the configured schema bounds', async () => {
@@ -202,23 +187,6 @@ describe('telemetry POST /events', () => {
 
     expect(response.status).toBe(400);
     expect(await rowCount()).toBe(0);
-  });
-
-  describe('rejects properties outside the flat, bounded shape with 400', () => {
-    const cases: Record<string, unknown> = {
-      'a nested object value': { install: { manager: 'npm' } },
-      'a string value beyond the string bound': {
-        why: 'x'.repeat(MAX_TELEMETRY_STRING_LENGTH + 1),
-      },
-      'an array instead of an object': ['template:next'],
-    };
-    for (const [name, properties] of Object.entries(cases)) {
-      it(`rejects ${name}`, async () => {
-        const response = await postEvent({ ...baseRequiredPayload(), properties });
-        expect(response.status).toBe(400);
-        expect(await rowCount()).toBe(0);
-      });
-    }
   });
 
   describe('rejects payloads missing any required field with 400', () => {

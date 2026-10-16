@@ -177,7 +177,6 @@ export function createHandler(deps: HandlerDeps) {
           agent: parsed.agent,
           extensions: parsed.extensions,
           exitCode: parsed.exitCode,
-          properties: parsed.properties,
         },
       ])
       .build();

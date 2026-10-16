@@ -99,13 +99,6 @@
                   "kind": "scalar"
                 }
               },
-              "properties": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/jsonb@1",
-                  "kind": "scalar"
-                }
-              },
               "runtimeName": {
                 "nullable": false,
                 "type": {
@@ -173,9 +166,6 @@
                 },
                 "packageManager": {
                   "column": "packageManager"
-                },
-                "properties": {
-                  "column": "properties"
                 },
                 "runtimeName": {
                   "column": "runtimeName"
@@ -273,11 +263,6 @@
                   "dataType": "pg/text",
                   "nullable": true
                 },
-                "properties": {
-                  "codecId": "pg/jsonb@1",
-                  "dataType": "pg/jsonb",
-                  "nullable": true
-                },
                 "runtimeName": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
@@ -322,7 +307,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "5c5d220650a29b58c074b0ede44aff73cfb5d301fb42bcff5fa654c782ea785b"
+    "storageHash": "ab4b37f4e30e5935f5e9dc3b6cffb6fca4827e975950a41dfe30a10ed89f5cc3"
   },
   "capabilities": {
     "postgres": {

@@ -6,7 +6,6 @@ import contractJson from '../src/prisma/contract.json' with { type: 'json' };
 
 const migrationsDir = fileURLToPath(new URL('../migrations', import.meta.url));
 
-// Production is migrated, never `db init`ed, so the migrations must reach the contract.
 describe('committed migrations', () => {
   let database: Awaited<ReturnType<typeof createDevDatabase>>;
 

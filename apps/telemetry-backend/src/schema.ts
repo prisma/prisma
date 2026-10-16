@@ -7,13 +7,6 @@ const requiredString = type.string.moreThanLength(0).atMostLength(MAX_TELEMETRY_
 const optionalString = type.string.atMostLength(MAX_TELEMETRY_STRING_LENGTH).or('null');
 const stringArray = type.string.atMostLength(MAX_TELEMETRY_ARRAY_ITEM_LENGTH).array();
 
-// Command-specific facts beyond the shared columns, one level deep so plain
-// jsonb operators can query them.
-const propertyValue = optionalString.or(type.number).or(type.boolean).or(stringArray);
-const properties = type
-  .Record('string', propertyValue)
-  .narrow((value, ctx) => !Array.isArray(value) || ctx.mustBe('an object'));
-
 export const eventPayloadSchema = type({
   installationId: requiredString,
   version: requiredString,
@@ -29,7 +22,6 @@ export const eventPayloadSchema = type({
   agent: optionalString.default(null),
   extensions: stringArray.default(() => []),
   exitCode: type.number.or('null').default(null),
-  properties: properties.or('null').default(null),
   '+': 'delete',
 });
 
