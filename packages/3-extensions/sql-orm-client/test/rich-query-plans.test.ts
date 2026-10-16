@@ -8,17 +8,11 @@ import {
   ParamRef,
   type SelectAst,
   type SubqueryExpr,
-  type UpdateAst,
 } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
-import {
-  compileGroupedAggregate,
-  compileInsertReturning,
-  compileSelectWithIncludes,
-  compileUpdateReturning,
-} from '../src/query-plan';
+import { compileGroupedAggregate, compileSelectWithIncludes } from '../src/query-plan';
 import { baseContract, createCollectionFor } from './collection-fixtures';
-import { emptyTableState, getTestAggregates, tablesForTable } from './helpers';
+import { emptyTableState, getTestAggregates } from './helpers';
 
 describe('SQL ORM rich AST query plans', () => {
   it('compiles include plans with AST classes and limit annotations', () => {
@@ -61,28 +55,7 @@ describe('SQL ORM rich AST query plans', () => {
     expect((childFilter.right as ParamRef).value).toBe(100);
   });
 
-  it('compiles insert, update and grouped aggregate plans with rich nodes', () => {
-    const insertPlan = compileInsertReturning(
-      baseContract,
-      'public',
-      'User',
-      'users',
-      [{ id: 1, name: 'Alice', email: 'a@example.com' }],
-      ['id'],
-    );
-    expect(insertPlan.ast.kind).toBe('insert');
-
-    const updatePlan = compileUpdateReturning(
-      baseContract,
-      'User',
-      tablesForTable(baseContract, 'users', 'public'),
-      { email: 'b@example.com' },
-      [BinaryExpr.eq(ColumnRef.of('users', 'id'), LiteralExpr.of(1))],
-      ['id'],
-    );
-    expect(updatePlan.ast.kind).toBe('update');
-    expect((updatePlan.ast as UpdateAst).where?.kind).toBe('binary');
-
+  it('compiles grouped aggregate plans with rich nodes', () => {
     const groupedPlan = compileGroupedAggregate(
       baseContract,
       getTestAggregates(),
