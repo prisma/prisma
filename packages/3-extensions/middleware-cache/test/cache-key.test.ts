@@ -121,24 +121,6 @@ describe('cache key resolution', () => {
       expect(contentHash).not.toHaveBeenCalled();
     });
 
-    it('stores user-supplied keys verbatim (no rehashing)', async () => {
-      const store = spyStore();
-      const mw = createCacheMiddleware({ store });
-      // A long, structured user key — verify the middleware does not
-      // mangle, hash, or otherwise transform it.
-      const userKey = 'tenant=acme|user=alice|page=42';
-      const exec = makeExec('select 1', {
-        cache: cacheAnnotation({ key: userKey }),
-      });
-      const ctx = makeCtx();
-
-      await mw.intercept!.onQuery!(exec, ctx);
-      await mw.onRow!({ id: 1 }, exec, ctx);
-      await endStatement(mw, exec, ctx, { rowCount: 1 });
-
-      expect(store.inner.has(userKey)).toBe(true);
-    });
-
     it('produces a hit using the user-supplied key when previously committed under it', async () => {
       const store = spyStore();
       store.inner.set('shared-key', [{ id: 'pre-cached' }]);

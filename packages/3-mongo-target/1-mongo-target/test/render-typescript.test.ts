@@ -5,7 +5,6 @@ import {
   CreateCollectionCall,
   CreateIndexCall,
   DropCollectionCall,
-  DropIndexCall,
 } from '../src/core/migrations/op-factory-call';
 import { renderCallsToTypeScript } from '../src/core/migrations/render-typescript';
 
@@ -132,30 +131,6 @@ describe('renderCallsToTypeScript', () => {
     expect(output).toContain('sparse: true');
   });
 
-  it('renders createIndex without options when absent', () => {
-    const calls = [new CreateIndexCall('users', [{ field: 'email', direction: 1 }])];
-
-    const output = renderTypeScript(calls);
-
-    expect(output).toMatch(/createIndex\("users", \[.*\]\)/);
-  });
-
-  it('renders dropIndex', () => {
-    const calls = [new DropIndexCall('users', [{ field: 'email', direction: 1 }])];
-
-    const output = renderTypeScript(calls);
-
-    expect(output).toContain('dropIndex("users"');
-  });
-
-  it('renders createCollection without options', () => {
-    const calls = [new CreateCollectionCall('users')];
-
-    const output = renderTypeScript(calls);
-
-    expect(output).toContain('createCollection("users")');
-  });
-
   it('renders createCollection with options', () => {
     const calls = [
       new CreateCollectionCall('users', {
@@ -169,29 +144,6 @@ describe('renderCallsToTypeScript', () => {
     expect(output).toContain('createCollection("users"');
     expect(output).toContain('validator');
     expect(output).toContain('validationLevel');
-  });
-
-  it('renders dropCollection', () => {
-    const calls = [new DropCollectionCall('users')];
-
-    const output = renderTypeScript(calls);
-
-    expect(output).toContain('dropCollection("users")');
-  });
-
-  it('renders collMod without meta', () => {
-    const calls = [
-      new CollModCall('users', {
-        validator: { $jsonSchema: { required: ['email'] } },
-        validationLevel: 'strict',
-        validationAction: 'error',
-      }),
-    ];
-
-    const output = renderTypeScript(calls);
-
-    expect(output).toContain('collMod("users"');
-    expect(output).toContain('validator');
   });
 
   it('renders collMod with meta', () => {

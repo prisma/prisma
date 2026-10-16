@@ -166,14 +166,6 @@ describe('contractToPostgresDatabaseSchemaNode', () => {
     );
   });
 
-  it('does not throw for a marker on a table with zero policies', () => {
-    const root = contractToPostgresDatabaseSchemaNode(
-      makeContract({ rlsMarkedTables: [TABLE_NAME] }),
-      projectionOptions,
-    );
-    expect(PostgresDatabaseSchemaNode.is(root)).toBe(true);
-  });
-
   it('stamps rlsEnabled true from marker presence, even with zero policies', () => {
     const root = contractToPostgresDatabaseSchemaNode(
       makeContract({ rlsMarkedTables: [TABLE_NAME] }),

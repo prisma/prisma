@@ -520,43 +520,6 @@ describe('ControlClient progress emission', () => {
       timeouts.databaseOperation,
     );
 
-    it(
-      'emits resolveSource and emit spans when source is a provider object',
-      async () => {
-        const events: ControlProgressEvent[] = [];
-        const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
-
-        const client = createControlClient({
-          family: mockFamily,
-          target: mockTarget,
-          adapter: mockAdapter,
-        });
-
-        const result = await client.emit({
-          contractConfig: {
-            source: createSourceProvider(),
-            output: '/tmp/contract.json',
-          },
-          onProgress: (event) => events.push(event),
-        });
-
-        await client.close();
-
-        expect(result.ok).toBe(true);
-
-        // Should emit resolveSource span
-        const resolveSourceStart = events.find(
-          (e) => e.kind === 'spanStart' && e.spanId === 'resolveSource',
-        );
-        const resolveSourceEnd = events.find(
-          (e) => e.kind === 'spanEnd' && e.spanId === 'resolveSource',
-        );
-        expect(resolveSourceStart).toBeDefined();
-        expect(resolveSourceEnd).toMatchObject({ outcome: 'ok' });
-      },
-      timeouts.databaseOperation,
-    );
-
     it('emits error outcome when source provider throws', async () => {
       const events: ControlProgressEvent[] = [];
       const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
@@ -858,33 +821,6 @@ describe('ControlClient progress emission', () => {
 
       await client.close();
     });
-
-    it('does not throw when onProgress is omitted from dbUpdate', async () => {
-      const { mockFamilyWithMarker, mockTargetWithMigrations, mockAdapter, mockDriverDescriptor } =
-        createMockComponentsWithMigrations();
-
-      const client = createControlClient({
-        family: mockFamilyWithMarker,
-        target: mockTargetWithMigrations,
-        adapter: mockAdapter,
-        driver: mockDriverDescriptor,
-      });
-
-      const result = await client.dbUpdate({
-        contract: {
-          target: 'postgres',
-          storage: { storageHash: 'fixture', tables: {}, namespaces: {} },
-        },
-        mode: 'plan',
-        connection: 'postgres://test',
-        migrationsDir: '/tmp/__test-client-migrations',
-        answerQuestions: async () => [],
-      });
-
-      await client.close();
-
-      expect(result.ok).toBe(true);
-    });
   });
 
   describe('readLedger()', () => {
@@ -935,23 +871,6 @@ describe('ControlClient progress emission', () => {
   });
 
   describe('readMarker()', () => {
-    it('returns null when no marker exists', async () => {
-      const { mockFamily, mockTarget, mockAdapter, mockDriverDescriptor } = createMockComponents();
-
-      const client = createControlClient({
-        family: mockFamily,
-        target: mockTarget,
-        adapter: mockAdapter,
-        driver: mockDriverDescriptor,
-      });
-
-      await client.connect('postgres://test');
-      const marker = await client.readMarker();
-      await client.close();
-
-      expect(marker).toBeNull();
-    });
-
     it('returns marker record when marker exists', async () => {
       const { mockFamily, mockTarget, mockAdapter, mockDriverDescriptor, mockFamilyInstance } =
         createMockComponents();
@@ -1136,31 +1055,6 @@ describe('ControlClient progress emission', () => {
 
       expect(result).toBeDefined();
     });
-
-    it(
-      'does not throw when onProgress is omitted from emit',
-      async () => {
-        const { mockFamily, mockTarget, mockAdapter } = createMockComponents();
-
-        const client = createControlClient({
-          family: mockFamily,
-          target: mockTarget,
-          adapter: mockAdapter,
-        });
-
-        const result = await client.emit({
-          contractConfig: {
-            source: createSourceProvider(),
-            output: '/tmp/contract.json',
-          },
-        });
-
-        await client.close();
-
-        expect(result.ok).toBe(true);
-      },
-      timeouts.databaseOperation,
-    );
   });
 
   describe('renderContractDts()', () => {

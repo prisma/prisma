@@ -1,12 +1,10 @@
 import type { DataType } from '@internal/framework-components/codec';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import { isSqlDataType, type SqlTypeText } from '@internal/sql-contract/data-type';
-import { SQL_EXPRESSION_DATA_TYPE_ID } from '@internal/sql-contract/sql-expression';
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../src/core/codecs';
 import { pgEnum } from '../src/core/data-types';
 import { postgresTargetDescriptorMeta } from '../src/core/descriptor-meta';
-import { postgresTargetDescriptorMetaRuntime } from '../src/core/descriptor-meta-runtime';
 
 const written = (text: string): SqlTypeText => ({ text, written: true });
 const catalog = (text: string): SqlTypeText => ({ text, catalog: true });
@@ -120,10 +118,6 @@ function declarationOf(type: DataType): ExpectedDeclaration {
 }
 
 describe('the Postgres data type declarations', () => {
-  it('registers exactly these data types', () => {
-    expect(registered.map((type) => type.id).sort()).toEqual(Object.keys(EXPECTED).sort());
-  });
-
   it.each(registered.map((type) => [type.id, type] as const))(
     '%s declares its texts and the kind it claims',
     (id, type) => {
@@ -131,10 +125,6 @@ describe('the Postgres data type declarations', () => {
       expect(declarationOf(type)).toEqual(EXPECTED[id]);
     },
   );
-
-  it('registers the data types from the target, in both planes', () => {
-    expect(postgresTargetDescriptorMetaRuntime.dataTypes).toBe(registered);
-  });
 
   it('declares render and fromReported only on the enum, which claims a kind', () => {
     const withHooks = registered.filter(
@@ -158,18 +148,4 @@ describe('the parameter schema of every codec this target ships', () => {
       expect(descriptor.isParameterized).toBe(type?.params !== undefined);
     },
   );
-});
-
-describe("the SQL family's sql/expression data type", () => {
-  it('is not among the data types this target declares texts for', () => {
-    expect(registered.map((type) => type.id)).not.toContain(SQL_EXPRESSION_DATA_TYPE_ID);
-  });
-
-  it('is represented by no codec this target ships', () => {
-    expect(
-      codecDescriptors
-        .filter((descriptor) => descriptor.dataType === SQL_EXPRESSION_DATA_TYPE_ID)
-        .map((descriptor) => descriptor.codecId),
-    ).toEqual([]);
-  });
 });

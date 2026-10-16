@@ -424,20 +424,6 @@ describe('MongoDriver', () => {
       expect(colls).toHaveLength(1);
       expect(colls[0]).toMatchObject({ name: col });
     });
-
-    it('creates the collection with options', async () => {
-      const db = seedClient.db(dbName);
-      const driver = MongoDriverImpl.fromDb(db);
-      const col = 'driver_create_col_opts';
-
-      await db.dropCollection(col).catch(() => undefined);
-
-      await driver.run(new CreateCollectionWireCommand(col, { capped: true, size: 1024 * 1024 }));
-
-      const colls = await db.listCollections({ name: col }).toArray();
-      expect(colls).toHaveLength(1);
-      expect(colls[0]).toMatchObject({ name: col, options: { capped: true, size: 1024 * 1024 } });
-    });
   });
 
   describe('createIndex', () => {

@@ -10,11 +10,6 @@ describe('PrimaryKey', () => {
     expect(b.id).toBe('primary-key');
   });
 
-  it('nodeKind is the primary-key kind', () => {
-    const pk = new PrimaryKey({ columns: ['id'] });
-    expect(pk.nodeKind).toBe('sql-primary-key');
-  });
-
   it('children is empty (a primary key is a leaf)', () => {
     const pk = new PrimaryKey({ columns: ['id'] });
     expect(pk.children()).toEqual([]);

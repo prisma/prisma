@@ -1,12 +1,8 @@
 import { pgInt2, pgInt4, pgInt8, pgNumeric, pgText } from '@internal/target-postgres/data-types';
 import { describe, expect, it } from 'vitest';
-import { pgvectorDataTypes, pgvectorVector } from '../src/core/data-types';
+import { pgvectorVector } from '../src/core/data-types';
 
 describe('pgvector/vector', () => {
-  it('is the only data type this pack registers', () => {
-    expect(pgvectorDataTypes.map((type) => type.id)).toEqual(['pgvector/vector']);
-  });
-
   it('takes a list of the target numeric types and nothing else', () => {
     expect(pgvectorVector.listCast?.of).toEqual([pgInt2.id, pgInt4.id, pgInt8.id, pgNumeric.id]);
     expect(pgvectorVector.listCast?.of).not.toContain(pgText.id);
@@ -36,11 +32,5 @@ describe('pgvector/vector', () => {
     expect(() => pgvectorVector.listCast?.cast(elements)).toThrow(
       expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED' }),
     );
-  });
-});
-
-describe('pgvector/vector', () => {
-  it('adds no cast from text', () => {
-    expect(pgvectorVector.casts).toEqual({});
   });
 });

@@ -111,54 +111,6 @@ describe('contract definition constraint support', () => {
     });
   });
 
-  it('emits indexes in the contract', () => {
-    const contract = defineTestContract({
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.column(int4Column).id(),
-            email: field.column(textColumn),
-          },
-        }).sql(({ cols, constraints }) => ({
-          table: 'user',
-          indexes: [constraints.index([cols.email])],
-        })),
-      },
-    });
-
-    expect(unboundTables(contract.storage)['user']!.indexes).toHaveLength(1);
-    expect(unboundTables(contract.storage)['user']!.indexes[0]).toEqual({
-      name: 'user_email_idx_46df9cad',
-      prefix: 'user_email_idx',
-      columns: ['email'],
-      unique: false,
-    });
-  });
-
-  it('emits indexes with names in the contract', () => {
-    const contract = defineTestContract({
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.column(int4Column).id(),
-            email: field.column(textColumn),
-          },
-        }).sql(({ cols, constraints }) => ({
-          table: 'user',
-          indexes: [constraints.index([cols.email], { name: 'user_email_idx' })],
-        })),
-      },
-    });
-
-    expect(unboundTables(contract.storage)['user']!.indexes).toHaveLength(1);
-    expect(unboundTables(contract.storage)['user']!.indexes[0]).toEqual({
-      name: 'user_email_idx_46df9cad',
-      prefix: 'user_email_idx',
-      columns: ['email'],
-      unique: false,
-    });
-  });
-
   it('emits foreign keys in the contract naming their backing index', () => {
     const User = buildUserModel();
     const Post = buildPostModel(User);

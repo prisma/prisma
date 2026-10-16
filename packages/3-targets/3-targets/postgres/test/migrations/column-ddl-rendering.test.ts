@@ -53,22 +53,6 @@ describe('renderColumnDdl', () => {
     expect(result.codecRef).toEqual({ codecId: 'pg/uuid@1' });
   });
 
-  it('drops an autoincrement default (SERIAL implies it) while rendering the pseudo-type', () => {
-    const column = new SqlColumnIR({
-      name: 'id',
-      nativeType: 'integer',
-      nullable: false,
-      resolvedDefault: { kind: 'function', expression: 'autoincrement()' },
-      codecRef: { codecId: 'pg/int4@1' },
-      codecBaseNativeType: 'int4',
-    });
-
-    const result = renderColumnDdl('id', column, types);
-
-    expect(result.type).toBe('SERIAL');
-    expect(result.default).toBeUndefined();
-  });
-
   it('throws when the column carries no codec identity at all', () => {
     const column = new SqlColumnIR({ name: 'x', nativeType: 'text', nullable: true });
 

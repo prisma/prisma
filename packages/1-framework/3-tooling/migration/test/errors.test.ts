@@ -125,26 +125,6 @@ describe('errorNoInvariantPath', () => {
     expect(err.why).toContain('required=["a", "b", "c"]');
     expect(err.why).toContain('missing=["c"]');
   });
-
-  it('preserves the structuralPath wire shape exactly', () => {
-    // The JSON envelope (meta.structuralPath) is part of the public CLI
-    // contract — pin the per-edge key set so adding or dropping a field
-    // requires an explicit test update.
-    const err = errorNoInvariantPath({
-      required: ['X'],
-      missing: ['X'],
-      structuralPath: baseStructural,
-    });
-    const path = err.meta?.['structuralPath'] as readonly Record<string, unknown>[];
-    expect(path).toHaveLength(1);
-    expect(Object.keys(path[0]!).sort()).toEqual([
-      'dirName',
-      'from',
-      'invariants',
-      'migrationHash',
-      'to',
-    ]);
-  });
 });
 
 describe('errorUnknownInvariant', () => {

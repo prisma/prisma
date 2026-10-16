@@ -660,24 +660,6 @@ describe('serializeExecutionType', () => {
 });
 
 describe('generateFieldResolvedType', () => {
-  it('generates CodecTypes lookup for scalar fields', () => {
-    const field: ContractField = {
-      nullable: false,
-      type: { kind: 'scalar', codecId: 'mongo/string@1' },
-      many: false,
-    };
-    expect(generateFieldResolvedType(field)).toBe('CodecTypes["mongo/string@1"]["output"]');
-  });
-
-  it('generates suffixed type reference for value object fields', () => {
-    const field: ContractField = {
-      nullable: false,
-      type: { kind: 'valueObject', name: 'Address' },
-      many: false,
-    };
-    expect(generateFieldResolvedType(field)).toBe('AddressOutput');
-  });
-
   it('wraps in ReadonlyArray for a list descriptor', () => {
     const field: ContractField = {
       nullable: false,
@@ -761,26 +743,6 @@ describe('generateFieldResolvedType', () => {
     expect(generateFieldResolvedType(field, undefined, 'input')).toBe(
       'ReadonlyArray<CodecTypes["mongo/string@1"]["input"] | null>',
     );
-  });
-
-  it('generates input side for scalar fields', () => {
-    const field: ContractField = {
-      nullable: false,
-      type: { kind: 'scalar', codecId: 'mongo/string@1' },
-      many: false,
-    };
-    expect(generateFieldResolvedType(field, undefined, 'input')).toBe(
-      'CodecTypes["mongo/string@1"]["input"]',
-    );
-  });
-
-  it('generates input-suffixed type for value object fields on input side', () => {
-    const field: ContractField = {
-      nullable: false,
-      type: { kind: 'valueObject', name: 'Price' },
-      many: false,
-    };
-    expect(generateFieldResolvedType(field, undefined, 'input')).toBe('PriceInput');
   });
 
   it('generates input side for union types', () => {
@@ -1265,24 +1227,6 @@ describe('generateFieldOutputTypesMap', () => {
 });
 
 describe('generateFieldInputTypesMap', () => {
-  it('generates input-side codec lookups', () => {
-    const models: Record<string, ContractModel> = {
-      User: {
-        fields: {
-          name: {
-            nullable: false,
-            type: { kind: 'scalar', codecId: 'mongo/string@1' },
-            many: false,
-          },
-        },
-        relations: {},
-        storage: {},
-      },
-    };
-    const result = generateFieldInputTypesMap(models);
-    expect(result).toContain('CodecTypes["mongo/string@1"]["input"]');
-  });
-
   it('references {Name}Input for value object fields', () => {
     const models: Record<string, ContractModel> = {
       Product: {

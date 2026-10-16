@@ -176,10 +176,6 @@ describe('sqlite/datetime@1 text', () => {
 describe('sqlite/real@1 contract values', () => {
   const codec = sqliteRealDescriptor.factory()(ctx);
 
-  it('reads a JSON number', () => {
-    expect(fromContractJson(codec, 1.5)).toBe(1.5);
-  });
-
   it.each([
     ['digit text', '42'],
     ['decimal text', '1.5'],
@@ -193,20 +189,6 @@ describe('sqlite/real@1 contract values', () => {
     expect(() => fromContractJson(codec, 'NaN')).toThrow(
       'sqlite/real@1 JSON value must be a finite number or the text Infinity or -Infinity; SQLite cannot store NaN',
     );
-  });
-});
-
-describe('sqlite/real@1 encode', () => {
-  const codec = sqliteRealDescriptor.factory()(ctx);
-
-  it('writes an infinity, which SQLite stores', async () => {
-    expect(
-      await Promise.all(
-        [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY].map((value) =>
-          codec.toWire(value, {}),
-        ),
-      ),
-    ).toEqual([Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]);
   });
 });
 

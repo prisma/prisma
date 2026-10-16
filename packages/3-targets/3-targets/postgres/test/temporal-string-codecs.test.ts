@@ -39,7 +39,6 @@ const CODECS = [
   {
     id: PG_DATE_STRING_CODEC_ID,
     descriptor: pgDateStringDescriptor,
-    dataType: 'pg/date',
     standardJson: [
       ['2026-01-02', '2026-01-02'],
       ['0044-03-15 BC', '-000043-03-15'],
@@ -50,7 +49,6 @@ const CODECS = [
   {
     id: PG_TIMESTAMP_STRING_CODEC_ID,
     descriptor: pgTimestampStringDescriptor,
-    dataType: 'pg/timestamp',
     standardJson: [
       ['2026-01-02 03:04:05.123456', '2026-01-02T03:04:05.123456'],
       ['12026-01-02 03:04:05', '+012026-01-02T03:04:05'],
@@ -61,7 +59,6 @@ const CODECS = [
   {
     id: PG_TIMESTAMPTZ_STRING_CODEC_ID,
     descriptor: pgTimestamptzStringDescriptor,
-    dataType: 'pg/timestamptz',
     standardJson: [
       ['2026-01-02 03:04:05.123456+00', '2026-01-02T03:04:05.123456Z'],
       ['0044-03-15 00:00:00+00 BC', '-000043-03-15T00:00:00Z'],
@@ -72,7 +69,6 @@ const CODECS = [
   {
     id: PG_TIME_STRING_CODEC_ID,
     descriptor: pgTimeStringDescriptor,
-    dataType: 'pg/time',
     standardJson: [['03:04:05.123000', '03:04:05.123']],
     refusedJson: ['24:00:00', 'infinity'],
   },
@@ -92,13 +88,9 @@ async function withoutTemporalGlobal<T>(body: () => Promise<T>): Promise<T> {
 }
 
 describe('representation-explicit temporal string codecs', () => {
-  for (const { id, descriptor, dataType, standardJson, refusedJson } of CODECS) {
+  for (const { id, descriptor, standardJson, refusedJson } of CODECS) {
     describe(id, () => {
       const codec = descriptor.factory({})(instanceCtx);
-
-      it('proxies its id through the descriptor', () => {
-        expect(codec.id).toBe(id);
-      });
 
       it.each(UNREPRESENTABLE_VALUES)('forwards %s unchanged on the wire', async (value) => {
         expect({
@@ -127,18 +119,6 @@ describe('representation-explicit temporal string codecs', () => {
         expect(() => toContractJson(codec, value)).toThrow(
           expect.objectContaining({ code: 'RUNTIME.DECODE_FAILED' }),
         );
-      });
-
-      it('declares its traits and the data type of the column it serves', () => {
-        expect({
-          codecId: descriptor.codecId,
-          traits: descriptor.traits,
-          dataType: descriptor.dataType,
-        }).toEqual({
-          codecId: id,
-          traits: ['equality', 'order'],
-          dataType,
-        });
       });
 
       it('projects to JSON through a text cast, so a nested read matches a flat one', () => {

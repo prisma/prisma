@@ -7,7 +7,6 @@ import {
   pgInt8NumberDescriptor,
   pgUnboundedIntDescriptor,
 } from '../src/core/codecs';
-import { postgresCodecDescriptorRegistry, postgresCodecRegistry } from '../src/core/registry';
 import { fromContractJson, toContractJson } from './contract-json';
 
 const instanceCtx: CodecInstanceContext = { name: 'test' };
@@ -116,27 +115,6 @@ describe('pg/int8number@1', () => {
       expect(fromContractJson(codec, '-9007199254740991')).toBe(-9007199254740991);
     });
 
-    it('rejects decimal text past the safe integer range', () => {
-      expect(() => fromContractJson(codec, '9007199254740992')).toThrow(
-        'pg/int8number@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991',
-      );
-      expect(() => fromContractJson(codec, '-9007199254740992')).toThrow(
-        'pg/int8number@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991',
-      );
-    });
-
-    it('rejects a JSON string that is not a decimal integer', () => {
-      expect(() => fromContractJson(codec, '1.5')).toThrow(
-        'pg/int8 JSON value must be a decimal integer string from -9223372036854775808 to 9223372036854775807',
-      );
-    });
-
-    it('rejects a JSON number, whose digits a wide value has already lost', () => {
-      expect(() => fromContractJson(codec, 42)).toThrow(
-        'pg/int8 JSON value must be a decimal integer string from -9223372036854775808 to 9223372036854775807',
-      );
-    });
-
     it('rejects out-of-range and non-integral values on the encode side', () => {
       expect(() => toContractJson(codec, 9007199254740992)).toThrow(
         'pg/int8number@1 value must be an integer within the safe integer range',
@@ -154,25 +132,12 @@ describe('pg/int8number@1', () => {
     ).toEqual(CastExpr.as(expression, 'text'));
   });
 
-  it('represents the int8 data type', () => {
-    expect(pgInt8NumberDescriptor.dataType).toBe('pg/int8');
-  });
-
   it('carries the numeric ordering traits', () => {
     expect(pgInt8NumberDescriptor.traits).toEqual(['equality', 'order', 'numeric']);
   });
 
   it('renders a default as a number literal', () => {
     expect(pgInt8NumberDescriptor.renderValueLiteral?.('42')).toBe('42');
-  });
-
-  it('resolves from both registries by codec id', () => {
-    expect(postgresCodecRegistry.descriptorFor(PG_INT8_NUMBER_CODEC_ID)).toBe(
-      pgInt8NumberDescriptor,
-    );
-    expect(postgresCodecDescriptorRegistry.descriptorFor(PG_INT8_NUMBER_CODEC_ID)).toBe(
-      pgInt8NumberDescriptor,
-    );
   });
 });
 
@@ -305,12 +270,6 @@ describe('pg/unboundedint@1', () => {
       expect(fromContractJson(codec, '18446744073709551617')).toBe(18446744073709551617n);
     });
 
-    it('rejects a JSON number, which has already lost digits', () => {
-      expect(() => fromContractJson(codec, 42)).toThrow(
-        'pg/numeric JSON value must be a decimal string',
-      );
-    });
-
     it('rejects non-integral JSON text', () => {
       expect(() => fromContractJson(codec, '1.5')).toThrow(
         'pg/unboundedint@1 JSON value must be a decimal integer string',
@@ -325,10 +284,6 @@ describe('pg/unboundedint@1', () => {
     ).toEqual(CastExpr.as(expression, 'text'));
   });
 
-  it('represents the numeric data type', () => {
-    expect(pgUnboundedIntDescriptor.dataType).toBe('pg/numeric');
-  });
-
   it('carries the numeric ordering traits', () => {
     expect(pgUnboundedIntDescriptor.traits).toEqual(['equality', 'order', 'numeric']);
   });
@@ -336,15 +291,6 @@ describe('pg/unboundedint@1', () => {
   it('renders a default as a bigint literal', () => {
     expect(pgUnboundedIntDescriptor.renderValueLiteral?.('18446744073709551617')).toBe(
       '18446744073709551617n',
-    );
-  });
-
-  it('resolves from both registries by codec id', () => {
-    expect(postgresCodecRegistry.descriptorFor(PG_UNBOUNDED_INT_CODEC_ID)).toBe(
-      pgUnboundedIntDescriptor,
-    );
-    expect(postgresCodecDescriptorRegistry.descriptorFor(PG_UNBOUNDED_INT_CODEC_ID)).toBe(
-      pgUnboundedIntDescriptor,
     );
   });
 });

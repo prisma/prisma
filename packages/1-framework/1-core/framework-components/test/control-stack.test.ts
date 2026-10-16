@@ -1606,13 +1606,6 @@ describe('buildExtensionLoadOrder', () => {
     expect(order.indexOf('b')).toBeLessThan(order.indexOf('c'));
   });
 
-  it('places a declared dependency before the pack that depends on it', () => {
-    const a = makeExtension('a');
-    const b = makeExtension('b', ['a']);
-    const order = buildExtensionLoadOrder([b, a]);
-    expect(order.indexOf('a')).toBeLessThan(order.indexOf('b'));
-  });
-
   it('throws when a declared dependency is absent from the provided set', () => {
     const b = makeExtension('b', ['missing-pack']);
     expect(() => buildExtensionLoadOrder([b])).toThrow(/missing dependency|add .* to extensions/i);

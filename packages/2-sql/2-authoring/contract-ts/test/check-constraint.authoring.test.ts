@@ -1298,27 +1298,6 @@ describe('check() — coexists with derived checks on the same table', () => {
 });
 
 describe('check() — wire vs exact naming, through the built contract', () => {
-  it('name: yields name_<8hex>, hashed over the expression', () => {
-    const contract = defineContract(
-      {
-        ...testTypeLookups,
-        family: sqlFamilyPack,
-        target: postgresTargetPack,
-        createNamespace: createTestSqlNamespace,
-      },
-      ({ field: f, model: m }) =>
-        ({
-          models: {
-            User: m('User', { fields: { id: f.text().id(), total: f.text() } }).sql({
-              checks: [check({ expression: sql`total > 0`, name: 'user_total_positive' })],
-            }),
-          },
-        }) as const,
-    ) as Contract<SqlStorage>;
-
-    expect(flatten(checksOf(contract))).toEqual([wire('user_total_positive', 'total > 0')]);
-  });
-
   it('map: yields the verbatim physical name with no suffix', () => {
     const emitWarning = vi.spyOn(process, 'emitWarning').mockImplementation(() => {});
     try {

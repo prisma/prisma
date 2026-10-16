@@ -7,7 +7,6 @@ import {
   printSqlExpressionLiteral,
   requireSqlExpression,
   SQL_EXPRESSION_DATA_TYPE_ID,
-  SQL_EXPRESSION_TAG,
   SqlExpression,
   sql,
   sqlExpressionAuthoringEntry,
@@ -18,37 +17,7 @@ import {
   storedSqlText,
 } from '../src/sql-expression';
 
-describe('sqlExpressionDataType', () => {
-  it('has the id sql/expression and declares no casts and no list cast', () => {
-    expect({
-      id: sqlExpressionDataType.id,
-      constant: SQL_EXPRESSION_DATA_TYPE_ID,
-      casts: sqlExpressionDataType.casts,
-      listCast: sqlExpressionDataType.listCast,
-    }).toEqual({
-      id: 'sql/expression',
-      constant: 'sql/expression',
-      casts: {},
-      listCast: undefined,
-    });
-  });
-});
-
 describe('sqlExpressionAuthoringEntry', () => {
-  it('is written with the sql tag', () => {
-    expect({
-      tag: SQL_EXPRESSION_TAG,
-      written: { kind: sqlExpressionAuthoringEntry.written.kind },
-      documentation: sqlExpressionAuthoringEntry.documentation,
-    }).toEqual({
-      tag: 'sql',
-      written: { kind: 'tag' },
-      documentation:
-        "A SQL expression in the target database's language. Prisma passes it to the database unchanged.",
-    });
-    expect(sqlExpressionAuthoringEntry.written).toMatchObject({ kind: 'tag', tag: 'sql' });
-  });
-
   it('reads a text as itself and prints it back', () => {
     const { written } = sqlExpressionAuthoringEntry;
     if (written.kind !== 'tag') throw new Error('the entry is written with a tag');
@@ -161,17 +130,6 @@ describe('sqlTextsReadBack', () => {
 });
 
 describe('sqlExpressionRegistration', () => {
-  it('holds the data type and its authoring entry, keyed by its id', () => {
-    expect(sqlExpressionRegistration).toEqual({
-      dataTypes: [sqlExpressionDataType],
-      authoring: { dataTypes: { [SQL_EXPRESSION_DATA_TYPE_ID]: sqlExpressionAuthoringEntry } },
-    });
-    expect(sqlExpressionRegistration.dataTypes[0]).toBe(sqlExpressionDataType);
-    expect(sqlExpressionRegistration.authoring.dataTypes[SQL_EXPRESSION_DATA_TYPE_ID]).toBe(
-      sqlExpressionAuthoringEntry,
-    );
-  });
-
   it('freezes the registration, its containers, the data type and its casts, and the authoring entry and its written form', () => {
     expect({
       registration: Object.isFrozen(sqlExpressionRegistration),

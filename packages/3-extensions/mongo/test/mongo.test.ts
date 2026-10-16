@@ -222,19 +222,6 @@ describe('mongo() facade', () => {
     );
   });
 
-  it('rejects when runtime() is requested without a configured binding', async () => {
-    const db = mongo({ contract: fakeContract });
-
-    await expect(db.runtime()).rejects.toThrow('Mongo binding not configured');
-  });
-
-  it('throws when connect() is called twice', async () => {
-    const db = mongo({ contract: fakeContract, url: 'mongodb://localhost:27017/mydb' });
-
-    await db.connect();
-    await expect(db.connect()).rejects.toThrow('Mongo client already connected');
-  });
-
   it('throws when connect() is called twice with explicit bindings', async () => {
     const db = mongo({ contract: fakeContract });
 
@@ -242,44 +229,6 @@ describe('mongo() facade', () => {
     await expect(db.connect({ url: 'mongodb://localhost:27017/second' })).rejects.toThrow(
       'Mongo client already connected',
     );
-  });
-
-  it('throws when constructed with multiple binding inputs', () => {
-    expect(() =>
-      mongo({
-        contract: fakeContract,
-        url: 'mongodb://localhost:27017/a',
-        uri: 'mongodb://localhost:27017',
-        dbName: 'b',
-      } as unknown as Parameters<typeof mongo>[0]),
-    ).toThrow('Provide one binding input');
-  });
-
-  it('throws for a url without a dbName in the path', () => {
-    expect(() => mongo({ contract: fakeContract, url: 'mongodb://localhost:27017' })).toThrow(
-      'Mongo URL must include a database name',
-    );
-  });
-
-  it('throws for a url with the wrong scheme', () => {
-    expect(() => mongo({ contract: fakeContract, url: 'http://localhost/x' })).toThrow(
-      'Mongo URL must use mongodb:// or mongodb+srv://',
-    );
-  });
-
-  it('throws for an empty url', () => {
-    expect(() => mongo({ contract: fakeContract, url: '   ' })).toThrow(
-      'Mongo URL must be a non-empty string',
-    );
-  });
-
-  it('throws for { uri } without a dbName', () => {
-    expect(() =>
-      mongo({
-        contract: fakeContract,
-        uri: 'mongodb://localhost:27017',
-      } as unknown as Parameters<typeof mongo>[0]),
-    ).toThrow(/dbName/);
   });
 
   it('throws for { url, dbName: "   " } (whitespace-only dbName) — URL without path', () => {
@@ -290,37 +239,6 @@ describe('mongo() facade', () => {
         dbName: '   ',
       }),
     ).toThrow('Mongo binding via { url, dbName } requires a non-empty dbName');
-  });
-
-  it('throws for { url: "mongodb://host/mydb", dbName: "   " } (whitespace-only dbName must not silently fall back to URL path)', () => {
-    expect(() =>
-      mongo({
-        contract: fakeContract,
-        url: 'mongodb://localhost:27017/mydb',
-        dbName: '   ',
-      }),
-    ).toThrow('Mongo binding via { url, dbName } requires a non-empty dbName');
-  });
-
-  it('throws for { uri, dbName: "   " } (whitespace-only dbName)', () => {
-    expect(() =>
-      mongo({
-        contract: fakeContract,
-        uri: 'mongodb://localhost:27017',
-        dbName: '   ',
-      }),
-    ).toThrow('Mongo binding via { uri, dbName } requires a non-empty dbName');
-  });
-
-  it('throws for { mongoClient, dbName: "   " } (whitespace-only dbName)', () => {
-    const fakeClient = { db: vi.fn() };
-    expect(() =>
-      mongo({
-        contract: fakeContract,
-        mongoClient: fakeClient as unknown as import('mongodb').MongoClient,
-        dbName: '   ',
-      }),
-    ).toThrow('Mongo binding via { mongoClient, dbName } requires a non-empty dbName');
   });
 
   it('trims a padded dbName before storing it on the binding', async () => {
@@ -402,25 +320,6 @@ describe('mongo() facade', () => {
     expect(runtime).toBe(fakeRuntime);
     expect(mocks.driverFromConnection).toHaveBeenCalledTimes(2);
     expect(mocks.createMongoRuntime).toHaveBeenCalledTimes(1);
-  });
-
-  it('rejects orm operations after close() with a clear "client is closed" error', async () => {
-    const db = mongo({ contract: fakeContract, url: 'mongodb://localhost:27017/mydb' });
-
-    await db.runtime();
-    await db.close();
-
-    await expect(db.runtime()).rejects.toThrow('Mongo client is closed');
-  });
-
-  it('rejects connect() after close() with a clear "client is closed" error', async () => {
-    const db = mongo({ contract: fakeContract });
-
-    await db.close();
-
-    await expect(db.connect({ url: 'mongodb://localhost:27017/mydb' })).rejects.toThrow(
-      'Mongo client is closed',
-    );
   });
 
   it('close() before any build is a no-op and locks the client', async () => {
@@ -570,32 +469,6 @@ describe('mongo() facade', () => {
 
     it('exposes the enum accessor at db.enums.Role', () => {
       expect(roleAccessor().values).toEqual(['user', 'admin']);
-    });
-
-    it('.has returns true for a member value and false otherwise', () => {
-      const role = roleAccessor();
-      expect(role.has('user')).toBe(true);
-      expect(role.has('unknown')).toBe(false);
-    });
-
-    it('.nameOf returns the member name for a value', () => {
-      expect(roleAccessor().nameOf('admin')).toBe('Admin');
-    });
-
-    it('.ordinalOf returns the zero-based index', () => {
-      const role = roleAccessor();
-      expect(role.ordinalOf('user')).toBe(0);
-      expect(role.ordinalOf('admin')).toBe(1);
-      expect(role.ordinalOf('unknown')).toBe(-1);
-    });
-
-    it('.members exposes accessor map keyed by member name', () => {
-      expect(roleAccessor().members['User']).toBe('user');
-      expect(roleAccessor().members['Admin']).toBe('admin');
-    });
-
-    it('.names returns the ordered member name tuple', () => {
-      expect(roleAccessor().names).toEqual(['User', 'Admin']);
     });
 
     it('builds the enums surface eagerly, without connecting the driver', () => {

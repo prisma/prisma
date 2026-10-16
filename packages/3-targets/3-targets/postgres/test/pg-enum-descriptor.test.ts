@@ -13,8 +13,4 @@ describe('PgEnumDescriptor (pg/enum@1) as a parameterized codec', () => {
     const invalid = await pgEnumDescriptor.paramsSchema['~standard'].validate({ typeName: 42 });
     expect(invalid).toHaveProperty('issues');
   });
-
-  it('represents the enum data type', () => {
-    expect(pgEnumDescriptor.dataType).toBe('pg/enum');
-  });
 });

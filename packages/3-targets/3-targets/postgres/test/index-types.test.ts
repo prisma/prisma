@@ -167,12 +167,6 @@ describe('fullText options', () => {
   });
 });
 
-describe('postgresTargetDescriptorMeta', () => {
-  it('declares its index types via postgresIndexTypes', () => {
-    expect(postgresTargetDescriptorMeta.indexTypes).toBe(postgresIndexTypes);
-  });
-});
-
 describe('contract build registers postgres index types end-to-end', () => {
   it('accepts @@index(..., type: "gin")', () => {
     const result = interpret(modelWithIndexType('gin'));

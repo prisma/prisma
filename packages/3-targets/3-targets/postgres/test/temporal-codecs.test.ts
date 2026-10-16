@@ -1,11 +1,6 @@
 import type { JsonValue } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import {
-  PG_DATE_TEMPORAL_CODEC_ID,
-  PG_TIME_TEMPORAL_CODEC_ID,
-  PG_TIMESTAMP_TEMPORAL_CODEC_ID,
-  PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
-} from '../src/core/codec-ids';
+import { PG_DATE_TEMPORAL_CODEC_ID } from '../src/core/codec-ids';
 import {
   pgDateTemporalDescriptor,
   pgTimestampTemporalDescriptor,
@@ -243,19 +238,6 @@ describe('Temporal-backed temporal codecs', () => {
   });
 
   describe('descriptor metadata', () => {
-    it.each([
-      [PG_DATE_TEMPORAL_CODEC_ID, pgDateTemporalDescriptor, 'pg/date'],
-      [PG_TIMESTAMP_TEMPORAL_CODEC_ID, pgTimestampTemporalDescriptor, 'pg/timestamp'],
-      [PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID, pgTimestamptzTemporalDescriptor, 'pg/timestamptz'],
-      [PG_TIME_TEMPORAL_CODEC_ID, pgTimeTemporalDescriptor, 'pg/time'],
-    ])('%s represents the data type of the column it serves', (id, descriptor, dataType) => {
-      expect({
-        codecId: descriptor.codecId,
-        traits: descriptor.traits,
-        dataType: descriptor.dataType,
-      }).toEqual({ codecId: id, traits: ['equality', 'order'], dataType });
-    });
-
     it('carries no output-type renderer, because TInput is what reaches the declaration', () => {
       expect([
         pgDateTemporalDescriptor.renderOutputType,

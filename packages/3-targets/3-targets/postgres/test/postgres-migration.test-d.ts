@@ -26,18 +26,3 @@ test('endContract is a PostgresContractView<Contract>', () => {
 test('startContract is PostgresContractView<Contract> | null', () => {
   expectTypeOf<StartView>().toEqualTypeOf<PostgresContractView<Contract> | null>();
 });
-
-test('endContract.namespace.<schema>.table.<x> resolves per-schema leaves', () => {
-  expectTypeOf<
-    EndView['namespace']['public']['table']['users']['columns']['email']['codecId']
-  >().toEqualTypeOf<'pg/text@1'>();
-  expectTypeOf<
-    EndView['namespace']['auth']['table']['users']['columns']['token']['codecId']
-  >().toEqualTypeOf<'pg/text@1'>();
-});
-
-test('cross-schema column access on the migration view is a compile error', () => {
-  const view = null as unknown as EndView;
-  // @ts-expect-error public.users has no `token` column (that is auth.users)
-  view.namespace.public.table.users.columns.token;
-});

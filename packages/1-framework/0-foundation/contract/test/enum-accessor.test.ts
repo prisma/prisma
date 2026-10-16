@@ -59,12 +59,6 @@ describe('createEnumAccessor()', () => {
       const accessor = createEnumAccessor(roleEnum);
       expect(accessor.members).toEqual({ User: 'user', Admin: 'admin' });
     });
-
-    it('resolves each member name to the correct value', () => {
-      const accessor = createEnumAccessor(roleEnum);
-      expect(accessor.members['User']).toBe('user');
-      expect(accessor.members['Admin']).toBe('admin');
-    });
   });
 
   describe('.has()', () => {

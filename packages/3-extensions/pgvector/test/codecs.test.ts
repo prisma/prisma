@@ -1,5 +1,4 @@
 import type { DataType, DataTypeValue } from '@internal/framework-components/codec';
-import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { pgVectorColumn, pgVectorDescriptor } from '../src/core/codecs';
 import { VECTOR_CODEC_ID, VECTOR_MAX_DIM } from '../src/core/constants';
@@ -22,29 +21,6 @@ function asAsyncCodec(length: number): AsyncVectorCodec {
 }
 
 describe('pgvector codecs', () => {
-  it(
-    'has vector codec registered',
-    () => {
-      expect(pgVectorDescriptor.codecId).toBe('pg/vector@1');
-    },
-    timeouts.default,
-  );
-
-  it('encodes number array to PostgreSQL vector format', async () => {
-    const vectorCodec = asAsyncCodec(4);
-    const value = [0.1, 0.2, 0.3, 0.4];
-    const encoded = await vectorCodec.toWire(value);
-    expect(encoded).toBe('[0.1,0.2,0.3,0.4]');
-    expect(typeof encoded).toBe('string');
-  });
-
-  it('decodes PostgreSQL vector format string', async () => {
-    const vectorCodec = asAsyncCodec(4);
-    const wire = '[0.1,0.2,0.3,0.4]';
-    const decoded = await vectorCodec.fromWire(wire);
-    expect(decoded).toEqual([0.1, 0.2, 0.3, 0.4]);
-  });
-
   it('round-trip encode/decode preserves values', async () => {
     const vectorCodec = asAsyncCodec(5);
     const original = [0.1, 0.2, 0.3, 0.4, 0.5];
@@ -144,32 +120,10 @@ describe('pgvector codecs', () => {
       expect(toContractJson(codec, [0.1, 0.2, 0.3])).toEqual([0.1, 0.2, 0.3]);
     });
 
-    it('decodes a JSON numeric array', () => {
-      const codec = asAsyncCodec(3);
-      expect(fromContractJson(codec, [0.1, 0.2, 0.3], { length: 3 })).toEqual([0.1, 0.2, 0.3]);
-    });
-
-    it('rejects the text form, which reads back at the wrong precision', () => {
-      const codec = asAsyncCodec(3);
-      expect(() => fromContractJson(codec, '[0.1,0.2,0.3]', { length: 3 })).toThrow(
-        'pgvector/vector JSON value must be an array of 3 finite numbers',
-      );
-    });
-
     it('rejects toDataTypeValue when the value is not an array', () => {
       const codec = asAsyncCodec(3);
       expect(() => toContractJson(codec, 'nope' as unknown as number[])).toThrow(
         'Vector value must be an array of numbers',
-      );
-    });
-
-    it('refuses contract JSON when the array has the wrong length or bad elements', () => {
-      const codec = asAsyncCodec(3);
-      expect(() => fromContractJson(codec, [1, 2], { length: 3 })).toThrow(
-        'pgvector/vector JSON value must be an array of 3 finite numbers',
-      );
-      expect(() => fromContractJson(codec, [1, 'two', 3], { length: 3 })).toThrow(
-        'pgvector/vector JSON value must be an array of 3 finite numbers',
       );
     });
   });

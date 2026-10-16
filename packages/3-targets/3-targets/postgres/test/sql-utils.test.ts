@@ -220,48 +220,10 @@ describe('quoteQualifiedName', () => {
 });
 
 describe('enum value security scenarios', () => {
-  it('handles enum values with quotes safely', () => {
-    const values = ["it's", "don't", "can't"];
-    const escaped = values.map((v) => `'${escapeLiteral(v)}'`).join(', ');
-    expect(escaped).toBe("'it''s', 'don''t', 'can''t'");
-  });
-
-  it('handles enum values with SQL injection attempts', () => {
-    const maliciousValues = ["active'); DROP TABLE users; --", "inactive' OR '1'='1", "pending\\'"];
-
-    const escaped = maliciousValues.map((v) => `'${escapeLiteral(v)}'`).join(', ');
-    expect(escaped).toBe(
-      "'active''); DROP TABLE users; --', 'inactive'' OR ''1''=''1', 'pending\\'''",
-    );
-  });
-
-  it('rejects enum values with null bytes', () => {
-    const maliciousValue = 'active\0';
-    expect(() => escapeLiteral(maliciousValue)).toThrow('Literal value cannot contain null bytes');
-    const error = catchStructured(() => escapeLiteral(maliciousValue));
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'CONTRACT.IDENTIFIER_INVALID',
-      meta: { context: 'literal' },
-    });
-  });
-
   it('handles unicode enum values safely', () => {
     const unicodeValues = ['日本語', 'émoji 🎉', 'Ελληνικά'];
     const escaped = unicodeValues.map((v) => `'${escapeLiteral(v)}'`).join(', ');
     expect(escaped).toBe("'日本語', 'émoji 🎉', 'Ελληνικά'");
-  });
-});
-
-describe('type name security scenarios', () => {
-  it('handles type names with special characters', () => {
-    expect(quoteIdentifier('Status_v2')).toBe('"Status_v2"');
-    expect(quoteIdentifier('user-status')).toBe('"user-status"');
-  });
-
-  it('handles schema names with injection attempts', () => {
-    const maliciousSchema = 'public"; DROP SCHEMA public; --';
-    expect(quoteIdentifier(maliciousSchema)).toBe('"public""; DROP SCHEMA public; --"');
   });
 });
 

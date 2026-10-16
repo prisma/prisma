@@ -1,23 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  PG_BIT_CODEC_ID,
-  PG_BOOL_CODEC_ID,
-  PG_FLOAT4_CODEC_ID,
-  PG_FLOAT8_CODEC_ID,
-  PG_INET_CODEC_ID,
-  PG_INT2_CODEC_ID,
-  PG_INT4_CODEC_ID,
-  PG_INT8_CODEC_ID,
-  PG_INTERVAL_CODEC_ID,
-  PG_JSON_CODEC_ID,
-  PG_JSONB_CODEC_ID,
-  PG_NUMERIC_CODEC_ID,
-  PG_TEXT_CODEC_ID,
-  PG_TIMETZ_CODEC_ID,
-  PG_UUID_CODEC_ID,
-  PG_VARBIT_CODEC_ID,
-} from '../src/core/codec-ids';
-import {
   pgBitDescriptor,
   pgBoolDescriptor,
   pgFloat4Descriptor,
@@ -44,10 +26,6 @@ describe('codecs-class', () => {
   describe('pg/text@1', () => {
     const codec = pgTextDescriptor.factory()(instanceCtx);
 
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_TEXT_CODEC_ID);
-    });
-
     it('encodes and decodes string values verbatim', async () => {
       expect(await codec.toWire('hello', callCtx)).toBe('hello');
       expect(await codec.fromWire('hello', callCtx)).toBe('hello');
@@ -61,9 +39,6 @@ describe('codecs-class', () => {
 
   describe('pg/int4@1', () => {
     const codec = pgInt4Descriptor.factory()(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_INT4_CODEC_ID);
-    });
     it('encodes and decodes number values verbatim', async () => {
       expect(await codec.toWire(42, callCtx)).toBe(42);
       expect(await codec.fromWire(42, callCtx)).toBe(42);
@@ -72,9 +47,6 @@ describe('codecs-class', () => {
 
   describe('pg/int2@1', () => {
     const codec = pgInt2Descriptor.factory()(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_INT2_CODEC_ID);
-    });
     it('encodes and decodes number values verbatim', async () => {
       expect(await codec.toWire(7, callCtx)).toBe(7);
       expect(await codec.fromWire(7, callCtx)).toBe(7);
@@ -83,9 +55,6 @@ describe('codecs-class', () => {
 
   describe('pg/int8@1', () => {
     const codec = pgInt8Descriptor.factory()(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_INT8_CODEC_ID);
-    });
     it('encodes to decimal text and decodes the wire string to bigint', async () => {
       expect(await codec.toWire(9_999_999_999n, callCtx)).toBe('9999999999');
       expect(await codec.fromWire('9999999999', callCtx)).toBe(9_999_999_999n);
@@ -98,9 +67,6 @@ describe('codecs-class', () => {
 
   describe('pg/float4@1', () => {
     const codec = pgFloat4Descriptor.factory()(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_FLOAT4_CODEC_ID);
-    });
     it('encodes and decodes number values verbatim', async () => {
       expect(await codec.toWire(3.14, callCtx)).toBe(3.14);
       expect(await codec.fromWire(3.14, callCtx)).toBe(3.14);
@@ -109,9 +75,6 @@ describe('codecs-class', () => {
 
   describe('pg/float8@1', () => {
     const codec = pgFloat8Descriptor.factory()(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_FLOAT8_CODEC_ID);
-    });
     it('encodes and decodes number values verbatim', async () => {
       expect(await codec.toWire(Math.E, callCtx)).toBe(Math.E);
       expect(await codec.fromWire(Math.E, callCtx)).toBe(Math.E);
@@ -120,9 +83,6 @@ describe('codecs-class', () => {
 
   describe('pg/bool@1', () => {
     const codec = pgBoolDescriptor.factory()(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_BOOL_CODEC_ID);
-    });
     it('encodes and decodes boolean values verbatim', async () => {
       expect(await codec.toWire(true, callCtx)).toBe(true);
       expect(await codec.fromWire(false, callCtx)).toBe(false);
@@ -131,10 +91,6 @@ describe('codecs-class', () => {
 
   describe('pg/numeric@1', () => {
     const codec = pgNumericDescriptor.factory({ precision: 10, scale: 2 })(instanceCtx);
-
-    it('id proxies through the descriptor (independent of params)', () => {
-      expect(codec.id).toBe(PG_NUMERIC_CODEC_ID);
-    });
 
     it('encodes string verbatim', async () => {
       expect(await codec.toWire('123.45', callCtx)).toBe('123.45');
@@ -149,10 +105,6 @@ describe('codecs-class', () => {
   describe('pg/numeric@1 with no typeParams (unbounded numeric / bare Decimal)', () => {
     const codec = pgNumericDescriptor.factory({})(instanceCtx);
 
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_NUMERIC_CODEC_ID);
-    });
-
     it('encodes and decodes strings verbatim with no precision/scale supplied', async () => {
       expect(await codec.toWire('123.45', callCtx)).toBe('123.45');
       expect(await codec.fromWire('123.45', callCtx)).toBe('123.45');
@@ -161,9 +113,6 @@ describe('codecs-class', () => {
 
   describe('pg/timetz@1', () => {
     const codec = pgTimetzDescriptor.factory({})(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_TIMETZ_CODEC_ID);
-    });
     it('round-trips strings verbatim', async () => {
       expect(await codec.toWire('10:30:00+00', callCtx)).toBe('10:30:00+00');
       expect(await codec.fromWire('10:30:00+00', callCtx)).toBe('10:30:00+00');
@@ -172,9 +121,6 @@ describe('codecs-class', () => {
 
   describe('pg/bit@1', () => {
     const codec = pgBitDescriptor.factory({ length: 8 })(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_BIT_CODEC_ID);
-    });
     it('round-trips bit strings verbatim', async () => {
       expect(await codec.toWire('10101010', callCtx)).toBe('10101010');
       expect(await codec.fromWire('10101010', callCtx)).toBe('10101010');
@@ -183,9 +129,6 @@ describe('codecs-class', () => {
 
   describe('pg/varbit@1', () => {
     const codec = pgVarbitDescriptor.factory({ length: 16 })(instanceCtx);
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_VARBIT_CODEC_ID);
-    });
     it('round-trips bit strings verbatim', async () => {
       expect(await codec.toWire('1010', callCtx)).toBe('1010');
       expect(await codec.fromWire('1010', callCtx)).toBe('1010');
@@ -194,10 +137,6 @@ describe('codecs-class', () => {
 
   describe('pg/interval@1', () => {
     const codec = pgIntervalDescriptor.factory({})(instanceCtx);
-
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_INTERVAL_CODEC_ID);
-    });
 
     it('writes the value as the ISO duration PostgreSQL accepts', async () => {
       expect(await codec.toWire({ months: 0, days: 1, micros: 0n }, callCtx)).toBe('P1D');
@@ -219,10 +158,6 @@ describe('codecs-class', () => {
   describe('pg/json@1', () => {
     const codec = pgJsonDescriptor.factory()(instanceCtx);
 
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_JSON_CODEC_ID);
-    });
-
     it('encodes JsonValue to JSON string', async () => {
       expect(await codec.toWire({ key: 'value' }, callCtx)).toBe('{"key":"value"}');
     });
@@ -242,10 +177,6 @@ describe('codecs-class', () => {
 
   describe('pg/jsonb@1', () => {
     const codec = pgJsonbDescriptor.factory()(instanceCtx);
-
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_JSONB_CODEC_ID);
-    });
 
     it('encodes JsonValue to JSON string', async () => {
       expect(await codec.toWire([1, 2, 3], callCtx)).toBe('[1,2,3]');
@@ -268,10 +199,6 @@ describe('codecs-class', () => {
     const codec = pgUuidDescriptor.factory()(instanceCtx);
     const SAMPLE_UUID = '550e8400-e29b-41d4-a716-446655440000';
 
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_UUID_CODEC_ID);
-    });
-
     it('encodes and decodes string values verbatim', async () => {
       expect(await codec.toWire(SAMPLE_UUID, callCtx)).toBe(SAMPLE_UUID);
       expect(await codec.fromWire(SAMPLE_UUID, callCtx)).toBe(SAMPLE_UUID);
@@ -290,10 +217,6 @@ describe('codecs-class', () => {
   describe('pg/inet@1', () => {
     const codec = pgInetDescriptor.factory()(instanceCtx);
     const SAMPLE_INET = '192.168.1.1';
-
-    it('id proxies through the descriptor', () => {
-      expect(codec.id).toBe(PG_INET_CODEC_ID);
-    });
 
     it('encodes and decodes string values verbatim', async () => {
       expect(await codec.toWire(SAMPLE_INET, callCtx)).toBe(SAMPLE_INET);

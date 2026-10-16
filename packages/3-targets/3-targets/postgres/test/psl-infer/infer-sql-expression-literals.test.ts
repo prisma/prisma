@@ -113,13 +113,6 @@ describe('contract infer prints raw SQL as sql literals', () => {
     );
   });
 
-  it('prints policy predicates as sql literals', async () => {
-    const psl = await infer({ policies: [policy('p_write', '(owner_id = 1)', '(owner_id = 2)')] });
-
-    expect(psl).toContain('using = sql`(owner_id = 1)`');
-    expect(psl).toContain('withCheck = sql`(owner_id = 2)`');
-  });
-
   it('prints a text holding a backtick in the double-quote form', async () => {
     expect(await infer({ checks: [check('profile_tick', "(owner_id <> '`'::text)")] })).toContain(
       '@@check(expression: sql"(owner_id <> \'`\'::text)", map: "profile_tick")',

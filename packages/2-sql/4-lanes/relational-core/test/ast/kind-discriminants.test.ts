@@ -87,73 +87,8 @@ const allKindEntries: Array<[string, { kind: string }]> = [
 ];
 
 describe('AST kind discriminants', () => {
-  it.each([
-    ['SelectAst', 'select'],
-    ['InsertAst', 'insert'],
-    ['UpdateAst', 'update'],
-    ['DeleteAst', 'delete'],
-    ['TableSource', 'table-source'],
-    ['DerivedTableSource', 'derived-table-source'],
-    ['ColumnRef', 'column-ref'],
-    ['ParamRef', 'param-ref'],
-    ['DefaultValueExpr', 'default-value'],
-    ['LiteralExpr', 'literal'],
-    ['SubqueryExpr', 'subquery'],
-    ['OperationExpr', 'operation'],
-    ['AggregateExpr', 'aggregate'],
-    ['WindowFuncExpr', 'window-func'],
-    ['FunctionCallExpr', 'function-call'],
-    ['CastExpr', 'cast'],
-    ['CaseExpr', 'case'],
-    ['JsonObjectExpr', 'json-object'],
-    ['JsonArrayAggExpr', 'json-array-agg'],
-    ['ListExpression', 'list'],
-    ['BinaryExpr', 'binary'],
-    ['AndExpr', 'and'],
-    ['OrExpr', 'or'],
-    ['ExistsExpr', 'exists'],
-    ['NullCheckExpr', 'null-check'],
-    ['EqColJoinOn', 'eq-col-join-on'],
-    ['JoinAst', 'join'],
-    ['ProjectionItem', 'projection-item'],
-    ['OrderByItem', 'order-by-item'],
-    ['InsertOnConflict', 'insert-on-conflict'],
-    ['DoNothingConflictAction', 'do-nothing'],
-    ['DoUpdateSetConflictAction', 'do-update-set'],
-  ])('%s has kind "%s"', (className, expectedKind) => {
-    const entry = allKindEntries.find(([name]) => name === className);
-    expect(entry).toBeDefined();
-    expect(entry![1].kind).toBe(expectedKind);
-  });
-
   it('all kind tags are unique', () => {
     const kinds = allKindEntries.map(([, node]) => node.kind);
     expect(new Set(kinds).size).toBe(kinds.length);
-  });
-
-  it('structural dispatch works with plain objects (cross-module-boundary simulation)', () => {
-    const fakeSelectAst = { kind: 'select' as const };
-    const fakeInsertAst = { kind: 'insert' as const };
-    const fakeDeleteAst = { kind: 'delete' as const };
-
-    function dispatch(node: { kind: string }): string {
-      switch (node.kind) {
-        case 'select':
-          return 'handled-select';
-        case 'insert':
-          return 'handled-insert';
-        case 'update':
-          return 'handled-update';
-        case 'delete':
-          return 'handled-delete';
-        default:
-          throw new Error(`Unknown kind: ${node.kind}`);
-      }
-    }
-
-    expect(dispatch(fakeSelectAst)).toBe('handled-select');
-    expect(dispatch(fakeInsertAst)).toBe('handled-insert');
-    expect(dispatch(fakeDeleteAst)).toBe('handled-delete');
-    expect(dispatch(minimalSelect)).toBe('handled-select');
   });
 });

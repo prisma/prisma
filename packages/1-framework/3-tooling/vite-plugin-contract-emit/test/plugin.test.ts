@@ -209,39 +209,6 @@ describe('prismaVitePlugin', () => {
     vi.restoreAllMocks();
   });
 
-  it('returns a Vite plugin with the correct name', () => {
-    const plugin = prismaVitePlugin('prisma.config.ts');
-
-    expect(plugin.name).toBe('prisma-vite-plugin-contract-emit');
-  });
-
-  it('accepts optional configuration', () => {
-    const plugin = prismaVitePlugin('prisma.config.ts', {
-      debounceMs: 500,
-      logLevel: 'silent',
-    });
-
-    expect(plugin.name).toBe('prisma-vite-plugin-contract-emit');
-  });
-
-  it('has configResolved hook', () => {
-    const plugin = prismaVitePlugin('prisma.config.ts');
-
-    expect(typeof plugin.configResolved).toBe('function');
-  });
-
-  it('has configureServer hook', () => {
-    const plugin = prismaVitePlugin('prisma.config.ts');
-
-    expect(typeof plugin.configureServer).toBe('function');
-  });
-
-  it('has handleHotUpdate hook', () => {
-    const plugin = prismaVitePlugin('prisma.config.ts');
-
-    expect(typeof plugin.handleHotUpdate).toBe('function');
-  });
-
   describe('configResolved', () => {
     it('resolves config path relative to vite root', async () => {
       const plugin = prismaVitePlugin('prisma.config.ts', { logLevel: 'silent' });

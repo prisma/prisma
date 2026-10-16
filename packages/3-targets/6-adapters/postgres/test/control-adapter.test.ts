@@ -62,15 +62,6 @@ function createMockDriver(
 }
 
 describe('PostgresControlAdapter', () => {
-  it('has correct familyId and targetId', () => {
-    const adapter = new PostgresControlAdapter(
-      createPostgresBuiltinCodecLookup(),
-      createPostgresBuiltinDataTypeLookup(),
-    );
-    expect(adapter.familyId).toBe('sql');
-    expect(adapter.targetId).toBe('postgres');
-  });
-
   describe('introspect', () => {
     it('introspects empty schema', async () => {
       const adapter = new PostgresControlAdapter(

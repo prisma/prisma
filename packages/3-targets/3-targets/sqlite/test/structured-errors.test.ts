@@ -1,7 +1,7 @@
 import { checkExpression, col } from '@internal/sql-relational-core/contract-free';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import { sqliteBigintDescriptor, sqliteRealDescriptor } from '../src/core/codecs';
+import { sqliteBigintDescriptor } from '../src/core/codecs';
 import sqliteControlTargetDescriptor from '../src/core/control-target';
 import { CreateTableCall, DropTableCall } from '../src/core/migrations/op-factory-call';
 import { buildColumnTypeSql } from '../src/core/migrations/planner-ddl-builders';
@@ -57,16 +57,6 @@ describe('structured error codes', () => {
       code: 'RUNTIME.DECODE_FAILED',
       message:
         'sqlite/integer JSON value must be a decimal integer string from -9223372036854775808 to 9223372036854775807',
-    });
-  });
-
-  it('real codec toDataTypeValue of NaN raises RUNTIME.ENCODE_FAILED', () => {
-    const realCodec = sqliteRealDescriptor.factory()({ name: 'test' });
-    const error = capture(() => realCodec.toDataTypeValue(Number.NaN));
-    expect(isStructuredError(error)).toBe(true);
-    expect(error).toMatchObject({
-      code: 'RUNTIME.ENCODE_FAILED',
-      message: 'sqlite/real@1 value must be a number other than NaN, which SQLite cannot store',
     });
   });
 

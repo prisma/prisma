@@ -59,23 +59,6 @@ describe('mongoCodec() factory — CodecCallContext arity', () => {
     expect(observed?.signal).toBe(controller.signal);
   });
 
-  it('preserves AbortSignal identity through the lifted method', async () => {
-    let observedSignal: AbortSignal | undefined;
-    const c = mongoCodec({
-      typeId: 'demo/identity@1',
-      toWire: (value: string, ctx?: CodecCallContext) => {
-        observedSignal = ctx?.signal;
-        return value;
-      },
-      fromWire: (wire: string) => wire,
-      dataType: textType,
-      fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
-    });
-    const controller = new AbortController();
-    await c.toWire('x', { signal: controller.signal });
-    expect(observedSignal).toBe(controller.signal);
-  });
-
   it('forwards an empty ctx (no signal) as-is to a ctx-bearing author', async () => {
     let observed: unknown = 'sentinel';
     const c = mongoCodec({

@@ -1,4 +1,3 @@
-import { sql } from '@internal/sql-contract/sql-expression';
 import {
   checkExpression,
   col,
@@ -301,10 +300,6 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
         `@internal/postgres/migration must export "${name}" — the renderer emits an import for it in generated migration.ts files`,
       ).toBe(true);
     }
-  });
-
-  it('the facade exports the sql tag of sql/expression', () => {
-    expect(migrationFacade.sql).toBe(sql);
   });
 
   function facadeImportNames(output: string): string[] {

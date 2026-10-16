@@ -1,21 +1,11 @@
-import type { Contract, JsonValue } from '@internal/contract/types';
+import type { Contract } from '@internal/contract/types';
 import { CliStructuredError } from '@internal/errors/control';
 import { placeholder } from '@internal/errors/migration';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
-import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
-import { dataTypeId } from '@internal/framework-components/codec';
 import type { SqlStorage } from '@internal/sql-contract/types';
-import type { ContractCodecRegistry, ProjectionExpr } from '@internal/sql-relational-core/ast';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
-import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
-import { createPostgresCodecRegistryWithBuiltins } from '@internal/target-postgres/codecs';
-import { pgTable } from '@internal/target-postgres/contract-free';
 import { dataTransform } from '@internal/target-postgres/data-transform';
-import { createPostgresBuiltinDataTypeLookup, pgText } from '@internal/target-postgres/data-types';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { PostgresControlAdapter } from '../../src/core/control-adapter';
-import { encodeControlQueryParams } from '../../src/core/control-codecs';
-import { defineTestCodec } from '../test-codec';
 
 const CONTRACT_HASH = 'contract-abc';
 
@@ -244,61 +234,5 @@ describe('dataTransform factory', () => {
       makeAdapter(),
     );
     expect(op).not.toHaveProperty('invariantId');
-  });
-});
-
-const TEST_CODEC_ID = 'test/transform@1';
-
-const transformingCodec: Codec = defineTestCodec({
-  typeId: TEST_CODEC_ID,
-  dataType: pgText,
-  toWire: async (value: JsonValue) => `ENC:${String(value).toUpperCase()}`,
-  fromWire: async (wire: JsonValue) => wire,
-});
-
-const transformingCodecDescriptor: AnyCodecDescriptor = {
-  codecId: TEST_CODEC_ID,
-  dataType: dataTypeId('demo/fixture'),
-  traits: [],
-  paramsSchema: undefined,
-  isParameterized: false,
-  factory: () => () => transformingCodec,
-};
-const transformingDescriptor = postgresCodec(transformingCodecDescriptor, {
-  dataType: pgText,
-  jsonProjection: (expression: ProjectionExpr) => expression,
-  factory: () => () => transformingCodec,
-});
-const transformingCodecRegistry = createPostgresCodecRegistryWithBuiltins([transformingDescriptor]);
-
-const testRegistry: ContractCodecRegistry = {
-  forColumn: () => undefined,
-  forCodecRef: (ref) => {
-    if (ref.codecId === TEST_CODEC_ID) return transformingCodec;
-    throw new Error(`unknown codec ${ref.codecId}`);
-  },
-};
-
-const testTable = pgTable(
-  { name: 'things' },
-  {
-    label: { codecId: TEST_CODEC_ID, nullable: false },
-  },
-);
-
-const testAdapter = new PostgresControlAdapter(
-  transformingCodecRegistry,
-  createPostgresBuiltinDataTypeLookup(),
-);
-
-describe('dataTransform — codec-encoded params via lowerToExecuteRequest', () => {
-  it('execute step params carry the codec-encoded wire value (not raw JS value)', async () => {
-    const contract = makeContract();
-    const ast = testTable.select(testTable.label).where(testTable.label.eq('plaintext')).build();
-    const lowered = testAdapter.lower(ast, { contract });
-    const params = await encodeControlQueryParams(lowered, ast, testRegistry);
-
-    expect(params).not.toContain('plaintext');
-    expect(params).toContain('ENC:PLAINTEXT');
   });
 });

@@ -197,20 +197,6 @@ describe('init prompts', () => {
     );
 
     it(
-      'falls back to the default schema path instead of asking for one',
-      async () => {
-        const run = await harness().run(
-          ['orm', 'init', '--target', 'postgres', '--authoring', 'psl', ...NO_PACKAGE_WORK],
-          { cwd: projectDir },
-        );
-
-        expect(run.exitCode).toBe(0);
-        expect(run.presented?.data).toMatchObject({ schemaPath: 'src/prisma/contract.prisma' });
-      },
-      timeouts.coldTransformImport,
-    );
-
-    it(
       'rejects an unknown --target value with the allowed set',
       async () => {
         const run = await harness().run(

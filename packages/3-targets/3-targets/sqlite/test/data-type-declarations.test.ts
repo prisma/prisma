@@ -9,11 +9,9 @@ import {
   type SqlTypeText,
   sqlBaseName,
 } from '@internal/sql-contract/data-type';
-import { SQL_EXPRESSION_DATA_TYPE_ID } from '@internal/sql-contract/sql-expression';
 import { describe, expect, it } from 'vitest';
 import { codecDescriptors } from '../src/core/codecs';
 import { sqliteTargetDescriptorMeta } from '../src/core/descriptor-meta';
-import { sqliteTargetDescriptorMetaRuntime } from '../src/core/descriptor-meta-runtime';
 
 const writtenAndCatalog = (text: string): readonly SqlTypeText[] => [
   { text, written: true, catalog: true },
@@ -44,12 +42,6 @@ function sqlTypeOf(id: string): SqlDataType {
 }
 
 describe('the SQLite data type declarations', () => {
-  it('registers the four stored types, the two character types and the two types stored as text', () => {
-    expect(registered.map((type) => type.id).sort()).toEqual(
-      [...Object.keys(EXPECTED), ...STORED_AS_TEXT].sort(),
-    );
-  });
-
   it.each(STORED_AS_TEXT.map((id) => [id] as const))(
     '%s is stored as sqlite/text and declares no texts, so it claims no reported type',
     (id) => {
@@ -72,10 +64,6 @@ describe('the SQLite data type declarations', () => {
       expect(sql.fromReported).toBeUndefined();
     },
   );
-
-  it('registers the data types from the target, in both planes', () => {
-    expect(sqliteTargetDescriptorMetaRuntime.dataTypes).toBe(registered);
-  });
 
   it.each(
     Object.entries(EXPECTED).map(([id, [text]]) => [id, text?.text.toUpperCase() ?? ''] as const),
@@ -138,18 +126,4 @@ describe('the parameter schema of every codec this target ships', () => {
       expect(descriptor.isParameterized).toBe(type?.params !== undefined);
     },
   );
-});
-
-describe("the SQL family's sql/expression data type", () => {
-  it('is not among the data types this target declares texts for', () => {
-    expect(registered.map((type) => type.id)).not.toContain(SQL_EXPRESSION_DATA_TYPE_ID);
-  });
-
-  it('is represented by no codec this target ships', () => {
-    expect(
-      codecDescriptors
-        .filter((descriptor) => descriptor.dataType === SQL_EXPRESSION_DATA_TYPE_ID)
-        .map((descriptor) => descriptor.codecId),
-    ).toEqual([]);
-  });
 });

@@ -79,9 +79,8 @@ describe('SqlIndexIR', () => {
     );
   });
 
-  it('nodeKind is the index kind and children is empty', () => {
+  it('children is empty', () => {
     const idx = exact({ name: 'x', columns: ['email'] });
-    expect(idx.nodeKind).toBe('sql-index');
     expect(idx.children()).toEqual([]);
   });
 

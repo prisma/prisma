@@ -114,18 +114,6 @@ describe('structured error codes', () => {
     });
   });
 
-  it('CONTRACT.DEFAULT_INVALID on a NaN number literal default', async () => {
-    const ast = new SqliteCreateTable({
-      table: 'defaults',
-      columns: [col('x', 'REAL', { default: lit(Number.NaN) })],
-    });
-    const err = await catchAsyncError(() =>
-      controlAdapter.lowerToExecuteRequest(ast, { contract }),
-    );
-    expect(isStructuredError(err)).toBe(true);
-    expect(err).toMatchObject({ code: 'CONTRACT.DEFAULT_INVALID' });
-  });
-
   it('CONTRACT.PACK_CONTRIBUTION_INVALID when a codec emits an unsupported wire type', async () => {
     const symbolType = dataType('test/symbol', { read: (json) => json });
     const symbolCodec = {

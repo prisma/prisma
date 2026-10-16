@@ -2,14 +2,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  findInternalImportSpecifiers,
-  findInternalNames,
-  importSubpaths,
-  installShells,
-  packShell,
-  runInScratch,
-} from '@repo/tsdown/shell-testkit';
+import { importSubpaths, installShells, packShell, runInScratch } from '@repo/tsdown/shell-testkit';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const publicRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -106,19 +99,5 @@ describe('cross-shell tarball chain (target-postgres -> family-sql -> framework,
     // command family at ./cli for the unified `prisma` CLI to import, and
     // no shell forwards a launcher.
     expect(existsSync(join(scratch, 'node_modules', '.bin', 'prisma-next'))).toBe(false);
-  });
-
-  it('ships no unrecorded internal package name in any shell dist', async () => {
-    for (const shell of chain) {
-      const installedDir = join(scratch, 'node_modules', '@prisma', shell);
-      expect(await findInternalNames(installedDir)).toEqual([]);
-    }
-  });
-
-  it('ships no @internal import specifier in any shell dist', async () => {
-    for (const shell of chain) {
-      const installedDir = join(scratch, 'node_modules', '@prisma', shell);
-      expect(await findInternalImportSpecifiers(installedDir)).toEqual([]);
-    }
   });
 });

@@ -17,7 +17,6 @@ import {
   PG_JSON_CODEC_ID,
   PG_JSONB_CODEC_ID,
   PG_NUMERIC_CODEC_ID,
-  PG_TEXT_ARRAY_CODEC_ID,
   PG_TEXT_CODEC_ID,
   PG_TIMETZ_CODEC_ID,
   PG_UUID_CODEC_ID,
@@ -63,10 +62,6 @@ const callCtx = {};
 
 describe('pg/enum@1 codec runtime', () => {
   const codec = pgEnumDescriptor.factory({ typeName: 'aal_level' })(instanceCtx);
-
-  it('id proxies through the descriptor regardless of typeParams', () => {
-    expect(codec.id).toBe(PG_ENUM_CODEC_ID);
-  });
 
   it('encodes and decodes member values verbatim', async () => {
     expect(await codec.toWire('aal1', callCtx)).toBe('aal1');
@@ -149,10 +144,6 @@ describe('postgresQualifyColumnType', () => {
 describe('pg/bytea@1 codec runtime (direct instantiation)', () => {
   const codec = pgByteaDescriptor.factory()(instanceCtx);
 
-  it('id proxies through the descriptor', () => {
-    expect(codec.id).toBe(PG_BYTEA_CODEC_ID);
-  });
-
   it('round-trips a Uint8Array payload verbatim', async () => {
     const input = new Uint8Array([0xde, 0xad, 0xbe, 0xef]);
     expect(await codec.toWire(input, callCtx)).toBe(input);
@@ -183,10 +174,6 @@ describe('pg/bytea@1 codec runtime (direct instantiation)', () => {
 
 describe('pg/text-array@1 codec', () => {
   const codec = pgTextArrayDescriptor.factory()(instanceCtx);
-
-  it('id proxies through the descriptor', () => {
-    expect(codec.id).toBe(PG_TEXT_ARRAY_CODEC_ID);
-  });
 
   it('exposes equality-only traits and the text-array data type', () => {
     expect(pgTextArrayDescriptor.traits).toEqual(['equality']);
