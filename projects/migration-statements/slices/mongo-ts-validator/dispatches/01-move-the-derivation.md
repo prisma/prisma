@@ -18,7 +18,7 @@ PR 1 of 2. No output changes.
 
 - `pnpm fixtures:check` shows no diff: every PSL MongoDB contract and storage hash is byte for byte the same.
 - `pnpm lint:deps` passes: nothing in the foundation layer imports authoring or family code.
-- Every file under `test/integration/test/mongo/` and the side-by-side authoring test pass, run by name.
+- Every integration and e2e test file that mentions MongoDB passes, run by name in groups, and so do the MongoDB CLI journeys. Find them as `plan.md` says, under "Gate for every dispatch": `git grep -il mongo -- 'test/**/*.test.ts'` inside `test/integration`.
 
 ## Rules
 

@@ -8,7 +8,8 @@ Two pull requests. One implementer and one reviewer, both on Opus, resumed acros
 
 - `pnpm typecheck`; `pnpm --filter <touched package> lint`; `pnpm --filter <touched package> test`.
 - `pnpm lint:deps`, `pnpm fixtures:check`, `pnpm check:error-reference`, `pnpm lint:throws`, `pnpm lint:casts`, `pnpm check:upgrade-coverage`.
-- Integration and e2e: only named files or folders, run as `pnpm test <path>`. Never `pnpm test:integration`, `test:e2e` or `test:all`. Before a PR is queued: every file under `test/integration/test/mongo/`, the side-by-side authoring test, and the MongoDB CLI journeys.
+- Integration and e2e: only named files or folders, run as `pnpm test <path>`. Never `pnpm test:integration`, `test:e2e` or `test:all`.
+- Before a PR is queued: every integration and e2e test file that mentions MongoDB, not only `test/integration/test/mongo/`, plus the MongoDB CLI journeys. PR runs skip integration tests, so this is the only check before the merge queue. List the files with `git grep -il mongo -- 'test/**/*.test.ts'` inside `test/integration` (about 130 files, including `test/ports/**`, `value-objects/` and the `cli.mongo-*` e2e files). Run the files outside `test/cli-journeys/` by name with `pnpm test <file> ...` in groups of about 20, saving each group's output to a file. Run the journeys from that list by name with `pnpm test:journeys <file> ...`. Skip only `init-journey.e2e.test.ts`, which runs nightly.
 - The reviewer runs code against mongodb-memory-server, not only reads it.
 
 ## Dispatches
