@@ -1,8 +1,9 @@
 import postgresServerless from '@prisma/orm-postgres/serverless';
+import { contractFromJson } from '@prisma/orm-postgres/static';
 import type { Contract } from '../postgres/generated/contract.d';
 import contractJson from '../postgres/generated/contract.json' with { type: 'json' };
 
-const postgres = postgresServerless<Contract>({ contractJson });
+const postgres = postgresServerless({ contract: contractFromJson<Contract>(contractJson) });
 
 interface Env {
   readonly DATABASE_URL: string;

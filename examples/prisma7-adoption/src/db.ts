@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import postgres from '@prisma/orm-postgres/runtime';
+import { contractFromJson } from '@prisma/orm-postgres/static';
 import { PrismaClient } from '../generated/prisma7/client';
 import type { Contract } from '../generated/prisma8/contract.d';
 import contractJson from '../generated/prisma8/contract.json' with { type: 'json' };
@@ -14,5 +15,7 @@ if (connectionString === undefined) {
 /** The Prisma 7 client, exactly as the project used it before adopting Prisma 8. */
 export const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
+export const contract = contractFromJson<Contract>(contractJson);
+
 /** The Prisma 8 client over the contract emitted from the same prisma/schema.prisma. */
-export const db = postgres<Contract>({ url: connectionString, contractJson });
+export const db = postgres({ url: connectionString, contract });

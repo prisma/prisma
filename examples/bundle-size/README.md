@@ -25,7 +25,7 @@ src/
 │   └── generated/                   # produced by `pnpm emit:pg`
 │       ├── contract.json
 │       ├── contract.d.ts
-│       └── db.ts                    # postgres<Contract>({ contractJson })
+│       └── db.ts                    # postgres({ contract: contractFromJson<Contract>(contractJson) })
 ├── mongo/                           # Node target, @internal/mongo/runtime
 │   ├── contract.ts                  # single Note model with a single _id field
 │   ├── main.ts                      # no-emit:  mongo({ contract })
@@ -33,10 +33,10 @@ src/
 │   └── generated/                   # produced by `pnpm emit:mongo`
 │       ├── contract.json
 │       ├── contract.d.ts
-│       └── db.ts                    # mongo<Contract>({ contractJson })
+│       └── db.ts                    # mongo({ contract: contractFromJson<Contract>(contractJson) })
 └── postgres-worker/                 # CF Workers target, @internal/postgres/serverless
     ├── worker.ts                    # no-emit:  postgresServerless({ contract }) + fetch handler
-    └── worker-emit.ts               # emit:     postgresServerless<Contract>({ contractJson })
+    └── worker-emit.ts               # emit:     postgresServerless({ contract: contractFromJson<Contract>(contractJson) })
                                        # reuses ../postgres/{contract.ts, generated/}
 
 prisma.config.postgres.ts       # `--config` for emit:pg
