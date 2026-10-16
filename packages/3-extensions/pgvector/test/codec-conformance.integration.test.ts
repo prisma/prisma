@@ -68,29 +68,29 @@ const cases: readonly PostgresCodecConformanceCase[] = [
   // reinterpretation as JSON is doing anything a plain string would not.
   vectorCase('negative and fractional elements', [-1.5, 0, 0.25]),
   vectorCase('a single dimension', [42]),
-  // pgvector stores elements as `real`, so a value has to be exactly
-  // representable in a 32-bit float to round-trip at all. These are dyadic, and
-  // deliberately so: a value like `index / 1536` is not, and would fail for a
-  // reason that has nothing to do with the projection.
+  // pgvector stores elements as `real`, and `pgvector/vector` takes only a number
+  // whose `real` prints back as that number, so these are the shortest texts of
+  // single-precision values: what a row reads for `Math.fround(0.1)`, for
+  // instance, is 0.1.
   vectorCase('elements at the edge of float4 precision', [
-    Math.fround(0.1),
-    Math.fround(-1 / 3),
-    Math.fround(Math.PI),
+    0.1,
+    -0.33333334,
+    Number(Math.fround(Math.PI).toPrecision(8)),
   ]),
   // A short vector fits any buffer; a wide one is where a text-form assumption
   // would show.
   vectorCase(
     'many dimensions',
-    Array.from({ length: 1536 }, (_, index) => index / 2048),
+    Array.from({ length: 1536 }, (_, index) => index / 16),
   ),
   // `extra_float_digits` decides how many digits a float prints, in an ordinary
   // row and in the projection alike. These check that both still read to the
   // same `real`s at the floor and above it; 0.1 would print identically at every
   // setting, so the value is one whose digits change.
-  vectorCase('full precision at the float-digits floor', [Math.fround(1 / 3)], {
+  vectorCase('full precision at the float-digits floor', [0.33333334], {
     floatDigits: 1,
   }),
-  vectorCase('full precision above the float-digits floor', [Math.fround(1 / 3)], {
+  vectorCase('full precision above the float-digits floor', [0.33333334], {
     floatDigits: 3,
   }),
 ];

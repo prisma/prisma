@@ -42,7 +42,7 @@ export const pgvectorVectorParams = arktype({
   length: `number.integer >= 1 & number.integer <= ${VECTOR_MAX_DIM}` as const,
 });
 
-/** A `vector(n)` value is an array of exactly `n` finite numbers. */
+/** A `vector(n)` value is an array of exactly `n` finite numbers, each one a `real` holds exactly. */
 function isFiniteNumber(element: JsonValue): element is number {
   return typeof element === 'number' && Number.isFinite(element);
 }
@@ -57,8 +57,30 @@ const readVector: DataTypeReader = (json, params) => {
     return refuseJsonValue('pgvector/vector', expected, json);
   }
   if (!json.every(isFiniteNumber)) return refuseJsonValue('pgvector/vector', expected, json);
+  for (const [index, element] of json.entries()) {
+    const stored = realText(element);
+    if (Number(stored) !== element) {
+      return refuseJsonValue(
+        'pgvector/vector',
+        `an array of numbers real holds exactly; element ${index + 1}, ${element}, would be stored as ${stored}`,
+        json,
+      );
+    }
+  }
   return json;
 };
+
+/**
+ * The text PostgreSQL prints for `value` stored as a `real`, which is what a row reads back: the shortest decimal that reads back as the same single-precision number.
+ */
+function realText(value: number): string {
+  const single = Math.fround(value);
+  for (let digits = 1; digits <= 9; digits++) {
+    const text = String(Number(single.toPrecision(digits)));
+    if (Math.fround(Number(text)) === single) return text;
+  }
+  return String(single);
+}
 
 export const pgvectorVector = sqlDataType('pgvector/vector', {
   params: pgvectorVectorParams,
