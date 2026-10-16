@@ -143,7 +143,7 @@ export function encodeColumnDefault(
   if (defaultInput.kind === 'function') {
     return { kind: 'function', expression: defaultInput.expression };
   }
-  if ('canonical' in defaultInput && defaultInput.canonical === true) {
+  if ('inStoredForm' in defaultInput && defaultInput.inStoredForm === true) {
     return {
       kind: 'literal',
       value: blindCast<

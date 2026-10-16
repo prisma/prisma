@@ -118,10 +118,10 @@ const DECIMAL_NUMERAL_TEXT = /^-?\d+(?:\.\d+)?$/;
  *
  * `NaN`, `Infinity` and `-Infinity` are genuine `numeric` values, which PostgreSQL emits into JSON as strings.
  */
-const CANONICAL_NUMERIC_TEXT = /^(?:(?!-0(?:\.0+)?$)-?(?:0|[1-9]\d*)(?:\.\d+)?|NaN|-?Infinity)$/;
+const STORED_NUMERIC_TEXT = /^(?:(?!-0(?:\.0+)?$)-?(?:0|[1-9]\d*)(?:\.\d+)?|NaN|-?Infinity)$/;
 
 /**
- * Whether canonical numeric text is a value `numeric(precision, scale)` stores without rounding: a whole number of units of 10^-scale, and at most `precision` digits once counted in those units. A negative scale rounds to tens, hundreds and so on, and a scale above the precision allows only values below 1. NaN fits; an infinity does not.
+ * Whether stored numeric text is a value `numeric(precision, scale)` stores without rounding: a whole number of units of 10^-scale, and at most `precision` digits once counted in those units. A negative scale rounds to tens, hundreds and so on, and a scale above the precision allows only values below 1. NaN fits; an infinity does not.
  */
 function fitsNumeric(text: string, precision: number, scale: number): boolean {
   if (text === 'NaN') return true;
@@ -139,7 +139,7 @@ function fitsNumeric(text: string, precision: number, scale: number): boolean {
 }
 
 const readNumeric: DataTypeReader = (json, params) => {
-  if (typeof json !== 'string' || !CANONICAL_NUMERIC_TEXT.test(json)) {
+  if (typeof json !== 'string' || !STORED_NUMERIC_TEXT.test(json)) {
     const printed =
       typeof json === 'string' && DECIMAL_NUMERAL_TEXT.test(json)
         ? storedNumeralText(json)
@@ -296,13 +296,13 @@ function refuseFinerThanPrecision(
   );
 }
 
-/** What `canonical` writes for `text`, or why it cannot read it. */
+/** What `storedText` writes for `text`, or why it cannot read it. */
 function storedSpelling(
-  canonical: (text: string) => string,
+  storedText: (text: string) => string,
   text: string,
 ): { readonly stored: string } | { readonly reason: string } {
   try {
-    return { stored: canonical(text) };
+    return { stored: storedText(text) };
   } catch (error) {
     if (isStructuredError(error) && error.code === 'CONTRACT.CAST_REFUSED') {
       return { reason: error.message };
@@ -317,25 +317,25 @@ function storedSpelling(
 const readStoredDateTime =
   (
     typeId: string,
-    canonical: (text: string) => string,
+    storedText: (text: string) => string,
     description: string,
     fraction: RegExp,
   ): DataTypeReader =>
   (json, params) => {
     if (typeof json !== 'string') return refuseJsonValue(typeId, description, json);
-    const spelling = storedSpelling(canonical, json);
+    const spelling = storedSpelling(storedText, json);
     if ('reason' in spelling)
       return refuseJsonValue(typeId, `${description}: ${spelling.reason}`, json);
     refuseFinerThanPrecision(typeId, json, fraction.exec(spelling.stored)?.[1], params);
     return json;
   };
 
-/** The stored spelling of a date or time value: what its tag's `canonical` writes. */
+/** The stored spelling of a date or time value: what `storedText` writes. */
 const spellStoredDateTime =
-  (canonical: (text: string) => string): DataTypeSpelling =>
+  (storedText: (text: string) => string): DataTypeSpelling =>
   (json) => {
     if (typeof json !== 'string') return json;
-    const spelling = storedSpelling(canonical, json);
+    const spelling = storedSpelling(storedText, json);
     return 'stored' in spelling ? spelling.stored : json;
   };
 

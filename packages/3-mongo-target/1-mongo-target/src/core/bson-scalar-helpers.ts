@@ -15,7 +15,7 @@ import { Binary, Decimal128, Double, Long, ObjectId } from 'bson';
 import { mongoTargetError } from './mongo-target-errors';
 
 const DECIMAL_INTEGER = /^-?\d+$/;
-const CANONICAL_DECIMAL_TEXT = /^(?:-?\d+(?:\.\d+)?|NaN|-?Infinity)$/;
+const STORED_DECIMAL_TEXT = /^(?:-?\d+(?:\.\d+)?|NaN|-?Infinity)$/;
 const DECIMAL128_TEXT = /^(-?)(\d+)(?:\.(\d+))?(?:E([+-]\d+))?$/;
 const BASE64_TEXT = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
@@ -341,7 +341,7 @@ export function decimalTextBigintLiteral(value: JsonValue): string | undefined {
 /**
  * `Decimal128.toString()` writes some values with an exponent (`1E+3`, `1.23E+40`). The application value is decimal text without one, as for Postgres `numeric`: the point moves to where the exponent puts it, trailing zeros stay, and the sign of zero goes.
  */
-export function canonicalDecimalText(text: string): string | undefined {
+export function decimalTextWithoutExponent(text: string): string | undefined {
   if (text === 'NaN' || text === 'Infinity' || text === '-Infinity') return text;
   const match = DECIMAL128_TEXT.exec(text);
   if (match === null) return undefined;
@@ -366,7 +366,7 @@ export function canonicalDecimalText(text: string): string | undefined {
 }
 
 function requireStoredDecimalText(codecId: string, value: string): string {
-  if (typeof value !== 'string' || !CANONICAL_DECIMAL_TEXT.test(value)) {
+  if (typeof value !== 'string' || !STORED_DECIMAL_TEXT.test(value)) {
     encodeFailed(
       codecId,
       'value must be decimal text without an exponent, or NaN, Infinity or -Infinity',
@@ -393,7 +393,7 @@ export function decimal128Decode(codecId: string, wire: Decimal128): string {
   if (!isDecimal128(wire)) {
     return decodeFailed(codecId, 'wire value must be a Decimal128', wire);
   }
-  const text = canonicalDecimalText(wire.toString());
+  const text = decimalTextWithoutExponent(wire.toString());
   if (text === undefined) return decodeFailed(codecId, 'wire value is not decimal text', wire);
   return text;
 }
@@ -403,12 +403,12 @@ export function decimal128ToJson(codecId: string, value: string): string {
 }
 
 /**
- * The stored form is what the codec writes, so it follows the encode rule: canonical decimal text (no exponent), or `NaN`, `Infinity` or `-Infinity`, that a Decimal128 holds exactly.
+ * The stored form is what the codec writes, so it follows the encode rule: decimal text without an exponent, or `NaN`, `Infinity` or `-Infinity`, that a Decimal128 holds exactly.
  */
 export function readDecimal128Json(owner: string, json: JsonValue): string {
   const expected =
     'decimal text without an exponent that a Decimal128 holds exactly, or NaN, Infinity or -Infinity';
-  const text = readJsonMatching(owner, json, CANONICAL_DECIMAL_TEXT, expected);
+  const text = readJsonMatching(owner, json, STORED_DECIMAL_TEXT, expected);
   try {
     Decimal128.fromString(text);
   } catch {

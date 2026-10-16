@@ -52,7 +52,7 @@ export type AuthoredColumnDefault =
        * its casts, so the build stores it as it stands; a TypeScript `.default(value)` hands over an
        * application value, which the column's codec encodes. ADR 254.
        */
-      readonly canonical?: boolean;
+      readonly inStoredForm?: boolean;
     };
 
 /** The type of a scalar: a codec and its type parameters, the domain's `ScalarFieldType` without its kind. */

@@ -129,14 +129,14 @@ const DATETIME_FRACTION = /^(.*:\d{2})(?:\.(\d{1,3}))?Z$/;
  * The value of `sqlite/datetime` (ADR 254): the instant in UTC with exactly three fraction digits, the text `toISOString()` writes for every row, from ISO 8601 text with a UTC offset. The range and the millisecond precision are those of a JavaScript `Date`, the codec's value. Throws `CONTRACT.CAST_REFUSED` for text that names no instant the type holds.
  */
 export function sqliteDatetimeText(text: string): string {
-  const canonical = dateTimeStoredText(text, {
+  const stored = dateTimeStoredText(text, {
     shape: 'instant',
     ownerId: 'sqlite/datetime',
     maxFractionDigits: 3,
     range: { earliest: '-271821-04-20T00:00:00Z', latest: '+275760-09-13T00:00:00Z' },
   });
-  const match = DATETIME_FRACTION.exec(canonical);
-  return match === null ? canonical : `${match[1]}.${(match[2] ?? '').padEnd(3, '0')}Z`;
+  const match = DATETIME_FRACTION.exec(stored);
+  return match === null ? stored : `${match[1]}.${(match[2] ?? '').padEnd(3, '0')}Z`;
 }
 
 /** What `sqliteDatetimeText` writes for `text`, or `undefined` when it names no instant the type holds. */

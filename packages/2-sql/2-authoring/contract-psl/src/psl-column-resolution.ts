@@ -728,7 +728,7 @@ export function lowerDefaultForField(input: {
       });
       return {};
     }
-    return { defaultValue: { kind: 'literal', value: null, canonical: true } };
+    return { defaultValue: { kind: 'literal', value: null, inStoredForm: true } };
   }
   if (
     value.kind === 'list' &&
@@ -796,9 +796,9 @@ export function lowerDefaultForField(input: {
         input.diagnostics.push({ code, message, ...source.at() });
       }
       if (mismatches.length > 0) return {};
-      return { defaultValue: { kind: 'literal' as const, value: stored, canonical: true } };
+      return { defaultValue: { kind: 'literal' as const, value: stored, inStoredForm: true } };
     }
-    return { defaultValue: { kind: 'literal' as const, value: restoredValue, canonical: true } };
+    return { defaultValue: { kind: 'literal' as const, value: restoredValue, inStoredForm: true } };
   };
 
   const canonicalized = (scalar: ParsedWrittenScalar): WrittenScalar | undefined => {

@@ -46,7 +46,7 @@ function decodeDate(wire: unknown): Date {
   return date;
 }
 
-/** The canonical instant a stored timestamp with time zone names, or `undefined` for `infinity` and an instant outside the range a `Date` holds. */
+/** The instant, in its stored spelling, a stored timestamp with time zone names, or `undefined` for `infinity` and an instant outside the range a `Date` holds. */
 function storedInstant(text: string): string | undefined {
   if (text === 'infinity' || text === '-infinity') return undefined;
   try {
@@ -59,8 +59,8 @@ function storedInstant(text: string): string | undefined {
 
 /** The `Date` a stored timestamp with time zone names. A `Date` holds neither `infinity` nor an instant before 4714-11-24 BC or after +275760-09-13, so those are refused. */
 function dateOfStoredText(codecId: string, text: string): Date {
-  const canonical = storedInstant(text);
-  const date = canonical === undefined ? undefined : new Date(canonical);
+  const instant = storedInstant(text);
+  const date = instant === undefined ? undefined : new Date(instant);
   if (date === undefined || !isRepresentable(date)) {
     return refuseJsonValue(
       codecId,

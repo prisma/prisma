@@ -110,7 +110,7 @@ export function lowerPrisma7Default(
 
   const scalar = scalarValue(expression, input, unknown);
   if (scalar === undefined) return undefined;
-  return { storage: { kind: 'literal', value: scalar, canonical: true }, onCreate: undefined };
+  return { storage: { kind: 'literal', value: scalar, inStoredForm: true }, onCreate: undefined };
 }
 
 /**
