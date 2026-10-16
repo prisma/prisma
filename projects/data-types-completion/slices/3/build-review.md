@@ -38,6 +38,8 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | d | 1 (`a39b9eddc6..6e944edb28`, `852ab43720`) | SATISFIED: 0 must-fix, 0 should-fix, 2 low |
 | e | 1 (`b98310c793..9bd0dcf9d8`) | ANOTHER ROUND NEEDED: 2 must-fix, 2 should-fix, 1 low |
 | e | 2 (`4a282be61f`, `fdc8a36d82`, `2afe6e7c80`, `2337a60b33`) | ANOTHER ROUND NEEDED: 0 must-fix, 2 should-fix, 1 low |
+| e | 3 (`fa38436fa6`, `046e90ed5f`, `aafdb08a4f`) | SATISFIED: 0 must-fix, 0 should-fix, 1 low |
+| f | 1 (`00ae4f1b7a`, `4e946a0bd5`, `782c769471`, `32be566208`) | ANOTHER ROUND NEEDED: 0 must-fix, 1 should-fix, 1 low |
 
 ## Findings log
 
@@ -537,3 +539,52 @@ Every command that loads the app's emitted contract passes `meta.refusedDefaults
 - `pnpm build`, root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `pnpm fixtures:check` passes, tree clean.
 - Package tests of family-sql, cli, contract, errors and migration-tools: all pass.
 - Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/authoring`, `test/date-time-defaults`, both default journeys, `stale-contract-default*`, `psl-print` and `uuid-defaults`: 78 files, 1986 tests, pass.
+
+## Dispatch e, round 3
+
+- S3-e-R2-1: fixed in `fa38436fa6`. Both journeys write `sql.String(10)`, and the Postgres journey keeps `VarChar(10)` beside it.
+- S3-e-R2-3: fixed in `046e90ed5f`. Each entry is `{ namespaceId, table, column, dataType, value, message, reason: 'type-refused-default' }`.
+- S3-e-R2-2: fixed in `aafdb08a4f`.
+  - The migration tools keep `refusedDefaults` on `MIGRATION.CONTRACT_DESERIALIZATION_FAILED`, and the aggregate passes the family's error as the cause.
+  - `mapContractAtError` and `migration new` pass the meta on.
+  - `migration check` reports a contract the family refuses instead of swallowing the error.
+
+  Is the test coverage enough without a stale snapshot in a journey? Nearly. The unit tests cover building the error, mapping it, and `migration check`, and a journey runs `migration check` on a stale emitted contract. A journey cannot easily make a snapshot stale without also rewriting its content hash, and it adds little beyond a unit test. One link is untested: passing `{ cause: error }` from `deserializeContractAtPath` in `packages/1-framework/3-tooling/migration/src/aggregate/aggregate.ts`. Removing that argument leaves every test green. See S3-e-R3-1.
+
+### S3-e-R3-1 (low): no test covers the aggregate passing the refusal on as the cause
+
+- Where: `deserializeContractAtPath` in `packages/1-framework/3-tooling/migration/src/aggregate/aggregate.ts`.
+- Change: a migration-tools unit test that loads an aggregate whose `deserializeContract` throws a `ContractValidationError` with `refusedDefaults` for a snapshot, and expects that meta on the thrown error.
+
+## Dispatch f, round 1
+
+Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-f.md`. Commits `00ae4f1b7a`, `4e946a0bd5`, `782c769471` (does not build alone) and `32be566208`.
+
+### What was checked
+
+- **The 27 fixture values and the golden DDL.** I put the three earlier expected contracts back in the working tree, recorded the golden output, restored them, and recorded again, then compared the two recordings. The only differences are the `CREATE TABLE` lines of `Scalars`, `Defaults` and `Lists`, and within them only the 27 date, time and bytes columns. Each was an expression default before: a bare quoted literal such as `('2024-01-02 03:04:05')`, or `(ARRAY[...]::TIMESTAMP(3)[])`. Each is now a literal cast to the column type, or `'{}'` for an empty list. I ran both versions of each table in PGlite with `TimeZone = 'America/New_York'` and inserted a row of defaults: all 42 compared columns hold the same value in both versions. Re-recording the golden test now leaves no diff, and no other contract changed.
+- **The two raw-expression checks infer keeps.** Both are right to keep. A `json` or `jsonb` document whose numbers lose digits when read into JavaScript numbers would print as a different document, and the read-back proof cannot see it, because the codec has already lost the digits. A list with an SQL NULL element, on a type that has its own `null` value (JSON), would print `null` as that type's null, which reads back as a different value.
+- **Async infer.** Consistent. `inferPslContract` returns a promise in the framework capability, the family instance, the target-descriptor hook, the control client, the fixture client and the CLI's `contract infer`, which awaits it. The remaining callers are tests and the Supabase generation script, and root `typecheck:agent` passes.
+- **The work on `main` for `contract-prisma7`.** The local `bot/main` ref (2026-10-15 19:32 UTC, not fetched again) has no commit touching `contract-prisma7` after the merged `main`. "Storage a model does not map" has nothing on that ref yet. This dispatch changed only `defaults.ts`, `target-binding.ts` and the README in that package. The tests of `main`'s earlier work (`@ignore` keeps storage, mixins, cross-namespace enums) pass.
+- **Deleted names.** `storedTemporalText`, `readReportedValue`, `parseInferredDefault` and `infer-default-parser.ts` are gone from `packages/`.
+
+### S3-f-R1-1 (should-fix, the orchestrator decides): infer prints a numeric default at the column's full scale
+
+- Where: the number entry's `print` (`printNumber` in `packages/3-targets/3-targets/postgres/src/core/data-type-entries.ts`), as infer and print use it.
+- What is wrong: before this dispatch, `contract infer` printed `@default(-0.5)` and `@default(1.50)` for a `Numeric(65, 30)` column. It now prints `@default(-0.500000000000000000000000000000)`. ADR 254 "Printing" has no rule for the shortest text. It requires only that the printed text reads back, through `parse` and the cast, to the stored value. When PSL lowers `@default(-0.5)` on that column, `withParams` writes the same stored value, so the short text meets that rule too.
+- Change: I recommend printing the shortest text that reads back to the stored value under the column's parameters. That means dropping trailing fraction zeros that `withParams` adds back. The printer keeps its read-back proof, so nothing unsafe can print. The output is what a person would write, and it matches what infer printed before. This needs the column's parameters at print time, so it is a choice for the orchestrator, not a defect.
+
+### S3-f-R1-2 (low, for the orchestrator): more Prisma 7 `DateTime` defaults are refused than the commit says
+
+- Where: the Prisma 7 reader's `DateTime` default, through the tag and `withParams`.
+- What is wrong: the commit says a default with seven or more fraction digits, or second 60, is now refused. A probe through `interpretSchemaText` shows a wider set: any fraction digits beyond the column's precision are refused too. That includes `"2024-01-02T03:04:05.1234Z"` on a plain `DateTime`, which Prisma 7 maps to `timestamp(3)`. Prisma 7 itself writes the text into the DDL and PostgreSQL rounds it to the column's precision, and the old reader reproduced that rounding. Refusing is consistent with ADR 254: a Prisma 7 default and the same default written in Prisma 8 store the same value, and Prisma 8 refuses a value it would have to round. But the messages do not say what PostgreSQL stored. The seven-digit case says "Round it" with an unrelated example, and the four-digit case names `pg/timestamp-string@1`.
+- Change: the refusal names the value PostgreSQL stores for the written text, so the user can write that into the schema. Dispatch g's upgrade text lists the case.
+
+### Checks run for dispatch e round 3 and dispatch f round 1
+
+- `pnpm build`, root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `lint:framework-vocabulary` is 253 at threshold 253. `pnpm fixtures:check` passes, tree clean.
+- Package tests of sql-contract-prisma7, target-postgres, family-sql, cli, framework-components, pgvector, postgis, migration-tools, adapter-postgres and supabase: all pass.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/authoring`, `test/date-time-defaults`, every `infer-roundtrip-*` file, `infer-roundtrip-runtime`, `native-enum-adoption`, `prisma7-source` (journey and directory), `psl-infer`, `scalar-lists`, `psl-print`, `stale-contract-default*`, both default journeys, `brownfield-infer` and `infer-cross-space-fk`: 122 files, 2170 tests, pass.
+- Probes:
+  - The golden recordings of the three Prisma 7 fixtures before and after, compared in PGlite.
+  - Prisma 7 `DateTime` defaults with extra precision, through a temporary test file, now deleted.
