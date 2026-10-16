@@ -17,7 +17,7 @@ changes:
         - '\bCachedRows\b'
   - id: queryable-carries-the-activity-source
     summary: |
-      The SQL ORM starts its `orm-call` activity on the queryable it was given, through the queryable's `activitySource` member, and sends every statement through the activity's handle. A wrapper that copies a runtime, connection or transaction to intercept its `query` and `execute` (for example to record plans) also copies the `[activitySource]` member, so ORM statements bypass the wrapper. Wrap the activity source too: return a source whose `startActivity` wraps each handle the same way, including the transaction its `transaction()` returns.
+      The SQL ORM starts its `orm-call` activity on the queryable it was given, through the queryable's `activitySource` member, and sends every statement through the activity's handle. A wrapper that copies a runtime, connection or transaction to intercept its `query` and `execute` (for example to record plans) also copies the `[activitySource]` member, so ORM statements bypass the wrapper. Wrap the activity source too: return a source whose `startActivity` wraps each handle the same way, including the transaction its `transaction()` returns. A custom queryable passed to the ORM must carry an activity source: without one, every terminal method rejects with `ORM.ACTIVITY_SOURCE_MISSING`. A test stub can use `delegatingActivitySource(() => realRuntime)`, or a source whose handles send their statements to the stub.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:

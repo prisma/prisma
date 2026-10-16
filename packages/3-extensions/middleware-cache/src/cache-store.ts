@@ -55,10 +55,7 @@ export interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
  *   must throw rather than ignore it. An `unset` by key must also drop that key from any `meta`
  *   index the store keeps.
  *
- * Lifetime, eviction and whether values are copied are the store's policy; the middleware hands
- * `set` the value it returns to its caller, so a store that keeps references shares that object. A version that `unset` moved must be kept at least
- * as long as a read can take, so that a read that started before the `unset` cannot store. `unset`
- * must not run queries through the runtime that uses the middleware.
+ * Lifetime, eviction and whether values are copied are the store's policy; the middleware hands `set` the value it returns to its caller, so a store that keeps references shares that object. A version that `unset` moved must be kept at least as long as a read can take, so that a read that started before the `unset` cannot store. `unset` must not run queries through the runtime that uses the middleware.
  *
  * `TMeta` is the shape of `meta` the store understands. The middleware does not check that a read
  * annotation's `meta` has this shape; see `cacheAnnotation`.
@@ -211,21 +208,7 @@ function invalidOption(argument: 'maxEntries' | 'ttlMs', received: number, expec
 }
 
 /**
- * The default cache store: a least-recently-used map with one lifetime for every value, local to
- * the process. It holds `CachedValue` unless given another `TValue`, and keeps statement rows and
- * other values differently. Statement rows (`{ kind: 'rows' }`) are copied one level deep on `set` and
- * `get`, the array and each row object, and the driver's values are kept by reference: the runtime
- * decodes them into new values on every hit. Every other value, such as an ORM call's result, has
- * its plain structure copied on `set` and on every `get`: plain and null-prototype objects, arrays
- * (their elements only; holes read as `undefined`), `Map`, `Set`, `Date`, `RegExp`, `ArrayBuffer`,
- * typed arrays (a subclass such as Node's `Buffer` keeps its class) and `DataView` (copied as a plain
- * `DataView`). Every other value in it, such as a class instance (a Temporal value, a BSON value, an
- * error) or a function, is shared by reference, so mutating a result's objects or arrays changes
- * neither the cache nor the next hit, and a codec should return values that are not mutated in
- * place. It never refuses a value: `set` returns `false` only when the version moved. A key's
- * version is kept for `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in
- * `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything.
- * It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
+ * The default cache store: a least-recently-used map with one lifetime for every value, local to the process. It holds `CachedValue` unless given another `TValue`, and keeps statement rows and other values differently. Statement rows (`{ kind: 'rows' }`) are copied one level deep on `set` and `get`, the array and each row object, and the driver's values are kept by reference: the runtime decodes them into new values on every hit. Every other value, such as an ORM call's result, has its plain structure copied on `set` and on every `get`: plain and null-prototype objects, arrays (their elements only; holes read as `undefined`), `Map`, `Set`, `Date`, `RegExp`, `ArrayBuffer`, typed arrays (a subclass such as Node's `Buffer` keeps its class) and `DataView` (copied as a plain `DataView`). Every other value in it, such as a class instance (a Temporal value, a BSON value, an error) or a function, is shared by reference, so mutating a result's objects or arrays changes neither the cache nor the next hit, and a codec should return values that are not mutated in place. It never refuses a value: `set` returns `false` only when the version moved. A key's version is kept for `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything. It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
  */
 export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
   options?: InMemoryCacheStoreOptions,

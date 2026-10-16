@@ -12,6 +12,7 @@ import { planFromAst, type SqlQueryPlan } from '@internal/sql-relational-core/pl
 import { describe, expect, it, vi } from 'vitest';
 import { planContentHashOn, startActivityOn } from '../src/activity-handle';
 import type { SqlMiddleware, SqlMiddlewareContext } from '../src/middleware/sql-middleware';
+import type { PreparedExecution } from '../src/prepared/types';
 import { withTransaction } from '../src/sql-runtime';
 import { testCall } from './client-activity-kinds';
 import {
@@ -222,5 +223,18 @@ describe('planContentHash of a prepared statement execution', () => {
     await call.end({ outcome: 'succeeded' });
 
     expect(onCall).toBe(await planContentHashOn(runtime, { statement, params: { x: 3 } }));
+  });
+
+  it('hashes a prepared statement that returns statistics, as the statement it sends', async () => {
+    const hashes: string[] = [];
+    const { runtime } = createSetup({ middleware: [hashRecorder(hashes)] });
+    const statement = await runtime.prepare({ x: doublingCodec.id }, (p) =>
+      planFromAst(RawQueryAst.affectedCount(['update t set x = ', p.x.buildAst()]), testContract),
+    );
+
+    const hash = await planContentHashOn(runtime, { statement, params: { x: 21 } });
+    await (statement as unknown as PreparedExecution<{ x: number }>).execute(runtime, { x: 21 });
+
+    expect(hashes).toEqual([hash]);
   });
 });

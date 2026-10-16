@@ -55,8 +55,8 @@ import {
   type ActivitySource,
   type ActivitySourceTarget,
   activitySource,
-  type ContentHashSubject,
-  type PreparedStatementExecution,
+  type BoundPreparedStatement,
+  type HashablePlan,
   planContentHashOn,
   startActivityOn,
 } from './activity-handle';
@@ -227,15 +227,13 @@ function isExecutionPlan(plan: SqlExecutionPlan | SqlQueryPlan): plan is SqlExec
   return 'sql' in plan;
 }
 
-function isPreparedStatementExecution(
-  subject: ContentHashSubject,
-): subject is PreparedStatementExecution {
+function isBoundPreparedStatement(subject: HashablePlan): subject is BoundPreparedStatement {
   return 'statement' in subject;
 }
 
 function isPreparedStatementInternals(
-  statement: PreparedStatement<unknown, unknown>,
-): statement is PreparedStatement<unknown, unknown> & PreparedStatementInternals {
+  statement: BoundPreparedStatement['statement'],
+): statement is BoundPreparedStatement['statement'] & PreparedStatementInternals {
   return statement instanceof PreparedStatementImpl || statement instanceof PreparedExecutionImpl;
 }
 
@@ -473,7 +471,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         activity,
         undefined,
       ),
-    planContentHash: (plan: ContentHashSubject): Promise<string> =>
+    planContentHash: (plan: HashablePlan): Promise<string> =>
       this.planContentHashFor(plan, 'runtime', undefined),
   };
 
@@ -503,12 +501,12 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
 
   /** The content hash of the statement `plan` would send on a queryable of `scope` beneath `parent`. */
   protected async planContentHashFor(
-    plan: ContentHashSubject,
+    plan: HashablePlan,
     scope: ActivityRoute['scope'],
     parent: ActivityParent | undefined,
   ): Promise<string> {
     this.ensureCodecRegistryValidated();
-    if (isPreparedStatementExecution(plan)) {
+    if (isBoundPreparedStatement(plan)) {
       const { statement, params } = plan;
       invariant(
         isPreparedStatementInternals(statement),
@@ -607,7 +605,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         activity: StartActivity<K>,
       ): Promise<ActivityHandle<K>> =>
         this.startActivityOnRoute(this.connectionRoute(connection, owner()), activity, undefined),
-      planContentHash: (plan: ContentHashSubject): Promise<string> =>
+      planContentHash: (plan: HashablePlan): Promise<string> =>
         this.planContentHashFor(plan, 'connection', this.#openTransactions.get(connection)),
     };
   }
@@ -630,7 +628,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
         run.assertAcceptsChildren();
         return self.startActivityOnRoute(route, activity, run);
       },
-      planContentHash(plan: ContentHashSubject): Promise<string> {
+      planContentHash(plan: HashablePlan): Promise<string> {
         return self.planContentHashFor(plan, route.scope, run);
       },
     };
@@ -1445,7 +1443,7 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
             clientActivity,
             undefined,
           ),
-        planContentHash: (plan: ContentHashSubject): Promise<string> =>
+        planContentHash: (plan: HashablePlan): Promise<string> =>
           self.planContentHashFor(plan, 'transaction', activity),
       },
       query<Row>(
@@ -1730,7 +1728,7 @@ export async function withTransaction<R>(
         if (invalidated) throw transactionClosedError();
         return guardedHandle(await startActivityOn(target, activity));
       },
-      planContentHash(plan: ContentHashSubject): Promise<string> {
+      planContentHash(plan: HashablePlan): Promise<string> {
         return planContentHashOn(target, plan);
       },
     };

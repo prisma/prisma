@@ -25,10 +25,10 @@ export {
   type ActivitySource,
   type ActivitySourceTarget,
   activitySource,
-  type ContentHashSubject,
+  type BoundPreparedStatement,
   delegatingActivitySource,
   findActivitySource,
-  type PreparedStatementExecution,
+  type HashablePlan,
   planContentHashOn,
   startActivityOn,
 } from '../activity-handle';

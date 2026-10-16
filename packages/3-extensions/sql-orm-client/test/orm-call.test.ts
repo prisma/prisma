@@ -43,16 +43,17 @@ function stream<Row>(rows: readonly Row[], failure?: Error): AsyncIterableResult
 }
 
 describe('runOrmCall', () => {
-  it('runs on a queryable without an activity source without starting a call', async () => {
-    const runtime = createMockRuntime();
-    const ran: unknown[] = [];
+  it('rejects on a queryable without an activity source, running nothing', async () => {
+    const bare = { query: createMockRuntime().query, execute: createMockRuntime().execute };
+    let ran = false;
 
-    const result = await runOrmCall(runtime, valueCall(), async (queryable) => {
-      ran.push(queryable);
-      return 3;
-    });
-
-    expect({ result, ranOnRuntime: ran[0] === runtime }).toEqual({ result: 3, ranOnRuntime: true });
+    await expect(
+      runOrmCall(bare, valueCall(), async () => {
+        ran = true;
+        return 3;
+      }),
+    ).rejects.toMatchObject({ code: 'ORM.ACTIVITY_SOURCE_MISSING', meta: { method: 'count' } });
+    expect(ran).toBe(false);
   });
 
   it('starts an orm-call, runs on its handle and ends it with the result', async () => {
@@ -98,8 +99,9 @@ describe('runOrmCall', () => {
     expect(calls.map(({ ended }) => ended)).toEqual([{ outcome: 'failed' }]);
   });
 
-  it('rejects with the error that failed the call when ending it also rejects', async () => {
-    const { runtime, calls } = createActivityRuntime({ endRejects: new Error('children open') });
+  it('rejects with the error that failed the call, with the end error as its cause, when ending it also rejects', async () => {
+    const endError = new Error('children open');
+    const { runtime, calls } = createActivityRuntime({ endRejects: endError });
     const failure = new Error('statement failed');
 
     await expect(
@@ -107,7 +109,36 @@ describe('runOrmCall', () => {
         throw failure;
       }),
     ).rejects.toBe(failure);
-    expect(calls.map(({ ended }) => ended)).toEqual([{ outcome: 'failed' }]);
+    expect({ cause: failure.cause, ended: calls.map(({ ended }) => ended) }).toEqual({
+      cause: endError,
+      ended: [{ outcome: 'failed' }],
+    });
+  });
+
+  it('keeps the cause the failing error already has when ending the call also rejects', async () => {
+    const { runtime } = createActivityRuntime({ endRejects: new Error('children open') });
+    const original = new Error('connection reset');
+    const failure = new Error('statement failed', { cause: original });
+
+    await expect(
+      runOrmCall(runtime, valueCall(), async () => {
+        throw failure;
+      }),
+    ).rejects.toBe(failure);
+    expect(failure.cause).toBe(original);
+  });
+
+  it('rejects an invalid intercepted result with its own error when ending the call also rejects', async () => {
+    const endError = new Error('hook failed');
+    const { runtime } = createActivityRuntime({
+      intercept: () => ({ result: 'seven' }),
+      endRejects: endError,
+    });
+
+    await expect(runOrmCall(runtime, valueCall(), async () => 3)).rejects.toMatchObject({
+      code: 'ORM.INTERCEPTED_RESULT_INVALID',
+      cause: endError,
+    });
   });
 
   it('returns an intercepted result without running and ends the call with no result', async () => {
@@ -138,11 +169,12 @@ describe('runOrmCall', () => {
 });
 
 describe('streamOrmCall', () => {
-  it('returns the stream itself on a queryable without an activity source', () => {
-    const runtime = createMockRuntime();
-    const rows = stream([{ id: 1 }]);
+  it('throws on a queryable without an activity source', () => {
+    const bare = { query: createMockRuntime().query, execute: createMockRuntime().execute };
 
-    expect(streamOrmCall(runtime, rowsCall(), () => rows)).toBe(rows);
+    expect(() => streamOrmCall(bare, rowsCall(), () => stream([{ id: 1 }]))).toThrow(
+      expect.objectContaining({ code: 'ORM.ACTIVITY_SOURCE_MISSING' }),
+    );
   });
 
   it('ends an annotated call succeeded with the rows the caller read', async () => {

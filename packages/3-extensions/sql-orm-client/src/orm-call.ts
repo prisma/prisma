@@ -4,6 +4,7 @@ import {
   type OperationKind,
 } from '@internal/framework-components/runtime';
 import type { Preparable, SqlQueryPlan } from '@internal/sql-relational-core/plan';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import {
   type ActivityHandle,
   type ActivitySource,
@@ -78,12 +79,14 @@ function startOrmCall<Result>(
   });
 }
 
-/** Ends a call whose work failed. The runtime has ended the activity `failed` even when `end` rejects, so the caller gets the error that failed the call, not the one from `end`. */
-async function endFailed(handle: ActivityHandle<'orm-call'>): Promise<void> {
+/** Ends a call whose work failed. The runtime has ended the activity `failed` even when `end` rejects, so the caller gets the error that failed the call; the error from `end`, such as one an `activityEnded` hook threw, becomes its `cause` when it has none. */
+async function endFailed(handle: ActivityHandle<'orm-call'>, failure: unknown): Promise<void> {
   try {
     await handle.end({ outcome: 'failed' });
-  } catch {
-    return;
+  } catch (endError) {
+    if (failure instanceof Error && failure.cause === undefined) {
+      failure.cause = endError;
+    }
   }
 }
 
@@ -94,25 +97,39 @@ async function interceptedResult<Result>(
 ): Promise<Result> {
   const { result } = intercepted;
   if (!call.accepts(result)) {
-    await handle.end({ outcome: 'failed' });
-    throw ormError(
+    const invalid = ormError(
       'ORM.INTERCEPTED_RESULT_INVALID',
       `A middleware answered ${call.method}() with a value that is not a result of ${call.method}()`,
       { meta: { method: call.method } },
     );
+    await endFailed(handle, invalid);
+    throw invalid;
   }
   await handle.end({ outcome: 'succeeded' });
   return result;
 }
 
+function activitySourceOf(queryable: RuntimeScope, method: string): ActivitySource {
+  const source = findActivitySource(queryable);
+  if (source === undefined) {
+    throw ormError(
+      'ORM.ACTIVITY_SOURCE_MISSING',
+      `${method}() runs as an orm-call activity, and the queryable it was given has no activity source`,
+      {
+        fix: 'Pass the ORM a runtime, connection or transaction from the SQL runtime, or a wrapper that keeps its [activitySource] member.',
+        meta: { method },
+      },
+    );
+  }
+  return source;
+}
+
 export async function runOrmCall<Result>(
-  queryable: RuntimeQueryable,
+  queryable: RuntimeScope,
   call: OrmCall<Result>,
   run: (queryable: RuntimeQueryable) => Promise<Result>,
 ): Promise<Result> {
-  const source = findActivitySource(queryable);
-  if (source === undefined) return run(queryable);
-  const handle = await startOrmCall(source, call);
+  const handle = await startOrmCall(activitySourceOf(queryable, call.method), call);
   if (handle.intercepted !== undefined) {
     return interceptedResult(handle, call, handle.intercepted);
   }
@@ -120,7 +137,7 @@ export async function runOrmCall<Result>(
   try {
     result = await run(handle);
   } catch (error) {
-    await endFailed(handle);
+    await endFailed(handle, error);
     throw error;
   }
   await handle.end({ outcome: 'succeeded', result });
@@ -129,12 +146,11 @@ export async function runOrmCall<Result>(
 
 /** The call ends when the caller reads to the end, stops early or the stream fails. Its result holds the rows only when it carries annotations, so an unannotated stream does not hold its rows. */
 export function streamOrmCall<Row>(
-  queryable: RuntimeQueryable,
+  queryable: RuntimeScope,
   call: OrmCall<Row[]>,
   run: (queryable: RuntimeQueryable) => AsyncIterableResult<Row>,
 ): AsyncIterableResult<Row> {
-  const source = findActivitySource(queryable);
-  if (source === undefined) return run(queryable);
+  const source = activitySourceOf(queryable, call.method);
   const generator = async function* (): AsyncGenerator<Row, void, unknown> {
     const handle = await startOrmCall(source, call);
     if (handle.intercepted !== undefined) {
@@ -144,6 +160,7 @@ export function streamOrmCall<Row>(
     const collected: Row[] | undefined =
       call.annotations !== undefined && call.annotations.size > 0 ? [] : undefined;
     let outcome: 'succeeded' | 'failed' | 'stopped' = 'stopped';
+    let failure: unknown;
     try {
       for await (const row of run(handle)) {
         collected?.push(row);
@@ -152,10 +169,11 @@ export function streamOrmCall<Row>(
       outcome = 'succeeded';
     } catch (error) {
       outcome = 'failed';
+      failure = error;
       throw error;
     } finally {
       if (outcome === 'failed') {
-        await endFailed(handle);
+        await endFailed(handle, failure);
       } else {
         await handle.end(
           outcome === 'succeeded' && collected !== undefined
@@ -171,7 +189,7 @@ export function streamOrmCall<Row>(
 const preparedOrmCall = Symbol('preparedOrmCall');
 
 export type PreparedOrmCall<DbRow, Result> = (
-  target: RuntimeQueryable,
+  target: RuntimeScope,
   rows: (queryable: RuntimeQueryable) => AsyncIterableResult<DbRow>,
   identity: CallIdentity,
 ) => Result;

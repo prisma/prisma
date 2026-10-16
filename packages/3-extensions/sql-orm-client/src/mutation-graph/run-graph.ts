@@ -2,6 +2,7 @@ import type { Contract } from '@internal/contract/types';
 import { AsyncIterableResult } from '@internal/framework-components/runtime';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import { blindCast } from '@internal/utils/casts';
 import { getColumnsReadOnTable } from '../collection-contract';
 import { consumeCollectionRows, type DescribeCollectionRowsOptions } from '../collection-dispatch';
@@ -37,7 +38,7 @@ export function queryGraph<Row>(
   // and yielded afterwards.
   if (only !== undefined && others.length === 0 && only[0] === graph.result) {
     const [id, node] = only;
-    const run = runOn(ctx);
+    const run = runOn(ctx, ctx.runtime);
     const storageRows = rowStream(node.execute(inputsOf(graph, id, []), run));
     return shapeRows<Row>(graph, id, storageRows, callerRows);
   }
@@ -75,18 +76,19 @@ function runAllNodes<Row>(
 ): Promise<Outcome<Row>> {
   if (graph.nodes().length > 1) {
     return withMutationScope(ctx.runtime, (scope) =>
-      runNodesInOrder<Row>(graph, { ...ctx, runtime: scope }, callerRows),
+      runNodesInOrder<Row>(graph, ctx, scope, callerRows),
     );
   }
-  return runNodesInOrder<Row>(graph, ctx, callerRows);
+  return runNodesInOrder<Row>(graph, ctx, ctx.runtime, callerRows);
 }
 
 async function runNodesInOrder<Row>(
   graph: Graph,
   ctx: Context,
+  scope: RuntimeScope,
   callerRows: DescribeCollectionRowsOptions | undefined,
 ): Promise<Outcome<Row>> {
-  const run = runOn(ctx);
+  const run = runOn(ctx, scope);
   const collected: (readonly StorageRow[] | number)[] = [];
   let rows: readonly Row[] = [];
   let count = 0;
@@ -121,13 +123,13 @@ function inputsOf(graph: Graph, id: NodeId, collected: Collected): OutputsOf<Slo
   return outputs;
 }
 
-function runOn(ctx: Context): Run {
+function runOn(ctx: Context, scope: RuntimeScope): Run {
   const { contract } = ctx.context;
   const planOf = (ast: StatementAst) =>
     buildOrmQueryPlan<StorageRow>(contract, ast, deriveParamsFromAst(ast).params);
   return {
-    query: (ast) => queryPlanRows(ctx.runtime, planOf(ast)),
-    execute: async (ast) => (await ctx.runtime.execute(planOf(ast))).affectedRows,
+    query: (ast) => queryPlanRows(scope, planOf(ast)),
+    execute: async (ast) => (await scope.execute(planOf(ast))).affectedRows,
   };
 }
 

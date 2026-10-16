@@ -12,7 +12,7 @@ import {
   type ActivityHandle,
   type ActivitySource,
   activitySource,
-  type ContentHashSubject,
+  type HashablePlan,
   type RuntimeTransaction,
 } from '@internal/sql-runtime';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
@@ -53,12 +53,12 @@ function once(compute: () => Promise<string>): () => Promise<string> {
 export function createActivityRuntime(options: ActivityRuntimeOptions = {}): {
   runtime: MockRuntime;
   calls: RecordedCall[];
-  hashed: ContentHashSubject[];
+  hashed: HashablePlan[];
   outside: AnyPlan[];
 } {
   const runtime = createMockRuntime();
   const calls: RecordedCall[] = [];
-  const hashed: ContentHashSubject[] = [];
+  const hashed: HashablePlan[] = [];
   const outside: AnyPlan[] = [];
   const rootQuery = runtime.query.bind(runtime);
   const rootExecute = runtime.execute.bind(runtime);

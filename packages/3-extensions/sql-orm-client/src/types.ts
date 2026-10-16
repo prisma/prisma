@@ -189,7 +189,7 @@ export interface RuntimeTransaction extends RuntimeScope {
   rollback?(): Promise<void>;
 }
 
-/** What the ORM sends its statements to. It may carry an `activitySource` member, as the SQL runtime's queryables do, through which `startActivityOn` reaches activities; a queryable without one, such as a test stub, has none. */
+/** What the ORM sends its statements to. It must carry an `activitySource` member, as the SQL runtime's queryables, connections, transactions and activity handles do: every terminal method starts an `orm-call` activity through it, and a terminal method on a queryable without one rejects with `ORM.ACTIVITY_SOURCE_MISSING`. The member is optional in this type only because the public runtime types do not show it. */
 export interface RuntimeQueryable extends RuntimeScope, Partial<ActivitySourceTarget> {
   connection?(): Promise<RuntimeConnection>;
   transaction?(): Promise<RuntimeTransaction>;

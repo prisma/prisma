@@ -4,6 +4,7 @@ import { structuredError } from '@internal/utils/structured-error';
 export type OrmCode = `ORM.${OrmSubcode}`;
 
 type OrmSubcode =
+  | 'ACTIVITY_SOURCE_MISSING'
   | 'TABLE_UNKNOWN'
   | 'COLUMN_UNKNOWN'
   | 'FIELD_UNKNOWN'

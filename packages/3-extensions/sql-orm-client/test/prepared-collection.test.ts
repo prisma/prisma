@@ -278,7 +278,11 @@ describe('prepared collection', () => {
       break;
     }
     expect(events).toEqual(['row', 'closed']);
-    expect(query).toHaveBeenCalledWith(runtime, { id: 1 }, options);
+    expect(query).toHaveBeenCalledWith(
+      expect.objectContaining({ activity: expect.objectContaining({ kind: 'orm-call' }) }),
+      { id: 1 },
+      options,
+    );
     expect(await prepared.query(runtime, { id: 10 })).toEqual([{ userId: 10 }, { userId: 11 }]);
     const preparedFirst = createPreparedRowQuery(
       collection.select('userId').prepared.first(),

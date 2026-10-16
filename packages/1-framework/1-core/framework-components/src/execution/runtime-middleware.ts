@@ -58,7 +58,7 @@ export type ClientActivityResult<K extends ClientActivityKind> =
 export interface ClientActivity<K extends ClientActivityKind = ClientActivityKind>
   extends ActivityBase {
   readonly kind: K;
-  /** An opaque digest of what the activity does, from the function the client supplied. It is computed on the first call and the same promise is returned to every later caller, so nothing is computed when no middleware asks. */
+  /** An opaque digest of what the activity does, from the function the client supplied. It is computed on the first call and the same promise is returned to every later caller, so nothing is computed when no middleware asks. The client decides how fine the digest is, so equal digests do not mean equal work unless the client says so: the SQL ORM's digest covers the statement a read sends first, but only the method and the model for a write. */
   contentHash(): Promise<string>;
 }
 
@@ -67,7 +67,7 @@ export type Activity = StatementActivity | TransactionActivity | ClientActivity;
 /** What a client gives to start an activity. */
 export interface StartActivity<K extends ClientActivityKind = ClientActivityKind> {
   readonly kind: K;
-  /** Computes an opaque digest of what the activity does. The runtime calls it at most once per activity, and only when a middleware asks for `activity.contentHash()`. */
+  /** Computes an opaque digest of what the activity does, as fine as the client chooses; say in the client's docs what equal digests mean. The runtime calls it at most once per activity, and only when a middleware asks for `activity.contentHash()`. */
   readonly contentHash: () => Promise<string>;
   readonly annotations?: ReadonlyMap<string, AnnotationValue<unknown, OperationKind>>;
 }

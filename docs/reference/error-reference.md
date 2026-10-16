@@ -932,6 +932,10 @@ Two Mongo models stored in the same collection declare field presets with differ
 
 ## ORM
 
+### ORM.ACTIVITY_SOURCE_MISSING
+
+A SQL ORM terminal method was called on a queryable without an activity source. Every terminal method runs as an `orm-call` activity started through the queryable's `[activitySource]` member, which the SQL runtime's runtimes, connections, transactions and activity handles carry. A custom queryable, or a wrapper that copies `query` and `execute` without that member, has none. Pass the ORM a queryable from the SQL runtime, or keep the member in the wrapper. Payload: `method`.
+
 ### ORM.AGGREGATE_OPERATION_RESERVED
 
 A contributed aggregate operation carries a name a collection builder member already owns (`select`, `include`, `where`, `combine`, `aggregate`, …, or a collection instance field). Aggregate operations surface as reducer methods on the ORM collection, in one flat namespace with the query-builder members, so a same-named operation would shadow the member it collides with. Raised at ORM composition (`orm(...)`), where the collection surface is assembled. Rename the contributed operation. Payload: `operation`.
