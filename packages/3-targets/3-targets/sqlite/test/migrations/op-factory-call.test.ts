@@ -508,10 +508,15 @@ describe('RecreateTableCall', () => {
     const op = await call.toOp(lowerer);
     expect({
       create: op.execute[0]?.sql,
-      defaultChecks: op.postcheck.slice(2),
+      stored: op.postcheck[2],
+      defaultChecks: op.postcheck.slice(3),
     }).toEqual({
       create:
         'CREATE TABLE "_prisma_new_user" (\n  "id" INTEGER NOT NULL,\n  "role" TEXT DEFAULT \'member\' /* user */,\n  "at" TEXT DEFAULT (datetime(\'now\'))\n)',
+      stored: {
+        description: 'verify "user" is stored as the rebuilt table',
+        sql: `SELECT (SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'user') = 'CREATE TABLE "user" (\n  "id" INTEGER NOT NULL,\n  "role" TEXT DEFAULT ''member'' /* user */,\n  "at" TEXT DEFAULT (datetime(''now''))\n)'`,
+      },
       defaultChecks: [
         {
           description: 'verify "role" default on "user"',

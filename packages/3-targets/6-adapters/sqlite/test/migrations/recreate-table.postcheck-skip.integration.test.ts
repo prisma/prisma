@@ -117,7 +117,11 @@ describe('a SQLite rebuild whose change the table-level postchecks miss', {
     testDb?.cleanup();
   });
 
-  function plan(from: Contract<SqlStorage> | null, to: Contract<SqlStorage>) {
+  function plan(
+    from: Contract<SqlStorage> | null,
+    to: Contract<SqlStorage>,
+    origin = planOriginOf(from),
+  ) {
     const schema =
       from === null
         ? emptySchema
@@ -127,7 +131,7 @@ describe('a SQLite rebuild whose change the table-level postchecks miss', {
       schema,
       policy: ALL_CLASSES,
       fromContract: from,
-      origin: planOriginOf(from),
+      origin,
       statements: [],
       frameworkComponents,
       spaceId: APP_SPACE_ID,
@@ -197,6 +201,51 @@ describe('a SQLite rebuild whose change the table-level postchecks miss', {
     expect({ result, sql: await tableSql() }).toMatchObject({
       result: { operationsExecuted: 1 },
       sql: expect.not.stringContaining('AUTOINCREMENT'),
+    });
+  });
+
+  async function adopt(
+    createTableSql: string,
+    origin: Contract<SqlStorage>,
+    destination: Contract<SqlStorage>,
+  ) {
+    testDb = createTestDatabase();
+    testDb.driver.db.exec(createTableSql);
+    return execute(plan(origin, destination, null), destination);
+  }
+
+  it.each([
+    [
+      'written by an earlier Prisma ORM',
+      'CREATE TABLE "Counter" ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT)',
+    ],
+    ['with an unquoted name', 'CREATE TABLE Counter (id INTEGER PRIMARY KEY AUTOINCREMENT)'],
+    ['with extra spaces', 'CREATE TABLE "Counter" ("id"  INTEGER  PRIMARY  KEY  AUTOINCREMENT)'],
+  ])('rebuilds an adopted autoincrement table %s to remove autoincrement()', async (_, sql) => {
+    const result = await adopt(sql, counterContract(true), counterContract(false));
+
+    expect({ result, sql: await tableSql() }).toMatchObject({
+      result: { operationsExecuted: 1 },
+      sql: expect.not.stringContaining('AUTOINCREMENT'),
+    });
+  });
+
+  it.each([
+    [
+      'written by an earlier Prisma ORM',
+      'CREATE TABLE "Counter" ("id" INTEGER NOT NULL PRIMARY KEY)',
+    ],
+    ['with an unquoted name', 'CREATE TABLE Counter (id INTEGER NOT NULL, PRIMARY KEY (id))'],
+    [
+      'with the clause in a comment',
+      'CREATE TABLE "Counter" ("id" INTEGER NOT NULL, PRIMARY KEY ("id")) -- "id" INTEGER PRIMARY KEY AUTOINCREMENT',
+    ],
+  ])('rebuilds an adopted table %s to add autoincrement()', async (_, sql) => {
+    const result = await adopt(sql, counterContract(false), counterContract(true));
+
+    expect({ result, sql: await tableSql() }).toMatchObject({
+      result: { operationsExecuted: 1 },
+      sql: expect.stringContaining('"id" INTEGER PRIMARY KEY AUTOINCREMENT'),
     });
   });
 });

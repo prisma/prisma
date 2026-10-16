@@ -6,7 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 import type { SqliteTableSpec } from '../../src/core/migrations/operations/shared';
 import { buildRecreatePostchecks } from '../../src/core/migrations/operations/tables';
-import { columnDefault, foreignKey, issue, unique } from './node-issue-helpers';
+import { foreignKey, issue, unique } from './node-issue-helpers';
 
 const codesSpec: SqliteTableSpec = {
   columns: [
@@ -134,69 +134,5 @@ describe('buildRecreatePostchecks on SQLite for a foreign key action', () => {
     ].map((result) => Object.values(result).every(Boolean));
 
     expect(results).toEqual([true, false]);
-  });
-});
-
-const autoincrement = { kind: 'function', expression: 'autoincrement()' } as const;
-
-const counterSpec = (inline: boolean): SqliteTableSpec => ({
-  columns: [
-    {
-      name: 'id',
-      typeSql: 'INTEGER',
-      nullable: false,
-      ...(inline ? { inlineAutoincrementPrimaryKey: true } : {}),
-    },
-  ],
-  primaryKey: { columns: ['id'] },
-});
-
-const withAutoincrement = 'CREATE TABLE "Counter" ("id" INTEGER PRIMARY KEY AUTOINCREMENT)';
-const withoutAutoincrement = 'CREATE TABLE "Counter" ("id" INTEGER NOT NULL, PRIMARY KEY ("id"))';
-
-describe('buildRecreatePostchecks on SQLite for autoincrement()', () => {
-  const added = [
-    issue({
-      path: ['database', 'Counter', 'column:id', 'default'],
-      expected: columnDefault({ resolved: autoincrement, raw: 'autoincrement()' }),
-    }),
-  ];
-  const removed = [
-    issue({
-      path: ['database', 'Counter', 'column:id', 'default'],
-      actual: columnDefault({ resolved: autoincrement, raw: 'autoincrement()' }),
-    }),
-  ];
-  const holds = (sql: string, issues: typeof added, inline: boolean) =>
-    Object.values(postcheckResults(sql, 'Counter', issues, counterSpec(inline))).every(Boolean);
-
-  it('holds only once autoincrement() is added', () => {
-    expect([
-      holds(withoutAutoincrement, added, true),
-      holds(withAutoincrement, added, true),
-    ]).toEqual([false, true]);
-  });
-
-  it('holds only once autoincrement() is removed', () => {
-    expect([
-      holds(withAutoincrement, removed, false),
-      holds(withoutAutoincrement, removed, false),
-    ]).toEqual([false, true]);
-  });
-
-  it('holds after the removal when another column or a default names the word', () => {
-    expect(
-      holds(
-        `CREATE TABLE "Counter" ("id" INTEGER NOT NULL, "autoincrement_seed" INTEGER, "note" TEXT DEFAULT 'AUTOINCREMENT', PRIMARY KEY ("id")) -- AUTOINCREMENT`,
-        removed,
-        false,
-      ),
-    ).toBe(true);
-  });
-
-  it('does not hold before the removal when the clause is written in lower case', () => {
-    expect(
-      holds('CREATE TABLE "Counter" ("id" integer primary key autoincrement)', removed, false),
-    ).toBe(false);
   });
 });

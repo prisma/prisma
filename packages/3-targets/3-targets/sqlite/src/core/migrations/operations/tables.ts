@@ -9,11 +9,7 @@ import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-comp
 import { issueOutcome } from '@internal/framework-components/control';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
 import type { ReferentialAction } from '@internal/sql-contract/types';
-import {
-  RelationalSchemaNodeKind,
-  SqlColumnDefaultIR,
-  type SqlColumnIR,
-} from '@internal/sql-schema-ir/types';
+import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { type } from 'arktype';
 import { tableExistsAst } from '../../../contract-free/checks';
@@ -286,6 +282,7 @@ export async function recreateTable(
         tempSteps.absent.sql,
         tempSteps.absent.params,
       ),
+      rebuiltTableCheck(tableName, renderCreateTableSql(tableName, contractTable, defaultClauses)),
       ...postchecks.flatMap((check) =>
         'sql' in check
           ? [markedStep(tableName, check)]
@@ -307,6 +304,19 @@ export async function recreateTable(
             ];
       }),
     ],
+  };
+}
+
+/**
+ * Checks that the table is stored as the statement the rebuild writes. SQLite keeps a table's
+ * `CREATE TABLE` text as written, and renaming the rebuilt table only replaces its name, so this holds
+ * once the rebuild ran and not before, whatever text an earlier table had. It is the only check of
+ * what SQLite keeps in that text alone, such as `AUTOINCREMENT`.
+ */
+function rebuiltTableCheck(tableName: string, statement: string): SqlMigrationPlanOperationStep {
+  return {
+    description: `verify "${tableName}" is stored as the rebuilt table`,
+    sql: `SELECT (SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '${escapeLiteral(tableName)}') = '${escapeLiteral(statement)}'`,
   };
 }
 
@@ -467,27 +477,6 @@ function referentialActionText(action: ReferentialAction | undefined): string {
   return REFERENTIAL_ACTION_SQL[action ?? 'noAction'];
 }
 
-/** SQLite keeps `AUTOINCREMENT` only in the table's stored `CREATE TABLE` text. */
-function tableSqlQuery(tableName: string): string {
-  return `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '${escapeLiteral(tableName)}'`;
-}
-
-/** SQLite accepts `AUTOINCREMENT` only on an `INTEGER PRIMARY KEY` column; this is how the planner writes it. */
-function autoincrementColumnDefinition(columnName: string): string {
-  return renderColumnDefinition(
-    { name: columnName, typeSql: 'INTEGER', nullable: false, inlineAutoincrementPrimaryKey: true },
-    '',
-  );
-}
-
-function isAutoincrementDefault(node: unknown): boolean {
-  return (
-    node instanceof SqlColumnDefaultIR &&
-    node.resolved?.kind === 'function' &&
-    node.resolved.expression === 'autoincrement()'
-  );
-}
-
 function quoteSqlList(values: readonly string[]): string {
   return values.map((v) => `'${escapeLiteral(v)}'`).join(', ');
 }
@@ -610,25 +599,11 @@ export function buildRecreatePostchecks(
       const columnName = columnNameFromDefaultIssuePath(issue);
       if (columnName === undefined) continue;
       const c = escapeLiteral(columnName);
-      const column = byName.get(columnName);
-      if (column?.inlineAutoincrementPrimaryKey) {
-        checks.push({
-          description: `verify "${columnName}" is an autoincrement primary key on "${tableName}"`,
-          sql: `SELECT instr((${tableSqlQuery(tableName)}), '${escapeLiteral(renderColumnDefinition(column, ''))}') > 0`,
-        });
-        continue;
-      }
       if (issueOutcome(issue) === 'not-expected') {
         checks.push({
           description: `verify "${columnName}" has no default on "${tableName}"`,
           sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND dflt_value IS NULL`,
         });
-        if (isAutoincrementDefault(issue.actual)) {
-          checks.push({
-            description: `verify "${columnName}" is not an autoincrement primary key on "${tableName}"`,
-            sql: `SELECT instr(upper((${tableSqlQuery(tableName)})), upper('${escapeLiteral(autoincrementColumnDefinition(columnName))}')) = 0`,
-          });
-        }
         continue;
       }
       // not-found (missing) or not-equal (drift) — both want the expected
