@@ -203,37 +203,41 @@ export function columnDefaultAst(options: {
 }
 
 /**
- * Typed check that a column takes its default from a sequence attached to it: `pg_get_serial_sequence` finds a sequence owned by the column, and `information_schema.columns` shows a `nextval(` default. Either half alone holds after a default was dropped or replaced, so a setDefault that attaches a sequence checks both.
+ * Typed check that a column takes its default from the sequence it owns: the column's default (`pg_attrdef`) depends on the sequence `pg_get_serial_sequence` finds for it. A `nextval(...)` default records that dependency on the sequence it reads, so a default that reads another sequence, an earlier default, or no default does not pass. It compares catalog identities, never the default's text.
  */
 export function columnDefaultSequenceAst(options: {
   readonly schema: string;
   readonly table: string;
   readonly column: string;
 }): SelectAst {
-  const attachedSequence = cfExpr.fn({
-    method: 'pg_get_serial_sequence',
-    template: 'pg_get_serial_sequence({{self}}, {{arg0}})',
-    self: cfExpr.param(
-      checkNamespace(options.schema).qualifyTable(options.table),
-      PG_TEXT_CODEC_ID,
-    ),
-    args: [cfExpr.param(options.column, PG_TEXT_CODEC_ID)],
-    returns: { codecId: PG_TEXT_CODEC_ID, nullable: true },
-  });
-  const nextvalDefault = cfExpr.fn({
-    method: 'starts_with',
-    template: 'starts_with({{self}}, {{arg0}})',
-    self: cfExpr.identifierRef('column_default'),
-    args: [cfExpr.param('nextval(', PG_TEXT_CODEC_ID)],
-    returns: { codecId: PG_BOOL_CODEC_ID, nullable: true },
-  });
-  const columnWithNextvalDefault = infoSchemaColumnQuery([
-    ...infoSchemaColumnConditions(options),
-    nextvalDefault,
-  ]);
-  return exprSelect()
-    .project('result', attachedSequence.isNotNull().and(cfExpr.exists(columnWithNextvalDefault)))
-    .build();
+  const regclassOf = (catalog: string) =>
+    cfExpr.raw(`'${catalog}'::regclass`, { codecId: PG_TEXT_CODEC_ID, nullable: false });
+  const defaultOnOwnedSequence = exprSelect()
+    .from(cfTable('pg_attrdef', 'd'))
+    .join(
+      cfTable('pg_attribute', 'a'),
+      cfExpr
+        .columnRef('a', 'attrelid')
+        .eqExpr(cfExpr.columnRef('d', 'adrelid'))
+        .and(cfExpr.columnRef('a', 'attnum').eqExpr(cfExpr.columnRef('d', 'adnum'))),
+    )
+    .join(
+      cfTable('pg_depend', 'dep'),
+      cfExpr.columnRef('dep', 'objid').eqExpr(cfExpr.columnRef('d', 'oid')),
+    )
+    .project('one', cfExpr.lit(1))
+    .where(
+      cfExpr.allOf([
+        cfExpr
+          .columnRef('d', 'adrelid')
+          .eqExpr(toRegclass(checkNamespace(options.schema).qualifyTable(options.table))),
+        cfExpr.columnRef('a', 'attname').eqParam(options.column, PG_TEXT_CODEC_ID),
+        cfExpr.columnRef('dep', 'classid').eqExpr(regclassOf('pg_attrdef')),
+        cfExpr.columnRef('dep', 'refclassid').eqExpr(regclassOf('pg_class')),
+        cfExpr.columnRef('dep', 'refobjid').eqExpr(ownedSequenceOf(options)),
+      ]),
+    );
+  return exprSelect().project('result', cfExpr.exists(defaultOnOwnedSequence)).build();
 }
 
 /**

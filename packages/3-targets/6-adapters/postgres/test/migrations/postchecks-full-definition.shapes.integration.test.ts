@@ -2,7 +2,7 @@
  * The structural postchecks, checked both ways (see `fixtures/postcheck-cases.ts`) on the input shapes where a catalog check can fail after a correct execute: quoted mixed-case names, a schema other than `public`, the unbound namespace, columns in order across several columns, enum, list and raw column types, index element lists of plain columns, and policy roles written as SQL keywords.
  */
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { col } from '@internal/sql-relational-core/contract-free';
+import { col, fn } from '@internal/sql-relational-core/contract-free';
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
@@ -13,6 +13,7 @@ import {
   CreateIndexCall,
   CreatePostgresRlsPolicyCall,
   CreateTableCall,
+  SetDefaultCall,
 } from '@internal/target-postgres/op-factory-call';
 import { PostgresRlsPolicy } from '@internal/target-postgres/types';
 import { describePostcheckCases, type PostcheckCase } from './fixtures/postcheck-cases';
@@ -99,6 +100,34 @@ const cases: readonly PostcheckCase[] = [
     before: [ITEM],
     conflicting: ['alter table public.item add column number int4 not null default 0'],
     operation: addColumn(col('number', 'SERIAL', { notNull: true })),
+  },
+  {
+    name: 'addColumn of a SERIAL column over one that owns a sequence but defaults to another',
+    before: [ITEM, 'create sequence public.other_seq as integer'],
+    conflicting: [
+      "alter table public.item add column number int4 not null default nextval('public.other_seq')",
+      'create sequence public.item_number_seq as integer owned by public.item.number',
+    ],
+    operation: addColumn(col('number', 'SERIAL', { notNull: true })),
+  },
+  {
+    name: 'setDefault(autoincrement()) over a column that owns a sequence but defaults to another',
+    before: [
+      ITEM,
+      'alter table public.item add column number int4 not null',
+      'create sequence public.item_number_seq as integer owned by public.item.number',
+      'create sequence public.other_seq as integer',
+    ],
+    conflicting: [
+      "alter table public.item alter column number set default nextval('public.other_seq')",
+    ],
+    operation: () =>
+      new SetDefaultCall(
+        'public',
+        'item',
+        col('number', 'int4', { notNull: true, default: fn('autoincrement()') }),
+        'widening',
+      ).toOp(controlAdapter),
   },
   {
     name: 'addColumn in the unbound namespace over a column of another type',
