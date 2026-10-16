@@ -265,8 +265,12 @@ describe('a bytea value has one spelling', () => {
     expect(() => pgBytea.fromContract('AB==', {})).toThrow(
       expect.objectContaining({
         code: 'RUNTIME.DECODE_FAILED',
-        message: 'pg/bytea JSON value must be "AA==", the base64 pg/bytea stores for these bytes',
+        message: 'pg/bytea JSON value must be "AA==", as pg/bytea stores this value',
       }),
     );
+  });
+
+  it('builds a value from base64 with padding bits set in the base64 it stores', () => {
+    expect(pgBytea.valueFrom('AB==', {}).value).toBe('AA==');
   });
 });

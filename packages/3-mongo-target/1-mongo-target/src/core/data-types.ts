@@ -21,6 +21,8 @@ import {
   readInt64Json,
   readObjectIdJson,
   readVectorJson,
+  spellBase64Json,
+  spellObjectIdJson,
 } from './bson-scalar-helpers';
 
 /** The vector's dimension: the TypeScript type `Vector<n>` and the type's reader read it. */
@@ -28,6 +30,7 @@ export const mongoVectorParams = arktype({ 'length?': 'number.integer >= 1' });
 
 export const mongoObjectId = mongoDataType('mongo/objectid', {
   read: (json) => readObjectIdJson('mongo/objectid', json),
+  spell: spellObjectIdJson,
   bsonTypes: ['objectId'],
 });
 export const mongoString = mongoDataType('mongo/string', {
@@ -73,6 +76,7 @@ export const mongoDecimal128 = mongoDataType('mongo/decimal128', {
 });
 export const mongoBinary = mongoDataType('mongo/binary', {
   read: (json) => readBinaryJson('mongo/binary', json),
+  spell: spellBase64Json,
   bsonTypes: ['binData'],
 });
 export const mongoJson = mongoDataType('mongo/json', {

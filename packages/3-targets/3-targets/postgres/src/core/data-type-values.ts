@@ -3,7 +3,7 @@
  */
 
 import type { JsonValue } from '@internal/contract/types';
-import { readJsonMatching, refuseJsonValue } from '@internal/framework-components/codec';
+import { readJsonMatching } from '@internal/framework-components/codec';
 import { structuredError } from '@internal/utils/structured-error';
 import { withoutTrailing } from '@internal/utils/text';
 import { postgresError } from './errors';
@@ -341,13 +341,13 @@ export const intervalTextFields = (text: string): PgInterval => {
 
 const BASE64_TEXT = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
-/** Reads the base64 `pg/bytea` stores, which has one spelling: padding bits are zero, as `Buffer` writes it. */
-export const readPgByteaJson = (owner: string, json: JsonValue): JsonValue => {
-  const base64 = readJsonMatching(owner, json, BASE64_TEXT, 'a base64 string');
-  const stored = Buffer.from(base64, 'base64').toString('base64');
-  if (stored === base64) return json;
-  return refuseJsonValue(owner, `"${stored}", the base64 ${owner} stores for these bytes`, json);
-};
+/** Reads base64 with or without padding bits set; {@link spellPgByteaJson} writes the base64 `pg/bytea` stores. */
+export const readPgByteaJson = (owner: string, json: JsonValue): JsonValue =>
+  readJsonMatching(owner, json, BASE64_TEXT, 'a base64 string');
+
+/** The base64 of the same bytes with padding bits zero, as `Buffer` writes it. */
+export const spellPgByteaJson = (json: JsonValue): JsonValue =>
+  typeof json === 'string' ? Buffer.from(json, 'base64').toString('base64') : json;
 
 export const BYTEA_TEXT = /^\\x(?:[0-9A-Fa-f]{2})*$/;
 

@@ -1,5 +1,6 @@
 /** The data type this extension owns. A geometry is written as text, which it takes unchanged, and stored as HEXEWKB. ADR 254. */
 
+import type { JsonValue } from '@internal/contract/types';
 import {
   type DataType,
   type DataTypeReader,
@@ -28,7 +29,7 @@ function geometryOf(hex: string): Geometry | undefined {
 }
 
 /**
- * A geometry has one spelling, the upper-case little-endian HEXEWKB PostGIS prints. A column with an SRID holds only geometries in that SRID, as PostGIS refuses any other.
+ * Reads HEXEWKB in either case and byte order; {@link spellGeometry} writes the upper-case little-endian HEXEWKB PostGIS prints. A column with an SRID holds only geometries in that SRID, as PostGIS refuses any other.
  */
 const readGeometry: DataTypeReader = (json, params) => {
   const hex = readJsonMatching('postgis/geometry', json, HEX_TEXT, 'a HEXEWKB string');
@@ -43,18 +44,19 @@ const readGeometry: DataTypeReader = (json, params) => {
       json,
     );
   }
-  const stored = encodeEWKBHex(geometry);
-  if (stored === hex) return json;
-  return refuseJsonValue(
-    'postgis/geometry',
-    `"${stored}", the HEXEWKB PostGIS prints for this geometry`,
-    json,
-  );
+  return json;
+};
+
+/** The upper-case little-endian HEXEWKB PostGIS prints for the geometry. */
+const spellGeometry = (json: JsonValue): JsonValue => {
+  const geometry = typeof json === 'string' ? geometryOf(json) : undefined;
+  return geometry === undefined ? json : encodeEWKBHex(geometry);
 };
 
 export const postgisGeometry = sqlDataType('postgis/geometry', {
   params: postgisGeometryParams,
   read: readGeometry,
+  spell: spellGeometry,
   texts: [
     { text: 'geometry', written: true, catalog: true },
     {

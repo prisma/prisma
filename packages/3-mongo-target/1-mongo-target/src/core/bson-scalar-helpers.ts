@@ -169,12 +169,14 @@ export function objectIdToJson(codecId: string, value: string): string {
   return value;
 }
 
-/** Reads the ObjectId hex the type stores, in lower case, as the driver's `toHexString` writes it. */
+/** Reads ObjectId hex in either case; {@link spellObjectIdJson} writes the lower case the type stores. */
 export function readObjectIdJson(owner: string, json: JsonValue): string {
-  const hex = readJsonMatching(owner, json, OBJECT_ID_TEXT, '24 hexadecimal digits');
-  const stored = hex.toLowerCase();
-  if (stored === hex) return hex;
-  return refuseJsonValue(owner, `"${stored}", the lower-case hex ${owner} stores`, json);
+  return readJsonMatching(owner, json, OBJECT_ID_TEXT, '24 hexadecimal digits');
+}
+
+/** The ObjectId hex in lower case, as the driver's `toHexString` writes it. */
+export function spellObjectIdJson(json: JsonValue): JsonValue {
+  return typeof json === 'string' ? json.toLowerCase() : json;
 }
 
 export function int32ToJson(codecId: string, value: number): number {
@@ -437,12 +439,14 @@ export function binaryToBase64(value: Uint8Array): string {
   return Buffer.from(value).toString('base64');
 }
 
-/** Reads the base64 the type stores, which has one spelling: padding bits are zero, as `Buffer` writes it. */
+/** Reads base64 with or without padding bits set; {@link spellBase64Json} writes the base64 the type stores. */
 export function readBinaryJson(owner: string, json: JsonValue): string {
-  const base64 = readJsonMatching(owner, json, BASE64_TEXT, 'base64 text');
-  const stored = Buffer.from(base64, 'base64').toString('base64');
-  if (stored === base64) return base64;
-  return refuseJsonValue(owner, `"${stored}", the base64 ${owner} stores for these bytes`, json);
+  return readJsonMatching(owner, json, BASE64_TEXT, 'base64 text');
+}
+
+/** The base64 of the same bytes with padding bits zero, as `Buffer` writes it. */
+export function spellBase64Json(json: JsonValue): JsonValue {
+  return typeof json === 'string' ? Buffer.from(json, 'base64').toString('base64') : json;
 }
 
 export function binaryFromBase64(base64: string): Uint8Array {

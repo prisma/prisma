@@ -49,8 +49,12 @@ describe('a geometry has one spelling, the upper-case little-endian HEXEWKB Post
     expect(() => postgisGeometry.fromContract(hex, {})).toThrow(
       expect.objectContaining({
         code: 'RUNTIME.DECODE_FAILED',
-        message: `postgis/geometry JSON value must be "${stored}", the HEXEWKB PostGIS prints for this geometry`,
+        message: `postgis/geometry JSON value must be "${stored}", as postgis/geometry stores this value`,
       }),
     );
+  });
+
+  it('builds a value from another spelling in the spelling it stores', () => {
+    expect(postgisGeometry.valueFrom(stored.toLowerCase(), {}).value).toBe(stored);
   });
 });

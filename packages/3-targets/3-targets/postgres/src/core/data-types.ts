@@ -45,6 +45,7 @@ import {
   fitsFloat4,
   pgIntervalStoredText,
   readPgByteaJson,
+  spellPgByteaJson,
   storedUuid,
 } from './data-type-values';
 import { isoYearText } from './postgres-year-text';
@@ -648,6 +649,7 @@ export const pgInterval = sqlDataType('pg/interval', {
 
 export const pgBytea = sqlDataType('pg/bytea', {
   read: (json) => readPgByteaJson('pg/bytea', json),
+  spell: spellPgByteaJson,
   texts: [writtenAndCatalog('bytea')],
 });
 
