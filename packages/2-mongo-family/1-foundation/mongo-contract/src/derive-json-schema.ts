@@ -24,11 +24,7 @@ export type ValidatorModel = Pick<
   'fields' | 'relations' | 'discriminator' | 'variants'
 >;
 
-interface SchemaSources {
-  readonly lookups: MongoTypeLookups;
-  readonly valueObjects: Record<string, ContractValueObject> | undefined;
-  readonly valueSets: FieldValueSets | undefined;
-  readonly models: Record<string, ValidatorModel>;
+interface SchemaSources extends ModelValidatorSources {
   /** The recursive group of each value object and embedded model in one, from {@link recursiveGroupsOf}. */
   readonly groups: ReadonlyMap<string, number>;
   /** The recursive groups entered on the path from the root to the schema being written. */
@@ -40,12 +36,9 @@ interface SchemaSources {
  */
 const OPEN_OBJECT: Record<string, unknown> = { bsonType: 'object' };
 
-function sourcesFor(
-  input: Omit<SchemaSources, 'groups' | 'enteredGroups'>,
-  rootKey: string | undefined,
-): SchemaSources {
-  const groups = recursiveGroupsOf(input.valueObjects ?? {}, input.models);
-  const rootGroup = rootKey === undefined ? undefined : groups.get(rootKey);
+function sourcesFor(input: ModelValidatorSources, rootKey: string): SchemaSources {
+  const groups = recursiveGroupsOf(input.valueObjects, input.models);
+  const rootGroup = groups.get(rootKey);
   return {
     ...input,
     groups,
@@ -112,9 +105,7 @@ function fieldToBsonSchema(
     const bsonType = bsonTypeKeyword(bsonTypes);
 
     const enumValues =
-      field.valueSet !== undefined
-        ? (valueSets?.[field.valueSet.entityName]?.values ?? null)
-        : null;
+      field.valueSet !== undefined ? (valueSets[field.valueSet.entityName]?.values ?? null) : null;
 
     if (field.many) {
       const items: Record<string, unknown> = {
@@ -138,7 +129,7 @@ function fieldToBsonSchema(
   }
 
   if (field.type.kind === 'valueObject') {
-    const vo = valueObjects?.[field.type.name];
+    const vo = valueObjects[field.type.name];
     if (!vo) return undefined;
     const voSchema = objectSchemaOf(
       'valueObject',
@@ -227,29 +218,10 @@ function validatorOf(jsonSchema: Record<string, unknown>): MongoValidator {
   return new MongoValidator({ jsonSchema, validationLevel: 'strict', validationAction: 'error' });
 }
 
-export function deriveJsonSchema(
-  fields: Record<string, ContractField>,
-  lookups: MongoTypeLookups,
-  valueObjects?: Record<string, ContractValueObject>,
-  valueSets?: FieldValueSets,
-): MongoValidator {
-  return validatorOf(
-    deriveObjectSchema(
-      { fields, relations: NO_RELATIONS },
-      sourcesFor({ lookups, valueObjects, valueSets, models: {} }, undefined),
-    ),
-  );
-}
-
-export interface PolymorphicVariant {
-  readonly discriminatorValue: string;
-  readonly fields: Record<string, ContractField>;
-}
-
 interface StoredVariant extends StoredShape {
   readonly discriminatorValue: string;
-  /** The variant's model, when it has one; a variant in a recursive group enters it, as a root model does. */
-  readonly modelName: string | undefined;
+  /** A variant in a recursive group enters it, as a root model does. */
+  readonly modelName: string;
 }
 
 function polymorphicSchema(
@@ -265,9 +237,7 @@ function polymorphicSchema(
   for (const variant of variants) {
     const { properties: variantProperties, required } = propertiesOf(
       variant,
-      variant.modelName === undefined
-        ? sources
-        : entering(typeKey('model', variant.modelName), sources),
+      entering(typeKey('model', variant.modelName), sources),
       base,
     );
 
@@ -288,24 +258,6 @@ function polymorphicSchema(
     jsonSchema['oneOf'] = oneOf;
   }
   return jsonSchema;
-}
-
-export function derivePolymorphicJsonSchema(
-  baseFields: Record<string, ContractField>,
-  discriminatorField: string,
-  variants: readonly PolymorphicVariant[],
-  lookups: MongoTypeLookups,
-  valueObjects?: Record<string, ContractValueObject>,
-  valueSets?: FieldValueSets,
-): MongoValidator {
-  return validatorOf(
-    polymorphicSchema(
-      { fields: baseFields, relations: NO_RELATIONS },
-      discriminatorField,
-      variants.map((variant) => ({ ...variant, relations: NO_RELATIONS, modelName: undefined })),
-      sourcesFor({ lookups, valueObjects, valueSets, models: {} }, undefined),
-    ),
-  );
 }
 
 export interface ModelValidatorSources {

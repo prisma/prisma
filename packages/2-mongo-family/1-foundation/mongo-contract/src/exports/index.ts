@@ -48,8 +48,7 @@ export {
 } from '../default-namespace';
 export type { CollectionValidatorsInput } from '../derive-collection-validators';
 export { deriveCollectionValidators } from '../derive-collection-validators';
-export type { FieldValueSets, PolymorphicVariant } from '../derive-json-schema';
-export { deriveJsonSchema, derivePolymorphicJsonSchema } from '../derive-json-schema';
+export type { FieldValueSets } from '../derive-json-schema';
 export type { DocumentIdRefusal } from '../document-id-refusal';
 export { documentIdRefusalOf } from '../document-id-refusal';
 export { buildMongoNamespace } from '../ir/build-mongo-namespace';

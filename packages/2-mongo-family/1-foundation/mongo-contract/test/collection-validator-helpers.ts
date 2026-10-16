@@ -9,6 +9,7 @@ import {
   deriveCollectionValidators,
 } from '../src/derive-collection-validators';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
+import type { MongoValidator } from '../src/ir/mongo-validator';
 import { scalarField } from './derive-json-schema-helpers';
 
 export type Model = CollectionValidatorsInput['models'][string];
@@ -45,3 +46,52 @@ export function jsonSchemas(validators: ReturnType<typeof deriveCollectionValida
 }
 
 export const objectId = () => scalarField('mongo/objectId@1');
+
+function itemsValidator(validators: Record<string, MongoValidator>): MongoValidator {
+  const validator = validators['items'];
+  if (validator === undefined) throw new Error('expected a validator for items');
+  return validator;
+}
+
+/** The validator of collection `items`, whose root model has `fields`. */
+export function rootValidator(
+  fields: Record<string, ContractField>,
+  sources: Partial<Pick<CollectionValidatorsInput, 'valueObjects' | 'valueSets'>> = {},
+): MongoValidator {
+  return itemsValidator(
+    derive({ roots: { items: crossRef('Item') }, models: { Item: model(fields) }, ...sources }),
+  );
+}
+
+export interface VariantFields {
+  readonly discriminatorValue: string;
+  readonly fields: Record<string, ContractField>;
+}
+
+/** The validator of collection `items`, whose root model has `baseFields` and one variant model per entry of `variants`. */
+export function polymorphicRootValidator(
+  baseFields: Record<string, ContractField>,
+  discriminatorField: string,
+  variants: readonly VariantFields[],
+): MongoValidator {
+  const variantModelName = (variant: VariantFields) => `${variant.discriminatorValue}Variant`;
+  return itemsValidator(
+    derive({
+      roots: { items: crossRef('Item') },
+      models: {
+        Item: model(baseFields, {
+          discriminator: { field: discriminatorField },
+          variants: Object.fromEntries(
+            variants.map((variant) => [
+              variant.discriminatorValue,
+              crossRef(variantModelName(variant)),
+            ]),
+          ),
+        }),
+        ...Object.fromEntries(
+          variants.map((variant) => [variantModelName(variant), model(variant.fields)]),
+        ),
+      },
+    }),
+  );
+}

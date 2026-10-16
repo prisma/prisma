@@ -1,7 +1,6 @@
 import type { ContractValueObject } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import { deriveJsonSchema, derivePolymorphicJsonSchema } from '../src/derive-json-schema';
-import { mongoTypeLookups } from '../src/fake-type-lookups';
+import { polymorphicRootValidator, rootValidator } from './collection-validator-helpers';
 import {
   arrayEnumField,
   arrayField,
@@ -10,18 +9,15 @@ import {
   voField,
 } from './derive-json-schema-helpers';
 
-describe('deriveJsonSchema', () => {
+describe('deriveCollectionValidators — fields', () => {
   it('maps String, Int32, Bool, Date, ObjectId to correct BSON types', () => {
-    const result = deriveJsonSchema(
-      {
-        name: scalarField('mongo/string@1'),
-        age: scalarField('mongo/int32@1'),
-        active: scalarField('mongo/bool@1'),
-        created: scalarField('mongo/date@1'),
-        _id: scalarField('mongo/objectId@1'),
-      },
-      mongoTypeLookups,
-    );
+    const result = rootValidator({
+      name: scalarField('mongo/string@1'),
+      age: scalarField('mongo/int32@1'),
+      active: scalarField('mongo/bool@1'),
+      created: scalarField('mongo/date@1'),
+      _id: scalarField('mongo/objectId@1'),
+    });
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
@@ -40,10 +36,10 @@ describe('deriveJsonSchema', () => {
   });
 
   it('handles nullable field with bsonType array including null', () => {
-    const result = deriveJsonSchema(
-      { _id: scalarField('mongo/objectId@1'), email: scalarField('mongo/string@1', true) },
-      mongoTypeLookups,
-    );
+    const result = rootValidator({
+      _id: scalarField('mongo/objectId@1'),
+      email: scalarField('mongo/string@1', true),
+    });
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
@@ -57,10 +53,10 @@ describe('deriveJsonSchema', () => {
   });
 
   it('handles array field (many: true)', () => {
-    const result = deriveJsonSchema(
-      { _id: scalarField('mongo/objectId@1'), tags: arrayField('mongo/string@1') },
-      mongoTypeLookups,
-    );
+    const result = rootValidator({
+      _id: scalarField('mongo/objectId@1'),
+      tags: arrayField('mongo/string@1'),
+    });
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
@@ -97,7 +93,7 @@ describe('deriveJsonSchema', () => {
       { bsonType: ['null', 'string'] },
     ],
   ])('derives %s independently', (_name, field, required, bsonType, items) => {
-    const result = deriveJsonSchema({ tags: field }, mongoTypeLookups);
+    const result = rootValidator({ tags: field });
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
       ...(required ? { required } : {}),
@@ -133,9 +129,14 @@ describe('deriveJsonSchema', () => {
     'derives exact %s BSON shape',
     (_name, nullable, elementNullable, bsonType, items) => {
       const field = arrayEnumField('mongo/string@1', 'Role', nullable, elementNullable);
-      const result = deriveJsonSchema({ roles: field }, mongoTypeLookups, undefined, {
-        Role: { values: ['user', 'admin'] },
-      });
+      const result = rootValidator(
+        { roles: field },
+        {
+          valueSets: {
+            Role: { values: ['user', 'admin'] },
+          },
+        },
+      );
       expect(result.jsonSchema).toEqual({
         bsonType: 'object',
         ...(nullable ? {} : { required: ['roles'] }),
@@ -161,10 +162,9 @@ describe('deriveJsonSchema', () => {
       },
     };
 
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       { _id: scalarField('mongo/objectId@1'), address: voField('Address') },
-      mongoTypeLookups,
-      valueObjects,
+      { valueObjects },
     );
 
     expect(result.jsonSchema).toEqual({
@@ -196,10 +196,9 @@ describe('deriveJsonSchema', () => {
       },
     };
 
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       { _id: scalarField('mongo/objectId@1'), tags: voArrayField('Tag') },
-      mongoTypeLookups,
-      valueObjects,
+      { valueObjects },
     );
 
     expect(result.jsonSchema).toEqual({
@@ -233,7 +232,7 @@ describe('deriveJsonSchema', () => {
     const valueObjects: Record<string, ContractValueObject> = {
       Tag: { fields: { label: scalarField('mongo/string@1') } },
     };
-    const result = deriveJsonSchema({ tags: field }, mongoTypeLookups, valueObjects);
+    const result = rootValidator({ tags: field }, { valueObjects });
     const objectSchema = {
       bsonType: 'object',
       required: ['label'],
@@ -254,7 +253,7 @@ describe('deriveJsonSchema', () => {
   });
 
   it('derives a minimal closed schema from an empty field set', () => {
-    const result = deriveJsonSchema({}, mongoTypeLookups);
+    const result = rootValidator({});
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
@@ -264,15 +263,12 @@ describe('deriveJsonSchema', () => {
   });
 
   it('handles mixed nullable and non-nullable fields', () => {
-    const result = deriveJsonSchema(
-      {
-        _id: scalarField('mongo/objectId@1'),
-        name: scalarField('mongo/string@1'),
-        bio: scalarField('mongo/string@1', true),
-        age: scalarField('mongo/int32@1'),
-      },
-      mongoTypeLookups,
-    );
+    const result = rootValidator({
+      _id: scalarField('mongo/objectId@1'),
+      name: scalarField('mongo/string@1'),
+      bio: scalarField('mongo/string@1', true),
+      age: scalarField('mongo/int32@1'),
+    });
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
@@ -288,14 +284,11 @@ describe('deriveJsonSchema', () => {
   });
 
   it('skips fields with unknown codec IDs', () => {
-    const result = deriveJsonSchema(
-      {
-        _id: scalarField('mongo/objectId@1'),
-        name: scalarField('mongo/string@1'),
-        custom: scalarField('custom/unknown@1'),
-      },
-      mongoTypeLookups,
-    );
+    const result = rootValidator({
+      _id: scalarField('mongo/objectId@1'),
+      name: scalarField('mongo/string@1'),
+      custom: scalarField('custom/unknown@1'),
+    });
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
@@ -324,10 +317,9 @@ describe('deriveJsonSchema', () => {
       },
     };
 
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       { _id: scalarField('mongo/objectId@1'), address: voField('Address') },
-      mongoTypeLookups,
-      valueObjects,
+      { valueObjects },
     );
 
     expect(result.jsonSchema).toEqual({
@@ -358,10 +350,10 @@ describe('deriveJsonSchema', () => {
   });
 
   it('maps Double (mongo/double@1) to bsonType "double"', () => {
-    const result = deriveJsonSchema(
-      { _id: scalarField('mongo/objectId@1'), price: scalarField('mongo/double@1') },
-      mongoTypeLookups,
-    );
+    const result = rootValidator({
+      _id: scalarField('mongo/objectId@1'),
+      price: scalarField('mongo/double@1'),
+    });
 
     expect(result.jsonSchema).toEqual({
       bsonType: 'object',
@@ -381,10 +373,9 @@ describe('deriveJsonSchema', () => {
       },
     };
 
-    const result = deriveJsonSchema(
+    const result = rootValidator(
       { _id: scalarField('mongo/objectId@1'), address: voField('Address') },
-      mongoTypeLookups,
-      valueObjects,
+      { valueObjects },
     );
 
     const properties = result.jsonSchema['properties'] as Record<string, Record<string, unknown>>;
@@ -395,26 +386,25 @@ describe('deriveJsonSchema', () => {
   });
 
   it('emits the _id property from the declared field', () => {
-    const result = deriveJsonSchema(
-      { _id: scalarField('mongo/objectId@1'), name: scalarField('mongo/string@1') },
-      mongoTypeLookups,
-    );
+    const result = rootValidator({
+      _id: scalarField('mongo/objectId@1'),
+      name: scalarField('mongo/string@1'),
+    });
 
     const properties = result.jsonSchema['properties'] as Record<string, unknown>;
     expect(properties['_id']).toEqual({ bsonType: 'objectId' });
   });
 });
 
-describe('derivePolymorphicJsonSchema', () => {
+describe('deriveCollectionValidators — variants', () => {
   it('includes discriminatorField in required for each oneOf branch', () => {
-    const result = derivePolymorphicJsonSchema(
+    const result = polymorphicRootValidator(
       { _id: scalarField('mongo/objectId@1'), name: scalarField('mongo/string@1') },
       '_type',
       [
         { discriminatorValue: 'Dog', fields: { breed: scalarField('mongo/string@1') } },
         { discriminatorValue: 'Cat', fields: { indoor: scalarField('mongo/bool@1') } },
       ],
-      mongoTypeLookups,
     );
 
     const oneOf = result.jsonSchema['oneOf'] as Record<string, unknown>[];
@@ -425,11 +415,10 @@ describe('derivePolymorphicJsonSchema', () => {
   });
 
   it('emits oneOf branch even for single variant with no extra fields', () => {
-    const result = derivePolymorphicJsonSchema(
+    const result = polymorphicRootValidator(
       { _id: scalarField('mongo/objectId@1'), name: scalarField('mongo/string@1') },
       '_type',
       [{ discriminatorValue: 'OnlyVariant', fields: {} }],
-      mongoTypeLookups,
     );
 
     const oneOf = result.jsonSchema['oneOf'] as Record<string, unknown>[];
@@ -441,14 +430,13 @@ describe('derivePolymorphicJsonSchema', () => {
   });
 
   it('closes each oneOf branch with additionalProperties:false and lists base + variant fields', () => {
-    const result = derivePolymorphicJsonSchema(
+    const result = polymorphicRootValidator(
       { _id: scalarField('mongo/objectId@1'), name: scalarField('mongo/string@1') },
       '_type',
       [
         { discriminatorValue: 'Dog', fields: { breed: scalarField('mongo/string@1') } },
         { discriminatorValue: 'Cat', fields: { indoor: scalarField('mongo/bool@1') } },
       ],
-      mongoTypeLookups,
     );
 
     const oneOf = result.jsonSchema['oneOf'] as Record<string, Record<string, unknown>>[];
@@ -471,11 +459,10 @@ describe('derivePolymorphicJsonSchema', () => {
   });
 
   it('leaves the polymorphic top-level schema open so closed branches drive validation', () => {
-    const result = derivePolymorphicJsonSchema(
+    const result = polymorphicRootValidator(
       { _id: scalarField('mongo/objectId@1'), name: scalarField('mongo/string@1') },
       '_type',
       [{ discriminatorValue: 'Dog', fields: { breed: scalarField('mongo/string@1') } }],
-      mongoTypeLookups,
     );
 
     expect(result.jsonSchema).not.toHaveProperty('additionalProperties');
@@ -483,11 +470,10 @@ describe('derivePolymorphicJsonSchema', () => {
   });
 
   it('repeats the base _id into every branch', () => {
-    const result = derivePolymorphicJsonSchema(
+    const result = polymorphicRootValidator(
       { _id: scalarField('mongo/objectId@1'), name: scalarField('mongo/string@1') },
       'kind',
       [{ discriminatorValue: 'a', fields: { extra: scalarField('mongo/string@1') } }],
-      mongoTypeLookups,
     );
 
     expect(result.jsonSchema).toHaveProperty('properties._id');
