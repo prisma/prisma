@@ -265,6 +265,40 @@ describe('startActivity', () => {
     expect(names(events)).toEqual(before);
   });
 
+  it('starts no statement for rows returned before the first read, even after the handle ended', async () => {
+    const { runtime, events } = createSetup();
+    const call = await startActivityOn(runtime, testCall);
+    const rows = call.query(rawPlan('select 1'))[Symbol.asyncIterator]();
+
+    await call.end({ outcome: 'succeeded' });
+    const returned = await rows.return?.();
+    const next = await rows.next();
+
+    expect({ returned, next, lifecycle: lifecycle(events) }).toEqual({
+      returned: { done: true, value: undefined },
+      next: { done: true, value: undefined },
+      lifecycle: [
+        'started:test-call',
+        'ended:test-call:succeeded',
+        'finalized:test-call:committed',
+      ],
+    });
+  });
+
+  it('ends the handle and keeps close() from waiting when ending the activity fails', async () => {
+    const { runtime } = createSetup();
+    const call = await startActivityOn(runtime, testCall);
+    const pending = call.query(rawPlan('select 1'))[Symbol.asyncIterator]();
+    await pending.next();
+
+    await expect(call.end({ outcome: 'succeeded' })).rejects.toMatchObject({
+      code: 'RUNTIME.ACTIVITY_CHILDREN_OPEN',
+    });
+    await pending.return?.();
+
+    await expect(runtime.close()).resolves.toBeUndefined();
+  });
+
   it('finds the activity source of a queryable, and none on a plain one', async () => {
     const { runtime } = createSetup();
     const plain = { query: runtime.query.bind(runtime), execute: runtime.execute.bind(runtime) };

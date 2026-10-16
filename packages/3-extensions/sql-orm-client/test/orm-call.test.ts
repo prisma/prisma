@@ -251,6 +251,119 @@ describe('streamOrmCall', () => {
     });
   });
 
+  describe('with overlapping calls on its iterator', () => {
+    const rowsOf = (count: number) =>
+      Array.from({ length: count }, (_, index) => ({ id: index + 1 }));
+    const iterate = (runtime: Parameters<typeof streamOrmCall>[0], count: number) =>
+      streamOrmCall(runtime, rowsCall(), () => stream(rowsOf(count)))[
+        Symbol.asyncIterator
+      ]() as AsyncGenerator<{ id: number }, void, unknown>;
+    const endedOf = (calls: { ended: unknown }[]) => calls.map(({ ended }) => ended);
+
+    it('gives each of two next() calls made before the first row its own row', async () => {
+      const { runtime, calls } = createActivityRuntime();
+      const rows = iterate(runtime, 2);
+
+      const results = await Promise.all([rows.next(), rows.next(), rows.next()]);
+
+      expect({ results, ended: endedOf(calls) }).toEqual({
+        results: [
+          { done: false, value: { id: 1 } },
+          { done: false, value: { id: 2 } },
+          { done: true, value: undefined },
+        ],
+        ended: [{ outcome: 'succeeded', result: [{ id: 1 }, { id: 2 }] }],
+      });
+    });
+
+    it('ends the call stopped once when return() comes while the call is starting', async () => {
+      const { runtime, calls } = createActivityRuntime();
+      const rows = iterate(runtime, 2);
+
+      const results = await Promise.allSettled([rows.next(), rows.return()]);
+
+      expect({ results, ended: endedOf(calls) }).toEqual({
+        results: [
+          { status: 'fulfilled', value: { done: false, value: { id: 1 } } },
+          { status: 'fulfilled', value: { done: true, value: undefined } },
+        ],
+        ended: [{ outcome: 'stopped' }],
+      });
+    });
+
+    it('ends the call stopped once when return() comes while a next() is pending', async () => {
+      const { runtime, calls } = createActivityRuntime();
+      const rows = iterate(runtime, 3);
+      await rows.next();
+
+      const results = await Promise.allSettled([rows.next(), rows.return()]);
+
+      expect({ results, ended: endedOf(calls) }).toEqual({
+        results: [
+          { status: 'fulfilled', value: { done: false, value: { id: 2 } } },
+          { status: 'fulfilled', value: { done: true, value: undefined } },
+        ],
+        ended: [{ outcome: 'stopped' }],
+      });
+    });
+
+    it('ends the call once when two next() calls overlap at the end of the stream', async () => {
+      const { runtime, calls } = createActivityRuntime();
+      const rows = iterate(runtime, 1);
+      await rows.next();
+
+      const results = await Promise.allSettled([rows.next(), rows.next()]);
+
+      expect({ results, ended: endedOf(calls) }).toEqual({
+        results: [
+          { status: 'fulfilled', value: { done: true, value: undefined } },
+          { status: 'fulfilled', value: { done: true, value: undefined } },
+        ],
+        ended: [{ outcome: 'succeeded', result: [{ id: 1 }] }],
+      });
+    });
+
+    it('ends the call once when next() and return() overlap at the end of the stream', async () => {
+      const { runtime, calls } = createActivityRuntime();
+      const rows = iterate(runtime, 1);
+      await rows.next();
+
+      const results = await Promise.allSettled([rows.next(), rows.return()]);
+
+      expect({ results, ended: endedOf(calls) }).toEqual({
+        results: [
+          { status: 'fulfilled', value: { done: true, value: undefined } },
+          { status: 'fulfilled', value: { done: true, value: undefined } },
+        ],
+        ended: [{ outcome: 'succeeded', result: [{ id: 1 }] }],
+      });
+    });
+
+    it('starts no call when return() or throw() comes before the first next()', async () => {
+      const { runtime, calls } = createActivityRuntime();
+      const failure = new Error('stop');
+
+      const returned = await iterate(runtime, 1).return();
+      const thrown = iterate(runtime, 1).throw(failure);
+
+      await expect(thrown).rejects.toBe(failure);
+      expect({ returned, calls: calls.length }).toEqual({
+        returned: { done: true, value: undefined },
+        calls: 0,
+      });
+    });
+
+    it('ends the call failed when an error is thrown into it mid-stream', async () => {
+      const { runtime, calls } = createActivityRuntime();
+      const rows = iterate(runtime, 3);
+      const failure = new Error('caller failed');
+      await rows.next();
+
+      await expect(rows.throw(failure)).rejects.toBe(failure);
+      expect(endedOf(calls)).toEqual([{ outcome: 'failed' }]);
+    });
+  });
+
   it('rejects intercepted rows that are not an array', async () => {
     const { runtime, calls } = createActivityRuntime({ intercept: () => ({ result: { id: 9 } }) });
 

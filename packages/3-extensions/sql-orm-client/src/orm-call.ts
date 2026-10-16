@@ -157,16 +157,20 @@ export function streamOrmCall<Row>(
 
 const done = { done: true, value: undefined } as const;
 
-/** The rows of a streaming call. It forwards to the statement rows' own iterator rather than adding an async generator, so a row costs one promise. The call starts on the first `next()`. */
+/**
+ * The rows of a streaming call. The call starts on the first `next()`. Like an async generator, it runs one `next()`, `return()` or `throw()` at a time and queues the calls that overlap it; unlike one, it forwards each row from the statement's iterator with a single promise.
+ */
 class OrmCallRows<Row> implements AsyncGenerator<Row, void, unknown> {
   readonly #source: ActivitySource;
   readonly #call: OrmCall<Row[]>;
   readonly #run: (queryable: RuntimeQueryable) => AsyncIterableResult<Row>;
-  #state: 'idle' | 'starting' | 'running' | 'intercepted' | 'finished' = 'idle';
+  #state: 'idle' | 'running' | 'intercepted' | 'finished' = 'idle';
   #handle: ActivityHandle<'orm-call'> | undefined;
   #inner: AsyncIterator<Row, void, unknown> | undefined;
   #intercepted: Iterator<Row> | undefined;
   #collected: Row[] | undefined;
+  #busy = false;
+  readonly #waiting: Array<() => void> = [];
 
   constructor(
     source: ActivitySource,
@@ -179,49 +183,15 @@ class OrmCallRows<Row> implements AsyncGenerator<Row, void, unknown> {
   }
 
   next(): Promise<IteratorResult<Row, void>> {
-    switch (this.#state) {
-      case 'idle':
-        return this.#start().then(() => this.next());
-      case 'running':
-        return this.#nextRow();
-      case 'intercepted':
-        return Promise.resolve(this.#nextIntercepted());
-      default:
-        return Promise.resolve(done);
-    }
+    return this.#enqueue(() => this.#next());
   }
 
-  async return(): Promise<IteratorResult<Row, void>> {
-    const handle = this.#handle;
-    if (this.#state !== 'running' || handle === undefined) {
-      this.#state = 'finished';
-      return done;
-    }
-    this.#state = 'finished';
-    try {
-      await this.#inner?.return?.();
-    } catch (error) {
-      await endFailed(handle, error);
-      throw error;
-    }
-    await handle.end({ outcome: 'stopped' });
-    return done;
+  return(): Promise<IteratorResult<Row, void>> {
+    return this.#enqueue(() => this.#return());
   }
 
-  async throw(error: unknown): Promise<IteratorResult<Row, void>> {
-    const handle = this.#handle;
-    if (this.#state !== 'running' || handle === undefined) {
-      this.#state = 'finished';
-      throw error;
-    }
-    this.#state = 'finished';
-    try {
-      await this.#inner?.return?.();
-    } catch {
-      // As when a generator closes its iterator because of a throw, the thrown error is the one kept.
-    }
-    await endFailed(handle, error);
-    throw error;
+  throw(error: unknown): Promise<IteratorResult<Row, void>> {
+    return this.#enqueue(() => this.#throw(error));
   }
 
   [Symbol.asyncIterator](): this {
@@ -232,8 +202,98 @@ class OrmCallRows<Row> implements AsyncGenerator<Row, void, unknown> {
     await this.return();
   }
 
+  #enqueue(
+    operation: () => Promise<IteratorResult<Row, void>>,
+  ): Promise<IteratorResult<Row, void>> {
+    if (!this.#busy) {
+      this.#busy = true;
+      return operation();
+    }
+    return new Promise((resolve, reject) => {
+      this.#waiting.push(() => {
+        operation().then(resolve, reject);
+      });
+    });
+  }
+
+  #release(): void {
+    const waiting = this.#waiting.shift();
+    if (waiting === undefined) {
+      this.#busy = false;
+    } else {
+      waiting();
+    }
+  }
+
+  #next(): Promise<IteratorResult<Row, void>> {
+    switch (this.#state) {
+      case 'idle':
+        return this.#start().then(
+          () => this.#next(),
+          (error: unknown) => {
+            this.#release();
+            throw error;
+          },
+        );
+      case 'running':
+        return this.#nextRow();
+      case 'intercepted': {
+        const row = this.#intercepted?.next();
+        this.#release();
+        if (row === undefined || row.done === true) {
+          this.#state = 'finished';
+          return Promise.resolve(done);
+        }
+        return Promise.resolve({ done: false, value: row.value });
+      }
+      default:
+        this.#release();
+        return Promise.resolve(done);
+    }
+  }
+
+  async #return(): Promise<IteratorResult<Row, void>> {
+    try {
+      const handle = this.#handle;
+      if (this.#state !== 'running' || handle === undefined) {
+        this.#state = 'finished';
+        return done;
+      }
+      this.#state = 'finished';
+      try {
+        await this.#inner?.return?.();
+      } catch (error) {
+        await endFailed(handle, error);
+        throw error;
+      }
+      await handle.end({ outcome: 'stopped' });
+      return done;
+    } finally {
+      this.#release();
+    }
+  }
+
+  async #throw(error: unknown): Promise<IteratorResult<Row, void>> {
+    try {
+      const handle = this.#handle;
+      if (this.#state !== 'running' || handle === undefined) {
+        this.#state = 'finished';
+        throw error;
+      }
+      this.#state = 'finished';
+      try {
+        await this.#inner?.return?.();
+      } catch {
+        // As when a generator closes its iterator because of a throw, the thrown error is the one kept.
+      }
+      await endFailed(handle, error);
+      throw error;
+    } finally {
+      this.#release();
+    }
+  }
+
   async #start(): Promise<void> {
-    this.#state = 'starting';
     let handle: ActivityHandle<'orm-call'>;
     try {
       handle = await startOrmCall(this.#source, this.#call);
@@ -265,29 +325,24 @@ class OrmCallRows<Row> implements AsyncGenerator<Row, void, unknown> {
     this.#state = 'running';
   }
 
-  #nextIntercepted(): IteratorResult<Row, void> {
-    const row = this.#intercepted?.next();
-    if (row === undefined || row.done === true) {
-      this.#state = 'finished';
-      return done;
-    }
-    return { done: false, value: row.value };
-  }
-
   #nextRow(): Promise<IteratorResult<Row, void>> {
     const inner = this.#inner;
     const handle = this.#handle;
-    if (inner === undefined || handle === undefined) return Promise.resolve(done);
+    if (inner === undefined || handle === undefined) {
+      this.#release();
+      return Promise.resolve(done);
+    }
     let pending: Promise<IteratorResult<Row, void>>;
     try {
       pending = inner.next();
     } catch (error) {
       return this.#fail(handle, error);
     }
-    return pending.then(
+    return pending.then<IteratorResult<Row, void>, never>(
       (result) => {
         if (result.done !== true) {
           this.#collected?.push(result.value);
+          this.#release();
           return result;
         }
         this.#state = 'finished';
@@ -298,16 +353,29 @@ class OrmCallRows<Row> implements AsyncGenerator<Row, void, unknown> {
               ? { outcome: 'succeeded' }
               : { outcome: 'succeeded', result: collected },
           )
-          .then(() => done);
+          .then(
+            () => {
+              this.#release();
+              return done;
+            },
+            (endError: unknown) => {
+              this.#release();
+              throw endError;
+            },
+          );
       },
       (error: unknown) => this.#fail(handle, error),
     );
   }
 
   async #fail(handle: ActivityHandle<'orm-call'>, error: unknown): Promise<never> {
-    this.#state = 'finished';
-    await endFailed(handle, error);
-    throw error;
+    try {
+      this.#state = 'finished';
+      await endFailed(handle, error);
+      throw error;
+    } finally {
+      this.#release();
+    }
   }
 }
 

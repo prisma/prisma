@@ -1656,7 +1656,14 @@ class SqlActivityHandle<K extends ClientActivityKind>
 
   end(end: ClientActivityEnd<K>): Promise<void> {
     const endWork = this.#endWork;
-    return this.#run.end(end).then(endWork, (error: unknown) => {
+    let ending: Promise<void>;
+    try {
+      ending = this.#run.end(end);
+    } catch (error) {
+      endWork();
+      return Promise.reject(error);
+    }
+    return ending.then(endWork, (error: unknown) => {
       endWork();
       throw error;
     });
