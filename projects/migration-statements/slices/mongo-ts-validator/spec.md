@@ -54,7 +54,7 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 
 ## How (two pull requests)
 
-1. **Move the derivation; no output changes.** The validator derivation (`deriveJsonSchema`, `derivePolymorphicJsonSchema` and the per-collection loop from the PSL interpreter) and the enum listability check from the family package move into `@internal/mongo-contract`, where they become one public function, `deriveCollectionValidators`. PSL calls them from there. Every PSL fixture and hash is unchanged (`pnpm fixtures:check`).
+1. **Move the derivation; no output changes.** The validator derivation (`deriveJsonSchema`, `derivePolymorphicJsonSchema` and the per-collection loop from the PSL interpreter) and the enum listability check from the family package move into `@internal/mongo-contract`, where they become one public function, `deriveCollectionValidators`. PSL calls it from there. Every PSL fixture and hash is unchanged (`pnpm fixtures:check`).
 2. **The TypeScript builder calls it.**
    - Codec and data type lookups come from the target and every extension pack the contract lists, as PSL gets them from the control stack. A field whose codec has no MongoDB data type is refused, not silently dropped.
    - The `_id` and enum refusals, with the PSL wording adapted to the builder.
