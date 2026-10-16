@@ -14,13 +14,13 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - 'import type \{[^}]*\b(FieldTypesFromDomain|ValueTypeSide)\b[^}]*\} from ''[^'']*(sql-contract|family-sql/contract|family-contract)/types'''
-  - id: resolve-field-value-set-storage-only
+  - id: resolve-field-value-set-renamed
     summary: |
-      The framework emitter now reads a field's value set itself when the field references a domain enum (`valueSet.plane` is `'domain'`), for model and value object fields alike. `EmissionSpi.resolveFieldValueSet` is called only for other model fields, whose values the family keeps in its storage, such as a SQL column's value set. A family emitter whose hook read domain enum references must leave them to the framework; a hook that reads storage needs no change. The detection matches implementations of the hook.
+      `EmissionSpi.resolveFieldValueSet` is renamed `resolveStorageValueSet`. The framework emitter now reads a field's value set itself when the field references a domain enum (`valueSet.plane` is `'domain'`), for model and value object fields alike, and no longer calls the hook for those fields. It calls `resolveStorageValueSet` only for other model fields, whose values the family keeps in its storage, such as a SQL column's value set. Rename the hook in a family emitter, and drop any handling of domain enum references from it. The detection matches implementations of the old hook.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - '\bresolveFieldValueSet\s*[(:]'
+        - '\bresolveFieldValueSet\s*[(:?]'
   - id: mongo-parameterized-output-types
     summary: |
       A Mongo-family pack whose codec output type depends only on a field's type parameters, such as `Vector<3>` for a vector of length 3, declares it once as a type function, as SQL packs do: export a `ParameterizedOutputTypesForTypeParams` interface extending `ParameterizedOutputTypesFunction` from its `codec-types` entry, name it in `types.codecTypes.parameterizedOutputTypes` where the codec types import is declared, and add `__parameterizedOutputTypes` to the pack metadata's type. `renderOutputType` is no longer used for such codecs: Mongo's vector codec no longer implements it, and a Mongo `defineContract` contract ignores it. Export the types the pack metadata names from its `/pack` entry, so an application that exports a contract can build declarations. The detection matches files that import a Mongo package and implement `renderOutputType`.
