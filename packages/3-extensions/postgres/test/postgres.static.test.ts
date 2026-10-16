@@ -7,9 +7,9 @@ import postgresStatic, { type PostgresStaticContext } from '../src/static/postgr
 
 const contract = createContract<SqlStorage>();
 
-describe('postgresStatic({ contractJson })', () => {
+describe('postgresStatic({ contract })', () => {
   it('returns context, contract, enums, sql, and raw', () => {
-    const result = postgresStatic<typeof contract>({ contractJson: contract });
+    const result = postgresStatic({ contract });
     expect(result.context).toBeDefined();
     expect(result.contract).toBeDefined();
     expect(result.enums).toBeDefined();
@@ -18,18 +18,18 @@ describe('postgresStatic({ contractJson })', () => {
   });
 
   it('context carries the contract (merged capabilities view)', () => {
-    const result = postgresStatic<typeof contract>({ contractJson: contract });
+    const result = postgresStatic({ contract });
     expect(result.context.contract).toBeDefined();
     expect(result.context.contract.target).toBe(contract.target);
   });
 
   it('context carries the codec registry (standard codecs present)', () => {
-    const result = postgresStatic<typeof contract>({ contractJson: contract });
+    const result = postgresStatic({ contract });
     expect(result.context.contractCodecs).toBeDefined();
   });
 
-  it('contract matches the deserialized contractJson', () => {
-    const result = postgresStatic<typeof contract>({ contractJson: contract });
+  it('contract matches the validated contract', () => {
+    const result = postgresStatic({ contract });
     expect(result.contract.target).toBe(contract.target);
     expect(result.contract.targetFamily).toBe(contract.targetFamily);
     expect(result.contract.domain).toEqual(contract.domain);
@@ -37,18 +37,18 @@ describe('postgresStatic({ contractJson })', () => {
   });
 
   it('sql is a function (builder is present)', () => {
-    const result = postgresStatic<typeof contract>({ contractJson: contract });
+    const result = postgresStatic({ contract });
     expect(typeof result.sql).toBe('object');
   });
 
   it('raw is the lane holding the statement tag', () => {
-    const result = postgresStatic<typeof contract>({ contractJson: contract });
+    const result = postgresStatic({ contract });
     expect(typeof result.raw).toBe('object');
     expect(typeof result.raw.sql).toBe('function');
   });
 
   it('enums matches what buildNamespacedEnums produces', () => {
-    const result = postgresStatic<typeof contract>({ contractJson: contract });
+    const result = postgresStatic({ contract });
     const allNamespaced = buildNamespacedEnums(contract.domain, (codecId) =>
       result.context.contractCodecs.forCodecRef({ codecId }),
     ) as NamespacedEnums<Contract<SqlStorage>>;
@@ -57,9 +57,7 @@ describe('postgresStatic({ contractJson })', () => {
   });
 
   it('PostgresStaticContext type exposes context, contract, enums, sql, raw', () => {
-    const result: PostgresStaticContext<typeof contract> = postgresStatic<typeof contract>({
-      contractJson: contract,
-    });
+    const result: PostgresStaticContext<typeof contract> = postgresStatic({ contract });
     expect(result).toBeDefined();
   });
 });

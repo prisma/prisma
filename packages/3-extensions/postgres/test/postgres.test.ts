@@ -227,17 +227,6 @@ describe('postgres', () => {
     expect(runtime).toBeDefined();
   });
 
-  it('validates contractJson input', () => {
-    const contractJson = contract;
-
-    const db = postgres({
-      contractJson,
-      url: 'postgres://localhost:5432/db',
-    });
-
-    expect(db.context).toBeDefined();
-  });
-
   it('validates direct contract input', () => {
     const db = postgres({
       contract,
