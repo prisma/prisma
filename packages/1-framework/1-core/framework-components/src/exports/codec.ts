@@ -61,6 +61,7 @@ export {
   objectSchemaKeys,
   requiredParamKeys,
   requiredSchemaKeys,
+  requireValueOf,
   schemaKeysAllowing,
 } from '../shared/data-type';
 export { DATA_TYPE_ID_PATTERN } from '../shared/data-type-id-pattern';

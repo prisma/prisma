@@ -69,6 +69,21 @@ test('a codec whose application type is narrower than JsonValue does not compile
   expectTypeOf(checked.toDataTypeValue).returns.toEqualTypeOf<DataTypeValue>();
 });
 
+test('toDataTypeValue returns a value of the data type, as on every codec', () => {
+  mongoCodec({
+    ...narrowerThanJson,
+    toDataTypeValue: (value: string) => textType.valueFrom(value, {}),
+    fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
+  });
+
+  mongoCodec({
+    ...narrowerThanJson,
+    // @ts-expect-error — the author builds the value through the data type, not the JSON alone
+    toDataTypeValue: (value: string) => value,
+    fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
+  });
+});
+
 test('each narrower JSON application type requires fromDataTypeValue', () => {
   const numberCodec = {
     typeId: 'demo/number@1',

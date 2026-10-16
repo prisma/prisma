@@ -84,7 +84,7 @@ describe('toContract', () => {
 
   it('refuses a value of another type', () => {
     expect(() => decimal.toContract(document.fromContract('42', {}))).toThrow(
-      /demo\/document.*demo\/decimal/,
+      'Data type demo/decimal takes only values of demo/decimal, and was handed a value of demo/document.',
     );
   });
 });

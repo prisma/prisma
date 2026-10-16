@@ -41,7 +41,14 @@ describe('a codec converts only values of its own data type', () => {
 
   it('refuses a value of another data type', () => {
     expect(() => codec.fromDataTypeValue(int4.fromContract('42', {}))).toThrow(
-      'Codec demo/int8@1 converts values of demo/int8, and was handed a value of demo/int4.',
+      'Codec demo/int8@1 takes only values of demo/int8, and was handed a value of demo/int4.',
+    );
+  });
+
+  it('refuses an object no data type constructed', () => {
+    const forged = { type: int8.id, params: {}, value: '42' } as unknown as DataTypeValue;
+    expect(() => codec.fromDataTypeValue(forged)).toThrow(
+      'Codec demo/int8@1 takes only values of demo/int8, and was handed an object no data type constructed.',
     );
   });
 });

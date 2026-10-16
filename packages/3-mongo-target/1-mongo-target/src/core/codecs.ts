@@ -82,7 +82,8 @@ export const mongoObjectIdCodec = mongoCodec({
   dataType: mongoObjectId,
   fromWire: (wire: ObjectId) => wire.toHexString(),
   toWire: (value: string) => objectIdEncode(MONGO_OBJECTID_CODEC_ID, value),
-  toDataTypeValue: (value: string) => objectIdToJson(MONGO_OBJECTID_CODEC_ID, value),
+  toDataTypeValue: (value: string) =>
+    mongoObjectId.valueFrom(objectIdToJson(MONGO_OBJECTID_CODEC_ID, value), {}),
   fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
 });
 
@@ -99,7 +100,7 @@ export const mongoDoubleCodec = mongoCodec({
   dataType: mongoDouble,
   fromWire: (wire: number | Double) => Number(wire),
   toWire: (value: number): number | Double => doubleEncode(MONGO_DOUBLE_CODEC_ID, value),
-  toDataTypeValue: floatToJson,
+  toDataTypeValue: (value: number) => mongoDouble.valueFrom(floatToJson(value), {}),
   fromDataTypeValue: (value) => readJsonFloat(MONGO_DOUBLE_CODEC_ID, value.value),
 });
 
@@ -108,7 +109,8 @@ export const mongoInt32Codec = mongoCodec({
   dataType: mongoInt32,
   fromWire: (wire: number) => wire,
   toWire: (value: number) => int32Encode(MONGO_INT32_CODEC_ID, value),
-  toDataTypeValue: (value: number) => int32ToJson(MONGO_INT32_CODEC_ID, value),
+  toDataTypeValue: (value: number) =>
+    mongoInt32.valueFrom(int32ToJson(MONGO_INT32_CODEC_ID, value), {}),
   fromDataTypeValue: (value: DataTypeValue<number>) => value.value,
 });
 
@@ -125,7 +127,7 @@ export const mongoDateCodec = mongoCodec({
   dataType: mongoDate,
   fromWire: (wire: Date) => wire,
   toWire: (value: Date) => dateEncode(MONGO_DATE_CODEC_ID, value),
-  toDataTypeValue: (value: Date) => dateToJson(MONGO_DATE_CODEC_ID, value),
+  toDataTypeValue: (value: Date) => mongoDate.valueFrom(dateToJson(MONGO_DATE_CODEC_ID, value), {}),
   fromDataTypeValue: (value: DataTypeValue<string>) => new Date(value.value),
 });
 
@@ -151,7 +153,8 @@ export const mongoInt64Codec = mongoCodec({
   dataType: mongoInt64,
   fromWire: (wire: Long | number | bigint) => int64Decode(MONGO_INT64_CODEC_ID, wire),
   toWire: (value: bigint): Long | number | bigint => int64Encode(MONGO_INT64_CODEC_ID, value),
-  toDataTypeValue: (value: bigint) => int64ToJson(MONGO_INT64_CODEC_ID, value),
+  toDataTypeValue: (value: bigint) =>
+    mongoInt64.valueFrom(int64ToJson(MONGO_INT64_CODEC_ID, value), {}),
   fromDataTypeValue: (value: DataTypeValue<string>) => BigInt(value.value),
 });
 
@@ -164,7 +167,8 @@ export const mongoInt64NumberCodec = mongoCodec({
   fromWire: (wire: Long | number | bigint) => int64NumberDecode(MONGO_INT64_NUMBER_CODEC_ID, wire),
   toWire: (value: number): Long | number | bigint =>
     int64NumberEncode(MONGO_INT64_NUMBER_CODEC_ID, value),
-  toDataTypeValue: (value: number) => int64NumberToJson(MONGO_INT64_NUMBER_CODEC_ID, value),
+  toDataTypeValue: (value: number) =>
+    mongoInt64.valueFrom(int64NumberToJson(MONGO_INT64_NUMBER_CODEC_ID, value), {}),
   fromDataTypeValue: (value) => int64NumberFromDigits(MONGO_INT64_NUMBER_CODEC_ID, value.value),
 });
 
@@ -176,7 +180,8 @@ export const mongoDecimal128Codec = mongoCodec({
   dataType: mongoDecimal128,
   fromWire: (wire: Decimal128) => decimal128Decode(MONGO_DECIMAL128_CODEC_ID, wire),
   toWire: (value: string) => decimal128Encode(MONGO_DECIMAL128_CODEC_ID, value),
-  toDataTypeValue: (value: string) => decimal128ToJson(MONGO_DECIMAL128_CODEC_ID, value),
+  toDataTypeValue: (value: string) =>
+    mongoDecimal128.valueFrom(decimal128ToJson(MONGO_DECIMAL128_CODEC_ID, value), {}),
   fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
 });
 
@@ -188,7 +193,7 @@ export const mongoBinaryCodec = mongoCodec({
   dataType: mongoBinary,
   fromWire: (wire: Binary | Uint8Array) => binaryDecode(MONGO_BINARY_CODEC_ID, wire),
   toWire: (value: Uint8Array) => binaryEncode(MONGO_BINARY_CODEC_ID, value),
-  toDataTypeValue: binaryToBase64,
+  toDataTypeValue: (value: Uint8Array) => mongoBinary.valueFrom(binaryToBase64(value), {}),
   fromDataTypeValue: (value: DataTypeValue<string>) => binaryFromBase64(value.value),
 });
 
@@ -216,7 +221,7 @@ export const mongoBsonCodec = mongoCodec<
   dataType: mongoBson,
   fromWire: (wire: BsonInputValue) => decodeBsonValue(wire),
   toWire: (value: BsonInputValue) => encodeBsonValue(value),
-  toDataTypeValue: bsonToJson,
+  toDataTypeValue: (value: BsonInputValue) => mongoBson.valueFrom(bsonToJson(value), {}),
   fromDataTypeValue: (value) => readBsonJson(MONGO_BSON_CODEC_ID, value.value),
 });
 

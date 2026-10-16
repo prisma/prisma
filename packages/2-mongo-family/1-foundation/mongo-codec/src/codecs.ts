@@ -7,8 +7,8 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
+import { requireValueOf } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
-import { InternalError } from '@internal/utils/internal-error';
 
 export type MongoCodecTrait = CodecTrait;
 
@@ -28,20 +28,20 @@ export interface MongoCodec<
 }
 
 /**
- * The author functions for a codec's values. `toDataTypeValue` returns the JSON of the value, and the factory constructs the value through the codec's data type with its parameters; `fromDataTypeValue` receives a value the data type has read. Returning the value's JSON unchanged is sound whenever `TInput` is a JSON type, and returning a value's JSON as the application value is sound only when `TInput` is exactly `JsonValue`. So both are optional for `JsonValue`, `fromDataTypeValue` is required for a narrower JSON type such as `string`, and both are required for a type that is not JSON.
+ * The author functions for a codec's values, as on every codec: `toDataTypeValue` returns a value of the codec's data type, built with `dataType.valueFrom(json, params)`, and `fromDataTypeValue` receives a value the data type has read. When `toDataTypeValue` is left out, the factory builds the value from the application value itself, which is sound whenever `TInput` is a JSON type; returning a value's JSON as the application value is sound only when `TInput` is exactly `JsonValue`. So both are optional for `JsonValue`, `fromDataTypeValue` is required for a narrower JSON type such as `string`, and both are required for a type that is not JSON.
  */
 type DataTypeValueConfig<TInput> = [TInput] extends [JsonValue]
   ? [JsonValue] extends [TInput]
     ? {
-        toDataTypeValue?(value: TInput): JsonValue;
+        toDataTypeValue?(value: TInput): DataTypeValue;
         fromDataTypeValue?(value: DataTypeValue): TInput;
       }
     : {
-        toDataTypeValue?(value: TInput): JsonValue;
+        toDataTypeValue?(value: TInput): DataTypeValue;
         fromDataTypeValue(value: DataTypeValue): TInput;
       }
   : {
-      toDataTypeValue(value: TInput): JsonValue;
+      toDataTypeValue(value: TInput): DataTypeValue;
       fromDataTypeValue(value: DataTypeValue): TInput;
     };
 
@@ -97,16 +97,19 @@ export function mongoCodec<
   const { dataType, toWire, fromWire } = config;
   const params = config.params ?? {};
   const values: {
-    toDataTypeValue?(value: TInput): JsonValue;
+    toDataTypeValue?(value: TInput): DataTypeValue;
     fromDataTypeValue?(value: DataTypeValue): TInput;
   } = config;
-  const toJson =
+  const toValue =
     values.toDataTypeValue ??
     ((value: TInput) =>
-      blindCast<
-        JsonValue,
-        'DataTypeValueConfig makes this optional only when TInput is a JSON type'
-      >(value));
+      dataType.valueFrom(
+        blindCast<
+          JsonValue,
+          'DataTypeValueConfig makes this optional only when TInput is a JSON type'
+        >(value),
+        params,
+      ));
   const fromValue =
     values.fromDataTypeValue ??
     ((value: DataTypeValue) =>
@@ -130,15 +133,9 @@ export function mongoCodec<
         return Promise.reject(error);
       }
     },
-    toDataTypeValue: (value) => dataType.valueFrom(toJson(value), params),
-    fromDataTypeValue: (value) => {
-      if (value.type !== dataType.id) {
-        throw new InternalError(
-          `Codec ${config.typeId} converts values of ${dataType.id}, and was handed a value of ${value.type}.`,
-        );
-      }
-      return fromValue(value);
-    },
+    toDataTypeValue: toValue,
+    fromDataTypeValue: (value) =>
+      fromValue(requireValueOf(dataType.id, value, `Codec ${config.typeId}`)),
   };
 }
 

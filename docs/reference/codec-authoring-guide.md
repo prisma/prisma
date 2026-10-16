@@ -444,7 +444,7 @@ The PSL name, TS helper, BSON storage types and application type of every Mongo 
 
 A stored value in another form is refused with `RUNTIME.DECODE_FAILED` when the contract is read. `mongo/bson@1` refuses Extended JSON that is not canonical, such as a bare number or `{ "$numberInt": "abc" }`, which the `bson` reader would read as 0. The Mongo runtime reads documents through `fromWire` and never calls `fromDataTypeValue`; what `fromDataTypeValue` converts is a value a schema holds, such as a PSL enum member's value under `@@type`.
 
-A Mongo codec is built with `mongoCodec({ typeId, dataType, toWire, fromWire, toDataTypeValue, fromDataTypeValue })`. `toDataTypeValue` returns the value's JSON, and the factory constructs the value through the data type. Both value functions may be left out when the application type is exactly `JsonValue`; `toDataTypeValue` may be left out for a narrower JSON type such as `string`; a codec whose application type is not JSON writes both:
+A Mongo codec is built with `mongoCodec({ typeId, dataType, toWire, fromWire, toDataTypeValue, fromDataTypeValue })`. `toDataTypeValue` returns a value of the data type, as on every codec, built with `dataType.valueFrom(json, params)`; when it is left out, the factory builds the value from the application value. Both value functions may be left out when the application type is exactly `JsonValue`; `toDataTypeValue` may be left out for a narrower JSON type such as `string`; a codec whose application type is not JSON writes both:
 
 ```ts
 import type { DataTypeValue } from '@internal/framework-components/codec';

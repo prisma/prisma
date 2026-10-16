@@ -17,6 +17,7 @@ import {
   type DataTypeParams,
   type DataTypeValue,
   dataTypeParamsOf,
+  requireValueOf,
 } from './data-type';
 
 /**
@@ -102,20 +103,11 @@ export abstract class CodecImpl<
     }
     const convert: (value: DataTypeValue) => TInput = Reflect.get(this, 'fromDataTypeValue');
     Object.defineProperty(this, 'fromDataTypeValue', {
-      value: (value: DataTypeValue): TInput => convert.call(this, this.ownValue(value)),
+      value: (value: DataTypeValue): TInput =>
+        convert.call(this, requireValueOf(this.dataType.id, value, `Codec ${this.id}`)),
       writable: true,
       configurable: true,
     });
-  }
-
-  /** `value`, when it is a value of the codec's data type. */
-  private ownValue(value: DataTypeValue): DataTypeValue {
-    if (value.type !== this.dataType.id) {
-      throw new InternalError(
-        `Codec ${this.id} converts values of ${this.dataType.id}, and was handed a value of ${value.type}.`,
-      );
-    }
-    return value;
   }
 
   get id(): Id {

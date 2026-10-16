@@ -132,12 +132,6 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
   }
   const listCast = spec.listCast;
   const { read, spell } = spec;
-  const ownValue = (value: DataTypeValue): DataTypeValue => {
-    if (value.type !== typeId || !DataTypeValueRecord.isConstructed(value)) {
-      throw new InternalError(`A value of ${value.type} was handed to the data type ${typeId}.`);
-    }
-    return value;
-  };
   const construct = (json: JsonValue, params: DataTypeParams): DataTypeValue =>
     new DataTypeValueRecord(typeId, Object.freeze({ ...params }), json);
   const spelledUnder = (json: JsonValue, params: DataTypeParams): JsonValue => {
@@ -178,8 +172,27 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
       blindCast<DataTypeValue<J>, "a type's reader and spelling return JSON of the kind they read">(
         construct(spelledUnder(json, params), params),
       ),
-    toContract: (value) => ownValue(value).value,
+    toContract: (value) => requireValueOf(typeId, value, `Data type ${typeId}`).value,
   };
+}
+
+/** `value`, when it is a value of `type` that a data type constructed; anything else is a bug in `holder`'s caller. */
+export function requireValueOf(
+  type: DataTypeId,
+  value: DataTypeValue,
+  holder: string,
+): DataTypeValue {
+  if (!DataTypeValueRecord.isConstructed(value)) {
+    throw new InternalError(
+      `${holder} takes only values of ${type}, and was handed an object no data type constructed.`,
+    );
+  }
+  if (value.type !== type) {
+    throw new InternalError(
+      `${holder} takes only values of ${type}, and was handed a value of ${value.type}.`,
+    );
+  }
+  return value;
 }
 
 /** The parameters in `typeParams` that `type` declares; keys a codec keeps for itself are dropped. */
