@@ -29,6 +29,7 @@ export {
   type SqlColumnDefaultIRInput,
 } from './ir/sql-column-default-ir';
 export {
+  type ReportedSqlType,
   type SqlAnnotations,
   SqlColumnIR,
   type SqlColumnIRInput,

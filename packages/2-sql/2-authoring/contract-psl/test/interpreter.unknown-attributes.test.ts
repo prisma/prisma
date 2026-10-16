@@ -39,7 +39,7 @@ const everyRegisteredAttribute = `
 model User {
   id     Int    @id @default(autoincrement())
   email  String @unique @map("email_address")
-  tags   String[] @noCheck
+  tags   String[]
   posts  Post[]
 
   @@map("users")

@@ -1,7 +1,6 @@
 import type { DataType } from '@internal/framework-components/codec';
 import {
   isSqlDataType,
-  type ReportedSqlType,
   renderSqlCatalogText,
   renderSqlTypeName,
   resolveReportedSqlType,
@@ -9,6 +8,7 @@ import {
   type SqlTypeParams,
   sqlBaseName,
 } from '@internal/sql-contract/data-type';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import {
@@ -322,6 +322,14 @@ describe('resolveReportedSqlType over the Postgres declarations', () => {
     ['timestamptz(3)'],
   ])('does not claim %s, which is only ever written', (text) => {
     expect(resolve(text)).toBeUndefined();
+  });
+
+  it('claims a negative numeric scale, as Postgres reports it', () => {
+    expect(resolve('numeric(10,-2)')).toEqual({
+      dataType: 'pg/numeric',
+      typeParams: { precision: 10, scale: -2 },
+    });
+    expect(resolve('numeric(-10,2)')).toBeUndefined();
   });
 
   it.each([['"char"'], ['bpchar'], ['interval year to month'], ['text[]']])(

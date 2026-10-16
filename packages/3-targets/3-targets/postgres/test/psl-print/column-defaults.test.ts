@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import {
   attributeText,
   type ColumnShape,
-  fieldText,
   INT_COLUMN,
   oneModel,
   TEXT_COLUMN,
@@ -95,18 +94,5 @@ describe('list columns', () => {
       elementOptional: true,
       attributes: [],
     });
-  });
-  it('prints a waived element-not-null check as @noCheck(elementNotNull)', () => {
-    const model = oneModel(
-      {
-        id: INT_COLUMN,
-        tags: { ...TEXT_COLUMN, many: { elementNullable: false }, noCheck: ['elementNotNull'] },
-      },
-      { id: { column: 'id' }, tags: { column: 'tags' } },
-    );
-    expect(model?.fields.map(fieldText)).toEqual([
-      'id Int @id',
-      'tags String[] @noCheck(elementNotNull)',
-    ]);
   });
 });

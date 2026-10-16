@@ -100,7 +100,6 @@ model Task {
   id         Int        @id
   priority   Priority
   priorities Priority[]
-  waived     Priority   @noCheck(membership)
   preset     Priority   @default(Low)
 }
 `,

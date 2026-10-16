@@ -14,7 +14,6 @@ import type {
   SqlNamespaceBase,
   SqlNamespaceInput,
 } from '@internal/sql-contract/types';
-import type { CheckKind } from '@internal/sql-schema-ir/naming';
 import type { EnumTypeHandle } from './enum-type';
 
 export type { ExecutionMutationDefaultPhases };
@@ -81,13 +80,6 @@ export interface ColumnNode {
   readonly many?: boolean;
   readonly elementNullable?: boolean;
   readonly default?: AuthoredColumnDefault;
-  /**
-   * Generated-check kinds the author declined for this column. The PSL
-   * interpreter always writes concrete kinds; the TS builder's bare
-   * `noCheck()` arrives as `[]` and is resolved to the column shape's
-   * derivable kinds at contract build time.
-   */
-  readonly noCheck?: readonly CheckKind[];
   /** Present when the column is typed by an `enumType()` enum, which gives it the enum's storage value set and a membership check. */
   readonly enumTypeHandle?: EnumTypeHandle;
 }

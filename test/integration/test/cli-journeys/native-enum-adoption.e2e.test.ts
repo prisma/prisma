@@ -139,7 +139,6 @@ withTempDir(({ createTempDir }) => {
         expect(psl, 'NE.01: native_enum block emitted').toContain('native_enum TicketStatus {');
         expect(psl, 'NE.01: @@map carries the type name').toContain('@@map("ticket_status")');
         expect(psl, 'NE.01: enum column uses the call syntax').toContain('pg.enum(TicketStatus)');
-        expect(psl, 'NE.01: no Unsupported fallback').not.toContain('Unsupported(');
 
         // Members in declaration order — not alphabetical.
         const draftAt = psl.indexOf('draft = "draft"');

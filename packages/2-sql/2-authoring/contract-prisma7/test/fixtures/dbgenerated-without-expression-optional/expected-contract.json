@@ -45,7 +45,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               }
             },
@@ -66,7 +66,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "6171282e61d9408ab97d1b82f948ea1b9047c242e151feffb13a703d2346f7e4",
+    "storageHash": "60eaaefc1765e512dfb145b9cd15b6a2c42dfd3409262d06d1a0d0335bfada6c",
     "namespaces": {
       "public": {
         "id": "public",
@@ -92,9 +92,8 @@
                   "codecId": "pg/text@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 }
               },
               "uniques": [],

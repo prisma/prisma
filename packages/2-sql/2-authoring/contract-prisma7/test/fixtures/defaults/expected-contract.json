@@ -199,7 +199,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "intList": {
@@ -209,7 +209,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "enumMember": {
@@ -233,7 +233,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               }
             },
@@ -254,7 +254,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "e665381cf5ccf0f80798e6578db5e7443f72fe630b01178f91fee7c108e3161b",
+    "storageHash": "bc8d8d9a1dfe065b5f9f3ba306791c2915b6f337f4285a611e1296d1ff4c341a",
     "namespaces": {
       "public": {
         "id": "public",
@@ -423,9 +423,8 @@
                   "codecId": "pg/text@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "literal",
                     "value": ["a", "b"]
@@ -436,9 +435,8 @@
                   "codecId": "pg/int4@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "literal",
                     "value": [1, 2]
@@ -468,9 +466,8 @@
                   "codecId": "pg/enum@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "typeName": "user_role"
                   },

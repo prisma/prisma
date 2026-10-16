@@ -42,7 +42,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "b3b2a67eb2a307da2b785c1cad12af27905169e1dc62e481d5c8d7b78faee4df",
+    "storageHash": "8e7bd87d3410fa8c14b9861bc31aaa1f572c78a30e045d315c3c436fd5b90f94",
     "namespaces": {
       "public": {
         "id": "public",
@@ -115,9 +115,8 @@
                   "codecId": "pg/text@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
-                  },
-                  "noCheck": ["elementNotNull"]
+                    "elementNullable": true
+                  }
                 },
                 "day": {
                   "dataType": "pg/date",

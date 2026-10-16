@@ -76,6 +76,31 @@ describe('SqliteControlAdapter.introspect', () => {
     await driver.close();
   });
 
+  it('reports each column type as PRAGMA table_info gives it', async () => {
+    const driver = createMemoryDriver();
+    driver.db.exec('CREATE TABLE t (id INTEGER, label VARCHAR(20), price Decimal(10, 2))');
+    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const schema = await adapter.introspect(driver);
+    const columns = schema.tables['t']!.columns;
+
+    const reported = (text: string) => ({
+      text,
+      kind: undefined,
+      schema: undefined,
+      name: undefined,
+    });
+    expect({
+      id: columns['id']!.reportedType,
+      label: columns['label']!.reportedType,
+      price: columns['price']!.reportedType,
+    }).toEqual({
+      id: reported('INTEGER'),
+      label: reported('VARCHAR(20)'),
+      price: reported('Decimal(10, 2)'),
+    });
+    await driver.close();
+  });
+
   it('introspects foreign keys', async () => {
     const driver = createMemoryDriver();
     driver.db.exec('CREATE TABLE authors (id INTEGER PRIMARY KEY)');

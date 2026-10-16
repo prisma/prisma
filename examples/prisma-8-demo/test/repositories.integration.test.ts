@@ -18,6 +18,7 @@ import { ownedBy } from '../src/orm-client/fragments';
 import { ormClientGetAdminUsers } from '../src/orm-client/get-admin-users';
 import { ormClientGetDashboardUsers } from '../src/orm-client/get-dashboard-users';
 import { ormClientGetFeatureRoadmap } from '../src/orm-client/get-feature-roadmap';
+import { ormClientGetFilteredPosts } from '../src/orm-client/get-filtered-posts';
 import { ormClientGetLatestUserPerKind } from '../src/orm-client/get-latest-user-per-kind';
 import { ormClientGetPostFeed } from '../src/orm-client/get-post-feed';
 import { ormClientGetRecentPosts } from '../src/orm-client/get-recent-posts';
@@ -673,6 +674,72 @@ describe('ORM client integration examples', () => {
             code: 'ORM.ARGUMENT_INVALID',
             message: 'Cannot order Post by "embedding"',
           });
+        } finally {
+          await runtime.close();
+        }
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
+    'ormClientGetFilteredPosts applies each filter only when the input names it',
+    async () => {
+      await withDevDatabase(async ({ connectionString }) => {
+        await initTestDatabase({ connection: connectionString, contract });
+        const runtime = await getRuntime(connectionString);
+
+        try {
+          await seedOrmClientData(runtime);
+          await tagAdminDeepDive(runtime);
+          const listIds = async (input: Parameters<typeof ormClientGetFilteredPosts>[0]) =>
+            (await ormClientGetFilteredPosts(input, 10, runtime)).map((post) => post.id);
+
+          const byAuthor = await ormClientGetFilteredPosts(
+            { userId: seededUserIds.adminTwo },
+            10,
+            runtime,
+          );
+          expect(
+            byAuthor.map((post) => ({ ...post, createdAt: post.createdAt.toString() })),
+          ).toEqual([
+            {
+              id: seededPostIds.adminZebra,
+              title: 'Zebra post note',
+              createdAt: '2024-01-05T10:00:00Z',
+              tags: [],
+            },
+            {
+              id: seededPostIds.adminDeepDive,
+              title: 'Admin deep dive post',
+              createdAt: '2024-01-04T10:00:00Z',
+              tags: [seededTag],
+            },
+          ]);
+
+          expect(await listIds({})).toEqual([
+            seededPostIds.adminZebra,
+            seededPostIds.adminDeepDive,
+            seededPostIds.memberNote,
+            seededPostIds.newer,
+            seededPostIds.older,
+          ]);
+          expect(
+            await listIds({ before: Temporal.Instant.from('2024-01-03T00:00:00.000Z') }),
+          ).toEqual([seededPostIds.newer, seededPostIds.older]);
+          expect(
+            await listIds({
+              userId: seededUserIds.admin,
+              before: Temporal.Instant.from('2024-01-02T00:00:00.000Z'),
+            }),
+          ).toEqual([seededPostIds.older]);
+          expect(
+            await listIds({ before: Temporal.Instant.from('2024-01-02T10:00:00.000Z') }),
+          ).toEqual([seededPostIds.older]);
+          expect((await ormClientGetFilteredPosts({}, 2, runtime)).map((post) => post.id)).toEqual([
+            seededPostIds.adminZebra,
+            seededPostIds.adminDeepDive,
+          ]);
         } finally {
           await runtime.close();
         }
