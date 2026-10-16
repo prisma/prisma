@@ -61,7 +61,7 @@ The PostgreSQL temporal codecs pair a `Temporal`-valued codec with a raw-text on
 
 The same three artifacts express the full spectrum: non-parameterized, parameterized with literal preservation, and parameterized with a typed schema.
 
-Case 1 carries the full framework import block; Cases 2 and 3 continue from it and list only the imports each one adds. All three elide the pack's own internals — `Vector` / `parseVector` in Case 2, `ArktypeSchemaLike` / `rehydrateSchema` / `validateSchema` in Case 3 — so read them as descriptor shape rather than as complete files.
+Case 1 carries the full framework import block; Cases 2 and 3 continue from it and list only the imports each one adds. All three leave out the pack's own helpers, which a real file declares beside them: `parseVector` and the `./data-types` module in Case 2; `ArktypeSchemaLike`, `rehydrateSchema`, `validateSchema`, `serializeWire`, `serializeJson` and `decodeWireValue` in Case 3.
 
 ### Case 1 — Non-parameterized codec (`pg/text@1`)
 
@@ -78,7 +78,7 @@ import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
 import { PostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 import { pgText } from '@internal/target-postgres/data-types';
 
-class PgTextCodec extends CodecImpl<
+export class PgTextCodec extends CodecImpl<
   'pg/text@1',
   readonly ['equality', 'order', 'textual'],
   string,
@@ -90,7 +90,7 @@ class PgTextCodec extends CodecImpl<
   toDataTypeValue(input: string) { return this.dataTypeValueOf(input); }
 }
 
-class PgTextDescriptor extends PostgresCodecDescriptor<void> {
+export class PgTextDescriptor extends PostgresCodecDescriptor<void> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
@@ -106,8 +106,7 @@ class PgTextDescriptor extends PostgresCodecDescriptor<void> {
 
 export const pgTextDescriptor = new PgTextDescriptor();
 
-export const text = () =>
-  column(pgTextDescriptor.factory(), pgTextDescriptor.codecId, undefined, 'text');
+export const text = () => column(pgTextDescriptor.factory(), pgTextDescriptor.codecId, undefined);
 text satisfies ColumnHelperFor<PgTextDescriptor>;
 ```
 
@@ -116,61 +115,56 @@ text satisfies ColumnHelperFor<PgTextDescriptor>;
 ### Case 2 — Parameterized codec with literal preservation (`pg/vector@1`)
 
 ```ts
+import { CastExpr } from '@internal/sql-relational-core/ast';
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { pgvectorVector, pgvectorVectorParams } from './data-types';
 
-class VectorCodec<N extends number> extends CodecImpl<
-  'pg/vector@1',
-  readonly ['equality'],
-  string,
-  Vector<N>
-> {
-  constructor(descriptor: PgVectorDescriptor, readonly dimension: N) {
-    super(descriptor, pgvectorVector, { length: dimension });
+type VectorParams = { readonly length: number };
+
+export class PgVectorCodec extends CodecImpl<'pg/vector@1', readonly ['equality'], string, number[]> {
+  constructor(
+    descriptor: PgVectorDescriptor,
+    readonly length: number,
+  ) {
+    super(descriptor, pgvectorVector, { length });
   }
-  async toWire(value: Vector<N>, _ctx: CodecCallContext) {
+  async toWire(value: number[], _ctx: CodecCallContext) {
     return `[${value.join(',')}]`;
   }
   async fromWire(wire: string, _ctx: CodecCallContext) {
-    return parseVector(wire) as Vector<N>;
+    return parseVector(wire);
   }
   fromDataTypeValue(value: DataTypeValue<readonly number[]>) {
-    return [...value.value] as Vector<N>;
+    return [...value.value];
   }
-  toDataTypeValue(input: Vector<N>) {
+  toDataTypeValue(input: number[]) {
     return this.dataTypeValueOf([...input]);
   }
 }
 
-class PgVectorDescriptor extends PostgresCodecDescriptor<{ readonly length: number }> {
+export class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return CastExpr.as(expression, 'text');
   }
   override readonly dataType = pgvectorVector.id;
   override readonly codecId = 'pg/vector@1' as const;
   override readonly traits = ['equality'] as const;
-  override readonly paramsSchema = pgvectorVectorParams;
-  override factory<N extends number>(
-    params: { readonly length: N },
-  ): (ctx: CodecInstanceContext) => VectorCodec<N> {
-    return (ctx) => new VectorCodec<N>(this, params.length);
+  override readonly paramsSchema: StandardSchemaV1<VectorParams> = pgvectorVectorParams;
+  override factory(params: VectorParams): (ctx: CodecInstanceContext) => PgVectorCodec {
+    return () => new PgVectorCodec(this, params.length);
   }
 }
 
 export const pgVectorDescriptor = new PgVectorDescriptor();
 
 export const vector = <N extends number>(length: N) =>
-  column(
-    pgVectorDescriptor.factory({ length }),
-    pgVectorDescriptor.codecId,
-    { length },
-    'vector',
-  );
+  column(pgVectorDescriptor.factory({ length }), pgVectorDescriptor.codecId, { length });
 vector satisfies ColumnHelperFor<PgVectorDescriptor>;
 ```
 
-The params schema is the `pgvector/vector` data type's own `params`, referenced rather than restated, so the bound on `length` is written once — see [Declaring a data type](#declaring-a-data-type). The data type's `read` refuses a stored vector of another length, so `fromDataTypeValue` only copies the array. The projection writes the text PostgreSQL prints for the vector, which `fromWire` reads as it reads a row. The class-level params type is `{ readonly length: number }` (widest bound). The **method-level generic** `<N extends number>` on `factory` is what preserves the literal at the call site: when `vector(1536)` calls `pgVectorDescriptor.factory({ length: 1536 })` *directly*, TypeScript binds `N=1536`. The literal flows through `column(...)`'s generics into the column spec, into the contract type, and into `contract.d.ts`.
+The params schema is the `pgvector/vector` data type's own `params`, referenced rather than restated, so the bound on `length` is written once — see [Declaring a data type](#declaring-a-data-type). The data type's `read` refuses a stored vector of another length, so `fromDataTypeValue` only copies the array. The projection writes the text PostgreSQL prints for the vector, which `fromWire` reads as it reads a row. The codec and its factory work with `number[]` and `{ readonly length: number }` for every length; the codec checks the length it is built with in its wire methods. The literal length lives in the column helper: `vector` is generic over `N extends number`, so `vector(1536)` binds `N = 1536` at the call site, and the literal flows through `column(...)`'s `typeParams` into the column spec, the contract type and `contract.d.ts` as `{ length: 1536 }`. The column's application type, `Vector<1536>`, comes from that literal through the pack's type map, described next.
 
-This is the **load-bearing variance pattern**: method generics on the descriptor's factory are preserved by direct invocation inside the per-codec helper, not by structural extraction at a polymorphic helper. A polymorphic `column<P, R>(descriptor, params)` helper that tried to extract `R` from the descriptor's `factory` would lose the literal — TypeScript instantiates method generics to their constraint at every form of structural extraction (structural match, indexed access, `Parameters` / `ReturnType`, etc.).
+Keep the generic on the per-codec helper and call `column(...)` with the descriptor's factory directly. A polymorphic helper that tried to read the literal from the descriptor's `factory` would lose it, because TypeScript instantiates a method's generics to their constraint whenever a type is extracted from it (structural match, indexed access, `Parameters` / `ReturnType`).
 
 #### The output type of a column with type parameters
 
@@ -202,11 +196,15 @@ A codec the map leaves out, or maps to `never` for some parameters, keeps its pl
 The schema's TypeScript-level inferred type `S['infer']` is only available at the column-author site (where the user passes their typed schema), not at the descriptor's factory site (where only the serialized IR is available). This drives a slightly richer shape than Case 2:
 
 ```ts
-import { type } from 'arktype';
+import type { ColumnSpec } from '@internal/framework-components/codec';
+import { CastExpr } from '@internal/sql-relational-core/ast';
+import { pgJsonb } from '@internal/target-postgres/data-types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
-import { arktypeJson } from './data-types';
+import { type Type, type } from 'arktype';
 
-class ArktypeJsonCodecClass<TInferred> extends CodecImpl<
+type ArktypeJsonTypeParams = { readonly expression: string; readonly jsonIr: object };
+
+export class ArktypeJsonCodecClass<TInferred> extends CodecImpl<
   'arktype/json@1',
   readonly ['equality'],
   string,
@@ -217,10 +215,10 @@ class ArktypeJsonCodecClass<TInferred> extends CodecImpl<
     private readonly schema: ArktypeSchemaLike,
   ) { super(descriptor, pgJsonb); }
   async toWire(value: TInferred, _ctx: CodecCallContext) {
-    return serializeToJsonSafe(this.schema, value).wire;
+    return serializeWire(value);
   }
   async fromWire(wire: string, _ctx: CodecCallContext) {
-    return validateSchema<TInferred>(this.schema, JSON.parse(wire));
+    return decodeWireValue<TInferred>(this.schema, wire);
   }
   fromDataTypeValue(value: DataTypeValue) {
     return validateSchema<TInferred>(this.schema, value.value);
@@ -230,7 +228,7 @@ class ArktypeJsonCodecClass<TInferred> extends CodecImpl<
   }
 }
 
-class ArktypeJsonDescriptor extends PostgresCodecDescriptor<ArktypeJsonTypeParams> {
+export class ArktypeJsonDescriptor extends PostgresCodecDescriptor<ArktypeJsonTypeParams> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return CastExpr.as(expression, 'text');
   }
@@ -258,10 +256,10 @@ export function arktypeJsonColumn<S extends Type<unknown>>(
   // Eager serialization captures `expression` (emit-path) and `jsonIr` (runtime rehydration) at the column-author site.
   const params: ArktypeJsonTypeParams = { expression: schema.expression, jsonIr: schema.json };
   return column(
-    (_ctx) => new ArktypeJsonCodecClass<S['infer']>(arktypeJsonDescriptor, schema),
+    (_ctx: CodecInstanceContext) =>
+      new ArktypeJsonCodecClass<S['infer']>(arktypeJsonDescriptor, schema),
     arktypeJsonDescriptor.codecId,
     params,
-    'jsonb',
   );
 }
 arktypeJsonColumn satisfies ColumnHelperFor<ArktypeJsonDescriptor>;
@@ -281,28 +279,12 @@ A SQL extension binds each codec descriptor to the target that owns its native s
 
 ### PostgreSQL
 
-Subclass `PostgresCodecDescriptor<P>` when the codec itself is PostgreSQL-bound. Keep all ordinary descriptor members from the generic authoring model, and add the protected JSON projection hook:
+Subclass `PostgresCodecDescriptor<P>` when the codec itself is PostgreSQL-bound. Keep all ordinary descriptor members from the generic authoring model, and add the protected JSON projection hook, as `PgVectorDescriptor` in [Case 2](#case-2--parameterized-codec-with-literal-preservation-pgvector1) does. Collect the pack's descriptors with `definePostgresCodecs`:
 
 ```ts
-import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
-import {
-  definePostgresCodecs,
-  PostgresCodecDescriptor,
-} from '@internal/target-postgres/codec-descriptor';
+import { definePostgresCodecs } from '@internal/target-postgres/codec-descriptor';
+import { pgVectorDescriptor } from './codecs';
 
-class PgVectorDescriptor extends PostgresCodecDescriptor<VectorParams> {
-  protected override jsonProjection(
-    expression: ProjectionExpr,
-    _params: VectorParams,
-  ): ProjectionExpr {
-    return expression;
-  }
-
-  // dataType, codecId, traits, paramsSchema and factory
-  // stay on the ordinary descriptor.
-}
-
-export const pgVectorDescriptor = new PgVectorDescriptor();
 export const codecDescriptors = definePostgresCodecs([pgVectorDescriptor]);
 ```
 
@@ -313,58 +295,64 @@ The public `projectJson(expression, ref)` method validates parameters and dispat
 Adapt a reusable generic descriptor with `postgresCodec(...)` instead of subclassing it solely to add target behavior:
 
 ```ts
-import { sqlIntDescriptor } from '@internal/sql-relational-core/ast';
+import { SqlIntCodec, sqlIntDescriptor } from '@internal/sql-relational-core/ast';
 import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
 import { pgInt4 } from '@internal/target-postgres/data-types';
 
 const postgresSqlIntDescriptor = postgresCodec(sqlIntDescriptor, {
   dataType: pgInt4,
   jsonProjection: (expression) => expression,
+  factory: (descriptor, dataType) => () => new SqlIntCodec(descriptor, dataType),
 });
 ```
 
-The adapter delegates the wrapped descriptor's codec id, literals, factory and renderers. Its parameter schema is the data type's `params`, not the wrapped descriptor's, so a parameter's bound is declared once, on the data type. It adds the PostgreSQL discriminant and target methods without changing codec materialization.
+The adapter delegates the wrapped descriptor's codec id, traits, literals and renderers, and builds codecs with the `factory` it is given, which receives the adapted descriptor, the data type and the column's parameters. A template's own factory builds no codec, because it names no data type. A target may pass a subclass of the family codec with its own wire rules, as PostgreSQL does for `int4`. The adapter's parameter schema is the data type's `params`, not the wrapped descriptor's, so a parameter's bound is declared once, on the data type. It adds the PostgreSQL discriminant and target methods.
 
 ### SQLite
 
 Subclass `SqliteCodecDescriptor<P>` for a SQLite-bound codec and implement the scalar projection hook. SQLite has no stored scalar-array descriptor protocol; `projectJson()` rejects `CodecRef.many` rather than guessing a storage representation.
 
 ```ts
-import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
+import type { CodecInstanceContext } from '@internal/framework-components/codec';
+import { type ProjectionExpr, SqlTextCodec } from '@internal/sql-relational-core/ast';
 import {
   defineSqliteCodecs,
   SqliteCodecDescriptor,
 } from '@internal/target-sqlite/codec-descriptor';
+import { sqliteText } from '@internal/target-sqlite/data-types';
 
-class SqliteTextDescriptor extends SqliteCodecDescriptor<void> {
-  protected override jsonProjection(
-    expression: ProjectionExpr,
-    _params: void,
-  ): ProjectionExpr {
+export class SqliteNoteDescriptor extends SqliteCodecDescriptor<void> {
+  protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
     return expression;
   }
-
-  // Keep the ordinary descriptor members unchanged.
+  override readonly dataType = sqliteText.id;
+  override readonly codecId = 'acme/note@1' as const;
+  override readonly traits = ['equality', 'order', 'textual'] as const;
+  override readonly paramsSchema = undefined;
+  override factory(): (ctx: CodecInstanceContext) => SqlTextCodec {
+    return () => new SqlTextCodec(this, sqliteText);
+  }
 }
 
-export const sqliteTextDescriptor = new SqliteTextDescriptor();
-export const codecDescriptors = defineSqliteCodecs([sqliteTextDescriptor]);
+export const sqliteNoteDescriptor = new SqliteNoteDescriptor();
+export const codecDescriptors = defineSqliteCodecs([sqliteNoteDescriptor]);
 ```
 
 Generic SQL descriptors are adapted explicitly with `sqliteCodec(...)`:
 
 ```ts
-import { sqlIntDescriptor } from '@internal/sql-relational-core/ast';
+import { CastExpr, SqlIntCodec, sqlIntDescriptor } from '@internal/sql-relational-core/ast';
 import { sqliteCodec } from '@internal/target-sqlite/codec-descriptor';
 import { sqliteInteger } from '@internal/target-sqlite/data-types';
 
 const sqliteSqlIntDescriptor = sqliteCodec(sqlIntDescriptor, {
   dataType: sqliteInteger,
-  jsonProjection: (expression) => expression,
+  jsonProjection: (expression) => CastExpr.as(expression, 'TEXT'),
+  factory: (descriptor, dataType) => () => new SqlIntCodec(descriptor, dataType),
 });
 ```
 
-As with `postgresCodec(...)`, the adapted codec's parameter schema is the data type's `params`.
+As with `postgresCodec(...)`, the adapter builds codecs with the `factory` it is given, and the adapted codec's parameter schema is the data type's `params`. SQLite projects an integer as decimal text, so `fromWire` reads a 64-bit value without rounding it.
 
 ### Target-typed tuples and structural validation
 
@@ -377,13 +365,14 @@ Adapter composition validates erased contributions structurally through `buildPo
 Contribute one canonical target-typed descriptor set through the existing target-neutral stack metadata, beside the data types those descriptors represent. Runtime and control descriptors for the same extension must expose the same sets; when the runtime SPI also requires `codecs()`, return that canonical descriptor set there as well.
 
 ```ts
-const codecDescriptors = definePostgresCodecs([
-  pgVectorDescriptor,
-  postgisGeometryDescriptor,
-]);
+import { definePostgresCodecs } from '@internal/target-postgres/codec-descriptor';
+import { pgVectorDescriptor } from './codecs';
+import { pgvectorDataTypes } from './data-types';
+
+const codecDescriptors = definePostgresCodecs([pgVectorDescriptor]);
 
 const codecTypes = { codecDescriptors };
-const dataTypes = [...pgvectorDataTypes, ...postgisDataTypes];
+const dataTypes = pgvectorDataTypes;
 
 export const runtimeExtension = {
   dataTypes,
@@ -404,6 +393,9 @@ Runtime and control stacks may assemble through different framework paths, but e
 ```ts
 import { createPostgresAdapter } from '@internal/adapter-postgres/adapter';
 import { createSqliteAdapter } from '@internal/adapter-sqlite/adapter';
+import { codecDescriptors as postgresExtensionCodecs } from './codecs';
+import { pgvectorDataTypes as postgresExtensionDataTypes } from './data-types';
+import { codecDescriptors as sqliteExtensionCodecs } from './sqlite-codecs';
 
 const postgresAdapter = createPostgresAdapter({
   codecDescriptors: postgresExtensionCodecs,
@@ -455,11 +447,16 @@ A stored value in another form is refused with `RUNTIME.DECODE_FAILED` when the 
 A Mongo codec is built with `mongoCodec({ typeId, dataType, toWire, fromWire, toDataTypeValue, fromDataTypeValue })`. `toDataTypeValue` returns the value's JSON, and the factory constructs the value through the data type. Both value functions may be left out when the application type is exactly `JsonValue`; `toDataTypeValue` may be left out for a narrower JSON type such as `string`; a codec whose application type is not JSON writes both:
 
 ```ts
+import type { DataTypeValue } from '@internal/framework-components/codec';
+import { mongoCodec } from '@internal/mongo-codec';
+import { MONGO_STRING_CODEC_ID } from '@internal/target-mongo/codec-ids';
+import { mongoString } from '@internal/target-mongo/data-types';
+
 export const mongoStringCodec = mongoCodec({
   typeId: MONGO_STRING_CODEC_ID,
   dataType: mongoString,
   fromWire: (wire: string) => wire,
-  toWire: (value: string) => stringEncode(MONGO_STRING_CODEC_ID, value),
+  toWire: (value: string) => value,
   fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
 });
 ```
@@ -478,13 +475,7 @@ The JSON forms of `int64`, `decimal128` and `binary` match the Postgres `int8`, 
 
 Every codec descriptor names the data type it is one representation of. A data type is a stored type made first-class — `pg/int8`, `sqlite/text`, `pgvector/vector` — owned by the pack that registers it. It reads and constructs every value of the type, in the one JSON form `contract.json` stores, and it declares the casts that say which other types' values it takes. `dataType` is abstract on `CodecDescriptorImpl` and on the target-owned bases, so a descriptor that names no data type does not compile, and one that names a type no pack in the assembled stack registers is an assembly error.
 
-```ts
-export class PgTextDescriptor extends PostgresCodecDescriptor<void> {
-  override readonly dataType = pgText.id;
-  override readonly codecId = PG_TEXT_CODEC_ID;
-  // …
-}
-```
+`PgTextDescriptor` in [Case 1](#case-1--non-parameterized-codec-pgtext1) names `pgText` this way: `override readonly dataType = pgText.id`.
 
 Several codecs may represent one type. `pg/int8@1` and `pg/int8number@1` both name `pg/int8`; they differ in the value they produce in memory, a `bigint` and a `number`, and both convert the digit text that type stores. The type reads the stored value; the codec converts it with `fromDataTypeValue` and hands an application value back with `toDataTypeValue`. A codec has no method for PSL and never sees PSL text.
 
@@ -499,6 +490,7 @@ An extension's codec does the same. `arktype/json@1` stores a `jsonb` column and
 A SQL data type is declared with `sqlDataType(id, spec)` from `@internal/sql-contract/data-type`. It takes the same `params`, `casts` and `listCast`, and adds how the database writes and reports the type. Migrations, schema verification and PostgreSQL's parameter casts all read the type's name from this declaration, and from nowhere else. In a SQL stack every codec must represent a type declared with `sqlDataType`, because a codec is how a column stores its values; the SQL family refuses a codec that represents a type declared with plain `dataType` when it creates its control instance (item 9 under [Checks on the assembled stack](#checks-on-the-assembled-stack)). The SQL family's own `sql/expression` is such a plain type: it is the type of a written SQL expression, and no codec or column has it. A Mongo data type is declared with `mongoDataType(id, { bsonTypes })` instead; see [Target-owned Mongo codecs](#target-owned-mongo-codecs).
 
 ```ts
+import { readJsonInteger } from '@internal/framework-components/codec';
 import { sqlDataType } from '@internal/sql-contract/data-type';
 
 export const pgInt2 = sqlDataType('pg/int2', {
@@ -515,7 +507,7 @@ export const pgInt4 = sqlDataType('pg/int4', {
     { text: 'integer', catalog: true },
     { text: 'int' },
   ],
-  read: (json) => readJsonInteger('pg/int4', json, INT32_RANGE),
+  read: (json) => readJsonInteger('pg/int4', json, { min: -2147483648, max: 2147483647 }),
   casts: { [pgInt2.id]: (value) => value },
 });
 ```
@@ -528,7 +520,13 @@ Each entry of `texts` is one way the type is written or reported, in lower case 
 - A text marked only `written` is never used to recognise a type the database reports.
 - `display` gives the exact characters to write and print when they differ from `text` in letter case only.
 
+`readGeometry`, declared beside the type in the postgis extension, reads HEXEWKB text and refuses a geometry in another SRID than the column's:
+
 ```ts
+import { sqlDataType } from '@internal/sql-contract/data-type';
+import { pgText } from '@internal/target-postgres/data-types';
+import { type as arktype } from 'arktype';
+
 export const postgisGeometryParams = arktype({ 'srid?': 'number.integer >= 1' });
 
 export const postgisGeometry = sqlDataType('postgis/geometry', {
@@ -554,6 +552,9 @@ export const postgisGeometry = sqlDataType('postgis/geometry', {
 `params` is an arktype object schema of the type's parameters, and it is the only place a parameter's bound is written. A placeholder `{name}` in a text stands for the parameter `name` and matches a whole number, with a leading minus when the parameter's schema allows a negative one (`numeric(10,-2)`). To write a column's type, the declaration picks the `written` text whose placeholders are exactly the parameters the column has, so one type can be written several ways:
 
 ```ts
+import { sqlDataType } from '@internal/sql-contract/data-type';
+import { type as arktype } from 'arktype';
+
 export const pgNumericParams = arktype({
   'precision?': 'number.integer >= 1 & number.integer <= 1000',
   'scale?': 'number.integer >= -1000 & number.integer <= 1000',
@@ -583,21 +584,15 @@ export const pgNumeric = sqlDataType('pg/numeric', {
 
 `readNumeric` refuses a value `numeric(10,2)` would round, and `spellNumeric` writes the value with exactly the scale's fraction digits, as PostgreSQL prints it. A column with `{ precision: 10 }` is written `numeric(10)`, and one with `{ precision: 10, scale: 2 }` is written `numeric(10,2)`. Parameters that fail the schema, or that no `written` text takes, are refused with `CONTRACT.TYPE_PARAMS_INVALID`. A placeholder is written only with an integer value; any other value is refused with the same code, so a parameter can never write other SQL into a migration. `normalize` returns the normal form of a type's parameters, so that two ways of writing the same database type compare equal: PostgreSQL reports `numeric(10)` as `numeric(10,0)`. A type without `normalize` keeps its parameters as they are. Schema verification writes the contract's side with the normal form, so every normal form needs a `written` text with exactly its parameters, and `sqlDataType` refuses a declaration whose `normalize` gives parameters that no `written` text takes.
 
-A codec's `paramsSchema` is its data type's `params`, referenced and never restated, so a bound has one home:
-
-```ts
-export class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
-  override readonly dataType = pgChar.id;
-  override readonly paramsSchema = pgCharacterLengthParams satisfies StandardSchemaV1<LengthParams>;
-  // …
-}
-```
+A codec's `paramsSchema` is its data type's `params`, referenced and never restated, so a bound has one home, as `PgCharDescriptor` sets `paramsSchema = pgCharacterLengthParams` (see [Reusing generic SQL descriptors in PostgreSQL](#reusing-generic-sql-descriptors-in-postgresql)).
 
 A codec with parameters of its own sets `paramsSchema` to `dataType.params.and(ownKeys)`, or to its own keys alone when the data type declares no `params`, as `arktype/json@1` does. `postgresCodec(...)` and `sqliteCodec(...)` take the adapted codec's params schema from the data type they are given.
 
 A type constructor maps its arguments onto the parameters and names only the codec; the data type follows from the codec. An argument that becomes a data type parameter carries no `minimum` or `maximum`, because the parameter's schema checks it. `inferred: true` marks the constructor written for a column of the data type when no schema names one: `contract infer` writes it, and the Prisma 7 reader will. `contract print` writes it when it produces the column's codec, and otherwise the first constructor in the stack that does, so a `timestamptz` column with the `Temporal` codec prints `DateTime`. It is called with the fewest arguments that give the column's parameters in normal form, so a `numeric(10,0)` column is written `Numeric(10)`. At most one constructor per data type carries the mark. A data type with no marked constructor, such as `pg/tsquery`, is still recognised, but `contract infer` cannot write a column of it and fails with `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED`.
 
 ```ts
+import type { AuthoringTypeNamespace } from '@internal/framework-components/authoring';
+
 export const pgvectorAuthoringTypes = {
   pgvector: {
     Vector: {
@@ -620,8 +615,12 @@ export const pgvectorAuthoringTypes = {
 A PostgreSQL enum type has no fixed name, so `pg/enum` declares no texts. It claims the kind of type instead, and says how to write a name from its parameters and how to read the parameters of a type the database reports:
 
 ```ts
+import { readJsonString } from '@internal/framework-components/codec';
+import { sqlDataType } from '@internal/sql-contract/data-type';
+
 export const pgEnum = sqlDataType('pg/enum', {
   params: pgEnumParams,
+  read: (json) => readJsonString('pg/enum', json),
   claimsKind: 'enum',
   render: ({ typeName }) => {
     const dot = typeName.indexOf('.');
@@ -633,7 +632,7 @@ export const pgEnum = sqlDataType('pg/enum', {
 });
 ```
 
-`render` and `fromReported` are allowed only with `claimsKind`, and a type with `claimsKind` declares no `texts`. A migration writes what `render` returns without further checks, so `render` must quote every parameter value it writes, as `pg/enum` does with `quoteIdentifier`.
+`pgEnumParams`, `quoteIdentifier` and `qualifiedEnumName` are the Postgres target's own. `render` and `fromReported` are allowed only with `claimsKind`, and a type with `claimsKind` declares no `texts`. A migration writes what `render` returns without further checks, so `render` must quote every parameter value it writes, as `pg/enum` does with `quoteIdentifier`.
 
 #### Casts
 
@@ -647,6 +646,9 @@ const asNumeralText: Cast = (value) =>
 There is no list data type. A written list on a list column is checked element by element against the column's own type. A type whose single value holds several elements takes a written list through `listCast` instead: `of` is the element types it takes, and `cast` receives their stored forms in written order.
 
 ```ts
+import { sqlDataType } from '@internal/sql-contract/data-type';
+import { pgInt2, pgInt4, pgInt8, pgNumeric } from '@internal/target-postgres/data-types';
+
 export const pgvectorVector = sqlDataType('pgvector/vector', {
   params: pgvectorVectorParams,
   texts: [{ text: 'vector({length})', written: true, catalog: true }],
@@ -762,7 +764,7 @@ export class SqlTextDescriptor extends CodecDescriptorTemplateImpl<void> {
 The template's own factory refuses to build a codec, because a codec is built with its data type and the template names none. The target names the type when it adapts the template, alongside the JSON projection and a factory that builds the codec with that type:
 
 ```ts
-import { sqlTextDescriptor } from '@internal/sql-relational-core/ast';
+import { SqlTextCodec, sqlTextDescriptor } from '@internal/sql-relational-core/ast';
 import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
 import { pgText } from '@internal/target-postgres/data-types';
 
@@ -791,33 +793,44 @@ Both are exported from `@internal/framework-components/codec`.
 A reusable SQL-family descriptor remains target-neutral. Bind it to PostgreSQL with `postgresCodec(...)`; do not subclass the generic descriptor, because the PostgreSQL registry requires the target discriminant and target methods.
 
 ```ts
-import { sqlCharDescriptor } from '@internal/sql-relational-core/ast';
+import { CastExpr, SqlCharCodec, sqlCharDescriptor } from '@internal/sql-relational-core/ast';
 import { postgresCodec } from '@internal/target-postgres/codec-descriptor';
 import { pgChar } from '@internal/target-postgres/data-types';
 
 const postgresSqlCharDescriptor = postgresCodec(sqlCharDescriptor, {
   dataType: pgChar,
-  jsonProjection: (expression) => expression,
+  jsonProjection: (expression) => CastExpr.as(expression, 'text'),
+  factory: (descriptor, dataType, params) => () => new SqlCharCodec(descriptor, dataType, params),
 });
 ```
 
-The adapter preserves the generic codec id, traits, factory, output renderer, and metadata, takes its params schema from the data type, and adds PostgreSQL projection behavior. It also supplies the `dataType` the template itself cannot name — see [A codec whose data type depends on the target](#a-codec-whose-data-type-depends-on-the-target).
+The adapter preserves the generic codec id, traits, output renderer, and metadata, builds codecs with the `factory` it is given, takes its params schema from the data type, and adds PostgreSQL projection behavior. The projection casts the value to `text`, which drops the spaces that pad a `character` value to its length, so an include reads the value an ordinary row's `fromWire` returns. It also supplies the `dataType` the template itself cannot name — see [A codec whose data type depends on the target](#a-codec-whose-data-type-depends-on-the-target).
 
 When PostgreSQL owns a distinct codec id, define a `PostgresCodecDescriptor` subclass and delegate only the reusable SQL behavior explicitly:
 
 ```ts
+import type { CodecInstanceContext } from '@internal/framework-components/codec';
+import {
+  CastExpr,
+  type ProjectionExpr,
+  SqlCharCodec,
+  sqlCharDescriptor,
+} from '@internal/sql-relational-core/ast';
+import { PostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
+import { pgChar, pgCharacterLengthParams } from '@internal/target-postgres/data-types';
+
+type LengthParams = { readonly length?: number };
+
 class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return CastExpr.as(expression, 'text');
   }
-
   override readonly dataType = pgChar.id;
   override readonly codecId = 'pg/char@1' as const;
   override readonly traits = sqlCharDescriptor.traits;
   override readonly paramsSchema = pgCharacterLengthParams;
-
-  override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlCharCodec {
-    return () => new SqlCharCodec(this);
+  override factory(params: LengthParams): (ctx: CodecInstanceContext) => SqlCharCodec {
+    return () => new SqlCharCodec(this, pgChar, params ?? {});
   }
 }
 ```
@@ -832,9 +845,11 @@ What an aggregate returns is a declaration of its target, not a property of the 
 
 ## Heterogeneous storage at the runtime layer
 
-The framework's descriptor registry is keyed by `codecId: string` and stores type-erased descriptor instances. The canonical erasure type is `AnyCodecDescriptor` (defined in `packages/1-framework/1-core/framework-components/src/shared/codec-descriptor.ts`):
+The framework's descriptor registry is keyed by `codecId: string` and stores type-erased descriptor instances. The canonical erasure type is `AnyCodecDescriptor` (defined in `packages/1-framework/1-core/framework-components/src/shared/codec-descriptor.ts`). An excerpt of the SQL registry's interface (`packages/2-sql/4-lanes/relational-core/src/query-lane-context.ts`):
 
 ```ts
+import type { CodecDescriptor } from '@internal/framework-components/codec';
+
 interface CodecDescriptorRegistry {
   descriptorFor(codecId: string): CodecDescriptor<unknown> | undefined;
   values(): IterableIterator<CodecDescriptor<unknown>>;
@@ -849,9 +864,9 @@ Per-codec helpers don't pass through the registry — they're imported directly 
 
 ## Why classes work for this design
 
-The class hierarchy isn't load-bearing for variance preservation (per-codec helpers' direct calls do that work). It's load-bearing for **structure**:
+The class hierarchy does not preserve literal types; the per-codec helpers' direct calls do that. It gives codecs and descriptors their **structure**:
 
-1. **Codec instance ↔ descriptor reference is structural.** The abstract `CodecImpl` constructor takes a `descriptor: AnyCodecDescriptor`; concrete codec subclasses pass it via `super(descriptor)`. `codec.id` proxies through this reference, so a target-owned descriptor can reuse a generic codec class while preserving the target-owned codec id without object spreads or prototype loss.
+1. **Codec instance ↔ descriptor reference is structural.** The abstract `CodecImpl` constructor takes a `descriptor: AnyCodecDescriptor`; concrete codec subclasses pass it, with their data type and the column's parameters, via `super(descriptor, dataType, params)`. `codec.id` proxies through this reference, so a target-owned descriptor can reuse a generic codec class while preserving the target-owned codec id without object spreads or prototype loss.
 2. **Subclass-based authoring is uniform within each ownership boundary.** Target-neutral descriptors extend `CodecDescriptorImpl<...>`; PostgreSQL- and SQLite-bound descriptors extend their target-owned bases. Generic descriptors cross into a target through explicit adapters such as `postgresCodec(...)`. The variance behavior remains the same: the per-codec helper handles literal preservation via direct calls, while the descriptor class or adapter declares the target shape.
 
 ## Reference implementations in the repo
@@ -865,7 +880,7 @@ The class hierarchy isn't load-bearing for variance preservation (per-codec help
 ## Pitfalls
 
 - **`override` discipline.** With `noImplicitOverride`, every concrete-subclass member that touches an inherited member must carry `override`. Forgetting it surfaces as a typecheck error.
-- **Don't widen the factory return at the descriptor.** Concrete descriptors should declare their factory's typed return (`(ctx) => VectorCodec<N>`, not `(ctx) => Codec<...>`). The widened return loses literal preservation at consumer sites.
+- **Don't widen the factory return at the descriptor.** Concrete descriptors should declare their factory's typed return (`(ctx) => PgVectorCodec`, not `(ctx) => Codec<...>`). The widened return loses literal preservation at consumer sites.
 - **Don't extract codec types via `Parameters` / `ReturnType` of the descriptor's `factory`.** TypeScript widens method generics to their constraint in those forms. Use the per-codec helper's typed return (`ColumnSpec<R, P>`) and project with `R extends Codec<any, any, any, infer T> ? T : never`.
 - **Don't reach through the codec instance for metadata.** The runtime `Codec` instance is narrow (id + four conversion methods). Read traits and meta from `descriptor` (e.g. `context.codecDescriptors.descriptorFor(codecId).traits`).
 
