@@ -3,10 +3,8 @@ import {
   type ActivityContextFields,
   type ActivityParent,
   AsyncIterableResult,
-  type ClientActivity,
   type ClientActivityEnd,
   type ClientActivityKind,
-  type ClientActivityResult,
   type ClientActivityRun,
   checkAborted,
   checkMiddlewareCompatibility,
@@ -620,18 +618,106 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     };
   }
 
+  // Every member is the handle's own, so a wrapper that spreads the handle keeps them all.
   private activityHandle<K extends ClientActivityKind>(
     run: ClientActivityRun<K, SqlMiddlewareContext>,
     route: ActivityRoute,
     endWork: () => void,
   ): ActivityHandle<K> {
-    return new SqlActivityHandle(
-      run,
-      route,
-      endWork,
-      (activity) => this.startActivityOnRoute(route, activity, run),
-      (plan) => this.planContentHashFor(plan, route.scope, run),
-    );
+    const beneath = (options: RuntimeExecuteOptions | undefined): ActivityExecuteOptions => ({
+      ...options,
+      activityParent: run,
+    });
+    const source: ActivitySource = {
+      startActivity: <Nested extends ClientActivityKind>(
+        activity: StartActivity<Nested>,
+      ): Promise<ActivityHandle<Nested>> => {
+        try {
+          run.assertAcceptsChildren();
+        } catch (error) {
+          return Promise.reject(error);
+        }
+        return this.startActivityOnRoute(route, activity, run);
+      },
+      planContentHash: (plan: HashablePlan): Promise<string> =>
+        this.planContentHashFor(plan, route.scope, run),
+    };
+    const handle: ActivityHandle<K> &
+      PreparedStatementQueryTarget &
+      PreparedStatementExecuteTarget = {
+      [activitySource]: source,
+      startActivity: source.startActivity,
+      planContentHash: source.planContentHash,
+      activity: run.activity,
+      get intercepted() {
+        return run.intercepted;
+      },
+      query<Row>(
+        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        return rowsBeneath(run, () => route.query<Row>(plan, beneath(options)));
+      },
+      async execute(
+        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        run.assertAcceptsChildren();
+        return route.execute(plan, beneath(options));
+      },
+      [preparedStatementQuery]<Params, Row>(
+        ps: PreparedStatement<Params, Row>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): AsyncIterableResult<Row> {
+        return rowsBeneath(run, () =>
+          route.preparedQuery<Params, Row>(
+            blindCast<
+              PreparedStatementImpl<Params, Row>,
+              'prepared statements are created by this runtime implementation'
+            >(ps),
+            params,
+            beneath(options),
+          ),
+        );
+      },
+      async [preparedStatementExecute]<Params>(
+        ps: PreparedExecution<Params>,
+        params: Params,
+        options?: RuntimeExecuteOptions,
+      ): Promise<SqlStatementStats> {
+        run.assertAcceptsChildren();
+        return route.preparedExecute<Params>(
+          blindCast<
+            PreparedExecutionImpl<Params>,
+            'prepared statements are created by this runtime implementation'
+          >(ps),
+          params,
+          beneath(options),
+        );
+      },
+      end(end: ClientActivityEnd<K>): Promise<void> {
+        let ending: Promise<void>;
+        try {
+          ending = run.end(end);
+        } catch (error) {
+          endWork();
+          return Promise.reject(error);
+        }
+        return ending.then(endWork, (error: unknown) => {
+          endWork();
+          throw error;
+        });
+      },
+    };
+    const beginTransaction = route.transaction;
+    if (beginTransaction === undefined) return handle;
+    return Object.assign(handle, {
+      transaction: async (): Promise<RuntimeTransaction> => {
+        run.assertAcceptsChildren();
+        return beginTransaction(run);
+      },
+    });
   }
 
   // A transaction beneath an activity on the runtime takes a connection of its own and gives it back when it settles.
@@ -1549,131 +1635,6 @@ function transactionAlreadyOpenError(
 }
 
 // Rows of a handle's statement, refused at the first read when the handle no longer accepts children, before the route takes a connection or session.
-type StartNested = <Nested extends ClientActivityKind>(
-  activity: StartActivity<Nested>,
-) => Promise<ActivityHandle<Nested>>;
-
-/** The handle of a client activity whose statements and transaction run on `route`. It is its own activity source. */
-class SqlActivityHandle<K extends ClientActivityKind>
-  implements ActivityHandle<K>, PreparedStatementQueryTarget, PreparedStatementExecuteTarget
-{
-  readonly activity: ClientActivity<K>;
-  declare readonly transaction?: () => Promise<RuntimeTransaction>;
-  readonly #run: ClientActivityRun<K, SqlMiddlewareContext>;
-  readonly #route: ActivityRoute;
-  readonly #endWork: () => void;
-  readonly #startNested: StartNested;
-  readonly #hashPlan: (plan: HashablePlan) => Promise<string>;
-
-  constructor(
-    run: ClientActivityRun<K, SqlMiddlewareContext>,
-    route: ActivityRoute,
-    endWork: () => void,
-    startNested: StartNested,
-    hashPlan: (plan: HashablePlan) => Promise<string>,
-  ) {
-    this.activity = run.activity;
-    this.#run = run;
-    this.#route = route;
-    this.#endWork = endWork;
-    this.#startNested = startNested;
-    this.#hashPlan = hashPlan;
-    const beginTransaction = route.transaction;
-    if (beginTransaction !== undefined) {
-      this.transaction = async () => {
-        run.assertAcceptsChildren();
-        return beginTransaction(run);
-      };
-    }
-  }
-
-  get [activitySource](): ActivitySource {
-    return this;
-  }
-
-  get intercepted(): { readonly result: ClientActivityResult<K> } | undefined {
-    return this.#run.intercepted;
-  }
-
-  async startActivity<Nested extends ClientActivityKind>(
-    activity: StartActivity<Nested>,
-  ): Promise<ActivityHandle<Nested>> {
-    this.#run.assertAcceptsChildren();
-    return this.#startNested(activity);
-  }
-
-  planContentHash(plan: HashablePlan): Promise<string> {
-    return this.#hashPlan(plan);
-  }
-
-  query<Row>(
-    plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-    options?: RuntimeExecuteOptions,
-  ): AsyncIterableResult<Row> {
-    return rowsBeneath(this.#run, () => this.#route.query<Row>(plan, this.#beneath(options)));
-  }
-
-  async execute(
-    plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
-    options?: RuntimeExecuteOptions,
-  ): Promise<SqlStatementStats> {
-    this.#run.assertAcceptsChildren();
-    return this.#route.execute(plan, this.#beneath(options));
-  }
-
-  [preparedStatementQuery]<Params, Row>(
-    ps: PreparedStatement<Params, Row>,
-    params: Params,
-    options?: RuntimeExecuteOptions,
-  ): AsyncIterableResult<Row> {
-    return rowsBeneath(this.#run, () =>
-      this.#route.preparedQuery<Params, Row>(
-        blindCast<
-          PreparedStatementImpl<Params, Row>,
-          'prepared statements are created by this runtime implementation'
-        >(ps),
-        params,
-        this.#beneath(options),
-      ),
-    );
-  }
-
-  async [preparedStatementExecute]<Params>(
-    ps: PreparedExecution<Params>,
-    params: Params,
-    options?: RuntimeExecuteOptions,
-  ): Promise<SqlStatementStats> {
-    this.#run.assertAcceptsChildren();
-    return this.#route.preparedExecute<Params>(
-      blindCast<
-        PreparedExecutionImpl<Params>,
-        'prepared statements are created by this runtime implementation'
-      >(ps),
-      params,
-      this.#beneath(options),
-    );
-  }
-
-  end(end: ClientActivityEnd<K>): Promise<void> {
-    const endWork = this.#endWork;
-    let ending: Promise<void>;
-    try {
-      ending = this.#run.end(end);
-    } catch (error) {
-      endWork();
-      return Promise.reject(error);
-    }
-    return ending.then(endWork, (error: unknown) => {
-      endWork();
-      throw error;
-    });
-  }
-
-  #beneath(options: RuntimeExecuteOptions | undefined): ActivityExecuteOptions {
-    return { ...options, activityParent: this.#run };
-  }
-}
-
 function noWork(): void {}
 
 function rowsBeneath<Row>(

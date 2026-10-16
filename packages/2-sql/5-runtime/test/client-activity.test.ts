@@ -299,6 +299,33 @@ describe('startActivity', () => {
     await expect(runtime.close()).resolves.toBeUndefined();
   });
 
+  it('keeps every member of a handle in a copy that spreads it', async () => {
+    const { runtime, events } = createSetup();
+    const call = await startActivityOn(runtime, testCall);
+    const copy = { ...call };
+
+    await copy.query(rawPlan('select 1')).toArray();
+    const nested = await copy.startActivity(testCall);
+    await nested.end({ outcome: 'succeeded' });
+    await copy.end({ outcome: 'succeeded' });
+
+    expect({
+      intercepted: copy.intercepted,
+      source: findActivitySource(copy) !== undefined,
+      transaction: typeof copy.transaction,
+      lifecycle: lifecycle(events).filter((name) => name.startsWith('ended:')),
+    }).toEqual({
+      intercepted: undefined,
+      source: true,
+      transaction: 'function',
+      lifecycle: [
+        'ended:statement:succeeded',
+        'ended:test-call:succeeded',
+        'ended:test-call:succeeded',
+      ],
+    });
+  });
+
   it('finds the activity source of a queryable, and none on a plain one', async () => {
     const { runtime } = createSetup();
     const plain = { query: runtime.query.bind(runtime), execute: runtime.execute.bind(runtime) };
