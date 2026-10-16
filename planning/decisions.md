@@ -91,6 +91,7 @@ Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgen
 ## Changes of 2026-10-16
 
 - A project that has started is Must (Will). It counts toward GA readiness. Nested writes, the `firstOrThrow` need and the docs restructure became Must. The six unranked projects in stream 4 became ranked Must rows 7 to 12. The items beside the streams (manifesto, one lowering, Asks, eval harness) are not GA projects and are not counted.
+- Field presets are removed, and type aliases stay (Will and Serhii). This changes TML-3055's decision of 2026-07-20, which removed both. The work is TML-3607, and it is the rest of stream 1 row 5. A value the client generates is written `@onCreate(fn())` or `@onUpdate(fn())`, and `fn` resolves to the generator for the column's codec. `@default` means a database default only, so `@default(uuid())` becomes `@onCreate(uuid())`. A type alias is an authoring shorthand: PSL expands it into each column, the contract does not store it, and it may carry `@default`, `@onCreate` and `@onUpdate`. Types that exist in the database, such as native enums, stay in the contract. Targets and extensions contribute aliases instead of presets. Reason: one mechanism that users and packages share, and printed Prisma 7 schemas read like the source, for example `updatedAt TimestampString(3) @onCreate(now()) @onUpdate(now())` instead of `temporal.timestampString(3, onCreate: now, onUpdate: now)`.
 
 ## Changes of 2026-10-07
 
@@ -167,7 +168,7 @@ PostgreSQL must be ready at GA. The other databases can finish after the GA laun
 | 2 | One CLI and one config file | See below. |
 | 3 | Early MySQL attempt | Not started. Purpose: find shared code that assumes PostgreSQL. |
 | 4 | SQL expression literals. Required, because row-level security, expression indexes and partial indexes are fully supported at GA and their syntax must be final. | 6 tickets in backlog. Blocked, see below. |
-| 5 | PSL mixins (TML-3055). They replace type aliases and field presets, which are then removed. | Backlog. No spec and no plan. Large. |
+| 5 | PSL mixins (TML-3055), then remove field presets (TML-3607). Type aliases stay, as an authoring shorthand (2026-10-16). | Mixins done 2026-10-14. Removing presets: decided, no ADR yet. Large. |
 | In parallel | Upgrade path: Prisma 7 schema gaps, upgrade guide rewrite. The baseline command listed here on 2026-09-28 is not needed (2026-10-05, see context.md). | Will is working on it now. |
 | In parallel | Docs items from the eval | 11 items, 5 high. Owned by the team. |
 | In parallel | Multi-file PSL | 2 of 3 parts merged. Language server part open in prisma/orm#30456. |

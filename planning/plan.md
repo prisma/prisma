@@ -37,7 +37,7 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | 2 | ✅ 2/2 | One CLI and one config file | Must | Will | Done 2026-10-08 |  |
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
-| 5 | 🔄 4/5 | PSL mixins, then remove type aliases and field presets | Must | Serhii | Mixins done 2026-10-14. Removing type aliases and field presets not started |  |
+| 5 | 🔄 4/5 | PSL mixins, then remove field presets; generated values become `@onCreate` and `@onUpdate`, and type aliases become an authoring shorthand | Must | Serhii | Mixins done 2026-10-14. Removing presets designed 2026-10-16 (TML-3607), not started | Write the ADR for TML-3607 |
 | 6 | ✅ 1/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | Done 2026-10-16 |  |
 | 7 | 🔄 4/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 4 of 7 slices merged. The TypeScript MongoDB validator slice: PR 1 of 2 approved | Merge PR 1, build PR 2 of TML-3553, then the remaining Postgres and SQLite renames (TML-3537) |
 
