@@ -6,4 +6,3 @@ export { default } from '../runtime/postgres';
 export type { PostgresCursorOptions } from '../runtime/postgres-options';
 export type { PostgresRuntime } from '../runtime/postgres-runtime';
 export { PostgresRuntimeImpl } from '../runtime/postgres-runtime';
-export { validatePostgresContract } from '../static/contract-from-json';

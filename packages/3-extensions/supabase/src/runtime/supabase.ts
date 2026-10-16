@@ -6,11 +6,11 @@ import type {
   AsyncIterableResult,
   RuntimeExecuteOptions,
 } from '@internal/framework-components/runtime';
+import { validatePostgresContract } from '@internal/postgres/internal/validate-contract';
 import {
   buildNamespacedNativeEnums,
   isPgPool,
   type NamespacedNativeEnums,
-  validatePostgresContract,
 } from '@internal/postgres/runtime';
 import { createRawLane, sql } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
