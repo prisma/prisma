@@ -616,6 +616,35 @@ async function setDefaultAfterRename(rename: EarlierRename): Promise<Op> {
   return last;
 }
 
+function alterChangedColumnAfterTableRename(type: string): Promise<Op>[] {
+  const startJson = serializedContract(boxContract(undefined));
+  const endJson = serializedContract(
+    boxContract(undefined, 'public', { table: 'Crate', column: 'changed' }),
+  );
+  class RenameThenAlterColumnType extends PostgresMigration {
+    override readonly startContractJson = startJson;
+    override readonly endContractJson = endJson;
+    override get operations(): readonly Promise<Op>[] {
+      return [
+        ...this.renameTable({ table: 'Box', to: 'Crate' }),
+        this.alterColumnType({
+          schema: 'public',
+          table: 'Crate',
+          column: 'changed',
+          type,
+          using: '"changed" * 2',
+        }),
+      ];
+    }
+  }
+  return [...new RenameThenAlterColumnType(fakeControlStack()).operations];
+}
+
+const UNCHANGED_TYPE_REFUSAL = expect.objectContaining({
+  code: 'MIGRATION.ALTER_COLUMN_TYPE_UNCHANGED',
+  meta: expect.objectContaining({ type: 'int4' }),
+});
+
 describe('PostgresMigration op-builder methods with a ControlStack', () => {
   it('createTable lowers to an additive create-table operation', async () => {
     const m = new ExposedMigration(fakeControlStack());
@@ -744,6 +773,39 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     const op = await setDefaultAfterRename({ kind: 'column', to: 'altered' });
 
     expect(op.operationClass).toBe('widening');
+  });
+
+  it('alterColumnType refuses a using conversion to the type the start contract already gives the column', () => {
+    expect(() =>
+      migrationStartingFrom(boxContract(undefined)).callAlterColumnType({
+        schema: 'public',
+        table: 'Box',
+        column: 'changed',
+        type: 'int4',
+        using: '"changed" * 2',
+      }),
+    ).toThrow(UNCHANGED_TYPE_REFUSAL);
+  });
+
+  it('alterColumnType refuses an unchanged type with using on a table an earlier renameTable renamed', () => {
+    expect(() => alterChangedColumnAfterTableRename('int4')).toThrow(UNCHANGED_TYPE_REFUSAL);
+  });
+
+  it('alterColumnType accepts a using conversion to another type', async () => {
+    const ops = await Promise.all(alterChangedColumnAfterTableRename('int8'));
+
+    expect(ops.at(-1)?.operationClass).toBe('data');
+  });
+
+  it('alterColumnType accepts an unchanged type without using', async () => {
+    const op = await migrationStartingFrom(boxContract(undefined)).callAlterColumnType({
+      schema: 'public',
+      table: 'Box',
+      column: 'changed',
+      type: 'int4',
+    });
+
+    expect(op.operationClass).toBe('destructive');
   });
 
   it('createSchema lowers to an additive create-schema operation', async () => {

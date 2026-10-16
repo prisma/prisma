@@ -64,7 +64,7 @@ import { type DataTransformOptions, dataTransform } from './operations/data-tran
 import { installExtension } from './operations/dependencies';
 import type { CreateIndexExtras } from './operations/indexes';
 import type { ForeignKeySpec } from './operations/shared';
-import { stackDataTypes } from './planner-sql-checks';
+import { catalogTypeTextIfReadable, stackDataTypes } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
 import { ddlSchemaOfCallSchema } from './resolve-ddl-schema';
@@ -148,6 +148,10 @@ export abstract class PostgresMigration<
       ...(stack.adapter === undefined ? [] : [stack.adapter]),
       ...stack.extensions,
     ];
+  }
+
+  private dataTypes(): ReturnType<typeof stackDataTypes> {
+    return stackDataTypes(this.frameworkComponents());
   }
 
   /**
@@ -274,8 +278,9 @@ export abstract class PostgresMigration<
     readonly table: string;
     readonly column: DdlColumn;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AddColumnCall(options.schema, options.table, options.column).toOp(
-      this.controlAdapterFor('addColumn'),
+    const adapter = this.controlAdapterFor('addColumn');
+    return new AddColumnCall(options.schema, options.table, options.column, this.dataTypes()).toOp(
+      adapter,
     );
   }
 
@@ -300,6 +305,7 @@ export abstract class PostgresMigration<
         options.temporaryDefault,
         `addColumnWithTemporaryDefault ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} temporaryDefault`,
       ),
+      this.dataTypes(),
     ).toOp(adapter);
   }
 
@@ -310,12 +316,14 @@ export abstract class PostgresMigration<
     readonly column: string;
     readonly type: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    const adapter = this.controlAdapterFor('addRequiredColumnToEmptyTable');
     return new AddRequiredColumnToEmptyTableCall(
       options.schema,
       options.table,
       options.column,
       options.type,
-    ).toOp(this.controlAdapterFor('addRequiredColumnToEmptyTable'));
+      this.dataTypes(),
+    ).toOp(adapter);
   }
 
   protected addPrimaryKey(options: {
@@ -572,15 +580,41 @@ export abstract class PostgresMigration<
       options.using,
       `alterColumnType ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} using`,
     );
-    return new AlterColumnTypeCall({
+    const call = new AlterColumnTypeCall({
       schemaName: options.schema,
       tableName: options.table,
       columnName: options.column,
       type: options.type,
       ...ifDefined('using', using === undefined ? undefined : { kind: 'sql' as const, sql: using }),
-      dataTypes: stackDataTypes(this.frameworkComponents()),
+      dataTypes: this.dataTypes(),
       ...ifDefined('operationClass', options.operationClass),
-    }).toOp(adapter);
+    });
+    if (using !== undefined) this.refuseUnchangedTypeConversion(call);
+    return call.toOp(adapter);
+  }
+
+  /**
+   * Refuses an `alterColumnType` with `using` to the type the column already has in the start contract, after this migration's earlier renames. Its postcheck compares only the type, which already holds, so the runner would skip the conversion.
+   */
+  private refuseUnchangedTypeConversion(call: AlterColumnTypeCall): void {
+    const startContract = this.startContract;
+    if (startContract === null) return;
+    const column =
+      this.schemaAfterRenames(startContract).namespaces[ddlSchemaOfCallSchema(call.schemaName)]
+        ?.tables[call.tableName]?.columns[call.columnName];
+    if (column === undefined) return;
+    const startType = column.resolvedNativeType ?? column.nativeType;
+    if (catalogTypeTextIfReadable(startType, this.dataTypes()) !== call.checkType) return;
+    const where = alterColumnTypeCallText(call.schemaName, call.tableName, call.columnName);
+    throw postgresError(
+      'MIGRATION.ALTER_COLUMN_TYPE_UNCHANGED',
+      `${where}: the column already has the type ${JSON.stringify(call.type)} at this point of the migration, so the conversion in using would not run`,
+      {
+        why: 'The runner skips an operation whose postchecks already hold. alterColumnType checks only that the column has the new type, which holds before it runs, so the values would never be converted.',
+        fix: 'Write the conversion as a dataTransform, which checks the rows themselves, or change the column to another type.',
+        meta: { where, type: call.type },
+      },
+    );
   }
 
   protected setNotNull(options: {

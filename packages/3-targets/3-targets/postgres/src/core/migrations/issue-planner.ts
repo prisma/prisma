@@ -669,7 +669,12 @@ function mapColumnNodeIssue(
       'a not-found column issue always carries the expected column node'
     >(issue.expected);
     return ok([
-      new AddColumnCall(schemaName, tableName, renderColumnDdl(column.name, column, types)),
+      new AddColumnCall(
+        schemaName,
+        tableName,
+        renderColumnDdl(column.name, column, types),
+        dataTypes,
+      ),
     ]);
   }
   if (issueOutcome(issue) === 'not-expected') {

@@ -88,7 +88,7 @@ describe('renderOps', () => {
     const calls = [
       new CreateTableCall('public', 'user', [col('id', 'text', { notNull: true })]),
       new DropTableCall('public', 'stale'),
-      new AddColumnCall('public', 'user', col('email', 'text')),
+      new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes),
       new DropColumnCall('public', 'user', 'legacy'),
       new AlterColumnTypeCall({
         schemaName: 'public',
@@ -312,6 +312,7 @@ describe('AddColumnWithTemporaryDefaultCall', () => {
       'embedding',
       'vector(3)',
       temporaryDefault,
+      postgresDataTypes,
     );
     const op = await call.toOp(testAdapter);
 
@@ -374,6 +375,7 @@ describe('SetDefaultCall', () => {
     ]);
     expect(op.postcheck.map((check) => check.description)).toEqual([
       'verify column "serial" takes its default from an attached sequence',
+      'verify column "serial" owns the integer sequence "Post_serial_seq"',
     ]);
   });
 
@@ -406,6 +408,7 @@ describe('SetDefaultCall', () => {
     expect(op).toMatchObject({ operationClass: 'widening' });
     expect(op.postcheck.map((check) => check.description)).toEqual([
       'verify column "serial" takes its default from an attached sequence',
+      'verify column "serial" owns the integer sequence "Post_serial_seq"',
     ]);
   });
 

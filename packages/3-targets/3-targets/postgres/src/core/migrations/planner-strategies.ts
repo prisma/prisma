@@ -244,7 +244,7 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
       ...(ddl.codecRef !== undefined ? { codecRef: ddl.codecRef } : {}),
     });
     calls.push(
-      new AddColumnCall(schemaName, tableName, nullableSpec),
+      new AddColumnCall(schemaName, tableName, nullableSpec, ctx.dataTypes),
       new DataTransformCall(
         `backfill-${tableName}-${expected.name}`,
         `${slot}:check`,
@@ -512,8 +512,15 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
             ddl.name,
             ddl.type,
             temporaryDefault,
+            ctx.dataTypes,
           )
-        : new AddRequiredColumnToEmptyTableCall(schemaName, tableName, ddl.name, ddl.type),
+        : new AddRequiredColumnToEmptyTableCall(
+            schemaName,
+            tableName,
+            ddl.name,
+            ddl.type,
+            ctx.dataTypes,
+          ),
     );
   }
 

@@ -7,7 +7,9 @@ import {
   columnDefaultSequenceAst,
   columnExistsAst,
   columnNullabilityAst,
+  columnOwnsSequenceAst,
   columnTypeAst,
+  columnTypeOidAst,
   noNullValuesAst,
   sequenceNameAvailableAst,
   tableIsEmptyAst,
@@ -31,6 +33,27 @@ async function columnExistsSteps(
   const present = await lowerer.lowerToExecuteRequest(checks.columnPresent());
   const absent = await lowerer.lowerToExecuteRequest(checks.columnAbsent());
   return { present, absent };
+}
+
+/**
+ * The postcheck step that the column has the type `type`: by the text `format_type` prints, `checkType`, when the stack's data types read the type, and otherwise by the type's oid, which ignores a type modifier.
+ */
+export async function columnTypeStep(
+  lowerer: ExecuteRequestLowerer,
+  location: { readonly schema: string; readonly table: string; readonly column: string },
+  type: string,
+  checkType: string | undefined,
+) {
+  const check = await lowerer.lowerToExecuteRequest(
+    checkType === undefined
+      ? columnTypeOidAst({ ...location, type })
+      : columnTypeAst({ ...location, expectedType: checkType }),
+  );
+  return step(
+    `verify column "${location.column}" has type "${checkType ?? type}"`,
+    check.sql,
+    check.params,
+  );
 }
 
 export async function dropColumn(
@@ -329,7 +352,7 @@ export async function setDefault(
  * it in place, retyped to the column's current width), sets the column's default to it, makes the column own it, and starts it past the
  * column's largest value so existing rows never collide. The precheck refuses a name another
  * relation holds, which `IF NOT EXISTS` would otherwise skip over and then attach. The postcheck asks
- * for both the attached sequence and the `nextval(` default, which no earlier default satisfies.
+ * for the attached sequence and the `nextval(` default, which no earlier default satisfies, and that the column owns this sequence at this width, which a narrower sequence left from before the column was widened does not satisfy.
  */
 async function setAutoincrementDefault(
   schemaName: string,
@@ -367,6 +390,15 @@ async function setAutoincrementDefault(
   );
   const attached = await lowerer.lowerToExecuteRequest(
     columnDefaultSequenceAst({ schema: schemaName, table: tableName, column: columnName }),
+  );
+  const ownsSequence = await lowerer.lowerToExecuteRequest(
+    columnOwnsSequenceAst({
+      schema: schemaName,
+      table: tableName,
+      column: columnName,
+      sequence: sequenceName,
+      sequenceType,
+    }),
   );
   return {
     id: `setDefault.${tableName}.${columnName}`,
@@ -408,6 +440,11 @@ async function setAutoincrementDefault(
         `verify column "${columnName}" takes its default from an attached sequence`,
         attached.sql,
         attached.params,
+      ),
+      step(
+        `verify column "${columnName}" owns the ${sequenceType} sequence "${sequenceName}"`,
+        ownsSequence.sql,
+        ownsSequence.params,
       ),
     ],
   };
@@ -457,6 +494,7 @@ export async function addRequiredColumnToEmptyTable(
   schemaName: string,
   tableName: string,
   column: DdlColumn,
+  checkType: string | undefined,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
   const columnName = column.name;
@@ -482,6 +520,12 @@ export async function addRequiredColumnToEmptyTable(
       nullable: false,
     }),
   );
+  const hasType = await columnTypeStep(
+    lowerer,
+    { schema: schemaName, table: tableName, column: columnName },
+    column.type,
+    checkType,
+  );
   return {
     id: `column.${tableName}.${columnName}`,
     label: `Add column ${columnName} to ${tableName}`,
@@ -503,6 +547,7 @@ export async function addRequiredColumnToEmptyTable(
     postcheck: [
       step(`verify column "${columnName}" exists`, present.sql, present.params),
       step(`verify column "${columnName}" is NOT NULL`, notNullable.sql, notNullable.params),
+      hasType,
     ],
   };
 }

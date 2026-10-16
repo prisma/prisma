@@ -104,7 +104,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   });
 
   it('AddColumnCall emits this.addColumn({...}) and imports col', () => {
-    const call = new AddColumnCall('public', 'user', col('email', 'text'));
+    const call = new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes);
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("email", "text") })',
     );
@@ -116,7 +116,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   it('AddColumnCall includes codecRef in the rendered col() call when present', () => {
     const codecRef = { codecId: 'pg/uuid@1' };
     const column = col('id', 'uuid', { codecRef });
-    const call = new AddColumnCall('public', 'user', column);
+    const call = new AddColumnCall('public', 'user', column, postgresDataTypes);
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("id", "uuid", { codecRef: { codecId: "pg/uuid@1" } }) })',
     );
@@ -125,6 +125,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
       'public',
       'user',
       col('data', 'jsonb', { codecRef: { codecId: 'pg/json@1', typeParams: { schema: 'v1' } } }),
+      postgresDataTypes,
     );
     expect(callWithTypeParams.renderTypeScript()).toContain(
       'codecRef: { codecId: "pg/json@1", typeParams: { schema: "v1" } }',
@@ -144,7 +145,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   });
 
   it('AddColumnCall without codecRef renders col() with no codecRef property', () => {
-    const call = new AddColumnCall('public', 'user', col('score', 'integer'));
+    const call = new AddColumnCall('public', 'user', col('score', 'integer'), postgresDataTypes);
     expect(call.renderTypeScript()).not.toContain('codecRef');
   });
 
@@ -194,7 +195,7 @@ describe('renderCallsToTypeScript', () => {
     const calls = [
       new CreateTableCall('public', 'user', [col('id', 'text', { notNull: true })]),
       new DropTableCall('public', 'old_user'),
-      new AddColumnCall('public', 'user', col('email', 'text')),
+      new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes),
       new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] }),
     ];
 

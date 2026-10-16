@@ -6,10 +6,15 @@ import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
 import {
   columnExistsAst,
+  columnNullabilityAst,
+  columnTypeAst,
+  columnTypeOidAst,
+  indexDefinitionAst,
   indexExistsAst,
   nativeEnumTypeExistsAst,
   nativeEnumValueExistsAst,
   rlsEnabledAst,
+  rlsPolicyDefinitionAst,
   rlsPolicyExistsAst,
   tableExistsAst,
 } from '../../src/contract-free/checks';
@@ -109,12 +114,15 @@ describe('DropTableCall', () => {
 describe('AddColumnCall', () => {
   it('lowers a typed AlterTable DDL node and typed column-existence checks', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AddColumnCall('public', 'user', col('bio', 'text'));
+    const call = new AddColumnCall('public', 'user', col('bio', 'text'), postgresDataTypes);
     const op = await call.toOp(lowerer);
 
     const colChecks = columnExistsAst({ schema: 'public', table: 'user', column: 'bio' });
     expect(received[1]).toEqual(colChecks.columnAbsent());
     expect(received[2]).toEqual(colChecks.columnPresent());
+    expect(received[3]).toEqual(
+      columnTypeAst({ schema: 'public', table: 'user', column: 'bio', expectedType: 'text' }),
+    );
     expect(op.id).toBe('column.public.user.bio');
     expect(op.target).toEqual({
       id: 'postgres',
@@ -126,12 +134,43 @@ describe('AddColumnCall', () => {
     expect(op.execute).toEqual([{ description: 'add column "bio"', sql: 'LOWERED 1' }]);
     expect(op.postcheck).toEqual([
       { description: 'verify column "bio" exists', sql: 'LOWERED 3', params: ['p3'] },
+      { description: 'verify column "bio" has type "text"', sql: 'LOWERED 4', params: ['p4'] },
     ]);
     expect(call.label).toBe('Add column "bio" to "user"');
   });
 
+  it('checks a NOT NULL column is NOT NULL, and a type no data type reads by its oid', async () => {
+    const { lowerer, received } = recordingCheckLowerer();
+    const op = await new AddColumnCall(
+      'public',
+      'user',
+      col('position', 'geometry', { notNull: true }),
+      postgresDataTypes,
+    ).toOp(lowerer);
+
+    expect({
+      received: received.slice(3),
+      postcheck: op.postcheck.map((step) => step.description),
+    }).toEqual({
+      received: [
+        columnTypeOidAst({ schema: 'public', table: 'user', column: 'position', type: 'geometry' }),
+        columnNullabilityAst({
+          schema: 'public',
+          table: 'user',
+          column: 'position',
+          nullable: false,
+        }),
+      ],
+      postcheck: [
+        'verify column "position" exists',
+        'verify column "position" has type "geometry"',
+        'verify column "position" is NOT NULL',
+      ],
+    });
+  });
+
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddColumnCall('public', 'user', col('bio', 'text'));
+    const call = new AddColumnCall('public', 'user', col('bio', 'text'), postgresDataTypes);
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 
@@ -140,6 +179,7 @@ describe('AddColumnCall', () => {
       'public',
       'user',
       col('bio', 'text', { notNull: true, default: lit('active') }),
+      postgresDataTypes,
     );
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("bio", "text", { notNull: true, default: lit("active") }) })',
@@ -155,6 +195,7 @@ describe('AddColumnCall', () => {
       'public',
       'user',
       col('label', 'text', { default: fn(`concat("prefix", 'user')`) }),
+      postgresDataTypes,
     );
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("label", "text", { default: fn(sql`concat("prefix", \'user\')`) }) })',
@@ -416,9 +457,13 @@ describe('AlterColumnTypeCall', () => {
 describe('AddRequiredColumnToEmptyTableCall', () => {
   it('marks its empty-table precheck as the check a new required column fails on a table with rows', async () => {
     const { lowerer } = recordingCheckLowerer();
-    const op = await new AddRequiredColumnToEmptyTableCall('public', 'user', 'code', 'text').toOp(
-      lowerer,
-    );
+    const op = await new AddRequiredColumnToEmptyTableCall(
+      'public',
+      'user',
+      'code',
+      'text',
+      postgresDataTypes,
+    ).toOp(lowerer);
     expect(op.precheck.map(({ meta }) => meta)).toEqual([
       undefined,
       { requiredColumn: { table: 'user', column: 'code', reason: 'newField' } },
@@ -797,7 +842,18 @@ describe('CreateIndexCall', () => {
     expect(ddlNode.name).toBe('idx_user_email');
     expect(ddlNode.unique).toBe(false);
     expect(ddlNode.elements).toEqual({ columns: ['email'] });
-    expect(received.slice(1)).toEqual([checks.indexPresent(), checks.indexAbsent()]);
+    expect(received.slice(1)).toEqual([
+      checks.indexAbsent(),
+      indexDefinitionAst({
+        schema: 'public',
+        table: 'user',
+        index: 'idx_user_email',
+        unique: false,
+        method: 'btree',
+        elements: { columns: ['email'] },
+        hasPredicate: false,
+      }),
+    ]);
     expect(op.execute).toEqual([
       {
         description: 'create index "idx_user_email"',
@@ -808,12 +864,16 @@ describe('CreateIndexCall', () => {
     expect(op.precheck).toEqual([
       {
         description: 'ensure index "idx_user_email" does not exist',
-        sql: 'LOWERED 3',
-        params: ['p3'],
+        sql: 'LOWERED 2',
+        params: ['p2'],
       },
     ]);
     expect(op.postcheck).toEqual([
-      { description: 'verify index "idx_user_email" exists', sql: 'LOWERED 2', params: ['p2'] },
+      {
+        description: 'verify index "idx_user_email" exists on "user" with the planned definition',
+        sql: 'LOWERED 3',
+        params: ['p3'],
+      },
     ]);
     expect(call.label).toBe('Create index "idx_user_email" on "user"');
   });
@@ -893,7 +953,7 @@ describe('CreateIndexCall', () => {
 });
 
 describe('RenameIndexCall', () => {
-  it('renders ALTER INDEX RENAME with from-present/to-absent prechecks and to-present postcheck', async () => {
+  it('renders ALTER INDEX RENAME with from-present/to-absent prechecks and to-present/from-absent postchecks', async () => {
     const { lowerer, received } = recordingCheckLowerer();
     const call = new RenameIndexCall('public', 'user', 'old_email_idx', 'user_email_idx_46df9cad');
     const op = await call.toOp(lowerer);
@@ -903,7 +963,8 @@ describe('RenameIndexCall', () => {
     expect(received[0]).toEqual(fromChecks.indexPresent());
     expect(received[1]).toEqual(toChecks.indexAbsent());
     expect(received[2]).toEqual(toChecks.indexPresent());
-    const ddlNode = received[3] as PostgresAlterIndexRename;
+    expect(received[3]).toEqual(fromChecks.indexAbsent());
+    const ddlNode = received[4] as PostgresAlterIndexRename;
     expect(ddlNode).toBeInstanceOf(PostgresAlterIndexRename);
     expect(ddlNode.schema).toBe('public');
     expect(ddlNode.from).toBe('old_email_idx');
@@ -912,8 +973,8 @@ describe('RenameIndexCall', () => {
     expect(op.execute).toEqual([
       {
         description: 'rename index "old_email_idx" to "user_email_idx_46df9cad"',
-        sql: 'LOWERED 4',
-        params: ['p4'],
+        sql: 'LOWERED 5',
+        params: ['p5'],
       },
     ]);
     expect(op.precheck).toEqual([
@@ -933,6 +994,11 @@ describe('RenameIndexCall', () => {
         description: 'verify index "user_email_idx_46df9cad" exists',
         sql: 'LOWERED 3',
         params: ['p3'],
+      },
+      {
+        description: 'verify index "old_email_idx" no longer exists',
+        sql: 'LOWERED 4',
+        params: ['p4'],
       },
     ]);
     expect(call.label).toBe('Rename index "old_email_idx" to "user_email_idx_46df9cad" on "user"');
@@ -1205,7 +1271,7 @@ function makePolicy(): PostgresRlsPolicy {
 }
 
 describe('CreatePostgresRlsPolicyCall', () => {
-  it('lowers a typed CREATE POLICY DDL node and typed policy-existence checks', async () => {
+  it('lowers a typed CREATE POLICY DDL node, a policy-absent precheck and a policy-definition postcheck', async () => {
     const { lowerer, received } = recordingCheckLowerer();
     const policy = makePolicy();
     const call = new CreatePostgresRlsPolicyCall('public', 'post', policy);
@@ -1217,7 +1283,16 @@ describe('CreatePostgresRlsPolicyCall', () => {
       policyName: 'post_owner_a1b2c3d4',
     });
     expect(received[0]).toEqual(checks.policyAbsent());
-    expect(received[2]).toEqual(checks.policyPresent());
+    expect(received[2]).toEqual(
+      rlsPolicyDefinitionAst({
+        schema: 'public',
+        table: 'post',
+        policyName: 'post_owner_a1b2c3d4',
+        command: 'SELECT',
+        permissive: true,
+        roles: ['authenticated'],
+      }),
+    );
     expect(op.execute).toEqual([
       {
         description: 'create RLS policy "post_owner_a1b2c3d4"',

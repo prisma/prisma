@@ -199,7 +199,7 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new DropTableCall('public', 'stale'),
     new RenameTableCall('public', 'stale', 'archived', []),
     new RenameColumnCall('public', 'archived', 'title', 'heading', []),
-    new AddColumnCall('public', 'note', col('nickname', 'text')),
+    new AddColumnCall('public', 'note', col('nickname', 'text'), postgresDataTypes),
     new DropColumnCall('public', 'note', 'nickname'),
     new AlterColumnTypeCall({
       schemaName: 'public',
@@ -217,8 +217,15 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
       'additive',
     ),
     new DropDefaultCall('public', 'note', 'kind'),
-    new AddRequiredColumnToEmptyTableCall('public', 'note', 'title', 'text'),
-    new AddColumnWithTemporaryDefaultCall('public', 'note', 'title', 'text', "''"),
+    new AddRequiredColumnToEmptyTableCall('public', 'note', 'title', 'text', postgresDataTypes),
+    new AddColumnWithTemporaryDefaultCall(
+      'public',
+      'note',
+      'title',
+      'text',
+      "''",
+      postgresDataTypes,
+    ),
     new AddPrimaryKeyCall('public', 'note', 'note_pkey', ['id']),
     new AddForeignKeyCall('public', 'note', {
       name: 'note_owner_fkey',
@@ -307,7 +314,12 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
   }
 
   const sqlTextCalls = [
-    new AddColumnCall('public', 'note', col('created', 'timestamptz', { default: fn('now()') })),
+    new AddColumnCall(
+      'public',
+      'note',
+      col('created', 'timestamptz', { default: fn('now()') }),
+      postgresDataTypes,
+    ),
     new SetDefaultCall(
       'public',
       'note',

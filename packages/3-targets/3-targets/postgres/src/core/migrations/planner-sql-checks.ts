@@ -106,6 +106,25 @@ export function alterTypeCheckText(
   dataTypes: readonly DataType[],
   where: string,
 ): string {
+  const read = readCatalogTypeText(type, dataTypes);
+  return read.ok ? read.text : columnTypeUnreadable(type, where, read.reason);
+}
+
+/**
+ * The type `format_type` prints for a column of `type`, read as {@link alterTypeCheckText} reads it, or `undefined` when the stack's data types do not read `type`, as for a raw column.
+ */
+export function catalogTypeTextIfReadable(
+  type: string,
+  dataTypes: readonly DataType[],
+): string | undefined {
+  const read = readCatalogTypeText(type, dataTypes);
+  return read.ok ? read.text : undefined;
+}
+
+function readCatalogTypeText(
+  type: string,
+  dataTypes: readonly DataType[],
+): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly reason: string } {
   const trimmed = type.trim();
   const array = ARRAY_SUFFIX.exec(trimmed);
   const base = array?.[1] ?? trimmed;
@@ -116,13 +135,12 @@ export function alterTypeCheckText(
     ),
   ];
   const [only] = texts;
-  if (only !== undefined && texts.length === 1) return `${only}${suffix}`;
+  if (only !== undefined && texts.length === 1) return { ok: true, text: `${only}${suffix}` };
   if (texts.length > 1) {
-    return columnTypeUnreadable(
-      type,
-      where,
-      `more than one data type of the configured stack reads the type "${type}", as ${texts.join(' and ')}`,
-    );
+    return {
+      ok: false,
+      reason: `more than one data type of the configured stack reads the type "${type}", as ${texts.join(' and ')}`,
+    };
   }
   const name = quotedName(base);
   const namesItself = dataTypes.some(
@@ -131,11 +149,7 @@ export function alterTypeCheckText(
   if (name !== undefined && namesItself) {
     const [schema, ...rest] = name;
     const unqualified = rest.length > 0 && schema === DEFAULT_NAMESPACE_ID ? rest : name;
-    return `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}`;
+    return { ok: true, text: `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}` };
   }
-  return columnTypeUnreadable(
-    type,
-    where,
-    `no data type of the configured stack reads the type "${type}"`,
-  );
+  return { ok: false, reason: `no data type of the configured stack reads the type "${type}"` };
 }

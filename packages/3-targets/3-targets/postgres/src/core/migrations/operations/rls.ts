@@ -1,6 +1,10 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { ifDefined } from '@internal/utils/defined';
-import { rlsEnabledAst, rlsPolicyExistsAst } from '../../../contract-free/checks';
+import {
+  rlsEnabledAst,
+  rlsPolicyDefinitionAst,
+  rlsPolicyExistsAst,
+} from '../../../contract-free/checks';
 import {
   alterPolicyRename,
   createPolicy,
@@ -8,7 +12,7 @@ import {
   dropPolicy,
 } from '../../../contract-free/ddl';
 import { postgresError } from '../../errors';
-import type { PostgresRlsPolicy } from '../../postgres-rls-policy';
+import type { PostgresRlsPolicy, RlsPolicyOperation } from '../../postgres-rls-policy';
 import { qualifyTableName } from '../planner-sql-checks';
 import { type Op, step, targetDetails } from './shared';
 
@@ -23,6 +27,19 @@ function validateRoleName(role: string): string {
     );
   }
   return role;
+}
+
+const POLICY_COMMAND: Readonly<Record<RlsPolicyOperation, string>> = {
+  select: 'SELECT',
+  insert: 'INSERT',
+  update: 'UPDATE',
+  delete: 'DELETE',
+  all: 'ALL',
+};
+
+/** The roles `pg_policies.roles` lists for a policy created for `roles`: unquoted names fold to lower case, and no roles means `public`. */
+function catalogPolicyRoles(roles: readonly string[]): readonly string[] {
+  return roles.length === 0 ? ['public'] : [...new Set(roles.map((role) => role.toLowerCase()))];
 }
 
 export async function createRlsPolicy(
@@ -49,7 +66,16 @@ export async function createRlsPolicy(
   });
   const absent = await lowerer.lowerToExecuteRequest(checks.policyAbsent());
   const execute = await lowerer.lowerToExecuteRequest(ddlNode);
-  const present = await lowerer.lowerToExecuteRequest(checks.policyPresent());
+  const defined = await lowerer.lowerToExecuteRequest(
+    rlsPolicyDefinitionAst({
+      schema: schemaName,
+      table: tableName,
+      policyName: policy.name,
+      command: POLICY_COMMAND[policy.operation],
+      permissive: policy.permissive,
+      roles: catalogPolicyRoles(validatedRoles),
+    }),
+  );
   return {
     id: `rlsPolicy.${schemaName}.${tableName}.${policy.name}`,
     label: `Create RLS policy "${policy.name}" on "${tableName}"`,
@@ -59,7 +85,13 @@ export async function createRlsPolicy(
       step(`ensure RLS policy "${policy.name}" does not exist`, absent.sql, absent.params),
     ],
     execute: [step(`create RLS policy "${policy.name}"`, execute.sql, execute.params)],
-    postcheck: [step(`verify RLS policy "${policy.name}" exists`, present.sql, present.params)],
+    postcheck: [
+      step(
+        `verify RLS policy "${policy.name}" exists with the planned command, roles and permissiveness`,
+        defined.sql,
+        defined.params,
+      ),
+    ],
   };
 }
 
@@ -168,6 +200,8 @@ export async function renameRlsPolicy(
   const oldPresent = await lowerer.lowerToExecuteRequest(oldChecks.policyPresent());
   const execute = await lowerer.lowerToExecuteRequest(ddlNode);
   const newPresent = await lowerer.lowerToExecuteRequest(newChecks.policyPresent());
+  const newAbsent = await lowerer.lowerToExecuteRequest(newChecks.policyAbsent());
+  const oldAbsent = await lowerer.lowerToExecuteRequest(oldChecks.policyAbsent());
   return {
     id: `rlsPolicy.${schemaName}.${tableName}.${oldPolicyName}.rename`,
     label: `Rename RLS policy "${oldPolicyName}" to "${newPolicyName}" on "${tableName}"`,
@@ -175,6 +209,7 @@ export async function renameRlsPolicy(
     target: targetDetails('rlsPolicy', newPolicyName, schemaName, tableName),
     precheck: [
       step(`ensure RLS policy "${oldPolicyName}" exists`, oldPresent.sql, oldPresent.params),
+      step(`ensure RLS policy "${newPolicyName}" does not exist`, newAbsent.sql, newAbsent.params),
     ],
     execute: [
       step(
@@ -185,6 +220,11 @@ export async function renameRlsPolicy(
     ],
     postcheck: [
       step(`verify RLS policy "${newPolicyName}" exists`, newPresent.sql, newPresent.params),
+      step(
+        `verify RLS policy "${oldPolicyName}" no longer exists`,
+        oldAbsent.sql,
+        oldAbsent.params,
+      ),
     ],
   };
 }
