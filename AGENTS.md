@@ -85,7 +85,7 @@ pnpm fixtures:check        # Use this rather than ad-hoc emit-and-diff
 
 1. **Authoring**: Write `schema.psl` or use TypeScript builders → canonicalized Contract IR
 2. **Emission**: Emitter validates and generates `contract.json` + `contract.d.ts`
-3. **Hydration**: the client factory (or a family `ContractSerializer`) validates `contract.json` into the typed contract
+3. **Hydration**: `contractFromJson` from the facade's `/static` entry (or a family `ContractSerializer`) validates `contract.json` into the typed contract, once per value
 4. **Usage**: DSL functions (`sql()`, `schema()`) accept the contract and propagate types
 
 ### Key Patterns

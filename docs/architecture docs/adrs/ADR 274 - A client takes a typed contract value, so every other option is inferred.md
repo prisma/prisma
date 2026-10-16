@@ -3,6 +3,7 @@
 **Status:** Proposed
 **Date:** 2026-10-16
 **Domain:** Adapters / Targets, Runtime
+**Implementation:** Decisions 1, 2 and 4 are implemented. Decisions 3 and 5 are not implemented yet.
 **Builds on:** [ADR 159 — Definition-only contracts and type-only codec-operation maps](ADR%20159%20-%20Definition-only%20contracts%20and%20type-only%20codec-operation%20maps.md), [ADR 263 — A serverless Postgres connection has the same query interface as a postgres client](ADR%20263%20-%20A%20serverless%20Postgres%20connection%20has%20the%20same%20query%20interface%20as%20a%20postgres%20client.md), [ADR 265 — A collection keeps its class through the chain](ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md)
 
 ---
@@ -38,7 +39,7 @@ export const contract = contractFromJson<Contract>(contractJson);
 export const db = postgres({
   contract,
   url: process.env['DATABASE_URL']!,
-  collections: { Post: PostCollection },
+  collections: { Post: PostCollection }, // decision 3, not implemented yet
 });
 ```
 
@@ -80,6 +81,10 @@ Moving the type argument to a call of its own removes the problem. `contractFrom
 ### It is the path TypeScript-authored contracts already use
 
 `postgres({ contract })` with a `defineContract` value already infers the contract type. The emitted path was the only one that needed `<Contract>` on the client. After this decision there is one way to give a client its contract, whichever way the contract was written.
+
+### A program-wide record of validated contracts
+
+Decision 4 needs a record of which contracts were already validated. The record is a `WeakMap` on `globalThis` under a `Symbol.for` key, so the separate bundles of a facade (`/static`, `/runtime`, `/serverless`) and separate copies of its code in one program share it. A variable local to one module would not be shared across those bundles. The record holds no behaviour. It only remembers that a given validator already validated a given object, and the object stays collectable. It is keyed by the validator's identity, the target and the version of the package that owns the rules, so another version of the package validates the same object again.
 
 ### The classes belong to the client, not to the contract
 
@@ -126,4 +131,4 @@ TypeScript can type a JSON import through a `contract.d.json.ts` file, with `all
 
 ### A program-wide registry filled by declaration merging
 
-Contributed collection methods (ADR 272) are typed through a registry that packages extend by declaration merging. Doing the same for application classes would apply them to every client in the program, including a client meant to have none, and to clients of other contracts.
+Contributed collection methods (ADR 272) are typed through a registry that packages extend by declaration merging. Doing the same for application classes would apply them to every client in the program, including a client meant to have none, and to clients of other contracts. That objection does not apply to the program-wide record of validated contracts: it changes no client's behaviour, it only saves a validator from checking an object it already accepted.
