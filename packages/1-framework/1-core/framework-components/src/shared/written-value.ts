@@ -5,9 +5,15 @@
  */
 
 import type { JsonValue } from '@internal/contract/types';
-import { isInternalError } from '@internal/utils/internal-error';
+import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
-import { type DataTypeId, type DataTypeLookup, dataTypeId } from './data-type';
+import {
+  type DataTypeId,
+  type DataTypeLookup,
+  type DataTypeParams,
+  type DataTypeValue,
+  dataTypeId,
+} from './data-type';
 import type { DataTypeAuthoringEntry } from './framework-authoring';
 import { printedTaggedLiteralReadsBack, printTaggedLiteral } from './tagged-literal';
 
@@ -28,12 +34,6 @@ export interface DataTypeSupport {
   readonly dataTypeOfCodec: (codecId: string) => DataTypeId | undefined;
 }
 
-/** A value with its data type; `value` is the canonical form of `type`. */
-export interface TypedValue {
-  readonly type: DataTypeId;
-  readonly value: JsonValue;
-}
-
 export type ReadRefusal =
   | { readonly kind: 'unreadable'; readonly message: string }
   | { readonly kind: 'unknown-tag'; readonly tag: string; readonly known: readonly string[] }
@@ -43,10 +43,18 @@ export type CastRefusal =
   | {
       readonly kind: 'no-cast';
       readonly receivingType: DataTypeId;
+      /** The parameters the receiving position holds its value under. */
+      readonly receivingParams: DataTypeParams;
       readonly valueType: DataTypeId;
       readonly casts: readonly string[];
     }
-  | { readonly kind: 'unreadable'; readonly message: string };
+  | { readonly kind: 'unreadable'; readonly message: string }
+  | {
+      /** The receiving type does not hold the value under the receiving position's parameters. */
+      readonly kind: 'refused-by-type';
+      readonly receivingType: DataTypeId;
+      readonly message: string;
+    };
 
 /** A cast-rule refusal worded for a diagnostic. */
 export interface RefusalDescription {
@@ -87,6 +95,7 @@ export function describeRefusal(
         message: `${describeExpected(guidance.forms)}; this target has no data type for a ${refusal.syntax} value`,
       };
     case 'unreadable':
+    case 'refused-by-type':
       return { code: 'PSL_INVALID_LITERAL', message: refusal.message };
     case 'no-cast':
       return {
@@ -122,18 +131,21 @@ function isSameForm(a: WrittenForm, b: WrittenForm): boolean {
 }
 
 /**
- * The literal to write in place of a quoted string that `receivingType` refuses: the string as a literal of the first tag the type admits. `undefined` when the value is not a quoted string, the type admits no tag, the literal would not read back as the same text, or the type would refuse the literal too.
+ * The literal to write in place of a quoted string that `receivingType` refuses under `receivingParams`: the string as a literal of the first tag the type admits. `undefined` when the value is not a quoted string, the type admits no tag, the literal would not read back as the same text, or the type would refuse the literal too.
  */
 export function exactRewrite(
   support: DataTypeSupport,
-  receivingType: DataTypeId,
+  receiving: { readonly receivingType: DataTypeId; readonly receivingParams: DataTypeParams },
   written: WrittenScalar,
 ): string | undefined {
+  const { receivingType, receivingParams } = receiving;
   const [tag] = admittedTags(support, receivingType);
   if (written.kind !== 'string' || tag === undefined) return undefined;
   if (!printedTaggedLiteralReadsBack(written.text)) return undefined;
   const read = readWrittenValue(support, { kind: 'tag', tag, text: written.text });
-  if (!read.ok || !castTypedValue(support, receivingType, read.value).ok) return undefined;
+  if (!read.ok || !castTypedValue(support, receivingType, receivingParams, read.value).ok) {
+    return undefined;
+  }
   return printTaggedLiteral(tag, written.text);
 }
 
@@ -180,11 +192,33 @@ function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/** Read one written value through the authoring entry for its syntax. */
+/** The value of `type` that `json` gives under `params`, constructed by that type; a refusal is worded for a diagnostic. */
+function valueOfType<F>(
+  support: DataTypeSupport,
+  type: DataTypeId,
+  json: () => JsonValue,
+  params: DataTypeParams,
+  refuse: (message: string) => F,
+): Result<DataTypeValue, F> {
+  const declaration = support.lookup.get(type);
+  if (declaration === undefined) {
+    throw new InternalError(
+      `A value of "${type}" was written, and this stack does not register it.`,
+    );
+  }
+  try {
+    return ok(declaration.fromCodec(json(), params));
+  } catch (error) {
+    if (isInternalError(error)) throw error;
+    return notOk(refuse(messageOf(error)));
+  }
+}
+
+/** Read one written value through the authoring entry for its syntax, as a value its type constructs. */
 export function readWrittenValue(
   support: DataTypeSupport,
   written: WrittenScalar,
-): Result<TypedValue, ReadRefusal> {
+): Result<DataTypeValue, ReadRefusal> {
   const found =
     written.kind === 'tag'
       ? entryForTag(support, written.tag)
@@ -197,49 +231,56 @@ export function readWrittenValue(
 
   const text = textOf(written);
   const form = found.entry.written;
+  const unreadable = (message: string): ReadRefusal => ({ kind: 'unreadable', message });
   if (form.kind === 'plain' && form.syntax === 'number') {
     const classified = form.classify(text);
     return classified === undefined
-      ? notOk({
-          kind: 'unreadable',
-          message: `no data type of this target holds the number ${text}`,
-        })
-      : ok(classified);
+      ? notOk(unreadable(`no data type of this target holds the number ${text}`))
+      : valueOfType(support, classified.type, () => classified.value, {}, unreadable);
   }
-  try {
-    return ok({
-      type: dataTypeId(found.key),
-      value: form.parse(text),
-    });
-  } catch (error) {
-    if (isInternalError(error)) throw error;
-    return notOk({ kind: 'unreadable', message: messageOf(error) });
-  }
+  return valueOfType(support, dataTypeId(found.key), () => form.parse(text), {}, unreadable);
 }
 
-/** Take a typed value into the receiving type, directly or through the cast that type declares. */
+/** Take a value into the receiving type, directly or through the cast that type declares; the receiving type constructs the result under `receivingParams`, the parameters of the position that receives it. */
 export function castTypedValue(
   support: DataTypeSupport,
   receivingType: DataTypeId,
-  typed: TypedValue,
-): Result<TypedValue, CastRefusal> {
-  if (typed.type === receivingType) return ok({ type: receivingType, value: typed.value });
+  receivingParams: DataTypeParams,
+  value: DataTypeValue,
+): Result<DataTypeValue, CastRefusal> {
+  const refusedByType = (message: string): CastRefusal => ({
+    kind: 'refused-by-type',
+    receivingType,
+    message,
+  });
+  if (value.type === receivingType) {
+    return valueOfType(support, receivingType, () => value.value, receivingParams, refusedByType);
+  }
   const declaration = support.lookup.get(receivingType);
-  const cast = declaration?.casts[typed.type];
+  const cast = declaration?.casts[value.type];
   if (cast === undefined) {
     return notOk({
       kind: 'no-cast',
       receivingType,
-      valueType: typed.type,
+      receivingParams,
+      valueType: value.type,
       casts: Object.keys(declaration?.casts ?? {}),
     });
   }
+  const source = support.lookup.get(value.type);
+  if (source === undefined) {
+    throw new InternalError(
+      `A value of "${value.type}" was cast, and this stack does not register it.`,
+    );
+  }
+  let json: JsonValue;
   try {
-    return ok({ type: receivingType, value: cast(typed.value) });
+    json = cast(source.toContract(value));
   } catch (error) {
     if (isInternalError(error)) throw error;
     return notOk({ kind: 'unreadable', message: messageOf(error) });
   }
+  return valueOfType(support, receivingType, () => json, receivingParams, refusedByType);
 }
 
 /** The type itself, then each type it casts from, in key order. */

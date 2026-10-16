@@ -51,7 +51,10 @@ const float8 = dataType('pg/float8', {
 const json = dataType('pg/json', { read: (json) => json });
 const jsonb = dataType('pg/jsonb', { read: (json) => json, casts: { [json.id]: unchanged } });
 const vector = dataType('pg/vector', {
-  read: (json) => json,
+  read: (json) => {
+    if (Array.isArray(json) && json.length <= 3) return json;
+    throw new Error('a vector holds at most three numbers');
+  },
   listCast: {
     of: [int2.id, int4.id, int8.id, numeric.id],
     cast: (elements) => elements.map(Number),
@@ -249,6 +252,12 @@ describe('mapDefault prints a stored value as the literal its column takes', () 
     expect(mapDefault({ kind: 'literal', value: [0.1, 0.2, 0.3] }, forColumn(vector))).toEqual({
       attribute: '@default([0.1, 0.2, 0.3])',
     });
+  });
+
+  it('writes nothing for a written list the column type does not hold once its list cast takes it', () => {
+    expect(
+      mapDefault({ kind: 'literal', value: [0.1, 0.2, 0.3, 0.4] }, forColumn(vector)),
+    ).toBeUndefined();
   });
 
   it('prints a list column element by element against the column type', () => {

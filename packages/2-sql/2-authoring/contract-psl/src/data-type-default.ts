@@ -1,6 +1,6 @@
 /**
  * Reading a `@default(...)` value: a written value is read by the authoring entry for the syntax it
- * is written in, which gives it a data type; the column's type takes it directly or through a cast;
+ * is written in, as a value its data type constructs; the column's type takes it directly or through a cast, and constructs what the cast returns;
  * the value is constructed through the column's type with `fromCodec` under the column's parameters,
  * which refuses a value they exclude and writes the spelling they give it; the column's codec, built with the column's type
  * parameters, checks it with `fromDataTypeValue`; and it is stored as the type's `toContract` writes it.
@@ -21,7 +21,6 @@ import {
   type ReadRefusal,
   type RefusalGuidance,
   readWrittenValue,
-  type TypedValue,
   tagForm,
   type WrittenForm,
   type WrittenScalar,
@@ -32,6 +31,8 @@ import type {
   CodecLookupWithDescriptors,
   DataTypeId,
   DataTypeLookup,
+  DataTypeParams,
+  DataTypeValue,
 } from '@internal/framework-components/codec';
 import {
   codecForRef,
@@ -70,14 +71,15 @@ type CodecRefusal = {
 
 /**
  * Why a default was refused, in parts, so each contract source words its own diagnostic: the cast
- * rule's refusals, plus the refusals only a default has.
+ * rule's refusals, plus the refusals only a default has. The column's type refusing a value is
+ * reported as the column refusing it.
  */
 export type DefaultRefusal = {
   /** Which element of a written list the refusal is about; `undefined` for the whole value. */
   readonly elementIndex: number | undefined;
 } & (
   | ReadRefusal
-  | CastRefusal
+  | Exclude<CastRefusal, { readonly kind: 'refused-by-type' }>
   | { readonly kind: 'not-a-list' }
   | {
       readonly kind: 'no-list-cast';
@@ -154,7 +156,7 @@ function readOneValue(
   written: WrittenScalar,
   elementIndex: number | undefined,
   suggestedTypes: readonly DataTypeId[],
-): { readonly ok: true; readonly typed: TypedValue } | DefaultFailure {
+): { readonly ok: true; readonly typed: DataTypeValue } | DefaultFailure {
   const read = readWrittenValue(dataTypes, written);
   return read.ok
     ? { ok: true, typed: read.value }
@@ -182,6 +184,7 @@ function storedValueReader(input: {
   readonly fieldPath: string;
 }): {
   readonly descriptor: AnyCodecDescriptor;
+  readonly params: DataTypeParams;
   readonly read: (value: JsonValue, elementIndex: number | undefined) => StoredReadResult;
 } {
   const descriptor = input.codecLookup.descriptorFor(input.column.codecId);
@@ -217,7 +220,7 @@ function storedValueReader(input: {
     }
     return { ok: true, value: stored };
   };
-  return { descriptor, read };
+  return { descriptor, params, read };
 }
 
 /**
@@ -250,7 +253,11 @@ export function readDataTypeDefault(input: {
   readonly dataTypes: DataTypeSupport;
   readonly fieldPath: string;
 }): ReadDefaultResult {
-  const { descriptor, read: readStored } = storedValueReader({
+  const {
+    descriptor,
+    params,
+    read: readStored,
+  } = storedValueReader({
     ...input,
     dataTypeLookup: input.dataTypes.lookup,
   });
@@ -260,8 +267,21 @@ export function readDataTypeDefault(input: {
   const readOne = (written: WrittenScalar, elementIndex: number | undefined): ReadDefaultResult => {
     const read = readOneValue(input.dataTypes, written, elementIndex, suggestedTypes);
     if (!read.ok) return read;
-    const cast = castTypedValue(input.dataTypes, columnType, read.typed);
-    if (!cast.ok) return refused({ ...cast.failure, elementIndex }, suggestedTypes);
+    const cast = castTypedValue(input.dataTypes, columnType, params, read.typed);
+    if (!cast.ok) {
+      const { failure } = cast;
+      return failure.kind === 'refused-by-type'
+        ? refused(
+            {
+              kind: 'refused-by-column',
+              codecId: input.column.codecId,
+              message: failure.message,
+              elementIndex,
+            },
+            suggestedTypes,
+          )
+        : refused({ ...failure, elementIndex }, suggestedTypes);
+    }
     return readStored(cast.value.value, elementIndex);
   };
 
@@ -371,7 +391,7 @@ function rewriteOf(
       : written.elements[refusal.elementIndex];
   return refused === undefined || refused.kind === 'list'
     ? undefined
-    : exactRewrite(dataTypes, refusal.receivingType, refused);
+    : exactRewrite(dataTypes, refusal, refused);
 }
 
 /**

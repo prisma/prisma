@@ -223,11 +223,10 @@ describe('dataTypeValue', () => {
     });
   });
 
-  it('returns the canonical value, its type and the span of the argument', () => {
+  it('returns the value its type constructs and the span of the argument', () => {
     expect(parse(sqlExpression.id, 'sql`\n  now()\n`')).toEqual(
       ok({
-        type: 'sql/expression',
-        value: 'now()',
+        value: sqlExpression.fromContract('now()', {}),
         span: { start: { offset: 3, line: 1, column: 4 }, end: { offset: 17, line: 3, column: 2 } },
       }),
     );
@@ -236,8 +235,7 @@ describe('dataTypeValue', () => {
   it('takes a value of a type the receiving type casts from, returning the cast value', () => {
     expect(parse(pgInt4.id, '8')).toEqual(
       ok({
-        type: 'pg/int4',
-        value: '8',
+        value: pgInt4.fromContract('8', {}),
         span: { start: { offset: 3, line: 1, column: 4 }, end: { offset: 4, line: 1, column: 5 } },
       }),
     );
@@ -437,7 +435,7 @@ describe('dataTypeValue', () => {
     const [, rewrite] = message.split('; write ');
     expect(rewrite).toBeDefined();
     expect(parse(sqlExpression.id, rewrite ?? '')).toMatchObject(
-      ok({ type: 'sql/expression', value: text }),
+      ok({ value: sqlExpression.fromContract(text, {}) }),
     );
   });
 
@@ -467,8 +465,7 @@ describe('dataTypeValue', () => {
           },
           args: {
             length: {
-              type: 'pg/int4',
-              value: '8',
+              value: pgInt4.fromContract('8', {}),
               span: {
                 start: { offset: 10, line: 1, column: 11 },
                 end: { offset: 11, line: 1, column: 12 },
@@ -538,8 +535,7 @@ describe('oneOf given a call to a function one arm names', () => {
         },
         args: {
           length: {
-            type: 'pg/int4',
-            value: '8',
+            value: pgInt4.fromContract('8', {}),
             span: {
               start: { offset: 10, line: 1, column: 11 },
               end: { offset: 11, line: 1, column: 12 },

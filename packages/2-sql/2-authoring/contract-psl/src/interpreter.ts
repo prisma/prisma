@@ -958,9 +958,10 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
             'expression',
             parsed.expression === undefined
               ? undefined
-              : sqlTextFromCanonical(parsed.expression.value),
+              : sqlTextFromCanonical(parsed.expression.value.value),
           ),
-          where: parsed.where === undefined ? undefined : sqlTextFromCanonical(parsed.where.value),
+          where:
+            parsed.where === undefined ? undefined : sqlTextFromCanonical(parsed.where.value.value),
           unique: parsed.unique,
           name: parsed.name,
           map: parsed.map,
@@ -993,7 +994,7 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         continue;
       }
       checkNodes.push({
-        expression: sqlTextFromCanonical(parsed.expression.value),
+        expression: sqlTextFromCanonical(parsed.expression.value.value),
         name: parsed.name,
         map: parsed.map,
       });

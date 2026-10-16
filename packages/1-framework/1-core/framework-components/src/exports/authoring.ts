@@ -117,7 +117,6 @@ export type {
   ReadRefusal,
   RefusalDescription,
   RefusalGuidance,
-  TypedValue,
   WrittenForm,
   WrittenScalar,
   WrittenValue,

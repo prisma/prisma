@@ -556,9 +556,9 @@ export interface AuthoringAttributeSpecContributions {
  * the three pieces of syntax read without a tag: a quoted string, `true`/`false`, and a number.
  *
  * A number is the one plain form that yields several types, so instead of `parse` its arm carries a
- * classifier, which picks the type from the digits and returns the canonical form with it, and
+ * classifier, which picks the type from the digits and returns JSON of that type with it, and
  * `types`, every type the classifier can return — which is how assembly knows those types can be
- * written. ADR 254.
+ * written. The type constructs its value from what `parse` or the classifier returns. ADR 254.
  */
 export type DataTypeWrittenForm =
   | {
@@ -584,8 +584,8 @@ export type DataTypeWrittenForm =
  * PSL support for one data type, keyed by its id and contributed by the component that registers
  * the type.
  *
- * The written form reads text into the type's canonical form, throwing a structured error for text
- * it cannot read; `print` is the reverse.
+ * The written form reads text into JSON the type constructs its value from, throwing a structured
+ * error for text it cannot read; `print` is the reverse.
  */
 export interface DataTypeAuthoringEntry {
   readonly written: DataTypeWrittenForm;

@@ -325,11 +325,13 @@ function lowerRlsPolicyFromBlock(
           .map((role) => (typeof role === 'string' ? role : role.declaration.name))
           .sort();
   const using =
-    block.values.using === undefined ? undefined : sqlTextFromCanonical(block.values.using.value);
+    block.values.using === undefined
+      ? undefined
+      : sqlTextFromCanonical(block.values.using.value.value);
   const withCheck =
     block.values.withCheck === undefined
       ? undefined
-      : sqlTextFromCanonical(block.values.withCheck.value);
+      : sqlTextFromCanonical(block.values.withCheck.value.value);
   const permissive = block.values.permissive ?? true;
 
   // `@@map("physical name")` adopts an EXACT-named policy: the lowered
@@ -816,7 +818,8 @@ export const postgresAuthoringModelAttributes = {
             weightGroups,
             language: parsed.language ?? DEFAULT_FULL_TEXT_SEARCH_LANGUAGE,
           },
-          where: parsed.where === undefined ? undefined : sqlTextFromCanonical(parsed.where.value),
+          where:
+            parsed.where === undefined ? undefined : sqlTextFromCanonical(parsed.where.value.value),
           unique: undefined,
           name: parsed.name,
           map: parsed.map,

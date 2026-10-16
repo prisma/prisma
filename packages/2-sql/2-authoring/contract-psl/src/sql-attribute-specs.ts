@@ -635,7 +635,7 @@ function checkModelSpec(ctx: AttributeSpecContext) {
     },
     refine: (value, ctx, attributeNode) => {
       const diagnostics: PslDiagnostic[] = [];
-      if (sqlTextFromCanonical(value.expression.value).trim().length === 0) {
+      if (sqlTextFromCanonical(value.expression.value.value).trim().length === 0) {
         diagnostics.push(
           leafDiagnostic(
             ctx,

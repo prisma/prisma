@@ -147,7 +147,7 @@ namespace public {
     const target = envelope.values['target'] as { declaration: { name: string } };
     const tableName = target.declaration.name;
     const roles = [...readRoleNames(envelope.values)].sort();
-    const using = (envelope.values['using'] as { value: string }).value;
+    const using = (envelope.values['using'] as { value: { value: string } }).value.value;
 
     const wireHash = computeContentHash({ using, roles, operation: 'select', permissive: true });
     const wireName = `${prefix}_${wireHash}`;

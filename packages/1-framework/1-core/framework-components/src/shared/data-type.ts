@@ -29,14 +29,16 @@ import { runtimeError } from './runtime-error';
 export type DataTypeId = string & { readonly __dataTypeId: 'DataTypeId' };
 
 /**
- * A pure function from the canonical form of the type it casts from to the canonical form of the
- * type that declares it. It may throw a structured error for a value it cannot convert.
+ * A pure function from the stored form of a value of the type it casts from to JSON the type that
+ * declares it constructs its value from. It may throw a structured error for a value it cannot
+ * convert.
  */
 export type Cast = (value: JsonValue) => JsonValue;
 
 /**
  * How a type whose single value holds several elements takes a written list: each element's type
- * must be one of `of`, and `cast` receives the elements' canonical forms in written order.
+ * must be one of `of`, `cast` receives the elements' stored forms in written order, and the type
+ * constructs its value from what it returns.
  */
 export interface ListCast {
   readonly of: readonly DataTypeId[];
