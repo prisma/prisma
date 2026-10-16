@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { pgDate, pgTime, pgTimestamp, pgTimestamptz, pgTimetz } from '../src/core/data-types';
-import { storedTemporalText } from '../src/core/prisma7-temporal-defaults';
+import {
+  pgDate,
+  pgDateCanonical,
+  pgTime,
+  pgTimeCanonical,
+  pgTimestamp,
+  pgTimestampCanonical,
+  pgTimestamptz,
+  pgTimestamptzCanonical,
+  pgTimetz,
+  pgTimetzCanonical,
+} from '../src/core/data-types';
+import { prisma7TemporalTagBody } from '../src/core/prisma7-temporal-defaults';
 
 /**
  * Each row is a `@default("...")` Prisma 7 accepts for a `DateTime` field, and
@@ -285,16 +296,56 @@ const storedByPostgres: readonly (readonly [
   ],
 ];
 
-describe('storedTemporalText', () => {
-  it.each(storedByPostgres)('gives the default Postgres stores for %s', (written, stored) => {
-    expect({
-      timestamp: storedTemporalText(written, pgTimestamp.id),
-      timestamptz: storedTemporalText(written, pgTimestamptz.id),
-      date: storedTemporalText(written, pgDate.id),
-      time: storedTemporalText(written, pgTime.id),
-      timetz: storedTemporalText(written, pgTimetz.id),
-    }).toEqual(stored);
-  });
+type Kind = 'timestamp' | 'timestamptz' | 'date' | 'time' | 'timetz';
+
+/** Each type with its tag's reader, which reads the text Postgres prints as well as ISO 8601. */
+const types: readonly (readonly [Kind, string, (text: string) => string])[] = [
+  ['timestamp', pgTimestamp.id, pgTimestampCanonical],
+  ['timestamptz', pgTimestamptz.id, pgTimestamptzCanonical],
+  ['date', pgDate.id, pgDateCanonical],
+  ['time', pgTime.id, pgTimeCanonical],
+  ['timetz', pgTimetz.id, pgTimetzCanonical],
+];
+
+/**
+ * A written value Postgres rounds or carries before storing it: more than six fraction digits, or
+ * second 60. The tag holds only what the type stores, so it refuses these instead of rounding.
+ */
+function postgresRounds(written: string): boolean {
+  return /\.\d{7,}/.test(written) || /:60(?:[.Zz+-]|$)/.test(written);
+}
+
+function read(parse: (text: string) => string, text: string | undefined): string {
+  if (text === undefined) return 'unread';
+  try {
+    return parse(text);
+  } catch {
+    return 'refused';
+  }
+}
+
+describe('prisma7TemporalTagBody, read by the type tag', () => {
+  it.each(storedByPostgres)(
+    'stores the value Postgres stores for %s, or refuses one Postgres rounds',
+    (written, stored) => {
+      const rounds = postgresRounds(written);
+      expect(
+        Object.fromEntries(
+          types.map(([kind, id, parse]) => [
+            kind,
+            read(parse, prisma7TemporalTagBody(written, id)),
+          ]),
+        ),
+      ).toEqual(
+        Object.fromEntries(
+          types.map(([kind, , parse]) => [
+            kind,
+            rounds && kind !== 'date' ? 'refused' : read(parse, stored[kind]),
+          ]),
+        ),
+      );
+    },
+  );
 
   it('reads nothing from text that is not an RFC 3339 date and time', () => {
     expect(
@@ -304,7 +355,11 @@ describe('storedTemporalText', () => {
         '2024-01-02T03:04Z',
         '2024-01-02T03:04:05+0200',
         '+002024-01-02T03:04:05Z',
-      ].map((text) => storedTemporalText(text, pgTimestamp.id)),
+      ].map((text) => prisma7TemporalTagBody(text, pgTimestamp.id)),
     ).toEqual([undefined, undefined, undefined, undefined, undefined]);
+  });
+
+  it('gives no body for a type that is not a date or time type', () => {
+    expect(prisma7TemporalTagBody('2024-01-02T03:04:05Z', 'pg/interval')).toBeUndefined();
   });
 });

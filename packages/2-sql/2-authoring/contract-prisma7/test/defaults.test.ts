@@ -13,7 +13,7 @@ import {
 } from './support';
 
 describe('DateTime string defaults', () => {
-  it('carry the default Postgres stores for each native type, not the text Prisma 7 writes', async () => {
+  it('store the value Postgres stores for each native type, read through the type tag', async () => {
     const { columns } = await loadFixtureTable('datetime-defaults', 'Scalars');
     const expressionOf = (column: string) => columns[column]?.['default'];
     expect({
@@ -23,17 +23,17 @@ describe('DateTime string defaults', () => {
       tMs: expressionOf('tMs'),
       ttzPlus: expressionOf('ttzPlus'),
     }).toEqual({
-      tsPlus: { kind: 'function', expression: "'2024-01-02 03:04:05'" },
-      tzPlus: { kind: 'function', expression: "'2024-01-02 01:04:05+00'" },
-      dMinus: { kind: 'function', expression: "'2024-01-02'" },
-      tMs: { kind: 'function', expression: "'12:34:56.789'" },
-      ttzPlus: { kind: 'function', expression: "'03:04:05+02'" },
+      tsPlus: { kind: 'literal', value: '2024-01-02T03:04:05' },
+      tzPlus: { kind: 'literal', value: '2024-01-02T01:04:05Z' },
+      dMinus: { kind: 'literal', value: '2024-01-02' },
+      tMs: { kind: 'literal', value: '12:34:56.789' },
+      ttzPlus: { kind: 'literal', value: '03:04:05+02:00' },
     });
   });
 });
 
 describe('Bytes[] and DateTime[] list defaults', () => {
-  it('carry an ARRAY literal of the elements Postgres stores, cast to the column type', async () => {
+  it('store each element as the value Postgres stores', async () => {
     const { columns } = await loadFixtureTable('list-defaults', 'Lists');
     expect(
       Object.fromEntries(
@@ -42,21 +42,15 @@ describe('Bytes[] and DateTime[] list defaults', () => {
         ),
       ),
     ).toEqual({
-      bl: { kind: 'function', expression: "ARRAY['\\x68656c6c6f', '\\x776f726c64']::BYTEA[]" },
-      blEmpty: { kind: 'function', expression: 'ARRAY[]::BYTEA[]' },
-      dl: {
-        kind: 'function',
-        expression: "ARRAY['2024-01-01 00:00:00', '2024-01-02 03:04:05.123']::TIMESTAMP(3)[]",
-      },
-      dlEmpty: { kind: 'function', expression: 'ARRAY[]::TIMESTAMP(3)[]' },
-      tzl: { kind: 'function', expression: "ARRAY['2024-01-02 03:04:05+00']::TIMESTAMPTZ(6)[]" },
-      datel: { kind: 'function', expression: "ARRAY['2024-01-02']::DATE[]" },
-      timel: { kind: 'function', expression: "ARRAY['12:34:56']::TIME(6)[]" },
-      timetzl: { kind: 'function', expression: "ARRAY['12:34:56+00']::TIMETZ(6)[]" },
-      ts6l: {
-        kind: 'function',
-        expression: "ARRAY['2024-01-02 03:04:05.123456']::TIMESTAMP(6)[]",
-      },
+      bl: { kind: 'literal', value: ['aGVsbG8=', 'd29ybGQ='] },
+      blEmpty: { kind: 'literal', value: [] },
+      dl: { kind: 'literal', value: ['2024-01-01T00:00:00', '2024-01-02T03:04:05.123'] },
+      dlEmpty: { kind: 'literal', value: [] },
+      tzl: { kind: 'literal', value: ['2024-01-02T03:04:05Z'] },
+      datel: { kind: 'literal', value: ['2024-01-02'] },
+      timel: { kind: 'literal', value: ['12:34:56'] },
+      timetzl: { kind: 'literal', value: ['12:34:56Z'] },
+      ts6l: { kind: 'literal', value: ['2024-01-02T03:04:05.123456'] },
     });
   });
 });

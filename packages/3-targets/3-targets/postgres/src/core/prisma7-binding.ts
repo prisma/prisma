@@ -1,10 +1,4 @@
 import {
-  dataTypeParams,
-  renderSqlTypeName,
-  type SqlDataType,
-  sqlBaseName,
-} from '@internal/sql-contract/data-type';
-import {
   pgBytea,
   pgDate,
   pgJson,
@@ -21,37 +15,30 @@ import {
 } from './migrations/default-constraint-names';
 import { postgresNowGeneratorIdFor } from './now-generators';
 import { postgresCreateNamespace } from './postgres-schema';
-import { storedTemporalText } from './prisma7-temporal-defaults';
+import { prisma7TemporalTagBody } from './prisma7-temporal-defaults';
 import { prisma7PostgresTypeMap } from './prisma7-type-map';
 import { junctionRelationFieldNames } from './psl-infer/junction-relation-field-names';
 
-const TEMPORAL_TYPES: ReadonlyMap<string, SqlDataType> = new Map(
-  [pgTimestamp, pgTimestamptz, pgDate, pgTime, pgTimetz].map((type) => [type.id, type]),
-);
-
-const BYTEA_LIST_TYPE = sqlBaseName(pgBytea, {}).toUpperCase();
-
-function sqlStringLiteral(value: string | undefined): string | undefined {
-  return value === undefined ? undefined : `'${value.replace(/'/g, "''")}'`;
-}
+/** The tag of each date and time type a Prisma 7 `DateTime` default can be written on. */
+const TEMPORAL_TAGS: ReadonlyMap<string, string> = new Map([
+  [pgTimestamp.id, 'timestamp'],
+  [pgTimestamptz.id, 'timestamptz'],
+  [pgDate.id, 'date'],
+  [pgTime.id, 'time'],
+  [pgTimetz.id, 'timetz'],
+]);
 
 function base64ToHex(base64: string): string | undefined {
   if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64) || base64.length % 4 !== 0) return undefined;
   return `\\x${Buffer.from(base64, 'base64').toString('hex')}`;
 }
 
-function arrayLiteral(literals: readonly string[], typeName: string): string {
-  return `ARRAY[${literals.join(', ')}]::${typeName}[]`;
-}
-
 /**
  * What the Postgres target supplies to the Prisma 7 interpreter. A `Bytes` or
- * `DateTime` default is carried as the SQL literal of the default Postgres
- * stores (`'\x68656c6c6f'`, `'2024-01-02 03:04:05'`), and a list default as an
- * `ARRAY[...]` of those literals cast to the column type, rather than as the
- * column codec's JSON form (base64, ISO 8601 text). Verify reads both forms as
- * the same value; the reader keeps the SQL literal because storing the value
- * instead changes the contract hash of every such schema (TML-3455).
+ * `DateTime` default is read through its column type's tag, as the current
+ * schema language reads it: a `Bytes` default's base64 as the hex body of
+ * `bytea`, and a `DateTime` default as the body of the date or time tag that
+ * keeps what the written value means on the column.
  */
 export const prisma7PostgresBinding = {
   target: postgresTargetDescriptorMeta,
@@ -72,28 +59,15 @@ export const prisma7PostgresBinding = {
   defaultConstraintNames: { primaryKey: defaultPrimaryKeyName, foreignKey: defaultForeignKeyName },
   junctionRelationFieldNames,
   updatedAtGeneratorId: postgresNowGeneratorIdFor,
-  literalDefaultForm: ({
-    dataType,
-    typeParams,
-  }: {
-    readonly dataType: string;
-    readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
-  }) => {
+  literalDefaultForm: ({ dataType }: { readonly dataType: string }) => {
     if (dataType === pgJson.id || dataType === pgJsonb.id) return { kind: 'json' } as const;
-    if (dataType === pgBytea.id) {
-      return {
-        kind: 'sqlExpression',
-        literal: (text: string) => sqlStringLiteral(base64ToHex(text)),
-        list: (literals: readonly string[]) => arrayLiteral(literals, BYTEA_LIST_TYPE),
-      } as const;
-    }
-    const type = TEMPORAL_TYPES.get(dataType);
-    if (type === undefined) return undefined;
-    const typeName = renderSqlTypeName(type, dataTypeParams(type, typeParams)).toUpperCase();
+    if (dataType === pgBytea.id) return { kind: 'tag', tag: 'bytea', body: base64ToHex } as const;
+    const tag = TEMPORAL_TAGS.get(dataType);
+    if (tag === undefined) return undefined;
     return {
-      kind: 'sqlExpression',
-      literal: (text: string) => sqlStringLiteral(storedTemporalText(text, type.id)),
-      list: (literals: readonly string[]) => arrayLiteral(literals, typeName),
+      kind: 'tag',
+      tag,
+      body: (text: string) => prisma7TemporalTagBody(text, dataType),
     } as const;
   },
 } as const;

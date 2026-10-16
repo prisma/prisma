@@ -108,20 +108,6 @@ export function lowerPrisma7Default(
     return lowerFunction(call, input, label, unknown);
   }
 
-  const rawLiteral =
-    input.literalForm?.kind === 'sqlExpression'
-      ? sqlExpressionDefault(expression, input.literalForm, input.field.list)
-      : undefined;
-  if (rawLiteral === 'unreadable') {
-    return unknown('holds a value this contract source does not read.', attribute.span);
-  }
-  if (rawLiteral !== undefined) {
-    return {
-      storage: { kind: 'function', expression: rawLiteral.expression },
-      onCreate: undefined,
-    };
-  }
-
   const scalar = scalarValue(expression, input, unknown);
   if (scalar === undefined) return undefined;
   return { storage: { kind: 'literal', value: scalar, canonical: true }, onCreate: undefined };
@@ -243,28 +229,6 @@ function unreadableValue(
   return unknown('holds a value this contract source does not read.', span);
 }
 
-function sqlExpressionDefault(
-  expression: ExpressionAst,
-  form: Extract<Prisma7LiteralDefaultForm, { readonly kind: 'sqlExpression' }>,
-  isList: boolean,
-): { readonly expression: string } | 'unreadable' | undefined {
-  const array = isList ? ArrayLiteralAst.cast(expression.syntax) : undefined;
-  if (array === undefined) {
-    const text = StringLiteralExprAst.cast(expression.syntax)?.value();
-    if (text === undefined) return undefined;
-    const literal = form.literal(text);
-    return literal === undefined ? 'unreadable' : { expression: literal };
-  }
-  const literals: string[] = [];
-  for (const element of array.elements()) {
-    const text = StringLiteralExprAst.cast(element.syntax)?.value();
-    const literal = text === undefined ? undefined : form.literal(text);
-    if (literal === undefined) return 'unreadable';
-    literals.push(literal);
-  }
-  return { expression: form.list(literals) };
-}
-
 /** The written literal a Prisma 7 expression is, or `undefined` when it is not a literal at all. */
 function writtenLiteral(
   expression: ExpressionAst,
@@ -272,9 +236,13 @@ function writtenLiteral(
 ): WrittenValue | undefined {
   const text = StringLiteralExprAst.cast(expression.syntax)?.value();
   if (text !== undefined) {
-    return input.literalForm?.kind === 'json'
-      ? { kind: 'tag', tag: 'json', text }
-      : { kind: 'string', text };
+    const form = input.literalForm;
+    if (form?.kind === 'json') return { kind: 'tag', tag: 'json', text };
+    if (form?.kind === 'tag') {
+      const body = form.body(text);
+      return body === undefined ? undefined : { kind: 'tag', tag: form.tag, text: body };
+    }
+    return { kind: 'string', text };
   }
   const number = NumberLiteralExprAst.cast(expression.syntax)?.token()?.text;
   if (number !== undefined) return { kind: 'number', text: number };

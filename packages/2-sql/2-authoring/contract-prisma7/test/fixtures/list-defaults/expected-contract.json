@@ -177,7 +177,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "32051d4c4ec616e12702c1d37a4889a6e39a7249ced7d48d43c7096abf29b331",
+    "storageHash": "26c290f2bf61ea76341ed836f515d4301e666af7e399d20573c6bfa30ae98788",
     "namespaces": {
       "public": {
         "id": "public",
@@ -201,8 +201,8 @@
                   },
                   "noCheck": ["elementNotNull"],
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY['\\x68656c6c6f', '\\x776f726c64']::BYTEA[]"
+                    "kind": "literal",
+                    "value": ["aGVsbG8=", "d29ybGQ="]
                   }
                 },
                 "blEmpty": {
@@ -214,8 +214,8 @@
                   },
                   "noCheck": ["elementNotNull"],
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY[]::BYTEA[]"
+                    "kind": "literal",
+                    "value": []
                   }
                 },
                 "dl": {
@@ -230,8 +230,8 @@
                     "precision": 3
                   },
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY['2024-01-01 00:00:00', '2024-01-02 03:04:05.123']::TIMESTAMP(3)[]"
+                    "kind": "literal",
+                    "value": ["2024-01-01T00:00:00", "2024-01-02T03:04:05.123"]
                   }
                 },
                 "dlEmpty": {
@@ -246,8 +246,8 @@
                     "precision": 3
                   },
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY[]::TIMESTAMP(3)[]"
+                    "kind": "literal",
+                    "value": []
                   }
                 },
                 "tzl": {
@@ -262,8 +262,8 @@
                     "precision": 6
                   },
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY['2024-01-02 03:04:05+00']::TIMESTAMPTZ(6)[]"
+                    "kind": "literal",
+                    "value": ["2024-01-02T03:04:05Z"]
                   }
                 },
                 "datel": {
@@ -275,8 +275,8 @@
                   },
                   "noCheck": ["elementNotNull"],
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY['2024-01-02']::DATE[]"
+                    "kind": "literal",
+                    "value": ["2024-01-02"]
                   }
                 },
                 "timel": {
@@ -291,8 +291,8 @@
                     "precision": 6
                   },
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY['12:34:56']::TIME(6)[]"
+                    "kind": "literal",
+                    "value": ["12:34:56"]
                   }
                 },
                 "timetzl": {
@@ -307,8 +307,8 @@
                     "precision": 6
                   },
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY['12:34:56+00']::TIMETZ(6)[]"
+                    "kind": "literal",
+                    "value": ["12:34:56Z"]
                   }
                 },
                 "ts6l": {
@@ -323,8 +323,8 @@
                     "precision": 6
                   },
                   "default": {
-                    "kind": "function",
-                    "expression": "ARRAY['2024-01-02 03:04:05.123456']::TIMESTAMP(6)[]"
+                    "kind": "literal",
+                    "value": ["2024-01-02T03:04:05.123456"]
                   }
                 }
               },
