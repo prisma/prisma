@@ -1,5 +1,6 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
+import { validateContractOnce } from '@internal/contract/validate-once';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type {
@@ -139,45 +140,22 @@ type JwksUrlOption = {
   readonly jwtSecret?: never;
 };
 
-export type SupabaseOptionsWithContract<TContract extends Contract<SqlStorage>> =
-  SupabaseBindingOptions &
-    SupabaseOptionsBase &
-    (JwtSecretOption | JwksUrlOption) & {
-      readonly contract: TContract;
-      readonly contractJson?: never;
-    };
-
-export type SupabaseOptionsWithContractJson<TContract extends Contract<SqlStorage>> =
-  SupabaseBindingOptions &
-    SupabaseOptionsBase &
-    (JwtSecretOption | JwksUrlOption) & {
-      readonly contractJson: unknown;
-      readonly contract?: never;
-      readonly _contract?: TContract;
-    };
-
-export type SupabaseOptions<TContract extends Contract<SqlStorage>> =
-  | SupabaseOptionsWithContract<TContract>
-  | SupabaseOptionsWithContractJson<TContract>;
-
-function hasContractJson<TContract extends Contract<SqlStorage>>(
-  options: SupabaseOptions<TContract>,
-): options is SupabaseOptionsWithContractJson<TContract> {
-  return 'contractJson' in options;
-}
+export type SupabaseOptions<TContract extends Contract<SqlStorage>> = SupabaseBindingOptions &
+  SupabaseOptionsBase &
+  (JwtSecretOption | JwksUrlOption) & {
+    readonly contract: TContract;
+  };
 
 const contractSerializer = new PostgresContractSerializer();
 
-function resolveContract<TContract extends Contract<SqlStorage>>(
-  options: SupabaseOptions<TContract>,
+function validateApplicationContract<TContract extends Contract<SqlStorage>>(
+  contract: TContract,
 ): TContract {
-  const contractJson = hasContractJson(options)
-    ? options.contractJson
-    : contractSerializer.serializeContract(options.contract);
-  return blindCast<
-    TContract,
-    'contractSerializer.deserializeContract returns a validated TContract'
-  >(contractSerializer.deserializeContract(contractJson));
+  return validateContractOnce(contract, postgresTarget.targetId, () =>
+    contractSerializer.deserializeContract<TContract>(
+      contractSerializer.serializeContract(contract),
+    ),
+  );
 }
 
 function resolveKeyMaterial<TContract extends Contract<SqlStorage>>(
@@ -289,17 +267,28 @@ function buildExtensionContract(): SupabaseExtensionContract {
   >(contractSerializer.deserializeContract(extensionContractJson));
 }
 
-export default async function supabase<TContract extends Contract<SqlStorage>>(
-  options: SupabaseOptionsWithContract<TContract>,
-): Promise<SupabaseDb<TContract>>;
-export default async function supabase<TContract extends Contract<SqlStorage>>(
-  options: SupabaseOptionsWithContractJson<TContract>,
-): Promise<SupabaseDb<TContract>>;
+/**
+ * Creates a Supabase client whose queries run as the role a JWT names. The client infers its
+ * contract type from `contract`: a value from `contractFromJson` of `@prisma/orm-postgres/static`
+ * for an emitted contract, or a TypeScript-authored contract. A contract is validated once, however
+ * many clients are built from it.
+ *
+ * @example
+ * ```ts
+ * import { contractFromJson } from '@prisma/orm-postgres/static';
+ * import { supabase } from '@prisma/orm-extension-supabase/runtime';
+ * import type { Contract } from './contract.d';
+ * import contractJson from './contract.json' with { type: 'json' };
+ *
+ * export const contract = contractFromJson<Contract>(contractJson);
+ * export const db = await supabase({ contract, url, jwtSecret });
+ * ```
+ */
 export default async function supabase<TContract extends Contract<SqlStorage>>(
   options: SupabaseOptions<TContract>,
 ): Promise<SupabaseDb<TContract>> {
   const keyMaterial = resolveKeyMaterial(options);
-  const contract = resolveContract(options);
+  const contract = validateApplicationContract(options.contract);
 
   const stack = createSqlExecutionStack({
     target: postgresTarget,
