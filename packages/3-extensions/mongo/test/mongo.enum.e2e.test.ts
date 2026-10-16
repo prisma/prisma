@@ -6,8 +6,11 @@ import {
   renderTsLiteral,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { ExtractMongoFieldOutputTypes } from '@internal/mongo-contract';
-import { deriveJsonSchema, type FieldValueSets } from '@internal/mongo-contract-psl';
+import {
+  deriveCollectionValidators,
+  type ExtractMongoFieldOutputTypes,
+  type FieldValueSets,
+} from '@internal/mongo-contract';
 import { mongoEmission } from '@internal/mongo-emitter';
 import { mongoDescriptorById } from '@internal/target-mongo/codecs';
 import { mongoDataTypes } from '@internal/target-mongo/data-types';
@@ -74,13 +77,8 @@ const codecLookup: CodecLookupWithDescriptors = {
     id === 'mongo/string@1' && typeof value === 'string' ? renderTsLiteral(value) : undefined,
 };
 
-// Derive the $jsonSchema validator from the contract via the production deriver.
-// This ensures a regression in deriveJsonSchema (e.g. placing enum outside items
-// for array fields) breaks this test — not just the unit tests in derive-json-schema.test.ts.
-// The validator's `enum` keyword is sourced from the storage value set (as production does), not
-// from `domain.enum`.
+// The validator `enum` keyword comes from the storage value set, as in production, not from `domain.enum`.
 const ns = contract.domain.namespaces[UNBOUND_NAMESPACE_ID];
-const accountFields = ns?.models['Account']?.fields ?? {};
 const storageValueSets = blindCast<
   FieldValueSets,
   'a mongo storage namespace exposes entries.valueSet as { <name>: { values } } after authoring'
@@ -88,12 +86,14 @@ const storageValueSets = blindCast<
   (contract.storage as { namespaces: Record<string, { entries: { valueSet?: unknown } }> })
     .namespaces[UNBOUND_NAMESPACE_ID]?.entries.valueSet ?? {},
 );
-const ACCOUNT_VALIDATOR = deriveJsonSchema(
-  accountFields,
-  { codecLookup, dataTypeLookup: createDataTypeLookup(mongoDataTypes) },
-  undefined,
-  storageValueSets,
-);
+const ACCOUNT_VALIDATOR = deriveCollectionValidators({
+  roots: contract.roots,
+  models: ns?.models ?? {},
+  lookups: { codecLookup, dataTypeLookup: createDataTypeLookup(mongoDataTypes) },
+  valueObjects: {},
+  valueSets: storageValueSets,
+})['accounts'];
+if (ACCOUNT_VALIDATOR === undefined) throw new Error('expected a validator for accounts');
 
 describe('mongo enum — end-to-end (replica set)', {
   timeout: timeouts.spinUpMongoMemoryServer,

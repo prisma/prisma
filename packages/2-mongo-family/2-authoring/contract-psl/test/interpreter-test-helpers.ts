@@ -8,11 +8,8 @@ import type {
   AuthoringTypeConstructorDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import {
-  type CodecLookupWithDescriptors,
-  emptyCodecLookup,
-} from '@internal/framework-components/codec';
-import { EMPTY_DATA_TYPES } from '@internal/psl-parser';
+import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { bindPslSchema } from '@internal/psl-parser/test';
 import type { Result } from '@internal/utils/result';
@@ -25,6 +22,7 @@ import {
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
 import { mongoContextInput } from '../src/test';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 type InterpretOptionsWithDefaultLookups = Omit<
   InterpretPslDocumentToMongoContractInput,
@@ -62,8 +60,8 @@ function contextForInterpretOptions(
       describeUnsupportedAttribute: describeUnsupportedMongoAttribute,
       describeUnresolvedType: describeUnresolvedMongoType,
     },
-    codecLookup: options.codecLookup ?? { ...emptyCodecLookup, descriptorFor: () => undefined },
-    dataTypes: options.dataTypes ?? EMPTY_DATA_TYPES,
+    codecLookup: options.codecLookup ?? mongoCodecLookup,
+    dataTypes: options.dataTypes ?? mongoDataTypeSupport,
     controlMutationDefaults: {
       defaultFunctionRegistry: options.defaultFunctionRegistry,
       generatorDescriptors: [],

@@ -112,9 +112,7 @@ function buildContract(withDefaults: boolean): Contract<SqlStorage> {
         dataType: defaultCase.dataType,
         codecId: defaultCase.codecId,
         nullable: true,
-        ...(defaultCase.many
-          ? { many: { elementNullable: false }, noCheck: ['elementNotNull'] }
-          : {}),
+        ...(defaultCase.many ? { many: { elementNullable: true } } : {}),
         ...(withDefaults ? { default: { kind: 'literal', value: defaultCase.literal } } : {}),
       },
     ]),

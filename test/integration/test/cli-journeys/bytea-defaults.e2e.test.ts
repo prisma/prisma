@@ -192,7 +192,7 @@ withTempDir(({ createTempDir }) => {
           .map((line) => line.trim().split(/\s+/).join(' '));
         expect(printed).toEqual([
           'blob Bytes @default("aGVsbG8=")',
-          'blobs Bytes[] @default(["aGVsbG8="]) @noCheck(elementNotNull)',
+          'blobs Bytes?[] @default(["aGVsbG8="])',
         ]);
 
         const emit = await runContractEmit(ctx);

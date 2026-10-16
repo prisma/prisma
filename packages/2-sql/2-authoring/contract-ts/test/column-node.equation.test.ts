@@ -237,7 +237,7 @@ const rows: readonly Row[] = [
   {
     kind: 'column on a table that is not managed',
     definition: definitionOf([
-      { ...user(field('tags', 'pg/text@1', { many: true, noCheck: [] })), control: 'external' },
+      { ...user(field('tags', 'pg/text@1', { many: true })), control: 'external' },
     ]),
     fieldName: 'tags',
   },

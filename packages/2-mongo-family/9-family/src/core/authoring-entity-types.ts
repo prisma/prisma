@@ -8,6 +8,7 @@ import {
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import { enumRefusalOf } from '@internal/framework-components/codec';
+import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from '@internal/mongo-contract';
 import { isMongoDataType } from '@internal/mongo-contract/data-type';
 import { type EnumTypeHandle, enumType } from '@internal/mongo-contract-ts/contract-builder';
 import type { InferBlock, PslBlockSpecDescriptor } from '@internal/psl-parser';
@@ -25,34 +26,6 @@ export function mongoFamilyEnumSpec() {
 }
 
 type EnumBlockValues = InferBlock<ReturnType<typeof mongoFamilyEnumSpec>>;
-
-const STORED_JSON_TYPE_NAMES = {
-  string: 'a string',
-  number: 'a finite number',
-  boolean: 'a boolean',
-  object: 'a JSON object',
-  array: 'a JSON array',
-} as const;
-
-type StoredJsonType = keyof typeof STORED_JSON_TYPE_NAMES;
-
-function storedJsonTypeOf(stored: unknown): string {
-  if (stored === null) return 'null';
-  if (Array.isArray(stored)) return 'array';
-  return typeof stored;
-}
-
-/**
- * A collection validator lists an enum's members in their stored forms, so an enum's BSON type must be one whose values JSON holds. Maps each such type to the JSON type of a member's stored form.
- */
-const VALIDATOR_LISTABLE_BSON_TYPES: Readonly<Record<string, StoredJsonType>> = {
-  string: 'string',
-  int: 'number',
-  double: 'number',
-  bool: 'boolean',
-  object: 'object',
-  array: 'array',
-};
 
 export const mongoFamilyEnumEntityDescriptor = {
   kind: 'entity' as const,
@@ -95,22 +68,11 @@ export const mongoFamilyEnumEntityDescriptor = {
         throw new InternalError(`Data type ${dataType.id} is not a Mongo data type.`);
       }
       const { bsonTypes } = dataType.mongo;
-      const [bsonType, ...otherBsonTypes] = bsonTypes;
-      if (bsonType === undefined || otherBsonTypes.length > 0) {
+      const validatorRefusal = validatorEnumRefusalOf(bsonTypes);
+      if (validatorRefusal !== undefined) {
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" @@type codec "${codecId}" declares ${bsonTypes.length} BSON types; an enum needs exactly one. Use a codec with one BSON type, such as mongo/string@1.`,
-          sourceId,
-          span: codecSpan,
-        });
-        return undefined;
-      }
-
-      const storedJsonType = VALIDATOR_LISTABLE_BSON_TYPES[bsonType];
-      if (storedJsonType === undefined) {
-        diagnostics?.push({
-          code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" @@type codec "${codecId}" stores BSON type ${bsonType}, which a collection validator cannot list as an enum value. Use a codec whose BSON type is string, int, double, bool, object or array.`,
+          message: `enum "${block.name}" @@type codec "${codecId}" ${validatorRefusal}`,
           sourceId,
           span: codecSpan,
         });
@@ -144,11 +106,11 @@ export const mongoFamilyEnumEntityDescriptor = {
 
       let unlistedMember = false;
       for (const member of members) {
-        const stored = codec.encodeJson(member.value);
-        if (storedJsonTypeOf(stored) === storedJsonType) continue;
+        const refusal = validatorEnumMemberRefusalOf(bsonTypes, codec.encodeJson(member.value));
+        if (refusal === undefined) continue;
         diagnostics?.push({
           code: 'PSL_EXTENSION_INVALID_VALUE',
-          message: `enum "${block.name}" member "${member.name}" is stored as ${JSON.stringify(stored)}, which a collection validator cannot list as a ${bsonType}. A member of a ${bsonType} enum must be ${STORED_JSON_TYPE_NAMES[storedJsonType]}.`,
+          message: `enum "${block.name}" member "${member.name}" ${refusal}`,
           sourceId,
           span: block.parameterSpans[member.name] ?? block.span,
         });

@@ -613,7 +613,7 @@ export function refuseUnderivedChecks(
     if (check?.prefix === expected.prefix && check.expression === expected.expression) continue;
     throw unsupported(
       `table "${entry.namespaceId}"."${entry.tableName}" ${check === undefined ? 'lacks' : 'changes'} the check "${name}" the PSL source derives, so it cannot be written in Prisma 8 PSL.`,
-      'The PSL source derives a membership check for each column of a managed table typed by an enum, and an element-not-null check for each list column, unless the column waives it with `@noCheck`.',
+      'The PSL source derives a membership check for each column of a managed table typed by an enum, and an element-not-null check for each list column whose elements are not nullable.',
       KEEP_SOURCE,
       { namespaceId: entry.namespaceId, table: entry.tableName, name },
     );

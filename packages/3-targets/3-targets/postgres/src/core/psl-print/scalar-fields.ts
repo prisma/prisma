@@ -12,7 +12,6 @@ import {
   buildAttribute,
   buildMapAttribute,
   namedArg,
-  positionalArg,
   SYNTHETIC_SPAN,
 } from '../psl-build/psl-literals';
 import { buildColumnDefault } from './column-defaults';
@@ -82,9 +81,6 @@ function scalarFieldAttributes(input: {
     });
   if (columnDefault !== undefined) {
     attributes.push(columnDefault);
-  }
-  for (const kind of input.column.noCheck ?? []) {
-    attributes.push(buildAttribute('field', 'noCheck', [positionalArg(kind)]));
   }
   const mapName = pslFieldMapName(input.fieldName, input.columnName);
   if (mapName !== undefined) {

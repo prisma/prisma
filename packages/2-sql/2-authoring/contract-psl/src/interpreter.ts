@@ -1438,7 +1438,6 @@ function buildModelNodeFromPsl(input: BuildModelNodeInput): BuildModelNodeResult
         }
         return {
           ...common,
-          ...ifDefined('noCheck', resolvedField.noCheck),
           ...ifDefined('enumTypeHandle', resolvedField.enumTypeHandle),
         };
       }),

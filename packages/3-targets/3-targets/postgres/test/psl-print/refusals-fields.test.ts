@@ -85,7 +85,6 @@ describe('columns and fields', () => {
             priorities: {
               ...TEXT_COLUMN,
               many: { elementNullable: false },
-              noCheck: ['elementNotNull', 'membership'],
               valueSet: {
                 plane: 'storage',
                 namespaceId: 'public',
@@ -106,6 +105,7 @@ describe('columns and fields', () => {
               },
             },
           },
+          table: { control: 'external' },
         }),
       ),
       testBuildContext(),
@@ -117,7 +117,7 @@ describe('columns and fields', () => {
         .flatMap((model) => model.fields)
         .filter((field) => field.name === 'priorities')
         .map(fieldText),
-    ).toEqual(['priorities Priority[] @noCheck(elementNotNull) @noCheck(membership)']);
+    ).toEqual(['priorities Priority[]']);
   });
 
   it('refuses a model field whose type is a union of types', () => {
