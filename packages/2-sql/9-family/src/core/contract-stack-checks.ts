@@ -87,6 +87,8 @@ interface RefusedDefault {
   readonly column: string;
   readonly dataType: string;
   readonly value: unknown;
+  /** The refused element's position in a list default, counted from 0; absent for a single value. */
+  readonly elementIndex?: number;
   /** The data type's own message, or why a default on a list column is not a list. */
   readonly message: string;
   readonly reason: 'type-refused-default';
@@ -108,7 +110,7 @@ function columnPlace(refused: Pick<RefusedDefault, 'namespaceId' | 'table' | 'co
 function notAValue(refused: RefusedDefault): Refusal {
   return {
     refused,
-    text: `${columnPlace(refused)}: the default ${JSON.stringify(refused.value)} is not a value of ${refused.dataType}: ${refused.message}`,
+    text: `${columnPlace(refused)}: the default ${JSON.stringify(refused.value)}${refused.elementIndex === undefined ? '' : ` at element ${refused.elementIndex + 1}`} is not a value of ${refused.dataType}: ${refused.message}`,
   };
 }
 
@@ -141,9 +143,11 @@ function refusedDefaults(storage: SqlStorage, dataTypes: DataTypeLookup): readon
           }),
         ];
       }
+      const listed = isList && Array.isArray(columnDefault.value);
       const values =
         isList && Array.isArray(columnDefault.value) ? columnDefault.value : [columnDefault.value];
-      for (const value of values.filter((element) => element !== null)) {
+      for (const [index, value] of values.entries()) {
+        if (value === null) continue;
         try {
           type.fromContract(value, params);
         } catch (error) {
@@ -152,6 +156,7 @@ function refusedDefaults(storage: SqlStorage, dataTypes: DataTypeLookup): readon
             notAValue({
               ...place,
               value,
+              ...(listed ? { elementIndex: index } : {}),
               message: error instanceof Error ? error.message : String(error),
               reason: 'type-refused-default',
             }),

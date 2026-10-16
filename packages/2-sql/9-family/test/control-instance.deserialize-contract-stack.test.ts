@@ -239,7 +239,14 @@ describe('deserializeContract checks each column against the stack', () => {
         }),
       });
       expect(() => familyInstance('Jsonb').deserializeContract(listed)).toThrow(
-        `Table "user", column "prices": the default "2.5" is not a value of t/numeric: t/numeric JSON value must have two fraction digits, got "2.5"`,
+        expect.objectContaining({
+          message: `Table "user", column "prices": the default "2.5" at element 2 is not a value of t/numeric: t/numeric JSON value must have two fraction digits, got "2.5"`,
+          meta: {
+            refusedDefaults: [
+              expect.objectContaining({ column: 'prices', value: '2.5', elementIndex: 1 }),
+            ],
+          },
+        }),
       );
     });
 

@@ -31,31 +31,39 @@ export async function readReportedDefault(
   literal: ReportedLiteralDefault,
   raw: string,
 ): Promise<ReadReportedDefault> {
-  try {
-    if (literal.kind === 'value') {
+  const unreadable = (error: unknown, element: string): ReadReportedDefault => {
+    if (isInternalError(error)) throw error;
+    const reason = error instanceof Error ? error.message : String(error);
+    return {
+      defaultUnreadable: `The column codec ${codec.id} cannot read ${element}the default the database reports, ${raw}: ${reason}`,
+    };
+  };
+  if (literal.kind === 'value') {
+    try {
       const value = await readBody(codec, literal.body);
       return {
         resolvedDefault: { kind: 'literal', value: codec.dataType.toContract(value) },
         defaultValue: value,
       };
+    } catch (error) {
+      return unreadable(error, '');
     }
-    const values = await Promise.all(
-      literal.elements.map((body) => (body === null ? null : readBody(codec, body))),
-    );
-    return {
-      resolvedDefault: {
-        kind: 'literal',
-        value: values.map((value) => (value === null ? null : codec.dataType.toContract(value))),
-      },
-      defaultValue: values,
-    };
-  } catch (error) {
-    if (isInternalError(error)) throw error;
-    const reason = error instanceof Error ? error.message : String(error);
-    return {
-      defaultUnreadable: `The column codec ${codec.id} cannot read the default the database reports, ${raw}: ${reason}`,
-    };
   }
+  const values: (DataTypeValue | null)[] = [];
+  for (const [index, body] of literal.elements.entries()) {
+    try {
+      values.push(body === null ? null : await readBody(codec, body));
+    } catch (error) {
+      return unreadable(error, `element ${index + 1} of `);
+    }
+  }
+  return {
+    resolvedDefault: {
+      kind: 'literal',
+      value: values.map((value) => (value === null ? null : codec.dataType.toContract(value))),
+    },
+    defaultValue: values,
+  };
 }
 
 /** What introspection holds of a reported literal default: the codec's reading, and the value of the literal the contract's expression default writes, when it writes one the codec reads. */

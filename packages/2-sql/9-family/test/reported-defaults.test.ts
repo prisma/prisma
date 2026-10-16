@@ -70,6 +70,15 @@ describe('readReportedDefault', () => {
         'The column codec demo/count@1 cannot read the default the database reports, \'x\': "x" is not a count.',
     });
   });
+
+  it('names the element of a list the codec cannot read', async () => {
+    expect(
+      await readReportedDefault(codec, { kind: 'list', elements: ['1', 'x'] }, "'{1,x}'"),
+    ).toEqual({
+      defaultUnreadable:
+        'The column codec demo/count@1 cannot read element 2 of the default the database reports, \'{1,x}\': "x" is not a count.',
+    });
+  });
 });
 
 describe('readColumnDefault', () => {
