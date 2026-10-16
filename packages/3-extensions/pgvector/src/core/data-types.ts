@@ -58,14 +58,17 @@ const readVector: DataTypeReader = (json, params) => {
   }
   if (!json.every(isFiniteNumber)) return refuseJsonValue('pgvector/vector', expected, json);
   for (const [index, element] of json.entries()) {
-    const stored = realText(element);
-    if (Number(stored) !== element) {
-      return refuseJsonValue(
+    const refuse = (why: string) =>
+      refuseJsonValue(
         'pgvector/vector',
-        `an array of numbers real holds exactly; element ${index + 1}, ${element}, would be stored as ${stored}`,
+        `an array of numbers real holds exactly; element ${index + 1}, ${element}, ${why}`,
         json,
       );
+    if (!Number.isFinite(Math.fround(element))) {
+      return refuse('is outside the range real holds, which PostgreSQL refuses');
     }
+    const stored = realText(element);
+    if (Number(stored) !== element) return refuse(`would be stored as ${stored}`);
   }
   return json;
 };

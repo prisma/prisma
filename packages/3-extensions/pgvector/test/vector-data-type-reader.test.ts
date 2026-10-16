@@ -43,6 +43,15 @@ describe('pgvector/vector reads the array of numbers it stores', () => {
     },
   );
 
+  it.each([3.5e38, -1e39])('refuses %d, which is outside the range real holds', (outside) => {
+    expect(() => pgvectorVector.fromContract([1, outside, 2], { length: 3 })).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.DECODE_FAILED',
+        message: `pgvector/vector JSON value must be an array of numbers real holds exactly; element 2, ${outside}, is outside the range real holds, which PostgreSQL refuses`,
+      }),
+    );
+  });
+
   it("a vector codec's value carries the column's length", () => {
     const value = pgVectorDescriptor
       .factory({ length: 3 })({ name: 'embedding' })
