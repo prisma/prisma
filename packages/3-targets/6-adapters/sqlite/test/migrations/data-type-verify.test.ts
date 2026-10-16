@@ -67,7 +67,13 @@ const columns: Readonly<Record<string, StorageColumn>> = {
     nullable: false,
     default: literal(1.5),
   },
-  blob_col: { many: false, dataType: 'sqlite/blob', codecId: 'sqlite/blob@1', nullable: true },
+  blob_col: {
+    many: false,
+    dataType: 'sqlite/blob',
+    codecId: 'sqlite/blob@1',
+    nullable: true,
+    default: literal('6869'),
+  },
   character_col: {
     many: false,
     dataType: 'sqlite/character',
@@ -236,7 +242,7 @@ describe('verify on SQLite, for each data type', () => {
         "text_col" TEXT NOT NULL DEFAULT 'x',
         "integer_col" INTEGER NOT NULL DEFAULT 7,
         "real_col" REAL NOT NULL DEFAULT 1.5,
-        "blob_col" BLOB,
+        "blob_col" BLOB DEFAULT X'6869',
         "character_col" CHARACTER NOT NULL DEFAULT 'a',
         "character_varying_col" CHARACTER VARYING NOT NULL DEFAULT 'b',
         "json_col" TEXT NOT NULL DEFAULT '{"a":1}',

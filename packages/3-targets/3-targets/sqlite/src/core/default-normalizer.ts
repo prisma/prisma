@@ -70,6 +70,9 @@ function bodyFor(literal: string, quoted: boolean, affinity: Affinity): Reported
   return numeral ? numberBody(literal) : literal;
 }
 
+/** A blob literal: `X'` or `x'`, an even number of hexadecimal digits, `'`. */
+const BLOB_LITERAL_PATTERN = /^[xX]'((?:[0-9a-fA-F]{2})*)'$/;
+
 /** What a column's reported default is: a function, SQL NULL, or a literal the column's codec reads. */
 export type SqliteReportedDefault =
   | { readonly kind: 'function'; readonly expression: string }
@@ -77,7 +80,7 @@ export type SqliteReportedDefault =
   | { readonly kind: 'literal'; readonly literal: ReportedLiteralDefault };
 
 /**
- * Reads a column's reported default. `CURRENT_TIMESTAMP`, `datetime('now')` and the expression a `now()` default is written as are `now()`. A quoted string or a numeral is a literal; any other expression is a function default, kept as reported.
+ * Reads a column's reported default. `CURRENT_TIMESTAMP`, `datetime('now')` and the expression a `now()` default is written as are `now()`. A quoted string, a numeral or a blob literal (`X'6869'`, read as its bytes) is a literal; any other expression is a function default, kept as reported.
  */
 export function readSqliteDefault(rawDefault: string, declaredType: string): SqliteReportedDefault {
   let trimmed = rawDefault.trim();
@@ -93,6 +96,13 @@ export function readSqliteDefault(rawDefault: string, declaredType: string): Sql
   if (quoted !== undefined) {
     const text = quoted.replace(/''/g, "'");
     return { kind: 'literal', literal: { kind: 'value', body: bodyFor(text, true, affinity) } };
+  }
+  const blobHex = BLOB_LITERAL_PATTERN.exec(trimmed)?.[1];
+  if (blobHex !== undefined) {
+    return {
+      kind: 'literal',
+      literal: { kind: 'value', body: new Uint8Array(Buffer.from(blobHex, 'hex')) },
+    };
   }
   if (INTEGER_PATTERN.test(trimmed) || REAL_PATTERN.test(trimmed)) {
     return { kind: 'literal', literal: { kind: 'value', body: bodyFor(trimmed, false, affinity) } };

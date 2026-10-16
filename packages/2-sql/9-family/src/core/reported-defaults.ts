@@ -11,14 +11,14 @@ import { ifDefined } from '@internal/utils/defined';
 import { isInternalError } from '@internal/utils/internal-error';
 
 /**
- * A reported literal default with the target's quoting, casts and escapes taken off: one body, or a list's element bodies with `null` for SQL NULL. A body is what the target's driver hands `fromWire` for a row of the column: text, or a number where the driver returns one.
+ * A reported literal default with the target's quoting, casts and escapes taken off: one body, or a list's element bodies with `null` for SQL NULL. A body is what the target's driver hands `fromWire` for a row of the column: text, a number where the driver returns one, or bytes.
  */
 export type ReportedLiteralDefault =
   | { readonly kind: 'value'; readonly body: ReportedBody }
   | { readonly kind: 'list'; readonly elements: readonly (ReportedBody | null)[] };
 
-/** One literal's body, as the driver would hand it over for a row. */
-export type ReportedBody = string | number;
+/** One literal's body, as the driver would hand it over for a row: text, a number, or the bytes of a blob. */
+export type ReportedBody = string | number | Uint8Array;
 
 /** What the column's codec made of a reported literal default: the value, or the codec's reason it could not read it. */
 export type ReadReportedDefault =

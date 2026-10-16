@@ -4,6 +4,7 @@
 
 import { type ColumnDefault, isColumnDefault } from '@internal/contract/types';
 import {
+  type ReportedBody,
   type ReportedLiteralDefault,
   readReportedDefault,
   type SqlPslBuildContext,
@@ -98,11 +99,11 @@ export async function readDefaultWithCodec(
 
 const JSON_TYPES: ReadonlySet<string> = new Set([pgJson.id, pgJsonb.id]);
 
-function bodiesOf(literal: ReportedLiteralDefault): readonly (string | number | null)[] {
+function bodiesOf(literal: ReportedLiteralDefault): readonly (ReportedBody | null)[] {
   return literal.kind === 'value' ? [literal.body] : literal.elements;
 }
 
-function jsonBodyIsExact(body: string | number | null): boolean {
+function jsonBodyIsExact(body: ReportedBody | null): boolean {
   return typeof body !== 'string' || jsonKeepsEveryNumber(body);
 }
 

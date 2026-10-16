@@ -73,9 +73,19 @@ describe('readSqliteDefault', () => {
   });
 
   it.each([
+    ["X'6869'", [0x68, 0x69]],
+    ["x'00ff'", [0x00, 0xff]],
+    ["X''", []],
+  ])('reads the blob literal %j as the bytes a blob row carries', (raw, bytes) => {
+    expect(readSqliteDefault(raw, 'BLOB')).toEqual({
+      kind: 'literal',
+      literal: { kind: 'value', body: new Uint8Array(bytes) },
+    });
+  });
+
+  it.each([
     ["strftime('%Y-%m-%d','now')"],
     ["strftime('%Y-%m-%dT%H:%M:%fZ','now','+1 day')"],
-    ["X'6869'"],
     ['random()'],
     ['CURRENT_DATE'],
     ['CURRENT_TIME'],
