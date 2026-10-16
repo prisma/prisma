@@ -7,7 +7,8 @@
 // Usage: node contract-from-json.ts [project root] [--typescript <path to the typescript package>]
 //
 // The script reads source files with the TypeScript compiler, which it loads from the project.
-// It rewrites each source file it can move, and prints it. It prints to stderr, with the reason,
+// It rewrites each source file it can move, and prints it. In a module with a default export, such
+// as a Worker entry, it declares `contract` without `export` and says so. It prints to stderr, with the reason,
 // each file that passes `contractJson` to a client but that it did not move: a test file, a file
 // that already has a binding named `contract`, a file whose clients use different contracts, or
 // a call it cannot read. It exits 1 when it printed such a file, and changes nothing and exits 1
@@ -45,7 +46,7 @@ interface MovedCall {
 
 type Outcome =
   | { readonly kind: 'unchanged' }
-  | { readonly kind: 'rewritten'; readonly source: string }
+  | { readonly kind: 'rewritten'; readonly source: string; readonly exported: boolean }
   | { readonly kind: 'refused'; readonly reason: string };
 
 function staticEntryOf(specifier: string): string | undefined {
@@ -281,7 +282,8 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
 
   let afterImports = lastImport.end;
   while (source[afterImports] === '\r' || source[afterImports] === '\n') afterImports++;
-  const declaration = `export const contract = contractFromJson${first.typeArguments}(${first.json})${style.semicolon}`;
+  const exported = !hasDefaultExport(ts, sourceFile);
+  const declaration = `${exported ? 'export ' : ''}const contract = contractFromJson${first.typeArguments}(${first.json})${style.semicolon}`;
   edits.push({
     start: lastImport.end,
     end: afterImports,
@@ -292,7 +294,17 @@ export function moveFile(ts: typeof TS, fileName: string, source: string): Outco
   for (const edit of [...edits].sort((left, right) => right.start - left.start)) {
     moved = moved.slice(0, edit.start) + edit.text + moved.slice(edit.end);
   }
-  return { kind: 'rewritten', source: moved };
+  return { kind: 'rewritten', source: moved, exported };
+}
+
+function hasDefaultExport(ts: typeof TS, sourceFile: TS.SourceFile): boolean {
+  return sourceFile.statements.some(
+    (statement) =>
+      (ts.isExportAssignment(statement) && !statement.isExportEquals) ||
+      (ts.canHaveModifiers(statement) &&
+        (ts.getModifiers(statement)?.some((m) => m.kind === ts.SyntaxKind.DefaultKeyword) ??
+          false)),
+  );
 }
 
 function isTestPath(path: string): boolean {
@@ -350,7 +362,11 @@ function main(): number {
       : moveFile(ts, path, source);
     if (outcome.kind === 'rewritten') {
       writeFileSync(path, outcome.source);
-      process.stdout.write(`${name}: moved to contractFromJson\n`);
+      process.stdout.write(
+        outcome.exported
+          ? `${name}: moved to contractFromJson\n`
+          : `${name}: moved to contractFromJson; contract is not exported, because the module has a default export (a Worker treats every named export of its entry module as an entrypoint); a module that needs the value gets it from a separate module\n`,
+      );
     } else if (outcome.kind === 'refused') {
       refused++;
       process.stderr.write(`${name}: not moved, because ${outcome.reason}\n`);

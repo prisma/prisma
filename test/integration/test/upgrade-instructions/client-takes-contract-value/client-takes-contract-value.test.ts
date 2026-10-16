@@ -71,17 +71,16 @@ function run(tree: Tree, audience: Audience) {
 const moved = (paths: readonly string[]) =>
   paths.map((path) => `${path}: moved to contractFromJson\n`).join('');
 
+const notExported = (path: string) =>
+  `${path}: moved to contractFromJson; contract is not exported, because the module has a default export (a Worker treats every named export of its entry module as an entrypoint); a module that needs the value gets it from a separate module\n`;
+
 describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
   it('moves each source file to a contract value and reports the test file it leaves', () => {
     expect(run(fixtureTree('app', 'before'), audience)).toEqual({
       status: 1,
-      stdout: moved([
-        'src/enums.ts',
-        'src/prisma/db.ts',
-        'src/query.ts',
-        'src/supabase.ts',
-        'src/worker.ts',
-      ]),
+      stdout:
+        moved(['src/enums.ts', 'src/prisma/db.ts', 'src/query.ts', 'src/supabase.ts']) +
+        notExported('src/worker.ts'),
       stderr:
         'test/test-db.ts: not moved, because it is a test file; import the contract value from the module that creates the client\n',
       tree: fixtureTree('app', 'after'),
@@ -91,13 +90,10 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
   it('moves calls with comments, default-as imports, nested objects and a default export', () => {
     expect(run(fixtureTree('shapes', 'before'), audience)).toEqual({
       status: 0,
-      stdout: moved([
-        'src/comment.ts',
-        'src/default-as.ts',
-        'src/default-export.ts',
-        'src/nested-object.ts',
-        'src/value-with-comma.ts',
-      ]),
+      stdout:
+        moved(['src/comment.ts', 'src/default-as.ts']) +
+        notExported('src/default-export.ts') +
+        moved(['src/nested-object.ts', 'src/value-with-comma.ts']),
       stderr: '',
       tree: fixtureTree('shapes', 'after'),
     });
@@ -152,6 +148,13 @@ describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
   });
 });
 
+function scriptDetection(audience: Audience): RegExp {
+  const script = readFileSync(join(repoRoot, SCRIPT_PATHS[audience]), 'utf8');
+  const literal = /const DETECTION =\s*\/(.*)\/;\n/.exec(script)?.[1];
+  if (literal === undefined) throw new Error(`${SCRIPT_PATHS[audience]} has no DETECTION`);
+  return new RegExp(literal);
+}
+
 function detection(audience: Audience): RegExp {
   const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf8');
   const pattern = /^ {8}- '(.*)'$/m.exec(guide)?.[1];
@@ -161,6 +164,10 @@ function detection(audience: Audience): RegExp {
 
 describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
   const detects = (content: string) => detection(audience).test(content);
+
+  it('is the pattern the script uses', () => {
+    expect(scriptDetection(audience).source).toBe(detection(audience).source);
+  });
 
   it.each([
     ['a one-line call', 'export const db = postgres<Contract>({ contractJson, url });'],

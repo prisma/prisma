@@ -3,7 +3,7 @@ import { contractFromJson } from '@prisma/orm-sqlite/static';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
-export const contract = contractFromJson<Contract>(contractJson);
+const contract = contractFromJson<Contract>(contractJson);
 
 const db = sqlite({ contract, path: './dev.db' });
 

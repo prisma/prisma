@@ -40,7 +40,7 @@ A contract value is validated once, however many clients are built from it. A co
 Run `node <path to this guide>/scripts/contract-from-json.ts <project root>`. The script reads source files with the TypeScript compiler from the project's `typescript` package; if the project has none, it changes nothing, says so and exits 1. In each source file that passes `contractJson` to a client, static entry or `mongoQuery`, it:
 
 - adds `import { contractFromJson } from '<facade>/static';`, or adds `contractFromJson` to an existing import of that entry, in the file's quote, semicolon and line-ending style;
-- declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports, also in a module with a default export;
+- declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports. In a module with a default export, such as a Worker entry, it declares `const contract` without `export` and prints a note: a Worker treats every named export of its entry module as an entrypoint, so a module that needs the value gets it from a separate module (see step 2 below);
 - removes the type argument from the call and replaces the `contractJson` property with `contract`.
 
 It prints each file it moved. It prints to stderr, with the reason, each file that passes `contractJson` but that it did not move, and then exits 1: a test file, a file that already has a binding named `contract` (rename that binding and run the script again), a file whose clients use different contracts, a file whose `contractJson` value uses a binding the file declares after its imports, and a call it cannot read. Move those by hand in the same way.

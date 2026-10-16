@@ -3,7 +3,7 @@ import { contractFromJson } from '@prisma/orm-postgres/static';
 import type { Contract } from '../postgres/generated/contract.d';
 import contractJson from '../postgres/generated/contract.json' with { type: 'json' };
 
-export const contract = contractFromJson<Contract>(contractJson);
+const contract = contractFromJson<Contract>(contractJson);
 
 const postgres = postgresServerless({ contract });
 
