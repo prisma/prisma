@@ -2,14 +2,14 @@
 changes:
   - id: sqlite-postchecks-check-full-definition
     summary: |
-      On SQLite, the checks that let the runner skip an operation whose effect is already in place now check the whole definition. `createTable` checks every column's name, type, nullability and primary key position; `addColumn` checks the column's type and nullability; `createIndex` checks the index's table, ordered columns and uniqueness; `recreateTable` checks foreign key actions and `autoincrement()`. An `ops.json` written by 8.0.0-rc.17 or earlier still carries the old checks; write it again before you apply it.
+      On SQLite, the checks that let the runner skip an operation whose effect is already in place now check the whole definition. `createTable` checks every column's name, type, nullability and primary key position; `addColumn` checks the column's type and nullability; `createIndex` checks the index's table, ordered columns and uniqueness; `recreateTable` checks foreign key actions and `autoincrement()`. An `ops.json` written by an earlier release still carries the old checks; write it again before you apply it.
     detection:
       glob: "**/ops.json"
       matches:
-        - '(?<![\s\S])(?![\s\S]*has exactly its columns)[\s\S]*verify table \\"(?:[^"\\]|\\.)*?\\" exists'
-        - '(?<![\s\S])(?![\s\S]*\\" has type )[\s\S]*verify column \\"(?:[^"\\]|\\.)*?\\" exists'
-        - '(?<![\s\S])(?![\s\S]*\\" covers \()[\s\S]*verify index \\"(?:[^"\\]|\\.)*?\\" exists'
-        - "pragma_foreign_key_list\\('(?:[^'\\\\]|\\\\.)*'\\) f WHERE f\\.\\\\\"table\\\\\" = '(?:[^'\\\\]|\\\\.)*' GROUP BY"
+        - '(?<![\s\S])(?![\s\S]*has exactly its columns)[\s\S]*"description":\s*"verify table \\"(?:[^"\\]|\\.)*\\" exists",\s*"sql":\s*"(?:[^"\\]|\\.)*sqlite_master'
+        - '(?<![\s\S])(?![\s\S]*\\" has type )[\s\S]*"description":\s*"verify column \\"(?:[^"\\]|\\.)*\\" exists",\s*"sql":\s*"(?:[^"\\]|\\.)*pragma_table_info'
+        - '(?<![\s\S])(?![\s\S]*\\" covers \()[\s\S]*"description":\s*"verify index \\"(?:[^"\\]|\\.)*\\" exists",\s*"sql":\s*"(?:[^"\\]|\\.)*sqlite_master'
+        - 'pragma_foreign_key_list\(''(?:[^''\\]|\\.)*''\) f WHERE f\.\\"table\\" = ''(?:[^''\\]|\\.)*'' GROUP BY'
 ---
 
 # SQLite postchecks check the whole definition
