@@ -138,7 +138,7 @@ The stored value is the same as before, so emitting the schema after the rewrite
 A stored default is now a value of its column's type, written in the one spelling the type and its parameters give. A PostgreSQL contract that an earlier release emitted can store a default in another spelling. This release refuses to load such a contract, and every command that reads it (`migration plan`, `db init`, `db verify`, `migration check` and others) fails with `CONTRACT.VALIDATION_FAILED`. The message names the column, the stored value and the spelling the type expects:
 
 ```text
-Table "product", column "price": the default "1.5" is not a value of pg/numeric: pg/numeric JSON value must be "1.50", the spelling its parameters give this value
+Namespace "public", table "product", column "price": the default "1.5" is not a value of pg/numeric: pg/numeric JSON value must be "1.50", the spelling its parameters give this value
 ```
 
 The cases are:
