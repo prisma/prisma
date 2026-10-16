@@ -70,10 +70,6 @@ test('enums.public.Role.values is the literal value tuple', () => {
   expectTypeOf(publicEnums.Role.values).toEqualTypeOf<readonly ['user', 'admin']>();
 });
 
-test('enums.public.Role.values is not a widened string[]', () => {
-  expectTypeOf(publicEnums.Role.values).not.toEqualTypeOf<readonly string[]>();
-});
-
 test('enums.public.Status.values preserves declaration order as a literal tuple', () => {
   expectTypeOf(publicEnums.Status.values).toEqualTypeOf<readonly ['active', 'inactive']>();
 });

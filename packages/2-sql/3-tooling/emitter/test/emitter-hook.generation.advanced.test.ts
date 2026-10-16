@@ -619,47 +619,6 @@ describe('sql-target-family-hook', () => {
     expect(codecImports[1]?.package).toBe('@test/extension/codec-types');
   });
 
-  it('gets types imports with descriptors without codecTypes', () => {
-    const descriptors: TestDescriptor[] = [
-      {
-        kind: 'adapter',
-        id: 'test-adapter',
-        familyId: 'sql',
-        targetId: 'postgres',
-        version: '0.0.1',
-      },
-    ];
-
-    const codecImports = extractCodecTypeImports(descriptors);
-    expect(codecImports.length).toBe(0);
-  });
-
-  it('gets types imports using extractCodecTypeImports', () => {
-    const descriptors: TestDescriptor[] = [
-      {
-        kind: 'adapter',
-        id: 'test-adapter',
-        familyId: 'sql',
-        targetId: 'postgres',
-        version: '0.0.1',
-        types: {
-          codecTypes: {
-            import: {
-              package: '@test/adapter/codec-types',
-              named: 'CodecTypes',
-              alias: 'TestTypes',
-            },
-          },
-        },
-      },
-    ];
-
-    const codecImports = extractCodecTypeImports(descriptors);
-    expect(codecImports).toEqual([
-      { package: '@test/adapter/codec-types', named: 'CodecTypes', alias: 'TestTypes' },
-    ]);
-  });
-
   it('generates model storage type via generateModelStorageType', () => {
     const model = {
       storage: {

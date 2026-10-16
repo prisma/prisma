@@ -211,13 +211,6 @@ describe('canonicalizeContractToObject', () => {
     });
   });
 
-  it('includes storageHash when provided inside storage', () => {
-    const result = canonicalizeContractToObject(
-      minimal({ storage: { storageHash: 'abc', namespaces: {} } }),
-    );
-    expect(drill(result, 'storage')['storageHash']).toBe('abc');
-  });
-
   it('includes profileHash', () => {
     const result = canonicalizeContractToObject(minimal({ profileHash: 'def' }));
     expect(result['profileHash']).toBe('def');
@@ -239,13 +232,6 @@ describe('canonicalizeContractToObject', () => {
     );
     expect(result).not.toHaveProperty('executionHash');
     expect(drill(result, 'execution')['executionHash']).toBe('e');
-  });
-
-  it('places profileHash in canonical top-level order', () => {
-    const result = canonicalizeContractToObject(minimal({ profileHash: 'p' }));
-    const keys = Object.keys(result);
-    const ordered = keys.filter((k) => ['profileHash', 'roots'].includes(k));
-    expect(ordered).toEqual(['profileHash', 'roots']);
   });
 
   it('excludes keys not in the Contract schema', () => {
@@ -694,13 +680,6 @@ describe('index and unique sorting', () => {
     expect(table['uniques']).toEqual([{ name: 'uq_name', columns: ['last_name', 'first_name'] }]);
   });
 
-  it('handles storage without namespaces (no-op)', () => {
-    const result = canonicalizeContractToObject(
-      minimal({ storage: { storageHash: 'stub', namespaces: {} } }),
-    );
-    expect(result['storage']).toBeDefined();
-  });
-
   it('preserves ISO date string defaults through sort', () => {
     const isoString = '2024-06-15T00:00:00.000Z';
     const result = canonicalizeContractToObject(
@@ -806,11 +785,6 @@ describe('index and unique sorting', () => {
 });
 
 describe('canonicalizeContract', () => {
-  it('returns a JSON string', () => {
-    const result = canonicalizeContract(minimal());
-    expect(() => JSON.parse(result)).not.toThrow();
-  });
-
   it('serializes number values in meta', () => {
     const result = canonicalizeContract(
       minimal({

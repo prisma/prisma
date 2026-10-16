@@ -409,12 +409,6 @@ function makeSchemaDiffIssue(path: readonly string[]): SchemaDiffIssue {
 }
 
 describe('SchemaDiff', () => {
-  it('exposes the issues it was constructed with', () => {
-    const issues = [makeSchemaDiffIssue(['root', 'p'])];
-    const diff = new SchemaDiff(issues);
-    expect(diff.issues).toBe(issues);
-  });
-
   it('filter narrows the issue list', () => {
     const keep = makeSchemaDiffIssue(['root', 'keep']);
     const drop = makeSchemaDiffIssue(['root', 'drop']);

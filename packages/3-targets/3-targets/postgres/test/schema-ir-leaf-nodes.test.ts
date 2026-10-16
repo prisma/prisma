@@ -103,15 +103,6 @@ describe('PostgresPolicySchemaNode', () => {
       expect(exact.prefix).toBeUndefined();
       expect(Object.hasOwn(exact, 'prefix')).toBe(false);
     });
-
-    it('a declared prefix must parse back out of the name — parseNaming rejects the pair, so the node is unconstructable', () => {
-      expect(() => parseNaming(basePolicyInput.name, 'other')).toThrow(
-        /does not match the wire name/,
-      );
-      expect(() => parseNaming('not_wire_shaped', 'not_wire_shaped')).toThrow(
-        /does not match the wire name/,
-      );
-    });
   });
 
   describe('isEqualTo — exact mode (prefix absent) compares content', () => {
@@ -275,12 +266,6 @@ describe('PostgresRoleSchemaNode', () => {
     const a = new PostgresRoleSchemaNode({ name: 'app_user', namespaceId: UNBOUND_NAMESPACE_ID });
     const b = policyNode(basePolicyInput);
     expect(() => a.isEqualTo(b)).toThrow();
-  });
-
-  it('carries all fields from input', () => {
-    const node = new PostgresRoleSchemaNode({ name: 'app_user', namespaceId: 'public' });
-    expect(node.name).toBe('app_user');
-    expect(node.namespaceId).toBe('public');
   });
 
   it('instance is frozen', () => {

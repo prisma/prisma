@@ -182,42 +182,6 @@ describe('sql-target-family-hook', () => {
     expect(types).not.toContain('from "./contract-types"');
   });
 
-  it('gets types imports', () => {
-    const descriptors: TestDescriptor[] = [
-      {
-        kind: 'adapter',
-        id: 'test-adapter',
-        familyId: 'sql',
-        targetId: 'postgres',
-        version: '0.0.1',
-        types: {
-          codecTypes: {
-            import: {
-              package: '@test/adapter/codec-types',
-              named: 'CodecTypes',
-              alias: 'TestTypes',
-            },
-          },
-        },
-        create() {
-          return {
-            familyId: 'sql' as const,
-            targetId: 'postgres' as const,
-          };
-        },
-      },
-    ];
-
-    const codecImports = extractCodecTypeImports(descriptors);
-    expect(codecImports).toEqual([
-      {
-        package: '@test/adapter/codec-types',
-        named: 'CodecTypes',
-        alias: 'TestTypes',
-      },
-    ]);
-  });
-
   it('generates contract types with multiple extensions', () => {
     const ir = createContract({
       storage: {

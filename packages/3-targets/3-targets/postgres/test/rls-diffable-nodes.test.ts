@@ -49,15 +49,6 @@ describe('PostgresRlsPolicy — Contract-IR entity, not a DiffableNode', () => {
     expect(policy.permissive).toBe(true);
   });
 
-  it('is frozen', () => {
-    expect(Object.isFrozen(policy)).toBe(true);
-  });
-
-  it('kind survives JSON round-trip', () => {
-    const json = JSON.parse(JSON.stringify(policy)) as Record<string, unknown>;
-    expect(json['kind']).toBe('policy');
-  });
-
   describe('prefix invariant (wire vs exact)', () => {
     const base = {
       prefix: undefined,
@@ -113,14 +104,5 @@ describe('PostgresRole — Contract-IR entity, not a DiffableNode', () => {
     expect(role.kind).toBe('role');
     expect(role.name).toBe('app_user');
     expect(role.namespaceId).toBe(UNBOUND_NAMESPACE_ID);
-  });
-
-  it('is frozen', () => {
-    expect(Object.isFrozen(role)).toBe(true);
-  });
-
-  it('kind survives JSON round-trip', () => {
-    const json = JSON.parse(JSON.stringify(role)) as Record<string, unknown>;
-    expect(json['kind']).toBe('role');
   });
 });

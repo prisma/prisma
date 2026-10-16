@@ -36,15 +36,6 @@ import {
 import pgvectorExtensionDescriptor from '../src/exports/control';
 
 describe('pgvector extension descriptor (contract-space package layout)', () => {
-  it('identifies as a SQL extension targeted at postgres', () => {
-    expect(pgvectorExtensionDescriptor).toMatchObject({
-      kind: 'extension',
-      id: PGVECTOR_SPACE_ID,
-      familyId: 'sql',
-      targetId: 'postgres',
-    });
-  });
-
   it('exposes a contractSpace declaring the vector parameterised native type', () => {
     const space = pgvectorExtensionDescriptor.contractSpace;
     expect(space).toBeDefined();

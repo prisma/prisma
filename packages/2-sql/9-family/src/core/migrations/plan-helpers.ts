@@ -1,5 +1,6 @@
 import type {
   AppliedMigrationStatement,
+  FailedCheck,
   FailedTypeChange,
   MigrationPlanSubjects,
   RowsWithoutValue,
@@ -205,6 +206,7 @@ export function runnerFailure(
   options?: {
     why?: string;
     meta?: AnyRecord;
+    failedCheck?: FailedCheck | undefined;
     failedTypeChange?: FailedTypeChange | undefined;
     rowsWithoutValue?: readonly RowsWithoutValue[] | undefined;
   },
@@ -214,6 +216,7 @@ export function runnerFailure(
     summary,
     ...(options?.why ? { why: options.why } : {}),
     ...(options?.meta ? { meta: cloneRecord(options.meta) } : {}),
+    ...ifDefined('failedCheck', options?.failedCheck),
     ...ifDefined('failedTypeChange', options?.failedTypeChange),
     ...ifDefined('rowsWithoutValue', options?.rowsWithoutValue),
   });

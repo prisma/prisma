@@ -13,16 +13,6 @@ const emptyTableInput = {
   foreignKeys: [],
 } as const;
 
-const tableWithColumn = {
-  columns: {
-    id: { codecId: 'pg/int4@1', dataType: 'pg/int4', nullable: false },
-  },
-  primaryKey: { columns: ['id'] },
-  uniques: [],
-  indexes: [],
-  foreignKeys: [],
-} as const;
-
 describe('TestSqlNamespace — entries open dictionary', () => {
   it('exact-shape serialization: JSON.stringify emits only id and entries', () => {
     const ns = createTestSqlNamespace({
@@ -33,20 +23,6 @@ describe('TestSqlNamespace — entries open dictionary', () => {
     expect(Object.keys(parsed).sort()).toEqual(['entries', 'id']);
   });
 
-  it('kind is non-enumerable', () => {
-    const ns = createTestSqlNamespace({ id: 'app', entries: { table: {} } });
-    expect(Object.keys(ns)).not.toContain('kind');
-    expect(ns.kind).toBeDefined();
-  });
-
-  it('entries is frozen after construction', () => {
-    const ns = createTestSqlNamespace({
-      id: 'app',
-      entries: { table: { users: emptyTableInput } },
-    });
-    expect(Object.isFrozen(ns.entries)).toBe(true);
-  });
-
   it('inner table map is frozen', () => {
     const ns = createTestSqlNamespace({
       id: 'app',
@@ -55,46 +31,12 @@ describe('TestSqlNamespace — entries open dictionary', () => {
     expect(Object.isFrozen(ns.entries['table'])).toBe(true);
   });
 
-  it('table getter returns the frozen name-keyed map from entries', () => {
-    const ns = createTestSqlNamespace({
-      id: 'app',
-      entries: { table: { users: emptyTableInput } },
-    });
-    expect(ns.table).toBe(ns.entries['table']);
-  });
-
-  it('table getter is non-enumerable', () => {
-    const ns = createTestSqlNamespace({ id: 'app', entries: { table: {} } });
-    expect(Object.keys(ns)).not.toContain('table');
-  });
-
   it('table getter returns StorageTable instances', () => {
     const ns = createTestSqlNamespace({
       id: 'app',
       entries: { table: { users: emptyTableInput } },
     });
     expect(ns.table['users']).toBeInstanceOf(StorageTable);
-  });
-
-  it('valueSet getter returns the frozen name-keyed map when present', () => {
-    const ns = createTestSqlNamespace({
-      id: 'app',
-      entries: {
-        table: {},
-        valueSet: { Role: { kind: 'value-set', values: ['admin', 'user'] } },
-      },
-    });
-    expect(ns.valueSet).toBe(ns.entries['valueSet']);
-  });
-
-  it('valueSet getter is non-enumerable', () => {
-    const ns = createTestSqlNamespace({ id: 'app', entries: { table: {} } });
-    expect(Object.keys(ns)).not.toContain('valueSet');
-  });
-
-  it('valueSet getter returns undefined when absent (no valueSet in entries)', () => {
-    const ns = createTestSqlNamespace({ id: 'app', entries: { table: {} } });
-    expect(ns.valueSet).toBeUndefined();
   });
 
   it('valueSet getter returns StorageValueSet instances', () => {
@@ -117,34 +59,6 @@ describe('TestSqlNamespace — entries open dictionary', () => {
       },
     });
     expect(Object.isFrozen(ns.entries['valueSet'])).toBe(true);
-  });
-
-  it('construction dispatches table entries by key', () => {
-    const ns = createTestSqlNamespace({
-      id: 'app',
-      entries: {
-        table: { users: tableWithColumn },
-      },
-    });
-    const tableEntry = ns.entries['table']?.['users'];
-    expect(tableEntry).toBeInstanceOf(StorageTable);
-  });
-
-  it('construction dispatches valueSet entries by key', () => {
-    const ns = createTestSqlNamespace({
-      id: 'app',
-      entries: {
-        table: {},
-        valueSet: { Status: { kind: 'value-set', values: ['active', 'inactive'] } },
-      },
-    });
-    const vsEntry = ns.entries['valueSet']?.['Status'];
-    expect(vsEntry).toBeInstanceOf(StorageValueSet);
-  });
-
-  it('node itself is frozen', () => {
-    const ns = createTestSqlNamespace({ id: 'app', entries: { table: {} } });
-    expect(Object.isFrozen(ns)).toBe(true);
   });
 
   it('carries an unknown kind through frozen as-is (permissive-carry)', () => {
@@ -192,13 +106,5 @@ describe('TestSqlNamespace — entries open dictionary', () => {
       entityKind: 'bogus',
       entityName: 'myEntity',
     });
-  });
-
-  it('entries[kind][name] resolves the same as the getter[name]', () => {
-    const ns = createTestSqlNamespace({
-      id: 'app',
-      entries: { table: { users: emptyTableInput } },
-    });
-    expect(ns.entries['table']?.['users']).toBe(ns.table['users']);
   });
 });

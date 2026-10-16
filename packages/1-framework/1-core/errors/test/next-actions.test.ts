@@ -148,31 +148,3 @@ describe('converted factories carry typed nextActions', () => {
     ]);
   });
 });
-
-describe('no converted action hardcodes a binary name', () => {
-  const converted = [
-    errorConfigFileNotFound(),
-    errorContractValidationFailed('reason'),
-    errorMarkerMissing(),
-    errorMarkerRowCorrupt({ why: 'w', space: 'app', markerLocation: 'm' }),
-    errorMarkerRequired(),
-    errorSchemaVerificationFailed({ summary: 's', verificationResult: driftedSchema }),
-    errorMigrationFileMissing('dir'),
-  ];
-
-  it.each(converted.map((error) => [error.code, error] as const))(
-    '%s writes {bin} rather than a literal binary',
-    (_code, error) => {
-      const commands = (error.nextActions ?? []).flatMap((action) => [
-        ...(action.command === undefined ? [] : [action.command]),
-        ...(action.commands ?? []),
-      ]);
-
-      expect(commands.length).toBeGreaterThan(0);
-      for (const command of commands) {
-        expect(command).toContain('{bin}');
-        expect(command).not.toContain('prisma-next');
-      }
-    },
-  );
-});

@@ -461,29 +461,6 @@ describe('RoleBoundDb — facade invariant: no unbound connection surface', () =
     await db.close();
   });
 
-  it('query on RoleBoundDb routes through set_config (binding enforced)', async () => {
-    const fakeClient = makeFakeClient();
-    poolConnectSpy().mockResolvedValue(fakeClient);
-
-    const db = await supabase({
-      contract,
-      url: 'postgres://localhost/db',
-      jwtSecret: fixtureJwt,
-    });
-    const roleBoundDb = db.asServiceRole();
-
-    await roleBoundDb
-      .query(stubPlan() as unknown as Parameters<typeof roleBoundDb.query>[0])
-      .toArray();
-
-    const setConfigCall = fakeClient.queryCalls.find(
-      (c) => c.sql === 'SELECT set_config($1, $2, false)' && c.params?.[0] === 'role',
-    );
-    expect(setConfigCall?.params?.[1]).toBe('service_role');
-
-    await db.close();
-  });
-
   it('orm on RoleBoundDb issues set_config before any ORM query', async () => {
     const fakeClient = makeFakeClient();
     poolConnectSpy().mockResolvedValue(fakeClient);

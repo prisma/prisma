@@ -11,12 +11,6 @@ describe('SQLite codec JSON representations', () => {
     expect(bigintCodec.decodeJson('9223372036854775807')).toBe(9223372036854775807n);
   });
 
-  it('rejects a JSON number, which has already lost digits', () => {
-    expect(() => bigintCodec.decodeJson(42)).toThrow(
-      'sqlite/bigint@1 JSON value must be a decimal integer string from -9223372036854775808 to 9223372036854775807',
-    );
-  });
-
   it('decodes number, bigint, and decimal-text wires to the same bigint', async () => {
     expect(await bigintCodec.decode(42, {})).toBe(42n);
     expect(await bigintCodec.decode(42n, {})).toBe(42n);

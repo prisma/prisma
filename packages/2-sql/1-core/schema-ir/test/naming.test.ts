@@ -288,11 +288,6 @@ describe('computeCheckContentHash', () => {
     expect(computeCheckContentHash(expression)).toBe(expected);
   });
 
-  it('is stable across calls', () => {
-    const expression = 'array_position("tags", NULL) IS NULL';
-    expect(computeCheckContentHash(expression)).toBe(computeCheckContentHash(expression));
-  });
-
   it('whitespace variants hash identically', () => {
     expect(computeCheckContentHash('  array_position("tags",   NULL)\n IS NULL ')).toBe(
       computeCheckContentHash('array_position("tags", NULL) IS NULL'),

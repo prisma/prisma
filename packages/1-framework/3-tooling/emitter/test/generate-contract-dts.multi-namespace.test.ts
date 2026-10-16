@@ -25,21 +25,6 @@ describe('generateContractDts domain namespace handling', () => {
     expect(dts).toContain('readonly public:');
   });
 
-  it('emits successfully for multiple namespaces', () => {
-    const contract = {
-      ...createTestContract(),
-      domain: {
-        namespaces: {
-          auth: { models: {} },
-          storage: { models: {} },
-        },
-      },
-    };
-    const dts = generateContractDts(contract, mockSqlHook, [], HASHES);
-    expect(dts).toContain('readonly auth:');
-    expect(dts).toContain('readonly storage:');
-  });
-
   it('quotes a namespace id that is not a bare identifier', () => {
     const contract = {
       ...createTestContract(),

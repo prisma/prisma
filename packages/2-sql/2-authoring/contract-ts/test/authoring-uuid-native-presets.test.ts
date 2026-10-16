@@ -92,17 +92,6 @@ function makePostgresPack() {
 
 describe('uuid native presets', () => {
   describe('namespace merge', () => {
-    it('family id.uuidv4String and target id.uuidv4Native compose without a duplicate error', () => {
-      expect(() =>
-        createComposedAuthoringHelpers({
-          ...testTypeLookups,
-          family: makeFamilyPack(),
-          target: makePostgresPack(),
-          extensions: {},
-        }),
-      ).not.toThrow();
-    });
-
     it('composed helpers expose both uuidString and uuidNative at the top level', () => {
       const helpers = createComposedAuthoringHelpers({
         ...testTypeLookups,

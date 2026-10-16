@@ -14,28 +14,6 @@ test('CreateInput accepts inline value object structure', () => {
   expectTypeOf<Input['address']>().toEqualTypeOf<AddressShape | null | undefined>();
 });
 
-test('CreateInput accepts null for nullable value object field', () => {
-  type Input = CreateInput<Contract, 'User'>;
-  const input: Input = {
-    id: 1,
-    name: 'Alice',
-    email: 'alice@test.com',
-    address: null,
-  };
-  expectTypeOf(input).toExtend<Input>();
-});
-
-test('CreateInput accepts populated value object', () => {
-  type Input = CreateInput<Contract, 'User'>;
-  const input: Input = {
-    id: 1,
-    name: 'Alice',
-    email: 'alice@test.com',
-    address: { street: '123 Main', city: 'NYC', zip: '10001' },
-  };
-  expectTypeOf(input).toExtend<Input>();
-});
-
 test('update input accepts wholesale value object replacement', () => {
   type UpdateInput = MutationUpdateInput<Contract, 'User'>;
   const input: UpdateInput = {

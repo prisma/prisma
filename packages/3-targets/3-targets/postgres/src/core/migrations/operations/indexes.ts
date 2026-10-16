@@ -1,6 +1,6 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { indexExistsAst } from '../../../contract-free/checks';
+import { indexDefinitionAst, indexExistsAst } from '../../../contract-free/checks';
 import {
   alterIndexRename as alterIndexRenameDdl,
   createIndex as createIndexDdl,
@@ -58,7 +58,20 @@ export async function createIndex(
     where: extras?.where,
   });
   const execute = await lowerer.lowerToExecuteRequest(ddlNode);
-  const { present, absent } = await indexExistsSteps(lowerer, schemaName, indexName);
+  const absent = await lowerer.lowerToExecuteRequest(
+    indexExistsAst(schemaName, indexName).indexAbsent(),
+  );
+  const defined = await lowerer.lowerToExecuteRequest(
+    indexDefinitionAst({
+      schema: schemaName,
+      table: tableName,
+      index: indexName,
+      unique: extras?.unique === true,
+      method: extras?.type ?? 'btree',
+      elements: 'columns' in elements ? { columns: elements.columns } : { expression: true },
+      hasPredicate: extras?.where !== undefined,
+    }),
+  );
   return {
     id: `index.${tableName}.${indexName}`,
     label: `Create index "${indexName}" on "${tableName}"`,
@@ -66,7 +79,13 @@ export async function createIndex(
     target: targetDetails('index', indexName, schemaName, tableName),
     precheck: [step(`ensure index "${indexName}" does not exist`, absent.sql, absent.params)],
     execute: [step(`create index "${indexName}"`, execute.sql, execute.params)],
-    postcheck: [step(`verify index "${indexName}" exists`, present.sql, present.params)],
+    postcheck: [
+      step(
+        `verify index "${indexName}" exists on "${tableName}" with the planned definition`,
+        defined.sql,
+        defined.params,
+      ),
+    ],
   };
 }
 
@@ -91,6 +110,7 @@ export async function renameIndex(
   const fromPresent = await lowerer.lowerToExecuteRequest(fromChecks.indexPresent());
   const toAbsent = await lowerer.lowerToExecuteRequest(toChecks.indexAbsent());
   const toPresent = await lowerer.lowerToExecuteRequest(toChecks.indexPresent());
+  const fromAbsent = await lowerer.lowerToExecuteRequest(fromChecks.indexAbsent());
   const ddlNode = alterIndexRenameDdl({
     schema: ddlSchemaOf(schemaName),
     from: fromName,
@@ -107,7 +127,10 @@ export async function renameIndex(
       step(`ensure index "${toName}" does not exist`, toAbsent.sql, toAbsent.params),
     ],
     execute: [step(`rename index "${fromName}" to "${toName}"`, execute.sql, execute.params)],
-    postcheck: [step(`verify index "${toName}" exists`, toPresent.sql, toPresent.params)],
+    postcheck: [
+      step(`verify index "${toName}" exists`, toPresent.sql, toPresent.params),
+      step(`verify index "${fromName}" no longer exists`, fromAbsent.sql, fromAbsent.params),
+    ],
   };
 }
 

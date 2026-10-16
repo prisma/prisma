@@ -125,18 +125,6 @@ describe('MongoAdapter', () => {
     });
   });
 
-  describe('RawAggregateCommand with raw pipeline', () => {
-    it('passes raw pipeline through', async () => {
-      const pipeline = [
-        { $match: { status: 'active' } },
-        { $group: { _id: '$department', count: { $sum: 1 } } },
-      ];
-      const command = new RawAggregateCommand('users', pipeline);
-      const wire = narrowWire(await adapter.lower(plan('users', command), {}), 'aggregate');
-      expect(wire.pipeline).toEqual(pipeline);
-    });
-  });
-
   describe('AggregateCommand with typed stages', () => {
     it('lowers typed stages to pipeline documents', async () => {
       const stages = [

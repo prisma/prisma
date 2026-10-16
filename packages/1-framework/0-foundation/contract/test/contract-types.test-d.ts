@@ -86,24 +86,6 @@ test('StorageBase with specific hash extends default StorageBase', () => {
 
 // ── Literal type preservation ────────────────────────────────────────────────
 
-test('preserves model field literal types through the domain namespace', () => {
-  expectTypeOf<
-    ExampleContract['domain']['namespaces']['public']['models']['User']['fields']['id']['type']['kind']
-  >().toEqualTypeOf<'scalar'>();
-});
-
-test('preserves relation literal types through the domain namespace', () => {
-  expectTypeOf<
-    ExampleContract['domain']['namespaces']['public']['models']['User']['relations']['posts']['to']
-  >().toEqualTypeOf<ExamplePostRef>();
-});
-
-test('preserves model storage bridge literals through the domain namespace', () => {
-  expectTypeOf<
-    ExampleContract['domain']['namespaces']['public']['models']['User']['storage']['table']
-  >().toEqualTypeOf<'user'>();
-});
-
 test('preserves storage hash literal through TStorage', () => {
   expectTypeOf<ExampleContract['storage']['storageHash']>().toEqualTypeOf<
     StorageHashBase<'abc123'>

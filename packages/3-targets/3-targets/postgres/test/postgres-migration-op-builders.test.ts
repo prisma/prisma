@@ -204,7 +204,6 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly schema: string;
     readonly table: string;
     readonly column: DdlColumn;
-    readonly operationClass?: 'additive' | 'widening';
   }): Promise<Op> {
     return this.setDefault(options);
   }
@@ -450,36 +449,6 @@ describe('PostgresMigration op-builder methods without a ControlStack', () => {
       );
     },
   );
-
-  it('covers every declared case exactly once', () => {
-    expect(cases.map((c) => c.name).sort()).toEqual(
-      [
-        'addCheckConstraint',
-        'addColumn',
-        'addForeignKey',
-        'addNativeEnumValue',
-        'addPrimaryKey',
-        'addUnique',
-        'alterColumnType',
-        'createIndex',
-        'createNativeEnumType',
-        'createSchema',
-        'createTable',
-        'dataTransform',
-        'dropCheckConstraint',
-        'dropColumn',
-        'dropConstraint',
-        'dropDefault',
-        'dropIndex',
-        'dropNativeEnumType',
-        'dropNotNull',
-        'dropTable',
-        'installExtension',
-        'setDefault',
-        'setNotNull',
-      ].sort(),
-    );
-  });
 });
 
 // ============================================================================

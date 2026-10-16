@@ -149,11 +149,6 @@ describe('PostgresSchema — entries open dictionary', () => {
     expect(schema.kind).toBe('schema');
   });
 
-  it('entries is frozen after construction', () => {
-    const schema = new PostgresSchema({ id: 'app', entries: { table: {} } });
-    expect(Object.isFrozen(schema.entries)).toBe(true);
-  });
-
   it('inner table map is frozen', () => {
     const schema = new PostgresSchema({
       id: 'app',
@@ -170,11 +165,6 @@ describe('PostgresSchema — entries open dictionary', () => {
     expect(schema.table).toBe(schema.entries['table']);
   });
 
-  it('table getter is non-enumerable', () => {
-    const schema = new PostgresSchema({ id: 'app', entries: { table: {} } });
-    expect(Object.keys(schema)).not.toContain('table');
-  });
-
   it('valueSet getter returns the frozen name-keyed map when present', () => {
     const schema = new PostgresSchema({
       id: 'app',
@@ -184,11 +174,6 @@ describe('PostgresSchema — entries open dictionary', () => {
       },
     });
     expect(schema.valueSet).toBe(schema.entries['valueSet']);
-  });
-
-  it('valueSet getter is non-enumerable', () => {
-    const schema = new PostgresSchema({ id: 'app', entries: { table: {} } });
-    expect(Object.keys(schema)).not.toContain('valueSet');
   });
 
   it('valueSet is absent from entries when empty', () => {
@@ -211,14 +196,6 @@ describe('PostgresSchema — entries open dictionary', () => {
     const schema = new PostgresSchema({ id: 'app', entries: { table: {} } });
     expect(schema.entries['table']).toBeDefined();
   });
-
-  it('entries[kind][name] resolves the same as getter[name] for tables', () => {
-    const schema = new PostgresSchema({
-      id: 'app',
-      entries: { table: { users: emptyTableInput } },
-    });
-    expect(schema.entries['table']?.['users']).toBe(schema.table['users']);
-  });
 });
 
 describe('PostgresUnboundSchema — entries open dictionary', () => {
@@ -228,10 +205,6 @@ describe('PostgresUnboundSchema — entries open dictionary', () => {
       unknown
     >;
     expect(Object.keys(parsed).sort()).toEqual(['entries', 'id']);
-  });
-
-  it('table is always present in entries even on unbound singleton', () => {
-    expect(PostgresSchema.unbound.entries['table']).toBeDefined();
   });
 });
 

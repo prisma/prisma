@@ -11,6 +11,7 @@ import {
   errorRunnerFailed,
   errorRuntime,
 } from './cli-errors';
+import { dbInitFailedPrecheckFix, failedPrecheckWhy } from './failed-precheck-advice';
 import { runCommandAction } from './next-actions';
 import type { CliInvocation } from './printed-command';
 import { dbInitRowsWithoutValueFix } from './runner-failure-advice';
@@ -130,12 +131,18 @@ export function mapDbInitFailure(
     const fix =
       failure.rowsWithoutValue !== undefined
         ? dbInitRowsWithoutValueFix(failure.rowsWithoutValue, invocation)
-        : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
-          ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
-            'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
-          : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
+        : failure.failedPrecheck !== undefined
+          ? dbInitFailedPrecheckFix(invocation)
+          : runnerCode === 'MIGRATION.LEGACY_MARKER_SHAPE'
+            ? // biome-ignore lint/plugin/no-family-vocabulary: names the object to drop per target on purpose — user-facing remediation text, not a framework type
+              'Legacy marker-table shape detected. Drop `prisma_contract.marker` (Postgres) or `_prisma_marker` (SQLite) and re-run `{bin} db init` to recreate it with the current per-space schema.'
+            : 'Fix the schema mismatch (db init is additive-only), or drop/reset the database and re-run `{bin} db init`';
     return errorRunnerFailed(failure.summary, {
-      why: failure.why ?? 'Migration runner failed',
+      why:
+        failure.why ??
+        (failure.failedPrecheck === undefined
+          ? 'Migration runner failed'
+          : failedPrecheckWhy(failure.failedPrecheck)),
       fix,
       ...ifDefined('meta', failure.meta),
       ...ifDefined('cause', failure.cause),

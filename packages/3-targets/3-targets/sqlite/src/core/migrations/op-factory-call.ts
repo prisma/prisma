@@ -49,7 +49,12 @@ import { sqliteError } from '../errors';
 import { quoteIdentifier, SQLITE_QUOTING } from '../sql-utils';
 import { addColumn, dropColumnExecuteSql, renameColumn } from './operations/columns';
 import type { SqliteColumnSpec, SqliteIndexSpec, SqliteTableSpec } from './operations/shared';
-import { step } from './operations/shared';
+import { INLINE_AUTOINCREMENT_PRIMARY_KEY, step } from './operations/shared';
+import {
+  type ColumnShape,
+  indexDefinitionCheck,
+  tableColumnsCheck,
+} from './operations/structure-checks';
 import {
   type RecreatePostcheck,
   recreateTable,
@@ -175,6 +180,31 @@ function defaultImportSymbols(columns: readonly DdlColumn[]): string[] {
   return [...symbols];
 }
 
+function columnShapesOf(
+  columns: readonly DdlColumn[],
+  constraints: readonly DdlTableConstraint[] | undefined,
+): ColumnShape[] {
+  const primaryKey = constraints?.find((constraint) => constraint.kind === 'primary-key');
+  return columns.map((column) => {
+    if (column.type.endsWith(INLINE_AUTOINCREMENT_PRIMARY_KEY)) {
+      return {
+        name: column.name,
+        typeSql: column.type.slice(0, -INLINE_AUTOINCREMENT_PRIMARY_KEY.length),
+        notNull: false,
+        primaryKeyPosition: 1,
+      };
+    }
+    return {
+      name: column.name,
+      typeSql: column.type,
+      notNull: column.notNull === true,
+      primaryKeyPosition: column.primaryKey
+        ? 1
+        : (primaryKey?.columns.indexOf(column.name) ?? -1) + 1,
+    };
+  });
+}
+
 export class CreateTableCall extends SqliteOpFactoryCallNode {
   readonly factoryName = 'createTable' as const;
   readonly operationClass = 'additive' as const;
@@ -228,7 +258,10 @@ export class CreateTableCall extends SqliteOpFactoryCallNode {
           params: statement.params ?? [],
         },
       ],
-      postcheck: [step(`verify table "${tableName}" exists`, present.sql, present.params)],
+      postcheck: [
+        step(`verify table "${tableName}" exists`, present.sql, present.params),
+        tableColumnsCheck(tableName, columnShapesOf(this.columns, this.constraints)),
+      ],
     };
   }
 
@@ -910,7 +943,10 @@ export class CreateIndexCall extends SqliteOpFactoryCallNode {
           buildCreateIndexSql(this.tableName, this.indexName, this.columns),
         ),
       ],
-      postcheck: [step(`verify index "${this.indexName}" exists`, present.sql, present.params)],
+      postcheck: [
+        step(`verify index "${this.indexName}" exists`, present.sql, present.params),
+        indexDefinitionCheck(this.tableName, this.indexName, this.columns, false),
+      ],
     };
   }
 

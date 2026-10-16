@@ -299,6 +299,7 @@ export async function executeMigrate<TFamilyId extends string, TTargetId extends
       meta: applied.failure.meta,
       ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
+      ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
       ...ifDefined(
         'failedMigration',
         applied.failure.failedMigration === undefined

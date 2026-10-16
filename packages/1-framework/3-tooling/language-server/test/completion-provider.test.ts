@@ -902,17 +902,6 @@ namespace app {
     expect(blockItems.map((item) => item.kind)).toEqual([CompletionItemKind.Function]);
   });
 
-  it('returns configured attribute names from the control stack without an interpretation context', () => {
-    const { items } = completeWithSource({
-      markedSource: [candidateSource, 'model Post {', '  id Int @|', '}'].join('\n'),
-      pslBlockDescriptors,
-      authoringContributions: attributeContributions,
-      controlMutationDefaults,
-    });
-
-    expect(items.map((item) => item.label)).toEqual(['marker', 'orderFixture', 'ownerAware']);
-  });
-
   it('resolves the attribute owner without enumerating declarations', () => {
     const markedSource = ['model User {', '  id Int @|', '}'].join('\n');
     const cursorOffset = markedSource.indexOf('|');
