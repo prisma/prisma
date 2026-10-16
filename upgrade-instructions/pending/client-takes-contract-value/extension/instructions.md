@@ -6,7 +6,7 @@ changes:
     detection:
       glob: "**/*.{ts,tsx,mts,cts}"
       matches:
-        - '(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:[^{}]*?,)?\s*contractJson\s*[,}:]'
+        - '(?<![\w$.])(?:postgres|postgresServerless|sqlite|supabase|mongo|postgresStatic|sqliteStatic|mongoStatic|mongoQuery)(?:<[^>()]*(?:<[^>()]*>[^>()]*)*>)?\(\s*\{(?:(?:[^{}]|\{[^{}]*\})*?,)?\s*contractJson\s*[,}:]'
     script: ./scripts/contract-from-json.ts
 ---
 
@@ -30,7 +30,7 @@ A value is validated once however many clients use it, so build it once per modu
 
 ## Run the script
 
-Run `node <path to this guide>/scripts/contract-from-json.ts <package root>`. It moves each source file that passes `contractJson` to a client, static entry or `mongoQuery`: it adds the `contractFromJson` import, declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports, removes the type argument and passes `{ contract }`. It leaves test files alone and prints a file it cannot move, with the reason.
+Run `node <path to this guide>/scripts/contract-from-json.ts <package root>`. The script reads source files with the TypeScript compiler from the package's `typescript`; if there is none, it changes nothing, says so and exits 1. It moves each source file that passes `contractJson` to a client, static entry or `mongoQuery`: it adds the `contractFromJson` import, declares `export const contract = contractFromJson<Contract>(contractJson);` after the imports, removes the type argument and passes `{ contract }`. It prints each file it moved, and prints to stderr with the reason, then exits 1, each file it did not move: a test file, a file that already has a binding named `contract`, a file whose clients use different contracts, a file whose `contractJson` value uses a binding declared after the imports, or a call it cannot read.
 
 ## Then, by hand
 

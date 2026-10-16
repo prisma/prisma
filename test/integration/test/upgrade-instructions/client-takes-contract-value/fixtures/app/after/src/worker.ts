@@ -3,7 +3,7 @@ import { contractFromJson } from '@prisma/orm-postgres/static';
 import type { Contract } from './prisma/contract.d';
 import contractJson from './prisma/contract.json' with { type: 'json' };
 
-const contract = contractFromJson<Contract>(contractJson);
+export const contract = contractFromJson<Contract>(contractJson);
 
 const postgres = postgresServerless({ contract });
 const streaming = postgresServerless({ contract, cursor: { batchSize: 100 } });

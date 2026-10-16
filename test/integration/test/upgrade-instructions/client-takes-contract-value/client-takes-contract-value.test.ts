@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
-import { cpSync, mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, relative } from 'pathe';
@@ -16,17 +17,21 @@ const GUIDE_PATHS = {
   extension: 'upgrade-instructions/pending/client-takes-contract-value/extension/instructions.md',
 } as const;
 
+type Audience = keyof typeof SCRIPT_PATHS;
+type Tree = Record<string, string>;
+
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '../../../../..');
 const fixtures = join(here, 'fixtures');
+const typescript = createRequire(import.meta.url).resolve('typescript');
 const workDirs: string[] = [];
 
 afterAll(() => {
   for (const dir of workDirs.splice(0)) rmSync(dir, { recursive: true, force: true });
 });
 
-function readTree(root: string, dir = root): Record<string, string> {
-  const files: Record<string, string> = {};
+function readTree(root: string, dir = root): Tree {
+  const files: Tree = {};
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const path = join(dir, entry.name);
     if (entry.isDirectory()) Object.assign(files, readTree(root, path));
@@ -35,13 +40,22 @@ function readTree(root: string, dir = root): Record<string, string> {
   return files;
 }
 
-function run(fixture: string, side: 'before' | 'after', audience: keyof typeof SCRIPT_PATHS) {
-  const root = mkdtempSync(join(tmpdir(), `client-takes-contract-value-${fixture}-`));
+function fixtureTree(fixture: string, side: 'before' | 'after'): Tree {
+  return readTree(join(fixtures, fixture, side));
+}
+
+function runOn(tree: Tree, audience: Audience, options: readonly string[]) {
+  const root = mkdtempSync(join(tmpdir(), 'client-takes-contract-value-'));
   workDirs.push(root);
-  cpSync(join(fixtures, fixture, side), root, { recursive: true });
-  const result = spawnSync(process.execPath, [join(repoRoot, SCRIPT_PATHS[audience]), root], {
-    encoding: 'utf8',
-  });
+  for (const [path, content] of Object.entries(tree)) {
+    mkdirSync(dirname(join(root, path)), { recursive: true });
+    writeFileSync(join(root, path), content);
+  }
+  const result = spawnSync(
+    process.execPath,
+    [join(repoRoot, SCRIPT_PATHS[audience]), root, ...options],
+    { encoding: 'utf8' },
+  );
   return {
     status: result.status,
     stdout: result.stdout,
@@ -50,44 +64,95 @@ function run(fixture: string, side: 'before' | 'after', audience: keyof typeof S
   };
 }
 
+function run(tree: Tree, audience: Audience) {
+  return runOn(tree, audience, ['--typescript', typescript]);
+}
+
+const moved = (paths: readonly string[]) =>
+  paths.map((path) => `${path}: moved to contractFromJson\n`).join('');
+
 describe.each(['app', 'extension'] as const)('the %s script', (audience) => {
-  it('moves each source file to a contract value and leaves test files alone', () => {
-    expect(run('app', 'before', audience)).toEqual({
+  it('moves each source file to a contract value and reports the test file it leaves', () => {
+    expect(run(fixtureTree('app', 'before'), audience)).toEqual({
+      status: 1,
+      stdout: moved([
+        'src/enums.ts',
+        'src/prisma/db.ts',
+        'src/query.ts',
+        'src/supabase.ts',
+        'src/worker.ts',
+      ]),
+      stderr:
+        'test/test-db.ts: not moved, because it is a test file; import the contract value from the module that creates the client\n',
+      tree: fixtureTree('app', 'after'),
+    });
+  });
+
+  it('moves calls with comments, default-as imports, nested objects and a default export', () => {
+    expect(run(fixtureTree('shapes', 'before'), audience)).toEqual({
       status: 0,
-      stdout: [
-        'src/enums.ts: moved to contractFromJson',
-        'src/prisma/db.ts: moved to contractFromJson',
-        'src/query.ts: moved to contractFromJson',
-        'src/supabase.ts: moved to contractFromJson',
-        'src/worker.ts: moved to contractFromJson',
-        '',
-      ].join('\n'),
+      stdout: moved([
+        'src/comment.ts',
+        'src/default-as.ts',
+        'src/default-export.ts',
+        'src/nested-object.ts',
+        'src/value-with-comma.ts',
+      ]),
       stderr: '',
-      tree: readTree(join(fixtures, 'app', 'after')),
+      tree: fixtureTree('shapes', 'after'),
+    });
+  });
+
+  it.each([
+    ['double quotes', (content: string) => content.replaceAll("'", '"')],
+    ['no semicolons', (content: string) => content.replace(/;$/gm, '')],
+    ['CRLF line endings', (content: string) => content.replaceAll('\n', '\r\n')],
+  ])('keeps the style of a file with %s', (_name, style) => {
+    const before = { 'src/db.ts': style(fixtureTree('app', 'before')['src/prisma/db.ts'] ?? '') };
+    const after = { 'src/db.ts': style(fixtureTree('app', 'after')['src/prisma/db.ts'] ?? '') };
+    expect(run(before, audience)).toEqual({
+      status: 0,
+      stdout: moved(['src/db.ts']),
+      stderr: '',
+      tree: after,
     });
   });
 
   it('changes nothing in a project already moved', () => {
-    expect(run('app', 'after', audience)).toEqual({
-      status: 0,
+    const { 'test/test-db.ts': _test, ...after } = fixtureTree('app', 'after');
+    expect(run(after, audience)).toEqual({ status: 0, stdout: '', stderr: '', tree: after });
+  });
+
+  it('refuses each file it cannot move safely, changes none of them, and exits 1', () => {
+    expect(run(fixtureTree('refused', 'before'), audience)).toEqual({
+      status: 1,
       stdout: '',
-      stderr: '',
-      tree: readTree(join(fixtures, 'app', 'after')),
+      stderr: [
+        'src/binding.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
+        'src/json-named-contract.ts: not moved, because it already has a binding named contract; rename that binding and run the script again',
+        'src/two-contracts.ts: not moved, because its clients use different contracts; give each its own contractFromJson value',
+        'src/unreadable.ts: not moved, because it passes contractJson to a client in a form the script cannot read',
+        'src/value-uses-local.ts: not moved, because its contractJson value uses contractPath, which the file declares after its imports; declare the contract value after contractPath by hand',
+        '',
+      ].join('\n'),
+      tree: fixtureTree('refused', 'before'),
     });
   });
 
-  it('refuses a file that already has a binding named contract, and exits 1', () => {
-    expect(run('refused', 'before', audience)).toEqual({
+  it('changes nothing and exits 1 when the project has no TypeScript', () => {
+    const before = fixtureTree('app', 'before');
+    const result = runOn(before, audience, []);
+    expect({ ...result, stderr: result.stderr.replace(/ in \S+\./, ' in <root>.') }).toEqual({
       status: 1,
       stdout: '',
       stderr:
-        'src/db.ts: not moved, because it already declares a binding named contract; choose another name for the value\n',
-      tree: readTree(join(fixtures, 'refused', 'before')),
+        'TypeScript is not installed in <root>. Install it (for example pnpm add -D typescript) and run the script again, or move each client by hand as the guide describes. No file was changed.\n',
+      tree: before,
     });
   });
 });
 
-function detection(audience: keyof typeof GUIDE_PATHS): RegExp {
+function detection(audience: Audience): RegExp {
   const guide = readFileSync(join(repoRoot, GUIDE_PATHS[audience]), 'utf8');
   const pattern = /^ {8}- '(.*)'$/m.exec(guide)?.[1];
   if (pattern === undefined) throw new Error(`${GUIDE_PATHS[audience]} has no detection pattern`);
@@ -101,6 +166,10 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
     ['a one-line call', 'export const db = postgres<Contract>({ contractJson, url });'],
     ['a multi-line call', 'export const db = postgres<Contract>({\n  contractJson,\n  url,\n});'],
     ['an explicit property', 'sqlite({ path, contractJson: json })'],
+    [
+      'a nested object before it',
+      'postgres<Contract>({ cursor: { batchSize: 100 }, contractJson })',
+    ],
     ['a static entry', 'mongoStatic<Contract>({ contractJson }).enums'],
     ['the query builder', 'mongoQuery<TContract>({ contractJson: contract })'],
     ['Supabase', 'supabase<Contract>({ url, contractJson, jwtSecret })'],
