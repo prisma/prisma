@@ -5,6 +5,7 @@ import type {
   MigrateFailure,
   RowsWithoutValueReport,
 } from '../control-api/types';
+import { migrateFailedPrecheckFix } from './failed-precheck-advice';
 import {
   type CliInvocation,
   cliCommand,
@@ -244,6 +245,9 @@ export function migrateFix(failure: MigrateFailure, invocation: CliInvocation): 
   }
   if (failure.rowsWithoutValue !== undefined) {
     return migrateRowsWithoutValueFix(failure.rowsWithoutValue, failedMigration, invocation);
+  }
+  if (failure.failedPrecheck !== undefined) {
+    return migrateFailedPrecheckFix(failure.failedPrecheck, invocation);
   }
   return `Fix the issue and re-run \`${cliCommand(invocation, 'db migrate', ['--to', '<contract>'])}\` — previously applied migrations are preserved.`;
 }

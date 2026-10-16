@@ -205,7 +205,6 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
     readonly schema: string;
     readonly table: string;
     readonly column: DdlColumn;
-    readonly operationClass?: 'additive' | 'widening';
   }): Promise<Op> {
     return this.setDefault(options);
   }

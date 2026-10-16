@@ -1,5 +1,5 @@
 import { canonicalize } from './canonicalize';
-import type { MongoSchemaIndex } from './schema-index';
+import type { MongoSchemaIndex, MongoSchemaIndexOptions } from './schema-index';
 
 /**
  * Key-order-sensitive structural comparison. For key-order-independent
@@ -37,24 +37,47 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   return false;
 }
 
-export function indexesEquivalent(a: MongoSchemaIndex, b: MongoSchemaIndex): boolean {
-  if (a.keys.length !== b.keys.length) return false;
-  for (let i = 0; i < a.keys.length; i++) {
-    const aKey = a.keys[i];
-    const bKey = b.keys[i];
-    if (!aKey || !bKey) return false;
-    if (aKey.field !== bKey.field) return false;
-    if (aKey.direction !== bKey.direction) return false;
-  }
-  if (a.unique !== b.unique) return false;
-  if (a.sparse !== b.sparse) return false;
-  if (a.expireAfterSeconds !== b.expireAfterSeconds) return false;
-  if (canonicalize(a.partialFilterExpression) !== canonicalize(b.partialFilterExpression))
-    return false;
-  if (canonicalize(a.wildcardProjection) !== canonicalize(b.wildcardProjection)) return false;
-  if (canonicalize(a.collation) !== canonicalize(b.collation)) return false;
-  if (canonicalize(a.weights) !== canonicalize(b.weights)) return false;
-  if (a.default_language !== b.default_language) return false;
-  if (a.language_override !== b.language_override) return false;
-  return true;
+/**
+ * Returns a function that accepts a list of options only when it names every member of `Option`;
+ * a list missing one fails to compile, naming the missing option.
+ */
+export function listsEveryOption<Option extends string>() {
+  return <const T extends readonly Option[]>(
+    options: T &
+      ([Exclude<Option, T[number]>] extends [never]
+        ? unknown
+        : { readonly unlistedOption: Exclude<Option, T[number]> }),
+  ): T => options;
+}
+
+/** The index options that tell two indexes on the same keys apart: every option of an index. */
+export const MONGO_INDEX_OPTION_KEYS = listsEveryOption<
+  Exclude<keyof MongoSchemaIndexOptions, 'keys'>
+>()([
+  'unique',
+  'sparse',
+  'expireAfterSeconds',
+  'partialFilterExpression',
+  'wildcardProjection',
+  'collation',
+  'weights',
+  'default_language',
+  'language_override',
+] as const);
+
+export type MongoIndexOptionKey = (typeof MONGO_INDEX_OPTION_KEYS)[number];
+
+function keysOf(index: MongoSchemaIndex): string {
+  return index.keys.map((k) => `${k.field}:${k.direction}`).join(',');
+}
+
+/** Identifies an index by its keys and the options it sets; an option set to `false` counts as unset. */
+export function indexLookupKey(index: MongoSchemaIndex): string {
+  const options = MONGO_INDEX_OPTION_KEYS.flatMap((option) => {
+    const value = index[option];
+    return value === undefined || value === null || value === false
+      ? []
+      : [`${option}:${canonicalize(value)}`];
+  });
+  return options.length > 0 ? `${keysOf(index)}|${options.join(';')}` : keysOf(index);
 }

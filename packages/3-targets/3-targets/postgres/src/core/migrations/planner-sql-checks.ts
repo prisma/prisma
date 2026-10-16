@@ -16,6 +16,7 @@ import { postgresError } from '../errors';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { postgresCreateNamespace } from '../postgres-schema';
 import { quoteIdentifierWhereNeeded } from '../sql-utils';
+import { autoincrementWidthOfPseudoType } from './autoincrement-widths';
 import { resolveColumnTypeMetadata } from './planner-type-resolution';
 
 /**
@@ -109,29 +110,53 @@ export function alterTypeCheckText(
   where: string,
   raw = false,
 ): string {
+  if (raw) return rawTypeCheckText(type, where);
+  const read = readCatalogTypeText(type, dataTypes);
+  return read.ok ? read.text : columnTypeUnreadable(type, where, read.reason);
+}
+
+function rawTypeCheckText(type: string, where: string): string {
   const trimmed = type.trim();
   const array = ARRAY_SUFFIX.exec(trimmed);
   const base = array?.[1] ?? trimmed;
   const suffix = array === null ? '' : '[]';
-  if (raw) {
-    const refused = checkRawTypeText(base);
-    return refused === undefined
-      ? `${base}${suffix}`
-      : columnTypeUnreadable(type, where, `the raw type "${type}" is refused: ${refused}`);
-  }
+  const refused = checkRawTypeText(base);
+  return refused === undefined
+    ? `${base}${suffix}`
+    : columnTypeUnreadable(type, where, `the raw type "${type}" is refused: ${refused}`);
+}
+
+/**
+ * The type `format_type` prints for a column of `type`, read as {@link alterTypeCheckText} reads it, or `undefined` when the stack's data types do not read `type`, as for a raw column.
+ */
+export function catalogTypeTextIfReadable(
+  type: string,
+  dataTypes: readonly DataType[],
+): string | undefined {
+  const read = readCatalogTypeText(type, dataTypes);
+  return read.ok ? read.text : undefined;
+}
+
+function readCatalogTypeText(
+  type: string,
+  dataTypes: readonly DataType[],
+): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly reason: string } {
+  const trimmed = autoincrementWidthOfPseudoType(type)?.sequenceType ?? type.trim();
+  const array = ARRAY_SUFFIX.exec(trimmed);
+  const base = array?.[1] ?? trimmed;
+  const suffix = array === null ? '' : '[]';
   const texts = [
     ...new Set(
       resolveWrittenSqlTypes(base, dataTypes).map((resolved) => catalogTextOf(resolved, dataTypes)),
     ),
   ];
   const [only] = texts;
-  if (only !== undefined && texts.length === 1) return `${only}${suffix}`;
+  if (only !== undefined && texts.length === 1) return { ok: true, text: `${only}${suffix}` };
   if (texts.length > 1) {
-    return columnTypeUnreadable(
-      type,
-      where,
-      `more than one data type of the configured stack reads the type "${type}", as ${texts.join(' and ')}`,
-    );
+    return {
+      ok: false,
+      reason: `more than one data type of the configured stack reads the type "${type}", as ${texts.join(' and ')}`,
+    };
   }
   const name = quotedName(base);
   const namesItself = dataTypes.some(
@@ -140,11 +165,7 @@ export function alterTypeCheckText(
   if (name !== undefined && namesItself) {
     const [schema, ...rest] = name;
     const unqualified = rest.length > 0 && schema === DEFAULT_NAMESPACE_ID ? rest : name;
-    return `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}`;
+    return { ok: true, text: `${unqualified.map(quoteIdentifierWhereNeeded).join('.')}${suffix}` };
   }
-  return columnTypeUnreadable(
-    type,
-    where,
-    `no data type of the configured stack reads the type "${type}"`,
-  );
+  return { ok: false, reason: `no data type of the configured stack reads the type "${type}"` };
 }

@@ -52,6 +52,7 @@ import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespac
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
 import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
+import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   buildSetDefaultColumn,
   columnTypeIsCatalogText,
@@ -660,7 +661,12 @@ function mapColumnNodeIssue(
       'a not-found column issue always carries the expected column node'
     >(issue.expected);
     return ok([
-      new AddColumnCall(schemaName, tableName, renderColumnDdl(column.name, column, types)),
+      new AddColumnCall(
+        schemaName,
+        tableName,
+        renderColumnDdl(column.name, column, types),
+        dataTypes,
+      ),
     ]);
   }
   if (issueOutcome(issue) === 'not-expected') {
@@ -689,6 +695,7 @@ function mapColumnNodeIssue(
         type: renderColumnAlterType(expected, types),
         ...(columnTypeIsCatalogText(expected, types) ? { raw: true as const } : {}),
         dataTypes,
+        ownsAutoincrementSequence: hasAutoincrementDefault(actual),
         operationClass: liveColumnWidensSafely(expected, actual, types)
           ? 'widening'
           : 'destructive',

@@ -392,6 +392,7 @@ class SqliteMigrationRunner implements SqlMigrationRunner<SqlitePlanTargetDetail
               phase,
               stepDescription: step.description,
             },
+            failedCheck: { operationId: operation.id, phase, description: step.description },
             ...ifDefined(
               'why',
               converted === undefined

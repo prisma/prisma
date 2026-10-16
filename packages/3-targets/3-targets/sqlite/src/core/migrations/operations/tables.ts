@@ -8,6 +8,8 @@ import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter
 import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
 import { isSqlDataType, nameIsCatalogText } from '@internal/sql-contract/data-type';
+import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import type { ReferentialAction } from '@internal/sql-contract/types';
 import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { type } from 'arktype';
@@ -126,20 +128,6 @@ export function renameTableSteps(fromName: string, toName: string): Op['execute'
     ),
     step(`rename table "${viaName}" to "${toName}"`, `ALTER TABLE ${via} RENAME TO ${to}`),
   ];
-}
-
-export async function dropTable(tableName: string, lowerer: ExecuteRequestLowerer): Promise<Op> {
-  const { present, absent } = await tableExistsSteps(lowerer, tableName);
-  return {
-    id: `dropTable.${tableName}`,
-    label: `Drop table ${tableName}`,
-    summary: `Drops table ${tableName} which is not in the contract`,
-    operationClass: 'destructive',
-    target: { id: 'sqlite', details: buildTargetDetails('table', tableName) },
-    precheck: [step(`ensure table "${tableName}" exists`, present.sql, present.params)],
-    execute: [step(`drop table "${tableName}"`, `DROP TABLE ${quoteIdentifier(tableName)}`)],
-    postcheck: [step(`verify table "${tableName}" is gone`, absent.sql, absent.params)],
-  };
 }
 
 export interface RecreateTableArgs {
@@ -274,6 +262,7 @@ export async function recreateTable(
         tempSteps.absent.sql,
         tempSteps.absent.params,
       ),
+      sourceColumnsCheck(tableName, schemaColumnNames),
     ],
     execute: [
       step(
@@ -295,6 +284,7 @@ export async function recreateTable(
         tempSteps.absent.sql,
         tempSteps.absent.params,
       ),
+      rebuiltTableCheck(tableName, renderCreateTableSql(tableName, contractTable, defaultClauses)),
       ...postchecks.flatMap((check) =>
         'sql' in check
           ? [markedStep(tableName, check)]
@@ -316,6 +306,39 @@ export async function recreateTable(
             ];
       }),
     ],
+  };
+}
+
+/**
+ * Checks that the table has exactly the columns the rebuild reads, the ones it copies and the ones it
+ * leaves out. The rebuild copies only the columns it knows, so on a table with another column, such
+ * as one a later migration added, it would drop that column and its values.
+ */
+function sourceColumnsCheck(
+  tableName: string,
+  columns: readonly string[],
+): SqlMigrationPlanOperationStep {
+  const info = `pragma_table_info('${escapeLiteral(tableName)}')`;
+  const named =
+    columns.length === 0
+      ? ''
+      : ` AND (SELECT COUNT(*) FROM ${info} WHERE name IN (${quoteSqlList(columns)})) = ${columns.length}`;
+  return {
+    description: `ensure table "${tableName}" has exactly the columns the rebuild copies or leaves out (${columns.join(', ')})`,
+    sql: `SELECT (SELECT COUNT(*) FROM ${info}) = ${columns.length}${named}`,
+  };
+}
+
+/**
+ * Checks that the table is stored as the statement the rebuild writes. SQLite keeps a table's
+ * `CREATE TABLE` text as written, and renaming the rebuilt table only replaces its name, so this holds
+ * once the rebuild ran and not before, whatever text an earlier table had. It is the only check of
+ * what SQLite keeps in that text alone, such as `AUTOINCREMENT`.
+ */
+function rebuiltTableCheck(tableName: string, statement: string): SqlMigrationPlanOperationStep {
+  return {
+    description: `verify "${tableName}" is stored as the rebuilt table`,
+    sql: `SELECT (SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '${escapeLiteral(tableName)}') = '${escapeLiteral(statement)}'`,
   };
 }
 
@@ -459,6 +482,11 @@ function expectedPrimaryKeyColumns(spec: SqliteTableSpec): readonly string[] {
   if (spec.primaryKey) return spec.primaryKey.columns;
   const inlinePk = spec.columns.find((c) => c.inlineAutoincrementPrimaryKey);
   return inlinePk ? [inlinePk.name] : [];
+}
+
+/** The text `pragma_foreign_key_list` reports for a referential action; SQLite reads an absent action as `NO ACTION`. */
+function referentialActionText(action: ReferentialAction | undefined): string {
+  return REFERENTIAL_ACTION_SQL[action ?? 'noAction'];
 }
 
 function quoteSqlList(values: readonly string[]): string {
@@ -688,6 +716,8 @@ export function buildRecreatePostchecks(
         sql:
           `SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('${t}') f` +
           ` WHERE f."table" = '${refTable}'` +
+          ` AND f.on_delete = '${referentialActionText(fk.onDelete)}'` +
+          ` AND f.on_update = '${referentialActionText(fk.onUpdate)}'` +
           ' GROUP BY f.id' +
           ` HAVING COUNT(*) = ${colCount}` +
           ` AND SUM(CASE WHEN (f."from", f."to") IN (${tuples}) THEN 1 ELSE 0 END) = ${colCount})`,

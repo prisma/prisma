@@ -1,4 +1,8 @@
-import type { ContractMarkerRecord, LedgerEntryRecord } from '@internal/contract/types';
+import type {
+  ColumnDefault,
+  ContractMarkerRecord,
+  LedgerEntryRecord,
+} from '@internal/contract/types';
 import { parseMarkerRowSafely, withMarkerReadErrorHandling } from '@internal/errors/execution';
 import { checkSqlDefaultText } from '@internal/family-sql/control';
 import type { SqlControlAdapter } from '@internal/family-sql/control-adapter';
@@ -536,8 +540,8 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
     // runner, not part of the user-authored contract, so they must not
     // appear in introspection output (otherwise strict schema verification
     // flags them as `extra_table`).
-    const tablesResult = await driver.query<{ name: string }>(
-      `SELECT name FROM sqlite_master
+    const tablesResult = await driver.query<{ name: string; sql: string | null }>(
+      `SELECT name, sql FROM sqlite_master
        WHERE type = 'table'
          AND name NOT LIKE 'sqlite_%'
          AND name NOT IN ('_prisma_marker', '_prisma_ledger')
@@ -562,6 +566,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
 
       const columns: Record<string, SqlColumnIRInput> = {};
       const pkColumns: Array<{ name: string; pk: number }> = [];
+      const autoincrementColumn = autoincrementColumnOf(tableRow.sql, columnsResult.rows);
 
       for (const col of columnsResult.rows) {
         // Resolved values comparable against the contract-derived expected
@@ -570,18 +575,19 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
         // walk still reads and normalizes them itself.
         const resolvedNativeType = normalizeSqliteNativeType(col.type);
         const rawDefault = col.dflt_value ?? undefined;
+        const resolvedDefault =
+          col.name === autoincrementColumn
+            ? AUTOINCREMENT_DEFAULT
+            : rawDefault !== undefined
+              ? parseSqliteDefault(rawDefault, resolvedNativeType)
+              : undefined;
         columns[col.name] = {
           name: col.name,
           nativeType: col.type.toLowerCase(),
           nullable: col.notnull === 0 && col.pk === 0,
           ...ifDefined('default', rawDefault),
           resolvedNativeType,
-          ...ifDefined(
-            'resolvedDefault',
-            rawDefault !== undefined
-              ? parseSqliteDefault(rawDefault, resolvedNativeType)
-              : undefined,
-          ),
+          ...ifDefined('resolvedDefault', resolvedDefault),
           reportedType: { text: col.type, kind: undefined, schema: undefined, name: undefined },
         };
         if (col.pk > 0) {
@@ -769,6 +775,35 @@ function sqliteInlineLiteral(wire: unknown, where: LiteralDefaultColumn): string
     `sqliteRenderDdlExecuteRequest: unexpected wire type "${typeof wire}"`,
     { meta: { wireType: typeof wire } },
   );
+}
+
+const AUTOINCREMENT_DEFAULT: ColumnDefault = { kind: 'function', expression: 'autoincrement()' };
+
+/** `CREATE TABLE` text with its string literals, quoted identifiers and comments removed. */
+function createTableKeywords(createSql: string): string {
+  return createSql.replace(
+    /'(?:[^']|'')*'|"(?:[^"]|"")*"|`(?:[^`]|``)*`|\[[^\]]*\]|--[^\n]*|\/\*[\s\S]*?(?:\*\/|$)/g,
+    ' ',
+  );
+}
+
+/**
+ * The column SQLite numbers with `AUTOINCREMENT`, which it keeps only in the table's `CREATE TABLE`
+ * text. SQLite accepts the keyword only on a table's sole `INTEGER PRIMARY KEY` column.
+ * See https://www.sqlite.org/autoinc.html.
+ */
+function autoincrementColumnOf(
+  createSql: string | null,
+  columns: readonly PragmaTableInfoRow[],
+): string | undefined {
+  if (!createSql || !/\bAUTOINCREMENT\b/i.test(createTableKeywords(createSql))) {
+    return undefined;
+  }
+  const primaryKey = columns.filter((column) => column.pk > 0);
+  const [column] = primaryKey;
+  return primaryKey.length === 1 && column?.type.toUpperCase() === 'INTEGER'
+    ? column.name
+    : undefined;
 }
 
 async function sqliteRenderDdlColumnDefault(

@@ -58,9 +58,12 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
 import {
+  columnDefaultSequenceAst,
   columnExistsAst,
+  columnNullabilityAst,
   nativeEnumTypeExistsAst,
   nativeEnumValueExistsAst,
+  relationKindAst,
   tableExistsAst,
 } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
@@ -75,11 +78,17 @@ import {
   validateEnumValueLength,
 } from '../sql-utils';
 import type { PostgresColumnDefault } from '../types';
+import {
+  type AutoincrementWidth,
+  autoincrementWidth,
+  autoincrementWidthOfPseudoType,
+} from './autoincrement-widths';
 import { boundSchema } from './bound-schema';
 import {
   type AlterColumnTypeClass,
   addRequiredColumnToEmptyTable,
   alterColumnType,
+  columnTypeStep,
   dropColumn,
   dropDefault,
   dropNotNull,
@@ -113,7 +122,7 @@ import type { ForeignKeySpec } from './operations/shared';
 import { step, targetDetails } from './operations/shared';
 import { dropTable, renameTable } from './operations/tables';
 import { buildAddNotNullColumnWithTemporaryDefaultOperation } from './planner-recipes';
-import { alterTypeCheckText } from './planner-sql-checks';
+import { alterTypeCheckText, catalogTypeTextIfReadable } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 
 type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
@@ -267,6 +276,9 @@ function defaultImportSymbols(columns: readonly DdlColumn[]): string[] {
   return [...symbols];
 }
 
+/** `pg_class.relkind` of an ordinary or a partitioned table. */
+const TABLE_RELATION_KINDS = ['r', 'p'] as const;
+
 export class CreateTableCall extends PostgresOpFactoryCallNode {
   readonly factoryName = 'createTable' as const;
   readonly operationClass = 'additive' as const;
@@ -308,9 +320,12 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
     const statement = await lowerer.lowerToExecuteRequest(ddlNode);
     const schemaName = this.schemaName;
     const tableName = this.tableName;
-    const checks = tableExistsAst(schemaName, tableName);
-    const absent = await lowerer.lowerToExecuteRequest(checks.tableAbsent());
-    const present = await lowerer.lowerToExecuteRequest(checks.tablePresent());
+    const absent = await lowerer.lowerToExecuteRequest(
+      tableExistsAst(schemaName, tableName).tableAbsent(),
+    );
+    const isTable = await lowerer.lowerToExecuteRequest(
+      relationKindAst({ schema: schemaName, name: tableName, kinds: TABLE_RELATION_KINDS }),
+    );
     return {
       id: `table.${tableName}`,
       label: `Create table "${tableName}"`,
@@ -325,7 +340,7 @@ export class CreateTableCall extends PostgresOpFactoryCallNode {
           params: statement.params ?? [],
         },
       ],
-      postcheck: [step(`verify table "${tableName}" exists`, present.sql, present.params)],
+      postcheck: [step(`verify table "${tableName}" exists`, isTable.sql, isTable.params)],
     };
   }
 
@@ -483,13 +498,21 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
   readonly schemaName: string;
   readonly tableName: string;
   readonly column: DdlColumn;
+  /** The type `format_type` prints for the column, or `undefined` when the stack's data types do not read it. */
+  readonly checkType: string | undefined;
   readonly label: string;
 
-  constructor(schemaName: string, tableName: string, column: DdlColumn) {
+  constructor(
+    schemaName: string,
+    tableName: string,
+    column: DdlColumn,
+    dataTypes: readonly DataType[],
+  ) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.column = column;
+    this.checkType = catalogTypeTextIfReadable(column.type, dataTypes);
     this.label = `Add column "${column.name}" to "${tableName}"`;
     this.freeze();
   }
@@ -511,9 +534,23 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
     const schemaName = this.schemaName;
     const tableName = this.tableName;
     const columnName = this.column.name;
-    const colChecks = columnExistsAst({ schema: schemaName, table: tableName, column: columnName });
+    const location = { schema: schemaName, table: tableName, column: columnName };
+    const colChecks = columnExistsAst(location);
     const absent = await lowerer.lowerToExecuteRequest(colChecks.columnAbsent());
     const present = await lowerer.lowerToExecuteRequest(colChecks.columnPresent());
+    const hasType = await columnTypeStep(lowerer, location, this.column.type, this.checkType);
+    const notNullable =
+      this.column.notNull === true || this.column.primaryKey === true
+        ? [
+            await lowerer.lowerToExecuteRequest(
+              columnNullabilityAst({ ...location, nullable: false }),
+            ),
+          ]
+        : [];
+    const sequenceDefault =
+      autoincrementWidthOfPseudoType(this.column.type) === undefined
+        ? []
+        : [await lowerer.lowerToExecuteRequest(columnDefaultSequenceAst(location))];
     return {
       id: `column.${schemaName}.${tableName}.${columnName}`,
       label: `Add column "${columnName}" to "${tableName}"`,
@@ -521,7 +558,20 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
       target: targetDetails('column', columnName, schemaName, tableName),
       precheck: [step(`ensure column "${columnName}" is missing`, absent.sql, absent.params)],
       execute: [step(`add column "${columnName}"`, statement.sql)],
-      postcheck: [step(`verify column "${columnName}" exists`, present.sql, present.params)],
+      postcheck: [
+        step(`verify column "${columnName}" exists`, present.sql, present.params),
+        hasType,
+        ...notNullable.map((check) =>
+          step(`verify column "${columnName}" is NOT NULL`, check.sql, check.params),
+        ),
+        ...sequenceDefault.map((check) =>
+          step(
+            `verify column "${columnName}" takes its default from an attached sequence`,
+            check.sql,
+            check.params,
+          ),
+        ),
+      ],
     };
   }
 
@@ -683,6 +733,8 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly using: SqlSlot | undefined;
   /** The type `format_type` prints once the alter has run, which the postcheck compares. */
   readonly checkType: string;
+  /** The width the sequence the column owns takes, when the column has an `autoincrement()` default and an integer type. */
+  readonly sequenceWidth: AutoincrementWidth | undefined;
   readonly label: string;
 
   constructor(input: {
@@ -696,6 +748,8 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     readonly dataTypes: readonly DataType[];
     /** By default `data` when `using` converts the values, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
+    /** Whether the column, before the change, takes its values from a sequence it owns (`autoincrement()`). */
+    readonly ownsAutoincrementSequence: boolean;
   }) {
     super();
     this.schemaName = input.schemaName;
@@ -704,6 +758,9 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     this.type = input.type;
     this.raw = input.raw;
     this.using = input.using;
+    this.sequenceWidth = input.ownsAutoincrementSequence
+      ? autoincrementWidth(input.type)
+      : undefined;
     this.operationClass = input.operationClass ?? this.#defaultClass();
     this.#refuseUnsafeUsing();
     this.checkType = alterTypeCheckText(
@@ -759,6 +816,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
         type: this.type,
         checkType: this.checkType,
         ...ifDefined('using', sqlOfSlot(this.using)),
+        sequenceWidth: this.sequenceWidth,
       },
       lowerer,
       this.operationClass,
@@ -893,7 +951,7 @@ export class SetDefaultCall extends PostgresOpFactoryCallNode {
     schemaName: string,
     tableName: string,
     column: DdlColumn,
-    operationClass: 'additive' | 'widening' = 'additive',
+    operationClass: 'additive' | 'widening',
   ) {
     super();
     this.schemaName = schemaName;
@@ -927,9 +985,6 @@ export class SetDefaultCall extends PostgresOpFactoryCallNode {
     }
     opts.push(`table: ${jsonToTsSource(this.tableName)}`);
     opts.push(`column: ${renderDdlColumnAsTsCall(this.column, sql)}`);
-    if (this.operationClass !== 'additive') {
-      opts.push(`operationClass: ${jsonToTsSource(this.operationClass)}`);
-    }
     return { source: `this.setDefault({ ${opts.join(', ')} })`, imports: sql.imports() };
   }
 
@@ -1013,14 +1068,23 @@ export class AddRequiredColumnToEmptyTableCall extends PostgresOpFactoryCallNode
   readonly columnName: string;
   /** The column's type as a migration writes it. */
   readonly type: string;
+  /** The type `format_type` prints for `type`, or `undefined` when the stack's data types do not read it. */
+  readonly checkType: string | undefined;
   readonly label: string;
 
-  constructor(schemaName: string, tableName: string, columnName: string, type: string) {
+  constructor(
+    schemaName: string,
+    tableName: string,
+    columnName: string,
+    type: string,
+    dataTypes: readonly DataType[],
+  ) {
     super();
     this.schemaName = schemaName;
     this.tableName = tableName;
     this.columnName = columnName;
     this.type = type;
+    this.checkType = catalogTypeTextIfReadable(type, dataTypes);
     this.label = `Add column ${columnName} to ${tableName}`;
     this.freeze();
   }
@@ -1037,6 +1101,7 @@ export class AddRequiredColumnToEmptyTableCall extends PostgresOpFactoryCallNode
       this.schemaName,
       this.tableName,
       col(this.columnName, this.type, { notNull: true }),
+      this.checkType,
       lowerer,
     );
   }
@@ -1067,6 +1132,8 @@ export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode
   readonly type: string;
   /** SQL for the value existing rows take, such as `''` or `0`. */
   readonly temporaryDefault: string;
+  /** The type `format_type` prints for `type`, or `undefined` when the stack's data types do not read it. */
+  readonly checkType: string | undefined;
   readonly label: string;
 
   constructor(
@@ -1075,6 +1142,7 @@ export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode
     columnName: string,
     type: string,
     temporaryDefault: string,
+    dataTypes: readonly DataType[],
   ) {
     super();
     this.schemaName = schemaName;
@@ -1082,6 +1150,7 @@ export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode
     this.columnName = columnName;
     this.type = type;
     this.temporaryDefault = temporaryDefault;
+    this.checkType = catalogTypeTextIfReadable(type, dataTypes);
     const refused = checkSqlDefaultText(temporaryDefault);
     if (refused !== undefined) {
       const call = `addColumnWithTemporaryDefault({ ${columnCallLocation(schemaName, tableName, columnName).join(', ')} })`;
@@ -1111,6 +1180,7 @@ export class AddColumnWithTemporaryDefaultCall extends PostgresOpFactoryCallNode
       tableName: this.tableName,
       columnName: this.columnName,
       type: this.type,
+      checkType: this.checkType,
       temporaryDefault: this.temporaryDefault,
       lowerer,
     });
