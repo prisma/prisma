@@ -152,8 +152,8 @@ A store must also keep a version it has increased for at least as long as a read
 export type CachedRows = readonly Record<string, unknown>[];
 
 export type CachedValue =
-  | { readonly kind: 'rows'; readonly rows: CachedRows }
-  | { readonly kind: 'result'; readonly result: unknown };
+  | { readonly kind: 'statement-rows'; readonly rows: CachedRows }
+  | { readonly kind: 'call-result'; readonly result: unknown };
 
 export interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
   readonly key: string;
@@ -188,8 +188,9 @@ A store author takes on these obligations:
 4. An increased version is kept at least as long as a read can take.
 5. A store that cannot act on a `meta` it is given throws rather than ignoring it.
 6. `unset` does not run queries through the runtime that uses the middleware.
+7. `get` gives back a value equivalent to the one `set` was given, `kind` included. A call result holds the values codecs decoded, such as `Date`, `bigint`, Temporal values and extension class instances, so a store that serializes needs a serializer that rebuilds those types; JSON does not. The key does not cover how values are decoded, so a deploy that changes what a codec returns needs a new key prefix for a shared store.
 
-The value type defaults to `CachedValue`, what this middleware stores: the raw rows of a statement, or the result of a call a client started, such as an ORM call (ADR 271). The middleware serves a value only to a read of the kind that stored it, so under one key a statement's rows and a call's result never stand in for each other. `createCacheMiddleware` accepts only a store of `CachedValue`. The value type is a parameter so the same store type can serve other caches. Every method takes one object, or an entry and a value, so a store written against a different argument shape fails to compile instead of misreading its arguments. `unset` is required, because a store that cannot remove entries brings back the stale reads this design exists to prevent.
+The value type defaults to `CachedValue`, what this middleware stores: the raw rows of a statement, or the result of a call a client started, such as an ORM call (ADR 271). The middleware tags each value `statement-rows` or `call-result` and serves it only to a read of the kind that stored it, so under one key a statement's rows and a call's result never stand in for each other. `createCacheMiddleware` accepts only a store of `CachedValue`. The value type is a parameter so the same store type can serve other caches. Every method takes one object, or an entry and a value, so a store written against a different argument shape fails to compile instead of misreading its arguments. `unset` is required, because a store that cannot remove entries brings back the stale reads this design exists to prevent.
 
 ## Example: a tagging store
 

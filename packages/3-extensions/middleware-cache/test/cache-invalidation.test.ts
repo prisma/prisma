@@ -152,7 +152,7 @@ describe('createCacheMiddleware — misses overlapping invalidate', () => {
         version: 7,
         data: { empty: true },
       },
-      { kind: 'rows', rows: [{ id: 1 }] },
+      { kind: 'statement-rows', rows: [{ id: 1 }] },
     );
   });
 

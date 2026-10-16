@@ -10,11 +10,12 @@ changes:
         - 'meta\.annotations\b'
   - id: cache-store-holds-cached-values
     summary: |
-      A cache store for `@internal/middleware-cache` holds `CachedValue`, `{ kind: 'rows', rows } | { kind: 'result', result }`, not `CachedRows`; `CacheStore` and `CacheEntry` default their value type to `CachedValue`, and `createCacheMiddleware` accepts only a `CacheStore<TMeta, CachedValue>`. Type a custom store with `CachedValue`, store and return the value whole, `kind` included, and make a store that serialises values round-trip the decoded values an ORM call returns.
+      A cache store for `@internal/middleware-cache` holds `CachedValue`, `{ kind: 'statement-rows', rows } | { kind: 'call-result', result }`, not `CachedRows`; `CacheStore` and `CacheEntry` default their value type to `CachedValue`, and `createCacheMiddleware` accepts only a `CacheStore<TMeta, CachedValue>`. Type a custom store with `CachedValue`, and make `get` give back a value equivalent to the one `set` was given, `kind` included. An ORM call's result holds decoded values such as `Date`, `bigint`, Temporal values and extension class instances, so a store that serializes needs a serializer that rebuilds them; JSON does not. `createInMemoryCacheStore` takes only the meta type now and always holds `CachedValue`: drop its second type argument.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\bCachedRows\b'
+        - 'createInMemoryCacheStore<[^>(]*,'
   - id: queryable-carries-the-activity-source
     summary: |
       The SQL ORM starts its `orm-call` activity on the queryable it was given, through the queryable's `activitySource` member, and sends every statement through the activity's handle. A wrapper that copies a runtime, connection or transaction to intercept its `query` and `execute` (for example to record plans) also copies the `[activitySource]` member, so ORM statements bypass the wrapper. Wrap the activity source too: return a source whose `startActivity` wraps each handle the same way, including the transaction its `transaction()` returns. A custom queryable passed to the ORM must carry an activity source: without one, every terminal method rejects with `ORM.ACTIVITY_SOURCE_MISSING`. A test stub can use `delegatingActivitySource(() => realRuntime)`, or a source whose handles send their statements to the stub.
@@ -48,6 +49,6 @@ const audit: SqlMiddleware = {
 import type { CachedValue, CacheStore } from '@internal/middleware-cache';
 
 const store: CacheStore<unknown, CachedValue> = {
-  // get, set and unset as before; value is now { kind: 'rows', rows } or { kind: 'result', result }
+  // get, set and unset as before; value is now { kind: 'statement-rows', rows } or { kind: 'call-result', result }
 };
 ```

@@ -8,13 +8,11 @@ import { structuredError } from '@internal/utils/structured-error';
 export type CachedRows = readonly Record<string, unknown>[];
 
 /**
- * The value type the cache middleware stores: a statement's raw rows, or the result of a call a
- * client started, such as an ORM call. The middleware serves a value only to an activity of the
- * kind that stored it; a value of the other kind under the same key is a miss.
+ * The value type the cache middleware stores: a statement's raw rows, or the result of a call a client started, such as an ORM call. The middleware tags each value with what produced it and serves `statement-rows` only to a statement and a `call-result` only to a call; under one key, a value with the other tag is a miss.
  */
 export type CachedValue =
-  | { readonly kind: 'rows'; readonly rows: CachedRows }
-  | { readonly kind: 'result'; readonly result: unknown };
+  | { readonly kind: 'statement-rows'; readonly rows: CachedRows }
+  | { readonly kind: 'call-result'; readonly result: unknown };
 
 /**
  * One key of a `CacheStore`, as `get` saw it.
@@ -54,6 +52,8 @@ export interface CacheEntry<TMeta = unknown, TValue = CachedValue> {
  *   value. `keys` is `undefined` or non-empty. A store that cannot act on a `meta` it is given
  *   must throw rather than ignore it. An `unset` by key must also drop that key from any `meta`
  *   index the store keeps.
+ *
+ * `get` must give back a value equivalent to the one `set` was given, `kind` included. A call result holds the values codecs decoded, such as a `Date`, a `bigint`, a Temporal value or an extension's class instance, so a store that serializes needs a serializer that rebuilds those types; JSON does not.
  *
  * Lifetime, eviction and whether values are copied are the store's policy; the middleware hands `set` the value it returns to its caller, so a store that keeps references shares that object. A version that `unset` moved must be kept at least as long as a read can take, so that a read that started before the `unset` cannot store. `unset` must not run queries through the runtime that uses the middleware.
  *
@@ -156,30 +156,25 @@ function copyObject(value: object, copies: Map<object, unknown>): unknown {
   return copy;
 }
 
-function isStatementRows(
-  value: unknown,
-): value is { readonly kind: 'rows'; readonly rows: CachedRows } {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    Reflect.get(value, 'kind') === 'rows' &&
-    Array.isArray(Reflect.get(value, 'rows'))
-  );
+/** Statement rows hold driver values, such as BSON `ObjectId`s, that this package cannot copy. So the array and each row object are copied, each row keeping its prototype, and the driver's values are kept by reference and shared with every hit. */
+function copyRows(rows: CachedRows): CachedRows {
+  return rows.map((row) => {
+    const copy: Record<string, unknown> = Object.create(Object.getPrototypeOf(row));
+    return Object.assign(copy, row);
+  });
 }
 
-/** Statement rows hold driver values, such as BSON `ObjectId`s, that this package cannot copy; the runtime decodes them into new values on every hit. So the array and each row object are copied, and the driver's values are kept by reference. */
-function copyRows(value: { readonly kind: 'rows'; readonly rows: CachedRows }): CachedValue {
-  return { kind: 'rows', rows: value.rows.map((row) => ({ ...row })) };
+function copyStored(value: CachedValue): CachedValue {
+  switch (value.kind) {
+    case 'statement-rows':
+      return { kind: 'statement-rows', rows: copyRows(value.rows) };
+    case 'call-result':
+      return { kind: 'call-result', result: copyValue(value.result) };
+  }
 }
 
-function copyStored<TValue>(value: TValue): TValue {
-  return isStatementRows(value)
-    ? blindCast<TValue, 'statement rows copy to statement rows'>(copyRows(value))
-    : copyValue(value);
-}
-
-interface StoredRecord<TValue> {
-  readonly value: TValue;
+interface StoredRecord {
+  readonly value: CachedValue;
   readonly expiresAt: number;
 }
 
@@ -208,11 +203,11 @@ function invalidOption(argument: 'maxEntries' | 'ttlMs', received: number, expec
 }
 
 /**
- * The default cache store: a least-recently-used map with one lifetime for every value, local to the process. It holds `CachedValue` unless given another `TValue`, and keeps statement rows and other values differently. Statement rows (`{ kind: 'rows' }`) are copied one level deep on `set` and `get`, the array and each row object, and the driver's values are kept by reference: the runtime decodes them into new values on every hit. Every other value, such as an ORM call's result, has its plain structure copied on `set` and on every `get`: plain and null-prototype objects, arrays (their elements only; holes read as `undefined`), `Map`, `Set`, `Date`, `RegExp`, `ArrayBuffer`, typed arrays (a subclass such as Node's `Buffer` keeps its class) and `DataView` (copied as a plain `DataView`). Every other value in it, such as a class instance (a Temporal value, a BSON value, an error) or a function, is shared by reference, so mutating a result's objects or arrays changes neither the cache nor the next hit, and a codec should return values that are not mutated in place. It never refuses a value: `set` returns `false` only when the version moved. A key's version is kept for `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything. It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
+ * The default cache store: a least-recently-used map of `CachedValue` with one lifetime for every value, local to the process. Statement rows are copied one level deep on `set` and `get`: the array, and each row object with its prototype. The driver's values in them are kept by reference and shared with every hit; the runtime decodes them on each hit, and a codec that returns its wire value unchanged, such as a date or byte-array codec, hands that shared object to the caller. A call result has its plain structure copied on `set` and on every `get`: plain and null-prototype objects, arrays (their elements only; holes read as `undefined`), `Map`, `Set`, `Date`, `RegExp`, `ArrayBuffer`, typed arrays (a subclass such as Node's `Buffer` keeps its class) and `DataView` (copied as a plain `DataView`). Every other value in it, such as a class instance (a Temporal value, a BSON value, an error) or a function, is shared by reference. So after `set` returns, a change to the plain structure of the value `set` was given, or of a value `get` returned, reaches no later `get`; a change made to a shared value, or made before `set`, does. It never refuses a value: `set` returns `false` only when the version moved. A key's version is kept for `ttlMs` after the `unset` that moved it (see `InMemoryCacheStoreOptions`). It ignores `meta` in `get` and `set`, and its `unset` rejects any `meta`, including `null`, before changing anything. It throws `RUNTIME.ARGUMENT_INVALID` for a `maxEntries` or `ttlMs` outside the ranges above.
  */
-export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
+export function createInMemoryCacheStore<TMeta = unknown>(
   options?: InMemoryCacheStoreOptions,
-): CacheStore<TMeta, TValue> {
+): CacheStore<TMeta, CachedValue> {
   const maxEntries = options?.maxEntries ?? 1000;
   const ttlMs = options?.ttlMs ?? 60_000;
   const clock = options?.clock ?? Date.now;
@@ -222,7 +217,7 @@ export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
   if (!(ttlMs > 0)) {
     throw invalidOption('ttlMs', ttlMs, 'a positive number of milliseconds, or Infinity');
   }
-  const records = new Map<string, StoredRecord<TValue>>();
+  const records = new Map<string, StoredRecord>();
   const versions = new Map<string, VersionRecord>();
 
   function forgetExpiredVersions(): void {
@@ -240,7 +235,7 @@ export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
     return versions.get(key)?.version ?? 0;
   }
 
-  function liveRecord(key: string): StoredRecord<TValue> | undefined {
+  function liveRecord(key: string): StoredRecord | undefined {
     const record = records.get(key);
     if (record === undefined) {
       return undefined;
@@ -256,7 +251,7 @@ export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
   async function get(target: {
     readonly key: string;
     readonly meta: TMeta | undefined;
-  }): Promise<CacheEntry<TMeta, TValue>> {
+  }): Promise<CacheEntry<TMeta, CachedValue>> {
     const record = liveRecord(target.key);
     return {
       key: target.key,
@@ -267,7 +262,7 @@ export function createInMemoryCacheStore<TMeta = unknown, TValue = CachedValue>(
     };
   }
 
-  async function set(entry: CacheEntry<TMeta, TValue>, value: TValue): Promise<boolean> {
+  async function set(entry: CacheEntry<TMeta, CachedValue>, value: CachedValue): Promise<boolean> {
     if (entry.version !== versionOf(entry.key)) {
       return false;
     }

@@ -89,8 +89,8 @@ const plan = db.sql
 
 Three-tier resolution:
 
-1. **Per-query override.** `cacheAnnotation({ key })` — the supplied string is used verbatim, and `deriveKey` is not called. The cache middleware does **not** rehash user-supplied keys; the caller is responsible for keeping the string bounded in size and free of sensitive data they do not want flowing into debug logs, Redis `KEYS` output, persistence dumps, or any user-supplied `CacheStore`. User-supplied keys also bypass the storage-hash discrimination below — if you fix a key, prefix it with something tied to your schema version (e.g. `` `${storageHash}:my-key` ``) to avoid serving stale-schema entries after a migration.
-2. **`deriveKey`, for statements.** `createCacheMiddleware({ deriveKey })` computes the key of every cached statement whose annotation has no `key` (see [Deriving keys](#deriving-keys)). It takes the statement's execution plan, so it does not apply to an ORM call.
+1. **Per-query override.** `cacheAnnotation({ key })` — the supplied string is used verbatim, and `deriveKey` is not called. The cache middleware does **not** rehash user-supplied keys; the caller is responsible for keeping the string bounded in size and free of sensitive data they do not want flowing into debug logs, Redis `KEYS` output, persistence dumps, or any user-supplied `CacheStore`. User-supplied keys also bypass the storage-hash discrimination below — if you fix a key, prefix it with something tied to your schema version (e.g. `` `${storageHash}:my-key` ``) to avoid serving stale-schema entries after a migration. A key belongs to one query and one terminal method: if `first()` and `all()` share a key, the one that reads the other's stored result fails with `ORM.INTERCEPTED_RESULT_INVALID` or, for a method that accepts the same shape, returns the wrong value.
+2. **`deriveKey`, for statements.** `createCacheMiddleware({ deriveKey })` computes the key of every cached statement whose annotation has no `key` (see [Deriving keys](#deriving-keys)). It takes the statement's execution plan, so it does not apply to an ORM call. An app that relies on `deriveKey` to separate tenants must also separate them for annotated ORM calls, for example with a tenant-prefixed `key`; otherwise one tenant's cached ORM read can be served to another.
 3. **Default.** For an ORM call, `await activity.contentHash()`: a digest of `orm-call`, the terminal method and the content hash of the statement the call sends first (for a prepared collection, of the statement with that execution's parameters). It is computed only when the cache asks for it. For a statement, `deriveKeyFromContentHash(exec, ctx)`, which returns `ActivityContext.contentHash(exec)` — the family runtime owns this. The SQL and Mongo runtimes today compose `meta.storageHash + '|' + …` and pipe the result through `hashContent` (SHA-512), producing a bounded, opaque digest of the form `sha512:HEXDIGEST`. The cache middleware uses the returned string directly as the store key.
 
 Two consequences worth pinning (both properties of the **default** key path — user-supplied keys above opt out of both, and a `deriveKey` keeps them only if it builds on the content hash):
@@ -142,11 +142,15 @@ interface CacheStore<TMeta = unknown, TValue = CachedValue> {
 type CachedRows = readonly Record<string, unknown>[];
 
 type CachedValue =
-  | { readonly kind: 'rows'; readonly rows: CachedRows }
-  | { readonly kind: 'result'; readonly result: unknown };
+  | { readonly kind: 'statement-rows'; readonly rows: CachedRows }
+  | { readonly kind: 'call-result'; readonly result: unknown };
 ```
 
-The middleware serves a value only to a read of the kind that stored it: under one key, an ORM call's result is a miss for a statement and a statement's rows are a miss for an ORM call. A store treats the value as opaque; a store shared between processes serialises it whole, `kind` included. An ORM call's result holds the values the ORM returns, after codecs decoded them, so a store that serialises values must round-trip those types (for example `Date` or `bigint`), as it must for rows.
+The middleware tags each value it stores with what produced it, `statement-rows` or `call-result`, and serves it only to the same kind of read: under one key, an ORM call's result is a miss for a statement and a statement's rows are a miss for an ORM call. A store treats the value as opaque.
+
+**A store must give back a value equivalent to the one it was given,** `kind` included. A statement's rows hold driver values. An ORM call's result holds the values the ORM returns, after codecs decoded them: `Date`, `bigint`, Temporal values, decimals, and any class an extension codec returns. A store that serializes values therefore needs a serializer that rebuilds the application's types. JSON is not enough: `JSON.stringify` throws on a `bigint`, and a `Date` comes back as a string that the ORM then returns typed as `Date`.
+
+**A deploy that changes what a codec returns needs a new key prefix for a shared store.** The key covers the schema, the statement and its parameters, but not how values are decoded, so without a new prefix the new code is served values the old codecs produced until they expire.
 
 The store keeps a **version** per key: an integer it keeps even for a key that holds no value. A key never seen has version 0. Only `unset` changes a version.
 
@@ -171,51 +175,61 @@ The default store lives in one process and is **not** shared across replicas. Fo
 ```typescript
 import type { CachedValue, CacheStore } from '@internal/middleware-cache';
 
+// Supplied by the application: it must rebuild every type its codecs return, such as Date,
+// bigint, Temporal values and extension classes. JSON.stringify and JSON.parse do not.
+interface ValueSerializer {
+  serialize(value: CachedValue): string;
+  deserialize(text: string): CachedValue;
+}
+
 const SET_IF_VERSION = `
   if tonumber(redis.call('GET', KEYS[2]) or '0') ~= tonumber(ARGV[2]) then return 0 end
   redis.call('SET', KEYS[1], ARGV[1], 'PX', 60000)
   return 1`;
 
-const redis: CacheStore<unknown, CachedValue> = {
-  async get({ key, meta }) {
-    const [raw, version] = await redisClient.mget(`value:${key}`, `version:${key}`);
-    return {
-      key,
-      meta,
-      version: Number(version ?? 0),
-      data: raw ? { empty: false, value: JSON.parse(raw) as CachedValue } : { empty: true },
-    };
-  },
-  async set(entry, value) {
-    const keys = [`value:${entry.key}`, `version:${entry.key}`];
-    const json = JSON.stringify(value);
-    return (await redisClient.eval(SET_IF_VERSION, 2, ...keys, json, entry.version)) === 1;
-  },
-  async unset({ keys, meta }) {
-    if (meta !== undefined) {
-      throw new Error('This store does not index meta');
-    }
-    for (const key of keys ?? []) {
-      await redisClient
-        .multi()
-        .del(`value:${key}`)
-        .incr(`version:${key}`)
-        .pexpire(`version:${key}`, 60_000)
-        .exec();
-    }
-  },
-};
+function redisStore(serializer: ValueSerializer): CacheStore<unknown, CachedValue> {
+  return {
+    async get({ key, meta }) {
+      const [text, version] = await redisClient.mget(`value:${key}`, `version:${key}`);
+      return {
+        key,
+        meta,
+        version: Number(version ?? 0),
+        data: text ? { empty: false, value: serializer.deserialize(text) } : { empty: true },
+      };
+    },
+    async set(entry, value) {
+      const keys = [`value:${entry.key}`, `version:${entry.key}`];
+      const text = serializer.serialize(value);
+      return (await redisClient.eval(SET_IF_VERSION, 2, ...keys, text, entry.version)) === 1;
+    },
+    async unset({ keys, meta }) {
+      if (meta !== undefined) {
+        throw new Error('This store does not index meta');
+      }
+      for (const key of keys ?? []) {
+        await redisClient
+          .multi()
+          .del(`value:${key}`)
+          .incr(`version:${key}`)
+          .pexpire(`version:${key}`, 60_000)
+          .exec();
+      }
+    },
+  };
+}
 
+const redis = redisStore(appSerializer);
 const cache = createCacheMiddleware({ store: redis });
 ```
 
 ### The default store
 
-`createInMemoryCacheStore<TMeta, TValue>({ maxEntries?, ttlMs?, clock? })` is what `createCacheMiddleware()` uses when no `store` is given. It holds cached values (`CachedValue`) unless you give it another value type.
+`createInMemoryCacheStore<TMeta>({ maxEntries?, ttlMs?, clock? })` is what `createCacheMiddleware()` uses when no `store` is given. It holds cached values (`CachedValue`).
 
 - **Size.** At most `maxEntries` values, a positive integer (default 1000). Reads and writes both count as a use; the least recently used value is evicted first.
 - **Lifetime.** Every value lives `ttlMs` after its `set`, a positive number of milliseconds (default 60 000). `ttlMs: Infinity` never expires. A key's version is kept for `ttlMs` after the `unset` that moved it. Versions are not bounded by `maxEntries`. A forgotten version reads as 0, so with a finite `ttlMs` a read that takes longer than `ttlMs` and overlaps an `invalidate` can store stale rows. With `ttlMs: Infinity`, the versions of invalidated keys are never forgotten and grow with the number of distinct keys invalidated. Any other `maxEntries` or `ttlMs`, such as `0` or `NaN`, throws `RUNTIME.ARGUMENT_INVALID`. Expiry is measured with `clock` (default `Date.now`); an expired value reads as empty and is dropped.
-- **Copies.** It keeps statement rows and ORM call results differently. Statement rows are copied one level deep, the array and each row object, and the driver's values in them, such as BSON `ObjectId`s or a `Buffer`, are kept by reference: the runtime decodes them into new values on every hit. An ORM call's result has its plain structure copied on `set` and on every `get`: plain and null-prototype objects, arrays (their elements only; holes read as `undefined`), `Map`, `Set`, `Date`, `RegExp`, `ArrayBuffer`, typed arrays (a subclass such as Node's `Buffer` keeps its class) and `DataView` (copied as a plain `DataView`). Every other value in it, such as a class instance (a Temporal value, a decimal, a vector, a BSON value, an error) or a function, is shared by reference with the first caller and every hit. So mutating a result's objects or arrays changes neither the cache nor the next hit, and codecs should return values that are not mutated in place. The store never refuses a value: `set` returns `false` only when the key's version moved. A miss copies the result once and each hit copies it again: about the work of decoding rows, linear in the size of the result.
+- **Copies.** It keeps statement rows and ORM call results differently. Statement rows are copied one level deep on `set` and `get`: the array, and each row object with its prototype. The driver's values in them, such as BSON `ObjectId`s or a `Buffer`, are kept by reference and shared with every hit. The runtime decodes them on each hit; a codec that returns its wire value unchanged, such as a date or byte-array codec, hands every caller that same shared object. An ORM call's result has its plain structure copied on `set` and on every `get`: plain and null-prototype objects, arrays (their elements only; holes read as `undefined`), `Map`, `Set`, `Date`, `RegExp`, `ArrayBuffer`, typed arrays (a subclass such as Node's `Buffer` keeps its class) and `DataView` (copied as a plain `DataView`). Every other value in it, such as a class instance (a Temporal value, a decimal, a vector, a BSON value, an error) or a function, is shared by reference with the first caller and every hit. So, once the call has ended, changing the plain objects and arrays of a result changes no later hit; changing a shared value in place does, so codecs should return values that are not mutated in place. A streamed `all()` ends when the caller reads past the last row, so a change made to a row inside a `for await` loop is made before `set` and is stored. The store never refuses a value: `set` returns `false` only when the key's version moved. A miss copies the result once and each hit copies it again: about the work of decoding rows, linear in the size of the result.
 - **`meta`.** `get` and `set` ignore it. `unset({ keys })` removes those keys; `unset` with any `meta` other than `undefined`, including `null`, throws `RUNTIME.CACHE_STORE_META_UNSUPPORTED` and removes nothing.
 
 To change the defaults, create the store yourself:

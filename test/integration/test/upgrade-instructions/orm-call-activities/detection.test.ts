@@ -53,8 +53,28 @@ describe.each(['app', 'extension'] as const)(
       ).toBe(true);
     });
 
+    it('finds a default store given a value type', () => {
+      expect(
+        detects(
+          audience,
+          'cache-store-holds-cached-values',
+          'createInMemoryCacheStore<TagMeta, MyRows>({ maxEntries: 10 })',
+        ),
+      ).toBe(true);
+    });
+
     it('skips a longer name', () => {
       expect(detects(audience, 'cache-store-holds-cached-values', 'MyCachedRowsStore')).toBe(false);
+    });
+
+    it('skips a default store given only a meta type', () => {
+      expect(
+        detects(
+          audience,
+          'cache-store-holds-cached-values',
+          'createInMemoryCacheStore<TagMeta>({ maxEntries: 10, ttlMs: 5_000 })',
+        ),
+      ).toBe(false);
     });
   },
 );

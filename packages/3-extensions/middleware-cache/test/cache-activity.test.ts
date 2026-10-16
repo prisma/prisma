@@ -26,13 +26,13 @@ describe('createCacheMiddleware — client activities such as ORM calls', () => 
 
     expect({ intercepted, stored: store.inner.get('call-hash') }).toEqual({
       intercepted: undefined,
-      stored: { kind: 'result', result: [{ id: 1 }] },
+      stored: { kind: 'call-result', result: [{ id: 1 }] },
     });
   });
 
   it('serves a stored result on the next call', async () => {
     const store = spyStore();
-    store.inner.set('call-hash', { kind: 'result', result: { id: 1 } });
+    store.inner.set('call-hash', { kind: 'call-result', result: { id: 1 } });
     const mw = createCacheMiddleware({ store });
 
     expect(await mw.intercept!.onActivity!(makeCall(annotated), makeCtx())).toEqual({
@@ -91,7 +91,7 @@ describe('createCacheMiddleware — client activities such as ORM calls', () => 
     ['on a held connection', makeCtx({ scope: 'connection' })],
   ])('neither serves nor stores a call %s', async (_name, ctx) => {
     const store = spyStore();
-    store.inner.set('call-hash', { kind: 'result', result: { id: 1 } });
+    store.inner.set('call-hash', { kind: 'call-result', result: { id: 1 } });
     const mw = createCacheMiddleware({ store });
     const call = makeCall(annotated);
 
@@ -142,13 +142,13 @@ describe('createCacheMiddleware — statement rows and call results under one ke
     }).toEqual({
       intercepted: undefined,
       events: ['middleware.cache.miss', 'middleware.cache.store'],
-      stored: { kind: 'result', result: { id: 2 } },
+      stored: { kind: 'call-result', result: { id: 2 } },
     });
   });
 
   it('misses a statement when the key holds a call result, and stores the rows in its place', async () => {
     const store = spyStore();
-    store.inner.set('shared', { kind: 'result', result: [{ id: 1 }] });
+    store.inner.set('shared', { kind: 'call-result', result: [{ id: 1 }] });
     const debug = vi.fn();
     const mw = createCacheMiddleware({ store });
     const exec = makeExec('select 1', { cache: cacheAnnotation({ key: 'shared' }) });
@@ -165,7 +165,7 @@ describe('createCacheMiddleware — statement rows and call results under one ke
     }).toEqual({
       intercepted: undefined,
       events: ['middleware.cache.miss', 'middleware.cache.store'],
-      stored: { kind: 'rows', rows: [{ id: 2 }] },
+      stored: { kind: 'statement-rows', rows: [{ id: 2 }] },
     });
   });
 

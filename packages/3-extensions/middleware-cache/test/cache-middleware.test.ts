@@ -173,7 +173,7 @@ describe('createCacheMiddleware — miss path', () => {
         version: 0,
         data: { empty: true },
       },
-      { kind: 'rows', rows: [{ id: 1 }, { id: 2 }] },
+      { kind: 'statement-rows', rows: [{ id: 1 }, { id: 2 }] },
     );
   });
 
@@ -376,6 +376,9 @@ describe('createCacheMiddleware — middleware shape', () => {
     const stored = await store.get({ key: 'key:custom-not-this', meta: undefined });
     expect(stored.data).toEqual({ empty: true });
     const real = await store.get({ key: 'key:select custom', meta: undefined });
-    expect(real.data).toEqual({ empty: false, value: { kind: 'rows', rows: [{ id: 7 }] } });
+    expect(real.data).toEqual({
+      empty: false,
+      value: { kind: 'statement-rows', rows: [{ id: 7 }] },
+    });
   });
 });

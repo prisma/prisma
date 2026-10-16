@@ -24,7 +24,9 @@ import {
  *   it fails the statement. It must return different keys whenever the rows can differ; build on
  *   `deriveKeyFromContentHash` to keep the statement, parameters and storage hash. It does not
  *   apply to a call a client started, such as an ORM call, which has no execution plan: a call
- *   whose annotation has no `key` is keyed by `activity.contentHash()`.
+ *   whose annotation has no `key` is keyed by `activity.contentHash()`. A `deriveKey` that
+ *   separates tenants does not separate ORM calls; give each annotated ORM call a tenant-prefixed
+ *   `key`, or one tenant's cached ORM read can be served to another.
  *
  * `TMeta` is the store's meta type; `createCacheMiddleware` infers it from `store`. The store holds
  * `CachedValue`.
@@ -84,11 +86,11 @@ function isPendingMiss(value: unknown): value is PendingMiss {
   return typeof value === 'object' && value !== null && 'entry' in value && 'buffer' in value;
 }
 
-function isKind<K extends CachedValue['kind']>(
+function hasTag<K extends CachedValue['kind']>(
   value: CachedValue,
-  kind: K,
+  tag: K,
 ): value is Extract<CachedValue, { kind: K }> {
-  return value.kind === kind;
+  return value.kind === tag;
 }
 
 function cacheable(ctx: ActivityContext): boolean {
@@ -100,12 +102,12 @@ function valueToStore(miss: PendingMiss, result: ActivityEndedResult): CachedVal
   if (result.outcome !== 'succeeded') return undefined;
   if (result.kind === 'statement') {
     return result.source === 'driver' && miss.buffer !== undefined
-      ? { kind: 'rows', rows: miss.buffer }
+      ? { kind: 'statement-rows', rows: miss.buffer }
       : undefined;
   }
   if (result.kind === 'transaction') return undefined;
   return result.source === 'client' && result.result !== undefined
-    ? { kind: 'result', result: result.result }
+    ? { kind: 'call-result', result: result.result }
     : undefined;
 }
 
@@ -123,8 +125,7 @@ function valueToStore(miss: PendingMiss, result: ActivityEndedResult): CachedVal
  *   Its key is the annotation's `key`, else `await activity.contentHash()`; its value is the result
  *   the client ended the call with. The call is served as a whole, so a hit sends no statement.
  *
- * A stored value is served only to an activity of the kind that stored it; under the same key, a
- * value of the other kind is a miss, and the read stores its own value in its place.
+ * The middleware tags each stored value `statement-rows` or `call-result` and serves it only to the same kind of read; under the same key, a value with the other tag is a miss, and the read stores its own value in its place. A key therefore belongs to one query and one terminal method: an ORM call served another method's result under a shared key fails with `ORM.INTERCEPTED_RESULT_INVALID` or returns the wrong shape.
  *
  * - `intercept.onQuery` and `intercept.onActivity` — on a hit, return the stored rows or result,
  *   and nothing runs. On a miss, record the pending entry.
@@ -154,14 +155,14 @@ export function createCacheMiddleware<TMeta = unknown>(
   const deriveKey = options?.deriveKey ?? deriveKeyFromContentHash;
 
   async function lookUp<K extends CachedValue['kind']>(
-    kind: K,
+    tag: K,
     key: string,
     meta: unknown,
     ctx: ActivityContext,
     buffer: Record<string, unknown>[] | undefined,
   ): Promise<Extract<CachedValue, { kind: K }> | undefined> {
     const entry = await store.get({ key, meta });
-    if (!entry.data.empty && isKind(entry.data.value, kind)) {
+    if (!entry.data.empty && hasTag(entry.data.value, tag)) {
       ctx.log.debug?.({ event: 'middleware.cache.hit', middleware: 'cache', key });
       return entry.data.value;
     }
@@ -182,7 +183,7 @@ export function createCacheMiddleware<TMeta = unknown>(
       return undefined;
     }
     const key = annotation.key ?? (await deriveKey(exec, ctx));
-    const value = await lookUp('rows', key, annotation.meta, ctx, []);
+    const value = await lookUp('statement-rows', key, annotation.meta, ctx, []);
     return value === undefined ? undefined : { rows: value.rows };
   }
 
@@ -198,7 +199,7 @@ export function createCacheMiddleware<TMeta = unknown>(
       return undefined;
     }
     const key = annotation.key ?? (await activity.contentHash());
-    const value = await lookUp('result', key, annotation.meta, ctx, undefined);
+    const value = await lookUp('call-result', key, annotation.meta, ctx, undefined);
     return value === undefined ? undefined : { result: value.result };
   }
 

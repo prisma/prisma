@@ -54,24 +54,24 @@ const get = async (target: {
 const set = async (_entry: CacheEntry<unknown, CachedValue>, _value: CachedValue) => true;
 const unset = async (_target: Parameters<CacheStore['unset']>[0]) => {};
 
-test('createInMemoryCacheStore returns a CacheStore of the given meta and value types', () => {
+test('createInMemoryCacheStore returns a CacheStore of cached values with the given meta type', () => {
   expectTypeOf(exported.createInMemoryCacheStore()).toEqualTypeOf<
     CacheStore<unknown, CachedValue>
   >();
   expectTypeOf(
-    exported.createInMemoryCacheStore<{ tags: string[] }, Rows>({
+    exported.createInMemoryCacheStore<{ tags: string[] }>({
       maxEntries: 10,
       ttlMs: Number.POSITIVE_INFINITY,
       clock: Date.now,
     }),
-  ).toEqualTypeOf<CacheStore<{ tags: string[] }, Rows>>();
+  ).toEqualTypeOf<CacheStore<{ tags: string[] }, CachedValue>>();
 });
 
 test('CachedValue is the value type the middleware stores: statement rows or a call result', () => {
   expectTypeOf<CachedRows>().toEqualTypeOf<Rows>();
   expectTypeOf<CachedValue>().toEqualTypeOf<
-    | { readonly kind: 'rows'; readonly rows: Rows }
-    | { readonly kind: 'result'; readonly result: unknown }
+    | { readonly kind: 'statement-rows'; readonly rows: Rows }
+    | { readonly kind: 'call-result'; readonly result: unknown }
   >();
 });
 
@@ -106,12 +106,20 @@ test('createCacheMiddleware accepts the default store created on its own line', 
 });
 
 test('createCacheMiddleware refuses a store of any other value type', () => {
-  const stringStore = exported.createInMemoryCacheStore<unknown, string>();
-  // @ts-expect-error - the middleware stores rows, which a store of strings cannot hold
+  const stringStore: CacheStore<unknown, string> = {
+    get: async ({ key, meta }) => ({ key, meta, version: 0, data: { empty: true } }),
+    set: async () => true,
+    unset,
+  };
+  // @ts-expect-error - the middleware stores cached values, which a store of strings cannot hold
   exported.createCacheMiddleware({ store: stringStore });
 
-  const unknownStore = exported.createInMemoryCacheStore<unknown, unknown>();
-  // @ts-expect-error - a store of unknown values is not a store of rows
+  const unknownStore: CacheStore<unknown, unknown> = {
+    get: async ({ key, meta }) => ({ key, meta, version: 0, data: { empty: true } }),
+    set: async () => true,
+    unset,
+  };
+  // @ts-expect-error - a store of unknown values is not a store of cached values
   exported.createCacheMiddleware({ store: unknownStore });
 });
 

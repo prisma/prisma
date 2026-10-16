@@ -109,11 +109,11 @@ export function spyStore() {
   });
   const store: CacheStore<unknown, Value> = { get: getSpy, set: setSpy, unset: unsetSpy };
   /** Stores statement rows under `key`, as a read the middleware cached does. */
-  const setRows = (key: string, rows: Rows) => inner.set(key, { kind: 'rows', rows });
+  const setRows = (key: string, rows: Rows) => inner.set(key, { kind: 'statement-rows', rows });
   /** The statement rows stored under `key`, or what is stored there when it is not rows. */
   const rowsAt = (key: string) => {
     const value = inner.get(key);
-    return value?.kind === 'rows' ? value.rows : value;
+    return value?.kind === 'statement-rows' ? value.rows : value;
   };
   return { ...store, getSpy, setSpy, unsetSpy, inner, versions, setRows, rowsAt };
 }
