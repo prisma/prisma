@@ -10,6 +10,7 @@ import {
   type SqliteColumnSpec,
   step,
 } from './shared';
+import { columnShapeCheck } from './structure-checks';
 
 export function addColumnExecuteSql(
   tableName: string,
@@ -49,7 +50,14 @@ export async function addColumn(
     execute: [
       step(`add column "${column.name}"`, addColumnExecuteSql(tableName, column, defaultClause)),
     ],
-    postcheck: [step(`verify column "${column.name}" exists`, present.sql, present.params)],
+    postcheck: [
+      step(`verify column "${column.name}" exists`, present.sql, present.params),
+      columnShapeCheck(tableName, {
+        name: column.name,
+        typeSql: column.typeSql,
+        notNull: !column.nullable,
+      }),
+    ],
   };
 }
 

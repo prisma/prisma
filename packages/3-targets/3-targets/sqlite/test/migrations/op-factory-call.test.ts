@@ -66,7 +66,13 @@ describe('CreateTableCall', () => {
     expect(received).toHaveLength(3);
     expect(op.precheck).toHaveLength(1);
     expect(op.execute).toHaveLength(1);
-    expect(op.postcheck).toHaveLength(1);
+    expect(op.postcheck).toEqual([
+      { description: 'verify table "user" exists', sql: 'LOWERED CHECK 3', params: ['p3'] },
+      {
+        description: 'verify table "user" has exactly its columns',
+        sql: `SELECT (SELECT COUNT(*) FROM pragma_table_info('user')) = 2 AND (SELECT COUNT(*) FROM pragma_table_info('user') WHERE (name, LOWER(type), "notnull", pk) IN (VALUES ('id', 'integer', 1, 1), ('email', 'text', 1, 0))) = 2`,
+      },
+    ]);
   });
 
   it('lowers DDL + two typed check ASTs via lowerToExecuteRequest', async () => {
@@ -176,6 +182,10 @@ describe('AddColumnCall', () => {
     ]);
     expect(op.postcheck).toEqual([
       { description: 'verify column "bio" exists', sql: 'LOWERED CHECK 2', params: ['p2'] },
+      {
+        description: 'verify column "bio" on "user" has type TEXT and is optional',
+        sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('user') WHERE name = 'bio' AND LOWER(type) = 'text' AND "notnull" = 0`,
+      },
     ]);
   });
 

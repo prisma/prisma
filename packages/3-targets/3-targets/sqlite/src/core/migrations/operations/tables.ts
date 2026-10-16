@@ -7,7 +7,13 @@ import {
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import type { RowsWithoutValue, SchemaDiffIssue } from '@internal/framework-components/control';
 import { issueOutcome } from '@internal/framework-components/control';
-import { RelationalSchemaNodeKind, type SqlColumnIR } from '@internal/sql-schema-ir/types';
+import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import type { ReferentialAction } from '@internal/sql-contract/types';
+import {
+  RelationalSchemaNodeKind,
+  SqlColumnDefaultIR,
+  type SqlColumnIR,
+} from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { type } from 'arktype';
 import { tableExistsAst } from '../../../contract-free/checks';
@@ -125,20 +131,6 @@ export function renameTableSteps(fromName: string, toName: string): Op['execute'
     ),
     step(`rename table "${viaName}" to "${toName}"`, `ALTER TABLE ${via} RENAME TO ${to}`),
   ];
-}
-
-export async function dropTable(tableName: string, lowerer: ExecuteRequestLowerer): Promise<Op> {
-  const { present, absent } = await tableExistsSteps(lowerer, tableName);
-  return {
-    id: `dropTable.${tableName}`,
-    label: `Drop table ${tableName}`,
-    summary: `Drops table ${tableName} which is not in the contract`,
-    operationClass: 'destructive',
-    target: { id: 'sqlite', details: buildTargetDetails('table', tableName) },
-    precheck: [step(`ensure table "${tableName}" exists`, present.sql, present.params)],
-    execute: [step(`drop table "${tableName}"`, `DROP TABLE ${quoteIdentifier(tableName)}`)],
-    postcheck: [step(`verify table "${tableName}" is gone`, absent.sql, absent.params)],
-  };
 }
 
 export interface RecreateTableArgs {
@@ -470,6 +462,24 @@ function expectedPrimaryKeyColumns(spec: SqliteTableSpec): readonly string[] {
   return inlinePk ? [inlinePk.name] : [];
 }
 
+/** The text `pragma_foreign_key_list` reports for a referential action; SQLite reads an absent action as `NO ACTION`. */
+function referentialActionText(action: ReferentialAction | undefined): string {
+  return REFERENTIAL_ACTION_SQL[action ?? 'noAction'];
+}
+
+/** SQLite keeps `AUTOINCREMENT` only in the table's stored `CREATE TABLE` text. */
+function tableSqlQuery(tableName: string): string {
+  return `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '${escapeLiteral(tableName)}'`;
+}
+
+function isAutoincrementDefault(node: unknown): boolean {
+  return (
+    node instanceof SqlColumnDefaultIR &&
+    node.resolved?.kind === 'function' &&
+    node.resolved.expression === 'autoincrement()'
+  );
+}
+
 function quoteSqlList(values: readonly string[]): string {
   return values.map((v) => `'${escapeLiteral(v)}'`).join(', ');
 }
@@ -592,11 +602,25 @@ export function buildRecreatePostchecks(
       const columnName = columnNameFromDefaultIssuePath(issue);
       if (columnName === undefined) continue;
       const c = escapeLiteral(columnName);
+      const column = byName.get(columnName);
+      if (column?.inlineAutoincrementPrimaryKey) {
+        checks.push({
+          description: `verify "${columnName}" is an autoincrement primary key on "${tableName}"`,
+          sql: `SELECT instr((${tableSqlQuery(tableName)}), '${escapeLiteral(renderColumnDefinition(column, ''))}') > 0`,
+        });
+        continue;
+      }
       if (issueOutcome(issue) === 'not-expected') {
         checks.push({
           description: `verify "${columnName}" has no default on "${tableName}"`,
           sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('${t}') WHERE name = '${c}' AND dflt_value IS NULL`,
         });
+        if (isAutoincrementDefault(issue.actual)) {
+          checks.push({
+            description: `verify "${tableName}" has no autoincrement column`,
+            sql: `SELECT (${tableSqlQuery(tableName)}) NOT LIKE '%AUTOINCREMENT%'`,
+          });
+        }
         continue;
       }
       // not-found (missing) or not-equal (drift) — both want the expected
@@ -686,6 +710,8 @@ export function buildRecreatePostchecks(
         sql:
           `SELECT EXISTS (SELECT 1 FROM pragma_foreign_key_list('${t}') f` +
           ` WHERE f."table" = '${refTable}'` +
+          ` AND f.on_delete = '${referentialActionText(fk.onDelete)}'` +
+          ` AND f.on_update = '${referentialActionText(fk.onUpdate)}'` +
           ' GROUP BY f.id' +
           ` HAVING COUNT(*) = ${colCount}` +
           ` AND SUM(CASE WHEN (f."from", f."to") IN (${tuples}) THEN 1 ELSE 0 END) = ${colCount})`,
