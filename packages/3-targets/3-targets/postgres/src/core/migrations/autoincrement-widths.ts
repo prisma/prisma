@@ -39,6 +39,20 @@ export function autoincrementWidth(columnType: string): AutoincrementWidth | und
   return WIDTH_BY_COLUMN_TYPE.get(columnType.toLowerCase());
 }
 
+const WIDTH_BY_PSEUDO_TYPE: ReadonlyMap<string, AutoincrementWidth> = new Map([
+  ['smallserial', SMALL],
+  ['serial2', SMALL],
+  ['serial', REGULAR],
+  ['serial4', REGULAR],
+  ['bigserial', BIG],
+  ['serial8', BIG],
+]);
+
+/** The autoincrement width of a column written with a SERIAL pseudo-type, such as `SERIAL` or `bigserial`; `undefined` for any other type. Postgres stores the column as the width's `sequenceType`. */
+export function autoincrementWidthOfPseudoType(columnType: string): AutoincrementWidth | undefined {
+  return WIDTH_BY_PSEUDO_TYPE.get(columnType.trim().toLowerCase());
+}
+
 const WIDTH_BY_DATA_TYPE: ReadonlyMap<string, AutoincrementWidth> = new Map([
   [pgInt2.id, SMALL],
   [pgInt4.id, REGULAR],

@@ -58,6 +58,7 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { assertNever } from '@internal/utils/internal-error';
 import {
+  columnDefaultSequenceAst,
   columnExistsAst,
   columnNullabilityAst,
   nativeEnumTypeExistsAst,
@@ -77,7 +78,11 @@ import {
   validateEnumValueLength,
 } from '../sql-utils';
 import type { PostgresColumnDefault } from '../types';
-import { type AutoincrementWidth, autoincrementWidth } from './autoincrement-widths';
+import {
+  type AutoincrementWidth,
+  autoincrementWidth,
+  autoincrementWidthOfPseudoType,
+} from './autoincrement-widths';
 import { boundSchema } from './bound-schema';
 import {
   type AlterColumnTypeClass,
@@ -542,6 +547,10 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
             ),
           ]
         : [];
+    const sequenceDefault =
+      autoincrementWidthOfPseudoType(this.column.type) === undefined
+        ? []
+        : [await lowerer.lowerToExecuteRequest(columnDefaultSequenceAst(location))];
     return {
       id: `column.${schemaName}.${tableName}.${columnName}`,
       label: `Add column "${columnName}" to "${tableName}"`,
@@ -554,6 +563,13 @@ export class AddColumnCall extends PostgresOpFactoryCallNode {
         hasType,
         ...notNullable.map((check) =>
           step(`verify column "${columnName}" is NOT NULL`, check.sql, check.params),
+        ),
+        ...sequenceDefault.map((check) =>
+          step(
+            `verify column "${columnName}" takes its default from an attached sequence`,
+            check.sql,
+            check.params,
+          ),
         ),
       ],
     };

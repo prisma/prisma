@@ -95,6 +95,12 @@ const cases: readonly PostcheckCase[] = [
     operation: addColumn(col('search', 'tsvector')),
   },
   {
+    name: 'addColumn of a SERIAL column over an integer column with no sequence',
+    before: [ITEM],
+    conflicting: ['alter table public.item add column number int4 not null default 0'],
+    operation: addColumn(col('number', 'SERIAL', { notNull: true })),
+  },
+  {
     name: 'addColumn in the unbound namespace over a column of another type',
     before: [ITEM],
     conflicting: ['alter table public.item add column note text'],

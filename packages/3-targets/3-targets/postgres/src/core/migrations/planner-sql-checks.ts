@@ -15,6 +15,7 @@ import { postgresError } from '../errors';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { postgresCreateNamespace } from '../postgres-schema';
 import { quoteIdentifierWhereNeeded } from '../sql-utils';
+import { autoincrementWidthOfPseudoType } from './autoincrement-widths';
 import { resolveColumnTypeMetadata } from './planner-type-resolution';
 
 /**
@@ -125,7 +126,7 @@ function readCatalogTypeText(
   type: string,
   dataTypes: readonly DataType[],
 ): { readonly ok: true; readonly text: string } | { readonly ok: false; readonly reason: string } {
-  const trimmed = type.trim();
+  const trimmed = autoincrementWidthOfPseudoType(type)?.sequenceType ?? type.trim();
   const array = ARRAY_SUFFIX.exec(trimmed);
   const base = array?.[1] ?? trimmed;
   const suffix = array === null ? '' : '[]';
