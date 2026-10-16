@@ -90,7 +90,7 @@ describe('Prisma 7 supported schema against the database Prisma 7 built', () => 
     const rounded: unknown = JSON.parse(
       serialized.replace(
         '"12345678901234567890.123456789000000000000000000000"',
-        '"12345678901234567000"',
+        '"12345678901234567000.000000000000000000000000000000"',
       ),
     );
 
