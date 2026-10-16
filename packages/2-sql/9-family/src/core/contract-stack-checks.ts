@@ -1,19 +1,26 @@
 import { ContractValidationError } from '@internal/contract/contract-validation-error';
 import type { Contract } from '@internal/contract/types';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
-import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import {
+  type CodecLookupWithDescriptors,
+  type DataTypeLookup,
+  dataTypeParamsOf,
+} from '@internal/framework-components/codec';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
 import {
   isStorageTypeInstance,
+  resolvedTypeParams,
   type SqlModelStorage,
   type SqlStorage,
   type StorageTable,
 } from '@internal/sql-contract/types';
 import { valueObjectStorageTypeMissingMessage } from '@internal/sql-contract/validators';
 import { blindCast } from '@internal/utils/casts';
+import { isInternalError } from '@internal/utils/internal-error';
 
 export interface ContractStackCheckInputs {
   readonly codecLookup: CodecLookupWithDescriptors;
+  readonly dataTypes: { readonly lookup: DataTypeLookup };
   readonly authoringContributions: Pick<
     AssembledAuthoringContributions,
     'type' | 'valueObjectStorageType'
@@ -56,6 +63,35 @@ function dataTypeProblems(
   });
 }
 
+/** Each literal default the column's type does not hold, under the column's parameters, element by element on a list column. */
+function defaultProblems(storage: SqlStorage, dataTypes: DataTypeLookup): readonly string[] {
+  return tablesOf(storage).flatMap(({ path, table }) =>
+    Object.entries(table.columns).flatMap(([columnName, column]) => {
+      const columnDefault = column.default;
+      if (columnDefault?.kind !== 'literal') return [];
+      const type = dataTypes.get(column.dataType);
+      if (type === undefined) return [];
+      const params = dataTypeParamsOf(type, resolvedTypeParams(column, storage.types));
+      const values =
+        column.many !== undefined && column.many !== false && Array.isArray(columnDefault.value)
+          ? columnDefault.value.filter((element) => element !== null)
+          : [columnDefault.value];
+      for (const value of values) {
+        try {
+          type.fromContract(value, params);
+        } catch (error) {
+          if (isInternalError(error)) throw error;
+          const reason = error instanceof Error ? error.message : String(error);
+          return [
+            `${path}.columns.${columnName}: the default ${JSON.stringify(value)} is not a value of ${type.id}: ${reason}`,
+          ];
+        }
+      }
+      return [];
+    }),
+  );
+}
+
 function valueObjectProblems(
   contract: Contract<SqlStorage>,
   authoring: ContractStackCheckInputs['authoringContributions'],
@@ -92,7 +128,7 @@ function valueObjectProblems(
 }
 
 /**
- * Checks a deserialized contract against the stack that loads it: each column's codec represents the data type the column names, and each value-object column uses the codec of the stack's value-object storage type.
+ * Checks a deserialized contract against the stack that loads it: each column's codec represents the data type the column names, each value-object column uses the codec of the stack's value-object storage type, and each literal default is a value of its column's type under the column's parameters.
  */
 export function assertContractMatchesStack(
   contract: Contract<SqlStorage>,
@@ -101,6 +137,7 @@ export function assertContractMatchesStack(
   const problems = [
     ...dataTypeProblems(contract.storage, stack.codecLookup),
     ...valueObjectProblems(contract, stack.authoringContributions),
+    ...defaultProblems(contract.storage, stack.dataTypes.lookup),
   ];
   if (problems.length > 0) {
     throw new ContractValidationError(problems.join('; '), 'storage');
