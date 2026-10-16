@@ -43,7 +43,7 @@ function deserializeContractAtPath(
       throw error;
     }
     const message = error instanceof Error ? error.message : String(error);
-    throw errorContractDeserializationFailed(filePath, message);
+    throw errorContractDeserializationFailed(filePath, message, { cause: error });
   }
 }
 

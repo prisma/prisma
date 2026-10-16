@@ -15,6 +15,7 @@ import {
   runContractEmit,
   runDbInit,
   runDbUpdate,
+  runMigrationCheck,
   runMigrationPlan,
   setupJourney,
   timeouts,
@@ -163,6 +164,38 @@ withTempDir(({ createTempDir }) => {
           },
         };
         expect(reported).toEqual({ init: expected, update: expected, plan: expected });
+      },
+      timeouts.spinUpPpgDev,
+    );
+  });
+  describe('Journey: migration check on a contract whose default its type now refuses', () => {
+    const db = useDevDatabase();
+
+    it(
+      'reports the contract it cannot load, naming the column, instead of passing',
+      async () => {
+        const ctx = setupJourney({
+          connectionString: db.connectionString,
+          createTempDir,
+          contractMode: 'psl',
+        });
+        writeFileSync(join(ctx.testDir, 'contract.prisma'), SCHEMA, 'utf-8');
+        const emit = await runContractEmit(ctx);
+        expect(emit.exitCode, stripAnsi(emit.stderr)).toBe(0);
+        const plan = await runMigrationPlan(ctx, ['--name', 'initial']);
+        expect(plan.exitCode, stripAnsi(plan.stderr)).toBe(0);
+
+        const contractJsonPath = join(ctx.testDir, 'contract.json');
+        const emitted = readFileSync(contractJsonPath, 'utf-8');
+        writeFileSync(contractJsonPath, emitted.replace(CANONICAL, UPPER_CASE), 'utf-8');
+
+        const check = await runMigrationCheck(ctx, [], { isTTY: false });
+        const error = engineError(check);
+        expect({ exitCode: check.exitCode, code: error?.code, meta: error?.meta }).toEqual({
+          exitCode: 2,
+          code: 'CONTRACT.VALIDATION_FAILED',
+          meta: refusal.meta,
+        });
       },
       timeouts.spinUpPpgDev,
     );
