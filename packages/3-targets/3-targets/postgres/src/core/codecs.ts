@@ -48,7 +48,6 @@ import {
   decimalTextBigintLiteral,
   decimalTextNumberLiteral,
   floatNumberLiteral,
-  type PgInterval,
   type PrecisionParams,
   pgBigintDigits,
   pgBigintEncode,
@@ -61,8 +60,6 @@ import {
   pgInt8NumberEncode,
   pgInt8NumberFromDigits,
   pgIntervalDecode,
-  pgIntervalFromIso,
-  pgIntervalToIso,
   pgJsonbDecode,
   pgJsonbEncode,
   pgJsonDecode,
@@ -98,6 +95,7 @@ import {
   PG_VARBIT_CODEC_ID,
   PG_VARCHAR_CODEC_ID,
 } from './codec-ids';
+import { type PgInterval, pgIntervalFromIso, pgIntervalToIso } from './data-type-values';
 import {
   pgBit,
   pgBitLengthParams,

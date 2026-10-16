@@ -47,7 +47,7 @@ import {
   fitsFloat4,
   pgIntervalCanonical,
   readPgByteaJson,
-} from './codec-helpers';
+} from './data-type-values';
 import { isoYearText } from './postgres-year-text';
 import { quoteIdentifier } from './sql-utils';
 

@@ -1,6 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { canonicalUuid } from '../src/core/codec-helpers';
+import { canonicalUuid } from '../src/core/data-type-values';
 
 const spellings = [
   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalUuid } from '../src/core/codec-helpers';
+import { canonicalUuid } from '../src/core/data-type-values';
 
 describe('canonicalUuid', () => {
   it.each([

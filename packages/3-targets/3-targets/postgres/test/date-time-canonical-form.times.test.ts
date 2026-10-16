@@ -1,6 +1,6 @@
 import { Temporal } from 'temporal-polyfill';
 import { describe, expect, it } from 'vitest';
-import { pgIntervalCanonical } from '../src/core/codec-helpers';
+import { pgIntervalCanonical } from '../src/core/data-type-values';
 import { pgTimeCanonical, pgTimetzCanonical } from '../src/core/data-types';
 
 describe('pg/time canonical form', () => {

@@ -19,7 +19,7 @@ import {
   signedRange,
 } from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
-import { pgByteaFromHexText, pgByteaHexText, pgIntervalCanonical } from './codec-helpers';
+import { pgByteaFromHexText, pgByteaHexText, pgIntervalCanonical } from './data-type-values';
 import {
   pgBool,
   pgBytea,
