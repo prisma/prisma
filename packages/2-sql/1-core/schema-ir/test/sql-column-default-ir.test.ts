@@ -84,6 +84,15 @@ describe('SqlColumnDefaultIR', () => {
       expect(expected.isEqualTo(actual)).toBe(true);
     });
 
+    it('compares a Date default only as the value its codec read, never through its ISO text', () => {
+      const date = new Date('2024-01-02T03:04:05.000Z');
+      const expected = new SqlColumnDefaultIR({ resolved: { kind: 'literal', value: date } });
+      const reported = new SqlColumnDefaultIR({
+        resolved: { kind: 'literal', value: '2024-01-02T03:04:05.000Z' },
+      });
+      expect(expected.isEqualTo(reported)).toBe(false);
+    });
+
     it('compares function expressions case- and whitespace-insensitively', () => {
       const expected = new SqlColumnDefaultIR({
         resolved: { kind: 'function', expression: 'NOW()' },

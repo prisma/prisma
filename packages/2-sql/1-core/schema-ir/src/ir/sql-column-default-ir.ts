@@ -1,4 +1,4 @@
-import type { ColumnDefault, ColumnDefaultLiteralInputValue } from '@internal/contract/types';
+import type { ColumnDefault } from '@internal/contract/types';
 import type { CodecRef } from '@internal/framework-components/codec';
 import type { DiffableNode } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
@@ -99,7 +99,8 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
 
   /**
    * Compares with `this` as the expected side. Two literals compare as values of the column's type
-   * when both sides hold one, and as canonical JSON otherwise. Two expressions compare as text, with
+   * when both sides hold one, and as canonical JSON otherwise; a `Date` the column's codec could not
+   * read into a value equals nothing. Two expressions compare as text, with
    * case and whitespace ignored outside quotes. An expected expression that writes a literal, read by
    * the column's codec during introspection, matches a reported literal when the two values are
    * equal; when the codec could not read one of them, it compares with the reported text. A resolved
@@ -132,7 +133,8 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
     if (this.value !== undefined && node.value !== undefined) {
       return sqlDefaultValuesEqual(this.value, node.value);
     }
-    return storedJson(expected.value) === storedJson(actual.value);
+    if (expected.value instanceof Date || actual.value instanceof Date) return false;
+    return canonicalStringify(expected.value) === canonicalStringify(actual.value);
   }
 
   /** Why the column's codec could not read the default the database reports, when it could not. */
@@ -161,8 +163,4 @@ function comparableExpression(expression: string): string {
     }
   }
   return result;
-}
-
-function storedJson(value: ColumnDefaultLiteralInputValue): string {
-  return canonicalStringify(value instanceof Date ? value.toISOString() : value);
 }

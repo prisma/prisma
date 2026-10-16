@@ -1,6 +1,8 @@
 import type { ColumnDefault, Contract, JsonValue } from '@internal/contract/types';
 import {
+  type Codec,
   type CodecRef,
+  codecForRef,
   type DataType,
   type DataTypeParams,
   type DataTypeValue,
@@ -43,7 +45,7 @@ import {
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError } from '@internal/utils/internal-error';
+import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import { isStructuredError, structuredError } from '@internal/utils/structured-error';
 import { sqlFamilyError } from '../errors';
 
@@ -111,14 +113,32 @@ function convertColumn(
     dataType,
     ...ifDefined(
       'defaultValue',
-      contractDefaultValue(
-        rawColumnDefault,
-        dataType,
-        dataTypeParams(dataType, resolved.typeParams),
-        many,
-      ),
+      rawColumnDefault?.kind === 'literal' && rawColumnDefault.value instanceof Date
+        ? dateDefaultValue(
+            rawColumnDefault.value,
+            codecForRef(types.codecLookup, buildColumnCodecRef(resolved, undefined)),
+          )
+        : contractDefaultValue(
+            rawColumnDefault,
+            dataType,
+            dataTypeParams(dataType, resolved.typeParams),
+            many,
+          ),
     ),
   };
+}
+
+/**
+ * A `Date` default, which an in-memory contract can hold, as the value of the column's type the column's codec reads it as. `undefined` when the codec refuses it or no codec is registered, and the default then compares unequal to any other.
+ */
+function dateDefaultValue(value: Date, codec: Codec | undefined): DataTypeValue | undefined {
+  if (codec === undefined) return undefined;
+  try {
+    return codec.toDataTypeValue(value);
+  } catch (error) {
+    if (isInternalError(error)) throw error;
+    return undefined;
+  }
 }
 
 /**

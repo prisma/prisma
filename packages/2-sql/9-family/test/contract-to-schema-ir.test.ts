@@ -103,13 +103,26 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'pg/enum@1': enumType,
 };
 
+/** The codec of `pg/timestamptz@1`, the one a test reads a `Date` default with; it holds years from 2000. */
+const timestamptzCodec = {
+  toDataTypeValue: (value: Date) => {
+    if (value.getUTCFullYear() < 2000) throw new Error('test/timestamptz holds years from 2000');
+    return timestamptzType.valueFrom(value.toISOString(), {});
+  },
+};
+
 const testCodecLookup: CodecLookupWithDescriptors = {
   ...emptyCodecLookup,
   descriptorFor: (id) => {
     const dataType = dataTypeOfCodec[id];
     return dataType === undefined
       ? undefined
-      : ({ codecId: id, dataType: dataType.id } as AnyCodecDescriptor);
+      : ({
+          codecId: id,
+          dataType: dataType.id,
+          paramsSchema: undefined,
+          factory: () => () => timestamptzCodec,
+        } as unknown as AnyCodecDescriptor);
   },
 };
 
@@ -1258,6 +1271,32 @@ describe('contractToSchemaIR — resolved leaf values', () => {
       status: textType.fromContract('draft', {}),
       tags: [textType.fromContract('a', {}), textType.fromContract(null, {})],
       created: undefined,
+    });
+  });
+
+  it('reads a Date default with the column codec as a value of its type, and gives none for a Date the codec refuses', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          created: col({
+            codecId: 'pg/timestamptz@1',
+            default: { kind: 'literal', value: new Date('2024-01-02T03:04:05.000Z') },
+          }),
+          early: col({
+            codecId: 'pg/timestamptz@1',
+            default: { kind: 'literal', value: new Date('1999-01-02T03:04:05.000Z') },
+          }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect({
+      created: columns['created']!.defaultValue,
+      early: columns['early']!.defaultValue,
+    }).toEqual({
+      created: timestamptzType.fromContract('2024-01-02T03:04:05.000Z', {}),
+      early: undefined,
     });
   });
 

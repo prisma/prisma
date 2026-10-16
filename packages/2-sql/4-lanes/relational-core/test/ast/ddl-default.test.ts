@@ -22,6 +22,28 @@ const text = defineTestCodec({
   fromWire: (wire: string) => wire,
 });
 
+const stamp = defineTestCodec({
+  typeId: 'test/stamp@1',
+  dataType: dataType('test/stamp', {
+    read: (json) => {
+      const text = readJsonString('test/stamp', json);
+      if (!text.startsWith('2'))
+        throw new Error(`test/stamp holds years 2000 to 2999, not ${text}`);
+      return text;
+    },
+  }),
+  toWire: (value: Date) => value,
+  fromWire: (wire: Date) => wire,
+  toDataTypeValue: (value: Date) => value.toISOString(),
+  fromDataTypeValue: (value) => new Date(String(value.value)),
+});
+
+const stampDescriptor = {
+  codecId: 'test/stamp@1',
+  paramsSchema: undefined,
+  factory: () => () => stamp,
+} as unknown as AnyCodecDescriptor;
+
 const textDescriptor = {
   codecId: 'test/text@1',
   paramsSchema: undefined,
@@ -47,6 +69,7 @@ const brokenDescriptor = {
 } as unknown as AnyCodecDescriptor;
 
 const descriptors: readonly AnyCodecDescriptor[] = [
+  stampDescriptor,
   textDescriptor,
   documentDescriptor,
   brokenDescriptor,
@@ -59,17 +82,35 @@ const lookup = {
 const where = { table: 'posts', column: 'title' };
 
 describe('encodeLiteralDefault', () => {
-  it('reads a stored default with the codec and encodes it, and encodes a Date as it is', async () => {
-    const date = new Date('2024-01-02T03:04:05.000Z');
+  it('reads a stored default with the codec and encodes it', async () => {
     expect([
       await encodeLiteralDefault(lookup, { codecId: 'test/text@1' }, 'hello', where),
-      await encodeLiteralDefault(lookup, { codecId: 'test/text@1' }, date, where),
       await encodeLiteralDefault(lookup, { codecId: 'test/document@1' }, { a: 1 }, where),
     ]).toEqual([
       { kind: 'wire', wire: 'hello' },
-      { kind: 'wire', wire: date },
       { kind: 'wire', wire: '{"a":1}' },
     ]);
+  });
+
+  it('reads a Date default through the column type, then encodes the Date the codec reads back', async () => {
+    const date = new Date('2024-01-02T03:04:05.000Z');
+    expect(await encodeLiteralDefault(lookup, { codecId: 'test/stamp@1' }, date, where)).toEqual({
+      kind: 'wire',
+      wire: date,
+    });
+  });
+
+  it('refuses a Date default the column type does not hold', async () => {
+    const date = new Date('1999-12-31T00:00:00.000Z');
+    await expect(
+      encodeLiteralDefault(lookup, { codecId: 'test/stamp@1' }, date, where),
+    ).rejects.toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DEFAULT_INVALID',
+        message:
+          'Column "posts"."title" has a default its codec test/stamp@1 refuses: test/stamp holds years 2000 to 2999, not 1999-12-31T00:00:00.000Z',
+      }),
+    );
   });
 
   it('reads a null default as SQL NULL when the codec refuses null, and as the value null when it reads it', async () => {
