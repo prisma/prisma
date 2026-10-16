@@ -43,6 +43,7 @@ import {
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
+import { isInternalError } from '@internal/utils/internal-error';
 import { defineSqliteCodecs, SqliteCodecDescriptor, sqliteCodec } from './codec-descriptor';
 import {
   SQLITE_BIGINT_CODEC_ID,
@@ -556,19 +557,28 @@ sqliteBlobColumn satisfies ColumnHelperFor<SqliteBlobDescriptor>;
 sqliteBlobColumn satisfies ColumnHelperForStrict<SqliteBlobDescriptor>;
 
 /**
- * Reads the text SQLite holds for an instant. Rejects `Invalid Date` (NaN-time) at every decode
- * ingress so consumers never receive a Date whose downstream operations silently produce NaN.
+ * Reads the text SQLite holds for an instant with the `datetime` tag's grammar, reading text without an offset as UTC, as SQLite does. Text that is not ISO 8601 is refused rather than read by `Date`'s own parser, which reads unmarked text in the machine's time zone.
  */
 export function decodeSqliteDatetime(value: string): Date {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
+  try {
+    return new Date(sqliteDatetimeText(asUtcWhenUnmarked(value)));
+  } catch (error) {
+    if (isInternalError(error)) throw error;
     throw sqliteError(
       'RUNTIME.DECODE_FAILED',
       `sqlite/datetime@1 value must be a valid ISO-8601 string: ${value}`,
       { meta: { codecId: SQLITE_DATETIME_CODEC_ID, received: value } },
     );
   }
-  return date;
+}
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_TIME_WITHOUT_OFFSET = /^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/;
+
+/** SQLite's date and time functions read text without a UTC offset as UTC, never in the machine's time zone; a date alone is its midnight. */
+function asUtcWhenUnmarked(text: string): string {
+  if (DATE_ONLY.test(text)) return `${text}T00:00:00Z`;
+  return DATE_TIME_WITHOUT_OFFSET.test(text) ? `${text}Z` : text;
 }
 
 /** The text SQLite holds for an instant: what the codec writes for every row, and for a default. */
