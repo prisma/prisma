@@ -15,7 +15,7 @@ import {
 } from './migrations/default-constraint-names';
 import { postgresNowGeneratorIdFor } from './now-generators';
 import { postgresCreateNamespace } from './postgres-schema';
-import { prisma7TemporalTagBody } from './prisma7-temporal-defaults';
+import { prisma7TemporalStored, prisma7TemporalTagBody } from './prisma7-temporal-defaults';
 import { prisma7PostgresTypeMap } from './prisma7-type-map';
 import { junctionRelationFieldNames } from './psl-infer/junction-relation-field-names';
 
@@ -27,6 +27,12 @@ const TEMPORAL_TAGS: ReadonlyMap<string, string> = new Map([
   [pgTime.id, 'time'],
   [pgTimetz.id, 'timetz'],
 ]);
+
+/** A date or time column without a precision holds microseconds. */
+function precisionOf(typeParams: Readonly<Record<string, unknown>> | undefined): number {
+  const precision = typeParams?.['precision'];
+  return typeof precision === 'number' ? precision : 6;
+}
 
 function base64ToHex(base64: string): string | undefined {
   if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64) || base64.length % 4 !== 0) return undefined;
@@ -59,7 +65,13 @@ export const prisma7PostgresBinding = {
   defaultConstraintNames: { primaryKey: defaultPrimaryKeyName, foreignKey: defaultForeignKeyName },
   junctionRelationFieldNames,
   updatedAtGeneratorId: postgresNowGeneratorIdFor,
-  literalDefaultForm: ({ dataType }: { readonly dataType: string }) => {
+  literalDefaultForm: ({
+    dataType,
+    typeParams,
+  }: {
+    readonly dataType: string;
+    readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
+  }) => {
     if (dataType === pgJson.id || dataType === pgJsonb.id) return { kind: 'json' } as const;
     if (dataType === pgBytea.id) return { kind: 'tag', tag: 'bytea', body: base64ToHex } as const;
     const tag = TEMPORAL_TAGS.get(dataType);
@@ -68,6 +80,11 @@ export const prisma7PostgresBinding = {
       kind: 'tag',
       tag,
       body: (text: string) => prisma7TemporalTagBody(text, dataType),
+      finerThanColumn: (text: string) => {
+        const heldDigits = precisionOf(typeParams);
+        const stored = prisma7TemporalStored(text, dataType, heldDigits);
+        return stored === undefined ? undefined : { heldDigits, stored };
+      },
     } as const;
   },
 } as const;

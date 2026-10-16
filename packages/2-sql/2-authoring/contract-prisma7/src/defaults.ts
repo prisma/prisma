@@ -141,6 +141,9 @@ function scalarValue(
     return values;
   }
 
+  const finer = finerThanColumn(elements ?? [expression], elements !== undefined, input);
+  if (finer !== undefined) return unknown(finer, span);
+
   const written = writtenLiteralFor(expression, elements, input);
   if (written === undefined) return unreadableValue(expression, input, unknown);
 
@@ -156,6 +159,29 @@ function scalarValue(
     fieldPath: `${input.modelName}.${input.field.name}`,
   });
   return read.ok ? read.value : unknown(refusalReason(read.refusal), span);
+}
+
+/**
+ * Why a written date and time is refused when it has more fraction digits than the column holds:
+ * Prisma 7 let the database round it, so the reason names the value the database stores.
+ */
+function finerThanColumn(
+  values: readonly ExpressionAst[],
+  isList: boolean,
+  input: LowerPrisma7DefaultInput,
+): string | undefined {
+  const form = input.literalForm;
+  if (form?.kind !== 'tag' || form.finerThanColumn === undefined) return undefined;
+  for (const [index, value] of values.entries()) {
+    const text = StringLiteralExprAst.cast(value.syntax)?.value();
+    const finer = text === undefined ? undefined : form.finerThanColumn(text);
+    if (text === undefined || finer === undefined) continue;
+    const at = isList ? ` at element ${index + 1}` : '';
+    const writtenDigits = /\.(\d+)/.exec(text)?.[1]?.length ?? 0;
+    const held = finer.heldDigits === 0 ? 'none' : String(finer.heldDigits);
+    return `holds "${text}"${at}, with ${writtenDigits} ${writtenDigits === 1 ? 'digit' : 'digits'} after the decimal point, but the column holds ${held}. PostgreSQL stores it as "${finer.stored}"; write that instead.`;
+  }
+  return undefined;
 }
 
 /** The storage value of an enum member name, when the field is typed by a Prisma 7 enum. */

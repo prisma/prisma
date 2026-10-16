@@ -11,7 +11,10 @@ import {
   pgTimetz,
   pgTimetzCanonical,
 } from '../src/core/data-types';
-import { prisma7TemporalTagBody } from '../src/core/prisma7-temporal-defaults';
+import {
+  prisma7TemporalStored,
+  prisma7TemporalTagBody,
+} from '../src/core/prisma7-temporal-defaults';
 
 /**
  * Each row is a `@default("...")` Prisma 7 accepts for a `DateTime` field, and
@@ -361,5 +364,65 @@ describe('prisma7TemporalTagBody, read by the type tag', () => {
 
   it('gives no body for a type that is not a date or time type', () => {
     expect(prisma7TemporalTagBody('2024-01-02T03:04:05Z', 'pg/interval')).toBeUndefined();
+  });
+});
+
+/** Rows whose written fraction has more digits than a microsecond column holds. */
+const finerThanMicroseconds = storedByPostgres.filter(([written]) => /\.\d{7,}/.test(written));
+
+describe('prisma7TemporalStored', () => {
+  it.each(finerThanMicroseconds)(
+    'names the value Postgres stores for %s at microsecond precision',
+    (written, stored) => {
+      expect(
+        Object.fromEntries(
+          types.flatMap(([kind, id, parse]) =>
+            kind === 'date' || stored[kind].startsWith('24:')
+              ? []
+              : [
+                  [
+                    kind,
+                    read(
+                      parse,
+                      prisma7TemporalTagBody(prisma7TemporalStored(written, id, 6) ?? '', id),
+                    ),
+                  ],
+                ],
+          ),
+        ),
+      ).toEqual(
+        Object.fromEntries(
+          types.flatMap(([kind, , parse]) =>
+            kind === 'date' || stored[kind].startsWith('24:')
+              ? []
+              : [[kind, read(parse, stored[kind])]],
+          ),
+        ),
+      );
+    },
+  );
+
+  it.each([
+    ['2024-01-02T03:04:05.1234Z', pgTimestamp.id, 3, '2024-01-02T03:04:05.123Z'],
+    ['2024-01-02T03:04:05.1235Z', pgTimestamp.id, 3, '2024-01-02T03:04:05.124Z'],
+    ['2000-01-01T00:00:00.0005Z', pgTimestamp.id, 3, '2000-01-01T00:00:00.001Z'],
+    ['1999-12-31T23:59:59.9995Z', pgTimestamp.id, 3, '1999-12-31T23:59:59.999Z'],
+    ['2000-01-01T00:59:59.9995+01:00', pgTimestamptz.id, 3, '2000-01-01T00:59:59.999+01:00'],
+    ['2000-01-01T00:59:59.9995+01:00', pgTimestamp.id, 3, '2000-01-01T01:00:00.000+01:00'],
+    ['2024-12-31T23:59:59.9995Z', pgTimestamptz.id, 3, '2025-01-01T00:00:00.000Z'],
+    ['2024-01-02T03:04:05.5+02:00', pgTime.id, 0, '2024-01-02T03:04:06+02:00'],
+    ['2024-01-02T03:04:05.25-05:00', pgTimetz.id, 1, '2024-01-02T03:04:05.3-05:00'],
+    ['0999-06-15T10:20:30.125Z', pgTimestamp.id, 2, '0999-06-15T10:20:30.12Z'],
+  ])('rounds %s on %s(%i) to %s', (written, dataType, precision, stored) => {
+    expect(prisma7TemporalStored(written, dataType, precision)).toBe(stored);
+  });
+
+  it('names nothing for text the column holds as written, or a date', () => {
+    expect([
+      prisma7TemporalStored('2024-01-02T03:04:05.123Z', pgTimestamp.id, 3),
+      prisma7TemporalStored('2024-01-02T03:04:05Z', pgTime.id, 0),
+      prisma7TemporalStored('2024-01-02T03:04:05.1234Z', pgDate.id, 0),
+      prisma7TemporalStored('not a date', pgTimestamp.id, 3),
+    ]).toEqual([undefined, undefined, undefined, undefined]);
   });
 });

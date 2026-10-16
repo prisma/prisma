@@ -19,7 +19,15 @@ export type Prisma7LiteralDefaultForm =
       readonly tag: string;
       /** The tag's body for the text Prisma 7 writes, which keeps what the value means on the column; `undefined` when the text is not a value Prisma 7 writes for the column. */
       readonly body: (text: string) => string | undefined;
+      /** For text with more fraction digits than the column holds: the digits it holds and the text of the value the database stores instead. */
+      readonly finerThanColumn?: (text: string) => Prisma7FinerThanColumn | undefined;
     };
+
+/** A written value finer than its column: how many fraction digits the column holds and what the database stores instead. */
+export interface Prisma7FinerThanColumn {
+  readonly heldDigits: number;
+  readonly stored: string;
+}
 
 /** Everything a target supplies to the Prisma 7 interpreter. */
 export interface Prisma7TargetBinding {
