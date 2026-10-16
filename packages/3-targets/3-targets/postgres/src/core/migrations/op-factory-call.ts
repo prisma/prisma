@@ -77,7 +77,9 @@ import {
   validateEnumValueLength,
 } from '../sql-utils';
 import type { PostgresColumnDefault } from '../types';
+import { autoincrementWidth } from './autoincrement-widths';
 import { boundSchema } from './bound-schema';
+import { defaultSequenceName } from './default-sequence-name';
 import {
   type AlterColumnTypeClass,
   addRequiredColumnToEmptyTable,
@@ -86,6 +88,7 @@ import {
   dropColumn,
   dropDefault,
   dropNotNull,
+  type OwnedSequenceWidth,
   renameColumn,
   setDefault,
   setNotNull,
@@ -714,6 +717,8 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
   readonly using: SqlSlot | undefined;
   /** The type `format_type` prints once the alter has run, which the postcheck compares. */
   readonly checkType: string;
+  /** The sequence the column owns and the width it takes, when the column has an `autoincrement()` default and an integer type. */
+  readonly sequence: OwnedSequenceWidth | undefined;
   readonly label: string;
 
   constructor(input: {
@@ -726,6 +731,8 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     readonly dataTypes: readonly DataType[];
     /** By default `data` when `using` converts the values, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
+    /** Whether the column, before the change, takes its values from a sequence it owns (`autoincrement()`). */
+    readonly ownsAutoincrementSequence: boolean;
   }) {
     super();
     this.schemaName = input.schemaName;
@@ -733,6 +740,11 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
     this.columnName = input.columnName;
     this.type = input.type;
     this.using = input.using;
+    const width = input.ownsAutoincrementSequence ? autoincrementWidth(input.type) : undefined;
+    this.sequence =
+      width === undefined
+        ? undefined
+        : { name: defaultSequenceName(input.tableName, input.columnName), width };
     this.operationClass = input.operationClass ?? this.#defaultClass();
     this.#refuseUnsafeUsing();
     this.checkType = alterTypeCheckText(input.type, input.dataTypes, this.#callText());
@@ -783,6 +795,7 @@ export class AlterColumnTypeCall extends PostgresOpFactoryCallNode {
         type: this.type,
         checkType: this.checkType,
         ...ifDefined('using', sqlOfSlot(this.using)),
+        sequence: this.sequence,
       },
       lowerer,
       this.operationClass,

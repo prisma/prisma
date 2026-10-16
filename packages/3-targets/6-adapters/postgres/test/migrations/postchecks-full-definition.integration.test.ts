@@ -14,6 +14,7 @@ import {
   AddPrimaryKeyCall,
   AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
+  AlterColumnTypeCall,
   CreateIndexCall,
   CreatePostgresRlsPolicyCall,
   CreateTableCall,
@@ -333,6 +334,20 @@ const cases: readonly Case[] = [
         col('id', 'int8', { notNull: true, default: fn('autoincrement()') }),
         'additive',
       ).toOp(controlAdapter),
+  },
+  {
+    name: 'alterColumnType to bigint on an autoincrement() column whose sequence is still integer',
+    before: ['create table public.item (id serial not null)'],
+    conflicting: ['alter table public.item alter column id type int8'],
+    operation: () =>
+      new AlterColumnTypeCall({
+        schemaName: 'public',
+        tableName: 'item',
+        columnName: 'id',
+        type: 'int8',
+        dataTypes: postgresDataTypes,
+        ownsAutoincrementSequence: true,
+      }).toOp(controlAdapter),
   },
 ];
 

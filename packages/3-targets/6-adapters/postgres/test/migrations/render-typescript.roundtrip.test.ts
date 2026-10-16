@@ -293,6 +293,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       ),
       new AddRequiredColumnToEmptyTableCall('public', 'user', 'code', 'int4', postgresDataTypes),
       new AlterColumnTypeCall({
+        ownsAutoincrementSequence: false,
         schemaName: 'public',
         tableName: 'user',
         columnName: 'nickname',

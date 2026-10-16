@@ -840,3 +840,33 @@ export function columnTypeOidAst(options: {
     );
   return exprSelect().project('result', cfExpr.exists(inner)).build();
 }
+
+/**
+ * Typed check that the sequence `sequence` has handed out no value above `maxValue`, so narrowing it to a smaller integer type keeps every value it already gave. A sequence that has never been read passes.
+ */
+export function sequenceValuesFitAst(options: {
+  readonly schema: string;
+  readonly sequence: string;
+  readonly maxValue: string;
+}): SelectAst {
+  const pastMax = cfExpr.fn({
+    method: 'greater_than_bigint',
+    template: '{{self}} > ({{arg0}})::bigint',
+    self: cfExpr.identifierRef('last_value'),
+    args: [cfExpr.param(options.maxValue, PG_TEXT_CODEC_ID)],
+    returns: { codecId: PG_BOOL_CODEC_ID, nullable: true },
+  });
+  const inner = exprSelect()
+    .from(cfTable('pg_sequences'))
+    .project('one', cfExpr.lit(1))
+    .where(
+      cfExpr.allOf([
+        cfExpr
+          .identifierRef('schemaname')
+          .eqExpr(checkNamespace(options.schema).schemaFilterExpression()),
+        cfExpr.identifierRef('sequencename').eqParam(options.sequence, PG_TEXT_CODEC_ID),
+        pastMax,
+      ]),
+    );
+  return exprSelect().project('result', cfExpr.notExists(inner)).build();
+}

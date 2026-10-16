@@ -202,6 +202,7 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new AddColumnCall('public', 'note', col('nickname', 'text'), postgresDataTypes),
     new DropColumnCall('public', 'note', 'nickname'),
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'note',
       columnName: 'kind',
@@ -328,6 +329,7 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     ),
     new CreateIndexCall('public', 'note', 'note_kind_idx', { columns: ['kind'] }, { where: 'x' }),
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'note',
       columnName: 'kind',

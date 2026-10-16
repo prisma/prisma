@@ -12,12 +12,13 @@ import {
   columnTypeOidAst,
   noNullValuesAst,
   sequenceNameAvailableAst,
+  sequenceValuesFitAst,
   tableIsEmptyAst,
 } from '../../../contract-free/checks';
 import * as contractFreeDdl from '../../../contract-free/ddl';
 import { postgresError } from '../../errors';
 import { escapeLiteral, quoteIdentifier } from '../../sql-utils';
-import { autoincrementWidth } from '../autoincrement-widths';
+import { type AutoincrementWidth, autoincrementWidth } from '../autoincrement-widths';
 import { boundSchema } from '../bound-schema';
 import { defaultSequenceName } from '../default-sequence-name';
 import { qualifyTableName } from '../planner-sql-checks';
@@ -142,9 +143,18 @@ export async function renameColumn(
  */
 export type AlterColumnTypeClass = 'widening' | 'destructive' | 'data';
 
+/** The sequence an autoincrement column owns, and the width it takes when the column changes type. */
+export interface OwnedSequenceWidth {
+  readonly name: string;
+  readonly width: AutoincrementWidth;
+}
+
 /**
  * `type` is the new column type as a migration writes it, into the `ALTER COLUMN TYPE` clause.
- * `checkType` is the type `format_type` prints for it, which the postcheck compares.
+ * `checkType` is the type `format_type` prints for it, which the postcheck compares. `sequence` is
+ * the sequence the column owns when it has an `autoincrement()` default: the operation changes it to
+ * the column's new width, refusing first when the sequence has handed out a value past that width,
+ * and the postcheck asks for both the type and the sequence width.
  */
 export async function alterColumnType(
   schemaName: string,
@@ -154,6 +164,7 @@ export async function alterColumnType(
     readonly type: string;
     readonly checkType: string;
     readonly using?: string;
+    readonly sequence: OwnedSequenceWidth | undefined;
   },
   lowerer: ExecuteRequestLowerer,
   operationClass: AlterColumnTypeClass = 'destructive',
@@ -184,12 +195,20 @@ export async function alterColumnType(
       ],
     }),
   );
+  const sequenceSteps = await ownedSequenceSteps(
+    lowerer,
+    { schema: schemaName, table: tableName, column: columnName },
+    options.sequence,
+  );
   return {
     id: `alterType.${tableName}.${columnName}`,
     label: `Alter type of "${tableName}"."${columnName}" to ${options.type}`,
     operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
-    precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
+    precheck: [
+      step(`ensure column "${columnName}" exists`, present.sql, present.params),
+      ...sequenceSteps.precheck,
+    ],
     execute: [
       {
         ...step(`alter type of "${columnName}"`, alterType.sql),
@@ -199,6 +218,7 @@ export async function alterColumnType(
             ? { meta: convertedColumnMeta(tableName, columnName, 'cast') }
             : {}),
       },
+      ...sequenceSteps.execute,
     ],
     postcheck: [
       step(
@@ -206,8 +226,46 @@ export async function alterColumnType(
         typeCheck.sql,
         typeCheck.params,
       ),
+      ...sequenceSteps.postcheck,
     ],
     meta: { warning: 'TABLE_REWRITE' },
+  };
+}
+
+async function ownedSequenceSteps(
+  lowerer: ExecuteRequestLowerer,
+  location: { readonly schema: string; readonly table: string; readonly column: string },
+  sequence: OwnedSequenceWidth | undefined,
+) {
+  if (sequence === undefined) return { precheck: [], execute: [], postcheck: [] };
+  const { sequenceType, maxValue } = sequence.width;
+  const fits = await lowerer.lowerToExecuteRequest(
+    sequenceValuesFitAst({ schema: location.schema, sequence: sequence.name, maxValue }),
+  );
+  const owns = await lowerer.lowerToExecuteRequest(
+    columnOwnsSequenceAst({ ...location, sequence: sequence.name, sequenceType }),
+  );
+  return {
+    precheck: [
+      step(
+        `ensure sequence "${sequence.name}" has no value past the ${sequenceType} range`,
+        fits.sql,
+        fits.params,
+      ),
+    ],
+    execute: [
+      step(
+        `change sequence "${sequence.name}" to ${sequenceType}`,
+        `ALTER SEQUENCE ${qualifyTableName(location.schema, sequence.name)} AS ${sequenceType}`,
+      ),
+    ],
+    postcheck: [
+      step(
+        `verify column "${location.column}" owns the ${sequenceType} sequence "${sequence.name}"`,
+        owns.sql,
+        owns.params,
+      ),
+    ],
   };
 }
 

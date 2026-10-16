@@ -25,6 +25,7 @@ import { errorPostgresMigrationStackMissing, postgresError } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
 import { PostgresRlsPolicy, type RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
+import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
@@ -588,20 +589,39 @@ export abstract class PostgresMigration<
       ...ifDefined('using', using === undefined ? undefined : { kind: 'sql' as const, sql: using }),
       dataTypes: this.dataTypes(),
       ...ifDefined('operationClass', options.operationClass),
+      ownsAutoincrementSequence: this.startColumnHasAutoincrementDefault(
+        options.schema,
+        options.table,
+        options.column,
+      ),
     });
     if (using !== undefined) this.refuseUnchangedTypeConversion(call);
     return call.toOp(adapter);
+  }
+
+  private startColumnHasAutoincrementDefault(
+    schema: string,
+    table: string,
+    column: string,
+  ): boolean {
+    const startColumn = this.startColumnAfterRenames(schema, table, column);
+    return startColumn !== undefined && hasAutoincrementDefault(startColumn);
+  }
+
+  /** The column in the start contract's schema after this migration's earlier renames. */
+  private startColumnAfterRenames(schema: string, table: string, column: string) {
+    const startContract = this.startContract;
+    if (startContract === null) return undefined;
+    return this.schemaAfterRenames(startContract).namespaces[ddlSchemaOfCallSchema(schema)]?.tables[
+      table
+    ]?.columns[column];
   }
 
   /**
    * Refuses an `alterColumnType` with `using` to the type the column already has in the start contract, after this migration's earlier renames. Its postcheck compares only the type, which already holds, so the runner would skip the conversion.
    */
   private refuseUnchangedTypeConversion(call: AlterColumnTypeCall): void {
-    const startContract = this.startContract;
-    if (startContract === null) return;
-    const column =
-      this.schemaAfterRenames(startContract).namespaces[ddlSchemaOfCallSchema(call.schemaName)]
-        ?.tables[call.tableName]?.columns[call.columnName];
+    const column = this.startColumnAfterRenames(call.schemaName, call.tableName, call.columnName);
     if (column === undefined) return;
     const startType = column.resolvedNativeType ?? column.nativeType;
     if (catalogTypeTextIfReadable(startType, this.dataTypes()) !== call.checkType) return;
@@ -660,13 +680,7 @@ export abstract class PostgresMigration<
    * Whether the column, found by schema, table and column name in the start contract after this migration's earlier renames, has a default.
    */
   private columnHasDefaultAfterRenames(schema: string, table: string, column: string): boolean {
-    const startContract = this.startContract;
-    if (startContract === null) return false;
-    return (
-      this.schemaAfterRenames(startContract).namespaces[ddlSchemaOfCallSchema(schema)]?.tables[
-        table
-      ]?.columns[column]?.default !== undefined
-    );
+    return this.startColumnAfterRenames(schema, table, column)?.default !== undefined;
   }
 
   protected dropDefault(options: {

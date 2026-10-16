@@ -242,6 +242,7 @@ describe('AlterColumnTypeCall', () => {
     overrides: Partial<ConstructorParameters<typeof AlterColumnTypeCall>[0]> = {},
   ): AlterColumnTypeCall =>
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'user',
       columnName: 'age',

@@ -151,6 +151,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
 
   const alterAge = (using?: { readonly kind: 'sql'; readonly sql: string }) =>
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'user',
       columnName: 'age',

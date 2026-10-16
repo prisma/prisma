@@ -797,6 +797,30 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(ops.at(-1)?.operationClass).toBe('data');
   });
 
+  it('alterColumnType changes the sequence an autoincrement() start column owns to the new width', async () => {
+    const op = await migrationStartingFrom(
+      boxContract({ kind: 'function', expression: 'autoincrement()' }),
+    ).callAlterColumnType({ schema: 'public', table: 'Box', column: 'changed', type: 'int8' });
+
+    expect({
+      precheck: op.precheck.map((step) => step.description),
+      execute: op.execute.map((step) => step.description),
+      postcheck: op.postcheck.map((step) => step.description),
+      alterSequence: op.execute[1]?.sql,
+    }).toEqual({
+      precheck: [
+        'ensure column "changed" exists',
+        'ensure sequence "Box_changed_seq" has no value past the bigint range',
+      ],
+      execute: ['alter type of "changed"', 'change sequence "Box_changed_seq" to bigint'],
+      postcheck: [
+        'verify column "changed" has type "bigint"',
+        'verify column "changed" owns the bigint sequence "Box_changed_seq"',
+      ],
+      alterSequence: 'ALTER SEQUENCE "public"."Box_changed_seq" AS bigint',
+    });
+  });
+
   it('alterColumnType accepts an unchanged type without using', async () => {
     const op = await migrationStartingFrom(boxContract(undefined)).callAlterColumnType({
       schema: 'public',

@@ -50,6 +50,7 @@ import {
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
+import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   renderColumnAlterType,
   renderColumnDdl,
@@ -318,6 +319,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
           slot: `${converted.text}:convert`,
         },
         dataTypes: ctx.dataTypes,
+        ownsAutoincrementSequence: hasAutoincrementDefault(actual),
       }),
     );
     if (expected.nullable !== actual.nullable) {

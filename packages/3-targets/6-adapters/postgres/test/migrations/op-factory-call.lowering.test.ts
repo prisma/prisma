@@ -91,6 +91,7 @@ describe('renderOps', () => {
       new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes),
       new DropColumnCall('public', 'user', 'legacy'),
       new AlterColumnTypeCall({
+        ownsAutoincrementSequence: false,
         schemaName: 'public',
         tableName: 'user',
         columnName: 'age',
