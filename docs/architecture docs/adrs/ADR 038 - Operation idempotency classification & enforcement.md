@@ -35,7 +35,7 @@ A postcheck that compares the value would follow the rule, but Postgres stores a
 
 The class is `widening` because the column already has a default; on a column without one it is `additive`. A hand-written Postgres migration's `this.setDefault` takes no `operationClass` option. It reads the column in the migration's start contract, after renames made earlier in the same migration, and picks the class the same way ([ADR 232](ADR%20232%20-%20A%20migration%20is%20authored%20against%20its%20start%20and%20end%20contract%20snapshots.md)).
 
-An `autoincrement()` default is different: `setDefault` then creates and attaches a sequence, and that operation keeps a postcheck on the sequence's structure.
+An `autoincrement()` default is different: `setDefault` then creates and attaches a sequence, and that operation keeps a postcheck: the column owns the planned sequence, at the planned width.
 
 ## Runner behavior
 
@@ -67,6 +67,29 @@ Separately, the SQL runners skip every operation of a migration when the marker 
 ## What a postcheck compares
 
 A postcheck compares structure the database reports in its catalog: the kind of object, its table, its ordered columns, a foreign key's target and referential actions, an index's method and uniqueness, and so on. It never compares text the database prints back in its own form: expressions, index predicates, check constraint and policy bodies, and defaults. The database may print the same thing differently from how the plan wrote it, so a text comparison fails on a correct database.
+
+What each target checks, beyond "an object with this name exists":
+
+- **Postgres.**
+  - `createTable`: the relation is a table.
+  - `addColumn` and the two recipes that add a required column: the column's type, and `NOT NULL` where the column declares it. The type is compared as `format_type` prints it when the column's data type can read that text back, and by type OID otherwise.
+  - `createIndex`: the index is on the planned table, with the planned uniqueness, access method and ordered columns, and has an expression and a predicate exactly when the plan does. The expression and predicate text are not compared.
+  - `addPrimaryKey`, `addUnique`: the constraint kind and its ordered columns.
+  - `addForeignKey`: the kind, the columns, the referenced table and columns, and the `ON DELETE` and `ON UPDATE` actions.
+  - `addCheckConstraint`: the constraint kind. The body is not compared.
+  - `createRlsPolicy`: the command, whether it is permissive, and the roles as a set. The `USING` and `WITH CHECK` bodies are not compared.
+  - `renameTable`, `renameColumn`, `renameIndex`, `renameConstraint`, `renameRlsPolicy`: the new name exists and the old name is gone.
+  - `setDefault`: no postcheck for a literal or function default; for `autoincrement()`, the column owns the planned sequence at the planned width.
+- **SQLite.**
+  - `createTable`: the table has exactly the planned columns, each with its declared type, nullability and primary key position.
+  - `addColumn`: the column's declared type and nullability.
+  - `createIndex`: the index is on the planned table, over the planned columns in order, with the planned uniqueness.
+  - `recreateTable`: also each foreign key's `ON DELETE` and `ON UPDATE` actions, and whether a column is `AUTOINCREMENT`. SQLite keeps `AUTOINCREMENT` only in the `CREATE TABLE` statement it stores, so that one check reads the stored statement. SQLite stores the statement as it was written, not reprinted, so the comparison is reliable.
+- **MongoDB.**
+  - `createIndex`: the keys and every option the planner tells indexes apart by: `unique` and `sparse` (set or not), the TTL, the partial filter, the wildcard projection, the collation, and for a text index the key, weights and languages as MongoDB lists them. MongoDB returns index options as they were given, apart from the defaults it fills in for a collation and a text index, so these are document comparisons, not comparisons of reprinted text.
+  - `collMod` that sets a validator: the whole validator document. For a validator that is only a `$jsonSchema`, the `$jsonSchema` body.
+
+An operation whose postcheck cannot tell its effect apart from no change is refused. A hand-written Postgres `this.alterColumnType` with `using`, on a column that already has the new type in the migration's start contract (after renames made earlier in the migration), fails with `MIGRATION.ALTER_COLUMN_TYPE_UNCHANGED` when `migration.ts` builds its operations. Its postcheck checks the column's type, which already holds, so the runner would skip it and the conversion in `using` would never run. A conversion that keeps the type is written as a `dataTransform`, whose checks look at the rows.
 
 When the full effect of an operation cannot be checked through structure, the operation carries no postcheck, as `setDefault` does. This has a cost. Without a postcheck the runner always runs the prechecks, and a create-style operation has a precheck that its object does not exist yet. On a database that already has the object, that precheck fails. So an operation drops its postcheck only when running it again is harmless and its precheck does not refuse a database that already has its effect.
 
@@ -156,7 +179,7 @@ The classes below describe how operations behave on replay. The runner does not 
 
 **createIndex**
 - **Pre:** no index with this name
-- **Post:** an index with this name exists on the same table, over the same ordered columns, with the same uniqueness
+- **Post:** an index with this name exists on the planned table, over the planned columns in order, with the planned uniqueness (and on Postgres the planned access method, and an expression and predicate exactly when the plan has them)
 - **Replay:** post holds, so the runner skips it
 
 ### Effect
