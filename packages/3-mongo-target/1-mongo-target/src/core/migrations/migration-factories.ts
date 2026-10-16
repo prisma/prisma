@@ -30,6 +30,7 @@ import {
 } from '@internal/mongo-query-ast/execution';
 import { createFieldAccessor } from '@internal/mongo-query-builder';
 import { collection } from '@internal/mongo-query-builder/contract-free';
+import { MONGO_INDEX_OPTION_KEYS, type MongoIndexOptionKey } from '@internal/mongo-schema-ir';
 import type { Document, MongoValue } from '@internal/mongo-value';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -354,38 +355,62 @@ function collationFilters(collation: CreateIndexOptions['collation']): MongoFilt
  * stores the options as given, except that it completes a collation and a text index's weights and
  * languages with their defaults, so those are compared as MongoDB lists them.
  */
-function indexDefinitionFilter(
-  keys: ReadonlyArray<MongoIndexKey>,
+type IndexOptionFilter = (
   options: CreateIndexOptions | undefined,
-): MongoFilterExpr {
-  const text = isTextIndex(keys);
-  return MongoAndExpr.of([
-    text ? MongoFieldFilter.eq('key', documentValue(textIndexKeySpec(keys))) : keyFilter(keys),
-    flagFilter('unique', options?.unique),
-    flagFilter('sparse', options?.sparse),
+  keys: ReadonlyArray<MongoIndexKey>,
+) => readonly MongoFilterExpr[];
+
+const textIndexOnly =
+  (filter: IndexOptionFilter): IndexOptionFilter =>
+  (options, keys) =>
+    isTextIndex(keys) ? filter(options, keys) : [];
+
+/** One filter per option the verifier compares, so an option added there must be handled here. */
+const INDEX_OPTION_FILTERS: { readonly [K in MongoIndexOptionKey]: IndexOptionFilter } = {
+  unique: (options) => [flagFilter('unique', options?.unique)],
+  sparse: (options) => [flagFilter('sparse', options?.sparse)],
+  expireAfterSeconds: (options) => [
     optionFilter('expireAfterSeconds', options?.expireAfterSeconds),
+  ],
+  partialFilterExpression: (options) => [
     optionFilter(
       'partialFilterExpression',
       options?.partialFilterExpression && documentValue(options.partialFilterExpression),
     ),
+  ],
+  wildcardProjection: (options) => [
     optionFilter(
       'wildcardProjection',
       options?.wildcardProjection && documentValue(options.wildcardProjection),
     ),
-    ...collationFilters(options?.collation),
-    ...(text
-      ? [
-          MongoFieldFilter.eq('weights', documentValue(textIndexWeights(keys, options?.weights))),
-          MongoFieldFilter.eq(
-            'default_language',
-            options?.default_language ?? TEXT_INDEX_DEFAULT_LANGUAGE,
-          ),
-          MongoFieldFilter.eq(
-            'language_override',
-            options?.language_override ?? TEXT_INDEX_DEFAULT_LANGUAGE_OVERRIDE,
-          ),
-        ]
-      : []),
+  ],
+  collation: (options) => collationFilters(options?.collation),
+  weights: textIndexOnly((options, keys) => [
+    MongoFieldFilter.eq('weights', documentValue(textIndexWeights(keys, options?.weights))),
+  ]),
+  default_language: textIndexOnly((options) => [
+    MongoFieldFilter.eq(
+      'default_language',
+      options?.default_language ?? TEXT_INDEX_DEFAULT_LANGUAGE,
+    ),
+  ]),
+  language_override: textIndexOnly((options) => [
+    MongoFieldFilter.eq(
+      'language_override',
+      options?.language_override ?? TEXT_INDEX_DEFAULT_LANGUAGE_OVERRIDE,
+    ),
+  ]),
+};
+
+function indexDefinitionFilter(
+  keys: ReadonlyArray<MongoIndexKey>,
+  options: CreateIndexOptions | undefined,
+): MongoFilterExpr {
+  return MongoAndExpr.of([
+    isTextIndex(keys)
+      ? MongoFieldFilter.eq('key', documentValue(textIndexKeySpec(keys)))
+      : keyFilter(keys),
+    ...MONGO_INDEX_OPTION_KEYS.flatMap((option) => INDEX_OPTION_FILTERS[option](options, keys)),
   ]);
 }
 

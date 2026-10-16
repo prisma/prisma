@@ -1,3 +1,4 @@
+import type { MongoFilterExpr } from '@internal/mongo-query-ast/control';
 import {
   keysToKeySpec,
   MongoAndExpr,
@@ -5,6 +6,7 @@ import {
   MongoFieldFilter,
   MongoNotExpr,
 } from '@internal/mongo-query-ast/control';
+import { MONGO_INDEX_OPTION_KEYS } from '@internal/mongo-schema-ir';
 import { describe, expect, it } from 'vitest';
 import { collMod, createIndex } from '../src/core/migrations/migration-factories';
 
@@ -57,6 +59,36 @@ describe('createIndex postcheck', () => {
         MongoFieldFilter.eq('language_override', 'language'),
       ]),
     );
+  });
+});
+
+function fieldsOf(filter: MongoFilterExpr): string[] {
+  switch (filter.kind) {
+    case 'and':
+    case 'or':
+      return filter.exprs.flatMap(fieldsOf);
+    case 'not':
+      return fieldsOf(filter.expr);
+    case 'field':
+    case 'exists':
+      return [filter.field];
+    default:
+      return [];
+  }
+}
+
+describe('createIndex postcheck options', () => {
+  it('checks every index option the verifier compares', () => {
+    const textKeys = [{ field: 'title', direction: 'text' as const }];
+    const fields = fieldsOf(
+      createIndex('posts', textKeys, { collation: { locale: 'en' } }).postcheck[0]!.filter,
+    );
+
+    expect(
+      MONGO_INDEX_OPTION_KEYS.filter(
+        (option) => !fields.some((field) => field === option || field.startsWith(`${option}.`)),
+      ),
+    ).toEqual([]);
   });
 });
 
