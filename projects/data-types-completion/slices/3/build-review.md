@@ -42,6 +42,8 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | f | 1 (`00ae4f1b7a`, `4e946a0bd5`, `782c769471`, `32be566208`) | ANOTHER ROUND NEEDED: 0 must-fix, 1 should-fix, 1 low |
 | f | 2 (`f9585eb2de`, `9ccc1727e9`, `a366259970`) | SATISFIED: 0 must-fix, 0 should-fix, 1 low |
 | g | 1 (`b936882cf0..651bcfa600`) | ANOTHER ROUND NEEDED: 0 must-fix, 3 should-fix, 1 low |
+| f 3 and g 2 (`ebf496d7c9`, `3456573099`, `f114359776`, `18c4b8d48c`, `c3827e5eb2`) | SATISFIED |
+| h | 1 (`657d5fa989..9b50409c63`, `bfd17d10ef`) | ANOTHER ROUND NEEDED: 0 must-fix, 2 should-fix, 2 low |
 
 ## Findings log
 
@@ -676,3 +678,85 @@ Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-g.md`. Range 
   - The Prisma 7 rounding cases and the padded decimals, in PGlite.
   - `withParams` for the padded decimals.
   - The messages the application text quotes, through a temporary test file, now deleted.
+
+## Dispatch f, round 3, and dispatch g, round 2
+
+- S3-f-R2-1: fixed in `ebf496d7c9`. Print resolves a named type's parameters (`resolvedTypeParams`), and an integration test covers it; `psl-print` passes.
+- S3-g-R1-1: fixed in `3456573099`, with slice 2's sentence about old-format test fixtures and `git restore`.
+- S3-g-R1-2: fixed in `f114359776`.
+  - The Postgres section now says what the schema needs before `contract emit`: tags for quoted defaults, and the rounded value for a default finer than its column, on `time`, `timestamp`, `timestamptz`, `interval` or `numeric`.
+  - The quoted message matches the branch.
+  - Both rounded values are what PostgreSQL stores: `.1234` gives `.123`, and `1.234` gives `1.23`.
+- S3-g-R1-3: fixed in `c3827e5eb2` and the proof notes.
+  - The example ran from its base state: two files rewritten, `examples/` clean outside its tests, and its typecheck, `emit:check`, `db:init`, seed and start passed.
+  - The extension check mapped each hunk of the base-to-head diff onto the text. It found two gaps, which the text now covers: `read` is required, and the JSON helpers are renamed.
+  - I checked the renames: `readJsonString`, `readJsonMatching`, `readJsonInteger`, `readJsonIntegerText`, `readJsonFloat`, `readJsonBoolean` and `floatToJson` are in the built `components__codec.d.mts`, and `decodeJson*` and `encodeJsonFloat` are not. The PostGIS `read` sample matches `postgis/src/core/data-types.ts`.
+  - sql-orm-client and the Supabase script are internal only, as the orchestrator judged. The one changed signature, `emptyAggregateResult` now `async`, is not re-exported from `src/exports/index.ts`. Supabase's `scripts/` folder is not in the package's `files`.
+- S3-g-R1-4: fixed in `18c4b8d48c`.
+
+## Dispatch h, round 1
+
+Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-h.md`. Range `657d5fa989..9b50409c63`, plus the orchestrator's `bfd17d10ef` (the `postgis.geometry` tag removed from the table, and the "Adding a type" sample marked as an example).
+
+### What was checked
+
+- **ADR 254 as a whole.** Every section was checked statement by statement against `packages/`, and all twelve relative links and anchors resolve. Six mismatches remain; see S3-h-R1-1. Each of these is accurate:
+  - the Values table and readers, Codecs, Casts, and the tag table, which is complete in both directions;
+  - both number classifiers, Reading a written default, introspection and DDL;
+  - How a data type names its database type, SQLite's types, and Columns and type constructors;
+  - Date and time types, including the text codecs' year text and `isoYearText` and `postgresYearText`;
+  - all eleven Assembly checks with their codes, Printing, Adding a type, and Consequences.
+- **The codec authoring guide.** Every sample and API name was checked against the branch, and the samples were compiled in scratch copies inside extension packages (deleted afterwards). Nine mismatches; see S3-h-R1-2. The prose about `CodecImpl`, `dataTypeValueOf`, `fromCodec`, the readers, `refuseJsonValue`, the projections, `emptyResultWire`, `enumRefusalOf`, the `sqlDataType` spec fields and the adapter options matches the code.
+- **The full checks.** The logs are `wip/s3/h-*.txt`.
+  - `build`, `typecheck:agent`, `lint:agent`, `lint:deps`, `lint:docs` and `fixtures:check` pass.
+  - `lint:framework-vocabulary` is 253 at threshold 253, and `lint:throws` has a delta of 0.
+  - `check:error-reference` lists all 388 codes, and `check:upgrade-coverage` passes.
+  - Coverage: 0 failures against the per-package `coverage.config.json` thresholds. 30 packages pass. The 6 warnings are the tracked technical-debt entries, which name their own reasons.
+  - `test:packages`: 1850 files pass and 3 fail. The coverage run exits 1 for the same three, which are the tarball tests below.
+- **The slice 3 grep check** (now `-w`) finds none of the deleted names in `packages/`. `SQLITE_DATETIME_CODEC_ID` appears where the codec is defined, registered and used (columns, aggregates, type constructors, marker ledger) and in two adapter tests.
+
+### The three tarball tests
+
+The tests are `all-shells-tarball` and `module-identity` (`@prisma/orm-framework`) and `cross-shell-tarball` (`@prisma/orm-target-postgres`). They fail in the scratch `pnpm install` that packs the shells and installs them outside the workspace, before any of the branch's code runs. That install resolves `temporal-polyfill: ^1.0.4` from the registry, not from the lockfile. It now gets 1.0.5, published 2026-10-13, which depends on `temporal-utils@1.0.3` (published 2026-09-11, dist-tag `latest`). pnpm reports no matching version for it under the scratch project's supply-chain settings. `trustPolicy: no-downgrade` refusing a release without provenance would explain that, but I did not confirm the cause. The lockfile pins `temporal-polyfill@1.0.4` and `temporal-utils@1.0.2`, which is why the workspace itself installs.
+
+Nothing that feeds this install differs from `bot/main`: no `package.json`, no `pnpm-workspace.yaml`, no `packages/0-config/tsdown/shell-testkit.ts`. The only branch change under the affected packages is a test, `temporal-fallback-entries.test.ts`. So `bot/main` fails the same way on this machine today, and CI will too until the registry or the workspace settings change. I concluded this by reasoning from what the tests install, not by running them on `bot/main`. It is not this branch's to fix. It needs its own change on `main`: a `trustPolicyExclude` entry for `temporal-utils@1.0.3`, mirrored in the shell test kit's scratch settings, or a pin of `temporal-polyfill` to 1.0.4 there.
+
+### S3-h-R1-1 (should-fix): six statements in ADR 254 do not match the code
+
+- Lines 24 and 103: "`pg/timestamptz@1` … a `Date`". No codec has that id; the `Date` codec is `pg/timestamptz-date@1` (`postgres/src/core/codec-ids.ts:33`).
+- Line 25: "On the wire and in the `DEFAULT` clause: `2024-01-01 00:00:00+00`". The Temporal codec's `toWire` writes `2024-01-01T00:00:00Z` and the `Date` codec writes `2024-01-01T00:00:00.000Z` (`temporal-codec-helpers.ts`). `2024-01-01 00:00:00+00` is what PostgreSQL prints when the value is read back.
+- Line 76: "takes the column's parameters through `withParams(value, params)`". Construction goes through `fromCodec(json, params)` (`dataTypeValueFor`, as in `contract-psl/src/data-type-default.ts:202`). `DataType.withParams` has no caller in production code, and line 191 of the ADR already says `fromCodec`. See S3-h-R1-4.
+- Line 109: the test kits assert `toDataTypeValue(fromWire(toWire(fromDataTypeValue(v))))`. The Postgres kit (`postgres-codec-testkit/src/index.ts:395-540`) checks three other things:
+  - `toDataTypeValue(fromDataTypeValue(v))` equals `v`;
+  - `fromWire` of the row written by `toWire` equals the case's value;
+  - `fromWire` of the projection equals `fromWire` of the row.
+- Line 208: "`CAST(x AS text)` for every type whose row arrives as text". The Postgres driver returns every value as text. But `pg/text`, `varchar`, `uuid`, `inet`, `bit`, `varbit`, `enum`, `tsquery`, `timetz`, `int2`, `int4`, `float` and `bool` project the column itself, and their `fromWire` reads both forms. `pg/char` has its own unpadding projection. The rule is correct in effect, because the kit cases for these types pass against PGlite, `timetz` included. The sentence needs to say which types are cast to text and that the others enter as themselves.
+- Line 176: bytes "written there in base64, as the stored value". The Prisma 7 reader converts the base64 to hex and reads it through the `bytea` tag's `parse` (`postgres/src/core/prisma7-binding.ts:76`, `contract-prisma7/src/defaults.ts:267`).
+- Change: correct the six statements.
+
+### S3-h-R1-2 (should-fix): the codec authoring guide's samples do not match the branch's API
+
+- Lines 110, 166 and 264 call `column(...)` with a fourth argument. `column` takes three (`framework-components/src/shared/column-spec.ts:88`), and TypeScript reports TS2554.
+- Lines 320, 361 and 798: `postgresCodec(...)` and `sqliteCodec(...)` leave out the required `factory` option (`postgres/src/core/codec-descriptor.ts:128`, `sqlite/src/core/codec-descriptor.ts:84`), so none of them compiles. Lines 326 and 804 say the adapter keeps the wrapped descriptor's factory, but it builds codecs with the one it is given.
+- Line 820: `new SqlCharCodec(this)`. `CodecImpl` takes `(descriptor, dataType, params)`. Lines 800 and 811 use the column itself as `pg/char`'s projection, but the code unpads it with `CAST(x AS text)` (`codecs.ts:182`). Line 854 still says `super(descriptor)`.
+- Lines 623-633: the `pgEnum` sample has no `read`, which is now required (`postgres/src/core/data-types.ts:380`).
+- Case 3 (lines 205-267):
+  - It imports `arktypeJson` from a `./data-types` module that does not exist, and uses `pgJsonb` without importing it.
+  - It uses `Type` and `ColumnSpec` without imports.
+  - It calls `serializeToJsonSafe(...).wire` and `serializeJson`, which line 64 does not list among the elided helpers; the code uses `serializeWire`.
+- Case 2 (lines 121-173) describes a generic `VectorCodec<N>` and `factory<N>`. The real `PgVectorCodec` works with `number[]` and its `factory` is not generic. The literal length lives only in `pgVectorColumn`'s `typeParams`, and `Vector<N>` comes from the type map.
+- Change:
+  - Fix each sample so it compiles, or mark it as shortened, as line 64 does for its helpers.
+  - Rewrite the Case 2 prose about where the literal type comes from.
+  - Re-run the scratch typecheck of each sample.
+
+### S3-h-R1-3 (low): three ADRs still describe current behaviour with the old method names
+
+- Where: ADR 126 (lines 63 and 75: a block `value` read by `decodeJson`), ADR 157 (line 292: `db.enums` reads members with `decodeJson`), ADR 186 (`encodeJson`/`decodeJson`). In ADR 204, the earlier retrospective note (line 7) still states a rule "on `Codec.decodeJson`", with a link to `codec.ts`.
+- Change: a one-line retrospective note naming `toDataTypeValue` and `fromDataTypeValue`, as ADRs 204 and 207 now have, and reword ADR 204's older note.
+
+### S3-h-R1-4 (low, for the orchestrator): `DataType.withParams` has no production caller
+
+- Where: `withParams` in `packages/1-framework/1-core/framework-components/src/shared/data-type.ts`; the header comment of `packages/2-sql/2-authoring/contract-psl/src/data-type-default.ts` (lines 3-6), which says defaults go through it.
+- What is wrong: since dispatch a, codecs and PSL lowering construct values through `fromCodec`. `withParams` remains public API with only tests calling it, and ADR 254 describes it as the step that writes a column's spelling.
+- Change: either remove `withParams` and describe `fromCodec` alone, or keep it and say in ADR 254 what it is for. Fix the header comment either way.
