@@ -212,12 +212,13 @@ describe('deserializeContract checks each column against the stack', () => {
           meta: {
             refusedDefaults: [
               {
-                namespace: UNBOUND_NAMESPACE_ID,
+                namespaceId: UNBOUND_NAMESPACE_ID,
                 table: 'user',
                 column: 'price',
                 dataType: 't/numeric',
                 value: '1.5',
-                reason: 't/numeric JSON value must have two fraction digits, got "1.5"',
+                message: 't/numeric JSON value must have two fraction digits, got "1.5"',
+                reason: 'type-refused-default',
               },
             ],
           },

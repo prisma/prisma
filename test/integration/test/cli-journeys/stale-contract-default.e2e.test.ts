@@ -50,12 +50,13 @@ const refusal = {
   meta: {
     refusedDefaults: [
       {
-        namespace: 'public',
+        namespaceId: 'public',
         table: 'Token',
         column: 'value',
         dataType: 'pg/uuid',
         value: UPPER_CASE,
-        reason: UUID_MESSAGE,
+        message: UUID_MESSAGE,
+        reason: 'type-refused-default',
       },
     ],
   },

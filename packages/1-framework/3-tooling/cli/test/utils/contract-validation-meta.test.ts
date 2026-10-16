@@ -5,7 +5,7 @@ import { contractValidationMeta } from '../../src/utils/contract-validation-meta
 
 describe('contractValidationMeta', () => {
   it('gives the meta of a contract the family refused to load', () => {
-    const meta = { refusedDefaults: [{ namespace: 'public', table: 'Token', column: 'value' }] };
+    const meta = { refusedDefaults: [{ namespaceId: 'public', table: 'Token', column: 'value' }] };
     expect(contractValidationMeta(new ContractValidationError('refused', 'storage', meta))).toEqual(
       meta,
     );

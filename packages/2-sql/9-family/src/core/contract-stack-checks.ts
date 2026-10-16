@@ -82,21 +82,23 @@ function refusesParams(type: DataType, params: DataTypeParams): boolean {
 
 /** A literal default its column's type does not hold, with where it is. */
 interface RefusedDefault {
-  readonly namespace: string;
+  readonly namespaceId: string;
   readonly table: string;
   readonly column: string;
   readonly dataType: string;
   readonly value: unknown;
-  readonly reason: string;
+  /** The data type's own message. */
+  readonly message: string;
+  readonly reason: 'type-refused-default';
 }
 
 /** Names the namespace, unless the contract has only the unbound one, as a SQLite contract does. */
 function refusedDefaultMessage(refused: RefusedDefault): string {
   const where =
-    refused.namespace === UNBOUND_NAMESPACE_ID
+    refused.namespaceId === UNBOUND_NAMESPACE_ID
       ? `Table "${refused.table}", column "${refused.column}"`
-      : `Namespace "${refused.namespace}", table "${refused.table}", column "${refused.column}"`;
-  return `${where}: the default ${JSON.stringify(refused.value)} is not a value of ${refused.dataType}: ${refused.reason}`;
+      : `Namespace "${refused.namespaceId}", table "${refused.table}", column "${refused.column}"`;
+  return `${where}: the default ${JSON.stringify(refused.value)} is not a value of ${refused.dataType}: ${refused.message}`;
 }
 
 /** Each literal default the column's type does not hold, under the column's parameters, element by element on a list column. A `null` is SQL NULL, which every column takes. */
@@ -123,12 +125,13 @@ function refusedDefaults(
           if (isInternalError(error)) throw error;
           return [
             {
-              namespace: namespaceId,
+              namespaceId,
               table: tableName,
               column: columnName,
               dataType: type.id,
               value,
-              reason: error instanceof Error ? error.message : String(error),
+              message: error instanceof Error ? error.message : String(error),
+              reason: 'type-refused-default',
             },
           ];
         }

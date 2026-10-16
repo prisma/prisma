@@ -386,7 +386,7 @@ describe('every Postgres contract in the repo prints as PSL that reads back as t
           code: 'CONTRACT.VALIDATION_FAILED',
           meta: {
             refusedDefaults: refusedColumns.map((column) =>
-              expect.objectContaining({ namespace: 'public', table: 'event', column }),
+              expect.objectContaining({ namespaceId: 'public', table: 'event', column }),
             ),
           },
         }),

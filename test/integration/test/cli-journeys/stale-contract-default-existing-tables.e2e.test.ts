@@ -199,12 +199,13 @@ withTempDir(({ createTempDir }) => {
               meta: {
                 refusedDefaults: [
                   {
-                    namespace: scenario.namespace,
+                    namespaceId: scenario.namespace,
                     table: scenario.table,
                     column: scenario.column,
                     dataType: scenario.dataType,
                     value: scenario.value,
-                    reason: scenario.typeMessage,
+                    message: scenario.typeMessage,
+                    reason: 'type-refused-default',
                   },
                 ],
               },
