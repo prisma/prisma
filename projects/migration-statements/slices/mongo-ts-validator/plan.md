@@ -16,7 +16,7 @@ Two pull requests. One implementer and one reviewer, both on Opus, resumed acros
 
 | # | PR | Outcome | Builds on |
 | --- | --- | --- | --- |
-| 1 | 1 | The validator derivation (`deriveJsonSchema`, `derivePolymorphicJsonSchema`, the per-collection loop) and the enum listability check live in `@internal/mongo-contract`; PSL calls them there; every emitted fixture and hash is unchanged | 4a, 3a merged |
+| 1 | 1 | The validator derivation, as one function `deriveCollectionValidators`, and the enum listability check live in `@internal/mongo-contract`; PSL calls them there; every emitted fixture and hash is unchanged | 4a, 3a merged |
 | 2 | 2 | The TypeScript builder derives validators with the full lookups (target and extension packs); refuses models without an `ObjectId` `_id`, enums a validator cannot list, and fields whose codec has no MongoDB data type; fixtures re-emitted | 1 merged |
 | 3 | 2 | 4a's temporary refusal is removed; the side-by-side test stops stripping `validator` and `storageHash`; a field rename and removal on a TypeScript contract plan and apply; docs, skill and the app upgrade fragment (re-emit, find failing documents, apply), followed as printed | 2 |
 
