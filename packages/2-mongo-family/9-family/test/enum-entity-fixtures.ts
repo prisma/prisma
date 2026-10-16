@@ -11,7 +11,6 @@ import {
   createDataTypeLookup,
   type DataType,
   type DataTypeValue,
-  dataTypeValueFor,
   readJsonString,
   refuseJsonValue,
 } from '@internal/framework-components/codec';
@@ -94,7 +93,7 @@ function fakeCodec(
     dataType: type,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (value) => dataTypeValueFor(type, {}, toJson(value)),
+    toDataTypeValue: (value) => type.valueFrom(toJson(value), {}),
     fromDataTypeValue,
   };
 }

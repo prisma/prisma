@@ -1,10 +1,5 @@
 import type { ContractEnum, JsonValue } from '@internal/contract/types';
-import {
-  type Codec,
-  type CodecLookup,
-  dataType,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { type Codec, type CodecLookup, dataType } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { generateContractDts } from '../src/generate-contract-dts';
 import { createMockSpi } from './mock-spi';
@@ -23,7 +18,7 @@ function stubCodec(id: string, fromStored: (json: JsonValue) => unknown): Codec 
     dataType: anyJsonType,
     toWire: async (value) => value,
     fromWire: async (wire) => wire,
-    toDataTypeValue: (value) => dataTypeValueFor(anyJsonType, {}, value as JsonValue),
+    toDataTypeValue: (value) => anyJsonType.valueFrom(value as JsonValue, {}),
     fromDataTypeValue: (value) => fromStored(value.value),
   };
 }

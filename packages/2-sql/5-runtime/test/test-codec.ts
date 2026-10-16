@@ -7,7 +7,6 @@ import {
   type DataType,
   type DataTypeValue,
   dataType,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import type { Codec, SqlCodecCallContext } from '@internal/sql-relational-core/ast';
 
@@ -27,8 +26,7 @@ export const anyJsonType: DataType = dataType('test/any-json', { read: (json) =>
 /** The data type and value conversions of a codec whose application values are the JSON a contract stores. */
 export const anyJsonConversions = {
   dataType: anyJsonType,
-  toDataTypeValue: (value: unknown): DataTypeValue =>
-    dataTypeValueFor(anyJsonType, {}, value as JsonValue),
+  toDataTypeValue: (value: unknown): DataTypeValue => anyJsonType.valueFrom(value as JsonValue, {}),
   fromDataTypeValue: (value: DataTypeValue): unknown => value.value,
 } as const;
 
@@ -73,7 +71,7 @@ export function defineTestCodec<
         return Promise.reject(error);
       }
     },
-    toDataTypeValue: (value) => dataTypeValueFor(type, {}, toJson(value)),
+    toDataTypeValue: (value) => type.valueFrom(toJson(value), {}),
     fromDataTypeValue: fromValue,
   };
 }

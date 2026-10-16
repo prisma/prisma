@@ -77,7 +77,7 @@ describe('sqlDataType', () => {
         Object.entries(type).filter(([key, value]) => key !== 'sql' && typeof value !== 'function'),
       );
     expect(fields(declared)).toEqual(fields(plain));
-    const refusal = 't/kept JSON value must be "new", the spelling its parameters give this value';
+    const refusal = 't/kept JSON value must be "new", as t/kept stores this value';
     expect(() => declared.fromContract('old', {})).toThrow(refusal);
     expect(() => plain.fromContract('old', {})).toThrow(refusal);
     expect(declared.toContract(declared.fromContract('new', {}))).toBe('new');

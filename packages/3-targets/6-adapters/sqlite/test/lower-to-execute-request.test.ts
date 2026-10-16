@@ -1,11 +1,6 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { Codec, DataType } from '@internal/framework-components/codec';
-import {
-  CodecDescriptorImpl,
-  dataType,
-  dataTypeId,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { CodecDescriptorImpl, dataType, dataTypeId } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, type StorageTableInput } from '@internal/sql-contract/types';
 import type { ContractCodecRegistry } from '@internal/sql-relational-core/ast';
@@ -41,7 +36,7 @@ const transformCodec = (id: string, type: DataType): Codec => ({
   toWire: async (value: unknown) => `ENC:${String(value).toUpperCase()}`,
   fromWire: async (wire: unknown) => wire,
   fromDataTypeValue: (value) => value.value,
-  toDataTypeValue: (input) => dataTypeValueFor(type, {}, input as JsonValue),
+  toDataTypeValue: (input) => type.valueFrom(input as JsonValue, {}),
 });
 
 const transformType = dataType('test/transform', { read: (json) => json });

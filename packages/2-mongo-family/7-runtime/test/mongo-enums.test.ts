@@ -1,10 +1,5 @@
 import type { ContractEnum } from '@internal/contract/types';
-import {
-  type DataTypeValue,
-  dataType,
-  dataTypeValueFor,
-  readJsonString,
-} from '@internal/framework-components/codec';
+import { type DataTypeValue, dataType, readJsonString } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { buildMongoEnums } from '../src/mongo-enums';
 import type { MongoCodecLookup } from '../src/mongo-execution-stack';
@@ -29,7 +24,7 @@ const levelCodecs: MongoCodecLookup = {
           dataType: levelType,
           toWire: async (value: unknown) => value,
           fromWire: async (wire: unknown) => wire,
-          toDataTypeValue: (value: unknown) => dataTypeValueFor(levelType, {}, String(value)),
+          toDataTypeValue: (value: unknown) => levelType.valueFrom(String(value), {}),
           fromDataTypeValue: (value: DataTypeValue) => BigInt(String(value.value)),
         }
       : undefined,

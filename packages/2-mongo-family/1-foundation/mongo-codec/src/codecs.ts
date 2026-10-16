@@ -7,7 +7,6 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { dataTypeValueFor } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { InternalError } from '@internal/utils/internal-error';
 
@@ -131,7 +130,7 @@ export function mongoCodec<
         return Promise.reject(error);
       }
     },
-    toDataTypeValue: (value) => dataTypeValueFor(dataType, params, toJson(value)),
+    toDataTypeValue: (value) => dataType.valueFrom(toJson(value), params),
     fromDataTypeValue: (value) => {
       if (value.type !== dataType.id) {
         throw new InternalError(

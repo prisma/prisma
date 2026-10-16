@@ -70,7 +70,7 @@ class DataTypeValueRecord<J extends JsonValue> {
 }
 
 /**
- * A value of a data type: the type's id, the parameters it holds the value under, and `value`, the JSON form `contract.json` stores. Only a data type constructs one, through {@link DataType.fromContract} and {@link DataType.fromCodec}. ADR 254.
+ * A value of a data type: the type's id, the parameters it holds the value under, and `value`, the JSON form `contract.json` stores. Only a data type constructs one, through {@link DataType.fromContract} and {@link DataType.valueFrom}. ADR 254.
  */
 export type DataTypeValue<J extends JsonValue = JsonValue> = DataTypeValueRecord<J>;
 
@@ -89,8 +89,8 @@ export interface DataType {
   readonly listCast?: ListCast;
   /** The value `json` stores under `params`. It refuses JSON the type does not store in that form, a value the parameters exclude, and JSON in a spelling other than the one the parameters give. */
   fromContract(json: JsonValue, params: DataTypeParams): DataTypeValue;
-  /** The value a codec hands over as `json`: read under `params`, which refuse a value they exclude, and written in the spelling they give. A codec reaches it through `dataTypeValueFor`. */
-  fromCodec(json: JsonValue, params: DataTypeParams): DataTypeValue;
+  /** A value of the type built from `json`: read under `params`, which refuse a value they exclude, and written in the spelling they give. Every producer of a value that is not reading `contract.json` builds it here: a codec, a written default, a cast. */
+  valueFrom<J extends JsonValue>(json: J, params: DataTypeParams): DataTypeValue<J>;
   /** The JSON `contract.json` stores for `value`. */
   toContract(value: DataTypeValue): JsonValue;
 }
@@ -174,23 +174,12 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
       ? {}
       : { listCast: { of: listCast.of.map(dataTypeId), cast: listCast.cast } }),
     fromContract,
-    fromCodec: (json, params) => construct(spelledUnder(json, params), params),
+    valueFrom: <J extends JsonValue>(json: J, params: DataTypeParams) =>
+      blindCast<DataTypeValue<J>, "a type's reader and spelling return JSON of the kind they read">(
+        construct(spelledUnder(json, params), params),
+      ),
     toContract: (value) => ownValue(value).value,
   };
-}
-
-/**
- * The value of `type` that `json` gives under `params`, in the spelling the parameters give it. A codec builds every value it hands over through this, so it cannot hand over one its type does not hold.
- */
-export function dataTypeValueFor<J extends JsonValue>(
-  type: DataType,
-  params: DataTypeParams,
-  json: J,
-): DataTypeValue<J> {
-  return blindCast<
-    DataTypeValue<J>,
-    "a type's reader and spelling return JSON of the kind they read"
-  >(type.fromCodec(json, params));
 }
 
 /** The parameters in `typeParams` that `type` declares; keys a codec keeps for itself are dropped. */

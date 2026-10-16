@@ -1,5 +1,5 @@
 import type { DataType } from '@internal/framework-components/codec';
-import { dataTypeValueFor, readContractValue } from '@internal/framework-components/codec';
+import { readContractValue } from '@internal/framework-components/codec';
 import { Temporal } from 'temporal-polyfill';
 import { describe, expect, it } from 'vitest';
 import { pgInt8NumberDescriptor, pgNumericDescriptor } from '../src/core/codecs';
@@ -154,7 +154,7 @@ describe('numeric(precision, scale) spells a value with its scale', () => {
     ['NaN', { precision: 10, scale: 2 }, 'NaN'],
     ['1.5', {}, '1.5'],
   ])('%s under %j is %s', (json, params, spelled) => {
-    expect(pgNumeric.fromCodec(json, params).value).toBe(spelled);
+    expect(pgNumeric.valueFrom(json, params).value).toBe(spelled);
   });
 
   it("a numeric codec's value takes the codec's parameters", () => {
@@ -207,8 +207,8 @@ describe('a fractional-second precision limits a value, which the type refuses r
     expect(type.fromContract(text, params).value).toBe(text);
   });
 
-  it('fromCodec refuses a value with more fraction digits than the precision', () => {
-    expect(() => pgTime.fromCodec('00:00:00.5', { precision: 0 })).toThrow(
+  it('valueFrom refuses a value with more fraction digits than the precision', () => {
+    expect(() => pgTime.valueFrom('00:00:00.5', { precision: 0 })).toThrow(
       refusedBy({ dataType: 'pg/time' }),
     );
   });
@@ -224,7 +224,7 @@ describe('a character value is spelled without the spaces that pad it to its len
   });
 
   it('a value a codec hands over drops the padding', () => {
-    expect(dataTypeValueFor(pgChar, { length: 3 }, 'a  ').value).toBe('a');
+    expect(pgChar.valueFrom('a  ', { length: 3 }).value).toBe('a');
   });
 });
 
@@ -250,7 +250,7 @@ describe('an interval with no precision holds microseconds', () => {
   });
 
   it('refuses a seventh fraction digit in a value a codec hands over', () => {
-    expect(() => dataTypeValueFor(pgInterval, {}, 'PT1.1234567S')).toThrow(
+    expect(() => pgInterval.valueFrom('PT1.1234567S', {})).toThrow(
       refusedBy({ dataType: 'pg/interval' }),
     );
   });

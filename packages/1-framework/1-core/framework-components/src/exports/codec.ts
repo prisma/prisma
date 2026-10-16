@@ -57,7 +57,6 @@ export {
   dataType,
   dataTypeId,
   dataTypeParamsOf,
-  dataTypeValueFor,
   dataTypeValuesEqual,
   objectSchemaKeys,
   requiredParamKeys,

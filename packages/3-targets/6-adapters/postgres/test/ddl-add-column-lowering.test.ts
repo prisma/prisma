@@ -11,11 +11,7 @@
  */
 
 import type { JsonValue } from '@internal/contract/types';
-import {
-  type DataTypeValue,
-  dataType,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { type DataTypeValue, dataType } from '@internal/framework-components/codec';
 import { col, fn, lit } from '@internal/sql-relational-core/contract-free';
 import type { AnyPostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
@@ -165,7 +161,7 @@ describe('PostgresAlterTable ADD COLUMN lowering', () => {
         dataType: vectorType,
         toWire: async (value: readonly number[]) => `[${value.join(',')}]`,
         fromWire: async (wire: unknown) => wire,
-        toDataTypeValue: (value: JsonValue) => dataTypeValueFor(vectorType, {}, value),
+        toDataTypeValue: (value: JsonValue) => vectorType.valueFrom(value, {}),
         fromDataTypeValue: (value: DataTypeValue) => {
           const json = value.value;
           if (!Array.isArray(json) || json.length !== params.length) {

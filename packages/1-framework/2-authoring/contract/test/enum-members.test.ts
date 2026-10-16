@@ -4,7 +4,6 @@ import {
   type Codec,
   type CodecLookupWithDescriptors,
   dataType,
-  dataTypeValueFor,
   emptyCodecLookup,
 } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
@@ -23,7 +22,7 @@ function codecOf(
     dataType: anyJsonType,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (value) => dataTypeValueFor(anyJsonType, {}, toStored(value)),
+    toDataTypeValue: (value) => anyJsonType.valueFrom(toStored(value), {}),
     fromDataTypeValue: (value) => fromStored(value.value),
   };
 }

@@ -1,9 +1,8 @@
 import { buildEnumsMapForNamespace } from '@internal/contract/enum-accessor';
-import {
-  type Codec,
-  type CodecLookupWithDescriptors,
-  type DataTypeValue,
-  dataTypeValueFor,
+import type {
+  Codec,
+  CodecLookupWithDescriptors,
+  DataTypeValue,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { prisma6MongoBinding } from '@internal/target-mongo/prisma6-binding';
@@ -19,7 +18,7 @@ if (stringCodec === undefined) throw new Error('the Mongo stack has no mongo/str
 
 const wrappedStringCodec = Object.assign(Object.create(stringCodec) as Codec, {
   toDataTypeValue: (v: unknown) =>
-    dataTypeValueFor(stringCodec.dataType, {}, (v as { readonly text: string }).text),
+    stringCodec.dataType.valueFrom((v as { readonly text: string }).text, {}),
   fromDataTypeValue: (value: DataTypeValue) => ({ text: value.value }),
 });
 

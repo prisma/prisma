@@ -16,7 +16,6 @@ import {
   type DataTypeLookup,
   type DataTypeValue,
   dataTypeParamsOf,
-  dataTypeValueFor,
   isNonFiniteText,
 } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
@@ -182,12 +181,11 @@ function fixtureDescriptor(codecId: string): AnyCodecDescriptor | undefined {
         blindCast<never, 'fixture codecs do not reach the wire'>(value),
       fromWire: async (wire: unknown) => wire,
       toDataTypeValue: (value: unknown) =>
-        dataTypeValueFor(
-          type,
-          dataTypeParamsOf(type, params),
+        type.valueFrom(
           codec.toStored === undefined
             ? blindCast<JsonValue, 'fixture codecs store what they decoded'>(value)
             : codec.toStored(value),
+          dataTypeParamsOf(type, params),
         ),
       fromDataTypeValue: (value: DataTypeValue) =>
         codec.fromStored(

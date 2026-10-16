@@ -207,7 +207,7 @@ function valueOfType<F>(
     );
   }
   try {
-    return ok(declaration.fromCodec(json(), params));
+    return ok(declaration.valueFrom(json(), params));
   } catch (error) {
     if (isInternalError(error)) throw error;
     return notOk(refuse(messageOf(error)));

@@ -1,6 +1,6 @@
 import type { JsonValue } from '@internal/contract/types';
-import { describe, expect, it, vi } from 'vitest';
-import { dataType, dataTypeValueFor, dataTypeValuesEqual } from '../src/shared/data-type';
+import { describe, expect, it } from 'vitest';
+import { dataType, dataTypeValuesEqual } from '../src/shared/data-type';
 import { readJsonMatching, refuseJsonValue } from '../src/shared/json-readers';
 
 const DIGITS = /^-?\d+(?:\.\d+)?$/;
@@ -89,9 +89,9 @@ describe('toContract', () => {
   });
 });
 
-describe('fromCodec', () => {
+describe('valueFrom', () => {
   it('writes the spelling the parameters give a value', () => {
-    const value = decimal.fromCodec('1.5', { scale: 2 });
+    const value = decimal.valueFrom('1.5', { scale: 2 });
     expect({ params: value.params, value: value.value }).toEqual({
       params: { scale: 2 },
       value: '1.50',
@@ -99,35 +99,16 @@ describe('fromCodec', () => {
   });
 
   it('refuses a value the parameters exclude, rather than rounding it', () => {
-    expect(() => decimal.fromCodec('1.234', { scale: 2 })).toThrow(/at most 2 fraction digits/);
+    expect(() => decimal.valueFrom('1.234', { scale: 2 })).toThrow(/at most 2 fraction digits/);
   });
 
   it('leaves the JSON unchanged for a type whose parameters never change a spelling', () => {
-    expect(document.fromCodec({ a: 1 }, {}).value).toEqual({ a: 1 });
-  });
-});
-
-describe('dataTypeValueFor', () => {
-  it('constructs a value with the parameters, in the spelling they give it', () => {
-    const value = dataTypeValueFor(decimal, { scale: 2 }, '1.5');
-    expect(dataTypeValuesEqual(value, decimal.fromContract('1.50', { scale: 2 }))).toBe(true);
-  });
-
-  it('refuses a value the parameters exclude', () => {
-    expect(() => dataTypeValueFor(decimal, { scale: 2 }, '1.234')).toThrow(
-      /at most 2 fraction digits/,
-    );
+    expect(document.valueFrom({ a: 1 }, {}).value).toEqual({ a: 1 });
   });
 
   it('constructs through a type declared by spreading another declaration', () => {
     const spread = { ...decimal };
-    expect(dataTypeValueFor(spread, { scale: 2 }, '1.5').value).toBe('1.50');
-  });
-
-  it('constructs through the type itself, which a second copy of this module can call', () => {
-    const fromCodec = vi.fn(decimal.fromCodec);
-    dataTypeValueFor({ ...decimal, fromCodec }, { scale: 2 }, '7');
-    expect(fromCodec).toHaveBeenCalledWith('7', { scale: 2 });
+    expect(spread.valueFrom('1.5', { scale: 2 }).value).toBe('1.50');
   });
 });
 

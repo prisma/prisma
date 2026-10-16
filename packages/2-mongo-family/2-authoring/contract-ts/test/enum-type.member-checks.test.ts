@@ -1,6 +1,6 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { AnyCodecDescriptor, Codec } from '@internal/framework-components/codec';
-import { dataType, dataTypeId, dataTypeValueFor } from '@internal/framework-components/codec';
+import { dataType, dataTypeId } from '@internal/framework-components/codec';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, model } from '../src/contract-builder';
@@ -32,7 +32,7 @@ function descriptorOf(
         dataType: fixtureType,
         toWire: async (v: unknown) => v,
         fromWire: async (v: unknown) => v,
-        toDataTypeValue: (value: unknown) => dataTypeValueFor(fixtureType, {}, toStored(value)),
+        toDataTypeValue: (value: unknown) => fixtureType.valueFrom(toStored(value), {}),
         fromDataTypeValue: (value) => fromStored(value.value),
       }) satisfies Codec,
   };

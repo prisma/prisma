@@ -5,7 +5,6 @@ import {
   type CodecLookupWithDescriptors,
   dataType,
   dataTypeId,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import {
@@ -46,7 +45,7 @@ function stubCodec(id: string, jsonType: 'string' | 'number'): Codec {
     dataType: type,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (value) => dataTypeValueFor(type, {}, value as JsonValue),
+    toDataTypeValue: (value) => type.valueFrom(value as JsonValue, {}),
     fromDataTypeValue({ value }) {
       if (typeof value !== jsonType) throw new Error(`expected ${jsonType}, got ${typeof value}`);
       return value;

@@ -10,7 +10,6 @@ import {
   type CodecLookup,
   type DataTypeValue,
   dataType,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import type { TypesImportSpec } from '@internal/framework-components/emission';
 import { blindCast } from '@internal/utils/casts';
@@ -1068,7 +1067,7 @@ function stubCodec(overrides: Partial<CodecStub> & { id: string }): CodecStub {
   return {
     dataType: anyJsonType,
     fromWire: (w: unknown) => w,
-    toDataTypeValue: (v: unknown) => dataTypeValueFor(anyJsonType, {}, v as JsonValue),
+    toDataTypeValue: (v: unknown) => anyJsonType.valueFrom(v as JsonValue, {}),
     fromDataTypeValue: (value: DataTypeValue) => value.value,
     ...overrides,
   } as unknown as CodecStub;

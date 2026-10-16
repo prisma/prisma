@@ -5,7 +5,6 @@ import {
   type Codec,
   type CodecLookupWithDescriptors,
   dataType,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -26,7 +25,7 @@ const textCodec: Codec = {
   dataType: pgText,
   toWire: async (value: unknown) => value,
   fromWire: async (wire: unknown) => wire,
-  toDataTypeValue: (value) => dataTypeValueFor(pgText, {}, value as JsonValue),
+  toDataTypeValue: (value) => pgText.valueFrom(value as JsonValue, {}),
   fromDataTypeValue: ({ value }) => value,
 };
 

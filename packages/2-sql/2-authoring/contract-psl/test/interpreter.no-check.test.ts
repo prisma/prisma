@@ -1,10 +1,5 @@
 import type { JsonValue } from '@internal/contract/types';
-import {
-  type Codec,
-  type CodecLookup,
-  dataType,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { type Codec, type CodecLookup, dataType } from '@internal/framework-components/codec';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import {
   defineContract,
@@ -36,7 +31,7 @@ const textCodec: Codec = {
   dataType: pgTextType,
   toWire: async (v: unknown) => v,
   fromWire: async (w: unknown) => w,
-  toDataTypeValue: (value) => dataTypeValueFor(pgTextType, {}, value as JsonValue),
+  toDataTypeValue: (value) => pgTextType.valueFrom(value as JsonValue, {}),
   fromDataTypeValue({ value }) {
     if (typeof value !== 'string') throw new Error(`expected string, got ${typeof value}`);
     return value;

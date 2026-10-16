@@ -17,7 +17,6 @@ import {
   type DataTypeParams,
   type DataTypeValue,
   dataTypeParamsOf,
-  dataTypeValueFor,
 } from './data-type';
 
 /**
@@ -125,7 +124,7 @@ export abstract class CodecImpl<
 
   /** The value of the codec's data type that `json` stores, under the codec's parameters. */
   protected dataTypeValueOf<J extends JsonValue>(json: J): DataTypeValue<J> {
-    return dataTypeValueFor(this.dataType, this.dataTypeParams, json);
+    return this.dataType.valueFrom(json, this.dataTypeParams);
   }
 
   abstract fromDataTypeValue(value: DataTypeValue): TInput;

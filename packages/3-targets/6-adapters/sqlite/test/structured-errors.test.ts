@@ -1,5 +1,5 @@
 import type { JsonValue } from '@internal/contract/types';
-import { type Codec, dataType, dataTypeValueFor } from '@internal/framework-components/codec';
+import { type Codec, dataType } from '@internal/framework-components/codec';
 import type { SqlControlDriverInstance } from '@internal/sql-contract/types';
 import {
   DefaultValueExpr,
@@ -134,7 +134,7 @@ describe('structured error codes', () => {
       toWire: async () => Symbol('wire'),
       fromWire: async (wire: unknown) => wire,
       fromDataTypeValue: (value) => value.value,
-      toDataTypeValue: (input) => dataTypeValueFor(symbolType, {}, input as JsonValue),
+      toDataTypeValue: (input) => symbolType.valueFrom(input as JsonValue, {}),
     } as Codec;
     const lookup: SqliteCodecRegistry = {
       ...createSqliteBuiltinCodecLookup(),

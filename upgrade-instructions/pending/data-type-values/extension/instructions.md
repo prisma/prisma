@@ -62,7 +62,7 @@ A codec converts between three forms of a value: the application's value, the va
 | `encodeJson(value)` | `toDataTypeValue(value)` | application value to stored value |
 | `decodeJson(json)` | `fromDataTypeValue(value)` | stored value to application value |
 
-`toDataTypeValue` returns a `DataTypeValue`, and `fromDataTypeValue` receives one; its `value` is the JSON the contract stores. The data type has already read that JSON with its `read` function under the column's parameters, so `fromDataTypeValue` does not check it again. A codec builds the value it hands over with `this.dataTypeValueOf(json)`, which calls the data type's `fromCodec` and so refuses JSON the type does not hold. To make that possible, the codec's constructor passes its data type and its parameters to `CodecImpl`:
+`toDataTypeValue` returns a `DataTypeValue`, and `fromDataTypeValue` receives one; its `value` is the JSON the contract stores. The data type has already read that JSON with its `read` function under the column's parameters, so `fromDataTypeValue` does not check it again. A codec builds the value it hands over with `this.dataTypeValueOf(json)`, which calls the data type's `valueFrom` and so refuses JSON the type does not hold. To make that possible, the codec's constructor passes its data type and its parameters to `CodecImpl`:
 
 ```ts
 // before

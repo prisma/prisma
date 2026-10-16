@@ -7,7 +7,6 @@ import {
   type DataType,
   type DataTypeValue,
   dataType,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import type { Codec, SqlCodecCallContext } from '../../src/ast/codec-types';
 
@@ -65,7 +64,7 @@ export function defineTestCodec<
         return Promise.reject(error);
       }
     },
-    toDataTypeValue: (value) => dataTypeValueFor(type, {}, toJson(value)),
+    toDataTypeValue: (value) => type.valueFrom(toJson(value), {}),
     fromDataTypeValue: fromValue,
   };
 }

@@ -10,7 +10,6 @@ import {
   type CodecLookupWithDescriptors,
   createDataTypeLookup,
   dataType,
-  dataTypeValueFor,
   emptyCodecLookup,
   readJsonString,
 } from '@internal/framework-components/codec';
@@ -43,7 +42,7 @@ const stringCodec: Codec = {
   dataType: stringType,
   toWire: async (value: unknown) => value,
   fromWire: async (wire: unknown) => wire,
-  toDataTypeValue: (value) => dataTypeValueFor(stringType, {}, value as JsonValue),
+  toDataTypeValue: (value) => stringType.valueFrom(value as JsonValue, {}),
   fromDataTypeValue: (value) => value.value,
 };
 

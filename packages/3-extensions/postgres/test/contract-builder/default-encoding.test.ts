@@ -1,9 +1,5 @@
 import 'temporal-polyfill/full/global';
-import {
-  type DataTypeValue,
-  dataType,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { type DataTypeValue, dataType } from '@internal/framework-components/codec';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { describe, expect, it } from 'vitest';
 import {
@@ -197,7 +193,7 @@ describe('postgres defineContract encodes literal defaults through the column co
       dataType: callerType,
       toWire: async (value: unknown) => value,
       fromWire: async (wire: unknown) => wire,
-      toDataTypeValue: () => dataTypeValueFor(callerType, {}, 'encoded by the caller lookup'),
+      toDataTypeValue: () => callerType.valueFrom('encoded by the caller lookup', {}),
       fromDataTypeValue: (value: DataTypeValue) => value.value,
     });
     const contract = defineContract(

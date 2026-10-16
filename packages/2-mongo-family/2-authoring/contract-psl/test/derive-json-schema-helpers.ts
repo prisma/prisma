@@ -6,7 +6,6 @@ import {
   createDataTypeLookup,
   type DataTypeLookup,
   type DataTypeValue,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import { type MongoTypeLookups, mongoDataType } from '@internal/mongo-contract/data-type';
 
@@ -46,7 +45,7 @@ export const mongoCodecLookup: CodecLookupWithDescriptors = {
       dataType,
       toWire: async (v: unknown) => v,
       fromWire: async (w: unknown) => w,
-      toDataTypeValue: (v: unknown) => dataTypeValueFor(dataType, {}, v as JsonValue),
+      toDataTypeValue: (v: unknown) => dataType.valueFrom(v as JsonValue, {}),
       fromDataTypeValue: (value: DataTypeValue) => value.value,
     } as ReturnType<CodecLookup['get']>;
   },

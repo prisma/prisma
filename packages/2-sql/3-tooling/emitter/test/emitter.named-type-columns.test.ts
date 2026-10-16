@@ -1,10 +1,5 @@
 import { generateContractDts } from '@internal/emitter';
-import {
-  type Codec,
-  type CodecLookup,
-  dataType,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { type Codec, type CodecLookup, dataType } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import { sqlEmission } from '../src/index';
 import { createEmitterTestContract as createContract } from './create-emitter-test-contract';
@@ -22,7 +17,7 @@ function vectorCodecLookup(): CodecLookup {
     dataType: vectorType,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (v: unknown) => dataTypeValueFor(vectorType, {}, v as number[]),
+    toDataTypeValue: (v: unknown) => vectorType.valueFrom(v as number[], {}),
     fromDataTypeValue: (value) => value.value,
   };
   return {

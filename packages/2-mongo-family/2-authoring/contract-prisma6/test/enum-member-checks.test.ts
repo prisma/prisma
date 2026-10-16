@@ -4,11 +4,10 @@ import type {
   AuthoringEntityTypeDescriptor,
   ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
-import {
-  type Codec,
-  type CodecLookupWithDescriptors,
-  type DataTypeValue,
-  dataTypeValueFor,
+import type {
+  Codec,
+  CodecLookupWithDescriptors,
+  DataTypeValue,
 } from '@internal/framework-components/codec';
 import { prisma6MongoBinding } from '@internal/target-mongo/prisma6-binding';
 import { dirname, join } from 'pathe';
@@ -27,7 +26,7 @@ const nativeTypeSchema = join(
 function storedString(text: string): DataTypeValue {
   const stringCodec = mongoStack.codecLookup.get('mongo/string@1');
   if (stringCodec === undefined) throw new Error('the Mongo stack has no mongo/string@1 codec');
-  return dataTypeValueFor(stringCodec.dataType, {}, text);
+  return stringCodec.dataType.valueFrom(text, {});
 }
 
 function lookupWithStringCodec(overrides: Partial<Codec>): CodecLookupWithDescriptors {

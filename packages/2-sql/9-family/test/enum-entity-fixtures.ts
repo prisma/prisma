@@ -10,11 +10,7 @@ import type {
   CodecLookupWithDescriptors,
   DataType,
 } from '@internal/framework-components/codec';
-import {
-  createDataTypeLookup,
-  dataType,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { createDataTypeLookup, dataType } from '@internal/framework-components/codec';
 import { sqlDataType } from '@internal/sql-contract/data-type';
 import { InternalError } from '@internal/utils/internal-error';
 import { type } from 'arktype';
@@ -98,7 +94,7 @@ function fixtureCodec(
     dataType: type,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (value) => dataTypeValueFor(type, {}, toJson(value)),
+    toDataTypeValue: (value) => type.valueFrom(toJson(value), {}),
     fromDataTypeValue: (value) => fromJson(value.value),
   };
 }

@@ -1,7 +1,7 @@
 /**
  * Reading a `@default(...)` value: a written value is read by the authoring entry for the syntax it
  * is written in, as a value its data type constructs; the column's type takes it directly or through a cast, and constructs what the cast returns;
- * the value is constructed through the column's type with `fromCodec` under the column's parameters,
+ * the value is constructed through the column's type with `valueFrom` under the column's parameters,
  * which refuses a value they exclude and writes the spelling they give it; the column's codec, built with the column's type
  * parameters, checks it with `fromDataTypeValue`; and it is stored as the type's `toContract` writes it.
  *
@@ -34,11 +34,7 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import {
-  codecForRef,
-  dataTypeParamsOf,
-  dataTypeValueFor,
-} from '@internal/framework-components/codec';
+import { codecForRef, dataTypeParamsOf } from '@internal/framework-components/codec';
 import type { ContributedPslDiagnosticCode, PslSpan } from '@internal/framework-components/psl-ast';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
 import { blindCast } from '@internal/utils/casts';
@@ -202,7 +198,7 @@ function storedValueReader(input: {
   const read = (written: JsonValue, elementIndex: number | undefined): StoredReadResult => {
     let stored: JsonValue;
     try {
-      const value = dataTypeValueFor(codec.dataType, params, written);
+      const value = codec.dataType.valueFrom(written, params);
       codec.fromDataTypeValue(value);
       stored = codec.dataType.toContract(value);
     } catch (error) {

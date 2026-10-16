@@ -7,7 +7,7 @@ import { isMongoDataType, mongoDataType } from '../src/mongo-data-type';
 const valueMethods = {
   fromContract: expect.any(Function),
   toContract: expect.any(Function),
-  fromCodec: expect.any(Function),
+  valueFrom: expect.any(Function),
 };
 
 describe('mongoDataType', () => {

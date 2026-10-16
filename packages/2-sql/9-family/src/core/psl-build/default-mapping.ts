@@ -127,7 +127,7 @@ function tagValue(
   value: JsonValue,
 ): DataTypeValue | undefined {
   try {
-    return surface.support.lookup.get(type)?.fromCodec(value, {});
+    return surface.support.lookup.get(type)?.valueFrom(value, {});
   } catch (error) {
     if (isInternalError(error)) throw error;
     return undefined;
@@ -170,7 +170,7 @@ function storedUnder(
   const type = lookup.get(column.id);
   if (type === undefined) return undefined;
   try {
-    return type.toContract(type.fromCodec(json, column.params));
+    return type.toContract(type.valueFrom(json, column.params));
   } catch (error) {
     if (isInternalError(error)) throw error;
     return undefined;

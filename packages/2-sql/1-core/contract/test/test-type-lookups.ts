@@ -17,7 +17,6 @@ import type {
   DataTypeLookup,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { dataTypeValueFor } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { type } from 'arktype';
 import { sqlDataType } from '../src/sql-data-type';
@@ -139,7 +138,7 @@ export function testCodec(codecId: string, conversions: TestCodecConversions = {
     fromWire: async () => {
       throw new Error(`${codecId} is a test codec and never reaches the wire`);
     },
-    toDataTypeValue: (input) => dataTypeValueFor(type, {}, toJson(input)),
+    toDataTypeValue: (input) => type.valueFrom(toJson(input), {}),
     fromDataTypeValue: conversions.fromDataTypeValue ?? ((value) => value.value),
   };
 }

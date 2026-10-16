@@ -4,7 +4,7 @@ import type { Codec } from '../src/shared/codec';
 import type { AnyCodecDescriptor } from '../src/shared/codec-descriptor';
 import type { CodecLookupWithDescriptors } from '../src/shared/codec-types';
 import { emptyCodecLookup } from '../src/shared/codec-types';
-import { dataType, dataTypeValueFor } from '../src/shared/data-type';
+import { dataType } from '../src/shared/data-type';
 import { type DecodedEnum, encodeEnumMembers } from '../src/shared/enum-members';
 
 function encode(decodedEnum: DecodedEnum, codecLookup: CodecLookupWithDescriptors) {
@@ -24,7 +24,7 @@ function codecOf(
     dataType: anyJsonType,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (value) => dataTypeValueFor(anyJsonType, {}, toStored(value)),
+    toDataTypeValue: (value) => anyJsonType.valueFrom(toStored(value), {}),
     fromDataTypeValue: (value) => fromStored(value.value),
   };
 }

@@ -2,7 +2,7 @@ import type { JsonValue } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import type { Codec } from '../src/shared/codec';
 import { emptyCodecLookup } from '../src/shared/codec-types';
-import { createDataTypeLookup, dataType, dataTypeValueFor } from '../src/shared/data-type';
+import { createDataTypeLookup, dataType } from '../src/shared/data-type';
 import { readEnumBlockMembers } from '../src/shared/enum-block-members';
 import type {
   AuthoringEntityContext,
@@ -52,7 +52,7 @@ const lowerCasingCodec: Codec = {
   dataType: textType,
   toWire: async (v: unknown) => v,
   fromWire: async (w: unknown) => w,
-  toDataTypeValue: (value) => dataTypeValueFor(textType, {}, String(value).toLowerCase()),
+  toDataTypeValue: (value) => textType.valueFrom(String(value).toLowerCase(), {}),
   fromDataTypeValue: (value) => value.value,
 };
 
@@ -64,7 +64,7 @@ const anyJsonCodec: Codec = {
   dataType: anyJsonType,
   toWire: async (v: unknown) => v,
   fromWire: async (w: unknown) => w,
-  toDataTypeValue: (value) => dataTypeValueFor(anyJsonType, {}, value as JsonValue),
+  toDataTypeValue: (value) => anyJsonType.valueFrom(value as JsonValue, {}),
   fromDataTypeValue: (value) => value.value,
 };
 

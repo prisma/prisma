@@ -4,7 +4,7 @@ import type {
   Codec,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { dataType, dataTypeId, dataTypeValueFor } from '@internal/framework-components/codec';
+import { dataType, dataTypeId } from '@internal/framework-components/codec';
 import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MongoContractSchema } from '@internal/mongo-contract';
@@ -34,7 +34,7 @@ const identityDescriptor = (id: string): AnyCodecDescriptor => ({
       dataType: fixtureType,
       toWire: async (v: unknown) => v,
       fromWire: async (v: unknown) => v,
-      toDataTypeValue: (v: unknown) => dataTypeValueFor(fixtureType, {}, v as JsonValue),
+      toDataTypeValue: (v: unknown) => fixtureType.valueFrom(v as JsonValue, {}),
       fromDataTypeValue: (value: DataTypeValue) => value.value,
     }) satisfies Codec,
 });
@@ -228,8 +228,7 @@ describe('defineContract() — members compared as the codec stores them', () =>
         dataType: fixtureType,
         toWire: async (v: unknown) => v,
         fromWire: async (v: unknown) => v,
-        toDataTypeValue: (v: unknown) =>
-          dataTypeValueFor(fixtureType, {}, (v as Date).toISOString()),
+        toDataTypeValue: (v: unknown) => fixtureType.valueFrom((v as Date).toISOString(), {}),
         fromDataTypeValue: (value: DataTypeValue) => new Date(String(value.value)),
       }) satisfies Codec,
   };
@@ -388,7 +387,7 @@ describe('defineContract() — codec-encoded value set', () => {
         dataType: upperType,
         toWire: async (v: unknown) => v,
         fromWire: async (v: unknown) => v,
-        toDataTypeValue: (v: unknown) => dataTypeValueFor(upperType, {}, String(v).toUpperCase()),
+        toDataTypeValue: (v: unknown) => upperType.valueFrom(String(v).toUpperCase(), {}),
         fromDataTypeValue: (value: DataTypeValue) => String(value.value).toLowerCase(),
       }) satisfies Codec,
   };

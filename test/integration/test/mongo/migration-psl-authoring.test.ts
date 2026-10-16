@@ -8,7 +8,6 @@ import {
   type CodecLookupWithDescriptors,
   createDataTypeLookup,
   type DataTypeValue,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import { planOriginOf } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -46,7 +45,7 @@ function identityCodec(id: string): Codec | undefined {
     dataType: type,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (v: unknown) => dataTypeValueFor(type, {}, v as JsonValue),
+    toDataTypeValue: (v: unknown) => type.valueFrom(v as JsonValue, {}),
     fromDataTypeValue: (value: DataTypeValue) => value.value,
   };
 }

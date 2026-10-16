@@ -6,7 +6,6 @@ import {
   type Codec,
   type CodecLookupWithDescriptors,
   createDataTypeLookup,
-  dataTypeValueFor,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { mongoDataType } from '@internal/mongo-contract/data-type';
@@ -27,7 +26,7 @@ function textCodec(
     dataType: textType,
     toWire: async (v: unknown) => v,
     fromWire: async (w: unknown) => w,
-    toDataTypeValue: (value) => dataTypeValueFor(textType, {}, toStored(value)),
+    toDataTypeValue: (value) => textType.valueFrom(toStored(value), {}),
     fromDataTypeValue: (value) => fromStored(value.value),
   };
 }

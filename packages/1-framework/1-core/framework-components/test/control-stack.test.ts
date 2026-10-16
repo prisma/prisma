@@ -16,12 +16,7 @@ import {
 } from '../src/control/control-stack';
 import type { Codec } from '../src/shared/codec';
 import type { AnyCodecDescriptor } from '../src/shared/codec-descriptor';
-import {
-  type DataTypeValue,
-  dataType,
-  dataTypeId,
-  dataTypeValueFor,
-} from '../src/shared/data-type';
+import { type DataTypeValue, dataType, dataTypeId } from '../src/shared/data-type';
 import type { ComponentDescriptor } from '../src/shared/framework-components';
 import { isRuntimeError } from '../src/shared/runtime-error';
 
@@ -53,7 +48,7 @@ function registeredCodec(codecId: string): AnyCodecDescriptor {
         dataType: stubDataType,
         toWire: async (v: unknown) => v,
         fromWire: async (v: unknown) => v,
-        toDataTypeValue: (v: unknown) => dataTypeValueFor(stubDataType, {}, v as JsonValue),
+        toDataTypeValue: (v: unknown) => stubDataType.valueFrom(v as JsonValue, {}),
         fromDataTypeValue: (value: DataTypeValue) => value.value,
       }) satisfies Codec,
   };
@@ -1202,7 +1197,7 @@ describe('extractCodecLookup', () => {
       dataType: stubDataType,
       toWire: async (v: unknown) => v,
       fromWire: async (v: unknown) => v,
-      toDataTypeValue: (v: unknown) => dataTypeValueFor(stubDataType, {}, v as JsonValue),
+      toDataTypeValue: (v: unknown) => stubDataType.valueFrom(v as JsonValue, {}),
       fromDataTypeValue: (value: DataTypeValue) => value.value,
     }) satisfies Codec;
 
