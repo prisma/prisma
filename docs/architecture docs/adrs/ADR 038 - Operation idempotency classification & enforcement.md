@@ -8,7 +8,7 @@ That order makes every postcheck do two jobs: it confirms an operation worked, a
 
 > Before an operation runs, its postchecks may all hold only when the operation's full effect is already in place.
 
-A postcheck that also holds for another state lets the runner skip work that was never done. Where the full effect cannot be checked reliably, the operation carries no postcheck.
+A postcheck that also holds for another state lets the runner skip work that was never done. Where the full effect cannot be checked reliably, the operation carries a weaker postcheck or none, and the final check against the end contract catches most differences. [Where a postcheck is weaker than the full effect](#where-a-postcheck-is-weaker-than-the-full-effect) lists each case and what catches it.
 
 ### Example: changing a default from `'open'` to `'closed'`
 
@@ -66,32 +66,46 @@ Separately, the SQL runners skip every operation of a migration when the marker 
 
 ## What a postcheck compares
 
-A postcheck compares structure the database reports in its catalog: the kind of object, its table, its ordered columns, a foreign key's target and referential actions, an index's method and uniqueness, and so on. It never compares text the database prints back in its own form: expressions, index predicates, check constraint and policy bodies, and defaults. The database may print the same thing differently from how the plan wrote it, so a text comparison fails on a correct database.
+A postcheck compares structure the database reports in its catalog: the kind of object, its table, its ordered columns, a foreign key's target and referential actions, an index's method and uniqueness, and so on. It does not compare text Postgres reprints in its own form: expressions, index predicates, check constraint and policy bodies, and defaults. Postgres may print the same thing differently from how the plan wrote it, so such a comparison would fail on a correct database.
 
 What each target checks, beyond "an object with this name exists":
 
 - **Postgres.**
   - `createTable`: the relation is a table.
-  - `addColumn` and the two recipes that add a required column: the column's type, and `NOT NULL` where the column declares it. The type is compared as `format_type` prints it when the column's data type can read that text back, and by type OID otherwise.
-  - `createIndex`: the index is on the planned table, with the planned uniqueness, access method and ordered columns, and has an expression and a predicate exactly when the plan does. The expression and predicate text are not compared.
+  - `addColumn` and the two recipes that add a required column: the column's type, and `NOT NULL` where the column declares it. The type is compared as `format_type` prints it when the column's data type can read that text, and by type OID otherwise.
+  - `alterColumnType`: the column's new type, compared the same way. When the column has an `autoincrement()` default, the operation also changes the sequence the column owns. A precheck refuses when the sequence has already handed out a value past the new width, an `ALTER SEQUENCE … AS <type>` step runs after the column change, and a postcheck asks that the column owns a sequence of the new width.
+  - `createIndex`: the index is on the planned table, with the planned uniqueness, access method and ordered columns, and has an expression and a predicate exactly when the plan does.
   - `addPrimaryKey`, `addUnique`: the constraint kind and its ordered columns.
   - `addForeignKey`: the kind, the columns, the referenced table and columns, and the `ON DELETE` and `ON UPDATE` actions.
-  - `addCheckConstraint`: the constraint kind. The body is not compared.
-  - `createRlsPolicy`: the command, whether it is permissive, and the roles as a set. The `USING` and `WITH CHECK` bodies are not compared.
+  - `addCheckConstraint`: the constraint kind.
+  - `createRlsPolicy`: the command, whether it is permissive, and the roles as a set.
   - `renameTable`, `renameColumn`, `renameIndex`, `renameConstraint`, `renameRlsPolicy`: the new name exists and the old name is gone.
   - `setDefault`: no postcheck for a literal or function default; for `autoincrement()`, the column owns the planned sequence at the planned width.
 - **SQLite.**
   - `createTable`: the table has exactly the planned columns, each with its declared type, nullability and primary key position.
   - `addColumn`: the column's declared type and nullability.
   - `createIndex`: the index is on the planned table, over the planned columns in order, with the planned uniqueness.
-  - `recreateTable`: also each foreign key's `ON DELETE` and `ON UPDATE` actions, and whether a column is `AUTOINCREMENT`. SQLite keeps `AUTOINCREMENT` only in the `CREATE TABLE` statement it stores, so that one check reads the stored statement. SQLite stores the statement as it was written, not reprinted, so the comparison is reliable.
+  - `recreateTable`: also each column's default, each foreign key's `ON DELETE` and `ON UPDATE` actions, and whether a column is `AUTOINCREMENT`.
 - **MongoDB.**
-  - `createIndex`: the keys and every option the planner tells indexes apart by: `unique` and `sparse` (set or not), the TTL, the partial filter, the wildcard projection, the collation, and for a text index the key, weights and languages as MongoDB lists them. MongoDB returns index options as they were given, apart from the defaults it fills in for a collation and a text index, so these are document comparisons, not comparisons of reprinted text.
+  - `createIndex`: the keys and every option the planner tells indexes apart by: `unique` and `sparse` (set or not), the TTL, the partial filter, the wildcard projection, the collation, and for a text index the key, weights and languages as MongoDB lists them. MongoDB returns index options as they were given, apart from the defaults it fills in for a collation and a text index, so these are document comparisons.
   - `collMod` that sets a validator: the whole validator document. For a validator that is only a `$jsonSchema`, the `$jsonSchema` body.
 
-An operation whose postcheck cannot tell its effect apart from no change is refused. A hand-written Postgres `this.alterColumnType` with `using`, on a column that already has the new type in the migration's start contract (after renames made earlier in the migration), fails with `MIGRATION.ALTER_COLUMN_TYPE_UNCHANGED` when `migration.ts` builds its operations. Its postcheck checks the column's type, which already holds, so the runner would skip it and the conversion in `using` would never run. A conversion that keeps the type is written as a `dataTransform`, whose checks look at the rows.
+### Where a postcheck is weaker than the full effect
 
-When the full effect of an operation cannot be checked through structure, the operation carries no postcheck, as `setDefault` does. This has a cost. Without a postcheck the runner always runs the prechecks, and a create-style operation has a precheck that its object does not exist yet. On a database that already has the object, that precheck fails. So an operation drops its postcheck only when running it again is harmless and its precheck does not refuse a database that already has its effect.
+Some postchecks hold for states other than the operation's full effect. They are kept because the alternative is worse. Without a postcheck the runner always runs the prechecks, and a create-style operation has a precheck that its object does not exist yet. On a database that already has the object, such as an existing database adopted by running the migrations against it, that precheck fails. A structural postcheck lets the runner skip the object instead.
+
+Each weak case, and what catches a difference:
+
+- **Check constraint, policy, and an index with an expression or a predicate.** The postcheck compares structure only, not the body, expression or predicate. An object with the same name and structure but another body passes it, and the runner skips the operation. When the planner names the object, the name carries a hash of the body, so another body means another name and the postcheck does not hold. When the user names the object, the final check against the end contract compares the body and fails the run. Nothing catches a hand-made object that has the planner's hashed name but another body, because the final check compares only the name of such an object.
+- **A column type compared by type OID.** This happens when the column's data type cannot read the text `format_type` prints, such as some raw types. The OID ignores modifiers, so `varchar(20)` passes a check for `varchar(50)`. The final check compares the full type and fails the run.
+- **A column type compared as `format_type` text.** This is text Postgres prints. The plan predicts it the same way the final check does, so a wrong prediction makes the postcheck fail after a correct change. It does not cause a skip.
+- **Postgres `createTable`.** The postcheck checks the relation kind, not the columns. The final check compares the columns.
+- **SQLite text.** `recreateTable` compares a column's default with `pragma_table_info.dflt_value`, and reads `AUTOINCREMENT` from the `CREATE TABLE` statement SQLite stores. SQLite stores both as they were written, not reprinted, so the comparisons are reliable.
+- **No postcheck at all.** `setDefault` with a literal or function default. The final check compares the value.
+
+On Postgres and SQLite the final check runs inside the migration's transaction, so a failure rolls back the whole run. On MongoDB earlier operations stay applied.
+
+An operation whose postcheck cannot tell its effect apart from no change at all is refused. A hand-written Postgres `this.alterColumnType` with `using`, on a column that already has the new type in the migration's start contract after the migration's earlier renames, is refused when `migration.ts` builds its operations (see the error reference). Its postcheck checks the column's type, which already holds, so the runner would skip it and the conversion in `using` would never run. A conversion that keeps the type is written as a `dataTransform`, whose checks look at the rows. A type change to the same type without `using` is not refused: skipping it loses nothing.
 
 ## Context
 
