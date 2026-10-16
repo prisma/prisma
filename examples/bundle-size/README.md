@@ -22,18 +22,18 @@ src/
 │   ├── contract.ts                  # single Note model with a single id column
 │   ├── main.ts                      # no-emit:  postgres({ contract })
 │   ├── main-emit.ts                 # emit:     wraps src/postgres/generated/db.ts
-│   └── generated/                   # produced by `pnpm emit:pg`
-│       ├── contract.json
-│       ├── contract.d.ts
-│       └── db.ts                    # postgres({ contract: contractFromJson<Contract>(contractJson) })
+│   └── generated/
+│       ├── contract.json            # written by `pnpm emit:pg`
+│       ├── contract.d.ts            # written by `pnpm emit:pg`
+│       └── db.ts                    # checked in, not generated: postgres({ contract: contractFromJson<Contract>(contractJson) })
 ├── mongo/                           # Node target, @internal/mongo/runtime
 │   ├── contract.ts                  # single Note model with a single _id field
 │   ├── main.ts                      # no-emit:  mongo({ contract })
 │   ├── main-emit.ts                 # emit:     wraps src/mongo/generated/db.ts
-│   └── generated/                   # produced by `pnpm emit:mongo`
-│       ├── contract.json
-│       ├── contract.d.ts
-│       └── db.ts                    # mongo({ contract: contractFromJson<Contract>(contractJson) })
+│   └── generated/
+│       ├── contract.json            # written by `pnpm emit:mongo`
+│       ├── contract.d.ts            # written by `pnpm emit:mongo`
+│       └── db.ts                    # checked in, not generated: mongo({ contract: contractFromJson<Contract>(contractJson) })
 └── postgres-worker/                 # CF Workers target, @internal/postgres/serverless
     ├── worker.ts                    # no-emit:  postgresServerless({ contract }) + fetch handler
     └── worker-emit.ts               # emit:     postgresServerless({ contract: contractFromJson<Contract>(contractJson) })
