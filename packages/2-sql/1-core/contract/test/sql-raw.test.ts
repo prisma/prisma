@@ -70,6 +70,8 @@ describe('the sql/raw data type', () => {
     '"App"."Email"',
     'app."Email"[]',
     '"Mood"[]',
+    '"a""b"',
+    'app."My""Type"[]',
   ])('takes the type text %s', (sql) => {
     expect(renderSqlTypeName(sqlRawDataType, { sql })).toBe(sql);
   });
@@ -97,6 +99,7 @@ describe('the sql/raw data type', () => {
     ['a schema with no type', 'app.'],
     ['two list suffixes', 'text[][]'],
     ['an empty quoted name', '""'],
+    ['a lone double quote inside a quoted name', '"a"b"'],
     ['an operator', 'int4 CHECK (1 = 1)'],
     ['a minus sign before no digit', 'numeric(10,- 2)'],
     ['a minus sign outside parentheses', 'numeric-1'],
@@ -106,7 +109,7 @@ describe('the sql/raw data type', () => {
       expect.objectContaining({
         code: 'CONTRACT.TYPE_PARAMS_INVALID',
         message: expect.stringContaining(
-          'A raw type is one type name as the database catalog prints it, such as tsvector, double precision, geometry(Point,4326), app.email or "MyType"[]: words of letters, digits and underscores separated by single spaces, or double-quoted names with no double quote inside; the first optionally after one schema name and a dot; each optionally followed by parentheses holding only letters, digits, underscores, commas, spaces and a minus sign before a digit; and at most one trailing [].',
+          'A raw type is one type name as the database catalog prints it, such as tsvector, double precision, geometry(Point,4326), app.email or "MyType"[]: words of letters, digits and underscores separated by single spaces, or double-quoted names with each double quote inside doubled; the first optionally after one schema name and a dot; each optionally followed by parentheses holding only letters, digits, underscores, commas, spaces and a minus sign before a digit; and at most one trailing [].',
         ),
       }),
     );
