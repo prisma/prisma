@@ -8,3 +8,4 @@ Items found while shaping this project that it does not do. Each is filed as a t
 - **Custom collection classes for MongoDB.** The MongoDB ORM has none. A new feature with its own design.
 - **Plans for writes.** `create`, `update` and `delete` run immediately and have no plan form, so tools cannot inspect them.
 - **Supabase's `pg` option ignores a `pg.Client`.** Found by the facade audit.
+- **`mongoQuery({ contract })` does not validate.** It sits in the Mongo query-builder package, below the facade, and casts the value to its type without validating it. Every other entry that takes `{ contract }` validates once. Found in the slice 1 design review.
