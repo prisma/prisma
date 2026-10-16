@@ -1,6 +1,6 @@
 # ADR 254 — Data types and casts
 
-Status: **Accepted**
+Status: **Accepted.** Implemented for the Postgres and SQLite targets and their extensions; the Mongo parts listed under "Not decided here" remain open.
 
 ## At a glance
 
@@ -71,11 +71,11 @@ A value of a data type is a `DataTypeValue`, `{ type, params, value }`. `value` 
 | `pg/bytea` | base64 |
 | `pgvector/vector` | an array of numbers |
 
-Only the type constructs a value, through `fromContract(json, params)`. It refuses JSON the type does not store in that form, and a value its parameters exclude: `numeric(10,2)` refuses `"1.234"`, `vector(3)` refuses four numbers, `pg/int4` refuses an integer outside its range, and `pg/char` with no length refuses a second character, because a bare `character` is `character(1)`. `toContract(value)` gives the JSON to store. Two values are equal when their types are equal and their JSON is equal as canonical JSON.
+Only the type constructs a value. It reads a stored value through `fromContract(json, params)`, which refuses JSON the type does not store in that form, and a value its parameters exclude: `numeric(10,2)` refuses `"1.234"`, `vector(3)` refuses four numbers, `pg/int4` refuses an integer outside its range, and `pg/char` with no length refuses a second character, because a bare `character` is `character(1)`. `toContract(value)` gives the JSON to store. Two values are equal when their types are equal, their parameters are equal, and their JSON is equal as canonical JSON.
 
-A value has one spelling. Where the database normalises how a value is written, the stored form is the database's spelling: `pg/uuid` stores lower case, the integer types store digit text without leading zeros or a minus sign on zero, `pg/inet` stores an address as PostgreSQL prints it, and a `numeric(10,2)` value stores two fraction digits, `"1.50"`. The step that creates a value writes that spelling, and `fromContract` refuses any other. A value written for a column takes the column's parameters through `withParams(value, params)`, which refuses a value they exclude and writes the spelling they give it: `1.5` on a `numeric(10,2)` column becomes `"1.50"`, and `1.234` is refused rather than rounded. Where the stored form differs from the database's text for another reason, `pg/bytea` storing base64 where PostgreSQL prints hex and timestamps stored as ISO 8601 text, the codec reads both to the same application value.
+A value has one spelling. Where the database normalises how a value is written, the stored form is the database's spelling: `pg/uuid` stores lower case, `pg/int8` and `pg/numeric` store digit text without leading zeros or a minus sign on zero, `pg/inet` stores an address as PostgreSQL prints it, and a `numeric(10,2)` value stores two fraction digits, `"1.50"`. The step that creates a value writes that spelling, and `fromContract` refuses any other. A value written for a column takes the column's parameters through `withParams(value, params)`, which refuses a value they exclude and writes the spelling they give it: `1.5` on a `numeric(10,2)` column becomes `"1.50"`, and `1.234` is refused rather than rounded. Where the stored form differs from the database's text for another reason, `pg/bytea` storing base64 where PostgreSQL prints hex and timestamps stored as ISO 8601 text, a codec whose application value is not text reads both to the same application value. The text timestamp codecs hold the text itself, so a value from a row and the stored value differ in spelling; "Date and time types" says how.
 
-Every path into a value goes through its type. A tag's `parse` reads PSL text into a value; a cast turns a value of one type into a value of another; a codec's `toDataTypeValue` hands over an application value, and constructs the result through the type. So a codec, including one from outside the repository, cannot store a value differently from the other codecs of its type.
+Every path into a value goes through its type. A tag's `parse` reads PSL text into a value; a cast turns a value of one type into a value of another; a codec's `toDataTypeValue` hands over an application value, and constructs the result through the type's `fromCodec(json, params)`, which reads the JSON as `fromContract` does and writes it in the spelling the parameters give. So a codec, including one from outside the repository, cannot store a value differently from the other codecs of its type.
 
 ## Codecs
 
@@ -98,7 +98,7 @@ A codec has four methods:
 | `fromWire` | wire value | application value | reading a row, or a default the database reports | asynchronously |
 | `toWire` | application value | wire value | writing a parameter, or a default into DDL | asynchronously |
 
-The wire value is what the driver exchanges with the database, and it is not always text: a Postgres `bytea` codec writes a `Uint8Array`, a SQLite integer codec reads a number, a Mongo codec writes a BSON value. `fromWire` and `toWire` take the per-call context of [ADR 207](ADR%20207%20-%20Codec%20call%20context%20per-query%20AbortSignal%20and%20column%20metadata.md) and are asynchronous as [ADR 204](ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md) describes. A codec never reads `contract.json` and never sees PSL text.
+A codec is built with its descriptor, its data type and the column's parameters of that type, and `toDataTypeValue` ends with `dataTypeValueOf(json)`, which calls `DataType.fromCodec`. The wire value is what the driver exchanges with the database, and it is not always text: a Postgres `bytea` codec writes a `Uint8Array`, a SQLite integer codec reads a number, a Mongo codec writes a BSON value. `fromWire` and `toWire` take the per-call context of [ADR 207](ADR%20207%20-%20Codec%20call%20context%20per-query%20AbortSignal%20and%20column%20metadata.md) and are asynchronous as [ADR 204](ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md) describes. A codec never reads `contract.json` and never sees PSL text.
 
 Codecs of one type differ only in the application value. `pg/int8@1` holds a `bigint` and `pg/int8number@1` a `number`; `pg/timestamptz@1`, `pg/timestamptz-temporal@1` and `pg/timestamptz-string@1` hold a `Date`, a `Temporal.Instant` and text. A codec refuses in `fromDataTypeValue` a value its application value cannot hold exactly: `pg/int8number@1` refuses digit text past 2^53, and the `Temporal` and `Date` codecs refuse `infinity`, which only the text codecs hold. A limit one target's storage has belongs to that target's codec: SQLite cannot store `NaN`, so `sqlite/real@1`, and `sql/float@1` as SQLite adapts it, refuse it in `toWire` and in both value methods, and the SQLite driver refuses a `NaN` parameter no codec encoded, such as one in raw SQL.
 
@@ -189,7 +189,7 @@ Reading a default is then:
 1. The parser yields a literal, a reference or a call, with source spans.
 2. A reference resolves and a call dispatches. A literal is parsed to a value of a known type; a value of `sql/expression` is stored as the column's default expression.
 3. If the value's type is not the column's, the column's type is looked up for a cast from it. Having none is `PSL_VALUE_TYPE_INCOMPATIBLE`, reported at the value: `Field "Account.count": Expected a number that pg/int4 can hold; got pg/int8`.
-4. The column's type gives the value the column's parameters with `withParams`, then the column's codec's `fromDataTypeValue` checks it against the codec's own limits. A refusal is `PSL_INVALID_DEFAULT_LITERAL`, with the type's or the codec's message.
+4. The column's type gives the value the column's parameters, through `fromCodec` with the column's parameters, then the column's codec's `fromDataTypeValue` checks it against the codec's own limits. A refusal is `PSL_INVALID_DEFAULT_LITERAL`, with the type's or the codec's message.
 5. The value's `toContract` is stored.
 
 Text an entry cannot parse is `PSL_INVALID_LITERAL`, and a tag no component registered is `PSL_UNKNOWN_LITERAL_TAG`. A single value on a list column is `PSL_DEFAULT_LIST_EXPECTED`. The two default-only codes are reported at the `@default` attribute and the others at the written value, or at the element of a written list they are about.
@@ -206,8 +206,8 @@ Every consumer of a stored default reads it through the column's data type and c
 - **Writing a default into DDL.** The planner hands the column's value to its codec, `fromDataTypeValue` then `toWire`, and the adapter writes the wire value as a SQL literal of the column's type. The `DEFAULT` clause therefore holds the text the codec writes for every row: on SQLite a default and a row the application wrote for the same instant are one text, and on Postgres a year before 1 is written with ` BC`. The codec's methods are asynchronous, so this runs where DDL is lowered, which is asynchronous too.
 - **Reading a default the database reports.** Postgres reports a default as a literal with a cast, `'2024-01-01 00:00:00+00'::timestamp with time zone`; SQLite reports the literal its `DEFAULT` clause holds. The target takes the literal's body out of that text, which is what its driver would hand `fromWire` for a row of the column, and introspection reads it with the column's codec, `fromWire` then `toDataTypeValue`. Introspection is asynchronous and receives the contract, so this runs there, and the tree it builds holds the value ([ADR 235](ADR%20235%20-%20The%20schema%20differ%20walks%20two%20derived%20schema%20IRs.md): each side of a diff is built in the form it is compared in). A default the database holds as an expression, such as `now()`, is compared as expression text. A literal the codec cannot read, such as a value written outside Prisma that the application value cannot hold, is reported as a difference naming the column and the codec's message.
 - **Comparing defaults.** `db verify` and the planner compare two values of the column's type for equality. When no database is in reach, both sides come from contracts and no codec is needed.
-- **Rows the database returns as JSON.** An `include` or an aggregated child row set comes back as JSON. Each column enters it through its codec's JSON projection ([codec authoring guide](../../reference/codec-authoring-guide.md#the-canonical-json-guarantee)), and the runtime reads it with `fromWire`, the same method that reads an ordinary row. A projection puts into the JSON a value `fromWire` reads exactly, giving the same application value as an ordinary row. On Postgres that is the text PostgreSQL prints for the column, `CAST(x AS text)`, for every type whose row arrives as text, including `json`, `jsonb` and vectors: a document embedded as JSON would come back already parsed, so `fromWire` would parse the string document `"42"` a second time, and a vector widened to double precision would read `0.10000000149011612` where a row reads `0.1`. A type whose JSON value is what the driver hands `fromWire` for a row, such as a number or a boolean, enters as the column itself. The runtime has one way to read what the database returns, and the stored form never has to match the database's spelling.
-- **Inferring a contract.** `contract infer` has no contract, so it reads a reported default with the codec of the type constructor marked `inferred` for the reported type, and prints the value as "Printing" describes.
+- **Rows the database returns as JSON.** An `include` or an aggregated child row set comes back as JSON. Each column enters it through its codec's JSON projection ([codec authoring guide](../../reference/codec-authoring-guide.md#rows-the-database-returns-as-json)), and the runtime reads it with `fromWire`, the same method that reads an ordinary row. A projection puts into the JSON a value `fromWire` reads exactly, giving the same application value as an ordinary row. On Postgres that is the text PostgreSQL prints for the column, `CAST(x AS text)`, for every type whose row arrives as text, including `json`, `jsonb` and vectors: a document embedded as JSON would come back already parsed, so `fromWire` would parse the string document `"42"` a second time, and a vector widened to double precision would read `0.10000000149011612` where a row reads `0.1`. A type whose JSON value is what the driver hands `fromWire` for a row, such as a number or a boolean, enters as the column itself. The runtime has one way to read what the database returns, and the stored form never has to match the database's spelling.
+- **Inferring a contract.** `contract infer` has no contract, so it reads a reported default with the codec of the type constructor it prints for the column, `fromWire` of the literal's body then `toDataTypeValue`, and an enum column's through `pg/text@1`. It prints the value as "Printing" describes.
 
 ## How a data type names its database type
 
@@ -222,6 +222,10 @@ export const pgInt8 = sqlDataType('pg/int8', {
     { text: 'int8', written: true },
     { text: 'bigint', catalog: true },
   ],
+  read: (json) => {
+    readJsonIntegerText('pg/int8', json, INT64_RANGE);
+    return json;
+  },
   casts: { [pgInt2.id]: asNumeralText, [pgInt4.id]: asNumeralText },
 });
 
@@ -245,6 +249,8 @@ export const pgNumeric = sqlDataType('pg/numeric', {
     { text: 'decimal({precision})' },
     { text: 'decimal({precision},{scale})' },
   ],
+  read: readNumeric,
+  spell: spellNumeric,
   normalize: (params) =>
     params.precision !== undefined && params.scale === undefined ? { ...params, scale: 0 } : params,
   casts: { [pgInt2.id]: asNumeralText, [pgInt4.id]: asNumeralText, [pgInt8.id]: unchanged },
@@ -253,6 +259,7 @@ export const pgNumeric = sqlDataType('pg/numeric', {
 
 - **Id.** `owner/name`, with no version: `pg/int8`, `sqlite/integer`, `postgis/geometry`. A type's identity does not change; what changes over time is a representation of it, which is a codec, and codecs are versioned (`pg/int8@1`). The two forms look different so that one string never names both.
 - **Texts.** Every name the database has for the type, in lower case, with `{name}` standing for the parameter `name`. The text marked `written` is the one a migration writes, the text marked `catalog` is the one the database catalog prints, and a text with neither mark is another name the database accepts, such as `decimal`. Among texts with the same placeholders, at most one is written and at most one is catalog. `display` gives the exact characters when they differ in letter case only: PostGIS writes `geometry(Geometry,{srid})`. A type the catalog reports by kind rather than by name, a Postgres enum, declares `claimsKind: 'enum'` with `render` and `fromReported` in place of texts.
+- **Values.** `read(json, params)` reads a stored value: it returns the JSON when the type holds it under the parameters and refuses anything else. It is required. `spell(json, params)`, where present, gives the spelling the parameters require, such as two fraction digits on `numeric(10,2)`.
 - **Parameters.** `params` is an arktype object schema and the only place a parameter's bound is written; a codec's `paramsSchema` is its type's `params`, extended by any keys the codec keeps for itself. `normalize` gives the normal form, so `numeric(10)` and `numeric(10,0)` have equal parameters. Parameters do not make a new type: `numeric(10,2)` holds values of `pg/numeric` under a constraint.
 - **Writing the name.** The written text whose placeholders are exactly the column's parameters is filled in: `numeric(10,2)`, `vector(1536)`, `timestamptz(3)`. A parameter outside its bound, or a set of parameters no written text takes, is `CONTRACT.TYPE_PARAMS_INVALID`. The runtime's parameter casts use the name without parameters (`$1::numeric`), because a cast to `varchar(n)` truncates and a cast to `numeric(p,s)` rounds.
 - **Stored as.** The database type a value is stored in, with the same parameters. A type is stored as itself unless it says otherwise. A type stored as another declares no texts of its own: its DDL name is its storage type's, so no two types claim one reported name. `db verify` compares the type each column is stored as with the type the database reports, so it never has to recover a data type from the catalog.
@@ -265,7 +272,7 @@ A family registers only a data type that is the same on every target and that no
 
 SQLite stores text, integers, reals and blobs, so its target declares `sqlite/text`, `sqlite/integer`, `sqlite/real` and `sqlite/blob`, and the two types a column may be declared with, `sqlite/character` and `sqlite/character-varying`. It also declares `sqlite/datetime` and `sqlite/json`, both stored as `sqlite/text`. Their values are an instant and a document, read by their tags and stored in forms of their own, and `sqlite/text` casts from neither: a `String` column refuses a `json` literal, and a `Json` column refuses a quoted string. The `json` value is the document's JSON text with sorted keys and no added whitespace, so the same document written with its keys in another order is the same value.
 
-`sqlite/datetime@1` represents `sqlite/datetime` and `sqlite/json@1` represents `sqlite/json`. `sqlite/bigint@1`, `sqlite/bigintnumber@1` and `sql/int@1` all represent `sqlite/integer`: SQLite enforces no narrower integer range, so whether the application holds a `bigint` or a `number` is a codec's choice.
+`sqlite/datetime@1` represents `sqlite/datetime` and `sqlite/json@1` represents `sqlite/json`. `sqlite/integer@1`, `sqlite/bigint@1`, `sqlite/bigintnumber@1` and `sql/int@1` all represent `sqlite/integer`: SQLite enforces no narrower integer range, so whether the application holds a `bigint` or a `number` is a codec's choice.
 
 A type is stored as its own database type only when the database can record it. Declaring a SQLite column `DATETIME` or `JSON` would let introspection tell the types apart, but `JSON` gives the column numeric affinity, and SQLite would then store the document `"42"` as the integer 42.
 
@@ -314,31 +321,31 @@ The earliest value of each Postgres type is the earliest PostgreSQL holds, 4714-
 
 Each tag reads ISO 8601 with a four-digit or signed six-digit year and a `T` or a space between date and time. A Postgres tag also reads the text PostgreSQL prints: a ` BC` suffix, a year of five or six digits, `infinity` and `-infinity`, and for `interval` the text PostgreSQL prints under `IntervalStyle = postgres`. `parse` uses no `Temporal` and no JavaScript `Date`, so a default reads the same on every runtime. It refuses an offset on a type that holds none, a missing offset on a type that needs one, a date on a time type, a time on `pg/date`, more fraction digits than the type holds, a date or time that does not exist, and a value outside the type's range, and each refusal names what is wrong and shows text the type takes.
 
-PostgreSQL reads no signed year, so the Postgres codecs' `toWire` writes a year after 9999 without its sign and leading zeros (`10000-01-01`) and a year at or before 0000 with a ` BC` suffix (`0044-03-15 BC`), and `fromWire` reads both. One pair of functions in the Postgres target reads and writes PostgreSQL's year text, and the codecs and the tags share it.
+PostgreSQL reads no signed year, so the Postgres codecs' `toWire` writes a year after 9999 without its sign and leading zeros (`10000-01-01`) and a year at or before 0000 with a ` BC` suffix (`0044-03-15 BC`). The `Temporal` and `Date` codecs' `fromWire` reads both into their value. A text codec's `fromWire` keeps PostgreSQL's year text as it arrives, ` BC` included, because its application value is that text, and its `toWire` converts the stored ISO year into it. One pair of functions in the Postgres target, `isoYearText` and `postgresYearText`, reads and writes PostgreSQL's year text, and the codecs and the tags share it.
 
 ## Assembly
 
 The control stack assembles every pack's data types, codec descriptors, type constructors and authoring entries and checks them against each other. It fails with a structured error naming the contributor and the dangling id when:
 
-1. a codec or a type constructor names a data type that is not registered;
+1. a codec names a data type that is not registered;
 2. an authoring entry, a type in a number entry's `types`, or the source of some type's cast names a data type that is not registered;
 3. two entries claim one tag or one plain kind; for the same reason, two components register one type id, or two entries sit under one key;
 4. a type that is the source of some cast cannot be written, because a cast from a type nobody can write can never be exercised; a type can be written when it has an authoring entry of its own or a number entry's `types` names it;
-5. a type is stored as a data type that is not registered.
 
 It refuses, as an `InternalError` naming the contributor and the id, declarations no user input can produce, because each is a bug in a pack:
 
-6. a type constructor or field preset names a codec no component registers;
-7. a type constructor maps an argument onto a parameter that neither its codec's data type nor the codec declares;
-8. two type constructors of one data type are both marked `inferred`.
+5. a type constructor or field preset names a codec no component registers;
+6. a type constructor maps an argument onto a parameter that neither its codec's data type nor the codec declares;
+7. two type constructors of one data type are both marked `inferred`.
 
 The reverse of item 4 is not required: a type may be reachable only through casts. These checks run at assembly because they span packs: `pgvector/vector` taking `pg/numeric` values is valid only when the Postgres target that owns `pg/numeric` is in the stack. Within a pack, types are referred to by constant, so a misspelt id fails to compile and an unregistered one fails assembly.
 
-A family may add checks for its own data types. The SQL family runs three when it creates its control instance, so the CLI reports them and the language server does not:
+A family may add checks for its own data types. The SQL family runs four when it creates its control instance, so the CLI reports them and the language server does not:
 
-9. two SQL data types would both recognise one reported type: their claiming texts collide, or they claim the same kind. Two texts collide when either text's pattern matches the other with each placeholder replaced by `1`. This is an `InternalError`;
-10. a type casts from `sql/expression` (`CONTRACT.DATA_TYPE_CASTS_FROM_SQL_EXPRESSION`);
-11. a codec represents a data type that is not a `SqlDataType`, because a codec represents a column's type and `sql/expression` is the one data type no column has. This is an `InternalError`.
+8. two SQL data types would both recognise one reported type: their claiming texts collide, or they claim the same kind. Two texts collide when either text's pattern matches the other with each placeholder replaced by `1`. This is an `InternalError`;
+9. a type casts from `sql/expression` (`CONTRACT.DATA_TYPE_CASTS_FROM_SQL_EXPRESSION`);
+10. a codec represents a data type that is not a `SqlDataType`, because a codec represents a column's type and `sql/expression` is the one data type no column has. This is an `InternalError`;
+11. a type is stored as a data type that is not registered (`CONTRACT.DATA_TYPE_UNREGISTERED`).
 
 ## Printing
 
