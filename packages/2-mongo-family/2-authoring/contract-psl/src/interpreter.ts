@@ -1569,7 +1569,10 @@ export function interpretPslDocumentToMongoContract(
         if (idRefusal !== undefined) {
           diagnostics.pushUnlocated({
             code: 'PSL_MONGO_ID_REQUIRED',
-            message: `Model "${pslModel.name}" must declare an _id field of type ObjectId (e.g. \`id ObjectId @id @map("_id")\`).`,
+            message:
+              idRefusal.kind === 'unknownCodec'
+                ? `Model "${pslModel.name}" ${idRefusal.reason}`
+                : `Model "${pslModel.name}" must declare an _id field of type ObjectId (e.g. \`id ObjectId @id @map("_id")\`).`,
             ...modelSource.at(),
           });
         }

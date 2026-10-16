@@ -1007,6 +1007,34 @@ model Item {
       );
     });
 
+    it('names the _id codec when the lookups know no MongoDB data type for it', () => {
+      const result = interpret(
+        `
+        model Item {
+          id   ObjectId @id @map("_id")
+          name String
+        }
+      `,
+        {
+          codecLookup: {
+            ...mongoCodecLookup,
+            descriptorFor: (id) =>
+              id === 'mongo/objectId@1' ? undefined : mongoCodecLookup.descriptorFor(id),
+          },
+        },
+      );
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_REQUIRED',
+          message:
+            'Model "Item" has an _id field whose codec "mongo/objectId@1" has no MongoDB data type, so its BSON type is unknown.',
+        },
+      ]);
+    });
+
     it('does not flag variant models (they inherit the base id)', () => {
       const ir = interpretOk(`
         model Post {
