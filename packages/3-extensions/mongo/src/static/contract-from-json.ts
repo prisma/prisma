@@ -16,6 +16,9 @@ const validator = `${mongoRuntimeTarget.targetId}@${version}`;
  * names, ready to pass to `mongo({ contract })` and `mongoStatic({ contract })`. Clients built from
  * the result do not validate it again.
  *
+ * The returned value's top level is frozen; its nested objects are not. Do not change `json` or the
+ * returned value after the call: clients built from the value later do not validate it again.
+ *
  * @example
  * ```ts
  * import type { Contract } from './contract.d';
