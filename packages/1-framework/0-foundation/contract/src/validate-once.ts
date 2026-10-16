@@ -34,7 +34,7 @@ export function validateContractOnce<TContract extends object>(
   const registry = validatedContracts();
   if (isObject(input)) {
     const recorded = registry.get(input);
-    if (recorded?.validator === validator) {
+    if (recorded !== undefined && recorded.validator === validator) {
       return blindCast<
         TContract,
         'the record for this validator holds the contract its validate function returned'
