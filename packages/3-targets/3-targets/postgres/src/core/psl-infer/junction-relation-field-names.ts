@@ -2,8 +2,8 @@ import { toModelName } from '@internal/family-sql/psl-infer';
 import { flatPslModels } from '@internal/framework-components/psl-ast';
 import { SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { noColumnDefaults } from './infer-default-codec';
-import { parseInferredDefault } from './infer-default-parser';
 import { buildPslDocumentAst } from './infer-psl-contract';
+import { noInferredDefaults } from './infer-read-defaults';
 import { createPostgresDefaultMapping } from './postgres-default-mapping';
 
 const EMPTY_FOREIGN_KEY_EXTRAS = {
@@ -59,7 +59,7 @@ export function junctionRelationFieldNames(
     {
       columnTypes: () => ({ path: ['Int'], args: [] }),
       defaultMapping: createPostgresDefaultMapping(),
-      parseRawDefault: parseInferredDefault,
+      defaultOf: noInferredDefaults,
       columnDefaults: noColumnDefaults,
     },
     EMPTY_FOREIGN_KEY_EXTRAS,

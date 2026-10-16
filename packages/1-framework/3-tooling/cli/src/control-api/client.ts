@@ -587,7 +587,7 @@ class ControlClientImpl implements ControlClient {
     return undefined;
   }
 
-  inferPslContract(schemaIR: unknown): PslDocumentAst | undefined {
+  async inferPslContract(schemaIR: unknown): Promise<PslDocumentAst | undefined> {
     this.init();
     if (this.familyInstance && hasPslContractInfer(this.familyInstance)) {
       return this.familyInstance.inferPslContract(schemaIR);

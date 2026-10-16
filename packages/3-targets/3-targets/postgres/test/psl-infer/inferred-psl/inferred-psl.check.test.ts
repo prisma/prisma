@@ -27,7 +27,7 @@ const derivedPrefix = composeCheckWirePrefix('users', 'tags', 'elementNotNull');
 const derivedHash = computeCheckContentHash(elementCandidate?.expression ?? '');
 
 describe('printPsl — @@check emission', () => {
-  it('a live check at exactly the derived wire name emits no @@check', () => {
+  it('a live check at exactly the derived wire name emits no @@check', async () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         users: {
@@ -50,12 +50,12 @@ describe('printPsl — @@check emission', () => {
         },
       },
     });
-    const psl = printPslFromFlat(schemaIR);
+    const psl = await printPslFromFlat(schemaIR);
     expect(psl).not.toContain('@@check');
     expect(psl).not.toContain('@noCheck');
   });
 
-  it('a live hand-written check emits @@check with the verbatim reprint', () => {
+  it('a live hand-written check emits @@check with the verbatim reprint', async () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         orders: {
@@ -78,7 +78,7 @@ describe('printPsl — @@check emission', () => {
         },
       },
     });
-    const psl = printPslFromFlat(schemaIR);
+    const psl = await printPslFromFlat(schemaIR);
     expect(psl).toMatchInlineSnapshot(`
       "// use prisma-8
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
@@ -94,7 +94,7 @@ describe('printPsl — @@check emission', () => {
     `);
   });
 
-  it('a table carrying both a derived and a hand-written check emits exactly one @@check', () => {
+  it('a table carrying both a derived and a hand-written check emits exactly one @@check', async () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         users: {
@@ -122,7 +122,7 @@ describe('printPsl — @@check emission', () => {
         },
       },
     });
-    const psl = printPslFromFlat(schemaIR);
+    const psl = await printPslFromFlat(schemaIR);
     expect(psl.match(/@@check/g) ?? []).toHaveLength(1);
     expect(psl).not.toContain('@noCheck');
     expect(psl).toMatchInlineSnapshot(`

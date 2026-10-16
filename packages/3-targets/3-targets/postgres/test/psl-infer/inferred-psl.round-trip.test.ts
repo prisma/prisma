@@ -30,7 +30,6 @@ import {
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { postgresDataTypes } from '../../src/core/data-types';
 import { type PostgresSchema, postgresCreateNamespace } from '../../src/core/postgres-schema';
-import { parseInferredDefault } from '../../src/core/psl-infer/infer-default-parser';
 import { postgresCodecRegistry } from '../../src/core/registry';
 import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 import { printPslFromFlat } from './fixtures';
@@ -80,13 +79,12 @@ function introspected(
     default: rawDefault,
     ...ifDefined('many', shape.many),
     resolvedNativeType,
-    ...ifDefined('resolvedDefault', parseInferredDefault(rawDefault, resolvedNativeType)),
   };
 }
 
 /** The `default` each column carries after printing the schema and interpreting what was printed. */
-function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
-  const printed = printPslFromFlat(
+async function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
+  const printed = await printPslFromFlat(
     new SqlSchemaIR({
       tables: {
         account: {
@@ -153,9 +151,9 @@ function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
 }
 
 describe('a printed default reads back as the value the database reported, in the text the contract stores', () => {
-  it('round-trips every literal form the printer writes', () => {
+  it('round-trips every literal form the printer writes', async () => {
     expect(
-      roundTrippedDefaults([
+      await roundTrippedDefaults([
         introspected('name', 'text', "'anonymous'::text"),
         introspected(
           'quoted',
@@ -218,15 +216,15 @@ two lines é'::text`,
     ['timestamp', "'infinity'::timestamp without time zone", 'infinity'],
     ['timestamptz', "'-infinity'::timestamp with time zone", '-infinity'],
     ['date', "'infinity'::date", 'infinity'],
-  ])('round-trips a %s default of %s', (nativeType, rawDefault, value) => {
-    expect(roundTrippedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
+  ])('round-trips a %s default of %s', async (nativeType, rawDefault, value) => {
+    expect(await roundTrippedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
       stamp: { kind: 'literal', value },
     });
   });
 
-  it('round-trips a list of timestamps', () => {
+  it('round-trips a list of timestamps', async () => {
     expect(
-      roundTrippedDefaults([
+      await roundTrippedDefaults([
         introspected(
           'stamps',
           'timestamp(3)',
@@ -237,9 +235,9 @@ two lines é'::text`,
     ).toEqual({ stamps: { kind: 'literal', value: ['2024-01-01T00:00:00'] } });
   });
 
-  it('round-trips a default of every parameterized type infer writes', () => {
+  it('round-trips a default of every parameterized type infer writes', async () => {
     expect(
-      roundTrippedDefaults([
+      await roundTrippedDefaults([
         introspected('name', 'character varying(10)', "'abc'::character varying"),
         introspected('code', 'character(10)', "'abc'::bpchar"),
         introspected('hundreds', 'numeric(5,-2)', '12300'),

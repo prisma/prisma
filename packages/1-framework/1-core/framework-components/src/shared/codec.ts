@@ -70,19 +70,6 @@ export function readContractValue(
   );
 }
 
-/**
- * The application value `codec` gives for `json`, a value the database reports or returns as JSON for a column with the column's `typeParams`: the codec's data type reads it in any spelling the type reads and writes the spelling the parameters give, as `toDataTypeValue` does, and the codec converts the value. A stored contract value is read with {@link readContractValue}, which refuses another spelling.
- */
-export function readReportedValue(
-  codec: Pick<Codec, 'dataType' | 'fromDataTypeValue'>,
-  json: JsonValue,
-  typeParams: unknown,
-): unknown {
-  return codec.fromDataTypeValue(
-    dataTypeValueFor(codec.dataType, dataTypeParamsOf(codec.dataType, typeParams), json),
-  );
-}
-
 function namedDataType(descriptor: object): unknown {
   return Reflect.get(descriptor, 'dataType');
 }

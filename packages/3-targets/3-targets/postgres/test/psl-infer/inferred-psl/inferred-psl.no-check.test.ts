@@ -56,8 +56,8 @@ function schemaWithCheck(hash: string | undefined): SqlSchemaIR {
 }
 
 describe('printPsl — @noCheck emission', () => {
-  it('a live check at exactly the derived wire name emits no @noCheck', () => {
-    const psl = printPslFromFlat(schemaWithCheck(derivedHash));
+  it('a live check at exactly the derived wire name emits no @noCheck', async () => {
+    const psl = await printPslFromFlat(schemaWithCheck(derivedHash));
     expect(formatWireName(derivedPrefix, derivedHash)).toMatch(
       /^users_tags_elem_not_null_[0-9a-f]{8}$/,
     );
@@ -65,13 +65,13 @@ describe('printPsl — @noCheck emission', () => {
     expect(psl).not.toContain('@noCheck');
   });
 
-  it('a live check under the same prefix but a different hash emits @noCheck(elementNotNull)', () => {
-    const psl = printPslFromFlat(schemaWithCheck('deadbeef'));
+  it('a live check under the same prefix but a different hash emits @noCheck(elementNotNull)', async () => {
+    const psl = await printPslFromFlat(schemaWithCheck('deadbeef'));
     expect(psl).toMatch(/tags\s+String\[\]\s+@noCheck\(elementNotNull\)/);
   });
 
-  it('no live check at all emits @noCheck(elementNotNull)', () => {
-    const psl = printPslFromFlat(schemaWithCheck(undefined));
+  it('no live check at all emits @noCheck(elementNotNull)', async () => {
+    const psl = await printPslFromFlat(schemaWithCheck(undefined));
     expect(psl).toMatch(/tags\s+String\[\]\s+@noCheck\(elementNotNull\)/);
   });
 });

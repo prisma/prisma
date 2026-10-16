@@ -147,7 +147,7 @@ async function inferPsl(connectionString: string): Promise<string> {
   const driver = await postgresControlDriver.create(connectionString);
   try {
     const schema = await familyInstance.introspect({ driver });
-    return printPsl(familyInstance.inferPslContract(schema), {
+    return printPsl(await familyInstance.inferPslContract(schema), {
       pslBlockDescriptors: controlStack.authoringContributions.pslBlockDescriptors,
     });
   } finally {

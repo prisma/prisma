@@ -1,7 +1,6 @@
 import { type SqlColumnIRInput, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
-import { parseInferredDefault } from '../../../src/core/psl-infer/infer-default-parser';
 import { printPslFromFlat } from '../fixtures';
 
 /**
@@ -22,12 +21,11 @@ function introspected(
     default: rawDefault,
     ...ifDefined('many', shape.many),
     resolvedNativeType,
-    ...ifDefined('resolvedDefault', parseInferredDefault(rawDefault, resolvedNativeType)),
   };
 }
 
-function printTable(name: string, columns: readonly SqlColumnIRInput[]): string {
-  return printPslFromFlat(
+async function printTable(name: string, columns: readonly SqlColumnIRInput[]): Promise<string> {
+  return await printPslFromFlat(
     new SqlSchemaIR({
       tables: {
         [name]: {
@@ -50,8 +48,8 @@ function printTable(name: string, columns: readonly SqlColumnIRInput[]): string 
 
 describe('printPsl literal defaults', () => {
   describe('given scalar columns', () => {
-    it('prints each default as the literal its codec accepts, with every digit and no exponent', () => {
-      const output = printTable('number_defaults', [
+    it('prints each default as the literal its codec accepts, with every digit and no exponent', async () => {
+      const output = await printTable('number_defaults', [
         introspected('negInt', 'int4', "'-1'::integer"),
         introspected('negSmallInt', 'int2', "'-2'::integer"),
         introspected('negFloat', 'float8', "'-1.5'::numeric"),
@@ -79,10 +77,10 @@ describe('printPsl literal defaults', () => {
           negFloat      Float           @default(-1.5)
           tinyFloat     Float           @default(0.0000001)
           negReal       Real            @default(-2.5)
-          negDecimal    Numeric(65, 30) @default(-0.5)
-          longDecimal   Numeric(65, 30) @default(12345678901234567890.123456789)
-          tinyDecimal   Numeric(65, 30) @default(0.000000000000000001)
-          scaleDecimal  Numeric(65, 30) @default(1.50)
+          negDecimal    Numeric(65, 30) @default(-0.500000000000000000000000000000)
+          longDecimal   Numeric(65, 30) @default(12345678901234567890.123456789000000000000000000000)
+          tinyDecimal   Numeric(65, 30) @default(0.000000000000000001000000000000)
+          scaleDecimal  Numeric(65, 30) @default(1.500000000000000000000000000000)
           scaledDecimal Numeric(10, 2)  @default(-1.25)
           safeBigInt    BigInt          @default(5)
           negSafeBigInt BigInt          @default(-5)
@@ -95,8 +93,8 @@ describe('printPsl literal defaults', () => {
       `);
     });
 
-    it('prints a default that has no PSL literal as a sql tagged literal holding the expression Postgres printed', () => {
-      const output = printTable('raw_defaults', [
+    it('prints a default that has no PSL literal as a sql tagged literal holding the expression Postgres printed', async () => {
+      const output = await printTable('raw_defaults', [
         introspected('stamp', 'timestamp(3)', "'2024-01-01 00:00:00'::timestamp without time zone"),
         introspected('day', 'date', "'2024-01-01'::date"),
         introspected('jsonNull', 'jsonb', "'null'::jsonb", { nullable: true }),
@@ -124,8 +122,8 @@ describe('printPsl literal defaults', () => {
   });
 
   describe('given character columns with a length', () => {
-    it('prints a default the column holds as a quoted string, read by the codec built with that length', () => {
-      const output = printTable('char_defaults', [
+    it('prints a default the column holds as a quoted string, read by the codec built with that length', async () => {
+      const output = await printTable('char_defaults', [
         introspected('code', 'character(10)', "'abc'::bpchar"),
         introspected('one', 'character(1)', "'a'::bpchar"),
         introspected('name', 'character varying(10)', "'abc'::character varying"),
@@ -144,8 +142,8 @@ describe('printPsl literal defaults', () => {
   });
 
   describe('given special values and a time with time zone, written in SQL', () => {
-    it('prints each default as the literal its column takes', () => {
-      const output = printTable('special_value_defaults', [
+    it('prints each default as the literal its column takes', async () => {
+      const output = await printTable('special_value_defaults', [
         introspected('floatNaN', 'float8', "'NaN'::double precision"),
         introspected('floatNegInf', 'float8', "'-Infinity'::double precision"),
         introspected('realNaN', 'float4', "'NaN'::real"),
@@ -173,8 +171,8 @@ describe('printPsl literal defaults', () => {
   });
 
   describe('given list columns Prisma 7 created', () => {
-    it('prints each element as the literal its codec accepts', () => {
-      const output = printTable('list_defaults', [
+    it('prints each element as the literal its codec accepts', async () => {
+      const output = await printTable('list_defaults', [
         introspected('negInts', 'int4', "ARRAY['-1'::integer, 2]", { many: true }),
         introspected('negSmallInts', 'int2', "ARRAY[('-1'::integer)::smallint, (2)::smallint]", {
           many: true,
@@ -229,8 +227,8 @@ describe('printPsl literal defaults', () => {
           emptyBigInts   BigInt[]?          @default([]) @noCheck(elementNotNull)
           hugeBigInts    BigInt[]?          @default([9007199254740993, -9007199254740993]) @noCheck(elementNotNull)
           negFloats      Float[]?           @default([-1.5, 2]) @noCheck(elementNotNull)
-          longDecimals   Numeric(65, 30)[]? @default([12345678901234567890.123456789, 0.000000000000000001]) @noCheck(elementNotNull)
-          scaledDecimals Numeric(10, 2)[]?  @default([-1.25, 2]) @noCheck(elementNotNull)
+          longDecimals   Numeric(65, 30)[]? @default([12345678901234567890.123456789000000000000000000000, 0.000000000000000001000000000000]) @noCheck(elementNotNull)
+          scaledDecimals Numeric(10, 2)[]?  @default([-1.25, 2.00]) @noCheck(elementNotNull)
           emptyVarchars  VarChar(32)[]?     @default([]) @noCheck(elementNotNull)
 
           @@map("list_defaults")
@@ -239,8 +237,8 @@ describe('printPsl literal defaults', () => {
       `);
     });
 
-    it('prints a default with an element that has no PSL literal as a sql tagged literal holding the expression Postgres printed', () => {
-      const output = printTable('raw_list_defaults', [
+    it('prints a default with an element that has no PSL literal as a sql tagged literal holding the expression Postgres printed', async () => {
+      const output = await printTable('raw_list_defaults', [
         introspected(
           'timestamps',
           'timestamp(3)',

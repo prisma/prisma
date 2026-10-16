@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { printPslFromFlat } from '../fixtures';
 
 describe('printPsl — nullable list columns', () => {
-  it('a nullable text[] column prints String[]? next to a NOT NULL text[] printing String[]', () => {
+  it('a nullable text[] column prints String[]? next to a NOT NULL text[] printing String[]', async () => {
     const schemaIR = new SqlSchemaIR({
       tables: {
         users: {
@@ -20,7 +20,7 @@ describe('printPsl — nullable list columns', () => {
         },
       },
     });
-    const psl = printPslFromFlat(schemaIR);
+    const psl = await printPslFromFlat(schemaIR);
     expect(psl).toMatch(/^\s*labels\s+String\[\]\?(\s|$)/m);
     expect(psl).toMatch(/^\s*tags\s+String\[\](\s|$)/m);
     expect(psl).not.toMatch(/tags\s+String\[\]\?/);

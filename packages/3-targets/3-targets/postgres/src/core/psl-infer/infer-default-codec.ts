@@ -18,7 +18,7 @@ import {
   type AnyCodecDescriptor,
   type CodecRef,
   codecForRef,
-  readReportedValue,
+  readContractValue,
 } from '@internal/framework-components/codec';
 import { parsePslPositionalArgs } from '@internal/psl-parser/interpret';
 import { blindCast } from '@internal/utils/casts';
@@ -50,7 +50,7 @@ export interface InferredColumnDefaults {
  * constructor names, with the type parameters the call's arguments give. An enum column's default
  * is a member name, which is text either way, so it reads through the text codec.
  */
-function inferredCodecRef(
+export function inferredCodecRef(
   context: SqlPslBuildContext,
   pslType: InferredPslType,
   isEnum: boolean,
@@ -104,7 +104,7 @@ export function inferredColumnDefaults(context: SqlPslBuildContext): InferredCol
         const codec = codecForRef(context.codecLookup, ref);
         if (codec === undefined) return false;
         for (const element of values) {
-          readReportedValue(
+          readContractValue(
             codec,
             blindCast<JsonValue, 'a stored literal default is JSON'>(element),
             ref.typeParams,

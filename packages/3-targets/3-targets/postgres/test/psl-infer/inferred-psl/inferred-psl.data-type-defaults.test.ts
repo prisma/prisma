@@ -4,7 +4,6 @@ import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
-import { parseInferredDefault } from '../../../src/core/psl-infer/infer-default-parser';
 import { inferBuildContext, printPslFromFlat } from '../fixtures';
 
 /** The backtick fencing a tagged literal, as an escape so no quoted string in this file holds one. */
@@ -27,13 +26,14 @@ function introspected(
     default: rawDefault,
     ...ifDefined('many', shape.many),
     resolvedNativeType,
-    ...ifDefined('resolvedDefault', parseInferredDefault(rawDefault, resolvedNativeType)),
   };
 }
 
 /** The `@default(...)` each column prints, keyed by field name. */
-function printedDefaults(columns: readonly SqlColumnIRInput[]): Record<string, string> {
-  const output = printPslFromFlat(
+async function printedDefaults(
+  columns: readonly SqlColumnIRInput[],
+): Promise<Record<string, string>> {
+  const output = await printPslFromFlat(
     new SqlSchemaIR({
       tables: {
         account: {
@@ -64,9 +64,9 @@ function printedDefaults(columns: readonly SqlColumnIRInput[]): Record<string, s
 }
 
 describe('printPsl writes each default as the literal the column data type takes', () => {
-  it('prints every literal form the outcome schema writes', () => {
+  it('prints every literal form the outcome schema writes', async () => {
     expect(
-      printedDefaults([
+      await printedDefaults([
         introspected('name', 'text', "'anonymous'::text"),
         introspected('small', 'int2', "'100'::integer"),
         introspected('count', 'int4', "'100000'::integer"),
@@ -92,20 +92,22 @@ describe('printPsl writes each default as the literal the column data type takes
     });
   });
 
-  it('prints every digit of an int8 past the safe integer range', () => {
-    expect(printedDefaults([introspected('big', 'int8', "'9007199254740993'::bigint")])).toEqual({
+  it('prints every digit of an int8 past the safe integer range', async () => {
+    expect(
+      await printedDefaults([introspected('big', 'int8', "'9007199254740993'::bigint")]),
+    ).toEqual({
       big: '@default(9007199254740993)',
     });
   });
 
-  it('prints a whole number cast up to the column type', () => {
-    expect(printedDefaults([introspected('balance', 'int8', "'42'::bigint")])).toEqual({
+  it('prints a whole number cast up to the column type', async () => {
+    expect(await printedDefaults([introspected('balance', 'int8', "'42'::bigint")])).toEqual({
       balance: '@default(42)',
     });
   });
 
-  it('prints text that a number would classify as text, because the column holds text', () => {
-    expect(printedDefaults([introspected('name', 'text', "'100'::text")])).toEqual({
+  it('prints text that a number would classify as text, because the column holds text', async () => {
+    expect(await printedDefaults([introspected('name', 'text', "'100'::text")])).toEqual({
       name: '@default("100")',
     });
   });
@@ -114,8 +116,8 @@ describe('printPsl writes each default as the literal the column data type takes
     ['NaN', "'NaN'::numeric", '@default(NaN)'],
     ['Infinity', "'Infinity'::numeric", '@default(Infinity)'],
     ['-Infinity', "'-Infinity'::numeric", '@default(-Infinity)'],
-  ])('prints the float8 %s unquoted', (_name, rawDefault, expected) => {
-    expect(printedDefaults([introspected('ratio', 'float8', rawDefault)])).toEqual({
+  ])('prints the float8 %s unquoted', async (_name, rawDefault, expected) => {
+    expect(await printedDefaults([introspected('ratio', 'float8', rawDefault)])).toEqual({
       ratio: expected,
     });
   });
@@ -123,8 +125,10 @@ describe('printPsl writes each default as the literal the column data type takes
   it.each([
     ['a quoted json null element', `ARRAY['null'::jsonb]`, `@default([${tagged('json', 'null')}])`],
     ['a quoted json document element', `ARRAY['{}'::jsonb]`, `@default([${tagged('json', '{}')}])`],
-  ])('prints %s', (_name, rawDefault, expected) => {
-    expect(printedDefaults([introspected('docs', 'jsonb', rawDefault, { many: true })])).toEqual({
+  ])('prints %s', async (_name, rawDefault, expected) => {
+    expect(
+      await printedDefaults([introspected('docs', 'jsonb', rawDefault, { many: true })]),
+    ).toEqual({
       docs: expected,
     });
   });
@@ -134,8 +138,10 @@ describe('printPsl writes each default as the literal the column data type takes
     ['an unquoted SQL NULL in an array literal body', `'{NULL}'::jsonb[]`],
   ])(
     'falls back to the raw expression for %s, which is not the JSON value null',
-    (_name, rawDefault) => {
-      const printed = printedDefaults([introspected('docs', 'jsonb', rawDefault, { many: true })]);
+    async (_name, rawDefault) => {
+      const printed = await printedDefaults([
+        introspected('docs', 'jsonb', rawDefault, { many: true }),
+      ]);
       expect(printed['docs']).not.toContain(tagged('json', 'null'));
     },
   );
@@ -147,8 +153,8 @@ describe('printPsl writes each default as the literal the column data type takes
     ['-infinity', 'date', "'-infinity'::date"],
   ])(
     'prints the %s sentinel on a %s column with the column type tag',
-    (sentinel, nativeType, rawDefault) => {
-      expect(printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
+    async (sentinel, nativeType, rawDefault) => {
+      expect(await printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
         stamp: `@default(${tagged(nativeType, sentinel)})`,
       });
     },
@@ -165,15 +171,18 @@ describe('printPsl writes each default as the literal the column data type takes
       "'0044-03-15 00:00:00+00 BC'::timestamp with time zone",
       '-000043-03-15T00:00:00Z',
     ],
-  ])('prints a %s default with its tag, in canonical form', (nativeType, rawDefault, standard) => {
-    expect(printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
-      stamp: `@default(${tagged(nativeType, standard)})`,
-    });
-  });
+  ])(
+    'prints a %s default with its tag, in canonical form',
+    async (nativeType, rawDefault, standard) => {
+      expect(await printedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
+        stamp: `@default(${tagged(nativeType, standard)})`,
+      });
+    },
+  );
 
-  it('prints a bytea default with the bytea tag, in the hex PostgreSQL prints', () => {
+  it('prints a bytea default with the bytea tag, in the hex PostgreSQL prints', async () => {
     expect(
-      printedDefaults([
+      await printedDefaults([
         introspected('blob', 'bytea', "'\\x68656c6c6f'::bytea"),
         introspected('empty', 'bytea', "'\\x'::bytea"),
         introspected('blobs', 'bytea', "ARRAY['\\x68656c6c6f'::bytea, '\\x0001'::bytea]", {
@@ -190,42 +199,42 @@ describe('printPsl writes each default as the literal the column data type takes
   it.each([
     ['a database function', 'uuid', 'gen_random_uuid()'],
     ['an expression', 'timestamptz', "(now() + '00:03:00'::interval)"],
-  ])('prints %s as a sql tagged literal', (_name, nativeType, rawDefault) => {
-    expect(printedDefaults([introspected('value', nativeType, rawDefault)])).toEqual({
+  ])('prints %s as a sql tagged literal', async (_name, nativeType, rawDefault) => {
+    expect(await printedDefaults([introspected('value', nativeType, rawDefault)])).toEqual({
       value: `@default(sql${BACKTICK}${rawDefault}${BACKTICK})`,
     });
   });
 
-  it('prints an expression holding a backtick inside the double-quote fence', () => {
+  it('prints an expression holding a backtick inside the double-quote fence', async () => {
     const rawDefault = `concat('${BACKTICK}', 'x')`;
-    expect(printedDefaults([introspected('value', 'text', rawDefault)])).toEqual({
+    expect(await printedDefaults([introspected('value', 'text', rawDefault)])).toEqual({
       value: `@default(sql"${rawDefault}")`,
     });
   });
 
-  it('prints a text literal cast to the column type as a string literal', () => {
-    expect(printedDefaults([introspected('label', 'text', "'draft'::text")])).toEqual({
+  it('prints a text literal cast to the column type as a string literal', async () => {
+    expect(await printedDefaults([introspected('label', 'text', "'draft'::text")])).toEqual({
       label: '@default("draft")',
     });
   });
 
-  it('prints a jsonb literal cast to the column type as a json literal', () => {
-    expect(printedDefaults([introspected('meta', 'jsonb', "'{}'::jsonb")])).toEqual({
+  it('prints a jsonb literal cast to the column type as a json literal', async () => {
+    expect(await printedDefaults([introspected('meta', 'jsonb', "'{}'::jsonb")])).toEqual({
       meta: `@default(${tagged('json', '{}')})`,
     });
   });
 
-  it('refuses a column whose type no data type in the stack claims', () => {
-    expect(() =>
+  it('refuses a column whose type no data type in the stack claims', async () => {
+    await expect(
       printedDefaults([introspected('area', 'geometry', "'POINT(0 0)'::geometry")]),
-    ).toThrow(expect.objectContaining({ code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED' }));
+    ).rejects.toThrow(expect.objectContaining({ code: 'CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED' }));
   });
 });
 
 describe('the codec of each inferred type name, from the stack', () => {
   const { codecOf } = inferredColumnDefaults(inferBuildContext);
 
-  it('names one for every constructor contract infer writes', () => {
+  it('names one for every constructor contract infer writes', async () => {
     const paths = [
       ...inferredTypeConstructors({
         authoringTypes: inferBuildContext.authoringContributions.type,
@@ -239,11 +248,11 @@ describe('the codec of each inferred type name, from the stack', () => {
     expect(paths.filter((path) => codecOf({ path }, false) === undefined)).toEqual([]);
   });
 
-  it('reads an enum column through the text codec, whose members are text', () => {
+  it('reads an enum column through the text codec, whose members are text', async () => {
     expect(codecOf({ path: ['SomeEnum'] }, true)?.codecId).toBe('pg/text@1');
   });
 
-  it('names nothing for a type no type constructor has', () => {
+  it('names nothing for a type no type constructor has', async () => {
     expect(codecOf({ path: ['NoSuchType'] }, false)).toBeUndefined();
   });
 });
@@ -268,13 +277,13 @@ describe('a failure the default checks do not expect', () => {
   };
   const { readsBack } = inferredColumnDefaults(brokenContext);
 
-  it('passes an internal error through instead of printing the default as raw SQL', () => {
+  it('passes an internal error through instead of printing the default as raw SQL', async () => {
     expect(() => readsBack('abc', { path: ['String'] }, false, false)).toThrow(
       'a codec pack broke an invariant',
     );
   });
 
-  it('still reads a structured refusal as a default the codec does not take', () => {
+  it('still reads a structured refusal as a default the codec does not take', async () => {
     expect(
       inferredColumnDefaults(inferBuildContext).readsBack(1, { path: ['String'] }, false, false),
     ).toBe(false);

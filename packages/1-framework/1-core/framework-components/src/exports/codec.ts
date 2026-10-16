@@ -7,7 +7,7 @@
  */
 
 export type { Codec } from '../shared/codec';
-export { CodecImpl, readContractValue, readReportedValue } from '../shared/codec';
+export { CodecImpl, readContractValue } from '../shared/codec';
 export type {
   AnyCodecDescriptor,
   AnyCodecDescriptorTemplate,
