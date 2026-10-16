@@ -117,7 +117,7 @@ model Event {
 }
 ```
 
-The tag is named after the column's PostgreSQL type: `timestamptz` for `DateTime`, `timestamp`, `date`, `time`, `timetz` and `interval` for the types of those names, and `bytea` for `Bytes`. A date or time tag takes the text you wrote. A `bytea` tag takes the bytes as hexadecimal after `\x`, not base64: `"AQID"` is the bytes 01 02 03, so write `bytea`\x010203``. For bytes, the message names only the tag (`Expected bytea`...``).
+The tag is named after the column's PostgreSQL type: `timestamptz` for `DateTime`, `timestamp`, `date`, `time`, `timetz` and `interval` for the types of those names, and `bytea` for `Bytes`. A date or time tag takes the text you wrote. A `bytea` tag takes the bytes as hexadecimal after `\x`, not base64: `"AQID"` is the bytes 01 02 03, so write `bytea`\x010203``. For bytes, the message depends on what you quoted. A quoted hex string gets the full rewrite (`Expected bytea`...`; write bytea`\x010203``). A quoted base64 string gets a message naming only the tag (`Expected bytea`...``), because `contract emit` cannot tell base64 from hex text; convert the bytes to hex yourself.
 
 On SQLite, a `DateTime` default uses the `datetime` tag:
 
