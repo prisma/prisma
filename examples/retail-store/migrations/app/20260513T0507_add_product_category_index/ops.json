@@ -93,6 +93,11 @@
               "kind": "exists",
               "field": "wildcardProjection",
               "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "collation",
+              "exists": false
             }
           ]
         },
