@@ -249,21 +249,21 @@ type ParameterizedOutputTypeFunctions =
 
 type FieldTypeOverrides = {
   readonly public: {
-    readonly List: {
-      readonly mood: { readonly output: 'happy' | 'sad'; readonly input: 'happy' | 'sad' };
-    };
-    readonly Scalar: {
-      readonly mood: { readonly output: 'happy' | 'sad'; readonly input: 'happy' | 'sad' };
+    readonly models: {
+      readonly List: {
+        readonly mood: { readonly output: 'happy' | 'sad'; readonly input: 'happy' | 'sad' };
+      };
+      readonly Scalar: {
+        readonly mood: { readonly output: 'happy' | 'sad'; readonly input: 'happy' | 'sad' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -271,7 +271,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 type ColumnTypeOverrides = {

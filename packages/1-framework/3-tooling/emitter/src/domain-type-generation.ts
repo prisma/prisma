@@ -361,7 +361,7 @@ export function parameterizedOutputTypeFunctionsAlias(
 
 /** `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`): the shared generic applied to the emitted contract's domain, with `FieldTypeOverrides`. */
 export function fieldTypesMapExpression(side: 'output' | 'input'): string {
-  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ValueObjectFieldTypeOverrides, ${serializeValue(side)}>`;
+  return `FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}>`;
 }
 
 export function generateContractFieldDescriptor(fieldName: string, field: ContractField): string {
@@ -411,7 +411,7 @@ export function generateValueObjectTypeAliases(
     return '';
   }
   const generic = (side: 'output' | 'input') =>
-    `ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, ValueObjectFieldTypeOverrides, ${serializeValue(side)}>`;
+    `ValueObjectTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ${PARAMETERIZED_OUTPUT_TYPE_FUNCTIONS}, FieldTypeOverrides, ${serializeValue(side)}>`;
   const aliases = [
     `type ValueObjectOutputTypes = ${generic('output')};`,
     `type ValueObjectInputTypes = ${generic('input')};`,
@@ -489,77 +489,58 @@ export function renderTypeOverride(override: TypeOverride): string {
   return `{ ${sides.join('; ')} }`;
 }
 
-type OverridePath = readonly [string, string, string];
+type OverrideTree = Map<string, OverrideTree | TypeOverride>;
 
-/** A nested map of type overrides, ordered by name at every level, leaving out every branch with no entry. */
+/** A nested map of type overrides, one level per path segment, ordered by name at every level, leaving out every branch with no entry. */
 export function renderTypeOverridesMap(
-  entries: ReadonlyArray<readonly [string, string, string, TypeOverride | undefined]>,
+  entries: ReadonlyArray<readonly [path: readonly string[], type: TypeOverride | undefined]>,
 ): string {
-  const sorted = entries
-    .flatMap(([first, second, third, type]) => {
-      const path: OverridePath = [first, second, third];
-      return type === undefined ? [] : [{ path, type }];
-    })
-    .sort((a, b) => comparePaths(a.path, b.path));
-  const outer = new Map<string, Map<string, string[]>>();
-  for (const { path, type } of sorted) {
-    const [first, second, third] = path;
-    const middle = outer.get(first) ?? new Map<string, string[]>();
-    outer.set(first, middle);
-    const inner = middle.get(second) ?? [];
-    middle.set(second, inner);
-    inner.push(`readonly ${serializeObjectKey(third)}: ${renderTypeOverride(type)}`);
+  const root: OverrideTree = new Map();
+  for (const [path, type] of entries) {
+    if (type === undefined) continue;
+    let node = root;
+    for (const segment of path.slice(0, -1)) {
+      const child = node.get(segment);
+      const next: OverrideTree = child instanceof Map ? child : new Map();
+      node.set(segment, next);
+      node = next;
+    }
+    const leaf = path.at(-1);
+    if (leaf !== undefined) node.set(leaf, type);
   }
-  const firstParts = [...outer].map(([first, middle]) => {
-    const secondParts = [...middle].map(
-      ([second, inner]) => `readonly ${serializeObjectKey(second)}: { ${inner.join('; ')} }`,
+  return renderOverrideTree(root);
+}
+
+function renderOverrideTree(tree: OverrideTree): string {
+  const parts = [...tree]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(
+      ([key, value]) =>
+        `readonly ${serializeObjectKey(key)}: ${value instanceof Map ? renderOverrideTree(value) : renderTypeOverride(value)}`,
     );
-    return `readonly ${serializeObjectKey(first)}: { ${secondParts.join('; ')} }`;
-  });
-  return `{ ${firstParts.join('; ')} }`;
-}
-
-function comparePaths(a: OverridePath, b: OverridePath): number {
-  return a[0].localeCompare(b[0]) || a[1].localeCompare(b[1]) || a[2].localeCompare(b[2]);
-}
-
-/** `FieldTypeOverrides`: per namespace, model and field, the type of each field its codec does not give. */
-export function generateFieldTypeOverridesMap(
-  namespaceModels: ReadonlyArray<readonly [string, Record<string, ContractModelBase>]>,
-  codecLookup: CodecLookup | undefined,
-  resolveFieldValueSet: FieldValueSetResolver | undefined,
-): string {
-  return renderTypeOverridesMap(
-    namespaceModels.flatMap(([nsId, models]) =>
-      Object.entries(models).flatMap(([modelName, model]) =>
-        Object.entries(model.fields).map(
-          ([fieldName, field]) =>
-            [
-              nsId,
-              modelName,
-              fieldName,
-              resolveFieldTypeOverride(
-                field,
-                codecLookup,
-                resolveFieldValueSet?.(modelName, fieldName, model),
-              ),
-            ] as const,
-        ),
-      ),
-    ),
-  );
+  return `{ ${parts.join('; ')} }`;
 }
 
 /**
- * The values of the domain enum a field's value set names, with the field's codec. A value object field has no storage of its own, so its value set is read from the domain: a reference to a storage value set gives `undefined`.
+ * The values a field's value set holds, with the field's codec. A reference to a domain enum is read from the contract's domain, for model and value object fields alike. Any other model field goes to the family's `resolveStorageValueSet`, which reads its storage. A value object field has no storage of its own.
  */
-export function resolveDomainValueSet(
+function resolveFieldValueSet(
+  field: ContractField,
+  contract: Pick<Contract, 'domain'>,
+  resolveStorageValueSet: () => ResolvedFieldValueSet | undefined,
+): ResolvedFieldValueSet | undefined {
+  if (field.valueSet?.plane === 'domain') return resolveDomainValueSet(field, contract);
+  return resolveStorageValueSet();
+}
+
+function resolveDomainValueSet(
   field: ContractField,
   contract: Pick<Contract, 'domain'>,
 ): ResolvedFieldValueSet | undefined {
   const ref = field.valueSet;
-  if (ref === undefined || field.type.kind !== 'scalar') return undefined;
-  if (ref.plane !== 'domain' || ref.entityKind !== 'enum') return undefined;
+  if (ref === undefined || field.type.kind !== 'scalar' || ref.entityKind !== 'enum') {
+    return undefined;
+  }
   const domainEnum = contract.domain.namespaces[ref.namespaceId]?.enum?.[ref.entityName];
   if (domainEnum === undefined) return undefined;
   return {
@@ -568,29 +549,48 @@ export function resolveDomainValueSet(
   };
 }
 
-/** `ValueObjectFieldTypeOverrides`: per namespace, value object and field, the type of each field its codec does not give. */
-export function generateValueObjectFieldTypeOverridesMap(
+/** `FieldTypeOverrides`: per namespace, `models` or `valueObjects`, owner and field, the type of each field its codec does not give. */
+export function generateFieldTypeOverridesMap(
   contract: Pick<Contract, 'domain'>,
   codecLookup: CodecLookup | undefined,
+  resolveStorageValueSet: FieldValueSetResolver | undefined,
 ): string {
   return renderTypeOverridesMap(
-    Object.entries(contract.domain.namespaces).flatMap(([nsId, ns]) =>
-      Object.entries(
-        blindCast<
-          Record<string, ContractValueObject>,
-          'ns.valueObjects is a ContractValueObject record in the emitted IR (default to {} when absent)'
-        >(ns.valueObjects ?? {}),
-      ).flatMap(([valueObjectName, valueObject]) =>
-        Object.entries(valueObject.fields).map(
+    Object.entries(contract.domain.namespaces).flatMap(([nsId, ns]) => {
+      const modelFields = Object.entries(ns.models).flatMap(([modelName, model]) =>
+        Object.entries(model.fields).map(
           ([fieldName, field]) =>
             [
-              nsId,
-              valueObjectName,
-              fieldName,
-              resolveFieldTypeOverride(field, codecLookup, resolveDomainValueSet(field, contract)),
+              [nsId, 'models', modelName, fieldName],
+              resolveFieldTypeOverride(
+                field,
+                codecLookup,
+                resolveFieldValueSet(field, contract, () =>
+                  resolveStorageValueSet?.(modelName, fieldName, model),
+                ),
+              ),
             ] as const,
         ),
-      ),
-    ),
+      );
+      const valueObjects = blindCast<
+        Record<string, ContractValueObject>,
+        'ns.valueObjects is a ContractValueObject record in the emitted IR (default to {} when absent)'
+      >(ns.valueObjects ?? {});
+      const valueObjectFields = Object.entries(valueObjects).flatMap(
+        ([valueObjectName, valueObject]) =>
+          Object.entries(valueObject.fields).map(
+            ([fieldName, field]) =>
+              [
+                [nsId, 'valueObjects', valueObjectName, fieldName],
+                resolveFieldTypeOverride(
+                  field,
+                  codecLookup,
+                  resolveFieldValueSet(field, contract, () => undefined),
+                ),
+              ] as const,
+          ),
+      );
+      return [...modelFields, ...valueObjectFields];
+    }),
   );
 }

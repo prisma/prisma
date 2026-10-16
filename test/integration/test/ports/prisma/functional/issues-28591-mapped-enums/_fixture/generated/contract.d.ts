@@ -239,21 +239,21 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
 type FieldTypeOverrides = {
   readonly public: {
-    readonly SuggestionModel: {
-      readonly status: {
-        readonly output: 'pending' | 'accepted' | 'rejected';
-        readonly input: 'pending' | 'accepted' | 'rejected';
+    readonly models: {
+      readonly SuggestionModel: {
+        readonly status: {
+          readonly output: 'pending' | 'accepted' | 'rejected';
+          readonly input: 'pending' | 'accepted' | 'rejected';
+        };
       };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -261,7 +261,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 type ColumnTypeOverrides = {

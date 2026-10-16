@@ -242,32 +242,32 @@ type ValueObjectOutputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'output'
 >;
 type ValueObjectInputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'input'
 >;
 export type AddressOutput = ValueObjectOutputTypes['public']['Address'];
 export type AddressInput = ValueObjectInputTypes['public']['Address'];
 type FieldTypeOverrides = {
   readonly public: {
-    readonly User: {
-      readonly kind: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
+    readonly models: {
+      readonly User: {
+        readonly kind: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -275,7 +275,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 type ColumnTypeOverrides = {

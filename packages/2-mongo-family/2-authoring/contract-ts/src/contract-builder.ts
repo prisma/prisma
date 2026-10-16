@@ -863,33 +863,32 @@ type BuilderFieldTypeOverride<TBuilder> = [BuilderEnumValueUnion<TBuilder>] exte
       readonly input: BuilderEnumValueUnion<TBuilder>;
     };
 
-type FieldTypeOverridesFromDefinition<Definition> = {
-  readonly [K in typeof UNBOUND_NAMESPACE_ID]: {
-    readonly [ModelKey in keyof DefinitionModels<Definition> as ExtractModelName<
-      DefinitionModels<Definition>[ModelKey]
-    >]: {
-      readonly [FieldName in keyof ExtractModelFields<
-        DefinitionModels<Definition>[ModelKey]
-      >]: BuilderFieldTypeOverride<
-        ExtractModelFields<DefinitionModels<Definition>[ModelKey]>[FieldName]
-      >;
-    };
-  };
-};
-
 type ExtractValueObjectFields<TBuilder> =
   TBuilder extends NamedValueObjectBuilder<string, infer Fields> ? Fields : Record<never, never>;
 
-type ValueObjectFieldTypeOverridesFromDefinition<Definition> = {
+type FieldTypeOverridesFromDefinition<Definition> = {
   readonly [K in typeof UNBOUND_NAMESPACE_ID]: {
-    readonly [Key in keyof DefinitionValueObjects<Definition> as ExtractValueObjectName<
-      DefinitionValueObjects<Definition>[Key]
-    >]: {
-      readonly [FieldName in keyof ExtractValueObjectFields<
+    readonly models: {
+      readonly [ModelKey in keyof DefinitionModels<Definition> as ExtractModelName<
+        DefinitionModels<Definition>[ModelKey]
+      >]: {
+        readonly [FieldName in keyof ExtractModelFields<
+          DefinitionModels<Definition>[ModelKey]
+        >]: BuilderFieldTypeOverride<
+          ExtractModelFields<DefinitionModels<Definition>[ModelKey]>[FieldName]
+        >;
+      };
+    };
+    readonly valueObjects: {
+      readonly [Key in keyof DefinitionValueObjects<Definition> as ExtractValueObjectName<
         DefinitionValueObjects<Definition>[Key]
-      >]: BuilderFieldTypeOverride<
-        ExtractValueObjectFields<DefinitionValueObjects<Definition>[Key]>[FieldName]
-      >;
+      >]: {
+        readonly [FieldName in keyof ExtractValueObjectFields<
+          DefinitionValueObjects<Definition>[Key]
+        >]: BuilderFieldTypeOverride<
+          ExtractValueObjectFields<DefinitionValueObjects<Definition>[Key]>[FieldName]
+        >;
+      };
     };
   };
 };
@@ -911,7 +910,6 @@ type FieldTypesFromDefinition<Definition, Side extends 'output' | 'input'> = Fie
   CodecTypesFromDefinition<Definition>,
   ParameterizedOutputTypesFromDefinition<Definition>,
   FieldTypeOverridesFromDefinition<Definition>,
-  ValueObjectFieldTypeOverridesFromDefinition<Definition>,
   Side
 >;
 

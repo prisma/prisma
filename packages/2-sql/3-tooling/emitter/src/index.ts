@@ -290,7 +290,10 @@ function generateColumnTypeOverridesMap(
     return Object.entries(tables).flatMap(([tableName, table]) =>
       Object.entries(table.columns).map(
         ([columnName, column]) =>
-          [nsId, tableName, columnName, columnTypeOverride(storage, column, codecLookup)] as const,
+          [
+            [nsId, tableName, columnName],
+            columnTypeOverride(storage, column, codecLookup),
+          ] as const,
       ),
     );
   });

@@ -35,14 +35,14 @@ type ValueObjectOutputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'output'
 >;
 type ValueObjectInputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'input'
 >;
 export type AddressOutput = ValueObjectOutputTypes['__unbound__']['Address'];
@@ -61,27 +61,27 @@ export type StatusEntryOutput = ValueObjectOutputTypes['__unbound__']['StatusEnt
 export type StatusEntryInput = ValueObjectInputTypes['__unbound__']['StatusEntry'];
 type FieldTypeOverrides = {
   readonly __unbound__: {
-    readonly Order: {
-      readonly type: {
-        readonly output: 'delivery' | 'pickup';
-        readonly input: 'delivery' | 'pickup';
+    readonly models: {
+      readonly Order: {
+        readonly type: {
+          readonly output: 'delivery' | 'pickup';
+          readonly input: 'delivery' | 'pickup';
+        };
       };
-    };
-    readonly Product: {
-      readonly status: {
-        readonly output: 'active' | 'discontinued' | 'out-of-stock';
-        readonly input: 'active' | 'discontinued' | 'out-of-stock';
+      readonly Product: {
+        readonly status: {
+          readonly output: 'active' | 'discontinued' | 'out-of-stock';
+          readonly input: 'active' | 'discontinued' | 'out-of-stock';
+        };
       };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -89,7 +89,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 

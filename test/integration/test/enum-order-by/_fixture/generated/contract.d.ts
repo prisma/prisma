@@ -239,18 +239,18 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
 type FieldTypeOverrides = {
   readonly public: {
-    readonly Ticket: {
-      readonly status: { readonly output: 'open' | 'closed'; readonly input: 'open' | 'closed' };
+    readonly models: {
+      readonly Ticket: {
+        readonly status: { readonly output: 'open' | 'closed'; readonly input: 'open' | 'closed' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -258,7 +258,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 type ColumnTypeOverrides = {

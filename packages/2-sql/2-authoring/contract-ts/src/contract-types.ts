@@ -1580,17 +1580,16 @@ type FieldTypeOverride<
         }
     : never;
 
-// A contract written with defineContract has no value objects.
-type NoValueObjectOverrides = Record<never, never>;
-
 type FieldTypeOverrides<Definition> = {
   readonly [Ns in DomainNamespaceIds<Definition>]: {
-    readonly [ModelName in ModelsInNamespace<Definition, Ns>]: {
-      readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldTypeOverride<
-        Definition,
-        ModelName,
-        FieldName
-      >;
+    readonly models: {
+      readonly [ModelName in ModelsInNamespace<Definition, Ns>]: {
+        readonly [FieldName in ModelFieldNames<Definition, ModelName>]: FieldTypeOverride<
+          Definition,
+          ModelName,
+          FieldName
+        >;
+      };
     };
   };
 };
@@ -1645,7 +1644,6 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
         CodecTypesFromDefinition<Definition>,
         ParameterizedOutputTypesFromDefinition<Definition>,
         FieldTypeOverrides<Definition>,
-        NoValueObjectOverrides,
         'output'
       >
     >;
@@ -1655,7 +1653,6 @@ export type SqlContractResult<Definition> = ContractWithTypeMaps<
         CodecTypesFromDefinition<Definition>,
         ParameterizedOutputTypesFromDefinition<Definition>,
         FieldTypeOverrides<Definition>,
-        NoValueObjectOverrides,
         'input'
       >
     >;

@@ -63,6 +63,14 @@ type Domain = {
             readonly nullable: false;
             readonly type: Scalar<'test/missing@1'>;
           };
+          readonly withoutNullable: { readonly type: Scalar<'test/text@1'> };
+          readonly optionalNullable: {
+            readonly nullable?: true;
+            readonly type: Scalar<'test/text@1'>;
+          };
+          readonly homeWithoutNullable: {
+            readonly type: { readonly kind: 'valueObject'; readonly name: 'Point' };
+          };
           readonly home: {
             readonly nullable: true;
             readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
@@ -123,38 +131,23 @@ type Domain = {
 
 type Overrides = {
   readonly app: {
-    readonly User: {
-      readonly mood: { readonly output: 'happy' | 'sad'; readonly input: 'happy' | 'sad' };
-      readonly settings: { readonly output: { readonly theme: string } };
+    readonly models: {
+      readonly User: {
+        readonly mood: { readonly output: 'happy' | 'sad'; readonly input: 'happy' | 'sad' };
+        readonly settings: { readonly output: { readonly theme: string } };
+      };
+    };
+    readonly valueObjects: {
+      readonly Address: {
+        readonly kind: { readonly output: 'home' | 'work'; readonly input: 'home' | 'work' };
+        readonly meta: { readonly output: { readonly floor: number } };
+      };
     };
   };
 };
 
-type ValueObjectOverrides = {
-  readonly app: {
-    readonly Address: {
-      readonly kind: { readonly output: 'home' | 'work'; readonly input: 'home' | 'work' };
-      readonly meta: { readonly output: { readonly floor: number } };
-    };
-  };
-};
-
-type Output = FieldTypesFromDomain<
-  Domain,
-  CodecTypes,
-  CharOutputTypes,
-  Overrides,
-  ValueObjectOverrides,
-  'output'
->;
-type Input = FieldTypesFromDomain<
-  Domain,
-  CodecTypes,
-  CharOutputTypes,
-  Overrides,
-  ValueObjectOverrides,
-  'input'
->;
+type Output = FieldTypesFromDomain<Domain, CodecTypes, CharOutputTypes, Overrides, 'output'>;
+type Input = FieldTypesFromDomain<Domain, CodecTypes, CharOutputTypes, Overrides, 'input'>;
 type User = Output['app']['User'];
 type UserInput = Input['app']['User'];
 
@@ -201,6 +194,13 @@ describe('field types from a contract domain', () => {
     expectTypeOf<User['labels']>().toEqualTypeOf<Readonly<Record<string, string>>>();
   });
 
+  test('a field without a nullable key, or with an optional one, is not nullable', () => {
+    expectTypeOf<User['withoutNullable']>().toEqualTypeOf<string>();
+    expectTypeOf<UserInput['withoutNullable']>().toEqualTypeOf<string>();
+    expectTypeOf<User['optionalNullable']>().toEqualTypeOf<string>();
+    expectTypeOf<User['homeWithoutNullable']>().toEqualTypeOf<{ readonly x: bigint }>();
+  });
+
   test('a codec the codec types lack reads as unknown', () => {
     expectTypeOf<User['unknownCodec']>().toEqualTypeOf<unknown>();
   });
@@ -234,14 +234,14 @@ describe('value object types from a contract domain', () => {
     Domain,
     CodecTypes,
     CharOutputTypes,
-    ValueObjectOverrides,
+    Overrides,
     'output'
   >;
   type ValueObjectInputs = ValueObjectTypesFromDomain<
     Domain,
     CodecTypes,
     CharOutputTypes,
-    ValueObjectOverrides,
+    Overrides,
     'input'
   >;
 
@@ -279,5 +279,19 @@ describe('the value type of one storage entry', () => {
     expectTypeOf<
       StoredValueType<Entry, 'test/char@1', undefined, never, CodecTypes, CharOutputTypes, 'input'>
     >().toEqualTypeOf<string | null>();
+  });
+
+  test('an entry without a nullable key is not nullable', () => {
+    expectTypeOf<
+      StoredValueType<
+        { readonly many: false },
+        'test/text@1',
+        undefined,
+        never,
+        CodecTypes,
+        CharOutputTypes,
+        'output'
+      >
+    >().toEqualTypeOf<string>();
   });
 });

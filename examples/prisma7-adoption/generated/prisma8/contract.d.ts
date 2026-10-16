@@ -240,18 +240,18 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
 type FieldTypeOverrides = {
   readonly public: {
-    readonly User: {
-      readonly role: { readonly output: 'USER' | 'ADMIN'; readonly input: 'USER' | 'ADMIN' };
+    readonly models: {
+      readonly User: {
+        readonly role: { readonly output: 'USER' | 'ADMIN'; readonly input: 'USER' | 'ADMIN' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -259,7 +259,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 type ColumnTypeOverrides = {

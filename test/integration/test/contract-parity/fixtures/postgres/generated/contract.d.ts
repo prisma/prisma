@@ -241,21 +241,21 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
 type FieldTypeOverrides = {
   readonly public: {
-    readonly Profile: {
-      readonly settings: { readonly output: { fontSize: number; theme: string } };
-    };
-    readonly User: {
-      readonly plan: { readonly output: 'free' | 'paid'; readonly input: 'free' | 'paid' };
+    readonly models: {
+      readonly Profile: {
+        readonly settings: { readonly output: { fontSize: number; theme: string } };
+      };
+      readonly User: {
+        readonly plan: { readonly output: 'free' | 'paid'; readonly input: 'free' | 'paid' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -263,7 +263,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 type ColumnTypeOverrides = {

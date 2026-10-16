@@ -35,14 +35,14 @@ type ValueObjectOutputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'output'
 >;
 type ValueObjectInputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'input'
 >;
 export type AddressOutput = ValueObjectOutputTypes['__unbound__']['Address'];
@@ -53,18 +53,18 @@ export type StampOutput = ValueObjectOutputTypes['__unbound__']['Stamp'];
 export type StampInput = ValueObjectInputTypes['__unbound__']['Stamp'];
 type FieldTypeOverrides = {
   readonly __unbound__: {
-    readonly Author: {
-      readonly role: { readonly output: 'USER' | 'admin'; readonly input: 'USER' | 'admin' };
+    readonly models: {
+      readonly Author: {
+        readonly role: { readonly output: 'USER' | 'admin'; readonly input: 'USER' | 'admin' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -72,7 +72,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 

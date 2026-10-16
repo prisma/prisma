@@ -94,7 +94,31 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
   const priorityResolver: EmissionSpi['resolveFieldValueSet'] = (_m, fieldName) =>
     fieldName === 'priority' ? { encodedValues: ['low', 'high'], codecId: 'pg/text@1' } : undefined;
 
-  it('narrows an enum field to the literal union supplied by the SPI resolver', () => {
+  const PRIORITY_OVERRIDES =
+    'type FieldTypeOverrides = { readonly public: { readonly models: { readonly Post: { readonly priority: { readonly output: "low" | "high"; readonly input: "low" | "high" } } } } };';
+
+  it('narrows a field whose value set is in storage to the literal union supplied by the SPI resolver', () => {
+    const contract = makeEnumContract({
+      valueSet: {
+        plane: 'storage',
+        namespaceId: 'public',
+        entityKind: 'valueSet',
+        entityName: 'Priority',
+      },
+      includeEnumBlock: false,
+    });
+    const dts = generateContractDts(
+      contract,
+      createMockSpi({ resolveFieldValueSet: priorityResolver }),
+      [],
+      HASHES,
+      undefined,
+      literalCodecLookup(),
+    );
+    expect(dts).toContain(PRIORITY_OVERRIDES);
+  });
+
+  it('narrows a field that names a domain enum to its members without the SPI resolver', () => {
     const contract = makeEnumContract({
       valueSet: {
         plane: 'domain',
@@ -106,26 +130,24 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
     });
     const dts = generateContractDts(
       contract,
-      createMockSpi({ resolveFieldValueSet: priorityResolver }),
+      createMockSpi({ resolveFieldValueSet: () => undefined }),
       [],
       HASHES,
       undefined,
       literalCodecLookup(),
     );
-    expect(dts).toContain(
-      'type FieldTypeOverrides = { readonly public: { readonly Post: { readonly priority: { readonly output: "low" | "high"; readonly input: "low" | "high" } } } };',
-    );
+    expect(dts).toContain(PRIORITY_OVERRIDES);
   });
 
-  it('does not narrow when the SPI supplies no resolveFieldValueSet hook', () => {
+  it('does not narrow a field whose value set is in storage when the SPI supplies no resolveFieldValueSet hook', () => {
     const contract = makeEnumContract({
       valueSet: {
-        plane: 'domain',
+        plane: 'storage',
         namespaceId: 'public',
-        entityKind: 'enum',
+        entityKind: 'valueSet',
         entityName: 'Priority',
       },
-      includeEnumBlock: true,
+      includeEnumBlock: false,
     });
     const dts = generateContractDts(
       contract,

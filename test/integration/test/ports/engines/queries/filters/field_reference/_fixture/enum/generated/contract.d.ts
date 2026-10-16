@@ -239,19 +239,19 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 
 type FieldTypeOverrides = {
   readonly public: {
-    readonly TestModel: {
-      readonly enum: { readonly output: 'a' | 'b' | 'c'; readonly input: 'a' | 'b' | 'c' };
-      readonly enum2: { readonly output: 'a' | 'b' | 'c'; readonly input: 'a' | 'b' | 'c' };
+    readonly models: {
+      readonly TestModel: {
+        readonly enum: { readonly output: 'a' | 'b' | 'c'; readonly input: 'a' | 'b' | 'c' };
+        readonly enum2: { readonly output: 'a' | 'b' | 'c'; readonly input: 'a' | 'b' | 'c' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -259,7 +259,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 type ColumnTypeOverrides = {

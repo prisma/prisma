@@ -48,7 +48,7 @@ type BaseType<Override, Base, Side extends ValueTypeSide> = [Override] extends [
     : Base;
 
 /**
- * The type of the value one storage entry holds, after its override, its list or dictionary wrapping and its nullability. `Item` is the entry, with `nullable` and optionally `many` and `dict`, holding values of codec `CodecId`. On each side the value is typed by `Override` for that side when it gives one, else, on the output side, by the type a type function in `ParameterizedOutputs` gives a value with these type parameters, else by the codec's type in `CodecTypes`, or `unknown` for a codec it lacks. A family's storage type maps apply it to each storage entry.
+ * The type of the value one storage entry holds, after its override, its list or dictionary wrapping and its nullability. `Item` is the entry, with optional `nullable`, `many` and `dict`, holding values of codec `CodecId`. On each side the value is typed by `Override` for that side when it gives one, else, on the output side, by the type a type function in `ParameterizedOutputs` gives a value with these type parameters, else by the codec's type in `CodecTypes`, or `unknown` for a codec it lacks. A family's storage type maps apply it to each storage entry.
  */
 export type StoredValueType<
   Item,
@@ -59,21 +59,23 @@ export type StoredValueType<
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = Item extends {
-  readonly nullable: infer Nullable;
   readonly many?: infer Many;
   readonly dict?: infer Dictionary;
 }
-  ? ModifiedValueType<
-      BaseType<
-        Override,
-        CodecType<CodecTypes, CodecId, TypeParams, ParameterizedOutputs, Side>,
-        Side
-      >,
-      Nullable,
+  ? ScalarValueType<
+      CodecId,
+      TypeParams,
+      Override,
+      NullableFlag<Item>,
       Many,
-      Dictionary
+      Dictionary,
+      CodecTypes,
+      ParameterizedOutputs,
+      Side
     >
   : never;
+
+type NullableFlag<Entry> = Entry extends { readonly nullable: true } ? true : false;
 
 type ClosedWhenEmpty<T> = [keyof T] extends [never] ? Record<string, never> : T;
 
@@ -82,26 +84,25 @@ type InputClosedWhenEmpty<Side extends ValueTypeSide, T> = Side extends 'input'
   ? ClosedWhenEmpty<T>
   : T;
 
-// What a field's type is read against: the namespace's value objects, and the overrides of their fields, keyed by value object and field.
-type Scope<ValueObjects, ValueObjectOverrides> = {
+type ValueObjectsAndOverrides<ValueObjects, NamespaceOverrides> = {
   readonly valueObjects: ValueObjects;
-  readonly overrides: ValueObjectOverrides;
+  readonly overrides: NamespaceOverrides;
 };
 
 type ValueObjectType<
   Name,
-  NamespaceScope,
+  Namespace,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = ClosedWhenEmpty<{
   readonly [F in keyof Lookup<
-    Lookup<Lookup<NamespaceScope, 'valueObjects'>, Name>,
+    Lookup<Lookup<Namespace, 'valueObjects'>, Name>,
     'fields'
   >]: FieldValueType<
-    Lookup<Lookup<Lookup<NamespaceScope, 'valueObjects'>, Name>, 'fields'>[F],
-    Lookup<Lookup<Lookup<NamespaceScope, 'overrides'>, Name>, F>,
-    NamespaceScope,
+    Lookup<Lookup<Lookup<Namespace, 'valueObjects'>, Name>, 'fields'>[F],
+    Lookup<Lookup<Lookup<Lookup<Namespace, 'overrides'>, 'valueObjects'>, Name>, F>,
+    Namespace,
     CodecTypes,
     ParameterizedOutputs,
     Side
@@ -111,35 +112,35 @@ type ValueObjectType<
 // The type of a value object, a union, or a field of a kind this file does not know, before modifiers. Scalar fields are typed by `ScalarValueType`.
 type ElementType<
   FieldType,
-  NamespaceScope,
+  Namespace,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = FieldType extends { readonly kind: 'valueObject'; readonly name: infer Name }
-  ? ValueObjectType<Name, NamespaceScope, CodecTypes, ParameterizedOutputs, Side>
+  ? ValueObjectType<Name, Namespace, CodecTypes, ParameterizedOutputs, Side>
   : FieldType extends {
         readonly kind: 'union';
         readonly members: infer Members extends readonly unknown[];
       }
-    ? UnionMemberType<Members[number], NamespaceScope, CodecTypes, ParameterizedOutputs, Side>
+    ? UnionMemberType<Members[number], Namespace, CodecTypes, ParameterizedOutputs, Side>
     : unknown;
 
 type UnionMemberType<
   Member,
-  NamespaceScope,
+  Namespace,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
 > = Member extends { readonly kind: 'scalar'; readonly codecId: infer CodecId }
   ? PlainCodecType<CodecTypes, CodecId, Side>
-  : ElementType<Member, NamespaceScope, CodecTypes, ParameterizedOutputs, Side>;
+  : ElementType<Member, Namespace, CodecTypes, ParameterizedOutputs, Side>;
 
 type Listed<Base, Many> = [Many] extends [{ readonly elementNullable: infer ElementNullable }]
   ? ReadonlyArray<Base | (ElementNullable extends true ? null : never)>
   : Base;
 
 // The union is written here, and read through an indexed access, so TypeScript prints the resolved type, such as `bigint | null`, in hovers and errors instead of this file's generics.
-type ModifiedValueType<Base, Nullable, Many, Dictionary> =
+type WithModifiers<Base, Nullable, Many, Dictionary> =
   | ([Dictionary] extends [true]
       ? Readonly<Record<string, Listed<Base, Many>>>
       : Listed<Base, Many>)
@@ -158,7 +159,7 @@ type ScalarValueType<
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
-> = ModifiedValueType<
+> = WithModifiers<
   BaseType<Override, CodecType<CodecTypes, CodecId, TypeParams, ParameterizedOutputs, Side>, Side>,
   Nullable,
   Many,
@@ -168,7 +169,7 @@ type ScalarValueType<
 type FieldValueType<
   Field,
   Override,
-  NamespaceScope,
+  Namespace,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
@@ -178,7 +179,6 @@ type FieldValueType<
     readonly codecId: infer CodecId;
     readonly typeParams?: infer TypeParams;
   };
-  readonly nullable: infer Nullable;
   readonly many?: infer Many;
   readonly dict?: infer Dictionary;
 }
@@ -186,50 +186,49 @@ type FieldValueType<
       CodecId,
       TypeParams,
       Override,
-      Nullable,
+      NullableFlag<Field>,
       Many,
       Dictionary,
       CodecTypes,
       ParameterizedOutputs,
       Side
     >
-  : Field extends {
+  : // `ElementType` types value objects too; this branch keys their instantiations by name alone, which costs less.
+    Field extends {
         readonly type: { readonly kind: 'valueObject'; readonly name: infer Name };
-        readonly nullable: infer Nullable;
         readonly many?: infer Many;
         readonly dict?: infer Dictionary;
       }
-    ? ModifiedValueType<
+    ? WithModifiers<
         BaseType<
           Override,
-          ValueObjectType<Name, NamespaceScope, CodecTypes, ParameterizedOutputs, Side>,
+          ValueObjectType<Name, Namespace, CodecTypes, ParameterizedOutputs, Side>,
           Side
         >,
-        Nullable,
+        NullableFlag<Field>,
         Many,
         Dictionary
       >
     : Field extends {
           readonly type: infer FieldType;
-          readonly nullable: infer Nullable;
           readonly many?: infer Many;
           readonly dict?: infer Dictionary;
         }
-      ? ModifiedValueType<
+      ? WithModifiers<
           BaseType<
             Override,
-            ElementType<FieldType, NamespaceScope, CodecTypes, ParameterizedOutputs, Side>,
+            ElementType<FieldType, Namespace, CodecTypes, ParameterizedOutputs, Side>,
             Side
           >,
-          Nullable,
+          NullableFlag<Field>,
           Many,
           Dictionary
         >
       : never;
 
-type NamespaceScopeOf<DomainNamespaces, Ns, ValueObjectOverrides> = Scope<
+type NamespaceOf<DomainNamespaces, Ns, Overrides> = ValueObjectsAndOverrides<
   Lookup<Lookup<DomainNamespaces, Ns>, 'valueObjects'>,
-  Lookup<ValueObjectOverrides, Ns>
+  Lookup<Overrides, Ns>
 >;
 
 /**
@@ -237,7 +236,7 @@ type NamespaceScopeOf<DomainNamespaces, Ns, ValueObjectOverrides> = Scope<
  *
  * Each value is typed by, in order:
  *
- * 1. its override for that side, `{ output?, input? }`, from `Overrides` at `[namespace][model][field]` for a model field, or from `ValueObjectOverrides` at `[namespace][valueObject][field]` for a value object field. An override is the type of a field that the contract's shape and the codec types cannot give: the members of the value set it holds, the type its codec renders as text, or the type the codec of a SQL column spec reads;
+ * 1. its override for that side, `{ output?, input? }`, from `Overrides` at `[namespace]['models'][model][field]` for a model field, or at `[namespace]['valueObjects'][valueObject][field]` for a value object field. An override is the type of a field that the contract's shape and the codec types cannot give: the members of the value set it holds, the type its codec renders as text, or the type the codec of a SQL column spec reads;
  * 2. for a scalar field, on the output side, the type a pack's type function in `ParameterizedOutputs` gives it for its type parameters (`ParameterizedOutputType`), else its codec's `output` or `input` type, or `unknown` for a codec `CodecTypes` lacks;
  * 3. for a value object field, an object of the value object's field types from the same namespace's `valueObjects`, computed by these rules;
  * 4. for a union field, the union of its members' types, each a codec's plain type or a value object's type;
@@ -249,13 +248,11 @@ export type FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Overrides,
-  ValueObjectOverrides,
   Side extends ValueTypeSide,
 > = {
   readonly [Ns in keyof DomainNamespaces]: NamespaceFieldTypes<
     Lookup<DomainNamespaces[Ns], 'models'>,
-    Lookup<Overrides, Ns>,
-    NamespaceScopeOf<DomainNamespaces, Ns, ValueObjectOverrides>,
+    NamespaceOf<DomainNamespaces, Ns, Overrides>,
     CodecTypes,
     ParameterizedOutputs,
     Side
@@ -264,8 +261,7 @@ export type FieldTypesFromDomain<
 
 type NamespaceFieldTypes<
   Models,
-  NamespaceOverrides,
-  NamespaceScope,
+  Namespace,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
   Side extends ValueTypeSide,
@@ -279,8 +275,8 @@ type NamespaceFieldTypes<
           {
             readonly [F in keyof Fields]: FieldValueType<
               Fields[F],
-              Lookup<Lookup<NamespaceOverrides, M>, F>,
-              NamespaceScope,
+              Lookup<Lookup<Lookup<Lookup<Namespace, 'overrides'>, 'models'>, M>, F>,
+              Namespace,
               CodecTypes,
               ParameterizedOutputs,
               Side
@@ -297,13 +293,13 @@ export type ValueObjectTypesFromDomain<
   DomainNamespaces,
   CodecTypes,
   ParameterizedOutputs extends ParameterizedOutputTypesFunction,
-  ValueObjectOverrides,
+  Overrides,
   Side extends ValueTypeSide,
 > = {
   readonly [Ns in keyof DomainNamespaces]: {
     readonly [V in keyof Lookup<DomainNamespaces[Ns], 'valueObjects'>]: ValueObjectType<
       V,
-      NamespaceScopeOf<DomainNamespaces, Ns, ValueObjectOverrides>,
+      NamespaceOf<DomainNamespaces, Ns, Overrides>,
       CodecTypes,
       ParameterizedOutputs,
       Side

@@ -33,20 +33,20 @@ type ParameterizedOutputTypeFunctions = MongoParameterizedOutputTypes;
 
 type FieldTypeOverrides = {
   readonly __unbound__: {
-    readonly Reading: {
-      readonly double: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
-      readonly int32: { readonly output: 1 | 10; readonly input: 1 | 10 };
-      readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+    readonly models: {
+      readonly Reading: {
+        readonly double: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
+        readonly int32: { readonly output: 1 | 10; readonly input: 1 | 10 };
+        readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+      };
     };
   };
 };
-type ValueObjectFieldTypeOverrides = {};
 export type FieldOutputTypes = FieldTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -54,7 +54,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 
