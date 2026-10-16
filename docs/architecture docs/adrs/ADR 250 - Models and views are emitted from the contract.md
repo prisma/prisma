@@ -45,8 +45,8 @@ Both are right about the facts. `contract.d.ts` exports hashes, codec maps, `Fie
 ```ts
 export namespace Models {
   export type public_User = {
-    id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'];
+    id: FieldOutputTypes['public']['User']['id'];
+    name: FieldOutputTypes['public']['User']['name'];
     posts: public_Post[];
     profile: public_Profile | null;
     readonly [RelationKeys]?: 'posts' | 'profile';
