@@ -122,7 +122,9 @@ describe('a default db verify reads with the column codec', {
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.VALIDATION_FAILED',
-        message: expect.stringContaining('.event.columns.at: the default "2024-01-01 00:00:00"'),
+        message: expect.stringContaining(
+          'Table "event", column "at": the default "2024-01-01 00:00:00"',
+        ),
       }),
     );
   });
