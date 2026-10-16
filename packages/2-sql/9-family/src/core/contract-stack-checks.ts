@@ -3,10 +3,13 @@ import type { Contract } from '@internal/contract/types';
 import { collectScalarTypeConstructors } from '@internal/framework-components/authoring';
 import {
   type CodecLookupWithDescriptors,
+  type DataType,
   type DataTypeLookup,
+  type DataTypeParams,
   dataTypeParamsOf,
 } from '@internal/framework-components/codec';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
+import { isSqlDataType, validateSqlTypeParams } from '@internal/sql-contract/data-type';
 import {
   isStorageTypeInstance,
   resolvedTypeParams,
@@ -17,6 +20,7 @@ import {
 import { valueObjectStorageTypeMissingMessage } from '@internal/sql-contract/validators';
 import { blindCast } from '@internal/utils/casts';
 import { isInternalError } from '@internal/utils/internal-error';
+import { isStructuredError } from '@internal/utils/structured-error';
 
 export interface ContractStackCheckInputs {
   readonly codecLookup: CodecLookupWithDescriptors;
@@ -63,6 +67,18 @@ function dataTypeProblems(
   });
 }
 
+/** Whether `type` refuses `params`. The check of the column's parameters reports that, so its default is not read under them. */
+function refusesParams(type: DataType, params: DataTypeParams): boolean {
+  if (!isSqlDataType(type)) return false;
+  try {
+    validateSqlTypeParams(type, params);
+    return false;
+  } catch (error) {
+    if (isStructuredError(error) && error.code === 'CONTRACT.TYPE_PARAMS_INVALID') return true;
+    throw error;
+  }
+}
+
 /** Each literal default the column's type does not hold, under the column's parameters, element by element on a list column. A `null` is SQL NULL, which every column takes. */
 function defaultProblems(storage: SqlStorage, dataTypes: DataTypeLookup): readonly string[] {
   return tablesOf(storage).flatMap(({ path, table }) =>
@@ -72,6 +88,7 @@ function defaultProblems(storage: SqlStorage, dataTypes: DataTypeLookup): readon
       const type = dataTypes.get(column.dataType);
       if (type === undefined) return [];
       const params = dataTypeParamsOf(type, resolvedTypeParams(column, storage.types));
+      if (refusesParams(type, params)) return [];
       const values =
         column.many !== undefined && column.many !== false && Array.isArray(columnDefault.value)
           ? columnDefault.value

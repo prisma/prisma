@@ -175,13 +175,16 @@ describe('deserializeContract checks each column against the stack', () => {
   });
 
   describe('a literal default', () => {
-    const priced = (value: unknown) =>
+    const priced = (
+      value: unknown,
+      typeParams: Record<string, unknown> = { precision: 10, scale: 2 },
+    ) =>
       contractWith({
         user: table({
           id: col('t/int4', 't/int4@1'),
           price: {
             ...col('t/numeric', 't/numeric@1'),
-            typeParams: { precision: 10, scale: 2 },
+            typeParams,
             default: { kind: 'literal', value },
           } as never,
         }),
@@ -189,6 +192,12 @@ describe('deserializeContract checks each column against the stack', () => {
 
     it('is accepted when the column type holds it under the column parameters', () => {
       expect(() => familyInstance('Jsonb').deserializeContract(priced('1.50'))).not.toThrow();
+    });
+
+    it('is not read when the column type refuses the column parameters, which the parameters check reports', () => {
+      expect(() =>
+        familyInstance('Jsonb').deserializeContract(priced('1.5', { precision: 'ten', scale: 2 })),
+      ).not.toThrow();
     });
 
     it('is accepted when it is null, which is SQL NULL', () => {
