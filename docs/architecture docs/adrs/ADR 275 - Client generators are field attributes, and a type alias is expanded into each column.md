@@ -42,6 +42,7 @@ model Post {
 3. `@default` means a database default only. The client generators `@default` takes today (`uuid()`, `cuid(2)`, `ulid()`, `nanoid()`) move to `@onCreate`.
 4. A type alias is authoring shorthand. PSL and the TypeScript builder expand it into each column that uses it, and the contract never stores the alias.
 5. An alias may carry `@default`, `@onCreate` and `@onUpdate`. It may not carry `@id` or `@unique`, which are facts about a model, not about a column type.
+   A field typed by an alias may add those attributes, but may not repeat one the alias sets.
 6. Field presets are removed from both families (SQL and Mongo) and both authoring surfaces (PSL and the TypeScript builder). Targets and extensions contribute type aliases instead, in their namespace, such as `temporal.UpdatedAt`. Contributed aliases take no parameters.
 7. Mixins (ADR 269) stay. An alias is one reusable column type. A mixin is a set of named fields.
 
@@ -107,7 +108,7 @@ This is allowed and produces no diagnostic, as ADR 158 §4 already says. A creat
 
 ### Aliases are expanded
 
-The PSL interpreter resolves an alias's right-hand side, a type constructor call with any of `@default`, `@onCreate` and `@onUpdate`, and applies it to each field typed by the alias. A field may also write any of those attributes; the field's attribute replaces the alias's attribute of the same name. `@id` or `@unique` on an alias is an error.
+The PSL interpreter resolves an alias's right-hand side, a type constructor call with any of `@default`, `@onCreate` and `@onUpdate`, and applies it to each field typed by the alias. A field may also write any of those attributes the alias does not set. A field that writes an attribute its alias already sets is an error, as a duplicate member is for a mixin (ADR 269): the schema states each fact once. `@id` or `@unique` on an alias is an error.
 
 The contract stores each column with its codec, data type and type parameters inline, with no `typeRef`. `storage.types` keeps only types a contract space registers as database types: pgvector's `vector` and PostGIS's `geometry`. Native enums are not in `storage.types`; they are `native_enum` entries in a namespace (ADR 157).
 
