@@ -108,6 +108,7 @@ describe('createIndex postchecks', { timeout: timeouts.spinUpMongoMemoryServer }
       { collation: { locale: 'en', strength: 2 } },
       { collation: { locale: 'en', strength: 3 } },
     ],
+    ['a collation', ab, {}, { collation: { locale: 'en', strength: 2 } }],
     [
       'another wildcard projection',
       [{ field: '$**', direction: 1 }],

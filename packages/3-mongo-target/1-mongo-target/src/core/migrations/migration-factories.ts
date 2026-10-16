@@ -336,6 +336,20 @@ function optionFilter(field: string, value: MongoValue | undefined): MongoFilter
 }
 
 /**
+ * MongoDB completes a collation with its defaults, so only the fields the call gives are compared, as
+ * the verifier does. An index with no collation must have none.
+ */
+function collationFilters(collation: CreateIndexOptions['collation']): MongoFilterExpr[] {
+  if (collation === undefined) return [MongoExistsExpr.notExists('collation')];
+  return Object.entries(collation).map(([option, value]) =>
+    MongoFieldFilter.eq(
+      `collation.${option}`,
+      blindCast<MongoValue, 'collation options are BSON scalars'>(value),
+    ),
+  );
+}
+
+/**
  * Matches an index with these keys and the options the planner tells indexes apart by. MongoDB
  * stores the options as given, except that it completes a collation and a text index's weights and
  * languages with their defaults, so those are compared as MongoDB lists them.
@@ -358,12 +372,7 @@ function indexDefinitionFilter(
       'wildcardProjection',
       options?.wildcardProjection && documentValue(options.wildcardProjection),
     ),
-    ...Object.entries(options?.collation ?? {}).map(([option, value]) =>
-      MongoFieldFilter.eq(
-        `collation.${option}`,
-        blindCast<MongoValue, 'collation options are BSON scalars'>(value),
-      ),
-    ),
+    ...collationFilters(options?.collation),
     ...(text
       ? [
           MongoFieldFilter.eq('weights', documentValue(textIndexWeights(keys, options?.weights))),
