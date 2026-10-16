@@ -54,7 +54,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | 3 | ✅ 7/7 | Storage a model does not map: a table may hold columns its model does not map, and a table may have no model | Must | Will | Done 2026-10-13: 4 slices, ADR 267, the fix for a model with no fields, and the close-out merged |  |
 | 4 | ⏳ | Upgrade guide rewrite | Must | Will | Ticket in backlog. One known error in the guide |  |
 | 5 | ⏳ 0/5 | Codecs for `citext`, `bit`, `varbit`, `xml`, `oid` | Must | Will | Backlog |  |
-| 6 | 🔄 0/2 | Columns whose type has no codec | Must | Will | Designed: ADR 273 merged 2026-10-15. Such a column is a raw column. Slice 1 built and reviewed, not pushed. The column-level control policy is still not designed | Open the slice 1 PR (TML-3585), then slice 2 (TML-3596) |
+| 6 | 🔄 0/2 | Columns whose type has no codec | Must | Will | Designed (ADR 273, merged 2026-10-15) and slice 1 built and reviewed on branch `tml-3585-raw-columns`. Slice 1 is not pushed and has no PR, so nothing is on main yet. Slice 2, the Prisma 7 reader (TML-3596), is in backlog | Push slice 1 and open its PR (TML-3585), then slice 2 |
 | 7 | ⏳ | Adopt a Prisma 7 database without changing it: the enum membership check | Must | Will | Not designed |  |
 | 8 | ⏳ | Medium and low upgrade issues | Later | Will | Backlog | |
 | 9 | ⏳ | `money` codec | Later | Will | Backlog | |
