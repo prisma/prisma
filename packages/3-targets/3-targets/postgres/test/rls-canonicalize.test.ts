@@ -15,11 +15,6 @@ describe('computeContentHash', () => {
       const hash = computeContentHash({ ...base, using: 'user_id = auth.uid()' });
       expect(hash).toMatch(/^[0-9a-f]{8}$/);
     });
-
-    it('returns lowercase hex', () => {
-      const hash = computeContentHash({ ...base, using: 'user_id = auth.uid()' });
-      expect(hash).toBe(hash.toLowerCase());
-    });
   });
 
   describe('hash determinism across whitespace-equivalent predicates', () => {

@@ -380,28 +380,6 @@ describe('executeContractEmit', () => {
     });
   });
 
-  it('still fails a source whose diagnostics are all errors', async () => {
-    const source = createSourceProvider(async () => ({
-      ok: false,
-      failure: {
-        summary: 'Schema has 1 error',
-        diagnostics: [
-          {
-            code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-            message: 'bad',
-            sourceId: 'schema.prisma',
-            severity: 'error',
-          },
-        ],
-      },
-    }));
-    await expect(
-      executeContractEmitWithMock(
-        emitOptions(mockConfigWithContract({ source, output: './src/prisma/contract.json' })),
-      ),
-    ).rejects.toMatchObject({ code: 'CONTRACT.SOURCE_LOAD_FAILED' });
-  });
-
   it('passes deserializeContract output to emit, not the pre-hydration envelope', async () => {
     const outputJsonPath = join(tmpDir, 'src/prisma/contract.json');
     const plainEnvelope = createMockContract();

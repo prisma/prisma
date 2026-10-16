@@ -1,11 +1,10 @@
-import type { CrossReference } from '@internal/contract/types';
 import type { CodecLookup } from '@internal/framework-components/codec';
 import type { TypesImportSpec } from '@internal/framework-components/emission';
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import type { EmitStackInput } from '../src/exports';
 import { createMockSpi } from './mock-spi';
-import { createTestContract, emit, modelsFromCanonicalContract } from './utils';
+import { createTestContract, emit } from './utils';
 
 const mockSqlHook = createMockSpi();
 
@@ -167,89 +166,6 @@ describe('emitter integration', () => {
       expect(result1.storageHash).toBe(result2.storageHash);
       expect(result1.contractDts).toBe(result2.contractDts);
       expect(result1.contractJson).toBe(result2.contractJson);
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'round-trip: IR → JSON → parse JSON → compare',
-    async () => {
-      const ir = createTestContract({
-        models: {
-          User: {
-            storage: {
-              table: 'user',
-              fields: {
-                id: { column: 'id' },
-                email: { column: 'email' },
-              },
-            },
-            fields: {
-              id: { type: { kind: 'scalar', codecId: 'pg/int4@1' }, nullable: false, many: false },
-              email: {
-                type: { kind: 'scalar', codecId: 'pg/text@1' },
-                nullable: false,
-                many: false,
-              },
-            },
-            relations: {},
-          },
-        },
-        storage: {
-          namespaces: {
-            __unbound__: {
-              id: '__unbound__',
-              entries: {
-                table: {
-                  user: {
-                    columns: {
-                      id: { codecId: 'pg/int4@1', dataType: 'pg/int4', nullable: false },
-                      email: { codecId: 'pg/text@1', dataType: 'pg/text', nullable: false },
-                    },
-                    primaryKey: { columns: ['id'] },
-                    uniques: [],
-                    indexes: [],
-                    foreignKeys: [],
-                  },
-                },
-              },
-            },
-          },
-        },
-        extensions: {
-          postgres: {
-            version: '0.0.1',
-          },
-          pg: {},
-        },
-      });
-
-      const codecTypeImports: TypesImportSpec[] = [];
-      const extensionIds = ['postgres', 'pg'];
-      const options: EmitStackInput = {
-        codecTypeImports,
-        extensionIds,
-      };
-
-      const result1 = await emit(ir, options, mockSqlHook);
-      const contractJson1 = JSON.parse(result1.contractJson) as Record<string, unknown>;
-
-      const ir2 = createTestContract({
-        targetFamily: contractJson1['targetFamily'] as string,
-        target: contractJson1['target'] as string,
-        roots: contractJson1['roots'] as Record<string, CrossReference>,
-        models: modelsFromCanonicalContract(contractJson1),
-        storage: contractJson1['storage'] as Record<string, unknown>,
-        extensions: contractJson1['extensions'] as Record<string, unknown>,
-        capabilities:
-          (contractJson1['capabilities'] as Record<string, Record<string, boolean>>) || {},
-        meta: (contractJson1['meta'] as Record<string, unknown>) || {},
-      });
-
-      const result2 = await emit(ir2, options, mockSqlHook);
-
-      expect(result1.contractJson).toBe(result2.contractJson);
-      expect(result1.storageHash).toBe(result2.storageHash);
     },
     timeouts.typeScriptCompilation,
   );

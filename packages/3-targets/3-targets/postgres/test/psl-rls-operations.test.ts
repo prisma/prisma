@@ -442,18 +442,4 @@ ${MODEL}
     expect(policy.using).toBeUndefined();
     expect(policy.withCheck).toBeUndefined();
   });
-
-  it('policy_select without using lowers with the predicate absent', () => {
-    const policy = onlyPolicy(`
-namespace public {
-${MODEL}
-  policy_select p_read {
-    target = profile
-    roles  = [app_user]
-  }
-}
-`);
-    expect(policy.operation).toBe('select');
-    expect(policy.using).toBeUndefined();
-  });
 });

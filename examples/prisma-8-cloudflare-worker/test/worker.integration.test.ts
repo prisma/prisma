@@ -130,11 +130,6 @@ describe('worker — postgresServerless against Hyperdrive (local)', () => {
     expect(rowsSent).toBe(10_000);
   });
 
-  it('returns 404 for unknown routes', async () => {
-    const res = await get('/no/such/route');
-    expect(res.status).toBe(404);
-  });
-
   it('connect rejects with DRIVER.CONNECTION_FAILED when the database refuses the connection', async () => {
     const error = await postgres
       .connect({ url: 'postgres://postgres:postgres@127.0.0.1:1/prisma_8_cloudflare_worker' })

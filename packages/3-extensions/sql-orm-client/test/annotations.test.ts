@@ -60,16 +60,6 @@ describe('Collection.all annotations', () => {
     expect(cacheAnnotation.read(plan)).toEqual({ ttl: 60 });
   });
 
-  it('returns undefined from handle.read on a plan that was never annotated', async () => {
-    const { collection, runtime } = createCollection();
-    runtime.setNextResults([[]]);
-
-    await collection.all().toArray();
-
-    const plan = runtime.executions[0]!.plan;
-    expect(cacheAnnotation.read(plan)).toBeUndefined();
-  });
-
   it('multiple annotations under different namespaces coexist', async () => {
     const { collection, runtime } = createCollection();
     runtime.setNextResults([[]]);

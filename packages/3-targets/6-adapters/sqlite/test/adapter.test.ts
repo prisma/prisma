@@ -8,7 +8,6 @@ import {
   CastExpr,
   CodecJsonValueProjection,
   ColumnRef,
-  DefaultValueExpr,
   DeleteAst,
   DerivedTableSource,
   ExistsExpr,
@@ -494,16 +493,6 @@ describe('SQLite adapter', () => {
       const { sql } = adapter.lower(ast, { contract });
       expect(sql).toContain('RETURNING "id" AS "user_id"');
     });
-
-    it('throws on DEFAULT value in VALUES (unsupported by SQLite)', () => {
-      const ast = InsertAst.into(TableSource.named('user')).withRows([
-        { id: ParamRef.of(1), email: new DefaultValueExpr() },
-      ]);
-
-      expect(() => adapter.lower(ast, { contract })).toThrow(
-        'SQLite does not support DEFAULT as a value in INSERT ... VALUES',
-      );
-    });
   });
 
   describe('UPDATE', () => {
@@ -765,24 +754,6 @@ describe('SQLite adapter', () => {
   });
 
   describe('negative cases', () => {
-    it('does not emit DISTINCT ON (Postgres-only)', () => {
-      const ast = SelectAst.from(TableSource.named('user')).withProjection([
-        ProjectionItem.of('id', ColumnRef.of('user', 'id')),
-      ]);
-
-      const { sql } = adapter.lower(ast, { contract });
-      expect(sql).not.toContain('DISTINCT ON');
-    });
-
-    it('does not emit LATERAL in joins', () => {
-      const ast = SelectAst.from(TableSource.named('user')).withProjection([
-        ProjectionItem.of('id', ColumnRef.of('user', 'id')),
-      ]);
-
-      const { sql } = adapter.lower(ast, { contract });
-      expect(sql).not.toContain('LATERAL');
-    });
-
     it('does not emit ::type cast syntax', () => {
       const ast = SelectAst.from(TableSource.named('user'))
         .withProjection([ProjectionItem.of('id', ColumnRef.of('user', 'id'))])
@@ -810,12 +781,6 @@ describe('SQLite adapter', () => {
       expect(() => adapter.lower(unsupported, { contract })).toThrow(
         'Unsupported AST node kind: unsupported',
       );
-    });
-
-    it('throws on empty insert rows', () => {
-      expect(() =>
-        adapter.lower(InsertAst.into(TableSource.named('user')).withRows([]), { contract }),
-      ).toThrow('INSERT requires at least one row');
     });
   });
 

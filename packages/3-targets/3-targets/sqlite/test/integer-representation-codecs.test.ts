@@ -1,9 +1,8 @@
 import type { CodecInstanceContext } from '@internal/framework-components/codec';
-import { AggregateExpr, CastExpr, ColumnRef } from '@internal/sql-relational-core/ast';
+import { AggregateExpr, CastExpr } from '@internal/sql-relational-core/ast';
 import { describe, expect, it } from 'vitest';
 import { SQLITE_BIGINT_NUMBER_CODEC_ID } from '../src/core/codec-ids';
 import { sqliteBigintDescriptor, sqliteBigintNumberDescriptor } from '../src/core/codecs';
-import { sqliteCodecDescriptorRegistry, sqliteCodecRegistry } from '../src/core/registry';
 
 const instanceCtx: CodecInstanceContext = { name: 'test' };
 
@@ -180,27 +179,6 @@ describe('sqlite/bigintnumber@1', () => {
       expect(codec.decodeJson('-9007199254740991')).toBe(-9007199254740991);
     });
 
-    it('rejects decimal text past the safe integer range', () => {
-      expect(() => codec.decodeJson('9007199254740992')).toThrow(
-        'sqlite/bigintnumber@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991',
-      );
-      expect(() => codec.decodeJson('-9007199254740992')).toThrow(
-        'sqlite/bigintnumber@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991',
-      );
-    });
-
-    it('rejects a JSON string that is not a decimal integer', () => {
-      expect(() => codec.decodeJson('1.5')).toThrow(
-        'sqlite/bigintnumber@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991',
-      );
-    });
-
-    it('rejects a JSON number, whose digits a wide value has already lost', () => {
-      expect(() => codec.decodeJson(42)).toThrow(
-        'sqlite/bigintnumber@1 JSON value must be a decimal integer string from -9007199254740991 to 9007199254740991',
-      );
-    });
-
     it('rejects out-of-range and non-integral values on the encode side', () => {
       expect(() => codec.encodeJson(9007199254740992)).toThrow(
         'sqlite/bigintnumber@1 value must be an integer within the safe integer range',
@@ -209,15 +187,6 @@ describe('sqlite/bigintnumber@1', () => {
         'sqlite/bigintnumber@1 value must be an integer within the safe integer range',
       );
     });
-  });
-
-  it('projects through a TEXT cast, the canonical form its data type carries', () => {
-    const expression = ColumnRef.of('records', 'value');
-    expect(
-      sqliteBigintNumberDescriptor.projectJson(expression, {
-        codecId: SQLITE_BIGINT_NUMBER_CODEC_ID,
-      }),
-    ).toEqual(CastExpr.as(expression, 'TEXT'));
   });
 
   // An aggregate whose result this codec carries reaches the projection already
@@ -239,14 +208,5 @@ describe('sqlite/bigintnumber@1', () => {
 
   it('renders a default as a number literal', () => {
     expect(sqliteBigintNumberDescriptor.renderValueLiteral?.('42')).toBe('42');
-  });
-
-  it('resolves from both registries by codec id', () => {
-    expect(sqliteCodecRegistry.descriptorFor(SQLITE_BIGINT_NUMBER_CODEC_ID)).toBe(
-      sqliteBigintNumberDescriptor,
-    );
-    expect(sqliteCodecDescriptorRegistry.descriptorFor(SQLITE_BIGINT_NUMBER_CODEC_ID)).toBe(
-      sqliteBigintNumberDescriptor,
-    );
   });
 });

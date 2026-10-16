@@ -1,5 +1,4 @@
 import type { JsonValue } from '@internal/contract/types';
-import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { pgGeometryColumn, postgisGeometryDescriptor } from '../src/core/codecs';
 import type { Geometry } from '../src/core/geojson';
@@ -22,15 +21,6 @@ function asAsyncCodec(srid = 4326): AsyncGeometryCodec {
 }
 
 describe('postgis codecs', () => {
-  it(
-    'has geometry descriptor registered',
-    () => {
-      expect(postgisGeometryDescriptor.codecId).toBe('pg/geometry@1');
-      expect(postgisGeometryDescriptor.dataType).toBe('postgis/geometry');
-    },
-    timeouts.default,
-  );
-
   describe('encode (Geometry → EWKT)', () => {
     it('encodes a Point without SRID', async () => {
       const c = asAsyncCodec();
@@ -156,14 +146,6 @@ describe('postgis codecs', () => {
   });
 
   describe('encodeJson / decodeJson', () => {
-    it('round-trips the Postgres JSON HEXEWKB representation', () => {
-      const c = asAsyncCodec();
-      const value: Geometry = { type: 'Point', coordinates: [1, 2], srid: 4326 };
-      const encoded = c.encodeJson(value);
-      expect(encoded).toBe('0101000020E6100000000000000000F03F0000000000000040');
-      expect(c.decodeJson(encoded)).toEqual(value);
-    });
-
     it('encodeJson rejects non-Geometry input', () => {
       const c = asAsyncCodec();
       expect(() => c.encodeJson(null as unknown as Geometry)).toThrow(

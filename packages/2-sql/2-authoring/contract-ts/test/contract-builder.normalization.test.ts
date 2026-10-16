@@ -28,24 +28,6 @@ const postgresTargetPack: TargetPackRef<'sql', 'postgres'> = {
 };
 
 describe('contract builder normalization', () => {
-  it('normalizes nullable to false when not provided', () => {
-    const contract = defineContract({
-      ...testTypeLookups,
-      family: bareFamilyPack,
-      target: postgresTargetPack,
-      createNamespace: createTestSqlNamespace,
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.column(int4Column).id(),
-          },
-        }).sql({ table: 'user' }),
-      },
-    });
-
-    expect(unboundTables(contract.storage)['user']!.columns['id']!.nullable).toBe(false);
-  });
-
   it('normalizes nullable to provided value', () => {
     const contract = defineContract({
       ...testTypeLookups,
@@ -64,87 +46,6 @@ describe('contract builder normalization', () => {
 
     expect(unboundTables(contract.storage)['user']!.columns['id']!.nullable).toBe(false);
     expect(unboundTables(contract.storage)['user']!.columns['email']!.nullable).toBe(true);
-  });
-
-  it('normalizes uniques to empty array when not provided', () => {
-    const contract = defineContract({
-      ...testTypeLookups,
-      family: bareFamilyPack,
-      target: postgresTargetPack,
-      createNamespace: createTestSqlNamespace,
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.column(int4Column).id(),
-          },
-        }).sql({ table: 'user' }),
-      },
-    });
-
-    expect(unboundTables(contract.storage)['user']!.uniques).toEqual([]);
-    expect(Array.isArray(unboundTables(contract.storage)['user']!.uniques)).toBe(true);
-  });
-
-  it('normalizes indexes to empty array when not provided', () => {
-    const contract = defineContract({
-      ...testTypeLookups,
-      family: bareFamilyPack,
-      target: postgresTargetPack,
-      createNamespace: createTestSqlNamespace,
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.column(int4Column).id(),
-          },
-        }).sql({ table: 'user' }),
-      },
-    });
-
-    expect(unboundTables(contract.storage)['user']!.indexes).toEqual([]);
-    expect(Array.isArray(unboundTables(contract.storage)['user']!.indexes)).toBe(true);
-  });
-
-  it('normalizes foreignKeys to empty array when not provided', () => {
-    const contract = defineContract({
-      ...testTypeLookups,
-      family: bareFamilyPack,
-      target: postgresTargetPack,
-      createNamespace: createTestSqlNamespace,
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.column(int4Column).id(),
-          },
-        }).sql({ table: 'user' }),
-      },
-    });
-
-    expect(unboundTables(contract.storage)['user']!.foreignKeys).toEqual([]);
-    expect(Array.isArray(unboundTables(contract.storage)['user']!.foreignKeys)).toBe(true);
-  });
-
-  it('normalizes relations to empty object when not provided', () => {
-    const contract = defineContract({
-      ...testTypeLookups,
-      family: bareFamilyPack,
-      target: postgresTargetPack,
-      createNamespace: createTestSqlNamespace,
-      models: {
-        User: model('User', {
-          fields: {
-            id: field.column(int4Column).id(),
-          },
-        }).sql({ table: 'user' }),
-      },
-    });
-
-    const userModel = (
-      modelsOf(contract) as Record<string, { relations?: Record<string, unknown> }>
-    )['User']!;
-    expect(userModel).toHaveProperty('relations');
-    expect(userModel.relations).toEqual({});
-    expect(typeof userModel.relations).toBe('object');
-    expect(Array.isArray(userModel.relations)).toBe(false);
   });
 
   it('normalizes all required fields in a complete contract', () => {

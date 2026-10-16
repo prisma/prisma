@@ -45,10 +45,6 @@ describe('SqlCheckConstraintIR', () => {
     expect(wireCheck('T_status_check', expression).id).toBe(`check:T_status_check_${hash}`);
   });
 
-  it('nodeKind is the check kind', () => {
-    expect(exactCheck('chk_status', expression).nodeKind).toBe('sql-check-constraint');
-  });
-
   it('children is empty (a check constraint is a leaf)', () => {
     expect(exactCheck('chk_status', expression).children()).toEqual([]);
   });

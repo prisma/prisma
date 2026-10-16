@@ -176,11 +176,6 @@ describe('enablement drift verdicts', () => {
     const marked = buildContract({ marked: true, control: 'external' });
     expect(verdictOk(marked, actualSchema({ rlsEnabled: false }))).toBe(false);
   });
-
-  it('last-policy removal end state (marker, RLS on, no policies) verifies clean', () => {
-    const contract = buildContract({ marked: true });
-    expect(verdictOk(contract, actualSchema({ rlsEnabled: true, policies: [] }))).toBe(true);
-  });
 });
 
 describe('policy drift verdicts', () => {

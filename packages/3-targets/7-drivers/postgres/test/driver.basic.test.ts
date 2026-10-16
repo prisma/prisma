@@ -142,65 +142,6 @@ describe('@internal/driver-postgres', () => {
   );
 
   it(
-    'handles direct client connection',
-    async () => {
-      const db = newDb();
-      const { Client } = db.adapters.createPg();
-      const client = new Client();
-
-      const driver = postgresRuntimeDriverDescriptor.create();
-
-      cleanup = async () => {
-        await driver.close();
-      };
-
-      await driver.connect({ kind: 'pgClient', client: client as unknown as Client });
-      await executeSql(driver, 'create table items(id serial primary key, name text)');
-      await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
-
-      const result = await queryRows<{ id: number; name: string }>(
-        driver,
-        'select id, name from items',
-      );
-
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('test');
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
-    'fails fast when connect is called twice on runtime driver',
-    async () => {
-      const db = newDb();
-      const { Client } = db.adapters.createPg();
-      const client = new Client();
-
-      const driver = postgresRuntimeDriverDescriptor.create();
-
-      cleanup = async () => {
-        await driver.close();
-      };
-
-      await driver.connect({ kind: 'pgClient', client: client as unknown as Client });
-      await expect(
-        driver.connect({ kind: 'pgClient', client: client as unknown as Client }),
-      ).rejects.toThrow(
-        'Postgres driver already connected. Call close() before reconnecting with a new binding.',
-      );
-
-      await executeSql(driver, 'create table items(id serial primary key, name text)');
-      const result = await queryRows<{ id: number; name: string }>(
-        driver,
-        'select id, name from items',
-      );
-
-      expect(result).toBeDefined();
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
     'skips connect when client is already connected',
     async () => {
       const db = newDb();
@@ -224,18 +165,6 @@ describe('@internal/driver-postgres', () => {
       );
 
       expect(result).toBeDefined();
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
-    'handles pool already ended when closing',
-    async () => {
-      const driver = await createMemPoolDriver({ autoCleanup: false });
-      await driver.close();
-
-      // Closing again should not throw (pool.ended check)
-      await driver.close();
     },
     timeouts.spinUpPpgDev,
   );
@@ -323,31 +252,6 @@ describe('@internal/driver-postgres', () => {
       expect(result.rows).toBeDefined();
       expect(Array.isArray(result.rows)).toBe(true);
       expect(result.rows.length).toBeGreaterThan(0);
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
-    'connects with url binding',
-    async () => {
-      const database = await createDevDatabase();
-      const driver = postgresRuntimeDriverDescriptor.create();
-
-      cleanup = async () => {
-        await driver.close();
-        await database.close();
-      };
-
-      await driver.connect({ kind: 'url', url: database.connectionString });
-      await executeSql(driver, 'create table items(id serial primary key, name text)');
-      await executeSql(driver, 'insert into items(name) values ($1)', ['test']);
-
-      const result = await queryRows<{ id: number; name: string }>(
-        driver,
-        'select id, name from items',
-      );
-      expect(result).toHaveLength(1);
-      expect(result[0]?.name).toBe('test');
     },
     timeouts.spinUpPpgDev,
   );

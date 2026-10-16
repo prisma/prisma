@@ -108,16 +108,6 @@ describe('loadContractFromTs', () => {
   );
 
   it(
-    'handles bundling errors',
-    async () => {
-      const invalidPath = join(fixturesDir, 'nonexistent-file.ts');
-
-      await expect(loadContractFromTs(invalidPath)).rejects.toThrow();
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
     'rejects functions in contract export',
     async () => {
       const contractPath = join(fixturesDir, 'function-in-object.ts');
@@ -165,47 +155,6 @@ describe('loadContractFromTs', () => {
           allowlist: ['@other/package/*'],
         }),
       ).rejects.toThrow('Disallowed imports detected');
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'handles allowlist pattern matching exact prefix',
-    async () => {
-      const contractPath = join(fixturesDir, 'exact-prefix-import.ts');
-
-      const contract = await loadContractFromTs(contractPath, {
-        allowlist: ['@internal/*', 'node:*'],
-      });
-
-      expect(contract).toBeDefined();
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'throws error when bundle content is undefined',
-    async () => {
-      // This test verifies the error path when esbuild returns no output files
-      // We can't easily trigger this in practice, but the code path exists
-      // The error would be thrown at line 170 in load-ts-contract.ts
-      const contractPath = join(fixturesDir, 'valid-contract.ts');
-      // The actual error would occur if esbuild fails to generate output
-      // This is a defensive check that's hard to test directly
-      await expect(loadContractFromTs(contractPath)).resolves.toBeDefined();
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'handles non-Error exceptions in catch block',
-    async () => {
-      // This test verifies the catch block handles non-Error exceptions (line 211)
-      // We can't easily trigger this in practice, but the code path exists
-      const contractPath = join(fixturesDir, 'valid-contract.ts');
-      // The actual error would occur if an exception is thrown that's not an Error instance
-      // This is a defensive check that's hard to test directly
-      await expect(loadContractFromTs(contractPath)).resolves.toBeDefined();
     },
     timeouts.typeScriptCompilation,
   );

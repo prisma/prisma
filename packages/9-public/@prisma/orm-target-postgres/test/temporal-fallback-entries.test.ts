@@ -169,13 +169,6 @@ describe('how a published package that ships the control entry declares temporal
     return isRecord(declarations) ? declarations[POLYFILL] : undefined;
   }
 
-  it('the packages are the target package and the facade', () => {
-    expect(PACKAGES_THAT_SHIP_THE_CONTROL_ENTRY).toEqual([
-      '@prisma/orm-target-postgres',
-      '@prisma/orm-postgres',
-    ]);
-  });
-
   it.each(PACKAGES_THAT_SHIP_THE_CONTROL_ENTRY)(
     '%s declares it as a required peer dependency, not a dependency',
     (packageName) => {

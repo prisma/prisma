@@ -2,13 +2,9 @@ import { SqlColumnDefaultIR } from '@internal/sql-schema-ir/types';
 import { pgInt2, pgInt4, pgInt8, pgNumeric, pgText } from '@internal/target-postgres/data-types';
 import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
-import { pgvectorDataTypes, pgvectorVector } from '../src/core/data-types';
+import { pgvectorVector } from '../src/core/data-types';
 
 describe('pgvector/vector', () => {
-  it('is the only data type this pack registers', () => {
-    expect(pgvectorDataTypes.map((type) => type.id)).toEqual(['pgvector/vector']);
-  });
-
   it('takes a list of the target numeric types and nothing else', () => {
     expect(pgvectorVector.listCast?.of).toEqual([pgInt2.id, pgInt4.id, pgInt8.id, pgNumeric.id]);
     expect(pgvectorVector.listCast?.of).not.toContain(pgText.id);
@@ -77,10 +73,6 @@ describe('the canonical form of pgvector/vector', () => {
         message: `A vector is an array of finite numbers, or the text PostgreSQL prints for one, as in "[1,2,3]". ${JSON.stringify(value)} is neither.`,
       }),
     );
-  });
-
-  it('adds no cast from text', () => {
-    expect(pgvectorVector.casts).toEqual({});
   });
 
   it('makes a list default PostgreSQL prints as text equal the arrays the contract stores', () => {

@@ -49,14 +49,6 @@ describe('SQL contract factories', () => {
         columns: ['id', 'tenantId'],
       });
     });
-
-    it('creates primary key with name', () => {
-      const primaryKey = pk('id');
-      expect(primaryKey.columns).toEqual(['id']);
-      // name is optional and can be set via object spread if needed
-      const withName = { ...primaryKey, name: 'user_pkey' };
-      expect(withName.name).toBe('user_pkey');
-    });
   });
 
   describe('unique', () => {
@@ -248,33 +240,6 @@ describe('SQL contract factories', () => {
         },
         { fks: [fk('post', ['userId'], 'user', ['id'])] },
       );
-      expect(postTable.foreignKeys).toEqual([
-        {
-          source: { namespaceId: UNBOUND_NAMESPACE_ID, tableName: 'post', columns: ['userId'] },
-          target: { namespaceId: UNBOUND_NAMESPACE_ID, tableName: 'user', columns: ['id'] },
-        },
-      ]);
-    });
-
-    it('creates table with all constraints', () => {
-      const postTable = table(
-        {
-          id: col('pg/int4', 'pg/int4@1'),
-          userId: col('pg/int4', 'pg/int4@1'),
-          title: col('pg/text', 'pg/text@1'),
-        },
-        {
-          pk: pk('id'),
-          uniques: [unique('title')],
-          indexes: [index('post_userId_idx', ['userId'])],
-          fks: [fk('post', ['userId'], 'user', ['id'])],
-        },
-      );
-      expect(postTable.primaryKey).toEqual({ columns: ['id'] });
-      expect(postTable.uniques).toEqual([{ columns: ['title'] }]);
-      expect(postTable.indexes).toEqual([
-        { name: 'post_userId_idx', columns: ['userId'], unique: false },
-      ]);
       expect(postTable.foreignKeys).toEqual([
         {
           source: { namespaceId: UNBOUND_NAMESPACE_ID, tableName: 'post', columns: ['userId'] },

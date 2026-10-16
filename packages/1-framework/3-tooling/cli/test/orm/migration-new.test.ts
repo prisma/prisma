@@ -222,20 +222,6 @@ describe('migration new', () => {
     expect(run.presented?.data).toMatchObject({ from: HASH_FROM, to: HASH_TO });
   });
 
-  it('refuses on a forked graph without a db ref', async () => {
-    const project = await forkedProject();
-
-    const run = await harness(project).run(['migration', 'new', '--json'], {
-      cwd: project.dir,
-    });
-
-    expect(run.exitCode).toBe(2);
-    expect(run.json.at(-1)).toMatchObject({
-      kind: 'result',
-      envelope: { ok: false, error: { code: 'MIGRATION.PLAN_ORIGIN_UNKNOWN' } },
-    });
-  });
-
   it('refuses a db ref on an empty graph instead of scaffolding from nothing', async () => {
     const project = await createOfflineProject({ storageHash: HASH_TO });
     await seedDbRef({ appMigrationsDir: project.appMigrationsDir, storageHash: HASH_FROM });

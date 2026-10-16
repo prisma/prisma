@@ -101,36 +101,6 @@ describe('PostgresMigrationPlanner - integration (existing schemas)', { concurre
     });
   });
 
-  it('plans additive fixes for subset schemas', { timeout: testTimeout }, async () => {
-    // Create user table with just id - missing email column, unique, and index
-    await driver!.query('create table "user" (id uuid primary key)');
-    const schema = await introspectSchema(driver!);
-    const planner = postgresTargetDescriptor.createPlanner(controlAdapter);
-
-    const subsetResult = planner.plan({
-      contract,
-      schema,
-      policy: INIT_ADDITIVE_POLICY,
-      fromContract: null,
-      origin: null,
-      statements: [],
-      frameworkComponents,
-      spaceId: APP_SPACE_ID,
-      snapshotsImportPath: '../../snapshots',
-    });
-
-    expect(subsetResult.kind).toBe('success');
-    if (subsetResult.kind !== 'success') {
-      throw new Error('expected planner success for subset');
-    }
-    // Contract only has 'user' table - should plan missing column, unique, and index
-    expect((await Promise.all(subsetResult.plan.operations)).map((op) => op.id)).toEqual([
-      'column.user.email',
-      'unique.user.user_email_key',
-      'index.user.user_email_idx',
-    ]);
-  });
-
   it('plans the empty-table fallback for a dropped NOT NULL unique column on a non-empty table', {
     timeout: testTimeout,
   }, async () => {

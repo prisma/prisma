@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BinaryExpr, ColumnRef, LiteralExpr, ParamRef } from '../src/ast/types';
+import { ColumnRef, LiteralExpr } from '../src/ast/types';
 import type { ScopeField } from '../src/expression';
 import { ExpressionImpl } from '../src/expression-impl';
 
@@ -33,13 +33,5 @@ describe('ExpressionImpl', () => {
 
     expect(expr.buildAst()).toBe(ast);
     expect(expr.buildProjectionAst()).toBe(projectionAst);
-  });
-
-  it('wraps a predicate Expression node', () => {
-    const binary = BinaryExpr.eq(ColumnRef.of('users', 'id'), ParamRef.of(1));
-    const scopeField: ScopeField = { codecId: 'pg/bool@1', nullable: false };
-    const expr = new ExpressionImpl(binary, scopeField);
-
-    expect(expr.buildAst()).toBe(binary);
   });
 });

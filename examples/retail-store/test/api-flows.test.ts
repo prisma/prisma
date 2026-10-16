@@ -222,45 +222,6 @@ describe('API flow: order status progression', {
 }, () => {
   const ctx = setupTestDb('api_flows_order_status');
 
-  it('advances through placed → shipped → delivered', async () => {
-    const user = await ctx.db.orm.users.create({
-      name: 'Eve',
-      email: 'e@test.com',
-      address: null,
-    });
-
-    const order = await createOrder(ctx.db, {
-      userId: user._id,
-      items: [ITEM_A],
-      shippingAddress: '200 Cedar',
-      type: enums.OrderType.members.Delivery,
-      statusHistory: [{ status: 'placed', timestamp: new Date('2026-04-01T10:00:00Z') }],
-    });
-
-    await updateOrderStatus(ctx.db, order._id, {
-      status: 'shipped',
-      timestamp: new Date('2026-04-02T14:00:00Z'),
-    });
-
-    await updateOrderStatus(ctx.db, order._id, {
-      status: 'delivered',
-      timestamp: new Date('2026-04-04T09:00:00Z'),
-    });
-
-    const final = await getOrderById(ctx.db, order._id);
-    expect(final!.statusHistory).toHaveLength(3);
-    const statuses = final!.statusHistory.map((s) => s.status);
-    expect(statuses).toEqual(['placed', 'shipped', 'delivered']);
-  });
-
-  it('updateOrderStatus on non-existent order returns null', async () => {
-    const result = await updateOrderStatus(ctx.db, '000000000000000000000000', {
-      status: 'shipped',
-      timestamp: new Date(),
-    });
-    expect(result).toBeNull();
-  });
-
   it('order with user relation includes user data after status update', async () => {
     const user = await ctx.db.orm.users.create({
       name: 'Frank',

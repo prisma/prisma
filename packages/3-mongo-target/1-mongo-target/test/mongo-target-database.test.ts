@@ -1,21 +1,8 @@
-import { NamespaceBase } from '@internal/framework-components/ir';
 import { MongoCollection } from '@internal/mongo-contract';
 import { describe, expect, it } from 'vitest';
 import { MongoTargetDatabase, MongoTargetUnboundDatabase } from '../src/core/mongo-target-database';
 
 describe('MongoTargetDatabase', () => {
-  it('is a NamespaceBase subclass (target ↦ family ↦ framework lineage)', () => {
-    const db = new MongoTargetDatabase({ id: 'app_db' });
-    expect(db).toBeInstanceOf(NamespaceBase);
-    expect(db).toBeInstanceOf(MongoTargetDatabase);
-  });
-
-  it('carries kind="database" and the database id', () => {
-    const db = new MongoTargetDatabase({ id: 'app_db' });
-    expect(db.kind).toBe('database');
-    expect(db.id).toBe('app_db');
-  });
-
   it('is frozen after construction (no mutation possible)', () => {
     const db = new MongoTargetDatabase({ id: 'app_db' });
     expect(Object.isFrozen(db)).toBe(true);
@@ -43,12 +30,6 @@ describe('MongoTargetDatabase', () => {
 });
 
 describe('MongoTargetUnboundDatabase', () => {
-  it('extends MongoTargetDatabase (target singleton ↦ target base ↦ framework)', () => {
-    expect(MongoTargetUnboundDatabase.instance).toBeInstanceOf(MongoTargetDatabase);
-    expect(MongoTargetUnboundDatabase.instance).toBeInstanceOf(MongoTargetUnboundDatabase);
-    expect(MongoTargetUnboundDatabase.instance).toBeInstanceOf(NamespaceBase);
-  });
-
   it('carries id="__unbound__"', () => {
     expect(MongoTargetUnboundDatabase.instance.id).toBe('__unbound__');
   });

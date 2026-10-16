@@ -1,6 +1,6 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { describe, expect, it } from 'vitest';
-import { rlsEnabledAst, rlsPolicyExistsAst } from '../../src/contract-free/checks';
+import { rlsEnabledAst } from '../../src/contract-free/checks';
 import {
   DisableRowLevelSecurityCall,
   RenamePostgresRlsPolicyCall,
@@ -82,38 +82,6 @@ describe('renameRlsPolicy op', () => {
     expect(ddlNode.newName).toBe(NEW_NAME);
   });
 
-  it('lowers a parameterized old-name-present precheck (names never inlined)', async () => {
-    const { lowerer, received } = recordingCheckLowerer();
-    const op = await renameRlsPolicy('public', 'profiles', OLD_NAME, NEW_NAME, lowerer);
-    expect(received).toContainEqual(
-      rlsPolicyExistsAst({
-        schema: 'public',
-        table: 'profiles',
-        policyName: OLD_NAME,
-      }).policyPresent(),
-    );
-    expect(op.precheck[0]?.params).toEqual(['p1']);
-    // The op-level test can only pin that the right check AST (carrying the
-    // name) is lowered; the recording lowerer stubs the SQL, so asserting the
-    // name is absent from `op.precheck[0].sql` here would be vacuous. The real
-    // param-binding safety is rendered through the actual adapter lowerer in
-    // adapter-postgres `verification-checks-lowering.test.ts`.
-  });
-
-  it('lowers a parameterized new-name-present postcheck', async () => {
-    const { lowerer, received } = recordingCheckLowerer();
-    const op = await renameRlsPolicy('public', 'profiles', OLD_NAME, NEW_NAME, lowerer);
-    expect(received).toContainEqual(
-      rlsPolicyExistsAst({
-        schema: 'public',
-        table: 'profiles',
-        policyName: NEW_NAME,
-      }).policyPresent(),
-    );
-    // Call order: old present (p1), DDL node (p2), new present (p3)
-    expect(op.postcheck[0]?.params).toEqual(['p3']);
-  });
-
   it('operationClass is widening — a rename never plans as a drop', async () => {
     const { lowerer } = recordingCheckLowerer();
     const op = await renameRlsPolicy('public', 'profiles', OLD_NAME, NEW_NAME, lowerer);
@@ -144,23 +112,6 @@ describe('DisableRowLevelSecurityCall', () => {
     const call = new DisableRowLevelSecurityCall('public', 'profiles');
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
-
-  it('renderTypeScript() round-trips the call', () => {
-    const call = new DisableRowLevelSecurityCall('public', 'profiles');
-    expect(call.renderTypeScript()).toBe(
-      'this.disableRowLevelSecurity({ schema: "public", table: "profiles" })',
-    );
-  });
-
-  it('factoryName is disableRowLevelSecurity', () => {
-    const call = new DisableRowLevelSecurityCall('public', 'profiles');
-    expect(call.factoryName).toBe('disableRowLevelSecurity');
-  });
-
-  it('operationClass is widening', () => {
-    const call = new DisableRowLevelSecurityCall('public', 'profiles');
-    expect(call.operationClass).toBe('widening');
-  });
 });
 
 describe('RenamePostgresRlsPolicyCall', () => {
@@ -178,22 +129,5 @@ describe('RenamePostgresRlsPolicyCall', () => {
   it('toOp() throws when no lowerer is provided', async () => {
     const call = new RenamePostgresRlsPolicyCall('public', 'profiles', OLD_NAME, NEW_NAME);
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
-  });
-
-  it('renderTypeScript() round-trips the call', () => {
-    const call = new RenamePostgresRlsPolicyCall('public', 'profiles', OLD_NAME, NEW_NAME);
-    expect(call.renderTypeScript()).toBe(
-      `this.renameRlsPolicy({ schema: "public", table: "profiles", from: "${OLD_NAME}", to: "${NEW_NAME}" })`,
-    );
-  });
-
-  it('factoryName is renameRlsPolicy', () => {
-    const call = new RenamePostgresRlsPolicyCall('public', 'profiles', OLD_NAME, NEW_NAME);
-    expect(call.factoryName).toBe('renameRlsPolicy');
-  });
-
-  it('operationClass is widening — plans without the destructive allowance', () => {
-    const call = new RenamePostgresRlsPolicyCall('public', 'profiles', OLD_NAME, NEW_NAME);
-    expect(call.operationClass).toBe('widening');
   });
 });

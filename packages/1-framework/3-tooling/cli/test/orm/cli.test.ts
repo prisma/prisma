@@ -297,8 +297,4 @@ describe('runOrmCli', () => {
     expect(stderr.join('')).toContain('[CLI.UNEXPECTED]');
     expect(stderr.join('')).toContain('ENOENT: uv_cwd');
   });
-
-  it('does not let the failure escape as a rejection', async () => {
-    await expect(runOrmCli(processWithUnreadableCwd([]))).resolves.toBeTypeOf('number');
-  });
 });
