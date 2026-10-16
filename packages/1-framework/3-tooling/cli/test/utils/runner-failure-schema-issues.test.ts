@@ -57,7 +57,7 @@ describe('a failed schema check after apply', () => {
       );
       expect({ why: error.why, fix: error.fix, issues: error.meta?.['issues'] }).toEqual({
         why: LISTED,
-        fix: `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run \`{bin} contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name initial\`, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\`.`,
+        fix: `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run \`{bin} contract emit\`, delete \`migrations/app/20261015T1200_initial\` (copy any code you wrote in its migration.ts first), plan it again with \`{bin} migration plan --from ${FROM} --name initial\`, put any code you copied into the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and run \`{bin} db migrate\`.`,
         issues: [explained, plain],
       });
     });
@@ -75,6 +75,12 @@ describe('a failed schema check after apply', () => {
           invocation,
         ).fix,
       ).toContain('plan it again with `{bin} migration plan --name initial`,');
+    });
+
+    it('says to carry written code over when the runner names no migration', () => {
+      expect(mapMigrateFailure(schemaCheckFailure([explained]), invocation).fix).toBe(
+        "The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run `{bin} contract emit`, delete the failed migration's directory (copy any code you wrote in its migration.ts first), plan it again with `{bin} migration plan`, put any code you copied into the migration.ts it writes, run that migration.ts with the `node` command `migration plan` prints, and run `{bin} db migrate`.",
+      );
     });
 
     it('keeps the runner why for an issue the CLI cannot read', () => {

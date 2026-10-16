@@ -124,7 +124,7 @@ withTempDir(({ createTempDir }) => {
 
         const advised = /write the default as ([\s\S]+?)\.\n→/.exec(shown)?.[1];
         const fix =
-          /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`\./.exec(
+          /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, put any code you copied into the migration\.ts it writes, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`\./.exec(
             shown,
           );
         expect({
@@ -188,7 +188,7 @@ model Tag {
         expect(failed.exitCode, shown).not.toBe(0);
         const advised = /write the default as ([\s\S]+?)\.\n→/.exec(shown)?.[1];
         const fix =
-          /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`\./.exec(
+          /delete `([^`]+)` \(copy any code you wrote in its migration\.ts first\), plan it again with `\S+ migration plan ([^`]+)`, put any code you copied into the migration\.ts it writes, run that migration\.ts with the `node` command `migration plan` prints, and run `\S+ db migrate`\./.exec(
             shown,
           );
         expect({ advised, folder: fix?.[1], planArgs: fix?.[2] }).toEqual({

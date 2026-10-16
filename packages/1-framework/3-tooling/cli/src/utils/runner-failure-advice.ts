@@ -240,14 +240,14 @@ function migrateSchemaCheckFix(
 ): string {
   const emit = `\`${cliCommand(invocation, 'contract emit')}\``;
   if (failedMigration === undefined) {
-    return `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run ${emit}, delete the failed migration's directory, plan it again with ${migrationPlanCommand(invocation, [], undefined)}, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(invocation)}.`;
+    return `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run ${emit}, delete the failed migration's directory (copy any code you wrote in its migration.ts first), plan it again with ${migrationPlanCommand(invocation, [], undefined)}, put any code you copied into the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(invocation)}.`;
   }
   const plan = migrationPlanCommand(
     invocation,
     ['--name', failedMigration.name],
     failedMigration.from,
   );
-  return `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run ${emit}, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan}, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(invocation)}.`;
+  return `The failed apply changed nothing. Change the contract source to resolve the issues listed, re-run ${emit}, delete \`${failedMigration.directory}\` (copy any code you wrote in its migration.ts first), plan it again with ${plan}, put any code you copied into the migration.ts it writes, ${RUN_PLANNED_FILE}, and run ${dbMigrateCommand(invocation)}.`;
 }
 
 /**
