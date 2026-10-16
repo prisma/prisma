@@ -723,6 +723,30 @@
               "field": "unique",
               "op": "$eq",
               "value": true
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
             }
           ]
         },
@@ -781,13 +805,51 @@
           "collection": "events"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "userId": 1,
-            "timestamp": -1
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "userId": 1,
+                "timestamp": -1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -840,12 +902,51 @@
           "collection": "events"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "timestamp": 1
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "timestamp": 1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "field",
+              "field": "expireAfterSeconds",
+              "op": "$eq",
+              "value": 7776000
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -897,12 +998,50 @@
           "collection": "invoices"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "orderId": 1
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "orderId": 1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -955,12 +1094,47 @@
           "collection": "invoices"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "issuedAt": -1
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "issuedAt": -1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "field",
+              "field": "sparse",
+              "op": "$eq",
+              "value": true
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -1021,13 +1195,63 @@
           "collection": "locations"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "city": 1,
-            "country": 1
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "city": 1,
+                "country": 1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            },
+            {
+              "kind": "field",
+              "field": "collation.locale",
+              "op": "$eq",
+              "value": "en"
+            },
+            {
+              "kind": "field",
+              "field": "collation.strength",
+              "op": "$eq",
+              "value": 2
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -1079,12 +1303,50 @@
           "collection": "orders"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "userId": 1
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "userId": 1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -1142,10 +1404,72 @@
           "collection": "products"
         },
         "filter": {
-          "kind": "field",
-          "field": "key._fts",
-          "op": "$eq",
-          "value": "text"
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "_fts": "text",
+                "_ftsx": 1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            },
+            {
+              "kind": "field",
+              "field": "weights",
+              "op": "$eq",
+              "value": {
+                "description": 1,
+                "name": 10
+              }
+            },
+            {
+              "kind": "field",
+              "field": "default_language",
+              "op": "$eq",
+              "value": "english"
+            },
+            {
+              "kind": "field",
+              "field": "language_override",
+              "op": "$eq",
+              "value": "language"
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -1202,13 +1526,51 @@
           "collection": "products"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "brand": 1,
-            "subCategory": 1
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "brand": 1,
+                "subCategory": 1
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -1260,12 +1622,50 @@
           "collection": "products"
         },
         "filter": {
-          "kind": "field",
-          "field": "key",
-          "op": "$eq",
-          "value": {
-            "code": "hashed"
-          }
+          "kind": "and",
+          "exprs": [
+            {
+              "kind": "field",
+              "field": "key",
+              "op": "$eq",
+              "value": {
+                "code": "hashed"
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "unique",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
+            }
+          ]
         },
         "expect": "exists"
       }
@@ -1333,6 +1733,30 @@
               "field": "unique",
               "op": "$eq",
               "value": true
+            },
+            {
+              "kind": "not",
+              "expr": {
+                "kind": "field",
+                "field": "sparse",
+                "op": "$eq",
+                "value": true
+              }
+            },
+            {
+              "kind": "exists",
+              "field": "expireAfterSeconds",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "partialFilterExpression",
+              "exists": false
+            },
+            {
+              "kind": "exists",
+              "field": "wildcardProjection",
+              "exists": false
             }
           ]
         },
