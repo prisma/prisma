@@ -70,7 +70,7 @@ Commit your work first, so the script's changes can be reviewed and undone with 
 node <path-to-this-guide>/scripts/data-type-values.ts
 ```
 
-Node 24 or later runs the TypeScript script directly; it needs no `tsx`. It reads and writes files only and needs no database. It rewrites every `*.json` file under the root that parses as a SQLite contract in the previous release's form, skipping `node_modules`, `.git`, `dist` and `build`, and follows links to files and directories, also outside the root. In each contract it changes:
+Node 24 or later runs the TypeScript script directly; it needs no `tsx`. It reads and writes files only and needs no database. It rewrites every `*.json` file under the root that parses as a SQLite contract in the previous release's form, skipping `node_modules`, `.git`, `dist` and `build`, and follows links to files and directories, also outside the root; commit or back up the files there too. That includes a test fixture of a contract in the previous release's form: if you keep such a fixture on purpose, restore it with git afterwards (`git restore <file>`), or keep it outside the project root. In each contract it changes:
 
 - the `dataType` of each column and named type whose codec is `sqlite/datetime@1` or `sqlite/json@1`, from `sqlite/text` to `sqlite/datetime` or `sqlite/json`;
 - each literal default of a `sqlite/datetime@1` column, and each value of an enum typed by `sqlite/datetime@1`, to three fraction digits: `"2024-01-01T00:00:00Z"` becomes `"2024-01-01T00:00:00.000Z"`, and `"2024-01-01T00:00:00.5Z"` becomes `"2024-01-01T00:00:00.500Z"`. A JSON default keeps its value.
