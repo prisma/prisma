@@ -18,16 +18,16 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 
 | Stream | Done | Bar | In progress | Not started |
 | --- | --- | --- | --- | --- |
-| Foundations and breaking changes | 2 of 7 (29%) | `███░░░░░░░` | 4 | 1 |
+| Foundations and breaking changes | 3 of 7 (43%) | `████░░░░░░` | 3 | 1 |
 | Upgrade path from Prisma 7 | 1 of 7 (14%) | `█░░░░░░░░░` | 3 | 3 |
 | Editor and tools | 1 of 4 (25%) | `██░░░░░░░░` | 2 | 1 |
 | Query features | 6 of 11 (55%) | `██████░░░░` | 3 | 2 |
 | Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
-| **All streams** | **11 of 34 (32%)** | `███░░░░░░░` | **15** | **8** |
+| **All streams** | **12 of 34 (35%)** | `████░░░░░░` | **14** | **8** |
 
 ## Stream 1: Foundations and breaking changes
 
-**GA readiness:** 2 of 7 Must projects done (29%). 4 in progress, 1 not started.
+**GA readiness:** 3 of 7 Must projects done (43%). 3 in progress, 1 not started.
 
 GA is the last chance to make breaking changes, so this stream decides the date.
 
@@ -38,8 +38,8 @@ GA is the last chance to make breaking changes, so this stream decides the date.
 | 3 | ⏳ | Early MySQL attempt, to find shared code that assumes PostgreSQL | Must | Will | Not started, no ticket |  |
 | 4 | ✅ 6/6 | SQL expression literals | Must | Will | Done 2026-10-12 |  |
 | 5 | 🔄 4/5 | PSL mixins, then remove type aliases and field presets | Must | Serhii | Mixins done 2026-10-14. Removing type aliases and field presets not started |  |
-| 6 | 🟡 0/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | PR approved 2026-10-16, not yet queued | Queue the PR |
-| 7 | 🔄 4/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 4 of 7 slices merged. The TypeScript MongoDB validator slice: PR 1 of 2 approved | Merge PR 1, build PR 2 of TML-3553, then the remaining Postgres and SQLite renames (TML-3537) |
+| 6 | ✅ 1/1 | Remove `@noCheck` and `.noCheck()` | Must | Will | Done 2026-10-16 |  |
+| 7 | 🔄 4/7 | Migration statements: the planner refuses data loss, the user states renames, deletes, conversions and backfills | Must | Will | 4 of 7 slices merged. The TypeScript MongoDB validator slice: PR 1 of 2 merged 2026-10-16 | Build PR 2 of TML-3553, then the remaining Postgres and SQLite renames (TML-3537) |
 
 ## Stream 2: Upgrade path from Prisma 7
 
