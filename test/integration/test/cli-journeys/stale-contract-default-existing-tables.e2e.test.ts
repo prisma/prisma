@@ -192,6 +192,10 @@ withTempDir(({ createTempDir }) => {
               ),
               nextActions: expect.arrayContaining([
                 expect.objectContaining({
+                  kind: 'open-url',
+                  url: 'https://github.com/prisma/orm/tree/main/skills/prisma-8/upgrading/app',
+                }),
+                expect.objectContaining({
                   kind: 'run-command',
                   command: expect.stringContaining('contract emit'),
                 }),
