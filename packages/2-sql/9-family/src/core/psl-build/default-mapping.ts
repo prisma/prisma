@@ -137,7 +137,7 @@ function tagValue(
 /**
  * Every value the stored form could be, in the order a written value would be read: a number or
  * numeral text through the number entry first, then the plain syntax that matches the shape, then
- * each tag, whose stored form is a whole document.
+ * each tag, whose stored form is a whole document, which may itself be a number or a boolean.
  */
 function classifications(value: JsonValue, surface: WritingSurface): readonly DataTypeValue[] {
   const found: (DataTypeValue | undefined)[] = [];
@@ -145,13 +145,11 @@ function classifications(value: JsonValue, surface: WritingSurface): readonly Da
     found.push(readValue(surface, { kind: 'number', text: numeralText(value) }));
   } else if (typeof value === 'boolean') {
     found.push(readValue(surface, { kind: 'boolean', value }));
-  } else {
-    if (typeof value === 'string') {
-      found.push(readValue(surface, { kind: 'number', text: value }));
-      found.push(readValue(surface, { kind: 'string', text: value }));
-    }
-    for (const type of surface.tagTypes) found.push(tagValue(surface, type, value));
+  } else if (typeof value === 'string') {
+    found.push(readValue(surface, { kind: 'number', text: value }));
+    found.push(readValue(surface, { kind: 'string', text: value }));
   }
+  for (const type of surface.tagTypes) found.push(tagValue(surface, type, value));
   return found.filter((candidate) => candidate !== undefined);
 }
 

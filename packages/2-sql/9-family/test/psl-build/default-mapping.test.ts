@@ -236,6 +236,17 @@ describe('mapDefault prints a stored value as the literal its column takes', () 
     expect(mapDefault({ kind: 'literal', value }, forColumn(column))).toEqual({ attribute });
   });
 
+  it.each([
+    ['a number', 42, '@default(json`42`)'],
+    ['a boolean', true, '@default(json`true`)'],
+    ['null', null, '@default(json`null`)'],
+  ] as [string, JsonValue, string][])(
+    'prints a JSON document that is %s with the json tag',
+    (_name, value, attribute) => {
+      expect(mapDefault({ kind: 'literal', value }, forColumn(jsonb))).toEqual({ attribute });
+    },
+  );
+
   it('prints a JSON text holding a backtick in the double-quote form', () => {
     expect(mapDefault({ kind: 'literal', value: { a: BACKTICK } }, forColumn(jsonb))).toEqual({
       attribute: `@default(json"{\\"a\\":\\"${BACKTICK}\\"}")`,

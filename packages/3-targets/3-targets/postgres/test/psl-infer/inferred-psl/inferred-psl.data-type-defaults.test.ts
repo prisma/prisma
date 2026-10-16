@@ -92,6 +92,20 @@ describe('printPsl writes each default as the literal the column data type takes
     });
   });
 
+  it('prints a json or jsonb document that is a number, a boolean or null with the json tag', async () => {
+    expect(
+      await printedDefaults([
+        introspected('count', 'jsonb', `'42'::jsonb`),
+        introspected('flag', 'json', `'true'::json`),
+        introspected('nothing', 'jsonb', `'null'::jsonb`),
+      ]),
+    ).toMatchObject({
+      count: `@default(${tagged('json', '42')})`,
+      flag: `@default(${tagged('json', 'true')})`,
+      nothing: `@default(${tagged('json', 'null')})`,
+    });
+  });
+
   it('prints every digit of an int8 past the safe integer range', async () => {
     expect(
       await printedDefaults([introspected('big', 'int8', "'9007199254740993'::bigint")]),
