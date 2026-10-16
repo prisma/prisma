@@ -198,14 +198,14 @@ export abstract class PostgresMigration<
    * Throws if no adapter is present (i.e. migration instantiated without a stack).
    */
   protected createTable(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly ifNotExists?: boolean;
     readonly columns: readonly DdlColumn[];
     readonly constraints?: readonly DdlTableConstraint[];
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new CreateTableCall(
-      schemaOrDefaultNamespace(options.schema),
+      options.schema,
       options.table,
       options.columns,
       options.constraints,
@@ -270,15 +270,13 @@ export abstract class PostgresMigration<
   }
 
   protected addColumn(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly column: DdlColumn;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AddColumnCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.column,
-    ).toOp(this.controlAdapterFor('addColumn'));
+    return new AddColumnCall(options.schema, options.table, options.column).toOp(
+      this.controlAdapterFor('addColumn'),
+    );
   }
 
   /**
@@ -321,13 +319,13 @@ export abstract class PostgresMigration<
   }
 
   protected addPrimaryKey(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly constraint: string;
     readonly columns: readonly string[];
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new AddPrimaryKeyCall(
-      schemaOrDefaultNamespace(options.schema),
+      options.schema,
       options.table,
       options.constraint,
       options.columns,
@@ -335,13 +333,13 @@ export abstract class PostgresMigration<
   }
 
   protected addUnique(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly constraint: string;
     readonly columns: readonly string[];
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new AddUniqueCall(
-      schemaOrDefaultNamespace(options.schema),
+      options.schema,
       options.table,
       options.constraint,
       options.columns,
@@ -349,25 +347,23 @@ export abstract class PostgresMigration<
   }
 
   protected addForeignKey(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly foreignKey: ForeignKeySpec;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AddForeignKeyCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.foreignKey,
-    ).toOp(this.controlAdapterFor('addForeignKey'));
+    return new AddForeignKeyCall(options.schema, options.table, options.foreignKey).toOp(
+      this.controlAdapterFor('addForeignKey'),
+    );
   }
 
   protected addCheckConstraint(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly constraint: string;
     readonly expression: SqlTextInput;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new AddCheckConstraintCall(
-      schemaOrDefaultNamespace(options.schema),
+      options.schema,
       options.table,
       options.constraint,
       sqlTextOf(
@@ -394,7 +390,7 @@ export abstract class PostgresMigration<
     readonly to: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     const call = new RenameConstraintCall(
-      schemaOrDefaultNamespace(options.schema),
+      options.schema ?? UNBOUND_NAMESPACE_ID,
       options.table,
       options.kind,
       options.from,
@@ -406,25 +402,23 @@ export abstract class PostgresMigration<
   }
 
   protected dropCheckConstraint(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly constraint: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new DropCheckConstraintCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.constraint,
-    ).toOp(this.controlAdapterFor('dropCheckConstraint'));
+    return new DropCheckConstraintCall(options.schema, options.table, options.constraint).toOp(
+      this.controlAdapterFor('dropCheckConstraint'),
+    );
   }
 
   protected dropConstraint(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly constraint: string;
     readonly kind?: 'foreignKey' | 'unique' | 'primaryKey';
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new DropConstraintCall(
-      schemaOrDefaultNamespace(options.schema),
+      options.schema,
       options.table,
       options.constraint,
       options.kind ?? 'unique',
@@ -543,28 +537,26 @@ export abstract class PostgresMigration<
   }
 
   protected dropTable(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new DropTableCall(schemaOrDefaultNamespace(options.schema), options.table).toOp(
+    return new DropTableCall(options.schema, options.table).toOp(
       this.controlAdapterFor('dropTable'),
     );
   }
 
   protected dropColumn(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly column: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new DropColumnCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.column,
-    ).toOp(this.controlAdapterFor('dropColumn'));
+    return new DropColumnCall(options.schema, options.table, options.column).toOp(
+      this.controlAdapterFor('dropColumn'),
+    );
   }
 
   protected alterColumnType(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly column: string;
     /** The new type as a migration writes it, such as `int4` or `varchar(20)`. */
@@ -574,17 +566,14 @@ export abstract class PostgresMigration<
     /** By default `data` when `using` is given, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    refuseInvalidAlterColumnTypeOptions({
-      ...options,
-      schema: schemaOrDefaultNamespace(options.schema),
-    });
+    refuseInvalidAlterColumnTypeOptions(options);
     const adapter = this.controlAdapterFor('alterColumnType');
     const using = optionalSqlTextOf(
       options.using,
       `alterColumnType ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} using`,
     );
     return new AlterColumnTypeCall({
-      schemaName: schemaOrDefaultNamespace(options.schema),
+      schemaName: options.schema,
       tableName: options.table,
       columnName: options.column,
       type: options.type,
@@ -595,27 +584,23 @@ export abstract class PostgresMigration<
   }
 
   protected setNotNull(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly column: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new SetNotNullCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.column,
-    ).toOp(this.controlAdapterFor('setNotNull'));
+    return new SetNotNullCall(options.schema, options.table, options.column).toOp(
+      this.controlAdapterFor('setNotNull'),
+    );
   }
 
   protected dropNotNull(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly column: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new DropNotNullCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.column,
-    ).toOp(this.controlAdapterFor('dropNotNull'));
+    return new DropNotNullCall(options.schema, options.table, options.column).toOp(
+      this.controlAdapterFor('dropNotNull'),
+    );
   }
 
   /**
@@ -627,7 +612,7 @@ export abstract class PostgresMigration<
     readonly column: DdlColumn;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     refuseEarlierSetDefaultOptions(options);
-    const schema = schemaOrDefaultNamespace(options.schema);
+    const schema = options.schema ?? UNBOUND_NAMESPACE_ID;
     return new SetDefaultCall(
       schema,
       options.table,
@@ -652,20 +637,18 @@ export abstract class PostgresMigration<
   }
 
   protected dropDefault(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly column: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new DropDefaultCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.column,
-    ).toOp(this.controlAdapterFor('dropDefault'));
+    return new DropDefaultCall(options.schema, options.table, options.column).toOp(
+      this.controlAdapterFor('dropDefault'),
+    );
   }
 
   protected createIndex(
     options: {
-      readonly schema?: string;
+      readonly schema: string;
       readonly table: string;
       readonly index: string;
       readonly extras?: CreateIndexExtrasInput;
@@ -675,7 +658,7 @@ export abstract class PostgresMigration<
     ),
   ): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new CreateIndexCall(
-      schemaOrDefaultNamespace(options.schema),
+      options.schema,
       options.table,
       options.index,
       options.columns !== undefined
@@ -691,32 +674,25 @@ export abstract class PostgresMigration<
   }
 
   protected renameIndex(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly from: string;
     readonly to: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    const call = new RenameIndexCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.from,
-      options.to,
-    );
+    const call = new RenameIndexCall(options.schema, options.table, options.from, options.to);
     const adapter = this.controlAdapterFor('renameIndex');
     this.#renames.push(call);
     return call.toOp(adapter);
   }
 
   protected dropIndex(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly index: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new DropIndexCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.index,
-    ).toOp(this.controlAdapterFor('dropIndex'));
+    return new DropIndexCall(options.schema, options.table, options.index).toOp(
+      this.controlAdapterFor('dropIndex'),
+    );
   }
 
   protected installExtension(options: {
@@ -792,10 +768,6 @@ export abstract class PostgresMigration<
     this.#renames.push(call);
     return call.toOp(adapter);
   }
-}
-
-function schemaOrDefaultNamespace(schema: string | undefined): string {
-  return schema ?? UNBOUND_NAMESPACE_ID;
 }
 
 /**

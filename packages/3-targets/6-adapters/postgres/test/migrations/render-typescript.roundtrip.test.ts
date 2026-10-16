@@ -35,13 +35,9 @@ import {
   postgresDataTypes,
 } from '@internal/target-postgres/data-types';
 import {
-  AddCheckConstraintCall,
   AddColumnCall,
   AddColumnWithTemporaryDefaultCall,
-  AddForeignKeyCall,
-  AddPrimaryKeyCall,
   AddRequiredColumnToEmptyTableCall,
-  AddUniqueCall,
   AlterColumnTypeCall,
   CreateExtensionCall,
   CreateIndexCall,
@@ -49,12 +45,6 @@ import {
   CreateSchemaCall,
   CreateTableCall,
   DisableRowLevelSecurityCall,
-  DropCheckConstraintCall,
-  DropColumnCall,
-  DropConstraintCall,
-  DropDefaultCall,
-  DropIndexCall,
-  DropNotNullCall,
   DropPostgresRlsPolicyCall,
   DropTableCall,
   EnableRowLevelSecurityCall,
@@ -62,7 +52,6 @@ import {
   RenameIndexCall,
   RenamePostgresRlsPolicyCall,
   SetDefaultCall,
-  SetNotNullCall,
 } from '@internal/target-postgres/op-factory-call';
 import { TypeScriptRenderablePostgresMigration } from '@internal/target-postgres/planner-produced-postgres-migration';
 import { renderOps } from '@internal/target-postgres/render-ops';
@@ -435,71 +424,6 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     },
     timeouts.typeScriptCompilation,
   );
-
-  it('renders calls in the default namespace without a schema, and the executed migration writes the same ops', {
-    timeout: timeouts.typeScriptCompilation,
-  }, async () => {
-    const unbound = UNBOUND_NAMESPACE_ID;
-    const calls = [
-      new CreateTableCall(
-        unbound,
-        'user',
-        [col('id', 'text', { notNull: true })],
-        [primaryKey(['id'])],
-      ),
-      new AddColumnCall(unbound, 'user', col('nickname', 'text')),
-      new DropColumnCall(unbound, 'user', 'legacy'),
-      new AlterColumnTypeCall({
-        schemaName: unbound,
-        tableName: 'user',
-        columnName: 'age',
-        type: 'int4',
-        dataTypes: postgresDataTypes,
-      }),
-      new SetNotNullCall(unbound, 'user', 'email'),
-      new DropNotNullCall(unbound, 'user', 'nickname'),
-      new SetDefaultCall(
-        unbound,
-        'user',
-        col('nickname', 'text', { default: lit('anon'), codecRef: { codecId: 'pg/text@1' } }),
-        'additive',
-      ),
-      new DropDefaultCall(unbound, 'user', 'nickname'),
-      new AddPrimaryKeyCall(unbound, 'user', 'user_pkey', ['id']),
-      new AddUniqueCall(unbound, 'user', 'user_email_key', ['email']),
-      new AddForeignKeyCall(unbound, 'user', {
-        name: 'user_org_fk',
-        columns: ['org_id'],
-        references: { schema: 'public', table: 'org', columns: ['id'] },
-      }),
-      new DropConstraintCall(unbound, 'user', 'user_email_key'),
-      new AddCheckConstraintCall(unbound, 'user', 'user_age_check', '"age" > 0'),
-      new DropCheckConstraintCall(unbound, 'user', 'user_age_check'),
-      new CreateIndexCall(unbound, 'user', 'user_email_idx', { columns: ['email'] }),
-      new RenameIndexCall(unbound, 'user', 'user_email_idx', 'user_email_lookup'),
-      new DropIndexCall(unbound, 'user', 'user_email_lookup'),
-      new DropTableCall(unbound, 'stale'),
-    ];
-    const migration = new TypeScriptRenderablePostgresMigration(
-      calls,
-      META,
-      APP_SPACE_ID,
-      SNAPSHOTS_IMPORT_PATH,
-      testAdapter,
-    );
-    const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
-    await writeFile(join(tmpDir, 'migration.ts'), tsSource);
-    const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
-      cwd: tmpDir,
-    });
-    const ops = JSON.parse(await readFile(join(tmpDir, 'ops.json'), 'utf-8'));
-
-    expect({ stderr, rendersSchema: tsSource.includes('schema: "__unbound__"'), ops }).toEqual({
-      stderr: '',
-      rendersSchema: false,
-      ops: await Promise.all(renderOps(calls, testAdapter)),
-    });
-  });
 
   it('runs a multi-line sql template exactly as writeMigrationTs writes it, giving renderOps(calls)', {
     timeout: timeouts.coldTransformImport,
