@@ -3,7 +3,10 @@ import {
   type ActivityContextFields,
   type ActivityParent,
   AsyncIterableResult,
+  type ClientActivity,
+  type ClientActivityEnd,
   type ClientActivityKind,
+  type ClientActivityResult,
   type ClientActivityRun,
   checkAborted,
   checkMiddlewareCompatibility,
@@ -459,18 +462,18 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     );
   }
 
+  #runtimeRoute: ActivityRoute | undefined;
+
   readonly [activitySource]: ActivitySource = {
     startActivity: <K extends ClientActivityKind>(
       activity: StartActivity<K>,
-    ): Promise<ActivityHandle<K>> =>
-      this.startActivityOnRoute(
-        this.queryableRoute(this.driver, 'runtime', () => undefined, {
-          transaction: (parent) => this.beginOwnedTransactionBeneath(parent),
-          runtimeWork: true,
-        }),
-        activity,
-        undefined,
-      ),
+    ): Promise<ActivityHandle<K>> => {
+      this.#runtimeRoute ??= this.queryableRoute(this.driver, 'runtime', () => undefined, {
+        transaction: (parent) => this.beginOwnedTransactionBeneath(parent),
+        runtimeWork: true,
+      });
+      return this.startActivityOnRoute(this.#runtimeRoute, activity, undefined);
+    },
     planContentHash: (plan: HashablePlan): Promise<string> =>
       this.planContentHashFor(plan, 'runtime', undefined),
   };
@@ -478,25 +481,32 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
   /**
    * Starts a client activity whose statements and transaction run on `route`, beneath `parent` or, without one, beneath `route.parent()`.
    */
-  protected async startActivityOnRoute<K extends ClientActivityKind>(
+  protected startActivityOnRoute<K extends ClientActivityKind>(
     route: ActivityRoute,
     activity: StartActivity<K>,
     parent: ActivityParent | undefined,
   ): Promise<ActivityHandle<K>> {
-    const endWork = route.runtimeWork ? this.beginActivityWork(parent) : () => undefined;
-    let run: ClientActivityRun<K, SqlMiddlewareContext>;
+    let endWork: () => void = noWork;
+    let started: Promise<ClientActivityRun<K, SqlMiddlewareContext>>;
     try {
-      run = await startClientActivity<K, SqlMiddlewareContext>(activity, {
+      endWork = route.runtimeWork ? this.beginActivityWork(parent) : noWork;
+      started = startClientActivity<K, SqlMiddlewareContext>(activity, {
         middleware: this.middleware,
-        context: { ...this.sqlCtx, scope: route.scope },
+        context: route.scope === 'runtime' ? this.sqlCtx : { ...this.sqlCtx, scope: route.scope },
         parent: parent ?? route.parent(),
         holdFinishedChildren: this.#holdFinishedChildren,
       });
     } catch (error) {
       endWork();
-      throw error;
+      return Promise.reject(error);
     }
-    return this.activityHandle(run, route, endWork);
+    return started.then(
+      (run) => this.activityHandle(run, route, endWork),
+      (error: unknown) => {
+        endWork();
+        throw error;
+      },
+    );
   }
 
   /** The content hash of the statement `plan` would send on a queryable of `scope` beneath `parent`. */
@@ -615,94 +625,13 @@ export abstract class SqlRuntimeBase<TContract extends Contract<SqlStorage> = Co
     route: ActivityRoute,
     endWork: () => void,
   ): ActivityHandle<K> {
-    const self = this;
-    const beneath = (options: RuntimeExecuteOptions | undefined): ActivityExecuteOptions => ({
-      ...options,
-      activityParent: run,
-    });
-    const beginTransaction = route.transaction;
-    const source: ActivitySource = {
-      async startActivity<Nested extends ClientActivityKind>(
-        activity: StartActivity<Nested>,
-      ): Promise<ActivityHandle<Nested>> {
-        run.assertAcceptsChildren();
-        return self.startActivityOnRoute(route, activity, run);
-      },
-      planContentHash(plan: HashablePlan): Promise<string> {
-        return self.planContentHashFor(plan, route.scope, run);
-      },
-    };
-    const handle: ActivityHandle<K> &
-      PreparedStatementQueryTarget &
-      PreparedStatementExecuteTarget = {
-      ...source,
-      [activitySource]: source,
-      activity: run.activity,
-      get intercepted() {
-        return run.intercepted;
-      },
-      query<Row>(
-        plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return rowsBeneath(run, () => route.query<Row>(plan, beneath(options)));
-      },
-      async execute(
-        plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
-        options?: RuntimeExecuteOptions,
-      ): Promise<SqlStatementStats> {
-        run.assertAcceptsChildren();
-        return route.execute(plan, beneath(options));
-      },
-      [preparedStatementQuery]<Params, Row>(
-        ps: PreparedStatement<Params, Row>,
-        params: Params,
-        options?: RuntimeExecuteOptions,
-      ): AsyncIterableResult<Row> {
-        return rowsBeneath(run, () =>
-          route.preparedQuery<Params, Row>(
-            blindCast<
-              PreparedStatementImpl<Params, Row>,
-              'prepared statements are created by this runtime implementation'
-            >(ps),
-            params,
-            beneath(options),
-          ),
-        );
-      },
-      async [preparedStatementExecute]<Params>(
-        ps: PreparedExecution<Params>,
-        params: Params,
-        options?: RuntimeExecuteOptions,
-      ): Promise<SqlStatementStats> {
-        run.assertAcceptsChildren();
-        return route.preparedExecute<Params>(
-          blindCast<
-            PreparedExecutionImpl<Params>,
-            'prepared statements are created by this runtime implementation'
-          >(ps),
-          params,
-          beneath(options),
-        );
-      },
-      async end(end): Promise<void> {
-        try {
-          await run.end(end);
-        } finally {
-          endWork();
-        }
-      },
-      ...ifDefined(
-        'transaction',
-        beginTransaction === undefined
-          ? undefined
-          : async () => {
-              run.assertAcceptsChildren();
-              return beginTransaction(run);
-            },
-      ),
-    };
-    return handle;
+    return new SqlActivityHandle(
+      run,
+      route,
+      endWork,
+      (activity) => this.startActivityOnRoute(route, activity, run),
+      (plan) => this.planContentHashFor(plan, route.scope, run),
+    );
   }
 
   // A transaction beneath an activity on the runtime takes a connection of its own and gives it back when it settles.
@@ -1620,16 +1549,186 @@ function transactionAlreadyOpenError(
 }
 
 // Rows of a handle's statement, refused at the first read when the handle no longer accepts children, before the route takes a connection or session.
+type StartNested = <Nested extends ClientActivityKind>(
+  activity: StartActivity<Nested>,
+) => Promise<ActivityHandle<Nested>>;
+
+/** The handle of a client activity whose statements and transaction run on `route`. It is its own activity source. */
+class SqlActivityHandle<K extends ClientActivityKind>
+  implements ActivityHandle<K>, PreparedStatementQueryTarget, PreparedStatementExecuteTarget
+{
+  readonly activity: ClientActivity<K>;
+  declare readonly transaction?: () => Promise<RuntimeTransaction>;
+  readonly #run: ClientActivityRun<K, SqlMiddlewareContext>;
+  readonly #route: ActivityRoute;
+  readonly #endWork: () => void;
+  readonly #startNested: StartNested;
+  readonly #hashPlan: (plan: HashablePlan) => Promise<string>;
+
+  constructor(
+    run: ClientActivityRun<K, SqlMiddlewareContext>,
+    route: ActivityRoute,
+    endWork: () => void,
+    startNested: StartNested,
+    hashPlan: (plan: HashablePlan) => Promise<string>,
+  ) {
+    this.activity = run.activity;
+    this.#run = run;
+    this.#route = route;
+    this.#endWork = endWork;
+    this.#startNested = startNested;
+    this.#hashPlan = hashPlan;
+    const beginTransaction = route.transaction;
+    if (beginTransaction !== undefined) {
+      this.transaction = async () => {
+        run.assertAcceptsChildren();
+        return beginTransaction(run);
+      };
+    }
+  }
+
+  get [activitySource](): ActivitySource {
+    return this;
+  }
+
+  get intercepted(): { readonly result: ClientActivityResult<K> } | undefined {
+    return this.#run.intercepted;
+  }
+
+  async startActivity<Nested extends ClientActivityKind>(
+    activity: StartActivity<Nested>,
+  ): Promise<ActivityHandle<Nested>> {
+    this.#run.assertAcceptsChildren();
+    return this.#startNested(activity);
+  }
+
+  planContentHash(plan: HashablePlan): Promise<string> {
+    return this.#hashPlan(plan);
+  }
+
+  query<Row>(
+    plan: (SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>) & { readonly _row?: Row },
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row> {
+    return rowsBeneath(this.#run, () => this.#route.query<Row>(plan, this.#beneath(options)));
+  }
+
+  async execute(
+    plan: SqlExecutionPlan<unknown> | SqlQueryPlan<unknown>,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats> {
+    this.#run.assertAcceptsChildren();
+    return this.#route.execute(plan, this.#beneath(options));
+  }
+
+  [preparedStatementQuery]<Params, Row>(
+    ps: PreparedStatement<Params, Row>,
+    params: Params,
+    options?: RuntimeExecuteOptions,
+  ): AsyncIterableResult<Row> {
+    return rowsBeneath(this.#run, () =>
+      this.#route.preparedQuery<Params, Row>(
+        blindCast<
+          PreparedStatementImpl<Params, Row>,
+          'prepared statements are created by this runtime implementation'
+        >(ps),
+        params,
+        this.#beneath(options),
+      ),
+    );
+  }
+
+  async [preparedStatementExecute]<Params>(
+    ps: PreparedExecution<Params>,
+    params: Params,
+    options?: RuntimeExecuteOptions,
+  ): Promise<SqlStatementStats> {
+    this.#run.assertAcceptsChildren();
+    return this.#route.preparedExecute<Params>(
+      blindCast<
+        PreparedExecutionImpl<Params>,
+        'prepared statements are created by this runtime implementation'
+      >(ps),
+      params,
+      this.#beneath(options),
+    );
+  }
+
+  end(end: ClientActivityEnd<K>): Promise<void> {
+    const endWork = this.#endWork;
+    return this.#run.end(end).then(endWork, (error: unknown) => {
+      endWork();
+      throw error;
+    });
+  }
+
+  #beneath(options: RuntimeExecuteOptions | undefined): ActivityExecuteOptions {
+    return { ...options, activityParent: this.#run };
+  }
+}
+
+function noWork(): void {}
+
 function rowsBeneath<Row>(
   run: ClientActivityRun<ClientActivityKind, SqlMiddlewareContext>,
   rows: () => AsyncIterable<Row>,
 ): AsyncIterableResult<Row> {
-  return new AsyncIterableResult(
-    (async function* (): AsyncGenerator<Row, void, unknown> {
-      run.assertAcceptsChildren();
-      yield* rows();
-    })(),
-  );
+  return new AsyncIterableResult(new RowsBeneath(run, rows));
+}
+
+/** The rows of a statement started beneath `run`, checked against `run` on the first `next()`. It forwards to the statement's own iterator rather than adding an async generator, so each row costs no extra turn. */
+class RowsBeneath<Row> implements AsyncGenerator<Row, void, unknown> {
+  readonly #run: ClientActivityRun<ClientActivityKind, SqlMiddlewareContext>;
+  readonly #rows: () => AsyncIterable<Row>;
+  #inner: AsyncIterator<Row, void, unknown> | undefined;
+  #done = false;
+
+  constructor(
+    run: ClientActivityRun<ClientActivityKind, SqlMiddlewareContext>,
+    rows: () => AsyncIterable<Row>,
+  ) {
+    this.#run = run;
+    this.#rows = rows;
+  }
+
+  next(): Promise<IteratorResult<Row, void>> {
+    if (this.#done) return Promise.resolve({ done: true, value: undefined });
+    if (this.#inner === undefined) {
+      try {
+        this.#run.assertAcceptsChildren();
+        this.#inner = this.#rows()[Symbol.asyncIterator]();
+      } catch (error) {
+        this.#done = true;
+        return Promise.reject(error);
+      }
+    }
+    return this.#inner.next();
+  }
+
+  return(): Promise<IteratorResult<Row, void>> {
+    const inner = this.#inner;
+    this.#done = true;
+    return inner?.return === undefined
+      ? Promise.resolve({ done: true, value: undefined })
+      : inner.return();
+  }
+
+  throw(error: unknown): Promise<IteratorResult<Row, void>> {
+    const inner = this.#inner;
+    if (inner?.throw === undefined) {
+      this.#done = true;
+      return Promise.reject(error);
+    }
+    return inner.throw(error);
+  }
+
+  [Symbol.asyncIterator](): this {
+    return this;
+  }
+
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.return();
+  }
 }
 
 function transactionClosedError(): Error {

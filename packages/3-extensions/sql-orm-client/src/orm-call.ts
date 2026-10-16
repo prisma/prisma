@@ -150,40 +150,165 @@ export function streamOrmCall<Row>(
   call: OrmCall<Row[]>,
   run: (queryable: RuntimeQueryable) => AsyncIterableResult<Row>,
 ): AsyncIterableResult<Row> {
-  const source = activitySourceOf(queryable, call.method);
-  const generator = async function* (): AsyncGenerator<Row, void, unknown> {
-    const handle = await startOrmCall(source, call);
+  return new AsyncIterableResult(
+    new OrmCallRows(activitySourceOf(queryable, call.method), call, run),
+  );
+}
+
+const done = { done: true, value: undefined } as const;
+
+/** The rows of a streaming call. It forwards to the statement rows' own iterator rather than adding an async generator, so a row costs one promise. The call starts on the first `next()`. */
+class OrmCallRows<Row> implements AsyncGenerator<Row, void, unknown> {
+  readonly #source: ActivitySource;
+  readonly #call: OrmCall<Row[]>;
+  readonly #run: (queryable: RuntimeQueryable) => AsyncIterableResult<Row>;
+  #state: 'idle' | 'starting' | 'running' | 'intercepted' | 'finished' = 'idle';
+  #handle: ActivityHandle<'orm-call'> | undefined;
+  #inner: AsyncIterator<Row, void, unknown> | undefined;
+  #intercepted: Iterator<Row> | undefined;
+  #collected: Row[] | undefined;
+
+  constructor(
+    source: ActivitySource,
+    call: OrmCall<Row[]>,
+    run: (queryable: RuntimeQueryable) => AsyncIterableResult<Row>,
+  ) {
+    this.#source = source;
+    this.#call = call;
+    this.#run = run;
+  }
+
+  next(): Promise<IteratorResult<Row, void>> {
+    switch (this.#state) {
+      case 'idle':
+        return this.#start().then(() => this.next());
+      case 'running':
+        return this.#nextRow();
+      case 'intercepted':
+        return Promise.resolve(this.#nextIntercepted());
+      default:
+        return Promise.resolve(done);
+    }
+  }
+
+  async return(): Promise<IteratorResult<Row, void>> {
+    const handle = this.#handle;
+    if (this.#state !== 'running' || handle === undefined) {
+      this.#state = 'finished';
+      return done;
+    }
+    this.#state = 'finished';
+    try {
+      await this.#inner?.return?.();
+    } catch (error) {
+      await endFailed(handle, error);
+      throw error;
+    }
+    await handle.end({ outcome: 'stopped' });
+    return done;
+  }
+
+  async throw(error: unknown): Promise<IteratorResult<Row, void>> {
+    const handle = this.#handle;
+    if (this.#state !== 'running' || handle === undefined) {
+      this.#state = 'finished';
+      throw error;
+    }
+    this.#state = 'finished';
+    try {
+      await this.#inner?.return?.();
+    } catch {
+      // As when a generator closes its iterator because of a throw, the thrown error is the one kept.
+    }
+    await endFailed(handle, error);
+    throw error;
+  }
+
+  [Symbol.asyncIterator](): this {
+    return this;
+  }
+
+  async [Symbol.asyncDispose](): Promise<void> {
+    await this.return();
+  }
+
+  async #start(): Promise<void> {
+    this.#state = 'starting';
+    let handle: ActivityHandle<'orm-call'>;
+    try {
+      handle = await startOrmCall(this.#source, this.#call);
+    } catch (error) {
+      this.#state = 'finished';
+      throw error;
+    }
+    this.#handle = handle;
     if (handle.intercepted !== undefined) {
-      yield* await interceptedResult(handle, call, handle.intercepted);
+      try {
+        const rows = await interceptedResult(handle, this.#call, handle.intercepted);
+        this.#intercepted = rows[Symbol.iterator]();
+      } catch (error) {
+        this.#state = 'finished';
+        throw error;
+      }
+      this.#state = 'intercepted';
       return;
     }
-    const collected: Row[] | undefined =
-      call.annotations !== undefined && call.annotations.size > 0 ? [] : undefined;
-    let outcome: 'succeeded' | 'failed' | 'stopped' = 'stopped';
-    let failure: unknown;
+    const annotations = this.#call.annotations;
+    this.#collected = annotations !== undefined && annotations.size > 0 ? [] : undefined;
     try {
-      for await (const row of run(handle)) {
-        collected?.push(row);
-        yield row;
-      }
-      outcome = 'succeeded';
+      this.#inner = this.#run(handle)[Symbol.asyncIterator]();
     } catch (error) {
-      outcome = 'failed';
-      failure = error;
+      this.#state = 'finished';
+      await endFailed(handle, error);
       throw error;
-    } finally {
-      if (outcome === 'failed') {
-        await endFailed(handle, failure);
-      } else {
-        await handle.end(
-          outcome === 'succeeded' && collected !== undefined
-            ? { outcome, result: collected }
-            : { outcome },
-        );
-      }
     }
-  };
-  return new AsyncIterableResult(generator());
+    this.#state = 'running';
+  }
+
+  #nextIntercepted(): IteratorResult<Row, void> {
+    const row = this.#intercepted?.next();
+    if (row === undefined || row.done === true) {
+      this.#state = 'finished';
+      return done;
+    }
+    return { done: false, value: row.value };
+  }
+
+  #nextRow(): Promise<IteratorResult<Row, void>> {
+    const inner = this.#inner;
+    const handle = this.#handle;
+    if (inner === undefined || handle === undefined) return Promise.resolve(done);
+    let pending: Promise<IteratorResult<Row, void>>;
+    try {
+      pending = inner.next();
+    } catch (error) {
+      return this.#fail(handle, error);
+    }
+    return pending.then(
+      (result) => {
+        if (result.done !== true) {
+          this.#collected?.push(result.value);
+          return result;
+        }
+        this.#state = 'finished';
+        const collected = this.#collected;
+        return handle
+          .end(
+            collected === undefined
+              ? { outcome: 'succeeded' }
+              : { outcome: 'succeeded', result: collected },
+          )
+          .then(() => done);
+      },
+      (error: unknown) => this.#fail(handle, error),
+    );
+  }
+
+  async #fail(handle: ActivityHandle<'orm-call'>, error: unknown): Promise<never> {
+    this.#state = 'finished';
+    await endFailed(handle, error);
+    throw error;
+  }
 }
 
 const preparedOrmCall = Symbol('preparedOrmCall');
