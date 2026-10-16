@@ -1,5 +1,5 @@
-import type { ColumnDefault } from '@internal/contract/types';
-import type { CodecRef } from '@internal/framework-components/codec';
+import type { ColumnDefault, JsonValue } from '@internal/contract/types';
+import type { CodecRef, DataTypeValue } from '@internal/framework-components/codec';
 import type { DiffableNode } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { canonicalStringify } from '@internal/utils/canonical-stringify';
@@ -137,10 +137,33 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
     return canonicalStringify(expected.value) === canonicalStringify(actual.value);
   }
 
-  /** Why the column's codec could not read the default the database reports, when it could not. */
+  /** Why the column's codec could not read the default the database reports, when it could not; otherwise the value each side holds. */
   explainMismatch(actual: DiffableNode | undefined): string | undefined {
-    return actual instanceof SqlColumnDefaultIR ? actual.unreadable : undefined;
+    if (!(actual instanceof SqlColumnDefaultIR)) return undefined;
+    if (actual.unreadable !== undefined) return actual.unreadable;
+    return `The contract holds ${describeDefault(this)}, and the database holds ${describeDefault(actual)}.`;
   }
+}
+
+/** A default as a person reads it: a literal as JSON, the value its type read when there is one, an expression as its text, and the text the database reports beside a value read from it. */
+function describeDefault(node: SqlColumnDefaultIR): string {
+  const resolved = node.resolved;
+  if (resolved === undefined) return node.raw ?? 'no default';
+  if (resolved.kind === 'function') return resolved.expression;
+  const shown = JSON.stringify(
+    node.value === undefined ? resolved.value : jsonOfDefaultValue(node.value),
+  );
+  return node.raw === undefined || node.raw === shown ? shown : `${shown} (${node.raw})`;
+}
+
+function isDefaultList(value: SqlDefaultValue): value is readonly (DataTypeValue | null)[] {
+  return Array.isArray(value);
+}
+
+function jsonOfDefaultValue(value: SqlDefaultValue): JsonValue {
+  return isDefaultList(value)
+    ? value.map((element) => (element === null ? null : element.value))
+    : value.value;
 }
 
 function sameExpression(a: string, b: string): boolean {

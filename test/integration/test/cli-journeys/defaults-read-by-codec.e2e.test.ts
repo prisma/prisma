@@ -138,6 +138,10 @@ withTempDir(({ createTempDir }) => {
           await client.query(`ALTER TABLE "sample" ALTER COLUMN "money" SET DEFAULT 3.11`);
         });
         expect(await issuePaths(ctx)).toEqual(['database/public/sample/column:money/default']);
+        const shown = output(await runDbVerify(ctx, ['--schema-only', '--strict']));
+        expect(shown).toContain(
+          'mismatch: database/public/sample/column:money/default. The contract holds "3.10", and the database holds "3.11"',
+        );
       },
       timeouts.spinUpPpgDev * 2,
     );

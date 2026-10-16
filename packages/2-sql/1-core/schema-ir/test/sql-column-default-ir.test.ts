@@ -209,12 +209,41 @@ describe('SqlColumnDefaultIR', () => {
       expect(expected.explainMismatch(actual)).toBe('The codec refused it.');
     });
 
-    it('gives no explanation for a default the codec read', () => {
+    it('names the value the contract holds and the value the database holds', () => {
       const actual = new SqlColumnDefaultIR({ resolved: { kind: 'literal', value: 'y' } });
       expect({
         read: expected.explainMismatch(actual),
         missing: expected.explainMismatch(undefined),
-      }).toEqual({ read: undefined, missing: undefined });
+      }).toEqual({
+        read: 'The contract holds "x", and the database holds "y".',
+        missing: undefined,
+      });
+    });
+
+    it('names a value by the value its type read, with the text the database reports', () => {
+      const date = dataType('t/date', { read: (json) => json });
+      const contract = new SqlColumnDefaultIR({
+        resolved: { kind: 'literal', value: '-000043-03-15' },
+        value: date.fromContract('-000043-03-15', {}),
+      });
+      const database = new SqlColumnDefaultIR({
+        resolved: { kind: 'literal', value: '-000044-03-15' },
+        raw: "'0045-03-15 BC'::date",
+        value: date.fromContract('-000044-03-15', {}),
+      });
+      expect(contract.explainMismatch(database)).toBe(
+        `The contract holds "-000043-03-15", and the database holds "-000044-03-15" ('0045-03-15 BC'::date).`,
+      );
+    });
+
+    it('names an expression by its text', () => {
+      const contract = new SqlColumnDefaultIR({
+        resolved: { kind: 'function', expression: 'now()' },
+      });
+      const database = new SqlColumnDefaultIR({ raw: "'x'::text" });
+      expect(contract.explainMismatch(database)).toBe(
+        "The contract holds now(), and the database holds 'x'::text.",
+      );
     });
   });
 });
