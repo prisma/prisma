@@ -3,8 +3,7 @@
  * is written in, which gives it a data type; the column's type takes it directly or through a cast;
  * the column's type gives it the column's parameters with `withParams`, which refuses a value they
  * exclude and writes the spelling they give it; the column's codec, built with the column's type
- * parameters, checks it with `fromDataTypeValue`; and it is stored in the canonical form of the
- * column's values, which `canonicalFormOf` gives.
+ * parameters, checks it with `fromDataTypeValue`; and it is stored as the type's `toContract` writes it.
  *
  * No per-type code and no per-codec branch live here. ADR 254.
  */
@@ -35,11 +34,9 @@ import type {
   DataTypeLookup,
 } from '@internal/framework-components/codec';
 import {
-  canonicalFormOf,
   codecForRef,
   dataTypeParamsOf,
   dataTypeValueFor,
-  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import type { ContributedPslDiagnosticCode, PslSpan } from '@internal/framework-components/psl-ast';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
@@ -106,14 +103,7 @@ export type ReadDefaultResult =
       readonly suggestedTypes: readonly DataTypeId[];
     };
 
-/** A value in its stored JSON form that has no canonical form of the column's values. */
-type CanonicalFormRefusal = {
-  readonly kind: 'unreadable';
-  readonly message: string;
-  readonly elementIndex: number | undefined;
-};
-
-type StoredRefusal = CodecRefusal | CanonicalFormRefusal;
+type StoredRefusal = CodecRefusal;
 
 type StoredReadResult =
   | { readonly ok: true; readonly value: JsonValue }
@@ -182,28 +172,8 @@ function codecRefTypeParams(
       );
 }
 
-/** A value in the canonical form of the column's values, when they have one. */
-function inCanonicalForm(
-  toCanonicalForm: ToCanonicalForm | undefined,
-  value: JsonValue,
-  elementIndex: number | undefined,
-  suggestedTypes: readonly DataTypeId[],
-): StoredReadResult {
-  if (toCanonicalForm === undefined) return { ok: true, value };
-  try {
-    return { ok: true, value: toCanonicalForm(value) };
-  } catch (error) {
-    if (isInternalError(error)) throw error;
-    return {
-      ok: false,
-      refusal: { kind: 'unreadable', message: messageOf(error), elementIndex },
-      suggestedTypes,
-    };
-  }
-}
-
 /**
- * The column's codec descriptor, and `read`, which makes a value in its stored JSON form a value of the column's type under the column's parameters, checks it with the column's codec, built with those parameters, and gives it the canonical form of the column's values.
+ * The column's codec descriptor, and `read`, which makes a value in its stored JSON form a value of the column's type under the column's parameters, and checks it with the column's codec, built with those parameters.
  */
 function storedValueReader(input: {
   readonly column: DefaultColumn;
@@ -225,7 +195,6 @@ function storedValueReader(input: {
     );
   }
   const suggestedTypes = [descriptor.dataType];
-  const toCanonicalForm = canonicalFormOf(descriptor, input.dataTypeLookup);
   const params = dataTypeParamsOf(codec.dataType, input.column.typeParams);
   const read = (written: JsonValue, elementIndex: number | undefined): StoredReadResult => {
     let stored: JsonValue;
@@ -246,13 +215,13 @@ function storedValueReader(input: {
         suggestedTypes,
       };
     }
-    return inCanonicalForm(toCanonicalForm, stored, elementIndex, suggestedTypes);
+    return { ok: true, value: stored };
   };
   return { descriptor, read };
 }
 
 /**
- * Reads a value already in its stored JSON form, such as one member of a JSON document default, as a value of the column's type checked by the column's codec, and gives it the canonical form of the column's values. Worded as {@link lowerDataTypeDefault} words the same refusals.
+ * Reads a value already in its stored JSON form, such as one member of a JSON document default, as a value of the column's type checked by the column's codec. Worded as {@link lowerDataTypeDefault} words the same refusals.
  */
 export function readStoredValue(input: {
   readonly value: JsonValue;

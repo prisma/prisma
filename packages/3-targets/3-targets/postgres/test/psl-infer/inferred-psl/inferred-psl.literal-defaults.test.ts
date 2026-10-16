@@ -1,7 +1,7 @@
 import { type SqlColumnIRInput, SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { describe, expect, it } from 'vitest';
-import { parsePostgresDefault } from '../../../src/core/default-normalizer';
+import { parseInferredDefault } from '../../../src/core/psl-infer/infer-default-parser';
 import { printPslFromFlat } from '../fixtures';
 
 /**
@@ -22,7 +22,7 @@ function introspected(
     default: rawDefault,
     ...ifDefined('many', shape.many),
     resolvedNativeType,
-    ...ifDefined('resolvedDefault', parsePostgresDefault(rawDefault, resolvedNativeType)),
+    ...ifDefined('resolvedDefault', parseInferredDefault(rawDefault, resolvedNativeType)),
   };
 }
 

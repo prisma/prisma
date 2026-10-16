@@ -1,7 +1,7 @@
 /**
  * Journey: a date or time default is stored in its data type's canonical form.
  *
- * The schema an earlier contract was emitted from wrote its date and time defaults as quoted strings, which `contract emit` now refuses, naming the tag to write. Rewritten with the tags, it emits a contract in canonical form, a database created from the earlier contract verifies against it, and the planner finds nothing to change. `contract infer` prints each default back with its tag, in the canonical form. A default before year 1 is written as PostgreSQL reads it in both DDL paths.
+ * A contract an earlier version emitted holds its date and time defaults as they were written, and every command that loads it refuses it, naming each column. The schema it was emitted from wrote the defaults as quoted strings, which `contract emit` now refuses, naming the tag to write. Rewritten with the tags, it emits a contract in canonical form, which migrates and verifies; `contract infer` prints each default back with its tag, in the canonical form. A default before year 1 is written as PostgreSQL reads it in both DDL paths.
  */
 import { copyFileSync, readFileSync, writeFileSync } from 'node:fs';
 import { withClient } from '@repo/test-utils';
@@ -16,11 +16,9 @@ import {
   runContractEmit,
   runContractInfer,
   runDbInit,
-  runDbSign,
   runDbUpdate,
   runDbVerify,
   runMigrate,
-  runMigrationNew,
   runMigrationPlan,
   setupJourney,
   swapContract,
@@ -71,13 +69,6 @@ function printedDefaultFields(ctx: JourneyContext): readonly string[] {
     .map((line) => line.trim().split(/\s+/).join(' '));
 }
 
-function beforeStorageHash(): string {
-  const before: { readonly storage: { readonly storageHash: string } } = JSON.parse(
-    readFileSync(join(BEFORE, 'emitted-before/contract.json'), 'utf-8'),
-  );
-  return before.storage.storageHash;
-}
-
 async function schemaIssues(ctx: JourneyContext): Promise<readonly unknown[]> {
   const verify = await runDbVerify(ctx, ['--schema-only', '--strict', '--json']);
   return parseJsonOutput<SchemaVerifyResult>(verify).schema.issues;
@@ -88,7 +79,7 @@ withTempDir(({ createTempDir }) => {
     const db = useDevDatabase();
 
     it(
-      'a database made from the earlier contract verifies against the re-emitted one, plans no change, and infers the canonical form',
+      'refuses the earlier contract, and emits, migrates, verifies and infers the canonical form',
       async () => {
         const ctx = setupJourney({
           connectionString: db.connectionString,
@@ -101,9 +92,12 @@ withTempDir(({ createTempDir }) => {
         );
 
         const planBefore = await runMigrationPlan(ctx, ['--name', 'before']);
-        expect(planBefore.exitCode, `migration plan\n${output(planBefore)}`).toBe(0);
-        const migrateBefore = await runMigrate(ctx);
-        expect(migrateBefore.exitCode, `db migrate\n${output(migrateBefore)}`).toBe(0);
+        expect(planBefore.exitCode).not.toBe(0);
+        expect(output(planBefore)).toContain(
+          'columns.b: the default "2024-01-01T00:00:00.000Z" is not a value of pg/timestamptz',
+        );
+        const initBefore = await runDbInit(ctx);
+        expect(initBefore.exitCode).not.toBe(0);
 
         copyFileSync(join(BEFORE, 'contract.prisma'), join(ctx.testDir, 'contract.prisma'));
         const refused = await runContractEmit(ctx);
@@ -119,29 +113,11 @@ withTempDir(({ createTempDir }) => {
         expect(emit.exitCode, `contract emit\n${output(emit)}`).toBe(0);
         expect(defaultsOf(ctx)).toEqual(STANDARD_DEFAULTS);
 
-        expect(await schemaIssues(ctx)).toEqual([]);
-
-        const from = ['--from', beforeStorageHash()];
-        const plan = await runMigrationPlan(ctx, ['--name', 'canonical-form', ...from, '--json']);
-        expect(parseJsonOutput(plan)).toMatchObject({
-          code: 'MIGRATION.PLANNING_FAILED',
-          meta: {
-            conflicts: [
-              expect.objectContaining({
-                kind: 'noDatabaseChange',
-                summary: expect.stringContaining(
-                  'The contract changed, but migration plan found nothing to change in the database.',
-                ),
-                why: expect.stringContaining(`prisma migration new --from ${beforeStorageHash()}`),
-              }),
-            ],
-          },
-        });
-
-        const empty = await runMigrationNew(ctx, ['--name', 'canonical-form', ...from]);
-        expect(empty.exitCode, `migration new\n${output(empty)}`).toBe(0);
+        const plan = await runMigrationPlan(ctx, ['--name', 'canonical-form']);
+        expect(plan.exitCode, `migration plan\n${output(plan)}`).toBe(0);
         const migrate = await runMigrate(ctx);
         expect(migrate.exitCode, `db migrate\n${output(migrate)}`).toBe(0);
+        expect(await schemaIssues(ctx)).toEqual([]);
         const verify = await runDbVerify(ctx, ['--strict']);
         expect(verify.exitCode, `db verify\n${output(verify)}`).toBe(0);
 
@@ -163,42 +139,6 @@ withTempDir(({ createTempDir }) => {
         expect(defaultsOf(ctx)).toEqual(STANDARD_DEFAULTS);
       },
       timeouts.spinUpPpgDev * 2,
-    );
-  });
-
-  describe('Journey: a database db init made from the earlier contract', () => {
-    const db = useDevDatabase();
-
-    it(
-      'is signed with the re-emitted contract after its marker no longer matches',
-      async () => {
-        const ctx = setupJourney({
-          connectionString: db.connectionString,
-          createTempDir,
-          contractMode: 'psl',
-        });
-        copyFileSync(
-          join(BEFORE, 'emitted-before/contract.json'),
-          join(ctx.testDir, 'contract.json'),
-        );
-        const init = await runDbInit(ctx);
-        expect(init.exitCode, `db init\n${output(init)}`).toBe(0);
-
-        copyFileSync(
-          join(BEFORE, 'contract-with-tags.prisma'),
-          join(ctx.testDir, 'contract.prisma'),
-        );
-        const emit = await runContractEmit(ctx);
-        expect(emit.exitCode, `contract emit\n${output(emit)}`).toBe(0);
-
-        const stale = await runDbVerify(ctx);
-        expect(stale.exitCode, `db verify\n${output(stale)}`).not.toBe(0);
-        const sign = await runDbSign(ctx);
-        expect(sign.exitCode, `db sign\n${output(sign)}`).toBe(0);
-        const verify = await runDbVerify(ctx, ['--strict']);
-        expect(verify.exitCode, `db verify\n${output(verify)}`).toBe(0);
-      },
-      timeouts.spinUpPpgDev,
     );
   });
 

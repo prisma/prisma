@@ -17,14 +17,10 @@ import {
   readJsonMatching,
   readJsonString,
   refuseJsonValue,
-  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { sqlDataType } from '@internal/sql-contract/data-type';
-import {
-  canonicalDateTime,
-  integerTextCanonicalForm,
-} from '@internal/sql-contract/data-type-support';
+import { canonicalDateTime } from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
 
@@ -65,7 +61,6 @@ export const sqliteInteger = sqlDataType('sqlite/integer', {
     readJsonIntegerText('sqlite/integer', json, INT64_RANGE);
     return json;
   },
-  toCanonicalForm: integerTextCanonicalForm,
   casts: {},
 });
 /** SQLite cannot store NaN, but a codec refuses it, as ADR 254 places that limit, so the type reads it. */
@@ -170,38 +165,16 @@ const readJson: DataTypeReader = (json) => {
   );
 };
 
-const canonicalFromText =
-  (canonical: (text: string) => string): ToCanonicalForm =>
-  (value) =>
-    typeof value === 'string' ? canonical(value) : wrongShape(value, 'text');
-
-function canonicalJsonText(text: string): string {
-  const document = documentOf(text);
-  if (document === undefined) {
-    throw structuredError(
-      'CONTRACT.CAST_REFUSED',
-      `Expected the JSON text of a document, got ${JSON.stringify(text)}.`,
-      {
-        why: 'A SQLite JSON column stores the JSON text of its document.',
-        fix: 'Write the document as JSON text, as in {"plan": "free"}.',
-      },
-    );
-  }
-  return canonicalizeJson(document.value);
-}
-
 /** An instant, stored as text in the form `toISOString()` writes. */
 export const sqliteDatetime = sqlDataType('sqlite/datetime', {
   storedAs: sqliteText.id,
   read: readDatetime,
-  toCanonicalForm: canonicalFromText(sqliteDatetimeText),
 });
 
 /** A JSON document, stored as its JSON text with sorted keys and no added whitespace. A column declared `JSON` would have numeric affinity and store the document `"42"` as the integer 42. */
 export const sqliteJson = sqlDataType('sqlite/json', {
   storedAs: sqliteText.id,
   read: readJson,
-  toCanonicalForm: canonicalFromText(canonicalJsonText),
 });
 
 /** Every data type this target registers. */

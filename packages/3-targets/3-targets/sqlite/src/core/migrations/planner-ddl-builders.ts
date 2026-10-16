@@ -19,11 +19,8 @@ import type {
   StorageTable,
   StorageTypeInstance,
 } from '@internal/sql-contract/types';
-import { SQLITE_DATETIME_CODEC_ID } from '../codec-ids';
-import { decodeSqliteDatetime, encodeSqliteDatetime } from '../codecs';
-import { sqliteInteger } from '../data-types';
 import { sqliteError } from '../errors';
-import { escapeLiteral, quoteIdentifier } from '../sql-utils';
+import { quoteIdentifier } from '../sql-utils';
 
 /**
  * Renders the column's DDL type token (e.g. `"INTEGER"`, `"TEXT"`): the name the type its codec's
@@ -37,49 +34,6 @@ export function buildColumnTypeSql(
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
   const storage = sqlStorageTypeOfCodec(resolved.codecId, types);
   return renderSqlTypeName(storage, dataTypeParams(storage, resolved.typeParams)).toUpperCase();
-}
-
-const DIGIT_TEXT = /^-?\d+$/;
-
-/** The column a literal default is written for: its codec, and the data type that codec represents. */
-export interface DefaultLiteralColumn {
-  readonly codecId: string;
-  readonly dataType: string;
-}
-
-/**
- * A literal default in SQL. An `integer` column stores digit text in the contract, which is written
- * as the integer it names. A datetime default is the stored value itself in SQLite, which compares
- * text byte by byte, so it is written as the text the column's codec writes for every row, not as
- * its canonical form.
- */
-export function renderDefaultLiteral(value: unknown, column?: DefaultLiteralColumn): string {
-  if (
-    column?.dataType === sqliteInteger.id &&
-    typeof value === 'string' &&
-    DIGIT_TEXT.test(value)
-  ) {
-    return value;
-  }
-  if (value instanceof Date) {
-    return `'${escapeLiteral(encodeSqliteDatetime(value))}'`;
-  }
-  if (typeof value === 'string' && column?.codecId === SQLITE_DATETIME_CODEC_ID) {
-    return `'${escapeLiteral(encodeSqliteDatetime(decodeSqliteDatetime(value)))}'`;
-  }
-  if (typeof value === 'string') {
-    return `'${escapeLiteral(value)}'`;
-  }
-  if (typeof value === 'number' || typeof value === 'bigint') {
-    return String(value);
-  }
-  if (typeof value === 'boolean') {
-    return value ? '1' : '0';
-  }
-  if (value === null) {
-    return 'NULL';
-  }
-  return `'${escapeLiteral(JSON.stringify(value))}'`;
 }
 
 export function buildCreateIndexSql(

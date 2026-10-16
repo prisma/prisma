@@ -1,6 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { parsePostgresDefault } from '../src/core/default-normalizer';
+import { parseInferredDefault } from '../../src/core/psl-infer/infer-default-parser';
 
 const columns = [
   { name: 'a', storageType: 'real', written: "'1e20'::real", value: 1e20 },
@@ -48,7 +48,7 @@ describe('float defaults as Postgres prints them', () => {
           const read = printed.rows.map((row) => {
             const column = columns.find((candidate) => candidate.name === row.column_name);
             const nativeType = storageTypeName[column?.storageType ?? ''] ?? '';
-            return parsePostgresDefault(row.column_default, nativeType);
+            return parseInferredDefault(row.column_default, nativeType);
           });
           expect(read).toEqual(columns.map((column) => ({ kind: 'literal', value: column.value })));
         });
@@ -103,8 +103,8 @@ describe('uuid defaults as Postgres stores them', () => {
           expect(
             uuidColumns.map((column) => ({
               name: column.name,
-              written: parsePostgresDefault(column.written, column.storageType),
-              printed: parsePostgresDefault(
+              written: parseInferredDefault(column.written, column.storageType),
+              printed: parseInferredDefault(
                 printedDefault.get(column.name) ?? '',
                 column.storageType,
               ),

@@ -63,7 +63,7 @@ function dataTypeProblems(
   });
 }
 
-/** Each literal default the column's type does not hold, under the column's parameters, element by element on a list column. */
+/** Each literal default the column's type does not hold, under the column's parameters, element by element on a list column. A `null` is SQL NULL, which every column takes. */
 function defaultProblems(storage: SqlStorage, dataTypes: DataTypeLookup): readonly string[] {
   return tablesOf(storage).flatMap(({ path, table }) =>
     Object.entries(table.columns).flatMap(([columnName, column]) => {
@@ -74,9 +74,9 @@ function defaultProblems(storage: SqlStorage, dataTypes: DataTypeLookup): readon
       const params = dataTypeParamsOf(type, resolvedTypeParams(column, storage.types));
       const values =
         column.many !== undefined && column.many !== false && Array.isArray(columnDefault.value)
-          ? columnDefault.value.filter((element) => element !== null)
+          ? columnDefault.value
           : [columnDefault.value];
-      for (const value of values) {
+      for (const value of values.filter((element) => element !== null)) {
         try {
           type.fromContract(value, params);
         } catch (error) {

@@ -12,9 +12,9 @@ import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { PG_TEXT_CODEC_ID } from '../src/core/codec-ids';
 import { postgresDataTypes } from '../src/core/data-types';
-import { parsePostgresDefault, postgresResolveDefault } from '../src/core/default-normalizer';
 import { parsePostgresListText } from '../src/core/list-decoder';
 import { type CatalogColumnType, introspectedNativeType } from '../src/core/native-type-normalizer';
+import { parseInferredDefault } from '../src/core/psl-infer/infer-default-parser';
 import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 import { postgresPslTypeConstructors } from '../src/core/type-constructors';
 import { toContractJson } from './contract-json';
@@ -297,11 +297,11 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
             name: column.reportedName,
           },
         };
-        const live = parsePostgresDefault(column.columnDefault, nativeType);
-        const contract = postgresResolveDefault(
-          { kind: 'function', expression: row.written },
-          nativeType,
-        );
+        const live = parseInferredDefault(column.columnDefault, nativeType);
+        const contract = parseInferredDefault(row.written, nativeType) ?? {
+          kind: 'function',
+          expression: row.written,
+        };
         let values: ComparedValues | undefined;
         if (row.expect === 'literal' || row.expect === 'refused-by-codec') {
           const stored = await storedValue(oracle, storedText, row.storageType, fidelityColumn);

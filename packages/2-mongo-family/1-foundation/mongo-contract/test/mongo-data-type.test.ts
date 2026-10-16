@@ -47,16 +47,14 @@ describe('mongoDataType', () => {
   it('keeps every field of the framework declaration', () => {
     const text = mongoDataType('demo/text', { read: (json) => json, bsonTypes: ['string'] });
     const casts = { [text.id]: (value: JsonValue) => value };
-    const toCanonicalForm = (value: JsonValue) => value;
     const declared = mongoDataType('demo/kept', {
       read: (json) => json,
       bsonTypes: ['string'],
       casts,
-      toCanonicalForm,
     });
     const { mongo: _mongo, ...frameworkFields } = declared;
     expect(frameworkFields).toEqual({
-      ...dataType('demo/kept', { read: (json) => json, casts, toCanonicalForm }),
+      ...dataType('demo/kept', { read: (json) => json, casts }),
       ...valueMethods,
     });
   });

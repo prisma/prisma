@@ -1,28 +1,28 @@
 import { describe, expect, it } from 'vitest';
-import { parsePostgresDefault } from '../src/core/default-normalizer';
+import { parseInferredDefault } from '../../src/core/psl-infer/infer-default-parser';
 
-describe('parsePostgresDefault ARRAY[...] constructors', () => {
+describe('parseInferredDefault ARRAY[...] constructors', () => {
   it('reads a text array constructor with per-element casts', () => {
-    expect(parsePostgresDefault("ARRAY['a'::text, 'b'::text]", 'text[]')).toEqual({
+    expect(parseInferredDefault("ARRAY['a'::text, 'b'::text]", 'text[]')).toEqual({
       kind: 'literal',
       value: ['a', 'b'],
     });
   });
 
   it('reads a numeric array constructor', () => {
-    expect(parsePostgresDefault('ARRAY[1, 2]', 'integer[]')).toEqual({
+    expect(parseInferredDefault('ARRAY[1, 2]', 'integer[]')).toEqual({
       kind: 'literal',
       value: [1, 2],
     });
   });
 
   it('reads enum element casts, quoted and schema-qualified', () => {
-    expect(parsePostgresDefault('ARRAY[\'x\'::"MyEnum"]', 'MyEnum[]')).toEqual({
+    expect(parseInferredDefault('ARRAY[\'x\'::"MyEnum"]', 'MyEnum[]')).toEqual({
       kind: 'literal',
       value: ['x'],
     });
     expect(
-      parsePostgresDefault('ARRAY[\'x\'::sch."MyEnum", \'y\'::sch."MyEnum"]', 'sch.MyEnum[]'),
+      parseInferredDefault('ARRAY[\'x\'::sch."MyEnum", \'y\'::sch."MyEnum"]', 'sch.MyEnum[]'),
     ).toEqual({
       kind: 'literal',
       value: ['x', 'y'],
@@ -30,29 +30,29 @@ describe('parsePostgresDefault ARRAY[...] constructors', () => {
   });
 
   it('keeps commas and doubled quotes inside an element', () => {
-    expect(parsePostgresDefault("ARRAY['it''s, ok'::text, 'b'::text]", 'text[]')).toEqual({
+    expect(parseInferredDefault("ARRAY['it''s, ok'::text, 'b'::text]", 'text[]')).toEqual({
       kind: 'literal',
       value: ["it's, ok", 'b'],
     });
   });
 
   it('reads an empty constructor and a cast constructor', () => {
-    expect(parsePostgresDefault('ARRAY[]::text[]', 'text[]')).toEqual({
+    expect(parseInferredDefault('ARRAY[]::text[]', 'text[]')).toEqual({
       kind: 'literal',
       value: [],
     });
-    expect(parsePostgresDefault("ARRAY['a', 'b']::text[]", 'text[]')).toEqual({
+    expect(parseInferredDefault("ARRAY['a', 'b']::text[]", 'text[]')).toEqual({
       kind: 'literal',
       value: ['a', 'b'],
     });
   });
 
   it('fails closed for an element it cannot read', () => {
-    expect(parsePostgresDefault('ARRAY[now()]', 'timestamptz[]')?.kind).toBe('function');
+    expect(parseInferredDefault('ARRAY[now()]', 'timestamptz[]')?.kind).toBe('function');
   });
 });
 
-describe('parsePostgresDefault ARRAY[...] elements Postgres prints with a cast', () => {
+describe('parseInferredDefault ARRAY[...] elements Postgres prints with a cast', () => {
   it.each([
     { raw: "ARRAY['-1'::integer, 2]", nativeType: 'int4[]', value: [-1, 2] },
     { raw: 'ARRAY[(1)::bigint, (2)::bigint]', nativeType: 'int8[]', value: ['1', '2'] },
@@ -102,15 +102,15 @@ describe('parsePostgresDefault ARRAY[...] elements Postgres prints with a cast',
     {
       raw: "ARRAY['2024-01-01 00:00:00'::timestamp(3) without time zone]",
       nativeType: 'timestamp(3)[]',
-      value: ['2024-01-01 00:00:00'],
+      value: ['2024-01-01T00:00:00'],
     },
     {
       raw: "ARRAY['2024-01-01 00:00:00+00'::timestamp(3) with time zone]",
       nativeType: 'timestamptz(3)[]',
-      value: ['2024-01-01 00:00:00+00'],
+      value: ['2024-01-01T00:00:00Z'],
     },
   ])('reads $raw by each element cast', ({ raw, nativeType, value }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
   });
 
   it.each([
@@ -125,21 +125,21 @@ describe('parsePostgresDefault ARRAY[...] elements Postgres prints with a cast',
       value: ['a'],
     },
   ])('unwraps the outer cast in $raw', ({ raw, nativeType, value }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
   });
 
   it('reads an empty constructor cast to a multi-word type', () => {
-    expect(parsePostgresDefault('ARRAY[]::character varying[]', 'character varying[]')).toEqual({
+    expect(parseInferredDefault('ARRAY[]::character varying[]', 'character varying[]')).toEqual({
       kind: 'literal',
       value: [],
     });
   });
 });
 
-describe('parsePostgresDefault uuid ARRAY[...] elements', () => {
+describe('parseInferredDefault uuid ARRAY[...] elements', () => {
   it('reads each element as the text Postgres prints', () => {
     expect(
-      parsePostgresDefault(
+      parseInferredDefault(
         "ARRAY['A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'::uuid, '{B0EEBC99-9C0B4EF8-BB6D6BB9-BD380A11}'::uuid]",
         'uuid[]',
       ),

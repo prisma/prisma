@@ -27,14 +27,12 @@ import {
   readJsonMatching,
   readJsonString,
   refuseJsonValue,
-  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import { numeralText, type SqlTypeText, sqlDataType } from '@internal/sql-contract/data-type';
 import {
   type CanonicalDateTimeOptions,
   canonicalDateTime,
   canonicalNumeralText,
-  integerTextCanonicalForm,
 } from '@internal/sql-contract/data-type-support';
 import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { isStructuredError, structuredError } from '@internal/utils/structured-error';
@@ -47,7 +45,6 @@ import {
   FLOAT4_MAX,
   fitsCharacterLength,
   fitsFloat4,
-  pgByteaCanonical,
   pgIntervalCanonical,
   readPgByteaJson,
 } from './codec-helpers';
@@ -417,7 +414,6 @@ export const pgInt8 = sqlDataType('pg/int8', {
     readJsonIntegerText('pg/int8', json, INT64_RANGE);
     return json;
   },
-  toCanonicalForm: integerTextCanonicalForm,
   casts: { [pgInt2.id]: asNumeralText, [pgInt4.id]: asNumeralText },
 });
 
@@ -599,26 +595,13 @@ export const pgTimestamptzCanonical = postgresDateTime(
   true,
 );
 
-/** The canonical-form function of a type whose values are written as text. */
-const canonicalFromText =
-  (canonical: (text: string) => string): ToCanonicalForm =>
+/** A cast that takes text and gives the value `read` makes of it. */
+const castFromText =
+  (read: (text: string) => string): Cast =>
   (value) =>
-    typeof value === 'string' ? canonical(value) : wrongShape(value, 'text');
+    typeof value === 'string' ? read(value) : wrongShape(value, 'text');
 
-/** A type whose canonical form reads text, which no other type's value is cast into: its tag reads the text (ADR 254). */
-function typeCanonicalFromText(
-  id: string,
-  canonical: (text: string) => string,
-  spec: {
-    readonly texts: readonly SqlTypeText[];
-    readonly params?: typeof pgPrecisionParams;
-    readonly read: DataTypeReader;
-  },
-) {
-  return sqlDataType(id, { ...spec, toCanonicalForm: canonicalFromText(canonical) });
-}
-
-export const pgTimetz = typeCanonicalFromText('pg/timetz', pgTimetzCanonical, {
+export const pgTimetz = sqlDataType('pg/timetz', {
   read: readStoredDateTime(
     'pg/timetz',
     pgTimetzCanonical,
@@ -634,7 +617,7 @@ export const pgTimetz = typeCanonicalFromText('pg/timetz', pgTimetzCanonical, {
   ],
 });
 
-export const pgInterval = typeCanonicalFromText('pg/interval', pgIntervalCanonical, {
+export const pgInterval = sqlDataType('pg/interval', {
   read: readStoredDateTime(
     'pg/interval',
     pgIntervalCanonical,
@@ -645,7 +628,7 @@ export const pgInterval = typeCanonicalFromText('pg/interval', pgIntervalCanonic
   texts: [writtenAndCatalog('interval'), writtenAndCatalog('interval({precision})')],
 });
 
-export const pgBytea = typeCanonicalFromText('pg/bytea', pgByteaCanonical, {
+export const pgBytea = sqlDataType('pg/bytea', {
   read: (json) => readPgByteaJson('pg/bytea', json),
   texts: [writtenAndCatalog('bytea')],
 });
@@ -667,11 +650,10 @@ function pgInetCanonical(text: string): string {
 export const pgInet = sqlDataType('pg/inet', {
   read: readInet,
   texts: [writtenAndCatalog('inet')],
-  toCanonicalForm: canonicalFromText(pgInetCanonical),
-  casts: { [pgText.id]: canonicalFromText(pgInetCanonical) },
+  casts: { [pgText.id]: castFromText(pgInetCanonical) },
 });
 
-export const pgDate = typeCanonicalFromText('pg/date', pgDateCanonical, {
+export const pgDate = sqlDataType('pg/date', {
   read: readStoredDateTime(
     'pg/date',
     pgDateCanonical,
@@ -681,7 +663,7 @@ export const pgDate = typeCanonicalFromText('pg/date', pgDateCanonical, {
   texts: [writtenAndCatalog('date')],
 });
 
-export const pgTime = typeCanonicalFromText('pg/time', pgTimeCanonical, {
+export const pgTime = sqlDataType('pg/time', {
   read: readStoredDateTime(
     'pg/time',
     pgTimeCanonical,
@@ -697,7 +679,7 @@ export const pgTime = typeCanonicalFromText('pg/time', pgTimeCanonical, {
   ],
 });
 
-export const pgTimestamp = typeCanonicalFromText('pg/timestamp', pgTimestampCanonical, {
+export const pgTimestamp = sqlDataType('pg/timestamp', {
   read: readStoredDateTime(
     'pg/timestamp',
     pgTimestampCanonical,
@@ -713,7 +695,7 @@ export const pgTimestamp = typeCanonicalFromText('pg/timestamp', pgTimestampCano
   ],
 });
 
-export const pgTimestamptz = typeCanonicalFromText('pg/timestamptz', pgTimestamptzCanonical, {
+export const pgTimestamptz = sqlDataType('pg/timestamptz', {
   read: readStoredDateTime(
     'pg/timestamptz',
     pgTimestamptzCanonical,

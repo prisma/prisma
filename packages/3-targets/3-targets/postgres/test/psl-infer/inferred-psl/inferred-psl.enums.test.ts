@@ -16,8 +16,8 @@ import type { SqlTableIRInput } from '@internal/sql-schema-ir/types';
 import { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
 import { postgresAuthoringPslBlockDescriptors } from '../../../src/core/authoring';
-import { parsePostgresDefault } from '../../../src/core/default-normalizer';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
+import { parseInferredDefault } from '../../../src/core/psl-infer/infer-default-parser';
 import {
   buildPslDocumentAst,
   type PostgresPslInferOptions,
@@ -54,7 +54,7 @@ function printWithEnums(
     columnDefaults: inferredColumnDefaults(inferBuildContext),
     columnTypes: inferredColumnTypesOf(schemaIR.tables, enums),
     defaultMapping: createPostgresDefaultMapping(),
-    parseRawDefault: parsePostgresDefault,
+    parseRawDefault: parseInferredDefault,
     enumInfo,
   };
   const ast = buildPslDocumentAst(schemaIR, options, {

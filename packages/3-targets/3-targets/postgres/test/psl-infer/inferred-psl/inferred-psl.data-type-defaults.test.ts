@@ -3,8 +3,8 @@ import { type SqlColumnIRInput, SqlSchemaIR } from '@internal/sql-schema-ir/type
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
-import { parsePostgresDefault } from '../../../src/core/default-normalizer';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
+import { parseInferredDefault } from '../../../src/core/psl-infer/infer-default-parser';
 import { inferBuildContext, printPslFromFlat } from '../fixtures';
 
 /** The backtick fencing a tagged literal, as an escape so no quoted string in this file holds one. */
@@ -27,7 +27,7 @@ function introspected(
     default: rawDefault,
     ...ifDefined('many', shape.many),
     resolvedNativeType,
-    ...ifDefined('resolvedDefault', parsePostgresDefault(rawDefault, resolvedNativeType)),
+    ...ifDefined('resolvedDefault', parseInferredDefault(rawDefault, resolvedNativeType)),
   };
 }
 

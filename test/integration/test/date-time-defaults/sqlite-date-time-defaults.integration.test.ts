@@ -37,7 +37,7 @@ async function migrate(
 ): Promise<void> {
   const result = planner.plan({
     contract: to,
-    schema: await familyInstance.introspect({ driver: database }),
+    schema: await familyInstance.introspect({ driver: database, contract: to }),
     policy: INIT_ADDITIVE_POLICY,
     fromContract: from,
     origin: planOriginOf(from),
@@ -150,7 +150,7 @@ describe('a SQLite datetime default', () => {
     const result = await verify(database, contract);
     const replan = planner.plan({
       contract,
-      schema: await familyInstance.introspect({ driver: database }),
+      schema: await familyInstance.introspect({ driver: database, contract }),
       policy: INIT_ADDITIVE_POLICY,
       fromContract: contract,
       origin: planOriginOf(contract),

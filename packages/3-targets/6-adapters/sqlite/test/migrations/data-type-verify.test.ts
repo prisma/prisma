@@ -164,7 +164,7 @@ const documentContract = documentContractWith({
 });
 
 async function verify(driver: ReturnType<typeof createMemoryDriver>) {
-  const schema = await introspector.introspect(driver);
+  const schema = await introspector.introspect(driver, contract);
   return familyInstance.verifySchema({
     contract,
     schema,
@@ -241,7 +241,7 @@ describe('verify on SQLite, for each data type', () => {
         "character_varying_col" CHARACTER VARYING NOT NULL DEFAULT 'b',
         "json_col" TEXT NOT NULL DEFAULT '{"a":1}',
         "bigint_col" INTEGER NOT NULL DEFAULT '9007199254740993',
-        "datetime_col" TEXT NOT NULL DEFAULT '2024-01-01T00:00:00.000Z'
+        "datetime_col" TEXT NOT NULL DEFAULT '2024-01-01T00:00:00Z'
       )`);
       expect(await verify(driver)).toMatchObject({ ok: true });
     } finally {
@@ -260,7 +260,7 @@ describe('verify on SQLite, for each data type', () => {
         await driver.query(`CREATE TABLE "doc" ("body" TEXT NOT NULL DEFAULT ${sqlDefault})`);
         const result = familyInstance.verifySchema({
           contract: documentContract,
-          schema: await introspector.introspect(driver),
+          schema: await introspector.introspect(driver, documentContract),
           strict: true,
           frameworkComponents,
         });
@@ -275,15 +275,16 @@ describe('verify on SQLite, for each data type', () => {
     const driver = createMemoryDriver();
     try {
       await driver.query(`CREATE TABLE "doc" ("body" TEXT DEFAULT 'null')`);
+      const nullDocument = documentContractWith({
+        many: false,
+        dataType: 'sqlite/json',
+        codecId: 'sqlite/json@1',
+        nullable: true,
+        default: literal('null'),
+      });
       const result = familyInstance.verifySchema({
-        contract: documentContractWith({
-          many: false,
-          dataType: 'sqlite/json',
-          codecId: 'sqlite/json@1',
-          nullable: true,
-          default: literal('null'),
-        }),
-        schema: await introspector.introspect(driver),
+        contract: nullDocument,
+        schema: await introspector.introspect(driver, nullDocument),
         strict: true,
         frameworkComponents,
       });

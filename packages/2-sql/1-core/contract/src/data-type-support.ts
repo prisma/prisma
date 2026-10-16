@@ -10,15 +10,9 @@
  */
 
 import type { JsonValue } from '@internal/contract/types';
-import {
-  type DataTypeId,
-  isNonFiniteText,
-  type ToCanonicalForm,
-} from '@internal/framework-components/codec';
+import { type DataTypeId, isNonFiniteText } from '@internal/framework-components/codec';
 import { structuredError } from '@internal/utils/structured-error';
-import { numeralText } from './numeral-text';
 
-const INTEGER_TEXT = /^-?\d+$/;
 const WRITTEN_INTEGER_TEXT = /^[+-]?\d+$/;
 const WRITTEN_DECIMAL_TEXT = /^[+-]?\d+\.\d+$/;
 const DECIMAL_NUMERAL = /^([+-]?)0*(\d+)(\.\d+)?$/;
@@ -39,22 +33,6 @@ export function canonicalNumeralText(text: string): string {
   const digits = `${whole}${fraction}`;
   return sign !== '-' || /^[0.]+$/.test(digits) ? digits : `-${digits}`;
 }
-
-/**
- * The canonical form of a 64-bit integer type: digit text. A database reads an integer default back as a number when it is a safe integer, so a safe integer reads as its digit text too; any other number may already have lost digits and is refused.
- */
-export const integerTextCanonicalForm: ToCanonicalForm = (value) => {
-  if (typeof value === 'number' && Number.isSafeInteger(value)) return numeralText(value);
-  if (typeof value === 'string' && INTEGER_TEXT.test(value)) return BigInt(value).toString();
-  throw structuredError(
-    'CONTRACT.CAST_REFUSED',
-    `Expected digit text or a safe integer, got ${JSON.stringify(value)}.`,
-    {
-      why: 'A 64-bit integer type stores its value as digit text, and a number past the safe integer range may already have lost digits.',
-      fix: 'Write the value as digit text.',
-    },
-  );
-};
 
 /** A string as a contract source writes it, with the escapes its string reader resolves. */
 export function escapePslString(value: string): string {

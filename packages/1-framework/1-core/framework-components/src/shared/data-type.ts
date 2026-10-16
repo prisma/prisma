@@ -43,13 +43,6 @@ export interface ListCast {
   readonly cast: (elements: readonly JsonValue[]) => JsonValue;
 }
 
-/**
- * A pure function from any value the type reads to its one canonical form, for a type whose
- * values have more than one written form, such as a date written with or without a fraction. It
- * may throw a structured error for a value the type does not hold.
- */
-export type ToCanonicalForm = (value: JsonValue) => JsonValue;
-
 /** A data type's parameters: an empty object for a type without any. */
 export type DataTypeParams = Readonly<Record<string, unknown>>;
 
@@ -92,11 +85,6 @@ export interface DataType {
   /** Keyed by the id of the type each cast takes values of. */
   readonly casts: Readonly<Record<DataTypeId, Cast>>;
   readonly listCast?: ListCast;
-  /**
-   * Gives a value of this type its canonical form, so two forms of one value are one value. Read it
-   * through `canonicalFormOf`, which takes a codec's own form in its place.
-   */
-  readonly toCanonicalForm?: ToCanonicalForm;
   /** The value `json` stores under `params`. It refuses JSON the type does not store in that form, a value the parameters exclude, and JSON in a spelling other than the one the parameters give. */
   fromContract(json: JsonValue, params: DataTypeParams): DataTypeValue;
   /** The value a codec hands over as `json`: read under `params`, which refuse a value they exclude, and written in the spelling they give. A codec reaches it through `dataTypeValueFor`. */
@@ -111,7 +99,6 @@ export interface DataTypeSpec {
   readonly params?: Type<unknown>;
   readonly casts?: Readonly<Record<string, Cast>>;
   readonly listCast?: { readonly of: readonly string[]; readonly cast: ListCast['cast'] };
-  readonly toCanonicalForm?: ToCanonicalForm;
   readonly read: DataTypeReader;
   readonly spell?: DataTypeSpelling;
 }
@@ -173,7 +160,6 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
     ...(listCast === undefined
       ? {}
       : { listCast: { of: listCast.of.map(dataTypeId), cast: listCast.cast } }),
-    ...(spec.toCanonicalForm === undefined ? {} : { toCanonicalForm: spec.toCanonicalForm }),
     fromContract,
     fromCodec: (json, params) => construct(spelledUnder(json, params), params),
     toContract: (value) => ownValue(value).value,

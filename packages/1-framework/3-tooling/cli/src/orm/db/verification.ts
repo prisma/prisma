@@ -232,21 +232,18 @@ function sentence(text: string): string {
 }
 
 /**
- * What to do about schema drift. An issue with an explanation means the emitted contract holds a
- * value its type refuses. Only re-emitting fixes that, and the re-emitted contract has a new hash,
- * so that is the one action offered.
+ * What to do about schema drift: change the database to match the contract, or the contract to describe the database. A default the column's codec cannot read is drift of the same kind; its issue explains it.
  */
 export function schemaDriftNextActions(inputs: {
   readonly verb: 'sign' | 'verify';
   readonly contractRef: string | undefined;
-  readonly issues: readonly SchemaDiffIssue[];
 }): readonly NextAction[] {
   const { verb, contractRef } = inputs;
   const retryAfterEmit =
     contractRef === undefined
       ? `${verb} again`
       : `${verb} the emitted contract instead of "${contractRef}"`;
-  const drift = [
+  return [
     runCommandAction(
       `Change the database to match the contract, then ${verb} again`,
       contractRef === undefined ? '{bin} db update' : `{bin} db update --to "${contractRef}"`,
@@ -255,13 +252,4 @@ export function schemaDriftNextActions(inputs: {
       `Or change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`,
     ),
   ];
-  const contractRefused = inputs.issues.some((issue) => issue.explanation !== undefined);
-  return contractRefused
-    ? [
-        runCommandAction(
-          'Re-emit the contract, which stores the refused default as its type holds it',
-          '{bin} contract emit',
-        ),
-      ]
-    : drift;
 }

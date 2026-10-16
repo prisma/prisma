@@ -29,8 +29,8 @@ import {
 } from '../../src/core/authoring';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { postgresDataTypes } from '../../src/core/data-types';
-import { parsePostgresDefault } from '../../src/core/default-normalizer';
 import { type PostgresSchema, postgresCreateNamespace } from '../../src/core/postgres-schema';
+import { parseInferredDefault } from '../../src/core/psl-infer/infer-default-parser';
 import { postgresCodecRegistry } from '../../src/core/registry';
 import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 import { printPslFromFlat } from './fixtures';
@@ -80,7 +80,7 @@ function introspected(
     default: rawDefault,
     ...ifDefined('many', shape.many),
     resolvedNativeType,
-    ...ifDefined('resolvedDefault', parsePostgresDefault(rawDefault, resolvedNativeType)),
+    ...ifDefined('resolvedDefault', parseInferredDefault(rawDefault, resolvedNativeType)),
   };
 }
 

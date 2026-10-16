@@ -14,10 +14,9 @@ import { describe, expect, it } from 'vitest';
 import { readStoredValue } from '../src/data-type-default';
 
 const zoned = dataType('demo/zoned', {
-  read: (json) => json,
-  toCanonicalForm: (value) => {
-    if (typeof value === 'string' && value.endsWith('Z')) return value;
-    throw structuredError('CONTRACT.CAST_REFUSED', `"${String(value)}" has no zone.`);
+  read: (json) => {
+    if (typeof json === 'string' && json.endsWith('Z')) return json;
+    throw structuredError('CONTRACT.CAST_REFUSED', `"${String(json)}" has no zone.`);
   },
 });
 
@@ -55,7 +54,7 @@ const codecLookup: CodecLookupWithDescriptors = {
 };
 
 describe('readStoredValue', () => {
-  it("reads a stored value through the canonical form of its codec's data type", () => {
+  it("reads a stored value through its codec's data type", () => {
     const read = (value: JsonValue) =>
       readStoredValue({
         value,
@@ -68,7 +67,7 @@ describe('readStoredValue', () => {
       zoned: { ok: true, value: '12:00Z' },
       unzoned: {
         ok: false,
-        code: 'PSL_INVALID_LITERAL',
+        code: 'PSL_INVALID_DEFAULT_LITERAL',
         message: 'Field "T.at": "12:00" has no zone.',
       },
     });

@@ -20,12 +20,12 @@ import {
   UNSPECIFIED_PSL_NAMESPACE_ID,
 } from '@internal/framework-components/psl-ast';
 import { type SqlColumnIR, SqlSchemaIR, SqlTableIR } from '@internal/sql-schema-ir/types';
-import { parsePostgresDefault } from '../default-normalizer';
 import { postgresError } from '../errors';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
 import { type InferredColumnDefaults, inferredColumnDefaults } from './infer-default-codec';
+import { parseInferredDefault } from './infer-default-parser';
 import {
   adoptedEnumTypeName,
   buildNativeEnumBlocks,
@@ -46,8 +46,7 @@ import { createPostgresDefaultMapping } from './postgres-default-mapping';
  *
  * Target-owned inference: it walks the `PostgresDatabaseSchemaNode` tree and
  * owns the Postgres dialect knowledge — native enums and the default map.
- * It reads raw defaults with `parsePostgresDefault`, the parser introspection
- * and verify use. A column's type is the SQL family's: the constructor marked
+ * It reads raw defaults with `parseInferredDefault`. A column's type is the SQL family's: the constructor marked
  * `inferred` for the data type that claims the type the database reported.
  * Relation inference, name transforms, and generic default mapping are
  * shape-neutral utilities imported from the SQL family as well.
@@ -229,7 +228,7 @@ export function inferPostgresPslContract(
         adoptedEnumTypeName(column, enumInfo.definitions, wrapNamespaceName) !== undefined,
     }),
     defaultMapping: createPostgresDefaultMapping(),
-    parseRawDefault: parsePostgresDefault,
+    parseRawDefault: parseInferredDefault,
     columnDefaults: inferredColumnDefaults(context),
     ...(enumDefinitions.size > 0 ? { enumInfo } : {}),
   };

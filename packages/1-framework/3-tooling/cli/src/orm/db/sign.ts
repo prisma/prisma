@@ -610,7 +610,6 @@ export function createDbSignCommand(
                   nextActions: schemaDriftNextActions({
                     verb: 'sign',
                     contractRef,
-                    issues: outcome.schema.schema.issues,
                   }),
                 }),
               ];

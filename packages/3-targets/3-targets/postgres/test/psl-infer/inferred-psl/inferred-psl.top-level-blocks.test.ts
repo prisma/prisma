@@ -49,9 +49,9 @@ import {
 } from '../../../src/core/authoring';
 import { createPostgresBuiltinCodecLookup } from '../../../src/core/codec-registry';
 import { postgresDataTypeEntries } from '../../../src/core/data-type-entries';
-import { parsePostgresDefault } from '../../../src/core/default-normalizer';
 import { isPostgresSchema, postgresCreateNamespace } from '../../../src/core/postgres-schema';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
+import { parseInferredDefault } from '../../../src/core/psl-infer/infer-default-parser';
 import {
   buildPslDocumentAst,
   type PostgresPslInferOptions,
@@ -314,7 +314,7 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
     columnDefaults: inferredColumnDefaults(inferBuildContext),
     columnTypes: inferredColumnTypesOf(schemaIR.tables),
     defaultMapping: createPostgresDefaultMapping(),
-    parseRawDefault: parsePostgresDefault,
+    parseRawDefault: parseInferredDefault,
   };
 
   const foreignKeyExtras = {

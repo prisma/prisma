@@ -10,7 +10,6 @@ import {
 } from '@internal/family-sql/psl-build';
 import type { PslPrinterOptions, RelationField } from '@internal/family-sql/psl-infer';
 import { toFieldName, toModelName } from '@internal/family-sql/psl-infer';
-import { canonicalFormOf } from '@internal/framework-components/codec';
 import type {
   PslAttributeArgument,
   PslField,
@@ -26,11 +25,7 @@ import {
   computeCheckContentHash,
   formatWireName,
 } from '@internal/sql-schema-ir/naming';
-import {
-  defaultInCanonicalForm,
-  type SqlColumnIR,
-  type SqlTableIR,
-} from '@internal/sql-schema-ir/types';
+import type { SqlColumnIR, SqlTableIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
 import { postgresRenderCheckExpressions } from '../check-expressions';
 import {
@@ -379,13 +374,20 @@ function inferDefaultAttribute(
     // `identity` field on the column IR — this pairing is the marker.
     return '@default(autoincrement())';
   }
-  if (column.many === true && column.resolvedDefault?.kind === 'literal') {
-    // A list column's literal default prints from `resolvedDefault`: the raw
-    // SQL text read against the element type only yields a function, which
-    // the interpreter rejects on a list column.
-    return Array.isArray(column.resolvedDefault.value)
+  if (column.many === true) {
+    // A list column's default is read against the list type, `nativeType` with `[]`: read against
+    // the element type, the text of a list only yields a function, which the interpreter rejects on
+    // a list column.
+    const listDefault =
+      typeof column.default === 'string'
+        ? rawDefaultParser?.(column.default, `${column.nativeType}[]`)
+        : column.resolvedDefault;
+    if (listDefault?.kind === 'function') {
+      return mappedAttribute(listDefault, defaultMapping, noteTextThatDoesNotReadBack);
+    }
+    return listDefault?.kind === 'literal' && Array.isArray(listDefault.value)
       ? literalOrRawAttribute(
-          column.resolvedDefault,
+          listDefault,
           column,
           defaultMapping,
           readsBack,
@@ -420,19 +422,7 @@ function literalOrRawAttribute(
   readsBack: (value: ColumnDefaultLiteralInputValue) => boolean,
   noteTextThatDoesNotReadBack: () => void,
 ): string | undefined {
-  const printed: ColumnDefault =
-    columnDefault.kind === 'literal'
-      ? {
-          kind: 'literal',
-          value: defaultInCanonicalForm(
-            columnDefault.value,
-            defaultMapping.columnCodec === undefined || defaultMapping.dataTypes === undefined
-              ? undefined
-              : canonicalFormOf(defaultMapping.columnCodec, defaultMapping.dataTypes.lookup),
-            defaultMapping.list === true,
-          ).value,
-        }
-      : columnDefault;
+  const printed = columnDefault;
   const result =
     printed.kind === 'literal' && !readsBack(printed.value)
       ? undefined

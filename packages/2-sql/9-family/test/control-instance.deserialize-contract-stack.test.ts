@@ -191,6 +191,10 @@ describe('deserializeContract checks each column against the stack', () => {
       expect(() => familyInstance('Jsonb').deserializeContract(priced('1.50'))).not.toThrow();
     });
 
+    it('is accepted when it is null, which is SQL NULL', () => {
+      expect(() => familyInstance('Jsonb').deserializeContract(priced(null))).not.toThrow();
+    });
+
     it('is refused when the column type does not hold it, naming the column', () => {
       expect(() => familyInstance('Jsonb').deserializeContract(priced('1.5'))).toThrow(
         expect.objectContaining({

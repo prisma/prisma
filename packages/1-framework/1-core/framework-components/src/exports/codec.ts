@@ -17,7 +17,6 @@ export type {
 export {
   CodecDescriptorImpl,
   CodecDescriptorTemplateImpl,
-  canonicalFormOf,
   enumRefusalOf,
 } from '../shared/codec-descriptor';
 export type {
@@ -51,7 +50,6 @@ export type {
   DataTypeSpelling,
   DataTypeValue,
   ListCast,
-  ToCanonicalForm,
 } from '../shared/data-type';
 export {
   assembleDataTypes,

@@ -12,7 +12,7 @@ import type { JsonValue } from '@internal/contract/types';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Codec } from './codec';
 import type { CodecInstanceContext, CodecTrait } from './codec-types';
-import type { DataTypeId, DataTypeLookup, ToCanonicalForm } from './data-type';
+import type { DataTypeId } from './data-type';
 
 /**
  * Unified codec descriptor. Every codec in the framework registers through this shape — non-parameterized codecs use `P = void` and a constant factory that returns the same shared codec instance for every column; parameterized codecs use a non-empty `P` and a curried higher-order factory that returns a per-instance codec.
@@ -67,16 +67,6 @@ export interface CodecDescriptorTemplate<P = void> {
 export interface CodecDescriptor<P = void> extends CodecDescriptorTemplate<P> {
   /** The data type this codec is one representation of. */
   readonly dataType: DataTypeId;
-}
-
-/**
- * The canonical form of the values of a column whose codec is `codec` (ADR 254): its data type's. Whatever reads, compares or writes a stored value of a column takes its canonical form from here.
- */
-export function canonicalFormOf(
-  codec: Pick<CodecDescriptor, 'dataType'>,
-  dataTypes: Pick<DataTypeLookup, 'get'>,
-): ToCanonicalForm | undefined {
-  return dataTypes.get(codec.dataType)?.toCanonicalForm;
 }
 
 /**

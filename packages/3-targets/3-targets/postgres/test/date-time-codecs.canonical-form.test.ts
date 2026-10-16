@@ -9,19 +9,6 @@ import { fromContractJson, toContractJson } from './contract-json';
 
 const dataTypes = createDataTypeLookup(postgresDataTypes);
 
-/** Every codec of a type that declares a canonical form, found in the target's codec registry. */
-const codecsWithCanonicalForm = codecDescriptors.flatMap((descriptor) =>
-  dataTypes.get(descriptor.dataType)?.toCanonicalForm === undefined
-    ? []
-    : [
-        {
-          codecId: descriptor.codecId,
-          dataType: descriptor.dataType,
-          codec: descriptor.factory({} as never)({ name: '<test>' }) as Codec,
-        },
-      ],
-);
-
 /** Values in canonical form that every codec of the type holds. */
 const everyCodecHolds: Readonly<Record<string, readonly string[]>> = {
   'pg/timestamptz': [
@@ -39,6 +26,19 @@ const everyCodecHolds: Readonly<Record<string, readonly string[]>> = {
   'pg/bytea': ['aGVsbG8=', 'AAE=', ''],
   'pg/inet': ['192.168.0.1', '10.0.0.0/8', '2001:db8::1/64', '::ffff:1.2.3.4'],
 };
+
+/** Every codec of a type whose values have more than one written form, found in the target's codec registry. */
+const codecsWithCanonicalForm = codecDescriptors.flatMap((descriptor) =>
+  !dataTypes.has(descriptor.dataType) || !Object.hasOwn(everyCodecHolds, descriptor.dataType)
+    ? []
+    : [
+        {
+          codecId: descriptor.codecId,
+          dataType: descriptor.dataType,
+          codec: descriptor.factory({} as never)({ name: '<test>' }) as Codec,
+        },
+      ],
+);
 
 /** Values in canonical form that only some codecs of the type hold. */
 const someCodecsHold: Readonly<Record<string, readonly string[]>> = {

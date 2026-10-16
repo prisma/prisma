@@ -65,15 +65,13 @@ describe('sqlDataType', () => {
 
   it('keeps every field of the framework declaration', () => {
     const casts = { [int4.id]: (value: JsonValue) => value };
-    const toCanonicalForm = (value: JsonValue) => value;
     const read = (json: JsonValue) => (json === 'old' ? 'new' : json);
     const declared = sqlDataType('t/kept', {
       read,
       casts,
-      toCanonicalForm,
       texts: [{ text: 'kept', written: true, catalog: true }],
     });
-    const plain = dataType('t/kept', { read, casts, toCanonicalForm });
+    const plain = dataType('t/kept', { read, casts });
     const fields = (type: object) =>
       Object.fromEntries(
         Object.entries(type).filter(([key, value]) => key !== 'sql' && typeof value !== 'function'),

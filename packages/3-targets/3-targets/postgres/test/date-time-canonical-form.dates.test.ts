@@ -261,17 +261,8 @@ describe('pg/date canonical form', () => {
   });
 });
 
-describe('the date and time types declare their canonical form', () => {
-  it('gives pg/date its canonical-form function, and takes no text through a cast', () => {
-    expect({
-      canonical: pgDate.toCanonicalForm?.('0044-03-15 BC'),
-      castFromText: Object.hasOwn(pgDate.casts, pgText.id),
-    }).toEqual({ canonical: '-000043-03-15', castFromText: false });
-  });
-
-  it('refuses a value that is not text', () => {
-    expect(() => pgDate.toCanonicalForm?.(20240101)).toThrow(
-      expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED' }),
-    );
+describe('pg/date', () => {
+  it('takes no text through a cast: a PSL default is written with the date tag', () => {
+    expect(Object.hasOwn(pgDate.casts, pgText.id)).toBe(false);
   });
 });

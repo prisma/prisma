@@ -1,51 +1,51 @@
 import { describe, expect, it } from 'vitest';
-import { parsePostgresDefault } from '../src/core/default-normalizer';
+import { parseInferredDefault } from '../../src/core/psl-infer/infer-default-parser';
 
-describe('parsePostgresDefault null and boolean literals', () => {
+describe('parseInferredDefault null and boolean literals', () => {
   it('parses a bare NULL', () => {
-    expect(parsePostgresDefault('NULL')).toEqual({ kind: 'literal', value: null });
+    expect(parseInferredDefault('NULL')).toEqual({ kind: 'literal', value: null });
   });
 
   it('parses a NULL with a type cast', () => {
-    expect(parsePostgresDefault('NULL::text')).toEqual({ kind: 'literal', value: null });
+    expect(parseInferredDefault('NULL::text')).toEqual({ kind: 'literal', value: null });
   });
 
   it('parses true', () => {
-    expect(parsePostgresDefault('true')).toEqual({ kind: 'literal', value: true });
+    expect(parseInferredDefault('true')).toEqual({ kind: 'literal', value: true });
   });
 
   it('parses false', () => {
-    expect(parsePostgresDefault('false')).toEqual({ kind: 'literal', value: false });
+    expect(parseInferredDefault('false')).toEqual({ kind: 'literal', value: false });
   });
 });
 
-describe('parsePostgresDefault numeric literals', () => {
+describe('parseInferredDefault numeric literals', () => {
   it('parses a positive integer', () => {
-    expect(parsePostgresDefault('42')).toEqual({ kind: 'literal', value: 42 });
+    expect(parseInferredDefault('42')).toEqual({ kind: 'literal', value: 42 });
   });
 
   it('parses a negative decimal', () => {
-    expect(parsePostgresDefault('-3.14')).toEqual({ kind: 'literal', value: -3.14 });
+    expect(parseInferredDefault('-3.14')).toEqual({ kind: 'literal', value: -3.14 });
   });
 
   it('returns undefined for a numeral too large to represent as a finite number', () => {
     const hugeDigits = `1${'0'.repeat(400)}`;
-    expect(parsePostgresDefault(hugeDigits)).toBeUndefined();
+    expect(parseInferredDefault(hugeDigits)).toBeUndefined();
   });
 
   it('reads a bigint-typed integer as decimal text', () => {
-    expect(parsePostgresDefault('123', 'bigint')).toEqual({ kind: 'literal', value: '123' });
+    expect(parseInferredDefault('123', 'bigint')).toEqual({ kind: 'literal', value: '123' });
   });
 
   it('reads a bigint-typed integer past the safe range as decimal text', () => {
-    expect(parsePostgresDefault('9007199254740993', 'int8')).toEqual({
+    expect(parseInferredDefault('9007199254740993', 'int8')).toEqual({
       kind: 'literal',
       value: '9007199254740993',
     });
   });
 });
 
-describe('parsePostgresDefault uuid literals', () => {
+describe('parseInferredDefault uuid literals', () => {
   it('reads a uuid in the form PostgreSQL stores, whatever spelling it was written in', () => {
     expect(
       [
@@ -53,7 +53,7 @@ describe('parsePostgresDefault uuid literals', () => {
         "'{a0eebc99-9c0b4ef8-bb6d6bb9bd380a11}'::uuid",
         "'a0eebc999c0b4ef8bb6d6bb9bd380a11'",
         "'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'::uuid",
-      ].map((raw) => parsePostgresDefault(raw, 'uuid')),
+      ].map((raw) => parseInferredDefault(raw, 'uuid')),
     ).toEqual(
       Array.from({ length: 4 }, () => ({
         kind: 'literal',
@@ -64,26 +64,26 @@ describe('parsePostgresDefault uuid literals', () => {
 
   it('reads each element of a uuid list the same way', () => {
     expect(
-      parsePostgresDefault("'{A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11,NULL}'::uuid[]", 'uuid[]'),
+      parseInferredDefault("'{A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11,NULL}'::uuid[]", 'uuid[]'),
     ).toEqual({ kind: 'literal', value: ['a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', null] });
   });
 
   it('keeps text that is not a uuid as written on a uuid column', () => {
-    expect(parsePostgresDefault("'Not-A-Uuid'::uuid", 'uuid')).toEqual({
+    expect(parseInferredDefault("'Not-A-Uuid'::uuid", 'uuid')).toEqual({
       kind: 'literal',
       value: 'Not-A-Uuid',
     });
   });
 
   it('keeps the case of uuid-shaped text on a text column', () => {
-    expect(parsePostgresDefault("'A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'::text", 'text')).toEqual({
+    expect(parseInferredDefault("'A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11'::text", 'text')).toEqual({
       kind: 'literal',
       value: 'A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11',
     });
   });
 });
 
-describe('parsePostgresDefault numeric literals in the form PostgreSQL stores', () => {
+describe('parseInferredDefault numeric literals in the form PostgreSQL stores', () => {
   it('reads a numeric default without leading zeros or a minus sign on zero, whatever spelling it was written in', () => {
     expect(
       [
@@ -92,7 +92,7 @@ describe('parsePostgresDefault numeric literals in the form PostgreSQL stores', 
         ['01.5', 'numeric'],
         ["'-0'::numeric", 'numeric(10,2)'],
         ["'-00.10'", 'decimal'],
-      ].map(([raw, nativeType]) => parsePostgresDefault(raw ?? '', nativeType)),
+      ].map(([raw, nativeType]) => parseInferredDefault(raw ?? '', nativeType)),
     ).toEqual([
       { kind: 'literal', value: '1.5' },
       { kind: 'literal', value: '1.5' },
@@ -103,21 +103,21 @@ describe('parsePostgresDefault numeric literals in the form PostgreSQL stores', 
   });
 
   it('reads each element of a numeric list the same way', () => {
-    expect(parsePostgresDefault("'{01.5,-0,NULL}'::numeric[]", 'numeric[]')).toEqual({
+    expect(parseInferredDefault("'{01.5,-0,NULL}'::numeric[]", 'numeric[]')).toEqual({
       kind: 'literal',
       value: ['1.5', '0', null],
     });
   });
 
   it('keeps leading zeros on a text column', () => {
-    expect(parsePostgresDefault("'01.5'::text", 'text')).toEqual({
+    expect(parseInferredDefault("'01.5'::text", 'text')).toEqual({
       kind: 'literal',
       value: '01.5',
     });
   });
 });
 
-describe('parsePostgresDefault int8 literals in the form PostgreSQL stores', () => {
+describe('parseInferredDefault int8 literals in the form PostgreSQL stores', () => {
   it('reads an int8 default without leading zeros or a minus sign on zero, whatever spelling it was written in', () => {
     expect(
       [
@@ -125,7 +125,7 @@ describe('parsePostgresDefault int8 literals in the form PostgreSQL stores', () 
         ["'007'::bigint", 'int8'],
         ['007', 'bigint'],
         ["'-0'::bigint", 'bigint'],
-      ].map(([raw, nativeType]) => parsePostgresDefault(raw ?? '', nativeType)),
+      ].map(([raw, nativeType]) => parseInferredDefault(raw ?? '', nativeType)),
     ).toEqual([
       { kind: 'literal', value: '7' },
       { kind: 'literal', value: '7' },
@@ -135,18 +135,18 @@ describe('parsePostgresDefault int8 literals in the form PostgreSQL stores', () 
   });
 
   it('reads each element of an int8 list the same way', () => {
-    expect(parsePostgresDefault("'{007,-0,NULL}'::bigint[]", 'bigint[]')).toEqual({
+    expect(parseInferredDefault("'{007,-0,NULL}'::bigint[]", 'bigint[]')).toEqual({
       kind: 'literal',
       value: ['7', '0', null],
     });
   });
 });
 
-describe('parsePostgresDefault inet literals', () => {
+describe('parseInferredDefault inet literals', () => {
   it('reads an inet default in the form PostgreSQL stores, whatever spelling it was written in', () => {
     expect(
       ["'10.0.0.1/32'::inet", "'::FFFF:10.0.0.1'", "'10.0.0.1'::inet"].map((raw) =>
-        parsePostgresDefault(raw, 'inet'),
+        parseInferredDefault(raw, 'inet'),
       ),
     ).toEqual([
       { kind: 'literal', value: '10.0.0.1' },
@@ -156,59 +156,59 @@ describe('parsePostgresDefault inet literals', () => {
   });
 
   it('reads each element of an inet list the same way', () => {
-    expect(parsePostgresDefault("'{10.0.0.1/32,NULL}'::inet[]", 'inet[]')).toEqual({
+    expect(parseInferredDefault("'{10.0.0.1/32,NULL}'::inet[]", 'inet[]')).toEqual({
       kind: 'literal',
       value: ['10.0.0.1', null],
     });
   });
 
   it('keeps text that is not an address as written on an inet column', () => {
-    expect(parsePostgresDefault("'not an address'::inet", 'inet')).toEqual({
+    expect(parseInferredDefault("'not an address'::inet", 'inet')).toEqual({
       kind: 'literal',
       value: 'not an address',
     });
   });
 });
 
-describe('parsePostgresDefault string literals', () => {
+describe('parseInferredDefault string literals', () => {
   it('parses a plain string literal', () => {
-    expect(parsePostgresDefault("'hello'")).toEqual({ kind: 'literal', value: 'hello' });
+    expect(parseInferredDefault("'hello'")).toEqual({ kind: 'literal', value: 'hello' });
   });
 
   it('unescapes a doubled single quote', () => {
-    expect(parsePostgresDefault("'it''s'")).toEqual({ kind: 'literal', value: "it's" });
+    expect(parseInferredDefault("'it''s'")).toEqual({ kind: 'literal', value: "it's" });
   });
 
   it('strips a word-based type cast suffix', () => {
-    expect(parsePostgresDefault("'hello'::character varying")).toEqual({
+    expect(parseInferredDefault("'hello'::character varying")).toEqual({
       kind: 'literal',
       value: 'hello',
     });
   });
 
   it('strips a quoted custom-type cast suffix', () => {
-    expect(parsePostgresDefault('\'hello\'::"CustomEnum"')).toEqual({
+    expect(parseInferredDefault('\'hello\'::"CustomEnum"')).toEqual({
       kind: 'literal',
       value: 'hello',
     });
   });
 
   it('strips a sized type cast suffix', () => {
-    expect(parsePostgresDefault("'hello'::character varying(10)")).toEqual({
+    expect(parseInferredDefault("'hello'::character varying(10)")).toEqual({
       kind: 'literal',
       value: 'hello',
     });
   });
 
   it('parses valid json content for a json column into its structured value', () => {
-    expect(parsePostgresDefault('\'{"a":1}\'', 'json')).toEqual({
+    expect(parseInferredDefault('\'{"a":1}\'', 'json')).toEqual({
       kind: 'literal',
       value: { a: 1 },
     });
   });
 
   it('parses valid json content for a jsonb column into its structured value', () => {
-    expect(parsePostgresDefault("'[1,2,3]'", 'jsonb')).toEqual({
+    expect(parseInferredDefault("'[1,2,3]'", 'jsonb')).toEqual({
       kind: 'literal',
       value: [1, 2, 3],
     });
@@ -220,72 +220,72 @@ describe('parsePostgresDefault string literals', () => {
   ])(
     'keeps the raw expression when a JavaScript number would change a json number in $raw',
     ({ raw, nativeType }) => {
-      expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'function', expression: raw });
+      expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'function', expression: raw });
     },
   );
 
   it('reads a json number with trailing zeros as the same number', () => {
-    expect(parsePostgresDefault("'[1.0]'::jsonb", 'jsonb')).toEqual({
+    expect(parseInferredDefault("'[1.0]'::jsonb", 'jsonb')).toEqual({
       kind: 'literal',
       value: [1],
     });
   });
 
   it('keeps malformed json content as a raw string when it fails to parse', () => {
-    expect(parsePostgresDefault("'not valid json'", 'json')).toEqual({
+    expect(parseInferredDefault("'not valid json'", 'json')).toEqual({
       kind: 'literal',
       value: 'not valid json',
     });
   });
 
   it('reads a quoted bigint-typed numeral as decimal text', () => {
-    expect(parsePostgresDefault("'123'", 'bigint')).toEqual({ kind: 'literal', value: '123' });
+    expect(parseInferredDefault("'123'", 'bigint')).toEqual({ kind: 'literal', value: '123' });
   });
 
   it('reads a quoted bigint-typed numeral past the safe range as decimal text', () => {
-    expect(parsePostgresDefault("'9007199254740993'", 'bigint')).toEqual({
+    expect(parseInferredDefault("'9007199254740993'", 'bigint')).toEqual({
       kind: 'literal',
       value: '9007199254740993',
     });
   });
 
   it('keeps a bigint-typed non-numeric string as-is', () => {
-    expect(parsePostgresDefault("'abc'", 'bigint')).toEqual({ kind: 'literal', value: 'abc' });
+    expect(parseInferredDefault("'abc'", 'bigint')).toEqual({ kind: 'literal', value: 'abc' });
   });
 
   it('does not coerce a numeric-looking string default without a bigint type', () => {
-    expect(parsePostgresDefault("'123'")).toEqual({ kind: 'literal', value: '123' });
+    expect(parseInferredDefault("'123'")).toEqual({ kind: 'literal', value: '123' });
   });
 });
 
-describe('parsePostgresDefault enum literal casts', () => {
+describe('parseInferredDefault enum literal casts', () => {
   it('reads a literal cast to a schema-qualified quoted enum type', () => {
-    expect(parsePostgresDefault('\'CREATE\'::audit."AuditAction"', 'audit.AuditAction')).toEqual({
+    expect(parseInferredDefault('\'CREATE\'::audit."AuditAction"', 'audit.AuditAction')).toEqual({
       kind: 'literal',
       value: 'CREATE',
     });
   });
 
   it('reads a literal cast to a schema-qualified unquoted enum type', () => {
-    expect(parsePostgresDefault("'user'::auth.user_role", 'auth.user_role')).toEqual({
+    expect(parseInferredDefault("'user'::auth.user_role", 'auth.user_role')).toEqual({
       kind: 'literal',
       value: 'user',
     });
   });
 
   it('still reads the unqualified quoted and bare spellings', () => {
-    expect(parsePostgresDefault('\'CREATE\'::"AuditAction"', 'AuditAction')).toEqual({
+    expect(parseInferredDefault('\'CREATE\'::"AuditAction"', 'AuditAction')).toEqual({
       kind: 'literal',
       value: 'CREATE',
     });
-    expect(parsePostgresDefault("'user'::user_role", 'user_role')).toEqual({
+    expect(parseInferredDefault("'user'::user_role", 'user_role')).toEqual({
       kind: 'literal',
       value: 'user',
     });
   });
 });
 
-describe('parsePostgresDefault number literals Postgres prints with a cast', () => {
+describe('parseInferredDefault number literals Postgres prints with a cast', () => {
   it.each([
     { raw: "'-1'::integer", nativeType: 'int4', value: -1 },
     { raw: "'-2'::integer", nativeType: 'int2', value: -2 },
@@ -293,7 +293,7 @@ describe('parsePostgresDefault number literals Postgres prints with a cast', () 
     { raw: "'-1.5'::numeric", nativeType: 'float4', value: -1.5 },
     { raw: '(1.5)::double precision', nativeType: 'float8', value: 1.5 },
   ])('reads $raw as the number $value for $nativeType', ({ raw, nativeType, value }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
   });
 
   it.each([
@@ -301,33 +301,33 @@ describe('parsePostgresDefault number literals Postgres prints with a cast', () 
     { raw: "'-5'::integer", value: '-5' },
     { raw: '(1)::bigint', value: '1' },
   ])('reads $raw as decimal text for int8', ({ raw, value }) => {
-    expect(parsePostgresDefault(raw, 'int8')).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, 'int8')).toEqual({ kind: 'literal', value });
   });
 });
 
-describe('parsePostgresDefault numerals on a column that is not a number type', () => {
+describe('parseInferredDefault numerals on a column that is not a number type', () => {
   it.each([
     { raw: "'-1'::integer", nativeType: 'text', value: '-1' },
     { raw: "'-1'::integer", nativeType: 'character varying(10)', value: '-1' },
     { raw: "'-1.5'::numeric", nativeType: 'text', value: '-1.5' },
     { raw: '5', nativeType: 'text', value: '5' },
   ])('reads $raw as the text $value for $nativeType', ({ raw, nativeType, value }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
   });
 
   it.each([
     { raw: "ARRAY['-1'::integer, 2]", value: ['-1', '2'] },
     { raw: "'{-1,2}'::text[]", value: ['-1', '2'] },
   ])('reads the elements of $raw as text for text[]', ({ raw, value }) => {
-    expect(parsePostgresDefault(raw, 'text[]')).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, 'text[]')).toEqual({ kind: 'literal', value });
   });
 
   it('reads a numeral as a number when no native type is given', () => {
-    expect(parsePostgresDefault("'-1'::integer")).toEqual({ kind: 'literal', value: -1 });
+    expect(parseInferredDefault("'-1'::integer")).toEqual({ kind: 'literal', value: -1 });
   });
 });
 
-describe('parsePostgresDefault numeric columns', () => {
+describe('parseInferredDefault numeric columns', () => {
   it.each([
     { raw: '12345678901234567890.123456789', nativeType: 'numeric(65,30)' },
     { raw: '0.000000000000000001', nativeType: 'numeric(65,30)' },
@@ -338,7 +338,7 @@ describe('parsePostgresDefault numeric columns', () => {
     { raw: '1.5', nativeType: 'numeric(10,2)' },
     { raw: '2.0', nativeType: 'numeric(10,0)' },
   ])('reads $raw as that decimal text for $nativeType', ({ raw, nativeType }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value: raw });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value: raw });
   });
 
   it.each([
@@ -355,7 +355,7 @@ describe('parsePostgresDefault numeric columns', () => {
     { raw: "'-500'::numeric(5,-2)", nativeType: 'numeric(5,-2)', value: '-500' },
     { raw: '0.00123::numeric(3,5)', nativeType: 'numeric(3,5)', value: '0.00123' },
   ])('reads $raw as the decimal text $value for $nativeType', ({ raw, nativeType, value }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
   });
 });
 
@@ -364,7 +364,7 @@ describe('parsePostgresDefault numeric columns', () => {
  * notation for very large and very small magnitudes. Each raw expression below is what
  * `pg_get_expr` reported for the column default named beside it.
  */
-describe('parsePostgresDefault float defaults Postgres prints in exponent notation', () => {
+describe('parseInferredDefault float defaults Postgres prints in exponent notation', () => {
   it.each([
     { raw: "'1e+20'::real", nativeType: 'float4', value: 1e20 },
     { raw: "'1.5e-40'::real", nativeType: 'float4', value: 1.5e-40 },
@@ -372,7 +372,7 @@ describe('parsePostgresDefault float defaults Postgres prints in exponent notati
     { raw: "'1e-320'::double precision", nativeType: 'float8', value: 1e-320 },
     { raw: "'-1.5e-40'::real", nativeType: 'float4', value: -1.5e-40 },
   ])('reads $raw as the number $value for $nativeType', ({ raw, nativeType, value }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
   });
 
   it.each([
@@ -380,6 +380,6 @@ describe('parsePostgresDefault float defaults Postgres prints in exponent notati
     { raw: '1.5e-40::double precision', nativeType: 'float8', value: 1.5e-40 },
     { raw: '-2.5E+3', nativeType: 'float8', value: -2500 },
   ])('reads the unquoted $raw as the number $value', ({ raw, nativeType, value }) => {
-    expect(parsePostgresDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
+    expect(parseInferredDefault(raw, nativeType)).toEqual({ kind: 'literal', value });
   });
 });

@@ -24,11 +24,10 @@ import type {
   DataTypeId,
   DataTypeLookup,
 } from '@internal/framework-components/codec';
-import { canonicalFormOf, dataTypeId } from '@internal/framework-components/codec';
+import { dataTypeId } from '@internal/framework-components/codec';
 import { numeralText } from '@internal/sql-contract/data-type';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
-import { defaultInCanonicalForm } from '@internal/sql-schema-ir/types';
 
 const DEFAULT_FUNCTION_ATTRIBUTES: Readonly<Record<string, string>> = {
   'autoincrement()': '@default(autoincrement())',
@@ -39,7 +38,7 @@ export interface DefaultMappingOptions {
   readonly functionAttributes?: Readonly<Record<string, string>>;
   /** The stack's data types, whose casts say which other types' values each one takes, with the authoring entries that write them. */
   readonly dataTypes?: DataTypeSupport | undefined;
-  /** The column's codec: the data type a default is written in, and the canonical form of its values. */
+  /** The column's codec, whose data type a default is written in. */
   readonly columnCodec?: Pick<CodecDescriptor, 'dataType'> | undefined;
   /**
    * Whether the column is a list, whose elements each carry the column's own data type. A written
@@ -54,7 +53,7 @@ export type DefaultMappingResult = { readonly attribute: string };
  * The attribute a stored default prints as: a named function, a literal the column takes, or any
  * other expression as a `sql` literal. `undefined` when a literal has no written form. An expression
  * prints even when the literal would read back as different text: default expressions are compared
- * with case and whitespace ignored (`resolvedDefaultsEqual`), and canonicalization changes only
+ * with case and whitespace ignored (`SqlColumnDefaultIR.isEqualTo`), and canonicalization changes only
  * whitespace (ADR 129).
  */
 export function mapDefault(
@@ -272,20 +271,14 @@ function writeListCast(
 }
 
 function writeDefaultLiteral(
-  stored: ColumnDefaultLiteralInputValue,
+  value: ColumnDefaultLiteralInputValue,
   options: DefaultMappingOptions | undefined,
 ): string | undefined {
-  if (stored instanceof Date) return undefined;
+  if (value instanceof Date) return undefined;
   const { dataTypes, columnCodec } = options ?? {};
   if (dataTypes === undefined || columnCodec === undefined) return undefined;
   const { entries, lookup } = dataTypes;
   const columnDataType = columnCodec.dataType;
-  const { value } = defaultInCanonicalForm(
-    stored,
-    canonicalFormOf(columnCodec, lookup),
-    options?.list === true,
-  );
-  if (value instanceof Date) return undefined;
   const surface = writingSurface(entries);
   if (options?.list === true) {
     if (!Array.isArray(value)) return undefined;

@@ -546,15 +546,6 @@ export const pgByteaFromBase64 = (base64: string): Uint8Array =>
 
 const BYTEA_TEXT = /^\\x(?:[0-9A-Fa-f]{2})*$/;
 
-const BYTEA_FORMS = String.raw`Write base64, as in "aGVsbG8=", or PostgreSQL hex, written "\\x68656c6c6f" in a PSL string.`;
-
-function byteaRefused(message: string): never {
-  throw structuredError('CONTRACT.CAST_REFUSED', message, {
-    why: 'pg/bytea stores its bytes as base64 (ADR 254), and reads base64 and the hex text PostgreSQL prints.',
-    fix: BYTEA_FORMS,
-  });
-}
-
 /** The base64 `pg/bytea` stores for the hex text PostgreSQL prints, `\x68656c6c6f`. The `bytea` tag reads its body with this. */
 export function pgByteaFromHexText(text: string): string {
   if (!BYTEA_TEXT.test(text)) {
@@ -573,27 +564,6 @@ export function pgByteaFromHexText(text: string): string {
 /** The hex text PostgreSQL prints for the base64 `pg/bytea` stores. */
 export function pgByteaHexText(base64: string): string {
   return `\\x${Buffer.from(base64, 'base64').toString('hex')}`;
-}
-
-/**
- * The canonical form of `pg/bytea` (ADR 254), the base64 its codec writes, from base64 or the hex
- * text PostgreSQL prints under `bytea_output = 'hex'`.
- */
-export function pgByteaCanonical(text: string): string {
-  if (text.startsWith('\\x')) {
-    if (!BYTEA_TEXT.test(text)) {
-      byteaRefused(
-        `${JSON.stringify(text)} is not PostgreSQL hex, which has two hexadecimal digits for each byte. ${BYTEA_FORMS}`,
-      );
-    }
-    return pgByteaFromHexText(text);
-  }
-  if (!BASE64_TEXT.test(text)) {
-    byteaRefused(
-      `pg/bytea cannot read ${JSON.stringify(text)}. Write base64 with its padding, as in "aGVsbG8=", or PostgreSQL hex, written "\\\\x68656c6c6f" in a PSL string.`,
-    );
-  }
-  return Buffer.from(text, 'base64').toString('base64');
 }
 
 /** The text PostgreSQL prints for `bytea` under `bytea_output = 'escape'`: `\\` for a backslash, `\nnn` in octal for a byte outside printable ASCII, and every other byte as itself. */
