@@ -271,7 +271,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "timestamptzOpt": {
@@ -303,7 +303,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "9b5096fc957b3e04e43c63db9278f39cff8a606661c2bd1923026e76c4ae8c7b",
+    "storageHash": "149d8890e723d0b02331ea679cf5b6bc01db44215c8a0c87fb9df29f5a983f35",
     "namespaces": {
       "public": {
         "id": "public",
@@ -459,9 +459,8 @@
                   "codecId": "sql/varchar@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "length": 32
                   }

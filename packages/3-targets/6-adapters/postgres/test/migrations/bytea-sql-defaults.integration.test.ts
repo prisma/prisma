@@ -28,7 +28,7 @@ function sqlDefault(expression: string, many = false): StorageColumnInput {
     dataType: 'pg/bytea',
     codecId: 'pg/bytea@1',
     nullable: true,
-    ...(many ? { many: { elementNullable: false }, noCheck: ['elementNotNull'] } : {}),
+    ...(many ? { many: { elementNullable: true } } : {}),
     default: { kind: 'function', expression },
   };
 }

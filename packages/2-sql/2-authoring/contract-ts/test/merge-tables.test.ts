@@ -9,7 +9,6 @@ function column(modelName: string, columnName: string, nullable = true): ColumnD
     nullable,
     many: false,
     default: undefined,
-    noCheck: undefined,
     enumTypeHandle: undefined,
     site: { kind: 'field', modelName, fieldName: columnName },
   };

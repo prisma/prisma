@@ -10,7 +10,6 @@ export function describeColumn(column: ColumnNode, site: ColumnSite): ColumnDesc
     nullable: column.nullable,
     many: column.many === true ? { elementNullable: column.elementNullable === true } : false,
     default: column.default,
-    noCheck: column.noCheck,
     enumTypeHandle: column.enumTypeHandle,
     site,
   };
