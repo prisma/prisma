@@ -23,7 +23,7 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'cb23216599e58b222c1fe7d880105d8f166c8490935cec5ed539dbe77847d679'>;
+  StorageHashBase<'292489649ae6d6928de98a32b544bd9caf6b7d49718c10fe2720b83545a4b5a2'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -1050,7 +1050,7 @@ type ContractBase = Omit<
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/text@1', readonly []>;
                   };
-                  readonly many: { readonly elementNullable: false };
+                  readonly many: { readonly elementNullable: true };
                 };
                 readonly attribute_mapping: {
                   readonly dataType: 'pg/jsonb';
@@ -1194,7 +1194,7 @@ type ContractBase = Omit<
                     readonly kind: 'literal';
                     readonly value: DefaultLiteralValue<'pg/text@1', readonly []>;
                   };
-                  readonly many: { readonly elementNullable: false };
+                  readonly many: { readonly elementNullable: true };
                 };
                 readonly skip_nonce_check: {
                   readonly dataType: 'pg/bool';
@@ -3529,7 +3529,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
-                  readonly many: { readonly elementNullable: false };
+                  readonly many: { readonly elementNullable: true };
                 };
                 readonly avif_autodetection: {
                   readonly dataType: 'pg/bool';
@@ -4046,7 +4046,7 @@ type ContractBase = Omit<
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
-                  readonly many: { readonly elementNullable: false };
+                  readonly many: { readonly elementNullable: true };
                 };
                 readonly updated_at: {
                   readonly dataType: 'pg/timestamptz';
@@ -5239,7 +5239,7 @@ type ContractBase = Omit<
               readonly acceptableClientIds: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-                readonly many: { readonly elementNullable: false };
+                readonly many: { readonly elementNullable: true };
               };
               readonly attributeMapping: {
                 readonly nullable: false;
@@ -5322,7 +5322,7 @@ type ContractBase = Omit<
               readonly scopes: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-                readonly many: { readonly elementNullable: false };
+                readonly many: { readonly elementNullable: true };
               };
               readonly skipNonceCheck: {
                 readonly nullable: false;
@@ -7322,7 +7322,7 @@ type ContractBase = Omit<
               readonly allowedMimeTypes: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-                readonly many: { readonly elementNullable: false };
+                readonly many: { readonly elementNullable: true };
               };
               readonly avifAutodetection: {
                 readonly nullable: true;
@@ -7463,7 +7463,7 @@ type ContractBase = Omit<
               readonly pathTokens: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-                readonly many: { readonly elementNullable: false };
+                readonly many: { readonly elementNullable: true };
               };
               readonly updatedAt: {
                 readonly nullable: true;

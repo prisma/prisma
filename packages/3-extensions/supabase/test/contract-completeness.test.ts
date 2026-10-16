@@ -138,8 +138,8 @@ const ENUM_LITERAL_DEFAULTS: Readonly<Record<string, string>> = {
   'storage.buckets_vectors.type': 'VECTOR',
 };
 
-/** Every list column that waives the derived element-not-null check. */
-const ELEMENT_NOT_NULL_WAIVERS = [
+/** Every list column. None has a check against null elements. */
+const LIST_COLUMNS = [
   'auth.custom_oauth_providers.acceptable_client_ids',
   'auth.custom_oauth_providers.scopes',
   'storage.buckets.allowed_mime_types',
@@ -149,7 +149,7 @@ const ELEMENT_NOT_NULL_WAIVERS = [
 type ContractJsonColumn = {
   codecId: string;
   default?: { kind: string; value?: unknown };
-  noCheck?: readonly string[];
+  many?: false | { elementNullable: boolean };
 };
 
 type ContractJsonTable = {
@@ -235,14 +235,14 @@ describe('contract completeness — auth/storage table, native enum, and role se
     );
   });
 
-  it('waives the derived element-not-null check on every list column', () => {
+  it('describes every list column as a list whose elements may be null', () => {
     const declared = Object.fromEntries(
       declaredColumns
-        .filter(({ column }) => column.noCheck !== undefined)
-        .map(({ path, column }) => [path, column.noCheck]),
+        .filter(({ column }) => column.many !== undefined && column.many !== false)
+        .map(({ path, column }) => [path, column.many]),
     );
     expect(declared).toEqual(
-      Object.fromEntries(ELEMENT_NOT_NULL_WAIVERS.map((path) => [path, ['elementNotNull']])),
+      Object.fromEntries(LIST_COLUMNS.map((path) => [path, { elementNullable: true }])),
     );
   });
 
