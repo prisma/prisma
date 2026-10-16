@@ -183,29 +183,26 @@ function statementColumn(
   );
 }
 
+/** A column the plan adds to a table the database already has. */
+function addedColumn(issue: SchemaDiffIssue, ctx: StrategyContext): SqlColumnIR | undefined {
+  if (issueOutcome(issue) !== 'not-found' || !isColumnIssue(issue)) return undefined;
+  const tableName = issue.path[1];
+  if (tableName === undefined || ctx.actual.tables[tableName] === undefined) return undefined;
+  return columnNode(issue.expected);
+}
+
 /**
  * A required column with no default that the plan adds to a table the database already has, so
  * existing rows need a value for it.
  */
-function isAddedColumn(issue: SchemaDiffIssue, ctx: StrategyContext): boolean {
-  const tableName = issue.path[1];
-  return (
-    issueOutcome(issue) === 'not-found' &&
-    isColumnIssue(issue) &&
-    tableName !== undefined &&
-    ctx.actual.tables[tableName] !== undefined
-  );
-}
-
 function addedRequiredColumn(
   issue: SchemaDiffIssue,
   ctx: StrategyContext,
 ): SqlColumnIR | undefined {
-  if (issueOutcome(issue) !== 'not-found' || !isColumnIssue(issue)) return undefined;
-  const tableName = issue.path[1];
-  if (tableName === undefined || ctx.actual.tables[tableName] === undefined) return undefined;
-  const column = columnNode(issue.expected);
-  return column.nullable || column.resolvedDefault !== undefined ? undefined : column;
+  const column = addedColumn(issue, ctx);
+  return column === undefined || column.nullable || column.resolvedDefault !== undefined
+    ? undefined
+    : column;
 }
 
 const CLASS_ORDER: readonly MigrationOperationClass[] = [
@@ -248,6 +245,9 @@ interface TableRebuild {
  *   table and fails on `NOT NULL` when the table has rows. A column a `--backfill` statement names
  *   was added nullable and filled by earlier calls, so the rebuild copies it like a live column.
  * - A rebuild that leaves a live column out loses its values, so it is `destructive`.
+ * - Any other column added to a table the plan rebuilds, optional or with a default, and an index
+ *   on it, are left to the rebuild, which creates them from the new table's spec. The plan has no
+ *   separate add, so the rebuild's source table is the live one (`additive`).
  *
  * The table shapes come from `ctx.expected` and `ctx.actual`, keyed by table name: SQLite is a
  * flat, single-namespace target, and one issue only carries its own node.
@@ -316,11 +316,10 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     rebuild.classes.push('data');
   }
 
-  // A column added to a table this plan rebuilds is created by the rebuild, from the new table's
-  // spec, so the rebuild's source table is the live one and the plan has no separate add.
   for (const issue of issues) {
     const rebuild = byTable.get(issue.path[1] ?? '');
-    if (consumed.has(issue) || rebuild === undefined || !isAddedColumn(issue, ctx)) continue;
+    if (consumed.has(issue) || rebuild === undefined || addedColumn(issue, ctx) === undefined)
+      continue;
     rebuild.issues.push(issue);
     rebuild.classes.push('additive');
     consumed.add(issue);
