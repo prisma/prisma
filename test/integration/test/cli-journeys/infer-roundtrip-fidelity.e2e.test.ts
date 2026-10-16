@@ -337,7 +337,7 @@ withTempDir(({ createTempDir }) => {
         // stored with, and a timestamp with its tag, in its type's canonical form.
         const printed = readContractPsl(ctx);
         expect(printed).toContain('@default(json`{}`)');
-        expect(printed).toContain('@default(1.50)');
+        expect(printed).toContain('@default(1.5)');
         expect(printed).toContain('@default(timestamp`2024-01-01T00:00:00`)');
 
         // Fix the one remaining unrelated emit-blocker (1:1 back-relation) so

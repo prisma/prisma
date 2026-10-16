@@ -36,6 +36,8 @@ export interface InferredPslType {
 export interface InferredColumnDefaults {
   /** The column's codec, whose data type a default is written in. */
   codecOf(pslType: InferredPslType, isEnum: boolean): AnyCodecDescriptor | undefined;
+  /** The type parameters the column's codec is built with. */
+  typeParamsOf(pslType: InferredPslType, isEnum: boolean): JsonValue | undefined;
   /** Whether the column's codec, built with the column's type parameters, reads the default back. */
   readsBack(
     value: ColumnDefaultLiteralInputValue,
@@ -96,6 +98,14 @@ export function inferredColumnDefaults(context: SqlPslBuildContext): InferredCol
         return undefined;
       }
     },
+    typeParamsOf(pslType, isEnum) {
+      try {
+        return inferredCodecRef(context, pslType, isEnum)?.typeParams;
+      } catch (error) {
+        if (isInternalError(error)) throw error;
+        return undefined;
+      }
+    },
     readsBack(value, pslType, isEnum, isList) {
       const values = isList && Array.isArray(value) ? value : [value];
       try {
@@ -122,5 +132,6 @@ export function inferredColumnDefaults(context: SqlPslBuildContext): InferredCol
 /** For a table whose columns have no literal default, such as a many-to-many junction table. */
 export const noColumnDefaults: InferredColumnDefaults = {
   codecOf: () => undefined,
+  typeParamsOf: () => undefined,
   readsBack: () => false,
 };

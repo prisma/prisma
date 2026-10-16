@@ -83,7 +83,7 @@ describe('printPsl writes each default as the literal the column data type takes
       small: '@default(100)',
       count: '@default(100000)',
       balance: '@default(100000000000000099)',
-      price: '@default(1.50)',
+      price: '@default(1.5)',
       ratio: '@default(NaN)',
       active: '@default(true)',
       meta: `@default(${tagged('json', '{"plan":"free","seats":1}')})`,

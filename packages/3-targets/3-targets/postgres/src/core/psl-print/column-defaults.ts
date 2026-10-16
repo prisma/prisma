@@ -74,6 +74,7 @@ export function buildColumnDefault(input: {
     columnCodec: context.codecLookup.descriptorFor(
       input.isEnum ? PG_TEXT_CODEC_ID : input.column.codecId,
     ),
+    typeParams: input.column.typeParams,
     list: input.column.many !== false,
   });
   if (result === undefined) {

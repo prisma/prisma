@@ -23,8 +23,9 @@ import type {
   CodecDescriptor,
   DataTypeId,
   DataTypeLookup,
+  DataTypeParams,
 } from '@internal/framework-components/codec';
-import { dataTypeId } from '@internal/framework-components/codec';
+import { dataTypeId, dataTypeParamsOf } from '@internal/framework-components/codec';
 import { numeralText } from '@internal/sql-contract/data-type';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
@@ -40,6 +41,8 @@ export interface DefaultMappingOptions {
   readonly dataTypes?: DataTypeSupport | undefined;
   /** The column's codec, whose data type a default is written in. */
   readonly columnCodec?: Pick<CodecDescriptor, 'dataType'> | undefined;
+  /** The column's type parameters, under which a shorter literal can read back as the stored value, as `-0.5` does on `numeric(65,30)`. */
+  readonly typeParams?: unknown;
   /**
    * Whether the column is a list, whose elements each carry the column's own data type. A written
    * list on a scalar column goes through that type's list cast instead.
@@ -144,17 +147,25 @@ function classifications(value: JsonValue, surface: WritingSurface): readonly Ty
   return found;
 }
 
-/** The stored form the column takes this value as, or `undefined` when its type takes no such value. */
+/** The column's data type with the parameters a written value is read under. */
+interface ColumnType {
+  readonly id: DataTypeId;
+  readonly params: DataTypeParams;
+}
+
+/** The stored form the column takes this value as, spelled as its parameters give it, or `undefined` when its type takes no such value. */
 function admitted(
   candidate: TypedValue,
-  columnDataType: DataTypeId,
+  column: ColumnType,
   lookup: DataTypeLookup,
 ): JsonValue | undefined {
-  if (candidate.type === columnDataType) return candidate.value;
-  const cast = lookup.get(columnDataType)?.casts[candidate.type];
-  if (cast === undefined) return undefined;
+  const type = lookup.get(column.id);
+  if (type === undefined) return undefined;
   try {
-    return cast(candidate.value);
+    const cast = candidate.type === column.id ? undefined : type.casts[candidate.type];
+    if (candidate.type !== column.id && cast === undefined) return undefined;
+    const value = cast === undefined ? candidate.value : cast(candidate.value);
+    return type.toContract(type.fromCodec(value, column.params));
   } catch {
     return undefined;
   }
@@ -199,28 +210,42 @@ interface WrittenElement {
 
 /**
  * The value written as the literal of one of its types, proven by reading the text straight back:
- * the same entry, the same cast, and the stored form again.
+ * the same entry, the same cast, and the stored form again. A number is tried first without the
+ * trailing fraction zeros the column's scale spells it with.
  */
 function writeScalar(
   value: JsonValue,
-  columnDataType: DataTypeId,
+  column: ColumnType,
   lookup: DataTypeLookup,
   surface: WritingSurface,
 ): string | undefined {
-  for (const candidate of classifications(value, surface)) {
+  const shortest = withoutTrailingFractionZeros(value);
+  const candidates = [
+    ...(shortest === undefined ? [] : classifications(shortest, surface)),
+    ...classifications(value, surface),
+  ];
+  for (const candidate of candidates) {
     const entry = surface.entryOf.get(candidate.type);
     if (entry === undefined) continue;
-    const stored = admitted(candidate, columnDataType, lookup);
+    const stored = admitted(candidate, column, lookup);
     if (stored === undefined || !sameForm(stored, value)) continue;
     const text = printedText(entry, candidate.value);
     if (text === undefined) continue;
     const reread = readBack(entry, candidate.type, text);
     if (reread === undefined) continue;
-    const restored = admitted(reread, columnDataType, lookup);
+    const restored = admitted(reread, column, lookup);
     if (restored === undefined || !sameForm(restored, value)) continue;
     return literalText(entry, text);
   }
   return undefined;
+}
+
+const DECIMAL_WITH_FRACTION = /^-?\d+\.\d+$/;
+
+function withoutTrailingFractionZeros(value: JsonValue): string | undefined {
+  if (typeof value !== 'string' || !DECIMAL_WITH_FRACTION.test(value)) return undefined;
+  const shortened = value.replace(/0+$/, '').replace(/\.$/, '');
+  return shortened === value ? undefined : shortened;
 }
 
 /** One written element of a list, printed as a value of any type, with no column type to admit it. */
@@ -279,18 +304,23 @@ function writeDefaultLiteral(
   if (dataTypes === undefined || columnCodec === undefined) return undefined;
   const { entries, lookup } = dataTypes;
   const columnDataType = columnCodec.dataType;
+  const columnType = lookup.get(columnDataType);
+  const column: ColumnType = {
+    id: columnDataType,
+    params: columnType === undefined ? {} : dataTypeParamsOf(columnType, options?.typeParams),
+  };
   const surface = writingSurface(entries);
   if (options?.list === true) {
     if (!Array.isArray(value)) return undefined;
     const parts: string[] = [];
     for (const element of value) {
-      const written = writeScalar(element, columnDataType, lookup, surface);
+      const written = writeScalar(element, column, lookup, surface);
       if (written === undefined) return undefined;
       parts.push(written);
     }
     return `[${parts.join(', ')}]`;
   }
-  const written = writeScalar(value, columnDataType, lookup, surface);
+  const written = writeScalar(value, column, lookup, surface);
   if (written !== undefined) return written;
   return Array.isArray(value) ? writeListCast(value, columnDataType, lookup, surface) : undefined;
 }

@@ -293,6 +293,7 @@ function buildScalarField(
     {
       ...defaultMapping,
       ...ifDefined('columnCodec', columnDefaults.codecOf(pslType, isEnumColumn)),
+      ...ifDefined('typeParams', columnDefaults.typeParamsOf(pslType, isEnumColumn)),
       list: column.many === true,
     },
     (value) => columnDefaults.readsBack(value, pslType, isEnumColumn, column.many === true),

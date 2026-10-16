@@ -60,6 +60,8 @@ describe('printPsl literal defaults', () => {
         introspected('tinyDecimal', 'numeric(65,30)', '0.000000000000000001'),
         introspected('scaleDecimal', 'numeric(65,30)', '1.50'),
         introspected('scaledDecimal', 'numeric(10,2)', "'-1.25'::numeric"),
+        introspected('trailingZeroDecimal', 'numeric(10,2)', '1.50'),
+        introspected('wholeDecimal', 'numeric(65,30)', '10'),
         introspected('safeBigInt', 'int8', '5'),
         introspected('negSafeBigInt', 'int8', "'-5'::integer"),
         introspected('negBigInt', 'int8', "'-9007199254740993'::bigint"),
@@ -71,21 +73,23 @@ describe('printPsl literal defaults', () => {
         // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
 
         model NumberDefaults {
-          id            Int             @id
-          negInt        Int             @default(-1)
-          negSmallInt   SmallInt        @default(-2)
-          negFloat      Float           @default(-1.5)
-          tinyFloat     Float           @default(0.0000001)
-          negReal       Real            @default(-2.5)
-          negDecimal    Numeric(65, 30) @default(-0.500000000000000000000000000000)
-          longDecimal   Numeric(65, 30) @default(12345678901234567890.123456789000000000000000000000)
-          tinyDecimal   Numeric(65, 30) @default(0.000000000000000001000000000000)
-          scaleDecimal  Numeric(65, 30) @default(1.500000000000000000000000000000)
-          scaledDecimal Numeric(10, 2)  @default(-1.25)
-          safeBigInt    BigInt          @default(5)
-          negSafeBigInt BigInt          @default(-5)
-          negBigInt     BigInt          @default(-9007199254740993)
-          hugeBigInt    BigInt          @default(9007199254740993)
+          id                  Int             @id
+          negInt              Int             @default(-1)
+          negSmallInt         SmallInt        @default(-2)
+          negFloat            Float           @default(-1.5)
+          tinyFloat           Float           @default(0.0000001)
+          negReal             Real            @default(-2.5)
+          negDecimal          Numeric(65, 30) @default(-0.5)
+          longDecimal         Numeric(65, 30) @default(12345678901234567890.123456789)
+          tinyDecimal         Numeric(65, 30) @default(0.000000000000000001)
+          scaleDecimal        Numeric(65, 30) @default(1.5)
+          scaledDecimal       Numeric(10, 2)  @default(-1.25)
+          trailingZeroDecimal Numeric(10, 2)  @default(1.5)
+          wholeDecimal        Numeric(65, 30) @default(10)
+          safeBigInt          BigInt          @default(5)
+          negSafeBigInt       BigInt          @default(-5)
+          negBigInt           BigInt          @default(-9007199254740993)
+          hugeBigInt          BigInt          @default(9007199254740993)
 
           @@map("number_defaults")
         }
@@ -227,8 +231,8 @@ describe('printPsl literal defaults', () => {
           emptyBigInts   BigInt[]?          @default([]) @noCheck(elementNotNull)
           hugeBigInts    BigInt[]?          @default([9007199254740993, -9007199254740993]) @noCheck(elementNotNull)
           negFloats      Float[]?           @default([-1.5, 2]) @noCheck(elementNotNull)
-          longDecimals   Numeric(65, 30)[]? @default([12345678901234567890.123456789000000000000000000000, 0.000000000000000001000000000000]) @noCheck(elementNotNull)
-          scaledDecimals Numeric(10, 2)[]?  @default([-1.25, 2.00]) @noCheck(elementNotNull)
+          longDecimals   Numeric(65, 30)[]? @default([12345678901234567890.123456789, 0.000000000000000001]) @noCheck(elementNotNull)
+          scaledDecimals Numeric(10, 2)[]?  @default([-1.25, 2]) @noCheck(elementNotNull)
           emptyVarchars  VarChar(32)[]?     @default([]) @noCheck(elementNotNull)
 
           @@map("list_defaults")
