@@ -45,6 +45,7 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | f 3 and g 2 (`ebf496d7c9`, `3456573099`, `f114359776`, `18c4b8d48c`, `c3827e5eb2`) | SATISFIED |
 | h | 1 (`657d5fa989..9b50409c63`, `bfd17d10ef`) | ANOTHER ROUND NEEDED: 0 must-fix, 2 should-fix, 2 low |
 | h | 2 (`520c88b861`, `6e045c0e70`, `a9312e7888`) | SATISFIED |
+| branch review fixes | 1 (`75bc23f592..c6d22db5c0`, `cac31046b1`, `85ca5a3261`, `4f76bfaba3`, `b76d8431aa`) | ANOTHER ROUND NEEDED: 1 must-fix, 3 should-fix, 6 low |
 
 ## Findings log
 
@@ -783,3 +784,131 @@ The orchestrator accepted that the tests of `withParams` were converted to `from
 - Package tests of framework-components, target-postgres, sql-contract-psl, pgvector, postgis and target-sqlite: all pass. The tree is clean.
 
 Dispatch h is closed, and with it the slice 3 build loop: every finding from dispatch a to h is fixed or ruled on. What remains is outside the review log: the three tarball tests that fail on the registry's `temporal-utils@1.0.3` (the same on `main`), and the slice's `/drive-code-review` and manual QA.
+
+## Branch review fixes, round 1
+
+Findings: `slices/3/reviews/`. Rulings: `slices/3/briefs/s3-review-fixes.md`. Items 1 to 19, 21 and 22 were built one commit each in `75bc23f592..c6d22db5c0`, plus `cac31046b1`, `85ca5a3261` and `4f76bfaba3`. The orchestrator updated ADR 254 in `b76d8431aa` and design decision 22.
+
+### Orchestrator rulings
+
+1. Item 20 (D11, the enum accessor) is deferred in `deferred.md`. Moving it changes a public import path, and members are already read correctly with no parameters.
+
+### The items
+
+Each was checked against its finding, its ruling and the code at HEAD.
+
+1. C01: closed. Values are compared when both sides have one, and text only as a fallback, keeping case and spaces inside quotes (`sql-column-default-ir.ts:125-145`). Tests on Postgres and SQLite fail with the old code.
+2. C02: closed. The load refuses a non-list default on a list column, naming the column (`contract-stack-checks.ts:133-144`).
+3. C03: closed. The load says "at element N" and introspection "element N of the default", both counting from 1, which matches the PSL reader, the builder and the Prisma 7 reader.
+4. T01: closed. A SQLite `X'..'` default is read as its bytes (`sqlite/src/core/default-normalizer.ts:100-106`). The verify test writes `DEFAULT X'6869'`.
+5. T02: closed. One message is wrong; see S3-RF-R1-5.
+6. T03: closed as ruled. It conflicts with how `read` and `spell` now work; see S3-RF-R1-4.
+7. T04: closed. The `blob` tag has `parse`, `print` and documentation, and reads back what it prints. The cast from `sqlite/text` is gone. The refusal names the tag. No SQLite schema or test still writes a quoted `Bytes` default.
+8. T05: closed. The test runs under two `TZ` values. It narrowed what a row may hold; see S3-RF-R1-2.
+9. T06: closed. The Postgres journey writes:
+   - BC and five-digit years, and `infinity` and `-infinity` on the text codecs;
+   - mixed and negative intervals, and bytes and text holding a quote and a backslash;
+   - `NaN` and both infinities, and list defaults.
+
+   The SQLite journey covers `Bytes`, including a quote, a backslash and empty bytes, and years outside 1 to 9999.
+10. D01: closed. Every listed type declares `spell`: `pg/uuid`, `pg/inet`, the six Postgres date and time types, `pg/interval`, `sqlite/datetime` and `sqlite/json`, beside `pg/numeric` and `pg/char`. `valueFrom` and `fromContract` apply `read` then `spell`, and no codec spells a value. A probe of about 60 inputs against the built packages: spelling twice gives the same text as spelling once, and `fromContract` accepts every spelled value.
+11. D02: closed. The Postgres data types import from their own `data-type-values.ts`, not from `codec-helpers.ts`. The moved functions are unchanged. One placement is off; see S3-RF-R1-7.
+12. D03: closed. Tag `parse`, the number classifier and every cast build their value through the type (`written-value.ts`), and `default-mapping.ts` uses the shared `readWrittenValue` and `castTypedValue`.
+13. D04: closed. `valueFrom` replaces `fromCodec`, and neither `fromCodec` nor `dataTypeValueFor` is left in `packages/` or `docs/`.
+14. D05: closed. Mongo's `toDataTypeValue` returns a `DataTypeValue`, and `requireValueOf` is the one check. It throws `InternalError`, and every caller that catches errors rethrows those.
+15. D06: closed. One `dataTypeParams`, in the framework (`data-type.ts:199`).
+16. D07: closed. A `Date` default goes through its type to `toWire`, the `Date` branch of the schema IR comparison is gone, and the comment in `ddl-types.ts` is fixed.
+17. D08: not closed; see S3-RF-R1-3.
+18. D09: closed. `sqlStorageTypeId` throws where `sqlStorageType` does, and assembly refuses a chain of stored-as types. Both are tested.
+19. D10: closed. The Prisma 7 binding takes each type's tag from its authoring entry.
+20. D11: deferred by ruling 1.
+21. G01: closed. The `mongoCodec()` section names the options and the required `dataType`. Its sample's imports exist on the public `@prisma/orm-family-mongo/codec` and `/contract/data-type` paths, and the options match `MongoCodecConfig`. Detection matches the object form.
+22. G02: closed. The quoted message starts `Namespace "public", table "product", column "price":`.
+
+No package in `packages/2-sql` or `packages/1-framework` imports a target.
+
+### `side-by-side-contracts`
+
+Run alone (`test/authoring/side-by-side-contracts`), with the machine's load average about 140: 2 files and 10 tests pass. A load of 370 to 570 explains the implementer's timeout. In the full package run, `language-server`'s `server.membership-races.test.ts` timed out at its 500 ms limit too. Run alone, its 20 tests pass.
+
+### S3-RF-R1-1 (must-fix): the `uuid-defaults` enum test expects the old refusal
+
+- Where: "in a PSL enum, refuse a member written in upper case or braces" in `test/integration/test/uuid-defaults/uuid-defaults.integration.test.ts`. It fails in both the `integration` and `packaging` projects.
+- What is wrong: since item 10, the refusal names the stored spelling, `pg/uuid JSON value must be "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", as pg/uuid stores this value`. The test still expects `… a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12`. No other file in the integration run fails.
+- Change: update the expected reason for both members.
+
+### S3-RF-R1-2 (should-fix): SQLite datetime `fromWire` now refuses rows it used to read
+
+- Where: `decodeSqliteDatetime` in `packages/3-targets/3-targets/sqlite/src/core/codecs.ts:561`, which now reads through `sqliteDatetimeText`, which allows at most three fraction digits.
+- What is wrong:
+  - T05 asked only that text without an offset be read as UTC. Before it, `fromWire` read any text `Date` reads. Now a row of `2024-01-01 00:00:00.123456`, as Python's `sqlite3` writes, fails with `RUNTIME.DECODE_FAILED`.
+  - A row holding a number fails too: `new Date(number)` used to read it. That matters if databases written by earlier Prisma versions, which may store a `DateTime` as integer milliseconds, are meant to be read. I did not confirm how those versions store it.
+  - Dispatch b's brief says what a query returns must not change.
+- Change: in `fromWire`, read the fraction to millisecond precision without refusing extra digits, and decide whether a number is read as milliseconds. Test both. Dispatch g's upgrade text lists whatever is refused.
+
+### S3-RF-R1-3 (should-fix): item 17 left names that say "canonical" for the stored form
+
+- Where:
+  - the `canonical?: boolean` flag on an authored literal default (`contract-ts/src/contract-definition.ts:55`, `column-defaults.ts:146`, `contract-prisma7/src/defaults.ts:113`, `contract-psl/src/psl-column-resolution.ts:731,799,801`);
+  - the `canonical` parameter and its comments in `postgres/src/core/data-types.ts:300-338`;
+  - `CANONICAL_NUMERIC_TEXT` (`data-types.ts:121,124`) and Mongo's `CANONICAL_DECIMAL_TEXT` (`bson-scalar-helpers.ts:18`);
+  - `date-codecs.ts:49,62` and `sqlite/src/core/data-types.ts:132-139`;
+  - the test files `canonical-uuid.test.ts` and `canonical-uuid.integration.test.ts`, which test `storedUuid` and record no history.
+- Change: rename them as the ruling says.
+
+### S3-RF-R1-4 (should-fix, for the orchestrator): item 6 refuses in `read`, unlike the rest of the spelling step
+
+- Where: `readGeometry` (`postgis/src/core/data-types.ts:33-52`), Mongo `readObjectIdJson` and `readBinaryJson` (`bson-scalar-helpers.ts:173,441`), `readPgByteaJson` (`postgres/src/core/data-type-values.ts:345`).
+- What is wrong: since item 10, `read` accepts every spelling and `spell` writes the stored one, as `pg/uuid` does. These four readers refuse the other spellings in `read` itself. So `valueFrom` refuses where it would otherwise write the stored spelling. An upper-case ObjectId member of a Mongo enum (`mongo/9-family/src/core/authoring-entity-types.ts:147`) is refused, while an upper-case uuid member is rewritten. Item 6's ruling literally says the reader refuses, so this is a design call.
+- Change, if the orchestrator agrees: `read` checks the pattern and `spell` writes the stored spelling (upper case and little-endian for geometry, lower case for ObjectId, zero padding bits for base64). `fromContract` then still refuses any other spelling and names the stored one.
+
+### S3-RF-R1-5 (low): pgvector names a value PostgreSQL never stores
+
+- Where: `pgvector/src/core/data-types.ts:73-83`.
+- What is wrong: for an element past `real`'s range, such as `3.5e38`, `Math.fround` gives `Infinity`, and the message says it "would be stored as Infinity". pgvector refuses a non-finite element; it does not store it.
+- Change: when `Math.fround(element)` is not finite, say the element is outside the range `real` holds. Add the case to the test.
+
+### S3-RF-R1-6 (low): refusals of readers that now accept every spelling describe only the stored one
+
+- Where: `readUuid` and `readInet` (`postgres/src/core/data-types.ts:253-270`) and SQLite's `readDatetime`.
+- What is wrong: text that is no uuid at all is told it must be "a UUID … in lower case and hyphenated", and text that is no instant is told it needs "three fraction digits", although the reader accepts other spellings.
+- Change: describe what the reader accepts, as the Postgres date and time readers do.
+
+### S3-RF-R1-7 (low): interval wire conversion moved into the types' module
+
+- Where: `intervalTextFields`, its verbose and SQL-standard parsers, and `pgIntervalFromIso` in `postgres/src/core/data-type-values.ts:95-102,326-338`, used only by `codec-helpers.ts:192`. Also `postgres/README.md:24`, which places `pgIntervalStoredText` in `codec-helpers.ts`.
+- What is wrong: these read the wire text into the application value, and their errors name the codec `pg/interval@1`. Item 11 moved value functions to the types, not codec code.
+- Change: move them back to `codec-helpers.ts`, keep `pgIntervalStoredText` and its helpers in the types' module, and fix the README.
+
+### S3-RF-R1-8 (low, for the orchestrator): tag `parse` still spells, before `valueFrom` spells again
+
+- Where: `dateTimeTag` in `postgres/src/core/data-type-entries.ts:70-76,114-143` (`pg*StoredText`), and `parse: sqliteDatetimeText` in `sqlite/src/core/data-type-entries.ts:73`.
+- What is wrong: harmless, because spelling twice gives the same text, but the spelling step still runs outside the type.
+- Change: if item 10 is meant to cover tags, `parse` checks the text and returns it, and `spell` alone writes the stored spelling.
+
+### S3-RF-R1-9 (low): ADR 254 after `b76d8431aa`
+
+The tag table, the eleven assembly checks, the links and anchors, and the absence of old names are all correct. These statements are not:
+
+- Line 74, "`read` accepts every spelling of a value the type holds": true only for the twelve types with `spell`. A type without `spell` accepts only its stored spelling.
+- Line 78, "whatever spelling it hands over, the type writes the one it stores": for a type without `spell` (`pg/int8` and `sqlite/integer` through `readJsonIntegerText`, `pg/bytea`, `postgis/geometry`, Mongo ObjectId, `sqlite/blob`), `valueFrom` refuses another spelling and names the stored one.
+- Line 76: the list of stored spellings leaves out `sqlite/blob` (upper-case hex) and `pg/char` (no pad spaces).
+- Line 265: `spell` is described as giving "the spelling the parameters require". It is the type's whole spelling step: a uuid in lower case, `pg/char` without its pad, `sqlite/json` with sorted keys.
+- Line 383: Alternatives rejects "a canonical-form function per type that codecs and verification call", which is close to what `spell` now is. Say that the rejected design is a canonical form a codec defines, or why `spell` differs.
+- Line 211: "no codec is needed" when no database is in reach. A `Date` default is read through the codec's `toDataTypeValue` (`contract-to-schema-ir.ts:133-141`).
+- Line 297: the contract validator compares the types columns are stored as (`validators.ts:1177-1185`).
+- Line 352, check 11: a type stored as a type that is itself stored as another is an `InternalError`, not `CONTRACT.DATA_TYPE_UNREGISTERED`.
+- Line 22: the framework value omits `params`.
+
+### S3-RF-R1-10 (low, for the orchestrator): a JSON document that is a number or a boolean has no printed literal
+
+- Where: `classifications` in `packages/2-sql/9-family/src/core/psl-build/default-mapping.ts:146-162`.
+- What is wrong: `classifications` tries the tags only for values that are not numbers or booleans. So a `json` or `jsonb` default whose document is `42` or `true` gets no literal. Infer falls back to a `sql` expression, and `contract print` refuses the default. No test covers it. I found this by reading the code and did not run it.
+- Change: try the column type's tag for any JSON value, and add infer and print tests.
+
+### Checks run for branch review fixes round 1
+
+- `pnpm build`, root `typecheck:agent`, `lint:agent`, `lint:deps` and `lint:docs` pass. `lint:framework-vocabulary` passes, and `check:error-reference` lists every code. `pnpm fixtures:check` passes, tree clean.
+- Package tests of the 34 touched packages: all pass, except `language-server`'s timing test, which passes when run alone.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. Also run: `authoring`, `date-time-defaults`, both default journeys, `stale-contract-default*`, `psl-print`, `psl-infer`, every `infer-roundtrip-*` file, `upgrade-instructions`, `value-objects`, `uuid-defaults`, `enum-members`, `prisma7-source` and `scalar-lists`. Result: 156 files, 2362 tests pass, 2 fail (S3-RF-R1-1).
+- Probes: spelling stability over about 60 values, against the built packages.
