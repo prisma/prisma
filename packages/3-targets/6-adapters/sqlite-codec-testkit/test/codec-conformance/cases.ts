@@ -14,7 +14,23 @@
  * inside all of them.
  */
 
+import { DatabaseSync } from 'node:sqlite';
 import type { SqliteCodecConformanceCase } from '../../src/index';
+
+/**
+ * Whether this platform's `node:sqlite` reads -2^63 as a number. It throws for every other INTEGER past 2^53, but on some platforms (CI's Linux) it returns this one value, the only one whose magnitude int64 cannot hold, as a number, which `fromWire` refuses; on others (macOS) it throws as for the rest.
+ */
+function readsLowestInt64AsNumber(): boolean {
+  const database = new DatabaseSync(':memory:');
+  try {
+    database.prepare('SELECT -9223372036854775808 AS x').get();
+    return true;
+  } catch {
+    return false;
+  } finally {
+    database.close();
+  }
+}
 
 export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
   { codecId: 'sql/char@1', label: 'single character', value: 'a', storageType: 'TEXT' },
@@ -141,11 +157,17 @@ export const sqliteConformanceCases: readonly SqliteCodecConformanceCase[] = [
     label: 'int64 lower bound',
     value: -9223372036854775808n,
     storageType: 'INTEGER',
-    notYetCanonical: {
-      kind: 'row-execution',
-      reason:
-        'node:sqlite reads an INTEGER past 2^53 only when asked for a bigint, and the runtime driver does not ask, so a row cannot hold this value; the projection carries it as decimal text',
-    },
+    notYetCanonical: readsLowestInt64AsNumber()
+      ? {
+          kind: 'row-from-wire-rejects',
+          reason:
+            'node:sqlite on this platform reads -2^63 as a number rather than refusing it, and fromWire refuses a number outside the safe integer range, which may have been rounded; the projection carries it as decimal text',
+        }
+      : {
+          kind: 'row-execution',
+          reason:
+            'node:sqlite reads an INTEGER past 2^53 only when asked for a bigint, and the runtime driver does not ask, so a row cannot hold this value; the projection carries it as decimal text',
+        },
   },
   {
     codecId: 'sqlite/bigint@1',
