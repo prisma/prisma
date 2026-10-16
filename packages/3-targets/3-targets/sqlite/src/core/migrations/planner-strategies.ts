@@ -187,6 +187,16 @@ function statementColumn(
  * A required column with no default that the plan adds to a table the database already has, so
  * existing rows need a value for it.
  */
+function isAddedColumn(issue: SchemaDiffIssue, ctx: StrategyContext): boolean {
+  const tableName = issue.path[1];
+  return (
+    issueOutcome(issue) === 'not-found' &&
+    isColumnIssue(issue) &&
+    tableName !== undefined &&
+    ctx.actual.tables[tableName] !== undefined
+  );
+}
+
 function addedRequiredColumn(
   issue: SchemaDiffIssue,
   ctx: StrategyContext,
@@ -304,6 +314,16 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     }
     rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:convert` };
     rebuild.classes.push('data');
+  }
+
+  // A column added to a table this plan rebuilds is created by the rebuild, from the new table's
+  // spec, so the rebuild's source table is the live one and the plan has no separate add.
+  for (const issue of issues) {
+    const rebuild = byTable.get(issue.path[1] ?? '');
+    if (consumed.has(issue) || rebuild === undefined || !isAddedColumn(issue, ctx)) continue;
+    rebuild.issues.push(issue);
+    rebuild.classes.push('additive');
+    consumed.add(issue);
   }
 
   if (byTable.size === 0) return { kind: 'no_match' };
