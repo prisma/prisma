@@ -87,25 +87,40 @@ interface RefusedDefault {
   readonly column: string;
   readonly dataType: string;
   readonly value: unknown;
-  /** The data type's own message. */
+  /** The data type's own message, or why a default on a list column is not a list. */
   readonly message: string;
   readonly reason: 'type-refused-default';
 }
 
+/** A refused default, with the sentence the load refusal prints for it. */
+interface Refusal {
+  readonly refused: RefusedDefault;
+  readonly text: string;
+}
+
 /** Names the namespace, unless the contract has only the unbound one, as a SQLite contract does. */
-function refusedDefaultMessage(refused: RefusedDefault): string {
-  const where =
-    refused.namespaceId === UNBOUND_NAMESPACE_ID
-      ? `Table "${refused.table}", column "${refused.column}"`
-      : `Namespace "${refused.namespaceId}", table "${refused.table}", column "${refused.column}"`;
-  return `${where}: the default ${JSON.stringify(refused.value)} is not a value of ${refused.dataType}: ${refused.message}`;
+function columnPlace(refused: Pick<RefusedDefault, 'namespaceId' | 'table' | 'column'>): string {
+  return refused.namespaceId === UNBOUND_NAMESPACE_ID
+    ? `Table "${refused.table}", column "${refused.column}"`
+    : `Namespace "${refused.namespaceId}", table "${refused.table}", column "${refused.column}"`;
+}
+
+function notAValue(refused: RefusedDefault): Refusal {
+  return {
+    refused,
+    text: `${columnPlace(refused)}: the default ${JSON.stringify(refused.value)} is not a value of ${refused.dataType}: ${refused.message}`,
+  };
+}
+
+function notAList(refused: RefusedDefault): Refusal {
+  return {
+    refused,
+    text: `${columnPlace(refused)}: the default ${JSON.stringify(refused.value)} is not a list, and the column holds a list of ${refused.dataType}`,
+  };
 }
 
 /** Each literal default the column's type does not hold, under the column's parameters, element by element on a list column. A `null` is SQL NULL, which every column takes. */
-function refusedDefaults(
-  storage: SqlStorage,
-  dataTypes: DataTypeLookup,
-): readonly RefusedDefault[] {
+function refusedDefaults(storage: SqlStorage, dataTypes: DataTypeLookup): readonly Refusal[] {
   return tablesOf(storage).flatMap(({ namespaceId, tableName, table }) =>
     Object.entries(table.columns).flatMap(([columnName, column]) => {
       const columnDefault = column.default;
@@ -114,25 +129,32 @@ function refusedDefaults(
       if (type === undefined) return [];
       const params = dataTypeParamsOf(type, resolvedTypeParams(column, storage.types));
       if (refusesParams(type, params)) return [];
+      const place = { namespaceId, table: tableName, column: columnName, dataType: type.id };
+      const isList = column.many !== undefined && column.many !== false;
+      if (isList && columnDefault.value !== null && !Array.isArray(columnDefault.value)) {
+        return [
+          notAList({
+            ...place,
+            value: columnDefault.value,
+            message: 'The column holds a list, and the default is not one.',
+            reason: 'type-refused-default',
+          }),
+        ];
+      }
       const values =
-        column.many !== undefined && column.many !== false && Array.isArray(columnDefault.value)
-          ? columnDefault.value
-          : [columnDefault.value];
+        isList && Array.isArray(columnDefault.value) ? columnDefault.value : [columnDefault.value];
       for (const value of values.filter((element) => element !== null)) {
         try {
           type.fromContract(value, params);
         } catch (error) {
           if (isInternalError(error)) throw error;
           return [
-            {
-              namespaceId,
-              table: tableName,
-              column: columnName,
-              dataType: type.id,
+            notAValue({
+              ...place,
               value,
               message: error instanceof Error ? error.message : String(error),
               reason: 'type-refused-default',
-            },
+            }),
           ];
         }
       }
@@ -187,13 +209,13 @@ export function assertContractMatchesStack(
   const problems = [
     ...dataTypeProblems(contract.storage, stack.codecLookup),
     ...valueObjectProblems(contract, stack.authoringContributions),
-    ...defaults.map(refusedDefaultMessage),
+    ...defaults.map(({ text }) => text),
   ];
   if (problems.length > 0) {
     throw new ContractValidationError(
       problems.join('; '),
       'storage',
-      defaults.length > 0 ? { refusedDefaults: defaults } : undefined,
+      defaults.length > 0 ? { refusedDefaults: defaults.map(({ refused }) => refused) } : undefined,
     );
   }
 }

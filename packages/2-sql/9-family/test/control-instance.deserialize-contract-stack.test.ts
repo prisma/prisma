@@ -242,6 +242,23 @@ describe('deserializeContract checks each column against the stack', () => {
         `Table "user", column "prices": the default "2.5" is not a value of t/numeric: t/numeric JSON value must have two fraction digits, got "2.5"`,
       );
     });
+
+    it('refuses a default that is not a list on a list column', () => {
+      const scalar = contractWith({
+        user: table({
+          id: col('t/int4', 't/int4@1'),
+          prices: {
+            ...col('t/numeric', 't/numeric@1'),
+            many: true,
+            typeParams: { precision: 10, scale: 2 },
+            default: { kind: 'literal', value: '1.50' },
+          } as never,
+        }),
+      });
+      expect(() => familyInstance('Jsonb').deserializeContract(scalar)).toThrow(
+        'Table "user", column "prices": the default "1.50" is not a list, and the column holds a list of t/numeric',
+      );
+    });
   });
 
   describe('a value-object column', () => {
