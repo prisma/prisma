@@ -8,6 +8,8 @@ type Built = typeof contract;
 
 type SetValue<Expression> = Expression extends { set(value: infer Value): unknown } ? Value : never;
 
+type HasNumericOps<Expression> = Expression extends { inc(value: never): unknown } ? true : false;
+
 describe('update field accessors take the field input type of the contract', () => {
   test('an enum field takes the members of its enum', () => {
     expectTypeOf<SetValue<FieldAccessor<Built, 'User'>['role']>>().toEqualTypeOf<
@@ -42,5 +44,14 @@ describe('update field accessors take the field input type of the contract', () 
       'reader' | 'editor' | null
     >();
     expectTypeOf<ResolveDotPathType<Emitted, 'User', 'home.street'>>().toEqualTypeOf<string>();
+  });
+});
+
+describe('numeric update operators', () => {
+  test('a number field takes inc and mul, and a list of numbers does not', () => {
+    expectTypeOf<HasNumericOps<FieldAccessor<Built, 'User'>['score']>>().toEqualTypeOf<true>();
+    expectTypeOf<HasNumericOps<FieldAccessor<Emitted, 'User'>['score']>>().toEqualTypeOf<true>();
+    expectTypeOf<HasNumericOps<FieldAccessor<Built, 'User'>['scores']>>().toEqualTypeOf<false>();
+    expectTypeOf<HasNumericOps<FieldAccessor<Emitted, 'User'>['scores']>>().toEqualTypeOf<false>();
   });
 });

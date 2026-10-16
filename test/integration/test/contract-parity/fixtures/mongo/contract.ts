@@ -38,6 +38,7 @@ const User = model('User', {
     nickname: field.string().optional(),
     age: field.int32(),
     score: field.double(),
+    scores: field.double().many(),
     visits: field.int64(),
     balance: field.decimal128(),
     active: field.bool(),

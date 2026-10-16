@@ -189,7 +189,7 @@ type ScalarNumericOperand<
   TCodecTypes extends Record<string, { output: unknown }>,
 > = MongoModelsMap<TContract>[ModelName]['fields'][K] extends
   | { readonly nullable: true }
-  | { readonly many: true }
+  | { readonly many: { readonly elementNullable: boolean } }
   ? never
   : MongoModelsMap<TContract>[ModelName]['fields'][K] extends {
         readonly type: {

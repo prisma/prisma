@@ -35,14 +35,14 @@ type ValueObjectOutputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'output'
 >;
 type ValueObjectInputTypes = ValueObjectTypesFromDomain<
   ContractBase['domain']['namespaces'],
   CodecTypes,
   ParameterizedOutputTypeFunctions,
-  ValueObjectFieldTypeOverrides,
+  FieldTypeOverrides,
   'input'
 >;
 export type AddressOutput = ValueObjectOutputTypes['__unbound__']['Address'];
@@ -51,19 +51,25 @@ export type PointOutput = ValueObjectOutputTypes['__unbound__']['Point'];
 export type PointInput = ValueObjectInputTypes['__unbound__']['Point'];
 type FieldTypeOverrides = {
   readonly __unbound__: {
-    readonly User: {
-      readonly pastRoles: {
-        readonly output: 'reader' | 'editor';
-        readonly input: 'reader' | 'editor';
+    readonly models: {
+      readonly User: {
+        readonly pastRoles: {
+          readonly output: 'reader' | 'editor';
+          readonly input: 'reader' | 'editor';
+        };
+        readonly role: {
+          readonly output: 'reader' | 'editor';
+          readonly input: 'reader' | 'editor';
+        };
       };
-      readonly role: { readonly output: 'reader' | 'editor'; readonly input: 'reader' | 'editor' };
     };
-  };
-};
-type ValueObjectFieldTypeOverrides = {
-  readonly __unbound__: {
-    readonly Address: {
-      readonly kind: { readonly output: 'reader' | 'editor'; readonly input: 'reader' | 'editor' };
+    readonly valueObjects: {
+      readonly Address: {
+        readonly kind: {
+          readonly output: 'reader' | 'editor';
+          readonly input: 'reader' | 'editor';
+        };
+      };
     };
   };
 };
@@ -72,7 +78,6 @@ export type FieldOutputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'output'
 >;
 export type FieldInputTypes = FieldTypesFromDomain<
@@ -80,7 +85,6 @@ export type FieldInputTypes = FieldTypesFromDomain<
   CodecTypes,
   ParameterizedOutputTypeFunctions,
   FieldTypeOverrides,
-  ValueObjectFieldTypeOverrides,
   'input'
 >;
 
@@ -129,6 +133,7 @@ export namespace Models {
     rawEmbedding: FieldOutputTypes['__unbound__']['User']['rawEmbedding'];
     role: FieldOutputTypes['__unbound__']['User']['role'];
     score: FieldOutputTypes['__unbound__']['User']['score'];
+    scores: FieldOutputTypes['__unbound__']['User']['scores'];
     settings: FieldOutputTypes['__unbound__']['User']['settings'];
     visits: FieldOutputTypes['__unbound__']['User']['visits'];
     readonly [RelationKeys]?: never;
@@ -335,6 +340,11 @@ type ContractBase = Omit<
               readonly score: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
+              };
+              readonly scores: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
+                readonly many: { readonly elementNullable: false };
               };
               readonly settings: {
                 readonly nullable: false;
