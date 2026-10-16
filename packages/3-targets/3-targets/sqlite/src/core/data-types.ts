@@ -77,8 +77,25 @@ export const sqliteBlob = storedAs(
   'sqlite/blob',
   'blob',
   (json) => readJsonMatching('sqlite/blob', json, UPPERCASE_HEX, 'uppercase hexadecimal text'),
-  { [sqliteText.id]: unchanged },
+  {},
 );
+
+const HEX_TEXT = /^(?:[0-9A-Fa-f]{2})*$/;
+
+/** The upper-case hex `sqlite/blob` stores for the hex text a `blob` tag holds, `68656c6c6f`. */
+export function sqliteBlobFromHexText(text: string): string {
+  if (!HEX_TEXT.test(text)) {
+    throw structuredError(
+      'CONTRACT.CAST_REFUSED',
+      `"${text}" is not hex text: write two hexadecimal digits for each byte, as in blob\`68656c6c6f\`.`,
+      {
+        why: 'The blob tag reads bytes as hex text, two digits for each byte.',
+        fix: 'Write the bytes in hex, as in blob`68656c6c6f`.',
+      },
+    );
+  }
+  return text.toUpperCase();
+}
 
 /** The length of `character` and `character varying`, which SQLite accepts and does not enforce. */
 export const sqliteCharacterLengthParams = arktype({ 'length?': 'number.integer >= 1' });

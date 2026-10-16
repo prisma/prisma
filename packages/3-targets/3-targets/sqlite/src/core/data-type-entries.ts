@@ -17,6 +17,8 @@ import {
   signedRange,
 } from '@internal/sql-contract/data-type-support';
 import {
+  sqliteBlob,
+  sqliteBlobFromHexText,
   sqliteDatetime,
   sqliteDatetimeText,
   sqliteInteger,
@@ -60,6 +62,12 @@ export function sqliteDataTypeEntries(): Readonly<Record<string, DataTypeAuthori
       print: (value) => String(value),
       documentation:
         'Reads the text as a JSON document and stores its JSON text as the default value.',
+    },
+    [sqliteBlob.id]: {
+      written: { kind: 'tag', tag: 'blob', parse: sqliteBlobFromHexText },
+      print: (value) => String(value).toLowerCase(),
+      documentation:
+        'Bytes, written as hex text, two digits for each byte, as in blob`68656c6c6f`.',
     },
     [sqliteDatetime.id]: {
       written: { kind: 'tag', tag: 'datetime', parse: sqliteDatetimeText },

@@ -21,6 +21,7 @@ const classify = (text: string) => {
 describe('the authoring entries this target contributes', () => {
   it('keys every entry by the data type it reads', () => {
     expect(Object.keys(entries).sort()).toEqual([
+      'sqlite/blob',
       'sqlite/datetime',
       'sqlite/json',
       'sqlite/real',
@@ -118,5 +119,38 @@ describe('the datetime tag this target contributes', () => {
 
   it('prints the stored text as the body', () => {
     expect(datetime.print('2024-01-01T00:00:00.000Z')).toBe('2024-01-01T00:00:00.000Z');
+  });
+});
+
+describe('the blob tag this target contributes', () => {
+  const blob = entry('sqlite/blob');
+  const parse = (body: string) => {
+    if (blob.written.kind !== 'tag') throw new Error('the blob entry is a tag entry');
+    return blob.written.parse(body);
+  };
+
+  it('reads a body of hex digits as the upper-case hex sqlite/blob stores', () => {
+    expect({ lower: parse('68656c6c6f'), upper: parse('68656C6C6F'), empty: parse('') }).toEqual({
+      lower: '68656C6C6F',
+      upper: '68656C6C6F',
+      empty: '',
+    });
+  });
+
+  it.each([
+    ['an odd number of digits', '686'],
+    ['a character that is not hex', '6g'],
+    ['a prefix', "X'68'"],
+  ])('refuses %s, saying how to write bytes', (_case, body) => {
+    expect(() => parse(body)).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.CAST_REFUSED',
+        message: `"${body}" is not hex text: write two hexadecimal digits for each byte, as in blob\`68656c6c6f\`.`,
+      }),
+    );
+  });
+
+  it('prints the stored hex as the body, in lower case', () => {
+    expect(blob.print('68656C6C6F')).toBe('68656c6c6f');
   });
 });

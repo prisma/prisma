@@ -9,23 +9,25 @@ describe('the target descriptor authoring data types', () => {
     expect(Object.keys(registered)).toEqual(Object.keys(sqliteDataTypeEntries()));
   });
 
-  it('registers the json and datetime tags and leaves sql/expression and its tag to the family', () => {
+  it('registers the json, datetime and blob tags and leaves sql/expression and its tag to the family', () => {
     expect({
       hasSqlExpression: Object.hasOwn(registered, 'sql/expression'),
       tags: Object.values(registered).flatMap((entry) =>
         entry.written.kind === 'tag' ? [entry.written.tag] : [],
       ),
-    }).toEqual({ hasSqlExpression: false, tags: ['json', 'datetime'] });
+    }).toEqual({ hasSqlExpression: false, tags: ['json', 'blob', 'datetime'] });
   });
 
   it('registers each tag under the data type it reads, with no prefixed alias', () => {
     expect({
       json: registered['sqlite/json']?.written,
       datetime: registered['sqlite/datetime']?.written,
+      blob: registered['sqlite/blob']?.written,
       prefixed: registered['sqlite.json'],
     }).toMatchObject({
       json: { kind: 'tag', tag: 'json' },
       datetime: { kind: 'tag', tag: 'datetime' },
+      blob: { kind: 'tag', tag: 'blob' },
       prefixed: undefined,
     });
   });

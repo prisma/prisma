@@ -33,7 +33,7 @@ describe('the data types this target registers', () => {
     ['sqlite/text', sqliteText, []],
     ['sqlite/integer', sqliteInteger, []],
     ['sqlite/real', sqliteReal, ['sqlite/integer']],
-    ['sqlite/blob', sqliteBlob, ['sqlite/text']],
+    ['sqlite/blob', sqliteBlob, []],
     ['sqlite/character', sqliteCharacter, ['sqlite/text']],
     ['sqlite/character-varying', sqliteCharacterVarying, ['sqlite/text']],
     ['sqlite/datetime', sqliteDatetime, []],
@@ -69,7 +69,6 @@ describe('what each cast converts', () => {
       '-9223372036854775808',
       Number('-9223372036854775808'),
     ],
-    ['sqlite/text to sqlite/blob, the text unchanged', sqliteBlob, sqliteText.id, 'AA==', 'AA=='],
     [
       'sqlite/text to sqlite/character, the text unchanged',
       sqliteCharacter,

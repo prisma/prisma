@@ -18,7 +18,7 @@ changes:
       A date, time, interval or bytes default is written with its type's tag instead of a quoted
       string: `@default(timestamptz`2024-01-01T00:00:00Z`)` on PostgreSQL,
       `@default(datetime`2024-01-01T00:00:00Z`)` on SQLite, and `@default(bytea`\x0102`)` for
-      bytes on PostgreSQL. `contract emit` refuses the quoted form and names the tag to write.
+      bytes on PostgreSQL and `@default(blob`0102`)` on SQLite. `contract emit` refuses the quoted form and names the tag to write.
     detection:
       glob: "**/*.prisma"
       matches:
@@ -119,14 +119,16 @@ model Event {
 
 The tag is named after the column's PostgreSQL type: `timestamptz` for `DateTime`, `timestamp`, `date`, `time`, `timetz` and `interval` for the types of those names, and `bytea` for `Bytes`. A date or time tag takes the text you wrote. A `bytea` tag takes the bytes as hexadecimal after `\x`, not base64: `"AQID"` is the bytes 01 02 03, so write `bytea`\x010203``. For bytes, the message depends on what you quoted. A quoted hex string gets the full rewrite (`Expected bytea`...`; write bytea`\x010203``). A quoted base64 string gets a message naming only the tag (`Expected bytea`...``), because `contract emit` cannot tell base64 from hex text; convert the bytes to hex yourself.
 
-On SQLite, a `DateTime` default uses the `datetime` tag:
+On SQLite, a `DateTime` default uses the `datetime` tag, and a `Bytes` default the `blob` tag, whose body is the hex digits the quoted string held before. A quoted string on a SQLite `Bytes` column was read as hex; it is now refused, naming the `blob` tag:
 
 ```prisma
 // before
 createdAt DateTime @default("2024-01-01T00:00:00Z")
+payload   Bytes    @default("68656c6c6f")
 
 // after
 createdAt DateTime @default(datetime`2024-01-01T00:00:00Z`)
+payload   Bytes    @default(blob`68656c6c6f`)
 ```
 
 The stored value is the same as before, so emitting the schema after the rewrite gives the contract the script above writes.
