@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID } from '../../src/core/codec-ids';
+import { postgresNowGeneratorIds } from '../../src/core/now-generators';
 import { INT_FIELD, printingWidget, refusal, TEXT_FIELD } from './refusal-support';
 
 const SHORT_TEXT = {
@@ -71,6 +73,59 @@ describe('a column typed by a named type', () => {
         code: 'CONTRACT.PRINT_UNSUPPORTED',
         fix: 'If an earlier release emitted this contract, emit it again. Make the field and its column agree, or keep authoring this contract in its current source.',
         meta: { coordinate: COORDINATE },
+      }),
+    );
+  });
+
+  it('refuses a column typed by a named type whose generators a field preset writes, since the preset call does not write the named type', () => {
+    const generator = postgresNowGeneratorIds[PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID];
+    expect(
+      printingWidget({
+        storageTypes: {
+          Stamp: {
+            kind: 'codec-instance',
+            codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+            dataType: 'pg/timestamptz',
+            typeParams: {},
+          },
+        },
+        columns: {
+          label: {
+            dataType: 'pg/timestamptz',
+            codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+            nullable: false,
+            typeRef: 'Stamp',
+          },
+        },
+        fields: {
+          label: {
+            nullable: false,
+            type: { kind: 'scalar', codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID },
+          },
+        },
+        contract: {
+          execution: {
+            mutations: {
+              defaults: [
+                {
+                  ref: { namespace: 'public', entry: 'Widget', field: 'label' },
+                  onCreate: { kind: 'generator', id: generator },
+                },
+              ],
+            },
+          },
+        },
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PRINT_UNSUPPORTED',
+        message:
+          'contract print: column "public"."Widget"."label" is written with field preset temporal.timestamptz, and that call reads back as a different column: no named type instead of named type "Stamp".',
+        meta: {
+          coordinate: COORDINATE,
+          preset: 'temporal.timestamptz',
+          differences: [{ part: 'typeRef', column: 'Stamp', printed: undefined }],
+        },
       }),
     );
   });

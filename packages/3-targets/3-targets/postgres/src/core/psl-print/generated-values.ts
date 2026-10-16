@@ -37,18 +37,19 @@ function toPslArgument(argument: FieldPresetArgument): PslAttributeArgument {
 export function buildExecutionDefault(input: {
   readonly executionDefault: ExecutionMutationDefault;
   readonly codecId: string;
+  readonly typeRef: string | undefined;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly coordinate: string;
   readonly context: SqlPslBuildContext;
 }): BuiltExecutionDefault {
-  const { executionDefault, codecId, typeParams, coordinate, context } = input;
+  const { executionDefault, codecId, typeRef, typeParams, coordinate, context } = input;
   const onCreateId = executionDefault.onCreate?.id;
   const onUpdateId = executionDefault.onUpdate?.id;
   const phases = { coordinate, onCreate: onCreateId, onUpdate: onUpdateId };
 
   const choice = fieldPresetCallFor({
     fieldPresetsByCodecAndGenerator: context.fieldPresetsByCodecAndGenerator,
-    column: { codecId, typeParams, generators: executionDefault },
+    column: { codecId, typeRef, typeParams, generators: executionDefault },
   });
   switch (choice.kind) {
     case 'call':

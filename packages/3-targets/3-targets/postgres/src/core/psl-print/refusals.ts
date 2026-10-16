@@ -145,6 +145,8 @@ function describeGenerator(generator: ExecutionMutationDefaultValue | undefined)
 
 function describeDifference(difference: FieldPresetReadBackDifference): string {
   switch (difference.part) {
+    case 'typeRef':
+      return `no named type instead of named type "${difference.column}"`;
     case 'argument':
       return `no value for the required argument "${difference.name}"`;
     case 'codecId':
@@ -164,7 +166,7 @@ export function refusePresetCallReadingBackDifferently(input: {
 }): never {
   throw unsupported(
     `column ${input.coordinate} is written with field preset ${input.preset}, and that call reads back as a different column: ${input.differences.map(describeDifference).join('; ')}.`,
-    "The printer writes a column's generators as the call of the field preset that writes the column's codec with them, and that call must read back with the column's codec, type params and generators.",
+    "The printer writes a column's generators as the call of the field preset that writes the column's codec with them, and that call must read back with the column's named type, codec, type params and generators. A preset call writes no named type.",
     KEEP_SOURCE,
     { coordinate: input.coordinate, preset: input.preset, differences: input.differences },
   );

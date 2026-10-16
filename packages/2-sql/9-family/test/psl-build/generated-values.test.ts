@@ -51,6 +51,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
+          typeRef: undefined,
           typeParams: { precision: 3 },
           generators: { onCreate: plainTimeNow(3), onUpdate: plainTimeNow(3) },
         },
@@ -72,6 +73,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
+          typeRef: undefined,
           typeParams: undefined,
           generators: { onUpdate: plainTimeNow() },
         },
@@ -89,6 +91,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/text@1',
+          typeRef: undefined,
           typeParams: undefined,
           generators: { onCreate: plainTimeNow() },
         },
@@ -102,6 +105,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/numeric@1',
+          typeRef: undefined,
           typeParams: { precision: 10 },
           generators: {
             onCreate: { kind: 'generator', id: 'ledgerStamp' },
@@ -118,6 +122,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
+          typeRef: undefined,
           typeParams: { precision: 3, zone: 'utc' },
           generators: { onCreate: plainTimeNow(3), onUpdate: plainTimeNow(0) },
         },
@@ -129,6 +134,24 @@ describe('fieldPresetCallFor', () => {
         { part: 'typeParams', column: { precision: 3, zone: 'utc' }, printed: { precision: 3 } },
         { part: 'onUpdate', column: plainTimeNow(0), printed: plainTimeNow(3) },
       ],
+    });
+  });
+
+  it('reports a named type, which a preset call does not write', () => {
+    expect(
+      fieldPresetCallFor({
+        fieldPresetsByCodecAndGenerator,
+        column: {
+          codecId: 'pg/time@1',
+          typeRef: 'Clock',
+          typeParams: undefined,
+          generators: { onCreate: plainTimeNow() },
+        },
+      }),
+    ).toEqual({
+      kind: 'readsBackDifferently',
+      preset: time,
+      differences: [{ part: 'typeRef', column: 'Clock', printed: undefined }],
     });
   });
 });

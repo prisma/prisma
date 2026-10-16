@@ -31,6 +31,7 @@ type ColumnPhase = 'onCreate' | 'onUpdate';
 
 /** A part of the column the preset call reads back differently, or a required argument the call cannot write. */
 export type FieldPresetReadBackDifference =
+  | { readonly part: 'typeRef'; readonly column: string; readonly printed: undefined }
   | { readonly part: 'codecId'; readonly column: string; readonly printed: string }
   | {
       readonly part: 'typeParams';
@@ -61,6 +62,7 @@ export type FieldPresetCallChoice =
 
 interface FieldPresetColumn {
   readonly codecId: string;
+  readonly typeRef: string | undefined;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly generators: ExecutionMutationDefaultPhases;
 }
@@ -126,15 +128,20 @@ function readBackDifferences(
   column: FieldPresetColumn,
   args: readonly unknown[],
 ): readonly FieldPresetReadBackDifference[] {
+  const namedType =
+    column.typeRef === undefined
+      ? []
+      : [{ part: 'typeRef' as const, column: column.typeRef, printed: undefined }];
   const missing = (preset.descriptor.args ?? []).flatMap((argument, index) =>
     argument.optional === true || args[index] !== undefined
       ? []
       : [{ part: 'argument' as const, name: argument.name ?? String(index) }],
   );
-  if (missing.length > 0) return missing;
+  if (missing.length > 0) return [...namedType, ...missing];
   const printed = instantiateAuthoringFieldPreset(preset.descriptor, args);
   const printedGenerators = printed.executionDefaults ?? {};
   return [
+    ...namedType,
     ...(printed.descriptor.codecId === column.codecId
       ? []
       : [
@@ -162,7 +169,7 @@ function readBackDifferences(
 }
 
 /**
- * The call of the field preset in the stack that writes a column's codec with its generators, checked to read back as the same column: the same codec, type params and generators with their params, where absent and empty params count as the same. Otherwise the reason it cannot be written that way.
+ * The call of the field preset in the stack that writes a column's codec with its generators, checked to read back as the same column: no named type, since a preset call writes none, and the same codec, type params and generators with their params, where absent and empty params count as the same. Otherwise the reason it cannot be written that way.
  */
 export function fieldPresetCallFor(input: {
   readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
