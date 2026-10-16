@@ -232,6 +232,20 @@ describe('raw columns', { concurrent: false }, () => {
     expect(result.schema.issues).toEqual([]);
   });
 
+  it('creates and verifies a raw domain off the search_path, named with its schema as the catalog prints it', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver!.query('DROP SCHEMA IF EXISTS "app" CASCADE');
+    await driver!.query('CREATE SCHEMA "app"');
+    await driver!.query(`CREATE DOMAIN "app"."email" AS text CHECK (VALUE LIKE '%@%')`);
+    const contract = contractOf({ email: raw('app.email'), emails: raw('app.email[]') });
+
+    await migrate(contract, emptySchema);
+    const result = verify(contract, await introspect(contract));
+
+    expect(result.schema.issues).toEqual([]);
+  });
+
   it('rolls back a migration whose raw text adds a column clause, since verify then finds another type', {
     timeout: testTimeout,
   }, async () => {

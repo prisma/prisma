@@ -65,7 +65,10 @@ describe('the sql/raw data type', () => {
     '"my,type"',
     '"my type"',
     'integer[]',
-    'text[][]',
+    'numeric(10,-2)',
+    'app.email',
+    '"App"."Email"',
+    'app."Email"[]',
     '"Mood"[]',
   ])('takes the type text %s', (sql) => {
     expect(renderSqlTypeName(sqlRawDataType, { sql })).toBe(sql);
@@ -89,18 +92,21 @@ describe('the sql/raw data type', () => {
     ['an unclosed parenthesis', 'numeric(10'],
     ['a parenthesis closed before it opens', 'numeric)10('],
     ['nested parentheses', 'int4 GENERATED ALWAYS AS (abs(1)) STORED'],
-    ['a schema', 'extensions.ltree'],
-    ['a quoted schema', 'extensions."LTree"'],
+    ['two schemas', 'db.app.email'],
+    ['a schema on a later word', 'double app.precision'],
+    ['a schema with no type', 'app.'],
+    ['two list suffixes', 'text[][]'],
     ['an empty quoted name', '""'],
     ['an operator', 'int4 CHECK (1 = 1)'],
-    ['a minus sign', 'numeric(-1)'],
+    ['a minus sign before no digit', 'numeric(10,- 2)'],
+    ['a minus sign outside parentheses', 'numeric-1'],
     ['a list suffix before the end', 'integer[] x'],
   ])('refuses a type text with %s, saying what a raw type is', (_name, sql) => {
     expect(() => renderSqlTypeName(sqlRawDataType, { sql })).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.TYPE_PARAMS_INVALID',
         message: expect.stringContaining(
-          'A raw type is one type name as the database catalog prints it, with no schema, such as tsvector, double precision, geometry(Point,4326) or "MyType"[]: words of letters, digits and underscores separated by single spaces, each optionally followed by parentheses holding only letters, digits, underscores, commas and spaces; double-quoted names with no double quote inside; and trailing [].',
+          'A raw type is one type name as the database catalog prints it, such as tsvector, double precision, geometry(Point,4326), app.email or "MyType"[]: words of letters, digits and underscores separated by single spaces, or double-quoted names with no double quote inside; the first optionally after one schema name and a dot; each optionally followed by parentheses holding only letters, digits, underscores, commas, spaces and a minus sign before a digit; and at most one trailing [].',
         ),
       }),
     );

@@ -10,22 +10,23 @@ export type SqlRawTypeParams = { readonly sql: string };
 
 const WORD = '[A-Za-z0-9_]+';
 const QUOTED_NAME = '"[^"]+"';
-const PARENTHESES = '\\([A-Za-z0-9_, ]*\\)';
-const TOKEN = `(?:${WORD}|${QUOTED_NAME})(?:${PARENTHESES})?`;
+const NAME = `(?:${WORD}|${QUOTED_NAME})`;
+const PARENTHESES = '\\((?:[A-Za-z0-9_, ]|-(?=[0-9]))*\\)';
+const TOKEN = `${NAME}(?:${PARENTHESES})?`;
 
 /**
- * The texts a raw type may be: words and double-quoted names separated by single spaces, each
- * optionally followed by parentheses holding only letters, digits, underscores, commas and spaces,
- * then any number of `[]`. A text that names a schema, holds a quote of another kind, an operator or
- * any other character is refused.
+ * The texts a raw type may be: words and double-quoted names separated by single spaces, the first
+ * optionally after one schema name and a dot, each optionally followed by parentheses holding only
+ * letters, digits, underscores, commas, spaces and a minus sign before a digit, then at most one
+ * `[]`. Postgres prints a schema only for a type off the `search_path` that is not a base type.
  */
-const RAW_TYPE_TEXT = new RegExp(`^${TOKEN}(?: ${TOKEN})*(?:\\[\\])*$`);
+const RAW_TYPE_TEXT = new RegExp(`^(?:${NAME}\\.)?${TOKEN}(?: ${TOKEN})*(?:\\[\\])?$`);
 
 /** Returns undefined when `text` may be written as a column's type, else the reason. */
 export function checkRawTypeText(text: string): string | undefined {
   return RAW_TYPE_TEXT.test(text)
     ? undefined
-    : 'A raw type is one type name as the database catalog prints it, with no schema, such as tsvector, double precision, geometry(Point,4326) or "MyType"[]: words of letters, digits and underscores separated by single spaces, each optionally followed by parentheses holding only letters, digits, underscores, commas and spaces; double-quoted names with no double quote inside; and trailing [].';
+    : 'A raw type is one type name as the database catalog prints it, such as tsvector, double precision, geometry(Point,4326), app.email or "MyType"[]: words of letters, digits and underscores separated by single spaces, or double-quoted names with no double quote inside; the first optionally after one schema name and a dot; each optionally followed by parentheses holding only letters, digits, underscores, commas, spaces and a minus sign before a digit; and at most one trailing [].';
 }
 
 const sqlRawParams = type({ sql: 'string' }).narrow((params, ctx) => {

@@ -19,7 +19,7 @@ model Category {
 
 ### The data type
 
-`sql/raw` is defined once, in `packages/2-sql/1-core/contract/src/sql-raw.ts` beside `sql-expression.ts`. Its parameters are `{ sql: string }`, limited to the forms of one type name with no schema (ADR 273). It declares `nameIsCatalogText`, no texts and no `claimsKind`, so it claims no reported type: introspection and `contract infer` never produce it. Its `render` returns `params.sql`.
+`sql/raw` is defined once, in `packages/2-sql/1-core/contract/src/sql-raw.ts` beside `sql-expression.ts`. Its parameters are `{ sql: string }`, limited to the forms of one type name, with a schema only where the catalog prints one (ADR 273). It declares `nameIsCatalogText`, no texts and no `claimsKind`, so it claims no reported type: introspection and `contract infer` never produce it. Its `render` returns `params.sql`.
 
 Two rules in `sql-data-type.ts` change, for every data type, not for `sql/raw` by id:
 
@@ -59,7 +59,7 @@ Out: the Prisma 7 reader (slice 2).
 - Against a real Postgres database (dev database), a contract with raw `tsvector`, `circle` and `cidr` columns plans, migrates, and verifies strictly with no findings; the ORM creates and reads a row through those fields; the values are typed `unknown` in the emitted `contract.d.ts`.
 - A `sql` default on a raw column is created and verified; a literal default is refused at emit with the message above.
 - `Raw("integer")` verifies against an `integer` column; `Raw("int4")` reports a type mismatch naming `integer`.
-- A raw type installed outside `public`, found through the `search_path`, verifies with the text that names no schema.
+- A raw type installed outside `public`, found through the `search_path`, verifies with the text that names no schema; a domain in a schema off the `search_path` verifies with the text that names its schema.
 - Changing `Raw("tsvector")` to `Raw("text")` plans an `ALTER COLUMN ... TYPE` and the post-check passes after it runs.
 - `contract print` round-trips a schema with raw fields.
 - `contract infer` still refuses a type no data type claims.
