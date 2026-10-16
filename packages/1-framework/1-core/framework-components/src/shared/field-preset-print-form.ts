@@ -75,17 +75,6 @@ function phasePrintForm(
   return { argument: argument.name, index: template.index, valuesByGenerator };
 }
 
-function argumentIndexesRead(template: AuthoringTemplateValue | undefined): readonly number[] {
-  if (template === undefined || template === null || typeof template !== 'object') return [];
-  if (Array.isArray(template)) return template.flatMap(argumentIndexesRead);
-  if (isAuthoringArgRef(template))
-    return [template.index, ...argumentIndexesRead(template.default)];
-  if (isAuthoringSelectRef(template)) {
-    return [template.index, ...Object.values(template.cases).flatMap(argumentIndexesRead)];
-  }
-  return Object.values(template).flatMap(argumentIndexesRead);
-}
-
 function fixesOnlyCodecTypeParamsAndGenerators(output: AuthoringFieldPresetOutput): boolean {
   return (
     output.default === undefined &&
@@ -96,7 +85,7 @@ function fixesOnlyCodecTypeParamsAndGenerators(output: AuthoringFieldPresetOutpu
 }
 
 /**
- * The print form of a preset, read from its `args` and `output`, when the printed call reads back as the same column. That holds when the preset fixes nothing but its codec, its type params and the generators its option arguments select; every argument its output reads is a leading positional argument that writes a type param or a phase's option argument; the two phases read different option arguments, since one argument cannot select two generators independently; and every required argument writes a type param, since the printer leaves out a phase the column does not have. Any other preset, such as one with a fixed generator, a database default, an id, `unique` or `nullable`, has none.
+ * How a preset's call is written, read from its `args` and `output`, when the printer can build one: the preset fixes nothing but its codec, its type params and the generators its option arguments select, so it does not collide in the index with a plain preset for the same codec and generator; its type params take its leading positional arguments whole and in order; each phase selects on a named option argument, and the two phases on different ones; and every required argument writes a type param, since the printer leaves out a phase the column does not have. Any other preset has none. A print form does not promise that every column prints: the printer still checks that the call reads back as the column.
  */
 export function fieldPresetPrintForm(
   descriptor: AuthoringFieldPresetDescriptor,
@@ -105,10 +94,8 @@ export function fieldPresetPrintForm(
   const args = descriptor.args ?? [];
   if (!fixesOnlyCodecTypeParamsAndGenerators(output)) return undefined;
   const typeParams = positionalTypeParams(output.typeParams, args);
-  const onCreateTemplate = output.executionDefaults?.onCreate;
-  const onUpdateTemplate = output.executionDefaults?.onUpdate;
-  const onCreate = phasePrintForm(onCreateTemplate, args);
-  const onUpdate = phasePrintForm(onUpdateTemplate, args);
+  const onCreate = phasePrintForm(output.executionDefaults?.onCreate, args);
+  const onUpdate = phasePrintForm(output.executionDefaults?.onUpdate, args);
   if (typeParams === UNREADABLE || onCreate === UNREADABLE || onUpdate === UNREADABLE) {
     return undefined;
   }
@@ -116,18 +103,10 @@ export function fieldPresetPrintForm(
   if (onCreate !== undefined && onUpdate !== undefined && onCreate.index === onUpdate.index) {
     return undefined;
   }
-  const writesTypeParam = (index: number) => index < typeParams.length;
-  const phaseIndexes = [onCreateTemplate, onUpdateTemplate].flatMap((template) =>
-    isAuthoringSelectRef(template) ? [template.index] : [],
-  );
-  const written = (index: number) => writesTypeParam(index) || phaseIndexes.includes(index);
-  const readsOnlyWrittenArguments = [output.typeParams, onCreateTemplate, onUpdateTemplate]
-    .flatMap(argumentIndexesRead)
-    .every(written);
   const writesEveryRequiredArgument = args.every(
-    (argument, index) => argument.optional === true || writesTypeParam(index),
+    (argument, index) => argument.optional === true || index < typeParams.length,
   );
-  if (!readsOnlyWrittenArguments || !writesEveryRequiredArgument) return undefined;
+  if (!writesEveryRequiredArgument) return undefined;
   return {
     codecId: output.codecId,
     typeParams,

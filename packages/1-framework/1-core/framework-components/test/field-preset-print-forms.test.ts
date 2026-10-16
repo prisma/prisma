@@ -102,34 +102,6 @@ describe('fieldPresetPrintForm', () => {
     ).toBeUndefined();
   });
 
-  it('has none for a preset whose generator params read an argument that writes no type param', () => {
-    expect(
-      fieldPresetPrintForm({
-        kind: 'fieldPreset',
-        args: [
-          { name: 'onCreate', kind: 'option', values: ['now'], optional: true },
-          { name: 'digits', kind: 'number', optional: true },
-        ],
-        output: {
-          codecId: 'pg/time-string@1',
-          executionDefaults: {
-            onCreate: {
-              kind: 'select',
-              index: 0,
-              cases: {
-                now: {
-                  kind: 'generator',
-                  id: 'timeStringNow',
-                  params: { precision: { kind: 'arg', index: 1 } },
-                },
-              },
-            },
-          },
-        },
-      }),
-    ).toBeUndefined();
-  });
-
   it('has none for a preset whose two phases read the same option argument', () => {
     expect(
       fieldPresetPrintForm({

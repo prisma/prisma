@@ -605,7 +605,6 @@ export function assembleControlMutationDefaults(
   const defaultFunctionRegistry = new Map<string, ControlMutationDefaultEntry>();
   const functionOwners = new Map<string, string>();
   const generatorMap = new Map<string, MutationDefaultGeneratorDescriptor>();
-  const generatorOwners = new Map<string, string>();
   const componentIdsByGenerator = new Map<string, string | undefined>();
   const defaultFunctionPrintersByGenerator = new Map<string, DefaultFunctionPrinter>();
   const printerOwners = new Map<string, string>();
@@ -616,15 +615,13 @@ export function assembleControlMutationDefaults(
     const descriptorId = descriptor.id ?? '<unknown>';
 
     for (const generatorDescriptor of contributions.generatorDescriptors) {
-      const existingOwner = generatorOwners.get(generatorDescriptor.id);
-      if (existingOwner !== undefined) {
+      if (generatorMap.has(generatorDescriptor.id)) {
         throw new InternalError(
           `Duplicate mutation default generator id "${generatorDescriptor.id}". ` +
-            `Descriptor "${descriptorId}" conflicts with "${existingOwner}".`,
+            `Descriptor "${descriptorId}" conflicts with "${componentIdsByGenerator.get(generatorDescriptor.id) ?? '<unknown>'}".`,
         );
       }
       generatorMap.set(generatorDescriptor.id, generatorDescriptor);
-      generatorOwners.set(generatorDescriptor.id, descriptorId);
       componentIdsByGenerator.set(generatorDescriptor.id, descriptor.id);
     }
 

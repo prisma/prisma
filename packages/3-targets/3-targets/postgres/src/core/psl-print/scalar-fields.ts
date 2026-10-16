@@ -18,7 +18,7 @@ import { buildColumnDefault } from './column-defaults';
 import { buildColumnType } from './column-types';
 import type { ModelWithTable, VariantInfo } from './contract-model-index';
 import type { NativeEnumEmission } from './enum-blocks';
-import { buildExecutionDefault, presetArguments } from './generated-values';
+import { buildExecutionDefault } from './generated-values';
 import {
   refuseColumnControl,
   refuseColumnDifferingFromNamedType,
@@ -165,11 +165,11 @@ export function buildScalarFields(input: {
         context,
       });
       if (built.kind === 'preset') {
-        typeName = built.phases.preset.path.join('.');
+        typeName = built.path.join('.');
         typeConstructor = {
           kind: 'typeConstructor',
-          path: built.phases.preset.path,
-          args: presetArguments({ phases: built.phases, typeParams: column.typeParams }),
+          path: built.path,
+          args: built.args,
           span: SYNTHETIC_SPAN,
         };
       } else if (column.default !== undefined) {

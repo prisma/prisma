@@ -15,12 +15,12 @@ export type {
   DefaultMappingResult,
 } from '../core/psl-build/default-mapping';
 export { mapDefault } from '../core/psl-build/default-mapping';
-export type { FieldPresetArgument } from '../core/psl-build/generated-values';
-export {
-  defaultFunctionCallFor,
-  fieldPresetArguments,
-  fieldPresetGenerators,
+export type {
+  FieldPresetArgument,
+  FieldPresetCallChoice,
+  FieldPresetReadBackDifference,
 } from '../core/psl-build/generated-values';
+export { defaultFunctionCallFor, fieldPresetCallFor } from '../core/psl-build/generated-values';
 export {
   fewestArgumentsCall,
   type InferredTypeConstructor,
