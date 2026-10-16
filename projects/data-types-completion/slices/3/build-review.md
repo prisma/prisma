@@ -44,6 +44,7 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | g | 1 (`b936882cf0..651bcfa600`) | ANOTHER ROUND NEEDED: 0 must-fix, 3 should-fix, 1 low |
 | f 3 and g 2 (`ebf496d7c9`, `3456573099`, `f114359776`, `18c4b8d48c`, `c3827e5eb2`) | SATISFIED |
 | h | 1 (`657d5fa989..9b50409c63`, `bfd17d10ef`) | ANOTHER ROUND NEEDED: 0 must-fix, 2 should-fix, 2 low |
+| h | 2 (`520c88b861`, `6e045c0e70`, `a9312e7888`) | SATISFIED |
 
 ## Findings log
 
@@ -760,3 +761,25 @@ Nothing that feeds this install differs from `bot/main`: no `package.json`, no `
 - Where: `withParams` in `packages/1-framework/1-core/framework-components/src/shared/data-type.ts`; the header comment of `packages/2-sql/2-authoring/contract-psl/src/data-type-default.ts` (lines 3-6), which says defaults go through it.
 - What is wrong: since dispatch a, codecs and PSL lowering construct values through `fromCodec`. `withParams` remains public API with only tests calling it, and ADR 254 describes it as the step that writes a column's spelling.
 - Change: either remove `withParams` and describe `fromCodec` alone, or keep it and say in ADR 254 what it is for. Fix the header comment either way.
+
+## Dispatch h, round 2
+
+The orchestrator accepted that the tests of `withParams` were converted to `fromCodec` rather than deleted.
+
+- **S3-h-R1-1:** fixed in `520c88b861`. Each corrected statement checked against the code:
+  - The `Date` codec is `pg/timestamptz-date@1` in both places (`codec-ids.ts:33`).
+  - The wire text: the `Temporal` codec writes `postgresYearText(Instant.toString())`, which is `2024-01-01T00:00:00Z`. The `Date` codec writes `utcTimestamptzText`, which is `toISOString()` through `postgresYearText`: `2024-01-01T00:00:00.000Z`. PostgreSQL prints the value back as `2024-01-01 00:00:00+00`.
+  - A value written for a column is constructed through `fromCodec(json, params)`, as `dataTypeValueFor` and `dataTypeValueOf` do, and `withParams` no longer exists.
+  - The test kits' three assertions now match `postgres-codec-testkit/src/index.ts` and the SQLite kit.
+  - The Prisma 7 reader converts base64 bytes to hex and reads them through the `bytea` tag (`prisma7-binding.ts`).
+  - The projection paragraph matches the descriptors. `json`, `jsonb`, vectors and the other types whose JSON form differs from their row text are cast to text. Numbers, booleans and text such as a uuid or an enum label enter as the column itself, and their `fromWire` reads both forms; the conformance cases of these types, `timetz` among them, pass against PGlite. `pg/char` enters unpadded.
+- **S3-h-R1-3:** fixed in `520c88b861`. ADRs 126, 157 and 186 have retrospective notes naming `toDataTypeValue` and `fromDataTypeValue`, and ADR 204's older note no longer states a rule on `decodeJson`.
+- **S3-h-R1-4:** fixed in `6e045c0e70`. `DataType.withParams` is deleted. The only `withParams` left in `packages/` is the Mongo vector codec's own option, which is unrelated. The comment in `data-type-default.ts` follows.
+- **S3-h-R1-2:** fixed in `a9312e7888`. The guide has 27 TypeScript blocks, and the proof in `wip/s3/guide-samples/` builds 32 files from them for Postgres, SQLite and integration, each of which `tsc` passes with no output. The samples I reported are corrected: `column(...)` takes three arguments, the adapters get `factory`, `SqlCharCodec` takes its data type and parameters, `pgEnum` has `read`, and Case 2's prose says where the literal length comes from.
+
+### Checks run for dispatch h round 2
+
+- `pnpm build`, root `typecheck:agent`, `lint:agent`, `lint:deps` and `lint:docs` pass.
+- Package tests of framework-components, target-postgres, sql-contract-psl, pgvector, postgis and target-sqlite: all pass. The tree is clean.
+
+Dispatch h is closed, and with it the slice 3 build loop: every finding from dispatch a to h is fixed or ruled on. What remains is outside the review log: the three tarball tests that fail on the registry's `temporal-utils@1.0.3` (the same on `main`), and the slice's `/drive-code-review` and manual QA.
