@@ -7,7 +7,8 @@ changes:
       enum value is stored with exactly three fraction digits (`2024-01-01T00:00:00.000Z`). Run the
       colocated script on the project: it rewrites every SQLite contract and migration snapshot,
       renames the snapshot directories to the new storage hashes, and rewrites the migrations,
-      refs, `migration.ts` files and `contract.d.ts` files that name them.
+      refs, `migration.ts` files and `contract.d.ts` files that name them. The CLI refuses the old
+      contract; the application keeps running on it, so upgrade before the next `db migrate`.
     detection:
       glob: "**/*.json"
       matches:
@@ -26,7 +27,7 @@ changes:
         - '\bBytes\??[^\n]*@default\(\s*"'
   - id: postgres-defaults-stored-in-another-spelling
     summary: |
-      A PostgreSQL contract that an earlier release emitted is refused when it stores a default in
+      The CLI refuses a PostgreSQL contract that an earlier release emitted when it stores a default in
       another spelling than its column's parameters give, for example `"1.5"` on `numeric(10,2)`,
       or a date or time default written as earlier releases stored it. Run `prisma contract emit`,
       then `prisma db sign`.
@@ -64,11 +65,13 @@ changes:
 
 ## `sqlite-contracts-name-datetime-and-json-data-types`
 
-A SQLite contract stores the data type of each column. This release gives datetime and JSON values their own data types, and stores a datetime as `toISOString()` writes it, with exactly three fraction digits. A contract emitted by the previous release still names `sqlite/text`, so this release refuses to load it:
+A SQLite contract stores the data type of each column. This release gives datetime and JSON values their own data types, and stores a datetime as `toISOString()` writes it, with exactly three fraction digits. A contract emitted by the previous release still names `sqlite/text`, so the CLI of this release refuses it: every command that reads the contract (`migration plan`, `db migrate`, `db verify` and others) fails with `CONTRACT.VALIDATION_FAILED`:
 
 ```text
 storage.namespaces.__unbound__.entries.table.events.columns.at: codec sqlite/datetime@1 represents sqlite/datetime, not sqlite/text
 ```
+
+The application does not refuse it: built with this release, it keeps running on the old contract until you upgrade. So do the upgrade below before the next `db migrate`, or any other CLI command, against the project.
 
 Commit your work first, so the script's changes can be reviewed and undone with git. Then run the script from the project root:
 
@@ -141,7 +144,7 @@ The stored value is the same as before, so emitting the schema after the rewrite
 
 ## `postgres-defaults-stored-in-another-spelling`
 
-A stored default is now a value of its column's type, written in the one spelling the type and its parameters give. A PostgreSQL contract that an earlier release emitted can store a default in another spelling. This release refuses to load such a contract, and every command that reads it (`migration plan`, `db init`, `db verify`, `migration check` and others) fails with `CONTRACT.VALIDATION_FAILED`. The message names the column, the stored value and the spelling the type expects:
+A stored default is now a value of its column's type, written in the one spelling the type and its parameters give. A PostgreSQL contract that an earlier release emitted can store a default in another spelling. The CLI of this release refuses such a contract: every command that reads it (`migration plan`, `db init`, `db verify`, `migration check` and others) fails with `CONTRACT.VALIDATION_FAILED`. The application does not refuse it, and keeps running on it until you emit the contract again; do that before the next `db migrate`. The CLI's message names the column, the stored value and the spelling the type expects:
 
 ```text
 Namespace "public", table "product", column "price": the default "1.5" is not a value of pg/numeric: pg/numeric JSON value must be "1.50", the spelling its parameters give this value
