@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { canonicalizeContractToObject } from '@internal/contract/hashing';
 import type { Contract } from '@internal/contract/types';
 import { effectiveControlPolicy } from '@internal/contract/types';
@@ -25,7 +26,11 @@ import { PostgresContractSerializer } from '../src/core/postgres-contract-serial
 import { PostgresNativeEnum } from '../src/core/postgres-native-enum';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';
-import { PostgresSchema, postgresCreateNamespace } from '../src/core/postgres-schema';
+import {
+  PostgresSchema,
+  PostgresUnboundSchema,
+  postgresCreateNamespace,
+} from '../src/core/postgres-schema';
 import postgresTargetDescriptor from '../src/exports/control';
 
 function makeValidContractJson() {
@@ -105,6 +110,22 @@ describe('PostgresContractSerializer', () => {
     const contract = serializer.deserializeContract(makeContractWithTablesJson());
 
     expect(contract.storage).toBeInstanceOf(SqlStorage);
+    const namespace = contract.storage.namespaces[UNBOUND_NAMESPACE_ID];
+    expect(namespace).toBeInstanceOf(PostgresUnboundSchema);
+    assert(namespace instanceof PostgresSchema);
+    expect({
+      qualifier: namespace.qualifier(),
+      table: namespace.qualifyTable('user'),
+      regclass: namespace.regclassLiteral('user'),
+      schema: namespace.schemaSqlExpression(),
+      tableSourceSchema: namespace.tableSource('user').schema,
+    }).toEqual({
+      qualifier: '',
+      table: '"user"',
+      regclass: '\'"user"\'',
+      schema: 'current_schema()',
+      tableSourceSchema: undefined,
+    });
     const tables = contract.storage.namespaces[UNBOUND_NAMESPACE_ID]!.entries.table ?? {};
     const userTable = tables['user'] as StorageTable | undefined;
     expect(userTable).toBeInstanceOf(StorageTable);
