@@ -1,5 +1,5 @@
 /**
- * Journey: a default on a column of every built-in Postgres type that has a codec is written by the CLI, read back from the database by the column's codec, and compared as a value. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
+ * Journey: a default on a column of every built-in Postgres type that has a codec, through every codec PSL names for it, is written by the CLI, read back from the database by the column's codec, and compared as a value. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
  */
 import { writeFileSync } from 'node:fs';
 import { withClient } from '@repo/test-utils';
@@ -22,6 +22,11 @@ const BACKTICK = '`';
 const tagged = (tag: string, body: string): string => `${tag}${BACKTICK}${body}${BACKTICK}`;
 
 const SCHEMA = `// use prisma-8
+
+native_enum Plan {
+  free = "free"
+  pro  = "pro"
+}
 
 model Sample {
   id          Int               @id
@@ -57,6 +62,9 @@ model Sample {
   span        Interval          @default(${tagged('interval', 'P1DT2H')})
   tags        String[]          @default(["a", "b"])
   counts      Int[]             @default([1, 2])
+  plan        pg.enum(Plan)     @default("pro")
+  safeBig     BigIntNumber      @default(42)
+  huge        UnboundedInt      @default(123456789012345678901234567890)
 
   @@map("sample")
 }
