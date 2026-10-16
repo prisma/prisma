@@ -11,6 +11,7 @@ import {
   type Cast,
   type DataType,
   type DataTypeReader,
+  type DataTypeSpelling,
   INT64_RANGE,
   readJsonFloat,
   readJsonIntegerText,
@@ -147,17 +148,19 @@ function storedDatetime(text: string): string | undefined {
   }
 }
 
-const readDatetime: DataTypeReader = (json) => {
-  const stored = typeof json === 'string' ? storedDatetime(json) : undefined;
-  if (stored === json) return json;
-  return refuseJsonValue(
-    'sqlite/datetime',
-    stored === undefined
-      ? 'an instant in UTC with three fraction digits, as in "2024-01-01T00:00:00.000Z"'
-      : `"${stored}", as sqlite/datetime stores this value`,
-    json,
-  );
-};
+/** Reads an instant in any spelling the `datetime` tag reads; `spellDatetime` gives it the one it stores. */
+const readDatetime: DataTypeReader = (json) =>
+  typeof json === 'string' && storedDatetime(json) !== undefined
+    ? json
+    : refuseJsonValue(
+        'sqlite/datetime',
+        'an instant in UTC with three fraction digits, as in "2024-01-01T00:00:00.000Z"',
+        json,
+      );
+
+/** An instant is stored in UTC with three fraction digits. */
+const spellDatetime: DataTypeSpelling = (json) =>
+  typeof json === 'string' ? (storedDatetime(json) ?? json) : json;
 
 /** The document JSON text holds, or `undefined` when the text is not JSON. */
 function documentOf(text: string): { readonly value: JsonValue } | undefined {
@@ -168,30 +171,30 @@ function documentOf(text: string): { readonly value: JsonValue } | undefined {
   }
 }
 
-const readJson: DataTypeReader = (json) => {
+/** Reads the JSON text of a document, in any spelling; `spellJson` gives it the one it stores. */
+const readJson: DataTypeReader = (json) =>
+  typeof json === 'string' && documentOf(json) !== undefined
+    ? json
+    : refuseJsonValue('sqlite/json', 'the JSON text of a document', json);
+
+/** A document is stored as its JSON text with sorted keys and no added whitespace. */
+const spellJson: DataTypeSpelling = (json) => {
   const document = typeof json === 'string' ? documentOf(json) : undefined;
-  if (document === undefined) {
-    return refuseJsonValue('sqlite/json', 'the JSON text of a document', json);
-  }
-  const stored = canonicalizeJson(document.value);
-  if (stored === json) return json;
-  return refuseJsonValue(
-    'sqlite/json',
-    `${JSON.stringify(stored)}, the JSON text sqlite/json stores for this document`,
-    json,
-  );
+  return document === undefined ? json : canonicalizeJson(document.value);
 };
 
 /** An instant, stored as text in the form `toISOString()` writes. */
 export const sqliteDatetime = sqlDataType('sqlite/datetime', {
   storedAs: sqliteText.id,
   read: readDatetime,
+  spell: spellDatetime,
 });
 
 /** A JSON document, stored as its JSON text with sorted keys and no added whitespace. A column declared `JSON` would have numeric affinity and store the document `"42"` as the integer 42. */
 export const sqliteJson = sqlDataType('sqlite/json', {
   storedAs: sqliteText.id,
   read: readJson,
+  spell: spellJson,
 });
 
 /** Every data type this target registers. */

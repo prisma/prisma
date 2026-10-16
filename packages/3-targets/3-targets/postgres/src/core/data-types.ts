@@ -17,6 +17,7 @@ import {
   type DataTypeLookup,
   type DataTypeParams,
   type DataTypeReader,
+  type DataTypeSpelling,
   INT32_RANGE,
   INT64_RANGE,
   isNonFiniteText,
@@ -40,7 +41,6 @@ import { counted, withoutTrailing } from '@internal/utils/text';
 import { type as arktype } from 'arktype';
 import { canonicalInet } from './canonical-inet';
 import {
-  CANONICAL_UUID,
   canonicalUuid,
   FLOAT4_MAX,
   fitsCharacterLength,
@@ -249,25 +249,29 @@ const readTextArray: DataTypeReader = (json) => {
   return json;
 };
 
+/** Reads a UUID in any spelling PostgreSQL reads; `spellUuid` gives it the one it stores. */
 const readUuid: DataTypeReader = (json) =>
-  readJsonMatching(
-    'pg/uuid',
-    json,
-    CANONICAL_UUID,
-    'a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12',
-  );
+  typeof json === 'string' && canonicalUuid(json) !== undefined
+    ? json
+    : refuseJsonValue(
+        'pg/uuid',
+        'a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12',
+        json,
+      );
 
-const readInet: DataTypeReader = (json) => {
-  const printed = typeof json === 'string' ? canonicalInet(json) : undefined;
-  if (printed !== undefined && printed === json) return json;
-  return refuseJsonValue(
-    'pg/inet',
-    printed === undefined
-      ? 'an IP address as PostgreSQL writes it'
-      : `"${printed}", as PostgreSQL writes this address`,
-    json,
-  );
-};
+/** A UUID is stored as PostgreSQL prints it: lower case, hyphenated 8-4-4-4-12. */
+const spellUuid: DataTypeSpelling = (json) =>
+  typeof json === 'string' ? (canonicalUuid(json) ?? json) : json;
+
+/** Reads an address in any spelling PostgreSQL reads; `spellInet` gives it the one it stores. */
+const readInet: DataTypeReader = (json) =>
+  typeof json === 'string' && canonicalInet(json) !== undefined
+    ? json
+    : refuseJsonValue('pg/inet', 'an IP address as PostgreSQL writes it', json);
+
+/** An address is stored as PostgreSQL prints it. */
+const spellInet: DataTypeSpelling = (json) =>
+  typeof json === 'string' ? (canonicalInet(json) ?? json) : json;
 
 /** The fraction digits of a second the date, time and interval types hold when a column sets no precision: microseconds. */
 const MICROSECOND_DIGITS = 6;
@@ -292,18 +296,23 @@ function refuseFinerThanPrecision(
   );
 }
 
-/** What `canonical` writes for `text`, or `undefined` for text it cannot read. */
-function storedSpelling(canonical: (text: string) => string, text: string): string | undefined {
+/** What `canonical` writes for `text`, or why it cannot read it. */
+function storedSpelling(
+  canonical: (text: string) => string,
+  text: string,
+): { readonly stored: string } | { readonly reason: string } {
   try {
-    return canonical(text);
+    return { stored: canonical(text) };
   } catch (error) {
-    if (isStructuredError(error) && error.code === 'CONTRACT.CAST_REFUSED') return undefined;
+    if (isStructuredError(error) && error.code === 'CONTRACT.CAST_REFUSED') {
+      return { reason: error.message };
+    }
     throw error;
   }
 }
 
 /**
- * Reads the stored form of a date or time type (ADR 254, "Date and time types"), which is the only spelling of a value: other text, such as the text PostgreSQL prints, is refused, naming the stored form when the text names a value. `fraction` finds a value's fraction digits of a second, which the column's precision limits.
+ * Reads a value of a date or time type (ADR 254, "Date and time types") in any spelling its tag reads, and refuses other text. A value with more fraction digits than the column's precision is refused rather than rounded. `spellStoredDateTime` gives the value its one stored spelling.
  */
 const readStoredDateTime =
   (
@@ -313,15 +322,21 @@ const readStoredDateTime =
     fraction: RegExp,
   ): DataTypeReader =>
   (json, params) => {
-    const stored = typeof json === 'string' ? storedSpelling(canonical, json) : undefined;
-    if (stored !== json) {
-      return refuseJsonValue(
-        typeId,
-        stored === undefined ? description : `"${stored}", as ${typeId} stores this value`,
-        json,
-      );
-    }
-    return refuseFinerThanPrecision(typeId, json, fraction.exec(stored)?.[1], params);
+    if (typeof json !== 'string') return refuseJsonValue(typeId, description, json);
+    const spelling = storedSpelling(canonical, json);
+    if ('reason' in spelling)
+      return refuseJsonValue(typeId, `${description}: ${spelling.reason}`, json);
+    refuseFinerThanPrecision(typeId, json, fraction.exec(spelling.stored)?.[1], params);
+    return json;
+  };
+
+/** The stored spelling of a date or time value: what its tag's `canonical` writes. */
+const spellStoredDateTime =
+  (canonical: (text: string) => string): DataTypeSpelling =>
+  (json) => {
+    if (typeof json !== 'string') return json;
+    const spelling = storedSpelling(canonical, json);
+    return 'stored' in spelling ? spelling.stored : json;
   };
 
 const SECONDS_FRACTION = /:\d{2}\.(\d+)/;
@@ -522,6 +537,7 @@ const asUuid: Cast = (value) => {
 export const pgUuid = sqlDataType('pg/uuid', {
   texts: [writtenAndCatalog('uuid')],
   read: readUuid,
+  spell: spellUuid,
   casts: { [pgText.id]: asUuid },
 });
 
@@ -608,6 +624,7 @@ export const pgTimetz = sqlDataType('pg/timetz', {
     'a time of day with its UTC offset, as in "12:34:56+02:00" or "12:34:56Z"',
     SECONDS_FRACTION,
   ),
+  spell: spellStoredDateTime(pgTimetzCanonical),
   params: pgPrecisionParams,
   texts: [
     written('timetz'),
@@ -624,6 +641,7 @@ export const pgInterval = sqlDataType('pg/interval', {
     'an ISO 8601 duration, as in "P1Y2M3DT4H5M6.5S"',
     INTERVAL_SECONDS_FRACTION,
   ),
+  spell: spellStoredDateTime(pgIntervalCanonical),
   params: pgPrecisionParams,
   texts: [writtenAndCatalog('interval'), writtenAndCatalog('interval({precision})')],
 });
@@ -649,6 +667,7 @@ function pgInetCanonical(text: string): string {
 
 export const pgInet = sqlDataType('pg/inet', {
   read: readInet,
+  spell: spellInet,
   texts: [writtenAndCatalog('inet')],
   casts: { [pgText.id]: castFromText(pgInetCanonical) },
 });
@@ -660,6 +679,7 @@ export const pgDate = sqlDataType('pg/date', {
     'a date, as in "2024-01-01", or infinity or -infinity',
     SECONDS_FRACTION,
   ),
+  spell: spellStoredDateTime(pgDateCanonical),
   texts: [writtenAndCatalog('date')],
 });
 
@@ -670,6 +690,7 @@ export const pgTime = sqlDataType('pg/time', {
     'a time of day, as in "12:34:56"',
     SECONDS_FRACTION,
   ),
+  spell: spellStoredDateTime(pgTimeCanonical),
   params: pgPrecisionParams,
   texts: [
     written('time'),
@@ -686,6 +707,7 @@ export const pgTimestamp = sqlDataType('pg/timestamp', {
     'a date and time of day, as in "2024-01-01T12:34:56", or infinity or -infinity',
     SECONDS_FRACTION,
   ),
+  spell: spellStoredDateTime(pgTimestampCanonical),
   params: pgPrecisionParams,
   texts: [
     written('timestamp'),
@@ -702,6 +724,7 @@ export const pgTimestamptz = sqlDataType('pg/timestamptz', {
     'an instant in UTC, as in "2024-01-01T00:00:00Z", or infinity or -infinity',
     SECONDS_FRACTION,
   ),
+  spell: spellStoredDateTime(pgTimestamptzCanonical),
   params: pgPrecisionParams,
   texts: [
     written('timestamptz'),

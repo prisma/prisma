@@ -25,7 +25,6 @@ import {
   refuseJsonValue,
   SAFE_INTEGER_BIGINT_RANGE,
 } from '@internal/framework-components/codec';
-import { canonicalizeJson } from '@internal/framework-components/utils';
 import {
   BinaryExpr,
   CaseExpr,
@@ -602,7 +601,7 @@ export class SqliteDatetimeCodec extends CodecImpl<
     return new Date(value.value);
   }
   toDataTypeValue(input: Date): DataTypeValue {
-    return this.dataTypeValueOf(sqliteDatetimeText(input.toISOString()));
+    return this.dataTypeValueOf(input.toISOString());
   }
 }
 
@@ -647,7 +646,7 @@ export class SqliteJsonCodec extends CodecImpl<
     );
   }
   toDataTypeValue(input: JsonValue): DataTypeValue {
-    return this.dataTypeValueOf(canonicalizeJson(input));
+    return this.dataTypeValueOf(JSON.stringify(input));
   }
 }
 

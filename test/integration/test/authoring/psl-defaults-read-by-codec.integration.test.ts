@@ -283,7 +283,7 @@ model Task {
         'an inet member with /32',
         '  @@type("pg/inet@1")\n  Low = "10.0.0.1/32"',
         'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low" was rejected by codec "pg/inet@1": pg/inet JSON value must be "10.0.0.1", as PostgreSQL writes this address',
+        'enum "Priority" member "Low" was rejected by codec "pg/inet@1": pg/inet JSON value must be "10.0.0.1", as pg/inet stores this value',
       ],
       [
         'an inet member that is not an address',

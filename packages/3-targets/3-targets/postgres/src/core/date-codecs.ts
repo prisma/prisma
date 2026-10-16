@@ -91,7 +91,7 @@ export class PgTimestamptzDateCodec extends CodecImpl<
     return dateOfStoredText(this.id, value.value);
   }
   toDataTypeValue(input: Date): DataTypeValue {
-    return this.dataTypeValueOf(pgTimestamptzCanonical(validateDate(input).toISOString()));
+    return this.dataTypeValueOf(validateDate(input).toISOString());
   }
 }
 

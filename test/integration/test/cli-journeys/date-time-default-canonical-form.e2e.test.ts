@@ -94,7 +94,7 @@ withTempDir(({ createTempDir }) => {
         const planBefore = await runMigrationPlan(ctx, ['--name', 'before']);
         expect(planBefore.exitCode).not.toBe(0);
         expect(output(planBefore)).toContain(
-          'columns.b: the default "2024-01-01T00:00:00.000Z" is not a value of pg/timestamptz',
+          'table "event", column "b": the default "2024-01-01T00:00:00.000Z" is not a value of pg/timestamptz',
         );
         const initBefore = await runDbInit(ctx);
         expect(initBefore.exitCode).not.toBe(0);

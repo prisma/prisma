@@ -117,7 +117,7 @@ describe('every codec of a type with a canonical form writes it', () => {
       () => {
         expect(() => toContractJson(codec, temporalValue?.())).toThrow(
           expect.objectContaining({
-            code: 'CONTRACT.CAST_REFUSED',
+            code: 'RUNTIME.DECODE_FAILED',
             message: expect.stringContaining(`${dataType} holds microseconds`),
           }),
         );
@@ -131,8 +131,10 @@ describe('every codec of a type with a canonical form writes it', () => {
       toContractJson(codec, Temporal.Instant.from('2024-01-01T00:00:00.123456789Z')),
     ).toThrow(
       expect.objectContaining({
-        message:
-          '"2024-01-01T00:00:00.123456789Z" has 9 digits after the decimal point, but pg/timestamptz holds microseconds, so at most 6. Round it, as in "2024-01-01T12:34:56.123456Z".',
+        code: 'RUNTIME.DECODE_FAILED',
+        message: expect.stringContaining(
+          '"2024-01-01T00:00:00.123456789Z" has 9 digits after the decimal point, but pg/timestamptz holds microseconds, so at most 6.',
+        ),
       }),
     );
   });

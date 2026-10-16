@@ -14,7 +14,7 @@
 import type { JsonValue } from '@internal/contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError } from '@internal/utils/internal-error';
+import { InternalError, isInternalError } from '@internal/utils/internal-error';
 import type { Type } from 'arktype';
 import { canonicalizeJson } from '../utils/canonicalize-json';
 import { DATA_TYPE_ID_PATTERN } from './data-type-id-pattern';
@@ -75,7 +75,7 @@ export type DataTypeValue<J extends JsonValue = JsonValue> = DataTypeValueRecord
 /** Reads JSON the type stores, under the type's parameters, and returns it; it refuses any other JSON, and a value the parameters exclude, with `refuseJsonValue`. */
 export type DataTypeReader = (json: JsonValue, params: DataTypeParams) => JsonValue;
 
-/** The spelling a type's parameters give a value the reader accepted, for a type whose parameters change how a value is written. */
+/** The one spelling of a value the reader accepted, under the column's parameters: the type's whole spelling step, whether or not parameters change it, as `pg/uuid` writes lower case and `numeric(10,2)` two fraction digits. A stored value in another spelling is refused, and a value a codec hands over is written in this one. */
 export type DataTypeSpelling = (json: JsonValue, params: DataTypeParams) => JsonValue;
 
 export interface DataType {
@@ -97,7 +97,9 @@ export interface DataTypeSpec {
   readonly params?: Type<unknown>;
   readonly casts?: Readonly<Record<string, Cast>>;
   readonly listCast?: { readonly of: readonly string[]; readonly cast: ListCast['cast'] };
+  /** Accepts every spelling of a value the type holds, and refuses anything else. */
   readonly read: DataTypeReader;
+  /** Gives an accepted value its one spelling; a type whose values have one spelling only declares none. */
   readonly spell?: DataTypeSpelling;
 }
 
@@ -140,12 +142,23 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
     const accepted = read(json, params);
     return spell === undefined ? accepted : spell(accepted, params);
   };
+  /** Whether `json` is already the spelling the type gives it without parameters, so that a difference under `params` is theirs. */
+  const spelledWithoutParams = (json: JsonValue): boolean => {
+    try {
+      return canonicalizeJson(spelledUnder(json, {})) === canonicalizeJson(json);
+    } catch (error) {
+      if (isInternalError(error)) throw error;
+      return false;
+    }
+  };
   const fromContract = (json: JsonValue, params: DataTypeParams): DataTypeValue => {
     const spelled = spelledUnder(json, params);
     if (canonicalizeJson(spelled) !== canonicalizeJson(json)) {
       return refuseJsonValue(
         typeId,
-        `${JSON.stringify(spelled)}, the spelling its parameters give this value`,
+        Object.keys(params).length > 0 && spelledWithoutParams(json)
+          ? `${JSON.stringify(spelled)}, the spelling its parameters give this value`
+          : `${JSON.stringify(spelled)}, as ${typeId} stores this value`,
         json,
       );
     }

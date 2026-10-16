@@ -34,7 +34,7 @@ model Token {
 `;
 
 const UUID_MESSAGE =
-  'pg/uuid JSON value must be a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12';
+  'pg/uuid JSON value must be "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", as pg/uuid stores this value';
 
 const refusal = {
   code: 'CONTRACT.VALIDATION_FAILED',

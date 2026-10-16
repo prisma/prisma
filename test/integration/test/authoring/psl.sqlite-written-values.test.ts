@@ -246,7 +246,7 @@ describe('enum members on SQLite', () => {
     ).toContainEqual({
       code: 'PSL_EXTENSION_INVALID_VALUE',
       message:
-        'enum "Priority" member "Low" was rejected by codec "sqlite/json@1": sqlite/json JSON value must be "{\\"a\\":1,\\"b\\":2}", the JSON text sqlite/json stores for this document',
+        'enum "Priority" member "Low" was rejected by codec "sqlite/json@1": sqlite/json JSON value must be "{\\"a\\":1,\\"b\\":2}", as sqlite/json stores this value',
     });
   });
 

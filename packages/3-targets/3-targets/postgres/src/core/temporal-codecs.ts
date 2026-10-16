@@ -20,17 +20,7 @@ import {
   PG_TIMESTAMPTZ_STRING_CODEC_ID,
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
 } from './codec-ids';
-import {
-  pgDate,
-  pgDateCanonical,
-  pgPrecisionParams,
-  pgTime,
-  pgTimeCanonical,
-  pgTimestamp,
-  pgTimestampCanonical,
-  pgTimestamptz,
-  pgTimestamptzCanonical,
-} from './data-types';
+import { pgDate, pgPrecisionParams, pgTime, pgTimestamp, pgTimestamptz } from './data-types';
 import {
   pgDateTemporalDecode,
   pgDateTemporalEncode,
@@ -65,7 +55,7 @@ export class PgDateTemporalCodec extends CodecImpl<
     return pgDateTemporalDecode(value.value);
   }
   toDataTypeValue(input: Temporal.PlainDate): DataTypeValue {
-    return this.dataTypeValueOf(pgDateCanonical(pgDateTemporalEncode(input)));
+    return this.dataTypeValueOf(pgDateTemporalEncode(input));
   }
 }
 
@@ -112,7 +102,7 @@ export class PgTimestampTemporalCodec extends CodecImpl<
     return pgTimestampTemporalDecode(value.value);
   }
   toDataTypeValue(input: Temporal.PlainDateTime): DataTypeValue {
-    return this.dataTypeValueOf(pgTimestampCanonical(pgTimestampTemporalEncode(input)));
+    return this.dataTypeValueOf(pgTimestampTemporalEncode(input));
   }
 }
 
@@ -165,7 +155,7 @@ export class PgTimestamptzTemporalCodec extends CodecImpl<
     return pgTimestamptzTemporalDecode(value.value);
   }
   toDataTypeValue(input: Temporal.Instant): DataTypeValue {
-    return this.dataTypeValueOf(pgTimestamptzCanonical(pgTimestamptzTemporalEncode(input)));
+    return this.dataTypeValueOf(pgTimestamptzTemporalEncode(input));
   }
 }
 
@@ -212,7 +202,7 @@ export class PgTimeTemporalCodec extends CodecImpl<
     return pgTimeTemporalDecode(value.value);
   }
   toDataTypeValue(input: Temporal.PlainTime): DataTypeValue {
-    return this.dataTypeValueOf(pgTimeCanonical(pgTimeTemporalEncode(input)));
+    return this.dataTypeValueOf(pgTimeTemporalEncode(input));
   }
 }
 

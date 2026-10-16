@@ -149,7 +149,7 @@ describe('the types stored as text', () => {
         message:
           canonical === undefined
             ? 'sqlite/json JSON value must be the JSON text of a document'
-            : `sqlite/json JSON value must be ${canonical}, the JSON text sqlite/json stores for this document`,
+            : `sqlite/json JSON value must be ${canonical}, as sqlite/json stores this value`,
       }),
     );
   });

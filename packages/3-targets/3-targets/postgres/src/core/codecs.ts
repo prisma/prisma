@@ -43,10 +43,8 @@ import {
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
-import { canonicalInet } from './canonical-inet';
 import { definePostgresCodecs, PostgresCodecDescriptor, postgresCodec } from './codec-descriptor';
 import {
-  canonicalUuid,
   decimalTextBigintLiteral,
   decimalTextNumberLiteral,
   floatNumberLiteral,
@@ -124,7 +122,6 @@ import {
   pgText,
   pgTextArray,
   pgTimetz,
-  pgTimetzCanonical,
   pgTsquery,
   pgUuid,
   pgVarbit,
@@ -916,7 +913,7 @@ export class PgTimetzCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataTypeValueOf(pgTimetzCanonical(input));
+    return this.dataTypeValueOf(input);
   }
 }
 
@@ -1082,7 +1079,7 @@ export class PgUuidCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataTypeValueOf(canonicalUuid(input) ?? input);
+    return this.dataTypeValueOf(input);
   }
 }
 
@@ -1123,7 +1120,7 @@ export class PgInetCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataTypeValueOf(canonicalInet(input) ?? input);
+    return this.dataTypeValueOf(input);
   }
 }
 

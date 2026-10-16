@@ -218,7 +218,7 @@ describe('a character value is spelled without the spaces that pad it to its len
   it('refuses a padded value, naming the value without the padding', () => {
     expect(read(pgChar, 'a  ', { length: 3 })).toThrow(
       expect.objectContaining({
-        message: 'pg/char JSON value must be "a", the spelling its parameters give this value',
+        message: 'pg/char JSON value must be "a", as pg/char stores this value',
       }),
     );
   });

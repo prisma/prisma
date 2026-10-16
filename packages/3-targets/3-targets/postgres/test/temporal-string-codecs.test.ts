@@ -125,7 +125,7 @@ describe('representation-explicit temporal string codecs', () => {
 
       it.each(refusedJson)('refuses to write %s to JSON, as its data type does', (value) => {
         expect(() => toContractJson(codec, value)).toThrow(
-          expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED' }),
+          expect.objectContaining({ code: 'RUNTIME.DECODE_FAILED' }),
         );
       });
 

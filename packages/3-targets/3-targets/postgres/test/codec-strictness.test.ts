@@ -161,7 +161,7 @@ describe('pg/inet@1 contract JSON', () => {
     ['zeros Postgres compresses', '2001:db8:0:0:0:0:0:1', '2001:db8::1'],
   ])('refuses %s, naming the text PostgreSQL prints for the address', (_name, json, printed) => {
     expect(() => fromContractJson(codec, json)).toThrow(
-      `pg/inet JSON value must be "${printed}", as PostgreSQL writes this address`,
+      `pg/inet JSON value must be "${printed}", as pg/inet stores this value`,
     );
   });
 

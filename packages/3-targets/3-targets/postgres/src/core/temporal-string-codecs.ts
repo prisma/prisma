@@ -17,17 +17,7 @@ import {
   PG_TIMESTAMP_STRING_CODEC_ID,
   PG_TIMESTAMPTZ_STRING_CODEC_ID,
 } from './codec-ids';
-import {
-  pgDate,
-  pgDateCanonical,
-  pgPrecisionParams,
-  pgTime,
-  pgTimeCanonical,
-  pgTimestamp,
-  pgTimestampCanonical,
-  pgTimestamptz,
-  pgTimestamptzCanonical,
-} from './data-types';
+import { pgDate, pgPrecisionParams, pgTime, pgTimestamp, pgTimestamptz } from './data-types';
 import { postgresYearText } from './postgres-year-text';
 import { utcTimestampText, utcTimestamptzText } from './temporal-codec-helpers';
 
@@ -47,7 +37,7 @@ export class PgDateStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataTypeValueOf(pgDateCanonical(input));
+    return this.dataTypeValueOf(input);
   }
 }
 
@@ -91,7 +81,7 @@ export class PgTimestampStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataTypeValueOf(pgTimestampCanonical(input));
+    return this.dataTypeValueOf(input);
   }
 }
 
@@ -150,7 +140,7 @@ export class PgTimestamptzStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataTypeValueOf(pgTimestamptzCanonical(input));
+    return this.dataTypeValueOf(input);
   }
 }
 
@@ -203,7 +193,7 @@ export class PgTimeStringCodec extends CodecImpl<
     return value.value;
   }
   toDataTypeValue(input: string): DataTypeValue {
-    return this.dataTypeValueOf(pgTimeCanonical(input));
+    return this.dataTypeValueOf(input);
   }
 }
 
