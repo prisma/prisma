@@ -1,7 +1,6 @@
 export { canonicalize } from '../canonicalize';
 export {
   deepEqual,
-  indexesEquivalent,
   indexLookupKey,
   MONGO_INDEX_OPTION_KEYS,
   type MongoIndexOptionKey,

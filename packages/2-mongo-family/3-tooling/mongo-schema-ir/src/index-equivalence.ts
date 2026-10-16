@@ -37,8 +37,20 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   return false;
 }
 
-/** The index options that tell two indexes on the same keys apart. */
-export const MONGO_INDEX_OPTION_KEYS = [
+type IndexOptionName = Exclude<keyof MongoSchemaIndexOptions, 'keys'>;
+
+/** Accepts a list of index options only when it names every one of them. */
+function everyIndexOption<const T extends readonly IndexOptionName[]>(
+  options: T &
+    ([Exclude<IndexOptionName, T[number]>] extends [never]
+      ? unknown
+      : { readonly unlistedOption: Exclude<IndexOptionName, T[number]> }),
+): T {
+  return options;
+}
+
+/** The index options that tell two indexes on the same keys apart: every option of an index. */
+export const MONGO_INDEX_OPTION_KEYS = everyIndexOption([
   'unique',
   'sparse',
   'expireAfterSeconds',
@@ -48,19 +60,12 @@ export const MONGO_INDEX_OPTION_KEYS = [
   'weights',
   'default_language',
   'language_override',
-] as const satisfies readonly Exclude<keyof MongoSchemaIndexOptions, 'keys'>[];
+] as const);
 
 export type MongoIndexOptionKey = (typeof MONGO_INDEX_OPTION_KEYS)[number];
 
 function keysOf(index: MongoSchemaIndex): string {
   return index.keys.map((k) => `${k.field}:${k.direction}`).join(',');
-}
-
-export function indexesEquivalent(a: MongoSchemaIndex, b: MongoSchemaIndex): boolean {
-  return (
-    keysOf(a) === keysOf(b) &&
-    MONGO_INDEX_OPTION_KEYS.every((option) => canonicalize(a[option]) === canonicalize(b[option]))
-  );
 }
 
 /** Identifies an index by its keys and the options it sets; an option set to `false` counts as unset. */

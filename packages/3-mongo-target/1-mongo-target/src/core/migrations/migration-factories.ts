@@ -365,8 +365,19 @@ const textIndexOnly =
   (options, keys) =>
     isTextIndex(keys) ? filter(options, keys) : [];
 
-/** One filter per option the verifier compares, so an option added there must be handled here. */
-const INDEX_OPTION_FILTERS: { readonly [K in MongoIndexOptionKey]: IndexOptionFilter } = {
+/** `name` is derived from the keys, so it tells no two indexes apart. */
+type UncomparedCreateIndexOption = 'name';
+
+/**
+ * One filter per option the verifier compares. A `CreateIndexOptions` option missing from that list
+ * is required here with type `never`, so it fails to compile until the list names it.
+ */
+const INDEX_OPTION_FILTERS: { readonly [K in MongoIndexOptionKey]: IndexOptionFilter } & {
+  readonly [K in Exclude<
+    keyof CreateIndexOptions,
+    UncomparedCreateIndexOption | MongoIndexOptionKey
+  >]: never;
+} = {
   unique: (options) => [flagFilter('unique', options?.unique)],
   sparse: (options) => [flagFilter('sparse', options?.sparse)],
   expireAfterSeconds: (options) => [
