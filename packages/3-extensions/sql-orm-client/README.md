@@ -34,9 +34,9 @@ This package should not depend on target adapters or drivers directly; execution
 - `query<Row>(plan)` — streams rows; `execute(plan)` — returns statement stats. Both come from `RuntimeScope` and accept AST-level `SqlQueryPlan` and pre-lowered `SqlExecutionPlan`.
 - `connection?()` — opt-in connection acquisition for grouped multi-statement work.
 - `transaction?()` — opt-in transaction acquisition for atomic mutation scopes.
-- `[activitySource]?` — the SQL runtime's activity source, through which the client starts an `orm-call` activity for each terminal method (see [Calls are activities](#calls-are-activities)). The runtime's queryables, connections, transactions and activity handles carry it.
+- `[activitySource]` — the SQL runtime's activity source, through which the client starts an `orm-call` activity for each terminal method (see [Calls are activities](#calls-are-activities)). The runtime's queryables, connections, transactions and activity handles carry it. The type marks it optional only because the public runtime types do not show it; a runtime passed to `orm()` must carry it. A hand-built `{ query, execute }` object does not, and every terminal method on it fails with `ORM.ACTIVITY_SOURCE_MISSING`.
 
-The optional methods are SQL-specific orchestration capabilities and are intentionally absent from the cross-family `RuntimeExecutor` contract. Runtimes that don't expose them are still valid `RuntimeQueryable`s and are used for single-statement execution.
+`connection()` and `transaction()` are SQL-specific orchestration capabilities and are intentionally absent from the cross-family `RuntimeExecutor` contract. Runtimes that don't expose them are still used for single-statement execution.
 
 ## Architecture
 
