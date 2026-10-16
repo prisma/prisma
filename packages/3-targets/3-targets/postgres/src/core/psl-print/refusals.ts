@@ -133,6 +133,23 @@ export function refuseGeneratorsNoPresetWritesTogether(phases: GeneratorPhases):
   );
 }
 
+export function refuseGeneratorsPresetDoesNotWrite(
+  input: GeneratorPhases & {
+    readonly preset: string;
+    readonly presetOnCreate: string | undefined;
+    readonly presetOnUpdate: string | undefined;
+  },
+): void {
+  const { coordinate, onCreate, onUpdate, presetOnCreate, presetOnUpdate } = input;
+  if (onCreate === presetOnCreate && onUpdate === presetOnUpdate) return;
+  throw unsupported(
+    `column ${coordinate} generates ${describePhases(input)}, but field preset ${input.preset} writes ${describePhases({ coordinate, onCreate: presetOnCreate, onUpdate: presetOnUpdate })}, so the written file would read back differently.`,
+    "The printer writes the column's generators as the field preset of its codec, and the preset call it writes selects other generators.",
+    KEEP_SOURCE,
+    { coordinate, onCreate, onUpdate, presetOnCreate, presetOnUpdate },
+  );
+}
+
 export function refuseGeneratorParamsPresetDoesNotWrite(input: {
   readonly coordinate: string;
   readonly preset: string;

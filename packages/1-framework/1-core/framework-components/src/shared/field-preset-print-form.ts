@@ -96,7 +96,7 @@ function fixesOnlyCodecTypeParamsAndGenerators(output: AuthoringFieldPresetOutpu
 }
 
 /**
- * The print form of a preset, read from its `args` and `output`, when the printed call reads back as the same column. That holds when the preset fixes nothing but its codec, its type params and the generators its option arguments select; every argument its output reads is a leading positional argument that writes a type param or a phase's option argument; and every required argument writes a type param, since the printer leaves out a phase the column does not have. Any other preset, such as one with a fixed generator, a database default, an id, `unique` or `nullable`, has none.
+ * The print form of a preset, read from its `args` and `output`, when the printed call reads back as the same column. That holds when the preset fixes nothing but its codec, its type params and the generators its option arguments select; every argument its output reads is a leading positional argument that writes a type param or a phase's option argument; the two phases read different option arguments, since one argument cannot select two generators independently; and every required argument writes a type param, since the printer leaves out a phase the column does not have. Any other preset, such as one with a fixed generator, a database default, an id, `unique` or `nullable`, has none.
  */
 export function fieldPresetPrintForm(
   descriptor: AuthoringFieldPresetDescriptor,
@@ -113,6 +113,9 @@ export function fieldPresetPrintForm(
     return undefined;
   }
   if (onCreate === undefined && onUpdate === undefined) return undefined;
+  if (onCreate !== undefined && onUpdate !== undefined && onCreate.index === onUpdate.index) {
+    return undefined;
+  }
   const writesTypeParam = (index: number) => index < typeParams.length;
   const phaseIndexes = [onCreateTemplate, onUpdateTemplate].flatMap((template) =>
     isAuthoringSelectRef(template) ? [template.index] : [],

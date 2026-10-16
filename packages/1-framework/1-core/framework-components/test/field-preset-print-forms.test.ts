@@ -130,6 +130,30 @@ describe('fieldPresetPrintForm', () => {
     ).toBeUndefined();
   });
 
+  it('has none for a preset whose two phases read the same option argument', () => {
+    expect(
+      fieldPresetPrintForm({
+        kind: 'fieldPreset',
+        args: [{ name: 'stampedOn', kind: 'option', values: ['insert', 'write'], optional: true }],
+        output: {
+          codecId: 'pg/timestamptz@1',
+          executionDefaults: {
+            onCreate: {
+              kind: 'select',
+              index: 0,
+              cases: { insert: { kind: 'generator', id: 'clusterNow' } },
+            },
+            onUpdate: {
+              kind: 'select',
+              index: 0,
+              cases: { write: { kind: 'generator', id: 'clusterNow' } },
+            },
+          },
+        },
+      }),
+    ).toBeUndefined();
+  });
+
   it('has none for a preset with a required argument the printer can leave out', () => {
     const requiredPhase = stamped({ precision: { kind: 'arg', index: 0 } });
     expect(

@@ -19,6 +19,7 @@ import {
   refuseGeneratorOnUpdate,
   refuseGeneratorParamsPresetDoesNotWrite,
   refuseGeneratorsNoPresetWritesTogether,
+  refuseGeneratorsPresetDoesNotWrite,
   refuseGeneratorWithoutPslFunction,
 } from './refusals';
 
@@ -74,6 +75,14 @@ export function buildExecutionDefault(input: {
       typeParams,
       onCreate: onCreateId,
       onUpdate: onUpdateId,
+    });
+    refuseGeneratorsPresetDoesNotWrite({
+      coordinate,
+      preset: preset.path.join('.'),
+      onCreate: onCreateId,
+      onUpdate: onUpdateId,
+      presetOnCreate: written.onCreate?.id,
+      presetOnUpdate: written.onUpdate?.id,
     });
     for (const phase of ['onCreate', 'onUpdate'] as const) {
       const generator = executionDefault[phase];

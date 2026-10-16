@@ -297,6 +297,81 @@ describe('generated values', () => {
     ).toBe('value clock.stamped(6, stampedOn: insert)');
   });
 
+  it('refuses generators the preset call reads back as different generators', () => {
+    const descriptor: AuthoringFieldPresetDescriptor = {
+      kind: 'fieldPreset',
+      args: [{ name: 'stampedOn', kind: 'option', values: ['insert', 'write'], optional: true }],
+      output: {
+        codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+        executionDefaults: {
+          onCreate: {
+            kind: 'select',
+            index: 0,
+            cases: {
+              insert: { kind: 'generator', id: 'clusterNow' },
+              write: { kind: 'generator', id: 'clusterLater' },
+            },
+          },
+          onUpdate: {
+            kind: 'select',
+            index: 0,
+            cases: { write: { kind: 'generator', id: 'clusterUpdate' } },
+          },
+        },
+      },
+    };
+    const phase = (generatorId: string, value: string) => ({
+      argument: 'stampedOn',
+      index: 0,
+      valuesByGenerator: new Map([[generatorId, value]]),
+    });
+    const preset = {
+      path: ['clock', 'shared'],
+      descriptor,
+      printForm: {
+        codecId: PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+        typeParams: [],
+        onCreate: phase('clusterNow', 'insert'),
+        onUpdate: phase('clusterUpdate', 'write'),
+      },
+    };
+    const context: SqlPslBuildContext = {
+      ...testBuildContext(),
+      fieldPresetsByCodecAndGenerator: new Map([
+        [
+          PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
+          new Map([
+            ['clusterNow', preset],
+            ['clusterUpdate', preset],
+          ]),
+        ],
+      ]),
+    };
+    expect(
+      refusalOf(() =>
+        withGenerator(
+          timestamptz,
+          {
+            onCreate: { kind: 'generator', id: 'clusterNow' },
+            onUpdate: { kind: 'generator', id: 'clusterUpdate' },
+          },
+          context,
+        ),
+      ),
+    ).toMatchObject({
+      code: 'CONTRACT.PRINT_UNSUPPORTED',
+      message:
+        'contract print: column "public"."Widget"."value" generates "clusterNow" on create and "clusterUpdate" on update, but field preset clock.shared writes "clusterLater" on create and "clusterUpdate" on update, so the written file would read back differently.',
+      meta: {
+        coordinate: '"public"."Widget"."value"',
+        onCreate: 'clusterNow',
+        onUpdate: 'clusterUpdate',
+        presetOnCreate: 'clusterLater',
+        presetOnUpdate: 'clusterUpdate',
+      },
+    });
+  });
+
   describe('generator params', () => {
     const time3 = {
       dataType: 'pg/time',
