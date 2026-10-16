@@ -17,6 +17,7 @@ import {
   pgTimestamp,
   pgTimestamptz,
   pgTimetz,
+  pgUuid,
   pgVarbit,
   pgVarchar,
 } from '../src/core/data-types';
@@ -272,5 +273,16 @@ describe('a bytea value has one spelling', () => {
 
   it('builds a value from base64 with padding bits set in the base64 it stores', () => {
     expect(pgBytea.valueFrom('AB==', {}).value).toBe('AA==');
+  });
+});
+
+describe('a reader that takes every spelling says what it takes', () => {
+  it('refuses text that is no UUID, describing the spellings PostgreSQL reads', () => {
+    expect(() => pgUuid.fromContract('not-a-uuid', {})).toThrow(
+      expect.objectContaining({
+        message:
+          'pg/uuid JSON value must be a UUID in a spelling PostgreSQL reads: 32 hexadecimal digits in either case, with or without a hyphen after any group of four, optionally in braces',
+      }),
+    );
   });
 });

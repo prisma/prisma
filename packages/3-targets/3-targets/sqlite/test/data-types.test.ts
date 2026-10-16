@@ -154,3 +154,14 @@ describe('the types stored as text', () => {
     );
   });
 });
+
+describe('sqlite/datetime says what it reads', () => {
+  it('refuses text that is no instant, describing the text it reads', () => {
+    expect(() => sqliteDatetime.fromContract('2024-01-01T00:00:00', {})).toThrow(
+      expect.objectContaining({
+        message:
+          'sqlite/datetime JSON value must be ISO 8601 date and time text with a UTC offset and at most three fraction digits, as in "2024-01-01T00:00:00Z"',
+      }),
+    );
+  });
+});

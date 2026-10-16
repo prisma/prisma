@@ -154,7 +154,7 @@ const readDatetime: DataTypeReader = (json) =>
     ? json
     : refuseJsonValue(
         'sqlite/datetime',
-        'an instant in UTC with three fraction digits, as in "2024-01-01T00:00:00.000Z"',
+        'ISO 8601 date and time text with a UTC offset and at most three fraction digits, as in "2024-01-01T00:00:00Z"',
         json,
       );
 

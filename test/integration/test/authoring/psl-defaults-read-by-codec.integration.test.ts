@@ -289,7 +289,7 @@ model Task {
         'an inet member that is not an address',
         '  @@type("pg/inet@1")\n  Low = "not an address"',
         'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" member "Low" was rejected by codec "pg/inet@1": pg/inet JSON value must be an IP address as PostgreSQL writes it',
+        'enum "Priority" member "Low" was rejected by codec "pg/inet@1": pg/inet JSON value must be an IP address or network in a spelling PostgreSQL reads, as in 10.0.0.1 or 2001:db8::/32',
       ],
       [
         'a fraction under an integer codec',

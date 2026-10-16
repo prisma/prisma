@@ -167,7 +167,7 @@ describe('pg/inet@1 contract JSON', () => {
 
   it('refuses text that is not an address', () => {
     expect(() => fromContractJson(codec, 'not an address')).toThrow(
-      'pg/inet JSON value must be an IP address as PostgreSQL writes it',
+      'pg/inet JSON value must be an IP address or network in a spelling PostgreSQL reads, as in 10.0.0.1 or 2001:db8::/32',
     );
   });
 });

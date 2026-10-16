@@ -105,7 +105,7 @@ withTempDir(({ createTempDir }) => {
         expect(await runMigrationTs(ctx, packageDir)).toEqual({
           exitCode: 1,
           firstErrorLine:
-            'CONTRACT.DEFAULT_INVALID: Column "Note"."at" has a default its codec sqlite/datetime@1 refuses: sqlite/datetime JSON value must be an instant in UTC with three fraction digits, as in "2024-01-01T00:00:00.000Z"',
+            'CONTRACT.DEFAULT_INVALID: Column "Note"."at" has a default its codec sqlite/datetime@1 refuses: sqlite/datetime JSON value must be ISO 8601 date and time text with a UTC offset and at most three fraction digits, as in "2024-01-01T00:00:00Z"',
         });
       },
       timeouts.spinUpPpgDev,

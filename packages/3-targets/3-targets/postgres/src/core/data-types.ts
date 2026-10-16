@@ -256,7 +256,7 @@ const readUuid: DataTypeReader = (json) =>
     ? json
     : refuseJsonValue(
         'pg/uuid',
-        'a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12',
+        'a UUID in a spelling PostgreSQL reads: 32 hexadecimal digits in either case, with or without a hyphen after any group of four, optionally in braces',
         json,
       );
 
@@ -268,7 +268,11 @@ const spellUuid: DataTypeSpelling = (json) =>
 const readInet: DataTypeReader = (json) =>
   typeof json === 'string' && storedInet(json) !== undefined
     ? json
-    : refuseJsonValue('pg/inet', 'an IP address as PostgreSQL writes it', json);
+    : refuseJsonValue(
+        'pg/inet',
+        'an IP address or network in a spelling PostgreSQL reads, as in 10.0.0.1 or 2001:db8::/32',
+        json,
+      );
 
 /** An address is stored as PostgreSQL prints it. */
 const spellInet: DataTypeSpelling = (json) =>
