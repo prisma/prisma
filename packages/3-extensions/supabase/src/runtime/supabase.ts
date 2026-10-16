@@ -1,6 +1,5 @@
 import postgresAdapter from '@internal/adapter-postgres/runtime';
 import type { Contract } from '@internal/contract/types';
-import { validateContractOnce } from '@internal/contract/validate-once';
 import postgresDriver, { suppressIdleConnectionErrors } from '@internal/driver-postgres/runtime';
 import { instantiateExecutionStack } from '@internal/framework-components/execution';
 import type {
@@ -11,6 +10,7 @@ import {
   buildNamespacedNativeEnums,
   isPgPool,
   type NamespacedNativeEnums,
+  validatePostgresContract,
 } from '@internal/postgres/runtime';
 import { createRawLane, sql } from '@internal/sql-builder/runtime';
 import type { Db, RawLane } from '@internal/sql-builder/types';
@@ -148,16 +148,6 @@ export type SupabaseOptions<TContract extends Contract<SqlStorage>> = SupabaseBi
 
 const contractSerializer = new PostgresContractSerializer();
 
-function validateApplicationContract<TContract extends Contract<SqlStorage>>(
-  contract: TContract,
-): TContract {
-  return validateContractOnce(contract, postgresTarget.targetId, () =>
-    contractSerializer.deserializeContract<TContract>(
-      contractSerializer.serializeContract(contract),
-    ),
-  );
-}
-
 function resolveKeyMaterial<TContract extends Contract<SqlStorage>>(
   options: SupabaseOptions<TContract>,
 ): KeyMaterial {
@@ -288,7 +278,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
   options: SupabaseOptions<TContract>,
 ): Promise<SupabaseDb<TContract>> {
   const keyMaterial = resolveKeyMaterial(options);
-  const contract = validateApplicationContract(options.contract);
+  const contract = validatePostgresContract(options.contract);
 
   const stack = createSqlExecutionStack({
     target: postgresTarget,

@@ -1,3 +1,4 @@
+import postgres from '@internal/postgres/runtime';
 import { contractFromJson } from '@internal/postgres/static';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { PostgresContractSerializer } from '@internal/target-postgres/runtime';
@@ -30,6 +31,17 @@ describe('supabase() and a contract value', () => {
     expect(applicationContractValidations()).toBe(0);
     expect(first.context.contract.storage).toBe(contract.storage);
     expect(second.context.contract.storage).toBe(contract.storage);
+  });
+
+  it('validates once a contract a Postgres client and a Supabase client share', async () => {
+    const applicationContractValidations = spyOnApplicationContractValidation();
+    const authored = createContract<SqlStorage>();
+
+    const db = postgres({ contract: authored });
+    const supabaseDb = await supabase({ contract: authored, jwtSecret });
+
+    expect(applicationContractValidations()).toBe(1);
+    expect(supabaseDb.context.contract.storage).toBe(db.contract.storage);
   });
 
   it('validates a TypeScript-authored contract once', async () => {
