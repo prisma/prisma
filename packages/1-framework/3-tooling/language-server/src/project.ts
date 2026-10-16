@@ -85,7 +85,6 @@ export class Project {
   #watchInputs: readonly string[] | undefined;
   #watcher: Disposable | undefined;
   #internalWatcher: InternalWatcher | undefined;
-  readonly #diskUris = new Set<string>();
   #refreshNeeded = false;
   #configReloadNeeded = false;
   #batchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -395,8 +394,8 @@ export class Project {
       this.#state.data === project &&
       this.#membershipSequence === sequence;
     if (project === undefined || !isCurrent()) return false;
-    const nextInputs = await resolveSchemaInputs(project.schemaInputConfig, (candidate) =>
-      this.#readText(candidate),
+    const nextInputs = await resolveSchemaInputs(project.schemaInputConfig, (uri) =>
+      this.#options.documents.text(uri),
     );
     if (!isCurrent()) return false;
     project.artifacts.updateInputs(nextInputs);
@@ -460,14 +459,13 @@ export class Project {
   }
 
   async #load(): Promise<ResolvedProject> {
-    const resolution = await resolveConfigInputs(this.configPath, (uri) => this.#readText(uri));
+    const resolution = await resolveConfigInputs(this.configPath, (uri) =>
+      this.#options.documents.text(uri),
+    );
     const artifacts = new ProjectArtifacts({
       controlStack: resolution.controlStack,
       inputs: resolution.inputs,
-      readSnapshot: (uri) => {
-        this.#diskUris.add(uri);
-        return this.#options.documents.readSnapshot(uri);
-      },
+      readSnapshot: this.#options.documents.readSnapshot,
       onInterpretationError: (uri, error) => {
         const detail = error instanceof Error ? (error.stack ?? error.message) : String(error);
         this.#options.connection.console.error(`PSL interpretation failed for ${uri}: ${detail}`);
@@ -482,16 +480,9 @@ export class Project {
     return { ...resolution, artifacts };
   }
 
-  #readText(uri: string): string | undefined {
-    this.#diskUris.add(uri);
-    return this.#options.documents.text(uri);
-  }
-
   #invalidateSnapshots(): void {
-    for (const uri of this.#diskUris) {
-      this.#options.documents.invalidate(uri);
-      this.documentChanged(uri);
-    }
+    this.#options.documents.clearDiskCache();
+    this.artifacts?.clear();
   }
 
   #watchError(error: unknown): void {

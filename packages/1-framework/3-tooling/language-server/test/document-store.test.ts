@@ -184,6 +184,26 @@ describe('document store', () => {
       expect(store.readSnapshot(file.uri)).not.toBe(second);
     });
 
+    it('clears all disk snapshots while preserving overlay documents and snapshots', async () => {
+      const disk = await fixtureFile('first');
+      const removed = await fixtureFile('removed');
+      const overlay = await fixtureFile('saved');
+      const store = new DocumentStore();
+      const first = store.readSnapshot(disk.uri);
+      expect(store.text(removed.uri)).toBe('removed');
+      const document = open(store, overlay.uri, 'unsaved');
+      const snapshot = store.readSnapshot(overlay.uri);
+      await writeFile(disk.path, 'second');
+      await rm(removed.path);
+      store.clearDiskCache();
+      expect(store.readSnapshot(disk.uri)).not.toBe(first);
+      expect(store.text(disk.uri)).toBe('second');
+      expect(store.text(removed.uri)).toBeUndefined();
+      expect(store.getOpenDocument(overlay.uri)).toBe(document);
+      expect(store.readSnapshot(overlay.uri)).toBe(snapshot);
+      expect(store.openDocuments()).toEqual([document]);
+    });
+
     it('normalizes disk snapshots independently of the first URI read', async () => {
       const file = await fixtureFile('disk');
       const alias = file.uri.replace('member.prisma', '%6dember.prisma');

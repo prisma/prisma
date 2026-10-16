@@ -66,6 +66,12 @@ export class DocumentStore {
     return fresh.snapshot;
   };
 
+  clearDiskCache(): void {
+    for (const [identity, entry] of this.entries) {
+      if (entry.origin === 'disk') this.entries.delete(identity);
+    }
+  }
+
   invalidate(uri: string): void {
     const identity = canonicalFileIdentity(uri);
     if (this.entries.get(identity)?.origin === 'disk') {

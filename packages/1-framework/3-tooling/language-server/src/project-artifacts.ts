@@ -114,6 +114,11 @@ export class ProjectArtifacts {
     return this.#binderResult;
   }
 
+  clear(): void {
+    this.#documents.clear();
+    this.#refreshSources();
+  }
+
   documentChanged = (uri: string): void => this.#drop(uri);
 
   documentClosed = this.documentChanged;

@@ -158,6 +158,26 @@ function projectWithSnapshots(
 }
 
 describe('ProjectArtifacts binder', () => {
+  it('clears documents and all analysis while retaining current inputs', () => {
+    const { interpretation, spy } = interpretationDouble(() => ok({} as never));
+    const { project, set } = projectWithSnapshots(interpretation, true);
+    const snapshot = set(schemaUri, cleanSource);
+    set(siblingUri, siblingSource);
+    project.updateInputs(inputs);
+    expect(project.diagnostics(schemaUri)).toEqual([]);
+    const symbols = project.symbolTable();
+    const binder = project.binder();
+    const sources = project.sources;
+    expect(spy).toHaveBeenCalledOnce();
+    project.clear();
+    expect(project.sources).not.toBe(sources);
+    expect(project.documents()).toEqual([snapshot]);
+    expect(project.symbolTable()).not.toBe(symbols);
+    expect(project.binder()).not.toBe(binder);
+    expect(project.diagnostics(schemaUri)).toEqual([]);
+    expect(spy).toHaveBeenCalledTimes(2);
+  });
+
   it('rebuilds the binder on edits and takes contributed types from the configuration', () => {
     const first = projectWithSnapshots();
     first.set(schemaUri, cleanSource);

@@ -80,7 +80,11 @@ vi.mock('../src/config-resolution', async (importOriginal) => {
 const cleanups: (() => void | Promise<void>)[] = [];
 const alpha = '// use prisma-8\nmodel Alpha {\n id Int\n}\n';
 const duplicate = `${alpha}\nmodel Alpha {\n id Int\n}\n`;
-async function fixture(watched = false, protocolRegistration = false) {
+async function fixture(
+  watched = false,
+  protocolRegistration = false,
+  documents = new DocumentStore(),
+) {
   const dir = await mkdtemp(join(tmpdir(), 'project-watching-'));
   const path = join(dir, 'schema.prisma');
   const config = join(dir, 'prisma.config.ts');
@@ -97,7 +101,6 @@ async function fixture(watched = false, protocolRegistration = false) {
   const register =
     vi.fn<() => Promise<{ dispose: () => void; disposeSingle: () => boolean } | undefined>>();
   const request = vi.spyOn(connection, 'sendRequest');
-  const documents = new DocumentStore();
   let sequence = 0;
   const refresh = vi.fn();
   const project = new Project(config, {
@@ -295,6 +298,71 @@ it('invalidates every project candidate even when only another path is notified'
   );
 });
 
+it('drops removed candidates across file churn and rereads rejected directives', async () => {
+  const h = await fixture();
+  const candidate = join(h.dir, 'candidate.prisma');
+  const candidateUri = pathToFileURL(candidate).toString();
+  await writeFile(candidate, 'model Ignored {}');
+  await h.project.reload();
+  expect(h.documents.text(candidateUri)).toBe('model Ignored {}');
+  await rm(candidate);
+  state.watchers[0]!.onChange(candidate);
+  await vi.waitFor(() => expect(h.refresh).toHaveBeenCalledOnce());
+  expect(h.documents.text(candidateUri)).toBeUndefined();
+  await writeFile(candidate, duplicate);
+  state.watchers[0]!.onChange(candidate);
+  await vi.waitFor(() => expect(h.refresh).toHaveBeenCalledTimes(2));
+  expect(await h.project.diagnosticReport(candidateUri)).toMatchObject({
+    items: expect.arrayContaining([expect.objectContaining({ code: 'PSL_DUPLICATE_DECLARATION' })]),
+  });
+});
+
+it('failed reload retains configuration but rereads disk and preserves overlays', async () => {
+  const h = await fixture();
+  const overlayPath = join(h.dir, 'overlay.prisma');
+  const overlayUri = pathToFileURL(overlayPath).toString();
+  await writeFile(overlayPath, 'model Ignored {}');
+  h.documents.open({
+    uri: overlayUri,
+    text: '// use prisma-8\nmodel Other { id Int }',
+    version: 1,
+    languageId: 'prisma',
+  });
+  await h.project.reload();
+  const artifacts = h.project.artifacts!;
+  const binder = artifacts.binder();
+  const overlay = h.documents.readSnapshot(overlayUri);
+  await writeFile(h.path, duplicate);
+  state.loadError = new Error('invalid config');
+  await h.project.reload();
+  expect(h.project.artifacts).toBe(artifacts);
+  expect(artifacts.binder()).not.toBe(binder);
+  expect(h.documents.readSnapshot(overlayUri)).toBe(overlay);
+  expect(await h.project.diagnosticReport(h.uri)).toMatchObject({
+    items: expect.arrayContaining([expect.objectContaining({ code: 'PSL_DUPLICATE_DECLARATION' })]),
+  });
+});
+
+it('clears shared disk entries without clearing other project analysis or overlays', async () => {
+  const first = await fixture();
+  const second = await fixture(false, false, first.documents);
+  await first.project.reload();
+  await second.project.reload();
+  const otherArtifacts = second.project.artifacts!;
+  const clear = vi.spyOn(otherArtifacts, 'clear');
+  const before = first.documents.readSnapshot(second.uri);
+  const overlayUri = pathToFileURL(join(second.dir, 'overlay.prisma')).toString();
+  first.documents.open({ uri: overlayUri, text: alpha, version: 1, languageId: 'prisma' });
+  const overlay = first.documents.readSnapshot(overlayUri);
+  state.watchers[0]!.onChange(first.path);
+  await vi.waitFor(() => expect(first.refresh).toHaveBeenCalledOnce());
+  expect(second.project.artifacts).toBe(otherArtifacts);
+  expect(clear).not.toHaveBeenCalled();
+  expect(first.documents.readSnapshot(second.uri)).not.toBe(before);
+  expect(first.documents.readSnapshot(second.uri)?.text).toBe(alpha);
+  expect(first.documents.readSnapshot(overlayUri)).toBe(overlay);
+});
+
 it('keeps existing subscriptions after failed reloads and updates only changed inputs', async () => {
   const h = await fixture();
   await h.project.reload();
@@ -325,7 +393,7 @@ it('batches multiple files after 100 ms of silence following the last notificati
   const h = await fixture();
   await h.project.reload();
   const membership = vi.spyOn(h.project, 'refreshMembership').mockResolvedValue(true);
-  const invalidate = vi.spyOn(h.documents, 'invalidate');
+  const invalidate = vi.spyOn(h.documents, 'clearDiskCache');
   const other = join(h.dir, 'other.prisma');
   vi.useFakeTimers();
   try {
@@ -340,7 +408,7 @@ it('batches multiple files after 100 ms of silence following the last notificati
     expect(invalidate).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
     expect(membership).toHaveBeenCalledOnce();
-    expect(invalidate.mock.calls).toEqual([[h.uri]]);
+    expect(invalidate.mock.calls).toEqual([[]]);
     expect(h.refresh).toHaveBeenCalledOnce();
   } finally {
     vi.useRealTimers();
@@ -360,7 +428,7 @@ it('queues multiple files and readiness received during analysis for a later bat
           finish = resolve;
         }),
     );
-  const invalidate = vi.spyOn(h.documents, 'invalidate');
+  const invalidate = vi.spyOn(h.documents, 'clearDiskCache');
   const other = join(h.dir, 'other.prisma');
   vi.useFakeTimers();
   try {
@@ -381,7 +449,7 @@ it('queues multiple files and readiness received during analysis for a later bat
     expect(membership).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(1);
     expect(membership).toHaveBeenCalledTimes(2);
-    expect(invalidate.mock.calls).toEqual([[h.uri]]);
+    expect(invalidate.mock.calls).toEqual([[]]);
     expect(h.refresh).toHaveBeenCalledTimes(2);
   } finally {
     vi.useRealTimers();
