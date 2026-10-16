@@ -154,7 +154,7 @@ authoring: {
 
 `parse` turns the written text into a value of the type and refuses text it cannot read; `print` writes a value back. A value is written in one of two ways.
 
-**With a tag**, for a value whose text has its own grammar: a JSON document, a date or time, an interval, bytes, a geometry. A tag is a qualified name followed by a string in any of PSL's quote styles; the body between the quotes is canonicalised into text as [ADR 129](ADR%20129%20-%20Template-Tagged%20Literals%20for%20Extensions.md) describes. A tag is unprefixed when its data type is owned by the family or a target, and every other owner prefixes its tags with its own namespace:
+**With a tag**, for a value whose text has its own grammar: a JSON document, a date or time, an interval, bytes. A tag is a qualified name followed by a string in any of PSL's quote styles; the body between the quotes is canonicalised into text as [ADR 129](ADR%20129%20-%20Template-Tagged%20Literals%20for%20Extensions.md) describes. A tag is unprefixed when its data type is owned by the family or a target, and every other owner prefixes its tags with its own namespace:
 
 | Tag | Data type | Registered by |
 | --- | --- | --- |
@@ -163,7 +163,6 @@ authoring: {
 | `date`, `time`, `timetz`, `timestamp`, `timestamptz`, `interval` | the Postgres type of the same name | the Postgres target |
 | `bytea` | `pg/bytea`; the body is the hex text PostgreSQL prints, `` bytea`\x68656c6c6f` `` | the Postgres target |
 | `datetime` | `sqlite/datetime` | the SQLite target |
-| `postgis.geometry` | `postgis/geometry` | the postgis extension |
 
 **Plainly**, for the three pieces of syntax the interpreter reads without a tag: a quoted string, `true` or `false`, and a number. Each target says which of its types they are. A number is the one plain kind that yields several types, so the target's number entry carries a **classifier** in place of `parse`: it picks the type from the digits and returns a value of that type. Beside it, `types` lists every type the classifier can return, which is how assembly knows those types can be written.
 
@@ -353,7 +352,7 @@ A family may add checks for its own data types. The SQL family runs four when it
 
 ## Adding a type
 
-A pack that owns a database type registers it once: the data type, with its names, parameters and casts; the codecs that represent it; the type constructor that names it in PSL; and, if its values are written in PSL, the authoring entry with its tag, `parse`, `print` and documentation. For a SQL target's types, the target and its adapter are the owner together: the target registers the data types and the authoring entries, contributes the type constructors that are also TypeScript `type.*` helpers (`BigIntNumber`, `UnboundedInt`, `pg.enum`) and defines its PSL-only constructors; the adapter registers the codecs and contributes the PSL-only constructors, so they do not become `type.*` helpers of the TypeScript builder ([ADR 241](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md)). Nothing in the interpreter, the planner, the printer, the language server or the readers changes. A geometry type with a WKT tag is the model case:
+A pack that owns a database type registers it once: the data type, with its names, parameters and casts; the codecs that represent it; the type constructor that names it in PSL; and, if its values are written in PSL, the authoring entry with its tag, `parse`, `print` and documentation. For a SQL target's types, the target and its adapter are the owner together: the target registers the data types and the authoring entries, contributes the type constructors that are also TypeScript `type.*` helpers (`BigIntNumber`, `UnboundedInt`, `pg.enum`) and defines its PSL-only constructors; the adapter registers the codecs and contributes the PSL-only constructors, so they do not become `type.*` helpers of the TypeScript builder ([ADR 241](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md)). Nothing in the interpreter, the planner, the printer, the language server or the readers changes. A tag for geometry written as WKT is the model case. The postgis extension does not register one today; this is how it would be written:
 
 ```prisma
 model Place {
