@@ -210,7 +210,7 @@ class ExposedMigration extends PostgresMigration<Contract, Contract> {
   }
 
   callSetDefault(options: {
-    readonly schema?: string;
+    readonly schema: string;
     readonly table: string;
     readonly column: DdlColumn;
   }): Promise<Op> {
@@ -671,11 +671,10 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     expect(op.operationClass).toBe('widening');
   });
 
-  it('setDefault without a schema is widening when the default namespace start column has a default', async () => {
-    const { schema: _schema, ...unqualified } = CHANGED_TO_TWO;
+  it('setDefault in the unbound namespace is widening when the default namespace start column has a default', async () => {
     const op = await migrationStartingFrom(
       boxContract({ kind: 'literal', value: 1 }, UNBOUND_NAMESPACE_ID),
-    ).callSetDefault(unqualified);
+    ).callSetDefault({ ...CHANGED_TO_TWO, schema: UNBOUND_NAMESPACE_ID });
 
     expect(op.operationClass).toBe('widening');
   });

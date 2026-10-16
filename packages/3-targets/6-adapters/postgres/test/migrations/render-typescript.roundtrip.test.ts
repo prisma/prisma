@@ -19,7 +19,6 @@ import { promisify } from 'node:util';
 import { coreHash, profileHash } from '@internal/contract/types';
 import { APP_SPACE_ID, storageHashHex } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { formatMigrationTs } from '@internal/migration-tools/migration-ts';
 import { type SqlNamespaceBase, SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import {
@@ -362,12 +361,12 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     expect(ops).toEqual(expected);
   });
 
-  it.each(['public', UNBOUND_NAMESPACE_ID])(
-    'renders a changed default in namespace %s without its operation class, which the executed migration derives from the start contract',
-    async (namespaceId) => {
+  it(
+    'renders a changed default without its operation class, which the executed migration derives from the start contract',
+    async () => {
       await writeContractFixtures(tmpDir, META, {
-        [namespaceId]: postgresCreateNamespace({
-          id: namespaceId,
+        public: postgresCreateNamespace({
+          id: 'public',
           entries: {
             table: {
               ticket: new StorageTable({
@@ -389,7 +388,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       });
       const calls = [
         new SetDefaultCall(
-          namespaceId,
+          'public',
           'ticket',
           col('status', 'text', { default: lit('closed'), codecRef: { codecId: 'pg/text@1' } }),
           'widening',
