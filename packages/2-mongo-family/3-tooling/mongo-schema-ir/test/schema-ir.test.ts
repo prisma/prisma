@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalize } from '../src/canonicalize';
-import { indexesEquivalent } from '../src/index-equivalence';
+import { indexLookupKey } from '../src/index-equivalence';
 import { MongoSchemaCollection } from '../src/schema-collection';
 import { MongoSchemaCollectionOptions } from '../src/schema-collection-options';
 import { MongoSchemaIndex } from '../src/schema-index';
@@ -230,7 +230,11 @@ describe('MongoSchemaCollection with validator and options', () => {
   });
 });
 
-describe('indexesEquivalent', () => {
+function sameIndex(a: MongoSchemaIndex, b: MongoSchemaIndex): boolean {
+  return indexLookupKey(a) === indexLookupKey(b);
+}
+
+describe('indexLookupKey identifies an index', () => {
   it('returns true for identical indexes', () => {
     const a = new MongoSchemaIndex({
       keys: [{ field: 'email', direction: 1 }],
@@ -240,7 +244,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'email', direction: 1 }],
       unique: true,
     });
-    expect(indexesEquivalent(a, b)).toBe(true);
+    expect(sameIndex(a, b)).toBe(true);
   });
 
   it('returns false for different keys', () => {
@@ -250,7 +254,7 @@ describe('indexesEquivalent', () => {
     const b = new MongoSchemaIndex({
       keys: [{ field: 'name', direction: 1 }],
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different directions', () => {
@@ -260,7 +264,7 @@ describe('indexesEquivalent', () => {
     const b = new MongoSchemaIndex({
       keys: [{ field: 'email', direction: -1 }],
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different key order in compound index', () => {
@@ -276,7 +280,7 @@ describe('indexesEquivalent', () => {
         { field: 'a', direction: 1 },
       ],
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different key counts', () => {
@@ -289,7 +293,7 @@ describe('indexesEquivalent', () => {
         { field: 'b', direction: 1 },
       ],
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different unique', () => {
@@ -300,7 +304,7 @@ describe('indexesEquivalent', () => {
     const b = new MongoSchemaIndex({
       keys: [{ field: 'email', direction: 1 }],
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different sparse', () => {
@@ -311,7 +315,7 @@ describe('indexesEquivalent', () => {
     const b = new MongoSchemaIndex({
       keys: [{ field: 'email', direction: 1 }],
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different expireAfterSeconds', () => {
@@ -323,7 +327,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'ts', direction: 1 }],
       expireAfterSeconds: 7200,
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different partialFilterExpression', () => {
@@ -335,7 +339,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'status', direction: 1 }],
       partialFilterExpression: { active: false },
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('treats two indexes without partialFilterExpression as equivalent', () => {
@@ -345,7 +349,7 @@ describe('indexesEquivalent', () => {
     const b = new MongoSchemaIndex({
       keys: [{ field: 'email', direction: 1 }],
     });
-    expect(indexesEquivalent(a, b)).toBe(true);
+    expect(sameIndex(a, b)).toBe(true);
   });
 
   it('compares nested partialFilterExpression deeply', () => {
@@ -358,7 +362,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'status', direction: 1 }],
       partialFilterExpression: { ...filter },
     });
-    expect(indexesEquivalent(a, b)).toBe(true);
+    expect(sameIndex(a, b)).toBe(true);
   });
 
   it('returns false for different wildcardProjection', () => {
@@ -370,7 +374,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: '$**', direction: 1 }],
       wildcardProjection: { email: 1 },
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns true for same wildcardProjection', () => {
@@ -382,7 +386,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: '$**', direction: 1 }],
       wildcardProjection: { name: 1, email: 1 },
     });
-    expect(indexesEquivalent(a, b)).toBe(true);
+    expect(sameIndex(a, b)).toBe(true);
   });
 
   it('returns false for different collation', () => {
@@ -394,7 +398,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'name', direction: 1 }],
       collation: { locale: 'fr', strength: 2 },
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns true for same collation', () => {
@@ -406,7 +410,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'name', direction: 1 }],
       collation: { locale: 'en', strength: 2 },
     });
-    expect(indexesEquivalent(a, b)).toBe(true);
+    expect(sameIndex(a, b)).toBe(true);
   });
 
   it('returns false for different weights', () => {
@@ -418,7 +422,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'bio', direction: 'text' }],
       weights: { bio: 5 },
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different default_language', () => {
@@ -430,7 +434,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'bio', direction: 'text' }],
       default_language: 'french',
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('returns false for different language_override', () => {
@@ -442,7 +446,7 @@ describe('indexesEquivalent', () => {
       keys: [{ field: 'bio', direction: 'text' }],
       language_override: 'language',
     });
-    expect(indexesEquivalent(a, b)).toBe(false);
+    expect(sameIndex(a, b)).toBe(false);
   });
 
   it('treats object-valued options with different key order as equivalent', () => {
@@ -460,7 +464,7 @@ describe('indexesEquivalent', () => {
       weights: { body: 5, title: 10 },
       wildcardProjection: { email: 1, name: 1 },
     });
-    expect(indexesEquivalent(a, b)).toBe(true);
+    expect(sameIndex(a, b)).toBe(true);
   });
 });
 

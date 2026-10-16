@@ -93,6 +93,7 @@ import {
   isPostgresDateTimeDataType,
   postgresDateTimeDdlText,
 } from '@internal/target-postgres/planner-ddl-builders';
+import { POLICY_COMMAND_SQL, policyRoleList } from '@internal/target-postgres/rls-canonicalize';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import {
   PostgresDatabaseSchemaNode,
@@ -2082,19 +2083,11 @@ type MarkerUpsertSchema = {
   readonly invariants: ColumnDescriptor;
 };
 
-const POLICY_OPERATION_SQL: Record<RlsPolicyOperation, string> = {
-  select: 'SELECT',
-  insert: 'INSERT',
-  update: 'UPDATE',
-  delete: 'DELETE',
-  all: 'ALL',
-};
-
 function pgRenderCreatePolicy(node: PostgresCreatePolicy): SqlExecuteRequest {
   const tableRef = `${quoteIdentifier(node.schema)}.${quoteIdentifier(node.table)}`;
   const permissiveness = node.permissive ? 'PERMISSIVE' : 'RESTRICTIVE';
-  const command = POLICY_OPERATION_SQL[node.operation];
-  const roles = node.roles.length === 0 ? 'PUBLIC' : node.roles.join(', ');
+  const command = POLICY_COMMAND_SQL[node.operation];
+  const roles = policyRoleList(node.roles).join(', ');
   let sql = `CREATE POLICY ${quoteIdentifier(node.name)} ON ${tableRef} AS ${permissiveness} FOR ${command} TO ${roles}`;
   if (node.using !== undefined) {
     sql += ` USING (${renderOpaqueSql(node.using)})`;

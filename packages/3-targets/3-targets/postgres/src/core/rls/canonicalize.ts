@@ -20,6 +20,20 @@ export const POLICY_OPERATION_PREDICATES: Readonly<
   all: { using: true, withCheck: true },
 };
 
+/** The command `CREATE POLICY … FOR <command>` names for each operation, which `pg_policies.cmd` prints back. */
+export const POLICY_COMMAND_SQL: Readonly<Record<RlsPolicyOperation, string>> = {
+  select: 'SELECT',
+  insert: 'INSERT',
+  update: 'UPDATE',
+  delete: 'DELETE',
+  all: 'ALL',
+};
+
+/** The roles `CREATE POLICY … TO <roles>` names: the policy's roles, or `PUBLIC` when it has none. */
+export function policyRoleList(roles: readonly string[]): readonly string[] {
+  return roles.length === 0 ? ['PUBLIC'] : roles;
+}
+
 export interface ContentHashParts {
   readonly using?: string;
   readonly withCheck?: string;

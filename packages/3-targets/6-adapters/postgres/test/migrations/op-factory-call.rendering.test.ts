@@ -14,7 +14,7 @@
  * op-factory-call.lowering.test.ts.
  */
 
-import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { col, fn, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
@@ -24,6 +24,7 @@ import {
   CreateTableCall,
   DataTransformCall,
   DropTableCall,
+  SetDefaultCall,
 } from '@internal/target-postgres/op-factory-call';
 import { renderCallsToTypeScript } from '@internal/target-postgres/render-typescript';
 import { describe, expect, it } from 'vitest';
@@ -36,6 +37,25 @@ const META = {
   to: TO_HEX,
   snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
 } as const;
+
+describe('Postgres call classes - SetDefaultCall rendering', () => {
+  it('SetDefaultCall emits this.setDefault({...}) with the column and never the operation class', () => {
+    const column = col('created_at', 'timestamptz', { default: fn('now()') });
+    const additive = new SetDefaultCall('public', 'user', column, 'additive');
+    const widening = new SetDefaultCall('public', 'user', column, 'widening');
+    expect({
+      additive: additive.renderTypeScript(),
+      widening: widening.renderTypeScript(),
+      imports: additive.importRequirements().map((requirement) => requirement.symbol),
+    }).toEqual({
+      additive:
+        'this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql`now()`) }) })',
+      widening:
+        'this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql`now()`) }) })',
+      imports: ['col', 'fn', 'sql'],
+    });
+  });
+});
 
 describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   const migrationModule = '@internal/postgres/migration';
@@ -84,7 +104,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   });
 
   it('AddColumnCall emits this.addColumn({...}) and imports col', () => {
-    const call = new AddColumnCall('public', 'user', col('email', 'text'));
+    const call = new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes);
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("email", "text") })',
     );
@@ -96,7 +116,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   it('AddColumnCall includes codecRef in the rendered col() call when present', () => {
     const codecRef = { codecId: 'pg/uuid@1' };
     const column = col('id', 'uuid', { codecRef });
-    const call = new AddColumnCall('public', 'user', column);
+    const call = new AddColumnCall('public', 'user', column, postgresDataTypes);
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("id", "uuid", { codecRef: { codecId: "pg/uuid@1" } }) })',
     );
@@ -105,6 +125,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
       'public',
       'user',
       col('data', 'jsonb', { codecRef: { codecId: 'pg/json@1', typeParams: { schema: 'v1' } } }),
+      postgresDataTypes,
     );
     expect(callWithTypeParams.renderTypeScript()).toContain(
       'codecRef: { codecId: "pg/json@1", typeParams: { schema: "v1" } }',
@@ -124,12 +145,13 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   });
 
   it('AddColumnCall without codecRef renders col() with no codecRef property', () => {
-    const call = new AddColumnCall('public', 'user', col('score', 'integer'));
+    const call = new AddColumnCall('public', 'user', col('score', 'integer'), postgresDataTypes);
     expect(call.renderTypeScript()).not.toContain('codecRef');
   });
 
   const alterAge = (using?: { readonly kind: 'sql'; readonly sql: string }) =>
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'user',
       columnName: 'age',
@@ -174,7 +196,7 @@ describe('renderCallsToTypeScript', () => {
     const calls = [
       new CreateTableCall('public', 'user', [col('id', 'text', { notNull: true })]),
       new DropTableCall('public', 'old_user'),
-      new AddColumnCall('public', 'user', col('email', 'text')),
+      new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes),
       new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] }),
     ];
 

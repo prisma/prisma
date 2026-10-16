@@ -16,7 +16,11 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { sqliteError } from '../errors';
-import { type SqliteColumnSpec, sqliteDefaultToDdlColumnDefault } from './operations/shared';
+import {
+  INLINE_AUTOINCREMENT_PRIMARY_KEY,
+  type SqliteColumnSpec,
+  sqliteDefaultToDdlColumnDefault,
+} from './operations/shared';
 import { buildColumnTypeSql } from './planner-ddl-builders';
 
 /**
@@ -136,7 +140,10 @@ export function ddlColumnFromNode(
     // to suppress the normal NOT NULL / PRIMARY KEY / DEFAULT clause rendering
     // and emit the entire type string verbatim. Both sites must stay in sync.
     // The structural fix (a SQLite-specific column option) is tracked in TML-2866.
-    return new DdlColumn({ name: column.name, type: `${typeSql} PRIMARY KEY AUTOINCREMENT` });
+    return new DdlColumn({
+      name: column.name,
+      type: `${typeSql}${INLINE_AUTOINCREMENT_PRIMARY_KEY}`,
+    });
   }
   const colDefault = sqliteDefaultToDdlColumnDefault(like.default);
   return new DdlColumn({
