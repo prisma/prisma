@@ -4,7 +4,7 @@
 
 This page lists the projects in priority order, by stream. Work the streams in parallel. Inside a stream, work from the top. The reasons behind each decision are in [decisions.md](decisions.md). The pull requests and tickets behind each status are in [evidence.md](evidence.md), one entry per row.
 
-**GA column:** **Must** means GA does not ship without it. **Aim** means wanted at GA, but it can ship just after. **Later** means after GA. **Not decided** means Will has not placed it yet.
+**GA column:** **Must** means GA does not ship without it. **Aim** means wanted at GA, but it can ship just after. **Later** means after GA. **Not decided** means Will has not placed it yet. A project that has started is Must, whatever it was placed as before (Will, 2026-10-16).
 
 **Owner column:** who answers for the row. Streams 1, 2 and 5 are Will's and streams 3 and 4 are Serhii's, except where a row says otherwise (Will, 2026-10-07).
 
@@ -21,9 +21,9 @@ Counts the projects marked Must in each stream. A project counts as done only wh
 | Foundations and breaking changes | 2 of 7 (29%) | `███░░░░░░░` | 4 | 1 |
 | Upgrade path from Prisma 7 | 1 of 7 (14%) | `█░░░░░░░░░` | 3 | 3 |
 | Editor and tools | 1 of 4 (25%) | `██░░░░░░░░` | 2 | 1 |
-| Query features | 1 of 3 (33%) | `███░░░░░░░` | 0 | 2 |
-| Docs and the new user's first hour | 1 of 4 (25%) | `██░░░░░░░░` | 2 | 1 |
-| **All streams** | **6 of 25 (24%)** | `██░░░░░░░░` | **11** | **8** |
+| Query features | 6 of 11 (55%) | `██████░░░░` | 3 | 2 |
+| Docs and the new user's first hour | 1 of 5 (20%) | `██░░░░░░░░` | 3 | 1 |
+| **All streams** | **11 of 34 (32%)** | `███░░░░░░░` | **15** | **8** |
 
 ## Stream 1: Foundations and breaking changes
 
@@ -74,7 +74,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 
 ## Stream 4: Query features
 
-**GA readiness:** 1 of 3 Must projects done (33%). 0 in progress, 2 not started.
+**GA readiness:** 6 of 11 Must projects done (55%). 3 in progress, 2 not started.
 
 Everything here is additive, so nothing here can block a breaking change.
 
@@ -82,26 +82,22 @@ Everything here is additive, so nothing here can block a breaking change.
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | ⏳ | Transaction options: isolation levels and timeouts | Must | Serhii | Not designed. A stale draft exists |  |
 | 1b | ⏳ | Nested transactions | Must | Serhii | Not designed |  |
-| 2 | 🔄 0/5 | Nested writes on relations: `update`, `delete`, `upsert`, `set`, `connectOrCreate` | Aim | Serhii | Every top-level write runs through one mutation graph. A PR moving nested writes onto it, and removing the old executor, is in review. Slice 1 (`update` and `delete` on a filtered set) in review since 2026-10-09 | Review the slice 1 PR |
+| 2 | 🔄 0/5 | Nested writes on relations: `update`, `delete`, `upsert`, `set`, `connectOrCreate` | Must | Serhii | Every top-level write runs through one mutation graph. A PR moving nested writes onto it, and removing the old executor, is in review. Slice 1 (`update` and `delete` on a filtered set) in review since 2026-10-09 | Review the slice 1 PR |
 | 3 | ✅ 1/1 | Design the replacement for `omit` | Must (design only) | Will | Design done (Will, 2026-10-07) |  |
 | 4 | ⏳ | Expressions in updates (what `increment` and `decrement` did in Prisma 7) | When there is time | Serhii | Not designed | |
-| 5 | ✅ 1/1 | A query that fails when nothing matches (what `firstOrThrow` did in Prisma 7) | When there is time | Serhii | `firstOrThrow` on collections merged 2026-10-08 |  |
+| 5 | ✅ 1/1 | A query that fails when nothing matches (what `firstOrThrow` did in Prisma 7) | Must | Serhii | `firstOrThrow` on collections merged 2026-10-08 |  |
 | 6 | ⏳ | JSON filters and list filters | Later | Serhii | PR stalled since July | |
+| 7 | 🔄 3/5 | Middleware sees a tree of activities | Must | Will | ADR 271 and slices 1 and 2 merged. Slice 3 built, not pushed. It waits on one question to Will | Answer: should the cache store a call's raw rows, keyed by the call, instead of the decoded result? |
+| 8 | 🔄 3/4 | Cache middleware | Must | Will | Invalidation, keys and the after-transaction stage merged. Invalidation after commit waits on row 7 | |
+| 9 | ✅ 3/3 | Row locking on a select | Must | Will | Done 2026-10-07 | |
+| 10 | ✅ 4/4 | Collection classes, query fragments and indexes | Must | Will | Done 2026-10-15. Closed out 2026-10-16 | |
+| 11 | ✅ 1/1 | `variant()` selects by discriminator value | Must | Serhii | Merged 2026-10-06 | |
+| 12 | ✅ 1/1 | The Postgres driver returns every column as text | Must | Will | Merged 2026-10-06 | |
 
-In progress but not ranked here:
-
-| Progress | Work | Owner | Status | Next |
-| --- | --- | --- | --- | --- |
-| ✅ 3/3 | Row locking on a select | Will | Done 2026-10-07 | |
-| ✅ 4/4 | Collection classes, query fragments and indexes | Will | Done 2026-10-15. Closed out 2026-10-16 | |
-| ✅ 1/1 | `variant()` selects by discriminator value | Serhii | Merged 2026-10-06 | |
-| ✅ 1/1 | The Postgres driver returns every column as text | Will | Merged 2026-10-06 | |
-| 🔄 3/4 | Cache middleware | Will | Invalidation, keys and the after-transaction stage merged. Invalidation after commit waits on the activity tree | |
-| 🔄 3/5 | Middleware sees a tree of activities | Will | ADR 271 and slices 1 and 2 merged. Slice 3 built, not pushed. It waits on one question to Will | Answer: should the cache store a call's raw rows, keyed by the call, instead of the decoded result? |
 
 ## Stream 5: Docs and the new user's first hour
 
-**GA readiness:** 1 of 4 Must projects done (25%). 2 in progress, 1 not started.
+**GA readiness:** 1 of 5 Must projects done (20%). 3 in progress, 1 not started.
 
 Test: the getting-started eval passes, in few steps and with no workarounds.
 
@@ -111,7 +107,7 @@ Test: the getting-started eval passes, in few steps and with no workarounds.
 | 2 | 🔄 0/3 | Correct the query reference in the shipped skill, which promises features that do not exist | Must, urgent | Will | 1 PR approved, 1 PR open, 3 tickets open | Merge the approved data-transforms PR, then review the back-references PR |
 | 3 | 🔄 1/11 | Docs gaps found by the eval: 11 items, 5 high | Must | Will | 1 of 11 merged. The rest not re-checked | Re-check the 11 items against prisma/web |
 | 4 | ❓ | ORM scenario for the eval: decide the project, then build it | Must | Will | Not decided | Decide the project |
-| 5 | 🔄 | Docs restructure | Aim | Will | Draft since 2026-09-30 | |
+| 5 | 🔄 | Docs restructure | Must | Will | Draft since 2026-09-30 | |
 | 6 | ⏳ | Document that cursor pagination starts after the cursor row | Aim | Will | Not tracked | |
 | 7 | ⏳ | Update the records that contradict the code | Aim | Will | Not started |  |
 

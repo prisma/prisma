@@ -88,6 +88,10 @@ Stopping point for the open upgrade issues: every urgent and high issue is close
 
 Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgent and start immediately. They were already required for GA; what changed is the order. They move to the top of the editor and tools stream. The VS Code extension work that depends on them (items 2 and 3 of that stream) waits on them. Background from 2026-09-28: several emulators of each type can run, so status is a list; the eval found that stopping `prisma dev` leaves the emulator processes running and no stop or cleanup command exists.
 
+## Changes of 2026-10-16
+
+- A project that has started is Must (Will). It counts toward GA readiness. Nested writes, the `firstOrThrow` need and the docs restructure became Must. The six unranked projects in stream 4 became ranked Must rows 7 to 12. The items beside the streams (manifesto, one lowering, Asks, eval harness) are not GA projects and are not counted.
+
 ## Changes of 2026-10-07
 
 - Ownership by stream (Will): streams 1, 2 and 5 are Will's; streams 3 and 4 are Serhii's. Exceptions: PSL mixins is Serhii's; the emulator controls in the `prisma` CLI, the `omit` replacement design, row locking on a select, collection classes and scopes, the Postgres driver returning every column as text, and the cache middleware are Will's.
