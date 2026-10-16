@@ -533,8 +533,10 @@ export interface FailedPrecheckReport {
   readonly operationId: string;
   /** The check, as the operation describes it. */
   readonly description: string;
-  /** Whether the database had a marker for the failing space, so the run started from a known contract. */
-  readonly databaseHasMarker: boolean;
+  /**
+   * Whether the failing space's plan starts from the contract its marker names. True only for `db migrate` on a database with a marker; `db init` and `db update` plan from no origin, so it is false for them whatever the database holds.
+   */
+  readonly planStartsFromMarker: boolean;
 }
 
 /** A field that was to become required while rows had no value for it, as the advice names it. */

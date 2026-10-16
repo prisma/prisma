@@ -126,21 +126,15 @@ function failedPrecheckOf(
   failure: MigrationRunnerFailure,
   resolutions: readonly OrderedResolution[],
 ): FailedPrecheckReport | undefined {
-  const operationId = failure.meta?.['operationId'];
-  const description = failure.meta?.['stepDescription'];
-  if (
-    failure.code !== 'MIGRATION.PRECHECK_FAILED' ||
-    failure.why !== undefined ||
-    typeof operationId !== 'string' ||
-    typeof description !== 'string'
-  ) {
+  const check = failure.failedCheck;
+  if (check === undefined || check.phase !== 'precheck' || failure.why !== undefined) {
     return undefined;
   }
   const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
   return {
-    operationId,
-    description,
-    databaseHasMarker: resolution !== undefined && resolution.entry.plan.origin !== null,
+    operationId: check.operationId,
+    description: check.description,
+    planStartsFromMarker: resolution !== undefined && resolution.entry.plan.origin !== null,
   };
 }
 

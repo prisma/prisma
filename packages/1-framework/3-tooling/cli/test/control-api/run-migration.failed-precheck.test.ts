@@ -111,26 +111,26 @@ const precheckFailed: MigrationRunnerFailure = {
   code: 'MIGRATION.PRECHECK_FAILED',
   summary: 'Operation column.x failed during precheck: ensure column "x" is missing',
   failingSpace: 'app',
-  meta: {
+  failedCheck: {
     operationId: 'column.x',
     phase: 'precheck',
-    stepDescription: 'ensure column "x" is missing',
+    description: 'ensure column "x" is missing',
   },
 };
 
 describe('runMigration, a check that failed before an operation', () => {
-  it('names the check, and says the space had no marker when its plan starts from none', async () => {
+  it('names the check, and says the plan does not start from a marker when its origin is none', async () => {
     expect((await failureOf(precheckFailed, null))?.failedPrecheck).toEqual({
       operationId: 'column.x',
       description: 'ensure column "x" is missing',
-      databaseHasMarker: false,
+      planStartsFromMarker: false,
     });
   });
 
-  it('says the space had a marker when its plan starts from one', async () => {
+  it('says the plan starts from a marker when it has an origin', async () => {
     expect(
       (await failureOf(precheckFailed, { storageHash: APP_HASH }))?.failedPrecheck,
-    ).toMatchObject({ databaseHasMarker: true });
+    ).toMatchObject({ planStartsFromMarker: true });
   });
 
   it('leaves it out when the runner explained the failure itself', async () => {

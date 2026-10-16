@@ -9,6 +9,7 @@ import { verifyMongoSchema } from '@internal/family-mongo/schema-verify';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
   APP_SPACE_ID,
+  type FailedCheck,
   type MigrationOperationPolicy,
   type MigrationPlan,
   type MigrationPlanOperation,
@@ -78,7 +79,7 @@ export type MongoMigrationRunnerResult = Result<
 function runnerFailure(
   code: string,
   summary: string,
-  opts?: { why?: string; meta?: Record<string, unknown> },
+  opts?: { why?: string; meta?: Record<string, unknown>; failedCheck?: FailedCheck },
 ): MongoMigrationRunnerResult {
   return notOk<MigrationRunnerFailure>({
     code,
@@ -251,6 +252,11 @@ export class MongoMigrationRunner {
                     operationId: operation.id,
                     phase: 'precheck',
                     stepDescription: failed.description,
+                  },
+                  failedCheck: {
+                    operationId: operation.id,
+                    phase: 'precheck',
+                    description: failed.description,
                   },
                 },
               )

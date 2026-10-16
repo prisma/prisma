@@ -128,10 +128,10 @@ describe('PostgresMigrationRunner - replay on a database already ahead', {
     expect(result.ok ? undefined : result.failure).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
       failingSpace: APP_SPACE_ID,
-      meta: {
+      failedCheck: {
         operationId: 'column.public.item.x',
         phase: 'precheck',
-        stepDescription: 'ensure column "x" is missing',
+        description: 'ensure column "x" is missing',
       },
     });
     expect(result.ok ? undefined : result.failure.why).toBeUndefined();

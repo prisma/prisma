@@ -13,8 +13,8 @@ const runnerFailed = {
   meta: {},
 } as const;
 
-function failedPrecheck(description: string, databaseHasMarker: boolean) {
-  return { operationId: 'index.Item.Item_state_idx', description, databaseHasMarker };
+function failedPrecheck(description: string, planStartsFromMarker: boolean) {
+  return { operationId: 'index.Item.Item_state_idx', description, planStartsFromMarker };
 }
 
 describe('the advice for a check that fails before an operation runs', () => {

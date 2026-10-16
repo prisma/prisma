@@ -67,8 +67,11 @@ describe('SqliteMigrationRunner - replay on a database already ahead', {
     expect({ ...failure, why: failure.why }).toMatchObject({
       code: 'MIGRATION.PRECHECK_FAILED',
       why: undefined,
-      meta: { phase: 'precheck', stepDescription: expect.stringContaining('"nickname"') },
+      failedCheck: {
+        operationId: expect.any(String),
+        phase: 'precheck',
+        description: expect.stringContaining('"nickname"'),
+      },
     });
-    expect(typeof failure.meta?.['operationId']).toBe('string');
   });
 });
