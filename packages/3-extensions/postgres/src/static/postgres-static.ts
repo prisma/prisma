@@ -23,6 +23,7 @@ export interface PostgresStaticContext<TContract extends Contract<SqlStorage>> {
 }
 
 export function buildPostgresStaticContext<TContract extends Contract<SqlStorage>>(
+  contract: TContract,
   context: ExecutionContext<TContract>,
   rawCodecInferer: RawCodecInferer,
 ): PostgresStaticContext<TContract> {
@@ -37,7 +38,7 @@ export function buildPostgresStaticContext<TContract extends Contract<SqlStorage
     NamespacedNativeEnums<TContract>,
     'buildNamespacedNativeEnums returns the namespace-keyed accessor map this contract types'
   >(Object.freeze(buildNamespacedNativeEnums(context.contract.storage, context.contract.domain)));
-  return { context, contract: context.contract, enums, nativeEnums, sql: sqlDb, raw };
+  return { context, contract, enums, nativeEnums, sql: sqlDb, raw };
 }
 
 /**
@@ -61,5 +62,5 @@ export default function postgresStatic<TContract extends Contract<SqlStorage>>(o
     extensions: options.extensions ?? [],
   });
   const context = createExecutionContext({ contract, stack });
-  return buildPostgresStaticContext(context, stack.adapter.rawCodecInferer);
+  return buildPostgresStaticContext(contract, context, stack.adapter.rawCodecInferer);
 }

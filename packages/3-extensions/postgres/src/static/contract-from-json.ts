@@ -2,8 +2,10 @@ import type { Contract } from '@internal/contract/types';
 import { validateContractOnce } from '@internal/contract/validate-once';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import postgresTarget, { PostgresContractSerializer } from '@internal/target-postgres/runtime';
+import { version } from '../../package.json' with { type: 'json' };
 
 const serializer = new PostgresContractSerializer();
+const validator = `${postgresTarget.targetId}@${version}`;
 
 /**
  * Validates an emitted Postgres `contract.json` and returns it as the contract type the
@@ -19,15 +21,16 @@ const serializer = new PostgresContractSerializer();
  * ```
  */
 export function contractFromJson<TContract extends Contract<SqlStorage>>(json: unknown): TContract {
-  return validateContractOnce(json, postgresTarget.targetId, (input) =>
+  return validateContractOnce(json, validator, (input) =>
     serializer.deserializeContract<TContract>(input),
   );
 }
 
+/** Validates a contract value for a Postgres client, once per value. */
 export function validatePostgresContract<TContract extends Contract<SqlStorage>>(
   contract: TContract,
 ): TContract {
-  return validateContractOnce(contract, postgresTarget.targetId, () =>
+  return validateContractOnce(contract, validator, () =>
     serializer.deserializeContract<TContract>(serializer.serializeContract(contract)),
   );
 }

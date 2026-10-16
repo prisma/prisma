@@ -1,3 +1,4 @@
+import { validateContractOnce } from '@internal/contract/validate-once';
 import { MongoContractSerializer } from '@internal/family-mongo/ir';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Contract } from '../../../2-mongo-family/1-foundation/mongo-contract/test/fixtures/orm-contract';
@@ -56,6 +57,17 @@ describe('validating a contract once', () => {
     for (const client of clients) {
       expect(client.contract).toBe(contract);
     }
+  });
+
+  it('validates again a contract that another validator of the same target recorded', () => {
+    const recordedByAnother = validateContractOnce(freshContractJson(), 'mongo', (input) =>
+      new MongoContractSerializer().deserializeContract<Contract>(input),
+    );
+    const deserialize = vi.spyOn(MongoContractSerializer.prototype, 'deserializeContract');
+
+    mongo({ contract: recordedByAnother });
+
+    expect(deserialize).toHaveBeenCalledTimes(1);
   });
 
   it('validates a TypeScript-authored contract once, and the contract a client holds not again', () => {

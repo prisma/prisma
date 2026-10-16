@@ -1,4 +1,5 @@
 import { coreHash } from '@internal/contract/types';
+import { validateContractOnce } from '@internal/contract/validate-once';
 import { SqlStorage } from '@internal/sql-contract/types';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { SqliteContractSerializer } from '@internal/target-sqlite/runtime';
@@ -43,13 +44,33 @@ describe('validating a contract once', () => {
     const deserialize = vi.spyOn(SqliteContractSerializer.prototype, 'deserializeContract');
     const contract = contractFromJson<Contract>(freshContractJson());
 
-    const clients = [sqlite({ contract }), sqlite({ contract })];
-    sqliteStatic({ contract });
+    const clients = [sqlite({ contract }), sqlite({ contract }), sqliteStatic({ contract })];
 
     expect(deserialize).toHaveBeenCalledTimes(1);
     for (const client of clients) {
       expect(client.contract).toBe(contract);
     }
+  });
+
+  it('does not validate the contract of a static entry again', () => {
+    const contract = contractFromJson<Contract>(freshContractJson());
+    const deserialize = vi.spyOn(SqliteContractSerializer.prototype, 'deserializeContract');
+
+    const db = sqlite({ contract: sqliteStatic({ contract }).contract });
+
+    expect(deserialize).not.toHaveBeenCalled();
+    expect(db.contract).toBe(contract);
+  });
+
+  it('validates again a contract that another validator of the same target recorded', () => {
+    const recordedByAnother = validateContractOnce(freshContractJson(), 'sqlite', (input) =>
+      new SqliteContractSerializer().deserializeContract<Contract>(input),
+    );
+    const deserialize = vi.spyOn(SqliteContractSerializer.prototype, 'deserializeContract');
+
+    sqlite({ contract: recordedByAnother });
+
+    expect(deserialize).toHaveBeenCalledTimes(1);
   });
 
   it('validates a TypeScript-authored contract once, and the contract a client holds not again', () => {

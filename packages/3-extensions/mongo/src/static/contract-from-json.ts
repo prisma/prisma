@@ -6,8 +6,10 @@ import type {
   MongoContractWithTypeMaps,
 } from '@internal/mongo-contract';
 import mongoRuntimeTarget from '@internal/target-mongo/runtime';
+import { version } from '../../package.json' with { type: 'json' };
 
 const serializer = new MongoContractSerializer();
+const validator = `${mongoRuntimeTarget.targetId}@${version}`;
 
 /**
  * Validates an emitted Mongo `contract.json` and returns it as the contract type the application
@@ -25,7 +27,7 @@ const serializer = new MongoContractSerializer();
 export function contractFromJson<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
 >(json: unknown): TContract {
-  return validateContractOnce(json, mongoRuntimeTarget.targetId, (input) =>
+  return validateContractOnce(json, validator, (input) =>
     serializer.deserializeContract<TContract>(input),
   );
 }

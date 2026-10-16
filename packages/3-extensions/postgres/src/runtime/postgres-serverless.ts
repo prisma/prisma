@@ -108,6 +108,7 @@ export default function postgresServerless<TContract extends Contract<SqlStorage
   });
   const rawCodecInferer = stack.adapter.rawCodecInferer;
   const { sql, raw, enums, nativeEnums } = buildPostgresStaticContext<TContract>(
+    contract,
     context,
     rawCodecInferer,
   );

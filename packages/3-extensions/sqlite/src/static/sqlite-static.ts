@@ -28,6 +28,7 @@ export interface SqliteStaticContext<TContract extends Contract<SqlStorage>> {
 }
 
 export function buildSqliteStaticContext<TContract extends Contract<SqlStorage>>(
+  contract: TContract,
   context: ExecutionContext<TContract>,
   rawCodecInferer: RawCodecInferer,
 ): SqliteStaticContext<TContract> {
@@ -44,7 +45,7 @@ export function buildSqliteStaticContext<TContract extends Contract<SqlStorage>>
     ),
   )[UNBOUND_NAMESPACE_ID];
   assertDefined(enums, 'the unbound namespace always exists on a sqlite builder output');
-  return { context, contract: context.contract, enums, sql: sqlDb, raw };
+  return { context, contract, enums, sql: sqlDb, raw };
 }
 
 /**
@@ -67,5 +68,5 @@ export default function sqliteStatic<TContract extends Contract<SqlStorage>>(opt
     extensions: options.extensions ?? [],
   });
   const context = createExecutionContext({ contract, stack });
-  return buildSqliteStaticContext(context, stack.adapter.rawCodecInferer);
+  return buildSqliteStaticContext(contract, context, stack.adapter.rawCodecInferer);
 }

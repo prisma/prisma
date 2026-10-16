@@ -120,7 +120,7 @@ export default function postgres<TContract extends Contract<SqlStorage>>(
     raw: rawSqlTag,
     enums,
     nativeEnums,
-  } = buildPostgresStaticContext<TContract>(context, stack.adapter.rawCodecInferer);
+  } = buildPostgresStaticContext<TContract>(contract, context, stack.adapter.rawCodecInferer);
 
   let runtimeInstance: Runtime | undefined;
   let runtimeDriver: { connect(binding: unknown): Promise<void> } | undefined;

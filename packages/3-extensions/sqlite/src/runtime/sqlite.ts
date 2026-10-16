@@ -142,6 +142,7 @@ export default function sqlite<TContract extends Contract<SqlStorage>>(
     raw: rawSqlTag,
     enums,
   }: SqliteStaticContext<TContract> = buildSqliteStaticContext<TContract>(
+    contract,
     context,
     stack.adapter.rawCodecInferer,
   );
