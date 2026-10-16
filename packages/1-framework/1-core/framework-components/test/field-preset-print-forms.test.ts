@@ -126,7 +126,7 @@ describe('fieldPresetPrintForm', () => {
     ).toBeUndefined();
   });
 
-  it('has none for a preset with a required argument the printer can leave out', () => {
+  it('has one for a preset with a required argument, which the printer checks per column', () => {
     const requiredPhase = stamped({ precision: { kind: 'arg', index: 0 } });
     expect(
       fieldPresetPrintForm({
@@ -137,14 +137,15 @@ describe('fieldPresetPrintForm', () => {
           { name: 'stampedOn', kind: 'option', values: ['insert', 'write'] },
         ],
       }),
-    ).toBeUndefined();
-    const unreadRequired = clock('pg/date-string@1', 'dateStringNow');
-    expect(
-      fieldPresetPrintForm({
-        ...unreadRequired,
-        args: [...(unreadRequired.args ?? []), { name: 'label', kind: 'string' }],
-      }),
-    ).toBeUndefined();
+    ).toEqual({
+      codecId: 'pg/timestamptz@1',
+      typeParams: ['precision'],
+      onCreate: {
+        argument: 'stampedOn',
+        index: 2,
+        valuesByGenerator: new Map([['clusterNow', 'insert']]),
+      },
+    });
   });
 });
 

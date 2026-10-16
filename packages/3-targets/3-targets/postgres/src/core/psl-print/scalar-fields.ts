@@ -15,7 +15,7 @@ import {
   SYNTHETIC_SPAN,
 } from '../psl-build/psl-literals';
 import { buildColumnDefault } from './column-defaults';
-import { buildColumnType } from './column-types';
+import { buildColumnType, type PslColumnType } from './column-types';
 import type { ModelWithTable, VariantInfo } from './contract-model-index';
 import type { NativeEnumEmission } from './enum-blocks';
 import { buildExecutionDefault } from './generated-values';
@@ -136,11 +136,11 @@ export function buildScalarFields(input: {
         coordinate,
       });
     }
-    const columnType =
+    const columnType: PslColumnType =
       column.typeRef !== undefined
-        ? { typeName: column.typeRef }
+        ? { kind: 'namedType', typeName: column.typeRef }
         : field.type.kind === 'valueObject'
-          ? { typeName: field.type.name }
+          ? { kind: 'valueObject', typeName: field.type.name }
           : buildColumnType({
               column,
               inferredConstructors,
@@ -160,7 +160,7 @@ export function buildScalarFields(input: {
       const built = buildExecutionDefault({
         executionDefault: execution,
         codecId: column.codecId,
-        typeRef: column.typeRef,
+        pslType: { kind: columnType.kind, name: columnType.typeName },
         typeParams: column.typeParams,
         coordinate,
         context,

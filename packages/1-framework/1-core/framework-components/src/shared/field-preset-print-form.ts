@@ -85,7 +85,7 @@ function fixesOnlyCodecTypeParamsAndGenerators(output: AuthoringFieldPresetOutpu
 }
 
 /**
- * How a preset's call is written, read from its `args` and `output`, when the printer can build one: the preset fixes nothing but its codec, its type params and the generators its option arguments select, so it does not collide in the index with a plain preset for the same codec and generator; its type params take its leading positional arguments whole and in order; each phase selects on a named option argument, and the two phases on different ones; and every required argument writes a type param, since the printer leaves out a phase the column does not have. Any other preset has none. A print form does not promise that every column prints: the printer still checks that the call reads back as the column.
+ * How a preset's call is written, read from its `args` and `output`, when the printer can build one: the preset fixes nothing but its codec, its type params and the generators its option arguments select, so it does not collide in the index with a plain preset for the same codec and generator; its type params take its leading positional arguments whole and in order; and each phase selects on a named option argument, and the two phases on different ones. Any other preset has none. A print form does not promise that every column prints: for each column the printer checks that the call can be written, that the preset accepts it, and that it reads back as the column.
  */
 export function fieldPresetPrintForm(
   descriptor: AuthoringFieldPresetDescriptor,
@@ -103,10 +103,6 @@ export function fieldPresetPrintForm(
   if (onCreate !== undefined && onUpdate !== undefined && onCreate.index === onUpdate.index) {
     return undefined;
   }
-  const writesEveryRequiredArgument = args.every(
-    (argument, index) => argument.optional === true || index < typeParams.length,
-  );
-  if (!writesEveryRequiredArgument) return undefined;
   return {
     codecId: output.codecId,
     typeParams,

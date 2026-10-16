@@ -1,3 +1,4 @@
+import type { AuthoringFieldPresetDescriptor } from '@internal/framework-components/authoring';
 import { sqlDataType } from '@internal/sql-contract/data-type';
 import { blindCast } from '@internal/utils/casts';
 import { type as arktype } from 'arktype';
@@ -118,6 +119,75 @@ describe('columns and fields', () => {
         .filter((field) => field.name === 'priorities')
         .map(fieldText),
     ).toEqual(['priorities Priority[]']);
+  });
+
+  it('refuses a field typed by a domain enum whose generators a field preset writes, since the preset call would replace the enum', () => {
+    const tagged: AuthoringFieldPresetDescriptor = {
+      kind: 'fieldPreset',
+      args: [{ name: 'onCreate', kind: 'option', values: ['first'], optional: true }],
+      output: {
+        codecId: 'pg/text@1',
+        executionDefaults: {
+          onCreate: {
+            kind: 'select',
+            index: 0,
+            cases: { first: { kind: 'generator', id: 'firstMember' } },
+          },
+        },
+      },
+    };
+    expect(
+      printingWidget(
+        {
+          domain: {
+            enum: { Priority: { codecId: 'pg/text@1', members: [{ name: 'Low', value: 'low' }] } },
+          },
+          entries: { valueSet: { Priority: { kind: 'valueSet', values: ['low'] } } },
+          columns: {
+            priority: {
+              ...TEXT_COLUMN,
+              valueSet: {
+                plane: 'storage',
+                namespaceId: 'public',
+                entityKind: 'valueSet',
+                entityName: 'Priority',
+              },
+            },
+          },
+          fields: {
+            priority: {
+              ...TEXT_FIELD,
+              valueSet: {
+                plane: 'domain',
+                namespaceId: 'public',
+                entityKind: 'enum',
+                entityName: 'Priority',
+              },
+            },
+          },
+          table: { control: 'external' },
+          contract: {
+            execution: {
+              mutations: {
+                defaults: [
+                  {
+                    ref: { namespace: 'public', entry: 'Widget', field: 'priority' },
+                    onCreate: { kind: 'generator', id: 'firstMember' },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        testBuildContext({ fieldPresets: { pick: { tagged } } }),
+      ),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PRINT_UNSUPPORTED',
+        message:
+          'contract print: column "public"."Widget"."priority" cannot be written with field preset pick.tagged: its type Priority is an enum, which the preset call would replace.',
+      }),
+    );
   });
 
   it('refuses a model field whose type is a union of types', () => {

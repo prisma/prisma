@@ -7,9 +7,12 @@ import {
   type FieldPresetsByCodecAndGenerator,
   instantiateAuthoringFieldPreset,
   type PrintableFieldPreset,
+  validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
+import { isRuntimeError } from '@internal/framework-components/components';
 import type { DefaultFunctionPrinter } from '@internal/framework-components/control';
 import { canonicalizeJson } from '@internal/framework-components/utils';
+import { pslTypeArgumentText } from './inferred-type-constructors';
 
 /** The PSL call of the default function that produces `generatorId` with `params`, or `undefined` when no default function in the stack writes it. */
 export function defaultFunctionCallFor(
@@ -29,9 +32,24 @@ export type FieldPresetArgument =
 
 type ColumnPhase = 'onCreate' | 'onUpdate';
 
-/** A part of the column the preset call reads back differently, or a required argument the call cannot write. */
+/** How the column's PSL type is written: a type-constructor call, or a name a preset call would replace. */
+export type FieldPresetColumnPslType =
+  | { readonly kind: 'typeConstructor'; readonly name: string }
+  | { readonly kind: 'namedType' | 'valueObject' | 'enum'; readonly name: string };
+
+/** Why the call of the preset that writes a column's codec with its generators cannot be written. */
+export type FieldPresetUnwritableReason =
+  | {
+      readonly kind: 'columnType';
+      readonly columnType: 'namedType' | 'valueObject' | 'enum';
+      readonly typeName: string;
+    }
+  | { readonly kind: 'phasesNotWrittenTogether' }
+  | { readonly kind: 'unwritableArgument'; readonly argument: string; readonly value: unknown }
+  | { readonly kind: 'argumentsRejected'; readonly message: string };
+
+/** A part of the column the preset call, once written, reads back differently. */
 export type FieldPresetReadBackDifference =
-  | { readonly part: 'typeRef'; readonly column: string; readonly printed: undefined }
   | { readonly part: 'codecId'; readonly column: string; readonly printed: string }
   | {
       readonly part: 'typeParams';
@@ -42,8 +60,7 @@ export type FieldPresetReadBackDifference =
       readonly part: ColumnPhase;
       readonly column: ExecutionMutationDefaultValue | undefined;
       readonly printed: ExecutionMutationDefaultValue | undefined;
-    }
-  | { readonly part: 'argument'; readonly name: string };
+    };
 
 /** How a column's generators are written with a field preset, or why they cannot be. */
 export type FieldPresetCallChoice =
@@ -53,7 +70,11 @@ export type FieldPresetCallChoice =
       readonly preset: PrintableFieldPreset;
       readonly arguments: readonly FieldPresetArgument[];
     }
-  | { readonly kind: 'phasesNotWrittenTogether'; readonly preset: PrintableFieldPreset }
+  | {
+      readonly kind: 'cannotWrite';
+      readonly preset: PrintableFieldPreset;
+      readonly reason: FieldPresetUnwritableReason;
+    }
   | {
       readonly kind: 'readsBackDifferently';
       readonly preset: PrintableFieldPreset;
@@ -62,7 +83,7 @@ export type FieldPresetCallChoice =
 
 interface FieldPresetColumn {
   readonly codecId: string;
-  readonly typeRef: string | undefined;
+  readonly pslType: FieldPresetColumnPslType;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
   readonly generators: ExecutionMutationDefaultPhases;
 }
@@ -97,19 +118,21 @@ interface WrittenArgument {
   readonly argument: FieldPresetArgument;
 }
 
+type WrittenArguments =
+  | { readonly kind: 'written'; readonly arguments: readonly WrittenArgument[] }
+  | { readonly kind: 'unwritable'; readonly argument: string; readonly value: unknown };
+
 function writtenArguments(
   printForm: FieldPresetPrintForm,
   column: FieldPresetColumn,
-): readonly WrittenArgument[] {
+): WrittenArguments {
   const positional: WrittenArgument[] = [];
   for (const [index, name] of printForm.typeParams.entries()) {
     const value = column.typeParams?.[name];
     if (value === undefined) break;
-    positional.push({
-      index,
-      value,
-      argument: { kind: 'positional', value: JSON.stringify(value) },
-    });
+    const text = pslTypeArgumentText(value);
+    if (text === undefined) return { kind: 'unwritable', argument: name, value };
+    positional.push({ index, value, argument: { kind: 'positional', value: text } });
   }
   const named = PHASES.flatMap((phase): WrittenArgument[] => {
     const phasePrintForm = printForm[phase];
@@ -120,7 +143,17 @@ function writtenArguments(
     const { argument: name, index } = phasePrintForm;
     return [{ index, value, argument: { kind: 'named', name, value } }];
   });
-  return [...positional, ...named];
+  return { kind: 'written', arguments: [...positional, ...named] };
+}
+
+function rejectionOf(preset: PrintableFieldPreset, args: readonly unknown[]): string | undefined {
+  try {
+    validateAuthoringHelperArguments(preset.path.join('.'), preset.descriptor.args, args);
+    return undefined;
+  } catch (error) {
+    if (isRuntimeError(error) && error.code === 'CONTRACT.ARGUMENT_INVALID') return error.message;
+    throw error;
+  }
 }
 
 function readBackDifferences(
@@ -128,20 +161,9 @@ function readBackDifferences(
   column: FieldPresetColumn,
   args: readonly unknown[],
 ): readonly FieldPresetReadBackDifference[] {
-  const namedType =
-    column.typeRef === undefined
-      ? []
-      : [{ part: 'typeRef' as const, column: column.typeRef, printed: undefined }];
-  const missing = (preset.descriptor.args ?? []).flatMap((argument, index) =>
-    argument.optional === true || args[index] !== undefined
-      ? []
-      : [{ part: 'argument' as const, name: argument.name ?? String(index) }],
-  );
-  if (missing.length > 0) return [...namedType, ...missing];
   const printed = instantiateAuthoringFieldPreset(preset.descriptor, args);
   const printedGenerators = printed.executionDefaults ?? {};
   return [
-    ...namedType,
     ...(printed.descriptor.codecId === column.codecId
       ? []
       : [
@@ -168,8 +190,15 @@ function readBackDifferences(
   ];
 }
 
+function cannotWrite(
+  preset: PrintableFieldPreset,
+  reason: FieldPresetUnwritableReason,
+): FieldPresetCallChoice {
+  return { kind: 'cannotWrite', preset, reason };
+}
+
 /**
- * The call of the field preset in the stack that writes a column's codec with its generators, checked to read back as the same column: no named type, since a preset call writes none, and the same codec, type params and generators with their params, where absent and empty params count as the same. Otherwise the reason it cannot be written that way.
+ * The call of the field preset in the stack that writes a column's codec with its generators. The call is written only for a column whose PSL type is a type-constructor call, which the preset call takes the place of, and when the preset accepts its arguments as the PSL reader checks them; it is then checked to read back with the column's codec, type params and generators with their params, where absent and empty params count as the same. Otherwise the reason it cannot be written that way.
  */
 export function fieldPresetCallFor(input: {
   readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
@@ -181,17 +210,36 @@ export function fieldPresetCallFor(input: {
     .map((generatorId) => (generatorId === undefined ? undefined : byGenerator?.get(generatorId)))
     .find((found) => found !== undefined);
   if (preset === undefined) return { kind: 'noPreset' };
+  const { pslType } = column;
+  if (pslType.kind !== 'typeConstructor') {
+    return cannotWrite(preset, {
+      kind: 'columnType',
+      columnType: pslType.kind,
+      typeName: pslType.name,
+    });
+  }
   if (!writesEveryPhase(preset.printForm, column)) {
-    return { kind: 'phasesNotWrittenTogether', preset };
+    return cannotWrite(preset, { kind: 'phasesNotWrittenTogether' });
   }
   const written = writtenArguments(preset.printForm, column);
+  if (written.kind === 'unwritable') {
+    return cannotWrite(preset, {
+      kind: 'unwritableArgument',
+      argument: written.argument,
+      value: written.value,
+    });
+  }
   const args: unknown[] = [];
-  for (const { index, value } of written) args[index] = value;
+  for (const { index, value } of written.arguments) args[index] = value;
+  const rejection = rejectionOf(preset, args);
+  if (rejection !== undefined) {
+    return cannotWrite(preset, { kind: 'argumentsRejected', message: rejection });
+  }
   const differences = readBackDifferences(preset, column, args);
   if (differences.length > 0) return { kind: 'readsBackDifferently', preset, differences };
   return {
     kind: 'call',
     preset,
-    arguments: written.map(({ argument }) => argument),
+    arguments: written.arguments.map(({ argument }) => argument),
   };
 }

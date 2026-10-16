@@ -1,4 +1,8 @@
-import { type InferredTypeConstructors, pslTypeArgumentText } from '@internal/family-sql/psl-build';
+import {
+  type FieldPresetColumnPslType,
+  type InferredTypeConstructors,
+  pslTypeArgumentText,
+} from '@internal/family-sql/psl-build';
 import {
   type AuthoringTypeConstructorCall,
   type AuthoringTypeNamespace,
@@ -17,8 +21,9 @@ import { PG_ENUM_CODEC_ID } from '../codec-ids';
 import { positionalArg, SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import { refuseColumnWithoutPslType, refuseUnwritableTypeArgument } from './refusals';
 
-/** The PSL type position of one column: a bare name, or a type-constructor call. */
+/** The PSL type position of one column: a bare name, or a type-constructor call, and which kind of type it names. */
 export interface PslColumnType {
+  readonly kind: FieldPresetColumnPslType['kind'];
   readonly typeName: string;
   readonly typeConstructor?: PslTypeConstructorCall;
 }
@@ -45,9 +50,10 @@ function typeCall(path: readonly string[], args: readonly string[]): PslColumnTy
   const name = path.join('.');
   const isNamespaced = path.length > 1;
   if (args.length === 0 && !isNamespaced) {
-    return { typeName: name };
+    return { kind: 'typeConstructor', typeName: name };
   }
   return {
+    kind: 'typeConstructor',
     typeName: name,
     typeConstructor: {
       kind: 'typeConstructor',
@@ -95,6 +101,7 @@ export function buildColumnType(input: {
   const enumBlockName = column.valueSet?.entityName ?? enumBlockNames.get(baseName);
   if (column.codecId === PG_ENUM_CODEC_ID && enumBlockName !== undefined) {
     return {
+      kind: 'enum',
       typeName: enumBlockName,
       typeConstructor: {
         kind: 'typeConstructor',
@@ -113,7 +120,7 @@ export function buildColumnType(input: {
 
   const domainEnumName = column.valueSet?.entityName;
   if (domainEnumName !== undefined) {
-    return { typeName: domainEnumName };
+    return { kind: 'enum', typeName: domainEnumName };
   }
 
   const call =

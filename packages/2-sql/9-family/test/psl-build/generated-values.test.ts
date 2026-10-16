@@ -38,6 +38,8 @@ const fieldPresetsByCodecAndGenerator = assembleFieldPresetsByCodecAndGenerator(
 const time = fieldPresetsByCodecAndGenerator.get('pg/time@1')?.get('plainTimeNow');
 const money = fieldPresetsByCodecAndGenerator.get('pg/numeric@1')?.get('ledgerStamp');
 
+const constructorType = { kind: 'typeConstructor', name: 'Time' } as const;
+
 const plainTimeNow = (precision?: number) => ({
   kind: 'generator' as const,
   id: 'plainTimeNow',
@@ -51,7 +53,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
-          typeRef: undefined,
+          pslType: constructorType,
           typeParams: { precision: 3 },
           generators: { onCreate: plainTimeNow(3), onUpdate: plainTimeNow(3) },
         },
@@ -73,7 +75,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
-          typeRef: undefined,
+          pslType: constructorType,
           typeParams: undefined,
           generators: { onUpdate: plainTimeNow() },
         },
@@ -91,7 +93,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/text@1',
-          typeRef: undefined,
+          pslType: constructorType,
           typeParams: undefined,
           generators: { onCreate: plainTimeNow() },
         },
@@ -105,7 +107,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/numeric@1',
-          typeRef: undefined,
+          pslType: constructorType,
           typeParams: { precision: 10 },
           generators: {
             onCreate: { kind: 'generator', id: 'ledgerStamp' },
@@ -113,7 +115,11 @@ describe('fieldPresetCallFor', () => {
           },
         },
       }),
-    ).toEqual({ kind: 'phasesNotWrittenTogether', preset: money });
+    ).toEqual({
+      kind: 'cannotWrite',
+      preset: money,
+      reason: { kind: 'phasesNotWrittenTogether' },
+    });
   });
 
   it('reports each part of the column the call reads back differently', () => {
@@ -122,7 +128,7 @@ describe('fieldPresetCallFor', () => {
         fieldPresetsByCodecAndGenerator,
         column: {
           codecId: 'pg/time@1',
-          typeRef: undefined,
+          pslType: constructorType,
           typeParams: { precision: 3, zone: 'utc' },
           generators: { onCreate: plainTimeNow(3), onUpdate: plainTimeNow(0) },
         },
@@ -137,21 +143,86 @@ describe('fieldPresetCallFor', () => {
     });
   });
 
-  it('reports a named type, which a preset call does not write', () => {
+  it.each([
+    ['namedType', 'Clock'],
+    ['valueObject', 'Reading'],
+    ['enum', 'Shift'],
+  ] as const)(
+    'cannot write a column whose PSL type is a %s, which the preset call would replace',
+    (kind, name) => {
+      expect(
+        fieldPresetCallFor({
+          fieldPresetsByCodecAndGenerator,
+          column: {
+            codecId: 'pg/time@1',
+            pslType: { kind, name },
+            typeParams: undefined,
+            generators: { onCreate: plainTimeNow() },
+          },
+        }),
+      ).toEqual({
+        kind: 'cannotWrite',
+        preset: time,
+        reason: { kind: 'columnType', columnType: kind, typeName: name },
+      });
+    },
+  );
+
+  it('cannot write a type param that a PSL argument cannot carry', () => {
+    const tagged: AuthoringFieldPresetDescriptor = {
+      kind: 'fieldPreset',
+      args: [
+        { name: 'label', kind: 'string', optional: true },
+        { name: 'onCreate', kind: 'option', values: ['now'], optional: true },
+      ],
+      output: {
+        codecId: 'x/tagged@1',
+        typeParams: { label: { kind: 'arg', index: 0 } },
+        executionDefaults: {
+          onCreate: {
+            kind: 'select',
+            index: 1,
+            cases: { now: { kind: 'generator', id: 'taggedNow' } },
+          },
+        },
+      },
+    };
+    const presets = assembleFieldPresetsByCodecAndGenerator({ tag: { tagged } });
+    expect(
+      fieldPresetCallFor({
+        fieldPresetsByCodecAndGenerator: presets,
+        column: {
+          codecId: 'x/tagged@1',
+          pslType: constructorType,
+          typeParams: { label: 'a"b' },
+          generators: { onCreate: { kind: 'generator', id: 'taggedNow' } },
+        },
+      }),
+    ).toEqual({
+      kind: 'cannotWrite',
+      preset: presets.get('x/tagged@1')?.get('taggedNow'),
+      reason: { kind: 'unwritableArgument', argument: 'label', value: 'a"b' },
+    });
+  });
+
+  it('cannot write a call the preset does not accept', () => {
     expect(
       fieldPresetCallFor({
         fieldPresetsByCodecAndGenerator,
         column: {
-          codecId: 'pg/time@1',
-          typeRef: 'Clock',
-          typeParams: undefined,
-          generators: { onCreate: plainTimeNow() },
+          codecId: 'pg/numeric@1',
+          pslType: constructorType,
+          typeParams: { precision: 2.5 },
+          generators: { onCreate: { kind: 'generator', id: 'ledgerStamp' } },
         },
       }),
     ).toEqual({
-      kind: 'readsBackDifferently',
-      preset: time,
-      differences: [{ part: 'typeRef', column: 'Clock', printed: undefined }],
+      kind: 'cannotWrite',
+      preset: money,
+      reason: {
+        kind: 'argumentsRejected',
+        message: 'Argument "precision" of money.amount must be an integer',
+      },
     });
   });
 });
