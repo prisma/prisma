@@ -58,8 +58,7 @@ const unscaledDecimal = {
 } as const;
 const list = {
   nullable: true,
-  many: { elementNullable: false },
-  noCheck: ['elementNotNull'],
+  many: { elementNullable: true },
 } as const;
 
 const cases: readonly DefaultCase[] = [

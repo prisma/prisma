@@ -140,14 +140,7 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       'rls',
       'unique',
     ]);
-    expect(Object.keys(specs.field).sort()).toEqual([
-      'default',
-      'id',
-      'map',
-      'noCheck',
-      'relation',
-      'unique',
-    ]);
+    expect(Object.keys(specs.field).sort()).toEqual(['default', 'id', 'map', 'relation', 'unique']);
   });
 
   it("invokes the SQL family's @relation factory and enumerates its named arguments", async () => {

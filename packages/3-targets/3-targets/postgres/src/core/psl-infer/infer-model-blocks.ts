@@ -198,18 +198,9 @@ export function buildModel(
 }
 
 /**
- * The live check names that are derived: a live check's name matches
- * `formatWireName(composeCheckWirePrefix(table, column, kind), computeCheckContentHash(expression))`
- * for some column of the table and some candidate `postgresRenderCheckExpressions`
- * would render for that column. Never by comparing expressions — the live
- * body is a Postgres reprint, never the authored text. One set serves both
- * the `@noCheck` waiver below and `@@check` exclusion in `buildModel`, so the
- * two decisions cannot drift apart.
+ * The live check names that are derived: a live check's name matches `formatWireName(composeCheckWirePrefix(table, column, kind), computeCheckContentHash(expression))` for some column of the table and some candidate `postgresRenderCheckExpressions` would render for that column. Never by comparing expressions — the live body is a Postgres reprint, never the authored text. One set serves both the element nullability of list fields and `@@check` exclusion in `buildModel`, so the two decisions cannot drift apart.
  *
- * `membership` is unreachable here today: infer never emits domain enums
- * (`enumType()` is not inferred), so no inferred column has member values and
- * no membership check is ever derived. The day domain-enum inference exists,
- * its slice extends this by threading the column's member values through.
+ * `membership` is unreachable here today: infer never emits domain enums (`enumType()` is not inferred), so no inferred column has member values and no membership check is ever derived. Inferring domain enums would mean threading the column's member values through here.
  */
 function computeDerivedCheckNames(table: SqlTableIR): ReadonlySet<string> {
   const liveCheckNames = new Set((table.checks ?? []).map((check) => check.name));
@@ -308,31 +299,6 @@ function buildScalarField(
     attributes.push(buildSimpleConstraintFieldAttribute('unique', uniqueConstraintName));
   }
 
-  if (column.many === true) {
-    // Every list-column kind not covered by a derived live check (per
-    // computeDerivedCheckNames) gets the opted-out form, so a pulled schema
-    // verifies clean immediately.
-    const waivedKinds = postgresRenderCheckExpressions({
-      tableName: table.name,
-      columnName: column.name,
-      many: true,
-      memberValues: undefined,
-    })
-      .filter(
-        (candidate) =>
-          !derivedCheckNames.has(
-            formatWireName(
-              composeCheckWirePrefix(table.name, column.name, candidate.kind),
-              computeCheckContentHash(candidate.expression),
-            ),
-          ),
-      )
-      .map((candidate) => candidate.kind);
-    if (waivedKinds.length > 0) {
-      attributes.push(buildAttribute('field', 'noCheck', waivedKinds.map(positionalArg)));
-    }
-  }
-
   if (fieldMap !== undefined) {
     attributes.push(buildMapAttribute('field', fieldMap));
   }
@@ -344,9 +310,37 @@ function buildScalarField(
     ...ifDefined('typeConstructor', typeConstructor),
     optional: column.nullable,
     list: column.many === true,
+    ...ifDefined(
+      'elementOptional',
+      column.many === true && !enforcesElementNotNull(table, column, derivedCheckNames)
+        ? true
+        : undefined,
+    ),
     attributes,
     span: SYNTHETIC_SPAN,
   };
+}
+
+function enforcesElementNotNull(
+  table: SqlTableIR,
+  column: SqlColumnIR,
+  derivedCheckNames: ReadonlySet<string>,
+): boolean {
+  return postgresRenderCheckExpressions({
+    tableName: table.name,
+    columnName: column.name,
+    many: true,
+    memberValues: undefined,
+  }).some(
+    (candidate) =>
+      candidate.kind === 'elementNotNull' &&
+      derivedCheckNames.has(
+        formatWireName(
+          composeCheckWirePrefix(table.name, column.name, candidate.kind),
+          computeCheckContentHash(candidate.expression),
+        ),
+      ),
+  );
 }
 
 /**

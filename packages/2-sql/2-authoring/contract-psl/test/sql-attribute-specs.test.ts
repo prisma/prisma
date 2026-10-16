@@ -214,7 +214,6 @@ describe('sqlAttributeSpecs', () => {
       'default',
       'id',
       'map',
-      'noCheck',
       'relation',
       'unique',
     ]);

@@ -7,8 +7,8 @@ function modelsOf(ir: Contract): Record<string, unknown> {
   return ir.domain.namespaces[UNBOUND_NAMESPACE_ID]!.models;
 }
 
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,

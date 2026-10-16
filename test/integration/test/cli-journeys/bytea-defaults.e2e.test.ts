@@ -189,7 +189,7 @@ withTempDir(({ createTempDir }) => {
           .map((line) => line.trim().split(/\s+/).join(' '));
         expect(printed).toEqual([
           'blob Bytes @default(bytea`\\x68656c6c6f`)',
-          'blobs Bytes[] @default([bytea`\\x68656c6c6f`]) @noCheck(elementNotNull)',
+          'blobs Bytes?[] @default([bytea`\\x68656c6c6f`])',
         ]);
 
         const emit = await runContractEmit(ctx);

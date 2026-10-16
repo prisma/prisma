@@ -152,10 +152,6 @@ export type ResolvedField = {
   readonly idName?: string;
   readonly uniqueName?: string;
   readonly many?: true;
-  /** Concrete generated-check kinds waived via `@noCheck`, resolved from the column's shape. */
-  // Spelled literally because this package does not depend on
-  // @internal/sql-schema-ir; the canonical alias is `CheckKind` there.
-  readonly noCheck?: readonly ('membership' | 'elementNotNull')[];
   readonly elementNullable?: true;
   readonly valueObjectTypeName?: string;
   readonly enumTypeHandle?: EnumTypeHandle;
@@ -335,80 +331,6 @@ function extractFieldConstraintNames(input: {
   return { idAttribute, uniqueAttribute, idName, uniqueName };
 }
 
-// Spelled literally because this package does not depend on
-// @internal/sql-schema-ir; the canonical alias is `CheckKind` there.
-type NoCheckKind = 'membership' | 'elementNotNull';
-
-/**
- * Interprets a field's `@noCheck` attribute and resolves it against the
- * column's shape: the bare form becomes every kind the shape derives, and a
- * named kind that can never apply is a spec-validation diagnostic on the
- * attribute node. Returns the concrete kinds in canonical ascending order —
- * the only form the definition tree carries.
- */
-function lowerNoCheckForField(input: {
-  readonly symbolTable: SymbolTable;
-  readonly model: ModelSymbol;
-  readonly field: FieldSymbol;
-  readonly specContext: FieldAttributeSpecContext;
-  readonly sources: PslSources;
-  readonly binder: Binder;
-  readonly isListColumn: boolean;
-  readonly elementNullable: boolean;
-  readonly isDomainEnum: boolean;
-  readonly diagnostics: PslDiagnosticCollector;
-}): readonly NoCheckKind[] | undefined {
-  const node = getAttribute(input.field.attributes, 'noCheck')?.node;
-  if (node === undefined) return undefined;
-  const interpreted = interpretFieldAttribute({
-    node,
-    spec: sqlAttributeSpecs.field.noCheck(input.specContext),
-    symbols: input.symbolTable,
-    model: input.model,
-    field: input.field,
-    sources: input.sources,
-    binder: input.binder,
-    diagnostics: input.diagnostics,
-  });
-  if (interpreted === undefined) return undefined;
-
-  const span = getAttribute(input.field.attributes, 'noCheck')?.span ?? input.field.span;
-  const subject = `Field "${input.model.name}.${input.field.name}"`;
-  const derivable: NoCheckKind[] = [];
-  if (input.isListColumn && !input.elementNullable) derivable.push('elementNotNull');
-  if (input.isDomainEnum) derivable.push('membership');
-
-  const authored = [interpreted.first, interpreted.second].filter(
-    (kind): kind is NoCheckKind => kind === 'membership' || kind === 'elementNotNull',
-  );
-  if (authored.length === 0) {
-    if (derivable.length === 0) {
-      input.diagnostics.push({
-        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-        message: `${subject} @noCheck waives nothing — this column's shape derives no generated checks`,
-        ...diagnosticSource(input.sources, input.field.node.syntax).at(span),
-      });
-      return undefined;
-    }
-    return derivable;
-  }
-  for (const kind of authored) {
-    if (!derivable.includes(kind)) {
-      const explanation =
-        kind === 'membership'
-          ? 'membership checks are derived only from enum value sets'
-          : 'element-non-null checks are derived only for lists whose elements are semantically non-null';
-      input.diagnostics.push({
-        code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-        message: `${subject} @noCheck(${kind}) does not apply — ${explanation}`,
-        ...diagnosticSource(input.sources, input.field.node.syntax).at(span),
-      });
-      return undefined;
-    }
-  }
-  return [...authored].sort();
-}
-
 export function collectResolvedFields(input: CollectResolvedFieldsInput): ResolvedField[] {
   const {
     model,
@@ -433,22 +355,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
   } = input;
   const resolvedFields: ResolvedField[] = [];
   const valueObjectStorageTypeName = authoringContributions?.valueObjectStorageType;
-
-  // Mirrors the TS build's tolerance for non-managed tables
-  // (build-contract.ts, resolveNoCheckKinds call site): a table whose
-  // source-declared policy is not `managed` derives no checks, so `@noCheck`
-  // there is a no-op — neither shape-validated nor carried into the
-  // definition tree. Only the model's own `@@control` matters here: on the
-  // PSL path a contract-level default policy is a specifier concern, applied
-  // after the build (`applySqlSpecifierControlPolicy`), where the same drop
-  // semantics hold via the strip pass. The raw attribute argument is read
-  // without interpreting the spec so a malformed `@@control` is diagnosed
-  // once, by the interpreter's own model-attribute pass.
-  const declaredControlPolicy = getAttribute(model.attributes, 'control')
-    ?.args.find((arg) => arg.kind === 'positional')
-    ?.value.trim();
-  const modelDerivesChecks =
-    declaredControlPolicy === undefined || declaredControlPolicy === 'managed';
 
   for (const field of Object.values(model.fields)) {
     const source = diagnosticSource(sources, field.node.syntax);
@@ -709,20 +615,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
     const fieldExecutionDefaults =
       presetContributions?.executionDefaults ?? loweredDefault.executionDefaults;
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
-    const noCheckKinds = modelDerivesChecks
-      ? lowerNoCheckForField({
-          symbolTable: input.symbolTable,
-          model,
-          field,
-          specContext,
-          sources: input.sources,
-          binder: input.binder,
-          isListColumn,
-          elementNullable: field.elementOptional,
-          isDomainEnum: enumHandle !== undefined,
-          diagnostics,
-        })
-      : undefined;
     resolvedFields.push({
       field,
       columnName: mappedColumnName,
@@ -735,7 +627,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       ...ifDefined('idName', idName),
       ...ifDefined('uniqueName', uniqueName),
       ...ifDefined('many', isListField ? (true as const) : undefined),
-      ...ifDefined('noCheck', noCheckKinds),
       ...ifDefined('elementNullable', field.elementOptional ? (true as const) : undefined),
       ...ifDefined('valueObjectTypeName', valueObjectName),
       ...ifDefined('enumTypeHandle', enumHandle),

@@ -183,7 +183,7 @@ export function valueObjectStorageTypeMissingMessage(columnPath: string): string
   return `${columnPath}: a value-object column needs the stack's value-object storage type, and the stack declares none`;
 }
 
-const LISTED_STORED_TYPE_NAMES = 5;
+const LISTED_REMOVED_KEYS = 5;
 
 function fieldOf(value: unknown, key: string): unknown {
   return isPlainRecord(value) ? value[key] : undefined;
@@ -193,8 +193,10 @@ function entriesOf(value: unknown): readonly (readonly [string, unknown])[] {
   return isPlainRecord(value) ? Object.entries(value) : [];
 }
 
-function storedTypeNamePaths(storage: unknown): readonly string[] {
-  const columns = entriesOf(fieldOf(storage, 'namespaces')).flatMap(([namespaceId, namespace]) =>
+function storedColumnEntries(
+  storage: unknown,
+): readonly { readonly path: string; readonly entry: unknown }[] {
+  return entriesOf(fieldOf(storage, 'namespaces')).flatMap(([namespaceId, namespace]) =>
     entriesOf(fieldOf(fieldOf(namespace, 'entries'), 'table')).flatMap(([tableName, table]) =>
       entriesOf(fieldOf(table, 'columns')).map(([columnName, column]) => ({
         path: `storage.namespaces.${namespaceId}.entries.table.${tableName}.columns.${columnName}`,
@@ -202,26 +204,22 @@ function storedTypeNamePaths(storage: unknown): readonly string[] {
       })),
     ),
   );
-  const types = entriesOf(fieldOf(storage, 'types')).map(([typeName, entry]) => ({
-    path: `storage.types.${typeName}`,
-    entry,
-  }));
-  return [...columns, ...types]
-    .filter(({ entry }) => isPlainRecord(entry) && Object.hasOwn(entry, 'nativeType'))
+}
+
+function pathsHolding(
+  entries: readonly { readonly path: string; readonly entry: unknown }[],
+  key: string,
+): readonly string[] {
+  return entries
+    .filter(({ entry }) => isPlainRecord(entry) && Object.hasOwn(entry, key))
     .map(({ path }) => path);
 }
 
-/**
- * Contracts emitted before a column named its data type stored the database type name in `nativeType` on columns and `storage.types` entries. The first five such keys are reported with their paths and the rest are counted, so an old contract is refused with a short message that says what changed.
- */
-function storedTypeNameProblems(storage: unknown): readonly string[] {
-  const paths = storedTypeNamePaths(storage);
-  const listed = paths
-    .slice(0, LISTED_STORED_TYPE_NAMES)
-    .map(
-      (path) =>
-        `${path}.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
-    );
+function listedProblems(
+  paths: readonly string[],
+  describe: (path: string) => string,
+): readonly string[] {
+  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map(describe);
   const unlisted = paths.length - listed.length;
   return unlisted > 0
     ? [
@@ -229,6 +227,41 @@ function storedTypeNameProblems(storage: unknown): readonly string[] {
         `and ${unlisted} more ${unlisted === 1 ? 'path' : 'paths'} (${paths.length} in all)`,
       ]
     : listed;
+}
+
+/**
+ * Contracts emitted before a column named its data type stored the database type name in `nativeType` on columns and `storage.types` entries. The first five such keys are reported with their paths and the rest are counted, so an old contract is refused with a short message that says what changed.
+ */
+function storedTypeNameProblems(storage: unknown): readonly string[] {
+  const types = entriesOf(fieldOf(storage, 'types')).map(([typeName, entry]) => ({
+    path: `storage.types.${typeName}`,
+    entry,
+  }));
+  return listedProblems(
+    pathsHolding([...storedColumnEntries(storage), ...types], 'nativeType'),
+    (path) =>
+      `${path}.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
+  );
+}
+
+/**
+ * Contracts emitted before generated checks became mandatory stored the checks a column waived in `noCheck`. One sentence says what to do, followed by the first five such columns and a count of the rest.
+ */
+function checkWaiverProblems(storage: unknown): readonly string[] {
+  const paths = pathsHolding(storedColumnEntries(storage), 'noCheck');
+  if (paths.length === 0) return [];
+  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map((path) => `${path}.noCheck`);
+  const unlisted = paths.length - listed.length;
+  const more = unlisted > 0 ? `, and ${unlisted} more (${paths.length} in all)` : '';
+  return [
+    `contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide. Columns: ${listed.join(', ')}${more}`,
+  ];
+}
+
+/** The removed keys of the oldest format the contract is in: a contract that still stores `nativeType` is refused for that first, since its `noCheck` keys are rewritten at a later step of the upgrade. */
+function removedKeyProblems(storage: unknown): readonly string[] {
+  const storedTypeNames = storedTypeNameProblems(storage);
+  return storedTypeNames.length > 0 ? storedTypeNames : checkWaiverProblems(storage);
 }
 
 type NamespacedStorageWalk = {
@@ -522,11 +555,11 @@ const SqlContractSchema = createSqlContractSchema(DEFAULT_SQL_KINDS);
  * @throws Error if the storage structure is invalid
  */
 export function validateStorage(value: unknown): void {
-  const storedTypeNames = storedTypeNameProblems(value);
+  const removedKeys = removedKeyProblems(value);
   const result = StorageSchema(value);
   const errors =
-    storedTypeNames.length > 0
-      ? [...storedTypeNames]
+    removedKeys.length > 0
+      ? [...removedKeys]
       : result instanceof type.errors
         ? result.map((p: { message: string }) => p.message)
         : [];
@@ -578,10 +611,10 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
     throw new ContractValidationError(`Unsupported target family: ${targetFamily}`, 'structural');
   }
 
-  const storedTypeNames = storedTypeNameProblems(fieldOf(value, 'storage'));
-  if (storedTypeNames.length > 0) {
+  const removedKeys = removedKeyProblems(fieldOf(value, 'storage'));
+  if (removedKeys.length > 0) {
     throw new ContractValidationError(
-      `Contract structural validation failed: ${storedTypeNames.join('; ')}`,
+      `Contract structural validation failed: ${removedKeys.join('; ')}`,
       'structural',
     );
   }

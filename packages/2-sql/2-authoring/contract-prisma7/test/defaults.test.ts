@@ -101,8 +101,7 @@ describe('dbgenerated() with no expression', () => {
         dataType: 'pg/text',
         codecId: 'pg/text@1',
         nullable: true,
-        many: { elementNullable: false },
-        noCheck: ['elementNotNull'],
+        many: { elementNullable: true },
       },
     });
   });

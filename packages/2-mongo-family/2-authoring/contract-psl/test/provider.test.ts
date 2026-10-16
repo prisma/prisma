@@ -8,11 +8,10 @@ import {
   type AnyCodecDescriptor,
   type Codec,
   type CodecLookupWithDescriptors,
-  createDataTypeLookup,
   dataType,
-  emptyCodecLookup,
   readJsonString,
 } from '@internal/framework-components/codec';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { jsonValue, mapBlock } from '@internal/psl-parser';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -21,6 +20,7 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const originalCwd = process.cwd();
 const tempDirs: string[] = [];
@@ -48,8 +48,8 @@ const stringCodec: Codec = {
 
 function codecLookupOf(codec: Codec): CodecLookupWithDescriptors {
   return {
-    ...emptyCodecLookup,
-    get: (id) => (id === codec.id ? codec : undefined),
+    ...mongoCodecLookup,
+    get: (id) => (id === codec.id ? codec : mongoCodecLookup.get(id)),
     descriptorFor: (id) =>
       id === codec.id
         ? ({
@@ -57,7 +57,7 @@ function codecLookupOf(codec: Codec): CodecLookupWithDescriptors {
             traits: ['equality'],
             factory: () => () => codec,
           } as unknown as AnyCodecDescriptor)
-        : undefined,
+        : mongoCodecLookup.descriptorFor(id),
   };
 }
 
@@ -91,7 +91,7 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
     composedExtensions: [],
     defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
-    dataTypes: { entries: {}, lookup: createDataTypeLookup([]), dataTypeOfCodec: () => undefined },
+    dataTypes: mongoDataTypeSupport,
     authoringContributions: {
       dataTypes: {},
       field: {},
@@ -102,7 +102,7 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
       attributeSpecs: mongoAttributeSpecs,
     },
     pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
-    codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+    codecLookup: mongoCodecLookup,
     controlMutationDefaults: {
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],

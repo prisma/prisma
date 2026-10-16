@@ -90,7 +90,7 @@ describe('contract infer picks each column type through its data type', () => {
       Object.fromEntries(
         COLUMN_TYPES.flatMap(([, psl], index) => [
           [`c${index * 2}`, psl],
-          [`c${index * 2 + 1}`, `${psl}[]`],
+          [`c${index * 2 + 1}`, `${psl}?[]`],
         ]),
       ),
     );

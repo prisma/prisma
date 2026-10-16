@@ -34,7 +34,7 @@ import {
 
 interface ListDefaultCase {
   readonly column: string;
-  readonly type: Omit<StorageColumnInput, 'default' | 'nullable' | 'many' | 'noCheck'>;
+  readonly type: Omit<StorageColumnInput, 'default' | 'nullable' | 'many'>;
   readonly default: ColumnDefault;
 }
 
@@ -167,8 +167,7 @@ function enumListColumns(
           dataType: 'pg/enum',
           codecId: 'pg/enum@1',
           nullable: true,
-          many: { elementNullable: false },
-          noCheck: ['elementNotNull'],
+          many: { elementNullable: true },
           typeParams: { typeName },
           valueSet: {
             plane: 'storage',
@@ -241,8 +240,7 @@ function buildContract(withDefaults: boolean): Contract<SqlStorage> {
         {
           ...defaultCase.type,
           nullable: true,
-          many: { elementNullable: false },
-          noCheck: ['elementNotNull'],
+          many: { elementNullable: true },
           ...(withDefaults ? { default: defaultCase.default } : {}),
         },
       ];

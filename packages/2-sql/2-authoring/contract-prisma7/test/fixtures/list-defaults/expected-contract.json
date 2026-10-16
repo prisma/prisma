@@ -58,7 +58,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "blEmpty": {
@@ -68,7 +68,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "dl": {
@@ -81,7 +81,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "dlEmpty": {
@@ -94,7 +94,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "tzl": {
@@ -107,7 +107,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "datel": {
@@ -117,7 +117,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "timel": {
@@ -130,7 +130,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "timetzl": {
@@ -143,7 +143,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "ts6l": {
@@ -156,7 +156,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               }
             },
@@ -177,7 +177,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "26c290f2bf61ea76341ed836f515d4301e666af7e399d20573c6bfa30ae98788",
+    "storageHash": "f1cdd79e91d6fdd6e05ca7cc6078d30664a13a3fec4c10cad4947bb2dc2616b4",
     "namespaces": {
       "public": {
         "id": "public",
@@ -197,9 +197,8 @@
                   "codecId": "pg/bytea@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "literal",
                     "value": ["aGVsbG8=", "d29ybGQ="]
@@ -210,9 +209,8 @@
                   "codecId": "pg/bytea@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "literal",
                     "value": []
@@ -223,9 +221,8 @@
                   "codecId": "pg/timestamp-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 3
                   },
@@ -239,9 +236,8 @@
                   "codecId": "pg/timestamp-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 3
                   },
@@ -255,9 +251,8 @@
                   "codecId": "pg/timestamptz-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },
@@ -271,9 +266,8 @@
                   "codecId": "pg/date-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "literal",
                     "value": ["2024-01-02"]
@@ -284,9 +278,8 @@
                   "codecId": "pg/time-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },
@@ -300,9 +293,8 @@
                   "codecId": "pg/timetz@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },
@@ -316,9 +308,8 @@
                   "codecId": "pg/timestamp-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },

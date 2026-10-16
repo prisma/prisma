@@ -14,11 +14,7 @@ import {
   resolvedTypeParams,
   type StorageColumn,
 } from '@internal/sql-contract/types';
-import {
-  type CheckKind,
-  composeCheckWirePrefix,
-  computeCheckContentHash,
-} from '@internal/sql-schema-ir/naming';
+import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import { invariant } from '@internal/utils/assertions';
 import { ifDefined } from '@internal/utils/defined';
 import { isStructuredError } from '@internal/utils/structured-error';
@@ -33,62 +29,6 @@ import {
   type ColumnTypeQualifier,
   resolveColumnDescriptor,
 } from './target-authoring-hooks';
-
-/**
- * Resolves a field's authored `noCheck` kinds against its column shape:
- * the bare form (`[]`) becomes every kind the shape derives, and a named
- * kind that can never apply to the shape is an authoring error
- * (`CONTRACT.CHECK_OPTOUT_INVALID`). Returns the concrete kinds in
- * canonical ascending order — the only form the contract persists.
- */
-function resolveNoCheckKinds(input: {
-  readonly site: ColumnSite;
-  readonly kinds: readonly CheckKind[];
-  readonly many: boolean;
-  readonly elementNullable: boolean;
-  readonly isDomainEnum: boolean;
-}): readonly CheckKind[] {
-  const derivable: CheckKind[] = [];
-  if (input.many && !input.elementNullable) derivable.push('elementNotNull');
-  if (input.isDomainEnum) derivable.push('membership');
-  const subject = columnSiteSubject(input.site);
-  const meta = columnSiteMeta(input.site);
-
-  if (input.kinds.length === 0) {
-    if (derivable.length === 0) {
-      throw contractError(
-        'CONTRACT.CHECK_OPTOUT_INVALID',
-        `${subject}: noCheck() waives nothing — this column's shape derives no generated checks.`,
-        { meta: { ...meta, reason: 'no-derivable-checks' } },
-      );
-    }
-    return derivable;
-  }
-
-  const seen = new Set<CheckKind>();
-  for (const kind of input.kinds) {
-    if (seen.has(kind)) {
-      throw contractError(
-        'CONTRACT.CHECK_OPTOUT_INVALID',
-        `${subject}: noCheck("${kind}") names the same kind twice.`,
-        { meta: { ...meta, kind, reason: 'duplicate-kind' } },
-      );
-    }
-    seen.add(kind);
-    if (!derivable.includes(kind)) {
-      const explanation =
-        kind === 'membership'
-          ? 'membership checks are derived only from enumType() value sets'
-          : 'element-non-null checks are derived only for lists whose elements are semantically non-null';
-      throw contractError(
-        'CONTRACT.CHECK_OPTOUT_INVALID',
-        `${subject}: noCheck("${kind}") does not apply — ${explanation}.`,
-        { meta: { ...meta, kind, reason: 'inapplicable-kind' } },
-      );
-    }
-  }
-  return [...input.kinds].sort();
-}
 
 /**
  * Names the target's rendered checks and lowers them into contract entities.
@@ -190,16 +130,6 @@ export function lowerColumn(
     context.qualifyColumnType,
   );
   const elementNullable = many !== false && many.elementNullable;
-  const noCheck =
-    description.noCheck !== undefined && placement.derivesChecks
-      ? resolveNoCheckKinds({
-          site,
-          kinds: description.noCheck,
-          many: many !== false,
-          elementNullable,
-          isDomainEnum: description.enumTypeHandle !== undefined,
-        })
-      : undefined;
 
   const codecId = descriptor.codecId;
   const typeParams = resolvedTypeParams(descriptor, context.storageTypes);
@@ -229,7 +159,6 @@ export function lowerColumn(
     codecId,
     nullable: description.nullable,
     many,
-    ...ifDefined('noCheck', noCheck && [...noCheck].sort()),
     ...ifDefined('typeParams', descriptor.typeParams),
     ...ifDefined('default', encodedDefault),
     ...ifDefined('typeRef', descriptor.typeRef),
@@ -248,6 +177,6 @@ export function lowerColumn(
     elementNullable,
     memberValues:
       enumTypeHandle !== undefined ? checkMemberValues(enumTypeHandle, codecLookup) : undefined,
-  }).filter((candidate) => !(noCheck?.includes(candidate.kind) ?? false));
+  });
   return { column, derivedChecks: lowerRenderedChecks(placement.tableName, candidates) };
 }

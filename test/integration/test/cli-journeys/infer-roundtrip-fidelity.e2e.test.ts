@@ -183,10 +183,7 @@ withTempDir(({ createTempDir }) => {
         const psl = readContractPsl(ctx);
         expect(psl).not.toContain('dbgenerated');
         expect(psl, 'Users.tags carries a PSL literal-list default, not a raw one').toMatch(
-          /tags\s+String\[\]\s+@default\(\[\]\)/,
-        );
-        expect(psl, 'Users.tags waives the element check its source database never had').toMatch(
-          /tags\s+String\[\][^\n]*@noCheck\(elementNotNull\)/,
+          /tags\s+String\?\[\]\s+@default\(\[\]\)/,
         );
 
         // Isolate the list-default defect: fix the one remaining unrelated
@@ -210,7 +207,7 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
-      'infer prints a nullable text[] column as String[]? with its default, and it round-trips clean',
+      'infer prints a nullable text[] column as String?[]? with its default, and it round-trips clean',
       async () => {
         const ctx: JourneyContext = setupJourney({
           connectionString: db.connectionString,
@@ -223,7 +220,7 @@ withTempDir(({ createTempDir }) => {
 
         const psl = readContractPsl(ctx);
         expect(psl, 'Users.labels is a nullable list with a literal-list default').toMatch(
-          /labels\s+String\[\]\?\s+@default\(\[\]\)/,
+          /labels\s+String\?\[\]\?\s+@default\(\[\]\)/,
         );
 
         const reduced = fixOneToOneBackRelation(psl);
@@ -232,7 +229,7 @@ withTempDir(({ createTempDir }) => {
         const emit = await runContractEmit(ctx);
         expect(
           emit.exitCode,
-          'contract emit should accept String[]? @default([]) on Users.labels; ' +
+          'contract emit should accept String?[]? @default([]) on Users.labels; ' +
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 

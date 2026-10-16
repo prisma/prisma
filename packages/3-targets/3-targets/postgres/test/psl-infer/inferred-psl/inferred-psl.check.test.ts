@@ -2,8 +2,8 @@
  * Pins infer's `@@check` emission rule at the unit level: a live check emits
  * `@@check(expression: …, map: …)` iff its physical name is NOT the derived
  * wire name for some column/kind of its table — the same full-hash rule
- * `@noCheck` waiving uses (print-psl.no-check.test.ts), now shared through
- * `computeDerivedCheckNames`. A table carrying both a derived and a
+ * list element nullability uses (inferred-psl.list-element-nullability.test.ts),
+ * shared through `computeDerivedCheckNames`. A table carrying both a derived and a
  * hand-written check emits exactly one `@@check`, for the hand-written one.
  */
 import {
@@ -52,7 +52,6 @@ describe('printPsl — @@check emission', () => {
     });
     const psl = await printPslFromFlat(schemaIR);
     expect(psl).not.toContain('@@check');
-    expect(psl).not.toContain('@noCheck');
   });
 
   it('a live hand-written check emits @@check with the verbatim reprint', async () => {
@@ -124,7 +123,6 @@ describe('printPsl — @@check emission', () => {
     });
     const psl = await printPslFromFlat(schemaIR);
     expect(psl.match(/@@check/g) ?? []).toHaveLength(1);
-    expect(psl).not.toContain('@noCheck');
     expect(psl).toMatchInlineSnapshot(`
       "// use prisma-8
       // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.

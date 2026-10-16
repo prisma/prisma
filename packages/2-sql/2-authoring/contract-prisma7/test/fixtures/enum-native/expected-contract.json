@@ -105,7 +105,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               }
             },
@@ -130,7 +130,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "5e59c724227fc8a47194eeb1b18a6ef3d580fc81b42fd258de7812a2e6b8a0dc",
+    "storageHash": "12b8cb993ab0b94e6c199ba3d79bd4fc5566436c96bcf6f10a01f68ed8e781bb",
     "namespaces": {
       "audit": {
         "id": "audit",
@@ -232,9 +232,8 @@
                   "codecId": "pg/enum@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "typeName": "user_role"
                   },

@@ -447,45 +447,6 @@ const uniqueFieldSpec = fieldAttribute('unique', {
   named: { map: { type: optional(str()), documentation: 'The database unique-constraint name.' } },
 });
 
-const noCheckKindArgument = () =>
-  oneOf(
-    identifier('membership', {
-      documentation: 'Waives the generated check that values belong to the declared domain enum.',
-    }),
-    identifier('elementNotNull', {
-      documentation: 'Waives the generated check that scalar-list elements are non-null.',
-    }),
-  );
-
-/**
- * `@noCheck` waives generated CHECK constraints on one column: bare for every
- * kind the column's shape derives, or naming concrete kinds. Two optional
- * positional slots cover the whole kind vocabulary; a third argument is
- * necessarily a duplicate and fails as excess arity.
- */
-const noCheckFieldSpec = fieldAttribute('noCheck', {
-  documentation:
-    'Waives generated CHECK constraints for this column. With no arguments, waives every generated kind.',
-  positional: [
-    {
-      key: 'first',
-      type: optional(noCheckKindArgument()),
-      documentation: 'The first generated check kind to waive: `membership` or `elementNotNull`.',
-    },
-    {
-      key: 'second',
-      type: optional(noCheckKindArgument()),
-      documentation: 'A second, distinct generated check kind to waive.',
-    },
-  ],
-  refine: (value, ctx, attributeNode) => {
-    if (value.first !== undefined && value.first === value.second) {
-      return [leafDiagnostic(ctx, attributeNode, '`@noCheck` names the same kind twice')];
-    }
-    return [];
-  },
-});
-
 const idModelSpec = modelAttribute('id', {
   documentation: 'Declares a compound primary key for this table.',
   positional: [
@@ -869,7 +830,6 @@ export const sqlAttributeSpecs = {
     map: (_ctx: FieldAttributeSpecContext) => mapFieldSpec,
     id: (_ctx: FieldAttributeSpecContext) => idFieldSpec,
     unique: (_ctx: FieldAttributeSpecContext) => uniqueFieldSpec,
-    noCheck: (_ctx: FieldAttributeSpecContext) => noCheckFieldSpec,
     relation: (_ctx: FieldAttributeSpecContext) => relationFieldSpec,
     default: defaultFieldSpec,
   },

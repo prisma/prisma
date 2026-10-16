@@ -189,18 +189,18 @@ withTempDir(({ createTempDir }) => {
             // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
 
             model ListDefaults {
-              id             Int                @id(map: "list_defaults_pkey")
-              negInts        Int[]?             @default([-1, 2]) @noCheck(elementNotNull)
-              negSmallInts   SmallInt[]?        @default([-1, 2]) @noCheck(elementNotNull)
-              bigInts        BigInt[]?          @default([1, 2]) @noCheck(elementNotNull)
-              negBigInts     BigInt[]?          @default([-1, 2]) @noCheck(elementNotNull)
-              emptyBigInts   BigInt[]?          @default([]) @noCheck(elementNotNull)
-              hugeBigInts    BigInt[]?          @default([9007199254740993, -9007199254740993]) @noCheck(elementNotNull)
-              negFloats      Float[]?           @default([-1.5, 2]) @noCheck(elementNotNull)
-              negDecimals    Numeric(65, 30)[]? @default([-1.5, 2]) @noCheck(elementNotNull)
-              longDecimals   Numeric(65, 30)[]? @default([12345678901234567890.123456789, 0.000000000000000001]) @noCheck(elementNotNull)
-              scaledDecimals Numeric(10, 2)[]?  @default([-1.25, 2]) @noCheck(elementNotNull)
-              emptyVarchars  VarChar(32)[]?     @default([]) @noCheck(elementNotNull)
+              id             Int                 @id(map: "list_defaults_pkey")
+              negInts        Int?[]?             @default([-1, 2])
+              negSmallInts   SmallInt?[]?        @default([-1, 2])
+              bigInts        BigInt?[]?          @default([1, 2])
+              negBigInts     BigInt?[]?          @default([-1, 2])
+              emptyBigInts   BigInt?[]?          @default([])
+              hugeBigInts    BigInt?[]?          @default([9007199254740993, -9007199254740993])
+              negFloats      Float?[]?           @default([-1.5, 2])
+              negDecimals    Numeric(65, 30)?[]? @default([-1.5, 2])
+              longDecimals   Numeric(65, 30)?[]? @default([12345678901234567890.123456789, 0.000000000000000001])
+              scaledDecimals Numeric(10, 2)?[]?  @default([-1.25, 2])
+              emptyVarchars  VarChar(32)?[]?     @default([])
 
               @@map("list_defaults")
             }
@@ -318,8 +318,8 @@ withTempDir(({ createTempDir }) => {
             // Contract inferred from the live database schema. Edit as needed, then run \`prisma contract emit\`.
 
             model RawListDefaults {
-              id         Int                   @id(map: "raw_list_defaults_pkey")
-              timestamps TimestampString(3)[]? @default([timestamp\`2024-01-01T00:00:00\`]) @noCheck(elementNotNull)
+              id         Int                    @id(map: "raw_list_defaults_pkey")
+              timestamps TimestampString(3)?[]? @default([timestamp\`2024-01-01T00:00:00\`])
 
               @@map("raw_list_defaults")
             }
