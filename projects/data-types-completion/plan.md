@@ -57,7 +57,7 @@ Through `mise exec --` and the `:agent` variants, reading the log file each prin
 Stop and report to the orchestrator; do not choose an alternative.
 
 - Any committed `contract.json` changes in slice 1, or any `contract.d.ts` changes other than the SQLite aggregate rows of design 2.7 item 9.
-- The golden planner test finds a DDL change in slices 1 to 4 other than the allowed ones: the `typeRef` quoting fix (slice 1), SQLite `BigInt` literal defaults written `DEFAULT 42` (slice 2), and in slice 3 a date or time default the Prisma 7 reader used to store as an expression, now written by its codec.
+- The golden planner test finds a DDL change in slices 1 to 4 other than the allowed ones: the `typeRef` quoting fix (slice 1), SQLite `BigInt` literal defaults written `DEFAULT 42` (slice 2), and in slice 3 a date or time default the Prisma 7 reader used to store as an expression, now written by its codec, and a Prisma 7 `Decimal` default written with its column's full scale (`'1.5'` becomes `'1.500000000000000000000000000000'` on `numeric(65,30)`; PostgreSQL stores the same value).
 - A reported text from a real database that no claiming text of design 2.6 or section 9 covers, for a type that has a data type.
 - A column in a committed contract whose codec's data type does not reproduce its stored `nativeType` in slice 1.
 - The upgrade script's output differs from regeneration for any file.
