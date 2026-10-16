@@ -508,11 +508,17 @@ describe('RecreateTableCall', () => {
     const op = await call.toOp(lowerer);
     expect({
       create: op.execute[0]?.sql,
+      sourceColumns: op.precheck[2],
       stored: op.postcheck[2],
       defaultChecks: op.postcheck.slice(3),
     }).toEqual({
       create:
         'CREATE TABLE "_prisma_new_user" (\n  "id" INTEGER NOT NULL,\n  "role" TEXT DEFAULT \'member\' /* user */,\n  "at" TEXT DEFAULT (datetime(\'now\'))\n)',
+      sourceColumns: {
+        description:
+          'ensure table "user" has exactly the columns the rebuild copies or leaves out (id, role, at)',
+        sql: "SELECT (SELECT COUNT(*) FROM pragma_table_info('user')) = 3 AND (SELECT COUNT(*) FROM pragma_table_info('user') WHERE name IN ('id', 'role', 'at')) = 3",
+      },
       stored: {
         description: 'verify "user" is stored as the rebuilt table',
         sql: `SELECT (SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'user') = 'CREATE TABLE "user" (\n  "id" INTEGER NOT NULL,\n  "role" TEXT DEFAULT ''member'' /* user */,\n  "at" TEXT DEFAULT (datetime(''now''))\n)'`,

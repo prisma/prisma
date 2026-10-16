@@ -1,16 +1,10 @@
-import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
-import {
-  APP_SPACE_ID,
-  type MigrationOperationPolicy,
-  planOriginOf,
-} from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import type { ReferentialAction, StorageColumn } from '@internal/sql-contract/types';
-import { SqlStorage } from '@internal/sql-contract/types';
-import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
+import type { Contract } from '@internal/contract/types';
+import { APP_SPACE_ID, planOriginOf } from '@internal/framework-components/control';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
-import { applicationDomainOf, timeouts } from '@repo/test-utils';
+import { timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
+import { ALL_CLASSES, counterContract, postContract } from './fixtures/recreate-contracts';
 import {
   controlAdapter,
   createTestDatabase,
@@ -22,91 +16,6 @@ import {
   synthEdges,
   type TestDatabase,
 } from './fixtures/runner-fixtures';
-
-const ALL_CLASSES: MigrationOperationPolicy = {
-  allowedOperationClasses: ['additive', 'widening', 'destructive', 'data'],
-};
-
-const integer: StorageColumn = {
-  many: false,
-  dataType: 'sqlite/integer',
-  codecId: 'sqlite/integer@1',
-  nullable: false,
-};
-
-function contractOf(
-  name: string,
-  tables: Parameters<typeof sqliteCreateNamespace>[0]['entries']['table'],
-): Contract<SqlStorage> {
-  return {
-    target: 'sqlite',
-    targetFamily: 'sql',
-    profileHash: profileHash('recreate-table-postcheck-skip'),
-    storage: new SqlStorage({
-      storageHash: coreHash(name),
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: sqliteCreateNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: { table: tables },
-        }),
-      },
-    }),
-    roots: {},
-    domain: applicationDomainOf({ models: {} }),
-    capabilities: {},
-    extensions: {},
-    meta: {},
-  };
-}
-
-function postContract(onDelete: ReferentialAction): Contract<SqlStorage> {
-  return contractOf(`post-${onDelete}`, {
-    User: {
-      columns: { id: integer },
-      primaryKey: { columns: ['id'] },
-      uniques: [],
-      indexes: [],
-      foreignKeys: [],
-    },
-    Post: {
-      columns: { id: integer, authorId: { ...integer, nullable: true } },
-      primaryKey: { columns: ['id'] },
-      uniques: [],
-      indexes: [],
-      foreignKeys: [
-        {
-          source: {
-            namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-            tableName: 'Post',
-            columns: ['authorId'],
-          },
-          target: {
-            namespaceId: asNamespaceId(UNBOUND_NAMESPACE_ID),
-            tableName: 'User',
-            columns: ['id'],
-          },
-          onDelete,
-        },
-      ],
-    },
-  });
-}
-
-function counterContract(autoincrement: boolean): Contract<SqlStorage> {
-  return contractOf(`counter-${autoincrement}`, {
-    Counter: {
-      columns: {
-        id: autoincrement
-          ? { ...integer, default: { kind: 'function', expression: 'autoincrement()' } }
-          : integer,
-      },
-      primaryKey: { columns: ['id'] },
-      uniques: [],
-      indexes: [],
-      foreignKeys: [],
-    },
-  });
-}
 
 describe('a SQLite rebuild whose change the table-level postchecks miss', {
   timeout: timeouts.databaseOperation,

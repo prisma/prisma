@@ -261,6 +261,7 @@ export async function recreateTable(
         tempSteps.absent.sql,
         tempSteps.absent.params,
       ),
+      sourceColumnsCheck(tableName, schemaColumnNames),
     ],
     execute: [
       step(
@@ -304,6 +305,26 @@ export async function recreateTable(
             ];
       }),
     ],
+  };
+}
+
+/**
+ * Checks that the table has exactly the columns the rebuild reads, the ones it copies and the ones it
+ * leaves out. The rebuild copies only the columns it knows, so on a table with another column, such
+ * as one a later migration added, it would drop that column and its values.
+ */
+function sourceColumnsCheck(
+  tableName: string,
+  columns: readonly string[],
+): SqlMigrationPlanOperationStep {
+  const info = `pragma_table_info('${escapeLiteral(tableName)}')`;
+  const named =
+    columns.length === 0
+      ? ''
+      : ` AND (SELECT COUNT(*) FROM ${info} WHERE name IN (${quoteSqlList(columns)})) = ${columns.length}`;
+  return {
+    description: `ensure table "${tableName}" has exactly the columns the rebuild copies or leaves out (${columns.join(', ')})`,
+    sql: `SELECT (SELECT COUNT(*) FROM ${info}) = ${columns.length}${named}`,
   };
 }
 
