@@ -50,6 +50,8 @@ States were last checked against GitHub and Linear on 2026-10-16.
 
 **Row 4, multi-file PSL.** Last part merged 2026-09-30 (prisma/orm#30456).
 
+**Row 5, several `types` blocks.** Wanted by Will and Serhii on 2026-10-16. The parsed document has one optional `types` block (`PslDocumentAst.types` in `packages/1-framework/1-core/framework-components/src/control/psl-ast.ts`), so a schema cannot spread type aliases over several blocks today. No ticket.
+
 ## Stream 4: Query features
 
 **Row 1, transaction options.** Split from nested transactions on 2026-10-05. A draft adds an isolation level option (prisma/orm#30333, draft since 2026-09-17).

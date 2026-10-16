@@ -91,6 +91,7 @@ Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgen
 ## Changes of 2026-10-16
 
 - A project that has started is Must (Will). It counts toward GA readiness. Nested writes, the `firstOrThrow` need and the docs restructure became Must. The six unranked projects in stream 4 became ranked Must rows 7 to 12. The items beside the streams (manifesto, one lowering, Asks, eval harness) are not GA projects and are not counted.
+- A schema may hold several `types` blocks (Will and Serhii). Stream 3, row 5. Not yet placed for GA.
 - Field presets are removed, and type aliases stay (Will and Serhii). This changes TML-3055's decision of 2026-07-20, which removed both. The work is TML-3607, and it is the rest of stream 1 row 5. A value the client generates is written `@onCreate(fn())` or `@onUpdate(fn())`, and `fn` resolves to the generator for the column's codec. `@default` means a database default only, so `@default(uuid())` becomes `@onCreate(uuid())`. A type alias is an authoring shorthand: PSL expands it into each column, the contract does not store it, and it may carry `@default`, `@onCreate` and `@onUpdate`. Types that exist in the database, such as native enums, stay in the contract. Targets and extensions contribute aliases instead of presets. Reason: one mechanism that users and packages share, and printed Prisma 7 schemas read like the source, for example `updatedAt TimestampString(3) @onCreate(now()) @onUpdate(now())` instead of `temporal.timestampString(3, onCreate: now, onUpdate: now)`.
 
 ## Changes of 2026-10-07

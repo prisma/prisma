@@ -71,6 +71,7 @@ Test: an existing Prisma 7 database can be signed by Prisma 8.
 | 2 | 🔄 2/4 | VS Code extension: formatter without the CLI, go-to-definition, multi-file PSL, emulator controls | Must | Serhii | Go-to-definition and multi-file PSL done. Rename merged. File watching in review. Formatter without the CLI unverified. Emulator controls wait on row 1 | Review the file-watching PR. Verify the formatter works without the CLI |
 | 3 | ⏳ | Make the extension's handling of local and remote Prisma Postgres match the CLI and its emulators | Must | Serhii | Not started |  |
 | 4 | ✅ 1/1 | Multi-file PSL | Must | Serhii | Done 2026-09-30 | |
+| 5 | ⏳ | Several `types` blocks in a schema, so type aliases can sit beside the models that use them | Not decided | Serhii | Not started, no ticket. Today a document holds one `types` block |  |
 
 ## Stream 4: Query features
 
