@@ -1,5 +1,5 @@
 /**
- * Journey: a default on a column of every built-in Postgres type that has a codec, through every codec PSL names for it, is written by the CLI, read back from the database by the column's codec, and compared as a value. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
+ * Journey: a default on a column of every built-in Postgres type that has a codec, through every codec PSL names for it, is written by the CLI, read back from the database by the column's codec, and compared as a value. A second model holds the values whose writing this slice changed: years outside 1 to 9999, `infinity` on the text codecs, mixed and negative intervals, bytes and text with quotes and backslashes, `NaN` and the infinities, and list defaults of them. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
  */
 import { writeFileSync } from 'node:fs';
 import { withClient } from '@repo/test-utils';
@@ -68,6 +68,32 @@ model Sample {
   huge        UnboundedInt      @default(123456789012345678901234567890)
 
   @@map("sample")
+}
+
+model Edge {
+  id           Int                 @id
+  dayBc        Date                @default(${tagged('date', '0044-03-15 BC')})
+  dayFar       Date                @default(${tagged('date', '+012026-01-02')})
+  localBc      Timestamp(3)        @default(${tagged('timestamp', '0044-03-15 12:00:00 BC')})
+  instantFar   Timestamptz(6)      @default(${tagged('timestamptz', '+012026-01-02T03:04:05Z')})
+  forever      TimestamptzString   @default(${tagged('timestamptz', 'infinity')})
+  dawn         DateString          @default(${tagged('date', '-infinity')})
+  localForever TimestampString     @default(${tagged('timestamp', 'infinity')})
+  mixed        Interval            @default(${tagged('interval', 'P1Y-2M3DT-4H5M-6.5S')})
+  backwards    Interval            @default(${tagged('interval', 'P-1DT-4H-5M')})
+  quoteBytes   Bytes               @default(${tagged('bytea', '\\x27225c00ff')})
+  quoteText    String              @default("it's a \\\\ backslash")
+  notANumber   Float               @default(NaN)
+  above        Float               @default(Infinity)
+  below        Real                @default(-Infinity)
+  numericNaN   Decimal             @default(NaN)
+  stamps       Timestamp(3)[]      @default([${tagged('timestamp', '0044-03-15 12:00:00 BC')}, ${tagged('timestamp', '2024-01-01T00:00:00')}])
+  spans        Interval[]          @default([${tagged('interval', 'P1Y-2M')}, ${tagged('interval', 'PT0S')}])
+  blobs        Bytes[]             @default([${tagged('bytea', '\\x27')}, ${tagged('bytea', '\\x5c')}])
+  texts        String[]            @default(["a'b", "c\\\\d", ""])
+  floats       Float[]             @default([NaN, Infinity, -Infinity, 1.5])
+
+  @@map("edge")
 }
 `;
 

@@ -1,5 +1,5 @@
 /**
- * Journey: a default on a column of every built-in SQLite type that has a codec and a PSL default is written by the CLI, read back from the database by the column's codec, and compared as a value. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
+ * Journey: a default on a column of every built-in SQLite type that has a codec and a PSL default is written by the CLI, read back from the database by the column's codec, and compared as a value. A second model holds edge values: bytes and text with quotes and backslashes, empty bytes, a very small float, years outside 1 to 9999, an offset, a JSON document that is a string, and the smallest integer. `db verify` reports no issue. A default changed behind the CLI's back is the one issue it reports.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
@@ -38,8 +38,24 @@ model Sample {
   code    sql.String(10) @default("vc")
   at      DateTime     @default(${tagged('datetime', '2024-01-01T00:00:00Z')})
   doc     Json         @default(${tagged('json', '{"b": [1, 2], "a": 1}')})
+  bytes   Bytes        @default(${tagged('blob', '6869')})
 
   @@map("sample")
+}
+
+model Edge {
+  id         Int          @id
+  quoteBytes Bytes        @default(${tagged('blob', '27225c00ff')})
+  noBytes    Bytes        @default(${tagged('blob', '')})
+  quoteText  String       @default("it's a \\\\ backslash")
+  tiny       Float        @default(0.000000000000000000001)
+  far        DateTime     @default(${tagged('datetime', '+010000-01-01T00:00:00Z')})
+  early      DateTime     @default(${tagged('datetime', '-000001-01-01T00:00:00Z')})
+  offset     DateTime     @default(${tagged('datetime', '2024-01-01T05:30:00.5+05:30')})
+  docString  Json         @default(${tagged('json', '"42"')})
+  huge       BigInt       @default(-9223372036854775808)
+
+  @@map("edge")
 }
 `;
 
