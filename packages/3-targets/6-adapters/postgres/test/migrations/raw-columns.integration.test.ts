@@ -159,7 +159,7 @@ describe('raw columns', { concurrent: false }, () => {
       search: raw('tsvector', { nullable: false }),
       area: raw('circle', { default: { kind: 'function', expression: "'<(0,0),1>'::circle" } }),
       net: raw('cidr'),
-      nets: raw('cidr', { many: { elementNullable: false }, noCheck: ['elementNotNull'] }),
+      nets: raw('cidr', { many: { elementNullable: false } }),
       code: raw('character varying(10)'),
     });
     await migrate(contract, emptySchema);
