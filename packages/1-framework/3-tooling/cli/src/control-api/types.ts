@@ -440,6 +440,8 @@ export interface DbInitFailure {
   readonly meta: Record<string, unknown> | undefined;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The check that failed before its operation ran. */
+  readonly failedPrecheck?: FailedPrecheckReport;
   /** Underlying failure or error for diagnostics; never serialized into envelopes. */
   readonly cause?: unknown;
   readonly marker?: {
@@ -526,6 +528,15 @@ export type FailedTypeChangeReport =
   | (Pick<FailedCast, 'by' | 'reason'> & { readonly field: string })
   | (Pick<FailedConversion, 'by' | 'reason'> & { readonly field: string });
 
+/** A check that failed before its operation ran, when the runner gave no explanation of its own. */
+export interface FailedPrecheckReport {
+  readonly operationId: string;
+  /** The check, as the operation describes it. */
+  readonly description: string;
+  /** Whether the database had a marker for the failing space, so the run started from a known contract. */
+  readonly databaseHasMarker: boolean;
+}
+
 /** A field that was to become required while rows had no value for it, as the advice names it. */
 export interface RowsWithoutValueReport {
   /** The field, as a `backfill` statement names it, when the contract names one. */
@@ -554,6 +565,8 @@ export interface DbUpdateFailure {
   readonly meta: Record<string, unknown> | undefined;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The check that failed before its operation ran. */
+  readonly failedPrecheck?: FailedPrecheckReport;
   /**
    * The storage hash of the contract the database is at, when a migration of the graph ends at it:
    * the origin a `migration plan` for this database starts from.
@@ -775,6 +788,8 @@ export interface MigrateFailure {
   readonly meta: Record<string, unknown> | undefined;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The check that failed before its operation ran. */
+  readonly failedPrecheck?: FailedPrecheckReport;
   /** The written migration of the failed operation: its directory, and the contract it starts from. */
   readonly failedMigration?: { readonly directory: string; readonly from: string };
   /** The type change that failed. */

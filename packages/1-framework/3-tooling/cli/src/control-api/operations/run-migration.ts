@@ -23,6 +23,7 @@ import { InternalError } from '@internal/utils/internal-error';
 import { notOk, ok, type Result } from '@internal/utils/result';
 import { subjectText } from '../statements/plan-questions';
 import type {
+  FailedPrecheckReport,
   FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
@@ -57,6 +58,8 @@ export interface RunnerFailure {
   readonly failedTypeChange?: FailedTypeChangeReport;
   /** The fields that were to become required while rows had no value for them; the failed one first. */
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  /** The check that failed before its operation ran, when the runner gave no explanation of its own. */
+  readonly failedPrecheck?: FailedPrecheckReport;
   /** The written migration of the failed operation, when the runner named the operation. */
   readonly failedMigration?: { readonly spaceId: string; readonly edge: AggregateMigrationEdgeRef };
   /**
@@ -116,6 +119,28 @@ function failureReports(
       'failedMigration',
       edge === undefined ? undefined : { spaceId: resolution.spaceId, edge },
     ),
+  };
+}
+
+function failedPrecheckOf(
+  failure: MigrationRunnerFailure,
+  resolutions: readonly OrderedResolution[],
+): FailedPrecheckReport | undefined {
+  const operationId = failure.meta?.['operationId'];
+  const description = failure.meta?.['stepDescription'];
+  if (
+    failure.code !== 'MIGRATION.PRECHECK_FAILED' ||
+    failure.why !== undefined ||
+    typeof operationId !== 'string' ||
+    typeof description !== 'string'
+  ) {
+    return undefined;
+  }
+  const resolution = resolutions.find(({ spaceId }) => spaceId === failure.failingSpace);
+  return {
+    operationId,
+    description,
+    databaseHasMarker: resolution !== undefined && resolution.entry.plan.origin !== null,
   };
 }
 
@@ -246,6 +271,7 @@ export async function runMigration<TFamilyId extends string, TTargetId extends s
         runnerErrorCode: runnerResult.failure.code,
       },
       ...failureReports(runnerResult.failure, orderedResolutions),
+      ...ifDefined('failedPrecheck', failedPrecheckOf(runnerResult.failure, orderedResolutions)),
       cause: runnerResult.failure,
     });
   }

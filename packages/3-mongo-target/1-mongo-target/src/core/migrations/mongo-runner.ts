@@ -245,8 +245,14 @@ export class MongoMigrationRunner {
               renameTargetExistsRefusal(operation, failed) ??
               runnerFailure(
                 'MIGRATION.PRECHECK_FAILED',
-                `Operation ${operation.id} failed during precheck`,
-                { meta: { operationId: operation.id } },
+                `Operation ${operation.id} failed during precheck: ${failed.description}`,
+                {
+                  meta: {
+                    operationId: operation.id,
+                    phase: 'precheck',
+                    stepDescription: failed.description,
+                  },
+                },
               )
             );
           }
