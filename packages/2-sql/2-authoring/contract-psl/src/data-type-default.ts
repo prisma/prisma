@@ -34,7 +34,7 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { codecForRef, dataTypeParamsOf } from '@internal/framework-components/codec';
+import { codecForRef, dataTypeParams } from '@internal/framework-components/codec';
 import type { ContributedPslDiagnosticCode, PslSpan } from '@internal/framework-components/psl-ast';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
 import { blindCast } from '@internal/utils/casts';
@@ -194,7 +194,7 @@ function storedValueReader(input: {
     );
   }
   const suggestedTypes = [descriptor.dataType];
-  const params = dataTypeParamsOf(codec.dataType, input.column.typeParams);
+  const params = dataTypeParams(codec.dataType, input.column.typeParams);
   const read = (written: JsonValue, elementIndex: number | undefined): StoredReadResult => {
     let stored: JsonValue;
     try {

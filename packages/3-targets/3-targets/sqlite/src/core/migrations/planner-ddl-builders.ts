@@ -1,3 +1,4 @@
+import { dataTypeParams } from '@internal/framework-components/codec';
 /**
  * Low-level DDL fragment builders for SQLite migrations.
  *
@@ -9,7 +10,6 @@
  */
 
 import {
-  dataTypeParams,
   renderSqlTypeName,
   type SqlTypeLookups,
   sqlStorageTypeOfCodec,

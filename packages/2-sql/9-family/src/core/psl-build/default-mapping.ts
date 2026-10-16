@@ -31,7 +31,7 @@ import type {
   DataTypeParams,
   DataTypeValue,
 } from '@internal/framework-components/codec';
-import { dataTypeId, dataTypeParamsOf } from '@internal/framework-components/codec';
+import { dataTypeId, dataTypeParams } from '@internal/framework-components/codec';
 import { numeralText } from '@internal/sql-contract/data-type';
 import { escapePslString } from '@internal/sql-contract/data-type-support';
 import { SQL_EXPRESSION_TAG } from '@internal/sql-contract/sql-expression';
@@ -329,7 +329,7 @@ function writeDefaultLiteral(
   const columnType = lookup.get(columnDataType);
   const column: ColumnType = {
     id: columnDataType,
-    params: columnType === undefined ? {} : dataTypeParamsOf(columnType, options?.typeParams),
+    params: columnType === undefined ? {} : dataTypeParams(columnType, options?.typeParams),
   };
   const surface = writingSurface(dataTypes);
   if (options?.list === true) {

@@ -6,7 +6,7 @@ import {
   type DataType,
   type DataTypeLookup,
   type DataTypeParams,
-  dataTypeParamsOf,
+  dataTypeParams,
 } from '@internal/framework-components/codec';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -129,7 +129,7 @@ function refusedDefaults(storage: SqlStorage, dataTypes: DataTypeLookup): readon
       if (columnDefault?.kind !== 'literal') return [];
       const type = dataTypes.get(column.dataType);
       if (type === undefined) return [];
-      const params = dataTypeParamsOf(type, resolvedTypeParams(column, storage.types));
+      const params = dataTypeParams(type, resolvedTypeParams(column, storage.types));
       if (refusesParams(type, params)) return [];
       const place = { namespaceId, table: tableName, column: columnName, dataType: type.id };
       const isList = column.many !== undefined && column.many !== false;

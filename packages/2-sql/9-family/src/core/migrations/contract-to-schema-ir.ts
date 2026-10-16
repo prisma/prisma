@@ -4,14 +4,13 @@ import {
   type DataType,
   type DataTypeParams,
   type DataTypeValue,
-  dataTypeParamsOf,
+  dataTypeParams,
 } from '@internal/framework-components/codec';
 import type {
   MigrationPlannerConflict,
   SchemaNodeRef,
 } from '@internal/framework-components/control';
 import {
-  dataTypeParams,
   renderSqlTypeName,
   type SqlDataType,
   type SqlTypeLookups,
@@ -115,7 +114,7 @@ function convertColumn(
       contractDefaultValue(
         rawColumnDefault,
         dataType,
-        dataTypeParamsOf(dataType, resolved.typeParams),
+        dataTypeParams(dataType, resolved.typeParams),
         many,
       ),
     ),

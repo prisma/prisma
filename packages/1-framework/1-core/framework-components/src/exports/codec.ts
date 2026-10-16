@@ -56,7 +56,7 @@ export {
   createDataTypeLookup,
   dataType,
   dataTypeId,
-  dataTypeParamsOf,
+  dataTypeParams,
   dataTypeValuesEqual,
   objectSchemaKeys,
   requiredParamKeys,

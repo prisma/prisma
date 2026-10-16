@@ -196,7 +196,7 @@ export function requireValueOf(
 }
 
 /** The parameters in `typeParams` that `type` declares; keys a codec keeps for itself are dropped. */
-export function dataTypeParamsOf(type: DataType, typeParams: unknown): DataTypeParams {
+export function dataTypeParams(type: DataType, typeParams: unknown): DataTypeParams {
   if (typeof typeParams !== 'object' || typeParams === null) return {};
   const kept: Record<string, unknown> = {};
   for (const key of objectSchemaKeys(type.params) ?? []) {

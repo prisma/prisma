@@ -1,9 +1,7 @@
-import { dataType } from '@internal/framework-components/codec';
 import { InternalError } from '@internal/utils/internal-error';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import {
-  dataTypeParams,
   renderSqlCatalogText,
   renderSqlTypeName,
   sqlBaseName,
@@ -36,37 +34,6 @@ describe('validateSqlTypeParams', () => {
         meta: { dataType: 't/vector', parameters: ['length'] },
       }),
     );
-  });
-});
-
-describe('dataTypeParams', () => {
-  it('keeps the optional and required keys the parameter schema declares', () => {
-    expect(dataTypeParams(numeric, { precision: 10, scale: 2 })).toEqual({
-      precision: 10,
-      scale: 2,
-    });
-    expect(dataTypeParams(vector, { length: 3 })).toEqual({ length: 3 });
-  });
-
-  it('drops keys the data type does not declare, such as codec-owned ones', () => {
-    expect(dataTypeParams(numeric, { precision: 10, expression: 'x', jsonIr: {} })).toEqual({
-      precision: 10,
-    });
-  });
-
-  it('keeps only the declared keys that are present', () => {
-    expect(dataTypeParams(numeric, { precision: 10 })).toEqual({ precision: 10 });
-  });
-
-  it('gives a type without parameters nothing', () => {
-    expect(dataTypeParams(int4, { length: 5 })).toEqual({});
-    expect(dataTypeParams(dataType('t/plain', { read: (json) => json }), { length: 5 })).toEqual(
-      {},
-    );
-  });
-
-  it('reads absent parameters as nothing', () => {
-    expect(dataTypeParams(numeric, undefined)).toEqual({});
   });
 });
 

@@ -17,6 +17,7 @@ import type {
 } from '@internal/framework-components/codec';
 import {
   dataType,
+  dataTypeParams,
   objectSchemaKeys,
   schemaKeysAllowing,
 } from '@internal/framework-components/codec';
@@ -255,19 +256,6 @@ export function sqlDataType<Params extends SqlTypeParams = SqlTypeParams>(
 /** Whether `type` is a data type a SQL column can have. `sql/expression` is the one data type no column has. */
 export function isSqlDataType(type: DataType): type is SqlDataType {
   return 'sql' in type;
-}
-
-/** The parameters of `typeParams` that `type` declares; codec-owned keys are dropped. */
-export function dataTypeParams(
-  type: DataType,
-  typeParams: SqlTypeParams | undefined,
-): SqlTypeParams {
-  if (typeParams === undefined) return {};
-  const kept: Record<string, unknown> = {};
-  for (const key of paramKeysOf(type.id, type.params)) {
-    if (Object.hasOwn(typeParams, key)) kept[key] = typeParams[key];
-  }
-  return kept;
 }
 
 function presentKeys(params: SqlTypeParams): readonly string[] {

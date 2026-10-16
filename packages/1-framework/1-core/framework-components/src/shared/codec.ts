@@ -16,7 +16,7 @@ import {
   type DataType,
   type DataTypeParams,
   type DataTypeValue,
-  dataTypeParamsOf,
+  dataTypeParams,
   requireValueOf,
 } from './data-type';
 
@@ -66,7 +66,7 @@ export function readContractValue(
   typeParams: unknown,
 ): unknown {
   return codec.fromDataTypeValue(
-    codec.dataType.fromContract(json, dataTypeParamsOf(codec.dataType, typeParams)),
+    codec.dataType.fromContract(json, dataTypeParams(codec.dataType, typeParams)),
   );
 }
 

@@ -1,6 +1,7 @@
 import type { JsonValue } from '@internal/contract/types';
+import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { dataType, dataTypeValuesEqual } from '../src/shared/data-type';
+import { dataType, dataTypeParams, dataTypeValuesEqual } from '../src/shared/data-type';
 import { readJsonMatching, refuseJsonValue } from '../src/shared/json-readers';
 
 const DIGITS = /^-?\d+(?:\.\d+)?$/;
@@ -109,6 +110,43 @@ describe('valueFrom', () => {
   it('constructs through a type declared by spreading another declaration', () => {
     const spread = { ...decimal };
     expect(spread.valueFrom('1.5', { scale: 2 }).value).toBe('1.50');
+  });
+});
+
+describe('dataTypeParams', () => {
+  const numeric = dataType('demo/numeric', {
+    params: type({ 'precision?': 'number', 'scale?': 'number' }),
+    read: (json) => json,
+  });
+  const vector = dataType('demo/vector', {
+    params: type({ length: 'number' }),
+    read: (json) => json,
+  });
+
+  it('keeps the optional and required keys the parameter schema declares', () => {
+    expect(dataTypeParams(numeric, { precision: 10, scale: 2 })).toEqual({
+      precision: 10,
+      scale: 2,
+    });
+    expect(dataTypeParams(vector, { length: 3 })).toEqual({ length: 3 });
+  });
+
+  it('drops keys the data type does not declare, such as codec-owned ones', () => {
+    expect(dataTypeParams(numeric, { precision: 10, expression: 'x', jsonIr: {} })).toEqual({
+      precision: 10,
+    });
+  });
+
+  it('keeps only the declared keys that are present', () => {
+    expect(dataTypeParams(numeric, { precision: 10 })).toEqual({ precision: 10 });
+  });
+
+  it('gives a type without parameters nothing', () => {
+    expect(dataTypeParams(document, { length: 5 })).toEqual({});
+  });
+
+  it('reads absent parameters as nothing', () => {
+    expect(dataTypeParams(numeric, undefined)).toEqual({});
   });
 });
 

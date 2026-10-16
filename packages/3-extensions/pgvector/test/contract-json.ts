@@ -2,7 +2,7 @@ import type { JsonValue } from '@internal/contract/types';
 import {
   type DataType,
   type DataTypeValue,
-  dataTypeParamsOf,
+  dataTypeParams,
 } from '@internal/framework-components/codec';
 
 interface ToContract<TInput> {
@@ -27,6 +27,6 @@ export function fromContractJson<TInput>(
   typeParams: unknown = {},
 ): TInput {
   return codec.fromDataTypeValue(
-    codec.dataType.fromContract(json, dataTypeParamsOf(codec.dataType, typeParams)),
+    codec.dataType.fromContract(json, dataTypeParams(codec.dataType, typeParams)),
   );
 }
