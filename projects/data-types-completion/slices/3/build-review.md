@@ -40,6 +40,8 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | e | 2 (`4a282be61f`, `fdc8a36d82`, `2afe6e7c80`, `2337a60b33`) | ANOTHER ROUND NEEDED: 0 must-fix, 2 should-fix, 1 low |
 | e | 3 (`fa38436fa6`, `046e90ed5f`, `aafdb08a4f`) | SATISFIED: 0 must-fix, 0 should-fix, 1 low |
 | f | 1 (`00ae4f1b7a`, `4e946a0bd5`, `782c769471`, `32be566208`) | ANOTHER ROUND NEEDED: 0 must-fix, 1 should-fix, 1 low |
+| f | 2 (`f9585eb2de`, `9ccc1727e9`, `a366259970`) | SATISFIED: 0 must-fix, 0 should-fix, 1 low |
+| g | 1 (`b936882cf0..651bcfa600`) | ANOTHER ROUND NEEDED: 0 must-fix, 3 should-fix, 1 low |
 
 ## Findings log
 
@@ -588,3 +590,89 @@ Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-f.md`. Commit
 - Probes:
   - The golden recordings of the three Prisma 7 fixtures before and after, compared in PGlite.
   - Prisma 7 `DateTime` defaults with extra precision, through a temporary test file, now deleted.
+
+## Dispatch f, round 2
+
+The orchestrator deferred the `time` midnight case (`24:00:00`) in `deferred.md`.
+
+- S3-e-R3-1: fixed in `f9585eb2de`. A migration-tools test loads an aggregate whose snapshot the family refuses and expects `refusedDefaults` on the error.
+- S3-f-R1-1: fixed in `9ccc1727e9`. Infer and print try the number without its trailing fraction zeros first, keep it only when it reads back as the stored value under the column's parameters, and otherwise print the stored text. The read-back proof is unchanged. See S3-f-R2-1 for one path where the parameters are missing.
+- S3-f-R1-2: fixed in `a366259970`. The refusal names the value PostgreSQL stores. I checked all eleven rounding cases in the unit test against PGlite (`::timestamp(3)`, `::timestamptz(3)`, `::timestamptz(6)`, `::time(0)`, `::timetz(1)`, `::timestamp(2)`), including the tie at PostgreSQL's 2000-01-01 epoch, a year before it, and an offset: each named value equals what PostgreSQL stores. For a `time` or `timetz` column the message names the full Prisma 7 text (`2024-01-02T03:04:06+02:00`), the form the user writes in that schema.
+
+### S3-f-R2-1 (low): `contract print` cannot shorten a number default on a column declared with a named type
+
+- Where: `buildColumnDefault` in `packages/3-targets/3-targets/postgres/src/core/psl-print/column-defaults.ts`, which passes `input.column.typeParams`.
+- What is wrong: a column declared through `types { Money = Numeric(10, 2) }` has a `typeRef` and no `typeParams` of its own. Print then reads the short text under no parameters, it does not read back, and print falls back to the full stored text. The output is correct but not the shortest, and it is the same class as `b423685d38`.
+- Change: pass `resolvedTypeParams(input.column, storage.types)`.
+
+## Dispatch g, round 1
+
+Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-g.md`. Range `b936882cf0..651bcfa600`; proof in `wip/s3/proof/`.
+
+### Orchestrator rulings for dispatch g
+
+1. `b3d212401e`: the golden DDL for Prisma 7 `Decimal` defaults written with the column's full scale (`'1.5'` becomes `'1.500000000000000000000000000000'` on `numeric(65,30)`) is allowed. Checked:
+   - In PGlite, all nine padded defaults in the Prisma 7 golden recordings equal the short text as `numeric(65,30)`, both as text and with `=`: `-1.5`, `-0`, `0.000000000000000001`, `00.10`, `1.50`, `12.34`, `12345678901234567890.123456789`, `42`, `007`.
+   - For each, `pgNumeric.withParams` under `{ precision: 65, scale: 30 }` gives exactly the padded text, as dispatch a's rule requires.
+   - No golden manifest entry changed in this range.
+
+### The questions the orchestrator asked
+
+- **Can the script's tests fail?** Yes, every one.
+  - The main test compares the whole tree, `stdout` and `stderr` with the `after` fixture. Another test runs the script twice and expects nothing to change. Others cover a leftover temporary file, a project already upgraded, a Postgres contract the script must leave alone, an occupied snapshot directory, an invalid `migration.json`, and an unknown option.
+  - The `after` fixture was written by the script itself, so the main test alone would be circular. Two things break that circle. The live test recomputes the `after` fixture's contract, snapshot and migration hashes with the framework, and loads the contract with this release's family, which refuses a non-canonical datetime default since dispatch e. And the repository proof compares the script's output with regenerated contracts.
+- **The proof.** Acceptable under the skill. "Validation by execution" in `record-upgrade-instructions` compares `examples/` byte for byte, outside test folders. The one example the slice changes, `examples/prisma-8-demo-sqlite`, is equal in both `contract.json` and `contract.d.ts`. The two files that differ only in formatting are test fixtures in `packages/` and `test/integration/`, outside what the rule compares. For a user's own files, "run your formatter" is the right instruction. Two of the skill's steps are not recorded, though; see S3-g-R1-3.
+- **Slice 2's upgrade fixtures.** Unchanged. `git diff 94fc045c62 HEAD -- test/integration/test/upgrade-instructions/data-type-in-contract` is empty. The script rewrote them only in the proof copy, which is the case S3-g-R1-1 asks the text to warn about.
+- **The extension text.** Each "after" sample matches the branch:
+  - The `PgVectorCodec` constructor, `toWire`, `fromWire`, `fromDataTypeValue` and `toDataTypeValue` match `packages/3-extensions/pgvector/src/core/codecs.ts`.
+  - The vector reader matches `data-types.ts`.
+  - The geometry `factory` matches `postgis/src/core/codecs.ts`.
+  - `DataTypeValue`, `DataTypeReader`, `refuseJsonValue` and `CodecImpl` are exported from `@prisma/orm-framework/components/codec` (built `components__codec.d.mts`), and `DataTypeReader` is `(json, params) => JsonValue`.
+  - The samples elide generics with `/* … */` and use helpers they do not define (`isFiniteNumber`, `parseVector`), so they show the change rather than compile on their own. For a guide that is fine.
+- **The application text, read as a user.** I checked each message it quotes against the branch:
+  - `Expected timestamptz`...`; write timestamptz`2024-01-01T00:00:00Z``, the SQLite `datetime` message, the `time` message, and the bytes message (`"AQID"` gives `Expected bytea`...``) all match.
+  - The `pg/numeric` load refusal and the Prisma 7 `DateTime` message match.
+  - The SQLite script steps, the order (script, `contract emit`, `db sign`) and the `db sign` section can be followed.
+
+  Three gaps follow.
+
+### S3-g-R1-1 (should-fix): the script's section does not warn that it rewrites old-format test fixtures
+
+- Where: `## sqlite-contracts-name-datetime-and-json-data-types` in `upgrade-instructions/pending/data-type-values/app/instructions.md`.
+- What is wrong: the script rewrites every SQLite contract in the previous release's form under the root, and that includes a test fixture kept old on purpose. The proof run did exactly this to slice 2's upgrade fixtures. Slice 2's published guide warns about it and says to restore such a fixture with `git restore`. This one does not.
+- Change: add slice 2's sentence: a test fixture of an old-format contract is rewritten too; if you keep one on purpose, restore it with `git restore <file>` or keep it outside the project root.
+
+### S3-g-R1-2 (should-fix): "The schema does not change" is wrong for some of the Postgres cases
+
+- Where: `## postgres-defaults-stored-in-another-spelling`.
+- What is wrong: `contract emit` fixes a stored spelling only where the schema's default already reads to a value the column holds. Two kinds of earlier default emit now refuses, so the schema must change:
+  - A default with more fraction digits than its column holds. `Time(3) @default(time`12:34:56.1234`)` gives `pg/time JSON value must be a value with at most 3 fraction digits of a second, which precision 3 holds without rounding`, and `Numeric(10, 2) @default(1.234)` gives `... a decimal string that numeric(10, 2) stores without rounding` (probe, deleted). The fraction-digit limit applies to every type with a precision, `timestamp`, `timestamptz` and `interval` too, not only `time`.
+  - A date or time default written as a quoted string, which the tags section requires the user to rewrite.
+- Change:
+  - Say that a default the column cannot hold without rounding is refused by `contract emit` with that message, and that the user writes the rounded value, as PostgreSQL stores it.
+  - Widen "a time default" to every date and time type with a precision.
+  - Point the quoted-date case at the tags section, which is to be done before `contract emit`.
+
+### S3-g-R1-3 (should-fix): two steps of the skill's validation by execution are not recorded
+
+- Where: `wip/s3/proof/notes.txt`; "Validation by execution" in `skills-contrib/record-upgrade-instructions/SKILL.md`.
+- What is wrong:
+  - The proof covers the app entry's file equality. It does not record step 6, the touched example's tests (`examples/prisma-8-demo-sqlite`).
+  - It does not record the extension entry. The skill restores `packages/3-extensions/` to the base, applies the extension text to it, and compares with the head outside test folders. The slice changed ten source files there: pgvector, postgis and arktype-json codecs and data types, plus sql-orm-client and the Supabase script. The notes say only "their changes are code, covered by the instruction text".
+- Change: run the example's tests. Apply the extension text to the base's pgvector, postgis and arktype-json sources, then record the comparison with the head and the extensions' test results. If the orchestrator rules that sql-orm-client's and Supabase's internal changes need no consumer instruction, record that ruling in the notes.
+
+### S3-g-R1-4 (low): the bytes sentence in the tags section is too broad
+
+- Where: "For bytes, the message names only the tag" in `## date-time-interval-and-bytes-defaults-use-tags`.
+- What is wrong: that is true for base64 text (`"AQID"`). For a quoted string already in hex (`"\\x0102"`), the message names the full rewrite: `Expected bytea`...`; write bytea`\x0102``.
+- Change: "For bytes written in base64, the message names only the tag."
+
+### Checks run for dispatch f round 2 and dispatch g round 1
+
+- `pnpm build`, root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `check:upgrade-coverage --mode pr --prev bot/main --head HEAD` passes. `pnpm fixtures:check` passes, tree clean.
+- Package tests of sql-contract-prisma7, target-postgres, family-sql and migration-tools: all pass.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/upgrade-instructions` (the script's tests and slice 2's), `psl-infer`, `psl-print`, every `infer-roundtrip-*` file, `prisma7-source` (directory and journey), `date-time-defaults` and `authoring`: 120 files, 2262 tests, pass.
+- Probes:
+  - The Prisma 7 rounding cases and the padded decimals, in PGlite.
+  - `withParams` for the padded decimals.
+  - The messages the application text quotes, through a temporary test file, now deleted.
