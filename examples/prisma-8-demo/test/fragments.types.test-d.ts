@@ -10,7 +10,8 @@ import {
 import { websearchToTsquery } from '@prisma/orm-postgres/target/full-text';
 import { describe, expectTypeOf, test } from 'vitest';
 import { createOrmClient } from '../src/orm-client/client';
-import { createdSince, ownedBy, postSummary } from '../src/orm-client/fragments';
+import { createdBefore, createdSince, ownedBy, postSummary } from '../src/orm-client/fragments';
+import type { ormClientGetFilteredPosts } from '../src/orm-client/get-filtered-posts';
 import type { ormClientGetRecentPosts } from '../src/orm-client/get-recent-posts';
 import type { ormClientGetRecentUsers } from '../src/orm-client/get-recent-users';
 import type { Contract } from '../src/prisma/contract.d';
@@ -58,6 +59,13 @@ describe('CodecField', () => {
     db.Task.bugs().where(created);
     // @ts-expect-error Tag has no createdAt
     db.Tag.where(created);
+  });
+
+  test('createdBefore fits every model with a createdAt timestamp', () => {
+    db.User.where(createdBefore(since));
+    db.Post.where(createdBefore(since));
+    // @ts-expect-error Tag has no createdAt
+    db.Tag.where(createdBefore(since));
   });
 });
 
@@ -128,5 +136,8 @@ describe('the demo queries', () => {
     type RecentUser = Awaited<ReturnType<typeof ormClientGetRecentUsers>>[number];
     expectTypeOf<RecentUser['posts']>().toEqualTypeOf<PostSummary[]>();
     expectTypeOf<RecentUser['email']>().toEqualTypeOf<string>();
+    expectTypeOf<Awaited<ReturnType<typeof ormClientGetFilteredPosts>>>().toEqualTypeOf<
+      PostSummary[]
+    >();
   });
 });
