@@ -37,6 +37,7 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | c | 2 (`3e3aad659b`, `b423685d38`, `e0e98b5e31`, `b309ab5499`) | SATISFIED |
 | d | 1 (`a39b9eddc6..6e944edb28`, `852ab43720`) | SATISFIED: 0 must-fix, 0 should-fix, 2 low |
 | e | 1 (`b98310c793..9bd0dcf9d8`) | ANOTHER ROUND NEEDED: 2 must-fix, 2 should-fix, 1 low |
+| e | 2 (`4a282be61f`, `fdc8a36d82`, `2afe6e7c80`, `2337a60b33`) | ANOTHER ROUND NEEDED: 0 must-fix, 2 should-fix, 1 low |
 
 ## Findings log
 
@@ -486,3 +487,53 @@ Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-e.md`. Range 
 - `pnpm build`, root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `lint:framework-vocabulary` is 253 at threshold 253. `pnpm fixtures:check` passes, tree clean.
 - Package tests of sql-schema-ir, family-sql, both targets, both adapters, cli, framework-components, sql-contract, sql-contract-psl, migration-tools, pgvector, postgis, mongo-contract, both codec test kits, sql-contract-ts and sql-relational-core: all pass.
 - Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/authoring`, `test/date-time-defaults`, both new journeys, `uuid-defaults`, `value-objects`, `enum-members`, `scalar-lists`, `sql-builder`, `bytea-defaults`, `date-time-default-canonical-form`, `migration-ts-column-defaults`, the `infer-roundtrip-fidelity` files and `psl-print`: 174 files, 2493 pass, 14 fail (S3-e-R1-1 and S3-e-R1-2).
+
+## Dispatch e, round 2
+
+### Orchestrator rulings for round 2
+
+2. S3-e-R1-4 and S3-e-R1-5 are fixed in briefs f and g, and the grep word-boundary note is in brief h (`647c0b0d45`). Closed.
+3. "Space" in item 1 means the storage namespace, because the family does not know which contract space it is deserializing.
+
+### The round 1 findings
+
+- S3-e-R1-1: fixed in `fdc8a36d82`. The load refusal names the namespace (left out for SQLite's unbound one), the table and the column, and carries `meta.refusedDefaults`. The stale-default journeys expect it from `db init`, `db update` and `migration plan`, and the round-trip test expects it for the contract emitted before the canonical form.
+- S3-e-R1-2: fixed in `4a282be61f`. A column whose parameters its type refuses has its default skipped, so `varchar(0)` is reported as `CONTRACT.TYPE_PARAMS_INVALID` again. The journey test that asserts this passes.
+- S3-e-R1-3: fixed for Postgres in `2afe6e7c80` (a native enum, `BigIntNumber`, `UnboundedInt`). The commit says SQLite has no `Char` or `VarChar` PSL constructor. That holds for `Char`, but the SQL family's `sql.String(n)` is registered for every SQL target. On SQLite it authors a `sqlite/character-varying` column with codec `sql/varchar@1` and a default (probe through `authorSqliteContractFromPsl`, deleted afterwards). See S3-e-R2-1.
+- `2337a60b33`: the golden manifest's one entry changes for the reworded refusal. A fresh re-record leaves no diff.
+
+### Whether `meta` reaches the user
+
+Every command that loads the app's emitted contract passes `meta.refusedDefaults` on: `db init`, `db update`, `db sign`, `db verify`, `db migrate`, `migration plan`, `migration show`, the snapshot types render, and the control client's verify, init, update and migrate. Three paths drop it. See S3-e-R2-2.
+
+### S3-e-R2-1 (should-fix): the journeys leave out `sql.String(n)`
+
+- Where: both journeys in `test/integration/test/cli-journeys/`.
+- What is wrong: the family constructor `sql.String(n)` uses codec `sql/varchar@1`. On SQLite it is the only PSL path to `sqlite/character-varying`, a built-in type with a codec. On Postgres it is a second codec of `pg/varchar`. Neither journey has it, and reported defaults are read codec by codec.
+- Change: add `code sql.String(10) @default("vc")` to both journeys.
+
+### S3-e-R2-2 (should-fix): `meta` is lost when the refused contract is not the app's emitted contract
+
+- Where:
+  - `mapContractAtError`, case `MIGRATION.CONTRACT_DESERIALIZATION_FAILED`, in `packages/1-framework/3-tooling/cli/src/control-api/operations/contract-at-errors.ts`. The migration tools raise this case when a predecessor or snapshot contract fails to load (`createContractDeserializationFailed`, `meta: { filePath, message }`). The mapping builds `errorContractValidationFailed` with no `meta`.
+  - `migration new` (`migration-new.ts`, around line 99), which wraps a refused contract as `MIGRATION.CONTRACT_DESERIALIZATION_FAILED` with only `cause`.
+  - `migration check` (`migration-check.ts`, around line 380), which catches any load error and reports no integrity violations. This predates the dispatch, but a contract refused for its default now passes there silently.
+- What is wrong: a migration snapshot or predecessor contract with a stale default is the case dispatch g's upgrade must cover. Here the user gets the refusal text but not `refusedDefaults`, and `migration check` says nothing.
+- Change:
+  - Carry `contractValidationMeta(cause)` through `createContractDeserializationFailed` and `mapContractAtError`, and through `migration new`'s error.
+  - Have `migration check` report a contract it cannot load rather than return no violations.
+  - Test one snapshot case.
+
+### S3-e-R2-3 (low): the shape of `meta.refusedDefaults` differs from neighbouring errors
+
+- Where: `RefusedDefault` in `packages/2-sql/9-family/src/core/contract-stack-checks.ts`.
+- What is wrong:
+  - It uses `namespace`. The contract builder's column errors use `namespaceId` (`columnSiteMeta`), and `namespaceId` is the more common key in `meta` across `packages/` (25 uses against 11).
+  - `reason` holds prose. Elsewhere `reason` in `meta` is a kebab-case code (about 120 uses), including `'codec-refused-default'` on the `CONTRACT.DEFAULT_INVALID` error this refusal replaces.
+- Change: rename to `namespaceId`, put the prose in `message`, and set `reason: 'type-refused-default'`.
+
+### Checks run for dispatch e round 2
+
+- `pnpm build`, root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `pnpm fixtures:check` passes, tree clean.
+- Package tests of family-sql, cli, contract, errors and migration-tools: all pass.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/authoring`, `test/date-time-defaults`, both default journeys, `stale-contract-default*`, `psl-print` and `uuid-defaults`: 78 files, 1986 tests, pass.
