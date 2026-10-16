@@ -9,11 +9,18 @@ changes:
         - '\bfieldTypesExpression\b'
   - id: field-types-generic-moved
     summary: |
-      `FieldTypesFromDomain` and `ValueTypeSide` moved from the SQL family contract types entry to `@prisma/orm-framework/contract/types`, and the generic now types value object and union fields itself, from the namespace's `valueObjects`. A storage type map can type one entry with `StoredValueType` from the same entry. `ColumnTypesFromStorage` stays in the SQL family. Update imports. The detection matches imports of the generic from the SQL family.
+      `FieldTypesFromDomain` and `ValueTypeSide` moved from the SQL family contract types entry to `@prisma/orm-framework/contract/types`, and the generic now types value object and union fields itself, from the namespace's `valueObjects`. Its arguments are `FieldTypesFromDomain<DomainNamespaces, CodecTypes, ParameterizedOutputs, Overrides, Side>`, where `Overrides` is one map keyed like the domain, `[namespace]['models' | 'valueObjects'][owner][field]`, each entry `{ output?, input? }`; `ValueObjectTypesFromDomain` takes the same map. A storage type map can type one entry with `StoredValueType` from the same entry. `ColumnTypesFromStorage` stays in the SQL family. Update imports. The detection matches imports of the generic from the SQL family.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - 'import type \{[^}]*\b(FieldTypesFromDomain|ValueTypeSide)\b[^}]*\} from ''[^'']*(sql-contract|family-sql/contract|family-contract)/types'''
+  - id: resolve-field-value-set-storage-only
+    summary: |
+      The framework emitter now reads a field's value set itself when the field references a domain enum (`valueSet.plane` is `'domain'`), for model and value object fields alike. `EmissionSpi.resolveFieldValueSet` is called only for other model fields, whose values the family keeps in its storage, such as a SQL column's value set. A family emitter whose hook read domain enum references must leave them to the framework; a hook that reads storage needs no change. The detection matches implementations of the hook.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - '\bresolveFieldValueSet\s*[(:]'
   - id: mongo-parameterized-output-types
     summary: |
       A Mongo-family pack whose codec output type depends only on a field's type parameters, such as `Vector<3>` for a vector of length 3, declares it once as a type function, as SQL packs do: export a `ParameterizedOutputTypesForTypeParams` interface extending `ParameterizedOutputTypesFunction` from its `codec-types` entry, name it in `types.codecTypes.parameterizedOutputTypes` where the codec types import is declared, and add `__parameterizedOutputTypes` to the pack metadata's type. `renderOutputType` is no longer used for such codecs: Mongo's vector codec no longer implements it, and a Mongo `defineContract` contract ignores it. Export the types the pack metadata names from its `/pack` entry, so an application that exports a contract can build declarations. The detection matches files that import a Mongo package and implement `renderOutputType`.
@@ -32,7 +39,12 @@ The emitted `contract.d.ts` of every family, and a contract built with `defineCo
 Delete `fieldTypesExpression` from your `EmissionSpi`. The framework writes:
 
 ```ts
-type FieldTypeOverrides = { /* value set members and codec-rendered text */ };
+type FieldTypeOverrides = {
+  readonly public: {
+    readonly models: { readonly User: { readonly role: { readonly output: 'admin' | 'user'; readonly input: 'admin' | 'user' } } };
+    readonly valueObjects: { readonly Address: { readonly kind: { readonly output: 'home' | 'work'; readonly input: 'home' | 'work' } } };
+  };
+};
 export type FieldOutputTypes = FieldTypesFromDomain<ContractBase['domain']['namespaces'], CodecTypes, ParameterizedOutputTypeFunctions, FieldTypeOverrides, 'output'>;
 ```
 
