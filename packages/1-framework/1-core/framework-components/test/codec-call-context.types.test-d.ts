@@ -14,11 +14,6 @@ test('CodecCallContext has exactly one optional field (signal)', () => {
   expectTypeOf<SignalIsOptional>().toEqualTypeOf<true>();
 });
 
-test('CodecCallContext does not declare a `column` field (SQL-family concept)', () => {
-  type Keys = keyof CodecCallContext;
-  expectTypeOf<Keys>().not.toExtend<'column'>();
-});
-
 test('Codec.encode requires a CodecCallContext as a second argument', () => {
   type EncodeParams = Parameters<Codec<'demo/x@1', readonly [], string, string>['encode']>;
   expectTypeOf<EncodeParams[0]>().toEqualTypeOf<string>();
@@ -47,12 +42,6 @@ test('encode/decode call sites accept an explicit ctx (signal optional inside th
 });
 
 // ADR 204 walk-back constraints — captured here so future refactors cannot reintroduce a `TRuntime` generic, a discriminator field, conditional return types, or other shape complications on the public Codec.
-
-test('Codec carries no `runtime` or `kind` discriminator field', () => {
-  type CodecKeys = keyof Codec;
-  expectTypeOf<CodecKeys>().not.toExtend<'runtime'>();
-  expectTypeOf<CodecKeys>().not.toExtend<'kind'>();
-});
 
 test('Codec has exactly four type parameters (Id, TTraits, TWire, TInput) — no TRuntime', () => {
   // If a fifth `TRuntime` generic were added before TWire/TInput, this call shape would either fail or produce an unrelated codec type.

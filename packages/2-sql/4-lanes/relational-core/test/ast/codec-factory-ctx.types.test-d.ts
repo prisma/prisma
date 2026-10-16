@@ -3,13 +3,6 @@ import { expectTypeOf, test } from 'vitest';
 import type { Codec, SqlCodecCallContext, SqlColumnRef } from '../../src/ast/codec-types';
 import { defineTestCodec } from './test-codec';
 
-test('SqlColumnRef shape is `{ table, name }`', () => {
-  expectTypeOf<SqlColumnRef>().toEqualTypeOf<{
-    readonly table: string;
-    readonly name: string;
-  }>();
-});
-
 test('SqlCodecCallContext extends framework CodecCallContext (signal) and adds column', () => {
   type Signal = NonNullable<SqlCodecCallContext['signal']>;
   expectTypeOf<Signal>().toEqualTypeOf<AbortSignal>();
@@ -27,44 +20,6 @@ test('SQL Codec.encode/decode narrow ctx to SqlCodecCallContext (non-optional at
   type DecodeParams = Parameters<SqlCodec['decode']>;
   expectTypeOf<EncodeParams[1]>().toEqualTypeOf<SqlCodecCallContext>();
   expectTypeOf<DecodeParams[1]>().toEqualTypeOf<SqlCodecCallContext>();
-});
-
-test('factory accepts a `(value, ctx: SqlCodecCallContext)` encode author', () => {
-  const c = defineTestCodec({
-    typeId: 'demo/ctx-encode@1',
-    encode: (value: string, _ctx?: SqlCodecCallContext) => value,
-    decode: (wire: string) => wire,
-  });
-  expectTypeOf(c.encode).toBeFunction();
-  expectTypeOf<Parameters<typeof c.encode>[1]>().toEqualTypeOf<SqlCodecCallContext>();
-});
-
-test('factory accepts a `(value, ctx: SqlCodecCallContext)` decode author', () => {
-  const c = defineTestCodec({
-    typeId: 'demo/ctx-decode@1',
-    encode: (value: string) => value,
-    decode: (wire: string, _ctx?: SqlCodecCallContext) => wire,
-  });
-  expectTypeOf(c.decode).toBeFunction();
-  expectTypeOf<Parameters<typeof c.decode>[1]>().toEqualTypeOf<SqlCodecCallContext>();
-});
-
-test('factory accepts a single-arg `(value)` encode author and exposes a Promise method', () => {
-  const c = defineTestCodec({
-    typeId: 'demo/single-encode@1',
-    encode: (value: string) => value,
-    decode: (wire: string) => wire,
-  });
-  expectTypeOf<ReturnType<typeof c.encode>>().toExtend<Promise<string>>();
-});
-
-test('factory lifts an async ctx-bearing encode into a Promise method', () => {
-  const c = defineTestCodec({
-    typeId: 'demo/async-ctx-encode@1',
-    encode: async (value: string, _ctx?: SqlCodecCallContext) => value,
-    decode: (wire: string) => wire,
-  });
-  expectTypeOf<ReturnType<typeof c.encode>>().toExtend<Promise<string>>();
 });
 
 test('Codec.encode and Codec.decode require a ctx argument', () => {

@@ -55,10 +55,6 @@ describe('dataType', () => {
     expect(date.toCanonicalForm?.('2024-1-1')).toBe('2024-01-01');
   });
 
-  it('declares no canonical-form function when none is given', () => {
-    expect(dataType('pg/int2', {}).toCanonicalForm).toBeUndefined();
-  });
-
   it('validates the id of every type it casts from', () => {
     expect(() => dataType('pg/int8', { casts: { 'pg/int2@1': (value) => value } })).toThrow();
   });

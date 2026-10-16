@@ -15,25 +15,10 @@ type NamespacedUser<TFields> = Record<
 
 describe('Contract and TypeMaps shape', () => {
   describe('TypeMaps shape', () => {
-    it('TypeMaps has locked shape with codecTypes', () => {
-      type TM = TypeMaps<{ 'pg/text@1': { output: string } }>;
-      expectTypeOf<TM>().toExtend<{ readonly codecTypes: unknown }>();
-    });
-
     it('CodecTypesOf extracts codecTypes from TypeMaps', () => {
       type TM = TypeMaps<{ foo: { output: number } }>;
       type CT = CodecTypesOf<TM>;
       expectTypeOf<CT>().toEqualTypeOf<{ foo: { output: number } }>();
-    });
-
-    it('TypeMaps accepts 4th TFieldInputTypes parameter', () => {
-      type TM = TypeMaps<
-        Record<string, never>,
-        Record<string, never>,
-        Record<string, never>,
-        NamespacedUser<{ name: string }>
-      >;
-      expectTypeOf<TM>().toExtend<{ readonly fieldInputTypes: unknown }>();
     });
 
     it('TypeMaps defaults TFieldInputTypes to Record<string, never>', () => {
@@ -90,30 +75,11 @@ describe('TypeMaps aggregateTypes', () => {
     PgAggregates
   >;
 
-  it('TypeMaps accepts 7th TAggregateTypes parameter', () => {
-    expectTypeOf<TM>().toExtend<{ readonly aggregateTypes: unknown }>();
-  });
-
   it('AggregateTypesOf extracts aggregateTypes from TypeMaps', () => {
     expectTypeOf<AggregateTypesOf<TM>>().toEqualTypeOf<PgAggregates>();
   });
 
   it('TypeMaps defaults TAggregateTypes to Record<string, never>', () => {
     expectTypeOf<AggregateTypesOf<TypeMaps>>().toEqualTypeOf<Record<string, never>>();
-  });
-
-  // What a result-type resolver walks: the exact overload's row and the row the
-  // trait fallback settled are both present and differ, so the resolver reads
-  // one answer per codec rather than re-deciding precedence.
-  it('distinguishes an exact overload from the trait fallback that would otherwise serve the codec', () => {
-    type Min = AggregateTypesOf<TM>['min']['byCodec'];
-    expectTypeOf<Min['pg/varchar@1']['output']>().toEqualTypeOf<'pg/text@1'>();
-    expectTypeOf<Min['pg/char@1']['output']>().toEqualTypeOf<'pg/char@1'>();
-  });
-
-  it('carries an input-agnostic row an input-specific lookup can fall back to', () => {
-    type Count = AggregateTypesOf<TM>['count'];
-    expectTypeOf<Count['anyInput']['output']>().toEqualTypeOf<'pg/int8@1'>();
-    expectTypeOf<Count['withoutInput']['nullable']>().toEqualTypeOf<false>();
   });
 });

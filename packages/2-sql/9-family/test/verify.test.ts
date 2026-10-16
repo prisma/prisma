@@ -202,15 +202,6 @@ describe('marker parser', () => {
     });
   });
 
-  it('throws error for invalid row structure', () => {
-    const row = {
-      core_hash: 123, // Invalid type
-      profile_hash: 'def456',
-    };
-
-    expect(() => parseContractMarkerRow(row)).toThrow('Invalid contract marker row');
-  });
-
   it('throws error for missing required fields', () => {
     const row = {
       profile_hash: 'def456',

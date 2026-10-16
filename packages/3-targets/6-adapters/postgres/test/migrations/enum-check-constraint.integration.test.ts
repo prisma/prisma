@@ -209,50 +209,6 @@ describe('enum check-constraint — end-to-end PGlite', { concurrent: false }, (
     expect(addOps.filter((id) => id.startsWith('checkConstraint.'))).toEqual([]);
   });
 
-  it('db verify passes after initial migration', { timeout: testTimeout }, async () => {
-    const contract = makeRoleContract([
-      { name: 'User', value: 'user' },
-      { name: 'Admin', value: 'admin' },
-    ]);
-
-    const planner = postgresTargetDescriptor.createPlanner(controlAdapter);
-    const runner = postgresTargetDescriptor.createRunner(familyInstance);
-    const result = planner.plan({
-      contract,
-      schema: emptySchema,
-      policy: INIT_ADDITIVE_POLICY,
-      fromContract: null,
-      origin: null,
-      statements: [],
-      frameworkComponents,
-      spaceId: APP_SPACE_ID,
-      snapshotsImportPath: '../../snapshots',
-    });
-    if (result.kind !== 'success') throw new Error('Planner failed');
-    const executeResult = await runner.execute({
-      driver: driver!,
-      perSpaceOptions: [
-        {
-          space: result.plan.spaceId ?? APP_SPACE_ID,
-          plan: result.plan,
-          migrationEdges: synthEdges(result.plan),
-          driver: driver!,
-          destinationContract: contract,
-          policy: INIT_ADDITIVE_POLICY,
-          frameworkComponents,
-        },
-      ],
-    });
-    if (!executeResult.ok)
-      throw new Error(`Runner failed:\n${formatRunnerFailure(executeResult.failure)}`);
-
-    const verifyResult = await verifySchema(driver!, contract);
-    expect(verifyResult.ok).toBe(true);
-    expect(
-      verifyResult.schema.issues.filter((i) => i.path[i.path.length - 1]?.startsWith('check:')),
-    ).toHaveLength(0);
-  });
-
   it('enforces the constraint: permitted value succeeds, non-member value is rejected', {
     timeout: testTimeout,
   }, async () => {

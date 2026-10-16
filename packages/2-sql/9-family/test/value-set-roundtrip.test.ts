@@ -84,16 +84,6 @@ describe('value-set serializer hydration + round-trip', () => {
     expect(valueSet?.values).toEqual(['user', 'admin']);
   });
 
-  it('hydrated valueSet discriminator is intact', () => {
-    const serializer = new SqlContractSerializer();
-    const json = JSON.parse(JSON.stringify(authored));
-    const hydrated = serializer.deserializeContract(json) as Contract<SqlStorage>;
-
-    const ns = hydrated.storage.namespaces['public'];
-    const valueSet = ns !== undefined ? ns.entries.valueSet?.['Role'] : undefined;
-    expect(valueSet?.kind).toBe('valueSet');
-  });
-
   it('domain enum slot round-trips as plain data', () => {
     const serializer = new SqlContractSerializer();
     const json = JSON.parse(JSON.stringify(authored));

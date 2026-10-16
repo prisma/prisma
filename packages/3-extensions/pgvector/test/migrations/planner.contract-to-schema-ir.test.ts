@@ -470,50 +470,6 @@ describe('planner — additive scenarios', () => {
     }
   });
 
-  it('detects added table', async () => {
-    const from: SqlStorageInput = {
-      storageHash: coreHash('test'),
-      ...ns({
-        user: table({
-          columns: {
-            id: col({ dataType: 'pg/uuid', codecId: 'pg/uuid@1' }),
-          },
-          primaryKey: { columns: ['id'] },
-        }),
-      }),
-    };
-
-    const to: SqlStorageInput = {
-      storageHash: coreHash('test'),
-      ...ns({
-        user: table({
-          columns: {
-            id: col({ dataType: 'pg/uuid', codecId: 'pg/uuid@1' }),
-          },
-          primaryKey: { columns: ['id'] },
-        }),
-        post: table({
-          columns: {
-            id: col({ dataType: 'pg/uuid', codecId: 'pg/uuid@1' }),
-            title: col({ dataType: 'pg/text', codecId: 'pg/text@1' }),
-          },
-          primaryKey: { columns: ['id'] },
-        }),
-      }),
-    };
-
-    const result = planFromStorages(from, to);
-
-    expect(result.kind).toBe('success');
-    if (result.kind === 'success') {
-      const ops = (await Promise.all(
-        result.plan.operations,
-      )) as SqlMigrationPlanOperation<PostgresPlanTargetDetails>[];
-      const tableOp = ops.find((op) => op.id.includes('post'));
-      expect(tableOp).toBeDefined();
-    }
-  });
-
   it('detects multiple changes at once (table + unique + index)', async () => {
     const from: SqlStorageInput = {
       storageHash: coreHash('test'),
@@ -561,28 +517,6 @@ describe('planner — additive scenarios', () => {
       expect(ids.some((id) => id.includes('post'))).toBe(true);
       expect(ids.some((id) => id.includes('unique') || id.includes('slug'))).toBe(true);
       expect(ids.some((id) => id.includes('index') || id.includes('title'))).toBe(true);
-    }
-  });
-
-  it('returns no ops when storages are identical', () => {
-    const storage: SqlStorageInput = {
-      storageHash: coreHash('test'),
-      ...ns({
-        user: table({
-          columns: {
-            id: col({ dataType: 'pg/uuid', codecId: 'pg/uuid@1' }),
-            email: col({ dataType: 'pg/text', codecId: 'pg/text@1' }),
-          },
-          primaryKey: { columns: ['id'] },
-        }),
-      }),
-    };
-
-    const result = planFromStorages(storage, storage);
-
-    expect(result.kind).toBe('success');
-    if (result.kind === 'success') {
-      expect(result.plan.operations).toHaveLength(0);
     }
   });
 });

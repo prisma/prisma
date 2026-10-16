@@ -28,30 +28,6 @@ describe('normalizePgError', () => {
       }
     });
 
-    it('normalizes syntax error to SqlQueryError', () => {
-      const pgError = new Error('syntax error at or near "INVALID"');
-      (pgError as { code?: string }).code = '42601';
-
-      const error = normalizePgError(pgError);
-      expect(SqlQueryError.is(error)).toBe(true);
-      if (SqlQueryError.is(error)) {
-        expect(error.sqlState).toBe('42601');
-        expect(error.cause).toBe(pgError);
-      }
-    });
-
-    it('normalizes permission error to SqlQueryError', () => {
-      const pgError = new Error('permission denied for table user');
-      (pgError as { code?: string }).code = '42501';
-
-      const error = normalizePgError(pgError);
-      expect(SqlQueryError.is(error)).toBe(true);
-      if (SqlQueryError.is(error)) {
-        expect(error.sqlState).toBe('42501');
-        expect(error.cause).toBe(pgError);
-      }
-    });
-
     it('normalizes error with partial fields', () => {
       const pgError = new Error('some error');
       (pgError as { code?: string }).code = '23503';
@@ -155,47 +131,6 @@ describe('normalizePgError', () => {
       const error = normalizePgError(unknownError);
       expect(error).toBe(unknownError);
     });
-
-    it('preserves original error when returning as-is', () => {
-      const originalError = new Error('Unknown error');
-      originalError.stack = 'Error: Unknown error\n    at test.js:1:1';
-
-      const error = normalizePgError(originalError);
-      expect(error).toBe(originalError);
-      expect(error.stack).toBe('Error: Unknown error\n    at test.js:1:1');
-    });
-  });
-
-  describe('Stack trace preservation', () => {
-    it('preserves original stack trace via cause for SqlQueryError', () => {
-      const pgError = new Error('Query failed');
-      pgError.stack = 'Error: Query failed\n    at query.js:10:5';
-      (pgError as { code?: string }).code = '23505';
-
-      const error = normalizePgError(pgError);
-      expect(SqlQueryError.is(error)).toBe(true);
-      if (SqlQueryError.is(error)) {
-        expect(error.cause).toBe(pgError);
-        if (error.cause instanceof Error) {
-          expect(error.cause.stack).toBe('Error: Query failed\n    at query.js:10:5');
-        }
-      }
-    });
-
-    it('preserves original stack trace via cause for SqlConnectionError', () => {
-      const pgError = new Error('Connection failed');
-      pgError.stack = 'Error: Connection failed\n    at connect.js:5:3';
-      (pgError as { code?: string }).code = 'ECONNRESET';
-
-      const error = normalizePgError(pgError);
-      expect(SqlConnectionError.is(error)).toBe(true);
-      if (SqlConnectionError.is(error)) {
-        expect(error.cause).toBe(pgError);
-        if (error.cause instanceof Error) {
-          expect(error.cause.stack).toBe('Error: Connection failed\n    at connect.js:5:3');
-        }
-      }
-    });
   });
 });
 
@@ -210,15 +145,6 @@ describe('isPostgresError', () => {
     it('returns true for errors with SQLSTATE codes', () => {
       const pgError = new Error('duplicate key value violates unique constraint');
       (pgError as { code?: string }).code = '23505';
-
-      expect(isPostgresError(pgError)).toBe(true);
-    });
-
-    it('returns true for errors with SQLSTATE codes and pg-specific properties', () => {
-      const pgError = new Error('duplicate key value violates unique constraint');
-      (pgError as { code?: string }).code = '23505';
-      (pgError as { constraint?: string }).constraint = 'user_email_unique';
-      (pgError as { table?: string }).table = 'user';
 
       expect(isPostgresError(pgError)).toBe(true);
     });

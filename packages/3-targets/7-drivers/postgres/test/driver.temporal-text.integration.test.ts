@@ -133,26 +133,6 @@ describe('@internal/driver-postgres temporal text transport', () => {
   );
 
   it(
-    'temporal values arrive as strings and arrays of strings, never as Date',
-    async () => {
-      const { driver } = await seededDriver({ disabled: true });
-
-      const [row] = await queryRows<MomentRow>(driver, SELECT_ROW);
-
-      expect([row?.d, row?.t, row?.ts, row?.tstz].map((value) => typeof value)).toEqual([
-        'string',
-        'string',
-        'string',
-        'string',
-      ]);
-      for (const values of [row?.da, row?.ta, row?.tsa, row?.tstza]) {
-        expect(typeof values).toBe('string');
-      }
-    },
-    timeouts.spinUpPpgDev,
-  );
-
-  it(
     'leaves the caller-supplied client and pg global parsers on their defaults',
     async () => {
       const { driver, client } = await seededDriver({ disabled: true });

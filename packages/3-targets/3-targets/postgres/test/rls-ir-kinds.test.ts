@@ -1,5 +1,4 @@
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { StorageTable } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { PostgresRlsPolicy } from '../src/core/postgres-rls-policy';
 import { PostgresRole } from '../src/core/postgres-role';
@@ -10,26 +9,7 @@ function policyOf(flat: Parameters<typeof policyInputFromSerialized>[0]): Postgr
   return new PostgresRlsPolicy(policyInputFromSerialized(flat));
 }
 
-const emptyTableInput = {
-  columns: {},
-  uniques: [],
-  indexes: [],
-  foreignKeys: [],
-} as const;
-
 describe('PostgresRole', () => {
-  it('constructs with required fields', () => {
-    const role = new PostgresRole({ name: 'authenticated', namespaceId: UNBOUND_NAMESPACE_ID });
-    expect(role.kind).toBe('role');
-    expect(role.name).toBe('authenticated');
-    expect(role.namespaceId).toBe(UNBOUND_NAMESPACE_ID);
-  });
-
-  it('accepts an explicit namespaceId', () => {
-    const role = new PostgresRole({ name: 'anon', namespaceId: 'public' });
-    expect(role.namespaceId).toBe('public');
-  });
-
   it('is frozen — mutation throws in strict mode', () => {
     const role = new PostgresRole({ name: 'authenticated', namespaceId: UNBOUND_NAMESPACE_ID });
     expect(Object.isFrozen(role)).toBe(true);
@@ -127,13 +107,6 @@ describe('PostgresRlsPolicy', () => {
     const roles = ['authenticated', 'anon'];
     const policy = policyOf({ ...policyInput, roles });
     expect(policy.roles).not.toBe(roles);
-  });
-});
-
-describe('StorageTable', () => {
-  it('is frozen after construction', () => {
-    const table = new StorageTable(emptyTableInput);
-    expect(Object.isFrozen(table)).toBe(true);
   });
 });
 

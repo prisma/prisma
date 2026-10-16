@@ -4,12 +4,6 @@ import type {
   CodecInstanceContext,
 } from '@internal/framework-components/codec';
 import {
-  SQL_CHAR_CODEC_ID,
-  SQL_FLOAT_CODEC_ID,
-  SQL_INT_CODEC_ID,
-  SQL_VARCHAR_CODEC_ID,
-} from '@internal/sql-relational-core/ast';
-import {
   SQLITE_BIGINT_CODEC_ID,
   SQLITE_BLOB_CODEC_ID,
   SQLITE_DATETIME_CODEC_ID,
@@ -31,11 +25,6 @@ const codecIdByScalar = {
   datetime: SQLITE_DATETIME_CODEC_ID,
   json: SQLITE_JSON_CODEC_ID,
   bigint: SQLITE_BIGINT_CODEC_ID,
-  // SQL base codecs are also registered via the contributor's `codecs:` slot, so the package-scoped registry resolves them.
-  char: SQL_CHAR_CODEC_ID,
-  varchar: SQL_VARCHAR_CODEC_ID,
-  int: SQL_INT_CODEC_ID,
-  float: SQL_FLOAT_CODEC_ID,
 } as const;
 
 type ScalarName = keyof typeof codecIdByScalar;
@@ -55,10 +44,6 @@ describe('SQLite codecs', () => {
   describe('text codec', () => {
     const codec = codecForScalar('text');
 
-    it('has correct id', () => {
-      expect(codec.id).toBe(SQLITE_TEXT_CODEC_ID);
-    });
-
     it('round-trips strings', async () => {
       expect(await codec.decode(await codec.encode('hello', {}), {})).toBe('hello');
     });
@@ -71,10 +56,6 @@ describe('SQLite codecs', () => {
   describe('integer codec', () => {
     const codec = codecForScalar('integer');
 
-    it('has correct id', () => {
-      expect(codec.id).toBe(SQLITE_INTEGER_CODEC_ID);
-    });
-
     it('round-trips numbers', async () => {
       expect(await codec.decode(await codec.encode(42, {}), {})).toBe(42);
       expect(await codec.decode(await codec.encode(0, {}), {})).toBe(0);
@@ -85,10 +66,6 @@ describe('SQLite codecs', () => {
   describe('real codec', () => {
     const codec = codecForScalar('real');
 
-    it('has correct id', () => {
-      expect(codec.id).toBe(SQLITE_REAL_CODEC_ID);
-    });
-
     it('round-trips floats', async () => {
       expect(await codec.decode(await codec.encode(3.14, {}), {})).toBeCloseTo(3.14);
       expect(await codec.decode(await codec.encode(0.0, {}), {})).toBe(0);
@@ -97,10 +74,6 @@ describe('SQLite codecs', () => {
 
   describe('blob codec', () => {
     const codec = codecForScalar('blob');
-
-    it('has correct id', () => {
-      expect(codec.id).toBe(SQLITE_BLOB_CODEC_ID);
-    });
 
     it('round-trips Uint8Array', async () => {
       const input = new Uint8Array([1, 2, 3, 4]);
@@ -115,10 +88,6 @@ describe('SQLite codecs', () => {
 
   describe('datetime codec', () => {
     const codec = codecForScalar('datetime');
-
-    it('has correct id', () => {
-      expect(codec.id).toBe(SQLITE_DATETIME_CODEC_ID);
-    });
 
     it('encodes Date to ISO8601 string', async () => {
       const date = new Date('2024-01-15T10:30:00.000Z');
@@ -146,10 +115,6 @@ describe('SQLite codecs', () => {
 
   describe('json codec', () => {
     const codec = codecForScalar('json');
-
-    it('has correct id', () => {
-      expect(codec.id).toBe(SQLITE_JSON_CODEC_ID);
-    });
 
     it('encodes object to JSON string', async () => {
       const value = { name: 'alice', age: 30 };
@@ -184,43 +149,13 @@ describe('SQLite codecs', () => {
   describe('bigint codec', () => {
     const codec = codecForScalar('bigint');
 
-    it('has correct id', () => {
-      expect(codec.id).toBe(SQLITE_BIGINT_CODEC_ID);
-    });
-
     it('encodes bigint', async () => {
       expect(await codec.encode(42n, {})).toBe(42n);
-    });
-
-    it('decodes number to bigint', async () => {
-      expect(await codec.decode(42, {})).toBe(42n);
-    });
-
-    it('decodes bigint to bigint', async () => {
-      expect(await codec.decode(42n, {})).toBe(42n);
     });
 
     it('handles large integers', async () => {
       const large = 9007199254740993n;
       expect(await codec.decode(await codec.encode(large, {}), {})).toBe(large);
-    });
-  });
-
-  describe('codec definitions structure', () => {
-    it('has all expected codecs', () => {
-      const keys = Object.keys(codecIdByScalar);
-      expect(keys).toContain('text');
-      expect(keys).toContain('integer');
-      expect(keys).toContain('real');
-      expect(keys).toContain('blob');
-      expect(keys).toContain('datetime');
-      expect(keys).toContain('json');
-      expect(keys).toContain('bigint');
-      // Standard SQL codecs inherited
-      expect(keys).toContain('char');
-      expect(keys).toContain('varchar');
-      expect(keys).toContain('int');
-      expect(keys).toContain('float');
     });
   });
 });

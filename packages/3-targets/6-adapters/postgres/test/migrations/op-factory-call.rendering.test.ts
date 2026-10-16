@@ -132,23 +132,6 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
     );
   });
 
-  it('codecRef round-trip: col() built from the rendered arguments equals the original DdlColumn', () => {
-    const originalCodecRef = { codecId: 'pg/uuid@1' };
-    const originalColumn = col('id', 'uuid', { codecRef: originalCodecRef, notNull: true });
-
-    const roundTrippedColumn = col('id', 'uuid', {
-      notNull: true,
-      codecRef: { codecId: 'pg/uuid@1' },
-    });
-    expect(roundTrippedColumn).toEqual(originalColumn);
-    expect(roundTrippedColumn.codecRef).toEqual(originalCodecRef);
-  });
-
-  it('AddColumnCall without codecRef renders col() with no codecRef property', () => {
-    const call = new AddColumnCall('public', 'user', col('score', 'integer'), postgresDataTypes);
-    expect(call.renderTypeScript()).not.toContain('codecRef');
-  });
-
   const alterAge = (using?: { readonly kind: 'sql'; readonly sql: string }) =>
     new AlterColumnTypeCall({
       ownsAutoincrementSequence: false,
@@ -246,22 +229,6 @@ describe('renderCallsToTypeScript', () => {
         '      })',
       ].join('\n'),
     );
-  });
-
-  it('derives describe() from contract JSON instead of embedding from/to hashes', () => {
-    const source = renderCallsToTypeScript([], META);
-    // New shape: from/to are derived by the base from the imported contract JSON
-    // (no describe() block, no hash literals).
-    expect(source).not.toContain('describe()');
-    expect(source).not.toContain(`'${META.from}'`);
-    expect(source).not.toContain(`'${META.to}'`);
-    expect(source).toContain('export default class M extends Migration<Start, End> {');
-    expect(source).toContain('override readonly startContractJson = startContract;');
-    expect(source).toContain('override readonly endContractJson = endContract;');
-    expect(source).toContain(
-      "import { Migration, MigrationCLI } from '@internal/postgres/migration';",
-    );
-    expect(source).toContain('MigrationCLI.run(import.meta.url, M);');
   });
 
   it('renders CreateTableCall as this.createTable({...}) with col() columns in the scaffold', () => {

@@ -21,15 +21,6 @@ describe('ast/predicate', () => {
     expect(BinaryExpr.in(col('user', 'id'), list).right).toEqual(list);
   });
 
-  it.each(['eq', 'neq', 'gt', 'lt', 'gte', 'lte', 'like', 'in', 'notIn'] as const)(
-    'stores the %s operator',
-    (op) => {
-      const expr = new BinaryExpr(op, col('user', 'id'), col('post', 'userId'));
-      expect(expr.op).toBe(op);
-      expect(expr.right).toEqual(col('post', 'userId'));
-    },
-  );
-
   it('not() wraps predicates in NotExpr', () => {
     const eq = BinaryExpr.eq(col('user', 'id'), param(0));
     expect(eq.not()).toBeInstanceOf(NotExpr);

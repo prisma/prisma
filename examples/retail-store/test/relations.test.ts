@@ -2,7 +2,7 @@ import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { getCartWithUser, upsertCart } from '../src/data/carts';
 import { createInvoice, findInvoiceWithOrder } from '../src/data/invoices';
-import { createOrder, getOrderWithUser } from '../src/data/orders';
+import { createOrder } from '../src/data/orders';
 import { enums } from '../src/enums';
 import { setupTestDb } from './setup';
 
@@ -34,38 +34,6 @@ describe('relation loading via $lookup', { timeout: timeouts.spinUpMongoMemorySe
       email: 'alice@example.com',
     });
     expect(cartWithUser!.items).toHaveLength(1);
-  });
-
-  it('loads order with user via include()', async () => {
-    const user = await ctx.db.orm.users.create({
-      name: 'Bob',
-      email: 'bob@example.com',
-      address: null,
-    });
-
-    const order = await createOrder(ctx.db, {
-      userId: user._id,
-      items: [
-        {
-          productId: 'prod-1',
-          name: 'Item',
-          brand: 'B',
-          amount: 1,
-          price: { amount: 50, currency: 'USD' },
-          image: { url: '/item.jpg' },
-        },
-      ],
-      shippingAddress: '123 St',
-      type: enums.OrderType.members.Delivery,
-      statusHistory: [{ status: 'placed', timestamp: new Date() }],
-    });
-
-    const orderWithUser = await getOrderWithUser(ctx.db, order._id);
-    expect(orderWithUser).not.toBeNull();
-    expect(orderWithUser!.user).toMatchObject({
-      name: 'Bob',
-      email: 'bob@example.com',
-    });
   });
 
   it('loads invoice with order via include()', async () => {

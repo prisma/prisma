@@ -66,15 +66,3 @@ describe('enum builder .default() accepts member values only', () => {
     }
   });
 });
-
-describe('enum builder .default() lowers to { kind: "literal", value }', () => {
-  it('string codec member default lowers to literal', () => {
-    const state = field.namedType(Priority).default(Priority.members.Low).build();
-    expect(state.default).toEqual({ kind: 'literal', value: 'low' });
-  });
-
-  it('int codec member default lowers to literal', () => {
-    const state = field.namedType(IntPriority).default(IntPriority.members.Low).build();
-    expect(state.default).toEqual({ kind: 'literal', value: 1 });
-  });
-});

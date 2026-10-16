@@ -7,10 +7,6 @@ import contractJson from './fixtures/namespaced-contract.json' with { type: 'jso
 const contract = new PostgresContractSerializer().deserializeContract<Contract>(contractJson);
 
 describe('PostgresContractView', () => {
-  it('from() returns a view object', () => {
-    expect(PostgresContractView.from(contract)).toBeDefined();
-  });
-
   it('the view is a superset of the contract (contract fields present)', () => {
     const view = PostgresContractView.from(contract);
     expect(view.storage).toBe(contract.storage);

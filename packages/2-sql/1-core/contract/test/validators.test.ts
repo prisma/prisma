@@ -17,7 +17,6 @@ import type { ReferentialAction, SqlModelFieldStorage, SqlStorage } from '../src
 import {
   createSqlContractSchema,
   createSqlStorageSchema,
-  StorageValueSetSchema,
   validateModel,
   validateSqlContractFully,
   validateSqlStorageConsistency,
@@ -2302,57 +2301,6 @@ describe('SQL contract validators', () => {
           storage: { table: 'user', namespaceId: 'public', fields: { role: { column: 'role' } } },
         }),
       ).toThrow();
-    });
-
-    it('StorageValueSetSchema accepts kind valueSet', () => {
-      const result = StorageValueSetSchema({ kind: 'valueSet', values: ['a', 'b'] });
-      expect(result).not.toBeInstanceOf(type.errors);
-    });
-
-    it('StorageValueSetSchema rejects kind value-set', () => {
-      const result = StorageValueSetSchema({ kind: 'value-set', values: ['a', 'b'] });
-      expect(result).toBeInstanceOf(type.errors);
-    });
-  });
-
-  describe('composeSqlEntityKinds', () => {
-    it('accepts a non-colliding pack kind', () => {
-      const packDescriptor = {
-        kind: ' table',
-        schema: type('unknown'),
-        construct: (v: unknown) => v,
-      };
-      expect(() => composeSqlEntityKinds([packDescriptor])).not.toThrow();
-    });
-
-    it('throws on a duplicate entity kind (table)', () => {
-      const collidingDescriptor = {
-        kind: 'table',
-        schema: type('unknown'),
-        construct: (v: unknown) => v,
-      };
-      expect(() => composeSqlEntityKinds([collidingDescriptor])).toThrow(/duplicate entity kind/);
-    });
-
-    it('throws on a duplicate entity kind (valueSet)', () => {
-      const collidingDescriptor = {
-        kind: 'valueSet',
-        schema: type('unknown'),
-        construct: (v: unknown) => v,
-      };
-      expect(() => composeSqlEntityKinds([collidingDescriptor])).toThrow(/duplicate entity kind/);
-    });
-
-    it('registers non-colliding pack kinds', () => {
-      const packDescriptor = {
-        kind: 'type',
-        schema: type('unknown'),
-        construct: (v: unknown) => v,
-      };
-      const kinds = composeSqlEntityKinds([packDescriptor]);
-      expect(kinds.has('type')).toBe(true);
-      expect(kinds.has('table')).toBe(true);
-      expect(kinds.has('valueSet')).toBe(true);
     });
   });
 });

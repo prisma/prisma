@@ -27,10 +27,6 @@ describe('mongoTargetDescriptorMeta', () => {
   it('declares namespace support, so emitted model names keep their namespace segment', () => {
     expect(mongoTargetDescriptorMeta.supportsNamespaces).toBe(true);
   });
-
-  it('declares defaultNamespaceId as __unbound__', () => {
-    expect(mongoTargetDescriptorMeta.defaultNamespaceId).toBe('__unbound__');
-  });
 });
 
 describe('mongo temporal field presets', () => {

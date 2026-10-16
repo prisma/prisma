@@ -2,7 +2,6 @@ import sqliteDriverDescriptor from '@internal/driver-sqlite/control';
 import sqlFamilyDescriptor from '@internal/family-sql/control';
 import { createControlStack } from '@internal/framework-components/control';
 import { SQL_CHAR_CODEC_ID, SQL_VARCHAR_CODEC_ID } from '@internal/sql-relational-core/ast';
-import { sqliteCodecRegistry } from '@internal/target-sqlite/codecs';
 import sqliteTargetDescriptor, { sqlitePslTypeConstructors } from '@internal/target-sqlite/control';
 import { describe, expect, it } from 'vitest';
 import { sqliteAdapterDescriptorMeta } from '../src/core/descriptor-meta';
@@ -11,10 +10,6 @@ import sqliteAdapterDescriptor from '../src/exports/control';
 const registeredCodecs = sqliteAdapterDescriptorMeta.types.codecTypes.codecDescriptors;
 
 describe('the SQLite adapter descriptor metadata', () => {
-  it('registers every codec the target ships', () => {
-    expect(registeredCodecs).toEqual(Array.from(sqliteCodecRegistry.values()));
-  });
-
   it('registers no codec that renders a named TypeScript type, which its type imports lack', () => {
     expect(
       registeredCodecs

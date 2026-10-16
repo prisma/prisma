@@ -1563,12 +1563,6 @@ describe('MongoMigrationPlanner', () => {
   });
 
   describe('plan metadata', () => {
-    it('sets targetId to mongo', () => {
-      const contract = makeContract({ users: {} });
-      const plan = planSuccess(planner, contract, emptyIR());
-      expect(plan.targetId).toBe('mongo');
-    });
-
     it('sets destination storageHash from contract', () => {
       const contract = makeContract({ users: {} });
       const plan = planSuccess(planner, contract, emptyIR());

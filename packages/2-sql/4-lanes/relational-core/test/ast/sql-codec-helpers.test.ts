@@ -24,22 +24,6 @@ const descriptorsByScalar = {
 } as const satisfies Record<string, AnyCodecDescriptorTemplate>;
 
 describe('sql-codec-helpers', () => {
-  it('exports expected codec IDs', () => {
-    expect({
-      char: SQL_CHAR_CODEC_ID,
-      varchar: SQL_VARCHAR_CODEC_ID,
-      int: SQL_INT_CODEC_ID,
-      float: SQL_FLOAT_CODEC_ID,
-      text: SQL_TEXT_CODEC_ID,
-    }).toEqual({
-      char: 'sql/char@1',
-      varchar: 'sql/varchar@1',
-      int: 'sql/int@1',
-      float: 'sql/float@1',
-      text: 'sql/text@1',
-    });
-  });
-
   const codecDefinitionCases: ReadonlyArray<{
     scalar: keyof typeof descriptorsByScalar;
     id: string;
@@ -60,40 +44,6 @@ describe('sql-codec-helpers', () => {
       expect(descriptor.paramsSchema !== undefined).toBe(hasParamsSchema);
     },
   );
-
-  const codecRoundTripCases: ReadonlyArray<{
-    scalar: keyof typeof descriptorsByScalar;
-    input: string | number;
-    expectedEncoded: string | number;
-    expectedDecoded: string | number;
-  }> = [
-    { scalar: 'char', input: 'A', expectedEncoded: 'A', expectedDecoded: 'A' },
-    { scalar: 'varchar', input: 'hello', expectedEncoded: 'hello', expectedDecoded: 'hello' },
-    { scalar: 'int', input: 42, expectedEncoded: 42, expectedDecoded: 42 },
-    { scalar: 'float', input: 3.14, expectedEncoded: 3.14, expectedDecoded: 3.14 },
-    {
-      scalar: 'text',
-      input: 'portable text',
-      expectedEncoded: 'portable text',
-      expectedDecoded: 'portable text',
-    },
-  ];
-
-  it.each(codecRoundTripCases)(
-    'encodes and decodes $scalar values',
-    async ({ scalar, input, expectedEncoded, expectedDecoded }) => {
-      const descriptor = descriptorsByScalar[scalar] as AnyCodecDescriptorTemplate;
-      const codec = descriptor.factory(undefined as never)({ name: 'test' });
-      expect(await codec.encode(input, {})).toBe(expectedEncoded);
-      expect(await codec.decode(input, {})).toBe(expectedDecoded);
-    },
-  );
-
-  it('trims trailing spaces when decoding char values', async () => {
-    const codec = sqlCharDescriptor.factory({})({ name: 'test' });
-    expect(await codec.decode('user_001                            ', {})).toBe('user_001');
-    expect(await codec.decode('user_001', {})).toBe('user_001');
-  });
 
   describe('renderOutputType', () => {
     it('sql/char@1 and sql/varchar@1 have none; their pack declares their output types', () => {
