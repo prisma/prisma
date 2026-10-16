@@ -36,6 +36,24 @@ describe('validateContractOnce', () => {
     expect(forB).not.toBe(forA);
   });
 
+  it('keeps the records of two versions of one validator apart', () => {
+    const validate = vi.fn(hydrate);
+    const validated = validateContractOnce({ target: 'a' }, 'target-a@1.0.0', validate);
+
+    expect(validateContractOnce(validated, 'target-a@2.0.0', validate)).not.toBe(validated);
+    expect(validate).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns a frozen contract and leaves the input as it was', () => {
+    const input = { target: 'a' };
+    const validated = validateContractOnce(input, 'target-a', hydrate);
+
+    expect({ validated: Object.isFrozen(validated), input: Object.isFrozen(input) }).toEqual({
+      validated: true,
+      input: false,
+    });
+  });
+
   it('records nothing when validation throws', () => {
     const input = { target: 'a' };
     const failing = () => {

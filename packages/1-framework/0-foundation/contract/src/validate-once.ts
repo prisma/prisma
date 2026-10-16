@@ -23,8 +23,10 @@ function isObject(value: unknown): value is object {
 
 /**
  * Runs `validate` on `input` unless `validator` already validated `input`, or `input` is a result
- * of that validation. The record is kept on `globalThis` under a `Symbol.for` key, so separate
- * bundles of the same code in one program share it.
+ * of that validation, and returns the result frozen. The record is kept on `globalThis` under a
+ * `Symbol.for` key, so separate bundles and copies of the code in one program share it; `validator`
+ * names the validation rules, including the version that owns them, so another version validates
+ * again. The input is not frozen: it belongs to the caller, who must not change it afterwards.
  */
 export function validateContractOnce<TContract extends object>(
   input: unknown,
@@ -41,7 +43,7 @@ export function validateContractOnce<TContract extends object>(
       >(recorded.contract);
     }
   }
-  const contract = validate(input);
+  const contract = Object.freeze(validate(input));
   const record: ValidatedContract = { validator, contract };
   registry.set(contract, record);
   if (isObject(input)) {
