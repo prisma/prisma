@@ -45,6 +45,12 @@ changes:
       read and in an include alike: text or bytes in a SQLite INTEGER or REAL column, text or a
       number in a SQLite BLOB column, and a multi-dimensional array in a PostgreSQL `text[]` column
       read with `pg/text-array@1`.
+  - id: sqlite-datetime-without-offset-read-as-utc
+    summary: |
+      A SQLite `DateTime` row holding date and time text without a UTC offset, such as
+      `2024-01-01 12:00:00`, is now read as UTC, as SQLite's own date and time functions read it,
+      instead of in the time zone of the machine running the query. Prisma never writes such text;
+      another tool may.
   - id: text-array-min-max-return-arrays
     summary: |
       `min` and `max` of a `pg/text-array@1` column return an array of strings, as a row of the
@@ -191,6 +197,21 @@ A codec now reads each value a query returns with one method, `fromWire`, in a p
 | PostgreSQL `text[]` (`pg/text-array@1`) | an array of two or more dimensions | `pg/text-array@1 reads a one-dimensional text[], and {{a},{b}} has more dimensions` |
 
 SQLite stores any value in any column of a table that is not `STRICT`, so these values come from writes outside the application. Find them, for example with `SELECT id FROM t WHERE typeof(col) NOT IN ('integer', 'null')`, and correct them, or read the column with a codec of the type it holds.
+
+## `sqlite-datetime-without-offset-read-as-utc`
+
+A SQLite `DateTime` column (`sqlite/datetime@1`) can hold date and time text without a UTC offset, such as `2024-01-01 12:00:00` or `2024-01-01`, when another tool wrote it: `CURRENT_TIMESTAMP` in SQL, or a client library that writes local text. Prisma writes `toISOString()` text, which ends in `Z`, so a row Prisma wrote reads as before.
+
+Such a row is now read as UTC, as SQLite's `datetime()` and `strftime()` read it. Before, it was read in the time zone of the machine running the query, so the same row gave a different `Date` on a server in UTC and on one in another zone. A date alone is read as its midnight in UTC. Every value that was read before is still read; only the instant of text without an offset changes, and it changes only on a machine not set to UTC.
+
+If such text was written meaning local time, rewrite it with its offset, or as UTC. To find these rows:
+
+```sql
+SELECT id, created_at FROM "Event"
+WHERE typeof(created_at) = 'text'
+  AND created_at NOT LIKE '%Z'
+  AND created_at NOT GLOB '*[+-][0-9][0-9]:[0-9][0-9]';
+```
 
 ## `text-array-min-max-return-arrays`
 
