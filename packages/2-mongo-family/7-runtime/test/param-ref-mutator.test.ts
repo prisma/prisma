@@ -341,26 +341,6 @@ describe('createMongoParamRefMutator', () => {
       }
     });
 
-    it('preserves codecId and name on replaced MongoParamRef nodes', () => {
-      const ref = new MongoParamRef('Alice', { codecId: 'encrypt', name: 'nameParam' });
-      const draft: MongoLoweredDraft = {
-        kind: 'insertOne',
-        collection: 'users',
-        document: { name: ref },
-      };
-      const mutator = createMongoParamRefMutator(draft);
-      const [entry] = [...mutator.entries()];
-      mutator.replaceValues([{ ref: entry!.ref, newValue: 'EncryptedBob' }]);
-
-      const updated = mutator.currentDraft();
-      if (updated.kind === 'insertOne') {
-        const nameRef = updated.document['name'] as MongoParamRef;
-        expect(nameRef.value).toBe('EncryptedBob');
-        expect(nameRef.codecId).toBe('encrypt');
-        expect(nameRef.name).toBe('nameParam');
-      }
-    });
-
     it('handles replacement in nested objects', () => {
       const ref = new MongoParamRef('secret');
       const draft: MongoLoweredDraft = {

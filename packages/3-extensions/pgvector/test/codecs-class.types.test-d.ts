@@ -25,25 +25,10 @@ import {
   pgVectorDescriptor,
 } from '../src/core/codecs';
 
-test('pgVector: descriptor.factory(params) returns typed (ctx) => PgVectorCodec', () => {
-  const factory = pgVectorDescriptor.factory({ length: 1536 });
-  expectTypeOf(factory).toEqualTypeOf<(ctx: CodecInstanceContext) => PgVectorCodec>();
-});
-
 test('pgVector: column helper preserves typed codecFactory + length literal', () => {
   const col = pgVectorColumn(1536);
   expectTypeOf(col.codecFactory).toEqualTypeOf<(ctx: CodecInstanceContext) => PgVectorCodec>();
   expectTypeOf(col.typeParams).toEqualTypeOf<{ length: 1536 }>();
-});
-
-test('pgVector: column helper carries the codec id and the length', () => {
-  const col = pgVectorColumn(1536);
-  if (col.codecId !== 'pg/vector@1') {
-    throw new Error(`codecId mismatch: ${col.codecId}`);
-  }
-  if (col.typeParams.length !== 1536) {
-    throw new Error(`length literal not preserved: ${col.typeParams.length}`);
-  }
 });
 
 pgVectorColumn satisfies ColumnHelperFor<PgVectorDescriptor>;

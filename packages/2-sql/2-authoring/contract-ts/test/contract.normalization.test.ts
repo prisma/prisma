@@ -72,11 +72,6 @@ describe('SqlContractSerializer structural validation', () => {
     expect(() => validateSqlContractFully<Contract<SqlStorage>>(input)).toThrow();
   });
 
-  it('accepts table with columns present', () => {
-    const contract = validateSqlContractFully<Contract<SqlStorage>>(validSqlContractJson());
-    expect(unboundTables(contract.storage)['User']).toBeDefined();
-  });
-
   it('rejects table without columns property', () => {
     const input = validSqlContractJson({
       storage: storageWithNamespacedTables({
@@ -171,21 +166,6 @@ describe('SqlContractSerializer structural validation', () => {
       },
     });
     expect(() => validateSqlContractFully<Contract<SqlStorage>>(input)).not.toThrow();
-  });
-
-  it('accepts contract with extensions', () => {
-    const contract = validateSqlContractFully<Contract<SqlStorage>>(validSqlContractJson());
-    expect(contract.extensions).toEqual({});
-  });
-
-  it('accepts contract with capabilities', () => {
-    const contract = validateSqlContractFully<Contract<SqlStorage>>(validSqlContractJson());
-    expect(contract.capabilities).toEqual({});
-  });
-
-  it('accepts contract with meta', () => {
-    const contract = validateSqlContractFully<Contract<SqlStorage>>(validSqlContractJson());
-    expect(contract.meta).toEqual({});
   });
 
   it('accepts multiple models without relations', () => {

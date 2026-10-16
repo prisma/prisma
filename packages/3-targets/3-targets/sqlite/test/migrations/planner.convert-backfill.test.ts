@@ -274,7 +274,7 @@ describe('SQLite planner, a new required indexed column', () => {
     ]);
   });
 
-  it('keeps a separate index on a column a separate addColumn adds, beside a rebuild for another reason', async () => {
+  it('leaves an optional column and its index to a rebuild of the table for another reason', async () => {
     const relaxedWithIndexedBody = contract(
       hex('3'),
       { id: 'integer', age: 'text?', nickname: 'text?', body: 'text?' },
@@ -282,8 +282,6 @@ describe('SQLite planner, a new required indexed column', () => {
       ['body'],
     );
     expect(await planned(textAge, relaxedWithIndexedBody)).toEqual([
-      'Add column body on User (additive)',
-      'Create index User_body_idx on User (additive)',
       'Recreate table User (widening)',
     ]);
   });

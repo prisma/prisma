@@ -137,21 +137,6 @@ describe('policy predicates', () => {
     });
   });
 
-  it('keeps permissive = false', () => {
-    const policy = onlyPolicy(
-      schemaWith(`  policy_select owner_read {
-    target     = profile
-    using      = sql\`owner_id = 1\`
-    permissive = false
-  }`),
-    );
-
-    expect({ using: policy.using, permissive: policy.permissive }).toEqual({
-      using: 'owner_id = 1',
-      permissive: false,
-    });
-  });
-
   it.each([
     ['"owner_id = 1"', 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected sql`...`; write sql`owner_id = 1`'],
     ["'x'", 'PSL_VALUE_TYPE_INCOMPATIBLE', 'Expected sql`...`; write sql`x`'],

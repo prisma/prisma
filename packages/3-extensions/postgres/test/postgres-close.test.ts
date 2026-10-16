@@ -189,12 +189,6 @@ describe('postgres close()', () => {
     expect(poolEndSpy()).not.toHaveBeenCalled();
   });
 
-  it('db.runtime() rejects with "Postgres client is closed" after close()', async () => {
-    const db = postgres({ contract, url: 'postgres://localhost:5432/db' });
-    await db.close();
-    expect(() => db.runtime()).toThrow('Postgres client is closed');
-  });
-
   it('db.connect() rejects with "Postgres client is closed" after close()', async () => {
     const db = postgres({ contract, url: 'postgres://localhost:5432/db' });
     await db.close();

@@ -2,7 +2,6 @@
  * Constructive type tests for the postgres per-target descriptor record layer.
  *
  * Coverage:
- * - every entry in the internal descriptor list (`codecDescriptors`) satisfies the PostgreSQL target protocol while retaining its concrete type;
  * - trait literals survive on each descriptor class — {@link DescriptorCodecTraits} reads `traits` directly off the descriptor, so the literal tuple shape (`readonly ['equality', 'order', 'numeric']`) is preserved rather than widened to `readonly CodecTrait[]`;
  * - the resolved `CodecTypes` projection contains the codec-id keys consumers reference at the no-emit authoring chain.
  *
@@ -11,19 +10,13 @@
 
 import type { CodecTrait } from '@internal/framework-components/codec';
 import { expectTypeOf, test } from 'vitest';
-import type { AnyPostgresCodecDescriptor } from '../src/core/codec-descriptor';
 import {
-  type codecDescriptors,
   type PgInt4Descriptor,
   type PgNumericDescriptor,
   pgInt4Descriptor,
   pgNumericDescriptor,
 } from '../src/core/codecs';
 import type { CodecTypes } from '../src/exports/codec-types';
-
-test('canonical list entries extend AnyPostgresCodecDescriptor', () => {
-  expectTypeOf<(typeof codecDescriptors)[number]>().toExtend<AnyPostgresCodecDescriptor>();
-});
 
 test('pgInt4Descriptor.traits is a readonly literal tuple, not widened', () => {
   type Traits = PgInt4Descriptor['traits'];

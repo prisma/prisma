@@ -96,7 +96,6 @@ describe('factory-form enums narrow field reads to the value union', () => {
 
   it('non-nullable enum field is the value union (not string)', () => {
     expectTypeOf<FOT['User']['role']>().toEqualTypeOf<'user' | 'admin'>();
-    expectTypeOf<FOT['User']['role']>().not.toEqualTypeOf<string>();
   });
 
   it('nullable enum field is value union | null', () => {

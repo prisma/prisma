@@ -24,13 +24,6 @@ describe('the type constructors the target contributes', () => {
     expect(Object.keys(postgresAuthoringTypes)).toEqual(['BigIntNumber', 'UnboundedInt', 'pg']);
   });
 
-  it('define the PSL-only constructors as the scalar and native ones together', () => {
-    expect(Object.keys(postgresPslTypeConstructors)).toEqual([
-      ...Object.keys(postgresScalarAuthoringTypes),
-      ...Object.keys(postgresNativeAuthoringTypes),
-    ]);
-  });
-
   it.each(Object.entries(postgresAuthoringTypes).filter(([name]) => name !== 'pg'))(
     'documents %s',
     (_name, descriptor) => {

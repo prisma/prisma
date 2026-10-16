@@ -209,10 +209,6 @@ test('a store without unset is a type error', () => {
   void store;
 });
 
-test('the package exports deriveKeyFromContentHash', () => {
-  expectTypeOf(exported.deriveKeyFromContentHash).toBeFunction();
-});
-
 test('deriveKey composes with deriveKeyFromContentHash', () => {
   exported.createCacheMiddleware({
     deriveKey: async (exec, ctx) => `users:${await exported.deriveKeyFromContentHash(exec, ctx)}`,

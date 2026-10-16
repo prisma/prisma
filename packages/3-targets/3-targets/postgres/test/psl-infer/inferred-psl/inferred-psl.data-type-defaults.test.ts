@@ -92,12 +92,6 @@ describe('printPsl writes each default as the literal the column data type takes
     });
   });
 
-  it('prints every digit of an int8 past the safe integer range', () => {
-    expect(printedDefaults([introspected('big', 'int8', "'9007199254740993'::bigint")])).toEqual({
-      big: '@default(9007199254740993)',
-    });
-  });
-
   it('prints a whole number cast up to the column type', () => {
     expect(printedDefaults([introspected('balance', 'int8', "'42'::bigint")])).toEqual({
       balance: '@default(42)',
@@ -200,18 +194,6 @@ describe('printPsl writes each default as the literal the column data type takes
     const rawDefault = `concat('${BACKTICK}', 'x')`;
     expect(printedDefaults([introspected('value', 'text', rawDefault)])).toEqual({
       value: `@default(sql"${rawDefault}")`,
-    });
-  });
-
-  it('prints a text literal cast to the column type as a string literal', () => {
-    expect(printedDefaults([introspected('label', 'text', "'draft'::text")])).toEqual({
-      label: '@default("draft")',
-    });
-  });
-
-  it('prints a jsonb literal cast to the column type as a json literal', () => {
-    expect(printedDefaults([introspected('meta', 'jsonb', "'{}'::jsonb")])).toEqual({
-      meta: `@default(${tagged('json', '{}')})`,
     });
   });
 

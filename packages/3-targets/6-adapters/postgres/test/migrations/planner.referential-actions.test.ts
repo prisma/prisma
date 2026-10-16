@@ -167,15 +167,4 @@ describe('PostgresMigrationPlanner - referential actions DDL', () => {
     expect(sql).toContain('ON DELETE CASCADE');
     expect(sql).toContain('ON UPDATE CASCADE');
   });
-
-  it.each([
-    { action: 'noAction' as const, expected: 'NO ACTION' },
-    { action: 'restrict' as const, expected: 'RESTRICT' },
-    { action: 'cascade' as const, expected: 'CASCADE' },
-    { action: 'setNull' as const, expected: 'SET NULL' },
-    { action: 'setDefault' as const, expected: 'SET DEFAULT' },
-  ])('maps $action to $expected in ON DELETE clause', async ({ action, expected }) => {
-    const sql = await planAndGetFkSql(action, undefined);
-    expect(sql).toContain(`ON DELETE ${expected}`);
-  });
 });

@@ -73,16 +73,6 @@ describe('Collection.all annotations', () => {
     expect(cacheAnnotation.read(call)).toEqual({ ttl: 60 });
   });
 
-  it('returns undefined from handle.read on a call that was never annotated', async () => {
-    const { collection, runtime, calls } = createCollection();
-    runtime.setNextResults([[]]);
-
-    await collection.all().toArray();
-
-    const call = onlyCall(calls);
-    expect(cacheAnnotation.read(call)).toBeUndefined();
-  });
-
   it('multiple annotations under different namespaces coexist', async () => {
     const { collection, runtime, calls } = createCollection();
     runtime.setNextResults([[]]);

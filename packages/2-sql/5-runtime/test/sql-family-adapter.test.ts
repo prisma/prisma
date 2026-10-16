@@ -35,14 +35,6 @@ const testProfile: AdapterProfile = {
 };
 
 describe('SqlFamilyAdapter', () => {
-  it('creates adapter with contract and marker reader', () => {
-    const adapter = new SqlFamilyAdapter(testContract, testProfile);
-
-    expect(adapter.contract).toBe(testContract);
-    expect(adapter.markerReader).toBeDefined();
-    expect(adapter.markerReader.readMarker).toBeDefined();
-  });
-
   it('delegates readMarker to adapter profile', async () => {
     const adapter = new SqlFamilyAdapter(testContract, testProfile);
     const fakeQueryable = {

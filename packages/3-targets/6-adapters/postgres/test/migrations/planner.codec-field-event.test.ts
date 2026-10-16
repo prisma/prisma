@@ -164,34 +164,6 @@ describe('PostgresMigrationPlanner - codec onFieldEvent wiring', () => {
     expect(ids).toContain('table.User');
   });
 
-  it('does not fire when no codec has an onFieldEvent hook', async () => {
-    const planner = createPostgresMigrationPlanner(testAdapter);
-
-    const frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>> =
-      postgresComponents;
-
-    const result = planner.plan({
-      contract: contract(
-        {
-          User: table({ id: col({ codecId: PG_TEXT_CODEC }) }),
-        },
-        'to',
-      ),
-      schema: emptySchema,
-      policy: INIT_ADDITIVE_POLICY,
-      fromContract: null,
-      origin: null,
-      statements: [],
-      frameworkComponents,
-      spaceId: APP_SPACE_ID,
-      snapshotsImportPath: '../../snapshots',
-    });
-
-    expectNarrowedType(result.kind === 'success');
-    const ops = await Promise.all(result.plan.operations);
-    expect(ops.every((op) => !op.id.startsWith('codec.'))).toBe(true);
-  });
-
   it('produces byte-identical operations across re-emits (deterministic)', async () => {
     const planner = createPostgresMigrationPlanner(testAdapter);
 

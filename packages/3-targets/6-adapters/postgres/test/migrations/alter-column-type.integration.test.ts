@@ -284,6 +284,7 @@ describe('a Postgres column type change', { concurrent: false }, () => {
     await driver!.query(`CREATE TABLE "Person" (id text PRIMARY KEY, mood text)`);
     await driver!.query(`INSERT INTO "Person" VALUES ('a', 'happy')`);
     const op = await new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: UNBOUND_NAMESPACE_ID,
       tableName: 'Person',
       columnName: 'mood',

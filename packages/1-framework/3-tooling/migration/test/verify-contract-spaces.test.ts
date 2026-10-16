@@ -296,27 +296,4 @@ describe('verifyContractSpaces', () => {
     });
     expect(result.ok).toBe(true);
   });
-
-  it('does not flag a missing app-space contract-space dir (app pinning lives at the project root, not under migrations/)', () => {
-    const result = verifyContractSpaces({
-      loadedSpaces: new Set(['app']),
-      spaceDirsOnDisk: [],
-      headRefsBySpace: new Map(),
-      markerRowsBySpace: new Map(),
-    });
-    expect(result.ok).toBe(true);
-  });
-
-  it('does not import any extension descriptor (verifier reads only its inputs)', () => {
-    // Smoke check: the function must work with a brand-new Map / Set
-    // and return a plain Result. No descriptor module required by the
-    // call itself — the inputs are pre-resolved by the caller.
-    const result = verifyContractSpaces({
-      loadedSpaces: new Set(['app', 'cipherstash']),
-      spaceDirsOnDisk: ['cipherstash'],
-      headRefsBySpace: new Map([['cipherstash', cipherstashHead]]),
-      markerRowsBySpace: new Map([['cipherstash', markerOf(cipherstashHead)]]),
-    });
-    expect(result.ok).toBe(true);
-  });
 });

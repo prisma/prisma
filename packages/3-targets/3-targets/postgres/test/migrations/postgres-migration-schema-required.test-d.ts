@@ -12,7 +12,7 @@
  * they are reachable.
  */
 
-import { col } from '@internal/sql-relational-core/contract-free';
+import { col, lit } from '@internal/sql-relational-core/contract-free';
 import { test } from 'vitest';
 import { PostgresMigration } from '../../src/core/migrations/postgres-migration';
 
@@ -37,6 +37,8 @@ class SchemaRequiredProbe extends PostgresMigration {
       this.addColumn({ table: 'user', column: col('email', 'text') }),
       // @ts-expect-error schema is required on Postgres Migration methods (no search_path-relative default)
       this.dropTable({ table: 'stale' }),
+      // @ts-expect-error schema is required on Postgres Migration methods (no search_path-relative default)
+      this.setDefault({ table: 'user', column: col('email', 'text', { default: lit('a') }) }),
     ];
   }
 }

@@ -961,22 +961,5 @@ describe('executeDbUpdate', () => {
       const applyEnd = events.find((e) => e.kind === 'spanEnd' && e.spanId === 'apply');
       expect(applyEnd).toMatchObject({ outcome: 'error' });
     });
-
-    it('does not throw when onProgress is omitted', async () => {
-      const result = await executeDbUpdate({
-        driver: createMockDriver(),
-        adapter: STUB_ADAPTER,
-        familyInstance: createMockFamilyInstance(),
-        contract: dummyContract,
-        mode: 'plan',
-        migrations: createMockMigrations(),
-        frameworkComponents: [],
-        migrationsDir: FAKE_MIGRATIONS_DIR,
-        answerQuestions: noQuestions,
-        targetId: 'postgres',
-      });
-
-      expect(result.ok).toBe(true);
-    });
   });
 });

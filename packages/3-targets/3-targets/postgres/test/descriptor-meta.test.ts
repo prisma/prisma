@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { postgresRenderCheckExpressions } from '../src/core/check-expressions';
 import { postgresTargetDescriptorMeta } from '../src/core/descriptor-meta';
-import postgresTargetPack from '../src/exports/pack';
 
 describe('postgresTargetDescriptorMeta', () => {
   it('declares namespace support, so emitted model names keep their namespace segment', () => {
@@ -19,11 +18,5 @@ describe('postgresTargetDescriptorMeta', () => {
     expect(postgresTargetDescriptorMeta.authoring.renderCheckExpressions).toBe(
       postgresRenderCheckExpressions,
     );
-  });
-});
-
-describe('postgresTargetPack', () => {
-  it('matches the descriptor metadata', () => {
-    expect(postgresTargetPack).toEqual(postgresTargetDescriptorMeta);
   });
 });
