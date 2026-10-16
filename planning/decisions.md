@@ -47,7 +47,7 @@ Existing Prisma 7 users must be able to upgrade. They reacted badly to the relea
 | Task | Why |
 | --- | --- |
 | Document cursor pagination | Settled 2026-09-29: Prisma 8 starts after the cursor row on purpose, confirmed by the team. Prisma 7 includes the cursor row. The docs do not mention the difference yet. The 13 ported tests that fail on it are expected to fail. |
-| Remove `@noCheck`, `.noCheck()` and the `noCheck` field in the contract | Will, 2026-09-29: it was a workaround and must go. It is breaking, so it happens before GA. Facts (read on `main`): ADR 244 defines it. It has two kinds. `elementNotNull` waives the check that list elements are not null, and the Prisma 7 source sets it on every list column. `membership` waives the check that a value belongs to its enum. Replacements, decided by Will on 2026-09-29. For lists: finish prisma/orm#30051, so the contract can state that list elements may be null. For enums: no opt-out. Prisma 8 adds the membership constraint to the database. |
+| Remove `@noCheck`, `.noCheck()` and the `noCheck` field in the contract | Will, 2026-09-29: it was a workaround and must go. It is breaking, so it happens before GA. Facts (read on `main`): ADR 244 defines it. It has two kinds. `elementNotNull` waives the check that list elements are not null, and the Prisma 7 source sets it on every list column. `membership` waives the check that a value belongs to its enum. Replacements, decided by Will on 2026-09-29. For lists: finish prisma/orm#30051, so the contract can state that list elements may be null. For enums: no opt-out. Prisma 8 adds the membership constraint to the database. Will, 2026-10-15: a Prisma 7 `String[]` is read as nullable elements, because a Prisma 7 schema must pass `db verify` under Prisma 8 with no migration; `contract infer` writes `String?[]` for a list column with no element check. Shipped in prisma/orm#30741 (TML-3595) on 2026-10-16. |
 | Correct the query reference in the agent skill (`skills/prisma-8/references/queries-postgres.md`) | Urgent, same kind of fault as TML-3340. It sends users to `db.sql` for set operations and window functions, and neither exists. `prisma init` copies the skill into every new project. |
 | Correct the other documents that contradict the code | Listed in [query-feature-gaps.md](query-feature-gaps.md). |
 | Decide what project the ORM scenario of the eval builds, then build the scenario | It is the GA test for the new user. It runs without a deploy, against every database. |
@@ -91,6 +91,7 @@ Will, 2026-09-30: the emulator controls (start, stop, list, reset) are now urgen
 ## Changes of 2026-10-16
 
 - A project that has started is Must (Will). It counts toward GA readiness. Nested writes, the `firstOrThrow` need and the docs restructure became Must. The six unranked projects in stream 4 became ranked Must rows 7 to 12. The items beside the streams (manifesto, one lowering, Asks, eval harness) are not GA projects and are not counted.
+- Field presets are removed, and type aliases stay (Will and Serhii). This changes TML-3055's decision of 2026-07-20, which removed both. The work is TML-3607, and it is the rest of stream 1 row 5. A value the client generates is written `@onCreate(fn())` or `@onUpdate(fn())`, and `fn` resolves to the generator for the column's codec. `@default` means a database default only, so `@default(uuid())` becomes `@onCreate(uuid())`. A type alias is an authoring shorthand: PSL expands it into each column, the contract does not store it, and it may carry `@default`, `@onCreate` and `@onUpdate`. Types that exist in the database, such as native enums, stay in the contract. Targets and extensions contribute aliases instead of presets. Reason: one mechanism that users and packages share, and printed Prisma 7 schemas read like the source, for example `updatedAt TimestampString(3) @onCreate(now()) @onUpdate(now())` instead of `temporal.timestampString(3, onCreate: now, onUpdate: now)`.
 
 ## Changes of 2026-10-07
 
@@ -167,7 +168,7 @@ PostgreSQL must be ready at GA. The other databases can finish after the GA laun
 | 2 | One CLI and one config file | See below. |
 | 3 | Early MySQL attempt | Not started. Purpose: find shared code that assumes PostgreSQL. |
 | 4 | SQL expression literals. Required, because row-level security, expression indexes and partial indexes are fully supported at GA and their syntax must be final. | 6 tickets in backlog. Blocked, see below. |
-| 5 | PSL mixins (TML-3055). They replace type aliases and field presets, which are then removed. | Backlog. No spec and no plan. Large. |
+| 5 | PSL mixins (TML-3055), then remove field presets (TML-3607). Type aliases stay, as an authoring shorthand (2026-10-16). | Mixins done 2026-10-14. Removing presets: decided, no ADR yet. Large. |
 | In parallel | Upgrade path: Prisma 7 schema gaps, upgrade guide rewrite. The baseline command listed here on 2026-09-28 is not needed (2026-10-05, see context.md). | Will is working on it now. |
 | In parallel | Docs items from the eval | 11 items, 5 high. Owned by the team. |
 | In parallel | Multi-file PSL | 2 of 3 parts merged. Language server part open in prisma/orm#30456. |
