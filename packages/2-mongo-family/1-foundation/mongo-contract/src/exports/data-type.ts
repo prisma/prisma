@@ -9,4 +9,5 @@ export {
   bsonTypesOfCodec,
   isMongoDataType,
   mongoDataType,
+  mongoTypeParamsFault,
 } from '../mongo-data-type';

@@ -10,11 +10,14 @@ import type {
   CodecLookupWithDescriptors,
   DataType,
   DataTypeLookup,
+  DataTypeParamsFault,
   DataTypeSpec,
 } from '@internal/framework-components/codec';
-import { dataType } from '@internal/framework-components/codec';
-import { structuredError } from '@internal/utils/structured-error';
-import { type as arktype } from 'arktype';
+import {
+  dataType,
+  dataTypeParamsFault,
+  validateDataTypeParams,
+} from '@internal/framework-components/codec';
 
 export interface MongoDataTypeSpec extends DataTypeSpec {
   readonly bsonTypes: readonly string[];
@@ -51,9 +54,7 @@ export function bsonTypesOfCodec(
   codecId: string,
   lookups: MongoTypeLookups,
 ): readonly string[] | undefined {
-  const descriptor = lookups.codecLookup.descriptorFor(codecId);
-  const type =
-    descriptor === undefined ? undefined : lookups.dataTypeLookup.get(descriptor.dataType);
+  const type = dataTypeOfCodec(codecId, lookups);
   return type !== undefined && isMongoDataType(type) ? type.mongo.bsonTypes : undefined;
 }
 
@@ -71,7 +72,7 @@ interface DomainNamespaceFields {
 }
 
 /**
- * Refuses a field whose type parameters its codec's data type does not accept, such as a vector `length` of 0, with `CONTRACT.TYPE_PARAMS_INVALID`. Every Mongo contract build calls it: the type parameters a field carries reach only the TypeScript types and the emitted `contract.d.ts`, so nothing later checks them.
+ * Refuses a field whose type parameters its codec's data type does not accept, such as a vector `length` of 0, with `CONTRACT.TYPE_PARAMS_INVALID`. A Mongo `defineContract` build calls it, and the PSL interpreter reports the same fault as a diagnostic through {@link mongoTypeParamsFault}: the type parameters a field carries reach only the TypeScript types and the emitted `contract.d.ts`, so nothing later checks them.
  */
 export function assertMongoFieldTypeParams(
   namespaces: Readonly<Record<string, DomainNamespaceFields>>,
@@ -95,26 +96,23 @@ function assertFieldsTypeParams(
   for (const [fieldName, field] of Object.entries(fields)) {
     const { type: fieldType } = field;
     if (fieldType.kind !== 'scalar' || fieldType.typeParams === undefined) continue;
-    const descriptor = lookups.codecLookup.descriptorFor(fieldType.codecId);
-    const params =
-      descriptor === undefined
-        ? undefined
-        : lookups.dataTypeLookup.get(descriptor.dataType)?.params;
-    if (descriptor === undefined || params === undefined) continue;
-    const result = params(fieldType.typeParams);
-    if (result instanceof arktype.errors) {
-      throw structuredError(
-        'CONTRACT.TYPE_PARAMS_INVALID',
-        `${descriptor.dataType}: ${result.summary}`,
-        {
-          meta: {
-            dataType: descriptor.dataType,
-            parameters: [...new Set(result.map((error) => error.path.map(String).join('.')))],
-            ...owner,
-            fieldName,
-          },
-        },
-      );
-    }
+    const type = dataTypeOfCodec(fieldType.codecId, lookups);
+    if (type !== undefined)
+      validateDataTypeParams(type, fieldType.typeParams, { ...owner, fieldName });
   }
+}
+
+/** What is wrong with the type parameters `typeParams` for the data type the codec `codecId` represents, or undefined when it accepts them or the stack registers no such codec or data type. */
+export function mongoTypeParamsFault(
+  codecId: string,
+  typeParams: Readonly<Record<string, unknown>>,
+  lookups: MongoTypeLookups,
+): DataTypeParamsFault | undefined {
+  const type = dataTypeOfCodec(codecId, lookups);
+  return type === undefined ? undefined : dataTypeParamsFault(type, typeParams);
+}
+
+function dataTypeOfCodec(codecId: string, lookups: MongoTypeLookups): DataType | undefined {
+  const descriptor = lookups.codecLookup.descriptorFor(codecId);
+  return descriptor === undefined ? undefined : lookups.dataTypeLookup.get(descriptor.dataType);
 }

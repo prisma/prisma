@@ -4,9 +4,11 @@ import {
   createDataTypeLookup,
   dataType,
   dataTypeId,
+  dataTypeParamsFault,
   objectSchemaKeys,
   requiredParamKeys,
   requiredSchemaKeys,
+  validateDataTypeParams,
 } from '../src/shared/data-type';
 
 describe('dataTypeId', () => {
@@ -159,5 +161,48 @@ describe('arktype object schema keys', () => {
   it('reads no keys from a value that is not a schema', () => {
     expect(objectSchemaKeys({ props: [] })).toBeUndefined();
     expect(requiredSchemaKeys(undefined)).toBeUndefined();
+  });
+});
+
+describe('validateDataTypeParams', () => {
+  const vector = dataType('demo/vector', { params: type({ 'length?': 'number.integer >= 1' }) });
+
+  it('accepts parameters the data type allows, and any parameters for a type without a schema', () => {
+    expect(() => validateDataTypeParams(vector, { length: 3 })).not.toThrow();
+    expect(() => validateDataTypeParams(dataType('demo/plain', {}), { length: 0 })).not.toThrow();
+  });
+
+  it.each([0, -1, 2.5])(
+    'refuses a length of %s, naming the data type and the parameter',
+    (length) => {
+      expect(() => validateDataTypeParams(vector, { length })).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.TYPE_PARAMS_INVALID',
+          message: expect.stringMatching(/^demo\/vector: /),
+          meta: { dataType: 'demo/vector', parameters: ['length'] },
+        }),
+      );
+    },
+  );
+
+  it('adds the facts the caller gives to the error', () => {
+    expect(() => validateDataTypeParams(vector, { length: 0 }, { fieldName: 'embedding' })).toThrow(
+      expect.objectContaining({
+        meta: { dataType: 'demo/vector', parameters: ['length'], fieldName: 'embedding' },
+      }),
+    );
+  });
+});
+
+describe('dataTypeParamsFault', () => {
+  const vector = dataType('demo/vector', { params: type({ 'length?': 'number.integer >= 1' }) });
+
+  it('describes what is wrong with the parameters, or nothing when the type accepts them', () => {
+    expect(dataTypeParamsFault(vector, { length: 3 })).toBeUndefined();
+    expect(dataTypeParamsFault(vector, { length: 0 })).toEqual({
+      dataType: 'demo/vector',
+      message: expect.stringMatching(/^demo\/vector: /),
+      parameters: ['length'],
+    });
   });
 });

@@ -45,6 +45,7 @@ export type {
   DataType,
   DataTypeId,
   DataTypeLookup,
+  DataTypeParamsFault,
   DataTypeSpec,
   ListCast,
   ToCanonicalForm,
@@ -55,9 +56,11 @@ export {
   DATA_TYPE_ID_PATTERN,
   dataType,
   dataTypeId,
+  dataTypeParamsFault,
   objectSchemaKeys,
   requiredParamKeys,
   requiredSchemaKeys,
+  validateDataTypeParams,
 } from '../shared/data-type';
 export type { BigIntRange, IntegerRange } from '../shared/decode-json';
 export {

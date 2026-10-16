@@ -15,7 +15,11 @@ import type {
   DataTypeLookup,
   DataTypeSpec,
 } from '@internal/framework-components/codec';
-import { dataType, objectSchemaKeys } from '@internal/framework-components/codec';
+import {
+  dataType,
+  objectSchemaKeys,
+  validateDataTypeParams,
+} from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -265,24 +269,10 @@ export function validateSqlTypeParams<Params extends SqlTypeParams>(
   type: SqlDataType<Params>,
   params: SqlTypeParams,
 ): Params {
-  if (type.params === undefined) {
-    return blindCast<
-      Params,
-      'a type without a parameter schema declares no parameters, so its parameter type is the empty object'
-    >(params);
-  }
-  const result = type.params(params);
-  if (result instanceof arktype.errors) {
-    throw contractError('CONTRACT.TYPE_PARAMS_INVALID', `${type.id}: ${result.summary}`, {
-      meta: {
-        dataType: type.id,
-        parameters: [...new Set(result.map((error) => error.path.map(String).join('.')))],
-      },
-    });
-  }
+  validateDataTypeParams(type, params);
   return blindCast<
     Params,
-    'the schema accepted params, and an object schema of parameters has no morphs, so the accepted value is the parameters as declared'
+    'the schema accepted params, or the type declares none; an object schema of parameters has no morphs, so the accepted value is the parameters as declared'
   >(params);
 }
 

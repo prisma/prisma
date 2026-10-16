@@ -14,7 +14,8 @@
 import type { JsonValue } from '@internal/contract/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
-import type { Type } from 'arktype';
+import { structuredError } from '@internal/utils/structured-error';
+import { type as arktype, type Type } from 'arktype';
 import { runtimeError } from './runtime-error';
 
 /**
@@ -104,6 +105,40 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
       : { listCast: { of: listCast.of.map(dataTypeId), cast: listCast.cast } }),
     ...(spec.toCanonicalForm === undefined ? {} : { toCanonicalForm: spec.toCanonicalForm }),
   };
+}
+
+/** What is wrong with the parameters given a data type: the message to report and each parameter at fault. */
+export interface DataTypeParamsFault {
+  readonly dataType: DataTypeId;
+  readonly message: string;
+  readonly parameters: readonly string[];
+}
+
+/** What is wrong with `params` for `type`, or undefined when `type` accepts them or has no parameter schema. */
+export function dataTypeParamsFault(
+  type: DataType,
+  params: Readonly<Record<string, unknown>>,
+): DataTypeParamsFault | undefined {
+  const result = type.params?.(params);
+  if (!(result instanceof arktype.errors)) return undefined;
+  return {
+    dataType: type.id,
+    message: `${type.id}: ${result.summary}`,
+    parameters: [...new Set(result.map((error) => error.path.map(String).join('.')))],
+  };
+}
+
+/** Refuses `params` that `type` does not accept with `CONTRACT.TYPE_PARAMS_INVALID`, naming the data type and each parameter at fault, plus the facts in `meta`. */
+export function validateDataTypeParams(
+  type: DataType,
+  params: Readonly<Record<string, unknown>>,
+  meta: Readonly<Record<string, unknown>> = {},
+): void {
+  const fault = dataTypeParamsFault(type, params);
+  if (fault === undefined) return;
+  throw structuredError('CONTRACT.TYPE_PARAMS_INVALID', fault.message, {
+    meta: { dataType: fault.dataType, parameters: fault.parameters, ...meta },
+  });
 }
 
 type SchemaProp = { readonly key: PropertyKey; readonly kind?: unknown };
