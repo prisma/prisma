@@ -68,7 +68,7 @@ class DataTypeValueRecord<J extends JsonValue> {
 }
 
 /**
- * A value of a data type: the type's id, the parameters it holds the value under, and `value`, the JSON form `contract.json` stores. Only a data type constructs one, through {@link DataType.fromContract} and {@link DataType.withParams}. ADR 254.
+ * A value of a data type: the type's id, the parameters it holds the value under, and `value`, the JSON form `contract.json` stores. Only a data type constructs one, through {@link DataType.fromContract} and {@link DataType.fromCodec}. ADR 254.
  */
 export type DataTypeValue<J extends JsonValue = JsonValue> = DataTypeValueRecord<J>;
 
@@ -91,8 +91,6 @@ export interface DataType {
   fromCodec(json: JsonValue, params: DataTypeParams): DataTypeValue;
   /** The JSON `contract.json` stores for `value`. */
   toContract(value: DataTypeValue): JsonValue;
-  /** `value` under `params`: it refuses a value they exclude and writes the spelling they give it. */
-  withParams(value: DataTypeValue, params: DataTypeParams): DataTypeValue;
 }
 
 export interface DataTypeSpec {
@@ -163,7 +161,6 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
     fromContract,
     fromCodec: (json, params) => construct(spelledUnder(json, params), params),
     toContract: (value) => ownValue(value).value,
-    withParams: (value, params) => construct(spelledUnder(ownValue(value).value, params), params),
   };
 }
 

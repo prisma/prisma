@@ -8,7 +8,6 @@ const valueMethods = {
   fromContract: expect.any(Function),
   toContract: expect.any(Function),
   fromCodec: expect.any(Function),
-  withParams: expect.any(Function),
 };
 
 describe('mongoDataType', () => {

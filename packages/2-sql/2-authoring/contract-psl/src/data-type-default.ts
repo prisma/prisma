@@ -1,8 +1,8 @@
 /**
  * Reading a `@default(...)` value: a written value is read by the authoring entry for the syntax it
  * is written in, which gives it a data type; the column's type takes it directly or through a cast;
- * the column's type gives it the column's parameters with `withParams`, which refuses a value they
- * exclude and writes the spelling they give it; the column's codec, built with the column's type
+ * the value is constructed through the column's type with `fromCodec` under the column's parameters,
+ * which refuses a value they exclude and writes the spelling they give it; the column's codec, built with the column's type
  * parameters, checks it with `fromDataTypeValue`; and it is stored as the type's `toContract` writes it.
  *
  * No per-type code and no per-codec branch live here. ADR 254.

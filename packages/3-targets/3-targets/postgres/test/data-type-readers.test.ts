@@ -153,7 +153,7 @@ describe('numeric(precision, scale) spells a value with its scale', () => {
     ['NaN', { precision: 10, scale: 2 }, 'NaN'],
     ['1.5', {}, '1.5'],
   ])('%s under %j is %s', (json, params, spelled) => {
-    expect(pgNumeric.withParams(pgNumeric.fromContract(json, {}), params).value).toBe(spelled);
+    expect(pgNumeric.fromCodec(json, params).value).toBe(spelled);
   });
 
   it("a numeric codec's value takes the codec's parameters", () => {
@@ -206,10 +206,10 @@ describe('a fractional-second precision limits a value, which the type refuses r
     expect(type.fromContract(text, params).value).toBe(text);
   });
 
-  it('withParams refuses a value with more fraction digits than the precision', () => {
-    expect(() =>
-      pgTime.withParams(pgTime.fromContract('00:00:00.5', {}), { precision: 0 }),
-    ).toThrow(refusedBy({ dataType: 'pg/time' }));
+  it('fromCodec refuses a value with more fraction digits than the precision', () => {
+    expect(() => pgTime.fromCodec('00:00:00.5', { precision: 0 })).toThrow(
+      refusedBy({ dataType: 'pg/time' }),
+    );
   });
 });
 

@@ -89,9 +89,9 @@ describe('toContract', () => {
   });
 });
 
-describe('withParams', () => {
+describe('fromCodec', () => {
   it('writes the spelling the parameters give a value', () => {
-    const value = decimal.withParams(decimal.fromContract('1.5', {}), { scale: 2 });
+    const value = decimal.fromCodec('1.5', { scale: 2 });
     expect({ params: value.params, value: value.value }).toEqual({
       params: { scale: 2 },
       value: '1.50',
@@ -99,13 +99,11 @@ describe('withParams', () => {
   });
 
   it('refuses a value the parameters exclude, rather than rounding it', () => {
-    expect(() => decimal.withParams(decimal.fromContract('1.234', {}), { scale: 2 })).toThrow(
-      /at most 2 fraction digits/,
-    );
+    expect(() => decimal.fromCodec('1.234', { scale: 2 })).toThrow(/at most 2 fraction digits/);
   });
 
   it('leaves the JSON unchanged for a type whose parameters never change a spelling', () => {
-    expect(document.withParams(document.fromContract({ a: 1 }, {}), {}).value).toEqual({ a: 1 });
+    expect(document.fromCodec({ a: 1 }, {}).value).toEqual({ a: 1 });
   });
 });
 
