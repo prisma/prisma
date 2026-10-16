@@ -5,12 +5,16 @@ changes:
       A codec implements `toWire`, `fromWire`, `toDataTypeValue` and `fromDataTypeValue` instead of
       `encode`, `decode`, `encodeJson` and `decodeJson`. Its constructor names its data type and
       parameters (`super(descriptor, dataType, params)`), and it builds the value it hands over with
-      `this.dataTypeValueOf(json)`.
+      `this.dataTypeValueOf(json)`. A Mongo codec made with `mongoCodec()` takes the same four
+      options in place of `encode`, `decode`, `encodeJson` and `decodeJson`, and a required
+      `dataType`.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '\b(?:encodeJson|decodeJson)\s*\('
         - '\basync\s+(?:encode|decode)\s*\('
+        - '\b(?:encode|decode)\s*:\s*(?:async\s*)?\('
+        - '\b(?:encodeJson|decodeJson)\s*:'
   - id: data-types-own-parameter-limits
     summary: |
       Every data type declares a `read` function, which reads and checks each stored value under
@@ -147,6 +151,44 @@ override factory(params: GeometryParams) {
 ```
 
 `DataTypeValue`, `DataTypeReader` and `refuseJsonValue` are exported from `@prisma/orm-framework/components/codec`, beside `CodecImpl`.
+
+A Mongo codec made with `mongoCodec()` from `@prisma/orm-family-mongo/codec` takes the four options under the new names, and names its data type in a required `dataType` option, with the column's parameters in an optional `params`. Its `toDataTypeValue` returns a `DataTypeValue` too, which it builds with `dataType.valueFrom(json, params)`. It may be left out when the application value is JSON, and `fromDataTypeValue` may be left out only when the application type is exactly `JsonValue`. Declare the data type with `mongoDataType` from `@prisma/orm-family-mongo/contract/data-type`, and register it in the pack's `dataTypes` beside the codec:
+
+```ts
+// before
+import { Long } from 'bson';
+import { mongoCodec } from '@prisma/orm-family-mongo/codec';
+import { decodeJsonString } from '@prisma/orm-framework/components/codec';
+import type { JsonValue } from '@prisma/orm-framework/contract/types';
+
+export const moneyCodec = mongoCodec({
+  typeId: 'acme/money@1',
+  encode: (value: bigint) => Long.fromBigInt(value),
+  decode: (wire: Long) => wire.toBigInt(),
+  encodeJson: (value: bigint) => value.toString(),
+  decodeJson: (json: JsonValue) => BigInt(decodeJsonString('acme/money@1', json)),
+});
+
+// after
+import { Long } from 'bson';
+import { mongoCodec } from '@prisma/orm-family-mongo/codec';
+import { mongoDataType } from '@prisma/orm-family-mongo/contract/data-type';
+import { type DataTypeValue, readJsonMatching } from '@prisma/orm-framework/components/codec';
+
+export const acmeMoney = mongoDataType('acme/money', {
+  bsonTypes: ['long'],
+  read: (json) => readJsonMatching('acme/money', json, /^-?\d+$/, 'decimal integer text'),
+});
+
+export const moneyCodec = mongoCodec({
+  typeId: 'acme/money@1',
+  dataType: acmeMoney,
+  toWire: (value: bigint) => Long.fromBigInt(value),
+  fromWire: (wire: Long) => wire.toBigInt(),
+  toDataTypeValue: (value: bigint) => acmeMoney.valueFrom(value.toString(), {}),
+  fromDataTypeValue: (value: DataTypeValue<string>) => BigInt(value.value),
+});
+```
 
 ## `data-types-own-parameter-limits`
 
