@@ -23,9 +23,9 @@ const contract: Contract<SqlStorage> = {
   meta: {},
 };
 
-describe('sqliteStatic({ contractJson })', () => {
+describe('sqliteStatic({ contract })', () => {
   it('returns context, contract, enums, sql, and raw', () => {
-    const result = sqliteStatic<typeof contract>({ contractJson: contract });
+    const result = sqliteStatic({ contract });
     expect(result.context).toBeDefined();
     expect(result.contract).toBeDefined();
     expect(result.enums).toBeDefined();
@@ -34,18 +34,18 @@ describe('sqliteStatic({ contractJson })', () => {
   });
 
   it('context carries the contract (merged capabilities view)', () => {
-    const result = sqliteStatic<typeof contract>({ contractJson: contract });
+    const result = sqliteStatic({ contract });
     expect(result.context.contract).toBeDefined();
     expect(result.context.contract.target).toBe(contract.target);
   });
 
   it('context carries the codec registry', () => {
-    const result = sqliteStatic<typeof contract>({ contractJson: contract });
+    const result = sqliteStatic({ contract });
     expect(result.context.contractCodecs).toBeDefined();
   });
 
-  it('contract matches the deserialized contractJson', () => {
-    const result = sqliteStatic<typeof contract>({ contractJson: contract });
+  it('contract matches the validated contract', () => {
+    const result = sqliteStatic({ contract });
     expect(result.contract.target).toBe(contract.target);
     expect(result.contract.targetFamily).toBe(contract.targetFamily);
     expect(result.contract.domain).toEqual(contract.domain);
@@ -53,20 +53,18 @@ describe('sqliteStatic({ contractJson })', () => {
   });
 
   it('sql is an object (unbound namespace builder)', () => {
-    const result = sqliteStatic<typeof contract>({ contractJson: contract });
+    const result = sqliteStatic({ contract });
     expect(typeof result.sql).toBe('object');
   });
 
   it('raw is the lane holding the statement tag', () => {
-    const result = sqliteStatic<typeof contract>({ contractJson: contract });
+    const result = sqliteStatic({ contract });
     expect(typeof result.raw).toBe('object');
     expect(typeof result.raw.sql).toBe('function');
   });
 
   it('SqliteStaticContext type exposes context, contract, enums, sql, raw', () => {
-    const result: SqliteStaticContext<typeof contract> = sqliteStatic<typeof contract>({
-      contractJson: contract,
-    });
+    const result: SqliteStaticContext<typeof contract> = sqliteStatic({ contract });
     expect(result).toBeDefined();
   });
 });
