@@ -5,9 +5,9 @@ import {
   createDataTypeLookup,
 } from '@internal/framework-components/codec';
 import { mongoDataType } from '@internal/mongo-contract/data-type';
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import { interpretMongoContract } from './interpreter-test-helpers';
 
 const vector = mongoDataType('test/vector', {
