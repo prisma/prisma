@@ -35,7 +35,7 @@ A postcheck that compares the value would follow the rule, but Postgres stores a
 
 The class is `widening` because the column already has a default; on a column without one it is `additive`. A hand-written Postgres migration's `this.setDefault` takes no `operationClass` option. It reads the column in the migration's start contract, after renames made earlier in the same migration, and picks the class the same way ([ADR 232](ADR%20232%20-%20A%20migration%20is%20authored%20against%20its%20start%20and%20end%20contract%20snapshots.md)).
 
-An `autoincrement()` default is different: `setDefault` then creates and attaches a sequence, and that operation keeps a postcheck: the column owns the planned sequence, at the planned width.
+An `autoincrement()` default is different: `setDefault` then creates and attaches a sequence, and that operation keeps a postcheck: the column owns a sequence of the planned width.
 
 ## Runner behavior
 
@@ -73,14 +73,14 @@ What each target checks, beyond "an object with this name exists":
 - **Postgres.**
   - `createTable`: the relation is a table.
   - `addColumn` and the two recipes that add a required column: the column's type, and `NOT NULL` where the column declares it. The type is compared as `format_type` prints it when the column's data type can read that text, and by type OID otherwise.
-  - `alterColumnType`: the column's new type, compared the same way. When the column has an `autoincrement()` default, the operation also changes the sequence the column owns. A precheck refuses when the sequence has already handed out a value past the new width, an `ALTER SEQUENCE … AS <type>` step runs after the column change, and a postcheck asks that the column owns a sequence of the new width.
-  - `createIndex`: the index is on the planned table, with the planned uniqueness, access method and ordered columns, and has an expression and a predicate exactly when the plan does.
+  - `alterColumnType`: the column's new type, compared the same way. When the column owns a sequence, the operation also changes that sequence to the new width. The sequence is found when the operation runs, with `pg_get_serial_sequence`, so its name is not fixed at plan time. A precheck refuses when the sequence has already handed out a value past the new width, a step changes the sequence to the new type after the column change, and a postcheck asks that the column owns a sequence of the new width, whatever its name. A column that owns no sequence, such as one whose `nextval` default uses a sequence it does not own, gets only the column type change.
+  - `createIndex`: the index is on the planned table, with the planned uniqueness and access method, and has a predicate exactly when the plan does. For an index over columns, the postcheck also compares the columns in order. For an index written as a list of elements (`expression:`), it does not compare the elements at all.
   - `addPrimaryKey`, `addUnique`: the constraint kind and its ordered columns.
   - `addForeignKey`: the kind, the columns, the referenced table and columns, and the `ON DELETE` and `ON UPDATE` actions.
   - `addCheckConstraint`: the constraint kind.
   - `createRlsPolicy`: the command, whether it is permissive, and the roles as a set.
   - `renameTable`, `renameColumn`, `renameIndex`, `renameConstraint`, `renameRlsPolicy`: the new name exists and the old name is gone.
-  - `setDefault`: no postcheck for a literal or function default; for `autoincrement()`, the column owns the planned sequence at the planned width.
+  - `setDefault`: no postcheck for a literal or function default; for `autoincrement()`, the column owns a sequence of the planned width, whatever its name. The sequence is found when the operation runs, with `pg_get_serial_sequence`.
 - **SQLite.**
   - `createTable`: the table has exactly the planned columns, each with its declared type, nullability and primary key position.
   - `addColumn`: the column's declared type and nullability.
@@ -97,6 +97,7 @@ Some postchecks hold for states other than the operation's full effect. They are
 Each weak case, and what catches a difference:
 
 - **Check constraint, policy, and an index with an expression or a predicate.** The postcheck compares structure only, not the body, expression or predicate. An object with the same name and structure but another body passes it, and the runner skips the operation. When the planner names the object, the name carries a hash of the body, so another body means another name and the postcheck does not hold. When the user names the object, the final check against the end contract compares the body and fails the run. Nothing catches a hand-made object that has the planner's hashed name but another body, because the final check compares only the name of such an object.
+- **An index written as a list of elements.** The postcheck compares the name, table, uniqueness, access method and whether there is a predicate, not the elements. Two such indexes that differ only in their elements, such as `("email" DESC)` and `(lower("email"))`, both pass it. For a name the user chooses, the final check compares the elements and fails the run. For a name the planner chooses, the name carries a hash of the elements, so other elements mean another name. Nothing catches a hand-made index that has the planner's hashed name but other elements.
 - **A column type compared by type OID.** This happens when the column's data type cannot read the text `format_type` prints, such as some raw types. The OID ignores modifiers, so `varchar(20)` passes a check for `varchar(50)`. The final check compares the full type and fails the run.
 - **A column type compared as `format_type` text.** This is text Postgres prints. The plan predicts it the same way the final check does, so a wrong prediction makes the postcheck fail after a correct change. It does not cause a skip.
 - **Postgres `createTable`.** The postcheck checks the relation kind, not the columns. The final check compares the columns.
