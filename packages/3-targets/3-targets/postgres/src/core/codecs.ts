@@ -26,7 +26,7 @@ import {
   renderTsLiteral,
 } from '@internal/framework-components/codec';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { canonicalNumeralText } from '@internal/sql-contract/data-type-support';
+import { storedNumeralText } from '@internal/sql-contract/data-type-support';
 import {
   CastExpr,
   type ProjectionExpr,
@@ -152,7 +152,7 @@ const DECIMAL_NUMERAL_TEXT = /^-?\d+(?:\.\d+)?$/;
 /** A decimal numeral is written as PostgreSQL prints it, without leading zeros or a minus sign on zero; other spellings PostgreSQL reads, such as `1e5`, are refused. */
 function numericJson(value: string): string {
   if (typeof value !== 'string' || isNonFiniteText(value)) return value;
-  if (DECIMAL_NUMERAL_TEXT.test(value)) return canonicalNumeralText(value);
+  if (DECIMAL_NUMERAL_TEXT.test(value)) return storedNumeralText(value);
   throw postgresError(
     'RUNTIME.ENCODE_FAILED',
     'pg/numeric@1 application value must be numeric text: an optionally negated decimal numeral, or NaN, Infinity or -Infinity',

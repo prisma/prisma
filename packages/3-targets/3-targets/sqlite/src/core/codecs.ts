@@ -294,11 +294,11 @@ const safeIntegerFromBigint = (codecId: string, value: bigint): number => {
   return Number(value);
 };
 
-/** `sqlite/integer`'s canonical form, read into a `number`: digit text within the safe integer range. */
+/** `sqlite/integer`'s stored form, read into a `number`: digit text within the safe integer range. */
 const safeIntegerFromDigitText = (codecId: string, json: JsonValue): number =>
   Number(readJsonIntegerText(codecId, json, SAFE_INTEGER_BIGINT_RANGE));
 
-/** A `number` written as `sqlite/integer`'s canonical form. */
+/** A `number` written as `sqlite/integer`'s stored form. */
 const digitTextOfSafeInteger = (codecId: string, value: number): string =>
   String(encodableSafeInteger(codecId, value));
 
@@ -353,7 +353,7 @@ export const sqliteSqlVarcharDescriptor = sqliteCodec(sqlVarcharDescriptor, {
     new SqlVarcharCodec(descriptor, dataType, params),
 });
 
-/** `sql/int@1` as SQLite stores it: its canonical form is `sqlite/integer`'s digit text. */
+/** `sql/int@1` as SQLite stores it: its stored form is `sqlite/integer`'s digit text. */
 export class SqliteSqlIntCodec extends SqlIntCodec {
   override async fromWire(wire: number | string, _ctx: CodecCallContext): Promise<number> {
     return safeIntegerWire(this.id, wire);
@@ -651,7 +651,7 @@ export class SqliteJsonCodec extends CodecImpl<
 }
 
 /**
- * The column stores the document's JSON text and the canonical form is that text, so the stored
+ * The column stores the document's JSON text and the stored form is that text, so the stored
  * value is projected as it is: a string the enclosing JSON constructor embeds as a string.
  */
 export class SqliteJsonDescriptor extends SqliteCodecDescriptor<void> {

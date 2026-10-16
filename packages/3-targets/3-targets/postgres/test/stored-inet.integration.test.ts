@@ -1,6 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { canonicalInet } from '../src/core/canonical-inet';
+import { storedInet } from '../src/core/stored-inet';
 
 const spellings = [
   '10.0.0.1/32',
@@ -93,7 +93,7 @@ const spellings = [
   '',
 ];
 
-describe('canonicalInet against Postgres', () => {
+describe('storedInet against Postgres', () => {
   it(
     'rewrites exactly the spellings Postgres reads as an inet into the text Postgres prints, and refuses the rest',
     async () => {
@@ -113,7 +113,7 @@ describe('canonicalInet against Postgres', () => {
               );
           }
           expect(
-            Object.fromEntries(spellings.map((spelling) => [spelling, canonicalInet(spelling)])),
+            Object.fromEntries(spellings.map((spelling) => [spelling, storedInet(spelling)])),
           ).toEqual(printedOrRefused);
         });
       });

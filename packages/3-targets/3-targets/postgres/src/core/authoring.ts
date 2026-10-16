@@ -52,7 +52,7 @@ import {
   requireSqlExpression,
   SQL_EXPRESSION_DATA_TYPE_ID,
   type SqlExpression,
-  sqlTextFromCanonical,
+  sqlTextFromStored,
 } from '@internal/sql-contract/sql-expression';
 import type { SqlValueSetDerivingEntityTypeOutput } from '@internal/sql-contract/value-set-derivation-hook';
 import { assertWireNamePrefixLength, normalizeSqlBody } from '@internal/sql-schema-ir/naming';
@@ -327,11 +327,11 @@ function lowerRlsPolicyFromBlock(
   const using =
     block.values.using === undefined
       ? undefined
-      : sqlTextFromCanonical(block.values.using.value.value);
+      : sqlTextFromStored(block.values.using.value.value);
   const withCheck =
     block.values.withCheck === undefined
       ? undefined
-      : sqlTextFromCanonical(block.values.withCheck.value.value);
+      : sqlTextFromStored(block.values.withCheck.value.value);
   const permissive = block.values.permissive ?? true;
 
   // `@@map("physical name")` adopts an EXACT-named policy: the lowered
@@ -819,7 +819,7 @@ export const postgresAuthoringModelAttributes = {
             language: parsed.language ?? DEFAULT_FULL_TEXT_SEARCH_LANGUAGE,
           },
           where:
-            parsed.where === undefined ? undefined : sqlTextFromCanonical(parsed.where.value.value),
+            parsed.where === undefined ? undefined : sqlTextFromStored(parsed.where.value.value),
           unique: undefined,
           name: parsed.name,
           map: parsed.map,

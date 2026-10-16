@@ -19,12 +19,12 @@ import {
   signedRange,
 } from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
-import { pgByteaFromHexText, pgByteaHexText, pgIntervalCanonical } from './data-type-values';
+import { pgByteaFromHexText, pgByteaHexText, pgIntervalStoredText } from './data-type-values';
 import {
   pgBool,
   pgBytea,
   pgDate,
-  pgDateCanonical,
+  pgDateStoredText,
   pgInt2,
   pgInt4,
   pgInt8,
@@ -33,13 +33,13 @@ import {
   pgNumeric,
   pgText,
   pgTime,
-  pgTimeCanonical,
+  pgTimeStoredText,
   pgTimestamp,
-  pgTimestampCanonical,
+  pgTimestampStoredText,
   pgTimestamptz,
-  pgTimestamptzCanonical,
+  pgTimestamptzStoredText,
   pgTimetz,
-  pgTimetzCanonical,
+  pgTimetzStoredText,
 } from './data-types';
 
 /**
@@ -113,32 +113,32 @@ export function postgresDataTypeEntries(): Readonly<Record<string, DataTypeAutho
     },
     [pgDate.id]: dateTimeTag(
       'date',
-      pgDateCanonical,
+      pgDateStoredText,
       'A date, as in date`2024-01-01`. Reads ISO 8601 and the text PostgreSQL prints, such as 0044-03-15 BC, infinity and -infinity.',
     ),
     [pgTime.id]: dateTimeTag(
       'time',
-      pgTimeCanonical,
+      pgTimeStoredText,
       'A time of day without a UTC offset, as in time`12:34:56`.',
     ),
     [pgTimetz.id]: dateTimeTag(
       'timetz',
-      pgTimetzCanonical,
+      pgTimetzStoredText,
       'A time of day with its UTC offset, as in timetz`12:34:56+02:00`.',
     ),
     [pgTimestamp.id]: dateTimeTag(
       'timestamp',
-      pgTimestampCanonical,
+      pgTimestampStoredText,
       'A date and time of day without a UTC offset, as in timestamp`2024-01-01 12:34:56`. Reads ISO 8601 and the text PostgreSQL prints, including infinity and -infinity.',
     ),
     [pgTimestamptz.id]: dateTimeTag(
       'timestamptz',
-      pgTimestamptzCanonical,
+      pgTimestamptzStoredText,
       'An instant, as in timestamptz`2024-01-01T00:00:00Z`, stored in UTC. Reads ISO 8601 and the text PostgreSQL prints, including infinity and -infinity.',
     ),
     [pgInterval.id]: dateTimeTag(
       'interval',
-      pgIntervalCanonical,
+      pgIntervalStoredText,
       'A duration, as in interval`P1Y2M3DT4H5M6S` or interval`1 year 2 mons`, stored as an ISO 8601 duration.',
     ),
     [pgBytea.id]: {

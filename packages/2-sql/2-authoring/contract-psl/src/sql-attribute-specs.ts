@@ -64,7 +64,7 @@ import type {
 import { FunctionCallAst } from '@internal/psl-parser/syntax';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
-  sqlTextFromCanonical,
+  sqlTextFromStored,
 } from '@internal/sql-contract/sql-expression';
 import { blindCast } from '@internal/utils/casts';
 import { notOk, ok } from '@internal/utils/result';
@@ -635,7 +635,7 @@ function checkModelSpec(ctx: AttributeSpecContext) {
     },
     refine: (value, ctx, attributeNode) => {
       const diagnostics: PslDiagnostic[] = [];
-      if (sqlTextFromCanonical(value.expression.value.value).trim().length === 0) {
+      if (sqlTextFromStored(value.expression.value.value).trim().length === 0) {
         diagnostics.push(
           leafDiagnostic(
             ctx,

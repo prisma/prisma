@@ -3,7 +3,6 @@ import { blindCast } from '@internal/utils/casts';
 import { describe, expect, it } from 'vitest';
 import {
   assertNothingCastsFromSqlExpression,
-  canonicalSqlText,
   isSqlExpression,
   printSqlExpressionLiteral,
   requireSqlExpression,
@@ -14,8 +13,9 @@ import {
   sqlExpressionAuthoringEntry,
   sqlExpressionDataType,
   sqlExpressionRegistration,
-  sqlTextFromCanonical,
+  sqlTextFromStored,
   sqlTextsReadBack,
+  storedSqlText,
 } from '../src/sql-expression';
 
 describe('sqlExpressionDataType', () => {
@@ -57,13 +57,13 @@ describe('sqlExpressionAuthoringEntry', () => {
   });
 });
 
-describe('sqlTextFromCanonical', () => {
+describe('sqlTextFromStored', () => {
   it('returns a string', () => {
-    expect(sqlTextFromCanonical('now()')).toBe('now()');
+    expect(sqlTextFromStored('now()')).toBe('now()');
   });
 
   it.each([[1], [null], [{ text: 'x' }], [['x']]])('throws for %j', (value) => {
-    expect(() => sqlTextFromCanonical(value)).toThrow(
+    expect(() => sqlTextFromStored(value)).toThrow(
       `A sql/expression value is a string, got ${JSON.stringify(value)}.`,
     );
   });
@@ -83,20 +83,20 @@ describe('printSqlExpressionLiteral', () => {
   it.each(['\n\n(a > 0)', '(a > 0)\n\n', '\n  \n(a > 0)', '\r\n\r\n(a)', '  a\n  \n    b\n'])(
     'prints the canonical text of %j without throwing',
     (text) => {
-      const canonical = canonicalSqlText(text);
+      const canonical = storedSqlText(text);
       expect(canonical).toBeDefined();
       expect(() => printSqlExpressionLiteral(canonical ?? '')).not.toThrow();
     },
   );
 });
 
-describe('canonicalSqlText', () => {
+describe('storedSqlText', () => {
   it('is the canonical text of a SQL body', () => {
-    expect(canonicalSqlText('\n  a = 1\n    AND b = 2\n')).toBe('a = 1\n  AND b = 2');
+    expect(storedSqlText('\n  a = 1\n    AND b = 2\n')).toBe('a = 1\n  AND b = 2');
   });
 
   it('is undefined for a body that has no canonical text', () => {
-    expect(canonicalSqlText('a\u0000')).toBeUndefined();
+    expect(storedSqlText('a\u0000')).toBeUndefined();
   });
 });
 
@@ -302,7 +302,7 @@ describe('sql', () => {
       AND deleted_at IS NULL
     `;
     expect(composed.text).toBe(
-      canonicalSqlText(`
+      storedSqlText(`
       (
         "userId" = auth.uid()
           OR is_admin()

@@ -63,7 +63,7 @@ import type { PslSources } from '@internal/psl-parser/syntax';
 import {
   SQL_EXPRESSION_DATA_TYPE_ID,
   SQL_EXPRESSION_TAG,
-  sqlTextFromCanonical,
+  sqlTextFromStored,
 } from '@internal/sql-contract/sql-expression';
 import { checkSqlDefaultText, reservedSqlDefaultText } from '@internal/sql-contract/validators';
 import type { AuthoredColumnDefault } from '@internal/sql-contract-ts/contract-builder';
@@ -880,7 +880,7 @@ export function lowerDefaultForField(input: {
     if (written.kind !== 'tag') return readAsLiteral(written, spans);
     const read = readWrittenValue(input.dataTypes, written);
     if (read.ok && read.value.type === SQL_EXPRESSION_DATA_TYPE_ID) {
-      return sqlExpressionDefault(sqlTextFromCanonical(read.value.value), value.span);
+      return sqlExpressionDefault(sqlTextFromStored(read.value.value), value.span);
     }
     return readAsLiteral(written, spans);
   }

@@ -148,7 +148,7 @@ export function encodeColumnDefault(
       kind: 'literal',
       value: blindCast<
         ColumnDefault extends { kind: 'literal'; value: infer V } ? V : never,
-        'a text contract source stores the canonical form its data type produced'
+        'a text contract source stores the form its data type produced'
       >(defaultInput.value),
     };
   }

@@ -347,7 +347,7 @@ function writeDefaultLiteral(
   return Array.isArray(value) ? writeListCast(value, column, surface) : undefined;
 }
 
-/** Whether two canonical forms are the same JSON value, member by member and element by element. */
+/** Whether two stored forms are the same JSON value, member by member and element by element. */
 function sameForm(left: JsonValue, right: JsonValue): boolean {
   if (left === right) return true;
   if (Array.isArray(left) !== Array.isArray(right)) return false;

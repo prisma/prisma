@@ -22,7 +22,7 @@ import {
   useDevDatabase,
 } from '../utils/journey-test-helpers';
 
-const CANONICAL_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+const STORED_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 const TEXT_MARKER = 'stale-default-marker';
 
 const SQLITE_CONFIG_TEMPLATE = join(
@@ -61,8 +61,8 @@ const SCENARIOS: readonly Scenario[] = [
     name: 'a column added to an existing Postgres table',
     target: 'postgres',
     before: 'model Token {\n  id Int @id\n}\n',
-    after: `model Token {\n  id    Int  @id\n  added Uuid @default("${CANONICAL_UUID}")\n}\n`,
-    marker: CANONICAL_UUID,
+    after: `model Token {\n  id    Int  @id\n  added Uuid @default("${STORED_UUID}")\n}\n`,
+    marker: STORED_UUID,
     stale: JSON.stringify(UPPER_CASE_UUID),
     namespace: 'public',
     table: 'Token',
@@ -76,8 +76,8 @@ const SCENARIOS: readonly Scenario[] = [
     target: 'postgres',
     before:
       'model Token {\n  id      Int  @id\n  changed Uuid @default("11111111-1111-1111-1111-111111111111")\n}\n',
-    after: `model Token {\n  id      Int  @id\n  changed Uuid @default("${CANONICAL_UUID}")\n}\n`,
-    marker: CANONICAL_UUID,
+    after: `model Token {\n  id      Int  @id\n  changed Uuid @default("${STORED_UUID}")\n}\n`,
+    marker: STORED_UUID,
     stale: JSON.stringify(UPPER_CASE_UUID),
     namespace: 'public',
     table: 'Token',

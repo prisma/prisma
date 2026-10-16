@@ -4,7 +4,7 @@
  * which other types' values each one takes and how.
  *
  * A cast is declared by the type that receives, never by the source, so there is at most one cast
- * for any pair. Each one is a pure function from the source type's canonical form to this type's.
+ * for any pair. Each one is a pure function from the source type's stored form to this type's.
  *
  * ADR 254.
  */
@@ -31,25 +31,25 @@ import {
 } from '@internal/framework-components/codec';
 import { numeralText, type SqlTypeText, sqlDataType } from '@internal/sql-contract/data-type';
 import {
-  type CanonicalDateTimeOptions,
-  canonicalDateTime,
-  canonicalNumeralText,
+  type DateTimeStoredTextOptions,
+  dateTimeStoredText,
+  storedNumeralText,
 } from '@internal/sql-contract/data-type-support';
 import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { isStructuredError, structuredError } from '@internal/utils/structured-error';
 import { counted, withoutTrailing } from '@internal/utils/text';
 import { type as arktype } from 'arktype';
-import { canonicalInet } from './canonical-inet';
 import {
-  canonicalUuid,
   FLOAT4_MAX,
   fitsCharacterLength,
   fitsFloat4,
-  pgIntervalCanonical,
+  pgIntervalStoredText,
   readPgByteaJson,
+  storedUuid,
 } from './data-type-values';
 import { isoYearText } from './postgres-year-text';
 import { quoteIdentifier } from './sql-utils';
+import { storedInet } from './stored-inet';
 
 /** A cast between two types that store the same shape: the value is already the form this type stores. */
 const unchanged: Cast = (value) => value;
@@ -59,7 +59,7 @@ function wrongShape(value: JsonValue, expected: string): never {
     'CONTRACT.CAST_REFUSED',
     `Expected ${expected}, got ${JSON.stringify(value)}.`,
     {
-      why: 'A cast reads the canonical form of the type it takes values of.',
+      why: 'A cast reads the stored form of the type it takes values of.',
       fix: 'Hand the cast a value in the shape its source type stores.',
     },
   );
@@ -142,7 +142,7 @@ const readNumeric: DataTypeReader = (json, params) => {
   if (typeof json !== 'string' || !CANONICAL_NUMERIC_TEXT.test(json)) {
     const printed =
       typeof json === 'string' && DECIMAL_NUMERAL_TEXT.test(json)
-        ? canonicalNumeralText(json)
+        ? storedNumeralText(json)
         : undefined;
     return refuseJsonValue(
       'pg/numeric',
@@ -251,7 +251,7 @@ const readTextArray: DataTypeReader = (json) => {
 
 /** Reads a UUID in any spelling PostgreSQL reads; `spellUuid` gives it the one it stores. */
 const readUuid: DataTypeReader = (json) =>
-  typeof json === 'string' && canonicalUuid(json) !== undefined
+  typeof json === 'string' && storedUuid(json) !== undefined
     ? json
     : refuseJsonValue(
         'pg/uuid',
@@ -261,17 +261,17 @@ const readUuid: DataTypeReader = (json) =>
 
 /** A UUID is stored as PostgreSQL prints it: lower case, hyphenated 8-4-4-4-12. */
 const spellUuid: DataTypeSpelling = (json) =>
-  typeof json === 'string' ? (canonicalUuid(json) ?? json) : json;
+  typeof json === 'string' ? (storedUuid(json) ?? json) : json;
 
 /** Reads an address in any spelling PostgreSQL reads; `spellInet` gives it the one it stores. */
 const readInet: DataTypeReader = (json) =>
-  typeof json === 'string' && canonicalInet(json) !== undefined
+  typeof json === 'string' && storedInet(json) !== undefined
     ? json
     : refuseJsonValue('pg/inet', 'an IP address as PostgreSQL writes it', json);
 
 /** An address is stored as PostgreSQL prints it. */
 const spellInet: DataTypeSpelling = (json) =>
-  typeof json === 'string' ? (canonicalInet(json) ?? json) : json;
+  typeof json === 'string' ? (storedInet(json) ?? json) : json;
 
 /** The fraction digits of a second the date, time and interval types hold when a column sets no precision: microseconds. */
 const MICROSECOND_DIGITS = 6;
@@ -522,7 +522,7 @@ export const pgVarchar = sqlDataType('pg/varchar', {
 /** Text in any form PostgreSQL reads as a UUID, written the way PostgreSQL writes it, so the contract holds the value the database reports. */
 const asUuid: Cast = (value) => {
   if (typeof value !== 'string') return wrongShape(value, 'text');
-  const uuid = canonicalUuid(value);
+  const uuid = storedUuid(value);
   if (uuid !== undefined) return uuid;
   throw structuredError(
     'CONTRACT.CAST_REFUSED',
@@ -564,24 +564,24 @@ export const pgVarbit = sqlDataType('pg/varbit', {
 const INFINITIES: ReadonlySet<string> = new Set(['infinity', '-infinity']);
 
 /**
- * The canonical form of a date or time type (ADR 254), from ISO 8601 or the text PostgreSQL prints.
+ * The stored form of a date or time type (ADR 254), from ISO 8601 or the text PostgreSQL prints.
  * `infinity` and `-infinity` are values of the types that hold them.
  */
 function postgresDateTime(
-  options: CanonicalDateTimeOptions,
+  options: DateTimeStoredTextOptions,
   holdsInfinity: boolean,
 ): (text: string) => string {
   return (text) =>
     holdsInfinity && INFINITIES.has(text)
       ? text
-      : canonicalDateTime(isoYearText(text), options, text);
+      : dateTimeStoredText(isoYearText(text), options, text);
 }
 
 /**
  * Each range is what PostgreSQL and every codec of the type hold: PostgreSQL starts at 4714-11-24
  * BC, and the `Temporal` and `Date` codecs end at +275760-09-13.
  */
-export const pgDateCanonical = postgresDateTime(
+export const pgDateStoredText = postgresDateTime(
   {
     shape: 'date',
     ownerId: 'pg/date',
@@ -589,12 +589,12 @@ export const pgDateCanonical = postgresDateTime(
   },
   true,
 );
-export const pgTimeCanonical = postgresDateTime({ shape: 'time', ownerId: 'pg/time' }, false);
-export const pgTimetzCanonical = postgresDateTime(
+export const pgTimeStoredText = postgresDateTime({ shape: 'time', ownerId: 'pg/time' }, false);
+export const pgTimetzStoredText = postgresDateTime(
   { shape: 'timeWithOffset', ownerId: 'pg/timetz', maxOffsetHours: 15 },
   false,
 );
-export const pgTimestampCanonical = postgresDateTime(
+export const pgTimestampStoredText = postgresDateTime(
   {
     shape: 'dateTime',
     ownerId: 'pg/timestamp',
@@ -602,7 +602,7 @@ export const pgTimestampCanonical = postgresDateTime(
   },
   true,
 );
-export const pgTimestamptzCanonical = postgresDateTime(
+export const pgTimestamptzStoredText = postgresDateTime(
   {
     shape: 'instant',
     ownerId: 'pg/timestamptz',
@@ -620,11 +620,11 @@ const castFromText =
 export const pgTimetz = sqlDataType('pg/timetz', {
   read: readStoredDateTime(
     'pg/timetz',
-    pgTimetzCanonical,
+    pgTimetzStoredText,
     'a time of day with its UTC offset, as in "12:34:56+02:00" or "12:34:56Z"',
     SECONDS_FRACTION,
   ),
-  spell: spellStoredDateTime(pgTimetzCanonical),
+  spell: spellStoredDateTime(pgTimetzStoredText),
   params: pgPrecisionParams,
   texts: [
     written('timetz'),
@@ -637,11 +637,11 @@ export const pgTimetz = sqlDataType('pg/timetz', {
 export const pgInterval = sqlDataType('pg/interval', {
   read: readStoredDateTime(
     'pg/interval',
-    pgIntervalCanonical,
+    pgIntervalStoredText,
     'an ISO 8601 duration, as in "P1Y2M3DT4H5M6.5S"',
     INTERVAL_SECONDS_FRACTION,
   ),
-  spell: spellStoredDateTime(pgIntervalCanonical),
+  spell: spellStoredDateTime(pgIntervalStoredText),
   params: pgPrecisionParams,
   texts: [writtenAndCatalog('interval'), writtenAndCatalog('interval({precision})')],
 });
@@ -652,8 +652,8 @@ export const pgBytea = sqlDataType('pg/bytea', {
 });
 
 /** Text PostgreSQL reads as an IP address, written the way PostgreSQL writes it, so the contract holds the value the database reports. */
-function pgInetCanonical(text: string): string {
-  const inet = canonicalInet(text);
+function pgInetStoredText(text: string): string {
+  const inet = storedInet(text);
   if (inet !== undefined) return inet;
   throw structuredError(
     'CONTRACT.CAST_REFUSED',
@@ -669,28 +669,28 @@ export const pgInet = sqlDataType('pg/inet', {
   read: readInet,
   spell: spellInet,
   texts: [writtenAndCatalog('inet')],
-  casts: { [pgText.id]: castFromText(pgInetCanonical) },
+  casts: { [pgText.id]: castFromText(pgInetStoredText) },
 });
 
 export const pgDate = sqlDataType('pg/date', {
   read: readStoredDateTime(
     'pg/date',
-    pgDateCanonical,
+    pgDateStoredText,
     'a date, as in "2024-01-01", or infinity or -infinity',
     SECONDS_FRACTION,
   ),
-  spell: spellStoredDateTime(pgDateCanonical),
+  spell: spellStoredDateTime(pgDateStoredText),
   texts: [writtenAndCatalog('date')],
 });
 
 export const pgTime = sqlDataType('pg/time', {
   read: readStoredDateTime(
     'pg/time',
-    pgTimeCanonical,
+    pgTimeStoredText,
     'a time of day, as in "12:34:56"',
     SECONDS_FRACTION,
   ),
-  spell: spellStoredDateTime(pgTimeCanonical),
+  spell: spellStoredDateTime(pgTimeStoredText),
   params: pgPrecisionParams,
   texts: [
     written('time'),
@@ -703,11 +703,11 @@ export const pgTime = sqlDataType('pg/time', {
 export const pgTimestamp = sqlDataType('pg/timestamp', {
   read: readStoredDateTime(
     'pg/timestamp',
-    pgTimestampCanonical,
+    pgTimestampStoredText,
     'a date and time of day, as in "2024-01-01T12:34:56", or infinity or -infinity',
     SECONDS_FRACTION,
   ),
-  spell: spellStoredDateTime(pgTimestampCanonical),
+  spell: spellStoredDateTime(pgTimestampStoredText),
   params: pgPrecisionParams,
   texts: [
     written('timestamp'),
@@ -720,11 +720,11 @@ export const pgTimestamp = sqlDataType('pg/timestamp', {
 export const pgTimestamptz = sqlDataType('pg/timestamptz', {
   read: readStoredDateTime(
     'pg/timestamptz',
-    pgTimestamptzCanonical,
+    pgTimestamptzStoredText,
     'an instant in UTC, as in "2024-01-01T00:00:00Z", or infinity or -infinity',
     SECONDS_FRACTION,
   ),
-  spell: spellStoredDateTime(pgTimestamptzCanonical),
+  spell: spellStoredDateTime(pgTimestamptzStoredText),
   params: pgPrecisionParams,
   texts: [
     written('timestamptz'),

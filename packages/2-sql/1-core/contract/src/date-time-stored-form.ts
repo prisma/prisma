@@ -1,5 +1,5 @@
 /**
- * The reader the SQL targets build the canonical form of each date and time type with; ADR 254
+ * The reader the SQL targets build the stored form of each date and time type with; ADR 254
  * states the forms and the text it reads.
  */
 
@@ -9,15 +9,15 @@ import { structuredError } from '@internal/utils/structured-error';
 /** What a date or time type holds, which decides the text it reads and writes. */
 export type DateTimeShape = 'date' | 'time' | 'timeWithOffset' | 'dateTime' | 'instant';
 
-export interface CanonicalDateTimeOptions {
+export interface DateTimeStoredTextOptions {
   readonly shape: DateTimeShape;
-  /** The id of the data type or codec that declares this canonical form, which messages name. */
+  /** The id of the data type or codec that declares this stored form, which messages name. */
   readonly ownerId: string;
   /** The largest UTC offset the type holds, in hours. Defaults to 23. */
   readonly maxOffsetHours?: number;
   /** The most digits after the decimal point the type holds. Defaults to 6, microseconds. */
   readonly maxFractionDigits?: 3 | 6;
-  /** The earliest and latest values the type holds, each in canonical form. */
+  /** The earliest and latest values the type holds, each in stored form. */
   readonly range?: { readonly earliest: string; readonly latest: string };
 }
 
@@ -106,7 +106,7 @@ const MIDNIGHT: TimeFields = { hour: 0, minute: 0, second: 0, fraction: '' };
 
 function refused(message: string): never {
   throw structuredError('CONTRACT.CAST_REFUSED', message, {
-    why: 'A date or time type stores one canonical form for each value (ADR 254).',
+    why: 'A date or time type stores one form for each value (ADR 254).',
     fix: 'Write text the type holds, as the message shows.',
   });
 }
@@ -285,23 +285,23 @@ function printed(value: Normalized, shape: DateTimeShape): string {
   return `${dateText(date)}T${timeText(time)}Z`;
 }
 
-/** The position of a range bound, which the data type declares in canonical form. */
+/** The position of a range bound, which the data type declares in stored form. */
 function boundPosition(text: string, shape: DateTimeShape): Position {
   const written = readWritten(text);
   if (written === undefined) {
-    throw new InternalError(`The range bound "${text}" is not in canonical form.`);
+    throw new InternalError(`The range bound "${text}" is not in its stored form.`);
   }
   return position(normalized(written, shape));
 }
 
 /**
- * The canonical form of written date or time text, or a refusal with a message that says what is
+ * The stored form of written date or time text, or a refusal with a message that says what is
  * wrong and shows text the type holds. `written` is the text as its author wrote it, which the
  * message shows, when a target rewrote it into ISO 8601 before calling this.
  */
-export function canonicalDateTime(
+export function dateTimeStoredText(
   text: string,
-  options: CanonicalDateTimeOptions,
+  options: DateTimeStoredTextOptions,
   written: string = text,
 ): string {
   const shape = SHAPES[options.shape];

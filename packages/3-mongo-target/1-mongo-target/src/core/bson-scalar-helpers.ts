@@ -365,7 +365,7 @@ export function canonicalDecimalText(text: string): string | undefined {
   return /^[0.]+$/.test(unsigned) ? unsigned : `${sign}${unsigned}`;
 }
 
-function requireCanonicalDecimalText(codecId: string, value: string): string {
+function requireStoredDecimalText(codecId: string, value: string): string {
   if (typeof value !== 'string' || !CANONICAL_DECIMAL_TEXT.test(value)) {
     encodeFailed(
       codecId,
@@ -377,7 +377,7 @@ function requireCanonicalDecimalText(codecId: string, value: string): string {
 }
 
 export function decimal128Encode(codecId: string, value: string): Decimal128 {
-  requireCanonicalDecimalText(codecId, value);
+  requireStoredDecimalText(codecId, value);
   try {
     return Decimal128.fromString(value);
   } catch (error) {
@@ -399,7 +399,7 @@ export function decimal128Decode(codecId: string, wire: Decimal128): string {
 }
 
 export function decimal128ToJson(codecId: string, value: string): string {
-  return requireCanonicalDecimalText(codecId, value);
+  return requireStoredDecimalText(codecId, value);
 }
 
 /**

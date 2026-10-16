@@ -23,12 +23,12 @@ export const SQL_EXPRESSION_TAG = 'sql';
 
 /** The data type of a SQL expression in the target database's language. It declares no casts. The SQL family registers it. ADR 254. */
 export const sqlExpressionDataType: DataType = frozenWithCasts(
-  dataType(SQL_EXPRESSION_DATA_TYPE_ID, { read: readCanonicalSqlText }),
+  dataType(SQL_EXPRESSION_DATA_TYPE_ID, { read: readStoredSqlText }),
 );
 
-function readCanonicalSqlText(json: JsonValue): string {
+function readStoredSqlText(json: JsonValue): string {
   const text = readJsonString(SQL_EXPRESSION_DATA_TYPE_ID, json);
-  const canonical = canonicalSqlText(text);
+  const canonical = storedSqlText(text);
   if (canonical === text) return text;
   return refuseJsonValue(
     SQL_EXPRESSION_DATA_TYPE_ID,
@@ -42,7 +42,7 @@ function readCanonicalSqlText(json: JsonValue): string {
 /** PSL support for `sql/expression`. The SQL family registers it under `SQL_EXPRESSION_DATA_TYPE_ID`. */
 export const sqlExpressionAuthoringEntry: DataTypeAuthoringEntry = Object.freeze({
   written: Object.freeze({ kind: 'tag', tag: SQL_EXPRESSION_TAG, parse: (text: string) => text }),
-  print: (value: JsonValue) => sqlTextFromCanonical(value),
+  print: (value: JsonValue) => sqlTextFromStored(value),
   documentation:
     "A SQL expression in the target database's language. Prisma passes it to the database unchanged.",
 });
@@ -67,21 +67,21 @@ export const sqlExpressionRegistration: SqlExpressionRegistration = Object.freez
   }),
 });
 
-/** The SQL text held by the canonical form of a `sql/expression` value. */
-export function sqlTextFromCanonical(value: JsonValue): string {
+/** The SQL text held by the stored form of a `sql/expression` value. */
+export function sqlTextFromStored(value: JsonValue): string {
   if (typeof value === 'string') return value;
   throw new InternalError(`A sql/expression value is a string, got ${JSON.stringify(value)}.`);
 }
 
 /** The text a `sql` literal holding `text` reads back as, or `undefined` when `text` has a NUL character or is too large. */
-export function canonicalSqlText(text: string): string | undefined {
+export function storedSqlText(text: string): string | undefined {
   const canonical = canonicalizeTaggedLiteralBody(text);
   return canonical.ok ? canonical.text : undefined;
 }
 
 /**
  * A `sql` literal holding `text`. Throws when the literal would read back as different text; check with `sqlTextsReadBack`
- * first. The result of `canonicalSqlText` always reads back.
+ * first. The result of `storedSqlText` always reads back.
  */
 export function printSqlExpressionLiteral(text: string): string {
   if (!printedTaggedLiteralReadsBack(text)) {

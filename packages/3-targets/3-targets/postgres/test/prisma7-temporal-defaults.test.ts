@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
   pgDate,
-  pgDateCanonical,
+  pgDateStoredText,
   pgTime,
-  pgTimeCanonical,
+  pgTimeStoredText,
   pgTimestamp,
-  pgTimestampCanonical,
+  pgTimestampStoredText,
   pgTimestamptz,
-  pgTimestamptzCanonical,
+  pgTimestamptzStoredText,
   pgTimetz,
-  pgTimetzCanonical,
+  pgTimetzStoredText,
 } from '../src/core/data-types';
 import {
   prisma7TemporalStored,
@@ -303,11 +303,11 @@ type Kind = 'timestamp' | 'timestamptz' | 'date' | 'time' | 'timetz';
 
 /** Each type with its tag's reader, which reads the text Postgres prints as well as ISO 8601. */
 const types: readonly (readonly [Kind, string, (text: string) => string])[] = [
-  ['timestamp', pgTimestamp.id, pgTimestampCanonical],
-  ['timestamptz', pgTimestamptz.id, pgTimestamptzCanonical],
-  ['date', pgDate.id, pgDateCanonical],
-  ['time', pgTime.id, pgTimeCanonical],
-  ['timetz', pgTimetz.id, pgTimetzCanonical],
+  ['timestamp', pgTimestamp.id, pgTimestampStoredText],
+  ['timestamptz', pgTimestamptz.id, pgTimestamptzStoredText],
+  ['date', pgDate.id, pgDateStoredText],
+  ['time', pgTime.id, pgTimeStoredText],
+  ['timetz', pgTimetz.id, pgTimetzStoredText],
 ];
 
 /**

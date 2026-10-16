@@ -61,7 +61,7 @@ export interface CodecDescriptorTemplate<P = void> {
  * A codec descriptor: a {@link CodecDescriptorTemplate} that names the data type it represents.
  *
  * Several codecs may represent one type, differing in the value they produce in memory; all of them
- * read and write that type's canonical form. A descriptor whose data type is not registered in the
+ * read and write that type's stored form. A descriptor whose data type is not registered in the
  * assembled stack is an assembly error. ADR 254.
  */
 export interface CodecDescriptor<P = void> extends CodecDescriptorTemplate<P> {

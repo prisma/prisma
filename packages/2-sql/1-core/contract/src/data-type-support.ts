@@ -26,7 +26,7 @@ export function isNumeralText(text: string): boolean {
  * A written numeral as the contract stores it. Leading zeros and the sign of zero never change a
  * number, so they go; trailing zeros stay, because a type without a scale keeps them.
  */
-export function canonicalNumeralText(text: string): string {
+export function storedNumeralText(text: string): string {
   const numeral = DECIMAL_NUMERAL.exec(text);
   if (numeral === null) return text;
   const [, sign = '', whole = '', fraction = ''] = numeral;
@@ -74,7 +74,7 @@ export interface NumberClassifierSpec {
 
 /**
  * The classifier one target's plain-number authoring entry carries: it reads the digits and says
- * which of the target's types the value is, in that type's canonical form. `undefined` means no
+ * which of the target's types the value is, in that type's stored form. `undefined` means no
  * type of this target holds the number.
  */
 export function createNumberClassifier(
@@ -91,7 +91,7 @@ export function createNumberClassifier(
       return as(spec.words, spec.words?.form === 'number' ? Number(text) : text);
     }
     if (WRITTEN_DECIMAL_TEXT.test(text)) {
-      const canonical = canonicalNumeralText(text);
+      const canonical = storedNumeralText(text);
       return as(spec.fraction, spec.fraction?.form === 'number' ? Number(canonical) : canonical);
     }
     if (!WRITTEN_INTEGER_TEXT.test(text)) return undefined;

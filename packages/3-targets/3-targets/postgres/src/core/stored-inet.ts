@@ -25,7 +25,7 @@ const isDigit = (ch: string | undefined): ch is string => ch !== undefined && DI
  * `::`, and the prefix length only when it is shorter than the whole address. `undefined` for text
  * PostgreSQL does not read as an `inet` value.
  */
-export function canonicalInet(text: string): string | undefined {
+export function storedInet(text: string): string | undefined {
   if (text.includes(':')) {
     const value = readIpv6(text);
     return value === undefined ? undefined : printIpv6(value);

@@ -1,6 +1,6 @@
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { canonicalUuid } from '../src/core/data-type-values';
+import { storedUuid } from '../src/core/data-type-values';
 
 const spellings = [
   'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11',
@@ -20,7 +20,7 @@ const spellings = [
   'G0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11',
 ];
 
-describe('canonicalUuid against Postgres', () => {
+describe('storedUuid against Postgres', () => {
   it(
     'rewrites exactly the spellings Postgres reads as a uuid into the text Postgres prints, and refuses the rest',
     async () => {
@@ -36,7 +36,7 @@ describe('canonicalUuid against Postgres', () => {
               );
           }
           expect(
-            Object.fromEntries(spellings.map((spelling) => [spelling, canonicalUuid(spelling)])),
+            Object.fromEntries(spellings.map((spelling) => [spelling, storedUuid(spelling)])),
           ).toEqual(printedOrRefused);
         });
       });

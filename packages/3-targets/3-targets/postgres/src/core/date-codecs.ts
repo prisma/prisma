@@ -14,7 +14,7 @@ import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { PostgresCodecDescriptor } from './codec-descriptor';
 import type { PrecisionParams } from './codec-helpers';
 import { PG_TIMESTAMPTZ_DATE_CODEC_ID, PG_TIMESTAMPTZ_STRING_CODEC_ID } from './codec-ids';
-import { pgPrecisionParams, pgTimestamptz, pgTimestamptzCanonical } from './data-types';
+import { pgPrecisionParams, pgTimestamptz, pgTimestamptzStoredText } from './data-types';
 import {
   EARLIEST_POSTGRES_TIMESTAMP_MILLISECONDS,
   utcTimestamptzText,
@@ -40,17 +40,17 @@ function validateDate(value: Date): Date {
 }
 
 function decodeDate(wire: unknown): Date {
-  const instant = typeof wire === 'string' ? canonicalInstant(wire) : undefined;
+  const instant = typeof wire === 'string' ? storedInstant(wire) : undefined;
   const date = instant === undefined ? undefined : new Date(instant);
   if (date === undefined || !isRepresentable(date)) throw invalidDate();
   return date;
 }
 
 /** The canonical instant a stored timestamp with time zone names, or `undefined` for `infinity` and an instant outside the range a `Date` holds. */
-function canonicalInstant(text: string): string | undefined {
+function storedInstant(text: string): string | undefined {
   if (text === 'infinity' || text === '-infinity') return undefined;
   try {
-    return pgTimestamptzCanonical(text);
+    return pgTimestamptzStoredText(text);
   } catch (error) {
     if (isStructuredError(error) && error.code === 'CONTRACT.CAST_REFUSED') return undefined;
     throw error;
@@ -59,7 +59,7 @@ function canonicalInstant(text: string): string | undefined {
 
 /** The `Date` a stored timestamp with time zone names. A `Date` holds neither `infinity` nor an instant before 4714-11-24 BC or after +275760-09-13, so those are refused. */
 function dateOfStoredText(codecId: string, text: string): Date {
-  const canonical = canonicalInstant(text);
+  const canonical = storedInstant(text);
   const date = canonical === undefined ? undefined : new Date(canonical);
   if (date === undefined || !isRepresentable(date)) {
     return refuseJsonValue(

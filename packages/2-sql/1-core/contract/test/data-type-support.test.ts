@@ -1,13 +1,13 @@
 import { dataTypeId } from '@internal/framework-components/codec';
 import { describe, expect, it } from 'vitest';
 import {
-  canonicalNumeralText,
   createNumberClassifier,
   escapePslString,
   isNumeralText,
   parseJsonText,
   printJsonText,
   signedRange,
+  storedNumeralText,
 } from '../src/data-type-support';
 
 const small = dataTypeId('demo/small');
@@ -26,7 +26,7 @@ describe('signedRange', () => {
   });
 });
 
-describe('canonicalNumeralText', () => {
+describe('storedNumeralText', () => {
   it.each([
     ['drops leading zeros', '007', '7'],
     ['keeps trailing zeros', '-007.50', '-7.50'],
@@ -37,7 +37,7 @@ describe('canonicalNumeralText', () => {
     ['drops a plus sign and leading zeros and keeps trailing zeros', '+007.50', '7.50'],
     ['drops the plus sign of zero', '+0.0', '0.0'],
   ])('%s', (_name, text, canonical) => {
-    expect(canonicalNumeralText(text)).toBe(canonical);
+    expect(storedNumeralText(text)).toBe(canonical);
   });
 });
 

@@ -1,31 +1,31 @@
 import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
-import { type CanonicalDateTimeOptions, canonicalDateTime } from '../src/date-time-canonical-form';
+import { type DateTimeStoredTextOptions, dateTimeStoredText } from '../src/date-time-stored-form';
 
-const date: CanonicalDateTimeOptions = { shape: 'date', ownerId: 'demo/date' };
-const time: CanonicalDateTimeOptions = { shape: 'time', ownerId: 'demo/time' };
-const timeWithOffset: CanonicalDateTimeOptions = {
+const date: DateTimeStoredTextOptions = { shape: 'date', ownerId: 'demo/date' };
+const time: DateTimeStoredTextOptions = { shape: 'time', ownerId: 'demo/time' };
+const timeWithOffset: DateTimeStoredTextOptions = {
   shape: 'timeWithOffset',
   ownerId: 'demo/timetz',
   maxOffsetHours: 15,
 };
-const dateTime: CanonicalDateTimeOptions = { shape: 'dateTime', ownerId: 'demo/timestamp' };
-const instant: CanonicalDateTimeOptions = {
+const dateTime: DateTimeStoredTextOptions = { shape: 'dateTime', ownerId: 'demo/timestamp' };
+const instant: DateTimeStoredTextOptions = {
   shape: 'instant',
   ownerId: 'demo/instant',
   range: { earliest: '-004713-11-24T00:00:00Z', latest: '+275760-09-13T00:00:00Z' },
 };
 
-function refusal(text: string, options: CanonicalDateTimeOptions, written?: string): unknown {
+function refusal(text: string, options: DateTimeStoredTextOptions, written?: string): unknown {
   try {
-    canonicalDateTime(text, options, written);
+    dateTimeStoredText(text, options, written);
   } catch (error) {
     return error;
   }
   throw new Error(`"${text}" was not refused`);
 }
 
-describe('canonicalDateTime', () => {
+describe('dateTimeStoredText', () => {
   it.each([
     ['2024-01-01', date, '2024-01-01'],
     ['-000043-03-15', date, '-000043-03-15'],
@@ -42,7 +42,7 @@ describe('canonicalDateTime', () => {
     ['+275760-09-13T00:00:00Z', instant, '+275760-09-13T00:00:00Z'],
     ['-004713-11-24T00:00:00Z', instant, '-004713-11-24T00:00:00Z'],
   ])('turns %s into its canonical form', (text, options, canonical) => {
-    expect(canonicalDateTime(text, options)).toBe(canonical);
+    expect(dateTimeStoredText(text, options)).toBe(canonical);
   });
 
   it.each([
@@ -83,13 +83,13 @@ describe('canonicalDateTime', () => {
   });
 
   it('holds at most the fraction digits a type declares', () => {
-    const milliseconds: CanonicalDateTimeOptions = {
+    const milliseconds: DateTimeStoredTextOptions = {
       shape: 'instant',
       ownerId: 'demo/millis',
       maxFractionDigits: 3,
     };
     expect({
-      held: canonicalDateTime('2024-01-01T00:00:00.123Z', milliseconds),
+      held: dateTimeStoredText('2024-01-01T00:00:00.123Z', milliseconds),
       refused: refusal('2024-01-01T00:00:00.1234Z', milliseconds),
     }).toMatchObject({
       held: '2024-01-01T00:00:00.123Z',
@@ -120,7 +120,7 @@ describe('canonicalDateTime', () => {
       ['2024-02-29', '2024-02-29'],
       ['2000-02-29', '2000-02-29'],
     ])('holds %s', (text, canonical) => {
-      expect(canonicalDateTime(text, date)).toBe(canonical);
+      expect(dateTimeStoredText(text, date)).toBe(canonical);
     });
 
     it.each([
@@ -156,11 +156,11 @@ describe('canonicalDateTime', () => {
       ['12:34:56+02:00:30', '12:34:56+02:00:30'],
       ['12:34:56+15:59', '12:34:56+15:59'],
     ])('keeps the offset of %s', (text, canonical) => {
-      expect(canonicalDateTime(text, timeWithOffset)).toBe(canonical);
+      expect(dateTimeStoredText(text, timeWithOffset)).toBe(canonical);
     });
 
     it('moves an instant with an offset in seconds to UTC', () => {
-      expect(canonicalDateTime('2024-01-01T00:00:00+00:00:30', instant)).toBe(
+      expect(dateTimeStoredText('2024-01-01T00:00:00+00:00:30', instant)).toBe(
         '2023-12-31T23:59:30Z',
       );
     });
@@ -183,7 +183,7 @@ describe('canonicalDateTime', () => {
 
     it('holds offsets up to 23:59 when the type declares no limit', () => {
       expect({
-        held: canonicalDateTime('2024-01-01T00:00:00-23:59', instant),
+        held: dateTimeStoredText('2024-01-01T00:00:00-23:59', instant),
         refused: refusal('2024-01-01T00:00:00+24:00', instant),
       }).toMatchObject({
         held: '2024-01-01T23:59:00Z',
@@ -238,7 +238,7 @@ describe('canonicalDateTime', () => {
   });
 
   describe('a range on a type without a date', () => {
-    const business: CanonicalDateTimeOptions = {
+    const business: DateTimeStoredTextOptions = {
       shape: 'time',
       ownerId: 'demo/business-hours',
       range: { earliest: '09:00:00', latest: '17:00:00.5' },
@@ -248,7 +248,7 @@ describe('canonicalDateTime', () => {
       ['09:00', '09:00:00'],
       ['17:00:00.5', '17:00:00.5'],
     ])('holds %s at its bounds', (text, canonical) => {
-      expect(canonicalDateTime(text, business)).toBe(canonical);
+      expect(dateTimeStoredText(text, business)).toBe(canonical);
     });
 
     it.each(['08:59:59', '17:00:00.500001', '17:00:01'])(
@@ -263,7 +263,7 @@ describe('canonicalDateTime', () => {
 
   it('treats a range bound that is not in canonical form as a defect of the type', () => {
     expect(() =>
-      canonicalDateTime('12:00:00', {
+      dateTimeStoredText('12:00:00', {
         shape: 'time',
         ownerId: 'demo/broken',
         range: { earliest: 'midnight', latest: '23:59:59' },

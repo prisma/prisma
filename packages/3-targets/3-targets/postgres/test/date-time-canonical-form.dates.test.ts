@@ -2,10 +2,10 @@ import { Temporal } from 'temporal-polyfill';
 import { describe, expect, it } from 'vitest';
 import {
   pgDate,
-  pgDateCanonical,
+  pgDateStoredText,
   pgText,
-  pgTimestampCanonical,
-  pgTimestamptzCanonical,
+  pgTimestampStoredText,
+  pgTimestamptzStoredText,
 } from '../src/core/data-types';
 
 /**
@@ -52,17 +52,17 @@ describe('pg/timestamptz canonical form', () => {
   ];
 
   it.each(accepted)('turns %s into its canonical form %s', (written, canonical) => {
-    expect(pgTimestamptzCanonical(written)).toBe(canonical);
+    expect(pgTimestamptzStoredText(written)).toBe(canonical);
   });
 
   it.each(accepted)('agrees with Temporal.Instant on %s', (written) => {
-    expect(pgTimestamptzCanonical(written)).toBe(
+    expect(pgTimestamptzStoredText(written)).toBe(
       Temporal.Instant.from(temporalInput(written)).toString(),
     );
   });
 
   it.each(['infinity', '-infinity'])('keeps %s, which PostgreSQL stores', (word) => {
-    expect(pgTimestamptzCanonical(word)).toBe(word);
+    expect(pgTimestamptzStoredText(word)).toBe(word);
   });
 
   it.each([
@@ -129,7 +129,7 @@ describe('pg/timestamptz canonical form', () => {
       `pg/timestamptz holds instants from -004713-11-24T00:00:00Z to +275760-09-13T00:00:00Z, and "${written}" is outside them.`,
     ]),
   ])('refuses %s', (written, message) => {
-    expect(() => pgTimestamptzCanonical(written)).toThrow(
+    expect(() => pgTimestamptzStoredText(written)).toThrow(
       expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED', message }),
     );
   });
@@ -150,17 +150,17 @@ describe('pg/timestamp canonical form', () => {
   ];
 
   it.each(accepted)('turns %s into its canonical form %s', (written, canonical) => {
-    expect(pgTimestampCanonical(written)).toBe(canonical);
+    expect(pgTimestampStoredText(written)).toBe(canonical);
   });
 
   it.each(accepted)('agrees with Temporal.PlainDateTime on %s', (written) => {
-    expect(pgTimestampCanonical(written)).toBe(
+    expect(pgTimestampStoredText(written)).toBe(
       Temporal.PlainDateTime.from(temporalInput(written)).toString(),
     );
   });
 
   it.each(['infinity', '-infinity'])('keeps %s, which PostgreSQL stores', (word) => {
-    expect(pgTimestampCanonical(word)).toBe(word);
+    expect(pgTimestampStoredText(word)).toBe(word);
   });
 
   it.each([
@@ -195,7 +195,7 @@ describe('pg/timestamp canonical form', () => {
       `pg/timestamp holds dates and times from -004713-11-24T00:00:00 to +275760-09-13T23:59:59.999999, and "${written}" is outside them.`,
     ]),
   ])('refuses %s', (written, message) => {
-    expect(() => pgTimestampCanonical(written)).toThrow(
+    expect(() => pgTimestampStoredText(written)).toThrow(
       expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED', message }),
     );
   });
@@ -215,17 +215,17 @@ describe('pg/date canonical form', () => {
   ];
 
   it.each(accepted)('turns %s into its canonical form %s', (written, canonical) => {
-    expect(pgDateCanonical(written)).toBe(canonical);
+    expect(pgDateStoredText(written)).toBe(canonical);
   });
 
   it.each(accepted)('agrees with Temporal.PlainDate on %s', (written) => {
-    expect(pgDateCanonical(written)).toBe(
+    expect(pgDateStoredText(written)).toBe(
       Temporal.PlainDate.from(temporalInput(written)).toString(),
     );
   });
 
   it.each(['infinity', '-infinity'])('keeps %s, which PostgreSQL stores', (word) => {
-    expect(pgDateCanonical(word)).toBe(word);
+    expect(pgDateStoredText(word)).toBe(word);
   });
 
   it.each([
@@ -255,7 +255,7 @@ describe('pg/date canonical form', () => {
       `pg/date holds dates from -004713-11-24 to +275760-09-13, and "${written}" is outside them.`,
     ]),
   ])('refuses %s', (written, message) => {
-    expect(() => pgDateCanonical(written)).toThrow(
+    expect(() => pgDateStoredText(written)).toThrow(
       expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED', message }),
     );
   });

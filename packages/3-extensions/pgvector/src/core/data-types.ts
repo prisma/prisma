@@ -3,7 +3,7 @@
  *
  * A vector is one value holding several numbers, so it takes a written list through a list cast
  * rather than casting from any scalar type: each element must be one of the target's numeric types,
- * and the cast turns the elements into the numbers a vector stores. Its canonical form is that array
+ * and the cast turns the elements into the numbers a vector stores. Its stored form is that array
  * of numbers, which it also reads from the text PostgreSQL prints, so a default the database reports
  * compares equal to the one the contract stores. ADR 254.
  */

@@ -32,6 +32,16 @@ changes:
       glob: "**/*.{ts,mts,cts}"
       matches:
         - '\b(?:decodeJson(?:String|Matching|Integer|IntegerText|Float|Boolean)|encodeJsonFloat|canonicalFormOf|ToCanonicalForm)\b'
+  - id: stored-form-helpers-renamed
+    summary: |
+      The SQL helpers that read or write a value's stored text say "stored" instead of
+      "canonical": `canonicalDateTime` is `dateTimeStoredText`, `CanonicalDateTimeOptions` is
+      `DateTimeStoredTextOptions`, `canonicalNumeralText` is `storedNumeralText`,
+      `sqlTextFromCanonical` is `sqlTextFromStored`, and `canonicalSqlText` is `storedSqlText`.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - '\b(?:canonicalDateTime|CanonicalDateTimeOptions|canonicalNumeralText|sqlTextFromCanonical|canonicalSqlText)\b'
   - id: projections-read-by-from-wire
     summary: |
       An include and an aggregate read a column's JSON projection with the codec's `fromWire`, as a
@@ -203,6 +213,20 @@ The helpers that read a value from JSON now say so, and the one that writes a fl
 | `encodeJsonFloat` | `floatToJson` |
 
 They take the same arguments. `ToCanonicalForm` and `canonicalFormOf` are removed; a data type's `read` (`data-types-own-parameter-limits`) does their work.
+
+## `stored-form-helpers-renamed`
+
+The text a contract stores for a value is its stored form, and the helpers that read or write it now say so. They are exported from `@prisma/orm-family-sql/contract/data-type-support` and `@prisma/orm-family-sql/contract/sql-expression` as before. Rename each use:
+
+| Before | After |
+| --- | --- |
+| `canonicalDateTime` | `dateTimeStoredText` |
+| `CanonicalDateTimeOptions` | `DateTimeStoredTextOptions` |
+| `canonicalNumeralText` | `storedNumeralText` |
+| `sqlTextFromCanonical` | `sqlTextFromStored` |
+| `canonicalSqlText` | `storedSqlText` |
+
+They take the same arguments and return the same values.
 
 ## `projections-read-by-from-wire`
 

@@ -28,7 +28,7 @@ const everyCodecHolds: Readonly<Record<string, readonly string[]>> = {
 };
 
 /** Every codec of a type whose values have more than one written form, found in the target's codec registry. */
-const codecsWithCanonicalForm = codecDescriptors.flatMap((descriptor) =>
+const codecsWithStoredForm = codecDescriptors.flatMap((descriptor) =>
   !dataTypes.has(descriptor.dataType) || !Object.hasOwn(everyCodecHolds, descriptor.dataType)
     ? []
     : [
@@ -83,12 +83,12 @@ function decoded(codec: Codec, json: JsonValue): { readonly value: unknown } | u
 
 describe('every codec of a type with a canonical form writes it', () => {
   it('finds a codec for every type the tables cover, and a table for every such type', () => {
-    expect(new Set(codecsWithCanonicalForm.map(({ dataType }) => dataType))).toEqual(
+    expect(new Set(codecsWithStoredForm.map(({ dataType }) => dataType))).toEqual(
       new Set(Object.keys(everyCodecHolds)),
     );
   });
 
-  describe.each(codecsWithCanonicalForm)('$codecId', ({ codecId, codec, dataType }) => {
+  describe.each(codecsWithStoredForm)('$codecId', ({ codecId, codec, dataType }) => {
     it.each(everyCodecHolds[dataType] ?? [])('writes %s back as it read it', (canonical) => {
       expect(toContractJson(codec, fromContractJson(codec, canonical))).toBe(canonical);
     });
@@ -142,7 +142,7 @@ describe('every codec of a type with a canonical form writes it', () => {
 
 describe('a date and time type refuses text a contract held before the canonical form, naming the stored form', () => {
   const codecOf = (codecId: string): Codec => {
-    const found = codecsWithCanonicalForm.find((entry) => entry.codecId === codecId);
+    const found = codecsWithStoredForm.find((entry) => entry.codecId === codecId);
     if (found === undefined) throw new Error(`no codec ${codecId}`);
     return found.codec;
   };

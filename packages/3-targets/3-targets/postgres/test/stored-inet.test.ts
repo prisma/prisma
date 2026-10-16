@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { canonicalInet } from '../src/core/canonical-inet';
+import { storedInet } from '../src/core/stored-inet';
 
-describe('canonicalInet', () => {
+describe('storedInet', () => {
   it.each([
     ['an IPv4 host with /32', '10.0.0.1/32', '10.0.0.1'],
     ['an IPv4 host', '10.0.0.1', '10.0.0.1'],
@@ -29,7 +29,7 @@ describe('canonicalInet', () => {
     ['an embedded IPv4 that is not at a mapped position', '64:ff9b::1.2.3.4', '64:ff9b::102:304'],
     ['a partial embedded IPv4', '::ffff:1.2', '::ffff:1.2.0.0'],
   ])('writes %s as Postgres prints it', (_spelling, text, printed) => {
-    expect(canonicalInet(text)).toBe(printed);
+    expect(storedInet(text)).toBe(printed);
   });
 
   it.each([
@@ -51,6 +51,6 @@ describe('canonicalInet', () => {
     ['a trailing colon', '1:'],
     ['a port', '1.2.3.4:80'],
   ])('returns nothing for %s, because Postgres does not read it as an inet', (_case, text) => {
-    expect(canonicalInet(text)).toBeUndefined();
+    expect(storedInet(text)).toBeUndefined();
   });
 });

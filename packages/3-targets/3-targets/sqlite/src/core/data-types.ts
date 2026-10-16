@@ -21,7 +21,7 @@ import {
 } from '@internal/framework-components/codec';
 import { canonicalizeJson } from '@internal/framework-components/utils';
 import { sqlDataType } from '@internal/sql-contract/data-type';
-import { canonicalDateTime } from '@internal/sql-contract/data-type-support';
+import { dateTimeStoredText } from '@internal/sql-contract/data-type-support';
 import { structuredError } from '@internal/utils/structured-error';
 import { type as arktype } from 'arktype';
 
@@ -32,7 +32,7 @@ function wrongShape(value: JsonValue, expected: string): never {
     'CONTRACT.CAST_REFUSED',
     `Expected ${expected}, got ${JSON.stringify(value)}.`,
     {
-      why: 'A cast reads the canonical form of the type it takes values of.',
+      why: 'A cast reads the stored form of the type it takes values of.',
       fix: 'Hand the cast a value in the shape its source type stores.',
     },
   );
@@ -129,7 +129,7 @@ const DATETIME_FRACTION = /^(.*:\d{2})(?:\.(\d{1,3}))?Z$/;
  * The value of `sqlite/datetime` (ADR 254): the instant in UTC with exactly three fraction digits, the text `toISOString()` writes for every row, from ISO 8601 text with a UTC offset. The range and the millisecond precision are those of a JavaScript `Date`, the codec's value. Throws `CONTRACT.CAST_REFUSED` for text that names no instant the type holds.
  */
 export function sqliteDatetimeText(text: string): string {
-  const canonical = canonicalDateTime(text, {
+  const canonical = dateTimeStoredText(text, {
     shape: 'instant',
     ownerId: 'sqlite/datetime',
     maxFractionDigits: 3,
