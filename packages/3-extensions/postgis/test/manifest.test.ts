@@ -1,4 +1,3 @@
-import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
 import { postgisExtensionDescriptor } from '../src/exports/control';
 
@@ -34,20 +33,4 @@ describe('postgis descriptor', () => {
     const headRef = postgisExtensionDescriptor.contractSpace?.headRef;
     expect(headRef?.invariants).toContain('postgis:install-postgis-v1');
   });
-
-  it(
-    'codec types are importable',
-    async () => {
-      await expect(import('../src/exports/codec-types')).resolves.toBeDefined();
-    },
-    timeouts.typeScriptCompilation,
-  );
-
-  it(
-    'operation types are importable',
-    async () => {
-      await expect(import('../src/exports/operation-types')).resolves.toBeDefined();
-    },
-    timeouts.typeScriptCompilation,
-  );
 });

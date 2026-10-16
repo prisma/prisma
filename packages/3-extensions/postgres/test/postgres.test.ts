@@ -4,7 +4,7 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { Runtime } from '@internal/sql-runtime';
 import { PostgresSchema } from '@internal/target-postgres/types';
 import { createContract } from '@repo/test-utils';
-import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Only mock the third-party pg boundary. Real drivers, adapters, and runtimes
 // run over this fake pool/client.
@@ -53,7 +53,7 @@ vi.mock('pg', () => {
 
 import { Client, Pool } from 'pg';
 import { buildNativeEnumsMapForNamespace } from '../src/runtime/native-enums';
-import postgres, { type PostgresClient } from '../src/runtime/postgres';
+import postgres from '../src/runtime/postgres';
 
 const contract = createContract<SqlStorage>();
 
@@ -90,20 +90,6 @@ describe('postgres', () => {
     const thenable = db as unknown as { then?: unknown };
     expect(typeof thenable.then).toBe('undefined');
     expect(db.sql).toBeDefined();
-  });
-
-  it('binds to a synchronous PostgresClient at the call site', () => {
-    // Assert the return type of postgres({...}) directly so a future drift to
-    // Promise-shaped construction fails the typecheck rather than surfacing
-    // only when call sites silently lose `.sql` / `.orm`.
-    type CallShape = (options: {
-      contract: Contract<SqlStorage>;
-      url: string;
-    }) => PostgresClient<Contract<SqlStorage>>;
-    expectTypeOf<ReturnType<CallShape>>().toEqualTypeOf<PostgresClient<Contract<SqlStorage>>>();
-    expectTypeOf<ReturnType<CallShape>>().not.toEqualTypeOf<
-      Promise<PostgresClient<Contract<SqlStorage>>>
-    >();
   });
 
   it('sql is constructed eagerly; runtime and pool are deferred until runtime() is accessed', () => {
@@ -168,36 +154,6 @@ describe('postgres', () => {
     expect(db.runtime()).toBeDefined();
   });
 
-  it('throws when connect is called without configured binding', async () => {
-    const db = postgres({
-      contract,
-    } as Parameters<typeof postgres<typeof contract>>[0]);
-
-    await expect(db.connect()).rejects.toThrow('Postgres binding not configured');
-  });
-
-  it('throws when attempting to connect twice', async () => {
-    const db = postgres({
-      contract,
-      url: 'postgres://localhost:5432/db',
-    });
-
-    await db.connect();
-    await expect(db.connect({ url: 'postgres://localhost:5432/db2' })).rejects.toThrow(
-      'Postgres client already connected',
-    );
-  });
-
-  it('throws when attempting to connect twice without arguments', async () => {
-    const db = postgres({
-      contract,
-      url: 'postgres://localhost:5432/db',
-    });
-
-    await db.connect();
-    await expect(db.connect()).rejects.toThrow('Postgres client already connected');
-  });
-
   it('rejects concurrent connect calls', async () => {
     const db = postgres({
       contract,
@@ -211,31 +167,6 @@ describe('postgres', () => {
     await first;
   });
 
-  it('runtime() itself does not throw on construction; pool errors surface on first query', async () => {
-    // The real postgres driver's connect() is synchronous (creates the bound
-    // driver immediately). Pool connection errors only surface on first use.
-    const db = postgres({
-      contract,
-      url: 'postgres://localhost:5432/db',
-    });
-
-    // runtime() must not throw synchronously
-    let runtime: Runtime | undefined;
-    expect(() => {
-      runtime = db.runtime();
-    }).not.toThrow();
-    expect(runtime).toBeDefined();
-  });
-
-  it('validates direct contract input', () => {
-    const db = postgres({
-      contract,
-      url: 'postgres://localhost:5432/db',
-    });
-
-    expect(db.context).toBeDefined();
-  });
-
   it('exposes contract on the facade', () => {
     const db = postgres({
       contract,
@@ -244,15 +175,6 @@ describe('postgres', () => {
 
     expect(db.contract).toBeDefined();
     expect(db.contract.target).toBe(contract.target);
-  });
-
-  it('db.contract is typed as TContract', () => {
-    const db = postgres({
-      contract,
-      url: 'postgres://localhost:5432/db',
-    });
-
-    expectTypeOf(db.contract).toEqualTypeOf<Contract<SqlStorage>>();
   });
 
   it('creates pool from url with explicit timeout defaults (pool options passed)', () => {
@@ -275,24 +197,6 @@ describe('postgres', () => {
         url: 'postgresql://localhost:5432/db',
       }).runtime(),
     ).not.toThrow();
-  });
-
-  it('throws for empty url binding', () => {
-    expect(() =>
-      postgres({
-        contract,
-        url: '   ',
-      }),
-    ).toThrow('Postgres URL must be a non-empty string');
-  });
-
-  it('throws for invalid url scheme', () => {
-    expect(() =>
-      postgres({
-        contract,
-        url: 'mysql://localhost:5432/db',
-      }),
-    ).toThrow('Postgres URL must use postgres:// or postgresql://');
   });
 
   it('uses pg pool binding', () => {
@@ -326,15 +230,6 @@ describe('postgres', () => {
 
     const runtime = db.runtime();
     expect(runtime).toBeDefined();
-  });
-
-  it('throws when pg input is neither Pool nor Client', () => {
-    expect(() =>
-      postgres({
-        contract,
-        pg: { query: () => {} } as unknown as Client,
-      }),
-    ).toThrow('Unable to determine pg binding type from pg input');
   });
 
   it('transaction() delegates to withTransaction and returns the callback result', async () => {

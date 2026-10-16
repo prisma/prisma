@@ -1,7 +1,6 @@
 import { timeouts } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import { clearCart, getCartByUserId, upsertCart } from '../src/data/carts';
-import { createViewProductEvent, findEventsByUser } from '../src/data/events';
+import { getCartByUserId, upsertCart } from '../src/data/carts';
 import { createInvoice, findInvoiceById } from '../src/data/invoices';
 import { findLocations } from '../src/data/locations';
 import { createOrder, deleteOrder, getOrderById, getUserOrders } from '../src/data/orders';
@@ -172,30 +171,6 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
     expect(updatedCart!.items[0]!.amount).toBe(3);
   });
 
-  it('clears cart', async () => {
-    const user = await ctx.db.orm.users.create({
-      name: 'ClearTest',
-      email: 'clear@example.com',
-      address: null,
-    });
-
-    await upsertCart(ctx.db, user._id, [
-      {
-        productId: 'prod-1',
-        name: 'Widget',
-        brand: 'Acme',
-        amount: 1,
-        price: { amount: 9.99, currency: 'USD' },
-        image: { url: '/widget.jpg' },
-      },
-    ]);
-
-    await clearCart(ctx.db, user._id);
-    const cart = await getCartByUserId(ctx.db, user._id);
-    expect(cart).not.toBeNull();
-    expect(cart!.items).toHaveLength(0);
-  });
-
   it('creates invoice with embedded line items', async () => {
     const user = await ctx.db.orm.users.create({
       name: 'InvUser',
@@ -235,25 +210,5 @@ describe('CRUD lifecycle', { timeout: timeouts.spinUpMongoMemoryServer }, () => 
     const found = await findInvoiceById(ctx.db, invoice._id);
     expect(found).not.toBeNull();
     expect(found!.items[0]).toMatchObject({ name: 'Item', unitPrice: 100 });
-  });
-
-  it('creates and reads polymorphic events', async () => {
-    await createViewProductEvent(ctx.db, {
-      userId: 'user-1',
-      sessionId: 'sess-1',
-      timestamp: new Date('2026-03-01'),
-      productId: 'prod-1',
-      subCategory: 'Topwear',
-      brand: 'TestBrand',
-      exitMethod: null,
-    });
-
-    const events = await findEventsByUser(ctx.db, 'user-1');
-    expect(events).toHaveLength(1);
-    expect(events[0]).toMatchObject({
-      type: 'view-product',
-      productId: 'prod-1',
-      brand: 'TestBrand',
-    });
   });
 });

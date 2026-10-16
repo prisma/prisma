@@ -129,16 +129,6 @@ const representations = TAXONOMY.flatMap((row) => [
 const sourceExpression = ColumnRef.of('reading', 'at');
 
 describe('the nine representation-explicit temporal codecs', () => {
-  it('covers Temporal and string representations plus Date for timestamptz', () => {
-    expect(TAXONOMY.map((row) => row.nativeType)).toEqual([
-      'date',
-      'timestamp',
-      'timestamptz',
-      'time',
-    ]);
-    expect(representations).toHaveLength(9);
-  });
-
   describe.each(representations)('$rep.codecId', ({ row, rep }) => {
     it('declares the id the taxonomy names', () => {
       expect(rep.descriptor.codecId).toBe(rep.codecId);

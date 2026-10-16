@@ -1,5 +1,5 @@
 import { APP_SPACE_ID } from '@internal/framework-components/control';
-import { describe, expect, expectTypeOf, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import {
   createMigrationPlan,
   plannerFailure,
@@ -57,8 +57,6 @@ describe('createMigrationPlan', () => {
     const firstOperation = plan.operations[0]! as SqlMigrationPlanOperation<TestTargetDetails>;
     expect(Object.isFrozen(firstOperation)).toBe(true);
     expect(Object.isFrozen(firstOperation.precheck)).toBe(true);
-
-    expectTypeOf(firstOperation.target.details).toEqualTypeOf<TestTargetDetails | undefined>();
   });
 
   it('freezes and clones target.details to prevent mutation', () => {

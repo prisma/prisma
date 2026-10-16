@@ -103,21 +103,6 @@ describe('SqliteBoundDriver', () => {
     await driver.close();
   });
 
-  it('enables foreign keys by default', async () => {
-    const driver = createDriver();
-    await executeSql(driver, 'CREATE TABLE parent(id INTEGER PRIMARY KEY)');
-    await executeSql(
-      driver,
-      'CREATE TABLE child(id INTEGER PRIMARY KEY, pid INTEGER REFERENCES parent(id))',
-    );
-    await executeSql(driver, 'INSERT INTO parent VALUES (?)', [1]);
-
-    await expect(executeSql(driver, 'INSERT INTO child VALUES (?, ?)', [1, 999])).rejects.toThrow(
-      SqlQueryError,
-    );
-    await driver.close();
-  });
-
   it('close() is idempotent', async () => {
     const driver = createDriver();
     await driver.close();

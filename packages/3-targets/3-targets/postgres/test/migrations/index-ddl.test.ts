@@ -120,7 +120,7 @@ describe('renameIndex lowers a PostgresAlterIndexRename node', () => {
     expect(op.operationClass).toBe('widening');
     expect(op.id).toBe('index.public.user.old_email_idx.rename');
     expect(op.precheck).toHaveLength(2);
-    expect(op.postcheck).toHaveLength(1);
+    expect(op.postcheck).toHaveLength(2);
   });
 });
 

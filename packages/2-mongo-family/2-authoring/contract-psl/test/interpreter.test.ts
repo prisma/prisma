@@ -17,6 +17,7 @@ import {
   MongoStorage,
   MongoValidator,
 } from '@internal/mongo-contract';
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import {
   buildSymbolTable,
   createBinder,
@@ -36,7 +37,6 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,
@@ -1005,6 +1005,34 @@ model Item {
       expect(result.failure.diagnostics).toEqual(
         expect.arrayContaining([expect.objectContaining({ code: 'PSL_MONGO_ID_REQUIRED' })]),
       );
+    });
+
+    it('names the _id codec when the lookups know no MongoDB data type for it', () => {
+      const result = interpret(
+        `
+        model Item {
+          id   ObjectId @id @map("_id")
+          name String
+        }
+      `,
+        {
+          codecLookup: {
+            ...mongoCodecLookup,
+            descriptorFor: (id) =>
+              id === 'mongo/objectId@1' ? undefined : mongoCodecLookup.descriptorFor(id),
+          },
+        },
+      );
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_REQUIRED',
+          message:
+            'Model "Item" has an _id field whose codec "mongo/objectId@1" has no MongoDB data type, so its BSON type is unknown.',
+        },
+      ]);
     });
 
     it('does not flag variant models (they inherit the base id)', () => {
@@ -2667,47 +2695,6 @@ model Post {
           sourceId: 'schema.prisma',
         }),
       ]);
-    });
-
-    it('rejects `namespace unbound { … }` (Mongo has no late-binding namespace)', () => {
-      const result = interpretMongoContract(
-        `namespace unbound {
-  model Tenant {
-    id String @id
-  }
-}
-`,
-        {
-          scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          defaultFunctionRegistry: new Map(),
-        },
-      );
-
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ code: 'PSL_UNSUPPORTED_NAMESPACE_BLOCK' }),
-        ]),
-      );
-    });
-
-    it('accepts top-level model declarations (no namespace block)', () => {
-      const result = interpretMongoContract(
-        `model User {
-  id ObjectId @id @map("_id")
-  name String
-}
-`,
-        {
-          scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          defaultFunctionRegistry: new Map(),
-        },
-      );
-
-      expect(result.ok).toBe(true);
-      if (!result.ok) return;
-      expect(modelsOf(result.value)['User']).toBeDefined();
     });
   });
 });

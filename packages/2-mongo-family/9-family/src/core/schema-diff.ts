@@ -5,7 +5,7 @@ import type {
   MongoSchemaIndex,
   MongoSchemaIR,
 } from '@internal/mongo-schema-ir';
-import { canonicalize, deepEqual } from '@internal/mongo-schema-ir';
+import { canonicalize, deepEqual, indexLookupKey } from '@internal/mongo-schema-ir';
 import { ifDefined } from '@internal/utils/defined';
 import { verifierDisposition } from './schema-verify/verifier-disposition';
 
@@ -119,24 +119,6 @@ export function diffMongoSchemas(
   return { failures, warnings };
 }
 
-function buildIndexLookupKey(index: MongoSchemaIndex): string {
-  const keys = index.keys.map((k) => `${k.field}:${k.direction}`).join(',');
-  const opts = [
-    index.unique ? 'unique' : '',
-    index.sparse ? 'sparse' : '',
-    index.expireAfterSeconds != null ? `ttl:${index.expireAfterSeconds}` : '',
-    index.partialFilterExpression ? `pfe:${canonicalize(index.partialFilterExpression)}` : '',
-    index.wildcardProjection ? `wp:${canonicalize(index.wildcardProjection)}` : '',
-    index.collation ? `col:${canonicalize(index.collation)}` : '',
-    index.weights ? `wt:${canonicalize(index.weights)}` : '',
-    index.default_language ? `dl:${index.default_language}` : '',
-    index.language_override ? `lo:${index.language_override}` : '',
-  ]
-    .filter(Boolean)
-    .join(';');
-  return opts ? `${keys}|${opts}` : keys;
-}
-
 function formatIndexName(index: MongoSchemaIndex): string {
   return index.keys.map((k) => `${k.field}:${k.direction}`).join(', ');
 }
@@ -151,10 +133,10 @@ function diffIndexes(
   warnings: SchemaDiffIssue[],
 ): void {
   const liveLookup = new Map<string, MongoSchemaIndex>();
-  for (const idx of live.indexes) liveLookup.set(buildIndexLookupKey(idx), idx);
+  for (const idx of live.indexes) liveLookup.set(indexLookupKey(idx), idx);
 
   const expectedLookup = new Map<string, MongoSchemaIndex>();
-  for (const idx of expected.indexes) expectedLookup.set(buildIndexLookupKey(idx), idx);
+  for (const idx of expected.indexes) expectedLookup.set(indexLookupKey(idx), idx);
 
   for (const [key, idx] of expectedLookup) {
     if (!liveLookup.has(key)) {

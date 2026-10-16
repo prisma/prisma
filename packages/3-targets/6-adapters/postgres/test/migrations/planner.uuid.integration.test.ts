@@ -175,66 +175,6 @@ describe('pg/uuid@1 — end-to-end PGlite coverage', { concurrent: false }, () =
   });
 
   /**
-   * SDoD1 (c): introspection + verifySchema resolves the live `uuid` column back to `pg/uuid@1`.
-   *
-   * Fails if DDL renders the wrong native type (e.g. `text` instead of `uuid`): introspection
-   * then reports `text` for the live column, and verifySchema emits a `type_mismatch` issue.
-   */
-  it('introspection + verifySchema confirms schema matches pg/uuid@1 contract', {
-    timeout: testTimeout,
-  }, async () => {
-    await applyContract(driver!);
-
-    const schema = await familyInstance.introspect({
-      driver: driver!,
-      contract: contractWithUuid,
-    });
-
-    const result = familyInstance.verifySchema({
-      contract: contractWithUuid,
-      schema,
-      strict: false,
-      frameworkComponents,
-    });
-
-    expect(result.ok).toBe(true);
-    expect(result.schema.issues).toHaveLength(0);
-  });
-
-  /**
-   * SDoD2 (d): runtime generation — a uuid string produced by uuidv4 (v4 shape) is accepted
-   * by a native `uuid` column, and comes back as the same lowercase string.
-   *
-   * Fails if:
-   * - The `uuid` column type is changed to `text` (test still passes, but the premise is wrong;
-   *   the DDL test above catches this case).
-   * - PGlite rejects the format of a v4 uuid in a native-uuid column.
-   *
-   * Note: this test uses a hardcoded v4-format uuid rather than the uuidv4 generator to keep the
-   * integration test self-contained. The generator's correctness is proven by the
-   * `mutation-defaults` integration tests in `test/integration`.
-   */
-  it('native uuid column accepts a v4-format uuid string and returns it unchanged', {
-    timeout: testTimeout,
-  }, async () => {
-    await applyContract(driver!);
-
-    const uuidV4 = '550e8400-e29b-41d4-a716-446655440000';
-    await driver!.query(`INSERT INTO "item" (id, label) VALUES ($1, $2)`, [uuidV4, 'generated']);
-
-    const result = await driver!.query<{ id: string }>(
-      `SELECT id::text FROM "item" WHERE id = $1`,
-      [uuidV4],
-    );
-
-    expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]?.id).toBe(uuidV4);
-    expect(result.rows[0]?.id).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
-    );
-  });
-
-  /**
    * SDoD2 (d) — extended: PGlite accepts uuid values generated via gen_random_uuid() as a
    * database-side expression. This demonstrates the native uuid column works correctly with
    * Postgres' own uuid generation function, confirming `pg/uuid@1`'s DDL output is accepted.

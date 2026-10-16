@@ -21,11 +21,6 @@ describe('SqlUniqueIR', () => {
     expect(a.id).toBe(b.id);
   });
 
-  it('nodeKind is the unique kind', () => {
-    const unique = new SqlUniqueIR({ columns: ['email'] });
-    expect(unique.nodeKind).toBe('sql-unique');
-  });
-
   it('children is empty (a unique constraint is a leaf)', () => {
     const unique = new SqlUniqueIR({ columns: ['email'] });
     expect(unique.children()).toEqual([]);

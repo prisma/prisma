@@ -8,7 +8,10 @@
 
 import { col, fn, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
   CreateSchemaCall,
@@ -99,7 +102,12 @@ describe('Postgres call classes - construction + toOp parity', () => {
   });
 
   it('AddColumnCall.toOp produces ALTER TABLE … ADD COLUMN SQL (byte-parity)', async () => {
-    const call = new AddColumnCall('public', 'user', col('email', 'text', { notNull: true }));
+    const call = new AddColumnCall(
+      'public',
+      'user',
+      col('email', 'text', { notNull: true }),
+      postgresDataTypes,
+    );
     const op = await call.toOp(testAdapter);
     expect(op.execute[0]?.sql).toBe('ALTER TABLE "public"."user" ADD COLUMN "email" text NOT NULL');
     expect(op.id).toBe('column.public.user.email');
@@ -111,14 +119,14 @@ describe('Postgres call classes - construction + toOp parity', () => {
   });
 
   it('AddColumnCall.toOp with __unbound__ schema produces an unqualified table name', async () => {
-    const call = new AddColumnCall('__unbound__', 'item', col('score', 'int'));
+    const call = new AddColumnCall('__unbound__', 'item', col('score', 'int'), postgresDataTypes);
     const op = await call.toOp(testAdapter);
     expect(op.execute[0]?.sql).toBe('ALTER TABLE "item" ADD COLUMN "score" int');
   });
 
   it('AddColumnCall.toOp: identical table+column in different schemas produce distinct op ids', async () => {
-    const callPublic = new AddColumnCall('public', 'user', col('email', 'text'));
-    const callAudit = new AddColumnCall('audit', 'user', col('email', 'text'));
+    const callPublic = new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes);
+    const callAudit = new AddColumnCall('audit', 'user', col('email', 'text'), postgresDataTypes);
     const opPublic = await callPublic.toOp(testAdapter);
     const opAudit = await callAudit.toOp(testAdapter);
     expect(opPublic.id).toBe('column.public.user.email');

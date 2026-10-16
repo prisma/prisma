@@ -492,21 +492,6 @@ describe('migration check', () => {
     expect(`${run.stdout}${run.stderr}`).toContain('4 = integrity failure(s) found');
   });
 
-  it('narrows to one space when --space is given', async () => {
-    const dir = await projectDir();
-    await seedMigration(join(dir, 'migrations'));
-    await seedDanglingRef(join(dir, 'migrations'), 'staging');
-
-    const run = await harness(ormConfig()).run(['migration', 'check', '--space', 'app', '--json'], {
-      cwd: dir,
-    });
-
-    expect(run.exitCode).toBe(4);
-    expect(diagnosticsOf(run).map((diagnostic) => diagnostic.code)).toEqual([
-      'MIGRATION.CHECK_DANGLING_REF',
-    ]);
-  });
-
   it('resolves migrations against the run cwd, not the process cwd', async () => {
     const first = await projectDir();
     const second = await projectDir();

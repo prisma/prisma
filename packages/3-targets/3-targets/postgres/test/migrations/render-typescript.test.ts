@@ -1,4 +1,3 @@
-import { sql } from '@internal/sql-contract/sql-expression';
 import {
   checkExpression,
   col,
@@ -199,9 +198,10 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     new DropTableCall('public', 'stale'),
     new RenameTableCall('public', 'stale', 'archived', []),
     new RenameColumnCall('public', 'archived', 'title', 'heading', []),
-    new AddColumnCall('public', 'note', col('nickname', 'text')),
+    new AddColumnCall('public', 'note', col('nickname', 'text'), postgresDataTypes),
     new DropColumnCall('public', 'note', 'nickname'),
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'note',
       columnName: 'kind',
@@ -210,10 +210,22 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     }),
     new SetNotNullCall('public', 'note', 'kind'),
     new DropNotNullCall('public', 'note', 'kind'),
-    new SetDefaultCall('public', 'note', col('kind', 'text', { default: lit('draft') })),
+    new SetDefaultCall(
+      'public',
+      'note',
+      col('kind', 'text', { default: lit('draft') }),
+      'additive',
+    ),
     new DropDefaultCall('public', 'note', 'kind'),
-    new AddRequiredColumnToEmptyTableCall('public', 'note', 'title', 'text'),
-    new AddColumnWithTemporaryDefaultCall('public', 'note', 'title', 'text', "''"),
+    new AddRequiredColumnToEmptyTableCall('public', 'note', 'title', 'text', postgresDataTypes),
+    new AddColumnWithTemporaryDefaultCall(
+      'public',
+      'note',
+      'title',
+      'text',
+      "''",
+      postgresDataTypes,
+    ),
     new AddPrimaryKeyCall('public', 'note', 'note_pkey', ['id']),
     new AddForeignKeyCall('public', 'note', {
       name: 'note_owner_fkey',
@@ -290,10 +302,6 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
     }
   });
 
-  it('the facade exports the sql tag of sql/expression', () => {
-    expect(migrationFacade.sql).toBe(sql);
-  });
-
   function facadeImportNames(output: string): string[] {
     const facadeImport = output.match(
       /import\s*\{([\s\S]*?)\}\s*from\s*'@internal\/postgres\/migration';/,
@@ -302,10 +310,21 @@ describe('renderCallsToTypeScript (postgres) — facade import surface', () => {
   }
 
   const sqlTextCalls = [
-    new AddColumnCall('public', 'note', col('created', 'timestamptz', { default: fn('now()') })),
-    new SetDefaultCall('public', 'note', col('created', 'timestamptz', { default: fn('now()') })),
+    new AddColumnCall(
+      'public',
+      'note',
+      col('created', 'timestamptz', { default: fn('now()') }),
+      postgresDataTypes,
+    ),
+    new SetDefaultCall(
+      'public',
+      'note',
+      col('created', 'timestamptz', { default: fn('now()') }),
+      'additive',
+    ),
     new CreateIndexCall('public', 'note', 'note_kind_idx', { columns: ['kind'] }, { where: 'x' }),
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'note',
       columnName: 'kind',

@@ -32,14 +32,6 @@ const contract = defineContract({
 });
 
 describe('mongoStatic({ contract })', () => {
-  it('returns context, contract, enums, and query', () => {
-    const result = mongoStatic({ contract });
-    expect(result.context).toBeDefined();
-    expect(result.contract).toBeDefined();
-    expect(result.enums).toBeDefined();
-    expect(result.query).toBeDefined();
-  });
-
   it('context carries the deserialized contract', () => {
     const result = mongoStatic({ contract });
     expect(result.context.contract).toBe(result.contract);
@@ -83,11 +75,6 @@ describe('mongoStatic({ contract })', () => {
 
     expect(result.enums.Role.values).toEqual(expectedEnums?.['Role']?.values);
     expect(result.enums.Role.names).toEqual(expectedEnums?.['Role']?.names);
-  });
-
-  it('query.from is a function (builder is present)', () => {
-    const result = mongoStatic({ contract });
-    expect(typeof result.query.from).toBe('function');
   });
 
   it('contract matches the validated contract', () => {

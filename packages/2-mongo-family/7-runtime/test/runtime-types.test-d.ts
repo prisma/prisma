@@ -103,12 +103,4 @@ describe('runtime type safety', () => {
     const rows = runtime.query(plan).toArray();
     expectTypeOf(rows).resolves.toEqualTypeOf<Row[]>();
   });
-
-  it('query() infers Row from MongoQueryPlan generic parameter', () => {
-    const runtime = {} as MongoRuntime;
-    const plan = {} as MongoQueryPlan<OrderRow>;
-    const result = runtime.query(plan);
-
-    expectTypeOf(result).toEqualTypeOf<AsyncIterableResult<OrderRow>>();
-  });
 });

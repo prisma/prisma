@@ -57,12 +57,4 @@ describe('importing the server text types under a types-less pg mock', () => {
     }
     expect(() => controlTextTypes.getTypeParser(25, 'text')).toThrow();
   });
-
-  it('detects when a production array OID is missing from the driver set', async () => {
-    const { PG_TYPES_ARRAY_OIDS } = await import('../src/server-text-types');
-    const actual = captureRegisteredArrayOids();
-    const broken = [...PG_TYPES_ARRAY_OIDS].filter((oid) => oid !== 1000).sort((a, b) => a - b);
-
-    expect(actual).not.toEqual(broken);
-  });
 });

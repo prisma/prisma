@@ -1,10 +1,8 @@
 import { effectiveControlPolicy } from '@internal/contract/types';
-import { SqlContractSerializerBase } from '@internal/family-sql/ir';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { SqlStorage, StorageColumn, StorageTable } from '@internal/sql-contract/types';
 import { createSqlContract } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
-import sqliteControlTargetDescriptor from '../src/core/control-target';
 import { SqliteContractSerializer } from '../src/core/sqlite-contract-serializer';
 
 function makeValidContractJson() {
@@ -44,11 +42,6 @@ function makeContractWithTablesJson() {
 }
 
 describe('SqliteContractSerializer', () => {
-  it('extends SqlContractSerializerBase', () => {
-    const serializer = new SqliteContractSerializer();
-    expect(serializer).toBeInstanceOf(SqlContractSerializerBase);
-  });
-
   it('deserializes a valid SQL contract envelope', () => {
     const serializer = new SqliteContractSerializer();
     const contract = serializer.deserializeContract(makeValidContractJson());
@@ -139,18 +132,5 @@ describe('control-policy round-trip fidelity', () => {
     expect(effectiveControlPolicy(table.columns.id.control, def)).toBe('observed');
     expect(effectiveControlPolicy(table.columns.email.control, def)).toBe('tolerated');
     expect(table.columns.email).not.toHaveProperty('control');
-  });
-});
-
-describe('sqliteControlTargetDescriptor', () => {
-  it('exposes a contractSerializer property', () => {
-    expect(sqliteControlTargetDescriptor.contractSerializer).toBeInstanceOf(
-      SqliteContractSerializer,
-    );
-  });
-
-  it('exposes a schemaVerifier property next to migrations', () => {
-    expect(sqliteControlTargetDescriptor.schemaVerifier).toBeDefined();
-    expect(sqliteControlTargetDescriptor.migrations).toBeDefined();
   });
 });

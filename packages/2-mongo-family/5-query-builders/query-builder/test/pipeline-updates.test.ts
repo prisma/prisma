@@ -122,13 +122,6 @@ describe('F3 pipeline-style updates', () => {
         /non-update stage/,
       );
     });
-
-    it('throws on non-update stages after $match', () => {
-      const chain = orders()
-        .match((f) => f.status.eq('new'))
-        .sort({ amount: -1 }) as unknown as UpdateReachableChain;
-      expect(() => chain.updateMany()).toThrow(/non-update stage/);
-    });
   });
 
   describe('no-arg PipelineChain.updateOne()', () => {

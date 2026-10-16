@@ -66,7 +66,13 @@ describe('CreateTableCall', () => {
     expect(received).toHaveLength(3);
     expect(op.precheck).toHaveLength(1);
     expect(op.execute).toHaveLength(1);
-    expect(op.postcheck).toHaveLength(1);
+    expect(op.postcheck).toEqual([
+      { description: 'verify table "user" exists', sql: 'LOWERED CHECK 3', params: ['p3'] },
+      {
+        description: 'verify table "user" has exactly its columns',
+        sql: `SELECT (SELECT COUNT(*) FROM pragma_table_info('user')) = 2 AND (SELECT COUNT(*) FROM pragma_table_info('user') WHERE (name, LOWER(type), "notnull", pk) IN (VALUES ('id', 'integer', 1, 1), ('email', 'text', 1, 0))) = 2`,
+      },
+    ]);
   });
 
   it('lowers DDL + two typed check ASTs via lowerToExecuteRequest', async () => {
@@ -176,6 +182,10 @@ describe('AddColumnCall', () => {
     ]);
     expect(op.postcheck).toEqual([
       { description: 'verify column "bio" exists', sql: 'LOWERED CHECK 2', params: ['p2'] },
+      {
+        description: 'verify column "bio" on "user" has type TEXT and is optional',
+        sql: `SELECT COUNT(*) > 0 FROM pragma_table_info('user') WHERE name = 'bio' AND LOWER(type) = 'text' AND "notnull" = 0`,
+      },
     ]);
   });
 
@@ -498,10 +508,21 @@ describe('RecreateTableCall', () => {
     const op = await call.toOp(lowerer);
     expect({
       create: op.execute[0]?.sql,
-      defaultChecks: op.postcheck.slice(2),
+      sourceColumns: op.precheck[2],
+      stored: op.postcheck[2],
+      defaultChecks: op.postcheck.slice(3),
     }).toEqual({
       create:
         'CREATE TABLE "_prisma_new_user" (\n  "id" INTEGER NOT NULL,\n  "role" TEXT DEFAULT \'member\' /* user */,\n  "at" TEXT DEFAULT (datetime(\'now\'))\n)',
+      sourceColumns: {
+        description:
+          'ensure table "user" has exactly the columns the rebuild copies or leaves out (id, role, at)',
+        sql: "SELECT (SELECT COUNT(*) FROM pragma_table_info('user')) = 3 AND (SELECT COUNT(*) FROM pragma_table_info('user') WHERE name IN ('id', 'role', 'at')) = 3",
+      },
+      stored: {
+        description: 'verify "user" is stored as the rebuilt table',
+        sql: `SELECT (SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'user') = 'CREATE TABLE "user" (\n  "id" INTEGER NOT NULL,\n  "role" TEXT DEFAULT ''member'' /* user */,\n  "at" TEXT DEFAULT (datetime(''now''))\n)'`,
+      },
       defaultChecks: [
         {
           description: 'verify "role" default on "user"',

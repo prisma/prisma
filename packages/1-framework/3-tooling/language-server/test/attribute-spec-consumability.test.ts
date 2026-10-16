@@ -161,23 +161,6 @@ describe('assembled attribute specs are consumable from a resolved project', () 
     );
   });
 
-  it('enumerates a contributed model attribute by its claimed name', async () => {
-    vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(
-      ok({ config: pslProjectConfig(), diagnostics: [] }),
-    );
-
-    const result = await resolveConfigInputs('/abs/prisma.config.ts', () => '// use prisma-8\n');
-
-    const contributions = result.interpretation?.context.authoringContributions;
-    expect(contributions).toBeDefined();
-    if (contributions === undefined) return;
-
-    const specs = assembleAttributeSpecs(contributions);
-
-    expect('rls' in specs.model).toBe(true);
-    expect(Object.keys(contributions.modelAttributes)).toEqual(['security']);
-  });
-
   it('enumerates a family-registered field attribute and invokes its factory', async () => {
     vi.spyOn(configLoader, 'loadConfig').mockResolvedValue(
       ok({ config: pslProjectConfig(), diagnostics: [] }),

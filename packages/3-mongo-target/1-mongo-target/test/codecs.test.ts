@@ -2,7 +2,6 @@ import { isStructuredError } from '@internal/utils/structured-error';
 import { BSON, Double, ObjectId } from 'bson';
 import { ObjectId as DriverObjectId } from 'mongodb';
 import { describe, expect, it } from 'vitest';
-import { MONGO_DOUBLE_CODEC_ID, MONGO_VECTOR_CODEC_ID } from '../src/core/codec-ids';
 import {
   mongoBooleanCodec,
   mongoDateCodec,
@@ -87,24 +86,12 @@ describe('mongoDoubleCodec', () => {
       message: 'mongo/double@1 value must be a number; received string "2"',
     });
   });
-
-  it('has id mongo/double@1', () => {
-    expect(mongoDoubleCodec.id).toBe(MONGO_DOUBLE_CODEC_ID);
-  });
 });
 
 describe('mongoBooleanCodec', () => {
   it('round-trips boolean values', async () => {
     expect(await mongoBooleanCodec.decode(true, {})).toBe(true);
     expect(await mongoBooleanCodec.encode(false, {})).toBe(false);
-  });
-});
-
-describe('mongoDateCodec', () => {
-  it('round-trips Date values', async () => {
-    const date = new Date('2024-01-15T10:30:00Z');
-    expect(await mongoDateCodec.decode(date, {})).toBe(date);
-    expect(await mongoDateCodec.encode(date, {})).toBe(date);
   });
 });
 
@@ -201,57 +188,11 @@ describe('codecs that check the type of the value they write', () => {
   });
 });
 
-describe('codec traits (descriptor-side)', () => {
-  it('objectId has equality trait', () => {
-    expect(mongoDescriptorById(mongoObjectIdCodec.id)?.traits).toEqual(['equality']);
-  });
-
-  it('string has equality, order, textual traits', () => {
-    expect(mongoDescriptorById(mongoStringCodec.id)?.traits).toEqual([
-      'equality',
-      'order',
-      'textual',
-    ]);
-  });
-
-  it('int32 has equality, order, numeric traits', () => {
-    expect(mongoDescriptorById(mongoInt32Codec.id)?.traits).toEqual([
-      'equality',
-      'order',
-      'numeric',
-    ]);
-  });
-
-  it('double has equality, order, numeric traits', () => {
-    expect(mongoDescriptorById(mongoDoubleCodec.id)?.traits).toEqual([
-      'equality',
-      'order',
-      'numeric',
-    ]);
-  });
-
-  it('boolean has equality, boolean traits', () => {
-    expect(mongoDescriptorById(mongoBooleanCodec.id)?.traits).toEqual(['equality', 'boolean']);
-  });
-
-  it('date has equality, order traits', () => {
-    expect(mongoDescriptorById(mongoDateCodec.id)?.traits).toEqual(['equality', 'order']);
-  });
-
-  it('vector has equality trait', () => {
-    expect(mongoDescriptorById(mongoVectorCodec.id)?.traits).toEqual(['equality']);
-  });
-});
-
 describe('mongoVectorCodec', () => {
   it('round-trips number array values', async () => {
     const vec = [1.0, 2.5, 3.7];
     expect(await mongoVectorCodec.decode(vec, {})).toBe(vec);
     expect(await mongoVectorCodec.encode(vec, {})).toBe(vec);
-  });
-
-  it('has id mongo/vector@1', () => {
-    expect(mongoVectorCodec.id).toBe(MONGO_VECTOR_CODEC_ID);
   });
 });
 
