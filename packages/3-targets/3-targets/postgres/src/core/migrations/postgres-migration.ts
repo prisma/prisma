@@ -67,7 +67,7 @@ import type { ForeignKeySpec } from './operations/shared';
 import { stackDataTypes } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
-import { emissionSchemaForNamespace } from './resolve-ddl-schema';
+import { ddlSchemaOfCallSchema } from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
 import { postgresColumnRenameCall, postgresTableRenameCall } from './table-rename-calls';
 import { createWorkingSchema, type WorkingSchemaCall } from './working-schema';
@@ -521,8 +521,8 @@ export abstract class PostgresMigration<
 
   /**
    * The start contract's schema with this read's rename calls applied in order. It is built only
-   * when a `renameTable` needs it, so a migration that renames no table never reads its start
-   * contract.
+   * when a rename or a `setDefault` needs it, so a migration that calls neither never reads its
+   * start contract.
    */
   private schemaAfterRenames(startContract: Contract<SqlStorage>): PostgresDatabaseSchemaNode {
     const working = createWorkingSchema(
@@ -604,7 +604,7 @@ export abstract class PostgresMigration<
   }
 
   /**
-   * Emit an `ALTER COLUMN … SET DEFAULT` operation. It is widening when this migration's start contract gives the column a default, and additive otherwise.
+   * Emit an `ALTER COLUMN … SET DEFAULT` operation. It is widening when this migration's start contract, after the renames made earlier in the migration, gives the column a default, and additive otherwise.
    */
   protected setDefault(options: {
     readonly schema: string;
@@ -616,22 +616,22 @@ export abstract class PostgresMigration<
       options.schema,
       options.table,
       options.column,
-      this.columnHasDefaultInStartContract(options.schema, options.table, options.column.name)
+      this.columnHasDefaultAfterRenames(options.schema, options.table, options.column.name)
         ? 'widening'
         : 'additive',
     ).toOp(this.controlAdapterFor('setDefault'));
   }
 
   /**
-   * Whether this migration's start contract gives the column, found by schema, table and column name, a default. A table renamed earlier in the same migration is not found under its new name, so a `setDefault` on it is additive.
+   * Whether the column, found by schema, table and column name in the start contract after this migration's earlier renames, has a default.
    */
-  private columnHasDefaultInStartContract(schema: string, table: string, column: string): boolean {
-    const start = this.startContract;
-    if (start === null) return false;
-    return Object.entries(start.storage.namespaces).some(
-      ([namespaceId, namespace]) =>
-        emissionSchemaForNamespace(start, namespaceId) === schema &&
-        namespace.entries.table?.[table]?.columns[column]?.default !== undefined,
+  private columnHasDefaultAfterRenames(schema: string, table: string, column: string): boolean {
+    const startContract = this.startContract;
+    if (startContract === null) return false;
+    return (
+      this.schemaAfterRenames(startContract).namespaces[ddlSchemaOfCallSchema(schema)]?.tables[
+        table
+      ]?.columns[column]?.default !== undefined
     );
   }
 

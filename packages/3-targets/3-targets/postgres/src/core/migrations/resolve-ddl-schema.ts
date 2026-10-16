@@ -37,3 +37,10 @@ export function emissionSchemaForNamespace(
     ? UNBOUND_NAMESPACE_ID
     : resolveDdlSchemaForNamespaceStorage(contract.storage, namespaceId);
 }
+
+/**
+ * The live DDL schema a call's schema name stands for: the unbound sentinel is `DEFAULT_NAMESPACE_ID`, and any other name is already a DDL schema.
+ */
+export function ddlSchemaOfCallSchema(callSchemaName: string): string {
+  return callSchemaName === UNBOUND_NAMESPACE_ID ? DEFAULT_NAMESPACE_ID : callSchemaName;
+}

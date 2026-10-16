@@ -37,6 +37,7 @@ import type { RenderedRlsPolicyLiteral } from '../src/core/postgres-rls-policy';
 import { postgresCreateNamespace } from '../src/core/postgres-schema';
 import type { Contract } from './fixtures/namespaced-contract.d';
 import contractJson from './fixtures/namespaced-contract.json' with { type: 'json' };
+import { postgresTypeComponents } from './postgres-type-lookups';
 
 type Op = SqlMigrationPlanOperation<PostgresPlanTargetDetails>;
 
@@ -507,7 +508,12 @@ function fakeControlStack(): ControlStack<'sql', 'postgres'> {
   const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
   return {
     target: { id: 'postgres' },
-    adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
+    adapter: {
+      ...postgresTypeComponents[0],
+      id: 'postgres-test',
+      create: () => adapter,
+      dataTypes: postgresDataTypes,
+    },
     extensions: [],
   } as unknown as ControlStack<'sql', 'postgres'>;
 }
@@ -521,6 +527,7 @@ const CHANGED_TO_TWO = {
 function boxContract(
   changedDefault: ColumnDefault | undefined,
   namespaceId = 'public',
+  names: { readonly table: string; readonly column: string } = { table: 'Box', column: 'changed' },
 ): FrameworkContract<SqlStorage> {
   const changed = { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false };
   return {
@@ -534,9 +541,9 @@ function boxContract(
           id: namespaceId,
           entries: {
             table: {
-              Box: new StorageTable({
+              [names.table]: new StorageTable({
                 columns: {
-                  changed:
+                  [names.column]:
                     changedDefault === undefined
                       ? changed
                       : { ...changed, default: changedDefault },
@@ -567,6 +574,46 @@ function migrationStartingFrom(start: FrameworkContract<SqlStorage>): ExposedMig
     override readonly startContractJson = startJson;
   }
   return new StartingFrom(fakeControlStack());
+}
+
+function serializedContract(contract: FrameworkContract<SqlStorage>) {
+  return blindCast<
+    { readonly storage: { readonly storageHash: string } },
+    'a serialized contract carries its storage hash'
+  >(new PostgresContractSerializer().serializeContract(contract));
+}
+
+type EarlierRename =
+  | { readonly kind: 'table'; readonly to: string }
+  | { readonly kind: 'column'; readonly to: string };
+
+async function setDefaultAfterRename(rename: EarlierRename): Promise<Op> {
+  const renamed =
+    rename.kind === 'table'
+      ? { table: rename.to, column: 'changed' }
+      : { table: 'Box', column: rename.to };
+  const startJson = serializedContract(boxContract({ kind: 'literal', value: 1 }));
+  const endJson = serializedContract(boxContract({ kind: 'literal', value: 2 }, 'public', renamed));
+  class RenameThenSetDefault extends PostgresMigration {
+    override readonly startContractJson = startJson;
+    override readonly endContractJson = endJson;
+    override get operations(): readonly Promise<Op>[] {
+      return [
+        ...(rename.kind === 'table'
+          ? this.renameTable({ table: 'Box', to: rename.to })
+          : this.renameColumn({ table: 'Box', column: 'changed', to: rename.to })),
+        this.setDefault({
+          schema: 'public',
+          table: renamed.table,
+          column: col(renamed.column, 'int4', { default: lit(2) }),
+        }),
+      ];
+    }
+  }
+  const ops = await Promise.all(new RenameThenSetDefault(fakeControlStack()).operations);
+  const last = ops.at(-1);
+  if (last === undefined) throw new Error('the migration has no operations');
+  return last;
 }
 
 describe('PostgresMigration op-builder methods with a ControlStack', () => {
@@ -685,6 +732,18 @@ describe('PostgresMigration op-builder methods with a ControlStack', () => {
     ).callSetDefault({ ...CHANGED_TO_TWO, schema: 'auth' });
 
     expect(op.operationClass).toBe('additive');
+  });
+
+  it('setDefault is widening on a table an earlier renameTable renamed, when the start column has a default', async () => {
+    const op = await setDefaultAfterRename({ kind: 'table', to: 'Crate' });
+
+    expect(op.operationClass).toBe('widening');
+  });
+
+  it('setDefault is widening on a column an earlier renameColumn renamed, when the start column has a default', async () => {
+    const op = await setDefaultAfterRename({ kind: 'column', to: 'altered' });
+
+    expect(op.operationClass).toBe('widening');
   });
 
   it('createSchema lowers to an additive create-schema operation', async () => {
@@ -808,7 +867,12 @@ function astRecordingControlStack(): ControlStack<'sql', 'postgres'> {
   const adapter = lowerer as unknown as SqlControlAdapter<'postgres'>;
   return {
     target: { id: 'postgres' },
-    adapter: { id: 'postgres-test', create: () => adapter, dataTypes: postgresDataTypes },
+    adapter: {
+      ...postgresTypeComponents[0],
+      id: 'postgres-test',
+      create: () => adapter,
+      dataTypes: postgresDataTypes,
+    },
     extensions: [],
   } as unknown as ControlStack<'sql', 'postgres'>;
 }
