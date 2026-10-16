@@ -34,7 +34,7 @@ Each check has an ID and parameters. IDs are case sensitive. All parameters are 
 - **columnTypeIs(table, column, type, nullable?)**
   Ensures a column's normalized type and nullability match the contract
 - **defaultIs(table, column, normalizedExpr)**
-  Ensures a column default matches a normalized expression. Not built: it would need the text the database stores for the default, predicted at plan time, which is fragile. See "setDefault carries no postcheck" under Idempotency mapping
+  Ensures a column default matches a normalized expression
 - **indexCovers(table, columns[], unique?)**
   Ensures an index exists that covers the columns in order with optional uniqueness
 - **constraintExists(table, name?, kind?)**
@@ -96,18 +96,17 @@ Each check has an ID and parameters. IDs are case sensitive. All parameters are 
 
 ## Idempotency mapping (ties to ADR 038)
 
+> The runners detect an applied operation with its postchecks, not its prechecks. See [ADR 038](ADR%20038%20-%20Operation%20idempotency%20classification%20&%20enforcement.md).
+
 Pre checks below can imply already applied when true
 
 - **tableExists** for createTable ops
 - **columnExists** and **columnTypeIs** for addColumn with matching type
 - **indexCovers** for addIndex with matching columns and uniqueness
 - **constraintExists** and **foreignKeyMatches** for addConstraint and addForeignKey ops
+- **defaultIs** for setDefault ops
 
 When a pre check establishes already applied, runners record a no-op outcome rather than error
-
-### setDefault carries no postcheck
-
-The runner skips an op whose post checks already pass before it runs. A post check that the column has a default also passes for the old default, so it would skip a changed default. setDefault ops therefore carry no post check. The run's final schema verification compares the default's value instead, and running `SET DEFAULT` again is harmless
 
 ## Namespacing and extensions
 
