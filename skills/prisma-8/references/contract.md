@@ -233,7 +233,7 @@ For canonical worked examples covering single and multi-extension setups, read `
 
 ## Workflow — Raw columns (a type no column type covers)
 
-The concept: `Raw("<type>")` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`: the ORM reads each value as the text the database prints for it, flat and through includes, writes text back unchanged, and offers no filters or ordering on them. Raw columns exist on Postgres and SQLite.
+The concept: `Raw("<type>")` declares a column whose type Prisma does not model, such as `tsvector`, `ltree`, `circle` or a domain of the user's own. Migrations write the text as given, and `db verify` compares it with the type the database reports, exactly. Values are typed `unknown`, read the same flat and through includes, and write back as read. On Postgres the ORM reads each value as the text the database prints for it. On SQLite a value keeps the shape of its storage class: a number, a string, a `Uint8Array` for a BLOB, or null. The ORM offers no filters or ordering on raw values. Raw columns exist on Postgres and SQLite.
 
 ```prisma
 model Category {
