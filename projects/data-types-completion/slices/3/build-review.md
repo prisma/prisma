@@ -36,6 +36,7 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | c | 1 (`5a62fd7a24..2c3c9433b3`) | ANOTHER ROUND NEEDED: 1 must-fix, 1 should-fix, 2 low |
 | c | 2 (`3e3aad659b`, `b423685d38`, `e0e98b5e31`, `b309ab5499`) | SATISFIED |
 | d | 1 (`a39b9eddc6..6e944edb28`, `852ab43720`) | SATISFIED: 0 must-fix, 0 should-fix, 2 low |
+| e | 1 (`b98310c793..9bd0dcf9d8`) | ANOTHER ROUND NEEDED: 2 must-fix, 2 should-fix, 1 low |
 
 ## Findings log
 
@@ -411,3 +412,77 @@ Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-d.md`. Range 
 - Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/authoring`, `test/date-time-defaults`, `test/value-objects`, `stale-contract-default*`, `uuid-defaults`, `migration-ts-column-defaults`, `bytea-defaults`, `enum-members`, `contract-parity`, `psl-print` and `scalar-lists`: 109 files, 2134 tests, pass. `test/e2e` SQLite files: 12 files, 92 tests, pass.
 - Probes: the value-object named-type defaults (temporary file, deleted); the earlier-spelling datetime default (test edit, reverted); the storage hashes.
 - Must-not-change: no Postgres contract or DDL changed; SQLite DDL is unchanged.
+
+## Dispatch e, round 1
+
+Brief: `projects/data-types-completion/slices/3/briefs/s3-dispatch-e.md`. Range `b98310c793..9bd0dcf9d8`; `efdcad699a` holds only deletions and does not build on its own, so it is reviewed together with `ed8a68c476`.
+
+### Orchestrator rulings for dispatch e
+
+1. The golden manifest's one change, where `_fixture-before-canonical-form/emitted-before` now records the load refusal instead of DDL, is not the halt condition: no DDL text changed. I agree. Re-recording leaves no diff, and that fixture stores date and time defaults in spellings from before the canonical form (`.000Z`, `+01:00`, `12:34`, a space separator), which item 1 refuses. See S3-e-R1-5 for brief g.
+
+### Earlier findings
+
+- S3-d-R1-1: fixed in `b98310c793`. Fill values are keyed by data type, with an execution test for another codec of each type.
+- S3-d-R1-2: fixed in `ed8a68c476`. The verify test writes the datetime default as `'2024-01-01T00:00:00Z'` and it verifies through `fromWire`.
+
+### The questions the orchestrator asked
+
+- **An expression default that writes a literal.** Sound. Introspection extracts the expression's literal with the same strict patterns it uses for a reported default (anchored; a quoted, escape-string, number or parenthesised number literal with an optional cast), reads it with the column's codec, and compares the two values. Anything with an operator or a function call is not read as a literal, so `` sql`'2024-01-01'::date + 1` `` cannot falsely match a literal `2024-01-01`. It compares equal what the old `postgresResolveDefault` compared equal on the cases I traced (`'hello'::bytea` against PostgreSQL's hex, `'{}'::jsonb`, a numeric with trailing zeros, a timestamp with an offset). An expression whose literal the codec cannot read falls back to comparing text, as the old code compared a refused value. I did not test every expression the old per-type parser read.
+- **Callers of introspection.** Every caller that plans or verifies passes the contract: `client.ts` verify, the `db-verify` operation, `db-run` for `db init` and `db update` (through `collectAggregateNamespaces`, which now carries each space's contract), and both targets' runners. Only `client.introspect` passes no contract, and its callers are `db schema`, which only displays, and `contract infer`. The test harness helpers pass it too.
+- **`parseInferredDefault`.** It uses no deleted name: it imports the tag readers (`pgDateCanonical` and the rest) and `canonicalUuid`, which remain. Brief f does not remove it; see S3-e-R1-4.
+- **`.500Z` from the `Date` codec.** PostgreSQL reads `.5Z` and `.500Z` as the same `timestamptz`. The Postgres journey's `jsDate` column (`.5Z`) verifies clean. Re-recording the golden test changes nothing, and `fixtures:check`, which regenerates the example migrations, leaves the tree clean.
+- **`db verify` and `db sign` messages.** An unreadable database default is a `mismatch` at `public/<table>/<column>/default`, explained as "The column codec `<id>` cannot read the default the database reports, `<raw text>`: `<codec message>`". It offers `db update` or changing the contract source. That names the column and says what to do.
+- **TML-3406's subject.** `contractDefaultRefusal`, `inCanonicalForm` and `plannableDefault` are gone from `packages/` (`git grep`). The slice 3 grep check in the project plan now finds only `storedTemporalText`, which is dispatch f's, and `SQLITE_DATETIME_CODEC_ID` where the codec is defined and used. It also matches Mongo's `encodeJsonValue` and `decodeJsonValue`, because the pattern has no word boundary; dispatch h should tighten it.
+- **The two journeys.** Each checks a clean verify and then exactly one drifted column. See S3-e-R1-3 for coverage.
+
+### S3-e-R1-1 (must-fix): seven integration tests fail
+
+- Where:
+  - `test/integration/test/cli-journeys/stale-contract-default-existing-tables.e2e.test.ts` (4 tests);
+  - `stale-contract-default.e2e.test.ts` (2 tests);
+  - `test/integration/test/psl-print/every-postgres-contract-roundtrip.integration.test.ts`, for `_fixture-before-canonical-form/emitted-before/contract.json`.
+
+  Each fails in the `integration` and `packaging` projects: 14 failures.
+- What is wrong:
+  - The stale-default journeys expect `CONTRACT.DEFAULT_INVALID` with meta naming the table and column. Item 1 now refuses the contract at load with `CONTRACT.VALIDATION_FAILED`, `meta: undefined` and the summary "Contract validation failed". The table and column appear only in the `why` text, as a storage path (`storage.namespaces.public.entries.table.Token.columns.added`), and the space is not named.
+  - `contract print` now refuses the old fixture's `.000Z` default, where it used to normalise it.
+- Change:
+  - Update the journeys to the load refusal. Give the refusal meta naming the space, table and column, as item 1 asks, so the CLI can show them.
+  - Have the round-trip test expect the refusal for the deliberately old fixture, or leave that fixture out.
+  - In later rounds run every integration file that loads a stored contract default (`git grep -l "DEFAULT_INVALID\|stale-contract\|_fixture-before-canonical-form" test/`).
+
+### S3-e-R1-2 (must-fix): invalid type parameters are now reported as a refused default
+
+- Where: `defaultProblems` in `packages/2-sql/9-family/src/core/contract-stack-checks.ts`; the test "reports type parameters the data type refuses as a contract error, not an unexpected one" in `stale-contract-default.e2e.test.ts`.
+- What is wrong: a contract with `varchar(0)` used to be refused with `CONTRACT.TYPE_PARAMS_INVALID: pg/varchar: length must be at least 1 (was 0)`. Now the default check runs first and reads the default under the invalid parameters. It reports "the default "abc" is not a value of pg/varchar: ... a string of at most 0 characters", which blames the default for a fault in the parameters.
+- Change: check a column's parameters against its type before reading its default, and skip the default when the parameters are refused, so the parameter error is the one reported. Keep the test's expectation.
+
+### S3-e-R1-3 (should-fix): the journeys leave out some built-in types and codecs
+
+- Where: `defaults-read-by-codec.e2e.test.ts` and `defaults-read-by-codec.sqlite.e2e.test.ts` in `test/integration/test/cli-journeys/`.
+- What is wrong:
+  - The Postgres journey has no column of `pg/enum`, a built-in type with a codec whose defaults PSL writes.
+  - The codecs read reported defaults one by one, but `BigIntNumber` (`pg/int8number@1`) and `UnboundedInt` (`pg/unboundedint@1`) are missing, though their types are covered.
+  - The SQLite journey has no `Char` or `VarChar` column (`sqlite/character`, `sqlite/character-varying`), if the SQLite stack offers those constructors.
+- Change: add a native enum column with a default, the two integer codecs, and the SQLite character types where PSL can write them.
+
+### S3-e-R1-4 (should-fix, for the orchestrator): brief f's infer item rests on two false premises
+
+- Where: item 4 of `projects/data-types-completion/slices/3/briefs/s3-dispatch-f.md`.
+- What is wrong:
+  - It says dispatch e's introspection already gives `contract infer` a value. It does not: infer introspects without a contract, so a literal default keeps its raw text, and `parseInferredDefault` (`packages/3-targets/3-targets/postgres/src/core/psl-infer/infer-default-parser.ts`) reads it type by type.
+  - It says dispatch e removed `readReportedValue`'s last caller. `infer-default-codec.ts` still calls it.
+- Change: brief f deletes `parseInferredDefault` and `infer-default-parser.ts`, reads each reported literal with the codec of the inferred constructor (`fromWire`, then `toDataTypeValue`), and removes the `readReportedValue` call and the function.
+
+### S3-e-R1-5 (low, for the orchestrator): brief g does not name date and time defaults stored before the canonical form
+
+- Where: item 3 of `projects/data-types-completion/slices/3/briefs/s3-dispatch-g.md`.
+- What is wrong: it names spellings that differ from what a column's parameters give. A Postgres contract emitted by a release before the canonical form can also store `"2024-01-01T00:00:00.000Z"`, `"2024-01-01T01:00:00+01:00"` or `"12:34"`, which the contract load now refuses.
+- Change: add these to the Postgres paragraph, with the same fix: `contract emit`, then `db sign`.
+
+### Checks run for dispatch e round 1
+
+- `pnpm build`, root `typecheck:agent`, `lint:agent` and `lint:deps` pass. `lint:framework-vocabulary` is 253 at threshold 253. `pnpm fixtures:check` passes, tree clean.
+- Package tests of sql-schema-ir, family-sql, both targets, both adapters, cli, framework-components, sql-contract, sql-contract-psl, migration-tools, pgvector, postgis, mongo-contract, both codec test kits, sql-contract-ts and sql-relational-core: all pass.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. `test/authoring`, `test/date-time-defaults`, both new journeys, `uuid-defaults`, `value-objects`, `enum-members`, `scalar-lists`, `sql-builder`, `bytea-defaults`, `date-time-default-canonical-form`, `migration-ts-column-defaults`, the `infer-roundtrip-fidelity` files and `psl-print`: 174 files, 2493 pass, 14 fail (S3-e-R1-1 and S3-e-R1-2).
