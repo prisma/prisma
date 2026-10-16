@@ -154,7 +154,7 @@ await call.end({ outcome: 'succeeded', result: rows });
 return rows;
 ```
 
-The user-facing types (`tx`, the facades) and the public `Runtime`, `RuntimeConnection` and `RuntimeTransaction` types omit `startActivity` and `planContentHash`, as `tx` has no `transaction` method today. The ORM reaches activities the same way everything else does, with `startActivityOn` and `planContentHashOn` on the queryable it holds: the runtime's queryables carry the `activitySource` member, the facades give the ORM runtime objects they build the same member, and the ORM rejects a terminal method on a queryable without it with `ORM.ACTIVITY_SOURCE_MISSING`, so a call's annotations are never dropped silently.
+The user-facing types (`tx`, the facades) and the public `Runtime`, `RuntimeConnection` and `RuntimeTransaction` types omit `startActivity` and `planContentHash`, as `tx` has no `transaction` method today. The ORM reaches activities the same way everything else does, with `startActivityOn` and `planContentHashOn` on the queryable it holds: the runtime's queryables carry the `activitySource` member, the facades give the ORM runtime objects they build the same member, and a terminal method on a queryable without it fails with `ORM.ACTIVITY_SOURCE_MISSING`, so a call's annotations are never dropped silently.
 
 ### Annotations
 
@@ -189,7 +189,7 @@ activityFinalized(activity, result, ctx) {
 
 ### Caching
 
-The cache middleware applies one rule to every kind of activity: when the activity carries a cache annotation, serve it from the store through `intercept`, and on a miss store the result it ended with, if it succeeded. The key is the annotation's `key`, or else one derived from the activity's content hash: `ctx.contentHash(exec)` for a statement, `activity.contentHash()` for a client activity. An annotated ORM call is cached as a whole: on a hit the ORM sends no statements. The middleware tags each value it stores with the kind of activity that produced it, `statement-rows` or `call-result`, and the store keeps the tag, so a statement's rows and a call's result under the same key never stand in for each other.
+The cache middleware applies one rule to every kind of activity: when the activity carries a cache annotation, serve it from the store through `intercept`, and on a miss store the result it ended with, if it succeeded. The key is the annotation's `key`, or else one derived from the activity's content hash: `ctx.contentHash(exec)` for a statement, `activity.contentHash()` for a client activity. An annotated ORM call is cached as a whole: on a hit the ORM sends no statements. The middleware tags each value it stores with what produced it, `statement-rows` or `call-result`, and the store keeps the tag, so a statement's rows and a call's result under the same key never stand in for each other.
 
 The cache neither serves nor stores an activity for which `ctx.inTransaction()` is true, because a transaction must read its own uncommitted writes and the cache cannot know what the transaction changed until it commits. It also skips an activity whose `ctx.scope` is `'connection'`, because a held connection can carry session state, such as a database role, that changes which rows a statement returns.
 

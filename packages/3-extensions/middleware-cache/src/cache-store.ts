@@ -8,7 +8,7 @@ import { structuredError } from '@internal/utils/structured-error';
 export type CachedRows = readonly Record<string, unknown>[];
 
 /**
- * The value type the cache middleware stores: a statement's raw rows, or the result of a call a client started, such as an ORM call. The middleware tags each value with what produced it and serves `statement-rows` only to a statement and a `call-result` only to a call; under one key, a value with the other tag is a miss.
+ * The value type the cache middleware stores: a statement's raw rows, or the result of a client activity, such as an ORM call. The middleware tags each value with what produced it: `statement-rows` for a statement's rows, `call-result` for a client activity's result. It serves `statement-rows` only to a statement and `call-result` only to a client activity; under one key, a value with the other tag is a miss.
  */
 export type CachedValue =
   | { readonly kind: 'statement-rows'; readonly rows: CachedRows }

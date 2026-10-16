@@ -11,7 +11,7 @@ import type {
   RuntimeQueryable,
 } from '@internal/sql-runtime';
 import { blindCast } from '@internal/utils/casts';
-import { preparedIdentity, preparedOrmCallOf } from './orm-call';
+import { preparedHashInput, preparedOrmCallOf } from './orm-call';
 
 export interface PreparedRowQuery<Params, Result> {
   query(target: RuntimeQueryable, params: Params, options?: RuntimeExecuteOptions): Result;
@@ -56,7 +56,7 @@ export function createPreparedRowQuery<Params, DbRow, Result>(
       const rows = (queryable: RuntimeQueryable) => statement.query(queryable, params, options);
       const call = preparedOrmCallOf(description);
       if (call === undefined) return description.consume(rows(target));
-      return call(target, rows, preparedIdentity(statement, params));
+      return call(target, rows, preparedHashInput(statement, params));
     },
   });
 }

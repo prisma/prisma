@@ -156,10 +156,10 @@ import { executeGraph, queryGraph } from './mutation-graph/run-graph';
 import { assertCursorCompatibleOrder, assertDistinctOnCompatibleOrder } from './order-by-guards';
 import {
   asPreparedOrmCall,
-  modelIdentity,
+  modelHashInput,
   type OrmCall,
   ormResults,
-  planIdentity,
+  planHashInput,
   preparedRowsCall,
   preparedValueCall,
   runOrmCall,
@@ -1723,7 +1723,7 @@ export class CollectionBase<
     plan: () => SqlQueryPlan,
     accepts: (value: unknown) => value is Result,
   ): OrmCall<Result> {
-    return { method, annotations, identity: planIdentity(plan), accepts };
+    return { method, annotations, hashInput: planHashInput(plan), accepts };
   }
 
   #writeCall<Result>(
@@ -1734,7 +1734,7 @@ export class CollectionBase<
     return {
       method,
       annotations,
-      identity: modelIdentity(this.namespaceId, this.modelName),
+      hashInput: modelHashInput(this.namespaceId, this.modelName),
       accepts,
     };
   }

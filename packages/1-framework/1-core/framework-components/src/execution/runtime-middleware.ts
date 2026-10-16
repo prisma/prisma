@@ -58,7 +58,7 @@ export type ClientActivityResult<K extends ClientActivityKind> =
 export interface ClientActivity<K extends ClientActivityKind = ClientActivityKind>
   extends ActivityBase {
   readonly kind: K;
-  /** An opaque digest of what the activity does, from the function the client supplied. It is computed on the first call and the same promise is returned to every later caller, so nothing is computed when no middleware asks. The client decides how fine the digest is, so equal digests do not mean equal work unless the client says so: the SQL ORM's digest covers the statement a read sends first, but only the method and the model for a write. */
+  /** An opaque digest of what the activity does, from the function the client supplied. It is computed on the first call and the same promise is returned to every later caller, so nothing is computed when no middleware asks. The client decides how fine the digest is, so equal digests do not mean equal work unless the client says so. */
   contentHash(): Promise<string>;
 }
 

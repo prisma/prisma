@@ -23,6 +23,13 @@ changes:
       matches:
         - '\bCachedRows\b'
         - 'createInMemoryCacheStore<[^>(]*,'
+  - id: orm-needs-a-runtime-queryable
+    summary: |
+      Pass `orm()` a runtime, connection or transaction from the SQL runtime itself, or `db.runtime()`. A hand-built object that copies only `query` and `execute` (for example `orm({ context, runtime: { query(plan) { return runtime.query(plan); }, execute(plan) { return runtime.execute(plan); } } })`) has no activity source, so every terminal method on it now fails with `ORM.ACTIVITY_SOURCE_MISSING`: `all()` and the other streaming terminals throw when called, and the others reject. If you need the wrapper, keep the original's `[activitySource]` member on it.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx}"
+      matches:
+        - 'runtime:\s*\{[^}]*?\b(?:query|execute)\s*[(:]'
   - id: close-lets-open-orm-calls-finish
     summary: |
       On a client that closes at once (`postgres({ url })`, `sqlite()`, `supabase()`), an ORM call that resolves to one value, such as `first()`, `create()`, `include(...).create()` or a nested create, starts when it is called, and `close()` waits for it, so one left pending at `close()` now completes instead of rejecting: a `create()` used to reject with "Runtime is closed", and `include(...).create()` and a nested create with "Postgres client is closed". A streaming read such as `all()` starts when it is read; read after `close()`, it rejects with "Postgres client is closed" instead of "Runtime is closed". Update code or tests that expect the old outcome.

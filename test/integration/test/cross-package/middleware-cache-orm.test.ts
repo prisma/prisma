@@ -1,7 +1,10 @@
+import pgvector from '@internal/extension-pgvector/runtime';
 import { cacheAnnotation, createCacheMiddleware } from '@internal/middleware-cache';
+import postgres from '@internal/postgres/runtime';
 import { orm } from '@internal/sql-orm-client';
 import { type SqlMiddleware, withTransaction } from '@internal/sql-runtime';
 import { timeouts } from '@repo/test-utils';
+import { Client } from 'pg';
 import { describe, expect, it } from 'vitest';
 import { useMiddlewareCacheDatabase } from './middleware-cache-database';
 
@@ -90,5 +93,39 @@ describe('integration: middleware-cache caches ORM calls against real Postgres',
       statementsInTransaction: 2,
       statementsAfter: 3,
     });
+  });
+
+  it("neither serves nor stores an annotated ORM read inside the facade's db.transaction(fn)", async () => {
+    const sent: string[] = [];
+    const client = new Client({ connectionString: database.connectionString });
+    await client.connect();
+    const db = postgres({
+      contract: database.contract,
+      pg: client,
+      verifyMarker: false,
+      extensions: [pgvector],
+      middleware: [createCacheMiddleware(), statementsFromDriver(sent)],
+    });
+    const read = (users: typeof db.orm.public.User) =>
+      users
+        .select('id')
+        .orderBy((user) => user.id.asc())
+        .all((meta) => meta.annotate(cacheAnnotation({ key: 'facade-transaction' })));
+    try {
+      await db.transaction(async (tx) => {
+        await read(tx.orm.public.User);
+        await read(tx.orm.public.User);
+      });
+      const statementsInTransaction = sent.length;
+      await read(db.orm.public.User);
+
+      expect({ statementsInTransaction, statementsAfter: sent.length }).toEqual({
+        statementsInTransaction: 2,
+        statementsAfter: 3,
+      });
+    } finally {
+      await db.close();
+      await client.end();
+    }
   });
 });

@@ -30,7 +30,7 @@ import { createModelAccessor } from './model-accessor';
 import {
   asPreparedOrmCall,
   ormResults,
-  planIdentity,
+  planHashInput,
   preparedValueCall,
   runOrmCall,
 } from './orm-call';
@@ -264,7 +264,7 @@ export class GroupedCollection<
       {
         method: groupedAggregateMethod,
         annotations: this.#annotations(configure),
-        identity: planIdentity(() => description.plan),
+        hashInput: planHashInput(() => description.plan),
         accepts: ormResults.rows<
           GroupedAggregateRow<TContract, ModelName, GroupFields, NsId, Spec>
         >,

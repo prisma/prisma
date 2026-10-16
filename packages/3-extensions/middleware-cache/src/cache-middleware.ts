@@ -23,8 +23,8 @@ import {
  *   to `deriveKeyFromContentHash`. It runs on every such statement, hit or miss, and an error from
  *   it fails the statement. It must return different keys whenever the rows can differ; build on
  *   `deriveKeyFromContentHash` to keep the statement, parameters and storage hash. It does not
- *   apply to a call a client started, such as an ORM call, which has no execution plan: a call
- *   whose annotation has no `key` is keyed by `activity.contentHash()`. A `deriveKey` that
+ *   apply to a client activity, such as an ORM call, which has no execution plan: a client
+ *   activity whose annotation has no `key` is keyed by `activity.contentHash()`. A `deriveKey` that
  *   separates tenants does not separate ORM calls; give each annotated ORM call a tenant-prefixed
  *   `key`, or one tenant's cached ORM read can be served to another.
  *
@@ -121,11 +121,11 @@ function valueToStore(miss: PendingMiss, result: ActivityEndedResult): CachedVal
  *
  * - A statement whose plan carries the annotation, such as an annotated SQL builder query. Its key
  *   is the annotation's `key`, else `deriveKey(exec, ctx)`; its value is the raw rows.
- * - A call a client started whose activity carries the annotation, such as an annotated ORM read.
- *   Its key is the annotation's `key`, else `await activity.contentHash()`; its value is the result
- *   the client ended the call with. The call is served as a whole, so a hit sends no statement.
+ * - A client activity that carries the annotation, such as an annotated ORM read. Its key is the
+ *   annotation's `key`, else `await activity.contentHash()`; its value is the result the client
+ *   ended the activity with. It is served as a whole, so a hit sends no statement.
  *
- * The middleware tags each stored value `statement-rows` or `call-result` and serves it only to the same kind of read; under the same key, a value with the other tag is a miss, and the read stores its own value in its place. A key therefore belongs to one query and one terminal method: an ORM call served another method's result under a shared key fails with `ORM.INTERCEPTED_RESULT_INVALID` or returns the wrong shape.
+ * The middleware tags each stored value `statement-rows` or `call-result` and serves `statement-rows` only to a statement and `call-result` only to a client activity; under the same key, a value with the other tag is a miss, and the read stores its own value in its place. A key therefore belongs to one query and one terminal method: an ORM call served another method's result under a shared key fails with `ORM.INTERCEPTED_RESULT_INVALID` or returns the wrong shape.
  *
  * - `intercept.onQuery` and `intercept.onActivity` — on a hit, return the stored rows or result,
  *   and nothing runs. On a miss, record the pending entry.

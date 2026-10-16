@@ -1,7 +1,7 @@
 import { AsyncIterableResult, defineAnnotation } from '@internal/framework-components/runtime';
 import { describe, expect, it } from 'vitest';
 import {
-  modelIdentity,
+  modelHashInput,
   type OrmCall,
   ormResults,
   runOrmCall,
@@ -19,7 +19,7 @@ function rowsCall(
   return {
     method: 'all',
     annotations,
-    identity: modelIdentity('public', 'User'),
+    hashInput: modelHashInput('public', 'User'),
     accepts: ormResults.rows,
   };
 }
@@ -28,7 +28,7 @@ function valueCall(): OrmCall<number> {
   return {
     method: 'count',
     annotations: undefined,
-    identity: modelIdentity('public', 'User'),
+    hashInput: modelHashInput('public', 'User'),
     accepts: ormResults.count,
   };
 }

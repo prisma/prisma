@@ -98,6 +98,25 @@ describe('app cached-orm-reads-key-on-the-call detection', () => {
   });
 });
 
+describe('app orm-needs-a-runtime-queryable detection', () => {
+  it.each([
+    [
+      'methods that forward to a runtime',
+      'const ormClient = orm({\n  context,\n  runtime: {\n    query(plan) {\n      return runtime.query(plan);\n    },',
+    ],
+    ['an execute property', 'orm({ context, runtime: { execute: (plan) => rt.execute(plan) } })'],
+  ])('finds %s', (_name, content) => {
+    expect(detects('app', 'orm-needs-a-runtime-queryable', content)).toBe(true);
+  });
+
+  it.each([
+    ['the runtime itself', 'const ormClient = orm({ context, runtime });'],
+    ['an option named like query', 'orm({ context, runtime: { queryTimeout: 1000 } })'],
+  ])('skips %s', (_name, content) => {
+    expect(detects('app', 'orm-needs-a-runtime-queryable', content)).toBe(false);
+  });
+});
+
 describe('app close-lets-open-orm-calls-finish detection', () => {
   it.each([
     ['Runtime is closed', "expect(outcome).toMatchObject({ message: 'Runtime is closed' });"],

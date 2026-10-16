@@ -135,9 +135,9 @@ export function createActivityRuntime(options: ActivityRuntimeOptions = {}): {
   return { runtime, calls, hashed, outside };
 }
 
-/** The content hash an `orm-call` for `method` has when its identity is `identity`. */
-export function ormCallHash(method: string, identity: unknown): Promise<string> {
-  return hashContent(canonicalStringify({ kind: 'orm-call', method, identity }));
+/** The content hash an `orm-call` for `method` has when its hash input is `hashInput`. */
+export function ormCallHash(method: string, hashInput: unknown): Promise<string> {
+  return hashContent(canonicalStringify({ kind: 'orm-call', method, hashInput }));
 }
 
 /** A collection over {@link createActivityRuntime}; with `returning`, over a contract that has the returning capability, as writes need. */

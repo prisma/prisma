@@ -22,27 +22,27 @@ export interface OrmCall<Result> {
   readonly method: string;
   readonly annotations: Annotations | undefined;
   /** What the call's content hash digests besides its kind and method. */
-  readonly identity: (source: ActivitySource) => Promise<unknown>;
+  readonly hashInput: (source: ActivitySource) => Promise<unknown>;
   readonly accepts: (value: unknown) => value is Result;
 }
 
-export type CallIdentity = OrmCall<unknown>['identity'];
+export type CallHashInput = OrmCall<unknown>['hashInput'];
 
-/** A read's identity is the content hash of the plan it sends first. */
-export function planIdentity(plan: () => SqlQueryPlan): CallIdentity {
+/** The hash input of a read is the content hash of the plan it sends first. */
+export function planHashInput(plan: () => SqlQueryPlan): CallHashInput {
   return (source) => source.planContentHash(plan());
 }
 
-/** A prepared read's identity is the content hash of the statement with the parameters this execution binds. */
-export function preparedIdentity(
+/** The hash input of a prepared read is the content hash of the statement with the parameters this execution binds. */
+export function preparedHashInput(
   statement: PreparedStatement<unknown, unknown>,
   params: unknown,
-): CallIdentity {
+): CallHashInput {
   return (source) => source.planContentHash({ statement, params });
 }
 
-/** A write's statements depend on earlier results, so its identity is the model it writes. */
-export function modelIdentity(namespaceId: string, modelName: string): CallIdentity {
+/** A write's statements depend on earlier results, so its hash input is the model it writes. */
+export function modelHashInput(namespaceId: string, modelName: string): CallHashInput {
   return async () => ({ namespace: namespaceId, model: modelName });
 }
 
@@ -62,7 +62,7 @@ async function ormCallContentHash(source: ActivitySource, call: OrmCall<unknown>
     canonicalStringify({
       kind: 'orm-call',
       method: call.method,
-      identity: await call.identity(source),
+      hashInput: await call.hashInput(source),
     }),
   );
 }
@@ -191,7 +191,7 @@ const preparedOrmCall = Symbol('preparedOrmCall');
 export type PreparedOrmCall<DbRow, Result> = (
   target: RuntimeScope,
   rows: (queryable: RuntimeQueryable) => AsyncIterableResult<DbRow>,
-  identity: CallIdentity,
+  hashInput: CallHashInput,
 ) => Result;
 
 interface PreparableOrmCall<DbRow, Result> extends Preparable<DbRow, Result> {
@@ -223,10 +223,10 @@ export function preparedRowsCall<DbRow, Row>(
   annotations: Annotations | undefined,
   consume: (rows: AsyncIterableResult<DbRow>) => AsyncIterableResult<Row>,
 ): PreparedOrmCall<DbRow, AsyncIterableResult<Row>> {
-  return (target, rows, identity) =>
+  return (target, rows, hashInput) =>
     streamOrmCall(
       target,
-      { method, annotations, identity, accepts: ormResults.rows<Row> },
+      { method, annotations, hashInput, accepts: ormResults.rows<Row> },
       (queryable) => consume(rows(queryable)),
     );
 }
@@ -237,8 +237,8 @@ export function preparedValueCall<DbRow, Result>(
   consume: (rows: AsyncIterableResult<DbRow>) => Promise<Result>,
   accepts: (value: unknown) => value is Result,
 ): PreparedOrmCall<DbRow, Promise<Result>> {
-  return (target, rows, identity) =>
-    runOrmCall(target, { method, annotations, identity, accepts }, (queryable) =>
+  return (target, rows, hashInput) =>
+    runOrmCall(target, { method, annotations, hashInput, accepts }, (queryable) =>
       consume(rows(queryable)),
     );
 }
