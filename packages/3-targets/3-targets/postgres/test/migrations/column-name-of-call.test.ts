@@ -1,5 +1,6 @@
 import { col, lit } from '@internal/sql-relational-core/contract-free';
 import { describe, expect, it } from 'vitest';
+import { postgresDataTypes } from '../../src/core/data-types';
 import {
   AddColumnCall,
   CreateTableCall,
@@ -12,9 +13,16 @@ describe('columnNameOfCall', () => {
   it('names the column a call acts on, whether the call carries the name or the column', () => {
     expect({
       setDefault: columnNameOfCall(
-        new SetDefaultCall('public', 'user', col('role', 'text', { default: lit('member') })),
+        new SetDefaultCall(
+          'public',
+          'user',
+          col('role', 'text', { default: lit('member') }),
+          'additive',
+        ),
       ),
-      addColumn: columnNameOfCall(new AddColumnCall('public', 'user', col('email', 'text'))),
+      addColumn: columnNameOfCall(
+        new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes),
+      ),
       dropColumn: columnNameOfCall(new DropColumnCall('public', 'user', 'legacy')),
       createTable: columnNameOfCall(new CreateTableCall('public', 'user', [col('id', 'int4')])),
     }).toEqual({

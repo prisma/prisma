@@ -3,7 +3,7 @@
  * `prisma.config.ts` points `defineConfig` from the Postgres config entry at
  * `prisma7Schema('./schema.prisma')` runs `contract emit`, `db sign`, and
  * `db verify` through the real command family against a database built by the
- * SQL Prisma 7.10.0 generated, with exit 0 and zero findings. The contract keeps the columns of `@ignore` fields and the tables of `@@ignore` models, so `db verify --strict` reports only the column default left behind by the `@default(now())` removed beside `@updatedAt`. A schema with a `view` fails `contract emit` with one diagnostic and writes nothing.
+ * SQL Prisma 7.10.0 generated, with exit 0 and zero findings. Prisma 7 creates no check on a list column, so a `String[]` column reads as a list whose elements may be null, and verifies with no migration. The contract keeps the columns of `@ignore` fields and the tables of `@@ignore` models, so `db verify --strict` reports only the column default left behind by the `@default(now())` removed beside `@updatedAt`. A schema with a `view` fails `contract emit` with one diagnostic and writes nothing.
  */
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { withClient } from '@repo/test-utils';
@@ -171,6 +171,22 @@ withTempDir(({ createTempDir }) => {
               onUpdate: 'cascade',
             }),
           ]),
+        });
+
+        const scalars = publicTables?.['Scalars'] as
+          | { readonly columns: Record<string, unknown>; readonly checks?: readonly unknown[] }
+          | undefined;
+        expect({
+          stringList: scalars?.columns['stringList'],
+          checks: scalars?.checks ?? [],
+        }).toEqual({
+          stringList: {
+            dataType: 'pg/text',
+            codecId: 'pg/text@1',
+            nullable: true,
+            many: { elementNullable: true },
+          },
+          checks: [],
         });
 
         const sign = await runDbSign(ctx, ['--json']);

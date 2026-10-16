@@ -277,10 +277,6 @@ An authored `@@check` / `check()`'s `name:` prefix matches the shape a derived e
 
 A model declares `@@check` / `check()` but is a single-table-inheritance variant (`@@base` with no own `@@map`), so it shares its base model's storage table and has no table of its own to declare the check on. Raised while building a SQL contract, as a backstop for the TS authoring path; the PSL surface refuses this earlier, at interpretation, with a span-anchored `PSL_CHECK_ON_STI_VARIANT` diagnostic naming the base model. The fix is to declare the check on the base model instead. Payload: `tableName`, `modelName`.
 
-### CONTRACT.CHECK_OPTOUT_INVALID
-
-A `@noCheck` / `.noCheck(...)` declaration is invalid. Either it does not apply to the column: the named kind is not derivable for the column's shape (`membership` on a column with no domain-enum value set, `elementNotNull` on a column that is not a list of scalars), or the bare form waives nothing because the column derives no generated checks, or the declaration is malformed: a kind is named twice, or `noCheck()` is called more than once on one field builder. Raised by both authoring paths (TS `defineContract` and PSL interpretation) on `managed` tables. Payload: `modelName`, `fieldName`, `reason`, and `kind` for per-kind failures.
-
 ### CONTRACT.COLLECTION_INVALID
 
 A Mongo model's collection attachment is wrong: the model declares `indexes`, `collectionOptions`, or `controlPolicy` but has no collection, or a single collection has `collectionOptions` / `controlPolicy` declared by more than one model. Raised by the Mongo `defineContract` builder. Payload: `modelName`, `collection`, `reason`.
@@ -1343,6 +1339,10 @@ Using a driver, a client, or the CLI control client before `connect(...)` has be
 A prepared statement failed again after the PostgreSQL driver discarded a stale handle and retried with a fresh handle. The normalized PostgreSQL error is attached as `cause`. Payload: `handle`.
 
 ## MIGRATION
+
+### MIGRATION.ALTER_COLUMN_TYPE_USING_WITHOUT_TYPE_CHANGE
+
+A hand-written PostgreSQL `this.alterColumnType({ schema, table, column, type, using })` has a `using` conversion, but the migration's start contract, after the renames made earlier in the same migration, already gives the column `type`. Only a call with `using` is refused; an unchanged type without `using` loses nothing when it is skipped. The operation's postcheck checks only the column's type, which already holds, so the runner would skip it and the conversion would never run. Raised when `migration.ts` builds its operations, so no `ops.json` is written. Write the conversion as a `dataTransform`, which checks the rows themselves, or change the column to another type. Payload: `where`, `type`.
 
 ### MIGRATION.AMBIGUOUS_MIGRATION_REF
 

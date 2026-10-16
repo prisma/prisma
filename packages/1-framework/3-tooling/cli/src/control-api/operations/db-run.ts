@@ -69,6 +69,7 @@ import type {
   DbUpdateFailure,
   DbUpdateResult,
   DbUpdateSuccess,
+  FailedPrecheckReport,
   FailedTypeChangeReport,
   OnControlProgress,
   PerSpaceExecutionEntry,
@@ -460,6 +461,7 @@ export async function executeRun<TFamilyId extends string, TTargetId extends str
       ...ifDefined('warnings', plannerWarnings),
       ...ifDefined('failedTypeChange', applied.failure.failedTypeChange),
       ...ifDefined('rowsWithoutValue', applied.failure.rowsWithoutValue),
+      ...ifDefined('failedPrecheck', applied.failure.failedPrecheck),
       ...ifDefined('databaseStorageHash', databaseStorageHash),
       ...ifDefined('cause', applied.failure.cause),
     });
@@ -760,6 +762,7 @@ function buildRunnerFailure(args: {
   readonly warnings?: readonly MigrationPlannerConflict[];
   readonly failedTypeChange?: FailedTypeChangeReport;
   readonly rowsWithoutValue?: readonly RowsWithoutValueReport[];
+  readonly failedPrecheck?: FailedPrecheckReport;
   /** The contract the database is at, when a migration of the graph ends at it. */
   readonly databaseStorageHash?: string;
   readonly cause?: unknown;
@@ -773,6 +776,7 @@ function buildRunnerFailure(args: {
     ...ifDefined('warnings', args.warnings),
     ...ifDefined('failedTypeChange', args.failedTypeChange),
     ...ifDefined('rowsWithoutValue', args.rowsWithoutValue),
+    ...ifDefined('failedPrecheck', args.failedPrecheck),
     ...ifDefined('databaseStorageHash', args.databaseStorageHash),
     ...ifDefined('cause', args.cause),
   };

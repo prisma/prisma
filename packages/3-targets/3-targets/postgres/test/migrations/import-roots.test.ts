@@ -10,6 +10,7 @@ import {
 } from '@internal/publish-surface/import-roots';
 import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { describe, expect, it } from 'vitest';
+import { postgresDataTypes } from '../../src/core/data-types';
 import {
   AddColumnCall,
   CreateSchemaCall,
@@ -42,7 +43,7 @@ function render(root: ImportRoot): string {
         [col('id', 'text', { notNull: true }), col('kind', 'text', { default: lit('draft') })],
         [primaryKey(['id'])],
       ),
-      new AddColumnCall('app', 'user', col('email', 'text')),
+      new AddColumnCall('app', 'user', col('email', 'text'), postgresDataTypes),
     ],
     {
       from: FROM_HASH,

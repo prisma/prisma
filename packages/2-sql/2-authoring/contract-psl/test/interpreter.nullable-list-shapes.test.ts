@@ -226,6 +226,5 @@ model User {
     });
     expect(addressesColumn?.many).toBe(false);
     expect(Object.hasOwn(addressesColumn ?? {}, 'elementNullable')).toBe(false);
-    expect(Object.hasOwn(addressesColumn ?? {}, 'noCheck')).toBe(false);
   });
 });

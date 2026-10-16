@@ -156,7 +156,7 @@ Both factory types return `AttributeSpec<never, …>`, and the bottom type is de
 readonly refine?: (parsed: Out, ctx: Ctx, attributeNode: AstNode) => readonly PslDiagnostic[];
 ```
 
-A parameter position makes `Out` contravariant. A concrete spec — the one `modelAttribute('index', …)` builds, whose `refine` receives `{ fields?: string[]; expression?: string; … }` — is assignable to `AttributeSpec<Out, ModelAttributeCtx>` only when `Out` is assignable to that concrete output type. `never` is assignable to every type, so every real spec fits. `unknown` is assignable to none of them, so `AttributeSpec<unknown, …>` would reject every spec that declares a `refine` — `@@index`, `@@check`, `@noCheck`, `@relation` — and the registry would be able to hold only the specs with no cross-argument validation. The same reasoning fixes `AuthoringModelAttributeDescriptor<Out = never>` and leaves `InferAttr<S>`'s parameter unconstrained.
+A parameter position makes `Out` contravariant. A concrete spec — the one `modelAttribute('index', …)` builds, whose `refine` receives `{ fields?: string[]; expression?: string; … }` — is assignable to `AttributeSpec<Out, ModelAttributeCtx>` only when `Out` is assignable to that concrete output type. `never` is assignable to every type, so every real spec fits. `unknown` is assignable to none of them, so `AttributeSpec<unknown, …>` would reject every spec that declares a `refine` — `@@index`, `@@check`, `@relation` — and the registry would be able to hold only the specs with no cross-argument validation. The same reasoning fixes `AuthoringModelAttributeDescriptor<Out = never>` and leaves `InferAttr<S>`'s parameter unconstrained.
 
 ---
 

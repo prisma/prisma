@@ -2,7 +2,11 @@ import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter
 import { opaqueSql } from '@internal/sql-relational-core/ast';
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { describe, expect, it } from 'vitest';
-import { rlsEnabledAst, rlsPolicyExistsAst } from '../../src/contract-free/checks';
+import {
+  rlsEnabledAst,
+  rlsPolicyDefinitionAst,
+  rlsPolicyExistsAst,
+} from '../../src/contract-free/checks';
 import {
   CreatePostgresRlsPolicyCall,
   DropPostgresRlsPolicyCall,
@@ -97,7 +101,7 @@ describe('renderCreatePolicySql role-name validation', () => {
   });
 });
 
-const basePolicy = new PostgresRlsPolicy({
+const basePolicyInput = {
   naming: parseNaming('read_own_profiles_ab12cd34', 'read_own_profiles'),
   tableName: 'profiles',
   namespaceId: 'public',
@@ -106,7 +110,9 @@ const basePolicy = new PostgresRlsPolicy({
   using: '(auth.uid() = user_id)',
   permissive: true,
   withCheck: undefined,
-});
+} as const;
+
+const basePolicy = new PostgresRlsPolicy(basePolicyInput);
 
 describe('createRlsPolicy op', () => {
   it('passes the correct PostgresCreatePolicy node to the lowerer', async () => {
@@ -174,18 +180,46 @@ describe('createRlsPolicy op', () => {
     // lowerer in adapter-postgres `verification-checks-lowering.test.ts`.
   });
 
-  it('lowers a parameterized policy-present postcheck', async () => {
+  it('lowers a postcheck on the policy command, roles and permissiveness', async () => {
     const { lowerer, received } = recordingCheckLowerer();
     const op = await createRlsPolicy('public', 'profiles', basePolicy, lowerer);
     expect(received).toContainEqual(
-      rlsPolicyExistsAst({
+      rlsPolicyDefinitionAst({
         schema: 'public',
         table: 'profiles',
         policyName: 'read_own_profiles_ab12cd34',
-      }).policyPresent(),
+        command: 'SELECT',
+        permissive: true,
+        roles: ['authenticated'],
+      }),
     );
-    // Call order: absent (p1), DDL node (p2), present (p3)
-    expect(op.postcheck[0]?.params).toEqual(['p3']);
+    expect(op.postcheck.map((step) => step.params)).toEqual([['p3']]);
+  });
+
+  it('checks for the public role when the policy names no roles, and lower-cases role names', async () => {
+    const { lowerer, received } = recordingCheckLowerer();
+    await createRlsPolicy(
+      'public',
+      'profiles',
+      new PostgresRlsPolicy({ ...basePolicyInput, roles: [] }),
+      lowerer,
+    );
+    await createRlsPolicy(
+      'public',
+      'profiles',
+      new PostgresRlsPolicy({ ...basePolicyInput, roles: ['Admin', 'admin'] }),
+      lowerer,
+    );
+    const definition = (roles: readonly string[]) =>
+      rlsPolicyDefinitionAst({
+        schema: 'public',
+        table: 'profiles',
+        policyName: 'read_own_profiles_ab12cd34',
+        command: 'SELECT',
+        permissive: true,
+        roles,
+      });
+    expect([received[2], received[5]]).toEqual([definition(['public']), definition(['admin'])]);
   });
 
   it('operationClass is additive', async () => {

@@ -10,8 +10,10 @@ import {
   ListCollectionsCommand,
   ListIndexesCommand,
   MongoAndExpr,
+  MongoExistsExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
+  MongoNotExpr,
   RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import { MongoSchemaCollection, MongoSchemaCollectionOptions } from '@internal/mongo-schema-ir';
@@ -66,14 +68,6 @@ describe('createIndex', () => {
 
     expect(op.postcheck).toHaveLength(1);
     expect(op.postcheck[0]!.expect).toBe('exists');
-  });
-
-  it('adds unique filter to postcheck when unique: true', () => {
-    const op = createIndex('users', keys, { unique: true });
-
-    expect(op.postcheck[0]!.filter).toBeInstanceOf(MongoAndExpr);
-    const andExpr = op.postcheck[0]!.filter as MongoAndExpr;
-    expect(andExpr.exprs).toHaveLength(2);
   });
 
   it('uses key._fts filter for text indexes', () => {
@@ -609,6 +603,11 @@ describe('serialization round-trip', () => {
           filter: MongoAndExpr.of([
             MongoFieldFilter.eq('key', keysToKeySpec(keys)),
             MongoFieldFilter.eq('unique', true),
+            new MongoNotExpr(MongoFieldFilter.eq('sparse', true)),
+            MongoExistsExpr.notExists('expireAfterSeconds'),
+            MongoExistsExpr.notExists('partialFilterExpression'),
+            MongoExistsExpr.notExists('wildcardProjection'),
+            MongoExistsExpr.notExists('collation'),
           ]),
           expect: 'exists',
         },

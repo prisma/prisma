@@ -3,6 +3,7 @@ import { assertNever } from '@internal/utils/internal-error';
 import type { DbUpdateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorMigrationPlanningFailed, errorRunnerFailed } from './cli-errors';
+import { failedPrecheckWhy } from './failed-precheck-advice';
 import { type CliInvocation, cliCommand } from './printed-command';
 import { dbUpdateFailedTypeChangeFix, dbUpdateRowsWithoutValueFix } from './runner-failure-advice';
 import { runnerSchemaCheckWhy, runnerSchemaIssues } from './schema-issues';
@@ -46,7 +47,12 @@ export function mapDbUpdateFailure(
                 `Legacy marker-table shape detected. Drop \`prisma_contract.marker\` (Postgres) or \`_prisma_marker\` (SQLite) and re-run \`${cliCommand(invocation, 'db init')}\` to recreate it with the current per-space schema.`
               : `Inspect the reported conflict, reconcile schema drift if needed, then re-run \`${cliCommand(invocation, 'db update')}\``;
     return errorRunnerFailed(failure.summary, {
-      why: runnerSchemaCheckWhy(failure.meta) ?? failure.why ?? 'Migration runner failed',
+      why:
+        runnerSchemaCheckWhy(failure.meta) ??
+        failure.why ??
+        (failure.failedPrecheck === undefined
+          ? 'Migration runner failed'
+          : failedPrecheckWhy(failure.failedPrecheck)),
       fix,
       meta: {
         ...failure.meta,

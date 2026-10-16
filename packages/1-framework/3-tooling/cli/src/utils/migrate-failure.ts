@@ -2,6 +2,7 @@ import { ifDefined } from '@internal/utils/defined';
 import type { MigrateFailure } from '../control-api/types';
 import type { CliStructuredError } from './cli-errors';
 import { errorPathUnreachable, errorRunnerFailed } from './cli-errors';
+import { failedPrecheckWhy } from './failed-precheck-advice';
 import type { CliInvocation } from './printed-command';
 import { migrateFix } from './runner-failure-advice';
 import { runnerSchemaCheckWhy } from './schema-issues';
@@ -18,7 +19,12 @@ export function mapMigrateFailure(
     return errorPathUnreachable(failure);
   }
   return errorRunnerFailed(failure.summary, {
-    why: runnerSchemaCheckWhy(failure.meta) ?? failure.why ?? 'Migration runner failed',
+    why:
+      runnerSchemaCheckWhy(failure.meta) ??
+      failure.why ??
+      (failure.failedPrecheck === undefined
+        ? 'Migration runner failed'
+        : failedPrecheckWhy(failure.failedPrecheck)),
     fix: migrateFix(failure, invocation),
     meta: failure.meta ?? {},
     ...ifDefined('cause', failure.cause),

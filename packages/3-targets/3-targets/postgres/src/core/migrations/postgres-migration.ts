@@ -25,6 +25,7 @@ import { errorPostgresMigrationStackMissing, postgresError } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
 import { PostgresRlsPolicy, type RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
+import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
@@ -64,9 +65,10 @@ import { type DataTransformOptions, dataTransform } from './operations/data-tran
 import { installExtension } from './operations/dependencies';
 import type { CreateIndexExtras } from './operations/indexes';
 import type { ForeignKeySpec } from './operations/shared';
-import { stackDataTypes } from './planner-sql-checks';
+import { catalogTypeTextIfReadable, stackDataTypes } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
+import { ddlSchemaOfCallSchema } from './resolve-ddl-schema';
 import { postgresSchemaTables } from './schema-tables';
 import { postgresColumnRenameCall, postgresTableRenameCall } from './table-rename-calls';
 import { createWorkingSchema, type WorkingSchemaCall } from './working-schema';
@@ -147,6 +149,10 @@ export abstract class PostgresMigration<
       ...(stack.adapter === undefined ? [] : [stack.adapter]),
       ...stack.extensions,
     ];
+  }
+
+  private dataTypes(): ReturnType<typeof stackDataTypes> {
+    return stackDataTypes(this.frameworkComponents());
   }
 
   /**
@@ -273,8 +279,9 @@ export abstract class PostgresMigration<
     readonly table: string;
     readonly column: DdlColumn;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AddColumnCall(options.schema, options.table, options.column).toOp(
-      this.controlAdapterFor('addColumn'),
+    const adapter = this.controlAdapterFor('addColumn');
+    return new AddColumnCall(options.schema, options.table, options.column, this.dataTypes()).toOp(
+      adapter,
     );
   }
 
@@ -299,6 +306,7 @@ export abstract class PostgresMigration<
         options.temporaryDefault,
         `addColumnWithTemporaryDefault ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} temporaryDefault`,
       ),
+      this.dataTypes(),
     ).toOp(adapter);
   }
 
@@ -309,12 +317,14 @@ export abstract class PostgresMigration<
     readonly column: string;
     readonly type: string;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    const adapter = this.controlAdapterFor('addRequiredColumnToEmptyTable');
     return new AddRequiredColumnToEmptyTableCall(
       options.schema,
       options.table,
       options.column,
       options.type,
-    ).toOp(this.controlAdapterFor('addRequiredColumnToEmptyTable'));
+      this.dataTypes(),
+    ).toOp(adapter);
   }
 
   protected addPrimaryKey(options: {
@@ -520,8 +530,8 @@ export abstract class PostgresMigration<
 
   /**
    * The start contract's schema with this read's rename calls applied in order. It is built only
-   * when a `renameTable` needs it, so a migration that renames no table never reads its start
-   * contract.
+   * when a rename or a `setDefault` needs it, so a migration that calls neither never reads its
+   * start contract.
    */
   private schemaAfterRenames(startContract: Contract<SqlStorage>): PostgresDatabaseSchemaNode {
     const working = createWorkingSchema(
@@ -571,15 +581,60 @@ export abstract class PostgresMigration<
       options.using,
       `alterColumnType ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} using`,
     );
-    return new AlterColumnTypeCall({
+    const call = new AlterColumnTypeCall({
       schemaName: options.schema,
       tableName: options.table,
       columnName: options.column,
       type: options.type,
       ...ifDefined('using', using === undefined ? undefined : { kind: 'sql' as const, sql: using }),
-      dataTypes: stackDataTypes(this.frameworkComponents()),
+      dataTypes: this.dataTypes(),
       ...ifDefined('operationClass', options.operationClass),
-    }).toOp(adapter);
+      ownsAutoincrementSequence: this.startColumnHasAutoincrementDefault(
+        options.schema,
+        options.table,
+        options.column,
+      ),
+    });
+    if (using !== undefined) this.refuseUnchangedTypeConversion(call);
+    return call.toOp(adapter);
+  }
+
+  private startColumnHasAutoincrementDefault(
+    schema: string,
+    table: string,
+    column: string,
+  ): boolean {
+    const startColumn = this.startColumnAfterRenames(schema, table, column);
+    return startColumn !== undefined && hasAutoincrementDefault(startColumn);
+  }
+
+  /** The column in the start contract's schema after this migration's earlier renames. */
+  private startColumnAfterRenames(schema: string, table: string, column: string) {
+    const startContract = this.startContract;
+    if (startContract === null) return undefined;
+    return this.schemaAfterRenames(startContract).namespaces[ddlSchemaOfCallSchema(schema)]?.tables[
+      table
+    ]?.columns[column];
+  }
+
+  /**
+   * Refuses an `alterColumnType` with `using` to the type the start contract, after this migration's earlier renames, already gives the column. Its postcheck compares only the type, which already holds, so the runner would skip the conversion. Other earlier operations of the migration, such as an earlier `alterColumnType`, are not applied to the start contract.
+   */
+  private refuseUnchangedTypeConversion(call: AlterColumnTypeCall): void {
+    const column = this.startColumnAfterRenames(call.schemaName, call.tableName, call.columnName);
+    if (column === undefined) return;
+    const startType = column.resolvedNativeType ?? column.nativeType;
+    if (catalogTypeTextIfReadable(startType, this.dataTypes()) !== call.checkType) return;
+    const where = alterColumnTypeCallText(call.schemaName, call.tableName, call.columnName);
+    throw postgresError(
+      'MIGRATION.ALTER_COLUMN_TYPE_USING_WITHOUT_TYPE_CHANGE',
+      `${where}: the start contract, after the earlier renames in this migration, already gives the column the type ${JSON.stringify(call.type)}, so the conversion in using would never run`,
+      {
+        why: 'The runner skips an operation whose postchecks already hold. alterColumnType checks only that the column has the new type, which holds before it runs, so the values would never be converted.',
+        fix: 'Write the conversion as a dataTransform, which checks the rows themselves, or change the column to another type.',
+        meta: { where, type: call.type },
+      },
+    );
   }
 
   protected setNotNull(options: {
@@ -602,19 +657,30 @@ export abstract class PostgresMigration<
     );
   }
 
+  /**
+   * Emit an `ALTER COLUMN … SET DEFAULT` operation. It is widening when this migration's start contract, after the renames made earlier in the migration, gives the column a default, and additive otherwise.
+   */
   protected setDefault(options: {
     readonly schema: string;
     readonly table: string;
     readonly column: DdlColumn;
-    readonly operationClass?: 'additive' | 'widening';
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     refuseEarlierSetDefaultOptions(options);
     return new SetDefaultCall(
       options.schema,
       options.table,
       options.column,
-      options.operationClass,
+      this.columnHasDefaultAfterRenames(options.schema, options.table, options.column.name)
+        ? 'widening'
+        : 'additive',
     ).toOp(this.controlAdapterFor('setDefault'));
+  }
+
+  /**
+   * Whether the column, found by schema, table and column name in the start contract after this migration's earlier renames, has a default.
+   */
+  private columnHasDefaultAfterRenames(schema: string, table: string, column: string): boolean {
+    return this.startColumnAfterRenames(schema, table, column)?.default !== undefined;
   }
 
   protected dropDefault(options: {
