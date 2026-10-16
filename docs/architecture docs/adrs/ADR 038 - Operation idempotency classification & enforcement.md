@@ -92,7 +92,7 @@ What each target checks, beyond "an object with this name exists":
 
 ### Where a postcheck is weaker than the full effect
 
-Some postchecks hold for states other than the operation's full effect. They are kept because the alternative is worse. Without a postcheck the runner always runs the prechecks, and a create-style operation has a precheck that its object does not exist yet. On a database that already has the object, such as an existing database adopted by running the migrations against it, that precheck fails. A structural postcheck lets the runner skip the object instead.
+Some postchecks hold for states other than the operation's full effect. They are kept because the alternative is worse. Without a postcheck the runner always runs the prechecks, and a create-style operation has a precheck that its object does not exist yet. On a database that already has the object, such as one where migrations are replayed without a marker, that precheck fails. A structural postcheck lets the runner skip the object instead.
 
 Each weak case, and what catches a difference:
 
@@ -111,7 +111,7 @@ An operation whose postcheck cannot tell its effect apart from no change at all 
 
 SQLite `recreateTable` compares text. It checks that the table's stored `CREATE TABLE` text equals the statement the rebuild writes, and compares a column's default with `pragma_table_info.dflt_value`. SQLite stores both as they were written, not reprinted, so the comparisons are reliable. They hold for less than the full effect, not more: a table with the same meaning written another way fails them, and the runner rebuilds it.
 
-Such a rebuild is common on a database that is further along than the migration, such as one adopted without a marker. A later `ALTER TABLE … ADD COLUMN`, rename or rebuild rewrites the stored text, so an earlier rebuild's postcheck no longer holds and the rebuild runs again. The rebuild copies only the columns it planned for. To keep it from dropping a column it does not know, a precheck checks that the live table's columns, from `pragma_table_info`, are exactly the rebuild's source columns. A table with other columns fails with `MIGRATION.PRECHECK_FAILED` and the transaction rolls back, instead of losing that column's data. A table with the same columns written in another form is rebuilt without loss.
+Such a rebuild is common on a database that is further along than the migration, such as one where migrations are replayed without a marker. A later `ALTER TABLE … ADD COLUMN`, rename or rebuild rewrites the stored text, so an earlier rebuild's postcheck no longer holds and the rebuild runs again. The rebuild copies only the columns it planned for. To keep it from dropping a column it does not know, a precheck checks that the live table's columns, from `pragma_table_info`, are exactly the rebuild's source columns. A table with other columns fails with `MIGRATION.PRECHECK_FAILED` and the transaction rolls back, instead of losing that column's data. A table with the same columns written in another form is rebuilt without loss.
 
 ## Context
 
@@ -119,7 +119,7 @@ The migration runner applies a sequence of operations defined on an edge from `f
 
 The skip in step 1 decides the outcome when the database does not match the migration's start state:
 
-- A database with no marker. `db migrate` runs every operation of every migration against whatever is there. This is how an existing database is adopted.
+- A database with no marker. `db migrate` runs every operation of every migration against whatever is there. This works when the database is at or behind each migration's state: an operation already applied is skipped, and the rest run. A database that is already ahead of a migration stops at that migration's precheck. For example, migration A adds `x int4` and migration B changes it to `int8`. On a database that already has `x int8`, A's postcheck does not hold, because the type differs, and A's precheck fails, because `x` exists. The run halts with `MIGRATION.PRECHECK_FAILED`. An existing database is adopted with `db sign` instead, which writes the marker for the contract the database already satisfies ([Adopting](../../design/10-domains/migration/user-journeys.md#adopting)).
 - `db init` and `db update`, which plan from the live database.
 - A database that drifted from its marker, or a hand-written migration whose operations do not match the database.
 - MongoDB only: running again after a partial failure.
@@ -242,13 +242,14 @@ The classes below describe how operations behave on replay. The runner does not 
 ### Positive
 
 - Safe retries and resumability across failures
-- An existing database can be adopted by running the migrations against it
+- Migrations can be replayed without a marker on a database that is at or behind each migration's state
 - Clear operator signals on conflicts vs harmless replays
 
 ### Negative
 
 - Every postcheck must be reviewed against the rule; a weak postcheck silently skips work
 - Some operations carry no postcheck and rely on the final check against the end contract
+- Replaying migrations without a marker on a database that is already ahead of a migration fails with `MIGRATION.PRECHECK_FAILED` at that migration, where a looser postcheck would have skipped it. For example, a migration that adds `x int4` fails on a database that already has `x int8`. Such a database is adopted with `db sign`, not by replaying history. When the run has no marker, the precheck failure points to `db sign`.
 
 ## Implementation notes
 
