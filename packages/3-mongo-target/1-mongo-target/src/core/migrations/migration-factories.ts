@@ -355,7 +355,7 @@ function collationFilters(collation: CreateIndexOptions['collation']): MongoFilt
  * stores the options as given, except that it completes a collation and a text index's weights and
  * languages with their defaults, so those are compared as MongoDB lists them.
  */
-type IndexOptionFilter = (
+export type IndexOptionFilter = (
   options: CreateIndexOptions | undefined,
   keys: ReadonlyArray<MongoIndexKey>,
 ) => readonly MongoFilterExpr[];
@@ -369,15 +369,16 @@ const textIndexOnly =
 type UncomparedCreateIndexOption = 'name';
 
 /**
- * One filter per option the verifier compares. A `CreateIndexOptions` option missing from that list
- * is required here with type `never`, so it fails to compile until the list names it.
+ * One filter per option the verifier compares. An option of `Options` missing from that list is
+ * required here with type `never`, so it fails to compile until the list names it.
  */
-const INDEX_OPTION_FILTERS: { readonly [K in MongoIndexOptionKey]: IndexOptionFilter } & {
-  readonly [K in Exclude<
-    keyof CreateIndexOptions,
-    UncomparedCreateIndexOption | MongoIndexOptionKey
-  >]: never;
-} = {
+export type IndexOptionFilters<Options extends object = CreateIndexOptions> = {
+  readonly [K in MongoIndexOptionKey]: IndexOptionFilter;
+} & {
+  readonly [K in Exclude<keyof Options, UncomparedCreateIndexOption | MongoIndexOptionKey>]: never;
+};
+
+const INDEX_OPTION_FILTERS: IndexOptionFilters = {
   unique: (options) => [flagFilter('unique', options?.unique)],
   sparse: (options) => [flagFilter('sparse', options?.sparse)],
   expireAfterSeconds: (options) => [

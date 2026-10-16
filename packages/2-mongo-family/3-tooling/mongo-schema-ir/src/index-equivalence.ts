@@ -37,20 +37,23 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   return false;
 }
 
-type IndexOptionName = Exclude<keyof MongoSchemaIndexOptions, 'keys'>;
-
-/** Accepts a list of index options only when it names every one of them. */
-function everyIndexOption<const T extends readonly IndexOptionName[]>(
-  options: T &
-    ([Exclude<IndexOptionName, T[number]>] extends [never]
-      ? unknown
-      : { readonly unlistedOption: Exclude<IndexOptionName, T[number]> }),
-): T {
-  return options;
+/**
+ * Returns a function that accepts a list of options only when it names every member of `Option`;
+ * a list missing one fails to compile, naming the missing option.
+ */
+export function listsEveryOption<Option extends string>() {
+  return <const T extends readonly Option[]>(
+    options: T &
+      ([Exclude<Option, T[number]>] extends [never]
+        ? unknown
+        : { readonly unlistedOption: Exclude<Option, T[number]> }),
+  ): T => options;
 }
 
 /** The index options that tell two indexes on the same keys apart: every option of an index. */
-export const MONGO_INDEX_OPTION_KEYS = everyIndexOption([
+export const MONGO_INDEX_OPTION_KEYS = listsEveryOption<
+  Exclude<keyof MongoSchemaIndexOptions, 'keys'>
+>()([
   'unique',
   'sparse',
   'expireAfterSeconds',
