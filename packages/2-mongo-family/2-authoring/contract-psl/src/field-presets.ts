@@ -3,7 +3,7 @@ import type {
   AuthoringContributions,
   AuthoringFieldPresetDescriptor,
 } from '@internal/framework-components/authoring';
-import { type MongoTypeLookups, mongoTypeParamsFault } from '@internal/mongo-contract/data-type';
+import { codecTypeParamsProblem, type MongoTypeLookups } from '@internal/mongo-contract/data-type';
 import {
   diagnosticSource,
   type FieldSymbol,
@@ -122,14 +122,14 @@ export function resolveFieldPreset(input: {
   }
 
   const { codecId, typeParams } = instantiated.descriptor;
-  const fault =
+  const problem =
     typeParams === undefined
       ? undefined
-      : mongoTypeParamsFault(codecId, typeParams, context.typeLookups);
-  if (fault !== undefined) {
+      : codecTypeParamsProblem(codecId, typeParams, context.typeLookups);
+  if (problem !== undefined) {
     diagnostics.push({
       code: 'PSL_INVALID_ATTRIBUTE_ARGUMENT',
-      message: `${entityLabel} uses field preset "${helperPath}", whose type parameters are refused: ${fault.message}`,
+      message: `${entityLabel} uses field preset "${helperPath}", whose type parameters are refused: ${problem.message}`,
       ...source.at(call.span),
     });
     return INVALID;

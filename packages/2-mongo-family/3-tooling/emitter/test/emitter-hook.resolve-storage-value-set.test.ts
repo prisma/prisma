@@ -54,10 +54,10 @@ function contractWithValueSet(values: readonly string[]): Contract {
   return { ...base, storage: storage as Contract['storage'] };
 }
 
-describe('mongoEmission.resolveFieldValueSet', () => {
+describe('mongoEmission.resolveStorageValueSet', () => {
   it('sources encodedValues from the storage value set and codecId from the field', () => {
     const contract = contractWithValueSet(['admin', 'author', 'reader']);
-    const resolved = mongoEmission.resolveFieldValueSet?.('User', 'role', userModel, contract);
+    const resolved = mongoEmission.resolveStorageValueSet?.('User', 'role', userModel, contract);
     expect(resolved).toEqual({
       encodedValues: ['admin', 'author', 'reader'],
       codecId: 'mongo/string@1',
@@ -66,13 +66,13 @@ describe('mongoEmission.resolveFieldValueSet', () => {
 
   it('reads the storage value set the reference names', () => {
     const contract = contractWithValueSet(['storage-a', 'storage-b']);
-    const resolved = mongoEmission.resolveFieldValueSet?.('User', 'role', userModel, contract);
+    const resolved = mongoEmission.resolveStorageValueSet?.('User', 'role', userModel, contract);
     expect(resolved?.encodedValues).toEqual(['storage-a', 'storage-b']);
   });
 
   it('leaves a reference to a domain enum to the framework', () => {
     const contract = contractWithValueSet(['admin']);
-    const resolved = mongoEmission.resolveFieldValueSet?.(
+    const resolved = mongoEmission.resolveStorageValueSet?.(
       'User',
       'domainRole',
       userModel,
@@ -83,13 +83,13 @@ describe('mongoEmission.resolveFieldValueSet', () => {
 
   it('returns undefined for a field with no value-set ref', () => {
     const contract = contractWithValueSet(['admin']);
-    const resolved = mongoEmission.resolveFieldValueSet?.('User', '_id', userModel, contract);
+    const resolved = mongoEmission.resolveStorageValueSet?.('User', '_id', userModel, contract);
     expect(resolved).toBeUndefined();
   });
 
   it('returns undefined when the storage value set is absent for the referenced entry', () => {
     const base = createMongoContract({ models: { User: userModel } });
-    const resolved = mongoEmission.resolveFieldValueSet?.('User', 'role', userModel, base);
+    const resolved = mongoEmission.resolveStorageValueSet?.('User', 'role', userModel, base);
     expect(resolved).toBeUndefined();
   });
 });

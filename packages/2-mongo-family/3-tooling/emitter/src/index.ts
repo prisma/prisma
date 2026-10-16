@@ -85,7 +85,7 @@ export const mongoEmission = {
     return parts.length > 0 ? `{ ${parts.join('; ')} }` : 'Record<string, never>';
   },
 
-  resolveFieldValueSet(
+  resolveStorageValueSet(
     _modelName: string,
     fieldName: string,
     model: ContractModelBase,

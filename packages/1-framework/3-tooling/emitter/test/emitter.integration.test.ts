@@ -261,7 +261,7 @@ describe('emitter integration', () => {
       // not `typeof contract`: the in-memory authoring handle's literal tuples are
       // erased by emission. This drives the full emit pipeline and asserts the
       // emitted typemap text carries the member-value union for an enum field —
-      // produced via the family `resolveFieldValueSet` resolver + the codec seam
+      // produced via the family `resolveStorageValueSet` resolver + the codec seam
       // (`renderValueLiteralFor`), the same path the SQL/Mongo emitters wire.
       const ir = createTestContract({
         models: {
@@ -329,7 +329,7 @@ describe('emitter integration', () => {
       });
 
       const enumResolvingSpi = createMockSpi({
-        resolveFieldValueSet: (_modelName, fieldName, _model, contract) => {
+        resolveStorageValueSet: (_modelName, fieldName, _model, contract) => {
           if (fieldName !== 'priority') return undefined;
           const domainEnum = contract.domain.namespaces['__unbound__']?.enum?.['Priority'];
           return domainEnum

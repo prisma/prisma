@@ -16,9 +16,9 @@ import type {
   DataTypeSpec,
 } from '@internal/framework-components/codec';
 import {
+  assertDataTypeParams,
   dataType,
   objectSchemaKeys,
-  validateDataTypeParams,
 } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -264,12 +264,12 @@ function formatKeys(keys: readonly string[]): string {
   return `[${[...keys].sort().join(', ')}]`;
 }
 
-/** The parameters, when `type` accepts them; otherwise `CONTRACT.TYPE_PARAMS_INVALID` naming each parameter at fault. */
+/** The parameters, when `type` accepts them; otherwise `CONTRACT.TYPE_PARAMS_INVALID` naming each parameter it refuses. */
 export function validateSqlTypeParams<Params extends SqlTypeParams>(
   type: SqlDataType<Params>,
   params: SqlTypeParams,
 ): Params {
-  validateDataTypeParams(type, params);
+  assertDataTypeParams(type, params);
   return blindCast<
     Params,
     'the schema accepted params, or the type declares none; an object schema of parameters has no morphs, so the accepted value is the parameters as declared'

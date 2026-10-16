@@ -87,11 +87,11 @@ describe('generateContractDts SPI hook plumbing', () => {
   });
 });
 
-describe('generateContractDts resolveFieldValueSet wiring', () => {
+describe('generateContractDts resolveStorageValueSet wiring', () => {
   // Without an override, the shared field type generic gives the field its codec type.
   const NO_OVERRIDES = 'type FieldTypeOverrides = {  };';
 
-  const priorityResolver: EmissionSpi['resolveFieldValueSet'] = (_m, fieldName) =>
+  const priorityResolver: EmissionSpi['resolveStorageValueSet'] = (_m, fieldName) =>
     fieldName === 'priority' ? { encodedValues: ['low', 'high'], codecId: 'pg/text@1' } : undefined;
 
   const PRIORITY_OVERRIDES =
@@ -109,7 +109,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
     });
     const dts = generateContractDts(
       contract,
-      createMockSpi({ resolveFieldValueSet: priorityResolver }),
+      createMockSpi({ resolveStorageValueSet: priorityResolver }),
       [],
       HASHES,
       undefined,
@@ -130,7 +130,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
     });
     const dts = generateContractDts(
       contract,
-      createMockSpi({ resolveFieldValueSet: () => undefined }),
+      createMockSpi({ resolveStorageValueSet: () => undefined }),
       [],
       HASHES,
       undefined,
@@ -139,7 +139,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
     expect(dts).toContain(PRIORITY_OVERRIDES);
   });
 
-  it('does not narrow a field whose value set is in storage when the SPI supplies no resolveFieldValueSet hook', () => {
+  it('does not narrow a field whose value set is in storage when the SPI supplies no resolveStorageValueSet hook', () => {
     const contract = makeEnumContract({
       valueSet: {
         plane: 'storage',
@@ -172,7 +172,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
     });
     const dts = generateContractDts(
       contract,
-      createMockSpi({ resolveFieldValueSet: () => undefined }),
+      createMockSpi({ resolveStorageValueSet: () => undefined }),
       [],
       HASHES,
       undefined,
@@ -193,7 +193,7 @@ describe('generateContractDts resolveFieldValueSet wiring', () => {
     });
     const dts = generateContractDts(
       contract,
-      createMockSpi({ resolveFieldValueSet: priorityResolver }),
+      createMockSpi({ resolveStorageValueSet: priorityResolver }),
       [],
       HASHES,
     );

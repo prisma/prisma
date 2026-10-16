@@ -45,22 +45,22 @@ export type {
   DataType,
   DataTypeId,
   DataTypeLookup,
-  DataTypeParamsFault,
+  DataTypeParamsProblem,
   DataTypeSpec,
   ListCast,
   ToCanonicalForm,
 } from '../shared/data-type';
 export {
   assembleDataTypes,
+  assertDataTypeParams,
   createDataTypeLookup,
   DATA_TYPE_ID_PATTERN,
   dataType,
   dataTypeId,
-  dataTypeParamsFault,
+  dataTypeParamsProblem,
   objectSchemaKeys,
   requiredParamKeys,
   requiredSchemaKeys,
-  validateDataTypeParams,
 } from '../shared/data-type';
 export type { BigIntRange, IntegerRange } from '../shared/decode-json';
 export {

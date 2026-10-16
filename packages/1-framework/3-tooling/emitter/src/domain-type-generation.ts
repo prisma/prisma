@@ -307,16 +307,14 @@ export function generateHashTypeAliases(hashes: {
 }
 
 /**
- * A field's permitted values (codec-encoded) plus the codec that types them, as supplied by the
- * family-specific {@link EmissionSpi.resolveFieldValueSet}. The framework renders these into a TS
- * literal union through the codec seam ({@link renderValueSetType}).
+ * A field's permitted values (codec-encoded) plus the codec that types them: read from the domain enum the field names, or supplied for other model fields by the family's {@link EmissionSpi.resolveStorageValueSet}. The framework renders these into a TS literal union through the codec seam ({@link renderValueSetType}).
  */
 export type ResolvedFieldValueSet = {
   readonly encodedValues: readonly JsonValue[];
   readonly codecId: string;
 };
 
-export type FieldValueSetResolver = (
+export type StorageValueSetResolver = (
   modelName: string,
   fieldName: string,
   model: ContractModelBase,
@@ -553,7 +551,7 @@ function resolveDomainValueSet(
 export function generateFieldTypeOverridesMap(
   contract: Pick<Contract, 'domain'>,
   codecLookup: CodecLookup | undefined,
-  resolveStorageValueSet: FieldValueSetResolver | undefined,
+  resolveStorageValueSet: StorageValueSetResolver | undefined,
 ): string {
   return renderTypeOverridesMap(
     Object.entries(contract.domain.namespaces).flatMap(([nsId, ns]) => {

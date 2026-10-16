@@ -201,15 +201,15 @@ export function generateContractDts(
       ? `\n  readonly execution: ${serializeExecutionType(contract.execution)};`
       : '';
 
-  const resolveFieldValueSet = emitter.resolveFieldValueSet
+  const resolveStorageValueSet = emitter.resolveStorageValueSet
     ? (modelName: string, fieldName: string, model: ContractModelBase) =>
-        emitter.resolveFieldValueSet?.(modelName, fieldName, model, contract)
+        emitter.resolveStorageValueSet?.(modelName, fieldName, model, contract)
     : undefined;
 
   const fieldTypeOverrides = generateFieldTypeOverridesMap(
     contract,
     codecLookup,
-    resolveFieldValueSet,
+    resolveStorageValueSet,
   );
 
   const extraTypeExports = emitter.getStorageTypeExports?.(contract, codecLookup);

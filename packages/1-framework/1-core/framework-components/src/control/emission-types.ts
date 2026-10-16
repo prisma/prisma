@@ -46,7 +46,7 @@ export interface EmissionSpi {
    * literal union through the codec seam. The framework resolves a field's reference to a domain
    * enum itself and calls this only for other fields, whose values live in the family's storage.
    */
-  resolveFieldValueSet?(
+  resolveStorageValueSet?(
     modelName: string,
     fieldName: string,
     model: ContractModelBase,

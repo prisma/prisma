@@ -10,13 +10,13 @@ import type {
   CodecLookupWithDescriptors,
   DataType,
   DataTypeLookup,
-  DataTypeParamsFault,
+  DataTypeParamsProblem,
   DataTypeSpec,
 } from '@internal/framework-components/codec';
 import {
+  assertDataTypeParams,
   dataType,
-  dataTypeParamsFault,
-  validateDataTypeParams,
+  dataTypeParamsProblem,
 } from '@internal/framework-components/codec';
 
 export interface MongoDataTypeSpec extends DataTypeSpec {
@@ -72,7 +72,7 @@ interface DomainNamespaceFields {
 }
 
 /**
- * Refuses a field whose type parameters its codec's data type does not accept, such as a vector `length` of 0, with `CONTRACT.TYPE_PARAMS_INVALID`. A Mongo `defineContract` build calls it, and the PSL interpreter reports the same fault as a diagnostic through {@link mongoTypeParamsFault}: the type parameters a field carries reach only the TypeScript types and the emitted `contract.d.ts`, so nothing later checks them.
+ * Refuses a field whose type parameters its codec's data type does not accept, such as a vector `length` of 0, with `CONTRACT.TYPE_PARAMS_INVALID`. A Mongo `defineContract` build calls it, and the PSL interpreter reports the same problem as a diagnostic through {@link codecTypeParamsProblem}: the type parameters a field carries reach only the TypeScript types and the emitted `contract.d.ts`, so nothing later checks them.
  */
 export function assertMongoFieldTypeParams(
   namespaces: Readonly<Record<string, DomainNamespaceFields>>,
@@ -98,18 +98,18 @@ function assertFieldsTypeParams(
     if (fieldType.kind !== 'scalar' || fieldType.typeParams === undefined) continue;
     const type = dataTypeOfCodec(fieldType.codecId, lookups);
     if (type !== undefined)
-      validateDataTypeParams(type, fieldType.typeParams, { ...owner, fieldName });
+      assertDataTypeParams(type, fieldType.typeParams, { ...owner, fieldName });
   }
 }
 
 /** What is wrong with the type parameters `typeParams` for the data type the codec `codecId` represents, or undefined when it accepts them or the stack registers no such codec or data type. */
-export function mongoTypeParamsFault(
+export function codecTypeParamsProblem(
   codecId: string,
   typeParams: Readonly<Record<string, unknown>>,
   lookups: MongoTypeLookups,
-): DataTypeParamsFault | undefined {
+): DataTypeParamsProblem | undefined {
   const type = dataTypeOfCodec(codecId, lookups);
-  return type === undefined ? undefined : dataTypeParamsFault(type, typeParams);
+  return type === undefined ? undefined : dataTypeParamsProblem(type, typeParams);
 }
 
 function dataTypeOfCodec(codecId: string, lookups: MongoTypeLookups): DataType | undefined {

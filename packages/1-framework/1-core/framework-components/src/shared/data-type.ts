@@ -107,18 +107,18 @@ export function dataType(id: string, spec: DataTypeSpec): DataType {
   };
 }
 
-/** What is wrong with the parameters given a data type: the message to report and each parameter at fault. */
-export interface DataTypeParamsFault {
+/** What is wrong with the parameters given a data type: the message to report and each parameter it refuses. */
+export interface DataTypeParamsProblem {
   readonly dataType: DataTypeId;
   readonly message: string;
   readonly parameters: readonly string[];
 }
 
 /** What is wrong with `params` for `type`, or undefined when `type` accepts them or has no parameter schema. */
-export function dataTypeParamsFault(
+export function dataTypeParamsProblem(
   type: DataType,
   params: Readonly<Record<string, unknown>>,
-): DataTypeParamsFault | undefined {
+): DataTypeParamsProblem | undefined {
   const result = type.params?.(params);
   if (!(result instanceof arktype.errors)) return undefined;
   return {
@@ -128,16 +128,16 @@ export function dataTypeParamsFault(
   };
 }
 
-/** Refuses `params` that `type` does not accept with `CONTRACT.TYPE_PARAMS_INVALID`, naming the data type and each parameter at fault, plus the facts in `meta`. */
-export function validateDataTypeParams(
+/** Refuses `params` that `type` does not accept with `CONTRACT.TYPE_PARAMS_INVALID`, naming the data type and each parameter it refuses, plus the facts in `meta`. */
+export function assertDataTypeParams(
   type: DataType,
   params: Readonly<Record<string, unknown>>,
   meta: Readonly<Record<string, unknown>> = {},
 ): void {
-  const fault = dataTypeParamsFault(type, params);
-  if (fault === undefined) return;
-  throw structuredError('CONTRACT.TYPE_PARAMS_INVALID', fault.message, {
-    meta: { dataType: fault.dataType, parameters: fault.parameters, ...meta },
+  const problem = dataTypeParamsProblem(type, params);
+  if (problem === undefined) return;
+  throw structuredError('CONTRACT.TYPE_PARAMS_INVALID', problem.message, {
+    meta: { dataType: problem.dataType, parameters: problem.parameters, ...meta },
   });
 }
 

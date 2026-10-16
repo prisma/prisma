@@ -168,7 +168,7 @@ export const sqlEmission = {
     return `{ ${storageParts.join('; ')} }`;
   },
 
-  resolveFieldValueSet(
+  resolveStorageValueSet(
     _modelName: string,
     fieldName: string,
     model: ContractModelBase,

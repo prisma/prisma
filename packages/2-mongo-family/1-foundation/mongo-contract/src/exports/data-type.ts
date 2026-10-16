@@ -7,7 +7,7 @@ export type {
 export {
   assertMongoFieldTypeParams,
   bsonTypesOfCodec,
+  codecTypeParamsProblem,
   isMongoDataType,
   mongoDataType,
-  mongoTypeParamsFault,
 } from '../mongo-data-type';
