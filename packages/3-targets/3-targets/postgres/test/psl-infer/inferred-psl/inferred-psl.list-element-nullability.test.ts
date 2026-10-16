@@ -1,10 +1,8 @@
 /**
- * Pins infer's `@noCheck(elementNotNull)` emission rule at the unit level:
- * a list column counts as enforced only when the live table carries a check
- * under exactly the derived wire name (prefix AND content hash); any other
- * name — including the same prefix with a different hash — emits the
- * opt-out. The name is composed with the same shared naming helpers
- * authoring uses, so the comparison cannot drift.
+ * A list column's elements are non-null only when the live table carries a
+ * check under exactly the derived wire name (prefix and content hash). Any
+ * other name, including the same prefix with a different hash, leaves the
+ * elements nullable, so infer writes `T?[]`.
  */
 import {
   composeCheckWirePrefix,
@@ -55,23 +53,22 @@ function schemaWithCheck(hash: string | undefined): SqlSchemaIR {
   });
 }
 
-describe('printPsl — @noCheck emission', () => {
-  it('a live check at exactly the derived wire name emits no @noCheck', () => {
+describe('printPsl — list element nullability', () => {
+  it('writes T[] when a live check has exactly the derived wire name', () => {
     const psl = printPslFromFlat(schemaWithCheck(derivedHash));
     expect(formatWireName(derivedPrefix, derivedHash)).toMatch(
       /^users_tags_elem_not_null_[0-9a-f]{8}$/,
     );
     expect(psl).toMatch(/tags\s+String\[\]\s*$/m);
-    expect(psl).not.toContain('@noCheck');
   });
 
-  it('a live check under the same prefix but a different hash emits @noCheck(elementNotNull)', () => {
+  it('writes T?[] when a live check has the derived prefix but a different hash', () => {
     const psl = printPslFromFlat(schemaWithCheck('deadbeef'));
-    expect(psl).toMatch(/tags\s+String\[\]\s+@noCheck\(elementNotNull\)/);
+    expect(psl).toMatch(/tags\s+String\?\[\]\s*$/m);
   });
 
-  it('no live check at all emits @noCheck(elementNotNull)', () => {
+  it('writes T?[] when there is no live check', () => {
     const psl = printPslFromFlat(schemaWithCheck(undefined));
-    expect(psl).toMatch(/tags\s+String\[\]\s+@noCheck\(elementNotNull\)/);
+    expect(psl).toMatch(/tags\s+String\?\[\]\s*$/m);
   });
 });

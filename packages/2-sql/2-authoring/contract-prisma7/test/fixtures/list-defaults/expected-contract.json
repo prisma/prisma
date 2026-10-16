@@ -58,7 +58,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "blEmpty": {
@@ -68,7 +68,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "dl": {
@@ -81,7 +81,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "dlEmpty": {
@@ -94,7 +94,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "tzl": {
@@ -107,7 +107,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "datel": {
@@ -117,7 +117,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "timel": {
@@ -130,7 +130,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "timetzl": {
@@ -143,7 +143,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               },
               "ts6l": {
@@ -156,7 +156,7 @@
                 },
                 "nullable": true,
                 "many": {
-                  "elementNullable": false
+                  "elementNullable": true
                 }
               }
             },
@@ -177,7 +177,7 @@
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "meta": {},
   "storage": {
-    "storageHash": "32051d4c4ec616e12702c1d37a4889a6e39a7249ced7d48d43c7096abf29b331",
+    "storageHash": "43afdc9d249abef90aee7f17d071ed7a56a29f4892f918f6257f226c2c9cb0d7",
     "namespaces": {
       "public": {
         "id": "public",
@@ -197,9 +197,8 @@
                   "codecId": "pg/bytea@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "function",
                     "expression": "ARRAY['\\x68656c6c6f', '\\x776f726c64']::BYTEA[]"
@@ -210,9 +209,8 @@
                   "codecId": "pg/bytea@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "function",
                     "expression": "ARRAY[]::BYTEA[]"
@@ -223,9 +221,8 @@
                   "codecId": "pg/timestamp-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 3
                   },
@@ -239,9 +236,8 @@
                   "codecId": "pg/timestamp-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 3
                   },
@@ -255,9 +251,8 @@
                   "codecId": "pg/timestamptz-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },
@@ -271,9 +266,8 @@
                   "codecId": "pg/date-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "default": {
                     "kind": "function",
                     "expression": "ARRAY['2024-01-02']::DATE[]"
@@ -284,9 +278,8 @@
                   "codecId": "pg/time-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },
@@ -300,9 +293,8 @@
                   "codecId": "pg/timetz@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },
@@ -316,9 +308,8 @@
                   "codecId": "pg/timestamp-string@1",
                   "nullable": true,
                   "many": {
-                    "elementNullable": false
+                    "elementNullable": true
                   },
-                  "noCheck": ["elementNotNull"],
                   "typeParams": {
                     "precision": 6
                   },
