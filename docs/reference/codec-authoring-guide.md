@@ -6,7 +6,7 @@ This guide describes the canonical authoring shape for codecs in Prisma 8: **cla
 
 A codec is **three artifacts**:
 
-1. A **codec class** that extends `CodecImpl<Id, TTraits, TWire, TInput>` and implements all four conversion methods: `encode`, `decode`, `encodeJson`, and `decodeJson`.
+1. A **codec class** that extends `CodecImpl<Id, TTraits, TWire, TInput>` and implements its four methods: `toWire`, `fromWire`, `toDataTypeValue` and `fromDataTypeValue`. Its constructor passes the descriptor, the data type it converts values of and the column's parameters of that type to `CodecImpl`: `super(descriptor, dataType, params)`.
 2. A **descriptor class** that extends `CodecDescriptorImpl<P>` for a target-neutral codec, or the target-owned `PostgresCodecDescriptor<P>` / `SqliteCodecDescriptor<P>` for a target-bound SQL codec, and declares the data type it represents, the codec id, traits, params schema, and the curried factory that materializes codec instances.
 3. A **per-codec column helper function** that calls `descriptor.factory(...)` directly and packages the result into a `ColumnSpec` via the framework-supplied `column(...)` packager. The helper carries a `satisfies ColumnHelperFor<D>` clause that ties it to its descriptor at compile time.
 
@@ -14,37 +14,48 @@ The framework imports live at `@internal/framework-components/codec`:
 
 - `CodecImpl<Id, TTraits, TWire, TInput>` — abstract codec base class.
 - `CodecDescriptorImpl<P>` — abstract descriptor base class; `CodecDescriptorTemplateImpl<P>` is the same shape for a codec whose data type the adapting target names.
-- `dataType(id, spec)` — declares a data type with its casts; `DataType`, `DataTypeId`, `Cast`. A SQL data type is declared with `sqlDataType(id, spec)` from `@internal/sql-contract/data-type` instead, which adds how the type is written — see [Declaring a data type](#declaring-a-data-type).
+- `dataType(id, spec)` — declares a data type with the `read` function for its values and its casts; `DataType`, `DataTypeId`, `DataTypeReader`, `Cast`. A SQL data type is declared with `sqlDataType(id, spec)` from `@internal/sql-contract/data-type` instead, which adds how the type is written — see [Declaring a data type](#declaring-a-data-type).
+- `DataTypeValue` — a value of a data type, `{ type, params, value }`, whose `value` is the JSON `contract.json` stores.
 - `ColumnHelperFor<D>` / `ColumnHelperForStrict<D>` — `satisfies` shapes for per-codec helpers.
 - `column(codecFactory, codecId, typeParams)` — column-spec packager. The contract takes the column's data type from the codec.
 - `Codec<...>`, `CodecDescriptor<P>`, `AnyCodecDescriptor` — consumer-facing interfaces (consumers depend on these; target-neutral authors extend the `*Impl` classes, while target-bound SQL authors use target-owned bases).
 
-`decodeJson` follows one rule, stated on [`Codec.decodeJson`](../../packages/1-framework/1-core/framework-components/src/shared/codec.ts): it reads a value in a stored JSON form of the codec's type and throws on anything else, and callers use it as the check that a value is valid. The readers in `@internal/framework-components/codec` (`decodeJsonString`, `decodeJsonMatching`, `decodeJsonBoolean`, `decodeJsonInteger`, `decodeJsonIntegerText`, `decodeJsonFloat`) implement it for the common forms and refuse through `refuseJsonValue`, which raises `RUNTIME.DECODE_FAILED` with `meta.codecId` and `meta.received`. A codec built with type parameters checks them there too, as `pg/vector@1` checks its length, and a target adds its column's rule to a family codec it adapts, as PostgreSQL's `sql/varchar@1` checks the column's length.
+## The four methods
 
-SQL codecs use the same framework `CodecImpl` base. Their `encodeJson` and `decodeJson` methods define the codec's JSON-safe contract representation; `decode` remains responsible for the driver's ordinary column wire value. Keep that representation stable and mutually consistent, and keep `decodeJson` compatible with the values the current SQL JSON renderer returns for the codec. This distinction matters for types such as PostgreSQL `bytea` and extension-defined types whose values inside database-produced JSON may differ from their normal driver representation.
+A codec converts between three forms of a value ([ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md#codecs)):
 
-PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection hooks, described below. The production JSON renderers call `projectJson()` for every column-valued entry they build, so a descriptor's projection is what a database actually returns — see [The canonical JSON guarantee](#the-canonical-json-guarantee).
+| Method | From | To | Used when | Runs |
+| --- | --- | --- | --- | --- |
+| `fromDataTypeValue` | value of the data type | application value | building a contract, planning, verifying | synchronously |
+| `toDataTypeValue` | application value | value of the data type | the same | synchronously |
+| `fromWire` | wire value | application value | reading a row, a row the database returns as JSON, or a default the database reports | asynchronously |
+| `toWire` | application value | wire value | writing a parameter, or a default into DDL | asynchronously |
 
-## The canonical JSON guarantee
+The wire value is what the driver exchanges with the database. `fromWire` and `toWire` take the per-call context of [ADR 207](../architecture%20docs/adrs/ADR%20207%20-%20Codec%20call%20context%20per-query%20AbortSignal%20and%20column%20metadata.md) and are asynchronous, as [ADR 204](../architecture%20docs/adrs/ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md) describes.
 
-**A value read back through database-produced JSON is the value that was stored.** Where a query returns JSON — an `.include()`'s nested rows, an aggregated child row set — each column reaches that JSON through its own codec's projection, and `decodeJson` returns the application value the column holds. A `numeric` arrives as its exact decimal text rather than rounded through a double; a `bytea` as base64 rather than a hex escape; a `bigint` as decimal text rather than a JSON number that cannot hold it. Absence is preserved: a `NULL` column reads back as `null`, never as a zero or an empty value.
+The value belongs to the data type, not to the codec. The data type reads every stored value with its `read` function, under the column's parameters, before a codec sees it, so `fromDataTypeValue` receives a value the type holds and only converts it. `toDataTypeValue` finishes with `this.dataTypeValueOf(json)`, which constructs the value through the type's `fromCodec(json, params)`. `fromCodec` reads the JSON with the type's `read` and writes it in the spelling the parameters give, so a codec, including one from outside the repository, cannot hand over a value its type does not hold or store a value differently from the other codecs of its type. `CodecImpl` also refuses, with an `InternalError`, a value of another data type handed to `fromDataTypeValue`.
 
-The guarantee reaches values the query **computes** as well as values it stores. An aggregate has no column codec to be canonical against, so its target declares one — see the [aggregate descriptor guide](./aggregate-descriptor-guide.md) — and the declared codec is what the value enters JSON under and is read back through. A count inside an `.include()` arrives under `pg/int8number@1`, whose canonical JSON is the digit text `pg/int8` stores and whose post-parse guard refuses a value the safe-integer range cannot hold; a `countBigInt` in the same position arrives under `pg/int8@1` as decimal text. An aggregate no target declares an overload for does not weaken this: the call is a type error on the typed surfaces, and a dynamic invocation is rejected with `ORM.AGGREGATE_UNSUPPORTED` before any SQL is built — no undeclared value ever reaches JSON.
+A codec checks only what its application value or its target's storage cannot hold. `pg/int8number@1` refuses digit text past 2^53 in `fromDataTypeValue`, the `Temporal` and `Date` codecs refuse `infinity`, which only the text codecs hold, and on SQLite `sqlite/real@1` and `sql/float@1` refuse `NaN`, which SQLite cannot store. A limit of the type itself, such as a `numeric(10,2)` scale or a `vector(3)` length, is the data type's, in its `read`.
 
-The guarantee rests on the codec, not on the database's own JSON conversion, which is why it can be stated at all. It has exactly two limits, and both are real:
+`fromWire` reads what the driver hands over for a row and refuses a value the column's type does not hold with `RUNTIME.DECODE_FAILED`: on SQLite, text in an `INTEGER` or `REAL` column outside a `STRICT` table, or text in a `BLOB` column. The readers in `@internal/framework-components/codec` (`readJsonString`, `readJsonMatching`, `readJsonBoolean`, `readJsonInteger`, `readJsonIntegerText`, `readJsonFloat`) read the common JSON forms, for a data type's `read` and for a codec's wire, and refuse through `refuseJsonValue`, which raises `RUNTIME.DECODE_FAILED` with `meta.dataType` or `meta.codecId` and `meta.received`.
 
-- **`pg/geometry@1` is exempt.** The PostGIS geometry codec has no canonical JSON projection, so a geometry column inside database-produced JSON carries whatever PostGIS's own JSON conversion emits, and round-tripping it is not guaranteed. Tracked as [TML-3105](https://linear.app/prisma-company/issue/TML-3105).
-- **Float codecs need `extra_float_digits >= 1`.** `pg/float4@1`, `pg/float8@1`, `pg/float@1` and `sql/float@1` render through PostgreSQL's float-to-text conversion, which `extra_float_digits` controls. At `1` (the default since PostgreSQL 12) it prints the shortest decimal that round-trips exactly, and the guarantee holds. A session that lowers it to `0` or below prints fewer digits than the value needs, and a float read back through JSON may differ from the one stored. Nothing in the framework enforces the setting; if your deployment changes it, floats are outside the guarantee.
+PostgreSQL and SQLite target descriptors also declare AST-to-AST JSON projection hooks, described below. The production JSON renderers call `projectJson()` for every column-valued entry they build, and the runtime reads what each projection writes with `fromWire` — see [Rows the database returns as JSON](#rows-the-database-returns-as-json).
 
-Non-finite floats read back as the numbers they are. JSON has no number for `NaN` or an infinity, and PostgreSQL writes them in JSON as the text `"NaN"`, `"Infinity"` and `"-Infinity"`, so every float codec's `encodeJson` writes that text and its `decodeJson` reads it back as the number. SQLite writes an infinity in JSON as `9.0e+999`, so the SQLite float codecs' JSON projection writes the same text instead, and `decodeJson` refuses a number that is not finite. SQLite cannot store `NaN`, which it turns into `NULL`, so on SQLite `sqlite/real@1` and `sql/float@1` refuse `NaN` in `encode` and in both JSON directions, and the SQLite driver refuses a NaN parameter no codec encoded. `pg/numeric@1` reads all three, because its application value is already text.
+## Rows the database returns as JSON
 
-A value in a contract, a literal default or an enum member, decodes to the value a query returns for it: the value `decodeJson` reads from the contract's stored form equals the value a query returns, and `db.enums` compares with that value ([ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md)). The stored form need not be the text the database prints: `pg/bytea@1` stores base64 where PostgreSQL prints hex, and the timestamp codecs store ISO 8601. Where the stored form is text the database normalises, the stored form is the normalised spelling, so `encodeJson` writes it and `decodeJson` refuses any other spelling, naming the text to write: `pg/uuid@1` writes lower case, `pg/numeric@1`, `pg/int8@1`, `pg/int8number@1` and `pg/unboundedint@1` drop leading zeros and the minus sign on zero, and `pg/inet@1` drops `/32` or `/128` on a host address and writes IPv6 in lower case with PostgreSQL's zero compression.
+**A value read through database-produced JSON is the value an ordinary row of the column gives.** Where a query returns JSON — an `.include()`'s nested rows, an aggregated child row set — each column reaches that JSON through its own codec's projection, and the runtime reads it with the codec's `fromWire`, the method that reads an ordinary row. A projection therefore writes into the JSON the value the driver returns for a row of the column ([ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md#reading-and-writing-a-stored-value), "Rows the database returns as JSON"). On PostgreSQL that is the text PostgreSQL prints, `CAST(x AS text)`, for every type whose row arrives as text: a `numeric` or `int8` keeps every digit instead of becoming a JSON number, a `bytea` arrives as its hex text, a `json` or `jsonb` document arrives as its JSON text, so a document that is a string is not parsed twice, and a vector arrives as the text a row reads, not as elements widened to double precision. A type whose JSON value is what the driver hands `fromWire` for a row, such as a boolean or an `int4`, enters as the column itself. On SQLite an integer enters as decimal text, a blob as an array of its hex text, and a float as text where JSON has no number for it. Absence is preserved: a `NULL` column reads back as `null`.
+
+The rule reaches values the query **computes** as well as values it stores. An aggregate has no column codec, so its target declares one — see the [aggregate descriptor guide](./aggregate-descriptor-guide.md) — and the declared codec's projection and `fromWire` read the value. A count inside an `.include()` arrives under `pg/int8number@1` as decimal text, and a `countBigInt` under `pg/int8@1`. An aggregate over no rows takes the value its descriptor declares in `emptyResultWire`, which is a wire value the declared codec reads with `fromWire`. An aggregate no target declares an overload for is a type error on the typed surfaces, and a dynamic invocation is rejected with `ORM.AGGREGATE_UNSUPPORTED` before any SQL is built.
+
+One limit remains: **float codecs need `extra_float_digits >= 1`.** `pg/float4@1`, `pg/float8@1`, `pg/float@1` and `sql/float@1` read PostgreSQL's float-to-text conversion, which `extra_float_digits` controls. At `1` (the default since PostgreSQL 12) it prints the shortest decimal that reads back exactly. A session that lowers it prints fewer digits than the value needs, in a row and in JSON alike. Nothing in the framework enforces the setting.
+
+A value in a contract, a literal default or an enum member, converts to the value a query returns for it: `fromDataTypeValue` of the stored value equals what `fromWire` gives for the same value in a row, and `db.enums` compares with that value ([ADR 254](../architecture%20docs/adrs/ADR%20254%20-%20Data%20types%20and%20casts.md)). The stored form need not be the text the database prints: `pg/bytea` stores base64 where PostgreSQL prints hex, and the timestamp types store ISO 8601. Where the database normalises how a value is written, the stored form is the database's spelling, which the data type writes and its `read` requires: `pg/uuid` stores lower case, the integer types and `pg/numeric` drop leading zeros and the minus sign on zero, a `numeric(10,2)` value has two fraction digits, and `pg/inet` drops `/32` or `/128` on a host address and writes IPv6 in lower case with PostgreSQL's zero compression.
 
 An enum compares values with its members, so every enum authoring surface (`enumType` in `defineContract` and the PSL enum block, in both families) refuses a codec whose descriptor does not declare the `equality` trait. A codec that declares it, but whose values read back can never equal a member as the contract stores it, sets `enumRefusal` on its descriptor: one or two sentences saying why, ending with what to use instead. A codec without equality may set it too, to replace the generic reason. `enumRefusalOf` from `@internal/framework-components/codec` reads both rules, and every surface refuses through it. On Postgres, `pg/timestamp-string@1` and `pg/timestamptz-string@1` set it, because they read PostgreSQL's own text while the contract stores ISO 8601; `pg/bytea@1`, because its CHECK would compare a value with the bytes of the stored base64 text; `pg/tsquery@1`, because PostgreSQL normalises the query text; and `pg/json@1`, to name `pg/jsonb@1`.
 
-The consumer-facing [`BigInt`, `BigIntNumber`, and `UnboundedInt` representation choices](./integer-representation-types.md), including `BigIntNumber`'s deliberate JSON-number exception, are documented separately from this contributor guide.
+The consumer-facing [`BigInt`, `BigIntNumber`, and `UnboundedInt` representation choices](./integer-representation-types.md), are documented separately from this contributor guide.
 
-The PostgreSQL temporal codecs pair a `Temporal`-valued codec with a raw-text one for each native type — `pg/timestamptz-temporal@1` reads a `Temporal.Instant`, `pg/timestamptz-string@1` reads PostgreSQL's own text, and the contract names which one a column uses.
+The PostgreSQL temporal codecs pair a `Temporal`-valued codec with a raw-text one for each native type — `pg/timestamptz-temporal@1` reads a `Temporal.Instant`, `pg/timestamptz-string@1` reads PostgreSQL's own text, and the contract names which one a column uses. A text codec's `fromWire` keeps PostgreSQL's year text, ` BC` included, and its `toWire` converts the stored ISO year into it.
 
 ## Three case studies
 
@@ -55,14 +66,13 @@ Case 1 carries the full framework import block; Cases 2 and 3 continue from it a
 ### Case 1 — Non-parameterized codec (`pg/text@1`)
 
 ```ts
-import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   type CodecInstanceContext,
   CodecImpl,
   type ColumnHelperFor,
   column,
-  decodeJsonString,
+  type DataTypeValue,
 } from '@internal/framework-components/codec';
 import type { ProjectionExpr } from '@internal/sql-relational-core/ast';
 import { PostgresCodecDescriptor } from '@internal/target-postgres/codec-descriptor';
@@ -74,12 +84,10 @@ class PgTextCodec extends CodecImpl<
   string,
   string
 > {
-  async encode(value: string, _ctx: CodecCallContext) { return value; }
-  async decode(wire: string, _ctx: CodecCallContext) { return wire; }
-  encodeJson(value: string) { return value; }
-  decodeJson(json: JsonValue) {
-    return decodeJsonString('pg/text@1', json);
-  }
+  async toWire(value: string, _ctx: CodecCallContext) { return value; }
+  async fromWire(wire: string, _ctx: CodecCallContext) { return wire; }
+  fromDataTypeValue(value: DataTypeValue<string>) { return value.value; }
+  toDataTypeValue(input: string) { return this.dataTypeValueOf(input); }
 }
 
 class PgTextDescriptor extends PostgresCodecDescriptor<void> {
@@ -91,7 +99,7 @@ class PgTextDescriptor extends PostgresCodecDescriptor<void> {
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
   override factory(): (ctx: CodecInstanceContext) => PgTextCodec {
-    const shared = new PgTextCodec(this);
+    const shared = new PgTextCodec(this, pgText);
     return () => shared;
   }
 }
@@ -103,7 +111,7 @@ export const text = () =>
 text satisfies ColumnHelperFor<PgTextDescriptor>;
 ```
 
-The factory is **constant**: every call returns the same shared codec instance. The runtime relies on this contract — non-parameterized columns sharing a codec id share one resolved codec without explicit caching.
+`pgText` declares that a value is a string, so `fromDataTypeValue` receives one and returns it. The factory is **constant**: every call returns the same shared codec instance. The runtime relies on this contract — non-parameterized columns sharing a codec id share one resolved codec without explicit caching.
 
 ### Case 2 — Parameterized codec with literal preservation (`pg/vector@1`)
 
@@ -117,19 +125,25 @@ class VectorCodec<N extends number> extends CodecImpl<
   Vector<N>
 > {
   constructor(descriptor: PgVectorDescriptor, readonly dimension: N) {
-    super(descriptor);
+    super(descriptor, pgvectorVector, { length: dimension });
   }
-  async encode(value: Vector<N>, _ctx: CodecCallContext) {
+  async toWire(value: Vector<N>, _ctx: CodecCallContext) {
     return `[${value.join(',')}]`;
   }
-  async decode(wire: string, _ctx: CodecCallContext) {
+  async fromWire(wire: string, _ctx: CodecCallContext) {
     return parseVector(wire) as Vector<N>;
+  }
+  fromDataTypeValue(value: DataTypeValue<readonly number[]>) {
+    return [...value.value] as Vector<N>;
+  }
+  toDataTypeValue(input: Vector<N>) {
+    return this.dataTypeValueOf([...input]);
   }
 }
 
 class PgVectorDescriptor extends PostgresCodecDescriptor<{ readonly length: number }> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return CastExpr.as(expression, 'text');
   }
   override readonly dataType = pgvectorVector.id;
   override readonly codecId = 'pg/vector@1' as const;
@@ -154,7 +168,7 @@ export const vector = <N extends number>(length: N) =>
 vector satisfies ColumnHelperFor<PgVectorDescriptor>;
 ```
 
-The params schema is the `pgvector/vector` data type's own `params`, referenced rather than restated, so the bound on `length` is written once — see [Declaring a data type](#declaring-a-data-type). The class-level params type is `{ readonly length: number }` (widest bound). The **method-level generic** `<N extends number>` on `factory` is what preserves the literal at the call site: when `vector(1536)` calls `pgVectorDescriptor.factory({ length: 1536 })` *directly*, TypeScript binds `N=1536`. The literal flows through `column(...)`'s generics into the column spec, into the contract type, and into `contract.d.ts`.
+The params schema is the `pgvector/vector` data type's own `params`, referenced rather than restated, so the bound on `length` is written once — see [Declaring a data type](#declaring-a-data-type). The data type's `read` refuses a stored vector of another length, so `fromDataTypeValue` only copies the array. The projection writes the text PostgreSQL prints for the vector, which `fromWire` reads as it reads a row. The class-level params type is `{ readonly length: number }` (widest bound). The **method-level generic** `<N extends number>` on `factory` is what preserves the literal at the call site: when `vector(1536)` calls `pgVectorDescriptor.factory({ length: 1536 })` *directly*, TypeScript binds `N=1536`. The literal flows through `column(...)`'s generics into the column spec, into the contract type, and into `contract.d.ts`.
 
 This is the **load-bearing variance pattern**: method generics on the descriptor's factory are preserved by direct invocation inside the per-codec helper, not by structural extraction at a polymorphic helper. A polymorphic `column<P, R>(descriptor, params)` helper that tried to extract `R` from the descriptor's `factory` would lose the literal — TypeScript instantiates method generics to their constraint at every form of structural extraction (structural match, indexed access, `Parameters` / `ReturnType`, etc.).
 
@@ -201,18 +215,24 @@ class ArktypeJsonCodecClass<TInferred> extends CodecImpl<
   constructor(
     descriptor: ArktypeJsonDescriptor,
     private readonly schema: ArktypeSchemaLike,
-  ) { super(descriptor); }
-  async encode(value: TInferred, _ctx: CodecCallContext) {
+  ) { super(descriptor, pgJsonb); }
+  async toWire(value: TInferred, _ctx: CodecCallContext) {
     return serializeToJsonSafe(this.schema, value).wire;
   }
-  async decode(wire: string, _ctx: CodecCallContext) {
+  async fromWire(wire: string, _ctx: CodecCallContext) {
     return validateSchema<TInferred>(this.schema, JSON.parse(wire));
+  }
+  fromDataTypeValue(value: DataTypeValue) {
+    return validateSchema<TInferred>(this.schema, value.value);
+  }
+  toDataTypeValue(input: TInferred) {
+    return this.dataTypeValueOf(serializeJson(input));
   }
 }
 
 class ArktypeJsonDescriptor extends PostgresCodecDescriptor<ArktypeJsonTypeParams> {
   protected override jsonProjection(expression: ProjectionExpr): ProjectionExpr {
-    return expression;
+    return CastExpr.as(expression, 'text');
   }
   override readonly dataType = pgJsonb.id;
   override readonly codecId = 'arktype/json@1' as const;
@@ -253,7 +273,7 @@ Three things to note:
 2. The descriptor's factory return is `ArktypeJsonCodecClass<unknown>` (the descriptor only sees IR — `S` is erased). The runtime path through `descriptor.factory(params)` always exists (e.g. for `validateContract` re-materialization); it just loses the typed inferred shape.
 3. The column helper bypasses `descriptor.factory(...)` and constructs the typed codec directly so `S['infer']` flows through the column spec into the contract type. It satisfies `ColumnHelperFor<D>` (coarse) but not `ColumnHelperForStrict<D>` — the descriptor's factory return is `ArktypeJsonCodecClass<unknown>` while the helper produces `ArktypeJsonCodecClass<S['infer']>`, and `Codec`'s `TInput` is invariant. Negative type tests cover the literal-preservation property the strict variant would otherwise enforce.
 
-JSON-Schema validation lives **inside `decode`**: the rehydrated schema is closure-captured by the codec instance, and `decode` calls into it synchronously. There is no parallel validator registry — the framework deleted `JsonSchemaValidatorRegistry` when unified descriptors and inline decode validation replaced the parallel registry.
+JSON-Schema validation lives **inside `fromWire` and `fromDataTypeValue`**: the rehydrated schema is closure-captured by the codec instance, and both call into it synchronously. The schema is a parameter the codec keeps for itself, so it checks it there; `pg/jsonb` checks only that the value is a document. There is no parallel validator registry — the framework deleted `JsonSchemaValidatorRegistry` when unified descriptors and inline decode validation replaced the parallel registry.
 
 ## Target-owned SQL codec descriptors
 
@@ -399,9 +419,9 @@ Do not inject an independent generic codec lookup and target registry: both view
 
 ### One source of target truth
 
-The descriptor is the only place a target's behaviour for a codec is declared, and the data type is the only place the database type's names are. `projectJson()` gives the expression that produces the column's canonical JSON; the column's declared type and PostgreSQL's parameter casts come from the data type the descriptor names. There is no parallel metadata channel to keep in step with them.
+The descriptor is the only place a target's behaviour for a codec is declared, and the data type is the only place the database type's names are. `projectJson()` gives the expression whose JSON value `fromWire` reads; the column's declared type and PostgreSQL's parameter casts come from the data type the descriptor names. There is no parallel metadata channel to keep in step with them.
 
-An identity `jsonProjection` is a claim, not a placeholder: it says this codec's stored form *is* its canonical JSON, as it is for `pg/text@1` and `pg/int4@1`. Write one only when that holds. A codec whose stored form cannot survive JSON — a wide integer, a byte string, a value whose text depends on a session setting — needs a projection that converts it, because the renderer will ask and then use the answer.
+An identity `jsonProjection` is a claim, not a placeholder: it says the JSON value PostgreSQL or SQLite writes for the column is the value the driver hands `fromWire` for a row, as it is for `pg/text@1` and `pg/int4@1`. Write one only when that holds. A column whose value would change on the way into JSON — a wide integer, a byte string, a document, a vector — needs a projection that writes the text a row carries, usually `CAST(x AS text)`, because the renderer will ask and then use the answer.
 
 ## Target-owned Mongo codecs
 
@@ -416,7 +436,7 @@ The Mongo target package owns every built-in Mongo codec, as the Postgres target
 
 The source lives in `packages/3-mongo-target/1-mongo-target/src/core/{codec-ids,codecs,bson-scalar-helpers,data-types}.ts` and `src/exports/codec-types.ts`. The adapter's runtime descriptor registers `buildStandardCodecRegistry()`, and its control descriptor names each PSL scalar (`mongoScalarAuthoringTypes` in `packages/3-mongo-target/2-mongo-adapter/src/exports/control.ts`). The TypeScript builder in `@internal/mongo-contract-ts` keeps its own copy of the `CodecTypes` map; keep the two in step. `BsonScalar`, `BsonValue` and `BsonInputValue` are declared once in `@internal/mongo-value`, which both maps import, and `@internal/target-mongo/codec-types` re-exports them.
 
-The PSL name, TS helper, BSON storage types and application type of every Mongo codec are listed in [Scalar types](scalar-types.md#mongodb). What that page does not list is each codec's JSON form, the value `encodeJson` writes into `contract.json`:
+The PSL name, TS helper, BSON storage types and application type of every Mongo codec are listed in [Scalar types](scalar-types.md#mongodb). What that page does not list is the JSON form `contract.json` stores for each codec's values, which its data type reads and the codec's `toDataTypeValue` returns:
 
 | Codec id | JSON form |
 | --- | --- |
@@ -430,21 +450,33 @@ The PSL name, TS helper, BSON storage types and application type of every Mongo 
 | `mongo/binary@1` | unwrapped base64 |
 | `mongo/bson@1` | canonical Extended JSON v2 (`EJSON.serialize(value, { relaxed: false })`), after writing each JavaScript number and `Uint8Array` as the BSON type the driver would store: an integer outside the int32 range as `double`, bytes as `binData` |
 
-`decodeJson` reads only these forms: a value of another kind, or text in another format, throws `RUNTIME.DECODE_FAILED` naming the codec. `mongo/bson@1` refuses Extended JSON that is not canonical, such as a bare number or `{ "$numberInt": "abc" }`, which the `bson` reader would read as 0. The Mongo runtime reads documents through `decode` and never calls `decodeJson`; what `decodeJson` reads is the JSON a schema holds, such as a PSL enum member's value under `@@type`.
+A stored value in another form is refused with `RUNTIME.DECODE_FAILED` when the contract is read. `mongo/bson@1` refuses Extended JSON that is not canonical, such as a bare number or `{ "$numberInt": "abc" }`, which the `bson` reader would read as 0. The Mongo runtime reads documents through `fromWire` and never calls `fromDataTypeValue`; what `fromDataTypeValue` converts is a value a schema holds, such as a PSL enum member's value under `@@type`.
 
-`Json` (`mongo/json@1`) means a JSON value, no more. Encode accepts exactly a plain JSON value (plain objects, arrays without holes, strings, finite numbers, booleans, `null`) and refuses anything else at any depth with `RUNTIME.ENCODE_FAILED`, naming its path. Decode accepts a stored value whose every part is a BSON `object`, `array`, `string`, `double`, `int`, `bool`, `null`, or a `long` in the safe-integer range (returned as a `number`), and refuses anything else (a `Date`, `ObjectId`, `Decimal128`, `Binary`, regex, timestamp, a larger `long`, a non-finite double) with `RUNTIME.DECODE_FAILED`, naming its BSON type and path. The validator admits the same BSON types at the field's top level.
+A Mongo codec is built with `mongoCodec({ typeId, dataType, toWire, fromWire, toDataTypeValue, fromDataTypeValue })`. `toDataTypeValue` returns the value's JSON, and the factory constructs the value through the data type. Both value functions may be left out when the application type is exactly `JsonValue`; `toDataTypeValue` may be left out for a narrower JSON type such as `string`; a codec whose application type is not JSON writes both:
+
+```ts
+export const mongoStringCodec = mongoCodec({
+  typeId: MONGO_STRING_CODEC_ID,
+  dataType: mongoString,
+  fromWire: (wire: string) => wire,
+  toWire: (value: string) => stringEncode(MONGO_STRING_CODEC_ID, value),
+  fromDataTypeValue: (value: DataTypeValue<string>) => value.value,
+});
+```
+
+`Json` (`mongo/json@1`) means a JSON value, no more. `toWire` accepts exactly a plain JSON value (plain objects, arrays without holes, strings, finite numbers, booleans, `null`) and refuses anything else at any depth with `RUNTIME.ENCODE_FAILED`, naming its path. `fromWire` accepts a stored value whose every part is a BSON `object`, `array`, `string`, `double`, `int`, `bool`, `null`, or a `long` in the safe-integer range (returned as a `number`), and refuses anything else (a `Date`, `ObjectId`, `Decimal128`, `Binary`, regex, timestamp, a larger `long`, a non-finite double) with `RUNTIME.DECODE_FAILED`, naming its BSON type and path. The validator admits the same BSON types at the field's top level.
 
 `Bson` (`mongo/bson@1`) passes values through, so the driver's number handling shows: a stored `long` in the safe-integer range and an integral `double` read back as a JavaScript `number` (the driver's default `promoteLongs` and `promoteValues`), and a `number` that fits in 32 bits is written back as `int`. Wrap a value in `Long` or `Double` to keep its BSON type across a read and a write.
 
 The PSL names `Int`, `Float`, `Boolean` and `DateTime` are deprecated aliases of `Int32`, `Double`, `Bool` and `Date`: they resolve to the same codecs, report `PSL_DEPRECATED_SCALAR_NAME` as a warning, and will be removed.
 
-The JSON forms of `int64`, `decimal128` and `binary` match the Postgres `int8`, `numeric` and `bytea` codecs. `Decimal128.toString()` prints some values with an exponent (`1E+3`); the codec rewrites them without one (`1000`), keeping trailing zeros, so the text is stable across a round trip. The driver hands a stored `long` that fits in 53 bits back as a `number`, a larger one (or any one with `promoteLongs: false`) as a `Long`, and every one as a `bigint` with `useBigInt64`, so the `int64` and `int64Number` codecs accept all three on decode. `mongo/int64@1` and `mongo/int64Number@1` both name the `mongo/int64` data type, as `pg/int8@1` and `pg/int8number@1` both name `pg/int8`: the first reads a `bigint`, the second a `number` within ±(2^53 − 1), refusing a stored value outside that range or with a fraction rather than rounding it, and both write a BSON `long`. Decoding a wire value of the wrong BSON type throws `RUNTIME.DECODE_FAILED`.
+The JSON forms of `int64`, `decimal128` and `binary` match the Postgres `int8`, `numeric` and `bytea` codecs. `Decimal128.toString()` prints some values with an exponent (`1E+3`); the codec rewrites them without one (`1000`), keeping trailing zeros, so the text is stable across a round trip. The driver hands a stored `long` that fits in 53 bits back as a `number`, a larger one (or any one with `promoteLongs: false`) as a `Long`, and every one as a `bigint` with `useBigInt64`, so the `int64` and `int64Number` codecs accept all three in `fromWire`. `mongo/int64@1` and `mongo/int64Number@1` both name the `mongo/int64` data type, as `pg/int8@1` and `pg/int8number@1` both name `pg/int8`: the first reads a `bigint`, the second a `number` within ±(2^53 − 1), refusing a stored value outside that range or with a fraction rather than rounding it, and both write a BSON `long`. Reading a wire value of the wrong BSON type throws `RUNTIME.DECODE_FAILED`.
 
 `$jsonSchema` validators take each field's `bsonType` from the `bsonTypes` of the data type the field's codec represents, declared with `mongoDataType(id, { bsonTypes })` from `@internal/mongo-contract/data-type` and kept on the type as `mongo.bsonTypes`: one entry gives `bsonType: '<entry>'`, several give `bsonType: [...entries]` (`mongo/json@1` lists `object`, `array`, `string`, `double`, `int`, `long`, `bool`, `null`). A list field applies the same to `items`, and a nullable field prepends `'null'` unless the list already has it. A data type that lists no BSON type gets an empty schema (`{}`), which admits any value, or `{ bsonType: 'array', items: {} }` for a list field, which admits an array of any values; the field stays listed under `properties` because the validator is closed with `additionalProperties: false`.
 
 ## The data type a codec represents
 
-Every codec descriptor names the data type it is one representation of. A data type is a stored type made first-class — `pg/int8`, `sqlite/text`, `pgvector/vector` — owned by the pack that registers it. It names the one JSON shape `contract.json` stores for its values, its canonical form, and it declares the casts that say which other types' values it takes. `dataType` is abstract on `CodecDescriptorImpl` and on the target-owned bases, so a descriptor that names no data type does not compile, and one that names a type no pack in the assembled stack registers is an assembly error.
+Every codec descriptor names the data type it is one representation of. A data type is a stored type made first-class — `pg/int8`, `sqlite/text`, `pgvector/vector` — owned by the pack that registers it. It reads and constructs every value of the type, in the one JSON form `contract.json` stores, and it declares the casts that say which other types' values it takes. `dataType` is abstract on `CodecDescriptorImpl` and on the target-owned bases, so a descriptor that names no data type does not compile, and one that names a type no pack in the assembled stack registers is an assembly error.
 
 ```ts
 export class PgTextDescriptor extends PostgresCodecDescriptor<void> {
@@ -454,17 +486,17 @@ export class PgTextDescriptor extends PostgresCodecDescriptor<void> {
 }
 ```
 
-Several codecs may represent one type. `pg/int8@1` and `pg/int8number@1` both name `pg/int8`; they differ in the value they produce in memory, a `bigint` and a `number`, and both read and write the digit text that type stores. `encodeJson` produces the canonical form, and `decodeJson` takes a stored form of the type and nothing else, as [`Codec.decodeJson`](../../packages/1-framework/1-core/framework-components/src/shared/codec.ts) states. A codec has no method for PSL and never sees PSL text.
+Several codecs may represent one type. `pg/int8@1` and `pg/int8number@1` both name `pg/int8`; they differ in the value they produce in memory, a `bigint` and a `number`, and both convert the digit text that type stores. The type reads the stored value; the codec converts it with `fromDataTypeValue` and hands an application value back with `toDataTypeValue`. A codec has no method for PSL and never sees PSL text.
 
-A data type that stores several codecs' values in one form declares no canonical form for them: `sqlite/text` holds strings, JSON documents and datetimes. A codec whose values have several written forms then declares the function on its descriptor, as `toCanonicalForm`: `sqlite/datetime@1` turns `2024-01-01 01:00:00+01:00` into `2024-01-01T00:00:00Z` and refuses text with no UTC offset, and `sqlite/json@1` turns the JSON text of a document into that text with sorted keys and no added whitespace. `canonicalFormOf(codec, dataTypes)` from `@internal/framework-components/codec` gives a column's canonical form: the codec's when it declares one, else its data type's. A contract source, `db verify` and the migration planner all take it from there, so an extension codec's form is used wherever a built-in one is.
+Values of different kinds are different data types, even when the database stores them alike. SQLite stores text, a JSON document and an instant in one storage class, so its target declares `sqlite/datetime` and `sqlite/json`, both stored as `sqlite/text` (`storedAs`), each with a `read` of its own: `sqlite/datetime` stores the instant in UTC with three fraction digits, and `sqlite/json` the document's JSON text with sorted keys and no added whitespace. A contract source, `db verify` and the migration planner all read a value through its type, so an extension's type is read wherever a built-in one is.
 
 An extension's codec does the same. `arktype/json@1` stores a `jsonb` column and validates the document against a schema on the way out, so it names `pg/jsonb` and the extension registers no data type at all. Register a new one only for a database type no pack describes yet, as pgvector does for `vector`. Reusing the target's type is what lets a written `` json`{}` `` reach an arktype column: the tag yields `pg/json`, `pg/jsonb` casts from it unchanged, and the codec validates the document.
 
 ### Declaring a data type
 
-`dataType(id, spec)` from `@internal/framework-components/codec` declares a data type with its casts and, optionally, its parameters. The id is `owner/name` in lower case and carries no version; a versioned id such as `pg/int8@1` names a codec, and `dataType` refuses anything that is not the `owner/name` shape.
+`dataType(id, spec)` from `@internal/framework-components/codec` declares a data type with its `read` function, its casts and, optionally, its parameters. `read(json, params)` is required: it returns the JSON when the type holds it under the parameters and refuses anything else with `refuseJsonValue`. An optional `spell(json, params)` gives the spelling the parameters require, such as two fraction digits on `numeric(10,2)`; a stored value in another spelling is refused, and a value a codec hands over is written in it. The id is `owner/name` in lower case and carries no version; a versioned id such as `pg/int8@1` names a codec, and `dataType` refuses anything that is not the `owner/name` shape.
 
-A SQL data type is declared with `sqlDataType(id, spec)` from `@internal/sql-contract/data-type`. It takes the same `params`, `casts` and `listCast`, and adds how the database writes and reports the type. Migrations, schema verification and PostgreSQL's parameter casts all read the type's name from this declaration, and from nowhere else. In a SQL stack every codec must represent a type declared with `sqlDataType`, because a codec is how a column stores its values; the SQL family refuses a codec that represents a type declared with plain `dataType` when it creates its control instance (item 10 under [Checks on the assembled stack](#checks-on-the-assembled-stack)). The SQL family's own `sql/expression` is such a plain type: it is the type of a written SQL expression, and no codec or column has it. A Mongo data type is declared with `mongoDataType(id, { bsonTypes })` instead; see [Target-owned Mongo codecs](#target-owned-mongo-codecs).
+A SQL data type is declared with `sqlDataType(id, spec)` from `@internal/sql-contract/data-type`. It takes the same `params`, `casts` and `listCast`, and adds how the database writes and reports the type. Migrations, schema verification and PostgreSQL's parameter casts all read the type's name from this declaration, and from nowhere else. In a SQL stack every codec must represent a type declared with `sqlDataType`, because a codec is how a column stores its values; the SQL family refuses a codec that represents a type declared with plain `dataType` when it creates its control instance (item 9 under [Checks on the assembled stack](#checks-on-the-assembled-stack)). The SQL family's own `sql/expression` is such a plain type: it is the type of a written SQL expression, and no codec or column has it. A Mongo data type is declared with `mongoDataType(id, { bsonTypes })` instead; see [Target-owned Mongo codecs](#target-owned-mongo-codecs).
 
 ```ts
 import { sqlDataType } from '@internal/sql-contract/data-type';
@@ -474,6 +506,7 @@ export const pgInt2 = sqlDataType('pg/int2', {
     { text: 'int2', written: true },
     { text: 'smallint', catalog: true },
   ],
+  read: (json) => readJsonInteger('pg/int2', json, { min: -32768, max: 32767 }),
 });
 
 export const pgInt4 = sqlDataType('pg/int4', {
@@ -482,6 +515,7 @@ export const pgInt4 = sqlDataType('pg/int4', {
     { text: 'integer', catalog: true },
     { text: 'int' },
   ],
+  read: (json) => readJsonInteger('pg/int4', json, INT32_RANGE),
   casts: { [pgInt2.id]: (value) => value },
 });
 ```
@@ -508,6 +542,7 @@ export const postgisGeometry = sqlDataType('postgis/geometry', {
       display: 'geometry(Geometry,{srid})',
     },
   ],
+  read: readGeometry,
   casts: { [pgText.id]: (value) => value },
 });
 ```
@@ -539,12 +574,14 @@ export const pgNumeric = sqlDataType('pg/numeric', {
     { text: 'decimal({precision})' },
     { text: 'decimal({precision},{scale})' },
   ],
+  read: readNumeric,
+  spell: spellNumeric,
   normalize: (params) =>
     params.precision !== undefined && params.scale === undefined ? { ...params, scale: 0 } : params,
 });
 ```
 
-A column with `{ precision: 10 }` is written `numeric(10)`, and one with `{ precision: 10, scale: 2 }` is written `numeric(10,2)`. Parameters that fail the schema, or that no `written` text takes, are refused with `CONTRACT.TYPE_PARAMS_INVALID`. A placeholder is written only with an integer value; any other value is refused with the same code, so a parameter can never write other SQL into a migration. `normalize` returns the normal form of a type's parameters, so that two ways of writing the same database type compare equal: PostgreSQL reports `numeric(10)` as `numeric(10,0)`. A type without `normalize` keeps its parameters as they are. Schema verification writes the contract's side with the normal form, so every normal form needs a `written` text with exactly its parameters, and `sqlDataType` refuses a declaration whose `normalize` gives parameters that no `written` text takes.
+`readNumeric` refuses a value `numeric(10,2)` would round, and `spellNumeric` writes the value with exactly the scale's fraction digits, as PostgreSQL prints it. A column with `{ precision: 10 }` is written `numeric(10)`, and one with `{ precision: 10, scale: 2 }` is written `numeric(10,2)`. Parameters that fail the schema, or that no `written` text takes, are refused with `CONTRACT.TYPE_PARAMS_INVALID`. A placeholder is written only with an integer value; any other value is refused with the same code, so a parameter can never write other SQL into a migration. `normalize` returns the normal form of a type's parameters, so that two ways of writing the same database type compare equal: PostgreSQL reports `numeric(10)` as `numeric(10,0)`. A type without `normalize` keeps its parameters as they are. Schema verification writes the contract's side with the normal form, so every normal form needs a `written` text with exactly its parameters, and `sqlDataType` refuses a declaration whose `normalize` gives parameters that no `written` text takes.
 
 A codec's `paramsSchema` is its data type's `params`, referenced and never restated, so a bound has one home:
 
@@ -600,19 +637,20 @@ export const pgEnum = sqlDataType('pg/enum', {
 
 #### Casts
 
-`casts` is keyed by the id of the type each cast takes values of. A cast is declared by the type that receives, never by the source, so there is at most one cast for any pair and the owner of a type is the only one who decides what it takes. Each cast is a pure function from the source type's canonical form to this type's, and it may throw a structured error for a value it cannot convert:
+`casts` is keyed by the id of the type each cast takes values of. A cast is declared by the type that receives, never by the source, so there is at most one cast for any pair and the owner of a type is the only one who decides what it takes. Each cast is a pure function from the source type's stored form to this type's, and it may throw a structured error for a value it cannot convert:
 
 ```ts
 const asNumeralText: Cast = (value) =>
   typeof value === 'number' ? numeralText(value) : wrongShape(value, 'a number');
 ```
 
-There is no list data type. A written list on a list column is checked element by element against the column's own type. A type whose single value holds several elements takes a written list through `listCast` instead: `of` is the element types it takes, and `cast` receives their canonical forms in written order.
+There is no list data type. A written list on a list column is checked element by element against the column's own type. A type whose single value holds several elements takes a written list through `listCast` instead: `of` is the element types it takes, and `cast` receives their stored forms in written order.
 
 ```ts
 export const pgvectorVector = sqlDataType('pgvector/vector', {
   params: pgvectorVectorParams,
   texts: [{ text: 'vector({length})', written: true, catalog: true }],
+  read: readVector,
   listCast: {
     of: [pgInt2.id, pgInt4.id, pgInt8.id, pgNumeric.id],
     cast: (elements) => elements.map(elementNumber),
@@ -630,9 +668,9 @@ Register the same list on the control descriptor and the runtime descriptor. The
 
 ### Giving a type PSL support
 
-A type's values can be written in PSL only when the pack contributes an **authoring entry** for it, keyed by the type's id under `authoring.dataTypes`. The entry says how a value of the type is written, reads the text into the type's canonical form, and prints a stored value back; `contract infer` and the language server read the same entry.
+A type's values can be written in PSL only when the pack contributes an **authoring entry** for it, keyed by the type's id under `authoring.dataTypes`. The entry says how a value of the type is written, reads the text into the type's stored form, and prints a stored value back; `contract infer` and the language server read the same entry.
 
-A value is written either with a tag — a qualified name followed by a string in any of PSL's quote styles — or in one of the three plain forms the interpreter reads without a tag: a quoted string, `true`/`false`, and a number. `parse` turns the text into the canonical form and throws a structured error for text it cannot read.
+A value is written either with a tag — a qualified name followed by a string in any of PSL's quote styles — or in one of the three plain forms the interpreter reads without a tag: a quoted string, `true`/`false`, and a number. `parse` turns the text into the stored form and throws a structured error for text it cannot read.
 
 ```ts
 [pgText.id]: {
@@ -647,17 +685,22 @@ A value is written either with a tag — a qualified name followed by a string i
 },
 ```
 
-A tag whose value is a type that another syntax already reads sits under `tagEntryKey(tag)` and names that type in `type`. SQLite stores a JSON document as text, so its `json` tag yields `sqlite/text`, whose own entry reads a plain string:
+Each entry sits under the id of the type it writes. SQLite's `json` and `datetime` tags write `sqlite/json` and `sqlite/datetime`, types of their own, so a quoted string on a `Json` or `DateTime` column is refused rather than read as text:
 
 ```ts
-[tagEntryKey('json')]: {
-  written: { kind: 'tag', tag: 'json', type: sqliteText.id, parse: (text) => canonicalizeJson(parseJsonText(text)) },
+[sqliteJson.id]: {
+  written: { kind: 'tag', tag: 'json', parse: (text) => canonicalizeJson(parseJsonText(text)) },
   print: (value) => String(value),
   documentation: 'Reads the text as a JSON document and stores its JSON text as the default value.',
 },
+[sqliteDatetime.id]: {
+  written: { kind: 'tag', tag: 'datetime', parse: sqliteDatetimeText },
+  print: (value) => String(value),
+  documentation: 'An instant, as in datetime`2024-01-01T00:00:00Z`.',
+},
 ```
 
-A number is the one plain form that yields several types, so its arm carries a classifier in place of `parse`: `classify` picks the type from the digits and returns the canonical form with it, and `types` lists every data type the classifier can return. Assembly reads `types` to know those types can be written, so leaving one out turns a cast from it into an assembly error.
+A number is the one plain form that yields several types, so its arm carries a classifier in place of `parse`: `classify` picks the type from the digits and returns the stored form with it, and `types` lists every data type the classifier can return. Assembly reads `types` to know those types can be written, so leaving one out turns a cast from it into an assembly error.
 
 ```ts
 [pgNumeric.id]: {
@@ -672,11 +715,11 @@ A number is the one plain form that yields several types, so its arm carries a c
 },
 ```
 
-Reading a written default is then: the entry parses or classifies the text into a value of a known type; if that type is not the column's, the column's type is looked up for a cast from it, and having none is `PSL_VALUE_TYPE_INCOMPATIBLE`; the value, cast or not, is handed to the codec instance built with the column's parameters, and a refusal there is `PSL_INVALID_DEFAULT_LITERAL` with the codec's own message; the value is then stored in the column's canonical form. Text the entry, a cast or the column's canonical form refuses is `PSL_INVALID_LITERAL`. A column whose data type has no authoring entry and no cast into it takes only a `` sql`...` `` default.
+Reading a written default is then: the entry parses or classifies the text into a value of a known type; if that type is not the column's, the column's type is looked up for a cast from it, and having none is `PSL_VALUE_TYPE_INCOMPATIBLE`; the column's type gives the value, cast or not, the column's parameters with `withParams`, and the column's codec's `fromDataTypeValue` checks it against the codec's own limits; a refusal there is `PSL_INVALID_DEFAULT_LITERAL` with the type's or the codec's message, such as `pg/numeric JSON value must be a decimal string that numeric(10, 2) stores without rounding`; the value's `toContract` is then stored. Text the entry or a cast refuses is `PSL_INVALID_LITERAL`. A column whose data type has no authoring entry and no cast into it takes only a `` sql`...` `` default.
 
 A data type need not be a column's type. `sql/expression` has an authoring entry that is a tag, declares no casts, and has no codec, so its values are admitted only where a position asks for that type. The SQL family defines and registers it. A family registers only a type whose definition must not differ between targets and that nothing casts from.
 
-Checks that depend on a column's parameters belong in the codec instance, on the canonical form: `vector(3)` refuses four elements, `numeric(10,2)` refuses a third decimal place, and a limit of the stored representation is the codec's to refuse too — on SQLite, `sqlite/real@1` and `sql/float@1` refuse `NaN`, because SQLite cannot store it.
+Checks that depend on a column's parameters belong in the data type's `read`: `vector(3)` refuses four elements, and `numeric(10,2)` refuses a third decimal place. A limit of a target's storage is the codec's to refuse: on SQLite, `sqlite/real@1` and `sql/float@1` refuse `NaN`, because SQLite cannot store it.
 
 ### Checks on the assembled stack
 
@@ -685,22 +728,21 @@ The control stack assembles every pack's data types, codec descriptors and autho
 1. **A codec names a type nobody registers.** `CONTRACT.DATA_TYPE_UNREGISTERED`.
 2. **An authoring entry, a type in a number entry's `types`, or a type some cast takes values of, is not registered.** Also `CONTRACT.DATA_TYPE_UNREGISTERED`.
 3. **Two entries claim one tag or one plain form.** `CONTRACT.DATA_TYPE_WRITTEN_FORM_DUPLICATE`. Two packs registering one type id is `CONTRACT.DATA_TYPE_DUPLICATE`, and two entries under one key is `CONTRACT.DATA_TYPE_ENTRY_DUPLICATE`.
-4. **A type some cast takes values of cannot be written.** `CONTRACT.DATA_TYPE_NOT_WRITABLE`: a cast from a type no contract source can write is never exercised. A type counts as writable when it has an authoring entry of its own, when a tag entry's `type` names it, or when a number entry's `types` names it.
-5. **An entry sits under the wrong key.** `CONTRACT.DATA_TYPE_ENTRY_KEY_INVALID`: a tag entry that names its `type` sits under `tagEntryKey(tag)`, and only there.
+4. **A type some cast takes values of cannot be written.** `CONTRACT.DATA_TYPE_NOT_WRITABLE`: a cast from a type no contract source can write is never exercised. A type counts as writable when it has an authoring entry of its own, or when a number entry's `types` names it.
 
 The reverse of the fourth is not required: a type may be reachable only through casts. These checks span packs, which is why they run at assembly — `pgvector/vector` taking `pg/numeric` values is valid only when the Postgres target that owns `pg/numeric` is in the stack. Within a pack, refer to a type by its constant rather than by string, so a misspelt id fails to compile.
 
 Type constructors and field presets are checked at assembly too. Each failure is an `InternalError` naming the contributor and the id:
 
-6. **A type constructor or field preset names a codec no component registers.**
-7. **A type constructor maps an argument onto a parameter** that neither the codec's data type's `params` nor the codec's own parameters declare.
-8. **Two type constructors of one data type are both marked `inferred`.**
+5. **A type constructor or field preset names a codec no component registers.**
+6. **A type constructor maps an argument onto a parameter** that neither the codec's data type's `params` nor the codec's own parameters declare.
+7. **Two type constructors of one data type are both marked `inferred`.**
 
 The SQL family checks its stack's data types and codecs when it creates its control instance, not during assembly. So CLI commands report these failures and the language server does not. Each failure names the contributor:
 
-9. **Two SQL data types claim the same reported type**: a claiming text of one matches a claiming text of the other, or both claim the same kind. An `InternalError`.
-10. **A codec in a SQL stack represents a data type that is not a SQL data type** (declared with plain `dataType` rather than `sqlDataType`). An `InternalError` that names the codec, its data type and the data type's contributor.
-11. **A data type casts from `sql/expression`.** `CONTRACT.DATA_TYPE_CASTS_FROM_SQL_EXPRESSION`.
+8. **Two SQL data types claim the same reported type**: a claiming text of one matches a claiming text of the other, or both claim the same kind. An `InternalError`.
+9. **A codec in a SQL stack represents a data type that is not a SQL data type** (declared with plain `dataType` rather than `sqlDataType`). An `InternalError` that names the codec, its data type and the data type's contributor.
+10. **A data type casts from `sql/expression`.** `CONTRACT.DATA_TYPE_CASTS_FROM_SQL_EXPRESSION`.
 
 ### A codec whose data type depends on the target
 
@@ -712,12 +754,12 @@ export class SqlTextDescriptor extends CodecDescriptorTemplateImpl<void> {
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
   override factory(): (ctx: CodecInstanceContext) => SqlTextCodec {
-    return () => new SqlTextCodec(this);
+    return () => unadapted(this.codecId);
   }
 }
 ```
 
-The target names the type when it adapts the template, alongside the JSON projection:
+The template's own factory refuses to build a codec, because a codec is built with its data type and the template names none. The target names the type when it adapts the template, alongside the JSON projection and a factory that builds the codec with that type:
 
 ```ts
 import { sqlTextDescriptor } from '@internal/sql-relational-core/ast';
@@ -727,6 +769,7 @@ import { pgText } from '@internal/target-postgres/data-types';
 export const postgresSqlTextDescriptor = postgresCodec(sqlTextDescriptor, {
   dataType: pgText,
   jsonProjection: (expression) => expression,
+  factory: (descriptor, dataType) => () => new SqlTextCodec(descriptor, dataType),
 });
 ```
 
@@ -829,5 +872,5 @@ The class hierarchy isn't load-bearing for variance preservation (per-codec help
 ## See also
 
 - [ADR 208 — Higher-order codecs for parameterized types](../architecture%20docs/adrs/ADR%20208%20-%20Higher-order%20codecs%20for%20parameterized%20types.md) — design rationale and how the codec composes across authoring, emit, and runtime dispatch.
-- [ADR 204 — Single-Path Async Codec Runtime](../architecture%20docs/adrs/ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md) — `encode` / `decode` are uniformly Promise-returning at the public boundary.
-- [ADR 207 — Codec call context](../architecture%20docs/adrs/ADR%20207%20-%20Codec%20call%20context%20per-query%20AbortSignal%20and%20column%20metadata.md) — the `CodecCallContext` (per-call signal + family-extended column metadata) threaded into every encode/decode invocation.
+- [ADR 204 — Single-Path Async Codec Runtime](../architecture%20docs/adrs/ADR%20204%20-%20Single-Path%20Async%20Codec%20Runtime.md) — `toWire` / `fromWire` (named `encode` / `decode` there) are uniformly Promise-returning at the public boundary.
+- [ADR 207 — Codec call context](../architecture%20docs/adrs/ADR%20207%20-%20Codec%20call%20context%20per-query%20AbortSignal%20and%20column%20metadata.md) — the `CodecCallContext` (per-call signal + family-extended column metadata) threaded into every `toWire` / `fromWire` invocation.
