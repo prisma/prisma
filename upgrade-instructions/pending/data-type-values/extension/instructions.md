@@ -13,13 +13,25 @@ changes:
         - '\basync\s+(?:encode|decode)\s*\('
   - id: data-types-own-parameter-limits
     summary: |
-      A data type reads and checks each stored value with its `read` function, under the column's
-      parameters, instead of a `toCanonicalForm` hook; limits a parameter sets, such as a vector's
-      length or a geometry's SRID, move from the codec to the data type.
+      Every data type declares a `read` function, which reads and checks each stored value under
+      the column's parameters. It replaces the `toCanonicalForm` hook of a data type or codec
+      descriptor, and limits a parameter sets, such as a vector's length or a geometry's SRID, move
+      from the codec to the data type.
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - '\btoCanonicalForm\s*:'
+        - '\btoCanonicalForm\b'
+        - '\bsqlDataType\('
+  - id: json-helpers-renamed
+    summary: |
+      The JSON helpers in `@prisma/orm-framework/components/codec` are renamed from `decodeJson*`
+      to `readJson*` (`readJsonString`, `readJsonMatching`, `readJsonInteger`,
+      `readJsonIntegerText`, `readJsonFloat`, `readJsonBoolean`), and `encodeJsonFloat` to
+      `floatToJson`. `ToCanonicalForm` and `canonicalFormOf` are removed.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - '\b(?:decodeJson(?:String|Matching|Integer|IntegerText|Float|Boolean)|encodeJsonFloat|canonicalFormOf|ToCanonicalForm)\b'
   - id: projections-read-by-from-wire
     summary: |
       An include and an aggregate read a column's JSON projection with the codec's `fromWire`, as a
@@ -128,7 +140,7 @@ override factory(params: GeometryParams) {
 
 ## `data-types-own-parameter-limits`
 
-A data type now reads every value a contract stores, with a `read` function that receives the JSON and the column's parameters. It returns the JSON when the type holds it and refuses it with `refuseJsonValue` when it does not. It replaces `toCanonicalForm`, and the checks a codec made in `decodeJson` against its parameters move into it:
+A data type now reads every value a contract stores, with a `read` function that receives the JSON and the column's parameters. It returns the JSON when the type holds it and refuses it with `refuseJsonValue` when it does not. `read` is required: a data type that declared none before declares one now. It replaces `toCanonicalForm`, on the data type or on a codec descriptor, and the checks a codec made in `decodeJson` against its parameters move into it:
 
 ```ts
 // before
@@ -157,7 +169,40 @@ export const pgvectorVector = sqlDataType('pgvector/vector', {
 });
 ```
 
+A data type that had neither `toCanonicalForm` nor parameter checks gets a `read` that accepts the JSON it stores, as PostGIS's geometry now reads HEXEWKB text:
+
+```ts
+// before
+export const postgisGeometry = sqlDataType('postgis/geometry', { params, texts });
+
+// after
+const readGeometry: DataTypeReader = (json, params) => {
+  const hex = readJsonMatching('postgis/geometry', json, HEX_TEXT, 'a HEXEWKB string');
+  const srid = params['srid'];
+  if (typeof srid !== 'number' || sridOf(hex) === srid) return json;
+  return refuseJsonValue('postgis/geometry', `a HEXEWKB string of a geometry with SRID ${srid}`, json);
+};
+
+export const postgisGeometry = sqlDataType('postgis/geometry', { params, texts, read: readGeometry });
+```
+
 A parameter that limits values, such as a geometry column's SRID, is checked the same way, in the data type's `read`. A contract that stores a value the type refuses no longer loads, so a stored default that broke the limit is reported when the contract is read, not when a query runs.
+
+## `json-helpers-renamed`
+
+The helpers that read a value from JSON now say so, and the one that writes a float says what it returns. Rename each call:
+
+| Before | After |
+| --- | --- |
+| `decodeJsonString` | `readJsonString` |
+| `decodeJsonMatching` | `readJsonMatching` |
+| `decodeJsonInteger` | `readJsonInteger` |
+| `decodeJsonIntegerText` | `readJsonIntegerText` |
+| `decodeJsonFloat` | `readJsonFloat` |
+| `decodeJsonBoolean` | `readJsonBoolean` |
+| `encodeJsonFloat` | `floatToJson` |
+
+They take the same arguments. `ToCanonicalForm` and `canonicalFormOf` are removed; a data type's `read` (`data-types-own-parameter-limits`) does their work.
 
 ## `projections-read-by-from-wire`
 
