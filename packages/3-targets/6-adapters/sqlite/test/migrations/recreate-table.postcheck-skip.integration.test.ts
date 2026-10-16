@@ -1,4 +1,3 @@
-import type { SQLInputValue } from 'node:sqlite';
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import {
   APP_SPACE_ID,
@@ -10,7 +9,6 @@ import type { ReferentialAction, StorageColumn } from '@internal/sql-contract/ty
 import { SqlStorage } from '@internal/sql-contract/types';
 import { sqliteCreateNamespace } from '@internal/target-sqlite/control';
 import { createSqliteMigrationPlanner } from '@internal/target-sqlite/planner';
-import { blindCast } from '@internal/utils/casts';
 import { applicationDomainOf, timeouts } from '@repo/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
@@ -177,35 +175,28 @@ describe('a SQLite rebuild whose change the table-level postchecks miss', {
     });
   });
 
-  async function postcheckResultsAt(
-    origin: Contract<SqlStorage>,
-    destination: Contract<SqlStorage>,
-  ): Promise<readonly boolean[]> {
-    testDb = createTestDatabase();
-    for (const op of await Promise.all(plan(null, origin).operations)) {
-      for (const step of op.execute) testDb.driver.db.exec(step.sql);
-    }
-    const results: boolean[] = [];
-    for (const op of await Promise.all(plan(origin, destination).operations)) {
-      for (const check of op.postcheck) {
-        const row = testDb.driver.db
-          .prepare(check.sql)
-          .get(...blindCast<SQLInputValue[], 'check params are text'>(check.params ?? []));
-        results.push(Object.values(row ?? {})[0] === 1);
-      }
-    }
-    return results;
+  async function tableSql(): Promise<string | undefined> {
+    const table = await testDb.driver.query<{ sql: string }>(
+      `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'Counter'`,
+    );
+    return table.rows[0]?.sql;
   }
 
-  it('does not find a rebuild that only adds autoincrement() already done', async () => {
-    const results = await postcheckResultsAt(counterContract(false), counterContract(true));
+  it('runs a rebuild that only adds autoincrement()', async () => {
+    const result = await migrate(counterContract(false), counterContract(true));
 
-    expect(results).toContain(false);
+    expect({ result, sql: await tableSql() }).toMatchObject({
+      result: { operationsExecuted: 1 },
+      sql: expect.stringContaining('AUTOINCREMENT'),
+    });
   });
 
-  it('does not find a rebuild that only removes autoincrement() already done', async () => {
-    const results = await postcheckResultsAt(counterContract(true), counterContract(false));
+  it('runs a rebuild that only removes autoincrement()', async () => {
+    const result = await migrate(counterContract(true), counterContract(false));
 
-    expect(results).toContain(false);
+    expect({ result, sql: await tableSql() }).toMatchObject({
+      result: { operationsExecuted: 1 },
+      sql: expect.not.stringContaining('AUTOINCREMENT'),
+    });
   });
 });
