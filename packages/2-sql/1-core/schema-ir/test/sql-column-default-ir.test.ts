@@ -123,6 +123,39 @@ describe('SqlColumnDefaultIR', () => {
       }).toEqual({ same: true, other: false });
     });
 
+    it('compares an expression that writes a literal by value, not by its text, when both have one', () => {
+      const expected = new SqlColumnDefaultIR({
+        resolved: { kind: 'function', expression: "'Hello'::text" },
+      });
+      const actual = new SqlColumnDefaultIR({
+        resolved: { kind: 'literal', value: 'hello' },
+        raw: "'hello'::text",
+        value: text.fromContract('hello', {}),
+        expressionValue: text.fromContract('Hello', {}),
+      });
+      expect(expected.isEqualTo(actual)).toBe(false);
+    });
+
+    it('keeps case and spaces inside quotes when it compares text', () => {
+      const expected = (expression: string) =>
+        new SqlColumnDefaultIR({ resolved: { kind: 'function', expression } });
+      expect({
+        case: expected("'Hello'").isEqualTo(new SqlColumnDefaultIR({ raw: "'hello'" })),
+        spaces: expected("'a b'").isEqualTo(new SqlColumnDefaultIR({ raw: "'ab'" })),
+        quotedIdentifier: expected('"Seq"').isEqualTo(new SqlColumnDefaultIR({ raw: '"seq"' })),
+        outside: expected("'a b'::TEXT").isEqualTo(
+          new SqlColumnDefaultIR({ raw: "'a b' :: text" }),
+        ),
+        escapedQuote: expected("'it''s A'").isEqualTo(new SqlColumnDefaultIR({ raw: "'it''s a'" })),
+      }).toEqual({
+        case: false,
+        spaces: false,
+        quotedIdentifier: false,
+        outside: true,
+        escapedQuote: false,
+      });
+    });
+
     it('compares an expression with the reported text of a default no codec read', () => {
       const expected = new SqlColumnDefaultIR({
         resolved: { kind: 'function', expression: "'x'" },

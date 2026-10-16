@@ -99,12 +99,11 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
 
   /**
    * Compares with `this` as the expected side. Two literals compare as values of the column's type
-   * when both sides hold one, and as canonical JSON otherwise. Two expressions compare with case and
-   * whitespace ignored. An expected expression matches a reported literal when the database
-   * reports the expression's text, or when the expression writes a literal whose value, read by
-   * the column's codec during introspection, is the reported value; against a default no codec
-   * read, it compares with the reported text. A resolved side against a raw-only side is a mismatch; two raw-only nodes compare
-   * their text.
+   * when both sides hold one, and as canonical JSON otherwise. Two expressions compare as text, with
+   * case and whitespace ignored outside quotes. An expected expression that writes a literal, read by
+   * the column's codec during introspection, matches a reported literal when the two values are
+   * equal; when the codec could not read one of them, it compares with the reported text. A resolved
+   * side against a raw-only side is a mismatch; two raw-only nodes compare their text.
    */
   isEqualTo(other: DiffableNode): boolean {
     const node = blindCast<
@@ -124,12 +123,10 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
       if (actual.kind === 'function') {
         return sameExpression(expected.expression, actual.expression);
       }
-      return (
-        (node.raw !== undefined && sameExpression(expected.expression, node.raw)) ||
-        (node.value !== undefined &&
-          node.expressionValue !== undefined &&
-          sqlDefaultValuesEqual(node.expressionValue, node.value))
-      );
+      if (node.value !== undefined && node.expressionValue !== undefined) {
+        return sqlDefaultValuesEqual(node.expressionValue, node.value);
+      }
+      return node.raw !== undefined && sameExpression(expected.expression, node.raw);
     }
     if (actual.kind !== 'literal') return false;
     if (this.value !== undefined && node.value !== undefined) {
@@ -145,7 +142,25 @@ export class SqlColumnDefaultIR extends SqlSchemaIRNode implements DiffableNode 
 }
 
 function sameExpression(a: string, b: string): boolean {
-  return a.toLowerCase().replace(/\s+/g, '') === b.toLowerCase().replace(/\s+/g, '');
+  return comparableExpression(a) === comparableExpression(b);
+}
+
+/** The expression with case and whitespace dropped outside quotes; a quoted literal or identifier keeps both, since they change what it means. */
+function comparableExpression(expression: string): string {
+  let result = '';
+  let quote: string | undefined;
+  for (const char of expression) {
+    if (quote !== undefined) {
+      result += char;
+      if (char === quote) quote = undefined;
+    } else if (char === "'" || char === '"') {
+      quote = char;
+      result += char;
+    } else if (!/\s/.test(char)) {
+      result += char.toLowerCase();
+    }
+  }
+  return result;
 }
 
 function storedJson(value: ColumnDefaultLiteralInputValue): string {
