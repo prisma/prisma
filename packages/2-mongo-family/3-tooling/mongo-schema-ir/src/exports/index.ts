@@ -2,7 +2,6 @@ export { canonicalize } from '../canonicalize';
 export {
   deepEqual,
   indexLookupKey,
-  listsEveryOption,
   MONGO_INDEX_OPTION_KEYS,
   type MongoIndexOptionKey,
 } from '../index-equivalence';
