@@ -183,4 +183,20 @@ describe('buildRecreatePostchecks on SQLite for autoincrement()', () => {
       holds(withoutAutoincrement, removed, false),
     ]).toEqual([false, true]);
   });
+
+  it('holds after the removal when another column or a default names the word', () => {
+    expect(
+      holds(
+        `CREATE TABLE "Counter" ("id" INTEGER NOT NULL, "autoincrement_seed" INTEGER, "note" TEXT DEFAULT 'AUTOINCREMENT', PRIMARY KEY ("id")) -- AUTOINCREMENT`,
+        removed,
+        false,
+      ),
+    ).toBe(true);
+  });
+
+  it('does not hold before the removal when the clause is written in lower case', () => {
+    expect(
+      holds('CREATE TABLE "Counter" ("id" integer primary key autoincrement)', removed, false),
+    ).toBe(false);
+  });
 });

@@ -472,6 +472,14 @@ function tableSqlQuery(tableName: string): string {
   return `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '${escapeLiteral(tableName)}'`;
 }
 
+/** SQLite accepts `AUTOINCREMENT` only on an `INTEGER PRIMARY KEY` column; this is how the planner writes it. */
+function autoincrementColumnDefinition(columnName: string): string {
+  return renderColumnDefinition(
+    { name: columnName, typeSql: 'INTEGER', nullable: false, inlineAutoincrementPrimaryKey: true },
+    '',
+  );
+}
+
 function isAutoincrementDefault(node: unknown): boolean {
   return (
     node instanceof SqlColumnDefaultIR &&
@@ -617,8 +625,8 @@ export function buildRecreatePostchecks(
         });
         if (isAutoincrementDefault(issue.actual)) {
           checks.push({
-            description: `verify "${tableName}" has no autoincrement column`,
-            sql: `SELECT (${tableSqlQuery(tableName)}) NOT LIKE '%AUTOINCREMENT%'`,
+            description: `verify "${columnName}" is not an autoincrement primary key on "${tableName}"`,
+            sql: `SELECT instr(upper((${tableSqlQuery(tableName)})), upper('${escapeLiteral(autoincrementColumnDefinition(columnName))}')) = 0`,
           });
         }
         continue;
