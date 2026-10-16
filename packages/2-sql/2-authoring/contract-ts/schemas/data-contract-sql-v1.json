@@ -588,12 +588,6 @@
                                   }
                                 ]
                               },
-                              "noCheck": {
-                                "type": "array",
-                                "items": {
-                                  "enum": ["elementNotNull", "membership"]
-                                }
-                              },
                               "typeParams": {
                                 "type": "object",
                                 "additionalProperties": {}

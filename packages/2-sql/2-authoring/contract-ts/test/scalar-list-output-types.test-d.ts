@@ -65,8 +65,6 @@ const definition = {
           .column(textColumn)
           .many({ elementsNullable: true })
           .optional(),
-
-        waivedElementCheck: field.column(textColumn).many().noCheck('elementNotNull'),
       },
     }).sql({ table: 'posts' }),
   },
@@ -136,11 +134,6 @@ test('nullable-element nullable-container field composes both axes', () => {
   > | null>();
 });
 
-test('noCheck element waiver does not change declared element type', () => {
-  expectTypeOf<FieldTypes['waivedElementCheck']>().toEqualTypeOf<ReadonlyArray<string>>();
-  expectTypeOf<FieldInputTypes['waivedElementCheck']>().toEqualTypeOf<ReadonlyArray<string>>();
-});
-
 test('scalar field is unaffected', () => {
   expectTypeOf<FieldTypes['id']>().toEqualTypeOf<string>();
 });
@@ -177,11 +170,6 @@ test('nullable-element nullable-container storage column composes both axes', ()
   expectTypeOf<StorageInputTypes['nullableElementValuesAndList']>().toEqualTypeOf<ReadonlyArray<
     string | null
   > | null>();
-});
-
-test('waived storage element check keeps non-null element type', () => {
-  expectTypeOf<StorageOutputTypes['waivedElementCheck']>().toEqualTypeOf<ReadonlyArray<string>>();
-  expectTypeOf<StorageInputTypes['waivedElementCheck']>().toEqualTypeOf<ReadonlyArray<string>>();
 });
 
 test('scalar storage column is unaffected', () => {

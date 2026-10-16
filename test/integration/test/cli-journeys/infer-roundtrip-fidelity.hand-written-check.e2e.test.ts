@@ -51,9 +51,7 @@ withTempDir(({ createTempDir }) => {
         expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
 
         const psl = readContractPsl(ctx);
-        expect(psl, 'the derived element check is still waived').toMatch(
-          /tags\s+String\[\][^\n]*@noCheck\(elementNotNull\)/,
-        );
+        expect(psl, 'the list still allows null elements').toMatch(/tags\s+String\?\[\]/);
         expect(
           psl,
           'the hand-written check is now declared, carrying the live reprint via map:',

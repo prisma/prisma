@@ -516,7 +516,7 @@ export const postgisGeometry = sqlDataType('postgis/geometry', {
 
 #### Parameters
 
-`params` is an arktype object schema of the type's parameters, and it is the only place a parameter's bound is written. A placeholder `{name}` in a text stands for the parameter `name` and matches a whole number. To write a column's type, the declaration picks the `written` text whose placeholders are exactly the parameters the column has, so one type can be written several ways:
+`params` is an arktype object schema of the type's parameters, and it is the only place a parameter's bound is written. A placeholder `{name}` in a text stands for the parameter `name` and matches a whole number, with a leading minus when the parameter's schema allows a negative one (`numeric(10,-2)`). To write a column's type, the declaration picks the `written` text whose placeholders are exactly the parameters the column has, so one type can be written several ways:
 
 ```ts
 export const pgNumericParams = arktype({
@@ -558,7 +558,7 @@ export class PgCharDescriptor extends PostgresCodecDescriptor<LengthParams> {
 
 A codec with parameters of its own sets `paramsSchema` to `dataType.params.and(ownKeys)`, or to its own keys alone when the data type declares no `params`, as `arktype/json@1` does. `postgresCodec(...)` and `sqliteCodec(...)` take the adapted codec's params schema from the data type they are given.
 
-A type constructor maps its arguments onto the parameters and names only the codec; the data type follows from the codec. An argument that becomes a data type parameter carries no `minimum` or `maximum`, because the parameter's schema checks it. `inferred: true` marks the constructor `contract infer` prints for the data type, and at most one constructor per data type carries it.
+A type constructor maps its arguments onto the parameters and names only the codec; the data type follows from the codec. An argument that becomes a data type parameter carries no `minimum` or `maximum`, because the parameter's schema checks it. `inferred: true` marks the constructor written for a column of the data type when no schema names one: `contract infer` writes it, and the Prisma 7 reader will. `contract print` writes it when it produces the column's codec, and otherwise the first constructor in the stack that does, so a `timestamptz` column with the `Temporal` codec prints `DateTime`. It is called with the fewest arguments that give the column's parameters in normal form, so a `numeric(10,0)` column is written `Numeric(10)`. At most one constructor per data type carries the mark. A data type with no marked constructor, such as `pg/tsquery`, is still recognised, but `contract infer` cannot write a column of it and fails with `CONTRACT.INFER_COLUMN_TYPE_UNCLAIMED`.
 
 ```ts
 export const pgvectorAuthoringTypes = {

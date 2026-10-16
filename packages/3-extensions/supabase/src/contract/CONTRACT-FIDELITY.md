@@ -27,7 +27,7 @@ The machine-readable version of the default list lives in `scripts/generate-cont
 
 **Generated columns** (`auth.users.confirmed_at`, `auth.identities.email`, `storage.objects.path_tokens`): declared as ordinary columns. Introspection reports them identically on the authored and live sides, so verify is clean; the contract does not record the generation expression.
 
-**Check constraints:** all 43 live `CHECK` constraints on a declared table are declared — see "What is complete". The four `text[]` columns additionally carry `@noCheck(elementNotNull)`, which `contract infer` writes for any list column with no live check at the derived wire name; the committed contract reproduces the generator's output, so it carries the waiver too. The waiver's only effect on the emitted artefact is the `"noCheck": ["elementNotNull"]` key, which feeds the storage hash. It changes nothing about what `db verify` demands: the pack's `defaultControlPolicy: 'external'` already runs `stripDerivedChecksFromNonManagedTables` over every table before emit, so a derived check never reaches the contract whether the waiver is written or not.
+**Check constraints:** all 43 live `CHECK` constraints on a declared table are declared — see "What is complete". The four `text[]` columns are written `String?[]`, which `contract infer` writes for any list column with no live check at the derived wire name: the database accepts null elements in them, so the contract says so and the client types each element as `string | null`. No derived check reaches the contract either way: the pack's `defaultControlPolicy: 'external'` runs `stripDerivedChecksFromNonManagedTables` over every table before emit.
 
 ## The named types are chosen by how a type is written
 

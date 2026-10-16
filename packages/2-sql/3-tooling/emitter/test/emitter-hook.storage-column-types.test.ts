@@ -1163,7 +1163,6 @@ describe('StorageColumnTypes', () => {
             fields: {
               tags: { column: 'tags' },
               labels: { column: 'labels' },
-              waived: { column: 'waived' },
               priorities: { column: 'priorities' },
               vectors: { column: 'vectors' },
             },
@@ -1177,11 +1176,6 @@ describe('StorageColumnTypes', () => {
             labels: {
               nullable: true,
               many: { elementNullable: true },
-              type: { kind: 'scalar', codecId: 'pg/text@1' },
-            },
-            waived: {
-              nullable: false,
-              many: { elementNullable: false },
               type: { kind: 'scalar', codecId: 'pg/text@1' },
             },
             priorities: {
@@ -1216,13 +1210,6 @@ describe('StorageColumnTypes', () => {
                       codecId: 'pg/text@1',
                       nullable: true,
                       many: { elementNullable: true },
-                    },
-                    waived: {
-                      dataType: 'pg/text',
-                      codecId: 'pg/text@1',
-                      nullable: false,
-                      many: { elementNullable: false },
-                      noCheck: ['elementNotNull'],
                     },
                     priorities: {
                       dataType: 'pg/text',
@@ -1271,9 +1258,6 @@ describe('StorageColumnTypes', () => {
     );
     expect(storageColumn(dts, 'labels')).toContain(
       'readonly nullable: true; readonly many: { readonly elementNullable: true }',
-    );
-    expect(storageColumn(dts, 'waived')).toContain(
-      'readonly many: { readonly elementNullable: false }',
     );
     const override = typeOverrides(dts, 'ColumnTypeOverrides');
     expect(override).toContain(

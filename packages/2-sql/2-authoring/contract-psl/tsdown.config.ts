@@ -22,6 +22,7 @@ export default defineConfig({
   entry: {
     'attribute-specs': 'src/exports/attribute-specs.ts',
     'default-table-name': 'src/exports/default-table-name.ts',
+    diagnostics: 'src/exports/diagnostics.ts',
     index: 'src/exports/index.ts',
     'map-names': 'src/exports/map-names.ts',
     provider: 'src/exports/provider.ts',

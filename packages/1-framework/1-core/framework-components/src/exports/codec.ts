@@ -61,6 +61,7 @@ export {
   objectSchemaKeys,
   requiredParamKeys,
   requiredSchemaKeys,
+  schemaKeysAllowing,
 } from '../shared/data-type';
 export type { BigIntRange, IntegerRange } from '../shared/decode-json';
 export {

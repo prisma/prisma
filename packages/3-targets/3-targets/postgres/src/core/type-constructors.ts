@@ -223,6 +223,37 @@ export const postgresNativeAuthoringTypes = {
       typeParams: { precision: { kind: 'arg', index: 0 } },
     },
   },
+  Bit: {
+    kind: 'typeConstructor',
+    inferred: true,
+    documentation: 'A fixed-length bit string with an optional length in bits.',
+    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    output: {
+      codecId: 'pg/bit@1',
+      typeParams: { length: { kind: 'arg', index: 0 } },
+    },
+  },
+  VarBit: {
+    kind: 'typeConstructor',
+    inferred: true,
+    documentation: 'A variable-length bit string with an optional maximum length in bits.',
+    args: [{ kind: 'number', name: 'length', integer: true, optional: true }],
+    output: {
+      codecId: 'pg/varbit@1',
+      typeParams: { length: { kind: 'arg', index: 0 } },
+    },
+  },
+  Interval: {
+    kind: 'typeConstructor',
+    inferred: true,
+    documentation:
+      'A span of time stored as PostgreSQL interval, with optional fractional-second precision.',
+    args: [{ kind: 'number', name: 'precision', integer: true, optional: true }],
+    output: {
+      codecId: 'pg/interval@1',
+      typeParams: { precision: { kind: 'arg', index: 0 } },
+    },
+  },
 } as const satisfies AuthoringTypeNamespace;
 
 /**

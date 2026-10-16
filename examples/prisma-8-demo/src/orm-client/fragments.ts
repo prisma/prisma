@@ -1,4 +1,6 @@
 import { field } from '@prisma/orm-postgres/contract-builder';
+import type { CodecField } from '@prisma/orm-postgres/orm-client';
+import type { Contract } from '../prisma/contract.d';
 import { db } from '../prisma/db';
 
 /**
@@ -8,6 +10,15 @@ export function createdSince(since: Temporal.Instant) {
   return db.orm.fragment({ createdAt: field.temporal.timestamptz() }, (rows) =>
     rows.where((row) => row.createdAt.gte(since)),
   );
+}
+
+/**
+ * A row fragment for any model with a `createdAt` timestamp, run with `where`: rows created before `before`.
+ * `createdSince` is a query fragment, run with `with`; `createdBefore` is a row fragment, run with `where`.
+ */
+export function createdBefore(before: Temporal.Instant) {
+  return (row: { createdAt: CodecField<Contract, 'pg/timestamptz-temporal@1'> }) =>
+    row.createdAt.lt(before);
 }
 
 /**

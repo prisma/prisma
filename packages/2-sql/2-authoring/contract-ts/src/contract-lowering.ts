@@ -938,7 +938,6 @@ function resolveModelNode(
       nullable: fieldState.nullable,
       many: fieldState.many !== false,
       ...(fieldState.many !== false ? { elementNullable: fieldState.many.elementNullable } : {}),
-      ...(fieldState.noCheck !== undefined ? { noCheck: fieldState.noCheck } : {}),
       ...(fieldState.default ? { default: fieldState.default } : {}),
       ...(fieldState.executionDefaults ? { executionDefaults: fieldState.executionDefaults } : {}),
       ...(enumHandle !== undefined ? { enumTypeHandle: enumHandle } : {}),
