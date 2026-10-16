@@ -223,6 +223,8 @@ export function errorContractValidationFailed(
   options?: {
     readonly where?: { readonly path?: string; readonly line?: number };
     readonly cause?: unknown;
+    /** What the refusal is about, such as the columns whose defaults were refused. */
+    readonly meta?: Record<string, unknown> | undefined;
   },
 ): CliStructuredError {
   return new CliStructuredError('CONTRACT.VALIDATION_FAILED', 'Contract validation failed', {
@@ -239,6 +241,7 @@ export function errorContractValidationFailed(
     docsUrl: docsUrlFor('CONTRACT.VALIDATION_FAILED'),
     ...(options?.where ? { where: options.where } : {}),
     ...ifDefined('cause', options?.cause),
+    ...ifDefined('meta', options?.meta),
   });
 }
 

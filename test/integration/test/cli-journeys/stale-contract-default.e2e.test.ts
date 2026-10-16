@@ -1,8 +1,9 @@
 /**
  * Journey: a contract.json an earlier version emitted, or one edited by hand, can hold what this
- * version refuses: a literal default its codec refuses, such as a uuid in upper case, or type
- * parameters its data type refuses. The commands that render DDL from it report the library's own
- * error, not an unexpected failure of the command.
+ * version refuses: a literal default its data type refuses, such as a uuid in upper case, which
+ * the commands refuse when they load the contract, naming the column; or type parameters its data
+ * type refuses, which the commands that render DDL report with the library's own error, not an
+ * unexpected failure of the command.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -31,16 +32,32 @@ model Token {
 }
 `;
 
+const UUID_MESSAGE =
+  'pg/uuid JSON value must be a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12';
+
 const refusal = {
-  code: 'CONTRACT.DEFAULT_INVALID',
-  summary: `Column "Token"."value" has a default its codec pg/uuid@1 refuses: pg/uuid JSON value must be a UUID as PostgreSQL writes it, in lower case and hyphenated 8-4-4-4-12`,
-  why: "A contract.json that an earlier version emitted, or a migration.ts it planned, can hold a default that this version's codec refuses, and so can either file after a hand edit.",
+  code: 'CONTRACT.VALIDATION_FAILED',
+  summary: 'Contract validation failed',
+  why: expect.stringContaining(
+    `failed to deserialize: Namespace "public", table "Token", column "value": the default "${UPPER_CASE}" is not a value of pg/uuid: ${UUID_MESSAGE}`,
+  ),
+  nextActions: expect.arrayContaining([
+    expect.objectContaining({
+      kind: 'run-command',
+      command: expect.stringContaining('contract emit'),
+    }),
+  ]),
   meta: {
-    table: 'Token',
-    column: 'value',
-    codecId: 'pg/uuid@1',
-    value: UPPER_CASE,
-    reason: 'codec-refused-default',
+    refusedDefaults: [
+      {
+        namespace: 'public',
+        table: 'Token',
+        column: 'value',
+        dataType: 'pg/uuid',
+        value: UPPER_CASE,
+        reason: UUID_MESSAGE,
+      },
+    ],
   },
 };
 
@@ -87,7 +104,7 @@ withTempDir(({ createTempDir }) => {
     const db = useDevDatabase();
 
     it(
-      'is reported as a contract error by db init, db update and migration plan',
+      'is refused when db init, db update and migration plan load the contract, naming the column',
       async () => {
         const ctx = setupJourney({
           connectionString: db.connectionString,
@@ -104,19 +121,7 @@ withTempDir(({ createTempDir }) => {
         writeFileSync(contractJsonPath, emitted.replace(CANONICAL, UPPER_CASE), 'utf-8');
 
         const reported = await reportedByDdlCommands(ctx);
-        const expected = {
-          exitCode: 2,
-          error: {
-            ...refusal,
-            nextActions: [
-              {
-                kind: 'user-choice',
-                label:
-                  'If contract.json holds the default, emit the contract again with this version, and correct the default in the contract source if emit refuses it. If a migration.ts sets it, correct it in that file.',
-              },
-            ],
-          },
-        };
+        const expected = { exitCode: 2, error: refusal };
         expect(reported).toEqual({ init: expected, update: expected, plan: expected });
       },
       timeouts.spinUpPpgDev,

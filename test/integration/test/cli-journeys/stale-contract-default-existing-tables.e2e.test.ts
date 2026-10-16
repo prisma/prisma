@@ -2,7 +2,7 @@
  * Journey: a contract.json an earlier version emitted, or one edited by hand, holds a default this
  * version's codecs refuse, on a table the database already has. Whichever way the planner writes
  * the default — a new column, a changed default, or on SQLite a rebuilt table — `db update` and
- * `migration plan` stop with the same contract error, naming the table and the column.
+ * `migration plan` stop with the same error when they load the contract, naming the table and the column.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -43,11 +43,13 @@ interface Scenario {
   readonly marker: string;
   /** The JSON text that replaces the marker's string in contract.json. */
   readonly stale: string;
+  /** The storage namespace the table is in, which the refusal names on Postgres. */
+  readonly namespace: string;
   readonly table: string;
   readonly column: string;
-  readonly codecId: string;
+  readonly dataType: string;
   readonly value: unknown;
-  readonly codecMessage: string;
+  readonly typeMessage: string;
 }
 
 const UPPER_CASE_UUID = 'A0EEBC99-9C0B-4EF8-BB6D-6BB9BD380A11';
@@ -62,11 +64,12 @@ const SCENARIOS: readonly Scenario[] = [
     after: `model Token {\n  id    Int  @id\n  added Uuid @default("${CANONICAL_UUID}")\n}\n`,
     marker: CANONICAL_UUID,
     stale: JSON.stringify(UPPER_CASE_UUID),
+    namespace: 'public',
     table: 'Token',
     column: 'added',
-    codecId: 'pg/uuid@1',
+    dataType: 'pg/uuid',
     value: UPPER_CASE_UUID,
-    codecMessage: UUID_MESSAGE,
+    typeMessage: UUID_MESSAGE,
   },
   {
     name: 'a changed default on an existing Postgres column',
@@ -76,11 +79,12 @@ const SCENARIOS: readonly Scenario[] = [
     after: `model Token {\n  id      Int  @id\n  changed Uuid @default("${CANONICAL_UUID}")\n}\n`,
     marker: CANONICAL_UUID,
     stale: JSON.stringify(UPPER_CASE_UUID),
+    namespace: 'public',
     table: 'Token',
     column: 'changed',
-    codecId: 'pg/uuid@1',
+    dataType: 'pg/uuid',
     value: UPPER_CASE_UUID,
-    codecMessage: UUID_MESSAGE,
+    typeMessage: UUID_MESSAGE,
   },
   {
     name: 'a column added to an existing SQLite table',
@@ -89,11 +93,12 @@ const SCENARIOS: readonly Scenario[] = [
     after: `model Note {\n  id   Int    @id\n  body String @default("${TEXT_MARKER}")\n}\n`,
     marker: TEXT_MARKER,
     stale: '1',
+    namespace: '__unbound__',
     table: 'Note',
     column: 'body',
-    codecId: 'sqlite/text@1',
+    dataType: 'sqlite/text',
     value: 1,
-    codecMessage: 'sqlite/text JSON value must be a string',
+    typeMessage: 'sqlite/text JSON value must be a string',
   },
   {
     name: 'a SQLite table rebuilt for a changed default',
@@ -102,11 +107,12 @@ const SCENARIOS: readonly Scenario[] = [
     after: `model Note {\n  id   Int    @id\n  body String @default("${TEXT_MARKER}")\n}\n`,
     marker: TEXT_MARKER,
     stale: '1',
+    namespace: '__unbound__',
     table: 'Note',
     column: 'body',
-    codecId: 'sqlite/text@1',
+    dataType: 'sqlite/text',
     value: 1,
-    codecMessage: 'sqlite/text JSON value must be a string',
+    typeMessage: 'sqlite/text JSON value must be a string',
   },
 ];
 
@@ -172,25 +178,35 @@ withTempDir(({ createTempDir }) => {
             'utf-8',
           );
 
+          const where =
+            scenario.target === 'postgres'
+              ? `Namespace "${scenario.namespace}", table "${scenario.table}", column "${scenario.column}"`
+              : `Table "${scenario.table}", column "${scenario.column}"`;
           const expected = {
             exitCode: 2,
             error: {
-              code: 'CONTRACT.DEFAULT_INVALID',
-              summary: `Column "${scenario.table}"."${scenario.column}" has a default its codec ${scenario.codecId} refuses: ${scenario.codecMessage}`,
-              why: "A contract.json that an earlier version emitted, or a migration.ts it planned, can hold a default that this version's codec refuses, and so can either file after a hand edit.",
-              nextActions: [
-                {
-                  kind: 'user-choice',
-                  label:
-                    'If contract.json holds the default, emit the contract again with this version, and correct the default in the contract source if emit refuses it. If a migration.ts sets it, correct it in that file.',
-                },
-              ],
+              code: 'CONTRACT.VALIDATION_FAILED',
+              summary: 'Contract validation failed',
+              why: expect.stringContaining(
+                `failed to deserialize: ${where}: the default ${JSON.stringify(scenario.value)} is not a value of ${scenario.dataType}: ${scenario.typeMessage}`,
+              ),
+              nextActions: expect.arrayContaining([
+                expect.objectContaining({
+                  kind: 'run-command',
+                  command: expect.stringContaining('contract emit'),
+                }),
+              ]),
               meta: {
-                table: scenario.table,
-                column: scenario.column,
-                codecId: scenario.codecId,
-                value: scenario.value,
-                reason: 'codec-refused-default',
+                refusedDefaults: [
+                  {
+                    namespace: scenario.namespace,
+                    table: scenario.table,
+                    column: scenario.column,
+                    dataType: scenario.dataType,
+                    value: scenario.value,
+                    reason: scenario.typeMessage,
+                  },
+                ],
               },
             },
           };

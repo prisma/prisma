@@ -9,6 +9,7 @@ import {
   dataTypeParamsOf,
 } from '@internal/framework-components/codec';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { isSqlDataType, validateSqlTypeParams } from '@internal/sql-contract/data-type';
 import {
   isStorageTypeInstance,
@@ -79,9 +80,31 @@ function refusesParams(type: DataType, params: DataTypeParams): boolean {
   }
 }
 
+/** A literal default its column's type does not hold, with where it is. */
+interface RefusedDefault {
+  readonly namespace: string;
+  readonly table: string;
+  readonly column: string;
+  readonly dataType: string;
+  readonly value: unknown;
+  readonly reason: string;
+}
+
+/** Names the namespace, unless the contract has only the unbound one, as a SQLite contract does. */
+function refusedDefaultMessage(refused: RefusedDefault): string {
+  const where =
+    refused.namespace === UNBOUND_NAMESPACE_ID
+      ? `Table "${refused.table}", column "${refused.column}"`
+      : `Namespace "${refused.namespace}", table "${refused.table}", column "${refused.column}"`;
+  return `${where}: the default ${JSON.stringify(refused.value)} is not a value of ${refused.dataType}: ${refused.reason}`;
+}
+
 /** Each literal default the column's type does not hold, under the column's parameters, element by element on a list column. A `null` is SQL NULL, which every column takes. */
-function defaultProblems(storage: SqlStorage, dataTypes: DataTypeLookup): readonly string[] {
-  return tablesOf(storage).flatMap(({ path, table }) =>
+function refusedDefaults(
+  storage: SqlStorage,
+  dataTypes: DataTypeLookup,
+): readonly RefusedDefault[] {
+  return tablesOf(storage).flatMap(({ namespaceId, tableName, table }) =>
     Object.entries(table.columns).flatMap(([columnName, column]) => {
       const columnDefault = column.default;
       if (columnDefault?.kind !== 'literal') return [];
@@ -98,9 +121,15 @@ function defaultProblems(storage: SqlStorage, dataTypes: DataTypeLookup): readon
           type.fromContract(value, params);
         } catch (error) {
           if (isInternalError(error)) throw error;
-          const reason = error instanceof Error ? error.message : String(error);
           return [
-            `${path}.columns.${columnName}: the default ${JSON.stringify(value)} is not a value of ${type.id}: ${reason}`,
+            {
+              namespace: namespaceId,
+              table: tableName,
+              column: columnName,
+              dataType: type.id,
+              value,
+              reason: error instanceof Error ? error.message : String(error),
+            },
           ];
         }
       }
@@ -151,12 +180,17 @@ export function assertContractMatchesStack(
   contract: Contract<SqlStorage>,
   stack: ContractStackCheckInputs,
 ): void {
+  const defaults = refusedDefaults(contract.storage, stack.dataTypes.lookup);
   const problems = [
     ...dataTypeProblems(contract.storage, stack.codecLookup),
     ...valueObjectProblems(contract, stack.authoringContributions),
-    ...defaultProblems(contract.storage, stack.dataTypes.lookup),
+    ...defaults.map(refusedDefaultMessage),
   ];
   if (problems.length > 0) {
-    throw new ContractValidationError(problems.join('; '), 'storage');
+    throw new ContractValidationError(
+      problems.join('; '),
+      'storage',
+      defaults.length > 0 ? { refusedDefaults: defaults } : undefined,
+    );
   }
 }

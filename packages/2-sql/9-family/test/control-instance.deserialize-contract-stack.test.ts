@@ -204,11 +204,23 @@ describe('deserializeContract checks each column against the stack', () => {
       expect(() => familyInstance('Jsonb').deserializeContract(priced(null))).not.toThrow();
     });
 
-    it('is refused when the column type does not hold it, naming the column', () => {
+    it('is refused when the column type does not hold it, naming the table and column, and the namespace in its meta', () => {
       expect(() => familyInstance('Jsonb').deserializeContract(priced('1.5'))).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.VALIDATION_FAILED',
-          message: `${columnsPath}.price: the default "1.5" is not a value of t/numeric: t/numeric JSON value must have two fraction digits, got "1.5"`,
+          message: `Table "user", column "price": the default "1.5" is not a value of t/numeric: t/numeric JSON value must have two fraction digits, got "1.5"`,
+          meta: {
+            refusedDefaults: [
+              {
+                namespace: UNBOUND_NAMESPACE_ID,
+                table: 'user',
+                column: 'price',
+                dataType: 't/numeric',
+                value: '1.5',
+                reason: 't/numeric JSON value must have two fraction digits, got "1.5"',
+              },
+            ],
+          },
         }),
       );
     });
@@ -226,7 +238,7 @@ describe('deserializeContract checks each column against the stack', () => {
         }),
       });
       expect(() => familyInstance('Jsonb').deserializeContract(listed)).toThrow(
-        `${columnsPath}.prices: the default "2.5" is not a value of t/numeric: t/numeric JSON value must have two fraction digits, got "2.5"`,
+        `Table "user", column "prices": the default "2.5" is not a value of t/numeric: t/numeric JSON value must have two fraction digits, got "2.5"`,
       );
     });
   });

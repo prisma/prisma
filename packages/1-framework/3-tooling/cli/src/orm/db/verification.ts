@@ -20,6 +20,7 @@ import {
   errorDriverRequired,
   errorFileNotFound,
 } from '../../utils/cli-errors';
+import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { chooseAction, runCommandAction } from '../../utils/next-actions';
 import { contractPathFor, displayPath } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
@@ -89,7 +90,7 @@ export async function readEmittedContract(inputs: {
       normalizeError(
         errorContractValidationFailed(
           `Contract JSON is invalid: ${error instanceof Error ? error.message : String(error)}`,
-          { where: { path } },
+          { where: { path }, meta: contractValidationMeta(error) },
         ),
       ),
     );
