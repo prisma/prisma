@@ -88,9 +88,10 @@ describe('renderOps', () => {
     const calls = [
       new CreateTableCall('public', 'user', [col('id', 'text', { notNull: true })]),
       new DropTableCall('public', 'stale'),
-      new AddColumnCall('public', 'user', col('email', 'text')),
+      new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes),
       new DropColumnCall('public', 'user', 'legacy'),
       new AlterColumnTypeCall({
+        ownsAutoincrementSequence: false,
         schemaName: 'public',
         tableName: 'user',
         columnName: 'age',
@@ -103,6 +104,7 @@ describe('renderOps', () => {
         'public',
         'user',
         col('created_at', 'timestamptz', { default: fn('now()') }),
+        'additive',
       ),
       new DropDefaultCall('public', 'user', 'updated_at'),
       new AddPrimaryKeyCall('public', 'user', 'user_pkey', ['id']),
@@ -312,6 +314,7 @@ describe('AddColumnWithTemporaryDefaultCall', () => {
       'embedding',
       'vector(3)',
       temporaryDefault,
+      postgresDataTypes,
     );
     const op = await call.toOp(testAdapter);
 
@@ -321,10 +324,12 @@ describe('AddColumnWithTemporaryDefaultCall', () => {
   });
 });
 
+const postSerialSequence = `pg_get_serial_sequence('"public"."Post"', 'serial')::regclass`;
+
 describe('SetDefaultCall', () => {
   it('refuses a column with no default, which SET DEFAULT has nothing to write for', async () => {
     await expect(
-      new SetDefaultCall('public', 'user', col('name', 'text')).toOp(testAdapter),
+      new SetDefaultCall('public', 'user', col('name', 'text'), 'additive').toOp(testAdapter),
     ).rejects.toMatchObject({
       code: 'CONTRACT.DEFAULT_INVALID',
       message:
@@ -338,6 +343,7 @@ describe('SetDefaultCall', () => {
       'public',
       'Post',
       col('serial', 'int4', { default: fn('autoincrement()') }),
+      'additive',
     ).toOp(testAdapter);
 
     expect(op).toMatchObject({
@@ -346,33 +352,31 @@ describe('SetDefaultCall', () => {
       operationClass: 'additive',
       execute: [
         {
-          description: 'widen any existing sequence "Post_serial_seq" to integer',
-          sql: 'ALTER SEQUENCE IF EXISTS "public"."Post_serial_seq" AS integer',
+          description:
+            'create sequence "Post_serial_seq" owned by "serial" unless the column owns one',
+          sql: `DO $prisma$ BEGIN IF ${postSerialSequence} IS NULL THEN CREATE SEQUENCE "public"."Post_serial_seq" AS integer; ALTER SEQUENCE "public"."Post_serial_seq" OWNED BY "public"."Post"."serial"; END IF; END $prisma$`,
         },
         {
-          description: 'create sequence "Post_serial_seq"',
-          sql: 'CREATE SEQUENCE IF NOT EXISTS "public"."Post_serial_seq" AS integer',
+          description: 'change the sequence column "serial" owns to integer',
+          sql: `DO $prisma$ BEGIN EXECUTE format('ALTER SEQUENCE %s AS integer', ${postSerialSequence}); END $prisma$`,
         },
         {
-          description: 'set default on "serial"',
-          sql: `ALTER TABLE "public"."Post" ALTER COLUMN "serial" SET DEFAULT nextval('"public"."Post_serial_seq"'::regclass)`,
+          description: 'set default on "serial" to the sequence it owns',
+          sql: `DO $prisma$ BEGIN EXECUTE format('ALTER TABLE %s ALTER COLUMN %I SET DEFAULT nextval(%L::regclass)', '"public"."Post"', 'serial', ${postSerialSequence}::text); END $prisma$`,
         },
         {
-          description: 'attach sequence "Post_serial_seq" to "serial"',
-          sql: 'ALTER SEQUENCE "public"."Post_serial_seq" OWNED BY "public"."Post"."serial"',
-        },
-        {
-          description: 'start sequence "Post_serial_seq" past the largest "serial"',
-          sql: `SELECT setval('"public"."Post_serial_seq"'::regclass, GREATEST(COALESCE(MAX("serial"), 0), 0) + 1, false) FROM "public"."Post"`,
+          description: 'start the sequence column "serial" owns past the largest "serial"',
+          sql: `SELECT setval(${postSerialSequence}, GREATEST(COALESCE(MAX("serial"), 0), 0) + 1, false) FROM "public"."Post"`,
         },
       ],
     });
     expect(op.precheck.map((check) => check.description)).toEqual([
       'ensure column "serial" exists',
-      'ensure no relation other than the sequence column "serial" owns is named "public"."Post_serial_seq" (rename that relation, or write this migration with migration new)',
+      'ensure column "serial" owns a sequence or no relation is named "public"."Post_serial_seq" (rename that relation, or write this migration with migration new)',
     ]);
     expect(op.postcheck.map((check) => check.description)).toEqual([
       'verify column "serial" takes its default from an attached sequence',
+      'verify column "serial" owns a sequence of type integer',
     ]);
   });
 
@@ -385,11 +389,12 @@ describe('SetDefaultCall', () => {
       'public',
       'Post',
       col('serial', type, { default: fn('autoincrement()') }),
+      'additive',
     ).toOp(testAdapter);
 
     expect(op.execute.slice(0, 2).map((step) => step.sql)).toEqual([
-      `ALTER SEQUENCE IF EXISTS "public"."Post_serial_seq" AS ${sequenceType}`,
-      `CREATE SEQUENCE IF NOT EXISTS "public"."Post_serial_seq" AS ${sequenceType}`,
+      `DO $prisma$ BEGIN IF ${postSerialSequence} IS NULL THEN CREATE SEQUENCE "public"."Post_serial_seq" AS ${sequenceType}; ALTER SEQUENCE "public"."Post_serial_seq" OWNED BY "public"."Post"."serial"; END IF; END $prisma$`,
+      `DO $prisma$ BEGIN EXECUTE format('ALTER SEQUENCE %s AS ${sequenceType}', ${postSerialSequence}); END $prisma$`,
     ]);
   });
 
@@ -404,6 +409,7 @@ describe('SetDefaultCall', () => {
     expect(op).toMatchObject({ operationClass: 'widening' });
     expect(op.postcheck.map((check) => check.description)).toEqual([
       'verify column "serial" takes its default from an attached sequence',
+      'verify column "serial" owns a sequence of type integer',
     ]);
   });
 
@@ -415,6 +421,7 @@ describe('SetDefaultCall', () => {
           'public',
           'user',
           col('id', type, { default: fn('autoincrement()') }),
+          'additive',
         ).toOp(testAdapter),
       ).rejects.toMatchObject({
         code: 'CONTRACT.DEFAULT_INVALID',

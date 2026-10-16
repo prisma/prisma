@@ -24,7 +24,7 @@ import type {
   MongoSchemaIR,
   MongoSchemaValidator,
 } from '@internal/mongo-schema-ir';
-import { canonicalize, deepEqual } from '@internal/mongo-schema-ir';
+import { canonicalize, deepEqual, indexLookupKey } from '@internal/mongo-schema-ir';
 import { blindCast } from '@internal/utils/casts';
 import {
   collectionOf,
@@ -48,24 +48,6 @@ import {
 } from './op-factory-call';
 import { PlannerProducedMongoMigration } from './planner-produced-migration';
 import { sameHashFieldChangeRefusals } from './same-hash-field-changes';
-
-function buildIndexLookupKey(index: MongoSchemaIndex): string {
-  const keys = index.keys.map((k) => `${k.field}:${k.direction}`).join(',');
-  const opts = [
-    index.unique ? 'unique' : '',
-    index.sparse ? 'sparse' : '',
-    index.expireAfterSeconds != null ? `ttl:${index.expireAfterSeconds}` : '',
-    index.partialFilterExpression ? `pfe:${canonicalize(index.partialFilterExpression)}` : '',
-    index.wildcardProjection ? `wp:${canonicalize(index.wildcardProjection)}` : '',
-    index.collation ? `col:${canonicalize(index.collation)}` : '',
-    index.weights ? `wt:${canonicalize(index.weights)}` : '',
-    index.default_language ? `dl:${index.default_language}` : '',
-    index.language_override ? `lo:${index.language_override}` : '',
-  ]
-    .filter(Boolean)
-    .join(';');
-  return opts ? `${keys}|${opts}` : keys;
-}
 
 function validatorsEqual(
   a: MongoSchemaValidator | undefined,
@@ -353,14 +335,14 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       const originLookup = new Map<string, MongoSchemaIndex>();
       if (originColl) {
         for (const idx of originColl.indexes) {
-          originLookup.set(buildIndexLookupKey(idx), idx);
+          originLookup.set(indexLookupKey(idx), idx);
         }
       }
 
       const destLookup = new Map<string, MongoSchemaIndex>();
       if (destColl) {
         for (const idx of destColl.indexes) {
-          destLookup.set(buildIndexLookupKey(idx), idx);
+          destLookup.set(indexLookupKey(idx), idx);
         }
       }
 

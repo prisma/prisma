@@ -106,6 +106,32 @@ describe('SqliteControlAdapter.introspect', () => {
     await driver.close();
   });
 
+  it('reads an INTEGER PRIMARY KEY AUTOINCREMENT column as an autoincrement() default', async () => {
+    const driver = createMemoryDriver();
+    driver.db.exec('CREATE TABLE "counter" ("id" integer primary key autoincrement, "n" INTEGER)');
+    driver.db.exec('CREATE TABLE "plain" ("id" INTEGER PRIMARY KEY, "n" INTEGER)');
+    driver.db.exec(
+      `CREATE TABLE "lookalike" ("id" INTEGER PRIMARY KEY, "autoincrement" TEXT DEFAULT 'AUTOINCREMENT', "x" TEXT) -- AUTOINCREMENT`,
+    );
+    const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+    const schema = await adapter.introspect(driver);
+    const defaultOf = (table: string, column: string) =>
+      schema.tables[table]!.columns[column]!.resolvedDefault;
+
+    expect({
+      counterId: defaultOf('counter', 'id'),
+      counterN: defaultOf('counter', 'n'),
+      plainId: defaultOf('plain', 'id'),
+      lookalikeId: defaultOf('lookalike', 'id'),
+    }).toEqual({
+      counterId: { kind: 'function', expression: 'autoincrement()' },
+      counterN: undefined,
+      plainId: undefined,
+      lookalikeId: undefined,
+    });
+    await driver.close();
+  });
+
   it('reports each column type as PRAGMA table_info gives it', async () => {
     const driver = createMemoryDriver();
     driver.db.exec('CREATE TABLE t (id INTEGER, label VARCHAR(20), price Decimal(10, 2))');

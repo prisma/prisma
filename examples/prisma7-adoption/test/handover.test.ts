@@ -82,6 +82,9 @@ const SEQUENCE_PLAN_OPERATIONS = [
   ['foreignKey.public.Post.Post_authorId_fkey.rename', 'widening'],
 ];
 
+/** The sequence `Post.viewCount` owns, found at run time whatever its name. */
+const POST_VIEW_COUNT_SEQUENCE = `pg_get_serial_sequence('"public"."Post"', 'viewCount')::regclass`;
+
 describe('Prisma 8 taking over migrations from the Prisma 7 schema', () => {
   it(
     'plans, applies and verifies an additive and a destructive edit that both clients read',
@@ -289,11 +292,10 @@ describe('Prisma 8 taking over migrations from the Prisma 7 schema', () => {
               .find((operation) => operation.id === 'setDefault.Post.viewCount')
               ?.execute.map((step) => step.sql),
           ).toEqual([
-            'ALTER SEQUENCE IF EXISTS "public"."Post_viewCount_seq" AS integer',
-            'CREATE SEQUENCE IF NOT EXISTS "public"."Post_viewCount_seq" AS integer',
-            `ALTER TABLE "public"."Post" ALTER COLUMN "viewCount" SET DEFAULT nextval('"public"."Post_viewCount_seq"'::regclass)`,
-            'ALTER SEQUENCE "public"."Post_viewCount_seq" OWNED BY "public"."Post"."viewCount"',
-            `SELECT setval('"public"."Post_viewCount_seq"'::regclass, GREATEST(COALESCE(MAX("viewCount"), 0), 0) + 1, false) FROM "public"."Post"`,
+            `DO $prisma$ BEGIN IF ${POST_VIEW_COUNT_SEQUENCE} IS NULL THEN CREATE SEQUENCE "public"."Post_viewCount_seq" AS integer; ALTER SEQUENCE "public"."Post_viewCount_seq" OWNED BY "public"."Post"."viewCount"; END IF; END $prisma$`,
+            `DO $prisma$ BEGIN EXECUTE format('ALTER SEQUENCE %s AS integer', ${POST_VIEW_COUNT_SEQUENCE}); END $prisma$`,
+            `DO $prisma$ BEGIN EXECUTE format('ALTER TABLE %s ALTER COLUMN %I SET DEFAULT nextval(%L::regclass)', '"public"."Post"', 'viewCount', ${POST_VIEW_COUNT_SEQUENCE}::text); END $prisma$`,
+            `SELECT setval(${POST_VIEW_COUNT_SEQUENCE}, GREATEST(COALESCE(MAX("viewCount"), 0), 0) + 1, false) FROM "public"."Post"`,
           ]);
           expect(renderedSql(sequenced).match(/RENAME CONSTRAINT/g)).toHaveLength(1);
           expect(renderedSql(sequenced)).toContain(

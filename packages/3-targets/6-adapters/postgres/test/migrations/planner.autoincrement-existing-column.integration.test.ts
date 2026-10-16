@@ -244,7 +244,7 @@ describe('autoincrement() on an existing integer column', { concurrent: false },
       await driver!.query(create);
 
       await expect(apply(migrationPlan, withAutoincrement, anyClass)).rejects.toThrow(
-        'Operation setDefault.orders.number failed during precheck: ensure no relation other than the sequence column "number" owns is named "public"."orders_number_seq" (rename that relation, or write this migration with migration new)',
+        'Operation setDefault.orders.number failed during precheck: ensure column "number" owns a sequence or no relation is named "public"."orders_number_seq" (rename that relation, or write this migration with migration new)',
       );
       expect(await numberColumn()).toEqual({ column_default: null, serial_sequence: null });
     },
@@ -298,5 +298,61 @@ describe('autoincrement() on an existing integer column', { concurrent: false },
     });
     expect(await insertWithoutNumber(3)).toBe(8);
     expect(await plannedOperationIds(withAutoincrement)).toEqual([]);
+  });
+
+  async function sequenceType(): Promise<string | undefined> {
+    const result = await driver!.query<{ data_type: string }>(
+      `SELECT data_type::text AS data_type FROM pg_sequences
+       WHERE schemaname = 'public' AND sequencename = 'orders_number_seq'`,
+    );
+    return result.rows[0]?.data_type;
+  }
+
+  it.each([
+    { from: 'int4', to: 'int8', sequence: 'bigint' },
+    { from: 'int8', to: 'int4', sequence: 'integer' },
+    { from: 'int4', to: 'int2', sequence: 'smallint' },
+  ])(
+    'changes the sequence of an autoincrement() column from $from to $to with the column',
+    { timeout: testTimeout },
+    async ({ from, to, sequence }) => {
+      await planAndApply(buildContract(from, AUTOINCREMENT), emptySchema, INIT_ADDITIVE_POLICY);
+
+      expect(await plannedOperationIds(buildContract(to, AUTOINCREMENT))).toEqual([
+        'alterType.orders.number',
+      ]);
+      await migrateTo(buildContract(to, AUTOINCREMENT));
+
+      expect(await sequenceType()).toBe(sequence);
+      expect(await plannedOperationIds(buildContract(to, AUTOINCREMENT))).toEqual([]);
+    },
+  );
+
+  it('lets a widened autoincrement() column take values past the old width', {
+    timeout: testTimeout,
+  }, async () => {
+    await planAndApply(buildContract('int4', AUTOINCREMENT), emptySchema, INIT_ADDITIVE_POLICY);
+    await driver!.query("SELECT setval('public.orders_number_seq', 2147483647)");
+
+    await migrateTo(buildContract('int8', AUTOINCREMENT));
+
+    const inserted = await driver!.query<{ number: string }>(
+      'INSERT INTO public.orders (id) VALUES (1) RETURNING number::text AS number',
+    );
+    expect(inserted.rows[0]!.number).toBe('2147483648');
+  });
+
+  it('refuses before any step to narrow an autoincrement() column whose sequence is past the new width', {
+    timeout: testTimeout,
+  }, async () => {
+    await planAndApply(buildContract('int8', AUTOINCREMENT), emptySchema, INIT_ADDITIVE_POLICY);
+    await driver!.query("SELECT setval('public.orders_number_seq', 2147483648)");
+    const narrowed = buildContract('int4', AUTOINCREMENT);
+    const migrationPlan = plan(narrowed, await introspect(narrowed), anyClass);
+
+    await expect(apply(migrationPlan, narrowed, anyClass)).rejects.toThrow(
+      'Operation alterType.orders.number failed during precheck: ensure the sequence column "number" owns has no value past the integer range',
+    );
+    expect(await sequenceType()).toBe('bigint');
   });
 });

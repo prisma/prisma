@@ -1,5 +1,5 @@
 import {
-  indexesEquivalent,
+  indexLookupKey,
   MongoSchemaCollection,
   MongoSchemaCollectionOptions,
   MongoSchemaIndex,
@@ -241,7 +241,9 @@ describe('introspectSchema', () => {
       expect(liveUsers.indexes).toHaveLength(contractUsers.indexes.length);
 
       for (const contractIdx of contractUsers.indexes) {
-        const matchingLiveIdx = liveUsers.indexes.find((li) => indexesEquivalent(li, contractIdx));
+        const matchingLiveIdx = liveUsers.indexes.find(
+          (li) => indexLookupKey(li) === indexLookupKey(contractIdx),
+        );
         expect(matchingLiveIdx).toBeDefined();
       }
     });

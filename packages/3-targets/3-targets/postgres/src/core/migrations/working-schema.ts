@@ -1,5 +1,4 @@
 import type { SchemaNodeRef } from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { namingOf, namingOfLiveName, type SqlObjectNaming } from '@internal/sql-schema-ir/naming';
 import {
   PrimaryKey,
@@ -11,7 +10,6 @@ import {
   SqlUniqueIR,
 } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
-import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import { PostgresPolicySchemaNode } from '../schema-ir/postgres-policy-schema-node';
@@ -29,6 +27,7 @@ import {
   type RenamePostgresRlsPolicyCall,
   RenameTableCall,
 } from './op-factory-call';
+import { ddlSchemaOfCallSchema } from './resolve-ddl-schema';
 
 /**
  * A table rename inside one live schema: `schemaName` is the DDL schema name, never the unbound
@@ -48,10 +47,6 @@ export type WorkingSchemaCall =
   | RenamePostgresRlsPolicyCall;
 
 type RefRewrite = (ref: SchemaNodeRef) => SchemaNodeRef;
-
-function ddlSchemaOf(callSchemaName: string): string {
-  return callSchemaName === UNBOUND_NAMESPACE_ID ? DEFAULT_NAMESPACE_ID : callSchemaName;
-}
 
 function rewriteRefs(
   refs: readonly SchemaNodeRef[] | undefined,
@@ -441,7 +436,7 @@ function renameConstraint(
   schema: PostgresDatabaseSchemaNode,
   call: RenameConstraintCall,
 ): PostgresDatabaseSchemaNode {
-  const schemaName = ddlSchemaOf(call.schemaName);
+  const schemaName = ddlSchemaOfCallSchema(call.schemaName);
   const { tableName, oldConstraintName, newConstraintName } = call;
   const renamed = (name: string | undefined, derived: string) =>
     (name ?? derived) === oldConstraintName ? newConstraintName : name;
@@ -492,7 +487,7 @@ function renameIndex(
   schema: PostgresDatabaseSchemaNode,
   call: RenameIndexCall,
 ): PostgresDatabaseSchemaNode {
-  const schemaName = ddlSchemaOf(call.schemaName);
+  const schemaName = ddlSchemaOfCallSchema(call.schemaName);
   const { tableName, oldIndexName, newIndexName } = call;
   const rewrite = stepRewrite(
     schemaName,
@@ -518,7 +513,7 @@ function renamePolicy(
   schema: PostgresDatabaseSchemaNode,
   call: RenamePostgresRlsPolicyCall,
 ): PostgresDatabaseSchemaNode {
-  const schemaName = ddlSchemaOf(call.schemaName);
+  const schemaName = ddlSchemaOfCallSchema(call.schemaName);
   const { tableName, oldPolicyName, newPolicyName } = call;
   const rewrite = stepRewrite(
     schemaName,
@@ -546,7 +541,7 @@ function applied(
 ): PostgresDatabaseSchemaNode {
   if (call instanceof RenameTableCall) {
     const renamed = renameTableInPostgresSchema(schema, {
-      schemaName: ddlSchemaOf(call.schemaName),
+      schemaName: ddlSchemaOfCallSchema(call.schemaName),
       from: call.oldTableName,
       to: call.tableName,
     });
@@ -554,7 +549,7 @@ function applied(
   }
   if (call instanceof RenameColumnCall) {
     const renamed = renameColumnInPostgresSchema(schema, {
-      schemaName: ddlSchemaOf(call.schemaName),
+      schemaName: ddlSchemaOfCallSchema(call.schemaName),
       table: call.tableName,
       from: call.oldColumnName,
       to: call.columnName,

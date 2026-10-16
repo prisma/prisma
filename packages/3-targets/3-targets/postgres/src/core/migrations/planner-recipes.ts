@@ -10,6 +10,7 @@ import {
 } from '../../contract-free/checks';
 import * as contractFreeDdl from '../../contract-free/ddl';
 import { boundSchema } from './bound-schema';
+import { columnTypeStep } from './operations/columns';
 import { step } from './operations/shared';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
 
@@ -38,10 +39,12 @@ export async function buildAddNotNullColumnWithTemporaryDefaultOperation(options
   readonly columnName: string;
   /** The column's type as a migration writes it. */
   readonly type: string;
+  /** The type `format_type` prints for `type`, or `undefined` when the stack's data types do not read it. */
+  readonly checkType: string | undefined;
   readonly temporaryDefault: string;
   readonly lowerer: ExecuteRequestLowerer;
 }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-  const { schema, tableName, columnName, type, temporaryDefault, lowerer } = options;
+  const { schema, tableName, columnName, type, checkType, temporaryDefault, lowerer } = options;
 
   // The recipe handles NOT NULL columns that carry no contract default, so the
   // temporary backfill value is the only default. It is a pre-rendered SQL
@@ -78,6 +81,12 @@ export async function buildAddNotNullColumnWithTemporaryDefaultOperation(options
   const noDefault = await lowerer.lowerToExecuteRequest(
     columnDefaultAst({ schema, table: tableName, column: columnName }).noDefault(),
   );
+  const hasType = await columnTypeStep(
+    lowerer,
+    { schema, table: tableName, column: columnName },
+    type,
+    checkType,
+  );
 
   return {
     ...buildAddColumnOperationIdentity(schema, tableName, columnName),
@@ -101,6 +110,7 @@ export async function buildAddNotNullColumnWithTemporaryDefaultOperation(options
         noDefault.sql,
         noDefault.params,
       ),
+      hasType,
     ],
   };
 }
