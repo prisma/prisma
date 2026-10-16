@@ -113,6 +113,7 @@ function buildContractFromPsl(psl: string, control: ControlPolicy): Contract<Sql
     sourceId: 'native-enum-add-value.real-postgres.integration.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,

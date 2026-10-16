@@ -1,8 +1,4 @@
-/**
- * The statement verbs the ORM commands declare. Each command declares the verbs its questions
- * use: `migration plan` takes `rename` and `delete`, and `db update` also `allow`.
- */
-export const ormStatementVerbs = {
+const verbs = {
   rename: {
     arity: 1,
     brief:
@@ -16,5 +12,41 @@ export const ormStatementVerbs = {
   allow: {
     arity: 1,
     brief: 'Let the command widen who can read or write the rows of a model: --allow Model',
+  },
+  convert: {
+    arity: 1,
+    brief:
+      'Convert the values of a field whose type changes with code you write into the migration: Model.field, named as the new contract names it',
+  },
+  backfill: {
+    arity: 1,
+    brief:
+      'Fill a required field in existing rows with code you write into the migration: Model.field, new or made required',
+  },
+} as const;
+
+/** The statement verbs `migration plan` declares: it writes a migration, so a convert or backfill has a file to fill. */
+export const migrationPlanStatementVerbs = {
+  rename: verbs.rename,
+  delete: verbs.delete,
+  convert: verbs.convert,
+  backfill: verbs.backfill,
+} as const;
+
+/**
+ * The statement verbs `db update` declares. It applies its plan directly, with no migration file to
+ * fill, so it declares `convert` and `backfill` only to refuse them with a reason.
+ */
+export const dbUpdateStatementVerbs = {
+  rename: verbs.rename,
+  delete: verbs.delete,
+  allow: verbs.allow,
+  convert: {
+    arity: 1,
+    brief: 'Not available here: db update has no migration file to fill; use migration plan',
+  },
+  backfill: {
+    arity: 1,
+    brief: 'Not available here: db update has no migration file to fill; use migration plan',
   },
 } as const;

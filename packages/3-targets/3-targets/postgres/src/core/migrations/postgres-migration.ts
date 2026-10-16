@@ -17,20 +17,25 @@ import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
+import { type SqlTextInput, sqlTextOf } from '@internal/sql-relational-core/contract-free';
+import { nameOf } from '@internal/sql-schema-ir/naming';
 import { blindCast } from '@internal/utils/casts';
-import { errorPostgresMigrationStackMissing } from '../errors';
+import { ifDefined } from '@internal/utils/defined';
+import { errorPostgresMigrationStackMissing, postgresError } from '../errors';
 import { PostgresContractView } from '../postgres-contract-view';
 import { PostgresRlsPolicy, type RenderedRlsPolicyLiteral } from '../postgres-rls-policy';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
   AddNativeEnumValueCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   AlterColumnTypeCall,
-  type AlterColumnTypeOptions,
+  alterColumnTypeCallText,
   CreateIndexCall,
   CreateNativeEnumTypeCall,
   CreatePostgresRlsPolicyCall,
@@ -59,6 +64,7 @@ import { type DataTransformOptions, dataTransform } from './operations/data-tran
 import { installExtension } from './operations/dependencies';
 import type { CreateIndexExtras } from './operations/indexes';
 import type { ForeignKeySpec } from './operations/shared';
+import { stackDataTypes } from './planner-sql-checks';
 import type { PostgresPlanTargetDetails } from './planner-target-details';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
 import { emissionSchemaForNamespace } from './resolve-ddl-schema';
@@ -275,6 +281,45 @@ export abstract class PostgresMigration<
     ).toOp(this.controlAdapterFor('addColumn'));
   }
 
+  /**
+   * Adds a required column of `type` to a table that may have rows. Every existing row takes
+   * `temporaryDefault`, SQL such as `''` or `0`, and the default is dropped once the column is added.
+   */
+  protected addColumnWithTemporaryDefault(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: string;
+    readonly type: string;
+    readonly temporaryDefault: SqlTextInput;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    const adapter = this.controlAdapterFor('addColumnWithTemporaryDefault');
+    return new AddColumnWithTemporaryDefaultCall(
+      options.schema,
+      options.table,
+      options.column,
+      options.type,
+      sqlTextOf(
+        options.temporaryDefault,
+        `addColumnWithTemporaryDefault ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} temporaryDefault`,
+      ),
+    ).toOp(adapter);
+  }
+
+  /** Adds a required column of `type` with no default, checking first that the table is empty. */
+  protected addRequiredColumnToEmptyTable(options: {
+    readonly schema: string;
+    readonly table: string;
+    readonly column: string;
+    readonly type: string;
+  }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    return new AddRequiredColumnToEmptyTableCall(
+      options.schema,
+      options.table,
+      options.column,
+      options.type,
+    ).toOp(this.controlAdapterFor('addRequiredColumnToEmptyTable'));
+  }
+
   protected addPrimaryKey(options: {
     readonly schema?: string;
     readonly table: string;
@@ -319,13 +364,16 @@ export abstract class PostgresMigration<
     readonly schema?: string;
     readonly table: string;
     readonly constraint: string;
-    readonly expression: string;
+    readonly expression: SqlTextInput;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new AddCheckConstraintCall(
       schemaOrDefaultNamespace(options.schema),
       options.table,
       options.constraint,
-      options.expression,
+      sqlTextOf(
+        options.expression,
+        `addCheckConstraint ${JSON.stringify(options.constraint)} expression`,
+      ),
     ).toOp(this.controlAdapterFor('addCheckConstraint'));
   }
 
@@ -519,16 +567,31 @@ export abstract class PostgresMigration<
     readonly schema?: string;
     readonly table: string;
     readonly column: string;
-    readonly options: AlterColumnTypeOptions;
+    /** The new type as a migration writes it, such as `int4` or `varchar(20)`. */
+    readonly type: string;
+    /** The SQL that converts each value to the new type; by default a cast of the column. */
+    readonly using?: SqlTextInput;
+    /** By default `data` when `using` is given, and `destructive` otherwise. */
     readonly operationClass?: AlterColumnTypeClass;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
-    return new AlterColumnTypeCall(
-      schemaOrDefaultNamespace(options.schema),
-      options.table,
-      options.column,
-      options.options,
-      options.operationClass,
-    ).toOp(this.controlAdapterFor('alterColumnType'));
+    refuseInvalidAlterColumnTypeOptions({
+      ...options,
+      schema: schemaOrDefaultNamespace(options.schema),
+    });
+    const adapter = this.controlAdapterFor('alterColumnType');
+    const using = optionalSqlTextOf(
+      options.using,
+      `alterColumnType ${JSON.stringify(options.table)}.${JSON.stringify(options.column)} using`,
+    );
+    return new AlterColumnTypeCall({
+      schemaName: schemaOrDefaultNamespace(options.schema),
+      tableName: options.table,
+      columnName: options.column,
+      type: options.type,
+      ...ifDefined('using', using === undefined ? undefined : { kind: 'sql' as const, sql: using }),
+      dataTypes: stackDataTypes(this.frameworkComponents()),
+      ...ifDefined('operationClass', options.operationClass),
+    }).toOp(adapter);
   }
 
   protected setNotNull(options: {
@@ -605,10 +668,10 @@ export abstract class PostgresMigration<
       readonly schema?: string;
       readonly table: string;
       readonly index: string;
-      readonly extras?: CreateIndexExtras;
+      readonly extras?: CreateIndexExtrasInput;
     } & (
       | { readonly columns: readonly string[]; readonly expression?: never }
-      | { readonly expression: string; readonly columns?: never }
+      | { readonly expression: SqlTextInput; readonly columns?: never }
     ),
   ): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
     return new CreateIndexCall(
@@ -617,8 +680,13 @@ export abstract class PostgresMigration<
       options.index,
       options.columns !== undefined
         ? { columns: options.columns }
-        : { expression: options.expression },
-      options.extras,
+        : {
+            expression: sqlTextOf(
+              options.expression,
+              `createIndex ${JSON.stringify(options.index)} expression`,
+            ),
+          },
+      options.extras === undefined ? undefined : createIndexExtrasOf(options.extras, options.index),
     ).toOp(this.controlAdapterFor('createIndex'));
   }
 
@@ -681,15 +749,19 @@ export abstract class PostgresMigration<
   protected createRlsPolicy(options: {
     readonly schema: string;
     readonly table: string;
-    readonly policy: RenderedRlsPolicyLiteral;
+    readonly policy: RlsPolicyInput;
   }): Promise<SqlMigrationPlanOperation<PostgresPlanTargetDetails>> {
+    const policyName = JSON.stringify(nameOf(options.policy.naming));
     return new CreatePostgresRlsPolicyCall(
       options.schema,
       options.table,
       new PostgresRlsPolicy({
         ...options.policy,
-        using: options.policy.using,
-        withCheck: options.policy.withCheck,
+        using: optionalSqlTextOf(options.policy.using, `createRlsPolicy ${policyName} using`),
+        withCheck: optionalSqlTextOf(
+          options.policy.withCheck,
+          `createRlsPolicy ${policyName} withCheck`,
+        ),
       }),
     ).toOp(this.controlAdapterFor('createRlsPolicy'));
   }
@@ -744,4 +816,53 @@ function refuseEarlierSetDefaultOptions(options: {
       'Pass the column as `col(name, type, { default, codecRef })`, with its default written as `lit(value)` or `fn(expression)`, in place of its name and `defaultSql`.',
     upgradeEntry: 'migration-ts-column-defaults',
   });
+}
+
+/**
+ * `alterColumnType` options as a hand-written `migration.ts` may pass them, which `node migration.ts` does not type-check: the
+ * `options` object an earlier version wrote, or no `type`.
+ */
+function refuseInvalidAlterColumnTypeOptions(options: {
+  readonly schema: string;
+  readonly table: string;
+  readonly column: string;
+  readonly type: string;
+}): void {
+  if (Object.hasOwn(options, 'options')) {
+    throw errorMigrationOperationOptionRemoved({
+      operation: 'alterColumnType',
+      option: 'options',
+      subject: `column ${JSON.stringify(options.column)} of table ${JSON.stringify(options.table)}`,
+      rewrite:
+        'Pass `{ schema, table, column, type, using? }`: move `options.qualifiedTargetType` to `type` and `options.using` to `using`, and drop the other options.',
+      upgradeEntry: 'postgres-alter-column-type-plain-options',
+    });
+  }
+  const type: unknown = options.type;
+  if (typeof type === 'string') return;
+  const where = alterColumnTypeCallText(options.schema, options.table, options.column);
+  throw postgresError('MIGRATION.COLUMN_TYPE_UNREADABLE', `${where}: it has no \`type\``, {
+    why: 'A column type change needs the new type, and node migration.ts does not check the types of the options it is given.',
+    fix: 'Pass `{ schema, table, column, type, using? }`, with `type` written as a migration writes it, such as int4 or varchar(20).',
+    meta: { type: String(type), where },
+  });
+}
+
+type CreateIndexExtrasInput = Omit<CreateIndexExtras, 'where'> & {
+  readonly where?: SqlTextInput;
+};
+
+type RlsPolicyInput = Omit<RenderedRlsPolicyLiteral, 'using' | 'withCheck'> & {
+  readonly using?: SqlTextInput;
+  readonly withCheck?: SqlTextInput;
+};
+
+function optionalSqlTextOf(value: SqlTextInput | undefined, what: string): string | undefined {
+  return value === undefined ? undefined : sqlTextOf(value, what);
+}
+
+function createIndexExtrasOf(extras: CreateIndexExtrasInput, index: string): CreateIndexExtras {
+  const { where, ...rest } = extras;
+  const what = `createIndex ${JSON.stringify(index)} where`;
+  return { ...rest, ...ifDefined('where', optionalSqlTextOf(where, what)) };
 }

@@ -6,6 +6,7 @@ import type { AuthoringPslBlockDescriptorNamespace } from '@internal/framework-c
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type {
   ControlAdapterInstance,
+  ControlDriverConnectOptions,
   ControlDriverInstance,
   ControlFamilyInstance,
   ControlStack,
@@ -132,7 +133,7 @@ class ControlClientImpl implements ControlClient {
     this.initialized = true;
   }
 
-  async connect(connection?: unknown): Promise<void> {
+  async connect(connection?: unknown, options?: ControlDriverConnectOptions): Promise<void> {
     // Auto-init if needed
     this.init();
 
@@ -165,6 +166,7 @@ class ControlClientImpl implements ControlClient {
         Parameters<typeof this.stack.driver.create>[0],
         'Connection shape is validated by the selected driver at runtime'
       >(resolvedConnection),
+      options,
     );
   }
 

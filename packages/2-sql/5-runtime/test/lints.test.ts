@@ -30,7 +30,9 @@ function createMiddlewareContext(): SqlMiddlewareContext {
     },
     contentHash: async () => 'mock-hash',
     scope: 'runtime' as const,
-    planExecutionId: 'test-fixture-plan-execution-id',
+    parent: undefined,
+    state: () => ({}),
+    inTransaction: () => false,
   };
 }
 
@@ -63,7 +65,7 @@ describe('lints middleware', () => {
       const mw = lints();
       const ctx = createMiddlewareContext();
 
-      await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+      await expect(mw.beforeEncode?.(plan, ctx)).rejects.toMatchObject({
         code: 'LINT.DELETE_WITHOUT_WHERE',
         details: { table: 'user' },
       });
@@ -82,7 +84,7 @@ describe('lints middleware', () => {
       const mw = lints();
       const ctx = createMiddlewareContext();
 
-      await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+      await expect(mw.beforeEncode?.(plan, ctx)).rejects.toMatchObject({
         code: 'LINT.UPDATE_WITHOUT_WHERE',
         details: { table: 'user' },
       });
@@ -100,7 +102,7 @@ describe('lints middleware', () => {
       const mw = lints();
       const ctx = createMiddlewareContext();
 
-      await mw.beforeExecute?.(plan, ctx);
+      await mw.beforeEncode?.(plan, ctx);
       expect(ctx.log.warn).toHaveBeenCalledWith(
         expect.objectContaining({ code: 'LINT.NO_LIMIT', details: { table: 'user' } }),
       );
@@ -125,7 +127,7 @@ describe('lints middleware', () => {
       const mw = lints();
       const ctx = createMiddlewareContext();
 
-      await mw.beforeExecute?.(plan, ctx);
+      await mw.beforeEncode?.(plan, ctx);
       expect(ctx.log.warn).toHaveBeenCalledWith(
         expect.objectContaining({
           code: 'LINT.NO_LIMIT',
@@ -160,8 +162,8 @@ describe('lints middleware', () => {
       const mw = lints();
       const ctx = createMiddlewareContext();
 
-      await mw.beforeExecute?.(selectPlan, ctx);
-      await mw.beforeExecute?.(updatePlan, ctx);
+      await mw.beforeEncode?.(selectPlan, ctx);
+      await mw.beforeEncode?.(updatePlan, ctx);
       expect(ctx.log.warn).not.toHaveBeenCalled();
     },
     timeouts.default,
@@ -211,7 +213,7 @@ describe('lints middleware', () => {
         const mw = lints({ severities });
         const ctx = createMiddlewareContext();
         const wantsError = Object.values(severities)[0] === 'error';
-        const promise = mw.beforeExecute?.(plan(), ctx);
+        const promise = mw.beforeEncode?.(plan(), ctx);
         if (wantsError) {
           await expect(promise).rejects.toMatchObject({ code });
         } else {
@@ -233,7 +235,7 @@ describe('lints middleware', () => {
       const mw = lints({ severities: { deleteWithoutWhere: 'warn' } });
       const ctx = createMiddlewareContext();
 
-      await mw.beforeExecute?.(createPlan({ ast }), ctx);
+      await mw.beforeEncode?.(createPlan({ ast }), ctx);
       expect(ctx.log.warn).toHaveBeenCalledWith(
         expect.objectContaining({ code: 'LINT.SELECT_STAR' }),
       );
@@ -248,7 +250,7 @@ describe('lints middleware', () => {
       const mw = lints();
       const ctx = createMiddlewareContext();
 
-      await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+      await expect(mw.beforeEncode?.(plan, ctx)).rejects.toMatchObject({
         code: 'LINT.SELECT_STAR',
       });
     },
@@ -262,7 +264,7 @@ describe('lints middleware', () => {
       const mw = lints({ severities: { selectStar: 'warn' } });
       const ctx = createMiddlewareContext();
 
-      await mw.beforeExecute?.(plan, ctx);
+      await mw.beforeEncode?.(plan, ctx);
       expect(ctx.log.warn).toHaveBeenCalledWith(
         expect.objectContaining({ code: 'LINT.SELECT_STAR' }),
       );
@@ -282,7 +284,7 @@ describe('lints middleware', () => {
       const mw = lints();
       const ctx = createMiddlewareContext();
 
-      await expect(mw.beforeExecute?.(plan, ctx)).rejects.toMatchObject({
+      await expect(mw.beforeEncode?.(plan, ctx)).rejects.toMatchObject({
         code: 'LINT.SELECT_STAR',
       });
     },
@@ -296,7 +298,7 @@ describe('lints middleware', () => {
       const mw = lints({ fallbackWhenAstMissing: 'skip' });
       const ctx = createMiddlewareContext();
 
-      await mw.beforeExecute?.(plan, ctx);
+      await mw.beforeEncode?.(plan, ctx);
       expect(ctx.log.warn).not.toHaveBeenCalled();
     },
     timeouts.default,

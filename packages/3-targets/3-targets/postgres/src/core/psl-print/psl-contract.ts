@@ -5,7 +5,8 @@ import {
   effectiveControlPolicy,
 } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type { PslTypeMap } from '@internal/family-sql/psl-build';
+import type { InferredTypeConstructors } from '@internal/family-sql/psl-build';
+import { inferredTypeConstructors } from '@internal/family-sql/psl-build';
 import type {
   PslDocumentAst,
   PslExtensionBlock,
@@ -23,7 +24,6 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { DEFAULT_NAMESPACE_ID } from '../namespace-ids';
 import { PostgresNativeEnum } from '../postgres-native-enum';
-import { createPostgresTypeMap } from '../psl-build/postgres-type-map';
 import { SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import {
   indexContractModels,
@@ -58,7 +58,6 @@ import {
   refuseUntravelledForeignKeys,
   refuseUnwritableMappedName,
   refuseUnwritableName,
-  refuseUnwrittenExecutionDefaults,
   refuseUnwrittenNamespaces,
 } from './refusals';
 import {
@@ -76,14 +75,13 @@ import { buildScalarFields, executionDefaultsByColumn } from './scalar-fields';
 interface ContractModels {
   readonly contract: Contract<SqlStorage>;
   readonly context: SqlPslBuildContext;
-  readonly typeMap: PslTypeMap;
+  readonly inferredConstructors: InferredTypeConstructors;
   readonly models: readonly ModelWithTable[];
   readonly byCoordinate: ReadonlyMap<string, ModelWithTable>;
   readonly variants: ReadonlyMap<ModelWithTable, VariantInfo | undefined>;
   readonly relationsByModel: ReadonlyMap<string, readonly ModelRelation[]>;
   readonly pinned: ReadonlySet<string>;
   readonly executionDefaults: ReadonlyMap<string, ExecutionMutationDefault>;
-  readonly writtenExecutionDefaults: Set<ExecutionMutationDefault>;
   readonly defaultDomainEnums: Readonly<Record<string, ContractEnum>>;
   readonly domainEnumValues: ReadonlyMap<string, readonly unknown[]>;
 }
@@ -147,10 +145,9 @@ function buildModel(
       variant,
       enums,
       domainEnums: all.contract.domain.namespaces[entry.namespaceId]?.enum ?? {},
-      typeMap: all.typeMap,
+      inferredConstructors: all.inferredConstructors,
       context: all.context,
       executionDefaults: all.executionDefaults,
-      writtenExecutionDefaults: all.writtenExecutionDefaults,
       defaultDomainEnumNames: new Set(Object.keys(all.defaultDomainEnums)),
       namedTypes: all.contract.storage.types ?? {},
     }),
@@ -236,7 +233,7 @@ function buildNamespace(
   const compositeTypes = buildCompositeTypes({
     contract,
     namespaceId,
-    typeMap: all.typeMap,
+    inferredConstructors: all.inferredConstructors,
     context: all.context,
     enumBlockNames: enums.blockNamesByTypeName,
     domainEnums: all.defaultDomainEnums,
@@ -307,14 +304,17 @@ export function buildPostgresPslContract(
   const all: ContractModels = {
     contract,
     context,
-    typeMap: createPostgresTypeMap(),
+    inferredConstructors: inferredTypeConstructors({
+      authoringTypes: context.authoringContributions.type,
+      codecLookup: context.codecLookup,
+      dataTypeLookup: context.dataTypes.lookup,
+    }),
     models,
     byCoordinate,
     variants: new Map(models.map((entry) => [entry, variantInfo(entry, byCoordinate)])),
     relationsByModel: byModel,
     pinned: resolvePinnedRelations(relations, byModel),
     executionDefaults: executionDefaultsByColumn(contract),
-    writtenExecutionDefaults: new Set<ExecutionMutationDefault>(),
     defaultDomainEnums,
     domainEnumValues: new Map(
       Object.entries(defaultDomainEnums).map(([name, domainEnum]) => [
@@ -347,11 +347,10 @@ export function buildPostgresPslContract(
 
   refuseUnmodelledTablesAndColumns(contract, models, all.variants);
   refuseUnwrittenNamespaces({ contract, models, writtenStorageNamespaces });
-  refuseUnwrittenExecutionDefaults(contract, all.writtenExecutionDefaults);
   refuseContractMeta(contract);
   refuseUnderivedRoots(contract, models, all.variants);
 
-  const types = buildTypesBlock(contract, all.typeMap, context);
+  const types = buildTypesBlock(contract, all.inferredConstructors, context);
   return {
     kind: 'document',
     sourceId: '<contract>',

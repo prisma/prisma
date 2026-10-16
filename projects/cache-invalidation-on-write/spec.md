@@ -1,5 +1,7 @@
 # Cache invalidation on write — spec
 
+> Slice 2 of this spec is superseded: the write annotation is built on the activity tree, as specified in [`../activity-tree/plan.md`](../activity-tree/plan.md), slice 4, and ticket TML-3400.
+
 Linear: [TML-3399](https://linear.app/prisma-company/issue/TML-3399) (slice 1, `afterTransaction`), [TML-3400](https://linear.app/prisma-company/issue/TML-3400) (slice 2, `invalidateAnnotation`, blocked by slice 1). Design of the cache middleware itself: [ADR 266](../../docs/architecture%20docs/adrs/ADR%20266%20-%20The%20cache%20middleware%20passes%20data%20to%20its%20store%2C%20and%20the%20store%20decides%20how%20to%20cache.md).
 
 ## At a glance

@@ -133,6 +133,13 @@
           },
           "Post": {
             "fields": {
+              "body": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -261,6 +268,9 @@
             },
             "storage": {
               "fields": {
+                "body": {
+                  "column": "body"
+                },
                 "createdAt": {
                   "column": "createdAt"
                 },
@@ -521,11 +531,13 @@
               "table": "task"
             },
             "variants": {
-              "Bug": {
-                "value": "bug"
+              "bug": {
+                "model": "Bug",
+                "namespace": "public"
               },
-              "Feature": {
-                "value": "feature"
+              "feature": {
+                "model": "Feature",
+                "namespace": "public"
               }
             }
           },
@@ -785,6 +797,11 @@
                 }
               ],
               "columns": {
+                "body": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-temporal@1",
                   "dataType": "pg/timestamptz",
@@ -877,6 +894,27 @@
                 }
               ],
               "indexes": [
+                {
+                  "columns": [
+                    "title",
+                    "body"
+                  ],
+                  "name": "post_search_f03270be",
+                  "options": {
+                    "language": "english",
+                    "weightGroups": [
+                      [
+                        "title"
+                      ],
+                      [
+                        "body"
+                      ]
+                    ]
+                  },
+                  "prefix": "post_search",
+                  "type": "fullText",
+                  "unique": false
+                },
                 {
                   "columns": [
                     "title"
@@ -1183,7 +1221,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "1f8be6858951202dbb1dfad2a36b45f3d04c630d2577dd70ac02f55bcb8ca5ea",
+    "storageHash": "0cc3858331779e3853a61a911a7fe85ca764430aa9de12c2a0bb36bfa3165743",
     "types": {
       "Embedding1536": {
         "codecId": "pg/vector@1",
@@ -1315,13 +1353,11 @@
             "named": "CodecTypes",
             "package": "@internal/extension-pgvector/codec-types"
           },
-          "typeImports": [
-            {
-              "alias": "Vector",
-              "named": "Vector",
-              "package": "@internal/extension-pgvector/codec-types"
-            }
-          ]
+          "parameterizedOutputTypes": {
+            "alias": "PgVectorParameterizedOutputTypes",
+            "named": "ParameterizedOutputTypesForTypeParams",
+            "package": "@internal/extension-pgvector/codec-types"
+          }
         },
         "operationTypes": {
           "import": {

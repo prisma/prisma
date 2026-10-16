@@ -107,8 +107,7 @@ describe('dbgenerated() with no expression', () => {
         dataType: 'pg/text',
         codecId: 'pg/text@1',
         nullable: true,
-        many: { elementNullable: false },
-        noCheck: ['elementNotNull'],
+        many: { elementNullable: true },
       },
     });
   });
@@ -219,6 +218,12 @@ describe('Number defaults on String, Bytes, DateTime and Boolean fields', () => 
       'Field "OtherTypes.at": @default holds a pg/int2 value, which pg/timestamp has no cast from; it casts from pg/text.',
       'Field "OtherTypes.flag": @default holds a pg/int2 value, which pg/bool has no cast from; it casts from nothing.',
     ]);
+  });
+});
+
+describe('Number defaults written with a plus sign', () => {
+  it('are read as the number without the sign', async () => {
+    expect(await diagnosticsOf('number-default-spellings', 'plus-sign.prisma')).toEqual([]);
   });
 });
 

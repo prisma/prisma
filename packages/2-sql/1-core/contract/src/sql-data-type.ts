@@ -15,7 +15,12 @@ import type {
   DataTypeLookup,
   DataTypeSpec,
 } from '@internal/framework-components/codec';
-import { dataType, objectSchemaKeys } from '@internal/framework-components/codec';
+import {
+  dataType,
+  objectSchemaKeys,
+  schemaKeysAllowing,
+} from '@internal/framework-components/codec';
+import type { ReportedSqlType } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
@@ -35,17 +40,6 @@ export interface SqlTypeText {
 }
 
 export type SqlTypeParams = Readonly<Record<string, unknown>>;
-
-/** What introspection hands over about the element type of one column. */
-export interface ReportedSqlType {
-  /** The catalog text of the element type. */
-  readonly text: string;
-  /** The target's word for the type's kind, such as `enum`; undefined for a base type. */
-  readonly kind: string | undefined;
-  readonly schema: string | undefined;
-  /** The type's name, unquoted. */
-  readonly name: string | undefined;
-}
 
 export interface SqlDataTypeSpec<Params extends SqlTypeParams = SqlTypeParams>
   extends DataTypeSpec {
@@ -97,9 +91,12 @@ function placeholderSetOf(text: string): string {
   return [...placeholdersOf(text)].sort().join(',');
 }
 
-function patternOf(text: string): RegExp {
+function patternOf(text: string, signedKeys: readonly string[] = []): RegExp {
   const escaped = text.replace(REGEXP_SPECIAL, '\\$&');
-  return new RegExp(`^${escaped.replace(/\\\{[A-Za-z][A-Za-z0-9]*\\\}/g, '(\\d+)')}$`);
+  const placeholders = escaped.replace(/\\\{([A-Za-z][A-Za-z0-9]*)\\\}/g, (_, name: string) =>
+    signedKeys.includes(name) ? '(-?\\d+)' : '(\\d+)',
+  );
+  return new RegExp(`^${placeholders}$`);
 }
 
 function refuseDeclaration(id: DataTypeId, why: string): never {
@@ -527,18 +524,59 @@ export function resolveReportedSqlType(
   for (const type of sqlTypes) {
     for (const candidate of type.sql.texts) {
       if (!claims(candidate)) continue;
-      const match = patternOf(candidate.text).exec(text);
-      if (match === null) continue;
-      const params = Object.fromEntries(
-        placeholdersOf(candidate.text).map((name, index) => [
-          name,
-          Number.parseInt(match[index + 1] ?? '', 10),
-        ]),
-      );
-      return resolvedWith(type, params);
+      const params = paramsMatching(type, candidate, text);
+      if (params !== undefined) return resolvedWith(type, params);
     }
   }
   return undefined;
+}
+
+const signedParamKeysByType = new WeakMap<SqlDataType, readonly string[]>();
+
+/** The parameters of `type` that may be negative, whose placeholders read a leading minus. */
+function signedParamKeys(type: SqlDataType): readonly string[] {
+  const known = signedParamKeysByType.get(type);
+  if (known !== undefined) return known;
+  const keys = schemaKeysAllowing(type.params, -1) ?? [];
+  signedParamKeysByType.set(type, keys);
+  return keys;
+}
+
+function paramsMatching(
+  type: SqlDataType,
+  candidate: SqlTypeText,
+  text: string,
+): SqlTypeParams | undefined {
+  const match = patternOf(candidate.text, signedParamKeys(type)).exec(text);
+  if (match === null) return undefined;
+  return Object.fromEntries(
+    placeholdersOf(candidate.text).map((name, index) => [
+      name,
+      Number.parseInt(match[index + 1] ?? '', 10),
+    ]),
+  );
+}
+
+/**
+ * Every data type in `dataTypes` that reads `text` as a migration may write it, with its parameters
+ * in normal form: any of a type's texts counts, whether written, printed by the catalog or only
+ * claimed. Empty when no type reads it or its parameters fail the type's schema. A type that claims
+ * a kind has no texts, so it never reads one.
+ */
+export function resolveWrittenSqlTypes(
+  text: string,
+  dataTypes: readonly DataType[],
+): readonly ResolvedSqlType[] {
+  const prepared = prepareReportedText(text);
+  return dataTypes.filter(isSqlDataType).flatMap((type) => {
+    for (const candidate of type.sql.texts) {
+      const params = paramsMatching(type, candidate, prepared);
+      if (params === undefined) continue;
+      const resolved = resolvedWith(type, params);
+      if (resolved !== undefined) return [resolved];
+    }
+    return [];
+  });
 }
 
 function resolvedWith(type: SqlDataType, params: SqlTypeParams): ResolvedSqlType | undefined {

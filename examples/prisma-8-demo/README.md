@@ -126,6 +126,7 @@ The demo includes ORM client examples under `src/orm-client/`:
 - `ormClientFindUserByIdCached(id, runtime, options?)` — opt-in cached `first({ id })` lookup via `cacheAnnotation({ bypass? })` from `@internal/middleware-cache`
 - `ormClientGetUsersCached(limit, runtime, options?)` — opt-in cached `User.all()` listing, with optional explicit cache-key override
 - `ormClientGetRecentPosts(since, orderBy, direction, limit, runtime)` — **query fragments**: `createdSince` (`db.orm.fragment`, a scope for any model with a `createdAt` field), `orderByField` (a field to order by, named in the request and checked at run time) and `postSummary` (`db.orm.public.Post.fragment`, the shared `select` and `include` of a post), from `src/orm-client/fragments.ts`
+- `ormClientGetFilteredPosts({ userId?, before? }, limit, runtime)` — **a conditional query with `with`**: `db.Post.with((posts) => (input.userId !== undefined ? posts.where({ userId: input.userId }) : posts))` applies a filter only when the input names it, and `createdBefore` is a row fragment for any model with a `createdAt` field, run with `where` and typed with `CodecField` in `src/orm-client/fragments.ts`
 - `ormClientGetRecentUsers(since, limit, runtime)` — the same `createdSince` on users and on their included posts, which `postSummary` shapes inside the include refinement
 - `ormClientSearchPostsByTitle(query, limit, runtime)` — **full-text search**: `p.title.fullTextMatches(websearchToTsquery(query))` filtered and `p.title.fullTextRank(websearchToTsquery(query)).desc()` ordered, over the GIN index `@@fullTextIndex([title])` declares
 
@@ -139,6 +140,7 @@ pnpm start -- repo-posts user_001 10
 pnpm start -- repo-dashboard example.com post 10 2
 pnpm start -- repo-post-feed post 10
 pnpm start -- repo-recent-posts 2024-01-01T00:00:00Z title asc 10
+pnpm start -- repo-list-posts - 2025-01-01T00:00:00Z 10
 pnpm start -- repo-task-board 10
 pnpm start -- repo-bug-triage critical 10
 pnpm start -- repo-feature-roadmap v2.0 10
@@ -378,7 +380,7 @@ The corresponding source files:
 Relevant points:
 
 - The `cacheAnnotation` handle declares `applicableTo: ['read']`. Passing it to a write terminal is rejected at both the type and runtime levels — a `as any` cast cannot smuggle it past one without failing at the other.
-- The default cache key is `RuntimeMiddlewareContext.contentHash(exec)`, a SHA-512 digest of the post-lowering SQL plus parameters. Different parameters land in different cache slots; identical executions hit. Schema migrations rotate `meta.storageHash`, which feeds into `contentHash`, so cached entries do not leak across migrations.
+- The default cache key is `ActivityContext.contentHash(exec)`, a SHA-512 digest of the post-lowering SQL plus parameters. Different parameters land in different cache slots; identical executions hit. Schema migrations rotate `meta.storageHash`, which feeds into `contentHash`, so cached entries do not leak across migrations.
 - The default in-memory store is per-process. For shared caching across replicas, supply a custom `CacheStore` (for example a Redis-backed implementation) via `createCacheMiddleware({ store })`.
 - Connection-scoped (`runtime.connection().execute(...)`) and transaction-scoped (`runtime.transaction(...)`) executions bypass the cache regardless of annotation, so transactional read-after-write coherence is preserved.
 
@@ -447,6 +449,7 @@ Run `pnpm dev` for the Vite app that visualizes the contract. It renders directl
 
 ## Features Demonstrated
 
-- **Vector Similarity Search**: The demo includes a `similarity-search.ts` query that demonstrates cosine distance operations using the pgvector extension pack.
+- **Vector Similarity Search**: The demo includes a `similarity-search.ts` query that demonstrates cosine distance operations using the pgvector extension pack. Through the ORM, `src/orm-client/search-posts-by-embedding.ts` calls `db.Post.using.embedding_nearest(vector, maxDistance)`, the collection method the pgvector package contributes for each vector field: the posts nearest to the vector by cosine distance, nearest first.
 - **Full-Text Search**: `Post` declares `@@fullTextIndex([title], name: "post_title_search")` (the TypeScript twin is `fullTextIndex(cols.title, { name: 'post_title_search' })`), which emits a GIN index over `to_tsvector('english', "title")`. `src/orm-client/search-posts-by-title.ts` searches through the ORM with `fullTextMatches` and `fullTextRank`; `src/queries/full-text-search.ts` searches the same index through the SQL DSL, read from the table as `post.indexes.post_title_search`, so the query searches the document the index was built over, and adds the rank and a `<mark>`-highlighted `fullTextHeadline`. The query argument is a `tsquery`: both files wrap the search string in `websearchToTsquery` (imported from `@prisma/orm-postgres/target/full-text` in the ORM file, a `fns` member in the DSL file), which binds it as a parameter and parses it with `websearch_to_tsquery`, so `"an exact phrase"`, `-excluded` and `or` work as in a search box. A bare string is a type error; for a typeahead prefix match, `` tsquery`${term}:*` `` from the same import quotes the typed text as one term. Try `pnpm start -- repo-search-posts-text second` and `pnpm start -- full-text-search "first or second"`.
+- **Weighted Full-Text Search**: `Post` also declares `@@fullTextIndex([title, body], name: "post_search")`: one search document over the title (weight A) and the body (weight B). `src/orm-client/search-posts.ts` searches it with `db.Post.using.post_search(q)`, the collection method the Postgres package contributes for each full-text index, named after the index. It filters to the matching posts and orders them by relevance, searching the document the index was built over, so a title match ranks above a body match and Postgres uses the index. Try `pnpm start -- repo-search-posts-weighted "second or third"` after `pnpm seed`.
 - **Extension Packs**: Shows how to configure and use extension packs (pgvector) in `prisma.config.ts`.

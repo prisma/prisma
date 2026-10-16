@@ -7,6 +7,8 @@ import type { TypesImportSpec } from '../shared/types-import-spec';
 
 export interface GenerateContractTypesOptions {
   readonly queryOperationTypeImports?: ReadonlyArray<TypesImportSpec>;
+  /** The type functions that give the output types of the stack's codecs for a column's type parameters (`types.codecTypes.parameterizedOutputTypes`). */
+  readonly parameterizedOutputTypeImports?: ReadonlyArray<TypesImportSpec>;
   /**
    * The aggregate overloads the composed stack contributes, and the codec descriptors they are settled against. A family emits result types from these — the same declarations its runtime registry resolves against, so emitted types and decoded results cannot disagree.
    */
@@ -16,11 +18,6 @@ export interface GenerateContractTypesOptions {
    * The target's namespace declaration. `false` drops the namespace segment from emitted `Models` member names and from the `models` constant; absent means `true`.
    */
   readonly supportsNamespaces?: boolean;
-}
-
-export interface ValidationContext {
-  readonly codecTypeImports?: ReadonlyArray<TypesImportSpec>;
-  readonly extensionIds?: ReadonlyArray<string>;
 }
 
 export interface EmissionSpi {
@@ -57,4 +54,9 @@ export interface EmissionSpi {
   ): { readonly encodedValues: readonly JsonValue[]; readonly codecId: string } | undefined;
 
   getStorageTypeExports?(contract: Contract, codecLookup?: CodecLookup): string | undefined;
+
+  /**
+   * The family's `FieldOutputTypes` (`side` `'output'`) or `FieldInputTypes` (`'input'`) as an application of its own generic to the emitted contract's shape: it may name `ContractBase`, `CodecTypes`, `ParameterizedOutputTypeFunctions` (the union of the stack's parameterized output type functions) and `FieldTypeOverrides` (each field's type where the codec does not give it: a value set, a value object, a union, or text the codec renders), which the framework declares. Absent, the framework writes each field's type out.
+   */
+  fieldTypesExpression?(side: 'output' | 'input'): string;
 }

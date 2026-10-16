@@ -148,45 +148,6 @@ describe('SqlContractSerializer parameterized type fields', () => {
 
       expect(() => validateSqlContractFully<TestContract>(input)).not.toThrow();
     });
-
-    it('rejects typeParams when typeRef is also present (mutually exclusive)', () => {
-      const input = {
-        ...baseContractInput,
-        storage: storageWithNamespacedTables({
-          storageHash: 'test',
-          tables: {
-            Embedding: {
-              columns: {
-                id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
-                vector: {
-                  dataType: 'pgvector/vector',
-                  codecId: 'pg/vector@1',
-                  nullable: false,
-                  typeParams: { length: 1536 },
-                  typeRef: 'Vector1536',
-                },
-              },
-              primaryKey: { columns: ['id'] },
-              uniques: [],
-              indexes: [],
-              foreignKeys: [],
-            },
-          },
-          types: {
-            Vector1536: {
-              kind: 'codec-instance',
-              codecId: 'pg/vector@1',
-              dataType: 'pgvector/vector',
-              typeParams: { length: 1536 },
-            },
-          },
-        }),
-      };
-
-      expect(() => validateSqlContractFully<TestContract>(input)).toThrow(
-        /typeParams.*typeRef|typeRef.*typeParams/,
-      );
-    });
   });
 
   describe('column typeRef', () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { jsonValue } from '../src/attribute-spec/combinators/json-value';
+import { EMPTY_DATA_TYPES } from '../src/attribute-spec/spec-context';
 import { mapBlock, structBlock } from '../src/block-spec/constructors';
 import type { PslBlockSpecDescriptor } from '../src/block-spec/descriptor';
 import { interpretExtensionBlock } from '../src/block-spec/interpret';
@@ -14,8 +15,12 @@ function interpretOnlyBlock<S extends BlockSpec<unknown>>(
   spec: S,
 ) {
   const { document, sources } = parse(source, 'test.psl');
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
-  const [block] = Object.values(symbolTable.topLevel.blocks);
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
+  const [block] = Object.values(symbolTable.defaultNamespace.blocks);
   if (block === undefined) throw new Error('expected one block in the symbol table');
   return interpretExtensionBlock({
     block,
@@ -28,6 +33,7 @@ function interpretOnlyBlock<S extends BlockSpec<unknown>>(
       symbolTable,
       pslBlockDescriptors: { [descriptor.keyword]: descriptor },
     }),
+    dataTypes: EMPTY_DATA_TYPES,
   });
 }
 
@@ -69,6 +75,7 @@ describe('interpretExtensionBlock records the source text of number entries', ()
         '  Huge     = 9007199254740993',
         '  Fraction = 0.12345678901234567890',
         '  Negative = -1',
+        '  Positive = +2',
         '  Text     = "9007199254740993"',
         '  Bare',
         '}',
@@ -83,6 +90,7 @@ describe('interpretExtensionBlock records the source text of number entries', ()
       Huge: '9007199254740993',
       Fraction: '0.12345678901234567890',
       Negative: '-1',
+      Positive: '+2',
     });
   });
 

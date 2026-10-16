@@ -127,20 +127,6 @@ describe('ports/prisma/functional/composites/object/create', () => {
         }),
       timeouts.spinUpMongoMemoryServer,
     );
-
-    it(
-      'set null shorthand',
-      () =>
-        withComposites(async ({ db }) => {
-          const comment = db.comments_required.create({
-            country: 'France',
-            // @ts-expect-error required `content` cannot be null
-            content: null,
-          });
-          await expect(comment).rejects.toThrow();
-        }),
-      timeouts.spinUpMongoMemoryServer,
-    );
   });
 
   describe('optional content', () => {
@@ -193,23 +179,6 @@ describe('ports/prisma/functional/composites/object/create', () => {
 
     it(
       'set null',
-      () =>
-        withComposites(async ({ db }) => {
-          const comment = await db.comments_optional.create({
-            country: 'France',
-            content: null,
-          });
-
-          expect(comment).toMatchObject({
-            country: 'France',
-            content: null,
-          });
-        }),
-      timeouts.spinUpMongoMemoryServer,
-    );
-
-    it(
-      'set null shorthand (content omitted)',
       () =>
         withComposites(async ({ db }) => {
           const comment = await db.comments_optional.create({

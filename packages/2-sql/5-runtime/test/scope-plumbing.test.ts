@@ -32,7 +32,7 @@ import { defineTestCodec } from './test-codec';
 import { createTestRuntime as createRuntime, descriptorsFromCodecs, stubAst } from './utils';
 
 /**
- * Verifies the SQL runtime populates `RuntimeMiddlewareContext.scope`
+ * Verifies the SQL runtime populates `ActivityContext.scope`
  * differently for the three queryable surfaces: top-level `runtime.query`,
  * `connection.query` (after `runtime.connection()`), and
  * `transaction.query` (after `connection.transaction()` or
@@ -212,7 +212,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -228,7 +228,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -249,7 +249,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -272,7 +272,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -298,7 +298,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -330,7 +330,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -364,7 +364,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeQuery(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -405,7 +405,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -423,7 +423,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };
@@ -446,7 +446,7 @@ describe('SQL runtime scope plumbing', () => {
     const observer: SqlMiddleware = {
       name: 'scope-observer',
       familyId: 'sql',
-      async beforeExecute(_plan, ctx) {
+      async beforeEncode(_plan, ctx) {
         seen.push(ctx.scope);
       },
     };

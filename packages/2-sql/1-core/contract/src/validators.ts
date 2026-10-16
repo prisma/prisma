@@ -2,6 +2,7 @@ import { ContractValidationError } from '@internal/contract/contract-validation-
 import {
   type Contract,
   ContractExecutionSectionSchema,
+  type ContractModel,
   CrossReferenceSchema,
 } from '@internal/contract/types';
 import { validateContractDomain } from '@internal/contract/validate-domain';
@@ -177,7 +178,7 @@ export function valueObjectStorageTypeMissingMessage(columnPath: string): string
   return `${columnPath}: a value-object column needs the stack's value-object storage type, and the stack declares none`;
 }
 
-const LISTED_STORED_TYPE_NAMES = 5;
+const LISTED_REMOVED_KEYS = 5;
 
 function fieldOf(value: unknown, key: string): unknown {
   return isPlainRecord(value) ? value[key] : undefined;
@@ -187,8 +188,10 @@ function entriesOf(value: unknown): readonly (readonly [string, unknown])[] {
   return isPlainRecord(value) ? Object.entries(value) : [];
 }
 
-function storedTypeNamePaths(storage: unknown): readonly string[] {
-  const columns = entriesOf(fieldOf(storage, 'namespaces')).flatMap(([namespaceId, namespace]) =>
+function storedColumnEntries(
+  storage: unknown,
+): readonly { readonly path: string; readonly entry: unknown }[] {
+  return entriesOf(fieldOf(storage, 'namespaces')).flatMap(([namespaceId, namespace]) =>
     entriesOf(fieldOf(fieldOf(namespace, 'entries'), 'table')).flatMap(([tableName, table]) =>
       entriesOf(fieldOf(table, 'columns')).map(([columnName, column]) => ({
         path: `storage.namespaces.${namespaceId}.entries.table.${tableName}.columns.${columnName}`,
@@ -196,26 +199,22 @@ function storedTypeNamePaths(storage: unknown): readonly string[] {
       })),
     ),
   );
-  const types = entriesOf(fieldOf(storage, 'types')).map(([typeName, entry]) => ({
-    path: `storage.types.${typeName}`,
-    entry,
-  }));
-  return [...columns, ...types]
-    .filter(({ entry }) => isPlainRecord(entry) && Object.hasOwn(entry, 'nativeType'))
+}
+
+function pathsHolding(
+  entries: readonly { readonly path: string; readonly entry: unknown }[],
+  key: string,
+): readonly string[] {
+  return entries
+    .filter(({ entry }) => isPlainRecord(entry) && Object.hasOwn(entry, key))
     .map(({ path }) => path);
 }
 
-/**
- * Contracts emitted before a column named its data type stored the database type name in `nativeType` on columns and `storage.types` entries. The first five such keys are reported with their paths and the rest are counted, so an old contract is refused with a short message that says what changed.
- */
-function storedTypeNameProblems(storage: unknown): readonly string[] {
-  const paths = storedTypeNamePaths(storage);
-  const listed = paths
-    .slice(0, LISTED_STORED_TYPE_NAMES)
-    .map(
-      (path) =>
-        `${path}.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
-    );
+function listedProblems(
+  paths: readonly string[],
+  describe: (path: string) => string,
+): readonly string[] {
+  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map(describe);
   const unlisted = paths.length - listed.length;
   return unlisted > 0
     ? [
@@ -223,6 +222,41 @@ function storedTypeNameProblems(storage: unknown): readonly string[] {
         `and ${unlisted} more ${unlisted === 1 ? 'path' : 'paths'} (${paths.length} in all)`,
       ]
     : listed;
+}
+
+/**
+ * Contracts emitted before a column named its data type stored the database type name in `nativeType` on columns and `storage.types` entries. The first five such keys are reported with their paths and the rest are counted, so an old contract is refused with a short message that says what changed.
+ */
+function storedTypeNameProblems(storage: unknown): readonly string[] {
+  const types = entriesOf(fieldOf(storage, 'types')).map(([typeName, entry]) => ({
+    path: `storage.types.${typeName}`,
+    entry,
+  }));
+  return listedProblems(
+    pathsHolding([...storedColumnEntries(storage), ...types], 'nativeType'),
+    (path) =>
+      `${path}.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
+  );
+}
+
+/**
+ * Contracts emitted before generated checks became mandatory stored the checks a column waived in `noCheck`. One sentence says what to do, followed by the first five such columns and a count of the rest.
+ */
+function checkWaiverProblems(storage: unknown): readonly string[] {
+  const paths = pathsHolding(storedColumnEntries(storage), 'noCheck');
+  if (paths.length === 0) return [];
+  const listed = paths.slice(0, LISTED_REMOVED_KEYS).map((path) => `${path}.noCheck`);
+  const unlisted = paths.length - listed.length;
+  const more = unlisted > 0 ? `, and ${unlisted} more (${paths.length} in all)` : '';
+  return [
+    `contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide. Columns: ${listed.join(', ')}${more}`,
+  ];
+}
+
+/** The removed keys of the oldest format the contract is in: a contract that still stores `nativeType` is refused for that first, since its `noCheck` keys are rewritten at a later step of the upgrade. */
+function removedKeyProblems(storage: unknown): readonly string[] {
+  const storedTypeNames = storedTypeNameProblems(storage);
+  return storedTypeNames.length > 0 ? storedTypeNames : checkWaiverProblems(storage);
 }
 
 type NamespacedStorageWalk = {
@@ -458,8 +492,8 @@ const ModelSchema = type({
   storage: ModelStorageSchema,
   'fields?': type({ '[string]': ModelFieldSchema }),
   'relations?': type({ '[string]': ContractRelationSchema }),
-  'discriminator?': 'unknown',
-  'variants?': 'unknown',
+  'discriminator?': type({ field: 'string' }),
+  'variants?': type({ '[string]': CrossReferenceSchema }),
   'base?': CrossReferenceSchema,
   'owner?': 'string',
 });
@@ -516,11 +550,11 @@ const SqlContractSchema = createSqlContractSchema(DEFAULT_SQL_KINDS);
  * @throws Error if the storage structure is invalid
  */
 export function validateStorage(value: unknown): void {
-  const storedTypeNames = storedTypeNameProblems(value);
+  const removedKeys = removedKeyProblems(value);
   const result = StorageSchema(value);
   const errors =
-    storedTypeNames.length > 0
-      ? [...storedTypeNames]
+    removedKeys.length > 0
+      ? [...removedKeys]
       : result instanceof type.errors
         ? result.map((p: { message: string }) => p.message)
         : [];
@@ -572,10 +606,10 @@ function validateSqlContractStructure<T extends Contract<SqlStorage>>(
     throw new ContractValidationError(`Unsupported target family: ${targetFamily}`, 'structural');
   }
 
-  const storedTypeNames = storedTypeNameProblems(fieldOf(value, 'storage'));
-  if (storedTypeNames.length > 0) {
+  const removedKeys = removedKeyProblems(fieldOf(value, 'storage'));
+  if (removedKeys.length > 0) {
     throw new ContractValidationError(
-      `Contract structural validation failed: ${storedTypeNames.join('; ')}`,
+      `Contract structural validation failed: ${removedKeys.join('; ')}`,
       'structural',
     );
   }
@@ -778,10 +812,7 @@ export function validateStorageSemantics(storage: SqlStorage): string[] {
 }
 
 /**
- * SQL storage logical-consistency checks: every model.storage.table
- * resolves to a real table and every model.storage.fields[*].column
- * resolves to a real column. Throws `ContractValidationError` on the first
- * mismatch.
+ * SQL storage logical-consistency checks: every model.storage.table resolves to a real table, every domain field has a model.storage.fields entry, and every model.storage.fields[*].column resolves to a real column. Throws `ContractValidationError` on the first mismatch.
  */
 export function validateModelStorageReferences(contract: Contract<SqlStorage>): void {
   for (const [namespaceId, namespace] of Object.entries(contract.domain.namespaces)) {
@@ -813,6 +844,15 @@ export function validateModelStorageReferences(contract: Contract<SqlStorage>): 
         rawTable,
       );
 
+      for (const fieldName of Object.keys(model.fields)) {
+        if (!Object.hasOwn(modelStorage.fields, fieldName)) {
+          throw new ContractValidationError(
+            `Model "${qualifiedName}" field "${fieldName}" has no entry in storage.fields, so no column holds it`,
+            'storage',
+          );
+        }
+      }
+
       const columnNames = new Set(Object.keys(table.columns));
       for (const [fieldName, field] of Object.entries(modelStorage.fields)) {
         if (!columnNames.has(field.column)) {
@@ -822,6 +862,109 @@ export function validateModelStorageReferences(contract: Contract<SqlStorage>): 
           );
         }
       }
+    }
+  }
+}
+
+/** The names of a model's own fields and of the fields it inherits from its base models. */
+function fieldNamesWithInherited(
+  contract: Contract<SqlStorage>,
+  namespaceId: string,
+  modelName: string,
+): ReadonlySet<string> {
+  const names = new Set<string>();
+  const seen = new Set<string>();
+  let coordinate: { readonly namespace: string; readonly model: string } | undefined = {
+    namespace: namespaceId,
+    model: modelName,
+  };
+  while (coordinate !== undefined) {
+    const key = JSON.stringify([coordinate.namespace, coordinate.model]);
+    if (seen.has(key)) break;
+    seen.add(key);
+    const model: ContractModel | undefined =
+      contract.domain.namespaces[coordinate.namespace]?.models[coordinate.model];
+    if (model === undefined) break;
+    for (const name of Object.keys(model.fields)) names.add(name);
+    coordinate = model.base;
+  }
+  return names;
+}
+
+/**
+ * Every relation joins on fields: its local fields are fields of the model that declares it, and its target fields are fields of the target model. The target side of a many-to-many relation names columns of its junction table instead. A cross-space relation's target is in another contract, so its target side is not checked. Throws `ContractValidationError` on the first name that is not a field.
+ */
+export function validateRelationJoinFields(contract: Contract<SqlStorage>): void {
+  for (const [namespaceId, namespace] of Object.entries(contract.domain.namespaces)) {
+    for (const [modelName, model] of Object.entries(namespace.models)) {
+      for (const [relationName, relation] of Object.entries(model.relations)) {
+        if (!('on' in relation)) continue;
+        const location = `Relation "${relationName}" on model "${namespaceId}:${modelName}"`;
+        const localFields = fieldNamesWithInherited(contract, namespaceId, modelName);
+        for (const field of relation.on.localFields) {
+          if (!localFields.has(field)) {
+            throw new ContractValidationError(
+              `${location} joins on "${field}", which is not a field of model "${namespaceId}:${modelName}"`,
+              'domain',
+            );
+          }
+        }
+        if (relation.cardinality === 'N:M') {
+          const { namespaceId: junctionNamespaceId, table: junctionTable } = relation.through;
+          for (const column of relation.on.targetFields) {
+            if (!lookupStorageColumn(contract, junctionNamespaceId, junctionTable, column)) {
+              throw new ContractValidationError(
+                `${location} joins on "${column}", which is not a column of junction table "${junctionNamespaceId}.${junctionTable}"`,
+                'domain',
+              );
+            }
+          }
+          continue;
+        }
+        if (relation.to.space !== undefined) continue;
+        const targetFields = fieldNamesWithInherited(
+          contract,
+          relation.to.namespace,
+          relation.to.model,
+        );
+        for (const field of relation.on.targetFields) {
+          if (!targetFields.has(field)) {
+            throw new ContractValidationError(
+              `${location} joins on "${field}", which is not a field of model "${relation.to.namespace}:${relation.to.model}"`,
+              'domain',
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Every execution default targets a column some model's field maps: an execution default is declared on a field, and it belongs to that field. Throws `ContractValidationError` on the first default on a column no field maps.
+ */
+export function validateExecutionDefaultsTargetMappedColumns(contract: Contract<SqlStorage>): void {
+  const mappedColumns = new Set<string>();
+  for (const namespace of Object.values(contract.domain.namespaces)) {
+    for (const model of Object.values(namespace.models)) {
+      const modelStorage = blindCast<
+        SqlModelStorage,
+        'model storage validated by ModelStorageSchema'
+      >(model.storage);
+      for (const field of Object.values(modelStorage.fields)) {
+        mappedColumns.add(
+          JSON.stringify([modelStorage.namespaceId, modelStorage.table, field.column]),
+        );
+      }
+    }
+  }
+
+  for (const { ref } of contract.execution?.mutations.defaults ?? []) {
+    if (!mappedColumns.has(JSON.stringify([ref.namespace, ref.entry, ref.field]))) {
+      throw new ContractValidationError(
+        `Execution default for column "${ref.field}" of table "${ref.namespace}.${ref.entry}" targets a column no field maps; execution defaults are declared on fields. Give the column a database default instead.`,
+        'storage',
+      );
     }
   }
 }
@@ -985,6 +1128,8 @@ export function validateSqlContractFully<T extends Contract<SqlStorage>>(
     );
   }
   validateModelStorageReferences(validated);
+  validateExecutionDefaultsTargetMappedColumns(validated);
+  validateRelationJoinFields(validated);
   validateRelationThroughConsistency(validated);
   validateToOneRelationNullabilityAgainstStorage(validated);
   return validated;

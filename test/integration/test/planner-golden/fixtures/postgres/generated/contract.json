@@ -1905,13 +1905,11 @@
             "named": "CodecTypes",
             "package": "@internal/extension-pgvector/codec-types"
           },
-          "typeImports": [
-            {
-              "alias": "Vector",
-              "named": "Vector",
-              "package": "@internal/extension-pgvector/codec-types"
-            }
-          ]
+          "parameterizedOutputTypes": {
+            "alias": "PgVectorParameterizedOutputTypes",
+            "named": "ParameterizedOutputTypesForTypeParams",
+            "package": "@internal/extension-pgvector/codec-types"
+          }
         },
         "operationTypes": {
           "import": {
@@ -1946,14 +1944,7 @@
             "alias": "PostgisTypes",
             "named": "CodecTypes",
             "package": "@internal/extension-postgis/codec-types"
-          },
-          "typeImports": [
-            {
-              "alias": "Geometry",
-              "named": "Geometry",
-              "package": "@internal/extension-postgis/codec-types"
-            }
-          ]
+          }
         },
         "queryOperationTypes": {
           "import": {

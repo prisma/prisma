@@ -5,7 +5,12 @@ import type {
   RuntimeScope as CanonicalRuntimeScope,
   SqlOrmPlan,
 } from '@internal/sql-relational-core/types';
-import type { Runtime, RuntimeQueryable as SqlRuntimeQueryable } from '@internal/sql-runtime';
+import type {
+  ActivitySource,
+  activitySource,
+  Runtime,
+  RuntimeQueryable as SqlRuntimeQueryable,
+} from '@internal/sql-runtime';
 import { expectTypeOf, test } from 'vitest';
 import type { RuntimeConnection, RuntimeQueryable, RuntimeTransaction } from '../src/types';
 
@@ -54,4 +59,13 @@ test('RuntimeScope query accepts a pre-lowered plan with a row binding', () => {
   const plan = {} as SqlExecutionPlan<Row>;
   const scope = {} as CanonicalRuntimeScope;
   expectTypeOf(scope.query(plan)).toEqualTypeOf<AsyncIterableResult<Row>>();
+});
+
+test('RuntimeQueryable may carry an activity source, but need not', () => {
+  expectTypeOf<Pick<RuntimeQueryable, 'query' | 'execute'>>().toExtend<RuntimeQueryable>();
+  expectTypeOf<RuntimeQueryable[typeof activitySource]>().toEqualTypeOf<
+    ActivitySource | undefined
+  >();
+  expectTypeOf<RuntimeQueryable>().not.toHaveProperty('startActivity');
+  expectTypeOf<RuntimeQueryable>().not.toHaveProperty('planContentHash');
 });

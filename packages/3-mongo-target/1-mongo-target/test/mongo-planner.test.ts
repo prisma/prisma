@@ -782,10 +782,13 @@ describe('MongoMigrationPlanner', () => {
             }),
           }),
         ]);
-        const [operation] = planSuccess(planner, contract, origin).operations;
-        expect(operation?.label).toBe(
-          'Update validator on items (changed: name; added: note; removed: legacy)',
+        const labels = planSuccess(planner, contract, origin).operations.map(
+          (operation) => operation.label,
         );
+        expect(labels).toEqual([
+          'Remove field legacy from collection items',
+          'Update validator on items (changed: name; added: note; removed: legacy)',
+        ]);
       });
     });
 
@@ -1342,6 +1345,59 @@ describe('MongoMigrationPlanner', () => {
       expect(result.kind).toBe('failure');
       if (result.kind !== 'failure') throw new Error('Expected failure');
       expect(result.conflicts.some((c) => c.summary.includes('clusteredIndex'))).toBe(true);
+    });
+
+    function liveClusteredIndex(name: string) {
+      const clusteredIndex = { v: 2, key: { _id: 1 }, unique: true, name };
+      return clusteredIndex;
+    }
+
+    it('plans nothing for the clustered index fields the server fills in', () => {
+      const contract = makeContract({ events: { options: { clusteredIndex: {} } } });
+      const origin = new MongoSchemaIR([
+        new MongoSchemaCollection({
+          name: 'events',
+          options: new MongoSchemaCollectionOptions({
+            clusteredIndex: liveClusteredIndex('_id_'),
+          }),
+        }),
+      ]);
+      const result = planner.plan({
+        contract,
+        schema: origin,
+        policy: ALL_CLASSES_POLICY,
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents: [],
+        snapshotsImportPath: '../../snapshots',
+      });
+      expect(result.kind).toBe('success');
+    });
+
+    it('reports conflict when the contract removes a declared clustered index name', () => {
+      const contract = makeContract({ events: { options: { clusteredIndex: {} } } });
+      const origin = new MongoSchemaIR([
+        new MongoSchemaCollection({
+          name: 'events',
+          options: new MongoSchemaCollectionOptions({
+            clusteredIndex: liveClusteredIndex('byId'),
+          }),
+        }),
+      ]);
+      const result = planner.plan({
+        contract,
+        schema: origin,
+        policy: ALL_CLASSES_POLICY,
+        fromContract: null,
+        origin: null,
+        statements: [],
+        frameworkComponents: [],
+        snapshotsImportPath: '../../snapshots',
+      });
+      expect(
+        result.kind === 'failure' ? result.conflicts.map(({ summary }) => summary) : [],
+      ).toEqual([expect.stringContaining('clusteredIndex')]);
     });
 
     it('reports conflict when timeseries changes', () => {

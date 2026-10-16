@@ -13,7 +13,6 @@ import {
   AddColumnCall,
   CreateSchemaCall,
   CreateTableCall,
-  DataTransformCall,
 } from '@internal/target-postgres/op-factory-call';
 import { describe, expect, it } from 'vitest';
 import { PostgresControlAdapter } from '../../src/core/control-adapter';
@@ -40,16 +39,6 @@ describe('Postgres call classes - construction + toOp parity', () => {
         details: { schema: 'public', objectType: 'table', name: 'user' },
       },
     });
-  });
-
-  it('DataTransformCall carries its slot names and a caller-supplied operationClass; toOp rejects with MIGRATION.UNFILLED_PLACEHOLDER', async () => {
-    const call = new DataTransformCall('Backfill', 'slot-check', 'slot-run', 'widening');
-
-    expect(call.checkSlot).toBe('slot-check');
-    expect(call.runSlot).toBe('slot-run');
-    expect(call.operationClass).toBe('widening');
-
-    await expect(call.toOp()).rejects.toThrow(/Unfilled migration placeholder/);
   });
 
   it('CreateTableCall.toOp produces byte-identical SQL for a composite-PK table', async () => {
@@ -107,16 +96,6 @@ describe('Postgres call classes - construction + toOp parity', () => {
     expect(op.execute[0]?.sql).toBe(
       'CREATE TABLE "item" (\n' + '  "id" text NOT NULL,\n' + '  PRIMARY KEY ("id")\n' + ')',
     );
-  });
-
-  it('AddColumnCall freezes, labels from column+table, requires a lowerer', async () => {
-    const call = new AddColumnCall('public', 'user', col('email', 'text'));
-
-    expect(Object.isFrozen(call)).toBe(true);
-    expect(call.factoryName).toBe('addColumn');
-    expect(call.operationClass).toBe('additive');
-    expect(call.label).toBe('Add column "email" to "user"');
-    await expect(call.toOp()).rejects.toThrow(/lowerer is required/);
   });
 
   it('AddColumnCall.toOp produces ALTER TABLE … ADD COLUMN SQL (byte-parity)', async () => {

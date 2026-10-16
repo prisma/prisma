@@ -85,7 +85,6 @@ describe('columns and fields', () => {
             priorities: {
               ...TEXT_COLUMN,
               many: { elementNullable: false },
-              noCheck: ['elementNotNull', 'membership'],
               valueSet: {
                 plane: 'storage',
                 namespaceId: 'public',
@@ -106,6 +105,7 @@ describe('columns and fields', () => {
               },
             },
           },
+          table: { control: 'external' },
         }),
       ),
       testBuildContext(),
@@ -117,7 +117,7 @@ describe('columns and fields', () => {
         .flatMap((model) => model.fields)
         .filter((field) => field.name === 'priorities')
         .map(fieldText),
-    ).toEqual(['priorities Priority[] @noCheck(elementNotNull) @noCheck(membership)']);
+    ).toEqual(['priorities Priority[]']);
   });
 
   it('refuses a model field whose type is a union of types', () => {
@@ -344,8 +344,8 @@ describe('defaults and generated values', () => {
     ).toThrow(refusal({ coordinate: '"public"."Widget"."value"', onCreate: 'uuidv4' }));
   });
 
-  it('refuses a generated value for a column no field is stored in', () => {
-    expect(
+  it('never sees a generated value for a column no field is stored in: the contract is refused when it is read', () => {
+    expect(() =>
       printingWidget({
         contract: {
           execution: {
@@ -360,7 +360,9 @@ describe('defaults and generated values', () => {
           },
         },
       }),
-    ).toThrow(refusal({ coordinate: '"public"."Widget"."missing"' }));
+    ).toThrow(
+      'Execution default for column "missing" of table "public.Widget" targets a column no field maps',
+    );
   });
 });
 

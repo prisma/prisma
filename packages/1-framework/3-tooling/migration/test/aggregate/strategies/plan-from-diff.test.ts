@@ -61,6 +61,7 @@ describe('planFromDiff', () => {
           appliedStatements: [],
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
         };
       },
       emptyMigration: () => {
@@ -157,6 +158,7 @@ describe('planFromDiff', () => {
           appliedStatements: [],
           dataLoss: [],
           accessWidening: [],
+          temporaryValues: [],
         };
       },
       emptyMigration: () => {
@@ -235,8 +237,9 @@ describe('planFromDiff', () => {
         kind: 'success',
         plan: makeStubPlan('placeholder'),
         appliedStatements: [],
-        dataLoss: [{ operationIndex: 0, subject }],
+        dataLoss: [{ operationIndex: 0, subject, loss: 'drop', label: 'Drop table audit_log' }],
         accessWidening: [{ operationIndex: 0, subject, widens: true }],
+        temporaryValues: [],
       }),
       emptyMigration: () => {
         throw new Error('not used');
@@ -265,6 +268,7 @@ describe('planFromDiff', () => {
     expect(outcome.kind === 'ok' && outcome.result).toMatchObject({
       dataLoss: [{ operationIndex: 0, subject }],
       accessWidening: [{ operationIndex: 0, subject }],
+      temporaryValues: [],
     });
   });
 });

@@ -14,6 +14,10 @@ interface ModelSpec {
   readonly fields?: readonly string[];
   readonly relations?: readonly string[];
   readonly base?: string;
+  /** The field's codec and whether it is optional, for a field `fields` lists; text and required otherwise. */
+  readonly fieldTypes?: Readonly<
+    Record<string, { readonly codecId?: string; readonly nullable?: boolean }>
+  >;
 }
 
 interface NamespaceSpec {
@@ -26,8 +30,24 @@ const textField: ContractField = {
   type: { kind: 'scalar', codecId: 'test/text@1' },
 };
 
-function fieldsOf(names: readonly string[]): Record<string, ContractField> {
-  return Object.fromEntries(names.map((name) => [name, textField]));
+function fieldsOf(
+  names: readonly string[],
+  types: ModelSpec['fieldTypes'] = {},
+): Record<string, ContractField> {
+  return Object.fromEntries(
+    names.map((name) => {
+      const type = types[name];
+      return [
+        name,
+        type === undefined
+          ? textField
+          : {
+              nullable: type.nullable ?? false,
+              type: { kind: 'scalar', codecId: type.codecId ?? 'test/text@1' },
+            },
+      ];
+    }),
+  );
 }
 
 function modelOf(spec: ModelSpec): ContractModelBase {
@@ -37,7 +57,7 @@ function modelOf(spec: ModelSpec): ContractModelBase {
     on: { localFields: ['id'], targetFields: ['ownerId'] },
   };
   return {
-    fields: fieldsOf(spec.fields ?? []),
+    fields: fieldsOf(spec.fields ?? [], spec.fieldTypes),
     relations: Object.fromEntries((spec.relations ?? []).map((name) => [name, relation])),
     storage: {},
     ...(spec.base !== undefined ? { base: crossRef(spec.base) } : {}),

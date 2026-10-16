@@ -7,7 +7,12 @@ import {
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { CheckConstraint, SqlStorage, type StorageTable } from '@internal/sql-contract/types';
-import { check, defineContract } from '@internal/sql-contract-ts/contract-builder';
+import {
+  check,
+  defineContract,
+  type SqlExpression,
+  sql,
+} from '@internal/sql-contract-ts/contract-builder';
 import { composeCheckWirePrefix, computeCheckContentHash } from '@internal/sql-schema-ir/naming';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
@@ -45,7 +50,7 @@ const WIDENING_POLICY: MigrationOperationPolicy = {
 // Minimal authoring packs for the defineContract-driven scenario: the family
 // contributes the `text` and `varchar` field presets and the target
 // contributes the real Postgres check renderer, so the built contract's
-// checks (and the `.noCheck()` opt-out) come from the production emission
+// checks come from the production emission
 // path. `varchar` exists to reproduce the reprint hazard an authored check
 // exists to route around: Postgres reprints `IN (...)` against a
 // `character varying` column with an `ANY`-array cast, not verbatim.
@@ -217,7 +222,7 @@ function declaredCheckNames(contract: Contract<SqlStorage>): readonly string[] {
  * authoring surface end to end.
  */
 function itemContractWithCheck(input: {
-  readonly expression: string;
+  readonly expression: SqlExpression;
   readonly name?: string;
   readonly map?: string;
 }): Contract<SqlStorage> {
@@ -246,7 +251,7 @@ function itemContractWithCheck(input: {
  * reprints `IN (...)` there as an `ANY`-array cast, not verbatim).
  */
 function itemContractWithVarcharCheck(input: {
-  readonly expression: string;
+  readonly expression: SqlExpression;
   readonly name?: string;
   readonly map?: string;
 }): Contract<SqlStorage> {
@@ -937,116 +942,10 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     expect((await verify(strict)).ok).toBe(true);
   });
 
-  // Slice 3 (`@noCheck`): an opted-out contract simply does not declare the
-  // check. The first two scenarios are hand-built contracts and pin the
-  // planner/DDL lifecycle for a check-less contract — deleting a declared
-  // check plans one widening drop, declaring it again plans one additive
-  // add. The third drives the real authoring surface (defineContract +
-  // .noCheck()) end to end. The full builder-to-infer chain is covered by
-  // the infer e2e journeys and the print-psl emission unit tests.
-  it('adding an opt-out later drops the live element check in one widening plan', {
+  it('a freshly created table with a nullable-element list column has no element check', {
     timeout: testTimeout,
   }, async () => {
-    const tagsChecks = checksForColumn('Item', 'tags', { many: { elementNullable: false } });
-    const enforced = contractOf(
-      {
-        id: idColumn,
-        tags: {
-          dataType: 'pg/text',
-          codecId: 'pg/text@1',
-          nullable: false,
-          many: { elementNullable: false },
-        },
-      },
-      tagsChecks,
-    );
-    await migrate(enforced);
-    expect(await liveCheckNames()).toEqual([tagsChecks[0]?.name]);
-
-    // Hand-built equivalent of the opted-out contract: the builder's only
-    // effect is that the check is absent, which is exactly this shape.
-    const optedOut = contractOf(
-      {
-        id: idColumn,
-        tags: {
-          dataType: 'pg/text',
-          codecId: 'pg/text@1',
-          nullable: false,
-          many: { elementNullable: false },
-        },
-      },
-      [],
-    );
-    const { ops } = await migrate(optedOut, { from: enforced, policy: FULL_POLICY });
-
-    const dropOps = ops.filter((op) => op.id.startsWith('dropCheckConstraint.'));
-    expect(dropOps.map((op) => op.id)).toEqual([`dropCheckConstraint.Item.${tagsChecks[0]?.name}`]);
-    expect(dropOps[0]?.operationClass).toBe('widening');
-    expect(ops).toHaveLength(1);
-
-    expect(await liveCheckNames()).toEqual([]);
-    expect((await verify(optedOut)).ok).toBe(true);
-  });
-
-  it('removing an opt-out installs the element check in one additive plan', {
-    timeout: testTimeout,
-  }, async () => {
-    // Hand-built equivalent of the opted-out contract (no check declared).
-    const optedOut = contractOf(
-      {
-        id: idColumn,
-        tags: {
-          dataType: 'pg/text',
-          codecId: 'pg/text@1',
-          nullable: false,
-          many: { elementNullable: false },
-        },
-      },
-      [],
-    );
-    await migrate(optedOut);
-    expect(await liveCheckNames()).toEqual([]);
-    await driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('a', ARRAY['x',NULL])`);
-
-    const tagsChecks = checksForColumn('Item', 'tags', { many: { elementNullable: false } });
-    const enforced = contractOf(
-      {
-        id: idColumn,
-        tags: {
-          dataType: 'pg/text',
-          codecId: 'pg/text@1',
-          nullable: false,
-          many: { elementNullable: false },
-        },
-      },
-      tagsChecks,
-    );
-    // The seeded NULL-element row would fail the incoming check's validation
-    // scan, so clear it first — this scenario pins the plan shape, not
-    // pre-existing-data repair.
-    await driver!.query(`DELETE FROM "Item"`);
-    const { ops } = await migrate(enforced, { from: optedOut, policy: FULL_POLICY });
-
-    const addOps = ops.filter((op) => op.id.startsWith('checkConstraint.'));
-    expect(addOps.map((op) => op.id)).toEqual([`checkConstraint.Item.${tagsChecks[0]?.name}`]);
-    expect(addOps[0]?.operationClass).toBe('additive');
-    expect(ops).toHaveLength(1);
-
-    expect(await liveCheckNames()).toEqual([tagsChecks[0]?.name]);
-    expect((await verify(enforced)).ok).toBe(true);
-    await expect(
-      driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('b', ARRAY['x',NULL])`),
-    ).rejects.toThrow(/Item_tags/);
-  });
-
-  // Drives the real authoring surface end to end: defineContract with
-  // `.many().noCheck('elementNotNull')` builds the contract, so the
-  // builder's opt-out — not a hand-assembled shape — is what reaches the
-  // planner and the database.
-  it('a freshly created table with an opted-out column genuinely lacks enforcement', {
-    timeout: testTimeout,
-  }, async () => {
-    const optedOut = defineContract(
+    const nullableElements = defineContract(
       {
         ...postgresTypeLookups,
         family: authoringFamilyPack,
@@ -1057,23 +956,22 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
         ({
           models: {
             Item: m('Item', {
-              fields: { id: f.text().id(), tags: f.text().many().noCheck('elementNotNull') },
+              fields: { id: f.text().id(), tags: f.text().many({ elementsNullable: true }) },
             }),
           },
         }) as const,
     ) as Contract<SqlStorage>;
 
-    const itemTable = optedOut.storage.namespaces['public']?.entries.table?.['Item'] as
+    const itemTable = nullableElements.storage.namespaces['public']?.entries.table?.['Item'] as
       | StorageTable
       | undefined;
-    expect(itemTable?.columns['tags']?.noCheck).toEqual(['elementNotNull']);
+    expect(itemTable?.columns['tags']?.many).toEqual({ elementNullable: true });
     expect(itemTable?.checks ?? []).toEqual([]);
 
-    await migrate(optedOut);
+    await migrate(nullableElements);
 
     expect(await liveCheckNames()).toEqual([]);
-    expect((await verify(optedOut)).ok).toBe(true);
-    // Enforcement is genuinely absent, not merely undeclared.
+    expect((await verify(nullableElements)).ok).toBe(true);
     await driver!.query(`INSERT INTO "Item" (id, tags) VALUES ('a', ARRAY['x',NULL])`);
     const rows = await driver!.query<{ id: string }>(`SELECT id FROM "Item"`);
     expect(rows.rows).toEqual([{ id: 'a' }]);
@@ -1083,7 +981,7 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     timeout: testTimeout,
   }, async () => {
     const contract = itemContractWithCheck({
-      expression: 'total::numeric > 0',
+      expression: sql`total::numeric > 0`,
       name: 'item_total_positive',
     });
     const checkName = itemCheckName(contract);
@@ -1109,7 +1007,7 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     timeout: testTimeout,
   }, async () => {
     const v1 = itemContractWithCheck({
-      expression: 'total::numeric > 0',
+      expression: sql`total::numeric > 0`,
       name: 'item_total_positive',
     });
     await migrate(v1);
@@ -1118,7 +1016,7 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     expect(await liveCheckNames()).toEqual([nameV1]);
 
     const v2 = itemContractWithCheck({
-      expression: 'total::numeric > 10',
+      expression: sql`total::numeric > 10`,
       name: 'item_total_positive',
     });
     const nameV2 = itemCheckName(v2);
@@ -1140,7 +1038,7 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     timeout: testTimeout,
   }, async () => {
     const v1 = itemContractWithCheck({
-      expression: 'total::numeric > 0',
+      expression: sql`total::numeric > 0`,
       name: 'item_total_positive',
     });
     await migrate(v1);
@@ -1148,7 +1046,7 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     assertDefined(nameV1, 'v1 check must be named');
 
     const v2 = itemContractWithCheck({
-      expression: 'total::numeric > 0',
+      expression: sql`total::numeric > 0`,
       name: 'item_total_positive_v2',
     });
     const nameV2 = itemCheckName(v2);
@@ -1170,7 +1068,7 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     timeout: testTimeout,
   }, async () => {
     const contract = itemContractWithVarcharCheck({
-      expression: "status IN ('active', 'inactive')",
+      expression: sql`status IN ('active', 'inactive')`,
       name: 'item_status_valid',
     });
     const checkName = itemCheckName(contract);
@@ -1192,7 +1090,7 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     timeout: testTimeout,
   }, async () => {
     const contract = itemContractWithCheck({
-      expression: 'total::numeric > 0 AND total::numeric < 1000',
+      expression: sql`total::numeric > 0 AND total::numeric < 1000`,
       name: 'item_total_in_range',
     });
     const checkName = itemCheckName(contract);

@@ -6,16 +6,19 @@
  * planner runs each strategy in order and routes whatever's left through
  * `mapNodeIssueToCall`.
  *
- * SQLite has no enums, no data-safe backfill, and no component-declared
- * database dependencies. The only recipe that needs strategy-level
- * multi-issue consumption is `recreateTable`, which absorbs
- * type/nullability/default/constraint mismatches for a given table into a
- * single recreate operation.
+ * SQLite has no enums and no component-declared database dependencies. The
+ * recipe that needs strategy-level multi-issue consumption is `recreateTable`,
+ * which absorbs type/nullability/default/constraint mismatches, and required
+ * columns added to existing tables, for a given table into one rebuild.
  */
 
-import type {
-  MigrationOperationClass,
-  MigrationOperationPolicy,
+import {
+  extractCodecControlHooks,
+  type FieldStatementColumns,
+  type MigrationOperationClass,
+  type MigrationOperationPolicy,
+  type SqlSlot,
+  type StatementColumn,
 } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import type { SchemaDiffIssue } from '@internal/framework-components/control';
@@ -27,10 +30,22 @@ import {
   type SqlSchemaIR,
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
+import {
+  SQLITE_BIGINT_CODEC_ID,
+  SQLITE_INTEGER_CODEC_ID,
+  SQLITE_TEXT_CODEC_ID,
+} from '../codec-ids';
+import { columnSpecFromNode } from './column-ddl-rendering';
 import { columnTypeChanged, tableSpecFromNode } from './issue-planner';
-import { DataTransformCall, RecreateTableCall, type SqliteOpFactoryCall } from './op-factory-call';
+import {
+  AddColumnCall,
+  DataTransformCall,
+  RecreateTableCall,
+  type SqliteOpFactoryCall,
+} from './op-factory-call';
 import type { SqliteIndexSpec } from './operations/shared';
 import { buildRecreatePostchecks, buildRecreateSummary } from './operations/tables';
+import { sqliteFillValue } from './planner-fill-values';
 
 export interface StrategyContext {
   /** The desired ("end") tree — resolved leaf values, incl. `codecRef`. */
@@ -41,6 +56,16 @@ export interface StrategyContext {
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The composed stack's codecs and data types, which write each column's type. */
   readonly types: SqlTypeLookups;
+  /** The columns of the fields `--convert` and `--backfill` statements name. */
+  readonly statementColumns: FieldStatementColumns;
+  /** Whether a required column the plan adds to a table may take a temporary value in its rows. */
+  readonly takesTemporaryValue: (table: string, column: string) => boolean;
+  /**
+   * The codec a column has in the origin contract. The diff's actual column cannot say: `db update`
+   * plans from the introspected database, whose columns carry no codec, and SQLite's storage
+   * classes do not tell an `Int` from a `BigInt`, or a `DateTime` from a `String`.
+   */
+  readonly originCodecId: (table: string, column: string) => string | undefined;
 }
 
 export type CallMigrationStrategy = (
@@ -77,7 +102,31 @@ function columnNameOf(issue: SchemaDiffIssue): string {
   ).name;
 }
 
-function classifyNodeIssue(issue: SchemaDiffIssue): 'widening' | 'destructive' | null {
+/**
+ * The changes of codec a table rebuild's copy makes without losing a value: the column's type
+ * affinity stores each old value as the same value of the new type. An integer becomes its decimal
+ * text; a real is not listed, since SQLite writes it as text with fifteen significant digits. Keyed
+ * by codec, not data type, because `Int` and `BigInt` differ only in their codec.
+ */
+const LOSSLESS_COPIES = new Set([
+  `${SQLITE_INTEGER_CODEC_ID}→${SQLITE_TEXT_CODEC_ID}`,
+  `${SQLITE_BIGINT_CODEC_ID}→${SQLITE_TEXT_CODEC_ID}`,
+  `${SQLITE_INTEGER_CODEC_ID}→${SQLITE_BIGINT_CODEC_ID}`,
+]);
+
+function copyKeepsEveryValue(fromCodec: string | undefined, to: SqlColumnIR): boolean {
+  const toCodec = to.codecRef?.codecId;
+  return (
+    fromCodec !== undefined &&
+    toCodec !== undefined &&
+    LOSSLESS_COPIES.has(`${fromCodec}→${toCodec}`)
+  );
+}
+
+function classifyNodeIssue(
+  issue: SchemaDiffIssue,
+  ctx: StrategyContext,
+): 'widening' | 'destructive' | null {
   const node = issue.expected ?? issue.actual;
   if (node === undefined) return null;
   const nodeKind = blindCast<
@@ -93,7 +142,10 @@ function classifyNodeIssue(issue: SchemaDiffIssue): 'widening' | 'destructive' |
       const actual = blindCast<SqlColumnIR, 'a not-equal column issue carries the actual node'>(
         issue.actual,
       );
-      return columnTypeChanged(expected, actual) ? 'destructive' : 'widening';
+      const fromCodec = ctx.originCodecId(String(issue.path[1]), actual.name);
+      return columnTypeChanged(expected, actual) && !copyKeepsEveryValue(fromCodec, expected)
+        ? 'destructive'
+        : 'widening';
     }
     case RelationalSchemaNodeKind.columnDefault:
     case RelationalSchemaNodeKind.primaryKey:
@@ -105,56 +157,169 @@ function classifyNodeIssue(issue: SchemaDiffIssue): 'widening' | 'destructive' |
   }
 }
 
+function columnNode(node: unknown): SqlColumnIR {
+  return blindCast<SqlColumnIR, 'a column issue carries column nodes'>(node);
+}
+
+function isColumnIssue(issue: SchemaDiffIssue): boolean {
+  const node = issue.expected ?? issue.actual;
+  return (
+    node !== undefined &&
+    blindCast<{ readonly nodeKind: string }, 'every diff-tree node declares nodeKind'>(node)
+      .nodeKind === RelationalSchemaNodeKind.column
+  );
+}
+
+/** The column a `--convert` or `--backfill` statement of `kind` names, if one names it. */
+function statementColumn(
+  ctx: StrategyContext,
+  kind: 'convert' | 'backfill',
+  tableName: string,
+  columnName: string,
+): StatementColumn | undefined {
+  if (!ctx.policy.allowedOperationClasses.includes('data')) return undefined;
+  return ctx.statementColumns[kind].find(
+    (column) => column.table === tableName && column.column === columnName,
+  );
+}
+
 /**
- * Groups recreate-eligible issues by table, decides per-table operation class
- * (destructive wins over widening, and a recreate that leaves a live column
- * out of the new table loses its values, so it is destructive), and emits one `RecreateTableCall` per
- * table. Returns unchanged-or-smaller issue list — issues the strategy
- * consumed are removed so `mapNodeIssueToCall` doesn't double-handle them.
+ * A required column with no default that the plan adds to a table the database already has, so
+ * existing rows need a value for it.
+ */
+function addedRequiredColumn(
+  issue: SchemaDiffIssue,
+  ctx: StrategyContext,
+): SqlColumnIR | undefined {
+  if (issueOutcome(issue) !== 'not-found' || !isColumnIssue(issue)) return undefined;
+  const tableName = issue.path[1];
+  if (tableName === undefined || ctx.actual.tables[tableName] === undefined) return undefined;
+  const column = columnNode(issue.expected);
+  return column.nullable || column.resolvedDefault !== undefined ? undefined : column;
+}
+
+const CLASS_ORDER: readonly MigrationOperationClass[] = [
+  'additive',
+  'widening',
+  'data',
+  'destructive',
+];
+
+function highestClass(classes: readonly MigrationOperationClass[]): MigrationOperationClass {
+  return classes.reduce(
+    (highest, next) => (CLASS_ORDER.indexOf(next) > CLASS_ORDER.indexOf(highest) ? next : highest),
+    'additive',
+  );
+}
+
+interface TableRebuild {
+  readonly issues: SchemaDiffIssue[];
+  readonly classes: MigrationOperationClass[];
+  /** Columns whose type changes, converted by a `--convert` copy expression or by SQLite on the copy. */
+  readonly retypedColumns: string[];
+  readonly copyExpressions: Record<string, SqlSlot>;
+  readonly temporaryValues: Record<string, SqlSlot>;
+  /** Columns an earlier call of the plan adds, which the rebuild copies like live ones. */
+  readonly addedColumns: string[];
+}
+
+/**
+ * Groups recreate-eligible issues by table and emits one `RecreateTableCall` per table, removing
+ * the issues it consumed so `mapNodeIssueToCall` does not handle them again.
  *
- * The full desired/live table shapes come from `ctx.expected`/`ctx.actual`
- * directly (keyed by table name — SQLite is a flat, single-namespace target)
- * rather than from any individual issue, since a single drifted attribute's
- * issue only carries that attribute's own node, never the whole table.
+ * - A type change is `destructive`, since the copy can change values, unless a `--convert`
+ *   statement names the column: the copy then goes through a slot the user fills, and the rebuild
+ *   is `data`. Either way the rebuild checks after its copy that every value took the new type.
+ * - A nullability or constraint change alone is `widening`: a tightening copy fails on a NULL
+ *   rather than losing it.
+ * - A required column with no default added to an existing table is copied from a temporary value
+ *   (`additive`). A column in a key or foreign key, whose values come from a value set, or whose
+ *   type has no such value is carried with nothing to copy from: the rebuild succeeds on an empty
+ *   table and fails on `NOT NULL` when the table has rows. A column a `--backfill` statement names
+ *   was added nullable and filled by earlier calls, so the rebuild copies it like a live column.
+ * - A rebuild that leaves a live column out loses its values, so it is `destructive`.
+ *
+ * The table shapes come from `ctx.expected` and `ctx.actual`, keyed by table name: SQLite is a
+ * flat, single-namespace target, and one issue only carries its own node.
  */
 export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
-  const byTable = new Map<
-    string,
-    { issues: SchemaDiffIssue[]; hasDestructive: boolean; lossyColumns: string[] }
-  >();
+  const byTable = new Map<string, TableRebuild>();
   const consumed = new Set<SchemaDiffIssue>();
+  const codecHooks = extractCodecControlHooks(ctx.frameworkComponents);
+  const rebuildOf = (tableName: string): TableRebuild => {
+    const existing = byTable.get(tableName);
+    if (existing !== undefined) return existing;
+    const created: TableRebuild = {
+      issues: [],
+      classes: [],
+      retypedColumns: [],
+      copyExpressions: {},
+      temporaryValues: {},
+      addedColumns: [],
+    };
+    byTable.set(tableName, created);
+    return created;
+  };
 
   for (const issue of issues) {
-    const cls = classifyNodeIssue(issue);
-    if (!cls) continue;
     const tableName = issue.path[1];
     if (tableName === undefined) continue;
-    const entry = byTable.get(tableName) ?? {
-      issues: [],
-      hasDestructive: false,
-      lossyColumns: [],
-    };
-    entry.issues.push(issue);
-    if (cls === 'destructive') {
-      entry.hasDestructive = true;
-      entry.lossyColumns.push(columnNameOf(issue));
+    const added = addedRequiredColumn(issue, ctx);
+    if (added !== undefined) {
+      const expectedTable = ctx.expected.tables[tableName];
+      if (statementColumn(ctx, 'backfill', tableName, added.name) !== undefined) {
+        const rebuild = rebuildOf(tableName);
+        rebuild.issues.push(issue);
+        rebuild.addedColumns.push(added.name);
+        rebuild.classes.push('widening');
+        consumed.add(issue);
+        continue;
+      }
+      const fill =
+        expectedTable === undefined || !ctx.takesTemporaryValue(tableName, added.name)
+          ? undefined
+          : sqliteFillValue(added, codecHooks, ctx.types);
+      const rebuild = rebuildOf(tableName);
+      rebuild.issues.push(issue);
+      if (fill !== undefined) rebuild.temporaryValues[added.name] = { kind: 'sql', sql: fill };
+      rebuild.classes.push('additive');
+      consumed.add(issue);
+      continue;
     }
-    byTable.set(tableName, entry);
+    const cls = classifyNodeIssue(issue, ctx);
+    if (!cls) continue;
+    const rebuild = rebuildOf(tableName);
+    rebuild.issues.push(issue);
     consumed.add(issue);
+    if (cls === 'widening') {
+      rebuild.classes.push('widening');
+      continue;
+    }
+    const column = columnNameOf(issue);
+    const converted = statementColumn(ctx, 'convert', tableName, column);
+    rebuild.retypedColumns.push(column);
+    if (converted === undefined) {
+      rebuild.classes.push('destructive');
+      continue;
+    }
+    rebuild.copyExpressions[column] = { kind: 'placeholder', slot: `${converted.text}:convert` };
+    rebuild.classes.push('data');
   }
 
   if (byTable.size === 0) return { kind: 'no_match' };
 
   const calls: SqliteOpFactoryCall[] = [];
-  for (const [tableName, entry] of byTable) {
+  for (const [tableName, rebuild] of byTable) {
     const expectedTable = ctx.expected.tables[tableName];
     const actualTable = ctx.actual.tables[tableName];
     if (!expectedTable || !actualTable) continue;
     const leavesColumnsOut = Object.keys(actualTable.columns).some(
       (column) => !Object.hasOwn(expectedTable.columns, column),
     );
-    const operationClass: MigrationOperationClass =
-      entry.hasDestructive || leavesColumnsOut ? 'destructive' : 'widening';
+    const operationClass = highestClass([
+      ...rebuild.classes,
+      ...(leavesColumnsOut ? ['destructive' as const] : []),
+    ]);
 
     // Flatten the expected table node to a self-contained spec — the Call
     // holds pre-rendered SQL fragments only, no schema-IR node.
@@ -168,18 +333,35 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
     }));
 
     calls.push(
-      new RecreateTableCall(
-        {
-          tableName,
-          contractTable: tableSpec,
-          schemaColumnNames: Object.keys(actualTable.columns),
-          indexes,
-          summary: buildRecreateSummary(tableName, entry.issues),
-          postchecks: buildRecreatePostchecks(tableName, entry.issues, tableSpec),
-          operationClass,
-        },
-        entry.lossyColumns,
-      ),
+      new RecreateTableCall({
+        tableName,
+        contractTable: tableSpec,
+        schemaColumnNames: [...Object.keys(actualTable.columns), ...rebuild.addedColumns],
+        indexes,
+        summary: buildRecreateSummary(tableName, rebuild.issues),
+        postchecks: [
+          ...buildRecreatePostchecks(
+            tableName,
+            rebuild.issues,
+            tableSpec,
+            new Set([
+              ...Object.keys(rebuild.copyExpressions),
+              ...Object.keys(rebuild.temporaryValues),
+            ]),
+            new Set(
+              tableSpec.columns
+                .filter(
+                  ({ name }) => statementColumn(ctx, 'backfill', tableName, name) !== undefined,
+                )
+                .map(({ name }) => name),
+            ),
+          ),
+        ],
+        operationClass,
+        copyExpressions: rebuild.copyExpressions,
+        temporaryValues: rebuild.temporaryValues,
+        retypedColumns: rebuild.retypedColumns,
+      }),
     );
   }
 
@@ -192,79 +374,53 @@ export const recreateTableStrategy: CallMigrationStrategy = (issues, ctx) => {
 };
 
 // ============================================================================
-// Nullability-tightening backfill strategy
+// Backfill strategy
 // ============================================================================
 
 /**
- * When the policy allows `'data'` and the expected tree tightens one or more
- * columns from nullable to NOT NULL, emit a `DataTransformCall` stub per
- * tightened column. The user fills the backfill `UPDATE` in the rendered
- * `migration.ts` before the subsequent `RecreateTableCall` copies data into
- * the tightened schema (whose `INSERT INTO temp SELECT … FROM old` would
- * otherwise fail at runtime if any `NULL`s remain).
- *
- * Does NOT consume the tightening issue — `recreateTableStrategy` still
- * needs it to produce the actual recreate that enforces the NOT NULL at
- * the schema level. The backfill op and the recreate op end up in the
- * recipe slot in strategy order (backfill first, recreate second), which
- * matches the required execution order.
- *
- * Mirrors Postgres's `nullableTighteningCallStrategy`. When `'data'` is not
- * in the policy (the default `db update` / `db init` path), the strategy
- * short-circuits and the recreate alone runs, failing at runtime if NULLs
- * are present.
+ * Writes the calls that come before the rebuild of a column a `--backfill` statement names: for a
+ * required column added to an existing table, the nullable add and a data transform whose slot the
+ * user fills; for a column made required, the data transform. The rebuild that makes the column
+ * NOT NULL comes from `recreateTableStrategy`, so this strategy consumes no issue. Without the
+ * statement, a tightening rebuild fails on a NULL rather than guessing a value for it.
  */
 export const nullabilityTighteningBackfillStrategy: CallMigrationStrategy = (issues, ctx) => {
-  if (!ctx.policy.allowedOperationClasses.includes('data')) {
-    return { kind: 'no_match' };
-  }
-
   const calls: SqliteOpFactoryCall[] = [];
   for (const issue of issues) {
-    if (
-      issueOutcome(issue) !== 'not-equal' ||
-      issue.expected === undefined ||
-      issue.actual === undefined
-    ) {
-      continue;
-    }
-    const expected = blindCast<
-      { readonly nodeKind: string },
-      'every diff-tree node declares nodeKind'
-    >(issue.expected).nodeKind;
-    if (expected !== RelationalSchemaNodeKind.column) continue;
-
-    const expectedColumn = blindCast<
-      SqlColumnIR,
-      'a not-equal column issue carries the expected node'
-    >(issue.expected);
-    const actualColumn = blindCast<SqlColumnIR, 'a not-equal column issue carries the actual node'>(
-      issue.actual,
-    );
-    if (expectedColumn.nullable === actualColumn.nullable) continue; // not a nullability change
-    if (expectedColumn.nullable) continue; // relaxing — no backfill needed
-
     const tableName = issue.path[1];
-    if (tableName === undefined) continue;
-
+    if (tableName === undefined || !isColumnIssue(issue)) continue;
+    const added = addedRequiredColumn(issue, ctx);
+    const tightened =
+      issueOutcome(issue) === 'not-equal' &&
+      !columnNode(issue.expected).nullable &&
+      columnNode(issue.actual).nullable
+        ? columnNode(issue.expected)
+        : undefined;
+    const column = added ?? tightened;
+    if (column === undefined) continue;
+    const named = statementColumn(ctx, 'backfill', tableName, column.name);
+    if (named === undefined) continue;
+    if (added !== undefined) {
+      calls.push(
+        new AddColumnCall(tableName, {
+          ...columnSpecFromNode(added, false, ctx.types),
+          nullable: true,
+        }),
+      );
+    }
     calls.push(
       new DataTransformCall(
-        `data_migration.backfill-${tableName}-${expectedColumn.name}`,
-        `Backfill NULLs in "${tableName}"."${expectedColumn.name}" before NOT NULL tightening`,
+        `data_migration.backfill-${tableName}-${column.name}`,
+        `Backfill NULLs in "${tableName}"."${column.name}" before NOT NULL tightening`,
         tableName,
-        expectedColumn.name,
+        column.name,
+        `${named.text}:run`,
       ),
     );
   }
 
   if (calls.length === 0) return { kind: 'no_match' };
-
-  return {
-    kind: 'match',
-    issues,
-    calls,
-    recipe: true,
-  };
+  return { kind: 'match', issues, calls, recipe: true };
 };
 
 export const sqlitePlannerStrategies: readonly CallMigrationStrategy[] = [

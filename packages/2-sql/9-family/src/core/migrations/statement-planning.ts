@@ -3,6 +3,7 @@ import {
   type AppliedMigrationStatement,
   describeMigrationStatement,
   type FieldCoordinate,
+  fieldStatementText,
   type MigrationOperationClass,
   type MigrationOperationPolicy,
   type ModelCoordinate,
@@ -10,6 +11,7 @@ import {
   type ResolvedFieldRenameStatement,
   type ResolvedMigrationStatement,
   type ResolvedModelRenameStatement,
+  type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import { type SqlModelStorage, type SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import { notOk, ok, type Result } from '@internal/utils/result';
@@ -156,8 +158,17 @@ export interface CallWithCompanions extends SingleOperationCall {
   readonly companions: readonly SingleOperationCall[];
 }
 
+/** How a user renames a table by hand, written for the target. */
+export interface TableRenameByHand {
+  /** The `renameTable` call a user writes in `migration.ts` to make `rename` by hand. */
+  renderTableRename(rename: TableRename): string;
+  /** The SQL statements a user runs against the database to make `rename` by hand. */
+  tableRenameByHand(rename: TableRename): readonly string[];
+}
+
 /** What a target supplies for planning statements against its working schema. */
-export interface StatementPlanningTarget<TCall extends CallWithCompanions> {
+export interface StatementPlanningTarget<TCall extends CallWithCompanions>
+  extends TableRenameByHand {
   /** The tables of the working schema as earlier statements have left it. */
   tables(): SchemaTables;
   /** The call that renames a table, with its companions, computed against the working schema. */
@@ -166,10 +177,6 @@ export interface StatementPlanningTarget<TCall extends CallWithCompanions> {
   renameColumnCall(rename: ColumnRename): TCall;
   /** Applies a call to the working schema. */
   apply(call: TCall): void;
-  /** The `renameTable` call a user writes in `migration.ts` to make `rename` by hand. */
-  renderTableRename(rename: TableRename): string;
-  /** The SQL statements a user runs against the database to make `rename` by hand. */
-  tableRenameByHand(rename: TableRename): readonly string[];
 }
 
 function operationsOf(call: CallWithCompanions): readonly SingleOperationCall[] {
@@ -341,7 +348,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
   }
 
   /** Plans one statement; the result is the positions of the operations it accounts for. */
-  plan(statement: ResolvedMigrationStatement): Result<readonly number[], SqlPlannerConflict> {
+  plan(statement: ResolvedRenameStatement): Result<readonly number[], SqlPlannerConflict> {
     return statement.entity === 'model' ? this.#planModel(statement) : this.#planField(statement);
   }
 
@@ -519,7 +526,7 @@ class StatementPlanner<TCall extends CallWithCompanions> {
  * plan with a `statementRefused` conflict that carries the statement.
  */
 export function planStatements<TCall extends CallWithCompanions>(input: {
-  readonly statements: readonly ResolvedMigrationStatement[];
+  readonly statements: readonly ResolvedRenameStatement[];
   readonly fromContract: Contract<SqlStorage> | null;
   readonly contract: Contract<SqlStorage>;
   readonly policy: MigrationOperationPolicy;
@@ -553,4 +560,102 @@ export function planStatements<TCall extends CallWithCompanions>(input: {
     columnRenames: planner.columnRenames,
     appliedStatements,
   });
+}
+
+/**
+ * A column a statement names, in a table of a storage namespace, as the destination contract stores
+ * it, with the field the statement names.
+ */
+export interface StatementColumn {
+  readonly namespaceId: string;
+  readonly table: string;
+  readonly column: string;
+  readonly field: FieldCoordinate;
+  /** The field as the statement names it, which also names the statement's slots. */
+  readonly text: string;
+}
+
+/** The columns of the fields that convert and backfill statements name. */
+export interface FieldStatementColumns {
+  readonly convert: readonly StatementColumn[];
+  readonly backfill: readonly StatementColumn[];
+}
+
+/**
+ * The column of each field a convert or backfill statement names, as the destination contract
+ * stores it. These statements rename nothing, so the strategies that plan a field's change read
+ * them instead of the working schema. A field with no column has none to list.
+ */
+export function fieldStatementColumns(
+  statements: readonly ResolvedMigrationStatement[],
+  contract: ContractWithDomain,
+): FieldStatementColumns {
+  const columnsOf = (kind: 'convert' | 'backfill'): readonly StatementColumn[] =>
+    statements.flatMap((statement) => {
+      if (statement.kind !== kind) return [];
+      const table = modelTable(contract, statement.field);
+      const column = fieldColumn(contract, statement.field);
+      return table === undefined || column === undefined
+        ? []
+        : [
+            {
+              ...table,
+              column,
+              field: statement.field,
+              text: fieldStatementText(contract, statement.field),
+            },
+          ];
+    });
+  return { convert: columnsOf('convert'), backfill: columnsOf('backfill') };
+}
+
+/**
+ * A conflict for the first backfill statement that names a field the origin model does not have and
+ * whose column has a default: the default fills the existing rows when the column is added, so the
+ * statement has nothing to fill. A field already in the origin keeps its backfill, since a default
+ * does not fill the rows that hold NULL when the column becomes required.
+ */
+export function backfillOfDefaultedField(
+  statements: readonly ResolvedMigrationStatement[],
+  fromContract: ContractWithDomain | null,
+  contract: Contract<SqlStorage>,
+): SqlPlannerConflict | undefined {
+  for (const statement of statements) {
+    if (statement.kind !== 'backfill' || fromContract === null) continue;
+    const originModel = sqlModelStorage(fromContract, statement.field);
+    if (originModel === undefined || Object.hasOwn(originModel.fields, statement.field.field)) {
+      continue;
+    }
+    const table = modelTable(contract, statement.field);
+    const column = fieldColumn(contract, statement.field);
+    if (table === undefined || column === undefined) continue;
+    const storageColumn =
+      contract.storage.namespaces[table.namespaceId]?.entries.table?.[table.table]?.columns[column];
+    if (storageColumn?.default === undefined) continue;
+    const label = describeMigrationStatement(statement, fromContract, contract);
+    return statementRefused(
+      statement,
+      `${label}: the field is new and has a default`,
+      'The default fills the existing rows when the column is added, so there is nothing to backfill. Leave out the --backfill statement.',
+      { namespaceId: table.namespaceId, table: table.table, column },
+    );
+  }
+  return undefined;
+}
+
+/**
+ * Every statement of a plan in the order given, with the operations it accounts for: a rename's
+ * from `renames`, and none yet for any other statement.
+ */
+export function appliedStatementsInOrder(
+  statements: readonly ResolvedMigrationStatement[],
+  renames: readonly AppliedMigrationStatement[],
+): readonly AppliedMigrationStatement[] {
+  return statements.map(
+    (statement) =>
+      renames.find((applied) => applied.statement === statement) ?? {
+        statement,
+        operationIndexes: [],
+      },
+  );
 }

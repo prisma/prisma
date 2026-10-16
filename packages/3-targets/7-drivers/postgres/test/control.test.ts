@@ -32,6 +32,28 @@ describe('@internal/driver-postgres control', () => {
     vi.doUnmock('pg');
   });
 
+  it('passes a connect timeout to the client only when asked for one', async () => {
+    const configs: unknown[] = [];
+    const mockClient = { connect: vi.fn(async () => {}), end: vi.fn(async () => {}), on: vi.fn() };
+    vi.doMock('pg', () => ({
+      Client: vi.fn(function Client(config: unknown) {
+        configs.push(config);
+        return mockClient;
+      }),
+    }));
+    vi.resetModules();
+    const { default: descriptor } = await import('../src/exports/control');
+
+    await descriptor.create('postgres://localhost/test', { connectTimeoutMs: 3000 });
+    await descriptor.create('postgres://localhost/test');
+
+    expect(configs).toEqual([
+      { connectionString: 'postgres://localhost/test', connectionTimeoutMillis: 3000 },
+      { connectionString: 'postgres://localhost/test' },
+    ]);
+    vi.doUnmock('pg');
+  });
+
   it('queries arrays as raw text while preserving scalar parsers', async () => {
     const query = vi.fn(
       async (config: {

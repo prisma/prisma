@@ -8,22 +8,24 @@ import {
   type Direction,
   isOrderByDirection,
   type OrderByItem,
-  type WhereArg,
 } from '@internal/sql-relational-core/ast';
 import type { ExecutionContext } from '@internal/sql-relational-core/query-lane-context';
 import { blindCast } from '@internal/utils/casts';
-import { modelOf, resolveFieldToColumn } from './collection-contract';
+import { getModelFields, modelOf } from './collection-contract';
 import type { Filtered, HasTypeState, Ordered } from './collection-types';
 import { hasTrait, resolveColumn } from './column-codec';
 import { ormError } from './orm-errors';
 import type {
   CodecField,
   CodecListField,
+  CollectionState,
   FieldCodecId,
   FieldNullable,
   FieldsOf,
   Orderable,
   OrderableFieldNames,
+  OrmFunctions,
+  WhereCallbackResult,
 } from './types';
 
 type FieldMultiplicity = false | { readonly elementNullable: boolean };
@@ -108,25 +110,40 @@ export interface FragmentFacts {
   readonly hasOrderBy: boolean;
 }
 
-type OrderSelector<Row> = (row: Row) => OrderByItem;
+/** The second argument of a `where` or `orderBy` callback in the body of a fragment for any model: every function, and no index, as the body does not know its model. */
+export interface DeclaredFieldsFragmentCallbackTools<TContract extends Contract<SqlStorage>> {
+  readonly fns: OrmFunctions<TContract>;
+  readonly indexes: Readonly<Record<never, never>>;
+}
+
+type OrderSelector<Row, TContract extends Contract<SqlStorage>> = (
+  row: Row,
+  tools: DeclaredFieldsFragmentCallbackTools<TContract>,
+) => OrderByItem;
 
 /** The collection the body of a fragment for any model receives: the methods that keep the row, on the declared fields, and what has been established so far. */
-export interface DeclaredFieldsFragmentCollection<Row, Facts extends FragmentFacts> {
+export interface DeclaredFieldsFragmentCollection<
+  Row,
+  Facts extends FragmentFacts,
+  TContract extends Contract<SqlStorage> = Contract<SqlStorage>,
+> {
   readonly [FragmentFactsType]: Facts;
   where(
-    fn: (row: Row) => WhereArg,
+    fn: (row: Row, tools: DeclaredFieldsFragmentCallbackTools<TContract>) => WhereCallbackResult,
   ): DeclaredFieldsFragmentCollection<
     Row,
-    { readonly hasWhere: true; readonly hasOrderBy: Facts['hasOrderBy'] }
+    { readonly hasWhere: true; readonly hasOrderBy: Facts['hasOrderBy'] },
+    TContract
   >;
   orderBy(
-    selection: OrderSelector<Row> | ReadonlyArray<OrderSelector<Row>>,
+    selection: OrderSelector<Row, TContract> | ReadonlyArray<OrderSelector<Row, TContract>>,
   ): DeclaredFieldsFragmentCollection<
     Row,
-    { readonly hasWhere: Facts['hasWhere']; readonly hasOrderBy: true }
+    { readonly hasWhere: Facts['hasWhere']; readonly hasOrderBy: true },
+    TContract
   >;
-  limit(n: number): DeclaredFieldsFragmentCollection<Row, Facts>;
-  offset(n: number): DeclaredFieldsFragmentCollection<Row, Facts>;
+  limit(n: number): DeclaredFieldsFragmentCollection<Row, Facts, TContract>;
+  offset(n: number): DeclaredFieldsFragmentCollection<Row, Facts, TContract>;
 }
 
 type ContractFieldMultiplicity<Field> = Field extends { readonly many: infer Many }
@@ -412,6 +429,44 @@ export function assertModelFragmentReceiver(
   }
 }
 
+function firstQueryState(state: CollectionState): string | undefined {
+  const present: ReadonlyArray<readonly [string, boolean]> = [
+    ['a variant', state.variantValue !== undefined],
+    ['a cursor', state.cursor !== undefined],
+    ['distinctOn', state.distinctOn !== undefined],
+    ['distinct', state.distinct !== undefined],
+    ['a filter', state.filters.length > 0],
+    ['an order', state.orderBy !== undefined],
+    ['a limit', state.limit !== undefined],
+    ['an offset', state.offset !== undefined],
+    ['an include', state.includes.length > 0],
+    ['selected fields', state.selectedFields !== undefined],
+    ['a row lock', state.locking !== undefined],
+  ];
+  return present.find(([, isPresent]) => isPresent)?.[0];
+}
+
+/** Throws `ORM.ARGUMENT_INVALID` when the collection a fragment for one model is made from carries query state, which the fragment would ignore. */
+export function assertModelFragmentSource(source: {
+  readonly modelName: string;
+  readonly namespaceId: string;
+  readonly state: CollectionState;
+}): void {
+  const state = firstQueryState(source.state);
+  if (state === undefined) {
+    return;
+  }
+  throw ormError(
+    'ORM.ARGUMENT_INVALID',
+    `Cannot define a fragment from a collection of ${source.modelName} that has ${state}`,
+    {
+      why: 'A fragment for one model is built from the model alone, so the calls before .fragment(...) would be ignored.',
+      fix: `Call fragment on the model's root collection, such as db.orm.${source.namespaceId}.${source.modelName}.fragment(...), and apply the other calls where the fragment is used.`,
+      meta: { method: 'fragment', model: source.modelName, state },
+    },
+  );
+}
+
 /** The model as error messages name it: with its namespace when the contract has more than one. */
 export function modelLabel(collection: RuntimeModelCollection): string {
   const namespaces = Object.keys(collection.ctx.context.contract.domain.namespaces);
@@ -487,7 +542,7 @@ function assertDeclaredFieldsFragmentFields(
   const { contract } = collection.ctx.context;
   const { modelName, namespaceId } = collection;
   const label = modelLabel(collection);
-  const model = modelOf(contract, namespaceId, modelName);
+  const modelFields = getModelFields(contract, namespaceId, modelName);
   for (const [name, spec] of fields) {
     const declared = `The fragment was declared for models that have a ${spec.many === false ? 'field' : 'list field'} ${name} ${describeField(spec)}.`;
     const meta = {
@@ -498,8 +553,8 @@ function assertDeclaredFieldsFragmentFields(
       nullable: spec.nullable,
       many: spec.many,
     };
-    const modelFields = model?.fields ?? {};
-    if (!Object.hasOwn(modelFields, name)) {
+    const fieldColumn = Object.hasOwn(modelFields, name) ? modelFields[name] : undefined;
+    if (fieldColumn === undefined) {
       throw ormError(
         'ORM.FIELD_UNKNOWN',
         `Cannot apply a fragment to ${label}: it has no field ${name}`,
@@ -510,12 +565,12 @@ function assertDeclaredFieldsFragmentFields(
         },
       );
     }
-    const fieldMany = multiplicity(modelFields[name]?.many);
+    const fieldMany = multiplicity(domainFieldOf(contract, namespaceId, modelName, name)?.many);
     const column = resolveColumn(
       contract,
-      namespaceId,
-      collection.tableName,
-      resolveFieldToColumn(contract, namespaceId, modelName, name),
+      fieldColumn.namespaceId,
+      fieldColumn.table,
+      fieldColumn.column,
     );
     const actual =
       column === undefined
@@ -553,11 +608,13 @@ export function defineDeclaredFieldsFragment<
   body: (
     rows: DeclaredFieldsFragmentCollection<
       DeclaredFieldsFragmentModelAccessor<TContract, DeclaredFields<Declarations>>,
-      FragmentFacts
+      FragmentFacts,
+      TContract
     >,
   ) => DeclaredFieldsFragmentCollection<
     DeclaredFieldsFragmentModelAccessor<TContract, DeclaredFields<Declarations>>,
-    Facts
+    Facts,
+    TContract
   >,
 ): DeclaredFieldsFragment<TContract, DeclaredFields<Declarations>, Facts> {
   const fields = declaredFieldSpecs(declarations);
@@ -569,18 +626,71 @@ export function defineDeclaredFieldsFragment<
     const receiver: unknown = collection;
     assertFragmentReceiver(receiver);
     assertDeclaredFieldsFragmentFields(receiver, fields);
-    const result: unknown = body(
+    const returned: unknown = body(
       blindCast<
         DeclaredFieldsFragmentCollection<
           DeclaredFieldsFragmentModelAccessor<TContract, DeclaredFields<Declarations>>,
-          FragmentFacts
+          FragmentFacts,
+          TContract
         >,
         'a collection offers where, orderBy, limit and offset with these run-time shapes'
-      >(collection),
+      >(withoutIndexes(receiver)),
     );
+    const result = collectionBehind(returned);
     assertDeclaredFieldsFragmentResult(receiver, result);
     return result;
   });
+}
+
+const NO_INDEXES = Object.freeze({});
+const NO_COLLECTION_METHODS = Object.freeze({});
+
+const collectionsBehindViews = new WeakMap<object, unknown>();
+
+const BODY_CHAIN_METHODS: Readonly<
+  Record<
+    Exclude<
+      keyof DeclaredFieldsFragmentCollection<unknown, FragmentFacts>,
+      typeof FragmentFactsType
+    >,
+    true
+  >
+> = { where: true, orderBy: true, limit: true, offset: true };
+
+/**
+ * The collection as the body of a fragment for any model sees it: a `where` or `orderBy` callback receives `fns` and an `indexes` with no members, and `using` has no members, as the body does not know its model.
+ */
+function withoutIndexes(collection: object): object {
+  const view = new Proxy(collection, {
+    get(target, prop) {
+      if (prop === 'using') return NO_COLLECTION_METHODS;
+      const member: unknown = Reflect.get(target, prop, target);
+      if (typeof member !== 'function') return member;
+      if (!Object.hasOwn(BODY_CHAIN_METHODS, prop)) return member.bind(target);
+      return (...args: unknown[]) => {
+        const result: unknown = Reflect.apply(member, target, args.map(withoutIndexesInCallbacks));
+        return typeof result === 'object' && result !== null ? withoutIndexes(result) : result;
+      };
+    },
+  });
+  collectionsBehindViews.set(view, collection);
+  return view;
+}
+
+function withoutIndexesInCallbacks(argument: unknown): unknown {
+  if (Array.isArray(argument)) return argument.map(withoutIndexesInCallbacks);
+  if (typeof argument !== 'function') return argument;
+  return (row: unknown, tools: unknown) =>
+    Reflect.apply(argument, undefined, [
+      row,
+      { fns: Reflect.get(Object(tools), 'fns'), indexes: NO_INDEXES },
+    ]);
+}
+
+function collectionBehind(value: unknown): unknown {
+  return typeof value === 'object' && value !== null
+    ? (collectionsBehindViews.get(value) ?? value)
+    : value;
 }
 
 export interface ModelCollection<
@@ -625,13 +735,28 @@ function cutNote(subject: string, value: ShownText): string {
 
 function fieldCodecId(collection: RuntimeModelCollection, field: string): string | undefined {
   const { contract } = collection.ctx.context;
-  const column = resolveFieldToColumn(
-    contract,
-    collection.namespaceId,
-    collection.modelName,
-    field,
-  );
-  return resolveColumn(contract, collection.namespaceId, collection.tableName, column)?.codecId;
+  const modelFields = getModelFields(contract, collection.namespaceId, collection.modelName);
+  const fieldColumn = Object.hasOwn(modelFields, field) ? modelFields[field] : undefined;
+  if (fieldColumn === undefined) return undefined;
+  return resolveColumn(contract, fieldColumn.namespaceId, fieldColumn.table, fieldColumn.column)
+    ?.codecId;
+}
+
+/** The domain declaration of a model's own or inherited field. */
+function domainFieldOf(
+  contract: RuntimeModelCollection['ctx']['context']['contract'],
+  namespaceId: string,
+  modelName: string,
+  name: string,
+): { readonly many?: unknown } | undefined {
+  let model = modelOf(contract, namespaceId, modelName);
+  while (model !== undefined) {
+    const fields = model.fields ?? {};
+    if (Object.hasOwn(fields, name)) return fields[name];
+    const base = model.base;
+    model = base === undefined ? undefined : modelOf(contract, base.namespace, base.model);
+  }
+  return undefined;
 }
 
 function canOrder(collection: RuntimeModelCollection, field: string): boolean {
@@ -640,12 +765,12 @@ function canOrder(collection: RuntimeModelCollection, field: string): boolean {
 }
 
 function orderableFieldNames(collection: RuntimeModelCollection): readonly string[] {
-  const model = modelOf(
+  const modelFields = getModelFields(
     collection.ctx.context.contract,
     collection.namespaceId,
     collection.modelName,
   );
-  return Object.keys(model?.fields ?? {}).filter((field) => canOrder(collection, field));
+  return Object.keys(modelFields).filter((field) => canOrder(collection, field));
 }
 
 function whyNotOrderable(collection: RuntimeModelCollection, name: string): string {
@@ -655,7 +780,12 @@ function whyNotOrderable(collection: RuntimeModelCollection, name: string): stri
   if (Object.hasOwn(model?.relations ?? {}, name)) {
     return `${quoted} is a relation of ${modelName}, not a field.`;
   }
-  if (!Object.hasOwn(model?.fields ?? {}, name)) {
+  if (
+    !Object.hasOwn(
+      getModelFields(collection.ctx.context.contract, collection.namespaceId, modelName),
+      name,
+    )
+  ) {
     return `${modelName} has no field ${quoted}.`;
   }
   return canOrder(collection, name)

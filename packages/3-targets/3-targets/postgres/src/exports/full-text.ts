@@ -1,3 +1,7 @@
+export type {
+  PostgresFullTextMethods,
+  PostgresTsqueryArgument,
+} from '../core/full-text-collection-method';
 export {
   FullTextDocument,
   type FullTextDocumentColumn,
@@ -9,6 +13,7 @@ export {
   plaintoTsquery,
   type TextArgument,
   type TsqueryExpression,
+  type TsqueryParser,
   type TsqueryParserOptions,
   toTsquery,
   websearchToTsquery,

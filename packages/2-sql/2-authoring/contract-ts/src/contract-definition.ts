@@ -14,7 +14,6 @@ import type {
   SqlNamespaceBase,
   SqlNamespaceInput,
 } from '@internal/sql-contract/types';
-import type { CheckKind } from '@internal/sql-schema-ir/naming';
 import type { EnumTypeHandle } from './enum-type';
 
 export type { ExecutionMutationDefaultPhases };
@@ -71,18 +70,24 @@ export interface ScalarMemberNode {
   readonly enumTypeHandle?: EnumTypeHandle;
 }
 
-export interface FieldNode extends ScalarMemberNode {
-  readonly descriptor: ColumnTypeDescriptor;
+/**
+ * A column as storage describes it, with no field. A model field ({@link FieldNode}) is a column node that is also a scalar member; a table node ({@link TableNode}) holds column nodes for columns no field maps.
+ */
+export interface ColumnNode {
   readonly columnName: string;
+  readonly descriptor: ColumnTypeDescriptor;
+  readonly nullable: boolean;
+  readonly many?: boolean;
+  readonly elementNullable?: boolean;
   readonly default?: AuthoredColumnDefault;
+  /** Present when the column is typed by an `enumType()` enum, which gives it the enum's storage value set and a membership check. */
+  readonly enumTypeHandle?: EnumTypeHandle;
+}
+
+/** A scalar model field: a scalar member with its column, and the defaults the runtime fills. */
+export interface FieldNode extends ScalarMemberNode, ColumnNode {
+  readonly descriptor: ColumnTypeDescriptor;
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
-  /**
-   * Generated-check kinds the author declined for this column. The PSL
-   * interpreter always writes concrete kinds; the TS builder's bare
-   * `noCheck()` arrives as `[]` and is resolved to the column shape's
-   * derivable kinds at contract build time.
-   */
-  readonly noCheck?: readonly CheckKind[];
 }
 
 export interface PrimaryKeyNode {
@@ -130,26 +135,38 @@ export type CheckNode = {
   readonly name: string | undefined;
 };
 
+/** A foreign key's target named by the model that maps the target table. */
+export interface ForeignKeyModelReference {
+  readonly model: string;
+  readonly table: string;
+  readonly columns: readonly string[];
+  /**
+   * Namespace coordinate of the referenced table. When omitted the
+   * assembler resolves the coordinate from the referenced model node's
+   * own `namespaceId`; the field exists so authoring paths that already
+   * know the target namespace can stamp it explicitly.
+   */
+  readonly namespaceId?: string;
+  /**
+   * Contract-space identity of the referenced table. When present, the
+   * table lives in a different contract space (identified by this value)
+   * rather than the current contract. Absent for local FKs.
+   */
+  readonly spaceId?: string;
+}
+
+/** A foreign key's target named by its table, which a model or a table node of this contract declares. Without `namespaceId`, or with an empty one, the table is in the default namespace. */
+export interface ForeignKeyTableReference {
+  readonly model?: never;
+  readonly table: string;
+  readonly columns: readonly string[];
+  readonly namespaceId?: string;
+  readonly spaceId?: never;
+}
+
 export interface ForeignKeyNode {
   readonly columns: readonly string[];
-  readonly references: {
-    readonly model: string;
-    readonly table: string;
-    readonly columns: readonly string[];
-    /**
-     * Namespace coordinate of the referenced table. When omitted the
-     * assembler resolves the coordinate from the referenced model node's
-     * own `namespaceId`; the field exists so authoring paths that already
-     * know the target namespace can stamp it explicitly.
-     */
-    readonly namespaceId?: string;
-    /**
-     * Contract-space identity of the referenced table. When present, the
-     * table lives in a different contract space (identified by this value)
-     * rather than the current contract. Absent for local FKs.
-     */
-    readonly spaceId?: string;
-  };
+  readonly references: ForeignKeyModelReference | ForeignKeyTableReference;
   readonly name?: string;
   readonly onDelete?: ReferentialAction;
   readonly onUpdate?: ReferentialAction;
@@ -226,10 +243,9 @@ export interface ValueObjectMemberNode {
 /**
  * A model field typed by a value object. It is stored in one column of the storage type the target declares for value objects, carried in `descriptor`; a list of value objects is stored in that one column too.
  */
-export interface ValueObjectFieldNode extends ValueObjectMemberNode {
-  readonly columnName: string;
-  readonly descriptor: ColumnTypeDescriptor;
-  readonly default?: AuthoredColumnDefault;
+export interface ValueObjectFieldNode
+  extends ValueObjectMemberNode,
+    Pick<ColumnNode, 'columnName' | 'descriptor' | 'default'> {
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
 }
 
@@ -255,7 +271,17 @@ export function isValueObjectMember(
   return 'valueObjectName' in field;
 }
 
-export interface ModelNode {
+/** What a table declares besides its columns. A model states these for its table, and so does a table node for a table no model maps. */
+export interface TableProperties {
+  readonly id?: PrimaryKeyNode;
+  readonly uniques?: readonly UniqueConstraintNode[];
+  readonly indexes?: readonly IndexNode[];
+  readonly checks?: readonly CheckNode[];
+  readonly foreignKeys?: readonly ForeignKeyNode[];
+  readonly control?: ControlPolicy;
+}
+
+export interface ModelNode extends TableProperties {
   readonly modelName: string;
   readonly tableName: string;
   /**
@@ -270,13 +296,7 @@ export interface ModelNode {
    */
   readonly namespaceId?: string;
   readonly fields: readonly (FieldNode | ValueObjectFieldNode)[];
-  readonly id?: PrimaryKeyNode;
-  readonly uniques?: readonly UniqueConstraintNode[];
-  readonly indexes?: readonly IndexNode[];
-  readonly checks?: readonly CheckNode[];
-  readonly foreignKeys?: readonly ForeignKeyNode[];
   readonly relations?: readonly RelationNode[];
-  readonly control?: ControlPolicy;
   /**
    * Single-table-inheritance variants share their base model's storage table:
    * the variant's columns are materialised onto the base `ModelNode`, and this
@@ -287,10 +307,27 @@ export interface ModelNode {
   readonly sharesBaseTable?: boolean;
 }
 
+/**
+ * A table's storage declared without a model. Naming a table a model maps adds columns to it and nothing else; naming any other table declares the whole table.
+ */
+export interface TableNode extends TableProperties {
+  /** Namespace coordinate of the table. Omitted or empty means the target's default namespace. */
+  readonly namespaceId?: string;
+  readonly tableName: string;
+  readonly columns: readonly ColumnNode[];
+}
+
+/** A component whose capabilities a contract carries, such as an adapter. */
+export type CapabilityContributor = {
+  readonly capabilities: Readonly<Record<string, Readonly<Record<string, boolean>>>>;
+};
+
 export interface ContractDefinition {
   readonly target: TargetPackRef<'sql', string>;
   readonly defaultControlPolicy?: ControlPolicy;
   readonly extensions?: Record<string, ExtensionPackRef<'sql', string>>;
+  /** Capabilities of the stack the contract runs with beyond its target's and extensions', such as its adapter's. They join the target's and the extensions', as `prisma contract emit` joins them. */
+  readonly capabilities?: CapabilityContributor['capabilities'];
   /**
    * Test-fixture escape hatch: pins the emitted `storage.storageHash`
    * instead of computing it from content. A pinned hash is not
@@ -317,6 +354,8 @@ export interface ContractDefinition {
   /** Target-supplied factory that materialises a `SqlNamespaceBase` concretion for a declared namespace coordinate. */
   readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
   readonly models: readonly ModelNode[];
+  /** Storage no model maps: columns added to a model's table, and tables with no model. */
+  readonly tables?: readonly TableNode[];
   readonly valueObjects?: readonly ValueObjectNode[];
   /**
    * Domain enum handles authored via `enumType()`. Each entry lowers to a

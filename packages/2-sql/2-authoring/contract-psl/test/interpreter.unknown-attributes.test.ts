@@ -39,7 +39,7 @@ const everyRegisteredAttribute = `
 model User {
   id     Int    @id @default(autoincrement())
   email  String @unique @map("email_address")
-  tags   String[] @noCheck
+  tags   String[]
   posts  Post[]
 
   @@map("users")
@@ -55,7 +55,7 @@ model Post {
   @@id([postId])
   @@unique([slug])
   @@index([authorId])
-  @@check(expression: "post_id > 0", name: "post_id_positive")
+  @@check(expression: sql\`post_id > 0\`, name: "post_id_positive")
 }
 `;
 

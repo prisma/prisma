@@ -7,6 +7,7 @@ import {
   objectSchemaKeys,
   requiredParamKeys,
   requiredSchemaKeys,
+  schemaKeysAllowing,
 } from '../src/shared/data-type';
 
 describe('dataTypeId', () => {
@@ -159,5 +160,22 @@ describe('arktype object schema keys', () => {
   it('reads no keys from a value that is not a schema', () => {
     expect(objectSchemaKeys({ props: [] })).toBeUndefined();
     expect(requiredSchemaKeys(undefined)).toBeUndefined();
+  });
+});
+
+describe('schemaKeysAllowing', () => {
+  const schema = type({
+    'precision?': 'number.integer >= 1',
+    'scale?': 'number.integer >= -1000 & number.integer <= 1000',
+  }).narrow(() => true);
+
+  it('reads the keys whose own schema accepts the value', () => {
+    expect(schemaKeysAllowing(schema, -1)).toEqual(['scale']);
+    expect(schemaKeysAllowing(schema, 1)).toEqual(['precision', 'scale']);
+  });
+
+  it('reads no keys from a schema that does not describe objects', () => {
+    expect(schemaKeysAllowing(type('number'), -1)).toBeUndefined();
+    expect(schemaKeysAllowing(undefined, -1)).toBeUndefined();
   });
 });

@@ -17,6 +17,7 @@ import {
   MongoStorage,
   MongoValidator,
 } from '@internal/mongo-contract';
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import {
   buildSymbolTable,
   createBinder,
@@ -36,7 +37,6 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import {
   expectInvalidAttributeSyntax,
   expectUnresolvedReference,
@@ -49,6 +49,7 @@ function buildSymbolTableInput(
 ): { documents: readonly DocumentAst[]; symbolTable: SymbolTable; sources: PslSources } {
   const { document, sources } = parse(schema, filename);
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: '__unbound__',
     documents: [document],
     sources,
   });
@@ -107,9 +108,7 @@ function interpret(
     schema,
     {
       scalarTypeCodecIds: mongoScalarTypeDescriptors,
-      controlMutationDefaults: {
-        defaultFunctionRegistry: new Map(),
-      },
+      defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
       dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
       ...overrides,
@@ -203,7 +202,7 @@ model Item {
 `,
       'enum-owned.prisma',
     );
-    const enumBlock = input.symbolTable.topLevel.blocks['Role'];
+    const enumBlock = input.symbolTable.defaultNamespace.blocks['Role'];
     expect(enumBlock).toBeDefined();
     if (enumBlock === undefined) return;
 
@@ -228,6 +227,7 @@ model Item {
     };
     const context: ContractSourceContext = {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         type: {},
@@ -246,6 +246,7 @@ model Item {
       capabilities: {},
     };
     const { symbolTable, diagnostics: symbolTableDiagnostics } = buildSymbolTable({
+      defaultNamespaceId: '__unbound__',
       documents: input.documents,
       sources: input.sources,
     });
@@ -261,7 +262,7 @@ model Item {
         symbolTable,
         binder,
         scalarTypeCodecIds: new Map(),
-        controlMutationDefaults: context.controlMutationDefaults,
+        defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,
@@ -567,6 +568,12 @@ model Item {
         author   User @relation(fields: [authorId], references: [id])
       }
     `;
+
+    it('reads unbound.User as the top-level User and emits the same contract', () => {
+      expect(interpretOk(blogSchema.replace('author   User @', 'author   unbound.User @'))).toEqual(
+        interpretOk(blogSchema),
+      );
+    });
 
     it('creates N:1 reference relation from @relation with fields/references', () => {
       const ir = interpretOk(blogSchema);
@@ -998,6 +1005,34 @@ model Item {
       expect(result.failure.diagnostics).toEqual(
         expect.arrayContaining([expect.objectContaining({ code: 'PSL_MONGO_ID_REQUIRED' })]),
       );
+    });
+
+    it('names the _id codec when the lookups know no MongoDB data type for it', () => {
+      const result = interpret(
+        `
+        model Item {
+          id   ObjectId @id @map("_id")
+          name String
+        }
+      `,
+        {
+          codecLookup: {
+            ...mongoCodecLookup,
+            descriptorFor: (id) =>
+              id === 'mongo/objectId@1' ? undefined : mongoCodecLookup.descriptorFor(id),
+          },
+        },
+      );
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_REQUIRED',
+          message:
+            'Model "Item" has an _id field whose codec "mongo/objectId@1" has no MongoDB data type, so its BSON type is unknown.',
+        },
+      ]);
     });
 
     it('does not flag variant models (they inherit the base id)', () => {
@@ -2609,6 +2644,16 @@ model Item {
       );
     });
 
+    it('names a rejected namespace block as it is written', () => {
+      const result = interpret(
+        'namespace __unbound__ {\n  model Tenant {\n    id ObjectId @id @map("_id")\n  }\n}\n',
+      );
+
+      expect(result.ok ? [] : result.failure.diagnostics.map(({ message }) => message)).toEqual([
+        'Mongo does not support `namespace __unbound__ { … }` blocks (the database is bound by the connection string; declare models at the document top level instead).',
+      ]);
+    });
+
     it('accepts top-level declarations (the implicit `__unspecified__` bucket) without diagnostics', () => {
       const ir = interpretOk(`
         model Item {
@@ -2636,9 +2681,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2664,9 +2707,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 
@@ -2688,9 +2729,7 @@ model Post {
 `,
         {
           scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          controlMutationDefaults: {
-            defaultFunctionRegistry: new Map(),
-          },
+          defaultFunctionRegistry: new Map(),
         },
       );
 

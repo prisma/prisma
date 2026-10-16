@@ -13,26 +13,27 @@ import {
   crossRef,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
-  type JsonValue,
   type ValueSetRef,
 } from '@internal/contract/types';
 import { type EnumTypeHandle, resolveToOneRelationNullable } from '@internal/contract-authoring';
 import {
   type AuthoringEntityContext,
   type DataTypeSupport,
+  type EnumBlockSite,
+  encodeEnumMembers,
+  enumMemberProblemDiagnostic,
   instantiateAuthoringEntityType,
   isAuthoringEntityTypeDescriptor,
   type ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
   buildMongoStorage,
-  encodeMongoValueSets,
   type MongoCollectionInput,
   MongoIndex,
   type MongoIndexKeyDirection,
+  mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import {
   type MongoBackRelationCandidate,
@@ -51,12 +52,12 @@ import {
   type PslSpan,
   type ResolvedAttribute,
   readResolvedAttribute,
-  readResolvedAttributes,
 } from '@internal/psl-parser';
 import { fkRelationPairKey, type InvalidFkPairing } from '@internal/psl-parser/interpret';
 import type {
   DocumentAst,
   KeyValuePairAst,
+  MixinInclusionAst,
   PslSources,
   SourceFile,
 } from '@internal/psl-parser/syntax';
@@ -65,6 +66,7 @@ import {
   dottedPathsIn,
   FunctionCallAst,
   IdentifierAst,
+  printSyntax,
   StringLiteralExprAst,
 } from '@internal/psl-parser/syntax';
 import { blindCast } from '@internal/utils/casts';
@@ -95,6 +97,7 @@ export interface InterpretPrisma6DocumentsInput {
   readonly authoringContributions: AssembledAuthoringContributions;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
+  readonly defaultNamespaceId: string;
 }
 
 const SUMMARY = 'Prisma 6 MongoDB schema interpretation failed';
@@ -106,11 +109,6 @@ interface Located<T> {
 }
 
 type Diagnostics = ContractSourceDiagnostic[];
-
-interface EnumBuild {
-  readonly codecId: string;
-  readonly members: readonly { readonly name: string; readonly value: unknown }[];
-}
 
 interface ModelBuild {
   readonly located: Located<ModelSymbol>;
@@ -192,6 +190,10 @@ function unknownAttribute(
   );
 }
 
+interface InclusionHolderAst {
+  inclusions(): Iterable<MixinInclusionAst>;
+}
+
 export function interpretPrisma6Documents(
   input: InterpretPrisma6DocumentsInput,
 ): Result<Contract, ContractSourceDiagnostics> {
@@ -222,6 +224,7 @@ export function interpretPrisma6Documents(
     const { symbolTable, diagnostics: tableDiagnostics } = buildSymbolTable({
       documents: [document],
       sources,
+      defaultNamespaceId: input.defaultNamespaceId,
     });
     for (const diagnostic of tableDiagnostics) {
       diagnostics.push({
@@ -239,7 +242,22 @@ export function interpretPrisma6Documents(
         span,
       });
     };
-    for (const block of Object.values(symbolTable.topLevel.blocks)) {
+    const unsupportedInclusions = (
+      code: string,
+      holders: Readonly<Record<string, { readonly node: InclusionHolderAst }>>,
+    ): void => {
+      for (const holder of Object.values(holders)) {
+        for (const inclusion of holder.node.inclusions()) {
+          diagnostics.push({
+            code,
+            message: `Unsupported mixin inclusion "${printSyntax(inclusion.syntax).trim()}"`,
+            sourceId,
+            span: nodePslSpan(inclusion.syntax, sources),
+          });
+        }
+      }
+    };
+    for (const block of Object.values(symbolTable.defaultNamespace.blocks)) {
       switch (block.keyword) {
         case 'datasource':
           datasources.push({ symbol: block, sourceId, sources });
@@ -267,18 +285,27 @@ export function interpretPrisma6Documents(
           unsupported(block.keyword, keywordPslSpan(block.node.syntax, block.keyword, sources));
       }
     }
-    for (const namespace of Object.values(symbolTable.topLevel.namespaces)) {
+    for (const namespace of Object.values(symbolTable.namespaces)) {
       for (const { span } of namespace.declarations) unsupported('namespace', span);
     }
-    for (const namedType of Object.values(symbolTable.topLevel.namedTypes)) {
+    for (const namedType of Object.values(symbolTable.namedTypes)) {
       unsupported('types', namedType.span);
     }
-    for (const symbol of Object.values(symbolTable.topLevel.compositeTypes)) {
+    for (const mixin of Object.values(symbolTable.defaultNamespace.mixins)) {
+      unsupported(`${mixin.keyword} mixin`, mixin.span);
+    }
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.defaultNamespace.models);
+    unsupportedInclusions('PSL_INVALID_MODEL_MEMBER', symbolTable.defaultNamespace.compositeTypes);
+    unsupportedInclusions(
+      'PSL_INVALID_EXTENSION_BLOCK_MEMBER',
+      symbolTable.defaultNamespace.blocks,
+    );
+    for (const symbol of Object.values(symbolTable.defaultNamespace.compositeTypes)) {
       if (claimName('type', symbol.name, sourceId, symbol.span)) {
         compositeTypes.push({ symbol, sourceId, sources });
       }
     }
-    for (const symbol of Object.values(symbolTable.topLevel.models)) {
+    for (const symbol of Object.values(symbolTable.defaultNamespace.models)) {
       if (!claimName('model', symbol.name, sourceId, symbol.span)) continue;
       if (symbol.attributes.some((attribute) => attribute.name === 'ignore')) {
         ignoredModels.add(symbol.name);
@@ -300,7 +327,7 @@ export function interpretPrisma6Documents(
     });
   }
 
-  const enums = new Map<string, EnumBuild>();
+  const enums = new Map<string, ContractEnum>();
   for (const located of enumBlocks) {
     const built = buildEnum(located, input, diagnostics);
     if (built !== undefined) enums.set(located.symbol.name, built);
@@ -308,7 +335,15 @@ export function interpretPrisma6Documents(
 
   const modelNames = new Set([...models.map((m) => m.symbol.name), ...ignoredModels]);
   const compositeTypeNames = new Set(compositeTypes.map((c) => c.symbol.name));
-  const typeContext: TypeContext = { binding, enums, compositeTypeNames, diagnostics };
+  const enumNames = new Set(enumBlocks.map((located) => located.symbol.name));
+  const typeContext: TypeContext = {
+    binding,
+    enums,
+    enumNames,
+    compositeTypeNames,
+    diagnostics,
+    namespaceId: input.defaultNamespaceId,
+  };
 
   const valueObjects: Record<string, ContractValueObject> = {};
   for (const located of compositeTypes) {
@@ -329,12 +364,14 @@ export function interpretPrisma6Documents(
       builds,
       { foreignKeys, invalidFkPairings, backRelations },
       diagnostics,
+      input.defaultNamespaceId,
     );
   }
   const paired = pairMongoBackRelations({
     foreignKeys,
     candidates: backRelations,
     invalidFkPairings,
+    namespaceId: input.defaultNamespaceId,
   });
   diagnostics.push(...mapPslDiagnostics(paired.diagnostics, mergedSources(input.documents)));
   for (const { modelName, fieldName, relation } of paired.relations) {
@@ -349,10 +386,10 @@ export function interpretPrisma6Documents(
     const indexes = buildIndexes(build, diagnostics);
     const existing = collections[build.collection];
     collections[build.collection] = { indexes: [...(existing?.indexes ?? []), ...indexes] };
-    roots[build.collection] = crossRef(modelName, UNBOUND_NAMESPACE_ID);
+    roots[build.collection] = crossRef(modelName, input.defaultNamespaceId);
     for (const { field, phases } of build.executionDefaults) {
       executionDefaults.push({
-        ref: { namespace: UNBOUND_NAMESPACE_ID, entry: build.collection, field },
+        ref: { namespace: input.defaultNamespaceId, entry: build.collection, field },
         ...phases,
       });
     }
@@ -379,7 +416,7 @@ export function interpretPrisma6Documents(
       valueObjects,
       enums,
       executionDefaults,
-      codecLookup: input.codecLookup,
+      namespaceId: input.defaultNamespaceId,
     }),
   );
 }
@@ -405,7 +442,7 @@ function reportDottedBlockValues(
   sources: PslSources,
   diagnostics: Diagnostics,
 ): void {
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     const value = entry.value();
     if (value === undefined) continue;
     for (const path of dottedPathsIn(value)) {
@@ -437,7 +474,7 @@ function checkDatasource(
   }
   const block = datasource.symbol;
   let parameter: KeyValuePairAst | undefined;
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     if (entry.key()?.name() === 'provider') {
       parameter = entry;
       break;
@@ -460,9 +497,9 @@ function buildEnum(
   located: Located<BlockSymbol>,
   input: InterpretPrisma6DocumentsInput,
   diagnostics: Diagnostics,
-): EnumBuild | undefined {
+): ContractEnum | undefined {
   const { symbol: block, sourceId, sources } = located;
-  for (const attribute of readResolvedAttributes(block.node.attributes(), sources)) {
+  for (const attribute of block.attributes) {
     if (attribute.name === 'map') continue;
     if (attribute.name === 'schema') {
       diagnostics.push(schemaUnsupported(`Enum "${block.name}"`, attribute, sourceId));
@@ -472,7 +509,7 @@ function buildEnum(
   }
   const values: Record<string, string> = Object.create(null);
   const parameterSpans: Record<string, PslSpan> = Object.create(null);
-  for (const entry of block.node.entries()) {
+  for (const entry of block.entries) {
     const name = entry.key()?.name();
     if (name === undefined) continue;
     let value = name;
@@ -538,10 +575,21 @@ function buildEnum(
     context,
   );
   if (handle === undefined || handle === null) return undefined;
-  return {
-    codecId: handle.codecId,
-    members: handle.enumMembers.map((member) => ({ name: member.name, value: member.value })),
-  };
+  const encoded = encodeEnumMembers(handle, input.codecLookup);
+  if (!encoded.ok) {
+    const site: EnumBlockSite = {
+      enumName: block.name,
+      codecId: handle.codecId,
+      sourceId,
+      span: block.span,
+      memberSpans: parameterSpans,
+    };
+    diagnostics.push(
+      ...encoded.failure.map((problem) => enumMemberProblemDiagnostic(problem, site)),
+    );
+    return undefined;
+  }
+  return { codecId: handle.codecId, members: encoded.value };
 }
 
 function schemaUnsupported(
@@ -559,9 +607,12 @@ function schemaUnsupported(
 
 interface TypeContext {
   readonly binding: Prisma6TargetBinding;
-  readonly enums: ReadonlyMap<string, EnumBuild>;
+  readonly enums: ReadonlyMap<string, ContractEnum>;
+  /** Every declared enum, including one that was refused and so is not in `enums`. */
+  readonly enumNames: ReadonlySet<string>;
   readonly compositeTypeNames: ReadonlySet<string>;
   readonly diagnostics: Diagnostics;
+  readonly namespaceId: string;
 }
 
 interface FieldOwner {
@@ -696,7 +747,7 @@ function resolveFieldType(
     const valueSet: ValueSetRef = {
       plane: 'domain',
       entityKind: 'enum',
-      namespaceId: UNBOUND_NAMESPACE_ID,
+      namespaceId: ctx.namespaceId,
       entityName: field.typeName,
     };
     return {
@@ -705,6 +756,9 @@ function resolveFieldType(
       valueSet,
       ...many,
     };
+  }
+  if (ctx.enumNames.has(field.typeName)) {
+    return nativeType === undefined ? undefined : nativeTypeUnsupported(nativeType);
   }
   const scalarCodecId = Object.hasOwn(binding.scalarCodecIds, field.typeName)
     ? binding.scalarCodecIds[field.typeName]
@@ -1203,6 +1257,7 @@ function readRelationFields(
     readonly backRelations: MongoBackRelationCandidate[];
   },
   diagnostics: Diagnostics,
+  namespaceId: string,
 ): void {
   const { symbol, sourceId, sources } = build.located;
   for (const { field, relation } of build.relationFields) {
@@ -1320,7 +1375,7 @@ function readRelationFields(
     const local = localFields.filter((name): name is string => name !== undefined);
     const referenced = targetFields.filter((name): name is string => name !== undefined);
     build.relations[field.name] = {
-      to: crossRef(field.typeName, UNBOUND_NAMESPACE_ID),
+      to: crossRef(field.typeName, namespaceId),
       cardinality: 'N:1',
       nullable: field.optional,
       on: { localFields: local, targetFields: referenced },
@@ -1402,25 +1457,14 @@ function assembleContract(input: {
   readonly collections: Readonly<Record<string, { readonly indexes: readonly MongoIndex[] }>>;
   readonly roots: Record<string, CrossReference>;
   readonly valueObjects: Record<string, ContractValueObject>;
-  readonly enums: ReadonlyMap<string, EnumBuild>;
+  readonly enums: ReadonlyMap<string, ContractEnum>;
   readonly executionDefaults: readonly ExecutionMutationDefault[];
-  readonly codecLookup: CodecLookupWithDescriptors;
+  readonly namespaceId: string;
 }): Contract {
   const target = input.binding.target.targetId;
   const targetFamily = input.binding.target.familyId;
 
-  const builtEnums: Record<string, ContractEnum> = {};
-  for (const [enumName, built] of input.enums) {
-    builtEnums[enumName] = {
-      codecId: built.codecId,
-      members: built.members.map((member) => ({
-        name: member.name,
-        value: blindCast<JsonValue, 'factory-validated enum members are JsonValue-compatible'>(
-          member.value,
-        ),
-      })),
-    };
-  }
+  const builtEnums: Record<string, ContractEnum> = Object.fromEntries(input.enums);
 
   const collections: Record<string, MongoCollectionInput> = {};
   for (const [name, collection] of Object.entries(input.collections)) {
@@ -1428,7 +1472,7 @@ function assembleContract(input: {
   }
   const storage: Contract['storage'] = buildMongoStorage({
     collections,
-    valueSets: encodeMongoValueSets(Object.fromEntries(input.enums), input.codecLookup),
+    valueSets: mongoValueSetsOf(builtEnums),
   });
 
   const models: Record<string, unknown> = {};
@@ -1451,7 +1495,7 @@ function assembleContract(input: {
     roots: input.roots,
     domain: {
       namespaces: {
-        [UNBOUND_NAMESPACE_ID]: {
+        [input.namespaceId]: {
           models: blindCast<
             Contract['domain']['namespaces'][string]['models'],
             'Mongo model entries built above'

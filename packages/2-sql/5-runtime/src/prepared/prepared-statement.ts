@@ -8,9 +8,9 @@ import type {
   LoweredParam,
   SqlStatementStats,
 } from '@internal/sql-relational-core/ast';
+import type { RuntimeScope } from '@internal/sql-relational-core/types';
 import type { DecodeContext } from '../codecs/decoding';
 import type { ParamMetadata } from '../codecs/encoding';
-import type { RuntimeQueryable } from '../sql-runtime';
 import { runPreparedExecute } from './prepared-execute';
 import { runPreparedQuery } from './prepared-query';
 import type { ParamsFromDeclaration, PreparedExecution, PreparedStatement } from './types';
@@ -45,7 +45,7 @@ export class PreparedStatementImpl<Params, Row>
   }
 
   query(
-    target: RuntimeQueryable,
+    target: RuntimeScope,
     params: Params,
     options?: RuntimeExecuteOptions,
   ): AsyncIterableResult<Row> {
@@ -82,7 +82,7 @@ export class PreparedExecutionImpl<Params>
   }
 
   execute(
-    target: RuntimeQueryable,
+    target: RuntimeScope,
     params: Params,
     options?: RuntimeExecuteOptions,
   ): Promise<SqlStatementStats> {

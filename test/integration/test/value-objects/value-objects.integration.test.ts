@@ -25,6 +25,7 @@ import {
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
 import { sqlContextInput } from '@internal/sql-contract-psl/test';
+import { mongoDescriptorById } from '@internal/target-mongo/codecs';
 import { mongoDataTypes } from '@internal/target-mongo/data-types';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
@@ -101,6 +102,7 @@ function interpretMongoPsl(schema: string) {
     sourceId: 'mongo-value-objects.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: '__unbound__',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         field: {},
@@ -112,7 +114,7 @@ function interpretMongoPsl(schema: string) {
         dataTypes: {},
       },
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
-      codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+      codecLookup: { ...emptyCodecLookup, descriptorFor: mongoDescriptorById },
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
       dataTypes: { entries: {}, lookup: createDataTypeLookup(mongoDataTypes) },
       resolvedInputs: [],
@@ -147,6 +149,7 @@ function interpretSqlPsl(schema: string) {
     sourceId: 'sql-value-objects.prisma',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       // Mirrors the real postgres adapter declaration.
       authoringContributions: {

@@ -22,8 +22,7 @@ import { createAggregateBuilder } from '../src/aggregate-builder';
 import { Collection, reservedCollectionMemberNames } from '../src/collection';
 import { orm } from '../src/orm';
 import type { AggregateSelector } from '../src/types';
-import { emptyState } from '../src/types';
-import { createMockRuntime, getTestContext, type TestContract } from './helpers';
+import { createMockRuntime, emptyTableState, getTestContext, type TestContract } from './helpers';
 
 const countAny: SqlAggregateDescriptor = {
   operation: 'count',
@@ -285,6 +284,17 @@ describe('reserved operation names', () => {
     );
   });
 
+  it('a contributed operation named using is rejected at composition', () => {
+    const context = contextWith([{ ...shadowingBuilderMethod, operation: 'using' }]);
+
+    expect(() => orm({ runtime: createMockRuntime(), context })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.AGGREGATE_OPERATION_RESERVED',
+        meta: { operation: 'using' },
+      }),
+    );
+  });
+
   it('a contributed operation named scope is accepted and installed as a reducer', () => {
     const context = contextWith([{ ...headcountAny, operation: 'scope' }]);
 
@@ -308,7 +318,7 @@ describe('reserved operation names', () => {
     const context = contextWith([]);
     const posts = new Collection({ runtime: createMockRuntime(), context }, 'Post', {
       namespaceId: 'public',
-      state: emptyState(),
+      state: emptyTableState(context.contract, 'posts'),
     });
     const reserved = reservedCollectionMemberNames();
 

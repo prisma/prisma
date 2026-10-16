@@ -1,8 +1,10 @@
 import type { PlanMeta } from '@internal/contract/types';
 import type {
+  ActivityContext,
   CrossFamilyMiddleware,
   ExecutionPlan,
-  RuntimeMiddlewareContext,
+  StatementActivity,
+  StatementEnded,
 } from '@internal/framework-components/runtime';
 import { vi } from 'vitest';
 import type { CacheEntry, CacheStore } from '../src/cache-store';
@@ -25,7 +27,9 @@ export function makeExec(statement: string, annotations?: Record<string, unknown
   });
 }
 
-export function makeCtx(overrides?: Partial<RuntimeMiddlewareContext>): RuntimeMiddlewareContext {
+/** A fresh context, as one statement activity has: its own state, no parent. */
+export function makeCtx(overrides?: Partial<ActivityContext>): ActivityContext {
+  const states = new Map<string | symbol, Record<string | symbol, unknown>>();
   return {
     contract: {},
     mode: 'strict',
@@ -33,7 +37,13 @@ export function makeCtx(overrides?: Partial<RuntimeMiddlewareContext>): RuntimeM
     log: { info: () => {}, warn: () => {}, error: () => {}, debug: () => {} },
     contentHash: async (exec) => `key:${(exec as MockExec).statement}`,
     scope: 'runtime',
-    planExecutionId: 'test-fixture-plan-execution-id',
+    parent: undefined,
+    state(key) {
+      const state = states.get(key) ?? {};
+      states.set(key, state);
+      return state;
+    },
+    inTransaction: () => false,
     ...overrides,
   };
 }
@@ -104,19 +114,49 @@ export async function drain<T>(iter: AsyncIterable<T>): Promise<T[]> {
   return out;
 }
 
+export interface EndedAs {
+  readonly rowCount: number;
+  readonly outcome?: StatementEnded['outcome'];
+  readonly source?: StatementEnded['source'];
+}
+
+/** Runs the middleware's `activityEnded` for a query statement over `exec`. */
+export async function endStatement(
+  mw: CrossFamilyMiddleware,
+  exec: ExecutionPlan,
+  ctx: ActivityContext,
+  ended: EndedAs,
+): Promise<void> {
+  const activity: StatementActivity = {
+    id: 'statement',
+    kind: 'statement',
+    returns: 'rows',
+    plan: exec,
+    annotations: new Map(),
+  };
+  await mw.activityEnded?.(
+    activity,
+    {
+      kind: 'statement',
+      returns: 'rows',
+      rowCount: ended.rowCount,
+      latencyMs: 0,
+      outcome: ended.outcome ?? 'succeeded',
+      source: ended.source ?? 'driver',
+    },
+    ctx,
+  );
+}
+
 export async function runMiss(
   mw: CrossFamilyMiddleware,
   exec: ExecutionPlan,
-  ctx: RuntimeMiddlewareContext,
+  ctx: ActivityContext,
   rows: readonly Record<string, unknown>[],
 ): Promise<void> {
-  await mw.interceptQuery?.(exec, ctx);
+  await mw.intercept?.onQuery?.(exec, ctx);
   for (const row of rows) {
     await mw.onRow?.(row, exec, ctx);
   }
-  await mw.afterQuery?.(
-    exec,
-    { rowCount: rows.length, latencyMs: 0, completed: true, source: 'driver' },
-    ctx,
-  );
+  await endStatement(mw, exec, ctx, { rowCount: rows.length });
 }

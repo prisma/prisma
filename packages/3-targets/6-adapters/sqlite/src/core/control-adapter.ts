@@ -582,6 +582,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
               ? parseSqliteDefault(rawDefault, resolvedNativeType)
               : undefined,
           ),
+          reportedType: { text: col.type, kind: undefined, schema: undefined, name: undefined },
         };
         if (col.pk > 0) {
           pkColumns.push({ name: col.name, pk: col.pk });

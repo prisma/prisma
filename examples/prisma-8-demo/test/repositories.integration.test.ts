@@ -18,6 +18,7 @@ import { ownedBy } from '../src/orm-client/fragments';
 import { ormClientGetAdminUsers } from '../src/orm-client/get-admin-users';
 import { ormClientGetDashboardUsers } from '../src/orm-client/get-dashboard-users';
 import { ormClientGetFeatureRoadmap } from '../src/orm-client/get-feature-roadmap';
+import { ormClientGetFilteredPosts } from '../src/orm-client/get-filtered-posts';
 import { ormClientGetLatestUserPerKind } from '../src/orm-client/get-latest-user-per-kind';
 import { ormClientGetPostFeed } from '../src/orm-client/get-post-feed';
 import { ormClientGetRecentPosts } from '../src/orm-client/get-recent-posts';
@@ -31,6 +32,7 @@ import { ormClientGetUsers } from '../src/orm-client/get-users';
 import { ormClientGetUsersBackwardCursor } from '../src/orm-client/get-users-backward-cursor';
 import { ormClientGetUsersByIdCursor } from '../src/orm-client/get-users-by-id-cursor';
 import { ormClientGetUsersCached } from '../src/orm-client/get-users-cached';
+import { ormClientSearchPosts } from '../src/orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from '../src/orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from '../src/orm-client/search-posts-by-title';
 import { ormClientUpdateUserEmail } from '../src/orm-client/update-user-email';
@@ -672,6 +674,72 @@ describe('ORM client integration examples', () => {
   );
 
   it(
+    'ormClientGetFilteredPosts applies each filter only when the input names it',
+    async () => {
+      await withDevDatabase(async ({ connectionString }) => {
+        await initTestDatabase({ connection: connectionString, contract });
+        const runtime = await getRuntime(connectionString);
+
+        try {
+          await seedOrmClientData(runtime);
+          await tagAdminDeepDive(runtime);
+          const listIds = async (input: Parameters<typeof ormClientGetFilteredPosts>[0]) =>
+            (await ormClientGetFilteredPosts(input, 10, runtime)).map((post) => post.id);
+
+          const byAuthor = await ormClientGetFilteredPosts(
+            { userId: seededUserIds.adminTwo },
+            10,
+            runtime,
+          );
+          expect(
+            byAuthor.map((post) => ({ ...post, createdAt: post.createdAt.toString() })),
+          ).toEqual([
+            {
+              id: seededPostIds.adminZebra,
+              title: 'Zebra post note',
+              createdAt: '2024-01-05T10:00:00Z',
+              tags: [],
+            },
+            {
+              id: seededPostIds.adminDeepDive,
+              title: 'Admin deep dive post',
+              createdAt: '2024-01-04T10:00:00Z',
+              tags: [seededTag],
+            },
+          ]);
+
+          expect(await listIds({})).toEqual([
+            seededPostIds.adminZebra,
+            seededPostIds.adminDeepDive,
+            seededPostIds.memberNote,
+            seededPostIds.newer,
+            seededPostIds.older,
+          ]);
+          expect(
+            await listIds({ before: Temporal.Instant.from('2024-01-03T00:00:00.000Z') }),
+          ).toEqual([seededPostIds.newer, seededPostIds.older]);
+          expect(
+            await listIds({
+              userId: seededUserIds.admin,
+              before: Temporal.Instant.from('2024-01-02T00:00:00.000Z'),
+            }),
+          ).toEqual([seededPostIds.older]);
+          expect(
+            await listIds({ before: Temporal.Instant.from('2024-01-02T10:00:00.000Z') }),
+          ).toEqual([seededPostIds.older]);
+          expect((await ormClientGetFilteredPosts({}, 2, runtime)).map((post) => post.id)).toEqual([
+            seededPostIds.adminZebra,
+            seededPostIds.adminDeepDive,
+          ]);
+        } finally {
+          await runtime.close();
+        }
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
+  it(
     'ormClientGetRecentUsers applies the same scope to users and their included posts',
     async () => {
       await withDevDatabase(async ({ connectionString }) => {
@@ -1202,6 +1270,11 @@ describe('ORM client integration examples', () => {
             embeddingPostIds.similar1,
             embeddingPostIds.similar2,
           ]);
+          expect(results.map((r) => Object.keys(r))).toEqual([
+            ['id', 'title', 'userId'],
+            ['id', 'title', 'userId'],
+            ['id', 'title', 'userId'],
+          ]);
         } finally {
           await runtime.close();
         }
@@ -1242,6 +1315,36 @@ describe('ORM client integration examples', () => {
     timeouts.spinUpPpgDev,
   );
 
+  it(
+    'ormClientSearchPosts searches the title and the body, title matches first',
+    async () => {
+      await withDevDatabase(async ({ connectionString }) => {
+        await initTestDatabase({ connection: connectionString, contract });
+        const runtime = await getRuntime(connectionString);
+
+        try {
+          await seedOrmClientData(runtime);
+          await createOrmClient(runtime)
+            .Post.where({ id: seededPostIds.memberNote })
+            .update({ body: 'A zebra crossed the road' });
+
+          const zebra = await ormClientSearchPosts('zebra', 10, runtime);
+          expect(zebra).toEqual([
+            { id: seededPostIds.adminZebra, title: 'Zebra post note', body: null },
+            {
+              id: seededPostIds.memberNote,
+              title: 'Other user note',
+              body: 'A zebra crossed the road',
+            },
+          ]);
+        } finally {
+          await runtime.close();
+        }
+      });
+    },
+    timeouts.spinUpPpgDev,
+  );
+
   // ---------------------------------------------------------------------------
   // Cache middleware integration tests.
   //
@@ -1249,7 +1352,7 @@ describe('ORM client integration examples', () => {
   // `src/orm-client/get-users-cached.ts` opt their reads into the
   // `@internal/middleware-cache` middleware via `cacheAnnotation(...)`.
   // The middleware short-circuits repeated executions of the same plan via
-  // its `interceptQuery` hook, so a cache hit means the SQL driver is *not*
+  // its `intercept.onQuery` handler, so a cache hit means the SQL driver is *not*
   // invoked again. We assert that contract by spying on `driver.query`.
   // ---------------------------------------------------------------------------
 

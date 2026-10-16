@@ -16,7 +16,12 @@ export function testBinder(
   },
 ): Binder {
   const pslBlockDescriptors = input.pslBlockDescriptors ?? {};
-  const context = binderContextFromStack({ ...input, scalarTypes: [], pslBlockDescriptors });
+  const context = binderContextFromStack({
+    ...input,
+    scalarTypes: [],
+    defaultNamespaceId: input.symbolTable.defaultNamespace.id,
+    pslBlockDescriptors,
+  });
   const contributions = context.authoringContributions;
   return createBinder({
     sources: input.sources,

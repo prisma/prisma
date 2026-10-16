@@ -51,14 +51,13 @@ import { createPostgresBuiltinCodecLookup } from '../../../src/core/codec-regist
 import { postgresDataTypeEntries } from '../../../src/core/data-type-entries';
 import { parsePostgresDefault } from '../../../src/core/default-normalizer';
 import { isPostgresSchema, postgresCreateNamespace } from '../../../src/core/postgres-schema';
-import { createPostgresTypeMap } from '../../../src/core/psl-build/postgres-type-map';
 import { inferredColumnDefaults } from '../../../src/core/psl-infer/infer-default-codec';
 import {
   buildPslDocumentAst,
   type PostgresPslInferOptions,
 } from '../../../src/core/psl-infer/infer-psl-contract';
 import { createPostgresDefaultMapping } from '../../../src/core/psl-infer/postgres-default-mapping';
-import { inferBuildContext, inferPslAstFromFlat } from '../fixtures';
+import { inferBuildContext, inferPslAstFromFlat, inferredColumnTypesOf } from '../fixtures';
 
 const postgresDataTypeLookup = createDataTypeLookup(postgresDataTypes);
 
@@ -109,6 +108,7 @@ function parseAndInterpret(source: string) {
     diagnostics: parseDiagnostics,
   } = parse(source, 'print-psl.top-level-blocks.test.psl');
   const { diagnostics: symbolTableDiagnostics } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
@@ -116,6 +116,7 @@ function parseAndInterpret(source: string) {
     sourceId: 'print-psl.top-level-blocks.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...assembled,
@@ -307,7 +308,7 @@ describe('buildPslDocumentAst and the top-level bucket', () => {
 
   const printerOptions: PostgresPslInferOptions = {
     columnDefaults: inferredColumnDefaults(inferBuildContext),
-    typeMap: createPostgresTypeMap(new Set()),
+    columnTypes: inferredColumnTypesOf(schemaIR.tables),
     defaultMapping: createPostgresDefaultMapping(),
     parseRawDefault: parsePostgresDefault,
   };

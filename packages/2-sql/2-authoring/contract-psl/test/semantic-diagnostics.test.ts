@@ -12,10 +12,11 @@ it('pushes owned default diagnostics with filename and range rather than a provi
     'memory.prisma',
   );
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
-  const model = symbolTable.topLevel.models['User'];
+  const model = symbolTable.defaultNamespace.models['User'];
   const field = model?.fields['id'];
   if (!model || !field) throw new Error('Missing fixture field');
   const diagnostics = {

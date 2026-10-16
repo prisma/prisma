@@ -57,6 +57,7 @@ export interface ContractSourceContext {
    */
   readonly resolvedInputs: readonly string[];
   readonly capabilities: CapabilityMatrix;
+  readonly defaultNamespaceId: string;
   /**
    * Receives a warning the source reports while it still produces a contract, such as a deprecated name. Callers that show diagnostics supply it; a source reports through it when present and otherwise drops the warning.
    */

@@ -29,6 +29,7 @@ export async function authorSqliteContractFromPsl(pslSchema: string) {
     createNamespace: sqliteCreateNamespace,
   }).source.load({
     composedExtensions: [],
+    defaultNamespaceId: sqliteStack.target.defaultNamespaceId,
     composedExtensionContracts: new Map(),
     authoringContributions: sqliteStack.authoringContributions,
     codecLookup: sqliteStack.codecLookup,

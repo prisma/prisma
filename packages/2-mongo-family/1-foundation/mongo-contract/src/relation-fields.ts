@@ -1,4 +1,9 @@
-import type { ContractModelBase, ContractToOneRelation } from '@internal/contract/types';
+import type {
+  ContractEmbedRelation,
+  ContractModelBase,
+  ContractRelation,
+  ContractToOneRelation,
+} from '@internal/contract/types';
 
 export type MongoToOneRelationFields = {
   /** False for the back side of a 1:1, whose local field is the document id. */
@@ -25,4 +30,9 @@ export function resolveMongoToOneRelationFields(
     relation.cardinality === '1:1' && fields.every((field) => field.name === DOCUMENT_ID_FIELD)
   );
   return { ownsForeignKey, fields };
+}
+
+/** Whether `relation` stores the related model inside the document, rather than referring to documents elsewhere. */
+export function isEmbedRelation(relation: ContractRelation): relation is ContractEmbedRelation {
+  return !('on' in relation) && !('through' in relation);
 }

@@ -5,7 +5,7 @@ import type {
   ContractSourceDiagnostic,
 } from '@internal/config/config-types';
 import type { AuthoringEntityContext } from '@internal/framework-components/authoring';
-import { createDataTypeLookup, emptyCodecLookup } from '@internal/framework-components/codec';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import {
   buildSymbolTable,
   createBinder,
@@ -28,6 +28,7 @@ import {
   describeUnsupportedMongoAttribute,
   mongoAttributeSpecs,
 } from '../src/mongo-attribute-specs';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 const SOURCE_ID = './schema.prisma';
 
@@ -42,6 +43,7 @@ const mongoScalarAuthoringTypes = {
 function createMongoTestContext(overrides?: Partial<ContractSourceContext>): ContractSourceContext {
   return {
     composedExtensions: [],
+    defaultNamespaceId: '__unbound__',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       dataTypes: {},
@@ -56,8 +58,8 @@ function createMongoTestContext(overrides?: Partial<ContractSourceContext>): Con
       describeUnsupportedAttribute: describeUnsupportedMongoAttribute,
       describeUnresolvedType: describeUnresolvedMongoType,
     },
-    dataTypes: { entries: {}, lookup: createDataTypeLookup([]) },
-    codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
+    dataTypes: mongoDataTypeSupport,
+    codecLookup: mongoCodecLookup,
     controlMutationDefaults: {
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
@@ -74,7 +76,11 @@ function buildInterpretInput(
   filename = SOURCE_ID,
 ): PslInterpretInput & { readonly binderDiagnostics: ReturnType<typeof mapPslDiagnostics> } {
   const { document, sources } = parse(schema, filename);
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: '__unbound__',
+  });
   const { binder, diagnostics } = createBinder({ symbolTable, sources, context });
   return {
     documents: [document],
@@ -366,6 +372,7 @@ it('attributes multi-document semantic failures to the owning file, not the entr
     [owned.document.syntax, owned.sources.sourceFileFor(owned.document.syntax)],
   ]);
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: '__unbound__',
     documents: [entry.document, owned.document],
     sources,
   });

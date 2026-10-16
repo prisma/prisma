@@ -3,10 +3,10 @@ import type {
   AuthoringContributions,
   AuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
-import { emptyCodecLookup } from '@internal/framework-components/codec';
-import { EMPTY_DATA_TYPES } from '@internal/psl-parser';
+import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
+import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 function scalar(codecId: string, replacement?: string): AuthoringTypeConstructorDescriptor {
   return {
@@ -41,9 +41,9 @@ function interpret(schema: string) {
   const result = interpretMongoContract(schema, {
     scalarTypeCodecIds,
     authoringContributions,
-    codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
-    dataTypes: EMPTY_DATA_TYPES,
-    controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+    codecLookup: mongoCodecLookup,
+    dataTypes: mongoDataTypeSupport,
+    defaultFunctionRegistry: new Map(),
     reportWarning: (diagnostic) => {
       warnings.push(diagnostic);
     },
@@ -89,9 +89,9 @@ describe('deprecated Mongo PSL scalar names', () => {
     const result = interpretMongoContract(schemaWith('Int'), {
       scalarTypeCodecIds,
       authoringContributions,
-      codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
-      dataTypes: EMPTY_DATA_TYPES,
-      controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      codecLookup: mongoCodecLookup,
+      dataTypes: mongoDataTypeSupport,
+      defaultFunctionRegistry: new Map(),
     });
     expect(result.ok).toBe(true);
   });

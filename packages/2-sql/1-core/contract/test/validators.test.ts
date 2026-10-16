@@ -495,6 +495,33 @@ describe('SQL contract validators', () => {
       expect(() => validateModel(modelWithoutRelations)).not.toThrow();
     });
 
+    const polymorphicModel = (overrides: Record<string, unknown>) => ({
+      storage: { table: 'task', namespaceId: UNBOUND_NAMESPACE_ID, fields: {} },
+      discriminator: { field: 'type' },
+      variants: { bug: { namespace: UNBOUND_NAMESPACE_ID, model: 'Bug' } },
+      ...overrides,
+    });
+
+    it('validates a discriminator and variants that reference models', () => {
+      expect(() => validateModel(polymorphicModel({}))).not.toThrow();
+    });
+
+    it.each([
+      ['null', null],
+      ['a model name', 'Bug'],
+      ['a reference without a namespace', { model: 'Bug' }],
+    ])('rejects a variant entry that is %s', (_label, entry) => {
+      expect(() => validateModel(polymorphicModel({ variants: { bug: entry } }))).toThrow(
+        /variants\.bug/,
+      );
+    });
+
+    it('rejects a discriminator without a field', () => {
+      expect(() => validateModel(polymorphicModel({ discriminator: {} }))).toThrow(
+        /discriminator\.field/,
+      );
+    });
+
     const modelWithRelation = (relation: unknown) => ({
       storage: {
         table: 'parent',
@@ -872,7 +899,7 @@ describe('SQL contract validators', () => {
 
     it('rejects an N:M relation whose through references a column absent from the junction table', () => {
       const c = manyToManyContract({
-        on: { localFields: ['id'], targetFields: ['ghost'] },
+        on: { localFields: ['id'], targetFields: ['user_id'] },
         through: { ...consistentThrough, parentColumns: ['ghost'] },
       });
       expect(() => validateSqlContractFully(c)).toThrow(
@@ -1226,6 +1253,46 @@ describe('SQL contract validators', () => {
         mappings: { modelToTable: { User: 'user' } },
       };
       expect(() => validateSqlContractFully(c)).toThrow('mappings must be removed');
+    });
+
+    it('refuses a contract that stores check waivers, naming the first five paths and counting the rest', () => {
+      const names = ['a', 'b', 'c', 'd', 'e', 'f'];
+      const userTable = table(
+        Object.fromEntries(names.map((name) => [name, col('pg/text', 'pg/text@1')])),
+      );
+      const c = JSON.parse(
+        JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
+      );
+      for (const name of names) {
+        c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns[name].noCheck = [
+          'elementNotNull',
+        ];
+      }
+      const listed = names
+        .slice(0, 5)
+        .map(
+          (name) =>
+            `storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.${name}.noCheck`,
+        )
+        .join(', ');
+      expect(() => validateSqlContractFully(c)).toThrow(
+        expect.objectContaining({
+          message: `Contract structural validation failed: contracts no longer store check waivers in "noCheck", so re-emit the contract from its source, or rewrite a stored contract such as a migration snapshot with remove-nocheck.ts, which ships in the remove-nocheck scripts of the Prisma 8 upgrade guide. Columns: ${listed}, and 1 more (6 in all)`,
+        }),
+      );
+    });
+
+    it('refuses a contract that stores both removed keys for its type names first', () => {
+      const userTable = table({ tags: col('pg/text', 'pg/text@1') });
+      const c = JSON.parse(
+        JSON.stringify(createContract<SqlStorage>({ storage: unboundTables({ user: userTable }) })),
+      );
+      const column = c.storage.namespaces[UNBOUND_NAMESPACE_ID].entries.table.user.columns.tags;
+      column.noCheck = ['elementNotNull'];
+      column.nativeType = 'text';
+      expect(() => validateSqlContractFully(c)).toThrow(
+        `Contract structural validation failed: storage.namespaces.${UNBOUND_NAMESPACE_ID}.entries.table.user.columns.tags.nativeType: contracts no longer store a column's database type name; the column names its data type in "dataType"`,
+      );
     });
 
     it('validates FK with source and target coordinates only', () => {

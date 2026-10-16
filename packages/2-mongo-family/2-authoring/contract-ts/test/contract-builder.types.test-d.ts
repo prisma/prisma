@@ -93,16 +93,12 @@ test('contract roots stay specific', () => {
   expectTypeOf(contract.roots.users.model).toEqualTypeOf<'User'>();
 });
 
-test('polymorphic variants keep literal model keys', () => {
-  type VariantKeys = keyof NonNullable<
-    MongoModelsMap<typeof polymorphicContract>['Task']['variants']
-  >;
+test('polymorphic variants are keyed by literal discriminator value', () => {
+  type Variants = MongoModelsMap<typeof polymorphicContract>['Task']['variants'];
 
-  expectTypeOf<VariantKeys>().toEqualTypeOf<'Bug' | 'Feature'>();
-  type BugVariantValue = MongoModelsMap<
-    typeof polymorphicContract
-  >['Task']['variants']['Bug']['value'];
-  expectTypeOf<BugVariantValue>().toBeString();
+  expectTypeOf<keyof Variants>().toEqualTypeOf<'bug' | 'feature'>();
+  expectTypeOf<Variants['bug']['model']>().toEqualTypeOf<'Bug'>();
+  expectTypeOf<Variants['feature']['model']>().toEqualTypeOf<'Feature'>();
 });
 
 test('value object rows flow through InferModelRow', () => {

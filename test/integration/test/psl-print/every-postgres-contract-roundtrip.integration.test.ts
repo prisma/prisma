@@ -152,6 +152,53 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
       meta: { model: 'Profile', field: 'user', space: 'supabase' },
     },
   ],
+  // Prisma 7 `@ignore` and `@@ignore` keep storage that no field or model maps, which Prisma 8 PSL cannot write until TML-3469.
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignore/expected-contract.json',
+    {
+      reason: 'is not stored by any field',
+      meta: { namespaceId: 'public', table: 'User', column: 'legacy' },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-field-defaults/expected-contract.json',
+    {
+      reason: 'is not stored by any field',
+      meta: { namespaceId: 'public', table: 'Account', column: 'status' },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-field-in-index/expected-contract.json',
+    {
+      reason: 'is not stored by any field',
+      meta: { namespaceId: 'public', table: 'Indexed', column: 'b' },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-model-many-to-many/expected-contract.json',
+    { reason: 'has no model stored in it', meta: { namespaceId: 'public', table: 'tags' } },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-models/expected-contract.json',
+    {
+      reason: 'that no relation of model "User" travels',
+      meta: { namespaceId: 'public', table: 'User', columns: ['archiveId'] },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-relation-back-relations/expected-contract.json',
+    {
+      reason: 'that no relation of model "User" travels',
+      meta: { namespaceId: 'public', table: 'User', columns: ['managerId'] },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/ignored-relation-field/expected-contract.json',
+    {
+      reason: 'that no relation of model "Post" travels',
+      meta: { namespaceId: 'public', table: 'Post', columns: ['authorId'] },
+    },
+  ],
   [
     'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/junction-name-in-other-schema/expected-contract.json',
     {
@@ -164,6 +211,13 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     {
       reason: 'is declared in more than one namespace',
       meta: { modelName: 'X', namespaces: ['one', 'two'] },
+    },
+  ],
+  [
+    'packages/2-sql/2-authoring/contract-prisma7/test/fixtures/relations-ignored/expected-contract.json',
+    {
+      reason: 'that no relation of model "Post" travels',
+      meta: { namespaceId: 'public', table: 'Post', columns: ['legacyOwnerId'] },
     },
   ],
   [
@@ -236,6 +290,10 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     },
   ],
   [
+    'test/integration/test/contract-parity/fixtures/postgres/generated/contract.json',
+    { reason: 'has no foreign key in storage', meta: { model: 'Account', field: 'user' } },
+  ],
+  [
     'test/integration/test/fixtures/contract-format/supabase-before-dbgenerated-removal.contract.json',
     {
       reason: 'has a different codec or type parameters from its column',
@@ -253,14 +311,18 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
     'test/integration/test/planner-golden/fixtures/postgres/generated/contract.json',
     {
       reason: 'no PSL type in the configured stack',
-      meta: { coordinate: '"public"."list"."bit"', dataType: 'pg/bit', codecId: 'pg/bit@1' },
+      meta: {
+        coordinate: '"public"."other_codec"."pgChar"',
+        dataType: 'pg/char',
+        codecId: 'pg/char@1',
+      },
     },
   ],
   [
     'test/integration/test/ports/engines/queries/data_types/native/postgres/_fixture/string/generated/contract.json',
     {
       reason: 'no PSL type in the configured stack',
-      meta: { coordinate: '"public"."Child"."bit"', dataType: 'pg/bit', codecId: 'pg/bit@1' },
+      meta: { coordinate: '"public"."Child"."char"', dataType: 'pg/char', codecId: 'pg/char@1' },
     },
   ],
   [
@@ -269,7 +331,7 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
   ],
   [
     'test/integration/test/sql-builder/fixtures/generated/contract.json',
-    { reason: 'has no foreign key in storage', meta: { model: 'Post', field: 'author' } },
+    { reason: 'has no foreign key in storage', meta: { model: 'Document', field: 'parent' } },
   ],
   [
     'test/integration/test/sql-orm-client/fixtures/execution-defaulted-tags/generated/contract.json',
@@ -282,6 +344,13 @@ const expectedRefusals: ReadonlyMap<string, ExpectedRefusal> = new Map<string, E
   [
     'test/integration/test/sql-orm-client/fixtures/junction-namespaces/generated/contract.json',
     { reason: 'many-to-many relation', meta: { model: 'User', field: 'roles' } },
+  ],
+  [
+    'test/integration/test/sql-orm-client/fixtures/polymorphism-namespaces/generated/contract.json',
+    {
+      reason: 'is declared in more than one namespace',
+      meta: { modelName: 'Doc', namespaces: ['b', 'c'] },
+    },
   ],
 ]);
 

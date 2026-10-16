@@ -281,6 +281,7 @@ export async function loadContractSourceWithStack(inputs: {
     dataTypes: stack.dataTypes,
     resolvedInputs: await unlessAborted(expandContractInputs(source.inputs)),
     capabilities: stack.capabilities,
+    defaultNamespaceId: stack.target.defaultNamespaceId,
   };
 
   let providerResult: Result<Contract, ContractSourceDiagnostics>;

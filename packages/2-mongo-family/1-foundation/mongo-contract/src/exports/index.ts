@@ -5,8 +5,7 @@ export type {
   ShapeSpec,
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
-export type { MongoEnumValueSetSource } from '../build-mongo-storage';
-export { buildMongoStorage, encodeMongoValueSets } from '../build-mongo-storage';
+export { buildMongoStorage } from '../build-mongo-storage';
 export {
   createMongoContractSchema,
   createMongoNamespaceEnvelopeSchema,
@@ -47,6 +46,11 @@ export {
   defaultMongoDomainNamespaceId,
   defaultMongoStorageNamespaceId,
 } from '../default-namespace';
+export type { CollectionValidatorsInput } from '../derive-collection-validators';
+export { deriveCollectionValidators } from '../derive-collection-validators';
+export type { FieldValueSets } from '../derive-json-schema';
+export type { DocumentIdRefusal } from '../document-id-refusal';
+export { documentIdRefusalOf } from '../document-id-refusal';
 export { buildMongoNamespace } from '../ir/build-mongo-namespace';
 export type { MongoChangeStreamPreAndPostImagesOptionsInput } from '../ir/mongo-change-stream-pre-and-post-images-options';
 export { MongoChangeStreamPreAndPostImagesOptions } from '../ir/mongo-change-stream-pre-and-post-images-options';
@@ -94,6 +98,7 @@ export type {
 export { MongoValidator } from '../ir/mongo-validator';
 export type { MongoValueSetInput } from '../ir/mongo-value-set';
 export { MongoValueSet } from '../ir/mongo-value-set';
+export { mongoValueSetsOf } from '../mongo-enum';
 export type {
   ApplyScopeResult,
   PolymorphicIndexScope,
@@ -102,3 +107,7 @@ export { applyPolymorphicScopeToMongoIndex } from '../polymorphic-index-scope';
 export type { MongoToOneRelationFields } from '../relation-fields';
 export { resolveMongoToOneRelationFields } from '../relation-fields';
 export { validateMongoStorage } from '../validate-storage';
+export {
+  validatorEnumMemberRefusalOf,
+  validatorEnumRefusalOf,
+} from '../validator-enum-refusal';

@@ -1,5 +1,6 @@
+import { convertedColumnMeta, requiredColumnMeta } from '@internal/family-sql/control';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import { type DdlColumn, opaqueSql, renderOpaqueSql } from '@internal/sql-relational-core/ast';
+import type { DdlColumn } from '@internal/sql-relational-core/ast';
 import { ifDefined } from '@internal/utils/defined';
 import {
   columnDefaultAst,
@@ -112,34 +113,28 @@ export async function renameColumn(
   };
 }
 
-/** A type change is `widening` when every value of the old type converts to the new type unchanged. */
-export type AlterColumnTypeClass = 'widening' | 'destructive';
+/**
+ * A type change is `widening` when every value of the old type converts to the new type unchanged,
+ * and `data` when the user writes the conversion in its USING clause.
+ */
+export type AlterColumnTypeClass = 'widening' | 'destructive' | 'data';
 
 /**
- * `qualifiedTargetType` is the new column type as it appears in the
- * `ALTER COLUMN TYPE` clause (schema-qualified for user-defined types, raw
- * native name for built-ins). `formatTypeExpected` is the unqualified
- * `format_type` form used in the postcheck. `rawTargetTypeForLabel` is the
- * string appearing in the human-readable label (typically `toType` when
- * explicit, else the column's native type).
+ * `type` is the new column type as a migration writes it, into the `ALTER COLUMN TYPE` clause.
+ * `checkType` is the type `format_type` prints for it, which the postcheck compares.
  */
 export async function alterColumnType(
   schemaName: string,
   tableName: string,
   columnName: string,
   options: {
-    readonly qualifiedTargetType: string;
-    readonly formatTypeExpected: string;
-    readonly rawTargetTypeForLabel: string;
+    readonly type: string;
+    readonly checkType: string;
     readonly using?: string;
   },
   lowerer: ExecuteRequestLowerer,
   operationClass: AlterColumnTypeClass = 'destructive',
 ): Promise<Op> {
-  const qualified = qualifyTableName(schemaName, tableName);
-  const usingClause = options.using
-    ? ` USING ${renderOpaqueSql(opaqueSql(options.using))}`
-    : ` USING ${quoteIdentifier(columnName)}::${options.qualifiedTargetType}`;
   const { present } = await columnExistsSteps(lowerer, {
     schema: schemaName,
     table: tableName,
@@ -150,24 +145,41 @@ export async function alterColumnType(
       schema: schemaName,
       table: tableName,
       column: columnName,
-      expectedType: options.formatTypeExpected,
+      expectedType: options.checkType,
+    }),
+  );
+  const alterType = await lowerer.lowerToExecuteRequest(
+    contractFreeDdl.alterTable({
+      ...ifDefined('schema', boundSchema(schemaName)),
+      table: tableName,
+      actions: [
+        contractFreeDdl.alterColumnTypeAction({
+          columnName,
+          type: options.type,
+          ...ifDefined('using', options.using),
+        }),
+      ],
     }),
   );
   return {
     id: `alterType.${tableName}.${columnName}`,
-    label: `Alter type of "${tableName}"."${columnName}" to ${options.rawTargetTypeForLabel}`,
+    label: `Alter type of "${tableName}"."${columnName}" to ${options.type}`,
     operationClass,
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [step(`ensure column "${columnName}" exists`, present.sql, present.params)],
     execute: [
-      step(
-        `alter type of "${columnName}"`,
-        `ALTER TABLE ${qualified} ALTER COLUMN ${quoteIdentifier(columnName)} TYPE ${options.qualifiedTargetType}${usingClause}`,
-      ),
+      {
+        ...step(`alter type of "${columnName}"`, alterType.sql),
+        ...(options.using !== undefined
+          ? { meta: convertedColumnMeta(tableName, columnName, 'conversion') }
+          : operationClass === 'destructive'
+            ? { meta: convertedColumnMeta(tableName, columnName, 'cast') }
+            : {}),
+      },
     ],
     postcheck: [
       step(
-        `verify column "${columnName}" has type "${options.formatTypeExpected}"`,
+        `verify column "${columnName}" has type "${options.checkType}"`,
         typeCheck.sql,
         typeCheck.params,
       ),
@@ -206,7 +218,10 @@ export async function setNotNull(
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
       step(`ensure column "${columnName}" exists`, present.sql, present.params),
-      step(`ensure no NULL values in "${columnName}"`, noNulls.sql, noNulls.params),
+      {
+        ...step(`ensure no NULL values in "${columnName}"`, noNulls.sql, noNulls.params),
+        meta: requiredColumnMeta(tableName, columnName, 'nullValues'),
+      },
     ],
     execute: [
       step(
@@ -438,7 +453,7 @@ export async function dropDefault(
  * empty; the execute step lowers the typed `AddColumn` DDL node through the
  * adapter; postchecks assert the column exists and is NOT NULL.
  */
-export async function addNotNullColumnDirect(
+export async function addRequiredColumnToEmptyTable(
   schemaName: string,
   tableName: string,
   column: DdlColumn,
@@ -475,11 +490,14 @@ export async function addNotNullColumnDirect(
     target: targetDetails('column', columnName, schemaName, tableName),
     precheck: [
       step(`ensure column "${columnName}" is missing`, absent.sql, absent.params),
-      step(
-        `ensure table "${tableName}" is empty before adding NOT NULL column without default`,
-        tableEmpty.sql,
-        tableEmpty.params,
-      ),
+      {
+        ...step(
+          `ensure table "${tableName}" is empty before adding NOT NULL column without default`,
+          tableEmpty.sql,
+          tableEmpty.params,
+        ),
+        meta: requiredColumnMeta(tableName, columnName, 'newField'),
+      },
     ],
     execute: [step(`add column "${columnName}"`, addColumn.sql)],
     postcheck: [

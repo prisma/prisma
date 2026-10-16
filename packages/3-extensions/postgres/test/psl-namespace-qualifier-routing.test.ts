@@ -50,6 +50,7 @@ function emit(schema: string) {
     sourceId: 'psl-namespace-qualifier-routing.test.psl',
     context: {
       composedExtensions: [],
+      defaultNamespaceId: 'public',
       composedExtensionContracts: new Map(),
       authoringContributions: {
         ...emptyAuthoringContributions,

@@ -41,6 +41,8 @@ export {
 } from '../contract-free/control-bootstrap';
 export {
   addColumnAction,
+  addConstraintAction,
+  alterColumnTypeAction,
   alterTable,
   createSchema,
   createTable,

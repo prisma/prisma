@@ -36,7 +36,11 @@ function buildInterpretInput(
   filename = SOURCE_ID,
 ): PslInterpretInput & { readonly binderDiagnostics: ReturnType<typeof mapPslDiagnostics> } {
   const { document, sources } = parse(schema, filename);
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   const { binder, diagnostics } = createBinder({ symbolTable, sources, context });
   return {
     documents: [document],
@@ -219,7 +223,7 @@ model Other {
       context,
       'memory-schema.prisma',
     );
-    const model = input.symbolTable.topLevel.models['User'];
+    const model = input.symbolTable.defaultNamespace.models['User'];
     const field = model?.fields['id'];
     expect(model).toBeDefined();
     expect(field).toBeDefined();
@@ -405,6 +409,7 @@ it('attributes multi-document semantic failures to the owning file, not the entr
     [owned.document.syntax, owned.sources.sourceFileFor(owned.document.syntax)],
   ]);
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [entry.document, owned.document],
     sources,
   });

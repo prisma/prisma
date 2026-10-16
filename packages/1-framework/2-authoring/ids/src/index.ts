@@ -16,19 +16,28 @@ const GENERATED_CHAR_TYPE = { codecId: 'sql/char@1' } as const;
  * PSL `@default(<generator>)`, which never influences the field's storage
  * type — the PSL interpreter never consults this metadata.
  */
-type GeneratedStorage = {
+type GeneratedStorage<Length extends number = number> = {
   readonly type: ColumnTypeDescriptor<typeof GENERATED_CHAR_TYPE.codecId>;
-  readonly typeParams: { readonly length: number };
+  readonly typeParams: { readonly length: Length };
 };
 
-function charStorage(length: number): GeneratedStorage {
+function charStorage<const Length extends number>(length: Length): GeneratedStorage<Length> {
   return { type: GENERATED_CHAR_TYPE, typeParams: { length } };
 }
 
-function nanoidStorage(params?: Record<string, unknown>): GeneratedStorage {
-  const rawSize = params?.['size'];
+const NANOID_DEFAULT_SIZE = 21;
+
+type NanoidOptions = IdGeneratorOptionsById['nanoid'];
+
+function nanoidStorage(): GeneratedStorage<typeof NANOID_DEFAULT_SIZE>;
+function nanoidStorage<const Size extends number>(options: {
+  readonly size: Size;
+}): GeneratedStorage<Size>;
+function nanoidStorage(options?: NanoidOptions): GeneratedStorage;
+function nanoidStorage(options?: NanoidOptions): GeneratedStorage {
+  const rawSize: unknown = options?.size;
   if (rawSize === undefined) {
-    return charStorage(21);
+    return charStorage(NANOID_DEFAULT_SIZE);
   }
   if (typeof rawSize !== 'number' || !Number.isInteger(rawSize) || rawSize < 2 || rawSize > 255) {
     throw contractError(
@@ -42,8 +51,8 @@ function nanoidStorage(params?: Record<string, unknown>): GeneratedStorage {
 
 type BuiltinGeneratorMetadata = {
   readonly applicableCodecIds: readonly string[];
-  /** The single source of the {@link GeneratedStorage} this generator's TS spec helper bundles. */
-  readonly generatedStorage: (params?: Record<string, unknown>) => GeneratedStorage;
+  /** The single source of the {@link GeneratedStorage} this generator's TS spec helper bundles, in its value and in its type. */
+  readonly generatedStorage: (options?: never) => GeneratedStorage;
 };
 
 const builtinGeneratorMetadataById = {
@@ -88,33 +97,49 @@ export type GeneratedColumnSpec<TCodecId extends string = string> = {
   readonly generated: ExecutionMutationDefaultValue;
 };
 
-function createGeneratedSpec<TId extends BuiltinGeneratorId>(
+function createGeneratedSpec<TId extends BuiltinGeneratorId, Length extends number>(
   id: TId,
-  options?: IdGeneratorOptionsById[TId],
-): GeneratedColumnSpec<typeof GENERATED_CHAR_TYPE.codecId> {
+  storage: GeneratedStorage<Length>,
+  options: IdGeneratorOptionsById[TId] | undefined,
+) {
   const params = options as Record<string, unknown> | undefined;
-  const storage = builtinGeneratorMetadataById[id].generatedStorage(params);
+  const generated: ExecutionMutationDefaultValue = {
+    kind: 'generator',
+    id,
+    ...ifDefined('params', params),
+  };
   return {
     type: storage.type,
     nullable: false,
     typeParams: storage.typeParams,
-    generated: {
-      kind: 'generator',
-      id,
-      ...ifDefined('params', params),
-    },
-  };
+    generated,
+  } as const;
 }
 
 export const ulid = (options?: IdGeneratorOptionsById['ulid']) =>
-  createGeneratedSpec('ulid', options);
-export const nanoid = (options?: IdGeneratorOptionsById['nanoid']) =>
-  createGeneratedSpec('nanoid', options);
+  createGeneratedSpec('ulid', builtinGeneratorMetadataById.ulid.generatedStorage(), options);
 export const uuidv7 = (options?: IdGeneratorOptionsById['uuidv7']) =>
-  createGeneratedSpec('uuidv7', options);
+  createGeneratedSpec('uuidv7', builtinGeneratorMetadataById.uuidv7.generatedStorage(), options);
 export const uuidv4 = (options?: IdGeneratorOptionsById['uuidv4']) =>
-  createGeneratedSpec('uuidv4', options);
+  createGeneratedSpec('uuidv4', builtinGeneratorMetadataById.uuidv4.generatedStorage(), options);
 export const cuid2 = (options?: IdGeneratorOptionsById['cuid2']) =>
-  createGeneratedSpec('cuid2', options);
+  createGeneratedSpec('cuid2', builtinGeneratorMetadataById.cuid2.generatedStorage(), options);
 export const ksuid = (options?: IdGeneratorOptionsById['ksuid']) =>
-  createGeneratedSpec('ksuid', options);
+  createGeneratedSpec('ksuid', builtinGeneratorMetadataById.ksuid.generatedStorage(), options);
+
+export function nanoid(): ReturnType<
+  typeof createGeneratedSpec<'nanoid', typeof NANOID_DEFAULT_SIZE>
+>;
+export function nanoid<const Size extends number>(options: {
+  readonly size: Size;
+}): ReturnType<typeof createGeneratedSpec<'nanoid', Size>>;
+export function nanoid(
+  options?: NanoidOptions,
+): ReturnType<typeof createGeneratedSpec<'nanoid', number>>;
+export function nanoid(options?: NanoidOptions) {
+  return createGeneratedSpec(
+    'nanoid',
+    builtinGeneratorMetadataById.nanoid.generatedStorage(options),
+    options,
+  );
+}

@@ -36,7 +36,7 @@ export const POSTGRES_TEXT_SEARCH_LANGUAGES = [
 
 export type FullTextSearchLanguage = (typeof POSTGRES_TEXT_SEARCH_LANGUAGES)[number];
 
-export const DEFAULT_FULL_TEXT_SEARCH_LANGUAGE: FullTextSearchLanguage = 'english';
+export const DEFAULT_FULL_TEXT_SEARCH_LANGUAGE = 'english' satisfies FullTextSearchLanguage;
 
 const KNOWN_LANGUAGES: ReadonlySet<string> = new Set(POSTGRES_TEXT_SEARCH_LANGUAGES);
 

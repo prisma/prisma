@@ -20,6 +20,7 @@ import { coreHash, profileHash } from '@internal/contract/types';
 import { APP_SPACE_ID, storageHashHex } from '@internal/framework-components/control';
 import { keepInternalSpecifiers } from '@internal/framework-components/emission';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { formatMigrationTs } from '@internal/migration-tools/migration-ts';
 import { type SqlNamespaceBase, SqlStorage, StorageTable } from '@internal/sql-contract/types';
 import {
   checkExpression,
@@ -29,12 +30,17 @@ import {
   primaryKey,
 } from '@internal/sql-relational-core/contract-free';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import {
   AddCheckConstraintCall,
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
   AddPrimaryKeyCall,
+  AddRequiredColumnToEmptyTableCall,
   AddUniqueCall,
   AlterColumnTypeCall,
   CreateExtensionCall,
@@ -114,6 +120,7 @@ const fixtureConfigSource = [
   '  family: sql,',
   '  target: postgres,',
   '  adapter: postgresAdapter,',
+  "  migrations: { dir: '.' },",
   '}) };',
   '',
 ].join('\n');
@@ -283,10 +290,21 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
           primaryKey(['id']),
           checkExpression('user_email_check', `"email" <> ''`),
           checkExpression('user_email_escapes', `"email" !~ '\\d' AND "email" <> '\`\${x}'`),
+          checkExpression('user_email_length', `"email" <> ''\n  AND length("email") < 255`),
         ],
       ),
       new AddColumnCall('public', 'user', col('nickname', 'text')),
       new AddColumnCall('public', 'user', col('meta', 'jsonb')),
+      new AddColumnWithTemporaryDefaultCall('public', 'user', 'handle', 'text', "''"),
+      new AddRequiredColumnToEmptyTableCall('public', 'user', 'code', 'int4'),
+      new AlterColumnTypeCall({
+        schemaName: 'public',
+        tableName: 'user',
+        columnName: 'nickname',
+        type: 'varchar(40)',
+        using: { kind: 'sql', sql: 'left("nickname", 40)' },
+        dataTypes: postgresDataTypes,
+      }),
       new SetDefaultCall(
         'public',
         'user',
@@ -294,6 +312,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
         'additive',
       ),
       new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] }),
+      new CreateIndexCall('public', 'user', 'user_email_lower', { expression: '  lower(email)' }),
       new CreateIndexCall(
         'public',
         'user',
@@ -313,7 +332,7 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
           operation: 'select',
           roles: ['authenticated'],
           using: `("id" = auth.uid() AND "email" <> '')`,
-          withCheck: `("id" = auth.uid())`,
+          withCheck: `("userId" = auth.uid())`,
           permissive: true,
         }),
       ),
@@ -331,11 +350,14 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     );
 
     const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
-    expect(tsSource).toContain('checkExpression("user_email_check", `"email" <> \'\'`)');
-    expect(tsSource).toContain('where: `"nickname" <> \'anonymous\'`');
-    expect(tsSource).toContain('using: `("id" = auth.uid() AND "email" <> \'\')`');
-    expect(tsSource).toContain(`\`"email" !~ '\\\\d' AND "email" <> '\\\`\\\${x}'\``);
-    expect(tsSource).toContain('default: fn(`\'{"a": 1}\'::jsonb`)');
+    expect(tsSource).toContain('checkExpression("user_email_check", sql`"email" <> \'\'`)');
+    expect(tsSource).toContain('checkExpression("user_email_length", sql`\n');
+    expect(tsSource).toContain('expression: "  lower(email)"');
+    expect(tsSource).toContain('where: sql`"nickname" <> \'anonymous\'`');
+    expect(tsSource).toContain('using: sql`("id" = auth.uid() AND "email" <> \'\')`');
+    expect(tsSource).toContain('withCheck: sql`("userId" = auth.uid())`');
+    expect(tsSource).toContain(`sql\`"email" !~ '\\\\d' AND "email" <> '\\\`\\\${x}'\``);
+    expect(tsSource).toContain('default: fn(sql`\'{"a": 1}\'::jsonb`)');
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
 
     const { stdout, stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -427,10 +449,12 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       ),
       new AddColumnCall(unbound, 'user', col('nickname', 'text')),
       new DropColumnCall(unbound, 'user', 'legacy'),
-      new AlterColumnTypeCall(unbound, 'user', 'age', {
-        qualifiedTargetType: 'integer',
-        formatTypeExpected: 'integer',
-        rawTargetTypeForLabel: 'integer',
+      new AlterColumnTypeCall({
+        schemaName: unbound,
+        tableName: 'user',
+        columnName: 'age',
+        type: 'int4',
+        dataTypes: postgresDataTypes,
       }),
       new SetNotNullCall(unbound, 'user', 'email'),
       new DropNotNullCall(unbound, 'user', 'nickname'),
@@ -463,7 +487,6 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       SNAPSHOTS_IMPORT_PATH,
       testAdapter,
     );
-
     const tsSource = rewriteImports(migration.renderTypeScript(keepInternalSpecifiers));
     await writeFile(join(tmpDir, 'migration.ts'), tsSource);
     const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
@@ -476,6 +499,48 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
       rendersSchema: false,
       ops: await Promise.all(renderOps(calls, testAdapter)),
     });
+  });
+
+  it('runs a multi-line sql template exactly as writeMigrationTs writes it, giving renderOps(calls)', {
+    timeout: timeouts.coldTransformImport,
+  }, async () => {
+    const calls = [
+      new CreateTableCall(
+        'public',
+        'profile',
+        [
+          col('id', 'int4', { notNull: true }),
+          col('slug', 'text', { default: fn("lower(\n  'a' || 'b'\n)") }),
+        ],
+        [
+          primaryKey(['id']),
+          checkExpression(
+            'profile_valid',
+            `"id" > 0\n  AND length("slug") < 280\n  AND "slug" <> '  x'`,
+          ),
+        ],
+      ),
+    ];
+    const migration = new TypeScriptRenderablePostgresMigration(
+      calls,
+      META,
+      APP_SPACE_ID,
+      SNAPSHOTS_IMPORT_PATH,
+      testAdapter,
+    );
+
+    const written = await formatMigrationTs(migration.renderTypeScript(keepInternalSpecifiers));
+    expect(written).toContain('sql`\n');
+    await writeFile(join(tmpDir, 'migration.ts'), rewriteImports(written));
+
+    const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
+      cwd: tmpDir,
+    });
+    expect(stderr).toBe('');
+
+    const ops = JSON.parse(await readFile(join(tmpDir, 'ops.json'), 'utf-8'));
+    const expected = JSON.parse(JSON.stringify(await Promise.all(renderOps(calls, testAdapter))));
+    expect(ops).toEqual(expected);
   });
 
   it('renders an empty calls list whose executed scaffold emits []', {
@@ -633,4 +698,69 @@ describe('TypeScriptRenderablePostgresMigration round-trip', () => {
     expect(ops).toHaveLength(1);
     expect(ops[0]).toEqual(JSON.parse(JSON.stringify(op)));
   });
+  it('a migration file written with sql values produces the same ops.json as one written with strings', {
+    timeout: timeouts.repeatedScriptRuns,
+  }, async () => {
+    const stringSource = handWrittenMigration(asStringLiteral);
+    const sqlSource = handWrittenMigration(asSqlTemplate);
+    expect(sqlSource).toContain('withCheck: sql`\n');
+
+    const run = async (source: string) => {
+      await writeFile(join(tmpDir, 'migration.ts'), rewriteImports(source));
+      const { stderr } = await execFileAsync(tsxPath, [join(tmpDir, 'migration.ts')], {
+        cwd: tmpDir,
+      });
+      expect(stderr).toBe('');
+      return readFile(join(tmpDir, 'ops.json'), 'utf-8');
+    };
+    const fromStrings = await run(stringSource);
+    const fromSql = await run(sqlSource);
+
+    expect(fromStrings).toContain('length(\\"id\\") < 64');
+    expect(fromStrings).toContain('NOT \\"locked\\"');
+    expect(fromSql).toBe(fromStrings);
+  });
+
+  it('a migration file written with sql values typechecks against the live migration surface', {
+    timeout: timeouts.typeScriptCompilation,
+  }, async () => {
+    await writeTypecheckDir(tmpDir, handWrittenMigration(asSqlTemplate));
+    await execFileAsync(tscPath, ['--project', tmpDir]);
+  });
 });
+
+function asStringLiteral(text: string): string {
+  return JSON.stringify(text);
+}
+
+function asSqlTemplate(text: string): string {
+  if (!text.includes('\n')) return `sql\`${text}\``;
+  const lines = text.split('\n').map((line) => `          ${line}`);
+  return `sql\`\n${lines.join('\n')}\n        \``;
+}
+
+function handWrittenMigration(write: (text: string) => string): string {
+  const operations = [
+    `this.createTable({ schema: "public", table: "account", columns: [col("id", "text", { notNull: true }), col("created", "timestamptz", { default: fn(${write('now()')}) })], constraints: [primaryKey(["id"]), checkExpression("account_id_check", ${write(`"id" <> ''\n  AND length("id") < 64`)})] }),`,
+    `this.addCheckConstraint({ schema: "public", table: "account", constraint: "account_id_format", expression: ${write(`"id" ~ '^[a-z]'`)} }),`,
+    `this.createIndex({ schema: "public", table: "account", index: "account_id_lower", expression: ${write('lower("id")')}, extras: { where: ${write(`"id" <> 'system'`)} } }),`,
+    `this.createRlsPolicy({ schema: "public", table: "account", policy: { naming: { kind: "wire", prefix: "account_owner", hash: "ab12cd34" }, tableName: "account", namespaceId: "public", operation: "all", roles: ["authenticated"], using: ${write('"userId" = auth.uid()')}, withCheck: ${write(`"userId" = auth.uid()\n  AND NOT "locked"`)}, permissive: true } }),`,
+    `this.alterColumnType({ schema: "public", table: "account", column: "id", type: "text", using: ${write('"id"::text')} }),`,
+    `this.addColumnWithTemporaryDefault({ schema: "public", table: "account", column: "title", type: "text", temporaryDefault: ${write("''")} }),`,
+  ].join('\n');
+  const scaffold = new TypeScriptRenderablePostgresMigration(
+    [],
+    META,
+    APP_SPACE_ID,
+    SNAPSHOTS_IMPORT_PATH,
+  ).renderTypeScript(keepInternalSpecifiers);
+  const source = scaffold
+    .replace(
+      'import { Migration, MigrationCLI }',
+      'import { Migration, MigrationCLI, checkExpression, col, fn, primaryKey, sql }',
+    )
+    .replace('    return [\n\n    ];', `    return [\n${operations}\n    ];`);
+  expect(source).toContain(operations);
+  expect(source).toContain('primaryKey, sql }');
+  return source;
+}

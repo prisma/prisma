@@ -11,7 +11,11 @@ function help(markedBlock: string) {
   expect(offset).toBeGreaterThanOrEqual(0);
   const { document, sources } = parse(markedSource.replace('|', ''), 'language-server-test.psl');
   const sourceFile = sources.sourceFileFor(document.syntax);
-  const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: 'public',
+  });
   return providePslSignatureHelp({
     document,
     sourceFile,
@@ -67,6 +71,18 @@ describe('generic block value signature help', () => {
     'returns null for a block value without a function call: %s',
     (entry) => {
       expect(help(['policy_select read_own {', `  ${entry}`, '}'].join('\n'))).toBeNull();
+    },
+  );
+});
+
+describe('generic block value signature help inside a mixin body', () => {
+  it.each([['run = every(|'], ['run = every(5, |'], ['run = every(5, unit: |']])(
+    'gives the signature a block of the keyword gives at %s',
+    (entry) => {
+      const inMixin = help(['schedule mixin nightly {', `  ${entry}`, '}'].join('\n'));
+
+      expect(inMixin).toEqual(schedule(entry));
+      expect(inMixin?.signatures[0]?.label).toBe(everyLabel);
     },
   );
 });

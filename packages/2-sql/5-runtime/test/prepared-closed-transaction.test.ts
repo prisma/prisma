@@ -4,7 +4,7 @@ import type { AffectedCount } from '@internal/sql-relational-core/expression';
 import type { SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import { planFromAst } from '@internal/sql-relational-core/plan';
 import { describe, expect, it, vi } from 'vitest';
-import type { RuntimeQueryable } from '../src/sql-runtime';
+import type { TransactionContext } from '../src/sql-runtime';
 import { withTransaction } from '../src/sql-runtime';
 import {
   createStubAdapter,
@@ -107,8 +107,8 @@ function affectedCountPlan(): SqlQueryPlan<AffectedCount> {
 async function endedTransaction(
   runtime: Parameters<typeof withTransaction>[0],
   ending: 'commit' | 'rollback',
-): Promise<RuntimeQueryable> {
-  let escaped: RuntimeQueryable | undefined;
+): Promise<TransactionContext> {
+  let escaped: TransactionContext | undefined;
 
   const run = withTransaction(runtime, async (tx) => {
     escaped = tx;

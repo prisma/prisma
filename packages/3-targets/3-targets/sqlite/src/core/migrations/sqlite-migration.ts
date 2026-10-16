@@ -1,10 +1,11 @@
-import type { Contract } from '@internal/contract/types';
+import type { ColumnDefault, Contract } from '@internal/contract/types';
 import {
   type ColumnRenameRequest,
   type MigrationOperationClass,
   resolveColumnRenameAgainst,
   resolveTableRenameAgainst,
   type SqlMigrationPlanOperation,
+  type SqlSlot,
   sqlTypeLookupsOf,
   type TableRenameRequest,
   unmatchedColumnRename,
@@ -17,8 +18,10 @@ import type { ControlStack } from '@internal/framework-components/control';
 import { MigrationContractViews } from '@internal/migration-tools/migration';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import type { DdlColumn, DdlTableConstraint } from '@internal/sql-relational-core/ast';
+import { type SqlTextInput, sqlTextOf } from '@internal/sql-relational-core/contract-free';
 import type { SqlSchemaIR } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
+import { ifDefined } from '@internal/utils/defined';
 import { errorSqliteMigrationStackMissing } from '../errors';
 import { SqliteContractView } from '../sqlite-contract-view';
 import { sqliteContractToSchema } from './diff-database-schema';
@@ -253,11 +256,12 @@ export abstract class SqliteMigration<
 
   protected addColumn(options: {
     readonly table: string;
-    readonly column: SqliteColumnSpec;
+    readonly column: SqliteColumnSpecInput;
   }): Promise<Op> {
-    return new AddColumnCall(options.table, options.column).toOp(
-      this.controlAdapterFor('addColumn'),
-    );
+    return new AddColumnCall(
+      options.table,
+      columnSpecOf(options.column, 'addColumn', options.table),
+    ).toOp(this.controlAdapterFor('addColumn'));
   }
 
   protected dropColumn(options: { readonly table: string; readonly column: string }): Promise<Op> {
@@ -284,13 +288,90 @@ export abstract class SqliteMigration<
 
   protected recreateTable(options: {
     readonly tableName: string;
-    readonly contractTable: SqliteTableSpec;
+    readonly contractTable: SqliteTableSpecInput;
     readonly schemaColumnNames: readonly string[];
     readonly indexes: readonly SqliteIndexSpec[];
     readonly summary: string;
     readonly postchecks: readonly RecreatePostcheck[];
     readonly operationClass: MigrationOperationClass;
+    /** SQL each named column is copied from, such as `CAST("age" AS INTEGER)`. */
+    readonly copyExpressions?: Readonly<Record<string, SqlTextInput>>;
+    /** The value each named new column takes in the existing rows, such as `''`. */
+    readonly temporaryValues?: Readonly<Record<string, SqlTextInput>>;
+    /** The columns whose type changes; the rebuild checks each after its copy, as a conversion when it has a copy expression and as SQLite's cast otherwise. */
+    readonly retypedColumns?: readonly string[];
   }): Promise<Op> {
-    return new RecreateTableCall(options).toOp(this.controlAdapterFor('recreateTable'));
+    const { copyExpressions, temporaryValues, ...args } = options;
+    return new RecreateTableCall({
+      ...args,
+      contractTable: {
+        ...options.contractTable,
+        columns: options.contractTable.columns.map((column) =>
+          columnSpecOf(column, 'recreateTable', options.tableName),
+        ),
+      },
+      ...ifDefined(
+        'copyExpressions',
+        copyExpressions === undefined
+          ? undefined
+          : copyExpressionSlotsOf(copyExpressions, options.tableName),
+      ),
+      ...ifDefined(
+        'temporaryValues',
+        temporaryValues === undefined
+          ? undefined
+          : copyExpressionSlotsOf(temporaryValues, options.tableName, 'temporaryValues'),
+      ),
+    }).toOp(this.controlAdapterFor('recreateTable'));
   }
+}
+
+type ColumnDefaultInput =
+  | Exclude<ColumnDefault, { readonly kind: 'function' }>
+  | { readonly kind: 'function'; readonly expression: SqlTextInput };
+
+type SqliteColumnSpecInput = Omit<SqliteColumnSpec, 'default'> & {
+  readonly default?: ColumnDefaultInput;
+};
+
+type SqliteTableSpecInput = Omit<SqliteTableSpec, 'columns'> & {
+  readonly columns: readonly SqliteColumnSpecInput[];
+};
+
+function columnDefaultOf(columnDefault: ColumnDefaultInput, what: string): ColumnDefault {
+  return columnDefault.kind === 'function'
+    ? { kind: 'function', expression: sqlTextOf(columnDefault.expression, what) }
+    : columnDefault;
+}
+
+function columnSpecOf(
+  column: SqliteColumnSpecInput,
+  operation: 'addColumn' | 'recreateTable',
+  table: string,
+): SqliteColumnSpec {
+  const { default: columnDefault, ...rest } = column;
+  const what = `${operation} ${JSON.stringify(table)}.${JSON.stringify(column.name)} default`;
+  return {
+    ...rest,
+    ...ifDefined(
+      'default',
+      columnDefault === undefined ? undefined : columnDefaultOf(columnDefault, what),
+    ),
+  };
+}
+
+function copyExpressionSlotsOf(
+  copyExpressions: Readonly<Record<string, SqlTextInput>>,
+  table: string,
+  option: 'copyExpressions' | 'temporaryValues' = 'copyExpressions',
+): Record<string, SqlSlot> {
+  return Object.fromEntries(
+    Object.entries(copyExpressions).map(([column, expression]) => [
+      column,
+      {
+        kind: 'sql',
+        sql: sqlTextOf(expression, `recreateTable ${JSON.stringify(table)} ${option}.${column}`),
+      },
+    ]),
+  );
 }

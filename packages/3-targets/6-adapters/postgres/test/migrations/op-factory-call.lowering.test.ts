@@ -4,12 +4,11 @@ import { type as arktype } from 'arktype';
  *
  * - `renderOps` lowers each variant via its pure factory and pins the
  *   id/operationClass/target.details shape exposed to runners.
- * - `RawSqlCall` is returned verbatim by `renderOps`.
  * - `DataTransformCall` lowers to an operation that rejects with MIGRATION.UNFILLED_PLACEHOLDER,
  *   because the planner can only emit unfilled stubs; the other operations still lower.
  * - `TypeScriptRenderablePostgresMigration` routes `operations` through
  *   `renderOps` and `renderTypeScript()` through `renderCallsToTypeScript`.
- * - `AddNotNullColumnWithTempDefaultCall` pins the exact `ADD COLUMN` SQL
+ * - `AddColumnWithTemporaryDefaultCall` pins the exact `ADD COLUMN` SQL
  *   for a codec-typed, parameterized column resolved via `codecHooks`
  *   (type token + temp-default backfill via `resolveIdentityValue`).
  *
@@ -32,11 +31,14 @@ import {
   createPostgresBuiltinCodecLookup,
   postgresCodecDescriptorRegistry,
 } from '@internal/target-postgres/codecs';
-import { createPostgresBuiltinDataTypeLookup } from '@internal/target-postgres/data-types';
+import {
+  createPostgresBuiltinDataTypeLookup,
+  postgresDataTypes,
+} from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
+  AddColumnWithTemporaryDefaultCall,
   AddForeignKeyCall,
-  AddNotNullColumnWithTempDefaultCall,
   AddPrimaryKeyCall,
   AddUniqueCall,
   AlterColumnTypeCall,
@@ -88,10 +90,12 @@ describe('renderOps', () => {
       new DropTableCall('public', 'stale'),
       new AddColumnCall('public', 'user', col('email', 'text')),
       new DropColumnCall('public', 'user', 'legacy'),
-      new AlterColumnTypeCall('public', 'user', 'age', {
-        qualifiedTargetType: 'integer',
-        formatTypeExpected: 'integer',
-        rawTargetTypeForLabel: 'integer',
+      new AlterColumnTypeCall({
+        schemaName: 'public',
+        tableName: 'user',
+        columnName: 'age',
+        type: 'integer',
+        dataTypes: postgresDataTypes,
       }),
       new SetNotNullCall('public', 'user', 'email'),
       new DropNotNullCall('public', 'user', 'nickname'),
@@ -222,26 +226,6 @@ describe('renderOps', () => {
     }
   });
 
-  it('RawSqlCall returns its stored op verbatim', () => {
-    const op = {
-      id: 'raw.identity',
-      label: 'raw identity',
-      operationClass: 'widening' as const,
-      target: {
-        id: 'postgres' as const,
-        details: { schema: 'x', objectType: 'table' as const, name: 't' },
-      },
-      precheck: [],
-      execute: [{ description: 'do', sql: 'SELECT 1' }],
-      postcheck: [],
-      meta: { note: 'roundtrip' },
-    };
-
-    const [rendered] = renderOps([new RawSqlCall(op)]);
-
-    expect(rendered).toBe(op);
-  });
-
   it('lowers a DataTransformCall to an operation that rejects with MIGRATION.UNFILLED_PLACEHOLDER, beside the others', async () => {
     const [dropped, stub] = renderOps(
       [new DropTableCall('public', 'stale'), new DataTransformCall('Backfill', 'check', 'run')],
@@ -290,7 +274,7 @@ describe('TypeScriptRenderablePostgresMigration', () => {
   });
 });
 
-describe('AddNotNullColumnWithTempDefaultCall', () => {
+describe('AddColumnWithTemporaryDefaultCall', () => {
   it('renders the exact ADD COLUMN SQL for a parameterized codec type with its temp-default backfill', async () => {
     const vectorType = sqlDataType('test/vector', {
       params: arktype({ length: 'number.integer > 0' }),
@@ -322,15 +306,13 @@ describe('AddNotNullColumnWithTempDefaultCall', () => {
     }
     expect(temporaryDefault).toBe("'[0,0,0]'");
 
-    const call = new AddNotNullColumnWithTempDefaultCall({
-      schemaName: 'public',
-      tableName: 'doc',
-      columnName: 'embedding',
-      column,
-      types,
-      storageTypes: {},
+    const call = new AddColumnWithTemporaryDefaultCall(
+      'public',
+      'doc',
+      'embedding',
+      'vector(3)',
       temporaryDefault,
-    });
+    );
     const op = await call.toOp(testAdapter);
 
     expect(op.execute[0]?.sql).toBe(
@@ -356,6 +338,7 @@ describe('SetDefaultCall', () => {
       'public',
       'Post',
       col('serial', 'int4', { default: fn('autoincrement()') }),
+      'additive',
     ).toOp(testAdapter);
 
     expect(op).toMatchObject({
@@ -403,6 +386,7 @@ describe('SetDefaultCall', () => {
       'public',
       'Post',
       col('serial', type, { default: fn('autoincrement()') }),
+      'additive',
     ).toOp(testAdapter);
 
     expect(op.execute.slice(0, 2).map((step) => step.sql)).toEqual([

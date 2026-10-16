@@ -1,7 +1,7 @@
 {
   "name": "@internal/sql-contract-psl",
   "private": true,
-  "version": "8.0.0-rc.17",
+  "version": "8.0.0-rc.18",
   "license": "Apache-2.0",
   "type": "module",
   "sideEffects": false,
@@ -16,21 +16,21 @@
     "clean": "rm -rf dist dist-tsc dist-tsc-prod coverage .tmp-output"
   },
   "dependencies": {
-    "@internal/config": "workspace:8.0.0-rc.17",
-    "@internal/contract": "workspace:8.0.0-rc.17",
-    "@internal/contract-authoring": "workspace:8.0.0-rc.17",
-    "@internal/framework-components": "workspace:8.0.0-rc.17",
-    "@internal/psl-parser": "workspace:8.0.0-rc.17",
-    "@internal/sql-contract": "workspace:8.0.0-rc.17",
-    "@internal/sql-contract-ts": "workspace:8.0.0-rc.17",
-    "@internal/utils": "workspace:8.0.0-rc.17",
+    "@internal/config": "workspace:8.0.0-rc.18",
+    "@internal/contract": "workspace:8.0.0-rc.18",
+    "@internal/contract-authoring": "workspace:8.0.0-rc.18",
+    "@internal/framework-components": "workspace:8.0.0-rc.18",
+    "@internal/psl-parser": "workspace:8.0.0-rc.18",
+    "@internal/sql-contract": "workspace:8.0.0-rc.18",
+    "@internal/sql-contract-ts": "workspace:8.0.0-rc.18",
+    "@internal/utils": "workspace:8.0.0-rc.18",
     "pathe": "^2.0.3",
     "tinyglobby": "catalog:"
   },
   "devDependencies": {
-    "@repo/test-utils": "workspace:8.0.0-rc.17",
-    "@repo/tsconfig": "workspace:8.0.0-rc.17",
-    "@repo/tsdown": "workspace:8.0.0-rc.17",
+    "@repo/test-utils": "workspace:8.0.0-rc.18",
+    "@repo/tsconfig": "workspace:8.0.0-rc.18",
+    "@repo/tsdown": "workspace:8.0.0-rc.18",
     "arktype": "^2.2.2",
     "tsdown": "catalog:",
     "typescript": "catalog:",
@@ -61,6 +61,10 @@
     "./default-table-name": {
       "types": "./dist/default-table-name.d.mts",
       "import": "./dist/default-table-name.mjs"
+    },
+    "./diagnostics": {
+      "types": "./dist/diagnostics.d.mts",
+      "import": "./dist/diagnostics.mjs"
     },
     "./map-names": {
       "types": "./dist/map-names.d.mts",

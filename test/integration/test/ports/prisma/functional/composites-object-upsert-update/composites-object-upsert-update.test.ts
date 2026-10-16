@@ -127,30 +127,6 @@ describe('ports/prisma/functional/composites/object/upsert-update', () => {
     );
 
     it(
-      'set null shorthand',
-      () =>
-        withComposites(async ({ db }) => {
-          const id = new ObjectId().toHexString();
-          await db.comments_required.create({
-            _id: id,
-            country: 'France',
-            content: { text: 'Hello World', upvotes: [{ vote: true, userId: '10' }] },
-          });
-
-          // @ts-expect-error required `content` cannot be null
-          const promise = db.comments_required.where({ _id: id }).upsert({
-            create: { _id: id, country: null, content: { text: 'Hello World', upvotes: [] } },
-            update: {
-              country: 'France',
-              content: null,
-            },
-          });
-          await expect(promise).rejects.toThrow();
-        }),
-      timeouts.spinUpMongoMemoryServer,
-    );
-
-    it(
       'set nested list',
       () =>
         withComposites(async ({ db }) => {

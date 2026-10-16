@@ -6,7 +6,7 @@ import type {
   ScalarFieldType,
 } from '@internal/contract/types';
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import type { PslTypeMap } from '@internal/family-sql/psl-build';
+import type { InferredTypeConstructors } from '@internal/family-sql/psl-build';
 import { requiredParamKeys, validateCodecTypeParams } from '@internal/framework-components/codec';
 import type {
   PslCompositeType,
@@ -64,7 +64,7 @@ function dataTypeOfMember(
 function buildMemberType(input: {
   readonly field: ContractField;
   readonly coordinate: string;
-  readonly typeMap: PslTypeMap;
+  readonly inferredConstructors: InferredTypeConstructors;
   readonly context: SqlPslBuildContext;
   readonly enumBlockNames: ReadonlyMap<string, string>;
   readonly domainEnums: Readonly<Record<string, ContractEnum>>;
@@ -92,7 +92,7 @@ function buildMemberType(input: {
       ...ifDefined('many', field.many),
       ...ifDefined('typeParams', type.typeParams),
     }),
-    typeMap: input.typeMap,
+    inferredConstructors: input.inferredConstructors,
     authoringTypes: input.context.authoringContributions.type,
     dataTypeLookup: input.context.dataTypes.lookup,
     enumBlockNames: input.enumBlockNames,
@@ -104,7 +104,7 @@ function buildMemberType(input: {
 export function buildCompositeTypes(input: {
   readonly contract: Contract<SqlStorage>;
   readonly namespaceId: string;
-  readonly typeMap: PslTypeMap;
+  readonly inferredConstructors: InferredTypeConstructors;
   readonly context: SqlPslBuildContext;
   readonly enumBlockNames: ReadonlyMap<string, string>;
   readonly domainEnums: Readonly<Record<string, ContractEnum>>;
@@ -121,7 +121,7 @@ export function buildCompositeTypes(input: {
         const { typeName, typeConstructor } = buildMemberType({
           field,
           coordinate: `"${input.namespaceId}".${name}.${fieldName}`,
-          typeMap: input.typeMap,
+          inferredConstructors: input.inferredConstructors,
           context: input.context,
           enumBlockNames: input.enumBlockNames,
           domainEnums: input.domainEnums,
@@ -147,7 +147,7 @@ export function buildCompositeTypes(input: {
 /** The document's `types { … }` block, one declaration per named storage type. */
 export function buildTypesBlock(
   contract: Contract<SqlStorage>,
-  typeMap: PslTypeMap,
+  inferredConstructors: InferredTypeConstructors,
   context: SqlPslBuildContext,
 ): PslTypesBlock | undefined {
   const declarations: PslNamedTypeDeclaration[] = [];
@@ -160,7 +160,7 @@ export function buildTypesBlock(
         nullable: false,
         ...ifDefined('typeParams', instance.typeParams),
       }),
-      typeMap,
+      inferredConstructors,
       authoringTypes: context.authoringContributions.type,
       dataTypeLookup: context.dataTypes.lookup,
       enumBlockNames: new Map(),

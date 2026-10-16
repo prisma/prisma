@@ -50,6 +50,7 @@ import { interpretPslDocumentToSqlContract } from '../src/interpreter';
 import { describeUnsupportedSqlAttribute } from '../src/psl-field-resolution';
 import { sqlAttributeSpecs } from '../src/sql-attribute-specs';
 import { sqlContextInput } from '../src/test';
+import { describeUnresolvedSqlType } from '../src/unresolved-type';
 import { fixtureInterpreterTypes } from './fixture-codec-descriptors';
 import { fixtureDataTypeSupport } from './fixture-data-types';
 
@@ -363,6 +364,7 @@ export function buildSymbolTableInput(
   schema: string,
   options?: {
     readonly sourceId?: string;
+    readonly defaultNamespaceId?: string;
   },
 ): {
   documents: readonly DocumentAst[];
@@ -376,7 +378,11 @@ export function buildSymbolTableInput(
   const sourceId = options?.sourceId ?? 'schema.prisma';
   const { document, sources } = parse(schema, sourceId);
   const sourceFile = sources.sourceFileFor(document.syntax);
-  const { symbolTable, diagnostics } = buildSymbolTable({ documents: [document], sources });
+  const { symbolTable, diagnostics } = buildSymbolTable({
+    documents: [document],
+    sources,
+    defaultNamespaceId: options?.defaultNamespaceId ?? postgresTarget.defaultNamespaceId,
+  });
   const seedDiagnostics: ContractSourceDiagnostic[] = diagnostics.map((diagnostic) => ({
     code: diagnostic.code,
     message: diagnostic.message,
@@ -422,6 +428,7 @@ function contextForInterpretOptions(
     | 'composedExtensionContracts'
     | 'capabilities'
     | 'scalarColumnDescriptors'
+    | 'target'
   >,
 ): ContractSourceContext {
   const authoring = options.authoringContributions;
@@ -434,6 +441,7 @@ function contextForInterpretOptions(
   }
   return {
     composedExtensions: options.composedExtensions ?? [],
+    defaultNamespaceId: options.target.defaultNamespaceId,
     composedExtensionContracts: options.composedExtensionContracts,
     authoringContributions: {
       type: { ...scalarsFromColumnDescriptors, ...authoring?.type },
@@ -447,7 +455,10 @@ function contextForInterpretOptions(
         ? {}
         : { valueObjectStorageType: authoring.valueObjectStorageType }),
     },
-    pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+    pslDiagnostics: {
+      describeUnsupportedAttribute: describeUnsupportedSqlAttribute,
+      describeUnresolvedType: describeUnresolvedSqlType,
+    },
     codecLookup: options.codecLookup,
     dataTypes: options.dataTypes,
     controlMutationDefaults: options.controlMutationDefaults ?? {
@@ -521,6 +532,7 @@ export function createPostgresTestContext(
 ): ContractSourceContext {
   return {
     composedExtensions: [],
+    defaultNamespaceId: 'public',
     composedExtensionContracts: new Map(),
     authoringContributions: {
       dataTypes: fixtureDataTypeSupport.entries,
@@ -532,7 +544,10 @@ export function createPostgresTestContext(
       attributeSpecs: sqlAttributeSpecs,
       valueObjectStorageType: 'Jsonb',
     },
-    pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
+    pslDiagnostics: {
+      describeUnsupportedAttribute: describeUnsupportedSqlAttribute,
+      describeUnresolvedType: describeUnresolvedSqlType,
+    },
     controlMutationDefaults: createBuiltinLikeControlMutationDefaults(),
     ...fixtureInterpreterTypes,
     resolvedInputs: [],

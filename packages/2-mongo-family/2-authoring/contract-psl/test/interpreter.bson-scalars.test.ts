@@ -1,6 +1,6 @@
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
+import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
-import { mongoCodecLookup, mongoDataTypeLookup } from './derive-json-schema-helpers';
 import { interpretMongoContract } from './interpreter-test-helpers';
 
 const scalarTypeCodecIds: ReadonlyMap<string, string> = new Map([
@@ -26,7 +26,7 @@ function interpretPost() {
     SCHEMA,
     {
       scalarTypeCodecIds,
-      controlMutationDefaults: { defaultFunctionRegistry: new Map() },
+      defaultFunctionRegistry: new Map(),
       codecLookup: mongoCodecLookup,
       dataTypes: { entries: {}, lookup: mongoDataTypeLookup },
     },

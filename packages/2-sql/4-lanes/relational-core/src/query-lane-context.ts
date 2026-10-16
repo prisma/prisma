@@ -6,6 +6,8 @@ import type { SqlStorage } from '@internal/sql-contract/types';
 import type { SqlOperationRegistry } from '@internal/sql-operations';
 import type { SqlAggregateDescriptor, SqlAggregateLowering } from './aggregate-descriptor';
 import type { ContractCodecRegistry } from './ast/codec-types';
+import type { CollectionMethodContribution } from './collection-methods';
+import type { RawCodecInferer } from './expression';
 
 /**
  * Codec-id-keyed accessor for descriptor metadata. The unified read API for codec-id-keyed metadata (`traits`) — non-branching for parameterized vs. non-parameterized codecs. Every codec ships natively as a `CodecDescriptor` through the unified `codecs:` contributor slot (see ADR 208).
@@ -92,4 +94,12 @@ export interface ExecutionContext<TContract extends Contract<SqlStorage> = Contr
    * Type helper registry for parameterized types. Schema builders expose these helpers via schema.types.
    */
   readonly types: TypeHelperRegistry;
+  /**
+   * The adapter's codec inferer, which `fns.raw` uses for a bare value interpolated into a template. An execution context built from an execution stack carries it.
+   */
+  readonly rawCodecInferer?: RawCodecInferer;
+  /**
+   * The collection methods the target and extensions contribute. The ORM client offers them under `using` on every collection.
+   */
+  readonly collectionMethods?: ReadonlyArray<CollectionMethodContribution>;
 }

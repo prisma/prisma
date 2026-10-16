@@ -64,7 +64,15 @@
                       "required": ["model", "namespace"],
                       "additionalProperties": false
                     },
-                    "discriminator": {},
+                    "discriminator": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["field"]
+                    },
                     "fields": {
                       "type": "object",
                       "additionalProperties": {
@@ -332,7 +340,25 @@
                         ]
                       }
                     },
-                    "variants": {}
+                    "variants": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "model": {
+                            "type": "string"
+                          },
+                          "namespace": {
+                            "type": "string"
+                          },
+                          "space": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["model", "namespace"],
+                        "additionalProperties": false
+                      }
+                    }
                   },
                   "required": ["storage"]
                 }
@@ -561,12 +587,6 @@
                                     "const": false
                                   }
                                 ]
-                              },
-                              "noCheck": {
-                                "type": "array",
-                                "items": {
-                                  "enum": ["elementNotNull", "membership"]
-                                }
                               },
                               "typeParams": {
                                 "type": "object",

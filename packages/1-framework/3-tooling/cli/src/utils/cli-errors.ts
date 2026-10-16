@@ -29,8 +29,11 @@ import {
 import type { RefResolutionError } from '@internal/migration-tools/ref-resolution';
 import { ifDefined } from '@internal/utils/defined';
 import type { NextAction } from '@prisma/cli-engine/protocol';
+import { statementFlag } from '../control-api/statements/statement-flag';
+import type { StatementText } from '../control-api/statements/statement-text';
 import type { MigrateFailure } from '../control-api/types';
 import { chooseAction, runCommandAction } from './next-actions';
+import { type CliInvocation, cliCommand, printedPlanCommand } from './printed-command';
 
 export {
   errorHashMismatch,
@@ -610,22 +613,75 @@ export function errorStatementUnresolved(
 }
 
 /**
- * A rename typed in answer to a data-loss question was planned, and the plan still loses the
- * subject's data: the rename does not account for the operation the question was about.
+ * A rename or convert typed in answer to a data-loss question was planned, and the plan still loses
+ * the subject's data: the statement does not account for the operation the question was about.
  */
 export function errorStatementDidNotResolveLoss(
   statement: WrittenStatement,
   subject: string,
 ): ActionableCliError {
-  const fix = `Answer the question about "${subject}" with --delete ${subject} if its data may be lost, or give a rename whose old name stores that data.`;
+  const fix = `Answer the question about "${subject}" with ${statementFlag({ verb: 'delete', text: subject })} if its data may be lost, or give a ${statement.verb} statement that keeps that data.`;
   return new ActionableCliError(
     'MIGRATION.STATEMENT_DID_NOT_RESOLVE_LOSS',
     `"--${statement.verb} ${statement.text}" does not keep the data of "${subject}"`,
     {
-      why: `The plan was made again with the rename, and it still loses the data of "${subject}".`,
+      why: `The plan was made again with the statement, and it still loses the data of "${subject}".`,
       fix,
       nextActions: [chooseAction(fix)],
       meta: { statement: statement.text, verb: statement.verb, subject },
+    },
+  );
+}
+
+/** `--convert` and `--delete` name the same field, and each answers its type change differently. */
+export function errorConvertAndDelete(field: string): ActionableCliError {
+  const fix = `Give one of them: ${statementFlag({ verb: 'convert', text: field })}, or ${statementFlag({ verb: 'delete', text: field })}.`;
+  return new ActionableCliError(
+    'MIGRATION.STATEMENT_INVALID',
+    `"--convert ${field}" and "--delete ${field}" conflict`,
+    {
+      why: `Both answer the type change of "${field}": --convert converts each value with code you write in migration.ts, and --delete lets the database cast each value, losing those it cannot keep.`,
+      fix,
+      nextActions: [chooseAction(fix)],
+      meta: { statement: field, verb: 'convert' },
+    },
+  );
+}
+
+const MIGRATION_PLAN_VERBS: readonly string[] = ['rename', 'delete', 'convert', 'backfill'];
+
+/**
+ * `--convert` or `--backfill` statements were given to `db update`, which applies its plan
+ * directly and so has no migration file whose slot the user could fill. `statements` are every
+ * statement the user gave, in the order given: the `migration plan` command the error suggests
+ * carries each one that command accepts, and starts from `databaseStorageHash`, the contract the
+ * database is at, when it is known. Its commands repeat the `--config` of `invocation`.
+ */
+export function errorStatementNeedsMigrationFile(
+  statements: readonly StatementText[],
+  invocation: CliInvocation | undefined,
+  databaseStorageHash?: string,
+): ActionableCliError {
+  const refused = statements.filter(({ verb }) => verb === 'convert' || verb === 'backfill');
+  const written = refused.map(({ verb, text }) => `"--${verb} ${text}"`);
+  const listed =
+    written.length === 1 ? written[0] : `${written.slice(0, -1).join(', ')} and ${written.at(-1)}`;
+  const plan = printedPlanCommand(
+    invocation,
+    databaseStorageHash,
+    statements.filter(({ verb }) => MIGRATION_PLAN_VERBS.includes(verb)).map(statementFlag),
+  );
+  return new ActionableCliError(
+    'MIGRATION.STATEMENT_NEEDS_MIGRATION_FILE',
+    `db update cannot carry out ${listed}`,
+    {
+      why: '--convert and --backfill ask for a migration file with a slot for the code that converts or fills in the values, and db update has no migration file to fill: it applies its plan directly.',
+      fix: `Plan the change with ${plan}, fill in the migration.ts it writes, run that migration.ts with the \`node\` command \`migration plan\` prints, and apply it with ${cliCommand(invocation, 'db migrate')}. Or leave out these statements: db update then asks before it loses any data.`,
+      nextActions: [
+        runCommandAction('Plan the change into a migration file to fill in', plan),
+        chooseAction('Or run db update without these statements'),
+      ],
+      meta: { statements: refused.map(({ verb, text }) => ({ verb, text })) },
     },
   );
 }
@@ -779,8 +835,8 @@ function noOperationsConflict(
         summary:
           'This contract describes nothing migration plan can create, so there is no first migration to plan.',
         why: destination.isEmitted
-          ? 'If the database needs something the contract does not describe, run `prisma migration new`, add its operations to the new `migration.ts`, then run `node migration.ts` in that directory to write `ops.json`.'
-          : '`prisma migration new` writes a migration only to the emitted contract. If the database needs something this contract does not describe, emit it, run `prisma migration new`, add its operations to the new `migration.ts`, then run `node migration.ts` in that directory to write `ops.json`.',
+          ? 'If the database needs something the contract does not describe, run `prisma migration new`, add its operations to the new `migration.ts`, then run that `migration.ts` with `node` to write `ops.json`.'
+          : '`prisma migration new` writes a migration only to the emitted contract. If the database needs something this contract does not describe, emit it, run `prisma migration new`, add its operations to the new `migration.ts`, then run that `migration.ts` with `node` to write `ops.json`.',
       };
     case 'baseline':
       return {

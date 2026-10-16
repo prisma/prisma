@@ -3,6 +3,7 @@ import type {
   ColumnRename,
   MigrationOperationPolicy,
   TableRename,
+  TableRenameByHand,
   TableRenameRequest,
 } from '@internal/family-sql/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
@@ -50,6 +51,14 @@ export function renameTableByHandStatements(
       rename.to,
     ),
   ];
+}
+
+/** How a user renames a table of `contract` by hand on Postgres. */
+export function postgresTableRenameByHand(contract: Contract<SqlStorage>): TableRenameByHand {
+  return {
+    renderTableRename: renderRenameTableCall,
+    tableRenameByHand: (rename) => renameTableByHandStatements(contract, rename),
+  };
 }
 
 function tableNode(

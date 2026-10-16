@@ -35,7 +35,6 @@ export type {
   ContractToManyRelation,
   ContractToOneRelation,
   ContractValueObject,
-  ContractVariantEntry,
   EmbedRelationKeys,
   ModelStorageBase,
   ReferenceRelationKeys,
@@ -46,6 +45,11 @@ export type {
 export { ContractExecutionSectionSchema } from '../execution-section-schema';
 export type { NamespaceId } from '../namespace-id';
 export { asNamespaceId } from '../namespace-id';
+export type {
+  ApplyParameterizedOutputTypes,
+  ParameterizedOutputType,
+  ParameterizedOutputTypesFunction,
+} from '../parameterized-output-types';
 export { type ResolvedDomainModel, resolveDomainModel } from '../resolve-domain-model';
 export type {
   $,

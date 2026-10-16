@@ -19,8 +19,12 @@ import {
   buildModelConstraintAttribute,
 } from '../psl-build/index-attributes';
 import { buildAttribute, buildMapAttribute, positionalArg } from '../psl-build/psl-literals';
-import type { ModelWithTable, VariantInfo } from './contract-model-index';
-import { refuseUnwritableIndexOptions, refuseUnwritableObjectName } from './refusals';
+import { type ModelWithTable, pslNamespaceName, type VariantInfo } from './contract-model-index';
+import {
+  refuseSqlTextThatDoesNotReadBack,
+  refuseUnwritableIndexOptions,
+  refuseUnwritableObjectName,
+} from './refusals';
 
 /** A check the PSL source derives for a table, which the printer does not write. */
 export interface DerivedCheck {
@@ -32,8 +36,8 @@ export interface DerivedCheck {
  * The checks the PSL source derives itself for a table, keyed by name, so
  * they are not also written as `@@check`. A table that is not managed derives
  * none. A managed one derives a membership check for each column typed by a
- * domain enum and an element-not-null check for each list column, less the
- * kinds a column waives with `@noCheck`.
+ * domain enum and an element-not-null check for each list column whose
+ * elements are not nullable.
  */
 export function derivedChecks(input: {
   readonly table: StorageTable;
@@ -51,14 +55,12 @@ export function derivedChecks(input: {
     const memberValues = enumValues?.filter(
       (value): value is string | number => typeof value === 'string' || typeof value === 'number',
     );
-    const waived = new Set(column.noCheck ?? []);
     for (const candidate of postgresRenderCheckExpressions({
       tableName: input.tableName,
       columnName,
       many: column.many,
       memberValues: memberValues?.length === enumValues?.length ? memberValues : undefined,
     })) {
-      if (waived.has(candidate.kind)) continue;
       const prefix = composeCheckWirePrefix(input.tableName, columnName, candidate.kind);
       checks.set(formatWireName(prefix, computeCheckContentHash(candidate.expression)), {
         prefix,
@@ -132,7 +134,11 @@ export function buildModelAttributes(input: {
   if (variant !== undefined) {
     attributes.push(
       buildAttribute('model', 'base', [
-        positionalArg(variant.base.name),
+        positionalArg(
+          variant.base.namespaceId === entry.namespaceId
+            ? variant.base.name
+            : `${pslNamespaceName(variant.base.namespaceId)}.${variant.base.name}`,
+        ),
         positionalArg(`"${escapePslString(variant.value)}"`),
       ]),
     );
@@ -156,6 +162,13 @@ export function buildModelAttributes(input: {
   }
   for (const check of entry.table.checks ?? []) {
     if (derivedChecksByName.has(check.name) || !owns(undefined)) continue;
+    refuseSqlTextThatDoesNotReadBack({
+      kind: 'check',
+      namespaceId: entry.namespaceId,
+      table: entry.tableName,
+      name: check.name,
+      texts: [check.expression],
+    });
     attributes.push(
       buildCheckAttribute(
         check,
@@ -177,6 +190,13 @@ export function buildModelAttributes(input: {
       name: index.name,
       prefix: index.prefix,
       contentHash: () => computeIndexContentHash(index),
+    });
+    refuseSqlTextThatDoesNotReadBack({
+      kind: 'index',
+      namespaceId: entry.namespaceId,
+      table: entry.tableName,
+      name: index.name,
+      texts: [index.expression, index.where],
     });
     const fullText = fullTextIndexDefinitionOf(index);
     if (fullText !== undefined) {

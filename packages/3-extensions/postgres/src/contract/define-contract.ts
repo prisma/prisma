@@ -1,3 +1,4 @@
+import { postgresAdapterContractContributions } from '@internal/adapter-postgres/adapter';
 import sqlFamilyPack from '@internal/family-sql/pack';
 import {
   assembleDataTypes,
@@ -29,12 +30,21 @@ type PostgresPack = typeof postgresPack;
 type TypesConstraint = Record<string, AuthoredStorageTypeInstance>;
 type ModelsConstraint = Record<string, ModelLike>;
 type EnumsConstraint = Record<string, EnumTypeHandle>;
+type ForeignKeyDefaultsConstraint = ContractInput['foreignKeyDefaults'];
+type NamespacesConstraint = readonly string[] | undefined;
+
+/** What the adapter this contract runs with adds to it: its capabilities and its aggregate overloads, as `prisma contract emit` adds them. */
+type PostgresAdapter = typeof postgresAdapterContractContributions;
+
+const adapter: PostgresAdapter = postgresAdapterContractContributions;
 
 type PostgresResult<
   Types extends TypesConstraint,
   Models extends ModelsConstraint,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends EnumsConstraint,
+  Namespaces extends NamespacesConstraint,
+  ForeignKeyDefaults extends ForeignKeyDefaultsConstraint = undefined,
 > = ReturnType<
   typeof buildBoundContract<
     SqlFamily,
@@ -44,6 +54,9 @@ type PostgresResult<
       readonly models?: Models;
       readonly extensions?: Extensions;
       readonly enums?: Enums;
+      readonly namespaces?: Namespaces;
+      readonly adapter: PostgresAdapter;
+      readonly foreignKeyDefaults?: ForeignKeyDefaults;
       readonly createNamespace: (input: SqlNamespaceInput) => SqlNamespaceBase;
       readonly codecLookup: CodecLookupWithDescriptors;
       readonly dataTypeLookup: DataTypeLookup;
@@ -53,18 +66,24 @@ type PostgresResult<
 
 type PostgresBaseScaffold<
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
+  ForeignKeyDefaults extends ForeignKeyDefaultsConstraint = undefined,
 > = Omit<
   ContractInput<SqlFamily, PostgresPack, Record<never, never>, Record<never, never>, Extensions>,
   | 'family'
   | 'target'
+  | 'adapter'
+  | 'foreignKeyDefaults'
   | 'types'
   | 'models'
   | 'enums'
+  | 'namespaces'
   | 'createNamespace'
   | 'entities'
   | 'codecLookup'
   | 'dataTypeLookup'
 > & {
+  /** Contract-wide defaults for foreign keys' `constraint` and `index`. */
+  readonly foreignKeyDefaults?: ForeignKeyDefaults;
   /** Overrides the codecs of the target and the extensions. */
   readonly codecLookup?: CodecLookupWithDescriptors;
   /** Overrides the data types of the target and the extensions. */
@@ -84,19 +103,25 @@ type PostgresDefinition<
   Models extends ModelsConstraint,
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends EnumsConstraint,
-> = PostgresBaseScaffold<Extensions> & {
+  Namespaces extends NamespacesConstraint,
+  ForeignKeyDefaults extends ForeignKeyDefaultsConstraint,
+> = PostgresBaseScaffold<Extensions, ForeignKeyDefaults> & {
   readonly types?: Types;
   readonly models?: Models;
   readonly enums?: Enums;
+  readonly namespaces?: Namespaces;
 };
 
 type PostgresScaffold<
   Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined,
   Enums extends EnumsConstraint,
-> = PostgresBaseScaffold<Extensions> & {
+  Namespaces extends NamespacesConstraint,
+  ForeignKeyDefaults extends ForeignKeyDefaultsConstraint,
+> = PostgresBaseScaffold<Extensions, ForeignKeyDefaults> & {
   readonly types?: never;
   readonly models?: never;
   readonly enums?: Enums;
+  readonly namespaces?: Namespaces;
 };
 
 export function defineContract<
@@ -104,9 +129,11 @@ export function defineContract<
   const Models extends ModelsConstraint = Record<never, never>,
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const Enums extends EnumsConstraint = Record<never, never>,
+  const Namespaces extends NamespacesConstraint = undefined,
+  const ForeignKeyDefaults extends ForeignKeyDefaultsConstraint = undefined,
 >(
-  definition: PostgresDefinition<Types, Models, Extensions, Enums>,
-): PostgresResult<Types, Models, Extensions, Enums>;
+  definition: PostgresDefinition<Types, Models, Extensions, Enums, Namespaces, ForeignKeyDefaults>,
+): PostgresResult<Types, Models, Extensions, Enums, Namespaces, ForeignKeyDefaults>;
 
 export function defineContract<
   const Types extends TypesConstraint = Record<never, never>,
@@ -114,26 +141,49 @@ export function defineContract<
   const Extensions extends Record<string, ExtensionPackRef<'sql', string>> | undefined = undefined,
   const ScaffoldEnums extends EnumsConstraint = Record<never, never>,
   const FactoryEnums extends EnumsConstraint = Record<never, never>,
+  const Namespaces extends NamespacesConstraint = undefined,
+  const ForeignKeyDefaults extends ForeignKeyDefaultsConstraint = undefined,
 >(
-  scaffold: PostgresScaffold<Extensions, ScaffoldEnums>,
+  scaffold: PostgresScaffold<Extensions, ScaffoldEnums, Namespaces, ForeignKeyDefaults>,
   factory: (helpers: ComposedAuthoringHelpers<SqlFamily, PostgresPack, Extensions>) => {
     readonly types?: Types;
     readonly models?: Models;
     readonly enums?: FactoryEnums;
   },
-): PostgresResult<Types, Models, Extensions, MergeEnums<ScaffoldEnums, FactoryEnums>>;
+): PostgresResult<
+  Types,
+  Models,
+  Extensions,
+  MergeEnums<ScaffoldEnums, FactoryEnums>,
+  Namespaces,
+  ForeignKeyDefaults
+>;
 
 // Implementation — delegates to buildBoundContract which pre-binds family/target,
 // carrying zero casts and zero entity-kind logic at this layer: the generic
 // build lowers `entities` through the pack-registered entity-handle hook.
 export function defineContract(
-  definition: PostgresDefinition<TypesConstraint, ModelsConstraint, undefined, EnumsConstraint>,
+  definition: PostgresDefinition<
+    TypesConstraint,
+    ModelsConstraint,
+    undefined,
+    EnumsConstraint,
+    NamespacesConstraint,
+    ForeignKeyDefaultsConstraint
+  >,
   factory?: (helpers: ComposedAuthoringHelpers<SqlFamily, PostgresPack, undefined>) => {
     readonly types?: TypesConstraint;
     readonly models?: ModelsConstraint;
     readonly enums?: EnumsConstraint;
   },
-): PostgresResult<TypesConstraint, ModelsConstraint, undefined, EnumsConstraint> {
+): PostgresResult<
+  TypesConstraint,
+  ModelsConstraint,
+  undefined,
+  EnumsConstraint,
+  NamespacesConstraint,
+  ForeignKeyDefaultsConstraint
+> {
   const extensions: readonly ExtensionPackRef<'sql', string>[] = Object.values(
     definition.extensions ?? {},
   );
@@ -141,6 +191,7 @@ export function defineContract(
     definition.dataTypeLookup ?? assembleDataTypes([postgresPack, ...extensions]).lookup;
   const bound = {
     ...definition,
+    adapter,
     createNamespace: postgresCreateNamespace,
     codecLookup:
       definition.codecLookup ??

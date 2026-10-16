@@ -68,6 +68,7 @@ const interpretContext = {
 } as unknown as ContractSourceContext;
 const controlStack = {
   scalarTypes: ['Int'],
+  defaultNamespaceId: 'public',
   pslBlockDescriptors: {},
   authoringContributions: assembleAuthoringContributions([
     {
@@ -185,7 +186,7 @@ describe('ProjectArtifacts binder', () => {
     set(schemaUri, cleanSource);
     set(siblingUri, siblingSource);
     const first = project.binder();
-    const user = project.symbolTable().topLevel.models['User']!;
+    const user = project.symbolTable().defaultNamespace.models['User']!;
     expect(first.declaredSymbol(user.node.syntax)).toBe(user);
     expect(project.binder()).toBe(first);
     project.updateInputs(inputs);
@@ -197,7 +198,7 @@ describe('ProjectArtifacts binder', () => {
     const third = project.binder();
     expect(third).not.toBe(second);
     expect(third.declaredSymbol(user.node.syntax)).toBeUndefined();
-    const changed = project.symbolTable().topLevel.models['Changed']!;
+    const changed = project.symbolTable().defaultNamespace.models['Changed']!;
     expect(third.scopeAt(changed.node.syntax).lookup('Changed')?.symbol).toBe(changed);
     expect(third.scopeAt(changed.node.syntax).lookup('User')).toBeUndefined();
     project.documentClosed(schemaUri);
@@ -327,7 +328,7 @@ describe('ProjectArtifacts snapshots', () => {
         const snapshot = set(uri, cleanSource);
         project.documentChanged(uri);
         expect(project.document(uri)).toBe(snapshot);
-        expect(Object.keys(project.symbolTable().topLevel.models)).toEqual(['User']);
+        expect(Object.keys(project.symbolTable().defaultNamespace.models)).toEqual(['User']);
       }
     },
   );
@@ -418,7 +419,7 @@ describe('ProjectArtifacts snapshots', () => {
     expect(parse).toHaveBeenCalledTimes(2);
     const edited = set(siblingUri, `${directive}model Other { id Int }`);
     project.diagnostics(schemaUri);
-    expect(Object.keys(project.symbolTable().topLevel.models)).toEqual(['User', 'Other']);
+    expect(Object.keys(project.symbolTable().defaultNamespace.models)).toEqual(['User', 'Other']);
     expect(project.document(siblingUri)).toBe(edited);
     expect(() => project.sources.sourceFileFor(sibling.parse().document.syntax)).toThrow(
       /No SourceFile/,
@@ -489,7 +490,7 @@ describe('ProjectArtifacts snapshots', () => {
         documents.invalidate(uri);
       }
       expect(project.document(uri)).not.toBe(first);
-      expect(Object.keys(project.symbolTable().topLevel.models)).toEqual(['Post']);
+      expect(Object.keys(project.symbolTable().defaultNamespace.models)).toEqual(['Post']);
       expect(parse).toHaveBeenCalledTimes(2);
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -695,7 +696,7 @@ describe('ProjectArtifacts diagnostics', () => {
     const { project } = projectWithSnapshots();
     expect(project.diagnostics(schemaUri)).toEqual([]);
     expect(project.symbolDiagnostics()).toEqual([]);
-    expect(Object.keys(project.symbolTable().topLevel.models)).toEqual([]);
+    expect(Object.keys(project.symbolTable().defaultNamespace.models)).toEqual([]);
     expect(parse).not.toHaveBeenCalled();
   });
 });
@@ -711,7 +712,11 @@ describe('ProjectArtifacts binder', () => {
     set(schemaUri, schema);
 
     const { document, sources } = parse(schema, schemaUri);
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
     const { diagnostics: expected } = createBinder({
       symbolTable,
       sources,
@@ -729,7 +734,11 @@ describe('ProjectArtifacts binder', () => {
     set(schemaUri, schema);
 
     const { document, sources } = parse(schema, schemaUri);
-    const { symbolTable } = buildSymbolTable({ documents: [document], sources });
+    const { symbolTable } = buildSymbolTable({
+      documents: [document],
+      sources,
+      defaultNamespaceId: 'public',
+    });
     const { diagnostics: expected } = createBinder({
       symbolTable,
       sources,

@@ -14,10 +14,11 @@ const mongoConfigPath = join(
 function modelSymbolFor(source: string) {
   const { document, sources } = parse(source, 'attribute-specs-consumability.prisma');
   const { symbolTable } = buildSymbolTable({
+    defaultNamespaceId: 'public',
     documents: [document],
     sources,
   });
-  return { symbolTable, model: symbolTable.topLevel.models['Widget'] };
+  return { symbolTable, model: symbolTable.defaultNamespace.models['Widget'] };
 }
 
 describe('postgres attribute specs are consumable from a resolved language-server project', () => {
@@ -46,9 +47,8 @@ describe('postgres attribute specs are consumable from a resolved language-serve
     const ctx: AttributeSpecContext = {
       symbols: symbolTable,
       model,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
       dataTypes: interpretation.context.dataTypes,
     };
 
@@ -98,9 +98,8 @@ describe('mongo attribute specs are consumable from a resolved language-server p
     const ctx: AttributeSpecContext = {
       symbols: symbolTable,
       model,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
       dataTypes: interpretation.context.dataTypes,
     };
 
@@ -141,14 +140,7 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       'rls',
       'unique',
     ]);
-    expect(Object.keys(specs.field).sort()).toEqual([
-      'default',
-      'id',
-      'map',
-      'noCheck',
-      'relation',
-      'unique',
-    ]);
+    expect(Object.keys(specs.field).sort()).toEqual(['default', 'id', 'map', 'relation', 'unique']);
   });
 
   it("invokes the SQL family's @relation factory and enumerates its named arguments", async () => {
@@ -169,9 +161,8 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       model,
       field,
       typeResolution: undefined,
-      controlMutationDefaults: {
-        ...interpretation.context.controlMutationDefaults,
-      },
+      defaultFunctionRegistry:
+        interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
       dataTypes: interpretation.context.dataTypes,
     });
 

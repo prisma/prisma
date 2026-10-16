@@ -31,6 +31,9 @@
  *                              Posts created since an ISO instant, ordered by a
  *                              field named on the command line (title or createdAt),
  *                              shaped by a shared post summary fragment
+ * - repo-list-posts [userId|-] [before|-] [limit]
+ *                              Newest post summaries, filtered by author and by an
+ *                              ISO instant only when those are given (`-` skips either)
  * - repo-task-board [limit]    Users with their polymorphic `tasks` included —
  *                              each task comes back shaped per its variant
  *                              (Bug: severity/stepsToRepro, Feature: priority/targetRelease)
@@ -71,9 +74,11 @@
  * - repo-similar-posts <postId> [limit]
  *                              Cosine-distance similarity search via ORM client
  * - repo-search-posts <embedding> <maxDistance> [limit]
- *                              Vector similarity search via ORM client
+ *                              Nearest posts to a 1536-number vector via ORM client (using.embedding_nearest)
  * - repo-search-posts-text <query> [limit]
  *                              Full-text search over post titles via ORM client
+ * - repo-search-posts-weighted <query> [limit]
+ *                              Weighted full-text search over post title and body via ORM client (using.post_search)
  * - users-paginate [cursor]    Cursor-based pagination
  * - similarity-search <vec>    Vector similarity search (pgvector)
  * - full-text-search <query> [limit]
@@ -142,6 +147,7 @@ import { ormClientGetDashboardUsers } from './orm-client/get-dashboard-users';
 import { ormClientGetEngagementPrecision } from './orm-client/get-engagement-precision';
 import { ormClientGetEngagementSpread } from './orm-client/get-engagement-spread';
 import { ormClientGetFeatureRoadmap } from './orm-client/get-feature-roadmap';
+import { ormClientGetFilteredPosts } from './orm-client/get-filtered-posts';
 import { ormClientGetLatestUserPerKind } from './orm-client/get-latest-user-per-kind';
 import { ormClientGetPostEngagement } from './orm-client/get-post-engagement';
 import { ormClientGetPostFeed } from './orm-client/get-post-feed';
@@ -160,6 +166,7 @@ import { ormClientGetUsers } from './orm-client/get-users';
 import { ormClientGetUsersBackwardCursor } from './orm-client/get-users-backward-cursor';
 import { ormClientGetUsersByIdCursor } from './orm-client/get-users-by-id-cursor';
 import { ormClientGetUsersCached } from './orm-client/get-users-cached';
+import { ormClientSearchPosts } from './orm-client/search-posts';
 import { ormClientSearchPostsByEmbedding } from './orm-client/search-posts-by-embedding';
 import { ormClientSearchPostsByTitle } from './orm-client/search-posts-by-title';
 import { ormClientUpsertUser } from './orm-client/upsert-user';
@@ -203,6 +210,11 @@ function describe(value: unknown): string {
   if (typeof value === 'string') return `'${value}' (string)`;
   return `${String(value)} (${typeof value})`;
 }
+
+const EMBEDDING_ARGUMENT_HELP = [
+  '  embedding: a JSON array of exactly 1536 numbers, the length of Post.embedding. For example, the embedding the seed gives "First Post":',
+  `    pnpm start -- repo-search-posts "$(node -e 'console.log(JSON.stringify(Array.from({ length: 1536 }, (_, i) => Math.sin(1 + i) * 0.1)))')" 0.5`,
+].join('\n');
 
 /**
  * `JSON.stringify` refuses a `bigint`, and a raw row spec naming an
@@ -334,6 +346,20 @@ async function main() {
         orderBy,
         directionStr ?? 'desc',
         limit,
+        runtime,
+      );
+
+      console.log(JSON.stringify(posts, null, 2));
+    } else if (cmd === 'repo-list-posts') {
+      const [userIdStr, beforeStr, limitStr] = args;
+      const given = (arg: string | undefined) => (arg && arg !== '-' ? arg : undefined);
+      const before = given(beforeStr);
+      const posts = await ormClientGetFilteredPosts(
+        {
+          userId: given(userIdStr),
+          before: before !== undefined ? Temporal.Instant.from(before) : undefined,
+        },
+        limitStr ? Number.parseInt(limitStr, 10) : 10,
         runtime,
       );
 
@@ -528,7 +554,7 @@ async function main() {
       const [embeddingStr, maxDistanceStr, limitStr] = args;
       if (!embeddingStr || !maxDistanceStr) {
         console.error('Usage: pnpm start -- repo-search-posts <embedding> <maxDistance> [limit]');
-        console.error('  embedding: JSON array of numbers, e.g., "[0.1,0.2,0.3]"');
+        console.error(EMBEDDING_ARGUMENT_HELP);
         process.exit(1);
       }
       let searchEmbedding: number[];
@@ -545,7 +571,7 @@ async function main() {
           'Error parsing embedding:',
           error instanceof Error ? error.message : String(error),
         );
-        console.error('Expected JSON array of numbers, e.g., "[0.1,0.2,0.3]"');
+        console.error(EMBEDDING_ARGUMENT_HELP);
         process.exit(1);
       }
       const maxDistance = Number.parseFloat(maxDistanceStr);
@@ -557,7 +583,7 @@ async function main() {
         runtime,
       );
 
-      console.log(JSON.stringify(posts, null, 2));
+      console.log(toJson(posts));
     } else if (cmd === 'repo-search-posts-text') {
       const [query, limitStr] = args;
       if (!query) {
@@ -566,6 +592,16 @@ async function main() {
       }
       const limit = limitStr ? Number.parseInt(limitStr, 10) : 10;
       const posts = await ormClientSearchPostsByTitle(query, limit, runtime);
+
+      console.log(JSON.stringify(posts, null, 2));
+    } else if (cmd === 'repo-search-posts-weighted') {
+      const [query, limitStr] = args;
+      if (!query) {
+        console.error('Usage: pnpm start -- repo-search-posts-weighted <query> [limit]');
+        process.exit(1);
+      }
+      const limit = limitStr ? Number.parseInt(limitStr, 10) : 10;
+      const posts = await ormClientSearchPosts(query, limit, runtime);
 
       console.log(JSON.stringify(posts, null, 2));
     } else if (cmd === 'users-paginate') {
@@ -852,12 +888,14 @@ async function main() {
     } else {
       console.log(
         'Usage: pnpm start -- [users [limit] | user <userId> | posts <userId> | ' +
-          'repo-search-posts-text <query> [limit] | full-text-search <query> [limit] | ' +
+          'repo-search-posts-text <query> [limit] | repo-search-posts-weighted <query> [limit] | ' +
+          'full-text-search <query> [limit] | ' +
           'repo-users [limit] | repo-admins [limit] | ' +
           'repo-user <email> | repo-posts <userId> [limit] | orm-user-profile <id> | ' +
           'repo-dashboard <emailDomain> <postTitleTerm> [limit] [postsPerUser] | ' +
           'repo-post-feed <postTitleTerm> [limit] | repo-users-cursor [cursor] [limit] | ' +
           'repo-recent-posts <since> [orderBy] [asc|desc] [limit] | ' +
+          'repo-list-posts [userId|-] [before|-] [limit] | ' +
           'repo-tasks [limit] | repo-bugs [limit] | repo-features [limit] | ' +
           'repo-task-board [limit] | repo-bug-triage [severity] [limit] | ' +
           'repo-feature-roadmap <targetRelease> [limit] | ' +

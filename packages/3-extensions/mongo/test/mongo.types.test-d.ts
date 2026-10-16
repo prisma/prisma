@@ -54,7 +54,7 @@ test('db.orm.users.all() yields rows via AsyncIterableResult', () => {
 test('db.orm.tasks.variant("bug").where(...) narrows to the variant', () => {
   const bugChain = db.orm.tasks.variant('bug').where({ title: 'X' });
   expectTypeOf(bugChain).not.toBeNever();
-  expectTypeOf(bugChain).toEqualTypeOf<MongoCollection<Contract, 'Task', NoIncludes, 'Bug'>>();
+  expectTypeOf(bugChain).toEqualTypeOf<MongoCollection<Contract, 'Task', NoIncludes, 'bug'>>();
 });
 
 test('db.orm.tasks.variant() rejects a variant model name', () => {

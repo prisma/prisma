@@ -1,22 +1,20 @@
 import type { DataType } from '@internal/framework-components/codec';
 import type { ControlFamilyDescriptor, ControlStack } from '@internal/framework-components/control';
 import type { EmissionSpi } from '@internal/framework-components/emission';
-import {
-  SQL_EXPRESSION_DATA_TYPE_ID,
-  sqlExpressionAuthoringEntry,
-  sqlExpressionDataType,
-} from '@internal/sql-contract/sql-expression';
+import { sqlExpressionRegistration } from '@internal/sql-contract/sql-expression';
 import { sqlEmission } from '@internal/sql-contract-emitter';
 import {
   describeUnsupportedSqlAttribute,
   sqlAttributeSpecs,
 } from '@internal/sql-contract-psl/attribute-specs';
+import { describeUnresolvedSqlType } from '@internal/sql-contract-psl/diagnostics';
 import { sqlFamilyEntityTypes, sqlFamilyPslBlockDescriptors } from './authoring-entity-types';
 import { sqlFamilyAuthoringFieldPresets } from './authoring-field-presets';
 import { sqlFamilyAuthoringTypes } from './authoring-type-constructors';
 import { createSqlFamilyInstance, type SqlControlFamilyInstance } from './control-instance';
 
 const sqlFamilyDescribeUnsupportedAttribute: unknown = describeUnsupportedSqlAttribute;
+const sqlFamilyDescribeUnresolvedType: unknown = describeUnresolvedSqlType;
 
 export class SqlFamilyDescriptor
   implements ControlFamilyDescriptor<'sql', SqlControlFamilyInstance>
@@ -26,17 +24,18 @@ export class SqlFamilyDescriptor
   readonly familyId = 'sql' as const;
   readonly version = '0.0.1';
   readonly emission: EmissionSpi = sqlEmission;
-  readonly dataTypes: readonly DataType[] = [sqlExpressionDataType];
+  readonly dataTypes: readonly DataType[] = sqlExpressionRegistration.dataTypes;
   readonly authoring = {
     field: sqlFamilyAuthoringFieldPresets,
     type: sqlFamilyAuthoringTypes,
     entityTypes: sqlFamilyEntityTypes,
     pslBlockDescriptors: sqlFamilyPslBlockDescriptors,
     attributeSpecs: sqlAttributeSpecs,
-    dataTypes: { [SQL_EXPRESSION_DATA_TYPE_ID]: sqlExpressionAuthoringEntry },
+    dataTypes: sqlExpressionRegistration.authoring.dataTypes,
   } as const;
   readonly pslDiagnostics = {
     describeUnsupportedAttribute: sqlFamilyDescribeUnsupportedAttribute,
+    describeUnresolvedType: sqlFamilyDescribeUnresolvedType,
   } as const;
 
   create<TTargetId extends string>(

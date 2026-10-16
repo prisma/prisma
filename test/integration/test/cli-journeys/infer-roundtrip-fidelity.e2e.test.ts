@@ -183,10 +183,7 @@ withTempDir(({ createTempDir }) => {
         const psl = readContractPsl(ctx);
         expect(psl).not.toContain('dbgenerated');
         expect(psl, 'Users.tags carries a PSL literal-list default, not a raw one').toMatch(
-          /tags\s+String\[\]\s+@default\(\[\]\)/,
-        );
-        expect(psl, 'Users.tags waives the element check its source database never had').toMatch(
-          /tags\s+String\[\][^\n]*@noCheck\(elementNotNull\)/,
+          /tags\s+String\?\[\]\s+@default\(\[\]\)/,
         );
 
         // Isolate the list-default defect: fix the one remaining unrelated
@@ -210,7 +207,7 @@ withTempDir(({ createTempDir }) => {
     );
 
     it(
-      'infer prints a nullable text[] column as String[]? with its default, and it round-trips clean',
+      'infer prints a nullable text[] column as String?[]? with its default, and it round-trips clean',
       async () => {
         const ctx: JourneyContext = setupJourney({
           connectionString: db.connectionString,
@@ -223,7 +220,7 @@ withTempDir(({ createTempDir }) => {
 
         const psl = readContractPsl(ctx);
         expect(psl, 'Users.labels is a nullable list with a literal-list default').toMatch(
-          /labels\s+String\[\]\?\s+@default\(\[\]\)/,
+          /labels\s+String\?\[\]\?\s+@default\(\[\]\)/,
         );
 
         const reduced = fixOneToOneBackRelation(psl);
@@ -232,7 +229,7 @@ withTempDir(({ createTempDir }) => {
         const emit = await runContractEmit(ctx);
         expect(
           emit.exitCode,
-          'contract emit should accept String[]? @default([]) on Users.labels; ' +
+          'contract emit should accept String?[]? @default([]) on Users.labels; ' +
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
@@ -364,7 +361,7 @@ withTempDir(({ createTempDir }) => {
         const infer = await runContractInfer(ctx);
         expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
         expect(readContractPsl(ctx)).toContain(
-          '@@index(expression: "lower(email)", map: "users_email_lower_idx")',
+          '@@index(expression: sql`lower(email)`, map: "users_email_lower_idx")',
         );
       },
       timeouts.spinUpPpgDev,
@@ -381,7 +378,7 @@ withTempDir(({ createTempDir }) => {
         const infer = await runContractInfer(ctx);
         expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
         expect(readContractPsl(ctx)).toContain(
-          '@@index([email], map: "users_email_active_idx", where: "(birth_date IS NULL)")',
+          '@@index([email], map: "users_email_active_idx", where: sql`(birth_date IS NULL)`)',
         );
       },
       timeouts.spinUpPpgDev,
@@ -399,7 +396,7 @@ withTempDir(({ createTempDir }) => {
         expect(infer.exitCode, `contract infer\n${stripAnsi(infer.stderr)}`).toBe(0);
         const psl = readContractPsl(ctx);
         expect(psl).toContain(
-          '@@index(expression: "lower(email)", map: "users_email_ci_key", unique: true)',
+          '@@index(expression: sql`lower(email)`, map: "users_email_ci_key", unique: true)',
         );
         expect(psl).toContain('@@index([email], map: "users_email_plain_key", unique: true)');
       },
@@ -437,7 +434,7 @@ withTempDir(({ createTempDir }) => {
         expect(psl).toContain('@@rls');
         expect(psl).toContain('policy_select users_owner_read {');
         expect(psl).toContain('roles = [fidelity_app_user]');
-        expect(psl).toContain('using = "(id = 1)"');
+        expect(psl).toContain('using = sql`(id = 1)`');
         expect(psl).toContain('@@map("users_owner_read")');
       },
       timeouts.spinUpPpgDev,
@@ -456,7 +453,7 @@ withTempDir(({ createTempDir }) => {
         const psl = readContractPsl(ctx);
         expect(psl).toContain('policy_update Users_restrictive_write {');
         expect(psl).toContain('roles = [fidelity_app_user, fidelity_auditor]');
-        expect(psl).toContain('withCheck = "(id = 2)"');
+        expect(psl).toContain('withCheck = sql`(id = 2)`');
         expect(psl).toContain('permissive = false');
         expect(psl).toContain('@@map("Users restrictive write")');
       },

@@ -19,6 +19,7 @@ import type { SqlStatementStats } from '@internal/sql-relational-core/ast';
 import type { SqlExecutionPlan, SqlQueryPlan } from '@internal/sql-relational-core/plan';
 import type {
   ExecutionContext,
+  Log,
   SqlExecutionStackWithDriver,
   SqlMiddleware,
   SqlRuntimeExtensionDescriptor,
@@ -26,6 +27,7 @@ import type {
   VerifyMarkerOption,
 } from '@internal/sql-runtime';
 import {
+  activitySource,
   createExecutionContext,
   createSqlExecutionStack,
   withTransaction,
@@ -115,6 +117,7 @@ export interface SupabaseOptionsBase {
   readonly extensions?: readonly SqlRuntimeExtensionDescriptor<SupabaseTargetId>[];
   readonly middleware?: readonly SqlMiddleware[];
   readonly verifyMarker?: VerifyMarkerOption;
+  readonly log?: Log;
   readonly poolOptions?: {
     readonly connectionTimeoutMillis?: number;
     readonly idleTimeoutMillis?: number;
@@ -328,6 +331,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
     driver,
     ...ifDefined('verifyMarker', options.verifyMarker),
     ...ifDefined('middleware', options.middleware),
+    ...ifDefined('log', options.log),
     closeRefusal: 'at-once',
   });
 
@@ -368,6 +372,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return roleRuntime.executeWithRole(plan, binding);
         },
         connection: () => roleRuntime.openRoleSession(binding),
+        [activitySource]: roleRuntime.roleActivitySource(binding),
       },
       context: roleContext,
     });
@@ -419,13 +424,14 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
       driver,
       verifyMarker: false,
       ...ifDefined('middleware', options.middleware),
+      ...ifDefined('log', options.log),
       closeRefusal: 'at-once',
     });
 
   const extNativeEnums = blindCast<
     NamespacedNativeEnums<SupabaseExtensionContract>,
     'buildNamespacedNativeEnums returns the namespace-keyed accessor map this contract types'
-  >(Object.freeze(buildNamespacedNativeEnums(extContract.storage)));
+  >(Object.freeze(buildNamespacedNativeEnums(extContract.storage, extContract.domain)));
 
   const supabaseInternal: SupabaseInternalDb = {
     sql: sql<SupabaseExtensionContract>({ context: extContext, rawCodecInferer }),
@@ -438,6 +444,7 @@ export default async function supabase<TContract extends Contract<SqlStorage>>(
           return extRuntime.executeWithRole(plan, serviceRoleBinding);
         },
         connection: () => extRuntime.openRoleSession(serviceRoleBinding),
+        [activitySource]: extRuntime.roleActivitySource(serviceRoleBinding),
       },
       context: extContext,
     }),
