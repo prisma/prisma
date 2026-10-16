@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readCheckDescription } from '../src/control/check-description';
+import { readCheckDescription } from '../../src/utils/check-description';
 
 describe('readCheckDescription', () => {
   it('reads the forms that expect an object absent or present, keeping where it is', () => {

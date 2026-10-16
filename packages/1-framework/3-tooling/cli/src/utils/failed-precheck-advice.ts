@@ -1,5 +1,5 @@
-import { readCheckDescription } from '@internal/framework-components/control';
 import type { FailedPrecheckReport } from '../control-api/types';
+import { readCheckDescription } from './check-description';
 import { type CliInvocation, cliCommand } from './printed-command';
 
 /** What a failed check before an operation means, in words: which check failed, and what that says of the database. */

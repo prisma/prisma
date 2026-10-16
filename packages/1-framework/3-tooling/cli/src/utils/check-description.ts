@@ -9,7 +9,7 @@ const ABSENT_FROM = /^(?:ensure )?(.+?) is absent from (.+)$/;
 const PRESENT = /^(?:ensure )?(.+?) exists( on .+)?$/;
 
 /**
- * Reads a check description, as a target writes it into an operation's precheck or postcheck, for whether it expects an object absent or present: `ensure index "x" does not exist`, `ensure column "y" does not exist on "item"`, `collection users does not exist`, `ensure column "x" is missing` and `ensure value "b" is absent from enum type "Mood"` expect it absent; `ensure table "x" exists` and `index exists on users` present. Any other description, `undefined`.
+ * Reads a check description, as the targets write it into an operation's precheck, for whether it expects an object absent or present, so the advice for a failed check can say what it means: `ensure index "x" does not exist`, `ensure column "y" does not exist on "item"`, `collection users does not exist`, `ensure column "x" is missing` and `ensure value "b" is absent from enum type "Mood"` expect it absent; `ensure table "x" exists` and `index exists on users` present. Any other description, `undefined`.
  */
 export function readCheckDescription(description: string): CheckDescriptionReading | undefined {
   const absent = ABSENT.exec(description);

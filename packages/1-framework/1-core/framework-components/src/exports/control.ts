@@ -1,5 +1,4 @@
 export type { ImportRequirement } from '@internal/ts-render';
-export { type CheckDescriptionReading, readCheckDescription } from '../control/check-description';
 export type { ContractSerializer } from '../control/contract-serializer';
 export {
   CONTRACT_SNAPSHOTS_DIRNAME,
