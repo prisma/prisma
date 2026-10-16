@@ -1,5 +1,6 @@
 import type { Contract } from '@internal/contract/types';
 import { mapDefault } from '@internal/family-sql/psl-build';
+import { dataTypeId } from '@internal/framework-components/codec';
 import type { SqlStorage, StorageColumn } from '@internal/sql-contract/types';
 import { describe, expect, it } from 'vitest';
 import { sqliteContractFromPsl, sqliteStack } from '../date-time-defaults/sqlite-authoring';
@@ -54,7 +55,7 @@ ${FIELDS}
         if (column.default?.kind !== 'literal') return [];
         const attribute = mapDefault(column.default, {
           dataTypes: sqliteStack.dataTypes,
-          columnCodec: { dataType: column.dataType },
+          columnCodec: { dataType: dataTypeId(column.dataType) },
         })?.attribute;
         return [[name, attribute]];
       }),
