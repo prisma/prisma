@@ -20,6 +20,7 @@ import {
   MongoExistsExpr,
   MongoFieldFilter,
   type MongoMigrationPlanOperation,
+  MongoNotExpr,
   RenameCollectionCommand,
 } from '@internal/mongo-query-ast/control';
 import {
@@ -36,12 +37,10 @@ import { mongoTargetError } from '../mongo-target-errors';
 import type { CollModMeta } from './op-factory-call';
 
 type StringField = { readonly codecId: 'mongo/string@1'; readonly nullable: false };
-type BoolField = { readonly codecId: 'mongo/bool@1'; readonly nullable: false };
 type DocField = { readonly codecId: 'mongo/document@1'; readonly nullable: false };
 
 type IndexInfoDocShape = {
   readonly key: DocField;
-  readonly unique: BoolField;
   readonly name: StringField;
 };
 
@@ -304,15 +303,93 @@ function keyFilter(keys: ReadonlyArray<MongoIndexKey>) {
       );
 }
 
+function documentValue(document: Readonly<Record<string, unknown>>): MongoValue {
+  return blindCast<MongoValue, 'index options and validators are plain BSON documents'>(document);
+}
+
+/** MongoDB stores a text index's text fields as `_fts` and `_ftsx` in the place of the first one. */
+function textIndexKeySpec(keys: ReadonlyArray<MongoIndexKey>): Record<string, unknown> {
+  const spec: Record<string, unknown> = {};
+  for (const key of keys) {
+    if (key.direction !== 'text') spec[key.field] = key.direction;
+    else if (!Object.hasOwn(spec, '_fts')) Object.assign(spec, { _fts: 'text', _ftsx: 1 });
+  }
+  return spec;
+}
+
+/** MongoDB lists every text field's weight, 1 when none is given, ordered by field name. */
+function textIndexWeights(
+  keys: ReadonlyArray<MongoIndexKey>,
+  weights: Readonly<Record<string, number>> | undefined,
+): Record<string, number> {
+  const fields = keys.filter((key) => key.direction === 'text').map((key) => key.field);
+  return Object.fromEntries(fields.sort().map((field) => [field, weights?.[field] ?? 1]));
+}
+
+function flagFilter(field: string, on: boolean | undefined): MongoFilterExpr {
+  const set = MongoFieldFilter.eq(field, true);
+  return on ? set : new MongoNotExpr(set);
+}
+
+function optionFilter(field: string, value: MongoValue | undefined): MongoFilterExpr {
+  return value === undefined ? MongoExistsExpr.notExists(field) : MongoFieldFilter.eq(field, value);
+}
+
+/**
+ * Matches an index with these keys and the options the planner tells indexes apart by. MongoDB
+ * stores the options as given, except that it completes a collation and a text index's weights and
+ * languages with their defaults, so those are compared as MongoDB lists them.
+ */
+function indexDefinitionFilter(
+  keys: ReadonlyArray<MongoIndexKey>,
+  options: CreateIndexOptions | undefined,
+): MongoFilterExpr {
+  const text = isTextIndex(keys);
+  return MongoAndExpr.of([
+    text ? MongoFieldFilter.eq('key', documentValue(textIndexKeySpec(keys))) : keyFilter(keys),
+    flagFilter('unique', options?.unique),
+    flagFilter('sparse', options?.sparse),
+    optionFilter('expireAfterSeconds', options?.expireAfterSeconds),
+    optionFilter(
+      'partialFilterExpression',
+      options?.partialFilterExpression && documentValue(options.partialFilterExpression),
+    ),
+    optionFilter(
+      'wildcardProjection',
+      options?.wildcardProjection && documentValue(options.wildcardProjection),
+    ),
+    ...Object.entries(options?.collation ?? {}).map(([option, value]) =>
+      MongoFieldFilter.eq(
+        `collation.${option}`,
+        blindCast<MongoValue, 'collation options are BSON scalars'>(value),
+      ),
+    ),
+    ...(text
+      ? [
+          MongoFieldFilter.eq('weights', documentValue(textIndexWeights(keys, options?.weights))),
+          MongoFieldFilter.eq(
+            'default_language',
+            options?.default_language ?? TEXT_INDEX_DEFAULT_LANGUAGE,
+          ),
+          MongoFieldFilter.eq(
+            'language_override',
+            options?.language_override ?? TEXT_INDEX_DEFAULT_LANGUAGE_OVERRIDE,
+          ),
+        ]
+      : []),
+  ]);
+}
+
+const TEXT_INDEX_DEFAULT_LANGUAGE = 'english';
+const TEXT_INDEX_DEFAULT_LANGUAGE_OVERRIDE = 'language';
+
 export function createIndex(
   collectionName: string,
   keys: ReadonlyArray<MongoIndexKey>,
   options?: CreateIndexOptions,
 ): MongoMigrationPlanOperation {
   const name = defaultMongoIndexName(keys);
-  const f = createFieldAccessor<IndexInfoDocShape>();
   const filter = keyFilter(keys);
-  const fullFilter = options?.unique ? filter.and(f.unique.eq(true)) : filter;
 
   return {
     id: buildIndexOpId('create', collectionName, keys),
@@ -339,7 +416,7 @@ export function createIndex(
       {
         description: `index exists on ${collectionName}`,
         source: new ListIndexesCommand(collectionName),
-        filter: fullFilter,
+        filter: indexDefinitionFilter(keys, options),
         expect: 'exists',
       },
     ],
@@ -476,6 +553,21 @@ export function setValidation(
   };
 }
 
+/**
+ * Matches the collection's validator body. MongoDB returns the validator through `listCollections`
+ * with its keys in the order given, so the order-sensitive comparison holds once the collMod ran; a
+ * validator written by hand with another key order only makes the collMod run again.
+ */
+function validatorBodyFilter(validator: Readonly<Record<string, unknown>>): MongoFilterExpr {
+  const { $jsonSchema, ...rest } = validator;
+  return $jsonSchema !== undefined && Object.keys(rest).length === 0
+    ? MongoFieldFilter.eq(
+        'options.validator.$jsonSchema',
+        blindCast<MongoValue, 'a $jsonSchema validator is a plain BSON document'>($jsonSchema),
+      )
+    : MongoFieldFilter.eq('options.validator', documentValue(validator));
+}
+
 export function collMod(
   collectionName: string,
   options: CollModOptions,
@@ -517,28 +609,7 @@ export function collMod(
               ...(options.validationAction
                 ? [MongoFieldFilter.eq('options.validationAction', options.validationAction)]
                 : []),
-              // Include the $jsonSchema body so the idempotency probe only skips when the
-              // live validator body genuinely already equals the target — not merely when
-              // level/action happen to be unchanged (which was the silent-skip bug for widen ops).
-              // MongoFieldFilter.eq compares with order-sensitive deepEqual, not canonicalize.
-              // That is safe here because MongoDB preserves BSON key order when round-tripping
-              // the $jsonSchema through listCollections (confirmed by the MMS integration test),
-              // so a matching live validator compares equal. The only consequence of skipping
-              // canonicalization is a safe false-negative on the skip: a validator installed
-              // out-of-band with a different key order simply re-runs the collMod harmlessly.
-              // The cast is safe: CollModOptions.validator is Record<string,unknown>, and its
-              // $jsonSchema value is always a plain BSON object (MongoDocument at runtime).
-              ...(options.validator?.['$jsonSchema'] !== undefined
-                ? [
-                    MongoFieldFilter.eq(
-                      'options.validator.$jsonSchema',
-                      blindCast<
-                        MongoValue,
-                        'options.validator.$jsonSchema is a plain BSON object — the factory only populates this from a MongoSchemaValidator.jsonSchema record, which is a MongoDocument at runtime'
-                      >(options.validator?.['$jsonSchema']),
-                    ),
-                  ]
-                : []),
+              validatorBodyFilter(options.validator ?? {}),
             ]),
             expect: 'exists' as const,
           },
