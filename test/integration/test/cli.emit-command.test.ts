@@ -540,6 +540,42 @@ describe('emit command: additional fixtures', () => {
     }
   });
 
+  it('emits a psl schema with several types blocks', {
+    timeout: timeouts.typeScriptCompilation,
+  }, async () => {
+    const testSetup = setupIntegrationTestDirectoryFromFixtures(
+      fixtureSubdir,
+      'prisma.config.parity-psl.ts',
+    );
+
+    try {
+      writeFileSync(
+        join(testSetup.testDir, 'schema.prisma'),
+        `// use prisma-8
+types {
+  Email = String
+}
+
+model User {
+  id Int @id
+  email Email
+  slug Slug
+}
+
+types {
+  Slug = VarChar(191)
+}
+`,
+        'utf-8',
+      );
+
+      const run = await runOnEngine(testSetup, ['contract', 'emit', '--json']);
+      expect(run.exitCode).toBe(0);
+    } finally {
+      testSetup.cleanup();
+    }
+  });
+
   it('renders provider diagnostics when psl provider fails', {
     timeout: timeouts.typeScriptCompilation,
   }, async () => {

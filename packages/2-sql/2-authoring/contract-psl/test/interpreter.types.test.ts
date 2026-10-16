@@ -133,6 +133,73 @@ model Event {
     expect(result.value.roots).toEqual({ Event: crossRef('Event', 'public') });
   });
 
+  it('merges named types declared across several types blocks', () => {
+    const result = interpretSqlContract(
+      `types {
+  Id = Uuid
+}
+
+model Event {
+  id Id @id
+  slug Slug
+}
+
+types {
+  Slug = VarChar(191)
+}
+`,
+      {
+        ...baseInput,
+        controlMutationDefaults: builtinControlMutationDefaults,
+      },
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+
+    expect(documentScopedTypes(result.value)).toEqual({
+      Id: { kind: 'codec-instance', codecId: 'pg/uuid@1', dataType: 'pg/uuid', typeParams: {} },
+      Slug: {
+        kind: 'codec-instance',
+        codecId: 'sql/varchar@1',
+        dataType: 'pg/varchar',
+        typeParams: { length: 191 },
+      },
+    });
+  });
+
+  it('reports a named type repeated in another types block', () => {
+    const result = interpretSqlContract(
+      `types {
+  Slug = VarChar(191)
+}
+
+types {
+  Slug = VarChar(10)
+}
+
+model Event {
+  id Int @id
+  slug Slug
+}
+`,
+      {
+        ...baseInput,
+        controlMutationDefaults: builtinControlMutationDefaults,
+      },
+    );
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.failure.diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'PSL_DUPLICATE_DECLARATION',
+        message: 'Duplicate declaration of "Slug"',
+        span: expect.objectContaining({ start: expect.objectContaining({ line: 6, column: 3 }) }),
+      }),
+    ]);
+  });
+
   it('lowers additional Postgres native type attributes on named types', () => {
     const result = interpretSqlContract(
       `types {

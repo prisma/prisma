@@ -1,0 +1,11 @@
+{
+  "failureSummary": "Schema has 1 error",
+  "diagnostics": [
+    {
+      "code": "PSL_DUPLICATE_DECLARATION",
+      "sourceId": "./schema.prisma",
+      "startLine": 8,
+      "message": "Duplicate declaration of \"Slug\""
+    }
+  ]
+}
