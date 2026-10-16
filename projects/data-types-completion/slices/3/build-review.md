@@ -46,6 +46,7 @@ Dispatch a, given during the dispatch and recorded in `slices/3/notes/dispatch-a
 | h | 1 (`657d5fa989..9b50409c63`, `bfd17d10ef`) | ANOTHER ROUND NEEDED: 0 must-fix, 2 should-fix, 2 low |
 | h | 2 (`520c88b861`, `6e045c0e70`, `a9312e7888`) | SATISFIED |
 | branch review fixes | 1 (`75bc23f592..c6d22db5c0`, `cac31046b1`, `85ca5a3261`, `4f76bfaba3`, `b76d8431aa`) | ANOTHER ROUND NEEDED: 1 must-fix, 3 should-fix, 6 low |
+| branch review fixes | 2 (`9f998ba383..4ddd7fbbb8`, `71cea6b954`) | SATISFIED: 0 must-fix, 0 should-fix, 2 low |
 
 ## Findings log
 
@@ -912,3 +913,44 @@ The tag table, the eleven assembly checks, the links and anchors, and the absenc
 - Package tests of the 34 touched packages: all pass, except `language-server`'s timing test, which passes when run alone.
 - Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. Also run: `authoring`, `date-time-defaults`, both default journeys, `stale-contract-default*`, `psl-print`, `psl-infer`, every `infer-roundtrip-*` file, `upgrade-instructions`, `value-objects`, `uuid-defaults`, `enum-members`, `prisma7-source` and `scalar-lists`. Result: 156 files, 2362 tests pass, 2 fail (S3-RF-R1-1).
 - Probes: spelling stability over about 60 values, against the built packages.
+
+## Branch review fixes, round 2
+
+Range `9f998ba383..4ddd7fbbb8`, one commit per finding. `5dc309db0b` fixes a test type error, and `4ddd7fbbb8` adds the SQLite UTC note to the upgrade text. The orchestrator's `71cea6b954` handles S3-RF-R1-9. S3-RF-R1-8 stays as ruled.
+
+- **S3-RF-R1-1:** fixed in `9f998ba383`. The test expects the refusal that names the stored spelling, and passes.
+- **S3-RF-R1-2:** fixed in `112157e753`. `fromWire` reads text with `Date`, unmarked text as UTC, and a number as milliseconds since 1970. Probed under `TZ=Asia/Kolkata` against the built package:
+  - `2024-01-01 00:00:00`, as `CURRENT_TIMESTAMP` writes it, reads as midnight UTC.
+  - `2024-01-01 00:00:00.123456` keeps `.123`.
+  - `2024-01-01T00:00:00.000+00:00`, `…Z`, `+02:00` and a bare date read as the instant they name.
+  - `1704067200000` reads as 2024-01-01.
+  - The text `"1704067200000"` is refused.
+  - Nothing in the repository shows what earlier Prisma versions write: the SQLite driver adapters are not installed, and Prisma 7.10's client leaves the formatting to them. So the implementer's list rests on memory, and so does my check. It matches what I know: the query engine wrote integer milliseconds, the driver adapters write ISO 8601 text with `+00:00` (or milliseconds under `timestampFormat: 'unixepoch-ms'`), SQLite's `CURRENT_TIMESTAMP` writes unmarked text, and Python's `sqlite3` writes microseconds.
+  - See S3-RF-R2-2.
+- **S3-RF-R1-3:** fixed in `93931bf94a`. None of the names listed remain. The "canonical" left in `packages/` means something else: canonical JSON, canonical strings for hashing, the contract's canonical on-disk shape.
+- **S3-RF-R1-4:** fixed in `4026e8a13e`. Geometry, ObjectId, Mongo binary and `pg/bytea` read every spelling and `spell` writes the stored one, so `valueFrom` rewrites and `fromContract` still refuses the other spellings. Tested per type.
+- **S3-RF-R1-5:** fixed in `8a4e069ffc`, with a test of an element past `real`'s range.
+- **S3-RF-R1-6:** fixed in `8eab0a95bb`. The refusals of uuid, inet and SQLite datetime describe what each reader takes, and the tests that quote them follow.
+- **S3-RF-R1-7:** fixed in `35c47526dd`. The interval wire reading is back in `codec-helpers.ts`, and the README is fixed.
+- **S3-RF-R1-9:** fixed in `71cea6b954`. Every statement I listed is corrected. One new statement is wrong; see S3-RF-R2-1.
+- **S3-RF-R1-10:** fixed in `01e51da8ed`. A JSON default that is a number, a boolean or `null` prints with the `json` tag, with unit, infer and print tests.
+
+### S3-RF-R2-1 (low): ADR 254 says `pg/char` stores its text padded
+
+- Where: line 76, "`pg/char` stores its text padded to its length".
+- What is wrong: `pg/char` stores the text without its pad. With `{ length: 3 }`, `fromContract("a")` is accepted, `fromContract("a  ")` is refused naming `"a"`, and `valueFrom("a")` stores `"a"` (probe against the built package). This matches dispatch a's ruling and `spellCharacter`.
+- Change: "`pg/char` stores its text without the spaces that pad it to its length".
+
+### S3-RF-R2-2 (low, for the orchestrator): a number of seconds or a Julian day reads as milliseconds, without an error
+
+- Where: `decodeSqliteDatetime` in `packages/3-targets/3-targets/sqlite/src/core/codecs.ts`.
+- What is wrong: any number is taken as milliseconds. A row written by SQLite's `unixepoch()` or `strftime('%s')` (seconds), or `julianday()` (a fraction such as `2460310.5`), reads as a date in January 1970 instead of being refused. Prisma never writes these, so it matters only for rows written outside the application.
+- Change, if wanted: refuse a number that is not a whole number. Either way, the manual QA should read a `DateTime` row written by Prisma 7 on SQLite, since nothing in the repository confirms its format.
+
+### Checks run for branch review fixes round 2
+
+- `pnpm build`, root `typecheck:agent`, `lint:agent`, `lint:deps`, `lint:docs` and `check:error-reference` pass. `pnpm fixtures:check` passes, tree clean.
+- Package tests of framework-components, both targets, both adapters, pgvector, postgis, target-mongo, mongo-codec, family-mongo, family-sql, sql-contract, sql-contract-ts, sql-contract-psl, sql-contract-prisma7, both codec test kits, mongo-contract-psl and mongo-contract-ts: all pass.
+- Integration: `test/planner-golden` re-recorded with `PLANNER_GOLDEN_WRITE=1` with no diff. Also run: `authoring`, `date-time-defaults`, both default journeys, `stale-contract-default*`, `psl-print`, `psl-infer`, every `infer-roundtrip-*` file, `upgrade-instructions`, `value-objects`, `uuid-defaults`, `enum-members`, `prisma7-source`, `scalar-lists`, `test/mongo` and the SQLite `sql-orm-client` files. Result: 288 files, 3162 tests, all pass.
+
+The branch review fixes are closed. The slice is ready for manual QA.
