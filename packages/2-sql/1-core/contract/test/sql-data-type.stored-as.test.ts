@@ -7,6 +7,7 @@ import {
   resolveReportedSqlType,
   sqlDataType,
   sqlStorageType,
+  sqlStorageTypeId,
   sqlStorageTypeOfCodec,
 } from '../src/sql-data-type';
 
@@ -73,6 +74,20 @@ describe('a data type stored as another', () => {
 
   it('refuses a storage type the stack does not register', () => {
     expect(() => sqlStorageType(datetime, createDataTypeLookup([datetime]))).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
+        meta: { dataType: 't/text', storedBy: 't/datetime' },
+      }),
+    );
+  });
+
+  it('gives the id of the storage type, and refuses as sqlStorageType does', () => {
+    expect({
+      stored: sqlStorageTypeId(datetime.id, createDataTypeLookup([text, datetime])),
+      own: sqlStorageTypeId(text.id, createDataTypeLookup([text])),
+      unknown: sqlStorageTypeId('t/unknown', createDataTypeLookup([text])),
+    }).toEqual({ stored: 't/text', own: 't/text', unknown: 't/unknown' });
+    expect(() => sqlStorageTypeId(datetime.id, createDataTypeLookup([datetime]))).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
         meta: { dataType: 't/text', storedBy: 't/datetime' },

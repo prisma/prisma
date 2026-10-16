@@ -79,6 +79,7 @@ export function enforceSqlDataTypeInvariants(
   codecDescriptors: ReadonlyArray<Pick<AnyCodecDescriptor, 'codecId' | 'dataType'>>,
 ): void {
   const declaredById = new Map(declaredDataTypes.map((declared) => [declared.type.id, declared]));
+  const capitalized = (text: string): string => `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
   const describe = (type: DataType): string =>
     `data type "${type.id}" contributed by "${declaredById.get(type.id)?.contributedBy ?? '<unknown>'}"`;
 
@@ -100,7 +101,13 @@ export function enforceSqlDataTypeInvariants(
   for (const { type, contributedBy } of declaredDataTypes) {
     if (!isSqlDataType(type) || type.sql.storedAs === undefined) continue;
     const storage = declaredById.get(type.sql.storedAs)?.type;
-    if (storage !== undefined && isSqlDataType(storage)) continue;
+    if (storage !== undefined && isSqlDataType(storage)) {
+      const further = storage.sql.storedAs;
+      if (further === undefined) continue;
+      throw new InternalError(
+        `${capitalized(describe(type))} is stored as "${storage.id}", which is itself stored as "${further}". Name "${further}" as the type it is stored as.`,
+      );
+    }
     throw runtimeError(
       'CONTRACT.DATA_TYPE_UNREGISTERED',
       `Data type "${type.id}" is stored as data type "${type.sql.storedAs}", which no component registers. Contributed by "${contributedBy}".`,

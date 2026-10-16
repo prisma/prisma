@@ -136,6 +136,16 @@ describe('enforceSqlDataTypeInvariants', () => {
       );
     });
 
+    it('refuses a type stored as a type that is itself stored as another, naming the three', () => {
+      const stamp = sqlDataType('ext/stamp', { read: (json) => json, storedAs: int4.id });
+      const moment = sqlDataType('ext/moment', { read: (json) => json, storedAs: stamp.id });
+      expect(() => enforceSqlDataTypeInvariants(declaredWith([stamp, moment]), [])).toThrow(
+        new InternalError(
+          'Data type "ext/moment" contributed by "ext" is stored as "ext/stamp", which is itself stored as "pg/int4". Name "pg/int4" as the type it is stored as.',
+        ),
+      );
+    });
+
     it('refuses a type stored as a data type that is not a SQL data type', () => {
       const stored = sqlDataType('ext/stamp', {
         read: (json) => json,
