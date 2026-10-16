@@ -35,6 +35,7 @@ model Sample {
   small   BigIntNumber @default(7)
   ratio   Float        @default(1.5)
   price   Decimal      @default("1.50")
+  code    sql.String(10) @default("vc")
   at      DateTime     @default(${tagged('datetime', '2024-01-01T00:00:00Z')})
   doc     Json         @default(${tagged('json', '{"b": [1, 2], "a": 1}')})
 
