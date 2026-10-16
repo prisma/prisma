@@ -38,3 +38,19 @@ describe('a geometry column with an SRID holds only geometries in that SRID', ()
     );
   });
 });
+
+describe('a geometry has one spelling, the upper-case little-endian HEXEWKB PostGIS prints', () => {
+  const stored = encodeEWKBHex(point(1, 2, 4326));
+
+  it.each([
+    ['lower case', stored.toLowerCase()],
+    ['big-endian EWKB', '0020000001000010E63FF00000000000004000000000000000'],
+  ])('refuses %s, naming the spelling it stores', (_case, hex) => {
+    expect(() => postgisGeometry.fromContract(hex, {})).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.DECODE_FAILED',
+        message: `postgis/geometry JSON value must be "${stored}", the HEXEWKB PostGIS prints for this geometry`,
+      }),
+    );
+  });
+});

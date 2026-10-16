@@ -12,6 +12,7 @@ import type { JsonValue } from '@internal/contract/types';
 import {
   readJsonIntegerText,
   readJsonMatching,
+  refuseJsonValue,
   SAFE_INTEGER_BIGINT_RANGE,
 } from '@internal/framework-components/codec';
 import { numeralText } from '@internal/sql-contract/data-type';
@@ -537,9 +538,13 @@ const BASE64_TEXT = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3
 
 export const pgByteaToBase64 = (value: Uint8Array): string => Buffer.from(value).toString('base64');
 
-/** Reads the base64 `pg/bytea` stores. */
-export const readPgByteaJson = (owner: string, json: JsonValue): JsonValue =>
-  readJsonMatching(owner, json, BASE64_TEXT, 'a base64 string');
+/** Reads the base64 `pg/bytea` stores, which has one spelling: padding bits are zero, as `Buffer` writes it. */
+export const readPgByteaJson = (owner: string, json: JsonValue): JsonValue => {
+  const base64 = readJsonMatching(owner, json, BASE64_TEXT, 'a base64 string');
+  const stored = Buffer.from(base64, 'base64').toString('base64');
+  if (stored === base64) return json;
+  return refuseJsonValue(owner, `"${stored}", the base64 ${owner} stores for these bytes`, json);
+};
 
 export const pgByteaFromBase64 = (base64: string): Uint8Array =>
   new Uint8Array(Buffer.from(base64, 'base64'));

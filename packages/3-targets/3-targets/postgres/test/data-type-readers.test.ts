@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { pgInt8NumberDescriptor, pgNumericDescriptor } from '../src/core/codecs';
 import {
   pgBit,
+  pgBytea,
   pgChar,
   pgDate,
   pgFloat4,
@@ -256,5 +257,16 @@ describe('an interval with no precision holds microseconds', () => {
 
   it('reads six fraction digits', () => {
     expect(pgInterval.fromContract('PT1.123456S', {}).value).toBe('PT1.123456S');
+  });
+});
+
+describe('a bytea value has one spelling', () => {
+  it('refuses base64 with padding bits set, naming the base64 the type stores', () => {
+    expect(() => pgBytea.fromContract('AB==', {})).toThrow(
+      expect.objectContaining({
+        code: 'RUNTIME.DECODE_FAILED',
+        message: 'pg/bytea JSON value must be "AA==", the base64 pg/bytea stores for these bytes',
+      }),
+    );
   });
 });

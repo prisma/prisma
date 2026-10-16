@@ -34,11 +34,9 @@ const read = (codec: StoredFormCase['codec'], json: JsonValue) =>
 const cases: readonly StoredFormCase[] = [
   {
     codec: mongoObjectIdCodec,
-    reads: [
-      ['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439011'],
-      ['507F1F77BCF86CD799439011', '507F1F77BCF86CD799439011'],
-    ],
+    reads: [['507f1f77bcf86cd799439011', '507f1f77bcf86cd799439011']],
     rejects: [
+      '507F1F77BCF86CD799439011',
       '507f1f77bcf86cd79943901',
       '507f1f77bcf86cd79943901z',
       'abcdefabcdef',
