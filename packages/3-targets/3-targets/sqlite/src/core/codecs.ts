@@ -42,7 +42,6 @@ import {
   sqlVarcharDescriptor,
 } from '@internal/sql-relational-core/ast';
 import { blindCast } from '@internal/utils/casts';
-import { isInternalError } from '@internal/utils/internal-error';
 import { defineSqliteCodecs, SqliteCodecDescriptor, sqliteCodec } from './codec-descriptor';
 import {
   SQLITE_BIGINT_CODEC_ID,
@@ -59,7 +58,6 @@ import {
   sqliteCharacter,
   sqliteCharacterVarying,
   sqliteDatetime,
-  sqliteDatetimeText,
   sqliteInteger,
   sqliteJson,
   sqliteReal,
@@ -556,28 +554,28 @@ sqliteBlobColumn satisfies ColumnHelperFor<SqliteBlobDescriptor>;
 sqliteBlobColumn satisfies ColumnHelperForStrict<SqliteBlobDescriptor>;
 
 /**
- * Reads the text SQLite holds for an instant with the `datetime` tag's grammar, reading text without an offset as UTC, as SQLite does. Text that is not ISO 8601 is refused rather than read by `Date`'s own parser, which reads unmarked text in the machine's time zone.
+ * Reads what SQLite holds for an instant as `Date` reads it, with text without a UTC offset read as UTC, as SQLite's own date and time functions read it, never in the machine's time zone. A number is milliseconds since 1970, as the Prisma ORM query engine wrote a `DateTime`. Digits below a millisecond are cut, as `Date` cuts them.
  */
-export function decodeSqliteDatetime(value: string): Date {
-  try {
-    return new Date(sqliteDatetimeText(asUtcWhenUnmarked(value)));
-  } catch (error) {
-    if (isInternalError(error)) throw error;
+export function decodeSqliteDatetime(value: string | number): Date {
+  const date = new Date(typeof value === 'number' ? value : asUtcWhenUnmarked(value));
+  if (Number.isNaN(date.getTime())) {
     throw sqliteError(
       'RUNTIME.DECODE_FAILED',
-      `sqlite/datetime@1 value must be a valid ISO-8601 string: ${value}`,
-      { meta: { codecId: SQLITE_DATETIME_CODEC_ID, received: value } },
+      `sqlite/datetime@1 wire value must be a date and time as text, or a number of milliseconds since 1970: ${String(value)}`,
+      { meta: { codecId: SQLITE_DATETIME_CODEC_ID, received: String(value) } },
     );
   }
+  return date;
 }
 
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
-const DATE_TIME_WITHOUT_OFFSET = /^\d{4}-\d{2}-\d{2}[Tt ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/;
+const DATE_TIME_WITHOUT_OFFSET = /^(\d{4}-\d{2}-\d{2})[Tt ](\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)$/;
 
-/** SQLite's date and time functions read text without a UTC offset as UTC, never in the machine's time zone; a date alone is its midnight. */
+/** A date alone as its midnight in UTC, and a date and time without an offset as UTC. */
 function asUtcWhenUnmarked(text: string): string {
   if (DATE_ONLY.test(text)) return `${text}T00:00:00Z`;
-  return DATE_TIME_WITHOUT_OFFSET.test(text) ? `${text}Z` : text;
+  const unmarked = DATE_TIME_WITHOUT_OFFSET.exec(text);
+  return unmarked === null ? text : `${unmarked[1]}T${unmarked[2]}Z`;
 }
 
 /** The text SQLite holds for an instant: what the codec writes for every row, and for a default. */
@@ -594,7 +592,7 @@ export class SqliteDatetimeCodec extends CodecImpl<
   async toWire(value: Date, _ctx: CodecCallContext): Promise<string> {
     return encodeSqliteDatetime(value);
   }
-  async fromWire(wire: string, _ctx: CodecCallContext): Promise<Date> {
+  async fromWire(wire: string | number, _ctx: CodecCallContext): Promise<Date> {
     return decodeSqliteDatetime(wire);
   }
   fromDataTypeValue(value: DataTypeValue<string>): Date {
