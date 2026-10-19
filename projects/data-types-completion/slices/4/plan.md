@@ -32,7 +32,7 @@ From an inventory of `main` on 2026-10-19:
 
 These follow from the design; I am stating them, not asking.
 
-1. **Where the database side is resolved.** In the SQL family, right after introspection, over the stack's data types: one function, no target code. The adapters keep reporting `reportedType` as they do.
+1. **Where the database side is resolved.** By one function in the SQL family, over the stack's data types; the resolution contains no target code. Each adapter calls it for each column as it builds the column (amended after review of dispatch a: rebuilding frozen nodes afterwards relied on an unenforced rule about how nodes hold their state).
 2. **Parameters are compared in their normal form** on both sides, and `DataTypeValue` stores normal-form parameters too (the deferred item), so `numeric(10)` and `numeric(10,0)` are one type and one value.
 3. **Enums outside `public`.** The database side's enum name comes from `reportedType.schema` and `.name`, not from `format_type`, so it no longer depends on the search path. A column in the unbound namespace whose enum lives outside `public` still does not compare equal; that limit is documented, as the design says.
 4. **The golden planner test is retired, its fixtures stay.** The test and its manifest are deleted in the last dispatch. The two fixture contracts and `planned.golden.json` stay where they are, because the contract-parity tests and two released upgrade-instruction tests use them.
