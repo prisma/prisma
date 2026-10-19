@@ -105,9 +105,12 @@ describe('a default db verify reads with the column codec', {
     expect(await issuesOf(contractWith('2024-01-01T00:00:00Z'))).toEqual([
       {
         path: 'database/public/event/column:at/default',
-        explanation: expect.stringMatching(
-          /^The column codec pg\/timestamptz-temporal@1 cannot read the default the database reports, 'infinity'::timestamp with time zone: /,
-        ),
+        explanation: {
+          text: expect.stringMatching(
+            /^The column codec pg\/timestamptz-temporal@1 cannot read the default the database reports, 'infinity'::timestamp with time zone: /,
+          ),
+          cause: 'differs',
+        },
       },
     ]);
   });

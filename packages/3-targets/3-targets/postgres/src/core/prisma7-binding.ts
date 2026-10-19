@@ -14,7 +14,7 @@ import {
   defaultForeignKeyName,
   defaultPrimaryKeyName,
 } from './migrations/default-constraint-names';
-import { postgresNowGeneratorIdFor } from './now-generators';
+import { postgresNowGeneratorFor } from './now-generators';
 import { postgresCreateNamespace } from './postgres-schema';
 import { prisma7TemporalStored, prisma7TemporalTagBody } from './prisma7-temporal-defaults';
 import { prisma7PostgresTypeMap } from './prisma7-type-map';
@@ -73,7 +73,7 @@ export const prisma7PostgresBinding = {
   identifierMaxBytes: 63,
   defaultConstraintNames: { primaryKey: defaultPrimaryKeyName, foreignKey: defaultForeignKeyName },
   junctionRelationFieldNames,
-  updatedAtGeneratorId: postgresNowGeneratorIdFor,
+  updatedAtGenerator: postgresNowGeneratorFor,
   literalDefaultForm: ({
     dataType,
     typeParams,

@@ -10,6 +10,7 @@ import { type IntrospectedTable, inferColumnTypes } from '../../src/core/psl-bui
 import {
   fewestArgumentsCall,
   inferredTypeConstructors,
+  pslTypeArgumentText,
 } from '../../src/core/psl-build/inferred-type-constructors';
 
 const numeric = sqlDataType('t/numeric', {
@@ -128,6 +129,25 @@ const catalog = (text: string): ReportedSqlType => ({
   kind: undefined,
   schema: 'pg_catalog',
   name: undefined,
+});
+
+describe('pslTypeArgumentText', () => {
+  it('writes a number, a boolean and a string PSL reads back', () => {
+    expect([
+      pslTypeArgumentText(3),
+      pslTypeArgumentText(true),
+      pslTypeArgumentText('Point'),
+    ]).toEqual(['3', 'true', '"Point"']);
+  });
+
+  it('writes nothing for a value PSL cannot read back as one argument', () => {
+    expect([
+      pslTypeArgumentText(['a', 'b']),
+      pslTypeArgumentText({ srid: 4326 }),
+      pslTypeArgumentText(null),
+      pslTypeArgumentText('say "hi"'),
+    ]).toEqual([undefined, undefined, undefined, undefined]);
+  });
 });
 
 describe('inferColumnTypes', () => {

@@ -21,6 +21,7 @@ import {
   sqlStorageType,
   unquotedSqlBaseName,
 } from '@internal/sql-contract/data-type';
+import { printSqlExpressionLiteral, sqlTextsReadBack } from '@internal/sql-contract/sql-expression';
 import {
   type CheckConstraint,
   type ForeignKey,
@@ -132,7 +133,12 @@ function convertColumn(
             many,
           ),
     ),
+    sqlExpressionLiteralFor,
   };
+}
+
+function sqlExpressionLiteralFor(text: string): string | undefined {
+  return sqlTextsReadBack([text]) ? printSqlExpressionLiteral(text) : undefined;
 }
 
 /**

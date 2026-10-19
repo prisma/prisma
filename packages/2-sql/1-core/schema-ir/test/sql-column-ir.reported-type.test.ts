@@ -75,9 +75,10 @@ describe('two columns that both carry a reported type', () => {
   });
 
   it('explain a type mismatch with both texts', () => {
-    expect(expectedColumn('int4').explainMismatch(integerColumn)).toBe(
-      'The column type is "int4", but the database reports "integer". A type named by its catalog text is compared with the text the database reports, exactly.',
-    );
+    expect(expectedColumn('int4').explainMismatch(integerColumn)).toEqual({
+      text: 'The column type is "int4", but the database reports "integer". A type named by its catalog text is compared with the text the database reports, exactly.',
+      cause: 'differs',
+    });
   });
 
   it('explain nothing when only the nullability differs', () => {

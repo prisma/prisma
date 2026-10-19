@@ -18,8 +18,8 @@ import {
   PG_TIMESTAMPTZ_STRING_CODEC_ID,
 } from './codec-ids';
 import { pgDate, pgPrecisionParams, pgTime, pgTimestamp, pgTimestamptz } from './data-types';
+import { errorTimestampTextWrongType } from './errors';
 import { postgresYearText } from './postgres-year-text';
-import { utcTimestampText, utcTimestamptzText } from './temporal-codec-helpers';
 
 export class PgDateStringCodec extends CodecImpl<
   typeof PG_DATE_STRING_CODEC_ID,
@@ -62,17 +62,25 @@ export const pgDateStringColumn = () =>
 pgDateStringColumn satisfies ColumnHelperFor<PgDateStringDescriptor>;
 pgDateStringColumn satisfies ColumnHelperForStrict<PgDateStringDescriptor>;
 
+function requireText(codecId: string, value: unknown): string {
+  if (typeof value === 'string') return value;
+  throw errorTimestampTextWrongType(codecId, describeValue(value));
+}
+
+function describeValue(value: unknown): string {
+  if (value === null) return 'null';
+  if (value instanceof Date) return 'a Date';
+  return `a ${typeof value}`;
+}
+
 export class PgTimestampStringCodec extends CodecImpl<
   typeof PG_TIMESTAMP_STRING_CODEC_ID,
   readonly ['equality', 'order'],
   string,
   string
 > {
-  // `CodecTypes` reads the application type from the last signature, so `string` stays last.
-  toWire(value: Date, ctx: CodecCallContext): Promise<string>;
-  toWire(value: string, ctx: CodecCallContext): Promise<string>;
-  async toWire(value: string | Date, _ctx: CodecCallContext): Promise<string> {
-    return value instanceof Date ? utcTimestampText(value, this.id) : postgresYearText(value);
+  async toWire(value: string, _ctx: CodecCallContext): Promise<string> {
+    return postgresYearText(requireText(this.id, value));
   }
   async fromWire(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;
@@ -127,11 +135,8 @@ export class PgTimestamptzStringCodec extends CodecImpl<
   string,
   string
 > {
-  // `CodecTypes` reads the application type from the last signature, so `string` stays last.
-  toWire(value: Date, ctx: CodecCallContext): Promise<string>;
-  toWire(value: string, ctx: CodecCallContext): Promise<string>;
-  async toWire(value: string | Date, _ctx: CodecCallContext): Promise<string> {
-    return value instanceof Date ? utcTimestamptzText(value, this.id) : postgresYearText(value);
+  async toWire(value: string, _ctx: CodecCallContext): Promise<string> {
+    return postgresYearText(requireText(this.id, value));
   }
   async fromWire(wire: string, _ctx: CodecCallContext): Promise<string> {
     return wire;

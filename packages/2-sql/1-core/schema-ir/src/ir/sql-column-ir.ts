@@ -1,11 +1,11 @@
 import type { ColumnDefault } from '@internal/contract/types';
 import type { CodecRef, DataType } from '@internal/framework-components/codec';
-import type { DiffableNode } from '@internal/framework-components/control';
+import type { DiffableNode, MismatchExplanation } from '@internal/framework-components/control';
 import { freezeNode } from '@internal/framework-components/ir';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { RelationalSchemaNodeKind } from './schema-node-kinds';
-import { SqlColumnDefaultIR } from './sql-column-default-ir';
+import { SqlColumnDefaultIR, type SqlExpressionLiteralFor } from './sql-column-default-ir';
 import type { SqlDefaultValue } from './sql-default-value';
 import { assertNode, defineNonEnumerable, SqlSchemaIRNode } from './sql-schema-ir-node';
 
@@ -99,6 +99,12 @@ export interface SqlColumnIRInput {
    */
   readonly defaultExpressionValue?: SqlDefaultValue;
   /**
+   * The `sql` literal that writes a SQL text, or `undefined` when no literal reads back as that
+   * text. The SQL family supplies it, so a mismatch can show a default as the user would write it.
+   * Stamped on the contract-derived column; absent on introspected nodes.
+   */
+  readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
+  /**
    * The element type as the database reports it. Set by introspection, and on a contract-derived
    * column whose data type's name is its catalog text (ADR 273), with the text it expects. When
    * both sides carry one, their texts are what the column type compares.
@@ -148,6 +154,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly defaultUnreadable?: string;
   /** See {@link SqlColumnIRInput.defaultExpressionValue}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly defaultExpressionValue?: SqlDefaultValue;
+  /** See {@link SqlColumnIRInput.sqlExpressionLiteralFor}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly sqlExpressionLiteralFor?: SqlExpressionLiteralFor;
   /** See {@link SqlColumnIRInput.reportedType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly reportedType?: ReportedSqlType;
 
@@ -168,6 +176,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'defaultValue', input.defaultValue);
     defineNonEnumerable(this, 'defaultUnreadable', input.defaultUnreadable);
     defineNonEnumerable(this, 'defaultExpressionValue', input.defaultExpressionValue);
+    defineNonEnumerable(this, 'sqlExpressionLiteralFor', input.sqlExpressionLiteralFor);
     defineNonEnumerable(this, 'reportedType', input.reportedType);
     freezeNode(this);
   }
@@ -203,6 +212,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
         ...ifDefined('many', this.many ?? this.codecRef?.many),
         ...ifDefined('codecRef', this.codecRef),
         ...ifDefined('codecBaseNativeType', this.codecBaseNativeType),
+        ...ifDefined('sqlExpressionLiteralFor', this.sqlExpressionLiteralFor),
       }),
     ];
   }
@@ -236,11 +246,14 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   }
 
   /** When both sides carry a reported type and the texts differ, both texts. */
-  explainMismatch(actual: DiffableNode | undefined): string | undefined {
+  explainMismatch(actual: DiffableNode | undefined): MismatchExplanation | undefined {
     if (actual === undefined) return undefined;
     const texts = reportedTexts(this, columnNodeOf(actual));
     if (texts === undefined || texts.own === texts.other) return undefined;
-    return `The column type is "${texts.own}", but the database reports "${texts.other}". A type named by its catalog text is compared with the text the database reports, exactly.`;
+    return {
+      text: `The column type is "${texts.own}", but the database reports "${texts.other}". A type named by its catalog text is compared with the text the database reports, exactly.`,
+      cause: 'differs',
+    };
   }
 }
 

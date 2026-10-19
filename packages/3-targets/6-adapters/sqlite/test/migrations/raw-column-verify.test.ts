@@ -128,7 +128,10 @@ describe('a raw column on SQLite', () => {
       });
 
       expect(verified.schema.issues.map((issue) => issue.explanation)).toEqual([
-        'The column type is "circle", but the database reports "CIRCLE". A type named by its catalog text is compared with the text the database reports, exactly.',
+        {
+          text: 'The column type is "circle", but the database reports "CIRCLE". A type named by its catalog text is compared with the text the database reports, exactly.',
+          cause: 'differs',
+        },
       ]);
     } finally {
       await driver.close();
