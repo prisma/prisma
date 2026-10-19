@@ -53,3 +53,14 @@ describe('a sqlite client with custom collection classes', () => {
     });
   });
 });
+
+describe('a sqlite client given a class for a model the contract does not have', () => {
+  it('rejects it when it is created', () => {
+    expect(() => sqlite({ contract, path, collections: { NotAModel: PostCollection } })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.ARGUMENT_INVALID',
+        message: expect.stringContaining("No model found for custom collection 'NotAModel'"),
+      }),
+    );
+  });
+});

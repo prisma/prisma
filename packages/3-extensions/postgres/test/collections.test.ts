@@ -42,9 +42,8 @@ const contract = contractFromJson<Contract>(fixtureContractJson);
 const collections = { Post: PostCollection };
 const url = 'postgres://localhost:5432/db';
 
-function lastSelect(): string | undefined {
-  return statements.filter((statement) => statement.startsWith('SELECT')).at(-1);
-}
+const titledSelect =
+  'SELECT "posts"."id" AS "id", "posts"."title" AS "title", "posts"."user_id" AS "user_id", "posts"."views" AS "views" FROM "public"."posts" WHERE "posts"."title" = $1';
 
 afterEach(() => {
   statements.length = 0;
@@ -57,10 +56,10 @@ describe('a postgres client with custom collection classes', () => {
     await db.orm.public.Post.titled('Hello').all();
     await db.close();
 
-    expect({
-      collection: db.orm.public.Post instanceof PostCollection,
-      filtersByTitle: lastSelect()?.includes('"title"'),
-    }).toEqual({ collection: true, filtersByTitle: true });
+    expect({ collection: db.orm.public.Post instanceof PostCollection, statements }).toEqual({
+      collection: true,
+      statements: [titledSelect],
+    });
   });
 
   it('runs a class method on tx.orm, and keeps the class through a row lock', async () => {
@@ -74,12 +73,30 @@ describe('a postgres client with custom collection classes', () => {
 
     expect({ isPostCollection, statements }).toEqual({
       isPostCollection: true,
-      statements: [
-        'BEGIN',
-        expect.stringMatching(/WHERE "posts"\."title" = \$1 FOR UPDATE OF "posts"$/),
-        'COMMIT',
-      ],
+      statements: ['BEGIN', `${titledSelect} FOR UPDATE OF "posts"`, 'COMMIT'],
     });
+  });
+});
+
+describe('a client given a class for a model the contract does not have', () => {
+  it('postgres() rejects it when it is created', () => {
+    expect(() => postgres({ contract, url, collections: { NotAModel: PostCollection } })).toThrow(
+      expect.objectContaining({
+        code: 'ORM.ARGUMENT_INVALID',
+        message: expect.stringContaining("No model found for custom collection 'NotAModel'"),
+      }),
+    );
+  });
+
+  it('postgresServerless() rejects it when it is created', () => {
+    expect(() =>
+      postgresServerless({ contract, collections: { NotAModel: PostCollection } }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'ORM.ARGUMENT_INVALID',
+        message: expect.stringContaining("No model found for custom collection 'NotAModel'"),
+      }),
+    );
   });
 });
 
@@ -89,14 +106,11 @@ describe('a serverless client with custom collection classes', () => {
     await using db = await serverless.connect({ url });
 
     await db.orm.public.Post.titled('Hello').all();
-    const inTransaction = await db.transaction(
-      async (tx) => tx.orm.public.Post instanceof PostCollection,
-    );
+    await db.transaction(async (tx) => tx.orm.public.Post.titled('Hello').all());
 
     expect({
-      connection: db.orm.public.Post instanceof PostCollection,
-      inTransaction,
-      filtersByTitle: lastSelect()?.includes('"title"'),
-    }).toEqual({ connection: true, inTransaction: true, filtersByTitle: true });
+      onConnection: statements.at(-4),
+      inTransaction: statements.slice(-3),
+    }).toEqual({ onConnection: titledSelect, inTransaction: ['BEGIN', titledSelect, 'COMMIT'] });
   });
 });
