@@ -10,9 +10,7 @@ export function resolveIntrospectedColumnType(
   dataTypes: readonly DataType[],
 ): Pick<SqlColumnIRInput, 'storedType' | 'storedTypeParams'> {
   const resolved = resolveReportedSqlType(reported, dataTypes);
-  const dataType =
-    resolved === undefined ? undefined : dataTypes.find((type) => type.id === resolved.dataType);
-  return resolved === undefined || dataType === undefined
+  return resolved === undefined
     ? {}
-    : { storedType: dataType, storedTypeParams: resolved.typeParams };
+    : { storedType: resolved.dataType, storedTypeParams: resolved.typeParams };
 }

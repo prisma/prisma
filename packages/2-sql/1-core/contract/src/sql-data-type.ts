@@ -71,8 +71,9 @@ export interface SqlDataType<Params extends SqlTypeParams = SqlTypeParams> exten
   readonly sql: SqlDataTypeFacts<Params>;
 }
 
+/** A data type that claims a type text, with the parameters the text gives in their normal form. */
 export interface ResolvedSqlType {
-  readonly dataType: DataTypeId;
+  readonly dataType: SqlDataType;
   readonly typeParams: SqlTypeParams;
 }
 
@@ -659,5 +660,5 @@ export function resolveWrittenSqlTypes(
 
 function resolvedWith(type: SqlDataType, params: SqlTypeParams): ResolvedSqlType | undefined {
   if (type.params !== undefined && type.params(params) instanceof arktype.errors) return undefined;
-  return { dataType: type.id, typeParams: type.sql.normalize(params) };
+  return { dataType: type, typeParams: type.sql.normalize(params) };
 }

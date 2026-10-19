@@ -59,7 +59,7 @@ const constructors = inferredTypeConstructors({
 /** The codec and type parameters of the call `contract infer` writes for the column, as `contract emit` reads it. */
 function inferredCodecRef(reportedType: ReportedSqlType) {
   const resolved = resolveReportedSqlType(reportedType, postgresDataTypes);
-  const marked = resolved && constructors.get(resolved.dataType);
+  const marked = resolved && constructors.get(resolved.dataType.id);
   const call = resolved && marked && fewestArgumentsCall(marked, resolved.typeParams);
   return marked && call && instantiateAuthoringTypeConstructor(marked.descriptor, call.args);
 }

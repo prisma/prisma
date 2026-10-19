@@ -7,11 +7,7 @@ import {
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
-import {
-  isSqlDataType,
-  renderSqlCatalogText,
-  resolveWrittenSqlTypes,
-} from '@internal/sql-contract/data-type';
+import { renderSqlCatalogText, resolveWrittenSqlTypes } from '@internal/sql-contract/data-type';
 import {
   type ReportedSqlType,
   SqlColumnIR,
@@ -60,13 +56,9 @@ export function reportedFromWritten(
     return { text: typeText, kind: 'enum', schema: enumType.schema, name: enumType.name };
   }
   const [resolved] = resolveWrittenSqlTypes(typeText, postgresDataTypes);
-  const dataType = postgresDataTypes.find((type) => type.id === resolved?.dataType);
   const text =
-    resolved !== undefined &&
-    dataType !== undefined &&
-    isSqlDataType(dataType) &&
-    dataType.sql.claimsKind === undefined
-      ? renderSqlCatalogText(dataType, resolved.typeParams)
+    resolved !== undefined && resolved.dataType.sql.claimsKind === undefined
+      ? renderSqlCatalogText(resolved.dataType, resolved.typeParams)
       : typeText;
   return { text, kind: undefined, schema: 'pg_catalog', name: undefined };
 }

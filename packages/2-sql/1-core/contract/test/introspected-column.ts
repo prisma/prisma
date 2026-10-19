@@ -11,12 +11,11 @@ export function introspectedColumn(
     column.reportedType === undefined
       ? resolveWrittenSqlTypes(column.typeText, dataTypes)[0]
       : resolveReportedSqlType(column.reportedType, dataTypes);
-  const type = dataTypes.find(({ id }) => id === resolved?.dataType);
   return {
     reportedType: { text: column.typeText, kind: undefined, schema: undefined, name: undefined },
     ...column,
-    ...(resolved === undefined || type === undefined
+    ...(resolved === undefined
       ? {}
-      : { storedType: type, storedTypeParams: resolved.typeParams }),
+      : { storedType: resolved.dataType, storedTypeParams: resolved.typeParams }),
   };
 }

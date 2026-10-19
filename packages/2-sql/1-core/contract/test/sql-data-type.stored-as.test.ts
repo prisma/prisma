@@ -4,12 +4,18 @@ import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import {
   renderSqlTypeName,
-  resolveReportedSqlType,
+  resolveReportedSqlType as resolveReported,
   sqlDataType,
   sqlStorageType,
   sqlStorageTypeId,
   sqlStorageTypeOfCodec,
 } from '../src/sql-data-type';
+
+/** resolveReportedSqlType, with each resolved data type named by its id for the expectations. */
+const resolveReportedSqlType = (...args: Parameters<typeof resolveReported>) => {
+  const resolved = resolveReported(...args);
+  return resolved && { dataType: resolved.dataType.id, typeParams: resolved.typeParams };
+};
 
 const text = sqlDataType('t/text', {
   read: (json) => json,

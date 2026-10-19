@@ -127,18 +127,22 @@ function readWrittenType(type: string, dataTypes: readonly DataType[]): WrittenT
   const sqlTypes = dataTypes.filter(isSqlDataType);
   const byText = resolveWrittenSqlTypes(base, sqlTypes);
   if (byText.length > 1) {
-    const named = byText.map((resolved) => resolved.dataType).join(' and ');
+    const named = byText.map((resolved) => resolved.dataType.id).join(' and ');
     return {
       ok: false,
       reason: `more than one data type of the configured stack reads the type "${type}", as ${named}`,
     };
   }
   const resolved = byText[0] ?? resolvedByKind(base, sqlTypes);
-  const found = sqlTypes.find(({ id }) => id === resolved?.dataType);
-  if (resolved === undefined || found === undefined) {
+  if (resolved === undefined) {
     return { ok: false, reason: `no data type of the configured stack reads the type "${type}"` };
   }
-  return { ok: true, type: found, typeParams: resolved.typeParams, many: array !== null };
+  return {
+    ok: true,
+    type: resolved.dataType,
+    typeParams: resolved.typeParams,
+    many: array !== null,
+  };
 }
 
 function readColumnTypeCheck(
