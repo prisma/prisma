@@ -95,7 +95,6 @@ function convertColumn(
     // resolve DDL rendering from this at plan time (Decision 5), instead of
     // reading a derivation-precomputed render payload.
     codecRef: buildColumnCodecRef(resolved, many ? true : undefined),
-    dataType,
     storedType: storage,
     typeParams: storage.sql.normalize(dataTypeParams(storage, resolved.typeParams)),
     ...ifDefined(

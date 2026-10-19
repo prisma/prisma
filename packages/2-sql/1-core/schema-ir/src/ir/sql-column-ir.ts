@@ -67,12 +67,10 @@ export interface SqlColumnIRInput {
    */
   readonly codecRef?: CodecRef;
   /**
-   * The column's data type, from the assembled stack (ADR 254): on the contract-derived side the type its codec represents, on the introspected side the type that claims the reported type. Absent on an introspected column no data type claims.
+   * The type the column is stored as, whose name DDL writes and the database reports (ADR 254): on the contract-derived side the type its codec's data type is stored as, on the introspected side the type that claims the reported type. Absent on an introspected column no data type claims.
    */
-  readonly dataType?: DataType;
-  /** The type the column is stored as, whose name DDL writes and the database reports: {@link dataType} itself unless that type is stored as another. Present exactly when `dataType` is. */
   readonly storedType?: DataType;
-  /** The parameters of {@link storedType} in its normal form; empty for a type without parameters. Present exactly when `dataType` is. */
+  /** The parameters of {@link storedType} in its normal form; empty for a type without parameters. Present exactly when `storedType` is. */
   readonly typeParams?: DataTypeParams;
   /**
    * A literal default as a value of the column's data type (ADR 254): on the contract-derived side read from the contract by the column's type, on the introspected side read from the database by the column's codec. The diff compares defaults by it. Absent when no type or codec read one.
@@ -115,8 +113,6 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly authoredDefault?: ColumnDefault;
   /** See {@link SqlColumnIRInput.codecRef}. Non-enumerable so it stays out of JSON and structural equality. */
   declare readonly codecRef?: CodecRef;
-  /** See {@link SqlColumnIRInput.dataType}. Non-enumerable, same reason as {@link codecRef}. */
-  declare readonly dataType?: DataType;
   /** See {@link SqlColumnIRInput.storedType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly storedType?: DataType;
   /** See {@link SqlColumnIRInput.typeParams}. Non-enumerable, same reason as {@link codecRef}. */
@@ -141,7 +137,6 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     if (input.resolvedDefault !== undefined) this.resolvedDefault = input.resolvedDefault;
     defineNonEnumerable(this, 'authoredDefault', input.authoredDefault);
     defineNonEnumerable(this, 'codecRef', input.codecRef);
-    defineNonEnumerable(this, 'dataType', input.dataType);
     defineNonEnumerable(this, 'storedType', input.storedType);
     defineNonEnumerable(this, 'typeParams', input.typeParams);
     defineNonEnumerable(this, 'defaultValue', input.defaultValue);

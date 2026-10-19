@@ -259,24 +259,21 @@ describe('SqlColumnIR', () => {
   describe('data type and parameters', () => {
     const numeric = dataType('t/numeric', { read: (json) => json });
 
-    it('carries the data type, stored type and parameters outside JSON', () => {
+    it('carries the stored type and parameters outside JSON', () => {
       const column = new SqlColumnIR({
         name: 'price',
         typeText: 'numeric',
         nullable: false,
-        dataType: numeric,
         storedType: numeric,
         typeParams: { precision: 10, scale: 0 },
       });
       const bare = new SqlColumnIR({ name: 'price', typeText: 'numeric', nullable: false });
 
       expect({
-        dataType: column.dataType,
         storedType: column.storedType,
         typeParams: column.typeParams,
         json: JSON.stringify(column),
       }).toEqual({
-        dataType: numeric,
         storedType: numeric,
         typeParams: { precision: 10, scale: 0 },
         json: JSON.stringify(bare),
@@ -298,7 +295,6 @@ describe('SqlColumnIR', () => {
         resolvedDefault: { kind: 'literal', value: 'draft' },
         authoredDefault: { kind: 'literal', value: 'draft' },
         codecRef: { codecId: 't/text@1' },
-        dataType: text,
         storedType: text,
         typeParams: {},
         defaultValue: value,

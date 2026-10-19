@@ -81,13 +81,12 @@ export function actualColumn(input: {
 
 /** The SQLite data type a column of `typeText` has, as introspection resolves it. */
 function typeOf(typeText: string) {
-  const { dataType, storedType, typeParams } = introspectedColumn({
+  const { storedType, typeParams } = introspectedColumn({
     name: '',
     typeText,
     nullable: false,
   });
   return {
-    ...(dataType === undefined ? {} : { dataType }),
     ...(storedType === undefined ? {} : { storedType }),
     ...(typeParams === undefined ? {} : { typeParams }),
   };

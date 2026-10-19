@@ -35,25 +35,23 @@ describe('introspected column data types', () => {
         Object.entries(columns).map(([name, column]) => [
           name,
           {
-            dataType: column.dataType?.id,
             storedType: column.storedType?.id,
             typeParams: column.typeParams,
           },
         ]),
       ),
     ).toEqual({
-      id: { dataType: 'sqlite/integer', storedType: 'sqlite/integer', typeParams: {} },
-      name: { dataType: 'sqlite/text', storedType: 'sqlite/text', typeParams: {} },
-      ratio: { dataType: 'sqlite/real', storedType: 'sqlite/real', typeParams: {} },
-      payload: { dataType: 'sqlite/blob', storedType: 'sqlite/blob', typeParams: {} },
-      code: { dataType: 'sqlite/character', storedType: 'sqlite/character', typeParams: {} },
+      id: { storedType: 'sqlite/integer', typeParams: {} },
+      name: { storedType: 'sqlite/text', typeParams: {} },
+      ratio: { storedType: 'sqlite/real', typeParams: {} },
+      payload: { storedType: 'sqlite/blob', typeParams: {} },
+      code: { storedType: 'sqlite/character', typeParams: {} },
       label: {
-        dataType: 'sqlite/character-varying',
         storedType: 'sqlite/character-varying',
         typeParams: {},
       },
-      sized: { dataType: undefined, storedType: undefined, typeParams: undefined },
-      amount: { dataType: undefined, storedType: undefined, typeParams: undefined },
+      sized: { storedType: undefined, typeParams: undefined },
+      amount: { storedType: undefined, typeParams: undefined },
     });
   });
 });

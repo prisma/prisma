@@ -43,21 +43,18 @@ const reported = (text: string, kind?: string): ReportedSqlType => ({
 });
 
 function resolved(reportedType: ReportedSqlType, dataTypes = baseTypes) {
-  const { dataType, typeParams } = resolveIntrospectedColumnType(reportedType, dataTypes);
-  return { dataType: dataType?.id, typeParams };
+  const { storedType, typeParams } = resolveIntrospectedColumnType(reportedType, dataTypes);
+  return { storedType: storedType?.id, typeParams };
 }
 
 describe('resolveIntrospectedColumnType', () => {
-  it('gives a base type its data type and no parameters', () => {
-    expect(resolved(reported('text'))).toEqual({ dataType: 'test/text', typeParams: {} });
+  it('gives a base type its stored type and no parameters', () => {
+    expect(resolved(reported('text'))).toEqual({ storedType: 'test/text', typeParams: {} });
   });
 
   it('is stored as the type that claims it', () => {
-    const { dataType, storedType } = resolveIntrospectedColumnType(
-      reported('numeric(4,2)'),
-      baseTypes,
-    );
-    expect({ dataType, storedType }).toEqual({ dataType: numeric, storedType: numeric });
+    const { storedType } = resolveIntrospectedColumnType(reported('numeric(4,2)'), baseTypes);
+    expect(storedType).toBe(numeric);
   });
 
   it('gives a parameterised type its parameters in normal form', () => {
@@ -65,14 +62,14 @@ describe('resolveIntrospectedColumnType', () => {
       short: resolved(reported('numeric(10)')),
       long: resolved(reported('NUMERIC(10, 0)')),
     }).toEqual({
-      short: { dataType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
-      long: { dataType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
+      short: { storedType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
+      long: { storedType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
     });
   });
 
   it('gives a type of a kind the parameters its claimant reads from the report', () => {
     expect(resolved(reported('mood', 'enum'))).toEqual({
-      dataType: 'test/enum',
+      storedType: 'test/enum',
       typeParams: { typeName: 'mood' },
     });
   });
@@ -89,8 +86,8 @@ describe('resolveIntrospectedColumnType', () => {
       with: resolved(reported('thing(3)'), [...baseTypes, thing]),
       without: resolved(reported('thing(3)')),
     }).toEqual({
-      with: { dataType: 'testext/thing', typeParams: { size: 3 } },
-      without: { dataType: undefined, typeParams: undefined },
+      with: { storedType: 'testext/thing', typeParams: { size: 3 } },
+      without: { storedType: undefined, typeParams: undefined },
     });
   });
 });

@@ -427,7 +427,6 @@ describe('contractToSchemaIR', () => {
         Object.entries(columns).map(([name, column]) => [
           name,
           {
-            dataType: column.dataType?.id,
             storedType: column.storedType?.id,
             typeParams: column.typeParams,
           },
@@ -435,19 +434,16 @@ describe('contractToSchemaIR', () => {
       ),
     ).toEqual({
       whole: {
-        dataType: 'test/numeric',
         storedType: 'test/numeric',
         typeParams: { precision: 10, scale: 0 },
       },
       bare: {
-        dataType: 'test/fixed-character',
         storedType: 'test/fixed-character',
         typeParams: { length: 1 },
       },
-      name: { dataType: 'test/text', storedType: 'test/text', typeParams: {} },
-      mood: { dataType: 'test/enum', storedType: 'test/enum', typeParams: { typeName: 'Mood' } },
+      name: { storedType: 'test/text', typeParams: {} },
+      mood: { storedType: 'test/enum', typeParams: { typeName: 'Mood' } },
       code: {
-        dataType: 'test/code',
         storedType: 'test/fixed-character',
         typeParams: { length: 1 },
       },

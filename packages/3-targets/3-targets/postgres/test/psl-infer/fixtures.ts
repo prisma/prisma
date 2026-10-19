@@ -88,7 +88,7 @@ export function withReportedType(
 
 function nonEnumerableFieldsOf(column: SqlColumnIR): Partial<SqlColumnIRInput> {
   return Object.fromEntries(
-    (['authoredDefault', 'codecRef', 'dataType', 'storedType', 'typeParams'] as const)
+    (['authoredDefault', 'codecRef', 'storedType', 'typeParams'] as const)
       .filter((key) => column[key] !== undefined)
       .map((key) => [key, column[key]]),
   );

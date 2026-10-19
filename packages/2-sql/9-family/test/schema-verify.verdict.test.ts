@@ -67,7 +67,6 @@ function stampLikeIntrospection(schema: SqlSchemaIR): SqlSchemaIR {
         ...(col.default !== undefined ? { default: col.default } : {}),
         ...(col.many !== undefined ? { many: col.many } : {}),
         ...(resolvedDefault !== undefined ? { resolvedDefault } : {}),
-        ...(col.dataType !== undefined ? { dataType: col.dataType } : {}),
         ...(col.storedType !== undefined ? { storedType: col.storedType } : {}),
         ...(col.typeParams !== undefined ? { typeParams: col.typeParams } : {}),
       });

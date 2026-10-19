@@ -6,7 +6,7 @@ import {
   SqlUniqueIR,
 } from '@internal/sql-schema-ir/types';
 import { describe, expect, it } from 'vitest';
-import { sqliteCharacter, sqliteDatetime, sqliteText } from '../../src/core/data-types';
+import { sqliteCharacter, sqliteText } from '../../src/core/data-types';
 import {
   columnSpecFromNode,
   ddlColumnFromNode,
@@ -80,17 +80,11 @@ describe('tableConstraintsFromNode — checks', () => {
   });
 });
 
-function column(
-  dataType: DataType,
-  storedType: DataType,
-  codecId: string,
-  typeParams?: Record<string, number>,
-) {
+function column(storedType: DataType, codecId: string, typeParams?: Record<string, number>) {
   return new SqlColumnIR({
     name: 'c',
     typeText: 'text',
     nullable: false,
-    dataType,
     storedType,
     typeParams: {},
     codecRef: { codecId, ...(typeParams === undefined ? {} : { typeParams }) },
@@ -99,8 +93,8 @@ function column(
 
 describe('the type SQLite DDL writes for a column node', () => {
   it('is the name of the type the column is stored as, in upper case', () => {
-    const datetime = column(sqliteDatetime, sqliteText, 'sqlite/datetime@1');
-    const character = column(sqliteCharacter, sqliteCharacter, 'sql/char@1', { length: 10 });
+    const datetime = column(sqliteText, 'sqlite/datetime@1');
+    const character = column(sqliteCharacter, 'sql/char@1', { length: 10 });
     expect({
       spec: columnSpecFromNode(datetime, false).typeSql,
       ddl: ddlColumnFromNode(datetime, false).type,

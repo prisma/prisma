@@ -68,7 +68,6 @@ describe('introspected column data types', { concurrent: false }, () => {
         Object.entries(columns).map(([name, column]) => [
           name,
           {
-            dataType: column.dataType?.id,
             storedType: column.storedType?.id,
             typeParams: column.typeParams,
             many: column.many ?? false,
@@ -76,53 +75,46 @@ describe('introspected column data types', { concurrent: false }, () => {
         ]),
       ),
     ).toEqual({
-      id: { dataType: 'pg/int4', storedType: 'pg/int4', typeParams: {}, many: false },
+      id: { storedType: 'pg/int4', typeParams: {}, many: false },
       name: {
-        dataType: 'pg/varchar',
         storedType: 'pg/varchar',
         typeParams: { length: 20 },
         many: false,
       },
-      short_name: { dataType: 'pg/varchar', storedType: 'pg/varchar', typeParams: {}, many: false },
+      short_name: { storedType: 'pg/varchar', typeParams: {}, many: false },
       amount: {
-        dataType: 'pg/numeric',
         storedType: 'pg/numeric',
         typeParams: { precision: 10, scale: 0 },
         many: false,
       },
       price: {
-        dataType: 'pg/numeric',
         storedType: 'pg/numeric',
         typeParams: { precision: 10, scale: 2 },
         many: false,
       },
       created: {
-        dataType: 'pg/timestamptz',
         storedType: 'pg/timestamptz',
         typeParams: { precision: 3 },
         many: false,
       },
-      tags: { dataType: 'pg/text', storedType: 'pg/text', typeParams: {}, many: true },
+      tags: { storedType: 'pg/text', typeParams: {}, many: true },
       mood: {
-        dataType: 'pg/enum',
         storedType: 'pg/enum',
         typeParams: { typeName: 'mood' },
         many: false,
       },
       status: {
-        dataType: 'pg/enum',
         storedType: 'pg/enum',
         typeParams: { typeName: 'app.status' },
         many: false,
       },
       moods: {
-        dataType: 'pg/enum',
         storedType: 'pg/enum',
         typeParams: { typeName: 'mood' },
         many: true,
       },
-      count: { dataType: undefined, storedType: undefined, typeParams: undefined, many: false },
-      pair: { dataType: undefined, storedType: undefined, typeParams: undefined, many: false },
+      count: { storedType: undefined, typeParams: undefined, many: false },
+      pair: { storedType: undefined, typeParams: undefined, many: false },
     });
   });
 });
