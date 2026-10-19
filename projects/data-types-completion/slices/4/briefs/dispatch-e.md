@@ -8,7 +8,7 @@ Read `common-rules.md` first. Design 13.8; plan decision 5.
 
 ## Build
 
-1. Each entry names the data type and parameters Prisma 7 creates for the Prisma 7 type (for example `DateTime` → `pg/timestamp` with `{ precision: 3 }`), and the reader prints the constructor marked `inferred` for that data type with the fewest arguments, through the SQL family's marked-constructor functions from TML-3582.
+1. Each entry names the data type and parameters Prisma 7 creates for the Prisma 7 type (for example `DateTime` → `pg/timestamp` with `{ precision: 3 }`), and the reader instantiates the constructor marked `inferred` for that data type with every parameter the entry names (not the fewest arguments: the reader builds a contract, and a bare `@db.Char` must keep `{ length: 1 }`; see design 13.8).
 2. Delete `EXISTING_COLUMN_DATE_TIME_TYPES` and its file.
 3. A `@db.X(args)` attribute's arguments still replace the defaults.
 
