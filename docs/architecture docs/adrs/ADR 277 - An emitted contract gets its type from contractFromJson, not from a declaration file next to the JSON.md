@@ -9,7 +9,7 @@
 
 ## At a glance
 
-An application gives its emitted contract its type in one visible call:
+The emitter writes an application's contract as two files: `contract.json`, the data, and `contract.d.ts`, its type. An application joins the two in one call:
 
 ```ts
 // src/prisma/db.ts
@@ -22,78 +22,84 @@ export const contract = contractFromJson<Contract>(contractJson);
 export const db = postgres({ contract, url: process.env['DATABASE_URL']! });
 ```
 
-The emitter does not write a declaration file that types `contract.json` itself, so this does not work:
-
-```ts
-import contractJson from './contract.json' with { type: 'json' };
-
-export const db = postgres({ contract: contractJson }); // type error: the import has the JSON's own type, not Contract
-```
+TypeScript could instead give the import its type by itself, with no call. This ADR records why we do not do that.
 
 ## Decision
 
-1. **`contractFromJson<Contract>(json)` is the one way an application gives an emitted contract its type.** The type is attached at the moment the JSON is validated.
-2. **The emitter writes `contract.json` and `contract.d.ts` only.** It does not write `contract.d.json.ts`, and Prisma 8 does not require `allowArbitraryExtensions` or any other compiler setting in an application's `tsconfig.json`.
+1. **`contractFromJson<Contract>(json)` is the one way an application gives an emitted contract its type.** It validates the JSON and returns it typed as the `Contract` the application names.
+2. **The emitter writes `contract.json` and `contract.d.ts`, and nothing that types the JSON import.** An application needs no compiler setting for Prisma 8 beyond `resolveJsonModule`, which importing JSON already requires.
 
 ## Why
 
-TypeScript can type a JSON import from a declaration file next to it. With `allowArbitraryExtensions` set, an import of `./contract.json` resolves to `contract.d.json.ts` when that file exists:
+### An imported JSON file has the right shape but loses its literal types
+
+When TypeScript imports `contract.json`, it infers a type from the file's content but widens every literal. The contract's `storage.namespaces.public.id` is typed `string`, where the contract's type says `"public"`. The shape is right; the precise types the query builders depend on are gone.
+
+So something has to restore the literal types by naming `Contract`. There are two places that can happen: in the application's code, as `contractFromJson<Contract>(json)` does, or in a declaration file the emitter writes next to the JSON.
+
+### A declaration file next to the JSON would work
+
+TypeScript looks for a declaration file for a JSON import when `allowArbitraryExtensions` is set. An import of `./contract.json` then resolves to `contract.d.json.ts`, if it exists:
 
 ```ts
-// contract.d.json.ts, written by the emitter
+// contract.d.json.ts, which the emitter would write
 import type { Contract } from './contract.d';
 declare const contract: Contract;
 export = contract;
 ```
 
-The import is then typed as `Contract`, and `postgres({ contract: contractJson, collections })` infers both the contract type and the collection classes with no extra call. It also ties each JSON file to its own type, so an application with two contracts cannot pair a type with the wrong file. This works with the demo application's real contract, at type-check time, under tsx and in a Vite build. We still do not use it, for the reasons below.
+The import is typed as `Contract`, so the application needs no call at all:
 
-### It needs a compiler setting we do not control
+```ts
+import contractJson from './contract.json' with { type: 'json' };
 
-Every application must turn on `allowArbitraryExtensions`. Without it, TypeScript stops with TS6263 ("was resolved to `contract.d.json.ts`, but `--allowArbitraryExtensions` is not set"). The error is clear, but it becomes a setup step in every new project and every framework guide.
+export const db = postgres({ contract: contractJson, url: process.env['DATABASE_URL']! });
+```
 
-Many applications do not own their `tsconfig.json` outright. Frameworks such as Next.js, Nuxt, SvelteKit and Astro generate it or have it extend their own, and monorepos share one base config. Each of these needs its own instructions.
+This has a real benefit beyond the shorter code. The emitter writes the declaration file and the JSON in the same run, so each JSON file always carries its own type. With `contractFromJson`, an application with two contracts can pair a type with the wrong file, `contractFromJson<ContractA>(contractBJson)`, and nothing catches it.
 
-### It fails under `nodenext`
+### It would require a compiler setting in every application
 
-Under `moduleResolution: nodenext`, which TypeScript recommends for Node servers and libraries, a default import of a JSON module needs the declaration file to use `export =`. TypeScript accepts `export =` in an ES module declaration file only when `skipLibCheck` is on (TS1203 otherwise). A project that checks its declaration files would get an error in a file it did not write.
+This is the deciding reason.
 
-### The type would describe a value the JSON is not
+Without `allowArbitraryExtensions`, TypeScript stops at the import with TS6263 ("was resolved to `contract.d.json.ts`, but `--allowArbitraryExtensions` is not set"). The error names the fix, but every new project and every framework guide would carry the step. Many applications do not own their `tsconfig.json` outright: Next.js, Nuxt, SvelteKit and Astro generate it or have it extend their own, and monorepos share one base config.
 
-At run time an imported `contract.json` is raw JSON that nothing has validated. A declaration file would type it as the validated `Contract`. A client validates it before use, but any other code that reads the import trusts a type nothing has checked. `contractFromJson` attaches the type to the value it has just validated, so the type and the check happen in the same place.
+The setting is not enough under `moduleResolution: nodenext`, which TypeScript recommends for Node servers and libraries. There, the declaration file must use `export =`, which TypeScript accepts in an ES module declaration file only when `skipLibCheck` is on (TS1203 otherwise). A project that checks its declaration files would get an error in a file it did not write.
 
-### It is less visible
+A requirement on every application's compiler configuration is a cost every user pays, to save one line of code.
 
-A reader of `db.ts` cannot see why `contractJson` has its type: the type comes from a file that appears nowhere in the code. `contractFromJson<Contract>(contractJson)` says where the type comes from, and it can be searched for.
+### The call says where the type comes from
 
-### It asks more of the toolchain
+A reader of `db.ts` can see `contractFromJson<Contract>(contractJson)` and search for it. With a declaration file, the type of `contractJson` comes from a file that appears nowhere in the code. The declaration file is also one more generated file in the application's source tree, and every tool that type-checks the application would have to resolve `.d.json.ts` files the way TypeScript does.
 
-Every tool that type-checks the application would have to resolve `.d.json.ts` files the same way TypeScript does, and the emitter would write a third generated file into the application's source tree.
+### Both approaches assert the literal type without checking it
+
+`contractFromJson` validates that the JSON is a well-formed contract. It cannot check that it is *this* `Contract`: the type argument is the application's claim, as a declaration file's type would be. So the declaration file would not be less safe on that count. The one difference is timing. A declaration file types the import as a contract before anything has validated it, which matters only to code that reads the import directly instead of through a client.
 
 ## Consequences
 
-- **An application writes one call, `contractFromJson<Contract>(contractJson)`,** and every client after it infers its options (ADR 274).
-- **Applications need no special compiler settings** beyond those the JSON import itself already requires (`resolveJsonModule`).
-- **Pairing the type with the JSON stays the application's job.** `contractFromJson<ContractA>(contractBJson)` compiles, and nothing at run time can catch it: `contract.d.ts` carries the contract's hash only as a type, and types are erased before the code runs. This is the one benefit of a declaration file that this decision gives up.
+- **An application writes one call, `contractFromJson<Contract>(contractJson)`,** and every client built from its result infers its own options (ADR 274).
+- **Applications need no extra compiler setting.**
+- **Pairing a type with its JSON is the application's job.** Nothing at run time can catch a wrong pairing: `contract.d.ts` carries the contract's hash only as a type, and types are erased before the code runs.
 
 ## Alternatives considered
 
-### Write `declare module './contract.json'` in `contract.d.ts`
+### `declare module './contract.json'` in `contract.d.ts`
 
-This would type the import with no new file. TypeScript rejects it. An ambient module declaration cannot name a relative module (TS2436). Written as a module augmentation inside `contract.d.ts`, it fails because `./contract.json` resolves to a JSON file, which is not a module that can be augmented (TS2671).
+This would type the import without a new file. TypeScript rejects it. An ambient module declaration cannot name a relative module (TS2436). Written as a module augmentation inside `contract.d.ts`, it fails because `./contract.json` resolves to a JSON file, which cannot be augmented (TS2671).
+
+### A wildcard declaration such as `declare module '*/contract.json'`
+
+TypeScript uses a wildcard declaration only when an import does not resolve to a real file. With `resolveJsonModule` on, which a JSON import needs, the real file always wins and the declaration is ignored. With it off, every `contract.json` in the program would share one type, so an application with two contracts could not type both.
 
 ### Emit `contract.d.json.ts` next to `contract.json`
 
-This is the approach described under "Why" and rejected for the reasons given there.
-
-### A pattern declaration such as `declare module '*/contract.json'`
-
-TypeScript accepts a wildcard ambient declaration, but uses it only when the import does not resolve to a real file. With `resolveJsonModule` on, which a JSON import needs, the real file always wins and the declaration is ignored. With it off, every `contract.json` in the program would share one type, so an application with two contracts could not type both.
+Described under "Why", and rejected because it requires a compiler setting in every application.
 
 ### Emit `contract.d.json.ts` only when a project opts in
 
-The emitter could write the declaration file when a configuration option asks for it, for teams that have the compiler setting and want the shorter call. It would be a second way to type the same contract. It is not adopted now, and nothing in this decision rules it out later. It could never be the default, because the file breaks every project that lacks the setting.
+The emitter could write the declaration file when a configuration option asks for it, for teams that have the setting and want the shorter code. It would be a second way to type the same contract, and it could never be the default, because the file stops every project that lacks the setting. It is not adopted.
 
 ### Generate a TypeScript module that exports the typed contract
 
-Many libraries generate a small module such as `export const contract = …` with the type attached. This needs no compiler setting and no extra call. Prisma 8 does not generate executable code for a contract: the contract is data, emitted as `contract.json` with types in `contract.d.ts` (ADR 159), so this is out of scope.
+Many libraries generate a small module such as `export const contract = …` with the type attached. That needs no compiler setting and no call. Prisma 8 emits a contract only as data, `contract.json`, with its types in `contract.d.ts`, and generates no executable code for it (ADR 159).

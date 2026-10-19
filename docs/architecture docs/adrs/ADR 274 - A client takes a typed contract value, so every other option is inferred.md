@@ -3,14 +3,13 @@
 **Status:** Proposed
 **Date:** 2026-10-16
 **Domain:** Adapters / Targets, Runtime
-**Implementation:** Decisions 1, 2 and 4 are implemented. Decisions 3 and 5 are not implemented yet.
 **Builds on:** [ADR 159 — Definition-only contracts and type-only codec-operation maps](ADR%20159%20-%20Definition-only%20contracts%20and%20type-only%20codec-operation%20maps.md), [ADR 263 — A serverless Postgres connection has the same query interface as a postgres client](ADR%20263%20-%20A%20serverless%20Postgres%20connection%20has%20the%20same%20query%20interface%20as%20a%20postgres%20client.md), [ADR 265 — A collection keeps its class through the chain](ADR%20265%20-%20A%20collection%20keeps%20its%20class%20through%20the%20chain.md)
 
 ---
 
 ## At a glance
 
-An application has custom collection classes (ADR 265):
+An application adds its own query methods to a model by subclassing `Collection` (ADR 265):
 
 ```ts
 // src/collections.ts
@@ -24,12 +23,12 @@ export class PostCollection extends Collection<Contract, 'Post'> {
 }
 ```
 
-It turns its emitted contract into a typed value once, and passes that value and its classes to the client:
+It creates its client from a typed contract value and its classes:
 
 ```ts
 // src/prisma/db.ts
-import { contractFromJson } from '@prisma/orm-postgres/static';
 import postgres from '@prisma/orm-postgres/runtime';
+import { contractFromJson } from '@prisma/orm-postgres/static';
 import { PostCollection } from '../collections';
 import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
@@ -39,74 +38,82 @@ export const contract = contractFromJson<Contract>(contractJson);
 export const db = postgres({
   contract,
   url: process.env['DATABASE_URL']!,
-  collections: { Post: PostCollection }, // decision 3, not implemented yet
+  collections: { Post: PostCollection },
 });
 ```
 
-The classes are on the client's ORM and on every transaction's ORM, with their types:
+Its methods are then available, with their types, on the client's ORM and inside every transaction:
 
 ```ts
 await db.orm.public.Post.published().all();
 
 await db.transaction(async (tx) => {
   const posts = await tx.orm.public.Post.published().forUpdate().all();
-  // ...
 });
 ```
 
-A contract written in TypeScript with `defineContract` is already a typed value, so it goes straight to the client: `postgres({ contract, collections })`.
+The `postgres(...)` call names no type. TypeScript infers the contract's type from `contract` and the classes' types from `collections`.
 
 ## Decision
 
-1. **Each target offers `contractFromJson<Contract>(json)`.** It validates the emitted JSON and returns the contract as a value of the type the application names. It is the only place an application writes the `Contract` type argument. It is exported from the facade's `/static` entry point, which does not load the database driver.
-2. **Every client takes the contract only as a value: `{ contract }`.** `postgres()`, `postgresServerless()`, `sqlite()`, `supabase()`, `mongo()` and the static entries infer the contract type from it. The `contractJson` option is removed. Emitted contracts and contracts written in TypeScript take the same path.
-3. **Every SQL client takes `collections`.** The classes reach `db.orm` and the ORM of every transaction (`tx.orm`). On the serverless client they reach every connection that `connect()` opens. On Supabase they reach every role-bound client and its transactions. The types of the classes are inferred from the option.
-4. **The contract is validated once.** A value from `contractFromJson` or `defineContract` is not validated again by each client built from it.
-5. **Creating a client has no side effects.** It does not connect, does not open a pool, and does not need a URL. The client's static members (ADR 263), and plans built with `db.orm`, `db.sql` and `db.raw`, work without a database. A tool such as a linter can import the application's `db.ts` and read them.
+1. **A client receives its contract as a typed value, `{ contract }`.** For an emitted contract, the application makes that value with `contractFromJson<Contract>(json)`, which validates the JSON and returns it typed as the `Contract` the application names. A contract written in TypeScript with `defineContract` is already such a value. Every client takes the contract this way: `postgres()`, `postgresServerless()`, `sqlite()`, `supabase()` and `mongo()`, as do the static entries `postgresStatic()`, `sqliteStatic()` and `mongoStatic()`, which build queries without loading the database driver.
+2. **No client call names a type, so every option is typed from its value.** The first such option is `collections`, the application's custom collection classes. Every SQL client takes it, and the classes are used everywhere that client offers an ORM: on `db.orm`, on the ORM a transaction receives (`tx.orm`), on every connection a serverless client opens, and on every client that Supabase binds to a database role.
+3. **A contract value is validated once,** however many clients and static entries are built from it.
+4. **Creating a client has no side effects.** It does not connect, open a pool or require a URL. The contract, the query builders and plans built from them all work without a database.
 
 ## Why
 
-### The explicit type argument blocks every other inferred option
+### An emitted contract needs its type named somewhere
 
-An emitted contract arrives as JSON. Importing JSON loses its exact types, so the application names the type. Until now it named it on the client:
+The emitter writes a contract as `contract.json`, the data, and `contract.d.ts`, its type. When TypeScript imports the JSON, it keeps the shape but widens every literal type, so the precise types the query builders depend on are lost. The application restores them by naming `Contract`. [ADR 277](ADR%20277%20-%20An%20emitted%20contract%20gets%20its%20type%20from%20contractFromJson%2C%20not%20from%20a%20declaration%20file%20next%20to%20the%20JSON.md) explains why it does so in its own code rather than through a generated declaration file.
+
+### Naming it on the client call would stop inference
+
+The obvious place to name the type is the client call itself:
 
 ```ts
-const db = postgres<Contract>({ contractJson, collections: { Post: PostCollection } });
+const db = postgres<Contract>({ contract: contractJson, collections: { Post: PostCollection } });
 ```
 
-TypeScript has a rule for calls: once one type argument is written explicitly, it infers none of the others. They take their defaults. So `collections` would be typed with its default, "no classes", and `db.orm.public.Post.published()` would not compile, even though the class is there at run time. Any option whose type should come from its value has the same problem.
+TypeScript has a rule for calls: once one type argument is written explicitly, it infers none of the others, which take their defaults instead. Here the classes' type would fall back to "no classes", and `db.orm.public.Post.published()` would not compile even though the class is there at run time. Every option whose type should come from its value would have the same problem.
 
-Moving the type argument to a call of its own removes the problem. `contractFromJson<Contract>(json)` takes one argument and returns one value. The client call then has no explicit type argument, and TypeScript infers the contract type from `contract` and the class types from `collections`.
+### So the type gets a call of its own
 
-### It is the path TypeScript-authored contracts already use
+`contractFromJson<Contract>(json)` takes one argument and returns one value, so naming the type there costs nothing. The client call that follows names no type, and TypeScript infers everything from the values passed to it. One rule then covers both kinds of contract: a `defineContract` value and a `contractFromJson` value are passed to a client the same way.
 
-`postgres({ contract })` with a `defineContract` value already infers the contract type. The emitted path was the only one that needed `<Contract>` on the client. After this decision there is one way to give a client its contract, whichever way the contract was written.
+### The classes are a client option, not part of the contract
 
-### A program-wide record of validated contracts
+The contract is the data description the emitter writes, that is hashed, and that migrations compare. Custom collection classes are application code. They are passed beside `extensions` and `middleware`, not inside the contract, so that "contract" keeps one meaning and nothing suggests the classes affect its hash.
 
-Decision 4 needs a record of which contracts were already validated. The record is a `WeakMap` on `globalThis` under a `Symbol.for` key, so the separate bundles of a facade (`/static`, `/runtime`, `/serverless`) and separate copies of its code in one program share it. A variable local to one module would not be shared across those bundles. The record holds no behaviour. It only remembers that a given validator already validated a given object, and the object stays collectable. It is keyed by the validator's identity: the target id and the version of the facade package, which is the version of every Prisma 8 package because they are all released together. Another version therefore validates the same object again. The validated contract's top level is frozen and its nested objects are not, so neither the JSON passed to `contractFromJson` nor the value it returns may be changed afterwards: a client built from them later does not validate again.
+## How the rules are kept
 
-### The classes belong to the client, not to the contract
+### Validated once
 
-The contract is the data description that the emitter writes, that is hashed, and that migrations compare. Custom collection classes are application code. Putting them inside the contract value would make "contract" mean two things, and would raise the question of whether the classes affect the hash. They are a client option, beside `extensions` and `middleware`.
+A client built from a contract value checks a record of contracts that have already been validated, and skips validation if the value is there. The record must be shared by every bundle of a facade (`/static`, `/runtime` and `/serverless` are built separately) and by any second copy of the code in one program, so it lives on `globalThis` under a `Symbol.for` key rather than in a module variable. It is a `WeakMap`, so it keeps no contract alive.
 
-### Loading the client must stay free of side effects
+The record is keyed by the validator: the target and the facade's version, which is the version of every Prisma 8 package because they are released together. A second installed version therefore validates the same object again.
 
-Query building needs no database. The ORM builds a plan from the execution context and uses the runtime only when the query runs. A client that connects or validates its URL when created would break this for every tool that imports the application's `db.ts`. Postgres, SQLite and MongoDB clients already create their pool or driver on the first query. This decision makes that a requirement for every client, with a test for each.
+The validated value's top level is frozen; its nested objects are not. Neither the JSON passed to `contractFromJson` nor the value it returns may be changed afterwards, because a client built from them later does not validate again.
+
+The record changes no client's behaviour. It only saves a validator from checking an object it has already accepted.
+
+### No side effects on creation
+
+Tools such as linters need to import an application's `db.ts` and read its client without a database. The ORM builds a plan from the contract alone and uses the database only when the query runs, so this works as long as creating the client does nothing else. Every client therefore creates its pool or driver on the first query, and each has a test that creates it with no URL and builds a plan.
+
+ADR 263 lists `orm` among the members that need a database connection. That is about running an ORM query. Building one does not need a connection.
 
 ## Consequences
 
-- **Every application's `db.ts` changes,** from `postgres<Contract>({ contractJson })` to `contractFromJson<Contract>(contractJson)` plus `postgres({ contract })`. The `orm init` templates, the examples, the docs and the skills change with it, and the release carries upgrade instructions.
-- **The rule "name the `contract.d.ts` type where the JSON enters" still holds.** The JSON now enters at `contractFromJson`.
-- **The hand-built ORM client goes away.** Applications no longer call `orm({ runtime, context, collections })` to get their classes. `orm()` stays as the function the clients are built on.
-- **ADR 263 still holds.** It lists `orm` among the members that need a database connection, because running an ORM query needs one. Building a plan with `orm` does not.
-- **The client types gain a type parameter for the classes,** for example `PostgresClient<Contract, Collections>`. It defaults to no classes, so a type written as `PostgresClient<Contract>` still describes a client without classes.
+- **An application writes `<Contract>` once,** in `contractFromJson`, and nowhere else.
+- **The client types carry the classes,** for example `PostgresClient<Contract, Collections>`. `Collections` defaults to no classes, so `PostgresClient<Contract>` describes a client without them.
+- **`orm({ runtime, context, collections })` stays** as the lower-level function the clients are built on. Applications have no reason to call it.
 
 ## Alternatives considered
 
 ### A chained call: `postgres<Contract>({ ... }).withCollections({ ... })`
 
-A second call has no explicit type argument, so inference works, and existing `db.ts` files keep working. It was rejected because it works around the explicit type argument instead of removing it. Every later option whose type comes from its value would need another chained call, and the client would have two ways to receive options.
+A second call has no explicit type argument, so inference works. It was rejected because it works around the explicit type argument instead of removing it. Every later option typed from its value would need another chained call, and a client would have two ways to receive options.
 
 ### Register the classes on the static entry and build the client from it
 
@@ -115,20 +122,20 @@ const app = postgresStatic<Contract>({ contractJson }).withCollections({ Post: P
 const db = postgres(app, { url });
 ```
 
-This gives the static entry and the client one source of truth. It was rejected because almost no application uses the static entry: it exists so browser code can read enums without loading the driver. Every application would have to write two definitions to get its classes.
+This gives the static entry and the client one source of truth. It was rejected because the static entry exists for code that must not load the database driver, such as browser code reading enums, and almost no application uses it. Every application would have to write two definitions to get its classes.
 
 ### Put the classes inside the contract value
 
-`contractFromJson<Contract>({ json, collections })` still has an explicit type argument, so the classes lose their types there too. It would also make the contract hold application code (see "The classes belong to the client, not to the contract").
+`contractFromJson<Contract>({ json, collections })` still names a type explicitly, so the classes would lose their types there too, and the contract would hold application code.
 
 ### Infer the contract from the classes
 
-`postgres({ contractJson, collections: { Post: PostCollection } })` could infer the contract type from `PostCollection`, which carries it. It was rejected because the application would write `<Contract>` without classes and leave it out with them, and an application that kept `<Contract>` by habit would silently lose the class types.
+`postgres({ contractJson, collections: { Post: PostCollection } })` could infer the contract's type from `PostCollection`, which carries it. It was rejected because an application without classes would still have to name the type, and one that kept naming it by habit would silently lose the classes' types.
 
 ### Type the JSON import itself
 
-TypeScript can type a JSON import through a `contract.d.json.ts` file, with `allowArbitraryExtensions` set in the application's `tsconfig.json`. Then `postgres({ contract: contractJson, collections })` would infer everything with no function call. [ADR 277](ADR%20277%20-%20An%20emitted%20contract%20gets%20its%20type%20from%20contractFromJson%2C%20not%20from%20a%20declaration%20file%20next%20to%20the%20JSON.md) records why it was rejected: every application would need a compiler setting, it fails under `moduleResolution: nodenext`, and it would type unvalidated JSON as a validated contract.
+A declaration file next to `contract.json` could give the import its type, so the application would need no call. ADR 277 records why this was rejected: every application would need the `allowArbitraryExtensions` compiler setting.
 
 ### A program-wide registry filled by declaration merging
 
-Contributed collection methods (ADR 272) are typed through a registry that packages extend by declaration merging. Doing the same for application classes would apply them to every client in the program, including a client meant to have none, and to clients of other contracts. That objection does not apply to the program-wide record of validated contracts: it changes no client's behaviour, it only saves a validator from checking an object it already accepted.
+Contributed collection methods (ADR 272) are typed through a registry that packages extend by declaration merging. Doing the same for application classes would apply them to every client in the program, including clients meant to have none and clients of other contracts.
