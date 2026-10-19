@@ -79,7 +79,7 @@ function variantFilter(
   return field === undefined || value === undefined ? undefined : { [field]: value };
 }
 
-function collectionControlPolicy(contract: MongoContract, collection: string) {
+export function collectionControlPolicy(contract: MongoContract, collection: string) {
   const declared = Object.values(contract.storage.namespaces)
     .map((namespace) => namespace?.entries.collection?.[collection])
     .find((entry) => entry !== undefined);

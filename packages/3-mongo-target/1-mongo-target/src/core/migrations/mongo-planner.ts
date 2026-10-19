@@ -1,4 +1,9 @@
-import { asNamespaceId, type Contract, type ContractWithDomain } from '@internal/contract/types';
+import {
+  asNamespaceId,
+  type Contract,
+  type ContractWithDomain,
+  type ControlPolicy,
+} from '@internal/contract/types';
 import { contractToMongoSchemaIR } from '@internal/family-mongo/control';
 import type { TargetBoundComponentDescriptor } from '@internal/framework-components/components';
 import {
@@ -27,6 +32,7 @@ import type {
 import { canonicalize, deepEqual, indexLookupKey } from '@internal/mongo-schema-ir';
 import { blindCast } from '@internal/utils/casts';
 import {
+  collectionControlPolicy,
   collectionOf,
   type FieldRemoval,
   keepCollectionByHandAdvice,
@@ -291,6 +297,9 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
     for (const collName of [...allCollectionNames].sort()) {
       const originColl = originIR.collection(collName);
       const destColl = destinationIR.collection(collName);
+      if (!plansChangesTo(collectionControlPolicy(contract, collName), originColl !== undefined)) {
+        continue;
+      }
 
       if (!originColl) {
         // Provision contract-declared collections that are absent from
@@ -525,6 +534,18 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
       },
       context.snapshotsImportPath,
     );
+  }
+}
+
+function plansChangesTo(policy: ControlPolicy, collectionExists: boolean): boolean {
+  switch (policy) {
+    case 'managed':
+      return true;
+    case 'tolerated':
+      return !collectionExists;
+    case 'external':
+    case 'observed':
+      return false;
   }
 }
 

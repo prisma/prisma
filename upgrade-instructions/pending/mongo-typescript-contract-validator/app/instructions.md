@@ -15,7 +15,7 @@ changes:
 
 ### What changes
 
-Before, a MongoDB contract written in TypeScript had no collection validators, so MongoDB accepted any document shape. Now each collection gets the validator the same schema gets in PSL: a closed `$jsonSchema` validator with `validationLevel: strict` and `validationAction: error`. It refuses a field the model does not declare, a missing required field, and a value of the wrong BSON type. A `field.vector()` field is validated as an array. The contract's storage hash changes once, because it now includes the validators.
+Before, a MongoDB contract written in TypeScript had no collection validators, so MongoDB accepted any document shape. Now each collection whose control policy is `managed`, the default, gets the validator the same schema gets in PSL: a closed `$jsonSchema` validator with `validationLevel: strict` and `validationAction: error`. It refuses a field the model does not declare, a missing required field, and a value of the wrong BSON type. A `field.vector()` field is validated as an array. The contract's storage hash changes once, because it now includes the validators.
 
 ### What `defineContract` now refuses
 
@@ -82,7 +82,7 @@ const Event = model('Event', {
 
 ### Steps
 
-1. Run `prisma contract emit`. Each collection in `contract.json` gains a `validator`, and `storage.storageHash` changes.
+1. Run `prisma contract emit`. Each `managed` collection in `contract.json` gains a `validator`, and `storage.storageHash` changes.
 2. List the documents each validator would refuse. In `mongosh`, connected to your database, run this from the directory of the emitted `contract.json` (change the path if it is elsewhere):
 
    ```js
