@@ -1,9 +1,13 @@
 import type { Contract } from '@internal/contract/types';
-import type { DataTypeSupport } from '@internal/framework-components/authoring';
+import type {
+  DataTypeSupport,
+  FieldPresetsByCodecAndGenerator,
+} from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
 import type {
   AssembledAuthoringContributions,
   ContractSerializer,
+  DefaultFunctionPrinter,
   DiffSubjectGranularity,
   MigratableTargetDescriptor,
   SchemaVerifier,
@@ -33,12 +37,18 @@ export interface SqlDescribedContractSpace {
 }
 
 /**
- * The parts of the composed stack a target builds a PSL document with. The PSL contract source reads the document with the same parts, so the target writes a column type as a type constructor the stack contributes, and a literal default through the data type of the column's codec, and both read back.
+ * The parts of the composed stack a target builds a PSL document with. The PSL contract source reads the document with the same parts, so the target writes a column type as a type constructor the stack contributes, a literal default through the data type of the column's codec, and a generated value as a default function or field preset the stack contributes, and all of them read back.
  */
 export interface SqlPslBuildContext {
-  readonly authoringContributions: Pick<AssembledAuthoringContributions, 'type'>;
+  readonly authoringContributions: Pick<AssembledAuthoringContributions, 'type' | 'field'>;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly dataTypes: DataTypeSupport;
+  /** For each generator id, the default function in the stack whose PSL call produces it. */
+  readonly defaultFunctionPrintersByGenerator: ReadonlyMap<string, DefaultFunctionPrinter>;
+  /** For each generator id the stack registers, the id of the component that registers it, when that component has one. */
+  readonly componentIdsByGenerator: ReadonlyMap<string, string | undefined>;
+  /** For each codec, the field preset in the stack that writes a column of it with each generator. */
+  readonly fieldPresetsByCodecAndGenerator: FieldPresetsByCodecAndGenerator;
 }
 
 export interface SqlControlTargetDescriptor<
@@ -76,7 +86,7 @@ export interface SqlControlTargetDescriptor<
     schema: SqlSchemaIRNode,
     context: SqlPslBuildContext,
     describedContracts?: readonly SqlDescribedContractSpace[],
-  ) => PslDocumentAst;
+  ) => Promise<PslDocumentAst>;
   /**
    * Builds the PSL document of a contract, which `contract print` renders as text. `contract` must be one `contractSerializer.deserializeContract` accepted; the hook does not check its structure again. Like {@link inferPslContract} it produces a PSL document, but from an assembled contract and the stack parts in `context`. The document reads back as the same contract; the hook throws `CONTRACT.PRINT_UNSUPPORTED` for a contract PSL cannot express. The implementation sits in the target, though most of it inverts this family's PSL reader; only its column types, defaults, native enums, derived checks and row-level security are dialect logic. Optional: targets without `contract print` omit it, and the family instance throws when it is absent.
    */

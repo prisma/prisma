@@ -2,11 +2,10 @@ import { readFile } from 'node:fs/promises';
 import type { PrismaNextConfig } from '@internal/config/config-types';
 import type { Contract } from '@internal/contract/types';
 import type {
-  ExpectationFailureReason,
   SchemaDiffIssue,
   VerifyDatabaseSchemaResult,
 } from '@internal/framework-components/control';
-import { createControlStack, issueOutcome } from '@internal/framework-components/control';
+import { createControlStack } from '@internal/framework-components/control';
 import { castAs } from '@internal/utils/casts';
 import { isStructuredErrorCode } from '@internal/utils/structured-error';
 import type { Block, TreeNode } from '@prisma/cli-engine';
@@ -20,7 +19,9 @@ import {
   errorDriverRequired,
   errorFileNotFound,
 } from '../../utils/cli-errors';
+import { contractValidationMeta } from '../../utils/contract-validation-meta';
 import { chooseAction, runCommandAction } from '../../utils/next-actions';
+import { issueLabel, schemaIssuesWhy } from '../../utils/schema-issues';
 import { contractPathFor, displayPath } from '../migration/paths';
 import { normalizeError } from '../normalize-error';
 
@@ -89,7 +90,7 @@ export async function readEmittedContract(inputs: {
       normalizeError(
         errorContractValidationFailed(
           `Contract JSON is invalid: ${error instanceof Error ? error.message : String(error)}`,
-          { where: { path } },
+          { where: { path }, meta: contractValidationMeta(error) },
         ),
       ),
     );
@@ -142,18 +143,6 @@ export function verificationThrow(inputs: {
       { connection: inputs.connection },
     ),
   );
-}
-
-const OUTCOME_LABEL: Record<ExpectationFailureReason, string> = {
-  'not-found': 'missing',
-  'not-expected': 'extra',
-  'not-equal': 'mismatch',
-};
-
-/** What a diff issue says, in the words the commander shell used. */
-export function issueLabel(issue: SchemaDiffIssue): string {
-  const label = `${OUTCOME_LABEL[issueOutcome(issue)]}: ${issue.path.join('/')}`;
-  return issue.explanation === undefined ? label : `${label}. ${issue.explanation}`;
 }
 
 export function issueNodes(
@@ -217,7 +206,7 @@ export function schemaVerdictDiagnostic(inputs: {
     summary: inputs.result.summary,
     ...(issues.length === 0
       ? {}
-      : { why: sentence(`The live schema differs: ${issues.join('; ')}`) }),
+      : { why: schemaIssuesWhy('The live schema differs', inputs.result.schema.issues) }),
     nextActions: inputs.nextActions,
     meta: {
       ...(inputs.space === undefined ? {} : { space: inputs.space }),
@@ -227,41 +216,46 @@ export function schemaVerdictDiagnostic(inputs: {
   };
 }
 
-function sentence(text: string): string {
-  return text.endsWith('.') ? text : `${text}.`;
-}
-
 /**
- * What to do about schema drift. An issue with an explanation means the emitted contract holds a
- * value its type refuses. Only re-emitting fixes that, and the re-emitted contract has a new hash,
- * so that is the one action offered.
+ * What to do about schema drift, by the causes the issues name. A value the database may hold in a
+ * form of its own is fixed in the contract when the two mean the same, and by `db update` when they
+ * do not. `db update` is always offered; changing the contract to describe the database is offered
+ * when some issue is not one the database may only have stored in its own form, or there is none.
  */
 export function schemaDriftNextActions(inputs: {
   readonly verb: 'sign' | 'verify';
   readonly contractRef: string | undefined;
   readonly issues: readonly SchemaDiffIssue[];
 }): readonly NextAction[] {
-  const { verb, contractRef } = inputs;
+  const { verb, contractRef, issues } = inputs;
   const retryAfterEmit =
     contractRef === undefined
       ? `${verb} again`
       : `${verb} the emitted contract instead of "${contractRef}"`;
-  const drift = [
+  const storedForm = issues.some((issue) => issue.explanation?.cause === 'possibly-equivalent');
+  const other =
+    issues.length === 0 ||
+    issues.some((issue) => issue.explanation?.cause !== 'possibly-equivalent');
+  return [
+    ...(storedForm
+      ? [
+          chooseAction(
+            `If the database only stored a value in a form of its own, write it in the contract source as the database stores it, re-run contract emit, then ${retryAfterEmit}`,
+          ),
+        ]
+      : []),
     runCommandAction(
       `Change the database to match the contract, then ${verb} again`,
       contractRef === undefined ? '{bin} db update' : `{bin} db update --to "${contractRef}"`,
     ),
-    chooseAction(
-      `Or change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`,
-    ),
+    ...(other
+      ? [
+          chooseAction(
+            storedForm
+              ? `Or, for the other issues, change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`
+              : `Or change the contract source to describe the database as it is, re-run contract emit, then ${retryAfterEmit}`,
+          ),
+        ]
+      : []),
   ];
-  const contractRefused = inputs.issues.some((issue) => issue.explanation !== undefined);
-  return contractRefused
-    ? [
-        runCommandAction(
-          'Re-emit the contract, which stores the refused default as its type holds it',
-          '{bin} contract emit',
-        ),
-      ]
-    : drift;
 }

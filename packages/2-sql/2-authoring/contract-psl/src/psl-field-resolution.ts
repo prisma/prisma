@@ -29,6 +29,7 @@ import {
   typeReferenceNode,
 } from '@internal/psl-parser';
 import type { PslSources } from '@internal/psl-parser/syntax';
+import { type AuthoredStorageTypeInstance, resolvedTypeParams } from '@internal/sql-contract/types';
 import {
   type AuthoredColumnDefault,
   type EnumTypeHandle,
@@ -179,6 +180,8 @@ export interface CollectResolvedFieldsInput {
   readonly symbolTable: SymbolTable;
   readonly enumTypeDescriptors: ReadonlyMap<BlockSymbol, ColumnDescriptor>;
   readonly namedTypeDescriptors: ReadonlyMap<NamedTypeSymbol, ColumnDescriptor>;
+  /** The storage types the named types declare, by name, whose parameters a column declared with one takes. */
+  readonly namedTypes: Readonly<Record<string, AuthoredStorageTypeInstance>>;
   /** The value objects the composite types declare, by name. */
   readonly valueObjectTypes: ValueObjectTypes;
   readonly authoringContributions: AuthoringContributions | undefined;
@@ -435,8 +438,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       if (!resolved.ok) {
         continue;
       }
-      // Field presets are complete declarations — they carry their own codec
-      // and do not compose with `[]` list-of semantics. Reject early.
+      // A preset fixes its codec, which `[]` would change to a list. Reject early.
       if (resolved.presetContributions) {
         diagnostics.push({
           code: 'PSL_PRESET_NOT_LIST',
@@ -459,24 +461,20 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
-    // Field presets are complete declarations: the preset names its own codec
-    // and contributes any combination of default / executionDefaults / id /
-    // unique. Optional and `@default(...)` modifiers contradict that, so they
-    // are hard errors per spec FR7.
-    if (presetContributions && field.optional) {
+    if (presetContributions?.id && field.optional) {
       diagnostics.push({
         code: 'PSL_PRESET_NOT_OPTIONAL',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call and cannot be optional. Remove "?" or use a different field type.`,
+        message: `Field "${model.name}.${field.name}" is a primary key through its field preset, so it cannot be optional; primary key columns must be NOT NULL. Remove "?" or use a preset that does not make the field a primary key.`,
         ...source.at(field.span),
       });
       continue;
     }
 
     const defaultAttribute = getAttribute(field.attributes, 'default');
-    if (presetContributions && defaultAttribute) {
+    if (presetContributions?.default && defaultAttribute) {
       diagnostics.push({
         code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
-        message: `Field "${model.name}.${field.name}" uses a field-preset call and cannot also declare @default(...). The preset already specifies the default value.`,
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that already sets a database default, so it cannot also declare @default(...). Remove @default(...) or use a preset without a default.`,
         ...source.at(defaultAttribute.span),
       });
       continue;
@@ -509,6 +507,7 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
             sources: input.sources,
             binder: input.binder,
             columnDescriptor: descriptor,
+            columnTypeParams: resolvedTypeParams(descriptor, input.namedTypes),
             isListColumn,
             valueObjectDefault:
               valueObjectName === undefined
@@ -545,12 +544,10 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       });
       continue;
     }
-    if (field.optional && loweredOnCreate) {
-      const generatorDescription =
-        loweredOnCreate.kind === 'generator' ? `"${loweredOnCreate.id}"` : 'for this field';
+    if (presetContributions?.executionDefaults?.onCreate && loweredOnCreate) {
       diagnostics.push({
-        code: 'PSL_INVALID_DEFAULT_FUNCTION_ARGUMENT',
-        message: `Field "${model.name}.${field.name}" cannot be optional when using execution default ${generatorDescription}. Remove "?" or use a storage default.`,
+        code: 'PSL_PRESET_AND_DEFAULT_CONFLICT',
+        message: `Field "${model.name}.${field.name}" uses a field-preset call that already generates a value on create, so @default(...) cannot generate one too. Remove @default(...), write a database default in @default(...), or use a preset without an onCreate generator.`,
         ...source.at(defaultAttribute?.span ?? field.span),
       });
       continue;
@@ -591,12 +588,6 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       isIdField = false;
     }
 
-    // Field presets contribute their own default / executionDefaults / id /
-    // unique. They take precedence over attribute-derived contributions for
-    // this field, since a preset *is* the field declaration. Conflicts with
-    // `@default` and optional are already rejected above; explicit `@id`
-    // would be redundant noise on the resolved field, so we surface it as
-    // a hard error here for symmetry.
     if (presetContributions && idAttribute && !presetContributions.id) {
       diagnostics.push({
         code: 'PSL_PRESET_AND_ID_CONFLICT',
@@ -606,16 +597,16 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
       continue;
     }
 
-    // Field-preset contributions take precedence over attribute-derived
-    // sources when present.
-    const fieldExecutionDefaults =
-      presetContributions?.executionDefaults ?? loweredDefault.executionDefaults;
+    const fieldExecutionDefaults = mergeExecutionDefaults(
+      loweredDefault.executionDefaults,
+      presetContributions?.executionDefaults,
+    );
     const fieldDefaultValue = presetContributions?.default ?? loweredDefault.defaultValue;
     resolvedFields.push({
       field,
       columnName: mappedColumnName,
       descriptor,
-      nullable: presetContributions?.nullable ?? field.optional,
+      nullable: field.optional || Boolean(presetContributions?.nullable),
       ...ifDefined('defaultValue', fieldDefaultValue),
       ...ifDefined('executionDefaults', fieldExecutionDefaults),
       isId: isIdField || Boolean(presetContributions?.id),
@@ -630,4 +621,14 @@ export function collectResolvedFields(input: CollectResolvedFieldsInput): Resolv
   }
 
   return resolvedFields;
+}
+
+function mergeExecutionDefaults(
+  fromDefaultAttribute: ExecutionMutationDefaultPhases | undefined,
+  fromPreset: ExecutionMutationDefaultPhases | undefined,
+): ExecutionMutationDefaultPhases | undefined {
+  if (fromDefaultAttribute === undefined || fromPreset === undefined) {
+    return fromPreset ?? fromDefaultAttribute;
+  }
+  return { ...fromDefaultAttribute, ...fromPreset };
 }

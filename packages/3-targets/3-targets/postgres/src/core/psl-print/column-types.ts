@@ -1,4 +1,8 @@
-import { type InferredTypeConstructors, pslTypeArgumentText } from '@internal/family-sql/psl-build';
+import {
+  type InferredTypeConstructors,
+  type PslColumnTypeRef,
+  pslTypeArgumentText,
+} from '@internal/family-sql/psl-build';
 import {
   type AuthoringTypeConstructorCall,
   type AuthoringTypeNamespace,
@@ -6,20 +10,16 @@ import {
   findAuthoringTypeConstructorCall,
 } from '@internal/framework-components/authoring';
 import type { DataTypeLookup } from '@internal/framework-components/codec';
+import { dataTypeParams } from '@internal/framework-components/codec';
 import type { PslTypeConstructorCall } from '@internal/framework-components/psl-ast';
-import {
-  dataTypeParams,
-  isSqlDataType,
-  unquotedSqlBaseName,
-} from '@internal/sql-contract/data-type';
+import { isSqlDataType, unquotedSqlBaseName } from '@internal/sql-contract/data-type';
 import type { StorageColumn } from '@internal/sql-contract/types';
 import { PG_ENUM_CODEC_ID } from '../codec-ids';
 import { positionalArg, SYNTHETIC_SPAN } from '../psl-build/psl-literals';
 import { refuseColumnWithoutPslType, refuseUnwritableTypeArgument } from './refusals';
 
-/** The PSL type position of one column: a bare name, or a type-constructor call. */
-export interface PslColumnType {
-  readonly typeName: string;
+/** The PSL type position of one column: its name and what it stands for, and the type-constructor call when it is written as one. */
+export interface PslColumnType extends PslColumnTypeRef {
   readonly typeConstructor?: PslTypeConstructorCall;
 }
 
@@ -45,9 +45,10 @@ function typeCall(path: readonly string[], args: readonly string[]): PslColumnTy
   const name = path.join('.');
   const isNamespaced = path.length > 1;
   if (args.length === 0 && !isNamespaced) {
-    return { typeName: name };
+    return { kind: 'dataType', typeName: name };
   }
   return {
+    kind: 'dataType',
     typeName: name,
     typeConstructor: {
       kind: 'typeConstructor',
@@ -95,6 +96,7 @@ export function buildColumnType(input: {
   const enumBlockName = column.valueSet?.entityName ?? enumBlockNames.get(baseName);
   if (column.codecId === PG_ENUM_CODEC_ID && enumBlockName !== undefined) {
     return {
+      kind: 'enum',
       typeName: enumBlockName,
       typeConstructor: {
         kind: 'typeConstructor',
@@ -113,7 +115,7 @@ export function buildColumnType(input: {
 
   const domainEnumName = column.valueSet?.entityName;
   if (domainEnumName !== undefined) {
-    return { typeName: domainEnumName };
+    return { kind: 'enum', typeName: domainEnumName };
   }
 
   const call =

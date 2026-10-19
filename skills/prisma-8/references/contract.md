@@ -142,7 +142,7 @@ The TS builder has the same helper: `fullTextIndex(cols.text, { name: 'message_t
 
 The contract stores the index as data, not SQL: an index of type `fullText` whose `columns` are the covered storage columns and whose `options` are `{ weightGroups, language }`, the weight groups as storage column names. The DDL is a GIN index over the rendered document, `to_tsvector('<language>', "<column>")` for one field, and `setweight(...) || ...` with every column wrapped in `coalesce` for several. `@@index(expression: …)` remains only for expressions this attribute does not cover.
 
-PSL alias surface for repeated types lives in a top-level `types {}` block:
+PSL aliases for repeated types are declared in top-level `types {}` blocks. A schema may have several `types` blocks, in one file or several; each name may be declared only once across all of them, and a repeated name fails with `PSL_DUPLICATE_DECLARATION`:
 
 ```prisma
 types {

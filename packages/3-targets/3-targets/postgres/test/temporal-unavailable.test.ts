@@ -6,8 +6,7 @@ import {
   PG_TIMESTAMPTZ_TEMPORAL_CODEC_ID,
 } from '../src/core/codec-ids';
 import { codecDescriptors } from '../src/core/codecs';
-import { instantNow } from '../src/core/instant-now-generator';
-import { plainDateTimeNow } from '../src/core/plain-date-time-now-generator';
+import { instantNow, plainDateTimeNow } from '../src/core/date-time-now-generators';
 import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 import {
   pgDateTemporalColumn,
@@ -70,7 +69,7 @@ describe('Temporal-backed codecs in a runtime without Temporal', () => {
       for (const [codecId, codec] of codecs) {
         await Promise.resolve();
         try {
-          await codec.decode('2026-01-02', callCtx);
+          await codec.fromWire('2026-01-02', callCtx);
           results.push({ codecId, code: 'DID NOT THROW', namesCodec: false });
         } catch (error) {
           const structured = error as { code?: unknown; message?: string };
@@ -96,8 +95,8 @@ describe('Temporal-backed codecs in a runtime without Temporal', () => {
   it('leaves the string codecs completely unaffected', async () => {
     const decoded = await withoutTemporal(async () => {
       const codec = pgDateStringDescriptor.factory()(instanceCtx);
-      const encoded = await codec.encode('infinity', callCtx);
-      return codec.decode(encoded, callCtx);
+      const encoded = await codec.toWire('infinity', callCtx);
+      return codec.fromWire(encoded, callCtx);
     });
 
     expect(decoded).toBe('infinity');

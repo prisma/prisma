@@ -9,11 +9,6 @@
  * plain-data shape that introspection adapters produce.
  */
 
-export {
-  contractDefaultRefusal,
-  type DefaultInCanonicalForm,
-  defaultInCanonicalForm,
-} from './ir/default-in-canonical-form';
 export { PrimaryKey, type PrimaryKeyInput } from './ir/primary-key';
 export {
   RelationalSchemaNodeKind,
@@ -27,6 +22,7 @@ export {
 export {
   SqlColumnDefaultIR,
   type SqlColumnDefaultIRInput,
+  type SqlExpressionLiteralFor,
 } from './ir/sql-column-default-ir';
 export {
   type ReportedSqlType,
@@ -34,6 +30,10 @@ export {
   SqlColumnIR,
   type SqlColumnIRInput,
 } from './ir/sql-column-ir';
+export {
+  type SqlDefaultValue,
+  sqlDefaultValuesEqual,
+} from './ir/sql-default-value';
 export {
   SqlForeignKeyIR,
   type SqlForeignKeyIRInput,
