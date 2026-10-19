@@ -232,7 +232,7 @@ describe('contract infer over every Postgres data type with a marked constructor
       await resetDatabase(connectionString);
       await migrateContract(connectionString, contract);
 
-      const notEqualColumns = async () => {
+      const issuePaths = async () => {
         const driver = await postgresControlDriver.create(connectionString);
         try {
           const result = familyInstance.verifySchema({
@@ -241,14 +241,16 @@ describe('contract infer over every Postgres data type with a marked constructor
             strict: false,
             frameworkComponents: postgresFrameworkComponents,
           });
-          return result.schema.issues
-            .filter((issue) => issue.path.length === 4 && issue.path[3]?.startsWith('column:'))
-            .map((issue) => issue.path.join('/'));
+          return result.schema.issues.map((issue) => issue.path);
         } finally {
           await driver.close();
         }
       };
-      expect(await notEqualColumns()).toEqual([]);
+      const notEqualColumns = async () =>
+        (await issuePaths())
+          .filter((path) => path.length === 4 && path[3]?.startsWith('column:'))
+          .map((path) => path.join('/'));
+      expect(await issuePaths()).toEqual([]);
 
       // The CHECK constraints the planner adds for list columns would refuse a column of another type.
       await withClient(connectionString, async (client) => {
