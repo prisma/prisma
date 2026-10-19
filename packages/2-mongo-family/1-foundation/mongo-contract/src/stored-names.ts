@@ -1,27 +1,12 @@
-import type {
-  ApplicationDomain,
-  ContractField,
-  ContractValueObject,
-} from '@internal/contract/types';
-import { blindCast } from '@internal/utils/casts';
+import type { ContractField, ContractValueObject } from '@internal/contract/types';
 import { InternalError } from '@internal/utils/internal-error';
 import type { MongoModelDefinition } from './contract-types';
+import { modelAndBasesOf } from './mongo-models';
 
 /** The name MongoDB stores a document's id under. */
 export const DOCUMENT_ID = '_id';
 
 type StoredNamesModel = Pick<MongoModelDefinition, 'fields' | 'storage'>;
-
-/** The models of namespace `namespaceId` of a validated MongoDB contract, whose storage records the stored name of every field. */
-export function mongoModelsOf(
-  domain: ApplicationDomain,
-  namespaceId: string,
-): Readonly<Record<string, MongoModelDefinition>> {
-  return blindCast<
-    Readonly<Record<string, MongoModelDefinition>>,
-    'a validated MongoDB contract gives every model MongoDB model storage'
-  >(domain.namespaces[namespaceId]?.models ?? {});
-}
 
 /** The stored name of each of `model`'s own fields, keyed by field name. */
 export function ownStoredNamesOf(model: StoredNamesModel): Readonly<Record<string, string>> {
@@ -64,8 +49,8 @@ export function hasOwnFieldStoredAs(model: StoredNamesModel, storedName: string)
   return ownFieldStoredAs(model, storedName) !== undefined;
 }
 
-/** The field of `model` stored as `_id`, with its name, or undefined when the model leaves `_id` out. */
-export function documentIdFieldOf(
+/** The own field of `model` stored as `_id`, with its name, or undefined when none of its own fields is. */
+export function ownDocumentIdFieldOf(
   model: StoredNamesModel,
 ): { readonly name: string; readonly field: ContractField } | undefined {
   const name = ownFieldStoredAs(model, DOCUMENT_ID);
@@ -84,23 +69,6 @@ export function ownEmbedStoredNamesOf(
       .filter(([, relation]) => !('on' in relation) && !('through' in relation))
       .map(([name]) => [name, model.storage.relations?.[name]?.field ?? name]),
   );
-}
-
-/** Model `modelName` followed by its base models, nearest first; empty when the model is not in `models`. */
-export function modelAndBasesOf<Model extends Pick<MongoModelDefinition, 'base'>>(
-  models: Readonly<Record<string, Model>>,
-  modelName: string,
-): readonly Model[] {
-  const chain: Model[] = [];
-  const seen = new Set<string>();
-  for (let name: string | undefined = modelName; name !== undefined && !seen.has(name); ) {
-    seen.add(name);
-    const model: Model | undefined = models[name];
-    if (model === undefined) break;
-    chain.push(model);
-    name = model.base?.model;
-  }
-  return chain;
 }
 
 /** The stored name of each field of model `modelName`, its own and those it inherits from its base models, keyed by field name. */

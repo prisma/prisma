@@ -68,7 +68,7 @@ describe('a MongoDB project with a re-emitted contract and an old snapshot', () 
   it('changes nothing on a second run', () => {
     expect(run(root)).toEqual({
       status: 0,
-      stdout: 'Every MongoDB contract already records its stored field names; nothing changed.\n',
+      stdout: 'Every MongoDB contract already records its stored names; nothing changed.\n',
       stderr: '',
     });
   });

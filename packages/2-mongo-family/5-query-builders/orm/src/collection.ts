@@ -16,11 +16,13 @@ import {
 } from '@internal/framework-components/runtime';
 import {
   type AnyMongoTypeMaps,
-  documentIdFieldOf,
+  defaultMongoDomainNamespaceId,
   type MongoContract,
   type MongoContractWithTypeMaps,
   type MongoModelDefinition,
   type MongoModelsMap,
+  mongoModelsOf,
+  ownDocumentIdFieldOf,
 } from '@internal/mongo-contract';
 import type {
   AnyMongoCommand,
@@ -72,7 +74,6 @@ import {
   type ModelStoredNames,
   mapEach,
   modelStoredNamesOf,
-  mongoModels,
   storedDocumentOfRow,
   storedNameOfCallerField,
   storedPathOfCallerPath,
@@ -211,7 +212,7 @@ const MEMBERSHIP_OPERATORS: ReadonlySet<string> = new Set(['$in', '$nin']);
 type ValuePurpose = 'write' | 'filter';
 
 function modelOf(contract: MongoContract, modelName: string): MongoModelDefinition {
-  const model = mongoModels(contract)[modelName];
+  const model = mongoModelsOf(contract.domain, defaultMongoDomainNamespaceId)[modelName];
   if (model === undefined) {
     throw ormError('ORM.MODEL_UNKNOWN', `Unknown model: "${modelName}".`, {
       meta: { model: modelName },
@@ -291,7 +292,9 @@ class MongoCollectionImpl<
   variant<V extends DiscriminatorValues<TContract, ModelName>>(
     value: V,
   ): MongoCollection<TContract, ModelName, TIncludes, V> {
-    const model = mongoModels(this.#contract)[this.#modelName];
+    const model = mongoModelsOf(this.#contract.domain, defaultMongoDomainNamespaceId)[
+      this.#modelName
+    ];
     const discriminator = model?.discriminator;
     const selectedValue = this.#variantValue;
 
@@ -417,7 +420,9 @@ class MongoCollectionImpl<
     }
 
     const targetModelName = ref.to.model;
-    const targetModel = mongoModels(this.#contract)[targetModelName];
+    const targetModel = mongoModelsOf(this.#contract.domain, defaultMongoDomainNamespaceId)[
+      targetModelName
+    ];
     if (!targetModel) {
       throw new InternalError(
         `Target model "${targetModelName}" not found for relation "${relationName}"`,
@@ -860,7 +865,9 @@ class MongoCollectionImpl<
 
   #variantModelName(): string | undefined {
     if (this.#variantValue === undefined) return undefined;
-    const model = mongoModels(this.#contract)[this.#modelName];
+    const model = mongoModelsOf(this.#contract.domain, defaultMongoDomainNamespaceId)[
+      this.#modelName
+    ];
     return model?.variants?.[this.#variantValue]?.model;
   }
 
@@ -932,7 +939,7 @@ class MongoCollectionImpl<
   }
 
   #modelWithVariantFields(): MongoModelDefinition | undefined {
-    const models = mongoModels(this.#contract);
+    const models = mongoModelsOf(this.#contract.domain, defaultMongoDomainNamespaceId);
     const model = models[this.#modelName];
     const variantRef =
       this.#variantValue === undefined ? undefined : model?.variants?.[this.#variantValue];
@@ -952,7 +959,7 @@ class MongoCollectionImpl<
 
   #idFieldShape(): MongoFieldShape {
     const model = this.#modelWithVariantFields();
-    const idField = model === undefined ? undefined : documentIdFieldOf(model)?.field;
+    const idField = model === undefined ? undefined : ownDocumentIdFieldOf(model)?.field;
     return idField
       ? contractFieldToMongoFieldShape(idField)
       : Object.freeze({ kind: 'unknown' as const });
@@ -1416,7 +1423,9 @@ class MongoCollectionImpl<
 
   #injectDiscriminator(data: Record<string, unknown>): Record<string, unknown> {
     if (!this.#variantValue) return data;
-    const model = mongoModels(this.#contract)[this.#modelName];
+    const model = mongoModelsOf(this.#contract.domain, defaultMongoDomainNamespaceId)[
+      this.#modelName
+    ];
     if (!model?.discriminator) return data;
     return { ...data, [model.discriminator.field]: this.#variantValue };
   }

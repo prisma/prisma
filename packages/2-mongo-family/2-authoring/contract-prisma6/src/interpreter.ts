@@ -113,7 +113,7 @@ type Diagnostics = ContractSourceDiagnostic[];
 interface ModelBuild {
   readonly located: Located<ModelSymbol>;
   readonly collection: string;
-  /** Prisma 6 field name to stored field name, for every field that is not a relation field. */
+  /** Prisma 6 field name to stored name, for every field that is not a relation field. */
   readonly storedNames: Map<string, string>;
   readonly ignoredFields: Set<string>;
   readonly rejectedFields: Set<string>;

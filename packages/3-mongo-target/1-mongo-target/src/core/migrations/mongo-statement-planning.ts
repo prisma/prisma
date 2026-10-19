@@ -552,14 +552,14 @@ function planFieldStatement(
   const unsafeFrom = unrewritableFieldNameReason(fromStored);
   if (unsafeFrom !== undefined) {
     return refuse(
-      `the stored field name "${fromStored}" cannot be rewritten`,
+      `the stored name "${fromStored}" cannot be rewritten`,
       `${unsafeFrom}, so a statement cannot move its values. Rename it in the database yourself, or ${LEAVE_OUT.toLowerCase()}`,
     );
   }
   const unsafeTo = unrewritableFieldNameReason(toStored);
   if (unsafeTo !== undefined) {
     return refuse(
-      `the stored field name "${toStored}" cannot be written`,
+      `the stored name "${toStored}" cannot be written`,
       `${unsafeTo}. Give the field a stored name without "." that does not start with "$" (with @map), or ${LEAVE_OUT.toLowerCase()}`,
     );
   }

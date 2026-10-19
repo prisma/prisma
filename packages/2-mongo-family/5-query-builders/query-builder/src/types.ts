@@ -5,7 +5,7 @@ import type {
   MongoContract,
   MongoContractWithTypeMaps,
   MongoModelsMap,
-  StoredNameOf,
+  OwnStoredNameOf,
 } from '@internal/mongo-contract';
 import type { MongoAggAccumulator, MongoAggExpr } from '@internal/mongo-query-ast/execution';
 import type { ModelArrayField, ModelOriginBrand, ModelOriginBranded } from './resolve-path';
@@ -48,7 +48,7 @@ export type ModelToDocShape<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = {
-  [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string as StoredNameOf<
+  [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string as OwnStoredNameOf<
     TContract,
     ModelName,
     K
@@ -140,7 +140,7 @@ type StoredModelRow<
   TContract extends MongoContractWithTypeMaps<MongoContract, AnyMongoTypeMaps>,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = {
-  [K in keyof InferModelRow<TContract, ModelName> as StoredNameOf<
+  [K in keyof InferModelRow<TContract, ModelName> as OwnStoredNameOf<
     TContract,
     ModelName,
     K

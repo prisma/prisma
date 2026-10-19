@@ -73,7 +73,7 @@ describe('Mongo PSL temporal presets', () => {
     expect(fields).toMatchObject({ updatedAt: date, createdAt: date, touchedAt: date });
   });
 
-  it('emits sorted execution defaults keyed by collection and stored field name', () => {
+  it('emits sorted execution defaults keyed by collection and stored name', () => {
     const result = interpret(schema);
     if (!result.ok) throw new Error(JSON.stringify(result.failure));
     const mutations = {

@@ -11,7 +11,7 @@ import { documentIdBsonTypesOf, documentIdRefusalOf } from './document-id-refusa
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
-import { documentIdFieldOf } from './stored-names';
+import { ownDocumentIdFieldOf } from './stored-names';
 import { validatorEnumMemberRefusalOf, validatorEnumRefusalOf } from './validator-enum-refusal';
 
 export type FieldOwner =
@@ -192,7 +192,7 @@ function documentIdRefusals(
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>
     modelNames.flatMap((modelName): MongoContractRefusal[] => {
       const model = models[modelName];
-      const id = model === undefined ? undefined : documentIdFieldOf(model);
+      const id = model === undefined ? undefined : ownDocumentIdFieldOf(model);
       if (id === undefined || id.field.type.kind !== 'scalar') return [];
       const bsonTypes = documentIdBsonTypesOf(id.field, lookups);
       const codecId = id.field.type.codecId;

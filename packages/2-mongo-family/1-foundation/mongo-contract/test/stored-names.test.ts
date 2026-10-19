@@ -1,11 +1,10 @@
 import { asNamespaceId, crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import type { MongoModelDefinition } from '../src/contract-types';
+import { modelAndBasesOf, mongoModelsOf } from '../src/mongo-models';
 import {
-  documentIdFieldOf,
   hasOwnFieldStoredAs,
-  modelAndBasesOf,
-  mongoModelsOf,
+  ownDocumentIdFieldOf,
   ownEmbedStoredNamesOf,
   ownFieldStoredAs,
   ownStoredNameOf,
@@ -72,8 +71,11 @@ describe('stored names', () => {
   });
 
   it('finds the field stored as _id', () => {
-    expect(documentIdFieldOf(user)).toEqual({ name: 'id', field: scalarField('mongo/objectId@1') });
-    expect(documentIdFieldOf(admin)).toBeUndefined();
+    expect(ownDocumentIdFieldOf(user)).toEqual({
+      name: 'id',
+      field: scalarField('mongo/objectId@1'),
+    });
+    expect(ownDocumentIdFieldOf(admin)).toBeUndefined();
   });
 
   it('gives the stored name of each embed relation, its own name without a storage entry', () => {

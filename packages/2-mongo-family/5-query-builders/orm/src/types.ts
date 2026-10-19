@@ -2,13 +2,13 @@ import type { ContractReferenceRelation } from '@internal/contract/types';
 import type {
   AnyMongoTypeMaps,
   ExtractMongoCodecTypes,
-  FieldStoredAs,
   InferModelRow,
   MongoContract,
   MongoContractWithTypeMaps,
   MongoModelsMap,
   MongoUnboundFieldInputTypes,
   MongoUnboundFieldOutputTypes,
+  OwnFieldStoredAs,
 } from '@internal/mongo-contract';
 
 type Simplify<T> = T extends unknown ? { [K in keyof T]: T[K] } : never;
@@ -282,7 +282,7 @@ type GeneratedOnCreateFields<
     }
   > extends infer Matched
     ? Matched extends { readonly ref: { readonly field: infer Field extends string } }
-      ? FieldStoredAs<TContract, ModelName, Field>
+      ? OwnFieldStoredAs<TContract, ModelName, Field>
       : never
     : never;
 
@@ -290,7 +290,7 @@ type GeneratedOnCreateFields<
 type DocumentIdField<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
-> = FieldStoredAs<TContract, ModelName, '_id'>;
+> = OwnFieldStoredAs<TContract, ModelName, '_id'>;
 
 /**
  * Fields a document may leave out: nullable ones, which read back as `null`. The create input makes them optional, as the SQL ORM client does for nullable columns.

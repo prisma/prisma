@@ -4,13 +4,9 @@ import { collectionRootModelsOf } from './collection-root-models';
 import { lookupFreeRefusalsOf } from './contract-refusals';
 import type { MongoContract, MongoModelDefinition } from './contract-types';
 import { documentIdRefusalOf } from './document-id-refusal';
+import { modelAndBasesOf, mongoModelsOf } from './mongo-models';
 import { resolveMongoToOneRelationFields } from './relation-fields';
-import {
-  documentIdFieldOf,
-  modelAndBasesOf,
-  ownEmbedStoredNamesOf,
-  ownStoredNamesOf,
-} from './stored-names';
+import { ownDocumentIdFieldOf, ownEmbedStoredNamesOf, ownStoredNamesOf } from './stored-names';
 import { type ValidatorShape, validatorRootShapesOf } from './validator-shapes';
 
 function bsonTypesOf(schema: object): readonly string[] {
@@ -31,7 +27,9 @@ function idSchemaOf(shape: ValidatorShape): object | undefined {
 function documentIdErrors(contract: MongoContract): string[] {
   const models: Record<string, MongoModelDefinition> = Object.assign(
     {},
-    ...Object.values(contract.domain.namespaces).map((namespace) => namespace.models),
+    ...Object.keys(contract.domain.namespaces).map((namespaceId) =>
+      mongoModelsOf(contract.domain, namespaceId),
+    ),
   );
   const rootModels = collectionRootModelsOf(models);
   return Object.values(contract.storage.namespaces).flatMap((namespace) =>
@@ -48,7 +46,7 @@ function documentIdErrors(contract: MongoContract): string[] {
       return idSchemas.flatMap((idSchema, index): string[] => {
         const modelName = names.length === shapes.length ? names[index] : undefined;
         const model = modelName === undefined ? undefined : models[modelName];
-        const id = model === undefined ? undefined : documentIdFieldOf(model);
+        const id = model === undefined ? undefined : ownDocumentIdFieldOf(model);
         const codecId = id?.field.type.kind === 'scalar' ? id.field.type.codecId : 'unknown';
         const refusal =
           idSchema === undefined ? undefined : documentIdRefusalOf(codecId, bsonTypesOf(idSchema));
@@ -138,8 +136,8 @@ export function validateMongoStorage(contract: MongoContract): void {
   const errors: string[] = [];
   let fieldStorageComplete = true;
 
-  for (const [namespaceId, namespace] of Object.entries(contract.domain.namespaces)) {
-    const models = namespace.models as Record<string, MongoModelDefinition>;
+  for (const namespaceId of Object.keys(contract.domain.namespaces)) {
+    const models = mongoModelsOf(contract.domain, namespaceId);
     for (const [modelName, model] of Object.entries(models)) {
       const qualifiedName = `${namespaceId}:${modelName}`;
       const fieldErrors = fieldStorageErrors(qualifiedName, modelName, model, models);

@@ -1,5 +1,5 @@
 import type { ContractValueObjectDefinitions } from '@internal/contract/types';
-import type { MongoContract, MongoModelsMap, StoredNameOf } from '@internal/mongo-contract';
+import type { MongoContract, MongoModelsMap, OwnStoredNameOf } from '@internal/mongo-contract';
 import type { DocField } from './types';
 
 /**
@@ -178,7 +178,7 @@ export type ModelNestedShape<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = {
-  readonly [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string as StoredNameOf<
+  readonly [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string as OwnStoredNameOf<
     TContract,
     ModelName,
     K

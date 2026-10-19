@@ -154,8 +154,8 @@ export type MongoUnboundFieldInputTypes<T> =
     ? Inner
     : never;
 
-/** The stored name of field `Field` of model `ModelName`, read from its `storage.fields`; `never` for a name that is not a field. */
-export type StoredNameOf<
+/** The stored name of field `Field`, one of model `ModelName`'s own fields, read from its `storage.fields`; `never` for a name that is not one. */
+export type OwnStoredNameOf<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
   Field,
@@ -169,8 +169,8 @@ export type StoredNameOf<
     : never
   : never;
 
-/** The fields of model `ModelName` stored under `StoredName`. */
-export type FieldStoredAs<
+/** The own fields of model `ModelName` stored under `StoredName`. */
+export type OwnFieldStoredAs<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
   StoredName extends string,

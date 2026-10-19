@@ -220,7 +220,7 @@ function main(): number {
   }
   if (changed.length === 0) {
     process.stdout.write(
-      'Every MongoDB contract already records its stored field names; nothing changed.\n',
+      'Every MongoDB contract already records its stored names; nothing changed.\n',
     );
     return 0;
   }

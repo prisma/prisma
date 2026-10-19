@@ -527,7 +527,7 @@ The contract module at the configured path loads but exposes neither a `default`
 
 ### CONTRACT.NAME_DUPLICATE
 
-Two declarations claim the same name: duplicate namespace entries, model names, value objects, relations, tables (two models mapping to one table, two table nodes for one table, or duplicate table in a namespace), column mappings (two fields to one column, a field and a table node's column node for one column, or two column nodes for one column), stored field names (two fields of one MongoDB model stored under one name with `.mongo({ field })`: `Model "<Model>" stores both "<a>" and "<b>" as "<name>".`, `kind: 'field'`), indexes, value-sets (enum and pack entity minting the same value-set), or pack entities of the same kind and name in one namespace. Raised while authoring/building a contract. Payload: `kind`, `name`, `namespaceId`, `tableName` (for a column), `first`, `second`.
+Two declarations claim the same name: duplicate namespace entries, model names, value objects, relations, tables (two models mapping to one table, two table nodes for one table, or duplicate table in a namespace), column mappings (two fields to one column, a field and a table node's column node for one column, or two column nodes for one column), stored names (two fields of one MongoDB model stored under one name with `.mongo({ field })`: `Model "<Model>" stores both "<a>" and "<b>" as "<name>".`, `kind: 'field'`), indexes, value-sets (enum and pack entity minting the same value-set), or pack entities of the same kind and name in one namespace. Raised while authoring/building a contract. Payload: `kind`, `name`, `namespaceId`, `tableName` (for a column), `first`, `second`.
 
 ### CONTRACT.NAMESPACE_INVALID
 

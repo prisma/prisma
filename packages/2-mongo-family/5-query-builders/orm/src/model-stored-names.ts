@@ -1,7 +1,6 @@
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
+  defaultMongoDomainNamespaceId,
   type MongoContract,
-  type MongoModelDefinition,
   mongoModelsOf,
   ownEmbedStoredNamesOf,
   ownStoredNamesOf,
@@ -23,12 +22,6 @@ export interface ModelStoredNames {
   embedded(relationName: string): ModelStoredNames | undefined;
 }
 
-export function mongoModels(
-  contract: MongoContract,
-): Readonly<Record<string, MongoModelDefinition>> {
-  return mongoModelsOf(contract.domain, UNBOUND_NAMESPACE_ID);
-}
-
 function invert(map: Readonly<Record<string, string>>): Readonly<Record<string, string>> {
   return Object.fromEntries(Object.entries(map).map(([key, value]) => [value, key]));
 }
@@ -48,7 +41,7 @@ export function modelStoredNamesOf(
   const key = JSON.stringify([modelName, variantModelName ?? null]);
   const cached = cache.get(key);
   if (cached !== undefined) return cached;
-  const models = mongoModels(contract);
+  const models = mongoModelsOf(contract.domain, defaultMongoDomainNamespaceId);
   const model = models[modelName];
   const variant = variantModelName === undefined ? undefined : models[variantModelName];
   const storedNames = {
@@ -198,7 +191,7 @@ export function documentRowMapper(
   variantModelName: string | undefined,
   includes: IncludedModels = {},
 ): (document: unknown) => unknown {
-  const models = mongoModels(contract);
+  const models = mongoModelsOf(contract.domain, defaultMongoDomainNamespaceId);
   const model = models[modelName];
   const base = modelStoredNamesOf(contract, modelName, variantModelName);
   const discriminator =

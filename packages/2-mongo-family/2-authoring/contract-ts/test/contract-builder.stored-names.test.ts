@@ -13,7 +13,7 @@ function collection(contract: { readonly storage: MongoContract['storage'] }, na
   return contract.storage.namespaces[UNBOUND_NAMESPACE_ID]?.entries.collection?.[name];
 }
 
-describe('stored field names in the Mongo contract builder', () => {
+describe('stored names in the Mongo contract builder', () => {
   it('stores a field under its own name unless .mongo({ field }) names another', () => {
     const User = model('User', {
       collection: 'users',
