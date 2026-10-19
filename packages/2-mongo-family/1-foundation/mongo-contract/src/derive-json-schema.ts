@@ -199,8 +199,21 @@ function propertiesOf(
   return { properties, required };
 }
 
-function deriveObjectSchema(shape: StoredShape, sources: SchemaSources): Record<string, unknown> {
-  const { properties, required } = propertiesOf(shape, sources, NOTHING_INHERITED);
+const DOCUMENT_ID = '_id';
+
+const OBJECT_ID_SCHEMA = { bsonType: 'objectId' };
+
+function deriveObjectSchema(
+  shape: StoredShape,
+  sources: SchemaSources,
+  { isDocument }: { readonly isDocument: boolean } = { isDocument: false },
+): Record<string, unknown> {
+  const own = propertiesOf(shape, sources, NOTHING_INHERITED);
+  const addsDocumentId = isDocument && !Object.hasOwn(own.properties, DOCUMENT_ID);
+  const properties = addsDocumentId
+    ? { [DOCUMENT_ID]: OBJECT_ID_SCHEMA, ...own.properties }
+    : own.properties;
+  const required = addsDocumentId ? [DOCUMENT_ID, ...own.required] : own.required;
 
   const result: Record<string, unknown> = {
     bsonType: 'object',
@@ -233,7 +246,7 @@ function polymorphicSchema(
   variants: readonly StoredVariant[],
   sources: SchemaSources,
 ): Record<string, unknown> {
-  const baseSchema = deriveObjectSchema(base, sources);
+  const baseSchema = deriveObjectSchema(base, sources, { isDocument: true });
   const baseProperties = isRecord(baseSchema['properties']) ? baseSchema['properties'] : {};
 
   const oneOf: Record<string, unknown>[] = [];
@@ -280,7 +293,7 @@ export function deriveModelJsonSchema(
 ): Record<string, unknown> {
   const schemaSources = sourcesFor(sources, typeKey('model', modelName));
   if (!model.discriminator || !model.variants) {
-    return deriveObjectSchema(model, schemaSources);
+    return deriveObjectSchema(model, schemaSources, { isDocument: true });
   }
 
   const variants = Object.entries(model.variants).map(([discriminatorValue, variant]) => {

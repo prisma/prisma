@@ -423,3 +423,72 @@ describe('deriveCollectionValidators for a collection that stores several root m
     });
   });
 });
+
+describe('deriveCollectionValidators and the document id', () => {
+  it('requires an objectId _id in a root model that declares none', () => {
+    const validators = derive({
+      roots: { notes: crossRef('Note') },
+      models: { Note: model({ text: scalarField('mongo/string@1') }) },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      notes: {
+        bsonType: 'object',
+        required: ['_id', 'text'],
+        properties: { _id: { bsonType: 'objectId' }, text: { bsonType: 'string' } },
+        additionalProperties: false,
+      },
+    });
+  });
+
+  it('requires an objectId _id in every branch of a shared collection and at the top of a model with variants', () => {
+    const validators = derive({
+      roots: { items: crossRef('Note') },
+      models: {
+        Note: model({ text: scalarField('mongo/string@1') }, { storage: { collection: 'items' } }),
+        Task: model(
+          { type: scalarField('mongo/string@1') },
+          {
+            storage: { collection: 'items' },
+            discriminator: { field: 'type' },
+            variants: { bug: crossRef('Bug') },
+          },
+        ),
+        Bug: model(
+          { severity: scalarField('mongo/int32@1') },
+          { storage: { collection: 'items' }, base: crossRef('Task') },
+        ),
+      },
+    });
+
+    expect(jsonSchemas(validators)).toEqual({
+      items: {
+        bsonType: 'object',
+        anyOf: [
+          {
+            bsonType: 'object',
+            required: ['_id', 'text'],
+            properties: { _id: { bsonType: 'objectId' }, text: { bsonType: 'string' } },
+            additionalProperties: false,
+          },
+          {
+            bsonType: 'object',
+            required: ['_id', 'type'],
+            properties: { _id: { bsonType: 'objectId' }, type: { bsonType: 'string' } },
+            oneOf: [
+              {
+                properties: {
+                  _id: { bsonType: 'objectId' },
+                  type: { enum: ['bug'] },
+                  severity: { bsonType: 'int' },
+                },
+                required: ['severity', 'type'],
+                additionalProperties: false,
+              },
+            ],
+          },
+        ],
+      },
+    });
+  });
+});
