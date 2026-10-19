@@ -1,13 +1,22 @@
 import { blindCast } from '@internal/utils/casts';
 import type { GeneratorFunctionCall, GeneratorFunctionComponent } from './generator-functions';
 
-type ArgumentOut<Type> = Type extends { readonly _out?: infer Out }
-  ? Exclude<Out, undefined>
-  : unknown;
+/** The value type an argument type of a signature parses to. psl-parser's `ArgTypeOutput` extends it, so `gen` reads the argument types of a `FuncCallSig` through this one definition. */
+export interface SignatureArgumentOutput<T> {
+  readonly _out?: T;
+}
+
+/** The mark psl-parser's `optional(...)` puts on an argument type (`OptionalArgType`), which makes the `gen` argument optional. The facade `gen` type tests fail if the two drift apart. */
+export interface SignatureOptionalArgument {
+  readonly optional: true;
+}
+
+type ArgumentOut<Type> =
+  Type extends SignatureArgumentOutput<infer Out> ? Exclude<Out, undefined> : unknown;
 
 type PositionalArguments<Params> = Params extends readonly [infer Head, ...infer Rest]
   ? Head extends { readonly type: infer Type }
-    ? Type extends { readonly optional: true }
+    ? Type extends SignatureOptionalArgument
       ? [argument?: ArgumentOut<Type>, ...PositionalArguments<Rest>]
       : [argument: ArgumentOut<Type>, ...PositionalArguments<Rest>]
     : []
@@ -34,6 +43,10 @@ type Declared<Contribution> = Contribution extends {
 }
   ? Contribution
   : never;
+
+/** The pack refs of a record of extension packs, as a union. */
+export type ExtensionPackValues<Extensions> =
+  Extensions extends Record<string, infer Pack> ? Pack : never;
 
 /** The `gen` helpers of a set of components: one per generator function they declare. */
 export type GeneratorHelpersOf<Component> = {

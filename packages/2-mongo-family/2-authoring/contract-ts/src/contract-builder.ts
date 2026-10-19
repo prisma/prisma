@@ -53,10 +53,12 @@ import {
   assembleGeneratorFunctions,
   createGeneratorHelpers,
   type ExtensionPackRef,
+  type ExtensionPackValues,
   type FamilyPackRef,
   type GeneratorFunctionCall,
   type GeneratorFunctionRegistry,
   type GeneratorHelpersOf,
+  type GeneratorPhase,
   type TargetPackRef,
 } from '@internal/framework-components/components';
 import { extractCodecLookup } from '@internal/framework-components/control';
@@ -290,8 +292,6 @@ type FieldGeneratorCalls = {
   readonly onCreate?: GeneratorFunctionCall;
   readonly onUpdate?: GeneratorFunctionCall;
 };
-
-type GeneratorPhase = keyof FieldGeneratorCalls;
 
 type WithGeneratedPhase<
   ExecutionDefaults extends ExecutionMutationDefaultPhases | undefined,
@@ -1067,8 +1067,6 @@ export type ContractAuthoringHelpers<
   readonly valueObject: typeof valueObject;
   readonly gen: GeneratorHelpersOf<Family | Target | ExtensionPackValues<Extensions>>;
 };
-
-type ExtensionPackValues<Extensions> = Extensions extends Record<string, infer Pack> ? Pack : never;
 
 const MONGO_RESERVED_HELPER_KEYS: readonly string[] = [
   'field',

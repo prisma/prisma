@@ -1,6 +1,7 @@
 import type { JsonValue } from '@internal/contract/types';
 import type { TaggedLiteralCanonicalization } from '@internal/framework-components/authoring';
 import type { DataTypeId, DataTypeValue } from '@internal/framework-components/codec';
+import type { SignatureArgumentOutput } from '@internal/framework-components/components';
 import type { PslSpan } from '@internal/framework-components/psl-ast';
 import type { Result } from '@internal/utils/result';
 import type { Simplify, UnionToIntersection } from '@internal/utils/types';
@@ -57,9 +58,8 @@ export type ArgTypeKind =
 
 export type ArgTypeContext = 'attribute' | 'field' | 'model';
 
-export interface ArgTypeOutput<T, Ctx extends AttributeCtx> {
+export interface ArgTypeOutput<T, Ctx extends AttributeCtx> extends SignatureArgumentOutput<T> {
   readonly label: string;
-  readonly _out?: T;
   /** True when the argument has this type's shape, so that its diagnostics are about the argument. `oneOf` returns the result of the one alternative that claims the argument. */
   readonly claims?: (arg: ExpressionAst) => boolean;
   readonly parse: (arg: ExpressionAst, ctx: Ctx) => Result<T, readonly PslDiagnostic[]>;

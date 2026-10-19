@@ -71,7 +71,7 @@ export interface ComponentMetadata {
   readonly authoring?: AuthoringContributions;
 
   /**
-   * Mutation default function handlers and generator descriptors contributed by this component. Assembled by `createControlStack` with duplicate detection.
+   * Mutation default function handlers and generator descriptors contributed by this component. `createControlStack` assembles both with duplicate detection. The generator descriptors are also read from pack refs: `assembleGeneratorFunctions`, which the control stack and the TypeScript builders both call, checks that every generator a binding produces is registered here by some component. A pack ref that contributes only descriptors gives an empty `defaultFunctionRegistry`.
    */
   readonly controlMutationDefaults?: ControlMutationDefaults;
 

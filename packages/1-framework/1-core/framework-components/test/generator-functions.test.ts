@@ -258,6 +258,30 @@ describe('assembleGeneratorFunctions', () => {
       );
     });
 
+    it('a signature with named parameters, which gen cannot express', () => {
+      expect(() =>
+        assembleGeneratorFunctions([
+          component(
+            'extension',
+            [
+              {
+                name: 'slugid',
+                signature: { documentation: 'slugid', named: { length: {} } },
+                bindings: [fixedBinding(['text@1'], 'slugid')],
+              },
+            ],
+            ['slugid'],
+          ),
+        ]),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+          message:
+            'Generator function "slugid" from "extension" declares the named parameter "length". A generator function takes positional parameters only, because a TypeScript gen call passes its arguments by position; declare it in positional.',
+        }),
+      );
+    });
+
     it('a binding that produces a generator no component registers', () => {
       expect(() =>
         assembleGeneratorFunctions([

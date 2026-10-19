@@ -1,3 +1,4 @@
+import type { GeneratorPhase } from '@internal/framework-components/components';
 import { blindCast } from '@internal/utils/casts';
 import { notOk } from '@internal/utils/result';
 import type { PslDiagnostic } from '../diagnostic';
@@ -9,8 +10,6 @@ import { oneOf } from './combinators/one-of';
 import { fieldAttribute } from './field-attribute';
 import type { FieldAttributeSpecContext } from './spec-context';
 import type { AttributeCtx, FuncCallSig, RejectingArgType, TypedFuncCall } from './types';
-
-export type GeneratorPhase = 'onCreate' | 'onUpdate';
 
 const GENERATOR_PHASE_DOCUMENTATION: Readonly<Record<GeneratorPhase, string>> = {
   onCreate: 'Generates a value in the client when a row is created without one.',

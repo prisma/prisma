@@ -22,6 +22,7 @@ import type {
   ExtensionPackRef,
   FamilyPackRef,
   GeneratorFunctionCall,
+  GeneratorPhase,
   TargetPackRef,
 } from '@internal/framework-components/components';
 import { readSqlExpression, type SqlExpression } from '@internal/sql-contract/sql-expression';
@@ -86,8 +87,6 @@ export type FieldGeneratorCalls = {
   readonly onCreate?: GeneratorFunctionCall;
   readonly onUpdate?: GeneratorFunctionCall;
 };
-
-type GeneratorPhase = keyof FieldGeneratorCalls;
 
 type WithExecutionDefault<State extends AnyScalarFieldState> =
   State extends ScalarFieldState<

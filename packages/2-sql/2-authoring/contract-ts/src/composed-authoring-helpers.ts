@@ -20,6 +20,7 @@ import { assertNoCrossRegistryCollisions } from '@internal/framework-components/
 import {
   createGeneratorHelpers,
   type ExtensionPackRef,
+  type ExtensionPackValues,
   type FamilyPackRef,
   type GeneratorHelpersOf,
   type TargetPackRef,
@@ -193,8 +194,6 @@ export type ComposedAuthoringHelpers<
   >;
   readonly gen: GeneratorHelpersOf<Family | Target | ExtensionPackValues<Extensions>>;
 };
-
-type ExtensionPackValues<Extensions> = Extensions extends Record<string, infer Pack> ? Pack : never;
 
 type AuthoringComponent = {
   readonly authoring?: {

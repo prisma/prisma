@@ -4,6 +4,9 @@ import type { MutationDefaultGeneratorDescriptor } from './mutation-default-type
 import { runtimeError } from './runtime-error';
 
 /** The codec and type params of the field a generator fills: a column in SQL, a document field in Mongo. */
+/** The phase a client generator runs in: when a row is created, or every time it is updated. */
+export type GeneratorPhase = 'onCreate' | 'onUpdate';
+
 export interface GeneratorFunctionField {
   readonly codecId: string;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
@@ -98,6 +101,12 @@ interface OwnedBinding {
   readonly contributedBy: string;
 }
 
+function namedParametersOf(signature: unknown): readonly string[] {
+  if (typeof signature !== 'object' || signature === null || !('named' in signature)) return [];
+  const named: unknown = signature.named;
+  return typeof named === 'object' && named !== null ? Object.keys(named) : [];
+}
+
 function invalidContribution(message: string): Error {
   return runtimeError('CONTRACT.PACK_CONTRIBUTION_INVALID', message);
 }
@@ -122,6 +131,12 @@ export function assembleGeneratorFunctions(
     const contributedBy = descriptor.id ?? '<unknown>';
     for (const contribution of descriptor.generatorFunctions ?? []) {
       if (contribution.signature !== undefined) {
+        const [namedParameter] = namedParametersOf(contribution.signature);
+        if (namedParameter !== undefined) {
+          throw invalidContribution(
+            `Generator function "${contribution.name}" from "${contributedBy}" declares the named parameter "${namedParameter}". A generator function takes positional parameters only, because a TypeScript gen call passes its arguments by position; declare it in positional.`,
+          );
+        }
         const existing = declared.get(contribution.name);
         if (existing !== undefined) {
           throw invalidContribution(

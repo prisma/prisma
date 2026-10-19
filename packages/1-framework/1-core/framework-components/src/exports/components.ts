@@ -59,6 +59,7 @@ export type {
   GeneratorFunctionRegistry,
   GeneratorFunctionResolution,
   GeneratorFunctionSummary,
+  GeneratorPhase,
   PrintedArguments,
   PrintedGeneratorCall,
 } from '../shared/generator-functions';
@@ -67,7 +68,13 @@ export {
   EMPTY_GENERATOR_FUNCTIONS,
   singleGeneratorBinding,
 } from '../shared/generator-functions';
-export type { GeneratorHelper, GeneratorHelpersOf } from '../shared/generator-helpers';
+export type {
+  ExtensionPackValues,
+  GeneratorHelper,
+  GeneratorHelpersOf,
+  SignatureArgumentOutput,
+  SignatureOptionalArgument,
+} from '../shared/generator-helpers';
 export { createGeneratorHelpers } from '../shared/generator-helpers';
 export type { MutationDefaultGeneratorDescriptor } from '../shared/mutation-default-types';
 export type { RuntimeErrorEnvelope } from '../shared/runtime-error';
