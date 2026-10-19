@@ -1,6 +1,6 @@
 # ADR 275 — Client generators are field attributes, and a type alias is expanded into each column
 
-**Status:** Proposed
+**Status:** Accepted
 **Date:** 2026-10-16
 **Builds on:** [ADR 158 — Execution mutation defaults](ADR%20158%20-%20Execution%20mutation%20defaults.md), [ADR 241 — Scalar types use the authoring type-constructor channel](ADR%20241%20-%20Scalar%20types%20use%20the%20authoring%20type-constructor%20channel.md), [ADR 269 — PSL mixins](ADR%20269%20-%20PSL%20mixins.md)
 **Supersedes:** the field-preset half of [ADR 170 — Pack-provided type constructors and field presets](ADR%20170%20-%20Pack-provided%20type%20constructors%20and%20field%20presets.md); [ADR 246 — Option arguments and select templates for authoring helpers](ADR%20246%20-%20Option%20arguments%20and%20select%20templates%20for%20authoring%20helpers.md), except its two omission rules
@@ -80,7 +80,7 @@ SQLite maps `sqlite/datetime@1` to `timestampNow`. Mongo maps `mongo/date@1` to 
 
 `uuid`, `cuid`, `ulid`, `nanoid` and `ksuid` (new; a `ksuid` generator exists but no function names it) map every text-like codec of the target to their generators. The lists must be complete. Today the applicability lists name only `pg/text@1`, `sql/char@1` and `pg/uuid@1`, so `uuid()` on a SQLite `String` (`sqlite/text@1`) or a Postgres `VarChar` (`sql/varchar@1`) is refused; that is a defect this registry fixes.
 
-An entry also says which of the column's type parameters become generator params. The time generators take `precision`, so they write a value the column stores without rounding. `nanoid` takes its `size` from the column's `length` when the call gives none; `nanoid(16)` on a `Char(21)` column is refused, because a fixed-length column would pad the identifier.
+An entry also says which of the column's type parameters become generator params. The time generators take `precision`, so they write a value the column stores without rounding. On a fixed-length column, `nanoid` takes its `size` from the column's `length` when the call gives none, and `nanoid(16)` on a `Char(21)` column is refused, because the column would pad the identifier. On a `VarChar(n)` or text column the size stays the call's, or 21; it is not read from the length, which would turn `VarChar(255)` into 255-character identifiers. A size longer than a `VarChar(n)` is refused.
 
 Compatibility is checked by codec, not by data type. Two codecs of one data type expect different in-memory values, so a data-type check would accept a generator whose output the codec cannot encode.
 
@@ -179,6 +179,7 @@ The Prisma 7 reader builds the contract directly and writes no aliases. It reads
 - **Breaking for schemas.** Every preset call and every `@default(<client function>())` must be rewritten. `@updatedAt` keeps being refused in Prisma 8 PSL, with a hint that names `@onCreate(now()) @onUpdate(now())` and `temporal.UpdatedAt`.
 - **Hashes.** Rewriting a preset or `@default(uuid())` as attributes changes no hash when the column and generators are the same. A contract with a `types {}` block or TypeScript `types` gets a new storage hash, because its columns lose `typeRef` and gain inline params. Supabase's space contract gets a new hash. pgvector's and PostGIS's do not.
 - **Upgrade.** The upgrade instructions ship a script that rewrites stored contracts and migration snapshots into the expanded form and refreshes their hashes, as the removal of `@noCheck` did. Users then re-emit and run `db sign` against every database. `migration plan` alone cannot record the new hash, because the change has no operations. The instructions also give the PSL and TypeScript rewrites for presets.
+- **Breaking for extension authors.** A default function can no longer lower to a client generator: `ControlMutationDefaultEntry.lower` returns a database default only. An extension that generated a value through a default function, such as `slugid()`, contributes a generator function with a binding for each codec it fills instead. `printArguments` and `applicableCodecIds` are removed; a binding declares the codecs it fills and how `contract print` writes each generator.
 - **Diagnostics.** The `PSL_PRESET_*` diagnostics and the refusal of preset-only generators in `@default` are removed. `@default(uuid())` gets a refusal that names `@onCreate(uuid())`.
 - **Less code.** The `fieldPreset` descriptor kind, `instantiateAuthoringFieldPreset`, the `option` argument kind, the `select` template node, the temporal preset builders and the preset print search are removed. The language server loses its field-preset completion branch.
 
