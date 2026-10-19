@@ -21,7 +21,7 @@ const bsonTypesByCodecId: Record<string, readonly string[]> = {
   'mongo/int64Number@1': ['long'],
   'mongo/decimal128@1': ['decimal'],
   'mongo/binary@1': ['binData'],
-  'mongo/vector@1': ['vector'],
+  'mongo/vector@1': ['array'],
   'mongo/json@1': ['object', 'array', 'string', 'double', 'int', 'long', 'bool', 'null'],
   'mongo/bson@1': [],
   'test/unconstrained@1': [],

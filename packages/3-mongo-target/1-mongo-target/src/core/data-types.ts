@@ -18,7 +18,7 @@ export const mongoInt32 = mongoDataType('mongo/int32', { bsonTypes: ['int'] });
 export const mongoBool = mongoDataType('mongo/bool', { bsonTypes: ['bool'] });
 export const mongoDate = mongoDataType('mongo/date', { bsonTypes: ['date'] });
 export const mongoVector = mongoDataType('mongo/vector', {
-  bsonTypes: ['vector'],
+  bsonTypes: ['array'],
   params: mongoVectorParams,
 });
 export const mongoInt64 = mongoDataType('mongo/int64', { bsonTypes: ['long'] });
