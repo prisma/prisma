@@ -3,7 +3,6 @@ import {
   singleGeneratorBinding,
   type TargetPackRef,
 } from '@internal/framework-components/components';
-import { timestampNowControlDescriptor } from '@internal/framework-components/control';
 import type { CodecTypes, ParameterizedOutputTypesForTypeParams } from '../exports/codec-types';
 import { mongoAuthoringFieldPresets } from './authoring';
 import { MONGO_DATE_CODEC_ID } from './codec-ids';
@@ -16,7 +15,7 @@ const mongoTargetDescriptorMetaBase = {
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: new Map(),
-    generatorDescriptors: [timestampNowControlDescriptor()],
+    generatorDescriptors: [{ id: TIMESTAMP_NOW_GENERATOR_ID }],
   },
   generatorFunctions: [
     {

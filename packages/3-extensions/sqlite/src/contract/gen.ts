@@ -1,12 +1,13 @@
 import sqlFamilyPack from '@internal/family-sql/pack';
-import {
-  createGeneratorHelpers,
-  type GeneratorHelpersOf,
-} from '@internal/framework-components/components';
+import { createGeneratorHelpers } from '@internal/framework-components/components';
+import type { ComposedAuthoringHelpers } from '@internal/sql-contract-ts/contract-builder';
 import sqlitePack from '@internal/target-sqlite/pack';
 
 /**
- * The generator functions of SQLite, without extensions, for `.onCreate(...)` and `.onUpdate(...)`: `gen.uuid(7)`, `gen.nanoid()`, `gen.now()`. The `defineContract` callback's `gen` also holds the functions its extensions declare.
+ * The generator function calls of the `defineContract` callback for SQLite, built from the same family and target packs, for `.onCreate(...)` and `.onUpdate(...)`: `gen.now()`, `gen.uuid(7)`, `gen.cuid(2)`, `gen.ulid()`, `gen.nanoid(16)` and `gen.ksuid()`.
  */
-export const gen: GeneratorHelpersOf<typeof sqlFamilyPack | typeof sqlitePack> =
-  createGeneratorHelpers([sqlFamilyPack, sqlitePack]);
+export const gen: ComposedAuthoringHelpers<
+  typeof sqlFamilyPack,
+  typeof sqlitePack,
+  undefined
+>['gen'] = createGeneratorHelpers([sqlFamilyPack, sqlitePack]);
