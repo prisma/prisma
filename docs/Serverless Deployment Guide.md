@@ -249,33 +249,29 @@ if (url.pathname === '/cursor/large') {
 
 ### Wiring the ORM client
 
-`db.orm` is the default way to use the ORM on a connection. When you register custom collection classes, build an ORM client from the connection's runtime and context:
+`db.orm` is the ORM on a connection. To give models their own query methods, pass custom collection classes to `postgresServerless()` with the `collections` option. Every connection's `db.orm`, and the `tx.orm` of its transactions, then returns those classes:
 
 ```ts
-// src/orm-client/client.ts
-import { orm } from '@prisma/orm-postgres/orm-client';
-import type { PostgresServerlessConnection } from '@prisma/orm-postgres/serverless';
-import type { Contract } from '../prisma/contract.d';
-import { PostCollection, UserCollection } from './collections';
+// src/prisma/db.ts
+import postgresServerless from '@prisma/orm-postgres/serverless';
+import { contractFromJson } from '@prisma/orm-postgres/static';
+import { PostCollection, UserCollection } from '../orm-client/collections';
+import type { Contract } from './contract.d';
+import contractJson from './contract.json' with { type: 'json' };
 
-export function createOrmClient(
-  db: Pick<PostgresServerlessConnection<Contract>, 'runtime' | 'context'>,
-) {
-  return orm({
-    runtime: db.runtime(),
-    context: db.context,
-    collections: {
-      User: UserCollection,
-      Post: PostCollection,
-    },
-  }).public;
-}
+export const contract = contractFromJson<Contract>(contractJson);
+
+export const postgres = postgresServerless({
+  contract,
+  collections: { User: UserCollection, Post: PostCollection },
+});
 
 // in fetch:
-// const rows = await createOrmClient(db).User.newestFirst().limit(10).all();
+// await using db = await postgres.connect({ url: env.HYPERDRIVE.connectionString });
+// const rows = await db.orm.public.User.newestFirst().limit(10).all();
 ```
 
-Pass `db.runtime()` to `orm()`, not `db` itself. The same holds for anything else that takes a runtime, such as `withTransaction` and a prepared statement's `query(runtime, params)`. Call the factory inside `fetch`, so the ORM client runs on that request's connection.
+The classes are registered once, at module scope, and hold no database connection. Each query still runs on the connection it is called through. Anything that takes a runtime, such as `withTransaction` and a prepared statement's `query(runtime, params)`, takes `db.runtime()`, not `db` itself.
 
 ## Other per-request runtimes
 

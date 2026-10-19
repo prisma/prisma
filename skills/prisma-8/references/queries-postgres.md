@@ -356,11 +356,14 @@ The same holds for an `if` with an early return, a `switch`, a loop and a reassi
 
 ## Workflow — Custom collection classes
 
-A custom collection class gives a model its own named queries. Extend `Collection`, register the class with `orm({ collections })`, and build that client inside the request from `db.runtime()` and `db.context`:
+A custom collection class gives a model its own named queries. Extend `Collection` and pass the class to the client with the `collections` option. `db.orm` then returns the class for that model, and so does `tx.orm` inside `db.transaction(...)`:
 
 ```typescript
-import { Collection, type Filtered, type Ordered, orm, type QueryFragment } from '@prisma/orm-postgres/orm-client';
+import { Collection, type Filtered, type Ordered, type QueryFragment } from '@prisma/orm-postgres/orm-client';
+import postgres from '@prisma/orm-postgres/runtime';
+import { contractFromJson } from '@prisma/orm-postgres/static';
 import type { Contract } from './prisma/contract.d';
+import contractJson from './prisma/contract.json' with { type: 'json' };
 
 class PostCollection extends Collection<Contract, 'Post'> {
   byAuthor(userId: string) {
@@ -372,12 +375,13 @@ class PostCollection extends Collection<Contract, 'Post'> {
   }
 }
 
-const { Post } = orm({
-  runtime: db.runtime(),
-  context: db.context,
-  collections: { Post: PostCollection },
-}).public;
+export const contract = contractFromJson<Contract>(contractJson);
+export const db = postgres({ contract, url: process.env['DATABASE_URL']!, collections: { Post: PostCollection } });
+
+const { Post } = db.orm.public;
 ```
+
+`postgresServerless({ contract, collections })` takes the same option, and every connection it opens uses the classes. The client's type carries the classes as its second type parameter: `PostgresClient<Contract, { Post: typeof PostCollection }>`. A parameter typed `PostgresClient<Contract>` still accepts a client with classes.
 
 Class methods chain with each other and with the built-in methods, in any order, and after `.include(...)`:
 

@@ -16,7 +16,8 @@ class PostCollection extends Collection<Contract, 'Post'> {
   newestFirst()           { return this.orderBy((p) => p.createdAt.desc()); }
 }
 
-const db = orm({ runtime, context, collections: { Post: PostCollection } }).public;
+const client = postgres({ contract, url, collections: { Post: PostCollection } });
+const db = client.orm.public;
 ```
 
 The methods are available on every collection of posts, whatever came before in the chain:
