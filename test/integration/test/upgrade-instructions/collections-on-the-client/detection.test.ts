@@ -35,7 +35,7 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
     ],
     [
       'an aliased import',
-      "import { orm as createOrm } from '@prisma/orm-postgres/orm-client';\n\nexport const db = createOrm({ runtime, context, collections: { Post: PostCollection } });",
+      "import { orm as createOrm } from './orm-client';\n\nexport const db = createOrm({ runtime, context, collections: { Post: PostCollection } });",
     ],
   ])('finds %s', (_name, content) => {
     expect(detects(content)).toBe(true);
@@ -48,7 +48,7 @@ describe.each(['app', 'extension'] as const)('the %s detection', (audience) => {
     ['a method of the same name', 'factory.orm({ runtime, context, collections })'],
     [
       'an aliased import without classes',
-      "import { orm as createOrm } from '@prisma/orm-postgres/orm-client';\n\nexport const db = createOrm({ runtime, context });",
+      "import { orm as createOrm } from './orm-client';\n\nexport const db = createOrm({ runtime, context });",
     ],
   ])('skips %s', (_name, content) => {
     expect(detects(content)).toBe(false);
