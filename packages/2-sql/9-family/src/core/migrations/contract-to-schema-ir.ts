@@ -52,7 +52,13 @@ import { sqlFamilyError } from '../errors';
 /**
  * Target-supplied hook that names a contract's expression default the way the target's introspection names the same database function, such as `now()` for `CURRENT_TIMESTAMP`, so the two compare equal. When omitted, the contract's default is the resolved default unchanged.
  */
-export type DefaultResolver = (def: ColumnDefault, resolvedNativeType: string) => ColumnDefault;
+export type DefaultResolver = (def: ColumnDefault, column: DefaultResolverColumn) => ColumnDefault;
+
+/** The column a {@link DefaultResolver} names a default for: its type as written, and whether it is a list. */
+export interface DefaultResolverColumn {
+  readonly nativeType: string;
+  readonly many: boolean;
+}
 
 type DefaultHooks = Pick<ContractToSchemaIROptions, 'resolveDefault'>;
 
@@ -87,7 +93,7 @@ function convertColumn(
   const rawColumnDefault = column.default ?? undefined;
   const resolvedColumnDefault =
     rawColumnDefault !== undefined && hooks.resolveDefault
-      ? hooks.resolveDefault(rawColumnDefault, resolvedNativeType)
+      ? hooks.resolveDefault(rawColumnDefault, { nativeType, many })
       : rawColumnDefault;
   return {
     name,

@@ -110,7 +110,10 @@ describe('a sql`...` default on Postgres renders as authored', () => {
 describe("a literal-shaped sql`'{}'::jsonb` default on Postgres", () => {
   it('stays an expression on the contract side', () => {
     expect(
-      postgresResolveDefault({ kind: 'function', expression: "'{}'::jsonb" }, 'jsonb'),
+      postgresResolveDefault(
+        { kind: 'function', expression: "'{}'::jsonb" },
+        { nativeType: 'jsonb', many: false },
+      ),
     ).toEqual({ kind: 'function', expression: "'{}'::jsonb" });
   });
 });

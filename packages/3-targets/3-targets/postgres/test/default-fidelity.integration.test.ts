@@ -289,8 +289,12 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
           },
         };
         const codec = codecOrUndefined(fidelityColumn);
-        const live = await readDefaultWithCodec(column.columnDefault, nativeType, codec);
-        const contract = await readDefaultWithCodec(row.written, nativeType, codec);
+        const live = await readDefaultWithCodec(
+          column.columnDefault,
+          nativeType.endsWith('[]'),
+          codec,
+        );
+        const contract = await readDefaultWithCodec(row.written, nativeType.endsWith('[]'), codec);
         let values: ComparedValues | undefined;
         if (row.expect === 'literal' || row.expect === 'refused-by-codec') {
           const stored = await storedValue(oracle, storedText, row.storageType, fidelityColumn);

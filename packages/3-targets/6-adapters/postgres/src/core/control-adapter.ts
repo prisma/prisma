@@ -798,18 +798,17 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
    */
   private async readReportedDefault(
     rawDefault: string,
-    resolvedNativeType: string,
+    many: boolean,
     column: ContractColumn | undefined,
   ): Promise<ReadDefault> {
-    const reported = readPostgresDefault(rawDefault, resolvedNativeType);
+    const reported = readPostgresDefault(rawDefault, many);
     if (reported.kind === 'function') return { resolvedDefault: reported };
     if (reported.kind === 'null') return { resolvedDefault: { kind: 'literal', value: null } };
     const codec =
       column === undefined ? undefined : codecForRef(this.codecRegistry, column.codecRef);
     if (codec === undefined) return {};
     const expression = column?.defaultExpression;
-    const written =
-      expression === undefined ? undefined : readPostgresDefault(expression, resolvedNativeType);
+    const written = expression === undefined ? undefined : readPostgresDefault(expression, many);
     return readColumnDefault(
       codec,
       { literal: reported.literal, raw: rawDefault },
@@ -1197,7 +1196,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           : rawDefault !== undefined
             ? await this.readReportedDefault(
                 rawDefault,
-                resolvedNativeType,
+                many === true,
                 contractColumnOf(tableName, colRow.column_name),
               )
             : {};

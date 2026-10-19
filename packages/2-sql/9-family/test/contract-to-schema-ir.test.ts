@@ -1378,8 +1378,8 @@ describe('contractToSchemaIR — resolved leaf values', () => {
     // default becomes the resolved default unchanged — this is what a
     // target that never normalizes (e.g. one with no literal-vs-function
     // ambiguity in its default syntax) gets by omitting the hook. Proves
-    // the hook actually runs, and runs with the resolved (`[]`-suffixed for
-    // arrays) native type, not the base one.
+    // the hook actually runs, and runs with the column's element type and its
+    // list flag.
     const storage = unboundStorage('test' as StorageHashBase<string>, {
       T: table({
         columns: {
@@ -1392,8 +1392,8 @@ describe('contractToSchemaIR — resolved leaf values', () => {
     });
 
     const result = contractToSchemaIR(wrap(storage), {
-      resolveDefault: (def, resolvedNativeType) =>
-        def.kind === 'function' && resolvedNativeType === 'text[]'
+      resolveDefault: (def, column) =>
+        def.kind === 'function' && column.many && column.nativeType === 'text'
           ? { kind: 'literal', value: [] }
           : def,
     });

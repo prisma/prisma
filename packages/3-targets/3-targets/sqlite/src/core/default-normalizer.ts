@@ -3,7 +3,11 @@
  */
 
 import type { ColumnDefault } from '@internal/contract/types';
-import type { ReportedBody, ReportedLiteralDefault } from '@internal/family-sql/control';
+import type {
+  DefaultResolverColumn,
+  ReportedBody,
+  ReportedLiteralDefault,
+} from '@internal/family-sql/control';
 import { SQLITE_DATETIME_TEXT_FORMAT } from './datetime-text';
 
 const NULL_PATTERN = /^NULL$/i;
@@ -113,8 +117,11 @@ export function readSqliteDefault(rawDefault: string, declaredType: string): Sql
 /**
  * Names a contract's expression default the way {@link readSqliteDefault} names the same function in the database, so `` sql`CURRENT_TIMESTAMP` `` and the database's `datetime('now')` compare equal. A literal default, and an expression that writes a literal, pass through unchanged; introspection reads the latter's literal with the column's codec, and the diff compares the values.
  */
-export function sqliteResolveDefault(def: ColumnDefault, declaredType: string): ColumnDefault {
+export function sqliteResolveDefault(
+  def: ColumnDefault,
+  column: DefaultResolverColumn,
+): ColumnDefault {
   if (def.kind !== 'function') return def;
-  const read = readSqliteDefault(def.expression, declaredType);
+  const read = readSqliteDefault(def.expression, column.nativeType);
   return read.kind === 'function' ? read : def;
 }
