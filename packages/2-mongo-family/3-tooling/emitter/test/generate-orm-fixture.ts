@@ -4,6 +4,7 @@ import { type Contract, coreHash, crossRef, profileHash } from '@internal/contra
 import { generateContractDts } from '@internal/emitter';
 import { blindCast } from '@internal/utils/casts';
 import ormContractJson from '../../../1-foundation/mongo-contract/test/fixtures/orm-contract.json';
+import storedNamesContractJson from '../../../1-foundation/mongo-contract/test/fixtures/stored-names-contract.json';
 import { mongoEmission } from '../src/index';
 
 const codecImports = [
@@ -14,45 +15,66 @@ const codecImports = [
   },
 ];
 
-const contract: Contract = {
-  ...ormContractJson,
-  target: 'mongo',
-  profileHash: profileHash('orm-profile'),
-  roots: Object.fromEntries(
-    Object.entries(ormContractJson.roots).map(([key, ref]) => [
-      key,
-      crossRef(ref.model, ref.namespace),
-    ]),
-  ),
-  domain: blindCast<
-    Contract['domain'],
-    'orm-contract.json is a real emitted fixture; its cross-references carry plain-string namespace ids because JSON has no branded NamespaceId, same as any contract deserialized from disk'
-  >(ormContractJson.domain),
-  storage: {
-    ...ormContractJson.storage,
-    storageHash: coreHash('orm-storage'),
+function fixtureContract(
+  json: typeof ormContractJson | typeof storedNamesContractJson,
+  hash: string,
+) {
+  return {
+    ...json,
+    target: 'mongo',
+    profileHash: profileHash(`${hash}-profile`),
+    roots: Object.fromEntries(
+      Object.entries(json.roots).map(([key, ref]) => [key, crossRef(ref.model, ref.namespace)]),
+    ),
+    domain: blindCast<
+      Contract['domain'],
+      'the fixture JSON is a real emitted fixture; its cross-references carry plain-string namespace ids because JSON has no branded NamespaceId, same as any contract deserialized from disk'
+    >(json.domain),
+    storage: {
+      ...json.storage,
+      storageHash: coreHash(`${hash}-storage`),
+    },
+    capabilities: {},
+    extensions: {},
+    meta: {},
+  } as Contract;
+}
+
+const fixturesDir = resolve(
+  import.meta.dirname,
+  '../../../1-foundation/mongo-contract/test/fixtures',
+);
+
+const outputs = [
+  {
+    output: generateContractDts(
+      fixtureContract(ormContractJson, 'orm'),
+      mongoEmission,
+      codecImports,
+      {
+        storageHash: 'orm-storage',
+        profileHash: 'orm-profile',
+      },
+    ),
+    targets: [
+      resolve(fixturesDir, 'orm-contract.d.ts'),
+      resolve(import.meta.dirname, '../../../9-family/test/fixtures/orm-contract.d.ts'),
+    ],
   },
-  capabilities: {},
-  extensions: {},
-  meta: {},
-} as Contract;
-
-const hashes = {
-  storageHash: 'orm-storage',
-  profileHash: 'orm-profile',
-};
-
-const output = generateContractDts(contract, mongoEmission, codecImports, hashes);
-
-const targets = [
-  resolve(
-    import.meta.dirname,
-    '../../../1-foundation/mongo-contract/test/fixtures/orm-contract.d.ts',
-  ),
-  resolve(import.meta.dirname, '../../../9-family/test/fixtures/orm-contract.d.ts'),
+  {
+    output: generateContractDts(
+      fixtureContract(storedNamesContractJson, 'stored-names'),
+      mongoEmission,
+      codecImports,
+      { storageHash: 'stored-names-storage', profileHash: 'stored-names-profile' },
+    ),
+    targets: [resolve(fixturesDir, 'stored-names-contract.d.ts')],
+  },
 ];
 
-for (const target of targets) {
-  writeFileSync(target, output);
-  console.log(`Generated ${target}`);
+for (const { output, targets } of outputs) {
+  for (const target of targets) {
+    writeFileSync(target, output);
+    console.log(`Generated ${target}`);
+  }
 }

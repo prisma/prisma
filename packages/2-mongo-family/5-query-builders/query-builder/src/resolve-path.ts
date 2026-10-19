@@ -1,6 +1,6 @@
 import type { ContractValueObjectDefinitions } from '@internal/contract/types';
 import type { MongoContract, MongoModelsMap } from '@internal/mongo-contract';
-import type { DocField } from './types';
+import type { DocField, ModelFieldStoredKey } from './types';
 
 /**
  * Marker `DocField` variant representing a non-leaf (value-object) path in
@@ -161,7 +161,7 @@ type VONestedShape<TContract extends MongoContract, VOName extends string> = [
   : never;
 
 /**
- * Build the `NestedDocShape` for a model. Scalar leaves resolve to their
+ * Build the `NestedDocShape` for a model, keyed by stored key. Scalar leaves resolve to their
  * concrete codec id; value-object fields recurse into the referenced
  * `valueObjects[VOName].fields` table, producing a tree that
  * `ResolvePath` / `ValidPaths` can walk.
@@ -178,7 +178,8 @@ export type ModelNestedShape<
   TContract extends MongoContract,
   ModelName extends string & keyof MongoModelsMap<TContract>,
 > = {
-  readonly [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] & string]: TranslateField<
+  readonly [K in keyof MongoModelsMap<TContract>[ModelName]['fields'] &
+    string as ModelFieldStoredKey<TContract, ModelName, K>]: TranslateField<
     TContract,
     MongoModelsMap<TContract>[ModelName]['fields'][K]
   >;

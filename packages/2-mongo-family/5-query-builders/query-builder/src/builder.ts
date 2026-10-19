@@ -60,7 +60,7 @@ import {
   UpdateManyCommand,
   UpdateOneCommand,
 } from '@internal/mongo-query-ast/execution';
-import { castAs } from '@internal/utils/casts';
+import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
 import { createFieldAccessor, type Expression, type FieldAccessor } from './field-accessor';
@@ -832,9 +832,10 @@ export class PipelineChain<
     const contractNarrow = this.#contract as MongoContract;
     let resultShape: MongoResultShape | undefined;
     if (modelName !== undefined) {
-      const model = castAs<MongoModelDefinition | undefined>(
-        domainModelsAtDefaultNamespace(contractNarrow.domain)[modelName],
-      );
+      const model = blindCast<
+        MongoModelDefinition | undefined,
+        'a Mongo contract models carry Mongo model storage'
+      >(domainModelsAtDefaultNamespace(contractNarrow.domain)[modelName]);
       resultShape = model
         ? computePipelineResultShape(
             this.#state.stages,
