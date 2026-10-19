@@ -3,7 +3,7 @@ import { expectTypeOf, test } from 'vitest';
 import {
   type CacheMiddleware,
   type InvalidateAnnotationHandle,
-  type InvalidateAnnotationOptions,
+  type InvalidationTarget,
   invalidateAnnotation,
 } from '../src/exports/index';
 
@@ -14,25 +14,23 @@ interface TagMeta {
 test('invalidateAnnotation produces a write-only annotation value', () => {
   const applied = invalidateAnnotation({ keys: ['user-1'] });
 
-  expectTypeOf(applied).toEqualTypeOf<AnnotationValue<InvalidateAnnotationOptions, 'write'>>();
-  expectTypeOf(applied).not.toExtend<AnnotationValue<InvalidateAnnotationOptions, 'read'>>();
+  expectTypeOf(applied).toEqualTypeOf<AnnotationValue<InvalidationTarget, 'write'>>();
+  expectTypeOf(applied).not.toExtend<AnnotationValue<InvalidationTarget, 'read'>>();
   expectTypeOf(invalidateAnnotation.applicableTo).toEqualTypeOf<ReadonlySet<'write'>>();
   expectTypeOf(invalidateAnnotation).toEqualTypeOf<InvalidateAnnotationHandle>();
 });
 
-test('InvalidateAnnotationOptions has the shape of invalidate’s argument', () => {
-  expectTypeOf<InvalidateAnnotationOptions<TagMeta>>().toEqualTypeOf<{
+test('InvalidationTarget has the shape of invalidate’s argument', () => {
+  expectTypeOf<InvalidationTarget<TagMeta>>().toEqualTypeOf<{
     readonly keys?: readonly string[];
     readonly meta?: TagMeta;
   }>();
 });
 
-test('invalidateAnnotation.read returns InvalidateAnnotationOptions | undefined', () => {
+test('invalidateAnnotation.read returns InvalidationTarget | undefined', () => {
   const plan = { meta: { annotations: {} as Record<string, unknown> } };
 
-  expectTypeOf(invalidateAnnotation.read(plan)).toEqualTypeOf<
-    InvalidateAnnotationOptions | undefined
-  >();
+  expectTypeOf(invalidateAnnotation.read(plan)).toEqualTypeOf<InvalidationTarget | undefined>();
 });
 
 test('TMeta checks meta', () => {
@@ -52,6 +50,6 @@ test('invalidateAnnotation rejects unknown and mistyped options', () => {
 
 test('invalidate takes the same type as the annotation payload', () => {
   expectTypeOf<Parameters<CacheMiddleware<TagMeta>['invalidate']>[0]>().toEqualTypeOf<
-    InvalidateAnnotationOptions<TagMeta>
+    InvalidationTarget<TagMeta>
   >();
 });

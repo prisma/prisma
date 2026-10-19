@@ -2,7 +2,7 @@ export type {
   CacheAnnotationHandle,
   CacheAnnotationOptions,
   InvalidateAnnotationHandle,
-  InvalidateAnnotationOptions,
+  InvalidationTarget,
 } from '../cache-annotation';
 export { cacheAnnotation, invalidateAnnotation } from '../cache-annotation';
 export type { CacheMiddleware, CacheMiddlewareOptions } from '../cache-middleware';

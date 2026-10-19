@@ -377,13 +377,15 @@ The corresponding source files:
 - `src/orm-client/find-user-by-id-cached.ts` — `db.User.first({ id }, (meta) => meta.annotate(cacheAnnotation({ key: userCacheKey(id), bypass })))`
 - `src/orm-client/get-users-cached.ts` — `db.User.limit(n).all((meta) => meta.annotate(cacheAnnotation({ key? })))`
 - `src/queries/get-users-cached.ts` — `db.sql.public.user.select(...).annotate(cacheAnnotation({})).build()`
-- `src/orm-client/update-user-email-invalidating-cache.ts` — `db.User.where({ id }).update({ email }, (meta) => meta.annotate(invalidateAnnotation({ keys: [userCacheKey(id)] })))`: the write removes the entry `ormClientFindUserByIdCached` stored under `user:<id>` once it has committed, or, inside a transaction, once that transaction commits. Errors from the store are only logged, through the client's `log` option.
+- `src/orm-client/update-user-email-invalidating-cache.ts` — `db.User.where({ id }).update({ email }, (meta) => meta.annotate(invalidateAnnotation({ keys: [userCacheKey(id)] })))`: the write removes the entry `ormClientFindUserByIdCached` stored under `user:<id>` once it has committed, or, inside a transaction, once that transaction commits.
 
 Relevant points:
 
 - The `cacheAnnotation` handle declares `applicableTo: ['read']`. Passing it to a write terminal is rejected at both the type and runtime levels — a `as any` cast cannot smuggle it past one without failing at the other.
 - On a cache hit for an ORM call no statement runs, so `lints`, `budgets` and the slow-query warning do not run for it.
 - The default cache key of an ORM call is the call's content hash, a digest of the terminal method and the statement it sends first. The default key of a SQL builder query is `ActivityContext.contentHash(exec)`, a SHA-512 digest of the post-lowering SQL plus parameters. Different parameters land in different cache slots; identical executions hit. Schema migrations rotate `meta.storageHash`, which feeds into `contentHash`, so cached entries do not leak across migrations.
+- An explicit `key`, such as the `user:<id>` key of `ormClientFindUserByIdCached`, does not change with `meta.storageHash`, so after a migration it can serve an entry cached under the old schema until it expires. With a store shared across deploys, prefix the key with something tied to the schema, such as the storage hash.
+- Errors from the store during a write's invalidation reach only the client's `log` option, which `src/prisma/db.ts` does not pass. To see them, pass one: `postgres<Contract>({ contractJson, url, middleware: [...], log: console })`.
 - The default in-memory store is per-process. For shared caching across replicas, supply a custom `CacheStore` (for example a Redis-backed implementation) via `createCacheMiddleware({ store })`.
 - Connection-scoped (`runtime.connection().execute(...)`) and transaction-scoped (`runtime.transaction(...)`) executions bypass the cache regardless of annotation, so transactional read-after-write coherence is preserved.
 

@@ -33,6 +33,18 @@ function statementsFromDriver(events: string[]): SqlMiddleware {
   };
 }
 
+function writeOutcomes(outcomes: string[]): SqlMiddleware {
+  return {
+    name: 'write-outcomes',
+    familyId: 'sql',
+    async activityFinalized(activity, result) {
+      if (activity.kind === 'orm-call' && activity.annotations.has('cache-invalidate')) {
+        outcomes.push(result.outcome);
+      }
+    },
+  };
+}
+
 function recordingStore(events: string[], unset?: CacheStore['unset']): CacheStore {
   const inner = createInMemoryCacheStore();
   return {
@@ -54,17 +66,19 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
     fn: (setup: {
       readonly db: ReturnType<typeof createFacade>;
       readonly events: string[];
+      readonly outcomes: string[];
       readonly log: { readonly error: ReturnType<typeof vi.fn> };
     }) => Promise<void>,
     unset?: CacheStore['unset'],
   ): Promise<void> {
     const events: string[] = [];
+    const outcomes: string[] = [];
     const log = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
     const client = new Client({ connectionString: database.connectionString });
     await client.connect();
-    const db = createFacade(client, events, log, unset);
+    const db = createFacade(client, events, outcomes, log, unset);
     try {
-      await fn({ db, events, log });
+      await fn({ db, events, outcomes, log });
     } finally {
       await db.close();
       await client.end();
@@ -77,6 +91,7 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
   function createFacade(
     client: Client,
     events: string[],
+    outcomes: string[],
     log: RuntimeLog,
     unset: CacheStore['unset'] | undefined,
   ) {
@@ -89,6 +104,7 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
       middleware: [
         createCacheMiddleware({ store: recordingStore(events, unset) }),
         statementsFromDriver(events),
+        writeOutcomes(outcomes),
       ],
     });
   }
@@ -102,7 +118,7 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
   }
 
   it('invalidates after an ORM update outside a transaction has committed', async () => {
-    await withFacade(async ({ db, events }) => {
+    await withFacade(async ({ db, events, outcomes }) => {
       await readUserOne(db.orm.public.User);
       events.length = 0;
 
@@ -112,7 +128,8 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
       const lastTwoEvents = events.slice(-2);
       const read = await readUserOne(db.orm.public.User);
 
-      expect({ lastTwoEvents, unsets: unsetsIn(events), read }).toEqual({
+      expect({ outcomes, lastTwoEvents, unsets: unsetsIn(events), read }).toEqual({
+        outcomes: ['committed'],
         lastTwoEvents: ['transaction-succeeded', 'unset:user-1'],
         unsets: ['unset:user-1'],
         read: { name: 'Alicia' },
@@ -277,7 +294,7 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
   });
 
   it('invalidates after a write that fails, since it may have landed', async () => {
-    await withFacade(async ({ db, events }) => {
+    await withFacade(async ({ db, events, outcomes }) => {
       await readUserOne(db.orm.public.User);
 
       await expect(
@@ -287,7 +304,10 @@ describe('integration: a write annotated with invalidateAnnotation invalidates o
         ),
       ).rejects.toThrow();
 
-      expect(unsetsIn(events)).toEqual(['unset:user-1']);
+      expect({ outcomes, unsets: unsetsIn(events) }).toEqual({
+        outcomes: ['unknown'],
+        unsets: ['unset:user-1'],
+      });
     });
   });
 

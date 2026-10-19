@@ -111,7 +111,7 @@ await cache.invalidate({ keys: ['user-1'] });
 
 A read that missed before an `invalidate` and finishes after it does not store its rows. Its `store.get` returned an empty entry with, say, version 3; the `unset` moves the key to version 4; `store.set(entry, rows)` then returns `false`. This works across processes that share a store, because the store owns the version. Call `invalidate` after the write has committed: inside a transaction, another request can put the old rows back in the cache before the commit. An error from the store propagates.
 
-A write can carry its invalidation instead. `invalidateAnnotation({ keys?, meta? })` takes the argument of `invalidate`, and the middleware makes the same call from the runtime's `activityFinalized` event, once the write's effects are final:
+A write can carry its invalidation instead. `invalidateAnnotation({ keys?, meta? })` takes the same `InvalidationTarget<TMeta>` as `invalidate`, and the middleware makes the same call from the runtime's `activityFinalized` event, once the write's effects are final:
 
 ```ts
 await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>

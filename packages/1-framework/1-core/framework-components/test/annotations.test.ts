@@ -311,27 +311,21 @@ describe('assertAnnotationsApplicable', () => {
       );
     });
 
-    it('with a message naming the offending annotation namespace and the terminal', () => {
-      try {
-        assertAnnotationsApplicable([cache({ ttl: 60 })], 'write', 'create');
-        expect.fail('expected assertAnnotationsApplicable to throw');
-      } catch (error) {
-        expect(error).toBeInstanceOf(Error);
-        const message = (error as Error).message;
-        expect(message).toContain("'cache'");
-        expect(message).toContain("'create'");
-        expect(message).toContain("'write'");
-      }
-    });
-
-    it('with a fix that names the kinds the annotation applies to', () => {
+    it('with a message that says what to do, in terms the caller wrote', () => {
       expect(() =>
         assertAnnotationsApplicable([audit({ actor: 'system' })], 'read', 'first'),
       ).toThrow(
         expect.objectContaining({
-          fix: "Remove 'audit' from 'first'. It applies only to write operations, so put it on one of those instead.",
+          message:
+            'An annotation that applies only to write operations was given to a read operation. Remove it from the read and put it on a write operation instead.',
         }),
       );
+    });
+
+    it('without a fix field', () => {
+      expect(() =>
+        assertAnnotationsApplicable([audit({ actor: 'system' })], 'read', 'first'),
+      ).toThrow(expect.not.objectContaining({ fix: expect.anything() }));
     });
 
     it('with structured details including namespace, terminalName, kind, and applicableTo', () => {

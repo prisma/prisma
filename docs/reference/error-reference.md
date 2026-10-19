@@ -1110,7 +1110,7 @@ Two trait-matching aggregate descriptors for one operation both claim a register
 
 ### RUNTIME.ANNOTATION_INAPPLICABLE
 
-A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annotation whose declared `applicableTo` set does not include the operation kind being built: the runtime check that backs up the type-level annotation validation when it is bypassed via casts or dynamic invocation. Remove the annotation from that terminal and put it on an operation of a kind it applies to, such as `invalidateAnnotation` on the write that changes the data; the error's `fix` names those kinds. Payload: `namespace`, `terminalName`, `kind`, `applicableTo`.
+A lane terminal (SQL DSL `.build()`, ORM collection terminal) received an annotation whose declared `applicableTo` set does not include the operation kind being built: the runtime check that backs up the type-level annotation validation when it is bypassed via casts or dynamic invocation. Remove the annotation from that operation and put it on an operation of a kind its `applicableTo` names; the message names those kinds. Payload: `namespace`, `terminalName`, `kind`, `applicableTo`.
 
 ### RUNTIME.ARGUMENT_INVALID
 

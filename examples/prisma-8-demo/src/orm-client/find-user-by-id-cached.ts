@@ -23,9 +23,10 @@
  * - On a cache hit no statement runs, so statement middleware such as
  *   `slowQueryWarning` in `db.ts` sees nothing; the call's own
  *   `activityEnded` fires with `source: 'middleware'`.
- * - Schema migrations rotate `meta.storageHash`, which feeds the
- *   content hash, so cached entries from a previous schema cannot
- *   accidentally serve queries against the new schema.
+ * - The explicit key does not change with `meta.storageHash`, so after a
+ *   schema migration it can serve an entry cached under the old schema
+ *   until the entry expires. With a store shared across deploys, prefix
+ *   the key with something tied to the schema, such as the storage hash.
  */
 
 import { cacheAnnotation } from '@prisma/orm-extension-middleware-cache';

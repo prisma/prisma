@@ -310,7 +310,7 @@ Rules:
 
 ### Invalidating with a write
 
-A write can carry its invalidation. `invalidateAnnotation({ keys?, meta? })` takes the argument of `invalidate`, and the middleware makes the same `invalidate` call once the write's effects are final:
+A write can carry its invalidation. `invalidateAnnotation({ keys?, meta? })` takes the same `InvalidationTarget<TMeta>` as `invalidate`, and the middleware makes the same `invalidate` call once the write's effects are final:
 
 ```typescript
 await db.orm.public.User.where({ id: 1 }).update({ name: 'Alicia' }, (meta) =>
