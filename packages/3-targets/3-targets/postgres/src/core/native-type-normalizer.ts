@@ -1,3 +1,5 @@
+import { qualifiedEnumName } from './data-types';
+
 /**
  * The type columns introspection reads for one column: `format_type(atttypid, atttypmod)` and the
  * `information_schema.columns` type fields.
@@ -10,10 +12,12 @@ export interface CatalogColumnType {
   readonly characterMaximumLength: number | null;
   readonly numericPrecision: number | null;
   readonly numericScale: number | null;
+  /** The enum the column, or each of its elements, is typed by. */
+  readonly enumType?: { readonly schema: string; readonly name: string };
 }
 
 export interface IntrospectedTypeText {
-  /** The column's type as the database reports it; for an array column, its element type. */
+  /** The column's type as the database reports it, or an enum's name as a contract writes it; for an array column, its element type. */
   readonly typeText: string;
   readonly many: true | undefined;
 }
@@ -22,7 +26,13 @@ export interface IntrospectedTypeText {
 export function introspectedTypeText(column: CatalogColumnType): IntrospectedTypeText {
   const reported = reportedTypeText(column);
   const many = reported.endsWith('[]') ? true : undefined;
-  return { typeText: many ? reported.slice(0, -2) : reported, many };
+  const typeText =
+    column.enumType !== undefined
+      ? qualifiedEnumName(column.enumType)
+      : many
+        ? reported.slice(0, -2)
+        : reported;
+  return { typeText, many };
 }
 
 function reportedTypeText(column: CatalogColumnType): string {

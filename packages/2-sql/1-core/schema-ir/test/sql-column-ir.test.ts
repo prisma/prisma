@@ -166,7 +166,7 @@ describe('SqlColumnIR', () => {
 
     it('names the type the database reports, with [] for a list', () => {
       const database = column({
-        typeText: 'int4',
+        typeText: 'integer',
         storedType: int4,
         many: true,
         reportedType: { text: 'integer', kind: undefined, schema: 'pg_catalog', name: 'int4' },
@@ -176,9 +176,9 @@ describe('SqlColumnIR', () => {
       );
     });
 
-    it('names a reported type of a kind with its schema', () => {
+    it('names an enum as introspection gives it, in the form a contract writes', () => {
       const database = column({
-        typeText: 'status',
+        typeText: 'app.status',
         reportedType: { text: 'status', kind: 'enum', schema: 'app', name: 'status' },
       });
       expect(column({ storedType: int4 }).explainMismatch(database)).toBe(

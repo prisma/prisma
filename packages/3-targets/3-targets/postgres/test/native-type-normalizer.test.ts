@@ -80,6 +80,39 @@ describe('introspectedTypeText', () => {
     );
   });
 
+  describe('of an enum column', () => {
+    it.each([
+      { formattedType: 'mood', schema: 'public', name: 'mood', typeText: 'mood', many: undefined },
+      {
+        formattedType: '"Order Status"[]',
+        schema: 'public',
+        name: 'Order Status',
+        typeText: 'Order Status',
+        many: true,
+      },
+      {
+        formattedType: 'audit."AuditAction"',
+        schema: 'audit',
+        name: 'AuditAction',
+        typeText: 'audit.AuditAction',
+        many: undefined,
+      },
+    ])(
+      'names the enum $formattedType as a contract does, bare in public and with its schema elsewhere',
+      ({ formattedType, schema, name, typeText, many }) => {
+        expect(
+          introspectedTypeText(
+            column({
+              formattedType,
+              informationSchemaType: many ? 'ARRAY' : 'USER-DEFINED',
+              enumType: { schema, name },
+            }),
+          ),
+        ).toEqual({ typeText, many });
+      },
+    );
+  });
+
   describe('without a type from format_type', () => {
     it('adds the length to a character type', () => {
       expect(

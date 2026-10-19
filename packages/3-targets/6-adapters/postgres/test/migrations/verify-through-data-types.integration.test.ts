@@ -237,8 +237,7 @@ describe('db verify through data types', { concurrent: false }, () => {
       {
         outcome: 'not-equal',
         path: 'database/public/t/column:moods',
-        explanation:
-          'The contract column is "mood[]" and the database column is "public.Order Status[]".',
+        explanation: 'The contract column is "mood[]" and the database column is "Order Status[]".',
       },
     ]);
   });
