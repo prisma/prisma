@@ -257,7 +257,7 @@ function otherModelsReached(
     return base === undefined ? undefined : models[base.model];
   };
   const storesOrInherits = (name: string, storedName: string) =>
-    modelAndBasesOf(models, name).some((each) => hasOwnFieldStoredAs(each, storedName));
+    modelAndBasesOf(models, name).some((each) => ownStores(each, storedName));
   const selected = discriminatorValueOf(filter);
   const canHold = (name: string) => {
     if (selected === undefined) return true;
@@ -695,6 +695,14 @@ function renamedByStatement(input: FieldRemovalInput, field: FieldCoordinate): b
   );
 }
 
+/** Whether one of `model`'s own fields or embed relations is stored under `storedName`. */
+function ownStores(model: MongoModelDefinition, storedName: string): boolean {
+  return (
+    hasOwnFieldStoredAs(model, storedName) ||
+    Object.values(ownEmbedStoredNamesOf(model)).includes(storedName)
+  );
+}
+
 /** The stored names of the documents of the model at `coordinate`: its fields and embed relations, its own and those it inherits. */
 function storedFieldsOf(contract: ContractWithDomain, coordinate: ModelCoordinate): Set<string> {
   const models = mongoModelsOf(contract.domain, coordinate.namespaceId);
@@ -717,7 +725,7 @@ function rootDocumentsLosing(
   storedName: string,
 ): { readonly filter: Document | undefined } | undefined {
   const model = modelAt(contract, root);
-  if (model === undefined || hasOwnFieldStoredAs(model, storedName)) return undefined;
+  if (model === undefined || ownStores(model, storedName)) return undefined;
   const discriminator = model.discriminator?.field;
   const keeping = Object.entries(model.variants ?? {})
     .filter(([, variant]) => {
@@ -725,7 +733,7 @@ function rootDocumentsLosing(
         namespaceId: variant.namespace,
         model: variant.model,
       });
-      return variantModel !== undefined && hasOwnFieldStoredAs(variantModel, storedName);
+      return variantModel !== undefined && ownStores(variantModel, storedName);
     })
     .map(([value]) => value)
     .sort();

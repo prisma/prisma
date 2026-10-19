@@ -298,6 +298,51 @@ describe('MongoMigrationPlanner, removed fields', () => {
       { tasks: {} },
     );
 
+  it('keeps a root field that becomes an embed relation stored under the same name', () => {
+    const users = (seed: string, user: { fields: string[]; embeds?: Record<string, string> }) =>
+      contract(seed, { User: { collection: 'users', ...user } }, { users: {} });
+    expect(
+      planned(
+        plan({
+          from: users('from', { fields: ['_id', 'notes'] }),
+          to: users('to', { fields: ['_id'], embeds: { comments: 'notes' } }),
+          schema: [schemaCollection('users')],
+        }),
+      ),
+    ).toEqual({ labels: [], classes: [], applied: [], dataLoss: [] });
+  });
+
+  it('unsets a base field from the variants that do not keep it, counting a variant embed stored under its name as keeping it', () => {
+    const tasks = (
+      seed: string,
+      taskFields: string[],
+      bug: { fields: string[]; embeds?: Record<string, string> },
+    ) =>
+      contract(
+        seed,
+        {
+          Task: {
+            collection: 'tasks',
+            fields: ['_id', 'type', ...taskFields],
+            discriminator: 'type',
+            variants: { Bug: 'bug', Feature: 'feature' },
+          },
+          Bug: { collection: 'tasks', base: 'Task', ...bug },
+          Feature: { collection: 'tasks', fields: [], base: 'Task' },
+        },
+        { tasks: {} },
+      );
+    expect(
+      planned(
+        plan({
+          from: tasks('from', ['notes'], { fields: [] }),
+          to: tasks('to', [], { fields: [], embeds: { comments: 'notes' } }),
+          schema: [schemaCollection('tasks')],
+        }),
+      ).labels,
+    ).toEqual(['Remove field notes from collection tasks in documents whose type is not "bug"']);
+  });
+
   it('keeps a variant field that becomes an embed relation stored under the same name', () => {
     const tasks = (seed: string, bug: { fields: string[]; embeds?: Record<string, string> }) =>
       contract(
