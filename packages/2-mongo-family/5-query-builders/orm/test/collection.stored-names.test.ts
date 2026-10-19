@@ -6,13 +6,18 @@ import {
   type MutationDefaults,
 } from '@internal/framework-components/runtime';
 import type { MongoQueryPlan } from '@internal/mongo-query-ast/execution';
-import { MongoFieldFilter } from '@internal/mongo-query-ast/execution';
+import {
+  MongoAggFieldRef,
+  MongoAggOperator,
+  MongoExprFilter,
+  MongoFieldFilter,
+} from '@internal/mongo-query-ast/execution';
 import { MongoParamRef } from '@internal/mongo-value';
 import { describe, expect, it } from 'vitest';
-import type { Contract } from '../../../1-foundation/mongo-contract/test/fixtures/stored-names-contract';
-import storedNamesContractJson from '../../../1-foundation/mongo-contract/test/fixtures/stored-names-contract.json';
 import { createMongoCollection } from '../src/collection';
 import type { MongoQueryExecutor } from '../src/executor';
+import type { Contract } from './fixtures/stored-names-contract';
+import storedNamesContractJson from './fixtures/stored-names-contract.json';
 import { noEnums } from './no-enums';
 
 const contract = storedNamesContractJson as unknown as Contract;
@@ -130,6 +135,38 @@ describe('a model whose fields are stored under other names', () => {
             name: 'home.city',
             collection: 'users',
           }),
+        ),
+      }),
+    );
+  });
+
+  it('translates field references inside $expr, leaving variables alone', async () => {
+    const { executor, plans } = recordingExecutor([]);
+    await createMongoCollection(contract, 'User', executor, noEnums)
+      .where(
+        MongoExprFilter.of(
+          MongoAggOperator.of('$eq', [
+            MongoAggFieldRef.of('displayName'),
+            MongoAggOperator.of('$ifNull', [
+              MongoAggFieldRef.of('home.city'),
+              MongoAggFieldRef.of('$ROOT'),
+            ]),
+          ]),
+        ),
+      )
+      .all()
+      .toArray();
+    const command = commandOf(plans, 0) as { pipeline: readonly unknown[] };
+    expect(command.pipeline[0]).toEqual(
+      expect.objectContaining({
+        filter: MongoExprFilter.of(
+          MongoAggOperator.of('$eq', [
+            MongoAggFieldRef.of('display_name'),
+            MongoAggOperator.of('$ifNull', [
+              MongoAggFieldRef.of('home_address.city'),
+              MongoAggFieldRef.of('$ROOT'),
+            ]),
+          ]),
         ),
       }),
     );

@@ -40,8 +40,10 @@ import {
   InsertManyCommand,
   InsertOneCommand,
   isMongoFilterExpr,
+  MongoAggFieldRef,
   MongoAndExpr,
   MongoExistsExpr,
+  MongoExprFilter,
   MongoFieldFilter,
   UpdateManyCommand,
 } from '@internal/mongo-query-ast/execution';
@@ -68,14 +70,14 @@ import {
 } from './field-accessor';
 import {
   documentRowMapper,
-  type FieldStorage,
-  fieldStorageOf,
+  type ModelStoredNames,
   mapEach,
+  modelStoredNamesOf,
   mongoModels,
   storedDocumentOfRow,
   storedNameOfCallerField,
   storedPathOfCallerPath,
-} from './field-storage';
+} from './model-stored-names';
 import { ormError } from './orm-errors';
 import type {
   DiscriminatorValues,
@@ -115,7 +117,9 @@ export interface MongoCollection<
   where(
     filter: MongoWhereFilter<TContract, ModelName>,
   ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
-  /** Appends a filter condition from a raw filter expression. Comparison and `$in`/`$nin` values on a scalar field are encoded through the field's codec. */
+  /**
+   * Appends a filter condition from a raw filter expression. The expression names fields as the model does, not their stored names: the ORM translates every field path, including field references inside `$expr`, to the names the documents store. A filter built for the pipeline builder (`db.query`) names stored names, so it is not passed here. Comparison and `$in`/`$nin` values on a scalar field are encoded through the field's codec.
+   */
   where(filter: MongoFilterExpr): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
   /** Restricts returned fields to the given subset. Returns a new immutable collection. */
   select(
@@ -325,7 +329,10 @@ class MongoCollectionImpl<
     }
 
     const filter = MongoFieldFilter.eq(
-      storedNameOfCallerField(fieldStorageOf(this.#contract, this.#modelName), discriminator.field),
+      storedNameOfCallerField(
+        modelStoredNamesOf(this.#contract, this.#modelName),
+        discriminator.field,
+      ),
       new MongoParamRef(value),
     );
     return this.#cloneWithVariant<V>({ filters: [...this.#state.filters, filter] }, value);
@@ -339,6 +346,13 @@ class MongoCollectionImpl<
         field: (fieldFilter) => this.#encodeFieldFilter(fieldFilter),
         exists: (existsFilter) =>
           new MongoExistsExpr(this.#storedPath(existsFilter.field), existsFilter.exists),
+        expr: (exprFilter) =>
+          MongoExprFilter.of(
+            exprFilter.aggExpr.rewrite({
+              fieldRef: (ref) =>
+                ref.path.startsWith('$') ? ref : MongoAggFieldRef.of(this.#storedPath(ref.path)),
+            }),
+          ),
       });
       return this.#clone({ filters: [...this.#state.filters, encoded] });
     }
@@ -354,7 +368,7 @@ class MongoCollectionImpl<
   select(
     ...fields: ModelFieldKeys<TContract, ModelName>[]
   ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
-    const storage = this.#fieldStorage();
+    const storage = this.#storedNames();
     return this.#clone({
       selectedFields: [
         ...(this.#state.selectedFields ?? []),
@@ -416,9 +430,9 @@ class MongoCollectionImpl<
       targetModelName,
       targetModel,
       from: resolveCollectionName(targetModel, targetModelName),
-      localField: storedNameOfCallerField(this.#fieldStorage(), localField),
+      localField: storedNameOfCallerField(this.#storedNames(), localField),
       foreignField: storedNameOfCallerField(
-        fieldStorageOf(this.#contract, targetModelName),
+        modelStoredNamesOf(this.#contract, targetModelName),
         foreignField,
       ),
       cardinality: ref.cardinality,
@@ -437,7 +451,7 @@ class MongoCollectionImpl<
   orderBy(
     spec: Partial<Record<ModelFieldKeys<TContract, ModelName>, 1 | -1>>,
   ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue> {
-    const storage = this.#fieldStorage();
+    const storage = this.#storedNames();
     const merged: Readonly<Record<string, 1 | -1>> = {
       ...this.#state.orderBy,
       ...Object.fromEntries(
@@ -854,16 +868,16 @@ class MongoCollectionImpl<
     return model?.variants?.[this.#variantValue]?.model;
   }
 
-  #fieldStorage(): FieldStorage {
-    return fieldStorageOf(this.#contract, this.#modelName, this.#variantModelName());
+  #storedNames(): ModelStoredNames {
+    return modelStoredNamesOf(this.#contract, this.#modelName, this.#variantModelName());
   }
 
   #storedPath(path: string): string {
-    return storedPathOfCallerPath(this.#fieldStorage(), path);
+    return storedPathOfCallerPath(this.#storedNames(), path);
   }
 
   #storedKeys(data: Record<string, unknown>): Record<string, unknown> {
-    const storage = this.#fieldStorage();
+    const storage = this.#storedNames();
     return Object.fromEntries(
       Object.entries(data).map(([key, value]) => [storedPathOfCallerPath(storage, key), value]),
     );
@@ -995,7 +1009,7 @@ class MongoCollectionImpl<
     const filters: MongoFilterExpr[] = [];
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
-      const storedName = storedNameOfCallerField(this.#fieldStorage(), key);
+      const storedName = storedNameOfCallerField(this.#storedNames(), key);
       const wrapped = this.#wrapFieldValue(value, fields[key], key, 'filter');
       filters.push(MongoFieldFilter.eq(storedName, wrapped));
     }
@@ -1193,11 +1207,11 @@ class MongoCollectionImpl<
 
   #toDocument(data: Record<string, unknown>): Record<string, MongoValue> {
     const fields = this.#modelFields();
-    const storage = this.#fieldStorage();
+    const storage = this.#storedNames();
     const doc: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
-      const embedded = storage.embedded[key];
+      const embedded = storage.embedded(key);
       const embedStoredName = storage.embedStoredNames[key];
       if (embedStoredName !== undefined) {
         doc[embedStoredName] = new MongoParamRef(
@@ -1219,7 +1233,7 @@ class MongoCollectionImpl<
 
   #toSetFields(data: Record<string, unknown>): Record<string, MongoValue> {
     const fields = this.#modelFields();
-    const storage = this.#fieldStorage();
+    const storage = this.#storedNames();
     const result: Record<string, MongoValue> = {};
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
@@ -1229,7 +1243,7 @@ class MongoCollectionImpl<
           meta: { field: key },
         });
       }
-      const embedded = storage.embedded[key];
+      const embedded = storage.embedded(key);
       result[storedName] =
         storage.embedStoredNames[key] === undefined
           ? this.#wrapFieldValue(value, fields[key], key, 'write')
@@ -1242,7 +1256,7 @@ class MongoCollectionImpl<
     return result;
   }
 
-  /** The defaults generated for a document whose stored names are the keys of `storedValues`, keyed by field name. */
+  /** The defaults generated for a document whose stored names are the keys of `storedValues`, keyed by field name. A default of the collection for a stored name this model does not store belongs to another model stored in the collection, and is left out. */
   #appliedDefaults(
     op: MutationDefaultsOp,
     storedValues: Readonly<Record<string, unknown>>,
@@ -1256,9 +1270,14 @@ class MongoCollectionImpl<
         values: storedValues,
         defaultValueCache,
       }) ?? [];
-    const { fieldNames } = this.#fieldStorage();
+    const { fieldNames } = this.#storedNames();
     return Object.fromEntries(
-      applied.map(({ field, value }) => [fieldNames[field] ?? field, value]),
+      applied.flatMap(({ field: storedName, value }) => {
+        const fieldName = Object.hasOwn(fieldNames, storedName)
+          ? fieldNames[storedName]
+          : undefined;
+        return fieldName === undefined ? [] : [[fieldName, value]];
+      }),
     );
   }
 

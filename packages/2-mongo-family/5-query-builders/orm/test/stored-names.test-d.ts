@@ -1,6 +1,6 @@
 import { expectTypeOf, test } from 'vitest';
-import type { Contract } from '../../../1-foundation/mongo-contract/test/fixtures/stored-names-contract';
 import type { CreateInput, IncludedRow, NoIncludes } from '../src/types';
+import type { Contract } from './fixtures/stored-names-contract';
 
 test('a create may leave out the field stored as _id and a field an execution default fills by its stored name', () => {
   expectTypeOf<{ displayName: string }>().toExtend<CreateInput<Contract, 'User'>>();

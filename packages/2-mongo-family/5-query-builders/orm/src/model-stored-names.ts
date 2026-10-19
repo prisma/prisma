@@ -1,16 +1,17 @@
-import { domainModelsAtDefaultNamespace } from '@internal/contract/types';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import {
-  hierarchyStoredFieldNamesOf,
   type MongoContract,
   type MongoModelDefinition,
-  storedFieldNamesOf,
+  mongoModelsOf,
+  ownEmbedStoredNamesOf,
+  ownStoredNamesOf,
+  storedNamesOf,
 } from '@internal/mongo-contract';
-import { blindCast } from '@internal/utils/casts';
 import type { StructuredError } from '@internal/utils/structured-error';
 import { ormError } from './orm-errors';
 
-/** A model's fields mapped to the names its documents store them under, and back. */
-export interface FieldStorage {
+/** A model's fields mapped to the names its documents store them under, and back, with the same for its embed relations. */
+export interface ModelStoredNames {
   readonly modelName: string;
   /** Stored name of each field, keyed by field name. */
   readonly storedNames: Readonly<Record<string, string>>;
@@ -18,126 +19,93 @@ export interface FieldStorage {
   readonly fieldNames: Readonly<Record<string, string>>;
   /** Stored name of each embed relation, keyed by relation name. */
   readonly embedStoredNames: Readonly<Record<string, string>>;
-  /** The field storage of the model each embed relation embeds, keyed by relation name. */
-  readonly embedded: Readonly<Record<string, FieldStorage>>;
+  /** The stored names of the model embed relation `relationName` embeds. */
+  embedded(relationName: string): ModelStoredNames | undefined;
 }
 
 export function mongoModels(
   contract: MongoContract,
 ): Readonly<Record<string, MongoModelDefinition>> {
-  return blindCast<
-    Readonly<Record<string, MongoModelDefinition>>,
-    'the models of a MongoDB contract carry MongoDB model storage'
-  >(domainModelsAtDefaultNamespace(contract.domain));
+  return mongoModelsOf(contract.domain, UNBOUND_NAMESPACE_ID);
 }
 
 function invert(map: Readonly<Record<string, string>>): Readonly<Record<string, string>> {
   return Object.fromEntries(Object.entries(map).map(([key, value]) => [value, key]));
 }
 
-function embedStoredNamesOf(model: MongoModelDefinition): Readonly<Record<string, string>> {
-  return Object.fromEntries(
-    Object.entries(model.relations)
-      .filter(([, relation]) => !('on' in relation))
-      .map(([name]) => [name, model.storage.relations?.[name]?.field ?? name]),
-  );
-}
+const cachedStoredNames = new WeakMap<MongoContract, Map<string, ModelStoredNames>>();
 
 /**
- * The fields of model `modelName`, its own and those it inherits, and, when `variantModelName` is given, the fields of that variant.
+ * The stored names of model `modelName`'s fields, its own and those it inherits, and, when `variantModelName` is given, the fields of that variant. Embedded models are looked up when asked for, so a model that embeds itself reuses the same map at every level.
  */
-export function fieldStorageOf(
+export function modelStoredNamesOf(
   contract: MongoContract,
   modelName: string,
   variantModelName?: string,
-): FieldStorage {
-  const cache = cachedFieldStorage.get(contract) ?? new Map<string, FieldStorage>();
-  cachedFieldStorage.set(contract, cache);
+): ModelStoredNames {
+  const cache = cachedStoredNames.get(contract) ?? new Map<string, ModelStoredNames>();
+  cachedStoredNames.set(contract, cache);
   const key = JSON.stringify([modelName, variantModelName ?? null]);
   const cached = cache.get(key);
   if (cached !== undefined) return cached;
-  const storage = fieldStorageIn(mongoModels(contract), modelName, variantModelName, new Set());
-  cache.set(key, storage);
-  return storage;
-}
-
-const cachedFieldStorage = new WeakMap<MongoContract, Map<string, FieldStorage>>();
-
-function fieldStorageIn(
-  models: Readonly<Record<string, MongoModelDefinition>>,
-  modelName: string,
-  variantModelName: string | undefined,
-  enclosing: ReadonlySet<string>,
-): FieldStorage {
-  const storedNames = {
-    ...hierarchyStoredFieldNamesOf(models, modelName),
-    ...(variantModelName === undefined ? {} : storedFieldNamesOfModel(models, variantModelName)),
-  };
+  const models = mongoModels(contract);
   const model = models[modelName];
-  const embedStoredNames = model === undefined ? {} : embedStoredNamesOf(model);
-  const inside = new Set([...enclosing, modelName]);
-  const embedded = Object.fromEntries(
-    Object.keys(embedStoredNames).flatMap((relationName) => {
-      const target = model?.relations[relationName]?.to.model;
-      return target === undefined || inside.has(target)
-        ? []
-        : [[relationName, fieldStorageIn(models, target, undefined, inside)]];
-    }),
-  );
-  return {
+  const variant = variantModelName === undefined ? undefined : models[variantModelName];
+  const storedNames = {
+    ...storedNamesOf(models, modelName),
+    ...(variant === undefined ? {} : ownStoredNamesOf(variant)),
+  };
+  const storedNamesOfModel: ModelStoredNames = {
     modelName,
     storedNames,
     fieldNames: invert(storedNames),
-    embedStoredNames,
-    embedded,
+    embedStoredNames: model === undefined ? {} : ownEmbedStoredNamesOf(model),
+    embedded(relationName) {
+      const target = model?.relations[relationName]?.to.model;
+      return target === undefined ? undefined : modelStoredNamesOf(contract, target);
+    },
   };
-}
-
-function storedFieldNamesOfModel(
-  models: Readonly<Record<string, MongoModelDefinition>>,
-  modelName: string,
-): Readonly<Record<string, string>> {
-  const model = models[modelName];
-  return model === undefined ? {} : storedFieldNamesOf(model);
+  cache.set(key, storedNamesOfModel);
+  return storedNamesOfModel;
 }
 
 /** The refusal of a name a caller passed that is not a field of the model. */
-export function callerFieldUnknown(storage: FieldStorage, fieldName: string): StructuredError {
-  const unknown = `Model "${storage.modelName}" has no field "${fieldName}"`;
-  const fieldForStoredName = Object.hasOwn(storage.fieldNames, fieldName)
-    ? storage.fieldNames[fieldName]
+export function callerFieldUnknown(names: ModelStoredNames, fieldName: string): StructuredError {
+  const unknown = `Model "${names.modelName}" has no field "${fieldName}"`;
+  const fieldForStoredName = Object.hasOwn(names.fieldNames, fieldName)
+    ? names.fieldNames[fieldName]
     : undefined;
   if (fieldForStoredName !== undefined) {
     return ormError(
       'ORM.FIELD_UNKNOWN',
       `${unknown}. "${fieldName}" is the stored name of field "${fieldForStoredName}"; pass the field name.`,
-      { meta: { model: storage.modelName, field: fieldName, fieldForStoredName } },
+      { meta: { model: names.modelName, field: fieldName, fieldForStoredName } },
     );
   }
   return ormError('ORM.FIELD_UNKNOWN', unknown, {
-    meta: { model: storage.modelName, field: fieldName },
+    meta: { model: names.modelName, field: fieldName },
   });
 }
 
 /** The stored name of a field a caller named. A name that is not a field is refused with `ORM.FIELD_UNKNOWN`. */
-export function storedNameOfCallerField(storage: FieldStorage, fieldName: string): string {
-  const storedName = Object.hasOwn(storage.storedNames, fieldName)
-    ? storage.storedNames[fieldName]
+export function storedNameOfCallerField(names: ModelStoredNames, fieldName: string): string {
+  const storedName = Object.hasOwn(names.storedNames, fieldName)
+    ? names.storedNames[fieldName]
     : undefined;
-  if (storedName === undefined) throw callerFieldUnknown(storage, fieldName);
+  if (storedName === undefined) throw callerFieldUnknown(names, fieldName);
   return storedName;
 }
 
 /**
  * The stored path of a dot path a caller named: its first segment is a field, or an embed relation, of the model; a value object stores the rest under their own names.
  */
-export function storedPathOfCallerPath(storage: FieldStorage, path: string): string {
+export function storedPathOfCallerPath(names: ModelStoredNames, path: string): string {
   const [head = path, ...rest] = path.split('.');
-  const embed = Object.hasOwn(storage.embedStoredNames, head)
-    ? storage.embedStoredNames[head]
+  const embed = Object.hasOwn(names.embedStoredNames, head)
+    ? names.embedStoredNames[head]
     : undefined;
-  if (embed === undefined) return [storedNameOfCallerField(storage, head), ...rest].join('.');
-  const embeddedStorage = storage.embedded[head];
+  if (embed === undefined) return [storedNameOfCallerField(names, head), ...rest].join('.');
+  const embeddedStorage = names.embedded(head);
   const [next, ...afterNext] = rest;
   if (embeddedStorage === undefined || next === undefined) return [embed, ...rest].join('.');
   if (/^\d+$/.test(next)) {
@@ -164,19 +132,19 @@ export function mapEach(
 /** A document of a model as a row of its fields: each stored name under the name of the field that stores it, embedded models likewise, and stored names no field stores left out. */
 export function rowOfStoredDocument(
   document: Record<string, unknown>,
-  storage: FieldStorage,
+  names: ModelStoredNames,
   extra: Readonly<Record<string, (value: unknown) => unknown>> = {},
 ): Record<string, unknown> {
   const row: Record<string, unknown> = {};
-  const relationOfEmbed = invert(storage.embedStoredNames);
+  const relationOfEmbed = invert(names.embedStoredNames);
   for (const [storedName, value] of Object.entries(document)) {
     const extraKey = Object.hasOwn(extra, storedName) ? extra[storedName] : undefined;
     if (extraKey !== undefined) {
       row[storedName] = extraKey(value);
       continue;
     }
-    const fieldName = Object.hasOwn(storage.fieldNames, storedName)
-      ? storage.fieldNames[storedName]
+    const fieldName = Object.hasOwn(names.fieldNames, storedName)
+      ? names.fieldNames[storedName]
       : undefined;
     if (fieldName !== undefined) {
       row[fieldName] = value;
@@ -186,7 +154,7 @@ export function rowOfStoredDocument(
       ? relationOfEmbed[storedName]
       : undefined;
     if (relationName === undefined) continue;
-    const embeddedStorage = storage.embedded[relationName];
+    const embeddedStorage = names.embedded(relationName);
     row[relationName] =
       embeddedStorage === undefined
         ? value
@@ -198,18 +166,18 @@ export function rowOfStoredDocument(
 /** A row of a model's fields as the document that stores it, embedded models likewise. */
 export function storedDocumentOfRow(
   row: Record<string, unknown>,
-  storage: FieldStorage,
+  names: ModelStoredNames,
 ): Record<string, unknown> {
   const document: Record<string, unknown> = {};
   for (const [name, value] of Object.entries(row)) {
-    const embed = Object.hasOwn(storage.embedStoredNames, name)
-      ? storage.embedStoredNames[name]
+    const embed = Object.hasOwn(names.embedStoredNames, name)
+      ? names.embedStoredNames[name]
       : undefined;
     if (embed === undefined) {
-      document[storedNameOfCallerField(storage, name)] = value;
+      document[storedNameOfCallerField(names, name)] = value;
       continue;
     }
-    const embeddedStorage = storage.embedded[name];
+    const embeddedStorage = names.embedded(name);
     document[embed] =
       embeddedStorage === undefined
         ? value
@@ -232,21 +200,16 @@ export function documentRowMapper(
 ): (document: unknown) => unknown {
   const models = mongoModels(contract);
   const model = models[modelName];
-  const base = fieldStorageOf(contract, modelName, variantModelName);
+  const base = modelStoredNamesOf(contract, modelName, variantModelName);
   const discriminator =
     variantModelName === undefined && model?.discriminator !== undefined
       ? base.storedNames[model.discriminator.field]
       : undefined;
-  const variants = new Map<string, FieldStorage>();
-  const storageOfVariant = (value: unknown): FieldStorage => {
-    if (typeof value !== 'string') return base;
-    const variantModel = model?.variants?.[value]?.model;
-    if (variantModel === undefined) return base;
-    const cached = variants.get(variantModel);
-    if (cached !== undefined) return cached;
-    const storage = fieldStorageOf(contract, modelName, variantModel);
-    variants.set(variantModel, storage);
-    return storage;
+  const namesOfVariant = (value: unknown): ModelStoredNames => {
+    const variantModel = typeof value === 'string' ? model?.variants?.[value]?.model : undefined;
+    return variantModel === undefined
+      ? base
+      : modelStoredNamesOf(contract, modelName, variantModel);
   };
   const extra = Object.fromEntries(
     Object.entries(includes).map(([relationName, target]) => {
@@ -256,7 +219,7 @@ export function documentRowMapper(
   );
   return (document) => {
     if (!isRecord(document)) return document;
-    const storage = discriminator === undefined ? base : storageOfVariant(document[discriminator]);
-    return rowOfStoredDocument(document, storage, extra);
+    const names = discriminator === undefined ? base : namesOfVariant(document[discriminator]);
+    return rowOfStoredDocument(document, names, extra);
   };
 }

@@ -2,6 +2,7 @@ import type { ContractReferenceRelation } from '@internal/contract/types';
 import type {
   AnyMongoTypeMaps,
   ExtractMongoCodecTypes,
+  FieldStoredAs,
   InferModelRow,
   MongoContract,
   MongoContractWithTypeMaps,
@@ -284,20 +285,6 @@ type GeneratedOnCreateFields<
       ? FieldStoredAs<TContract, ModelName, Field>
       : never
     : never;
-
-/** The fields of the model stored under `StoredName`. */
-type FieldStoredAs<
-  TContract extends MongoContract,
-  ModelName extends string & keyof MongoModelsMap<TContract>,
-  StoredName extends string,
-> = {
-  [K in keyof MongoModelsMap<TContract>[ModelName]['storage']['fields'] &
-    string]: MongoModelsMap<TContract>[ModelName]['storage']['fields'][K] extends {
-    readonly field: StoredName;
-  }
-    ? K
-    : never;
-}[keyof MongoModelsMap<TContract>[ModelName]['storage']['fields'] & string];
 
 /** The field stored as `_id`, which MongoDB fills when a create leaves it out. */
 type DocumentIdField<

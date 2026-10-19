@@ -4,7 +4,7 @@ import { type Contract, coreHash, crossRef, profileHash } from '@internal/contra
 import { generateContractDts } from '@internal/emitter';
 import { blindCast } from '@internal/utils/casts';
 import ormContractJson from '../../../1-foundation/mongo-contract/test/fixtures/orm-contract.json';
-import storedNamesContractJson from '../../../1-foundation/mongo-contract/test/fixtures/stored-names-contract.json';
+import storedNamesContractJson from '../../../5-query-builders/orm/test/fixtures/stored-names-contract.json';
 import { mongoEmission } from '../src/index';
 
 const codecImports = [
@@ -68,7 +68,12 @@ const outputs = [
       codecImports,
       { storageHash: 'stored-names-storage', profileHash: 'stored-names-profile' },
     ),
-    targets: [resolve(fixturesDir, 'stored-names-contract.d.ts')],
+    targets: [
+      resolve(
+        import.meta.dirname,
+        '../../../5-query-builders/orm/test/fixtures/stored-names-contract.d.ts',
+      ),
+    ],
   },
 ];
 
