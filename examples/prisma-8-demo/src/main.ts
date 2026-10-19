@@ -304,7 +304,7 @@ async function main() {
         console.error('Usage: pnpm start -- repo-lock-posts <userId>');
         process.exit(1);
       }
-      const posts = await ormClientLockUserPosts(userIdStr, db);
+      const posts = await db.transaction((tx) => ormClientLockUserPosts(userIdStr, tx.orm.public));
 
       console.log(JSON.stringify(posts, null, 2));
     } else if (cmd === 'orm-user-profile') {

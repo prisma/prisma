@@ -75,7 +75,9 @@ describe('ormClientLockUserPosts', () => {
           });
           events.length = 0;
 
-          const posts = await ormClientLockUserPosts(authorId, client);
+          const posts = await client.transaction((tx) =>
+            ormClientLockUserPosts(authorId, tx.orm.public),
+          );
 
           expect({ posts, events }).toEqual({
             posts: [

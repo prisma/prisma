@@ -102,7 +102,7 @@ The demo includes ORM client examples under `src/orm-client/`. `src/prisma/db.ts
 - `ormClientGetAdminUsers(limit, orm)` — filter through a custom collection scope
 - `ormClientFindUserByEmail(email, orm)` — `first()` with collection helpers
 - `ormClientGetUserPosts(userId, limit, orm)` — fetch user posts with collection filters + ordering
-- `ormClientLockUserPosts(userId, client)` — **a custom class method under a row lock**: `client.transaction(async (tx) => tx.orm.public.Post.forUser(userId).newestFirst().select('id', 'title').forUpdate().all())` runs the `PostCollection` methods on the transaction's ORM and locks the selected rows with `FOR UPDATE` until the transaction commits
+- `ormClientLockUserPosts(userId, orm)` — **a custom class method under a row lock**: `orm.Post.forUser(userId).newestFirst().select('id', 'title').forUpdate().all()`. Its caller opens the transaction and passes the transaction's ORM, `db.transaction((tx) => ormClientLockUserPosts(userId, tx.orm.public))`, so the `PostCollection` methods run in the transaction and `FOR UPDATE` holds the selected rows until it commits. The same function works on `db.orm.public` outside a transaction.
 - `ormClientGetUserProfile(userId, orm)` — **`Shape`-declared response type**: `UserProfile` is `Shape<Models.public_User, { '-': 'email'; posts: { '+': 'id' | 'title' | 'tags' } }>`; the nested include (`User → posts → tags`) is an implementation detail the compiler checks at the `return`
 - `ormClientGetDashboardUsers(emailDomain, postTitleTerm, limit, postsPerUser, orm)` — compound `and/or/not` filters + relation filters + `select()` and `include()` composition
 - `ormClientGetPostFeed(postTitleTerm, limit, orm)` — to-one include (`post -> user`) with projected fields
