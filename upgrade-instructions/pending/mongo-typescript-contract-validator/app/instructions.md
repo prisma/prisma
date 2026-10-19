@@ -15,7 +15,7 @@ changes:
 
 ### What changes
 
-Before, a MongoDB contract written in TypeScript had no collection validators, so MongoDB accepted any document shape. Now each collection gets the validator the same schema gets in PSL: a closed `$jsonSchema` validator with `validationLevel: strict` and `validationAction: error`. It refuses a field the model does not declare, a missing required field, and a value of the wrong BSON type. The contract's storage hash changes once, because it now includes the validators.
+Before, a MongoDB contract written in TypeScript had no collection validators, so MongoDB accepted any document shape. Now each collection gets the validator the same schema gets in PSL: a closed `$jsonSchema` validator with `validationLevel: strict` and `validationAction: error`. It refuses a field the model does not declare, a missing required field, and a value of the wrong BSON type. A `field.vector()` field is validated as an array. The contract's storage hash changes once, because it now includes the validators.
 
 ### What `defineContract` now refuses
 

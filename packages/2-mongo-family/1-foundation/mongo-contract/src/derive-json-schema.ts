@@ -11,7 +11,7 @@ import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { recursiveGroupsOf, typeKey } from './recursive-groups';
 import { isEmbedRelation } from './relation-fields';
-import { documentIdFieldOf, storedFieldNameOf } from './stored-field-names';
+import { DOCUMENT_ID, documentIdFieldOf, storedFieldNameOf } from './stored-field-names';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the
@@ -200,8 +200,6 @@ function propertiesOf(
 
   return { properties, required };
 }
-
-const DOCUMENT_ID = '_id';
 
 const OBJECT_ID_SCHEMA = { bsonType: 'objectId' };
 

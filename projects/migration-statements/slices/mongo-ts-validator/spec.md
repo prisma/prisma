@@ -39,7 +39,7 @@ Will, 2026-10-12: contracts written in either form must behave the same. Without
 | A model with an `_id` stored as another BSON type | TypeScript: accepted; PSL: refused | Refused when the contract is built, on both |
 | A TypeScript enum whose codec stores a BSON type a validator cannot list | Accepted | Refused when the contract is built, as PSL refuses it |
 | A PSL collection that stores several models without a discriminator | Validator for the last model only; the others' documents refused | One `anyOf` branch per model; storage hash changes |
-| A PSL or TypeScript contract with a `mongo/vector@1` field | Validator lists BSON type `vector`, which MongoDB refuses | Validated as `array`; storage hash changes |
+| A TypeScript contract with a `field.vector()` field | No validator | Validated as BSON type `array`, the type the codec stores (MongoDB's `$jsonSchema` has no `vector` type) |
 | A PSL model without `@id` | Refused | Accepted; its validator requires an `objectId` `_id` |
 | Every other PSL contract | — | Unchanged, byte for byte |
 
