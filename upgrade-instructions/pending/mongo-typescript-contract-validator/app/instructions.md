@@ -39,7 +39,7 @@ The rc.17 upgrade notes advised writing an enum over a codec such as `mongo/int6
 
 MongoDB cannot change a document's `_id` in place. To keep the data of a collection whose documents have another `_id`, copy each document into a new document with an `objectId` `_id`, before you apply the validator. For example, for collection `events`, keeping the old id in a field `legacyId`:
 
-1. In the contract, declare `_id: field.objectId()` (or leave `_id` out), and add `legacyId: field.string()` (with the old `_id`'s field type) if code or other documents still use the old id.
+1. In the contract, declare `_id: field.objectId()` (or leave `_id` out). If code still uses the old id, add `legacyId: field.string().optional()` (with the old `_id`'s field type), optional so new documents can leave it out. Change every field that refers to the model by its id to `field.objectId()`, for example `eventId` on a model with `rel.belongsTo(Event, { from: 'eventId', to: Event.ref('_id') })`.
 2. In `mongosh`, copy the documents into a new collection with new ids:
 
    ```js
@@ -49,7 +49,14 @@ MongoDB cannot change a document's `_id` in place. To keep the data of a collect
    });
    ```
 
-3. Change every document that refers to an event by its old id to refer to its new `_id`, looking it up by `legacyId`.
+3. Change every document that refers to an event by its old id to refer to its new `_id`, looking it up by `legacyId`. For documents of collection `tickets` whose `eventId` holds the old id:
+
+   ```js
+   db.events_copy.find().forEach((event) => {
+     db.tickets.updateMany({ eventId: event.legacyId }, { $set: { eventId: event._id } });
+   });
+   ```
+
 4. Replace the old collection with the copy: `db.events_copy.renameCollection('events', true)`. This drops the old collection and its indexes; step 4 of [Steps](#steps) creates the contract's indexes again.
 
 ### The risk: documents already stored

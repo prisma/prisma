@@ -43,3 +43,45 @@ The collection options afterwards hold the derived `$jsonSchema` with `validatio
 | After | insert `{ email, extra: 1 }` | refused, code 121 |
 
 Logs: `wip/pr2-d3/qa-*.log`.
+
+## Path C: keeping documents whose `_id` is not an ObjectId
+
+**Date:** 2026-10-19. The note's section "Keeping documents whose `_id` is not an ObjectId" was followed on a TypeScript project, against mongodb-memory-server on port 27932. It now works as printed, after three changes to the note, which are listed after the table.
+
+**How the `mongosh` steps were run.** I did not run `mongosh` myself: downloading it needs Will's approval given to me directly, and the approval came to me only through the coordinator. Each `mongosh` snippet was copied from the note unchanged and run through the Node driver with a small shim (`wip/pr2-id-qa/mongosh-shim.mjs`). The shim does three things mongosh does on its own:
+- it waits for every database call before the script ends;
+- it gives `db.<collection>` and `db.getCollection(name)`;
+- it maps mongosh's `renameCollection(target, dropTarget)` to the driver's `rename(target, { dropTarget })`.
+
+The step-2 query used the same shim as in paths A and B. Running the section's three snippets once in real `mongosh` would close this gap.
+
+**Before.** The builder from `main` was checked out and built temporarily, then restored:
+- `Event`, in collection `events`, has `_id: field.string()` and `name`.
+- `Ticket`, in collection `tickets`, has an objectId `_id`, `seat`, `eventId: field.string()`, and `event: rel.belongsTo(Event, { from: 'eventId', to: Event.ref('_id') })`.
+- `prisma contract emit` and `prisma db update` ran on that contract; neither collection has a validator.
+- Inserted: events `launch` and `party`, and tickets `A1` and `B2` referring to them.
+- Through the ORM, `tickets.include('event')` returns `A1 → Launch` and `B2 → Party`.
+
+| Step | Command | Output |
+| --- | --- | --- |
+| Upgrade | `prisma contract emit` (new builder, old contract) | exit 2: `Model "Event" field "_id" holds the document id as BSON type string, but an _id must be stored as BSON type objectId: …` |
+| Keeping 1, as first printed | `_id: field.objectId()`, add `legacyId: field.string()` | contract changed |
+| Keeping 2 | the note's copy snippet | `events_copy` holds both events, each with a new ObjectId `_id` and `legacyId` `launch` or `party` |
+| Keeping 3 | the note had no command; ran `db.events_copy.find().forEach(…updateMany({ eventId: event.legacyId }, { $set: { eventId: event._id } }))` | both tickets now hold the new ObjectIds |
+| Keeping 4 | `db.events_copy.renameCollection('events', true)` | `events` holds the copied documents; `events_copy` is gone |
+| Steps 1 | `prisma contract emit` | exit 0 |
+| Steps 2 | the note's query | `events 0`, `tickets 2`: `eventId` is now an ObjectId, but the contract still says string. **The note misled here.** |
+| Fix | `eventId: field.objectId()`; `prisma contract emit`; the query again | `events 0`, `tickets 0` |
+| Steps 4 | `prisma db update --no-interactive` | `validator.events.add` and `validator.tickets.add`, class `widening`; "Applied 2 operation(s)" |
+| Steps 5 | `prisma db verify` | exit 0, "Database marker and schema match contract", "Schema matches contract" |
+| ORM | `tickets.include('event')` | `A1 → Launch`, `B2 → Party` |
+| New data | made `legacyId` optional, emitted, `db update` (`validator.events.update`, class `widening`); then `events.create({ name: 'Closing' })` and a ticket for it | `A1 → Launch`, `B2 → Party`, `C3 → Closing`; `db verify` clean |
+
+**Changes to the note:**
+1. Step 1 now says to change every field that refers to the model by its id to `field.objectId()`, with the `belongsTo` example.
+2. Step 1 now adds `legacyId` as `.optional()`. A required `legacyId` would make every new document, which has no old id, fail the validator.
+3. Step 3 now gives the `updateMany` snippet.
+
+Not covered: the claim that `db update` creates the contract's indexes again after the rename. This contract declared no indexes on `events`.
+
+Logs: `wip/pr2-id-qa/`.
