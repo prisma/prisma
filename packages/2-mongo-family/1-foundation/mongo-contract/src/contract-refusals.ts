@@ -4,7 +4,7 @@ import type {
   ContractModelBase,
   ContractValueObject,
 } from '@internal/contract/types';
-import { collectionRootModelsOf } from './derive-collection-validators';
+import { collectionRootModelsOf } from './collection-root-models';
 import { documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
@@ -67,11 +67,14 @@ export interface MongoContractRefusalsInput {
 }
 
 /** Why an embed relation cannot target `embeddedModel`, a model with variants; the subject is the relation. */
-export function embeddedVariantsReason(embeddedModel: string): string {
+function embeddedVariantsReason(embeddedModel: string): string {
   return `embeds model "${embeddedModel}", which has variants. The ORM reads and writes only the base fields of an embedded model, so an embedded model cannot have variants.`;
 }
 
-function embeddedVariantRefusals(
+/**
+ * The parts of a MongoDB contract its validators cannot describe that can be decided without codec lookups: an embed relation to a model with variants. `mongoContractRefusalsOf` includes them, and `validateMongoStorage` applies them to a contract read back from `contract.json`.
+ */
+export function lookupFreeRefusalsOf(
   models: Record<string, ContractModelBase>,
 ): MongoContractRefusal[] {
   return Object.entries(models).flatMap(([modelName, model]) =>
@@ -153,7 +156,7 @@ export function mongoContractRefusalsOf(
 ): readonly MongoContractRefusal[] {
   const { models, valueObjects, enums, lookups } = input;
   return [
-    ...embeddedVariantRefusals(models),
+    ...lookupFreeRefusalsOf(models),
     ...enumRefusals(enums, lookups),
     ...Object.entries(models).flatMap(([name, model]) =>
       fieldRefusals({ kind: 'model', name }, model.fields, lookups),

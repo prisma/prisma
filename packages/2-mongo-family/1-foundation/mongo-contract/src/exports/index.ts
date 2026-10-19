@@ -6,6 +6,7 @@ export type {
 } from '@internal/framework-components/runtime';
 export { RelationKeys } from '@internal/framework-components/runtime';
 export { buildMongoStorage } from '../build-mongo-storage';
+export { collectionRootModelsOf } from '../collection-root-models';
 export type {
   FieldOwner,
   MongoContractRefusal,
@@ -53,10 +54,7 @@ export {
   defaultMongoStorageNamespaceId,
 } from '../default-namespace';
 export type { CollectionValidatorsInput } from '../derive-collection-validators';
-export {
-  collectionRootModelsOf,
-  deriveCollectionValidators,
-} from '../derive-collection-validators';
+export { deriveCollectionValidators } from '../derive-collection-validators';
 export type { FieldValueSets } from '../derive-json-schema';
 export type { FieldBsonTypeRefusal } from '../field-bson-type-refusal';
 export { fieldBsonTypeRefusalOf } from '../field-bson-type-refusal';

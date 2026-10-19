@@ -1,6 +1,6 @@
 import { crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
-import { collectionRootModelsOf } from '../src/derive-collection-validators';
+import { collectionRootModelsOf } from '../src/collection-root-models';
 
 const stored = (collection: string) => ({ storage: { collection } });
 

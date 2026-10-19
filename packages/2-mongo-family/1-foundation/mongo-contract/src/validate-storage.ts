@@ -1,8 +1,8 @@
 import type { ContractRelation } from '@internal/contract/types';
 import { structuredError } from '@internal/utils/structured-error';
-import { embeddedVariantsReason } from './contract-refusals';
+import { lookupFreeRefusalsOf } from './contract-refusals';
 import type { MongoContract, MongoModelDefinition } from './contract-types';
-import { isEmbedRelation, resolveMongoToOneRelationFields } from './relation-fields';
+import { resolveMongoToOneRelationFields } from './relation-fields';
 import { validatorRootShapesOf } from './validator-shapes';
 
 function requiresObjectIdDocumentId(jsonSchema: unknown): boolean {
@@ -84,12 +84,6 @@ export function validateMongoStorage(contract: MongoContract): void {
         const targetModel = models[relation.to.model];
         const targetLabel = formatCrossRef(relation.to);
 
-        if (isEmbedRelation(relation) && targetModel?.variants !== undefined) {
-          errors.push(
-            `Relation "${modelName}.${relName}" ${embeddedVariantsReason(relation.to.model)}`,
-          );
-        }
-
         if (targetModel?.owner) {
           if (targetModel.owner !== modelName) {
             errors.push(
@@ -132,6 +126,13 @@ export function validateMongoStorage(contract: MongoContract): void {
     }
   }
 
+  for (const namespace of Object.values(contract.domain.namespaces)) {
+    for (const refusal of lookupFreeRefusalsOf(namespace.models)) {
+      if (refusal.kind === 'embeddedModelHasVariants') {
+        errors.push(`Relation "${refusal.modelName}.${refusal.relationName}" ${refusal.reason}`);
+      }
+    }
+  }
   errors.push(...documentIdErrors(contract.storage));
 
   if (errors.length > 0) {
