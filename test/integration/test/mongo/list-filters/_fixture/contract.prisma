@@ -3,6 +3,7 @@
 model Lists {
   id                      ObjectId  @id @map("_id")
   name                    String
+  nickname                String?
   strings                 String[]
   nullableStrings         String?[]
   optionalStrings         String[]?

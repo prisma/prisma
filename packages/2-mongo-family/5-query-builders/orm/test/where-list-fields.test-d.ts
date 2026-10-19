@@ -18,6 +18,7 @@ type TestFieldTypes = {
     readonly Lists: {
       readonly _id: string;
       readonly name: string;
+      readonly nickname: string | null;
       readonly strings: readonly string[];
       readonly nullableStrings: readonly (string | null)[];
       readonly optionalStrings: readonly string[] | null;
@@ -54,6 +55,7 @@ type ListsContract = MongoContractWithTypeMaps<
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
                 readonly name: ScalarField<false, false>;
+                readonly nickname: ScalarField<true, false>;
                 readonly strings: ScalarField<false, { readonly elementNullable: false }>;
                 readonly nullableStrings: ScalarField<false, { readonly elementNullable: true }>;
                 readonly optionalStrings: ScalarField<true, { readonly elementNullable: false }>;
@@ -151,6 +153,12 @@ describe('where on fields that are not scalar lists', () => {
     expectTypeOf<Filter['name']>().toEqualTypeOf<string | undefined>();
     // @ts-expect-error a scalar field takes no list
     void ({ name: ['a'] } satisfies Filter);
+    // @ts-expect-error the field is never null
+    void ({ name: null } satisfies Filter);
+  });
+
+  test('a nullable scalar field also takes null', () => {
+    expectTypeOf<Filter['nickname']>().toEqualTypeOf<string | null | undefined>();
   });
 });
 
@@ -162,6 +170,8 @@ test('collection.where() takes each newly allowed list value', () => {
       .where({ nullableStrings: ['a', null] })
       .where({ optionalStrings: null })
       .where({ optionalStrings: [] })
-      .where({ optionalNullableStrings: [null] }),
+      .where({ optionalNullableStrings: [null] })
+      .where({ optionalNullableStrings: null })
+      .where({ nickname: null }),
   ).toEqualTypeOf<MongoCollection<ListsContract, 'Lists'>>();
 });

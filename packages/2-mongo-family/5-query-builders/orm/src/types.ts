@@ -222,14 +222,11 @@ export type MongoWhereFilter<
     : unknown;
 };
 
-type WhereScalarValue<Field, Element> = Field extends {
-  readonly many: { readonly elementNullable: infer ElementNullable };
-}
-  ?
-      | Element
-      | readonly (ElementNullable extends true ? Element | null : Element)[]
-      | (Field extends { readonly nullable: true } ? null : never)
-  : Element;
+type WhereScalarValue<Field, Element> =
+  | (Field extends { readonly many: { readonly elementNullable: infer ElementNullable } }
+      ? Element | readonly (ElementNullable extends true ? Element | null : Element)[]
+      : Element)
+  | (Field extends { readonly nullable: true } ? null : never);
 
 export type MongoIncludeSpec<
   TContract extends MongoContract,

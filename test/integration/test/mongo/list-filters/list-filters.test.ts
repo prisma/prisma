@@ -8,6 +8,7 @@ const documents = [
   { name: 'missing', strings: ['a'], nullableStrings: ['a'] },
   {
     name: 'null',
+    nickname: null,
     strings: [],
     nullableStrings: [],
     optionalStrings: null,
@@ -15,6 +16,7 @@ const documents = [
   },
   {
     name: 'empty',
+    nickname: 'e',
     strings: [],
     nullableStrings: [],
     optionalStrings: [],
@@ -22,6 +24,7 @@ const documents = [
   },
   {
     name: 'pair',
+    nickname: 'p',
     strings: ['a', 'b'],
     nullableStrings: ['a', null],
     optionalStrings: ['a', 'b'],
@@ -29,6 +32,7 @@ const documents = [
   },
   {
     name: 'holdsNull',
+    nickname: 'h',
     strings: ['c'],
     nullableStrings: [null],
     optionalStrings: ['c'],
@@ -53,11 +57,14 @@ const cases: ReadonlyArray<{
   { filter: { optionalNullableStrings: ['c', null] }, names: ['holdsNull'] },
   { filter: { optionalNullableStrings: [] }, names: ['empty'] },
   { filter: { optionalNullableStrings: 'b' }, names: ['pair'] },
+  { filter: { optionalNullableStrings: null }, names: ['missing', 'null'] },
+  { filter: { nickname: null }, names: ['missing', 'null'] },
+  { filter: { nickname: 'p' }, names: ['pair'] },
 ];
 
 describe('Mongo where on scalar list fields', () => {
   it(
-    'matches a whole list exactly, one element by containment, and null on a nullable list as null or missing',
+    'matches a whole list exactly, one element by containment, and null on a nullable field as null or missing',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
         await mongoDb

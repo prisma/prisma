@@ -77,6 +77,7 @@ import type {
   VariantSelectable,
 } from './types';
 import { upsertPipeline } from './upsert-pipeline';
+import { whereEquality } from './where-equality';
 
 type ModelFieldKeys<
   TContract extends MongoContract,
@@ -896,8 +897,8 @@ class MongoCollectionImpl<
     const filters: MongoFilterExpr[] = [];
     for (const [key, value] of Object.entries(data)) {
       if (value === undefined) continue;
-      const wrapped = this.#wrapFieldValue(value, fields[key], key, 'filter');
-      filters.push(MongoFieldFilter.eq(key, wrapped));
+      const field = fields[key];
+      filters.push(whereEquality(key, field, this.#wrapFieldValue(value, field, key, 'filter')));
     }
     return filters;
   }

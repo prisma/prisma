@@ -29,6 +29,13 @@
                   "kind": "scalar"
                 }
               },
+              "nickname": {
+                "nullable": true,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
               "nullableStrings": {
                 "many": {
                   "elementNullable": true
@@ -97,6 +104,12 @@
                     "name": {
                       "bsonType": "string"
                     },
+                    "nickname": {
+                      "bsonType": [
+                        "null",
+                        "string"
+                      ]
+                    },
                     "nullableStrings": {
                       "bsonType": "array",
                       "items": {
@@ -152,7 +165,7 @@
         "kind": "mongo-database"
       }
     },
-    "storageHash": "0985ec331a60ecadad9c3664865ae69b6d2815b22cd867f7e5c89b5722d94caa"
+    "storageHash": "042e83d72829a214beecef7b82d671f45b7d8148b58f7d6a97568f9547e86a45"
   },
   "capabilities": {},
   "extensions": {},
