@@ -183,6 +183,16 @@ describe('SqlColumnIR', () => {
       );
     });
 
+    it('names a reported type of a kind with its schema', () => {
+      const database = column({
+        nativeType: 'status',
+        reportedType: { text: 'status', kind: 'enum', schema: 'app', name: 'status' },
+      });
+      expect(column({ storedType: int4 }).explainMismatch(database)).toBe(
+        'The contract column is "text" and the database column is "app.status".',
+      );
+    });
+
     it('names the type an unclaimed database column reports', () => {
       const database = new SqlColumnIR({
         name: 'c',

@@ -266,9 +266,16 @@ export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean
   );
 }
 
-/** The column's type as the database reports it, or as the contract writes it, with `[]` for a list. */
+/** The column's type as the database reports it, or as the contract writes it, with `[]` for a list. A reported type of a kind, such as an enum, is named with its schema, which its text leaves out when the schema is on the search path. */
 function typeTextOf(column: SqlColumnIR): string {
-  return `${column.reportedType?.text ?? column.nativeType}${column.many === true ? '[]' : ''}`;
+  return `${reportedTextOf(column.reportedType) ?? column.nativeType}${column.many === true ? '[]' : ''}`;
+}
+
+function reportedTextOf(reported: ReportedSqlType | undefined): string | undefined {
+  if (reported === undefined) return undefined;
+  return reported.kind !== undefined && reported.schema !== undefined && reported.name !== undefined
+    ? `${reported.schema}.${reported.name}`
+    : reported.text;
 }
 
 function nullability(column: SqlColumnIR): string {
