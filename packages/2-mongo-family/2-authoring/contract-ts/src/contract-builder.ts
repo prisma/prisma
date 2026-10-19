@@ -835,7 +835,10 @@ type ModelExecutionDefaults<TBuilder> =
                 readonly ref: {
                   readonly namespace: typeof UNBOUND_NAMESPACE_ID;
                   readonly entry: Entry;
-                  readonly field: FieldName;
+                  readonly field: StoredNameFromBuilder<
+                    ExtractModelFields<TBuilder>[FieldName],
+                    FieldName
+                  >;
                 };
               } & Phases
           : never;
