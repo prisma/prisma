@@ -215,9 +215,21 @@ export type MongoWhereFilter<
       readonly codecId: infer CId extends string & keyof TCodecTypes;
     };
   }
-    ? TCodecTypes[CId]['output']
+    ? WhereScalarValue<
+        MongoModelsMap<TContract>[ModelName]['fields'][K],
+        TCodecTypes[CId]['output']
+      >
     : unknown;
 };
+
+type WhereScalarValue<Field, Element> = Field extends {
+  readonly many: { readonly elementNullable: infer ElementNullable };
+}
+  ?
+      | Element
+      | readonly (ElementNullable extends true ? Element | null : Element)[]
+      | (Field extends { readonly nullable: true } ? null : never)
+  : Element;
 
 export type MongoIncludeSpec<
   TContract extends MongoContract,
