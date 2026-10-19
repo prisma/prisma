@@ -1,7 +1,7 @@
 import {
   type Contract,
   type ContractWithDomain,
-  controlPolicyForCall,
+  governingControlPolicy,
   type ModelStorageBase,
 } from '@internal/contract/types';
 import {
@@ -236,7 +236,7 @@ function statementRefused(
 
 function tableControlPolicy(contract: Contract<SqlStorage>, table: ModelTable) {
   const node = contract.storage.namespaces[table.namespaceId]?.entries.table?.[table.table];
-  return controlPolicyForCall(
+  return governingControlPolicy(
     { explicitNodeControlPolicy: StorageTable.is(node) ? node.control : undefined },
     contract.defaultControlPolicy,
   );

@@ -1,4 +1,8 @@
-import { type Contract, type ControlPolicy, controlPolicyForCall } from '@internal/contract/types';
+import {
+  type Contract,
+  type ControlPolicy,
+  governingControlPolicy,
+} from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 
@@ -109,7 +113,7 @@ export function partitionCallsByControlPolicy<TCall>(options: {
 
   for (const call of options.calls) {
     const subject = options.resolveControlPolicySubject(call);
-    const policy = controlPolicyForCall(subject, defaultControlPolicy);
+    const policy = governingControlPolicy(subject, defaultControlPolicy);
     if (callAllowedUnderControlPolicy(policy, subject)) {
       kept.push(call);
     } else {
@@ -195,7 +199,7 @@ export function partitionIssuesByControlPolicy<TIssue>(options: {
 
   for (const issue of options.issues) {
     const subject = options.resolveControlPolicySubject(issue);
-    const policy = controlPolicyForCall(subject, defaultControlPolicy);
+    const policy = governingControlPolicy(subject, defaultControlPolicy);
     const creationFactoryName = options.resolveCreationFactoryName(issue);
 
     if (policy === 'managed') {

@@ -1,4 +1,4 @@
-import { type Contract, controlPolicyForCall } from '@internal/contract/types';
+import { type Contract, governingControlPolicy } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
   PlannedStatements,
@@ -953,7 +953,7 @@ function gradePolicyReplacement(
   allowedOperationClasses: readonly MigrationOperationClass[],
 ): PolicyReplacementDisposition {
   const subject = resolvePostgresCallControlPolicySubject(replacement.drop, contract);
-  const controlPolicy = controlPolicyForCall(subject, contract.defaultControlPolicy);
+  const controlPolicy = governingControlPolicy(subject, contract.defaultControlPolicy);
   if (controlPolicy !== 'managed') {
     return {
       disposition: 'suppress',

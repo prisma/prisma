@@ -143,7 +143,7 @@ The Mongo family base mirrors the same four-way severity dispatch over collectio
 The planner refuses. When the contract default is `external`, every object in that contract space resolves to `external` regardless of any per-object override — the floor is not overridable:
 
 ```ts
-export function controlPolicyForCall(
+export function governingControlPolicy(
   subject: { readonly explicitNodeControlPolicy?: ControlPolicy | undefined } | undefined,
   defaultControlPolicy: ControlPolicy | undefined,
 ): ControlPolicy {
@@ -156,7 +156,7 @@ export function controlPolicyForCall(
 
 A mistake of this kind is not silently swallowed. When the floor suppresses DDL that an override would otherwise have produced, the planner records a `warn`-level conflict identifying the suppressed object by its coordinates. The plan still succeeds — the safe outcome already happened — but the contradiction is visible.
 
-The choice to enforce this at the planner, rather than reject the override at authoring time, is deliberate. A hard authoring error would forbid a legitimate pattern: an extension that is `external` by default but genuinely owns one object within its space. The floor lets that object's declaration stand while guaranteeing the dangerous interpretation can never reach the database. Enforcement lives in one place; the authoring surface does not duplicate it.
+The choice to enforce this at the planner, rather than reject the override at authoring time, is deliberate. A hard authoring error would forbid a legitimate pattern: an extension that is `external` by default but genuinely owns one object within its space. The floor lets that object's declaration stand while guaranteeing the dangerous interpretation can never reach the database. Enforcement lives in one place; the authoring surface does not duplicate it. MongoDB's collection validator derivation and its verifier resolve each collection with the same `governingControlPolicy`, so a `managed` collection under an `external` default gets no validator in the contract and is verified as `external`: in MongoDB the validator is part of the contract, so a contract that described one would promise the database something the planner will never apply, and a verifier that graded the collection as `managed` would fail on differences the planner will never repair.
 
 ## Authoring surfaces
 

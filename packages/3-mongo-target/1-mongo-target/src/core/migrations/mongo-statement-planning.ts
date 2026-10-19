@@ -5,7 +5,7 @@ import {
   type ContractRelation,
   type ContractWithDomain,
   type ControlPolicy,
-  controlPolicyForCall,
+  governingControlPolicy,
 } from '@internal/contract/types';
 import {
   describeMigrationStatement,
@@ -20,6 +20,8 @@ import {
   type ResolvedRenameStatement,
 } from '@internal/framework-components/control';
 import {
+  collectionControlPoliciesOf,
+  collectionControlPolicyOf,
   collectionRootModelsOf,
   MongoCollection,
   type MongoContract,
@@ -107,14 +109,11 @@ export function collectionControlOf(
     declared === undefined && fromContract !== null
       ? declaredCollection(fromContract, collection)
       : undefined;
-  const policy = controlPolicyForCall(
-    { explicitNodeControlPolicy: declared?.control },
-    contract.defaultControlPolicy,
-  );
+  const policy = collectionControlPolicyOf(collection, collectionControlPoliciesOf(contract));
   if (original === undefined || fromContract === null) {
     return { policy, declared: declared?.control };
   }
-  const originalPolicy = controlPolicyForCall(
+  const originalPolicy = governingControlPolicy(
     { explicitNodeControlPolicy: original.control },
     fromContract.defaultControlPolicy,
   );

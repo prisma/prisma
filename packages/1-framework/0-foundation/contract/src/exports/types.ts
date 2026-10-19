@@ -4,7 +4,7 @@ export type {
   ContractValueObjectDefinitions,
 } from '../contract-types';
 export type { ControlPolicy } from '../control-policy';
-export { controlPolicyForCall, effectiveControlPolicy } from '../control-policy';
+export { effectiveControlPolicy, governingControlPolicy } from '../control-policy';
 export type { CrossReference } from '../cross-reference';
 export { CrossReferenceSchema, crossRef } from '../cross-reference';
 export { soleDomainNamespaceId } from '../default-namespace';
