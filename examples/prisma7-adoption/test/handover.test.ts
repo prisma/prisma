@@ -5,7 +5,8 @@
  * destructive one, and one that gives an existing column an autoincrement
  * default and names a foreign key with `map`. Then it marks a field `@ignore`
  * and a model `@@ignore`, and removes them again; neither edit changes the
- * storage hash or plans a migration. After each, `db verify --strict`
+ * storage hash or plans a migration. A fifth edit moves `User`'s primary key
+ * and makes deleting a post delete its comments. After each, `db verify --strict`
  * passes with nothing unclaimed, Prisma 7 sees no drift,
  * and the clients read the new shape. Finally the migrations replay onto an
  * empty database, which verifies strictly with nothing unclaimed and has the
@@ -81,6 +82,27 @@ const SEQUENCE_PLAN_OPERATIONS = [
   ['setDefault.Post.viewCount', 'widening'],
   ['foreignKey.public.Post.Post_authorId_fkey.rename', 'widening'],
 ];
+
+const KEY_PLAN_OPERATIONS = [
+  ['dropConstraint.Comment.Comment_postId_fkey', 'widening'],
+  ['dropConstraint.Post.Post_author_fk', 'widening'],
+  ['dropConstraint.User.User_pkey', 'widening'],
+  ['primaryKey.User.User_pkey', 'additive'],
+  ['index.User.User_id_key', 'additive'],
+  ['foreignKey.Comment.Comment_postId_fkey', 'additive'],
+  ['foreignKey.Post.Post_author_fk', 'additive'],
+];
+
+/** `Post_author_fk` is unchanged; it is dropped and added back because it depends on the index of `User_pkey`. */
+const KEY_PLAN_SQL = [
+  'ALTER TABLE "public"."Comment" DROP CONSTRAINT "Comment_postId_fkey"',
+  'ALTER TABLE "public"."Post" DROP CONSTRAINT "Post_author_fk"',
+  'ALTER TABLE "public"."User" DROP CONSTRAINT "User_pkey"',
+  'ALTER TABLE "public"."User" ADD CONSTRAINT "User_pkey" PRIMARY KEY ("id", "email")',
+  'CREATE UNIQUE INDEX "User_id_key" ON "public"."User" ("id")',
+  'ALTER TABLE "public"."Comment" ADD CONSTRAINT "Comment_postId_fkey" FOREIGN KEY ("postId") REFERENCES "public"."Post" ("id") ON DELETE CASCADE ON UPDATE CASCADE',
+  'ALTER TABLE "public"."Post" ADD CONSTRAINT "Post_author_fk" FOREIGN KEY ("authorId") REFERENCES "public"."User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE',
+].join(';\n');
 
 /** The sequence `Post.viewCount` owns, found at run time whatever its name. */
 const POST_VIEW_COUNT_SEQUENCE = `pg_get_serial_sequence('"public"."Post"', 'viewCount')::regclass`;
@@ -328,14 +350,30 @@ describe('Prisma 8 taking over migrations from the Prisma 7 schema', () => {
           await expectNoChanges('edit-4.prisma', 'ignore-content-and-comments');
           await expectNoChanges('edit-3.prisma', 'restore-content-and-comments');
 
+          editSchema('edit-5.prisma');
+          await v8('contract', 'emit');
+          const keyHash = storageHash(dir);
+          const keyPlan = await v8('migration', 'plan', '--name', 'move-user-key');
+          expect(keyPlan).toMatchObject({ from: sequenceHash, to: keyHash });
+          const keyed = readBundle(dir, String(keyPlan['dir']));
+          expect(operationClasses(keyed)).toEqual(KEY_PLAN_OPERATIONS);
+          expect(renderedSql(keyed)).toBe(KEY_PLAN_SQL);
+          await migrate();
+          await verifyStrictlyWithNothingUnclaimed();
+          await v7('generate');
+          await typecheck('tsconfig.edit-5.json');
+          expect(await tsx('test/handover/v7-after-edit-5.ts')).toContain(
+            'Adopting Prisma 8 next to Prisma 7: deleted with 1 comments, 0 left via Prisma 7',
+          );
+
           await withDevDatabase(async ({ connectionString: freshUrl }) => {
             const replayed = resultEnvelope(
               await run(dir, freshUrl, 'prisma', ['db', 'migrate']),
             ).result;
             expect(replayed).toMatchObject({
               ok: true,
-              migrationsApplied: 4,
-              markerHash: sequenceHash,
+              migrationsApplied: 5,
+              markerHash: keyHash,
             });
             expect(await constraintNames(freshUrl)).toEqual(
               await constraintNames(connectionString),
@@ -349,12 +387,12 @@ describe('Prisma 8 taking over migrations from the Prisma 7 schema', () => {
             expect(strict.status, strict.output).toBe(0);
             expect(resultEnvelope(strict.output).result).toMatchObject({ ok: true, unclaimed: [] });
           });
-          expect(dbRefHash(dir)).toBe(sequenceHash);
+          expect(dbRefHash(dir)).toBe(keyHash);
         });
       } finally {
         rmSync(dir, { recursive: true, force: true });
       }
     },
-    timeouts.spinUpPpgDev * 8 + timeouts.typeScriptCompilation * 3,
+    timeouts.spinUpPpgDev * 8 + timeouts.typeScriptCompilation * 4,
   );
 });
