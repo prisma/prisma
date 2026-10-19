@@ -38,11 +38,11 @@ import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
   deriveCollectionValidators,
-  documentIdRefusalOf,
-  fieldBsonTypeRefusalOf,
   type MongoCollectionInput,
+  type MongoContractRefusal,
   MongoIndex,
   type MongoIndexKeyDirection,
+  mongoContractRefusalsOf,
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
 import type { MongoTypeLookups } from '@internal/mongo-contract/data-type';
@@ -1144,26 +1144,6 @@ interface ResolvedNonRelationField {
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
 }
 
-/**
- * A diagnostic for a field whose codec has no MongoDB data type, which the collection validator could not describe, or undefined.
- */
-function fieldBsonTypeDiagnostic(
-  ownerName: string,
-  field: FieldSymbol,
-  resolved: ContractField,
-  lookups: MongoTypeLookups,
-  sources: PslSources,
-): PslDiagnostic | undefined {
-  if (resolved.type.kind !== 'scalar') return undefined;
-  const refusal = fieldBsonTypeRefusalOf(resolved.type.codecId, lookups);
-  if (refusal === undefined) return undefined;
-  return {
-    code: 'PSL_UNSUPPORTED_FIELD_TYPE',
-    message: `Field "${ownerName}.${field.name}" ${refusal.reason}`,
-    ...diagnosticSource(sources, field.node.syntax).at(field.span),
-  };
-}
-
 function resolveNonRelationField(
   field: FieldSymbol,
   owner: { readonly name: string; readonly kind: 'model' | 'compositeType' },
@@ -1269,6 +1249,73 @@ function resolveNonRelationField(
   };
 }
 
+interface EnumSite {
+  readonly sourceId: string;
+  readonly codecSpan: PslSpan;
+  readonly memberSpans: Readonly<Record<string, PslSpan>>;
+}
+
+function fieldKey(owner: string, storedName: string): string {
+  return JSON.stringify([owner, storedName]);
+}
+
+/** The diagnostic for an enum a collection validator cannot describe, at its `@@type` or member. */
+function enumRefusalDiagnostic(
+  refusal: MongoContractRefusal,
+  sites: ReadonlyMap<string, EnumSite>,
+): ContractSourceDiagnostic | undefined {
+  if (
+    refusal.kind !== 'enumBsonType' &&
+    refusal.kind !== 'enumNotListable' &&
+    refusal.kind !== 'enumMemberNotListable'
+  ) {
+    return undefined;
+  }
+  const site = sites.get(refusal.enumName);
+  assertDefined(site, `Built enum "${refusal.enumName}" has a declaration site`);
+  const subject = `enum "${refusal.enumName}"`;
+  if (refusal.kind === 'enumBsonType') {
+    return {
+      code: 'PSL_EXTENSION_INVALID_VALUE',
+      message: `${subject} ${refusal.refusal.reason}`,
+      sourceId: site.sourceId,
+      span: site.codecSpan,
+    };
+  }
+  if (refusal.kind === 'enumNotListable') {
+    return {
+      code: 'PSL_EXTENSION_INVALID_VALUE',
+      message: `${subject} @@type codec "${refusal.codecId}" ${refusal.reason}`,
+      sourceId: site.sourceId,
+      span: site.codecSpan,
+    };
+  }
+  return {
+    code: 'PSL_EXTENSION_INVALID_VALUE',
+    message: `${subject} member "${refusal.member}" ${refusal.reason}`,
+    sourceId: site.sourceId,
+    span: site.memberSpans[refusal.member] ?? site.codecSpan,
+  };
+}
+
+/** The diagnostic for a field a collection validator cannot describe, at the field. */
+function fieldRefusalDiagnostic(
+  refusal: MongoContractRefusal,
+  fieldSymbols: ReadonlyMap<string, FieldSymbol>,
+  sources: PslSources,
+): PslDiagnostic | undefined {
+  if (refusal.kind !== 'fieldBsonType' && refusal.kind !== 'documentId') return undefined;
+  const owner = refusal.kind === 'fieldBsonType' ? refusal.owner.name : refusal.modelName;
+  const storedName = refusal.kind === 'fieldBsonType' ? refusal.fieldName : '_id';
+  const field = fieldSymbols.get(fieldKey(owner, storedName));
+  assertDefined(field, `Field "${owner}.${storedName}" has a declaration`);
+  return {
+    code: refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_REQUIRED',
+    message: `Field "${owner}.${field.name}" ${refusal.kind === 'fieldBsonType' ? refusal.refusal.reason : refusal.reason}`,
+    ...diagnosticSource(sources, field.node.syntax).at(field.span),
+  };
+}
+
 function processEnumDeclarations(input: {
   readonly enumSymbols: readonly BlockSymbol[];
   readonly parsedBlocks: ReadonlyMap<BlockSymbol, ParsedPslExtensionBlock>;
@@ -1277,6 +1324,8 @@ function processEnumDeclarations(input: {
   readonly authoringContributions: AuthoringContributions | undefined;
   readonly entityContext: AuthoringEntityContext;
   readonly diagnostics: PslDiagnosticCollector;
+  /** Filled with where each built enum is declared, for diagnostics about it. */
+  readonly sites: Map<string, EnumSite>;
 }): Record<string, ContractEnum> {
   const builtEnums: Record<string, ContractEnum> = {};
 
@@ -1329,6 +1378,12 @@ function processEnumDeclarations(input: {
       continue;
     }
     builtEnums[envelope.name] = { codecId: handle.codecId, members: encoded.value };
+    const typeAttribute = envelope.attributes['type'];
+    input.sites.set(envelope.name, {
+      sourceId: sourceFile.filename,
+      codecSpan: typeAttribute?.argSpans?.['codecId'] ?? typeAttribute?.span ?? envelope.span,
+      memberSpans: envelope.parameterSpans,
+    });
   }
 
   return builtEnums;
@@ -1406,7 +1461,9 @@ export function interpretPslDocumentToMongoContract(
     (b) => b.keyword === 'enum',
   );
 
+  const enumSites = new Map<string, EnumSite>();
   const builtEnums = processEnumDeclarations({
+    sites: enumSites,
     enumSymbols: topLevelEnumSymbols,
     parsedBlocks,
     sources,
@@ -1449,9 +1506,9 @@ export function interpretPslDocumentToMongoContract(
     dataTypeLookup: input.dataTypes.lookup,
   };
 
+  const fieldSymbols = new Map<string, FieldSymbol>();
+
   for (const pslModel of allModels) {
-    let hasUndescribableField = false;
-    const modelSource = diagnosticSource(sources, pslModel.node.syntax);
     const collectionName = physicalName(physicalNames, pslModel);
     const specContext = specContextFor(pslModel);
 
@@ -1546,21 +1603,10 @@ export function interpretPslDocumentToMongoContract(
         scalarNames,
       );
       if (!resolved) continue;
-      const bsonTypeDiagnostic = fieldBsonTypeDiagnostic(
-        pslModel.name,
-        field,
-        resolved.field,
-        validatorLookups,
-        sources,
-      );
-      if (bsonTypeDiagnostic !== undefined) {
-        diagnostics.push(bsonTypeDiagnostic);
-        hasUndescribableField = true;
-        continue;
-      }
 
       const mappedName = physicalName(physicalNames, field);
       fields[mappedName] = resolved.field;
+      fieldSymbols.set(fieldKey(pslModel.name, mappedName), field);
       if (resolved.executionDefaults) {
         presetExecutionDefaults.push({
           modelName: pslModel.name,
@@ -1571,49 +1617,23 @@ export function interpretPslDocumentToMongoContract(
       }
     }
 
-    const isVariantModel = pslModel.attributes.some((attr) => attr.name === 'base');
-    const hasIdField =
-      Object.values(pslModel.fields).filter((field) => {
-        const idNode = field.attributes.find((attr) => attr.name === 'id')?.node;
-        if (!idNode) return false;
-        return (
-          interpretFieldAttribute({
-            symbols: specContext.symbols,
-            node: idNode,
-            spec: mongoAttributeSpecs.field.id({
-              ...specContext,
-              field,
-              typeResolution: fieldTypeResolution(field, binder),
-            }),
-            model: pslModel,
-            field,
-            sources,
-            binder,
-            diagnostics,
-          }) !== undefined
-        );
-      }).length > 0;
-    // Variant models inherit the base's identity and are validated through their base.
-    if (!isVariantModel) {
-      if (!hasIdField) {
-        diagnostics.pushUnlocated({
-          code: 'PSL_MISSING_ID_FIELD',
-          message: `Model "${pslModel.name}" has no field with @id attribute. Every model must have exactly one @id field.`,
-          ...modelSource.at(),
-        });
-      } else if (!hasUndescribableField) {
-        const idRefusal = documentIdRefusalOf(fields, validatorLookups);
-        if (idRefusal !== undefined) {
-          diagnostics.pushUnlocated({
-            code: 'PSL_MONGO_ID_REQUIRED',
-            message:
-              idRefusal.kind === 'unknownCodec'
-                ? `Model "${pslModel.name}" ${idRefusal.reason}`
-                : `Model "${pslModel.name}" must declare an _id field of type ObjectId (e.g. \`id ObjectId @id @map("_id")\`).`,
-            ...modelSource.at(),
-          });
-        }
-      }
+    for (const field of Object.values(pslModel.fields)) {
+      const idNode = field.attributes.find((attr) => attr.name === 'id')?.node;
+      if (!idNode) continue;
+      interpretFieldAttribute({
+        symbols: specContext.symbols,
+        node: idNode,
+        spec: mongoAttributeSpecs.field.id({
+          ...specContext,
+          field,
+          typeResolution: fieldTypeResolution(field, binder),
+        }),
+        model: pslModel,
+        field,
+        sources,
+        binder,
+        diagnostics,
+      });
     }
 
     models[pslModel.name] = { fields, relations, storage: { collection: collectionName } };
@@ -1651,18 +1671,8 @@ export function interpretPslDocumentToMongoContract(
         scalarNames,
       );
       if (!resolved) continue;
-      const bsonTypeDiagnostic = fieldBsonTypeDiagnostic(
-        compositeType.name,
-        field,
-        resolved.field,
-        validatorLookups,
-        sources,
-      );
-      if (bsonTypeDiagnostic !== undefined) {
-        diagnostics.push(bsonTypeDiagnostic);
-        continue;
-      }
       fields[field.name] = resolved.field;
+      fieldSymbols.set(fieldKey(compositeType.name, field.name), field);
     }
     valueObjects[compositeType.name] = { fields };
   }
@@ -1708,6 +1718,18 @@ export function interpretPslDocumentToMongoContract(
     diagnostics,
     namespaceId: defaultNamespace.id,
   });
+
+  for (const refusal of mongoContractRefusalsOf({
+    models: polyResult.models,
+    valueObjects,
+    enums: builtEnums,
+    lookups: validatorLookups,
+  })) {
+    const enumDiagnostic = enumRefusalDiagnostic(refusal, enumSites);
+    if (enumDiagnostic !== undefined) diagnostics.pushExternal(enumDiagnostic);
+    const fieldDiagnostic = fieldRefusalDiagnostic(refusal, fieldSymbols, sources);
+    if (fieldDiagnostic !== undefined) diagnostics.push(fieldDiagnostic);
+  }
 
   if (
     diagnostics.length > 0 ||

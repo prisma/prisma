@@ -918,23 +918,19 @@ model Item {
   });
 
   describe('@id validation', () => {
-    it('emits diagnostic when model has no @id field', () => {
-      const result = interpret(`
+    it('accepts a model without @id, whose validator still requires an objectId _id', () => {
+      const ir = interpretOk(`
         model Item {
           name String
         }
       `);
 
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'PSL_MISSING_ID_FIELD',
-            message: expect.stringContaining('Item'),
-          }),
-        ]),
-      );
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'name'],
+          properties: { _id: { bsonType: 'objectId' }, name: { bsonType: 'string' } },
+        },
+      });
     });
 
     it('accepts model with @id field', () => {
@@ -972,24 +968,20 @@ model Item {
       expect(modelsOf(ir)['Item']).toBeDefined();
     });
 
-    it('rejects an @id ObjectId that is not mapped to _id', () => {
-      const result = interpret(`
+    it('accepts an @id ObjectId that is not mapped to _id, stored beside the document id', () => {
+      const ir = interpretOk(`
         model Item {
           id ObjectId @id
           name String
         }
       `);
 
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            code: 'PSL_MONGO_ID_REQUIRED',
-            message: expect.stringContaining('Item'),
-          }),
-        ]),
-      );
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'id', 'name'],
+          properties: { _id: { bsonType: 'objectId' }, id: { bsonType: 'objectId' } },
+        },
+      });
     });
 
     it('rejects an _id whose type is not ObjectId', () => {
@@ -1002,9 +994,13 @@ model Item {
 
       expect(result.ok).toBe(false);
       if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([expect.objectContaining({ code: 'PSL_MONGO_ID_REQUIRED' })]),
-      );
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_REQUIRED',
+          message:
+            'Field "Item.id" holds the document id as BSON type string, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.',
+        },
+      ]);
     });
 
     it('names the _id codec, at the field, when no pack provides it', () => {

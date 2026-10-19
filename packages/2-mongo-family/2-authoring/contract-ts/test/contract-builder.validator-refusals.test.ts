@@ -19,11 +19,8 @@ const sqlTypedPack = {
   },
 } as const satisfies ExtensionPackRef<'mongo', 'mongo'>;
 
-const MISSING_ID =
-  'has no _id field. MongoDB adds an objectId _id to every document it inserts without one, so a collection validator without it rejects every insert.';
-
-const STRING_ID =
-  'has an _id field stored as BSON type string. An _id must be stored as BSON type objectId: MongoDB adds an objectId _id to a document inserted without one, and the collection validator would refuse that document.';
+const holdsId = (description: string) =>
+  `holds the document id as ${description}, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.`;
 
 describe('mongo defineContract refuses what a collection validator cannot describe', () => {
   describe('a codec with no MongoDB data type', () => {
@@ -98,23 +95,24 @@ describe('mongo defineContract refuses what a collection validator cannot descri
   });
 
   describe('the document id', () => {
-    it('refuses a root model without an _id field', () => {
+    it('accepts a root model without an _id field', () => {
       const User = model('User', { collection: 'users', fields: { email: field.string() } });
-      expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" ${MISSING_ID}`,
-          meta: { modelName: 'User', collection: 'users', reason: 'document-id-not-objectId' },
-        }),
-      );
+      expect(() => defineContract({ ...scaffold, models: { User } })).not.toThrow();
     });
 
-    it('refuses a root model whose _id is not stored as an objectId', () => {
-      const User = model('User', { collection: 'users', fields: { _id: field.string() } });
+    it.each([
+      ['a string', field.string(), 'BSON type string'],
+      ['a date', field.date(), 'BSON type date'],
+      ['bytes', field.binary(), 'BSON type binData'],
+      ['a BSON document', field.bson(), 'any BSON type'],
+      ['an int', field.int32(), 'BSON type int'],
+    ])('refuses a root model whose _id holds %s', (_case, idField, description) => {
+      const User = model('User', { collection: 'users', fields: { _id: idField } });
       expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" ${STRING_ID}`,
+          message: `Model "User" field "_id" ${holdsId(description)}`,
+          meta: { modelName: 'User', collection: 'users', reason: 'document-id-not-objectId' },
         }),
       );
     });
@@ -122,14 +120,14 @@ describe('mongo defineContract refuses what a collection validator cannot descri
     it.each([
       ['listed first', true],
       ['listed last', false],
-    ])('refuses a root model without an _id that shares its collection, %s', (_case, first) => {
-      const User = model('User', { collection: 'users', fields: { email: field.string() } });
+    ])('refuses a root model with a string _id that shares its collection, %s', (_case, first) => {
+      const User = model('User', { collection: 'users', fields: { _id: field.string() } });
       const Admin = model('Admin', { collection: 'users', fields: { _id: field.objectId() } });
       const models = first ? { User, Admin } : { Admin, User };
       expect(() => defineContract({ ...scaffold, models })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" ${MISSING_ID}`,
+          message: `Model "User" field "_id" ${holdsId('BSON type string')}`,
         }),
       );
     });

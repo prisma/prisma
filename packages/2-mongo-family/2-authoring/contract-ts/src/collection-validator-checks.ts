@@ -1,139 +1,109 @@
-import type {
-  ContractEnum,
-  ContractField,
-  ContractModelBase,
-  ContractValueObject,
-} from '@internal/contract/types';
 import {
-  collectionRootModelsOf,
-  documentIdRefusalOf,
-  fieldBsonTypeRefusalOf,
-  isEmbedRelation,
-  validatorEnumMemberRefusalOf,
-  validatorEnumRefusalOf,
+  type MongoContractRefusal,
+  type MongoContractRefusalsInput,
+  mongoContractRefusalsOf,
 } from '@internal/mongo-contract';
-import { bsonTypesOfCodec, type MongoTypeLookups } from '@internal/mongo-contract/data-type';
-import { assertDefined } from '@internal/utils/assertions';
+import type { StructuredError } from '@internal/utils/structured-error';
 import { contractError } from './contract-errors';
 
 const LIST_THE_CODEC_PACK =
   'List the pack that provides the codec in `extensions` in defineContract.';
 
-function bsonTypesOrRefuse(
+function codecRefusalError(
   subject: string,
   meta: Record<string, string>,
   codecId: string,
-  lookups: MongoTypeLookups,
-): readonly string[] {
-  const refusal = fieldBsonTypeRefusalOf(codecId, lookups);
-  if (refusal?.kind === 'unknownCodec') {
-    throw contractError('CONTRACT.CODEC_DESCRIPTOR_MISSING', `${subject} ${refusal.reason}`, {
+  refusal: Extract<MongoContractRefusal, { kind: 'fieldBsonType' }>['refusal'],
+): StructuredError {
+  if (refusal.kind === 'unknownCodec') {
+    return contractError('CONTRACT.CODEC_DESCRIPTOR_MISSING', `${subject} ${refusal.reason}`, {
       fix: LIST_THE_CODEC_PACK,
       meta: { ...meta, codecId },
     });
   }
-  if (refusal?.kind === 'notMongoDataType') {
-    throw contractError('CONTRACT.PACK_CONTRIBUTION_INVALID', `${subject} ${refusal.reason}`, {
-      fix: 'Use a codec whose data type is a MongoDB data type, declared with mongoDataType.',
-      meta: { ...meta, codecId, dataType: refusal.dataType, reason: 'data-type-not-mongo' },
-    });
-  }
-  const bsonTypes = bsonTypesOfCodec(codecId, lookups);
-  assertDefined(bsonTypes, `Codec "${codecId}" has a MongoDB data type`);
-  return bsonTypes;
+  return contractError('CONTRACT.PACK_CONTRIBUTION_INVALID', `${subject} ${refusal.reason}`, {
+    fix: 'Use a codec whose data type is a MongoDB data type, declared with mongoDataType.',
+    meta: { ...meta, codecId, dataType: refusal.dataType, reason: 'data-type-not-mongo' },
+  });
 }
 
-function assertFieldsHaveBsonTypes(
-  owner: { readonly label: string; readonly meta: Record<string, string> },
-  fields: Record<string, ContractField>,
-  lookups: MongoTypeLookups,
-): void {
-  for (const [fieldName, field] of Object.entries(fields)) {
-    if (field.type.kind !== 'scalar') continue;
-    bsonTypesOrRefuse(
-      `${owner.label} field "${fieldName}"`,
-      { ...owner.meta, fieldName },
-      field.type.codecId,
-      lookups,
-    );
-  }
-}
-
-function assertNoEmbeddedVariants(models: Record<string, ContractModelBase>): void {
-  for (const [modelName, model] of Object.entries(models)) {
-    for (const [relationName, relation] of Object.entries(model.relations)) {
-      if (!isEmbedRelation(relation) || models[relation.to.model]?.variants === undefined) continue;
-      throw contractError(
+function refusalError(refusal: MongoContractRefusal): StructuredError {
+  switch (refusal.kind) {
+    case 'embeddedModelHasVariants':
+      return contractError(
         'CONTRACT.RELATION_INVALID',
-        `Relation "${modelName}.${relationName}" embeds model "${relation.to.model}", which has variants. The ORM reads and writes only the base fields of an embedded model, so an embedded model cannot have variants.`,
-        { meta: { modelName, relationName, reason: 'embedded-model-has-variants' } },
-      );
-    }
-  }
-}
-
-function assertEnumsListable(enums: Record<string, ContractEnum>, lookups: MongoTypeLookups): void {
-  for (const [enumName, { codecId, members }] of Object.entries(enums)) {
-    const subject = `enumType("${enumName}")`;
-    const bsonTypes = bsonTypesOrRefuse(subject, { enumName }, codecId, lookups);
-    const refusal = validatorEnumRefusalOf(bsonTypes);
-    if (refusal !== undefined) {
-      throw contractError('CONTRACT.ENUM_INVALID', `${subject} codec "${codecId}" ${refusal}`, {
-        meta: { enumName, codecId, reason: 'not-listable-by-validator' },
-      });
-    }
-    for (const member of members) {
-      const memberRefusal = validatorEnumMemberRefusalOf(bsonTypes, member.value);
-      if (memberRefusal === undefined) continue;
-      throw contractError(
-        'CONTRACT.ENUM_INVALID',
-        `${subject} member "${member.name}" ${memberRefusal}`,
+        `Relation "${refusal.modelName}.${refusal.relationName}" ${refusal.reason}`,
         {
           meta: {
-            enumName,
-            member: member.name,
-            codecId,
+            modelName: refusal.modelName,
+            relationName: refusal.relationName,
+            reason: 'embedded-model-has-variants',
+          },
+        },
+      );
+    case 'enumBsonType':
+      return codecRefusalError(
+        `enumType("${refusal.enumName}")`,
+        { enumName: refusal.enumName },
+        refusal.codecId,
+        refusal.refusal,
+      );
+    case 'enumNotListable':
+      return contractError(
+        'CONTRACT.ENUM_INVALID',
+        `enumType("${refusal.enumName}") codec "${refusal.codecId}" ${refusal.reason}`,
+        {
+          meta: {
+            enumName: refusal.enumName,
+            codecId: refusal.codecId,
+            reason: 'not-listable-by-validator',
+          },
+        },
+      );
+    case 'enumMemberNotListable':
+      return contractError(
+        'CONTRACT.ENUM_INVALID',
+        `enumType("${refusal.enumName}") member "${refusal.member}" ${refusal.reason}`,
+        {
+          meta: {
+            enumName: refusal.enumName,
+            member: refusal.member,
+            codecId: refusal.codecId,
             reason: 'member-not-listable-by-validator',
           },
         },
       );
+    case 'fieldBsonType': {
+      const { owner } = refusal;
+      const label = owner.kind === 'model' ? 'Model' : 'Value object';
+      const ownerMeta =
+        owner.kind === 'model' ? { modelName: owner.name } : { valueObjectName: owner.name };
+      return codecRefusalError(
+        `${label} "${owner.name}" field "${refusal.fieldName}"`,
+        { ...ownerMeta, fieldName: refusal.fieldName },
+        refusal.codecId,
+        refusal.refusal,
+      );
     }
+    case 'documentId':
+      return contractError(
+        'CONTRACT.COLLECTION_INVALID',
+        `Model "${refusal.modelName}" field "_id" ${refusal.reason}`,
+        {
+          meta: {
+            modelName: refusal.modelName,
+            collection: refusal.collection,
+            reason: 'document-id-not-objectId',
+          },
+        },
+      );
   }
 }
 
 /**
- * Refuses a contract whose collection validators could not describe the documents the ORM stores: an embedded model with variants, an enum a validator cannot list, a field whose codec has no MongoDB data type, and a root model without an `_id` stored as BSON type `objectId`.
+ * Throws the first part of the built contract that its collection validators cannot describe, as decided by `mongoContractRefusalsOf`.
  */
-export function assertCollectionValidatorSources(input: {
-  readonly models: Record<string, ContractModelBase>;
-  readonly valueObjects: Record<string, ContractValueObject>;
-  readonly enums: Record<string, ContractEnum>;
-  readonly lookups: MongoTypeLookups;
-}): void {
-  const { models, valueObjects, enums, lookups } = input;
-  assertNoEmbeddedVariants(models);
-  assertEnumsListable(enums, lookups);
-  for (const [modelName, model] of Object.entries(models)) {
-    assertFieldsHaveBsonTypes(
-      { label: `Model "${modelName}"`, meta: { modelName } },
-      model.fields,
-      lookups,
-    );
-  }
-  for (const [valueObjectName, valueObject] of Object.entries(valueObjects)) {
-    assertFieldsHaveBsonTypes(
-      { label: `Value object "${valueObjectName}"`, meta: { valueObjectName } },
-      valueObject.fields,
-      lookups,
-    );
-  }
-  for (const [collection, modelNames] of Object.entries(collectionRootModelsOf(models))) {
-    for (const modelName of modelNames) {
-      const refusal = documentIdRefusalOf(models[modelName]?.fields ?? {}, lookups);
-      if (refusal === undefined) continue;
-      throw contractError('CONTRACT.COLLECTION_INVALID', `Model "${modelName}" ${refusal.reason}`, {
-        meta: { modelName, collection, reason: 'document-id-not-objectId' },
-      });
-    }
-  }
+export function assertCollectionValidatorSources(input: MongoContractRefusalsInput): void {
+  const [first] = mongoContractRefusalsOf(input);
+  if (first !== undefined) throw refusalError(first);
 }
