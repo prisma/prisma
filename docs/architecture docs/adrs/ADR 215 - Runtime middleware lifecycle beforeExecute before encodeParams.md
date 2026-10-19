@@ -2,7 +2,7 @@
 
 ## Current status
 
-Accepted. The shipped runtime uses operation-specific query and execute middleware lifecycles. In the current SQL runtime, `query()` streams rows through `queryAgainstQueryable` and `execute()` returns statistics through `executeStatisticsAgainstQueryable`. The operation-specific lifecycle amendment below supersedes only the SPI lifecycle shape and terminology; the original May 2026 decision and its rationale remain preserved in the historical section.
+Status: **Superseded by [ADR 271](ADR%20271%20-%20The%20runtime%20middleware%20observes%20a%20tree%20of%20activities%2C%20each%20started%2C%20ended%20and%20finalized.md)**. The per-operation hooks are replaced by one lifecycle on statement activities: `beforeQuery` and `beforeExecute` are now `beforeEncode`, which keeps this ADR's position between lowering and encoding and its parameter mutator; `interceptQuery` and `interceptExecute` are `intercept.onQuery` and `intercept.onExecute`; `afterQuery` and `afterExecute` are `activityEnded`. The sections below describe the lifecycle before ADR 271: the August 2026 amendment, then the original May 2026 decision and its rationale.
 
 ## Amendment (August 12, 2026) — operation-specific lifecycle
 
