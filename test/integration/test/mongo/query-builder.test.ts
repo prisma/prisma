@@ -32,6 +32,8 @@ type ScalarField<TCodecId extends string> = {
   readonly many: false;
 };
 
+type StoredAs<TFields extends string> = { readonly [K in TFields]: { readonly field: K } };
+
 type PipelineContract = MongoContract & {
   readonly domain: {
     readonly namespaces: {
@@ -47,7 +49,12 @@ type PipelineContract = MongoContract & {
               readonly createdAt: ScalarField<'mongo/date@1'>;
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'products' };
+            readonly storage: {
+              readonly collection: 'products';
+              readonly fields: StoredAs<
+                '_id' | 'name' | 'category' | 'price' | 'tags' | 'createdAt'
+              >;
+            };
           };
           readonly Order: {
             readonly fields: {
@@ -57,7 +64,10 @@ type PipelineContract = MongoContract & {
               readonly status: ScalarField<'mongo/string@1'>;
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'orders' };
+            readonly storage: {
+              readonly collection: 'orders';
+              readonly fields: StoredAs<'_id' | 'productName' | 'quantity' | 'status'>;
+            };
           };
         };
       };
@@ -124,7 +134,17 @@ const contractJson = {
               createdAt: scalarField('mongo/date@1'),
             },
             relations: {},
-            storage: { collection: 'products' },
+            storage: {
+              collection: 'products',
+              fields: {
+                _id: { field: '_id' },
+                name: { field: 'name' },
+                category: { field: 'category' },
+                price: { field: 'price' },
+                tags: { field: 'tags' },
+                createdAt: { field: 'createdAt' },
+              },
+            },
           },
           Order: {
             fields: {
@@ -134,7 +154,15 @@ const contractJson = {
               status: scalarField('mongo/string@1'),
             },
             relations: {},
-            storage: { collection: 'orders' },
+            storage: {
+              collection: 'orders',
+              fields: {
+                _id: { field: '_id' },
+                productName: { field: 'productName' },
+                quantity: { field: 'quantity' },
+                status: { field: 'status' },
+              },
+            },
           },
         },
       },

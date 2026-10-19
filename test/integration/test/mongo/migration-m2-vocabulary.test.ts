@@ -49,7 +49,7 @@ function makeContract(
               },
             },
             relations: {},
-            storage: { collection: c },
+            storage: { collection: c, fields: { _id: { field: '_id' } } },
           },
         ]),
       ),

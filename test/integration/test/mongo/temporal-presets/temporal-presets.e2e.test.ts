@@ -22,7 +22,7 @@ describe('Mongo temporal presets end to end', () => {
       withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
         const created = await db.posts.create({ title: 'a', touchedAt });
         expect(created.createdAt).toBeInstanceOf(Date);
-        expect(created.updated_at).toEqual(created.createdAt);
+        expect(created.updatedAt).toEqual(created.createdAt);
 
         const stored = await mongoDb.collection('posts').findOne({ title: 'a' });
         expect(stored?.['createdAt']).toBeInstanceOf(Date);
@@ -30,7 +30,7 @@ describe('Mongo temporal presets end to end', () => {
 
         const read = await db.posts.where({ title: 'a' }).first();
         expect(read?.createdAt).toEqual(created.createdAt);
-        expect(read?.updated_at).toBeInstanceOf(Date);
+        expect(read?.updatedAt).toBeInstanceOf(Date);
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -46,20 +46,20 @@ describe('Mongo temporal presets end to end', () => {
           ])
           .toArray();
         expect(rows[1]?.createdAt).toEqual(rows[0]?.createdAt);
-        expect(rows[1]?.updated_at).toEqual(rows[0]?.createdAt);
+        expect(rows[1]?.updatedAt).toEqual(rows[0]?.createdAt);
       }),
     timeouts.spinUpMongoMemoryServer,
   );
 
   it(
-    'update with a payload advances updated_at and touchedAt but not createdAt',
+    'update with a payload advances updatedAt and touchedAt but not createdAt',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db }) => {
         const created = await db.posts.create({ title: 'a', touchedAt });
         await tick();
         const updated = await db.posts.where({ title: 'a' }).update({ title: 'b' });
         expect(updated?.createdAt).toEqual(created.createdAt);
-        expect(updated?.updated_at.getTime()).toBeGreaterThan(created.updated_at.getTime());
+        expect(updated?.updatedAt.getTime()).toBeGreaterThan(created.updatedAt.getTime());
         expect(updated?.touchedAt.getTime()).toBeGreaterThan(touchedAt.getTime());
       }),
     timeouts.spinUpMongoMemoryServer,
@@ -72,18 +72,18 @@ describe('Mongo temporal presets end to end', () => {
         const created = await db.posts.create({ title: 'a', touchedAt });
         await tick();
         const updated = await db.posts.where({ title: 'a' }).update({});
-        expect(updated?.updated_at).toEqual(created.updated_at);
+        expect(updated?.updatedAt).toEqual(created.updatedAt);
         expect(updated?.touchedAt).toEqual(touchedAt);
       }),
     timeouts.spinUpMongoMemoryServer,
   );
 
   it(
-    'an explicit updated_at on create wins',
+    'an explicit updatedAt on create wins',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
         const explicit = new Date('2021-06-01T00:00:00Z');
-        await db.posts.create({ title: 'a', touchedAt, updated_at: explicit });
+        await db.posts.create({ title: 'a', touchedAt, updatedAt: explicit });
         const stored = await mongoDb.collection('posts').findOne({ title: 'a' });
         expect(stored?.['updated_at']).toEqual(explicit);
         expect(stored?.['createdAt']).toBeInstanceOf(Date);
@@ -92,20 +92,20 @@ describe('Mongo temporal presets end to end', () => {
   );
 
   it(
-    'upsert fills the insert half, then advances only updated_at on the update half',
+    'upsert fills the insert half, then advances only updatedAt on the update half',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db }) => {
         const inserted = await db.posts
           .where({ title: 'a' })
           .upsert({ create: { title: 'a', touchedAt }, update: {} });
         expect(inserted.createdAt).toBeInstanceOf(Date);
-        expect(inserted.updated_at).toEqual(inserted.createdAt);
+        expect(inserted.updatedAt).toEqual(inserted.createdAt);
         await tick();
         const updated = await db.posts
           .where({ title: 'a' })
           .upsert({ create: { title: 'a', touchedAt }, update: { title: 'a' } });
         expect(updated.createdAt).toEqual(inserted.createdAt);
-        expect(updated.updated_at.getTime()).toBeGreaterThan(inserted.updated_at.getTime());
+        expect(updated.updatedAt.getTime()).toBeGreaterThan(inserted.updatedAt.getTime());
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -115,24 +115,24 @@ describe('Mongo temporal presets end to end', () => {
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db }) => {
         const y2k = new Date('2000-01-01T00:00:00Z');
-        const create = { title: 'b', touchedAt, createdAt: y2k, updated_at: y2k };
+        const create = { title: 'b', touchedAt, createdAt: y2k, updatedAt: y2k };
 
         const inserted = await db.posts
           .where({ title: 'b' })
           .upsert({ create, update: { title: 'b' } });
         expect({
           createdAt: inserted.createdAt,
-          updated_at: inserted.updated_at,
+          updatedAt: inserted.updatedAt,
           touchedAt: inserted.touchedAt,
-        }).toEqual({ createdAt: y2k, updated_at: y2k, touchedAt });
+        }).toEqual({ createdAt: y2k, updatedAt: y2k, touchedAt });
 
         const updated = await db.posts
           .where({ title: 'b' })
           .upsert({ create, update: { title: 'b' } });
         expect(updated.createdAt).toEqual(y2k);
-        expect(updated.updated_at.getTime()).toBeGreaterThan(y2k.getTime());
+        expect(updated.updatedAt.getTime()).toBeGreaterThan(y2k.getTime());
         expect(updated.touchedAt.getTime()).toBeGreaterThan(touchedAt.getTime());
-        expect(updated.touchedAt).toEqual(updated.updated_at);
+        expect(updated.touchedAt).toEqual(updated.updatedAt);
       }),
     timeouts.spinUpMongoMemoryServer,
   );
@@ -142,11 +142,11 @@ describe('Mongo temporal presets end to end', () => {
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
         const y2k = new Date('2000-01-01T00:00:00Z');
-        const _id = '65f0000000000000000000f1';
+        const id = '65f0000000000000000000f1';
         const upsert = () =>
-          db.counters.where({ _id }).upsert({
+          db.counters.where({ id }).upsert({
             create: {
-              _id,
+              id,
               key: '$literal-looking',
               tags: ['a'],
               scores: [],
@@ -160,7 +160,7 @@ describe('Mongo temporal presets end to end', () => {
 
         const inserted = await upsert();
         expect(inserted).toMatchObject({
-          _id,
+          id,
           key: '$literal-looking',
           tags: ['a'],
           updatedAt: y2k,
@@ -168,7 +168,7 @@ describe('Mongo temporal presets end to end', () => {
           label: null,
         });
         const updated = await upsert();
-        expect(updated).toMatchObject({ _id, key: '$literal-looking', hits: 4, label: null });
+        expect(updated).toMatchObject({ id, key: '$literal-looking', hits: 4, label: null });
         expect(updated.updatedAt.getTime()).toBeGreaterThan(y2k.getTime());
         expect(await mongoDb.collection('counters').countDocuments()).toBe(1);
       }),

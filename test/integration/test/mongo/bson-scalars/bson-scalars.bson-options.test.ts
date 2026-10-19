@@ -56,7 +56,7 @@ describe('Mongo Binary fields under the client`s BSON options', {
           },
         ])
         .toArray();
-      const read = await db.orm.posts.where({ _id: created._id }).first();
+      const read = await db.orm.posts.where({ id: created.id }).first();
 
       for (const value of [created.thumbnail, listed?.bytes[0], read?.thumbnail]) {
         expect(value).toEqual(bytes);
