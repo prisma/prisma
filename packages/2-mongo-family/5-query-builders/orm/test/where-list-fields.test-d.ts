@@ -28,10 +28,16 @@ type TestFieldTypes = {
   };
 };
 
-type ScalarField<Nullable extends boolean, Many> = {
+type ScalarField<Nullable extends boolean> = {
   readonly nullable: Nullable;
-  readonly many: Many;
   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+};
+
+type ListField<
+  Nullable extends boolean,
+  ElementNullable extends boolean,
+> = ScalarField<Nullable> & {
+  readonly many: { readonly elementNullable: ElementNullable };
 };
 
 type ListsContract = MongoContractWithTypeMaps<
@@ -54,15 +60,12 @@ type ListsContract = MongoContractWithTypeMaps<
                   readonly many: false;
                   readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
                 };
-                readonly name: ScalarField<false, false>;
-                readonly nickname: ScalarField<true, false>;
-                readonly strings: ScalarField<false, { readonly elementNullable: false }>;
-                readonly nullableStrings: ScalarField<false, { readonly elementNullable: true }>;
-                readonly optionalStrings: ScalarField<true, { readonly elementNullable: false }>;
-                readonly optionalNullableStrings: ScalarField<
-                  true,
-                  { readonly elementNullable: true }
-                >;
+                readonly name: ScalarField<false>;
+                readonly nickname: ScalarField<true>;
+                readonly strings: ListField<false, false>;
+                readonly nullableStrings: ListField<false, true>;
+                readonly optionalStrings: ListField<true, false>;
+                readonly optionalNullableStrings: ListField<true, true>;
                 readonly entries: {
                   readonly nullable: false;
                   readonly many: { readonly elementNullable: false };
@@ -75,7 +78,7 @@ type ListsContract = MongoContractWithTypeMaps<
           };
           readonly valueObjects: {
             readonly Entry: {
-              readonly fields: { readonly value: ScalarField<false, false> };
+              readonly fields: { readonly value: ScalarField<false> };
             };
           };
         };

@@ -71,12 +71,14 @@ const cases: ReadonlyArray<{
   { filter: { optionalEntries: [] }, names: ['empty'] },
   { filter: { optionalNullableEntries: null }, names: ['missing', 'null'] },
   { filter: { optionalNullableEntries: [{ value: 'c' }, null] }, names: ['holdsNull'] },
+  { filter: { optionalEntries: { value: 'b' } }, names: ['pair'] },
+  { filter: { optionalNullableEntries: { value: 'c' } }, names: ['holdsNull'] },
   { filter: { nickname: 'p' }, names: ['pair'] },
 ];
 
-describe('Mongo where on scalar list fields', () => {
+describe('Mongo where on list and nullable fields', () => {
   it(
-    'matches a whole list exactly, one element by containment, and null on a nullable field as null or missing',
+    'matches a whole list exactly, one element by containment, and null as a null or missing field',
     () =>
       withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
         await mongoDb
@@ -92,6 +94,25 @@ describe('Mongo where on scalar list fields', () => {
         expect(results).toEqual(
           cases.map(({ filter, names }) => ({ filter, rows: names.map((name) => ({ name })) })),
         );
+      }),
+    timeouts.spinUpMongoMemoryServer,
+  );
+
+  it(
+    'upserts after a one-element filter on a list by inserting only what the create data gives',
+    () =>
+      withMongoPort<Contract>({ contractJson }, async ({ db, mongoDb }) => {
+        await db.lists.where({ optionalStrings: 'a' }).upsert({
+          create: { name: 'created', strings: ['x'], nullableStrings: [] },
+          update: { nickname: 'updated' },
+        });
+
+        expect(
+          await mongoDb
+            .collection('lists')
+            .find({}, { projection: { _id: 0 } })
+            .toArray(),
+        ).toEqual([{ name: 'created', strings: ['x'], nullableStrings: [], nickname: 'updated' }]);
       }),
     timeouts.spinUpMongoMemoryServer,
   );

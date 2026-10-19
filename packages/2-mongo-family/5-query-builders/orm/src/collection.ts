@@ -100,7 +100,7 @@ export interface MongoCollection<
     this: VariantSelectable<TVariantValue>,
     value: V,
   ): MongoCollection<TContract, ModelName, TIncludes, V>;
-  /** Appends equality filters from a plain object. Values are encoded through codecs. */
+  /** Appends equality filters from a plain object. Values are encoded through codecs. On a list field, one element matches lists containing it, a whole list matches exactly, and `null` matches a null or missing field. */
   where(
     filter: MongoWhereFilter<TContract, ModelName>,
   ): MongoCollection<TContract, ModelName, TIncludes, TVariantValue>;
