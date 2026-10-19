@@ -100,15 +100,10 @@ describe('the orm command family', () => {
         flag: 'ref',
         replacement: '{bin} migration status --to <contract>',
       },
-      {
-        from: 'migrate dev',
-        flag: undefined,
-        replacement:
-          '{bin} contract emit && {bin} migration plan --name <name> && {bin} db migrate --advance-ref db',
-      },
+      { from: 'migrate dev', flag: undefined, replacement: '{bin} contract emit' },
       { from: 'migrate deploy', flag: undefined, replacement: '{bin} db migrate' },
       { from: 'migrate status', flag: undefined, replacement: '{bin} migration status' },
-      { from: 'migrate diff', flag: undefined, replacement: '{bin} migration plan' },
+      { from: 'migrate diff', flag: undefined, replacement: '{bin} db update --dry-run' },
       { from: 'migrate reset', flag: undefined, replacement: '{bin} db migrate' },
       { from: 'migrate resolve', flag: undefined, replacement: '{bin} db sign <migration>' },
     ]);
@@ -176,10 +171,39 @@ describe('a retired invocation', () => {
     expect(JSON.stringify(run.json)).not.toContain('Did you mean');
   });
 
-  it('answers Prisma 7 migrate dev with the three Prisma 8 steps', async () => {
-    const loader = recordingLoader();
-
-    const run = await harness(loader.loadConfig).run(['migrate', 'dev', '--name', 'x', '--json']);
+  it.each([
+    {
+      verb: 'dev',
+      why: "Prisma 8 emits the contract, plans the migration and applies it in separate steps: run `contract emit`, then `migration plan --name <name>` (for `--create-only`, stop here), then `db migrate --advance-ref db`; while Prisma 7 still owns this project's migrations, run `migrate dev` with Prisma 7's CLI instead.",
+      command: 'prisma-test contract emit',
+    },
+    {
+      verb: 'deploy',
+      why: "`db migrate` applies the planned migrations; while Prisma 7 still owns this project's migrations, run `migrate deploy` with Prisma 7's CLI instead.",
+      command: 'prisma-test db migrate',
+    },
+    {
+      verb: 'status',
+      why: "`migration status` reports which planned migrations the database has applied; while Prisma 7 still owns this project's migrations, run `migrate status` with Prisma 7's CLI instead.",
+      command: 'prisma-test migration status',
+    },
+    {
+      verb: 'diff',
+      why: '`db update --dry-run` prints the changes between the contract and a live database without applying them; to write the changes between two contracts as a migration package use `migration plan`, and to report drift use `db verify`.',
+      command: 'prisma-test db update --dry-run',
+    },
+    {
+      verb: 'reset',
+      why: "Prisma 8 never drops a database: drop and recreate it with your database's own tools, then `db migrate` applies every migration.",
+      command: 'prisma-test db migrate',
+    },
+    {
+      verb: 'resolve',
+      why: "`db sign <migration>` checks that the database has that migration's schema and records it as applied; a failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back.",
+      command: 'prisma-test db sign <migration>',
+    },
+  ])('answers Prisma 7 migrate $verb with its Prisma 8 command', async ({ verb, why, command }) => {
+    const run = await harness(recordingLoader().loadConfig).run(['migrate', verb, '--json']);
 
     expect(run.exitCode).toBe(2);
     expect(run.json.at(-1)).toMatchObject({
@@ -188,15 +212,8 @@ describe('a retired invocation', () => {
         ok: false,
         error: {
           code: 'CLI.COMMAND_MOVED',
-          why: "Prisma 8 emits the contract, plans the migration and applies it in separate steps (for `--create-only`, stop after `migration plan`); while Prisma 7 still owns this project's migrations, run `migrate dev` with Prisma 7's CLI instead.",
-          nextActions: [
-            {
-              kind: 'run-command',
-              label: 'Use the replacement',
-              command:
-                'prisma-test contract emit && prisma-test migration plan --name <name> && prisma-test db migrate --advance-ref db',
-            },
-          ],
+          why,
+          nextActions: [{ kind: 'run-command', label: 'Use the replacement', command }],
         },
       },
     });

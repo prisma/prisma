@@ -126,19 +126,21 @@ The referencing foreign keys live in other tables, possibly in other namespaces,
 
 | Prisma 7 | Replacement | Reason |
 |---|---|---|
-| `migrate dev` | `{bin} contract emit && {bin} migration plan --name <name> && {bin} db migrate --advance-ref db` | Prisma 8 emits the contract, plans the migration and applies it in separate steps (for `--create-only`, stop after `migration plan`); while Prisma 7 still owns this project's migrations, run `migrate dev` with Prisma 7's CLI instead. |
+| `migrate dev` | `{bin} contract emit` | Prisma 8 emits the contract, plans the migration and applies it in separate steps: run `contract emit`, then `migration plan --name <name>` (for `--create-only`, stop here), then `db migrate --advance-ref db`; while Prisma 7 still owns this project's migrations, run `migrate dev` with Prisma 7's CLI instead. |
 | `migrate deploy` | `{bin} db migrate` | `db migrate` applies the planned migrations; while Prisma 7 still owns this project's migrations, run `migrate deploy` with Prisma 7's CLI instead. |
 | `migrate status` | `{bin} migration status` | Same pattern as above. |
-| `migrate diff` | `{bin} migration plan` | Prisma 8 writes the SQL between two contracts as a migration package; to see the SQL against a live database use `db update --dry-run`, and to report drift use `db verify`. |
+| `migrate diff` | `{bin} db update --dry-run` | `db update --dry-run` prints the changes between the contract and a live database without applying them; to write the changes between two contracts as a migration package use `migration plan`, and to report drift use `db verify`. |
 | `migrate reset` | `{bin} db migrate` | Prisma 8 never drops a database: drop and recreate it with your database's own tools, then `db migrate` applies every migration. |
 | `migrate resolve` | `{bin} db sign <migration>` | `db sign <migration>` checks that the database has that migration's schema and records it as applied; a failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back. |
 
 Decisions:
 
-- **`migrate dev` names all three steps in one command line, joined with `&&`.** The table takes one replacement per entry, and a reader needs every step. `contract emit` is included because `migration plan` reads the emitted contract and does not emit it. `--advance-ref db` is included because the next plan starts from the `db` ref.
+- **The replacement is one command that a tool can run as written.** The CLI engine turns it into a `run-command` next action whose `command` is a single invocation (`RedirectSpec.replacement` in `@prisma/cli-engine`), so it is not a shell chain, and it should do what the Prisma 7 command did or less.
+- **`migrate dev` names its first step, `contract emit`, and the reason names the other two.** `contract emit` comes first because `migration plan` reads the emitted contract and does not emit it. `--advance-ref db` is in the reason because the next plan starts from the `db` ref.
+- **`migrate diff` maps to `db update --dry-run`.** Both only print. `migration plan` writes a migration package, so it is in the reason, not the command.
 - **`migrate reset` has no equivalent and says so.** Prisma 8 never drops a database (see `docs/design/10-domains/migration/README.md`). The replacement is the command that rebuilds an empty database from `migrations/`.
 - **`migrate resolve` maps to `db sign <migration>`.** `migrate resolve --applied <migration>` says "this migration's changes are already in the database". `db sign` with a migration directory name verifies that the schema matches that migration's contract before it writes the marker, so it is the same statement, checked. `--rolled-back` has no counterpart because a Prisma 8 migration is one transaction.
-- **Each reason says to use Prisma 7's CLI while Prisma 7 owns the migrations.** During the side-by-side period, `prisma` is Prisma 8's binary and Prisma 7 runs under another name (`prisma7` in the example). Before the handover, the Prisma 8 commands are the wrong answer.
+- **The `migrate dev`, `migrate deploy` and `migrate status` reasons say to use Prisma 7's CLI while Prisma 7 owns the migrations.** During the side-by-side period, `prisma` is Prisma 8's binary and Prisma 7 runs under another name (`prisma7` in the example). Before the handover, the Prisma 8 commands are the wrong answer.
 
 ## Part G: the verify check that can never fail (TML-3262)
 
