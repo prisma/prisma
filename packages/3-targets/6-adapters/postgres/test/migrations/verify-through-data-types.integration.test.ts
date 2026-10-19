@@ -204,6 +204,45 @@ describe('db verify through data types', { concurrent: false }, () => {
     ]);
   });
 
+  it('is clean for an enum in public, an enum with a quoted name, and a list of each', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver!.query("create type public.mood as enum ('happy', 'sad')");
+    await driver!.query(`create type public."Order Status" as enum ('open', 'shipped')`);
+    await driver!.query(`create table public.t (
+      id integer primary key,
+      mood mood,
+      moods mood[],
+      order_status "Order Status",
+      order_statuses "Order Status"[]
+    )`);
+    const enumColumn = (typeName: string, many: boolean): StorageColumnInput => ({
+      dataType: 'pg/enum',
+      codecId: 'pg/enum@1',
+      nullable: true,
+      typeParams: { typeName },
+      ...(many ? { many: { elementNullable: true } } : {}),
+    });
+    const contract = contractIn('public', {
+      id,
+      mood: enumColumn('mood', false),
+      moods: enumColumn('mood', true),
+      order_status: enumColumn('Order Status', false),
+      order_statuses: enumColumn('Order Status', true),
+    });
+    expect(await verify(contract)).toEqual([]);
+
+    await driver!.query('alter table public.t alter column moods type "Order Status"[] using null');
+    expect(await verify(contract)).toEqual([
+      {
+        outcome: 'not-equal',
+        path: 'database/public/t/column:moods',
+        explanation:
+          'The contract column is "mood[]" and the database column is "public.Order Status[]".',
+      },
+    ]);
+  });
+
   it('does not match an enum outside public to a column of the unbound namespace, a known limit', {
     timeout: testTimeout,
   }, async () => {
