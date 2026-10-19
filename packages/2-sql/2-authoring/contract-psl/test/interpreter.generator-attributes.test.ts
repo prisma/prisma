@@ -120,6 +120,48 @@ model Event {
     ]);
   });
 
+  it('give a field typed by an alias the functions of its codec, in the attribute and in lowering', () => {
+    const schema = (call: string) => `types {
+  Clock = Time(3)
+}
+
+model Event {
+  id     Int   @id
+  seenAt Clock @onCreate(${call})
+}`;
+    expect({
+      unknown: diagnostics(schema('foo()')),
+      unbound: diagnostics(schema('uuid()')),
+    }).toEqual({
+      unknown: [
+        {
+          code: 'PSL_UNKNOWN_GENERATOR_FUNCTION',
+          message:
+            'Field "Event.seenAt": unknown generator function "foo". Functions that apply: now().',
+        },
+      ],
+      unbound: [
+        {
+          code: 'PSL_GENERATOR_NOT_APPLICABLE',
+          message:
+            'Field "Event.seenAt": uuid() does not apply to codec "pg/time-temporal@1". Functions that apply: now().',
+        },
+      ],
+    });
+  });
+
+  it('never take the nanoid size from the column', () => {
+    expect(
+      executionDefaults(`model Event {
+  id   Char(36)    @id @onCreate(nanoid())
+  code VarChar(255) @onCreate(nanoid())
+}`),
+    ).toEqual([
+      { ref: ref('code'), onCreate: { kind: 'generator', id: 'nanoid' } },
+      { ref: ref('id'), onCreate: { kind: 'generator', id: 'nanoid' } },
+    ]);
+  });
+
   it('lower uuid() on a VarChar column', () => {
     expect(
       executionDefaults(`model Event {
@@ -197,18 +239,55 @@ model Event {
       ]);
     });
 
-    it('a nanoid size longer than a VarChar column', () => {
-      expect(
-        diagnostics(`model Event {
+    it('a nanoid size that does not fit a Char or VarChar column', () => {
+      expect({
+        varchar: diagnostics(`model Event {
   id VarChar(10) @id @onCreate(nanoid(16))
 }`),
-      ).toEqual([
-        {
-          code: 'PSL_GENERATOR_NOT_APPLICABLE',
-          message:
-            'Field "Event.id": nanoid(16) writes 16 characters, more than the VarChar(10) column holds.',
-        },
-      ]);
+        char: diagnostics(`model Event {
+  id Char(10) @id @onCreate(nanoid(16))
+}`),
+      }).toEqual({
+        varchar: [
+          {
+            code: 'PSL_GENERATOR_NOT_APPLICABLE',
+            message:
+              'Field "Event.id": nanoid(16) writes 16 characters, which does not fit a column of 10 characters.',
+          },
+        ],
+        char: [
+          {
+            code: 'PSL_GENERATOR_NOT_APPLICABLE',
+            message:
+              'Field "Event.id": nanoid(16) writes 16 characters, which does not fit a column of 10 characters.',
+          },
+        ],
+      });
+    });
+
+    it('the same generator attribute twice on one field', () => {
+      expect({
+        onCreate: diagnostics(`model Event {
+  id String @id @onCreate(uuid()) @onCreate(cuid(2))
+}`),
+        onUpdate: diagnostics(`model Event {
+  id     Int     @id
+  seenAt Time(3) @onUpdate(now()) @onUpdate(now())
+}`),
+      }).toEqual({
+        onCreate: [
+          {
+            code: 'PSL_DUPLICATE_ATTRIBUTE',
+            message: '`@onCreate` declared more than once on field "Event.id".',
+          },
+        ],
+        onUpdate: [
+          {
+            code: 'PSL_DUPLICATE_ATTRIBUTE',
+            message: '`@onUpdate` declared more than once on field "Event.seenAt".',
+          },
+        ],
+      });
     });
   });
 });

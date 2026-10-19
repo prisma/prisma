@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import type { ContractSourceContext } from '@internal/config/config-types';
 import type { AuthoringEntityContext } from '@internal/framework-components/authoring';
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   buildSymbolTable,
   createBinder,

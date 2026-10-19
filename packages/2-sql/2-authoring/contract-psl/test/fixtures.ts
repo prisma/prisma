@@ -21,6 +21,7 @@ import {
   resolveEnumCodecId,
 } from '@internal/framework-components/authoring';
 import type { ExtensionPackRef, TargetPackRef } from '@internal/framework-components/components';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type {
   ControlMutationDefaultEntry,
   ControlMutationDefaults,
@@ -394,9 +395,15 @@ export function symbolTableInputFromParseArgs(args: {
   });
 }
 
+type InterpretOptions = Omit<
+  InterpretPslDocumentToSqlContractInput,
+  'documents' | 'sources' | 'symbolTable' | 'binder' | 'generatorFunctions'
+> &
+  Partial<Pick<InterpretPslDocumentToSqlContractInput, 'generatorFunctions'>>;
+
 function contextForInterpretOptions(
   options: Pick<
-    InterpretPslDocumentToSqlContractInput,
+    InterpretOptions,
     | 'authoringContributions'
     | 'controlMutationDefaults'
     | 'generatorFunctions'
@@ -443,9 +450,7 @@ function contextForInterpretOptions(
       defaultFunctionRegistry: new Map(),
       generatorDescriptors: [],
     },
-    ...(options.generatorFunctions === undefined
-      ? {}
-      : { generatorFunctions: options.generatorFunctions }),
+    generatorFunctions: options.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
     resolvedInputs: [],
     capabilities: options.capabilities,
   };
@@ -453,10 +458,7 @@ function contextForInterpretOptions(
 
 export function interpretSqlContract(
   schema: string,
-  options: Omit<
-    InterpretPslDocumentToSqlContractInput,
-    'documents' | 'sources' | 'symbolTable' | 'binder'
-  >,
+  options: InterpretOptions,
   sourceId?: string,
 ): Result<Contract, ContractSourceDiagnostics> {
   const bound = bindPslSchema(schema, {

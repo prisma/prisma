@@ -1,4 +1,6 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
+import { InternalError } from '@internal/utils/internal-error';
+import type { MutationDefaultGeneratorDescriptor } from './mutation-default-types';
 import { runtimeError } from './runtime-error';
 
 /** The codec and type params of the field a generator fills: a column in SQL, a document field in Mongo. */
@@ -7,11 +9,19 @@ export interface GeneratorFunctionField {
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
 }
 
-export type GeneratorResolution =
+/** A call of a generator function: what `@onCreate(fn(...))` and `gen.fn(...)` write, and what `contract print` writes back. */
+export interface GeneratorFunctionCall {
+  readonly name: string;
+  readonly args: Readonly<Record<string, unknown>>;
+}
+
+/** What one binding resolves a call to on a field: a generator, or a refusal with its reason. */
+export type BindingResolution =
   | { readonly ok: true; readonly generator: ExecutionMutationDefaultValue }
   | { readonly ok: false; readonly message: string };
 
-export interface GeneratorFunctionCallText {
+/** The arguments of a call, as values and as PSL text. */
+export interface PrintedArguments {
   readonly args: Readonly<Record<string, unknown>>;
   readonly text: string;
 }
@@ -23,12 +33,12 @@ export interface GeneratorFunctionBinding {
   readonly resolve: (input: {
     readonly args: Readonly<Record<string, unknown>>;
     readonly field: GeneratorFunctionField;
-  }) => GeneratorResolution;
+  }) => BindingResolution;
   /** The arguments that produce `generator` on `field`, or `undefined` when this binding never produces it. */
   readonly printArguments: (
     generator: ExecutionMutationDefaultValue,
     field: GeneratorFunctionField,
-  ) => GeneratorFunctionCallText | undefined;
+  ) => PrintedArguments | undefined;
 }
 
 export interface GeneratorFunctionContribution {
@@ -52,22 +62,29 @@ export type GeneratorFunctionResolution =
       readonly boundCodecIds: readonly string[];
     };
 
-export interface GeneratorFunctionCall extends GeneratorFunctionCallText {
-  readonly name: string;
+/** The call that produces a stored generator, and its PSL text, such as `uuid(7)`. */
+export interface PrintedGeneratorCall {
+  readonly call: GeneratorFunctionCall;
+  readonly text: string;
 }
 
 export interface GeneratorFunctionRegistry {
   functionsFor(codecId: string): readonly GeneratorFunctionSummary[];
   has(name: string): boolean;
-  resolve(input: {
-    readonly name: string;
-    readonly args: Readonly<Record<string, unknown>>;
-    readonly field: GeneratorFunctionField;
-  }): GeneratorFunctionResolution;
+  resolve(call: GeneratorFunctionCall, field: GeneratorFunctionField): GeneratorFunctionResolution;
   callFor(
     generator: ExecutionMutationDefaultValue,
     field: GeneratorFunctionField,
-  ): GeneratorFunctionCall | undefined;
+  ): PrintedGeneratorCall | undefined;
+}
+
+/** A component that contributes generator functions, generator descriptors, or both. */
+export interface GeneratorFunctionComponent {
+  readonly id?: string;
+  readonly generatorFunctions?: readonly GeneratorFunctionContribution[];
+  readonly controlMutationDefaults?: {
+    readonly generatorDescriptors: readonly MutationDefaultGeneratorDescriptor[];
+  };
 }
 
 interface DeclaredFunction {
@@ -86,15 +103,16 @@ function invalidContribution(message: string): Error {
 }
 
 /**
- * Assemble the generator functions of a composed stack. The control stack passes the generator ids its components register as `registeredGeneratorIds`; the TypeScript builder, which has no generator descriptors, omits it.
+ * Assemble the generator functions of a composed stack: the control stack's components, or the pack refs of a TypeScript contract. Every generator a binding produces must be registered by a generator descriptor of one of the components.
  */
 export function assembleGeneratorFunctions(
-  descriptors: ReadonlyArray<{
-    readonly id?: string;
-    readonly generatorFunctions?: readonly GeneratorFunctionContribution[];
-  }>,
-  options?: { readonly registeredGeneratorIds?: ReadonlySet<string> | undefined },
+  descriptors: ReadonlyArray<GeneratorFunctionComponent>,
 ): GeneratorFunctionRegistry {
+  const registered = new Set(
+    descriptors.flatMap((descriptor) =>
+      (descriptor.controlMutationDefaults?.generatorDescriptors ?? []).map(({ id }) => id),
+    ),
+  );
   const declared = new Map<string, DeclaredFunction>();
   const bindingsByCodec = new Map<string, Map<string, OwnedBinding>>();
   const printersByCodecAndGenerator = new Map<string, OwnedBinding>();
@@ -149,14 +167,11 @@ export function assembleGeneratorFunctions(
         printersByCodecAndGenerator.set(key, owned);
       }
     }
-    const registered = options?.registeredGeneratorIds;
-    if (registered !== undefined) {
-      for (const generatorId of owned.binding.generatorIds) {
-        if (!registered.has(generatorId)) {
-          throw invalidContribution(
-            `Generator function "${owned.name}" from "${owned.contributedBy}" produces generator "${generatorId}", which no generator descriptor in the stack registers.`,
-          );
-        }
+    for (const generatorId of owned.binding.generatorIds) {
+      if (!registered.has(generatorId)) {
+        throw invalidContribution(
+          `Generator function "${owned.name}" from "${owned.contributedBy}" produces generator "${generatorId}", which no generator descriptor in the stack registers.`,
+        );
       }
     }
   }
@@ -178,7 +193,7 @@ export function assembleGeneratorFunctions(
     has(name) {
       return declared.has(name);
     },
-    resolve({ name, args, field }) {
+    resolve({ name, args }, field) {
       if (!declared.has(name)) {
         return { ok: false, reason: 'unknown-function', boundCodecIds: [] };
       }
@@ -187,15 +202,24 @@ export function assembleGeneratorFunctions(
         return { ok: false, reason: 'not-bound', boundCodecIds: boundCodecIdsOf(name) };
       }
       const resolution = owned.binding.resolve({ args, field });
-      return resolution.ok
-        ? resolution
-        : { ok: false, reason: 'refused', message: resolution.message };
+      if (!resolution.ok) return { ok: false, reason: 'refused', message: resolution.message };
+      if (!owned.binding.generatorIds.includes(resolution.generator.id)) {
+        throw new InternalError(
+          `Generator function "${name}" from "${owned.contributedBy}" resolved to generator "${resolution.generator.id}", which its binding does not declare in generatorIds.`,
+        );
+      }
+      return resolution;
     },
     callFor(generator, field) {
       const owned = printersByCodecAndGenerator.get(`${field.codecId}\u0000${generator.id}`);
       if (owned === undefined) return undefined;
       const printed = owned.binding.printArguments(generator, field);
-      return printed === undefined ? undefined : { name: owned.name, ...printed };
+      return printed === undefined
+        ? undefined
+        : {
+            call: { name: owned.name, args: printed.args },
+            text: `${owned.name}(${printed.text})`,
+          };
     },
   };
 }

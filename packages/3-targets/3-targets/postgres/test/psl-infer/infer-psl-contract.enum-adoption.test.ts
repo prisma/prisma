@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * Native-enum ADOPTION at the `contract infer` entry: instead of throwing,
  * `inferPostgresPslContract` emits `native_enum` blocks + `pg.enum(<Name>)`
@@ -241,6 +242,7 @@ function interpret(source: string) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: assembled.dataTypes,
         lookup: postgresDataTypeLookup,

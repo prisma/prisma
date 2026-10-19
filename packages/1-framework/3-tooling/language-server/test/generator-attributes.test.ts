@@ -7,11 +7,12 @@ import type {
   AuthoringTypeNamespace,
 } from '@internal/framework-components/authoring';
 import {
-  assembleAuthoringContributions,
   assembleGeneratorFunctions,
   type GeneratorFunctionContribution,
   type GeneratorFunctionRegistry,
-} from '@internal/framework-components/control';
+  type MutationDefaultGeneratorDescriptor,
+} from '@internal/framework-components/components';
+import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { buildSymbolTable } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { timeouts } from '@repo/test-utils';
@@ -54,9 +55,10 @@ async function actualPostgresStack(): Promise<Stack> {
     importFromPackageRoot<{
       sqlFamilyGeneratorFunctions: readonly GeneratorFunctionContribution[];
     }>('../../../2-sql/9-family/src/core/generator-functions.ts'),
-    importFromPackageRoot<{ postgresGeneratorFunctions: readonly GeneratorFunctionContribution[] }>(
-      '../../../3-targets/3-targets/postgres/src/core/generator-functions.ts',
-    ),
+    importFromPackageRoot<{
+      postgresGeneratorFunctions: readonly GeneratorFunctionContribution[];
+      postgresGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[];
+    }>('../../../3-targets/3-targets/postgres/src/core/generator-functions.ts'),
   ]);
   return {
     authoringContributions: assembleAuthoringContributions([
@@ -73,7 +75,11 @@ async function actualPostgresStack(): Promise<Stack> {
     pslBlockDescriptors: blocks.sqlFamilyPslBlockDescriptors,
     generatorFunctions: assembleGeneratorFunctions([
       { id: 'sql', generatorFunctions: family.sqlFamilyGeneratorFunctions },
-      { id: 'postgres', generatorFunctions: postgres.postgresGeneratorFunctions },
+      {
+        id: 'postgres',
+        generatorFunctions: postgres.postgresGeneratorFunctions,
+        controlMutationDefaults: { generatorDescriptors: postgres.postgresGeneratorDescriptors },
+      },
     ]),
   };
 }

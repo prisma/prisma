@@ -1,21 +1,16 @@
-import { assembleGeneratorFunctions } from '@internal/framework-components/control';
+import { assembleGeneratorFunctions } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { mongoTargetDescriptorMeta } from '../src/core/descriptor-meta';
 
-const registry = assembleGeneratorFunctions([mongoTargetDescriptorMeta], {
-  registeredGeneratorIds: new Set(
-    mongoTargetDescriptorMeta.controlMutationDefaults.generatorDescriptors.map(({ id }) => id),
-  ),
-});
+const registry = assembleGeneratorFunctions([mongoTargetDescriptorMeta]);
 
 describe('the Mongo generator functions', () => {
   it('resolve now() on DateTime to timestampNow', () => {
     expect(
-      registry.resolve({
-        name: 'now',
-        args: {},
-        field: { codecId: 'mongo/date@1', typeParams: undefined },
-      }),
+      registry.resolve(
+        { name: 'now', args: {} },
+        { codecId: 'mongo/date@1', typeParams: undefined },
+      ),
     ).toEqual({ ok: true, generator: { kind: 'generator', id: 'timestampNow' } });
   });
 

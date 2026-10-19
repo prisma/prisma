@@ -13,8 +13,6 @@ export type {
 } from '@internal/mongo-contract-ts/contract-builder';
 export {
   field,
-  type GeneratorCall,
-  gen,
   index,
   member,
   model,
@@ -23,3 +21,4 @@ export {
 } from '@internal/mongo-contract-ts/contract-builder';
 export { defineContract } from '../contract/define-contract';
 export { enumType } from '../contract/enum-type';
+export { gen } from '../contract/gen';

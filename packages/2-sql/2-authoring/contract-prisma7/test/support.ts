@@ -5,10 +5,8 @@ import type { ContractSourceContext } from '@internal/config/config-types';
 import type { Contract } from '@internal/contract/types';
 import postgresDriver from '@internal/driver-postgres/control';
 import sql from '@internal/family-sql/control';
-import {
-  createControlStack,
-  EMPTY_GENERATOR_FUNCTIONS,
-} from '@internal/framework-components/control';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
+import { createControlStack } from '@internal/framework-components/control';
 import { parse } from '@internal/psl-parser/syntax';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import postgres from '@internal/target-postgres/control';

@@ -26,11 +26,10 @@ describe('@updatedAt on Postgres', () => {
       ?.output.codecId;
     expect(codecId).toBeDefined();
     expect(
-      generatorFunctions?.resolve({
-        name: 'now',
-        args: {},
-        field: { codecId: codecId ?? '', typeParams: undefined },
-      }),
+      generatorFunctions?.resolve(
+        { name: 'now', args: {} },
+        { codecId: codecId ?? '', typeParams: undefined },
+      ),
     ).toMatchObject({ ok: true, generator: { kind: 'generator' } });
   });
 

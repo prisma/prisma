@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * Tests for PSL `pg.enum(Ref)` field resolution:
  *
@@ -108,6 +109,7 @@ function interpret(source: string, capabilities: Record<string, Record<string, b
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: assembled.dataTypes,
         lookup: postgresDataTypeLookup,

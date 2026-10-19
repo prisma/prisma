@@ -1,7 +1,7 @@
 import {
   assembleGeneratorFunctions,
   singleGeneratorBinding,
-} from '@internal/framework-components/control';
+} from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import type { InterpretPslDocumentToSqlContractInput } from '../src/interpreter';
@@ -24,8 +24,14 @@ describe('composed mutation default registries', () => {
       | 'capabilities'
       | 'dataTypes'
       | 'codecLookup'
+      | 'generatorFunctions'
     > &
-      Partial<Pick<InterpretPslDocumentToSqlContractInput, 'composedExtensionContracts'>>,
+      Partial<
+        Pick<
+          InterpretPslDocumentToSqlContractInput,
+          'composedExtensionContracts' | 'generatorFunctions'
+        >
+      >,
   ) =>
     interpretSqlContract(schema, {
       target: postgresTarget,
@@ -71,6 +77,7 @@ describe('composed mutation default registries', () => {
             bindings: [singleGeneratorBinding({ codecIds: ['pg/text@1'], generatorId: 'slugid' })],
           },
         ],
+        controlMutationDefaults: { generatorDescriptors: [{ id: 'slugid' }] },
       },
     ]);
     const diagnosticsOf = (result: ReturnType<typeof interpretPostgresSchema>) =>

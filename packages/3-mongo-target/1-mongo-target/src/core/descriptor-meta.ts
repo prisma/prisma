@@ -1,9 +1,9 @@
 import { TIMESTAMP_NOW_GENERATOR_ID } from '@internal/framework-components/authoring';
-import type { TargetPackRef } from '@internal/framework-components/components';
 import {
   singleGeneratorBinding,
-  timestampNowControlDescriptor,
-} from '@internal/framework-components/control';
+  type TargetPackRef,
+} from '@internal/framework-components/components';
+import { timestampNowControlDescriptor } from '@internal/framework-components/control';
 import type { CodecTypes, ParameterizedOutputTypesForTypeParams } from '../exports/codec-types';
 import { mongoAuthoringFieldPresets } from './authoring';
 import { MONGO_DATE_CODEC_ID } from './codec-ids';

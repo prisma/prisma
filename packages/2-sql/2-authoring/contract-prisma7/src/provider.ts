@@ -2,7 +2,6 @@ import { readdir, readFile, stat } from 'node:fs/promises';
 import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/config-types';
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import { validateContractDomain } from '@internal/contract/validate-domain';
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
 import type { ParseDiagnostic, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
 import type { SqlStorage } from '@internal/sql-contract/types';
@@ -176,7 +175,7 @@ export function prisma7Contract(
             seedDiagnostics,
             binding: options.binding,
             controlMutationDefaults: context.controlMutationDefaults,
-            generatorFunctions: context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
+            generatorFunctions: context.generatorFunctions,
             authoringContributions: context.authoringContributions,
             codecLookup: context.codecLookup,
             dataTypes: context.dataTypes,

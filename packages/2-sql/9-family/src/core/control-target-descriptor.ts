@@ -1,11 +1,11 @@
 import type { Contract } from '@internal/contract/types';
 import type { DataTypeSupport } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type {
   AssembledAuthoringContributions,
   ContractSerializer,
   DiffSubjectGranularity,
-  GeneratorFunctionRegistry,
   MigratableTargetDescriptor,
   SchemaVerifier,
 } from '@internal/framework-components/control';

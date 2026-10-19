@@ -1,9 +1,9 @@
 import type { PrismaNextConfig } from '@internal/config-loader';
 import * as configLoader from '@internal/config-loader';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import {
   assembleAuthoringContributions,
   assembleControlMutationDefaults,
-  EMPTY_GENERATOR_FUNCTIONS,
 } from '@internal/framework-components/control';
 import type { AttributeSpecContext, AttributeSpecNamespace } from '@internal/psl-parser';
 import {
@@ -138,6 +138,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
         binder: testBinder(pipeline),
         symbolTable: pipeline.symbolTable,
         pslBlockDescriptors: {},
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
         authoringContributions,
         controlMutationDefaults,
       },
@@ -193,7 +194,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       typeConstructor: undefined,
       defaultFunctionRegistry:
         interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
-      generatorFunctions: interpretation.context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
+      generatorFunctions: interpretation.context.generatorFunctions,
       dataTypes: interpretation.context.dataTypes,
     });
     expect(spec).toMatchObject({
@@ -226,7 +227,7 @@ describe('assembled attribute specs are consumable from a resolved project', () 
       model,
       defaultFunctionRegistry:
         interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
-      generatorFunctions: interpretation.context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
+      generatorFunctions: interpretation.context.generatorFunctions,
       dataTypes: interpretation.context.dataTypes,
     };
 

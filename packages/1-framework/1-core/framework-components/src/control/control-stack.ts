@@ -859,17 +859,6 @@ export function buildExtensionLoadOrder(
   return result;
 }
 
-/**
- * The generator ids a stack registers, which every generator function binding must produce from. A stack that registers no generator, such as one composed for authoring without an adapter, checks nothing.
- */
-function registeredGeneratorIdsOf(
-  defaults: AssembledControlMutationDefaults,
-): ReadonlySet<string> | undefined {
-  return defaults.generatorDescriptors.length === 0
-    ? undefined
-    : new Set(defaults.generatorDescriptors.map((descriptor) => descriptor.id));
-}
-
 export function createControlStack<TFamilyId extends string, TTargetId extends string>(
   input: CreateControlStackInput<TFamilyId, TTargetId>,
 ): ControlStack<TFamilyId, TTargetId> {
@@ -935,9 +924,7 @@ export function createControlStack<TFamilyId extends string, TTargetId extends s
     authoringContributions,
     scalarTypes: [...collectScalarTypeConstructors(authoringContributions.type).keys()],
     controlMutationDefaults,
-    generatorFunctions: assembleGeneratorFunctions(allDescriptors, {
-      registeredGeneratorIds: registeredGeneratorIdsOf(controlMutationDefaults),
-    }),
+    generatorFunctions: assembleGeneratorFunctions(allDescriptors),
     capabilities: mergeCapabilityMatrices({}, [
       target,
       ...(adapter ? [adapter] : []),

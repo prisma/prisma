@@ -1,9 +1,3 @@
-import { gen } from '@internal/framework-components/authoring';
-import type { FamilyPackRef, TargetPackRef } from '@internal/framework-components/components';
-import {
-  type GeneratorFunctionContribution,
-  singleGeneratorBinding,
-} from '@internal/framework-components/control';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';
 import { testTypeLookups } from '../../../1-core/contract/test/test-type-lookups';
@@ -11,70 +5,24 @@ import { createComposedAuthoringHelpers } from '../src/composed-authoring-helper
 import { field, type ScalarFieldBuilder } from '../src/contract-builder';
 import { buildContractDefinition } from '../src/contract-lowering';
 import { columnDescriptor } from './helpers/column-descriptor';
-
-const generatorFunctions: readonly GeneratorFunctionContribution[] = [
-  {
-    name: 'uuid',
-    signature: { documentation: 'uuid' },
-    bindings: [
-      {
-        codecIds: ['pg/text@1'],
-        generatorIds: ['uuidv4', 'uuidv7'],
-        resolve: ({ args }) => ({
-          ok: true,
-          generator: { kind: 'generator', id: args['version'] === 7 ? 'uuidv7' : 'uuidv4' },
-        }),
-        printArguments: () => undefined,
-      },
-    ],
-  },
-  {
-    name: 'now',
-    signature: { documentation: 'now' },
-    bindings: [
-      singleGeneratorBinding({
-        codecIds: ['pg/time-temporal@1'],
-        generatorId: 'plainTimeNow',
-        paramsFromField: (column) =>
-          typeof column.typeParams?.['precision'] === 'number'
-            ? { precision: column.typeParams['precision'] }
-            : undefined,
-      }),
-    ],
-  },
-];
-
-const familyPack: FamilyPackRef<'sql'> = {
-  kind: 'family',
-  id: 'sql',
-  familyId: 'sql',
-  version: '0.0.1',
-  generatorFunctions,
-};
-
-const targetPack: TargetPackRef<'sql', 'postgres'> = {
-  kind: 'target',
-  id: 'postgres',
-  familyId: 'sql',
-  targetId: 'postgres',
-  version: '0.0.1',
-  defaultNamespaceId: 'public',
-};
+import { familyPack, slugidPack, targetPack } from './helpers/generator-function-packs';
 
 const textColumn = columnDescriptor('pg/text@1');
 const byteaColumn = columnDescriptor('pg/bytea@1');
 const time3Column = { ...columnDescriptor('pg/time-temporal@1'), typeParams: { precision: 3 } };
 
-const { model } = createComposedAuthoringHelpers({
+const { model, gen } = createComposedAuthoringHelpers({
   ...testTypeLookups,
   family: familyPack,
   target: targetPack,
+  extensions: { slugid: slugidPack },
 });
 
 function executionDefaultsOf(fields: Record<string, ScalarFieldBuilder>) {
   const definition = buildContractDefinition({
     family: familyPack,
     target: targetPack,
+    extensions: { slugid: slugidPack },
     createNamespace: createTestSqlNamespace,
     models: { Event: model('Event', { fields }) },
   });
@@ -83,7 +31,29 @@ function executionDefaultsOf(fields: Record<string, ScalarFieldBuilder>) {
   );
 }
 
+describe('gen', () => {
+  it('holds one call per generator function the packs declare, extensions included', () => {
+    expect({
+      names: Object.keys(gen).sort(),
+      uuid7: gen.uuid(7),
+      uuid: gen.uuid(),
+      slugid: gen.slugid(),
+    }).toEqual({
+      names: ['now', 'slugid', 'uuid'],
+      uuid7: { name: 'uuid', args: { version: 7 } },
+      uuid: { name: 'uuid', args: {} },
+      slugid: { name: 'slugid', args: {} },
+    });
+  });
+});
+
 describe('.onCreate and .onUpdate', () => {
+  it('resolve an extension function', () => {
+    expect(
+      executionDefaultsOf({ id: field.column(textColumn).id().onCreate(gen.slugid()) }),
+    ).toEqual({ id: { onCreate: { kind: 'generator', id: 'slugid' } } });
+  });
+
   it("resolve each call by the field's codec and type params", () => {
     expect(
       executionDefaultsOf({
@@ -122,11 +92,32 @@ describe('.onCreate and .onUpdate', () => {
 
   it('refuse a function no pack declares', () => {
     expect(() =>
-      executionDefaultsOf({ id: field.column(textColumn).id().onCreate(gen.ksuid()) }),
+      executionDefaultsOf({
+        id: field.column(textColumn).id().onCreate({ name: 'ksuid', args: {} }),
+      }),
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
         meta: expect.objectContaining({ function: 'ksuid', reason: 'generator-unknown' }),
+      }),
+    );
+  });
+
+  it('refuse a list field', () => {
+    expect(() =>
+      executionDefaultsOf({ tags: field.column(textColumn).many().onCreate(gen.uuid()) }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.DEFAULT_INVALID',
+        message:
+          'Field "Event.tags" is a list and cannot use .onCreate(uuid()). Lists have no per-element generated values; remove .onCreate(...).',
+        meta: {
+          modelName: 'Event',
+          fieldName: 'tags',
+          codecId: 'pg/text@1',
+          function: 'uuid',
+          reason: 'generator-on-list',
+        },
       }),
     );
   });
@@ -157,6 +148,7 @@ describe('.onCreate and .onUpdate', () => {
     const definition = buildContractDefinition({
       family: familyPack,
       target: targetPack,
+      extensions: { slugid: slugidPack },
       createNamespace: createTestSqlNamespace,
       models: {
         Event: model('Event', {

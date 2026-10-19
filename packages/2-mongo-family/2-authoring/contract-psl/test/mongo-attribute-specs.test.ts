@@ -1,6 +1,6 @@
 import type { ContractSourceContext } from '@internal/config/config-types';
 import { emptyCodecLookup } from '@internal/framework-components/codec';
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type {
   ArgType,
   AttributeCtx,
@@ -43,6 +43,7 @@ function createBinderFor(symbolTable: SymbolTable, sources: PslSources) {
     pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedMongoAttribute },
     codecLookup: { ...emptyCodecLookup, descriptorFor: () => undefined },
     controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+    generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
     dataTypes: EMPTY_DATA_TYPES,
     resolvedInputs: [],
     capabilities: {},

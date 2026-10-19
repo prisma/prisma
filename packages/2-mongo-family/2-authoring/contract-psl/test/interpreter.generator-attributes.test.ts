@@ -5,7 +5,7 @@ import {
 import {
   assembleGeneratorFunctions,
   singleGeneratorBinding,
-} from '@internal/framework-components/control';
+} from '@internal/framework-components/components';
 import { mongoCodecLookup, mongoDataTypeLookup } from '@internal/mongo-contract/test';
 import { describe, expect, it } from 'vitest';
 import { interpretMongoContract } from './interpreter-test-helpers';
@@ -22,6 +22,7 @@ const generatorFunctions = assembleGeneratorFunctions([
         ],
       },
     ],
+    controlMutationDefaults: { generatorDescriptors: [{ id: 'timestampNow' }] },
   },
 ]);
 
@@ -75,9 +76,23 @@ describe('Mongo PSL @onCreate and @onUpdate', () => {
 }`),
     ).toEqual([
       {
-        code: 'PSL_GENERATOR_NOT_APPLICABLE',
+        code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
         message:
           'Field "Post.seenAt" is optional, and a generated value needs a required field in MongoDB. Remove "?" or remove @onUpdate(...).',
+      },
+    ]);
+  });
+
+  it('refuse the same generator attribute twice on one field', () => {
+    expect(
+      diagnostics(`model Post {
+  id     ObjectId @id @map("_id")
+  seenAt DateTime @onUpdate(now()) @onUpdate(now())
+}`),
+    ).toEqual([
+      {
+        code: 'PSL_DUPLICATE_ATTRIBUTE',
+        message: '`@onUpdate` declared more than once on field "Post.seenAt".',
       },
     ]);
   });

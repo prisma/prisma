@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  createPostgresDefaultFunctionRegistry,
-  createPostgresMutationDefaultGeneratorDescriptors,
-} from '../src/core/control-mutation-defaults';
+import { createPostgresDefaultFunctionRegistry } from '../src/core/control-mutation-defaults';
 import runtimeAdapterDescriptor from '../src/exports/runtime';
 
 const stubSpan = {
@@ -53,25 +50,6 @@ describe('createPostgresDefaultFunctionRegistry', () => {
       ok: true,
       value: { kind: 'storage', defaultValue: { kind: 'function', expression: 'now()' } },
     });
-  });
-});
-
-describe('createPostgresMutationDefaultGeneratorDescriptors', () => {
-  const descriptors = createPostgresMutationDefaultGeneratorDescriptors();
-
-  it('returns descriptors for all builtin generators', () => {
-    const ids = descriptors.map((d) => d.id);
-    expect(ids).toEqual(
-      expect.arrayContaining([
-        'ulid',
-        'nanoid',
-        'uuidv7',
-        'uuidv4',
-        'cuid2',
-        'ksuid',
-        'timestampNow',
-      ]),
-    );
   });
 });
 

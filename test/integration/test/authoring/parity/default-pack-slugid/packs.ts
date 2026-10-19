@@ -1,7 +1,7 @@
 import type { SqlControlExtensionDescriptor } from '@internal/family-sql/control';
-import { singleGeneratorBinding } from '@internal/framework-components/control';
+import { singleGeneratorBinding } from '@internal/framework-components/components';
 
-const slugidDefaultsPack: SqlControlExtensionDescriptor<'postgres'> = {
+export const slugidDefaultsPack = {
   kind: 'extension',
   id: 'slugid-defaults',
   version: '0.0.1',
@@ -23,8 +23,8 @@ const slugidDefaultsPack: SqlControlExtensionDescriptor<'postgres'> = {
     return {
       familyId: 'sql',
       targetId: 'postgres',
-    };
+    } as const;
   },
-};
+} as const satisfies SqlControlExtensionDescriptor<'postgres'>;
 
 export const extensions = [slugidDefaultsPack] as const;

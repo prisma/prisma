@@ -5,12 +5,14 @@ import type {
 import { resolveToOneRelationNullable } from '@internal/contract-authoring';
 import {
   type AuthoringEntityTypeNamespace,
-  assembleGeneratorFunctions,
-  type GeneratorFunctionRegistry,
   isAuthoringEntityTypeDescriptor,
 } from '@internal/framework-components/authoring';
 import type { ColumnTypeDescriptor } from '@internal/framework-components/codec';
 import type { ExtensionPackRef } from '@internal/framework-components/components';
+import {
+  assembleGeneratorFunctions,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
 import {
   providesEntityHandleLowering,
   type ResolvedEntityHandleRef,
@@ -937,11 +939,22 @@ function resolveGeneratorCalls(input: {
   for (const phase of ['onCreate', 'onUpdate'] as const) {
     const call = calls[phase];
     if (call === undefined) continue;
-    const resolution = generatorFunctions.resolve({
-      name: call.name,
-      args: call.args,
-      field: column,
-    });
+    if (fieldState.many !== false) {
+      throw contractError(
+        'CONTRACT.DEFAULT_INVALID',
+        `Field "${modelName}.${fieldName}" is a list and cannot use .${phase}(${call.name}()). Lists have no per-element generated values; remove .${phase}(...).`,
+        {
+          meta: {
+            modelName,
+            fieldName,
+            codecId: column.codecId,
+            function: call.name,
+            reason: 'generator-on-list',
+          },
+        },
+      );
+    }
+    const resolution = generatorFunctions.resolve(call, column);
     if (resolution.ok) {
       phases[phase] = resolution.generator;
       continue;

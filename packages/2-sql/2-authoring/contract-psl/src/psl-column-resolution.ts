@@ -28,11 +28,11 @@ import type {
   AnyCodecDescriptor,
   CodecLookupWithDescriptors,
 } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import {
   type ControlMutationDefaultRegistry,
   type DefaultFunctionLoweringContext,
   describeTaggedLiteralFailure,
-  type GeneratorFunctionRegistry,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import type {
@@ -940,8 +940,17 @@ export function lowerGeneratorAttributesForField(input: {
     onUpdate?: ExecutionMutationDefaultValue;
   } = {};
   for (const phase of GENERATOR_PHASES) {
-    const node = getAttribute(input.field.attributes, phase)?.node;
-    if (node === undefined) continue;
+    const [attribute, duplicate] = input.field.attributes.filter(({ name }) => name === phase);
+    if (attribute === undefined) continue;
+    if (duplicate !== undefined) {
+      input.diagnostics.push({
+        code: 'PSL_DUPLICATE_ATTRIBUTE',
+        message: `\`@${phase}\` declared more than once on field "${input.modelName}.${input.fieldName}".`,
+        ...diagnosticSource(input.sources, duplicate.node.syntax).at(duplicate.span),
+      });
+      continue;
+    }
+    const node = attribute.node;
     const interpreted = interpretFieldAttribute({
       symbols: input.symbolTable,
       node,
@@ -954,11 +963,10 @@ export function lowerGeneratorAttributesForField(input: {
     });
     if (interpreted === undefined) continue;
     const call = interpreted.value;
-    const resolution = input.generatorFunctions.resolve({
-      name: call.fn,
-      args: call.args,
-      field: { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
-    });
+    const resolution = input.generatorFunctions.resolve(
+      { name: call.fn, args: call.args },
+      { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
+    );
     if (resolution.ok) {
       phases[phase] = resolution.generator;
       continue;

@@ -1,7 +1,11 @@
-import { idGeneratorFunctionBindings } from '@internal/family-sql/control';
+import { idGeneratorFunctionBindings } from '@internal/family-sql/pack';
 import { TIMESTAMP_NOW_GENERATOR_ID } from '@internal/framework-components/authoring';
-import type { GeneratorFunctionContribution } from '@internal/framework-components/control';
-import { singleGeneratorBinding } from '@internal/framework-components/control';
+import type {
+  GeneratorFunctionContribution,
+  MutationDefaultGeneratorDescriptor,
+} from '@internal/framework-components/components';
+import { singleGeneratorBinding } from '@internal/framework-components/components';
+import { builtinGeneratorRegistryMetadata } from '@internal/ids';
 import { SQLITE_DATETIME_CODEC_ID, SQLITE_TEXT_CODEC_ID } from './codec-ids';
 
 export const sqliteGeneratorFunctions: readonly GeneratorFunctionContribution[] = [
@@ -14,5 +18,11 @@ export const sqliteGeneratorFunctions: readonly GeneratorFunctionContribution[] 
       }),
     ],
   },
-  ...idGeneratorFunctionBindings({ fixedLength: [], variableLength: [SQLITE_TEXT_CODEC_ID] }),
+  ...idGeneratorFunctionBindings({ text: [SQLITE_TEXT_CODEC_ID] }),
+];
+
+/** The generators the SQLite generator functions produce, which the stack checks every binding against. */
+export const sqliteGeneratorDescriptors: readonly MutationDefaultGeneratorDescriptor[] = [
+  ...builtinGeneratorRegistryMetadata,
+  { id: TIMESTAMP_NOW_GENERATOR_ID },
 ];

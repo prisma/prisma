@@ -1,5 +1,5 @@
 import type { SqlPslBuildContext } from '@internal/family-sql/control';
-import { singleGeneratorBinding } from '@internal/framework-components/control';
+import { singleGeneratorBinding } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
 import {
   PG_TIME_TEMPORAL_CODEC_ID,
@@ -93,13 +93,15 @@ describe('generated values', () => {
     });
   });
 
-  it('writes a nanoid size a fixed-length column gives as nanoid(), and another size as nanoid(size)', () => {
+  it('writes a nanoid size as nanoid(size) on every column, and no size as nanoid()', () => {
     expect({
       char16: withGenerator(char(16), { onCreate: generator('nanoid', { size: 16 }) }),
       text16: withGenerator(TEXT_COLUMN, { onCreate: generator('nanoid', { size: 16 }) }),
+      char36: withGenerator(char(36), { onCreate: generator('nanoid') }),
     }).toEqual({
-      char16: 'value Char(16) @onCreate(nanoid())',
+      char16: 'value Char(16) @onCreate(nanoid(16))',
       text16: 'value String @onCreate(nanoid(16))',
+      char36: 'value Char(36) @onCreate(nanoid())',
     });
   });
 

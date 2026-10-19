@@ -1,6 +1,6 @@
 import { TIMESTAMP_NOW_GENERATOR_ID } from '@internal/framework-components/authoring';
-import type { GeneratorFunctionContribution } from '@internal/framework-components/control';
-import { singleGeneratorBinding } from '@internal/framework-components/control';
+import type { GeneratorFunctionContribution } from '@internal/framework-components/components';
+import { singleGeneratorBinding } from '@internal/framework-components/components';
 import {
   PG_DATE_STRING_CODEC_ID,
   PG_DATE_TEMPORAL_CODEC_ID,

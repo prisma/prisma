@@ -1,4 +1,3 @@
-export { type GeneratorCall, gen } from '@internal/framework-components/authoring';
 export { type SqlExpression, sql } from '@internal/sql-contract/sql-expression';
 export { createComposedAuthoringHelpers } from '../composed-authoring-helpers';
 export type {

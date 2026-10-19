@@ -6,10 +6,8 @@ import {
   type WrittenValue,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type {
-  ControlMutationDefaults,
-  GeneratorFunctionRegistry,
-} from '@internal/framework-components/control';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
+import type { ControlMutationDefaults } from '@internal/framework-components/control';
 import type { FieldSymbol, PslSpan, ResolvedAttribute } from '@internal/psl-parser';
 import type { ExpressionAst } from '@internal/psl-parser/syntax';
 import {
@@ -358,11 +356,10 @@ function lowerFunction(
   // Prisma 7's cuid() (version 1) has no Prisma 8 generator; the slice maps it to cuid2.
   if (fn === 'cuid') args['version'] = 2;
   if (entry === undefined) {
-    const resolution = input.generatorFunctions.resolve({
-      name: fn,
-      args,
-      field: { codecId: input.codecId, typeParams: input.typeParams },
-    });
+    const resolution = input.generatorFunctions.resolve(
+      { name: fn, args },
+      { codecId: input.codecId, typeParams: input.typeParams },
+    );
     if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
     return unknown(
       resolution.reason === 'refused'

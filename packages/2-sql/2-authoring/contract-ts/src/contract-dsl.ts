@@ -10,10 +10,7 @@ import type {
   CodecTypeMap,
   ForeignKeyDefaultsState,
 } from '@internal/contract-authoring';
-import type {
-  AuthoringFieldPresetDescriptor,
-  GeneratorCall,
-} from '@internal/framework-components/authoring';
+import type { AuthoringFieldPresetDescriptor } from '@internal/framework-components/authoring';
 import { instantiateAuthoringFieldPreset } from '@internal/framework-components/authoring';
 import type {
   CodecLookupWithDescriptors,
@@ -24,6 +21,7 @@ import type {
 import type {
   ExtensionPackRef,
   FamilyPackRef,
+  GeneratorFunctionCall,
   TargetPackRef,
 } from '@internal/framework-components/components';
 import { readSqlExpression, type SqlExpression } from '@internal/sql-contract/sql-expression';
@@ -85,8 +83,8 @@ export type FieldDefaultPresence = { readonly column: boolean; readonly executio
 
 /** The generator function calls a field's `.onCreate(...)` and `.onUpdate(...)` give, resolved by the field's codec when the contract is built. */
 export type FieldGeneratorCalls = {
-  readonly onCreate?: GeneratorCall;
-  readonly onUpdate?: GeneratorCall;
+  readonly onCreate?: GeneratorFunctionCall;
+  readonly onUpdate?: GeneratorFunctionCall;
 };
 
 type GeneratorPhase = keyof FieldGeneratorCalls;
@@ -117,7 +115,7 @@ type WithExecutionDefault<State extends AnyScalarFieldState> =
 function withGeneratorCall<State extends AnyScalarFieldState>(
   state: State,
   phase: GeneratorPhase,
-  call: GeneratorCall,
+  call: GeneratorFunctionCall,
 ): State {
   if (
     state.generatorCalls?.[phase] !== undefined ||
@@ -496,7 +494,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   }
 
   /** Generates the field's value in the client when a row is created without one, with a call from `gen`, such as `gen.uuid()`. */
-  onCreate(call: GeneratorCall): ScalarFieldBuilder<WithExecutionDefault<State>> {
+  onCreate(call: GeneratorFunctionCall): ScalarFieldBuilder<WithExecutionDefault<State>> {
     return blindCast<
       ScalarFieldBuilder<WithExecutionDefault<State>>,
       'the state gains a generator call; the presence it changes exists only in types'
@@ -504,7 +502,7 @@ export class ScalarFieldBuilder<State extends AnyScalarFieldState = AnyScalarFie
   }
 
   /** Generates the field's value in the client every time a row is updated, with a call from `gen`, such as `gen.now()`. */
-  onUpdate(call: GeneratorCall): ScalarFieldBuilder<State> {
+  onUpdate(call: GeneratorFunctionCall): ScalarFieldBuilder<State> {
     return new ScalarFieldBuilder(withGeneratorCall(this.state, 'onUpdate', call));
   }
 

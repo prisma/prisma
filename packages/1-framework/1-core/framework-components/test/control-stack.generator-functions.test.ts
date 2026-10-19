@@ -45,16 +45,40 @@ describe('createControlStack generator functions', () => {
   it('exposes the generator functions its components contribute', () => {
     const stack = stackWith(['slugid']);
     expect(
-      stack.generatorFunctions.resolve({
-        name: 'slugid',
-        args: {},
-        field: { codecId: 'text@1', typeParams: undefined },
-      }),
+      stack.generatorFunctions.resolve(
+        { name: 'slugid', args: {} },
+        { codecId: 'text@1', typeParams: undefined },
+      ),
     ).toEqual({ ok: true, generator: { kind: 'generator', id: 'slugid' } });
   });
 
   it('refuses a binding that produces a generator no component registers', () => {
     expect(() => stackWith(['uuidv4'])).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Generator function "slugid" from "slugid-pack" produces generator "slugid", which no generator descriptor in the stack registers.',
+      }),
+    );
+  });
+
+  it('checks the registered generators in a stack with no adapter', () => {
+    expect(() =>
+      createControlStack(
+        stubInput({
+          family: { kind: 'family', id: 'family', version: '0.0.1' },
+          target: { kind: 'target', id: 'target', version: '0.0.1' },
+          extensions: [
+            {
+              kind: 'extension',
+              id: 'slugid-pack',
+              version: '0.0.1',
+              generatorFunctions: [slugid],
+            },
+          ],
+        }),
+      ),
+    ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
         message:

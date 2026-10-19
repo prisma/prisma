@@ -163,11 +163,11 @@ example temporal.exampleField() @default("other")
   });
 
   it.each([
-    ['generatedField', 'onCreate', 'on create'],
-    ['updateOnlyField', 'onUpdate', 'on update'],
+    { phase: 'onCreate', preset: 'generatedField', phaseText: 'on create' },
+    { phase: 'onUpdate', preset: 'updateOnlyField', phaseText: 'on update' },
   ])(
-    'rejects @%s on a preset that generates a value for that phase',
-    (preset, phase, phaseText) => {
+    'rejects @$phase on a preset that generates a value for that phase',
+    ({ preset, phase, phaseText }) => {
       const result = interpretPostgresSchema(
         `model Bad {
 id Int @id

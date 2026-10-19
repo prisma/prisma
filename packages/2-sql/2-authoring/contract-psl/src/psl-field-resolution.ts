@@ -7,11 +7,11 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type { CapabilityMatrix } from '@internal/framework-components/components';
 import type {
-  ControlMutationDefaultRegistry,
+  CapabilityMatrix,
   GeneratorFunctionRegistry,
-} from '@internal/framework-components/control';
+} from '@internal/framework-components/components';
+import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type {
   Binder,
   BlockSymbol,

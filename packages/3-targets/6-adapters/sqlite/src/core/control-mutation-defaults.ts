@@ -1,10 +1,7 @@
 import type {
   ControlMutationDefaultEntry,
   LoweredDefaultResult,
-  MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
-import { timestampNowControlDescriptor } from '@internal/framework-components/control';
-import { builtinGeneratorRegistryMetadata } from '@internal/ids';
 import type { FuncCallSig } from '@internal/psl-parser';
 
 function databaseFunction(expression: string): LoweredDefaultResult {
@@ -40,8 +37,4 @@ export function createSqliteDefaultFunctionRegistry(): ReadonlyMap<
   ControlMutationDefaultEntry
 > {
   return new Map(sqliteDefaultFunctionRegistryEntries);
-}
-
-export function createSqliteMutationDefaultGeneratorDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
-  return [...builtinGeneratorRegistryMetadata, timestampNowControlDescriptor()];
 }

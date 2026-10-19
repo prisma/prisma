@@ -28,11 +28,16 @@ export const interpretPostgresSchema = (
     | 'capabilities'
     | 'dataTypes'
     | 'codecLookup'
+    | 'generatorFunctions'
   > &
     Partial<
       Pick<
         InterpretPslDocumentToSqlContractInput,
-        'composedExtensionContracts' | 'scalarColumnDescriptors' | 'dataTypes' | 'codecLookup'
+        | 'composedExtensionContracts'
+        | 'scalarColumnDescriptors'
+        | 'dataTypes'
+        | 'codecLookup'
+        | 'generatorFunctions'
       >
     >,
 ) => {

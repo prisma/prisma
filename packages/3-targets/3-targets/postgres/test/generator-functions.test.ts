@@ -1,15 +1,12 @@
 import sqlFamilyPack from '@internal/family-sql/pack';
-import { assembleGeneratorFunctions } from '@internal/framework-components/control';
+import { assembleGeneratorFunctions } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
-import { postgresGeneratorFunctions } from '../src/core/generator-functions';
+import postgresPack from '../src/exports/pack';
 
-const registry = assembleGeneratorFunctions([
-  { id: 'sql', generatorFunctions: sqlFamilyPack.generatorFunctions },
-  { id: 'postgres', generatorFunctions: postgresGeneratorFunctions },
-]);
+const registry = assembleGeneratorFunctions([sqlFamilyPack, postgresPack]);
 
 function resolve(name: string, codecId: string, typeParams?: Record<string, unknown>, args = {}) {
-  return registry.resolve({ name, args, field: { codecId, typeParams } });
+  return registry.resolve({ name, args }, { codecId, typeParams });
 }
 
 describe('the Postgres generator functions', () => {
@@ -51,9 +48,9 @@ describe('the Postgres generator functions', () => {
     const call = registry.callFor(generator, column);
     expect({
       call,
-      readBack: call && registry.resolve({ name: call.name, args: call.args, field: column }),
+      readBack: call && registry.resolve(call.call, column),
     }).toEqual({
-      call: { name: 'now', args: {}, text: '' },
+      call: { call: { name: 'now', args: {} }, text: 'now()' },
       readBack: { ok: true, generator },
     });
   });

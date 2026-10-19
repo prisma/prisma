@@ -34,11 +34,8 @@ import {
   isAuthoringTypeConstructorDescriptor,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import {
-  type ControlMutationDefaultRegistry,
-  EMPTY_GENERATOR_FUNCTIONS,
-  type GeneratorFunctionRegistry,
-} from '@internal/framework-components/control';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
+import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
@@ -124,7 +121,7 @@ export interface InterpretPslDocumentToMongoContractInput {
   readonly scalarTypeCodecIds: ReadonlyMap<string, string>;
   readonly defaultFunctionRegistry: ControlMutationDefaultRegistry;
   /** The stack's generator functions, which `@onCreate(fn())` and `@onUpdate(fn())` resolve through. */
-  readonly generatorFunctions?: GeneratorFunctionRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   readonly dataTypes: DataTypeSupport;
   readonly codecLookup: CodecLookupWithDescriptors;
   readonly seedDiagnostics?: readonly ContractSourceDiagnostic[];
@@ -1172,8 +1169,16 @@ function lowerGeneratorAttributes(input: {
     onUpdate?: ExecutionMutationDefaultValue;
   } = {};
   for (const phase of GENERATOR_PHASES) {
-    const attribute = field.attributes.find((candidate) => candidate.name === phase);
+    const [attribute, duplicate] = field.attributes.filter(({ name }) => name === phase);
     if (attribute === undefined) continue;
+    if (duplicate !== undefined) {
+      diagnostics.push({
+        code: 'PSL_DUPLICATE_ATTRIBUTE',
+        message: `\`@${phase}\` declared more than once on field "${modelName}.${field.name}".`,
+        ...diagnosticSource(input.sources, field.node.syntax).at(duplicate.span),
+      });
+      return 'invalid';
+    }
     const at = diagnosticSource(input.sources, field.node.syntax).at(attribute.span);
     const argument = attribute.args.find((arg) => arg.kind === 'positional')?.value.trim() ?? '';
     if (field.list) {
@@ -1186,7 +1191,7 @@ function lowerGeneratorAttributes(input: {
     }
     if (field.optional) {
       diagnostics.push({
-        code: 'PSL_GENERATOR_NOT_APPLICABLE',
+        code: 'PSL_OPTIONAL_EXECUTION_DEFAULT_UNSUPPORTED',
         message: `${fieldLabel} is optional, and a generated value needs a required field in MongoDB. Remove "?" or remove @${phase}(...).`,
         ...at,
       });
@@ -1216,11 +1221,10 @@ function lowerGeneratorAttributes(input: {
     const call = interpreted.value;
     const resolution =
       type.kind === 'scalar'
-        ? input.generatorFunctions.resolve({
-            name: call.fn,
-            args: call.args,
-            field: { codecId: type.codecId, typeParams: type.typeParams },
-          })
+        ? input.generatorFunctions.resolve(
+            { name: call.fn, args: call.args },
+            { codecId: type.codecId, typeParams: type.typeParams },
+          )
         : undefined;
     if (resolution?.ok === true) {
       phases[phase] = resolution.generator;
@@ -1456,7 +1460,7 @@ export function interpretPslDocumentToMongoContract(
   });
   const allModels: ModelSymbol[] = Object.values(defaultNamespace.models);
   const allCompositeTypes: CompositeTypeSymbol[] = Object.values(defaultNamespace.compositeTypes);
-  const generatorFunctions = input.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS;
+  const { generatorFunctions } = input;
   const specContextFor = (model: ModelSymbol): AttributeSpecContext => ({
     symbols: symbolTable,
     model,

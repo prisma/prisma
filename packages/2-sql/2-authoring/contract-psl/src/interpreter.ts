@@ -34,13 +34,12 @@ import type { CodecLookupWithDescriptors } from '@internal/framework-components/
 import type {
   CapabilityMatrix,
   ExtensionPackRef,
+  GeneratorFunctionRegistry,
   TargetPackRef,
 } from '@internal/framework-components/components';
-import {
-  type ControlMutationDefaultRegistry,
-  type ControlMutationDefaults,
-  EMPTY_GENERATOR_FUNCTIONS,
-  type GeneratorFunctionRegistry,
+import type {
+  ControlMutationDefaultRegistry,
+  ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import type { Binder } from '@internal/psl-parser';
@@ -172,7 +171,7 @@ export interface InterpretPslDocumentToSqlContractInput {
   readonly composedExtensionPackRefs?: readonly ExtensionPackRef<'sql', string>[];
   readonly controlMutationDefaults?: ControlMutationDefaults;
   /** The stack's generator functions, which `@onCreate(fn())` and `@onUpdate(fn())` resolve through. */
-  readonly generatorFunctions?: GeneratorFunctionRegistry;
+  readonly generatorFunctions: GeneratorFunctionRegistry;
   /** The stack's data types with their authoring entries. ADR 254. */
   readonly dataTypes: DataTypeSupport;
   readonly authoringContributions?: AuthoringContributions;
@@ -2054,7 +2053,7 @@ export function interpretPslDocumentToSqlContract(
   const { binder, dataTypes } = input;
   const defaultFunctionRegistry: ControlMutationDefaultRegistry =
     input.controlMutationDefaults?.defaultFunctionRegistry ?? new Map();
-  const generatorFunctions = input.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS;
+  const { generatorFunctions } = input;
   const specContextFor = (model: ModelSymbol) =>
     modelSpecContext({
       symbols: input.symbolTable,

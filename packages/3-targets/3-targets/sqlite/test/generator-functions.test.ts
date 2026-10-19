@@ -1,15 +1,12 @@
 import sqlFamilyPack from '@internal/family-sql/pack';
-import { assembleGeneratorFunctions } from '@internal/framework-components/control';
+import { assembleGeneratorFunctions } from '@internal/framework-components/components';
 import { describe, expect, it } from 'vitest';
-import { sqliteGeneratorFunctions } from '../src/core/generator-functions';
+import sqlitePack from '../src/exports/pack';
 
-const registry = assembleGeneratorFunctions([
-  { id: 'sql', generatorFunctions: sqlFamilyPack.generatorFunctions },
-  { id: 'sqlite', generatorFunctions: sqliteGeneratorFunctions },
-]);
+const registry = assembleGeneratorFunctions([sqlFamilyPack, sqlitePack]);
 
 function resolve(name: string, codecId: string, args: Record<string, unknown> = {}) {
-  return registry.resolve({ name, args, field: { codecId, typeParams: undefined } });
+  return registry.resolve({ name, args }, { codecId, typeParams: undefined });
 }
 
 describe('the SQLite generator functions', () => {

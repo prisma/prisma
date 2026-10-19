@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * A GIN index over `to_tsvector(...)` reaches the planner as a `PostgresCreateIndex` carrying the access method and the expression — whether it came from `@@fullTextIndex`, whose search document is rendered from the weight groups in its options, or from a hand-written `@@index(expression:)`. A change to the weight groups or language is a different index, which the planner drops and creates again; a change to the name prefix alone is a rename. The SQL bytes are asserted beside the renderer in the adapter package.
  */
@@ -108,6 +109,7 @@ function authoredContract(schema: string): Contract<SqlStorage> {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: postgresDataTypeSupport,
       resolvedInputs: [],
       capabilities: {},

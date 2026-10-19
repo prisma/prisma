@@ -3,11 +3,10 @@ import type {
   AuthoringPslBlockDescriptorNamespace,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import {
-  type ControlMutationDefaultRegistry,
-  type ControlMutationDefaults,
-  EMPTY_GENERATOR_FUNCTIONS,
-  type GeneratorFunctionRegistry,
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
+import type {
+  ControlMutationDefaultRegistry,
+  ControlMutationDefaults,
 } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import { blindCast } from '@internal/utils/casts';
@@ -337,7 +336,7 @@ export function createBinder(input: CreateBinderInput): BinderResult {
     attributeSpecs: assembleAttributeSpecs(contributions),
     pslBlockDescriptors: contributions.pslBlockDescriptors,
     defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
-    generatorFunctions: context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
+    generatorFunctions: context.generatorFunctions,
     dataTypes: context.dataTypes,
     ...(describeUnsupportedAttributeFactory !== undefined
       ? { describeUnsupportedAttribute: describeUnsupportedAttributeFactory(sources) }

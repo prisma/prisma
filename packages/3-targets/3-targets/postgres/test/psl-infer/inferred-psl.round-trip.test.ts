@@ -1,3 +1,4 @@
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 /**
  * What `contract infer` prints, `contract emit` reads back to the value the database reported.
  *
@@ -117,6 +118,7 @@ async function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: {
         entries: assembled.dataTypes,
         lookup: createDataTypeLookup(postgresDataTypes),

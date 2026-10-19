@@ -8,6 +8,10 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
+import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
 
 import {
   assembleAuthoringContributions,
@@ -283,6 +287,7 @@ function completeWithSource(input: {
   readonly clientSupportsTriggerSuggestCommand?: boolean;
   readonly clientSupportsTriggerParameterHintsCommand?: boolean;
   readonly scalarTypes?: readonly string[];
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
 }) {
   const cursorOffset = input.markedSource.indexOf('|');
   expect(cursorOffset).toBeGreaterThanOrEqual(0);
@@ -324,6 +329,7 @@ function completeWithSource(input: {
           ? {}
           : { controlMutationDefaults: input.controlMutationDefaults }),
         ...(input.dataTypes === undefined ? {} : { dataTypes: input.dataTypes }),
+        generatorFunctions: input.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
       },
       clientSupportsSnippets: input.clientSupportsSnippets === true,
       clientSupportsTriggerSuggestCommand: input.clientSupportsTriggerSuggestCommand === true,
@@ -982,6 +988,7 @@ namespace app {
         }),
         authoringContributions: observedAuthoringContributions,
         controlMutationDefaults,
+        generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       },
       clientSupportsSnippets: true,
     });

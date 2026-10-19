@@ -28,10 +28,8 @@ import {
   type ParsedPslExtensionBlock,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
-import type {
-  AssembledAuthoringContributions,
-  GeneratorFunctionRegistry,
-} from '@internal/framework-components/control';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
+import type { AssembledAuthoringContributions } from '@internal/framework-components/control';
 import {
   buildMongoStorage,
   type MongoCollectionInput,
@@ -1116,11 +1114,10 @@ function dateTimeNowGenerator(
   generatorFunctions: GeneratorFunctionRegistry,
   codecId: string,
 ): ExecutionMutationDefaultValue {
-  const now = generatorFunctions.resolve({
-    name: 'now',
-    args: {},
-    field: { codecId, typeParams: undefined },
-  });
+  const now = generatorFunctions.resolve(
+    { name: 'now', args: {} },
+    { codecId, typeParams: undefined },
+  );
   if (!now.ok) {
     throw new InternalError(
       `The stack binds no "now" generator function to codec "${codecId}", which the DateTime scalar maps to.`,

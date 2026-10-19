@@ -183,22 +183,6 @@ export type {
 } from '../control/verifier-disposition';
 export { dispositionForCategory } from '../control/verifier-disposition';
 export type {
-  GeneratorFunctionBinding,
-  GeneratorFunctionCall,
-  GeneratorFunctionCallText,
-  GeneratorFunctionContribution,
-  GeneratorFunctionField,
-  GeneratorFunctionRegistry,
-  GeneratorFunctionResolution,
-  GeneratorFunctionSummary,
-  GeneratorResolution,
-} from '../shared/generator-functions';
-export {
-  assembleGeneratorFunctions,
-  EMPTY_GENERATOR_FUNCTIONS,
-  singleGeneratorBinding,
-} from '../shared/generator-functions';
-export type {
   AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,
   ControlMutationDefaultRegistry,

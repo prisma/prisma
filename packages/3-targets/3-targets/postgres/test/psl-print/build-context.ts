@@ -12,12 +12,12 @@ import {
 import {
   assembleGeneratorFunctions,
   type GeneratorFunctionContribution,
-} from '@internal/framework-components/control';
+} from '@internal/framework-components/components';
 import { postgresAuthoringFieldPresets, postgresAuthoringTypes } from '../../src/core/authoring';
 import { type AnyPostgresCodecDescriptor, postgresCodec } from '../../src/core/codec-descriptor';
 import { postgresDataTypeEntries } from '../../src/core/data-type-entries';
 import { pgText, postgresDataTypes } from '../../src/core/data-types';
-import { postgresGeneratorFunctions } from '../../src/core/generator-functions';
+import { postgresTargetDescriptorMeta } from '../../src/core/descriptor-meta';
 import { postgresCodecDescriptorRegistry } from '../../src/core/registry';
 import { postgresPslTypeConstructors } from '../../src/core/type-constructors';
 
@@ -72,9 +72,17 @@ export function testBuildContext(
       field,
     },
     generatorFunctions: assembleGeneratorFunctions([
-      { id: 'sql', generatorFunctions: sqlFamilyPack.generatorFunctions },
-      { id: 'postgres', generatorFunctions: postgresGeneratorFunctions },
-      { id: 'extension', generatorFunctions: extra.generatorFunctions ?? [] },
+      sqlFamilyPack,
+      postgresTargetDescriptorMeta,
+      {
+        id: 'extension',
+        generatorFunctions: extra.generatorFunctions ?? [],
+        controlMutationDefaults: {
+          generatorDescriptors: (extra.generatorFunctions ?? [])
+            .flatMap(({ bindings }) => bindings.flatMap(({ generatorIds }) => generatorIds))
+            .map((id) => ({ id })),
+        },
+      },
     ]),
     componentIdsByGenerator: extra.componentIdsByGenerator ?? new Map(),
     codecLookup: {

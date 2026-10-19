@@ -2,7 +2,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
 import type { Contract } from '@internal/contract/types';
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { join } from 'pathe';
 import { afterEach, describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../../1-core/contract/test/test-support';

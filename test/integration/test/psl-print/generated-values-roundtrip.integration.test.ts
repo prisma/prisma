@@ -9,6 +9,7 @@ import {
   composePostgresStack,
   type PostgresStack,
   printAndReadBack,
+  printContract,
   readPsl,
   serializedWithoutCapabilities,
 } from './print-and-read-back';
@@ -118,6 +119,58 @@ describe('every generated value the stack reads prints as PSL that reads back', 
         'value String @onCreate(slugid())',
         composePostgresStack([...slugidExtensions]),
       );
+    },
+    timeouts.pslRoundTrip,
+  );
+
+  it(
+    'the generated columns of the slice example, on VarChar(32) and Time(3) among them',
+    async () => {
+      const authored = await readPsl(`// use prisma-8
+model Event {
+  id        String      @id @onCreate(uuid(7))
+  code      VarChar(32) @onCreate(nanoid())
+  seenAt    Time(3)     @onUpdate(now())
+  createdAt DateTime    @default(now()) @onCreate(now())
+}
+`);
+      const fieldLines = printContract(authored)
+        .text.split('\n')
+        .map((line) => line.trim().replace(/\s+/g, ' '))
+        .filter((line) => /^(id|code|seenAt|createdAt) /.test(line));
+      const printed = await printAndReadBack(authored);
+
+      expect({
+        defaults: authored.execution?.mutations.defaults,
+        fieldLines,
+        roundTrip: serializedWithoutCapabilities(printed),
+      }).toEqual({
+        defaults: [
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'code' },
+            onCreate: { kind: 'generator', id: 'nanoid' },
+          },
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'createdAt' },
+            onCreate: { kind: 'generator', id: 'instantNow' },
+          },
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'id' },
+            onCreate: { kind: 'generator', id: 'uuidv7' },
+          },
+          {
+            ref: { namespace: 'public', entry: 'Event', field: 'seenAt' },
+            onUpdate: { kind: 'generator', id: 'plainTimeNow', params: { precision: 3 } },
+          },
+        ],
+        fieldLines: [
+          'id String @id @onCreate(uuid(7))',
+          'code VarChar(32) @onCreate(nanoid())',
+          'seenAt Time(3) @onUpdate(now())',
+          'createdAt DateTime @default(now()) @onCreate(now())',
+        ],
+        roundTrip: serializedWithoutCapabilities(authored),
+      });
     },
     timeouts.pslRoundTrip,
   );

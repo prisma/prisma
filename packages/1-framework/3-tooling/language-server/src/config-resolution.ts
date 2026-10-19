@@ -1,5 +1,6 @@
 import type { ContractSourceContext, PslParserOptions } from '@internal/config/config-types';
 import { loadConfig, type PrismaNextConfig, requireConfigSections } from '@internal/config-loader';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type { ControlStack } from '@internal/framework-components/control';
 import { createControlStack } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -34,6 +35,7 @@ const emptyLspControlStack: LspControlStack = {
   scalarTypes: [],
   defaultNamespaceId: UNBOUND_NAMESPACE_ID,
   pslBlockDescriptors: {},
+  generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
 };
 
 export async function resolveConfigInputs(

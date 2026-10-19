@@ -4,10 +4,7 @@ import { assemblePostgresCodecRegistry } from '@internal/target-postgres/codecs'
 import { postgresPslTypeConstructors } from '@internal/target-postgres/control';
 import { escapeLiteral, qualifyName, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import { PostgresControlAdapter } from '../core/control-adapter';
-import {
-  createPostgresDefaultFunctionRegistry,
-  createPostgresMutationDefaultGeneratorDescriptors,
-} from '../core/control-mutation-defaults';
+import { createPostgresDefaultFunctionRegistry } from '../core/control-mutation-defaults';
 import { postgresAdapterDescriptorMeta } from '../core/descriptor-meta';
 
 const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
@@ -18,7 +15,7 @@ const postgresAdapterDescriptor: SqlControlAdapterDescriptor<'postgres'> = {
   },
   controlMutationDefaults: {
     defaultFunctionRegistry: createPostgresDefaultFunctionRegistry(),
-    generatorDescriptors: createPostgresMutationDefaultGeneratorDescriptors(),
+    generatorDescriptors: [],
   },
   create(stack): SqlControlAdapter<'postgres'> {
     const components = [

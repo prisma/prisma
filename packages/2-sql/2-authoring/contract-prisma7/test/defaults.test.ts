@@ -295,7 +295,7 @@ describe('Json, Decimal, BigInt and Float literal defaults', () => {
   });
 });
 
-describe('client functions on VarChar columns', () => {
+describe('client functions on VarChar and Char columns', () => {
   it('resolve through the generator function the column codec binds', () => {
     const contract = interpretSchemaText(`datasource db {
   provider = "postgresql"
@@ -304,9 +304,14 @@ describe('client functions on VarChar columns', () => {
 model Account {
   id    String @id @db.VarChar(36) @default(uuid())
   token String @db.VarChar(191) @default(nanoid())
+  code  String @db.Char(36) @default(nanoid())
 }
 `);
     expect(contract.execution?.mutations.defaults).toEqual([
+      {
+        ref: { namespace: 'public', entry: 'Account', field: 'code' },
+        onCreate: { kind: 'generator', id: 'nanoid' },
+      },
       {
         ref: { namespace: 'public', entry: 'Account', field: 'id' },
         onCreate: { kind: 'generator', id: 'uuidv4' },

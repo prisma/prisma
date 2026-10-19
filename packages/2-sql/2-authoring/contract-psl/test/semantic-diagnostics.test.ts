@@ -1,4 +1,4 @@
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { buildSymbolTable, createBinder } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { expect, it, vi } from 'vitest';

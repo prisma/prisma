@@ -42,20 +42,22 @@ import type {
   AuthoringArgumentDescriptor,
   AuthoringFieldNamespace,
   AuthoringFieldPresetDescriptor,
-  GeneratorCall,
-  GeneratorFunctionRegistry,
 } from '@internal/framework-components/authoring';
 import {
-  assembleGeneratorFunctions,
   assertNoCrossRegistryCollisions,
   instantiateAuthoringFieldPreset,
   validateAuthoringHelperArguments,
 } from '@internal/framework-components/authoring';
 import { assembleDataTypes } from '@internal/framework-components/codec';
-import type {
-  ExtensionPackRef,
-  FamilyPackRef,
-  TargetPackRef,
+import {
+  assembleGeneratorFunctions,
+  createGeneratorHelpers,
+  type ExtensionPackRef,
+  type FamilyPackRef,
+  type GeneratorFunctionCall,
+  type GeneratorFunctionRegistry,
+  type GeneratorHelpersOf,
+  type TargetPackRef,
 } from '@internal/framework-components/components';
 import { extractCodecLookup } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
@@ -244,11 +246,11 @@ export interface FieldBuilder<
   readonly __generatorCalls?: FieldGeneratorCalls;
   /** Generates the field's value in the client when a document is created without one, with a call from `gen`, such as `gen.now()`. */
   onCreate(
-    call: GeneratorCall,
+    call: GeneratorFunctionCall,
   ): FieldBuilder<Type, Nullable, Many, Handle, WithGeneratedPhase<ExecutionDefaults, 'onCreate'>>;
   /** Generates the field's value in the client every time a document is updated, with a call from `gen`, such as `gen.now()`. */
   onUpdate(
-    call: GeneratorCall,
+    call: GeneratorFunctionCall,
   ): FieldBuilder<Type, Nullable, Many, Handle, WithGeneratedPhase<ExecutionDefaults, 'onUpdate'>>;
   readonly optional: FilledOnWrite<ExecutionDefaults> extends true
     ? (this: 'A preset fills this field on write, so it cannot be optional') => never
@@ -285,8 +287,8 @@ export interface FieldBuilder<
 }
 
 type FieldGeneratorCalls = {
-  readonly onCreate?: GeneratorCall;
-  readonly onUpdate?: GeneratorCall;
+  readonly onCreate?: GeneratorFunctionCall;
+  readonly onUpdate?: GeneratorFunctionCall;
 };
 
 type GeneratorPhase = keyof FieldGeneratorCalls;
@@ -1063,10 +1065,14 @@ export type ContractAuthoringHelpers<
   readonly model: typeof model;
   readonly rel: typeof rel;
   readonly valueObject: typeof valueObject;
+  readonly gen: GeneratorHelpersOf<Family | Target | ExtensionPackValues<Extensions>>;
 };
+
+type ExtensionPackValues<Extensions> = Extensions extends Record<string, infer Pack> ? Pack : never;
 
 const MONGO_RESERVED_HELPER_KEYS: readonly string[] = [
   'field',
+  'gen',
   'index',
   'model',
   'rel',
@@ -1170,6 +1176,7 @@ function composeMongoAuthoringHelpers<
       },
     }),
     field: composeMongoFieldHelpers(fieldNamespace),
+    gen: createGeneratorHelpers(components),
     index,
     model,
     rel,
@@ -1264,7 +1271,10 @@ function createFieldBuilder<
     );
   }
 
-  function withGeneratorCall<Phase extends GeneratorPhase>(phase: Phase, call: GeneratorCall) {
+  function withGeneratorCall<Phase extends GeneratorPhase>(
+    phase: Phase,
+    call: GeneratorFunctionCall,
+  ) {
     if (generatorCalls?.[phase] !== undefined || executionDefaults?.[phase] !== undefined) {
       throw contractError(
         'CONTRACT.DEFAULT_INVALID',
@@ -2459,11 +2469,7 @@ function executionDefaultsOf(
     if (call === undefined) continue;
     const resolution =
       type.kind === 'scalar'
-        ? generatorFunctions.resolve({
-            name: call.name,
-            args: call.args,
-            field: { codecId: type.codecId, typeParams: type.typeParams },
-          })
+        ? generatorFunctions.resolve(call, { codecId: type.codecId, typeParams: type.typeParams })
         : undefined;
     if (resolution?.ok === true) {
       phases[phase] = resolution.generator;

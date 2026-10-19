@@ -15,6 +15,13 @@ export type {
   DefaultMappingResult,
 } from '../core/psl-build/default-mapping';
 export { mapDefault } from '../core/psl-build/default-mapping';
+export type {
+  GeneratorCallRefusal,
+  GeneratorCallsResult,
+  GeneratorCallText,
+  GeneratorPhase,
+} from '../core/psl-build/generator-calls';
+export { generatorCallsFor } from '../core/psl-build/generator-calls';
 export {
   fewestArgumentsCall,
   type InferredTypeConstructor,

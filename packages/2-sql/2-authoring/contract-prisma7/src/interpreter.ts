@@ -13,10 +13,10 @@ import {
   instantiateAuthoringEntityType,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
 import type {
   AssembledAuthoringContributions,
   ControlMutationDefaults,
-  GeneratorFunctionRegistry,
 } from '@internal/framework-components/control';
 import type {
   BlockSymbol,
@@ -93,11 +93,10 @@ function nowGeneratorFor(
     readonly typeParams?: Readonly<Record<string, unknown>> | undefined;
   },
 ): ExecutionMutationDefaultValue | undefined {
-  const resolution = generatorFunctions.resolve({
-    name: 'now',
-    args: {},
-    field: { codecId: column.codecId, typeParams: column.typeParams },
-  });
+  const resolution = generatorFunctions.resolve(
+    { name: 'now', args: {} },
+    { codecId: column.codecId, typeParams: column.typeParams },
+  );
   return resolution.ok ? resolution.generator : undefined;
 }
 

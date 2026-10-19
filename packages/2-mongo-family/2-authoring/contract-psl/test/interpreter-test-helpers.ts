@@ -9,6 +9,10 @@ import type {
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
 import type { CodecLookupWithDescriptors } from '@internal/framework-components/codec';
+import {
+  EMPTY_GENERATOR_FUNCTIONS,
+  type GeneratorFunctionRegistry,
+} from '@internal/framework-components/components';
 import { mongoCodecLookup } from '@internal/mongo-contract/test';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
 import { bindPslSchema } from '@internal/psl-parser/test';
@@ -26,10 +30,17 @@ import { mongoDataTypeSupport } from './mongo-type-lookups';
 
 type InterpretOptionsWithDefaultLookups = Omit<
   InterpretPslDocumentToMongoContractInput,
-  'documents' | 'sources' | 'symbolTable' | 'binder' | 'codecLookup' | 'dataTypes'
+  | 'documents'
+  | 'sources'
+  | 'symbolTable'
+  | 'binder'
+  | 'codecLookup'
+  | 'dataTypes'
+  | 'generatorFunctions'
 > & {
   readonly codecLookup?: CodecLookupWithDescriptors;
   readonly dataTypes?: DataTypeSupport;
+  readonly generatorFunctions?: GeneratorFunctionRegistry;
 };
 
 function contextForInterpretOptions(
@@ -66,9 +77,7 @@ function contextForInterpretOptions(
       defaultFunctionRegistry: options.defaultFunctionRegistry,
       generatorDescriptors: [],
     },
-    ...(options.generatorFunctions === undefined
-      ? {}
-      : { generatorFunctions: options.generatorFunctions }),
+    generatorFunctions: options.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
     resolvedInputs: [],
     capabilities: {},
     ...(options.reportWarning ? { reportWarning: options.reportWarning } : {}),

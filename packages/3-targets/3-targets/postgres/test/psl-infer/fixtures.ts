@@ -5,7 +5,7 @@ import {
   inferredTypeConstructors,
 } from '@internal/family-sql/psl-build';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type { PslDocumentAst } from '@internal/framework-components/psl-ast';
 import { printPsl } from '@internal/psl-printer';
 import {

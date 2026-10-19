@@ -1,6 +1,7 @@
 import type { AuthoringTypeConstructorDescriptor } from '@internal/framework-components/authoring';
 import { createDataTypeLookup } from '@internal/framework-components/codec';
 import type { TargetPackRef } from '@internal/framework-components/components';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import { assembleAuthoringContributions } from '@internal/framework-components/control';
 import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { withSeedDiagnostics } from '@internal/psl-parser/interpret';
@@ -60,6 +61,7 @@ function emit(schema: string) {
       pslDiagnostics: { describeUnsupportedAttribute: describeUnsupportedSqlAttribute },
       codecLookup: postgresCodecLookup,
       controlMutationDefaults: { defaultFunctionRegistry: new Map(), generatorDescriptors: [] },
+      generatorFunctions: EMPTY_GENERATOR_FUNCTIONS,
       dataTypes: { entries: {}, lookup: postgresDataTypeLookup, dataTypeOfCodec: () => undefined },
       resolvedInputs: [],
       capabilities: { sql: { scalarList: true } },

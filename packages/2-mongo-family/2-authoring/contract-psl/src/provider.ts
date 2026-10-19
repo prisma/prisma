@@ -42,7 +42,7 @@ export function mongoContract(schemaPath: string, options?: MongoContractOptions
         seedDiagnostics: [],
         scalarTypeCodecIds: collectScalarTypeCodecIds(context.authoringContributions.type),
         defaultFunctionRegistry: context.controlMutationDefaults.defaultFunctionRegistry,
-        ...ifDefined('generatorFunctions', context.generatorFunctions),
+        generatorFunctions: context.generatorFunctions,
         dataTypes: context.dataTypes,
         codecLookup: context.codecLookup,
         authoringContributions: context.authoringContributions,

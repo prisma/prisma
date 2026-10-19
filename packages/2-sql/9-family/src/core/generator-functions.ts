@@ -1,24 +1,26 @@
 import type {
+  BindingResolution,
   GeneratorFunctionBinding,
   GeneratorFunctionContribution,
   GeneratorFunctionField,
-  GeneratorResolution,
-} from '@internal/framework-components/control';
-import { singleGeneratorBinding } from '@internal/framework-components/control';
+} from '@internal/framework-components/components';
+import { singleGeneratorBinding } from '@internal/framework-components/components';
 import type { FuncCallSig } from '@internal/psl-parser';
 import { int, num, oneOf, optional } from '@internal/psl-parser';
+import {
+  SQL_CHAR_CODEC_ID,
+  SQL_TEXT_CODEC_ID,
+  SQL_VARCHAR_CODEC_ID,
+} from '@internal/sql-relational-core/ast';
 
-const SQL_CHAR_CODEC_ID = 'sql/char@1';
-const SQL_VARCHAR_CODEC_ID = 'sql/varchar@1';
-const SQL_TEXT_CODEC_ID = 'sql/text@1';
 const NANOID_DEFAULT_SIZE = 21;
 const NANOID_MIN_SIZE = 2;
 const NANOID_MAX_SIZE = 255;
 
-const nowSignature: FuncCallSig = {
+const nowSignature = {
   documentation: "Writes the current time, as the column's codec represents it.",
-};
-const uuidSignature: FuncCallSig = {
+} as const satisfies FuncCallSig;
+const uuidSignature = {
   documentation: 'Generates a UUID when a value is not supplied.',
   positional: [
     {
@@ -27,36 +29,35 @@ const uuidSignature: FuncCallSig = {
       documentation: 'The UUID version: `4` or `7`. Defaults to `4`.',
     },
   ],
-};
-const cuidSignature: FuncCallSig = {
+} as const satisfies FuncCallSig;
+const cuidSignature = {
   documentation: 'Generates a CUID2 identifier when a value is not supplied.',
   positional: [
     { key: 'version', type: num(2), documentation: 'The CUID version. Only `2` is supported.' },
   ],
-};
-const ulidSignature: FuncCallSig = {
+} as const satisfies FuncCallSig;
+const ulidSignature = {
   documentation: 'Generates a ULID when a value is not supplied.',
-};
-const nanoidSignature: FuncCallSig = {
+} as const satisfies FuncCallSig;
+const nanoidSignature = {
   documentation: 'Generates a Nano ID when a value is not supplied.',
   positional: [
     {
       key: 'size',
       type: optional(int({ min: NANOID_MIN_SIZE, max: NANOID_MAX_SIZE })),
-      documentation:
-        "The identifier length, from `2` through `255`. Omit to use the column's length on a fixed-length column, or 21 otherwise.",
+      documentation: 'The identifier length, from `2` through `255`. Defaults to 21.',
     },
   ],
-};
-const ksuidSignature: FuncCallSig = {
+} as const satisfies FuncCallSig;
+const ksuidSignature = {
   documentation: 'Generates a KSUID when a value is not supplied.',
-};
+} as const satisfies FuncCallSig;
 
-function refused(message: string): GeneratorResolution {
+function refused(message: string): BindingResolution {
   return { ok: false, message };
 }
 
-function generated(id: string, params?: Readonly<Record<string, unknown>>): GeneratorResolution {
+function generated(id: string, params?: Readonly<Record<string, unknown>>): BindingResolution {
   return {
     ok: true,
     generator: params === undefined ? { kind: 'generator', id } : { kind: 'generator', id, params },
@@ -96,8 +97,8 @@ function cuidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
   };
 }
 
-function columnLength(column: GeneratorFunctionField): number | undefined {
-  const length = column.typeParams?.['length'];
+function columnLength(field: GeneratorFunctionField): number | undefined {
+  const length = field.typeParams?.['length'];
   return typeof length === 'number' ? length : undefined;
 }
 
@@ -110,65 +111,29 @@ function isNanoidSize(size: unknown): size is number {
   );
 }
 
-function nanoidSizeRefusal(size: unknown): GeneratorResolution {
-  return refused(
-    `nanoid takes a size from ${NANOID_MIN_SIZE} through ${NANOID_MAX_SIZE}, not ${String(size)}.`,
-  );
-}
-
-function nanoidGenerator(size: number, explicit: boolean): GeneratorResolution {
-  return explicit || size !== NANOID_DEFAULT_SIZE
-    ? generated('nanoid', { size })
-    : generated('nanoid');
-}
-
-function fixedLengthNanoidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
+/**
+ * A Nano ID has the size the call gives, or 21; the column's length never sets it. A size larger than the column's length is refused, since the identifier would not fit. A shorter identifier in a fixed-length column is padded by the database, as Prisma 7 does.
+ */
+function nanoidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
   return {
     codecIds,
     generatorIds: ['nanoid'],
-    resolve: ({ args, field: column }) => {
+    resolve: ({ args, field }) => {
       const explicit = args['size'];
-      const length = columnLength(column);
-      if (explicit !== undefined) {
-        if (!isNanoidSize(explicit)) return nanoidSizeRefusal(explicit);
-        if (length !== undefined && explicit !== length) {
-          return refused(
-            `nanoid(${explicit}) on a Char(${length}) column would be padded with spaces; write nanoid() or nanoid(${length}).`,
-          );
-        }
-        return nanoidGenerator(explicit, true);
+      if (explicit !== undefined && !isNanoidSize(explicit)) {
+        return refused(
+          `nanoid takes a size from ${NANOID_MIN_SIZE} through ${NANOID_MAX_SIZE}, not ${String(explicit)}.`,
+        );
       }
-      const size = length ?? NANOID_DEFAULT_SIZE;
-      return isNanoidSize(size) ? nanoidGenerator(size, false) : nanoidSizeRefusal(size);
-    },
-    printArguments: (generator, column) => {
-      if (generator.id !== 'nanoid') return undefined;
-      const size = generator.params?.['size'];
-      const length = columnLength(column);
-      if (typeof size === 'number' && (size !== length || size === NANOID_DEFAULT_SIZE)) {
-        return { args: { size }, text: String(size) };
-      }
-      return { args: {}, text: '' };
-    },
-  };
-}
-
-function variableLengthNanoidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
-  return {
-    codecIds,
-    generatorIds: ['nanoid'],
-    resolve: ({ args, field: column }) => {
-      const explicit = args['size'];
-      if (explicit !== undefined && !isNanoidSize(explicit)) return nanoidSizeRefusal(explicit);
       const size = explicit ?? NANOID_DEFAULT_SIZE;
-      const length = columnLength(column);
+      const length = columnLength(field);
       if (length !== undefined && size > length) {
         const call = explicit === undefined ? 'nanoid()' : `nanoid(${size})`;
         return refused(
-          `${call} writes ${size} characters, more than the VarChar(${length}) column holds.`,
+          `${call} writes ${size} characters, which does not fit a column of ${length} characters.`,
         );
       }
-      return nanoidGenerator(size, explicit !== undefined);
+      return explicit === undefined ? generated('nanoid') : generated('nanoid', { size });
     },
     printArguments: (generator) => {
       if (generator.id !== 'nanoid') return undefined;
@@ -180,33 +145,26 @@ function variableLengthNanoidBinding(codecIds: readonly string[]): GeneratorFunc
   };
 }
 
-/** The identifier generator functions bound to a target's text-like and uuid codecs. */
+/** The identifier generator functions bound to a target's text codecs, and `uuid` to its uuid codecs. */
 export function idGeneratorFunctionBindings(codecs: {
-  readonly fixedLength: readonly string[];
-  readonly variableLength: readonly string[];
+  readonly text: readonly string[];
   readonly uuid?: readonly string[];
 }): readonly GeneratorFunctionContribution[] {
-  const text = [...codecs.fixedLength, ...codecs.variableLength];
+  const { text } = codecs;
   return [
     { name: 'uuid', bindings: [uuidBinding([...text, ...(codecs.uuid ?? [])])] },
     { name: 'cuid', bindings: [cuidBinding(text)] },
     { name: 'ulid', bindings: [singleGeneratorBinding({ codecIds: text, generatorId: 'ulid' })] },
-    { name: 'ksuid', bindings: [singleGeneratorBinding({ codecIds: text, generatorId: 'ksuid' })] },
     {
-      name: 'nanoid',
-      bindings: [
-        ...(codecs.fixedLength.length > 0 ? [fixedLengthNanoidBinding(codecs.fixedLength)] : []),
-        ...(codecs.variableLength.length > 0
-          ? [variableLengthNanoidBinding(codecs.variableLength)]
-          : []),
-      ],
+      name: 'ksuid',
+      bindings: [singleGeneratorBinding({ codecIds: text, generatorId: 'ksuid' })],
     },
+    { name: 'nanoid', bindings: [nanoidBinding(text)] },
   ];
 }
 
 const familyIdBindings = idGeneratorFunctionBindings({
-  fixedLength: [SQL_CHAR_CODEC_ID],
-  variableLength: [SQL_VARCHAR_CODEC_ID, SQL_TEXT_CODEC_ID],
+  text: [SQL_CHAR_CODEC_ID, SQL_VARCHAR_CODEC_ID, SQL_TEXT_CODEC_ID],
 });
 
 function familyBindingsOf(name: string): readonly GeneratorFunctionBinding[] {
@@ -214,11 +172,11 @@ function familyBindingsOf(name: string): readonly GeneratorFunctionBinding[] {
 }
 
 /** The generator functions the SQL family declares, with their bindings to the family's codecs. Targets bind `now` and their own codecs. */
-export const sqlFamilyGeneratorFunctions: readonly GeneratorFunctionContribution[] = [
+export const sqlFamilyGeneratorFunctions = [
   { name: 'now', signature: nowSignature, bindings: [] },
   { name: 'uuid', signature: uuidSignature, bindings: familyBindingsOf('uuid') },
   { name: 'cuid', signature: cuidSignature, bindings: familyBindingsOf('cuid') },
   { name: 'ulid', signature: ulidSignature, bindings: familyBindingsOf('ulid') },
   { name: 'nanoid', signature: nanoidSignature, bindings: familyBindingsOf('nanoid') },
   { name: 'ksuid', signature: ksuidSignature, bindings: familyBindingsOf('ksuid') },
-];
+] as const satisfies readonly GeneratorFunctionContribution[];

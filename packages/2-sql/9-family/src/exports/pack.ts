@@ -5,6 +5,8 @@ import { sqlFamilyAuthoringFieldPresets } from '../core/authoring-field-presets'
 import { sqlFamilyAuthoringTypes } from '../core/authoring-type-constructors';
 import { sqlFamilyGeneratorFunctions } from '../core/generator-functions';
 
+export { idGeneratorFunctionBindings } from '../core/generator-functions';
+
 const sqlFamilyPack = {
   kind: 'family',
   id: 'sql',

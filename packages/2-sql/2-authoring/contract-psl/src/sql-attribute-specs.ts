@@ -2,10 +2,8 @@ import type {
   AuthoringModelAttributeDescriptor,
   DataTypeSupport,
 } from '@internal/framework-components/authoring';
-import type {
-  ControlMutationDefaultRegistry,
-  GeneratorFunctionRegistry,
-} from '@internal/framework-components/control';
+import type { GeneratorFunctionRegistry } from '@internal/framework-components/components';
+import type { ControlMutationDefaultRegistry } from '@internal/framework-components/control';
 import type { ContributedPslDiagnosticCode } from '@internal/framework-components/psl-ast';
 import type {
   ArgType,

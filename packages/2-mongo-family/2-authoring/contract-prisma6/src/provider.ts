@@ -3,7 +3,6 @@ import type { ContractConfig, ContractSourceDiagnostic } from '@internal/config/
 import { applySpecifierDefaultControlPolicy } from '@internal/contract/apply-specifier-default-control-policy';
 import type { Contract, ControlPolicy } from '@internal/contract/types';
 import { validateContractDomain } from '@internal/contract/validate-domain';
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
 import { type MongoContract, validateMongoStorage } from '@internal/mongo-contract';
 import type { ParseDiagnostic, SourceFile } from '@internal/psl-parser/syntax';
 import { parse } from '@internal/psl-parser/syntax';
@@ -142,7 +141,7 @@ export function prisma6Contract(
             documents,
             seedDiagnostics,
             binding: options.binding,
-            generatorFunctions: context.generatorFunctions ?? EMPTY_GENERATOR_FUNCTIONS,
+            generatorFunctions: context.generatorFunctions,
             authoringContributions: context.authoringContributions,
             codecLookup: context.codecLookup,
             dataTypes: context.dataTypes,

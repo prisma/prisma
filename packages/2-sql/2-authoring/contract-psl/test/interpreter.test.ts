@@ -2,7 +2,7 @@ import { crossRef } from '@internal/contract/types';
 import {
   assembleGeneratorFunctions,
   singleGeneratorBinding,
-} from '@internal/framework-components/control';
+} from '@internal/framework-components/components';
 import { defineIndexTypes } from '@internal/sql-contract/index-types';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
@@ -46,8 +46,14 @@ describe('interpretPslDocumentToSqlContract', () => {
       | 'capabilities'
       | 'dataTypes'
       | 'codecLookup'
+      | 'generatorFunctions'
     > &
-      Partial<Pick<InterpretPslDocumentToSqlContractInput, 'composedExtensionContracts'>>,
+      Partial<
+        Pick<
+          InterpretPslDocumentToSqlContractInput,
+          'composedExtensionContracts' | 'generatorFunctions'
+        >
+      >,
   ) =>
     interpretSqlContract(schema, {
       target: postgresTarget,
@@ -187,6 +193,7 @@ describe('interpretPslDocumentToSqlContract', () => {
                 ],
               },
             ],
+            controlMutationDefaults: { generatorDescriptors: [{ id: 'slugid' }] },
           },
         ]),
         createNamespace: createTestSqlNamespace,

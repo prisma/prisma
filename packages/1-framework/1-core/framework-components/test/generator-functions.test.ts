@@ -17,11 +17,25 @@ function fixedBinding(codecIds: readonly string[], generatorId: string): Generat
   };
 }
 
-function component(id: string, generatorFunctions: readonly GeneratorFunctionContribution[]) {
-  return { id, generatorFunctions };
+function component(
+  id: string,
+  generatorFunctions: readonly GeneratorFunctionContribution[],
+  generatorIds: readonly string[] = [],
+) {
+  return {
+    id,
+    generatorFunctions,
+    controlMutationDefaults: {
+      defaultFunctionRegistry: new Map(),
+      generatorDescriptors: generatorIds.map((generatorId) => ({ id: generatorId })),
+    },
+  };
 }
 
-const textColumn = { codecId: 'text@1', typeParams: undefined };
+const registers = (...generatorIds: string[]) => component('runtime', [], generatorIds);
+
+const textField = { codecId: 'text@1', typeParams: undefined };
+const call = (name: string, args: Record<string, unknown> = {}) => ({ name, args });
 
 describe('assembleGeneratorFunctions', () => {
   it('merges bindings that two components contribute for one function', () => {
@@ -34,15 +48,12 @@ describe('assembleGeneratorFunctions', () => {
         },
       ]),
       component('target', [{ name: 'uuid', bindings: [fixedBinding(['text@1'], 'uuidv4')] }]),
+      registers('uuidv4'),
     ]);
 
     expect({
-      text: registry.resolve({ name: 'uuid', args: {}, field: textColumn }),
-      char: registry.resolve({
-        name: 'uuid',
-        args: {},
-        field: { codecId: 'char@1', typeParams: undefined },
-      }),
+      text: registry.resolve(call('uuid'), textField),
+      char: registry.resolve(call('uuid'), { codecId: 'char@1', typeParams: undefined }),
     }).toEqual({
       text: { ok: true, generator: { kind: 'generator', id: 'uuidv4' } },
       char: { ok: true, generator: { kind: 'generator', id: 'uuidv4' } },
@@ -63,6 +74,7 @@ describe('assembleGeneratorFunctions', () => {
           bindings: [fixedBinding(['date@1'], 'dateNow')],
         },
       ]),
+      registers('uuidv4', 'dateNow'),
     ]);
 
     expect({
@@ -81,21 +93,14 @@ describe('assembleGeneratorFunctions', () => {
   it('reports an unknown function and a function not bound to the codec', () => {
     const registry = assembleGeneratorFunctions([
       component('family', [
-        {
-          name: 'uuid',
-          signature: {},
-          bindings: [fixedBinding(['text@1', 'char@1'], 'uuidv4')],
-        },
+        { name: 'uuid', signature: {}, bindings: [fixedBinding(['text@1', 'char@1'], 'uuidv4')] },
       ]),
+      registers('uuidv4'),
     ]);
 
     expect({
-      unknown: registry.resolve({ name: 'foo', args: {}, field: textColumn }),
-      notBound: registry.resolve({
-        name: 'uuid',
-        args: {},
-        field: { codecId: 'bytes@1', typeParams: undefined },
-      }),
+      unknown: registry.resolve(call('foo'), textField),
+      notBound: registry.resolve(call('uuid'), { codecId: 'bytes@1', typeParams: undefined }),
     }).toEqual({
       unknown: { ok: false, reason: 'unknown-function', boundCodecIds: [] },
       notBound: { ok: false, reason: 'not-bound', boundCodecIds: ['char@1', 'text@1'] },
@@ -116,13 +121,36 @@ describe('assembleGeneratorFunctions', () => {
           ],
         },
       ]),
+      registers('nanoid'),
     ]);
 
-    expect(registry.resolve({ name: 'nanoid', args: { size: 300 }, field: textColumn })).toEqual({
+    expect(registry.resolve(call('nanoid', { size: 300 }), textField)).toEqual({
       ok: false,
       reason: 'refused',
       message: 'too long',
     });
+  });
+
+  it('throws when a binding resolves to a generator id it does not declare', () => {
+    const registry = assembleGeneratorFunctions([
+      component('slugid-pack', [
+        {
+          name: 'slugid',
+          signature: {},
+          bindings: [
+            {
+              ...fixedBinding(['text@1'], 'slugid'),
+              resolve: () => ({ ok: true, generator: { kind: 'generator', id: 'slugidv2' } }),
+            },
+          ],
+        },
+      ]),
+      registers('slugid'),
+    ]);
+
+    expect(() => registry.resolve(call('slugid'), textField)).toThrow(
+      'Generator function "slugid" from "slugid-pack" resolved to generator "slugidv2", which its binding does not declare in generatorIds.',
+    );
   });
 
   it('writes the call that produces a generator, and nothing for a generator no function writes', () => {
@@ -142,18 +170,19 @@ describe('assembleGeneratorFunctions', () => {
           ],
         },
       ]),
+      registers('uuidv4', 'uuidv7'),
     ]);
 
     expect({
-      uuidv7: registry.callFor({ kind: 'generator', id: 'uuidv7' }, textColumn),
-      uuidv4: registry.callFor({ kind: 'generator', id: 'uuidv4' }, textColumn),
-      slugid: registry.callFor({ kind: 'generator', id: 'slugid' }, textColumn),
+      uuidv7: registry.callFor({ kind: 'generator', id: 'uuidv7' }, textField),
+      uuidv4: registry.callFor({ kind: 'generator', id: 'uuidv4' }, textField),
+      slugid: registry.callFor({ kind: 'generator', id: 'slugid' }, textField),
       otherCodec: registry.callFor(
         { kind: 'generator', id: 'uuidv7' },
         { codecId: 'bytes@1', typeParams: undefined },
       ),
     }).toEqual({
-      uuidv7: { name: 'uuid', args: { version: 7 }, text: '7' },
+      uuidv7: { call: { name: 'uuid', args: { version: 7 } }, text: 'uuid(7)' },
       uuidv4: undefined,
       slugid: undefined,
       otherCodec: undefined,
@@ -181,6 +210,7 @@ describe('assembleGeneratorFunctions', () => {
           component('extension', [
             { name: 'slugid', bindings: [fixedBinding(['text@1'], 'slugid')] },
           ]),
+          registers('slugid'),
         ]),
       ).toThrow(
         expect.objectContaining({
@@ -197,6 +227,7 @@ describe('assembleGeneratorFunctions', () => {
             { name: 'uuid', signature: {}, bindings: [fixedBinding(['text@1'], 'uuidv4')] },
           ]),
           component('target', [{ name: 'uuid', bindings: [fixedBinding(['text@1'], 'uuidv4')] }]),
+          registers('uuidv4'),
         ]),
       ).toThrow(
         expect.objectContaining({
@@ -216,6 +247,7 @@ describe('assembleGeneratorFunctions', () => {
           component('extension', [
             { name: 'guid', signature: {}, bindings: [fixedBinding(['text@1'], 'uuidv4')] },
           ]),
+          registers('uuidv4'),
         ]),
       ).toThrow(
         expect.objectContaining({
@@ -226,16 +258,14 @@ describe('assembleGeneratorFunctions', () => {
       );
     });
 
-    it('a binding that produces a generator the stack does not register', () => {
+    it('a binding that produces a generator no component registers', () => {
       expect(() =>
-        assembleGeneratorFunctions(
-          [
-            component('extension', [
-              { name: 'slugid', signature: {}, bindings: [fixedBinding(['text@1'], 'slugid')] },
-            ]),
-          ],
-          { registeredGeneratorIds: new Set(['uuidv4']) },
-        ),
+        assembleGeneratorFunctions([
+          component('extension', [
+            { name: 'slugid', signature: {}, bindings: [fixedBinding(['text@1'], 'slugid')] },
+          ]),
+          registers('uuidv4'),
+        ]),
       ).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
@@ -251,13 +281,13 @@ describe('singleGeneratorBinding', () => {
   const binding = singleGeneratorBinding({
     codecIds: ['time@1'],
     generatorId: 'timeNow',
-    paramsFromField: (column) =>
-      typeof column.typeParams?.['precision'] === 'number'
-        ? { precision: column.typeParams['precision'] }
+    paramsFromField: (field) =>
+      typeof field.typeParams?.['precision'] === 'number'
+        ? { precision: field.typeParams['precision'] }
         : undefined,
   });
 
-  it('resolves to its generator, with params from the column', () => {
+  it('resolves to its generator, with params from the field', () => {
     expect({
       withPrecision: binding.resolve({
         args: {},
@@ -274,10 +304,10 @@ describe('singleGeneratorBinding', () => {
   });
 
   it('writes no arguments for its generator and nothing for another', () => {
-    const column = { codecId: 'time@1', typeParams: undefined };
+    const field = { codecId: 'time@1', typeParams: undefined };
     expect({
-      own: binding.printArguments({ kind: 'generator', id: 'timeNow' }, column),
-      other: binding.printArguments({ kind: 'generator', id: 'dateNow' }, column),
+      own: binding.printArguments({ kind: 'generator', id: 'timeNow' }, field),
+      other: binding.printArguments({ kind: 'generator', id: 'dateNow' }, field),
     }).toEqual({ own: { args: {}, text: '' }, other: undefined });
   });
 });

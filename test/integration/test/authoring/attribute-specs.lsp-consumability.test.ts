@@ -3,7 +3,10 @@ import { assembleAttributeSpecs, buildSymbolTable } from '@internal/psl-parser';
 import { parse } from '@internal/psl-parser/syntax';
 import { join } from 'pathe';
 import { describe, expect, it } from 'vitest';
+import { classifyPslCompletionContext } from '../../../../packages/1-framework/3-tooling/language-server/src/completion-context';
+import { providePslCompletionItems } from '../../../../packages/1-framework/3-tooling/language-server/src/completion-provider';
 import { resolveConfigInputs } from '../../../../packages/1-framework/3-tooling/language-server/src/config-resolution';
+import { testBinder } from '../../../../packages/1-framework/3-tooling/language-server/test/helpers/binder';
 
 const configPath = join(import.meta.dirname, 'attribute-specs/_fixture/prisma.config.ts');
 const mongoConfigPath = join(
@@ -22,6 +25,38 @@ function modelSymbolFor(source: string) {
 }
 
 describe('postgres attribute specs are consumable from a resolved language-server project', () => {
+  it('completes @onCreate( on a String field with the functions bound to its codec', async () => {
+    const { controlStack } = await resolveConfigInputs(configPath, () => '// use prisma-8\n');
+    const markedSource = 'model Widget {\n  id String @id @onCreate(|)\n}\n';
+    const offset = markedSource.indexOf('|');
+    const { document, sources } = parse(
+      markedSource.replace('|', ''),
+      'attribute-specs-consumability.prisma',
+    );
+    const sourceFile = sources.sourceFileFor(document.syntax);
+    const { symbolTable } = buildSymbolTable({
+      defaultNamespaceId: 'public',
+      documents: [document],
+      sources,
+    });
+
+    const items = providePslCompletionItems({
+      context: classifyPslCompletionContext({
+        document,
+        sourceFile,
+        position: sourceFile.positionAt(offset),
+      }),
+      sourceFile,
+      candidates: {
+        ...controlStack,
+        binder: testBinder({ ...controlStack, sources, symbolTable }),
+        symbolTable,
+      },
+    });
+
+    expect(items.map((item) => item.label)).toEqual(['cuid', 'ksuid', 'nanoid', 'ulid', 'uuid']);
+  });
+
   it("enumerates the postgres pack's @@rls by its attribute name", async () => {
     const resolution = await resolveConfigInputs(configPath, () => '// use prisma-8\n');
 
@@ -49,6 +84,7 @@ describe('postgres attribute specs are consumable from a resolved language-serve
       model,
       defaultFunctionRegistry:
         interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      generatorFunctions: interpretation.context.generatorFunctions,
       dataTypes: interpretation.context.dataTypes,
     };
 
@@ -100,6 +136,7 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       model,
       defaultFunctionRegistry:
         interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      generatorFunctions: interpretation.context.generatorFunctions,
       dataTypes: interpretation.context.dataTypes,
     };
 
@@ -172,6 +209,7 @@ describe('mongo attribute specs are consumable from a resolved language-server p
       typeConstructor: undefined,
       defaultFunctionRegistry:
         interpretation.context.controlMutationDefaults.defaultFunctionRegistry,
+      generatorFunctions: interpretation.context.generatorFunctions,
       dataTypes: interpretation.context.dataTypes,
     });
 

@@ -1,4 +1,4 @@
-import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/control';
+import { EMPTY_GENERATOR_FUNCTIONS } from '@internal/framework-components/components';
 import type {
   ArgType,
   AttributeCtx,

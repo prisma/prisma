@@ -1,12 +1,8 @@
 import type {
   ControlMutationDefaultEntry,
   LoweredDefaultResult,
-  MutationDefaultGeneratorDescriptor,
 } from '@internal/framework-components/control';
-import { timestampNowControlDescriptor } from '@internal/framework-components/control';
-import { builtinGeneratorRegistryMetadata } from '@internal/ids';
 import type { FuncCallSig } from '@internal/psl-parser';
-import { postgresNowGeneratorControlDescriptors } from '@internal/target-postgres/control';
 
 function databaseFunction(expression: string): LoweredDefaultResult {
   return { ok: true, value: { kind: 'storage', defaultValue: { kind: 'function', expression } } };
@@ -41,12 +37,4 @@ export function createPostgresDefaultFunctionRegistry(): ReadonlyMap<
   ControlMutationDefaultEntry
 > {
   return new Map(postgresDefaultFunctionRegistryEntries);
-}
-
-export function createPostgresMutationDefaultGeneratorDescriptors(): readonly MutationDefaultGeneratorDescriptor[] {
-  return [
-    ...builtinGeneratorRegistryMetadata,
-    timestampNowControlDescriptor(),
-    ...postgresNowGeneratorControlDescriptors(),
-  ];
 }
