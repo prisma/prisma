@@ -71,7 +71,7 @@ describe('the orm command family', () => {
     expect(ormCommandFamily.docsBaseUrl?.endsWith('/')).toBe(true);
   });
 
-  it('retires the removed verb and the four removed status flags, naming the binary as {bin}', () => {
+  it('retires the removed verb, the four removed status flags and the Prisma 7 migrate commands, naming the binary as {bin}', () => {
     expect(
       ormCommandFamily.redirects.map(({ from, flag, replacement }) => ({
         from,
@@ -100,6 +100,17 @@ describe('the orm command family', () => {
         flag: 'ref',
         replacement: '{bin} migration status --to <contract>',
       },
+      {
+        from: 'migrate dev',
+        flag: undefined,
+        replacement:
+          '{bin} contract emit && {bin} migration plan --name <name> && {bin} db migrate --advance-ref db',
+      },
+      { from: 'migrate deploy', flag: undefined, replacement: '{bin} db migrate' },
+      { from: 'migrate status', flag: undefined, replacement: '{bin} migration status' },
+      { from: 'migrate diff', flag: undefined, replacement: '{bin} migration plan' },
+      { from: 'migrate reset', flag: undefined, replacement: '{bin} db migrate' },
+      { from: 'migrate resolve', flag: undefined, replacement: '{bin} db sign <migration>' },
     ]);
   });
 });
@@ -163,6 +174,32 @@ describe('a retired invocation', () => {
       },
     });
     expect(JSON.stringify(run.json)).not.toContain('Did you mean');
+  });
+
+  it('answers Prisma 7 migrate dev with the three Prisma 8 steps', async () => {
+    const loader = recordingLoader();
+
+    const run = await harness(loader.loadConfig).run(['migrate', 'dev', '--name', 'x', '--json']);
+
+    expect(run.exitCode).toBe(2);
+    expect(run.json.at(-1)).toMatchObject({
+      kind: 'result',
+      envelope: {
+        ok: false,
+        error: {
+          code: 'CLI.COMMAND_MOVED',
+          why: "Prisma 8 emits the contract, plans the migration and applies it in separate steps (for `--create-only`, stop after `migration plan`); while Prisma 7 still owns this project's migrations, run `migrate dev` with Prisma 7's CLI instead.",
+          nextActions: [
+            {
+              kind: 'run-command',
+              label: 'Use the replacement',
+              command:
+                'prisma-test contract emit && prisma-test migration plan --name <name> && prisma-test db migrate --advance-ref db',
+            },
+          ],
+        },
+      },
+    });
   });
 
   it('answers a retired status flag with the command that replaced it', async () => {

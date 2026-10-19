@@ -59,8 +59,8 @@ const commands: Readonly<Record<string, AnyCommand>> = {
 };
 
 /**
- * The invocations the ORM retired, so an old command line gets the replacement
- * rather than a spelling suggestion. Replacements name the binary as `{bin}`;
+ * The invocations the ORM retired, and the Prisma 7 `migrate` commands, so an
+ * old command line gets the replacement rather than a spelling suggestion. Replacements name the binary as `{bin}`;
  * the engine substitutes the shell's own name.
  *
  * The four flag redirects name `migration status`, which the engine requires
@@ -95,6 +95,43 @@ const redirects: readonly RedirectSpec[] = [
     flag: 'ref',
     replacement: '{bin} migration status --to <contract>',
     reason: 'One flag names the target contract, whether it is a ref, a hash or a migration.',
+  },
+  {
+    from: 'migrate dev',
+    replacement:
+      '{bin} contract emit && {bin} migration plan --name <name> && {bin} db migrate --advance-ref db',
+    reason:
+      "Prisma 8 emits the contract, plans the migration and applies it in separate steps (for `--create-only`, stop after `migration plan`); while Prisma 7 still owns this project's migrations, run `migrate dev` with Prisma 7's CLI instead.",
+  },
+  {
+    from: 'migrate deploy',
+    replacement: '{bin} db migrate',
+    reason:
+      "`db migrate` applies the planned migrations; while Prisma 7 still owns this project's migrations, run `migrate deploy` with Prisma 7's CLI instead.",
+  },
+  {
+    from: 'migrate status',
+    replacement: '{bin} migration status',
+    reason:
+      "`migration status` reports which planned migrations the database has applied; while Prisma 7 still owns this project's migrations, run `migrate status` with Prisma 7's CLI instead.",
+  },
+  {
+    from: 'migrate diff',
+    replacement: '{bin} migration plan',
+    reason:
+      'Prisma 8 writes the changes between two contracts as a migration package; to see the changes against a live database use `db update --dry-run`, and to report drift use `db verify`.',
+  },
+  {
+    from: 'migrate reset',
+    replacement: '{bin} db migrate',
+    reason:
+      "Prisma 8 never drops a database: drop and recreate it with your database's own tools, then `db migrate` applies every migration.",
+  },
+  {
+    from: 'migrate resolve',
+    replacement: '{bin} db sign <migration>',
+    reason:
+      "`db sign <migration>` checks that the database has that migration's schema and records it as applied; a failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back.",
   },
 ];
 
