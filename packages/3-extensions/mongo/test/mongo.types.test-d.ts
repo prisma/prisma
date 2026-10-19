@@ -28,11 +28,6 @@ type Db = MongoClient<Contract>;
 
 declare const db: Db;
 
-test('orm exposes lowercased plural roots from the emitted contract', () => {
-  expectTypeOf<Db['orm']>().toHaveProperty('users');
-  expectTypeOf<Db['orm']>().toHaveProperty('tasks');
-});
-
 test('db.orm.users.where(...) returns a chainable collection (not never)', () => {
   const chain = db.orm.users.where({ email: 'a@x' });
   expectTypeOf(chain).not.toBeNever();

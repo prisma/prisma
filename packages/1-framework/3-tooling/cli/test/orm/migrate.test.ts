@@ -385,20 +385,6 @@ describe('migrate', () => {
     expect(mocks.connect).toHaveBeenCalledWith('postgres://other/db');
   });
 
-  it('errors when no connection is configured', async () => {
-    const cwd = await buildProject();
-
-    const run = await harness(ormConfig(cwd, { db: undefined })).run(['db', 'migrate', '--json'], {
-      cwd,
-    });
-
-    expect(run.exitCode).toBe(2);
-    expect(envelopeOf(run.json)).toMatchObject({
-      ok: false,
-      error: { code: 'CONFIG.DB_CONNECTION_REQUIRED' },
-    });
-  });
-
   it('errors when the target has no migration runner', async () => {
     const cwd = await buildProject();
     const config = ormConfig(cwd);

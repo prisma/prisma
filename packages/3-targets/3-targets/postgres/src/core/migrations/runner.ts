@@ -420,6 +420,7 @@ class PostgresMigrationRunner implements SqlMigrationRunner<PostgresPlanTargetDe
             phase,
             stepDescription: step.description,
           },
+          failedCheck: { operationId: operation.id, phase, description: step.description },
           rowsWithoutValue: rowsWithoutValue?.reports,
         });
       }

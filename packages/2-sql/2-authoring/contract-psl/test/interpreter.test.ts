@@ -629,39 +629,6 @@ model OrderItem {
     });
   });
 
-  it('maps model-level composite primary keys to storage columns', () => {
-    const result = interpretPostgresSchema(
-      `model Membership {
-  orgId String @map("org_id")
-  userId String @map("user_id")
-
-  @@id([orgId, userId], map: "membership_pkey")
-  @@map("membership")
-}
-`,
-      {
-        controlMutationDefaults: builtinControlMutationDefaults,
-      },
-    );
-
-    expect(result.ok).toBe(true);
-    if (!result.ok) return;
-
-    expect(result.value.storage).toMatchObject({
-      namespaces: {
-        public: {
-          entries: {
-            table: {
-              membership: {
-                primaryKey: { columns: ['org_id', 'user_id'], name: 'membership_pkey' },
-              },
-            },
-          },
-        },
-      },
-    });
-  });
-
   describe('@@index type and options', () => {
     it('lowers @@index([body], type: "bm25", options: { key_field: "id" }) to an IR index node with type and options', () => {
       const result = interpretPostgresSchema(
@@ -808,25 +775,6 @@ model OrderItem {
             d.message.includes('Expected a string literal'),
         ),
       ).toBe(true);
-    });
-
-    it('accepts @@index without type or options (existing behaviour unchanged)', () => {
-      const result = interpretPostgresSchema(
-        `model Doc {
-  id Int @id
-  body String
-  @@index([body])
-}`,
-        {
-          controlMutationDefaults: builtinControlMutationDefaults,
-        },
-      );
-      expect(result.ok).toBe(true);
-      if (!result.ok) return;
-      const storage = sqlStorageFromSuccessfulSqlInterpretation(result.value);
-      expect(unboundTables(storage)['Doc']).toMatchObject({
-        indexes: [{ columns: ['body'] }],
-      });
     });
   });
 

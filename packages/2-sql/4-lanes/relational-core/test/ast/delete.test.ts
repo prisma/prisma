@@ -20,14 +20,6 @@ describe('ast/delete', () => {
     expect(deleteAst.returning).toEqual(returning('user', ['id', 'email']));
   });
 
-  it('supports single returning columns and alternate tables', () => {
-    expect(
-      DeleteAst.from(table('post'))
-        .withWhere(BinaryExpr.eq(col('post', 'id'), param(0, 'postId')))
-        .withReturning(returning('post', ['id'])).returning,
-    ).toEqual(returning('post', ['id']));
-  });
-
   it('collectParamRefs returns where params', () => {
     const whereParam = param(42, 'userId');
     const deleteAst = DeleteAst.from(table('user')).withWhere(

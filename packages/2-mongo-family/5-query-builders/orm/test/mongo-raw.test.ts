@@ -20,11 +20,6 @@ describe('mongoRaw', () => {
       expect(plan.collection).toBe('tasks');
     });
 
-    it('resolves a different root name', () => {
-      const plan = raw.collection('users').aggregate([]).build();
-      expect(plan.collection).toBe('users');
-    });
-
     it('throws when root maps to a missing model', () => {
       const badContract = {
         ...ormContractJson,

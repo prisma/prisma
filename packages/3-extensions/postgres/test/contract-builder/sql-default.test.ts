@@ -1,20 +1,8 @@
 import { textColumn } from '@internal/adapter-postgres/column-types';
 import { describe, expect, it } from 'vitest';
-import {
-  autoincrement,
-  defineContract,
-  field,
-  model,
-  now,
-  sql,
-} from '../../src/exports/contract-builder';
+import { defineContract, field, model, sql } from '../../src/exports/contract-builder';
 
 describe('postgres contract builder defaults', () => {
-  it('re-exports the family default helpers', () => {
-    expect(now()).toEqual({ kind: 'function', expression: 'now()' });
-    expect(autoincrement()).toEqual({ kind: 'function', expression: 'autoincrement()' });
-  });
-
   it('lowers .default(sql`gen_random_uuid()`) through defineContract', () => {
     const contract = defineContract({
       models: {

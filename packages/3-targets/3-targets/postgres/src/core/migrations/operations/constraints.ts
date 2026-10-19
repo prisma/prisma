@@ -1,9 +1,14 @@
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
 import { REFERENTIAL_ACTION_SQL } from '@internal/sql-contract/referential-action-sql';
+import type { ReferentialAction } from '@internal/sql-contract/types';
 import { checkExpression } from '@internal/sql-relational-core/contract-free';
 import { ifDefined } from '@internal/utils/defined';
 import { InternalError } from '@internal/utils/internal-error';
-import { constraintExistsAst } from '../../../contract-free/checks';
+import {
+  constraintDefinitionAst,
+  constraintExistsAst,
+  type ReferentialActionCode,
+} from '../../../contract-free/checks';
 import * as contractFreeDdl from '../../../contract-free/ddl';
 import { quoteIdentifier } from '../../sql-utils';
 import { boundSchema } from '../bound-schema';
@@ -21,6 +26,30 @@ async function constraintCheckSteps(
   const absent = await lowerer.lowerToExecuteRequest(checks.constraintAbsent());
   const present = await lowerer.lowerToExecuteRequest(checks.constraintPresent());
   return { absent, present };
+}
+
+async function constraintAbsent(
+  lowerer: ExecuteRequestLowerer,
+  options: { constraintName: string; schema: string; table: string },
+): Promise<{ sql: string; params?: readonly unknown[] }> {
+  return lowerer.lowerToExecuteRequest(constraintExistsAst(options).constraintAbsent());
+}
+
+const REFERENTIAL_ACTION_CODE: Readonly<Record<ReferentialAction, ReferentialActionCode>> = {
+  noAction: 'a',
+  restrict: 'r',
+  cascade: 'c',
+  setNull: 'n',
+  setDefault: 'd',
+};
+
+async function constraintDefinedStep(
+  lowerer: ExecuteRequestLowerer,
+  description: string,
+  definition: Parameters<typeof constraintDefinitionAst>[0],
+) {
+  const defined = await lowerer.lowerToExecuteRequest(constraintDefinitionAst(definition));
+  return step(description, defined.sql, defined.params);
 }
 
 function renderForeignKeySql(schemaName: string, tableName: string, fk: ForeignKeySpec): string {
@@ -57,11 +86,16 @@ export async function addPrimaryKey(
 ): Promise<Op> {
   const qualified = qualifyTableName(schemaName, tableName);
   const columnList = columns.map(quoteIdentifier).join(', ');
-  const { absent, present } = await constraintCheckSteps(lowerer, {
+  const absent = await constraintAbsent(lowerer, {
     constraintName,
     schema: schemaName,
     table: tableName,
   });
+  const defined = await constraintDefinedStep(
+    lowerer,
+    `verify primary key "${constraintName}" exists on (${columns.join(', ')})`,
+    { schema: schemaName, table: tableName, constraintName, contype: 'p', columns },
+  );
   return {
     id: `primaryKey.${tableName}.${constraintName}`,
     label: `Add primary key on "${tableName}"`,
@@ -76,7 +110,7 @@ export async function addPrimaryKey(
         `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} PRIMARY KEY (${columnList})`,
       ),
     ],
-    postcheck: [step(`verify primary key "${constraintName}" exists`, present.sql, present.params)],
+    postcheck: [defined],
   };
 }
 
@@ -89,11 +123,16 @@ export async function addUnique(
 ): Promise<Op> {
   const qualified = qualifyTableName(schemaName, tableName);
   const columnList = columns.map(quoteIdentifier).join(', ');
-  const { absent, present } = await constraintCheckSteps(lowerer, {
+  const absent = await constraintAbsent(lowerer, {
     constraintName,
     schema: schemaName,
     table: tableName,
   });
+  const defined = await constraintDefinedStep(
+    lowerer,
+    `verify unique constraint "${constraintName}" exists on (${columns.join(', ')})`,
+    { schema: schemaName, table: tableName, constraintName, contype: 'u', columns },
+  );
   return {
     id: `unique.${tableName}.${constraintName}`,
     label: `Add unique constraint on "${tableName}" (${columns.join(', ')})`,
@@ -108,7 +147,7 @@ export async function addUnique(
         `ALTER TABLE ${qualified} ADD CONSTRAINT ${quoteIdentifier(constraintName)} UNIQUE (${columnList})`,
       ),
     ],
-    postcheck: [step(`verify constraint "${constraintName}" exists`, present.sql, present.params)],
+    postcheck: [defined],
   };
 }
 
@@ -118,11 +157,29 @@ export async function addForeignKey(
   fk: ForeignKeySpec,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
-  const { absent, present } = await constraintCheckSteps(lowerer, {
+  const absent = await constraintAbsent(lowerer, {
     constraintName: fk.name,
     schema: schemaName,
     table: tableName,
   });
+  const defined = await constraintDefinedStep(
+    lowerer,
+    `verify FK "${fk.name}" exists with the planned columns, referenced table and actions`,
+    {
+      schema: schemaName,
+      table: tableName,
+      constraintName: fk.name,
+      contype: 'f',
+      columns: fk.columns,
+      foreignKey: {
+        referencedSchema: fk.references.schema,
+        referencedTable: fk.references.table,
+        referencedColumns: fk.references.columns,
+        onDelete: REFERENTIAL_ACTION_CODE[fk.onDelete ?? 'noAction'],
+        onUpdate: REFERENTIAL_ACTION_CODE[fk.onUpdate ?? 'noAction'],
+      },
+    },
+  );
   return {
     id: `foreignKey.${tableName}.${fk.name}`,
     label: `Add foreign key "${fk.name}" on "${tableName}"`,
@@ -130,7 +187,7 @@ export async function addForeignKey(
     target: targetDetails('foreignKey', fk.name, schemaName, tableName),
     precheck: [step(`ensure FK "${fk.name}" does not exist`, absent.sql, absent.params)],
     execute: [step(`add FK "${fk.name}"`, renderForeignKeySql(schemaName, tableName, fk))],
-    postcheck: [step(`verify FK "${fk.name}" exists`, present.sql, present.params)],
+    postcheck: [defined],
   };
 }
 
@@ -141,11 +198,16 @@ export async function addCheckConstraint(
   expression: string,
   lowerer: ExecuteRequestLowerer,
 ): Promise<Op> {
-  const { absent, present } = await constraintCheckSteps(lowerer, {
+  const absent = await constraintAbsent(lowerer, {
     constraintName,
     schema: schemaName,
     table: tableName,
   });
+  const defined = await constraintDefinedStep(
+    lowerer,
+    `verify check constraint "${constraintName}" exists`,
+    { schema: schemaName, table: tableName, constraintName, contype: 'c' },
+  );
   const addCheck = await lowerer.lowerToExecuteRequest(
     contractFreeDdl.alterTable({
       ...ifDefined('schema', boundSchema(schemaName)),
@@ -162,7 +224,7 @@ export async function addCheckConstraint(
       step(`ensure constraint "${constraintName}" does not exist`, absent.sql, absent.params),
     ],
     execute: [step(`add check constraint "${constraintName}"`, addCheck.sql)],
-    postcheck: [step(`verify constraint "${constraintName}" exists`, present.sql, present.params)],
+    postcheck: [defined],
   };
 }
 
@@ -231,7 +293,10 @@ export async function renameConstraint(
         `ALTER TABLE ${qualified} RENAME CONSTRAINT ${quoteIdentifier(fromName)} TO ${quoteIdentifier(toName)}`,
       ),
     ],
-    postcheck: [step(`verify constraint "${toName}" exists`, to.present.sql, to.present.params)],
+    postcheck: [
+      step(`verify constraint "${toName}" exists`, to.present.sql, to.present.params),
+      step(`verify constraint "${fromName}" no longer exists`, from.absent.sql, from.absent.params),
+    ],
   };
 }
 

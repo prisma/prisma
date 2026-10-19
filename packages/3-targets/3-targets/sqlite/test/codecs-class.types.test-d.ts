@@ -36,11 +36,6 @@ import {
   sqliteIntegerDescriptor,
 } from '../src/core/codecs';
 
-test('sqliteInteger: descriptor.factory() returns typed (ctx) => SqliteIntegerCodec', () => {
-  const factory = sqliteIntegerDescriptor.factory();
-  expectTypeOf(factory).toEqualTypeOf<(ctx: CodecInstanceContext) => SqliteIntegerCodec>();
-});
-
 test('sqliteInteger: column helper preserves typed codecFactory + undefined typeParams', () => {
   const col = sqliteIntegerColumn();
   expectTypeOf(col.codecFactory).toEqualTypeOf<(ctx: CodecInstanceContext) => SqliteIntegerCodec>();

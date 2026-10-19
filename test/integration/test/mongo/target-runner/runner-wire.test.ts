@@ -249,7 +249,7 @@ describe('MongoMigrationRunner', () => {
     }
   });
 
-  it('returns PRECHECK_FAILED when prechecks fail', async () => {
+  it('returns PRECHECK_FAILED naming the check that failed when prechecks fail', async () => {
     await db.createCollection('users');
     await db.collection('users').createIndex({ email: 1 }, { name: 'email_1' });
 
@@ -270,10 +270,15 @@ describe('MongoMigrationRunner', () => {
       frameworkComponents: [],
     });
 
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.failure.code).toBe('MIGRATION.PRECHECK_FAILED');
-    }
+    expect(result.ok ? undefined : result.failure).toMatchObject({
+      code: 'MIGRATION.PRECHECK_FAILED',
+      failedCheck: {
+        operationId: expect.any(String),
+        phase: 'precheck',
+        description: 'index does not already exist on users',
+      },
+    });
+    expect(result.ok ? undefined : result.failure.why).toBeUndefined();
   });
 
   it('executes multiple operations in order', async () => {

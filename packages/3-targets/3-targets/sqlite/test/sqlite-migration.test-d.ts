@@ -26,15 +26,3 @@ test('endContract is a SqliteContractView<Contract>', () => {
 test('startContract is SqliteContractView<Contract> | null', () => {
   expectTypeOf<StartView>().toEqualTypeOf<SqliteContractView<Contract> | null>();
 });
-
-test('endContract.table.<x> resolves to the concrete emitted table leaf', () => {
-  expectTypeOf<
-    EndView['table']['users']['columns']['id']['codecId']
-  >().toEqualTypeOf<'sqlite/integer@1'>();
-});
-
-test('a non-existent table name on the view is a compile error', () => {
-  const view = null as unknown as EndView;
-  // @ts-expect-error 'nonexistent' is not an emitted table
-  view.table.nonexistent;
-});

@@ -10,7 +10,6 @@ import {
 import {
   TEMPORAL_ON_CREATE_ARG,
   TEMPORAL_ON_UPDATE_ARG,
-  TIMESTAMP_NOW_GENERATOR_ID,
   temporalAuthoringPresets,
   temporalCodecPreset,
   temporalPhaseTemplate,
@@ -21,10 +20,6 @@ import {
 const TIMESTAMP_NOW = { kind: 'generator', id: 'timestampNow' } as const;
 
 describe('timestampNow generator', () => {
-  it('has the id timestampNow', () => {
-    expect(TIMESTAMP_NOW_GENERATOR_ID).toBe('timestampNow');
-  });
-
   it('builds a control descriptor that generates on create and on update', () => {
     const descriptor = timestampNowControlDescriptor();
     expect(descriptor.id).toBe('timestampNow');

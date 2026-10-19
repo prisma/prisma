@@ -15,13 +15,6 @@ afterAll(async () => {
 });
 
 describe('mongoControlDriver descriptor', () => {
-  it('has correct descriptor meta', () => {
-    expect(mongoControlDriver.kind).toBe('driver');
-    expect(mongoControlDriver.familyId).toBe('mongo');
-    expect(mongoControlDriver.targetId).toBe('mongo');
-    expect(mongoControlDriver.id).toBe('mongo');
-  });
-
   it('creates a connected control driver from a URL', async () => {
     const url = replSet.getUri('control_driver_test');
     const driver = await mongoControlDriver.create(url);

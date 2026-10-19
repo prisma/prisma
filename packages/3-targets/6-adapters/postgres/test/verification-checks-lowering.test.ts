@@ -263,25 +263,18 @@ describe('D3 catalog check builders — lowering pins', () => {
     );
   });
 
-  it('columnDefaultSequenceAst — an attached sequence and a nextval default', async () => {
+  it("columnDefaultSequenceAst — the column's default depends on the sequence it owns", async () => {
     const ast = columnDefaultSequenceAst({ schema: 'public', table: 'Post', column: 'serial' });
 
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
 
     expect(result.sql).toBe(
-      'SELECT ((pg_get_serial_sequence($1, $2)) IS NOT NULL AND EXISTS (SELECT 1 AS "one" FROM "information_schema"."columns" WHERE ("table_schema" = $3 AND "table_name" = $4 AND "column_name" = $5 AND starts_with("column_default", $6)))) AS "result"',
+      'SELECT EXISTS (SELECT 1 AS "one" FROM "pg_attrdef" AS "d" INNER JOIN "pg_attribute" AS "a" ON ("a"."attrelid" = "d"."adrelid" AND "a"."attnum" = "d"."adnum") INNER JOIN "pg_depend" AS "dep" ON "dep"."objid" = "d"."oid" WHERE ("d"."adrelid" = to_regclass($1) AND "a"."attname" = $2 AND "dep"."classid" = \'pg_attrdef\'::regclass AND "dep"."refclassid" = \'pg_class\'::regclass AND "dep"."refobjid" = pg_get_serial_sequence($3, $4)::regclass)) AS "result"',
     );
-    expect(result.params).toEqual([
-      '"public"."Post"',
-      'serial',
-      'public',
-      'Post',
-      'serial',
-      'nextval(',
-    ]);
+    expect(result.params).toEqual(['"public"."Post"', 'serial', '"public"."Post"', 'serial']);
   });
 
-  it("sequenceNameAvailableAst — the name is free or is the column's own sequence", async () => {
+  it('sequenceNameAvailableAst — the column owns a sequence, or the name is free', async () => {
     const ast = sequenceNameAvailableAst({
       schema: 'public',
       table: 'Post',
@@ -292,14 +285,9 @@ describe('D3 catalog check builders — lowering pins', () => {
     const result = await adapter.lowerToExecuteRequest(ast, ctx);
 
     expect(result.sql).toBe(
-      'SELECT ((to_regclass($1)) IS NULL OR (to_regclass($2)) = pg_get_serial_sequence($3, $4)::regclass) AS "result"',
+      'SELECT ((pg_get_serial_sequence($1, $2)::regclass) IS NOT NULL OR (to_regclass($3)) IS NULL) AS "result"',
     );
-    expect(result.params).toEqual([
-      '"public"."Post_serial_seq"',
-      '"public"."Post_serial_seq"',
-      '"public"."Post"',
-      'serial',
-    ]);
+    expect(result.params).toEqual(['"public"."Post"', 'serial', '"public"."Post_serial_seq"']);
   });
 
   it('tablePrimaryKeyAst — pg_index joins with LEFT JOIN and bare boolean conjunct', async () => {

@@ -12,7 +12,6 @@ test('reading Post.priority yields the value union, not number', () => {
   expectTypeOf<Row['id']>().toEqualTypeOf<Char<36>>();
   // The non-null enum column narrows to its value union — no spurious `| null`.
   expectTypeOf<Row['priority']>().toEqualTypeOf<Priority>();
-  expectTypeOf<Row['priority']>().not.toEqualTypeOf<number>();
 });
 
 test('writing Post.priority only accepts the value union', () => {

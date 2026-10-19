@@ -43,6 +43,7 @@ export type {
 } from '../control/control-instances';
 export type {
   FailedCast,
+  FailedCheck,
   FailedConversion,
   FailedTypeChange,
   MigrationMetadata,

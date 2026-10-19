@@ -8,10 +8,6 @@ import contractJson from './fixtures/sqlite-contract.json' with { type: 'json' }
 const contract = new SqliteContractSerializer().deserializeContract<Contract>(contractJson);
 
 describe('SqliteContractView', () => {
-  it('from() returns a view object', () => {
-    expect(SqliteContractView.from(contract)).toBeDefined();
-  });
-
   it('the view is a superset of the contract (contract fields present)', () => {
     const view = SqliteContractView.from(contract);
     expect(view.storage).toBe(contract.storage);

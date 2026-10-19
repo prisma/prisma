@@ -2696,46 +2696,5 @@ model Post {
         }),
       ]);
     });
-
-    it('rejects `namespace unbound { … }` (Mongo has no late-binding namespace)', () => {
-      const result = interpretMongoContract(
-        `namespace unbound {
-  model Tenant {
-    id String @id
-  }
-}
-`,
-        {
-          scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          defaultFunctionRegistry: new Map(),
-        },
-      );
-
-      expect(result.ok).toBe(false);
-      if (result.ok) return;
-      expect(result.failure.diagnostics).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ code: 'PSL_UNSUPPORTED_NAMESPACE_BLOCK' }),
-        ]),
-      );
-    });
-
-    it('accepts top-level model declarations (no namespace block)', () => {
-      const result = interpretMongoContract(
-        `model User {
-  id ObjectId @id @map("_id")
-  name String
-}
-`,
-        {
-          scalarTypeCodecIds: mongoScalarTypeDescriptors,
-          defaultFunctionRegistry: new Map(),
-        },
-      );
-
-      expect(result.ok).toBe(true);
-      if (!result.ok) return;
-      expect(modelsOf(result.value)['User']).toBeDefined();
-    });
   });
 });

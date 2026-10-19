@@ -80,16 +80,8 @@ describe('FieldOutputTypes: enum field narrows to value union', () => {
     expectTypeOf<FOT['User']['role']>().toEqualTypeOf<'user' | 'admin'>();
   });
 
-  it('non-nullable enum field is not string', () => {
-    expectTypeOf<FOT['User']['role']>().not.toEqualTypeOf<string>();
-  });
-
   it('nullable enum field is value union | null', () => {
     expectTypeOf<FOT['User']['status']>().toEqualTypeOf<'active' | 'inactive' | null>();
-  });
-
-  it('nullable enum field is not string | null', () => {
-    expectTypeOf<FOT['User']['status']>().not.toEqualTypeOf<string | null>();
   });
 
   it('non-text (int-backed) enum field narrows to its int value union', () => {

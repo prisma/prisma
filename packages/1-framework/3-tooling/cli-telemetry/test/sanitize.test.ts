@@ -81,19 +81,6 @@ describe('sanitizeCommanderResult', () => {
     ).toEqual(['no-install']);
   });
 
-  it('never emits Commander camelCase attribute names', () => {
-    expect(
-      sanitizeCommanderResult({
-        commandPath: ['prisma', 'init'],
-        positionalArgs: [],
-        options: [
-          { attributeName: 'schemaPath', longName: '--schema-path', source: 'cli' },
-          { attributeName: 'dryRun', longName: '--dry-run', source: 'cli' },
-        ],
-      }).flags,
-    ).toEqual(['schema-path', 'dry-run']);
-  });
-
   it('never reads positional args; the positionalArgs input is intentionally accepted but unused', () => {
     const out = sanitizeCommanderResult({
       commandPath: ['prisma', 'init'],

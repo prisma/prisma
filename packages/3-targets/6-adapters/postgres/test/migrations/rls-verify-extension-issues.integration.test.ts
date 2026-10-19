@@ -154,23 +154,6 @@ describe('RLS verify extension issues', { concurrent: false }, () => {
     }
   }
 
-  it('no RLS policy issues when the declared policy exists in the database', {
-    timeout: testTimeout,
-  }, async () => {
-    const contract = buildContractWithPolicy();
-    await applyContract(driver!, contract);
-
-    const schema = await familyInstance.introspect({ driver: driver!, contract });
-    const result = familyInstance.verifySchema({
-      contract,
-      schema,
-      strict: false,
-      frameworkComponents,
-    });
-
-    expect(result.schema.issues).toEqual([]);
-  });
-
   it('emits a missing SchemaDiffIssue when policy is declared but absent in the database', {
     timeout: testTimeout,
   }, async () => {

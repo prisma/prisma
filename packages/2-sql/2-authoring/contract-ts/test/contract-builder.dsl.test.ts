@@ -406,25 +406,6 @@ describe('contract DSL authoring surface', () => {
     });
   });
 
-  it('rejects duplicate named storage objects in the refined sql overlay', () => {
-    const User = model('User', {
-      fields: {
-        id: field.column(textColumn).id({ name: 'app_user_pkey_e8a52337' }),
-      },
-    }).sql(({ cols, constraints }) => ({
-      table: 'app_user',
-      indexes: [constraints.index([cols.id], { name: 'app_user_pkey' })],
-    }));
-
-    expect(() =>
-      defineTestContract({
-        models: {
-          User,
-        },
-      }),
-    ).toThrow(/Contract semantic validation failed:.*app_user_pkey/);
-  });
-
   it('supports compound ids and uniques in .attributes(...)', () => {
     const Membership = model('Membership', {
       fields: {

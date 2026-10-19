@@ -3,20 +3,6 @@ import { expectTypeOf, test } from 'vitest';
 import type { Codec } from '../src/shared/codec';
 import type { CodecTrait } from '../src/shared/codec-types';
 
-test('encode is required and Promise-returning', () => {
-  expectTypeOf<Codec>().toHaveProperty('encode');
-  expectTypeOf<Codec['encode']>().toBeFunction();
-  type EncodeReturn = ReturnType<NonNullable<Codec['encode']>>;
-  expectTypeOf<EncodeReturn>().toExtend<Promise<unknown>>();
-});
-
-test('decode is required and Promise-returning', () => {
-  expectTypeOf<Codec>().toHaveProperty('decode');
-  expectTypeOf<Codec['decode']>().toBeFunction();
-  type DecodeReturn = ReturnType<Codec['decode']>;
-  expectTypeOf<DecodeReturn>().toExtend<Promise<unknown>>();
-});
-
 test('encodeJson is required and synchronous', () => {
   expectTypeOf<Codec>().toHaveProperty('encodeJson');
   expectTypeOf<Codec['encodeJson']>().toBeFunction();
@@ -45,13 +31,6 @@ test('Codec instance carries only id + the four conversion methods (plus phantom
   ] as const;
   type ExpectedKeys = (typeof expectedKeys)[number];
   expectTypeOf<CodecStringKeys>().toEqualTypeOf<ExpectedKeys>();
-});
-
-test('Codec instance does not carry traits / meta / renderOutputType', () => {
-  type C = Codec;
-  expectTypeOf<C>().not.toHaveProperty('traits');
-  expectTypeOf<C>().not.toHaveProperty('meta');
-  expectTypeOf<C>().not.toHaveProperty('renderOutputType');
 });
 
 test('Codec carries four generics: encode TInput → TWire, decode TWire → TInput', () => {

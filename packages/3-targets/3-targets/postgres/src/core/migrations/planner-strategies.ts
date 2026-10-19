@@ -50,6 +50,7 @@ import {
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
+import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   renderColumnAlterType,
   renderColumnDdl,
@@ -244,7 +245,7 @@ export const notNullBackfillCallStrategy: CallMigrationStrategy = (issues, ctx) 
       ...(ddl.codecRef !== undefined ? { codecRef: ddl.codecRef } : {}),
     });
     calls.push(
-      new AddColumnCall(schemaName, tableName, nullableSpec),
+      new AddColumnCall(schemaName, tableName, nullableSpec, ctx.dataTypes),
       new DataTransformCall(
         `backfill-${tableName}-${expected.name}`,
         `${slot}:check`,
@@ -318,6 +319,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
           slot: `${converted.text}:convert`,
         },
         dataTypes: ctx.dataTypes,
+        ownsAutoincrementSequence: hasAutoincrementDefault(actual),
       }),
     );
     if (expected.nullable !== actual.nullable) {
@@ -512,8 +514,15 @@ export const notNullAddColumnCallStrategy: CallMigrationStrategy = (issues, ctx)
             ddl.name,
             ddl.type,
             temporaryDefault,
+            ctx.dataTypes,
           )
-        : new AddRequiredColumnToEmptyTableCall(schemaName, tableName, ddl.name, ddl.type),
+        : new AddRequiredColumnToEmptyTableCall(
+            schemaName,
+            tableName,
+            ddl.name,
+            ddl.type,
+            ctx.dataTypes,
+          ),
     );
   }
 

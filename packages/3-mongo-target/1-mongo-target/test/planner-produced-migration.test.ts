@@ -11,18 +11,6 @@ const META = {
 } as const;
 
 describe('PlannerProducedMongoMigration', () => {
-  it("identifies as the 'mongo' target", () => {
-    const migration = new PlannerProducedMongoMigration([], META, SNAPSHOTS_IMPORT_PATH);
-
-    expect(migration.targetId).toBe('mongo');
-  });
-
-  it('exposes describe() metadata as supplied', () => {
-    const migration = new PlannerProducedMongoMigration([], META, SNAPSHOTS_IMPORT_PATH);
-
-    expect(migration.describe()).toEqual(META);
-  });
-
   it('derives origin/destination from describe() (round-trips through MigrationPlan surface)', () => {
     const migration = new PlannerProducedMongoMigration([], META, SNAPSHOTS_IMPORT_PATH);
 

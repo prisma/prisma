@@ -3,10 +3,14 @@ import { checkExpression, col, fn } from '@internal/sql-relational-core/contract
 import { describe, expect, it } from 'vitest';
 import {
   columnExistsAst,
+  columnTypeAst,
+  constraintDefinitionAst,
   constraintExistsAst,
+  relationKindAst,
   tableExistsAst,
 } from '../../src/contract-free/checks';
 import { addConstraintAction, alterTable } from '../../src/contract-free/ddl';
+import { postgresDataTypes } from '../../src/core/data-types';
 import {
   AddCheckConstraintCall,
   AddColumnWithTemporaryDefaultCall,
@@ -43,7 +47,7 @@ describe('CreateTableCall', () => {
 
     expect(received.slice(1)).toEqual([
       tableExistsAst('public', 'user').tableAbsent(),
-      tableExistsAst('public', 'user').tablePresent(),
+      relationKindAst({ schema: 'public', name: 'user', kinds: ['r', 'p'] }),
     ]);
     expect(op.precheck).toEqual([
       { description: 'ensure table "user" does not exist', sql: 'LOWERED 2', params: ['p2'] },
@@ -95,7 +99,16 @@ describe('AddPrimaryKeyCall', () => {
     const call = new AddPrimaryKeyCall('public', 'user', 'user_pkey', ['id']);
     const op = await call.toOp(lowerer);
 
-    expect(received).toEqual([pkeyChecks().constraintAbsent(), pkeyChecks().constraintPresent()]);
+    expect(received).toEqual([
+      pkeyChecks().constraintAbsent(),
+      constraintDefinitionAst({
+        schema: 'public',
+        table: 'user',
+        constraintName: 'user_pkey',
+        contype: 'p',
+        columns: ['id'],
+      }),
+    ]);
     expect(op.precheck).toEqual([
       {
         description: 'ensure primary key "user_pkey" does not exist',
@@ -107,7 +120,11 @@ describe('AddPrimaryKeyCall', () => {
       'ALTER TABLE "public"."user" ADD CONSTRAINT "user_pkey" PRIMARY KEY ("id")',
     );
     expect(op.postcheck).toEqual([
-      { description: 'verify primary key "user_pkey" exists', sql: 'LOWERED 2', params: ['p2'] },
+      {
+        description: 'verify primary key "user_pkey" exists on (id)',
+        sql: 'LOWERED 2',
+        params: ['p2'],
+      },
     ]);
   });
 
@@ -139,7 +156,16 @@ describe('AddUniqueCall', () => {
     const op = await call.toOp(lowerer);
     const checks = () =>
       constraintExistsAst({ constraintName: 'user_email_key', schema: 'public', table: 'user' });
-    expect(received).toEqual([checks().constraintAbsent(), checks().constraintPresent()]);
+    expect(received).toEqual([
+      checks().constraintAbsent(),
+      constraintDefinitionAst({
+        schema: 'public',
+        table: 'user',
+        constraintName: 'user_email_key',
+        contype: 'u',
+        columns: ['email'],
+      }),
+    ]);
     expect(op.precheck[0]).toMatchObject({ sql: 'LOWERED 1', params: ['p1'] });
     expect(op.postcheck[0]).toMatchObject({ sql: 'LOWERED 2', params: ['p2'] });
     expect(call.renderTypeScript()).toBe(
@@ -161,7 +187,23 @@ describe('AddForeignKeyCall', () => {
     const op = await call.toOp(lowerer);
     const checks = () =>
       constraintExistsAst({ constraintName: 'post_author_fk', schema: 'public', table: 'post' });
-    expect(received).toEqual([checks().constraintAbsent(), checks().constraintPresent()]);
+    expect(received).toEqual([
+      checks().constraintAbsent(),
+      constraintDefinitionAst({
+        schema: 'public',
+        table: 'post',
+        constraintName: 'post_author_fk',
+        contype: 'f',
+        columns: ['author_id'],
+        foreignKey: {
+          referencedSchema: 'public',
+          referencedTable: 'user',
+          referencedColumns: ['id'],
+          onDelete: 'a',
+          onUpdate: 'a',
+        },
+      }),
+    ]);
     expect(op.precheck[0]).toMatchObject({ sql: 'LOWERED 1', params: ['p1'] });
     expect(op.execute[0]?.sql).toContain('FOREIGN KEY ("author_id")');
     expect(op.postcheck[0]).toMatchObject({ sql: 'LOWERED 2', params: ['p2'] });
@@ -188,7 +230,12 @@ describe('AddCheckConstraintCall', () => {
       });
     expect(received).toEqual([
       checks().constraintAbsent(),
-      checks().constraintPresent(),
+      constraintDefinitionAst({
+        schema: 'public',
+        table: 'post',
+        constraintName: 'post_priority_check',
+        contype: 'c',
+      }),
       alterTable({
         schema: 'public',
         table: 'post',
@@ -267,21 +314,36 @@ function isAlterTableNode(value: unknown): value is { kind: string } {
 describe('AddRequiredColumnToEmptyTableCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text');
+    const call = new AddRequiredColumnToEmptyTableCall(
+      'public',
+      'user',
+      'name',
+      'text',
+      postgresDataTypes,
+    );
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
     const colChecks = columnExistsAst({ schema: 'public', table: 'user', column: 'name' });
     expect(received).toContainEqual(colChecks.columnAbsent());
     expect(received).toContainEqual(colChecks.columnPresent());
+    expect(received).toContainEqual(
+      columnTypeAst({ schema: 'public', table: 'user', column: 'name', expectedType: 'text' }),
+    );
 
     expect(op.execute).toEqual([{ description: 'add column "name"', sql: 'LOWERED 1' }]);
     expect(op.precheck).toHaveLength(2);
-    expect(op.postcheck).toHaveLength(2);
+    expect(op.postcheck).toHaveLength(3);
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text');
+    const call = new AddRequiredColumnToEmptyTableCall(
+      'public',
+      'user',
+      'name',
+      'text',
+      postgresDataTypes,
+    );
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });
@@ -289,13 +351,20 @@ describe('AddRequiredColumnToEmptyTableCall', () => {
 describe('the NOT NULL add-column calls', () => {
   it('render as migration methods with the column and, for the temporary default, its SQL', () => {
     expect([
-      new AddRequiredColumnToEmptyTableCall('public', 'user', 'name', 'text').renderTypeScript(),
+      new AddRequiredColumnToEmptyTableCall(
+        'public',
+        'user',
+        'name',
+        'text',
+        postgresDataTypes,
+      ).renderTypeScript(),
       new AddColumnWithTemporaryDefaultCall(
         'public',
         'user',
         'name',
         'text',
         "''",
+        postgresDataTypes,
       ).renderTypeScript(),
     ]).toEqual([
       'this.addRequiredColumnToEmptyTable({ schema: "public", table: "user", column: "name", type: "text" })',
@@ -306,7 +375,14 @@ describe('the NOT NULL add-column calls', () => {
   it('refuses an unsafe temporary default, naming the call', () => {
     expect(
       () =>
-        new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''; DROP TABLE x"),
+        new AddColumnWithTemporaryDefaultCall(
+          'public',
+          'user',
+          'name',
+          'text',
+          "''; DROP TABLE x",
+          postgresDataTypes,
+        ),
     ).toThrow(
       expect.objectContaining({
         code: 'CONTRACT.DEFAULT_INVALID',
@@ -321,7 +397,14 @@ describe('the NOT NULL add-column calls', () => {
 describe('AddColumnWithTemporaryDefaultCall', () => {
   it('lowers a typed AlterTable DDL node for the ADD COLUMN execute step', async () => {
     const { lowerer, received } = recordingCheckLowerer();
-    const call = new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''");
+    const call = new AddColumnWithTemporaryDefaultCall(
+      'public',
+      'user',
+      'name',
+      'text',
+      "''",
+      postgresDataTypes,
+    );
     const op = await call.toOp(lowerer);
 
     expect(isAlterTableNode(received[0])).toBe(true);
@@ -332,11 +415,21 @@ describe('AddColumnWithTemporaryDefaultCall', () => {
     expect(op.execute[0]?.description).toBe('add column "name"');
     expect(op.execute[1]?.description).toContain('drop temporary default');
     expect(op.precheck).toHaveLength(1);
-    expect(op.postcheck).toHaveLength(3);
+    expect(op.postcheck).toHaveLength(4);
+    expect(received).toContainEqual(
+      columnTypeAst({ schema: 'public', table: 'user', column: 'name', expectedType: 'text' }),
+    );
   });
 
   it('toOp() throws when no lowerer is provided', async () => {
-    const call = new AddColumnWithTemporaryDefaultCall('public', 'user', 'name', 'text', "''");
+    const call = new AddColumnWithTemporaryDefaultCall(
+      'public',
+      'user',
+      'name',
+      'text',
+      "''",
+      postgresDataTypes,
+    );
     await expect(async () => call.toOp()).rejects.toThrow('createPostgresMigrationPlanner');
   });
 });
