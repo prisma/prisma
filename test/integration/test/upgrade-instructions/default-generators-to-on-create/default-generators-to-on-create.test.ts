@@ -38,15 +38,23 @@ function run(dir: string, files: readonly string[]) {
 }
 
 describe('rewrite-default-generators', () => {
-  it('rewrites every client function in @default to @onCreate and leaves the rest unchanged', () => {
+  it('rewrites every client function in @default of a Prisma 8 file to @onCreate, comments included, and leaves every other file unchanged', () => {
     const dir = copyBefore();
-    const result = run(dir, ['schema.prisma', 'unchanged.prisma', 'prisma7.prisma']);
+    const result = run(dir, [
+      'schema.prisma',
+      'older-header.prisma',
+      'unchanged.prisma',
+      'prisma7.prisma',
+      'prisma7-models.prisma',
+    ]);
     expect({ status: result.status, stdout: result.stdout, files: filesOf(dir) }).toEqual({
       status: 0,
       stdout: [
-        'schema.prisma: rewrote 8 @default calls to @onCreate.',
+        'schema.prisma: rewrote 9 @default calls to @onCreate.',
+        'older-header.prisma: rewrote 1 @default calls to @onCreate.',
         'unchanged.prisma: no client function in @default; left unchanged.',
-        'prisma7.prisma: a Prisma 7 schema (it has a datasource or generator block); left unchanged. A Prisma 7 schema keeps @default(uuid()).',
+        'prisma7.prisma: does not start with "// use prisma-8", so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
+        'prisma7-models.prisma: does not start with "// use prisma-8", so it is not a Prisma 8 schema; left unchanged. A Prisma 7 schema keeps @default(uuid()).',
         '',
       ].join('\n'),
       files: filesOf(join(fixturesDir, 'after')),

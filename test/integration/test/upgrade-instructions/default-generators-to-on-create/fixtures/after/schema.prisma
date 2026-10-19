@@ -11,4 +11,5 @@ model Post {
   createdAt DateTime @default(now())
   count     Int      @default(autoincrement())
   label     String   @default("uuid()")
+  // legacy String @onCreate(uuid())
 }
