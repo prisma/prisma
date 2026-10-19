@@ -104,7 +104,7 @@ describe('the ORM objects a postgres client builds', () => {
   it('run each ORM terminal as an orm-call whose statements are its children, beneath the transaction inside db.transaction', async () => {
     const started: Array<{ kind: string; parentKind: string | undefined }> = [];
     const db = postgres<Contract>({
-      contractJson: fixtureContract,
+      contract: fixtureContract,
       url: 'postgres://localhost:5432/db',
       verifyMarker: false,
       middleware: [tracer(started)],
@@ -137,12 +137,12 @@ describe('the ORM objects a postgres client builds', () => {
       },
     };
     const quiet = postgres<Contract>({
-      contractJson: fixtureContract,
+      contract: fixtureContract,
       url: 'postgres://localhost:5432/db',
       verifyMarker: false,
     });
     const asking = postgres<Contract>({
-      contractJson: fixtureContract,
+      contract: fixtureContract,
       url: 'postgres://localhost:5432/db',
       verifyMarker: false,
       middleware: [asker],
