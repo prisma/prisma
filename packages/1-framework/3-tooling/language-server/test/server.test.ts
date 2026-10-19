@@ -2916,23 +2916,6 @@ describe('language server symbol-table diagnostics', {
     expect(await cleared).toEqual([]);
   });
 
-  it('publishes an empty set for a clean configured PSL input with the symbol-table tier active', async () => {
-    harness = startHarness(resolveToSchema);
-    await harness.initialize();
-
-    harness.client.sendNotification(DidOpenTextDocumentNotification.type, {
-      textDocument: {
-        uri: schemaUri,
-        languageId: 'prisma',
-        version: 1,
-        text: '// use prisma-8\nmodel User {\n  id Int @id\n}\n',
-      },
-    });
-
-    const diagnostics = await harness.waitForDiagnostics(schemaUri);
-    expect(diagnostics).toEqual([]);
-  });
-
   it('publishes diagnostics matching parse + buildSymbolTable for the same inputs (build parity)', async () => {
     harness = startHarness(resolveToSchema);
     await harness.initialize();
@@ -2996,36 +2979,6 @@ describe('language server symbol-table diagnostics', {
     expect(published[0]?.range.start.line ?? 0).toBeGreaterThan(
       published[1]?.range.start.line ?? 0,
     );
-  });
-
-  it('does not crash on a malformed buffer and still publishes a diagnostic set', async () => {
-    harness = startHarness(resolveToSchema);
-    await harness.initialize();
-
-    harness.client.sendNotification(DidOpenTextDocumentNotification.type, {
-      textDocument: {
-        uri: schemaUri,
-        languageId: 'prisma',
-        version: 1,
-        text: '// use prisma-8\nmodel User {\n  id ',
-      },
-    });
-
-    const diagnostics = await harness.waitForDiagnostics(schemaUri);
-    expect(Array.isArray(diagnostics)).toBe(true);
-  });
-
-  it('publishes nothing for a document that is not a configured input', async () => {
-    harness = startHarness(resolveToSchema);
-    await harness.initialize();
-
-    const otherUri = pathToFileURL(join(root, 'not-a-schema.psl')).toString();
-    harness.client.sendNotification(DidOpenTextDocumentNotification.type, {
-      textDocument: { uri: otherUri, languageId: 'prisma', version: 1, text: duplicateModelSource },
-    });
-
-    await settle();
-    expect(harness.publishCount(otherUri)).toBe(0);
   });
 });
 

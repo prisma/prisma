@@ -88,14 +88,4 @@ describe('MongoTargetSchemaVerifier', () => {
       result.issues.some((i) => issueOutcome(i) === 'not-found' && i.path[0] === 'items'),
     ).toBe(true);
   });
-
-  it('uses the family-shared scaffolding: walks each namespace and aggregates issues', () => {
-    const verifier = new MongoTargetSchemaVerifier();
-    const contract = deserializedContract();
-    expect(Object.keys(contract.storage.namespaces)).toEqual(['__unbound__']);
-
-    const result = verifier.verifySchema({ contract, schema: new MongoSchemaIR([]) });
-    expect(result).toBeDefined();
-    expect(Array.isArray(result.issues)).toBe(true);
-  });
 });

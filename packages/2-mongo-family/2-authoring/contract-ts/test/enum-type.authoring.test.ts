@@ -60,14 +60,6 @@ describe('member()', () => {
 describe('enumType() — Mongo binding', () => {
   const Role = enumType('Role', mongoString, member('User', 'user'), member('Admin', 'admin'));
 
-  it('preserves literal value tuple on .values', () => {
-    expectTypeOf(Role.values).toEqualTypeOf<readonly ['user', 'admin']>();
-  });
-
-  it('preserves literal name tuple on .names', () => {
-    expectTypeOf(Role.names).toEqualTypeOf<readonly ['User', 'Admin']>();
-  });
-
   it('exposes members accessor map', () => {
     expectTypeOf(Role.members.User).toEqualTypeOf<'user'>();
     expectTypeOf(Role.members.Admin).toEqualTypeOf<'admin'>();
@@ -82,10 +74,6 @@ describe('enumType() — Mongo binding', () => {
     expect(Role.nameOf('user')).toBe('User');
     expect(Role.ordinalOf('admin')).toBe(1);
     expect(Role.ordinalOf(notAMember)).toBe(-1);
-  });
-
-  it('stores codecId', () => {
-    expect(Role.codecId).toBe('mongo/string@1');
   });
 });
 

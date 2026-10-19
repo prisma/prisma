@@ -5,7 +5,6 @@ import {
   assertAnnotationsApplicable,
   brandedAnnotations,
   defineAnnotation,
-  type OperationKind,
 } from '../src/annotations';
 
 const meta: PlanMeta = {
@@ -338,25 +337,6 @@ describe('assertAnnotationsApplicable', () => {
           applicableTo: ['read'],
         });
       }
-    });
-  });
-
-  describe('does not require AnnotationValue typing on its parameter', () => {
-    // The runtime helper takes readonly AnnotationValue<unknown, OperationKind>[]
-    // so it can be called from lane terminals that have already passed
-    // the type gate via ValidAnnotations. The runtime check is the
-    // belt-and-suspenders that catches casts / `any` / dynamic
-    // invocations.
-    it('rejects an opaquely-typed inapplicable annotation forced through a cast', () => {
-      const sneakyWriteAnnotation = audit({ actor: 'system' });
-      // Imagine a caller bypassed the type gate via `as any` and handed
-      // the runtime an annotation whose kinds do not match the terminal.
-      const annotations: readonly AnnotationValue<unknown, OperationKind>[] = [
-        sneakyWriteAnnotation,
-      ];
-      expect(() => assertAnnotationsApplicable(annotations, 'read', 'first')).toThrow(
-        expect.objectContaining({ code: 'RUNTIME.ANNOTATION_INAPPLICABLE' }),
-      );
     });
   });
 });

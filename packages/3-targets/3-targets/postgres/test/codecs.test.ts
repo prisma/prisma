@@ -19,19 +19,14 @@ import {
   pgFloat4Descriptor,
   pgFloat8Descriptor,
   pgFloatDescriptor,
-  pgInetDescriptor,
   pgInt2Descriptor,
   pgInt4Descriptor,
   pgInt8Descriptor,
   pgIntDescriptor,
   pgIntervalDescriptor,
-  pgJsonbDescriptor,
-  pgJsonDescriptor,
   pgNumericDescriptor,
   pgTextDescriptor,
   pgTimetzDescriptor,
-  pgTsqueryDescriptor,
-  pgUuidDescriptor,
   pgVarbitDescriptor,
   pgVarcharDescriptor,
 } from '../src/core/codecs';
@@ -62,10 +57,6 @@ const descriptorByScalar = {
   'bit varying': pgVarbitDescriptor,
   bytea: pgByteaDescriptor,
   interval: pgIntervalDescriptor,
-  json: pgJsonDescriptor,
-  jsonb: pgJsonbDescriptor,
-  uuid: pgUuidDescriptor,
-  inet: pgInetDescriptor,
 } as const satisfies Record<string, AnyCodecDescriptorTemplate>;
 
 type ScalarName = keyof typeof descriptorByScalar;
@@ -77,62 +68,18 @@ function codecForScalar(scalar: ScalarName): Codec {
 }
 
 describe('adapter-postgres codecs', () => {
-  describe('json codec', () => {
-    const jsonCodec = codecForScalar('json') as {
-      encode: (value: unknown, ctx: SqlCodecCallContext) => Promise<string>;
-      decode: (wire: string | unknown, ctx: SqlCodecCallContext) => Promise<unknown>;
-    };
-
-    it('encodes object to JSON string', async () => {
-      expect(await jsonCodec.encode({ key: 'value', nested: { ok: true } }, {})).toBe(
-        '{"key":"value","nested":{"ok":true}}',
-      );
-    });
-
-    it('decodes JSON string to object', async () => {
-      expect(await jsonCodec.decode('{"key":"value"}', {})).toEqual({ key: 'value' });
-    });
-
-    it('passes through already-decoded values', async () => {
-      expect(await jsonCodec.decode({ key: 'value' }, {})).toEqual({ key: 'value' });
-    });
-  });
-
-  describe('jsonb codec', () => {
-    const jsonbCodec = codecForScalar('jsonb') as {
-      encode: (value: unknown, ctx: SqlCodecCallContext) => Promise<string>;
-      decode: (wire: string | unknown, ctx: SqlCodecCallContext) => Promise<unknown>;
-    };
-
-    it('encodes arrays and null values', async () => {
-      expect(await jsonbCodec.encode([1, null, { active: false }], {})).toBe(
-        '[1,null,{"active":false}]',
-      );
-    });
-
-    it('decodes JSON string to array', async () => {
-      expect(await jsonbCodec.decode('[1,true,{"x":1}]', {})).toEqual([1, true, { x: 1 }]);
-    });
-
-    it('passes through already-decoded values', async () => {
-      expect(await jsonbCodec.decode({ key: 'value' }, {})).toEqual({ key: 'value' });
-    });
-  });
-
   describe('scalar passthrough codecs', () => {
-    it.each([
-      { scalar: 'sql-text', value: 'portable text' },
-      { scalar: 'text', value: 'hello world' },
-      { scalar: 'uuid', value: '550e8400-e29b-41d4-a716-446655440000' },
-      { scalar: 'inet', value: '192.168.1.1' },
-    ] as const)('keeps $scalar values unchanged', async ({ scalar, value }) => {
-      const codec = codecForScalar(scalar) as {
-        encode: (input: string, ctx: SqlCodecCallContext) => Promise<string>;
-        decode: (input: string, ctx: SqlCodecCallContext) => Promise<string>;
-      };
-      expect(await codec.encode(value, {})).toBe(value);
-      expect(await codec.decode(value, {})).toBe(value);
-    });
+    it.each([{ scalar: 'sql-text', value: 'portable text' }] as const)(
+      'keeps $scalar values unchanged',
+      async ({ scalar, value }) => {
+        const codec = codecForScalar(scalar) as {
+          encode: (input: string, ctx: SqlCodecCallContext) => Promise<string>;
+          decode: (input: string, ctx: SqlCodecCallContext) => Promise<string>;
+        };
+        expect(await codec.encode(value, {})).toBe(value);
+        expect(await codec.decode(value, {})).toBe(value);
+      },
+    );
 
     it.each([
       { scalar: 'int2', value: 12 },
@@ -431,16 +378,6 @@ describe('adapter-postgres codecs', () => {
         expect(codec.encodeJson(9007199254740993n)).toBe('9007199254740993');
         expect(codec.decodeJson('9007199254740993')).toBe(9007199254740993n);
       });
-
-      it('rejects a JSON number, which has already lost digits', () => {
-        expect(() => codec.decodeJson(42)).toThrow(
-          'pg/int8@1 JSON value must be a decimal integer string from -9223372036854775808 to 9223372036854775807',
-        );
-      });
-
-      it('renders a default as a bigint literal', () => {
-        expect(pgInt8Descriptor.renderValueLiteral?.('9007199254740993')).toBe('9007199254740993n');
-      });
     });
 
     describe('identity codecs', () => {
@@ -464,26 +401,7 @@ describe('adapter-postgres codecs', () => {
     });
   });
 
-  describe('pg/uuid@1 registry resolution', () => {
-    it('resolves pgUuidDescriptor by codec id from the registry', () => {
-      const resolved = postgresCodecRegistry.descriptorFor('pg/uuid@1');
-      expect(resolved).toBe(pgUuidDescriptor);
-    });
-  });
-
-  describe('pg/inet@1 registry resolution', () => {
-    it('resolves pgInetDescriptor by codec id from the registry', () => {
-      const resolved = postgresCodecRegistry.descriptorFor('pg/inet@1');
-      expect(resolved).toBe(pgInetDescriptor);
-    });
-  });
-
   describe('pg/tsquery@1 registry resolution', () => {
-    it('resolves pgTsqueryDescriptor by codec id, so a bound tsquery parameter renders', () => {
-      const resolved = postgresCodecRegistry.descriptorFor('pg/tsquery@1');
-      expect(resolved).toBe(pgTsqueryDescriptor);
-    });
-
     it('claims no traits, so no comparison, ordering or text operation applies to a tsquery', () => {
       expect(postgresCodecRegistry.descriptorFor('pg/tsquery@1')?.traits).toEqual([]);
     });

@@ -359,6 +359,14 @@ export interface MigrationRunnerSuccessValue {
   }>;
 }
 
+/** A check of an operation that did not hold: before the operation ran (`precheck`), or after it (`postcheck`). */
+export interface FailedCheck {
+  readonly operationId: string;
+  readonly phase: 'precheck' | 'postcheck';
+  /** The check, as the operation describes it. */
+  readonly description: string;
+}
+
 /**
  * Failure details for migration runner execution.
  */
@@ -376,6 +384,8 @@ export interface MigrationRunnerFailure {
    * {@link MigrationRunner.execute} processes multiple spaces.
    */
   readonly failingSpace?: string;
+  /** The check that did not hold, when a precheck or postcheck failed. */
+  readonly failedCheck?: FailedCheck;
   /** The type change that failed, when the failed step converts a column's values. */
   readonly failedTypeChange?: FailedTypeChange;
   /**

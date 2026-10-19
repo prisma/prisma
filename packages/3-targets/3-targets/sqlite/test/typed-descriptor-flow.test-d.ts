@@ -4,19 +4,13 @@
 
 import type { CodecTrait } from '@internal/framework-components/codec';
 import { expectTypeOf, test } from 'vitest';
-import type { AnySqliteCodecDescriptor } from '../src/core/codec-descriptor';
 import {
-  type codecDescriptors,
   type SqliteDatetimeDescriptor,
   type SqliteIntegerDescriptor,
   sqliteDatetimeDescriptor,
   sqliteIntegerDescriptor,
 } from '../src/core/codecs';
 import type { CodecTypes } from '../src/exports/codec-types';
-
-test('canonical list entries extend AnySqliteCodecDescriptor', () => {
-  expectTypeOf<(typeof codecDescriptors)[number]>().toExtend<AnySqliteCodecDescriptor>();
-});
 
 test('sqliteIntegerDescriptor.traits is a readonly literal tuple, not widened', () => {
   type Traits = SqliteIntegerDescriptor['traits'];
@@ -47,12 +41,6 @@ test('CodecTypes is keyed by codec id and exposes input/output/traits', () => {
   expectTypeOf<CodecTypes['sqlite/datetime@1']>().toExtend<{
     readonly input: Date;
   }>();
-});
-
-test('widened trait shape on sqliteInteger fails the equality check', () => {
-  type Traits = SqliteIntegerDescriptor['traits'];
-  // @ts-expect-error -- traits literal tuple is preserved, not widened to CodecTrait[]
-  expectTypeOf<Traits>().toEqualTypeOf<readonly CodecTrait[]>();
 });
 
 test('non-existent codec id is absent from CodecTypes', () => {

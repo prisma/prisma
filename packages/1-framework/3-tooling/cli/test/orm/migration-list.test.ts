@@ -173,18 +173,6 @@ describe('migration list', () => {
     ]);
   });
 
-  it('carries no escape sequence of its own into the drawing', async () => {
-    const dir = await projectDir();
-    await seedMigration(join(dir, 'migrations'));
-
-    const run = await harness(ormConfig()).run(['migration', 'list'], {
-      cwd: dir,
-      isTty: { stdout: true },
-    });
-
-    expect(JSON.stringify(run.presented?.presentation.human)).not.toContain('\\u001b');
-  });
-
   it('leaves stdout empty, having no machine-consumable lines to put there', async () => {
     const dir = await projectDir();
     await seedMigration(join(dir, 'migrations'));

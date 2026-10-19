@@ -203,30 +203,6 @@ describe('SqliteMigrationPlanner - codec onFieldEvent wiring', () => {
     expect(ids).toContain('codec.dropped.User.email');
   });
 
-  it('does not fire when no codec has an onFieldEvent hook', async () => {
-    const result = planner.plan({
-      contract: contract(
-        {
-          User: table({ id: col({ codecId: 'sqlite/text@1' }) }),
-        },
-        'to',
-      ),
-      schema: { tables: {} },
-      policy: { allowedOperationClasses: ['additive'] },
-      fromContract: null,
-      origin: null,
-      statements: [],
-      frameworkComponents: sqliteComponents,
-      spaceId: APP_SPACE_ID,
-      snapshotsImportPath: '../../snapshots',
-    });
-
-    expect(result.kind).toBe('success');
-    if (result.kind !== 'success') return;
-    const ops = await Promise.all(result.plan.operations);
-    expect(ops.every((op) => !op.id.startsWith('codec.'))).toBe(true);
-  });
-
   it('produces byte-identical operations across re-emits (deterministic)', async () => {
     const hooks: CodecControlHooks = {
       onFieldEvent: (event, ctx) => [

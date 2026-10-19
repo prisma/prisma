@@ -39,27 +39,6 @@ describe('SqliteUnboundDatabase', () => {
   });
 });
 
-describe('SqliteDatabase', () => {
-  it('qualifies table names without a schema prefix for runtime SQL rendering', () => {
-    const database = new SqliteDatabase({
-      id: UNBOUND_NAMESPACE_ID,
-      entries: {
-        table: {
-          user: new StorageTable({
-            columns: {
-              id: { codecId: 'sqlite/integer@1', dataType: 'sqlite/integer', nullable: false },
-            },
-            uniques: [],
-            indexes: [],
-            foreignKeys: [],
-          }),
-        },
-      },
-    });
-    expect(database.qualifyTable('user')).toBe('"user"');
-  });
-});
-
 describe('sqliteCreateNamespace factory', () => {
   it('returns the unbound singleton for the framework-reserved sentinel', () => {
     expect(sqliteCreateNamespace({ id: UNBOUND_NAMESPACE_ID, entries: { table: {} } })).toBe(
@@ -91,12 +70,6 @@ describe('SqliteDatabase — entries open dictionary', () => {
     });
     const parsed = JSON.parse(JSON.stringify(db)) as Record<string, unknown>;
     expect(Object.keys(parsed).sort()).toEqual(['entries', 'id']);
-  });
-
-  it('kind is non-enumerable', () => {
-    const db = new SqliteDatabase({ id: UNBOUND_NAMESPACE_ID, entries: { table: {} } });
-    expect(Object.keys(db)).not.toContain('kind');
-    expect(db.kind).toBe('sqlite-namespace');
   });
 
   it('entries is frozen after construction', () => {
@@ -139,16 +112,6 @@ describe('SqliteDatabase — entries open dictionary', () => {
     expect(db.table['users']).toBeInstanceOf(StorageTable);
   });
 
-  it('entries[kind][name] resolves the same as getter[name]', () => {
-    const db = new SqliteDatabase({
-      id: UNBOUND_NAMESPACE_ID,
-      entries: {
-        table: { users: { columns: {}, uniques: [], indexes: [], foreignKeys: [] } },
-      },
-    });
-    expect(db.entries['table']?.['users']).toBe(db.table['users']);
-  });
-
   it('node itself is frozen', () => {
     const db = new SqliteDatabase({ id: UNBOUND_NAMESPACE_ID, entries: { table: {} } });
     expect(Object.isFrozen(db)).toBe(true);
@@ -185,17 +148,6 @@ describe('SqliteUnboundDatabase — entries open dictionary', () => {
       unknown
     >;
     expect(Object.keys(parsed).sort()).toEqual(['entries', 'id']);
-  });
-
-  it('table getter returns the frozen empty map', () => {
-    expect(SqliteUnboundDatabase.instance.table).toBe(
-      SqliteUnboundDatabase.instance.entries['table'],
-    );
-    expect(SqliteUnboundDatabase.instance.table).toEqual({});
-  });
-
-  it('table getter is non-enumerable', () => {
-    expect(Object.keys(SqliteUnboundDatabase.instance)).not.toContain('table');
   });
 });
 

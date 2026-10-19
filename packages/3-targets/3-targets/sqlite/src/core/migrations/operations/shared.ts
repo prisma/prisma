@@ -57,6 +57,9 @@ export interface SqliteColumnSpec {
   readonly inlineAutoincrementPrimaryKey?: boolean;
 }
 
+/** The text a `DdlColumn`'s type ends with when the column is SQLite's inline `INTEGER PRIMARY KEY AUTOINCREMENT`. */
+export const INLINE_AUTOINCREMENT_PRIMARY_KEY = ' PRIMARY KEY AUTOINCREMENT';
+
 /** The DDL default of a contract default: `autoincrement()` is written as part of the column's type instead. */
 export function sqliteDefaultToDdlColumnDefault(
   columnDefault: ColumnDefault | undefined,

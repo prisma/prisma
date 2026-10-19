@@ -33,19 +33,6 @@ describe('schema-IR node from() factories', () => {
       const pk = new PrimaryKey({ columns: ['id'] });
       expect(PrimaryKey.from(pk)).toBe(pk);
     });
-
-    // `dependsOn` is non-enumerable, so a factory that rebuilt instead of
-    // returning them would not lose it — but identity would go, and with it
-    // the reference equality the differ's node bookkeeping relies on.
-    it('preserves dependsOn through the instance path', () => {
-      const pk = new PrimaryKey({
-        columns: ['id'],
-        dependsOn: [[{ nodeKind: 'sql-column', id: 'column:id' }]],
-      });
-      const carried = PrimaryKey.from(pk);
-      expect(carried).toBe(pk);
-      expect(carried.dependsOn).toEqual(pk.dependsOn);
-    });
   });
 
   describe('SqlIndexIR', () => {

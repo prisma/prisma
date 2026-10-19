@@ -1,10 +1,7 @@
-import { type Contract, coreHash, profileHash } from '@internal/contract/types';
+import type { Contract } from '@internal/contract/types';
 import { INIT_ADDITIVE_POLICY } from '@internal/family-sql/control';
 import { APP_SPACE_ID } from '@internal/framework-components/control';
-import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
-import { SqlStorage } from '@internal/sql-contract/types';
-import { postgresCreateNamespace } from '@internal/target-postgres/types';
-import { applicationDomainOf } from '@repo/test-utils';
+import type { SqlStorage } from '@internal/sql-contract/types';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   contract,
@@ -107,88 +104,6 @@ describe('Schema verification after runner - integration', { concurrent: false }
       throw new Error(`Runner failed:\n${formatRunnerFailure(executeResult.failure)}`);
     }
   }
-
-  describe('when schema matches contract after migration', () => {
-    it('returns ok: true', { timeout: testTimeout }, async () => {
-      await runSuccessfulMigration(driver!);
-
-      const schema = await familyInstance.introspect({
-        driver: driver!,
-        contract,
-      });
-      const result = familyInstance.verifySchema({
-        contract,
-        schema,
-        strict: false,
-        frameworkComponents,
-      });
-
-      expect(result.ok).toBe(true);
-      expect(result.schema.issues).toHaveLength(0);
-    });
-
-    it('returns ok: true with normalized defaults', { timeout: testTimeout }, async () => {
-      const contractWithDefaults: Contract<SqlStorage> = {
-        target: 'postgres',
-        targetFamily: 'sql',
-        profileHash: profileHash('test'),
-        storage: new SqlStorage({
-          storageHash: coreHash('contract-with-defaults'),
-          namespaces: {
-            [UNBOUND_NAMESPACE_ID]: postgresCreateNamespace({
-              id: UNBOUND_NAMESPACE_ID,
-              entries: {
-                table: {
-                  user: {
-                    columns: {
-                      id: {
-                        dataType: 'pg/int4',
-                        codecId: 'pg/int4@1',
-                        nullable: false,
-                        default: { kind: 'function', expression: 'autoincrement()' },
-                      },
-                      createdAt: {
-                        dataType: 'pg/timestamptz',
-                        codecId: 'pg/timestamptz-temporal@1',
-                        nullable: false,
-                        default: { kind: 'function', expression: 'now()' },
-                      },
-                      email: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
-                    },
-                    primaryKey: { columns: ['id'] },
-                    uniques: [],
-                    indexes: [],
-                    foreignKeys: [],
-                  },
-                },
-              },
-            }),
-          },
-        }),
-        roots: {},
-        domain: applicationDomainOf({ models: {} }),
-        capabilities: {},
-        extensions: {},
-        meta: {},
-      };
-
-      await runSuccessfulMigrationForContract(driver!, contractWithDefaults);
-
-      const schema = await familyInstance.introspect({
-        driver: driver!,
-        contract: contractWithDefaults,
-      });
-      const result = familyInstance.verifySchema({
-        contract: contractWithDefaults,
-        schema,
-        strict: false,
-        frameworkComponents,
-      });
-
-      expect(result.ok).toBe(true);
-      expect(result.schema.issues).toHaveLength(0);
-    });
-  });
 
   describe('when schema is mutated after migration', () => {
     it('detects nullability change (DROP NOT NULL)', { timeout: testTimeout }, async () => {

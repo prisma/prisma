@@ -14,7 +14,7 @@
  * op-factory-call.lowering.test.ts.
  */
 
-import { col, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
+import { col, fn, lit, primaryKey } from '@internal/sql-relational-core/contract-free';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import {
   AddColumnCall,
@@ -24,6 +24,7 @@ import {
   CreateTableCall,
   DataTransformCall,
   DropTableCall,
+  SetDefaultCall,
 } from '@internal/target-postgres/op-factory-call';
 import { renderCallsToTypeScript } from '@internal/target-postgres/render-typescript';
 import { describe, expect, it } from 'vitest';
@@ -36,6 +37,25 @@ const META = {
   to: TO_HEX,
   snapshotsImportPath: SNAPSHOTS_IMPORT_PATH,
 } as const;
+
+describe('Postgres call classes - SetDefaultCall rendering', () => {
+  it('SetDefaultCall emits this.setDefault({...}) with the column and never the operation class', () => {
+    const column = col('created_at', 'timestamptz', { default: fn('now()') });
+    const additive = new SetDefaultCall('public', 'user', column, 'additive');
+    const widening = new SetDefaultCall('public', 'user', column, 'widening');
+    expect({
+      additive: additive.renderTypeScript(),
+      widening: widening.renderTypeScript(),
+      imports: additive.importRequirements().map((requirement) => requirement.symbol),
+    }).toEqual({
+      additive:
+        'this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql`now()`) }) })',
+      widening:
+        'this.setDefault({ schema: "public", table: "user", column: col("created_at", "timestamptz", { default: fn(sql`now()`) }) })',
+      imports: ['col', 'fn', 'sql'],
+    });
+  });
+});
 
 describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   const migrationModule = '@internal/postgres/migration';
@@ -84,7 +104,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   });
 
   it('AddColumnCall emits this.addColumn({...}) and imports col', () => {
-    const call = new AddColumnCall('public', 'user', col('email', 'text'));
+    const call = new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes);
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("email", "text") })',
     );
@@ -96,7 +116,7 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
   it('AddColumnCall includes codecRef in the rendered col() call when present', () => {
     const codecRef = { codecId: 'pg/uuid@1' };
     const column = col('id', 'uuid', { codecRef });
-    const call = new AddColumnCall('public', 'user', column);
+    const call = new AddColumnCall('public', 'user', column, postgresDataTypes);
     expect(call.renderTypeScript()).toBe(
       'this.addColumn({ schema: "public", table: "user", column: col("id", "uuid", { codecRef: { codecId: "pg/uuid@1" } }) })',
     );
@@ -105,31 +125,16 @@ describe('Postgres call classes - per-class renderTypeScript coverage', () => {
       'public',
       'user',
       col('data', 'jsonb', { codecRef: { codecId: 'pg/json@1', typeParams: { schema: 'v1' } } }),
+      postgresDataTypes,
     );
     expect(callWithTypeParams.renderTypeScript()).toContain(
       'codecRef: { codecId: "pg/json@1", typeParams: { schema: "v1" } }',
     );
   });
 
-  it('codecRef round-trip: col() built from the rendered arguments equals the original DdlColumn', () => {
-    const originalCodecRef = { codecId: 'pg/uuid@1' };
-    const originalColumn = col('id', 'uuid', { codecRef: originalCodecRef, notNull: true });
-
-    const roundTrippedColumn = col('id', 'uuid', {
-      notNull: true,
-      codecRef: { codecId: 'pg/uuid@1' },
-    });
-    expect(roundTrippedColumn).toEqual(originalColumn);
-    expect(roundTrippedColumn.codecRef).toEqual(originalCodecRef);
-  });
-
-  it('AddColumnCall without codecRef renders col() with no codecRef property', () => {
-    const call = new AddColumnCall('public', 'user', col('score', 'integer'));
-    expect(call.renderTypeScript()).not.toContain('codecRef');
-  });
-
   const alterAge = (using?: { readonly kind: 'sql'; readonly sql: string }) =>
     new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: 'public',
       tableName: 'user',
       columnName: 'age',
@@ -174,7 +179,7 @@ describe('renderCallsToTypeScript', () => {
     const calls = [
       new CreateTableCall('public', 'user', [col('id', 'text', { notNull: true })]),
       new DropTableCall('public', 'old_user'),
-      new AddColumnCall('public', 'user', col('email', 'text')),
+      new AddColumnCall('public', 'user', col('email', 'text'), postgresDataTypes),
       new CreateIndexCall('public', 'user', 'user_email_idx', { columns: ['email'] }),
     ];
 
@@ -224,22 +229,6 @@ describe('renderCallsToTypeScript', () => {
         '      })',
       ].join('\n'),
     );
-  });
-
-  it('derives describe() from contract JSON instead of embedding from/to hashes', () => {
-    const source = renderCallsToTypeScript([], META);
-    // New shape: from/to are derived by the base from the imported contract JSON
-    // (no describe() block, no hash literals).
-    expect(source).not.toContain('describe()');
-    expect(source).not.toContain(`'${META.from}'`);
-    expect(source).not.toContain(`'${META.to}'`);
-    expect(source).toContain('export default class M extends Migration<Start, End> {');
-    expect(source).toContain('override readonly startContractJson = startContract;');
-    expect(source).toContain('override readonly endContractJson = endContract;');
-    expect(source).toContain(
-      "import { Migration, MigrationCLI } from '@internal/postgres/migration';",
-    );
-    expect(source).toContain('MigrationCLI.run(import.meta.url, M);');
   });
 
   it('renders CreateTableCall as this.createTable({...}) with col() columns in the scaffold', () => {

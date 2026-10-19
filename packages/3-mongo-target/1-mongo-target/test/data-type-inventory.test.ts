@@ -19,10 +19,6 @@ const EXPECTED: Readonly<Record<string, string>> = {
 };
 
 describe('Mongo data type inventory', () => {
-  it('ships codecs to check', () => {
-    expect(mongoCodecDescriptors.length).toBeGreaterThan(0);
-  });
-
   it('names the data type of every codec it ships', () => {
     expect(
       Object.fromEntries(

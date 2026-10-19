@@ -119,6 +119,7 @@ describe('migration operations that write opaque SQL into ALTER TABLE', () => {
     const sqlOf = async (using?: string) =>
       (
         await new AlterColumnTypeCall({
+          ownsAutoincrementSequence: false,
           schemaName: 'public',
           tableName: 'user',
           columnName: 'age',
@@ -142,6 +143,7 @@ describe('migration operations that write opaque SQL into ALTER TABLE', () => {
 
   it('refuses an empty schema name when the migration is planned', async () => {
     const alterType = new AlterColumnTypeCall({
+      ownsAutoincrementSequence: false,
       schemaName: '',
       tableName: 'user',
       columnName: 'age',

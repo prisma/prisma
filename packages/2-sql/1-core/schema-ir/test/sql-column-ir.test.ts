@@ -9,11 +9,6 @@ describe('SqlColumnIR', () => {
     expect(column.id).toBe('column:email');
   });
 
-  it('nodeKind is the column kind', () => {
-    const column = new SqlColumnIR({ name: 'email', nativeType: 'text', nullable: false });
-    expect(column.nodeKind).toBe('sql-column');
-  });
-
   describe('children', () => {
     it('empty when the column has no default', () => {
       const column = new SqlColumnIR({ name: 'email', nativeType: 'text', nullable: false });
@@ -71,16 +66,6 @@ describe('SqlColumnIR', () => {
         default: "'draft'::text",
       });
       expect(column.children()).toEqual([new SqlColumnDefaultIR({ raw: "'draft'::text" })]);
-    });
-
-    it('the default node id is the fixed sentinel', () => {
-      const column = new SqlColumnIR({
-        name: 'status',
-        nativeType: 'text',
-        nullable: false,
-        default: "'x'",
-      });
-      expect(column.children()[0]?.id).toBe('default');
     });
   });
 

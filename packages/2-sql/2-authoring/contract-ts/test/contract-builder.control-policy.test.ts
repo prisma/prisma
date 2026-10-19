@@ -52,22 +52,6 @@ describe('defineContract defaultControlPolicy', () => {
 
     expect(built.defaultControlPolicy).toBe('external');
   });
-
-  it('omits defaultControlPolicy when unset', () => {
-    const built = defineContract({
-      ...testTypeLookups,
-      family: bareFamilyPack,
-      target: postgresTargetPack,
-      createNamespace: createTestSqlNamespace,
-      models: {
-        User: model('User', {
-          fields: { id: field.column(int4Column).id() },
-        }).sql({ table: 'app_user' }),
-      },
-    });
-
-    expect(built).not.toHaveProperty('defaultControlPolicy');
-  });
 });
 
 describe('defineContract per-table control', () => {

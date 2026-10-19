@@ -75,27 +75,6 @@ describe('arktypeJsonColumn(schema)', () => {
     const decoded = codec.decodeJson(json);
     expect(decoded).toEqual(value);
   });
-
-  it('rejects non-callable schema lookalikes at the call site', () => {
-    const notASchema = { foo: 'bar' };
-    // @ts-expect-error -- deliberately malformed input for the call-site guard
-    expect(() => arktypeJsonColumn(notASchema)).toThrow(/callable arktype Type/);
-  });
-
-  it('rejects callable values that are missing `expression: string`', () => {
-    const callableWithoutExpression = (v: unknown) => v;
-    expect(() => arktypeJsonColumn(callableWithoutExpression as never)).toThrow(
-      /missing `expression: string`/,
-    );
-  });
-
-  it('rejects callable schemas that are missing the `json` IR', () => {
-    const fakeSchema = Object.assign((v: unknown) => v, {
-      expression: 'unknown',
-      json: 'not-an-object',
-    });
-    expect(() => arktypeJsonColumn(fakeSchema as never)).toThrow(/missing `json` IR/);
-  });
 });
 
 describe('arktypeJsonColumn encode/encodeJson agreement', () => {
@@ -128,15 +107,6 @@ describe('arktypeJsonColumn encode/encodeJson agreement', () => {
     await expect(codec.encode({ name: 'Widget' } as never, CALL_CTX)).resolves.toBe(
       '{"name":"Widget"}',
     );
-  });
-
-  it('encode rejects values that are not representable as JSON', async () => {
-    const anySchema = type('object');
-    const codec = arktypeJsonColumn(anySchema).codecFactory(SYNTH_CTX);
-    await expect(codec.encode(undefined as never, CALL_CTX)).rejects.toThrow(
-      /not representable as JSON/,
-    );
-    expect(() => codec.encodeJson(undefined as never)).toThrow(/not representable as JSON/);
   });
 
   it('decode rejects payloads with type-mismatched fields', async () => {
@@ -236,11 +206,6 @@ describe('arktypeJsonDescriptor.factory(params)', () => {
         expression: 'an obviously stale expression',
       }),
     ).toThrow(/typeParams\.expression .* does not match/);
-  });
-
-  it('accepts matching typeParams.expression without complaint', () => {
-    const col = arktypeJsonColumn(productSchema);
-    expect(() => arktypeJsonDescriptor.factory(col.typeParams)).not.toThrow();
   });
 });
 

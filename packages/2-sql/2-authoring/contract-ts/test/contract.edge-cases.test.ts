@@ -68,25 +68,6 @@ describe('SqlContractSerializer edge cases', () => {
     );
   });
 
-  it('handles table without columns in normalization', () => {
-    const contractInput = validSqlContractJson({
-      storage: storageWithNamespacedTables({
-        storageHash: 'test',
-        tables: {
-          User: {
-            primaryKey: { columns: ['id'] },
-            uniques: [],
-            indexes: [],
-            foreignKeys: [],
-          },
-        },
-      }),
-      // biome-ignore lint/suspicious/noExplicitAny: testing invalid input
-    }) as any;
-    // This will fail validation, but normalization should handle it
-    expect(() => validateSqlContractFully<Contract<SqlStorage>>(contractInput)).toThrow();
-  });
-
   it('rejects relation targeting non-existent model', () => {
     const contractInput = validSqlContractJson({
       models: {

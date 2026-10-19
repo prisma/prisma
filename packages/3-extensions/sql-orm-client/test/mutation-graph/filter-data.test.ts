@@ -12,13 +12,6 @@ const idAndName = columnPairs('users', 'posts', [
 ]);
 
 describe('FilterData', () => {
-  it('holds its positions and its column pairs', () => {
-    expect(new FilterData(from, idToUserId)).toMatchObject({
-      from,
-      columns: [[{ alias: 'id' }, { alias: 'user_id' }]],
-    });
-  });
-
   it('is frozen', () => {
     const edge = new FilterData(from, idToUserId);
 

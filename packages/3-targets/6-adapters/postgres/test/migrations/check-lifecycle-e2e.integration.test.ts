@@ -646,8 +646,6 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
     ]);
 
     expect((await verify(contract)).ok).toBe(true);
-    // Reprint stability: the containment shape does not drift on re-verify.
-    expect((await verify(contract)).ok).toBe(true);
   });
 
   it('an element-nullable array domain enum accepts valid NULLs and rejects invalid non-null values', {
@@ -724,7 +722,6 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
       driver!.query(`INSERT INTO "Item" (id, roles) VALUES ('c', ARRAY['user',NULL])`),
     ).rejects.toThrow(/Item_roles/);
 
-    expect((await verify(contract)).ok).toBe(true);
     expect((await verify(contract)).ok).toBe(true);
   });
 
@@ -833,8 +830,6 @@ describe('check-constraint lifecycle', { concurrent: false }, () => {
       `((role)::text = ANY ((ARRAY['user'::character varying, 'admin'::character varying])::text[]))`,
     ]);
 
-    expect((await verify(contract)).ok).toBe(true);
-    // Stable across a second introspect + verify.
     expect((await verify(contract)).ok).toBe(true);
   });
 

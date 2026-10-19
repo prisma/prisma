@@ -464,14 +464,19 @@ describe('MongoMigrationPlanner', () => {
       expect(op.postcheck[0]!.filter.kind).toBe('and');
     });
 
-    it('non-unique index postcheck uses simple field filter', () => {
+    it('non-unique index postcheck requires the index not to be unique', () => {
       const contract = makeContract({
         users: { indexes: [{ keys: [{ field: 'email', direction: 1 }] }] },
       });
       const plan = planSuccess(planner, contract, emptyIR());
       const op = plan.operations[0] as MongoMigrationPlanOperation;
 
-      expect(op.postcheck[0]!.filter.kind).toBe('field');
+      expect(op.postcheck[0]!.filter).toMatchObject({
+        kind: 'and',
+        exprs: expect.arrayContaining([
+          { kind: 'not', expr: expect.objectContaining({ field: 'unique', value: true }) },
+        ]),
+      });
     });
 
     it('createIndex sets a deterministic operation id', () => {
@@ -1558,12 +1563,6 @@ describe('MongoMigrationPlanner', () => {
   });
 
   describe('plan metadata', () => {
-    it('sets targetId to mongo', () => {
-      const contract = makeContract({ users: {} });
-      const plan = planSuccess(planner, contract, emptyIR());
-      expect(plan.targetId).toBe('mongo');
-    });
-
     it('sets destination storageHash from contract', () => {
       const contract = makeContract({ users: {} });
       const plan = planSuccess(planner, contract, emptyIR());

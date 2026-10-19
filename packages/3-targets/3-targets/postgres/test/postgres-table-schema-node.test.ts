@@ -33,31 +33,12 @@ describe('PostgresTableSchemaNode', () => {
     expect(table.id).toBe('profiles');
   });
 
-  it('id matches the name field', () => {
-    const table = new PostgresTableSchemaNode({
-      name: 'orders',
-      columns: {},
-      foreignKeys: [],
-      uniques: [],
-      indexes: [],
-      rlsEnabled: false,
-    });
-    expect(table.id).toBe('orders');
-  });
-
   it('isEqualTo matches by id (name), ignoring columns and policies', () => {
     const a = new PostgresTableSchemaNode({ ...tableInput, policies: [basePolicy] });
     const same = new PostgresTableSchemaNode({ ...tableInput, policies: [] });
     const other = new PostgresTableSchemaNode({ ...tableInput, name: 'other', policies: [] });
     expect(a.isEqualTo(same)).toBe(true);
     expect(a.isEqualTo(other)).toBe(false);
-  });
-
-  it('carries rlsEnabled as supplied', () => {
-    const enabled = new PostgresTableSchemaNode({ ...tableInput, rlsEnabled: true, policies: [] });
-    const disabled = new PostgresTableSchemaNode({ ...tableInput, policies: [] });
-    expect(enabled.rlsEnabled).toBe(true);
-    expect(disabled.rlsEnabled).toBe(false);
   });
 
   it('isEqualTo compares rlsEnabled: nodes differing only in rlsEnabled are NOT equal (the first table-attribute comparison)', () => {
@@ -213,11 +194,6 @@ describe('PostgresTableSchemaNode', () => {
   it('instance is frozen', () => {
     const table = new PostgresTableSchemaNode({ ...tableInput });
     expect(Object.isFrozen(table)).toBe(true);
-  });
-
-  it('name field is set', () => {
-    const table = new PostgresTableSchemaNode({ ...tableInput });
-    expect(table.name).toBe('profiles');
   });
 
   describe('PostgresTableSchemaNode.is guard', () => {

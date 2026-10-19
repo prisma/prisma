@@ -17,20 +17,14 @@ import { buildPostgresPlanDiff } from './diff-database-schema';
 import { pairCheckRenames, pairIndexRenames } from './index-and-check-renames';
 import { RenameColumnCall, RenameTableCall } from './op-factory-call';
 import { renameTableStatement } from './operations/tables';
-import { resolveDdlSchemaForNamespaceStorage } from './resolve-ddl-schema';
+import {
+  emissionSchemaForNamespace,
+  resolveDdlSchemaForNamespaceStorage,
+} from './resolve-ddl-schema';
 import { constraintRenamesForTableRename } from './table-rename-constraint-renames';
 import { renameColumnInPostgresSchema, renameTableInPostgresSchema } from './working-schema';
 
 const RENAME_POLICY: MigrationOperationPolicy = { allowedOperationClasses: ['widening'] };
-
-export function emissionSchemaForNamespace(
-  contract: Contract<SqlStorage>,
-  namespaceId: string,
-): string {
-  return namespaceId === UNBOUND_NAMESPACE_ID
-    ? UNBOUND_NAMESPACE_ID
-    : resolveDdlSchemaForNamespaceStorage(contract.storage, namespaceId);
-}
 
 /**
  * The `renameTable` call a user writes in `migration.ts` for `rename`. `schema` names the namespace
