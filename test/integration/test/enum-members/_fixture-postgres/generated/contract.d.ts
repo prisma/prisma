@@ -240,11 +240,25 @@ type ParameterizedOutputTypeFunctions = PgParameterizedOutputTypes;
 type FieldTypeOverrides = {
   readonly public: {
     readonly models: {
+      readonly Network: {
+        readonly hosts: {
+          readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
+          readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
+        };
+        readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
+        readonly ratios: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
+      };
       readonly Reading: {
         readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
         readonly int4: { readonly output: 1 | 10; readonly input: 1 | 10 };
         readonly int8: { readonly output: 1n | 10n; readonly input: 1n | 10n };
         readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+        readonly uuid: {
+          readonly output:
+            'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+          readonly input:
+            'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+        };
       };
     };
   };
@@ -265,11 +279,25 @@ export type FieldInputTypes = FieldTypesFromDomain<
 >;
 type ColumnTypeOverrides = {
   readonly public: {
+    readonly networks: {
+      readonly hosts: {
+        readonly output: '127.0.0.1' | '10.0.0.0/8' | '::1';
+        readonly input: '127.0.0.1' | '10.0.0.0/8' | '::1';
+      };
+      readonly ratio: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
+      readonly ratios: { readonly output: '0.5' | '1.50'; readonly input: '0.5' | '1.50' };
+    };
     readonly readings: {
       readonly float8: { readonly output: 1.5 | 2.25; readonly input: 1.5 | 2.25 };
       readonly int4: { readonly output: 1 | 10; readonly input: 1 | 10 };
       readonly int8: { readonly output: 1n | 10n; readonly input: 1n | 10n };
       readonly text: { readonly output: 'low' | 'high'; readonly input: 'low' | 'high' };
+      readonly uuid: {
+        readonly output:
+          'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+        readonly input:
+          'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' | 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+      };
     };
   };
 };

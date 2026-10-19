@@ -113,7 +113,7 @@ describe('values in a Postgres contract decode to the value a query returns', ()
     [
       'pg/json@1',
       enumType('Stamp', pgJson, member('A', 'low')),
-      'The json type has no equality operator, so no CHECK can compare a value with the members. Use pg/jsonb@1, whose type has one.',
+      'The json type has no equality operator, so no CHECK can compare a value with the members. No enum can use a json codec; use a text enum instead.',
     ],
     [
       'pg/bytea@1',

@@ -336,14 +336,25 @@ export function renderValueSetType(
   side: 'output' | 'input',
   codecLookup: CodecLookup | undefined,
 ): string | undefined {
-  if (values.length === 0 || codecLookup?.renderValueLiteralFor === undefined) return undefined;
+  if (values.length === 0) return undefined;
   const literals: string[] = [];
   for (const value of values) {
-    const lit = codecLookup.renderValueLiteralFor(codecId, value, side);
-    if (lit === undefined || !isSafeTypeExpression(lit)) return undefined;
+    const lit = renderValueLiteralType(value, codecId, side, codecLookup);
+    if (lit === undefined) return undefined;
     literals.push(lit);
   }
   return literals.join(' | ');
+}
+
+/** The TS literal type the codec renders for one stored value, or `undefined` when it renders none or what it renders is not a safe type expression. */
+export function renderValueLiteralType(
+  value: JsonValue,
+  codecId: string,
+  side: 'output' | 'input',
+  codecLookup: CodecLookup | undefined,
+): string | undefined {
+  const lit = codecLookup?.renderValueLiteralFor?.(codecId, value, side);
+  return lit === undefined || !isSafeTypeExpression(lit) ? undefined : lit;
 }
 
 /** The local alias for the union of the stack's parameterized output type functions. */

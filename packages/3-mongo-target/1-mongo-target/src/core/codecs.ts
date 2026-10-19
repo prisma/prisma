@@ -288,6 +288,7 @@ function descriptorFor<Id extends string>(
 export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   descriptorFor(mongoObjectIdCodec, {
     traits: ['equality'],
+    renderValueLiteral: renderTsLiteral,
   }),
   descriptorFor(mongoStringCodec, {
     traits: ['equality', 'order', 'textual'],
@@ -322,6 +323,7 @@ export const mongoCodecDescriptors: ReadonlyArray<CodecDescriptor> = [
   }),
   descriptorFor(mongoDecimal128Codec, {
     traits: ['equality', 'order', 'numeric'],
+    renderValueLiteral: renderTsLiteral,
   }),
   descriptorFor(mongoBinaryCodec, {
     traits: ['equality'],

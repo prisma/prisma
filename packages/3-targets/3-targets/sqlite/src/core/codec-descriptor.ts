@@ -77,6 +77,8 @@ export interface SqliteCodecOptions<
    * adapted codec's parameter schema is this data type's, not the template's.
    */
   readonly dataType: DataType;
+  /** Renders the literal of the value the codec reads from a stored value of `dataType`, in place of the template's renderer: a template does not know the form its value is stored in here. */
+  readonly renderValueLiteral?: (value: JsonValue, side: 'output' | 'input') => string | undefined;
   readonly jsonProjection: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   /**
    * Builds the codec: the family codec, or a subclass with SQLite's own rules, constructed with `dataType` and the column's parameters, because a family template names no data type and so builds no codec of its own.
@@ -133,7 +135,9 @@ class SqliteCodecDescriptorAdapter<
     }
 
     const renderValueLiteral = descriptor.renderValueLiteral;
-    if (renderValueLiteral !== undefined) {
+    if (options.renderValueLiteral !== undefined) {
+      this.renderValueLiteral = options.renderValueLiteral;
+    } else if (renderValueLiteral !== undefined) {
       this.renderValueLiteral = (value, side) => renderValueLiteral.call(descriptor, value, side);
     }
   }

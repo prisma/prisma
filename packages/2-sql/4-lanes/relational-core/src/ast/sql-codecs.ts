@@ -9,6 +9,7 @@
  * After TML-2357 this file is the canonical source of SQL base codec metadata and runtime behaviour — the legacy `mkCodec` / `defineCodec` carriers retired with the deletion sweep.
  */
 
+import type { JsonValue } from '@internal/contract/types';
 import {
   type CodecCallContext,
   CodecDescriptorTemplateImpl,
@@ -21,6 +22,7 @@ import {
   floatToJson,
   readJsonFloat,
   readJsonInteger,
+  renderTsLiteral,
   SAFE_INTEGER_RANGE,
 } from '@internal/framework-components/codec';
 import { InternalError } from '@internal/utils/internal-error';
@@ -75,6 +77,9 @@ export class SqlTextDescriptor extends CodecDescriptorTemplateImpl<void> {
   override readonly codecId = SQL_TEXT_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(): (ctx: CodecInstanceContext) => SqlTextCodec {
     return () => unadapted(this.codecId);
   }
@@ -187,6 +192,9 @@ export class SqlCharDescriptor extends CodecDescriptorTemplateImpl<LengthParams>
   override readonly codecId = SQL_CHAR_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlCharCodec {
     return () => unadapted(this.codecId);
   }
@@ -224,6 +232,9 @@ export class SqlVarcharDescriptor extends CodecDescriptorTemplateImpl<LengthPara
   override readonly codecId = SQL_VARCHAR_CODEC_ID;
   override readonly traits = ['equality', 'order', 'textual'] as const;
   override readonly paramsSchema = undefined;
+  override renderValueLiteral(value: JsonValue): string | undefined {
+    return renderTsLiteral(value);
+  }
   override factory(_params: LengthParams): (ctx: CodecInstanceContext) => SqlVarcharCodec {
     return () => unadapted(this.codecId);
   }

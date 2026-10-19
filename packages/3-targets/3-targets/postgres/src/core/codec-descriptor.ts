@@ -120,6 +120,8 @@ export interface PostgresCodecOptions<
    * adapted codec's parameter schema is this data type's, not the template's.
    */
   readonly dataType: DataType;
+  /** Renders the literal of the value the codec reads from a stored value of `dataType`, in place of the template's renderer: a template does not know the form its value is stored in here. */
+  readonly renderValueLiteral?: (value: JsonValue, side: 'output' | 'input') => string | undefined;
   readonly jsonProjection: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   readonly jsonArrayProjection?: (expression: ProjectionExpr, params: P) => ProjectionExpr;
   /**
@@ -182,7 +184,9 @@ class PostgresCodecDescriptorAdapter<
     }
 
     const renderValueLiteral = descriptor.renderValueLiteral;
-    if (renderValueLiteral !== undefined) {
+    if (options.renderValueLiteral !== undefined) {
+      this.renderValueLiteral = options.renderValueLiteral;
+    } else if (renderValueLiteral !== undefined) {
       this.renderValueLiteral = (value, side) => renderValueLiteral.call(descriptor, value, side);
     }
 

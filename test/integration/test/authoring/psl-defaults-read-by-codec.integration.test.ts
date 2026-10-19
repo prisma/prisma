@@ -277,7 +277,19 @@ model Task {
         'a json codec, which an enum cannot use',
         '  @@type("pg/json@1")\n  Low = "low"',
         'PSL_EXTENSION_INVALID_VALUE',
-        'enum "Priority" cannot use the codec "pg/json@1". The json type has no equality operator, so no CHECK can compare a value with the members. Use pg/jsonb@1, whose type has one.',
+        'enum "Priority" cannot use the codec "pg/json@1". The json type has no equality operator, so no CHECK can compare a value with the members. No enum can use a json codec; use a text enum instead.',
+      ],
+      [
+        'a jsonb codec, which an enum cannot use',
+        '  @@type("pg/jsonb@1")\n  Low = "low"',
+        'PSL_EXTENSION_INVALID_VALUE',
+        'enum "Priority" cannot use the codec "pg/jsonb@1". A CHECK lists each member as SQL text, which PostgreSQL reads as the JSON text of a document, while the contract stores a jsonb member as the document itself, so no CHECK can compare a value with the members. No enum can use a jsonb codec; use a text enum instead.',
+      ],
+      [
+        'a timetz codec, which an enum cannot use',
+        '  @@type("pg/timetz@1")\n  Low = "12:34:56+02:00"',
+        'PSL_EXTENSION_INVALID_VALUE',
+        'enum "Priority" cannot use the codec "pg/timetz@1". A query reads each value as the text PostgreSQL prints, such as "12:34:56+02", while the contract stores it in ISO 8601, such as "12:34:56+02:00", so a value read back need not equal the member written. No enum can use a timetz codec; use a text enum instead.',
       ],
       [
         'an inet member with /32',
@@ -322,7 +334,6 @@ model Task {
       ['pg/int8number@1', '"42"', '42'],
       ['pg/unboundedint@1', '"9223372036854775808"', '9223372036854775808'],
       ['pg/numeric@1', '"1.50"', '1.50'],
-      ['pg/jsonb@1', '"low"', 'low'],
     ])('accepts a %s member written as %s', async (codecId, written, stored) => {
       expect(await storedEnumValues(codecId, [`Low = ${written}`])).toEqual({ values: [stored] });
     });
