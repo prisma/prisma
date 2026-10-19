@@ -54,7 +54,7 @@ Prisma 8 does not convert a marker of the singleton shape. A database that still
 
 ### Other targets
 - **MySQL**: same table in prisma_contract database or current schema
-- **SQLite**: `prisma_contract_marker` table with the same columns (including the `space` PK); the runner merges the `invariants` set inside `BEGIN EXCLUSIVE` (no native text-array merge in SQL). Same three-state idempotent migration as Postgres.
+- **SQLite**: `prisma_contract_marker` table with the same columns (including the `space` PK); the runner merges the `invariants` set inside `BEGIN EXCLUSIVE` (no native text-array merge in SQL). A singleton-shape marker fails when read, as on Postgres.
 - **Mongo**: `_prisma_migrations` collection with one marker document per loaded contract space, keyed `{_id: <spaceId>, space: <spaceId>, ...}` (see [ADR 212](./ADR%20212%20-%20Contract%20spaces.md) and [Subsystem 10 — Contract spaces](../subsystems/10.%20MongoDB%20Family.md#contract-spaces)). Ledger entries gain a `space` field too. `invariants` is read as `doc.invariants ?? []` so docs without the field transparently report the empty set (natural schemaless behaviour, not a compat shim).
 - Adapters must provide DDL for creating and reading the marker consistently
 
