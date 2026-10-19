@@ -197,8 +197,10 @@ function withRecordKeyNames(actualSchema: SqlSchemaIRNode): SqlSchemaIRInput {
       >(table).columns ?? {},
     )) {
       columns[columnName] =
-        column instanceof SqlColumnIR && column.name === columnName
-          ? column
+        column instanceof SqlColumnIR
+          ? column.name === columnName
+            ? column
+            : column.withName(columnName)
           : {
               ...blindCast<
                 SqlColumnIRInput,

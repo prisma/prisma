@@ -4,7 +4,6 @@ import {
   PrimaryKey,
   RelationalSchemaNodeKind,
   SqlCheckConstraintIR,
-  SqlColumnIR,
   SqlForeignKeyIR,
   SqlIndexIR,
   SqlUniqueIR,
@@ -86,29 +85,6 @@ function stepRewrite(
 }
 
 type ColumnMap = (column: string) => string;
-
-function withColumnName(column: SqlColumnIR, name: string): SqlColumnIR {
-  return new SqlColumnIR({
-    name,
-    nativeType: column.nativeType,
-    nullable: column.nullable,
-    ...ifDefined('default', column.default),
-    ...ifDefined('annotations', column.annotations),
-    ...ifDefined('many', column.many),
-    ...ifDefined('resolvedNativeType', column.resolvedNativeType),
-    ...ifDefined('resolvedDefault', column.resolvedDefault),
-    ...ifDefined('authoredDefault', column.authoredDefault),
-    ...ifDefined('codecRef', column.codecRef),
-    ...ifDefined('codecBaseNativeType', column.codecBaseNativeType),
-    ...ifDefined('dataType', column.dataType),
-    ...ifDefined('storedType', column.storedType),
-    ...ifDefined('typeParams', column.typeParams),
-    ...ifDefined('defaultValue', column.defaultValue),
-    ...ifDefined('defaultUnreadable', column.defaultUnreadable),
-    ...ifDefined('defaultExpressionValue', column.defaultExpressionValue),
-    ...ifDefined('reportedType', column.reportedType),
-  });
-}
 
 function withPrimaryKey(
   primaryKey: PrimaryKey,
@@ -269,7 +245,7 @@ function rebuildTable(
     columns: Object.fromEntries(
       Object.values(table.columns).map((column) => {
         const name = columnName(column.name);
-        return [name, name === column.name ? column : withColumnName(column, name)];
+        return [name, name === column.name ? column : column.withName(name)];
       }),
     ),
     ...ifDefined(

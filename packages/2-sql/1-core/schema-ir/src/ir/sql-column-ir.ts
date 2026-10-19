@@ -213,6 +213,20 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     ];
   }
 
+  /** This column under another name, with every other field as it is. */
+  withName(name: string): SqlColumnIR {
+    const fields = Object.fromEntries(
+      Object.getOwnPropertyNames(this).map((key) => [key, Reflect.get(this, key)]),
+    );
+    return new SqlColumnIR({
+      ...blindCast<
+        SqlColumnIRInput,
+        'every field of the input is an own property of the column under the same name'
+      >(fields),
+      name,
+    });
+  }
+
   static is(node: SqlSchemaIRNode): node is SqlColumnIR {
     return node.nodeKind === RelationalSchemaNodeKind.column;
   }

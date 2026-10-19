@@ -293,6 +293,43 @@ describe('SqlColumnIR', () => {
     });
   });
 
+  describe('withName', () => {
+    it('copies every own property of the column, enumerable or not, under the new name', () => {
+      const text = dataType('t/text', { read: (json) => json });
+      const value = text.fromContract('draft', {});
+      const column = new SqlColumnIR({
+        name: 'old',
+        nativeType: 'text',
+        nullable: true,
+        default: "'draft'::text",
+        annotations: { pg: { note: 1 } },
+        many: true,
+        resolvedNativeType: 'text[]',
+        resolvedDefault: { kind: 'literal', value: 'draft' },
+        authoredDefault: { kind: 'literal', value: 'draft' },
+        codecRef: { codecId: 't/text@1' },
+        codecBaseNativeType: 'text',
+        dataType: text,
+        storedType: text,
+        typeParams: {},
+        defaultValue: value,
+        defaultUnreadable: 'why',
+        defaultExpressionValue: value,
+        reportedType: { text: 'text', kind: undefined, schema: undefined, name: undefined },
+      });
+
+      const renamed = column.withName('new');
+
+      const { name: _old, ...before } = Object.getOwnPropertyDescriptors(column);
+      const { name, ...after } = Object.getOwnPropertyDescriptors(renamed);
+      expect({ name: name?.value, after, frozen: Object.isFrozen(renamed) }).toEqual({
+        name: 'new',
+        after: before,
+        frozen: true,
+      });
+    });
+  });
+
   describe('identity columns (introspected, no raw default)', () => {
     it('yields a default child node from resolvedDefault alone, with no raw default', () => {
       // A `GENERATED ... AS IDENTITY` column has no `column_default` at
