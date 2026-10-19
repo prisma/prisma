@@ -113,7 +113,12 @@ export type {
 export { applyPolymorphicScopeToMongoIndex } from '../polymorphic-index-scope';
 export type { MongoToOneRelationFields } from '../relation-fields';
 export { isEmbedRelation, resolveMongoToOneRelationFields } from '../relation-fields';
-export { documentIdFieldOf, storedFieldNameOf, storesField } from '../stored-field-names';
+export {
+  DOCUMENT_ID,
+  documentIdFieldOf,
+  storedFieldNameOf,
+  storesField,
+} from '../stored-field-names';
 export { validateMongoStorage } from '../validate-storage';
 export {
   validatorEnumMemberRefusalOf,

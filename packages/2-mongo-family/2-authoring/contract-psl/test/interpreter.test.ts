@@ -968,20 +968,47 @@ model Item {
       expect(modelsOf(ir)['Item']).toBeDefined();
     });
 
-    it('accepts an @id ObjectId that is not mapped to _id, stored beside the document id', () => {
-      const ir = interpretOk(`
+    it('rejects @id on a field not stored as _id, saying what to do', () => {
+      const result = interpret(`
         model Item {
-          id ObjectId @id
+          id   ObjectId @id
           name String
         }
       `);
 
-      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
-        jsonSchema: {
-          required: ['_id', 'id', 'name'],
-          properties: { _id: { bsonType: 'objectId' }, id: { bsonType: 'objectId' } },
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Field "Item.id" has @id but is stored as "id". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.',
         },
-      });
+      ]);
+    });
+
+    it('rejects @id on two fields of one model', () => {
+      const result = interpret(`
+        model Item {
+          id   ObjectId @id @map("_id")
+          code String   @id
+        }
+      `);
+
+      expect(result.ok).toBe(false);
+      if (result.ok) return;
+      expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Field "Item.code" has @id but is stored as "code". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.',
+        },
+        {
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message:
+            'Model "Item" has @id on 2 fields, "id" and "code". A document has one id: keep @id only on the field stored as _id.',
+        },
+      ]);
     });
 
     it('rejects an _id whose type is not ObjectId', () => {
@@ -996,7 +1023,7 @@ model Item {
       if (result.ok) return;
       expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
         {
-          code: 'PSL_MONGO_ID_REQUIRED',
+          code: 'PSL_MONGO_ID_NOT_OBJECTID',
           message:
             'Field "Item.id" holds the document id as BSON type string, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.',
         },

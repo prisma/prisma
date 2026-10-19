@@ -1,6 +1,7 @@
 import type { ContractField } from '@internal/contract/types';
 
-const DOCUMENT_ID = '_id';
+/** The key MongoDB stores a document's id under. */
+export const DOCUMENT_ID = '_id';
 
 interface FieldsOf {
   readonly fields: Record<string, ContractField>;

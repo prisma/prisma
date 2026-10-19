@@ -37,6 +37,7 @@ import type { ControlMutationDefaultRegistry } from '@internal/framework-compone
 import {
   applyPolymorphicScopeToMongoIndex,
   buildMongoStorage,
+  DOCUMENT_ID,
   deriveCollectionValidators,
   type MongoCollectionInput,
   type MongoContractRefusal,
@@ -1309,7 +1310,8 @@ function fieldRefusalDiagnostic(
   const field = fieldSymbols.get(fieldKey(owner, refusal.fieldName));
   assertDefined(field, `Field "${owner}.${refusal.fieldName}" has a declaration`);
   return {
-    code: refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_REQUIRED',
+    code:
+      refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_NOT_OBJECTID',
     message: `Field "${owner}.${field.name}" ${refusal.kind === 'fieldBsonType' ? refusal.refusal.reason : refusal.reason}`,
     ...diagnosticSource(sources, field.node.syntax).at(field.span),
   };
@@ -1616,10 +1618,11 @@ export function interpretPslDocumentToMongoContract(
       }
     }
 
+    const idFields: FieldSymbol[] = [];
     for (const field of Object.values(pslModel.fields)) {
       const idNode = field.attributes.find((attr) => attr.name === 'id')?.node;
       if (!idNode) continue;
-      interpretFieldAttribute({
+      const interpreted = interpretFieldAttribute({
         symbols: specContext.symbols,
         node: idNode,
         spec: mongoAttributeSpecs.field.id({
@@ -1632,6 +1635,24 @@ export function interpretPslDocumentToMongoContract(
         sources,
         binder,
         diagnostics,
+      });
+      if (interpreted === undefined) continue;
+      idFields.push(field);
+      const storedName = physicalName(physicalNames, field);
+      if (storedName !== DOCUMENT_ID) {
+        diagnostics.push({
+          code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+          message: `Field "${pslModel.name}.${field.name}" has @id but is stored as "${storedName}". In MongoDB, @id marks the field stored as _id, the document id: add @map("_id") to it, or remove @id.`,
+          ...diagnosticSource(sources, field.node.syntax).at(field.span),
+        });
+      }
+    }
+    const [, secondIdField] = idFields;
+    if (secondIdField !== undefined) {
+      diagnostics.push({
+        code: 'PSL_MONGO_ID_ATTRIBUTE_INVALID',
+        message: `Model "${pslModel.name}" has @id on ${idFields.length} fields, ${idFields.map((field) => `"${field.name}"`).join(' and ')}. A document has one id: keep @id only on the field stored as _id.`,
+        ...diagnosticSource(sources, secondIdField.node.syntax).at(secondIdField.span),
       });
     }
 

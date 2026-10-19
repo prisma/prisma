@@ -279,7 +279,7 @@ A model declares `@@check` / `check()` but is a single-table-inheritance variant
 
 ### CONTRACT.COLLECTION_INVALID
 
-A Mongo model's collection attachment is wrong: the model declares `indexes`, `collectionOptions`, or `controlPolicy` but has no collection, or a single collection has `collectionOptions` / `controlPolicy` declared by more than one model. Also raised for a root model (a model with a collection, no owner and no base) whose field stored as `_id` is not stored as BSON type `objectId` (`reason: 'document-id-not-objectId'`): every collection validator requires an `objectId` `_id`, which MongoDB adds to every document inserted without one. A model may leave `_id` out. The Mongo PSL interpreter reports the same case, at the field, as `PSL_MONGO_ID_REQUIRED`. Raised by the Mongo `defineContract` builder. Payload: `modelName`, `collection`, `reason`.
+A Mongo model's collection attachment is wrong: the model declares `indexes`, `collectionOptions`, or `controlPolicy` but has no collection, or a single collection has `collectionOptions` / `controlPolicy` declared by more than one model. Also raised for a root model (a model with a collection, no owner and no base) whose field stored as `_id` is not stored as BSON type `objectId` (`reason: 'document-id-not-objectId'`): every collection validator requires an `objectId` `_id`, which MongoDB adds to every document inserted without one. A model may leave `_id` out. The Mongo PSL interpreter reports the same case, at the field, as `PSL_MONGO_ID_NOT_OBJECTID`. Raised by the Mongo `defineContract` builder. Payload: `modelName`, `collection`, `reason`.
 
 ### CONTRACT.CONSTRAINT_INVALID
 

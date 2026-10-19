@@ -11,7 +11,7 @@ on both sides, here with `@map`/`@@map` physical-name overrides). Prisma 8's mon
 rejects the shape at emit (`PSL_ORPHANED_BACKRELATION` — "use an explicit join model for
 many-to-many"; the only supported m:n is an explicit junction, a different schema shape) and
 requires `id ObjectId @id @map("_id")` rather than the suite's `String @id @map("_id")` with
-arbitrary string ids (`PSL_MONGO_ID_REQUIRED`, confirmed empirically). The mongo ORM `create`
+arbitrary string ids (`PSL_MONGO_ID_NOT_OBJECTID`, confirmed empirically). The mongo ORM `create`
 also has no nested-relation create. The faithful schema cannot be pushed, so every test is
 non-ported. No test files or fixtures were created. One line per source test (upstream
 annotations preserved).
