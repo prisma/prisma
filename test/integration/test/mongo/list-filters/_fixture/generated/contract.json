@@ -46,6 +46,26 @@
                   "kind": "scalar"
                 }
               },
+              "optionalEntries": {
+                "many": {
+                  "elementNullable": false
+                },
+                "nullable": true,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Entry"
+                }
+              },
+              "optionalNullableEntries": {
+                "many": {
+                  "elementNullable": true
+                },
+                "nullable": true,
+                "type": {
+                  "kind": "valueObject",
+                  "name": "Entry"
+                }
+              },
               "optionalNullableStrings": {
                 "many": {
                   "elementNullable": true
@@ -82,6 +102,19 @@
               "collection": "lists"
             }
           }
+        },
+        "valueObjects": {
+          "Entry": {
+            "fields": {
+              "value": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -116,6 +149,49 @@
                         "bsonType": [
                           "null",
                           "string"
+                        ]
+                      }
+                    },
+                    "optionalEntries": {
+                      "bsonType": [
+                        "null",
+                        "array"
+                      ],
+                      "items": {
+                        "additionalProperties": false,
+                        "bsonType": "object",
+                        "properties": {
+                          "value": {
+                            "bsonType": "string"
+                          }
+                        },
+                        "required": [
+                          "value"
+                        ]
+                      }
+                    },
+                    "optionalNullableEntries": {
+                      "bsonType": [
+                        "null",
+                        "array"
+                      ],
+                      "items": {
+                        "oneOf": [
+                          {
+                            "bsonType": "null"
+                          },
+                          {
+                            "additionalProperties": false,
+                            "bsonType": "object",
+                            "properties": {
+                              "value": {
+                                "bsonType": "string"
+                              }
+                            },
+                            "required": [
+                              "value"
+                            ]
+                          }
                         ]
                       }
                     },
@@ -165,7 +241,7 @@
         "kind": "mongo-database"
       }
     },
-    "storageHash": "042e83d72829a214beecef7b82d671f45b7d8148b58f7d6a97568f9547e86a45"
+    "storageHash": "5eedd9b568f168145ab3967dfddcafb7efb16c59c1d5babaed9d71cae6a75923"
   },
   "capabilities": {},
   "extensions": {},

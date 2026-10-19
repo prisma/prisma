@@ -1,5 +1,9 @@
 // use prisma-8
 
+type Entry {
+  value String
+}
+
 model Lists {
   id                      ObjectId  @id @map("_id")
   name                    String
@@ -8,6 +12,8 @@ model Lists {
   nullableStrings         String?[]
   optionalStrings         String[]?
   optionalNullableStrings String?[]?
+  optionalEntries         Entry[]?
+  optionalNullableEntries Entry?[]?
 
   @@map("lists")
 }

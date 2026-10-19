@@ -18,13 +18,15 @@ import type {
 } from '@internal/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'042e83d72829a214beecef7b82d671f45b7d8148b58f7d6a97568f9547e86a45'>;
+  StorageHashBase<'5eedd9b568f168145ab3967dfddcafb7efb16c59c1d5babaed9d71cae6a75923'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3'>;
 
 export type CodecTypes = MongoCodecTypes;
 
+export type EntryOutput = { readonly value: CodecTypes['mongo/string@1']['output'] };
+export type EntryInput = { readonly value: CodecTypes['mongo/string@1']['input'] };
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly Lists: {
@@ -32,6 +34,8 @@ export type FieldOutputTypes = {
       readonly name: CodecTypes['mongo/string@1']['output'];
       readonly nickname: CodecTypes['mongo/string@1']['output'] | null;
       readonly nullableStrings: ReadonlyArray<CodecTypes['mongo/string@1']['output'] | null>;
+      readonly optionalEntries: ReadonlyArray<EntryOutput> | null;
+      readonly optionalNullableEntries: ReadonlyArray<EntryOutput | null> | null;
       readonly optionalNullableStrings: ReadonlyArray<
         CodecTypes['mongo/string@1']['output'] | null
       > | null;
@@ -47,6 +51,8 @@ export type FieldInputTypes = {
       readonly name: CodecTypes['mongo/string@1']['input'];
       readonly nickname: CodecTypes['mongo/string@1']['input'] | null;
       readonly nullableStrings: ReadonlyArray<CodecTypes['mongo/string@1']['input'] | null>;
+      readonly optionalEntries: ReadonlyArray<EntryInput> | null;
+      readonly optionalNullableEntries: ReadonlyArray<EntryInput | null> | null;
       readonly optionalNullableStrings: ReadonlyArray<
         CodecTypes['mongo/string@1']['input'] | null
       > | null;
@@ -62,6 +68,8 @@ export namespace Models {
     name: CodecTypes['mongo/string@1']['output'];
     nickname: CodecTypes['mongo/string@1']['output'] | null;
     nullableStrings: ReadonlyArray<CodecTypes['mongo/string@1']['output'] | null>;
+    optionalEntries: ReadonlyArray<EntryOutput> | null;
+    optionalNullableEntries: ReadonlyArray<EntryOutput | null> | null;
     optionalNullableStrings: ReadonlyArray<CodecTypes['mongo/string@1']['output'] | null> | null;
     optionalStrings: ReadonlyArray<CodecTypes['mongo/string@1']['output']> | null;
     strings: ReadonlyArray<CodecTypes['mongo/string@1']['output']>;
@@ -98,6 +106,31 @@ type ContractBase = Omit<
                     readonly nullableStrings: {
                       readonly bsonType: 'array';
                       readonly items: { readonly bsonType: readonly ['null', 'string'] };
+                    };
+                    readonly optionalEntries: {
+                      readonly bsonType: readonly ['null', 'array'];
+                      readonly items: {
+                        readonly additionalProperties: false;
+                        readonly bsonType: 'object';
+                        readonly properties: { readonly value: { readonly bsonType: 'string' } };
+                        readonly required: readonly ['value'];
+                      };
+                    };
+                    readonly optionalNullableEntries: {
+                      readonly bsonType: readonly ['null', 'array'];
+                      readonly items: {
+                        readonly oneOf: readonly [
+                          { readonly bsonType: 'null' },
+                          {
+                            readonly additionalProperties: false;
+                            readonly bsonType: 'object';
+                            readonly properties: {
+                              readonly value: { readonly bsonType: 'string' };
+                            };
+                            readonly required: readonly ['value'];
+                          },
+                        ];
+                      };
                     };
                     readonly optionalNullableStrings: {
                       readonly bsonType: readonly ['null', 'array'];
@@ -155,6 +188,16 @@ type ContractBase = Omit<
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
                 readonly many: { readonly elementNullable: true };
               };
+              readonly optionalEntries: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'valueObject'; readonly name: 'Entry' };
+                readonly many: { readonly elementNullable: false };
+              };
+              readonly optionalNullableEntries: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'valueObject'; readonly name: 'Entry' };
+                readonly many: { readonly elementNullable: true };
+              };
               readonly optionalNullableStrings: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
@@ -175,13 +218,32 @@ type ContractBase = Omit<
             readonly storage: { readonly collection: 'lists' };
           };
         };
+        readonly valueObjects: {
+          readonly Entry: {
+            readonly fields: {
+              readonly value: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+              };
+            };
+          };
+        };
       };
     };
   };
   readonly capabilities: {};
   readonly extensions: {};
   readonly meta: {};
-
+  readonly valueObjects: {
+    readonly Entry: {
+      readonly fields: {
+        readonly value: {
+          readonly nullable: false;
+          readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+        };
+      };
+    };
+  };
   readonly profileHash: ProfileHash;
 };
 

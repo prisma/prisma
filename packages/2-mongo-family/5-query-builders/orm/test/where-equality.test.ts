@@ -25,13 +25,15 @@ describe('whereEquality', () => {
     );
   });
 
-  it('compiles null on a value-object list to an equality with null', () => {
+  it('compiles null on a value-object list to a match on any value that is not an array', () => {
     const entries: ContractField = {
       nullable: true,
       type: { kind: 'valueObject', name: 'Entry' },
       many: { elementNullable: true },
     };
-    expect(whereEquality('entries', entries, null)).toEqual(MongoFieldFilter.eq('entries', null));
+    expect(whereEquality('entries', entries, null)).toEqual(
+      MongoFieldFilter.of('entries', '$not', { $type: 'array' }),
+    );
   });
 
   it('compiles a value on a scalar list to an equality with that value', () => {

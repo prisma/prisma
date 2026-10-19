@@ -13,6 +13,8 @@ const documents = [
     nullableStrings: [],
     optionalStrings: null,
     optionalNullableStrings: null,
+    optionalEntries: null,
+    optionalNullableEntries: null,
   },
   {
     name: 'empty',
@@ -21,6 +23,8 @@ const documents = [
     nullableStrings: [],
     optionalStrings: [],
     optionalNullableStrings: [],
+    optionalEntries: [],
+    optionalNullableEntries: [],
   },
   {
     name: 'pair',
@@ -29,6 +33,8 @@ const documents = [
     nullableStrings: ['a', null],
     optionalStrings: ['a', 'b'],
     optionalNullableStrings: ['b'],
+    optionalEntries: [{ value: 'b' }],
+    optionalNullableEntries: [{ value: 'b' }],
   },
   {
     name: 'holdsNull',
@@ -37,6 +43,8 @@ const documents = [
     nullableStrings: [null],
     optionalStrings: ['c'],
     optionalNullableStrings: ['c', null],
+    optionalEntries: [{ value: 'c' }],
+    optionalNullableEntries: [{ value: 'c' }, null],
   },
 ];
 
@@ -59,6 +67,10 @@ const cases: ReadonlyArray<{
   { filter: { optionalNullableStrings: 'b' }, names: ['pair'] },
   { filter: { optionalNullableStrings: null }, names: ['missing', 'null'] },
   { filter: { nickname: null }, names: ['missing', 'null'] },
+  { filter: { optionalEntries: null }, names: ['missing', 'null'] },
+  { filter: { optionalEntries: [] }, names: ['empty'] },
+  { filter: { optionalNullableEntries: null }, names: ['missing', 'null'] },
+  { filter: { optionalNullableEntries: [{ value: 'c' }, null] }, names: ['holdsNull'] },
   { filter: { nickname: 'p' }, names: ['pair'] },
 ];
 
