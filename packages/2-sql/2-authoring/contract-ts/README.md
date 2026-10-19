@@ -63,16 +63,23 @@ Built-in ID helpers from `@internal/ids` already return the generated-field spec
 
 Storage defaults are values passed to `.default(...)`: a literal, `now()`, `autoincrement()`, or raw SQL written with the `sql` template tag, such as `` .default(sql`gen_random_uuid()`) `` or `` .default(sql`(now() + interval '7 days')`) ``.
 
-Values the client generates are set with `.onCreate(call)` and `.onUpdate(call)`, with a call from `gen`: `gen.now()`, `gen.uuid()`, `gen.uuid(7)`, `gen.cuid(2)`, `gen.ulid()`, `gen.nanoid()`, `gen.nanoid(16)` or `gen.ksuid()`. They take the arguments of the PSL functions of the same names, and the call resolves by the field's codec and type params through the generator functions of the family, target and extension packs when the contract is built, as `@onCreate(fn())` and `@onUpdate(fn())` resolve in PSL:
+Values the client generates are set with `.onCreate(call)` and `.onUpdate(call)`, with a call from `gen`, such as `gen.now()`, `gen.uuid(7)` or `gen.nanoid(16)`. `gen` is built from the composed packs like the `type` helpers: it holds one call for each generator function the family, target and extension packs declare, typed by the function's signature, so each stack's `gen` holds exactly that stack's functions. The `defineContract` callback receives it, and each facade also exports a `gen` with its family and target functions. The call resolves by the field's codec and type params through the same generator functions when the contract is built, as `@onCreate(fn())` and `@onUpdate(fn())` resolve in PSL:
 
 ```ts
-import { field, gen, now } from '@internal/sql-contract-ts/contract-builder';
-
-const id = field.column(textColumn).id().onCreate(gen.uuid(7));
-const updatedAt = field.column(timestamptzColumn).default(now()).onCreate(gen.now()).onUpdate(gen.now());
+defineContract({ extensions: { slugid } }, ({ field, gen, model }) => ({
+  models: {
+    Post: model('Post', {
+      fields: {
+        id: field.column(textColumn).id().onCreate(gen.uuid(7)),
+        slug: field.column(textColumn).onCreate(gen.slugid()),
+        updatedAt: field.column(timestamptzColumn).default(now()).onCreate(gen.now()).onUpdate(gen.now()),
+      },
+    }),
+  },
+}));
 ```
 
-`.onCreate(...)` makes the field optional in the create input; `.onUpdate(...)` alone does not. A function that does not fill the codec fails the build with `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-not-applicable'`), and setting a phase twice, or a phase a preset or `field.generated(...)` already sets, throws `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-phase-set-twice'`).
+`.onCreate(...)` makes the field optional in the create input; `.onUpdate(...)` alone does not. A generator on a list field, as in `.many().onCreate(gen.uuid())`, fails the build with `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-on-list'`). A function that does not fill the codec fails the build with `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-not-applicable'`), and setting a phase twice, or a phase a preset or `field.generated(...)` already sets, throws `CONTRACT.DEFAULT_INVALID` (`reason: 'generator-phase-set-twice'`).
 
 A literal passed to `.default(value)` is a value of the input type of the field's codec, and TypeScript checks it: inside the `defineContract` factory, `field.text().default(1)` is a type error. A list field takes an array of that type, and an enum field takes one of its member values. `now()`, `autoincrement()` and the `sql` tag are accepted on every field except an enum field, whose `.default()` takes only member values. Three cases are not typed from a codec and accept any value, which the codec checks when the contract is built: a codec id that no pack declares, `field.namedType('Name')` given a type name as a string, and the directly imported `field` helper, which knows no packs. `.default({ kind: 'literal', value })` is not type-checked against the codec; the codec still checks the value when the contract is built. The codec's `toDataTypeValue` turns the value into a value of the column's data type, which constructs the form `contract.json` stores, and a value the codec refuses at build time fails with `CONTRACT.DEFAULT_INVALID`, naming the model and field. The Postgres and SQLite `defineContract` facades look up the target's built-in codecs and the codecs of `extensions` for this; pass `codecLookup` to use your own. When the lookup has no codec for a column's codec id, a literal default on that column fails with `CONTRACT.DEFAULT_INVALID`: list the pack that owns the codec in `extensions`. The lookups are required: a column's database type name is written from the data type its codec represents, so the facades also pass a `dataTypeLookup` built from the target and the listed extensions, and a column whose codec no listed pack provides fails with `CONTRACT.CODEC_DESCRIPTOR_MISSING`. A list field's default is an array, so call `.many()` before `.default()`. On Postgres, `field.dateTime()` takes a `Temporal.Instant`, `field.temporal.timestamptzJsDate()` takes a `Date`, and `field.temporal.timestamptzString()` takes an ISO 8601 string. On Node 24 a contract file that creates a `Temporal` value must load a `Temporal` implementation itself, for example `import 'temporal-polyfill/full/global'`; the CLI and the Vite plugin set no global `Temporal`. Encoding a `Temporal` default needs no other implementation than the one that made the value. The type check on a `Temporal` field needs the `Temporal` type declarations in the project, for example from `temporal-polyfill/global`; without them the parameter is unchecked.
 

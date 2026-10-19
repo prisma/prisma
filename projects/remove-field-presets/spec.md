@@ -78,7 +78,7 @@ const Post = model('Post', {
 - R1. A generator function has a name (`now`, `uuid`, `cuid`, `ulid`, `nanoid`, `ksuid`), one argument signature, and bindings. A binding maps a set of codec ids to a resolver that turns the call's arguments and the column (codec id and type params) into a generator, or into a refusal with a message.
 - R2. The family, the target and extensions contribute generator functions on their pack refs. The control stack and the TypeScript builder assemble them with the same function, so PSL and TypeScript resolve a call the same way.
 - R3. Assembly fails with `CONTRACT.PACK_CONTRIBUTION_INVALID` when two components declare a signature for one name, when a binding names a function no component declares, when two bindings cover one function and codec, or (in the control stack) when a binding can produce a generator id no generator descriptor registers.
-- R4. A generator's params come from the column's type params. The time `now` generators take the column's `precision`. `nanoid` on a fixed-length column takes its `size` from the column's `length`.
+- R4. A generator's params come from the column's type params. The time `now` generators take the column's `precision`. `nanoid` takes its `size` from the call, or 21, never from the column; a size larger than a `Char(n)` or `VarChar(n)` length is refused.
 - R5. Bindings are complete for every text-like codec of each target. `uuid()` on a SQLite `String` (`sqlite/text@1`) and on a Postgres `VarChar` (`sql/varchar@1`) work; today both are refused (`packages/1-framework/2-authoring/ids/src/index.ts`, `applicableCodecIds`).
 - R6. The registry gives `contract print` the reverse direction: for a column and a stored generator, the function call that produces it.
 
@@ -186,7 +186,7 @@ const Post = model('Post', {
 
 ## ADR pointer
 
-ADR 275 records every decision. This project does not reopen them. Where the code needs a decision the ADR leaves open, the slice spec takes it and says why. Two of those refine the ADR and are recorded in the slice 1 spec: the size of `nanoid` comes from the length only of a fixed-length column, and `ControlMutationDefaultEntry.lower` loses its client-generator result, which breaks extension authors' default functions.
+ADR 275 records every decision. This project does not reopen them. Where the code needs a decision the ADR leaves open, the slice spec takes it and says why. Two of those refine the ADR and are recorded in the slice 1 spec: the size of `nanoid` never comes from the column's length, and `ControlMutationDefaultEntry.lower` loses its client-generator result, which breaks extension authors' default functions.
 
 ## Project Definition of Done
 

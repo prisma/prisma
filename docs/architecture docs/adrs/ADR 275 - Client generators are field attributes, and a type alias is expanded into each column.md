@@ -80,7 +80,7 @@ SQLite maps `sqlite/datetime@1` to `timestampNow`. Mongo maps `mongo/date@1` to 
 
 `uuid`, `cuid`, `ulid`, `nanoid` and `ksuid` (new; a `ksuid` generator exists but no function names it) map every text-like codec of the target to their generators. The lists must be complete. Today the applicability lists name only `pg/text@1`, `sql/char@1` and `pg/uuid@1`, so `uuid()` on a SQLite `String` (`sqlite/text@1`) or a Postgres `VarChar` (`sql/varchar@1`) is refused; that is a defect this registry fixes.
 
-An entry also says which of the column's type parameters become generator params. The time generators take `precision`, so they write a value the column stores without rounding. On a fixed-length column, `nanoid` takes its `size` from the column's `length` when the call gives none, and `nanoid(16)` on a `Char(21)` column is refused, because the column would pad the identifier. On a `VarChar(n)` or text column the size stays the call's, or 21; it is not read from the length, which would turn `VarChar(255)` into 255-character identifiers. A size longer than a `VarChar(n)` is refused.
+An entry also says which of the column's type parameters become generator params. The time generators take `precision`, so they write a value the column stores without rounding. `nanoid` takes its `size` from the call, or 21. It never reads the column's `length`, which would turn `VarChar(255)` into 255-character identifiers. A size larger than a `Char(n)` or `VarChar(n)` length is refused, because the identifier does not fit the column.
 
 Compatibility is checked by codec, not by data type. Two codecs of one data type expect different in-memory values, so a data-type check would accept a generator whose output the codec cannot encode.
 
@@ -137,7 +137,7 @@ The identifier presets have no alias form, because an alias may not carry `@id`.
 
 ### The TypeScript builder
 
-The builder mirrors PSL. The field builder gets `.onCreate(...)` and `.onUpdate(...)` (new), immutable like `.default()`. They take a generator function call from a `gen` namespace (new): `gen.now()`, `gen.uuid(7)`, `gen.nanoid()`, and so on. Lowering resolves the call by the column's codec through the same registry PSL uses. `.default()` keeps taking a literal or the database functions `now()` and `autoincrement()`.
+The builder mirrors PSL. The field builder gets `.onCreate(...)` and `.onUpdate(...)` (new), immutable like `.default()`. They take a generator function call from a `gen` namespace (new): `gen.now()`, `gen.uuid(7)`, `gen.nanoid()`, and so on. `gen` is built from the composed packs, as the `type` helpers are, so a stack's `gen` holds exactly the functions its packs declare, an extension's included. Lowering resolves the call by the column's codec through the same registry PSL uses. `.default()` keeps taking a literal or the database functions `now()` and `autoincrement()`.
 
 A TypeScript alias is a constant, because field builders are immutable:
 

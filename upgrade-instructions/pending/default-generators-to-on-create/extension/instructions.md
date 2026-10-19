@@ -24,7 +24,7 @@ changes:
 
 ## `default-functions-lower-to-database-defaults-only`
 
-A default function whose `lower` returned `{ kind: 'execution', generated }` no longer compiles. Move it to a generator function on the pack ref (`src/exports/pack.ts`) and the control descriptor of the extension. One component declares the function's `signature`, a `FuncCallSig` as for a default function. A binding maps codec ids to a `resolve` that turns the call's arguments and the column into a generator, and to `printArguments`, the reverse that `contract print` uses. `singleGeneratorBinding` from `@prisma/orm-framework/components/control` builds a binding for a function that takes no arguments:
+A default function whose `lower` returned `{ kind: 'execution', generated }` no longer compiles. Move it to a generator function on the pack ref (`src/exports/pack.ts`) and the control descriptor of the extension. One component declares the function's `signature`, a `FuncCallSig` as for a default function. A binding maps codec ids to a `resolve` that turns the call's arguments and the column into a generator, and to `printArguments`, the reverse that `contract print` uses. `singleGeneratorBinding` from `@prisma/orm-framework/components/components` builds a binding for a function that takes no arguments:
 
 ```ts
 // Before
@@ -46,7 +46,10 @@ const slugidPack = {
 };
 
 // After
-import { singleGeneratorBinding } from '@prisma/orm-framework/components/control';
+import {
+  type ExtensionPackRef,
+  singleGeneratorBinding,
+} from '@prisma/orm-framework/components/components';
 
 const slugidPack = {
   // ...
@@ -61,10 +64,10 @@ const slugidPack = {
       bindings: [singleGeneratorBinding({ codecIds: ['pg/text@1'], generatorId: 'slugid' })],
     },
   ],
-};
+} as const satisfies ExtensionPackRef<'sql', 'postgres'>;
 ```
 
-Put `generatorFunctions` on both the pack ref, which the TypeScript builder reads, and the control descriptor, which `contract emit`, `contract print` and the language server read. To bind a function another component declares, such as `uuid`, to a codec your extension adds, contribute a binding without a `signature`. Composing a stack fails with `CONTRACT.PACK_CONTRIBUTION_INVALID` when two components declare one function, when a binding names a function no component declares, when two bindings cover one function and codec, when two functions write one generator for one codec, or when a binding produces a generator no generator descriptor registers.
+Put `generatorFunctions` and the generator descriptors on both the pack ref, which the TypeScript builder reads, and the control descriptor, which `contract emit`, `contract print` and the language server read. Every stack, the TypeScript builders included, checks that each binding produces a generator a descriptor registers. Declare the pack ref with `as const satisfies`, not a type annotation: the `gen` of a `defineContract` callback is built from the packs' declared functions and their signatures, so `gen.slugid()` exists only when the pack ref keeps its literal type. A binding's `resolve` may return only a generator id the binding lists in `generatorIds`; any other id throws `InternalError`. To bind a function another component declares, such as `uuid`, to a codec your extension adds, contribute a binding without a `signature`. Composing a stack fails with `CONTRACT.PACK_CONTRIBUTION_INVALID` when two components declare one function, when a binding names a function no component declares, when two bindings cover one function and codec, when two functions write one generator for one codec, or when a binding produces a generator no generator descriptor registers.
 
 A default function that lowers to a database default, such as one that writes a SQL expression, does not change.
 

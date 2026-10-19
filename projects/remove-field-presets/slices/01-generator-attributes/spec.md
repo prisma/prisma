@@ -113,24 +113,28 @@ interface GeneratorFunctionContribution {
   readonly bindings: readonly GeneratorFunctionBinding[];
 }
 
+interface GeneratorFunctionCall { readonly name: string; readonly args: Readonly<Record<string, unknown>> }
+
 interface GeneratorFunctionRegistry {
   functionsFor(codecId: string): readonly { readonly name: string; readonly signature: unknown }[];
   has(name: string): boolean;
-  resolve(input: { name; args; column }):
-    | GeneratorResolution
+  resolve(call: GeneratorFunctionCall, field: GeneratorFunctionField):
+    | { readonly ok: true; readonly generator: ExecutionMutationDefaultValue }
+    | { readonly ok: false; readonly reason: 'refused'; readonly message: string }
     | { readonly ok: false; readonly reason: 'unknown-function' | 'not-bound'; readonly boundCodecIds: readonly string[] };
-  callFor(generator, column): { readonly name: string; readonly args; readonly text: string } | undefined;
+  callFor(generator, field): { readonly call: GeneratorFunctionCall; readonly text: string } | undefined;
 }
 
 function assembleGeneratorFunctions(
-  descriptors: ReadonlyArray<{ readonly id?: string; readonly generatorFunctions?: readonly GeneratorFunctionContribution[] }>,
-  options?: { readonly registeredGeneratorIds?: ReadonlySet<string> },
+  descriptors: ReadonlyArray<GeneratorFunctionComponent>,
 ): GeneratorFunctionRegistry;
 ```
 
-`ComponentMetadata` (`packages/1-framework/1-core/framework-components/src/shared/framework-components.ts`) gains `generatorFunctions?: readonly GeneratorFunctionContribution[]`. `ControlStack` (`control-stack.ts`) gains `generatorFunctions: GeneratorFunctionRegistry`, assembled from `allDescriptors` with the generator ids of `assembleControlMutationDefaults` as `registeredGeneratorIds`.
+A binding's `resolve` returns a `BindingResolution`. One call type, `GeneratorFunctionCall`, is what `gen` builds, what `.onCreate(...)` takes, what `resolve` reads and what `callFor` gives back. The vocabulary lives in `src/shared/generator-functions.ts` and is exported once, from `@internal/framework-components/components`.
 
-Assembly throws `CONTRACT.PACK_CONTRIBUTION_INVALID`, naming both components, when: two contributions set a signature for one name; a binding's name has no signature anywhere; two bindings cover one name and codec; two names print the same generator id for one codec; a generator id a binding can print is not in `registeredGeneratorIds`.
+`ComponentMetadata` (`packages/1-framework/1-core/framework-components/src/shared/framework-components.ts`) gains `generatorFunctions?: readonly GeneratorFunctionContribution[]`. `ControlStack` (`control-stack.ts`) gains `generatorFunctions: GeneratorFunctionRegistry`, assembled from `allDescriptors`. The registered generator ids come from each component's `controlMutationDefaults.generatorDescriptors`, so every caller, the TypeScript builders included, runs the same checks. `ContractSourceContext.generatorFunctions` is required.
+
+Assembly throws `CONTRACT.PACK_CONTRIBUTION_INVALID`, naming both components, when: two contributions set a signature for one name; a binding's name has no signature anywhere; two bindings cover one name and codec; two names print the same generator id for one codec; a generator id a binding can print is not registered by any component. `resolve` throws `InternalError` when a binding returns a generator id it does not list in `generatorIds`.
 
 Who contributes what:
 
@@ -141,18 +145,17 @@ Who contributes what:
 
 Why the framework holds the shape: ADR 275 says the control stack assembles the registry from each component, and the framework may not name families or targets (`.agents/rules/no-family-vocabulary-in-framework.mdc`). Why pack refs and not adapter control descriptors, where default functions live today: the TypeScript builder has the family, target and extension pack refs (`packages/3-extensions/postgres/src/contract/define-contract.ts`) but no adapter control descriptor, and PSL and TypeScript must resolve the same way. Why the family declares the signatures: today they are duplicated in two adapters; the family is the one place both SQL targets share. Why a binding can come from a component other than the declaring one: an extension that adds a text codec, or a target, binds its own codecs to `uuid` without redeclaring it.
 
-The `generatorDescriptors` stay where they are (the adapters and the Mongo target). The control stack checks bindings against them. The TypeScript builder does not have them, so it skips that check; `contract emit` of a TypeScript contract runs the control stack and makes it.
+The `generatorDescriptors` live on the target pack refs, as the Mongo target's already do, so the TypeScript builders, which have the pack refs, run the registered-generator check too. The adapters register none. The database default functions still live on the adapters (see `projects/remove-field-presets/deferred.md`).
 
 ### D3. Generator params come from the column's type params, by binding
 
 Each binding's `resolve` reads `column.typeParams`:
 
 - **`now` on time codecs.** `pg/time-temporal@1`, `pg/time-string@1`, `pg/timetz@1` give `params: { precision }` when the column has a numeric `precision`, as `postgresNowGeneratorFor` does today. Other date and time codecs take no params. This matches what `temporalPhaseTemplateWithParams` gives the time presets, so `Time(3) @onUpdate(now())` and `temporal.time(3, onUpdate: now)` lower to the same generator.
-- **`nanoid` on a fixed-length codec** (`sql/char@1`, `pg/char@1`): the size is the column's `length`. An explicit size that differs from the length is refused: `nanoid(16) on a Char(21) column would be padded with spaces; write nanoid() or nanoid(21)`. The `size` param is written when the call gives one, or when the derived size is not the generator's default 21. So `Char(21) @onCreate(nanoid())` lowers to `{ id: 'nanoid' }`, as `@default(nanoid())` and `id.nanoid()` do today, and `Char(16) @onCreate(nanoid())` lowers to `{ size: 16 }`, as `id.nanoid({ size: 16 })` does.
-- **`nanoid` on a variable-length or unbounded codec** (`sql/varchar@1`, `pg/varchar@1`, `pg/text@1`, `sqlite/text@1`): the size is the call's, or the default 21. A size greater than a `VarChar` length is refused. The size is not read from a `VarChar` length.
+- **`nanoid` on every codec**: the size is the call's, or the default 21. It never comes from the column's `length`. The `size` param is written only when the call gives one. A size larger than the length of a `Char(n)` or `VarChar(n)` column is refused, because the identifier does not fit: `nanoid(16) writes 16 characters, which does not fit a column of 10 characters.` So `Char(36) @onCreate(nanoid())` lowers to `{ id: 'nanoid' }`, as the Prisma 7 reader's `@db.Char(36) @default(nanoid())` does on main.
 - **Argument checks.** `resolve` also checks the argument ranges the PSL signature checks (`uuid` version 4 or 7, `cuid` version 2, `nanoid` size 2 to 255), because the TypeScript builder does not parse a signature.
 
-Why size is not read from a `VarChar` length: ADR 275 says `nanoid` takes its size from the column's length, and gives a `Char` example. Read literally for `VarChar(255)`, every identifier would be 255 characters, and the Prisma 7 reader would change `@db.VarChar(191) @default(nanoid())` from a 21-character identifier to a 191-character one. Padding, the ADR's reason, applies only to a fixed-length column. This refines the ADR; it does not change a decision.
+Why size is never read from the length: read literally for `VarChar(255)`, every identifier would be 255 characters, and the Prisma 7 reader would change `@db.VarChar(191) @default(nanoid())` from a 21-character identifier to a 191-character one. Reading it for `Char(n)` only would change the contract of `@db.Char(36) @default(nanoid())`, which main lowers to `{ id: 'nanoid' }`. A shorter identifier in a `Char(n)` column is stored padded, as in Prisma 7. This refines ADR 275; it does not change a decision.
 
 Fixed-length checks for the other id generators (`uuid()` on `Char(10)`) are a non-goal: ADR 275 names only `nanoid`, and the Prisma 7 reader must keep reading schemas Prisma 7 accepts.
 
@@ -194,7 +197,7 @@ The SQL interpreter resolves the field's column descriptor before lowering attri
 
 ### D10. TypeScript: `gen`, `.onCreate`, `.onUpdate`
 
-- New `packages/1-framework/1-core/framework-components/src/shared/generator-calls.ts`, exported from `src/exports/authoring.ts`: `gen.now()`, `gen.uuid(version?: 4 | 7)`, `gen.cuid(version: 2)`, `gen.ulid()`, `gen.nanoid(size?: number)`, `gen.ksuid()`. Each returns `{ kind: 'generator-call', name, args }` with the argument keys of the PSL signature (`version`, `size`). It is plain data, so it needs no stack.
+- New `packages/1-framework/1-core/framework-components/src/shared/generator-helpers.ts`, exported from `src/exports/components.ts`: `createGeneratorHelpers(components)` builds `gen` from the composed packs, as the `type` helpers are built. It holds one helper per generator function the components declare, typed by the positional parameters of the function's signature (`gen.uuid(version?: 4 | 7)`, `gen.nanoid(size?: number)`, `gen.slugid()` for an extension), and each returns a `GeneratorFunctionCall` with the argument keys of the signature. So each stack's `gen` holds exactly that stack's functions: Mongo's holds only `now`. The `defineContract` callback receives it, and each facade exports one built from its family and target packs.
 - Re-exported beside `now` and `autoincrement` from `packages/2-sql/2-authoring/contract-ts/src/exports/contract-builder.ts`, the Mongo `contract-ts` exports, and the facade entries `packages/3-extensions/postgres/src/exports/contract-builder.ts`, `packages/3-extensions/sqlite/src/exports/contract-builder.ts` and `packages/3-extensions/mongo/src/exports/contract-builder.ts`.
 - `ScalarFieldBuilder` gets `.onCreate(call)` and `.onUpdate(call)`. They store the call in a new state field `generatorCalls?: { onCreate?; onUpdate? }`, beside the resolved `executionDefaults` a preset sets. `.onCreate` returns `ScalarFieldBuilder<WithExecutionDefault<State>>`, which sets `FieldDefaultPresence.execution` to `true`; `.onUpdate` keeps the state's presence. `EnumScalarFieldBuilder` gets neither: an enum codec has no binding.
 - `resolveModelNode` (`packages/2-sql/2-authoring/contract-ts/src/contract-lowering.ts`) resolves each call with the field's codec id and type params through a registry assembled from `definition.family`, `definition.target` and the extensions, and merges the result into `executionDefaults`. A refusal throws `CONTRACT.DEFAULT_INVALID` with `reason: 'generator-not-applicable'` or `'generator-unknown'` and meta `modelName`, `fieldName`, `codecId`, `function`.
@@ -232,7 +235,7 @@ Why now and not in slice 3: after this slice, every generated column the preset 
 
 | Package | Files | Change |
 |---|---|---|
-| `@internal/framework-components` | `src/shared/generator-functions.ts` (new), `src/shared/generator-calls.ts` (new), `src/shared/mutation-default-types.ts`, `src/shared/framework-components.ts`, `src/control/control-stack.ts`, `src/shared/field-preset-print-form.ts`, `src/shared/temporal-presets.ts`, `src/exports/control.ts`, `src/exports/authoring.ts` | D2, D6, D10, D12. `timestampNowControlDescriptor` loses `buildPhases`. |
+| `@internal/framework-components` | `src/shared/generator-functions.ts` (new), `src/shared/generator-helpers.ts` (new), `src/shared/mutation-default-types.ts`, `src/shared/framework-components.ts`, `src/control/control-stack.ts`, `src/shared/field-preset-print-form.ts`, `src/shared/temporal-presets.ts`, `src/exports/control.ts`, `src/exports/authoring.ts` | D2, D6, D10, D12. `timestampNowControlDescriptor` loses `buildPhases`. |
 | `@internal/config` | `src/contract-source-types.ts` | `ContractSourceContext.generatorFunctions` (D7). |
 | `@internal/cli` | `src/control-api/operations/load-contract-source.ts` | Pass `stack.generatorFunctions` (D7). |
 | `@internal/psl-parser` | `src/attribute-spec/spec-context.ts`, `src/binder.ts`, `src/bind-psl-schema.ts` | Thread `generatorFunctions` (D7). |
@@ -262,7 +265,7 @@ Framework, `packages/1-framework/1-core/framework-components/test/`:
 - `mutation-defaults.test.ts`: a default function entry cannot type an `execution` result (type test with `@ts-expect-error`).
 
 SQL family, `packages/2-sql/9-family/test/`:
-- New `generator-functions.test.ts`: every Postgres and SQLite text-like codec resolves `uuid`, `cuid(2)`, `ulid`, `nanoid`, `ksuid`; `uuid` resolves on `pg/uuid@1` and `cuid` does not; the `nanoid` rules of D3 (Char derive, Char mismatch refused, VarChar keeps 21, size above VarChar length refused, explicit 21 keeps the param); the argument range checks.
+- New `generator-functions.test.ts`: every Postgres and SQLite text-like codec resolves `uuid`, `cuid(2)`, `ulid`, `nanoid`, `ksuid`; `uuid` resolves on `pg/uuid@1` and `cuid` does not; the `nanoid` rules of D3 (the size is never read from the column; a size above a `Char` or `VarChar` length is refused); the argument range checks.
 
 Targets:
 - `packages/3-targets/3-targets/postgres/test/now-generators.test.ts` (extend): the ten codecs resolve to the table in ADR 275; time codecs carry `precision` from the column; `callFor` writes `now()` and reads back.
@@ -277,7 +280,7 @@ SQL PSL, `packages/2-sql/2-authoring/contract-psl/test/`:
 - `packages/1-framework/2-authoring/psl-parser/test/symbol-table.test.ts`: move its inline PSL.
 
 SQL TypeScript, `packages/2-sql/2-authoring/contract-ts/test/`:
-- New `contract-dsl.generator-calls.test.ts`: `.onCreate(gen.uuid(7))` on `textColumn` lowers to `uuidv7`; `.onUpdate(gen.now())` on `timeTemporalColumn(3)` lowers with `precision: 3`; `gen.uuid()` on a `bytea` column throws `CONTRACT.DEFAULT_INVALID` with `reason: 'generator-not-applicable'`; `.onCreate` twice throws `generator-phase-set-twice`; a preset with `onCreate` plus `.onCreate` throws.
+- New `contract-dsl.generator-calls.test.ts`: `gen` holds the declared functions, an extension's included; `.many().onCreate(...)` throws `generator-on-list`; `.onCreate(gen.uuid(7))` on `textColumn` lowers to `uuidv7`; `.onUpdate(gen.now())` on `timeTemporalColumn(3)` lowers with `precision: 3`; `gen.uuid()` on a `bytea` column throws `CONTRACT.DEFAULT_INVALID` with `reason: 'generator-not-applicable'`; `.onCreate` twice throws `generator-phase-set-twice`; a preset with `onCreate` plus `.onCreate` throws.
 - New `contract-dsl.generator-calls.test-d.ts`: a field with `.onCreate` is optional in the create input; with `.onUpdate` only it is required.
 - New `packages/2-sql/9-family/test/gen-signature-parity.test.ts`: every `gen` helper's argument keys are the keys of the SQL family's signature for that function, and each `gen` call resolves on a column the function binds.
 
@@ -292,7 +295,7 @@ Readers:
 - `packages/2-sql/2-authoring/contract-prisma7/test/fixtures.test.ts` and `packages/2-mongo-family/2-authoring/contract-prisma6/test/fixtures.test.ts`: unchanged expected contracts.
 
 Print, `packages/3-targets/3-targets/postgres/test/psl-print/`:
-- `generated-values.test.ts`: every generator writes as `@onCreate`/`@onUpdate`; `Time(3)` with `plainTimeNow` and `precision: 3` writes `@onUpdate(now())`; the same generator without `precision` on `Time(3)` is refused as reading back differently; a generator beside `@default(now())` writes both; `nanoid` with `size: 16` on `Char(16)` writes `nanoid()` and on `String` writes `nanoid(16)`; `ksuid` writes `ksuid()`.
+- `generated-values.test.ts`: every generator writes as `@onCreate`/`@onUpdate`; `Time(3)` with `plainTimeNow` and `precision: 3` writes `@onUpdate(now())`; the same generator without `precision` on `Time(3)` is refused as reading back differently; a generator beside `@default(now())` writes both; `nanoid` with `size: 16` writes `nanoid(16)` on every codec; `ksuid` writes `ksuid()`.
 - `refusals-fields.test.ts`: drop the removed refusals; keep the unregistered-generator refusal with the new wording.
 
 Language server, `packages/1-framework/3-tooling/language-server/test/completion-provider.test.ts`:
@@ -349,7 +352,6 @@ Upgrade script tests, `test/integration/test/upgrade-instructions/default-genera
 - Alias expansion and attributes on aliases (slice 2). An alias still refuses every attribute.
 - Contributed aliases such as `temporal.UpdatedAt` (slice 2).
 - Length checks for fixed-output generators other than `nanoid` (D3).
-- Moving `generatorDescriptors` from the adapters to the target pack refs.
 - `ksuid()` in the Prisma 7 reader.
 
 ## Slice Definition of Done

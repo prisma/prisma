@@ -1,0 +1,3 @@
+# Deferred
+
+- **Default functions still live on the adapters.** Slice 1 moved the generator descriptors to the target pack refs, so every stack checks that each generator function produces a registered generator. The database default functions (`autoincrement`, `now`, `dbgenerated`) are still a `Map` on each adapter's `controlMutationDefaults.defaultFunctionRegistry` (`packages/3-targets/6-adapters/{postgres,sqlite}/src/core/control-mutation-defaults.ts`), and the targets register an empty `Map`. Moving them to the targets, as a declared contribution like the generator functions, is not part of this project.
