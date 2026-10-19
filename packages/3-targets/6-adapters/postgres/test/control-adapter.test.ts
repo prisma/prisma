@@ -188,8 +188,8 @@ describe('PostgresControlAdapter', () => {
       expect(tablesOf(result)).toHaveProperty('user');
       expect(tablesOf(result)['user']?.columns).toHaveProperty('id');
       expect(tablesOf(result)['user']?.columns).toHaveProperty('email');
-      expect(tablesOf(result)['user']?.columns['id']?.nativeType).toBe('int4');
-      expect(tablesOf(result)['user']?.columns['email']?.nativeType).toBe('character varying(255)');
+      expect(tablesOf(result)['user']?.columns['id']?.typeText).toBe('int4');
+      expect(tablesOf(result)['user']?.columns['email']?.typeText).toBe('character varying(255)');
       expect(tablesOf(result)['user']?.columns['id']?.nullable).toBe(false);
       expect(tablesOf(result)['user']?.primaryKey).toEqual(
         new PrimaryKey({ columns: ['id'], name: 'user_pkey' }),
@@ -251,7 +251,7 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['user']?.columns['text_col']?.nativeType).toBe('character varying');
+      expect(tablesOf(result)['user']?.columns['text_col']?.typeText).toBe('character varying');
     });
 
     it('handles numeric with precision and scale', async () => {
@@ -309,7 +309,7 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['user']?.columns['price']?.nativeType).toBe('numeric(10,2)');
+      expect(tablesOf(result)['user']?.columns['price']?.typeText).toBe('numeric(10,2)');
     });
 
     it('handles numeric with precision only', async () => {
@@ -367,7 +367,7 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['user']?.columns['amount']?.nativeType).toBe('numeric(10)');
+      expect(tablesOf(result)['user']?.columns['amount']?.typeText).toBe('numeric(10)');
     });
 
     it('handles numeric without precision', async () => {
@@ -425,7 +425,7 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['user']?.columns['value']?.nativeType).toBe('numeric');
+      expect(tablesOf(result)['user']?.columns['value']?.typeText).toBe('numeric');
     });
 
     it('maps json and jsonb columns to native types', async () => {
@@ -493,8 +493,8 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['event']?.columns['payload']?.nativeType).toBe('jsonb');
-      expect(tablesOf(result)['event']?.columns['raw']?.nativeType).toBe('json');
+      expect(tablesOf(result)['event']?.columns['payload']?.typeText).toBe('jsonb');
+      expect(tablesOf(result)['event']?.columns['raw']?.typeText).toBe('json');
     });
 
     it('uses formatted_type for bit length', async () => {
@@ -530,7 +530,7 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['user']?.columns['flags']?.nativeType).toBe('bit(8)');
+      expect(tablesOf(result)['user']?.columns['flags']?.typeText).toBe('bit(8)');
     });
 
     it('carries each type as format_type reports it', async () => {
@@ -632,19 +632,19 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['user']?.columns['name']?.nativeType).toBe('varchar(255)');
-      expect(tablesOf(result)['user']?.columns['code']?.nativeType).toBe('bpchar(4)');
-      expect(tablesOf(result)['user']?.columns['flags']?.nativeType).toBe('varbit(6)');
-      expect(tablesOf(result)['user']?.columns['seen_at']?.nativeType).toBe(
+      expect(tablesOf(result)['user']?.columns['name']?.typeText).toBe('varchar(255)');
+      expect(tablesOf(result)['user']?.columns['code']?.typeText).toBe('bpchar(4)');
+      expect(tablesOf(result)['user']?.columns['flags']?.typeText).toBe('varbit(6)');
+      expect(tablesOf(result)['user']?.columns['seen_at']?.typeText).toBe(
         'timestamp(3) with time zone',
       );
-      expect(tablesOf(result)['user']?.columns['created_at']?.nativeType).toBe(
+      expect(tablesOf(result)['user']?.columns['created_at']?.typeText).toBe(
         'timestamp(6) without time zone',
       );
-      expect(tablesOf(result)['user']?.columns['local_time']?.nativeType).toBe(
+      expect(tablesOf(result)['user']?.columns['local_time']?.typeText).toBe(
         'time(0) without time zone',
       );
-      expect(tablesOf(result)['user']?.columns['zoned_time']?.nativeType).toBe(
+      expect(tablesOf(result)['user']?.columns['zoned_time']?.typeText).toBe(
         'time(2) with time zone',
       );
     });
@@ -1644,14 +1644,12 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['metrics']?.columns['id']?.nativeType).toBe('integer');
-      expect(tablesOf(result)['metrics']?.columns['small']?.nativeType).toBe('smallint');
-      expect(tablesOf(result)['metrics']?.columns['big']?.nativeType).toBe('bigint');
-      expect(tablesOf(result)['metrics']?.columns['real_col']?.nativeType).toBe('real');
-      expect(tablesOf(result)['metrics']?.columns['double_col']?.nativeType).toBe(
-        'double precision',
-      );
-      expect(tablesOf(result)['metrics']?.columns['active']?.nativeType).toBe('boolean');
+      expect(tablesOf(result)['metrics']?.columns['id']?.typeText).toBe('integer');
+      expect(tablesOf(result)['metrics']?.columns['small']?.typeText).toBe('smallint');
+      expect(tablesOf(result)['metrics']?.columns['big']?.typeText).toBe('bigint');
+      expect(tablesOf(result)['metrics']?.columns['real_col']?.typeText).toBe('real');
+      expect(tablesOf(result)['metrics']?.columns['double_col']?.typeText).toBe('double precision');
+      expect(tablesOf(result)['metrics']?.columns['active']?.typeText).toBe('boolean');
     });
 
     it('sorts multi-column primary key by ordinal position and skips PK from uniques', async () => {
@@ -1787,18 +1785,18 @@ describe('PostgresControlAdapter', () => {
       const columns = tablesOf(result)['doc']?.columns;
 
       expect(columns?.['status']?.default).toBe("'draft'::text");
-      expect(columns?.['status']?.nativeType).toBe('text');
+      expect(columns?.['status']?.typeText).toBe('text');
       // With no contract there is no codec to read a literal with, so only the raw text stays.
       expect(columns?.['status']?.resolvedDefault).toBeUndefined();
 
-      expect(columns?.['created_at']?.nativeType).toBe('timestamp with time zone');
+      expect(columns?.['created_at']?.typeText).toBe('timestamp with time zone');
       expect(columns?.['created_at']?.resolvedDefault).toEqual({
         kind: 'function',
         expression: 'now()',
       });
 
       expect(columns?.['tags']?.many).toBe(true);
-      expect(columns?.['tags']?.nativeType).toBe('text');
+      expect(columns?.['tags']?.typeText).toBe('text');
       expect(columns?.['tags']?.resolvedDefault).toBeUndefined();
     });
   });
@@ -1837,7 +1835,7 @@ describe('PostgresControlAdapter', () => {
 
       const result = await adapter.introspect(mockDriver);
 
-      expect(tablesOf(result)['Organization']?.columns['billingState']?.nativeType).toBe(
+      expect(tablesOf(result)['Organization']?.columns['billingState']?.typeText).toBe(
         '"BillingState"',
       );
     });
@@ -1876,7 +1874,7 @@ describe('PostgresControlAdapter', () => {
       const result = await adapter.introspect(mockDriver);
 
       // Lowercase enum names are not quoted by format_type(), should pass through unchanged
-      expect(tablesOf(result)['user']?.columns['role']?.nativeType).toBe('role');
+      expect(tablesOf(result)['user']?.columns['role']?.typeText).toBe('role');
     });
   });
 

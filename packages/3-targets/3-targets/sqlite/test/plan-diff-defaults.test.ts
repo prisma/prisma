@@ -20,7 +20,7 @@ function liveSchema(rawDefault: string): SqlSchemaIR {
         columns: {
           at: introspectedColumn({
             name: 'at',
-            nativeType: 'text',
+            typeText: 'text',
             nullable: false,
             default: rawDefault,
             ...ifDefined('resolvedDefault', functionDefaultOf(rawDefault)),

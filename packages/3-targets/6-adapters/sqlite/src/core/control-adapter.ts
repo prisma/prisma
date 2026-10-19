@@ -630,7 +630,7 @@ export class SqliteControlAdapter implements SqlControlAdapter<'sqlite'> {
         };
         columns[col.name] = {
           name: col.name,
-          nativeType: col.type.toLowerCase(),
+          typeText: col.type.toLowerCase(),
           nullable: col.notnull === 0 && col.pk === 0,
           ...ifDefined('default', rawDefault),
           ...readDefault,

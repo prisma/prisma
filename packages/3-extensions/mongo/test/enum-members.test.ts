@@ -11,31 +11,31 @@ const sunset = '2025-06-30T12:00:00.000Z';
 
 const TextLevel = enumType(
   'TextLevel',
-  { codecId: 'mongo/string@1', nativeType: 'string' },
+  { codecId: 'mongo/string@1' },
   member('Low', 'low'),
   member('High', 'high'),
 );
 const Int32Level = enumType(
   'Int32Level',
-  { codecId: 'mongo/int32@1', nativeType: 'int' },
+  { codecId: 'mongo/int32@1' },
   member('Low', 1),
   member('High', 10),
 );
 const Int64Level = enumType(
   'Int64Level',
-  { codecId: 'mongo/int64@1', nativeType: 'long' },
+  { codecId: 'mongo/int64@1' },
   member('Low', 1n),
   member('High', 10n),
 );
 const DateLevel = enumType(
   'DateLevel',
-  { codecId: 'mongo/date@1', nativeType: 'date' },
+  { codecId: 'mongo/date@1' },
   member('Launch', new Date(launch)),
   member('Sunset', new Date(sunset)),
 );
 const DoubleLevel = enumType(
   'DoubleLevel',
-  { codecId: 'mongo/double@1', nativeType: 'double' },
+  { codecId: 'mongo/double@1' },
   member('Half', 1.5),
   member('Whole', 2.25),
 );

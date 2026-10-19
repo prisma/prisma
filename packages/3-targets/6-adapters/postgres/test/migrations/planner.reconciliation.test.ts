@@ -68,11 +68,11 @@ describe('PostgresMigrationPlanner - reconciliation planning', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
-                email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+                id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+                email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
                 legacyEmail: introspectedColumn({
                   name: 'legacyEmail',
-                  nativeType: 'text',
+                  typeText: 'text',
                   nullable: true,
                 }),
               },
@@ -139,8 +139,8 @@ describe('PostgresMigrationPlanner - reconciliation planning', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
-                email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+                id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+                email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -204,10 +204,10 @@ describe('PostgresMigrationPlanner - reconciliation planning', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+                id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
                 legacyEmail: introspectedColumn({
                   name: 'legacyEmail',
-                  nativeType: 'text',
+                  typeText: 'text',
                   nullable: true,
                 }),
               },

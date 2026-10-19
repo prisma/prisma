@@ -99,7 +99,7 @@ import type {
 import { readPostgresDefault } from '@internal/target-postgres/default-normalizer';
 import { postgresError } from '@internal/target-postgres/errors';
 import { MARKER_LOCK_KEY, MARKER_LOCK_SQL } from '@internal/target-postgres/marker-lock';
-import { introspectedNativeType } from '@internal/target-postgres/native-type-normalizer';
+import { introspectedTypeText } from '@internal/target-postgres/native-type-normalizer';
 import { POLICY_COMMAND_SQL, policyRoleList } from '@internal/target-postgres/rls-canonicalize';
 import { escapeLiteral, quoteIdentifier } from '@internal/target-postgres/sql-utils';
 import {
@@ -259,7 +259,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
   /**
    * Lower an AST all the way to a driver-ready statement. For DDL nodes,
    * literal column defaults are formatted as inline SQL with proper quoting and
-   * `::nativeType` cast suffixes. For query ASTs, params are kept as `$N`
+   * `::typeText` cast suffixes. For query ASTs, params are kept as `$N`
    * placeholders; wire values go in `params`. Does NOT call `this.lower()` —
    * independent implementation.
    */
@@ -1172,7 +1172,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
       // Process columns for this table
       const columns: Record<string, SqlColumnIRInput> = {};
       for (const colRow of columnsByTable.get(tableName) ?? []) {
-        const { nativeType, many } = introspectedNativeType({
+        const { typeText, many } = introspectedTypeText({
           formattedType: colRow.formatted_type,
           informationSchemaType: colRow.data_type,
           udtName: colRow.udt_name,
@@ -1210,7 +1210,7 @@ export class PostgresControlAdapter implements SqlControlAdapter<'postgres'> {
           : undefined;
         columns[colRow.column_name] = {
           name: colRow.column_name,
-          nativeType,
+          typeText,
           nullable: colRow.is_nullable === 'YES',
           ...ifDefined('default', rawDefault),
           ...ifDefined('many', many),
@@ -1743,17 +1743,17 @@ function groupBy<T, K extends keyof T>(items: readonly T[], key: K): Map<T[K], T
 // pgRenderDdlExecuteRequest — independent DDL walker for lowerToExecuteRequest
 // ---------------------------------------------------------------------------
 
-function pgIsTextLikeNativeType(nativeType: string): boolean {
+function pgIsTextLikeNativeType(typeText: string): boolean {
   return (
-    nativeType === 'text' ||
-    nativeType === 'varchar' ||
-    nativeType.startsWith('varchar(') ||
-    nativeType === 'character varying' ||
-    nativeType.startsWith('character varying(') ||
-    nativeType === 'char' ||
-    nativeType.startsWith('char(') ||
-    nativeType === 'character' ||
-    nativeType.startsWith('character(')
+    typeText === 'text' ||
+    typeText === 'varchar' ||
+    typeText.startsWith('varchar(') ||
+    typeText === 'character varying' ||
+    typeText.startsWith('character varying(') ||
+    typeText === 'char' ||
+    typeText.startsWith('char(') ||
+    typeText === 'character' ||
+    typeText.startsWith('character(')
   );
 }
 
@@ -1842,18 +1842,18 @@ async function readWithDefaultOutputSettings<T>(
 /**
  * A value as DDL writes it: `ARRAY[...]` of each element's literal, cast to the list type, for a list written to a list type, and otherwise the value's literal, cast to the column type where PostgreSQL would read it as another type.
  */
-function pgInlineLiteral(wire: unknown, nativeType: string, where: LiteralDefaultColumn): string {
-  if (Array.isArray(wire) && nativeType.endsWith('[]')) {
+function pgInlineLiteral(wire: unknown, typeText: string, where: LiteralDefaultColumn): string {
+  if (Array.isArray(wire) && typeText.endsWith('[]')) {
     if (wire.length === 0) return "'{}'";
-    return `ARRAY[${wire.map((element) => pgLiteralText(element, where)).join(', ')}]::${nativeType}`;
+    return `ARRAY[${wire.map((element) => pgLiteralText(element, where)).join(', ')}]::${typeText}`;
   }
   const text = pgLiteralText(wire, where);
-  return pgLiteralNeedsCast(wire, nativeType) ? `${text}::${nativeType}` : text;
+  return pgLiteralNeedsCast(wire, typeText) ? `${text}::${typeText}` : text;
 }
 
-function pgLiteralNeedsCast(wire: unknown, nativeType: string): boolean {
+function pgLiteralNeedsCast(wire: unknown, typeText: string): boolean {
   if (typeof wire === 'number') return !Number.isFinite(wire);
-  if (typeof wire === 'string' || wire instanceof Date) return !pgIsTextLikeNativeType(nativeType);
+  if (typeof wire === 'string' || wire instanceof Date) return !pgIsTextLikeNativeType(typeText);
   return typeof wire === 'object' && wire !== null;
 }
 
@@ -1899,20 +1899,20 @@ const SERIAL_FAMILY_TYPES = new Set([
 
 async function pgRenderDdlColumnDefault(
   def: LiteralColumnDefault | FunctionColumnDefault,
-  nativeType: string,
+  typeText: string,
   codecLookup: CodecLookupWithDescriptors,
   codecRef: CodecRef | undefined,
   where: LiteralDefaultColumn,
 ): Promise<string> {
   if (def.kind === 'function') {
     if (def.expression.text === 'autoincrement()') {
-      if (!SERIAL_FAMILY_TYPES.has(nativeType.toLowerCase())) {
+      if (!SERIAL_FAMILY_TYPES.has(typeText.toLowerCase())) {
         throw postgresError(
           'CONTRACT.DEFAULT_INVALID',
-          `Column type "${nativeType}" has an autoincrement() default but is not a SERIAL-family pseudo-type. ` +
+          `Column type "${typeText}" has an autoincrement() default but is not a SERIAL-family pseudo-type. ` +
             'Autoincrement columns must declare their type as SERIAL (or SERIAL4), BIGSERIAL (or SERIAL8), ' +
             `or SMALLSERIAL (or SERIAL2) — e.g. col(name, "SERIAL", { default: fn("autoincrement()") }).`,
-          { meta: { nativeType } },
+          { meta: { typeText } },
         );
       }
       return '';
@@ -1927,8 +1927,8 @@ async function pgRenderDdlColumnDefault(
     }
     return `DEFAULT (${renderOpaqueSql(def.expression)})`;
   }
-  const written = await pgWrittenDefault(def.value, nativeType, codecLookup, codecRef, where);
-  return `DEFAULT ${pgInlineLiteral(written, nativeType, where)}`;
+  const written = await pgWrittenDefault(def.value, typeText, codecLookup, codecRef, where);
+  return `DEFAULT ${pgInlineLiteral(written, typeText, where)}`;
 }
 
 /**
@@ -1936,13 +1936,13 @@ async function pgRenderDdlColumnDefault(
  */
 async function pgWrittenDefault(
   value: ColumnDefaultLiteralInputValue,
-  nativeType: string,
+  typeText: string,
   codecLookup: CodecLookupWithDescriptors,
   codecRef: CodecRef | undefined,
   where: LiteralDefaultColumn,
 ): Promise<unknown> {
-  if (value === null && nativeType.endsWith('[]')) return null;
-  if (Array.isArray(value) && nativeType.endsWith('[]')) {
+  if (value === null && typeText.endsWith('[]')) return null;
+  if (Array.isArray(value) && typeText.endsWith('[]')) {
     const encoded =
       codecRef === undefined
         ? undefined

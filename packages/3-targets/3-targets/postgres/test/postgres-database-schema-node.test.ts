@@ -13,7 +13,7 @@ import { introspectedColumn } from './postgres-type-lookups';
 
 const tableA = new PostgresTableSchemaNode({
   name: 'profiles',
-  columns: { id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }) },
+  columns: { id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }) },
   foreignKeys: [],
   uniques: [],
   indexes: [],

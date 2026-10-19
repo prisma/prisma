@@ -82,9 +82,9 @@ const liveSchema = new PostgresDatabaseSchemaNode({
         doc: new PostgresTableSchemaNode({
           name: 'doc',
           columns: {
-            id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+            id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
             embedding: introspectedColumn(
-              { name: 'embedding', nativeType: 'vector(3)', nullable: true },
+              { name: 'embedding', typeText: 'vector(3)', nullable: true },
               [...postgresDataTypes, ...pgvectorDataTypes],
             ),
           },

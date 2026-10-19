@@ -286,21 +286,21 @@ describe('contractToSchemaIR', () => {
     expect(columns['id']).toEqual(
       new SqlColumnIR({
         name: 'id',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
       }),
     );
     expect(columns['email']).toEqual(
       new SqlColumnIR({
         name: 'email',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
       }),
     );
     expect(columns['name']).toEqual(
       new SqlColumnIR({
         name: 'name',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: true,
       }),
     );
@@ -347,7 +347,7 @@ describe('contractToSchemaIR', () => {
     expect(columnA).toEqual(
       new SqlColumnIR({
         name: 'a',
-        nativeType: 'vector',
+        typeText: 'vector',
         nullable: false,
       }),
     );
@@ -357,7 +357,7 @@ describe('contractToSchemaIR', () => {
     expect(columnB).toEqual(
       new SqlColumnIR({
         name: 'b',
-        nativeType: 'vector',
+        typeText: 'vector',
         nullable: false,
       }),
     );
@@ -379,9 +379,9 @@ describe('contractToSchemaIR', () => {
 
     const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
     expect({
-      id: columns['id']!.nativeType,
-      code: columns['code']!.nativeType,
-      name: columns['name']!.nativeType,
+      id: columns['id']!.typeText,
+      code: columns['code']!.typeText,
+      name: columns['name']!.typeText,
     }).toEqual({ id: 'character(36)', code: 'character', name: 'text' });
   });
 
@@ -399,12 +399,12 @@ describe('contractToSchemaIR', () => {
     const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
     expect(
       Object.fromEntries(
-        Object.entries(columns).map(([name, column]) => [name, { nativeType: column.nativeType }]),
+        Object.entries(columns).map(([name, column]) => [name, { typeText: column.typeText }]),
       ),
     ).toEqual({
-      whole: { nativeType: 'numeric(10,0)' },
-      scaled: { nativeType: 'numeric(10,2)' },
-      bare: { nativeType: 'character(1)' },
+      whole: { typeText: 'numeric(10,0)' },
+      scaled: { typeText: 'numeric(10,2)' },
+      bare: { typeText: 'character(1)' },
     });
   });
 
@@ -464,8 +464,8 @@ describe('contractToSchemaIR', () => {
     });
 
     const mood = contractToSchemaIR(wrap(storage)).tables['T']!.columns['mood']!;
-    expect({ nativeType: mood.nativeType }).toEqual({
-      nativeType: 'Mood',
+    expect({ typeText: mood.typeText }).toEqual({
+      typeText: 'Mood',
     });
   });
 
@@ -513,7 +513,7 @@ describe('contractToSchemaIR', () => {
 
     const result = contractToSchemaIR(wrap(storage));
 
-    expect(result.tables['Post']!.columns['embedding']!.nativeType).toBe('vector(1536)');
+    expect(result.tables['Post']!.columns['embedding']!.typeText).toBe('vector(1536)');
   });
 
   it('omits default field when column has no default', () => {
@@ -911,7 +911,7 @@ describe('contractToSchemaIR', () => {
     });
 
     const result = contractToSchemaIR(wrap(storage));
-    expect(result.tables['T']!.columns['embedding']!.nativeType).toBe('vector(1536)');
+    expect(result.tables['T']!.columns['embedding']!.typeText).toBe('vector(1536)');
     expect(result.annotations).toBeUndefined();
   });
 
@@ -1351,7 +1351,7 @@ describe('contractToSchemaIR — resolved leaf values', () => {
 
     const result = contractToSchemaIR(wrap(storage), {
       resolveDefault: (def, column) =>
-        def.kind === 'function' && column.many && column.nativeType === 'text'
+        def.kind === 'function' && column.many && column.typeText === 'text'
           ? { kind: 'literal', value: [] }
           : def,
     });

@@ -82,7 +82,7 @@ const emptySchema = new PostgresDatabaseSchemaNode({
 });
 
 function liveSchemaWithUsers(
-  columns: Record<string, { name: string; nativeType: string; nullable: boolean }>,
+  columns: Record<string, { name: string; typeText: string; nullable: boolean }>,
 ): PostgresDatabaseSchemaNode {
   return new PostgresDatabaseSchemaNode({
     namespaces: {
@@ -175,7 +175,7 @@ describe('PostgresMigrationPlanner.plan control-policy partitioning', async () =
       // tolerated semantics, the missing-column issue is suppressed at the
       // input partition.
       const contract = toleratedContract({ email: nullableColumn });
-      const live = liveSchemaWithUsers({ id: { name: 'id', nativeType: 'text', nullable: false } });
+      const live = liveSchemaWithUsers({ id: { name: 'id', typeText: 'text', nullable: false } });
       const result = await planAgainst(contract, live);
       expect(result.operations).toHaveLength(0);
       expect(result.warnings ?? []).toEqual(
@@ -290,7 +290,7 @@ describe('PostgresMigrationPlanner.plan control-policy partitioning', async () =
 // add-column.
 describe('PostgresMigrationPlanner.plan tolerated vs managed add-column', async () => {
   const liveSchemaWithUsersIdOnly: PostgresDatabaseSchemaNode = liveSchemaWithUsers({
-    id: { name: 'id', nativeType: 'text', nullable: false },
+    id: { name: 'id', typeText: 'text', nullable: false },
   });
 
   async function planAddColumn(control: 'managed' | 'tolerated') {

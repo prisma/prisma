@@ -81,14 +81,14 @@ describe('a sql`...` default on Postgres renders as authored', () => {
     ["'{}'::jsonb", 'jsonb', 'pg/jsonb', 'pg/jsonb@1'],
   ])(
     'writes DEFAULT (%s) on a %s column in CREATE TABLE and SET DEFAULT',
-    (expression, nativeType, dataType, codecId) => {
+    (expression, typeText, dataType, codecId) => {
       const column = expectedColumn(dataType, codecId, expression);
 
       const ddl = renderColumnDdl('value', column);
       const setDefault = buildSetDefaultColumn('value', defaultNodeOf(column), postgresTypeLookups);
 
       expect({ type: ddl.type, default: ddl.default }).toEqual({
-        type: nativeType,
+        type: typeText,
         default: { kind: 'function', expression: opaqueSql(expression) },
       });
       expect(setDefault?.default).toEqual(ddl.default);
@@ -112,7 +112,7 @@ describe("a literal-shaped sql`'{}'::jsonb` default on Postgres", () => {
     expect(
       postgresResolveDefault(
         { kind: 'function', expression: "'{}'::jsonb" },
-        { nativeType: 'jsonb', many: false },
+        { typeText: 'jsonb', many: false },
       ),
     ).toEqual({ kind: 'function', expression: "'{}'::jsonb" });
   });

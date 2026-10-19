@@ -52,14 +52,14 @@ export function fixtureEnums(schema: string, typeNames: Iterable<string>): Fixtu
  * A text no data type reads is reported as written.
  */
 export function reportedFromWritten(
-  nativeType: string,
+  typeText: string,
   enums: FixtureEnums = new Map(),
 ): ReportedSqlType {
-  const enumType = enums.get(nativeType);
+  const enumType = enums.get(typeText);
   if (enumType !== undefined) {
-    return { text: nativeType, kind: 'enum', schema: enumType.schema, name: enumType.name };
+    return { text: typeText, kind: 'enum', schema: enumType.schema, name: enumType.name };
   }
-  const [resolved] = resolveWrittenSqlTypes(nativeType, postgresDataTypes);
+  const [resolved] = resolveWrittenSqlTypes(typeText, postgresDataTypes);
   const dataType = postgresDataTypes.find((type) => type.id === resolved?.dataType);
   const text =
     resolved !== undefined &&
@@ -67,7 +67,7 @@ export function reportedFromWritten(
     isSqlDataType(dataType) &&
     dataType.sql.claimsKind === undefined
       ? renderSqlCatalogText(dataType, resolved.typeParams)
-      : nativeType;
+      : typeText;
   return { text, kind: undefined, schema: 'pg_catalog', name: undefined };
 }
 
@@ -82,7 +82,7 @@ export function withReportedType(
   return new SqlColumnIR({
     ...column,
     ...(column instanceof SqlColumnIR ? nonEnumerableFieldsOf(column) : {}),
-    reportedType: reportedFromWritten(column.nativeType, enums),
+    reportedType: reportedFromWritten(column.typeText, enums),
   });
 }
 

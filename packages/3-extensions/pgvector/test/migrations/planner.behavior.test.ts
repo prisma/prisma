@@ -95,7 +95,7 @@ describe('PostgresMigrationPlanner - subset/superset/conflict handling', () => {
             extra: new PostgresTableSchemaNode({
               name: 'extra',
               columns: {
-                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+                id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -138,7 +138,7 @@ describe('PostgresMigrationPlanner - subset/superset/conflict handling', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+                id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -190,8 +190,8 @@ describe('PostgresMigrationPlanner - subset/superset/conflict handling', () => {
             user: new PostgresTableSchemaNode({
               name: 'user',
               columns: {
-                id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
-                email: introspectedColumn({ name: 'email', nativeType: 'uuid', nullable: false }),
+                id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+                email: introspectedColumn({ name: 'email', typeText: 'uuid', nullable: false }),
               },
               primaryKey: { columns: ['id'] },
               uniques: [],
@@ -442,7 +442,7 @@ describe('NOT NULL column without default uses temporary default', () => {
       },
       new PostgresTableSchemaNode({
         name: 'user',
-        columns: { id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }) },
+        columns: { id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }) },
         uniques: [],
         foreignKeys: [],
         indexes: [],
@@ -529,7 +529,7 @@ describe('NOT NULL column without default uses temporary default', () => {
           org: new PostgresTableSchemaNode({
             name: 'org',
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
             },
             primaryKey: { columns: ['id'] },
             uniques: [],
@@ -696,8 +696,8 @@ function buildUserTableSchema(): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name: 'user',
     columns: {
-      id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
-      email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+      id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+      email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
     },
     primaryKey: { columns: ['id'] },
     uniques: [{ columns: ['email'], name: 'user_email_key' }],
@@ -855,7 +855,7 @@ async function getRequiredOperation(
 function buildUserTableSchemaWithoutEmail(): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name: 'user',
-    columns: { id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }) },
+    columns: { id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }) },
     primaryKey: { columns: ['id'] },
     uniques: [],
     foreignKeys: [],
@@ -868,9 +868,9 @@ function buildPostTableSchema(): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name: 'post',
     columns: {
-      id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
-      userId: introspectedColumn({ name: 'userId', nativeType: 'uuid', nullable: false }),
-      title: introspectedColumn({ name: 'title', nativeType: 'text', nullable: false }),
+      id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+      userId: introspectedColumn({ name: 'userId', typeText: 'uuid', nullable: false }),
+      title: introspectedColumn({ name: 'title', typeText: 'text', nullable: false }),
     },
     primaryKey: { columns: ['id'] },
     uniques: [],

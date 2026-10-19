@@ -22,7 +22,7 @@ describe('renderColumnDdl', () => {
   it('renders a non-null array column with typeParams, an explicit many flag', () => {
     const column = new SqlColumnIR({
       name: 'tags',
-      nativeType: 'text[]',
+      typeText: 'text[]',
       nullable: false,
       many: true,
       resolvedDefault: { kind: 'literal', value: ['a', 'b'] },
@@ -42,7 +42,7 @@ describe('renderColumnDdl', () => {
   it('renders a nullable column with a non-autoincrement function default and no codec typeParams', () => {
     const column = new SqlColumnIR({
       name: 'id2',
-      nativeType: 'uuid',
+      typeText: 'uuid',
       nullable: true,
       resolvedDefault: { kind: 'function', expression: 'gen_random_uuid()' },
       codecRef: { codecId: 'pg/uuid@1' },
@@ -64,7 +64,7 @@ describe('renderColumnDdl', () => {
   it('writes the type from the stored type and the parameters as the contract writes them', () => {
     const column = new SqlColumnIR({
       name: 'amount',
-      nativeType: 'numeric(10)',
+      typeText: 'numeric(10)',
       nullable: true,
       codecRef: { codecId: 'pg/numeric@1', typeParams: { precision: 10 } },
       ...typed(pgNumeric, { precision: 10, scale: 0 }),
@@ -76,7 +76,7 @@ describe('renderColumnDdl', () => {
   it('throws when the column has no data type', () => {
     const column = new SqlColumnIR({
       name: 'x',
-      nativeType: 'text',
+      typeText: 'text',
       nullable: true,
       codecRef: { codecId: 'pg/text@1' },
     });
@@ -89,7 +89,7 @@ describe('renderColumnAlterType', () => {
   it('renders the raw target type, with no SERIAL pseudo-type', () => {
     const column = new SqlColumnIR({
       name: 'id3',
-      nativeType: 'integer',
+      typeText: 'integer',
       nullable: false,
       resolvedDefault: { kind: 'function', expression: 'autoincrement()' },
       codecRef: { codecId: 'pg/int4@1' },
@@ -107,7 +107,7 @@ describe('resolveColumnTemporaryDefault', () => {
   it('resolves the built-in identity value for a uuid column with no codec hooks', () => {
     const column = new SqlColumnIR({
       name: 'id2',
-      nativeType: 'uuid',
+      typeText: 'uuid',
       nullable: true,
       codecRef: { codecId: 'pg/uuid@1' },
     });
@@ -138,16 +138,16 @@ describe('buildSetDefaultColumn', () => {
 
   it.each(['int2', 'int4', 'int8'])(
     'carries an autoincrement default on a %s column, for setDefault to attach a sequence',
-    (nativeType) => {
+    (typeText) => {
       const defaultNode = new SqlColumnDefaultIR({
         resolved: { kind: 'function', expression: 'autoincrement()' },
-        codecRef: { codecId: `pg/${nativeType}@1` },
+        codecRef: { codecId: `pg/${typeText}@1` },
       });
 
       expect(buildSetDefaultColumn('v', defaultNode, types)).toEqual(
-        col('v', nativeType, {
+        col('v', typeText, {
           default: fn('autoincrement()'),
-          codecRef: { codecId: `pg/${nativeType}@1` },
+          codecRef: { codecId: `pg/${typeText}@1` },
         }),
       );
     },

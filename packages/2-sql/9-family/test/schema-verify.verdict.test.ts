@@ -62,7 +62,7 @@ function stampLikeIntrospection(schema: SqlSchemaIR): SqlSchemaIR {
       const resolvedDefault = col.default !== undefined ? testNormalizer(col.default) : undefined;
       columns[colName] = new SqlColumnIR({
         name: col.name,
-        nativeType: col.nativeType,
+        typeText: col.typeText,
         nullable: col.nullable,
         ...(col.default !== undefined ? { default: col.default } : {}),
         ...(col.many !== undefined ? { many: col.many } : {}),
@@ -175,7 +175,7 @@ describe('differ verdict — basic drift', () => {
       user: createContractTable({ id: { dataType: 'pg/int4', nullable: false } }),
     });
     const schema = createTestSchemaIR({
-      user: createSchemaTable('user', { id: { nativeType: 'int4', nullable: false } }),
+      user: createSchemaTable('user', { id: { typeText: 'int4', nullable: false } }),
     });
     const { strict, lenient } = runBothModes({ contract, schema });
     expect(strict.ok).toBe(true);
@@ -198,8 +198,8 @@ describe('differ verdict — basic drift', () => {
       user: createContractTable({ id: { dataType: 'pg/int4', nullable: false } }),
     });
     const schema = createTestSchemaIR({
-      user: createSchemaTable('user', { id: { nativeType: 'int4', nullable: false } }),
-      stray: createSchemaTable('stray', { id: { nativeType: 'int4', nullable: false } }),
+      user: createSchemaTable('user', { id: { typeText: 'int4', nullable: false } }),
+      stray: createSchemaTable('stray', { id: { typeText: 'int4', nullable: false } }),
     });
     const { strict, lenient } = runBothModes({ contract, schema });
     expect(strict.ok).toBe(false);
@@ -216,8 +216,8 @@ describe('differ verdict — basic drift', () => {
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable('user', {
-        id: { nativeType: 'int4', nullable: false },
-        stray: { nativeType: 'text', nullable: true },
+        id: { typeText: 'int4', nullable: false },
+        stray: { typeText: 'text', nullable: true },
       }),
     });
     const { strict, lenient } = runBothModes({ contract, schema });
@@ -237,8 +237,8 @@ describe('differ verdict — basic drift', () => {
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable('user', {
-        id: { nativeType: 'int8', nullable: false },
-        email: { nativeType: 'text', nullable: true },
+        id: { typeText: 'int8', nullable: false },
+        email: { typeText: 'text', nullable: true },
       }),
     });
     const { lenient } = runBothModes({ contract, schema });
@@ -252,7 +252,7 @@ describe('differ verdict — basic drift', () => {
       user: createContractTable({ name: { dataType: 'pg/varchar', nullable: false } }),
     });
     const schema = createTestSchemaIR({
-      user: createSchemaTable('user', { name: { nativeType: 'varchar', nullable: false } }),
+      user: createSchemaTable('user', { name: { typeText: 'varchar', nullable: false } }),
     });
     const { strict } = runBothModes({ contract, schema });
     expect(strict.ok).toBe(true);
@@ -272,7 +272,7 @@ describe('differ verdict — defaults (default is a child node of the column)', 
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable('user', {
-        status: { nativeType: 'text', nullable: false, default: "'draft'::text" },
+        status: { typeText: 'text', nullable: false, default: "'draft'::text" },
       }),
     });
     const { strict } = runBothModes({ contract, schema });
@@ -290,7 +290,7 @@ describe('differ verdict — defaults (default is a child node of the column)', 
       }),
     });
     const schema = createTestSchemaIR({
-      user: createSchemaTable('user', { status: { nativeType: 'text', nullable: false } }),
+      user: createSchemaTable('user', { status: { typeText: 'text', nullable: false } }),
     });
     const { strict, lenient } = runBothModes({ contract, schema });
     expect(strict.ok).toBe(false);
@@ -310,7 +310,7 @@ describe('differ verdict — defaults (default is a child node of the column)', 
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable('user', {
-        status: { nativeType: 'text', nullable: false, default: "'published'::text" },
+        status: { typeText: 'text', nullable: false, default: "'published'::text" },
       }),
     });
     const { lenient } = runBothModes({ contract, schema });
@@ -324,7 +324,7 @@ describe('differ verdict — defaults (default is a child node of the column)', 
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable('user', {
-        status: { nativeType: 'text', nullable: false, default: "'draft'::text" },
+        status: { typeText: 'text', nullable: false, default: "'draft'::text" },
       }),
     });
     const { strict, lenient } = runBothModes({ contract, schema });
@@ -349,7 +349,7 @@ describe('differ verdict — defaults (default is a child node of the column)', 
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable('user', {
-        created: { nativeType: 'timestamptz', nullable: false, default: 'CURRENT_TIMESTAMP' },
+        created: { typeText: 'timestamptz', nullable: false, default: 'CURRENT_TIMESTAMP' },
       }),
     });
     const { strict } = runBothModes({ contract, schema });
@@ -368,7 +368,7 @@ describe('differ verdict — defaults (default is a child node of the column)', 
     });
     const schema = createTestSchemaIR({
       user: createSchemaTable('user', {
-        status: { nativeType: 'text', nullable: false, default: 'unparseable()' },
+        status: { typeText: 'text', nullable: false, default: 'unparseable()' },
       }),
     });
     const { lenient } = runBothModes({ contract, schema });
@@ -389,7 +389,7 @@ describe('differ verdict — primary keys', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { id: { nativeType: 'int4', nullable: false } },
+        { id: { typeText: 'int4', nullable: false } },
         { primaryKey: { columns: ['id'], name: 'user_pkey' } },
       ),
     });
@@ -399,7 +399,7 @@ describe('differ verdict — primary keys', () => {
 
   it('missing PK fails both modes; extra PK fails strict only', () => {
     const missing = createTestSchemaIR({
-      user: createSchemaTable('user', { id: { nativeType: 'int4', nullable: false } }),
+      user: createSchemaTable('user', { id: { typeText: 'int4', nullable: false } }),
     });
     const { lenient } = runBothModes({ contract: contractWithPk(), schema: missing });
     expect(lenient.ok).toBe(false);
@@ -411,7 +411,7 @@ describe('differ verdict — primary keys', () => {
     const extra = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { id: { nativeType: 'int4', nullable: false } },
+        { id: { typeText: 'int4', nullable: false } },
         { primaryKey: { columns: ['id'] } },
       ),
     });
@@ -425,8 +425,8 @@ describe('differ verdict — primary keys', () => {
       user: createSchemaTable(
         'user',
         {
-          id: { nativeType: 'int4', nullable: false },
-          tenant: { nativeType: 'int4', nullable: false },
+          id: { typeText: 'int4', nullable: false },
+          tenant: { typeText: 'int4', nullable: false },
         },
         { primaryKey: { columns: ['tenant', 'id'] } },
       ),
@@ -486,14 +486,14 @@ describe('differ verdict — foreign keys', () => {
     createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { id: { nativeType: 'int4', nullable: false } },
+        { id: { typeText: 'int4', nullable: false } },
         { primaryKey: { columns: ['id'] } },
       ),
       post: createSchemaTable(
         'post',
         {
-          id: { nativeType: 'int4', nullable: false },
-          user_id: { nativeType: 'int4', nullable: false },
+          id: { typeText: 'int4', nullable: false },
+          user_id: { typeText: 'int4', nullable: false },
         },
         {
           primaryKey: { columns: ['id'] },
@@ -580,7 +580,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         { uniques: [{ columns: ['email'], name: 'user_email_key' }] },
       ),
     });
@@ -599,7 +599,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         { indexes: [{ columns: ['email'], unique: true, name: 'user_email_key' }] },
       ),
     });
@@ -622,7 +622,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         { uniques: [{ columns: ['email'], name: 'user_email_key' }] },
       ),
     });
@@ -643,7 +643,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         { uniques: [{ columns: ['email'] }] },
       ),
     });
@@ -658,7 +658,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         { indexes: [{ name: 'user_email_key_idx', columns: ['email'], unique: true }] },
       ),
     });
@@ -675,7 +675,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         { indexes: [{ name: 'user_email_idx', columns: ['email'], unique: false }] },
       ),
     });
@@ -692,7 +692,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
       ),
     });
     const missing = createTestSchemaIR({
-      user: createSchemaTable('user', { email: { nativeType: 'text', nullable: false } }),
+      user: createSchemaTable('user', { email: { typeText: 'text', nullable: false } }),
     });
     const missingRuns = runBothModes({ contract, schema: missing });
     expect(missingRuns.lenient.ok).toBe(false);
@@ -703,7 +703,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const stray = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         { uniques: [{ columns: ['email'] }] },
       ),
     });
@@ -731,7 +731,7 @@ describe('differ verdict — uniques and indexes (structural equality)', () => {
     const schema = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { email: { nativeType: 'text', nullable: false } },
+        { email: { typeText: 'text', nullable: false } },
         {
           indexes: [
             {
@@ -757,7 +757,7 @@ describe('differ verdict — check constraints', () => {
       tables: {
         post: {
           name: 'post',
-          columns: { status: { name: 'status', nativeType: 'text', nullable: false } },
+          columns: { status: { name: 'status', typeText: 'text', nullable: false } },
           foreignKeys: [],
           uniques: [],
           indexes: [],
@@ -845,7 +845,7 @@ describe('differ verdict — control policies', () => {
       ),
     });
     const schema = createTestSchemaIR({
-      user: createSchemaTable('user', { id: { nativeType: 'int8', nullable: false } }),
+      user: createSchemaTable('user', { id: { typeText: 'int8', nullable: false } }),
     });
     const { strict, lenient } = runBothModes({ contract, schema });
     expect(strict.ok).toBe(true);
@@ -864,15 +864,15 @@ describe('differ verdict — control policies', () => {
     });
     const extras = createTestSchemaIR({
       user: createSchemaTable('user', {
-        id: { nativeType: 'int4', nullable: false },
-        stray: { nativeType: 'text', nullable: true },
+        id: { typeText: 'int4', nullable: false },
+        stray: { typeText: 'text', nullable: true },
       }),
     });
     const extraRuns = runBothModes({ contract, schema: extras });
     expect(extraRuns.strict.ok).toBe(true);
 
     const drift = createTestSchemaIR({
-      user: createSchemaTable('user', { id: { nativeType: 'int8', nullable: false } }),
+      user: createSchemaTable('user', { id: { typeText: 'int8', nullable: false } }),
     });
     const driftRuns = runBothModes({ contract, schema: drift });
     expect(driftRuns.lenient.ok).toBe(false);
@@ -887,8 +887,8 @@ describe('differ verdict — control policies', () => {
     });
     const extraColumn = createTestSchemaIR({
       user: createSchemaTable('user', {
-        id: { nativeType: 'int4', nullable: false },
-        stray: { nativeType: 'text', nullable: true },
+        id: { typeText: 'int4', nullable: false },
+        stray: { typeText: 'text', nullable: true },
       }),
     });
     const columnRuns = runBothModes({ contract, schema: extraColumn });
@@ -897,7 +897,7 @@ describe('differ verdict — control policies', () => {
     const extraIndex = createTestSchemaIR({
       user: createSchemaTable(
         'user',
-        { id: { nativeType: 'int4', nullable: false } },
+        { id: { typeText: 'int4', nullable: false } },
         { indexes: [{ name: 'user_id_idx', columns: ['id'], unique: false }] },
       ),
     });
@@ -915,8 +915,8 @@ describe('differ verdict — control policies', () => {
       { defaultControlPolicy: 'observed' as ControlPolicy },
     );
     const schema = createTestSchemaIR({
-      user: createSchemaTable('user', { id: { nativeType: 'int4', nullable: false } }),
-      stray: createSchemaTable('stray', { id: { nativeType: 'int4', nullable: false } }),
+      user: createSchemaTable('user', { id: { typeText: 'int4', nullable: false } }),
+      stray: createSchemaTable('stray', { id: { typeText: 'int4', nullable: false } }),
     });
     const { strict } = runBothModes({ contract, schema });
     expect(strict.ok).toBe(true);
@@ -963,7 +963,7 @@ describe('differ verdict — storage types (verifyType hook)', () => {
 
   const matchingSchema = () =>
     createTestSchemaIR({
-      user: createSchemaTable('user', { id: { nativeType: 'int4', nullable: false } }),
+      user: createSchemaTable('user', { id: { typeText: 'int4', nullable: false } }),
     });
 
   it('a verifyType failure fails the verdict in both modes', () => {

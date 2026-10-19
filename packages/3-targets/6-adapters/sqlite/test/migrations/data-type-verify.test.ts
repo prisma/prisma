@@ -215,7 +215,7 @@ describe('verify on SQLite, for each data type', () => {
         Object.fromEntries(
           Object.entries(schema.tables['item']?.columns ?? {}).map(([name, column]) => [
             name,
-            column.nativeType,
+            column.typeText,
           ]),
         ),
       ).toEqual({

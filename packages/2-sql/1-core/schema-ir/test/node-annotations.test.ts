@@ -14,7 +14,7 @@ const annotations = { 'prisma/rls': { enabled: true } };
 
 const withAnnotations = {
   SqlColumnIR: () =>
-    new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false, ...int4Type, annotations }),
+    new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false, ...int4Type, annotations }),
   SqlForeignKeyIR: () =>
     new SqlForeignKeyIR({
       columns: ['user_id'],
@@ -49,7 +49,7 @@ const withAnnotations = {
 
 const withoutAnnotations = {
   SqlColumnIR: () =>
-    new SqlColumnIR({ name: 'id', nativeType: 'int4', nullable: false, ...int4Type }),
+    new SqlColumnIR({ name: 'id', typeText: 'int4', nullable: false, ...int4Type }),
   SqlForeignKeyIR: () =>
     new SqlForeignKeyIR({
       columns: ['user_id'],

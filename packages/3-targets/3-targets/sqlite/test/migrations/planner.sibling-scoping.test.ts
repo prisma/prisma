@@ -69,21 +69,21 @@ function buildLiveSchema(): SqlSchemaIR {
     tables: {
       app_user: {
         name: 'app_user',
-        columns: { id: introspectedColumn({ name: 'id', nativeType: 'integer', nullable: false }) },
+        columns: { id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }) },
         foreignKeys: [],
         uniques: [],
         indexes: [],
       },
       cipher_state: {
         name: 'cipher_state',
-        columns: { id: introspectedColumn({ name: 'id', nativeType: 'integer', nullable: false }) },
+        columns: { id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }) },
         foreignKeys: [],
         uniques: [],
         indexes: [],
       },
       orphan_table: {
         name: 'orphan_table',
-        columns: { id: introspectedColumn({ name: 'id', nativeType: 'integer', nullable: false }) },
+        columns: { id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }) },
         foreignKeys: [],
         uniques: [],
         indexes: [],
@@ -188,10 +188,10 @@ describe('SQLite planner ownership consultation', () => {
         app_user: {
           name: 'app_user',
           columns: {
-            id: introspectedColumn({ name: 'id', nativeType: 'integer', nullable: false }),
+            id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }),
             legacy_col: introspectedColumn({
               name: 'legacy_col',
-              nativeType: 'text',
+              typeText: 'text',
               nullable: true,
             }),
           },

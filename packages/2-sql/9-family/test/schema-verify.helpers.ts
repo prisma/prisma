@@ -142,11 +142,11 @@ export function createContractTable(
 /**
  * Creates a minimal schema table for testing.
  * Note: default is now a raw string (e.g., "now()", "'hello'::text") matching SqlColumnIR.
- * Each column has the test data type `pg/<nativeType>`, as introspection would resolve its reported type.
+ * Each column has the test data type `pg/<typeText>`, as introspection would resolve its reported type.
  */
 export function createSchemaTable(
   name: string,
-  columns: Record<string, { nativeType: string; nullable: boolean; default?: string }>,
+  columns: Record<string, { typeText: string; nullable: boolean; default?: string }>,
   options?: {
     primaryKey?: { columns: readonly string[]; name?: string };
     foreignKeys?: ReadonlyArray<{
@@ -179,10 +179,10 @@ export function createSchemaTable(
         colName,
         {
           name: colName,
-          nativeType: col.nativeType,
+          typeText: col.typeText,
           nullable: col.nullable,
           ...ifDefined('default', col.default),
-          ...introspectedType(col.nativeType),
+          ...introspectedType(col.typeText),
         },
       ]),
     ),
@@ -207,8 +207,8 @@ export function createSchemaTable(
   });
 }
 
-function introspectedType(nativeType: string) {
-  const type = testTypeLookups.dataTypeLookup.get(`pg/${nativeType}`);
-  if (type === undefined) throw new Error(`no test data type pg/${nativeType}`);
+function introspectedType(typeText: string) {
+  const type = testTypeLookups.dataTypeLookup.get(`pg/${typeText}`);
+  if (type === undefined) throw new Error(`no test data type pg/${typeText}`);
   return { dataType: type, storedType: type, typeParams: {} };
 }

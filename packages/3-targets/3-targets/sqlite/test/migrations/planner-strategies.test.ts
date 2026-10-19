@@ -36,8 +36,8 @@ function makeContext(overrides: Partial<StrategyContext> = {}): StrategyContext 
 const expectedUserTable = table({
   name: 'user',
   columns: {
-    id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }),
-    email: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
+    id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }),
+    email: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
   },
   primaryKey: primaryKey(['id']),
 });
@@ -45,8 +45,8 @@ const expectedUserTable = table({
 const actualUserTable = table({
   name: 'user',
   columns: {
-    id: actualColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }),
-    email: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
+    id: actualColumn({ name: 'id', typeText: 'INTEGER', nullable: false }),
+    email: actualColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
   },
   primaryKey: primaryKey(['id']),
 });
@@ -55,7 +55,7 @@ describe('recreateTableStrategy', () => {
   it('returns no_match when there are no recreate-eligible issues', () => {
     const missingColumn = issue({
       path: ['database', 'user', 'column:x'],
-      expected: expectedColumn({ name: 'x', nativeType: 'TEXT', nullable: true }),
+      expected: expectedColumn({ name: 'x', typeText: 'TEXT', nullable: true }),
     });
     expect(recreateTableStrategy([missingColumn], makeContext()).kind).toBe('no_match');
   });
@@ -63,8 +63,8 @@ describe('recreateTableStrategy', () => {
   it('classifies a pure default drift as widening', () => {
     const defaultDrift = issue({
       path: ['database', 'user', 'column:email', 'default'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
-      actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
+      actual: actualColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
     });
     const ctx = makeContext({
       expected: new SqlSchemaIR({ tables: { user: expectedUserTable } }),
@@ -84,8 +84,8 @@ describe('recreateTableStrategy', () => {
   it('classifies a column type change as destructive', () => {
     const typeDrift = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
-      actual: actualColumn({ name: 'email', nativeType: 'INTEGER', nullable: true }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
+      actual: actualColumn({ name: 'email', typeText: 'INTEGER', nullable: true }),
     });
     const ctx = makeContext({
       expected: new SqlSchemaIR({ tables: { user: expectedUserTable } }),
@@ -105,8 +105,8 @@ describe('recreateTableStrategy', () => {
     });
     const typeDrift = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
-      actual: actualColumn({ name: 'email', nativeType: 'INTEGER', nullable: true }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
+      actual: actualColumn({ name: 'email', typeText: 'INTEGER', nullable: true }),
     });
     const ctx = makeContext({
       expected: new SqlSchemaIR({ tables: { user: expectedUserTable } }),
@@ -169,8 +169,8 @@ describe('recreateTableStrategy', () => {
     const nullabilityChange = (expectedNullable: boolean) =>
       issue({
         path: ['database', 'user', 'column:email'],
-        expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: expectedNullable }),
-        actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: !expectedNullable }),
+        expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: expectedNullable }),
+        actual: actualColumn({ name: 'email', typeText: 'TEXT', nullable: !expectedNullable }),
       });
 
     const classes = [true, false].map((expectedNullable) => {
@@ -192,8 +192,8 @@ describe('recreateTableStrategy', () => {
       [
         issue({
           path: ['database', 'user', 'column:email'],
-          expected: expectedColumn({ name: 'email', nativeType: 'INTEGER', nullable: false }),
-          actual: actualColumn({ name: 'email', nativeType: 'integer', nullable: true }),
+          expected: expectedColumn({ name: 'email', typeText: 'INTEGER', nullable: false }),
+          actual: actualColumn({ name: 'email', typeText: 'integer', nullable: true }),
         }),
       ],
       ctx,
@@ -207,16 +207,16 @@ describe('recreateTableStrategy', () => {
     const actualWithNickname = table({
       name: 'user',
       columns: {
-        id: actualColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }),
-        email: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-        nickname: actualColumn({ name: 'nickname', nativeType: 'TEXT', nullable: true }),
+        id: actualColumn({ name: 'id', typeText: 'INTEGER', nullable: false }),
+        email: actualColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+        nickname: actualColumn({ name: 'nickname', typeText: 'TEXT', nullable: true }),
       },
       primaryKey: primaryKey(['id']),
     });
     const relaxing = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
-      actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
+      actual: actualColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
     });
     const result = recreateTableStrategy(
       [relaxing],
@@ -238,8 +238,8 @@ describe('recreateTableStrategy', () => {
     });
     const typeChange = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
-      actual: actualColumn({ name: 'email', nativeType: 'INTEGER', nullable: true }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
+      actual: actualColumn({ name: 'email', typeText: 'INTEGER', nullable: true }),
     });
     const pkDrift = issue({
       path: ['database', 'user', 'primary-key'],
@@ -266,8 +266,8 @@ describe('recreateTableStrategy', () => {
     });
     const tighteningAndTypeChange = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-      actual: actualColumn({ name: 'email', nativeType: 'INTEGER', nullable: true }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+      actual: actualColumn({ name: 'email', typeText: 'INTEGER', nullable: true }),
     });
 
     const result = recreateTableStrategy([tighteningAndTypeChange], ctx);
@@ -280,19 +280,19 @@ describe('recreateTableStrategy', () => {
   it('groups issues by table and emits one RecreateTableCall per affected table', () => {
     const aExpected = table({
       name: 'a',
-      columns: { id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }) },
+      columns: { id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }) },
     });
     const aActual = table({
       name: 'a',
-      columns: { id: actualColumn({ name: 'id', nativeType: 'TEXT', nullable: false }) },
+      columns: { id: actualColumn({ name: 'id', typeText: 'TEXT', nullable: false }) },
     });
     const bExpected = table({
       name: 'b',
-      columns: { id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }) },
+      columns: { id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }) },
     });
     const bActual = table({
       name: 'b',
-      columns: { id: actualColumn({ name: 'id', nativeType: 'TEXT', nullable: false }) },
+      columns: { id: actualColumn({ name: 'id', typeText: 'TEXT', nullable: false }) },
     });
     const ctx = makeContext({
       expected: new SqlSchemaIR({ tables: { a: aExpected, b: bExpected } }),
@@ -322,8 +322,8 @@ describe('recreateTableStrategy', () => {
   it('consumes but emits no call for a table missing from expected/actual (defensive)', () => {
     const ghostIssue = issue({
       path: ['database', 'ghost', 'column:x'],
-      expected: expectedColumn({ name: 'x', nativeType: 'TEXT', nullable: true }),
-      actual: actualColumn({ name: 'x', nativeType: 'INTEGER', nullable: true }),
+      expected: expectedColumn({ name: 'x', typeText: 'TEXT', nullable: true }),
+      actual: actualColumn({ name: 'x', typeText: 'INTEGER', nullable: true }),
     });
     const result = recreateTableStrategy([ghostIssue], makeContext());
     expect(result.kind).toBe('match');
@@ -337,8 +337,8 @@ describe('nullabilityTighteningBackfillStrategy', () => {
   it("returns no_match when policy does not include 'data'", () => {
     const tightening = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-      actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+      actual: actualColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
     });
     const result = nullabilityTighteningBackfillStrategy(
       [tightening],
@@ -350,8 +350,8 @@ describe('nullabilityTighteningBackfillStrategy', () => {
   it("returns no_match for relaxing nullability under 'data' policy", () => {
     const relaxing = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
-      actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
+      actual: actualColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
     });
     const result = nullabilityTighteningBackfillStrategy(
       [relaxing],
@@ -363,8 +363,8 @@ describe('nullabilityTighteningBackfillStrategy', () => {
   it("emits a DataTransformCall per tightened column --backfill names, under 'data' policy, without consuming the issue", () => {
     const tightening = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-      actual: actualColumn({ name: 'email', nativeType: 'TEXT', nullable: true }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+      actual: actualColumn({ name: 'email', typeText: 'TEXT', nullable: true }),
     });
     const policy = { allowedOperationClasses: ['additive', 'destructive', 'data'] } as const;
     const backfill = {
@@ -399,8 +399,8 @@ describe('nullabilityTighteningBackfillStrategy', () => {
   it('does not fire for a pure type change carrying no nullability difference', () => {
     const typeDrift = issue({
       path: ['database', 'user', 'column:email'],
-      expected: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-      actual: actualColumn({ name: 'email', nativeType: 'INTEGER', nullable: false }),
+      expected: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+      actual: actualColumn({ name: 'email', typeText: 'INTEGER', nullable: false }),
     });
     const result = nullabilityTighteningBackfillStrategy(
       [typeDrift],

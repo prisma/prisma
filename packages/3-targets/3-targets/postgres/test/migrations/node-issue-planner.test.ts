@@ -111,7 +111,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
         },
@@ -140,17 +140,17 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
           email: introspectedColumn({
             name: 'email',
-            nativeType: 'text',
+            typeText: 'text',
             nullable: false,
           }),
           legacy: introspectedColumn({
             name: 'legacy',
-            nativeType: 'text',
+            typeText: 'text',
             nullable: true,
           }),
         },
@@ -186,12 +186,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
           age: introspectedColumn({
             name: 'age',
-            nativeType: 'int4',
+            typeText: 'int4',
             nullable: true,
           }),
         },
@@ -209,7 +209,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
 
   describe('a type change of an introspected column, with no origin contract', () => {
     function alterClass(
-      live: { readonly nativeType: string; readonly many?: boolean },
+      live: { readonly typeText: string; readonly many?: boolean },
       contractColumn: TableSpec['columns'][string],
     ) {
       const contract = makeContract({
@@ -230,12 +230,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           columns: {
             id: introspectedColumn({
               name: 'id',
-              nativeType: 'uuid',
+              typeText: 'uuid',
               nullable: false,
             }),
             age: introspectedColumn({
               name: 'age',
-              nativeType: live.nativeType,
+              typeText: live.typeText,
               nullable: false,
               ...(live.many === undefined ? {} : { many: live.many }),
             }),
@@ -255,15 +255,15 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     it('is widening for a safe widening read from the written type name', () => {
       expect([
         alterClass(
-          { nativeType: 'int4' },
+          { typeText: 'int4' },
           { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'int2' },
+          { typeText: 'int2' },
           { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'float4' },
+          { typeText: 'float4' },
           { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
         ),
       ]).toEqual(['widening', 'widening', 'widening']);
@@ -285,23 +285,23 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           : { typeParams: { precision, ...(scale === undefined ? {} : { scale }) } }),
       });
       expect([
-        alterClass({ nativeType: 'character varying(10)' }, varchar(20)),
-        alterClass({ nativeType: 'character varying(10)' }, varchar()),
+        alterClass({ typeText: 'character varying(10)' }, varchar(20)),
+        alterClass({ typeText: 'character varying(10)' }, varchar()),
         alterClass(
-          { nativeType: 'character varying(10)' },
+          { typeText: 'character varying(10)' },
           { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
         ),
-        alterClass({ nativeType: 'numeric(10,2)' }, numeric(12, 2)),
-        alterClass({ nativeType: 'numeric(10,2)' }, numeric(12, 4)),
-        alterClass({ nativeType: 'numeric(10,2)' }, numeric()),
+        alterClass({ typeText: 'numeric(10,2)' }, numeric(12, 2)),
+        alterClass({ typeText: 'numeric(10,2)' }, numeric(12, 4)),
+        alterClass({ typeText: 'numeric(10,2)' }, numeric()),
       ]).toEqual(Array(6).fill('widening'));
       expect([
-        alterClass({ nativeType: 'character varying(20)' }, varchar(10)),
-        alterClass({ nativeType: 'text' }, varchar(10)),
-        alterClass({ nativeType: 'numeric(10,2)' }, numeric(10, 3)),
-        alterClass({ nativeType: 'numeric' }, numeric(10, 2)),
+        alterClass({ typeText: 'character varying(20)' }, varchar(10)),
+        alterClass({ typeText: 'text' }, varchar(10)),
+        alterClass({ typeText: 'numeric(10,2)' }, numeric(10, 3)),
+        alterClass({ typeText: 'numeric' }, numeric(10, 2)),
         alterClass(
-          { nativeType: 'character(5)' },
+          { typeText: 'character(5)' },
           {
             dataType: 'pg/char',
             codecId: 'pg/char@1',
@@ -315,15 +315,15 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     it('is destructive for a type change that can change values, or one between lists', () => {
       expect([
         alterClass(
-          { nativeType: 'int8' },
+          { typeText: 'int8' },
           { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'text' },
+          { typeText: 'text' },
           { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'int4', many: true },
+          { typeText: 'int4', many: true },
           {
             dataType: 'pg/int8',
             codecId: 'pg/int8@1',
@@ -332,15 +332,15 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           },
         ),
         alterClass(
-          { nativeType: 'float4' },
+          { typeText: 'float4' },
           { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'numeric(10,2)' },
+          { typeText: 'numeric(10,2)' },
           { dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false },
         ),
         alterClass(
-          { nativeType: 'int8' },
+          { typeText: 'int8' },
           { dataType: 'pg/float8', codecId: 'pg/float8@1', nullable: false },
         ),
       ]).toEqual(Array(6).fill('destructive'));
@@ -374,12 +374,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
           visits: introspectedColumn({
             name: 'visits',
-            nativeType: 'int4',
+            typeText: 'int4',
             nullable: false,
           }),
         },
@@ -430,12 +430,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
           columns: {
             id: introspectedColumn({
               name: 'id',
-              nativeType: 'uuid',
+              typeText: 'uuid',
               nullable: false,
             }),
             role: introspectedColumn({
               name: 'role',
-              nativeType: 'text',
+              typeText: 'text',
               nullable: false,
             }),
           },
@@ -471,12 +471,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
           age: introspectedColumn({
             name: 'age',
-            nativeType: 'int4',
+            typeText: 'int4',
             nullable: false,
           }),
         },
@@ -528,12 +528,12 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
           email: introspectedColumn({
             name: 'email',
-            nativeType: 'text',
+            typeText: 'text',
             nullable: false,
           }),
         },
@@ -549,7 +549,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
         },
@@ -622,12 +622,12 @@ describe('planNodeIssues — dependency-graph ordering', () => {
       columns: {
         id: introspectedColumn({
           name: 'id',
-          nativeType: 'uuid',
+          typeText: 'uuid',
           nullable: false,
         }),
         userId: introspectedColumn({
           name: 'userId',
-          nativeType: 'uuid',
+          typeText: 'uuid',
           nullable: false,
         }),
       },
@@ -646,7 +646,7 @@ describe('planNodeIssues — dependency-graph ordering', () => {
       columns: {
         id: introspectedColumn({
           name: 'id',
-          nativeType: 'uuid',
+          typeText: 'uuid',
           nullable: false,
         }),
       },
@@ -714,17 +714,17 @@ describe('planNodeIssues — dependency-graph ordering', () => {
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: false,
           }),
           email: introspectedColumn({
             name: 'email',
-            nativeType: 'text',
+            typeText: 'text',
             nullable: false,
           }),
           legacy: introspectedColumn({
             name: 'legacy',
-            nativeType: 'uuid',
+            typeText: 'uuid',
             nullable: true,
           }),
         },
@@ -788,7 +788,7 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
   function tableNode(rlsEnabled: boolean): PostgresTableSchemaNode {
     return new PostgresTableSchemaNode({
       name: 'user',
-      columns: { id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }) },
+      columns: { id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }) },
       primaryKey: { columns: ['id'] },
       foreignKeys: [],
       uniques: [],

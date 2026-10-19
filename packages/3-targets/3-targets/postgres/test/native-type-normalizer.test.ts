@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type CatalogColumnType, introspectedNativeType } from '../src/core/native-type-normalizer';
+import { type CatalogColumnType, introspectedTypeText } from '../src/core/native-type-normalizer';
 
 const column = (overrides: Partial<CatalogColumnType>): CatalogColumnType => ({
   formattedType: null,
@@ -11,7 +11,7 @@ const column = (overrides: Partial<CatalogColumnType>): CatalogColumnType => ({
   ...overrides,
 });
 
-describe('introspectedNativeType', () => {
+describe('introspectedTypeText', () => {
   describe('from the type format_type reports', () => {
     it.each([
       {
@@ -60,24 +60,22 @@ describe('introspectedNativeType', () => {
         udtName: 'AuditAction',
       },
     ])('reads $formattedType as it is reported', (type) => {
-      expect(introspectedNativeType(column(type))).toEqual({
-        nativeType: type.formattedType,
+      expect(introspectedTypeText(column(type))).toEqual({
+        typeText: type.formattedType,
         many: undefined,
       });
     });
 
     it.each([
-      { formattedType: 'integer[]', udtName: '_int4', nativeType: 'integer' },
-      { formattedType: 'character(3)[]', udtName: '_bpchar', nativeType: 'character(3)' },
-      { formattedType: '"Role"[]', udtName: '_Role', nativeType: '"Role"' },
+      { formattedType: 'integer[]', udtName: '_int4', typeText: 'integer' },
+      { formattedType: 'character(3)[]', udtName: '_bpchar', typeText: 'character(3)' },
+      { formattedType: '"Role"[]', udtName: '_Role', typeText: '"Role"' },
     ])(
-      'reads the array $formattedType as a list of $nativeType',
-      ({ formattedType, udtName, nativeType }) => {
+      'reads the array $formattedType as a list of $typeText',
+      ({ formattedType, udtName, typeText }) => {
         expect(
-          introspectedNativeType(
-            column({ formattedType, informationSchemaType: 'ARRAY', udtName }),
-          ),
-        ).toEqual({ nativeType, many: true });
+          introspectedTypeText(column({ formattedType, informationSchemaType: 'ARRAY', udtName })),
+        ).toEqual({ typeText, many: true });
       },
     );
   });
@@ -85,7 +83,7 @@ describe('introspectedNativeType', () => {
   describe('without a type from format_type', () => {
     it('adds the length to a character type', () => {
       expect(
-        introspectedNativeType(
+        introspectedTypeText(
           column({
             informationSchemaType: 'character varying',
             udtName: 'varchar',
@@ -93,14 +91,14 @@ describe('introspectedNativeType', () => {
           }),
         ),
       ).toEqual({
-        nativeType: 'character varying(10)',
+        typeText: 'character varying(10)',
         many: undefined,
       });
     });
 
     it('adds the precision and scale to a numeric type', () => {
       expect(
-        introspectedNativeType(
+        introspectedTypeText(
           column({
             informationSchemaType: 'numeric',
             udtName: 'numeric',
@@ -109,16 +107,16 @@ describe('introspectedNativeType', () => {
           }),
         ),
       ).toEqual({
-        nativeType: 'numeric(10,2)',
+        typeText: 'numeric(10,2)',
         many: undefined,
       });
     });
 
     it('falls back to the udt name', () => {
       expect(
-        introspectedNativeType(column({ informationSchemaType: 'text', udtName: 'text' })),
+        introspectedTypeText(column({ informationSchemaType: 'text', udtName: 'text' })),
       ).toEqual({
-        nativeType: 'text',
+        typeText: 'text',
         many: undefined,
       });
     });

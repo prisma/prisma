@@ -122,8 +122,8 @@ function liveTable(tableName: string): PostgresTableSchemaNode {
   return new PostgresTableSchemaNode({
     name: tableName,
     columns: {
-      id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
-      email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+      id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
+      email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
     },
     primaryKey: { columns: ['id'], name: `${tableName}_pkey` },
     foreignKeys: [],

@@ -56,7 +56,7 @@ const transformingDescriptor = postgresCodec(transformingCodecDescriptor, {
 const transformingCodecRegistry = createPostgresCodecRegistryWithBuiltins([transformingDescriptor]);
 
 describe('PostgresControlAdapter.lowerToExecuteRequest — DDL literal defaults', () => {
-  it('inlines a string default with single-quoting and ::nativeType cast on non-text columns', async () => {
+  it('inlines a string default with single-quoting and ::typeText cast on non-text columns', async () => {
     const ast = new PostgresCreateTable({
       table: 'events',
       columns: [col('status', 'my_enum', { default: lit('active') })],
@@ -77,7 +77,7 @@ describe('PostgresControlAdapter.lowerToExecuteRequest — DDL literal defaults'
     expect(result.params).toEqual([]);
   });
 
-  it('inlines a Date default as ISO string with ::nativeType cast', async () => {
+  it('inlines a Date default as ISO string with ::typeText cast', async () => {
     const date = new Date('2025-06-01T00:00:00.000Z');
     const ast = new PostgresCreateTable({
       table: 'events',

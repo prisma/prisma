@@ -110,8 +110,8 @@ function actualSchema(policies: readonly PostgresRlsPolicy[]): PostgresDatabaseS
           [TABLE_NAME]: new PostgresTableSchemaNode({
             name: TABLE_NAME,
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
-              user_id: introspectedColumn({ name: 'user_id', nativeType: 'int4', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
+              user_id: introspectedColumn({ name: 'user_id', typeText: 'int4', nullable: false }),
             },
             primaryKey: { columns: ['id'] },
             foreignKeys: [],

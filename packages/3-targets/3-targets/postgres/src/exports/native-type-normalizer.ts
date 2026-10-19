@@ -1,5 +1,5 @@
 export type {
   CatalogColumnType,
-  IntrospectedNativeType,
+  IntrospectedTypeText,
 } from '../core/native-type-normalizer';
-export { introspectedNativeType } from '../core/native-type-normalizer';
+export { introspectedTypeText } from '../core/native-type-normalizer';

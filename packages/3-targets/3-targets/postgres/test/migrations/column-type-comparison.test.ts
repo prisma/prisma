@@ -49,7 +49,7 @@ function liveWith(column: Omit<SqlColumnIRInput, 'name'>) {
     user: new PostgresTableSchemaNode({
       name: 'user',
       columns: {
-        id: introspectedColumn({ name: 'id', nativeType: 'integer', nullable: false }),
+        id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }),
         value: introspectedColumn({ name: 'value', ...column }),
       },
       primaryKey: { columns: ['id'] },
@@ -78,7 +78,7 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           typeParams: { length: 20 },
         },
-        { nativeType: 'varchar(20)', nullable: true },
+        { typeText: 'varchar(20)', nullable: true },
       ),
       typeChangesPlanned(
         {
@@ -88,7 +88,7 @@ describe('the planner compares a live column with the contract by data type', ()
           typeParams: { precision: 3 },
         },
         {
-          nativeType: 'timestamp(3) with time zone',
+          typeText: 'timestamp(3) with time zone',
           nullable: true,
         },
       ),
@@ -99,11 +99,11 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           typeParams: { precision: 10 },
         },
-        { nativeType: 'numeric(10,0)', nullable: true },
+        { typeText: 'numeric(10,0)', nullable: true },
       ),
       typeChangesPlanned(
         { dataType: 'pg/char', codecId: 'pg/char@1', nullable: false },
-        { nativeType: 'character(1)', nullable: true },
+        { typeText: 'character(1)', nullable: true },
       ),
       typeChangesPlanned(
         {
@@ -112,7 +112,7 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           many: { elementNullable: false },
         },
-        { nativeType: 'int', nullable: true, many: true },
+        { typeText: 'int', nullable: true, many: true },
       ),
     ]).toEqual([0, 0, 0, 0, 0]);
   });
@@ -122,7 +122,7 @@ describe('the planner compares a live column with the contract by data type', ()
       typeChangesPlanned(
         { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
         {
-          nativeType: 'text',
+          typeText: 'text',
           nullable: false,
           reportedType: { text: 'citext', kind: undefined, schema: 'public', name: 'citext' },
         },
@@ -139,14 +139,14 @@ describe('the planner compares a live column with the contract by data type', ()
           nullable: false,
           many: { elementNullable: false },
         },
-        { nativeType: 'integer', nullable: false },
+        { typeText: 'integer', nullable: false },
       ),
     ).toBe(1);
   });
 
   it('classes a widening by the live column data type, without the type text', () => {
     const contract = contractWith({ dataType: 'pg/int8', codecId: 'pg/int8@1', nullable: false });
-    const live = liveWith({ nativeType: 'integer', nullable: false });
+    const live = liveWith({ typeText: 'integer', nullable: false });
     const call = planFor(contract, live).find((c) => c instanceof AlterColumnTypeCall);
     expect(call?.operationClass).toBe('widening');
   });
@@ -163,7 +163,7 @@ describe('the convert and backfill strategies compare by data type', () => {
   const actual = new SqlColumnIR(
     introspectedColumn({
       name: 'value',
-      nativeType: 'varchar(20)',
+      typeText: 'varchar(20)',
       nullable: true,
     }),
   );

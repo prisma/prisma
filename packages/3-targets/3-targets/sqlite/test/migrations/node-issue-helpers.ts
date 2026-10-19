@@ -29,8 +29,8 @@ const CODEC_ID_BY_NATIVE_TYPE: Readonly<Record<string, string>> = {
   BLOB: 'sqlite/blob@1',
 };
 
-function codecIdFor(nativeType: string): string {
-  return CODEC_ID_BY_NATIVE_TYPE[nativeType.toUpperCase()] ?? 'test/native@1';
+function codecIdFor(typeText: string): string {
+  return CODEC_ID_BY_NATIVE_TYPE[typeText.toUpperCase()] ?? 'test/native@1';
 }
 
 /**
@@ -42,20 +42,20 @@ function codecIdFor(nativeType: string): string {
  */
 export function expectedColumn(input: {
   readonly name: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly nullable: boolean;
   readonly many?: boolean;
   readonly resolvedDefault?: ColumnDefault;
 }): SqlColumnIR {
   return new SqlColumnIR({
     name: input.name,
-    nativeType: input.nativeType,
+    typeText: input.typeText,
     nullable: input.nullable,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
-    ...typeOf(input.nativeType),
+    ...typeOf(input.typeText),
     codecRef: {
-      codecId: codecIdFor(input.nativeType),
+      codecId: codecIdFor(input.typeText),
       ...(input.many !== undefined ? { many: input.many } : {}),
     },
   });
@@ -64,26 +64,26 @@ export function expectedColumn(input: {
 /** A live (actual-side) column, as introspection would build it — no codec identity. */
 export function actualColumn(input: {
   readonly name: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly nullable: boolean;
   readonly many?: boolean;
   readonly resolvedDefault?: ColumnDefault;
 }): SqlColumnIR {
   return new SqlColumnIR({
     name: input.name,
-    nativeType: input.nativeType,
+    typeText: input.typeText,
     nullable: input.nullable,
     ...(input.many !== undefined ? { many: input.many } : {}),
     ...(input.resolvedDefault !== undefined ? { resolvedDefault: input.resolvedDefault } : {}),
-    ...typeOf(input.nativeType),
+    ...typeOf(input.typeText),
   });
 }
 
-/** The SQLite data type a column of `nativeType` has, as introspection resolves it. */
-function typeOf(nativeType: string) {
+/** The SQLite data type a column of `typeText` has, as introspection resolves it. */
+function typeOf(typeText: string) {
   const { dataType, storedType, typeParams } = introspectedColumn({
     name: '',
-    nativeType,
+    typeText,
     nullable: false,
   });
   return {

@@ -12,17 +12,17 @@ export interface CatalogColumnType {
   readonly numericScale: number | null;
 }
 
-export interface IntrospectedNativeType {
+export interface IntrospectedTypeText {
   /** The column's type as the database reports it; for an array column, its element type. */
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly many: true | undefined;
 }
 
 /** The type introspection reports for a column, from its catalog type columns. */
-export function introspectedNativeType(column: CatalogColumnType): IntrospectedNativeType {
+export function introspectedTypeText(column: CatalogColumnType): IntrospectedTypeText {
   const reported = reportedTypeText(column);
   const many = reported.endsWith('[]') ? true : undefined;
-  return { nativeType: many ? reported.slice(0, -2) : reported, many };
+  return { typeText: many ? reported.slice(0, -2) : reported, many };
 }
 
 function reportedTypeText(column: CatalogColumnType): string {

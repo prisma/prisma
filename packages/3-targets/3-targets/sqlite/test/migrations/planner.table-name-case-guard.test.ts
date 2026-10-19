@@ -93,8 +93,8 @@ function liveSchema(tableNames: readonly string[]): SqlSchemaIR {
         {
           name: tableName,
           columns: {
-            id: introspectedColumn({ name: 'id', nativeType: 'integer', nullable: false }),
-            email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+            id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }),
+            email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
           },
           primaryKey: { columns: ['id'], name: `${tableName}_pkey` },
           foreignKeys: [],

@@ -40,7 +40,7 @@ describe('SqliteControlAdapter.introspect', () => {
 
     expect(Object.keys(schema.tables)).toEqual(['users']);
     const users = schema.tables['users']!;
-    expect(users.columns['id']!.nativeType).toBe('integer');
+    expect(users.columns['id']!.typeText).toBe('integer');
     expect(users.columns['name']!.nullable).toBe(false);
     expect(users.columns['bio']!.nullable).toBe(true);
     expect(users.primaryKey).toEqual(new PrimaryKey({ columns: ['id'] }));

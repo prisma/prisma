@@ -80,7 +80,7 @@ function buildLiveSchema(): PostgresDatabaseSchemaNode {
           app_user: new PostgresTableSchemaNode({
             name: 'app_user',
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
             },
             foreignKeys: [],
             uniques: [],
@@ -91,7 +91,7 @@ function buildLiveSchema(): PostgresDatabaseSchemaNode {
           cipher_state: new PostgresTableSchemaNode({
             name: 'cipher_state',
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
             },
             foreignKeys: [],
             uniques: [],
@@ -102,7 +102,7 @@ function buildLiveSchema(): PostgresDatabaseSchemaNode {
           orphan_table: new PostgresTableSchemaNode({
             name: 'orphan_table',
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
             },
             foreignKeys: [],
             uniques: [],
@@ -185,7 +185,7 @@ function buildLiveSchemaWithCrossNamespaceOrphan(): PostgresDatabaseSchemaNode {
           app_user: new PostgresTableSchemaNode({
             name: 'app_user',
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
             },
             foreignKeys: [],
             uniques: [],
@@ -201,7 +201,7 @@ function buildLiveSchemaWithCrossNamespaceOrphan(): PostgresDatabaseSchemaNode {
           tenant_meta: new PostgresTableSchemaNode({
             name: 'tenant_meta',
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
             },
             foreignKeys: [],
             uniques: [],
@@ -212,7 +212,7 @@ function buildLiveSchemaWithCrossNamespaceOrphan(): PostgresDatabaseSchemaNode {
           orphan_table: new PostgresTableSchemaNode({
             name: 'orphan_table',
             columns: {
-              id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+              id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
             },
             foreignKeys: [],
             uniques: [],
@@ -335,10 +335,10 @@ describe('Postgres planner ownership consultation', () => {
             app_user: new PostgresTableSchemaNode({
               name: 'app_user',
               columns: {
-                id: introspectedColumn({ name: 'id', nativeType: 'int4', nullable: false }),
+                id: introspectedColumn({ name: 'id', typeText: 'int4', nullable: false }),
                 legacy_col: introspectedColumn({
                   name: 'legacy_col',
-                  nativeType: 'text',
+                  typeText: 'text',
                   nullable: true,
                 }),
               },

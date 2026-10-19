@@ -10,7 +10,7 @@ import { postgresTypeLookups as types } from '../postgres-type-lookups';
 function column(value: string | readonly (string | null)[] | null, many: boolean): SqlColumnIR {
   return new SqlColumnIR({
     name: 'v',
-    nativeType: 'timestamptz',
+    typeText: 'timestamptz',
     nullable: true,
     ...(many ? { many: true } : {}),
     authoredDefault: { kind: 'literal', value },

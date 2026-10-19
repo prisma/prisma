@@ -75,7 +75,7 @@ function ordersTableNode(): PostgresTableSchemaNode {
     columns: {
       id: introspectedColumn({
         name: 'id',
-        nativeType: 'int4',
+        typeText: 'int4',
         nullable: false,
       }),
     },

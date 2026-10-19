@@ -19,7 +19,7 @@ describe('tableConstraintsFromNode — checks', () => {
     const orderTable = table({
       name: 'order',
       columns: {
-        total: expectedColumn({ name: 'total', nativeType: 'NUMERIC', nullable: false }),
+        total: expectedColumn({ name: 'total', typeText: 'NUMERIC', nullable: false }),
       },
       checks: [checkConstraint({ name: 'order_total_positive', expression: 'total > 0' })],
     });
@@ -36,7 +36,7 @@ describe('tableConstraintsFromNode — checks', () => {
     const orderTable = table({
       name: 'order',
       columns: {
-        total: expectedColumn({ name: 'total', nativeType: 'NUMERIC', nullable: false }),
+        total: expectedColumn({ name: 'total', typeText: 'NUMERIC', nullable: false }),
       },
       checks: [
         checkConstraint({ name: 'order_total_positive', expression: 'total > 0' }),
@@ -55,9 +55,9 @@ describe('tableConstraintsFromNode — checks', () => {
     const orderTable = table({
       name: 'order',
       columns: {
-        id: expectedColumn({ name: 'id', nativeType: 'INTEGER', nullable: false }),
-        email: expectedColumn({ name: 'email', nativeType: 'TEXT', nullable: false }),
-        total: expectedColumn({ name: 'total', nativeType: 'NUMERIC', nullable: false }),
+        id: expectedColumn({ name: 'id', typeText: 'INTEGER', nullable: false }),
+        email: expectedColumn({ name: 'email', typeText: 'TEXT', nullable: false }),
+        total: expectedColumn({ name: 'total', typeText: 'NUMERIC', nullable: false }),
       },
       primaryKey: new PrimaryKey({ columns: ['id'] }),
       uniques: [new SqlUniqueIR({ columns: ['email'] })],
@@ -88,7 +88,7 @@ function column(
 ) {
   return new SqlColumnIR({
     name: 'c',
-    nativeType: 'text',
+    typeText: 'text',
     nullable: false,
     dataType,
     storedType,
@@ -111,7 +111,7 @@ describe('the type SQLite DDL writes for a column node', () => {
   it('refuses a column with no data type', () => {
     const untyped = new SqlColumnIR({
       name: 'c',
-      nativeType: 'text',
+      typeText: 'text',
       nullable: false,
       codecRef: { codecId: 'sqlite/text@1' },
     });

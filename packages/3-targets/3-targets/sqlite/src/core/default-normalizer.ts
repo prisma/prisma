@@ -122,6 +122,6 @@ export function sqliteResolveDefault(
   column: DefaultResolverColumn,
 ): ColumnDefault {
   if (def.kind !== 'function') return def;
-  const read = readSqliteDefault(def.expression, column.nativeType);
+  const read = readSqliteDefault(def.expression, column.typeText);
   return read.kind === 'function' ? read : def;
 }

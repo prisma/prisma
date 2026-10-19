@@ -3,14 +3,10 @@ import { describe, expect, it } from 'vitest';
 import { defineContract, enumType, member } from '../src/exports/contract-builder';
 import postgresStatic from '../src/static/postgres-static';
 
-const TextLevel = enumType(
-  'TextLevel',
-  { codecId: 'pg/text@1', nativeType: 'text' },
-  member('Low', 'low'),
-);
+const TextLevel = enumType('TextLevel', { codecId: 'pg/text@1' }, member('Low', 'low'));
 const InstantLevel = enumType(
   'InstantLevel',
-  { codecId: 'pg/timestamptz-temporal@1', nativeType: 'timestamptz' },
+  { codecId: 'pg/timestamptz-temporal@1' },
   member('Launch', Temporal.Instant.from('2024-01-01T00:00:00Z')),
 );
 

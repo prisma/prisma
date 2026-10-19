@@ -31,12 +31,12 @@ export interface ReportedSqlType {
 
 export interface SqlColumnIRInput {
   readonly name: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly nullable: boolean;
   /** Raw database default expression (e.g. `'hello'::text`, `nextval('seq')`). */
   readonly default?: string;
   readonly annotations?: SqlAnnotations;
-  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `nativeType` carries the element type only (e.g. `text`, `int4`). */
+  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `typeText` carries the element type only (e.g. `text`, `int4`). */
   readonly many?: boolean;
   /**
    * Structured default, comparable across the two diff sides: the
@@ -104,11 +104,11 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   override readonly nodeKind = RelationalSchemaNodeKind.column;
 
   readonly name: string;
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly nullable: boolean;
   declare readonly default?: string;
   declare readonly annotations?: SqlAnnotations;
-  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `nativeType` carries the element type only (e.g. `text`, `int4`). */
+  /** True when the column is a native array (e.g. `text[]`, `int4[]`). The `typeText` carries the element type only (e.g. `text`, `int4`). */
   declare readonly many?: boolean;
   declare readonly resolvedDefault?: ColumnDefault;
   /** See {@link SqlColumnIRInput.authoredDefault}. Non-enumerable so it stays out of JSON and structural equality. */
@@ -133,7 +133,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   constructor(input: SqlColumnIRInput) {
     super();
     this.name = input.name;
-    this.nativeType = input.nativeType;
+    this.typeText = input.typeText;
     this.nullable = input.nullable;
     if (input.default !== undefined) this.default = input.default;
     if (input.annotations !== undefined) this.annotations = input.annotations;
@@ -174,7 +174,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
         ...ifDefined('unreadable', this.defaultUnreadable),
         ...ifDefined('expressionValue', this.defaultExpressionValue),
         // Contract-derived and introspected columns both set `this.many`
-        // directly (with `nativeType` as the bare element type; array-ness
+        // directly (with `typeText` as the bare element type; array-ness
         // never rides on a `[]` suffix). `codecRef.many` is a fallback for
         // hand-built nodes that carry a codec ref without the column-level
         // flag. Either source works for the default node's array-literal
@@ -254,7 +254,7 @@ export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean
 
 /** The column's type as the database reports it, or as the contract writes it, with `[]` for a list. A reported type of a kind, such as an enum, is named with its schema, which its text leaves out when the schema is on the search path. */
 function typeTextOf(column: SqlColumnIR): string {
-  return `${reportedTextOf(column.reportedType) ?? column.nativeType}${column.many === true ? '[]' : ''}`;
+  return `${reportedTextOf(column.reportedType) ?? column.typeText}${column.many === true ? '[]' : ''}`;
 }
 
 function reportedTextOf(reported: ReportedSqlType | undefined): string | undefined {

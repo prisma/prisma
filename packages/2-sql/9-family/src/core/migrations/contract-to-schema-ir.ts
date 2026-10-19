@@ -56,7 +56,7 @@ export type DefaultResolver = (def: ColumnDefault, column: DefaultResolverColumn
 
 /** The column a {@link DefaultResolver} names a default for: its type as written, and whether it is a list. */
 export interface DefaultResolverColumn {
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly many: boolean;
 }
 
@@ -74,16 +74,16 @@ function convertColumn(
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
   const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
   const storage = sqlStorageType(dataType, types.dataTypeLookup);
-  const nativeType = schemaTypeText(storage, resolved.typeParams);
+  const typeText = schemaTypeText(storage, resolved.typeParams);
   const many = column.many !== undefined && column.many !== false;
   const rawColumnDefault = column.default ?? undefined;
   const resolvedColumnDefault =
     rawColumnDefault !== undefined && hooks.resolveDefault
-      ? hooks.resolveDefault(rawColumnDefault, { nativeType, many })
+      ? hooks.resolveDefault(rawColumnDefault, { typeText, many })
       : rawColumnDefault;
   return {
     name,
-    nativeType,
+    typeText,
     nullable: column.nullable,
     ...ifDefined('many', many ? true : undefined),
     // The contract's default after the target's `resolveDefault` hook, so a

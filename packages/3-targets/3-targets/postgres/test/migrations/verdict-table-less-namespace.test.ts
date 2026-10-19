@@ -66,7 +66,7 @@ function profilesTable(options?: { readonly idNullable?: boolean }): PostgresTab
     columns: {
       id: introspectedColumn({
         name: 'id',
-        nativeType: 'int4',
+        typeText: 'int4',
         nullable: options?.idNullable ?? false,
       }),
     },
@@ -97,7 +97,7 @@ function enumsNamespaceWithStrayTable(
         columns: {
           id: introspectedColumn({
             name: 'id',
-            nativeType: 'int4',
+            typeText: 'int4',
             nullable: false,
           }),
         },

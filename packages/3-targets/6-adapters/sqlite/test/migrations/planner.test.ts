@@ -128,8 +128,8 @@ describe('SQLite migration planner', () => {
         users: {
           name: 'users',
           columns: {
-            id: introspectedColumn({ name: 'id', nativeType: 'integer', nullable: false }),
-            name: introspectedColumn({ name: 'name', nativeType: 'text', nullable: false }),
+            id: introspectedColumn({ name: 'id', typeText: 'integer', nullable: false }),
+            name: introspectedColumn({ name: 'name', typeText: 'text', nullable: false }),
           },
           primaryKey: { columns: ['id'] },
           foreignKeys: [],

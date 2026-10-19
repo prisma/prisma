@@ -197,7 +197,7 @@ describe('planIssues', () => {
                 columns: {
                   id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
                   }),
                 },
@@ -272,12 +272,12 @@ describe('planIssues', () => {
                 columns: {
                   id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
                   }),
                   email: introspectedColumn({
                     name: 'email',
-                    nativeType: 'text',
+                    typeText: 'text',
                     nullable: true,
                   }),
                 },
@@ -312,7 +312,7 @@ describe('planIssues', () => {
   });
 
   describe('typeChange call strategy', () => {
-    function actualWithAge(nativeType: string, codecId: string): PostgresDatabaseSchemaNode {
+    function actualWithAge(typeText: string, codecId: string): PostgresDatabaseSchemaNode {
       return new PostgresDatabaseSchemaNode({
         namespaces: {
           public: new PostgresNamespaceSchemaNode({
@@ -323,12 +323,12 @@ describe('planIssues', () => {
                 columns: {
                   id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
                   }),
                   age: introspectedColumn({
                     name: 'age',
-                    nativeType,
+                    typeText,
                     nullable: false,
                     codecRef: { codecId },
                   }),
@@ -452,12 +452,12 @@ describe('planIssues', () => {
                 columns: {
                   id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
                   }),
                   body: introspectedColumn({
                     name: 'body',
-                    nativeType: 'text',
+                    typeText: 'text',
                     nullable: false,
                   }),
                 },
@@ -615,7 +615,7 @@ describe('planIssues', () => {
                 columns: {
                   id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
                   }),
                 },
@@ -674,7 +674,7 @@ describe('planIssues', () => {
                 columns: {
                   id: introspectedColumn({
                     name: 'id',
-                    nativeType: 'uuid',
+                    typeText: 'uuid',
                     nullable: false,
                   }),
                 },

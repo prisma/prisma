@@ -13,7 +13,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import { PG_TEXT_CODEC_ID } from '../src/core/codec-ids';
 import { postgresDataTypes } from '../src/core/data-types';
 import { parsePostgresListText } from '../src/core/list-decoder';
-import { type CatalogColumnType, introspectedNativeType } from '../src/core/native-type-normalizer';
+import { type CatalogColumnType, introspectedTypeText } from '../src/core/native-type-normalizer';
 import { readDefaultWithCodec } from '../src/core/psl-infer/infer-read-defaults';
 import { postgresCodecDescriptorRegistry } from '../src/core/registry';
 import { postgresPslTypeConstructors } from '../src/core/type-constructors';
@@ -45,7 +45,7 @@ interface CatalogColumn extends CatalogColumnType {
 
 /** A fidelity column: its type as introspection normalizes it, and as the database reports its element type. */
 interface FidelityColumn {
-  readonly nativeType: string;
+  readonly typeText: string;
   readonly reportedType: ReportedSqlType;
 }
 
@@ -65,8 +65,8 @@ function inferredCodecRef(reportedType: ReportedSqlType) {
 }
 
 /** The codec `contract infer` binds to the column, as `inferredColumnDefaults` chooses it. */
-function columnCodec({ nativeType, reportedType }: FidelityColumn): Codec {
-  const elementType = nativeType.endsWith('[]') ? nativeType.slice(0, -2) : nativeType;
+function columnCodec({ typeText, reportedType }: FidelityColumn): Codec {
+  const elementType = typeText.endsWith('[]') ? typeText.slice(0, -2) : typeText;
   const ref = enumNames.has(reportedType.name ?? '')
     ? { codecId: PG_TEXT_CODEC_ID, typeParams: undefined }
     : inferredCodecRef(reportedType);
@@ -278,10 +278,10 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
         if (column === undefined || storedText === undefined) {
           throw new Error(`column ${row.name} missing from the catalog or the stored row`);
         }
-        const { nativeType: elementType, many } = introspectedNativeType(column);
-        const nativeType = many ? `${elementType}[]` : elementType;
+        const { typeText: elementType, many } = introspectedTypeText(column);
+        const typeText = many ? `${elementType}[]` : elementType;
         const fidelityColumn: FidelityColumn = {
-          nativeType,
+          typeText,
           reportedType: {
             text: column.reportedText,
             kind: undefined,
@@ -292,10 +292,10 @@ async function observe(): Promise<ReadonlyMap<string, Observation>> {
         const codec = codecOrUndefined(fidelityColumn);
         const live = await readDefaultWithCodec(
           column.columnDefault,
-          nativeType.endsWith('[]'),
+          typeText.endsWith('[]'),
           codec,
         );
-        const contract = await readDefaultWithCodec(row.written, nativeType.endsWith('[]'), codec);
+        const contract = await readDefaultWithCodec(row.written, typeText.endsWith('[]'), codec);
         let values: ComparedValues | undefined;
         if (row.expect === 'literal' || row.expect === 'refused-by-codec') {
           const stored = await storedValue(oracle, storedText, row.storageType, fidelityColumn);

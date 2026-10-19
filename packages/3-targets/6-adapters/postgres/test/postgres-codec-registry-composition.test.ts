@@ -125,10 +125,10 @@ function genericDescriptor(codecId: string, type?: DataType): AnyCodecDescriptor
 
 function postgresDescriptor(
   codecId: string,
-  nativeType: string,
+  typeText: string,
   onProjection?: () => void,
 ): AnyPostgresCodecDescriptor {
-  const type = fixtureSqlDataType(codecId, nativeType);
+  const type = fixtureSqlDataType(codecId, typeText);
   const template = genericDescriptor(codecId, type);
   return postgresCodec(template, {
     dataType: type,
@@ -142,10 +142,10 @@ function postgresDescriptor(
 
 function transformingPostgresDescriptor(
   codecId: string,
-  nativeType: string,
+  typeText: string,
   onMaterialize?: () => void,
 ): AnyPostgresCodecDescriptor {
-  const type = fixtureSqlDataType(codecId, nativeType);
+  const type = fixtureSqlDataType(codecId, typeText);
   const codec = defineTestCodec({
     typeId: codecId,
     dataType: type,

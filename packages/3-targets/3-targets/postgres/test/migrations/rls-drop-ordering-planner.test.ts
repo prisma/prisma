@@ -156,9 +156,9 @@ function liveSchema(
     tableNodes[tableName] = new PostgresTableSchemaNode({
       name: tableName,
       columns: Object.fromEntries(
-        Object.entries(shape.columns).map(([name, nativeType]) => [
+        Object.entries(shape.columns).map(([name, typeText]) => [
           name,
-          introspectedColumn({ name, nativeType, nullable: false }),
+          introspectedColumn({ name, typeText, nullable: false }),
         ]),
       ),
       primaryKey: { columns: ['id'] },

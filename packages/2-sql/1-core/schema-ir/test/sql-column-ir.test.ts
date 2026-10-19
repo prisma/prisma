@@ -6,20 +6,20 @@ import { SqlColumnIR } from '../src/ir/sql-column-ir';
 
 describe('SqlColumnIR', () => {
   it('id is the column name, prefixed by kind', () => {
-    const column = new SqlColumnIR({ name: 'email', nativeType: 'text', nullable: false });
+    const column = new SqlColumnIR({ name: 'email', typeText: 'text', nullable: false });
     expect(column.id).toBe('column:email');
   });
 
   describe('children', () => {
     it('empty when the column has no default', () => {
-      const column = new SqlColumnIR({ name: 'email', nativeType: 'text', nullable: false });
+      const column = new SqlColumnIR({ name: 'email', typeText: 'text', nullable: false });
       expect(column.children()).toEqual([]);
     });
 
     it('yields a default node built from the resolved default', () => {
       const column = new SqlColumnIR({
         name: 'status',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
         resolvedDefault: { kind: 'literal', value: 'draft' },
       });
@@ -34,7 +34,7 @@ describe('SqlColumnIR', () => {
       const codecRef = { codecId: 'pg/enum@1', typeParams: { typeName: 'order' }, many: true };
       const column = new SqlColumnIR({
         name: 'orders',
-        nativeType: 'order',
+        typeText: 'order',
         nullable: true,
         many: true,
         resolvedDefault: { kind: 'literal', value: ['asc'] },
@@ -58,7 +58,7 @@ describe('SqlColumnIR', () => {
       const node = (input: Partial<SqlColumnIRInput>) =>
         new SqlColumnIR({
           name: 'status',
-          nativeType: 'text',
+          typeText: 'text',
           nullable: false,
           ...input,
         }).children()[0] as SqlColumnDefaultIR;
@@ -76,7 +76,7 @@ describe('SqlColumnIR', () => {
     it('yields a default node from a raw default alone (unparseable or hand-built)', () => {
       const column = new SqlColumnIR({
         name: 'status',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
         default: "'draft'::text",
       });
@@ -97,7 +97,7 @@ describe('SqlColumnIR', () => {
     const column = (input: Partial<SqlColumnIRInput> = {}) =>
       new SqlColumnIR({
         name: 'c',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
         storedType: text,
         typeParams: {},
@@ -110,12 +110,12 @@ describe('SqlColumnIR', () => {
 
     it('true when the type texts differ but the stored types and parameters are equal', () => {
       const contract = column({
-        nativeType: 'character varying(20)',
+        typeText: 'character varying(20)',
         storedType: varchar,
         typeParams: { length: 20 },
       });
       const database = column({
-        nativeType: 'varchar(20)',
+        typeText: 'varchar(20)',
         storedType: varchar,
         typeParams: { length: 20 },
         reportedType: reported('varchar(20)'),
@@ -143,7 +143,7 @@ describe('SqlColumnIR', () => {
     });
 
     it('false when either side has no stored type, even against itself', () => {
-      const unclaimed = new SqlColumnIR({ name: 'c', nativeType: 'hstore', nullable: false });
+      const unclaimed = new SqlColumnIR({ name: 'c', typeText: 'hstore', nullable: false });
       expect({
         self: unclaimed.isEqualTo(unclaimed),
         againstTyped: column().isEqualTo(unclaimed),
@@ -157,7 +157,7 @@ describe('SqlColumnIR', () => {
     const column = (input: Partial<SqlColumnIRInput> = {}) =>
       new SqlColumnIR({
         name: 'c',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: false,
         storedType: text,
         typeParams: {},
@@ -166,7 +166,7 @@ describe('SqlColumnIR', () => {
 
     it('names the type the database reports, with [] for a list', () => {
       const database = column({
-        nativeType: 'int4',
+        typeText: 'int4',
         storedType: int4,
         many: true,
         reportedType: { text: 'integer', kind: undefined, schema: 'pg_catalog', name: 'int4' },
@@ -178,7 +178,7 @@ describe('SqlColumnIR', () => {
 
     it('names a reported type of a kind with its schema', () => {
       const database = column({
-        nativeType: 'status',
+        typeText: 'status',
         reportedType: { text: 'status', kind: 'enum', schema: 'app', name: 'status' },
       });
       expect(column({ storedType: int4 }).explainMismatch(database)).toBe(
@@ -189,7 +189,7 @@ describe('SqlColumnIR', () => {
     it('names the type an unclaimed database column reports', () => {
       const database = new SqlColumnIR({
         name: 'c',
-        nativeType: 'hstore',
+        typeText: 'hstore',
         nullable: false,
         reportedType: { text: 'hstore', kind: undefined, schema: 'public', name: 'hstore' },
       });
@@ -199,7 +199,7 @@ describe('SqlColumnIR', () => {
     });
 
     it('names the other column type in a comparison of two contracts', () => {
-      expect(column().explainMismatch(column({ nativeType: 'int4', storedType: int4 }))).toBe(
+      expect(column().explainMismatch(column({ typeText: 'int4', storedType: int4 }))).toBe(
         'The contract column is "text" and the database column is "int4".',
       );
     });
@@ -215,7 +215,7 @@ describe('SqlColumnIR', () => {
     it('carries resolvedDefault when supplied', () => {
       const column = new SqlColumnIR({
         name: 'email',
-        nativeType: 'character varying(255)',
+        typeText: 'character varying(255)',
         nullable: false,
         resolvedDefault: { kind: 'literal', value: 'x' },
       });
@@ -236,14 +236,14 @@ describe('SqlColumnIR', () => {
       const typed = { storedType: numeric, typeParams: {} };
       const column = new SqlColumnIR({
         name: 'price',
-        nativeType: 'numeric',
+        typeText: 'numeric',
         nullable: false,
         ...typed,
         reportedType,
       });
       const bare = new SqlColumnIR({
         name: 'price',
-        nativeType: 'numeric',
+        typeText: 'numeric',
         nullable: false,
         ...typed,
       });
@@ -262,13 +262,13 @@ describe('SqlColumnIR', () => {
     it('carries the data type, stored type and parameters outside JSON', () => {
       const column = new SqlColumnIR({
         name: 'price',
-        nativeType: 'numeric',
+        typeText: 'numeric',
         nullable: false,
         dataType: numeric,
         storedType: numeric,
         typeParams: { precision: 10, scale: 0 },
       });
-      const bare = new SqlColumnIR({ name: 'price', nativeType: 'numeric', nullable: false });
+      const bare = new SqlColumnIR({ name: 'price', typeText: 'numeric', nullable: false });
 
       expect({
         dataType: column.dataType,
@@ -290,7 +290,7 @@ describe('SqlColumnIR', () => {
       const value = text.fromContract('draft', {});
       const column = new SqlColumnIR({
         name: 'old',
-        nativeType: 'text',
+        typeText: 'text',
         nullable: true,
         default: "'draft'::text",
         annotations: { pg: { note: 1 } },
@@ -328,7 +328,7 @@ describe('SqlColumnIR', () => {
       // (raw) field.
       const column = new SqlColumnIR({
         name: 'id',
-        nativeType: 'int4',
+        typeText: 'int4',
         nullable: false,
         resolvedDefault: { kind: 'function', expression: 'autoincrement()' },
       });

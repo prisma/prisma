@@ -74,7 +74,7 @@ describe('PostgresCreateTable DDL lowering', () => {
       adapter.lowerToExecuteRequest(ast, { contract: {} as PostgresContract }),
     ).rejects.toMatchObject({
       code: 'CONTRACT.DEFAULT_INVALID',
-      meta: { nativeType: 'int4' },
+      meta: { typeText: 'int4' },
     });
   });
 

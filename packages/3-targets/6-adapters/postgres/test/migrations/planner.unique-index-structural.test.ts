@@ -55,8 +55,8 @@ describe('PostgresMigrationPlanner - unique constraints vs indexes (structural n
   );
 
   const emailCols = {
-    id: introspectedColumn({ name: 'id', nativeType: 'uuid', nullable: false }),
-    email: introspectedColumn({ name: 'email', nativeType: 'text', nullable: false }),
+    id: introspectedColumn({ name: 'id', typeText: 'uuid', nullable: false }),
+    email: introspectedColumn({ name: 'email', typeText: 'text', nullable: false }),
   } as const;
 
   function liveSchema(table: {

@@ -26,7 +26,7 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 - **`SqlSchemaIR`** - Complete database schema representation with tables, extensions, and annotations
 - **`SqlTableIR`** - Table representation with columns, constraints, indexes, and annotations
-- **`SqlColumnIR`** - Column representation with `nativeType` (DB-specific type), nullability, and annotations
+- **`SqlColumnIR`** - Column representation with `typeText` (DB-specific type), nullability, and annotations
 - **`SqlForeignKeyIR`** - Foreign key constraint representation
 - **`SqlUniqueIR`** - Unique constraint representation
 - **`SqlIndexIR`** - Index representation
@@ -34,7 +34,7 @@ This package defines the core types for the SQL Schema IR, a target-agnostic rep
 
 ### Key Design Decisions
 
-1. **Native type primary**: Columns capture the database-native type (`nativeType`, e.g., `'integer'`, `'vector'`). Codec IDs now live exclusively in the contract—schema IR focuses solely on what exists in the database. This keeps schema verification centered on actual storage, while contract metadata handles codec-level concerns.
+1. **Native type primary**: Columns capture the database-native type (`typeText`, e.g., `'integer'`, `'vector'`). Codec IDs now live exclusively in the contract—schema IR focuses solely on what exists in the database. This keeps schema verification centered on actual storage, while contract metadata handles codec-level concerns.
 
 2. **Annotations**: All IR types support optional `annotations` for extensibility. This allows targets and extensions to attach metadata without modifying the core IR structure.
 
@@ -58,12 +58,12 @@ const schemaIR: SqlSchemaIR = {
       columns: {
         id: {
           name: 'id',
-          nativeType: 'integer',
+          typeText: 'integer',
           nullable: false,
         },
         email: {
           name: 'email',
-          nativeType: 'text',
+          typeText: 'text',
           nullable: false,
         },
       },

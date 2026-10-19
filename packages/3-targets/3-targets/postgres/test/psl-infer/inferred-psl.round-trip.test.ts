@@ -67,13 +67,13 @@ const codecLookup: CodecLookupWithDescriptors = {
 
 function introspected(
   name: string,
-  nativeType: string,
+  typeText: string,
   rawDefault: string,
   shape: { readonly many?: true } = {},
 ): SqlColumnIRInput {
   return {
     name,
-    nativeType,
+    typeText,
     nullable: shape.many === true,
     default: rawDefault,
     ...ifDefined('many', shape.many),
@@ -88,7 +88,7 @@ async function roundTrippedDefaults(columns: readonly SqlColumnIRInput[]) {
         account: {
           name: 'account',
           columns: Object.fromEntries(
-            [{ name: 'id', nativeType: 'int4', nullable: false }, ...columns].map((column) => [
+            [{ name: 'id', typeText: 'int4', nullable: false }, ...columns].map((column) => [
               column.name,
               column,
             ]),
@@ -214,8 +214,8 @@ two lines é'::text`,
     ['timestamp', "'infinity'::timestamp without time zone", 'infinity'],
     ['timestamptz', "'-infinity'::timestamp with time zone", '-infinity'],
     ['date', "'infinity'::date", 'infinity'],
-  ])('round-trips a %s default of %s', async (nativeType, rawDefault, value) => {
-    expect(await roundTrippedDefaults([introspected('stamp', nativeType, rawDefault)])).toEqual({
+  ])('round-trips a %s default of %s', async (typeText, rawDefault, value) => {
+    expect(await roundTrippedDefaults([introspected('stamp', typeText, rawDefault)])).toEqual({
       stamp: { kind: 'literal', value },
     });
   });

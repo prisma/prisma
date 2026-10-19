@@ -6,19 +6,19 @@ import { timeouts, withMongoPort } from '../_harness/mongo';
 
 const TextLevel = enumType(
   'TextLevel',
-  { codecId: 'mongo/string@1', nativeType: 'string' },
+  { codecId: 'mongo/string@1' },
   member('Low', 'low'),
   member('High', 'high'),
 );
 const Int64Level = enumType(
   'Int64Level',
-  { codecId: 'mongo/int64@1', nativeType: 'long' },
+  { codecId: 'mongo/int64@1' },
   member('Low', 1n),
   member('High', 10n),
 );
 const DateLevel = enumType(
   'DateLevel',
-  { codecId: 'mongo/date@1', nativeType: 'date' },
+  { codecId: 'mongo/date@1' },
   member('Launch', new Date('2024-01-01T00:00:00.000Z')),
   member('Sunset', new Date('2025-06-30T12:00:00.000Z')),
 );

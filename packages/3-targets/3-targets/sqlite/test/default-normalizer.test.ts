@@ -10,7 +10,7 @@ const literal = (body: string | number) => ({
 describe('sqliteResolveDefault', () => {
   it('passes a literal default through unchanged', () => {
     const stored = { kind: 'literal' as const, value: 'draft' };
-    expect(sqliteResolveDefault(stored, { nativeType: 'text', many: false })).toBe(stored);
+    expect(sqliteResolveDefault(stored, { typeText: 'text', many: false })).toBe(stored);
   });
 
   it.each([
@@ -20,7 +20,7 @@ describe('sqliteResolveDefault', () => {
     ["strftime('%Y-%m-%dT%H:%M:%fZ','now')"],
   ])('names the authored expression %j now(), as introspection does', (expression) => {
     expect(
-      sqliteResolveDefault({ kind: 'function', expression }, { nativeType: 'text', many: false }),
+      sqliteResolveDefault({ kind: 'function', expression }, { typeText: 'text', many: false }),
     ).toEqual({
       kind: 'function',
       expression: 'now()',
@@ -31,7 +31,7 @@ describe('sqliteResolveDefault', () => {
     expect(
       sqliteResolveDefault(
         { kind: 'function', expression: "'draft'" },
-        { nativeType: 'text', many: false },
+        { typeText: 'text', many: false },
       ),
     ).toEqual({
       kind: 'function',
@@ -43,7 +43,7 @@ describe('sqliteResolveDefault', () => {
     expect(
       sqliteResolveDefault(
         { kind: 'function', expression: 'random()' },
-        { nativeType: 'integer', many: false },
+        { typeText: 'integer', many: false },
       ),
     ).toEqual({
       kind: 'function',
