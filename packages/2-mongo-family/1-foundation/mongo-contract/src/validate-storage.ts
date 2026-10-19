@@ -5,7 +5,12 @@ import type { MongoContract, MongoModelDefinition } from './contract-types';
 import { resolveMongoToOneRelationFields } from './relation-fields';
 import { validatorRootShapesOf } from './validator-shapes';
 
-function requiresObjectIdDocumentId(jsonSchema: unknown): boolean {
+function bsonTypesOf(schema: object): readonly unknown[] {
+  if (!('bsonType' in schema)) return [];
+  return Array.isArray(schema.bsonType) ? schema.bsonType : [schema.bsonType];
+}
+
+function requiresDocumentId(jsonSchema: unknown): boolean {
   const roots = validatorRootShapesOf(jsonSchema);
   return (
     roots.length > 0 &&
@@ -15,8 +20,7 @@ function requiresObjectIdDocumentId(jsonSchema: unknown): boolean {
         root.required.includes('_id') &&
         typeof id === 'object' &&
         id !== null &&
-        'bsonType' in id &&
-        id.bsonType === 'objectId'
+        !bsonTypesOf(id).some((bsonType) => bsonType === 'array' || bsonType === 'null')
       );
     })
   );
@@ -25,11 +29,10 @@ function requiresObjectIdDocumentId(jsonSchema: unknown): boolean {
 function documentIdErrors(storage: MongoContract['storage']): string[] {
   return Object.values(storage.namespaces).flatMap((namespace) =>
     Object.entries(namespace.entries['collection'] ?? {}).flatMap(([name, collection]) =>
-      collection.validator === undefined ||
-      requiresObjectIdDocumentId(collection.validator.jsonSchema)
+      collection.validator === undefined || requiresDocumentId(collection.validator.jsonSchema)
         ? []
         : [
-            `Collection "${name}": its validator must require _id as BSON type objectId, for every model the collection stores, since MongoDB adds an objectId _id to every document inserted without one`,
+            `Collection "${name}": its validator must require _id, for every model the collection stores, and accept neither an array nor null as one, since every document has an _id and MongoDB does not accept an array as one`,
           ],
     ),
   );

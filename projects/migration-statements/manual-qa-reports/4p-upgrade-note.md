@@ -46,6 +46,8 @@ Logs: `wip/pr2-d3/qa-*.log`.
 
 ## Path C: keeping documents whose `_id` is not an ObjectId
 
+**Superseded (2026-10-19).** Will replaced the rule that an `_id` must be an ObjectId: a declared `_id` now keeps its own BSON type. The note's section this path followed was removed, so this record and "Path C in real mongosh" below describe a section the note no longer has.
+
 **Date:** 2026-10-19. The note's section "Keeping documents whose `_id` is not an ObjectId" was followed on a TypeScript project, against mongodb-memory-server on port 27932. It now works as printed, after three changes to the note, which are listed after the table.
 
 **How the `mongosh` steps were run.** I did not run `mongosh` myself: downloading it needs Will's approval given to me directly, and the approval came to me only through the coordinator. Each `mongosh` snippet was copied from the note unchanged and run through the Node driver with a small shim (`wip/pr2-id-qa/mongosh-shim.mjs`). The shim does three things mongosh does on its own:
@@ -87,6 +89,8 @@ Not covered: the claim that `db update` creates the contract's indexes again aft
 Logs: `wip/pr2-id-qa/`.
 
 ## Path C in real mongosh
+
+**Superseded (2026-10-19)**, as Path C above.
 
 Run on 2026-10-19 by the orchestrator with `mongosh` 2.13.0 (`pnpm dlx mongosh@2`, approved by Will), against a one-node replica set from mongodb-memory-server. The three snippets of "Keeping documents whose `_id` is not an ObjectId" were copied from the note unchanged and run in order with `--eval`.
 

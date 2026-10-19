@@ -1312,8 +1312,7 @@ function fieldRefusalDiagnostic(
   const field = fieldSymbols.get(fieldKey(owner, refusal.fieldName));
   assertDefined(field, `Field "${owner}.${refusal.fieldName}" has a declaration`);
   return {
-    code:
-      refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_NOT_OBJECTID',
+    code: refusal.kind === 'fieldBsonType' ? 'PSL_UNSUPPORTED_FIELD_TYPE' : 'PSL_MONGO_ID_INVALID',
     message: `Field "${owner}.${field.name}" ${refusal.kind === 'fieldBsonType' ? refusal.refusal.reason : refusal.reason}`,
     ...diagnosticSource(sources, field.node.syntax).at(field.span),
   };

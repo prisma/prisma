@@ -1,5 +1,6 @@
 import { dataType } from '@internal/framework-components/codec';
 import type { ExtensionPackRef } from '@internal/framework-components/components';
+import { UNBOUND_NAMESPACE_ID } from '@internal/framework-components/ir';
 import { describe, expect, it } from 'vitest';
 import { defineContract, field, model, rel, valueObject } from '../src/contract-builder';
 import { enumType, member } from '../src/enum-type';
@@ -21,8 +22,13 @@ const sqlTypedPack = {
   },
 } as const satisfies ExtensionPackRef<'mongo', 'mongo'>;
 
-const holdsId = (description: string) =>
-  `holds the document id as ${description}, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.`;
+function validatorSchemaOf(
+  contract: { readonly storage: { readonly namespaces: object } },
+  collection: string,
+): unknown {
+  return JSON.parse(JSON.stringify(contract.storage.namespaces))[UNBOUND_NAMESPACE_ID].entries
+    .collection[collection].validator.jsonSchema;
+}
 
 describe('mongo defineContract refuses what a collection validator cannot describe', () => {
   describe('a codec with no MongoDB data type', () => {
@@ -103,38 +109,50 @@ describe('mongo defineContract refuses what a collection validator cannot descri
     });
 
     it.each([
-      ['a string', field.string(), 'BSON type string'],
-      ['a date', field.date(), 'BSON type date'],
-      ['bytes', field.binary(), 'BSON type binData'],
-      ['a BSON document', field.bson(), 'any BSON type'],
-      ['an int', field.int32(), 'BSON type int'],
-    ])('refuses a root model whose _id holds %s', (_case, idField, description) => {
+      ['a string', field.string(), { bsonType: 'string' }],
+      ['an int', field.int32(), { bsonType: 'int' }],
+      ['a date', field.date(), { bsonType: 'date' }],
+      ['bytes', field.binary(), { bsonType: 'binData' }],
+      ['a BSON document', field.bson(), {}],
+    ])(
+      'accepts a root model whose _id holds %s, and validates it as such',
+      (_case, idField, idSchema) => {
+        const User = model('User', { collection: 'users', fields: { _id: idField } });
+        const built = defineContract({ ...scaffold, models: { User } });
+        expect(validatorSchemaOf(built, 'users')).toEqual({
+          bsonType: 'object',
+          properties: { _id: idSchema },
+          required: ['_id'],
+          additionalProperties: false,
+        });
+      },
+    );
+
+    it.each([
+      [
+        'a list',
+        field.objectId().many(),
+        'list',
+        'holds the document id as a list, but MongoDB does not accept an array as an _id.',
+      ],
+      [
+        'nullable',
+        field.string().optional(),
+        'nullable',
+        'holds the document id as an optional value, but every document has an _id.',
+      ],
+    ])('refuses a root model whose _id is %s', (_case, idField, problem, reason) => {
       const User = model('User', { collection: 'users', fields: { _id: idField } });
       expect(() => defineContract({ ...scaffold, models: { User } })).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" field "_id" ${holdsId(description)}`,
+          message: `Model "User" field "_id" ${reason}`,
           meta: {
             modelName: 'User',
             fieldName: '_id',
             collection: 'users',
-            reason: 'document-id-not-objectId',
+            reason: `document-id-${problem}`,
           },
-        }),
-      );
-    });
-
-    it.each([
-      ['listed first', true],
-      ['listed last', false],
-    ])('refuses a root model with a string _id that shares its collection, %s', (_case, first) => {
-      const User = model('User', { collection: 'users', fields: { _id: field.string() } });
-      const Admin = model('Admin', { collection: 'users', fields: { _id: field.objectId() } });
-      const models = first ? { User, Admin } : { Admin, User };
-      expect(() => defineContract({ ...scaffold, models })).toThrow(
-        expect.objectContaining({
-          code: 'CONTRACT.COLLECTION_INVALID',
-          message: `Model "User" field "_id" ${holdsId('BSON type string')}`,
         }),
       );
     });

@@ -5,7 +5,7 @@ import type {
   ContractValueObject,
 } from '@internal/contract/types';
 import { collectionRootModelsOf } from './collection-root-models';
-import { documentIdRefusalOf } from './document-id-refusal';
+import { type DocumentIdRefusal, documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { isEmbedRelation } from './relation-fields';
@@ -59,6 +59,7 @@ export type MongoContractRefusal =
       /** The model's field stored as `_id`. */
       readonly fieldName: string;
       readonly collection: string;
+      readonly problem: DocumentIdRefusal['problem'];
       readonly reason: string;
     };
 
@@ -138,24 +139,21 @@ function fieldRefusals(
   });
 }
 
-function documentIdRefusals(
-  models: Record<string, ContractModelBase>,
-  lookups: MongoTypeLookups,
-): MongoContractRefusal[] {
+function documentIdRefusals(models: Record<string, ContractModelBase>): MongoContractRefusal[] {
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>
     modelNames.flatMap((modelName): MongoContractRefusal[] => {
       const model = models[modelName];
       const id = model === undefined ? undefined : documentIdFieldOf(model);
-      const reason = id === undefined ? undefined : documentIdRefusalOf(id.field, lookups);
-      return id === undefined || reason === undefined
+      const refusal = id === undefined ? undefined : documentIdRefusalOf(id.field);
+      return id === undefined || refusal === undefined
         ? []
-        : [{ kind: 'documentId', modelName, fieldName: id.name, collection, reason }];
+        : [{ kind: 'documentId', modelName, fieldName: id.name, collection, ...refusal }];
     }),
   );
 }
 
 /**
- * Every part of a built MongoDB contract that its collection validators cannot describe: an embed relation to a model with variants, an enum a validator cannot list, a field whose codec has no MongoDB data type, and a root model's field stored as `_id` that is not an objectId. Both authoring surfaces call it on what they built, so the rules are decided in one place.
+ * Every part of a built MongoDB contract that its collection validators cannot describe: an embed relation to a model with variants, an enum a validator cannot list, a field whose codec has no MongoDB data type, and a root model's field stored as `_id` that is a list or nullable. Both authoring surfaces call it on what they built, so the rules are decided in one place.
  */
 export function mongoContractRefusalsOf(
   input: MongoContractRefusalsInput,
@@ -170,6 +168,6 @@ export function mongoContractRefusalsOf(
     ...Object.entries(valueObjects).flatMap(([name, valueObject]) =>
       fieldRefusals({ kind: 'valueObject', name }, valueObject.fields, lookups),
     ),
-    ...documentIdRefusals(models, lookups),
+    ...documentIdRefusals(models),
   ];
 }

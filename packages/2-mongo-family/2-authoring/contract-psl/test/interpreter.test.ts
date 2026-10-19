@@ -945,7 +945,7 @@ model Item {
     });
   });
 
-  describe('_id objectId requirement', () => {
+  describe('the document id', () => {
     it('accepts an ObjectId @id mapped to _id', () => {
       const ir = interpretOk(`
         model Item {
@@ -1011,10 +1011,40 @@ model Item {
       ]);
     });
 
-    it('rejects an _id whose type is not ObjectId', () => {
+    it.each([
+      ['String', 'string'],
+      ['Int32', 'int'],
+    ])('accepts a %s _id, whose validator requires _id with that type', (type, bsonType) => {
+      const ir = interpretOk(`
+        model Item {
+          id   ${type} @id @map("_id")
+          name String
+        }
+      `);
+
+      expect(mongoCollectionsFromIr(ir)['Item']?.['validator']).toMatchObject({
+        jsonSchema: {
+          required: ['_id', 'name'],
+          properties: { _id: { bsonType }, name: { bsonType: 'string' } },
+        },
+      });
+    });
+
+    it.each([
+      [
+        'a list',
+        'ObjectId[]',
+        'holds the document id as a list, but MongoDB does not accept an array as an _id.',
+      ],
+      [
+        'nullable',
+        'String?',
+        'holds the document id as an optional value, but every document has an _id.',
+      ],
+    ])('rejects an _id that is %s', (_case, type, reason) => {
       const result = interpret(`
         model Item {
-          id String @id @map("_id")
+          id   ${type} @id @map("_id")
           name String
         }
       `);
@@ -1022,11 +1052,7 @@ model Item {
       expect(result.ok).toBe(false);
       if (result.ok) return;
       expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
-        {
-          code: 'PSL_MONGO_ID_NOT_OBJECTID',
-          message:
-            'Field "Item.id" holds the document id as BSON type string, but an _id must be stored as BSON type objectId: every collection validator requires an objectId _id, which MongoDB adds to every document inserted without one.',
-        },
+        { code: 'PSL_MONGO_ID_INVALID', message: `Field "Item.id" ${reason}` },
       ]);
     });
 

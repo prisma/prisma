@@ -2,7 +2,7 @@ import { type ContractModelBase, crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { mongoContractRefusalsOf } from '../src/contract-refusals';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
-import { scalarField } from './derive-json-schema-helpers';
+import { arrayField, scalarField } from './derive-json-schema-helpers';
 
 function model(
   fields: ContractModelBase['fields'],
@@ -35,16 +35,20 @@ describe('mongoContractRefusalsOf', () => {
     ).toEqual([]);
   });
 
-  it('refuses each root model whose _id is not an objectId, in every collection', () => {
+  it('refuses each root model whose _id is a list or nullable, in every collection, and accepts any single BSON type', () => {
     expect(
       refusals({
         models: {
-          User: model({ _id: scalarField('mongo/string@1') }, { storage: { collection: 'users' } }),
-          Admin: model(
-            { _id: scalarField('mongo/objectId@1') },
+          User: model(
+            { _id: scalarField('mongo/string@1', true) },
             { storage: { collection: 'users' } },
           ),
-          Event: model({ _id: scalarField('mongo/date@1') }, { storage: { collection: 'events' } }),
+          Admin: model(
+            { _id: scalarField('mongo/string@1') },
+            { storage: { collection: 'users' } },
+          ),
+          Event: model({ _id: arrayField('mongo/date@1') }, { storage: { collection: 'events' } }),
+          Tick: model({ _id: scalarField('mongo/date@1') }, { storage: { collection: 'ticks' } }),
         },
       }),
     ).toEqual([
@@ -53,12 +57,14 @@ describe('mongoContractRefusalsOf', () => {
         modelName: 'User',
         fieldName: '_id',
         collection: 'users',
+        problem: 'nullable',
       }),
       expect.objectContaining({
         kind: 'documentId',
         modelName: 'Event',
         fieldName: '_id',
         collection: 'events',
+        problem: 'list',
       }),
     ]);
   });

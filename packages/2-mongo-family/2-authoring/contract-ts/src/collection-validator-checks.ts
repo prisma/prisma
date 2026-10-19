@@ -94,7 +94,7 @@ function refusalError(refusal: MongoContractRefusal): StructuredError {
             modelName: refusal.modelName,
             fieldName: refusal.fieldName,
             collection: refusal.collection,
-            reason: 'document-id-not-objectId',
+            reason: `document-id-${refusal.problem}`,
           },
         },
       );

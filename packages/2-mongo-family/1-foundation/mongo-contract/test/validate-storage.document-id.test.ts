@@ -68,18 +68,7 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
     expect(() => validateMongoStorage(contractWith({ Item: item }, undefined))).not.toThrow();
   });
 
-  it('accepts validators that require an objectId _id, in every anyOf branch', () => {
-    expect(() =>
-      validateMongoStorage(
-        contractWith(
-          { Item: item },
-          { bsonType: 'object', anyOf: [objectIdSchema, objectIdSchema] },
-        ),
-      ),
-    ).not.toThrow();
-  });
-
-  it('refuses a validator that does not require an objectId _id', () => {
+  it('accepts validators that require an _id of any single BSON type, in every anyOf branch', () => {
     expect(() =>
       validateMongoStorage(
         contractWith(
@@ -89,13 +78,36 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
             anyOf: [
               objectIdSchema,
               { ...objectIdSchema, properties: { _id: { bsonType: 'string' } } },
+              { ...objectIdSchema, properties: { _id: {} } },
             ],
           },
         ),
       ),
+    ).not.toThrow();
+  });
+
+  it('refuses a validator that does not require _id', () => {
+    expect(() =>
+      validateMongoStorage(
+        contractWith(
+          { Item: item },
+          { bsonType: 'object', anyOf: [objectIdSchema, { ...objectIdSchema, required: [] }] },
+        ),
+      ),
     ).toThrow(
-      'Collection "items": its validator must require _id as BSON type objectId, for every model the collection stores',
+      'Collection "items": its validator must require _id, for every model the collection stores, and accept neither an array nor null as one, since every document has an _id and MongoDB does not accept an array as one',
     );
+  });
+
+  it.each([
+    ['an array', { bsonType: 'array', items: { bsonType: 'objectId' } }],
+    ['null', { bsonType: ['null', 'string'] }],
+  ])('refuses a validator whose _id accepts %s', (_case, idSchema) => {
+    expect(() =>
+      validateMongoStorage(
+        contractWith({ Item: item }, { ...objectIdSchema, properties: { _id: idSchema } }),
+      ),
+    ).toThrow('Collection "items": its validator must require _id');
   });
 
   it('refuses an embed relation to a model with variants', () => {
