@@ -7,11 +7,13 @@ import type {
 import {
   collectionRootModelsOf,
   documentIdRefusalOf,
+  fieldBsonTypeRefusalOf,
   isEmbedRelation,
   validatorEnumMemberRefusalOf,
   validatorEnumRefusalOf,
 } from '@internal/mongo-contract';
 import { bsonTypesOfCodec, type MongoTypeLookups } from '@internal/mongo-contract/data-type';
+import { assertDefined } from '@internal/utils/assertions';
 import { contractError } from './contract-errors';
 
 const LIST_THE_CODEC_PACK =
@@ -23,21 +25,22 @@ function bsonTypesOrRefuse(
   codecId: string,
   lookups: MongoTypeLookups,
 ): readonly string[] {
-  const bsonTypes = bsonTypesOfCodec(codecId, lookups);
-  if (bsonTypes !== undefined) return bsonTypes;
-  const descriptor = lookups.codecLookup.descriptorFor(codecId);
-  if (descriptor === undefined) {
-    throw contractError(
-      'CONTRACT.CODEC_DESCRIPTOR_MISSING',
-      `${subject} uses codec "${codecId}", which no pack in the contract provides, so the collection validator cannot give its BSON type.`,
-      { fix: LIST_THE_CODEC_PACK, meta: { ...meta, codecId } },
-    );
+  const refusal = fieldBsonTypeRefusalOf(codecId, lookups);
+  if (refusal?.kind === 'unknownCodec') {
+    throw contractError('CONTRACT.CODEC_DESCRIPTOR_MISSING', `${subject} ${refusal.reason}`, {
+      fix: LIST_THE_CODEC_PACK,
+      meta: { ...meta, codecId },
+    });
   }
-  throw contractError(
-    'CONTRACT.DATA_TYPE_UNREGISTERED',
-    `${subject} uses codec "${codecId}", whose data type "${descriptor.dataType}" is not a MongoDB data type of any pack in the contract, so the collection validator cannot give its BSON type.`,
-    { fix: LIST_THE_CODEC_PACK, meta: { ...meta, codecId, dataType: descriptor.dataType } },
-  );
+  if (refusal?.kind === 'notMongoDataType') {
+    throw contractError('CONTRACT.PACK_CONTRIBUTION_INVALID', `${subject} ${refusal.reason}`, {
+      fix: 'Use a codec whose data type is a MongoDB data type, declared with mongoDataType.',
+      meta: { ...meta, codecId, dataType: refusal.dataType, reason: 'data-type-not-mongo' },
+    });
+  }
+  const bsonTypes = bsonTypesOfCodec(codecId, lookups);
+  assertDefined(bsonTypes, `Codec "${codecId}" has a MongoDB data type`);
+  return bsonTypes;
 }
 
 function assertFieldsHaveBsonTypes(

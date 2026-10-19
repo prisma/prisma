@@ -39,11 +39,13 @@ import {
   buildMongoStorage,
   deriveCollectionValidators,
   documentIdRefusalOf,
+  fieldBsonTypeRefusalOf,
   type MongoCollectionInput,
   MongoIndex,
   type MongoIndexKeyDirection,
   mongoValueSetsOf,
 } from '@internal/mongo-contract';
+import type { MongoTypeLookups } from '@internal/mongo-contract/data-type';
 import type { CollationOptions } from '@internal/mongo-value/mongodb-types';
 import type {
   AttributeSpecContext,
@@ -1142,6 +1144,26 @@ interface ResolvedNonRelationField {
   readonly executionDefaults?: ExecutionMutationDefaultPhases;
 }
 
+/**
+ * A diagnostic for a field whose codec has no MongoDB data type, which the collection validator could not describe, or undefined.
+ */
+function fieldBsonTypeDiagnostic(
+  ownerName: string,
+  field: FieldSymbol,
+  resolved: ContractField,
+  lookups: MongoTypeLookups,
+  sources: PslSources,
+): PslDiagnostic | undefined {
+  if (resolved.type.kind !== 'scalar') return undefined;
+  const refusal = fieldBsonTypeRefusalOf(resolved.type.codecId, lookups);
+  if (refusal === undefined) return undefined;
+  return {
+    code: 'PSL_UNSUPPORTED_FIELD_TYPE',
+    message: `Field "${ownerName}.${field.name}" ${refusal.reason}`,
+    ...diagnosticSource(sources, field.node.syntax).at(field.span),
+  };
+}
+
 function resolveNonRelationField(
   field: FieldSymbol,
   owner: { readonly name: string; readonly kind: 'model' | 'compositeType' },
@@ -1422,7 +1444,13 @@ export function interpretPslDocumentToMongoContract(
   const backrelationCandidates: MongoBackRelationCandidate[] = [];
   const invalidFkPairings: InvalidFkPairing[] = [];
 
+  const validatorLookups: MongoTypeLookups = {
+    codecLookup,
+    dataTypeLookup: input.dataTypes.lookup,
+  };
+
   for (const pslModel of allModels) {
+    let hasUndescribableField = false;
     const modelSource = diagnosticSource(sources, pslModel.node.syntax);
     const collectionName = physicalName(physicalNames, pslModel);
     const specContext = specContextFor(pslModel);
@@ -1518,6 +1546,18 @@ export function interpretPslDocumentToMongoContract(
         scalarNames,
       );
       if (!resolved) continue;
+      const bsonTypeDiagnostic = fieldBsonTypeDiagnostic(
+        pslModel.name,
+        field,
+        resolved.field,
+        validatorLookups,
+        sources,
+      );
+      if (bsonTypeDiagnostic !== undefined) {
+        diagnostics.push(bsonTypeDiagnostic);
+        hasUndescribableField = true;
+        continue;
+      }
 
       const mappedName = physicalName(physicalNames, field);
       fields[mappedName] = resolved.field;
@@ -1561,11 +1601,8 @@ export function interpretPslDocumentToMongoContract(
           message: `Model "${pslModel.name}" has no field with @id attribute. Every model must have exactly one @id field.`,
           ...modelSource.at(),
         });
-      } else {
-        const idRefusal = documentIdRefusalOf(fields, {
-          codecLookup,
-          dataTypeLookup: input.dataTypes.lookup,
-        });
+      } else if (!hasUndescribableField) {
+        const idRefusal = documentIdRefusalOf(fields, validatorLookups);
         if (idRefusal !== undefined) {
           diagnostics.pushUnlocated({
             code: 'PSL_MONGO_ID_REQUIRED',
@@ -1614,6 +1651,17 @@ export function interpretPslDocumentToMongoContract(
         scalarNames,
       );
       if (!resolved) continue;
+      const bsonTypeDiagnostic = fieldBsonTypeDiagnostic(
+        compositeType.name,
+        field,
+        resolved.field,
+        validatorLookups,
+        sources,
+      );
+      if (bsonTypeDiagnostic !== undefined) {
+        diagnostics.push(bsonTypeDiagnostic);
+        continue;
+      }
       fields[field.name] = resolved.field;
     }
     valueObjects[compositeType.name] = { fields };
@@ -1691,7 +1739,7 @@ export function interpretPslDocumentToMongoContract(
 
   const validators = deriveCollectionValidators({
     models: resolvedModels,
-    lookups: { codecLookup, dataTypeLookup: input.dataTypes.lookup },
+    lookups: validatorLookups,
     valueObjects,
     valueSets: storageValueSets,
   });

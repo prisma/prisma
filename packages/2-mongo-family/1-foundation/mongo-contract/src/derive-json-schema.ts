@@ -100,7 +100,10 @@ function fieldToBsonSchema(
   const { lookups, valueObjects, valueSets } = sources;
   if (field.type.kind === 'scalar') {
     const bsonTypes = bsonTypesOfCodec(field.type.codecId, lookups);
-    if (bsonTypes === undefined) return undefined;
+    assertDefined(
+      bsonTypes,
+      `Field codec "${field.type.codecId}" has no MongoDB data type; the authoring surface refuses such a field before it derives the validator`,
+    );
     if (bsonTypes.length === 0) return anyValueSchema(field);
     const bsonType = bsonTypeKeyword(bsonTypes);
 

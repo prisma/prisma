@@ -48,7 +48,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
         defineContract({ ...scaffold, extensions: { geo: sqlTypedPack }, models: { Place } }),
       ).toThrow(
         expect.objectContaining({
-          code: 'CONTRACT.DATA_TYPE_UNREGISTERED',
+          code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
           message:
             'Model "Place" field "location" uses codec "geo/point@1", whose data type "geo/point" is not a MongoDB data type of any pack in the contract, so the collection validator cannot give its BSON type.',
           meta: {
@@ -56,6 +56,7 @@ describe('mongo defineContract refuses what a collection validator cannot descri
             fieldName: 'location',
             codecId: 'geo/point@1',
             dataType: 'geo/point',
+            reason: 'data-type-not-mongo',
           },
         }),
       );

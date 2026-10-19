@@ -283,22 +283,13 @@ describe('deriveCollectionValidators — fields', () => {
     });
   });
 
-  it('skips fields with unknown codec IDs', () => {
-    const result = rootValidator({
-      _id: scalarField('mongo/objectId@1'),
-      name: scalarField('mongo/string@1'),
-      custom: scalarField('custom/unknown@1'),
-    });
-
-    expect(result.jsonSchema).toEqual({
-      bsonType: 'object',
-      required: ['_id', 'name'],
-      properties: {
-        _id: { bsonType: 'objectId' },
-        name: { bsonType: 'string' },
-      },
-      additionalProperties: false,
-    });
+  it('refuses a field whose codec has no MongoDB data type, rather than leave it out', () => {
+    expect(() =>
+      rootValidator({
+        _id: scalarField('mongo/objectId@1'),
+        custom: scalarField('custom/unknown@1'),
+      }),
+    ).toThrow('Field codec "custom/unknown@1" has no MongoDB data type');
   });
 
   it('handles nested value objects (recursive), closing every level', () => {

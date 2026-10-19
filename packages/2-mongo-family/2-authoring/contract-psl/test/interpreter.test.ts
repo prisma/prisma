@@ -1007,7 +1007,7 @@ model Item {
       );
     });
 
-    it('names the _id codec when the lookups know no MongoDB data type for it', () => {
+    it('names the _id codec, at the field, when no pack provides it', () => {
       const result = interpret(
         `
         model Item {
@@ -1028,9 +1028,9 @@ model Item {
       if (result.ok) return;
       expect(result.failure.diagnostics.map(({ code, message }) => ({ code, message }))).toEqual([
         {
-          code: 'PSL_MONGO_ID_REQUIRED',
+          code: 'PSL_UNSUPPORTED_FIELD_TYPE',
           message:
-            'Model "Item" has an _id field whose codec "mongo/objectId@1" has no MongoDB data type, so its BSON type is unknown.',
+            'Field "Item.id" uses codec "mongo/objectId@1", which no pack in the contract provides, so the collection validator cannot give its BSON type.',
         },
       ]);
     });

@@ -54,6 +54,8 @@ export {
 export type { FieldValueSets } from '../derive-json-schema';
 export type { DocumentIdRefusal } from '../document-id-refusal';
 export { documentIdRefusalOf } from '../document-id-refusal';
+export type { FieldBsonTypeRefusal } from '../field-bson-type-refusal';
+export { fieldBsonTypeRefusalOf } from '../field-bson-type-refusal';
 export { buildMongoNamespace } from '../ir/build-mongo-namespace';
 export type { MongoChangeStreamPreAndPostImagesOptionsInput } from '../ir/mongo-change-stream-pre-and-post-images-options';
 export { MongoChangeStreamPreAndPostImagesOptions } from '../ir/mongo-change-stream-pre-and-post-images-options';
