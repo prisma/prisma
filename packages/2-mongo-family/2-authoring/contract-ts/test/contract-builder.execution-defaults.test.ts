@@ -47,6 +47,26 @@ describe('Mongo TS temporal presets', () => {
     },
   }));
 
+  it('keys the execution default of a field by its stored name', () => {
+    const mapped = defineContract(scaffold, ({ field, model }) => ({
+      models: {
+        Post: model('Post', {
+          collection: 'posts',
+          fields: {
+            id: field.objectId().mongo({ field: '_id' }),
+            createdAt: field.temporal.createdAt().mongo({ field: 'created_at' }),
+          },
+        }),
+      },
+    }));
+    expect(mapped.execution?.mutations.defaults).toEqual([
+      {
+        ref: { namespace: UNBOUND_NAMESPACE_ID, entry: 'posts', field: 'created_at' },
+        onCreate: timestampNow,
+      },
+    ]);
+  });
+
   it('types each preset field as a mongo/date@1 scalar', () => {
     const date = { nullable: false, type: { kind: 'scalar', codecId: 'mongo/date@1' } };
     expect(domainModelsAtDefaultNamespace(contract.domain)['Post']?.fields).toMatchObject({
