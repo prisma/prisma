@@ -69,7 +69,21 @@
             },
             "relations": {},
             "storage": {
-              "collection": "shops"
+              "collection": "shops",
+              "fields": {
+                "_id": {
+                  "field": "_id"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "location": {
+                  "field": "location"
+                },
+                "notes": {
+                  "field": "notes"
+                }
+              }
             }
           }
         },

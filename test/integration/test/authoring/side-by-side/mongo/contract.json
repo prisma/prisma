@@ -38,7 +38,7 @@
         "models": {
           "Admin": {
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -55,7 +55,15 @@
             },
             "relations": {},
             "storage": {
-              "collection": "users"
+              "collection": "users",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "level": {
+                  "field": "level"
+                }
+              }
             }
           },
           "Bug": {
@@ -74,19 +82,24 @@
             },
             "relations": {},
             "storage": {
-              "collection": "tasks"
+              "collection": "tasks",
+              "fields": {
+                "severity": {
+                  "field": "severity"
+                }
+              }
             }
           },
           "Post": {
             "fields": {
-              "_id": {
+              "authorId": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
-              "authorId": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -117,7 +130,7 @@
                     "authorId"
                   ],
                   "targetFields": [
-                    "_id"
+                    "id"
                   ]
                 },
                 "to": {
@@ -127,7 +140,21 @@
               }
             },
             "storage": {
-              "collection": "posts"
+              "collection": "posts",
+              "fields": {
+                "authorId": {
+                  "field": "authorId"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "publishedAt": {
+                  "field": "publishedAt"
+                },
+                "title": {
+                  "field": "title"
+                }
+              }
             }
           },
           "Task": {
@@ -135,7 +162,7 @@
               "field": "type"
             },
             "fields": {
-              "_id": {
+              "id": {
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/objectId@1",
@@ -159,7 +186,18 @@
             },
             "relations": {},
             "storage": {
-              "collection": "tasks"
+              "collection": "tasks",
+              "fields": {
+                "id": {
+                  "field": "_id"
+                },
+                "title": {
+                  "field": "title"
+                },
+                "type": {
+                  "field": "type"
+                }
+              }
             },
             "variants": {
               "bug": {
@@ -170,13 +208,6 @@
           },
           "User": {
             "fields": {
-              "_id": {
-                "nullable": false,
-                "type": {
-                  "codecId": "mongo/objectId@1",
-                  "kind": "scalar"
-                }
-              },
               "address": {
                 "nullable": true,
                 "type": {
@@ -195,6 +226,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "mongo/string@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "mongo/objectId@1",
                   "kind": "scalar"
                 }
               },
@@ -224,7 +262,7 @@
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
-                    "_id"
+                    "id"
                   ],
                   "targetFields": [
                     "authorId"
@@ -237,7 +275,27 @@
               }
             },
             "storage": {
-              "collection": "users"
+              "collection": "users",
+              "fields": {
+                "address": {
+                  "field": "address"
+                },
+                "bio": {
+                  "field": "bio"
+                },
+                "email": {
+                  "field": "email"
+                },
+                "id": {
+                  "field": "_id"
+                },
+                "name": {
+                  "field": "name"
+                },
+                "role": {
+                  "field": "role"
+                }
+              }
             }
           }
         },

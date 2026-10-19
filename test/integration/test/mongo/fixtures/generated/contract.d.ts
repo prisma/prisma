@@ -321,7 +321,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: Record<string, never>;
+            readonly storage: {
+              readonly fields: {
+                readonly city: { readonly field: 'city' };
+                readonly street: { readonly field: 'street' };
+                readonly zip: { readonly field: 'zip' };
+              };
+            };
             readonly owner: 'User';
           };
           readonly Bug: {
@@ -332,7 +338,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'tasks' };
+            readonly storage: {
+              readonly collection: 'tasks';
+              readonly fields: { readonly severity: { readonly field: 'severity' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Task';
@@ -354,7 +363,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: Record<string, never>;
+            readonly storage: {
+              readonly fields: {
+                readonly _id: { readonly field: '_id' };
+                readonly createdAt: { readonly field: 'createdAt' };
+                readonly text: { readonly field: 'text' };
+              };
+            };
             readonly owner: 'Task';
           };
           readonly Feature: {
@@ -369,7 +384,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'tasks' };
+            readonly storage: {
+              readonly collection: 'tasks';
+              readonly fields: {
+                readonly priority: { readonly field: 'priority' };
+                readonly targetRelease: { readonly field: 'targetRelease' };
+              };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Task';
@@ -417,6 +438,12 @@ type ContractBase = Omit<
             };
             readonly storage: {
               readonly collection: 'tasks';
+              readonly fields: {
+                readonly _id: { readonly field: '_id' };
+                readonly assigneeId: { readonly field: 'assigneeId' };
+                readonly title: { readonly field: 'title' };
+                readonly type: { readonly field: 'type' };
+              };
               readonly relations: { readonly comments: { readonly field: 'comments' } };
             };
             readonly discriminator: { readonly field: 'type' };
@@ -457,6 +484,11 @@ type ContractBase = Omit<
             };
             readonly storage: {
               readonly collection: 'users';
+              readonly fields: {
+                readonly _id: { readonly field: '_id' };
+                readonly email: { readonly field: 'email' };
+                readonly name: { readonly field: 'name' };
+              };
               readonly relations: { readonly addresses: { readonly field: 'addresses' } };
             };
           };

@@ -30,16 +30,16 @@ export type AddressInput = { readonly zip: CodecTypes['mongo/int64Number@1']['in
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly Counter: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
       readonly hits: CodecTypes['mongo/int64Number@1']['output'];
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly large: CodecTypes['mongo/int64Number@1']['output'];
       readonly name: CodecTypes['mongo/string@1']['output'];
       readonly small: CodecTypes['mongo/int32@1']['output'];
     };
     readonly Tally: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
       readonly address: AddressOutput | null;
       readonly addresses: ReadonlyArray<AddressOutput>;
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly name: CodecTypes['mongo/string@1']['output'];
       readonly scores: ReadonlyArray<CodecTypes['mongo/int64Number@1']['output']>;
     };
@@ -48,16 +48,16 @@ export type FieldOutputTypes = {
 export type FieldInputTypes = {
   readonly __unbound__: {
     readonly Counter: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
       readonly hits: CodecTypes['mongo/int64Number@1']['input'];
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly large: CodecTypes['mongo/int64Number@1']['input'];
       readonly name: CodecTypes['mongo/string@1']['input'];
       readonly small: CodecTypes['mongo/int32@1']['input'];
     };
     readonly Tally: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
       readonly address: AddressInput | null;
       readonly addresses: ReadonlyArray<AddressInput>;
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly name: CodecTypes['mongo/string@1']['input'];
       readonly scores: ReadonlyArray<CodecTypes['mongo/int64Number@1']['input']>;
     };
@@ -66,17 +66,17 @@ export type FieldInputTypes = {
 
 export namespace Models {
   export type unbound_Counter = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     hits: CodecTypes['mongo/int64Number@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     large: CodecTypes['mongo/int64Number@1']['output'];
     name: CodecTypes['mongo/string@1']['output'];
     small: CodecTypes['mongo/int32@1']['output'];
     readonly [RelationKeys]?: never;
   };
   export type unbound_Tally = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     address: AddressOutput | null;
     addresses: ReadonlyArray<AddressOutput>;
+    id: CodecTypes['mongo/objectId@1']['output'];
     name: CodecTypes['mongo/string@1']['output'];
     scores: ReadonlyArray<CodecTypes['mongo/int64Number@1']['output']>;
     readonly [RelationKeys]?: never;
@@ -125,13 +125,13 @@ type ContractBase = Omit<
         readonly models: {
           readonly Counter: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly hits: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/int64Number@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly large: {
                 readonly nullable: false;
@@ -147,14 +147,19 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'Counter' };
+            readonly storage: {
+              readonly collection: 'Counter';
+              readonly fields: {
+                readonly hits: { readonly field: 'hits' };
+                readonly id: { readonly field: '_id' };
+                readonly large: { readonly field: 'large' };
+                readonly name: { readonly field: 'name' };
+                readonly small: { readonly field: 'small' };
+              };
+            };
           };
           readonly Tally: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly address: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
@@ -163,6 +168,10 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
                 readonly many: { readonly elementNullable: false };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
@@ -175,7 +184,16 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'Tally' };
+            readonly storage: {
+              readonly collection: 'Tally';
+              readonly fields: {
+                readonly address: { readonly field: 'address' };
+                readonly addresses: { readonly field: 'addresses' };
+                readonly id: { readonly field: '_id' };
+                readonly name: { readonly field: 'name' };
+                readonly scores: { readonly field: 'scores' };
+              };
+            };
           };
         };
         readonly valueObjects: {

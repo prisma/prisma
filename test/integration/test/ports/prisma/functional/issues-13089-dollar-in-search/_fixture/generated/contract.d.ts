@@ -28,24 +28,24 @@ export type CodecTypes = MongoCodecTypes;
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly users: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
       readonly firstName: CodecTypes['mongo/string@1']['output'];
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
     };
   };
 };
 export type FieldInputTypes = {
   readonly __unbound__: {
     readonly users: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
       readonly firstName: CodecTypes['mongo/string@1']['input'];
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
     };
   };
 };
 
 export namespace Models {
   export type unbound_users = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     firstName: CodecTypes['mongo/string@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     readonly [RelationKeys]?: never;
   };
 }
@@ -109,17 +109,23 @@ type ContractBase = Omit<
         readonly models: {
           readonly users: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly firstName: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
+              };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'users' };
+            readonly storage: {
+              readonly collection: 'users';
+              readonly fields: {
+                readonly firstName: { readonly field: 'firstName' };
+                readonly id: { readonly field: '_id' };
+              };
+            };
           };
         };
       };

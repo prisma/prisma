@@ -36,7 +36,7 @@ export type NavItemInput = {
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly Menu: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly items: ReadonlyArray<NavItemOutput>;
       readonly name: CodecTypes['mongo/string@1']['output'];
     };
@@ -45,7 +45,7 @@ export type FieldOutputTypes = {
 export type FieldInputTypes = {
   readonly __unbound__: {
     readonly Menu: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly items: ReadonlyArray<NavItemInput>;
       readonly name: CodecTypes['mongo/string@1']['input'];
     };
@@ -54,7 +54,7 @@ export type FieldInputTypes = {
 
 export namespace Models {
   export type unbound_Menu = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     items: ReadonlyArray<NavItemOutput>;
     name: CodecTypes['mongo/string@1']['output'];
     readonly [RelationKeys]?: never;
@@ -128,7 +128,7 @@ type ContractBase = Omit<
         readonly models: {
           readonly Menu: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -143,7 +143,14 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'menus' };
+            readonly storage: {
+              readonly collection: 'menus';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly items: { readonly field: 'items' };
+                readonly name: { readonly field: 'name' };
+              };
+            };
           };
         };
         readonly valueObjects: {

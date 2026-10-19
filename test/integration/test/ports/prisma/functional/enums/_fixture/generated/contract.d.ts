@@ -28,7 +28,7 @@ export type CodecTypes = MongoCodecTypes;
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly User: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly plan: 'FREE' | 'PAID' | 'CUSTOM';
     };
   };
@@ -36,7 +36,7 @@ export type FieldOutputTypes = {
 export type FieldInputTypes = {
   readonly __unbound__: {
     readonly User: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly plan: 'FREE' | 'PAID' | 'CUSTOM';
     };
   };
@@ -44,7 +44,7 @@ export type FieldInputTypes = {
 
 export namespace Models {
   export type unbound_User = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     plan: 'FREE' | 'PAID' | 'CUSTOM';
     readonly [RelationKeys]?: never;
   };
@@ -105,7 +105,7 @@ type ContractBase = Omit<
         readonly models: {
           readonly User: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -115,7 +115,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'User' };
+            readonly storage: {
+              readonly collection: 'User';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly plan: { readonly field: 'plan' };
+              };
+            };
           };
         };
         readonly enum: {

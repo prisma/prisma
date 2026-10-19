@@ -28,8 +28,8 @@ export type CodecTypes = MongoCodecTypes;
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly Reading: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
       readonly double: 1.5 | 2.25;
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly int32: 1 | 10;
       readonly text: 'low' | 'high';
     };
@@ -38,8 +38,8 @@ export type FieldOutputTypes = {
 export type FieldInputTypes = {
   readonly __unbound__: {
     readonly Reading: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
       readonly double: 1.5 | 2.25;
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly int32: 1 | 10;
       readonly text: 'low' | 'high';
     };
@@ -48,8 +48,8 @@ export type FieldInputTypes = {
 
 export namespace Models {
   export type unbound_Reading = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     double: 1.5 | 2.25;
+    id: CodecTypes['mongo/objectId@1']['output'];
     int32: 1 | 10;
     text: 'low' | 'high';
     readonly [RelationKeys]?: never;
@@ -119,13 +119,13 @@ type ContractBase = Omit<
         readonly models: {
           readonly Reading: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly double: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/double@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly int32: {
                 readonly nullable: false;
@@ -137,7 +137,15 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'readings' };
+            readonly storage: {
+              readonly collection: 'readings';
+              readonly fields: {
+                readonly double: { readonly field: 'double' };
+                readonly id: { readonly field: '_id' };
+                readonly int32: { readonly field: 'int32' };
+                readonly text: { readonly field: 'text' };
+              };
+            };
           };
         };
         readonly enum: {

@@ -44,27 +44,27 @@ export type CommentContentUpvotesInput = {
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly CommentRequiredList: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
       readonly contents: ReadonlyArray<CommentContentOutput>;
       readonly country: CodecTypes['mongo/string@1']['output'] | null;
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
     };
   };
 };
 export type FieldInputTypes = {
   readonly __unbound__: {
     readonly CommentRequiredList: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
       readonly contents: ReadonlyArray<CommentContentInput>;
       readonly country: CodecTypes['mongo/string@1']['input'] | null;
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
     };
   };
 };
 
 export namespace Models {
   export type unbound_CommentRequiredList = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     contents: ReadonlyArray<CommentContentOutput>;
     country: CodecTypes['mongo/string@1']['output'] | null;
+    id: CodecTypes['mongo/objectId@1']['output'];
     readonly [RelationKeys]?: never;
   };
 }
@@ -147,10 +147,6 @@ type ContractBase = Omit<
         readonly models: {
           readonly CommentRequiredList: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly contents: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'CommentContent' };
@@ -160,9 +156,20 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
               };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
+              };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'comment_required_list' };
+            readonly storage: {
+              readonly collection: 'comment_required_list';
+              readonly fields: {
+                readonly contents: { readonly field: 'contents' };
+                readonly country: { readonly field: 'country' };
+                readonly id: { readonly field: '_id' };
+              };
+            };
           };
         };
         readonly valueObjects: {

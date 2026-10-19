@@ -41,10 +41,10 @@ export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly Article: { readonly summary: CodecTypes['mongo/string@1']['output'] };
     readonly Post: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
       readonly authorId: CodecTypes['mongo/objectId@1']['output'];
       readonly content: CodecTypes['mongo/string@1']['output'];
       readonly createdAt: CodecTypes['mongo/date@1']['output'];
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly kind: CodecTypes['mongo/string@1']['output'];
       readonly title: CodecTypes['mongo/string@1']['output'];
     };
@@ -53,10 +53,10 @@ export type FieldOutputTypes = {
       readonly duration: CodecTypes['mongo/int32@1']['output'];
     };
     readonly User: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
       readonly address: AddressOutput | null;
       readonly bio: CodecTypes['mongo/string@1']['output'] | null;
       readonly email: CodecTypes['mongo/string@1']['output'];
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly name: CodecTypes['mongo/string@1']['output'];
     };
   };
@@ -65,10 +65,10 @@ export type FieldInputTypes = {
   readonly __unbound__: {
     readonly Article: { readonly summary: CodecTypes['mongo/string@1']['input'] };
     readonly Post: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
       readonly authorId: CodecTypes['mongo/objectId@1']['input'];
       readonly content: CodecTypes['mongo/string@1']['input'];
       readonly createdAt: CodecTypes['mongo/date@1']['input'];
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly kind: CodecTypes['mongo/string@1']['input'];
       readonly title: CodecTypes['mongo/string@1']['input'];
     };
@@ -77,10 +77,10 @@ export type FieldInputTypes = {
       readonly duration: CodecTypes['mongo/int32@1']['input'];
     };
     readonly User: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
       readonly address: AddressInput | null;
       readonly bio: CodecTypes['mongo/string@1']['input'] | null;
       readonly email: CodecTypes['mongo/string@1']['input'];
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly name: CodecTypes['mongo/string@1']['input'];
     };
   };
@@ -88,10 +88,10 @@ export type FieldInputTypes = {
 
 export namespace Models {
   export type unbound_Article = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     authorId: CodecTypes['mongo/objectId@1']['output'];
     content: CodecTypes['mongo/string@1']['output'];
     createdAt: CodecTypes['mongo/date@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     kind: 'article';
     title: CodecTypes['mongo/string@1']['output'];
     summary: CodecTypes['mongo/string@1']['output'];
@@ -99,20 +99,20 @@ export namespace Models {
     readonly [RelationKeys]?: 'author';
   };
   export type unbound_Post = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     authorId: CodecTypes['mongo/objectId@1']['output'];
     content: CodecTypes['mongo/string@1']['output'];
     createdAt: CodecTypes['mongo/date@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     kind: 'article' | 'tutorial';
     title: CodecTypes['mongo/string@1']['output'];
     author: unbound_User;
     readonly [RelationKeys]?: 'author';
   };
   export type unbound_Tutorial = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     authorId: CodecTypes['mongo/objectId@1']['output'];
     content: CodecTypes['mongo/string@1']['output'];
     createdAt: CodecTypes['mongo/date@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     kind: 'tutorial';
     title: CodecTypes['mongo/string@1']['output'];
     difficulty: CodecTypes['mongo/string@1']['output'];
@@ -121,10 +121,10 @@ export namespace Models {
     readonly [RelationKeys]?: 'author';
   };
   export type unbound_User = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
     address: AddressOutput | null;
     bio: CodecTypes['mongo/string@1']['output'] | null;
     email: CodecTypes['mongo/string@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     name: CodecTypes['mongo/string@1']['output'];
     posts: unbound_AnyPost[];
     readonly [RelationKeys]?: 'posts';
@@ -279,7 +279,10 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: { readonly summary: { readonly field: 'summary' } };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Post';
@@ -287,10 +290,6 @@ type ContractBase = Omit<
           };
           readonly Post: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly authorId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
@@ -302,6 +301,10 @@ type ContractBase = Omit<
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/date@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly kind: {
                 readonly nullable: false;
@@ -322,11 +325,21 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly on: {
                   readonly localFields: readonly ['authorId'];
-                  readonly targetFields: readonly ['_id'];
+                  readonly targetFields: readonly ['id'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: {
+                readonly authorId: { readonly field: 'authorId' };
+                readonly content: { readonly field: 'content' };
+                readonly createdAt: { readonly field: 'createdAt' };
+                readonly id: { readonly field: '_id' };
+                readonly kind: { readonly field: 'kind' };
+                readonly title: { readonly field: 'title' };
+              };
+            };
             readonly discriminator: { readonly field: 'kind' };
             readonly variants: {
               readonly article: {
@@ -351,7 +364,13 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'posts' };
+            readonly storage: {
+              readonly collection: 'posts';
+              readonly fields: {
+                readonly difficulty: { readonly field: 'difficulty' };
+                readonly duration: { readonly field: 'duration' };
+              };
+            };
             readonly base: {
               readonly namespace: '__unbound__' & NamespaceId;
               readonly model: 'Post';
@@ -359,10 +378,6 @@ type ContractBase = Omit<
           };
           readonly User: {
             readonly fields: {
-              readonly _id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
-              };
               readonly address: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'valueObject'; readonly name: 'Address' };
@@ -374,6 +389,10 @@ type ContractBase = Omit<
               readonly email: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/string@1' };
+              };
+              readonly id: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
               readonly name: {
                 readonly nullable: false;
@@ -388,12 +407,21 @@ type ContractBase = Omit<
                 };
                 readonly cardinality: '1:N';
                 readonly on: {
-                  readonly localFields: readonly ['_id'];
+                  readonly localFields: readonly ['id'];
                   readonly targetFields: readonly ['authorId'];
                 };
               };
             };
-            readonly storage: { readonly collection: 'users' };
+            readonly storage: {
+              readonly collection: 'users';
+              readonly fields: {
+                readonly address: { readonly field: 'address' };
+                readonly bio: { readonly field: 'bio' };
+                readonly email: { readonly field: 'email' };
+                readonly id: { readonly field: '_id' };
+                readonly name: { readonly field: 'name' };
+              };
+            };
           };
         };
         readonly valueObjects: {

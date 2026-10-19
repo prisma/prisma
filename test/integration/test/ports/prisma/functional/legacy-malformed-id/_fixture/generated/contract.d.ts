@@ -28,7 +28,7 @@ export type CodecTypes = MongoCodecTypes;
 export type FieldOutputTypes = {
   readonly __unbound__: {
     readonly User: {
-      readonly _id: CodecTypes['mongo/objectId@1']['output'];
+      readonly id: CodecTypes['mongo/objectId@1']['output'];
       readonly ids: ReadonlyArray<CodecTypes['mongo/objectId@1']['output']>;
       readonly name: CodecTypes['mongo/string@1']['output'] | null;
     };
@@ -37,7 +37,7 @@ export type FieldOutputTypes = {
 export type FieldInputTypes = {
   readonly __unbound__: {
     readonly User: {
-      readonly _id: CodecTypes['mongo/objectId@1']['input'];
+      readonly id: CodecTypes['mongo/objectId@1']['input'];
       readonly ids: ReadonlyArray<CodecTypes['mongo/objectId@1']['input']>;
       readonly name: CodecTypes['mongo/string@1']['input'] | null;
     };
@@ -46,7 +46,7 @@ export type FieldInputTypes = {
 
 export namespace Models {
   export type unbound_User = {
-    _id: CodecTypes['mongo/objectId@1']['output'];
+    id: CodecTypes['mongo/objectId@1']['output'];
     ids: ReadonlyArray<CodecTypes['mongo/objectId@1']['output']>;
     name: CodecTypes['mongo/string@1']['output'] | null;
     readonly [RelationKeys]?: never;
@@ -109,7 +109,7 @@ type ContractBase = Omit<
         readonly models: {
           readonly User: {
             readonly fields: {
-              readonly _id: {
+              readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'mongo/objectId@1' };
               };
@@ -124,7 +124,14 @@ type ContractBase = Omit<
               };
             };
             readonly relations: Record<string, never>;
-            readonly storage: { readonly collection: 'user' };
+            readonly storage: {
+              readonly collection: 'user';
+              readonly fields: {
+                readonly id: { readonly field: '_id' };
+                readonly ids: { readonly field: 'ids' };
+                readonly name: { readonly field: 'name' };
+              };
+            };
           };
         };
       };
