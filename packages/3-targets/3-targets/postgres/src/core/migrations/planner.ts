@@ -390,6 +390,8 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       types,
       storageTypes,
       ...ifDefined('schema', relationalSchema),
+      startTree: schema,
+      endTree: expectedSchema,
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
@@ -407,7 +409,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       [
         ...indexRenames.calls,
         ...checkRenames.calls,
-        ...plannedConstraintNameRenames({ ...options, schema }),
+        ...plannedConstraintNameRenames({ ...options, schema }, result.value.replacedForeignKeys),
       ],
       options.contract,
     );

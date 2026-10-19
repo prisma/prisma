@@ -28,6 +28,7 @@ interface Names {
   readonly foreignKey?: string;
   readonly unique?: string;
   readonly primaryKeyColumns?: readonly string[];
+  readonly authorPrimaryKeyColumns?: readonly string[];
 }
 
 function buildContract(names: Names): Contract<SqlStorage> {
@@ -37,10 +38,13 @@ function buildContract(names: Names): Contract<SqlStorage> {
     entries: {
       table: {
         author: new StorageTable({
-          columns: { id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false } },
-          primaryKey: { columns: ['id'] },
+          columns: {
+            id: { dataType: 'pg/int4', codecId: 'pg/int4@1', nullable: false },
+            email: { dataType: 'pg/text', codecId: 'pg/text@1', nullable: false },
+          },
+          primaryKey: { columns: names.authorPrimaryKeyColumns ?? ['id'] },
           foreignKeys: [],
-          uniques: [],
+          uniques: names.authorPrimaryKeyColumns === undefined ? [] : [{ columns: ['id'] }],
           indexes: [],
         }),
         post: new StorageTable({
@@ -188,25 +192,33 @@ describe('a stated constraint name that changes', () => {
     ).toEqual([]);
   });
 
-  it('leaves a primary key whose columns change to the conflict it reports today', () => {
-    const result = createPostgresMigrationPlanner(stubLowerer).plan({
-      contract: buildContract({ primaryKey: 'post_key', primaryKeyColumns: ['id', 'slug'] }),
-      schema: postgresContractToSchema(
+  it('drops a primary key whose columns change and adds the new one under the end name', async () => {
+    expect(
+      await plannedOperations(
         buildContract({ primaryKey: 'post_primary' }),
-        postgresTypeComponents,
+        buildContract({ primaryKey: 'post_key', primaryKeyColumns: ['id', 'slug'] }),
       ),
-      policy: { allowedOperationClasses: [...ALL_CLASSES] },
-      fromContract: buildContract({ primaryKey: 'post_primary' }),
-      origin: null,
-      statements: [],
-      frameworkComponents: postgresTypeComponents,
-      spaceId: APP_SPACE_ID,
-      snapshotsImportPath: '../../snapshots',
-    });
+    ).toEqual([
+      { id: 'dropConstraint.post.post_primary', label: 'Drop constraint "post_primary" on "post"' },
+      { id: 'primaryKey.post.post_key', label: 'Add primary key on "post"' },
+    ]);
+  });
 
-    expect(result).toMatchObject({
-      kind: 'failure',
-      conflicts: [{ kind: 'indexIncompatible', summary: 'database/public/post/primary-key' }],
-    });
+  it('adds back under its end name, and does not rename, a foreign key dropped for a primary key change', async () => {
+    const operations = await plannedOperations(
+      buildContract({ foreignKey: 'post_author_link' }),
+      buildContract({ foreignKey: 'post_written_by', authorPrimaryKeyColumns: ['id', 'email'] }),
+    );
+
+    expect(operations.filter((operation) => operation.label.includes('post_'))).toEqual([
+      {
+        id: 'dropConstraint.post.post_author_link',
+        label: 'Drop constraint "post_author_link" on "post"',
+      },
+      {
+        id: 'foreignKey.post.post_written_by',
+        label: 'Add foreign key "post_written_by" on "post"',
+      },
+    ]);
   });
 });

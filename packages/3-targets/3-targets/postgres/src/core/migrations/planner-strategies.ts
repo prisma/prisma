@@ -50,6 +50,7 @@ import {
 } from '@internal/sql-schema-ir/types';
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
+import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   renderColumnAlterType,
@@ -70,6 +71,7 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
+import { primaryKeyReplacementStrategy, type ReplacedForeignKey } from './primary-key-replacement';
 import { columnType, isSafeTypeWidening } from './safe-widenings';
 
 /**
@@ -143,6 +145,10 @@ export interface StrategyContext {
   readonly types: SqlTypeLookups;
   readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
   readonly schema: SqlSchemaIR;
+  /** The whole start tree of the plan, every namespace. */
+  readonly startTree: PostgresDatabaseSchemaNode;
+  /** The whole end tree of the plan, every namespace. */
+  readonly endTree: PostgresDatabaseSchemaNode;
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
@@ -178,6 +184,8 @@ export type CallMigrationStrategy = (
        * into their DDL sequencing bucket.
        */
       recipe?: boolean;
+      /** Foreign keys the calls drop and add back unchanged, which the constraint rename pass must leave alone. */
+      replacedForeignKeys?: readonly ReplacedForeignKey[];
     }
   | { kind: 'no_match' };
 
@@ -557,4 +565,5 @@ export const postgresPlannerStrategies: readonly CallMigrationStrategy[] = [
   nullableTighteningCallStrategy,
   storageTypePlanCallStrategy,
   notNullAddColumnCallStrategy,
+  primaryKeyReplacementStrategy,
 ];

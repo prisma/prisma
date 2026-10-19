@@ -70,7 +70,7 @@ export function rootOf(
 }
 
 export function planFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseSchemaNode) {
-  const { issues } = buildPostgresPlanDiff({
+  const { issues, expected } = buildPostgresPlanDiff({
     contract,
     actualSchema: actual,
     frameworkComponents: postgresTypeComponents,
@@ -87,6 +87,8 @@ export function planFor(contract: Contract<SqlStorage>, actual: PostgresDatabase
     codecHooks: new Map(),
     types: postgresTypeLookups,
     storageTypes: contract.storage.types ?? {},
+    startTree: actual,
+    endTree: expected,
     frameworkComponents: postgresTypeComponents,
     // The default per-issue mapper is what this suite pins — the real
     // strategy list is covered elsewhere (see module docstring).

@@ -34,6 +34,7 @@ import type { SqlStorage, StorageTypeInstance } from '@internal/sql-contract/typ
 import type { DdlTableConstraint } from '@internal/sql-relational-core/ast';
 import * as contractFree from '@internal/sql-relational-core/contract-free';
 import {
+  type PrimaryKey,
   RelationalSchemaNodeKind,
   type SqlCheckConstraintIR,
   type SqlColumnDefaultIR,
@@ -48,6 +49,7 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
+import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
@@ -98,6 +100,7 @@ import {
   postgresPlannerStrategies,
   type StrategyContext,
 } from './planner-strategies';
+import type { ReplacedForeignKey } from './primary-key-replacement';
 import { liveColumnWidensSafely } from './safe-widenings';
 
 export type { CallMigrationStrategy, StrategyContext };
@@ -121,6 +124,7 @@ function issueConflict(
 
 export interface IssuePlannerValue {
   readonly calls: readonly PostgresOpFactoryCall[];
+  readonly replacedForeignKeys: readonly ReplacedForeignKey[];
 }
 
 /**
@@ -228,6 +232,23 @@ const DEFAULT_POLICY: MigrationOperationPolicy = {
 
 function emptySchemaIR(): SqlSchemaIR {
   return new SqlSchemaIR({ tables: {} });
+}
+
+function emptyTree(): PostgresDatabaseSchemaNode {
+  return new PostgresDatabaseSchemaNode({
+    namespaces: {},
+    roles: [],
+    existingSchemas: [],
+    pgVersion: 'unknown',
+  });
+}
+
+/**
+ * Foreign key drops run first, then primary key and unique constraint drops, then the rest. A constraint never needs another object dropped before it, and a column or table drop takes its constraints with it, so this order is always valid.
+ */
+function dropRank(call: PostgresOpFactoryCall): number {
+  if (call.factoryName !== 'dropConstraint') return 2;
+  return call.kind === 'foreignKey' ? 0 : 1;
 }
 
 function conflictKindForCall(call: PostgresOpFactoryCall): SqlPlannerConflict['kind'] {
@@ -428,7 +449,7 @@ function isStrictDescendantPath(path: readonly string[], ancestor: readonly stri
 // Node → call construction
 // ----------------------------------------------------------------------------
 
-function fkSpecFromNode(fk: SqlForeignKeyIR, tableName: string): ForeignKeySpec {
+export function fkSpecFromNode(fk: SqlForeignKeyIR, tableName: string): ForeignKeySpec {
   const name = fk.name ?? defaultForeignKeyName(tableName, fk.columns);
   return {
     name,
@@ -748,34 +769,44 @@ function mapColumnDefaultNodeIssue(
   ]);
 }
 
-function mapPrimaryKeyNodeIssue(
+/** The calls for one primary key issue: an add, a drop, or a drop of the old key then an add of the new one. */
+export function primaryKeyCalls(
   issue: SchemaDiffIssue,
   schemaName: string,
   tableName: string,
-): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
-  if (issueOutcome(issue) === 'not-found') {
+): readonly PostgresOpFactoryCall[] {
+  const add = () => {
     const pk = blindCast<
-      { readonly columns: readonly string[]; readonly name?: string },
-      'a not-found primary-key issue always carries the expected PrimaryKey node'
+      PrimaryKey,
+      'a not-found or not-equal primary-key issue always carries the expected PrimaryKey node'
     >(issue.expected);
-    const constraintName = pk.name ?? defaultPrimaryKeyName(tableName);
-    return ok([new AddPrimaryKeyCall(schemaName, tableName, constraintName, [...pk.columns])]);
-  }
-  if (issueOutcome(issue) === 'not-expected') {
+    return new AddPrimaryKeyCall(
+      schemaName,
+      tableName,
+      pk.name ?? defaultPrimaryKeyName(tableName),
+      [...pk.columns],
+    );
+  };
+  const drop = () => {
     const pk = blindCast<
-      { readonly name?: string },
-      'a not-expected primary-key issue always carries the actual PrimaryKey node'
+      PrimaryKey,
+      'a not-expected or not-equal primary-key issue always carries the actual PrimaryKey node'
     >(issue.actual);
-    return ok([
-      new DropConstraintCall(
-        schemaName,
-        tableName,
-        pk.name ?? defaultPrimaryKeyName(tableName),
-        'primaryKey',
-      ),
-    ]);
+    return new DropConstraintCall(
+      schemaName,
+      tableName,
+      pk.name ?? defaultPrimaryKeyName(tableName),
+      'primaryKey',
+    );
+  };
+  switch (issueOutcome(issue)) {
+    case 'not-found':
+      return [add()];
+    case 'not-expected':
+      return [drop()];
+    default:
+      return [drop(), add()];
   }
-  return notOk(nodeConflict('indexIncompatible', issue.path.join('/')));
 }
 
 function mapForeignKeyNodeIssue(
@@ -989,7 +1020,7 @@ export function mapNodeIssueToCall(
       return mapColumnDefaultNodeIssue(issue, schemaName, tableName, columnName, ctx.types);
     }
     case RelationalSchemaNodeKind.primaryKey:
-      return mapPrimaryKeyNodeIssue(issue, schemaName, tableName);
+      return ok(primaryKeyCalls(issue, schemaName, tableName));
     case RelationalSchemaNodeKind.foreignKey:
       return mapForeignKeyNodeIssue(issue, schemaName, tableName);
     case RelationalSchemaNodeKind.unique:
@@ -1020,6 +1051,9 @@ export interface IssuePlannerOptions {
    * snapshots.
    */
   readonly schema?: SqlSchemaIR;
+  /** The whole start and end trees of the plan; empty when omitted. */
+  readonly startTree?: PostgresDatabaseSchemaNode;
+  readonly endTree?: PostgresDatabaseSchemaNode;
   /**
    * Operation-class policy. `planIssues` filters calls whose `operationClass`
    * is not in `policy.allowedOperationClasses` and surfaces them as conflicts
@@ -1059,6 +1093,8 @@ export function planIssues(
     types: options.types,
     storageTypes: options.storageTypes,
     schema,
+    startTree: options.startTree ?? emptyTree(),
+    endTree: options.endTree ?? emptyTree(),
     policy,
     frameworkComponents,
     statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
@@ -1070,11 +1106,13 @@ export function planIssues(
   let remaining = options.issues;
   const recipeCalls: PostgresOpFactoryCall[] = [];
   const bucketablePatternCalls: PostgresOpFactoryCall[] = [];
+  const replacedForeignKeys: ReplacedForeignKey[] = [];
 
   for (const strategy of strategies) {
     const result = strategy(remaining, context);
     if (result.kind === 'match') {
       remaining = result.issues;
+      replacedForeignKeys.push(...(result.replacedForeignKeys ?? []));
       if (result.recipe) {
         recipeCalls.push(...result.calls);
       } else {
@@ -1135,7 +1173,7 @@ export function planIssues(
 
   const calls: PostgresOpFactoryCall[] = [
     ...byCategory('dep'),
-    ...byCategory('drop'),
+    ...byCategory('drop').sort((a, b) => dropRank(a) - dropRank(b)),
     // DROP TYPE after every table drop — a managed enum type can only go once
     // no live column still uses it.
     ...byCategory('dropType'),
@@ -1153,5 +1191,5 @@ export function planIssues(
     ...byCategory('rlsEnable'),
   ];
 
-  return ok({ calls });
+  return ok({ calls, replacedForeignKeys });
 }

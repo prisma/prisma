@@ -144,6 +144,24 @@ describe('recreateTableStrategy', () => {
       }),
     ],
     [
+      'a foreign key whose actions change',
+      issue({
+        path: ['database', 'user', 'foreign-key:org_id'],
+        expected: foreignKey({
+          columns: ['email'],
+          referencedTable: 'org',
+          referencedColumns: ['id'],
+          onDelete: 'cascade',
+        }),
+        actual: foreignKey({
+          columns: ['email'],
+          referencedTable: 'org',
+          referencedColumns: ['id'],
+          onDelete: 'restrict',
+        }),
+      }),
+    ],
+    [
       'a removed column default',
       issue({
         path: ['database', 'user', 'column:email', 'default'],

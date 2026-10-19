@@ -11,6 +11,7 @@ import {
 } from './default-constraint-names';
 import { RenameConstraintCall } from './op-factory-call';
 import { postgresContractToSchema } from './postgres-contract-to-schema';
+import type { ReplacedForeignKey } from './primary-key-replacement';
 
 export interface ConstraintNameRenameInput {
   readonly schemaName: string;
@@ -21,6 +22,8 @@ export interface ConstraintNameRenameInput {
   /** The table as the start tree describes it, from a contract or from the database. */
   readonly previous: PostgresTableSchemaNode;
   readonly next: PostgresTableSchemaNode;
+  /** The `id`s of this table's foreign keys that the plan drops and adds back, under their end names already. */
+  readonly replacedForeignKeyIds: ReadonlySet<string>;
 }
 
 /** The constraint of `nextNodes` the diff pairs with `node` and finds unchanged. */
@@ -37,7 +40,7 @@ function unchangedIn<TNode extends DiffableNode>(
 export function constraintNameRenames(
   input: ConstraintNameRenameInput,
 ): readonly RenameConstraintCall[] {
-  const { schemaName, from, to, previous, next } = input;
+  const { schemaName, from, to, previous, next, replacedForeignKeyIds } = input;
   const rename = (
     kind: 'primaryKey' | 'unique' | 'foreignKey',
     oldName: string,
@@ -68,25 +71,28 @@ export function constraintNameRenames(
       defaultUniqueName(to, unique.columns),
     ),
   );
-  const foreignKeys = previous.foreignKeys.flatMap((fk) =>
-    rename(
-      'foreignKey',
-      fk.name ?? defaultForeignKeyName(from, fk.columns),
-      unchangedIn(fk, next.foreignKeys),
-      defaultForeignKeyName(to, fk.columns),
-    ),
-  );
+  const foreignKeys = previous.foreignKeys
+    .filter((fk) => !replacedForeignKeyIds.has(fk.id))
+    .flatMap((fk) =>
+      rename(
+        'foreignKey',
+        fk.name ?? defaultForeignKeyName(from, fk.columns),
+        unchangedIn(fk, next.foreignKeys),
+        defaultForeignKeyName(to, fk.columns),
+      ),
+    );
   return [...primaryKey, ...uniques, ...foreignKeys];
 }
 
 /**
- * The constraint renames of a plan: {@link constraintNameRenames} for every table the start tree and the end contract both have, with the start tree as the plan's rename statements left it. The start tree comes from the start contract for `migration plan` and from the database for `db update`, so a database Prisma 8 created under derived names is renamed too once the contract states other names.
+ * The constraint renames of a plan: {@link constraintNameRenames} for every table the start tree and the end contract both have, with the start tree as the plan's rename statements left it. The start tree comes from the start contract for `migration plan` and from the database for `db update`, so a database Prisma 8 created under derived names is renamed too once the contract states other names. A foreign key in `replacedForeignKeys` is skipped: the plan drops it and adds it back under its end name.
  */
 export function plannedConstraintNameRenames(
   options: Pick<
     SqlMigrationPlannerPlanOptions,
     'contract' | 'schema' | 'policy' | 'frameworkComponents'
   >,
+  replacedForeignKeys: readonly ReplacedForeignKey[],
 ): readonly RenameConstraintCall[] {
   if (!options.policy.allowedOperationClasses.includes('widening')) return [];
   PostgresDatabaseSchemaNode.assert(options.schema);
@@ -106,9 +112,21 @@ export function plannedConstraintNameRenames(
         : namespace.schemaName;
     return Object.entries(namespace.tables).flatMap(([tableName, next]) => {
       const previous = startTables[tableName];
+      const replacedForeignKeyIds = new Set(
+        replacedForeignKeys
+          .filter((fk) => fk.ddlSchemaName === namespace.schemaName && fk.tableName === tableName)
+          .map((fk) => fk.id),
+      );
       return previous === undefined
         ? []
-        : constraintNameRenames({ schemaName, from: tableName, to: tableName, previous, next });
+        : constraintNameRenames({
+            schemaName,
+            from: tableName,
+            to: tableName,
+            previous,
+            next,
+            replacedForeignKeyIds,
+          });
     });
   });
 }
