@@ -27,6 +27,7 @@ The package depends on no SQL or Mongo package: its runtime dependencies are `@i
 
 ```typescript
 import postgres from '@internal/postgres/runtime';
+import { contractFromJson } from '@internal/postgres/static';
 import {
   cacheAnnotation,
   createCacheMiddleware,
@@ -36,8 +37,8 @@ import type { Contract } from './contract.d';
 import contractJson from './contract.json' with { type: 'json' };
 
 const cache = createCacheMiddleware(); // default store: in memory, 1000 entries, 60 s
-const db = postgres<Contract>({
-  contractJson,
+const db = postgres({
+  contract: contractFromJson<Contract>(contractJson),
   url: process.env['DATABASE_URL']!,
   middleware: [cache],
 });
@@ -340,7 +341,7 @@ await db.runtime().execute(
 - **Store errors are only logged.** An error from `unset` is thrown from `activityFinalized`; the runtime passes it to `ctx.log.error` with the event `middleware.activityFinalized.error` and swallows it. The write has already happened, so the entry stays until it expires. `postgres()`, `sqlite()` and `supabase()` drop these events unless the application passes `log`, so pass it to see a failed invalidation:
 
   ```typescript
-  const db = postgres<Contract>({ contractJson, url, middleware: [cache], log: console });
+  const db = postgres({ contract: contractFromJson<Contract>(contractJson), url, middleware: [cache], log: console });
   ```
 - **`meta` needs a store that indexes it.** The default store refuses any `meta` before removing anything, so on it an annotation with `meta` removes nothing, not even its `keys`, and every such write logs `RUNTIME.CACHE_STORE_META_UNSUPPORTED` through `middleware.activityFinalized.error`. Nothing fails, so pass `log` to the client and check it.
 - **Not on Mongo ORM writes.** The Mongo ORM's write methods take no annotations. On Mongo, call `invalidate` after the write.
