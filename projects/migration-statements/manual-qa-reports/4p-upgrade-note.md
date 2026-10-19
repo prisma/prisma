@@ -85,3 +85,17 @@ The step-2 query used the same shim as in paths A and B. Running the section's t
 Not covered: the claim that `db update` creates the contract's indexes again after the rename. This contract declared no indexes on `events`.
 
 Logs: `wip/pr2-id-qa/`.
+
+## Path C in real mongosh
+
+Run on 2026-10-19 by the orchestrator with `mongosh` 2.13.0 (`pnpm dlx mongosh@2`, approved by Will), against a one-node replica set from mongodb-memory-server. The three snippets of "Keeping documents whose `_id` is not an ObjectId" were copied from the note unchanged and run in order with `--eval`.
+
+| Step | Input | Result |
+| --- | --- | --- |
+| Seed | `events`: `{ _id: "evt-1", name: "Launch" }`, `{ _id: "evt-2", name: "Meetup" }`, index `name_1`; `tickets`: A1 → evt-1, B2 and B3 → evt-2 | seeded |
+| 2 | copy snippet | exit 0; `events_copy` holds both events with new ObjectId `_id` and `legacyId` |
+| 3 | `updateMany` snippet | exit 0; every ticket's `eventId` is the new ObjectId |
+| 4 | `db.events_copy.renameCollection('events', true)` | `{ ok: 1 }`; collections are `tickets` and `events`; `events` has only `_id_`, so `name_1` was dropped as the note says |
+| Check | `$lookup` from `tickets` to `events` on `eventId` | A1 → Launch, B2 → Meetup, B3 → Meetup |
+
+Not covered here: `db update` recreating the contract's indexes after the rename. Path C's ORM run covers the rest of the upgrade.
