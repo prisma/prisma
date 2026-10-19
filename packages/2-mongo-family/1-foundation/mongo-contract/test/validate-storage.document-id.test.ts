@@ -61,7 +61,11 @@ function contractWith(
   };
 }
 
-const item: MongoModelDefinition = { fields: {}, storage: { collection: 'items' }, relations: {} };
+const item: MongoModelDefinition = {
+  fields: {},
+  storage: { fields: {}, collection: 'items' },
+  relations: {},
+};
 
 describe('validateMongoStorage() and the rules every MongoDB contract source follows', () => {
   it('accepts a collection without a validator, as a Prisma 6 contract has', () => {
@@ -106,13 +110,13 @@ describe('validateMongoStorage() and the rules every MongoDB contract source fol
             Item: { ...item, relations: { task: { to: ref('Task'), cardinality: '1:1' } } },
             Task: {
               fields: {},
-              storage: {},
+              storage: { fields: {} },
               relations: {},
               owner: 'Item',
               discriminator: { field: 'type' },
               variants: { bug: ref('Bug') },
             },
-            Bug: { fields: {}, storage: {}, relations: {}, base: ref('Task') },
+            Bug: { fields: {}, storage: { fields: {} }, relations: {}, base: ref('Task') },
           },
           undefined,
         ),

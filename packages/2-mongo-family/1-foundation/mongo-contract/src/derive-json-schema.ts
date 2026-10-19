@@ -1,17 +1,22 @@
 import type {
   ContractEmbedRelation,
   ContractField,
-  ContractModelBase,
   ContractRelation,
   ContractValueObject,
   JsonValue,
 } from '@internal/contract/types';
 import { assertDefined } from '@internal/utils/assertions';
+import type { MongoModelDefinition } from './contract-types';
 import { MongoValidator } from './ir/mongo-validator';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
 import { recursiveGroupsOf, typeKey } from './recursive-groups';
 import { isEmbedRelation } from './relation-fields';
-import { DOCUMENT_ID, documentIdFieldOf, storedFieldNameOf } from './stored-field-names';
+import {
+  DOCUMENT_ID,
+  documentIdFieldOf,
+  type StoredFieldsOwner,
+  storedFieldNameOf,
+} from './stored-field-names';
 
 /**
  * The permitted values a field's value set restricts it to, keyed by the value set's name — the
@@ -21,8 +26,8 @@ import { DOCUMENT_ID, documentIdFieldOf, storedFieldNameOf } from './stored-fiel
 export type FieldValueSets = Record<string, { readonly values: readonly JsonValue[] }>;
 
 export type ValidatorModel = Pick<
-  ContractModelBase,
-  'fields' | 'relations' | 'discriminator' | 'variants'
+  MongoModelDefinition,
+  'fields' | 'relations' | 'discriminator' | 'variants' | 'storage'
 >;
 
 interface SchemaSources extends ModelValidatorSources {
@@ -66,8 +71,7 @@ function entering(key: string, sources: SchemaSources): SchemaSources {
   return { ...sources, enteredGroups: new Set([...sources.enteredGroups, group]) };
 }
 
-interface StoredShape {
-  readonly fields: Record<string, ContractField>;
+interface StoredShape extends StoredFieldsOwner {
   readonly relations: Record<string, ContractRelation>;
 }
 
@@ -301,5 +305,10 @@ export function deriveModelJsonSchema(
     assertDefined(variantModel, `Variant model "${variant.model}" of "${modelName}" is missing`);
     return { discriminatorValue, modelName: variant.model, ...variantModel };
   });
-  return polymorphicSchema(model, model.discriminator.field, variants, schemaSources);
+  return polymorphicSchema(
+    model,
+    storedFieldNameOf(model, model.discriminator.field),
+    variants,
+    schemaSources,
+  );
 }

@@ -123,7 +123,10 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: {
+              fields: { _id: { field: '_id' }, name: { field: 'name' }, bio: { field: 'bio' } },
+              collection: 'users',
+            },
           },
         },
         storage: namespacedMongoStorageFromCollections({ users: {} }),
@@ -157,7 +160,13 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'lists' },
+            storage: {
+              fields: {
+                nullableElements: { field: 'nullableElements' },
+                nullableList: { field: 'nullableList' },
+              },
+              collection: 'lists',
+            },
           },
         },
         storage: namespacedMongoStorageFromCollections({ lists: {} }),
@@ -201,7 +210,7 @@ describe('mongoEmission.generateContractTypes', () => {
                 on: { localFields: ['_id'], targetFields: ['authorId'] },
               },
             },
-            storage: { collection: 'users' },
+            storage: { fields: { _id: { field: '_id' } }, collection: 'users' },
           },
           Post: {
             fields: {
@@ -224,7 +233,10 @@ describe('mongoEmission.generateContractTypes', () => {
                 on: { localFields: ['authorId'], targetFields: ['_id'] },
               },
             },
-            storage: { collection: 'posts' },
+            storage: {
+              fields: { _id: { field: '_id' }, authorId: { field: 'authorId' } },
+              collection: 'posts',
+            },
           },
         },
         storage: namespacedMongoStorageFromCollections({ users: {}, posts: {} }),
@@ -251,13 +263,44 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: { fields: { _id: { field: '_id' } }, collection: 'users' },
           },
         },
         storage: namespacedMongoStorageFromCollections({ users: {} }),
       });
       const types = generateContractDts(contract, mongoEmission, [], testHashes);
       expect(types).toContain('readonly collection: "users"');
+    });
+
+    it('generates the stored key of each field', () => {
+      const contract = createMongoContract({
+        models: {
+          User: {
+            fields: {
+              id: {
+                nullable: false,
+                many: false,
+                type: { kind: 'scalar', codecId: 'mongo/objectId@1' },
+              },
+              displayName: {
+                nullable: false,
+                many: false,
+                type: { kind: 'scalar', codecId: 'mongo/string@1' },
+              },
+            },
+            relations: {},
+            storage: {
+              collection: 'users',
+              fields: { id: { field: '_id' }, displayName: { field: 'display_name' } },
+            },
+          },
+        },
+        storage: namespacedMongoStorageFromCollections({ users: {} }),
+      });
+      const types = generateContractDts(contract, mongoEmission, [], testHashes);
+      expect(types).toContain(
+        'readonly storage: { readonly collection: "users"; readonly fields: { readonly id: { readonly field: "_id" }; readonly displayName: { readonly field: "display_name" } } }',
+      );
     });
 
     it('generates embedded model storage as empty record', () => {
@@ -275,6 +318,7 @@ describe('mongoEmission.generateContractTypes', () => {
               addresses: { to: crossRef('Address'), cardinality: '1:N' },
             },
             storage: {
+              fields: { _id: { field: '_id' } },
               collection: 'users',
               relations: { addresses: { field: 'addresses' } },
             },
@@ -288,7 +332,7 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: {},
+            storage: { fields: { street: { field: 'street' } } },
             owner: 'User',
           },
         },
@@ -313,7 +357,7 @@ describe('mongoEmission.generateContractTypes', () => {
             relations: {
               comments: { to: crossRef('Comment'), cardinality: '1:N' },
             },
-            storage: { collection: 'posts' },
+            storage: { fields: { _id: { field: '_id' } }, collection: 'posts' },
           },
           Comment: {
             fields: {
@@ -324,7 +368,7 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: {},
+            storage: { fields: { text: { field: 'text' } } },
             owner: 'Post',
           },
         },
@@ -351,7 +395,10 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'tasks' },
+            storage: {
+              fields: { _id: { field: '_id' }, type: { field: 'type' } },
+              collection: 'tasks',
+            },
             discriminator: { field: 'type' },
             variants: { bug: crossRef('Bug'), feature: crossRef('Feature') },
           },
@@ -364,7 +411,7 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'tasks' },
+            storage: { fields: { severity: { field: 'severity' } }, collection: 'tasks' },
             base: crossRef('Task'),
           },
           Feature: {
@@ -376,7 +423,7 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'tasks' },
+            storage: { fields: { priority: { field: 'priority' } }, collection: 'tasks' },
             base: crossRef('Task'),
           },
         },
@@ -410,6 +457,7 @@ describe('mongoEmission.generateContractTypes', () => {
               addresses: { to: crossRef('Address'), cardinality: '1:N' },
             },
             storage: {
+              fields: { _id: { field: '_id' } },
               collection: 'users',
               relations: { addresses: { field: 'addresses' } },
             },
@@ -423,7 +471,7 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: {},
+            storage: { fields: { street: { field: 'street' } } },
             owner: 'User',
           },
         },
@@ -490,7 +538,7 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: { fields: { _id: { field: '_id' } }, collection: 'users' },
           },
         },
         valueObjects: {
@@ -553,7 +601,10 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: {
+              fields: { _id: { field: '_id' }, homeAddress: { field: 'homeAddress' } },
+              collection: 'users',
+            },
           },
         },
         valueObjects: {
@@ -592,7 +643,10 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: {
+              fields: { _id: { field: '_id' }, previousAddresses: { field: 'previousAddresses' } },
+              collection: 'users',
+            },
           },
         },
         valueObjects: {
@@ -681,7 +735,10 @@ describe('mongoEmission.generateContractTypes', () => {
               },
             },
             relations: {},
-            storage: { collection: 'users' },
+            storage: {
+              fields: { _id: { field: '_id' }, name: { field: 'name' } },
+              collection: 'users',
+            },
           },
         },
         storage: namespacedMongoStorageFromCollections({ users: {} }),

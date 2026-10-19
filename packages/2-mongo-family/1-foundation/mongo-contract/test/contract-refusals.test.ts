@@ -1,14 +1,21 @@
-import { type ContractModelBase, crossRef } from '@internal/contract/types';
+import { crossRef } from '@internal/contract/types';
 import { describe, expect, it } from 'vitest';
 import { mongoContractRefusalsOf } from '../src/contract-refusals';
+import type { MongoModelDefinition, MongoModelStorage } from '../src/contract-types';
 import { mongoTypeLookups } from '../src/fake-type-lookups';
 import { scalarField } from './derive-json-schema-helpers';
 
 function model(
-  fields: ContractModelBase['fields'],
-  extra: Partial<ContractModelBase> = {},
-): ContractModelBase {
-  return { fields, relations: {}, storage: {}, ...extra };
+  fields: MongoModelDefinition['fields'],
+  {
+    storage,
+    ...extra
+  }: Partial<Omit<MongoModelDefinition, 'storage'>> & {
+    readonly storage?: Partial<MongoModelStorage>;
+  } = {},
+): MongoModelDefinition {
+  const identity = Object.fromEntries(Object.keys(fields).map((name) => [name, { field: name }]));
+  return { fields, relations: {}, storage: { fields: identity, ...storage }, ...extra };
 }
 
 function refusals(input: Partial<Parameters<typeof mongoContractRefusalsOf>[0]>) {
@@ -59,6 +66,26 @@ describe('mongoContractRefusalsOf', () => {
         modelName: 'Event',
         fieldName: '_id',
         collection: 'events',
+      }),
+    ]);
+  });
+
+  it('names the field stored as _id by its own name', () => {
+    expect(
+      refusals({
+        models: {
+          User: model(
+            { id: scalarField('mongo/string@1') },
+            { storage: { collection: 'users', fields: { id: { field: '_id' } } } },
+          ),
+        },
+      }),
+    ).toEqual([
+      expect.objectContaining({
+        kind: 'documentId',
+        modelName: 'User',
+        fieldName: 'id',
+        collection: 'users',
       }),
     ]);
   });

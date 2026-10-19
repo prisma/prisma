@@ -51,6 +51,56 @@ function storageDeclaresCollection(
   return false;
 }
 
+function fieldStorageErrors(
+  qualifiedName: string,
+  model: MongoModelDefinition,
+  models: Record<string, MongoModelDefinition>,
+): string[] {
+  const errors: string[] = [];
+  const storageFields = model.storage.fields;
+  for (const fieldName of Object.keys(model.fields)) {
+    if (!Object.hasOwn(storageFields, fieldName)) {
+      errors.push(`Model "${qualifiedName}" field "${fieldName}" has no entry in storage.fields`);
+    }
+  }
+  for (const fieldName of Object.keys(storageFields)) {
+    if (!Object.hasOwn(model.fields, fieldName)) {
+      errors.push(
+        `Model "${qualifiedName}" storage.fields names "${fieldName}", which is not a field of the model`,
+      );
+    }
+  }
+  if (errors.length > 0) return errors;
+  const fieldsByStoredName = new Map<string, string>();
+  const inherited = baseStoredFields(model, models);
+  for (const [fieldName, storedName] of [
+    ...inherited,
+    ...Object.entries(storageFields).map(([name, { field }]) => [name, field] as const),
+  ]) {
+    const other = fieldsByStoredName.get(storedName);
+    if (other !== undefined) {
+      const [first, second] = [other, fieldName].sort();
+      errors.push(
+        `Model "${qualifiedName}" fields "${first}" and "${second}" are both stored as "${storedName}"`,
+      );
+    }
+    fieldsByStoredName.set(storedName, fieldName);
+  }
+  return errors;
+}
+
+function baseStoredFields(
+  model: MongoModelDefinition,
+  models: Record<string, MongoModelDefinition>,
+): (readonly [string, string])[] {
+  const base = model.base === undefined ? undefined : models[model.base.model];
+  if (base === undefined) return [];
+  return [
+    ...baseStoredFields(base, models),
+    ...Object.entries(base.storage.fields).map(([name, { field }]) => [name, field] as const),
+  ];
+}
+
 export function validateMongoStorage(contract: MongoContract): void {
   const errors: string[] = [];
 
@@ -58,6 +108,8 @@ export function validateMongoStorage(contract: MongoContract): void {
     const models = namespace.models as Record<string, MongoModelDefinition>;
     for (const [modelName, model] of Object.entries(models)) {
       const qualifiedName = `${namespaceId}:${modelName}`;
+      const fieldErrors = fieldStorageErrors(qualifiedName, model, models);
+      errors.push(...fieldErrors);
       if (
         model.storage.collection &&
         !storageDeclaresCollection(contract.storage, model.storage.collection)
@@ -114,12 +166,10 @@ export function validateMongoStorage(contract: MongoContract): void {
             }
           }
 
-          const nullabilityError = toOneRelationNullabilityError(
-            qualifiedName,
-            relName,
-            relation,
-            model,
-          );
+          const nullabilityError =
+            fieldErrors.length > 0
+              ? undefined
+              : toOneRelationNullabilityError(qualifiedName, relName, relation, model);
           if (nullabilityError !== undefined) errors.push(nullabilityError);
         }
       }

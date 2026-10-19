@@ -5,6 +5,7 @@ import type {
   ContractValueObject,
 } from '@internal/contract/types';
 import { collectionRootModelsOf } from './collection-root-models';
+import type { MongoModelDefinition } from './contract-types';
 import { documentIdRefusalOf } from './document-id-refusal';
 import { type FieldBsonTypeRefusal, fieldBsonTypeRefusalOf } from './field-bson-type-refusal';
 import { bsonTypesOfCodec, type MongoTypeLookups } from './mongo-data-type';
@@ -63,7 +64,7 @@ export type MongoContractRefusal =
     };
 
 export interface MongoContractRefusalsInput {
-  readonly models: Record<string, ContractModelBase>;
+  readonly models: Record<string, MongoModelDefinition>;
   readonly valueObjects: Record<string, ContractValueObject>;
   readonly enums: Record<string, ContractEnum>;
   readonly lookups: MongoTypeLookups;
@@ -139,7 +140,7 @@ function fieldRefusals(
 }
 
 function documentIdRefusals(
-  models: Record<string, ContractModelBase>,
+  models: Record<string, MongoModelDefinition>,
   lookups: MongoTypeLookups,
 ): MongoContractRefusal[] {
   return Object.entries(collectionRootModelsOf(models)).flatMap(([collection, modelNames]) =>
