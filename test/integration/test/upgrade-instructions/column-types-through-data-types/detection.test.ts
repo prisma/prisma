@@ -99,6 +99,16 @@ describe('extension detection', () => {
       'const [first] = resolveWrittenSqlTypes(text, dataTypes);\nif (first?.dataType === "pg/int4") {}',
       'const [first] = resolveWrittenSqlTypes(text, dataTypes);\nif (first?.dataType.id === "pg/int4") {}',
     ],
+    [
+      'control-adapters-take-declared-data-types',
+      'new PostgresControlAdapter(createPostgresBuiltinCodecLookup(), createPostgresBuiltinDataTypeLookup())',
+      'postgresAdapterDescriptor.create(stack)',
+    ],
+    [
+      'control-adapters-take-declared-data-types',
+      'const adapter = new SqliteControlAdapter(codecRegistry);',
+      'const adapter = sqliteAdapterDescriptor.create(stack);',
+    ],
   ])('%s finds the old use and skips the new one', (id, before, after) => {
     expect({
       before: detects('extension', id, before),

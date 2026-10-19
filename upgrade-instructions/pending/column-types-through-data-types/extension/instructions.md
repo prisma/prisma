@@ -44,6 +44,13 @@ changes:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
         - '\b(?:buildExpectedFormatType|alterTypeCheckText)\b'
+  - id: control-adapters-take-declared-data-types
+    summary: |
+      `PostgresControlAdapter` (`@prisma/orm-postgres/adapter/control`) and `SqliteControlAdapter` (`@prisma/orm-sqlite/adapter/control`) take the stack's declared data types as a new last constructor argument, because introspection resolves each column's reported type over them. Pass the target's `postgresDataTypes` or `sqliteDataTypes` (from `/target/data-types`), or, when the stack has extensions, the stack's types: `stack.declaredDataTypes.map(({ type }) => type)`. Code that leaves it out fails to compile, and untyped JavaScript fails at the first introspection.
+    detection:
+      glob: "**/*.{ts,mts,cts,tsx,js,mjs,cjs}"
+      matches:
+        - '\bnew\s+(?:Postgres|Sqlite)ControlAdapter\s*\('
   - id: resolved-sql-type-carries-the-data-type
     summary: |
       `resolveReportedSqlType` and `resolveWrittenSqlTypes` (`@prisma/orm-family-sql/contract/data-type`) return the data type they found in `dataType`, a `SqlDataType`, instead of its id. Read `resolved.dataType.id` where you read `resolved.dataType`.
@@ -136,6 +143,43 @@ readPostgresDefault(raw, 'text[]');
 const resolve: DefaultResolver = (def, column) => read(def, column.many);
 readPostgresDefault(raw, true);
 ```
+
+## `control-adapters-take-declared-data-types`
+
+```ts
+// Before
+import { PostgresControlAdapter } from '@prisma/orm-postgres/adapter/control';
+
+const adapter = new PostgresControlAdapter(
+  createPostgresBuiltinCodecLookup(),
+  createPostgresBuiltinDataTypeLookup(),
+);
+
+// After
+import { PostgresControlAdapter } from '@prisma/orm-postgres/adapter/control';
+import { postgresDataTypes } from '@prisma/orm-postgres/target/data-types';
+
+const adapter = new PostgresControlAdapter(
+  createPostgresBuiltinCodecLookup(),
+  createPostgresBuiltinDataTypeLookup(),
+  postgresDataTypes,
+);
+```
+
+```ts
+// Before
+import { SqliteControlAdapter } from '@prisma/orm-sqlite/adapter/control';
+
+const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup());
+
+// After
+import { SqliteControlAdapter } from '@prisma/orm-sqlite/adapter/control';
+import { sqliteDataTypes } from '@prisma/orm-sqlite/target/data-types';
+
+const adapter = new SqliteControlAdapter(createSqliteBuiltinCodecLookup(), sqliteDataTypes);
+```
+
+The adapter resolves each column the database reports to the first of these data types that claims it, in the order given. When your stack has extensions that declare data types, such as pgvector, pass `stack.declaredDataTypes.map(({ type }) => type)`, or build the adapter with the adapter descriptor's `create(stack)`, which does that for you. With only the target's types, a column of an extension's type is reported as one no data type declares.
 
 ## `resolved-sql-type-carries-the-data-type`
 
