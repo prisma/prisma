@@ -223,10 +223,11 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     >(actual);
     assertNode(node, 'SqlColumnIR', SqlColumnIR.is);
     if (node.storedType === undefined && node.reportedType !== undefined) {
-      return `The database column is "${typeTextOf(node)}", which no data type in the configured stack declares.`;
+      const reported = node.typeText === '' ? 'has no declared type' : `is ${shownTypeOf(node)}`;
+      return `The database column ${reported}, which no data type in the configured stack declares.`;
     }
     if (!sqlColumnTypesEqual(this, node)) {
-      return `The contract column is "${typeTextOf(this)}" and the database column is "${typeTextOf(node)}".`;
+      return `The contract column is ${shownTypeOf(this)} and the database column is ${shownTypeOf(node)}.`;
     }
     if (this.nullable !== node.nullable) {
       return `The contract column is ${nullability(this)} and the database column is ${nullability(node)}.`;
@@ -251,9 +252,10 @@ export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean
   );
 }
 
-/** The column's type as the contract writes it, or as introspection gives it, with `[]` for a list. */
-function typeTextOf(column: SqlColumnIR): string {
-  return `${column.typeText}${column.many === true ? '[]' : ''}`;
+/** The column's type as the contract writes it, or as introspection gives it, with `[]` for a list, in double quotes unless the text has double quotes of its own, as `"char"` does. */
+function shownTypeOf(column: SqlColumnIR): string {
+  const text = `${column.typeText}${column.many === true ? '[]' : ''}`;
+  return text.includes('"') ? text : `"${text}"`;
 }
 
 function nullability(column: SqlColumnIR): string {

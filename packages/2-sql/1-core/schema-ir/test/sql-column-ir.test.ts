@@ -198,6 +198,30 @@ describe('SqlColumnIR', () => {
       );
     });
 
+    it('names a type text that has its own double quotes without adding more', () => {
+      const database = new SqlColumnIR({
+        name: 'c',
+        typeText: '"char"',
+        nullable: false,
+        reportedType: { text: '"char"', kind: undefined, schema: 'pg_catalog', name: 'char' },
+      });
+      expect(column().explainMismatch(database)).toBe(
+        'The database column is "char", which no data type in the configured stack declares.',
+      );
+    });
+
+    it('says when an unclaimed database column has no declared type', () => {
+      const database = new SqlColumnIR({
+        name: 'c',
+        typeText: '',
+        nullable: false,
+        reportedType: { text: '', kind: undefined, schema: undefined, name: undefined },
+      });
+      expect(column().explainMismatch(database)).toBe(
+        'The database column has no declared type, which no data type in the configured stack declares.',
+      );
+    });
+
     it('names the other column type in a comparison of two contracts', () => {
       expect(column().explainMismatch(column({ typeText: 'int4', storedType: int4 }))).toBe(
         'The contract column is "text" and the database column is "int4".',
