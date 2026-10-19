@@ -177,9 +177,6 @@ export default {
       }
     }
 
-    // The Task collection and its Bug and Feature variants are registered in
-    // `src/orm-client/collections.ts` for parity with the demo schema; no
-    // route queries them.
     return notFound(url);
   },
 };
