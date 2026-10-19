@@ -155,24 +155,63 @@ const SEPARATE_THE_MODELS =
   'move the models to separate collections, or carry out the change in a dataTransform operation of a migration.ts, with a filter that selects only their documents';
 
 /**
- * The other root models stored in `collection` that store `field`, themselves or in a variant. A collection that stores several root models has no discriminator that tells their documents apart, so a change to one model's field reaches theirs too.
+ * The discriminator field and value a variant's filter selects, or `undefined` for a filter that selects by anything else, or no filter.
  */
-function otherRootModelsStoring(
+function discriminatorValueOf(
+  filter: Document | undefined,
+): { readonly field: string; readonly value: unknown } | undefined {
+  const entries = Object.entries(filter ?? {});
+  if (entries.length !== 1) return undefined;
+  const [entry] = entries;
+  if (entry === undefined) return undefined;
+  const [field, value] = entry;
+  return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+    ? { field, value }
+    : undefined;
+}
+
+/**
+ * The other models stored in `collection`, root models and their variants, whose documents a change of `storedName` with `filter` reaches, and which store the field themselves or through their base. No discriminator tells the documents of several root models apart, so without a filter, or with a base model's filter, every other root model's documents are reached. A variant's filter, one discriminator value, reaches a model only when its documents can hold that value: a variant of another root model with the same discriminator field and value, or a model that declares the discriminator field itself.
+ */
+function otherModelsReached(
   contract: ContractWithDomain,
   model: ModelCoordinate,
   collection: string,
+  filter: Document | undefined,
   storedName: string,
 ): readonly string[] {
   const models = contract.domain.namespaces[model.namespaceId]?.models ?? {};
-  const stores = (name: string) => {
-    const root = models[name];
-    if (root === undefined) return false;
-    const variants = Object.values(root.variants ?? {}).map((variant) => models[variant.model]);
-    return [root, ...variants].some((each) => each !== undefined && storesField(each, storedName));
+  const baseOf = (name: string) => {
+    const base = models[name]?.base;
+    return base === undefined ? undefined : models[base.model];
   };
-  return (collectionRootModelsOf(models)[collection] ?? []).filter(
-    (name) => name !== model.model && stores(name),
-  );
+  const storesOrInherits = (name: string, field: string) => {
+    const each = models[name];
+    const base = baseOf(name);
+    return (
+      (each !== undefined && storesField(each, field)) ||
+      (base !== undefined && storesField(base, field))
+    );
+  };
+  const selected = discriminatorValueOf(filter);
+  const canHold = (name: string) => {
+    if (selected === undefined) return true;
+    const base = baseOf(name);
+    if (base?.discriminator?.field === selected.field) {
+      return Object.entries(base.variants ?? {}).some(
+        ([value, variant]) => variant.model === name && value === selected.value,
+      );
+    }
+    return storesOrInherits(name, selected.field);
+  };
+  const subjectRoot = modelAt(contract, model)?.base?.model ?? model.model;
+  return (collectionRootModelsOf(models)[collection] ?? [])
+    .filter((name) => name !== subjectRoot)
+    .flatMap((name) => [
+      name,
+      ...Object.values(models[name]?.variants ?? {}).map((variant) => variant.model),
+    ])
+    .filter((name) => canHold(name) && storesOrInherits(name, storedName));
 }
 
 function sharedCollectionWhy(
@@ -185,17 +224,16 @@ function sharedCollectionWhy(
 }
 
 /**
- * A removal the plan cannot carry out because another root model stored in the same collection still stores the field, and no discriminator selects the documents of the model that loses it. A variant's removal is filtered on its discriminator value, which only its own documents hold; a base model's removal filters on the values of the variants that keep the field, which the other root models' documents, lacking the discriminator, also match.
+ * A removal the plan cannot carry out because another root model stored in the same collection still stores the field, and no discriminator selects the documents of the model that loses it.
  */
 export function sharedCollectionRemovalRefusals(
   removals: readonly FieldRemoval[],
-  fromContract: ContractWithDomain,
   contract: ContractWithDomain,
 ): readonly MigrationPlannerConflict[] {
   return removals.flatMap((removal): MigrationPlannerConflict[] => {
     const { subject, call } = removal;
-    if (subject.kind !== 'field' || variantFilter(fromContract, subject) !== undefined) return [];
-    const others = otherRootModelsStoring(contract, subject, call.collection, call.field);
+    if (subject.kind !== 'field') return [];
+    const others = otherModelsReached(contract, subject, call.collection, call.filter, call.field);
     if (others.length === 0) return [];
     return [
       {
@@ -466,32 +504,31 @@ function planFieldStatement(
   const policyRefusal = controlPolicyRefusal(statement, label, input.contract, collection);
   if (policyRefusal !== undefined) return policyRefusal;
   const variant = variantFilter(input.fromContract, statement.from);
-  if (variant === undefined) {
-    const fromModel = modelAt(input.fromContract, statement.from);
-    const renamedTogether = new Set(
-      input.statements.flatMap((other) =>
-        other.entity === 'field' &&
-        other.from.namespaceId === statement.from.namespaceId &&
-        other.from.field === statement.from.field &&
-        other.to.field === statement.to.field
-          ? [other.from.model]
-          : [],
-      ),
+  const fromModel = modelAt(input.fromContract, statement.from);
+  const renamedTogether = new Set(
+    input.statements.flatMap((other) =>
+      other.entity === 'field' &&
+      other.from.namespaceId === statement.from.namespaceId &&
+      other.from.field === statement.from.field &&
+      other.to.field === statement.to.field
+        ? [other.from.model]
+        : [],
+    ),
+  );
+  const others = otherModelsReached(
+    input.fromContract,
+    statement.from,
+    originCollection,
+    variant,
+    fromModel === undefined
+      ? statement.from.field
+      : storedFieldNameOf(fromModel, statement.from.field),
+  ).filter((name) => !renamedTogether.has(name));
+  if (others.length > 0) {
+    return refuse(
+      `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(statement.from.field)} in the same collection, ${JSON.stringify(collection)}`,
+      `${sharedCollectionWhy(collection, others, 'renaming the field would rename it in the documents')} To change it, ${SEPARATE_THE_MODELS}.`,
     );
-    const others = otherRootModelsStoring(
-      input.fromContract,
-      statement.from,
-      originCollection,
-      fromModel === undefined
-        ? statement.from.field
-        : storedFieldNameOf(fromModel, statement.from.field),
-    ).filter((name) => !renamedTogether.has(name));
-    if (others.length > 0) {
-      return refuse(
-        `model ${others.map((name) => JSON.stringify(name)).join(', ')} stores field ${JSON.stringify(statement.from.field)} in the same collection, ${JSON.stringify(collection)}`,
-        `${sharedCollectionWhy(collection, others, 'renaming the field would rename it in the documents')} To change it, ${SEPARATE_THE_MODELS}.`,
-      );
-    }
   }
   const filter =
     variant ?? rootDocumentsLosing(input.contract, statement.to, statement.from.field)?.filter;
