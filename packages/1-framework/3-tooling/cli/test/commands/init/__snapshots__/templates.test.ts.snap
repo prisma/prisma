@@ -142,7 +142,7 @@ const user = await db.orm.users
   .first();
 
 // Your editor will show the type of user as
-// { _id: ObjectId; email: string; username: string | null; name: string | null; posts: Post[] } | null
+// { id: ObjectId; email: string; username: string | null; name: string | null; posts: Post[] } | null
 \`\`\`
 
 \`db\` connects to MongoDB lazily on the first query, so there is no manual \`connect(...)\` step in your application code. Call \`await db.close()\` if you need to release the underlying connection (typically only in tests or short-lived scripts). After \`close()\` the client is single-shot — any further query, \`connect()\`, or \`runtime()\` call rejects with \`"Mongo client is closed"\`. Construct a new \`mongo({...})\` if you need to use it again.
@@ -316,7 +316,7 @@ export const contract = defineContract(
       User: model('User', {
         collection: 'users',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           email: field.string(),
           username: field.string().optional(),
           name: field.string().optional(),
@@ -337,7 +337,7 @@ const user = await db.orm.users
   .first();
 
 // Your editor will show the type of user as
-// { _id: ObjectId; email: string; username: string | null; name: string | null; posts: Post[] } | null
+// { id: ObjectId; email: string; username: string | null; name: string | null; posts: Post[] } | null
 \`\`\`
 
 \`db\` connects to MongoDB lazily on the first query, so there is no manual \`connect(...)\` step in your application code. Call \`await db.close()\` if you need to release the underlying connection (typically only in tests or short-lived scripts). After \`close()\` the client is single-shot — any further query, \`connect()\`, or \`runtime()\` call rejects with \`"Mongo client is closed"\`. Construct a new \`mongo({...})\` if you need to use it again.
@@ -443,26 +443,26 @@ export const contract = defineContract(
       User: model('User', {
         collection: 'users',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           email: field.string(),
           username: field.string().optional(),
           name: field.string().optional(),
         },
         relations: {
-          posts: rel.hasMany('Post', { from: '_id', to: 'authorId' }),
+          posts: rel.hasMany('Post', { from: 'id', to: 'authorId' }),
         },
       }),
 
       Post: model('Post', {
         collection: 'posts',
         fields: {
-          _id: field.objectId(),
+          id: field.objectId().mongo({ field: '_id' }),
           title: field.string(),
           content: field.string().optional(),
           authorId: field.objectId(),
         },
         relations: {
-          author: rel.belongsTo('User', { from: 'authorId', to: '_id' }),
+          author: rel.belongsTo('User', { from: 'authorId', to: 'id' }),
         },
       }),
     },
