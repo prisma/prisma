@@ -56,18 +56,17 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
   if (collection.validator) {
     const validatorChildren: SchemaTreeNode[] = [];
     const roots = validatorRootShapesOf(collection.validator.jsonSchema);
-    const fields = new Map<string, unknown>();
+    const fields = new Map<string, Set<string>>();
     for (const root of roots) {
       for (const [propName, propDef] of Object.entries(root.properties)) {
-        if (!fields.has(propName)) fields.set(propName, propDef);
+        const types = fields.get(propName) ?? new Set<string>();
+        for (const type of bsonTypesOf(propDef)) types.add(type);
+        fields.set(propName, types);
       }
     }
 
-    for (const [propName, propDef] of fields) {
-      const bsonType =
-        typeof propDef === 'object' && propDef !== null && 'bsonType' in propDef
-          ? String(propDef.bsonType)
-          : 'any';
+    for (const [propName, types] of fields) {
+      const bsonType = types.has('any') ? 'any' : [...types].join(',');
       const required = roots.every(
         (root) => !Object.hasOwn(root.properties, propName) || root.required.includes(propName),
       );
@@ -131,4 +130,10 @@ function collectionToSchemaNode(name: string, collection: MongoSchemaCollection)
     label: `collection ${name}`,
     ...ifDefined('children', children.length > 0 ? children : undefined),
   });
+}
+
+function bsonTypesOf(propDef: unknown): readonly string[] {
+  if (typeof propDef !== 'object' || propDef === null || !('bsonType' in propDef)) return ['any'];
+  const { bsonType } = propDef;
+  return Array.isArray(bsonType) ? bsonType.map(String) : [String(bsonType)];
 }
