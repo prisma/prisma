@@ -29,13 +29,10 @@ const CREATE_ITEM_TABLE = `
 const TESTEXT_CONTROL = join(__dirname, '../fixtures/testext/control');
 
 function declareTestext(ctx: JourneyContext): void {
-  const familyImport = "import sql from '@internal/family-sql/control';";
   const config = readFileSync(ctx.configPath, 'utf-8');
   writeFileSync(
     ctx.configPath,
-    config
-      .replace(familyImport, `${familyImport}\nimport testext from '${TESTEXT_CONTROL}';`)
-      .replace('extensions: []', 'extensions: [testext]'),
+    `import testext from '${TESTEXT_CONTROL}';\n${config.replace('extensions: []', 'extensions: [testext]')}`,
   );
 }
 
