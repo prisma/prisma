@@ -798,7 +798,24 @@ function mapForeignKeyNodeIssue(
     const name = fk.name ?? defaultForeignKeyName(tableName, fk.columns);
     return ok([new DropConstraintCall(schemaName, tableName, name, 'foreignKey')]);
   }
-  return notOk(nodeConflict('foreignKeyConflict', issue.path.join('/')));
+  // Postgres cannot change a foreign key's actions in place.
+  const expected = blindCast<
+    SqlForeignKeyIR,
+    'a not-equal foreign-key issue always carries the expected foreign-key node'
+  >(issue.expected);
+  const actual = blindCast<
+    SqlForeignKeyIR,
+    'a not-equal foreign-key issue always carries the actual foreign-key node'
+  >(issue.actual);
+  return ok([
+    new DropConstraintCall(
+      schemaName,
+      tableName,
+      actual.name ?? defaultForeignKeyName(tableName, actual.columns),
+      'foreignKey',
+    ),
+    new AddForeignKeyCall(schemaName, tableName, fkSpecFromNode(expected, tableName)),
+  ]);
 }
 
 function mapUniqueNodeIssue(

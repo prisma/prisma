@@ -869,3 +869,112 @@ describe('statement columns', () => {
     expect(seen).toEqual([statementColumns]);
   });
 });
+
+describe('a foreign key whose referential actions change', () => {
+  const postSpec = (fk: { name?: string; onDelete?: 'cascade' | 'restrict' }): TableSpec => ({
+    columns: {
+      id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+      userId: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+    },
+    primaryKey: { columns: ['id'] },
+    foreignKeys: [
+      {
+        source: { namespaceId: 'public', tableName: 'post', columns: ['userId'] },
+        target: { namespaceId: 'public', tableName: 'user', columns: ['id'] },
+        ...ifDefined('name', fk.name),
+        ...ifDefined('onDelete', fk.onDelete),
+      },
+    ],
+    uniques: [],
+    indexes: [],
+  });
+
+  function liveTables(fkName: string) {
+    const uuid = { nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' };
+    return rootOf({
+      user: new PostgresTableSchemaNode({
+        name: 'user',
+        columns: { id: { name: 'id', ...uuid }, email: { name: 'email', ...uuid } },
+        primaryKey: { columns: ['id'] },
+        foreignKeys: [],
+        uniques: [],
+        indexes: [],
+        policies: [],
+        rlsEnabled: false,
+      }),
+      post: new PostgresTableSchemaNode({
+        name: 'post',
+        columns: { id: { name: 'id', ...uuid }, userId: { name: 'userId', ...uuid } },
+        primaryKey: { columns: ['id'] },
+        foreignKeys: [
+          {
+            columns: ['userId'],
+            referencedTable: 'user',
+            referencedColumns: ['id'],
+            referencedSchema: 'public',
+            name: fkName,
+            onDelete: 'restrict',
+            onUpdate: 'noAction',
+          },
+        ],
+        uniques: [],
+        indexes: [],
+        policies: [],
+        rlsEnabled: false,
+      }),
+    });
+  }
+
+  const userWithEmail: TableSpec = {
+    ...userTable,
+    columns: {
+      id: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+      email: { dataType: 'pg/uuid', codecId: 'pg/uuid@1', nullable: false },
+    },
+  };
+
+  function constraintCalls(contract: ReturnType<typeof makeContract>, fkName: string) {
+    return planFor(contract, liveTables(fkName)).map((call) =>
+      call.factoryName === 'dropConstraint'
+        ? { factoryName: call.factoryName, constraintName: call.constraintName, kind: call.kind }
+        : call.factoryName === 'addForeignKey'
+          ? { factoryName: call.factoryName, fk: call.fk }
+          : { factoryName: call.factoryName },
+    );
+  }
+
+  it('plans a drop of the old constraint, then an add with the new actions', () => {
+    const contract = makeContract({ user: userWithEmail, post: postSpec({ onDelete: 'cascade' }) });
+    expect(constraintCalls(contract, 'post_userId_fkey')).toEqual([
+      { factoryName: 'dropConstraint', constraintName: 'post_userId_fkey', kind: 'foreignKey' },
+      {
+        factoryName: 'addForeignKey',
+        fk: {
+          name: 'post_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      },
+    ]);
+  });
+
+  it('drops the old stated name and adds the new one when the name changes too', () => {
+    const contract = makeContract({
+      user: userWithEmail,
+      post: postSpec({ name: 'post_written_by', onDelete: 'cascade' }),
+    });
+    expect(constraintCalls(contract, 'post_author_link')).toEqual([
+      { factoryName: 'dropConstraint', constraintName: 'post_author_link', kind: 'foreignKey' },
+      {
+        factoryName: 'addForeignKey',
+        fk: {
+          name: 'post_written_by',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+          onDelete: 'cascade',
+        },
+      },
+    ]);
+  });
+});
