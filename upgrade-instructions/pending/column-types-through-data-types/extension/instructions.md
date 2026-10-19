@@ -23,7 +23,7 @@ changes:
         - '\b(?:introspectedNativeType|IntrospectedNativeType|CatalogColumnType)\b'
   - id: schema-ir-column-type-text
     summary: |
-      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. A column's type is its `storedType` and `storedTypeParams`; nothing compares `typeText`. A column built by hand compares equal to another only when it has `storedType` and `storedTypeParams`.
+      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. `dataType` is removed: a column's type is its `storedType` and `storedTypeParams`, and nothing compares `typeText`. A column built by hand compares equal to another only when it has `storedType` and `storedTypeParams`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -122,7 +122,7 @@ new SqlColumnIR({
 
 A column with no `storedType` is one no data type claims, and it never compares equal to another, so a column a test builds by hand to compare needs `storedType` and `storedTypeParams`: the data type the column is stored as (the type its codec represents, unless that type is stored as another), and that type's parameters in normal form, such as `{ precision: 10, scale: 0 }` for `numeric(10)`. `storedTypeParams` is only for comparing; DDL writes the parameters as written, from `codecRef.typeParams`.
 
-Read `column.typeText` where you read `column.nativeType`. Code that compared `resolvedNativeType` compares types with `sqlColumnTypesEqual` instead. Code that read `codecBaseNativeType` to write DDL writes the type from `column.storedType` and the parameters in `column.codecRef.typeParams`, with `renderSqlTypeName` from `@prisma/orm-family-sql/contract/data-type`.
+Read `column.typeText` where you read `column.nativeType`, and `column.storedType` where you read `column.dataType`; a reader that needs the type the codec represents gets it from `column.codecRef`. Code that compared `resolvedNativeType` compares types with `sqlColumnTypesEqual` instead. Code that read `codecBaseNativeType` to write DDL writes the type from `column.storedType` and the parameters in `column.codecRef.typeParams`, with `renderSqlTypeName` from `@prisma/orm-family-sql/contract/data-type`.
 
 ## `default-resolver-takes-the-column`
 
