@@ -199,7 +199,7 @@ describe('a retired invocation', () => {
     },
     {
       verb: 'resolve',
-      why: "`db sign <migration>` checks that the database already has that migration's schema and moves the database marker to that migration's contract, so `db migrate` continues after it; `migration status` does not list the migration as applied. Use it where you would run `migrate resolve --applied` after applying a migration's changes by hand. A failed Prisma 8 migration rolls back whole, so nothing needs to be marked rolled back. While Prisma 7 still owns this project's migrations, run `migrate resolve` with Prisma 7's CLI instead.",
+      why: "`db sign <migration>` checks that the database already has that migration's schema and moves the database marker to that migration's contract, so `db migrate` continues after it; `migration status` does not list the migration as applied. Use it where you would run `migrate resolve --applied` after applying a migration's changes by hand. While Prisma 7 still owns this project's migrations, run `migrate resolve` with Prisma 7's CLI instead.",
       command: 'prisma-test db sign <migration>',
     },
   ])('answers Prisma 7 migrate $verb with its Prisma 8 command', async ({ verb, why, command }) => {
