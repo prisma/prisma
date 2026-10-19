@@ -1,10 +1,10 @@
 import { isPlainRecord } from '@internal/contract/is-plain-record';
 import type { JsonValue } from '@internal/contract/types';
 import type { CodecRef, DataTypeLookup } from '@internal/framework-components/codec';
+import { dataTypeParams } from '@internal/framework-components/codec';
 import type { CapabilityMatrix } from '@internal/framework-components/components';
 import { runtimeError } from '@internal/framework-components/runtime';
 import {
-  dataTypeParams,
   nameIsCatalogText,
   sqlBaseName,
   sqlDataTypeOfCodec,

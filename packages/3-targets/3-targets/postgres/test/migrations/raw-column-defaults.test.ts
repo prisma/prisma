@@ -32,20 +32,6 @@ describe('the default of a raw column in a contract', () => {
     });
     expect(planFor(contract, emptyRoot()).map((call) => call.factoryName)).toEqual(['createTable']);
   });
-
-  it('is refused when it is a literal, which a hand-written contract.json can hold', () => {
-    const contract = contractWithArea({
-      ...rawCircle,
-      default: { kind: 'literal', value: '<(0,0),1>' },
-    });
-    expect(() => planFor(contract, emptyRoot())).toThrow(
-      expect.objectContaining({
-        code: 'CONTRACT.DEFAULT_INVALID',
-        message:
-          'Column "area": The contract holds a literal default. A raw column has no literal values, so its default cannot be a literal. Write the default as a SQL expression: sql`...`.',
-      }),
-    );
-  });
 });
 
 describe('the type text of a raw column in a contract', () => {

@@ -1,4 +1,5 @@
 import 'temporal-polyfill/full/global';
+import { type DataTypeValue, dataType } from '@internal/framework-components/codec';
 import { createPostgresBuiltinCodecLookup } from '@internal/target-postgres/codecs';
 import { describe, expect, it } from 'vitest';
 import {
@@ -128,7 +129,7 @@ describe('postgres defineContract encodes literal defaults through the column co
       expect.objectContaining({
         code: 'CONTRACT.ENUM_INVALID',
         message:
-          'enumType("Code") member "Long" has a value its codec pg/char@1 refuses: pg/char@1 JSON value must be a string of at most 1 character before any trailing spaces',
+          'enumType("Code") member "Long" has a value its codec pg/char@1 refuses: pg/char JSON value must be a string of at most 1 character before any trailing spaces',
         fix: 'Give the member a value the codec takes, or type the enum with a codec that takes it.',
         meta: {
           enumName: 'Code',
@@ -186,12 +187,14 @@ describe('postgres defineContract encodes literal defaults through the column co
 
   it('keeps a caller-supplied codecLookup', () => {
     const builtinCodecs = createPostgresBuiltinCodecLookup();
+    const callerType = dataType('test/caller', { read: (json) => json });
     const callerCodec = (id: string) => ({
       id,
-      encode: async (value: unknown) => value,
-      decode: async (wire: unknown) => wire,
-      encodeJson: () => '2030-06-01T00:00:00Z',
-      decodeJson: (json: unknown) => json,
+      dataType: callerType,
+      toWire: async (value: unknown) => value,
+      fromWire: async (wire: unknown) => wire,
+      toDataTypeValue: () => callerType.valueFrom('encoded by the caller lookup', {}),
+      fromDataTypeValue: (value: DataTypeValue) => value.value,
     });
     const contract = defineContract(
       {
@@ -218,52 +221,6 @@ describe('postgres defineContract encodes literal defaults through the column co
     );
     expect(
       contract.storage.namespaces['public']?.entries.table?.['Event']?.columns['at']?.default,
-    ).toEqual({ kind: 'literal', value: '2030-06-01T00:00:00Z' });
-  });
-
-  it('refuses JSON a caller-supplied codec writes that the data type does not hold, naming the data type', () => {
-    const builtinCodecs = createPostgresBuiltinCodecLookup();
-    const callerCodec = (id: string) => ({
-      id,
-      encode: async (value: unknown) => value,
-      decode: async (wire: unknown) => wire,
-      encodeJson: () => 'not a date',
-      decodeJson: (json: unknown) => json,
-    });
-    expect(() =>
-      defineContract(
-        {
-          codecLookup: {
-            ...builtinCodecs,
-            descriptorFor: (id) => {
-              const descriptor = builtinCodecs.descriptorFor(id);
-              return descriptor === undefined
-                ? undefined
-                : Object.assign(Object.create(descriptor), {
-                    factory: () => () => callerCodec(id),
-                  });
-            },
-          },
-        },
-        ({ field, model }) => ({
-          models: {
-            Event: model('Event', {
-              fields: {
-                id: field.id.uuidv4String(),
-                at: field.dateTime().default(Temporal.Instant.from('2024-01-01T00:00:00Z')),
-              },
-            }),
-          },
-        }),
-      ),
-    ).toThrow(
-      expect.objectContaining({
-        code: 'CONTRACT.DEFAULT_INVALID',
-        message: expect.stringMatching(
-          /^Field "Event\.at" has a default that its data type pg\/timestamptz refuses: /,
-        ),
-        meta: expect.objectContaining({ reason: 'data-type-refused-default' }),
-      }),
-    );
+    ).toEqual({ kind: 'literal', value: 'encoded by the caller lookup' });
   });
 });

@@ -1,6 +1,5 @@
 import {
   asNamespaceId,
-  type ColumnDefault,
   type Contract,
   profileHash,
   type StorageHashBase,
@@ -36,25 +35,17 @@ import { applicationDomainOf } from '@repo/test-utils';
 import { type } from 'arktype';
 import { describe, expect, it } from 'vitest';
 import { createTestSqlNamespace } from '../../1-core/contract/test/test-support';
-import type { DefaultRenderer } from '../src/core/migrations/contract-to-schema-ir';
 import {
   contractToSchemaIR as contractToSchemaIRImpl,
   detectDestructiveChanges,
 } from '../src/core/migrations/contract-to-schema-ir';
 
-const testRenderer: DefaultRenderer = (def: ColumnDefault, _column, { baseTypeName }) => {
-  if (def.kind === 'function') return def.expression;
-  const { value } = def;
-  if (typeof value === 'string') return `'${value.replaceAll("'", "''")}'`;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (value === null) return 'NULL';
-  const json = JSON.stringify(value);
-  if (baseTypeName === 'json' || baseTypeName === 'jsonb') return `'${json}'::${baseTypeName}`;
-  return `'${json}'`;
-};
-
-const textType = sqlDataType('test/text', { texts: [{ text: 'text', written: true }] });
+const textType = sqlDataType('test/text', {
+  read: (json) => json,
+  texts: [{ text: 'text', written: true }],
+});
 const characterType = sqlDataType('test/character', {
+  read: (json) => json,
   params: type({ 'length?': 'number.integer >= 1' }),
   texts: [
     { text: 'character', written: true },
@@ -62,16 +53,20 @@ const characterType = sqlDataType('test/character', {
   ],
 });
 const vectorType = sqlDataType('test/vector', {
+  read: (json) => json,
   params: type({ length: 'number.integer >= 1' }),
   texts: [{ text: 'vector({length})', written: true }],
 });
 const bareVectorType = sqlDataType('test/bare-vector', {
+  read: (json) => json,
   texts: [{ text: 'vector', written: true }],
 });
 const timestamptzType = sqlDataType('test/timestamptz', {
+  read: (json) => json,
   texts: [{ text: 'timestamptz', written: true }],
 });
 const numericType = sqlDataType('test/numeric', {
+  read: (json) => json,
   params: type({ 'precision?': 'number.integer >= 1', 'scale?': 'number.integer' }),
   texts: [
     { text: 'numeric', written: true },
@@ -82,6 +77,7 @@ const numericType = sqlDataType('test/numeric', {
     params.precision !== undefined && params.scale === undefined ? { ...params, scale: 0 } : params,
 });
 const fixedCharacterType = sqlDataType('test/fixed-character', {
+  read: (json) => json,
   params: type({ 'length?': 'number.integer >= 1' }),
   texts: [
     { text: 'character', written: true },
@@ -90,6 +86,7 @@ const fixedCharacterType = sqlDataType('test/fixed-character', {
   normalize: (params) => (params.length === undefined ? { ...params, length: 1 } : params),
 });
 const enumType = sqlDataType('test/enum', {
+  read: (json) => json,
   params: type({ typeName: 'string > 0' }),
   claimsKind: 'enum',
   render: ({ typeName }) => `"${typeName}"`,
@@ -97,6 +94,7 @@ const enumType = sqlDataType('test/enum', {
 
 /** A data type unrelated to sql/raw whose name is its catalog text too. */
 const verbatimType = sqlDataType<{ name: string }>('test/verbatim', {
+  read: (json) => json,
   params: type({ name: 'string' }),
   nameIsCatalogText: true,
   render: ({ name }) => name,
@@ -115,13 +113,26 @@ const dataTypeOfCodec: Readonly<Record<string, DataType>> = {
   'test/verbatim@1': verbatimType,
 };
 
+/** The codec of `pg/timestamptz@1`, the one a test reads a `Date` default with; it holds years from 2000. */
+const timestamptzCodec = {
+  toDataTypeValue: (value: Date) => {
+    if (value.getUTCFullYear() < 2000) throw new Error('test/timestamptz holds years from 2000');
+    return timestamptzType.valueFrom(value.toISOString(), {});
+  },
+};
+
 const testCodecLookup: CodecLookupWithDescriptors = {
   ...emptyCodecLookup,
   descriptorFor: (id) => {
     const dataType = dataTypeOfCodec[id];
     return dataType === undefined
       ? undefined
-      : ({ codecId: id, dataType: dataType.id } as AnyCodecDescriptor);
+      : ({
+          codecId: id,
+          dataType: dataType.id,
+          paramsSchema: undefined,
+          factory: () => () => timestamptzCodec,
+        } as unknown as AnyCodecDescriptor);
   },
 };
 
@@ -201,7 +212,7 @@ function unboundStorage(
 
 function contractToSchemaIR(
   contract: Contract<SqlStorage> | null,
-  options?: Pick<Parameters<typeof contractToSchemaIRImpl>[1], 'renderDefault' | 'resolveDefault'>,
+  options?: Pick<Parameters<typeof contractToSchemaIRImpl>[1], 'resolveDefault'>,
 ): SqlSchemaIR {
   return contractToSchemaIRImpl(contract, {
     annotationNamespace: 'pg',
@@ -247,7 +258,7 @@ describe('contractToSchemaIR', () => {
   });
 
   it('converts empty storage to empty schema IR', () => {
-    const result = contractToSchemaIR(null, { renderDefault: testRenderer });
+    const result = contractToSchemaIR(null);
 
     expect(result).toEqual<SqlSchemaIR>(new SqlSchemaIR({ tables: {} }));
   });
@@ -273,7 +284,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
 
     expect(result.tables['User']).toBeDefined();
     expect(result.tables['User']!.name).toBe('User');
@@ -339,7 +350,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     const columnA = result.tables['T']!.columns['a']!;
     const columnB = result.tables['T']!.columns['b']!;
 
@@ -510,109 +521,9 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
 
     expect(result.tables['Post']!.columns['embedding']!.nativeType).toBe('vector(1536)');
-  });
-
-  it('converts literal column defaults', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: {
-              T: table({
-                columns: {
-                  status: col({
-                    default: { kind: 'literal', value: 'active' },
-                  }),
-                },
-              }),
-            },
-          },
-        }),
-      },
-    });
-
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
-    expect(result.tables['T']!.columns['status']!.default).toBe("'active'");
-  });
-
-  it('escapes single quotes in string literal defaults', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: {
-              T: table({
-                columns: {
-                  author: col({
-                    default: { kind: 'literal', value: "O'Reilly" },
-                  }),
-                },
-              }),
-            },
-          },
-        }),
-      },
-    });
-
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
-    expect(result.tables['T']!.columns['author']!.default).toBe("'O''Reilly'");
-  });
-
-  it('escapes repeated single quotes in string literal defaults', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: {
-              T: table({
-                columns: {
-                  textValue: col({
-                    default: { kind: 'literal', value: "a'b''c" },
-                  }),
-                },
-              }),
-            },
-          },
-        }),
-      },
-    });
-
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
-    expect(result.tables['T']!.columns['textValue']!.default).toBe("'a''b''''c'");
-  });
-
-  it('converts function column defaults', () => {
-    const storage = new SqlStorage({
-      storageHash: 'test' as StorageHashBase<string>,
-      namespaces: {
-        [UNBOUND_NAMESPACE_ID]: createTestSqlNamespace({
-          id: UNBOUND_NAMESPACE_ID,
-          entries: {
-            table: {
-              T: table({
-                columns: {
-                  createdAt: col({
-                    default: { kind: 'function', expression: 'now()' },
-                  }),
-                },
-              }),
-            },
-          },
-        }),
-      },
-    });
-
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
-    expect(result.tables['T']!.columns['createdAt']!.default).toBe('now()');
   });
 
   it('omits default field when column has no default', () => {
@@ -634,7 +545,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.columns['name']!.default).toBeUndefined();
     expect('default' in result.tables['T']!.columns['name']!).toBe(false);
   });
@@ -659,7 +570,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.primaryKey).toEqual(
       new PrimaryKey({ columns: ['id'], name: 'T_pkey' }),
     );
@@ -685,7 +596,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.uniques).toEqual([
       new SqlUniqueIR({ columns: ['email'], name: 'T_email_key' }),
     ]);
@@ -713,7 +624,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.indexes).toEqual([
       new SqlIndexIR({
         naming: { kind: 'exact', name: 'T_email_idx' },
@@ -757,7 +668,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     const idx = result.tables['T']!.indexes[0]!;
     expect(idx).toEqual(
       new SqlIndexIR({
@@ -802,7 +713,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     const idx = result.tables['T']!.indexes[0]!;
     expect(idx.expression).toBe('lower(email)');
     expect(idx.columns).toBeUndefined();
@@ -859,7 +770,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['Post']!.foreignKeys).toEqual([
       new SqlForeignKeyIR({
         columns: ['authorId'],
@@ -928,7 +839,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['WorkflowState']!.foreignKeys).toEqual([
       new SqlForeignKeyIR({
         columns: ['workflowId', 'teamId'],
@@ -973,7 +884,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(Object.keys(result.tables)).toEqual(expect.arrayContaining(['User', 'Post']));
     expect(Object.keys(result.tables)).toHaveLength(2);
   });
@@ -1009,7 +920,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.columns['embedding']!.nativeType).toBe('vector(1536)');
     expect(result.annotations).toBeUndefined();
   });
@@ -1035,7 +946,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.uniques[0]).toEqual(new SqlUniqueIR({ columns: ['a', 'b'] }));
   });
 
@@ -1070,7 +981,7 @@ describe('contractToSchemaIR', () => {
       },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['Post']!.foreignKeys[0]).toEqual(
       new SqlForeignKeyIR({
         columns: ['authorId'],
@@ -1363,7 +1274,7 @@ describe('contractToSchemaIR — resolved leaf values', () => {
       T: table({ columns: { id: col({}) } }),
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.columns['id']!.resolvedNativeType).toBe('text');
   });
 
@@ -1376,7 +1287,7 @@ describe('contractToSchemaIR — resolved leaf values', () => {
       }),
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.columns['id']!.resolvedNativeType).toBe('character(36)');
   });
 
@@ -1385,8 +1296,60 @@ describe('contractToSchemaIR — resolved leaf values', () => {
       T: table({ columns: { tags: col({ many: { elementNullable: false } }) } }),
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.columns['tags']!.resolvedNativeType).toBe('text[]');
+  });
+
+  it('reads a literal default as a value of the column data type, element by element for a list, with null as a value of a type that takes it', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          status: col({ default: { kind: 'literal', value: 'draft' } }),
+          tags: col({
+            many: { elementNullable: true },
+            default: { kind: 'literal', value: ['a', null] },
+          }),
+          created: col({ default: { kind: 'function', expression: 'now()' } }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect({
+      status: columns['status']!.defaultValue,
+      tags: columns['tags']!.defaultValue,
+      created: columns['created']!.defaultValue,
+    }).toEqual({
+      status: textType.fromContract('draft', {}),
+      tags: [textType.fromContract('a', {}), textType.fromContract(null, {})],
+      created: undefined,
+    });
+  });
+
+  it('reads a Date default with the column codec as a value of its type, and gives none for a Date the codec refuses', () => {
+    const storage = unboundStorage('test' as StorageHashBase<string>, {
+      T: table({
+        columns: {
+          created: col({
+            codecId: 'pg/timestamptz@1',
+            default: { kind: 'literal', value: new Date('2024-01-02T03:04:05.000Z') },
+          }),
+          early: col({
+            codecId: 'pg/timestamptz@1',
+            default: { kind: 'literal', value: new Date('1999-01-02T03:04:05.000Z') },
+          }),
+        },
+      }),
+    });
+
+    const columns = contractToSchemaIR(wrap(storage)).tables['T']!.columns;
+    expect({
+      created: columns['created']!.defaultValue,
+      early: columns['early']!.defaultValue,
+    }).toEqual({
+      created: timestamptzType.fromContract('2024-01-02T03:04:05.000Z', {}),
+      early: undefined,
+    });
   });
 
   it('stamps the contract ColumnDefault into resolvedDefault', () => {
@@ -1402,7 +1365,7 @@ describe('contractToSchemaIR — resolved leaf values', () => {
       }),
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     const columns = result.tables['T']!.columns;
     expect(columns['status']!.resolvedDefault).toEqual({ kind: 'literal', value: 'draft' });
     expect(columns['created']!.resolvedDefault).toEqual({ kind: 'function', expression: 'now()' });
@@ -1428,7 +1391,6 @@ describe('contractToSchemaIR — resolved leaf values', () => {
     });
 
     const result = contractToSchemaIR(wrap(storage), {
-      renderDefault: testRenderer,
       resolveDefault: (def, resolvedNativeType) =>
         def.kind === 'function' && resolvedNativeType === 'text[]'
           ? { kind: 'literal', value: [] }
@@ -1468,7 +1430,7 @@ describe('contractToSchemaIR — resolved leaf values', () => {
       namespaces: { [UNBOUND_NAMESPACE_ID]: ns },
     });
 
-    const result = contractToSchemaIR(wrap(storage), { renderDefault: testRenderer });
+    const result = contractToSchemaIR(wrap(storage));
     expect(result.tables['T']!.checks).toEqual([
       new SqlCheckConstraintIR({
         naming: { kind: 'wire', prefix: 'T_status_check', hash },

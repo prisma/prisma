@@ -127,9 +127,13 @@ describe('the sql/raw data type', () => {
     ]).toEqual([undefined, undefined, []]);
   });
 
-  it('has no literal values: its canonical form refuses every value, saying to write sql', () => {
-    for (const value of ["'a':1", 1, true, { a: 1 }]) {
-      expect(() => sqlRawDataType.toCanonicalForm?.(value)).toThrow(
+  it('has no literal values: it refuses every value, read or built, saying to write sql', () => {
+    const attempts = ["'a':1", 1, true, { a: 1 }].flatMap((value) => [
+      () => sqlRawDataType.fromContract(value, { sql: 'tsvector' }),
+      () => sqlRawDataType.valueFrom(value, { sql: 'tsvector' }),
+    ]);
+    for (const attempt of attempts) {
+      expect(attempt).toThrow(
         expect.objectContaining({
           code: 'CONTRACT.LITERAL_VALUES_ABSENT',
           message:

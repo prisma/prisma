@@ -36,7 +36,7 @@ const sqlRawParams = type({ sql: 'string' }).narrow((params, ctx) => {
 
 /**
  * The refusal of a literal value of a raw column, which has none: Prisma does not interpret a raw
- * column's values. Every literal default reaches it through the data type's canonical form.
+ * column's values. Every literal reaches it through the data type's reader.
  */
 function refuseLiteralValue(): never {
   throw structuredError(
@@ -53,7 +53,7 @@ function refuseLiteralValue(): never {
  * The data type of a column whose type no other data type claims. Its `sql` parameter is the type
  * exactly as the database catalog prints it, which migrations write and verify compares. It claims
  * no reported type, so introspection never reads a column as raw. It has no literal values: it
- * declares no casts, and its canonical form refuses every value. ADR 273.
+ * declares no casts, and its reader refuses every value. ADR 273.
  */
 export const sqlRawDataType: SqlDataType<SqlRawTypeParams> = sqlDataType<SqlRawTypeParams>(
   SQL_RAW_DATA_TYPE_ID,
@@ -61,6 +61,6 @@ export const sqlRawDataType: SqlDataType<SqlRawTypeParams> = sqlDataType<SqlRawT
     params: sqlRawParams,
     nameIsCatalogText: true,
     render: ({ sql }) => sql,
-    toCanonicalForm: refuseLiteralValue,
+    read: refuseLiteralValue,
   },
 );

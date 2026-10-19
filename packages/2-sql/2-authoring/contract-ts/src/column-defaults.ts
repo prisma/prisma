@@ -3,7 +3,6 @@ import {
   type Codec,
   type CodecLookupWithDescriptors,
   codecForRef,
-  type ToCanonicalForm,
 } from '@internal/framework-components/codec';
 import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
@@ -35,12 +34,12 @@ export function columnCodec(
   });
 }
 
-/** Encodes a value the contract stores, and reads it back with the codec, which refuses a value its column would not hold. */
+/** The JSON the contract stores for a value: the codec gives the value of its data type under the column's parameters, which the type refuses when they exclude it, and the codec reads it back, refusing a value its application value cannot hold. */
 export function encodeViaCodec(value: unknown, codec: Codec | undefined): JsonValue {
   if (codec) {
-    const json = codec.encodeJson(value);
-    codec.decodeJson(json);
-    return json;
+    const stored = codec.toDataTypeValue(value);
+    codec.fromDataTypeValue(stored);
+    return codec.dataType.toContract(stored);
   }
   return blindCast<
     JsonValue,
@@ -73,8 +72,6 @@ function defaultRefusal(
   );
 }
 
-const LITERAL_VALUES_ABSENT = 'CONTRACT.LITERAL_VALUES_ABSENT';
-
 /** The refusal of a literal default by a data type that has no literal values, such as a raw column's. */
 function noLiteralValuesRefusal(site: ColumnDefaultSite, cause: StructuredError): StructuredError {
   return contractError(
@@ -87,65 +84,20 @@ function noLiteralValuesRefusal(site: ColumnDefaultSite, cause: StructuredError)
   );
 }
 
-/** The canonical form of a column's values, and the data type that gives it. */
-export interface DefaultCanonicalForm {
-  readonly dataTypeId: string;
-  readonly toCanonicalForm: ToCanonicalForm;
-}
-
-function dataTypeRefusal(
-  site: ColumnDefaultSite,
-  dataTypeId: string,
-  cause: unknown,
-  elementPosition?: number,
-): StructuredError {
-  const subject =
-    elementPosition === undefined ? 'default' : `default (element ${elementPosition})`;
-  const reason = cause instanceof Error ? cause.message : String(cause);
-  return contractError(
-    'CONTRACT.DEFAULT_INVALID',
-    `${columnSiteSubject(site)} has a ${subject} that its data type ${dataTypeId} refuses: ${reason}`,
-    {
-      cause,
-      meta: {
-        ...columnSiteMeta(site),
-        codecId: site.codecId,
-        dataType: dataTypeId,
-        reason: 'data-type-refused-default',
-        ...ifDefined('elementPosition', elementPosition),
-      },
-    },
-  );
-}
-
-/**
- * Encodes a literal default with the column's codec and gives it the canonical form of the column's
- * values, as a PSL default is given it. The data type refuses a value it does not hold, and every
- * literal of a data type that has none.
- */
 function encodeDefaultValue(
   value: unknown,
   codec: Codec,
   site: ColumnDefaultSite,
-  canonicalForm: DefaultCanonicalForm | undefined,
   elementPosition?: number,
 ): JsonValue {
-  let json: JsonValue;
   try {
-    json = encodeViaCodec(value, codec);
+    return encodeViaCodec(value, codec);
   } catch (cause) {
     if (cause instanceof InternalError) throw cause;
-    throw defaultRefusal(site, cause, elementPosition);
-  }
-  if (canonicalForm === undefined) return json;
-  try {
-    return canonicalForm.toCanonicalForm(json);
-  } catch (cause) {
-    if (cause instanceof InternalError) throw cause;
-    if (isStructuredError(cause) && cause.code === LITERAL_VALUES_ABSENT) {
+    if (isStructuredError(cause) && cause.code === 'CONTRACT.LITERAL_VALUES_ABSENT') {
       throw noLiteralValuesRefusal(site, cause);
     }
-    throw dataTypeRefusal(site, canonicalForm.dataTypeId, cause, elementPosition);
+    throw defaultRefusal(site, cause, elementPosition);
   }
 }
 
@@ -202,17 +154,16 @@ export function encodeColumnDefault(
   site: ColumnDefaultSite,
   many = false,
   elementNullable = false,
-  canonicalForm?: DefaultCanonicalForm,
 ): ColumnDefault {
   if (defaultInput.kind === 'function') {
     return { kind: 'function', expression: defaultInput.expression };
   }
-  if ('canonical' in defaultInput && defaultInput.canonical === true) {
+  if ('inStoredForm' in defaultInput && defaultInput.inStoredForm === true) {
     return {
       kind: 'literal',
       value: blindCast<
         ColumnDefault extends { kind: 'literal'; value: infer V } ? V : never,
-        'a text contract source stores the canonical form its data type produced'
+        'a text contract source stores the form its data type produced'
       >(defaultInput.value),
     };
   }
@@ -234,9 +185,7 @@ export function encodeColumnDefault(
     return {
       kind: 'literal',
       value: defaultInput.value.map((element, index) => {
-        if (element !== null) {
-          return encodeDefaultValue(element, codec, site, canonicalForm, index + 1);
-        }
+        if (element !== null) return encodeDefaultValue(element, codec, site, index + 1);
         if (elementNullable) return null;
         throw new InternalError(
           'Literal default on a strict list column cannot contain null elements.',
@@ -250,7 +199,6 @@ export function encodeColumnDefault(
       defaultInput.value,
       codecForDefault(codecLookup, resolveCodec, site),
       site,
-      canonicalForm,
     ),
   };
 }

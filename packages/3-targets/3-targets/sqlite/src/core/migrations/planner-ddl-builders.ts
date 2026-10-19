@@ -1,3 +1,4 @@
+import { dataTypeParams } from '@internal/framework-components/codec';
 /**
  * Low-level DDL fragment builders for SQLite migrations.
  *
@@ -9,28 +10,24 @@
  */
 
 import {
-  dataTypeParams,
   nameIsCatalogText,
   renderSqlTypeName,
   type SqlTypeLookups,
-  sqlDataTypeOfCodec,
+  sqlStorageTypeOfCodec,
 } from '@internal/sql-contract/data-type';
 import type {
   StorageColumn,
   StorageTable,
   StorageTypeInstance,
 } from '@internal/sql-contract/types';
-import { SQLITE_DATETIME_CODEC_ID } from '../codec-ids';
-import { decodeSqliteDatetime, encodeSqliteDatetime } from '../codecs';
-import { sqliteInteger } from '../data-types';
 import { sqliteError } from '../errors';
-import { escapeLiteral, quoteIdentifier } from '../sql-utils';
+import { quoteIdentifier } from '../sql-utils';
 
 /**
- * Renders the column's DDL type token (e.g. `"INTEGER"`, `"TEXT"`): the name the data type of its
- * codec is written with, in upper case, or as given for a data type that names its type exactly as
- * the catalog reports it, since verify compares that text unchanged. Resolves `typeRef` against
- * `storageTypes`.
+ * Renders the column's DDL type token (e.g. `"INTEGER"`, `"TEXT"`): the name the type its codec's
+ * data type is stored as is written with, in upper case, or as given for a data type that names its
+ * type exactly as the catalog reports it, since verify compares that text unchanged. Resolves
+ * `typeRef` against `storageTypes`.
  */
 export function buildColumnTypeSql(
   column: Pick<StorageColumn, 'codecId' | 'typeParams' | 'typeRef'>,
@@ -38,52 +35,9 @@ export function buildColumnTypeSql(
   storageTypes: Record<string, StorageTypeInstance> = {},
 ): string {
   const resolved = resolveColumnTypeMetadata(column, storageTypes);
-  const dataType = sqlDataTypeOfCodec(resolved.codecId, types);
-  const written = renderSqlTypeName(dataType, dataTypeParams(dataType, resolved.typeParams));
-  return nameIsCatalogText(dataType) ? written : written.toUpperCase();
-}
-
-const DIGIT_TEXT = /^-?\d+$/;
-
-/** The column a literal default is written for: its codec, and the data type that codec represents. */
-export interface DefaultLiteralColumn {
-  readonly codecId: string;
-  readonly dataType: string;
-}
-
-/**
- * A literal default in SQL. An `integer` column stores digit text in the contract, which is written
- * as the integer it names. A datetime default is the stored value itself in SQLite, which compares
- * text byte by byte, so it is written as the text the column's codec writes for every row, not as
- * its canonical form.
- */
-export function renderDefaultLiteral(value: unknown, column?: DefaultLiteralColumn): string {
-  if (
-    column?.dataType === sqliteInteger.id &&
-    typeof value === 'string' &&
-    DIGIT_TEXT.test(value)
-  ) {
-    return value;
-  }
-  if (value instanceof Date) {
-    return `'${escapeLiteral(encodeSqliteDatetime(value))}'`;
-  }
-  if (typeof value === 'string' && column?.codecId === SQLITE_DATETIME_CODEC_ID) {
-    return `'${escapeLiteral(encodeSqliteDatetime(decodeSqliteDatetime(value)))}'`;
-  }
-  if (typeof value === 'string') {
-    return `'${escapeLiteral(value)}'`;
-  }
-  if (typeof value === 'number' || typeof value === 'bigint') {
-    return String(value);
-  }
-  if (typeof value === 'boolean') {
-    return value ? '1' : '0';
-  }
-  if (value === null) {
-    return 'NULL';
-  }
-  return `'${escapeLiteral(JSON.stringify(value))}'`;
+  const storage = sqlStorageTypeOfCodec(resolved.codecId, types);
+  const written = renderSqlTypeName(storage, dataTypeParams(storage, resolved.typeParams));
+  return nameIsCatalogText(storage) ? written : written.toUpperCase();
 }
 
 export function buildCreateIndexSql(
