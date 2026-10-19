@@ -18,7 +18,7 @@ import type {
 } from '@prisma/orm-mongo/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'74fff8e95f646420795281e934862515bddddc940e545b9d725bf4b780bb7fd3'>;
+  StorageHashBase<'ceac2dfc4647f935db6a05cf4fdbcc7e699e715b5551b40ad9d33a5e8032acc4'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'251b3ce23f6c9f561892e7c1af9d2cc941a13d64ba1aa7226b90036b09568cc3'>;
@@ -57,7 +57,24 @@ type ContractBase = Omit<
       readonly __unbound__: {
         readonly id: '__unbound__';
         readonly kind: 'mongo-database';
-        readonly entries: { readonly collection: { readonly notes: MongoCollection } };
+        readonly entries: {
+          readonly collection: {
+            readonly notes: {
+              readonly kind: 'mongo-collection';
+              readonly validator: {
+                readonly jsonSchema: {
+                  readonly additionalProperties: false;
+                  readonly bsonType: 'object';
+                  readonly properties: { readonly _id: { readonly bsonType: 'objectId' } };
+                  readonly required: readonly ['_id'];
+                };
+                readonly kind: 'mongo-validator';
+                readonly validationAction: 'error';
+                readonly validationLevel: 'strict';
+              };
+            };
+          };
+        };
       };
     };
     readonly storageHash: StorageHash;
