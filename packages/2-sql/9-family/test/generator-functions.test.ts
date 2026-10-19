@@ -23,7 +23,7 @@ function resolve(
   codecId: string,
   typeParams?: Record<string, unknown>,
 ) {
-  return registry.resolve({ name, args, column: { codecId, typeParams } });
+  return registry.resolve({ name, args, field: { codecId, typeParams } });
 }
 
 function generator(id: string, params?: Record<string, unknown>) {

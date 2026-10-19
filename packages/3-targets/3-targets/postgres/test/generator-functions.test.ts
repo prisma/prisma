@@ -9,7 +9,7 @@ const registry = assembleGeneratorFunctions([
 ]);
 
 function resolve(name: string, codecId: string, typeParams?: Record<string, unknown>, args = {}) {
-  return registry.resolve({ name, args, column: { codecId, typeParams } });
+  return registry.resolve({ name, args, field: { codecId, typeParams } });
 }
 
 describe('the Postgres generator functions', () => {
@@ -51,7 +51,7 @@ describe('the Postgres generator functions', () => {
     const call = registry.callFor(generator, column);
     expect({
       call,
-      readBack: call && registry.resolve({ name: call.name, args: call.args, column }),
+      readBack: call && registry.resolve({ name: call.name, args: call.args, field: column }),
     }).toEqual({
       call: { name: 'now', args: {}, text: '' },
       readBack: { ok: true, generator },

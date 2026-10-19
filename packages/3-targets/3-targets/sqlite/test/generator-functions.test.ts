@@ -9,7 +9,7 @@ const registry = assembleGeneratorFunctions([
 ]);
 
 function resolve(name: string, codecId: string, args: Record<string, unknown> = {}) {
-  return registry.resolve({ name, args, column: { codecId, typeParams: undefined } });
+  return registry.resolve({ name, args, field: { codecId, typeParams: undefined } });
 }
 
 describe('the SQLite generator functions', () => {

@@ -33,7 +33,7 @@ export const fixtureGeneratorFunctions: GeneratorFunctionRegistry = assembleGene
           singleGeneratorBinding({
             codecIds: [codecId],
             generatorId: generator.id,
-            paramsFromColumn: (column) => {
+            paramsFromField: (column) => {
               const precision = column.typeParams?.['precision'];
               return generator.precision === true && typeof precision === 'number'
                 ? { precision }

@@ -96,7 +96,7 @@ function nowGeneratorFor(
   const resolution = generatorFunctions.resolve({
     name: 'now',
     args: {},
-    column: { codecId: column.codecId, typeParams: column.typeParams },
+    field: { codecId: column.codecId, typeParams: column.typeParams },
   });
   return resolution.ok ? resolution.generator : undefined;
 }

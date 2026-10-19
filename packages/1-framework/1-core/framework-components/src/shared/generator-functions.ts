@@ -1,7 +1,8 @@
 import type { ExecutionMutationDefaultValue } from '@internal/contract/types';
 import { runtimeError } from './runtime-error';
 
-export interface GeneratorFunctionColumn {
+/** The codec and type params of the field a generator fills: a column in SQL, a document field in Mongo. */
+export interface GeneratorFunctionField {
   readonly codecId: string;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
 }
@@ -21,12 +22,12 @@ export interface GeneratorFunctionBinding {
   readonly generatorIds: readonly string[];
   readonly resolve: (input: {
     readonly args: Readonly<Record<string, unknown>>;
-    readonly column: GeneratorFunctionColumn;
+    readonly field: GeneratorFunctionField;
   }) => GeneratorResolution;
-  /** The arguments that produce `generator` on `column`, or `undefined` when this binding never produces it. */
+  /** The arguments that produce `generator` on `field`, or `undefined` when this binding never produces it. */
   readonly printArguments: (
     generator: ExecutionMutationDefaultValue,
-    column: GeneratorFunctionColumn,
+    field: GeneratorFunctionField,
   ) => GeneratorFunctionCallText | undefined;
 }
 
@@ -61,11 +62,11 @@ export interface GeneratorFunctionRegistry {
   resolve(input: {
     readonly name: string;
     readonly args: Readonly<Record<string, unknown>>;
-    readonly column: GeneratorFunctionColumn;
+    readonly field: GeneratorFunctionField;
   }): GeneratorFunctionResolution;
   callFor(
     generator: ExecutionMutationDefaultValue,
-    column: GeneratorFunctionColumn,
+    field: GeneratorFunctionField,
   ): GeneratorFunctionCall | undefined;
 }
 
@@ -177,43 +178,43 @@ export function assembleGeneratorFunctions(
     has(name) {
       return declared.has(name);
     },
-    resolve({ name, args, column }) {
+    resolve({ name, args, field }) {
       if (!declared.has(name)) {
         return { ok: false, reason: 'unknown-function', boundCodecIds: [] };
       }
-      const owned = bindingsByCodec.get(column.codecId)?.get(name);
+      const owned = bindingsByCodec.get(field.codecId)?.get(name);
       if (owned === undefined) {
         return { ok: false, reason: 'not-bound', boundCodecIds: boundCodecIdsOf(name) };
       }
-      const resolution = owned.binding.resolve({ args, column });
+      const resolution = owned.binding.resolve({ args, field });
       return resolution.ok
         ? resolution
         : { ok: false, reason: 'refused', message: resolution.message };
     },
-    callFor(generator, column) {
-      const owned = printersByCodecAndGenerator.get(`${column.codecId}\u0000${generator.id}`);
+    callFor(generator, field) {
+      const owned = printersByCodecAndGenerator.get(`${field.codecId}\u0000${generator.id}`);
       if (owned === undefined) return undefined;
-      const printed = owned.binding.printArguments(generator, column);
+      const printed = owned.binding.printArguments(generator, field);
       return printed === undefined ? undefined : { name: owned.name, ...printed };
     },
   };
 }
 
 /**
- * A binding of a function that takes no arguments to one generator, with params read from the column when `paramsFromColumn` gives any.
+ * A binding of a function that takes no arguments to one generator, with params read from the field's type params when `paramsFromField` gives any.
  */
 export function singleGeneratorBinding(input: {
   readonly codecIds: readonly string[];
   readonly generatorId: string;
-  readonly paramsFromColumn?: (
-    column: GeneratorFunctionColumn,
+  readonly paramsFromField?: (
+    field: GeneratorFunctionField,
   ) => Readonly<Record<string, unknown>> | undefined;
 }): GeneratorFunctionBinding {
   return {
     codecIds: input.codecIds,
     generatorIds: [input.generatorId],
-    resolve: ({ column }) => {
-      const params = input.paramsFromColumn?.(column);
+    resolve: ({ field }) => {
+      const params = input.paramsFromField?.(field);
       return {
         ok: true,
         generator:

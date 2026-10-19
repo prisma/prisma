@@ -48,7 +48,7 @@ export function buildGeneratorAttributes(input: {
     const readBack = context.generatorFunctions.resolve({
       name: call.name,
       args: call.args,
-      column,
+      field: column,
     });
     if (!readBack.ok || canonicalizeJson(readBack.generator) !== canonicalizeJson(generator)) {
       refuseGeneratorReadingBackDifferently({

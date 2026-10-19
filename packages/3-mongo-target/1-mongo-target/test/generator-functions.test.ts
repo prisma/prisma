@@ -14,7 +14,7 @@ describe('the Mongo generator functions', () => {
       registry.resolve({
         name: 'now',
         args: {},
-        column: { codecId: 'mongo/date@1', typeParams: undefined },
+        field: { codecId: 'mongo/date@1', typeParams: undefined },
       }),
     ).toEqual({ ok: true, generator: { kind: 'generator', id: 'timestampNow' } });
   });

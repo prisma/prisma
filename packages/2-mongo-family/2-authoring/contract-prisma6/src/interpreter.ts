@@ -1119,7 +1119,7 @@ function dateTimeNowGenerator(
   const now = generatorFunctions.resolve({
     name: 'now',
     args: {},
-    column: { codecId, typeParams: undefined },
+    field: { codecId, typeParams: undefined },
   });
   if (!now.ok) {
     throw new InternalError(

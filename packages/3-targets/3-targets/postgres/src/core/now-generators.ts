@@ -61,7 +61,7 @@ export const postgresNowGeneratorFunction: GeneratorFunctionContribution = {
     singleGeneratorBinding({
       codecIds: [codecId],
       generatorId,
-      paramsFromColumn: (column) => {
+      paramsFromField: (column) => {
         const precision = column.typeParams?.['precision'];
         return Object.hasOwn(postgresNowGeneratorTakesPrecision, codecId) &&
           typeof precision === 'number'

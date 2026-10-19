@@ -957,7 +957,7 @@ export function lowerGeneratorAttributesForField(input: {
     const resolution = input.generatorFunctions.resolve({
       name: call.fn,
       args: call.args,
-      column: { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
+      field: { codecId: input.columnDescriptor.codecId, typeParams: input.columnTypeParams },
     });
     if (resolution.ok) {
       phases[phase] = resolution.generator;

@@ -361,7 +361,7 @@ function lowerFunction(
     const resolution = input.generatorFunctions.resolve({
       name: fn,
       args,
-      column: { codecId: input.codecId, typeParams: input.typeParams },
+      field: { codecId: input.codecId, typeParams: input.typeParams },
     });
     if (resolution.ok) return { storage: undefined, onCreate: resolution.generator };
     return unknown(

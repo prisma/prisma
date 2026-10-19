@@ -48,7 +48,7 @@ describe('createControlStack generator functions', () => {
       stack.generatorFunctions.resolve({
         name: 'slugid',
         args: {},
-        column: { codecId: 'text@1', typeParams: undefined },
+        field: { codecId: 'text@1', typeParams: undefined },
       }),
     ).toEqual({ ok: true, generator: { kind: 'generator', id: 'slugid' } });
   });

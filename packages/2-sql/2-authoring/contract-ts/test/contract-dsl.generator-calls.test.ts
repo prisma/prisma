@@ -35,7 +35,7 @@ const generatorFunctions: readonly GeneratorFunctionContribution[] = [
       singleGeneratorBinding({
         codecIds: ['pg/time-temporal@1'],
         generatorId: 'plainTimeNow',
-        paramsFromColumn: (column) =>
+        paramsFromField: (column) =>
           typeof column.typeParams?.['precision'] === 'number'
             ? { precision: column.typeParams['precision'] }
             : undefined,

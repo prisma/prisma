@@ -937,7 +937,11 @@ function resolveGeneratorCalls(input: {
   for (const phase of ['onCreate', 'onUpdate'] as const) {
     const call = calls[phase];
     if (call === undefined) continue;
-    const resolution = generatorFunctions.resolve({ name: call.name, args: call.args, column });
+    const resolution = generatorFunctions.resolve({
+      name: call.name,
+      args: call.args,
+      field: column,
+    });
     if (resolution.ok) {
       phases[phase] = resolution.generator;
       continue;

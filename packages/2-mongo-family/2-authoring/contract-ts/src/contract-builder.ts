@@ -2462,7 +2462,7 @@ function executionDefaultsOf(
         ? generatorFunctions.resolve({
             name: call.name,
             args: call.args,
-            column: { codecId: type.codecId, typeParams: type.typeParams },
+            field: { codecId: type.codecId, typeParams: type.typeParams },
           })
         : undefined;
     if (resolution?.ok === true) {

@@ -29,7 +29,7 @@ describe('@updatedAt on Postgres', () => {
       generatorFunctions?.resolve({
         name: 'now',
         args: {},
-        column: { codecId: codecId ?? '', typeParams: undefined },
+        field: { codecId: codecId ?? '', typeParams: undefined },
       }),
     ).toMatchObject({ ok: true, generator: { kind: 'generator' } });
   });

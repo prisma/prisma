@@ -37,11 +37,11 @@ describe('assembleGeneratorFunctions', () => {
     ]);
 
     expect({
-      text: registry.resolve({ name: 'uuid', args: {}, column: textColumn }),
+      text: registry.resolve({ name: 'uuid', args: {}, field: textColumn }),
       char: registry.resolve({
         name: 'uuid',
         args: {},
-        column: { codecId: 'char@1', typeParams: undefined },
+        field: { codecId: 'char@1', typeParams: undefined },
       }),
     }).toEqual({
       text: { ok: true, generator: { kind: 'generator', id: 'uuidv4' } },
@@ -90,11 +90,11 @@ describe('assembleGeneratorFunctions', () => {
     ]);
 
     expect({
-      unknown: registry.resolve({ name: 'foo', args: {}, column: textColumn }),
+      unknown: registry.resolve({ name: 'foo', args: {}, field: textColumn }),
       notBound: registry.resolve({
         name: 'uuid',
         args: {},
-        column: { codecId: 'bytes@1', typeParams: undefined },
+        field: { codecId: 'bytes@1', typeParams: undefined },
       }),
     }).toEqual({
       unknown: { ok: false, reason: 'unknown-function', boundCodecIds: [] },
@@ -118,7 +118,7 @@ describe('assembleGeneratorFunctions', () => {
       ]),
     ]);
 
-    expect(registry.resolve({ name: 'nanoid', args: { size: 300 }, column: textColumn })).toEqual({
+    expect(registry.resolve({ name: 'nanoid', args: { size: 300 }, field: textColumn })).toEqual({
       ok: false,
       reason: 'refused',
       message: 'too long',
@@ -251,7 +251,7 @@ describe('singleGeneratorBinding', () => {
   const binding = singleGeneratorBinding({
     codecIds: ['time@1'],
     generatorId: 'timeNow',
-    paramsFromColumn: (column) =>
+    paramsFromField: (column) =>
       typeof column.typeParams?.['precision'] === 'number'
         ? { precision: column.typeParams['precision'] }
         : undefined,
@@ -261,9 +261,9 @@ describe('singleGeneratorBinding', () => {
     expect({
       withPrecision: binding.resolve({
         args: {},
-        column: { codecId: 'time@1', typeParams: { precision: 3 } },
+        field: { codecId: 'time@1', typeParams: { precision: 3 } },
       }),
-      without: binding.resolve({ args: {}, column: { codecId: 'time@1', typeParams: undefined } }),
+      without: binding.resolve({ args: {}, field: { codecId: 'time@1', typeParams: undefined } }),
     }).toEqual({
       withPrecision: {
         ok: true,

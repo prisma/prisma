@@ -1,7 +1,7 @@
 import type {
   GeneratorFunctionBinding,
-  GeneratorFunctionColumn,
   GeneratorFunctionContribution,
+  GeneratorFunctionField,
   GeneratorResolution,
 } from '@internal/framework-components/control';
 import { singleGeneratorBinding } from '@internal/framework-components/control';
@@ -96,7 +96,7 @@ function cuidBinding(codecIds: readonly string[]): GeneratorFunctionBinding {
   };
 }
 
-function columnLength(column: GeneratorFunctionColumn): number | undefined {
+function columnLength(column: GeneratorFunctionField): number | undefined {
   const length = column.typeParams?.['length'];
   return typeof length === 'number' ? length : undefined;
 }
@@ -126,7 +126,7 @@ function fixedLengthNanoidBinding(codecIds: readonly string[]): GeneratorFunctio
   return {
     codecIds,
     generatorIds: ['nanoid'],
-    resolve: ({ args, column }) => {
+    resolve: ({ args, field: column }) => {
       const explicit = args['size'];
       const length = columnLength(column);
       if (explicit !== undefined) {
@@ -157,7 +157,7 @@ function variableLengthNanoidBinding(codecIds: readonly string[]): GeneratorFunc
   return {
     codecIds,
     generatorIds: ['nanoid'],
-    resolve: ({ args, column }) => {
+    resolve: ({ args, field: column }) => {
       const explicit = args['size'];
       if (explicit !== undefined && !isNanoidSize(explicit)) return nanoidSizeRefusal(explicit);
       const size = explicit ?? NANOID_DEFAULT_SIZE;
