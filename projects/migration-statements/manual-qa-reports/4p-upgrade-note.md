@@ -129,3 +129,15 @@ Not covered here: `db update` recreating the contract's indexes after the rename
 The planner seems to compare the collation the contract states with the full collation MongoDB reports back, which MongoDB fills with defaults. This needs its own ticket.
 
 Logs: `wip/pr2-r2-qa/`.
+
+## Path C, updated steps, in real mongosh
+
+Run on 2026-10-19 by the orchestrator with `mongosh` 2.13.0 against a one-node replica set, after the note gained "stop writes" and the copy with the old collection's options. Snippets copied from the note unchanged.
+
+| Step | Input | Result |
+| --- | --- | --- |
+| Seed | `events` created with collation `{ locale: 'en', strength: 2 }`, two events with string `_id`; `tickets` A1 → evt-1, B2 → evt-2 | seeded |
+| 2 | `createCollection` with the options of `events`, then the copy | exit 0 |
+| 3 | `updateMany` snippet | exit 0 |
+| 4 | `db.events_copy.renameCollection('events', true)` | `{ ok: 1 }` |
+| Check | collation of the new `events`; ids; `$lookup`; `countDocuments({ name: 'launch' })` | `en/2`, so the collation was copied; ObjectId `_id` with `legacyId`; A1 → Launch, B2 → Meetup; `1`, so the case-insensitive collation is in effect |
