@@ -3,6 +3,7 @@
 | Dispatch | Round | Commits | Must-fix | Should-fix | Low | Verdict |
 | --- | --- | --- | --- | --- | --- | --- |
 | a | 1 | `dc9e22ab28..e18a2f56eb` | 0 | 1 | 3 | ANOTHER ROUND NEEDED |
+| a | 2 | `e18a2f56eb..bd7aad8b10` | 0 | 0 | 3 | SATISFIED |
 
 ## Dispatch a, round 1
 
@@ -49,3 +50,42 @@ What is wrong: nothing is wrong in dispatch a, but b compares stored types and w
 Change: in dispatch b, stamp the stored type, with parameters in the stored type's normal form, on the contract-side column, and compare that. Alternatively, compare in the family, where the lookup is available.
 
 Verdict: ANOTHER ROUND NEEDED, for S4-a-R1-1 once the orchestrator picks the approach.
+
+## Dispatch a, round 2
+
+Round 1 findings: S4-a-R1-1 is fixed as proposed. Each adapter calls the family's `resolveIntrospectedColumnType` while it builds a column, and the reflective rebuild is deleted. S4-a-R1-2 no longer applies, because `withDataType` is deleted. S4-a-R1-3 is fixed, with a test in `sql-data-type.declare.test.ts`. S4-a-R1-4 is done: `SqlColumnIR.storedType` exists, and `typeParams` holds the stored type's parameters in its normal form.
+
+Checks run: `pnpm build`, root `pnpm typecheck` (pass). Tests of sql-contract, schema-ir, the SQL family, both targets, both adapters and Supabase (all pass). `lint:deps` and `lint:framework-vocabulary` (pass). The four integration test files the diff touches (8 files, 58 tests, pass). The golden planner test (734 tests, no change). Two SQLite e2e migration files that use the changed harness (13 tests, pass). `fixtures:check` (clean). `git status` was clean afterwards.
+
+Every production construction of either control adapter gets the stack's data types. The two descriptors (`exports/control.ts`) pass `stack.declaredDataTypes`. Every caller builds through a descriptor's `create(stack)`: the CLI (`client.ts` `buildControlAdapter`, `migration-new.ts`), the family's `getControlAdapter` and the Supabase `generate-contract.ts` script. The e2e harness passes `sqliteDataTypes` from `@prisma/orm-sqlite/target/data-types`, a published export. The upgrade instructions that show the old constructors are for an earlier release and stay as they are.
+
+`storedType` probes (`wip/s4/review-a1/stored-probe.mjs`, `pack-probe.mjs`, run against the built packages and `node:sqlite`):
+
+- The contract side of `sqlite/datetime` and `sqlite/json` gives `sqlite/text` with `{}`, and DDL writes `text`. SQLite reports `TEXT`, which resolves to `sqlite/text`, stored as `sqlite/text`, `{}`. The two sides match.
+- The pack type `pgvector/vector` gives the contract side `pgvector/vector` with `{ length: 3 }` (a codec-only key is dropped). The database side `vector(3)` gives the same id and parameters.
+
+### S4-a-R2-1 (low): the normal-form guard in `sqlDataType` runs twice
+
+Where: `packages/2-sql/1-core/contract/src/sql-data-type.ts`, `sqlDataType`.
+
+What is wrong: `normalize` now checks the parameters against the schema itself, and the function handed to `dataType` wraps it in the same check again. Every value built runs the arktype check twice, and the outer branch can never be taken.
+
+Change: hand `normalize` to `dataType` directly.
+
+### S4-a-R2-2 (low): the runtime adapters resolve over the target's own types only
+
+Where: `packages/3-targets/6-adapters/postgres/src/core/adapter.ts` and `.../sqlite/src/core/adapter.ts`.
+
+What is wrong: each runtime adapter builds a control adapter with `postgresDataTypes` or `sqliteDataTypes`, not the stack's types. Today it only reads the marker, so nothing changes. If introspection were ever reached through it, a pack's columns would be unclaimed.
+
+Change: none now. Keep it in mind if the runtime adapter ever introspects.
+
+### S4-a-R2-3 (low): no introspection test asserts `storedType`
+
+Where: `packages/3-targets/6-adapters/postgres/test/migrations/introspected-data-types.integration.test.ts`, `packages/3-targets/6-adapters/sqlite/test/migrations/introspected-data-types.test.ts`.
+
+What is wrong: only the family unit test checks that an introspected column's `storedType` is its data type. Neither adapter's introspection test checks it, so an adapter could drop `storedType` with every test green. My probes above show the values are right today.
+
+Change: add `storedType` to both tests' projections, here or in dispatch b.
+
+Verdict: SATISFIED.
