@@ -127,7 +127,7 @@ This gives the static entry and the client one source of truth. It was rejected 
 
 ### Type the JSON import itself
 
-TypeScript can type a JSON import through a `contract.d.json.ts` file, with `allowArbitraryExtensions` set in the application's `tsconfig.json`. Then `postgres({ contractJson, collections })` would infer everything with no function call. It was rejected because it depends on a compiler setting every application would have to turn on, and on every bundler resolving the declaration file the same way.
+TypeScript can type a JSON import through a `contract.d.json.ts` file, with `allowArbitraryExtensions` set in the application's `tsconfig.json`. Then `postgres({ contract: contractJson, collections })` would infer everything with no function call. [ADR 276](ADR%20276%20-%20An%20emitted%20contract%20gets%20its%20type%20from%20contractFromJson%2C%20not%20from%20a%20declaration%20file%20next%20to%20the%20JSON.md) records why it was rejected: every application would need a compiler setting, it fails under `moduleResolution: nodenext`, and it would type unvalidated JSON as a validated contract.
 
 ### A program-wide registry filled by declaration merging
 
