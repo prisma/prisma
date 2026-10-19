@@ -298,6 +298,32 @@ describe('MongoMigrationPlanner, removed fields', () => {
       { tasks: {} },
     );
 
+  it('keeps a variant field that becomes an embed relation stored under the same name', () => {
+    const tasks = (seed: string, bug: { fields: string[]; embeds?: Record<string, string> }) =>
+      contract(
+        seed,
+        {
+          Task: {
+            collection: 'tasks',
+            fields: ['_id', 'type'],
+            discriminator: 'type',
+            variants: { Bug: 'bug' },
+          },
+          Bug: { collection: 'tasks', base: 'Task', ...bug },
+        },
+        { tasks: {} },
+      );
+    expect(
+      planned(
+        plan({
+          from: tasks('from', { fields: ['notes'] }),
+          to: tasks('to', { fields: [], embeds: { comments: 'notes' } }),
+          schema: [schemaCollection('tasks')],
+        }),
+      ),
+    ).toEqual({ labels: [], classes: [], applied: [], dataLoss: [] });
+  });
+
   it("unsets a variant's removed field only from that variant's documents", () => {
     expect(
       planned(
