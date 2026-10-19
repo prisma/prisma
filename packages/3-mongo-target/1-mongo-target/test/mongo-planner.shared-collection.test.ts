@@ -174,6 +174,39 @@ describe('MongoMigrationPlanner, field changes in a collection that stores sever
     ]);
   });
 
+  it('refuses to remove a base field another root model stores when a variant of the base keeps it', () => {
+    const withVariants = (seed: string, admin: readonly string[]) =>
+      contract(
+        seed,
+        {
+          Admin: {
+            collection: 'users',
+            fields: ['_id', 'kind', ...admin],
+            discriminator: 'kind',
+            variants: { SuperAdmin: 'super' },
+          },
+          SuperAdmin: { collection: 'users', fields: ['level'], base: 'Admin' },
+          User: { collection: 'users', fields: ['_id', 'level'] },
+        },
+        { users: { jsonSchema: sharedJsonSchema(['kind', 'level'], ['level']) } },
+      );
+    expect(
+      refusal(
+        plan({
+          from: withVariants('from', ['level']),
+          to: withVariants('to', []),
+          schema: [
+            schemaCollection('users', {
+              jsonSchema: sharedJsonSchema(['kind', 'level'], ['level']),
+            }),
+          ],
+        }),
+      ).map(({ summary }) => summary),
+    ).toEqual([
+      'Cannot remove field "level" of model "Admin" from collection "users": model "User" stores it in the same collection',
+    ]);
+  });
+
   it('removes nothing without an origin contract when another root model still declares the field', () => {
     expect(planned(plan({ from: null, to: shared('to', [], ['level']), schema })).dataLoss).toEqual(
       [],

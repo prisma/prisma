@@ -185,15 +185,16 @@ function sharedCollectionWhy(
 }
 
 /**
- * A removal the plan cannot carry out because another root model stored in the same collection still stores the field, and no discriminator selects the documents of the model that loses it.
+ * A removal the plan cannot carry out because another root model stored in the same collection still stores the field, and no discriminator selects the documents of the model that loses it. A variant's removal is filtered on its discriminator value, which only its own documents hold; a base model's removal filters on the values of the variants that keep the field, which the other root models' documents, lacking the discriminator, also match.
  */
 export function sharedCollectionRemovalRefusals(
   removals: readonly FieldRemoval[],
+  fromContract: ContractWithDomain,
   contract: ContractWithDomain,
 ): readonly MigrationPlannerConflict[] {
   return removals.flatMap((removal): MigrationPlannerConflict[] => {
     const { subject, call } = removal;
-    if (subject.kind !== 'field' || call.filter !== undefined) return [];
+    if (subject.kind !== 'field' || variantFilter(fromContract, subject) !== undefined) return [];
     const others = otherRootModelsStoring(contract, subject, call.collection, call.field);
     if (others.length === 0) return [];
     return [

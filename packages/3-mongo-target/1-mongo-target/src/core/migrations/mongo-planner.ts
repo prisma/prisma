@@ -462,7 +462,9 @@ export class MongoMigrationPlanner implements MigrationPlanner<'mongo', 'mongo'>
           });
     const removalRefusals = [
       ...timeSeriesRemovalRefusals(removals, schema),
-      ...sharedCollectionRemovalRefusals(removals, contract),
+      ...(fromContract === null
+        ? []
+        : sharedCollectionRemovalRefusals(removals, fromContract, contract)),
     ];
     if (removalRefusals.length > 0) return { kind: 'failure', conflicts: removalRefusals };
     const result = this.planCalls({
