@@ -115,12 +115,8 @@ export interface SqlColumnIRInput {
  *
  * Implements `DiffableNode` so a column is directly a table's diff-tree
  * child: `id` is the column name (unique among a table's columns); `isEqualTo`
- * compares this column's own attributes only — never children, since a
- * column is a leaf. When both sides carry `resolvedNativeType` (stamped at
- * derivation/introspection), the comparison uses the resolved values —
- * resolved native type, nullability, and structured default equality per
- * the relational walk's `columnDefaultsEqual` semantics, with `this` as the
- * expected side. Otherwise it falls back to comparing raw fields.
+ * compares this column's own attributes only, never its default, which is a
+ * child node: the type by {@link sqlColumnTypesEqual}, and nullability.
  */
 export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   override readonly nodeKind = RelationalSchemaNodeKind.column;
