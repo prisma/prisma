@@ -1,12 +1,5 @@
-import {
-  defineContract,
-  enumType,
-  field,
-  member,
-  model,
-  rel,
-  valueObject,
-} from '@internal/mongo/contract-builder';
+import { defineContract, field, model, rel, valueObject } from '@internal/mongo/contract-builder';
+import { enumType, member } from '@internal/mongo-contract-ts/contract-builder';
 
 const Role = enumType(
   'Role',
