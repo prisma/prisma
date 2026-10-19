@@ -144,7 +144,7 @@ The planner refuses. When the contract default is `external`, every object in th
 
 ```ts
 export function controlPolicyForCall(
-  subject: ControlPolicySubject | undefined,
+  subject: { readonly explicitNodeControlPolicy?: ControlPolicy | undefined } | undefined,
   defaultControlPolicy: ControlPolicy | undefined,
 ): ControlPolicy {
   if (defaultControlPolicy === 'external') {

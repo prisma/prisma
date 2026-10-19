@@ -1301,6 +1301,9 @@ function enumRefusalDiagnostic(
   };
 }
 
+/** MongoDB PSL has no control policies, so every collection is managed. */
+const MONGO_PSL_CONTROL_POLICIES = { collections: {}, defaultControlPolicy: undefined } as const;
+
 /** The diagnostic for a field a collection validator cannot describe, at the field. */
 function fieldRefusalDiagnostic(
   refusal: MongoContractRefusal,
@@ -1748,6 +1751,7 @@ export function interpretPslDocumentToMongoContract(
     valueObjects,
     enums: builtEnums,
     lookups: validatorLookups,
+    controlPolicies: MONGO_PSL_CONTROL_POLICIES,
   })) {
     const enumDiagnostic = enumRefusalDiagnostic(refusal, enumSites);
     if (enumDiagnostic !== undefined) diagnostics.pushExternal(enumDiagnostic);
@@ -1788,6 +1792,7 @@ export function interpretPslDocumentToMongoContract(
     lookups: validatorLookups,
     valueObjects,
     valueSets: storageValueSets,
+    controlPolicies: MONGO_PSL_CONTROL_POLICIES,
   });
   for (const [collectionName, validator] of Object.entries(validators)) {
     const coll = resolvedCollections[collectionName];

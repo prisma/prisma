@@ -16,8 +16,10 @@ const ALL_CLASSES_POLICY: MigrationOperationPolicy = {
   allowedOperationClasses: ['additive', 'widening', 'destructive'],
 };
 
+const emailIndex = { keys: [{ field: 'email', direction: 1 as const }], unique: true };
+
 const declared: MongoCollectionInput = {
-  indexes: [{ keys: [{ field: 'email', direction: 1 }], unique: true }],
+  indexes: [emailIndex],
   validator: {
     jsonSchema: { bsonType: 'object', properties: { email: { bsonType: 'string' } } },
     validationLevel: 'strict',
@@ -62,21 +64,32 @@ function liveCollection(name: string, indexes: readonly MongoSchemaIndex[] = [])
   return new MongoSchemaCollection({ name, indexes: [...indexes] });
 }
 
-function plannedCommands(contract: MongoContract, schema: MongoSchemaIR): readonly string[] {
+function planOf(
+  contract: MongoContract,
+  schema: MongoSchemaIR,
+  fromContract: MongoContract | null = null,
+): { readonly commands: readonly string[]; readonly warnings: readonly unknown[] } {
   const result = new MongoMigrationPlanner().plan({
     contract,
     schema,
     policy: ALL_CLASSES_POLICY,
-    fromContract: null,
+    fromContract,
     origin: null,
     statements: [],
     frameworkComponents: [],
     snapshotsImportPath: '../../snapshots',
   });
   if (result.kind !== 'success') throw new Error(JSON.stringify(result.conflicts));
-  return (result.plan.operations as readonly MongoMigrationPlanOperation[]).map(
-    (op) => `${op.execute[0]?.command.kind} ${op.execute[0]?.command.collection}`,
-  );
+  return {
+    commands: (result.plan.operations as readonly MongoMigrationPlanOperation[]).map(
+      (op) => `${op.execute[0]?.command.kind} ${op.execute[0]?.command.collection}`,
+    ),
+    warnings: result.warnings ?? [],
+  };
+}
+
+function plannedCommands(contract: MongoContract, schema: MongoSchemaIR): readonly string[] {
+  return planOf(contract, schema).commands;
 }
 
 describe('MongoMigrationPlanner under a collection control policy', () => {
@@ -130,4 +143,68 @@ describe('MongoMigrationPlanner under a collection control policy', () => {
 
     expect(plannedCommands(contract, new MongoSchemaIR([liveCollection('legacy')]))).toEqual([]);
   });
+
+  it('keeps every collection of an external-default contract unchanged, even one declared managed', () => {
+    const contract = contractOf({ users: { ...declared, control: 'managed' } }, 'external');
+
+    expect(planOf(contract, new MongoSchemaIR([liveCollection('users')]))).toEqual({
+      commands: [],
+      warnings: [
+        {
+          kind: 'controlPolicySuppressedCall',
+          summary:
+            "control policy suppressed: Create index on users (email:1) — collection \"users\" has effective control 'external' but declared 'managed'",
+          meta: { controlPolicy: 'external', declaredControlPolicy: 'managed' },
+        },
+        {
+          kind: 'controlPolicySuppressedCall',
+          summary:
+            "control policy suppressed: Add validator on users — collection \"users\" has effective control 'external' but declared 'managed'",
+          meta: { controlPolicy: 'external', declaredControlPolicy: 'managed' },
+        },
+      ],
+    });
+  });
+
+  it('warns about each change a policy leaves out of an existing external collection', () => {
+    const contract = contractOf({ users: { indexes: [emailIndex], control: 'external' } });
+    const live = liveCollection('users', [
+      new MongoSchemaIndex({ keys: [{ field: 'legacy', direction: 1 }] }),
+    ]);
+
+    expect(planOf(contract, new MongoSchemaIR([live])).warnings).toEqual([
+      {
+        kind: 'controlPolicySuppressedCall',
+        summary:
+          'control policy suppressed: Drop index on users (legacy:1) — collection "users" has effective control \'external\'',
+        meta: { controlPolicy: 'external', declaredControlPolicy: 'external' },
+      },
+      {
+        kind: 'controlPolicySuppressedCall',
+        summary:
+          'control policy suppressed: Create index on users (email:1) — collection "users" has effective control \'external\'',
+        meta: { controlPolicy: 'external', declaredControlPolicy: 'external' },
+      },
+    ]);
+  });
+
+  it.each(['external', 'observed'] as const)(
+    'does not drop a collection the origin contract declares %s when the new contract leaves it out',
+    (control) => {
+      const fromContract = contractOf({ legacy: { control } });
+
+      expect(
+        planOf(contractOf({}), new MongoSchemaIR([liveCollection('legacy')]), fromContract),
+      ).toEqual({
+        commands: [],
+        warnings: [
+          {
+            kind: 'controlPolicySuppressedCall',
+            summary: `control policy suppressed: Drop collection legacy — collection "legacy" has effective control '${control}'`,
+            meta: { controlPolicy: control, declaredControlPolicy: control },
+          },
+        ],
+      });
+    },
+  );
 });

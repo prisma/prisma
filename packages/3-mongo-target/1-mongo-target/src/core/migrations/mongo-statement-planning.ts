@@ -1,9 +1,11 @@
 import {
   asNamespaceId,
+  type Contract,
   type ContractModelBase,
   type ContractRelation,
   type ContractWithDomain,
-  effectiveControlPolicy,
+  type ControlPolicy,
+  controlPolicyForCall,
 } from '@internal/contract/types';
 import {
   describeMigrationStatement,
@@ -19,6 +21,7 @@ import {
 } from '@internal/framework-components/control';
 import {
   collectionRootModelsOf,
+  MongoCollection,
   type MongoContract,
   storedFieldNameOf,
   storesField,
@@ -79,11 +82,50 @@ function variantFilter(
   return field === undefined || value === undefined ? undefined : { [field]: value };
 }
 
+/** The control policy that governs a collection, and the policy its contract declares for it. */
+export interface CollectionControl {
+  readonly policy: ControlPolicy;
+  readonly declared: ControlPolicy | undefined;
+}
+
+function declaredCollection(contract: Contract, collection: string): MongoCollection | undefined {
+  return Object.values(contract.storage.namespaces)
+    .map((namespace) => namespace.entries['collection']?.[collection])
+    .find((entry) => entry instanceof MongoCollection);
+}
+
+/**
+ * The control policy of `collection`. A collection the contract leaves out keeps the policy `fromContract` gave it, when that was not `managed`, so leaving an `external` collection out of the contract does not drop it.
+ */
+export function collectionControlOf(
+  contract: MongoContract,
+  fromContract: Contract | null,
+  collection: string,
+): CollectionControl {
+  const declared = declaredCollection(contract, collection);
+  const original =
+    declared === undefined && fromContract !== null
+      ? declaredCollection(fromContract, collection)
+      : undefined;
+  const policy = controlPolicyForCall(
+    { explicitNodeControlPolicy: declared?.control },
+    contract.defaultControlPolicy,
+  );
+  if (original === undefined || fromContract === null) {
+    return { policy, declared: declared?.control };
+  }
+  const originalPolicy = controlPolicyForCall(
+    { explicitNodeControlPolicy: original.control },
+    fromContract.defaultControlPolicy,
+  );
+  return {
+    policy: originalPolicy === 'managed' ? policy : originalPolicy,
+    declared: original.control,
+  };
+}
+
 export function collectionControlPolicy(contract: MongoContract, collection: string) {
-  const declared = Object.values(contract.storage.namespaces)
-    .map((namespace) => namespace?.entries.collection?.[collection])
-    .find((entry) => entry !== undefined);
-  return effectiveControlPolicy(declared?.control, contract.defaultControlPolicy);
+  return collectionControlOf(contract, null, collection).policy;
 }
 
 /** Why MongoDB would refuse a collection name, if it would. */

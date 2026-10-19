@@ -1,4 +1,4 @@
-import type { Contract } from '@internal/contract/types';
+import { type Contract, controlPolicyForCall } from '@internal/contract/types';
 import type {
   MigrationOperationPolicy,
   PlannedStatements,
@@ -10,7 +10,6 @@ import type {
 import {
   appliedStatementsInOrder,
   backfillOfDefaultedField,
-  controlPolicyForCall,
   detectTableNameCaseChanges,
   extractCodecControlHooks,
   fieldStatementColumns,

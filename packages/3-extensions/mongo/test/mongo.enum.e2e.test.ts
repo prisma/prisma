@@ -82,6 +82,7 @@ const ACCOUNT_VALIDATOR = deriveCollectionValidators({
   lookups: { codecLookup, dataTypeLookup: createDataTypeLookup(mongoDataTypes) },
   valueObjects: {},
   valueSets: storageValueSets,
+  controlPolicies: { collections: {}, defaultControlPolicy: undefined },
 })['accounts'];
 if (ACCOUNT_VALIDATOR === undefined) throw new Error('expected a validator for accounts');
 

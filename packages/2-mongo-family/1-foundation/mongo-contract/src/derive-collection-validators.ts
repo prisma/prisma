@@ -1,3 +1,4 @@
+import { type ControlPolicy, controlPolicyForCall } from '@internal/contract/types';
 import { assertDefined } from '@internal/utils/assertions';
 import { collectionRootModelsOf, type StoredModel } from './collection-root-models';
 import {
@@ -10,12 +11,29 @@ import type { MongoValidator } from './ir/mongo-validator';
 
 export type CollectionModel = ValidatorModel & StoredModel;
 
+/** The control policy each collection declares, and the contract's default. */
+export interface CollectionControlPolicies {
+  readonly collections: Readonly<Record<string, ControlPolicy | undefined>>;
+  readonly defaultControlPolicy: ControlPolicy | undefined;
+}
+
 export interface CollectionValidatorsInput extends ModelValidatorSources {
   readonly models: Record<string, CollectionModel>;
+  readonly controlPolicies: CollectionControlPolicies;
+}
+
+/** Whether `collection` is managed, so it gets a validator. */
+export function isManaged(collection: string, policies: CollectionControlPolicies): boolean {
+  return (
+    controlPolicyForCall(
+      { explicitNodeControlPolicy: policies.collections[collection] },
+      policies.defaultControlPolicy,
+    ) === 'managed'
+  );
 }
 
 /**
- * The validator of each collection that stores a root model, keyed by collection name. A root model with variants gets one polymorphic schema covering every variant. A collection that stores several root models accepts a document of any of them: its schema has one `anyOf` branch per root model.
+ * The validator of each managed collection that stores a root model, keyed by collection name. A collection under another control policy holds documents Prisma does not own the shape of, so it gets none. A root model with variants gets one polymorphic schema covering every variant. A collection that stores several root models accepts a document of any of them: its schema has one `anyOf` branch per root model.
  */
 export function deriveCollectionValidators(
   input: CollectionValidatorsInput,
@@ -23,6 +41,7 @@ export function deriveCollectionValidators(
   const validators: Record<string, MongoValidator> = {};
 
   for (const [collectionName, modelNames] of Object.entries(collectionRootModelsOf(input.models))) {
+    if (!isManaged(collectionName, input.controlPolicies)) continue;
     const schemas = modelNames.map((modelName) => {
       const model = input.models[modelName];
       assertDefined(

@@ -1,8 +1,4 @@
-import {
-  type Contract,
-  type ControlPolicy,
-  effectiveControlPolicy,
-} from '@internal/contract/types';
+import { type Contract, type ControlPolicy, controlPolicyForCall } from '@internal/contract/types';
 import type { SqlStorage } from '@internal/sql-contract/types';
 import { ifDefined } from '@internal/utils/defined';
 
@@ -58,23 +54,6 @@ export interface SuppressionRecord {
   readonly policy: ControlPolicy;
   readonly factoryName: string | undefined;
   readonly createsNewObject: boolean;
-}
-
-/**
- * The control policy that governs a single call. The `external` default is an
- * un-overridable namespace floor: when the contract default is `external`, no
- * per-object `managed` override can escalate DDL above the floor, so the
- * policy is forced to `external` regardless of the node's own declaration.
- * Every other default defers to the node's effective control policy.
- */
-export function controlPolicyForCall(
-  subject: ControlPolicySubject | undefined,
-  defaultControlPolicy: ControlPolicy | undefined,
-): ControlPolicy {
-  if (defaultControlPolicy === 'external') {
-    return 'external';
-  }
-  return effectiveControlPolicy(subject?.explicitNodeControlPolicy, defaultControlPolicy);
 }
 
 /**

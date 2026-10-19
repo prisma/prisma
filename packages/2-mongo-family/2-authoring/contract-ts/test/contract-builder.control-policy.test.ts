@@ -237,4 +237,21 @@ describe('defineContract collection validators under a control policy', () => {
 
     expect(validatedCollections(built)).toEqual(['users']);
   });
+
+  it('gives no validator to a managed collection under an external default policy', () => {
+    const built = defineContract({
+      family: mongoFamilyPack,
+      target: mongoTargetPack,
+      defaultControlPolicy: 'external',
+      models: {
+        User: model('User', {
+          collection: 'users',
+          controlPolicy: 'managed',
+          fields: { _id: field.objectId() },
+        }),
+      },
+    });
+
+    expect(validatedCollections(built)).toEqual([]);
+  });
 });

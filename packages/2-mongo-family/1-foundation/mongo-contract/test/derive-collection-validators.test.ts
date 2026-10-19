@@ -491,4 +491,57 @@ describe('deriveCollectionValidators and the document id', () => {
       },
     });
   });
+
+  describe('under a control policy', () => {
+    const roots = {
+      managed: crossRef('Managed'),
+      tolerated: crossRef('Tolerated'),
+      external: crossRef('External'),
+      observed: crossRef('Observed'),
+    };
+    const models = {
+      Managed: model({ _id: objectId() }),
+      Tolerated: model({ _id: objectId() }),
+      External: model({ _id: objectId() }),
+      Observed: model({ _id: objectId() }),
+    };
+
+    it('derives a validator only for a managed collection', () => {
+      const validators = derive({
+        roots,
+        models,
+        controlPolicies: {
+          collections: {
+            managed: 'managed',
+            tolerated: 'tolerated',
+            external: 'external',
+            observed: 'observed',
+          },
+          defaultControlPolicy: undefined,
+        },
+      });
+
+      expect(Object.keys(validators)).toEqual(['managed']);
+    });
+
+    it('takes the contract default for a collection without its own policy', () => {
+      const validators = derive({
+        roots,
+        models,
+        controlPolicies: { collections: { managed: 'managed' }, defaultControlPolicy: 'observed' },
+      });
+
+      expect(Object.keys(validators)).toEqual(['managed']);
+    });
+
+    it('derives none under an external default, even for a collection declared managed', () => {
+      const validators = derive({
+        roots,
+        models,
+        controlPolicies: { collections: { managed: 'managed' }, defaultControlPolicy: 'external' },
+      });
+
+      expect(validators).toEqual({});
+    });
+  });
 });

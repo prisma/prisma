@@ -39,7 +39,7 @@ export function derive(
   input: {
     readonly roots: Record<string, CrossReference>;
   } & Pick<CollectionValidatorsInput, 'models'> &
-    Partial<Pick<CollectionValidatorsInput, 'valueObjects' | 'valueSets'>>,
+    Partial<Pick<CollectionValidatorsInput, 'valueObjects' | 'valueSets' | 'controlPolicies'>>,
 ) {
   const { roots, models, ...sources } = input;
   const stored = { ...models };
@@ -51,6 +51,7 @@ export function derive(
     lookups: mongoTypeLookups,
     valueObjects: {},
     valueSets: {},
+    controlPolicies: { collections: {}, defaultControlPolicy: undefined },
     ...sources,
     models: stored,
   });

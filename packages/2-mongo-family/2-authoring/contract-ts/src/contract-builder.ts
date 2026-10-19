@@ -14,7 +14,6 @@ import {
   type ExecutionHashBase,
   type ExecutionMutationDefault,
   type ExecutionMutationDefaultPhases,
-  effectiveControlPolicy,
   type FieldTypesFromDomain,
   type JsonValue,
   type ProfileHashBase,
@@ -2552,25 +2551,31 @@ function buildContractFromDefinition<
     }
   }
 
+  const controlPolicies = {
+    collections: Object.fromEntries(
+      Object.entries(collections).map(([name, collection]) => [name, collection.control]),
+    ),
+    defaultControlPolicy: definition.defaultControlPolicy,
+  };
   assertCollectionValidatorSources({
     models: builtModels,
     valueObjects: builtValueObjects,
     enums: builtEnums,
     lookups,
+    controlPolicies,
   });
   const validators = deriveCollectionValidators({
     models: builtModels,
     lookups,
     valueObjects: builtValueObjects,
     valueSets: storageValueSets,
+    controlPolicies,
   });
   const storage: MongoStorageShape<string> = buildMongoStorage({
     collections: Object.fromEntries(
       Object.entries(collections).map(([name, collection]) => [
         name,
-        effectiveControlPolicy(collection.control, definition.defaultControlPolicy) === 'managed'
-          ? { ...collection, ...ifDefined('validator', validators[name]) }
-          : collection,
+        { ...collection, ...ifDefined('validator', validators[name]) },
       ]),
     ),
     valueSets: storageValueSets,
