@@ -4,7 +4,6 @@ import type { PostgresPlanTargetDetails } from '@internal/target-postgres/planne
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import { expectNoMarkerOrLedgerWrites } from '../utils/dbAssertions';
 import {
-  bootstrapPostgresControlSchema,
   bootstrapPostgresControlTables,
   contract,
   createDriver,
