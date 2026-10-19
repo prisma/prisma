@@ -249,7 +249,7 @@ if (url.pathname === '/cursor/large') {
 
 ### Wiring the ORM client
 
-`db.orm` is the ORM on a connection. To give models their own query methods, pass custom collection classes to `postgresServerless()` with the `collections` option. Every connection's `db.orm`, and the `tx.orm` of its transactions, then returns those classes:
+`db.orm` is the ORM on a connection. To give models their own query methods, pass custom collection classes to the Worker's serverless client with the `collections` option. Every connection's `db.orm`, and the `tx.orm` of its transactions, then returns those classes. The streaming client from the previous section takes the same options, so it gets the classes too:
 
 ```ts
 // src/prisma/db.ts

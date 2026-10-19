@@ -133,7 +133,7 @@ A connection wraps a runtime. It is not one: it has no `query` or `execute` of i
 - `withTransaction(runtime, fn)`;
 - a prepared statement's `query(runtime, params)`.
 
-An application does not call `orm()` for custom collection classes. It passes them to the serverless client with the `collections` option, and every connection's `db.orm` returns them. This sample and the ones below continue the Worker sample above, so `postgres` is its serverless client and `contract` and `Contract` are its contract value and type:
+An application does not call `orm()` for custom collection classes. It passes them to its serverless client with the `collections` option, and every connection's `db.orm` returns them. This sample and the ones below continue the Worker sample above, so `contract` and `Contract` are its contract value and type, and `postgres` is its serverless client, here created with the classes:
 
 ```ts
 import { Collection } from '@prisma/orm-postgres/orm-client';
@@ -144,10 +144,10 @@ class UserCollection extends Collection<Contract, 'User'> {
   }
 }
 
-const adminPostgres = postgresServerless({ contract, collections: { User: UserCollection } });
+const postgres = postgresServerless({ contract, collections: { User: UserCollection } });
 
 export async function listAdmins(url: string) {
-  await using db = await adminPostgres.connect({ url });
+  await using db = await postgres.connect({ url });
   return await db.orm.public.User.admins().all();
 }
 ```
