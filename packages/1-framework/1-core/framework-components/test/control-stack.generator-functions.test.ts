@@ -52,6 +52,42 @@ describe('createControlStack generator functions', () => {
     ).toEqual({ ok: true, generator: { kind: 'generator', id: 'slugid' } });
   });
 
+  it('refuses an extension that registers a generator another component registers', () => {
+    expect(() =>
+      createControlStack(
+        stubInput({
+          family: {
+            kind: 'family',
+            id: 'sql',
+            version: '0.0.1',
+            controlMutationDefaults: {
+              defaultFunctionRegistry: new Map(),
+              generatorDescriptors: [{ id: 'uuidv4' }],
+            },
+          },
+          target: { kind: 'target', id: 'target', version: '0.0.1' },
+          extensions: [
+            {
+              kind: 'extension',
+              id: 'uuid-codec-pack',
+              version: '0.0.1',
+              controlMutationDefaults: {
+                defaultFunctionRegistry: new Map(),
+                generatorDescriptors: [{ id: 'uuidv4' }],
+              },
+            },
+          ],
+        }),
+      ),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Generator "uuidv4" is registered by both "sql" and "uuid-codec-pack". Register each generator once, in the component that defines it.',
+      }),
+    );
+  });
+
   it('refuses a binding that produces a generator no component registers', () => {
     expect(() => stackWith(['uuidv4'])).toThrow(
       expect.objectContaining({

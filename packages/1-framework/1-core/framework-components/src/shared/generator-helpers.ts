@@ -6,7 +6,7 @@ export interface SignatureArgumentOutput<T> {
   readonly _out?: T;
 }
 
-/** The mark psl-parser's `optional(...)` puts on an argument type (`OptionalArgType`), which makes the `gen` argument optional. The facade `gen` type tests fail if the two drift apart. */
+/** The mark psl-parser's `optional(...)` puts on an argument type; its `OptionalArgumentMarks` extends it. It makes the `gen` argument optional. */
 export interface SignatureOptionalArgument {
   readonly optional: true;
 }

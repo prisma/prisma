@@ -16,6 +16,14 @@ changes:
         - 'printArguments\s*:'
         - 'applicableCodecIds\s*:'
         - 'buildPhases\s*:'
+  - id: sql-family-registers-identifier-generators
+    summary: |
+      The SQL family now registers the identifier generators `uuidv4`, `uuidv7`, `cuid2`, `ulid`, `nanoid` and `ksuid`. A target, adapter or extension that registers one of them in `generatorDescriptors` must stop: two components that register one generator fail with `CONTRACT.PACK_CONTRIBUTION_INVALID`. An extension that binds `uuid` or another identifier function to its own codec keeps the binding and drops the registration. `builtinGeneratorRegistryMetadata` from `@prisma/orm-framework/ids` is removed; delete its use. The detection matches files that register the built-in identifier generators.
+    detection:
+      glob: "**/*.{ts,mts,cts}"
+      matches:
+        - 'builtinGeneratorRegistryMetadata'
+        - "\\{\\s*id:\\s*'(?:uuidv4|uuidv7|cuid2|ulid|nanoid|ksuid)'\\s*\\}"
 ---
 
 # Client generators are generator functions
@@ -68,6 +76,10 @@ const slugidPack = {
 ```
 
 Put `generatorFunctions` and the generator descriptors on both the pack ref, which the TypeScript builder reads, and the control descriptor, which `contract emit`, `contract print` and the language server read. Every stack, the TypeScript builders included, checks that each binding produces a generator a descriptor registers. Declare the pack ref with `as const satisfies`, not a type annotation: the `gen` of a `defineContract` callback is built from the packs' declared functions and their signatures, so `gen.slugid()` exists only when the pack ref keeps its literal type. A binding's `resolve` may return only a generator id the binding lists in `generatorIds`; any other id throws `InternalError`. To bind a function another component declares, such as `uuid`, to a codec your extension adds, contribute a binding without a `signature`. Composing a stack fails with `CONTRACT.PACK_CONTRIBUTION_INVALID` when two components declare one function, when a binding names a function no component declares, when two bindings cover one function and codec, when two functions write one generator for one codec, or when a binding produces a generator no generator descriptor registers.
+
+## `sql-family-registers-identifier-generators`
+
+The component that defines a generator registers it, and the SQL family now defines and registers `uuidv4`, `uuidv7`, `cuid2`, `ulid`, `nanoid` and `ksuid`. A SQL target, adapter or extension that registers any of them, for example by spreading `builtinGeneratorRegistryMetadata` into `generatorDescriptors`, must remove those entries; `builtinGeneratorRegistryMetadata` is removed. Two components that register one generator id make every stack fail with `CONTRACT.PACK_CONTRIBUTION_INVALID`: `Generator "uuidv4" is registered by both "sql" and "<your component>". Register each generator once, in the component that defines it.` An extension that binds `uuid` to a codec it adds keeps the binding and registers nothing for it. Register only the generators your component defines, such as `slugid`.
 
 A default function that lowers to a database default, such as one that writes a SQL expression, does not change.
 

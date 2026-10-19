@@ -75,10 +75,6 @@ const builtinGeneratorMetadataById = {
   },
 } as const satisfies Record<BuiltinGeneratorId, BuiltinGeneratorMetadata>;
 
-export const builtinGeneratorRegistryMetadata: ReadonlyArray<{
-  readonly id: BuiltinGeneratorId;
-}> = builtinGeneratorIds.map((id) => ({ id }));
-
 export type GeneratedColumnSpec<TCodecId extends string = string> = {
   readonly type: ColumnTypeDescriptor<TCodecId>;
   readonly nullable?: false;

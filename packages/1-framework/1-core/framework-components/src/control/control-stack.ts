@@ -37,11 +37,11 @@ import type { ComponentMetadata } from '../shared/framework-components';
 import {
   assembleGeneratorFunctions,
   type GeneratorFunctionRegistry,
+  registeredGeneratorDescriptors,
 } from '../shared/generator-functions';
 import type {
   AssembledControlMutationDefaults,
   ControlMutationDefaultEntry,
-  MutationDefaultGeneratorDescriptor,
 } from '../shared/mutation-default-types';
 import {
   CONTRACT_CODEC_DESCRIPTOR_MISSING,
@@ -584,24 +584,12 @@ export function assembleControlMutationDefaults(
 ): AssembledControlMutationDefaults {
   const defaultFunctionRegistry = new Map<string, ControlMutationDefaultEntry>();
   const functionOwners = new Map<string, string>();
-  const generatorMap = new Map<string, MutationDefaultGeneratorDescriptor>();
-  const componentIdsByGenerator = new Map<string, string | undefined>();
+  const registered = registeredGeneratorDescriptors(descriptors);
 
   for (const descriptor of descriptors) {
     const contributions = descriptor.controlMutationDefaults;
     if (!contributions) continue;
     const descriptorId = descriptor.id ?? '<unknown>';
-
-    for (const generatorDescriptor of contributions.generatorDescriptors) {
-      if (generatorMap.has(generatorDescriptor.id)) {
-        throw new InternalError(
-          `Duplicate mutation default generator id "${generatorDescriptor.id}". ` +
-            `Descriptor "${descriptorId}" conflicts with "${componentIdsByGenerator.get(generatorDescriptor.id) ?? '<unknown>'}".`,
-        );
-      }
-      generatorMap.set(generatorDescriptor.id, generatorDescriptor);
-      componentIdsByGenerator.set(generatorDescriptor.id, descriptor.id);
-    }
 
     for (const [functionName, handler] of contributions.defaultFunctionRegistry) {
       const existingOwner = functionOwners.get(functionName);
@@ -618,8 +606,10 @@ export function assembleControlMutationDefaults(
 
   return {
     defaultFunctionRegistry,
-    generatorDescriptors: Array.from(generatorMap.values()),
-    componentIdsByGenerator,
+    generatorDescriptors: [...registered.values()].map(({ descriptor }) => descriptor),
+    componentIdsByGenerator: new Map(
+      [...registered].map(([id, { componentId }]) => [id, componentId] as const),
+    ),
   };
 }
 

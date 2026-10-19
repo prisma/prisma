@@ -258,6 +258,21 @@ describe('assembleGeneratorFunctions', () => {
       );
     });
 
+    it('a generator id two components register, as the control stack does', () => {
+      expect(() =>
+        assembleGeneratorFunctions([
+          component('desc-a', [], ['uuidv4']),
+          component('desc-b', [], ['uuidv4']),
+        ]),
+      ).toThrow(
+        expect.objectContaining({
+          code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+          message:
+            'Generator "uuidv4" is registered by both "desc-a" and "desc-b". Register each generator once, in the component that defines it.',
+        }),
+      );
+    });
+
     it('a signature with named parameters, which gen cannot express', () => {
       expect(() =>
         assembleGeneratorFunctions([

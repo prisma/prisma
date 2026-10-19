@@ -1,16 +1,7 @@
 import { isInternalError } from '@internal/utils/internal-error';
 import { isStructuredError } from '@internal/utils/structured-error';
 import { describe, expect, it } from 'vitest';
-import {
-  builtinGeneratorIds,
-  builtinGeneratorRegistryMetadata,
-  cuid2,
-  ksuid,
-  nanoid,
-  ulid,
-  uuidv4,
-  uuidv7,
-} from '../src/index';
+import { cuid2, ksuid, nanoid, ulid, uuidv4, uuidv7 } from '../src/index';
 import { generateId } from '../src/runtime';
 
 describe('@internal/ids', () => {
@@ -101,9 +92,5 @@ describe('@internal/ids', () => {
   it('accepts nanoid with valid size', () => {
     expect(nanoid({ size: 2 }).typeParams).toEqual({ length: 2 });
     expect(nanoid({ size: 255 }).typeParams).toEqual({ length: 255 });
-  });
-
-  it('registers every builtin generator id', () => {
-    expect(builtinGeneratorRegistryMetadata).toEqual(builtinGeneratorIds.map((id) => ({ id })));
   });
 });

@@ -103,6 +103,33 @@ describe('.onCreate and .onUpdate', () => {
     );
   });
 
+  it('refuse a pack that registers a generator another pack registers, as contract emit does', () => {
+    const uuidCodecPack = {
+      ...slugidPack,
+      id: 'uuid-codec-pack',
+      generatorFunctions: [],
+      controlMutationDefaults: {
+        defaultFunctionRegistry: new Map(),
+        generatorDescriptors: [{ id: 'uuidv4' }],
+      },
+    };
+    expect(() =>
+      buildContractDefinition({
+        family: familyPack,
+        target: targetPack,
+        extensions: { 'uuid-codec-pack': uuidCodecPack },
+        createNamespace: createTestSqlNamespace,
+        models: {},
+      }),
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Generator "uuidv4" is registered by both "postgres" and "uuid-codec-pack". Register each generator once, in the component that defines it.',
+      }),
+    );
+  });
+
   it('refuse a list field', () => {
     expect(() =>
       executionDefaultsOf({ tags: field.column(textColumn).many().onCreate(gen.uuid()) }),

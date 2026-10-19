@@ -1365,7 +1365,7 @@ describe('assembleControlMutationDefaults', () => {
     ).toThrow(/Duplicate mutation default function "now".*"desc-b".*"desc-a"/);
   });
 
-  it('throws on duplicate generator id', () => {
+  it('refuses a generator id two components register', () => {
     expect(() =>
       assembleControlMutationDefaults([
         createDescriptor({
@@ -1383,7 +1383,13 @@ describe('assembleControlMutationDefaults', () => {
           },
         }),
       ]),
-    ).toThrow(/Duplicate mutation default generator id "uuidv4".*"desc-b".*"desc-a"/);
+    ).toThrow(
+      expect.objectContaining({
+        code: 'CONTRACT.PACK_CONTRIBUTION_INVALID',
+        message:
+          'Generator "uuidv4" is registered by both "desc-a" and "desc-b". Register each generator once, in the component that defines it.',
+      }),
+    );
   });
 });
 

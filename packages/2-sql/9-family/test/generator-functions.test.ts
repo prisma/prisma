@@ -1,6 +1,10 @@
 import { assembleGeneratorFunctions } from '@internal/framework-components/components';
+import { builtinGeneratorIds } from '@internal/ids';
 import { describe, expect, it } from 'vitest';
-import { idGeneratorFunctionBindings } from '../src/core/generator-functions';
+import {
+  idGeneratorFunctionBindings,
+  sqlFamilyGeneratorDescriptors,
+} from '../src/core/generator-functions';
 import sqlFamilyPack from '../src/exports/pack';
 
 const registry = assembleGeneratorFunctions([
@@ -31,6 +35,12 @@ function generator(id: string, params?: Record<string, unknown>) {
 }
 
 describe('SQL family generator functions', () => {
+  it('registers exactly the identifier generators the runtime implements', () => {
+    expect(new Set(sqlFamilyGeneratorDescriptors.map(({ id }) => id))).toEqual(
+      new Set(builtinGeneratorIds),
+    );
+  });
+
   it('registers the identifier generators, so a target that binds them and registers none composes', () => {
     expect(registry.functionsFor('demo/text@1').map(({ name }) => name)).toEqual([
       'cuid',

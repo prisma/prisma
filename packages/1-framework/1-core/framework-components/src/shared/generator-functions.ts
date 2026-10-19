@@ -3,10 +3,10 @@ import { InternalError } from '@internal/utils/internal-error';
 import type { MutationDefaultGeneratorDescriptor } from './mutation-default-types';
 import { runtimeError } from './runtime-error';
 
-/** The codec and type params of the field a generator fills: a column in SQL, a document field in Mongo. */
 /** The phase a client generator runs in: when a row is created, or every time it is updated. */
 export type GeneratorPhase = 'onCreate' | 'onUpdate';
 
+/** The codec and type params of the field a generator fills: a column in SQL, a document field in Mongo. */
 export interface GeneratorFunctionField {
   readonly codecId: string;
   readonly typeParams: Readonly<Record<string, unknown>> | undefined;
@@ -112,16 +112,45 @@ function invalidContribution(message: string): Error {
 }
 
 /**
+ * The generator ids the components register, each with the id of the component that registers it. A generator registered by two components is refused: the component that defines a generator registers it, once.
+ */
+export function registeredGeneratorDescriptors(
+  descriptors: ReadonlyArray<Pick<GeneratorFunctionComponent, 'id' | 'controlMutationDefaults'>>,
+): ReadonlyMap<
+  string,
+  {
+    readonly descriptor: MutationDefaultGeneratorDescriptor;
+    readonly componentId: string | undefined;
+  }
+> {
+  const registered = new Map<
+    string,
+    {
+      readonly descriptor: MutationDefaultGeneratorDescriptor;
+      readonly componentId: string | undefined;
+    }
+  >();
+  for (const component of descriptors) {
+    for (const descriptor of component.controlMutationDefaults?.generatorDescriptors ?? []) {
+      const existing = registered.get(descriptor.id);
+      if (existing !== undefined) {
+        throw invalidContribution(
+          `Generator "${descriptor.id}" is registered by both "${existing.componentId ?? '<unknown>'}" and "${component.id ?? '<unknown>'}". Register each generator once, in the component that defines it.`,
+        );
+      }
+      registered.set(descriptor.id, { descriptor, componentId: component.id });
+    }
+  }
+  return registered;
+}
+
+/**
  * Assemble the generator functions of a composed stack: the control stack's components, or the pack refs of a TypeScript contract. Every generator a binding produces must be registered by a generator descriptor of one of the components.
  */
 export function assembleGeneratorFunctions(
   descriptors: ReadonlyArray<GeneratorFunctionComponent>,
 ): GeneratorFunctionRegistry {
-  const registered = new Set(
-    descriptors.flatMap((descriptor) =>
-      (descriptor.controlMutationDefaults?.generatorDescriptors ?? []).map(({ id }) => id),
-    ),
-  );
+  const registered = registeredGeneratorDescriptors(descriptors);
   const declared = new Map<string, DeclaredFunction>();
   const bindingsByCodec = new Map<string, Map<string, OwnedBinding>>();
   const printersByCodecAndGenerator = new Map<string, OwnedBinding>();
