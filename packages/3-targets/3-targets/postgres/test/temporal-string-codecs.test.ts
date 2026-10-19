@@ -12,6 +12,7 @@ import {
   pgTimestampStringDescriptor,
   pgTimestamptzStringDescriptor,
 } from '../src/core/temporal-string-codecs';
+import { fromContractJson, toContractJson } from './contract-json';
 
 const instanceCtx = { name: '<test>' };
 const callCtx = {};
@@ -93,15 +94,15 @@ describe('representation-explicit temporal string codecs', () => {
 
       it.each(UNREPRESENTABLE_VALUES)('forwards %s unchanged on the wire', async (value) => {
         expect({
-          encoded: await codec.encode(value, callCtx),
-          decoded: await codec.decode(value, callCtx),
+          encoded: await codec.toWire(value, callCtx),
+          decoded: await codec.fromWire(value, callCtx),
         }).toEqual({ encoded: value, decoded: value });
       });
 
       it.each(OTHER_DATE_STYLES)(
         'refuses to read %s from JSON, which only a session in another DateStyle writes',
         (value) => {
-          expect(() => codec.decodeJson(value)).toThrow(
+          expect(() => fromContractJson(codec, value)).toThrow(
             expect.objectContaining({ code: 'RUNTIME.DECODE_FAILED' }),
           );
         },
@@ -110,13 +111,13 @@ describe('representation-explicit temporal string codecs', () => {
       it.each(standardJson.map(([value, json]) => ({ value, json })))(
         'writes $value to JSON in canonical form $json',
         ({ value, json }) => {
-          expect(codec.encodeJson(value)).toBe(json);
+          expect(toContractJson(codec, value)).toBe(json);
         },
       );
 
       it.each(refusedJson)('refuses to write %s to JSON, as its data type does', (value) => {
-        expect(() => codec.encodeJson(value)).toThrow(
-          expect.objectContaining({ code: 'CONTRACT.CAST_REFUSED' }),
+        expect(() => toContractJson(codec, value)).toThrow(
+          expect.objectContaining({ code: 'RUNTIME.DECODE_FAILED' }),
         );
       });
 
@@ -142,9 +143,9 @@ describe('representation-explicit temporal string codecs', () => {
         const decoded: string[] = [];
         for (const { descriptor } of CODECS) {
           const codec = descriptor.factory({})(instanceCtx);
-          const encoded = await codec.encode('infinity', callCtx);
+          const encoded = await codec.toWire('infinity', callCtx);
           seenDuring.push(Reflect.get(globalThis, 'Temporal'));
-          decoded.push(await codec.decode(encoded, callCtx));
+          decoded.push(await codec.fromWire(encoded, callCtx));
         }
         return decoded;
       });

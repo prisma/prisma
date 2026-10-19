@@ -31,6 +31,9 @@ const citextTemplate: CodecDescriptorTemplate = {
 export const extensionCodec: AnyPostgresCodecDescriptor = postgresCodec(citextTemplate, {
   dataType: pgText,
   jsonProjection: (expression) => expression,
+  factory: () => () => {
+    throw new Error('the printer never builds a codec');
+  },
 });
 
 /** The PSL calls of the default functions the Postgres adapter registers, as the printer reads them. */
@@ -99,6 +102,7 @@ export function testBuildContext(
     dataTypes: {
       entries: postgresDataTypeEntries(),
       lookup: createDataTypeLookup([...postgresDataTypes, ...(extra.dataTypes ?? [])]),
+      dataTypeOfCodec: () => undefined,
     },
   };
 }

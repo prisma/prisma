@@ -16,6 +16,7 @@ import {
 } from '../src/core/date-time-now-generators';
 import { postgresNowGeneratorIdFor, postgresNowGeneratorIds } from '../src/core/now-generators';
 import { postgresCodecRegistry } from '../src/core/registry';
+import { fromContractJson, toContractJson } from './contract-json';
 
 const generate: Readonly<Record<string, () => unknown>> = {
   [TIMESTAMP_NOW_GENERATOR_ID]: () => timestampNowRuntimeGenerator().generate(),
@@ -44,7 +45,9 @@ const DATE_AND_TIME_CODEC_IDS = [
 ];
 
 function codecFor(codecId: string) {
-  return postgresCodecRegistry.descriptorFor(codecId)?.factory({})({ name: '<test>' });
+  const descriptor = postgresCodecRegistry.descriptorFor(codecId);
+  if (descriptor === undefined) throw new Error(`no registered codec for '${codecId}'`);
+  return descriptor.factory({})({ name: '<test>' });
 }
 
 describe('the "now" generator for each codec', () => {
@@ -53,10 +56,10 @@ describe('the "now" generator for each codec', () => {
     async (codecId, generatorId) => {
       const value = generate[generatorId]?.();
       const codec = codecFor(codecId);
-      const wire = await codec?.encode(value, {});
+      const wire = await codec.toWire(value, {});
       expect(typeof wire).toBe('string');
-      const json = codec?.encodeJson(value);
-      expect(codec?.encodeJson(codec.decodeJson(json ?? null))).toEqual(json);
+      const json = toContractJson(codec, value);
+      expect(toContractJson(codec, fromContractJson(codec, json))).toEqual(json);
     },
   );
 

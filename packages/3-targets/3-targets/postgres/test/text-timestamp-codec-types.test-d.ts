@@ -13,10 +13,10 @@ test('the text timestamp codecs take and publish string only', () => {
 
   const timestamp = pgTimestampStringDescriptor.factory({})({ name: 'at' });
   const timestamptz = pgTimestamptzStringDescriptor.factory({})({ name: 'at' });
-  expectTypeOf(timestamp.encode('2024-01-02 03:04:05', {})).resolves.toEqualTypeOf<string>();
-  expectTypeOf(timestamptz.encode('2024-01-02 03:04:05+00', {})).resolves.toEqualTypeOf<string>();
+  expectTypeOf(timestamp.toWire('2024-01-02 03:04:05', {})).resolves.toEqualTypeOf<string>();
+  expectTypeOf(timestamptz.toWire('2024-01-02 03:04:05+00', {})).resolves.toEqualTypeOf<string>();
   // @ts-expect-error a Date is not text
-  timestamp.encode(new Date(), {});
+  timestamp.toWire(new Date(), {});
   // @ts-expect-error a Date is not text
-  timestamptz.encode(new Date(), {});
+  timestamptz.toWire(new Date(), {});
 });

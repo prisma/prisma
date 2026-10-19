@@ -256,6 +256,7 @@ describe('columns and fields', () => {
       },
       dataTypes: [
         sqlDataType('postgis/geometry', {
+          read: (json) => json,
           params: arktype({ 'shape?': 'string' }),
           texts: [{ text: 'geometry', written: true, catalog: true }],
         }),
