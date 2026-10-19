@@ -70,7 +70,7 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
-import { columnType, isSafeTypeWidening } from './safe-widenings';
+import { isSafeTypeWidening } from './safe-widenings';
 
 /**
  * Look up a storage table by its explicit namespace coordinate. Returns
@@ -302,7 +302,7 @@ export const typeChangeCallStrategy: CallMigrationStrategy = (issues, ctx) => {
         column.column === expected.name,
     );
     if (converted === undefined) continue;
-    if (isSafeTypeWidening(columnType(actual, ctx.types), columnType(expected, ctx.types))) {
+    if (isSafeTypeWidening(actual, expected)) {
       continue;
     }
 

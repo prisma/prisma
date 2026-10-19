@@ -5,7 +5,6 @@ import { toStorageTypeInstance } from '@internal/sql-contract/types';
 import { parseNaming } from '@internal/sql-schema-ir/naming';
 import { SqlForeignKeyIR } from '@internal/sql-schema-ir/types';
 import { ifDefined } from '@internal/utils/defined';
-import { InternalError } from '@internal/utils/internal-error';
 import { describe, expect, it } from 'vitest';
 import { postgresDataTypes } from '../../src/core/data-types';
 import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
@@ -456,7 +455,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     },
   );
 
-  it('refuses to plan a conversion for a live column that carries no codec', () => {
+  it('alters in place a live column a convert statement names, when its stored type widens safely', () => {
     const contract = makeContract({
       user: {
         columns: {
@@ -498,30 +497,35 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
       frameworkComponents: postgresTypeComponents,
     });
 
-    expect(() =>
-      planNodeIssues({
-        issues: coalesceSubtreeIssues(issues),
-        toContract: contract,
-        fromContract: contract,
-        schemaName: 'public',
-        codecHooks: new Map(),
-        types: postgresTypeLookups,
-        storageTypes: {},
-        frameworkComponents: postgresTypeComponents,
-        statementColumns: {
-          convert: [
-            {
-              namespaceId: 'public',
-              table: 'user',
-              column: 'age',
-              field: userField('age'),
-              text: 'User.age',
-            },
-          ],
-          backfill: [],
-        },
-      }),
-    ).toThrow(InternalError);
+    const result = planNodeIssues({
+      issues: coalesceSubtreeIssues(issues),
+      toContract: contract,
+      fromContract: contract,
+      schemaName: 'public',
+      codecHooks: new Map(),
+      types: postgresTypeLookups,
+      storageTypes: {},
+      frameworkComponents: postgresTypeComponents,
+      statementColumns: {
+        convert: [
+          {
+            namespaceId: 'public',
+            table: 'user',
+            column: 'age',
+            field: userField('age'),
+            text: 'User.age',
+          },
+        ],
+        backfill: [],
+      },
+    });
+    if (!result.ok) throw new Error('expected ok');
+    expect(
+      result.value.calls.map((call) => ({
+        factoryName: call.factoryName,
+        class: call.operationClass,
+      })),
+    ).toEqual([{ factoryName: 'alterColumnType', class: 'widening' }]);
   });
 
   it('an extra live table becomes DropTable (strict)', () => {

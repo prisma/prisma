@@ -649,7 +649,6 @@ function mapColumnNodeIssue(
   issue: SchemaDiffIssue,
   schemaName: string,
   tableName: string,
-  types: TypeLookups,
   dataTypes: readonly DataType[],
 ): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
   if (issueOutcome(issue) === 'not-found') {
@@ -687,9 +686,7 @@ function mapColumnNodeIssue(
         type: renderColumnAlterType(expected),
         dataTypes,
         ownsAutoincrementSequence: hasAutoincrementDefault(actual),
-        operationClass: liveColumnWidensSafely(expected, actual, types)
-          ? 'widening'
-          : 'destructive',
+        operationClass: liveColumnWidensSafely(expected, actual) ? 'widening' : 'destructive',
       }),
     );
   }
@@ -941,7 +938,7 @@ export function mapNodeIssueToCall(
     case PostgresSchemaNodeKind.table:
       return mapTableNodeIssue(issue, schemaName, ddlSchemaName);
     case RelationalSchemaNodeKind.column:
-      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.types, ctx.dataTypes);
+      return mapColumnNodeIssue(issue, schemaName, tableName, ctx.dataTypes);
     case RelationalSchemaNodeKind.columnDefault: {
       const columnName = issueColumnName(issue);
       if (columnName === undefined) {
