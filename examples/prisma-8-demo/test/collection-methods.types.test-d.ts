@@ -1,15 +1,11 @@
 import type { Vector } from '@prisma/orm-extension-pgvector/codec-types';
-import type { Runtime } from '@prisma/orm-postgres/family-runtime';
 import type { CollectionRowOf, HasOrderBy, HasWhere } from '@prisma/orm-postgres/orm-client';
 import { websearchToTsquery } from '@prisma/orm-postgres/target/full-text';
 import { describe, expectTypeOf, test } from 'vitest';
-import { createOrmClient } from '../src/orm-client/client';
 import type { PostCollection } from '../src/orm-client/collections';
 import { db } from '../src/prisma/db';
 
-declare const runtime: Runtime;
-
-const custom = createOrmClient(runtime);
+const custom = db.orm.public;
 const plain = db.orm.public;
 const q = websearchToTsquery('zebra');
 
