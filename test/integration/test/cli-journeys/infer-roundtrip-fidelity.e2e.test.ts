@@ -38,6 +38,7 @@ import {
   fixOneToOneBackRelation,
   readContractPsl,
   SEED_SQL,
+  SESSIONS_CROSS_SCHEMA_FOREIGN_KEY,
   writeContractPsl,
 } from './infer-roundtrip-fidelity/harness';
 
@@ -201,7 +202,7 @@ withTempDir(({ createTempDir }) => {
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        await expectVerifiesCleanAfterPull(ctx, 'Users.tags');
+        await expectVerifiesCleanAfterPull(ctx, 'Users.tags', [SESSIONS_CROSS_SCHEMA_FOREIGN_KEY]);
       },
       timeouts.spinUpPpgDev,
     );
@@ -233,7 +234,9 @@ withTempDir(({ createTempDir }) => {
             `instead got:\n${stripAnsi(emit.stderr)}\n${stripAnsi(emit.stdout)}`,
         ).toBe(0);
 
-        await expectVerifiesCleanAfterPull(ctx, 'Users.labels');
+        await expectVerifiesCleanAfterPull(ctx, 'Users.labels', [
+          SESSIONS_CROSS_SCHEMA_FOREIGN_KEY,
+        ]);
       },
       timeouts.spinUpPpgDev,
     );
@@ -345,7 +348,9 @@ withTempDir(({ createTempDir }) => {
         const emit = await runContractEmit(ctx);
         expect(emit.exitCode, `contract emit\n${stripAnsi(emit.stderr)}`).toBe(0);
 
-        await expectVerifiesCleanAfterPull(ctx, 'Users.metadata, Users.fee, Users.joinedAt');
+        await expectVerifiesCleanAfterPull(ctx, 'Users.metadata, Users.fee, Users.joinedAt', [
+          SESSIONS_CROSS_SCHEMA_FOREIGN_KEY,
+        ]);
       },
       timeouts.spinUpPpgDev,
     );

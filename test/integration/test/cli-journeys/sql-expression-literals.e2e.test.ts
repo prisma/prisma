@@ -26,6 +26,7 @@ import {
   timeouts,
   useDevDatabase,
 } from '../utils/journey-test-helpers';
+import { expectVerifiesCleanAfterPull } from './infer-roundtrip-fidelity/harness';
 
 const AUTHORED_SCHEMA = `// use prisma-8
 
@@ -108,11 +109,7 @@ withTempDir(({ createTempDir }) => {
 
         const emitInferred = await runContractEmit(ctx);
         expect(emitInferred.exitCode, `emit inferred\n${stripAnsi(emitInferred.stderr)}`).toBe(0);
-        const verifyInferred = await runDbVerify(ctx, ['--schema-only']);
-        expect(
-          verifyInferred.exitCode,
-          `verify inferred\n${stripAnsi(verifyInferred.stderr)}`,
-        ).toBe(0);
+        await expectVerifiesCleanAfterPull(ctx, 'inferred sql literals');
 
         const reinfer = await runContractInfer(ctx);
         expect(reinfer.exitCode, `re-infer\n${stripAnsi(reinfer.stderr)}`).toBe(0);
