@@ -33,6 +33,7 @@ import {
   type FieldStatementColumns,
   type MigrationOperationPolicy,
   type SqlMigrationPlanOperation,
+  type SqlPlannerConflict,
   type StatementColumn,
 } from '@internal/family-sql/control';
 import type { DataType } from '@internal/framework-components/codec';
@@ -51,6 +52,7 @@ import {
 import { blindCast } from '@internal/utils/casts';
 import { isPostgresSchema } from '../postgres-schema';
 import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
+import type { SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
 import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   renderColumnAlterType,
@@ -71,7 +73,7 @@ import {
   SetNotNullCall,
 } from './op-factory-call';
 import { buildTargetDetails, type PostgresPlanTargetDetails } from './planner-target-details';
-import { primaryKeyReplacementStrategy, type ReplacedForeignKey } from './primary-key-replacement';
+import { primaryKeyChangeStrategy } from './primary-key-change';
 import { columnType, isSafeTypeWidening } from './safe-widenings';
 
 /**
@@ -144,11 +146,16 @@ export interface StrategyContext {
   /** The composed stack's codecs and data types, which write each column's type. */
   readonly types: SqlTypeLookups;
   readonly storageTypes: Readonly<Record<string, StorageTypeInstance>>;
+  /** One namespace of the start state, for probes by bare table name in the planned namespace. */
   readonly schema: SqlSchemaIR;
   /** The whole start tree of the plan, every namespace. */
   readonly startTree: PostgresDatabaseSchemaNode;
   /** The whole end tree of the plan, every namespace. */
   readonly endTree: PostgresDatabaseSchemaNode;
+  /** Every issue of the plan, including those earlier strategies consumed. */
+  readonly allIssues: readonly SchemaDiffIssue[];
+  /** Whether the control policy lets the plan act on an issue, by the same rule that filtered the plan's issues. */
+  readonly controlPolicyPlans: (issue: SchemaDiffIssue<SqlSchemaDiffNode>) => boolean;
   readonly policy: MigrationOperationPolicy;
   readonly frameworkComponents: ReadonlyArray<TargetBoundComponentDescriptor<'sql', string>>;
   /** The columns of the fields `--convert` and `--backfill` statements name. */
@@ -184,8 +191,8 @@ export type CallMigrationStrategy = (
        * into their DDL sequencing bucket.
        */
       recipe?: boolean;
-      /** Foreign keys the calls drop and add back unchanged, which the constraint rename pass must leave alone. */
-      replacedForeignKeys?: readonly ReplacedForeignKey[];
+      /** Changes the strategy recognises but refuses to plan; the plan fails with them. */
+      conflicts?: readonly SqlPlannerConflict[];
     }
   | { kind: 'no_match' };
 
@@ -565,5 +572,5 @@ export const postgresPlannerStrategies: readonly CallMigrationStrategy[] = [
   nullableTighteningCallStrategy,
   storageTypePlanCallStrategy,
   notNullAddColumnCallStrategy,
-  primaryKeyReplacementStrategy,
+  primaryKeyChangeStrategy,
 ];

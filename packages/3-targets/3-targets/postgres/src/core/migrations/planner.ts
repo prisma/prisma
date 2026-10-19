@@ -326,11 +326,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
     const codecHooks = extractCodecControlHooks(options.frameworkComponents);
     const types = sqlTypeLookupsOf(options.frameworkComponents);
     const storageTypes = options.contract.storage.types ?? {};
-    // The strategy layer reads the live schema by bare table name for existence
-    // checks (shared-temp-default safety, FK/unique probes), so it takes one
-    // per-schema namespace node — never the whole tree root, and never a flat
-    // merge of every namespace (which would collide same-named tables across
-    // schemas). Probing more than one namespace at once is future work.
+    // Strategies get two views of the start state. `schema` is one namespace node, for probes by bare table name in the planned namespace (shared-temp-default safety, FK/unique probes); a flat merge of every namespace would collide same-named tables. `startTree` and `endTree` are the whole trees, for decisions that cross tables and namespaces, such as the foreign keys that depend on a primary key.
     const relationalSchema = relationalNamespaceNode(schema, schemaName);
 
     // Input-side control-policy partition. `external` / `observed` subjects
@@ -392,6 +388,14 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       ...ifDefined('schema', relationalSchema),
       startTree: schema,
       endTree: expectedSchema,
+      controlPolicyPlans: (issue) =>
+        partitionIssuesByControlPolicy({
+          issues: [issue],
+          contract: options.contract,
+          resolveControlPolicySubject: (candidate) =>
+            resolvePostgresNodeIssueControlPolicySubject(candidate, options.contract),
+          resolveCreationFactoryName: resolvePostgresNodeIssueCreationFactoryName,
+        }).plannable.length === 1,
       policy: options.policy,
       frameworkComponents: options.frameworkComponents,
       statementColumns: fieldStatementColumns(options.statements, options.contract),
@@ -409,7 +413,7 @@ export class PostgresMigrationPlanner implements MigrationPlanner<'sql', 'postgr
       [
         ...indexRenames.calls,
         ...checkRenames.calls,
-        ...plannedConstraintNameRenames({ ...options, schema }, result.value.replacedForeignKeys),
+        ...plannedConstraintNameRenames({ ...options, schema }, result.value.calls),
       ],
       options.contract,
     );

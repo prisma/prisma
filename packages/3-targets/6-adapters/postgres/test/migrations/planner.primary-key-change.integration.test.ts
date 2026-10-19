@@ -76,8 +76,29 @@ function contractOf(name: string, namespaces: Record<string, Record<string, Stor
 
 const userRef = { namespace: 'public', table: 'User', column: 'id' };
 
-function blog(edited: boolean): Contract<SqlStorage> {
-  return contractOf(`blog-${edited}`, {
+type Audit = 'managed' | 'external' | 'none';
+
+function auditEntry(audit: Audit): Record<string, StorageTableInput> {
+  if (audit === 'none') return {};
+  return {
+    Entry: {
+      columns: { id: int4, userId: int4 },
+      primaryKey: { columns: ['id'] },
+      uniques: [],
+      indexes: [],
+      foreignKeys: [
+        foreignKey({ namespace: 'audit', table: 'Entry', column: 'userId' }, userRef, {
+          onDelete: 'restrict',
+          onUpdate: 'cascade',
+        }),
+      ],
+      ...(audit === 'external' ? { control: 'external' as const } : {}),
+    },
+  };
+}
+
+function blog(edited: boolean, audit: Audit = 'managed'): Contract<SqlStorage> {
+  return contractOf(`blog-${edited}-${audit}`, {
     public: {
       User: {
         columns: { id: int4, email: text },
@@ -116,20 +137,7 @@ function blog(edited: boolean): Contract<SqlStorage> {
         ],
       },
     },
-    audit: {
-      Entry: {
-        columns: { id: int4, userId: int4 },
-        primaryKey: { columns: ['id'] },
-        uniques: [],
-        indexes: [],
-        foreignKeys: [
-          foreignKey({ namespace: 'audit', table: 'Entry', column: 'userId' }, userRef, {
-            onDelete: 'restrict',
-            onUpdate: 'cascade',
-          }),
-        ],
-      },
-    },
+    ...(audit === 'none' ? {} : { audit: auditEntry(audit) }),
   });
 }
 
@@ -258,13 +266,15 @@ describe('a primary key that moves', { concurrent: false }, () => {
     return result.rows;
   }
 
-  async function seedBlog(): Promise<void> {
+  async function seedBlog(options: { audit: boolean } = { audit: true }): Promise<void> {
     await driver!.query(`
       INSERT INTO "public"."User" ("id", "email") VALUES (1, 'ada@example.com'), (2, 'bo@example.com');
       INSERT INTO "public"."Post" ("id", "authorId") VALUES (10, 1), (11, 2);
       INSERT INTO "public"."Comment" ("id", "postId") VALUES (100, 10), (101, 10), (102, 11);
-      INSERT INTO "audit"."Entry" ("id", "userId") VALUES (1000, 1);
     `);
+    if (options.audit) {
+      await driver!.query(`INSERT INTO "audit"."Entry" ("id", "userId") VALUES (1000, 1)`);
+    }
   }
 
   const editedConstraints = [
@@ -326,26 +336,106 @@ describe('a primary key that moves', { concurrent: false }, () => {
     await expectSettled(blog(true));
   });
 
-  it('plans the same change from the database, as db update does', {
+  it('plans the at-a-glance change from the database, as db update does', {
     timeout: testTimeout,
   }, async () => {
-    await planAndApply(null, blog(false), INIT_ADDITIVE_POLICY);
-    await seedBlog();
+    await planAndApply(null, blog(false, 'none'), INIT_ADDITIVE_POLICY);
+    await seedBlog({ audit: false });
 
-    await planAndApply(null, blog(true), anyClass, await introspect(blog(true)));
+    const operationIds = await planAndApply(
+      null,
+      blog(true, 'none'),
+      anyClass,
+      await introspect(blog(true, 'none')),
+    );
 
-    expect(await constraints()).toEqual(editedConstraints);
-    await expectSettled(blog(true));
+    expect(operationIds).toEqual([
+      'dropConstraint.Comment.Comment_postId_fkey',
+      'dropConstraint.Post.Post_author_fk',
+      'dropConstraint.User.User_pkey',
+      'primaryKey.User.User_pkey',
+      'index.User.User_id_key',
+      'foreignKey.Comment.Comment_postId_fkey',
+      'foreignKey.Post.Post_author_fk',
+    ]);
+    expect(await constraints()).toEqual(
+      editedConstraints.filter((constraint) => constraint.table !== 'Entry'),
+    );
+    await expectSettled(blog(true, 'none'));
   });
 
   it('is refused by db init, which allows only additive changes', {
     timeout: testTimeout,
   }, async () => {
-    await planAndApply(null, blog(false), INIT_ADDITIVE_POLICY);
+    await planAndApply(null, blog(false, 'none'), INIT_ADDITIVE_POLICY);
 
-    const result = plan(null, blog(true), INIT_ADDITIVE_POLICY, await introspect(blog(true)));
+    const result = plan(
+      null,
+      blog(true, 'none'),
+      INIT_ADDITIVE_POLICY,
+      await introspect(blog(true, 'none')),
+    );
 
-    expect(result.kind).toBe('failure');
+    expect(result).toMatchObject({
+      kind: 'failure',
+      conflicts: [
+        {
+          kind: 'foreignKeyConflict',
+          refusedOperationClass: 'widening',
+          location: { constraint: 'Comment_postId_fkey' },
+        },
+        {
+          kind: 'foreignKeyConflict',
+          refusedOperationClass: 'widening',
+          location: { constraint: 'Post_author_fk' },
+        },
+        {
+          kind: 'foreignKeyConflict',
+          refusedOperationClass: 'widening',
+          location: { constraint: 'User_pkey' },
+        },
+      ],
+    });
+  });
+
+  it('refuses, as db update, when a foreign key on a table the contract marks external references the key', {
+    timeout: testTimeout,
+  }, async () => {
+    await planAndApply(null, blog(false, 'none'), INIT_ADDITIVE_POLICY);
+    await driver!.query(`
+      CREATE SCHEMA audit;
+      CREATE TABLE "audit"."Entry" (
+        "id" int4 PRIMARY KEY,
+        "userId" int4 NOT NULL,
+        CONSTRAINT "Entry_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+      );
+    `);
+
+    const result = plan(
+      null,
+      blog(true, 'external'),
+      anyClass,
+      await introspect(blog(true, 'external')),
+    );
+
+    expect(result).toEqual({
+      kind: 'failure',
+      conflicts: [
+        {
+          kind: 'foreignKeyConflict',
+          summary:
+            'Primary key "User_pkey" on "public"."User" cannot change while foreign key "Entry_userId_fkey" on "audit"."Entry" references it, and the control policy does not let this plan change "audit"."Entry".',
+          why: 'Drop or change that foreign key yourself, then plan again, or use `migration new` to author a custom migration for this change.',
+          location: { entityKind: 'table', entityName: 'Entry', constraint: 'Entry_userId_fkey' },
+        },
+      ],
+    });
+    expect(await constraints()).toContainEqual({
+      table: 'Entry',
+      name: 'Entry_userId_fkey',
+      definition:
+        'FOREIGN KEY ("userId") REFERENCES "User"(id) ON UPDATE CASCADE ON DELETE RESTRICT',
+    });
   });
 
   it('drops the key before the column it moves off when the plan drops that column', {

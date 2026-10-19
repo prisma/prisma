@@ -85,7 +85,7 @@ function planAgainst(
     readonly statementColumns?: FieldStatementColumns;
   } = {},
 ) {
-  const { issues } = buildPostgresPlanDiff({
+  const { issues, expected } = buildPostgresPlanDiff({
     contract,
     actualSchema: actual,
     frameworkComponents,
@@ -93,6 +93,9 @@ function planAgainst(
   const coalesced = coalesceSubtreeIssues(issues);
   return planIssues({
     issues: coalesced,
+    startTree: actual,
+    endTree: expected,
+    controlPolicyPlans: () => true,
     toContract: contract,
     fromContract: options.fromContract ?? null,
     schemaName: 'public',

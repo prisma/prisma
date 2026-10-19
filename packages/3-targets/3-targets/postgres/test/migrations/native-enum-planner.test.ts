@@ -36,6 +36,7 @@ import { PostgresNativeEnumSchemaNode } from '../../src/core/schema-ir/postgres-
 import { PostgresTableSchemaNode } from '../../src/core/schema-ir/postgres-table-schema-node';
 import { PostgresCreateType, PostgresDropType } from '../../src/exports/ddl';
 import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
+import { planTrees } from './node-issue-planner-fixtures';
 
 const MEMBERS = ['draft', 'review', 'done'] as const;
 
@@ -180,13 +181,14 @@ function liveTree(options: {
 }
 
 function planResultFor(contract: Contract<SqlStorage>, actual: PostgresDatabaseSchemaNode) {
-  const { issues } = buildPostgresPlanDiff({
+  const { issues, expected } = buildPostgresPlanDiff({
     contract,
     actualSchema: actual,
     frameworkComponents: postgresTypeComponents,
   });
   return planIssues({
     issues: coalesceSubtreeIssues(issues),
+    ...planTrees(actual, expected),
     toContract: contract,
     fromContract: null,
     schemaName: 'sales',

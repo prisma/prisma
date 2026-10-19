@@ -49,11 +49,11 @@ import { blindCast } from '@internal/utils/casts';
 import { ifDefined } from '@internal/utils/defined';
 import type { Result } from '@internal/utils/result';
 import { notOk, ok } from '@internal/utils/result';
-import { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
+import type { PostgresDatabaseSchemaNode } from '../schema-ir/postgres-database-schema-node';
 import type { PostgresNamespaceSchemaNode } from '../schema-ir/postgres-namespace-schema-node';
 import type { PostgresNativeEnumSchemaNode } from '../schema-ir/postgres-native-enum-schema-node';
 import type { PostgresTableSchemaNode } from '../schema-ir/postgres-table-schema-node';
-import { PostgresSchemaNodeKind } from '../schema-ir/schema-node-kinds';
+import { PostgresSchemaNodeKind, type SqlSchemaDiffNode } from '../schema-ir/schema-node-kinds';
 import { hasAutoincrementDefault } from './autoincrement-widths';
 import {
   buildSetDefaultColumn,
@@ -100,7 +100,6 @@ import {
   postgresPlannerStrategies,
   type StrategyContext,
 } from './planner-strategies';
-import type { ReplacedForeignKey } from './primary-key-replacement';
 import { liveColumnWidensSafely } from './safe-widenings';
 
 export type { CallMigrationStrategy, StrategyContext };
@@ -124,7 +123,6 @@ function issueConflict(
 
 export interface IssuePlannerValue {
   readonly calls: readonly PostgresOpFactoryCall[];
-  readonly replacedForeignKeys: readonly ReplacedForeignKey[];
 }
 
 /**
@@ -232,15 +230,6 @@ const DEFAULT_POLICY: MigrationOperationPolicy = {
 
 function emptySchemaIR(): SqlSchemaIR {
   return new SqlSchemaIR({ tables: {} });
-}
-
-function emptyTree(): PostgresDatabaseSchemaNode {
-  return new PostgresDatabaseSchemaNode({
-    namespaces: {},
-    roles: [],
-    existingSchemas: [],
-    pgVersion: 'unknown',
-  });
 }
 
 /**
@@ -769,44 +758,24 @@ function mapColumnDefaultNodeIssue(
   ]);
 }
 
-/** The calls for one primary key issue: an add, a drop, or a drop of the old key then an add of the new one. */
-export function primaryKeyCalls(
+/** A missing primary key is added. A changed or removed key is planned only by `primaryKeyChangeStrategy`, which also handles the foreign keys that depend on it; one that reaches this mapper is refused. */
+function mapPrimaryKeyNodeIssue(
   issue: SchemaDiffIssue,
   schemaName: string,
   tableName: string,
-): readonly PostgresOpFactoryCall[] {
-  const add = () => {
-    const pk = blindCast<
-      PrimaryKey,
-      'a not-found or not-equal primary-key issue always carries the expected PrimaryKey node'
-    >(issue.expected);
-    return new AddPrimaryKeyCall(
-      schemaName,
-      tableName,
-      pk.name ?? defaultPrimaryKeyName(tableName),
-      [...pk.columns],
-    );
-  };
-  const drop = () => {
-    const pk = blindCast<
-      PrimaryKey,
-      'a not-expected or not-equal primary-key issue always carries the actual PrimaryKey node'
-    >(issue.actual);
-    return new DropConstraintCall(
-      schemaName,
-      tableName,
-      pk.name ?? defaultPrimaryKeyName(tableName),
-      'primaryKey',
-    );
-  };
-  switch (issueOutcome(issue)) {
-    case 'not-found':
-      return [add()];
-    case 'not-expected':
-      return [drop()];
-    default:
-      return [drop(), add()];
+): Result<readonly PostgresOpFactoryCall[], SqlPlannerConflict> {
+  if (issueOutcome(issue) !== 'not-found') {
+    return notOk(nodeConflict('indexIncompatible', issue.path.join('/')));
   }
+  const pk = blindCast<
+    PrimaryKey,
+    'a not-found primary-key issue always carries the expected PrimaryKey node'
+  >(issue.expected);
+  return ok([
+    new AddPrimaryKeyCall(schemaName, tableName, pk.name ?? defaultPrimaryKeyName(tableName), [
+      ...pk.columns,
+    ]),
+  ]);
 }
 
 function mapForeignKeyNodeIssue(
@@ -1020,7 +989,7 @@ export function mapNodeIssueToCall(
       return mapColumnDefaultNodeIssue(issue, schemaName, tableName, columnName, ctx.types);
     }
     case RelationalSchemaNodeKind.primaryKey:
-      return ok(primaryKeyCalls(issue, schemaName, tableName));
+      return mapPrimaryKeyNodeIssue(issue, schemaName, tableName);
     case RelationalSchemaNodeKind.foreignKey:
       return mapForeignKeyNodeIssue(issue, schemaName, tableName);
     case RelationalSchemaNodeKind.unique:
@@ -1051,9 +1020,12 @@ export interface IssuePlannerOptions {
    * snapshots.
    */
   readonly schema?: SqlSchemaIR;
-  /** The whole start and end trees of the plan; empty when omitted. */
-  readonly startTree?: PostgresDatabaseSchemaNode;
-  readonly endTree?: PostgresDatabaseSchemaNode;
+  /** The whole start tree of the plan, every namespace. */
+  readonly startTree: PostgresDatabaseSchemaNode;
+  /** The whole end tree of the plan, every namespace. */
+  readonly endTree: PostgresDatabaseSchemaNode;
+  /** Whether the control policy lets the plan act on an issue, by the same rule that filtered `issues`. */
+  readonly controlPolicyPlans: (issue: SchemaDiffIssue<SqlSchemaDiffNode>) => boolean;
   /**
    * Operation-class policy. `planIssues` filters calls whose `operationClass`
    * is not in `policy.allowedOperationClasses` and surfaces them as conflicts
@@ -1093,8 +1065,10 @@ export function planIssues(
     types: options.types,
     storageTypes: options.storageTypes,
     schema,
-    startTree: options.startTree ?? emptyTree(),
-    endTree: options.endTree ?? emptyTree(),
+    startTree: options.startTree,
+    endTree: options.endTree,
+    allIssues: options.issues,
+    controlPolicyPlans: options.controlPolicyPlans,
     policy,
     frameworkComponents,
     statementColumns: options.statementColumns ?? { convert: [], backfill: [] },
@@ -1106,13 +1080,13 @@ export function planIssues(
   let remaining = options.issues;
   const recipeCalls: PostgresOpFactoryCall[] = [];
   const bucketablePatternCalls: PostgresOpFactoryCall[] = [];
-  const replacedForeignKeys: ReplacedForeignKey[] = [];
+  const conflicts: SqlPlannerConflict[] = [];
 
   for (const strategy of strategies) {
     const result = strategy(remaining, context);
     if (result.kind === 'match') {
       remaining = result.issues;
-      replacedForeignKeys.push(...(result.replacedForeignKeys ?? []));
+      conflicts.push(...(result.conflicts ?? []));
       if (result.recipe) {
         recipeCalls.push(...result.calls);
       } else {
@@ -1129,7 +1103,6 @@ export function planIssues(
   const sorted = orderIssuesByDependencies(remaining);
 
   const defaultCalls: PostgresOpFactoryCall[] = [];
-  const conflicts: SqlPlannerConflict[] = [];
 
   for (const issue of sorted) {
     const result = mapNodeIssueToCall(issue, context);
@@ -1191,5 +1164,5 @@ export function planIssues(
     ...byCategory('rlsEnable'),
   ];
 
-  return ok({ calls, replacedForeignKeys });
+  return ok({ calls });
 }

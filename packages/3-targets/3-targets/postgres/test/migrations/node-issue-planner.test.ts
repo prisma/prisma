@@ -22,6 +22,7 @@ import {
   emptyRoot,
   makeContract,
   planFor,
+  planTrees,
   rootOf,
   type TableSpec,
 } from './node-issue-planner-fixtures';
@@ -452,6 +453,7 @@ describe('buildPostgresPlanDiff + planNodeIssues (one-differ path)', () => {
     expect(() =>
       planNodeIssues({
         issues: coalesceSubtreeIssues(issues),
+        ...planTrees(actual),
         toContract: contract,
         fromContract: contract,
         schemaName: 'public',
@@ -530,6 +532,8 @@ describe('mapNodeIssueToCall — synthesized namespace issue', () => {
       schema: undefined as never,
       startTree: emptyRoot(),
       endTree: emptyRoot(),
+      allIssues: [],
+      controlPolicyPlans: () => true,
       policy: { allowedOperationClasses: ['additive'] as const },
       frameworkComponents: postgresTypeComponents,
       statementColumns: { convert: [], backfill: [] },
@@ -707,6 +711,8 @@ describe('mapNodeIssueToCall — table rlsEnabled drift', () => {
     schema: undefined as never,
     startTree: emptyRoot(),
     endTree: emptyRoot(),
+    allIssues: [],
+    controlPolicyPlans: () => true,
     policy: { allowedOperationClasses: ['additive', 'widening', 'destructive'] as const },
     frameworkComponents: postgresTypeComponents,
     statementColumns: { convert: [], backfill: [] },
@@ -801,6 +807,7 @@ describe('operation-class gating of a RenameIndexCall', () => {
 
     const result = planNodeIssues({
       issues: coalesced,
+      ...planTrees(),
       toContract: contract,
       fromContract: null,
       schemaName: 'public',
@@ -855,6 +862,7 @@ describe('statement columns', () => {
     const seen: unknown[] = [];
     planNodeIssues({
       issues: [],
+      ...planTrees(),
       toContract: contract,
       fromContract: null,
       schemaName: 'public',
@@ -980,5 +988,53 @@ describe('a foreign key whose referential actions change', () => {
         },
       },
     ]);
+  });
+});
+
+describe('a primary key change without the primary key strategy', () => {
+  function liveUser(primaryKey: readonly string[] | undefined) {
+    return rootOf({
+      user: new PostgresTableSchemaNode({
+        name: 'user',
+        columns: {
+          id: { name: 'id', nativeType: 'uuid', nullable: false, resolvedNativeType: 'uuid' },
+          email: { name: 'email', nativeType: 'text', nullable: false, resolvedNativeType: 'text' },
+        },
+        ...(primaryKey === undefined ? {} : { primaryKey: { columns: [...primaryKey] } }),
+        foreignKeys: [],
+        uniques: [],
+        indexes: [],
+        policies: [],
+        rlsEnabled: false,
+      }),
+    });
+  }
+
+  it('adds a missing key', () => {
+    expect(
+      planFor(makeContract({ user: userTable }), liveUser(undefined)).map((c) => c.factoryName),
+    ).toEqual(['addPrimaryKey']);
+  });
+
+  it.each([
+    [
+      'a moved key',
+      makeContract({ user: { ...userTable, primaryKey: { columns: ['id', 'email'] } } }),
+    ],
+    [
+      'a removed key',
+      makeContract({
+        user: {
+          columns: userTable.columns,
+          foreignKeys: [],
+          uniques: [],
+          indexes: [],
+        },
+      }),
+    ],
+  ])('is refused for %s, which only the strategy plans', (_label, contract) => {
+    expect(() => planFor(contract, liveUser(['id']))).toThrow(
+      /"kind":"indexIncompatible","summary":"database\/public\/user\/primary-key"/,
+    );
   });
 });

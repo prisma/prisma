@@ -53,6 +53,14 @@ export function emptyRoot(): PostgresDatabaseSchemaNode {
   });
 }
 
+/** The whole start and end trees `planIssues` takes, with a control policy that plans every issue. */
+export function planTrees(
+  startTree: PostgresDatabaseSchemaNode = emptyRoot(),
+  endTree: PostgresDatabaseSchemaNode = emptyRoot(),
+) {
+  return { startTree, endTree, controlPolicyPlans: () => true };
+}
+
 export function rootOf(
   tables: Record<string, PostgresTableSchemaNode>,
 ): PostgresDatabaseSchemaNode {
@@ -87,8 +95,7 @@ export function planFor(contract: Contract<SqlStorage>, actual: PostgresDatabase
     codecHooks: new Map(),
     types: postgresTypeLookups,
     storageTypes: contract.storage.types ?? {},
-    startTree: actual,
-    endTree: expected,
+    ...planTrees(actual, expected),
     frameworkComponents: postgresTypeComponents,
     // The default per-issue mapper is what this suite pins — the real
     // strategy list is covered elsewhere (see module docstring).

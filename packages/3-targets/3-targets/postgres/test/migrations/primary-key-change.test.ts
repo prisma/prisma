@@ -3,19 +3,34 @@
  */
 import { asNamespaceId, type Contract, coreHash, profileHash } from '@internal/contract/types';
 import type { ExecuteRequestLowerer } from '@internal/family-sql/control-adapter';
-import { APP_SPACE_ID, type MigrationOperationClass } from '@internal/framework-components/control';
+import {
+  APP_SPACE_ID,
+  type MigrationOperationClass,
+  type SchemaDiffIssue,
+  type SchemaOwnership,
+} from '@internal/framework-components/control';
 import {
   type ReferentialAction,
   SqlStorage,
   StorageTable,
   type StorageTableInput,
 } from '@internal/sql-contract/types';
+import { RelationalSchemaNodeKind } from '@internal/sql-schema-ir/types';
 import { applicationDomainOf } from '@repo/test-utils';
 import { describe, expect, it } from 'vitest';
+import { buildPostgresPlanDiff } from '../../src/core/migrations/diff-database-schema';
+import {
+  type CallMigrationStrategy,
+  coalesceSubtreeIssues,
+  issueNode,
+  planIssues,
+} from '../../src/core/migrations/issue-planner';
 import { createPostgresMigrationPlanner } from '../../src/core/migrations/planner';
 import { postgresContractToSchema } from '../../src/core/migrations/postgres-contract-to-schema';
+import { primaryKeyChangeStrategy } from '../../src/core/migrations/primary-key-change';
 import { PostgresSchema } from '../../src/core/postgres-schema';
-import { postgresTypeComponents } from '../postgres-type-lookups';
+import { postgresTypeComponents, postgresTypeLookups } from '../postgres-type-lookups';
+import { planTrees } from './node-issue-planner-fixtures';
 
 const stubLowerer: ExecuteRequestLowerer = {
   lower: () => ({ sql: 'stub', params: [] }),
@@ -130,8 +145,8 @@ const entry = table({
   foreignKeys: [foreignKey({ namespace: 'audit', table: 'entry', columns: ['userId'] }, userRef)],
 });
 
-async function plannedOperations(from: Contract<SqlStorage>, to: Contract<SqlStorage>) {
-  const result = createPostgresMigrationPlanner(stubLowerer).plan({
+function plan(from: Contract<SqlStorage>, to: Contract<SqlStorage>, ownership?: SchemaOwnership) {
+  return createPostgresMigrationPlanner(stubLowerer).plan({
     contract: to,
     schema: postgresContractToSchema(from, postgresTypeComponents),
     policy: { allowedOperationClasses: [...ALL_CLASSES] },
@@ -141,7 +156,12 @@ async function plannedOperations(from: Contract<SqlStorage>, to: Contract<SqlSto
     frameworkComponents: postgresTypeComponents,
     spaceId: APP_SPACE_ID,
     snapshotsImportPath: '../../snapshots',
+    ...(ownership === undefined ? {} : { ownership }),
   });
+}
+
+async function plannedOperations(from: Contract<SqlStorage>, to: Contract<SqlStorage>) {
+  const result = plan(from, to);
   if (result.kind !== 'success') throw new Error(JSON.stringify(result));
   const operations = await Promise.all(result.plan.operations);
   return operations.map((operation) => operation.label);
@@ -269,6 +289,141 @@ describe('a primary key moved off a column the same plan drops', () => {
       'Drop constraint "tag_pkey" on "tag"',
       `Drop column "${oldColumn}" from "tag"`,
       'Add primary key on "tag"',
+    ]);
+  });
+});
+
+describe('a primary key change the plan cannot make', () => {
+  const why =
+    'Drop or change that foreign key yourself, then plan again, or use `migration new` to author a custom migration for this change.';
+
+  it('refuses when a foreign key on a table the control policy keeps the plan away from references the key', () => {
+    const externalEntry = { ...entry, control: 'external' as const };
+    const before = contractOf({
+      public: { user: user({ primaryKey: ['id'] }) },
+      audit: { entry: externalEntry },
+    });
+    const after = contractOf({
+      public: { user: user({ primaryKey: ['id', 'email'], uniques: [['id']] }) },
+      audit: { entry: externalEntry },
+    });
+
+    expect(plan(before, after)).toMatchObject({
+      kind: 'failure',
+      conflicts: [
+        {
+          kind: 'foreignKeyConflict',
+          summary:
+            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "entry_userId_fkey" on "audit"."entry" references it, and the control policy does not let this plan change "audit"."entry".',
+          why,
+          location: { entityKind: 'table', entityName: 'entry', constraint: 'entry_userId_fkey' },
+        },
+      ],
+    });
+  });
+
+  it('refuses when the end contract leaves out a referencing foreign key whose table the plan does not drop', () => {
+    const before = contractOf({ public: { user: user({ primaryKey: ['id'] }), post: post() } });
+    const after = contractOf({
+      public: { user: user({ primaryKey: ['id', 'email'], uniques: [['id']] }) },
+    });
+    const postOwnedElsewhere: SchemaOwnership = {
+      declaresEntity: (coordinate) => coordinate.entityName === 'post',
+    };
+
+    expect(plan(before, after, postOwnedElsewhere)).toMatchObject({
+      kind: 'failure',
+      conflicts: [
+        {
+          kind: 'foreignKeyConflict',
+          summary:
+            'Primary key "user_pkey" on "public"."user" cannot change while foreign key "post_authorId_fkey" on "public"."post" references it, and the end contract has no such foreign key while this plan does not drop "public"."post".',
+          why,
+          location: { entityKind: 'table', entityName: 'post', constraint: 'post_authorId_fkey' },
+        },
+      ],
+    });
+  });
+});
+
+describe('a composite primary key', () => {
+  it('drops and adds back a foreign key that lists the key columns in another order', async () => {
+    const account = (key: readonly string[], uniques: readonly (readonly string[])[]) =>
+      table({
+        columns: { tenantId: int4, id: int4, email: text },
+        primaryKey: { columns: [...key] },
+        uniques: uniques.map((columns) => ({ columns: [...columns] })),
+      });
+    const invoice = table({
+      columns: { id: int4, accountId: int4, accountTenantId: int4 },
+      primaryKey: { columns: ['id'] },
+      foreignKeys: [
+        foreignKey(
+          { namespace: 'public', table: 'invoice', columns: ['accountId', 'accountTenantId'] },
+          { namespace: 'public', table: 'account', columns: ['id', 'tenantId'] },
+        ),
+      ],
+    });
+    const before = contractOf({ public: { account: account(['tenantId', 'id'], []), invoice } });
+    const after = contractOf({
+      public: {
+        account: account(['tenantId', 'id', 'email'], [['id', 'tenantId']]),
+        invoice,
+      },
+    });
+
+    expect(await plannedOperations(before, after)).toEqual([
+      'Drop constraint "invoice_accountId_accountTenantId_fkey" on "invoice"',
+      'Drop constraint "account_pkey" on "account"',
+      'Add primary key on "account"',
+      'Add unique constraint on "account" (id, tenantId)',
+      'Add foreign key "invoice_accountId_accountTenantId_fkey" on "invoice"',
+    ]);
+  });
+});
+
+describe('a referencing foreign key an earlier strategy already planned', () => {
+  it('is not dropped a second time', () => {
+    const before = contractOf({ public: { user: user({ primaryKey: ['id'] }), post: post() } });
+    const after = contractOf({
+      public: {
+        user: user({ primaryKey: ['id', 'email'], uniques: [['id']] }),
+        post: post({ onDelete: 'cascade' }),
+      },
+    });
+    const start = postgresContractToSchema(before, postgresTypeComponents);
+    const { issues, expected } = buildPostgresPlanDiff({
+      contract: after,
+      actualSchema: start,
+      frameworkComponents: postgresTypeComponents,
+    });
+    const isForeignKeyIssue = (issue: SchemaDiffIssue) =>
+      issueNode(issue)?.nodeKind === RelationalSchemaNodeKind.foreignKey;
+    const takeForeignKeyIssues: CallMigrationStrategy = (strategyIssues) => ({
+      kind: 'match',
+      issues: strategyIssues.filter((issue) => !isForeignKeyIssue(issue)),
+      calls: [],
+    });
+
+    const result = planIssues({
+      issues: coalesceSubtreeIssues(issues),
+      ...planTrees(start, expected),
+      toContract: after,
+      fromContract: before,
+      schemaName: 'public',
+      codecHooks: new Map(),
+      types: postgresTypeLookups,
+      storageTypes: {},
+      strategies: [takeForeignKeyIssues, primaryKeyChangeStrategy],
+    });
+
+    if (!result.ok) throw new Error(JSON.stringify(result.failure));
+    expect(result.value.calls.map((call) => call.label)).toEqual([
+      'Drop constraint "user_managerId_fkey" on "user"',
+      'Drop constraint "user_pkey" on "user"',
+      'Add primary key on "user"',
+      'Add unique constraint on "user" (id)',
+      'Add foreign key "user_managerId_fkey" on "user"',
     ]);
   });
 });

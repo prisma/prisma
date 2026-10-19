@@ -1,16 +1,5 @@
 /**
- * Prisma 8 takes over migrations from the Prisma 7 schema. On a database
- * Prisma 7 built, Prisma 8 signs, then plans and applies three edits made to
- * `prisma/schema.prisma` in the Prisma 7 dialect: an additive one, a
- * destructive one, and one that gives an existing column an autoincrement
- * default and names a foreign key with `map`. Then it marks a field `@ignore`
- * and a model `@@ignore`, and removes them again; neither edit changes the
- * storage hash or plans a migration. A fifth edit moves `User`'s primary key
- * and makes deleting a post delete its comments. After each, `db verify --strict`
- * passes with nothing unclaimed, Prisma 7 sees no drift,
- * and the clients read the new shape. Finally the migrations replay onto an
- * empty database, which verifies strictly with nothing unclaimed and has the
- * same primary key and foreign key names as the database Prisma 7 built.
+ * Prisma 8 takes over migrations from the Prisma 7 schema. On a database Prisma 7 built, Prisma 8 signs, then plans and applies three edits made to `prisma/schema.prisma` in the Prisma 7 dialect: an additive one, a destructive one, and one that gives an existing column an autoincrement default and names a foreign key with `map`. Then it marks a field `@ignore` and a model `@@ignore`, and removes them again; neither edit changes the storage hash or plans a migration. A fifth edit moves `User`'s primary key and makes deleting a post delete its comments. After each, `db verify --strict` passes with nothing unclaimed, Prisma 7 sees no drift, and the clients read the new shape. Finally the migrations replay onto an empty database, which verifies strictly with nothing unclaimed and has the same primary key and foreign key names as the database Prisma 7 built.
  */
 import { cpSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { timeouts, withClient, withDevDatabase } from '@repo/test-utils';
