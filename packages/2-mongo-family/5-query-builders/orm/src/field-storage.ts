@@ -51,8 +51,17 @@ export function fieldStorageOf(
   modelName: string,
   variantModelName?: string,
 ): FieldStorage {
-  return fieldStorageIn(mongoModels(contract), modelName, variantModelName, new Set());
+  const cache = cachedFieldStorage.get(contract) ?? new Map<string, FieldStorage>();
+  cachedFieldStorage.set(contract, cache);
+  const key = JSON.stringify([modelName, variantModelName ?? null]);
+  const cached = cache.get(key);
+  if (cached !== undefined) return cached;
+  const storage = fieldStorageIn(mongoModels(contract), modelName, variantModelName, new Set());
+  cache.set(key, storage);
+  return storage;
 }
+
+const cachedFieldStorage = new WeakMap<MongoContract, Map<string, FieldStorage>>();
 
 function fieldStorageIn(
   models: Readonly<Record<string, MongoModelDefinition>>,
