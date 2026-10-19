@@ -58,7 +58,7 @@ export async function columnTypeStep(
       : columnTypeCheckAst(location, check),
   );
   return step(
-    `verify column "${location.column}" has type "${check === undefined ? type : columnTypeCheckText(check)}"`,
+    `verify column "${location.column}" has type ${check === undefined ? `"${type}"` : columnTypeCheckText(check)}`,
     lowered.sql,
     lowered.params,
   );
@@ -223,7 +223,7 @@ export async function alterColumnType(
     ],
     postcheck: [
       step(
-        `verify column "${columnName}" has type "${columnTypeCheckText(options.checkType)}"`,
+        `verify column "${columnName}" has type ${columnTypeCheckText(options.checkType)}`,
         typeCheck.sql,
         typeCheck.params,
       ),

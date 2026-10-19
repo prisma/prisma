@@ -70,9 +70,11 @@ export type ColumnTypeCheck =
   | { readonly kind: 'catalog-text'; readonly text: string }
   | { readonly kind: 'identity'; readonly typeName: string; readonly many: boolean };
 
-/** The text a postcheck's description names the type it checks with. */
+/** How a postcheck's description names the type it checks: catalog text in double quotes, and an enum by its quoted name, which carries its own quotes. */
 export function columnTypeCheckText(check: ColumnTypeCheck): string {
-  return check.kind === 'catalog-text' ? check.text : `${check.typeName}${check.many ? '[]' : ''}`;
+  return check.kind === 'catalog-text'
+    ? `"${check.text}"`
+    : `${check.typeName}${check.many ? '[]' : ''}`;
 }
 
 /**

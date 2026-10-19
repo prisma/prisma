@@ -7,6 +7,7 @@ import {
   renderSqlTypeName,
   type SqlDataType,
   type SqlTypeParams,
+  sqlDataType,
 } from '@internal/sql-contract/data-type';
 import { postgresDataTypes } from '@internal/target-postgres/data-types';
 import { AlterColumnTypeCall } from '@internal/target-postgres/op-factory-call';
@@ -80,7 +81,7 @@ describe('the ALTER COLUMN TYPE postcheck', { concurrent: false }, () => {
   }, testTimeout);
 
   /** Changes a column of `from` to `type`, returning whether the postcheck held before and after the change. */
-  async function changeColumn(from: string, type: string) {
+  async function changeColumn(from: string, type: string, dataTypes = postgresDataTypes) {
     await driver!.query('DROP TABLE IF EXISTS "t"');
     await driver!.query(`CREATE TABLE "t" (id int4 PRIMARY KEY, c ${from})`);
     const op = await new AlterColumnTypeCall({
@@ -90,7 +91,7 @@ describe('the ALTER COLUMN TYPE postcheck', { concurrent: false }, () => {
       columnName: 'c',
       type,
       using: { kind: 'sql', sql: 'NULL' },
-      dataTypes: postgresDataTypes,
+      dataTypes,
     }).toOp(controlAdapter);
     const postcheck = async () => {
       const results = await Promise.all(
@@ -139,6 +140,27 @@ describe('the ALTER COLUMN TYPE postcheck', { concurrent: false }, () => {
       });
     }
     expect(results.filter(({ before, after }) => before || !after)).toEqual([]);
+  });
+
+  it('recognises a type a pack declares, by the catalog text its data type declares', {
+    timeout: testTimeout,
+  }, async () => {
+    await driver!.query('CREATE EXTENSION IF NOT EXISTS vector');
+    const vector = sqlDataType('testpack/vector', {
+      read: (json) => json,
+      params: arktype({ length: 'number.integer >= 1' }),
+      texts: [{ text: 'vector({length})', written: true, catalog: true }],
+    });
+    const dataTypes = [...postgresDataTypes, vector];
+    expect({
+      fromInt: await changeColumn('int4', 'vector(3)', dataTypes),
+      length: await changeColumn('vector(2)', 'vector(3)', dataTypes),
+      list: await changeColumn('int4[]', 'vector(3)[]', dataTypes),
+    }).toEqual({
+      fromInt: { before: false, after: true },
+      length: { before: false, after: true },
+      list: { before: false, after: true },
+    });
   });
 
   it('recognises an enum in another schema while that schema is on the search path', {
