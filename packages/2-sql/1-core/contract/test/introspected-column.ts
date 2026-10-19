@@ -17,6 +17,6 @@ export function introspectedColumn(
     ...column,
     ...(resolved === undefined || type === undefined
       ? {}
-      : { dataType: type, storedType: type, typeParams: resolved.typeParams }),
+      : { storedType: type, storedTypeParams: resolved.typeParams }),
   };
 }

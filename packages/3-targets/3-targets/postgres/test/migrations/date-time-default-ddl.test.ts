@@ -17,7 +17,7 @@ function column(value: string | readonly (string | null)[] | null, many: boolean
     resolvedDefault: { kind: 'literal', value },
     codecRef: { codecId: 'pg/timestamptz-temporal@1', ...(many ? { many: true } : {}) },
     storedType: pgTimestamptz,
-    typeParams: {},
+    storedTypeParams: {},
   });
 }
 

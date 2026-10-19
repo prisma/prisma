@@ -86,7 +86,7 @@ function column(storedType: DataType, codecId: string, typeParams?: Record<strin
     typeText: 'text',
     nullable: false,
     storedType,
-    typeParams: {},
+    storedTypeParams: {},
     codecRef: { codecId, ...(typeParams === undefined ? {} : { typeParams }) },
   });
 }

@@ -100,7 +100,7 @@ describe('SqlColumnIR', () => {
         typeText: 'text',
         nullable: false,
         storedType: text,
-        typeParams: {},
+        storedTypeParams: {},
         ...input,
       });
 
@@ -112,21 +112,21 @@ describe('SqlColumnIR', () => {
       const contract = column({
         typeText: 'character varying(20)',
         storedType: varchar,
-        typeParams: { length: 20 },
+        storedTypeParams: { length: 20 },
       });
       const database = column({
         typeText: 'varchar(20)',
         storedType: varchar,
-        typeParams: { length: 20 },
+        storedTypeParams: { length: 20 },
         reportedType: reported('varchar(20)'),
       });
       expect(contract.isEqualTo(database)).toBe(true);
     });
 
     it('compares parameters as canonical JSON', () => {
-      const a = column({ storedType: numeric, typeParams: { precision: 10, scale: 0 } });
-      const b = column({ storedType: numeric, typeParams: { scale: 0, precision: 10 } });
-      const c = column({ storedType: numeric, typeParams: { precision: 10, scale: 2 } });
+      const a = column({ storedType: numeric, storedTypeParams: { precision: 10, scale: 0 } });
+      const b = column({ storedType: numeric, storedTypeParams: { scale: 0, precision: 10 } });
+      const c = column({ storedType: numeric, storedTypeParams: { precision: 10, scale: 2 } });
       expect({ same: a.isEqualTo(b), other: a.isEqualTo(c) }).toEqual({ same: true, other: false });
     });
 
@@ -160,7 +160,7 @@ describe('SqlColumnIR', () => {
         typeText: 'text',
         nullable: false,
         storedType: text,
-        typeParams: {},
+        storedTypeParams: {},
         ...input,
       });
 
@@ -233,7 +233,7 @@ describe('SqlColumnIR', () => {
 
     it('carries the type the database reports, outside JSON and equality', () => {
       const numeric = dataType('t/numeric', { read: (json) => json });
-      const typed = { storedType: numeric, typeParams: {} };
+      const typed = { storedType: numeric, storedTypeParams: {} };
       const column = new SqlColumnIR({
         name: 'price',
         typeText: 'numeric',
@@ -265,17 +265,17 @@ describe('SqlColumnIR', () => {
         typeText: 'numeric',
         nullable: false,
         storedType: numeric,
-        typeParams: { precision: 10, scale: 0 },
+        storedTypeParams: { precision: 10, scale: 0 },
       });
       const bare = new SqlColumnIR({ name: 'price', typeText: 'numeric', nullable: false });
 
       expect({
         storedType: column.storedType,
-        typeParams: column.typeParams,
+        storedTypeParams: column.storedTypeParams,
         json: JSON.stringify(column),
       }).toEqual({
         storedType: numeric,
-        typeParams: { precision: 10, scale: 0 },
+        storedTypeParams: { precision: 10, scale: 0 },
         json: JSON.stringify(bare),
       });
     });
@@ -296,7 +296,7 @@ describe('SqlColumnIR', () => {
         authoredDefault: { kind: 'literal', value: 'draft' },
         codecRef: { codecId: 't/text@1' },
         storedType: text,
-        typeParams: {},
+        storedTypeParams: {},
         defaultValue: value,
         defaultUnreadable: 'why',
         defaultExpressionValue: value,

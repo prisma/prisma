@@ -210,5 +210,5 @@ export function createSchemaTable(
 function introspectedType(typeText: string) {
   const type = testTypeLookups.dataTypeLookup.get(`pg/${typeText}`);
   if (type === undefined) throw new Error(`no test data type pg/${typeText}`);
-  return { dataType: type, storedType: type, typeParams: {} };
+  return { storedType: type, storedTypeParams: {} };
 }

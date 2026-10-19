@@ -96,7 +96,7 @@ function convertColumn(
     // reading a derivation-precomputed render payload.
     codecRef: buildColumnCodecRef(resolved, many ? true : undefined),
     storedType: storage,
-    typeParams: storage.sql.normalize(dataTypeParams(storage, resolved.typeParams)),
+    storedTypeParams: storage.sql.normalize(dataTypeParams(storage, resolved.typeParams)),
     ...ifDefined(
       'defaultValue',
       rawColumnDefault?.kind === 'literal' && rawColumnDefault.value instanceof Date

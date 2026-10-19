@@ -112,7 +112,7 @@ export function columnType(column: SqlColumnIR, types: TypeLookups): ColumnType 
 function introspectedColumnType(column: SqlColumnIR): ColumnType | undefined {
   return column.storedType === undefined
     ? undefined
-    : { dataType: column.storedType.id, params: column.typeParams ?? {} };
+    : { dataType: column.storedType.id, params: column.storedTypeParams ?? {} };
 }
 
 /**

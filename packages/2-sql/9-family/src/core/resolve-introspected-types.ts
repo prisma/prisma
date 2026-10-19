@@ -8,11 +8,11 @@ import type { ReportedSqlType, SqlColumnIRInput } from '@internal/sql-schema-ir/
 export function resolveIntrospectedColumnType(
   reported: ReportedSqlType,
   dataTypes: readonly DataType[],
-): Pick<SqlColumnIRInput, 'storedType' | 'typeParams'> {
+): Pick<SqlColumnIRInput, 'storedType' | 'storedTypeParams'> {
   const resolved = resolveReportedSqlType(reported, dataTypes);
   const dataType =
     resolved === undefined ? undefined : dataTypes.find((type) => type.id === resolved.dataType);
   return resolved === undefined || dataType === undefined
     ? {}
-    : { storedType: dataType, typeParams: resolved.typeParams };
+    : { storedType: dataType, storedTypeParams: resolved.typeParams };
 }

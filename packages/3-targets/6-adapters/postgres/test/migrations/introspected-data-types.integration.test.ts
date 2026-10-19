@@ -69,52 +69,52 @@ describe('introspected column data types', { concurrent: false }, () => {
           name,
           {
             storedType: column.storedType?.id,
-            typeParams: column.typeParams,
+            storedTypeParams: column.storedTypeParams,
             many: column.many ?? false,
           },
         ]),
       ),
     ).toEqual({
-      id: { storedType: 'pg/int4', typeParams: {}, many: false },
+      id: { storedType: 'pg/int4', storedTypeParams: {}, many: false },
       name: {
         storedType: 'pg/varchar',
-        typeParams: { length: 20 },
+        storedTypeParams: { length: 20 },
         many: false,
       },
-      short_name: { storedType: 'pg/varchar', typeParams: {}, many: false },
+      short_name: { storedType: 'pg/varchar', storedTypeParams: {}, many: false },
       amount: {
         storedType: 'pg/numeric',
-        typeParams: { precision: 10, scale: 0 },
+        storedTypeParams: { precision: 10, scale: 0 },
         many: false,
       },
       price: {
         storedType: 'pg/numeric',
-        typeParams: { precision: 10, scale: 2 },
+        storedTypeParams: { precision: 10, scale: 2 },
         many: false,
       },
       created: {
         storedType: 'pg/timestamptz',
-        typeParams: { precision: 3 },
+        storedTypeParams: { precision: 3 },
         many: false,
       },
-      tags: { storedType: 'pg/text', typeParams: {}, many: true },
+      tags: { storedType: 'pg/text', storedTypeParams: {}, many: true },
       mood: {
         storedType: 'pg/enum',
-        typeParams: { typeName: 'mood' },
+        storedTypeParams: { typeName: 'mood' },
         many: false,
       },
       status: {
         storedType: 'pg/enum',
-        typeParams: { typeName: 'app.status' },
+        storedTypeParams: { typeName: 'app.status' },
         many: false,
       },
       moods: {
         storedType: 'pg/enum',
-        typeParams: { typeName: 'mood' },
+        storedTypeParams: { typeName: 'mood' },
         many: true,
       },
-      count: { storedType: undefined, typeParams: undefined, many: false },
-      pair: { storedType: undefined, typeParams: undefined, many: false },
+      count: { storedType: undefined, storedTypeParams: undefined, many: false },
+      pair: { storedType: undefined, storedTypeParams: undefined, many: false },
     });
   });
 });

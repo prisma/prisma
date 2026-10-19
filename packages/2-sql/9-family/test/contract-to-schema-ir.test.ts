@@ -352,7 +352,7 @@ describe('contractToSchemaIR', () => {
       }),
     );
     expect('codecId' in columnA).toBe(false);
-    expect(columnA.typeParams).toEqual({});
+    expect(columnA.storedTypeParams).toEqual({});
     expect('typeRef' in columnA).toBe(false);
     expect(columnB).toEqual(
       new SqlColumnIR({
@@ -362,7 +362,7 @@ describe('contractToSchemaIR', () => {
       }),
     );
     expect('codecId' in columnB).toBe(false);
-    expect(columnB.typeParams).toEqual({});
+    expect(columnB.storedTypeParams).toEqual({});
     expect('typeRef' in columnB).toBe(false);
   });
 
@@ -428,24 +428,24 @@ describe('contractToSchemaIR', () => {
           name,
           {
             storedType: column.storedType?.id,
-            typeParams: column.typeParams,
+            storedTypeParams: column.storedTypeParams,
           },
         ]),
       ),
     ).toEqual({
       whole: {
         storedType: 'test/numeric',
-        typeParams: { precision: 10, scale: 0 },
+        storedTypeParams: { precision: 10, scale: 0 },
       },
       bare: {
         storedType: 'test/fixed-character',
-        typeParams: { length: 1 },
+        storedTypeParams: { length: 1 },
       },
-      name: { storedType: 'test/text', typeParams: {} },
-      mood: { storedType: 'test/enum', typeParams: { typeName: 'Mood' } },
+      name: { storedType: 'test/text', storedTypeParams: {} },
+      mood: { storedType: 'test/enum', storedTypeParams: { typeName: 'Mood' } },
       code: {
         storedType: 'test/fixed-character',
-        typeParams: { length: 1 },
+        storedTypeParams: { length: 1 },
       },
     });
   });

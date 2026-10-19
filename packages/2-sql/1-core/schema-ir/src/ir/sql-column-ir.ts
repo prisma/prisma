@@ -70,8 +70,8 @@ export interface SqlColumnIRInput {
    * The type the column is stored as, whose name DDL writes and the database reports (ADR 254): on the contract-derived side the type its codec's data type is stored as, on the introspected side the type that claims the reported type. Absent on an introspected column no data type claims.
    */
   readonly storedType?: DataType;
-  /** The parameters of {@link storedType} in its normal form; empty for a type without parameters. Present exactly when `storedType` is. */
-  readonly typeParams?: DataTypeParams;
+  /** The parameters of {@link storedType} in its normal form, for comparing; empty for a type without parameters. Present exactly when `storedType` is. DDL writes the parameters as written, from {@link codecRef}. */
+  readonly storedTypeParams?: DataTypeParams;
   /**
    * A literal default as a value of the column's data type (ADR 254): on the contract-derived side read from the contract by the column's type, on the introspected side read from the database by the column's codec. The diff compares defaults by it. Absent when no type or codec read one.
    */
@@ -115,8 +115,8 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
   declare readonly codecRef?: CodecRef;
   /** See {@link SqlColumnIRInput.storedType}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly storedType?: DataType;
-  /** See {@link SqlColumnIRInput.typeParams}. Non-enumerable, same reason as {@link codecRef}. */
-  declare readonly typeParams?: DataTypeParams;
+  /** See {@link SqlColumnIRInput.storedTypeParams}. Non-enumerable, same reason as {@link codecRef}. */
+  declare readonly storedTypeParams?: DataTypeParams;
   /** See {@link SqlColumnIRInput.defaultValue}. Non-enumerable, same reason as {@link codecRef}. */
   declare readonly defaultValue?: SqlDefaultValue;
   /** See {@link SqlColumnIRInput.defaultUnreadable}. Non-enumerable, same reason as {@link codecRef}. */
@@ -138,7 +138,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
     defineNonEnumerable(this, 'authoredDefault', input.authoredDefault);
     defineNonEnumerable(this, 'codecRef', input.codecRef);
     defineNonEnumerable(this, 'storedType', input.storedType);
-    defineNonEnumerable(this, 'typeParams', input.typeParams);
+    defineNonEnumerable(this, 'storedTypeParams', input.storedTypeParams);
     defineNonEnumerable(this, 'defaultValue', input.defaultValue);
     defineNonEnumerable(this, 'defaultUnreadable', input.defaultUnreadable);
     defineNonEnumerable(this, 'defaultExpressionValue', input.defaultExpressionValue);
@@ -232,7 +232,7 @@ export class SqlColumnIR extends SqlSchemaIRNode implements DiffableNode {
 }
 
 /** The parts of a column that make its type. */
-export type SqlColumnType = Pick<SqlColumnIR, 'storedType' | 'typeParams' | 'many'>;
+export type SqlColumnType = Pick<SqlColumnIR, 'storedType' | 'storedTypeParams' | 'many'>;
 
 /**
  * Whether two columns have the same type: both have a stored type, the two are one data type, their parameters are equal as canonical JSON, and both or neither are lists. A column no data type claims has no stored type and never has the same type as another. ADR 254.
@@ -242,7 +242,7 @@ export function sqlColumnTypesEqual(a: SqlColumnType, b: SqlColumnType): boolean
     a.storedType !== undefined &&
     b.storedType !== undefined &&
     a.storedType.id === b.storedType.id &&
-    canonicalizeJson(a.typeParams ?? {}) === canonicalizeJson(b.typeParams ?? {}) &&
+    canonicalizeJson(a.storedTypeParams ?? {}) === canonicalizeJson(b.storedTypeParams ?? {}) &&
     Boolean(a.many) === Boolean(b.many)
   );
 }

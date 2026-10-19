@@ -8,7 +8,7 @@ import { SqlSchemaIR } from '../src/ir/sql-schema-ir';
 import { SqlTableIR } from '../src/ir/sql-table-ir';
 import { SqlUniqueIR } from '../src/ir/sql-unique-ir';
 
-const int4Type = { storedType: dataType('t/int4', { read: (json) => json }), typeParams: {} };
+const int4Type = { storedType: dataType('t/int4', { read: (json) => json }), storedTypeParams: {} };
 
 const annotations = { 'prisma/rls': { enabled: true } };
 

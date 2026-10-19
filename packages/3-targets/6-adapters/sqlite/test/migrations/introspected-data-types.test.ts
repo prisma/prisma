@@ -36,22 +36,22 @@ describe('introspected column data types', () => {
           name,
           {
             storedType: column.storedType?.id,
-            typeParams: column.typeParams,
+            storedTypeParams: column.storedTypeParams,
           },
         ]),
       ),
     ).toEqual({
-      id: { storedType: 'sqlite/integer', typeParams: {} },
-      name: { storedType: 'sqlite/text', typeParams: {} },
-      ratio: { storedType: 'sqlite/real', typeParams: {} },
-      payload: { storedType: 'sqlite/blob', typeParams: {} },
-      code: { storedType: 'sqlite/character', typeParams: {} },
+      id: { storedType: 'sqlite/integer', storedTypeParams: {} },
+      name: { storedType: 'sqlite/text', storedTypeParams: {} },
+      ratio: { storedType: 'sqlite/real', storedTypeParams: {} },
+      payload: { storedType: 'sqlite/blob', storedTypeParams: {} },
+      code: { storedType: 'sqlite/character', storedTypeParams: {} },
       label: {
         storedType: 'sqlite/character-varying',
-        typeParams: {},
+        storedTypeParams: {},
       },
-      sized: { storedType: undefined, typeParams: undefined },
-      amount: { storedType: undefined, typeParams: undefined },
+      sized: { storedType: undefined, storedTypeParams: undefined },
+      amount: { storedType: undefined, storedTypeParams: undefined },
     });
   });
 });

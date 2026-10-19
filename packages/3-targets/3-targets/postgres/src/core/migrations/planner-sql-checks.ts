@@ -107,7 +107,7 @@ export function writtenColumnType(
 ): SqlColumnType | undefined {
   const read = readWrittenType(type, dataTypes);
   return read.ok
-    ? { storedType: read.type, typeParams: read.typeParams, many: read.many }
+    ? { storedType: read.type, storedTypeParams: read.typeParams, many: read.many }
     : undefined;
 }
 

@@ -23,7 +23,7 @@ changes:
         - '\b(?:introspectedNativeType|IntrospectedNativeType|CatalogColumnType)\b'
   - id: schema-ir-column-type-text
     summary: |
-      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. A column's type is its `dataType`, `storedType` and `typeParams`; `typeText` is for display only. A column built by hand compares equal to another only when it has `dataType`, `storedType` and `typeParams`.
+      `SqlColumnIR` and `SqlColumnIRInput` (`@prisma/orm-family-sql/schema-ir/types`): `nativeType` is renamed `typeText`, and `resolvedNativeType` and `codecBaseNativeType` are removed. A column's type is its `storedType` and `storedTypeParams`; `typeText` is for display only. A column built by hand compares equal to another only when it has `storedType` and `storedTypeParams`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
@@ -77,7 +77,7 @@ function storageTypeOf(codecId: string, lookups: TypeLookups) {}
 
 ## `type-name-normalisers-removed`
 
-`normalizeSchemaNativeType` and `normalizeSqliteNativeType` are gone. If you used them to decide whether two columns have the same type, compare the columns' data types instead, with `sqlColumnTypesEqual(a, b)` from `@prisma/orm-family-sql/schema-ir/types`: two columns have the same type when both have a `storedType`, the two are one data type, their `typeParams` are equal, and both or neither are lists.
+`normalizeSchemaNativeType` and `normalizeSqliteNativeType` are gone. If you used them to decide whether two columns have the same type, compare the columns' data types instead, with `sqlColumnTypesEqual(a, b)` from `@prisma/orm-family-sql/schema-ir/types`: two columns have the same type when both have a `storedType`, the two are one data type, their `storedTypeParams` are equal, and both or neither are lists.
 
 ## `introspected-type-text`
 
@@ -108,13 +108,12 @@ new SqlColumnIR({
   name: 'id',
   typeText: 'int4',
   nullable: false,
-  dataType: pgInt4,
   storedType: pgInt4,
-  typeParams: {},
+  storedTypeParams: {},
 });
 ```
 
-A column with no `storedType` is one no data type claims, and it never compares equal to another, so a column a test builds by hand to compare needs `dataType`, `storedType` and `typeParams`: the data type, the type it is stored as (the same one unless that type is stored as another), and the type's parameters in normal form, such as `{ precision: 10, scale: 0 }` for `numeric(10)`.
+A column with no `storedType` is one no data type claims, and it never compares equal to another, so a column a test builds by hand to compare needs `storedType` and `storedTypeParams`: the data type the column is stored as (the type its codec represents, unless that type is stored as another), and that type's parameters in normal form, such as `{ precision: 10, scale: 0 }` for `numeric(10)`. `storedTypeParams` is only for comparing; DDL writes the parameters as written, from `codecRef.typeParams`.
 
 Read `column.typeText` where you read `column.nativeType`. Code that compared `resolvedNativeType` compares types with `sqlColumnTypesEqual` instead. Code that read `codecBaseNativeType` to write DDL writes the type from `column.storedType` and the parameters in `column.codecRef.typeParams`, with `renderSqlTypeName` from `@prisma/orm-family-sql/contract/data-type`.
 

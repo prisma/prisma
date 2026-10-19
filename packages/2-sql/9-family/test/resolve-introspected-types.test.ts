@@ -43,13 +43,13 @@ const reported = (text: string, kind?: string): ReportedSqlType => ({
 });
 
 function resolved(reportedType: ReportedSqlType, dataTypes = baseTypes) {
-  const { storedType, typeParams } = resolveIntrospectedColumnType(reportedType, dataTypes);
-  return { storedType: storedType?.id, typeParams };
+  const { storedType, storedTypeParams } = resolveIntrospectedColumnType(reportedType, dataTypes);
+  return { storedType: storedType?.id, storedTypeParams };
 }
 
 describe('resolveIntrospectedColumnType', () => {
   it('gives a base type its stored type and no parameters', () => {
-    expect(resolved(reported('text'))).toEqual({ storedType: 'test/text', typeParams: {} });
+    expect(resolved(reported('text'))).toEqual({ storedType: 'test/text', storedTypeParams: {} });
   });
 
   it('is stored as the type that claims it', () => {
@@ -62,15 +62,15 @@ describe('resolveIntrospectedColumnType', () => {
       short: resolved(reported('numeric(10)')),
       long: resolved(reported('NUMERIC(10, 0)')),
     }).toEqual({
-      short: { storedType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
-      long: { storedType: 'test/numeric', typeParams: { precision: 10, scale: 0 } },
+      short: { storedType: 'test/numeric', storedTypeParams: { precision: 10, scale: 0 } },
+      long: { storedType: 'test/numeric', storedTypeParams: { precision: 10, scale: 0 } },
     });
   });
 
   it('gives a type of a kind the parameters its claimant reads from the report', () => {
     expect(resolved(reported('mood', 'enum'))).toEqual({
       storedType: 'test/enum',
-      typeParams: { typeName: 'mood' },
+      storedTypeParams: { typeName: 'mood' },
     });
   });
 
@@ -86,8 +86,8 @@ describe('resolveIntrospectedColumnType', () => {
       with: resolved(reported('thing(3)'), [...baseTypes, thing]),
       without: resolved(reported('thing(3)')),
     }).toEqual({
-      with: { storedType: 'testext/thing', typeParams: { size: 3 } },
-      without: { storedType: undefined, typeParams: undefined },
+      with: { storedType: 'testext/thing', storedTypeParams: { size: 3 } },
+      without: { storedType: undefined, storedTypeParams: undefined },
     });
   });
 });
