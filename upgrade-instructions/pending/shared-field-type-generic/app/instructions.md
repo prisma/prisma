@@ -14,14 +14,14 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*orm-mongo/contract-builder)[\s\S]*(\.many\(|field\.valueObject\(|field\.vector\()'
+        - '(?<![\s\S])(?=[\s\S]*orm-mongo/contract-builder)[\s\S]*(\.many\(|\.valueObject\(|\.vector\()'
   - id: mongo-define-contract-factory-field-types
     summary: |
       `defineContract(scaffold, factory)` from `@prisma/orm-mongo/contract-builder` typed every codec, and so every field, row and create input, as `never`, because the scaffold's forbidden `family` and `target` keys made the whole definition type `never`. The contract type now leaves them out, so fields have their codec types. Code that compiled only because a field was `never`, such as assigning a row field to an unrelated type, now fails to typecheck. The detection matches the factory form of the Mongo `defineContract`.
     detection:
       glob: "**/*.{ts,mts,cts,tsx}"
       matches:
-        - '(?<![\s\S])(?=[\s\S]*orm-mongo/contract-builder)[\s\S]*defineContract\(\s*\{[^}]*\}\s*,'
+        - '(?<![\s\S])(?=[\s\S]*orm-mongo/contract-builder)[\s\S]*defineContract\(\s*(?:\w+|\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\})\s*,\s*(?:\(|function\b|\w+\s*=>)'
   - id: value-object-enum-fields-narrow
     summary: |
       An enum field inside a value object (a composite type in PSL) now reads and writes the members of its enum, in an emitted `contract.d.ts` and in a contract built with `defineContract`, as an enum field of a model does. Before, the emitted contract typed it as its codec's type, such as `string`. A value object field whose codec renders its own type text, such as `arktype/json@1`, has that type, as before this change. Code that assigns an arbitrary string to such a field now fails to typecheck. Re-emit `contract.d.ts`. The detection matches PSL sources with a composite type that has a field of an enum declared in the same file (an enum in another file of a multi-file schema is not found), and TypeScript value objects whose fields include an enum field, also in the factory form of `defineContract` with renamed helpers.

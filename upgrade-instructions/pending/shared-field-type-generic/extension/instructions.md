@@ -13,7 +13,7 @@ changes:
     detection:
       glob: "**/*.{ts,mts,cts}"
       matches:
-        - 'import type \{[^}]*\b(FieldTypesFromDomain|ValueTypeSide)\b[^}]*\} from ''[^'']*(sql-contract|family-sql/contract|family-contract)/types'''
+        - 'import type \{[^}]*\b(FieldTypesFromDomain|ValueTypeSide)\b[^}]*\} from [''"][^''"]*(sql-contract|family-sql/contract|family-contract)/types[''"]'
   - id: resolve-field-value-set-renamed
     summary: |
       `EmissionSpi.resolveFieldValueSet` is renamed `resolveStorageValueSet`. The framework emitter now reads a field's value set itself when the field references a domain enum (`valueSet.plane` is `'domain'`), for model and value object fields alike, and no longer calls the hook for those fields. It calls `resolveStorageValueSet` only for other model fields, whose values the family keeps in its storage, such as a SQL column's value set. Rename the hook in a family emitter, and drop any handling of domain enum references from it. The detection matches implementations of the old hook.
